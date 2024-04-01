@@ -97,11 +97,14 @@ export class VmTrackerChart {
     if (isExistsDma[0].data_exists) {
       await this.initDmaRow();
     }
+    await this.initGpuData();
+  }
+
+  private async initGpuData() {
     const isExistsGpuMemory = await queryisExistsGpuMemoryData(this.memoryConfig.iPid);
     const isExistsGpuResource = await queryisExistsGpuResourceData(this.scratchId);
     const isExistsGraph = await queryisExistsGpuData(MemoryConfig.getInstance().iPid, "'mem.graph_pss'");
     const isExistsGl = await queryisExistsGpuData(MemoryConfig.getInstance().iPid, "'mem.gl_pss'");
-
     if (
       // @ts-ignore
       isExistsGpuMemory[0].data_exists ||
@@ -445,6 +448,11 @@ export class VmTrackerChart {
         }
       ),
     ];
+    this.addHandleEventByGpuTotalRow(gpuTotalRow);
+    this.gpuFolder.addChildTraceRow(gpuTotalRow);
+  }
+
+  private addHandleEventByGpuTotalRow(gpuTotalRow: TraceRow<SnapshotStruct>): void {
     gpuTotalRow.onRowSettingChangeHandler = (setting): void => {
       if (setting && setting.length > 0) {
         gpuTotalRow.dataListCache = [];
@@ -461,7 +469,6 @@ export class VmTrackerChart {
         return gpuTotalData;
       });
     };
-    this.gpuFolder.addChildTraceRow(gpuTotalRow);
   }
 
   private async addGpuWindowRow(): Promise<void> {
@@ -501,6 +508,11 @@ export class VmTrackerChart {
     gpuWindowRow.rowSetting = 'enable';
     gpuWindowRow.rowSettingList = settings;
     gpuWindowRow.addTemplateTypes('sys-memory');
+    this.addHandleEventByGpuWindowRow(gpuWindowRow);
+    this.gpuFolder.addChildTraceRow(gpuWindowRow);
+  }
+
+  private addHandleEventByGpuWindowRow(gpuWindowRow: TraceRow<SnapshotStruct>): void {
     gpuWindowRow.onRowSettingChangeHandler = (setting) => {
       if (setting && setting.length > 0) {
         let split = setting[0].split('-');
@@ -521,7 +533,6 @@ export class VmTrackerChart {
         }
       );
     };
-    this.gpuFolder.addChildTraceRow(gpuWindowRow);
   }
 
   private initTraceRow(rowName: string, type: string, rowParentId: string): TraceRow<SnapshotStruct> {

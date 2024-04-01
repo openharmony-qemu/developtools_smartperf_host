@@ -1353,3 +1353,32 @@ export const queryLogAllData = (oneDayTime: number, leftNs: number, rightNs: num
          l.ts;`,
     { $oneDayTime: oneDayTime }
   );
+
+  export const queryFpsSourceList = (inputTime:number,endTime:number,name:string):Promise<Array<{
+    name:string;
+    ts:number;
+    dur:number;
+    pid:number;
+    tid:number;
+    depth:number
+  }>> =>
+  query(
+    'queryFpsSourceList',
+    `
+    SELECT
+	    t.tid,
+	    c.dur,
+	    c.depth,
+	    c.ts,
+	    c.name 
+    FROM
+	    callstack c
+	  INNER JOIN thread t ON c.callid = t.itid 
+    WHERE
+	    c.name LIKE '%${name}%' 
+	    AND 
+	    c.ts BETWEEN ${ inputTime } and ${ endTime } 
+	    AND 
+	    t.name = 'render_service';
+    `
+  )

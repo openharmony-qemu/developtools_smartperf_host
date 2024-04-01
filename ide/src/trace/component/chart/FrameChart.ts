@@ -810,60 +810,50 @@ export class FrameChart extends BaseElement {
    */
   private updateTipContent(): void {
     const hoverNode = ChartStruct.hoverFuncStruct;
-    if (!hoverNode) {
-      return;
-    }
-    const name = hoverNode?.symbol.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const percent = ((hoverNode?.percent || 0) * 100).toFixed(2);
-    const threadPercent = this.getCurrentPercentOfThread(hoverNode);
-    const processPercent = this.getCurrentPercentOfProcess(hoverNode);
-    switch (this._mode) {
-      case ChartMode.Byte:
-        const size = Utils.getByteWithUnit(this.getNodeValue(hoverNode));
-        const countPercent = ((this.getNodeValue(hoverNode) / this.total) * 100).toFixed(2);
-        this.hintContent = `
+    if (hoverNode) {
+      const name = hoverNode?.symbol.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const percent = ((hoverNode?.percent || 0) * 100).toFixed(2);
+      const threadPercent = this.getCurrentPercentOfThread(hoverNode);
+      const processPercent = this.getCurrentPercentOfProcess(hoverNode);
+      switch (this._mode) {
+        case ChartMode.Byte:
+          const size = Utils.getByteWithUnit(this.getNodeValue(hoverNode));
+          const countPercent = ((this.getNodeValue(hoverNode) / this.total) * 100).toFixed(2);
+          this.hintContent = `
                     <span class="bold">Symbol: </span> <span class="text">${name} </span> <br>
                     <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span> <br>
                     <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
                     <span class="bold">Size: </span> <span>${size} (${percent}%) </span> <br>
                     <span class="bold">Count: </span> <span>${hoverNode?.count} (${countPercent}%)</span>`;
-        break;
-      case ChartMode.Duration:
-        const duration = Utils.getProbablyTime(this.getNodeValue(hoverNode));
-        this.hintContent = `
+          break;
+        case ChartMode.Duration:
+          const duration = Utils.getProbablyTime(this.getNodeValue(hoverNode));
+          this.hintContent = `
                     <span class="bold">Name: </span> <span class="text">${name} </span> <br>
-                    <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span>
-                    <br>
+                    <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span> <br>
                     <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
                     <span class="bold">Duration: </span> <span>${duration}</span>`;
-
-        break;
-      case ChartMode.EventCount:
-      case ChartMode.Count:
-        const label = ChartMode.Count === this._mode ? 'Count' : 'EventCount';
-        const count = this.getNodeValue(hoverNode);
-        this.hintContent = `
+          break;
+        case ChartMode.EventCount:
+        case ChartMode.Count:
+          const label = ChartMode.Count === this._mode ? 'Count' : 'EventCount';
+          const count = this.getNodeValue(hoverNode);
+          this.hintContent = `
                       <span class="bold">Name: </span> <span class="text">${name} </span> <br>
-                      <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span>
-                      <br>
-                      <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span>
-                      <br>
+                      <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span> <br>
+                      <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
                       <span class="bold">${label}: </span> <span> ${count}</span>`;
-        break;
-    }
-    if (this._mode != ChartMode.Byte) {
-      if (threadPercent) {
-        this.hintContent += `
-                      <br>
-                      <span class="bold">% in current Thread:</span> <span>${threadPercent}%</span>`;
+          break;
       }
-      if (processPercent) {
-        this.hintContent += `
-                      <br>
-                      <span class="bold">% in current Process:</span> <span>${processPercent}%</span>`;
+      if (this._mode !== ChartMode.Byte) {
+        if (threadPercent) {
+          this.hintContent += `<br> <span class="bold">% in current Thread:</span> <span>${threadPercent}%</span>`;
+        }
+        if (processPercent) {
+          this.hintContent += `<br> <span class="bold">% in current Process:</span> <span>${processPercent}%</span>`;
+        }
+        this.hintContent += `<br> <span class="bold">% in all Process: </span> <span> ${percent}%</span>`;
       }
-      this.hintContent += `<br>
-                    <span class="bold">% in all Process: </span> <span> ${percent}%</span>`;
     }
   }
 

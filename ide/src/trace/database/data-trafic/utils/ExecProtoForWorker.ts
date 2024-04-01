@@ -74,9 +74,10 @@ import {
   hiSysEnergyAnomalyDataReceiver, hiSysEnergyPowerReceiver,
   hiSysEnergyStateReceiver
 } from '../EnergySysEventReceiver';
-import {clearMemoryCache} from "./AllMemoryCache";
+import { clearMemoryCache } from "./AllMemoryCache";
 import { cpuFreqDataReceiver } from '../cpu/CpuFreqDataReceiver';
 import { lostFrameReceiver } from './../LostFrameReceiver'
+import { sliceReceiver, sliceSPTReceiver } from '../SliceReceiver';
 
 const traficHandlers: Map<number, any> = new Map<number, any>([]);
 export const execProtoForWorker = (data: any, proc: Function): void => traficHandlers.get(data.name)?.(data, proc);
@@ -147,3 +148,5 @@ traficHandlers.set(QueryEnum.FrameDynamicData, frameDynamicReceiver);
 traficHandlers.set(QueryEnum.FrameSpacingData, frameSpacingReceiver);
 traficHandlers.set(QueryEnum.EnergySystemData, energySysEventReceiver);
 traficHandlers.set(QueryEnum.LostFrameData, lostFrameReceiver);
+traficHandlers.set(QueryEnum.SliceData, sliceReceiver);
+traficHandlers.set(QueryEnum.SliceSPTData, sliceSPTReceiver);

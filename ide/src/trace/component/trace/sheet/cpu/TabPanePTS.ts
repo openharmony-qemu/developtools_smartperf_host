@@ -17,9 +17,9 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { resizeObserver } from '../SheetUtils';
-import { procedurePool } from '../../../../database/Procedure';
 import { Utils } from '../../base/Utils';
 import { SliceGroup } from '../../../../bean/StateProcessThread';
+import {sliceSPTSender} from "../../../../database/data-trafic/SliceSender";
 
 @element('tabpane-pts')
 export class TabPanePTS extends BaseElement {
@@ -45,17 +45,11 @@ export class TabPanePTS extends BaseElement {
 
   getDataByPTS(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>) {
     this.ptsTbl!.loading = true;
-    procedurePool.submitWithName(
-      'logic0',
-      'spt-getPTS',
-      { leftNs: ptsLeftNs, rightNs: ptsRightNs, cpus: cpus },
-      undefined,
-      (res: Array<SliceGroup>) => {
-        this.ptsTbl!.loading = false;
-        this.ptsTbl!.recycleDataSource = res;
-        this.theadClick(res);
-      }
-    );
+    sliceSPTSender(ptsLeftNs, ptsRightNs, cpus, 'spt-getPTS').then(res => {
+      this.ptsTbl!.loading = false;
+      this.ptsTbl!.recycleDataSource = res;
+      this.theadClick(res);
+    });
   }
   private theadClick(data: Array<SliceGroup>) {
     let labels = this.ptsTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');

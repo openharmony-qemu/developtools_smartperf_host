@@ -52,6 +52,7 @@ export function frameAnimationSender(row: TraceRow<FrameAnimationStruct>): Promi
 }
 
 function animationBufferHandler(res: any, len: number): any[] {
+  let recordNs: number = (window as any).recordStartNS;
   let outArr = [];
   let animationId = new Uint16Array(res.animationId);
   let status = new Uint16Array(res.status);
@@ -67,6 +68,8 @@ function animationBufferHandler(res: any, len: number): any[] {
       endTs: endTs[index],
       dur: dur[index],
       depth: depth[index],
+      inputTime: startTs[index] + recordNs,
+      endTime: endTs[index] + recordNs,
     });
   }
   return outArr;

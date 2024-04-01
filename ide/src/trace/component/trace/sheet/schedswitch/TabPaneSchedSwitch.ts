@@ -709,11 +709,11 @@ export class TabPaneSchedSwitch extends BaseElement {
       <div id="content-section">
         <div style="height: auto; width: 60%; overflow: auto">
           <lit-table id="tb-running" style="min-height: 380px; width: 100%" tree>
-            <lit-table-column class="running-percent-column" width="450px" title="Process/Thread/Cycle" data-index="title" key="title" align="flex-start" width="27%" retract>
+            <lit-table-column class="running-percent-column" width="300px" title="Process/Thread/Cycle" data-index="title" key="title" align="flex-start" width="27%" retract>
             </lit-table-column>
-            <lit-table-column class="running-percent-column" width="1fr" title="Cycle start time(ms)" data-index="cycleStartTime" key="cycleStartTime" align="flex-start">
+            <lit-table-column class="running-percent-column" width="160px" title="Cycle start time(ms)" data-index="cycleStartTime" key="cycleStartTime" align="flex-start">
             </lit-table-column>
-            <lit-table-column class="running-percent-column" width="1fr" title="duration(ms)" data-index="duration" key="duration" align="flex-start">
+            <lit-table-column class="running-percent-column" width="130px" title="duration(ms)" data-index="duration" key="duration" align="flex-start">
             </lit-table-column>
             <lit-table-column class="running-percent-column" width="1fr" title="value" data-index="value" key="value" align="flex-start">
             </lit-table-column>

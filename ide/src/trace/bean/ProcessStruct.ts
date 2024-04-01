@@ -35,7 +35,6 @@ export class ProcessStruct extends BaseStruct {
 
   static draw(processBeanCanvasCtx: CanvasRenderingContext2D, processBeanStruct: ProcessStruct) {
     if (processBeanStruct.frame) {
-      let width = processBeanStruct.frame.width || 0;
       processBeanCanvasCtx.fillStyle = ColorUtils.colorForTid(processBeanStruct.pid || 0);
       let miniHeight = Math.round(processBeanStruct.frame.height / CpuStruct.cpuCount);
       processBeanCanvasCtx.fillRect(

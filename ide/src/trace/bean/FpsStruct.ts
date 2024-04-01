@@ -27,96 +27,63 @@ export class FpsStruct extends BaseStruct {
   startNS: number | undefined = 0;
   dur: number | undefined; //自补充，数据库没有返回
 
-  static draw(fpsBeanStructCanvasCtx: CanvasRenderingContext2D, fpsBeanStructData: FpsStruct) {
-    if (fpsBeanStructData.frame) {
-      let fpsBeanWidth = fpsBeanStructData.frame.width || 0;
-      fpsBeanStructCanvasCtx.fillStyle = '#535da6';
-      fpsBeanStructCanvasCtx.strokeStyle = '#535da6';
-      if (fpsBeanStructData.startNS === FpsStruct.hoverFpsStruct?.startNS) {
-        fpsBeanStructCanvasCtx.lineWidth = 1;
-        fpsBeanStructCanvasCtx.globalAlpha = 0.6;
-        let drawHeight: number =
-          ((fpsBeanStructData.fps || 0) * (fpsBeanStructData.frame.height || 0) * 1.0) / FpsStruct.maxFps;
-        fpsBeanStructCanvasCtx.fillRect(
-          fpsBeanStructData.frame.x,
-          fpsBeanStructData.frame.y + fpsBeanStructData.frame.height - drawHeight,
-          fpsBeanWidth,
-          drawHeight
-        );
-        fpsBeanStructCanvasCtx.beginPath();
-        fpsBeanStructCanvasCtx.arc(
-          fpsBeanStructData.frame.x,
-          fpsBeanStructData.frame.y + fpsBeanStructData.frame.height - drawHeight,
-          3,
-          0,
-          2 * Math.PI,
-          true
-        );
-        fpsBeanStructCanvasCtx.fill();
-        fpsBeanStructCanvasCtx.globalAlpha = 1.0;
-        fpsBeanStructCanvasCtx.stroke();
-        fpsBeanStructCanvasCtx.beginPath();
-        fpsBeanStructCanvasCtx.moveTo(
-          fpsBeanStructData.frame.x + 3,
-          fpsBeanStructData.frame.y + fpsBeanStructData.frame.height - drawHeight
-        );
-        fpsBeanStructCanvasCtx.lineWidth = 3;
-        fpsBeanStructCanvasCtx.lineTo(
-          fpsBeanStructData.frame.x + fpsBeanWidth,
-          fpsBeanStructData.frame.y + fpsBeanStructData.frame.height - drawHeight
-        );
-        fpsBeanStructCanvasCtx.stroke();
+  static draw(fpsCtx: CanvasRenderingContext2D, fpsData: FpsStruct): void {
+    if (fpsData.frame) {
+      let fpsBeanWidth = fpsData.frame.width || 0;
+      fpsCtx.fillStyle = '#535da6';
+      fpsCtx.strokeStyle = '#535da6';
+      if (fpsData.startNS === FpsStruct.hoverFpsStruct?.startNS) {
+        fpsCtx.lineWidth = 1;
+        fpsCtx.globalAlpha = 0.6;
+        let drawHeight: number = ((fpsData.fps || 0) * (fpsData.frame.height || 0) * 1.0) / FpsStruct.maxFps;
+        fpsCtx.fillRect(fpsData.frame.x, fpsData.frame.y + fpsData.frame.height - drawHeight, fpsBeanWidth, drawHeight);
+        fpsCtx.beginPath();
+        fpsCtx.arc(fpsData.frame.x, fpsData.frame.y + fpsData.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        fpsCtx.fill();
+        fpsCtx.globalAlpha = 1.0;
+        fpsCtx.stroke();
+        fpsCtx.beginPath();
+        fpsCtx.moveTo(fpsData.frame.x + 3, fpsData.frame.y + fpsData.frame.height - drawHeight);
+        fpsCtx.lineWidth = 3;
+        fpsCtx.lineTo(fpsData.frame.x + fpsBeanWidth, fpsData.frame.y + fpsData.frame.height - drawHeight);
+        fpsCtx.stroke();
       } else {
-        fpsBeanStructCanvasCtx.globalAlpha = 0.6;
-        fpsBeanStructCanvasCtx.lineWidth = 1;
-        let drawHeight: number =
-          ((fpsBeanStructData.fps || 0) * (fpsBeanStructData.frame.height || 0) * 1.0) / FpsStruct.maxFps;
-        fpsBeanStructCanvasCtx.fillRect(
-          fpsBeanStructData.frame.x,
-          fpsBeanStructData.frame.y + fpsBeanStructData.frame.height - drawHeight,
-          fpsBeanWidth,
-          drawHeight
-        );
+        fpsCtx.globalAlpha = 0.6;
+        fpsCtx.lineWidth = 1;
+        let drawHeight: number = ((fpsData.fps || 0) * (fpsData.frame.height || 0) * 1.0) / FpsStruct.maxFps;
+        fpsCtx.fillRect(fpsData.frame.x, fpsData.frame.y + fpsData.frame.height - drawHeight, fpsBeanWidth, drawHeight);
       }
     }
-    fpsBeanStructCanvasCtx.globalAlpha = 1.0;
-    fpsBeanStructCanvasCtx.lineWidth = 1;
+    fpsCtx.globalAlpha = 1.0;
+    fpsCtx.lineWidth = 1;
   }
 
   static setFrame(
-    fpsBeanStructNode: FpsStruct,
-    fpsBeanFramePadding: number,
+    fpsStruct: FpsStruct,
+    padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
     frame: Rect
-  ) {
+  ): void {
     let fpsBeanStructX1: number, fpsBeanStructX2: number;
-    if ((fpsBeanStructNode.startNS || 0) < startNS) {
+    if ((fpsStruct.startNS || 0) < startNS) {
       fpsBeanStructX1 = 0;
     } else {
-      fpsBeanStructX1 = ns2x(fpsBeanStructNode.startNS || 0, startNS, endNS, totalNS, frame);
+      fpsBeanStructX1 = ns2x(fpsStruct.startNS || 0, startNS, endNS, totalNS, frame);
     }
-    if ((fpsBeanStructNode.startNS || 0) + (fpsBeanStructNode.dur || 0) > endNS) {
+    if ((fpsStruct.startNS || 0) + (fpsStruct.dur || 0) > endNS) {
       fpsBeanStructX2 = frame.width;
     } else {
-      fpsBeanStructX2 = ns2x(
-        (fpsBeanStructNode.startNS || 0) + (fpsBeanStructNode.dur || 0),
-        startNS,
-        endNS,
-        totalNS,
-        frame
-      );
+      fpsBeanStructX2 = ns2x((fpsStruct.startNS || 0) + (fpsStruct.dur || 0), startNS, endNS, totalNS, frame);
     }
     let getV: number = fpsBeanStructX2 - fpsBeanStructX1 <= 1 ? 1 : fpsBeanStructX2 - fpsBeanStructX1;
     let rectangle: Rect = new Rect(
       Math.floor(fpsBeanStructX1),
-      Math.ceil(frame.y + fpsBeanFramePadding),
+      Math.ceil(frame.y + padding),
       Math.ceil(getV),
-      Math.floor(frame.height - fpsBeanFramePadding * 2)
+      Math.floor(frame.height - padding * 2)
     );
-    fpsBeanStructNode.frame = rectangle;
+    fpsStruct.frame = rectangle;
   }
 }
-
-const textPadding = 2;

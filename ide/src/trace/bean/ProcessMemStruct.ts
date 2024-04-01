@@ -18,7 +18,6 @@ import { ColorUtils } from '../component/trace/base/ColorUtils';
 
 export class ProcessMemStruct extends BaseStruct {
   static hoverProcessMemStruct: ProcessMemStruct | undefined;
-  // trackId: number | undefined;
   processName: string | undefined;
   pid: number | undefined;
   upid: number | undefined;
@@ -31,62 +30,37 @@ export class ProcessMemStruct extends BaseStruct {
   maxValue: number | undefined;
   delta: number | undefined;
 
-  static draw(processMemBeanStructCanvasCtx: CanvasRenderingContext2D, processMemBeanStructData: ProcessMemStruct) {
-    if (processMemBeanStructData.frame) {
-      let width = processMemBeanStructData.frame.width || 0;
-      if (processMemBeanStructData.startTime === ProcessMemStruct.hoverProcessMemStruct?.startTime) {
-        processMemBeanStructCanvasCtx.lineWidth = 1;
-        processMemBeanStructCanvasCtx.globalAlpha = 0.6;
+  static draw(pMemCtx: CanvasRenderingContext2D, pMemData: ProcessMemStruct): void {
+    if (pMemData.frame) {
+      let width = pMemData.frame.width || 0;
+      if (pMemData.startTime === ProcessMemStruct.hoverProcessMemStruct?.startTime) {
+        pMemCtx.lineWidth = 1;
+        pMemCtx.globalAlpha = 0.6;
         let drawHeight: number = Math.floor(
-          ((processMemBeanStructData.value || 0) * (processMemBeanStructData.frame.height || 0) * 1.0) /
-            (processMemBeanStructData.maxValue || 0)
+          ((pMemData.value || 0) * (pMemData.frame.height || 0) * 1.0) / (pMemData.maxValue || 0)
         );
-        processMemBeanStructCanvasCtx.fillRect(
-          processMemBeanStructData.frame.x,
-          processMemBeanStructData.frame.y + processMemBeanStructData.frame.height - drawHeight,
-          width,
-          drawHeight
-        );
-        processMemBeanStructCanvasCtx.beginPath();
-        processMemBeanStructCanvasCtx.arc(
-          processMemBeanStructData.frame.x,
-          processMemBeanStructData.frame.y + processMemBeanStructData.frame.height - drawHeight,
-          3,
-          0,
-          2 * Math.PI,
-          true
-        );
-        processMemBeanStructCanvasCtx.fill();
-        processMemBeanStructCanvasCtx.globalAlpha = 1.0;
-        processMemBeanStructCanvasCtx.stroke();
-        processMemBeanStructCanvasCtx.beginPath();
-        processMemBeanStructCanvasCtx.moveTo(
-          processMemBeanStructData.frame.x + 3,
-          processMemBeanStructData.frame.y + processMemBeanStructData.frame.height - drawHeight
-        );
-        processMemBeanStructCanvasCtx.lineWidth = 3;
-        processMemBeanStructCanvasCtx.lineTo(
-          processMemBeanStructData.frame.x + width,
-          processMemBeanStructData.frame.y + processMemBeanStructData.frame.height - drawHeight
-        );
-        processMemBeanStructCanvasCtx.stroke();
+        pMemCtx.fillRect(pMemData.frame.x, pMemData.frame.y + pMemData.frame.height - drawHeight, width, drawHeight);
+        pMemCtx.beginPath();
+        pMemCtx.arc(pMemData.frame.x, pMemData.frame.y + pMemData.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        pMemCtx.fill();
+        pMemCtx.globalAlpha = 1.0;
+        pMemCtx.stroke();
+        pMemCtx.beginPath();
+        pMemCtx.moveTo(pMemData.frame.x + 3, pMemData.frame.y + pMemData.frame.height - drawHeight);
+        pMemCtx.lineWidth = 3;
+        pMemCtx.lineTo(pMemData.frame.x + width, pMemData.frame.y + pMemData.frame.height - drawHeight);
+        pMemCtx.stroke();
       } else {
-        processMemBeanStructCanvasCtx.fillStyle = ColorUtils.colorForTid(processMemBeanStructData.maxValue || 0);
-        processMemBeanStructCanvasCtx.strokeStyle = ColorUtils.colorForTid(processMemBeanStructData.maxValue || 0);
-        processMemBeanStructCanvasCtx.globalAlpha = 0.6;
-        processMemBeanStructCanvasCtx.lineWidth = 1;
+        pMemCtx.fillStyle = ColorUtils.colorForTid(pMemData.maxValue || 0);
+        pMemCtx.strokeStyle = ColorUtils.colorForTid(pMemData.maxValue || 0);
+        pMemCtx.globalAlpha = 0.6;
+        pMemCtx.lineWidth = 1;
         let drawHeight: number =
-          ((processMemBeanStructData.value || 0) * (processMemBeanStructData.frame.height || 0) * 1.0) /
-          (processMemBeanStructData.maxValue || 1);
-        processMemBeanStructCanvasCtx.fillRect(
-          processMemBeanStructData.frame.x,
-          processMemBeanStructData.frame.y + processMemBeanStructData.frame.height - drawHeight,
-          width,
-          drawHeight
-        );
+          ((pMemData.value || 0) * (pMemData.frame.height || 0) * 1.0) / (pMemData.maxValue || 1);
+        pMemCtx.fillRect(pMemData.frame.x, pMemData.frame.y + pMemData.frame.height - drawHeight, width, drawHeight);
       }
     }
-    processMemBeanStructCanvasCtx.globalAlpha = 1.0;
-    processMemBeanStructCanvasCtx.lineWidth = 1;
+    pMemCtx.globalAlpha = 1.0;
+    pMemCtx.lineWidth = 1;
   }
 }

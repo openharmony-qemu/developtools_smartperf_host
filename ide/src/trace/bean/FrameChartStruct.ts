@@ -26,6 +26,12 @@ const lightBlue = {
   b: 255,
   a: 0.9,
 };
+const lightGreen = {
+  r: 132,
+  g: 200,
+  b: 112,
+  a: 0.9,
+};
 
 export class ChartStruct extends BaseStruct {
   static hoverFuncStruct: ChartStruct | undefined;
@@ -131,7 +137,11 @@ export function draw(canvasCtx: CanvasRenderingContext2D, node: ChartStruct): vo
     if (node.isSearch) {
       canvasCtx.fillStyle = `rgba(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b}, ${lightBlue.a})`;
     } else {
-      canvasCtx.fillStyle = getHeatColor(node.percent);
+      if (node.isJsStack) {
+        canvasCtx.fillStyle = `rgba(${lightGreen.r}, ${lightGreen.g}, ${lightGreen.b}, ${lightGreen.a})`;
+      } else {
+        canvasCtx.fillStyle = getHeatColor(node.percent);
+      }
     }
   }
   canvasCtx.fillRect(node.frame.x, node.frame.y, node.frame.width, drawHeight);
@@ -144,15 +154,10 @@ export function draw(canvasCtx: CanvasRenderingContext2D, node: ChartStruct): vo
       canvasCtx.strokeStyle = '#000';
     }
   } else {
-    if (node.isJsStack) {
-      canvasCtx.lineWidth = 0.6;
-      canvasCtx.strokeStyle = `rgb(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b})`;
+    if (spApplication.dark) {
+      canvasCtx.strokeStyle = '#000';
     } else {
-      if (spApplication.dark) {
-        canvasCtx.strokeStyle = '#000';
-      } else {
-        canvasCtx.strokeStyle = '#fff';
-      }
+      canvasCtx.strokeStyle = '#fff';
     }
   }
   canvasCtx.strokeRect(node.frame.x, node.frame.y, node.frame.width - canvasCtx.lineWidth, drawHeight);

@@ -33,6 +33,9 @@ using namespace SysTuning::TraceStreamer;
 namespace SysTuning {
 namespace TraceStreamer {
 bool ParseTraceFile(TraceStreamerSelector& ts_, const std::string& tracePath);
+const uint32_t INDEX_SIZE_02 = 2;
+const uint32_t INDEX_SIZE_03 = 3;
+const uint32_t INDEX_SIZE_04 = 4;
 const uint64_t SEC_01 = 1632675525;
 const uint64_t SEC_02 = 1632675526;
 const uint64_t SEC_03 = 1632675527;
@@ -53,16 +56,25 @@ const uint64_t ADDR_02 = 10453089;
 const uint64_t ADDR_03 = 10453090;
 const int64_t SIZE_01 = 4096;
 const int64_t SIZE_02 = 2048;
+const uint64_t STACK_MAP_ALLOC_IP = 18446742974197923848ULL;
+const uint64_t STACK_MAP_JS_IP_01 = 18446741874686296087ULL;
+const uint64_t STACK_MAP_JS_IP_02 = 18446741874686296086ULL;
 const uint64_t IP_01 = 4154215627;
 const uint64_t IP_02 = 4154215630;
+const uint64_t IP_03 = 5483396524;
 const uint64_t SP_01 = 4146449696;
 const uint64_t SP_02 = 4146449698;
 const std::string SYMBOL_NAME_01 = "__aeabi_read_tp";
 const std::string SYMBOL_NAME_02 = "ThreadMmap";
+const std::string SYMBOL_NAME_03 = "napicallback_arkts";
+const std::string SYMBOL_NAME_04 = "unknown 0xf79c4cce";
+const std::string SYMBOL_NAME_05 = "alloc size(8bytes)0xffffff0000000008";
 const std::string FILE_PATH_01 = "/system/lib/ld-musl-arm.so.1";
 const std::string FILE_PATH_02 = "/system/bin/nativetest_c";
+const std::string FILE_PATH_03 = "/entry/src/main/ets/pages/Index.ets:47:5";
 const uint64_t OFFSET_01 = 359372;
 const uint64_t OFFSET_02 = 17865;
+const uint64_t OFFSET_03 = 89456;
 const uint64_t SYMBOL_OFFSET_01 = 255;
 const uint64_t SYMBOL_OFFSET_02 = 33;
 const std::string ALLOCEVENT = "AllocEvent";
@@ -109,6 +121,81 @@ public:
         frame->set_symbol_offset(frameStruct.symbolOffset);
     }
 
+    void SetOfflineFrameEvent(BatchNativeHookData& hookData)
+    {
+        // construct FrameEvent
+        auto frameMapData = hookData.add_events();
+        FrameMap* frameMap = new FrameMap();
+        frameMap->set_id(STACK_MAP_JS_IP_01 & (~JS_IP_MASK));
+        frameMap->set_pid(PID);
+        frameMapData->set_allocated_frame_map(frameMap);
+
+        // construct Frame
+        Frame* frame = new Frame();
+        frame->set_ip(IP_03);
+        frame->set_sp(0);
+        frame->set_symbol_name_id(1);
+        frame->set_file_path_id(1);
+        frame->set_offset(OFFSET_03);
+        frame->set_symbol_offset(0);
+        frameMap->set_allocated_frame(frame);
+
+        // construct SymbolMap
+        auto symbolMapData = hookData.add_events();
+        SymbolMap* symbolMap = new SymbolMap();
+        symbolMap->set_id(1);
+        symbolMap->set_name(SYMBOL_NAME_03);
+        symbolMap->set_pid(PID);
+        symbolMapData->set_allocated_symbol_name(symbolMap);
+
+        // construct FilePathMap
+        auto filePathMapData = hookData.add_events();
+        FilePathMap* filePathMap = new FilePathMap();
+        filePathMap->set_id(1);
+        filePathMap->set_name(FILE_PATH_03);
+        filePathMap->set_pid(PID);
+        filePathMapData->set_allocated_file_path(filePathMap);
+    }
+
+    void SetOfflineAllocEvent(BatchNativeHookData& hookData,
+                              HookDataStruct dataStruct,
+                              bool isJsMixedStack = false,
+                              bool isJsStackAbnormal = false)
+    {
+        auto stackMapData = hookData.add_events();
+        // Construct JavaScript stack data
+        StackMap* stackMap = new StackMap();
+        stackMap->set_id(1);
+
+        if (isJsMixedStack) {
+            // add stackMap.ip: alloc
+            stackMap->add_ip(STACK_MAP_ALLOC_IP);
+            // add stackMap.ip: Offline symbolization failed
+            stackMap->add_ip(IP_02);
+            // add stackMap.ip :js
+            stackMap->add_ip(STACK_MAP_JS_IP_01);
+            SetOfflineFrameEvent(hookData);
+        }
+        if (isJsStackAbnormal) {
+            // add stackMap.ip :jsStackAbnormal
+            stackMap->add_ip(STACK_MAP_JS_IP_02);
+        }
+        stackMap->set_pid(PID);
+        stackMapData->set_allocated_stack_map(stackMap);
+
+        // construct AllocEvent
+        auto nativeHookData = hookData.add_events();
+        AllocEvent* allocEvent = new AllocEvent();
+        allocEvent->set_stack_id(1);
+        allocEvent->set_pid(PID);
+        allocEvent->set_tid(dataStruct.tid);
+        allocEvent->set_addr(dataStruct.addr);
+        allocEvent->set_size(dataStruct.size);
+
+        nativeHookData->set_tv_sec(dataStruct.sec);
+        nativeHookData->set_tv_nsec(dataStruct.nsec);
+        nativeHookData->set_allocated_alloc_event(allocEvent);
+    }
     void SetAllocEvent(BatchNativeHookData& hookData,
                        HookDataStruct dataStruct,
                        bool isRepeated = false,
@@ -681,7 +768,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleFree, TestSize.Le
 
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED);
-    EXPECT_TRUE(2 == eventCount);
+    EXPECT_TRUE(INDEX_SIZE_02 == eventCount);
 }
 
 /**
@@ -732,21 +819,21 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOnePairsMallocAndFree, Te
 
     // Verification parse Free event results
     expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_02);
-    NativeHookCache expectNativeHookCache(2, expect_ipid, expect_itid, FREEEVENT.c_str(), INVALID_UINT64, TIMESTAMP_02,
-                                          0, 0, ADDR_01, SIZE_01, 0, 0);
+    NativeHookCache expectNativeHookCache(INDEX_SIZE_02, expect_ipid, expect_itid, FREEEVENT.c_str(), INVALID_UINT64,
+                                          TIMESTAMP_02, 0, 0, ADDR_01, SIZE_01, 0, 0);
     NativeHookCache resultNativeHookCache(nativeHook, 1);
     EXPECT_TRUE(expectNativeHookCache == resultNativeHookCache);
 
     // Verification parse Free Event Frame results
     expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_02);
     expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_02);
-    NativeHookFrameCache expectFrameCache(2, 0, IP_02, expectSymbolData, expectFilePathData, OFFSET_02,
+    NativeHookFrameCache expectFrameCache(INDEX_SIZE_02, 0, IP_02, expectSymbolData, expectFilePathData, OFFSET_02,
                                           SYMBOL_OFFSET_02);
     NativeHookFrameCache resultFrameCache(nativeHookFrame, 1);
     EXPECT_TRUE(expectFrameCache == resultFrameCache);
 
     auto size = nativeHookFrame.Size();
-    EXPECT_EQ(2, size);
+    EXPECT_EQ(INDEX_SIZE_02, size);
 
     auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED));
@@ -855,18 +942,18 @@ HWTEST_F(NativeHookParserTest, ParseTwoMallocAndFreeEventMatched, TestSize.Level
     NativeHookCache secondExpectMallocCache(INVALID_UINT32, expect_ipid, expect_itid, ALLOCEVENT.c_str(),
                                             INVALID_UINT64, TIMESTAMP_03, TIMESTAMP_04, TIMESTAMP_04 - TIMESTAMP_03,
                                             ADDR_02, SIZE_02, SIZE_02, TIMESTAMP_04 - TIMESTAMP_03);
-    NativeHookCache secondResultMallocCache(nativeHook, 2);
+    NativeHookCache secondResultMallocCache(nativeHook, INDEX_SIZE_02);
     EXPECT_TRUE(secondExpectMallocCache == secondResultMallocCache);
 
     // Verification parse first Free event results
     NativeHookCache secondExpectFreeCache(INVALID_UINT32, expect_ipid, expect_itid, FREEEVENT.c_str(), INVALID_UINT64,
                                           TIMESTAMP_04, 0, 0, ADDR_02, SIZE_02, 0, 0);
-    NativeHookCache secondResultFreeCache(nativeHook, 3);
+    NativeHookCache secondResultFreeCache(nativeHook, INDEX_SIZE_03);
     EXPECT_TRUE(secondExpectFreeCache == secondResultFreeCache);
 
     auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
-    EXPECT_TRUE(2 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED));
-    EXPECT_TRUE(2 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
+    EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED));
+    EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
 }
 
 /**
@@ -918,12 +1005,12 @@ HWTEST_F(NativeHookParserTest, ParseTwoMallocAndFreeEventPartialMatched, TestSiz
     expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_02);
     NativeHookCache secondExpectMallocCache(INVALID_UINT32, expect_ipid, expect_itid, ALLOCEVENT.c_str(),
                                             INVALID_UINT64, TIMESTAMP_03, 0, 0, ADDR_02, SIZE_02, SIZE_02, 0);
-    NativeHookCache secondResultMallocCache(nativeHook, 2);
+    NativeHookCache secondResultMallocCache(nativeHook, INDEX_SIZE_02);
     EXPECT_TRUE(secondExpectMallocCache == secondResultMallocCache);
 
     auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
-    EXPECT_TRUE(2 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED));
-    EXPECT_TRUE(2 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
+    EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED));
+    EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
 }
 
 /**
@@ -1053,10 +1140,10 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMmap, TestSize.Le
 
     expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_02);
     mmapSubType = stream_.traceDataCache_->dataDict_.GetStringIndex(TYPE_02);
-    NativeHookCache secondExpectNativeHookCache(2, expect_ipid, expect_itid, MMAPEVENT.c_str(), mmapSubType,
+    NativeHookCache secondExpectNativeHookCache(INDEX_SIZE_02, expect_ipid, expect_itid, MMAPEVENT.c_str(), mmapSubType,
                                                 TIMESTAMP_02, 0, 0, ADDR_02, SIZE_02, SIZE_01 + SIZE_02, 0);
     EXPECT_TRUE(secondExpectNativeHookCache == NativeHookCache(nativeHook, 1));
-    EXPECT_EQ(2, stream_.traceDataCache_->GetConstNativeHookData().Size());
+    EXPECT_EQ(INDEX_SIZE_02, stream_.traceDataCache_->GetConstNativeHookData().Size());
     const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
     auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
@@ -1066,11 +1153,12 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMmap, TestSize.Le
 
     expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_02);
     expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_02);
-    NativeHookFrameCache expectFrameCache(2, 0, IP_02, expectSymbolData, expectFilePathData, OFFSET_02,
+    NativeHookFrameCache expectFrameCache(INDEX_SIZE_02, 0, IP_02, expectSymbolData, expectFilePathData, OFFSET_02,
                                           SYMBOL_OFFSET_02);
     EXPECT_TRUE(expectFrameCache == NativeHookFrameCache(nativeHookFrame, 1));
-    EXPECT_EQ(2, nativeHookFrame.Size());
-    EXPECT_EQ(2, stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
+    EXPECT_EQ(INDEX_SIZE_02, nativeHookFrame.Size());
+    EXPECT_EQ(INDEX_SIZE_02,
+              stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
 }
 
 /**
@@ -1110,7 +1198,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMunmap, TestSize.
 
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED);
-    EXPECT_TRUE(2 == eventCount);
+    EXPECT_TRUE(INDEX_SIZE_02 == eventCount);
 }
 
 /**
@@ -1154,7 +1242,7 @@ HWTEST_F(NativeHookParserTest, ParseOnePairsMmapAndMunmapEvent, TestSize.Level1)
                                                 mmapSubType, TIMESTAMP_02, 0, 0, ADDR_01, SIZE_01, 0, 0);
     NativeHookCache secondResultNativeHookCache(nativeHook, 1);
     EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
-    EXPECT_EQ(2, stream_.traceDataCache_->GetConstNativeHookData().Size());
+    EXPECT_EQ(INDEX_SIZE_02, stream_.traceDataCache_->GetConstNativeHookData().Size());
 
     // Verification parse NativeHook Frame results
     const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
@@ -1171,7 +1259,7 @@ HWTEST_F(NativeHookParserTest, ParseOnePairsMmapAndMunmapEvent, TestSize.Level1)
                                                 SYMBOL_OFFSET_01);
     NativeHookFrameCache secondResultFrameCache(nativeHookFrame, 1);
     EXPECT_TRUE(secondExpectFrameCache == secondResultFrameCache);
-    EXPECT_EQ(2, nativeHookFrame.Size());
+    EXPECT_EQ(INDEX_SIZE_02, nativeHookFrame.Size());
 
     auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
@@ -1234,7 +1322,7 @@ HWTEST_F(NativeHookParserTest, ParseNotMatchMmapAndMunmapEvent, TestSize.Level1)
     EXPECT_TRUE(secondExpectFrameCache == secondResultFrameCache);
 
     size = nativeHookFrame.Size();
-    EXPECT_EQ(2, size);
+    EXPECT_EQ(INDEX_SIZE_02, size);
 
     auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
@@ -1291,20 +1379,20 @@ HWTEST_F(NativeHookParserTest, ParseTwoPairsMatchedMmapAndMunmapEvent, TestSize.
     NativeHookCache thirdExpectNativeHookCache(INVALID_UINT32, expect_ipid, expect_itid, MMAPEVENT.c_str(), mmapSubType,
                                                TIMESTAMP_03, TIMESTAMP_04, TIMESTAMP_04 - TIMESTAMP_03, ADDR_02,
                                                SIZE_02, SIZE_02, TIMESTAMP_04 - TIMESTAMP_03);
-    NativeHookCache thirdResultNativeHookCache(nativeHook, 2);
+    NativeHookCache thirdResultNativeHookCache(nativeHook, INDEX_SIZE_02);
     EXPECT_TRUE(thirdExpectNativeHookCache == thirdResultNativeHookCache);
 
     NativeHookCache fourthExpectNativeHookCache(INVALID_UINT32, expect_ipid, expect_itid, MUNMAPEVENT.c_str(),
                                                 mmapSubType, TIMESTAMP_04, 0, 0, ADDR_02, SIZE_02, 0, 0);
-    NativeHookCache fourthResultNativeHookCache(nativeHook, 3);
+    NativeHookCache fourthResultNativeHookCache(nativeHook, INDEX_SIZE_03);
     EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
 
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
-    EXPECT_EQ(4, size);
+    EXPECT_EQ(INDEX_SIZE_04, size);
 
     auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
-    EXPECT_TRUE(2 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
-    EXPECT_TRUE(2 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED));
+    EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
+    EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED));
 }
 
 /**
@@ -1356,20 +1444,20 @@ HWTEST_F(NativeHookParserTest, ParsePartialMatchedMmapAndMunmapEvent, TestSize.L
     mmapSubType = stream_.traceDataCache_->dataDict_.GetStringIndex(TYPE_02);
     NativeHookCache thirdExpectNativeHookCache(INVALID_UINT32, expect_ipid, expect_itid, MMAPEVENT.c_str(), mmapSubType,
                                                TIMESTAMP_03, 0, 0, ADDR_02, SIZE_02, SIZE_02, 0);
-    NativeHookCache thirdResultNativeHookCache(nativeHook, 2);
+    NativeHookCache thirdResultNativeHookCache(nativeHook, INDEX_SIZE_02);
     EXPECT_TRUE(thirdExpectNativeHookCache == thirdResultNativeHookCache);
 
     NativeHookCache fourthExpectNativeHookCache(INVALID_UINT32, expect_ipid, expect_itid, MUNMAPEVENT.c_str(),
                                                 mmapSubType, TIMESTAMP_04, 0, 0, ADDR_03, SIZE_02, SIZE_02, 0);
-    NativeHookCache fourthResultNativeHookCache(nativeHook, 3);
+    NativeHookCache fourthResultNativeHookCache(nativeHook, INDEX_SIZE_03);
     EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
 
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
-    EXPECT_EQ(3, size);
+    EXPECT_EQ(INDEX_SIZE_03, size);
 
     auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
-    EXPECT_TRUE(2 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
-    EXPECT_TRUE(2 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED));
+    EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
+    EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED));
 }
 
 /**
@@ -1417,19 +1505,19 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithAllTypesEvents, TestSize.
     EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
 
     expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_02);
-    NativeHookCache thirdExpectNativeHookCache(2, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
-                                               TIMESTAMP_03, TIMESTAMP_04, TIMESTAMP_04 - TIMESTAMP_03, ADDR_02,
-                                               SIZE_02, SIZE_02, TIMESTAMP_04 - TIMESTAMP_03);
-    NativeHookCache thirdResultNativeHookCache(nativeHook, 2);
+    NativeHookCache thirdExpectNativeHookCache(INDEX_SIZE_02, expect_ipid, expect_itid, ALLOCEVENT.c_str(),
+                                               INVALID_UINT64, TIMESTAMP_03, TIMESTAMP_04, TIMESTAMP_04 - TIMESTAMP_03,
+                                               ADDR_02, SIZE_02, SIZE_02, TIMESTAMP_04 - TIMESTAMP_03);
+    NativeHookCache thirdResultNativeHookCache(nativeHook, INDEX_SIZE_02);
     EXPECT_TRUE(thirdExpectNativeHookCache == thirdResultNativeHookCache);
 
-    NativeHookCache fourthExpectNativeHookCache(2, expect_ipid, expect_itid, FREEEVENT.c_str(), INVALID_UINT64,
-                                                TIMESTAMP_04, 0, 0, ADDR_02, SIZE_02, 0, 0);
-    NativeHookCache fourthResultNativeHookCache(nativeHook, 3);
+    NativeHookCache fourthExpectNativeHookCache(INDEX_SIZE_02, expect_ipid, expect_itid, FREEEVENT.c_str(),
+                                                INVALID_UINT64, TIMESTAMP_04, 0, 0, ADDR_02, SIZE_02, 0, 0);
+    NativeHookCache fourthResultNativeHookCache(nativeHook, INDEX_SIZE_03);
     EXPECT_TRUE(fourthExpectNativeHookCache == fourthResultNativeHookCache);
 
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
-    EXPECT_EQ(4, size);
+    EXPECT_EQ(INDEX_SIZE_04, size);
 
     auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
@@ -1458,6 +1546,98 @@ HWTEST_F(NativeHookParserTest, ParseCallStackCompressionData, TestSize.Level1)
     std::string path("../../test/resource/callstack_compression.htrace");
     TS_LOGI("test24-20");
     EXPECT_TRUE(ParseTraceFile(stream_, path));
+}
+/**
+ * @ts.name: ParseOfflineSymJsAbnormal
+ * @ts.desc: Parse Abnormal Js Stack Data in Offline Sym
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeHookParserTest, ParseOfflineSymJsAbnormal, TestSize.Level1)
+{
+    TS_LOGI("test24-21");
+    BatchNativeHookData nativeHookJsAbnormalData;
+    SetOfflineAllocEvent(nativeHookJsAbnormalData, {TID_01, ADDR_01, SIZE_01, "", SEC_01, NSEC_01}, false, true);
+    // start parse
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    htraceNativeHookParser.UpdataOfflineSymbolizationMode(true);
+    std::string hookJsAbnormalStrMsg = "";
+    nativeHookJsAbnormalData.SerializeToString(&hookJsAbnormalStrMsg);
+    PbreaderDataSegment dataSeg;
+    dataSeg.seg = std::make_shared<std::string>(hookJsAbnormalStrMsg);
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookJsAbnormalStrMsg.data()),
+                                         hookJsAbnormalStrMsg.size());
+    dataSeg.protoData = hookBytesView;
+    bool hasJsAbnormalSplit = false;
+    htraceNativeHookParser.Parse(dataSeg, hasJsAbnormalSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+    // Verification parse Malloc event results
+    auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
+    auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
+    NativeHookCache expectNativeHookEventCache(1, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
+                                               TIMESTAMP_01, 0, 0, ADDR_01, SIZE_01, SIZE_01, 0);
+    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    NativeHookCache resultNativeHookEventCache(nativeHook, 0);
+    EXPECT_TRUE(expectNativeHookEventCache == resultNativeHookEventCache);
+
+    // Verification parse Malloc Frame results
+    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    auto size = nativeHookFrame.Size();
+    EXPECT_EQ(0, size);
+    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
+}
+/**
+ * @ts.name: ParseOfflineSymHybridStack
+ * @ts.desc: Parse Native Hook and Arkts Mixed Stack Data in Offline Sym
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeHookParserTest, ParseOfflineSymMixedStack, TestSize.Level1)
+{
+    TS_LOGI("test24-22");
+    BatchNativeHookData nativeHookMixedStackData;
+    SetOfflineAllocEvent(nativeHookMixedStackData, {TID_01, ADDR_01, SIZE_01, "", SEC_01, NSEC_01}, true, false);
+    // start parse
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    htraceNativeHookParser.UpdataOfflineSymbolizationMode(true);
+    std::string hookStrMsg = "";
+    nativeHookMixedStackData.SerializeToString(&hookStrMsg);
+    PbreaderDataSegment dataSeg;
+    dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    dataSeg.protoData = hookBytesView;
+    bool hasMixedStackSplit = false;
+    htraceNativeHookParser.Parse(dataSeg, hasMixedStackSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+    // Verification parse Malloc event results
+    auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
+    auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
+    NativeHookCache expectNativeHookEventCache(1, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
+                                               TIMESTAMP_01, 0, 0, ADDR_01, SIZE_01, SIZE_01, 0);
+    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    NativeHookCache resultNativeHookEventCache(nativeHook, 0);
+    EXPECT_TRUE(expectNativeHookEventCache == resultNativeHookEventCache);
+    // Verification parse Malloc Frame results
+    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_03);
+    auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_03);
+    NativeHookFrameCache jsExpectFrameCache(1, 0, IP_03, expectSymbolData, expectFilePathData, OFFSET_03,
+                                            INVALID_UINT64);
+    NativeHookFrameCache jsResultFrameCache(nativeHookFrame, 0);
+    EXPECT_TRUE(jsExpectFrameCache == jsResultFrameCache);
+    auto expectSymFailedSymName = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_04);
+    NativeHookFrameCache symFailedExpectFrameCache(1, 1, IP_02, expectSymFailedSymName, INVALID_UINT64, INVALID_UINT64,
+                                                   INVALID_UINT64);
+    NativeHookFrameCache symFailedResultFrameCache(nativeHookFrame, 1);
+    EXPECT_TRUE(symFailedExpectFrameCache == symFailedResultFrameCache);
+    auto expectAllocSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_05);
+    NativeHookFrameCache allocExpectFrameCache(1, INDEX_SIZE_02, STACK_MAP_ALLOC_IP, expectAllocSymbolData,
+                                               INVALID_UINT64, INVALID_UINT64, INVALID_UINT64);
+    NativeHookFrameCache allocResultFrameCache(nativeHookFrame, INDEX_SIZE_02);
+    EXPECT_TRUE(allocExpectFrameCache == allocResultFrameCache);
+    auto size = nativeHookFrame.Size();
+    EXPECT_EQ(INDEX_SIZE_03, size);
+    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

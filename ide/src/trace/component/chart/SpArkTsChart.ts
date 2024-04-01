@@ -14,7 +14,6 @@
  */
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
-import { info } from '../../../log/Log';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { type HeapTimelineRender, HeapTimelineStruct } from '../../database/ui-worker/ProcedureWorkerHeapTimeline';
@@ -22,16 +21,14 @@ import { HeapDataInterface, type ParseListener } from '../../../js-heap/HeapData
 import { LoadDatabase } from '../../../js-heap/LoadDatabase';
 import { type FileInfo } from '../../../js-heap/model/UiStruct';
 import { type HeapSnapshotRender, HeapSnapshotStruct } from '../../database/ui-worker/ProcedureWorkerHeapSnapshot';
-import { procedurePool } from '../../database/Procedure';
 import { Utils } from '../trace/base/Utils';
 import { type JsCpuProfilerChartFrame } from '../../bean/JsStruct';
 import { type JsCpuProfilerRender, JsCpuProfilerStruct } from '../../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { ns2s } from '../../database/ui-worker/ProcedureWorkerCommon';
-import {
-  cpuProfilerDataSender
-} from '../../database/data-trafic/ArkTsSender';
-import {queryJsCpuProfilerConfig, queryJsCpuProfilerData} from "../../database/sql/Cpu.sql";
-import {queryJsMemoryData} from "../../database/sql/Memory.sql";
+import { cpuProfilerDataSender } from '../../database/data-trafic/ArkTsSender';
+import { queryJsCpuProfilerConfig, queryJsCpuProfilerData } from '../../database/sql/Cpu.sql';
+import { queryJsMemoryData } from '../../database/sql/Memory.sql';
+import { type HeapSample } from '../../../js-heap/model/DatabaseStruct';
 
 const TYPE_SNAPSHOT = 0;
 const TYPE_TIMELINE = 1;
@@ -55,9 +52,59 @@ export class SpArkTsChart implements ParseListener {
     return this.allCombineDataMap;
   }
 
+  private cpuProfilerSupplierFrame(): void {
+    this.jsCpuProfilerRow!.supplierFrame = (): Promise<Array<any>> => {
+      return cpuProfilerDataSender(this.jsCpuProfilerRow!).then((res: any) => {
+        let maxHeight = res.maxDepth * 20;
+        this.jsCpuProfilerRow!.style.height = `${maxHeight}px`;
+        if (res.dataList.length > 0) {
+          this.allCombineDataMap = new Map<number, JsCpuProfilerChartFrame>();
+          for (let data of res.dataList) {
+            this.allCombineDataMap.set(data.id, data);
+            SpSystemTrace.jsProfilerMap.set(data.id, data);
+          }
+          res.dataList.forEach((data: any) => {
+            data.children = [];
+            if (data.childrenIds.length > 0) {
+              for (let id of data.childrenIds) {
+                let child = SpSystemTrace.jsProfilerMap.get(Number(id));
+                data.children.push(child);
+              }
+            }
+            data.name = SpSystemTrace.DATA_DICT.get(data.nameId) || LAMBDA_FUNCTION_NAME;
+            data.url = SpSystemTrace.DATA_DICT.get(data.urlId) || 'unknown';
+            if (data.url && data.url !== 'unknown') {
+              let dirs = data.url.split('/');
+              data.scriptName = dirs.pop() || '';
+            }
+          });
+        }
+        return res.dataList;
+      });
+    };
+  }
+
+  private folderThreadHandler(): void {
+    this.folderRow!.onThreadHandler = (useCache): void => {
+      this.folderRow!.canvasSave(this.trace.canvasPanelCtx!);
+      if (this.folderRow!.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, this.folderRow!.frame.width, this.folderRow!.frame.height);
+      } else {
+        (renders.empty as EmptyRender).renderMainThread(
+          {
+            context: this.trace.canvasPanelCtx,
+            useCache: useCache,
+            type: '',
+          },
+          this.folderRow!
+        );
+      }
+      this.folderRow!.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
+    };
+  }
+
   public async initFolder(): Promise<void> {
     let jsConfig = await queryJsCpuProfilerConfig();
-
     let jsCpu = await queryJsCpuProfilerData();
     let jsMemory = await queryJsMemoryData();
     if (jsMemory.length > 0 || jsCpu.length > 0) {
@@ -68,28 +115,13 @@ export class SpArkTsChart implements ParseListener {
       this.folderRow.style.height = '40px';
       this.folderRow.rowParentId = '';
       this.folderRow.folder = true;
-      this.folderRow.name = `Ark Ts ` + this.process;
+      this.folderRow.name = `Ark Ts ${this.process}`;
       this.folderRow.addTemplateTypes('ArkTs');
       this.folderRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       this.folderRow.selectChangeHandler = this.trace.selectChangeHandler;
       this.folderRow.supplierFrame = (): Promise<Array<unknown>> =>
         new Promise<Array<unknown>>((resolve) => resolve([]));
-      this.folderRow.onThreadHandler = (useCache): void => {
-        this.folderRow!.canvasSave(this.trace.canvasPanelCtx!);
-        if (this.folderRow!.expansion) {
-          this.trace.canvasPanelCtx?.clearRect(0, 0, this.folderRow!.frame.width, this.folderRow!.frame.height);
-        } else {
-          (renders.empty as EmptyRender).renderMainThread(
-            {
-              context: this.trace.canvasPanelCtx,
-              useCache: useCache,
-              type: ``,
-            },
-            this.folderRow!
-          );
-        }
-        this.folderRow!.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
-      };
+      this.folderThreadHandler();
       this.trace.rowsEL?.appendChild(this.folderRow);
       if (this.folderRow && jsConfig[0].type !== -1 && jsMemory.length > 0) {
         this.folderRow.addTemplateTypes('Memory');
@@ -108,35 +140,7 @@ export class SpArkTsChart implements ParseListener {
         await this.loadJsDatabase.loadDatabase(this);
       }
       if (this.jsCpuProfilerRow && jsCpu.length > 0) {
-        this.jsCpuProfilerRow!.supplierFrame = (): Promise<Array<any>> => {
-          return cpuProfilerDataSender(this.jsCpuProfilerRow!).then((res: any) => {
-            let maxHeight = res.maxDepth * 20;
-            this.jsCpuProfilerRow!.style.height = `${maxHeight}px`;
-            if (res.dataList.length > 0) {
-              this.allCombineDataMap = new Map<number, JsCpuProfilerChartFrame>();
-              for (let data of res.dataList) {
-                this.allCombineDataMap.set(data.id, data);
-                SpSystemTrace.jsProfilerMap.set(data.id, data);
-              }
-              res.dataList.forEach((data: any) => {
-                data.children = [];
-                if (data.childrenIds.length > 0) {
-                  for (let id of data.childrenIds) {
-                    let child = SpSystemTrace.jsProfilerMap.get(Number(id));
-                    data.children.push(child);
-                  }
-                }
-                data.name = SpSystemTrace.DATA_DICT.get(data.nameId) || LAMBDA_FUNCTION_NAME;
-                data.url = SpSystemTrace.DATA_DICT.get(data.urlId) || 'unknown';
-                if (data.url && data.url !== 'unknown') {
-                  let dirs = data.url.split('/');
-                  data.scriptName = dirs.pop() || '';
-                }
-              });
-            }
-            return res.dataList;
-          });
-        };
+        this.cpuProfilerSupplierFrame();
       }
     }
   }
@@ -146,7 +150,7 @@ export class SpArkTsChart implements ParseListener {
     this.heapTimelineRow.rowParentId = this.process;
     this.heapTimelineRow.rowHidden = !this.folderRow!.expansion;
     this.heapTimelineRow.style.height = '40px';
-    this.heapTimelineRow.name = `Heaptimeline`;
+    this.heapTimelineRow.name = 'Heaptimeline';
     this.heapTimelineRow.folder = false;
     this.heapTimelineRow.rowType = TraceRow.ROW_TYPE_HEAP_TIMELINE;
     this.heapTimelineRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -159,7 +163,7 @@ export class SpArkTsChart implements ParseListener {
         `<span>Size: ${Utils.getBinaryByteWithUnit(HeapTimelineStruct.hoverHeapTimelineStruct?.size || 0)}</span>`
       );
     };
-    this.heapTimelineRow!.findHoverStruct = () => {
+    this.heapTimelineRow!.findHoverStruct = (): void => {
       HeapTimelineStruct.hoverHeapTimelineStruct = this.heapTimelineRow!.getHoverStruct();
     };
     this.folderRow!.addChildTraceRow(this.heapTimelineRow!);
@@ -170,9 +174,10 @@ export class SpArkTsChart implements ParseListener {
     this.heapSnapshotRow.rowParentId = this.process;
     this.heapSnapshotRow.rowHidden = !this.folderRow!.expansion;
     this.heapSnapshotRow.style.height = '40px';
-    this.heapSnapshotRow.name = `Heapsnapshot`;
-    this.heapSnapshotRow.rowId = `heapsnapshot`;
+    this.heapSnapshotRow.name = 'Heapsnapshot';
+    this.heapSnapshotRow.rowId = 'heapsnapshot';
     this.heapSnapshotRow.folder = false;
+
     this.heapSnapshotRow.rowType = TraceRow.ROW_TYPE_HEAP_SNAPSHOT;
     this.heapSnapshotRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     this.heapSnapshotRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -185,10 +190,53 @@ export class SpArkTsChart implements ParseListener {
             <span>Size: ${Utils.getBinaryByteWithUnit(HeapSnapshotStruct.hoverSnapshotStruct?.size || 0)}</span>`
       );
     };
-    this.heapSnapshotRow!.findHoverStruct = () => {
+    this.heapSnapshotRow!.findHoverStruct = (): void => {
       HeapSnapshotStruct.hoverSnapshotStruct = this.heapSnapshotRow!.getHoverStruct();
     };
     this.folderRow!.addChildTraceRow(this.heapSnapshotRow);
+  }
+
+  private heapLineThreadHandler(samples: HeapSample[]): void {
+    this.heapTimelineRow!.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (this.heapTimelineRow?.currentContext) {
+        context = this.heapTimelineRow!.currentContext;
+      } else {
+        context = this.heapTimelineRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      this.heapTimelineRow!.canvasSave(context);
+      (renders['heap-timeline'] as HeapTimelineRender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: 'heap-timeline',
+          samples: samples,
+        },
+        this.heapTimelineRow!
+      );
+      this.heapTimelineRow!.canvasRestore(context, this.trace);
+    };
+  }
+
+  private heapSnapshotThreadHandler(): void {
+    this.heapSnapshotRow!.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (this.heapSnapshotRow?.currentContext) {
+        context = this.heapSnapshotRow!.currentContext;
+      } else {
+        context = this.heapSnapshotRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      this.heapSnapshotRow!.canvasSave(context);
+      (renders['heap-snapshot'] as HeapSnapshotRender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: 'heap-snapshot',
+        },
+        this.heapSnapshotRow!
+      );
+      this.heapSnapshotRow!.canvasRestore(context, this.trace);
+    };
   }
 
   public async parseDone(fileModule: Array<FileInfo>): Promise<void> {
@@ -198,48 +246,13 @@ export class SpArkTsChart implements ParseListener {
       this.trace.snapshotFile = file;
       if (file.type === TYPE_TIMELINE) {
         let samples = HeapDataInterface.getInstance().getSamples(file.id);
-        this.heapTimelineRow!.rowId = `heaptimeline` + file.id;
+        this.heapTimelineRow!.rowId = `heaptimeline${file.id}`;
         this.heapTimelineRow!.supplierFrame = (): Promise<any> => new Promise<any>((resolve) => resolve(samples));
-        this.heapTimelineRow!.onThreadHandler = (useCache): void => {
-          let context: CanvasRenderingContext2D;
-          if (this.heapTimelineRow?.currentContext) {
-            context = this.heapTimelineRow!.currentContext;
-          } else {
-            context = this.heapTimelineRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-          }
-          this.heapTimelineRow!.canvasSave(context);
-          (renders['heap-timeline'] as HeapTimelineRender).renderMainThread(
-            {
-              context: context,
-              useCache: useCache,
-              type: `heap-timeline`,
-              samples: samples,
-            },
-            this.heapTimelineRow!
-          );
-          this.heapTimelineRow!.canvasRestore(context, this.trace);
-        };
+        this.heapLineThreadHandler(samples);
       } else if (file.type === TYPE_SNAPSHOT) {
         this.heapSnapshotRow!.supplierFrame = (): Promise<Array<any>> =>
           new Promise<Array<any>>((resolve) => resolve(heapFile));
-        this.heapSnapshotRow!.onThreadHandler = (useCache): void => {
-          let context: CanvasRenderingContext2D;
-          if (this.heapSnapshotRow?.currentContext) {
-            context = this.heapSnapshotRow!.currentContext;
-          } else {
-            context = this.heapSnapshotRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-          }
-          this.heapSnapshotRow!.canvasSave(context);
-          (renders['heap-snapshot'] as HeapSnapshotRender).renderMainThread(
-            {
-              context: context,
-              useCache: useCache,
-              type: `heap-snapshot`,
-            },
-            this.heapSnapshotRow!
-          );
-          this.heapSnapshotRow!.canvasRestore(context, this.trace);
-        };
+        this.heapSnapshotThreadHandler();
       }
     }
   }
@@ -270,7 +283,7 @@ export class SpArkTsChart implements ParseListener {
         <span>${JsCpuProfilerStruct.hoverJsCpuProfilerStruct?.url || 0}</span>`
       );
     };
-    this.jsCpuProfilerRow!.findHoverStruct = () => {
+    this.jsCpuProfilerRow!.findHoverStruct = (): void => {
       JsCpuProfilerStruct.hoverJsCpuProfilerStruct = this.jsCpuProfilerRow!.getHoverStruct();
     };
     this.jsCpuProfilerRow.onThreadHandler = (useCache): void => {
@@ -285,7 +298,7 @@ export class SpArkTsChart implements ParseListener {
         {
           context: context,
           useCache: useCache,
-          type: `js-cpu-profiler`,
+          type: 'js-cpu-profiler',
         },
         this.jsCpuProfilerRow!
       );

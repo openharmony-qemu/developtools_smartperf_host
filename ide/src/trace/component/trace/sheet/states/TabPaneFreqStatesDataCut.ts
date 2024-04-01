@@ -54,6 +54,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
   private spSystemTrace: SpSystemTrace | undefined | null;
   private lineCycleNum: number = -1;
   private cycleIsClick: Boolean = false;
+  static isStateTabHover:boolean = false;
 
 
   // tab页入口函数
@@ -127,6 +128,8 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       threadFunc.style.border = '1px solid rgb(151,151,151)';
       this.threadBindersTbl!.loading = true;
       this.funcNameCycleArr = await queryLoopFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
+      this.cycleStartTime = this.funcNameCycleArr!.length > 0 ? this.funcNameCycleArr![0].cycleStartTime : undefined;
+      this.cycleEndTime = this.funcNameCycleArr!.length > 1 ? this.funcNameCycleArr![this.funcNameCycleArr!.length - 1].cycleStartTime : undefined;
       // 遍历设置周期的起始时间
       for (let i = 0; i < this.funcNameCycleArr!.length - 1; i++) {
         this.funcNameCycleArr![i].endTime = this.funcNameCycleArr![i + 1].cycleStartTime;
@@ -395,6 +398,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       this.cycleIsClick = false;
       this.lineCycleNum = -1;
       this.traceSheetEl!.systemLogFlag = undefined;
+      TabPaneFreqStatesDataCut.isStateTabHover = false;
       this.spSystemTrace?.refreshCanvas(false);
     })
 
@@ -426,6 +430,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         this.threadBindersTbl!.setCurrentSelection(currentData);
         if (currentData.cycle === this.lineCycleNum && this.cycleIsClick === true) {
           this.traceSheetEl!.systemLogFlag = undefined;
+          TabPaneFreqStatesDataCut.isStateTabHover = false;
           this.cycleIsClick = false;
         } else {
           let pointX: number = ns2x(
@@ -435,7 +440,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             TraceRow.range!.totalNS,
             new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
           );
-          this.traceSheetEl!.systemLogFlag = new Flag(
+          SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = new Flag(
             Math.floor(pointX),
             0,
             0,
@@ -446,10 +451,11 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             true,
             ''
           );
+          TabPaneFreqStatesDataCut.isStateTabHover = true;
           this.lineCycleNum = currentData.cycle;
           this.cycleIsClick = true;
         }
-        this.spSystemTrace?.refreshCanvas(false);
+        SpSegmentationChart.trace.refreshCanvas(false);
       }
     });
 
@@ -490,7 +496,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
   // 筛选出点击的线程数据
   filCycleData(pid: number, tid: number): Array<StateGroup> {
     return this.filterState?.filter((v: StateGroup) => {
-      return v.pid === pid && v.tid === tid && v.ts + v.dur! > this.cycleStartTime! && v.ts + v.dur! < this.cycleEndTime!;
+      return v.pid === pid && v.tid === tid && v.ts > this.cycleStartTime! && v.ts + v.dur! < this.cycleEndTime!;
     })
   };
 
@@ -678,27 +684,27 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             <lit-slicer style="width:100%">
                 <div style="width:65%;">
                     <lit-table id="tb-binder-count" style="height: auto; overflow-x:auto;width:100%;" tree>
-                        <lit-table-column title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" width="27%" retract>
+                        <lit-table-column width="250px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
                         </lit-table-column>
-                        <lit-table-column title="Running count" data-index="RunningCount" key="RunningCoung" align="center">
+                        <lit-table-column width="120px" title="Running count" data-index="RunningCount" key="RunningCoung" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Running dur" data-index="RunningDur" key="RunningDur" align="center">
+                        <lit-table-column width="120px" title="Running dur" data-index="RunningDur" key="RunningDur" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Runnable count" data-index="RunnableCount" key="RunnableCount" align="center">
+                        <lit-table-column width="120px" title="Runnable count" data-index="RunnableCount" key="RunnableCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Runnable dur" data-index="RunnableDur" key="RunnableDur" align="center">
+                        <lit-table-column width="120px" title="Runnable dur" data-index="RunnableDur" key="RunnableDur" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Sleeping count" data-index="SleepingCount" key="SleepingCount" align="center">
+                        <lit-table-column width="120px" title="Sleeping count" data-index="SleepingCount" key="SleepingCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Sleeping dur" data-index="SleepingDur" key="SleepingDur" align="center">
+                        <lit-table-column width="120px" title="Sleeping dur" data-index="SleepingDur" key="SleepingDur" align="center">
                         </lit-table-column>
-                        <lit-table-column title="D count" data-index="DCount" key="DCount" align="center">
+                        <lit-table-column width="120px" title="D count" data-index="DCount" key="DCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="D dur" data-index="DDur" key="DDUR" align="center">
+                        <lit-table-column width="120px" title="D dur" data-index="DDur" key="DDUR" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
+                        <lit-table-column width="120px" title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
                         </lit-table-column>
-                        <lit-table-column title="total" data-index="totalCount" key="totalCount" align="center">
+                        <lit-table-column width="120px"  title="total" data-index="totalCount" key="totalCount" align="center">
                         </lit-table-column>
                     </lit-table>
                 </div>

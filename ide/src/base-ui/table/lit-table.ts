@@ -799,6 +799,8 @@ export class LitTable extends HTMLElement {
     this.meauseRowElement = undefined;
     this.tbodyElement!.innerHTML = '';
     this.treeElement!.innerHTML = '';
+    this.treeElement && (this.treeElement!.style.transform = `translateY(0px)`);
+    this.tbodyElement && (this.tbodyElement!.style.transform = `translateY(0px)`);
     this.currentRecycleList = [];
     this.currentTreeDivList = [];
   }

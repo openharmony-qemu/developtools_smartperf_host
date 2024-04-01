@@ -147,9 +147,7 @@ export class TabPaneDataCut extends BaseElement {
             align-items: center;
         }
         </style>
-        <div id="data_cut_tabpane_container" style="flex-grow: 1">
-             
-        </div>
+        <div id="data_cut_tabpane_container" style="flex-grow: 1"></div>
         <div class="bottom_filter">
             <lit-select id="tab-select" style="margin-left: 10px" placeholder="please choose"></lit-select>
         </div>

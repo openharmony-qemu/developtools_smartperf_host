@@ -499,6 +499,18 @@ export function getProbablyTime(ns: number): string {
   return res;
 }
 
+export function getThreadUsageProbablyTime(ns: number): string {
+  let currentNs = ns;
+  let microsecond1 = 1_000;
+  let res = '';
+  if (currentNs > 0) {
+    res += (currentNs / microsecond1).toFixed(2);
+  } else if (res == '') {
+    res = ns + '';
+  }
+  return res;
+}
+
 export function timeMsFormat2p(timeNs: number): string {
   let currentNs = timeNs;
   let oneHour = 3600_000;

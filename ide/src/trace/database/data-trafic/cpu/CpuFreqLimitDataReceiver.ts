@@ -65,7 +65,7 @@ export function cpuFreqLimitReceiver(data: any, proc: Function): void {
         if(i<list.length-1){
           list[i].dur = list[i+1].startNs - list[i].startNs;
         }else{
-          list[i].dur = data.params.endNS - list[i].startNs;
+          list[i].dur = data.params.recordEndNS - data.params.recordStartNS - list[i].startNs;
         }
       }
       cpuFreqLimitList.set(data.params.cpu, list);

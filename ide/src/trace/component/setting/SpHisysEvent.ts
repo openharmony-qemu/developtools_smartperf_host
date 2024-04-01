@@ -20,6 +20,7 @@ import '../../../base-ui/switch/lit-switch';
 import { SpRecordTrace } from '../SpRecordTrace';
 import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager';
 import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect';
+import { SpHiSysEventHtml } from './SpHisysEvent.html';
 
 @element('sp-hisys-event')
 export class SpHisysEvent extends BaseElement {
@@ -163,102 +164,7 @@ export class SpHisysEvent extends BaseElement {
     });
   }
 
-  private getCssStyle(): string {
-    return `
-        <style>
-        :host{
-          background: var(--dark-background3,#FFFFFF);
-          display: inline-block;
-          width: 100%;
-          height: 100%;
-          border-radius: 0px 16px 16px 0px;
-        }
-        :host([startSamp]) .record-input {
-          background: var(--dark-background5,#FFFFFF);
-        }
-        :host(:not([startSamp])) .record-input {
-          color: #999999;
-        }
-        .root {
-          margin-bottom: 30px;
-          padding-top: 30px;
-          padding-left: 54px;
-          margin-right: 30px;
-          font-size:16px;
-        }
-        .hisys-event-config {
-          width: 80%;
-          display: flex;
-          flex-direction: column;
-          gap: 25px;
-          margin-top: 5vh;
-          margin-bottom: 5vh;
-        }
-        .event-title {
-          font-weight: 700;
-          opacity: 0.9;
-          font-family: Helvetica-Bold;
-          font-size: 18px;
-          text-align: center;
-          line-height: 40px;
-          margin-right: 10px;
-        }
-        .event-des {
-          font-size: 14px;
-          opacity: 0.6;
-          line-height: 35px;
-          font-family: Helvetica;
-          text-align: center;
-          font-weight: 400;
-        }
-        lit-switch {
-          height: 38px;
-          margin-top: 10px;
-          display:inline;
-          float: right;
-        }
-        .record-input {
-          line-height: 20px;
-          font-weight: 400;
-          border: 1px solid var(--dark-background5,#ccc);
-          font-family: Helvetica;
-          font-size: 14px;
-          color: var(--dark-color1,#212121);
-          text-align: left;
-          width: auto;
-        }
-        </style>`;
-  }
-
   initHtml(): string {
-    return `
-        ${this.getCssStyle()}
-        <div class="root">
-          <div class="hisys-event-config">
-              <div>
-                 <span class="event-title">Start Hisystem Event Tracker Record</span>
-                 <lit-switch></lit-switch>
-              </div>
-          </div>
-          <div class="hisys-event-config">
-              <div>
-                 <span class="event-title">Domain</span>
-                 <span class="event-des">Record Domain Name</span>
-              </div>
-              <lit-allocation-select default-value="" rounded="" class="record-domain-input record-input" 
-              mode="multiple" canInsert="" title="Select Proces" placement="bottom" placeholder="ALL-Domain" readonly="readonly">
-              </lit-allocation-select>
-          </div>
-          <div class="hisys-event-config">
-              <div>
-                 <span class="event-title">EventName</span>
-                 <span class="event-des">Record Event Name</span>
-              </div>
-              <lit-allocation-select default-value="" rounded="" class="record-event-input record-input" 
-              mode="multiple" canInsert="" title="Select Proces" placement="bottom" placeholder="ALL-Event" readonly="readonly">
-              </lit-allocation-select>
-          </div>
-        </div>
-        `;
+    return SpHiSysEventHtml;
   }
 }

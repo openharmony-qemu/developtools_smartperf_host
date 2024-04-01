@@ -93,6 +93,17 @@ public:
     {
         return streamFilters_.get();
     }
+    void InitializeParser();
+    void ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish);
+
+    // Used to obtain markinfo,skip under Linux
+    void ClearMarkPositionInfo()
+    {
+        hasGotMarkFinish_ = false;
+        markHeard_ = false;
+    };
+    void GetMarkPositionData(std::unique_ptr<uint8_t[]>& data, size_t& size);
+
     int32_t CreatEmptyBatchDB(const std::string dbPath);
     int32_t BatchExportDatabase(const std::string& outputName);
     bool BatchParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size);
@@ -112,6 +123,10 @@ private:
     std::unique_ptr<RawTraceParser> rawTraceParser_;
 #endif
     bool enableFileSeparate_ = false;
+
+    // Used to get markinfo,skip under Linux
+    bool hasGotMarkFinish_ = false;
+    bool markHeard_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

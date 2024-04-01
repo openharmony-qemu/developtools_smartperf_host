@@ -702,21 +702,21 @@ export class TabPaneBinderDataCut extends BaseElement {
             <lit-slicer style="width:100%">
                 <div style="width:65%;">
                     <lit-table id="tb-binder-count" style="height: auto; overflow-x:auto;width:100%" tree>
-                        <lit-table-column title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" width="27%" retract>
+                        <lit-table-column width="250px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
                         </lit-table-column>
-                        <lit-table-column title="Total count" data-index="totalCount" key="totalCount" align="center">
+                        <lit-table-column width="100px" title="Total count" data-index="totalCount" key="totalCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Binder transaction count" data-index="binderTransactionCount" key="binderTransactionCount" align="center">
+                        <lit-table-column width="100px" title="Binder transaction count" data-index="binderTransactionCount" key="binderTransactionCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Binder transaction async count" data-index="binderTransactionAsyncCount" key="binderTransactionAsyncCount" align="center">
+                        <lit-table-column width="100px" title="Binder transaction async count" data-index="binderTransactionAsyncCount" key="binderTransactionAsyncCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Binder reply count" data-index="binderReplyCount" key="binderReplyCount" align="center">
+                        <lit-table-column width="100px" title="Binder reply count" data-index="binderReplyCount" key="binderReplyCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Binder async rcv count" data-index="binderAsyncRcvCount" key="binderAsyncRcvCount" align="center">
+                        <lit-table-column width="100px" title="Binder async rcv count" data-index="binderAsyncRcvCount" key="binderAsyncRcvCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Cycle start time(ms)" data-index="cycleStartTime" key="cycleStartTime" align="flex-start">
+                        <lit-table-column width="100px" title="Cycle start time(ms)" data-index="cycleStartTime" key="cycleStartTime" align="flex-start">
                         </lit-table-column>
-                        <lit-table-column title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
+                        <lit-table-column width="100px" title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
                         </lit-table-column>
                     </lit-table>
                 </div>

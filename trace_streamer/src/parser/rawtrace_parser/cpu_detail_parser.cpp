@@ -159,7 +159,7 @@ void CpuDetailParser::ResizeStandAloneCpuEventList(uint32_t cpuNum)
 bool CpuDetailParser::SortStandAloneCpuEventList(bool isFinished)
 {
     while (curRawTraceEventNum_ > 0) {
-        uint32_t minTimeCpuId = 0;
+        uint32_t minTimeCpuId = INVALID_UINT32;
         uint64_t curMinTs = INVALID_UINT64;
         // select a min time from one of the cpu caches
         for (int curCpuId = 0; curCpuId < cpuCoreMax_; curCpuId++) {
@@ -173,6 +173,9 @@ bool CpuDetailParser::SortStandAloneCpuEventList(bool isFinished)
                 curMinTs = ts;
                 minTimeCpuId = curCpuId;
             }
+        }
+        if (INVALID_UINT32 == minTimeCpuId) {
+            break;
         }
         rawTraceEventList_.emplace_back(std::move(standAloneCpuEventList_[minTimeCpuId].front()));
         standAloneCpuEventList_[minTimeCpuId].pop();
