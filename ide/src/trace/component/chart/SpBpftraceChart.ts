@@ -18,6 +18,7 @@ import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { SampleStruct, SampleRender } from '../../database/ui-worker/ProcedureWorkerBpftrace';
 import { queryStartTime } from '../../database/sql/SqlLite.sql';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class SpBpftraceChart {
   private trace: SpSystemTrace;
@@ -168,6 +169,10 @@ export class SpBpftraceChart {
           document.dispatchEvent(
             new CustomEvent('file-correct')
           )
+          SpStatisticsHttpUtil.addOrdinaryVisitAction({
+            event: 'bpftrace',
+            action: 'bpftrace',
+          });
         } catch (error) {
           document.dispatchEvent(
             new CustomEvent('file-error')

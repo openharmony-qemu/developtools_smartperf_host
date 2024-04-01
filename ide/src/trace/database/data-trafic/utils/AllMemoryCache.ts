@@ -18,6 +18,8 @@ import { resetAbilityMonitor } from '../AbilityMonitorReceiver';
 import { resetAbility } from '../VmTrackerDataReceiver';
 import { resetDynamicEffect } from '../FrameDynamicEffectReceiver';
 import { resetEnergyEvent } from '../EnergySysEventReceiver';
+// thread_state 表缓存
+export const sliceList: Map<number, Array<any>> = new Map();
 //cpu 泳道 memory 缓存
 export const cpuList: Map<number, Array<any>> = new Map();
 //clock 泳道 memory 模式缓存
@@ -52,6 +54,7 @@ export const hiLogList: Map<string, Array<any>> = new Map();
 //energy 泳道图 memory 模式缓存
 export const energyList: Map<string, Array<any>> = new Map();
 export function clearMemoryCache(data: any, proc: Function) {
+  sliceList.clear();
   cpuList.clear();
   clockList.clear();
   cpuFreqList.clear();

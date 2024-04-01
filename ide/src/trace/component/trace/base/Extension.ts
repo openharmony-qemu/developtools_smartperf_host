@@ -69,6 +69,8 @@ declare global {
         LoadFinish: string;
         LoadFinishFrame: string;
         ShowBottomTab: string;
+        ImportRecord: string; //导出时间区间和泳道图收藏记录
+        ExportRecord: string; //导出时间区间和泳道图收藏记录
       };
     };
 
@@ -129,6 +131,8 @@ window.SmartEvent = {
     LoadFinish: 'SmartEvent-UI-LoadFinish',//所有泳道刷新完成触发
     LoadFinishFrame: 'SmartEvent-UI-LoadFinishFrame',//单个泳道刷新完成触发
     ShowBottomTab: 'SmartEvent-UI-ShowBottomTab',// 显示底部 tab
+    ImportRecord: 'SmartEvent-UI-ImportRecord',
+    ExportRecord: 'SmartEvent-UI-ExportRecord'
   },
 };
 Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn);

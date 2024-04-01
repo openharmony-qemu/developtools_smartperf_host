@@ -126,27 +126,28 @@ export function func(
     });
   }
 }
-export function FuncStructOnClick(clickRowType: string, sp:any,row:TraceRow<any>|undefined, scrollToFuncHandler: any) {
+export function FuncStructOnClick(clickRowType: string, sp:any, row:TraceRow<any>|undefined, scrollToFuncHandler: any, entry?: any) {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_FUNC && FuncStruct.hoverFuncStruct) {
-      TabPaneTaskFrames.TaskArray = [];
-      sp.removeLinkLinesByBusinessType('task');
-      FuncStruct.selectFuncStruct = FuncStruct.hoverFuncStruct;
-      let hoverFuncStruct = FuncStruct.hoverFuncStruct;
-      sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
-      FuncStruct.selectFuncStruct = hoverFuncStruct;
-      let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
-      let showTabArray: Array<string> = ['current-selection'];
-      if (flagConfig!.TaskPool === 'Enabled') {
-        if (FuncStruct.selectFuncStruct?.funName) {
-          if (FuncStruct.selectFuncStruct.funName.indexOf('H:Task ') >= 0) {
-            showTabArray.push('box-task-frames');
-            sp.drawTaskPollLine(row);
+    if (clickRowType === TraceRow.ROW_TYPE_FUNC && (FuncStruct.hoverFuncStruct || entry)) {
+      if (FuncStruct.funcSelect) {
+        TabPaneTaskFrames.TaskArray = [];
+        sp.removeLinkLinesByBusinessType('task');
+        let hoverFuncStruct = entry || FuncStruct.hoverFuncStruct;
+        FuncStruct.selectFuncStruct = hoverFuncStruct;
+        sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
+        let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
+        let showTabArray: Array<string> = ['current-selection'];
+        if (flagConfig!.TaskPool === 'Enabled') {
+          if (FuncStruct.selectFuncStruct?.funName) {
+            if (FuncStruct.selectFuncStruct.funName.indexOf('H:Task ') >= 0) {
+              showTabArray.push('box-task-frames');
+              sp.drawTaskPollLine(row);
+            }
           }
         }
+        sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct, scrollToFuncHandler);
+        sp.timerShaftEL?.modifyFlagList(undefined);
       }
-      sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct, scrollToFuncHandler);
-      sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {
       resolve(null);
@@ -158,6 +159,7 @@ export class FuncStruct extends BaseFuncStruct {
   static selectFuncStruct: FuncStruct | undefined;
   flag: string | undefined; // 570000
   textMetricsWidth: number | undefined;
+  static funcSelect: boolean = true;
   static setFuncFrame(funcNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
     let x1: number, x2: number;
     if ((funcNode.startTs || 0) > startNS && (funcNode.startTs || 0) <= endNS) {

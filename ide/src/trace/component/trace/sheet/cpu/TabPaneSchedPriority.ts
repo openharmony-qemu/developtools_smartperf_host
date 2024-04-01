@@ -17,11 +17,11 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { resizeObserver } from '../SheetUtils';
-import { procedurePool } from '../../../../database/Procedure';
 import { Utils } from '../../base/Utils';
 import { Priority } from '../../../../bean/StateProcessThread';
 import { queryThreadStateArgsByName } from '../../../../database/sql/ProcessThread.sql';
 import { FlagsConfig } from '../../../../component/SpFlags';
+import {sliceSPTSender} from "../../../../database/data-trafic/SliceSender";
 
 @element('tabpane-sched-priority')
 export class TabPaneSchedPriority extends BaseElement {
@@ -90,24 +90,18 @@ export class TabPaneSchedPriority extends BaseElement {
     }
     // thread_state表中runnable数据的Map
     const runnableMap = new Map<string, Priority>();
-    procedurePool.submitWithName(
-      'logic0',
-      'spt-getCpuPriorityByTime',
-      { leftNs: sptParam.leftNs, rightNs: sptParam.rightNs },
-      undefined,
-      async (res: Array<any>) => {
-        for (const item of res) {
-          if (['R', 'R+'].includes(item.state)) {
-            runnableMap.set(`${item.itId}_${item.endTs}`, item);
-          }
-          if (item.cpu === null || !sptParam.cpus.includes(item.cpu)) {
-            continue;
-          }
-          this.fetchData(item, setPriority, resultData, runnableMap);
+    sliceSPTSender(sptParam.leftNs, sptParam.rightNs, [], 'spt-getCpuPriorityByTime').then(res => {
+      for (const item of res) {
+        if (['R', 'R+'].includes(item.state)) {
+          runnableMap.set(`${item.id}_${item.startTime + item.dur}`, item);
         }
-        this.getDataByPriority(resultData);
+        if (item.cpu === null || !sptParam.cpus.includes(item.cpu)) {
+          continue;
+        }
+        this.fetchData(item, setPriority, resultData, runnableMap);
       }
-    );
+      this.getDataByPriority(resultData);
+    })
   }
 
   private fetchData(
@@ -117,11 +111,11 @@ export class TabPaneSchedPriority extends BaseElement {
     runnableMap: Map<string, Priority>
   ) {
     let strArg: string[] = [];
-    const args = this.strValueMap.get(item.argSetID);
+    const args = this.strValueMap.get(item.argSetId);
     if (args) {
       strArg = args!.split(',');
     }
-    const slice = Utils.SCHED_SLICE_MAP.get(`${item.itId}-${item.startTs}`);
+    const slice = Utils.SCHED_SLICE_MAP.get(`${item.id}-${item.startTime}`);
     if (slice) {
       const runningPriority = new Priority();
       runningPriority.priority = slice.priority;
@@ -130,7 +124,7 @@ export class TabPaneSchedPriority extends BaseElement {
       setPriority(runningPriority, strArg);
       resultData.push(runningPriority);
 
-      const runnableItem = runnableMap.get(`${item.itId}_${item.startTs}`);
+      const runnableItem = runnableMap.get(`${item.id}_${item.startTime}`);
       if (runnableItem) {
         const runnablePriority = new Priority();
         runnablePriority.priority = slice.priority;

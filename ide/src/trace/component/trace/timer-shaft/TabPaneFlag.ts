@@ -131,7 +131,24 @@ export class TabPaneFlag extends BaseElement {
    */
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
-    tr[0].querySelector('.removeAll')!.addEventListener('click', () => {
+    this.removeAllClickEventByFlag(tr[0]);
+    //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.flagList数组的第一个对应……，所以i从1开始，在this.flagList数组中取值时用i-1
+    for (let i = 1; i < tr.length; i++) {
+      tr[i].querySelector<HTMLInputElement>('#color-input')!.value = this.flagList[i - 1].color;
+      //  点击色块修改颜色
+      this.colorInputChangeEventByFlag(i, tr[i]);
+      // 修改备注
+      tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.flagList[i - 1].text;
+      this.textInputKeyUpEventByFlag(i, tr[i]);
+      this.textInputBlurEventByFlag(i, tr[i]);
+      this.textInputFocusEventByFlag(tr[i]);
+      // 点击remove按钮移除
+      this.removeClickEventByFlag(i, tr[i]);
+    }
+  }
+
+  private removeAllClickEventByFlag(tr: HTMLDivElement): void {
+    tr.querySelector('.removeAll')!.addEventListener('click', () => {
       this.systemTrace!.flagList = [];
       let flagList = [...this.flagList];
       for (let i = 0; i < flagList.length; i++) {
@@ -141,69 +158,73 @@ export class TabPaneFlag extends BaseElement {
       this.flagList = [];
       return;
     });
+  }
 
-    //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.flagList数组的第一个对应……，所以i从1开始，在this.flagList数组中取值时用i-1
-    for (let i = 1; i < tr.length; i++) {
-      tr[i].querySelector<HTMLInputElement>('#color-input')!.value = this.flagList[i - 1].color;
-      //  点击色块修改颜色
-      tr[i].querySelector<HTMLInputElement>('#color-input')?.addEventListener('change', (event: any) => {
-        if (this.tableDataSource[i].startTime === this.flagList[i - 1].time) {
-          this.flagList[i - 1].color = event?.target.value;
-          document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[i - 1] }));
-          //   旗子颜色改变时，重绘泳道图
-          this.systemTrace?.refreshCanvas(true);
-        }
-        event.stopPropagation();
-      });
-      // 修改备注
-      tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.flagList[i - 1].text;
-      tr[i].querySelector<HTMLInputElement>('#text-input')?.addEventListener('keyup', (event: any) => {
-        if (this.tableDataSource[i].startTime === this.flagList[i - 1].time && event.keyCode === '13') {
-          this.flagList[i - 1].text = event?.target.value;
-          document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[i - 1] }));
-          //   旗子颜色改变时，重绘泳道图
-          this.systemTrace?.refreshCanvas(true);
-        }
-        event.stopPropagation();
-      });
+  private colorInputChangeEventByFlag(index: number, tr: HTMLDivElement): void {
+    tr.querySelector<HTMLInputElement>('#color-input')?.addEventListener('change', (event: any) => {
+      if (this.tableDataSource[index].startTime === this.flagList[index - 1].time) {
+        this.flagList[index - 1].color = event?.target.value;
+        document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
+        //   旗子颜色改变时，重绘泳道图
+        this.systemTrace?.refreshCanvas(true);
+      }
+      event.stopPropagation();
+    });
+  }
 
-      tr[i].querySelector<HTMLInputElement>('#text-input')?.addEventListener('blur', (event: any) => {
-        (window as any).flagInputFocus = false;
-        window.publish(window.SmartEvent.UI.KeyboardEnable, {
-          enable: true,
-        });
-        if (this.tableDataSource[i].startTime === this.flagList[i - 1].time) {
-          this.flagList[i - 1].text = event?.target.value;
-          document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[i - 1] }));
-          //   旗子颜色改变时，重绘泳道图
-          this.systemTrace?.refreshCanvas(true);
-        }
-        event.stopPropagation();
-      });
+  private textInputKeyUpEventByFlag(index: number, tr: HTMLDivElement): void {
+    tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('keyup', (event: any) => {
+      if (this.tableDataSource[index].startTime === this.flagList[index - 1].time && event.keyCode === '13') {
+        this.flagList[index - 1].text = event?.target.value;
+        document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
+        //   旗子颜色改变时，重绘泳道图
+        this.systemTrace?.refreshCanvas(true);
+      }
+      event.stopPropagation();
+    });
+  }
 
-      tr[i].querySelector<HTMLInputElement>('#text-input')?.addEventListener('focus', (event: any) => {
-        (window as any).flagInputFocus = true;
-        window.publish(window.SmartEvent.UI.KeyboardEnable, {
-          enable: false,
-        });
-        let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
-        //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.flagList数组的第一个对应……，所以i从1开始，在this.flagList数组中取值时用i-1
-        for (let i = 1; i < tr.length; i++) {
-          tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.flagList[i - 1].text;
-        }
+  private textInputBlurEventByFlag(index: number, tr: HTMLDivElement): void {
+    tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('blur', (event: any) => {
+      (window as any).flagInputFocus = false;
+      window.publish(window.SmartEvent.UI.KeyboardEnable, {
+        enable: true,
       });
-      // 点击remove按钮移除
-      tr[i]!.querySelector('.remove')?.addEventListener('click', (event: any) => {
-        if (this.tableDataSource[i].startTime === this.flagList[i - 1].time) {
-          this.flagList[i - 1].hidden = true;
-          this.systemTrace!.flagList = this.flagList || [];
-          document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[i - 1] }));
-          //   移除时更新表格内容
-          this.setTableData();
-        }
-        event.stopPropagation();
+      if (this.tableDataSource[index].startTime === this.flagList[index - 1].time) {
+        this.flagList[index - 1].text = event?.target.value;
+        document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
+        //   旗子颜色改变时，重绘泳道图
+        this.systemTrace?.refreshCanvas(true);
+      }
+      event.stopPropagation();
+    });
+  }
+
+  private textInputFocusEventByFlag(tr: HTMLDivElement): void {
+    tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('focus', (event: any) => {
+      (window as any).flagInputFocus = true;
+      window.publish(window.SmartEvent.UI.KeyboardEnable, {
+        enable: false,
       });
-    }
+      let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
+      //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.flagList数组的第一个对应……，所以i从1开始，在this.flagList数组中取值时用i-1
+      for (let i = 1; i < tr.length; i++) {
+        tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.flagList[i - 1].text;
+      }
+    });
+  }
+
+  private removeClickEventByFlag(index: number, tr: HTMLDivElement): void {
+    tr!.querySelector('.remove')?.addEventListener('click', (event: any) => {
+      if (this.tableDataSource[index].startTime === this.flagList[index - 1].time) {
+        this.flagList[index - 1].hidden = true;
+        this.systemTrace!.flagList = this.flagList || [];
+        document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
+        //   移除时更新表格内容
+        this.setTableData();
+      }
+      event.stopPropagation();
+    });
   }
 
   /**

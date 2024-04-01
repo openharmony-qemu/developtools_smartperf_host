@@ -18,6 +18,12 @@ self.onerror = function (error: any) {};
 
 let convertModule: any = null;
 
+const CONTENT_TYPE_CMDLINES = 2;
+const CONTENT_TYPE_TGIDS = 3;
+const CONTENT_TYPE_HEADER_PAGE = 30;
+const CONTENT_TYPE_PRINTK_FORMATS = 31;
+const CONTENT_TYPE_KALLSYMS = 32;
+
 function initConvertWASM() {
   return new Promise((resolve, reject) => {
     // @ts-ignore
@@ -132,6 +138,12 @@ function handleRowTrace(
   return [totalSize, currentPosition, traceAllData];
 }
 
+function isCommonData(dataType: number): boolean {
+  return dataType === CONTENT_TYPE_CMDLINES || dataType === CONTENT_TYPE_TGIDS ||
+    dataType === CONTENT_TYPE_HEADER_PAGE || dataType === CONTENT_TYPE_PRINTK_FORMATS ||
+    dataType === CONTENT_TYPE_KALLSYMS
+}
+
 function setCommonDataOffsetList(
   e: MessageEvent,
   allRowTraceData: Uint8Array,
@@ -153,7 +165,7 @@ function setCommonDataOffsetList(
     let currentVLength = Array.from(new Uint32Array(currentLData));
     commonOffset += currentVLength[0];
     commonDataOffset.endOffset = commonOffset;
-    if (dataType[0] === 2 || dataType[0] === 3) {
+    if (isCommonData(dataType[0])) {
       commonTotalLength += commonDataOffset.endOffset - commonDataOffset.startOffset;
       commonDataOffsetList.push(commonDataOffset);
     }

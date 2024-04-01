@@ -353,6 +353,7 @@ export const applicationHtml: string = `
                       <div class="confirm-button">Confirm</div>
                     </div>
                 </div>
+                <lit-icon class="export-record" title="Download Mark Trace" name="download" size="16" style="display: block;text-align: right;position: absolute;right: 5.2em;cursor: pointer;top: 20px"></lit-icon>
                 <img class="cut-trace-file" title="Cut Trace File" src="img/menu-cut.svg" style="display: block;text-align: right;position: absolute;right: 3.2em;cursor: pointer;top: 20px">
                 <img class="filter-config" title="Display Template" src="img/config_filter.png" style="display: block;text-align: right;position: absolute;right: 1.2em;cursor: pointer;top: 20px">
                 <lit-progress-bar class="progress"></lit-progress-bar>

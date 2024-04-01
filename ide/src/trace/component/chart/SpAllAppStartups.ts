@@ -17,7 +17,11 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq';
-import { queryAppStartupProcessIds, queryProcessStartup, querySingleAppStartupsName } from '../../database/sql/ProcessThread.sql';
+import {
+  queryAppStartupProcessIds,
+  queryProcessStartup,
+  querySingleAppStartupsName,
+} from '../../database/sql/ProcessThread.sql';
 import { FlagsConfig } from '../SpFlags';
 import { AllAppStartupStruct, AllAppStartupRender } from '../../database/ui-worker/ProcedureWorkerAllAppStartup';
 
@@ -33,7 +37,7 @@ export class SpAllAppStartupsChart {
     SpAllAppStartupsChart.trace = trace;
   }
 
-  async init() {
+  async init(): Promise<void> {
     SpAllAppStartupsChart.APP_STARTUP_PID_ARR = [];
     let appStartUpPids = await queryAppStartupProcessIds();
     appStartUpPids.forEach((it) => SpAllAppStartupsChart.APP_STARTUP_PID_ARR.push(it.pid));
@@ -41,29 +45,19 @@ export class SpAllAppStartupsChart {
     SpAllAppStartupsChart.allAppStartupsAva = [];
     for (let i = 0; i < SpAllAppStartupsChart.APP_STARTUP_PID_ARR.length; i++) {
       let tmpSingleApp: any[] = await queryProcessStartup(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
-      if (tmpSingleApp.length == 8) {
+      if (tmpSingleApp.length === 8) {
         let avilSingleName = await querySingleAppStartupsName(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
         SpAllAppStartupsChart.allAppStartupsAva.push(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]);
         SpAllAppStartupsChart.AllAppStartupsNameArr.push(avilSingleName![0].name);
       }
     }
     let loadAppStartup: boolean = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
-    if (loadAppStartup && SpAllAppStartupsChart.allAppStartupsAva.length) await this.initFolder();
+    if (loadAppStartup && SpAllAppStartupsChart.allAppStartupsAva.length) {
+      await this.initFolder();
+    }
   }
 
-  async initFolder() {
-    let row: TraceRow<AllAppStartupStruct> = TraceRow.skeleton<AllAppStartupStruct>();
-    row.setAttribute('hasStartup', 'true');
-    row.rowId = `all-app-start-${SpAllAppStartupsChart.APP_STARTUP_PID_ARR![0]}`;
-    row.index = 0;
-    row.rowType = TraceRow.ROW_TYPE_ALL_APPSTARTUPS;
-    row.rowParentId = '';
-    row.folder = false;
-    row.style.height = '40px';
-    row.name = `All App Startups`;
-    row.addTemplateTypes('AppStartup');
-    row.selectChangeHandler = SpAllAppStartupsChart.trace.selectChangeHandler;
-    row.favoriteChangeHandler = SpAllAppStartupsChart.trace.favoriteChangeHandler;
+  private supplier(row: TraceRow<AllAppStartupStruct>): void {
     row.supplier = async (): Promise<Array<AllAppStartupStruct>> => {
       let sendRes: AllAppStartupStruct[] | PromiseLike<AllAppStartupStruct[]> = [];
       for (let i = 0; i < SpAllAppStartupsChart.allAppStartupsAva.length; i++) {
@@ -81,7 +75,7 @@ export class SpAllAppStartupsChart {
             }
           }
           tmpResArr.forEach((item) => {
-            if (item.startTs == maxStartTs) {
+            if (item.startTs === maxStartTs) {
               endTs = Number(item.startTs) + Number(item.dur);
               singleDur = Number(endTs) - Number(minStartTs);
             }
@@ -108,6 +102,22 @@ export class SpAllAppStartupsChart {
       }
       return sendRes;
     };
+  }
+
+  async initFolder(): Promise<void> {
+    let row: TraceRow<AllAppStartupStruct> = TraceRow.skeleton<AllAppStartupStruct>();
+    row.setAttribute('hasStartup', 'true');
+    row.rowId = `all-app-start-${SpAllAppStartupsChart.APP_STARTUP_PID_ARR![0]}`;
+    row.index = 0;
+    row.rowType = TraceRow.ROW_TYPE_ALL_APPSTARTUPS;
+    row.rowParentId = '';
+    row.folder = false;
+    row.style.height = '40px';
+    row.name = 'All App Startups';
+    row.addTemplateTypes('AppStartup');
+    row.selectChangeHandler = SpAllAppStartupsChart.trace.selectChangeHandler;
+    row.favoriteChangeHandler = SpAllAppStartupsChart.trace.favoriteChangeHandler;
+    this.supplier(row);
 
     row.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;

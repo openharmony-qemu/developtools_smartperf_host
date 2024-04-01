@@ -109,7 +109,7 @@ bool FtraceProcessor::HandleHeaderPageFormat(const std::string& formatInfo)
         }
     }
 
-    TS_LOGD("page header details:");
+    TS_LOGI("page header details:");
     PrintedFieldDetails(pageHeaderFormat_.timestamp);
     PrintedFieldDetails(pageHeaderFormat_.commit);
     PrintedFieldDetails(pageHeaderFormat_.overwrite);
@@ -207,7 +207,7 @@ static std::string GetProtoTypeName(ProtoFieldType type)
 
 void FtraceProcessor::PrintedFieldDetails(const FieldFormat& info)
 {
-    TS_LOGD(
+    TS_LOGI(
         "FieldFormat { offset: %u, size:%u, sign: %u fieldType: %s, "
         "protoType:%s, typeName: %s, name: %s}",
         info.offset, info.size, info.isSigned, GetFieldTypeName(info.filedType).c_str(),

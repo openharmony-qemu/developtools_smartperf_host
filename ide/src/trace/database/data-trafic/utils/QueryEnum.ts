@@ -84,6 +84,8 @@ export enum QueryEnum {
   SearchCpuData = 163,
   LostFrameData = 164,
   HitchTime = 165,
+  SliceData = 300,
+  SliceSPTData = 301,
 }
 export const MAX_COUNT = 2000;
 export enum TraficEnum {

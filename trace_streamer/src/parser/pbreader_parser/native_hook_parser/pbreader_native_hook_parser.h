@@ -41,6 +41,11 @@ public:
     {
         return nativeHookFilter_->NativeHookReloadElfSymbolTable(symbolsFile);
     }
+    void UpdataOfflineSymbolizationMode(bool isOfflineSymbolizationMode)
+    {
+        // Ut testing the offline symbolic use of native_hook,do not delete!!!
+        nativeHookFilter_->UpdataOfflineSymbolizationMode(isOfflineSymbolizationMode);
+    }
 
 private:
     void ParseNativeHookAuxiliaryEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);

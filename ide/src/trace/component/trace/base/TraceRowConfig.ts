@@ -548,131 +548,145 @@ export class TraceRowConfig extends BaseElement {
   private buildSubSystemTreeData(id: number, configJson: any): SubsystemNode[] {
     let subsystemsKey: string = 'subsystems';
     let keys = Object.keys(configJson);
+    if (keys.indexOf(subsystemsKey) < 0) {
+      return [];
+    }
     let subSystems: SubsystemNode[] = [];
-    if (keys.indexOf(subsystemsKey) >= 0) {
-      let subsystemsData = configJson[subsystemsKey];
-      if (this.traceRowList) {
-        this.otherRowNames = [];
-        for (let index = 0; index < this.traceRowList.length; index++) {
-          let item = this.traceRowList[index];
-          this.otherRowNames.push({
-            nodeName: item.name,
-            scene: [...item.templateType],
-          });
-        }
+    let subsystemsData = configJson[subsystemsKey];
+    this.initOtherRowNames();
+    let subsystemList = [];
+    for (let subIndex = 0; subIndex < subsystemsData.length; subIndex++) {
+      let currentSystemData = subsystemsData[subIndex];
+      if(!currentSystemData.hasOwnProperty('subsystem') || currentSystemData.subsystem === '' ||
+        subsystemList.indexOf(currentSystemData.subsystem) > -1 || Array.isArray(currentSystemData.subsystem)) {
+        continue;
       }
-      let subsystemList = [];
-      for (let subIndex = 0; subIndex < subsystemsData.length; subIndex++) {
-        let currentSystemData = subsystemsData[subIndex];
-        if(!currentSystemData.hasOwnProperty('subsystem') || currentSystemData.subsystem === '' ||
-          subsystemList.indexOf(currentSystemData.subsystem) > -1 || Array.isArray(currentSystemData.subsystem)) {
+      let currentSubName = currentSystemData.subsystem;
+      subsystemList.push(currentSystemData.subsystem);
+      id++;
+      let subsystemStruct: SubsystemNode = {
+        id: id,
+        nodeName: currentSubName,
+        children: [],
+        depth: 1,
+        isCheck: true,
+        scene: [],
+      };
+      if (subSystems.indexOf(subsystemStruct) < 0) {
+        let currentCompDates = currentSystemData.components;
+        if (!currentCompDates || !Array.isArray(currentCompDates)) {
           continue;
         }
-        let currentSubName = currentSystemData.subsystem;
-        subsystemList.push(currentSystemData.subsystem);
-        id++;
-        let subsystemStruct: SubsystemNode = {
-          id: id,
-          nodeName: currentSubName,
-          children: [],
-          depth: 1,
-          isCheck: true,
-          scene: [],
-        };
-        if (subSystems.indexOf(subsystemStruct) < 0) {
-          let currentCompDates = currentSystemData.components;
-          if (!currentCompDates || !Array.isArray(currentCompDates)) {
+        for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
+          let currentCompDate = currentCompDates[compIndex];
+          if(!currentCompDate.hasOwnProperty('component') || currentCompDate.component === '' ||
+            !currentCompDate.hasOwnProperty('charts')) {
             continue;
           }
-          for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
-            let currentCompDate = currentCompDates[compIndex];
-            if(!currentCompDate.hasOwnProperty('component') || currentCompDate.component === '' ||
-              !currentCompDate.hasOwnProperty('charts')) {
-              continue;
-            }
-            let currentCompName = currentCompDate.component;
-            let currentChartDates = currentCompDate.charts;
-            id++;
-            let componentStruct: SubsystemNode = {
-              id: id,
-              parent: subsystemStruct,
-              nodeName: currentCompName,
-              children: [],
-              depth: 2,
-              isCheck: true,
-              scene: [],
-            };
-            for (let chartIndex = 0; chartIndex < currentChartDates.length; chartIndex++) {
-              let currentChartDate = currentChartDates[chartIndex];
-              if((!currentChartDate.hasOwnProperty('chartName') && !currentChartDate.hasOwnProperty('chartId'))
-                || Array.isArray(currentChartDate.chartName)) {
-                continue;
-              }
-              let currentChartName = `${ currentChartDate.chartName}`;
-              let currentChartId = currentChartDate.chartId;
-              let findChartNames: Array<string> | undefined = [];
-              let scene: string[] = [];
-              if (this.traceRowList) {
-                for (let index = 0; index < this.traceRowList.length; index++) {
-                  let item = this.traceRowList[index];
-                  let chartId = '';
-                  let name = item.name;
-                  let pattern = / (\d+)$/;
-                  let match = item.name.match(pattern);
-                  if (match) {
-                    chartId = match[0].trim();
-                    name = item.name.split(match[0])[0];
-                    if (name !== 'Cpu') {
-                      if ((currentChartName !== undefined && currentChartName !== '' &&
-                        name.toLowerCase().endsWith(currentChartName.toLowerCase())) || currentChartId === chartId) {
-                        scene.push(...item.templateType);
-                        findChartNames.push(item.name);
-                      }
-                    } else {
-                      if ((currentChartName !== undefined && currentChartName !== '' &&
-                        name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
-                        scene.push(...item.templateType);
-                        findChartNames.push(item.name);
-                      }
-                    }
-                  } else {
-                    if ((currentChartName !== undefined && currentChartName !== '' &&
-                      name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
-                      scene.push(...item.templateType);
-                      findChartNames.push(item.name);
-                    }
-                  }
-                }
-              }
-              findChartNames.forEach((currentChartName) => {
-                id++;
-                let chartStruct: SubsystemNode = {
-                  id: id,
-                  parent: componentStruct,
-                  nodeName: currentChartName,
-                  children: [],
-                  depth: 3,
-                  isCheck: true,
-                  scene: scene,
-                };
-                if (componentStruct.children.indexOf(chartStruct) < 0) {
-                  let rowNumber = this.otherRowNames.findIndex((row) => row.nodeName === chartStruct.nodeName);
-                  if (rowNumber >= 0) {
-                    this.otherRowNames.splice(rowNumber, 1);
-                  }
-                  componentStruct.children.push(chartStruct);
-                }
-              });
-            }
-            if (subsystemStruct.children.indexOf(componentStruct) < 0) {
-              subsystemStruct.children.push(componentStruct);
-            }
-          }
-          subSystems.push(subsystemStruct);
+          id = this.setSubsystemComp(currentCompDate, id, subsystemStruct);
         }
+        subSystems.push(subsystemStruct);
       }
     }
     return subSystems;
+  }
+
+  private initOtherRowNames(): void {
+    if (this.traceRowList) {
+      this.otherRowNames = [];
+      for (let index = 0; index < this.traceRowList.length; index++) {
+        let item = this.traceRowList[index];
+        this.otherRowNames.push({
+          nodeName: item.name,
+          scene: [...item.templateType],
+        });
+      }
+    }
+  }
+
+  private setSubsystemComp(currentCompDate: any, id: number, subsystemStruct: SubsystemNode): number {
+    let currentCompName = currentCompDate.component;
+    let currentChartDates = currentCompDate.charts;
+    id++;
+    let componentStruct: SubsystemNode = {
+      id: id,
+      parent: subsystemStruct,
+      nodeName: currentCompName,
+      children: [],
+      depth: 2,
+      isCheck: true,
+      scene: [],
+    };
+    for (let chartIndex = 0; chartIndex < currentChartDates.length; chartIndex++) {
+      let currentChartDate = currentChartDates[chartIndex];
+      if ((!currentChartDate.hasOwnProperty('chartName') && !currentChartDate.hasOwnProperty('chartId'))
+        || Array.isArray(currentChartDate.chartName)) {
+        continue;
+      }
+      let currentChartName = `${currentChartDate.chartName}`;
+      let currentChartId = currentChartDate.chartId;
+      let findChartNames: Array<string> | undefined = [];
+      let scene: string[] = [];
+      this.setSubsystemChart(currentChartName, currentChartId, scene, findChartNames);
+      findChartNames.forEach((currentChartName) => {
+        id++;
+        let chartStruct: SubsystemNode = {
+          id: id,
+          parent: componentStruct,
+          nodeName: currentChartName,
+          children: [],
+          depth: 3,
+          isCheck: true,
+          scene: scene,
+        };
+        if (componentStruct.children.indexOf(chartStruct) < 0) {
+          let rowNumber = this.otherRowNames.findIndex((row) => row.nodeName === chartStruct.nodeName);
+          if (rowNumber >= 0) {
+            this.otherRowNames.splice(rowNumber, 1);
+          }
+          componentStruct.children.push(chartStruct);
+        }
+      });
+    }
+    if (subsystemStruct.children.indexOf(componentStruct) < 0) {
+      subsystemStruct.children.push(componentStruct);
+    }
+    return id;
+  }
+
+  private setSubsystemChart(currentChartName: string, currentChartId: string, scene: Array<string>, findChartNames: Array<string>) {
+    if (this.traceRowList) {
+      for (let index = 0; index < this.traceRowList.length; index++) {
+        let item = this.traceRowList[index];
+        let chartId = '';
+        let name = item.name;
+        let pattern = / (\d+)$/;
+        let match = item.name.match(pattern);
+        if (match) {
+          chartId = match[0].trim();
+          name = item.name.split(match[0])[0];
+          if (name !== 'Cpu') {
+            if ((currentChartName !== undefined && currentChartName !== '' &&
+              name.toLowerCase().endsWith(currentChartName.toLowerCase())) || currentChartId === chartId) {
+              scene.push(...item.templateType);
+              findChartNames.push(item.name);
+            }
+          } else {
+            if ((currentChartName !== undefined && currentChartName !== '' &&
+              name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
+              scene.push(...item.templateType);
+              findChartNames.push(item.name);
+            }
+          }
+        } else {
+          if ((currentChartName !== undefined && currentChartName !== '' &&
+            name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
+            scene.push(...item.templateType);
+            findChartNames.push(item.name);
+          }
+        }
+      }
+    }
   }
 
   refreshTable(): void {

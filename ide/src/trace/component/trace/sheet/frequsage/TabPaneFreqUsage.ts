@@ -33,6 +33,7 @@ import {
 export class TabPaneFreqUsage extends BaseElement {
   private threadStatesTbl: LitTable | null | undefined;
   private currentSelectionParam: SelectionParam | undefined;
+  private result: Array<RunningFreqData> = [];
 
   set data(threadStatesParam: SelectionParam) {
     if (this.currentSelectionParam === threadStatesParam) {
@@ -43,9 +44,7 @@ export class TabPaneFreqUsage extends BaseElement {
     this.threadStatesTbl!.recycleDataSource = [];
     // @ts-ignore
     this.threadStatesTbl.value = [];
-    this.init(threadStatesParam);
-  }
-  init(threadStatesParam: SelectionParam): void {
+    this.result = [];
     this.queryAllData(threadStatesParam);
   }
   async queryAllData(threadStatesParam: SelectionParam): Promise<void> {
@@ -77,6 +76,10 @@ export class TabPaneFreqUsage extends BaseElement {
     const LEFT_TIME: number = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
     const RIGHT_TIME: number = threadStatesParam.rightNs + threadStatesParam.recordStartNs;
     let resultArr: Array<RunningFreqData> = orgnazitionMap(runningResult, cpuFreqData, LEFT_TIME, RIGHT_TIME);
+    // 递归拿出来最底层的数据，并以进程层级的数据作为分割
+    this.recursion(resultArr);
+    this.result = JSON.parse(JSON.stringify(this.result));
+    mergeTotal(resultArr, fixTotal(this.result));
     this.fixedDeal(resultArr);
     this.threadClick(resultArr);
     this.threadStatesTbl!.recycleDataSource = resultArr;
@@ -97,13 +100,20 @@ export class TabPaneFreqUsage extends BaseElement {
       const MIN_PERCENT: number = 2;
       const MIN_FREQ: number = 3;
       for (let i = 0; i < arr.length; i++) {
-        let str: number;
+        let trackId: number;
+        // 若存在空位元素则进行删除处理
+        if (arr[i] === undefined) {
+          arr.splice(i, 1);
+          i--;
+          continue;
+        }
         if (arr[i].thread?.indexOf('P') !== -1) {
-          str = Number(arr[i].thread?.slice(1)!);
-          arr[i].thread = Utils.PROCESS_MAP.get(str) === null ? 'Process ' + str : Utils.PROCESS_MAP.get(str)! + ' ' + str;
+          trackId = Number(arr[i].thread?.slice(1)!);
+          arr[i].thread = Utils.PROCESS_MAP.get(trackId) === null ? 'Process ' + trackId : Utils.PROCESS_MAP.get(trackId)! + ' ' + trackId;
+        } else if (arr[i].thread === 'summary data') {
         } else {
-          str = Number(arr[i].thread!.split('_')[1]);
-          arr[i].thread = Utils.THREAD_MAP.get(str) === null ? 'Thread ' + str : Utils.THREAD_MAP.get(str)! + ' ' + str;
+          trackId = Number(arr[i].thread!.split('_')[1]);
+          arr[i].thread = Utils.THREAD_MAP.get(trackId) === null ? 'Thread ' + trackId : Utils.THREAD_MAP.get(trackId)! + ' ' + trackId;
         }
         if (arr[i].cpu < 0 ) {
           // @ts-ignore
@@ -174,6 +184,23 @@ export class TabPaneFreqUsage extends BaseElement {
     }
   }
 
+  /**
+   * 
+   * @param arr 待整理的数组，会经过递归取到最底层的数据
+   */
+  recursion(arr: Array<RunningFreqData>): void {
+    for (let idx = 0; idx < arr.length; idx++) {
+      if (arr[idx].cpu === -1) {
+        this.result.push(arr[idx]);
+      }
+      if (arr[idx].children) {
+          this.recursion(arr[idx].children!);
+      } else {
+          this.result.push(arr[idx]);
+      }
+    }
+  }
+
   initElements(): void {
     this.threadStatesTbl = this.shadowRoot?.querySelector<LitTable>(
       "#tb-running-percent"
@@ -237,6 +264,10 @@ function orgnazitionMap(
       }
       if (runData[i].ts + runData[i].dur > rightNs) {
         runData[i].dur = rightNs - runData[i].ts;
+      }
+      // 特殊处理数据表中dur为负值的情况
+      if (runData[i].dur < 0) {
+        runData[i].dur = 0;
       }
       // 分组整理数据
       result.get(mapKey)?.push({
@@ -463,4 +494,60 @@ function creatNewObj(cpu: number, flag: boolean = true): RunningFreqData {
     'percent': 0,
     children: []
   };
+}
+
+/**
+ * 
+ * @param arr 需要整理汇总的频点级数据
+ * @returns 返回一个total->cpu->频点的三级树结构数组
+ */
+function fixTotal(arr: Array<RunningFreqData>): Array<RunningFreqData> {
+  let result: Array<RunningFreqData> = [];
+  let flag: number = -1;
+  // 数据入参的情况是，第一条为进程数据，其后是该进程下所有线程的数据。以进程数据做分割
+  for (let i = 0; i < arr.length; i++) {
+    // 判断如果是进程数据，则将其children的数组清空，并以其作为最顶层数据
+    if (arr[i].thread?.indexOf('P') !== -1) {
+      arr[i].children = [];
+      arr[i].thread = arr[i].thread + '-summary data'; 
+      result.push(arr[i]);
+      // 标志判定当前数组的长度，也可用.length判断
+      flag++;
+    } else {
+      // 非进程数据会进入到else中，去判断当前线程数据的cpu分组是否存在，不存在则进行创建
+      if (result[flag].children![arr[i].cpu] === undefined) {
+        result[flag].children![arr[i].cpu] = {'thread': 'summary data', 'consumption': 0, 'cpu': arr[i].cpu, 'frequency': -1, 'dur': 0, 'percent': 0, children: []};
+      }
+      // 每有一条数据要放到cpu分组下时，则将该cpu分组的各项数据累和
+      result[flag].children![arr[i].cpu].consumption += arr[i].consumption;
+      result[flag].children![arr[i].cpu].dur += arr[i].dur;
+      result[flag].children![arr[i].cpu].percent += arr[i].percent;
+      // 查找当前cpu分组下是否存在与当前数据的频点相同的数据，返回相同数据的索引值
+      let index: number = result[flag].children![arr[i].cpu].children?.findIndex((item) => item.frequency === arr[i].frequency)!;
+      // 若存在相同频点的数据，则进行合并，不同直接push
+      if (index === -1) {
+        arr[i].thread = 'summary data';
+        result[flag].children![arr[i].cpu].children?.push(arr[i]);
+      } else {
+        result[flag].children![arr[i].cpu].children![index].consumption += arr[i].consumption;
+        result[flag].children![arr[i].cpu].children![index].dur += arr[i].dur;
+        result[flag].children![arr[i].cpu].children![index].percent += arr[i].percent;
+      }
+    }
+  }
+  return result;
+}
+
+/**
+ * 
+ * @param arr1 前次整理好的区分线程的数据
+ * @param arr2 不区分线程的Total数据
+ */
+function mergeTotal (arr1: Array<RunningFreqData>, arr2: Array<RunningFreqData>): void {
+  for (var i = 0; i < arr1.length; i++) {
+    const num: number = arr2.findIndex((item) => item.thread?.includes(arr1[i].thread!));
+    arr2[num].thread = 'summary data';
+    arr1[i].children?.unshift(arr2[num]);
+    arr2.splice(num, 1);
+  }
 }

@@ -90,6 +90,11 @@ public:
     {
         return isSingleProcData_;
     }
+    void UpdataOfflineSymbolizationMode(bool isOfflineSymbolizationMode)
+    {
+        // Ut testing the offline symbolic use of native_hook,do not delete!!!
+        isOfflineSymbolizationMode_ = isOfflineSymbolizationMode;
+    }
 
 private:
     void ProcSymbolTable(uint32_t ipid, uint32_t filePathId, std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
@@ -118,7 +123,6 @@ private:
     void UpdateThreadNameWithNativeHookData() const;
     void GetCallIdToLastLibId();
     void GetNativeHookFrameVaddrs();
-    void UpdateSymbolIdsForCallChainIdLastCallStack(size_t index);
     void UpdateSymbolIdsForSymbolizationFailed();
     void ParseFramesInOfflineSymbolizationMode();
     void ParseFramesInCallStackCompressedMode();
@@ -130,6 +134,7 @@ private:
                                                     std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
     std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> OfflineSymbolization(
         const std::shared_ptr<std::vector<uint64_t>> ips);
+    std::shared_ptr<FrameInfo> ParseArktsOfflineSymbolization(uint64_t ipid, uint64_t arktsIp);
     void FillOfflineSymbolizationFrames(std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator mapItor);
     void ReparseStacksWithAddrRange(uint64_t start, uint64_t end);
     void ReparseStacksWithDifferentMeans();

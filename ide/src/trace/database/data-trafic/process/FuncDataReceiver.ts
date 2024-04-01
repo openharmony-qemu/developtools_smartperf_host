@@ -67,7 +67,8 @@ export function funcDataReceiver(data: any, proc: Function):void {
       for (let i = 0; i < list.length; i++) {
         if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined) {
           list[i].nofinish = 1;
-          list[i].dur = data.params.endNS - list[i].startTs;
+          let totalNs = data.params.recordEndNS - data.params.recordStartNS;
+          list[i].dur = totalNs - list[i].startTs;
         } else {
           list[i].nofinish = 0;
         }

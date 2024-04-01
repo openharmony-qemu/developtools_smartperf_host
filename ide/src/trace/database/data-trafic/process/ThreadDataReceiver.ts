@@ -50,7 +50,7 @@ export const sqlMem = (args: any): string => {
 
 export function threadDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let key = `${data.params.pid}${data.params.tid}`;
+    let key = `${data.params.pid}-${data.params.tid}`;
     if (!threadStateList.has(key)) {
       threadStateList.set(key, proc(sqlMem(data.params)));
     }

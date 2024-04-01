@@ -65,7 +65,7 @@ export class TabPaneNMemory extends BaseElement {
     this.queryData(memoryParam);
   }
 
-  queryData(memoryParam: SelectionParam | any): void {
+  queryData(memoryParam: SelectionParam | any, resetFilter: boolean = true): void {
     this.eventTypes = [];
     if (memoryParam.nativeMemory.indexOf(this.defaultNativeTypes[0]) !== -1) {
       this.eventTypes.push("'AllocEvent'");
@@ -89,8 +89,16 @@ export class TabPaneNMemory extends BaseElement {
       // @ts-ignore
       this.memoryTbl.recycleDataSource = [];
     }
-    this.resetFilter();
-    this.getDataByNativeMemoryWorker(memoryParam, true);
+    if (resetFilter) {
+      this.resetFilter();
+      this.setNmMemoryLoading(true);
+      this.initFilterTypes(() => {
+        this.filterSetSelectList(this.filter!, 0);
+        this.getDataByNativeMemoryWorker(memoryParam, resetFilter);
+      })
+    } else {
+      this.getDataByNativeMemoryWorker(memoryParam, resetFilter);
+    }
   }
 
   getDataByNativeMemoryWorker(val: SelectionParam | any, refresh = false): void {
@@ -120,10 +128,7 @@ export class TabPaneNMemory extends BaseElement {
     }
     this.startNmMemoryWorker('native-memory-queryNativeHookEvent', args, (results: any[]) => {
       this.tblData!.recycleDataSource = [];
-      if (refresh) {
-        this.setNmMemoryLoading(true);
-        this.initFilterTypes(() => this.setNmMemoryLoading(false));
-      }
+      this.setNmMemoryLoading(false)
       if (results.length > 0) {
         this.memorySource = results;
         this.memoryTbl!.recycleDataSource = this.memorySource;
@@ -166,26 +171,18 @@ export class TabPaneNMemory extends BaseElement {
 
   fromStastics(val: SelectionParam | any): void {
     let nmFilterEl = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
-    if (this.currentSelection != val) {
+    if (this.currentSelection !== val) {
+      this.resetFilter();
       this.initFilterTypes(() => {
         this.currentSelection = val;
+        let typeIndexOf = this.setFilterNativeTypeSelection(this.currentSelection!);
         this.filterSetSelectList(nmFilterEl!, typeIndexOf);
         this.filterNativeType = `${typeIndexOf}`;
-        this.queryData(val);
+        this.rowSelectData = undefined;
+        this.queryData(val, false);
       });
-    }
-    let typeIndexOf = this.nativeType.indexOf(val.statisticsSelectData.memoryTap);
-    if (this.statsticsSelection.indexOf(val.statisticsSelectData) === -1 && typeIndexOf === -1) {
-      this.statsticsSelection.push(val.statisticsSelectData);
-      this.nativeType.push(val.statisticsSelectData.memoryTap);
-      typeIndexOf = this.nativeType.length - 1;
     } else {
-      let index = this.statsticsSelection.findIndex((mt) => mt.memoryTap === val.statisticsSelectData.memoryTap);
-      if (index !== -1) {
-        this.statsticsSelection[index] = val.statisticsSelectData;
-      }
-    }
-    if (this.currentSelection === val) {
+      let typeIndexOf = this.setFilterNativeTypeSelection(val);
       this.tblData!.recycleDataSource = [];
       this.rowSelectData = undefined;
       this.filterSetSelectList(nmFilterEl!, typeIndexOf);
@@ -193,6 +190,24 @@ export class TabPaneNMemory extends BaseElement {
       //直接将当前数据过滤即可
       this.getDataByNativeMemoryWorker(val);
     }
+  }
+
+  private setFilterNativeTypeSelection(val: SelectionParam): number {
+    let typeIndexOf = -1;
+    if (val.statisticsSelectData) {
+      typeIndexOf = this.nativeType.indexOf(val.statisticsSelectData.memoryTap);
+      if (this.statsticsSelection.indexOf(val.statisticsSelectData) === -1 && typeIndexOf === -1) {
+        this.statsticsSelection.push(val.statisticsSelectData);
+        this.nativeType.push(val.statisticsSelectData.memoryTap);
+        typeIndexOf = this.nativeType.length - 1;
+      } else {
+        let index = this.statsticsSelection.findIndex((mt) => mt.memoryTap === val.statisticsSelectData.memoryTap);
+        if (index !== -1) {
+          this.statsticsSelection[index] = val.statisticsSelectData;
+        }
+      }
+    }
+    return typeIndexOf;
   }
 
   private filterSetSelectList(nmFilterEl: TabPaneFilter, typeIndexOf: number): void {
@@ -212,6 +227,9 @@ export class TabPaneNMemory extends BaseElement {
   initFilterTypes(initCallback?: () => void): void {
     this.nativeType = [...this.defaultNativeTypes];
     this.statsticsSelection = [];
+    if (this.currentSelection) {
+      this.setFilterNativeTypeSelection(this.currentSelection);
+    }
     procedurePool.submitWithName('logic0', 'native-memory-get-responseType', {}, undefined, (res: any) => {
       this.filter!.setSelectList(
         null,
@@ -226,7 +244,6 @@ export class TabPaneNMemory extends BaseElement {
       this.filter!.setFilterModuleSelect('#second-select', 'width', '150px');
       this.filter!.setFilterModuleSelect('#third-select', 'width', '150px');
       this.responseTypes = res;
-      this.resetFilter();
       this.rowSelectData = undefined;
       if (initCallback) {
         initCallback();

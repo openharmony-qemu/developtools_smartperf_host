@@ -25,6 +25,8 @@ import {
   setFileName,
 } from './ProcedureLogicWorkerCommon';
 
+const HAP_TYPE = ['.hap', '.har', '.hsp'];
+
 export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   selectTotalSize = 0;
   selectTotalCount = 0;
@@ -1046,9 +1048,18 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     node.path = match[2].replace(/^url:/, '');
   }
 
+  private isHap(path: string): boolean {
+    for (const name of HAP_TYPE) {
+      if (path.endsWith(name)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   setMerageName(currentNode: NativeHookCallInfo): void {
     currentNode.path = this.dataCache.dataDict.get(currentNode.fileId) || 'unknown';
-    if (currentNode.path.endsWith('.hap')) {
+    if (this.isHap(currentNode.path)) {
       const fullName = this.dataCache.dataDict.get(currentNode.symbolId);
       this.extractSymbolAndPath(currentNode, fullName);
     } else {

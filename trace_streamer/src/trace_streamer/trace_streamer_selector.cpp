@@ -257,51 +257,62 @@ bool TraceStreamerSelector::BatchParseTraceDataSegment(std::unique_ptr<uint8_t[]
     pbreaderParser_->ParseTraceDataSegment(std::move(data), size);
     return true;
 }
-bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data,
-                                                  size_t size,
-                                                  bool isSplitFile,
-                                                  int32_t isFinish)
+
+void TraceStreamerSelector::GetMarkPositionData(std::unique_ptr<uint8_t[]>& data, size_t& size)
 {
-    if (size == 0) {
-        return true;
+    if (!markHeard_) {
+        std::string markStr(reinterpret_cast<const char*>(data.get()), size);
+        auto foundPos = markStr.find("MarkPositionJSON->");
+        if (foundPos == std::string::npos) {
+            // trace not MarkPosition,parse trace data
+            hasGotMarkFinish_ = true;
+            return;
+        }
+        // found MarkPosition
+        markHeard_ = true;
     }
-    if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
-        fileType_ = GuessFileType(data.get(), size);
-        if (fileType_ == TRACE_FILETYPE_H_TRACE || fileType_ == TRACE_FILETYPE_PERF) {
-            pbreaderParser_ = std::make_unique<PbreaderParser>(traceDataCache_.get(), streamFilters_.get());
+    auto pos = std::find(data.get(), data.get() + size, '\n');
+    if (pos != data.get() + size) {
+        hasGotMarkFinish_ = true;
+        // Calculate the size of mark position information (include '\n')
+        auto curMarkSize = pos - data.get() + 1;
+        // Move the data pointer to the starting position of the remaining data
+        // The remaining data size is equal to the data size minus the current markinfo size
+        size -= curMarkSize;
+        std::unique_ptr<uint8_t[]> remainingData(new uint8_t[size]);
+        memcpy_s(remainingData.get(), size, data.get() + curMarkSize, size);
+        data.reset(remainingData.release());
+    }
+}
+void TraceStreamerSelector::InitializeParser()
+{
+    if (fileType_ == TRACE_FILETYPE_H_TRACE || fileType_ == TRACE_FILETYPE_PERF) {
+        pbreaderParser_ = std::make_unique<PbreaderParser>(traceDataCache_.get(), streamFilters_.get());
 #ifdef ENABLE_ARKTS
-            pbreaderParser_->EnableFileSeparate(enableFileSeparate_);
+        pbreaderParser_->EnableFileSeparate(enableFileSeparate_);
 #endif
-        } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HI_SYSEVENT ||
-                   fileType_ == TRACE_FILETYPE_HILOG) {
-            ptreaderParser_ = std::make_unique<PtreaderParser>(traceDataCache_.get(), streamFilters_.get(), fileType_);
+    } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HI_SYSEVENT ||
+               fileType_ == TRACE_FILETYPE_HILOG) {
+        ptreaderParser_ = std::make_unique<PtreaderParser>(traceDataCache_.get(), streamFilters_.get(), fileType_);
 #ifdef ENABLE_BYTRACE
-            ptreaderParser_->EnableBytrace(fileType_ == TRACE_FILETYPE_BY_TRACE);
+        ptreaderParser_->EnableBytrace(fileType_ == TRACE_FILETYPE_BY_TRACE);
 #endif
-        }
-#ifdef ENABLE_RAWTRACE
-        else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
-            rawTraceParser_ = std::make_unique<RawTraceParser>(traceDataCache_.get(), streamFilters_.get());
-        }
-#endif
-        if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
-            SetAnalysisResult(TRACE_PARSER_FILE_TYPE_ERROR);
-            TS_LOGI(
-                "File type is not supported!,\nthe head content is:%s\n ---warning!!!---\n"
-                "File type is not supported!,\n",
-                data.get());
-            return false;
-        }
     }
-    traceDataCache_->SetSplitFileMinTime(minTs_);
-    traceDataCache_->SetSplitFileMaxTime(maxTs_);
-    traceDataCache_->isSplitFile_ = isSplitFile;
+#ifdef ENABLE_RAWTRACE
+    else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
+        rawTraceParser_ = std::make_unique<RawTraceParser>(traceDataCache_.get(), streamFilters_.get());
+    }
+#endif
+}
+
+void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish)
+{
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
         pbreaderParser_->ParseTraceDataSegment(std::move(data), size);
     } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HI_SYSEVENT ||
                fileType_ == TRACE_FILETYPE_HILOG) {
         ptreaderParser_->ParseTraceDataSegment(std::move(data), size, isFinish);
-        return true;
+        return;
     }
 #ifdef ENABLE_HIPERF
     else if (fileType_ == TRACE_FILETYPE_PERF) {
@@ -314,6 +325,50 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
     }
 #endif
     SetAnalysisResult(TRACE_PARSER_NORMAL);
+}
+
+bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data,
+                                                  size_t size,
+                                                  bool isSplitFile,
+                                                  int32_t isFinish)
+{
+    if (size == 0) {
+        return true;
+    }
+#if !IS_WASM
+    // if in the linux,hasGotMarkFinish_ = fasle, get markinfo
+    if (!hasGotMarkFinish_) {
+        GetMarkPositionData(data, size);
+        if (!hasGotMarkFinish_) {
+            // Believing that the markInfo data has not been sent completely,Waiting for next send
+            return true;
+        }
+    }
+#endif
+
+    if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
+        fileType_ = GuessFileType(data.get(), size);
+        if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
+            SetAnalysisResult(TRACE_PARSER_FILE_TYPE_ERROR);
+            TS_LOGI(
+                "File type is not supported!,\nthe head content is:%s\n ---warning!!!---\n"
+                "File type is not supported!,\n",
+                data.get());
+            return false;
+        }
+        InitializeParser();
+    }
+    traceDataCache_->SetSplitFileMinTime(minTs_);
+    traceDataCache_->SetSplitFileMaxTime(maxTs_);
+    traceDataCache_->isSplitFile_ = isSplitFile;
+    ProcessTraceData(std::move(data), size, isFinish);
+
+#if !IS_WASM
+    // in the linux,isFinish = 1,clear markinfo
+    if (isFinish) {
+        ClearMarkPositionInfo();
+    }
+#endif
     return true;
 }
 void TraceStreamerSelector::EnableMetaTable(bool enabled)

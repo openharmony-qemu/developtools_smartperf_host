@@ -213,73 +213,12 @@ export class HeapLoader {
     this.markPageOwnedNodes();
   }
 
-  private buildOrderIdxAndDominateTree(): Uint32Array {
-    let stackNodes = new Uint32Array(this.nodeCount); // node index
-    let stackCurrentEdge = new Uint32Array(this.nodeCount); // edge index
-    let orderIdx2NodeIdx = new Uint32Array(this.nodeCount);
-    let nodeIdx2OrderIdx = new Uint32Array(this.nodeCount);
-    let visited = new Uint8Array(this.nodeCount);
-    let postOrderIdx = 0;
-    let stack = 0;
-    stackNodes[0] = this.rootNode!.nodeIndex;
-    visited[this.rootNode!.nodeIndex] = 1;
-
-    let iteration = 0;
-    while (true) {
-      ++iteration;
-      while (stack >= 0 && stack < this.nodeCount) {
-        let nodeIndex = stackNodes[stack];
-        let node = this.nodes[nodeIndex];
-        if (!node) {
-          continue;
-        }
-        let edgeIndex = stackCurrentEdge[stack];
-        let edgeEnd = node.firstEdgeIndex + node.edgeCount;
-        if (edgeIndex < edgeEnd) {
-          stackCurrentEdge[stack] += 1;
-          let edge = this.edges[edgeIndex];
-          if (!this.isEssentialEdge(edge, node.id)) {
-            continue;
-          }
-          let childNode = this.nodeMap.get(edge.toNodeId);
-          if (!childNode || visited[childNode!.nodeIndex]) {
-            continue;
-          }
-          //Skip the edges from non-page-object nodes to page-object nodes
-          let childNodeFlag = childNode.flag & PAGE_PROJECT;
-          if (node.id != this.rootNode!.id && childNodeFlag && !node.flag) {
-            continue;
-          }
-          ++stack;
-          stackNodes[stack] = childNode.nodeIndex;
-          stackCurrentEdge[stack] = childNode.firstEdgeIndex;
-          visited[childNode.nodeIndex] = 1;
-        } else {
-          nodeIdx2OrderIdx[node.nodeIndex] = postOrderIdx;
-          orderIdx2NodeIdx[postOrderIdx++] = node.nodeIndex;
-          --stack;
-        }
-      }
-      if (postOrderIdx == this.nodeCount || iteration > 1) {
-        break;
-      }
-
-      // Remove root from the result (last node in the array) and put it at the bottom of the stack so that it is
-      // visited after all orphan nodes and their subgraphs.
-      --postOrderIdx;
-      stack = 0;
-      stackNodes[0] = this.rootNode!.nodeIndex;
-      stackCurrentEdge[0] = this.nodes[this.rootNode!.nodeIndex + 1].firstEdgeIndex;
-      for (let node of this.nodes) {
-        if (visited[node.nodeIndex] || !this.hasOnlyWeakRetainers(node)) {
-          continue;
-        }
-        stackNodes[++stack] = node.nodeIndex;
-        stackCurrentEdge[stack] = node.firstEdgeIndex;
-        visited[node.nodeIndex] = 1;
-      }
-    }
-    // If we already processed all orphan nodes that have only weak retainers and still have some orphans...
+  private buildOrderIdxOrphans(
+    postOrderIdx: number,
+    visited: Uint8Array,
+    nodeIdx2OrderIdx: Uint32Array,
+    orderIdx2NodeIdx: Uint32Array
+  ): void {
     if (postOrderIdx !== this.nodeCount) {
       // Remove root from the result (last node in the array) and put it at the bottom of the stack so that it is
       // visited after all orphan nodes and their subgraphs.
@@ -295,10 +234,155 @@ export class HeapLoader {
       nodeIdx2OrderIdx[this.rootNode!.nodeIndex] = postOrderIdx;
       orderIdx2NodeIdx[postOrderIdx++] = this.rootNode!.nodeIndex;
     }
-    this.buildDominatorTree(orderIdx2NodeIdx, nodeIdx2OrderIdx);
-    return orderIdx2NodeIdx;
   }
 
+  private buildOrderIdxRootNode(stackNodes: Uint32Array, stackCurrentEdge: Uint32Array, visited: Uint8Array): number {
+    let stack = 0;
+    stackNodes[0] = this.rootNode!.nodeIndex;
+    stackCurrentEdge[0] = this.nodes[this.rootNode!.nodeIndex + 1].firstEdgeIndex;
+    for (let node of this.nodes) {
+      if (visited[node.nodeIndex] || !this.hasOnlyWeakRetainers(node)) {
+        continue;
+      }
+      stackNodes[++stack] = node.nodeIndex;
+      stackCurrentEdge[stack] = node.firstEdgeIndex;
+      visited[node.nodeIndex] = 1;
+    }
+    return stack;
+  }
+
+  private buildOrderIdxInit() {
+    const state = {
+      stackNodes: new Uint32Array(this.nodeCount),
+      stackCurrentEdge: new Uint32Array(this.nodeCount),
+      orderIdx2NodeIdx: new Uint32Array(this.nodeCount),
+      nodeIdx2OrderIdx: new Uint32Array(this.nodeCount),
+      visited: new Uint8Array(this.nodeCount),
+    };
+    state.stackNodes[0] = this.rootNode!.nodeIndex;
+    state.visited[this.rootNode!.nodeIndex] = 1;
+    return state;
+  }
+  private buildOrderIdxAndDominateTree(): Uint32Array {
+    const params = this.buildOrderIdxInit();
+    let iteration = 0;
+    let postOrderIdx = 0;
+    let stack = 0;
+    while (true) {
+      ++iteration;
+      while (stack >= 0 && stack < this.nodeCount) {
+        let nodeIndex = params.stackNodes[stack];
+        let node = this.nodes[nodeIndex];
+        if (!node) {
+          continue;
+        }
+        let edgeIndex = params.stackCurrentEdge[stack];
+        let edgeEnd = node.firstEdgeIndex + node.edgeCount;
+        if (edgeIndex < edgeEnd) {
+          params.stackCurrentEdge[stack] += 1;
+          let edge = this.edges[edgeIndex];
+          if (!this.isEssentialEdge(edge, node.id)) {
+            continue;
+          }
+          let childNode = this.nodeMap.get(edge.toNodeId);
+          if (!childNode || params.visited[childNode!.nodeIndex]) {
+            continue;
+          }
+          //Skip the edges from non-page-object nodes to page-object nodes
+          let childNodeFlag = childNode.flag & PAGE_PROJECT;
+          if (node.id != this.rootNode!.id && childNodeFlag && !node.flag) {
+            continue;
+          }
+          ++stack;
+          params.stackNodes[stack] = childNode.nodeIndex;
+          params.stackCurrentEdge[stack] = childNode.firstEdgeIndex;
+          params.visited[childNode.nodeIndex] = 1;
+        } else {
+          params.nodeIdx2OrderIdx[node.nodeIndex] = postOrderIdx;
+          params.orderIdx2NodeIdx[postOrderIdx++] = node.nodeIndex;
+          --stack;
+        }
+      }
+      if (postOrderIdx == this.nodeCount || iteration > 1) {
+        break;
+      }
+
+      // Remove root from the result (last node in the array) and put it at the bottom of the stack so that it is
+      // visited after all orphan nodes and their subgraphs.
+      --postOrderIdx;
+      stack = this.buildOrderIdxRootNode(params.stackNodes, params.stackCurrentEdge, params.visited);
+    }
+    // If we already processed all orphan nodes that have only weak retainers and still have some orphans...
+    this.buildOrderIdxOrphans(postOrderIdx, params.visited, params.nodeIdx2OrderIdx, params.orderIdx2NodeIdx);
+    this.buildDominatorTree(params.orderIdx2NodeIdx, params.nodeIdx2OrderIdx);
+    return params.orderIdx2NodeIdx;
+  }
+
+  private affectedNode(affected: Uint8Array, nodeIdx2OrderIdx: Uint32Array): void {
+    // 标记root节点的子节点为affected.
+    for (let edge of this.rootNode!.edges) {
+      if (!this.isEssentialEdge(edge, this.rootNode!.id)) {
+        continue;
+      }
+      let childNode = this.nodeMap.get(edge.toNodeId);
+      if (childNode) {
+        affected[nodeIdx2OrderIdx[childNode.nodeIndex]] = 1;
+      }
+    }
+  }
+
+  private buildDominatorTreeLogic(
+    nodeIdx: number,
+    rootOrderedIdx: number,
+    dominators: Uint32Array,
+    nodeIdx2OrderIdx: Uint32Array
+  ): number {
+    let node = this.nodes[nodeIdx];
+    let nodeFlag = node.flag & PAGE_PROJECT;
+    let newDominatorIdx = this.nodeCount;
+    let retainerStart = this.firstRetainerIndex[nodeIdx];
+    let retainerEnd = this.firstRetainerIndex[nodeIdx + 1];
+    let orphanNode = true;
+    for (let idx = retainerStart; idx < retainerEnd; idx++) {
+      let retainerNodeIdx = this.retainingNodes[idx];
+      let retainerEdgeIdx = this.retainingEdges[idx];
+      let node = this.nodes[retainerNodeIdx];
+      let edge = this.edges[retainerEdgeIdx];
+      if (!this.isEssentialEdge(edge, node.id)) {
+        continue;
+      }
+      orphanNode = false;
+      let retainerNodeFlag = node.flag & PAGE_PROJECT;
+      if (retainerNodeIdx !== this.rootNode?.nodeIndex && nodeFlag && !retainerNodeFlag) {
+        continue;
+      }
+      let retainerOrderIdx = nodeIdx2OrderIdx[retainerNodeIdx];
+      if (dominators[retainerOrderIdx] !== this.nodeCount) {
+        if (newDominatorIdx === this.nodeCount) {
+          newDominatorIdx = retainerOrderIdx;
+        } else {
+          while (retainerOrderIdx !== newDominatorIdx) {
+            while (retainerOrderIdx < newDominatorIdx) {
+              retainerOrderIdx = dominators[retainerOrderIdx];
+            }
+            while (newDominatorIdx < retainerOrderIdx) {
+              newDominatorIdx = dominators[newDominatorIdx];
+            }
+          }
+        }
+        // If idom has already reached the root, it doesn't make sense
+        // to check other retainers.
+        if (newDominatorIdx === rootOrderedIdx) {
+          break;
+        }
+      }
+    }
+    // Make root dominator of orphans.
+    if (orphanNode) {
+      newDominatorIdx = rootOrderedIdx;
+    }
+    return newDominatorIdx;
+  }
   // The algorithm is based on the article:
   // K. Cooper, T. Harvey and K. Kennedy "A Simple, Fast Dominance Algorithm"
   // Softw. Pract. Exper. 4 (2001), pp. 1-10.
@@ -312,15 +396,7 @@ export class HeapLoader {
     let affected = new Uint8Array(this.nodeCount);
 
     // 标记root节点的子节点为affected.
-    for (let edge of this.rootNode!.edges) {
-      if (!this.isEssentialEdge(edge, this.rootNode!.id)) {
-        continue;
-      }
-      let childNode = this.nodeMap.get(edge.toNodeId);
-      if (childNode) {
-        affected[nodeIdx2OrderIdx[childNode.nodeIndex]] = 1;
-      }
-    }
+    this.affectedNode(affected, nodeIdx2OrderIdx);
 
     let changed = true;
     let nodeIdx;
@@ -337,50 +413,8 @@ export class HeapLoader {
           continue;
         }
         nodeIdx = orderIdx2NodeIdx[orderIdx];
-        let node = this.nodes[nodeIdx];
-        let nodeFlag = node.flag & PAGE_PROJECT;
-        let newDominatorIdx = this.nodeCount;
-        let retainerStart = this.firstRetainerIndex[nodeIdx];
-        let retainerEnd = this.firstRetainerIndex[nodeIdx + 1];
-        let orphanNode = true;
-        for (let idx = retainerStart; idx < retainerEnd; idx++) {
-          let retainerNodeIdx = this.retainingNodes[idx];
-          let retainerEdgeIdx = this.retainingEdges[idx];
-          let node = this.nodes[retainerNodeIdx];
-          let edge = this.edges[retainerEdgeIdx];
-          if (!this.isEssentialEdge(edge, node.id)) {
-            continue;
-          }
-          orphanNode = false;
-          let retainerNodeFlag = node.flag & PAGE_PROJECT;
-          if (retainerNodeIdx !== this.rootNode?.nodeIndex && nodeFlag && !retainerNodeFlag) {
-            continue;
-          }
-          let retainerOrderIdx = nodeIdx2OrderIdx[retainerNodeIdx];
-          if (dominators[retainerOrderIdx] !== this.nodeCount) {
-            if (newDominatorIdx === this.nodeCount) {
-              newDominatorIdx = retainerOrderIdx;
-            } else {
-              while (retainerOrderIdx !== newDominatorIdx) {
-                while (retainerOrderIdx < newDominatorIdx) {
-                  retainerOrderIdx = dominators[retainerOrderIdx];
-                }
-                while (newDominatorIdx < retainerOrderIdx) {
-                  newDominatorIdx = dominators[newDominatorIdx];
-                }
-              }
-            }
-            // If idom has already reached the root, it doesn't make sense
-            // to check other retainers.
-            if (newDominatorIdx === rootOrderedIdx) {
-              break;
-            }
-          }
-        }
-        // Make root dominator of orphans.
-        if (orphanNode) {
-          newDominatorIdx = rootOrderedIdx;
-        }
+        const newDominatorIdx = this.buildDominatorTreeLogic(nodeIdx, rootOrderedIdx, dominators, nodeIdx2OrderIdx);
+
         if (newDominatorIdx !== this.nodeCount && dominators[orderIdx] !== newDominatorIdx) {
           dominators[orderIdx] = newDominatorIdx;
           changed = true;
@@ -687,20 +721,25 @@ export class HeapLoader {
     return true;
   }
 
-  private calClassDiff(targetClass: ConstructorItem, baseClass?: ConstructorItem) {
-    let diff = new ConstructorComparison();
+  private initDiff(targetClass: ConstructorItem, baseClass?: ConstructorItem): ConstructorComparison {
+    const diff = new ConstructorComparison();
     diff.type = ConstructorType.ComparisonType;
     diff.fileId = this.fileId;
     diff.targetFileId = targetClass.fileId;
     diff.nodeName = targetClass.nodeName;
-    let i = 0;
-    let j = 0;
-    let baseLen = baseClass ? baseClass.childCount : 0;
-    let targetLen = targetClass.childCount;
     targetClass.classChildren.sort((a, b) => a.id - b.id);
     if (baseClass) {
       baseClass.classChildren.sort((a, b) => a.id - b.id);
     }
+    return diff;
+  }
+
+  private calClassDiff(targetClass: ConstructorItem, baseClass?: ConstructorItem) {
+    let i = 0;
+    let j = 0;
+    let baseLen = baseClass ? baseClass.childCount : 0;
+    let targetLen = targetClass.childCount;
+    const diff = this.initDiff(targetClass, baseClass);
     // The overlap between the base class and the target class
     while (i < targetLen && j < baseLen) {
       let baseNode = baseClass!.classChildren[j];
@@ -746,24 +785,53 @@ export class HeapLoader {
     return diff;
   }
 
-  public getClassesForSummary(minNodeId?: number, maxNodeId?: number): Map<string, ConstructorItem> {
-    let hasFiler = typeof minNodeId === 'number' && typeof maxNodeId === 'number';
-    function filter(nodeId: number): boolean {
-      if (hasFiler) {
-        if (hasFiler && nodeId >= minNodeId! && nodeId <= maxNodeId!) {
-          return true;
-        } else {
-          return false;
+  private calClassRetainedSize(hasFiler: boolean, classes: Map<string, ConstructorItem>, filter: Function) {
+    // cal class retained size
+    let list = [this.rootNode];
+    const sizes = [-1];
+    const classesName = [];
+    let seenClassName = new Map<string, boolean>();
+
+    while (list.length) {
+      let node = list.pop();
+      if (!node) {
+        continue;
+      }
+      let nodeClassName = node.className();
+      let seen = Boolean(seenClassName.get(nodeClassName));
+      let dominatorFromIdx = this.firstDominatedNodesIdx[node.nodeIndex];
+      let dominatorToIdx = this.firstDominatedNodesIdx[node.nodeIndex + 1];
+
+      if (!seen && (!hasFiler || filter(node.id)) && (node.selfSize || node.type === NodeType.NATIVE)) {
+        let classItem = classes.get(nodeClassName);
+        if (classItem) {
+          classItem.retainedSize += node.retainedSize;
+          if (dominatorFromIdx !== dominatorToIdx) {
+            seenClassName.set(nodeClassName, true);
+            sizes.push(list.length);
+            classesName.push(nodeClassName);
+          }
         }
-      } else {
-        return true;
+      }
+
+      for (let idx = dominatorFromIdx; idx < dominatorToIdx; idx++) {
+        let nodeIdx = this.dominatedNodes[idx];
+        let domNode = this.nodes[nodeIdx];
+        list.push(domNode);
+      }
+
+      while (sizes[sizes.length - 1] === list.length) {
+        sizes.pop();
+        nodeClassName = classesName.pop() as string;
+        seenClassName.set(nodeClassName, false);
       }
     }
-    if (!hasFiler && this.allClasses) {
-      return this.allClasses;
+    if (!hasFiler) {
+      this.allClasses = classes;
     }
-    let classes = new Map<string, ConstructorItem>();
-    // combine node with className
+  }
+
+  private combineNodeWithClassName(classes: Map<string, ConstructorItem>, filter: Function) {
     for (let node of this.nodes) {
       if (!filter(node.id) || (node.selfSize === 0 && node.type !== NodeType.NATIVE)) {
         continue;
@@ -809,50 +877,27 @@ export class HeapLoader {
         classItem.classChildren.push(nodeItem);
       }
     }
+  }
 
-    // cal class retained size
-    let list = [this.rootNode];
-    const sizes = [-1];
-    const classesName = [];
-    let seenClassName = new Map<string, boolean>();
-
-    while (list.length) {
-      let node = list.pop();
-      if (!node) {
-        continue;
-      }
-      let nodeClassName = node.className();
-      let seen = Boolean(seenClassName.get(nodeClassName));
-      let dominatorFromIdx = this.firstDominatedNodesIdx[node.nodeIndex];
-      let dominatorToIdx = this.firstDominatedNodesIdx[node.nodeIndex + 1];
-
-      if (!seen && (!hasFiler || filter(node.id)) && (node.selfSize || node.type === NodeType.NATIVE)) {
-        let classItem = classes.get(nodeClassName);
-        if (classItem) {
-          classItem.retainedSize += node.retainedSize;
-          if (dominatorFromIdx !== dominatorToIdx) {
-            seenClassName.set(nodeClassName, true);
-            sizes.push(list.length);
-            classesName.push(nodeClassName);
-          }
+  public getClassesForSummary(minNodeId?: number, maxNodeId?: number): Map<string, ConstructorItem> {
+    let hasFiler = typeof minNodeId === 'number' && typeof maxNodeId === 'number';
+    function filter(nodeId: number): boolean {
+      if (hasFiler) {
+        if (hasFiler && nodeId >= minNodeId! && nodeId <= maxNodeId!) {
+          return true;
+        } else {
+          return false;
         }
-      }
-
-      for (let idx = dominatorFromIdx; idx < dominatorToIdx; idx++) {
-        let nodeIdx = this.dominatedNodes[idx];
-        let domNode = this.nodes[nodeIdx];
-        list.push(domNode);
-      }
-
-      while (sizes[sizes.length - 1] === list.length) {
-        sizes.pop();
-        nodeClassName = classesName.pop() as string;
-        seenClassName.set(nodeClassName, false);
+      } else {
+        return true;
       }
     }
-    if (!hasFiler) {
-      this.allClasses = classes;
+    if (!hasFiler && this.allClasses) {
+      return this.allClasses;
     }
+    let classes = new Map<string, ConstructorItem>();
+    this.combineNodeWithClassName(classes, filter);
+    this.calClassRetainedSize(hasFiler, classes, filter);
     return classes;
   }
 
@@ -956,6 +1001,27 @@ export class HeapLoader {
     findParents(clickNode, []);
   }
 
+  private combineRetains(node: HeapNode, item: ConstructorItem, retains: Array<ConstructorItem>) {
+    for (let i = 0; i < node.retainsNodeIdx.length; i++) {
+      let retainsNode = this.nodes[node.retainsNodeIdx[i]];
+      let retainEdge = this.edges[node.retainsEdgeIdx[i]];
+
+      if (retainEdge.type == EdgeType.WEAK) {
+        continue;
+      }
+      let retainsItem = HeapNodeToConstructorItem(retainsNode);
+      retainsItem.edgeName = retainEdge.nameOrIndex;
+      retainsItem.edgeType = retainEdge.type;
+      retainsItem.type = ConstructorType.RetainersType;
+      retainsItem.childCount = retainsNode.retainsNodeIdx.length;
+      retainsItem.hasNext = retainsNode.retainsNodeIdx.length > 0;
+      if (item!.type == ConstructorType.RetainersType) {
+        retainsItem.parent = item;
+      }
+      retains.push(retainsItem);
+    }
+  }
+
   /**
    * get nodes which referenced this node
    * @param constructor current node
@@ -971,24 +1037,7 @@ export class HeapLoader {
     let node = this.nodes[item.index];
     let retains = new Array<ConstructorItem>();
     if (node && node.retainsEdgeIdx.length === node.retainsNodeIdx.length) {
-      for (let i = 0; i < node.retainsNodeIdx.length; i++) {
-        let retainsNode = this.nodes[node.retainsNodeIdx[i]];
-        let retainEdge = this.edges[node.retainsEdgeIdx[i]];
-
-        if (retainEdge.type == EdgeType.WEAK) {
-          continue;
-        }
-        let retainsItem = HeapNodeToConstructorItem(retainsNode);
-        retainsItem.edgeName = retainEdge.nameOrIndex;
-        retainsItem.edgeType = retainEdge.type;
-        retainsItem.type = ConstructorType.RetainersType;
-        retainsItem.childCount = retainsNode.retainsNodeIdx.length;
-        retainsItem.hasNext = retainsNode.retainsNodeIdx.length > 0;
-        if (item!.type == ConstructorType.RetainersType) {
-          retainsItem.parent = item;
-        }
-        retains.push(retainsItem);
-      }
+      this.combineRetains(node, item, retains);
     }
 
     // Because the node with id 1 needs to be deleted, there is only one child and id 1 does not need to expand the symbol

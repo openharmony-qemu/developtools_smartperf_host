@@ -58,7 +58,7 @@ export class CpuStateRender extends PerfRender {
     let path = new Path2D();
     let find = false;
     let offset = 3;
-    let heights = [4, 12, 21, 30];
+    let heights = [4, 8, 12, 16, 20, 24, 28, 32];
     for (let re of filter) {
       re.height = heights[(re as any).value];
       CpuStateStruct.draw(req.cpuStateContext, path, re);

@@ -221,120 +221,117 @@ export class TabPaneSmapsStatistics extends BaseElement {
       this.filteredData(result, this.tblSmapsStatistics!, this.sumSize);
     });
   }
+  
+  private initTreeObj(): Map<SmapsType, SmapsTreeObj> {
+    let allTreeObjs: Map<SmapsType, SmapsTreeObj> = new Map<SmapsType, SmapsTreeObj>();
+    allTreeObjs.set(SmapsType.TYPE_CODE_SYS, new SmapsTreeObj('CODE_SYS', '', 'CODE_SYS'))
+    allTreeObjs.set(SmapsType.TYPE_CODE_APP, new SmapsTreeObj('CODE_APP', '', 'CODE_APP'));
+    allTreeObjs.set(SmapsType.TYPE_DATA_SYS, new SmapsTreeObj('DATA_SYS', '', 'DATA_SYS'));
+    allTreeObjs.set(SmapsType.TYPE_DATA_APP, new SmapsTreeObj('DATA_APP', '', 'DATA_APP'));
+    allTreeObjs.set(SmapsType.TYPE_UNKNOWN_ANON, new SmapsTreeObj('UNKNOWN_ANON', '', 'UNKNOWN_ANON'));
+    allTreeObjs.set(SmapsType.TYPE_STACK, new SmapsTreeObj('STACK', '', 'STACK'));
+    allTreeObjs.set(SmapsType.TYPE_JS_HEAP, new SmapsTreeObj('JS_HEAP', '', 'JS_HEAP'));
+    allTreeObjs.set(SmapsType.TYPE_JAVA_VM, new SmapsTreeObj('JAVA_VM', '', 'JAVA_VM'));
+    allTreeObjs.set(SmapsType.TYPE_NATIVE_HEAP, new SmapsTreeObj('NATIVE_HEAP', '', 'NATIVE_HEAP'));
+    allTreeObjs.set(SmapsType.TYPE_ASHMEM, new SmapsTreeObj('ASHMEM', '', 'ASHMEM'));
+    allTreeObjs.set(SmapsType.TYPE_OTHER_SYS, new SmapsTreeObj('OTHER_SYS', '', 'OTHER_SYS'));
+    allTreeObjs.set(SmapsType.TYPE_OTHER_APP, new SmapsTreeObj('OTHER_APP', '', 'OTHER_APP'));
+    return allTreeObjs;
+  }
+
+  private handleAllSMapsTreeObj(sumSize: number, allTreeObjs: Map<SmapsType, SmapsTreeObj>): void {
+    let codeSysTree = allTreeObjs.get(SmapsType.TYPE_CODE_SYS);
+    let codeAppTree = allTreeObjs.get(SmapsType.TYPE_CODE_APP);
+    let dataSysTree = allTreeObjs.get(SmapsType.TYPE_DATA_SYS);
+    let dataAppTree = allTreeObjs.get(SmapsType.TYPE_DATA_APP);
+    let unKownTree = allTreeObjs.get(SmapsType.TYPE_UNKNOWN_ANON);
+    let stackTree = allTreeObjs.get(SmapsType.TYPE_STACK);
+    let jsTree = allTreeObjs.get(SmapsType.TYPE_JS_HEAP);
+    let javaVmTree = allTreeObjs.get(SmapsType.TYPE_JAVA_VM);
+    let nativeTree = allTreeObjs.get(SmapsType.TYPE_NATIVE_HEAP);
+    let ashMemTree = allTreeObjs.get(SmapsType.TYPE_ASHMEM);
+    let otherSysTree = allTreeObjs.get(SmapsType.TYPE_OTHER_SYS);
+    let otherAppTree = allTreeObjs.get(SmapsType.TYPE_OTHER_APP);
+    this.handleSmapsTreeObj(codeSysTree!, sumSize);
+    this.handleSmapsTreeObj(codeAppTree!, sumSize);
+    this.handleSmapsTreeObj(dataSysTree!, sumSize);
+    this.handleSmapsTreeObj(dataAppTree!, sumSize);
+    this.handleSmapsTreeObj(unKownTree!, sumSize);
+    this.handleSmapsTreeObj(stackTree!, sumSize);
+    this.handleSmapsTreeObj(jsTree!, sumSize);
+    this.handleSmapsTreeObj(javaVmTree!, sumSize);
+    this.handleSmapsTreeObj(nativeTree!, sumSize);
+    this.handleSmapsTreeObj(ashMemTree!, sumSize);
+    this.handleSmapsTreeObj(otherSysTree!, sumSize);
+    this.handleSmapsTreeObj(otherAppTree!, sumSize);
+    this.handleSmapsTreeObj(this.allTree!, sumSize);
+  }
 
   public filteredData(result: Array<any>, table: LitTable, sumSize?: number): void {
     this.allTree = new SmapsTreeObj('All', '', '*All*');
-    let codeSysTree: SmapsTreeObj = new SmapsTreeObj('CODE_SYS', '', 'CODE_SYS');
-    let codeAppTree: SmapsTreeObj = new SmapsTreeObj('CODE_APP', '', 'CODE_APP');
-    let dataSysTree: SmapsTreeObj = new SmapsTreeObj('DATA_SYS', '', 'DATA_SYS');
-    let dataAppTree: SmapsTreeObj = new SmapsTreeObj('DATA_APP', '', 'DATA_APP');
-    let unKownTree: SmapsTreeObj = new SmapsTreeObj('UNKNOWN_ANON', '', 'UNKNOWN_ANON');
-    let stackTree: SmapsTreeObj = new SmapsTreeObj('STACK', '', 'STACK');
-    let jsTree: SmapsTreeObj = new SmapsTreeObj('JS_HEAP', '', 'JS_HEAP');
-    let javaVmTree: SmapsTreeObj = new SmapsTreeObj('JAVA_VM', '', 'JAVA_VM');
-    let nativeTree: SmapsTreeObj = new SmapsTreeObj('NATIVE_HEAP', '', 'NATIVE_HEAP');
-    let ashMemTree: SmapsTreeObj = new SmapsTreeObj('ASHMEM', '', 'ASHMEM');
-    let otherSysTree: SmapsTreeObj = new SmapsTreeObj('OTHER_SYS', '', 'OTHER_SYS');
-    let otherAppTree: SmapsTreeObj = new SmapsTreeObj('OTHER_APP', '', 'OTHER_APP');
+    let allTreeObjs = this.initTreeObj();
     if (result.length !== null && result.length > 0) {
       for (let id = 0; id < result.length; id++) {
         let smaps = result[id];
         smaps.typeName = TYPE_STRING[smaps.type];
-        switch (smaps.type) {
-          case SmapsType.TYPE_CODE_SYS:
-            this.handleTree(smaps, id, smaps.typeName, codeSysTree, sumSize);
-            break;
-          case SmapsType.TYPE_CODE_APP:
-            this.handleTree(smaps, id, smaps.typeName, codeAppTree, sumSize);
-            break;
-          case SmapsType.TYPE_DATA_SYS:
-            this.handleTree(smaps, id, smaps.typeName, dataSysTree, sumSize);
-            break;
-          case SmapsType.TYPE_DATA_APP:
-            this.handleTree(smaps, id, smaps.typeName, dataAppTree, sumSize);
-            break;
-          case SmapsType.TYPE_UNKNOWN_ANON:
-            this.handleTree(smaps, id, smaps.typeName, unKownTree, sumSize);
-            break;
-          case SmapsType.TYPE_STACK:
-            this.handleTree(smaps, id, smaps.typeName, stackTree, sumSize);
-            break;
-          case SmapsType.TYPE_JS_HEAP:
-            this.handleTree(smaps, id, smaps.typeName, jsTree, sumSize);
-            break;
-          case SmapsType.TYPE_JAVA_VM:
-            this.handleTree(smaps, id, smaps.typeName, javaVmTree, sumSize);
-            break;
-          case SmapsType.TYPE_NATIVE_HEAP:
-            this.handleTree(smaps, id, smaps.typeName, nativeTree, sumSize);
-            break;
-          case SmapsType.TYPE_ASHMEM:
-            this.handleTree(smaps, id, smaps.typeName, ashMemTree, sumSize);
-            break;
-          case SmapsType.TYPE_OTHER_SYS:
-            this.handleTree(smaps, id, smaps.typeName, otherSysTree, sumSize);
-            break;
-          case SmapsType.TYPE_OTHER_APP:
-            this.handleTree(smaps, id, smaps.typeName, otherAppTree, sumSize);
-            break;
+        if (allTreeObjs.has(smaps.type)) {
+          let newVar = allTreeObjs.get(smaps.type);
+          this.handleTree(smaps, id, smaps.typeName, newVar!, sumSize);
         }
-
         this.handleAllDataTree(smaps, id, 'All', this.allTree, sumSize!);
         if (id === result.length - 1) {
-          this.handleSmapsTreeObj(codeSysTree, sumSize);
-          this.handleSmapsTreeObj(codeAppTree, sumSize);
-          this.handleSmapsTreeObj(dataSysTree, sumSize);
-          this.handleSmapsTreeObj(dataAppTree, sumSize);
-          this.handleSmapsTreeObj(unKownTree, sumSize);
-          this.handleSmapsTreeObj(stackTree, sumSize);
-          this.handleSmapsTreeObj(jsTree, sumSize);
-          this.handleSmapsTreeObj(javaVmTree, sumSize);
-          this.handleSmapsTreeObj(nativeTree, sumSize);
-          this.handleSmapsTreeObj(ashMemTree, sumSize);
-          this.handleSmapsTreeObj(otherSysTree, sumSize);
-          this.handleSmapsTreeObj(otherAppTree, sumSize);
-          this.handleSmapsTreeObj(this.allTree, sumSize!);
+          this.handleAllSMapsTreeObj(sumSize!, allTreeObjs);
         }
       }
-      let treeList = [
-        this.allTree,
-        codeSysTree,
-        codeAppTree,
-        dataSysTree,
-        dataAppTree,
-        unKownTree,
-        stackTree,
-        jsTree,
-        javaVmTree,
-        nativeTree,
-        ashMemTree,
-        otherSysTree,
-        otherAppTree,
-      ];
-      this.totalTree = [];
-      for (let i = 0; i < treeList.length; i++) {
-        let tree = treeList[i];
-        if (tree.children.length !== 0) {
-          this.totalTree.push(tree);
-        }
-      }
-
-      // @ts-ignore
-      this.totalTree.sort((previous, next) => next.size - previous.size);
-      this.totalTree.unshift(this.allTree);
+      this.setTotalTreeList(allTreeObjs);
       // 深拷贝数组，不然在给表格赋值之后删除了all那行，表格的数据this.value也会少了all行
       let copyTotalTree = Array.from(this.totalTree);
-      table!.recycleDataSource = copyTotalTree;
+      table.recycleDataSource = copyTotalTree;
       this.totalTree.shift();
-      table?.reMeauseHeight();
+      table.reMeauseHeight();
     } else {
-      table!.recycleDataSource = [];
-      table?.reMeauseHeight();
+      table.recycleDataSource = [];
+      table.reMeauseHeight();
     }
+  }
+
+  private setTotalTreeList(allTreeObjs: Map<SmapsType, SmapsTreeObj>): void {
+    let treeList = [
+      this.allTree,
+      allTreeObjs.get(SmapsType.TYPE_CODE_SYS),
+      allTreeObjs.get(SmapsType.TYPE_CODE_APP),
+      allTreeObjs.get(SmapsType.TYPE_DATA_SYS),
+      allTreeObjs.get(SmapsType.TYPE_DATA_APP),
+      allTreeObjs.get(SmapsType.TYPE_UNKNOWN_ANON),
+      allTreeObjs.get(SmapsType.TYPE_STACK),
+      allTreeObjs.get(SmapsType.TYPE_JS_HEAP),
+      allTreeObjs.get(SmapsType.TYPE_JAVA_VM),
+      allTreeObjs.get(SmapsType.TYPE_NATIVE_HEAP),
+      allTreeObjs.get(SmapsType.TYPE_ASHMEM),
+      allTreeObjs.get(SmapsType.TYPE_OTHER_SYS),
+      allTreeObjs.get(SmapsType.TYPE_OTHER_APP),
+    ];
+    this.totalTree = [];
+    for (let i = 0; i < treeList.length; i++) {
+      let tree = treeList[i];
+      if (tree && tree.children.length !== 0) {
+        this.totalTree.push(tree);
+      }
+    }
+    this.totalTree.sort((previous, next) => next.size - previous.size);
+    this.totalTree.unshift(this.allTree!);
   }
 
   public sortByColumn(column: string, sort: number, table: LitTable): void {
     this.sortArray = [...this.totalTree];
+    this.sortByKey(column, sort, table);
+    this.sortArray.unshift(this.allTree!);
+    let copySortArray = Array.from(this.sortArray);
+    table!.recycleDataSource = copySortArray;
+    this.sortArray.shift();
+  }
+
+  private sortByKey(column: string, sort: number, table: LitTable): void{
     switch (sort) {
       case 0:
         this.sortArray.sort((previous, next) => {
@@ -347,8 +344,18 @@ export class TabPaneSmapsStatistics extends BaseElement {
       default:
         switch (column) {
           case 'sizeStr':
+          case 'rssStr':
+          case 'pssStr':
+          case 'sharedCleanStr':
+          case 'sharedDirtyStr':
+          case 'privateCleanStr':
+          case 'privateDirtyStr':
+          case 'swapStr':
+          case 'swapPssStr':
+            let key = column.split('Str')[0];
             this.sortArray.sort((previous, next) => {
-              return sort === 1 ? previous.size - next.size : next.size - previous.size;
+              // @ts-ignore
+              return sort === 1 ? previous[key] - next[key] : next[key] - previous[key];
             });
             break;
           case 'sizeProStr':
@@ -361,11 +368,6 @@ export class TabPaneSmapsStatistics extends BaseElement {
               return sort === 1 ? previous.count - next.count : next.count - previous.count;
             });
             break;
-          case 'rssStr':
-            this.sortArray.sort((previous, next) => {
-              return sort === 1 ? previous.rss - next.rss : next.rss - previous.rss;
-            });
-            break;
           case 'typeName':
             this.sortArray.sort((previous, next) => {
               return sort === 1
@@ -373,48 +375,9 @@ export class TabPaneSmapsStatistics extends BaseElement {
                 : next.typeName.toString().localeCompare(previous.typeName.toString());
             });
             break;
-          case 'pssStr':
-            this.sortArray.sort((previous, next) => {
-              return sort === 1 ? previous.pss - next.pss : next.pss - previous.pss;
-            });
-            break;
-          case 'sharedCleanStr':
-            this.sortArray.sort((previous, next) => {
-              return sort === 1 ? previous.sharedClean - next.sharedClean : next.sharedClean - previous.sharedClean;
-            });
-            break;
-          case 'sharedDirtyStr':
-            this.sortArray.sort((previous, next) => {
-              return sort === 1 ? previous.sharedDirty - next.sharedDirty : next.sharedDirty - previous.sharedDirty;
-            });
-            break;
-          case 'privateCleanStr':
-            this.sortArray.sort((previous, next) => {
-              return sort === 1 ? previous.privateClean - next.privateClean : next.privateClean - previous.privateClean;
-            });
-            break;
-          case 'privateDirtyStr':
-            this.sortArray.sort((previous, next) => {
-              return sort === 1 ? previous.privateDirty - next.privateDirty : next.privateDirty - previous.privateDirty;
-            });
-            break;
-          case 'swapStr':
-            this.sortArray.sort((previous, next) => {
-              return sort === 1 ? previous.swap - next.swap : next.swap - previous.swap;
-            });
-            break;
-          case 'swapPssStr':
-            this.sortArray.sort((previous, next) => {
-              return sort === 1 ? previous.swapPss - next.swapPss : next.swapPss - previous.swapPss;
-            });
-            break;
         }
         break;
     }
-    this.sortArray.unshift(this.allTree!);
-    let copySortArray = Array.from(this.sortArray);
-    table!.recycleDataSource = copySortArray;
-    this.sortArray.shift();
   }
 
   public initHtml(): string {

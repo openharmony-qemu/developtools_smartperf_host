@@ -14,8 +14,6 @@
  */
 
 import { BaseStruct } from './BaseStruct';
-import { ns2x } from '../component/trace/TimerShaftElement';
-import { Rect } from '../component/trace/timer-shaft/Rect';
 
 export class HeapStruct extends BaseStruct {
   static hoverHeapStruct: HeapStruct | undefined;
@@ -27,61 +25,39 @@ export class HeapStruct extends BaseStruct {
   density: number | undefined;
   maxHeapSize: number = 0;
   minHeapSize: number = 0;
-  static draw(heapBeanStructCanvasCtx: CanvasRenderingContext2D, heapBeanData: HeapStruct) {
-    if (heapBeanData.frame) {
-      let width = heapBeanData.frame.width || 0;
-      heapBeanStructCanvasCtx.fillStyle = '#2db3aa';
-      heapBeanStructCanvasCtx.strokeStyle = '#2db3aa';
-      if (heapBeanData.startTime === HeapStruct.hoverHeapStruct?.startTime) {
-        heapBeanStructCanvasCtx.lineWidth = 1;
-        heapBeanStructCanvasCtx.globalAlpha = 0.6;
+
+  static draw(heapCtx: CanvasRenderingContext2D, heapData: HeapStruct): void {
+    if (heapData.frame) {
+      let width = heapData.frame.width || 0;
+      heapCtx.fillStyle = '#2db3aa';
+      heapCtx.strokeStyle = '#2db3aa';
+      if (heapData.startTime === HeapStruct.hoverHeapStruct?.startTime) {
+        heapCtx.lineWidth = 1;
+        heapCtx.globalAlpha = 0.6;
         let drawHeight: number = Math.ceil(
-          ((heapBeanData.heapsize || 0) * (heapBeanData.frame.height || 0)) / heapBeanData.maxHeapSize
+          ((heapData.heapsize || 0) * (heapData.frame.height || 0)) / heapData.maxHeapSize
         );
-        heapBeanStructCanvasCtx.fillRect(
-          heapBeanData.frame.x,
-          heapBeanData.frame.y + heapBeanData.frame.height - drawHeight,
-          width,
-          drawHeight
-        );
-        heapBeanStructCanvasCtx.beginPath();
-        heapBeanStructCanvasCtx.arc(
-          heapBeanData.frame.x,
-          heapBeanData.frame.y + heapBeanData.frame.height - drawHeight,
-          3,
-          0,
-          2 * Math.PI,
-          true
-        );
-        heapBeanStructCanvasCtx.fill();
-        heapBeanStructCanvasCtx.globalAlpha = 1.0;
-        heapBeanStructCanvasCtx.stroke();
-        heapBeanStructCanvasCtx.beginPath();
-        heapBeanStructCanvasCtx.moveTo(
-          heapBeanData.frame.x + 3,
-          heapBeanData.frame.y + heapBeanData.frame.height - drawHeight
-        );
-        heapBeanStructCanvasCtx.lineWidth = 3;
-        heapBeanStructCanvasCtx.lineTo(
-          heapBeanData.frame.x + width,
-          heapBeanData.frame.y + heapBeanData.frame.height - drawHeight
-        );
-        heapBeanStructCanvasCtx.stroke();
+        heapCtx.fillRect(heapData.frame.x, heapData.frame.y + heapData.frame.height - drawHeight, width, drawHeight);
+        heapCtx.beginPath();
+        heapCtx.arc(heapData.frame.x, heapData.frame.y + heapData.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        heapCtx.fill();
+        heapCtx.globalAlpha = 1.0;
+        heapCtx.stroke();
+        heapCtx.beginPath();
+        heapCtx.moveTo(heapData.frame.x + 3, heapData.frame.y + heapData.frame.height - drawHeight);
+        heapCtx.lineWidth = 3;
+        heapCtx.lineTo(heapData.frame.x + width, heapData.frame.y + heapData.frame.height - drawHeight);
+        heapCtx.stroke();
       } else {
-        heapBeanStructCanvasCtx.globalAlpha = 0.6;
-        heapBeanStructCanvasCtx.lineWidth = 1;
+        heapCtx.globalAlpha = 0.6;
+        heapCtx.lineWidth = 1;
         let drawHeight: number = Math.ceil(
-          ((heapBeanData.heapsize || 0) * (heapBeanData.frame.height || 0)) / heapBeanData.maxHeapSize
+          ((heapData.heapsize || 0) * (heapData.frame.height || 0)) / heapData.maxHeapSize
         );
-        heapBeanStructCanvasCtx.fillRect(
-          heapBeanData.frame.x,
-          heapBeanData.frame.y + heapBeanData.frame.height - drawHeight,
-          width,
-          drawHeight
-        );
+        heapCtx.fillRect(heapData.frame.x, heapData.frame.y + heapData.frame.height - drawHeight, width, drawHeight);
       }
     }
-    heapBeanStructCanvasCtx.globalAlpha = 1.0;
-    heapBeanStructCanvasCtx.lineWidth = 1;
+    heapCtx.globalAlpha = 1.0;
+    heapCtx.lineWidth = 1;
   }
 }

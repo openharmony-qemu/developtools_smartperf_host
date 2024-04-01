@@ -17,14 +17,13 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { Utils } from '../trace/base/Utils';
 import { info } from '../../../log/Log';
 import { TraceRow } from '../trace/base/TraceRow';
-import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { ProcessRender, ProcessStruct } from '../../database/ui-worker/ProcedureWorkerProcess';
 import { ThreadRender, ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread';
 import { FuncRender, FuncStruct } from '../../database/ui-worker/ProcedureWorkerFunc';
 import { MemRender, ProcessMemStruct } from '../../database/ui-worker/ProcedureWorkerMem';
-import { FolderSupplier, FolderThreadHandler, SpChartManager } from './SpChartManager';
+import {folderSupplier, folderThreadHandler, getRowContext, rowThreadHandler, SpChartManager} from './SpChartManager';
 import { JankRender, JankStruct } from '../../database/ui-worker/ProcedureWorkerJank';
-import { isFrameContainPoint, ns2xByTimeShaft } from '../../database/ui-worker/ProcedureWorkerCommon';
+import {isFrameContainPoint, ns2xByTimeShaft, PairPoint} from '../../database/ui-worker/ProcedureWorkerCommon';
 import { AppStartupRender, AppStartupStruct } from '../../database/ui-worker/ProcedureWorkerAppStartup';
 import { SoRender, SoStruct } from '../../database/ui-worker/ProcedureWorkerSoInit';
 import { FlagsConfig } from '../SpFlags';
@@ -41,8 +40,6 @@ import { getMaxDepthByTid, queryAllFuncNames, queryProcessAsyncFunc } from '../.
 import { queryMemFilterIdMaxValue } from '../../database/sql/Memory.sql';
 import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap } from '../../database/sql/SqlLite.sql';
 import {
-  queryAllProcessNames,
-  queryAllThreadName,
   queryProcess,
   queryProcessByTable,
   queryProcessContentCount,
@@ -74,10 +71,9 @@ export class SpProcessChart {
   private funcNameMap: Map<number, string> = new Map();
   private filterIdMaxValue: Map<number, number> = new Map();
   private soInitNameMap: Map<number, string> = new Map();
-  private processNameMap: Map<number, string> = new Map();
-  private threadNameMap: Map<number, string> = new Map();
   private processSrcSliceMap: Map<number, string> = new Map();
   private renderRow: TraceRow<BaseStruct> | null = null;
+  private loadAppStartup: boolean = false;
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
   }
@@ -99,8 +95,8 @@ export class SpProcessChart {
     row.folder = true;
     row.style.height = '40px';
     row.name = 'DeliverInputEvent';
-    row.supplier = FolderSupplier();
-    row.onThreadHandler = FolderThreadHandler(row, this.trace);
+    row.supplier = folderSupplier();
+    row.onThreadHandler = folderThreadHandler(row, this.trace);
 
     let asyncFuncGroup = Utils.groupBy(
       this.processAsyncFuncArray.filter((it) => it.funName === 'deliverInputEvent'),
@@ -112,133 +108,73 @@ export class SpProcessChart {
     Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
       let asyncFuncGroups: Array<any> = asyncFuncGroup[key];
       if (asyncFuncGroups.length > 0) {
-        let funcRow = TraceRow.skeleton<FuncStruct>();
-        funcRow.rowId = `${asyncFuncGroups[0].funName}-${key}`;
-        funcRow.asyncFuncName = asyncFuncGroups[0].funName;
-        funcRow.asyncFuncNamePID = key;
-        funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-        funcRow.enableCollapseChart(); //允许折叠泳道图
-        funcRow.rowParentId = `${row.rowId}`;
-        funcRow.rowHidden = !row.expansion;
-        funcRow.style.width = '100%';
-        funcRow.name = `${asyncFuncGroups[0].funName} ${key}`;
-        funcRow.setAttribute('children', '');
-        funcRow.supplierFrame = () => {
-          return processDeliverInputEventDataSender(key, funcRow!).then((res: Array<any>) => {
-            let isIntersect = (left: any, right: any): boolean =>
-              Math.max(left.startTs + left.dur, right.startTs + right.dur) - Math.min(left.startTs, right.startTs) <
-              left.dur + right.dur;
-            let depths: any = [];
-            let createDepth = (currentDepth: number, index: number): void => {
-              if (depths[currentDepth] == undefined || !isIntersect(depths[currentDepth], res[index])) {
-                res[index].depth = currentDepth;
-                depths[currentDepth] = res[index];
-              } else {
-                createDepth(++currentDepth, index);
-              }
-            };
-            res.forEach((it, i) => {
-              res[i].funName = this.funcNameMap.get(res[i].id!);
-              res[i].threadName = this.threadNameMap.get(res[i].tid!);
-              if (it.dur == -1 || it.dur === null || it.dur === undefined) {
-                it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
-                it.flag = 'Did not end';
-              }
-              createDepth(0, i);
-            });
-            if (funcRow && !funcRow.isComplete) {
-              let max = Math.max(...asyncFuncGroups.map((it) => it.depth || 0)) + 1;
-              let maxHeight = max * 18 + 6;
-              funcRow.style.height = `${maxHeight}px`;
-              funcRow.setAttribute('height', `${maxHeight}`);
-            }
-            return res;
-          });
-        };
-        funcRow.findHoverStruct = (): void => {
-          FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
-        }
-        funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-        funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-        funcRow.onThreadHandler = (useCache): void => {
-          let context: CanvasRenderingContext2D;
-          if (funcRow.currentContext) {
-            context = funcRow.currentContext;
-          } else {
-            context = funcRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-          }
-          funcRow.canvasSave(context);
-          (renders['func'] as FuncRender).renderMainThread(
-            {
-              context: context,
-              useCache: useCache,
-              type: `func-${asyncFuncGroups[0].funName}-${key}`,
-            },
-            funcRow
-          );
-          funcRow.canvasRestore(context, this.trace);
-        };
-        row.addChildTraceRow(funcRow);
+        row.addChildTraceRow(this.createDeliverInputEventRow(row, key, asyncFuncGroups));
       }
     });
   };
 
-  async init(): Promise<void> {
-    let maxValues = await queryMemFilterIdMaxValue();
-    maxValues.forEach((it) => {
-      this.filterIdMaxValue.set(it.filterId, it.maxValue);
-    });
-    let funcNamesArray = await queryAllFuncNames();
-    funcNamesArray.forEach((it) => {
-      this.funcNameMap.set(it.id, it.name);
-    });
-    let soInitNamesArray = await queryAllSoInitNames();
-    soInitNamesArray.forEach((it) => {
-      this.soInitNameMap.set(it.id, it.name);
-    });
-    let processNamesArray = await queryAllProcessNames();
-    processNamesArray.forEach((it) => {
-      this.processNameMap.set(it.pid, it.name);
-    });
-    let renderServiceProcess = await queryRsProcess();
-    let processSrcSliceArray = await queryAllSrcSlices();
-    processSrcSliceArray.forEach((it) => {
-      this.processSrcSliceMap.set(it.id, it.src);
-    });
-    let threadNameArray = await queryAllThreadName();
-    threadNameArray.forEach((it) => {
-      this.threadNameMap.set(it.tid, it.name);
-    });
-    let threadFuncMaxDepthArray = await getMaxDepthByTid();
-    info('Gets the maximum tier per thread , tid and maxDepth');
-    threadFuncMaxDepthArray.forEach((it) => {
-      this.threadFuncMaxDepthMap.set(`${it.ipid}-${it.tid}`, it.maxDepth);
-    });
-    info('convert tid and maxDepth array to map');
-    let pidCountArray = await queryProcessContentCount();
-    info('fetch per process  pid,switch_count,thread_count,slice_count,mem_count');
-    pidCountArray.forEach((it) => {
-      this.processThreadDataCountMap.set(it.pid, it.switch_count);
-      this.processThreadCountMap.set(it.pid, it.thread_count);
-      this.processFuncDataCountMap.set(it.pid, it.slice_count);
-      this.processMemDataCountMap.set(it.pid, it.mem_count);
-    });
-    let queryProcessThreadResult = await queryProcessThreads();
-    let queryProcessThreadsByTableResult = await queryProcessThreadsByTable();
-    this.processMem = await queryProcessMem();
-    let loadAppStartup: boolean = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
-    if (loadAppStartup) {
-      this.startupProcessArr = await queryStartupPidArray();
-      this.processSoMaxDepth = await queryProcessSoMaxDepth();
+  private createDeliverInputEventRow(parentRow: TraceRow<any>, key: number,asyncFuncGroups: Array<any>): TraceRow<FuncStruct> {
+    let funcRow = TraceRow.skeleton<FuncStruct>();
+    funcRow.rowId = `${asyncFuncGroups[0].funName}-${key}`;
+    funcRow.asyncFuncName = asyncFuncGroups[0].funName;
+    funcRow.asyncFuncNamePID = key;
+    funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
+    funcRow.enableCollapseChart(); //允许折叠泳道图
+    funcRow.rowParentId = `${parentRow.rowId}`;
+    funcRow.rowHidden = !parentRow.expansion;
+    funcRow.style.width = '100%';
+    funcRow.name = `${asyncFuncGroups[0].funName} ${key}`;
+    funcRow.setAttribute('children', '');
+    funcRow.supplierFrame = () => {
+      return processDeliverInputEventDataSender(key, funcRow!).then((res: Array<any>) => {
+        this.deliverInputEventSendCallback(res, funcRow, asyncFuncGroups);
+        return res;
+      });
+    };
+    funcRow.findHoverStruct = (): void => {
+      FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
     }
-    info('The amount of initialized process memory data is : ', this.processMem!.length);
-    let eventCountList: Array<any> = await queryEventCountMap();
-    this.eventCountMap = eventCountList.reduce((pre, current) => {
-      pre[`${current.eventName}`] = current.count;
-      return pre;
-    }, {});
-    this.processThreads = Utils.removeDuplicates(queryProcessThreadResult, queryProcessThreadsByTableResult, 'tid');
-    info('The amount of initialized process threads data is : ', this.processThreads!.length);
+    funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    funcRow.selectChangeHandler = this.trace.selectChangeHandler;
+    funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {
+      type: `func-${asyncFuncGroups[0].funName}-${key}`,
+    }, funcRow, this.trace);
+    return funcRow;
+  }
+  private deliverInputEventSendCallback(res: Array<any>, funcRow: TraceRow<any>, asyncFuncGroups: Array<any>): void {
+    let isIntersect = (left: any, right: any): boolean =>
+      Math.max(left.startTs + left.dur, right.startTs + right.dur) - Math.min(left.startTs, right.startTs) <
+      left.dur + right.dur;
+    let depths: any = [];
+    let createDepth = (currentDepth: number, index: number): void => {
+      if (depths[currentDepth] == undefined || !isIntersect(depths[currentDepth], res[index])) {
+        res[index].depth = currentDepth;
+        depths[currentDepth] = res[index];
+      } else {
+        createDepth(++currentDepth, index);
+      }
+    };
+    res.forEach((it, i) => {
+      res[i].funName = this.funcNameMap.get(res[i].id!);
+      res[i].threadName = Utils.THREAD_MAP.get(res[i].tid!);
+      if (it.dur == -1 || it.dur === null || it.dur === undefined) {
+        it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+        it.flag = 'Did not end';
+      }
+      createDepth(0, i);
+    });
+    if (funcRow && !funcRow.isComplete) {
+      let max = Math.max(...asyncFuncGroups.map((it) => it.depth || 0)) + 1;
+      let maxHeight = max * 18 + 6;
+      funcRow.style.height = `${maxHeight}px`;
+      funcRow.setAttribute('height', `${maxHeight}`);
+    }
+  }
+
+
+
+  async init(): Promise<void> {
+    await this.prepareData();
     if (
       this.eventCountMap['print'] == 0 &&
       this.eventCountMap['tracing_mark_write'] == 0 &&
@@ -261,9 +197,66 @@ export class SpProcessChart {
     if (FlagsConfig.getFlagsConfigEnableStatus('TaskPool')) {
       allTaskPoolPid = await queryTaskPoolProcessIds();
     }
+    let renderServiceProcess = await queryRsProcess();
     info('ProcessList Data size is: ', processList!.length);
-    for (let i = 0; i < processList.length; i++) {
-      const it = processList[i];
+    await this.initProcessRow(processList, allTaskPoolPid, allJankProcess, renderServiceProcess);
+    let durTime = new Date().getTime() - time;
+    info('The time to load the Process data is: ', durTime);
+  }
+
+  private async prepareData(): Promise<void> {
+    let maxValues = await queryMemFilterIdMaxValue();
+    maxValues.forEach((it) => {
+      this.filterIdMaxValue.set(it.filterId, it.maxValue);
+    });
+    let funcNamesArray = await queryAllFuncNames();
+    funcNamesArray.forEach((it) => {
+      this.funcNameMap.set(it.id, it.name);
+    });
+    let soInitNamesArray = await queryAllSoInitNames();
+    soInitNamesArray.forEach((it) => {
+      this.soInitNameMap.set(it.id, it.name);
+    });
+    let processSrcSliceArray = await queryAllSrcSlices();
+    processSrcSliceArray.forEach((it) => {
+      this.processSrcSliceMap.set(it.id, it.src);
+    });
+    let threadFuncMaxDepthArray = await getMaxDepthByTid();
+    info('Gets the maximum tier per thread , tid and maxDepth');
+    threadFuncMaxDepthArray.forEach((it) => {
+      this.threadFuncMaxDepthMap.set(`${it.ipid}-${it.tid}`, it.maxDepth);
+    });
+    info('convert tid and maxDepth array to map');
+    let pidCountArray = await queryProcessContentCount();
+    info('fetch per process  pid,switch_count,thread_count,slice_count,mem_count');
+    pidCountArray.forEach((it) => {
+      this.processThreadDataCountMap.set(it.pid, it.switch_count);
+      this.processThreadCountMap.set(it.pid, it.thread_count);
+      this.processFuncDataCountMap.set(it.pid, it.slice_count);
+      this.processMemDataCountMap.set(it.pid, it.mem_count);
+    });
+    this.processMem = await queryProcessMem();
+    info('The amount of initialized process memory data is : ', this.processMem!.length);
+    this.loadAppStartup = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
+    info('Prepare App startup data ');
+    if (this.loadAppStartup) {
+      this.startupProcessArr = await queryStartupPidArray();
+      this.processSoMaxDepth = await queryProcessSoMaxDepth();
+    }
+    let eventCountList: Array<any> = await queryEventCountMap();
+    this.eventCountMap = eventCountList.reduce((pre, current) => {
+      pre[`${current.eventName}`] = current.count;
+      return pre;
+    }, {});
+    let queryProcessThreadResult = await queryProcessThreads();
+    let queryProcessThreadsByTableResult = await queryProcessThreadsByTable();
+    this.processThreads = Utils.removeDuplicates(queryProcessThreadResult, queryProcessThreadsByTableResult, 'tid');
+    info('The amount of initialized process threads data is : ', this.processThreads!.length);
+  }
+
+  private async initProcessRow(pArr: Array<any>, allTaskPoolPid: Array<{ pid: number }>, jankArr: Array<number>, rsProcess: Array<any>) {
+    for (let i = 0; i < pArr.length; i++) {
+      const it = pArr[i];
       if (
         (this.processThreadDataCountMap.get(it.pid) || 0) == 0 &&
         (this.processThreadCountMap.get(it.pid) || 0) == 0 &&
@@ -272,53 +265,12 @@ export class SpProcessChart {
       ) {
         continue;
       }
-      let processRow = TraceRow.skeleton<ProcessStruct>();
-      processRow.rowId = `${it.pid}`;
-      processRow.index = i;
-      processRow.rowType = TraceRow.ROW_TYPE_PROCESS;
-      processRow.rowParentId = '';
-      processRow.style.height = '40px';
-      processRow.folder = true;
-      if (
-        SpChartManager.APP_STARTUP_PID_ARR.find((pid) => pid === it.pid) !== undefined ||
-        it.processName === 'render_service'
-      ) {
-        processRow.addTemplateTypes('AppStartup');
-      }
-      if (allTaskPoolPid.find((process) => process.pid === it.pid) !== undefined) {
-        processRow.addTemplateTypes('TaskPool');
-      }
-      processRow.name = `${it.processName || 'Process'} ${it.pid}`;
-      processRow.supplierFrame = (): Promise<Array<any>> => {
-        return processDataSender(it.pid || -1, processRow);
-      };
-      processRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      processRow.selectChangeHandler = this.trace.selectChangeHandler;
-      processRow.onThreadHandler = (useCache): void => {
-        processRow.canvasSave(this.trace.canvasPanelCtx!);
-        if (processRow.expansion) {
-          this.trace.canvasPanelCtx?.clearRect(0, 0, processRow.frame.width, processRow.frame.height);
-        } else {
-          (renders['process'] as ProcessRender).renderMainThread(
-            {
-              context: this.trace.canvasPanelCtx,
-              pid: it.pid,
-              useCache: useCache,
-              type: `process ${processRow.index} ${it.processName}`,
-            },
-            processRow
-          );
-        }
-        processRow.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
-      };
+      let processRow = this.createProcessRow(i, it, allTaskPoolPid);
       this.trace.rowsEL?.appendChild(processRow);
-
-      /**
-       * App Startup row
-       */
+      /* App Startup row*/
       let startupRow: TraceRow<AppStartupStruct> | undefined = undefined;
       let soRow: TraceRow<SoStruct> | undefined = undefined;
-      if (loadAppStartup) {
+      if (this.loadAppStartup) {
         if (this.startupProcessArr.find((sp) => sp.pid === it.pid)) {
           startupRow = this.addStartUpRow(processRow);
         }
@@ -327,289 +279,14 @@ export class SpProcessChart {
           soRow = this.addSoInitRow(processRow, maxSoDepth.maxDepth);
         }
       }
-
-      /**
-       * Janks Frames
-       */
+      /* Janks Frames */
       let actualRow: TraceRow<JankStruct> | null = null;
       let expectedRow: TraceRow<JankStruct> | null = null;
-      if (allJankProcess.indexOf(it.pid) > -1) {
-        expectedRow = TraceRow.skeleton<JankStruct>();
-        expectedRow.asyncFuncName = it.processName;
-        expectedRow.asyncFuncNamePID = it.pid;
-        expectedRow.rowType = TraceRow.ROW_TYPE_JANK;
-        expectedRow.rowParentId = `${it.pid}`;
-        expectedRow.rowHidden = !processRow.expansion;
-        expectedRow.style.width = '100%';
-        expectedRow.name = 'Expected Timeline';
-        expectedRow.addTemplateTypes('FrameTimeline');
-        expectedRow.setAttribute('children', '');
-        expectedRow.supplierFrame = () => {
-          return processExpectedDataSender(it.pid, expectedRow!).then((res) => {
-            let maxDepth: number = 1;
-            let unitHeight: number = 20;
-            for (let j = 0; j < res.length; j++) {
-              let expectedItem = res[j];
-              if (expectedItem.depth! >= maxDepth) {
-                maxDepth = expectedItem.depth! + 1;
-              }
-              expectedItem.cmdline = this.processNameMap.get(res[j].pid!);
-              if (res[j].pid! === renderServiceProcess[0].pid) {
-                expectedItem.cmdline = 'render_service';
-                expectedItem.frame_type = expectedItem.cmdline;
-              } else {
-                expectedItem.frame_type = 'app';
-              }
-            }
-            if (expectedRow && !expectedRow.isComplete && res.length > 0) {
-              let maxHeight: number = maxDepth * unitHeight;
-              expectedRow.style.height = `${maxHeight}px`;
-              expectedRow.setAttribute('height', `${maxHeight}`);
-              if (res[0]) {
-                let timeLineType = res[0].type;
-                expectedRow.rowId = `${timeLineType}-${it.pid}`;
-                expectedRow.setAttribute('frame_type', res[0].frame_type || '');
-              }
-            }
-            return res;
-          });
-        };
-        expectedRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-        expectedRow.selectChangeHandler = this.trace.selectChangeHandler;
-        expectedRow.onThreadHandler = (useCache): void => {
-          let context = expectedRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-          expectedRow!.canvasSave(context);
-          (renders['jank'] as JankRender).renderMainThread(
-            {
-              context: context,
-              useCache: useCache,
-              type: 'expected_frame_timeline_slice',
-            },
-            expectedRow!
-          );
-          expectedRow!.canvasRestore(context, this.trace);
-        };
-        processRow.addChildTraceRow(expectedRow);
-        actualRow = TraceRow.skeleton<JankStruct>();
-        actualRow.rowType = TraceRow.ROW_TYPE_JANK;
-        actualRow.rowParentId = `${it.pid}`;
-        actualRow.rowHidden = !processRow.expansion;
-        actualRow.style.width = '100%';
-        actualRow.name = 'Actual Timeline';
-        actualRow.addTemplateTypes('FrameTimeline');
-        actualRow.setAttribute('children', '');
-        actualRow.supplierFrame = () => {
-          return processActualDataSender(it.pid, actualRow!).then((res) => {
-            let maxDepth: number = 1;
-            let unitHeight: number = 20;
-            for (let j = 0; j < res.length; j++) {
-              let actualItem = res[j];
-              if (actualItem.depth! >= maxDepth) {
-                maxDepth = actualItem.depth! + 1;
-              }
-              actualItem.src_slice = this.processSrcSliceMap.get(res[j].id!);
-              actualItem.cmdline = this.processNameMap.get(res[j].pid!);
-              if (res[j].pid! === renderServiceProcess[0].pid) {
-                actualItem.cmdline = 'render_service';
-                actualItem.frame_type = actualItem.cmdline;
-              } else {
-                actualItem.frame_type = 'app';
-              }
-            }
-            if (actualRow && !actualRow.isComplete && res.length > 0) {
-              let maxHeight: number = maxDepth * unitHeight;
-              actualRow.style.height = `${maxHeight}px`;
-              actualRow.setAttribute('height', `${maxHeight}`);
-              if (res[0]) {
-                let timeLineType = res[0].type;
-                actualRow.rowId = `${timeLineType}-${it.pid}`;
-                actualRow.setAttribute('frame_type', res[0].frame_type || '');
-                actualRow.dataList = res;
-              }
-            }
-            return res;
-          });
-        };
-        actualRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-        actualRow.selectChangeHandler = this.trace.selectChangeHandler;
-        actualRow.onThreadHandler = (useCache): void => {
-          let context = actualRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-          actualRow!.canvasSave(context);
-          (renders['jank'] as JankRender).renderMainThread(
-            {
-              context: context,
-              useCache: useCache,
-              type: 'actual_frame_timeline_slice',
-            },
-            actualRow!
-          );
-          actualRow!.canvasRestore(context, this.trace);
-        };
-        processRow.addChildTraceRow(actualRow);
+      if (jankArr.indexOf(it.pid) > -1) {
+        expectedRow = this.addExpectedRow(it, processRow, rsProcess);
+        actualRow = this.addActualRow(it, processRow, rsProcess);
       }
-      let offsetYTimeOut: any = undefined;
-      processRow.addEventListener('expansion-change', (e: any) => {
-        JankStruct.delJankLineFlag = false;
-        if (offsetYTimeOut) {
-          clearTimeout(offsetYTimeOut);
-        }
-        if (JankStruct.selectJankStruct !== null && JankStruct.selectJankStruct !== undefined) {
-          if (e.detail.expansion) {
-            offsetYTimeOut = setTimeout(() => {
-              this.trace.linkNodes.forEach((linkNodeItem) => {
-                JankStruct.selectJankStructList?.forEach((selectProcessStruct: any) => {
-                  if (e.detail.rowId == selectProcessStruct.pid) {
-                    JankStruct.selectJankStruct = selectProcessStruct;
-                    JankStruct.hoverJankStruct = selectProcessStruct;
-                  }
-                });
-                if (linkNodeItem[0].rowEL.collect) {
-                  linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkNodeItem[0].y = linkNodeItem[0].rowEL!.translateY! + linkNodeItem[0].offsetY;
-                if (linkNodeItem[1].rowEL.collect) {
-                  linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkNodeItem[1].y = linkNodeItem[1].rowEL!.translateY! + linkNodeItem[1].offsetY;
-                if (actualRow) {
-                  if (linkNodeItem[0].rowEL.rowId == e.detail.rowId) {
-                    linkNodeItem[0].x = ns2xByTimeShaft(linkNodeItem[0].ns, this.trace.timerShaftEL!);
-                    linkNodeItem[0].y = actualRow!.translateY! + linkNodeItem[0].offsetY * 2;
-                    linkNodeItem[0].offsetY = linkNodeItem[0].offsetY * 2;
-                    linkNodeItem[0].rowEL = actualRow!;
-                  } else if (linkNodeItem[1].rowEL.rowId == e.detail.rowId) {
-                    linkNodeItem[1].x = ns2xByTimeShaft(linkNodeItem[1].ns, this.trace.timerShaftEL!);
-                    linkNodeItem[1].y = actualRow!.translateY! + linkNodeItem[1].offsetY * 2;
-                    linkNodeItem[1].offsetY = linkNodeItem[1].offsetY * 2;
-                    linkNodeItem[1].rowEL = actualRow!;
-                  }
-                }
-              });
-            }, 300);
-          } else {
-            if (JankStruct!.selectJankStruct) {
-              JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
-            }
-            offsetYTimeOut = setTimeout(() => {
-              this.trace.linkNodes?.forEach((linkProcessItem) => {
-                if (linkProcessItem[0].rowEL.collect) {
-                  linkProcessItem[0].rowEL.translateY = linkProcessItem[0].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkProcessItem[0].rowEL.translateY =
-                    linkProcessItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkProcessItem[0].y = linkProcessItem[0].rowEL!.translateY! + linkProcessItem[0].offsetY;
-                if (linkProcessItem[1].rowEL.collect) {
-                  linkProcessItem[1].rowEL.translateY = linkProcessItem[1].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkProcessItem[1].rowEL.translateY =
-                    linkProcessItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkProcessItem[1].y = linkProcessItem[1].rowEL!.translateY! + linkProcessItem[1].offsetY;
-                if (linkProcessItem[0].rowEL.rowParentId == e.detail.rowId) {
-                  if (!linkProcessItem[0].rowEL.collect) {
-                    linkProcessItem[0].x = ns2xByTimeShaft(linkProcessItem[0].ns, this.trace.timerShaftEL!);
-                    linkProcessItem[0].y = processRow!.translateY! + linkProcessItem[0].offsetY / 2;
-                    linkProcessItem[0].offsetY = linkProcessItem[0].offsetY / 2;
-                    linkProcessItem[0].rowEL = processRow!;
-                  }
-                } else if (linkProcessItem[1].rowEL.rowParentId == e.detail.rowId) {
-                  if (!linkProcessItem[1].rowEL.collect) {
-                    linkProcessItem[1].x = ns2xByTimeShaft(linkProcessItem[1].ns, this.trace.timerShaftEL!);
-                    linkProcessItem[1].y = processRow!.translateY! + linkProcessItem[1].offsetY / 2;
-                    linkProcessItem[1].offsetY = linkProcessItem[1].offsetY / 2;
-                    linkProcessItem[1].rowEL = processRow!;
-                  }
-                }
-              });
-            }, 300);
-          }
-        } else {
-          if (e.detail.expansion) {
-            offsetYTimeOut = setTimeout(() => {
-              this.trace.linkNodes.forEach((linkNodeItem) => {
-                ThreadStruct.selectThreadStructList?.forEach((selectProcessStruct: any) => {
-                  if (e.detail.rowId == selectProcessStruct.pid) {
-                    ThreadStruct.selectThreadStruct = selectProcessStruct;
-                    ThreadStruct.hoverThreadStruct = selectProcessStruct;
-                  }
-                });
-                if (linkNodeItem[0].rowEL.expansion && linkNodeItem[0].backrowEL) {
-                  linkNodeItem[0].rowEL = linkNodeItem[0].backrowEL;
-                  if (linkNodeItem[0].rowEL.collect) {
-                    linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.getBoundingClientRect().top - 195;
-                  } else {
-                    linkNodeItem[0].rowEL.translateY =
-                      linkNodeItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                  }
-                  linkNodeItem[0].x = ns2xByTimeShaft(linkNodeItem[0].ns, this.trace.timerShaftEL!);
-                  linkNodeItem[0].offsetY = linkNodeItem[0].offsetY * 2;
-                  linkNodeItem[0].y = linkNodeItem[0].rowEL.translateY + linkNodeItem[0].offsetY;
-                }
-                if (linkNodeItem[1].rowEL.expansion && linkNodeItem[1].backrowEL) {
-                  linkNodeItem[1].rowEL = linkNodeItem[1].backrowEL;
-                  if (linkNodeItem[1].rowEL.collect) {
-                    linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.getBoundingClientRect().top - 195;
-                  } else {
-                    linkNodeItem[1].rowEL.translateY =
-                      linkNodeItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                  }
-                  linkNodeItem[1].x = ns2xByTimeShaft(linkNodeItem[1].ns, this.trace.timerShaftEL!);
-                  linkNodeItem[1].offsetY = linkNodeItem[1].offsetY * 2;
-                  linkNodeItem[1].y = linkNodeItem[1].rowEL!.translateY! + linkNodeItem[1].offsetY;
-                }
-              });
-            }, 300);
-          } else {
-            if (ThreadStruct!.selectThreadStruct) {
-              ThreadStruct.selectThreadStructList?.push(<ThreadStruct>ThreadStruct!.selectThreadStruct);
-            }
-            offsetYTimeOut = setTimeout(() => {
-              this.trace.linkNodes?.forEach((linkProcessItem) => {
-                if (linkProcessItem[0].rowEL.collect) {
-                  linkProcessItem[0].rowEL.translateY = linkProcessItem[0].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkProcessItem[0].rowEL.translateY =
-                    linkProcessItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkProcessItem[0].y = processRow!.translateY + linkProcessItem[0].offsetY; //11
-                if (linkProcessItem[1].rowEL.collect) {
-                  linkProcessItem[1].rowEL.translateY = linkProcessItem[1].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkProcessItem[1].rowEL.translateY =
-                    linkProcessItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkProcessItem[1].y = linkProcessItem[1].rowEL!.translateY + linkProcessItem[1].offsetY;
-                if (linkProcessItem[0].rowEL.rowParentId == e.detail.rowId) {
-                  if (!linkProcessItem[0].rowEL.collect) {
-                    linkProcessItem[0].x = ns2xByTimeShaft(linkProcessItem[0].ns, this.trace.timerShaftEL!);
-                    linkProcessItem[0].y = processRow!.translateY! + linkProcessItem[0].offsetY / 2;
-                    linkProcessItem[0].offsetY = linkProcessItem[0].offsetY / 2;
-                    linkProcessItem[0].rowEL = processRow!;
-                  }
-                }
-                if (linkProcessItem[1].rowEL.rowParentId == e.detail.rowId) {
-                  if (!linkProcessItem[1].rowEL.collect) {
-                    linkProcessItem[1].x = ns2xByTimeShaft(linkProcessItem[1].ns, this.trace.timerShaftEL!);
-                    linkProcessItem[1].y = processRow!.translateY! + linkProcessItem[1].offsetY / 2;
-                    linkProcessItem[1].offsetY = linkProcessItem[1].offsetY / 2;
-                    linkProcessItem[1].rowEL = processRow!;
-                  }
-                }
-                JankStruct.selectJankStructList = [];
-              });
-            }, 300);
-          }
-        }
-        let refreshTimeOut = setTimeout(() => {
-          this.trace.refreshCanvas(true);
-          clearTimeout(refreshTimeOut);
-        }, 360);
-      });
+      this.addProcessRowListener(processRow, actualRow);
       this.renderRow = null;
       if (it.processName === 'render_service') {
         this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow);
@@ -622,8 +299,253 @@ export class SpProcessChart {
       }
       await this.trace.chartManager?.frameTimeChart.initAnimatedScenesChart(processRow, it, expectedRow!, actualRow!);
     }
-    let durTime = new Date().getTime() - time;
-    info('The time to load the Process data is: ', durTime);
+  }
+
+  private createProcessRow(index: number, process: any, allTaskPoolPid: Array<{ pid: number }>) {
+    let processRow = TraceRow.skeleton<ProcessStruct>();
+    processRow.rowId = `${process.pid}`;
+    processRow.index = index;
+    processRow.rowType = TraceRow.ROW_TYPE_PROCESS;
+    processRow.rowParentId = '';
+    processRow.style.height = '40px';
+    processRow.folder = true;
+    if (
+      SpChartManager.APP_STARTUP_PID_ARR.find((pid) => pid === process.pid) !== undefined ||
+      process.processName === 'render_service'
+    ) {
+      processRow.addTemplateTypes('AppStartup');
+    }
+    if (allTaskPoolPid.find((process) => process.pid === process.pid) !== undefined) {
+      processRow.addTemplateTypes('TaskPool');
+    }
+    processRow.name = `${process.processName || 'Process'} ${process.pid}`;
+    processRow.supplierFrame = (): Promise<Array<any>> => {
+      return processDataSender(process.pid || -1, processRow);
+    };
+    processRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    processRow.selectChangeHandler = this.trace.selectChangeHandler;
+    processRow.onThreadHandler = rowThreadHandler<ProcessRender>('process', 'context', {
+      pid: process.pid,
+      type: `process ${processRow.index} ${process.processName}`
+    }, processRow, this.trace);
+    return processRow;
+  }
+
+  addProcessRowListener(processRow: TraceRow<ProcessStruct>, actualRow: TraceRow<JankStruct> | null) {
+    let offsetYTimeOut: any = undefined;
+    processRow.addEventListener('expansion-change', (e: any) => {
+      JankStruct.delJankLineFlag = false;
+      if (offsetYTimeOut) {
+        clearTimeout(offsetYTimeOut);
+      }
+      if (JankStruct.selectJankStruct !== null && JankStruct.selectJankStruct !== undefined) {
+        if (e.detail.expansion) {
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes.forEach((linkNodeItem) => this.handler1(e, linkNodeItem, actualRow));
+          }, 300);
+        } else {
+          if (JankStruct!.selectJankStruct) {
+            JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
+          }
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes?.forEach((linkProcessItem) => this.handler2(e, linkProcessItem, processRow));
+          }, 300);
+        }
+      } else {
+        if (e.detail.expansion) {
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes.forEach((linkNodeItem) => this.handler3(e, linkNodeItem));
+          }, 300);
+        } else {
+          if (ThreadStruct!.selectThreadStruct) {
+            ThreadStruct.selectThreadStructList?.push(<ThreadStruct>ThreadStruct!.selectThreadStruct);
+          }
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes?.forEach((linkProcessItem) => {
+              this.handler4(e, linkProcessItem, processRow);
+              JankStruct.selectJankStructList = [];
+            });
+          }, 300);
+        }
+      }
+      let refreshTimeOut = setTimeout(() => {
+        this.trace.refreshCanvas(true);
+        clearTimeout(refreshTimeOut);
+      }, 360);
+    });
+  }
+
+  handler1(e: any, linkItem: PairPoint[], actualRow: TraceRow<JankStruct> | null) {
+    JankStruct.selectJankStructList?.forEach((selectProcessStruct: any) => {
+      if (e.detail.rowId == selectProcessStruct.pid) {
+        JankStruct.selectJankStruct = selectProcessStruct;
+        JankStruct.hoverJankStruct = selectProcessStruct;
+      }
+    });
+    this.updatePairPointTranslateY(linkItem[0]);
+    linkItem[0].y = linkItem[0].rowEL!.translateY! + linkItem[0].offsetY;
+    this.updatePairPointTranslateY(linkItem[1]);
+    linkItem[1].y = linkItem[1].rowEL!.translateY! + linkItem[1].offsetY;
+    if (actualRow) {
+      if (linkItem[0].rowEL.rowId == e.detail.rowId) {
+        linkItem[0].x = ns2xByTimeShaft(linkItem[0].ns, this.trace.timerShaftEL!);
+        linkItem[0].y = actualRow!.translateY! + linkItem[0].offsetY * 2;
+        linkItem[0].offsetY = linkItem[0].offsetY * 2;
+        linkItem[0].rowEL = actualRow!;
+      } else if (linkItem[1].rowEL.rowId == e.detail.rowId) {
+        linkItem[1].x = ns2xByTimeShaft(linkItem[1].ns, this.trace.timerShaftEL!);
+        linkItem[1].y = actualRow!.translateY! + linkItem[1].offsetY * 2;
+        linkItem[1].offsetY = linkItem[1].offsetY * 2;
+        linkItem[1].rowEL = actualRow!;
+      }
+    }
+  }
+
+  handler2(e: any, linkItem: PairPoint[], processRow: TraceRow<ProcessStruct>) {
+    this.updatePairPointTranslateY(linkItem[0]);
+    linkItem[0].y = linkItem[0].rowEL!.translateY! + linkItem[0].offsetY;
+    this.updatePairPointTranslateY(linkItem[1]);
+    linkItem[1].y = linkItem[1].rowEL!.translateY! + linkItem[1].offsetY;
+    if (linkItem[0].rowEL.rowParentId == e.detail.rowId) {
+      this.updatePairPoint(linkItem[0], processRow);
+    } else if (linkItem[1].rowEL.rowParentId == e.detail.rowId) {
+      this.updatePairPoint(linkItem[1], processRow);
+    }
+  }
+
+  handler3(e: any, linkItem: PairPoint[]) {
+    ThreadStruct.selectThreadStructList?.forEach((selectProcessStruct: any) => {
+      if (e.detail.rowId == selectProcessStruct.pid) {
+        ThreadStruct.selectThreadStruct = selectProcessStruct;
+        ThreadStruct.hoverThreadStruct = selectProcessStruct;
+      }
+    });
+    if (linkItem[0].rowEL.expansion && linkItem[0].backrowEL) {
+      this.updatePairPointTranslateY(linkItem[0]);
+      linkItem[0].x = ns2xByTimeShaft(linkItem[0].ns, this.trace.timerShaftEL!);
+      linkItem[0].y = linkItem[0].rowEL.translateY + linkItem[0].offsetY;
+      linkItem[0].offsetY = linkItem[0].offsetY * 2;
+      linkItem[0].rowEL = linkItem[0].backrowEL;
+    }
+    if (linkItem[1].rowEL.expansion && linkItem[1].backrowEL) {
+      this.updatePairPointTranslateY(linkItem[1]);
+      linkItem[1].x = ns2xByTimeShaft(linkItem[1].ns, this.trace.timerShaftEL!);
+      linkItem[1].y = linkItem[1].rowEL!.translateY! + linkItem[1].offsetY;
+      linkItem[1].offsetY = linkItem[1].offsetY * 2;
+      linkItem[1].rowEL = linkItem[1].backrowEL;
+    }
+  }
+
+  handler4(e: any, linkItem: PairPoint[], processRow: TraceRow<ProcessStruct>) {
+    this.updatePairPointTranslateY(linkItem[0]);
+    linkItem[0].y = processRow!.translateY + linkItem[0].offsetY;
+    this.updatePairPointTranslateY(linkItem[1]);
+    linkItem[1].y = linkItem[1].rowEL!.translateY + linkItem[1].offsetY;
+    if (linkItem[0].rowEL.rowParentId == e.detail.rowId) {
+      this.updatePairPoint(linkItem[0], processRow);
+    }
+    if (linkItem[1].rowEL.rowParentId == e.detail.rowId) {
+      this.updatePairPoint(linkItem[1], processRow);
+    }
+  }
+
+  updatePairPointTranslateY(pair: PairPoint) {
+    if (pair.rowEL.collect) {
+      pair.rowEL.translateY = pair.rowEL.getBoundingClientRect().top - 195;
+    } else {
+      pair.rowEL.translateY = pair.rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+    }
+  }
+
+  updatePairPoint(pair: PairPoint, processRow: TraceRow<ProcessStruct>) {
+    if (!pair.rowEL.collect) {
+      pair.x = ns2xByTimeShaft(pair.ns, this.trace.timerShaftEL!);
+      pair.y = processRow!.translateY! + pair.offsetY / 2;
+      pair.offsetY = pair.offsetY / 2;
+      pair.rowEL = processRow!;
+    }
+  }
+
+  addExpectedRow(process: any, processRow: TraceRow<any>, renderServiceProcess: Array<any>): TraceRow<JankStruct> {
+    let expectedRow = TraceRow.skeleton<JankStruct>();
+    expectedRow.asyncFuncName = process.processName;
+    expectedRow.asyncFuncNamePID = process.pid;
+    expectedRow.rowType = TraceRow.ROW_TYPE_JANK;
+    expectedRow.rowParentId = `${process.pid}`;
+    expectedRow.rowHidden = !processRow.expansion;
+    expectedRow.style.width = '100%';
+    expectedRow.name = 'Expected Timeline';
+    expectedRow.addTemplateTypes('FrameTimeline');
+    expectedRow.setAttribute('children', '');
+    expectedRow.supplierFrame = async () => {
+      let res = await processExpectedDataSender(process.pid, expectedRow!);
+      this.jankSenderCallback(res, 'expected', process, expectedRow, renderServiceProcess);
+      return res;
+    };
+    expectedRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    expectedRow.selectChangeHandler = this.trace.selectChangeHandler;
+    expectedRow.onThreadHandler = rowThreadHandler<JankRender>('jank', 'context', {
+      type: 'expected_frame_timeline_slice',
+    }, expectedRow, this.trace);
+    processRow.addChildTraceRow(expectedRow);
+    return expectedRow;
+  }
+
+  addActualRow(process: any, processRow: TraceRow<any>, renderServiceProcess: Array<any>): TraceRow<JankStruct> {
+    let actualRow = TraceRow.skeleton<JankStruct>();
+    actualRow.rowType = TraceRow.ROW_TYPE_JANK;
+    actualRow.rowParentId = `${process.pid}`;
+    actualRow.rowHidden = !processRow.expansion;
+    actualRow.style.width = '100%';
+    actualRow.name = 'Actual Timeline';
+    actualRow.addTemplateTypes('FrameTimeline');
+    actualRow.setAttribute('children', '');
+    actualRow.supplierFrame = async () => {
+      let res = await processActualDataSender(process.pid, actualRow!);
+      this.jankSenderCallback(res, 'actual', process, actualRow, renderServiceProcess);
+      return res;
+    };
+    actualRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    actualRow.selectChangeHandler = this.trace.selectChangeHandler;
+    actualRow.onThreadHandler = rowThreadHandler<JankRender>('jank', 'context', {
+      type: 'actual_frame_timeline_slice',
+    }, actualRow, this.trace);
+    processRow.addChildTraceRow(actualRow);
+    return actualRow;
+  }
+
+  jankSenderCallback(res: JankStruct[], type: string, process: any, row: TraceRow<JankStruct>, renderServiceProcess: Array<any>) {
+    let maxDepth: number = 1;
+    let unitHeight: number = 20;
+    for (let j = 0; j < res.length; j++) {
+      let struct = res[j];
+      if (struct.depth! >= maxDepth) {
+        maxDepth = struct.depth! + 1;
+      }
+      if (type === 'actual') {
+        struct.src_slice = this.processSrcSliceMap.get(res[j].id!);
+      }
+      struct.cmdline = Utils.PROCESS_MAP.get(res[j].pid!);
+      if (res[j].pid! === renderServiceProcess[0].pid) {
+        struct.cmdline = 'render_service';
+        struct.frame_type = struct.cmdline;
+      } else {
+        struct.frame_type = 'app';
+      }
+    }
+    if (row && !row.isComplete && res.length > 0) {
+      let maxHeight: number = maxDepth * unitHeight;
+      row.style.height = `${maxHeight}px`;
+      row.setAttribute('height', `${maxHeight}`);
+      if (res[0]) {
+        let timeLineType = res[0].type;
+        row.rowId = `${timeLineType}-${process.pid}`;
+        row.setAttribute('frame_type', res[0].frame_type || '');
+        if (type === 'actual') {
+          row.dataList = res;
+        }
+      }
+    }
   }
 
   addStartUpRow(processRow: TraceRow<ProcessStruct>): TraceRow<AppStartupStruct> {
@@ -655,24 +577,9 @@ export class SpProcessChart {
         }
         return res;
       });
-    startupRow.onThreadHandler = (useCache): void => {
-      let context: CanvasRenderingContext2D;
-      if (startupRow.currentContext) {
-        context = startupRow.currentContext;
-      } else {
-        context = startupRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-      }
-      startupRow.canvasSave(context);
-      (renders['app-start-up'] as AppStartupRender).renderMainThread(
-        {
-          appStartupContext: context,
-          useCache: useCache,
-          type: `app-startup ${processRow.rowId}`,
-        },
-        startupRow
-      );
-      startupRow.canvasRestore(context, this.trace);
-    };
+    startupRow.onThreadHandler = rowThreadHandler<AppStartupRender>('app-start-up', 'appStartupContext', {
+      type: `app-startup ${processRow.rowId}`,
+    }, startupRow, this.trace);
     processRow.addChildTraceRow(startupRow);
     return startupRow;
   }
@@ -708,24 +615,9 @@ export class SpProcessChart {
         });
         return res;
       });
-    soRow.onThreadHandler = (useCache): void => {
-      let context: CanvasRenderingContext2D;
-      if (soRow.currentContext) {
-        context = soRow.currentContext;
-      } else {
-        context = soRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-      }
-      soRow.canvasSave(context);
-      (renders['app-so-init'] as SoRender).renderMainThread(
-        {
-          context: context,
-          useCache: useCache,
-          type: `static-init ${processRow.rowId}`,
-        },
-        soRow
-      );
-      soRow.canvasRestore(context, this.trace);
-    };
+    soRow.onThreadHandler = rowThreadHandler<SoRender>('app-so-init', 'context', {
+      type: `static-init ${processRow.rowId}`,
+    }, soRow, this.trace);
     processRow.addChildTraceRow(soRow);
     return soRow;
   }
@@ -765,162 +657,158 @@ export class SpProcessChart {
       threadRow.setAttribute('children', '');
       threadRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       threadRow.selectChangeHandler = this.trace.selectChangeHandler;
-      threadRow.findHoverStruct = (): void => {
-        let arr = threadRow.dataListCache.filter(
-          (re) => re.frame && isFrameContainPoint(re.frame, threadRow.hoverX, threadRow.hoverY, true, false)
-        );
-        let runItem = arr.find(it => it.state === 'Running');
-        if (runItem) {
-          ThreadStruct.hoverThreadStruct = runItem;
+      threadRow.findHoverStruct = (): void => this.threadRowFindHoverStruct(threadRow);
+      threadRow.supplierFrame = async (): Promise<Array<ThreadStruct>> => {
+        const res = await threadDataSender(thread.tid || 0, it.pid || 0, threadRow);
+        if (res === true) {
+          return [];
         } else {
-          let otherItem = arr.find(it => it.state !== 'S');
-          if (otherItem) {
-            ThreadStruct.hoverThreadStruct = otherItem;
-          } else {
-            ThreadStruct.hoverThreadStruct = arr[0];
+          let rs = res as ThreadStruct[];
+          if (rs.length <= 0 && !threadRow.isComplete) {
+            this.trace.refreshCanvas(true);
           }
+          return rs;
         }
-      }
-      threadRow.supplierFrame = (): Promise<Array<ThreadStruct>> => {
-        return threadDataSender(thread.tid || 0, it.pid || 0, threadRow).then((res) => {
-          if (res === true) {
-            // threadRow.rowDiscard = true;
-            return [];
-          } else {
-            let rs = res as ThreadStruct[];
-            if (rs.length <= 0 && !threadRow.isComplete) {
-              this.trace.refreshCanvas(true);
-            }
-            return rs;
-          }
-        });
       };
-      threadRow.onThreadHandler = (useCache): void => {
-        let context: CanvasRenderingContext2D;
-        if (threadRow.currentContext) {
-          context = threadRow.currentContext;
-        } else {
-          context = threadRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        threadRow.canvasSave(context);
-        (renders['thread'] as ThreadRender).renderMainThread(
-          {
-            context: context,
-            useCache: useCache,
-            type: `thread ${thread.tid} ${thread.threadName}`,
-            translateY: threadRow.translateY,
-          },
-          threadRow
-        );
-        threadRow.canvasRestore(context, this.trace);
-      };
-      if (it.processName === 'render_service') {
-        if (threadRow.name === `${it.processName} ${it.pid}`) {
-          this.renderRow = threadRow;
-        }
-        let flag = threads.length === j + 1 && !this.threadFuncMaxDepthMap.has(`${thread.upid}-${thread.tid}`);
-        processRow.sortRenderServiceData(threadRow, threadRow, threadRowArr, flag);
-      } else {
-        if (threadRow.rowId === threadRow.rowParentId) {
-          if (actualRow !== null) {
-            processRow.addChildTraceRowAfter(threadRow, actualRow);
-          } else if (expectedRow !== null) {
-            processRow.addChildTraceRowAfter(threadRow, expectedRow);
-          } else if (soRow) {
-            processRow.addChildTraceRowAfter(threadRow, soRow);
-          } else if (startupRow) {
-            processRow.addChildTraceRowAfter(threadRow, startupRow);
-          } else {
-            processRow.addChildTraceRowSpecifyLocation(threadRow, 0);
-          }
-        } else {
-          processRow.addChildTraceRow(threadRow);
-        }
-      }
-      if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) != undefined) {
-        let max = this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) || 1;
-        let maxHeight = max * 18 + 6;
-        let funcRow = TraceRow.skeleton<FuncStruct>();
-        funcRow.rowId = `${thread.tid}`;
-        funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-        funcRow.enableCollapseChart(); //允许折叠泳道图
-        funcRow.rowParentId = `${it.pid}`;
-        funcRow.rowHidden = !processRow.expansion;
-        funcRow.checkType = threadRow.checkType;
-        funcRow.style.width = '100%';
-        funcRow.style.height = `${maxHeight}px`;
-        funcRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
-        funcRow.namePrefix = `${thread.threadName || 'Thread'}`;
-        funcRow.setAttribute('children', '');
-        funcRow.supplierFrame = (): Promise<Array<FuncStruct>> => {
-          return funcDataSender(thread.tid || 0, thread.upid || 0, funcRow).then(
-            (rs: Array<FuncStruct> | boolean) => {
-              if (rs === true) {
-                funcRow.rowDiscard = true;
-                return [];
-              } else {
-                let funs = rs as FuncStruct[];
-                if (funs.length > 0) {
-                  funs.forEach((fun, index) => {
-                    funs[index].itid = thread.utid;
-                    funs[index].ipid = thread.upid;
-                    funs[index].funName = this.funcNameMap.get(funs[index].id!);
-                    if (Utils.isBinder(fun)) {
-                    } else {
-                      if (fun.nofinish) {
-                        fun.flag = 'Did not end';
-                      }
-                    }
-                  });
-                } else {
-                  this.trace.refreshCanvas(true);
-                }
-                return funs;
-              }
-            }
-          );
-        };
-        funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-        funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-        funcRow.findHoverStruct = (): void => {
-          FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
-        }
-        funcRow.onThreadHandler = (useCache): void => {
-          let context: CanvasRenderingContext2D;
-          if (funcRow.currentContext) {
-            context = funcRow.currentContext;
-          } else {
-            context = funcRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-          }
-          funcRow.canvasSave(context);
-          (renders.func as FuncRender).renderMainThread(
-            {
-              context: context,
-              useCache: useCache,
-              type: `func${thread.tid}${thread.threadName}`,
-            },
-            funcRow
-          );
-          funcRow.canvasRestore(context, this.trace);
-        };
-        if (it.processName === 'render_service') {
-          let flag = threads.length === j + 1;
-          processRow.sortRenderServiceData(funcRow, threadRow, threadRowArr, flag);
-        } else {
-          processRow.addChildTraceRowAfter(funcRow, threadRow);
-        }
-      }
+      threadRow.onThreadHandler = rowThreadHandler<ThreadRender>('thread', 'context', {
+        type: `thread ${thread.tid} ${thread.threadName}`,
+        translateY: threadRow.translateY,
+      }, threadRow, this.trace);
+      this.insertThreadRowToDocument(it, j, thread, processRow, threadRow, threads, threadRowArr, actualRow, expectedRow, startupRow, soRow);
+      this.addFuncStackRow(it, thread, j, threads, threadRowArr, threadRow, processRow);
       if ((thread.switchCount || 0) === 0) {
         threadRow.rowDiscard = true;
       }
     }
   }
 
-  //进程内存信息
-  addProcessMemInfo(
-    it: { pid: number | null; processName: string | null },
+  threadRowFindHoverStruct(threadRow: TraceRow<ThreadStruct>) {
+    let arr = threadRow.dataListCache.filter(
+      (re) => re.frame && isFrameContainPoint(re.frame, threadRow.hoverX, threadRow.hoverY, true, false)
+    );
+    let runItem = arr.find(it => it.state === 'Running');
+    if (runItem) {
+      ThreadStruct.hoverThreadStruct = runItem;
+    } else {
+      let otherItem = arr.find(it => it.state !== 'S');
+      if (otherItem) {
+        ThreadStruct.hoverThreadStruct = otherItem;
+      } else {
+        ThreadStruct.hoverThreadStruct = arr[0];
+      }
+    }
+  }
+
+  insertThreadRowToDocument(
+    it: any,
+    index: number,
+    thread: ThreadStruct,
     processRow: TraceRow<ProcessStruct>,
+    threadRow: TraceRow<ThreadStruct>,
+    threads: ThreadStruct[],
+    threadRowArr: TraceRow<any>[],
+    actualRow: TraceRow<any> | null,
+    expectedRow: TraceRow<any> | null,
+    startupRow: TraceRow<AppStartupStruct> | null | undefined,
+    soRow: TraceRow<SoStruct> | null | undefined
   ) {
+    if (it.processName === 'render_service') {
+      if (threadRow.name === `${it.processName} ${it.pid}`) {
+        this.renderRow = threadRow;
+      }
+      let flag = threads.length === index + 1 && !this.threadFuncMaxDepthMap.has(`${thread.upid}-${thread.tid}`);
+      processRow.sortRenderServiceData(threadRow, threadRow, threadRowArr, flag);
+    } else {
+      if (threadRow.rowId === threadRow.rowParentId) {
+        if (actualRow !== null) {
+          processRow.addChildTraceRowAfter(threadRow, actualRow);
+        } else if (expectedRow !== null) {
+          processRow.addChildTraceRowAfter(threadRow, expectedRow);
+        } else if (soRow) {
+          processRow.addChildTraceRowAfter(threadRow, soRow);
+        } else if (startupRow) {
+          processRow.addChildTraceRowAfter(threadRow, startupRow);
+        } else {
+          processRow.addChildTraceRowSpecifyLocation(threadRow, 0);
+        }
+      } else {
+        processRow.addChildTraceRow(threadRow);
+      }
+    }
+  }
+
+  addFuncStackRow(
+    process: any,
+    thread: any,
+    index: number,
+    threads: Array<any>,
+    threadRowArr: Array<any>,
+    threadRow: TraceRow<ThreadStruct>,
+    processRow: TraceRow<ProcessStruct>
+  ) {
+    if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) != undefined) {
+      let max = this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) || 1;
+      let maxHeight = max * 18 + 6;
+      let funcRow = TraceRow.skeleton<FuncStruct>();
+      funcRow.rowId = `${thread.tid}`;
+      funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
+      funcRow.enableCollapseChart(); //允许折叠泳道图
+      funcRow.rowParentId = `${process.pid}`;
+      funcRow.rowHidden = !processRow.expansion;
+      funcRow.checkType = threadRow.checkType;
+      funcRow.style.width = '100%';
+      funcRow.style.height = `${maxHeight}px`;
+      funcRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
+      funcRow.namePrefix = `${thread.threadName || 'Thread'}`;
+      funcRow.setAttribute('children', '');
+      funcRow.supplierFrame = async (): Promise<Array<FuncStruct>> => {
+        const rs = await funcDataSender(thread.tid || 0, thread.upid || 0, funcRow);
+        return this.funDataSenderCallback(rs, funcRow, thread);
+      };
+      funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+      funcRow.selectChangeHandler = this.trace.selectChangeHandler;
+      funcRow.findHoverStruct = (): void => {
+        FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
+      }
+      funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {
+        type: `func${thread.tid}${thread.threadName}`,
+      }, funcRow, this.trace);
+      if (process.processName === 'render_service') {
+        let flag = threads.length === index + 1;
+        processRow.sortRenderServiceData(funcRow, threadRow, threadRowArr, flag);
+      } else {
+        processRow.addChildTraceRowAfter(funcRow, threadRow);
+      }
+    }
+  }
+
+  funDataSenderCallback(rs: Array<any> | boolean, funcRow: TraceRow<FuncStruct>, thread: ThreadStruct): FuncStruct[] {
+    if (rs === true) {
+      funcRow.rowDiscard = true;
+      return [];
+    } else {
+      let funs = rs as FuncStruct[];
+      if (funs.length > 0) {
+        funs.forEach((fun, index) => {
+          funs[index].itid = thread.utid;
+          funs[index].ipid = thread.upid;
+          funs[index].funName = this.funcNameMap.get(funs[index].id!);
+          if (Utils.isBinder(fun)) {
+          } else {
+            if (fun.nofinish) {
+              fun.flag = 'Did not end';
+            }
+          }
+        });
+      } else {
+        this.trace.refreshCanvas(true);
+      }
+      return funs;
+    }
+  }
+
+  //进程内存信息
+  addProcessMemInfo(it: { pid: number | null; processName: string | null }, processRow: TraceRow<ProcessStruct>) {
     let processMem = this.processMem.filter((mem) => mem.pid === it.pid);
     processMem.forEach((mem) => {
       let row = TraceRow.skeleton<ProcessMemStruct>();
@@ -935,11 +823,7 @@ export class SpProcessChart {
       row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       row.selectChangeHandler = this.trace.selectChangeHandler;
       row.focusHandler = (): void => {
-        this.trace.displayTip(
-          row,
-          ProcessMemStruct.hoverProcessMemStruct,
-          `<span>${ProcessMemStruct.hoverProcessMemStruct?.value || '0'}</span>`
-        );
+        this.trace.displayTip(row, ProcessMemStruct.hoverProcessMemStruct, `<span>${ProcessMemStruct.hoverProcessMemStruct?.value || '0'}</span>`);
       };
       row.findHoverStruct = (): void => {
         ProcessMemStruct.hoverProcessMemStruct = row.getHoverStruct(false);
@@ -962,24 +846,9 @@ export class SpProcessChart {
           }
           return resultProcess;
         });
-      row.onThreadHandler = (useCache): void => {
-        let context: CanvasRenderingContext2D;
-        if (row.currentContext) {
-          context = row.currentContext;
-        } else {
-          context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        row.canvasSave(context);
-        (renders.mem as MemRender).renderMainThread(
-          {
-            context: context,
-            useCache: useCache,
-            type: `mem ${mem.trackId} ${mem.trackName}`,
-          },
-          row
-        );
-        row.canvasRestore(context, this.trace);
-      };
+      row.onThreadHandler = rowThreadHandler<MemRender>('mem', 'context', {
+        type: `mem ${mem.trackId} ${mem.trackName}`,
+      }, row, this.trace);
       if (this.renderRow && row.name === 'H:PreferredFrameRate') {
         processRow.addChildTraceRowBefore(row, this.renderRow);
       } else {
@@ -1016,10 +885,7 @@ export class SpProcessChart {
           }
           let currentDepth = 0;
           let index = i;
-          while (
-            depthArray[currentDepth] !== undefined &&
-            isIntersect(depthArray[currentDepth], asyncFunctions[index])
-          ) {
+          while (depthArray[currentDepth] !== undefined && isIntersect(depthArray[currentDepth], asyncFunctions[index])) {
             currentDepth++;
           }
           asyncFunctions[index].depth = currentDepth;
@@ -1045,24 +911,9 @@ export class SpProcessChart {
         funcRow.supplier = (): Promise<any> => new Promise((resolve) => resolve(asyncFunctions));
         funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-        funcRow.onThreadHandler = (cacheFlag): void => {
-          let context: CanvasRenderingContext2D;
-          if (funcRow.currentContext) {
-            context = funcRow.currentContext;
-          } else {
-            context = funcRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-          }
-          funcRow.canvasSave(context);
-          (renders.func as FuncRender).renderMainThread(
-            {
-              context: context,
-              useCache: cacheFlag,
-              type: `func-${asyncFunctions[0].funName}-${it.pid}`,
-            },
-            funcRow
-          );
-          funcRow.canvasRestore(context, this.trace);
-        };
+        funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {
+          type: `func-${asyncFunctions[0].funName}-${it.pid}`,
+        }, funcRow, this.trace);
         processRow.addChildTraceRow(funcRow);
       }
     });

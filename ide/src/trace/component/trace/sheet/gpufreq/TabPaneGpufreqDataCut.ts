@@ -321,7 +321,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     if (Array.isArray(obj.children)) {
       obj.children.forEach((child) => { 
         if (child.cycle !== undefined && child.dur !== undefined && child.value !== undefined && child.startNS !== undefined) {
-          result.push(new CycleDataBean(7,child.dur, child.value, child.startNS, child.cycle,'',1));
+          result.push(new CycleDataBean(7,child.dur, Number((child.value / this.KUNIT).toFixed(3)), child.startNS, child.cycle,'',1));
         };
       });
     };

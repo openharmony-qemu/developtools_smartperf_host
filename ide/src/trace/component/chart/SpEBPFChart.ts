@@ -32,7 +32,7 @@ export class SpEBPFChart {
     this.trace = trace;
   }
 
-  async init() {
+  async init(): Promise<void> {
     let sys = await hasFileSysData();
     if (sys.length > 0) {
       let fsCount = sys[0]['fsCount'] ?? 0;
@@ -56,7 +56,7 @@ export class SpEBPFChart {
     }
   }
 
-  async initFileCallchain() {
+  async initFileCallchain(): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       procedurePool.submitWithName('logic0', 'fileSystem-init', null, undefined, (res: any) => {
         resolve(res);
@@ -66,18 +66,18 @@ export class SpEBPFChart {
 
   async initFolder(): Promise<TraceRow<any>> {
     let fsFolder = TraceRow.skeleton();
-    fsFolder.rowId = `FileSystem`;
+    fsFolder.rowId = 'FileSystem';
     fsFolder.index = 0;
     fsFolder.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM_GROUP;
     fsFolder.rowParentId = '';
     fsFolder.style.height = '40px';
     fsFolder.folder = true;
-    fsFolder.name = `EBPF`; /* & I/O Latency */
+    fsFolder.name = 'EBPF'; /* & I/O Latency */
     fsFolder.addTemplateTypes('HiEBpf');
     fsFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     fsFolder.selectChangeHandler = this.trace.selectChangeHandler;
-    fsFolder.supplierFrame = () => new Promise<Array<any>>((resolve) => resolve([]));
-    fsFolder.onThreadHandler = (useCache) => {
+    fsFolder.supplierFrame = (): Promise<Array<any>> => new Promise<Array<any>>((resolve) => resolve([]));
+    fsFolder.onThreadHandler = (useCache): void => {
       fsFolder.canvasSave(this.trace.canvasPanelCtx!);
       if (fsFolder.expansion) {
         this.trace.canvasPanelCtx?.clearRect(0, 0, fsFolder.frame.width, fsFolder.frame.height);
@@ -86,7 +86,7 @@ export class SpEBPFChart {
           {
             context: this.trace.canvasPanelCtx,
             useCache: useCache,
-            type: ``,
+            type: '',
           },
           fsFolder
         );
@@ -97,28 +97,27 @@ export class SpEBPFChart {
     return fsFolder;
   }
 
-  async initLogicalRead(folder: TraceRow<any>) {
+  async initLogicalRead(folder: TraceRow<any>): Promise<void> {
     let logicalReadRow = TraceRow.skeleton<EBPFChartStruct>();
-    logicalReadRow.rowId = `FileSystemLogicalRead`;
+    logicalReadRow.rowId = 'FileSystemLogicalRead';
     logicalReadRow.index = 1;
     logicalReadRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
     logicalReadRow.rowParentId = folder.rowId;
     logicalReadRow.rowHidden = !folder.expansion;
     logicalReadRow.style.height = '40px';
     logicalReadRow.setAttribute('children', '');
-    logicalReadRow.name = `FileSystem Logical Read`;
-    logicalReadRow.supplierFrame = () => {
-      return fileSystemSender(2, TraceRow.range?.scale || 50, logicalReadRow).then((res: Array<EBPFChartStruct>) => {
-        return res;
-      });
+    logicalReadRow.name = 'FileSystem Logical Read';
+    logicalReadRow.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
+      const res = await fileSystemSender(2, TraceRow.range?.scale || 50, logicalReadRow);
+      return res;
     };
     logicalReadRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     logicalReadRow.selectChangeHandler = this.trace.selectChangeHandler;
-    logicalReadRow.focusHandler = () => this.focusHandler(logicalReadRow);
-    logicalReadRow.findHoverStruct = () => {
+    logicalReadRow.focusHandler = (): void => this.focusHandler(logicalReadRow);
+    logicalReadRow.findHoverStruct = (): void => {
       EBPFChartStruct.hoverEBPFStruct = logicalReadRow.getHoverStruct(false);
     };
-    logicalReadRow.onThreadHandler = (useCache) => {
+    logicalReadRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (logicalReadRow.currentContext) {
         context = logicalReadRow.currentContext;
@@ -140,28 +139,27 @@ export class SpEBPFChart {
     folder.addChildTraceRow(logicalReadRow);
   }
 
-  async initLogicalWrite(folder: TraceRow<any>) {
+  async initLogicalWrite(folder: TraceRow<any>): Promise<void> {
     let logicalWriteRow = TraceRow.skeleton<EBPFChartStruct>();
-    logicalWriteRow.rowId = `FileSystemLogicalWrite`;
+    logicalWriteRow.rowId = 'FileSystemLogicalWrite';
     logicalWriteRow.index = 2;
     logicalWriteRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
     logicalWriteRow.rowParentId = folder.rowId;
     logicalWriteRow.rowHidden = !folder.expansion;
     logicalWriteRow.style.height = '40px';
     logicalWriteRow.setAttribute('children', '');
-    logicalWriteRow.name = `FileSystem Logical Write`;
-    logicalWriteRow.supplierFrame = () => {
-      return fileSystemSender(3, TraceRow.range?.scale || 50, logicalWriteRow).then((res: Array<EBPFChartStruct>) => {
-        return res;
-      });
+    logicalWriteRow.name = 'FileSystem Logical Write';
+    logicalWriteRow.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
+      const res = await fileSystemSender(3, TraceRow.range?.scale || 50, logicalWriteRow);
+      return res;
     };
     logicalWriteRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     logicalWriteRow.selectChangeHandler = this.trace.selectChangeHandler;
-    logicalWriteRow.focusHandler = () => this.focusHandler(logicalWriteRow);
-    logicalWriteRow.findHoverStruct = () => {
+    logicalWriteRow.focusHandler = (): void => this.focusHandler(logicalWriteRow);
+    logicalWriteRow.findHoverStruct = (): void => {
       EBPFChartStruct.hoverEBPFStruct = logicalWriteRow.getHoverStruct(false);
     };
-    logicalWriteRow.onThreadHandler = (useCache) => {
+    logicalWriteRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (logicalWriteRow.currentContext) {
         context = logicalWriteRow.currentContext;
@@ -183,31 +181,28 @@ export class SpEBPFChart {
     folder.addChildTraceRow(logicalWriteRow);
   }
 
-  async initDiskIOLatency(folder: TraceRow<any>) {
+  async initDiskIOLatency(folder: TraceRow<any>): Promise<void> {
     let diskIoRow = TraceRow.skeleton<EBPFChartStruct>();
-    diskIoRow.rowId = `FileSystemDiskIOLatency`;
+    diskIoRow.rowId = 'FileSystemDiskIOLatency';
     diskIoRow.index = 4;
     diskIoRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
     diskIoRow.rowParentId = folder.rowId;
     diskIoRow.rowHidden = !folder.expansion;
     diskIoRow.style.height = '40px';
-    diskIoRow.style.width = `100%`;
+    diskIoRow.style.width = '100%';
     diskIoRow.setAttribute('children', '');
-    diskIoRow.name = `Disk I/O Latency`;
-    diskIoRow.supplierFrame = () => {
-      return diskIoSender(true, 0, [1, 2, 3, 4], TraceRow.range?.scale || 50, diskIoRow).then(
-        (res: Array<EBPFChartStruct>) => {
-          return res;
-        }
-      );
+    diskIoRow.name = 'Disk I/O Latency';
+    diskIoRow.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
+      const res = await diskIoSender(true, 0, [1, 2, 3, 4], TraceRow.range?.scale || 50, diskIoRow);
+      return res;
     };
     diskIoRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     diskIoRow.selectChangeHandler = this.trace.selectChangeHandler;
-    diskIoRow.focusHandler = () => this.focusHandler(diskIoRow);
-    diskIoRow.findHoverStruct = () => {
+    diskIoRow.focusHandler = (): void => this.focusHandler(diskIoRow);
+    diskIoRow.findHoverStruct = (): void => {
       EBPFChartStruct.hoverEBPFStruct = diskIoRow.getHoverStruct(false);
     };
-    diskIoRow.onThreadHandler = (useCache) => {
+    diskIoRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (diskIoRow.currentContext) {
         context = diskIoRow.currentContext;
@@ -229,123 +224,126 @@ export class SpEBPFChart {
     folder.addChildTraceRow(diskIoRow);
   }
 
-  async initProcessDiskIOLatency(folder: TraceRow<any>) {
+  initProcessDiskIOLatencyRead(i: number, folder: TraceRow<any>, process: any): TraceRow<EBPFChartStruct> {
+    let rowRead = TraceRow.skeleton<EBPFChartStruct>();
+    rowRead.index = 5 + 2 * i;
+    rowRead.rowId = `FileSystemDiskIOLatency-read-${process['ipid']}`;
+    rowRead.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
+    rowRead.rowParentId = folder.rowId;
+    rowRead.rowHidden = !folder.expansion;
+    rowRead.style.height = '40px';
+    rowRead.style.width = '100%';
+    rowRead.setAttribute('children', '');
+    rowRead.name = `${process['name'] ?? 'Process'}(${process['pid']}) Max Read Latency`;
+    rowRead.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
+      const res = await diskIoSender(false, process['ipid'], [1, 3], TraceRow.range?.scale || 50, rowRead);
+      return res;
+    };
+    rowRead.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    rowRead.selectChangeHandler = this.trace.selectChangeHandler;
+    rowRead.focusHandler = (): void => this.focusHandler(rowRead);
+    rowRead.findHoverStruct = (): void => {
+      EBPFChartStruct.hoverEBPFStruct = rowRead.getHoverStruct(false);
+    };
+    rowRead.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (rowRead.currentContext) {
+        context = rowRead.currentContext;
+      } else {
+        context = rowRead.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      rowRead.canvasSave(context);
+      (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-read-${process['pid']}`,
+          chartColor: ColorUtils.MD_PALETTE[0],
+        },
+        rowRead
+      );
+      rowRead.canvasRestore(context, this.trace);
+    };
+    return rowRead;
+  }
+
+  private initProcessDiskIOLatencyWrite(i: number, folder: TraceRow<any>, process: any): TraceRow<EBPFChartStruct> {
+    let rowWrite = TraceRow.skeleton<EBPFChartStruct>();
+    rowWrite.index = 5 + 2 * i + 1;
+    rowWrite.rowId = `FileSystemDiskIOLatency-write-${process['ipid']}`;
+    rowWrite.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
+    rowWrite.rowParentId = folder.rowId;
+    rowWrite.rowHidden = !folder.expansion;
+    rowWrite.style.height = '40px';
+    rowWrite.style.width = '100%';
+    rowWrite.setAttribute('children', '');
+    rowWrite.name = `${process['name'] ?? 'Process'}(${process['pid']}) Max Write Latency`;
+    rowWrite.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
+      const res = await diskIoSender(false, process['ipid'], [2, 4], TraceRow.range?.scale || 50, rowWrite);
+      return res;
+    };
+    rowWrite.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    rowWrite.selectChangeHandler = this.trace.selectChangeHandler;
+    rowWrite.focusHandler = (): void => this.focusHandler(rowWrite);
+    rowWrite.findHoverStruct = (): void => {
+      EBPFChartStruct.hoverEBPFStruct = rowWrite.getHoverStruct(false);
+    };
+    rowWrite.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (rowWrite.currentContext) {
+        context = rowWrite.currentContext;
+      } else {
+        context = rowWrite.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      rowWrite.canvasSave(context);
+      (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-write-${process['pid']}`,
+          chartColor: ColorUtils.MD_PALETTE[8],
+        },
+        rowWrite
+      );
+      rowWrite.canvasRestore(context, this.trace);
+    };
+    return rowWrite;
+  }
+
+  async initProcessDiskIOLatency(folder: TraceRow<any>):Promise<void> {
     let processes = (await getDiskIOProcess()) || [];
     for (let i = 0, len = processes.length; i < len; i++) {
       let process = processes[i];
-      let rowRead = TraceRow.skeleton<EBPFChartStruct>();
-      rowRead.index = 5 + 2 * i;
-      rowRead.rowId = `FileSystemDiskIOLatency-read-${process['ipid']}`;
-      rowRead.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
-      rowRead.rowParentId = folder.rowId;
-      rowRead.rowHidden = !folder.expansion;
-      rowRead.style.height = '40px';
-      rowRead.style.width = `100%`;
-      rowRead.setAttribute('children', '');
-      rowRead.name = `${process['name'] ?? 'Process'}(${process['pid']}) Max Read Latency`;
-      rowRead.supplierFrame = () => {
-        return diskIoSender(false, process['ipid'], [1, 3], TraceRow.range?.scale || 50, rowRead).then(
-          (res: Array<EBPFChartStruct>) => {
-            return res;
-          }
-        );
-      };
-      rowRead.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      rowRead.selectChangeHandler = this.trace.selectChangeHandler;
-      rowRead.focusHandler = () => this.focusHandler(rowRead);
-      rowRead.findHoverStruct = () => {
-        EBPFChartStruct.hoverEBPFStruct = rowRead.getHoverStruct(false);
-      };
-      rowRead.onThreadHandler = (useCache) => {
-        let context: CanvasRenderingContext2D;
-        if (rowRead.currentContext) {
-          context = rowRead.currentContext;
-        } else {
-          context = rowRead.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        rowRead.canvasSave(context);
-        (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
-          {
-            context: context,
-            useCache: useCache,
-            type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-read-${process['pid']}`,
-            chartColor: ColorUtils.MD_PALETTE[0],
-          },
-          rowRead
-        );
-        rowRead.canvasRestore(context, this.trace);
-      };
+      const rowRead = this.initProcessDiskIOLatencyRead(i, folder, process);
       folder.addChildTraceRow(rowRead);
-      let rowWrite = TraceRow.skeleton<EBPFChartStruct>();
-      rowWrite.index = 5 + 2 * i + 1;
-      rowWrite.rowId = `FileSystemDiskIOLatency-write-${process['ipid']}`;
-      rowWrite.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
-      rowWrite.rowParentId = folder.rowId;
-      rowWrite.rowHidden = !folder.expansion;
-      rowWrite.style.height = '40px';
-      rowWrite.style.width = `100%`;
-      rowWrite.setAttribute('children', '');
-      rowWrite.name = `${process['name'] ?? 'Process'}(${process['pid']}) Max Write Latency`;
-      rowWrite.supplierFrame = () => {
-        return diskIoSender(false, process['ipid'], [2, 4], TraceRow.range?.scale || 50, rowWrite).then(
-          (res: Array<EBPFChartStruct>) => {
-            return res;
-          }
-        );
-      };
-      rowWrite.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      rowWrite.selectChangeHandler = this.trace.selectChangeHandler;
-      rowWrite.focusHandler = () => this.focusHandler(rowWrite);
-      rowWrite.findHoverStruct = () => {
-        EBPFChartStruct.hoverEBPFStruct = rowWrite.getHoverStruct(false);
-      };
-      rowWrite.onThreadHandler = (useCache) => {
-        let context: CanvasRenderingContext2D;
-        if (rowWrite.currentContext) {
-          context = rowWrite.currentContext;
-        } else {
-          context = rowWrite.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        rowWrite.canvasSave(context);
-        (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
-          {
-            context: context,
-            useCache: useCache,
-            type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-write-${process['pid']}`,
-            chartColor: ColorUtils.MD_PALETTE[8],
-          },
-          rowWrite
-        );
-        rowWrite.canvasRestore(context, this.trace);
-      };
+      const rowWrite = this.initProcessDiskIOLatencyWrite(i, folder, process);
       folder.addChildTraceRow(rowWrite);
     }
   }
 
-  async initVirtualMemoryTrace(folder: TraceRow<any>) {
+  async initVirtualMemoryTrace(folder: TraceRow<any>): Promise<void> {
     let vmTraceRow = TraceRow.skeleton<EBPFChartStruct>();
-    vmTraceRow.rowId = `FileSystemVirtualMemory`;
+    vmTraceRow.rowId = 'FileSystemVirtualMemory';
     vmTraceRow.index = 3;
     vmTraceRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
     vmTraceRow.rowParentId = folder.rowId;
     vmTraceRow.rowHidden = !folder.expansion;
     vmTraceRow.rangeSelect = true;
     vmTraceRow.style.height = '40px';
-    vmTraceRow.style.width = `100%`;
+    vmTraceRow.style.width = '100%';
     vmTraceRow.setAttribute('children', '');
-    vmTraceRow.name = `Page Fault Trace`;
-    vmTraceRow.supplierFrame = () => {
-      return fileSysVMSender(TraceRow.range?.scale || 50, vmTraceRow).then((res: Array<EBPFChartStruct>) => {
-        return res;
-      });
+    vmTraceRow.name = 'Page Fault Trace';
+    vmTraceRow.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
+      const res = await fileSysVMSender(TraceRow.range?.scale || 50, vmTraceRow);
+      return res;
     };
     vmTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     vmTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    vmTraceRow.focusHandler = () => this.focusHandler(vmTraceRow);
-    vmTraceRow.findHoverStruct = () => {
+    vmTraceRow.focusHandler = (): void => this.focusHandler(vmTraceRow);
+    vmTraceRow.findHoverStruct = (): void => {
       EBPFChartStruct.hoverEBPFStruct = vmTraceRow.getHoverStruct(false, false, 'size');
     };
-    vmTraceRow.onThreadHandler = (useCache) => {
+    vmTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (vmTraceRow.currentContext) {
         context = vmTraceRow.currentContext;
@@ -367,7 +365,7 @@ export class SpEBPFChart {
     folder.addChildTraceRow(vmTraceRow);
   }
 
-  focusHandler(row: TraceRow<EBPFChartStruct>) {
+  focusHandler(row: TraceRow<EBPFChartStruct>): void {
     let num = 0;
     let tip = '';
     if (EBPFChartStruct.hoverEBPFStruct) {

@@ -14,23 +14,15 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {
-  BaseStruct,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawLoadingFrame,
-  drawSelection,
-  drawWakeUp,
-  ns2x,
-  Render,
-  RequestMessage,
-} from './ProcedureWorkerCommon';
+import { BaseStruct, drawLoadingFrame, ns2x, Render } from './ProcedureWorkerCommon';
 import { CpuStruct } from './cpu/ProcedureWorkerCPU';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class ProcessRender extends Render {
   renderMainThread(req: any, row: TraceRow<ProcessStruct>) {
+    if (row.expansion) {
+      return;
+    }
     let list = row.dataList;
     let filter = row.dataListCache;
     proc(

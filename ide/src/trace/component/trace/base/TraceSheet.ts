@@ -86,6 +86,7 @@ import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerBpftrac
 import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
+import { SpSystemTrace } from '../../SpSystemTrace';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -379,6 +380,8 @@ export class TraceSheet extends BaseElement {
     let that = this;
     // 节点挂载时给Tab面板绑定鼠标按下事件
     this.nav!.onmousedown = (event): void => {
+      if (SpSystemTrace.isKeyUp === false) 
+      { return };
       (window as any).isSheetMove = true;
       // 获取所有标签页的节点数组
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
@@ -624,8 +627,8 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayIrqData = (data: IrqStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setIrqData(data);
-  displayStartupData = (data: AppStartupStruct, scrollCallback: Function): void =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setStartupData(data, scrollCallback);
+  displayStartupData = (data: AppStartupStruct, scrollCallback: Function,rowData:any): void =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setStartupData(data, scrollCallback,rowData);
   displayAllStartupData = (data: AllAppStartupStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setAllStartupData(data, scrollCallback);
   displayStaticInitData = (data: SoStruct, scrollCallback: Function): void =>
@@ -654,7 +657,7 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneGpuClickSelect>('gpu-click-select', 'gpu-click-select-comparison').gpuClickData(dataObject);
   };
 
-  displayFuncData = (names: string[], data: FuncStruct, scrollCallback: Function): void =>
+  displayFuncData = (names: string[], data: FuncStruct, scrollCallback: Function): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, scrollCallback);
   displayCpuData = (
     data: CpuStruct,
@@ -719,8 +722,8 @@ export class TraceSheet extends BaseElement {
   displayFreqLimitData = (): CpuFreqLimitsStruct | undefined =>
     (this.displayTab<TabPaneCurrentSelection>('box-freq-limit').data = CpuFreqLimitsStruct.selectCpuFreqLimitsStruct);
 
-  displayFrameAnimationData = (data: FrameAnimationStruct): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setFrameAnimationData(data);
+  displayFrameAnimationData = (data: FrameAnimationStruct,scrollCallback: Function): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setFrameAnimationData(data,scrollCallback);
   displayFrameDynamicData = (row: TraceRow<FrameDynamicStruct>, data: FrameDynamicStruct): void =>
     this.displayTab<TabPaneFrameDynamic>('box-frame-dynamic').buildDynamicTable([data], true);
   displayFrameSpacingData = (data: FrameSpacingStruct): void =>

@@ -131,33 +131,37 @@ void NativeHookFilter::UpdateMap(std::unordered_map<T1, T2>& sourceMap, T1 key, 
 }
 std::unique_ptr<NativeHookFrameInfo> NativeHookFilter::ParseFrame(uint64_t row, const ProtoReader::DataArea& frame)
 {
+    auto frameInfo = std::make_unique<NativeHookFrameInfo>();
+
     ProtoReader::Frame_Reader reader(frame.Data(), frame.Size());
-    uint64_t symbolIndex = INVALID_UINT64;
-    uint64_t filePathIndex = INVALID_UINT64;
     auto curCacheIpid = traceDataCache_->GetNativeHookData()->Ipids()[row];
     if (isSingleProcData_) {
         curCacheIpid = SINGLE_PROC_IPID;
     }
     if (isStringCompressedMode_) {
-        symbolIndex = ipidToSymIdToSymIndex_.Find(curCacheIpid, reader.symbol_name_id());
-        TS_CHECK_TRUE(symbolIndex != INVALID_UINT64, nullptr, "Native hook ParseFrame find symbol id failed!!!");
-        filePathIndex = ipidToFilePathIdToFileIndex_.Find(curCacheIpid, reader.file_path_id());
-        TS_CHECK_TRUE(filePathIndex != INVALID_UINT64, nullptr, "Native hook ParseFrame find file path id failed!!!");
+        frameInfo->symbolIndex_ = ipidToSymIdToSymIndex_.Find(curCacheIpid, reader.symbol_name_id());
+        TS_CHECK_TRUE(frameInfo->symbolIndex_ != INVALID_UINT64, nullptr,
+                      "Native hook ParseFrame find symbol id failed!!!");
+        frameInfo->filePathIndex_ = ipidToFilePathIdToFileIndex_.Find(curCacheIpid, reader.file_path_id());
+        TS_CHECK_TRUE(frameInfo->filePathIndex_ != INVALID_UINT64, nullptr,
+                      "Native hook ParseFrame find file path id failed!!!");
     } else {
-        symbolIndex = traceDataCache_->dataDict_.GetStringIndex(reader.symbol_name().ToStdString());
-        filePathIndex = traceDataCache_->dataDict_.GetStringIndex(reader.file_path().ToStdString());
+        frameInfo->symbolIndex_ = traceDataCache_->dataDict_.GetStringIndex(reader.symbol_name().ToStdString());
+        frameInfo->filePathIndex_ = traceDataCache_->dataDict_.GetStringIndex(reader.file_path().ToStdString());
     }
-    uint64_t frameSp = INVALID_UINT64;
     // 0 is meaningful, but it is not displayed. Other data is still needed
-    auto frameIp = reader.has_ip() && reader.ip() ? reader.ip() : INVALID_UINT64;
-    if (reader.has_sp()) {
-        frameSp = reader.sp();
+    if (reader.has_ip()) {
+        frameInfo->ip_ = reader.ip();
     }
-    auto frameOffset = reader.has_offset() && reader.offset() ? reader.offset() : INVALID_UINT64;
-    auto frameSymbolOffset =
-        reader.has_symbol_offset() && reader.symbol_offset() ? reader.symbol_offset() : INVALID_UINT64;
-    auto frameInfo = std::make_unique<NativeHookFrameInfo>(frameIp, frameSp, symbolIndex, filePathIndex, frameOffset,
-                                                           frameSymbolOffset);
+    if (reader.has_sp()) {
+        frameInfo->sp_ = reader.sp();
+    }
+    if (reader.has_offset()) {
+        frameInfo->offset_ = reader.offset();
+    }
+    if (reader.has_symbol_offset()) {
+        frameInfo->symbolOffset_ = reader.symbol_offset();
+    }
     return frameInfo;
 }
 
@@ -615,6 +619,35 @@ std::tuple<uint64_t, uint64_t> NativeHookFilter::GetNeedUpdateProcessMapsAddrRan
     return std::make_tuple(start, end);
 }
 
+std::shared_ptr<FrameInfo> NativeHookFilter::ParseArktsOfflineSymbolization(uint64_t ipid, uint64_t arktsIp)
+{
+    auto arktsFrameInfo = std::make_shared<FrameInfo>();
+    // Under offline symbolization, there is no need to symbolize js data
+    uint64_t arktsFrame = arktsIp & (~JS_IP_MASK);
+    auto arktsReaderFrameInfo = ipidToFrameIdToFrameBytes_.Find(ipid, arktsFrame);
+    if (arktsReaderFrameInfo == nullptr) {
+        TS_LOGE("Can not to find Frame_map.id for js(arkts)!!!");
+        return nullptr;
+    }
+    ProtoReader::Frame_Reader reader(*arktsReaderFrameInfo);
+    // 0 is meaningful, but it is not displayed. Other data is still needed
+    // For js, the last 5 bytes of stack.ip and the outgoing frame member IP are reserved
+    if (reader.has_ip()) {
+        arktsFrameInfo->ip_ = reader.ip();
+    }
+    if (reader.has_symbol_name_id()) {
+        arktsFrameInfo->symbolIndex_ = ipidToSymIdToSymIndex_.Find(ipid, reader.symbol_name_id());
+    }
+    if (reader.has_file_path_id()) {
+        arktsFrameInfo->filePathId_ = reader.file_path_id();
+    }
+    if (reader.has_offset()) {
+        arktsFrameInfo->offset_ = reader.offset();
+    }
+    // Unchanged data is the default value
+    return arktsFrameInfo;
+}
+
 std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> NativeHookFilter::OfflineSymbolization(
     const std::shared_ptr<std::vector<uint64_t>> ips)
 {
@@ -622,36 +655,11 @@ std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> NativeHookFilter::Offli
     auto result = std::make_shared<std::vector<std::shared_ptr<FrameInfo>>>();
     for (auto itor = ips->begin(); (itor + 1) != ips->end(); itor++) {
         if (JS_IP_MASK == (*itor & ALLOC_IP_MASK)) {
-            auto aktsFrameInfo = std::make_shared<FrameInfo>();
-            // Under offline symbolization, there is no need to symbolize js data
-            uint64_t aktsFrame = *itor & (~JS_IP_MASK);
-            auto aktsReaderFrameInfo = ipidToFrameIdToFrameBytes_.Find(ipid, aktsFrame);
-            if (aktsReaderFrameInfo == nullptr) {
-                TS_LOGE("Can not to find Frame_map.id for js(akts)!!!");
-                continue;
+            auto arktsFrameInfo = ParseArktsOfflineSymbolization(ipid, *itor);
+            if (!arktsFrameInfo) {
+                break;
             }
-            ProtoReader::Frame_Reader reader(*aktsReaderFrameInfo);
-            // 0 is meaningful, but it is not displayed. Other data is still needed
-            // For js, the last 5 bytes of stack.ip and the outgoing frame member IP are reserved
-            auto aktsIp = reader.has_ip() && reader.ip() ? reader.ip() & IP_BIT_OPERATION : INVALID_UINT64;
-            if (!reader.has_symbol_name_id()) {
-                TS_LOGI("Can not to find symbol_name_id for js(akts)!!!");
-                continue;
-            }
-            auto symbolIndex = ipidToSymIdToSymIndex_.Find(ipid, reader.symbol_name_id());
-            if (!reader.has_file_path_id()) {
-                TS_LOGI("Can not to find has_file_path_id for js(akts)!!!");
-                continue;
-            }
-            auto fileIndex = reader.file_path_id();
-            auto offset = reader.has_offset() && reader.offset() ? reader.offset() : INVALID_UINT64;
-            aktsFrameInfo->filePathId_ = fileIndex;
-            aktsFrameInfo->ip_ = aktsIp;
-            aktsFrameInfo->symbolIndex_ = symbolIndex;
-            aktsFrameInfo->offset_ = offset;
-            aktsFrameInfo->symbolOffset_ = INVALID_UINT64;
-            aktsFrameInfo->symVaddr_ = INVALID_UINT64;
-            result->emplace_back(aktsFrameInfo);
+            result->emplace_back(arktsFrameInfo);
             continue;
         }
         auto frameInfo = OfflineSymbolizationByIp(ipid, *itor);
@@ -877,19 +885,6 @@ void NativeHookFilter::MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStam
     lastAnyEventRaw = row;
 }
 
-void NativeHookFilter::UpdateSymbolIdsForCallChainIdLastCallStack(size_t index)
-{
-    auto ip = traceDataCache_->GetNativeHookFrameData()->Ips()[index];
-    // ip & 0xFFFFFFFFFF
-    uint64_t ipBitOperation = ip & IP_BIT_OPERATION;
-    std::ostringstream newSymbol;
-    // alloc size ( (ip & 0xFFFFFFFFFF) bytes) 0xip(Convert IP to hexadecimal)
-    newSymbol << "alloc size(" << base::number(ipBitOperation, base::INTEGER_RADIX_TYPE_DEC) << "bytes)"
-              << "0x" << base::number(ip, base::INTEGER_RADIX_TYPE_HEX);
-    traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
-        index, traceDataCache_->dataDict_.GetStringIndex(newSymbol.str()));
-}
-
 // when symbolization failed, use filePath + vaddr as symbol name
 void NativeHookFilter::UpdateSymbolIdsForSymbolizationFailed()
 {
@@ -945,15 +940,9 @@ void NativeHookFilter::GetNativeHookFrameVaddrs()
     // Traverse every piece of native_hook frame data
     for (size_t i = 0; i < size; i++) {
         auto symbolOffset = traceDataCache_->GetNativeHookFrameData()->SymbolOffsets()[i];
-        // When the symbol offset is not 0, vaddr=offset+symbol offset
-        if (symbolOffset) {
-            if (symbolOffset == INVALID_UINT64) {
-                // The stack does not exist, so vaddr does not exist and needs to be skipped
-                // Add empty value placeholders
-                vaddrs_.emplace_back("");
-                continue;
-            }
-            auto fileOffset = traceDataCache_->GetNativeHookFrameData()->Offsets()[i];
+        auto fileOffset = traceDataCache_->GetNativeHookFrameData()->Offsets()[i];
+        // When the symbol offset not is INVALID_UINT64, vaddr=offset+symbol offset
+        if (symbolOffset != INVALID_UINT64 && fileOffset != INVALID_UINT64) {
             auto vaddr = base::Uint64ToHexText(fileOffset + symbolOffset);
             vaddrs_.emplace_back(vaddr);
             continue;
@@ -1010,10 +999,9 @@ void NativeHookFilter::ParseFramesInCallStackCompressedMode()
             }
             // IP may not exist
             // 0 is meaningful, but it is not displayed. Other data is still needed
-            auto frameIp = reader.has_ip() && reader.ip() ? reader.ip() : INVALID_UINT64;
-            auto frameOffset = reader.has_offset() && reader.offset() ? reader.offset() : INVALID_UINT64;
-            auto frameSymbolOffset =
-                reader.has_symbol_offset() && reader.symbol_offset() ? reader.symbol_offset() : INVALID_UINT64;
+            auto frameIp = reader.has_ip() ? reader.ip() : INVALID_UINT64;
+            auto frameOffset = reader.has_offset() ? reader.offset() : INVALID_UINT64;
+            auto frameSymbolOffset = reader.has_symbol_offset() ? reader.symbol_offset() : INVALID_UINT64;
             auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
                 stackIdToFramesItor->first, depth++, frameIp, symbolIndex, filePathIndex, frameOffset,
                 frameSymbolOffset);
@@ -1174,8 +1162,11 @@ bool NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::uni
             continue;
         }
         for (auto row : *frameRows) {
-            auto symVaddr = base::StrToInt<uint32_t>(vaddrs[row], base::INTEGER_RADIX_TYPE_HEX).value();
-            auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(symVaddr);
+            auto symVaddr = base::StrToInt<uint32_t>(vaddrs[row], base::INTEGER_RADIX_TYPE_HEX);
+            if (!symVaddr.has_value()) {
+                continue;
+            }
+            auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(symVaddr.value());
             if (dfxSymbol.IsValid()) {
                 auto newSymbolIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
                 nativeHookFrame->UpdateSymbolId(row, newSymbolIndex);

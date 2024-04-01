@@ -151,7 +151,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace) {
     if (d.rowId === 'actual frameTime') {
       jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>("trace-row[row-id='frameTime']");
     } else {
-      jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(`trace-row[row-id='${d.pid}']`);
+      jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(`trace-row[row-type='process'][row-id='${d.pid}']`);
     }
     jankRowParent!.expansion = true;
     let jankRow: any;
@@ -180,9 +180,9 @@ function jankClickHandlerFunc(sp: SpSystemTrace) {
           // 绘制跟自己关联的线
           datas.forEach((data) => {
             let endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(
-              `trace-row[row-id='${data.pid}'][folder]`
+              `trace-row[row-type='process'][row-id='${data.pid}'][folder]`
             );
-            sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data);
+            sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data, true);
           });
         },
           jankClickHandler
@@ -297,10 +297,10 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
   };
 }
 
-function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<any>) {
+function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<any>, entry?: any) {
   CpuStructOnClick(clickRowType, sp, cpuClickHandlerFunc(sp))
     .then(() => ThreadStructOnClick(clickRowType, sp, threadClickHandlerFunc(sp), cpuClickHandlerFunc(sp)))
-    .then(() => FuncStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp)))
+    .then(() => FuncStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp), entry))
     .then(() => CpuFreqStructOnClick(clickRowType, sp))
     .then(() => CpuStateStructOnClick(clickRowType, sp))
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp))
@@ -314,7 +314,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => AppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
     .then(() => AllAppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
     .then(() => SoStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
-    .then(() => FrameAnimationStructOnClick(clickRowType, sp, row!))
+    .then(() => FrameAnimationStructOnClick(clickRowType, sp,scrollToFuncHandlerFunc(sp), row!))
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
     .then(() => sampleStructOnClick(clickRowType, sp))
@@ -331,7 +331,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
       }
     }).catch(e => { });
 }
-export default function spSystemTraceOnClickHandler(sp: SpSystemTrace, clickRowType: string, row?: TraceRow<any>) {
+export default function spSystemTraceOnClickHandler(sp: SpSystemTrace, clickRowType: string, row?: TraceRow<any>, entry?: any) {
   if (row) {
     sp.currentRow = row;
     sp.setAttribute('clickRow', clickRowType);
@@ -343,7 +343,7 @@ export default function spSystemTraceOnClickHandler(sp: SpSystemTrace, clickRowT
   sp.selectStructNull();
   // 判断点击的线程是否在唤醒树内
   timeoutJudge(sp);
-  allStructOnClick(clickRowType, sp, row);
+  allStructOnClick(clickRowType, sp, row, entry);
   if (!JankStruct.selectJankStruct) {
     sp.removeLinkLinesByBusinessType('janks');
   }
@@ -396,8 +396,18 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
     ev.preventDefault();
     return;
   }
-  if (ev.ctrlKey && ev.button === 0 && sp.isMouseLeftDown) {
-    sp.translateByMouseMove(ev);
+  if (ev.ctrlKey && ev.button === 0 && SpSystemTrace.isMouseLeftDown) {
+    // 计算当前tab组件的高度
+    let tabHeight: number = sp.shadowRoot?.querySelector(`trace-sheet`)!.shadowRoot?.querySelector('lit-tabs')!.clientHeight! + 1;
+    // 计算当前屏幕内高与鼠标位置坐标高度的差值
+    let diffHeight: number = window.innerHeight - ev.clientY;
+    // 如果差值大于面板高度，意味着鼠标位于泳道区域，可以通过ctrl+鼠标左键移动。否则不予生效
+    if (diffHeight > tabHeight) {
+      sp.translateByMouseMove(ev);
+    } else {
+      // 若鼠标位于tab面板区，则将其中标志位置成false
+      SpSystemTrace.isMouseLeftDown = false;
+    }
   }
   sp.inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
   if ((window as any).isSheetMove || sp.isMouseInSheet(ev)) {
@@ -410,7 +420,9 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
   if (sp.timerShaftEL?.isScaling()) {
     return;
   }
+
   sp.timerShaftEL?.documentOnMouseMove(ev, sp);
+
   if (isMouseInTimeShaft) {
     return;
   }
@@ -458,7 +470,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
     return;
   }
   TraceRow.isUserInteraction = false;
-  sp.isMouseLeftDown = false;
+  SpSystemTrace.isMouseLeftDown = false
   if (sp.isMouseInSheet(ev)) {
     return;
   }
@@ -469,6 +481,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
 }
 
 export function SpSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev: KeyboardEvent) {
+  SpSystemTrace.isKeyUp = false;
   if (!sp.loadTraceCompleted) {
     return;
   }
@@ -523,7 +536,7 @@ export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEve
     return;
   }
   if (ev.button === 0) {
-    sp.isMouseLeftDown = true;
+    SpSystemTrace.isMouseLeftDown = true;
     if (ev.ctrlKey) {
       ev.preventDefault();
       sp.style.cursor = 'move';
@@ -579,6 +592,7 @@ function handleTimerShaftActions(ev: MouseEvent, sp: SpSystemTrace) {
 }
 
 export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent) {
+
   if ((window as any).collectResize) {
     return;
   }
@@ -590,7 +604,7 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
     ev.stopPropagation();
     return;
   }
-  sp.isMouseLeftDown = false;
+  SpSystemTrace.isMouseLeftDown = false;
   if (ev.ctrlKey) {
     ev.preventDefault();
     sp.offsetMouse = 0;
@@ -614,12 +628,14 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
 }
 
 export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEvent) {
+  SpSystemTrace.isKeyUp = true;
   if (sp.times.size > 0) {
     for (let timerId of sp.times) {
       clearTimeout(timerId);
     }
   }
-  if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
+  let flag: boolean = sp.parentElement?.querySelector('sp-record-trace')!.shadowRoot?.querySelector('lit-main-menu-item[icon="file-config"]')!.hasAttribute('back')!;
+  if (ev.key.toLocaleLowerCase() === String.fromCharCode(47) && !flag) {
     if (SpSystemTrace.keyboardFlar) {
       document.querySelector('body > sp-application')!
         .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
@@ -662,6 +678,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
     }
     document.addEventListener('keydown', sp.documentOnKeyDown);
   }
+
   if (ev.ctrlKey) {
     spSystemTraceDocumentOnKeyUpCtrlKey(keyPress, sp);
   }
@@ -688,11 +705,7 @@ function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace
       sidebarButton.style.width = '48px';
       importConfigDiv!.style.left = '45px';
       searchBox!.style.display = 'none';
-      if (timerShaft.style.height === '91.75px') {
-        rowPane.style.maxHeight = '900px'
-      } else {
-        rowPane.style.maxHeight = '797px'
-      }
+      rowPane.style.maxHeight = `100%`;
     } else {
       SpSystemTrace.isHiddenMenu = false;
       menuBox.style.width = '248px';
@@ -701,11 +714,7 @@ function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace
       sidebarButton.style.width = '0px';
       importConfigDiv!.style.left = '5px';
       searchBox!.style.display = '';
-      if (timerShaft.style.height === '91.75px') {
-        rowPane.style.maxHeight = '905.25px';
-      } else {
-        rowPane.style.maxHeight = '849px';
-      };
+      rowPane.style.maxHeight = `100%`;
     }
   }
   if (keyPress === '[' && sp._slicesList.length > 1) {
@@ -734,7 +743,7 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
     }
     let strict = true;
     let offset = false;
-    if (rows[0].rowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC || rows[0].rowType === TraceRow.ROW_TYPE_FRAME_SPACING) {
+    if (rows[0] && (rows[0].rowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC || rows[0].rowType === TraceRow.ROW_TYPE_FRAME_SPACING)) {
       strict = false;
       offset = true;
     }
