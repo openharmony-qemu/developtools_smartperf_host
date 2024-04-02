@@ -113,16 +113,18 @@ int32_t CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         const auto& c = callStackTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::TS:
-                FilterTS(c.op, argv[i], slicesObj_.TimeStampData());
+                FilterTS(c.op, argv[c.idxInaConstraint], slicesObj_.TimeStampData());
                 break;
             case Index::CALL_IDS:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), slicesObj_.CallIds());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
+                                    slicesObj_.CallIds());
                 break;
             case Index::COOKIES_ID:
-                indexMap_->MixRange(c.op, static_cast<int64_t>(sqlite3_value_int64(argv[i])), slicesObj_.Cookies());
+                indexMap_->MixRange(c.op, static_cast<int64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
+                                    slicesObj_.Cookies());
                 break;
             default:
                 break;

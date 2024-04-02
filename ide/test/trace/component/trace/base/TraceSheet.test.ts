@@ -33,24 +33,19 @@ window.ResizeObserver =
   }));
 
 describe('TraceSheet Test', () => {
-  beforeAll(() => {});
-  document.body.innerHTML = '<sp-system-trace style="visibility:visible;" id="sp-system-trace"></sp-system-trace>';
+  let traceSheet = new TraceSheet();
   it('TraceSheet Test01', () => {
-    let traceSheet = new TraceSheet();
     expect(traceSheet).not.toBeUndefined();
   });
 
   it('TraceSheet Test08', () => {
-    let traceSheet = new TraceSheet();
     expect(traceSheet.connectedCallback()).toBeUndefined();
   });
   it('TraceSheet Test09', () => {
-    let traceSheet = new TraceSheet();
     expect(traceSheet.loadTabPaneData('key')).toBeUndefined();
   });
 
   it('TraceSheet Test10', () => {
-    let traceSheet = new TraceSheet();
     expect(traceSheet.updateRangeSelect()).toBeFalsy();
   });
 });

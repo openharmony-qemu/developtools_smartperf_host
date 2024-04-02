@@ -20,7 +20,8 @@ import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { IrqRender, IrqStruct } from '../../database/ui-worker/ProcedureWorkerIrq';
 import { irqDataSender } from '../../database/data-trafic/IrqDataSender';
-import {queryAllIrqNames, queryIrqList} from "../../database/sql/Irq.sql";
+import { queryAllIrqNames, queryIrqList } from '../../database/sql/Irq.sql';
+import { getRowContext, rowThreadHandler } from './SpChartManager';
 
 export class SpIrqChart {
   private trace: SpSystemTrace;
@@ -50,65 +51,45 @@ export class SpIrqChart {
     this.trace.rowsEL?.appendChild(folder);
     for (let i = 0; i < irqList.length; i++) {
       const it = irqList[i];
-      let traceRow = TraceRow.skeleton<IrqStruct>();
-      traceRow.rowId = it.name + it.cpu;
-      traceRow.rowType = TraceRow.ROW_TYPE_IRQ;
-      traceRow.rowParentId = folder.rowId;
-      traceRow.style.height = '40px';
-      traceRow.name = `${it.name} Cpu ${it.cpu}`;
-      traceRow.rowHidden = !folder.expansion;
-      traceRow.setAttribute('children', '');
-      traceRow.setAttribute('callId', `${it.cpu}`);
-      traceRow.setAttribute('cat', `${it.name}`);
-      traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-      traceRow.supplierFrame = () => {
-        return irqDataSender(it.cpu, it.name, traceRow).then((irqs) => {
-          if (irqs.length > 0) {
-            irqs.forEach((irq, index) => {
-              if (it.name === 'irq') {
-                irqs[index].name = this.irqNameMap.get(irqs[index].id!)!.ipiName || '';
-              } else {
-                irqs[index].name = this.irqNameMap.get(irqs[index].id!)!.name || '';
-              }
-            });
-          }
-          return irqs;
-        });
-      };
-      traceRow.focusHandler = (ev) => {
-        this.trace?.displayTip(
-          traceRow,
-          IrqStruct.hoverIrqStruct,
-          `<span>${IrqStruct.hoverIrqStruct?.name || ''}</span>`
-        );
-      };
-      traceRow.findHoverStruct = () => {
-        IrqStruct.hoverIrqStruct = traceRow.getHoverStruct();
-      };
-      traceRow.onThreadHandler = (useCache) => {
-        let context: CanvasRenderingContext2D;
-        if (traceRow.currentContext) {
-          context = traceRow.currentContext;
-        } else {
-          context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        traceRow.canvasSave(context);
-        (renders['irq'] as IrqRender).renderMainThread(
-          {
-            context: context,
-            useCache: useCache,
-            type: it.name,
-            index: i,
-          },
-          traceRow
-        );
-        traceRow.canvasRestore(context, this.trace);
-      };
-      folder.addChildTraceRow(traceRow);
+      this.addIrqRow(it, i, folder);
     }
     let durTime = new Date().getTime() - irqStartTime;
     info('The time to load the ClockData is: ', durTime);
+  }
+
+  addIrqRow(it: any, index: number, folder: TraceRow<any>) {
+    let traceRow = TraceRow.skeleton<IrqStruct>();
+    traceRow.rowId = it.name + it.cpu;
+    traceRow.rowType = TraceRow.ROW_TYPE_IRQ;
+    traceRow.rowParentId = folder.rowId;
+    traceRow.style.height = '40px';
+    traceRow.name = `${it.name} Cpu ${it.cpu}`;
+    traceRow.rowHidden = !folder.expansion;
+    traceRow.setAttribute('children', '');
+    traceRow.setAttribute('callId', `${it.cpu}`);
+    traceRow.setAttribute('cat', `${it.name}`);
+    traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    traceRow.selectChangeHandler = this.trace.selectChangeHandler;
+    traceRow.supplierFrame = () => {
+      return irqDataSender(it.cpu, it.name, traceRow).then((irqs) => {
+        irqs.forEach((irq) => {
+          let irqData = this.irqNameMap.get(irq.id!);
+          irq.name = (it.name === 'irq' ? irqData?.ipiName : irqData?.name) || '';
+        });
+        return irqs;
+      });
+    };
+    traceRow.focusHandler = (ev) => {
+      this.trace?.displayTip(traceRow, IrqStruct.hoverIrqStruct, `<span>${IrqStruct.hoverIrqStruct?.name || ''}</span>`);
+    };
+    traceRow.findHoverStruct = () => {
+      IrqStruct.hoverIrqStruct = traceRow.getHoverStruct();
+    };
+    traceRow.onThreadHandler = rowThreadHandler<IrqRender>('irq', 'context', {
+      type: it.name,
+      index: index,
+    }, traceRow, this.trace);
+    folder.addChildTraceRow(traceRow);
   }
 
   async initFolder(): Promise<TraceRow<any>> {

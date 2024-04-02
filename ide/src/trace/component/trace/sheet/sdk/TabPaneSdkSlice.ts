@@ -23,7 +23,7 @@ import { TabUtil } from './TabUtil';
 import { resizeObserver } from '../SheetUtils';
 import { getTabSdkSliceData } from '../../../../database/sql/Sdk.sql';
 import { queryTotalTime } from '../../../../database/sql/SqlLite.sql';
-import { SdkSliceSummary } from '../../../../bean/SdkSummary.js';
+import { SdkSliceSummary } from '../../../../bean/SdkSummary';
 
 @element('tabpane-sdk-slice')
 export class TabPaneSdkSlice extends BaseElement {

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+
 import { SpEBPFChart } from '../../../../src/trace/component/chart/SpEBPFChart';
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
 const sqlit = require('../../../../src/trace/database/sql/Memory.sql');
@@ -20,9 +20,20 @@ jest.mock('../../../../src/trace/database/sql/Memory.sql');
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
+import { EBPFChartStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerEBPF';
 const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
 jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -48,15 +59,15 @@ describe('SpFileSystemChart Test', () => {
       pid: 186,
     }
   ]);
-  let ss = new SpChartManager();
-  let spEBPFChart = new SpEBPFChart(ss);
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spEBPFChart = new SpEBPFChart(htmlElement);
   spEBPFChart.initFileCallchain = jest.fn(() => true);
   it('SpMpsChart01', function () {
     spEBPFChart.init();
     expect(spEBPFChart).toBeDefined();
   });
   it('SpMpsChart02', function () {
-    ss.displayTip = jest.fn(() => true);
-    expect(spEBPFChart.focusHandler(TraceRow)).toBeUndefined();
+    spEBPFChart.trace.displayTip = jest.fn();
+    expect(spEBPFChart.focusHandler(new TraceRow<EBPFChartStruct>())).toBeUndefined();
   });
 });

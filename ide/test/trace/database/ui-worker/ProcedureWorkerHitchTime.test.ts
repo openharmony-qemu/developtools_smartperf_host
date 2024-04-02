@@ -23,11 +23,11 @@ jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });
 describe('ProcedureWorkerHitchTime Test', () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2;
+  canvas.height = 2;
+  const ctx = canvas.getContext('2d');
   it('ProcedureWorkerHitchTimeTest01 ', function () {
-    const canvas = document.createElement('canvas');
-    canvas.width = 2;
-    canvas.height = 2;
-    const ctx = canvas.getContext('2d');
     const data = {
       frame: {
         x: 10,
@@ -41,6 +41,7 @@ describe('ProcedureWorkerHitchTime Test', () => {
   it('ProcedureWorkerHitchTimeTest02 ', function () {
     let hitchRender = new hitchTimeRender();
     let hitchReq = {
+      hitchTimeContext: ctx,
       lazyRefresh: true,
       type: '',
       startNS: 5,

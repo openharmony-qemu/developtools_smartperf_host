@@ -105,23 +105,15 @@ describe('TabPaneNMStatstics Test', () => {
     ).toBeUndefined();
   });
   it('TabPaneNMStatsticsTest04', function () {
-    tabPaneNMStatstics.nativeStatisticsTbl = jest.fn(() => true);
-    tabPaneNMStatstics.nativeStatisticsTbl.recycleDataSource = jest.fn(() => true);
     expect(tabPaneNMStatstics.sortByColumn('', 0)).toBeUndefined();
   });
   it('TabPaneNMStatsticsTest105', function () {
-    tabPaneNMStatstics.nativeStatisticsTbl = jest.fn(() => true);
-    tabPaneNMStatstics.nativeStatisticsTbl.recycleDataSource = jest.fn(() => true);
     expect(tabPaneNMStatstics.sortByColumn('existingString', 1)).toBeUndefined();
   });
   it('TabPaneNMStatsticsTest06', function () {
-    tabPaneNMStatstics.nativeStatisticsTbl = jest.fn(() => true);
-    tabPaneNMStatstics.nativeStatisticsTbl.recycleDataSource = jest.fn(() => true);
     expect(tabPaneNMStatstics.sortByColumn('allocCount', 1)).toBeUndefined();
   });
   it('TabPaneNMStatsticsTest07', function () {
-    tabPaneNMStatstics.nativeStatisticsTbl = jest.fn(() => true);
-    tabPaneNMStatstics.nativeStatisticsTbl.recycleDataSource = jest.fn(() => true);
     expect(tabPaneNMStatstics.sortByColumn('freeByteString', 1)).toBeUndefined();
   });
 });

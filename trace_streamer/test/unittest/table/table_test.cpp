@@ -16,7 +16,7 @@
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
 
-#include "htrace_mem_parser.h"
+#include "mem_parser/pbreader_mem_parser.h"
 #include "rpc_server.h"
 #include "trace_data_cache.h"
 #include "trace_streamer_selector.h"
@@ -293,11 +293,11 @@ HWTEST_F(TableTest, DataDictTableTest, TestSize.Level1)
     std::string sqlSelect4 = "select * from data_dict where id >= 1";
     std::string sqlSelect5 = "select * from data_dict where data <= 1";
     stream_.traceDataCache_->GetDataFromDict(1);
-    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 69);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 68);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
-    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 67);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 66);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 1);
-    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 68);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 67);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 1);
 }
 /**

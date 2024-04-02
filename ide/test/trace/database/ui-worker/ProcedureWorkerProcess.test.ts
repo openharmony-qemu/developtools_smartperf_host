@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
-  return {};
-});
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+
 jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
   return {};
@@ -114,5 +113,20 @@ describe(' ProcessTest', () => {
       height: 100,
     };
     expect(ProcessStruct.setFrame(node, 1, 1, 1, frame)).toBeUndefined();
+  });
+  it('ProcessTest06 ', function () {
+    let processRender = new ProcessRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    TraceRow.range = jest.fn(() => true);
+    TraceRow.range.startNS = jest.fn(() => 2);
+    expect(processRender.renderMainThread(data,new TraceRow<ProcessStruct>()))
   });
 });

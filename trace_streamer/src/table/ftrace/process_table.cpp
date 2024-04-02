@@ -128,10 +128,10 @@ int32_t ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
             case Index::IPID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::PID:
-                FilterIndex(c.col, c.op, argv[i]);
+                FilterIndex(c.col, c.op, argv[c.idxInaConstraint]);
                 break;
             default:
                 break;

@@ -23,9 +23,11 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-class BytraceParser;
-class HtraceParser;
+class PtreaderParser;
+class PbreaderParser;
+#ifdef ENABLE_RAWTRACE
 class RawTraceParser;
+#endif
 class TraceStreamerSelector {
 public:
     TraceStreamerSelector();
@@ -67,15 +69,17 @@ public:
     const std::string MetricsSqlQuery(const std::string& metrics);
     auto GetBytraceData()
     {
-        return bytraceParser_.get();
+        return ptreaderParser_.get();
     }
+#ifdef ENABLE_RAWTRACE
     auto GetRawtraceData()
     {
         return rawTraceParser_.get();
     }
+#endif
     auto GetHtraceData()
     {
-        return htraceParser_.get();
+        return pbreaderParser_.get();
     }
     const auto GetFileType()
     {
@@ -89,6 +93,17 @@ public:
     {
         return streamFilters_.get();
     }
+    void InitializeParser();
+    void ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish);
+
+    // Used to obtain markinfo,skip under Linux
+    void ClearMarkPositionInfo()
+    {
+        hasGotMarkFinish_ = false;
+        markHeard_ = false;
+    };
+    void GetMarkPositionData(std::unique_ptr<uint8_t[]>& data, size_t& size);
+
     int32_t CreatEmptyBatchDB(const std::string dbPath);
     int32_t BatchExportDatabase(const std::string& outputName);
     bool BatchParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size);
@@ -102,10 +117,16 @@ private:
     TraceFileType fileType_;
     std::unique_ptr<TraceStreamerFilters> streamFilters_ = {};
     std::unique_ptr<TraceDataCache> traceDataCache_ = {};
-    std::unique_ptr<BytraceParser> bytraceParser_;
-    std::unique_ptr<HtraceParser> htraceParser_;
+    std::unique_ptr<PtreaderParser> ptreaderParser_;
+    std::unique_ptr<PbreaderParser> pbreaderParser_;
+#ifdef ENABLE_RAWTRACE
     std::unique_ptr<RawTraceParser> rawTraceParser_;
+#endif
     bool enableFileSeparate_ = false;
+
+    // Used to get markinfo,skip under Linux
+    bool hasGotMarkFinish_ = false;
+    bool markHeard_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -13,17 +13,40 @@
  * limitations under the License.
  */
 
-import { perfDataQuery } from '../../../../src/trace/component/chart/PerfDataQuery';
-
-jest.mock('../../../../src/trace/component/chart/SpHiPerf', () => {
-  return true;
+import '../../../../src/trace/component/chart/SpHiPerf';
+import { SpHiPerf } from '../../../../src/trace/component/chart/SpHiPerf';
+import '../../../../src/trace/component/chart/PerfDataQuery';
+import { PerfDataQuery } from '../../../../src/trace/component/chart/PerfDataQuery';
+const perfSql = require('../../../../src/trace/database/sql/Perf.sql');
+jest.mock('../../../../src/trace/database/sql/Perf.sql');
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
 });
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
 jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {}
 });
 
 describe('perfDataQuery Test', () => {
+  SpHiPerf.stringResult = {
+    existA: true,
+    existF: false,
+    fValue: 1,
+  };
+  let perfFiles  = perfSql.queryPerfFiles;
+  perfFiles.mockResolvedValue([]);
+  let perfDataQuery = new PerfDataQuery();
   it('perfDataQueryTest01 ', function () {
+    perfDataQuery.initPerfCache();
+    perfDataQuery.initPerfCallChainMap();
+    perfDataQuery.getLibName('id', 0);
+    perfDataQuery.getLibName('id', -1);
     expect(perfDataQuery.initPerfFiles).not.toBeUndefined();
   });
 });

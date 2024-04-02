@@ -21,10 +21,10 @@ const sqlit = require('../../../../src/trace/database/sql/SqlLite.sql');
 jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
 const sdkSqlite = require('../../../../src/trace/database/sql/Sdk.sql');
 jest.mock('../../../../src/trace/database/sql/Sdk.sql');
-window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({

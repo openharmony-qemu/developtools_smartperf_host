@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 import { SpLogChart } from '../../../../src/trace/component/chart/SpLogChart';
 
@@ -29,7 +32,8 @@ window.ResizeObserver =
   }));
 
 describe('SpLogChart Test', () => {
-  let logChart = new SpLogChart(new SpChartManager());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let logChart = new SpLogChart(new SpChartManager(htmlElement));
   let queryLog = sqlite.queryLogData;
   let queryLogData = [
     {

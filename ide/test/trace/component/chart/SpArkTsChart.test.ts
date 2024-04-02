@@ -13,17 +13,19 @@
  * limitations under the License.
  */
 import { SpArkTsChart } from '../../../../src/trace/component/chart/SpArkTsChart';
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
 const sqlite = require('../../../../src/trace/database/sql/Cpu.sql');
 jest.mock('../../../../src/trace/database/sql/Cpu.sql');
 const JsMemory = require('../../../../src/trace/database/sql/Memory.sql');
 jest.mock('../../../../src/trace/database/sql/Memory.sql');
-window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -33,7 +35,8 @@ window.ResizeObserver =
   }));
 
 describe('SpArkTsChart Test', () => {
-  let arkTsChart = new SpArkTsChart(new SpSystemTrace());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let arkTsChart = new SpArkTsChart(htmlElement);
   let jsCpuProfilerConfig = sqlite.queryJsCpuProfilerConfig;
   let cpuProfilerConfigData = [
     {

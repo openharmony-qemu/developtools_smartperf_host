@@ -80,13 +80,15 @@ int32_t PerfThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         const auto& c = perfThreadCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::THREAD_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])), perfThreadObj_.Tids());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
+                                    perfThreadObj_.Tids());
                 break;
             case Index::PROCESS_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])), perfThreadObj_.Pids());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
+                                    perfThreadObj_.Pids());
                 break;
             default:
                 break;

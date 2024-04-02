@@ -73,6 +73,7 @@ bool KernelSymbolsProcessor::HandleKallSyms(const std::string& kallsyms)
             traceDataCache_->GetSymbolsData()->UpdateSymbol(symbol.addr, traceDataCache_->GetDataIndex(symbol.name));
         }
     }
+    TS_LOGI("kernel symbolsData size = %" PRIu64 "", traceDataCache_->GetSymbolsData()->Size());
     return true;
 }
 } // namespace TraceStreamer

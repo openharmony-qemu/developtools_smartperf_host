@@ -57,7 +57,7 @@ describe('ProcedureWorkerEnergyPower Test', () => {
         height: 100,
       },
     };
-    let row = { frame: 20 };
+    let row = {frame: 20};
     EnergyPowerStruct.drawHistogram = jest.fn(() => true);
     EnergyPowerStruct.drawPolyline = jest.fn(() => true);
     TraceRow.range = jest.fn(() => true);
@@ -157,10 +157,10 @@ describe('ProcedureWorkerEnergyPower Test', () => {
       startNS: 0,
       dur: 90,
       length: 16,
-      frame: { x: 0, y: 9, width: 20, height: 12 },
+      frame: {x: 0, y: 9, width: 20, height: 12},
     });
-    energyPowerDataList.push({ startNS: 71, dur: 32, length: 12 });
-    power(energyPowerDataList, [{ length: 1 }], 1, 3, 2, frame, true, '');
+    energyPowerDataList.push({startNS: 71, dur: 32, length: 12});
+    power(energyPowerDataList, [{length: 1}], 1, 3, 2, frame, true, '');
   });
 
   it('ProcedureWorkerEnergyPowerTest15', function () {
@@ -175,9 +175,62 @@ describe('ProcedureWorkerEnergyPower Test', () => {
       startNS: 0,
       dur: 50,
       length: 67,
-      frame: { x: 0, y: 9, width: 60, height: 60 },
+      frame: {x: 0, y: 9, width: 60, height: 60},
     });
-    energyPowerDataList.push({ startNS: 12, dur: 82, length: 16 });
-    power(energyPowerDataList, [{ length: 0 }], 1, 3, 2, frame, false, '');
+    energyPowerDataList.push({startNS: 12, dur: 82, length: 16});
+    power(energyPowerDataList, [{length: 0}], 1, 3, 2, frame, false, '');
+  });
+  it('ProcedureWorkerEnergyPowerTest16 ', function () {
+    let energyPowerRender = new EnergyPowerRender();
+    let powerReq = {
+      lazyRefresh: true,
+      type: '',
+      startNS: 2,
+      endNS: 3,
+      totalNS: 1,
+      frame: {
+        x: 11,
+        y: 11,
+        width: 77,
+        height: 90,
+      },
+      useCache: false,
+      range: {
+        refresh: 'refresh',
+      },
+      canvas: {
+        clientWidth: 1
+      },
+      context: {
+        font: '12px sans-serif',
+        fillStyle: '#a1696d',
+        globalAlpha: 1,
+        beginPath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        clearRect: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => false),
+        fillRect: jest.fn(() => false),
+        fillText: jest.fn(() => true),
+        canvas: {
+          clientWidth: 1
+        },
+      },
+      isHover: '',
+      hoverX: 0,
+      x: 10,
+      y: 8,
+      width: 102,
+      height: 102,
+    };
+    let spApplication;
+    spApplication = {
+      hasAttribute: jest.fn().mockReturnValue(true),
+    };
+    global.document.getElementsByTagName = jest.fn().mockReturnValue([spApplication]);
+    window.postMessage = jest.fn(() => true);
+    TraceRow.range = jest.fn(() => true);
+    TraceRow.range!.startNS = jest.fn(() => 0);
+    expect(energyPowerRender.renderMainThread(powerReq, new TraceRow<EnergyPowerStruct>())).toBeUndefined();
   });
 });

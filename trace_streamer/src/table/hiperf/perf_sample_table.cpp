@@ -97,21 +97,23 @@ int32_t PerfSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         const auto& c = perfSampleCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::CALLCHAIN_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     perfSampleObj_.SampleIds());
                 break;
             case Index::THREAD_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])), perfSampleObj_.Tids());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
+                                    perfSampleObj_.Tids());
                 break;
             case Index::EVENT_TYPE_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     perfSampleObj_.EventTypeIds());
                 break;
             case Index::CPU_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), perfSampleObj_.CpuIds());
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
+                                    perfSampleObj_.CpuIds());
                 break;
             default:
                 break;

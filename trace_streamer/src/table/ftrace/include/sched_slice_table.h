@@ -37,8 +37,6 @@ private:
                             double& schedfilterCost,
                             size_t schedrowCount,
                             uint32_t schedcurrenti) override;
-    // the column is sorted
-    bool CanFilterSorted(const char op, size_t& rowCount) const;
 
     class Cursor : public TableBase::Cursor {
     public:

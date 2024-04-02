@@ -19,7 +19,9 @@ const intersectionObserverMock = () => ({
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
 import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 
 const sqlite = require('../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../src/trace/database/sql/ProcessThread.sql');
@@ -32,7 +34,8 @@ window.ResizeObserver = window.ResizeObserver ||
       unobserve: jest.fn(),
     }));
 describe('SpChartManager Test', () => {
-  let chartManager = new SpChartManager(new SpSystemTrace());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let chartManager = new SpChartManager(htmlElement);
   let queryDataDICT = sqlite.queryDataDICT;
   let dataDICT = [
     {

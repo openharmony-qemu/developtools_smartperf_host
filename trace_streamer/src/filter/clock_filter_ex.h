@@ -24,7 +24,7 @@
 
 #include "clock_filter.h"
 #include "filter_base.h"
-#include "htrace_file_header.h"
+#include "pbreader_file_header.h"
 #include "trace_streamer_filters.h"
 #include "ts_common.h"
 

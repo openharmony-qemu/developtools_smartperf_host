@@ -346,7 +346,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
 
   // 线程点击
   private theadClick(data: Array<BinderGroup>): void {
-    let labels = this.threadBindersTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
+    let labels = this.threadBindersTbl?.shadowRoot?.querySelector('.th > .td')?.querySelectorAll('label');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
@@ -684,27 +684,27 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             <lit-slicer style="width:100%">
                 <div style="width:65%;">
                     <lit-table id="tb-binder-count" style="height: auto; overflow-x:auto;width:100%;" tree>
-                        <lit-table-column title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" width="27%" retract>
+                        <lit-table-column width="250px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
                         </lit-table-column>
-                        <lit-table-column title="Running count" data-index="RunningCount" key="RunningCoung" align="center">
+                        <lit-table-column width="120px" title="Running count" data-index="RunningCount" key="RunningCoung" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Running dur" data-index="RunningDur" key="RunningDur" align="center">
+                        <lit-table-column width="120px" title="Running dur" data-index="RunningDur" key="RunningDur" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Runnable count" data-index="RunnableCount" key="RunnableCount" align="center">
+                        <lit-table-column width="120px" title="Runnable count" data-index="RunnableCount" key="RunnableCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Runnable dur" data-index="RunnableDur" key="RunnableDur" align="center">
+                        <lit-table-column width="120px" title="Runnable dur" data-index="RunnableDur" key="RunnableDur" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Sleeping count" data-index="SleepingCount" key="SleepingCount" align="center">
+                        <lit-table-column width="120px" title="Sleeping count" data-index="SleepingCount" key="SleepingCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Sleeping dur" data-index="SleepingDur" key="SleepingDur" align="center">
+                        <lit-table-column width="120px" title="Sleeping dur" data-index="SleepingDur" key="SleepingDur" align="center">
                         </lit-table-column>
-                        <lit-table-column title="D count" data-index="DCount" key="DCount" align="center">
+                        <lit-table-column width="120px" title="D count" data-index="DCount" key="DCount" align="center">
                         </lit-table-column>
-                        <lit-table-column title="D dur" data-index="DDur" key="DDUR" align="center">
+                        <lit-table-column width="120px" title="D dur" data-index="DDur" key="DDUR" align="center">
                         </lit-table-column>
-                        <lit-table-column title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
+                        <lit-table-column width="120px" title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
                         </lit-table-column>
-                        <lit-table-column title="total" data-index="totalCount" key="totalCount" align="center">
+                        <lit-table-column width="120px"  title="total" data-index="totalCount" key="totalCount" align="center">
                         </lit-table-column>
                     </lit-table>
                 </div>

@@ -18,8 +18,8 @@ import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { SliceGroup } from '../../../../bean/StateProcessThread';
 import { resizeObserver } from '../SheetUtils';
-import { procedurePool } from '../../../../database/Procedure';
 import { Utils } from '../../base/Utils';
+import {sliceSPTSender} from "../../../../database/data-trafic/SliceSender";
 
 @element('tabpane-spt')
 export class TabPaneSPT extends BaseElement {
@@ -54,17 +54,11 @@ export class TabPaneSPT extends BaseElement {
 
   getDataBySPT(leftNs: number, rightNs: number, cpus: Array<number>) {
     this.sptTbl!.loading = true;
-    procedurePool.submitWithName(
-      'logic0',
-      'spt-getSPT',
-      { leftNs: leftNs, rightNs: rightNs, cpus: cpus },
-      undefined,
-      (res: Array<SliceGroup>) => {
-        this.sptTbl!.loading = false;
-        this.sptTbl!.recycleDataSource = res;
-        this.theadClick(res);
-      }
-    );
+    sliceSPTSender(leftNs, rightNs, cpus, 'spt-getSPT').then(res => {
+      this.sptTbl!.loading = false;
+      this.sptTbl!.recycleDataSource = res;
+      this.theadClick(res);
+    });
   }
 
   private theadClick(data: Array<SliceGroup>) {

@@ -12,15 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+
 import { SpFpsChart } from '../../../../src/trace/component/chart/SpFpsChart';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
 const sqlit = require('../../../../src/trace/database/sql/SqlLite.sql');
 jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -29,7 +38,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 describe('spFpsChart Test', () => {
-  let spFpsChart = new SpFpsChart(new SpChartManager());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spFpsChart = new SpFpsChart(htmlElement);
   let fpsMock = sqlit.getFps;
   fpsMock.mockResolvedValue([
     { startNS: 0, fps: 1 },

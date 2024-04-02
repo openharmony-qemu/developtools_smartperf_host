@@ -21,7 +21,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "htrace_file_header.h"
+#include "pbreader_file_header.h"
 #include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {

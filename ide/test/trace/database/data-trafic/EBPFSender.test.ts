@@ -20,7 +20,7 @@ import {
   diskIoSender,
   fileSystemSender,
   fileSysVMSender
-} from '../../../../src/trace/database/data-trafic/EBPFSender.js';
+} from '../../../../src/trace/database/data-trafic/EBPFSender';
 jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};

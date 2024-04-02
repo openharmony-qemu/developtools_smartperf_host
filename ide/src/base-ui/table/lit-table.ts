@@ -344,7 +344,6 @@ export class LitTable extends HTMLElement {
         }
         this.theadElement!.innerHTML = '';
         this.theadElement!.append(rowElement);
-        this.treeElement!.style.top = this.theadElement?.clientHeight + 'px';
       });
     });
     this.shadowRoot!.addEventListener('load', function (event) {});
@@ -800,6 +799,8 @@ export class LitTable extends HTMLElement {
     this.meauseRowElement = undefined;
     this.tbodyElement!.innerHTML = '';
     this.treeElement!.innerHTML = '';
+    this.treeElement && (this.treeElement!.style.transform = `translateY(0px)`);
+    this.tbodyElement && (this.tbodyElement!.style.transform = `translateY(0px)`);
     this.currentRecycleList = [];
     this.currentTreeDivList = [];
   }
@@ -1434,7 +1435,11 @@ export class LitTable extends HTMLElement {
           );
           (child as HTMLElement).title = text;
         } else {
-          (child as HTMLElement).innerHTML = text;
+          if (rowObject.data.rowName === 'cpu-profiler' && dataIndex === 'symbolName') {
+            (child as HTMLElement).innerHTML = '';
+          } else {
+            (child as HTMLElement).innerHTML = text;
+          }
           if (dataIndex === 'selfTimeStr' && rowObject.data.chartFrameChildren) {
             (child as HTMLElement).title = rowObject.data.selfTime + 'ns';
           } else if (dataIndex === 'totalTimeStr' && rowObject.data.chartFrameChildren) {

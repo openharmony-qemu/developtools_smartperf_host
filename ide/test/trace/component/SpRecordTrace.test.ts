@@ -17,6 +17,8 @@ import { SpRecordTrace } from '../../../src/trace/component/SpRecordTrace';
 import { EventCenter } from '../../../src/trace/component/trace/base/EventCenter';
 import '../../../src/trace/SpApplication';
 import { LitButton } from '../../../src/base-ui/button/LitButton';
+import { SpApplication } from '../../../src/trace/SpApplication';
+import { HdcDeviceManager } from '../../../src/hdc/HdcDeviceManager';
 declare global {
   interface Window {
     SmartEvent: {
@@ -174,5 +176,159 @@ describe('SpRecordTrace Test', () => {
     spRecordTrace.initConfigPage();
     spRecordTrace.makeRequest();
     expect(spRecordTrace.spVmTracker).not.toBeUndefined();
+  });
+
+  it('SpRecordTraceTest23', function () {
+    let addButtonClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {
+        },
+      }
+    });
+    spRecordTrace.addButton.dispatchEvent(addButtonClick);
+    let deviceSelectMousedown = new CustomEvent('mousedown', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {
+        },
+      }
+    });
+    spRecordTrace.deviceSelect.dispatchEvent(deviceSelectMousedown);
+    let deviceSelectChange = new CustomEvent('change', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {
+        },
+      }
+    });
+    spRecordTrace.deviceSelect.dispatchEvent(deviceSelectChange);
+    let deviceVersionChange = new CustomEvent('change', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {
+        },
+      }
+    });
+    spRecordTrace.deviceVersion.dispatchEvent(deviceVersionChange);
+    let disconnectButtonClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {
+        },
+      }
+    });
+    spRecordTrace.disconnectButton.dispatchEvent(disconnectButtonClick);
+    let cancelButtonClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {
+        },
+      }
+    });
+    spRecordTrace.cancelButton.dispatchEvent(cancelButtonClick);
+    let itemAddProbe = new CustomEvent('addProbe', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {
+        },
+      }
+    });
+    spRecordTrace.spRecordPerf.dispatchEvent(itemAddProbe);
+    spRecordTrace.spAllocations.dispatchEvent(itemAddProbe);
+    spRecordTrace.probesConfig.dispatchEvent(itemAddProbe);
+    spRecordTrace.spRecordTemplate.dispatchEvent(itemAddProbe);
+
+    let spRecordTemplateDelProbe = new CustomEvent('delProbe', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {
+        },
+      }
+    });
+    SpRecordTrace.selectVersion = '4.0';
+    SpApplication.isLongTrace = true;
+    spRecordTrace.spRecordTemplate.dispatchEvent(spRecordTemplateDelProbe);
+    spRecordTrace.record_template = false;
+    spRecordTrace.probesConfig = {
+      traceEvents: ['input'],
+      traceConfig: ['Scheduling details', 'CPU Frequency and idle states', 'High frequency memory', 'Advanced ftrace config',
+        'Syscalls', 'Board voltages & frequency'],
+      recordAbility: true,
+      memoryConfig: ['Kernel meminfo', 'Virtual memory stats']
+    }
+    spRecordTrace.spAllocations = {
+      appProcess: 'process',
+      startSamp: true,
+      startup_mode: true,
+      record_statistics: true,
+      response_lib_mode: true,
+      sample_interval: true,
+      recordJsStack: true,
+      expandPids: ['dsad', 'fgt', 'yu']
+    }
+    spRecordTrace.spRecordPerf.getPerfConfig = jest.fn(()=> ['12,gtr', '15,frehtr', '24,init']);
+    spRecordTrace.spRecordPerf.startSamp = true;
+    spRecordTrace.spFileSystem.getSystemConfig = jest.fn(()=> ['12,gtr', '15,frehtr', '24,init']);
+    spRecordTrace.spFileSystem.startFileSystem = true;
+    spRecordTrace.spFileSystem.startVirtualMemory = true;
+    spRecordTrace.spFileSystem.startIo = true;
+    spRecordTrace.spSdkConfig.getPlugName = jest.fn(()=> 'cpu');
+    spRecordTrace.spSdkConfig.startSamp = true;
+    spRecordTrace.spHiSysEvent.startSamp = true;
+    spRecordTrace.spArkTs = {
+      startSamp: true,
+      process: 'init'
+    }
+    spRecordTrace.spHiLog = {
+      recordHilog: 'init',
+      appProcess: 'init',
+    }
+    expect(spRecordTrace.makeRequest().pluginConfigs).not.toBeUndefined();
+  });
+
+  it('SpRecordTraceTest24', function () {
+    let evData = {
+      detail: {
+        elementId: 'TaskPool'
+      },
+      preventDefault: ()=>{}
+    };
+    HdcDeviceManager.findDevice = jest.fn(() => {
+      return {
+        then: ()=>{}
+      }
+    });
+    HdcDeviceManager.connect = jest.fn(() => {
+      return {
+        then: ()=>{}
+      }
+    });
+    spRecordTrace.hintEl = document.createElement('span') as HTMLSpanElement;
+    spRecordTrace.devicePrompt = document.createElement('span') as HTMLSpanElement;
+    spRecordTrace.recordButton = document.createElement('lit-button') as LitButton;
+
+    spRecordTrace.deviceSelect = document.createElement('select') as HTMLSelectElement;
+    let optionEl = document.createElement('option') as HTMLOptionElement;
+    spRecordTrace.deviceSelect.add(optionEl);
+    spRecordTrace.deviceSelect.selectedIndex = 0;
+
+    spRecordTrace.deviceVersion = document.createElement('select') as HTMLSelectElement;
+    let versionOptionEl = document.createElement('option') as HTMLOptionElement;
+    spRecordTrace.deviceVersion.add(versionOptionEl);
+    spRecordTrace.deviceVersion.selectedIndex = 0;
+    spRecordTrace.sp = {
+      search: false
+    }
+    spRecordTrace.recordTempAddProbe(evData);
+    spRecordTrace.recordTempDelProbe(evData);
+    spRecordTrace.recordAddProbeEvent();
+    spRecordTrace.addButtonClickEvent(evData);
+    spRecordTrace.deviceSelectMouseDownEvent(evData);
+    spRecordTrace.deviceSelectChangeEvent();
+    spRecordTrace.deviceVersionChangeEvent();
+    spRecordTrace.disconnectButtonClickEvent();
+    spRecordTrace.recordButtonMouseDownEvent(evData);
+    spRecordTrace.cancelRecordListener();
   });
 });

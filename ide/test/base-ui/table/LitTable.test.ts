@@ -292,7 +292,8 @@ describe('LitTable Test', () => {
   });
 
   it('LitTableTest19', () => {
-    expect(litTable.dispatchRowClickEvent({ data: { isSelected: '' } }, [], {button: ''})).toBeUndefined();
+    const mockEvent = new MouseEvent('click', { button: 0 });
+    expect(() => litTable.dispatchRowClickEvent({ data: { isSelected: '' } }, [], mockEvent)).not.toThrow();
   });
 
   it('LitTableTest20', () => {

@@ -1453,7 +1453,6 @@ export function drawFunString(ctx: CanvasRenderingContext2D, str: string, textPa
   }
 }
 
-
 export function drawString2Line(
   ctx: CanvasRenderingContext2D,
   str1: string,

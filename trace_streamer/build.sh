@@ -12,60 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set -e
+. build/build_stanalone_plugins.sh
+set_enable_plugin_array "true"
+set_enable_extend_plugin_array "false"
 PARAMS=$*
-echo "$PARAMS"
-echo "begin to check input"
 SOURCE="${BASH_SOURCE[0]}"
 cd "$(dirname "${SOURCE}")"
 ./pare_third_party.sh
-target_os="linux"
-gn_path="linux"
-is_debug="false"
-is_clean="false"
-target="trace_streamer"
-gn="gn"
-ninja="ninja"
-use_local_emsdk="false"
-case "$OSTYPE" in
-  solaris*) echo "SOLARIS" ;;
-  darwin*)  gn_path="macx" target_os="macx" ;;
-  linux*)   gn_path="linux" target_os="linux"  ;;
-  bsd*)     echo "is bsd os" ;;
-  msys*)    gn_path="windows" target_os="windows" gn="gn.exe" ninja="ninja.exe"  ;;
-  *)        echo "unknown: $OSTYPE" ;;
-esac
-
+choose_os_type
 ./dl_tools.sh $gn_path
-
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -e)
+            enable_plugin "$2"
+            shift 2;;
+        -d)
+            enable_extend_plugin "$2"
+            shift 2;;
+        -h)
+            help $0
+            shift;;
+        -l)
+            list_all_plugins
+            shift;;
+        *)
+            other_params+=("$1")
+            shift;;
+    esac
+done
+set -- "${other_params[@]}"
 if [ "$#" -ne 0 ] && { [ "$1" == "sdkdemo" ] || [ "$1" == "wasm" ] || [ "$1" == "test" ] || [ "$1" == "fuzz" ]; };then
-    TARGET_DIR=$1
-    if [[ $PARAMS == *"debug"* ]]; then
-        TARGET_DIR=$1"_debug"
-    fi
-    if [ ! -f "out/$TARGET_DIR/protoc" ];then
-        ./build.sh protoc
-        mkdir -p out/"$TARGET_DIR"
-        cp out/$target_os/protoc out/"$TARGET_DIR"/protoc
-    fi
-    if [ ! -f "out/$TARGET_DIR/protoreader_plugin" ] && [ -f "out/$TARGET_DIR/protoc" ];then
-        ./build.sh spb
-        mkdir -p out/"$TARGET_DIR"
-        cp out/$target_os/protoreader_plugin out/"$TARGET_DIR"/protoreader_plugin
-    fi
+    prepare_proto $1
 fi
-if [ $target_os == "windows" ];then
-    cp .gn_win .gn
-else
-    cp .gn_unix .gn
-fi
-if [ "$1" == "windows" ] && [ "$2" == "release" ];then
-    echo "gn only support linux and wasm build currently"
-    if [ ! -d "out/windows" ];then
-        mkdir out/windows
-    fi
-    touch out/windows/trace_streamer.exe
-    exit
-fi
+prepare_windows $1 $2
+target_operator="$2"
 if [ "$#" -ne "0" ];then
     if [ "$1" == "wasm" ] || [ "$1" == "sdkdemo" ];then
         if command -v em++ &> /dev/null; then
@@ -78,6 +58,7 @@ if [ "$#" -ne "0" ];then
     fi
     if [ "$1" == "test" ];then
         target="test"
+        set_enable_plugin_array "true"
     fi
     if [ "$1" == "fuzz" ];then
         target="fuzz"
@@ -92,9 +73,9 @@ if [ "$#" -ne "0" ];then
         target="spb"
     fi
 fi
-target_operator="$2"
 if [ "$target" == "wasm" ] && [ "$target_os" == "windows" ];then
     echo "!!!build wasm on winows will occur unknown error, strongly suggest you build wasm on linux(Ubuntu)"
     exit
 fi
-./build_operator.sh $is_debug "$target" $target_os $is_clean $gn_path $gn $ninja "$target_operator" $use_local_emsdk
+set_enable_all_plugins_str
+. ./build_operator.sh

@@ -130,6 +130,17 @@ export class SpChartList extends BaseElement {
     });
   }
 
+  removeAllCollectRow(): void {
+    for (let i = 0; i < this.collectRowList1.length; i++) {
+      this.collectRowList1[i].collectEL?.click();
+      i--;
+    }
+    for (let i = 0; i < this.collectRowList2.length; i++) {
+      this.collectRowList2[i].collectEL?.click();
+      i--;
+    }
+  }
+
   private resizeHeight(): void {
     this.maxHeight = 0;
     this.collectEl1!.childNodes.forEach((item) => (this.maxHeight += (item as any).clientHeight));
@@ -161,6 +172,10 @@ export class SpChartList extends BaseElement {
     }
   }
 
+  getRowScrollTop() : number {
+    return this.rootEl?.scrollTop || 0
+  }
+
   expandSearchRowGroup(row: TraceRow<any>): void {
     this.updateGroupDisplay();
     if (row.collectGroup === SpChartList.COLLECT_G1) {
@@ -186,6 +201,36 @@ export class SpChartList extends BaseElement {
 
   getAllCollectRows(): Array<TraceRow<any>> {
     return [...this.collectRowList1, ...this.collectRowList2];
+  }
+
+  getCollectRowsInfo(group: string) {
+    return  (group === SpChartList.COLLECT_G1 ? this.collectRowList1 : this.collectRowList2).map(row => {
+      let rowJson = {
+        type: row.rowType,
+        name: row.name,
+        id: row.rowId,
+        parents: [],
+      };
+      this.getRowParent(rowJson, row);
+      rowJson.parents.reverse();
+      return rowJson;
+    });
+  }
+
+  getRowParent(obj: any, row: TraceRow<any>) {
+    if (row.parentRowEl) {
+      if (obj.parents) {
+        let parent: any = {
+          type: row.parentRowEl.rowType,
+          name: row.parentRowEl.name,
+          id: row.parentRowEl.rowId,
+        };
+        (obj.parents as Array<any>).push(parent);
+      } else {
+        obj.parents = [parent];
+      }
+      this.getRowParent(obj, row.parentRowEl);
+    }
   }
 
   getAllSelectCollectRows(): Array<TraceRow<any>> {

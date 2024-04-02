@@ -79,24 +79,6 @@ void MeasureTable::FilterByConstraint(FilterConstraints& measurefc,
     }
 }
 
-bool MeasureTable::CanFilterSorted(const char op, size_t& measureRowCnt) const
-{
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            measureRowCnt = measureRowCnt / log2(measureRowCnt);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-        case SQLITE_INDEX_CONSTRAINT_GE:
-        case SQLITE_INDEX_CONSTRAINT_LE:
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            measureRowCnt = (measureRowCnt >> 1);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
 int32_t MeasureTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset
@@ -112,10 +94,11 @@ int32_t MeasureTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
         const auto& c = measureTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::TS:
-                FilterTS(c.op, argv[i], measureObj.TimeStampData());
+                FilterTS(c.op, argv[c.idxInaConstraint], measureObj.TimeStampData());
                 break;
             case Index::FILTER_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), measureObj.FilterIdData());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
+                                    measureObj.FilterIdData());
                 break;
             default:
                 break;

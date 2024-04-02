@@ -84,7 +84,7 @@ export function searchDataHandler(data: any): void {
   let pidArr = data.params.pidArr as number[];
   let tidArr = data.params.tidArr as number[];
   for (let value of Array.from(cpuList.values())) {
-    res.push(...value.filter((cpuData) => pidArr.includes(cpuData.processId) || tidArr.includes(cpuData.tid)));
+    res.push(...value.filter((cpuData) => pidArr.includes(cpuData.pid || cpuData.processId) || tidArr.includes(cpuData.tid)));
   }
   res.sort((dataA, dataB) => dataA.startTime - dataB.startTime);
   arrayBufferHandler(data, res, true);
@@ -107,7 +107,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
     cpu[i] = it.cpu;
     id[i] = it.id;
     nofinish[i] = it.nofinish;
-    processId[i] = it.processId;
+    processId[i] = it.pid || it.processId;
     argSetId[i] = it.argSetId;
   });
   (self as unknown as Worker).postMessage(

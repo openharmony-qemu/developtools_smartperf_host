@@ -55,24 +55,6 @@ void ProcessMeasureFilterTable::FilterByConstraint(FilterConstraints& filterfc,
     }
 }
 
-bool ProcessMeasureFilterTable::CanFilterSorted(const char op, size_t& procRowCnt) const
-{
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            procRowCnt = procRowCnt / log2(procRowCnt);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-        case SQLITE_INDEX_CONSTRAINT_GE:
-        case SQLITE_INDEX_CONSTRAINT_LE:
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            procRowCnt = (procRowCnt >> 1);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
 std::unique_ptr<TableBase::Cursor> ProcessMeasureFilterTable::CreateCursor()
 {
     return std::make_unique<Cursor>(dataCache_, this);

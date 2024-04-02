@@ -1062,23 +1062,21 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     };
     this.describeElEvent();
     this.collectEL!.onclick = (e) => {
-      if (this.isComplete) {
-        this.collect = !this.collect;
-        if (this.collect) {
-          this.describeEl!.draggable = false;
-        } else {
-          this.describeEl!.draggable = false;
-        }
-        document.dispatchEvent(
-          new CustomEvent('collect', {
-            detail: {
-              type: e.type,
-              row: this,
-            },
-          })
-        );
-        this.favoriteChangeHandler?.(this);
+      this.collect = !this.collect;
+      if (this.collect) {
+        this.describeEl!.draggable = false;
+      } else {
+        this.describeEl!.draggable = false;
       }
+      document.dispatchEvent(
+        new CustomEvent('collect', {
+          detail: {
+            type: e.type,
+            row: this,
+          },
+        })
+      );
+      this.favoriteChangeHandler?.(this);
     };
     if (!this.args['skeleton']) {
       this.initCanvas(this.canvas);

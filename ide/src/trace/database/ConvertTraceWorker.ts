@@ -18,6 +18,12 @@ self.onerror = function (error: any) {};
 
 let convertModule: any = null;
 
+const CONTENT_TYPE_CMDLINES = 2;
+const CONTENT_TYPE_TGIDS = 3;
+const CONTENT_TYPE_HEADER_PAGE = 30;
+const CONTENT_TYPE_PRINTK_FORMATS = 31;
+const CONTENT_TYPE_KALLSYMS = 32;
+
 function initConvertWASM() {
   return new Promise((resolve, reject) => {
     // @ts-ignore
@@ -57,7 +63,7 @@ self.onmessage = async (e: MessageEvent) => {
     let traceAllData = new Uint8Array(e.data.buffer);
     let isRawTraceConvert = isRawTrace(e.data);
     if (isRawTraceConvert) {
-      [totalSize, currentPosition] = handleRowTrace(e, fileData, dataHeader, traceInsPtr, currentPosition, traceAllData, totalSize);
+      [totalSize, currentPosition, traceAllData] = handleRowTrace(e, fileData, dataHeader, traceInsPtr, currentPosition, traceAllData, totalSize);
     } else {
       handleHTrace(fileData, dataHeader, traceInsPtr);
     }
@@ -107,7 +113,7 @@ function handleRowTrace(
   currentPosition: number,
   traceAllData: Uint8Array,
   totalSize: number
-): [number, number] {
+): [number, number, Uint8Array] {
   let uint8Array = new Uint8Array(fileData.slice(0, 12));
   convertModule.HEAPU8.set(uint8Array, dataHeader);
   convertModule._SendRawFileHeader(dataHeader, 12, traceInsPtr);
@@ -129,7 +135,13 @@ function handleRowTrace(
   traceAllData.set(commonTotalData, currentPosition);
   traceAllData.set(allRowTraceData.slice(currentPosition), commonTotalData.length + currentPosition);
   totalSize += commonTotalData.length;
-  return [totalSize, currentPosition];
+  return [totalSize, currentPosition, traceAllData];
+}
+
+function isCommonData(dataType: number): boolean {
+  return dataType === CONTENT_TYPE_CMDLINES || dataType === CONTENT_TYPE_TGIDS ||
+    dataType === CONTENT_TYPE_HEADER_PAGE || dataType === CONTENT_TYPE_PRINTK_FORMATS ||
+    dataType === CONTENT_TYPE_KALLSYMS
 }
 
 function setCommonDataOffsetList(
@@ -153,7 +165,7 @@ function setCommonDataOffsetList(
     let currentVLength = Array.from(new Uint32Array(currentLData));
     commonOffset += currentVLength[0];
     commonDataOffset.endOffset = commonOffset;
-    if (dataType[0] === 2 || dataType[0] === 3) {
+    if (isCommonData(dataType[0])) {
       commonTotalLength += commonDataOffset.endOffset - commonDataOffset.startOffset;
       commonDataOffsetList.push(commonDataOffset);
     }

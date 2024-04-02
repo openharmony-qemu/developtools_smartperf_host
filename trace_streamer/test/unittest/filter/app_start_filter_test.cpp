@@ -17,7 +17,7 @@
 #include <hwext/gtest-tag.h>
 
 #include "app_start_filter.h"
-#include "parser/bytrace_parser/bytrace_parser.h"
+#include "parser/ptreader_parser/ptreader_parser.h"
 #include "slice_filter.h"
 #include "trace_streamer_selector.h"
 
@@ -72,20 +72,20 @@ HWTEST_F(AppStartFilterTest, ProcessAllTest, TestSize.Level1)
         "m.taobao.taobao-4794  ( 4794) [007] .... 233.330670: print: B|4794|H:void "
         "OHOS::AbilityRuntime::FAAbilityThread::HandleAbilityTransaction(const OHOS::AbilityRuntime::Want &, const "
         "OHOS::AbilityRuntime::LifeCycleStateInfo &, sptr<AppExecFwk::SessionInfo>)##EntryAbility");
-    BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PtreaderParser ptreaderParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     for (auto&& str : processTouchEventVec) {
-        bytraceParser.ParseTraceDataItem(str);
+        ptreaderParser.ParseTraceDataItem(str);
     }
     for (auto&& str : startUIAbilityBySCBVec) {
-        bytraceParser.ParseTraceDataItem(str);
+        ptreaderParser.ParseTraceDataItem(str);
     }
     for (auto&& str : loadAbilityVec) {
-        bytraceParser.ParseTraceDataItem(str);
+        ptreaderParser.ParseTraceDataItem(str);
     }
-    bytraceParser.ParseTraceDataItem(appLaunchStr);
-    bytraceParser.ParseTraceDataItem(uiLaunchStr);
-    bytraceParser.ParseTraceDataItem(uiOnForegroundStr);
-    bytraceParser.WaitForParserEnd();
+    ptreaderParser.ParseTraceDataItem(appLaunchStr);
+    ptreaderParser.ParseTraceDataItem(uiLaunchStr);
+    ptreaderParser.ParseTraceDataItem(uiOnForegroundStr);
+    ptreaderParser.WaitForParserEnd();
     stream_.streamFilters_->appStartupFilter_->FilterAllAPPStartupData();
     EXPECT_TRUE(stream_.streamFilters_->appStartupFilter_->procTouchItems_.size() == 0);
     EXPECT_TRUE(stream_.streamFilters_->appStartupFilter_->startUIAbilityBySCBItems_.size() == 0);

@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 const sqlite = require('../../../../src/trace/database/sql/Irq.sql');
 jest.mock('../../../../src/trace/database/sql/Irq.sql');
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
@@ -32,7 +35,8 @@ jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
 });
 
 describe('SpIrqChart Test', () => {
-  let spArkTsChart = new SpArkTsChart();
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spArkTsChart = new SpArkTsChart(htmlElement);
   let irqList = sqlite.queryIrqList;
   let irqListData = [
     {

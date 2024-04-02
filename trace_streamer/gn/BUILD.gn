@@ -51,6 +51,7 @@ config("visibility_hidden") {
 config("default") {
   cflags_c = []
   cflags_cc = []
+  defines = []
   libs = []
   ldflags = []
   cflags = [
@@ -58,6 +59,54 @@ config("default") {
     "-Wformat",
     "-Wno-unused-variable",
   ]
+  if (enable_hiperf) {
+    defines += [ "ENABLE_HIPERF" ]
+  }
+  if (enable_ebpf) {
+    defines += [ "ENABLE_EBPF" ]
+  }
+  if (enable_native_hook) {
+    defines += [ "ENABLE_NATIVE_HOOK" ]
+  }
+  if (enable_hilog) {
+    defines += [ "ENABLE_HILOG" ]
+  }
+  if (enable_hisysevent) {
+    defines += [ "ENABLE_HISYSEVENT" ]
+  }
+  if (enable_arkts) {
+    defines += [ "ENABLE_ARKTS" ]
+  }
+  if (enable_bytrace) {
+    defines += [ "ENABLE_BYTRACE" ]
+  }
+  if (enable_rawtrace) {
+    defines += [ "ENABLE_RAWTRACE" ]
+  }
+  if (enable_htrace) {
+    defines += [ "ENABLE_HTRACE" ]
+  }
+  if (enable_memory) {
+    defines += [ "ENABLE_MEMORY" ]
+  }
+  if (enable_hidump) {
+    defines += [ "ENABLE_HTDUMP" ]
+  }
+  if (enable_cpudata) {
+    defines += [ "ENABLE_CPUDATA" ]
+  }
+  if (enable_network) {
+    defines += [ "ENABLE_NETWORK" ]
+  }
+  if (enable_diskio) {
+    defines += [ "ENABLE_DISKIO" ]
+  }
+  if (enable_process) {
+    defines += [ "ENABLE_PROCESS" ]
+  }
+  if (enable_stream_extend) {
+    defines += [ "ENABLE_STREAM_EXTEND" ]
+  }
   if (is_debug && is_win) {
     ldflags += [ "-fstack-protector" ]
   }
@@ -133,7 +182,7 @@ config("default") {
   }
   if (is_win) {
     cflags += [ "-D is_mingw" ]
-    defines = [ "WIN32_LEAN_AND_MEAN" ]
+    defines += [ "WIN32_LEAN_AND_MEAN" ]
     libs += [ "wsock32" ]
     libs += [ "ws2_32" ]
     cflags += [ "-Wno-attributes" ]
@@ -145,6 +194,10 @@ config("default") {
 
 config("symbols") {
   cflags = [ "-O0" ]
+  cflags += [
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
   if (is_linux || is_mac) {
     cflags += [ "-funwind-tables" ]
   }

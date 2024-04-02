@@ -12,19 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-window.ResizeObserver = window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-      disconnect: jest.fn(),
-      observe: jest.fn(),
-      unobserve: jest.fn(),
-    }));
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+
+ jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+   return {};
+ });
 import { SpFreqChart } from '../../../../src/trace/component/chart/SpFreqChart';
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
 const sqlit = require('../../../../src/trace/database/sql/Cpu.sql');
 jest.mock('../../../../src/trace/database/sql/Cpu.sql');
+ const intersectionObserverMock = () => ({
+   observe: () => null,
+ });
+ window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+ window.ResizeObserver = window.ResizeObserver ||
+   jest.fn().mockImplementation(() => ({
+     disconnect: jest.fn(),
+     observe: jest.fn(),
+     unobserve: jest.fn(),
+   }));
 describe('spFpsChart Test', () => {
-  let spFpsChart = new SpFreqChart(new SpChartManager());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spFpsChart = new SpFreqChart(htmlElement);
 
   let mockGetCpuLimitFreq = sqlit.getCpuLimitFreq;
   mockGetCpuLimitFreq.mockResolvedValue([

@@ -31,11 +31,15 @@ class BinderFilter;
 class ArgsFilter;
 class IrqFilter;
 class SystemEventMeasureFilter;
+#ifdef ENABLE_HISYSEVENT
 class HiSysEventMeasureFilter;
+#endif
 class FrameFilter;
 class APPStartupFilter;
 class TaskPoolFilter;
+#ifdef ENABLE_HIPERF
 class PerfDataFilter;
+#endif
 class TraceStreamerFilters {
 public:
     TraceStreamerFilters();
@@ -62,11 +66,15 @@ public:
     std::unique_ptr<SystemEventMeasureFilter> sysEventMemMeasureFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventVMemMeasureFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventSourceFilter_;
+#ifdef ENABLE_HISYSEVENT
     std::unique_ptr<HiSysEventMeasureFilter> hiSysEventMeasureFilter_;
+#endif
     std::unique_ptr<FrameFilter> frameFilter_;
     std::unique_ptr<APPStartupFilter> appStartupFilter_;
     std::unique_ptr<TaskPoolFilter> taskPoolFilter_;
+#ifdef ENABLE_HIPERF
     std::unique_ptr<PerfDataFilter> perfDataFilter_;
+#endif
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

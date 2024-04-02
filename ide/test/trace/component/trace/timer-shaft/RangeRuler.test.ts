@@ -216,11 +216,12 @@ describe('RangeRuler Test', () => {
   });
 
   it('RangeRulerTest15', function () {
+    let htmlElement: any = document.createElement('sp-system-trace');
     rangeRuler.centerXPercentage = jest.fn(() => -1);
     expect(
       rangeRuler.mouseMove({
         key: '',
-      }, new SpSystemTrace())
+      }, htmlElement)
     ).toBeUndefined();
   });
 
@@ -264,12 +265,113 @@ describe('RangeRuler Test', () => {
     expect(rangeRuler.delayDraw()).toBeUndefined();
   });
   it('RangeRulerTest26', function () {
-    expect(rangeRuler.keyPressF()).toBeUndefined();
+    let frameCallback: any;
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.keyPressF();
+    if (frameCallback) {
+      frameCallback();
+    }
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.keyPressW();
+    if (frameCallback) {
+      frameCallback();
+    }
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.keyPressS();
+    if (frameCallback) {
+      frameCallback();
+    }
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.keyPressA();
+    if (frameCallback) {
+      frameCallback();
+    }
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.keyPressD();
+    if (frameCallback) {
+      frameCallback();
+    }
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.keyUpW();
+    if (frameCallback) {
+      frameCallback();
+    }
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.keyUpS();
+    if (frameCallback) {
+      frameCallback();
+    }
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.keyUpA();
+    if (frameCallback) {
+      frameCallback();
+    }
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.keyUpEnd();
+    if (frameCallback) {
+      frameCallback();
+    }
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.keyUpD();
+    if (frameCallback) {
+      frameCallback();
+    }
+    expect(rangeRuler.getScale()).toBe(50)
   });
   it('RangeRulerTest27', function () {
-    expect(Mark.draw).toBeUndefined();
+    expect(mark.draw()).toBeUndefined();
   });
   it('RangeRulerTest28', function () {
     expect(rangeRuler.drawSelectionRange()).toBeUndefined();
+  });
+  it('RangeRulerTest29', function () {
+    expect(rangeRuler.translate(100)).toBeUndefined();
+  });
+
+  it('RangeRulerTest30', function () {
+    rangeRuler.isMovingRange = false;
+    rangeRuler.handleMovingFresh(10, 20);
+
+    let frameCallback: any;
+    global.requestAnimationFrame = (callback) => {
+      frameCallback = callback;
+      return 0;
+    };
+    rangeRuler.scale = 100;
+    rangeRuler.keyPressW();
+    if (frameCallback) {
+      frameCallback();
+    }
+    expect(rangeRuler.getScale()).toBe(100);
   });
 });

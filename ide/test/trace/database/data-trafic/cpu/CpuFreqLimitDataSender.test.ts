@@ -26,10 +26,10 @@ jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot',
   return {};
 });
 describe(' CpuFreqLimitDataSender Test', () => {
-  let  CpuFreqLimitData = [{
+  let  CpuFreqLimitData = {
     cpu: 1,
     value: 884000,
-    dur: -1,
+    dur: 122,
     startNS: 94001,
     frame: {
       y: 5,
@@ -37,15 +37,14 @@ describe(' CpuFreqLimitDataSender Test', () => {
       x: 547,
       width: 1
     }
-  }];
+  };
   it(' CpuFreqLimitDataSenderTest01 ', function () {
     threadPool.submitProto = jest.fn((query: number, params: any, callback: Function) => {
-      callback(CpuFreqLimitData, CpuFreqLimitData.length, true);
+      callback(CpuFreqLimitData, 1, true);
     });
     let CpuFreqLimitDataTraceRow = TraceRow.skeleton<CpuFreqLimitsStruct>();
     let maxId = 0;
     let minId = 0;
-    let cpu = 1;
     cpuFreqLimitSender(maxId,minId,QueryEnum.CpuFreqLimitData, CpuFreqLimitDataTraceRow).then(res => {
       expect(res).toHaveLength(1);
     });

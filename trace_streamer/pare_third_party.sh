@@ -84,13 +84,6 @@ if [ ! -f "perf_include/libbpf/linux/perf_event.h" ];then
    $patch -p0 perf_include/libbpf/linux/perf_event.h ../prebuilts/patch_perf_event/perf_event.h.patch
 fi
 
-if [ ! -f "perf_include/musl/elf.h" ];then
-   mkdir -p perf_include/musl
-   rm -rf elf.h
-   curl https://gitee.com/openharmony/third_party_musl/raw/master/include/elf.h > elf.h
-   mv elf.h perf_include/musl/elf.h
-fi
-
 if [ ! -d "perf_include/hiviewdfx/hilog" ];then
    rm -rf hiviewdfx_hilog perf_include/hiviewdfx/hilog
    mkdir -p perf_include/hiviewdfx/hilog

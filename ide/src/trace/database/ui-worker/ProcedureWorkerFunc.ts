@@ -126,16 +126,15 @@ export function func(
     });
   }
 }
-export function FuncStructOnClick(clickRowType: string, sp:any,row:TraceRow<any>|undefined, scrollToFuncHandler: any) {
+export function FuncStructOnClick(clickRowType: string, sp:any, row:TraceRow<any>|undefined, scrollToFuncHandler: any, entry?: any) {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_FUNC && FuncStruct.hoverFuncStruct) {
+    if (clickRowType === TraceRow.ROW_TYPE_FUNC && (FuncStruct.hoverFuncStruct || entry)) {
       if (FuncStruct.funcSelect) {
         TabPaneTaskFrames.TaskArray = [];
         sp.removeLinkLinesByBusinessType('task');
-        FuncStruct.selectFuncStruct = FuncStruct.hoverFuncStruct;
-        let hoverFuncStruct = FuncStruct.hoverFuncStruct;
-        sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
+        let hoverFuncStruct = entry || FuncStruct.hoverFuncStruct;
         FuncStruct.selectFuncStruct = hoverFuncStruct;
+        sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
         let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
         let showTabArray: Array<string> = ['current-selection'];
         if (flagConfig!.TaskPool === 'Enabled') {

@@ -69,11 +69,11 @@ trace_streamer_include = [
   "parser",
   "cfg",
   "proto_reader/include",
-  "parser/bytrace_parser",
+  "parser/ptreader_parser",
   "parser/ebpf_parser",
-  "parser/htrace_pbreader_parser",
-  "parser/htrace_pbreader_parser/htrace_event_parser",
-  "parser/htrace_pbreader_parser/htrace_cpu_parser",
+  "parser/pbreader_parser",
+  "parser/pbreader_parser/htrace_parser",
+  "parser/pbreader_parser/htrace_parser",
   "parser/rawtrace_parser",
   "parser/hiperf_parser",
   "${THIRD_PARTY}/bounds_checking_function/include",
@@ -185,13 +185,21 @@ ohos_source_set("trace_streamer_source") {
     "filter:filter",
     "metrics:metrics_parser",
     "parser:parser",
-    "parser/hiperf_parser:hiperf_parser",
     "proto_reader:proto_reader",
     "table:table",
     "trace_data:trace_data",
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/perf_include/hiviewdfx:hiviewdfx",
   ]
+
+  public_configs = []
+  if (enable_hiperf) {
+    public_configs += [ "parser/hiperf_parser:hiperf_parser_cfg" ]
+  }
+  if (enable_stream_extend) {
+    public_configs +=
+        [ "${EXTEND_SRC}/parser/pbreader_stream_parser:pbreader_stream_cfg" ]
+  }
 }
 
 if (use_wasm) {

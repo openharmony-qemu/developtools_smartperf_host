@@ -98,13 +98,9 @@ export class TabPaneJsCpuCallTree extends BaseElement {
         }
         item.name = SpSystemTrace.DATA_DICT.get(item.nameId) || '';
         callTreeMap.set(item.id, item);
-        if (item.symbolName.length < 0) {
-          if (item.scriptName === 'unknown') {
-            item.symbolName = item.name;
-          } else {
-            item.symbolName = `${item.name} ${item.scriptName}`;
-          }
-        }
+        item.scriptName === 'unknown'
+          ? (item.symbolName = item.name)
+          : (item.symbolName = `${item.name} ${item.scriptName}`);
         item.totalTimePercent = `${((item.totalTime / this.totalNs) * 100).toFixed(1)}%`;
         item.selfTimePercent = `${((item.selfTime / this.totalNs) * 100).toFixed(1)}%`;
         item.selfTimeStr = ns2s(item.selfTime);

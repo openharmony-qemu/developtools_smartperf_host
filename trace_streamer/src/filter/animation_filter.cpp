@@ -178,7 +178,8 @@ bool AnimationFilter::UpdateDynamicEndTime(const uint64_t curFrameRow, uint64_t 
         }
         curStackRow = callStackSlice_->ParentIdData()[curStackRow].value();
         // use frameEndTimeCmd_'s endTime as dynamicFrame endTime
-        if (frameEndTimeCmd_ == callStackSlice_->NamesData()[curStackRow]) {
+        auto nameIndex = callStackSlice_->NamesData()[curStackRow];
+        if (StartWith(traceDataCache_->GetDataFromDict(nameIndex), frameEndTimeCmd_)) {
             auto endTime = callStackSlice_->TimeStampData()[curStackRow] + callStackSlice_->DursData()[curStackRow];
             dynamicFrame_->UpdateEndTime(curFrameRow, endTime);
             return true;

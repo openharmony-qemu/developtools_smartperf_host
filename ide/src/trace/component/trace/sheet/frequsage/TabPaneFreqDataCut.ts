@@ -1204,23 +1204,23 @@ export class TabPaneFreqDataCut extends BaseElement {
     </div>
     <selector class="d-box">
     <lit-slicer style="width:100%">
-    <div class="table-box" style="width: 65%; min-width: 65%">
+    <div class="table-box" style="width: 65%; max-width: calc(100%-495px); min-width: 60%">
         <lit-table id="tb-running-datacut" style="height: auto; overflow:auto;margin-top:5px" tree>
-            <lit-table-column class="running-percent-column" width="28%" title="Process/Thread/Cycle/CPU" data-index="thread" key="thread" align="flex-start" retract>
+            <lit-table-column class="running-percent-column" width="250px" title="Process/Thread/Cycle/CPU" data-index="thread" key="thread" align="flex-start" retract>
             </lit-table-column>
-            <lit-table-column class="running-percent-column" title="Cycle_st(ms)" data-index="ts" key="ts" align="flex-start">
+            <lit-table-column class="running-percent-column" width="100px" title="Cycle_st(ms)" data-index="ts" key="ts" align="flex-start">
             </lit-table-column>
-            <lit-table-column class="running-percent-column" title="Cycle_dur(ms)" data-index="cdur" key="cdur" align="flex-start">
+            <lit-table-column class="running-percent-column" width="110px"  title="Cycle_dur(ms)" data-index="cdur" key="cdur" align="flex-start">
             </lit-table-column>
-            <lit-table-column class="running-percent-column" title="CPU" data-index="cpu" key="cpu" align="flex-start">
+            <lit-table-column class="running-percent-column"  width="50px" title="CPU" data-index="cpu" key="cpu" align="flex-start">
             </lit-table-column>
-            <lit-table-column class="running-percent-column" title="Consumption" data-index="count" key="count" align="flex-start">
+            <lit-table-column class="running-percent-column"  width="140px" title="Consumption" data-index="count" key="count" align="flex-start">
             </lit-table-column>
-            <lit-table-column class="running-percent-column" title="Freq(MHz)" data-index="freq" key="freq" align="flex-start">
+            <lit-table-column class="running-percent-column"  width="100px" title="Freq(MHz)" data-index="freq" key="freq" align="flex-start">
             </lit-table-column>
-            <lit-table-column class="running-percent-column" title="Running_dur(ms)" data-index="dur" key="dur" align="flex-start">
+            <lit-table-column class="running-percent-column"  width="120px" title="Running_dur(ms)" data-index="dur" key="dur" align="flex-start">
             </lit-table-column>
-            <lit-table-column class="running-percent-column" title="Percent(%)" data-index="percent" key="percent" align="flex-start">
+            <lit-table-column class="running-percent-column"  width="100px" title="Percent(%)" data-index="percent" key="percent" align="flex-start">
             </lit-table-column>
         </lit-table>
         </div>

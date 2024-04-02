@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 import { SpNativeMemoryChart } from '../../../../src/trace/component/chart/SpNativeMemoryChart';
 
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
@@ -25,10 +27,11 @@ const clockSqlite = require('../../../../src/trace/database/sql/Clock.sql');
 jest.mock('../../../../src/trace/database/sql/Clock.sql');
 const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
 jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
-window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -37,7 +40,8 @@ window.ResizeObserver = window.ResizeObserver ||
     observe: jest.fn(),
   }));
 describe('SpNativeMemoryChart Test', () => {
-  let spNativeMemoryChart = new SpNativeMemoryChart(new SpSystemTrace());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spNativeMemoryChart = new SpNativeMemoryChart(htmlElement);
 
   let queryNativeHookStatisticsCount = sqlit.queryNativeHookStatisticsCount;
   queryNativeHookStatisticsCount.mockResolvedValue([

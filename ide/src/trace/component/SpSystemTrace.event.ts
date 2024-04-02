@@ -31,7 +31,7 @@ import { SoStructOnClick } from "../database/ui-worker/ProcedureWorkerSoInit";
 import { FrameAnimationStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameAnimation";
 import { FrameDynamicStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameDynamic";
 import { FrameSpacingStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameSpacing";
-import { sampleStructOnClick } from "../database/ui-worker/ProcedureWorkerSample";
+import { sampleStructOnClick } from "../database/ui-worker/ProcedureWorkerBpftrace";
 import { SportRuler } from "./trace/timer-shaft/SportRuler";
 import { SpStatisticsHttpUtil } from "../../statistics/util/SpStatisticsHttpUtil";
 import { LitSearch } from "./trace/search/Search";
@@ -151,7 +151,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace) {
     if (d.rowId === 'actual frameTime') {
       jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>("trace-row[row-id='frameTime']");
     } else {
-      jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(`trace-row[row-id='${d.pid}']`);
+      jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(`trace-row[row-type='process'][row-id='${d.pid}']`);
     }
     jankRowParent!.expansion = true;
     let jankRow: any;
@@ -180,9 +180,9 @@ function jankClickHandlerFunc(sp: SpSystemTrace) {
           // 绘制跟自己关联的线
           datas.forEach((data) => {
             let endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(
-              `trace-row[row-id='${data.pid}'][folder]`
+              `trace-row[row-type='process'][row-id='${data.pid}'][folder]`
             );
-            sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data);
+            sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data, true);
           });
         },
           jankClickHandler
@@ -297,10 +297,10 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
   };
 }
 
-function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<any>) {
+function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<any>, entry?: any) {
   CpuStructOnClick(clickRowType, sp, cpuClickHandlerFunc(sp))
     .then(() => ThreadStructOnClick(clickRowType, sp, threadClickHandlerFunc(sp), cpuClickHandlerFunc(sp)))
-    .then(() => FuncStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp)))
+    .then(() => FuncStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp), entry))
     .then(() => CpuFreqStructOnClick(clickRowType, sp))
     .then(() => CpuStateStructOnClick(clickRowType, sp))
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp))
@@ -331,7 +331,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
       }
     }).catch(e => { });
 }
-export default function spSystemTraceOnClickHandler(sp: SpSystemTrace, clickRowType: string, row?: TraceRow<any>) {
+export default function spSystemTraceOnClickHandler(sp: SpSystemTrace, clickRowType: string, row?: TraceRow<any>, entry?: any) {
   if (row) {
     sp.currentRow = row;
     sp.setAttribute('clickRow', clickRowType);
@@ -343,7 +343,7 @@ export default function spSystemTraceOnClickHandler(sp: SpSystemTrace, clickRowT
   sp.selectStructNull();
   // 判断点击的线程是否在唤醒树内
   timeoutJudge(sp);
-  allStructOnClick(clickRowType, sp, row);
+  allStructOnClick(clickRowType, sp, row, entry);
   if (!JankStruct.selectJankStruct) {
     sp.removeLinkLinesByBusinessType('janks');
   }
@@ -643,7 +643,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
     } else {
       document.querySelector('body > sp-application')!
         .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'hidden';
-      SpSystemTrace.keyboardFlar = true;
+        SpSystemTrace.keyboardFlar = true;
     }
   }
   if (!sp.loadTraceCompleted) return;
@@ -741,7 +741,13 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
     if (JankStruct.delJankLineFlag) {
       sp.removeLinkLinesByBusinessType('janks');
     }
-    if (rows && rows[0] && rows[0].getHoverStruct()) {
+    let strict = true;
+    let offset = false;
+    if (rows[0] && (rows[0].rowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC || rows[0].rowType === TraceRow.ROW_TYPE_FRAME_SPACING)) {
+      strict = false;
+      offset = true;
+    }
+    if (rows && rows[0] && rows[0].getHoverStruct(strict, offset)) {
       sp.onClickHandler(rows[0]!.rowType!, rows[0]);
       sp.documentOnMouseMove(ev);
     } else {

@@ -36,6 +36,9 @@ const cpuSqlite = require('../../../../../../src/trace/database/sql/Cpu.sql');
 jest.mock('../../../../../../src/trace/database/sql/Cpu.sql');
 const sqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker',()=>{
+  return {};
+})
 describe('TabPaneFreqUsage Test', () => {
   let tabPaneFreqUsage = new TabPaneFreqUsage();
   let data = {

@@ -26,6 +26,7 @@ const uint8_t MAX_POINT_LENGTH = 2;
 PrintEventParser::PrintEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
     : EventParserBase(dataCache, filter)
 {
+    rsOnDoCompositionEvent_ = traceDataCache_->GetDataIndex(rsOnDoCompositionStr_);
     eventToFrameFunctionMap_ = {
         {recvievVsync_, bind(&PrintEventParser::ReciveVsync, this, std::placeholders::_1, std::placeholders::_2,
                              std::placeholders::_3)},
@@ -273,6 +274,9 @@ bool PrintEventParser::HandleFrameSliceBeginEvent(DataIndex eventName,
     auto it = eventToFrameFunctionMap_.find(eventName);
     if (it != eventToFrameFunctionMap_.end()) {
         it->second(callStackRow, args, line);
+        return true;
+    } else if (StartWith(traceDataCache_->GetDataFromDict(eventName), rsOnDoCompositionStr_)) {
+        RSReciveOnDoComposition(callStackRow, args, line);
         return true;
     }
     return false;

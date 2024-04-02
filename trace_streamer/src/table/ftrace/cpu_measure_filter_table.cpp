@@ -57,24 +57,6 @@ void CpuMeasureFilterTable::FilterByConstraint(FilterConstraints& cpufc,
     }
 }
 
-bool CpuMeasureFilterTable::CanFilterSorted(const char op, size_t& cpuRowCount) const
-{
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            cpuRowCount = cpuRowCount / log2(cpuRowCount);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-        case SQLITE_INDEX_CONSTRAINT_GE:
-        case SQLITE_INDEX_CONSTRAINT_LE:
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            cpuRowCount = (cpuRowCount >> 1);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
 std::unique_ptr<TableBase::Cursor> CpuMeasureFilterTable::CreateCursor()
 {
     return std::make_unique<Cursor>(dataCache_, this);

@@ -69,11 +69,11 @@ function selectJankApp(
   // startRow为子泳道，子泳道不存在，使用父泳道
   if (startRow) {
     startParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
-      `trace-row[row-id='${startRow.rowParentId}'][folder]`
+      `trace-row[row-type='process'][row-id='${startRow.rowParentId}'][folder]`
     );
   } else {
     startRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
-      `trace-row[row-id='${selectJankStruct?.pid}'][folder]`
+      `trace-row[row-type='process'][row-id='${selectJankStruct?.pid}'][folder]`
     );
   }
   let endY = endRowStruct!.translateY! + 20 * (findJankEntry!.depth! + 0.5);
@@ -126,7 +126,7 @@ function findJankApp(
   expansionFlag = collectionHasJank(startRow, collectList);
   let startOffsetY = 20 * (selectJankStruct!.depth! + 0.5);
   let startParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
-    `trace-row[row-id='${startRow.rowParentId}'][folder]`
+    `trace-row[row-type='process'][row-id='${startRow.rowParentId}'][folder]`
   );
   if (startParentRow && !startParentRow.expansion && expansionFlag) {
     startY = startParentRow!.translateY! + 10 * (selectJankStruct!.depth! + 0.5);
@@ -161,9 +161,9 @@ function addPointLink(
     if (data.children.length >= 1) {
       let endP;
       if (data.children[0].frame_type == 'frameTime') {
-        endP = sp.shadowRoot?.querySelector<TraceRow<any>>("trace-row[row-id='frameTime']");
+        endP = sp.shadowRoot?.querySelector<TraceRow<any>>("trace-row[row-type='janks'][row-id='frameTime']");
       } else {
-        endP = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-id='${data.children[0].pid}'][folder]`);
+        endP = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-type='process'][row-id='${data.children[0].pid}'][folder]`);
       }
       sp.drawJankLine(endP, findJankEntry, data.children[0]);
     }
@@ -189,9 +189,12 @@ function drawJankLineEndParent(
   sp: SpSystemTrace,
   data: any,
   startRow: any,
-  selectJankStruct: JankStruct
+  selectJankStruct: JankStruct,
+  isBinderClick: boolean = false
 ): void {
-  endParentRow.expansion = true;
+  if (isBinderClick) {
+    endParentRow.expansion = true;
+  }
   //终点的父泳道过滤出选中的Struct
   let endRowStruct = getEndStruct(data, sp);
   //泳道未展开的情况，查找endRowStruct
@@ -236,7 +239,8 @@ export function spSystemTraceDrawJankLine(
   sp: SpSystemTrace,
   endParentRow: any,
   selectJankStruct: JankStruct,
-  data: any
+  data: any,
+  isBinderClick: boolean = false
 ): void {
   let collectList = sp.favoriteChartListEL!.getAllCollectRows();
   let startRow: any;
@@ -263,7 +267,7 @@ export function spSystemTraceDrawJankLine(
     }
   }
   if (endParentRow) {
-    drawJankLineEndParent(endParentRow, sp, data, startRow, selectJankStruct);
+    drawJankLineEndParent(endParentRow, sp, data, startRow, selectJankStruct, isBinderClick);
   }
 }
 

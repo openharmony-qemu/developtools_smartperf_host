@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from "../../../../src/trace/component/SpSystemTrace";
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 
 const sqlite = require('../../../../src/trace/database/sql/Irq.sql');
 jest.mock('../../../../src/trace/database/sql/Irq.sql');
@@ -26,15 +28,15 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
-window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 
 import { SpIrqChart } from '../../../../src/trace/component/chart/SpIrqChart';
 
 describe('SpIrqChart Test', () => {
-  let trace = new SpSystemTrace();
+  let trace: any = document.createElement('sp-system-trace');
   let irqChart = new SpIrqChart(trace);
   let irqList = sqlite.queryIrqList;
   let irqListData = [

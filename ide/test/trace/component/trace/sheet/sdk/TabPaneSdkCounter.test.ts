@@ -18,7 +18,7 @@ import '../../../../../../src/trace/component/trace/sheet/sdk/TabPaneSdkCounter'
 import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
 
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
-import {TabUtil} from "../../../../../../src/trace/component/trace/sheet/sdk/TabUtil.js";
+import {TabUtil} from '../../../../../../src/trace/component/trace/sheet/sdk/TabUtil';
 jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
 window.ResizeObserver =

@@ -22,10 +22,12 @@
 #include "cpu_filter.h"
 #include "filter_filter.h"
 #include "frame_filter.h"
-#include "hi_sysevent_measure_filter.h"
+#ifdef ENABLE_HISYSEVENT
+#include "hi_sysevent_filter/hi_sysevent_measure_filter.h"
+#endif
 #include "irq_filter.h"
 #include "measure_filter.h"
-#include "perf_data_filter.h"
+#include "perf_filter/perf_data_filter.h"
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"

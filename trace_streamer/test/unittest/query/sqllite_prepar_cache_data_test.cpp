@@ -22,8 +22,8 @@
 #include "file.h"
 #include "sph_data.pb.h"
 #include "sph_data.pbreader.h"
-#include "htrace_cpu_data_parser.h"
-#include "parser/bytrace_parser/bytrace_parser.h"
+#include "cpu_data_parser/pbreader_cpu_data_parser.h"
+#include "parser/ptreader_parser/ptreader_parser.h"
 #include "parser/common_types.h"
 #include "sqllite_prepar_cache_data.h"
 

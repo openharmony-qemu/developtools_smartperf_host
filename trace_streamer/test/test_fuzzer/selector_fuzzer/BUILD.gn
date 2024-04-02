@@ -28,7 +28,7 @@ ohos_fuzztest("ts_selector_fuzz_test") {
     "../../../src/parser",
     "../../../src/trace_streamer",
     "../../../src/include",
-    "../../../src/parser/bytrace_parser",
+    "../../../src/parser/ptreader_parser",
     "../../../src/cfg",
     "../../../src/metrics",
     "${THIRD_PARTY}/sqlite/include",

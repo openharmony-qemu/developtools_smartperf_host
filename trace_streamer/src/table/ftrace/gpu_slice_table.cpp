@@ -81,13 +81,15 @@ int32_t GPUSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         const auto& c = gpuSliceTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::FRAME_ROW:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), gpuSliceObj_.FrameRows());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
+                                    gpuSliceObj_.FrameRows());
                 break;
             case Index::DUR:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), gpuSliceObj_.Durs());
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
+                                    gpuSliceObj_.Durs());
                 break;
             default:
                 break;

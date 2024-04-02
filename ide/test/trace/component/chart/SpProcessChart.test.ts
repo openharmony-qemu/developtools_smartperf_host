@@ -12,7 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 import { SpProcessChart } from '../../../../src/trace/component/chart/SpProcessChart';
 import { TraceRow } from "../../../../src/trace/component/trace/base/TraceRow";
 import { ProcessStruct } from "../../../../src/trace/database/ui-worker/ProcedureWorkerProcess";
@@ -44,8 +46,8 @@ window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(()
 }));
 
 describe('SpProcessChart Test', () => {
-  let manager = new SpSystemTrace();
-  let spProcessChart = new SpProcessChart(manager);
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spProcessChart = new SpProcessChart(htmlElement);
   let MockqueryProcessAsyncFunc = sqlit.queryProcessAsyncFunc;
 
   MockqueryProcessAsyncFunc.mockResolvedValue([

@@ -12,10 +12,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+jest.mock('../../../src/trace/component/trace/TimerShaftElement', () => {
+  return {
+    sportRuler: {
+      frame: {
+        contains: {}
+      }
+    },
+    canvas: {
+      offsetLeft: 0
+    },
+    isScaling: true,
+    displayCollect: ()=>{},
+    removeEventListener: ()=>{},
+    drawTriangle: ()=>{},
+    setSlicesMark: ()=>{},
+    removeTriangle: ()=>{},
+  };
+});
+jest.mock('../../../src/trace/component/trace/base/TraceSheet', () => {
+  return {
+    clearMemory: () => {}
+  };
+});
 import { SpSystemTrace } from '../../../src/trace/component/SpSystemTrace';
 import { TraceRow } from '../../../src/trace/component/trace/base/TraceRow';
-import { procedurePool } from '../../../src/trace/database/Procedure';
 import { RangeSelect } from '../../../src/trace/component/trace/base/RangeSelect';
 
 jest.mock('../../../src/base-ui/table/lit-table', () => {
@@ -28,9 +49,6 @@ jest.mock('../../../src/js-heap/logic/HeapLoader', () => {
   return {};
 });
 jest.mock('../../../src/js-heap/model/DatabaseStruct', () => {
-  return {};
-});
-jest.mock('../../../src/trace/component/trace/base/TraceSheet', () => {
   return {};
 });
 jest.mock('../../../src/trace/database/SqlLite');
@@ -49,14 +67,18 @@ window.ResizeObserver =
   }));
 
 describe('SpSystemTrace Test', () => {
-  let spSystemTrace = new SpSystemTrace();
+  let spSystemTrace = new SpSystemTrace<any>({
+    canvasNumber: 1,
+    alpha: true,
+    contextId: '2d',
+    isOffScreen: true,
+  });
   const offset = 1;
   const callback = true;
   const rowId = '';
   const rowParentId = '';
   const rowType = '';
   let smooth = true;
-
   spSystemTrace.initElements = jest.fn(() => true);
 
   it('SpSystemTraceTest01', function () {
@@ -81,19 +103,11 @@ describe('SpSystemTrace Test', () => {
   });
 
   it('SpSystemTraceTest06', function () {
-    spSystemTrace.timerShaftEL = jest.fn(() => null);
-    spSystemTrace.timerShaftEL.sportRuler = jest.fn(() => undefined);
-    spSystemTrace.timerShaftEL.sportRuler.frame = jest.fn(() => '');
-    spSystemTrace.timerShaftEL.canvas = jest.fn(() => undefined);
-    spSystemTrace.timerShaftEL.canvas.offsetLeft = jest.fn(() => 1);
-    spSystemTrace.timerShaftEL.sportRuler.frame.contains = jest.fn(() => true);
     spSystemTrace.documentOnMouseUp = jest.fn(() => true);
     expect(spSystemTrace.documentOnMouseUp('MouseUp')).toBeTruthy();
   });
 
   it('SpSystemTraceTest07', function () {
-    spSystemTrace.timerShaftEL = jest.fn(() => undefined);
-    spSystemTrace.timerShaftEL.isScaling = jest.fn(() => true);
     expect(spSystemTrace.documentOnMouseMove('MouseMove')).toBeUndefined();
   });
 
@@ -110,7 +124,6 @@ describe('SpSystemTrace Test', () => {
   });
 
   it('SpSystemTraceTest12', function () {
-    spSystemTrace.timerShaftEL.removeEventListener = jest.fn(() => true);
     expect(spSystemTrace.disconnectedCallback()).toBeUndefined();
   });
 
@@ -133,57 +146,28 @@ describe('SpSystemTrace Test', () => {
   });
 
   it('SpSystemTraceTest16', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     expect(spSystemTrace.onClickHandler()).toBeUndefined();
   });
 
   it('SpSystemTraceTest17', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     expect(spSystemTrace.search()).toBeUndefined();
   });
 
   it('SpSystemTraceTest18', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     expect(spSystemTrace.searchCPU()).not.toBeUndefined();
   });
 
   it('SpSystemTraceTest22', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
-    procedurePool.clearCache = jest.fn(() => true);
-    spSystemTrace.traceSheetEL = jest.fn(() => true);
-    spSystemTrace.traceSheetEL.clearMemory = jest.fn(() => true);
-    spSystemTrace.traceSheetEL.setAttribute = jest.fn(() => true);
+    spSystemTrace.traceSheetEL!.clearMemory = jest.fn(() => true);
     spSystemTrace.traceSheetEL.setMode = jest.fn(() => true);
-    spSystemTrace.rangeSelect = new RangeSelect(new SpSystemTrace());
-    expect(spSystemTrace.reset()).toBeUndefined();
+    spSystemTrace.rangeSelect = new RangeSelect(spSystemTrace);
+    spSystemTrace.timerShaftEL!.displayCollect = jest.fn(() => true);
+    spSystemTrace.timerShaftEL!.collecBtn = jest.fn(() => {});
+    spSystemTrace.timerShaftEL!.reset = jest.fn(() => {});
+    spSystemTrace.timerShaftEL!.collecBtn.removeAttribute = jest.fn(() => {});
+    expect(spSystemTrace.reset(()=>{})).toBeUndefined();
   });
   it('SpSystemTraceTest23', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     let structs = [
       {
         length: 1,
@@ -194,37 +178,20 @@ describe('SpSystemTrace Test', () => {
     let currentIndex = 1;
     TraceRow.range = jest.fn(() => undefined);
     TraceRow.range.startNS = jest.fn(() => 1);
+    spSystemTrace.timerShaftEL.drawTriangle = jest.fn(()=>{});
     expect(spSystemTrace.showStruct(previous, currentIndex, structs)).not.toBeUndefined();
   });
   it('SpSystemTraceTest24', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     TraceRow.range = jest.fn(() => undefined);
     TraceRow.range.startNS = jest.fn(() => 1);
     expect(spSystemTrace.closeAllExpandRows()).toBeUndefined();
   });
   it('SpSystemTraceTest25', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     spSystemTrace.rowsPaneEL = jest.fn(() => true);
     spSystemTrace.rowsPaneEL.scroll = jest.fn(() => true);
     expect(spSystemTrace.scrollToProcess()).toBeUndefined();
   });
   it('SpSystemTraceTest26', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     spSystemTrace.rowsPaneEL = jest.fn(() => true);
     spSystemTrace.rowsPaneEL.scroll = jest.fn(() => true);
     let anomalyTraceRow = TraceRow.skeleton();
@@ -233,30 +200,12 @@ describe('SpSystemTrace Test', () => {
     expect(spSystemTrace.scrollToDepth()).toBeUndefined();
   });
   it('SpSystemTraceTest28', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     expect(spSystemTrace.refreshFavoriteCanvas()).toBeUndefined();
   });
   it('SpSystemTraceTest29', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     expect(spSystemTrace.expansionAllParentRow({id: 1})).toBeUndefined();
   });
   it('SpSystemTraceTest30', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     let it = {
       name: '',
       rowType: '',
@@ -266,12 +215,6 @@ describe('SpSystemTrace Test', () => {
     expect(spSystemTrace.createPointEvent(it)).toBe('');
   });
   it('SpSystemTraceTest31', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     let a = {
       rowEL: {
         translateY: 1,
@@ -291,41 +234,18 @@ describe('SpSystemTrace Test', () => {
     expect(spSystemTrace.addPointPair(a, b)).toBeUndefined();
   });
   it('SpSystemTraceTest32', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
+    spSystemTrace.timerShaftEL.setSlicesMark = jest.fn(()=>{})
     expect(spSystemTrace.setSLiceMark()).toBeUndefined();
   });
   it('SpSystemTraceTest33', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
-    spSystemTrace.rangeSelect = new RangeSelect(new SpSystemTrace());
-    spSystemTrace.traceSheetEL.setMode = jest.fn(() => true);
+    spSystemTrace.rangeSelect = new RangeSelect(spSystemTrace);
+    spSystemTrace.timerShaftEL.removeTriangle = jest.fn(()=>{})
     expect(spSystemTrace.clickEmptyArea()).toBeUndefined();
   });
   it('SpSystemTraceTest34', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     expect(spSystemTrace.isWASDKeyPress()).toBeFalsy();
   });
   it('SpSystemTraceTest35', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     let selectJankStruct = {
       frame_type: 'frameTime',
       type: '',
@@ -349,36 +269,18 @@ describe('SpSystemTrace Test', () => {
     expect(spSystemTrace.drawJankLine(null, selectJankStruct, data)).toBeUndefined();
   });
   it('SpSystemTraceTest36', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     let ev = {
       maxDuration: 1,
       timestamp: '',
     };
-    spSystemTrace.rangeSelect = new RangeSelect(new SpSystemTrace());
+    spSystemTrace.rangeSelect = new RangeSelect(spSystemTrace);
     spSystemTrace.traceSheetEL.setMode = jest.fn(() => true);
     expect(spSystemTrace.sliceMarkEventHandler(ev)).toBeUndefined();
   });
   it('SpSystemTraceTest37', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     expect(spSystemTrace.searchSdk([''], '')).toStrictEqual(['']);
   });
   it('SpSystemTraceTest38', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
     let funcStract = {
       tid: 1,
       pid: 0,

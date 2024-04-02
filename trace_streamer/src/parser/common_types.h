@@ -28,6 +28,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 enum ParseResult { PARSE_ERROR = 0, PARSE_SUCCESS = 1 };
 enum RawType { RAW_CPU_IDLE = 1, RAW_SCHED_WAKEUP = 2, RAW_SCHED_WAKING = 3 };
+enum ErrorCode { ERROR_CODE_EXIT = -2, ERROR_CODE_NODATA = -1 };
 struct BytraceLine {
     uint64_t ts = 0;
     uint32_t pid = 0;
@@ -61,7 +62,7 @@ struct HilogLine {
     std::string tag;
     std::string context;
 };
-struct HtraceDataSegment {
+struct PbreaderDataSegment {
     std::shared_ptr<std::string> seg;
     uint64_t timeStamp{INVALID_TIME};
     std::atomic<BuiltinClocks> clockId;

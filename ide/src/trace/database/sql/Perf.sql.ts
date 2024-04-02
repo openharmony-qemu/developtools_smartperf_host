@@ -16,7 +16,7 @@ import { PerfCmdLine, PerfFile, PerfSample, PerfStack, PerfThread } from '../../
 import { query } from '../SqlLite';
 import { HiSysEventStruct } from '../ui-worker/ProcedureWorkerHiSysEvent';
 import { TaskTabStruct } from '../../component/trace/sheet/task/TabPaneTaskFrames';
-import { GpuCountBean, SearchGpuFuncBean } from '../../bean/GpufreqBean.js';
+import { GpuCountBean, SearchGpuFuncBean } from '../../bean/GpufreqBean';
 
 export const queryPerfFiles = (): Promise<Array<PerfFile>> =>
   query('queryPerfFiles', `select file_id as fileId,symbol,path from perf_files`, {});

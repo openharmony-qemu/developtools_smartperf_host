@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import {
   HiPerfCpuStruct,
   HiperfCpuRender2,

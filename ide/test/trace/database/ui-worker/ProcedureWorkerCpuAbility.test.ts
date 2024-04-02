@@ -141,4 +141,26 @@ describe('CpuAbilityMonitorStruct Test', () => {
     window.postMessage = jest.fn(() => true);
     expect(cpuAbilityRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
+  it('CpuAbilityMonitorStructTest08 ', function () {
+    let cpuAbilityNode = {
+      frame: {
+        x: 9,
+        y: 87,
+        width: 878,
+        height: 80,
+      },
+      startNS: 700,
+      length: 135,
+      height: 40,
+      startTime: 450,
+      dur: 9,
+    };
+    let frame = {
+      x: 2,
+      y: 4,
+      width: 87,
+      height: 80,
+    };
+    expect(CpuAbilityMonitorStruct.setCpuAbilityFrame(cpuAbilityNode, 1, 1, 1, 1, frame)).toBeUndefined();
+  });
 });

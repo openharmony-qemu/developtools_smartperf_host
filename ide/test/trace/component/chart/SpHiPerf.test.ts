@@ -14,17 +14,24 @@
  */
 
 import { SpHiPerf } from '../../../../src/trace/component/chart/SpHiPerf';
-import { SpSystemTrace } from "../../../../src/trace/component/SpSystemTrace";
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
 const sqlit = require('../../../../src/trace/database/sql/Perf.sql');
 jest.mock('../../../../src/trace/database/sql/Perf.sql');
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+jest.mock('../../../../src/trace/component/chart/PerfDataQuery',()=>{
+  return {}
+})
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -34,6 +41,7 @@ window.ResizeObserver =
   }));
 
 describe('SpHiPerf Test', () => {
+  let perfDataQuery = sqlit.perfDataQuery
   let queryPerfCmdline = sqlit.queryPerfCmdline;
   queryPerfCmdline.mockResolvedValue([
     {
@@ -45,10 +53,10 @@ describe('SpHiPerf Test', () => {
   let queryPerfThread = sqlit.queryPerfThread;
   queryPerfThread.mockResolvedValue([
     {
-      tid: 2,
-      threadName: 'threadName',
-      pid: 2,
-      processName: 'processName',
+      tid: 11,
+      threadName: "ksoftirqd/0",
+      pid: 11,
+      processName: "ksoftirqd/0"
     },
     {
       tid: 1,
@@ -126,9 +134,26 @@ describe('SpHiPerf Test', () => {
     id:1,
     report_value:'sched:sched_waking',
   }])
-  let spHiPerf = new SpHiPerf(new SpSystemTrace());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spHiPerf = new SpHiPerf(htmlElement);
   it('SpHiPerf01', function () {
     spHiPerf.init();
     expect(spHiPerf).toBeDefined();
+  });
+  it('SpHiPerf02', function () {
+    let cpuData = [
+      {
+        cpu_id: 0
+      }
+    ]
+    let threadData = [
+      {
+        tid: 11,
+        threadName: "ksoftirqd/0",
+        pid: 11,
+        processName: "ksoftirqd/0"
+      }
+    ]
+    expect(spHiPerf.setCallTotalRow(new TraceRow<any>(),cpuData,threadData)).not.toBeUndefined()
   });
 });

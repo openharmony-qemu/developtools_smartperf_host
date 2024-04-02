@@ -13,21 +13,10 @@
 
 import("//build/ohos.gni")
 import("../../../build/ts.gni")
-ohos_source_set("ebpf_parser_src") {
-  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
-  part_name = "${OHOS_PROFILER_PART_NAME}"
+config("ebpf_parser_cfg") {
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]
   }
-  sources = [
-    "bio_latency_data_parser.cpp",
-    "ebpf_base.cpp",
-    "ebpf_data_parser.cpp",
-    "ebpf_data_reader.cpp",
-    "ebpf_splitter.cpp",
-    "file_system_data_parser.cpp",
-    "paged_memory_data_parser.cpp",
-  ]
   include_dirs = [
     ".",
     "../",
@@ -70,7 +59,6 @@ ohos_source_set("ebpf_parser_src") {
       cflags += [ "-D IS_UT" ]
     }
   }
-  public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:memory_data_reader" ]
   include_dirs += [
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
     "${THIRD_PARTY}/perf_include/linux",
@@ -84,9 +72,21 @@ ohos_source_set("ebpf_parser_src") {
   ]
 }
 
-group("ebpf_parser") {
+ohos_static_library("ebpf_parser") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [
+    "bio_latency_data_parser.cpp",
+    "ebpf_base.cpp",
+    "ebpf_data_parser.cpp",
+    "ebpf_data_reader.cpp",
+    "ebpf_splitter.cpp",
+    "file_system_data_parser.cpp",
+    "paged_memory_data_parser.cpp",
+  ]
+  public_configs = [ ":ebpf_parser_cfg" ]
+  public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:memory_data_reader" ]
   deps = [
-    ":ebpf_parser_src",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",
     "${THIRD_PARTY}/protobuf:protobuf_static",
   ]

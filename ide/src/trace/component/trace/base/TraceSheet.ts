@@ -82,9 +82,10 @@ import { type LitPageTable } from '../../../../base-ui/table/LitPageTable';
 import '../../../../base-ui/popover/LitPopoverV';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
-import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerSample';
-import { TabPaneSampleInstruction } from '../sheet/sample/TabPaneSampleInstruction';
+import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerBpftrace';
+import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
+import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { SpSystemTrace } from '../../SpSystemTrace';
 
 @element('trace-sheet')
@@ -843,12 +844,14 @@ export class TraceSheet extends BaseElement {
   }
 
   displaySystemStatesData = (): void => {
+    let dataCutPane = this.shadowRoot?.querySelector<TabPaneDataCut>("tabpane-datacut");
+    if (dataCutPane) {
+      dataCutPane.initTabSheetEl(this);
+    }
     let tblStatesPanel = this.shadowRoot?.querySelector<TabPaneFreqStatesDataCut>("tabpane-states-datacut");
     if (tblStatesPanel) {
       tblStatesPanel.initTabSheetEl(this);
-      
     }
-
   };
   rangeSelect(selection: SelectionParam, restore = false): boolean {
     this.selection = selection;

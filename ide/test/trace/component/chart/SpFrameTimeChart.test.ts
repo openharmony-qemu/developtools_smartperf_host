@@ -12,9 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+
 import { SpFrameTimeChart } from '../../../../src/trace/component/chart/SpFrameTimeChart';
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import { FlagsConfig } from '../../../../src/trace/component/SpFlags';
 
@@ -44,8 +46,8 @@ window.ResizeObserver =
   }));
 
 describe('SpFrameTimeChart Test', () => {
-  let spFrameTimeChart = new SpFrameTimeChart(new SpSystemTrace());
-
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spFrameTimeChart = new SpFrameTimeChart(htmlElement);
   let queryFrameTime = sqlite.queryFrameTimeData;
   let queryFrameTimeData = [
     {

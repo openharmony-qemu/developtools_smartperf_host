@@ -16,7 +16,7 @@
 import {
   filterNativeMemoryChartData,
   nativeMemoryDataHandler
-} from '../../../../src/trace/database/data-trafic/NativeMemoryDataReceiver.js';
+} from '../../../../src/trace/database/data-trafic/NativeMemoryDataReceiver';
 
 describe(' NativeMemoryDataReceiver Test', () => {
   let data;

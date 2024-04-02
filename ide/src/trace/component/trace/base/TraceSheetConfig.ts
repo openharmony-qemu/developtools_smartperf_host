@@ -121,17 +121,13 @@ import { TabPaneGpuGraph } from '../sheet/gpu/TabPaneGraph';
 import { TabPaneFreqUsage } from '../sheet/frequsage/TabPaneFreqUsage';
 import { TabPaneHisysEvents } from '../sheet/hisysevent/TabPaneHisysEvents';
 import { TabPaneHiSysEventSummary } from '../sheet/hisysevent/TabPaneHiSysEventSummary';
-import { TabPaneFreqDataCut } from '../sheet/frequsage/TabPaneFreqDataCut';
-import { TabPaneSchedSwitch } from '../sheet/schedswitch/TabPaneSchedSwitch';
-import { TabPaneBinderDataCut } from '../sheet/binder/TabPaneBinderDataCut';
 import { TabPaneBinders } from '../sheet/binder/TabPaneBinders';
 import { TabPaneGpufreq } from '../sheet/gpufreq/TabPaneGpufreqUsage';
-import { TabPaneGpufreqDataCut } from '../sheet/gpufreq/TabPaneGpufreqDataCut';
-import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
-import { TabPaneSampleInstruction } from '../sheet/sample/TabPaneSampleInstruction';
-import { TabPaneSampleInstructionDistributions } from '../sheet/sample/TabPaneSampleInstructionDistributions';
-import { TabPaneSampleInstructionTotalTime } from '../sheet/sample/TabPaneSampleInstructionSelectionTotalTime';
-import { TabPaneSampleInstructionSelection } from '../sheet/sample/TabPaneSampleInstructionSelection';
+import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
+import { TabPaneSampleInstructionDistributions } from '../sheet/bpftrace/TabPaneSampleInstructionDistributions';
+import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSampleInstructionSelectionTotalTime';
+import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
+import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 
 
 export let tabConfig: any = {
@@ -646,11 +642,6 @@ export let tabConfig: any = {
     type: TabPaneFreqUsage,
     require: (param: SelectionParam) => param.threadIds.length > 0,
   },
-  'tabpane-freqdatacut': {
-    title: 'Freq DataCut',
-    type: TabPaneFreqDataCut,
-    require: (param: SelectionParam) => param.threadIds.length > 0,
-  },
   'tab-hisysevents': {
     title: 'HiSysevents',
     type: TabPaneHisysEvents,
@@ -661,19 +652,9 @@ export let tabConfig: any = {
     type: TabPaneHiSysEventSummary,
     require: (param: SelectionParam) => param.hiSysEvents.length > 0,
   },
-  'tabpane-schedswitch': {
-    title: 'Sched Switch',
-    type: TabPaneSchedSwitch,
-    require: (param: SelectionParam) => param.threadIds.length > 0,
-  },
   'tabpane-binders': {
     title: 'Thread Binders',
     type: TabPaneBinders,
-    require: (param: SelectionParam) => param.threadIds.length > 0,
-  },
-  'tabpane-binder-datacut': {
-    title: 'Binder DataCut',
-    type: TabPaneBinderDataCut,
     require: (param: SelectionParam) => param.threadIds.length > 0,
   },
   'tabpane-gpufreq': {
@@ -681,15 +662,11 @@ export let tabConfig: any = {
     type: TabPaneGpufreq,
     require: (param: SelectionParam) => param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true,
   },
-  'tabpane-freqDataCut': {
-    title: 'Gpufreq DataCut',
-    type: TabPaneGpufreqDataCut,
-    require: (param: SelectionParam) => param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true,
-  },
-  'tabpane-states-datacut': {
-    title: 'Freq StatesDataCut',
-    type: TabPaneFreqStatesDataCut,
-    require: (param: SelectionParam) => param.threadIds.length > 0,
+  'tabpane-datacut': {
+    title: 'Data Cut',
+    type: TabPaneDataCut,
+    require: (param: SelectionParam) => param.threadIds.length > 0 ||
+      (param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true),
   },
   'box-sample-instruction-selection': {
     title: 'Data Selection',

@@ -13,12 +13,24 @@
  * limitations under the License.
  */
 
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 import { SpClockChart } from '../../../../src/trace/component/chart/SpClockChart';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 
 const sqlite = require('../../../../src/trace/database/sql/Clock.sql');
 jest.mock('../../../../src/trace/database/sql/Clock.sql');
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -28,7 +40,8 @@ window.ResizeObserver =
   }));
 
 describe('SpClockChart Test', () => {
-  let clockChart = new SpClockChart(new SpChartManager());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let clockChart = new SpClockChart(htmlElement);
 
   let queryClock = sqlite.queryClockData;
   let queryClockData = [

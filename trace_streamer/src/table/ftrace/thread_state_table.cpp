@@ -71,24 +71,6 @@ void ThreadStateTable::FilterByConstraint(FilterConstraints& statefc,
     }
 }
 
-bool ThreadStateTable::CanFilterSorted(const char op, size_t& threadRowCnt) const
-{
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            threadRowCnt = threadRowCnt / log2(threadRowCnt);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-        case SQLITE_INDEX_CONSTRAINT_GE:
-        case SQLITE_INDEX_CONSTRAINT_LE:
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            threadRowCnt = (threadRowCnt >> 1);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
 std::unique_ptr<TableBase::Cursor> ThreadStateTable::CreateCursor()
 {
     return std::make_unique<Cursor>(dataCache_, this);
@@ -142,39 +124,40 @@ void ThreadStateTable::Cursor::HandleIndex(const FilterConstraints& fc, sqlite3_
         const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                indexMapBack->FilterId(c.op, argv[i]);
+                indexMapBack->FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::TS:
-                indexMapBack->FilterTS(c.op, argv[i], threadStateObj_.TimeStampData());
+                indexMapBack->FilterTS(c.op, argv[c.idxInaConstraint], threadStateObj_.TimeStampData());
                 break;
             case Index::INTERNAL_TID:
-                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
                                        threadStateObj_.ItidsData());
                 break;
             case Index::TID:
-                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
                                        threadStateObj_.TidsData());
                 break;
             case Index::PID:
-                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
                                        threadStateObj_.PidsData());
                 break;
             case Index::DUR:
-                indexMapBack->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                indexMapBack->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                        threadStateObj_.DursData());
                 break;
             case Index::CPU:
-                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
                                        threadStateObj_.CpusData());
                 break;
             case Index::STATE:
-                indexMapBack->MixRange(c.op,
-                                       static_cast<DataIndex>(dataCache_->GetThreadStateValue(
-                                           std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[i]))))),
-                                       threadStateObj_.StatesData());
+                indexMapBack->MixRange(
+                    c.op,
+                    static_cast<DataIndex>(dataCache_->GetThreadStateValue(
+                        std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[c.idxInaConstraint]))))),
+                    threadStateObj_.StatesData());
                 break;
             case Index::ARGSETID:
-                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
                                        threadStateObj_.ArgSetsData());
                 break;
             default:

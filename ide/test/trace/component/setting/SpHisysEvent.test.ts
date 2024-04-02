@@ -18,9 +18,17 @@ import { SpHisysEvent } from '../../../../src/trace/component/setting/SpHisysEve
 describe('SpHisysEvent Test', () => {
     let spHisysEvent = new SpHisysEvent();
     it('SpHisysEventTest01', function () {
+        spHisysEvent.startSamp = true;
+        expect(spHisysEvent.startSamp).toBeTruthy();
+    });
+    it('SpHisysEventTest02 ', function () {
+        spHisysEvent.startSamp = false;
         expect(spHisysEvent.startSamp).toBeFalsy();
     });
-    it('SpHisysEventTest02', function () {
-        expect(spHisysEvent.process).toBeFalsy();
+    it('SpHisysEventTest03 ', function () {
+        expect(spHisysEvent.domain).not.toBeUndefined();
+    });
+    it('SpHisysEventTest04 ', function () {
+        expect(spHisysEvent.eventName).not.toBeUndefined();
     });
 })

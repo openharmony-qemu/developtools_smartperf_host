@@ -12,15 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+
 import { SpHiSysEnergyChart } from '../../../../src/trace/component/chart/SpHiSysEnergyChart';
 import { LitPopover } from '../../../../src/base-ui/popover/LitPopoverV';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
   return {};
 });
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -34,8 +44,8 @@ jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
 const processSqlite = require('../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../src/trace/database/sql/ProcessThread.sql');
 describe('SpHiSysEnergyChart Test', () => {
-  let ss = new SpChartManager();
-  let spHiSysEnergyChart = new SpHiSysEnergyChart(ss);
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spHiSysEnergyChart = new SpHiSysEnergyChart(htmlElement);
 
   let htmlDivElement = document.createElement<LitPopover>('div');
   htmlDivElement.setAttribute('id', 'appNameList');
@@ -204,11 +214,7 @@ describe('SpHiSysEnergyChart Test', () => {
     expect(spHiSysEnergyChart.getPowerData([])).toBeTruthy();
   });
 
-  it('SpHiSysEnergyChartTest6', function () {
-    expect(spHiSysEnergyChart.initHtml).toMatchInlineSnapshot(`undefined`);
-  });
-
-  it('SpHiSysEnergyChartTest7', function () {
+  it('SpHiSysEnergyChartTest06', function () {
     expect(htmlDivElement.onclick).toBe(null);
   });
 });

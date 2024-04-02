@@ -175,9 +175,7 @@ void APPStartupFilter::ParserAppStartup()
         } else if (StartWith(nameString, appLaunchCmd_)) {
             UpdateAPPStartupData(i, nameString, APPLICATION_LAUNCHING);
         } else if (StartWith(nameString, uiLaunchCmd_)) {
-            if (!ProcAbilityLaunchData(nameString, i)) {
-                continue;
-            }
+            ProcAbilityLaunchData(nameString, i);
         } else if (StartWith(nameString, uiOnForegroundFirstCmd_) || StartWith(nameString, uiOnForegroundSecCmd_)) {
             ProcForegroundData(i);
         }

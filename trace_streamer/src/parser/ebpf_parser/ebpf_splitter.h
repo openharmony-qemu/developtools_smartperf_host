@@ -29,7 +29,7 @@
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_filters.h"
 #include "unordered_map"
-#include "htrace_file_header.h"
+#include "pbreader_file_header.h"
 #include "common_types.h"
 
 namespace SysTuning {
@@ -38,7 +38,6 @@ using namespace SysTuning::EbpfStdtype;
 class EbpfSplitter {
 public:
     void SetEbpfDataOffset(uint64_t offset);
-    void SetProfilerHeader(const ProfilerTraceFileHeader& header);
     void SetSpliteTimeRange(uint64_t splitFileMinTs, uint64_t splitFileMaxTs);
     bool AddAndSplitEbpfData(std::deque<uint8_t>& dequeBuffer);
     void RecordEbpfProfilerHeader(uint8_t* buffer, uint32_t len)

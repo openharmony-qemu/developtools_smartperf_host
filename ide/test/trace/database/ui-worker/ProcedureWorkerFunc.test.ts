@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
-  return {};
-});
-
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import { func, FuncStruct, FuncRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFunc';
 import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
-import { markAsUntransferable } from 'worker_threads';
+
+
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
 jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });
@@ -29,9 +29,9 @@ describe(' ProcedureWorkerFuncTest', () => {
     funcDataList.push({
       startTime: 10,
       dur: 410,
-      frame: { x: 0, y: 9, width: 10, height: 10 },
+      frame: {x: 0, y: 9, width: 10, height: 10},
     });
-    funcDataList.push({ startTime: 17, dur: 141 });
+    funcDataList.push({startTime: 17, dur: 141});
     let rect = new Rect(0, 30, 30, 30);
     let res = [
       {
@@ -41,7 +41,7 @@ describe(' ProcedureWorkerFuncTest', () => {
         frame: '',
       },
     ];
-    func(funcDataList, res, 1, 100254, 100254, rect, true);
+    func(funcDataList, res, 1, 100254, 100254, rect, true, false);
   });
 
   it('FuncTest02', () => {
@@ -49,12 +49,12 @@ describe(' ProcedureWorkerFuncTest', () => {
     funcDataList.push({
       startTime: 450,
       dur: 140,
-      frame: { x: 0, y: 93, width: 120, height: 320 },
+      frame: {x: 0, y: 93, width: 120, height: 320},
     });
     funcDataList.push({
       startTime: 41,
       dur: 661,
-      frame: { x: 70, y: 9, width: 16, height: 17 },
+      frame: {x: 70, y: 9, width: 16, height: 17},
     });
     let rect = new Rect(30, 50, 53, 13);
     let res = [
@@ -65,7 +65,7 @@ describe(' ProcedureWorkerFuncTest', () => {
         frame: '',
       },
     ];
-    func(funcDataList, res, 1, 100254, 100254, rect, false);
+    func(funcDataList, res, 1, 100254, 100254, rect, false, false);
   });
 
   it('FuncTest03', () => {
@@ -90,6 +90,7 @@ describe(' ProcedureWorkerFuncTest', () => {
   });
 
   it('FuncTest04', () => {
+    let funcRender = new FuncRender();
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
@@ -102,12 +103,28 @@ describe(' ProcedureWorkerFuncTest', () => {
         width: 100,
         height: 100,
       },
+      context: {
+        font: '12px sans-serif',
+        fillStyle: '#a1697d',
+        globalAlpha: 0.6,
+        measureText: jest.fn(() => true),
+        clearRect: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => false),
+        beginPath: jest.fn(() => true),
+        fillRect: jest.fn(() => false),
+        fillText: jest.fn(() => true),
+      },
       startNS: 200,
       value: 50,
       dur: 10,
       funName: 'H:Task PerformTask End: taskId : 1, executeId : 1, performResult : IsCanceled',
     };
+    TraceRow.range = jest.fn(() => true);
+    TraceRow.range.startNS = jest.fn(() => 1);
     expect(FuncStruct.draw(ctx, data)).toBeUndefined();
+    expect(funcRender.renderMainThread(data, new TraceRow<FuncStruct>())).toBeUndefined();
+    expect(funcRender.render(data, [], [])).toBeUndefined();
   });
 
   it('FuncTest07', function () {

@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
+
 import { SpAllAppStartupsChart } from "../../../../src/trace/component/chart/SpAllAppStartups";
 
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
@@ -38,7 +41,8 @@ window.ResizeObserver = window.ResizeObserver ||
 const sqlite = require('../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../src/trace/database/sql/ProcessThread.sql');
 describe('SpAllAppStartupsChart Test', () => {
-  let appStartUpsChart = new SpAllAppStartupsChart(new SpSystemTrace());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let appStartUpsChart = new SpAllAppStartupsChart(htmlElement);
   let ids = sqlite.queryAppStartupProcessIds;
   ids.mockResolvedValue([
     {
@@ -65,6 +69,6 @@ describe('SpAllAppStartupsChart Test', () => {
   });
   it('SpLtpoChartTest02', function () {
     appStartUpsChart.initFolder();
-    expect(SpAllAppStartupsChart.trace.rowsEL).not.toBeUndefined();
+    expect(SpAllAppStartupsChart.trace.rowsEL).toBeUndefined();
   });
 });

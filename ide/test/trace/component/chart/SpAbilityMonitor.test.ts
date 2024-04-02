@@ -12,7 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 import { SpAbilityMonitorChart } from '../../../../src/trace/component/chart/SpAbilityMonitorChart';
 import '../../../../src/trace/component/chart/SpAbilityMonitorChart';
 const sqlit = require('../../../../src/trace/database/sql/Ability.sql');
@@ -151,7 +154,8 @@ describe('SpAbilityMonitorChart Test', () => {
     },
   ]);
   it('SpAbilityMonitorChart01', function () {
-    let spAbilityMonitor = new SpAbilityMonitorChart(SpSystemTrace);
+    let htmlElement: any = document.createElement('sp-system-trace');
+    let spAbilityMonitor = new SpAbilityMonitorChart(htmlElement);
     spAbilityMonitor.init();
     expect(spAbilityMonitor).toBeDefined();
   });

@@ -32,8 +32,8 @@
 #include "filter/slice_filter.h"
 #include "log.h"
 #include "metrics.h"
-#include "parser/bytrace_parser/bytrace_event_parser.h"
-#include "parser/bytrace_parser/bytrace_parser.h"
+#include "parser/ptreader_parser/bytrace_parser/bytrace_event_parser.h"
+#include "parser/ptreader_parser/ptreader_parser.h"
 #include "parting_string.h"
 #include "rpc_server.h"
 #include "string_help.h"
@@ -72,6 +72,16 @@ void ExportStatusToLog(const std::string& dbPath, TraceParserStatus status)
 }
 void ShowHelpInfo(const char* argv)
 {
+    std::string dumpReadableTextPluginName;
+#ifdef ENABLE_NATIVE_HOOK
+    dumpReadableTextPluginName.append("hook.");
+#endif
+#ifdef ENABLE_HIPERF
+    dumpReadableTextPluginName.append("perf.");
+#endif
+#ifdef ENABLE_EBPF
+    dumpReadableTextPluginName.append("ebpf.");
+#endif
     printf(
         "trace analyze tool, it can transfer a bytrace/htrace file into a "
         "SQLite database and save result to a local file trace_streamer.log.\n"
@@ -80,13 +90,14 @@ void ShowHelpInfo(const char* argv)
         "Options:\n"
         " -e    transfer a trace file into a SQLiteBased DB. with -nm to except meta table\n"
         " -c    command line mode.\n"
-        " -D    Specify the directory path with multiple long trace files"
-        " -d    dump perf/hook/ebpf readable text.Default dump file path is src path name + `_ReadableText.txt`\n"
+        " -D    Specify the directory path with multiple long trace files\n"
+        " -d    dump '%s' readable text.Default dump file path is src path name + `_ReadableText.txt`\n"
         " -l <level>, --level=<level>\n"
         "       Show specific level/levels logs with format: level1,level2,level3\n"
         "       Long level string coule be: DEBUG/INFO/WARN/ERROR/FATAL/OFF.\n"
         "       Short level string coule be: D/I/W/E/F/O.\n"
         "       Default level is OFF.\n"
+        " --list Show the support and disable ability.\n"
         " -lnc  long trace no clear the db cache.\n"
         " -o    set dump file path.\n"
         " -s    separate arkts-plugin data, and save it in current dir with default filename.\n"
@@ -97,7 +108,7 @@ void ShowHelpInfo(const char* argv)
         " -nt   close muti thread.\n"
         " -i    show information.\n"
         " -v    show version.\n",
-        argv, argv);
+        argv, argv, dumpReadableTextPluginName.empty() ? "null" : dumpReadableTextPluginName.data());
 }
 void PrintInformation()
 {
@@ -108,7 +119,67 @@ void PrintVersion()
 {
     (void)fprintf(stderr, "version %s\n", g_traceStreamerVersion.c_str());
 }
-
+void PrintDefaultAbilityInfo(std::string& disableInfo)
+{
+#ifndef ENABLE_BYTRACE
+    disableInfo.append("\n\tbytrace");
+#endif
+#ifndef ENABLE_RAWTRACE
+    disableInfo.append("\n\trawtrace");
+#endif
+#ifndef ENABLE_HTRACE
+    disableInfo.append("\n\thtrace");
+#endif
+#ifndef ENABLE_MEMORY
+    disableInfo.append("\n\tmemory");
+#endif
+#ifndef ENABLE_HTDUMP
+    disableInfo.append("\n\thidump");
+#endif
+#ifndef ENABLE_CPUDATA
+    disableInfo.append("\n\tcpudata");
+#endif
+#ifndef ENABLE_NETWORK
+    disableInfo.append("\n\tnetwork");
+#endif
+#ifndef ENABLE_DISKIO
+    disableInfo.append("\n\tdiskio");
+#endif
+#ifndef ENABLE_PROCESS
+    disableInfo.append("\n\tprocess");
+#endif
+    printf(
+        "the default support ability list:\n\thiperf,ebpf,native_hook,hilog,hisysevent,arkts\n\t"
+        "bytrace,rawtrace,htrace,memory,hidump,cpudata,network,diskio,process\n");
+}
+void PrintAbilityInfo()
+{
+    std::string disableInfo;
+#ifndef ENABLE_HIPERF
+    disableInfo.append("\n\thiperf");
+#endif
+#ifndef ENABLE_EBPF
+    disableInfo.append("\n\tebpf");
+#endif
+#ifndef ENABLE_NATIVE_HOOK
+    disableInfo.append("\n\tnative_hook");
+#endif
+#ifndef ENABLE_HILOG
+    disableInfo.append("\n\thilog");
+#endif
+#ifndef ENABLE_HISYSEVENT
+    disableInfo.append("\n\thisysevent");
+#endif
+#ifndef ENABLE_ARKTS
+    disableInfo.append("\n\tarkts");
+#endif
+    PrintDefaultAbilityInfo(disableInfo);
+#ifndef ENABLE_STREAM_EXTEND
+    disableInfo.append("\n\tstream_extend");
+#endif
+    printf("the extend support ability list:\n\tstream_extend\n");
+    printf("the disable ability list:%s\n", disableInfo.empty() ? "\n\tnull" : disableInfo.c_str());
+}
 bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
 {
     auto startTime =
@@ -323,12 +394,19 @@ bool CheckAndSetDumpFileType(TraceExportOption& traceExportOption, int argc, cha
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     auto dumpFileType = std::string(argv[index]);
     if (dumpFileType == "perf") {
+#ifdef ENABLE_HIPERF
         traceExportOption.dumpFileType = DumpFileType::PERF_TYPE;
+#endif
     } else if (dumpFileType == "hook") {
+#ifdef ENABLE_NATIVE_HOOK
         traceExportOption.dumpFileType = DumpFileType::NATIVE_HOOK_TYPE;
+#endif
     } else if (dumpFileType == "ebpf") {
+#ifdef ENABLE_EBPF
         traceExportOption.dumpFileType = DumpFileType::EBPF_TYPE;
-    } else {
+#endif
+    }
+    if (traceExportOption.dumpFileType == DumpFileType::UNKONW_TYPE) {
         ShowHelpInfo(argv[0]);
         return false;
     }
@@ -354,6 +432,9 @@ bool ParseOtherArgs(int argc, char** argv, TraceExportOption& traceExportOption,
     } else if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "--level")) {
         TS_CHECK_TRUE_RET(CheckAndSetLogLevel(argc, argv, i), false);
         return true;
+    } else if (!strcmp(argv[i], "--list")) {
+        PrintAbilityInfo();
+        return false;
     } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--s")) {
         traceExportOption.separateFile = true;
         return true;
@@ -568,7 +649,7 @@ void Init(TraceStreamerSelector& ts, const TraceExportOption& traceExportOption)
     if (traceExportOption.closeMutiThread) {
         ts.GetTraceDataCache()->supportThread_ = false;
     }
-    if (traceExportOption.parserThreadNum != INVALID_UINT8 && traceExportOption.parserThreadNum > PARSER_THREAD_MIN &&
+    if (traceExportOption.parserThreadNum != INVALID_UINT8 && traceExportOption.parserThreadNum >= PARSER_THREAD_MIN &&
         traceExportOption.parserThreadNum <= PARSER_THREAD_MAX) {
         ts.GetTraceDataCache()->parserThreadNum_ = traceExportOption.parserThreadNum;
     }

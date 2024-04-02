@@ -21,7 +21,7 @@
 #include <set>
 #include "common_types.h"
 #include "event_parser_base.h"
-#include "htrace_file_header.h"
+#include "pbreader_file_header.h"
 #include "htrace_plugin_time_parser.h"
 #include "log.h"
 #if is_mingw

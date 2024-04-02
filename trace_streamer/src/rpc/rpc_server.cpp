@@ -22,9 +22,9 @@
 #include <filesystem>
 #endif
 #include "common_types.h"
-#include "bytrace_hilog_parser.h"
-#include "bytrace_parser.h"
-#include "htrace_parser.h"
+#include "hilog_parser/ptreader_hilog_parser.h"
+#include "ptreader_parser.h"
+#include "pbreader_parser.h"
 #include "json.hpp"
 #include "log.h"
 #include "rawtrace_parser.h"
@@ -266,7 +266,7 @@ bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, in
     int32_t lastPos = ts_->GetBytraceData()->MaxSplitPos();
     TS_CHECK_TRUE(firstPos != INVALID_INT32 && lastPos != INVALID_INT32 && lastPos >= firstPos, false,
                   "firstPos(%d) or lastPos(%d) is INVALID_INT32!", firstPos, lastPos);
-    const auto& mTraceDataBytrace = ts_->GetBytraceData()->GetTraceDataBytrace();
+    const auto& mTraceDataBytrace = ts_->GetBytraceData()->GetPtreaderSplitData();
     // for 10% data
     int32_t tenPercentDataNum = 0.1 * (lastPos - firstPos);
     firstPos -= tenPercentDataNum;
@@ -283,7 +283,7 @@ bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, in
         result += SIZE + std::to_string(mTraceDataBytrace[index].second);
         result += "},";
     }
-    if (result != VALUE && !ts_->GetBytraceData()->GetTraceDataBytrace().empty()) {
+    if (result != VALUE && !ts_->GetBytraceData()->GetPtreaderSplitData().empty()) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, isFinish);
@@ -294,6 +294,7 @@ bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, in
     return true;
 }
 
+#ifdef ENABLE_RAWTRACE
 bool RpcServer::SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish)
 {
     const auto& mTraceRawCpuData = ts_->GetRawtraceData()->GetRawtraceCpuData();
@@ -322,6 +323,7 @@ bool RpcServer::SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, i
             mTraceRawCommData.size(), result.data());
     return true;
 }
+#endif
 bool RpcServer::ParseSplitFileData(const uint8_t* data,
                                    size_t len,
                                    int32_t isFinish,
@@ -339,10 +341,11 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
          ts_->GetFileType() == TRACE_FILETYPE_HI_SYSEVENT)) {
         SendBytraceSplitFileData(splitFileCallBack, 0);
         splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
-        ts_->GetBytraceData()->ClearByTraceData();
+        ts_->GetBytraceData()->ClearPtreaderSplitData();
         ts_->GetTraceDataCache()->isSplitFile_ = false;
         return true;
     }
+#ifdef ENABLE_RAWTRACE
     if (ts_->GetFileType() == TRACE_FILETYPE_RAW_TRACE) {
         SendRawtraceSplitFileData(splitFileCallBack, 0);
         splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
@@ -350,15 +353,20 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
         ts_->GetTraceDataCache()->isSplitFile_ = false;
         return true;
     }
+#endif
     if (ts_->GetFileType() == TRACE_FILETYPE_H_TRACE) {
         ProcHtraceSplitResult(splitFileCallBack);
     }
+#ifdef ENABLE_HIPERF
     if (ts_->GetFileType() == TRACE_FILETYPE_PERF) {
         ProcPerfSplitResult(splitFileCallBack, true);
     }
+#endif
     splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
-    ts_->GetHtraceData()->ClearTraceDataHtrace();
+    ts_->GetHtraceData()->ClearPbreaderSplitData();
+#ifdef ENABLE_ARKTS
     ts_->GetHtraceData()->GetJsMemoryData()->ClearArkTsSplitFileData();
+#endif
     ts_->GetTraceDataCache()->isSplitFile_ = false;
     return true;
 }
@@ -366,8 +374,10 @@ void RpcServer::ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack)
 {
     uint64_t dataSize = 0;
     std::string result = VALUE;
+#ifdef ENABLE_NATIVE_HOOK
     ts_->GetHtraceData()->ClearNativehookData();
-    for (const auto& itemHtrace : ts_->GetHtraceData()->GetTraceDataHtrace()) {
+#endif
+    for (const auto& itemHtrace : ts_->GetHtraceData()->GetPbreaderSplitData()) {
         dataSize += itemHtrace.second;
         result += OFFSET + std::to_string(itemHtrace.first);
         result += SIZE + std::to_string(itemHtrace.second);
@@ -375,32 +385,45 @@ void RpcServer::ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack)
     }
     auto dataSourceType = ts_->GetHtraceData()->GetDataSourceType();
     auto profilerHeader = ts_->GetHtraceData()->GetProfilerHeader();
+#ifdef ENABLE_ARKTS
     if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
         dataSize +=
             ts_->GetHtraceData()->GetArkTsConfigData().size() + ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSize();
     }
+#endif
+#ifdef ENABLE_NATIVE_HOOK
     for (auto& commProto : ts_->GetTraceDataCache()->HookCommProtos()) {
         dataSize += (sizeof(uint32_t) + commProto->size());
     }
+#endif
     // Send Header
     profilerHeader.data.length = PACKET_HEADER_LENGTH + dataSize;
     std::string buffer(reinterpret_cast<char*>(&profilerHeader), sizeof(profilerHeader));
     splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
     // Send Datas
+#ifdef ENABLE_NATIVE_HOOK
     ProcHookCommSplitResult(splitFileCallBack);
-    if (result != VALUE && !ts_->GetHtraceData()->GetTraceDataHtrace().empty()) {
+#endif
+    if (result != VALUE && !ts_->GetHtraceData()->GetPbreaderSplitData().empty()) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
     }
+#ifdef ENABLE_ARKTS
     if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
         splitFileCallBack(ts_->GetHtraceData()->GetArkTsConfigData() +
                               ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSplitFileData(),
                           (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
     }
+#endif
+#ifdef ENABLE_HIPERF
     ProcPerfSplitResult(splitFileCallBack, true);
+#endif
+#ifdef ENABLE_EBPF
     ProcEbpfSplitResult(splitFileCallBack, true);
+#endif
 }
+#ifdef ENABLE_NATIVE_HOOK
 void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
 {
     std::string lenBuffer(sizeof(uint32_t), 0);
@@ -412,6 +435,8 @@ void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
     }
     ts_->GetTraceDataCache()->ClearHookCommProtos();
 }
+#endif
+#ifdef ENABLE_EBPF
 void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
     auto ebpfSplitResult = ts_->GetHtraceData()->GetEbpfDataParser()->GetEbpfSplitResult();
@@ -438,6 +463,8 @@ void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool is
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
     }
 }
+#endif
+#ifdef ENABLE_HIPERF
 void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
     auto perfSplitResult = ts_->GetHtraceData()->GetPerfSplitResult();
@@ -465,6 +492,7 @@ void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool is
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
     }
 }
+#endif
 
 int32_t RpcServer::UpdateTraceTime(const uint8_t* data, int32_t len)
 {

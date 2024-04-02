@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 import { VmTrackerChart } from '../../../../src/trace/component/chart/SpVmTrackerChart';
 import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 
@@ -122,8 +125,9 @@ describe('SpVmTrackerChart Test', () => {
     },
   ];
   gpuWindowType.mockResolvedValue(windowsType);
-  let manager = new SpChartManager();
-  let spVmTrackerChart = new VmTrackerChart(manager);
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let manager = new SpChartManager(htmlElement);
+  let spVmTrackerChart = new VmTrackerChart(htmlElement);
   let memoryData = [
     {
       startNs: 0,

@@ -113,10 +113,10 @@ int32_t FileSystemSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         const auto& c = fileSystemSampleCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::TYPE:
-                indexMap_->MixRange(c.op, static_cast<uint16_t>(sqlite3_value_int(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint16_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
                                     fileSystemSampleTableObj_.Types());
                 break;
             default:

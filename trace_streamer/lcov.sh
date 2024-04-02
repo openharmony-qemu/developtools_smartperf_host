@@ -13,6 +13,6 @@
 # limitations under the License.
 set -e
 rm -rf out/test
-./test.sh
+./test.sh $1 $2
 ./lcov_operator.sh
 rm ./test.info

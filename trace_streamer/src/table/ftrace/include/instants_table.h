@@ -38,8 +38,6 @@ private:
                             size_t instantsrowCount,
                             uint32_t instantscurrenti) override;
 
-    bool CanFilterSorted(const char op, size_t& rowCount) const;
-
     class Cursor : public TableBase::Cursor {
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);

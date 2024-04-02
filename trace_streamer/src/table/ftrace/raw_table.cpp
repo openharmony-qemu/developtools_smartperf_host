@@ -94,18 +94,19 @@ int32_t RawTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         const auto& c = RawTableCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::NAME:
-                indexMap_->MixRange(
-                    c.op, GetNameIndex(std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[i])))),
-                    rawObj_.NameData());
+                indexMap_->MixRange(c.op,
+                                    GetNameIndex(std::string(
+                                        reinterpret_cast<const char*>(sqlite3_value_text(argv[c.idxInaConstraint])))),
+                                    rawObj_.NameData());
                 break;
             case Index::TS:
-                FilterTS(c.op, argv[i], rawObj_.TimeStampData());
+                FilterTS(c.op, argv[c.idxInaConstraint], rawObj_.TimeStampData());
                 break;
             case Index::INTERNAL_TID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
                                     rawObj_.InternalTidsData());
                 break;
             default:

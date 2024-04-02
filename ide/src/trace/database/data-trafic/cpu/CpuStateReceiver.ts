@@ -12,8 +12,8 @@
 // limitations under the License.
 
 import { TraficEnum } from '../utils/QueryEnum';
-import {filterDataByGroup} from "../utils/DataFilter";
-import {cpuStateList} from "../utils/AllMemoryCache";
+import { filterDataByGroup } from '../utils/DataFilter';
+import { cpuStateList } from '../utils/AllMemoryCache';
 
 export const chartCpuStateDataSql = (args: any): string => {
   return `
@@ -48,15 +48,13 @@ export const chartCpuStateDataSqlMem = (args: any): string => {
       `;
 };
 
-
-
 export function cpuStateReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
     let res: any[], list: any[];
     if (!cpuStateList.has(data.params.filterId)) {
       list = proc(chartCpuStateDataSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {
-        if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined){
+        if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined) {
           list[i].dur = data.params.recordEndNS - data.params.recordStartNS - list[i].startTs;
         }
       }
@@ -64,16 +62,24 @@ export function cpuStateReceiver(data: any, proc: Function): void {
     } else {
       list = cpuStateList.get(data.params.filterId) || [];
     }
-    res = filterDataByGroup(list || [], 'startTs', 'dur', data.params.startNS, data.params.endNS, data.params.width, "value");
-    arrayBufferHandler(data, res,true);
+    res = filterDataByGroup(
+      list || [],
+      'startTs',
+      'dur',
+      data.params.startNS,
+      data.params.endNS,
+      data.params.width,
+      'value'
+    );
+    arrayBufferHandler(data, res, true);
   } else {
     let sql = chartCpuStateDataSql(data.params);
     let res = proc(sql);
-    arrayBufferHandler(data, res,data.params.trafic !== TraficEnum.SharedArrayBuffer);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-let heights = [4, 12, 21, 30];
+let heights = [4, 8, 12, 16, 20, 24, 28, 32];
 
 function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs);

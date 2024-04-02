@@ -13,7 +13,7 @@
 # limitations under the License.
 #./build.sh test clean
 set -e
-./build.sh test
+./build.sh test $1 $2
 rm -rf out/test/*.xml
 rm -rf out/test_debug/*.xml
 find out/test -name "*.gcda" -print0 | xargs -0 rm -rf

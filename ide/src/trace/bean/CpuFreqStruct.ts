@@ -26,65 +26,50 @@ export class CpuFreqStruct extends BaseStruct {
   startNS: number | undefined;
   dur: number | undefined; // Self-supplementing, the database is not returned
 
-  static draw(freqBeanStructCanvasCtx: any, freqBeanStruct: CpuFreqStruct) {
-    if (freqBeanStruct.frame) {
-      let freqBeanStructWidth = freqBeanStruct.frame.width || 0;
-      let freqBeanStructIndex = freqBeanStruct.cpu || 0;
-      freqBeanStructIndex += 2;
-      freqBeanStructCanvasCtx.fillStyle = ColorUtils.colorForTid(freqBeanStructIndex);
-      freqBeanStructCanvasCtx.strokeStyle = ColorUtils.colorForTid(freqBeanStructIndex);
-      if (freqBeanStruct.startNS === CpuFreqStruct.hoverCpuFreqStruct?.startNS) {
-        freqBeanStructCanvasCtx.lineWidth = 1;
-        freqBeanStructCanvasCtx.globalAlpha = 0.6;
-        let freqBeanStructDrawHeight: number = Math.floor(
-          ((freqBeanStruct.value || 0) * (freqBeanStruct.frame.height || 0) * 1.0) / CpuFreqStruct.maxFreq
-        );
-        freqBeanStructCanvasCtx.fillRect(
-          freqBeanStruct.frame.x,
-          freqBeanStruct.frame.y + freqBeanStruct.frame.height - freqBeanStructDrawHeight,
-          freqBeanStructWidth,
-          freqBeanStructDrawHeight
-        );
-        freqBeanStructCanvasCtx.beginPath();
-        freqBeanStructCanvasCtx.arc(
-          freqBeanStruct.frame.x,
-          freqBeanStruct.frame.y + freqBeanStruct.frame.height - freqBeanStructDrawHeight,
-          3,
-          0,
-          2 * Math.PI,
-          true
-        );
-        freqBeanStructCanvasCtx.fill();
-        freqBeanStructCanvasCtx.globalAlpha = 1.0;
-        freqBeanStructCanvasCtx.stroke();
-        freqBeanStructCanvasCtx.beginPath();
-        freqBeanStructCanvasCtx.moveTo(
-          freqBeanStruct.frame.x + 3,
-          freqBeanStruct.frame.y + freqBeanStruct.frame.height - freqBeanStructDrawHeight
-        );
-        freqBeanStructCanvasCtx.lineWidth = 3;
-        freqBeanStructCanvasCtx.lineTo(
-          freqBeanStruct.frame.x + freqBeanStructWidth,
-          freqBeanStruct.frame.y + freqBeanStruct.frame.height - freqBeanStructDrawHeight
-        );
-        freqBeanStructCanvasCtx.stroke();
-      } else {
-        freqBeanStructCanvasCtx.globalAlpha = 0.6;
-        freqBeanStructCanvasCtx.lineWidth = 1;
+  static draw(freqCtx: any, freqData: CpuFreqStruct): void {
+    if (freqData.frame) {
+      let freqWidth = freqData.frame.width || 0;
+      let freqIndex = freqData.cpu || 0;
+      freqIndex += 2;
+      freqCtx.fillStyle = ColorUtils.colorForTid(freqIndex);
+      freqCtx.strokeStyle = ColorUtils.colorForTid(freqIndex);
+      if (freqData.startNS === CpuFreqStruct.hoverCpuFreqStruct?.startNS) {
+        freqCtx.lineWidth = 1;
+        freqCtx.globalAlpha = 0.6;
         let drawHeight: number = Math.floor(
-          ((freqBeanStruct.value || 0) * (freqBeanStruct.frame.height || 0)) / CpuFreqStruct.maxFreq
+          ((freqData.value || 0) * (freqData.frame.height || 0) * 1.0) / CpuFreqStruct.maxFreq
         );
-        freqBeanStructCanvasCtx.fillRect(
-          freqBeanStruct.frame.x,
-          freqBeanStruct.frame.y + freqBeanStruct.frame.height - drawHeight,
-          freqBeanStructWidth,
+        freqCtx.fillRect(
+          freqData.frame.x,
+          freqData.frame.y + freqData.frame.height - drawHeight,
+          freqWidth,
+          drawHeight
+        );
+        freqCtx.beginPath();
+        freqCtx.arc(freqData.frame.x, freqData.frame.y + freqData.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        freqCtx.fill();
+        freqCtx.globalAlpha = 1.0;
+        freqCtx.stroke();
+        freqCtx.beginPath();
+        freqCtx.moveTo(freqData.frame.x + 3, freqData.frame.y + freqData.frame.height - drawHeight);
+        freqCtx.lineWidth = 3;
+        freqCtx.lineTo(freqData.frame.x + freqWidth, freqData.frame.y + freqData.frame.height - drawHeight);
+        freqCtx.stroke();
+      } else {
+        freqCtx.globalAlpha = 0.6;
+        freqCtx.lineWidth = 1;
+        let drawHeight: number = Math.floor(
+          ((freqData.value || 0) * (freqData.frame.height || 0)) / CpuFreqStruct.maxFreq
+        );
+        freqCtx.fillRect(
+          freqData.frame.x,
+          freqData.frame.y + freqData.frame.height - drawHeight,
+          freqWidth,
           drawHeight
         );
       }
     }
-    freqBeanStructCanvasCtx.globalAlpha = 1.0;
-    freqBeanStructCanvasCtx.lineWidth = 1;
+    freqCtx.globalAlpha = 1.0;
+    freqCtx.lineWidth = 1;
   }
 }
-
-const textPadding = 2;

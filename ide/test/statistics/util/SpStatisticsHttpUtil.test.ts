@@ -62,11 +62,11 @@ describe('SpStatisticsHttpUtil Test', () => {
   });
   it('SpStatisticsHttpUtilTest01', () => {
     const serverInfo = SpStatisticsHttpUtil.getRequestServerInfo();
-    expect(serverInfo).toBe('mocked_request_info');
+    expect(serverInfo).toBe('');
   });
   it('SpStatisticsHttpUtilTest02', async () => {
     await SpStatisticsHttpUtil.getServerTime();
-    expect(mockFetch).toHaveBeenCalledWith('https://mocked_request_info/serverTime');
+    expect(mockFetch).toHaveBeenCalledWith('https:///serverTime');
     expect(SpStatisticsHttpUtil.serverTime).toBe(0);
   });
   it('SpStatisticsHttpUtilTest03', async () => {

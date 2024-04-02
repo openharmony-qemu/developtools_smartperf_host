@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 
-
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 import { SpLtpoChart } from '../../../../src/trace/component/chart/SpLTPO';
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+
 import { LtpoStruct } from "../../../../src/trace/database/ui-worker/ProcedureWorkerLTPO";
 import { Rect } from "../../../../src/trace/database/ui-worker/ProcedureWorkerCommon";
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
@@ -41,7 +43,8 @@ const sqlit = require('../../../../src/trace/database/sql/Ltpo.sql');
 jest.mock('../../../../src/trace/database/sql/Ltpo.sql');
 
 describe('SpLtpoChart Test', () => {
-  let ltPoChart = new SpLtpoChart(new SpSystemTrace());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let ltPoChart = new SpLtpoChart(htmlElement);
   let fanceNameList = sqlit.queryFanceNameList;
   fanceNameList.mockResolvedValue([
     {
@@ -56,7 +59,7 @@ describe('SpLtpoChart Test', () => {
     {
       ts: 1224,
       dur: 2445,
-      name: 'Layers rate'
+      name: 'Layers,ra:te'
     }
   ]);
 
@@ -92,6 +95,30 @@ describe('SpLtpoChart Test', () => {
       ts: 124,
       dur: 445,
       name: 'Present Fence'
+    }
+  ]);
+  let rSNowTimeListInfo = sqlit.queryRSNowTimeList;
+  rSNowTimeListInfo.mockResolvedValue([
+    {
+      ts: 124,
+      dur: 445,
+      name: 'Present Fence ffdf'
+    }
+  ]);
+  let signaledListInfo = sqlit.querySignaledList;
+  signaledListInfo.mockResolvedValue([
+    {
+      ts: 124,
+      dur: 445,
+      name: 'Present Fence ffdf'
+    }
+  ]);
+  let skipDataListInfo = sqlit.querySkipDataList;
+  skipDataListInfo.mockResolvedValue([
+    {
+      ts: 124,
+      dur: 445,
+      name: 'Present Fence ffdf'
     }
   ]);
   it('SpLtpoChartTest01', function () {

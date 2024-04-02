@@ -44,7 +44,7 @@ describe('ProcessActualDataSender Test', () => {
       ts: 24350,
       type: 0
     }
-  it('ActualDataSenderTest01', () => {
+  it('ActualDataSenderTest01', async () => {
     threadPool.submitProto = jest.fn((query: number, params: any, callback: Function) => {
       callback(actualData, 1, true);
     });

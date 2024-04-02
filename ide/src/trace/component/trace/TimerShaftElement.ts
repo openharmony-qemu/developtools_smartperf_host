@@ -142,7 +142,7 @@ export class TimerShaftElement extends BaseElement {
   public timerShaftEL: TimerShaftElement | null | undefined;
   public rowsPaneEL: HTMLDivElement | null | undefined;
   _checkExpand: boolean = false; //是否展开
-  _usageFoldHeight: number = 56.25;//初始化时折叠的负载区高度
+  _usageFoldHeight: number = 56.25; //初始化时折叠的负载区高度
   usageExpandHeight: number = 75; //给定的展开的负载区高度
   _cpuUsageCount: Array<{ cpu: number; ro: number; rate: number }> = [];
 
@@ -240,12 +240,12 @@ export class TimerShaftElement extends BaseElement {
     //---------------每次导入trace时触发渲染-----------------
     if (this._rangeRuler && this._sportRuler) {
       this.canvas!.width = this.canvas!.clientWidth || 0;
-      sessionStorage.setItem('foldHeight', String(56.25))
+      sessionStorage.setItem('foldHeight', String(56.25));
       if (this._checkExpand && this._checkExpand === true) {
         this._checkExpand = false;
-        sessionStorage.setItem('expand', String(this._checkExpand))
+        sessionStorage.setItem('expand', String(this._checkExpand));
       }
-      sessionStorage.setItem('expand', String(this._checkExpand))
+      sessionStorage.setItem('expand', String(this._checkExpand));
       this.usageEL!.innerHTML = '';
       this.usageEL!.style.height = `${100 - 56.25}px`;
       this.usageEL!.style.lineHeight = `${100 - 56.25}px`;
@@ -253,11 +253,11 @@ export class TimerShaftElement extends BaseElement {
       this.canvas!.style.height = `${146 - 56.25}px`;
       this.canvas!.height = 146 - 56.25;
       this.rowsPaneEL!.style.maxHeight = `100%`;
-      this._rangeRuler.frame.height = 18.75;
       this._sportRuler.frame.y = 43.75;
+
       this.render();
       this._checkExpand = true;
-      this._cpuUsageCount = []//清空判断数据
+      this._cpuUsageCount = []; //清空判断数据
     }
   }
 
@@ -291,8 +291,8 @@ export class TimerShaftElement extends BaseElement {
         this._usageFoldHeight = this.usageExpandHeight - (this.usageExpandHeight / this._rangeRuler.cpuCountData!) * 2;
         this.canvas!.width = this.canvas!.clientWidth || 0;
         if (this._checkExpand) {
-          sessionStorage.setItem('expand', String(this._checkExpand))
-          sessionStorage.setItem('foldHeight', String(this._usageFoldHeight))
+          sessionStorage.setItem('expand', String(this._checkExpand));
+          sessionStorage.setItem('foldHeight', String(this._usageFoldHeight));
           this.usageEL!.style.height = '100px';
           this.usageEL!.style.lineHeight = '100px';
           this.timerShaftEL!.style.height = `${height + 2}px`;
@@ -303,8 +303,8 @@ export class TimerShaftElement extends BaseElement {
           this.render();
           this._checkExpand = false;
         } else {
-          sessionStorage.setItem('expand', String(this._checkExpand))
-          sessionStorage.setItem('foldHeight', String(this._usageFoldHeight))
+          sessionStorage.setItem('expand', String(this._checkExpand));
+          sessionStorage.setItem('foldHeight', String(this._usageFoldHeight));
           this.usageEL!.style.height = `${100 - this._usageFoldHeight}px`;
           this.usageEL!.style.lineHeight = `${100 - this._usageFoldHeight}px`;
           this.timerShaftEL!.style.height = `${height - this._usageFoldHeight + 2}px`;
@@ -483,7 +483,7 @@ export class TimerShaftElement extends BaseElement {
     this._rangeRuler?.keyUp(ev);
   };
 
-  disconnectedCallback(): void { }
+  disconnectedCallback(): void {}
 
   firstRender = true;
 

@@ -103,10 +103,10 @@ int32_t NativeHookStatisticTable::Cursor::Filter(const FilterConstraints& fc, sq
         const auto& c = nativeHookStatisticCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::CALLCHAIN_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     nativeHookStatisticInfoObj_.CallChainIds());
                 break;
             default:

@@ -136,7 +136,7 @@ export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, row: 
                 `trace-row[row-id='frameTime'][row-type='janks']`
               );
             } else {
-              endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-id='${data.pid}'][folder]`);
+              endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-type='process'][row-id='${data.pid}'][folder]`);
             }
             sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data);
           });

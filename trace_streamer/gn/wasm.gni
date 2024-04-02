@@ -82,7 +82,7 @@ template("wasm_lib") {
     ]
   } else {
     _target_ldflags += [
-      #      "-g2",  # Required for getting C++ symbol names.
+      # "-g2",  # Required for getting C++ symbol names.
       "-O3",
       #  "-s",
       #  "ASSERTIONS=1",

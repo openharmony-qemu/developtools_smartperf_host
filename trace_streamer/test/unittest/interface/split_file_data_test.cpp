@@ -20,9 +20,9 @@
 #include <string>
 #include <unistd.h>
 
-#include "bytrace_parser.h"
+#include "ptreader_parser.h"
 #include "file.h"
-#include "htrace_parser.h"
+#include "pbreader_parser.h"
 #include "trace_streamer_selector.h"
 
 using namespace testing::ext;
@@ -78,7 +78,7 @@ protected:
 
         auto splitResult = ta->GetHtraceData()->GetEbpfDataParser()->GetEbpfSplitResult();
         uint64_t headDataSize = 0;
-        for (const auto& itemHtrace : ta->GetHtraceData()->GetTraceDataHtrace()) {
+        for (const auto& itemHtrace : ta->GetHtraceData()->GetPbreaderSplitData()) {
             headDataSize += itemHtrace.second;
         }
         auto profilerHeader = ta->GetHtraceData()->GetProfilerHeader();
@@ -93,7 +93,7 @@ protected:
         std::unique_ptr<uint8_t[]> combinedBuf(new uint8_t[dataSize + PROFILE_HEADER + headDataSize]);
         std::copy(bufferData.begin(), bufferData.end(), combinedBuf.get());
         std::streamsize currentOffset = PROFILE_HEADER;
-        for (const auto& itemHtrace : ta->GetHtraceData()->GetTraceDataHtrace()) {
+        for (const auto& itemHtrace : ta->GetHtraceData()->GetPbreaderSplitData()) {
             inputFile.seekg(itemHtrace.first);
             inputFile.read(reinterpret_cast<char*>(combinedBuf.get()) + currentOffset, itemHtrace.second);
             currentOffset += itemHtrace.second;
@@ -141,7 +141,7 @@ HWTEST_F(SplitFileDataTest, SplitFileDataByHtraceTest, TestSize.Level1)
         uint64_t dataSize = 0;
         auto profilerHeader = ta->GetHtraceData()->GetProfilerHeader();
 
-        for (const auto& itemHtrace : ta->GetHtraceData()->GetTraceDataHtrace()) {
+        for (const auto& itemHtrace : ta->GetHtraceData()->GetPbreaderSplitData()) {
             dataSize += itemHtrace.second;
         }
         profilerHeader.data.length = PROFILE_HEADER + dataSize;
@@ -149,7 +149,7 @@ HWTEST_F(SplitFileDataTest, SplitFileDataByHtraceTest, TestSize.Level1)
         std::unique_ptr<uint8_t[]> combinedBuf = std::make_unique<uint8_t[]>(dataSize + PROFILE_HEADER);
         std::copy(buffer.begin(), buffer.end(), combinedBuf.get());
         std::streamsize currentOffset = PROFILE_HEADER;
-        for (const auto& itemHtrace : ta->GetHtraceData()->GetTraceDataHtrace()) {
+        for (const auto& itemHtrace : ta->GetHtraceData()->GetPbreaderSplitData()) {
             inputFile.seekg(itemHtrace.first);
             inputFile.read(reinterpret_cast<char*>(combinedBuf.get()) + currentOffset, itemHtrace.second);
             currentOffset += itemHtrace.second;
@@ -182,7 +182,7 @@ HWTEST_F(SplitFileDataTest, SplitFileDataBySystraceTest, TestSize.Level1)
 
         std::unique_ptr<TraceStreamerSelector> ts = std::make_unique<TraceStreamerSelector>();
         EXPECT_TRUE(
-            ts->ParseTraceDataSegment(std::move(dataBuf_), ta->GetBytraceData()->GetTraceDataBytrace().size(), 1, 1));
+            ts->ParseTraceDataSegment(std::move(dataBuf_), ta->GetBytraceData()->GetPtreaderSplitData().size(), 1, 1));
     } else {
         EXPECT_TRUE(false);
     }

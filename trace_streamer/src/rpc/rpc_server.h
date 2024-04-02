@@ -55,8 +55,12 @@ public:
     int32_t WasmExportDatabase(ResultCallBack resultCallBack);
     bool ParserConfig(std::string parserConfigJson);
     bool SplitFile(std::string timeSnaps);
+#ifdef ENABLE_NATIVE_HOOK
     void ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack);
+#endif
+#ifdef ENABLE_EBPF
     void ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
+#endif
     bool GetLongTraceTimeSnap(std::string dataString);
     bool LongTraceSplitFile(const uint8_t* data,
                             size_t len,
@@ -70,7 +74,9 @@ public:
     };
     bool DetermineSystrace(const uint8_t* data, size_t len);
 
+#ifdef ENABLE_RAWTRACE
     bool SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish);
+#endif
 #ifdef IS_WASM
     bool SaveAndParseFfrtData(const uint8_t* data, size_t len, ResultCallBack resultCallBack, bool isFinish);
     bool ReadAndParseData(const std::string& filePath);
@@ -88,7 +94,9 @@ public:
     std::map<int32_t, std::string> g_thirdPartyConfig;
 
 private:
+#ifdef ENABLE_HIPERF
     void ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
+#endif
     void ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack);
     bool SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish);
 

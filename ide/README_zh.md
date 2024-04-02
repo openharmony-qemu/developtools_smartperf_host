@@ -65,7 +65,7 @@
 ```
 ![](./src/figures/deploy/yum_install_go.png)
 
-- windows 系统下 从 https://golang.google.cn/dl/ 下载安装包， 一路next 完成 安装即可
+- windows 系统下 从官网下载安装包， 一路next 完成 安装即可
            
 - 安装完成后 命令行运行验证是否安装成功
 

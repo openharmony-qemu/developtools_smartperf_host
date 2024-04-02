@@ -23,11 +23,12 @@ jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });
 describe('ProcedureWorkerLTPO Test', () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2;
+  canvas.height = 2;
+  const ctx = canvas.getContext('2d');
   it('ProcedureWorkerLTPOTest01 ', function () {
-    const canvas = document.createElement('canvas');
-    canvas.width = 2;
-    canvas.height = 2;
-    const ctx = canvas.getContext('2d');
+
     const data = {
       frame: {
         x: 10,
@@ -41,6 +42,7 @@ describe('ProcedureWorkerLTPO Test', () => {
   it('ProcedureWorkerLTPOTest02 ', function () {
     let ltpoRender = new LtpoRender();
     let  ltpoReq = {
+      ltpoContext: ctx,
       lazyRefresh: true,
       type: '',
       startNS: 5,

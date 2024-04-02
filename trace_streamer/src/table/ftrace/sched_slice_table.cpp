@@ -71,24 +71,6 @@ void SchedSliceTable::FilterByConstraint(FilterConstraints& schedfc,
     }
 }
 
-bool SchedSliceTable::CanFilterSorted(const char op, size_t& schedRowCnt) const
-{
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            schedRowCnt = schedRowCnt / log2(schedRowCnt);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-        case SQLITE_INDEX_CONSTRAINT_GE:
-        case SQLITE_INDEX_CONSTRAINT_LE:
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            schedRowCnt = (schedRowCnt >> 1);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
 std::unique_ptr<TableBase::Cursor> SchedSliceTable::CreateCursor()
 {
     return std::make_unique<Cursor>(dataCache_, this);
@@ -118,24 +100,25 @@ int32_t SchedSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         const auto& c = schedSliceTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::TS:
-                FilterTS(c.op, argv[i], schedSliceObj_.TimeStampData());
+                FilterTS(c.op, argv[c.idxInaConstraint], schedSliceObj_.TimeStampData());
                 break;
             case Index::CPU:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), schedSliceObj_.CpusData());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
+                                    schedSliceObj_.CpusData());
                 break;
             case Index::INTERNAL_TID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
                                     schedSliceObj_.InternalTidsData());
                 break;
             case Index::INTERNAL_PID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
                                     schedSliceObj_.InternalPidsData());
                 break;
             case Index::DUR:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     schedSliceObj_.DursData());
                 break;
             default:

@@ -21,8 +21,8 @@ import { FuncStruct } from '../../../../database/ui-worker/ProcedureWorkerFunc';
 import { BaseStruct } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
-import {queryTaskListByExecuteTaskIds, queryTaskPoolTotalNum} from "../../../../database/sql/SqlLite.sql";
-import {queryConcurrencyTask} from "../../../../database/sql/Perf.sql";
+import { queryTaskListByExecuteTaskIds, queryTaskPoolTotalNum } from '../../../../database/sql/SqlLite.sql';
+import { queryConcurrencyTask } from '../../../../database/sql/Perf.sql';
 
 const ALLOCATION_TASK = 'H:Task Allocation:';
 const PERFORM_TASK = 'H:Task Perform:';
@@ -64,6 +64,7 @@ export class TabPaneTaskFrames extends BaseElement {
       this.taskFramesTbl!!.recycleDataSource = [];
       this.taskFramesSource = [];
       this.taskFramesGroupSource = [];
+      this.progressEL!.loading = false;
       return;
     } else {
       let allocationTime = 0;
@@ -136,7 +137,7 @@ export class TabPaneTaskFrames extends BaseElement {
     task.taskPriority = Priority[priorityId];
     task.taskST = this.getMsTime(sTime);
     task.taskET = this.getMsTime(eTime);
-    task.taskRT = this.getMsTime(rTime);
+    task.taskRT = rTime > 0 ? this.getMsTime(rTime) : '-';
     this.taskFramesSource = [task];
     this.taskFramesGroupSource = [[task]];
     this.taskFramesTbl!!.recycleDataSource = this.taskFramesSource;
@@ -149,10 +150,12 @@ export class TabPaneTaskFrames extends BaseElement {
     let groups = new Map();
     framesParam.taskFramesData.forEach((obj) => {
       const key = obj.ipid;
-      if (!groups.has(key)) {
-        groups.set(key, []);
+      if (key) {
+        if (!groups.has(key)) {
+          groups.set(key, []);
+        }
+        groups.get(key).push(obj);
       }
-      groups.get(key).push(obj);
     });
     for (let [key, groupsValue] of groups) {
       let tempTableList: TaskTabStruct[] = [];
@@ -380,23 +383,25 @@ export class TabPaneTaskFrames extends BaseElement {
   }
 
   private pushTaskToList(value: TaskTabStruct, tableList: TaskTabStruct[]): void {
-    let allocationTask = SpSystemTrace.DATA_TASK_POOL_CALLSTACK.get(value.allocationTaskRow!);
-    let executeTask = SpSystemTrace.DATA_TASK_POOL_CALLSTACK.get(value.executeTaskRow!);
-    let returnTask = SpSystemTrace.DATA_TASK_POOL_CALLSTACK.get(value.returnTaskRow!);
-    let tempTask: TaskTabStruct = new TaskTabStruct();
-    let executeStartTime = executeTask!.ts!;
-    let executeTime = executeTask!.dur! === -1 ? (window as any).recordEndNS - executeTask!.ts : executeTask!.dur;
-    let allocationStartTime = allocationTask!.ts!;
-    let returnEndTime = 0;
-    if (returnTask) {
-      returnEndTime = returnTask!.ts! + returnTask!.dur! - (executeStartTime + executeTime);
+    if (value.allocationTaskRow && value.executeTaskRow && value.returnTaskRow) {
+      let allocationTask = SpSystemTrace.DATA_TASK_POOL_CALLSTACK.get(value.allocationTaskRow!);
+      let executeTask = SpSystemTrace.DATA_TASK_POOL_CALLSTACK.get(value.executeTaskRow!);
+      let returnTask = SpSystemTrace.DATA_TASK_POOL_CALLSTACK.get(value.returnTaskRow!);
+      let tempTask: TaskTabStruct = new TaskTabStruct();
+      let executeStartTime = executeTask!.ts!;
+      let executeTime = executeTask!.dur! === -1 ? (window as any).recordEndNS - executeTask!.ts : executeTask!.dur;
+      let allocationStartTime = allocationTask!.ts!;
+      let returnEndTime = 0;
+      if (returnTask) {
+        returnEndTime = returnTask!.ts! + returnTask!.dur! - (executeStartTime + executeTime);
+      }
+      tempTask.executeId = value.executeId;
+      tempTask.taskPriority = Priority[value.priority!];
+      tempTask.taskST = this.getMsTime(executeStartTime - allocationStartTime);
+      tempTask.taskET = this.getMsTime(executeTime);
+      tempTask.taskRT = returnEndTime > 0 ? this.getMsTime(returnEndTime) : '-';
+      tableList.push(tempTask);
     }
-    tempTask.executeId = value.executeId;
-    tempTask.taskPriority = Priority[value.priority!];
-    tempTask.taskST = this.getMsTime(executeStartTime - allocationStartTime);
-    tempTask.taskET = this.getMsTime(executeTime);
-    tempTask.taskRT = this.getMsTime(returnEndTime);
-    tableList.push(tempTask);
   }
 }
 
@@ -419,7 +424,7 @@ export class TaskTabStruct extends BaseStruct {
   dur: number | undefined;
   taskST: number | undefined;
   taskET: number | undefined;
-  taskRT: number | undefined;
+  taskRT?: number | string;
   allocationTaskRow: number | undefined;
   executeTaskRow: number | undefined;
   returnTaskRow: number | undefined;

@@ -16,7 +16,7 @@ import {
   HiPerfCallChartRender,
   HiPerfCallChartStruct
 } from '../../../../src/trace/database/ui-worker/hiperf/ProcedureWorkerHiPerfCallChart';
-import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
 jest.mock('../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
   return {};

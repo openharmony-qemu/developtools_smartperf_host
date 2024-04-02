@@ -28,14 +28,20 @@
 #include "file.h"
 #include "filter_filter.h"
 #include "frame_filter.h"
-#include "hi_sysevent_measure_filter.h"
+#ifdef ENABLE_HISYSEVENT
+#include "hi_sysevent_filter/hi_sysevent_measure_filter.h"
+#endif
 #include "irq_filter.h"
 #include "measure_filter.h"
 #include "task_pool_filter.h"
-#include "parser/bytrace_parser/bytrace_parser.h"
-#include "parser/htrace_pbreader_parser/htrace_parser.h"
+#include "parser/ptreader_parser/ptreader_parser.h"
+#include "parser/pbreader_parser/pbreader_parser.h"
+#ifdef ENABLE_RAWTRACE
 #include "parser/rawtrace_parser/rawtrace_parser.h"
-#include "perf_data_filter.h"
+#endif
+#ifdef ENABLE_HIPERF
+#include "perf_filter/perf_data_filter.h"
+#endif
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
@@ -79,12 +85,14 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
     if (start.find("# TRACE") != std::string::npos) {
         return TRACE_FILETYPE_BY_TRACE;
     }
+#ifdef ENABLE_RAWTRACE
     uint16_t magicNumber = INVALID_UINT16;
     int ret = memcpy_s(&magicNumber, sizeof(uint16_t), data, sizeof(uint16_t));
     TS_CHECK_TRUE(ret == EOK, TRACE_FILETYPE_UN_KNOW, "Memcpy FAILED!Error code is %d, data size is %zu.", ret, size);
     if (magicNumber == RAW_TRACE_MAGIC_NUMBER) {
         return TRACE_FILETYPE_RAW_TRACE;
     }
+#endif
     std::string lowerStart(start);
     transform(start.begin(), start.end(), lowerStart.begin(), ::tolower);
     if ((lowerStart.compare(0, std::string("<!doctype html>").length(), "<!doctype html>") == 0) ||
@@ -97,9 +105,11 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
     if (start.compare(0, std::string("OHOSPROF").length(), "OHOSPROF") == 0) {
         return TRACE_FILETYPE_H_TRACE;
     }
+#ifdef ENABLE_HIPERF
     if (start.compare(0, std::string("PERFILE2").length(), "PERFILE2") == 0) {
         return TRACE_FILETYPE_PERF;
     }
+#endif
     const std::regex bytraceMatcher = std::regex(R"(-(\d+)\s+\(?\s*(\d+|-+)?\)?\s?\[(\d+)\]\s*)"
                                                  R"([a-zA-Z0-9.]{0,5}\s+(\d+\.\d+):\s+(\S+):)");
     std::smatch matcheLine;
@@ -121,7 +131,12 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
 } // namespace
 
 TraceStreamerSelector::TraceStreamerSelector()
-    : fileType_(TRACE_FILETYPE_UN_KNOW), bytraceParser_(nullptr), htraceParser_(nullptr), rawTraceParser_(nullptr)
+    : ptreaderParser_(nullptr),
+      pbreaderParser_(nullptr),
+#ifdef ENABLE_RAWTRACE
+      rawTraceParser_(nullptr),
+#endif
+      fileType_(TRACE_FILETYPE_UN_KNOW)
 {
     InitFilter();
 }
@@ -164,30 +179,38 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->sysEventVMemMeasureFilter_ = std::make_unique<SystemEventMeasureFilter>(
         traceDataCache_.get(), streamFilters_.get(), E_SYS_VIRTUAL_MEMORY_FILTER);
     streamFilters_->appStartupFilter_ = std::make_unique<APPStartupFilter>(traceDataCache_.get(), streamFilters_.get());
+#ifdef ENABLE_HIPERF
     streamFilters_->perfDataFilter_ = std::make_unique<PerfDataFilter>(traceDataCache_.get(), streamFilters_.get());
+#endif
     streamFilters_->sysEventSourceFilter_ = std::make_unique<SystemEventMeasureFilter>(
         traceDataCache_.get(), streamFilters_.get(), E_SYS_EVENT_SOURCE_FILTER);
+#ifdef ENABLE_HISYSEVENT
     streamFilters_->hiSysEventMeasureFilter_ =
         std::make_unique<HiSysEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get());
+#endif
     streamFilters_->taskPoolFilter_ = std::make_unique<TaskPoolFilter>(traceDataCache_.get(), streamFilters_.get());
 }
 
 void TraceStreamerSelector::WaitForParserEnd()
 {
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
-        htraceParser_->WaitForParserEnd();
+        pbreaderParser_->WaitForParserEnd();
     }
     if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HILOG ||
         fileType_ == TRACE_FILETYPE_HI_SYSEVENT) {
-        bytraceParser_->WaitForParserEnd();
+        ptreaderParser_->WaitForParserEnd();
     }
+#ifdef ENABLE_HIPERF
     if (fileType_ == TRACE_FILETYPE_PERF) {
-        htraceParser_->TraceDataSegmentEnd(false);
-        htraceParser_->WaitForParserEnd();
+        pbreaderParser_->TraceDataSegmentEnd(false);
+        pbreaderParser_->WaitForParserEnd();
     }
+#endif
+#ifdef ENABLE_RAWTRACE
     if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
         rawTraceParser_->WaitForParserEnd();
     }
+#endif
     traceDataCache_->UpdateTraceRange();
     if (traceDataCache_->AnimationTraceEnabled()) {
         streamFilters_->animationFilter_->UpdateFrameInfo();
@@ -204,12 +227,15 @@ void TraceStreamerSelector::SetDataType(TraceFileType type)
 {
     fileType_ = type;
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
-        htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
+        pbreaderParser_ = std::make_unique<PbreaderParser>(traceDataCache_.get(), streamFilters_.get());
     } else if (fileType_ == TRACE_FILETYPE_BY_TRACE) {
-        bytraceParser_ = std::make_unique<BytraceParser>(traceDataCache_.get(), streamFilters_.get());
-    } else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
+        ptreaderParser_ = std::make_unique<PtreaderParser>(traceDataCache_.get(), streamFilters_.get());
+    }
+#ifdef ENABLE_RAWTRACE
+    else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
         rawTraceParser_ = std::make_unique<RawTraceParser>(traceDataCache_.get(), streamFilters_.get());
     }
+#endif
 }
 // only support parse long trace profiler_data_xxxxxxxx_xxxxxx_x.htrace
 bool TraceStreamerSelector::BatchParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size)
@@ -223,12 +249,84 @@ bool TraceStreamerSelector::BatchParseTraceDataSegment(std::unique_ptr<uint8_t[]
             TS_LOGE("File type is not supported in this mode!");
             return false;
         }
-        htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
-        htraceParser_->EnableOnlyParseFtrace();
+        pbreaderParser_ = std::make_unique<PbreaderParser>(traceDataCache_.get(), streamFilters_.get());
+#ifdef ENABLE_HTRACE
+        pbreaderParser_->EnableOnlyParseFtrace();
+#endif
     }
-    htraceParser_->ParseTraceDataSegment(std::move(data), size);
+    pbreaderParser_->ParseTraceDataSegment(std::move(data), size);
     return true;
 }
+
+void TraceStreamerSelector::GetMarkPositionData(std::unique_ptr<uint8_t[]>& data, size_t& size)
+{
+    if (!markHeard_) {
+        std::string markStr(reinterpret_cast<const char*>(data.get()), size);
+        auto foundPos = markStr.find("MarkPositionJSON->");
+        if (foundPos == std::string::npos) {
+            // trace not MarkPosition,parse trace data
+            hasGotMarkFinish_ = true;
+            return;
+        }
+        // found MarkPosition
+        markHeard_ = true;
+    }
+    auto pos = std::find(data.get(), data.get() + size, '\n');
+    if (pos != data.get() + size) {
+        hasGotMarkFinish_ = true;
+        // Calculate the size of mark position information (include '\n')
+        auto curMarkSize = pos - data.get() + 1;
+        // Move the data pointer to the starting position of the remaining data
+        // The remaining data size is equal to the data size minus the current markinfo size
+        size -= curMarkSize;
+        std::unique_ptr<uint8_t[]> remainingData(new uint8_t[size]);
+        memcpy_s(remainingData.get(), size, data.get() + curMarkSize, size);
+        data.reset(remainingData.release());
+    }
+}
+void TraceStreamerSelector::InitializeParser()
+{
+    if (fileType_ == TRACE_FILETYPE_H_TRACE || fileType_ == TRACE_FILETYPE_PERF) {
+        pbreaderParser_ = std::make_unique<PbreaderParser>(traceDataCache_.get(), streamFilters_.get());
+#ifdef ENABLE_ARKTS
+        pbreaderParser_->EnableFileSeparate(enableFileSeparate_);
+#endif
+    } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HI_SYSEVENT ||
+               fileType_ == TRACE_FILETYPE_HILOG) {
+        ptreaderParser_ = std::make_unique<PtreaderParser>(traceDataCache_.get(), streamFilters_.get(), fileType_);
+#ifdef ENABLE_BYTRACE
+        ptreaderParser_->EnableBytrace(fileType_ == TRACE_FILETYPE_BY_TRACE);
+#endif
+    }
+#ifdef ENABLE_RAWTRACE
+    else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
+        rawTraceParser_ = std::make_unique<RawTraceParser>(traceDataCache_.get(), streamFilters_.get());
+    }
+#endif
+}
+
+void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish)
+{
+    if (fileType_ == TRACE_FILETYPE_H_TRACE) {
+        pbreaderParser_->ParseTraceDataSegment(std::move(data), size);
+    } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HI_SYSEVENT ||
+               fileType_ == TRACE_FILETYPE_HILOG) {
+        ptreaderParser_->ParseTraceDataSegment(std::move(data), size, isFinish);
+        return;
+    }
+#ifdef ENABLE_HIPERF
+    else if (fileType_ == TRACE_FILETYPE_PERF) {
+        pbreaderParser_->StoreTraceDataSegment(std::move(data), size, isFinish);
+    }
+#endif
+#ifdef ENABLE_RAWTRACE
+    else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
+        rawTraceParser_->ParseTraceDataSegment(std::move(data), size, isFinish);
+    }
+#endif
+    SetAnalysisResult(TRACE_PARSER_NORMAL);
+}
+
 bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data,
                                                   size_t size,
                                                   bool isSplitFile,
@@ -237,18 +335,19 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
     if (size == 0) {
         return true;
     }
+#if !IS_WASM
+    // if in the linux,hasGotMarkFinish_ = fasle, get markinfo
+    if (!hasGotMarkFinish_) {
+        GetMarkPositionData(data, size);
+        if (!hasGotMarkFinish_) {
+            // Believing that the markInfo data has not been sent completely,Waiting for next send
+            return true;
+        }
+    }
+#endif
+
     if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
         fileType_ = GuessFileType(data.get(), size);
-        if (fileType_ == TRACE_FILETYPE_H_TRACE || fileType_ == TRACE_FILETYPE_PERF) {
-            htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
-            htraceParser_->EnableFileSeparate(enableFileSeparate_);
-        } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HI_SYSEVENT ||
-                   fileType_ == TRACE_FILETYPE_HILOG) {
-            bytraceParser_ = std::make_unique<BytraceParser>(traceDataCache_.get(), streamFilters_.get(), fileType_);
-            bytraceParser_->EnableBytrace(fileType_ == TRACE_FILETYPE_BY_TRACE);
-        } else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
-            rawTraceParser_ = std::make_unique<RawTraceParser>(traceDataCache_.get(), streamFilters_.get());
-        }
         if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
             SetAnalysisResult(TRACE_PARSER_FILE_TYPE_ERROR);
             TS_LOGI(
@@ -257,22 +356,19 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
                 data.get());
             return false;
         }
+        InitializeParser();
     }
     traceDataCache_->SetSplitFileMinTime(minTs_);
     traceDataCache_->SetSplitFileMaxTime(maxTs_);
     traceDataCache_->isSplitFile_ = isSplitFile;
-    if (fileType_ == TRACE_FILETYPE_H_TRACE) {
-        htraceParser_->ParseTraceDataSegment(std::move(data), size);
-    } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HI_SYSEVENT ||
-               fileType_ == TRACE_FILETYPE_HILOG) {
-        bytraceParser_->ParseTraceDataSegment(std::move(data), size, isFinish);
-        return true;
-    } else if (fileType_ == TRACE_FILETYPE_PERF) {
-        htraceParser_->StoreTraceDataSegment(std::move(data), size, isFinish);
-    } else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
-        rawTraceParser_->ParseTraceDataSegment(std::move(data), size, isFinish);
+    ProcessTraceData(std::move(data), size, isFinish);
+
+#if !IS_WASM
+    // in the linux,isFinish = 1,clear markinfo
+    if (isFinish) {
+        ClearMarkPositionInfo();
     }
-    SetAnalysisResult(TRACE_PARSER_NORMAL);
+#endif
     return true;
 }
 void TraceStreamerSelector::EnableMetaTable(bool enabled)
@@ -335,7 +431,7 @@ bool TraceStreamerSelector::ReloadSymbolFiles(std::string& directory, std::vecto
     for (auto file : symbolsPaths) {
         TS_LOGE("files is %s", file.c_str());
     }
-    return htraceParser_->ReparseSymbolFilesAndResymbolization(directory, symbolsPaths);
+    return pbreaderParser_->ReparseSymbolFilesAndResymbolization(directory, symbolsPaths);
 }
 void TraceStreamerSelector::Clear()
 {
@@ -396,7 +492,7 @@ int32_t TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int32_t len)
 {
     std::string traceRangeStr;
     (void)memcpy_s(&traceRangeStr, len, data, len);
-    std::vector<string> vTraceRangeStr = SplitStringToVec(traceRangeStr, ";");
+    std::vector<std::string> vTraceRangeStr = SplitStringToVec(traceRangeStr, ";");
     uint64_t minTs = std::stoull(vTraceRangeStr.at(0));
     uint64_t maxTs = std::stoull(vTraceRangeStr.at(1));
     traceDataCache_->UpdateTraceTime(minTs);

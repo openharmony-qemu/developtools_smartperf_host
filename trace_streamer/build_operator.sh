@@ -12,52 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set -e
-ext=""
-target_dir="linux"
-is_debug="$1"
-target="$2"
-target_os="$3"
-is_clean="$4"
-gn_path="$5"
-gn="$6"
-ninja="$7"
-target_operator="$8"
-use_local_emsdk="$9"
-if [ "$#" -ge "7" ];then
-    if [ "$target" != "trace" ] && [ "$target" != "linux" ] && [ "$target" != "windows" ] &&
-        [ "$target" != "macx" ] && [ "$target" != "trace_streamer" ] && [ "$target" != "wasm" ] &&
-        [ "$target" != "test" ] && [ "$target" != "spb" ] && [ "$target" != "fuzz" ] &&
-        [ "$target" != "protoc" ] && [ "$target" != "sdkdemo" ] && [ "$target" != "sdkdemotest" ];then
-        echo "failed"
-        exit
-    fi
-    if [ "$target_operator" != "" ] && [ "$target_operator" != "debug" ] && [ "$target_operator" != "release" ] && [ "$target_operator" != "clean" ];then
-        if [ "$target_operator" == "protoc" ];then
-        target=$target_operator
-        else
-        echo "failed"
-        exit
-        fi
-    fi
-    if [ "$target_operator" == "debug" ];then
-        is_debug="true"
-    elif [ "$target_operator" == "clean" ];then
-        is_clean="true"
-    else
-        is_debug="false"
-    fi
-    echo "platform is $target_os"
-    echo "isdebug: $is_debug"
-    echo "isclean: $is_clean"
-else
-    echo "$usage"
-    echo "It is not recommended to execute this file and use it by build.sh."
-    echo "use default input paramter"
-    echo "platform is $target_os"
-    echo "target is $target"
-    echo "is_debug:$is_debug"
+echo "target_operator = $target_operator"
+if [ "$target" != "trace" ] && [ "$target" != "linux" ] && [ "$target" != "windows" ] &&
+    [ "$target" != "macx" ] && [ "$target" != "trace_streamer" ] && [ "$target" != "wasm" ] &&
+    [ "$target" != "test" ] && [ "$target" != "spb" ] && [ "$target" != "fuzz" ] &&
+    [ "$target" != "protoc" ] && [ "$target" != "sdkdemo" ] && [ "$target" != "sdkdemotest" ];then
+    echo "failed"
     exit
 fi
+if [ "$target_operator" != "" ] && [ "$target_operator" != "debug" ] && [ "$target_operator" != "release" ] && [ "$target_operator" != "clean" ];then
+    if [ "$target_operator" == "protoc" ];then
+    target=$target_operator
+    else
+    echo "failed"
+    exit
+    fi
+fi
+if [ "$target_operator" == "debug" ];then
+    is_debug="true"
+elif [ "$target_operator" == "clean" ];then
+    is_clean="true"
+else
+    is_debug="false"
+fi
+echo "platform is $target_os"
+echo "isdebug: $is_debug"
+echo "isclean: $is_clean"
 if [ "$is_debug" != "false" ];then
     ext="_debug"
 fi
@@ -78,11 +58,10 @@ if [ "$is_clean" == "true" ];then
     prebuilts/"$gn_path"/"$gn" gen "$out_dir" --clean
     prebuilts/"$gn_path"/"$ninja" -C "$out_dir" -t clean
 else
-    prebuilts/"$gn_path"/"$gn" gen "$out_dir" --args='is_debug='"$is_debug"' target="'"$target"'" target_os="'"$target_os"'" is_independent_compile=true'' use_local_emsdk='"$use_local_emsdk"
+    prebuilts/"$gn_path"/"$gn" gen "$out_dir" --args='is_debug='"$is_debug"' target="'"$target"'" target_os="'"$target_os"'" is_independent_compile=true'' use_local_emsdk='"$use_local_emsdk"" $enable_all_plugins_str"
     echo "begin to build ..."
     prebuilts/"$gn_path"/"$ninja" -C "$out_dir"
 fi
-
 if [ "$out_dir" == "macx" ];then
     ./mac_depend.sh
 fi

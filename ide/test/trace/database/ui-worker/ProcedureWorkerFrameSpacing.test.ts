@@ -127,4 +127,7 @@ describe('FrameSpacing Test', () => {
     };
     expect(frameSpacingRender.drawPoint(ctx, currentStruct, TraceRow.skeleton(), 0, 20)).toBeUndefined();
   });
+  it('FrameSpacingTest04 ', function () {
+    expect(frameSpacingRender.renderMainThread(req,new TraceRow<FrameSpacingStruct>())).toBeUndefined()
+  });
 });

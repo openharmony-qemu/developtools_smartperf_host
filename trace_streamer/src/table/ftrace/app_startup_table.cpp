@@ -52,14 +52,14 @@ int32_t AppStartupTable::Cursor::Column(int32_t appStartupCol) const
         case Index::ID:
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
+        case Index::CALL_ID:
+            sqlite3_result_int64(context_, static_cast<int64_t>(appStartupObj_.CallIds()[CurrentRow()]));
+            break;
         case Index::IPID:
             sqlite3_result_int64(context_, static_cast<int64_t>(appStartupObj_.Pids()[CurrentRow()]));
             break;
         case Index::TID:
             sqlite3_result_int64(context_, static_cast<int64_t>(appStartupObj_.Tids()[CurrentRow()]));
-            break;
-        case Index::CALL_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(appStartupObj_.CallIds()[CurrentRow()]));
             break;
         case Index::START_TIME:
             sqlite3_result_int64(context_, static_cast<int64_t>(appStartupObj_.StartTimes()[CurrentRow()]));

@@ -30,6 +30,8 @@ FORMAT_DIR_LIST=(
     "${PRJ_ROOT_DIR}/sdk"
     "${PRJ_ROOT_DIR}/src"
     "${PRJ_ROOT_DIR}/test"
+    "${PRJ_ROOT_DIR}/trace_extend/src"
+    "${PRJ_ROOT_DIR}/trace_extend/test"
     "${PRJ_ROOT_DIR}/prebuilts/fuzz"
     "${PRJ_ROOT_DIR}/prebuilts/linux"
     "${PRJ_ROOT_DIR}/prebuilts/macx"

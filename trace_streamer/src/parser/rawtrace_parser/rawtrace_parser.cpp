@@ -59,15 +59,17 @@ void RawTraceParser::UpdateTraceMinRange()
         cpuRunningStatMinTime = schedSlice.TimeStampData()[i];
         TS_LOGW("curCpuId=%u, cpuRunningStatMinTime=%" PRIu64 "", schedSlice.CpusData()[i], cpuRunningStatMinTime);
     }
-    traceDataCache_->UpdateTraceMinTime(cpuRunningStatMinTime);
+    if (cpuRunningStatMinTime != INVALID_TIME) {
+        traceDataCache_->UpdateTraceMinTime(cpuRunningStatMinTime);
+    }
 }
 bool RawTraceParser::InitRawTraceFileHeader(std::deque<uint8_t>::iterator& packagesCurIter)
 {
     TS_CHECK_TRUE(packagesBuffer_.size() >= sizeof(RawTraceFileHeader), false,
                   "buffer size less than rawtrace file header");
     RawTraceFileHeader header;
-    auto ret = memcpy_s(&header, sizeof(RawTraceFileHeader), &(*packagesBuffer_.begin()), sizeof(RawTraceFileHeader));
-    TS_CHECK_TRUE(ret == EOK, false, "Memcpy FAILED!Error code is %d, data size is %zu.", ret, packagesBuffer_.size());
+    std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + sizeof(RawTraceFileHeader),
+              reinterpret_cast<uint8_t*>(&header));
     TS_LOGI("magicNumber=%d fileType=%d", header.magicNumber, header.fileType);
 
     fileType_ = header.fileType;
@@ -115,15 +117,21 @@ bool RawTraceParser::UpdateCpuCoreMax(uint32_t cpuId)
 bool RawTraceParser::ParseCpuRawData(uint32_t cpuId, const std::string& buffer, uint32_t curType)
 {
     UpdateCpuCoreMax(cpuId);
-    TS_CHECK_TRUE(buffer.size() > 0, true, "cur cpu(%u) raw data is null!", cpuId);
-    auto startPtr = reinterpret_cast<const uint8_t*>(buffer.c_str());
-    auto endPtr = startPtr + buffer.size();
-    cpuDetail_->set_cpu(cpuId);
     // splice the data curType adn size of each cup that matches the timestamp
     uint32_t curFileOffset = curFileOffset_ + sizeof(curType) + sizeof(uint32_t);
     uint32_t splitOffset = 0;
     uint32_t splitSize = 0;
     bool isSplitPosition = false;
+    if (0 == buffer.size() && traceDataCache_->isSplitFile_) {
+        // For rawtrace. fileType_=0, in order to count the number of CPUs and maintain the CPU data structure (which
+        // will also be passed to data types with CPU size 0), it is necessary to save the data during the cutting
+        // process and exit the buffer directly.
+        rawTraceSplitCpuData_.emplace_back(SpliteDataInfo(curFileOffset, 0, curType));
+    }
+    TS_CHECK_TRUE(buffer.size() > 0, true, "cur cpu(%u) raw data is null!", cpuId);
+    auto startPtr = reinterpret_cast<const uint8_t*>(buffer.c_str());
+    auto endPtr = startPtr + buffer.size();
+    cpuDetail_->set_cpu(cpuId);
     for (uint8_t* page = const_cast<uint8_t*>(startPtr); page < endPtr; page += FTRACE_PAGE_SIZE) {
         bool haveSplitSeg = false;
         TS_CHECK_TRUE(ftraceProcessor_->HandlePage(*cpuDetail_.get(), *cpuDetailParser_.get(), page, haveSplitSeg),
@@ -142,6 +150,11 @@ bool RawTraceParser::ParseCpuRawData(uint32_t cpuId, const std::string& buffer, 
         // Skip parsing data for timestamp or non timestamp compliant data
         if (splitSize > 0) {
             rawTraceSplitCpuData_.emplace_back(SpliteDataInfo(splitOffset, splitSize, curType));
+        } else {
+            // For rawtrace. fileType_=0,In order to count the number of CPUs and maintain the CPU data structure (also
+            // through For CPU data types with a size of 0, it is necessary to set the size to 0 during the cutting
+            // process to save CPU data that does not meet the cutting event stamp
+            rawTraceSplitCpuData_.emplace_back(SpliteDataInfo(curFileOffset, 0, curType));
         }
         return true;
     }
@@ -181,6 +194,8 @@ bool RawTraceParser::HmParseCpuRawData(const std::string& buffer, uint32_t curTy
     }
     if (traceDataCache_->isSplitFile_ && splitSize > 0) {
         rawTraceSplitCpuData_.emplace_back(SpliteDataInfo(splitOffset, splitSize, curType));
+        // For rawtrace. fileType_=1,There is no need to record the total number of CPUs, so for data that does not meet
+        // the cutting timestamp, there is no need to record and save it
         return true;
     }
     TS_LOGD("mark.debug. HmParseCpuRawData end success");
@@ -193,20 +208,29 @@ bool RawTraceParser::ParseLastCommData(uint8_t type, const std::string& buffer)
     switch (type) {
         case static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_CMDLINES):
             TS_CHECK_TRUE(ftraceProcessor_->HandleCmdlines(buffer), false, "parse cmdlines failed");
-            ++restCommDataCnt_;
-            return true;
+            break;
         case static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_TGIDS):
             TS_CHECK_TRUE(ftraceProcessor_->HandleTgids(buffer), false, "parse tgid failed");
-            ++restCommDataCnt_;
-            return true;
-        default:
             break;
-    }
+        case static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_HEADER_PAGE):
+            TS_CHECK_TRUE(ftraceProcessor_->HandleHeaderPageFormat(buffer), false, "init header page failed");
+            break;
+        case static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_PRINTK_FORMATS):
+            TS_CHECK_TRUE(PrintkFormatsProcessor::GetInstance().HandlePrintkSyms(buffer), false,
+                          "init printk_formats failed");
+            break;
+        case static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_KALLSYMS):
+            TS_CHECK_TRUE(ksymsProcessor_->HandleKallSyms(buffer), false, "init printk_formats failed");
+            break;
+        default:
 #ifdef IS_WASM
-    return false;
+            return false;
 #else
-    return true;
+            break;
 #endif
+    }
+    ++restCommDataCnt_;
+    return true;
 }
 
 void RawTraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish)
@@ -236,18 +260,10 @@ bool RawTraceParser::ProcessRawTraceContent(std::string& bufferLine, uint8_t cur
             TS_CHECK_TRUE(HmParseCpuRawData(bufferLine, curType), false, "hm raw trace parse failed");
         }
         if (traceDataCache_->isSplitFile_) {
-            // exactly uint32_t curSegSize = sizeof(type) + sizeof(len) + bufferLine.size();
             curFileOffset_ += sizeof(uint32_t) + sizeof(uint32_t) + bufferLine.size();
         }
     } else if (curType == static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_EVENTS_FORMAT)) {
         TS_CHECK_TRUE(InitEventFormats(bufferLine), false, "init event format failed");
-    } else if (curType == static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_HEADER_PAGE)) {
-        TS_CHECK_TRUE(ftraceProcessor_->HandleHeaderPageFormat(bufferLine), false, "init header page failed");
-    } else if (curType == static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_PRINTK_FORMATS)) {
-        TS_CHECK_TRUE(PrintkFormatsProcessor::GetInstance().HandlePrintkSyms(bufferLine), false,
-                      "init printk_formats failed");
-    } else if (curType == static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_KALLSYMS)) {
-        TS_CHECK_TRUE(ksymsProcessor_->HandleKallSyms(bufferLine), false, "init printk_formats failed");
     } else {
         TS_LOGW("Raw Trace Type(%d) Unknown or has been parsed.", curType);
     }

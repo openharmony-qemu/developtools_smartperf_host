@@ -49,9 +49,12 @@ window.ResizeObserver = window.ResizeObserver ||
         unobserve: jest.fn(),
     }));
 
-describe('TabPaneJsCpuCallTree Test', () => {
+describe('TabPaneJsCpuStatistics Test', () => {
+  let tabPaneJsCpuStatistics;
+  beforeEach(() => {
     document.body.innerHTML = `<tabpane-js-cpu-statistics id="statistics"></tabpane-js-cpu-statistics>`;
-    let tabPaneJsCpuStatistics = document.querySelector<TabPaneJsCpuStatistics>('#statistics');
+    tabPaneJsCpuStatistics = document.querySelector<TabPaneJsCpuStatistics>('#statistics');
+  });
     let res = [
         {
             type: 'a',

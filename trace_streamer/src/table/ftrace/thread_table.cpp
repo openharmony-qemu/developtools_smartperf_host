@@ -253,12 +253,12 @@ int32_t ThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
             case Index::ITID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::TID:
             case Index::INTERNAL_PID:
             case Index::SWITCH_COUNT:
-                FilterIndex(c.col, c.op, argv[i]);
+                FilterIndex(c.col, c.op, argv[c.idxInaConstraint]);
                 break;
             default:
                 break;

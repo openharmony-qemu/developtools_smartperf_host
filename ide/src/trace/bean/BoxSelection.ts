@@ -33,7 +33,7 @@ import { HeapDataInterface } from '../../js-heap/HeapDataInterface';
 import { LitTabs } from '../../base-ui/tabs/lit-tabs';
 import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
-import { SampleStruct } from '../database/ui-worker/ProcedureWorkerSample';
+import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 
 export class SelectionParam {
   recordStartNs: number = 0;

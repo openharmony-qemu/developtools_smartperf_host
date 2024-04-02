@@ -17,35 +17,31 @@ import { threadPool } from '../../../../src/trace/database/SqlLite';
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import { ClockStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerClock';
 import { clockDataSender } from '../../../../src/trace/database/data-trafic/ClockDataSender';
-jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
-jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
-jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
-describe('ClockDataSender Test',()=>{
-   let clockData = {
-     filterId: 89,
-     value: 48000,
-     startNS: 19733,
-     dur: 230475,
-     type: "measure",
-     delta: 0,
-     frame: {
-       y: 5,
-       height: 30,
-       x: 11,
-       width: 14
-     }
-   }
-  it('ClockDataSenderTest01 ', function () {
+
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => ({}));
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => ({}));
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => ({}));
+describe('ClockDataSender Test', () => {
+  const clockData = {
+    filterId: 89,
+    value: 48000,
+    startNS: 19733,
+    dur: 230475,
+    type: 'measure',
+    delta: 0,
+    frame: {
+      y: 5,
+      height: 30,
+      x: 11,
+      width: 14
+    }
+  };
+  let clockTraceRow = TraceRow.skeleton<ClockStruct>();
+  it('ClockDataSenderTest01', async () => {
     threadPool.submitProto = jest.fn((query: number, params: any, callback: Function) => {
       callback(clockData, 1, true);
     });
-    let clockTraceRow =  TraceRow.skeleton<ClockStruct>();
-    clockDataSender( '','screenState',clockTraceRow).then(result => {
-      expect(result).toHaveLength(1);
-    });
+    let result = await clockDataSender('', 'screenState', clockTraceRow);
+    expect(result).toHaveLength(1);
   });
-})
+});

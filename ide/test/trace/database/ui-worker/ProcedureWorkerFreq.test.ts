@@ -18,8 +18,8 @@ import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-import { CpuFreqStruct, FreqRender, freq } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFreq';
-import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
+import { CpuFreqStruct, FreqRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFreq';
+
 jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });

@@ -24,23 +24,17 @@ proto_out_dir = "$root_gen_dir/cpp/" + rebase_path(".", "//")
 proto_rel_out_dir = rebase_path(proto_out_dir, root_build_dir)
 
 stream_data_codegen = []
-stream_data_codegen_standard = []
-stream_data_codegen_reader = []
 stream_data_codegen_all = []
+stream_data_codegen_reader = []
 foreach(proto, stream_data_sources) {
   name = get_path_info(proto, "name")
   stream_data_codegen += [
     "$proto_out_dir/$name.pb.h",
     "$proto_out_dir/$name.pb.cc",
   ]
-  stream_data_codegen_standard += [
-    "$proto_out_dir/${name}_standard.pb.h",
-    "$proto_out_dir/${name}_standard.pb.cc",
-  ]
   stream_data_codegen_reader += [ "$proto_out_dir/$name.pbreader.h" ]
 }
 stream_data_codegen_all += stream_data_codegen
-stream_data_codegen_all += stream_data_codegen_standard
 stream_data_codegen_all += stream_data_codegen_reader
 
 config("stream_include_config") {
@@ -62,7 +56,12 @@ action("stream_data_cpp_gen") {
     rebase_path(".", root_build_dir),
   ]
   args += rebase_path(sources, root_build_dir)
-  deps = []
+  if (!use_wasm && !is_test && !is_fuzz) {
+    deps = [
+      "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc(${host_toolchain})",
+      "${SRC}/proto_reader/protoc_plugin:protoreader_plugin(${host_toolchain})",
+    ]
+  }
 }
 
 ohos_source_set("stream_data_cpp") {
@@ -78,7 +77,7 @@ ohos_source_set("stream_data_cpp") {
   sources = stream_data_codegen
 }
 
-ohos_source_set("stream_data_encoder") {
+ohos_source_set("stream_data_reader") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
   deps = [ ":stream_data_cpp_gen" ]

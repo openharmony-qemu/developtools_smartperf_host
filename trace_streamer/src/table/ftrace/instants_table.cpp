@@ -69,24 +69,6 @@ void InstantsTable::FilterByConstraint(FilterConstraints& instantsfc,
     }
 }
 
-bool InstantsTable::CanFilterSorted(const char op, size_t& instantsRowCnt) const
-{
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            instantsRowCnt = instantsRowCnt / log2(instantsRowCnt);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-        case SQLITE_INDEX_CONSTRAINT_GE:
-        case SQLITE_INDEX_CONSTRAINT_LE:
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            instantsRowCnt = (instantsRowCnt >> 1);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
 void InstantsTable::Cursor::SortOfIndexMap(const FilterConstraints& fc)
 {
     auto orderbys = fc.GetOrderBys();
@@ -94,15 +76,6 @@ void InstantsTable::Cursor::SortOfIndexMap(const FilterConstraints& fc)
         i--;
         switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::TS:
-                indexMap_->SortBy(orderbys[i].desc);
-                break;
-            case Index::NAME:
-                indexMap_->SortBy(orderbys[i].desc);
-                break;
-            case Index::REF:
-                indexMap_->SortBy(orderbys[i].desc);
-                break;
-            case Index::WAKEUP_FROM:
                 indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
@@ -125,20 +98,20 @@ int32_t InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         const auto& c = instantsTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::TS:
-                FilterTS(c.op, argv[i], InstantsObj_.TimeStampData());
+                FilterTS(c.op, argv[c.idxInaConstraint], InstantsObj_.TimeStampData());
                 break;
             case Index::NAME:
                 indexMap_->MixRange(c.op,
-                                    dataCache_->GetConstDataIndex(
-                                        std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[i])))),
+                                    dataCache_->GetConstDataIndex(std::string(
+                                        reinterpret_cast<const char*>(sqlite3_value_text(argv[c.idxInaConstraint])))),
                                     InstantsObj_.NameIndexsData());
                 break;
             case Index::REF:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
                                     InstantsObj_.InternalTidsData());
                 break;
             case Index::WAKEUP_FROM:
-                indexMap_->MixRange(c.op, static_cast<int64_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<int64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     InstantsObj_.WakeupFromPidsData());
                 break;
             default:
@@ -190,12 +163,6 @@ void InstantsTable::GetOrbyes(FilterConstraints& instantsfc, EstimatedIndexInfo&
     for (auto i = 0; i < instantsorderbys.size(); i++) {
         switch (static_cast<Index>(instantsorderbys[i].iColumn)) {
             case Index::TS:
-                break;
-            case Index::NAME:
-                break;
-            case Index::REF:
-                break;
-            case Index::WAKEUP_FROM:
                 break;
             default: // other columns can be sorted by SQLite
                 instantsei.isOrdered = false;

@@ -532,6 +532,7 @@ export class SpRecordTrace extends BaseElement {
     let versionItem = this.deviceVersion!.options[this.deviceVersion!.selectedIndex];
     SpRecordTrace.selectVersion = versionItem.getAttribute('device-version');
     this.spAllocations!.startup_mode = false;
+    this.spAllocations!.recordJsStack = false;
     this.nativeMemoryHideBySelectVersion();
     this.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
       PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false),
@@ -1176,59 +1177,55 @@ export class SpRecordTrace extends BaseElement {
             }
           );
           this.litSearch!.setPercent(`downloading ${fileType} file `, 101);
-          let buffer = await pullRes.arrayBuffer();
-          let chunks = Math.ceil(buffer.byteLength / indexDBMaxSize);
-          let offset = 0;
-          let sliceLen = 0;
-          let message = {
-            fileType: '',
-            startIndex: 0,
-            endIndex: 0,
-            size: 0,
-          };
-          for (let chunkIndex = 0; chunkIndex < chunks; chunkIndex++) {
-            let start = chunkIndex * indexDBMaxSize;
-            let end = Math.min(start + indexDBMaxSize, buffer.byteLength);
-            let chunk = buffer.slice(start, end);
-            if (chunkIndex === 0) {
-              message.fileType = fileType;
-              message.startIndex = chunkIndex;
-            }
-            sliceLen = Math.min(buffer.byteLength - offset, indexDBMaxSize);
-            if (chunkIndex === 0 && fileType === 'trace') {
-              this.sp!.longTraceHeadMessageList.push({
-                pageNum: pageNumber,
-                data: buffer.slice(offset, kbSize),
-              });
-            }
-            this.sp!.longTraceDataList.push({
-              index: chunkIndex,
-              fileType: fileType,
-              pageNum: pageNumber,
-              startOffsetSize: offset,
-              endOffsetSize: offset + sliceLen,
-            });
-            await LongTraceDBUtils.getInstance().indexedDBHelp.add(LongTraceDBUtils.getInstance().tableName, {
-              buf: chunk,
-              id: `${fileType}_${timStamp}_${pageNumber}_${chunkIndex}`,
-              fileType: fileType,
-              pageNum: pageNumber,
-              startOffset: offset,
-              endOffset: offset + sliceLen,
-              index: chunkIndex,
-              timStamp: timStamp,
-            });
-            offset += sliceLen;
-            if (offset >= buffer.byteLength) {
-              message.endIndex = chunkIndex;
-              message.size = buffer.byteLength;
-              this.longTraceFileMapHandler(pageNumber, message);
-            }
-          }
+          await this.saveIndexDBByLongTrace(pullRes, fileType, pageNumber, timStamp);
         }
       }
       resolve(1);
     });
+  }
+
+  private async saveIndexDBByLongTrace(pullRes: Blob, fileType: string, pageNumber: number, timStamp: number) {
+    let buffer = await pullRes.arrayBuffer();
+    let chunks = Math.ceil(buffer.byteLength / indexDBMaxSize);
+    let offset = 0;
+    let sliceLen = 0;
+    let message = {fileType: '', startIndex: 0, endIndex: 0, size: 0};
+    for (let chunkIndex = 0; chunkIndex < chunks; chunkIndex++) {
+      let start = chunkIndex * indexDBMaxSize;
+      let end = Math.min(start + indexDBMaxSize, buffer.byteLength);
+      let chunk = buffer.slice(start, end);
+      if (chunkIndex === 0) {
+        message.fileType = fileType;
+        message.startIndex = chunkIndex;
+      }
+      sliceLen = Math.min(buffer.byteLength - offset, indexDBMaxSize);
+      if (chunkIndex === 0 && fileType === 'trace') {
+        this.sp!.longTraceHeadMessageList.push({ pageNum: pageNumber, data: buffer.slice(offset, kbSize)});
+      }
+      this.sp!.longTraceDataList.push({
+        index: chunkIndex,
+        fileType: fileType,
+        pageNum: pageNumber,
+        startOffsetSize: offset,
+        endOffsetSize: offset + sliceLen,
+      });
+      await LongTraceDBUtils.getInstance().indexedDBHelp.add(LongTraceDBUtils.getInstance().tableName, {
+        buf: chunk,
+        id: `${fileType}_${timStamp}_${pageNumber}_${chunkIndex}`,
+        fileType: fileType,
+        pageNum: pageNumber,
+        startOffset: offset,
+        endOffset: offset + sliceLen,
+        index: chunkIndex,
+        timStamp: timStamp,
+      });
+      offset += sliceLen;
+      if (offset >= buffer.byteLength) {
+        message.endIndex = chunkIndex;
+        message.size = buffer.byteLength;
+        this.longTraceFileMapHandler(pageNumber, message);
+      }
+    }
   }
 
   private longTraceFileMapHandler(pageNumber: number, message: {
