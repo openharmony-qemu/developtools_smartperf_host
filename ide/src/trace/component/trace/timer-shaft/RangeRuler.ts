@@ -104,6 +104,7 @@ export class RangeRuler extends Graph {
   pressFrameIdS: number = -1;
   pressFrameIdA: number = -1;
   pressFrameIdD: number = -1;
+  pressFrameIdFlagIntoView: number = -1;
   upFrameIdW: number = -1;
   upFrameIdS: number = -1;
   upFrameIdA: number = -1;
@@ -522,6 +523,7 @@ export class RangeRuler extends Graph {
     if (this.pressFrameIdW !== -1) cancelAnimationFrame(this.pressFrameIdW);
     if (this.pressFrameIdS !== -1) cancelAnimationFrame(this.pressFrameIdS);
     if (this.pressFrameIdF !== -1) cancelAnimationFrame(this.pressFrameIdF);
+    if (this.pressFrameIdFlagIntoView !== -1) cancelAnimationFrame(this.pressFrameIdFlagIntoView);
   }
 
   cancelUpFrame(): void {
@@ -561,6 +563,28 @@ export class RangeRuler extends Graph {
     this.isPress = true;
   }
 
+  scrollFlagIntoView(): void {
+    let animFlagIntoView = () => {
+      let clientWidth: number = this.canvas?.clientWidth || 0;
+      let flagTime: number = this.currentSlicesTime.startTime!;
+      let unitValue: number = Number(((this.range.endNS - this.range.startNS) / clientWidth).toFixed(2));
+      if (flagTime > this.range.endNS) {
+        let offsetNs = 20 * unitValue + flagTime - this.range.endNS;
+        this.range.startNS += offsetNs;
+        this.range.endNS += offsetNs;
+      } else if (flagTime < this.range.startNS) {
+        let offsetNs = this.range.startNS - flagTime + 20 * unitValue;
+        this.range.startNS -= offsetNs;
+        this.range.endNS -= offsetNs;
+      }
+      this.fillX();
+      this.draw();
+      this.range.refresh = false;
+      this.pressFrameIdFlagIntoView = requestAnimationFrame(animFlagIntoView);
+    };
+    this.pressFrameIdFlagIntoView = requestAnimationFrame(animFlagIntoView);
+  }
+
   keyPressF(): void {
     let animF = () => {
       let clientWidth = this.canvas?.clientWidth || 0;
@@ -578,14 +602,29 @@ export class RangeRuler extends Graph {
       } else {
         return;
       }
-      let startX = midX - 150;
-      let endX = midX + 150;
-      this.range.startNS = (endX * startTime - startX * endTime) / (endX - startX);
-      this.range.endNS = (this.rulerW * (endTime - this.range.startNS) + this.range.startNS * endX) / endX;
+      if (startTime === endTime) {
+        let midNs = (this.range.endNS - this.range.startNS) / 2;
+        if(startTime > midNs && startTime - midNs < this.range.totalNS - this.range.endNS){
+          this.range.startNS += startTime - midNs;
+          this.range.endNS += startTime - midNs;
+        }else if(startTime < midNs && midNs - startTime < this.range.startNS) {
+          this.range.startNS -= midNs -startTime;
+          this.range.endNS -= midNs -startTime;
+        }else if(startTime > midNs && startTime - midNs > this.range.totalNS - this.range.endNS){
+          this.range.startNS = 2 * startTime - this.range.totalNS;
+          this.range.endNS = this.range.totalNS;
+        } else if(startTime < midNs && midNs - startTime > this.range.startNS) {
+          this.range.startNS = 0;
+          this.range.endNS = 2 * startTime;
+        }
+      }else {
+        let startX = midX - 150;
+        let endX = midX + 150;
+        this.range.startNS = (endX * startTime - startX * endTime) / (endX - startX);
+        this.range.endNS = ((this.rulerW * (endTime - this.range.startNS)) + this.range.startNS * endX) / endX;
+      }
       this.fillX();
       this.draw();
-      this.range.refresh = true;
-      this.notifyHandler(this.range);
       this.range.refresh = false;
       this.pressFrameIdF = requestAnimationFrame(animF);
     };
@@ -701,6 +740,10 @@ export class RangeRuler extends Graph {
     a: this.keyPressA,
     d: this.keyPressD,
     f: this.keyPressF,
+    ']': this.keyPressF,
+    '[': this.keyPressF,
+    '.': this.scrollFlagIntoView,
+    ',': this.scrollFlagIntoView,
   };
 
   keyboardKeyUpMap: any = {
