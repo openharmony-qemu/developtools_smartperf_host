@@ -1382,3 +1382,33 @@ export const queryLogAllData = (oneDayTime: number, leftNs: number, rightNs: num
 	    t.name = 'render_service';
     `
   )
+
+  export const queryStateFreqList = (startTime: number, endTime: number, cpu: number): Promise<Array<any>> => {
+    let sql = `
+    select
+    c.value,
+    c.ts,
+    c.dur,
+    c.ts - r.start_ts AS startTime, 
+    c.ts - r.start_ts + c.dur AS endTime
+   from
+     measure c, trace_range r 
+   inner join
+     cpu_measure_filter t
+   on
+     c.filter_id = t.id
+   where
+     (name = 'cpufreq' or name='cpu_frequency')
+     and
+     t.cpu	= $cpu
+     and  
+     (((startTime < $startTime) and  (endtime > $endTime))
+      or ((startTime < $startTime) and ($startTime < endtime and endtime < $endTime)) 
+      or ((startTime > $startTime) and ( $startTime < endtime and endtime < $endTime)) 
+      or ((startTime > $startTime and startTime < $endTime) and (endtime > $endTime)))`;
+    return query('queryBinderByArgsId', sql, {
+      $endTime: endTime,
+      $startTime: startTime,
+      $cpu: cpu
+    });
+  };
