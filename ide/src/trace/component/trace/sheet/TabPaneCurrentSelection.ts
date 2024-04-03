@@ -1096,10 +1096,13 @@ export class TabPaneCurrentSelection extends BaseElement {
       });
     }
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
-    rowData.forEach((item: any, index: number) => {
+    let sortedArray = rowData.slice().sort(function (a: { startTs: number; }, b: { startTs: number; }) {
+      return a.startTs - b.startTs;
+    });
+    sortedArray.forEach((item: any, index: number) => {
       if (item.startName === data.startName) {
-        list.push({ name: 'StartSlice', value: index === 0 ? 'NULL' : `${AppStartupStruct.getStartupName(rowData[index - 1].startName)}     ${getTimeString(rowData[index - 1].startTs + rowData[index - 1].dur)}` });
-        list.push({ name: 'EndSlice', value: index === rowData.length - 1 ? 'NULL' : `${AppStartupStruct.getStartupName(rowData[index + 1].startName)}      ${getTimeString(rowData[index + 1].startTs)}` });
+        list.push({ name: 'StartSlice', value: index === 0 ? 'NULL' : `${AppStartupStruct.getStartupName(sortedArray[index - 1].startName)}     ${getTimeString(sortedArray[index - 1].startTs + sortedArray[index - 1].dur)}` });
+        list.push({ name: 'EndSlice', value: index === sortedArray.length - 1 ? 'NULL' : `${AppStartupStruct.getStartupName(sortedArray[index + 1].startName)}      ${getTimeString(sortedArray[index + 1].startTs)}` });
       }
     })
     this.currentSelectionTbl!.dataSource = list;
