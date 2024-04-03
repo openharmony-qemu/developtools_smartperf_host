@@ -72,7 +72,7 @@ export class SpProcessChart {
   private filterIdMaxValue: Map<number, number> = new Map();
   private soInitNameMap: Map<number, string> = new Map();
   private processSrcSliceMap: Map<number, string> = new Map();
-private renderRow: TraceRow<BaseStruct> | null = null;
+  private renderRow: TraceRow<BaseStruct> | null = null;
   private loadAppStartup: boolean = false;
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
