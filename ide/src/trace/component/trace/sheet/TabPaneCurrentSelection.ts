@@ -44,7 +44,8 @@ import {
   queryFlowsData,
   queryPrecedingData,
   queryThreadByItid,
-  queryFpsSourceList
+  queryFpsSourceList,
+  queryStateFreqList
 } from '../../../database/sql/SqlLite.sql';
 import {
   queryBinderArgsByArgset,
@@ -754,7 +755,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
   }
 
-  private prepareThreadInfo(list: any[], data: ThreadStruct): void {
+  private async prepareThreadInfo(list: any[], data: ThreadStruct): Promise<void> {
     list.push({
       name: 'StartTime(Relative)',
       value: getTimeString(data.startTime || 0),
@@ -783,6 +784,26 @@ export class TabPaneCurrentSelection extends BaseElement {
       });
     } else {
       list.push({ name: 'State', value: `${state}` });
+    }
+    if (state.includes('Running')) {
+      let startTime: number = data.startTime || 0;
+      let endTime: number = (data.startTime || 0) + (data.dur || 0);
+      let freqList: Array<any> = [];
+      let str = '';
+      freqList = await queryStateFreqList(startTime, endTime, (data.cpu || 0));
+      freqList.forEach(it => {
+        if (it.startTime < startTime! && it.endTime > endTime!) {
+          it.stateDur = data.dur;
+        } else if (it.startTime < startTime! && startTime! < it.endTime && it.endTime < endTime!) {
+          it.stateDur = it.endTime - startTime!;
+        } else if (it.startTime > startTime! && startTime! < it.endTime && it.endTime < endTime!) {
+          it.stateDur = it.dur;
+        } else if (it.startTime > startTime! && endTime! > it.startTime && it.endTime > endTime!) {
+          it.stateDur = endTime! - it.startTime;
+        }
+        str += '[' + it.value + ': ' + (it.stateDur || 0)/1000 + ']' + ','
+      })
+      list.push({ name: 'Freq [KHz,μs]', value: str.substring(0, str.length - 1) });
     }
     let slice = Utils.SCHED_SLICE_MAP.get(`${data.id}-${data.startTime}`);
     if (slice) {
