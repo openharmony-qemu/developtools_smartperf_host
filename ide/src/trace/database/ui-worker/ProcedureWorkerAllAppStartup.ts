@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, drawString } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler, drawString,drawLoadingFrame } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import {querySingleAppStartupsName} from "../sql/ProcessThread.sql";
@@ -43,6 +43,7 @@ export class AllAppStartupRender {
     req.appStartupContext.globalAlpha = 0.6;
     let find = false;
     let offset = 3;
+    drawLoadingFrame(req.appStartupContext,filter,appStartUpRow);
     for (let re of filter) {
       AllAppStartupStruct.draw(req.appStartupContext, re);
       if (appStartUpRow.isHover) {

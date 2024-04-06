@@ -12,6 +12,7 @@
 // limitations under the License.
 
 import {TraficEnum} from './utils/QueryEnum';
+import {lostFrameList} from "./utils/AllMemoryCache";
 
 export const queryPresentInfo = (args: any): string => {
   return `SELECT ts,dur,name FROM callstack WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${args.threadName}'))
@@ -19,9 +20,16 @@ export const queryPresentInfo = (args: any): string => {
 }
 
 export function lostFrameReceiver  (data: any, proc: Function) :void {
-  let sql = queryPresentInfo(data.params);
-  let res = proc(sql);
-  arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  if (data.params.trafic === TraficEnum.Memory) {
+    if (!lostFrameList.has(data.params.pid)) {
+      lostFrameList.set(data.params.pid, proc(queryPresentInfo(data.params)));
+    }
+    let res = lostFrameList.get(data.params.pid)!;
+    arrayBufferHandler(data, res, true);
+  } else {
+    let res = proc(queryPresentInfo(data.params));
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  }
 }
 
 function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
