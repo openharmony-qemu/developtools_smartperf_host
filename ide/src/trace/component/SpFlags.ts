@@ -239,6 +239,11 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'VSync Signal drawing',
     },
+    {
+      title: 'LTPO',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'Lost Frame and HitchTime templates',
+    },
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {
