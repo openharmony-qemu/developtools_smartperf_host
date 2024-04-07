@@ -978,6 +978,15 @@ export class FrameChart extends BaseElement {
           break;
       }
     });
+
+    document.addEventListener('keyup', (e) => {
+      if (!ChartStruct.hoverFuncStruct) {
+        return;
+      }
+      if (e.ctrlKey && e.key.toLocaleLowerCase() === 'c') {
+        navigator.clipboard.writeText(ChartStruct.hoverFuncStruct!.symbol);
+      }
+    })
     this.listenerResize();
   }
 
