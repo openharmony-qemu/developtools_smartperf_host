@@ -679,7 +679,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   TraceRow.isUserInteraction = false;
   sp.observerScrollHeightEnable = false;
   sp.keyboardEnable && sp.timerShaftEL!.documentOnKeyUp(ev);
-  if (ev.code === 'Enter') {
+  if (ev.code === 'Enter' || ev.code === 'NumpadEnter') {
     document.removeEventListener('keydown', sp.documentOnKeyDown);
     if (ev.shiftKey) {
       sp.dispatchEvent(

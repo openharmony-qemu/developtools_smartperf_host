@@ -359,7 +359,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         dur: (child.dur / this.UNIT).toFixed(this.SUB_LENGTH),
         percent: child.percent ? child.percent.toFixed(this.PERCENT_SUB_LENGTH) : '',
         level: String(child.level),
-        startNS: child.startNS ? (child.startNS / this.UNIT).toFixed(this.SUB_LENGTH) : '',
+        startNS: child.startNS ? child.startNS.toFixed(this.SUB_LENGTH) : '',
         children: this.convertChildToString(child.children) as unknown as TreeDataStringBean[],
       };
     } else {

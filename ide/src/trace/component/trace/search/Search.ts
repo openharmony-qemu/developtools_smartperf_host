@@ -201,7 +201,7 @@ export class LitSearch extends BaseElement {
   }
 
   private searchKeyupListener(e: KeyboardEvent) {
-    if (e.code === 'Enter') {
+    if (e.code === 'Enter' || e.code === 'NumpadEnter') {
       this.updateSearchList(this.search!.value);
       if (e.shiftKey) {
         this.dispatchEvent(
