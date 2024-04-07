@@ -229,18 +229,21 @@ export class SpSegmentationChart {
     SpSegmentationChart.cpuRow.addRowCheckFilePop();
     SpSegmentationChart.cpuRow.rowSetting = 'checkFile';
     // 拿到了用户传递的数据
-    SpSegmentationChart.cpuRow.onRowCheckFileChangeHandler = (e: string | ArrayBuffer | null): void => {
-      // @ts-ignore
-      let chartData = JSON.parse(e);
-      let mapData = new Map<number, number>();
-      // @ts-ignore
-      chartData.map((v) => {
-        for (let key in v.freqInfo) {
-          mapData.set(Number(key), Number(v.freqInfo[key]));
-        }
-        SpSegmentationChart.freqInfoMapData.set(v.cpuId, mapData);
-        mapData = new Map();
-      });
+    SpSegmentationChart.cpuRow.onRowCheckFileChangeHandler = (): void => {
+      SpSegmentationChart.freqInfoMapData = new Map<number, Map<number, number>>();
+      if (sessionStorage.getItem('freqInfoData')) {
+        // @ts-ignore
+        let chartData = JSON.parse(JSON.parse(sessionStorage.getItem('freqInfoData')));
+        let mapData = new Map<number, number>();
+        // @ts-ignore
+        chartData.map((v) => {
+          for (let key in v.freqInfo) {
+            mapData.set(Number(key), Number(v.freqInfo[key]));
+          }
+          SpSegmentationChart.freqInfoMapData.set(v.cpuId, mapData);
+          mapData = new Map();
+        });
+      }
     };
     SpSegmentationChart.cpuRow.focusHandler = (ev): void => {
       SpSegmentationChart.trace?.displayTip(

@@ -157,7 +157,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public collectEL: LitIcon | null | undefined;
   public onThreadHandler: ((useCache: boolean, buf: ArrayBuffer | undefined | null) => void) | undefined | null;
   public onRowSettingChangeHandler: ((keys: Array<string>, nodes: Array<any>) => void) | undefined | null;
-  public onRowCheckFileChangeHandler: ((file: string | ArrayBuffer | null) => void) | undefined | null;
+  public onRowCheckFileChangeHandler: (() => void) | undefined | null;
   public supplier: (() => Promise<Array<T>>) | undefined | null;
   public favoriteChangeHandler: ((fav: TraceRow<any>) => void) | undefined | null;
   public selectChangeHandler: ((traceRow: TraceRow<any>) => void) | undefined | null;
@@ -876,26 +876,41 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       window.publish(window.SmartEvent.UI.HoverNull, undefined);
     });
     this.fileEL = this.rowCheckFilePop.querySelector('#jsoninput');
-    this.rowCheckFilePop.onclick = (): void => {
+    this.rowCheckFilePop.addEventListener('click', (e) => {
       this.fileEL.click();
-      this.fileEL.addEventListener(
-        'change',
-        (e: any) => {
-          let file = e.target.files[0];
-          if (file.type === 'application/json') {
-            let file_reader = new FileReader();
-            file_reader.readAsText(file, 'UTF-8');
-            file_reader.onload = () => {
-              let fc = file_reader.result;
-              this.onRowCheckFileChangeHandler?.(fc);
-            };
-          } else {
-            return;
-          }
-        },
-        false
-      );
-    };
+    })
+    this.fileEL.addEventListener('click', (event: Event) => {
+      event.stopPropagation();
+    })
+    
+    let that = this;
+    window.addEventListener('storage', function (e) {
+      if (e.storageArea === sessionStorage) {
+        if(e.key === 'freqInfoData'){
+          that.onRowCheckFileChangeHandler?.();
+        }
+      }
+    })
+    this.fileEL.addEventListener(
+      'change',
+      (e: any) => {
+        let file = e.target.files[0];
+        if (file && file.type === 'application/json') {
+          let file_reader = new FileReader();
+          file_reader.readAsText(file, 'UTF-8');
+          file_reader.onload = () => {
+            let fc = file_reader.result;
+            window.sessionStorage.setItem('freqInfoData',JSON.stringify(fc))
+            this.onRowCheckFileChangeHandler?.();
+            alert('json文件上传成功！');
+            this.fileEL.value = '';
+          };
+        } else {
+          return;
+        }
+      },
+      false
+    );
     this.describeEl?.appendChild(this.rowCheckFilePop);
   }
 

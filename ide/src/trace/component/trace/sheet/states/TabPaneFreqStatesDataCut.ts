@@ -147,7 +147,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         stateItemArr.map(stateItem => {
           for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
             // @ts-ignore
-            if (stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime
+            if (stateItem.ts> this.funcNameCycleArr[i].cycleStartTime && stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime
               && (stateItem.state === 'S' || stateItem.state === 'R' || stateItem.state === 'D' || stateItem.state === 'Running')) {
               this.filterState!.push(stateItem);
             };
@@ -201,7 +201,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         stateItemArr.map(stateItem => {
           for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
             // @ts-ignore
-            if (stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime
+            if (stateItem.ts > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime
               && (stateItem.state === 'S' || stateItem.state === 'R' || stateItem.state === 'D' || stateItem.state === 'Running')) {
               this.filterState!.push(stateItem);
             };
@@ -303,7 +303,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         cycleItem.cycle = i;
         threadData.map(v => {
           // @ts-ignore
-          if (v.ts + v.dur > this.funcNameCycleArr[i].cycleStartTime && v.dur + v.ts < this.funcNameCycleArr[i].endTime) {
+          if (v.ts> this.funcNameCycleArr[i].cycleStartTime && v.dur + v.ts < this.funcNameCycleArr[i].endTime) {
             cycleItem.totalCount! += 1;
             v.state === 'R'
               ? (cycleItem.RunnableCount += 1, cycleItem.RunnableDur += v.dur!)
