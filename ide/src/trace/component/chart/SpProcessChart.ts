@@ -21,9 +21,9 @@ import { ProcessRender, ProcessStruct } from '../../database/ui-worker/Procedure
 import { ThreadRender, ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread';
 import { FuncRender, FuncStruct } from '../../database/ui-worker/ProcedureWorkerFunc';
 import { MemRender, ProcessMemStruct } from '../../database/ui-worker/ProcedureWorkerMem';
-import {folderSupplier, folderThreadHandler, getRowContext, rowThreadHandler, SpChartManager} from './SpChartManager';
+import { folderSupplier, folderThreadHandler, getRowContext, rowThreadHandler, SpChartManager } from './SpChartManager';
 import { JankRender, JankStruct } from '../../database/ui-worker/ProcedureWorkerJank';
-import {isFrameContainPoint, ns2xByTimeShaft, PairPoint} from '../../database/ui-worker/ProcedureWorkerCommon';
+import { isFrameContainPoint, ns2xByTimeShaft, PairPoint } from '../../database/ui-worker/ProcedureWorkerCommon';
 import { AppStartupRender, AppStartupStruct } from '../../database/ui-worker/ProcedureWorkerAppStartup';
 import { SoRender, SoStruct } from '../../database/ui-worker/ProcedureWorkerSoInit';
 import { FlagsConfig } from '../SpFlags';
@@ -113,7 +113,7 @@ export class SpProcessChart {
     });
   };
 
-  private createDeliverInputEventRow(parentRow: TraceRow<any>, key: number,asyncFuncGroups: Array<any>): TraceRow<FuncStruct> {
+  private createDeliverInputEventRow(parentRow: TraceRow<any>, key: number, asyncFuncGroups: Array<any>): TraceRow<FuncStruct> {
     let funcRow = TraceRow.skeleton<FuncStruct>();
     funcRow.rowId = `${asyncFuncGroups[0].funName}-${key}`;
     funcRow.asyncFuncName = asyncFuncGroups[0].funName;
@@ -282,21 +282,27 @@ export class SpProcessChart {
       /* Janks Frames */
       let actualRow: TraceRow<JankStruct> | null = null;
       let expectedRow: TraceRow<JankStruct> | null = null;
-      if (jankArr.indexOf(it.pid) > -1) {
-        expectedRow = this.addExpectedRow(it, processRow, rsProcess);
-        actualRow = this.addActualRow(it, processRow, rsProcess);
-      }
-      this.addProcessRowListener(processRow, actualRow);
       this.renderRow = null;
       if (it.processName === 'render_service') {
         this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow);
         this.addProcessMemInfo(it, processRow);
+        if (jankArr.indexOf(it.pid!) > -1) {
+          expectedRow = this.addExpectedRow(it, processRow, rsProcess);
+          actualRow = this.addActualRow(it, processRow, rsProcess);
+        }
+        this.addProcessRowListener(processRow, actualRow);
         this.addAsyncFunction(it, processRow);
       } else {
+        if (jankArr.indexOf(it.pid!) > -1) {
+          expectedRow = this.addExpectedRow(it, processRow, rsProcess);
+          actualRow = this.addActualRow(it, processRow, rsProcess);
+        }
+        this.addProcessRowListener(processRow, actualRow);
         this.addAsyncFunction(it, processRow);
         this.addProcessMemInfo(it, processRow);
         this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow);
       }
+      
       await this.trace.chartManager?.frameTimeChart.initAnimatedScenesChart(processRow, it, expectedRow!, actualRow!);
     }
   }
@@ -466,7 +472,11 @@ export class SpProcessChart {
     }
   }
 
-  addExpectedRow(process: any, processRow: TraceRow<any>, renderServiceProcess: Array<any>): TraceRow<JankStruct> {
+  addExpectedRow(
+    process: any,
+    processRow: TraceRow<any>,
+    renderServiceProcess: Array<any>
+  ): TraceRow<JankStruct> {
     let expectedRow = TraceRow.skeleton<JankStruct>();
     expectedRow.asyncFuncName = process.processName;
     expectedRow.asyncFuncNamePID = process.pid;
@@ -487,11 +497,19 @@ export class SpProcessChart {
     expectedRow.onThreadHandler = rowThreadHandler<JankRender>('jank', 'context', {
       type: 'expected_frame_timeline_slice',
     }, expectedRow, this.trace);
-    processRow.addChildTraceRow(expectedRow);
+    if (this.renderRow) {
+      processRow.addChildTraceRowBefore(expectedRow, this.renderRow);
+    } else {
+      processRow.addChildTraceRow(expectedRow);
+    }
     return expectedRow;
   }
 
-  addActualRow(process: any, processRow: TraceRow<any>, renderServiceProcess: Array<any>): TraceRow<JankStruct> {
+  addActualRow(
+    process: any, 
+    processRow: TraceRow<any>, 
+    renderServiceProcess: Array<any>
+  ): TraceRow<JankStruct> {
     let actualRow = TraceRow.skeleton<JankStruct>();
     actualRow.rowType = TraceRow.ROW_TYPE_JANK;
     actualRow.rowParentId = `${process.pid}`;
@@ -510,7 +528,11 @@ export class SpProcessChart {
     actualRow.onThreadHandler = rowThreadHandler<JankRender>('jank', 'context', {
       type: 'actual_frame_timeline_slice',
     }, actualRow, this.trace);
-    processRow.addChildTraceRow(actualRow);
+    if (this.renderRow) {
+      processRow.addChildTraceRowBefore(actualRow, this.renderRow);
+    } else {
+      processRow.addChildTraceRow(actualRow);
+    }
     return actualRow;
   }
 
@@ -638,8 +660,8 @@ export class SpProcessChart {
     expectedRow: TraceRow<JankStruct> | null,
     actualRow: TraceRow<JankStruct> | null,
     soRow: TraceRow<SoStruct> | undefined,
-    startupRow: TraceRow<AppStartupStruct> | undefined,
-  ) {
+    startupRow: TraceRow<AppStartupStruct> | undefined
+  ){
     let threads = this.processThreads.filter((thread) => thread.pid === it.pid && thread.tid != 0);
     let threadRowArr: Array<TraceRow<BaseStruct>> = [];
     for (let j = 0; j < threads.length; j++) {
@@ -808,7 +830,10 @@ export class SpProcessChart {
   }
 
   //进程内存信息
-  addProcessMemInfo(it: { pid: number | null; processName: string | null }, processRow: TraceRow<ProcessStruct>) {
+  addProcessMemInfo(
+    it: { pid: number | null; processName: string | null },
+    processRow: TraceRow<ProcessStruct>
+  ) {
     let processMem = this.processMem.filter((mem) => mem.pid === it.pid);
     processMem.forEach((mem) => {
       let row = TraceRow.skeleton<ProcessMemStruct>();
@@ -856,7 +881,7 @@ export class SpProcessChart {
       }
     });
   }
-  private calMaxHeight(asyncFunctions: any[]) : number{
+  private calMaxHeight(asyncFunctions: any[]): number {
     let max = 0;
     asyncFunctions.forEach((it) => {
       const depth = it.depth || 0;

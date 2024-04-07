@@ -128,9 +128,9 @@ export const getTabBindersCount = (
       B.pid,
       B.tid,
       B.state,
-      B.dur,
+      ifnull(B.dur,0) as dur,
       B.ts,
-      B.dur + B.ts as endTs
+      ifnull(B.dur,0) + B.ts as endTs
     from
       thread_state AS B
     where
@@ -158,10 +158,9 @@ export const getTabBindersCount = (
       `
     select 
       c.ts as cycleStartTime,
-      c.ts + c.dur as cycleEndTime,
+      c.ts + ifnull(c.dur, 0) as cycleEndTime,
       t.tid,
-      p.pid,
-      c.dur
+      p.pid
       from
       callstack c 
     left join
