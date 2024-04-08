@@ -2109,7 +2109,7 @@ export class SpSystemTrace extends BaseElement {
     this.times.clear();
     resetVSync();
     SpSystemTrace.keyPathList = [];
-    TabPaneCurrentSelection.isTransformed = false;
+    Utils.isTransformed = false;
   }
 
   init = async (
