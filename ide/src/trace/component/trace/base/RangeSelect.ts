@@ -73,7 +73,6 @@ export class RangeSelect {
     // 遍历当前可视区域所有的泳道，如果有render_service进程，查询该进程下对应泳道的方法存起来，以便框选时直接使用
     this.trace?.visibleRows.forEach((row) => {
       if (row.getAttribute('name')?.startsWith('render_service')) {
-        // console.log(row.parentRowEl);
         if (row.getAttribute('row-type') === 'process') {
           this.queryRowsData(row.childrenList)
         } else {
