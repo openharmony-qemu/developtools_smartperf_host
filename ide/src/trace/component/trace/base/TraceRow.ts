@@ -676,7 +676,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
     }
     if (flag) {
-      let order: string[] = ['VSyncGenerator', 'VSync-rs', 'VSync-app', 'render_service', 'Acquire Fence', 'RSHardwareThrea', 'Present Fence'];
+      let order: string[] = ['VSyncGenerator', 'VSync-rs', 'VSync-app', 'render_service', 'RSUniRenderThre', 'Acquire Fence', 'RSHardwareThrea', 'Present Fence'];
       let filterOrderArr: Array<TraceRow<BaseStruct>> = [];
       let filterNotOrderArr: Array<TraceRow<BaseStruct>> = [];
       for (let i = 0; i < threadRowArr.length; i++) {

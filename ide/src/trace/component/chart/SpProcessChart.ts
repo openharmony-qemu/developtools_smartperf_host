@@ -279,7 +279,7 @@ export class SpProcessChart {
           soRow = this.addSoInitRow(processRow, maxSoDepth.maxDepth);
         }
       }
-      /* Janks Frames */
+
       let actualRow: TraceRow<JankStruct> | null = null;
       let expectedRow: TraceRow<JankStruct> | null = null;
       this.renderRow = null;
@@ -471,7 +471,7 @@ export class SpProcessChart {
       pair.rowEL = processRow!;
     }
   }
-
+  /* Janks Frames */
   addExpectedRow(
     process: any,
     processRow: TraceRow<any>,
@@ -504,7 +504,7 @@ export class SpProcessChart {
     }
     return expectedRow;
   }
-
+  /* Janks Frames */
   addActualRow(
     process: any, 
     processRow: TraceRow<any>, 
