@@ -72,8 +72,12 @@ export class RangeSelect {
     TraceRow.rangeSelectObject = undefined;
     // 遍历当前可视区域所有的泳道，如果有render_service进程，查询该进程下对应泳道的方法存起来，以便框选时直接使用
     this.trace?.visibleRows.forEach((row) => {
-      if (row.getAttribute('row-type') === 'process' && row.getAttribute('name')?.startsWith('render_service')) {
-        this.queryRowsData(row.childrenList)
+      if (row.getAttribute('name')?.startsWith('render_service')) {
+        if (row.getAttribute('row-type') === 'process') {
+          this.queryRowsData(row.childrenList)
+        } else {
+          this.queryRowsData(row.parentRowEl!.childrenList)
+        }
         return;
       }
     })
