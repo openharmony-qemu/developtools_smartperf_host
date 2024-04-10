@@ -22,7 +22,7 @@ import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpU
 
 export class SpBpftraceChart {
   private trace: SpSystemTrace;
-  
+
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
   }
@@ -39,7 +39,7 @@ export class SpBpftraceChart {
   }
 
   async initSample(start_ts: number, file: any): Promise<TraceRow<SampleStruct>> {
-    let traceRow =  TraceRow.skeleton<SampleStruct>();
+    let traceRow = TraceRow.skeleton<SampleStruct>();
     traceRow.rowId = 'bpftrace';
     traceRow.index = 0;
     traceRow.rowType = TraceRow.ROW_TYPE_SAMPLE;
@@ -65,7 +65,7 @@ export class SpBpftraceChart {
         const height = (Math.max(...flattenTreeArray.map((obj: any) => obj.depth)) + 1) * 20;
         const sampleProperty = this.setRelationDataProperty(flattenTreeArray, uniqueProperty);
         const startTS = flattenTreeArray[0].property[0].begin;
-        traceRow.supplier = () => 
+        traceRow.supplier = () =>
           new Promise((resolve): void => {
             resolve(sampleProperty)
           })
@@ -90,8 +90,34 @@ export class SpBpftraceChart {
           );
           traceRow.canvasRestore(context)
         };
-        traceRow.style.height = `${ height }px`;
+        traceRow.style.height = `${height}px`;
       })
+    } else {
+      traceRow.supplier = () =>
+        new Promise((resolve): void => {
+          resolve([])
+        })
+      traceRow.onThreadHandler = (useCache) => {
+        let context: CanvasRenderingContext2D;
+        if (traceRow.currentContext) {
+          context = traceRow.currentContext;
+        } else {
+          context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        }
+        traceRow.canvasSave(context);
+        (renders.sample as SampleRender).renderMainThread(
+          {
+            context: context,
+            useCache: useCache,
+            type: 'bpftrace',
+            start_ts: 0,
+            uniqueProperty: [],
+            flattenTreeArray: []
+          },
+          traceRow
+        );
+        traceRow.canvasRestore(context)
+      };
     }
     return traceRow;
   }
@@ -112,11 +138,11 @@ export class SpBpftraceChart {
         const height = (Math.max(...flattenTreeArray.map((obj: any) => obj.depth)) + 1) * 20;
         const sampleProperty = this.setRelationDataProperty(flattenTreeArray, uniqueProperty);
         const startTS = start_ts > 0 ? start_ts : flattenTreeArray[0].property[0].begin;
-        row.supplier = () => 
+        row.supplier = () =>
           new Promise((resolve): void => {
             resolve(sampleProperty)
           })
-          row.onThreadHandler = (useCache) => {
+        row.onThreadHandler = (useCache) => {
           let context: CanvasRenderingContext2D;
           if (row.currentContext) {
             context = row.currentContext;
@@ -137,7 +163,7 @@ export class SpBpftraceChart {
           );
           row.canvasRestore(context)
         };
-        row.style.height = `${ height }px`;
+        row.style.height = `${height}px`;
       })
     })
   }
@@ -196,7 +222,7 @@ export class SpBpftraceChart {
       const newNode: any = {};
       if (name.indexOf('unknown') > -1) {
         newNode['children'] = this.getUnknownAllChildrenNames(node);
-      } 
+      }
       newNode['detail'] = node['detail'];
       newNode['depth'] = depth;
       newNode['name'] = name;
@@ -232,7 +258,7 @@ export class SpBpftraceChart {
     })
     return result
   }
-  
+
   /**
    * 关系树赋值
    * @param relationData 
