@@ -111,6 +111,14 @@ export class TabPaneFreqDataCut extends BaseElement {
     // @ts-ignore
     this.shadowRoot?.querySelector('#cycleQuery')!.style.display = 'none';
     // @ts-ignore
+    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[0].style.backgroundColor = '#fff';
+    // @ts-ignore
+    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[0].style.color = '#000';
+    // @ts-ignore
+    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[1].style.backgroundColor = '#fff';
+    // @ts-ignore
+    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[1].style.color = '#000';
+    // @ts-ignore
     this.statisticsScatter!.config = undefined;
     this.parentElement!.style.overflow = 'hidden';
   }
@@ -1111,11 +1119,27 @@ export class TabPaneFreqDataCut extends BaseElement {
     this.threadStatesDIV?.children[2].children[0].addEventListener('click', (e) => {
         this.threadStatesTbl!.loading = true;
         // @ts-ignore
+        this.threadStatesDIV?.children[2].children[0].style.backgroundColor = '#666666';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[0].style.color = '#fff';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[1].style.backgroundColor = '#fff';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[1].style.color = '#000';
+        // @ts-ignore
         this.dataSingleCut(this.threadStatesDIV?.children[0]!, this.threadStatesDIV?.children[1]!, this.initData);
       }
     );
     this.threadStatesDIV?.children[2].children[1].addEventListener('click', (e) => {
         this.threadStatesTbl!.loading = true;
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[1].style.backgroundColor = '#666666';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[1].style.color = '#fff';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[0].style.backgroundColor = '#fff';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[0].style.color = '#000';
         // @ts-ignore
         this.dataLoopCut(this.threadStatesDIV?.children[0]!, this.threadStatesDIV?.children[1]!, this.initData);
       }
