@@ -532,8 +532,12 @@ export function createNativePluginConfig(
         nativeConfig.responseLibraryMode = spAllocations!.response_lib_mode;
         maxProcessSize = 8;
       }
-      if (spAllocations!.sample_interval) {
-        nativeConfig.sampleInterval = spAllocations!.sample_interval;
+      if (spAllocations && spAllocations.sample_interval) {
+        if (spAllocations.record_statistics) {
+          nativeConfig.sampleInterval = spAllocations.sample_interval;
+        } else {
+          nativeConfig.mallocFreeMatchingInterval = spAllocations.sample_interval;
+        }
       }
       nativeConfig.jsStackReport = spAllocations!.recordJsStack;
       if (spAllocations!.recordJsStack) {

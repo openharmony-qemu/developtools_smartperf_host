@@ -102,6 +102,7 @@ import {
   spSystemTraceInit,
   spSystemTraceInitElement,
   spSystemTraceInitPointToEvent,
+  spSystemTraceParentRowSticky,
   spSystemTraceShowStruct,
 } from './SpSystemTrace.init';
 import {
@@ -210,6 +211,7 @@ export class SpSystemTrace extends BaseElement {
   _flagList: Array<any> = [];
   static currentStartTime: number = 0;
   static retargetIndex: number = 0;
+  private prevScrollY: number = 0;
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -506,6 +508,8 @@ export class SpSystemTrace extends BaseElement {
   top: number = 0;
   handler: any = undefined;
   rowsElOnScroll = (e: any): void => {
+    const currentScrollY = e.target.scrollTop;
+    const deltaY = currentScrollY - this.prevScrollY;
     this.linkNodes.forEach((itln) => {
       if (itln[0].rowEL.collect) {
         if (this.timerShaftEL?._checkExpand) {
@@ -539,6 +543,8 @@ export class SpSystemTrace extends BaseElement {
       requestAnimationFrame(() => this.refreshCanvas(false));
     }, 200);
     requestAnimationFrame(() => this.refreshCanvas(false));
+    spSystemTraceParentRowSticky(this, deltaY);
+    this.prevScrollY = currentScrollY;
   };
 
   private scrollTimer: any;

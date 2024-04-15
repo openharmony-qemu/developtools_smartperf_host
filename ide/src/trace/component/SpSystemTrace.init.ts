@@ -544,16 +544,6 @@ function intersectionObserverHandler(sp: SpSystemTrace): void {
           sp.visibleRows.indexOf(tr) === -1 && sp.visibleRows.push(tr);
           sp.invisibleRows = sp.invisibleRows.filter((it) => it.sleeping);
         }
-        sp.visibleRows
-          .filter((vr) => vr.expansion)
-          .forEach((vr) => {
-            vr.sticky = sp.visibleRows.some((vro) => {
-              vr.childrenList.filter((it) => !it.collect).indexOf(vro) >= 0;
-            });
-          });
-        sp.visibleRows
-          .filter((vr) => !vr.folder && vr.parentRowEl && vr.parentRowEl.expansion && !vr.collect)
-          .forEach((vr) => (vr.parentRowEl!.sticky = true));
         if (sp.handler) {
           clearTimeout(sp.handler);
         }
@@ -1035,4 +1025,22 @@ const eventMap = {
 };
 export function spSystemTraceInitPointToEvent(sp: SpSystemTrace): void {
   sp.eventMap = eventMap;
+}
+
+export function spSystemTraceParentRowSticky(sp: SpSystemTrace, deltaY: number): void {
+  if (deltaY > 0) {
+    // 从上往下划
+    const expandRowList = sp.visibleRows.filter((vr) => vr.expansion);
+    expandRowList.forEach((vr: TraceRow<any>) => {
+      const visibleNotCollectList = vr.childrenList.filter((child: TraceRow<any>) => !child.collect && !child.sleeping);
+      vr.sticky = visibleNotCollectList.length > 0;
+    });
+  } else if (deltaY < 0) {
+    // 从下往上划
+    sp.visibleRows
+      .filter((vr) => !vr.folder && vr.parentRowEl && vr.parentRowEl.expansion && !vr.collect)
+      .forEach((vr) => (vr.parentRowEl!.sticky = true));
+  } else {
+    return;
+  }
 }

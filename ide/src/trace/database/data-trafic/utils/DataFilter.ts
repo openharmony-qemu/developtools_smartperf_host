@@ -109,33 +109,29 @@ export function filterDataByGroup(
   valueKey?: string,
   filter?: (a: any) => boolean
 ): any[] {
-  if (valueKey && filter) {
-    let arr = findRange(list, { startKey, durKey, startNS, endNS });
-    arr = arr.map((it) => {
-      it.px = Math.floor(it[startKey] / ((endNS - startNS) / width));
-      return it;
-    });
-    let group = groupBy(arr, 'px');
-    let res: Set<any> = new Set();
-    Reflect.ownKeys(group).map((key: any): void => {
-      let arr = group[key] as any[];
-      if (arr.length > 0) {
-        res.add(arr.reduce((p, c) => (p[durKey] > c[durKey] ? p : c)));
-        if (valueKey) {
-          res.add(arr.reduce((p, c) => (p[valueKey] > c[valueKey] ? p : c)));
-        }
-        if (filter) {
-          let filterArr = arr.filter((a) => filter(a));
-          if (filterArr && filterArr.length > 0) {
-            res.add(filterArr.reduce((p, c) => (p[durKey] > c[durKey] ? p : c)));
-          }
+  let arr = findRange(list, { startKey, durKey, startNS, endNS });
+  arr = arr.map((it) => {
+    it.px = Math.floor(it[startKey] / ((endNS - startNS) / width));
+    return it;
+  });
+  let group = groupBy(arr, 'px');
+  let res: Set<any> = new Set();
+  Reflect.ownKeys(group).map((key: any): void => {
+    let arr = group[key] as any[];
+    if (arr.length > 0) {
+      res.add(arr.reduce((p, c) => (p[durKey] > c[durKey] ? p : c)));
+      if (valueKey) {
+        res.add(arr.reduce((p, c) => (p[valueKey] > c[valueKey] ? p : c)));
+      }
+      if (filter) {
+        let filterArr = arr.filter((a) => filter(a));
+        if (filterArr && filterArr.length > 0) {
+          res.add(filterArr.reduce((p, c) => (p[durKey] > c[durKey] ? p : c)));
         }
       }
-    });
-    return [...res];
-  } else {
-    return filterDataByGroupWithoutValue(list, startKey, durKey, startNS, endNS, width);
-  }
+    }
+  });
+  return [...res];
 }
 
 function filterDataByGroupWithoutValue(
@@ -155,7 +151,7 @@ function filterDataByGroupWithoutValue(
       // 获取当前数据的像素值
       const px: number = Math.floor(list[i][startKey] / ((endNS - startNS) / width));
       list[i].px = px;
-      if (flag === px && list[i][durKey] > arr[arr.length - 1][durKey]) {
+      if (flag === px && arr[arr.length - 1] && list[i][durKey] > arr[arr.length - 1][durKey]) {
         arr[arr.length - 1] = list[i];
       }
       if (flag !== px) {

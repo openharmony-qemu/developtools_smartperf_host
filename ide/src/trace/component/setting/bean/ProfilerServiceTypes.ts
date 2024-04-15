@@ -455,6 +455,7 @@ export interface NativeHookConfig {
   callframeCompress?: boolean;
   startupMode?: boolean;
   statisticsInterval?: number;
+  mallocFreeMatchingInterval?: number;
   sampleInterval?: number;
   expandPids?: number[];
   responseLibraryMode?: boolean;
