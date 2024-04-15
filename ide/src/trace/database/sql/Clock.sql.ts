@@ -20,6 +20,7 @@ export const queryClockData = (): Promise<
     name: string;
     num: number;
     srcname: string;
+    maxValue?: number
   }>
 > =>
   query(

@@ -172,7 +172,7 @@ void PbreaderParser::ParserFileSO(std::string& directory, const std::vector<std:
         auto symbolsFile =
             OHOS::Developtools::HiPerf::SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, absoluteFilePath);
         symbolsFile->setSymbolsFilePath(directory);
-        symbolsFile->LoadSymbols(absoluteFilePath);
+        symbolsFile->LoadSymbols(nullptr, absoluteFilePath);
         symbolsFiles_.emplace_back(std::move(symbolsFile));
     }
 }

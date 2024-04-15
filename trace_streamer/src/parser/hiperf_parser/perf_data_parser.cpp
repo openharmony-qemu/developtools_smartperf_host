@@ -612,7 +612,7 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
 {
     std::string stackStr = "";
     for (auto& callFrame : sample->callFrames_) {
-        stackStr += "+" + base::number(callFrame.ip_, base::INTEGER_RADIX_TYPE_HEX);
+        stackStr += "+" + base::number(callFrame.pc, base::INTEGER_RADIX_TYPE_HEX);
     }
     auto stackHash = hashFun_(stackStr);
     auto pid = sample->data_.pid;
@@ -625,12 +625,12 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
     uint64_t depth = 0;
     for (auto frame = sample->callFrames_.rbegin(); frame != sample->callFrames_.rend(); ++frame) {
         uint64_t fileId = INVALID_UINT64;
-        auto fileDataIndex = traceDataCache_->dataDict_.GetStringIndex(frame->filePath_);
+        auto fileDataIndex = traceDataCache_->dataDict_.GetStringIndex(frame->mapName);
         if (fileDataDictIdToFileId_.count(fileDataIndex) != 0) {
             fileId = fileDataDictIdToFileId_.at(fileDataIndex);
         }
-        streamFilters_->perfDataFilter_->AppendPerfCallChain(callChainId, depth++, frame->ip_, frame->vaddrInFile_,
-                                                             fileId, frame->symbolIndex_);
+        streamFilters_->perfDataFilter_->AppendPerfCallChain(callChainId, depth++, frame->pc, frame->funcOffset, fileId,
+                                                             frame->index);
     }
     return callChainId;
 }

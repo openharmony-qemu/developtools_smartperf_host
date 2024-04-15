@@ -18,6 +18,8 @@ ohos_source_set("hiviewdfx_source") {
   subsystem_name = "developtools"
   part_name = "smartperf_host"
   cflags = [ "-D ALWAYSTRUE" ]
+  cflags += [ "-D DFX_NO_PRINT_LOG" ]
+  cflags += [ "-D is_host" ]
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]
   }
@@ -28,10 +30,7 @@ ohos_source_set("hiviewdfx_source") {
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil",
     "${THIRD_PARTY}/perf_include/hiviewdfx/hilog/include",
   ]
-  sources = [
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxlog/dfx_log.cpp",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil/dfx_util.cpp",
-  ]
+  sources = [ "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil/dfx_util.cpp" ]
   include_dirs += [
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/common",
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
@@ -55,6 +54,7 @@ ohos_source_set("hiviewdfx_source") {
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_memory.cpp",
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_mmap.cpp",
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_symbols.cpp",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/unwinder_config.cpp",
   ]
 }
 
