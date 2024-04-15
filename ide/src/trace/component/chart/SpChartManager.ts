@@ -48,7 +48,7 @@ import {
   queryDataDICT,
   queryThreadAndProcessName,
 } from '../../database/sql/ProcessThread.sql';
-import { queryTaskPoolCallStack, queryTotalTime } from '../../database/sql/SqlLite.sql';
+import { queryTaskPoolCallStack, queryTotalTime, queryTraceRange } from '../../database/sql/SqlLite.sql';
 import { getCpuUtilizationRate } from '../../database/sql/Cpu.sql';
 import { queryMemoryConfig } from '../../database/sql/Memory.sql';
 import { SpLtpoChart } from './SpLTPO';
@@ -81,6 +81,7 @@ export class SpChartManager {
   private spHiSysEvent: SpHiSysEventChart;
   private spSegmentationChart: SpSegmentationChart;
   private spBpftraceChart: SpBpftraceChart;
+  private tranceRange = { startTs: 0, endTs: 0 };
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -127,6 +128,8 @@ export class SpChartManager {
     let ptArr = await queryThreadAndProcessName();
     this.handleProcessThread(ptArr);
     info('initData timerShaftEL Data initialized');
+    const range = await queryTraceRange();
+    this.tranceRange = range[0];
   }
 
   async initCpu(progress: Function): Promise<void> {
@@ -187,7 +190,7 @@ export class SpChartManager {
     await this.SpLtpoChart.init();
     await this.frameTimeChart.init();
     progress('process', 92);
-    await this.process.initAsyncFuncData();
+    await this.process.initAsyncFuncData(this.tranceRange);
     await this.process.initDeliverInputEvent();
     await this.process.init();
     progress('display', 95);

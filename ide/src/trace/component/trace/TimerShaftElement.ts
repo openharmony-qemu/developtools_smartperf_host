@@ -212,12 +212,8 @@ export class TimerShaftElement extends BaseElement {
     this._endNS = value;
   }
 
-  isScaling(): boolean {
-    return this._rangeRuler?.isPress || false;
-  }
-
   reset(): void {
-    this.loadComplete = false;
+    this.loadComplete = false; 
     this.totalNS = 10_000_000_000;
     this.startNS = 0;
     this.endNS = 10_000_000_000;

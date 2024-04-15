@@ -1748,6 +1748,7 @@ export class SpApplication extends BaseElement {
   private initSearchChangeEvents(): void {
     let timer: any = null;
     this.litSearch!.valueChangeHandler = (value: string) => {
+      this.litSearch!.list = [];
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
         this.litSearch!.isClearValue = false;

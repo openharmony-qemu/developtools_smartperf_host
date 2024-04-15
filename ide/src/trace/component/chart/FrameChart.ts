@@ -26,6 +26,7 @@ const textMaxWidth = 50;
 const scaleRatio = 0.2; // 缩放比例
 const ms10 = 10_000_000;
 const jsStackPath = ['.ts', '.ets', '.js'];
+const textStyle = '12px bold';
 
 class NodeValue {
   size: number;
@@ -346,6 +347,7 @@ export class FrameChart extends BaseElement {
   public async calculateChartData(): Promise<void> {
     this.clearCanvas();
     this.canvasContext?.beginPath();
+    this.canvasContext.font = textStyle;
     // 绘制刻度线
     this.drawCalibrationTails();
     // 绘制root节点
@@ -990,7 +992,7 @@ export class FrameChart extends BaseElement {
                 background-color: white;
                 border: 1px solid #f9f9f9;
                 width: auto;
-                font-size: 8px;
+                font-size: 12px;
                 color: #50809e;
                 padding: 2px 10px;
                 display: none;

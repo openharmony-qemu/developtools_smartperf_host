@@ -417,10 +417,6 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
   }
   let isMouseInTimeShaft = handleMouseInTimeShaft(sp, ev);
   let rows = sp.visibleRows;
-  if (sp.timerShaftEL?.isScaling()) {
-    return;
-  }
-
   sp.timerShaftEL?.documentOnMouseMove(ev, sp);
 
   if (isMouseInTimeShaft) {

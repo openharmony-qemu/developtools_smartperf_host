@@ -184,9 +184,9 @@ function flagChangeHandler(sp: SpSystemTrace): (event: any) => void {
     if (event.detail.hidden) {
       sp.selectFlag = undefined;
       if (sp._flagList.length <= 0) {
-        if (TraceRow.rangeSelectObject) {
-          let showTab = sp.getShowTab();
-          showTab = showTab.filter((it) => it !== 'box-flag');
+        let showTab = sp.getShowTab();
+        showTab = showTab.filter((it) => it !== 'box-flag');
+        if (TraceRow.rangeSelectObject && showTab.length > 0) {
           sp.traceSheetEL?.displayTab(...showTab);
         } else {
           sp.traceSheetEL?.setMode('hidden');
@@ -202,9 +202,9 @@ function slicesChangeHandler(sp: SpSystemTrace): (event: any) => void {
     if (event.detail.hidden) {
       sp.slicestime = null;
       if (sp._slicesList.length <= 0) {
-        if (TraceRow.rangeSelectObject) {
-          let showTab = sp.getShowTab();
-          showTab = showTab.filter((it) => it !== 'tabpane-current');
+        let showTab = sp.getShowTab();
+        showTab = showTab.filter((it) => it !== 'tabpane-current');
+        if (TraceRow.rangeSelectObject && showTab.length > 0) {
           sp.traceSheetEL?.displayTab(...showTab);
         } else {
           sp.traceSheetEL?.setMode('hidden');

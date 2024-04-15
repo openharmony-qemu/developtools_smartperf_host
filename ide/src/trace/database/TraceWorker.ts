@@ -40,7 +40,6 @@ const CONTENT_TYPE_HEADER_PAGE = 30;
 const CONTENT_TYPE_PRINTK_FORMATS = 31;
 const CONTENT_TYPE_KALLSYMS = 32;
 
-
 let arkTsData: Array<Uint8Array> = [];
 let arkTsDataSize: number = 0;
 
@@ -342,19 +341,23 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
 }
 
 function isCommonData(dataType: number): boolean {
-  return dataType === CONTENT_TYPE_CMDLINES || dataType === CONTENT_TYPE_TGIDS ||
-    dataType === CONTENT_TYPE_HEADER_PAGE || dataType === CONTENT_TYPE_PRINTK_FORMATS ||
+  return (
+    dataType === CONTENT_TYPE_CMDLINES ||
+    dataType === CONTENT_TYPE_TGIDS ||
+    dataType === CONTENT_TYPE_HEADER_PAGE ||
+    dataType === CONTENT_TYPE_PRINTK_FORMATS ||
     dataType === CONTENT_TYPE_KALLSYMS
+  );
 }
 
 function parseRawTraceByOpenAction(e: MessageEvent, wrSize: number, r2: number, uint8Array: Uint8Array): number {
-  let commonDataOffsetList: Array<{ startOffset: number; endOffset: number}> = []; // common Data
+  let commonDataOffsetList: Array<{ startOffset: number; endOffset: number }> = []; // common Data
   let offset = 12;
   let tlvTypeLength = 4;
   let headArray = uint8Array.slice(0, offset);
   let commonTotalLength = 0;
   while (offset < uint8Array.length) {
-    let commonDataOffset = {startOffset: offset, endOffset: offset};
+    let commonDataOffset = { startOffset: offset, endOffset: offset };
     let dataTypeData = e.data.buffer.slice(offset, offset + tlvTypeLength);
     offset += tlvTypeLength;
     let dataType = Array.from(new Uint32Array(dataTypeData));
@@ -602,8 +605,9 @@ function onmessageByDownloadDBAction(e: MessageEvent): void {
 
 function onmessageByUploadSoAction(e: MessageEvent): void {
   uploadSoActionId = e.data.id;
-  let fileList = e.data.params as Array<File>;
+  const fileList = e.data.params as Array<File>;
   if (fileList) {
+    fileList.sort((a, b) => b.size - a.size);
     soFileList = fileList;
     uploadFileIndex = 0;
     if (!uploadSoCallbackFn) {
@@ -620,7 +624,7 @@ async function saveDataToIndexDB(
   timStamp: number,
   pageNum: number,
   saveIndex: number,
-  saveStartOffset: number,
+  saveStartOffset: number
 ): Promise<void> {
   let freeArray = currentChunk.slice(0, currentChunkOffset);
   await addDataToIndexeddb(indexDB, {
@@ -641,7 +645,13 @@ function cutLongTraceCallBackHandle(
   heapPtr: number,
   size: number,
   dataType: number,
-  newCutFilePageInfo: Map<string, { traceFileType: string; dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }] }>
+  newCutFilePageInfo: Map<
+    string,
+    {
+      traceFileType: string;
+      dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }];
+    }
+  >
 ) {
   let key = `${traceFileType}_${currentPageNum}`;
   let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
@@ -652,11 +662,11 @@ function cutLongTraceCallBackHandle(
     } else {
       if (newCutFilePageInfo.has(key)) {
         let newVar = newCutFilePageInfo.get(key);
-        newVar?.dataArray.push({data: out, dataTypes: 'data'});
+        newVar?.dataArray.push({ data: out, dataTypes: 'data' });
       } else {
         newCutFilePageInfo.set(key, {
           traceFileType: traceFileType,
-          dataArray: [{data: out, dataTypes: 'data'}],
+          dataArray: [{ data: out, dataTypes: 'data' }],
         });
       }
     }
@@ -666,12 +676,15 @@ function cutLongTraceCallBackHandle(
       let jsonStr: string = dec.decode(out);
       let jsonObj = JSON.parse(jsonStr);
       let valueArray: Array<{ offset: number; size: number }> = jsonObj.value;
-      cutFilePageInfo.dataArray.push({data: valueArray, dataTypes: 'json'});
+      cutFilePageInfo.dataArray.push({ data: valueArray, dataTypes: 'json' });
     }
   }
 }
 
-function initSplitLongTraceModuleAndFun(headArray: Uint8Array, cutFileCallBack: (heapPtr: number, size: number, dataType: number, isEnd: number) => void): number {
+function initSplitLongTraceModuleAndFun(
+  headArray: Uint8Array,
+  cutFileCallBack: (heapPtr: number, size: number, dataType: number, isEnd: number) => void
+): number {
   splitReqBufferAddr = Module._InitializeSplitFile(Module.addFunction(cutFileCallBack, 'viiii'), REQ_BUF_SIZE);
   Module.HEAPU8.set(headArray, splitReqBufferAddr);
   Module._TraceStreamerGetLongTraceTimeSnapEx(headArray.length);
@@ -717,10 +730,24 @@ async function handleDataTypeBySplitLongTrace(
   return [currentChunkOffset, saveIndex, saveStartOffset, currentChunk];
 }
 
-async function saveAllDataByLongTrace(range: IDBKeyRange, nowCutInfoList: Array<any>,
-  searchDataInfo: { fileType: string; index: number; pageNum: number; startOffsetSize: number; endOffsetSize: number }[],
-  currentChunkOffset: number, currentChunk: Uint8Array, fileType: string, timStamp: number, pageNum: number,
-   saveIndex: number, saveStartOffset: number): Promise<[number, number, number, Uint8Array]> {
+async function saveAllDataByLongTrace(
+  range: IDBKeyRange,
+  nowCutInfoList: Array<any>,
+  searchDataInfo: {
+    fileType: string;
+    index: number;
+    pageNum: number;
+    startOffsetSize: number;
+    endOffsetSize: number;
+  }[],
+  currentChunkOffset: number,
+  currentChunk: Uint8Array,
+  fileType: string,
+  timStamp: number,
+  pageNum: number,
+  saveIndex: number,
+  saveStartOffset: number
+): Promise<[number, number, number, Uint8Array]> {
   let transaction = indexDB.transaction(STORE_NAME, 'readonly');
   let store = transaction.objectStore(STORE_NAME);
   let index = store.index('QueryCompleteFile');
@@ -751,9 +778,16 @@ async function saveAllDataByLongTrace(range: IDBKeyRange, nowCutInfoList: Array<
           currentChunk.set(saveArray, currentChunkOffset);
           currentChunkOffset += saveArray.length;
         } else {
-          await addDataToIndexeddb(indexDB, { buf: saveArray, id: `${fileType}_new_${timStamp}_${pageNum}_${saveIndex}`,
-            fileType: `${fileType}_new`, pageNum: pageNum, startOffset: saveStartOffset,
-            endOffset: saveStartOffset + maxSize, index: saveIndex, timStamp: timStamp});
+          await addDataToIndexeddb(indexDB, {
+            buf: saveArray,
+            id: `${fileType}_new_${timStamp}_${pageNum}_${saveIndex}`,
+            fileType: `${fileType}_new`,
+            pageNum: pageNum,
+            startOffset: saveStartOffset,
+            endOffset: saveStartOffset + maxSize,
+            index: saveIndex,
+            timStamp: timStamp,
+          });
           saveStartOffset += maxSize;
           saveIndex++;
         }
@@ -768,7 +802,13 @@ async function saveAllDataByLongTrace(range: IDBKeyRange, nowCutInfoList: Array<
 
 async function handleJsonTypeBySplitLongTrace(
   receiveData: { data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string },
-  allIndexDataList: Array<{ fileType: string; index: number; pageNum: number; startOffsetSize: number; endOffsetSize: number }>,
+  allIndexDataList: Array<{
+    fileType: string;
+    index: number;
+    pageNum: number;
+    startOffsetSize: number;
+    endOffsetSize: number;
+  }>,
   fileType: string,
   timStamp: number,
   currentChunkOffset: number,
@@ -793,16 +833,40 @@ async function handleJsonTypeBySplitLongTrace(
       let nowStartCutOffset = nowCutInfoList[0].offset;
       let nowEndCutOffset = cutInfo.offset + cutInfo.size;
       let searchDataInfo = allIndexDataList.filter(
-        (value: { fileType: string; index: number; pageNum: number; startOffsetSize: number; endOffsetSize: number;}) => {
-          return ( value.fileType === fileType && value.startOffsetSize <= nowEndCutOffset &&
-            value.endOffsetSize >= nowStartCutOffset);});
+        (value: {
+          fileType: string;
+          index: number;
+          pageNum: number;
+          startOffsetSize: number;
+          endOffsetSize: number;
+        }) => {
+          return (
+            value.fileType === fileType &&
+            value.startOffsetSize <= nowEndCutOffset &&
+            value.endOffsetSize >= nowStartCutOffset
+          );
+        }
+      );
       let startIndex = searchDataInfo[0].index;
       let endIndex = searchDataInfo[searchDataInfo.length - 1].index;
-      let range = IDBKeyRange.bound([timStamp, fileType, 0, startIndex],
-        [timStamp, fileType, 0, endIndex],false,false);
-      [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] =
-        await saveAllDataByLongTrace(range, nowCutInfoList, searchDataInfo, currentChunkOffset, currentChunk, fileType,
-          timStamp, pageNum, saveIndex, saveStartOffset);
+      let range = IDBKeyRange.bound(
+        [timStamp, fileType, 0, startIndex],
+        [timStamp, fileType, 0, endIndex],
+        false,
+        false
+      );
+      [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] = await saveAllDataByLongTrace(
+        range,
+        nowCutInfoList,
+        searchDataInfo,
+        currentChunkOffset,
+        currentChunk,
+        fileType,
+        timStamp,
+        pageNum,
+        saveIndex,
+        saveStartOffset
+      );
       isBeforeCutFinish = true;
     } else {
       nowCutInfoList.push(cutInfo);
@@ -812,18 +876,26 @@ async function handleJsonTypeBySplitLongTrace(
 }
 
 async function handleAllTypeDataByLongTrace(
-  newCutFilePageInfo: Map<string, {
-    traceFileType: string;
-    dataArray: [{
-      data: Uint8Array | Array<{ offset: number; size: number }>;
-      dataTypes: string }] }>,
+  newCutFilePageInfo: Map<
+    string,
+    {
+      traceFileType: string;
+      dataArray: [
+        {
+          data: Uint8Array | Array<{ offset: number; size: number }>;
+          dataTypes: string;
+        }
+      ];
+    }
+  >,
   timStamp: number,
   allIndexDataList: Array<{
     fileType: string;
     index: number;
     pageNum: number;
     startOffsetSize: number;
-    endOffsetSize: number}>
+    endOffsetSize: number;
+  }>
 ): Promise<void> {
   for (const [fileTypePageNum, fileMessage] of newCutFilePageInfo) {
     let fileTypePageNumArr = fileTypePageNum.split('_');
@@ -837,19 +909,42 @@ async function handleAllTypeDataByLongTrace(
     for (let fileDataIndex = 0; fileDataIndex < dataArray.length; fileDataIndex++) {
       let receiveData = dataArray[fileDataIndex];
       if (receiveData.dataTypes === 'data') {
-        [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] =
-          await handleDataTypeBySplitLongTrace(receiveData, currentChunkOffset, currentChunk, fileType,
-            timStamp, pageNum, saveIndex, saveStartOffset);
+        [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] = await handleDataTypeBySplitLongTrace(
+          receiveData,
+          currentChunkOffset,
+          currentChunk,
+          fileType,
+          timStamp,
+          pageNum,
+          saveIndex,
+          saveStartOffset
+        );
       } else {
         if (receiveData.data.length > 0) {
-          [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] =
-            await handleJsonTypeBySplitLongTrace(receiveData, allIndexDataList, fileType, timStamp,
-              currentChunkOffset, currentChunk, pageNum, saveIndex, saveStartOffset);
+          [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] = await handleJsonTypeBySplitLongTrace(
+            receiveData,
+            allIndexDataList,
+            fileType,
+            timStamp,
+            currentChunkOffset,
+            currentChunk,
+            pageNum,
+            saveIndex,
+            saveStartOffset
+          );
         }
       }
     }
     if (currentChunkOffset !== 0) {
-      await saveDataToIndexDB(currentChunk, currentChunkOffset, fileType, timStamp, pageNum, saveIndex, saveStartOffset);
+      await saveDataToIndexDB(
+        currentChunk,
+        currentChunkOffset,
+        fileType,
+        timStamp,
+        pageNum,
+        saveIndex,
+        saveStartOffset
+      );
       saveStartOffset += maxSize;
       saveIndex++;
     }
@@ -863,7 +958,11 @@ async function onmessageByLongTraceAction(e: MessageEvent): Promise<void> {
   let timStamp = e.data.params.timeStamp;
   let allIndexDataList = e.data.params.splitDataList;
   let splitFileInfos = e.data.params.splitFileInfo as Array<{
-    fileType: string; startIndex: number; endIndex: number; size: number}>;
+    fileType: string;
+    startIndex: number;
+    endIndex: number;
+    size: number;
+  }>;
   let maxPageNum = headArray.length / 1024;
   let currentPageNum = 0;
   let splitReqBufferAddr: number;
@@ -872,8 +971,13 @@ async function onmessageByLongTraceAction(e: MessageEvent): Promise<void> {
     if (splitFileInfo && splitFileInfo.length > 0) {
       let traceFileType: string = '';
       indexDB = await openDB();
-      let newCutFilePageInfo: Map<string, { traceFileType: string;
-        dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }]}> = new Map();
+      let newCutFilePageInfo: Map<
+        string,
+        {
+          traceFileType: string;
+          dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }];
+        }
+      > = new Map();
       let cutFileCallBack = (heapPtr: number, size: number, dataType: number, isEnd: number) => {
         cutLongTraceCallBackHandle(traceFileType, currentPageNum, heapPtr, size, dataType, newCutFilePageInfo);
       };
@@ -989,7 +1093,12 @@ async function splitFileAndSaveArkTs(
   }
 }
 
-const splitFileAndSave = async (timStamp: number, fileInfo: any, pageNum: number, splitReqBufferAddr?: any): Promise<void> => {
+const splitFileAndSave = async (
+  timStamp: number,
+  fileInfo: any,
+  pageNum: number,
+  splitReqBufferAddr?: any
+): Promise<void> => {
   let fileType = fileInfo.fileType;
   let fileSize = fileInfo.size;
   let startIndex = fileInfo.startIndex;
@@ -1014,9 +1123,24 @@ const splitFileAndSave = async (timStamp: number, fileInfo: any, pageNum: number
       let uint8Array = new Uint8Array(arrayBuffer.buf);
       let cutFileSize = 0;
       while (cutFileSize < uint8Array.length) {
-        [cutFileSize, resultFileSize] = execLongTraceSplitFileByModule(pageNum, fileSize, resultFileSize, cutFileSize, uint8Array, splitReqBufferAddr);
+        [cutFileSize, resultFileSize] = execLongTraceSplitFileByModule(
+          pageNum,
+          fileSize,
+          resultFileSize,
+          cutFileSize,
+          uint8Array,
+          splitReqBufferAddr
+        );
         if (arkTsDataSize > 0 && fileType === 'arkts') {
-          splitFileAndSaveArkTs(currentChunkOffset, currentChunk, fileType, pageNum, saveStartOffset, saveIndex, timStamp);
+          splitFileAndSaveArkTs(
+            currentChunkOffset,
+            currentChunk,
+            fileType,
+            pageNum,
+            saveStartOffset,
+            saveIndex,
+            timStamp
+          );
         }
       }
     }
@@ -1037,7 +1161,7 @@ async function getIndexedDBQueryData(db: IDBDatabase, range: IDBKeyRange): Promi
   const store = transaction.objectStore(STORE_NAME);
   const index = store.index('QueryCompleteFile');
   const getRequest = index.openCursor(range);
-  return await queryDataFromIndexeddb(getRequest)
+  return await queryDataFromIndexeddb(getRequest);
 }
 
 function execLongTraceSplitFileByModule(
@@ -1112,10 +1236,9 @@ const uploadSoFile = async (file: File | null): Promise<void> => {
       let buffer: ArrayBuffer | null = await blob.arrayBuffer();
       let data: Uint8Array | null = new Uint8Array(buffer);
       let size = file.size;
-      let lastFile = uploadFileIndex === soFileList.length - 1 ? 1 : 0;
       Module.HEAPU8.set(data, reqBufferAddr);
       writeSize += sliceLen;
-      upRes = Module._TraceStreamerDownloadELFEx(size, fileNameLength, sliceLen, lastFile);
+      upRes = Module._TraceStreamerDownloadELFEx(size, fileNameLength, sliceLen, 1);
       data = null;
       buffer = null;
       blob = null;
@@ -1126,22 +1249,29 @@ const uploadSoFile = async (file: File | null): Promise<void> => {
   }
 };
 
+const failedArray: string[] = [];
+
 const uploadSoCallBack = (heapPtr: number, size: number, isFinish: number): void => {
   let out: Uint8Array | null = Module.HEAPU8.slice(heapPtr, heapPtr + size);
   if (out) {
     let res = dec.decode(out);
     out = null;
-    if (res.includes('file send over')) {
+    if (res.includes('ok') || res.includes('failed')) {
+      if (res.includes('failed')) {
+        failedArray.push(soFileList[uploadFileIndex]!.name);
+      }
       if (uploadFileIndex < soFileList.length - 1) {
         uploadFileIndex = uploadFileIndex + 1;
         uploadSoFile(soFileList[uploadFileIndex]).then();
       }
-    } else {
+    }
+    if (uploadFileIndex === soFileList.length - 1) {
       soFileList.length = 0;
       self.postMessage({
         id: uploadSoActionId,
         action: 'upload-so',
-        results: res.includes('ok') ? 'ok' : 'failed',
+        results: 'ok',
+        failedArray: failedArray,
       });
     }
   }
@@ -1167,7 +1297,7 @@ function cutFileBufferByOffSet(out: Uint8Array, uint8Array: Uint8Array): Uint8Ar
   if (isRawTrace(uint8Array)) {
     let commDataSize = 0;
     let otherDataSize = 0;
-    valueArray.forEach(item => {
+    valueArray.forEach((item) => {
       const type = item.type;
       if (type === 0) {
         commDataSize += item.size;

@@ -98,7 +98,6 @@ export class RangeRuler extends Graph {
   isNewRange: boolean = false;
   markAX: number = 0;
   markBX: number = 0;
-  isPress: boolean = false;
   pressFrameIdF: number = -1;
   pressFrameIdW: number = -1;
   pressFrameIdS: number = -1;
@@ -558,7 +557,6 @@ export class RangeRuler extends Graph {
       this.animaStartTime = new Date().getTime(); //记录按下的时间
       this.keyboardKeyPressMap[this.pressedKeys[this.pressedKeys.length - 1]]?.bind(this)();
     }
-    this.isPress = true;
   }
 
   keyPressF(): void {
@@ -723,7 +721,6 @@ export class RangeRuler extends Graph {
         this.pressedKeys.splice(number, 1);
       }
     }
-    this.isPress = false;
   }
 
   keyUpW(): void {
