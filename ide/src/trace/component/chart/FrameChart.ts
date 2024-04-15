@@ -25,6 +25,7 @@ const filterPixel = 2; // 过滤像素
 const textMaxWidth = 50;
 const scaleRatio = 0.2; // 缩放比例
 const ms10 = 10_000_000;
+const jsHapKeys = ['.hap', 'hsp', 'har'];
 const jsStackPath = ['.ts', '.ets', '.js'];
 const textStyle = '12px bold';
 
@@ -238,7 +239,11 @@ export class FrameChart extends BaseElement {
    * @returns 是否包含
    */
   private isJsStack(str: string): boolean {
-    for (const format of jsStackPath) {
+    let keyList = jsStackPath;
+    if (this._mode === ChartMode.Count || ChartMode.EventCount){
+      keyList = jsStackPath.concat(jsHapKeys);
+    }
+    for (const format of keyList) {
       if (str.indexOf(format) > 0) {
         return true;
       }
