@@ -26,7 +26,7 @@ import {
   type BinderDataStruct,
   CycleBinderItem,
 } from '../../../../bean/BinderProcessThread';
-import { queryFuncNameCycle } from '../../../../../trace/database/sql/Func.sql';
+import { queryFuncNameCycle, queryLoopFuncNameCycle } from '../../../../../trace/database/sql/Func.sql';
 import { queryBinderByThreadId } from '../../../../../trace/database/sql/ProcessThread.sql';
 import { resizeObserver } from '../SheetUtils';
 import { type LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
@@ -55,7 +55,7 @@ export class TabPaneBinderDataCut extends BaseElement {
   private threadArr: Array<ThreadBinderItem> = [];
   private threadBinderMap: Map<string, Array<BinderItem>> = new Map();
   private processIds: Array<number> = [];
-  private funcCycleArr: Array<FunctionItem> = [];
+  private funcCycleArr: Array<any> = [];
   private currentCutThreadId: string | undefined;
   private currentCutFuncName: string | undefined;
 
@@ -115,13 +115,18 @@ export class TabPaneBinderDataCut extends BaseElement {
     threadFuncName: string,
     threadIds: Array<number>,
     leftNS: number,
-    rightNS: number
+    rightNS: number,
+    type: string
   ): Promise<void> {
     let binderArr: Array<BinderItem> = await queryBinderByThreadId(this.processIds, threadIds, leftNS, rightNS);
     if (binderArr.length > 0) {
       this.structureThreadBinderMap(binderArr);
     }
-    this.funcCycleArr = await queryFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
+    if(type === 'loop') {
+      this.funcCycleArr = await queryLoopFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
+    }else {
+      this.funcCycleArr = await queryFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
+    }
   }
 
   //点击single loop 切割按钮方法
@@ -143,14 +148,12 @@ export class TabPaneBinderDataCut extends BaseElement {
       this.threadBindersTbl!.loading = true;
       threadId.style.border = '1px solid rgb(151,151,151)';
       threadFunc.style.border = '1px solid rgb(151,151,151)';
-      if (this.currentCutThreadId !== threadIdValue || this.currentCutFuncName !== threadFuncName) {
-        this.currentCutThreadId = threadIdValue;
-        this.currentCutFuncName = threadFuncName;
-        let threadIds = this.currentSelectionParam.threadIds;
-        let leftNS = this.currentSelectionParam.leftNs;
-        let rightNS = this.currentSelectionParam.rightNs;
-        await this.queryDataFromDb(threadIdValue, threadFuncName, threadIds, leftNS, rightNS);
-      }
+      let threadIds = this.currentSelectionParam.threadIds;
+      let leftNS = this.currentSelectionParam.leftNs;
+      let rightNS = this.currentSelectionParam.rightNs;
+      this.threadArr = [];
+      this.threadBinderMap.clear();
+      await this.queryDataFromDb(threadIdValue, threadFuncName, threadIds, leftNS, rightNS, type);
       if (this.funcCycleArr.length !== 0) {
         let cycleMap: Map<string, Array<CycleBinderItem>> = type === 'loop' ?
           this.loopDataCutCycleMap(this.funcCycleArr) : this.singleDataCutCycleMap(this.funcCycleArr);
