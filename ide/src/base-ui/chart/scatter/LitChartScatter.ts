@@ -427,10 +427,21 @@ export class LitChartScatter extends BaseElement {
    * 显示提示框
    */
   showTip(data: any): void {
-    const Y_DELTA: number = 70;
+    const minWidth: number = 140;
+    const miniHeight: number = 60;
+    const canvasWidth: number = Number(this.canvas?.style.width.replace('px', ''));
+    const canvasHeight: number = Number(this.canvas?.style.height.replace('px', ''));
     this.scatterTipEL!.style.display = 'flex';
-    this.scatterTipEL!.style.top = `${data.y - Y_DELTA}px`;
-    this.scatterTipEL!.style.left = `${data.x}px`;
+    if (canvasWidth - data.x < minWidth && canvasHeight - data.y >= miniHeight) {
+      this.scatterTipEL!.style.top = `${data.y}px`;
+      this.scatterTipEL!.style.left = `${data.x - minWidth}px`;
+    } else if (canvasHeight - data.y < miniHeight && canvasWidth - data.x > minWidth) {
+      this.scatterTipEL!.style.top = `${data.y - miniHeight}px`;
+      this.scatterTipEL!.style.left = `${data.x}px`;
+    } else {
+      this.scatterTipEL!.style.top = `${data.y}px`;
+      this.scatterTipEL!.style.left = `${data.x}px`;
+    }
     this.scatterTipEL!.innerHTML = this.options!.tip(data);
     // @ts-ignore
     this.options!.hoverEvent('CPU-FREQ', true, data.c[2] - 1);

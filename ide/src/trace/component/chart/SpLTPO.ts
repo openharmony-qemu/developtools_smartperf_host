@@ -16,6 +16,7 @@
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { FlagsConfig } from '../SpFlags';
 import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq';
 import {
   queryFanceNameList,
@@ -54,6 +55,10 @@ export class SpLtpoChart {
   }
 
   async init() {
+    let loadLtpo: boolean = FlagsConfig.getFlagsConfigEnableStatus('LTPO');
+    if (!loadLtpo) {
+      return;
+    }
     SpLtpoChart.ltpoDataArr = [];
     SpLtpoChart.fanceNameList = await queryFanceNameList();
     SpLtpoChart.fpsnameList = await queryFpsNameList();
@@ -396,18 +401,32 @@ export class SpLtpoChart {
     };
   }
   //六舍七入
-  specialValue(num: number) {
+  specialValue(valueType: string, num: number) {
     if (num < 0) {
       return 0;
     } else {
       if (!num.toString().split('.')[1]) {
         return num;
       } else {
-        let tempNum = Number(num.toString().split('.')[1].charAt(0));
-        if (tempNum > 6) {
-          return Math.ceil(num);
+        if (valueType === 'hitchTimes') {
+          if(num.toString().split('.')[1].split('').length > 1){//当hitchTime小数点后多于两位
+            let tempNum = num * 10;
+            let singleNumber = Number(tempNum.toString().split('.')[1].charAt(0));
+            if(singleNumber > 6) {
+              return (Math.ceil(tempNum) / 10);
+            }else {
+              return (Math.floor(tempNum) / 10);
+            }
+          }else{//当hitchTime只有一位小数
+            return num
+          }
         } else {
-          return Math.floor(num);
+          let tempNum = Number(num.toString().split('.')[1].charAt(0));
+          if (tempNum > 6) {
+            return Math.ceil(num);
+          } else {
+            return Math.floor(num);
+          }
         }
       }
 
@@ -434,7 +453,7 @@ export class SpLtpoChart {
         for (let i = 0; i < SpLtpoChart.sendLTPODataArr.length; i++) {
           let tmpDur = SpLtpoChart.sendLTPODataArr[i].cutSendDur ? (SpLtpoChart.sendLTPODataArr[i].cutSendDur! / 1000000) : (SpLtpoChart.sendLTPODataArr[i].dur! / 1000000);
           let mathValue = tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps) / 1000 - 1;
-          SpLtpoChart.sendLTPODataArr[i].value = this.specialValue(mathValue);
+          SpLtpoChart.sendLTPODataArr[i].value = this.specialValue('lostFrames', mathValue);
         }
         return SpLtpoChart.sendLTPODataArr;
       })
@@ -472,16 +491,17 @@ export class SpLtpoChart {
           let tmpVale = 0;
           let tmpDur = 0;
           if (SpLtpoChart.sendHitchDataArr[i].cutSendDur) {
-            tmpVale = (Math.ceil(((SpLtpoChart.sendHitchDataArr[i].cutSendDur! / 1000000) - (1000 / SpLtpoChart.sendHitchDataArr[i].fps!)) * 10)) / 10;
+            tmpVale = (SpLtpoChart.sendHitchDataArr[i].cutSendDur! / 1000000) - (1000 / SpLtpoChart.sendHitchDataArr[i].fps!);
             tmpDur = SpLtpoChart.sendHitchDataArr[i].cutSendDur! / 1000000;
           } else {
-            tmpVale = (Math.ceil(((SpLtpoChart.sendHitchDataArr[i].dur! / 1000000) - (1000 / SpLtpoChart.sendHitchDataArr[i].fps!)) * 10)) / 10;
+            tmpVale = (SpLtpoChart.sendHitchDataArr[i].dur! / 1000000) - (1000 / SpLtpoChart.sendHitchDataArr[i].fps!);
             tmpDur = SpLtpoChart.sendHitchDataArr[i].dur! / 1000000;
           }
 
           let mathValue = tmpDur * Number(SpLtpoChart.sendHitchDataArr[i].fps) / 1000 - 1;
-          SpLtpoChart.sendHitchDataArr[i].value = tmpVale! < 0 ? 0 : tmpVale;
-          SpLtpoChart.sendHitchDataArr[i].name = this.specialValue(mathValue).toString();
+          let finalValue = tmpVale! < 0 ? 0 : tmpVale;
+          SpLtpoChart.sendHitchDataArr[i].value = this.specialValue('hitchTimes', finalValue)
+          SpLtpoChart.sendHitchDataArr[i].name = this.specialValue('lostFrames', mathValue)!.toString();
         }
         return SpLtpoChart.sendHitchDataArr;
       })

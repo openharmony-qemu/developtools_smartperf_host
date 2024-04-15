@@ -296,24 +296,30 @@ export class SpProcessChart {
           soRow = this.addSoInitRow(processRow, maxSoDepth.maxDepth);
         }
       }
-      /* Janks Frames */
+
       let actualRow: TraceRow<JankStruct> | null = null;
       let expectedRow: TraceRow<JankStruct> | null = null;
-      if (jankArr.indexOf(it.pid) > -1) {
-        expectedRow = this.addExpectedRow(it, processRow, rsProcess);
-        actualRow = this.addActualRow(it, processRow, rsProcess);
-      }
-      this.addProcessRowListener(processRow, actualRow);
       this.renderRow = null;
       if (it.processName === 'render_service') {
         this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow);
         this.addProcessMemInfo(it, processRow);
+        if (jankArr.indexOf(it.pid!) > -1) {
+          expectedRow = this.addExpectedRow(it, processRow, rsProcess);
+          actualRow = this.addActualRow(it, processRow, rsProcess);
+        }
+        this.addProcessRowListener(processRow, actualRow);
         this.addAsyncFunction(it, processRow);
       } else {
+        if (jankArr.indexOf(it.pid!) > -1) {
+          expectedRow = this.addExpectedRow(it, processRow, rsProcess);
+          actualRow = this.addActualRow(it, processRow, rsProcess);
+        }
+        this.addProcessRowListener(processRow, actualRow);
         this.addAsyncFunction(it, processRow);
         this.addProcessMemInfo(it, processRow);
         this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow);
       }
+      
       await this.trace.chartManager?.frameTimeChart.initAnimatedScenesChart(processRow, it, expectedRow!, actualRow!);
     }
   }
@@ -492,8 +498,12 @@ export class SpProcessChart {
       pair.rowEL = processRow!;
     }
   }
-
-  addExpectedRow(process: any, processRow: TraceRow<any>, renderServiceProcess: Array<any>): TraceRow<JankStruct> {
+  /* Janks Frames */
+  addExpectedRow(
+    process: any,
+    processRow: TraceRow<any>,
+    renderServiceProcess: Array<any>
+  ): TraceRow<JankStruct> {
     let expectedRow = TraceRow.skeleton<JankStruct>();
     expectedRow.asyncFuncName = process.processName;
     expectedRow.asyncFuncNamePID = process.pid;
@@ -520,7 +530,11 @@ export class SpProcessChart {
       expectedRow,
       this.trace
     );
-    processRow.addChildTraceRow(expectedRow);
+    if (this.renderRow) {
+      processRow.addChildTraceRowBefore(expectedRow, this.renderRow);
+    } else {
+      processRow.addChildTraceRow(expectedRow);
+    }
     return expectedRow;
   }
 
@@ -549,7 +563,11 @@ export class SpProcessChart {
       actualRow,
       this.trace
     );
-    processRow.addChildTraceRow(actualRow);
+    if (this.renderRow) {
+      processRow.addChildTraceRowBefore(actualRow, this.renderRow);
+    } else {
+      processRow.addChildTraceRow(actualRow);
+    }
     return actualRow;
   }
 

@@ -852,12 +852,13 @@ export class SpSystemTrace extends BaseElement {
    * @param type 标记类型（卡尺和旗子）
    * @param direction 跳转方向（前一个/后一个）
    */
-  MarkJump(list: Array<any>, type: string, direction: string): void {
+  MarkJump(list: Array<any>, type: string, direction: string, ev: KeyboardEvent): void {
     this.traceSheetEL = this.shadowRoot?.querySelector('.trace-sheet');
     let find = list.find((it) => it.selected);
     if (!find) {
       // 如果当前没有选中的，就选中第一个
       list.forEach((it) => (it.selected = false));
+      this.ifSliceInView(list[0], type, ev);
       list[0].selected = true;
     } else {
       for (let i = 0; i < list.length; i++) {
@@ -867,20 +868,24 @@ export class SpSystemTrace extends BaseElement {
           if (direction === 'previous') {
             if (i === 0) {
               // 如果当前选中的是第一个，就循环到最后一个上
+              this.ifSliceInView(list[list.length - 1], type, ev);
               list[list.length - 1].selected = true;
               break;
             } else {
               // 选中当前的上一个
+              this.ifSliceInView(list[i - 1], type, ev);
               list[i - 1].selected = true;
               break;
             }
           } else if (direction === 'next') {
             if (i === list.length - 1) {
               // 如果当前选中的是最后一个，就循环到第一个上
+              this.ifSliceInView(list[0], type, ev);
               list[0].selected = true;
               break;
             } else {
               // 选中当前的下一个
+              this.ifSliceInView(list[i + 1], type, ev);
               list[i + 1].selected = true;
               break;
             }
@@ -907,6 +912,23 @@ export class SpSystemTrace extends BaseElement {
           currentPane!.setTableSelection(index + 1);
         }
       });
+    }
+  }
+
+  ifSliceInView(data: any, type: string, ev: KeyboardEvent) {
+    let timeRangeEndNS = this.timerShaftEL?.getRangeRuler()?.range.endNS;
+    let timeRangeStartNS = this.timerShaftEL?.getRangeRuler()?.range.startNS;
+    if (type === 'flag') {
+      data.startTime = data.time;
+      data.endTime = data.time;
+    }
+    let endTime = data.endTime;
+    let startTime = data.startTime;
+    if (endTime > timeRangeEndNS! || startTime < timeRangeStartNS!) {
+      this.timerShaftEL!.documentOnKeyPress(ev, data);
+      setTimeout(() => {
+        this.timerShaftEL!.documentOnKeyUp(ev);
+      }, 1000);
     }
   }
 
@@ -2087,7 +2109,7 @@ export class SpSystemTrace extends BaseElement {
     this.times.clear();
     resetVSync();
     SpSystemTrace.keyPathList = [];
-    TabPaneCurrentSelection.isTransformed = false;
+    Utils.isTransformed = false;
   }
 
   init = async (

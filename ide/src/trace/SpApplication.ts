@@ -320,6 +320,7 @@ export class SpApplication extends BaseElement {
         event: 'help_page',
         action: 'help_doc',
       });
+      this.spHelp!.dark = this.dark;
       this.showContent(this.spHelp!);
     } else if (urlParams.get('action')!.length > 4) {
       this.showContent(this.spHelp!);

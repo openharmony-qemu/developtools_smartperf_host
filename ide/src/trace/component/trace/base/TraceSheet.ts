@@ -624,7 +624,7 @@ export class TraceSheet extends BaseElement {
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
-  displayClockData = (data: ClockStruct): void =>
+  displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayIrqData = (data: IrqStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setIrqData(data);
@@ -664,7 +664,7 @@ export class TraceSheet extends BaseElement {
     data: CpuStruct,
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
     scrollCallback?: (data: CpuStruct) => void
-  ): void => this.displayTab<TabPaneCurrentSelection>('current-selection').setCpuData(data, callback, scrollCallback);
+  ): Promise<void> => this.displayTab<TabPaneCurrentSelection>('current-selection').setCpuData(data, callback, scrollCallback);
   displayJankData = (
     data: JankStruct,
     callback: ((data: Array<any>) => void) | undefined = undefined,

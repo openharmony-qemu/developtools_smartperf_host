@@ -160,6 +160,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace) {
         jankRow = item;
       }
     });
+    sp.currentRow = jankRow;
     if (jankRow) {
       JankStruct.selectJankStructList.length = 0;
       let findJankEntry = jankRow!.dataListCache!.find((dat: any) => dat.name == d.name && dat.pid == d.pid);
@@ -502,8 +503,27 @@ export function SpSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev
       }
     }
     if (keyPress === 'f') {
+      let isSelectSliceOrFlag = false;
+      // 设置当前选中的slicetime
+      let selectSlice: any = undefined;
+      sp._slicesList.forEach((slice: { selected: boolean; }) => {
+        if (slice.selected === true) {
+          selectSlice = slice;
+        }
+      })
+      if (!!selectSlice) {
+        sp.currentSlicesTime.startTime = selectSlice.startTime;
+        sp.currentSlicesTime.endTime = selectSlice.endTime;
+        isSelectSliceOrFlag = true;
+      }
+
+      if (!!sp.selectFlag) {
+        sp.currentSlicesTime.startTime = sp.selectFlag?.time;
+        sp.currentSlicesTime.endTime = sp.selectFlag?.time;
+        isSelectSliceOrFlag = true;
+      }
       // 设置当前的slicesTime
-      sp.setCurrentSlicesTime();
+      !isSelectSliceOrFlag && sp.setCurrentSlicesTime();
     }
     let keyPressWASD = keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd';
     if (keyPressWASD) {
@@ -655,7 +675,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   TraceRow.isUserInteraction = false;
   sp.observerScrollHeightEnable = false;
   sp.keyboardEnable && sp.timerShaftEL!.documentOnKeyUp(ev);
-  if (ev.code === 'Enter') {
+  if (ev.code === 'Enter' || ev.code === 'NumpadEnter') {
     document.removeEventListener('keydown', sp.documentOnKeyDown);
     if (ev.shiftKey) {
       sp.dispatchEvent(
@@ -676,11 +696,11 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   }
 
   if (ev.ctrlKey) {
-    spSystemTraceDocumentOnKeyUpCtrlKey(keyPress, sp);
+    spSystemTraceDocumentOnKeyUpCtrlKey(keyPress, sp, ev);
   }
 }
 
-function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace) {
+function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace, ev: KeyboardEvent) {
   if (keyPress === 'b') {
     let menuBox = document.querySelector('body > sp-application')!.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
     let searchBox = document.querySelector('body > sp-application')
@@ -714,13 +734,15 @@ function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace
     }
   }
   if (keyPress === '[' && sp._slicesList.length > 1) {
-    sp.MarkJump(sp._slicesList, 'slice', 'previous');
+    sp.selectFlag = undefined;
+    sp.MarkJump(sp._slicesList, 'slice', 'previous', ev);
   } else if (keyPress === ',' && sp._flagList.length > 1) {
-    sp.MarkJump(sp._flagList, 'flag', 'previous');
+    sp.MarkJump(sp._flagList, 'flag', 'previous', ev);
   } else if (keyPress === ']' && sp._slicesList.length > 1) {
-    sp.MarkJump(sp._slicesList, 'slice', 'next');
+    sp.selectFlag = undefined;
+    sp.MarkJump(sp._slicesList, 'slice', 'next', ev);
   } else if (keyPress === '.' && sp._flagList.length > 1) {
-    sp.MarkJump(sp._flagList, 'flag', 'next');
+    sp.MarkJump(sp._flagList, 'flag', 'next', ev);
   } else {
     return;
   }
