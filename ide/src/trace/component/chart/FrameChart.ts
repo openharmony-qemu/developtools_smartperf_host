@@ -246,6 +246,18 @@ export class FrameChart extends BaseElement {
     return false;
   }
 
+  private clearSuperfluousParams(node: ChartStruct): void {
+    node.id = undefined;
+    node.eventType = undefined;
+    node.parentId = undefined;
+    node.title = undefined;
+    node.eventType = undefined;
+    if (this._mode !== ChartMode.Count && this._mode !== ChartMode.EventCount) {
+      node.self = undefined;
+      node.eventPercent = undefined;
+    }
+  }
+
   /**
    * 计算调用栈最大深度，计算每个node显示大小
    * @param node 函数块
@@ -255,6 +267,7 @@ export class FrameChart extends BaseElement {
   private initData(node: ChartStruct, depth: number, calDisplay: boolean): void {
     node.depth = depth;
     depth++;
+    this.clearSuperfluousParams(node);
     if (this.isJsStack(node.lib)) {
       node.isJsStack = true;
     } else {

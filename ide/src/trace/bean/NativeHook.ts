@@ -137,11 +137,8 @@ export class NativeHookSampleQueryInfo {
 }
 
 export class NativeHookCallInfo extends ChartStruct {
-  id: string = '';
   pid: string | undefined;
-  library: string = '';
   symbolId: number = 0;
-  title: string = '';
   count: number = 0;
   countValue: string = '';
   countPercent: string = '';

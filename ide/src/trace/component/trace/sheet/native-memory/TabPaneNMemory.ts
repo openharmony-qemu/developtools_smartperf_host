@@ -403,7 +403,7 @@ export class TabPaneNMemory extends BaseElement {
       let thread = new NativeHookCallInfo();
       thread.threadId = nativeMemoryHook.threadId;
       thread.threadName = Utils.THREAD_MAP.get(thread.threadId) || 'Thread';
-      thread.title = `${nativeMemoryHook.threadName ?? ''}【${nativeMemoryHook.threadId}】`;
+      thread.symbol = `${nativeMemoryHook.threadName ?? ''}【${nativeMemoryHook.threadId}】`;
       thread.type = -1;
       let currentSource = [];
       currentSource.push(thread);

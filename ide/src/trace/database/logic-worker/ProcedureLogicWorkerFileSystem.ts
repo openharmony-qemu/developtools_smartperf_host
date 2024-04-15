@@ -813,8 +813,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
         let fileMerageBean = new FileMerageBean(); //新增进程的节点数据
         fileMerageBean.canCharge = false;
         fileMerageBean.isProcess = true;
-        fileMerageBean.symbolName = mergeData.processName;
-        fileMerageBean.symbol = fileMerageBean.symbolName;
+        fileMerageBean.symbol = mergeData.processName;
         fileMerageBean.children.push(mergeData);
         fileMerageBean.initChildren.push(mergeData);
         fileMerageBean.dur = mergeData.dur;
@@ -930,17 +929,17 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
     if (currentNode.pathId === -1) {
       currentNode.canCharge = false;
       currentNode.symbol = currentNode.ip;
-      currentNode.symbolName = currentNode.symbol;
-      currentNode.libName = '';
-      currentNode.path = '';
+      currentNode.symbol = currentNode.symbol;
+      currentNode.lib = '';
+      currentNode.lib = '';
     } else {
       const dataCache = DataCache.getInstance();
       currentNode.symbol = dataCache.dataDict?.get(currentNode.symbolsId) || currentNode.ip || 'unknown';
-      currentNode.path = dataCache.dataDict?.get(currentNode.pathId) || 'unknown';
-      currentNode.libName = setFileName(currentNode.path);
-      currentNode.lib = currentNode.libName;
+      currentNode.lib = dataCache.dataDict?.get(currentNode.pathId) || 'unknown';
+      currentNode.lib = setFileName(currentNode.lib);
+      currentNode.lib = currentNode.lib;
       currentNode.addr = currentNode.ip;
-      currentNode.symbolName = `${currentNode.symbol} (${currentNode.libName})`;
+      currentNode.symbol = `${currentNode.symbol} (${currentNode.lib})`;
     }
   }
   public resolvingAction(params: any[]): FileMerageBean[] {

@@ -42,6 +42,13 @@ export class ChartStruct extends BaseStruct {
   symbol: string = '';
   lib: string = '';
 
+  id?: string;
+  eventType?: string;
+  parentId?: string;
+  self?: string; // only perf
+  eventPercent?: string; // only perf
+  title?: string;
+
   size: number = 0; // 实际size
   count: number = 0; // 实际count
   eventCount: number = 0;

@@ -266,7 +266,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     let fsMerageParentsList = parents.reverse().concat(children.reverse());
     for (let data of fsMerageParentsList) {
       data.type =
-        data.libName.endsWith('.so.1') || data.libName.endsWith('.dll') || data.libName.endsWith('.so') ? 0 : 1;
+        data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
     }
     let len = fsMerageParentsList.length;
     this.fsCallTreeRightSource = fsMerageParentsList;
@@ -335,10 +335,10 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   }
 
   private handleSymbolCase(data: any, fsCallTreeFuncArgs: any[]): void {
-    this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.symbolName }, data.item);
+    this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.symbol }, data.item);
     fsCallTreeFuncArgs.push({
       funcName: 'splitTree',
-      funcArgs: [this.fsCallTreeCurrentSelectedData.symbolName, false, true],
+      funcArgs: [this.fsCallTreeCurrentSelectedData.symbol, false, true],
     });
   }
 
@@ -492,10 +492,10 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         funcName: 'resetAllNode',
         funcArgs: [],
       });
-      list.forEach((symbolName: string) => {
+      list.forEach((symbol: string) => {
         fsCallTreeFuncArgs.push({
           funcName: 'clearSplitMapData',
-          funcArgs: [symbolName],
+          funcArgs: [symbol],
         });
       });
     }

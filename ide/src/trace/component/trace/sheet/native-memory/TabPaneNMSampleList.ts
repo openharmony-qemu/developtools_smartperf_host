@@ -284,7 +284,7 @@ export class TabPaneNMSampleList extends BaseElement {
         let hookCallInfo = new NativeHookCallInfo();
         hookCallInfo.threadId = hookSamplerInfo.threadId;
         hookCallInfo.threadName = hookSamplerInfo.threadName;
-        hookCallInfo.title = `${hookSamplerInfo.threadName ?? ''}【${hookSamplerInfo.threadId}】`;
+        hookCallInfo.symbol = `${hookSamplerInfo.threadName ?? ''}【${hookSamplerInfo.threadId}】`;
         hookCallInfo.type = -1;
         source.push(hookCallInfo);
         source.push(...results);
