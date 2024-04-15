@@ -26,10 +26,9 @@
 
 #include "codec_cov.h"
 #include "file.h"
-#include "log.h"
 #include "sph_data.pb.h"
 #include "sqlite3.h"
-#include "sqlite_ext/sqlite_ext_funcs.h"
+#include "sqlite_ext_funcs.h"
 #include "string_help.h"
 #include "ts_common.h"
 

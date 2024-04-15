@@ -15,7 +15,7 @@
 #include "perf_data_parser.h"
 #include "clock_filter_ex.h"
 #include "file.h"
-#include "perf_filter/perf_data_filter.h"
+#include "perf_data_filter.h"
 #include "stat_filter.h"
 
 namespace SysTuning {

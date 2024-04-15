@@ -13,11 +13,18 @@
 import("//build/ohos.gni")
 import("../../../../build/ts.gni")
 
+config("disk_io_parser_cfg") {
+  include_dirs = [ "." ]
+}
+
 ohos_static_library("disk_io_parser") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [ "pbreader_disk_io_parser.cpp" ]
   include_dirs = [ "." ]
   public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/diskio_data:diskio_data_reader" ]
-  public_configs = [ "../../:parser_base_cfg" ]
+  public_configs = [
+    ":disk_io_parser_cfg",
+    "../../:parser_base_cfg",
+  ]
 }

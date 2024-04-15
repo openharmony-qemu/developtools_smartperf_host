@@ -77,7 +77,7 @@
 #include "native_hook_statistic_table.h"
 #include "network_table.h"
 #include "paged_memory_sample_table.h"
-#include "parser/ebpf_parser/ebpf_data_structure.h"
+#include "ebpf_data_structure.h"
 #include "perf_call_chain_table.h"
 #include "perf_files_table.h"
 #include "perf_report_table.h"

@@ -660,7 +660,8 @@ bool BytraceEventParser::BinderTransaction(const ArgsMap& args, const BytraceLin
     auto isReply = base::StrToInt<uint32_t>(args.at("reply"));
     auto flags = base::StrToInt<uint32_t>(args.at("flags"), base::INTEGER_RADIX_TYPE_HEX);
     auto codeStr = base::StrToInt<uint32_t>(args.at("code"), base::INTEGER_RADIX_TYPE_HEX);
-    TS_LOGD("ts:%lu, pid:%u, destNode:%u, destTgid:%u, destTid:%u, transactionId:%lu, isReply:%u flags:%u, code:%u",
+    TS_LOGD("ts:%" PRIu64 ", pid:%u, destNode:%u, destTgid:%u, destTid:%u, transactionId:%" PRIu64
+            ", isReply:%u flags:%u, code:%u",
             line.ts, line.pid, destNode.value(), destProc.value(), destThread.value(), transactionId.value(),
             isReply.value(), flags.value(), codeStr.value());
     streamFilters_->binderFilter_->SendTraction(line.ts, line.pid, transactionId.value(), destNode.value(),
@@ -687,7 +688,7 @@ bool BytraceEventParser::BinderTransactionReceived(const ArgsMap& args, const By
         streamFilters_->cpuFilter_->InsertRunnableBinderRecvEvent(
             transactionId.value(), streamFilters_->processFilter_->GetInternalTid(line.pid));
     }
-    TS_LOGD("ts:%lu, pid:%u, transactionId:%lu", line.ts, line.pid, transactionId.value());
+    TS_LOGD("ts:%" PRIu64 ", pid:%u, transactionId:%" PRIu64 "", line.ts, line.pid, transactionId.value());
     return true;
 }
 bool BytraceEventParser::BinderTransactionAllocBufEvent(const ArgsMap& args, const BytraceLine& line) const
@@ -701,7 +702,7 @@ bool BytraceEventParser::BinderTransactionAllocBufEvent(const ArgsMap& args, con
     auto dataSize = base::StrToInt<uint64_t>(args.at("data_size"));
     auto offsetsSize = base::StrToInt<uint64_t>(args.at("offsets_size"));
     streamFilters_->binderFilter_->TransactionAllocBuf(line.ts, line.pid, dataSize.value(), offsetsSize.value());
-    TS_LOGD("dataSize:%lu, offsetSize:%lu", dataSize.value(), offsetsSize.value());
+    TS_LOGD("dataSize:%" PRIu64 ", offsetSize:%" PRIu64 "", dataSize.value(), offsetsSize.value());
     return true;
 }
 void BytraceEventParser::ParseDataItem(const BytraceLine& line)

@@ -22,19 +22,18 @@
 #include <thread>
 
 #ifdef ENABLE_BYTRACE
-#include "bytrace_parser/bytrace_event_parser.h"
+#include "bytrace_event_parser.h"
 #endif
 #include "common_types.h"
 #ifdef ENABLE_HILOG
-#include "hilog_parser/ptreader_hilog_parser.h"
+#include "ptreader_hilog_parser.h"
 #endif
 #ifdef ENABLE_HISYSEVENT
-#include "hisysevent_parser/ptreader_hisysevent_parser.h"
+#include "ptreader_hisysevent_parser.h"
 #endif
-#include "log.h"
 #include "parser_base.h"
 #include "string_to_numerical.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 
 namespace SysTuning {

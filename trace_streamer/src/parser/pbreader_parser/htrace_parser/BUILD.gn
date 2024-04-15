@@ -21,7 +21,6 @@ ohos_static_library("pbreader_htrace_parser") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [
-    "htrace_clock_detail_parser.cpp",
     "htrace_cpu_detail_parser.cpp",
     "htrace_event_parser.cpp",
     "htrace_symbols_detail_parser.cpp",

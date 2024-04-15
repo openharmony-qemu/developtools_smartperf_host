@@ -24,14 +24,20 @@ config("parser_base_cfg") {
     "${SRC}/trace_data",
     "${SRC}/include",
     "${SRC}/filter",
+    "${SRC}/filter/hi_sysevent_filter",
+    "${SRC}/filter/hook_filter",
+    "${SRC}/filter/perf_filter",
     "${SRC}",
     ".",
+    "ptreader_parser",
     "pbreader_parser",
     "pbreader_parser/htrace_parser",
     "rawtrace_parser",
+    "ebpf_parser",
     "../proto_reader/include",
     "${THIRD_PARTY}/bounds_checking_function/include",
     "${THIRD_PARTY}/json/single_include/nlohmann",
+    "${THIRD_PARTY}/profiler/device/plugins/ftrace_plugin/include",
   ]
   include_dirs += [
     "${PERF_DIR}/hiperf/include/nonlinux/linux",
@@ -89,6 +95,7 @@ config("hisysevent_parser_cfg") {
     "pbreader_parser",
     "pbreader_parser/hisysevent_parser",
     "ptreader_parser/hisysevent_parser",
+    "${SRC}/filter/hi_sysevent_filter",
   ]
 }
 
@@ -101,25 +108,14 @@ ohos_source_set("parser") {
     "thread_state_flag.cpp",
   ]
 
-  deps = [
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/cpu_data:cpu_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/diskio_data:diskio_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hidump_data:hidump_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:js_memory_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:memory_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/network_data:network_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/process_data:process_data_reader",
-  ]
-  deps += [ "pbreader_parser:pbreader_parser" ]
-  deps += [ "ptreader_parser:ptreader_parser_src" ]
+  public_deps = []
+  public_deps += [ "pbreader_parser:pbreader_parser_src" ]
+  public_deps += [ "ptreader_parser:ptreader_parser_src" ]
   if (enable_rawtrace) {
-    deps += [ "rawtrace_parser:rawtrace_parser" ]
+    public_deps += [ "rawtrace_parser:rawtrace_parser" ]
   }
-
-  # for hook,perf,ebpf
-  deps += [ "${PERF_DIR}/hiperf:hiperf_platform_common" ]
   if (enable_ebpf) {
-    deps += [ "ebpf_parser:ebpf_parser" ]
+    public_deps += [ "ebpf_parser:ebpf_parser" ]
   }
   public_configs = [ ":parser_base_cfg" ]
 }

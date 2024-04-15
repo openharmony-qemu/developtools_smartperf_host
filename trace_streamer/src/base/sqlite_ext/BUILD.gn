@@ -13,13 +13,17 @@
 
 import("//build/ohos.gni")
 import("../../../build/ts.gni")
-ohos_source_set("sqliteext") {
-  sources = [ "sqlite_ext_funcs.cpp" ]
+config("sqlite_ext_cfg") {
   include_dirs = [
     "${THIRD_PARTY}/sqlite/include",
     "${THIRD_PARTY}/bounds_checking_function/include",
     "..",
+    ".",
   ]
+}
+ohos_source_set("sqliteext") {
+  sources = [ "sqlite_ext_funcs.cpp" ]
+  public_configs = [ ":sqlite_ext_cfg" ]
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]
   }

@@ -17,6 +17,7 @@ ohos_source_set("pbreader_parser_src") {
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [
     "../parser_base.cpp",
+    "pbreader_clock_detail_parser.cpp",
     "pbreader_parser.cpp",
   ]
   include_dirs = [
@@ -36,6 +37,7 @@ ohos_source_set("pbreader_parser_src") {
     "${THIRD_PARTY}/json/single_include/nlohmann",
     "../../filter",
     "../../base",
+    "../../rpc",
     "../ebpf_parser",
   ]
   include_dirs += [
@@ -76,7 +78,7 @@ ohos_source_set("pbreader_parser_src") {
     cflags = [ "-includeMingW64Fix.h" ]
   }
   public_configs = [ "../ebpf_parser:ebpf_parser_cfg" ]
-  public_deps = []
+  public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ftrace_data_reader" ]
   if (enable_hiperf) {
     public_deps += [ "../hiperf_parser:hiperf_parser" ]
   }
@@ -117,25 +119,21 @@ ohos_source_set("pbreader_parser_src") {
     public_deps +=
         [ "${EXTEND_SRC}/parser/pbreader_stream_parser:stream_extend_parser" ]
   }
-  deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp_standard" ]
-}
-group("pbreader_parser") {
-  deps = [
-    ":pbreader_parser_src",
+  public_deps += [
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp_standard",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",
     "${THIRD_PARTY}/protobuf:protobuf_static",
     "//third_party/perf_include/hiviewdfx:hiviewdfx",
   ]
-
   if (!use_wasm && !is_win && !is_mingw && !is_mac && !is_test) {
     if (!is_independent_compile) {
       if (target_cpu == "arm64") {
-        deps += [ "//third_party/libunwind:unwind_source_arm64_opt" ]
+        public_deps += [ "//third_party/libunwind:unwind_source_arm64_opt" ]
       } else {
-        deps += [ "//third_party/libunwind:unwind_source_${target_cpu}" ]
+        public_deps += [ "//third_party/libunwind:unwind_source_${target_cpu}" ]
       }
     } else {
-      deps += [ "${THIRD_PARTY}/libunwind:libunwind" ]
+      public_deps += [ "${THIRD_PARTY}/libunwind:libunwind" ]
     }
   }
 }

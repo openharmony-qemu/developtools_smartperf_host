@@ -16,9 +16,8 @@
 #include "rawtrace_parser.h"
 #include <cinttypes>
 #if IS_WASM
-#include "../rpc/wasm_func.h"
+#include "wasm_func.h"
 #endif
-#include "log.h"
 #include "string_help.h"
 namespace SysTuning {
 namespace TraceStreamer {

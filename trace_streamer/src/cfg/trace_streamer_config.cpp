@@ -14,12 +14,14 @@
  */
 
 #include "trace_streamer_config.h"
+#ifdef ENABLE_MEMORY
 #include "memory_plugin_common.pbreader.h"
-#include "memory_plugin_result.pbreader.h"
-#include "log.h"
+#endif
 namespace SysTuning {
 namespace TraceCfg {
+#ifdef ENABLE_MEMORY
 using namespace ProtoReader;
+#endif
 TraceStreamerConfig::TraceStreamerConfig()
 {
     InitEventNameMap();
@@ -46,8 +48,10 @@ TraceStreamerConfig::TraceStreamerConfig()
         {MEM_GL_PSS, MEM_INFO_GL_PSS_DESC},     {MEM_GRAPH_PSS, MEM_INFO_GRAPH_PSS_DESC},
     };
 
+#ifdef ENABLE_MEMORY
     InitSysMemMap();
     InitSysVmemMap();
+#endif
     InitSecurityMap();
     if (eventNameMap_.size() != TRACE_EVENT_MAX) {
         TS_LOGF("eventNameMap_.size() max be %d, logic error", TRACE_EVENT_MAX);
@@ -233,6 +237,7 @@ void TraceStreamerConfig::InitEventNameMap()
     InitEbpfEventNameMap();
     InitHookEventNameMap();
 }
+#ifdef ENABLE_MEMORY
 void TraceStreamerConfig::InitSysMemMap()
 {
     sysMemNameMap_ = {{SysMeminfoType::PMEM_UNSPECIFIED, SYS_MEMINFO_UNSPECIFIED_DESC},
@@ -484,6 +489,7 @@ void TraceStreamerConfig::InitSysVmemMap()
     InitPgEventSysVmemMap();
     InitOtherEventSysVmemMap();
 }
+#endif
 inline void TraceStreamerConfig::InitBinderEventSecurityMap()
 {
     eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION, statSeverityDescMap_);

@@ -92,7 +92,7 @@ if (is_test) {
       "${THIRD_PARTY}/protobuf:protobuf_lite_static",
       "${THIRD_PARTY}/protobuf:protobuf_static",
       "../src:trace_streamer_source",
-      "../src/parser/pbreader_parser:pbreader_parser",
+      "../src/parser/pbreader_parser:pbreader_parser_src",
       "../src/proto_reader:proto_reader",
     ]
     public_configs = []
@@ -117,6 +117,7 @@ if (is_test) {
       "../src/include",
       "../src/trace_streamer",
       "../src/parser/ptreader_parser",
+      "../src/parser/ptreader_parser/bytrace_parser",
       "../src/parser",
       "../src/cfg",
       "../src/metrics",

@@ -14,25 +14,21 @@
 import("//build/ohos.gni")
 import("../../build/ts.gni")
 
-ohos_source_set("metrics_parser") {
-  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
-  part_name = "${OHOS_PROFILER_PART_NAME}"
-  sources = [
-    "memAggStrategy.h",
-    "memDataStrategy.h",
-    "memStrategy.h",
-    "metrics.cpp",
-    "metrics.h",
-    "sysCallStrategy.h",
-    "traceStateStrategy.h",
-    "traceTaskStrategy.h",
-  ]
-  deps = []
+config("metrics_cfg") {
   include_dirs = [
+    ".",
     "${SRC}/base",
     "${THIRD_PARTY}/bounds_checking_function/include",
     "${THIRD_PARTY}/json/single_include/nlohmann",
   ]
+}
+
+ohos_source_set("metrics_parser") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [ "metrics.cpp" ]
+  deps = []
+  public_configs = [ ":metrics_cfg" ]
   if (enable_ts_utest && !use_wasm) {
     cflags = [
       "-fprofile-arcs",

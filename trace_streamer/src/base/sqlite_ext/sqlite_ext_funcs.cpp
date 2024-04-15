@@ -18,7 +18,7 @@
 #include <memory>
 #include "log.h"
 #include "sqlite3.h"
-#include "../base/string_help.h"
+#include "string_help.h"
 namespace SysTuning {
 namespace base {
 /*

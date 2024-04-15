@@ -19,11 +19,11 @@
 
 #include "clock_filter_ex.h"
 #include "event_parser_base.h"
-#include "hi_sysevent_filter/hi_sysevent_measure_filter.h"
+#include "hi_sysevent_measure_filter.h"
 #include "hisysevent_plugin_config.pbreader.h"
 #include "hisysevent_plugin_result.pbreader.h"
 #include "htrace_plugin_time_parser.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 #include "ts_common.h"
 

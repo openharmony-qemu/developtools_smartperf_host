@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <map>
 #include <cinttypes>
-#include "log.h"
 #include "string_help.h"
 #include "ts_common.h"
 

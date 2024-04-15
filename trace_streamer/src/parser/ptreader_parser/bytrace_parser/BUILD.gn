@@ -13,11 +13,16 @@
 import("//build/ohos.gni")
 import("../../../../build/ts.gni")
 
+config("bytrace_parser_cfg") {
+  include_dirs = [ "." ]
+}
+
 ohos_static_library("ptreader_bytrace_parser") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [ "bytrace_event_parser.cpp" ]
-  include_dirs = [ "." ]
-  public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hilog_data:hilog_data_reader" ]
-  public_configs = [ "../../:parser_base_cfg" ]
+  public_configs = [
+    ":bytrace_parser_cfg",
+    "../../:parser_base_cfg",
+  ]
 }

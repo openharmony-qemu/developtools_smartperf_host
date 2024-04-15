@@ -28,43 +28,42 @@
 #include "ebpf_data_parser.h"
 #endif
 #include "file.h"
+#include "pbreader_clock_detail_parser.h"
 #ifdef ENABLE_HTRACE
-#include "htrace_clock_detail_parser.h"
 #include "htrace_cpu_detail_parser.h"
 #include "htrace_symbols_detail_parser.h"
 #endif
 #include "htrace_plugin_time_parser.h"
 #ifdef ENABLE_CPUDATA
-#include "cpu_data_parser/pbreader_cpu_data_parser.h"
+#include "pbreader_cpu_data_parser.h"
 #endif
 #ifdef ENABLE_DISKIO
-#include "disk_io_parser/pbreader_disk_io_parser.h"
+#include "pbreader_disk_io_parser.h"
 #endif
 #ifdef ENABLE_HTDUMP
-#include "hidump_parser/pbreader_hidump_parser.h"
+#include "pbreader_hidump_parser.h"
 #endif
 #ifdef ENABLE_HILOG
-#include "hilog_parser/pbreader_hilog_parser.h"
+#include "pbreader_hilog_parser.h"
 #endif
 #ifdef ENABLE_HISYSEVENT
-#include "hisysevent_parser/pbreader_hisysevent_parser.h"
+#include "pbreader_hisysevent_parser.h"
 #endif
 #ifdef ENABLE_ARKTS
-#include "arkts/pbreader_js_memory_parser.h"
+#include "pbreader_js_memory_parser.h"
 #endif
 #ifdef ENABLE_MEMORY
-#include "mem_parser/pbreader_mem_parser.h"
+#include "pbreader_mem_parser.h"
 #endif
 #ifdef ENABLE_NATIVE_HOOK
-#include "native_hook_parser/pbreader_native_hook_parser.h"
+#include "pbreader_native_hook_parser.h"
 #endif
 #ifdef ENABLE_NETWORK
-#include "network_parser/pbreader_network_parser.h"
+#include "pbreader_network_parser.h"
 #endif
 #ifdef ENABLE_PROCESS
-#include "process_parser/pbreader_process_parser.h"
+#include "pbreader_process_parser.h"
 #endif
-#include "log.h"
 #include "parser_base.h"
 #include "pbreader_file_header.h"
 #ifdef ENABLE_HIPERF
@@ -73,7 +72,7 @@
 #include "proto_reader_help.h"
 #include "string_help.h"
 #include "symbols_file.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 #include "ts_common.h"
 #ifdef ENABLE_STREAM_EXTEND
@@ -94,7 +93,9 @@ public:
 #ifdef ENABLE_ARKTS
     void EnableFileSeparate(bool enabled);
 #endif
+#if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
     void ParserFileSO(std::string& directory, const std::vector<std::string>& relativeFilePaths);
+#endif
 #ifdef ENABLE_HIPERF
     void TraceDataSegmentEnd(bool isSplitFile);
     void StoreTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, int32_t isFinish);
@@ -250,10 +251,10 @@ private:
     const size_t packetSegLength_ = 4;
     const size_t packetHeaderLength_ = 1024;
     TraceDataCache* traceDataCache_;
+    std::unique_ptr<PbreaderClockDetailParser> pbreaderClockDetailParser_;
 #ifdef ENABLE_HTRACE
     std::unique_ptr<HtraceCpuDetailParser> htraceCpuDetailParser_;
     std::unique_ptr<HtraceSymbolsDetailParser> htraceSymbolsDetailParser_;
-    std::unique_ptr<HtraceClockDetailParser> htraceClockDetailParser_;
     ClockId dataSourceTypeTraceClockid_ = TS_CLOCK_UNKNOW;
     bool onlyParseFtrace_ = false;
 #endif

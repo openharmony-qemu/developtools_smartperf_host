@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "ftrace_event_processor.h"
-#include "log.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

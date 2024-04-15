@@ -97,8 +97,11 @@ ohos_static_library("hiperf_parser") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [ "perf_data_parser.cpp" ]
-  public_configs = [ ":hiperf_parser_cfg" ]
-  deps = [
+  public_configs = [
+    ":hiperf_parser_cfg",
+    "../../filter/perf_filter:hiperf_filter_cfg",
+  ]
+  public_deps = [
     "${PERF_DIR}/hiperf:hiperf_platform_common",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",
     "${THIRD_PARTY}/protobuf:protobuf_static",

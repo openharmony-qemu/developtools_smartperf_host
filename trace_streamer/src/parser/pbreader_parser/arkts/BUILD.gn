@@ -13,6 +13,10 @@
 import("//build/ohos.gni")
 import("../../../../build/ts.gni")
 
+config("arkts_parser_cfg") {
+  include_dirs = [ "." ]
+}
+
 ohos_static_library("pbreader_arkts_parser") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
@@ -20,10 +24,13 @@ ohos_static_library("pbreader_arkts_parser") {
     "pbreader_js_cpu_profiler_parser.cpp",
     "pbreader_js_memory_parser.cpp",
   ]
-  include_dirs = [ "." ]
   public_deps = [
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:js_memory_data_reader",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:ts_js_memory_data_cpp",
   ]
-  public_configs = [ "../../:parser_base_cfg" ]
+  public_configs = [
+    ":arkts_parser_cfg",
+    "../../:parser_base_cfg",
+  ]
 }

@@ -55,43 +55,35 @@ ohos_source_set("ts_sqlite") {
   }
 }
 
-trace_streamer_include = [
-  "base",
-  "..",
-  "trace_streamer",
-  "filter",
-  "table",
-  "trace_data",
-  "metrics",
-  "include",
-  "rpc",
-  "./",
-  "parser",
-  "cfg",
-  "proto_reader/include",
-  "parser/ptreader_parser",
-  "parser/ebpf_parser",
-  "parser/pbreader_parser",
-  "parser/pbreader_parser/htrace_parser",
-  "parser/pbreader_parser/htrace_parser",
-  "parser/rawtrace_parser",
-  "parser/hiperf_parser",
-  "${THIRD_PARTY}/bounds_checking_function/include",
-  "${THIRD_PARTY}/sqlite/include",
-  "${THIRD_PARTY}/json/single_include/nlohmann",
-  "${THIRD_PARTY}/protobuf/src",
-  "${PERF_DIR}/hiperf/include",
-  "${PERF_DIR}/hiperf/include/nonlinux",
-  "${PERF_DIR}/hiperf/include/nonlinux/linux",
-  "${THIRD_PARTY}/libunwind/include",
-  "${THIRD_PARTY}/libunwind/src",
-  "${THIRD_PARTY}/perf_include/libbpf",
-  "${THIRD_PARTY}/googletest/googletest/include",
-  "${COMMON_LIBRARY}/c_utils/base/include",
-  "${THIRD_PARTY}/sqlite",
-  "${THIRD_PARTY}/protogen/types/plugins/js_memory",
-  "${PERF_DIR}/profiler/device/plugins/ftrace_plugin/include",
-]
+config("trace_streamer_cfg") {
+  include_dirs = [ "." ]
+  if (enable_ts_utest && !use_wasm) {
+    cflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
+    }
+  }
+  if (!is_independent_compile) {
+    configs = [ "${TS_DIR}/gn:ts_config" ]
+  }
+  if (is_mingw || is_mac) {
+    include_dirs += [
+      "${THIRD_PARTY}/libbpf/include/uapi",
+      "${THIRD_PARTY}/elfutils/libelf",
+    ]
+  }
+  if (is_mingw) {
+    cflags = [ "-includeMingW64Fix.h" ]
+  }
+}
 
 ohos_source_set("trace_streamer_source") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
@@ -108,77 +100,8 @@ ohos_source_set("trace_streamer_source") {
     sources += [ "main.cpp" ]
   }
   if (use_wasm) {
-    sources += [
-      "rpc/wasm_func.cpp",
-      "rpc/wasm_func.h",
-    ]
+    sources += [ "rpc/wasm_func.cpp" ]
   }
-
-  include_dirs = trace_streamer_include
-  include_dirs += [
-    "${THIRD_PARTY}/perf_include/hiviewdfx/hilog/include",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/cutil",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxlog",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/common",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
-  ]
-  include_dirs += [
-    "${SRC}/trace_data/trace_stdtype",
-    "${SRC}/trace_data/trace_stdtype/ftrace",
-    "${SRC}/trace_data/trace_stdtype/ftrace/template",
-    "${SRC}/trace_data/trace_stdtype/hilog",
-    "${SRC}/trace_data/trace_stdtype/hiperf",
-    "${SRC}/trace_data/trace_stdtype/hisysevent",
-    "${SRC}/trace_data/trace_stdtype/htrace",
-    "${SRC}/trace_data/trace_stdtype/measure",
-  ]
-
-  if (!is_independent_compile) {
-    configs = [ "${TS_DIR}/gn:ts_config" ]
-  }
-  if (enable_ts_utest && !use_wasm) {
-    cflags = [
-      "-fprofile-arcs",
-      "-ftest-coverage",
-    ]
-    ldflags = [
-      "-fprofile-arcs",
-      "-ftest-coverage",
-      "--coverage",
-    ]
-    if (is_test) {
-      cflags += [ "-D IS_UT" ]
-    }
-  }
-  if (is_mingw || is_mac) {
-    include_dirs += [
-      "${THIRD_PARTY}/libbpf/include/uapi",
-      "${THIRD_PARTY}/elfutils/libelf",
-    ]
-  }
-  if (is_mingw) {
-    cflags = [ "-includeMingW64Fix.h" ]
-  }
-
-  public_deps = [
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp_standard",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/cpu_data:cpu_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ftrace_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hilog_data:hilog_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hisysevent_data:hisysevent_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:ts_js_memory_data_cpp",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:memory_data_reader",
-  ]
-  if (!use_wasm && !is_test && !is_fuzz) {
-    public_deps += [
-      "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc(${host_toolchain})",
-      "proto_reader/protoc_plugin:protoreader_plugin(${host_toolchain})",
-    ]
-  }
-
   deps = [
     ":ts_sqlite",
     "base:base",
@@ -191,14 +114,13 @@ ohos_source_set("trace_streamer_source") {
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/perf_include/hiviewdfx:hiviewdfx",
   ]
-
-  public_configs = []
-  if (enable_hiperf) {
-    public_configs += [ "parser/hiperf_parser:hiperf_parser_cfg" ]
-  }
-  if (enable_stream_extend) {
-    public_configs +=
-        [ "${EXTEND_SRC}/parser/pbreader_stream_parser:pbreader_stream_cfg" ]
+  public_configs = [ ":trace_streamer_cfg" ]
+  public_deps = []
+  if (!use_wasm && !is_test && !is_fuzz) {
+    public_deps += [
+      "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc(${host_toolchain})",
+      "proto_reader/protoc_plugin:protoreader_plugin(${host_toolchain})",
+    ]
   }
 }
 
@@ -221,7 +143,6 @@ if (use_wasm) {
       subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
       part_name = "${OHOS_PROFILER_PART_NAME}"
       sources = []
-      include_dirs = trace_streamer_include
       deps = [ ":trace_streamer_source" ]
     }
   }

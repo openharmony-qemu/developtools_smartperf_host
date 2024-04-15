@@ -23,7 +23,6 @@
 #include "event_parser_base.h"
 #include "pbreader_file_header.h"
 #include "htrace_plugin_time_parser.h"
-#include "log.h"
 #if is_mingw
 #define unw_word_t uint64_t
 #endif
@@ -33,7 +32,7 @@
 #include "perf_file_reader.h"
 #include "quatra_map.h"
 #include "report.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 
 namespace SysTuning {
