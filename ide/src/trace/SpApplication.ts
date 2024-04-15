@@ -1716,25 +1716,27 @@ export class SpApplication extends BaseElement {
     this.initSystemTraceEvents();
     this.filterConfig!.addEventListener('click', (ev) => {
       SpSystemTrace.isMouseLeftDown = false;
-      if (this!.hasAttribute('chart_filter')) {
-        this!.removeAttribute('chart_filter');
-        this.chartFilter!.setAttribute('hidden', '');
-      } else {
-        this!.removeAttribute('custom-color');
-        this.customColor!.setAttribute('hidden', '');
-        this.customColor!.cancelOperate();
-        this!.setAttribute('chart_filter', '');
-        this.chartFilter!.removeAttribute('hidden');
-      }
+      this.filterRowConfigClickHandle();
     });
     this.configClose!.addEventListener('click', (ev) => {
-      if (this.hasAttribute('chart_filter')) {
-        this!.removeAttribute('chart_filter');
-      }
+      this.filterRowConfigClickHandle();
     });
     this.cutTraceFile!.addEventListener('click', (ev) => {
       this.croppingFile(this.progressEL!, this.litSearch!);
     });
+  }
+
+  private filterRowConfigClickHandle() {
+    if (this!.hasAttribute('chart_filter')) {
+      this!.removeAttribute('chart_filter');
+      this.chartFilter!.setAttribute('hidden', '');
+    } else {
+      this!.removeAttribute('custom-color');
+      this.customColor!.setAttribute('hidden', '');
+      this.customColor!.cancelOperate();
+      this!.setAttribute('chart_filter', '');
+      this.chartFilter!.removeAttribute('hidden');
+    }
   }
 
   private initRecordEvents(): void {

@@ -180,10 +180,6 @@ export const applicationHtml: string = `
             font-size: 20px;
             color: var(--dark-color1,#47A7E0);
          }
-         .chart-filter {
-            visibility: hidden;
-            z-index: -1;
-        }
         :host([chart_filter]) .chart-filter {
             display: grid;
             grid-template-rows: min-content min-content min-content max-content auto;

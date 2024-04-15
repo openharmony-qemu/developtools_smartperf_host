@@ -46,6 +46,7 @@ export class TabPaneSlices extends BaseElement {
       asyncPid.push(it.pid);
     });
     this.slicesTbl!.loading = true;
+    let filterNameEL: HTMLInputElement | undefined | null= this.shadowRoot?.querySelector<HTMLInputElement>('#filterName');
     getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {
       getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs).then(
         (res2) => {
@@ -66,8 +67,12 @@ export class TabPaneSlices extends BaseElement {
             count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
             count.occurrences = sumOcc;
             processSlicesResult.splice(0, 0, count);
-            this.slicesSource = processSlicesResult;
-            this.slicesTbl!.recycleDataSource = processSlicesResult;
+            if (filterNameEL && filterNameEL.value.trim() !== '') {
+              this.findName(filterNameEL.value);
+            } else {
+              this.slicesSource = processSlicesResult;
+              this.slicesTbl!.recycleDataSource = processSlicesResult;
+            }
           } else {
             this.slicesSource = [];
             this.slicesTbl!.recycleDataSource = this.slicesSource;

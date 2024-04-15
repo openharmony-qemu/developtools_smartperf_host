@@ -416,7 +416,7 @@ export class TabPaneNMSampleList extends BaseElement {
                     <img src="img/function.png" size="20" v-if=" type === 0 ">
                 </template>
             </lit-table-column>
-            <lit-table-column class="nm-sample-column" width="1fr" title="" data-index="title" key="title"  align="flex-start">
+            <lit-table-column class="nm-sample-column" width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
             </lit-table-column>
         </lit-table>
         </lit-slicer>

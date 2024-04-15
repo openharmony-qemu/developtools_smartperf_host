@@ -175,9 +175,16 @@ export function draw(canvasCtx: CanvasRenderingContext2D, node: ChartStruct): vo
     } else {
       canvasCtx.fillStyle = '#000';
     }
-    drawString(canvasCtx, node.symbol || '', 5, node.frame, node);
+    drawString(canvasCtx, splitSymbol(node), 5, node.frame, node);
   }
   node.isDraw = true;
+}
+
+function splitSymbol(node: ChartStruct): string {
+  if (node.depth === 0 || node.isProcess || node.isThread) {
+    return node.symbol;
+  }
+  return node.symbol.split(' (')[0];
 }
 
 /**

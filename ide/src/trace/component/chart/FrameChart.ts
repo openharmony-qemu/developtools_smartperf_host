@@ -252,8 +252,12 @@ export class FrameChart extends BaseElement {
     node.parentId = undefined;
     node.title = undefined;
     node.eventType = undefined;
-    if (this._mode !== ChartMode.Count && this._mode !== ChartMode.EventCount) {
+    if (this.mode === ChartMode.Byte) {
       node.self = undefined;
+      node.eventCount = 0;
+    }
+    if (this._mode !== ChartMode.Count && this._mode !== ChartMode.EventCount) {
+      node.eventCount = 0;
       node.eventPercent = undefined;
     }
   }
@@ -826,7 +830,7 @@ export class FrameChart extends BaseElement {
   private updateTipContent(): void {
     const hoverNode = ChartStruct.hoverFuncStruct;
     if (hoverNode) {
-      const name = hoverNode?.symbol.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const name = hoverNode?.symbol.replace(/</g, '&lt;').replace(/>/g, '&gt;').split(' (')[0];
       const percent = ((hoverNode?.percent || 0) * 100).toFixed(2);
       const threadPercent = this.getCurrentPercentOfThread(hoverNode);
       const processPercent = this.getCurrentPercentOfProcess(hoverNode);
