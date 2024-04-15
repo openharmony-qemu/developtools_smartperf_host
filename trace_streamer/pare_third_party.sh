@@ -121,6 +121,7 @@ if [ ! -d "perf_include/hiviewdfx/faultloggerd" ];then
     $sed -i '/#define DFX_NONLINUX_DEFINE_H/a #ifndef is_linux' perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux/dfx_nonlinux_define.h
     $sed -i '/#if is_mingw/s/#if is_mingw/#ifndef is_linux/g' perf_include/hiviewdfx/faultloggerd/interfaces/common/byte_order.h
     $sed -i '$a #endif' perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux/dfx_nonlinux_define.h
+    $cp ../prebuilts/patch_hiperf/string_view_util.h ../third_party/perf_include/hiviewdfx/faultloggerd/common/dfxutil/string_view_util.h
 fi
 if [ ! -f "hiperf/BUILD.gn" ];then
     rm -rf hiperf developtools_hiperf
