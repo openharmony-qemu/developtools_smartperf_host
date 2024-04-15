@@ -1223,7 +1223,7 @@ let uploadSoActionId: string = '';
 let uploadFileIndex: number = 0;
 let uploadSoCallbackFn: any;
 let soFileList: Array<File | null> = [];
-const failedArray: Array<string> = []
+const failedArray: Array<string> = [];
 const uploadSoFile = async (file: File | null): Promise<void> => {
   if (file) {
     let fileNameBuffer: Uint8Array | null = enc.encode(file.webkitRelativePath);
@@ -1261,17 +1261,17 @@ const uploadSoCallBack = (heapPtr: number, size: number, isFinish: number): void
         failedArray.push(soFileList[uploadFileIndex]!.name);
       }
       if (uploadFileIndex < soFileList.length - 1) {
-        uploadFileIndex = uploadFileIndex + 1;
-        uploadSoFile(soFileList[uploadFileIndex]).then();
+        uploadSoFile(soFileList[uploadFileIndex + 1]).then();
       }
+      uploadFileIndex++;
     }
-    if (uploadFileIndex === soFileList.length - 1) {
+    if (uploadFileIndex === soFileList.length) {
       soFileList.length = 0;
+      const result = failedArray.length === 0 ? 'ok' : 'failed';
       self.postMessage({
         id: uploadSoActionId,
         action: 'upload-so',
-        results: 'ok',
-        failedArray: failedArray,
+        results: { result: result, failedArray: failedArray },
       });
     }
   }

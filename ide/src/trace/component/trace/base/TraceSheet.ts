@@ -499,12 +499,13 @@ export class TraceSheet extends BaseElement {
             'upload-so',
             '',
             fileList,
-            (res: string) => {
+            (res: any) => {
               importFileBt!.disabled = false;
-              if (res === 'ok') {
+              if (res.result === 'ok') {
                 window.publish(window.SmartEvent.UI.UploadSOFile, {});
               } else {
-                window.publish(window.SmartEvent.UI.Error, 'parse so file failed!');
+                const failedList = res.failedArray.join(',');
+                window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
               }
             },
             'upload-so'
