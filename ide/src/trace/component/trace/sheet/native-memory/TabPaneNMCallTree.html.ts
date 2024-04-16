@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export const TabPaneNMCallTreeHtml =  `
+export const TabPaneNMCallTreeHtml = `
         <style>
         :host{
             padding: 10px 10px 0 10px;

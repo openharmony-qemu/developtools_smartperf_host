@@ -26,9 +26,7 @@ import { FlagsConfig } from './SpFlags';
 import LitSwitch from '../../base-ui/switch/lit-switch';
 import { LitSlider } from '../../base-ui/slider/LitSlider';
 
-import {
-  CreateSessionRequest
-} from './setting/bean/ProfilerServiceTypes';
+import { CreateSessionRequest } from './setting/bean/ProfilerServiceTypes';
 import { PluginConvertUtils } from './setting/utils/PluginConvertUtils';
 import { SpAllocations } from './setting/SpAllocations';
 import { SpRecordPerf } from './setting/SpRecordPerf';
@@ -66,7 +64,8 @@ import {
 } from './SpRecordConfigModel';
 import { SpRecordTraceHtml } from './SpRecordTrace.html';
 
-const DEVICE_NOT_CONNECT = '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill,然后重新添加设备。若还没有效果，请重新插拔一下手机。'
+const DEVICE_NOT_CONNECT =
+  '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill,然后重新添加设备。若还没有效果，请重新插拔一下手机。';
 
 @element('sp-record-trace')
 export class SpRecordTrace extends BaseElement {
@@ -74,7 +73,7 @@ export class SpRecordTrace extends BaseElement {
   public static selectVersion: string | null;
   public static isVscode = false;
   public static cancelRecord = false;
-  static supportVersions = ['3.2', '4.0+','5.0+'];
+  static supportVersions = ['3.2', '4.0+', '5.0+'];
   public deviceSelect: HTMLSelectElement | undefined;
   public deviceVersion: HTMLSelectElement | undefined;
   private _menuItems: Array<MenuItem> | undefined;
@@ -199,12 +198,12 @@ export class SpRecordTrace extends BaseElement {
               this.refreshDeviceVersion(option);
             }
           }
-        };
-        if(!optionNum){
+        }
+        if (!optionNum) {
           this.deviceSelect!.style!.border = '2px solid red';
           setTimeout(() => {
             this.deviceSelect!.style!.border = '1px solid #4D4D4D';
-          },3000);
+          }, 3000);
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
@@ -283,8 +282,8 @@ export class SpRecordTrace extends BaseElement {
       return '3.2';
     } else if (version.indexOf('4.') !== -1) {
       return '4.0+';
-    }else if (version.indexOf('5.') !== -1) {
-      return '5.0+'
+    } else if (version.indexOf('5.') !== -1) {
+      return '5.0+';
     }
     return '3.2';
   }
@@ -360,7 +359,7 @@ export class SpRecordTrace extends BaseElement {
       parentElement.style.overflow = 'hidden';
     }
     this.sp = document.querySelector('sp-application') as SpApplication;
-    if (!this.shadowRoot || !this.sp){
+    if (!this.shadowRoot || !this.sp) {
       return;
     }
     this.initConfigPage();
@@ -386,11 +385,11 @@ export class SpRecordTrace extends BaseElement {
     if (this.deviceSelect.options && this.deviceSelect.options.length > 0) {
       this.disconnectButton!.hidden = false;
       this.recordButton.hidden = false;
-      this.devicePrompt.innerText = ''; 
+      this.devicePrompt.innerText = '';
     } else {
       this.disconnectButton!.hidden = true;
       this.recordButton.hidden = true;
-      this.devicePrompt.innerText = 'Device not connected'; 
+      this.devicePrompt.innerText = 'Device not connected';
     }
   }
 
@@ -658,15 +657,13 @@ export class SpRecordTrace extends BaseElement {
     this.cancelButtonShow(false);
     if (this.vs) {
       let cmd = Cmd.formatString(CmdConstant.CMS_HDC_STOP, [SpRecordTrace.serialNumber]);
-      Cmd.execHdcCmd(cmd, (): void => {
-      });
+      Cmd.execHdcCmd(cmd, (): void => {});
     } else {
       let selectedOption = this.deviceSelect!.options[this.deviceSelect!.selectedIndex] as HTMLOptionElement;
       HdcDeviceManager.connect(selectedOption.value).then((result) => {
         if (result) {
           try {
-            HdcDeviceManager.shellResultAsString(CmdConstant.CMS_STOP, true).then((): void => {
-            });
+            HdcDeviceManager.shellResultAsString(CmdConstant.CMS_STOP, true).then((): void => {});
           } catch (exception) {
             this.recordButtonDisable(false);
             log(exception);
@@ -707,8 +704,7 @@ export class SpRecordTrace extends BaseElement {
             this.deviceSelect!.style.pointerEvents = 'auto';
             this.deviceVersion!.style.pointerEvents = 'auto';
             SpRecordTrace.cancelRecord = true;
-            HdcDeviceManager.stopHiprofiler(CmdConstant.CMS_CANCEL).then((): void => {
-            });
+            HdcDeviceManager.stopHiprofiler(CmdConstant.CMS_CANCEL).then((): void => {});
           } catch (exception) {
             log(exception);
           }
@@ -778,7 +774,8 @@ export class SpRecordTrace extends BaseElement {
     let recordModeSwitch = recordTrace.probesConfig?.shadowRoot?.querySelector('lit-switch') as LitSwitch;
     let checkDesBoxDis = recordTrace.probesConfig?.shadowRoot?.querySelectorAll('check-des-box');
     let litCheckBoxDis = recordTrace.probesConfig?.shadowRoot?.querySelectorAll('lit-check-box');
-    recordTrace.ftraceSlider = recordTrace.probesConfig?.shadowRoot?.querySelector<LitSlider>('#ftrace-buff-size-slider');
+    recordTrace.ftraceSlider =
+      recordTrace.probesConfig?.shadowRoot?.querySelector<LitSlider>('#ftrace-buff-size-slider');
     startNativeSwitch.addEventListener('change', (event: any): void => {
       let detail = event.detail;
       if (detail!.checked) {
@@ -850,7 +847,7 @@ export class SpRecordTrace extends BaseElement {
       this.buildMenuItem('HiSystemEvent', 'externaltools', this.spHiSysEvent!),
       this.buildMenuItem('Ark Ts', 'file-config', this.spArkTs!),
       this.buildMenuItem('Hilog', 'realIntentionBulb', this.spHiLog!),
-      this.buildMenuItem('SDK Config', 'file-config', this.spSdkConfig!)
+      this.buildMenuItem('SDK Config', 'file-config', this.spSdkConfig!),
     ];
   }
 
@@ -862,8 +859,7 @@ export class SpRecordTrace extends BaseElement {
       let option = this.deviceSelect!.children[index] as HTMLOptionElement;
       if (option.value === disConnectDevice.serialNumber) {
         let optValue = option.value;
-        HdcDeviceManager.disConnect(optValue).then(() => {
-        });
+        HdcDeviceManager.disConnect(optValue).then(() => {});
         this.deviceSelect!.removeChild(option);
         if (SpRecordTrace.serialNumber === optValue) {
           if (this.nowChildItem === this.spWebShell) {
@@ -915,7 +911,7 @@ export class SpRecordTrace extends BaseElement {
                 this.cancelButtonShow(false);
                 this.freshMenuDisable(false);
                 this.freshConfigMenuDisable(false);
-                fileHandler({detail: file});
+                fileHandler({ detail: file });
               } else {
                 SpRecordTrace.cancelRecord = false;
               }
@@ -995,7 +991,7 @@ export class SpRecordTrace extends BaseElement {
     let request = this.makeRequest();
     this.showHint = true;
     if (request.pluginConfigs.length === 0) {
-      this.hintEl!.textContent = 'It looks like you didn\'t add any probes. Please add at least one';
+      this.hintEl!.textContent = "It looks like you didn't add any probes. Please add at least one";
       return;
     }
     this.showHint = false;
@@ -1189,7 +1185,7 @@ export class SpRecordTrace extends BaseElement {
     let chunks = Math.ceil(buffer.byteLength / indexDBMaxSize);
     let offset = 0;
     let sliceLen = 0;
-    let message = {fileType: '', startIndex: 0, endIndex: 0, size: 0};
+    let message = { fileType: '', startIndex: 0, endIndex: 0, size: 0 };
     for (let chunkIndex = 0; chunkIndex < chunks; chunkIndex++) {
       let start = chunkIndex * indexDBMaxSize;
       let end = Math.min(start + indexDBMaxSize, buffer.byteLength);
@@ -1200,7 +1196,7 @@ export class SpRecordTrace extends BaseElement {
       }
       sliceLen = Math.min(buffer.byteLength - offset, indexDBMaxSize);
       if (chunkIndex === 0 && fileType === 'trace') {
-        this.sp!.longTraceHeadMessageList.push({ pageNum: pageNumber, data: buffer.slice(offset, kbSize)});
+        this.sp!.longTraceHeadMessageList.push({ pageNum: pageNumber, data: buffer.slice(offset, kbSize) });
       }
       this.sp!.longTraceDataList.push({
         index: chunkIndex,
@@ -1228,12 +1224,15 @@ export class SpRecordTrace extends BaseElement {
     }
   }
 
-  private longTraceFileMapHandler(pageNumber: number, message: {
-    fileType: string,
-    startIndex: number,
-    endIndex: number,
-    size: number,
-  }): void {
+  private longTraceFileMapHandler(
+    pageNumber: number,
+    message: {
+      fileType: string;
+      startIndex: number;
+      endIndex: number;
+      size: number;
+    }
+  ): void {
     if (this.sp!.longTraceTypeMessageMap) {
       if (this.sp!.longTraceTypeMessageMap?.has(pageNumber)) {
         let oldTypeList = this.sp!.longTraceTypeMessageMap?.get(pageNumber);

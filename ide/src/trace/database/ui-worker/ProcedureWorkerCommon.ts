@@ -1414,13 +1414,7 @@ export function drawLoadingFrame(
   ctx.closePath();
 }
 
-export function drawString(
-  ctx: CanvasRenderingContext2D,
-  str: string,
-  textPadding: number,
-  frame: Rect,
-  data: any,
-) {
+export function drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {
   if (data.textMetricsWidth === undefined) {
     data.textMetricsWidth = ctx.measureText(str).width;
   }

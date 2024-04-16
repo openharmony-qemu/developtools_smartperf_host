@@ -134,7 +134,7 @@ const initHtmlStyle = `
             margin-right: 5px;
         }
         </style>
-    `
+    `;
 
 @element('lit-chart-pie')
 export class LitChartPie extends BaseElement {
@@ -189,7 +189,7 @@ export class LitChartPie extends BaseElement {
     this.render();
   }
 
-  measureInitialize():void{
+  measureInitialize(): void {
     this.data = [];
     this.radius = (Math.min(this.clientHeight, this.clientWidth) * 0.65) / 2 - 10;
     this.labelsEL!.textContent = '';
@@ -249,7 +249,7 @@ export class LitChartPie extends BaseElement {
     return this.litChartPieConfig;
   }
 
-  addCanvasOnmousemoveEvent():void{
+  addCanvasOnmousemoveEvent(): void {
     this.canvas!.onmousemove = (ev) => {
       let rect = this.getBoundingClientRect();
       let x = ev.pageX - rect.left - this.centerX!;
@@ -353,7 +353,7 @@ export class LitChartPie extends BaseElement {
     }).observe(this);
   }
 
-  handleData():void{
+  handleData(): void {
     this.textRects = [];
     if (this.litChartPieConfig!.showChartLine) {
       this.data.forEach((dataItem) => {
@@ -422,7 +422,7 @@ export class LitChartPie extends BaseElement {
     this.setData(ease);
   }
 
-  setData(ease: boolean):void{
+  setData(ease: boolean): void {
     this.data
       .filter((it) => it.hover)
       .forEach((it) => {
@@ -514,7 +514,7 @@ export class LitChartPie extends BaseElement {
         direction = 'Left-Top';
       }
     } else {
-      direction = this.rectSuperposition(rect,r1);
+      direction = this.rectSuperposition(rect, r1);
     }
     return {
       cross,
@@ -524,7 +524,7 @@ export class LitChartPie extends BaseElement {
     };
   }
 
-  rectSuperposition(rect: Rectangle,r1: Rectangle):string{
+  rectSuperposition(rect: Rectangle, r1: Rectangle): string {
     if (rect.y > r1.y) {
       return 'Bottom';
     } else if (rect.y == r1.y) {

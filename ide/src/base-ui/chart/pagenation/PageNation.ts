@@ -91,7 +91,7 @@ export class PageNation {
     });
   }
 
-  createElement(jumpDiv:HTMLElement):void{
+  createElement(jumpDiv: HTMLElement): void {
     // Create input field
     this.inputBox = document.createElement('input');
     this.inputBox.value = this.pageInfo.current;
@@ -210,8 +210,8 @@ export class PageNation {
   }
 
   bindPageList() {
-    this.list.innerHTML = '';// clear ul its contents
-    const { pageSize, current, totalpage } = this.pageInfo;//Clean the ul before each load
+    this.list.innerHTML = ''; // clear ul its contents
+    const { pageSize, current, totalpage } = this.pageInfo; //Clean the ul before each load
     const origin = document.createElement('li');
     origin.dataset.name = 'item';
     this.setElementStyles(origin, {
@@ -308,13 +308,13 @@ export class PageNation {
     }
     if (current == totalpage - 4) {
       // 左边5个 中间 ... 右边2个
-      this.nodeAppendChild(origin,current,span,totalpage);
+      this.nodeAppendChild(origin, current, span, totalpage);
       return true;
     }
     return false;
   }
 
-  nodeAppendChild(origin: HTMLElement,current: number,span: any,totalpage: number):void{
+  nodeAppendChild(origin: HTMLElement, current: number, span: any, totalpage: number): void {
     for (let i = 0; i < 2; i++) {
       this.buildLi(origin, i, current);
     }
@@ -360,13 +360,13 @@ export class PageNation {
     );
   }
 
-  targetName(event:{
+  targetName(event: {
     target: {
       name: string;
       dataset: { name: string };
       innerText: number;
     };
-  }):void{
+  }): void {
     if (event.target.name === 'first') {
       if (this.pageInfo.current === 1) return;
       this.pageInfo.current = 1;

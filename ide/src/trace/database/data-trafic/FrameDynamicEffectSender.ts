@@ -33,20 +33,20 @@ export function frameAnimationSender(row: TraceRow<FrameAnimationStruct>): Promi
   }
   return new Promise((resolve): void => {
     threadPool.submitProto(
-        QueryEnum.FrameAnimationData,
-        {
-          startNS: TraceRow.range?.startNS || 0,
-          endNS: TraceRow.range?.endNS || 0,
-          recordStartNS: window.recordStartNS,
-          recordEndNS: window.recordEndNS,
-          width: width,
-          t: new Date().getTime(),
-          trafic: transferAnimationDataType,
-          sharedArrayBuffers: row.sharedArrayBuffers,
-        },
-        (res: any, len: number, transfer: boolean): void => {
-          resolve(animationBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
-        }
+      QueryEnum.FrameAnimationData,
+      {
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
+        recordStartNS: window.recordStartNS,
+        recordEndNS: window.recordEndNS,
+        width: width,
+        t: new Date().getTime(),
+        trafic: transferAnimationDataType,
+        sharedArrayBuffers: row.sharedArrayBuffers,
+      },
+      (res: any, len: number, transfer: boolean): void => {
+        resolve(animationBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
+      }
     );
   });
 }
@@ -91,20 +91,20 @@ export function frameDynamicSender(row: TraceRow<FrameDynamicStruct>): Promise<F
   }
   return new Promise((resolve): void => {
     threadPool.submitProto(
-        QueryEnum.FrameDynamicData,
-        {
-          startNS: TraceRow.range?.startNS || 0,
-          endNS: TraceRow.range?.endNS || 0,
-          recordStartNS: window.recordStartNS,
-          recordEndNS: window.recordEndNS,
-          width: width,
-          t: new Date().getTime(),
-          trafic: transferDynamicDataType,
-          sharedArrayBuffers: row.sharedArrayBuffers,
-        },
-        (res: any, len: number, transfer: boolean): void => {
-          resolve(dynamicBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
-        }
+      QueryEnum.FrameDynamicData,
+      {
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
+        recordStartNS: window.recordStartNS,
+        recordEndNS: window.recordEndNS,
+        width: width,
+        t: new Date().getTime(),
+        trafic: transferDynamicDataType,
+        sharedArrayBuffers: row.sharedArrayBuffers,
+      },
+      (res: any, len: number, transfer: boolean): void => {
+        resolve(dynamicBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
+      }
     );
   });
 }
@@ -133,9 +133,9 @@ function dynamicBufferHandler(res: any, len: number): any[] {
 }
 
 export function frameSpacingSender(
-    physicalWidth: number,
-    physicalHeight: number,
-    row: TraceRow<FrameSpacingStruct>
+  physicalWidth: number,
+  physicalHeight: number,
+  row: TraceRow<FrameSpacingStruct>
 ): Promise<FrameSpacingStruct[]> {
   let transferSpacingDataType: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
@@ -157,22 +157,22 @@ export function frameSpacingSender(
   }
   return new Promise((resolve): void => {
     threadPool.submitProto(
-        QueryEnum.FrameSpacingData,
-        {
-          physicalWidth: physicalWidth,
-          physicalHeight: physicalHeight,
-          startNS: TraceRow.range?.startNS || 0,
-          endNS: TraceRow.range?.endNS || 0,
-          recordStartNS: window.recordStartNS,
-          recordEndNS: window.recordEndNS,
-          width: width,
-          t: new Date().getTime(),
-          trafic: transferSpacingDataType,
-          sharedArrayBuffers: row.sharedArrayBuffers,
-        },
-        (res: any, len: number, transfer: boolean): void => {
-          resolve(spacingBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
-        }
+      QueryEnum.FrameSpacingData,
+      {
+        physicalWidth: physicalWidth,
+        physicalHeight: physicalHeight,
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
+        recordStartNS: window.recordStartNS,
+        recordEndNS: window.recordEndNS,
+        width: width,
+        t: new Date().getTime(),
+        trafic: transferSpacingDataType,
+        sharedArrayBuffers: row.sharedArrayBuffers,
+      },
+      (res: any, len: number, transfer: boolean): void => {
+        resolve(spacingBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
+      }
     );
   });
 }

@@ -25,7 +25,7 @@ import {
 } from './ProcedureWorkerCommon';
 import { type AnimationRanges } from '../../bean/FrameComponentBean';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class FrameDynamicRender extends Render {
   renderMainThread(
@@ -286,15 +286,16 @@ export class FrameDynamicRender extends Render {
   }
 }
 export function FrameDynamicStructOnClick(clickRowType: string, sp: SpSystemTrace, row: undefined | TraceRow<any>) {
-  return new Promise((resolve,reject) => {
+  return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC) {
-      FrameDynamicStruct.selectFrameDynamicStruct = FrameDynamicStruct.hoverFrameDynamicStruct || row?.getHoverStruct(false, true);
+      FrameDynamicStruct.selectFrameDynamicStruct =
+        FrameDynamicStruct.hoverFrameDynamicStruct || row?.getHoverStruct(false, true);
       if (FrameDynamicStruct.selectFrameDynamicStruct) {
         sp.traceSheetEL?.displayFrameDynamicData(row!, FrameDynamicStruct.selectFrameDynamicStruct);
         sp.timerShaftEL?.modifyFlagList(undefined);
       }
       reject(new Error());
-    }else{
+    } else {
       resolve(null);
     }
   });

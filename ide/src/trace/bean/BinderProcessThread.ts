@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +13,7 @@
  * limitations under the License.
  */
 export interface BinderGroup {
-  title: string | null | undefined ;
+  title: string | null | undefined;
   totalCount: number;
   binderAsyncRcvCount?: number;
   binderReplyCount?: number;
@@ -44,7 +43,7 @@ export class CycleBinderItem {
 }
 
 export interface ThreadBinderItem {
-  title: string ;
+  title: string;
   tid: number;
   pid: number;
   totalCount: number;
@@ -53,7 +52,7 @@ export interface ThreadBinderItem {
 }
 
 export interface ProcessBinderItem {
-  title: string ;
+  title: string;
   pid: number;
   totalCount: number;
   type: string;
@@ -61,7 +60,7 @@ export interface ProcessBinderItem {
 }
 
 export interface DataSource {
-  xName: string ;
+  xName: string;
   yAverage: number;
 }
 
@@ -86,7 +85,7 @@ export class FuncNameCycle {
 }
 
 export interface BinderDataStruct {
-  name: string ;
+  name: string;
   value: number;
   dur: number;
   startNS: number;
@@ -95,7 +94,7 @@ export interface BinderDataStruct {
 }
 
 export interface BinderItem {
-  name: string ;
+  name: string;
   ts: number;
   dur: number;
   tid: number;

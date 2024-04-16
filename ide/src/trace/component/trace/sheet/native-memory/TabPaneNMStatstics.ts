@@ -27,7 +27,7 @@ import { env } from 'process';
 import {
   queryNativeHookStatistics,
   queryNativeHookStatisticsMalloc,
-  queryNativeHookStatisticsSubType
+  queryNativeHookStatisticsSubType,
 } from '../../../../database/sql/NativeHook.sql';
 
 @element('tabpane-native-statistics')
@@ -58,7 +58,9 @@ export class TabPaneNMStatstics extends BaseElement {
     }
     if (this.nativeStatisticsTbl) {
       // @ts-ignore
-      this.nativeStatisticsTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 25}px`;
+      this.nativeStatisticsTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 25
+      }px`;
       // @ts-ignore
       this.nativeStatisticsTbl.recycleDataSource = [];
     }
@@ -250,7 +252,12 @@ export class TabPaneNMStatstics extends BaseElement {
       this.nativeStatisticsTbl!.recycleDataSource = this.nativeStatisticsSource;
     } else {
       let arr = [...this.nativeStatisticsSource];
-      let compareFunction = (nativeStatisticsLeftData: any, nativeStatisticsRightData: any, column: string, sortType: number) => {
+      let compareFunction = (
+        nativeStatisticsLeftData: any,
+        nativeStatisticsRightData: any,
+        column: string,
+        sortType: number
+      ) => {
         if (sortType === 1) {
           return nativeStatisticsLeftData[column] - nativeStatisticsRightData[column];
         } else {
@@ -265,7 +272,7 @@ export class TabPaneNMStatstics extends BaseElement {
         freeCount: 'freeCount',
         totalBytesString: 'totalBytes',
         maxStr: 'max',
-        totalCount: 'totalCount'
+        totalCount: 'totalCount',
       };
       let sortColumnKey = columnMap[nmStatColumn];
       this.nativeStatisticsTbl!.recycleDataSource = arr.sort((leftData, rightData) =>

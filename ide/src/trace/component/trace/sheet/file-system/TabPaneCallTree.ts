@@ -288,8 +288,7 @@ export class TabPaneCallTree extends BaseElement {
     this.getChildTree(bean.children as Array<MerageBean>, maxId, children);
     let callTreeArr = parents.reverse().concat(children.reverse());
     for (let data of callTreeArr) {
-      data.type =
-        data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
+      data.type = data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
     }
     let len = callTreeArr.length;
     this.callTreeRightSource = callTreeArr;

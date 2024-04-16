@@ -170,7 +170,8 @@ export class RangeRuler extends Graph {
     let miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount); //每格高度
     let miniWidth = Math.ceil(this.frame.width / 100); //每格宽度
     this._cpuCountData = CpuStruct.cpuCount;
-    if (sessionStorage.getItem('expand') === 'true') {//展开
+    if (sessionStorage.getItem('expand') === 'true') {
+      //展开
       miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount);
     } else if (sessionStorage.getItem('expand') === 'false') {
       miniHeight = Math.round(this.frame.height / 2);
@@ -541,9 +542,9 @@ export class RangeRuler extends Graph {
       this.pressedKeys.length == 0 ||
       this.pressedKeys[this.pressedKeys.length - 1] !== keyboardEvent.key.toLocaleLowerCase()
     ) {
-      this.pressedKeys = this.pressedKeys.filter(v => {
+      this.pressedKeys = this.pressedKeys.filter((v) => {
         return v !== keyboardEvent.key.toLocaleLowerCase();
-      })
+      });
       this.setCacheInterval();
       this.range.refresh = this.cacheInterval.flag;
       if (currentSlicesTime) {
@@ -582,7 +583,7 @@ export class RangeRuler extends Graph {
     };
     this.pressFrameIdFlagIntoView = requestAnimationFrame(animFlagIntoView);
   }
-  
+
   keyPressF(): void {
     let animF = () => {
       let clientWidth = this.canvas?.clientWidth || 0;
@@ -602,24 +603,24 @@ export class RangeRuler extends Graph {
       }
       if (startTime === endTime) {
         let midNs = (this.range.endNS - this.range.startNS) / 2;
-        if(startTime > midNs && startTime - midNs < this.range.totalNS - this.range.endNS){
+        if (startTime > midNs && startTime - midNs < this.range.totalNS - this.range.endNS) {
           this.range.startNS += startTime - midNs;
           this.range.endNS += startTime - midNs;
-        }else if(startTime < midNs && midNs - startTime < this.range.startNS) {
-          this.range.startNS -= midNs -startTime;
-          this.range.endNS -= midNs -startTime;
-        }else if(startTime > midNs && startTime - midNs > this.range.totalNS - this.range.endNS){
+        } else if (startTime < midNs && midNs - startTime < this.range.startNS) {
+          this.range.startNS -= midNs - startTime;
+          this.range.endNS -= midNs - startTime;
+        } else if (startTime > midNs && startTime - midNs > this.range.totalNS - this.range.endNS) {
           this.range.startNS = 2 * startTime - this.range.totalNS;
           this.range.endNS = this.range.totalNS;
-        } else if(startTime < midNs && midNs - startTime > this.range.startNS) {
+        } else if (startTime < midNs && midNs - startTime > this.range.startNS) {
           this.range.startNS = 0;
           this.range.endNS = 2 * startTime;
         }
-      }else {
+      } else {
         let startX = midX - 150;
         let endX = midX + 150;
         this.range.startNS = (endX * startTime - startX * endTime) / (endX - startX);
-        this.range.endNS = ((this.rulerW * (endTime - this.range.startNS)) + this.range.startNS * endX) / endX;
+        this.range.endNS = (this.rulerW * (endTime - this.range.startNS) + this.range.startNS * endX) / endX;
       }
       this.fillX();
       this.draw();

@@ -17,7 +17,7 @@ import { BaseStruct, Rect, Render, drawLoadingFrame, isFrameContainPoint } from 
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
 
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 export class HeapSnapshotRender extends Render {
   renderMainThread(
     req: {
@@ -64,12 +64,17 @@ export function HeapSnapshot(
   }
 }
 const padding = 3;
-export function HeapSnapshotStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>,snapshotClickHandler: any) {
+export function HeapSnapshotStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  row: TraceRow<any>,
+  snapshotClickHandler: any
+) {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_HEAP_SNAPSHOT) {
       if (row.findHoverStruct) {
         row.findHoverStruct();
-      }else {
+      } else {
         HeapSnapshotStruct.hoverSnapshotStruct = HeapSnapshotStruct.hoverSnapshotStruct || row.getHoverStruct();
       }
       if (HeapSnapshotStruct.hoverSnapshotStruct) {
@@ -85,7 +90,6 @@ export function HeapSnapshotStructOnClick(clickRowType: string, sp: SpSystemTrac
       resolve(null);
     }
   });
-
 }
 export class HeapSnapshotStruct extends BaseStruct {
   startTs: number = 0;

@@ -18,7 +18,7 @@ import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { HiSysEventRender, HiSysEventStruct } from '../../database/ui-worker/ProcedureWorkerHiSysEvent';
 import { hiSysEventDataSender } from '../../database/data-trafic/HiSysEventDataSender';
-import {queryHiSysEventData} from "../../database/sql/Perf.sql";
+import { queryHiSysEventData } from '../../database/sql/Perf.sql';
 
 export class SpHiSysEventChart {
   private trace: SpSystemTrace;

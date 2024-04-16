@@ -19,7 +19,9 @@ import { filterDataByGroupLayer } from './utils/DataFilter';
 export const chartHiSysEventDataSql = (args: any): string => {
   return `
       SELECT S.id,
-             (S.ts - ${args.recordStartNS})                                                                                 AS startNs,
+             (S.ts - ${
+               args.recordStartNS
+             })                                                                                 AS startNs,
              pid,
              tid,
              uid,
@@ -36,7 +38,9 @@ export const chartHiSysEventDataSql = (args: any): string => {
                                                                                                                  WHEN S.level = 'CRITICAL'
                                                                                                                      THEN 1
                                                                                                                  END *
-                                                                                                             ${args.width}) AS px
+                                                                                                             ${
+                                                                                                               args.width
+                                                                                                             }) AS px
       FROM hisys_all_event AS S
       where S.id is not null
         and startNs + dur >= ${Math.floor(args.startNS)}
@@ -70,7 +74,15 @@ export function hiSysEventDataReceiver(data: any, proc: Function) {
       hiSysEventList.set(data.params.id, proc(sql));
     }
     let list = hiSysEventList.get(data.params.id) || [];
-    let res = filterDataByGroupLayer(list || [], 'depth','startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width);
+    let res = filterDataByGroupLayer(
+      list || [],
+      'depth',
+      'startNs',
+      'dur',
+      data.params.startNS,
+      data.params.endNS,
+      data.params.width
+    );
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
     let sql = chartHiSysEventDataSql(data.params);
@@ -105,15 +117,15 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          uid: uid.buffer,
-          id: id.buffer,
-          ts: ts.buffer,
-          pid: pid.buffer,
-          tid: tid.buffer,
-          seq: seq.buffer,
-          dur: dur.buffer,
-          depth: depth.buffer,
-        }
+            uid: uid.buffer,
+            id: id.buffer,
+            ts: ts.buffer,
+            pid: pid.buffer,
+            tid: tid.buffer,
+            seq: seq.buffer,
+            dur: dur.buffer,
+            depth: depth.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,

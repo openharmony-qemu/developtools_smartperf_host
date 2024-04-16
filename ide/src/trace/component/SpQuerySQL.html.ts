@@ -194,4 +194,4 @@ lit-icon {
       <div class="query-sql">
         <div id="sqlList"></div>
       </div>
-`
+`;

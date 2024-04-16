@@ -19,7 +19,7 @@ import { BoxJumpParam, SelectionData } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { SPTChild } from '../../../../bean/StateProcessThread';
 import { resizeObserver } from '../SheetUtils';
-import {getTabBoxChildData} from "../../../../database/sql/ProcessThread.sql";
+import { getTabBoxChildData } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-box-child')
 export class TabPaneBoxChild extends BaseElement {

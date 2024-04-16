@@ -16,7 +16,7 @@
 import { BaseStruct, dataFilterHandler, drawLoadingFrame, drawString } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class AppStartupRender {
   renderMainThread(
@@ -63,14 +63,18 @@ export class AppStartupRender {
 }
 
 const padding = 3;
-export function AppStartupStructOnClick(clickRowType: string, sp: SpSystemTrace,scrollToFuncHandler:any) {
-  return new Promise((resolve,reject) => {
+export function AppStartupStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollToFuncHandler: any) {
+  return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_APP_STARTUP && AppStartupStruct.hoverStartupStruct) {
       AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
-      sp.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler, sp.currentRow!.dataListCache);
+      sp.traceSheetEL?.displayStartupData(
+        AppStartupStruct.selectStartupStruct,
+        scrollToFuncHandler,
+        sp.currentRow!.dataListCache
+      );
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    }else{
+    } else {
       resolve(null);
     }
   });

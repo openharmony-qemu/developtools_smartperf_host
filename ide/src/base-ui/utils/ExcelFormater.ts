@@ -16,11 +16,11 @@
 const htmlStr = () => {
   const html_start = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
   return {
-    uri : 'data:application/vnd.ms-excel;base64,',
-    template_ExcelWorksheet : `<x:ExcelWorksheet><x:Name>{SheetName}</x:Name><x:WorksheetSource HRef="sheet{SheetIndex}.htm"/><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>`,
-    template_ListWorksheet : `<o:File HRef="sheet{SheetIndex}.htm"/>`,
-    template_WorkBook :
-    `MIME-Version: 1.0
+    uri: 'data:application/vnd.ms-excel;base64,',
+    template_ExcelWorksheet: `<x:ExcelWorksheet><x:Name>{SheetName}</x:Name><x:WorksheetSource HRef="sheet{SheetIndex}.htm"/><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>`,
+    template_ListWorksheet: `<o:File HRef="sheet{SheetIndex}.htm"/>`,
+    template_WorkBook:
+      `MIME-Version: 1.0
 X-Document-Type: Workbook
 Content-Type: multipart/related; boundary="----=_NextPart_dummy"
 
@@ -29,8 +29,8 @@ Content-Location: WorkBook.htm
 Content-Type: text/html; charset=windows-1252
 
 ` +
-    html_start +
-    `
+      html_start +
+      `
 <head>
 <meta name="Excel Workbook Frameset">
 <meta http-equiv="Content-Type" charset="UTF-8" content="text/html; charset=windows-1252">
@@ -57,9 +57,9 @@ Content-Type: text/xml; charset="utf-8"
     <o:File HRef="filelist.xml"/>
 </xml>
 ------=_NextPart_dummy--
-`
-  }
-}
+`,
+  };
+};
 
 export class ExcelFormater {
   static tmplCellXML = '<Cell{attributeStyleID}{attributeFormula}><Data ss:Type="{nameType}">{data}</Data></Cell>';
@@ -184,16 +184,16 @@ export class ExcelFormater {
     dataSource: { columns: any[]; tables: any[]; sheetName: string }[]
   ) {
     const html_start = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
-    let {uri,template_ExcelWorksheet,template_ListWorksheet,template_WorkBook} = htmlStr();
-      let template_HTMLWorksheet =
-        `
+    let { uri, template_ExcelWorksheet, template_ListWorksheet, template_WorkBook } = htmlStr();
+    let template_HTMLWorksheet =
+      `
 ------=_NextPart_dummy
 Content-Location: sheet{SheetIndex}.htm
 Content-Type: text/html; charset=windows-1252
 
 ` +
-        html_start +
-        `
+      html_start +
+      `
 <head>
     <meta http-equiv="Content-Type" charset="UTF-8" content="text/html; charset=windows-1252">
     <link id="Main-File" rel="Main-File" href="../WorkBook.htm">

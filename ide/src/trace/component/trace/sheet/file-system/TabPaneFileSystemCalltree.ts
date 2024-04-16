@@ -265,8 +265,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     this.getChildTree(merageBean.children as Array<FileMerageBean>, maxId, children);
     let fsMerageParentsList = parents.reverse().concat(children.reverse());
     for (let data of fsMerageParentsList) {
-      data.type =
-        data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
+      data.type = data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
     }
     let len = fsMerageParentsList.length;
     this.fsCallTreeRightSource = fsMerageParentsList;

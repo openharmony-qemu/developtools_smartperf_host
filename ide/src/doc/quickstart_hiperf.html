@@ -799,7 +799,8 @@
       <h3 class="mume-header fontColor">HiPerf抓取配置参数</h3>
 
       <p class="fontColor">
-        <img src="../figures/perf/perfsetting.jpg" alt="GitHub Logo" /><br />
+        <img src="../figures/perf/perfsetting.jpg" alt="GitHub Logo" />
+        <br />
         配置项说明：
       </p>
       <ul class="fontColor">
@@ -836,19 +837,27 @@ Advance Options：更多的抓取配置项。
       </ul>
       <p class="fontColor">
         再点击Record setting，在output file path输入文件名hiprofiler_data_perf.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。<br />
-        <img src="../figures/perf/perfset.jpg" alt="GitHub Logo" /><br />
-        点击Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。<br />
-        <img src="../figures/perf/perfcommand.jpg" alt="GitHub Logo" /><br />
-        输入hdc_shell，进入设备，执行命令。<br />
-        <img src="../figures/perf/perfexcutecommand.jpg" alt="GitHub Logo" /><br />
-        执行完成后，进入指定目录查看，在/data/local/tmp下就会生成trace文件。<br />
+        size大小是64M，抓取时长是50s。
+        <br />
+        <img src="../figures/perf/perfset.jpg" alt="GitHub Logo" />
+        <br />
+        点击Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
+        <br />
+        <img src="../figures/perf/perfcommand.jpg" alt="GitHub Logo" />
+        <br />
+        输入hdc_shell，进入设备，执行命令。
+        <br />
+        <img src="../figures/perf/perfexcutecommand.jpg" alt="GitHub Logo" />
+        <br />
+        执行完成后，进入指定目录查看，在/data/local/tmp下就会生成trace文件。
+        <br />
         <img src="../figures/perf/perffile.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">HiPerf展示说明</h3>
 
       <p class="fontColor">
-        将抓取的trace文件导入smartperf界面查看。<br />
+        将抓取的trace文件导入smartperf界面查看。
+        <br />
         <img src="../figures/perf/summary.jpg" alt="GitHub Logo" />
       </p>
       <p class="fontColor">界面布局介绍：Perf整体界面布局分为3个部分：</p>
@@ -875,18 +884,25 @@ Advance Options：更多的抓取配置项。
       <h3 class="mume-header fontColor">HiPerf泳道图展示</h3>
 
       <p class="fontColor">
-        Perf泳道图展示按照CPU使用量和线程和进程展示，鼠标移动到泳道图上，悬浮框会显示CPU的使用量。<br />
-        <img src="../figures/perf/chart.jpg" alt="GitHub Logo" /><br />
-        按住w键放大界面，泳道图会出现P的标志，鼠标移动到P图标上，悬浮框会显示每个callstack和调用的深度如下图。<br />
-        <img src="../figures/perf/callstack.jpg" alt="GitHub Logo" /><br />
-        Perf泳道图上浅色表示无效调用栈的采样点，抓取时由于设备上的对应的so无符号信息，函数跟地址都无法获取到，固该采样点在tab页中不做显示。<br />
+        Perf泳道图展示按照CPU使用量和线程和进程展示，鼠标移动到泳道图上，悬浮框会显示CPU的使用量。
+        <br />
+        <img src="../figures/perf/chart.jpg" alt="GitHub Logo" />
+        <br />
+        按住w键放大界面，泳道图会出现P的标志，鼠标移动到P图标上，悬浮框会显示每个callstack和调用的深度如下图。
+        <br />
+        <img src="../figures/perf/callstack.jpg" alt="GitHub Logo" />
+        <br />
+        Perf泳道图上浅色表示无效调用栈的采样点，抓取时由于设备上的对应的so无符号信息，函数跟地址都无法获取到，固该采样点在tab页中不做显示。
+        <br />
         <img src="../figures/perf/perf_nocallstack.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">HiPerf泳道图的框选功能</h3>
 
       <p class="fontColor">
-        可以对CPU使用量区，线程和进程区数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有四个tab页。<br />
-        Perf Profile的Tab页如图：<br />
+        可以对CPU使用量区，线程和进程区数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有四个tab页。
+        <br />
+        Perf Profile的Tab页如图：
+        <br />
         <img src="../figures/perf/PerfProfile.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -916,7 +932,8 @@ Event Count：事件数量。
         </li>
       </ul>
       <p class="fontColor">
-        Sample List的Tab页如图：<br />
+        Sample List的Tab页如图：
+        <br />
         <img src="../figures/perf/Samplelist.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -960,7 +977,8 @@ Backtrace：栈顶的调用栈名称。
       <h3 class="mume-header fontColor">HiPerf支持多种Options展示风格</h3>
 
       <p class="fontColor">
-        点击Perf Profile的Tab页底部的Options，会有四个CheckBox复选框。<br />
+        点击Perf Profile的Tab页底部的Options，会有四个CheckBox复选框。
+        <br />
         <img src="../figures/perf/Options.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -992,7 +1010,8 @@ Hide Thread State：隐藏线程状态。
       <h3 class="mume-header fontColor">HiPerf支持过滤调用栈调用次数的展示风格</h3>
 
       <p class="fontColor">
-        点击Perf Profile的Tab页底部的Sample Count Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。<br />
+        点击Perf Profile的Tab页底部的Sample Count Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。
+        <br />
         <img src="../figures/perf/samplecounter.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">HiPerf功能的调用栈Group展示-数据分析支持剪裁功能</h3>
@@ -1015,32 +1034,39 @@ Hide Thread State：隐藏线程状态。
       <h3 class="mume-header fontColor">HiPerf功能的调用栈Group展示支持按条件过滤</h3>
 
       <p class="fontColor">
-        在Input Filter输入关键字，会显示出带有该关键字的展示信息。<br />
+        在Input Filter输入关键字，会显示出带有该关键字的展示信息。
+        <br />
         <img src="../figures/perf/inputfilter.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">HiPerf辅助信息区展示调用栈</h3>
 
       <p class="fontColor">
         当在详细信息区选择一个符号时，将展示与该符号相关的完整的调用栈。对上展示到根节点，对下则展示CPU占用率最大的调用栈。调用栈右侧有Sliding
-        bar可以滚动。<br />
-        如下图的Heaviest Stack Trace：<br />
+        bar可以滚动。
+        <br />
+        如下图的Heaviest Stack Trace：
+        <br />
         <img src="../figures/perf/heaviesttrace1.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">HiPerf的火焰图功能</h3>
 
       <p class="fontColor">
-        点击Perf Profile左下角的柱状图的图标，会切换到火焰图页面。<br />
-        <img src="../figures/perf/flame.jpg" alt="GitHub Logo" /><br />
-        进入到火焰图页面，火焰图的展示跟 Perf Profile 的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，lib，addr，Count，%in
-        current thread，%in current process，&amp;in all process。<br />
+        点击Perf Profile左下角的柱状图的图标，会切换到火焰图页面。
+        <br />
+        <img src="../figures/perf/flame.jpg" alt="GitHub Logo" />
+        <br />
+        进入到火焰图页面，火焰图的展示跟 Perf Profile
+        的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，lib，addr，Count，%in current thread，%in
+        current process，&amp;in all process。
+        <br />
         <img src="../figures/perf/flameshow.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">HiPerf的show event count功能</h3>
 
       <p class="fontColor">
         在Hiperf的父级泳道图上增加筛选功能，可在Cpu Usage 和各种event
-        type之间选择，切换选择之后即可将Hiperf下级各个泳道图数据更新，悬浮框可以根据选择的事件名显示对应的event
-        count。<br />
+        type之间选择，切换选择之后即可将Hiperf下级各个泳道图数据更新，悬浮框可以根据选择的事件名显示对应的event count。
+        <br />
         <img src="../figures/perf/showevent.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">
@@ -1049,7 +1075,8 @@ Hide Thread State：隐藏线程状态。
 
       <p class="fontColor">
         根据Hiperf父级泳道图所筛选的类型，来显示各个CPU或者线程的时序火焰图，用户可根据自己的需要，点击泳道图旁边的齿轮标志筛选出某个cpu
-        或者线程的火焰时序图数据。<br />
+        或者线程的火焰时序图数据。
+        <br />
         <img src="../figures/perf/cpuandthreadrow.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">
@@ -1057,11 +1084,16 @@ Hide Thread State：隐藏线程状态。
       </h3>
 
       <p class="fontColor">
-        HiPerf分为process、thread、library、function四层，调用栈均可在每层的表格上鼠标点击右键跳转到对应的火焰图Tab页。火焰图上方标题显示是由哪一层跳转而来，点击关闭图标火焰图重置为当前框选范围的所有数据。<br />
-        <img src="../figures/perf/perf_analysisjump.jpg" alt="GitHub Logo" /><br />
-        如上图，右键点击hiprofiler_plugins可以跳转到下图<br />
-        <img src="../figures/perf/perf_jumpframe.jpg" alt="GitHub Logo" /><br />
-        筛选面板新增Hide Thread、Hide Thread State筛选选项，Hiperf可隐藏线程和状态。<br />
+        HiPerf分为process、thread、library、function四层，调用栈均可在每层的表格上鼠标点击右键跳转到对应的火焰图Tab页。火焰图上方标题显示是由哪一层跳转而来，点击关闭图标火焰图重置为当前框选范围的所有数据。
+        <br />
+        <img src="../figures/perf/perf_analysisjump.jpg" alt="GitHub Logo" />
+        <br />
+        如上图，右键点击hiprofiler_plugins可以跳转到下图
+        <br />
+        <img src="../figures/perf/perf_jumpframe.jpg" alt="GitHub Logo" />
+        <br />
+        筛选面板新增Hide Thread、Hide Thread State筛选选项，Hiperf可隐藏线程和状态。
+        <br />
         <img src="../figures/perf/perf_hide.jpg" alt="GitHub Logo" />
       </p>
     </div>

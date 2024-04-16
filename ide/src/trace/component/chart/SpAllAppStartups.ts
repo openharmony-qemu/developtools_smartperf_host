@@ -97,7 +97,7 @@ export class SpAllAppStartupsChart {
           process: undefined,
           tid: undefined,
           itid: undefined,
-          endItid: undefined
+          endItid: undefined,
         });
       }
       return sendRes;

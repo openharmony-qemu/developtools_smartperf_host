@@ -61,9 +61,8 @@
 
 点击![GitHub Logo](../../figures/OperationSkills/Tabskilltempleshow.jpg)图标会以子系统-->部件-->泳道层级去显示：
 ![GitHub Logo](../../figures/OperationSkills/Tabskillsubsystem.jpg)
-点击![GitHub Logo](../../figures/OperationSkills/subsystemupload.jpg)导入模板的json配置，点击![GitHub Logo](../../figures/OperationSkills/subsystemdownload.jpg)下载模板的json配置，模板的配置文件格式如下：
+点击![GitHub Logo](../../figures/OperationSkills/subsystemupload.jpg)导入模板的 json 配置，点击![GitHub Logo](../../figures/OperationSkills/subsystemdownload.jpg)下载模板的 json 配置，模板的配置文件格式如下：
 ![GitHub Logo](../../figures/OperationSkills/subsystemsconfig.jpg)
-
 
 ### 所有进程的用户输入事件归一显示，观察操作事件和对象
 

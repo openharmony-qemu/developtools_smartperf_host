@@ -104,11 +104,10 @@ export const SpHiLogRecordHtml = `
         <lit-select default-value="" rounded="" class="record-logs-select config-select" canInsert="" 
         title="Select Log Level" rounded placement = "bottom" placeholder=" ">
           ${getHiLogLevel()
-    .map(
-      (level): string =>
-        `<lit-select-option class="div-button" value="${  level  }">${  level  }</lit-select-option>`
-    )
-    .join('')}
+            .map(
+              (level): string => `<lit-select-option class="div-button" value="${level}">${level}</lit-select-option>`
+            )
+            .join('')}
                 </lit-select>
               </div>
             </div>

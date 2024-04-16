@@ -183,7 +183,7 @@ export class LitButton extends BaseElement {
               opacity: 0.1;
             }
         </style>
-    `
+    `;
   }
 
   initElements(): void {

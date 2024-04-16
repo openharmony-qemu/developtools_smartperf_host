@@ -28,7 +28,7 @@ import {
 } from './ProcedureWorkerCommon';
 import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
 import { FlagsConfig } from '../../component/SpFlags';
-import {TabPaneTaskFrames} from "../../component/trace/sheet/task/TabPaneTaskFrames";
+import { TabPaneTaskFrames } from '../../component/trace/sheet/task/TabPaneTaskFrames';
 export class FuncRender extends Render {
   renderMainThread(
     req: {
@@ -126,7 +126,13 @@ export function func(
     });
   }
 }
-export function FuncStructOnClick(clickRowType: string, sp:any, row:TraceRow<any>|undefined, scrollToFuncHandler: any, entry?: any) {
+export function FuncStructOnClick(
+  clickRowType: string,
+  sp: any,
+  row: TraceRow<any> | undefined,
+  scrollToFuncHandler: any,
+  entry?: any
+) {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FUNC && (FuncStruct.hoverFuncStruct || entry)) {
       if (FuncStruct.funcSelect) {
@@ -202,9 +208,11 @@ export class FuncStruct extends BaseFuncStruct {
           ctx.textBaseline = 'middle';
           drawFunString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }
-        if (data.callid == FuncStruct.selectFuncStruct?.callid&&
-          data.startTs == FuncStruct.selectFuncStruct?.startTs&&
-          data.depth == FuncStruct.selectFuncStruct?.depth) {
+        if (
+          data.callid == FuncStruct.selectFuncStruct?.callid &&
+          data.startTs == FuncStruct.selectFuncStruct?.startTs &&
+          data.depth == FuncStruct.selectFuncStruct?.depth
+        ) {
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 2;
           ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, data.frame.height - 2);
@@ -226,7 +234,7 @@ export class FuncStruct extends BaseFuncStruct {
         }
         // 如果该函数没有结束时间，则绘制锯齿。
         if (data.nofinish && data.frame!.width > 4) {
-          FuncStruct.drawRupture(ctx, data.frame.x, data.frame.y , data.frame.width, data.frame.height );
+          FuncStruct.drawRupture(ctx, data.frame.x, data.frame.y, data.frame.width, data.frame.height);
         }
       }
     }
@@ -247,10 +255,7 @@ export class FuncStruct extends BaseFuncStruct {
     let len = height / ruptureNode;
     ctx.moveTo(x + width - 1, y);
     for (let i = 1; i <= ruptureNode; i++) {
-      ctx.lineTo(
-        x + width - 1 - (i % 2 == 0 ? 0 : ruptureWidth),
-        y + len * i - 2
-      );
+      ctx.lineTo(x + width - 1 - (i % 2 == 0 ? 0 : ruptureWidth), y + len * i - 2);
     }
     ctx.closePath();
     ctx.fill();

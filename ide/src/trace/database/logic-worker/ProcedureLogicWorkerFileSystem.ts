@@ -777,10 +777,10 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
       totalCount += sample.dur;
       let callChains = this.createThreadAndType(sample);
       let minDepth = 2;
-      if (this.isHideEvent){
+      if (this.isHideEvent) {
         minDepth--;
       }
-      if (this.isHideThread){
+      if (this.isHideThread) {
         minDepth--;
       }
       if (callChains.length === minDepth) {
@@ -797,7 +797,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
           this.currentTreeList.push(root);
         }
         FileMerageBean.merageCallChainSample(root, callChains[topIndex], sample, false);
-        if (callChains.length > 1){
+        if (callChains.length > 1) {
           this.merageChildrenByIndex(root, callChains, topIndex, sample, isTopDown);
         }
       }

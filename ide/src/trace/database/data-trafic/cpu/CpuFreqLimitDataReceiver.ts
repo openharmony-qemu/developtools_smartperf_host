@@ -12,8 +12,8 @@
 // limitations under the License.
 
 import { TraficEnum } from '../utils/QueryEnum';
-import {filterDataByGroup} from "../utils/DataFilter";
-import {cpuFreqLimitList} from "../utils/AllMemoryCache";
+import { filterDataByGroup } from '../utils/DataFilter';
+import { cpuFreqLimitList } from '../utils/AllMemoryCache';
 
 export const chartCpuFreqLimitDataSql = (args: any): string => {
   return `
@@ -53,8 +53,6 @@ export const chartCpuFreqLimitDataSqlMem = (args: any): string => {
   `;
 };
 
-
-
 export function cpuFreqLimitReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
     let res: any[], list: any[];
@@ -62,9 +60,9 @@ export function cpuFreqLimitReceiver(data: any, proc: Function): void {
       let sql = chartCpuFreqLimitDataSqlMem(data.params);
       list = proc(sql);
       for (let i = 0; i < list.length; i++) {
-        if(i<list.length-1){
-          list[i].dur = list[i+1].startNs - list[i].startNs;
-        }else{
+        if (i < list.length - 1) {
+          list[i].dur = list[i + 1].startNs - list[i].startNs;
+        } else {
           list[i].dur = data.params.recordEndNS - data.params.recordStartNS - list[i].startNs;
         }
       }
@@ -72,8 +70,16 @@ export function cpuFreqLimitReceiver(data: any, proc: Function): void {
     } else {
       list = cpuFreqLimitList.get(data.params.cpu) || [];
     }
-    res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width,"value");
-    arrayBufferHandler(data, res,true);
+    res = filterDataByGroup(
+      list || [],
+      'startNs',
+      'dur',
+      data.params.startNS,
+      data.params.endNS,
+      data.params.width,
+      'value'
+    );
+    arrayBufferHandler(data, res, true);
   } else {
     let sql = chartCpuFreqLimitDataSql(data.params);
     let res = proc(sql);

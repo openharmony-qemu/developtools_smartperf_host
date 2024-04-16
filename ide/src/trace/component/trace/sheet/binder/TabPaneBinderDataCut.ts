@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -123,11 +122,7 @@ export class TabPaneBinderDataCut extends BaseElement {
   }
 
   //点击single loop 切割按钮方法
-  async dataCutFunc(
-    threadId: HTMLInputElement,
-    threadFunc: HTMLInputElement,
-    type: string,
-  ): Promise<void> {
+  async dataCutFunc(threadId: HTMLInputElement, threadFunc: HTMLInputElement, type: string): Promise<void> {
     this.currentThreadId = '';
     let threadIdValue = threadId.value.trim();
     let threadFuncName = threadFunc.value.trim();
@@ -148,8 +143,9 @@ export class TabPaneBinderDataCut extends BaseElement {
         this.isQueryDataFromDb = true;
       }
       if (this.funcCycleArr.length !== 0) {
-        let cycleMap: Map<string, Array<CycleBinderItem>> = type === 'loop' ?
-          this.loopDataCutCycleMap(this.funcCycleArr) : this.singleDataCutCycleMap(this.funcCycleArr);
+        let cycleMap: Map<string, Array<CycleBinderItem>> = type === 'loop'
+          ? this.loopDataCutCycleMap(this.funcCycleArr)
+          : this.singleDataCutCycleMap(this.funcCycleArr);
         this.threadBindersTbl!.recycleDataSource = this.mergeData(cycleMap);
         this.threadBindersTbl!.loading = false;
         this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
@@ -194,7 +190,10 @@ export class TabPaneBinderDataCut extends BaseElement {
     for (let b of binderArr) {
       if (!this.threadBinderMap.has(b.pid + '_' + b.tid)) {
         this.threadArr.push({
-          title: Utils.THREAD_MAP.get(b.tid) === null ? 'Thread' + ' ' + '[' + b.tid + ']' : Utils.THREAD_MAP.get(b.tid) + ' ' + '[' + b.tid + ']',
+          title:
+            Utils.THREAD_MAP.get(b.tid) === null
+              ? 'Thread' + ' ' + '[' + b.tid + ']'
+              : Utils.THREAD_MAP.get(b.tid) + ' ' + '[' + b.tid + ']',
           totalCount: 0,
           tid: b.tid,
           pid: b.pid,
@@ -214,8 +213,8 @@ export class TabPaneBinderDataCut extends BaseElement {
       threadBinderMap.forEach((val, key) => {
         const k = key;
         const v = JSON.parse(JSON.stringify(val));
-        cloneThreadBinderMap.set(k, v)
-      })
+        cloneThreadBinderMap.set(k, v);
+      });
     }
     return cloneThreadBinderMap;
   }
@@ -242,7 +241,10 @@ export class TabPaneBinderDataCut extends BaseElement {
           countBinder.tsNs = func.cycleStartTime;
           countBinder.cycleDur = Number((func.dur / MILLIONS).toFixed(THREE));
           countBinder.cycleStartTime = Number((func.cycleStartTime / MILLIONS).toFixed(THREE));
-          if (tBinder[j].ts + tBinder[j].dur > func.cycleStartTime && tBinder[j].ts + tBinder[j].dur < func.cycleStartTime + func!.dur) {
+          if (
+            tBinder[j].ts + tBinder[j].dur > func.cycleStartTime &&
+            tBinder[j].ts + tBinder[j].dur < func.cycleStartTime + func!.dur
+          ) {
             countBinder.totalCount += 1;
             countBinder.binderTransactionCount += tBinder[j].name === 'binder transaction' ? 1 : 0;
             countBinder.binderAsyncRcvCount += tBinder[j].name === 'binder async rcv' ? 1 : 0;
@@ -279,9 +281,14 @@ export class TabPaneBinderDataCut extends BaseElement {
           countBinder.pid = tBinder[j].pid;
           countBinder.durNs = funcNameArr[i + 1].cycleStartTime - funcNameArr[i].cycleStartTime;
           countBinder.tsNs = funcNameArr[i].cycleStartTime;
-          countBinder.cycleDur = Number(((funcNameArr[i + 1].cycleStartTime - funcNameArr[i].cycleStartTime) / MILLIONS).toFixed(THREE));
+          countBinder.cycleDur = Number(
+            ((funcNameArr[i + 1].cycleStartTime - funcNameArr[i].cycleStartTime) / MILLIONS).toFixed(THREE)
+          );
           countBinder.cycleStartTime = Number((funcNameArr[i].cycleStartTime / MILLIONS).toFixed(THREE));
-          if (tBinder[j].ts + tBinder[j].dur > funcNameArr[i].cycleStartTime && tBinder[j].ts + tBinder[j].dur < funcNameArr[i + 1].cycleStartTime) {
+          if (
+            tBinder[j].ts + tBinder[j].dur > funcNameArr[i].cycleStartTime &&
+            tBinder[j].ts + tBinder[j].dur < funcNameArr[i + 1].cycleStartTime
+          ) {
             countBinder.totalCount += 1;
             countBinder!.binderTransactionCount += tBinder[j].name === 'binder transaction' ? 1 : 0;
             countBinder!.binderAsyncRcvCount += tBinder[j].name === 'binder async rcv' ? 1 : 0;
@@ -318,17 +325,18 @@ export class TabPaneBinderDataCut extends BaseElement {
       }
     }
     // process级的数组数据，也就是树结构的根数据层
-    processIds.forEach(pid => {
-      processArr.push(
-        {
-          pid: pid,
-          title: Utils.PROCESS_MAP.get(pid) === null ? 'Process' + ' ' + '[' + pid + ']' : Utils.PROCESS_MAP.get(pid) + ' ' + '[' + pid + ']',
-          totalCount: 0,
-          type: 'Process',
-          children: [],
-        }
-      );
-    })
+    processIds.forEach((pid) => {
+      processArr.push({
+        pid: pid,
+        title:
+          Utils.PROCESS_MAP.get(pid) === null
+            ? 'Process' + ' ' + '[' + pid + ']'
+            : Utils.PROCESS_MAP.get(pid) + ' ' + '[' + pid + ']',
+        totalCount: 0,
+        type: 'Process',
+        children: [],
+      });
+    });
     // 将process级下的thread数据放入对应的process下
     for (let process of processArr) {
       for (let thread of this.threadArr) {
@@ -512,10 +520,14 @@ export class TabPaneBinderDataCut extends BaseElement {
   queryBtnClick(): void {
     this.shadowRoot?.querySelector('#query-btn')?.addEventListener('click', () => {
       this.cycleARangeArr = this.rowCycleData?.filter((it: CycleBinderItem) => {
-        return (it.cycleDur >= Number(this.cycleAStartRangeDIV!.value) && it.cycleDur < Number(this.cycleAEndRangeDIV!.value));
+        return (
+          it.cycleDur >= Number(this.cycleAStartRangeDIV!.value) && it.cycleDur < Number(this.cycleAEndRangeDIV!.value)
+        );
       });
       this.cycleBRangeArr = this.rowCycleData?.filter((it: CycleBinderItem) => {
-        return (it.cycleDur >= Number(this.cycleBStartRangeDIV!.value) && it.cycleDur < Number(this.cycleBEndRangeDIV!.value));
+        return (
+          it.cycleDur >= Number(this.cycleBStartRangeDIV!.value) && it.cycleDur < Number(this.cycleBEndRangeDIV!.value)
+        );
       });
       let cycleACount: number = 0;
       this.cycleARangeArr?.forEach((it: CycleBinderItem) => {

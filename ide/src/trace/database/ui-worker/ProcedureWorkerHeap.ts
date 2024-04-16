@@ -16,7 +16,7 @@
 import { Rect, Render, isFrameContainPoint, ns2x, drawLoadingFrame } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HeapStruct as BaseHeapStruct } from '../../bean/HeapStruct';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 export class NativeMemoryRender extends Render {
   renderMainThread(req: any, row: TraceRow<any>) {}
 }
@@ -127,7 +127,7 @@ function setHeapFrameIfUse(res: Array<any>, startNS: number, endNS: number, tota
 }
 
 export function HeapStructOnClick(clickRowType: string, sp: SpSystemTrace, row: undefined | TraceRow<any>) {
-  return new Promise((resolve,reject) => {
+  return new Promise((resolve, reject) => {
     if (
       clickRowType === TraceRow.ROW_TYPE_HEAP &&
       row &&
@@ -143,7 +143,7 @@ export function HeapStructOnClick(clickRowType: string, sp: SpSystemTrace, row: 
       sp.traceSheetEL?.displayNativeHookData(HeapStruct.selectHeapStruct, row.rowId!, ipid);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    }else{
+    } else {
       resolve(null);
     }
   });

@@ -22,10 +22,7 @@ import { getThreadUsageProbablyTime } from '../../../../database/logic-worker/Pr
 import { Utils } from '../../base/Utils';
 import { CpuStruct } from '../../../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { resizeObserver } from '../SheetUtils';
-import {
-  getTabRunningPersent,
-  getTabThreadStatesCpu
-} from '../../../../database/sql/ProcessThread.sql';
+import { getTabRunningPersent, getTabThreadStatesCpu } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-thread-usage')
 export class TabPaneThreadUsage extends BaseElement {
@@ -62,8 +59,9 @@ export class TabPaneThreadUsage extends BaseElement {
       this.threadUsageTbl!.innerHTML = this.getTableColumns();
     }
     //@ts-ignore
-    this.threadUsageTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      `${this.parentElement!.clientHeight - 45}px`;
+    this.threadUsageTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
     // 框选区域内running的时间
     getTabRunningPersent(threadUsageParam.threadIds, threadUsageParam.leftNs, threadUsageParam.rightNs).then(
       (result) => {
@@ -99,8 +97,7 @@ export class TabPaneThreadUsage extends BaseElement {
           if (map.has(resultEl.tid)) {
             map.get(resultEl.tid)[`cpu${resultEl.cpu}`] = resultEl.wallDuration || 0;
             map.get(resultEl.tid)[`cpu${resultEl.cpu}TimeStr`] = getThreadUsageProbablyTime(resultEl.wallDuration || 0);
-            map.get(resultEl.tid).wallDuration =
-              map.get(resultEl.tid).wallDuration + (resultEl.wallDuration || 0);
+            map.get(resultEl.tid).wallDuration = map.get(resultEl.tid).wallDuration + (resultEl.wallDuration || 0);
             map.get(resultEl.tid).wallDurationTimeStr = getThreadUsageProbablyTime(map.get(resultEl.tid).wallDuration);
           } else {
             let process = Utils.PROCESS_MAP.get(resultEl.pid);
@@ -125,10 +122,10 @@ export class TabPaneThreadUsage extends BaseElement {
         }
       }
       map.forEach((val) => {
-        for (let i = 0; i < this.cpuCount; i++){
-          val[`cpu${i}Ratio`] = (100.0 *val[`cpu${i}`]/val.wallDuration).toFixed(2);
+        for (let i = 0; i < this.cpuCount; i++) {
+          val[`cpu${i}Ratio`] = ((100.0 * val[`cpu${i}`]) / val.wallDuration).toFixed(2);
         }
-      })
+      });
       this.threadUsageSource = Array.from(map.values());
       this.threadUsageTbl!.recycleDataSource = this.threadUsageSource;
     } else {
@@ -198,9 +195,9 @@ export class TabPaneThreadUsage extends BaseElement {
           return 0;
         }
         if (type === 'number') {
-          return treadUsageSort === 2 ? parseFloat(threadUsageRightData[property]) -
-            parseFloat(threadUsageLeftData[property]) : parseFloat(threadUsageLeftData[property]) -
-            parseFloat(threadUsageRightData[property]);
+          return treadUsageSort === 2
+            ? parseFloat(threadUsageRightData[property]) - parseFloat(threadUsageLeftData[property])
+            : parseFloat(threadUsageLeftData[property]) - parseFloat(threadUsageRightData[property]);
         } else {
           if (threadUsageRightData[property] > threadUsageLeftData[property]) {
             return treadUsageSort === 2 ? 1 : -1;

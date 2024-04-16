@@ -95,7 +95,7 @@ export class TabPaneNMemory extends BaseElement {
       this.initFilterTypes(() => {
         this.filterSetSelectList(this.filter!, 0);
         this.getDataByNativeMemoryWorker(memoryParam, resetFilter);
-      })
+      });
     } else {
       this.getDataByNativeMemoryWorker(memoryParam, resetFilter);
     }
@@ -128,7 +128,7 @@ export class TabPaneNMemory extends BaseElement {
     }
     this.startNmMemoryWorker('native-memory-queryNativeHookEvent', args, (results: any[]) => {
       this.tblData!.recycleDataSource = [];
-      this.setNmMemoryLoading(false)
+      this.setNmMemoryLoading(false);
       if (results.length > 0) {
         this.memorySource = results;
         this.memoryTbl!.recycleDataSource = this.memorySource;
@@ -313,9 +313,9 @@ export class TabPaneNMemory extends BaseElement {
     });
     this.memoryTbl!.itemTextHandleMap.set('endTs', (endTs) => {
       return endTs > this.currentSelection!.leftNs &&
-      endTs <= this.currentSelection!.rightNs &&
-      endTs !== 0 &&
-      endTs !== null
+        endTs <= this.currentSelection!.rightNs &&
+        endTs !== 0 &&
+        endTs !== null
         ? 'Freed'
         : 'Existing';
     });
@@ -324,7 +324,7 @@ export class TabPaneNMemory extends BaseElement {
     });
   }
 
-  private getFilterDataByMark(): void{
+  private getFilterDataByMark(): void {
     document.dispatchEvent(
       new CustomEvent('triangle-flag', {
         detail: {
@@ -336,10 +336,7 @@ export class TabPaneNMemory extends BaseElement {
               let minTs = 0;
               let minItem: any = undefined;
               let filterTemp = this.memorySource.filter((tempItem) => {
-                if (
-                  minTs === 0 ||
-                  (tempItem.startTs - checkTs != 0 && Math.abs(tempItem.startTs - checkTs) < minTs)
-                ) {
+                if (minTs === 0 || (tempItem.startTs - checkTs != 0 && Math.abs(tempItem.startTs - checkTs) < minTs)) {
                   minTs = Math.abs(tempItem.startTs - checkTs);
                   minItem = tempItem;
                 }
@@ -359,10 +356,7 @@ export class TabPaneNMemory extends BaseElement {
                 args.set('startTs', this.rowSelectData.startTs);
                 args.set('actionType', 'native-memory-state-change');
                 this.startNmMemoryWorker('native-memory-action', args, (results: any[]) => {});
-                TabPaneNMSampleList.addSampleData(
-                  this.rowSelectData,
-                  this.currentSelection!.nativeMemoryCurrentIPid
-                );
+                TabPaneNMSampleList.addSampleData(this.rowSelectData, this.currentSelection!.nativeMemoryCurrentIPid);
                 this.memoryTbl!.scrollToData(this.rowSelectData);
               }
             }

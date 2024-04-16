@@ -319,7 +319,7 @@ export class SpProcessChart {
         this.addProcessMemInfo(it, processRow);
         this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow);
       }
-      
+
       await this.trace.chartManager?.frameTimeChart.initAnimatedScenesChart(processRow, it, expectedRow!, actualRow!);
     }
   }
@@ -499,11 +499,7 @@ export class SpProcessChart {
     }
   }
   /* Janks Frames */
-  addExpectedRow(
-    process: any,
-    processRow: TraceRow<any>,
-    renderServiceProcess: Array<any>
-  ): TraceRow<JankStruct> {
+  addExpectedRow(process: any, processRow: TraceRow<any>, renderServiceProcess: Array<any>): TraceRow<JankStruct> {
     let expectedRow = TraceRow.skeleton<JankStruct>();
     expectedRow.asyncFuncName = process.processName;
     expectedRow.asyncFuncNamePID = process.pid;

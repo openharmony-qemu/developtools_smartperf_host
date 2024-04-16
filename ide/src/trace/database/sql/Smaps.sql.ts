@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {query} from "../SqlLite";
-import {Smaps} from "../../bean/SmapsStruct";
+import { query } from '../SqlLite';
+import { Smaps } from '../../bean/SmapsStruct';
 
 export const querySmapsExits = (): Promise<Array<any>> =>
   query(

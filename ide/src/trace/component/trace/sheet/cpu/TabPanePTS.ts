@@ -19,7 +19,7 @@ import { SelectionParam } from '../../../../bean/BoxSelection';
 import { resizeObserver } from '../SheetUtils';
 import { Utils } from '../../base/Utils';
 import { SliceGroup } from '../../../../bean/StateProcessThread';
-import {sliceSPTSender} from "../../../../database/data-trafic/SliceSender";
+import { sliceSPTSender } from '../../../../database/data-trafic/SliceSender';
 
 @element('tabpane-pts')
 export class TabPanePTS extends BaseElement {
@@ -45,7 +45,7 @@ export class TabPanePTS extends BaseElement {
 
   getDataByPTS(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>) {
     this.ptsTbl!.loading = true;
-    sliceSPTSender(ptsLeftNs, ptsRightNs, cpus, 'spt-getPTS').then(res => {
+    sliceSPTSender(ptsLeftNs, ptsRightNs, cpus, 'spt-getPTS').then((res) => {
       this.ptsTbl!.loading = false;
       this.ptsTbl!.recycleDataSource = res;
       this.theadClick(res);

@@ -360,9 +360,7 @@ export class SpFrameTimeChart {
     };
   }
 
-  async initAnimationChart(
-    processRow: TraceRow<BaseStruct>
-  ): Promise<AnimationRanges[]> {
+  async initAnimationChart(processRow: TraceRow<BaseStruct>): Promise<AnimationRanges[]> {
     let animationRanges: AnimationRanges[] = [];
     let frameAnimationRow = TraceRow.skeleton<FrameAnimationStruct>();
 

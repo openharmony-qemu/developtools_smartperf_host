@@ -34,7 +34,7 @@ export class ThreadStruct extends BaseStruct {
   tid: number | undefined;
   upid: number | undefined;
   utid: number | undefined;
-  switchCount:number | undefined;
+  switchCount: number | undefined;
   cpu: number | undefined;
   dur: number | undefined;
   end_ts: number | undefined;

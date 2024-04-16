@@ -395,8 +395,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       target.addr = frame.addr;
       target.symbol = this.groupCutFilePath(frame.symbolId, this.dataCache.dataDict.get(frame.symbolId) || '') ?? '';
       target.lib = this.groupCutFilePath(frame.fileId, this.dataCache.dataDict.get(frame.fileId) || '') ?? '';
-      target.type =
-        target.lib.endsWith('.so.1') || target.lib.endsWith('.dll') || target.lib.endsWith('.so') ? 0 : 1;
+      target.type = target.lib.endsWith('.so.1') || target.lib.endsWith('.dll') || target.lib.endsWith('.so') ? 0 : 1;
       arr.push(target);
     });
     return arr;
@@ -1069,11 +1068,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     currentNode.lib = currentNode.lib;
     currentNode.symbol = `${currentNode.symbol} (${currentNode.lib})`;
     currentNode.type =
-      currentNode.lib.endsWith('.so.1') ||
-      currentNode.lib.endsWith('.dll') ||
-      currentNode.lib.endsWith('.so')
-        ? 0
-        : 1;
+      currentNode.lib.endsWith('.so.1') || currentNode.lib.endsWith('.dll') || currentNode.lib.endsWith('.so') ? 0 : 1;
   }
   clearSplitMapData(symbolName: string): void {
     delete this.splitMapData[symbolName];

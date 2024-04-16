@@ -19,7 +19,7 @@ import { Utils } from '../../base/Utils';
 import { SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
-import {queryVmTrackerShmSelectionData} from '../../../../database/sql/Memory.sql';
+import { queryVmTrackerShmSelectionData } from '../../../../database/sql/Memory.sql';
 import { TabPaneVmTrackerShmSelectionHtml } from './TabPaneVmTrackerShmSelection.html';
 
 @element('tabpane-vmtracker-shm-selection')
@@ -94,16 +94,16 @@ export class TabPaneVmTrackerShmSelection extends BaseElement {
 
   sortByColumn(column: string, sort: number): void {
     const comparisonFunctions: { [key: string]: (a: any, b: any) => number } = {
-      'ts': (a, b) => this.compareValues(a.startNS, b.startNS, sort),
-      'fd': (a, b) => this.compareValues(a.fd, b.fd, sort),
-      'sizeStr': (a, b) => this.compareValues(a.size, b.size, sort),
-      'adj': (a, b) => this.compareValues(a.adj, b.adj, sort),
-      'name': (a, b) => this.compareValues(a.name, b.name, sort),
-      'id': (a, b) => this.compareValues(a.id, b.id, sort),
-      'time': (a, b) => this.compareValues(a.time, b.time, sort),
-      'count': (a, b) => this.compareValues(a.count, b.count, sort),
-      'purged': (a, b) => this.compareValues(a.purged, b.purged, sort),
-      'flag': (a, b) => this.compareValues(a.flag, b.flag, sort)
+      ts: (a, b) => this.compareValues(a.startNS, b.startNS, sort),
+      fd: (a, b) => this.compareValues(a.fd, b.fd, sort),
+      sizeStr: (a, b) => this.compareValues(a.size, b.size, sort),
+      adj: (a, b) => this.compareValues(a.adj, b.adj, sort),
+      name: (a, b) => this.compareValues(a.name, b.name, sort),
+      id: (a, b) => this.compareValues(a.id, b.id, sort),
+      time: (a, b) => this.compareValues(a.time, b.time, sort),
+      count: (a, b) => this.compareValues(a.count, b.count, sort),
+      purged: (a, b) => this.compareValues(a.purged, b.purged, sort),
+      flag: (a, b) => this.compareValues(a.flag, b.flag, sort),
     };
 
     if (sort === 0) {

@@ -12,8 +12,8 @@
 // limitations under the License.
 
 import { TraficEnum } from './utils/QueryEnum';
-import { filterDataByGroup } from "./utils/DataFilter";
-import {clockList} from "./utils/AllMemoryCache";
+import { filterDataByGroup } from './utils/DataFilter';
+import { clockList } from './utils/AllMemoryCache';
 
 export const chartClockDataSql = (args: any): string => {
   if (args.sqlType === 'clockFrequency') {
@@ -101,15 +101,25 @@ export function clockDataReceiver(data: any, proc: Function): void {
     }
     if (data.params.queryAll) {
       //框选时候取数据，只需要根据时间过滤数据
-      res = (list || []).filter(it => it.startNs + it.dur >= data.params.selectStartNS && it.startNs <= data.params.selectEndNS);
+      res = (list || []).filter(
+        (it) => it.startNs + it.dur >= data.params.selectStartNS && it.startNs <= data.params.selectEndNS
+      );
     } else {
-      res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width, "value");
+      res = filterDataByGroup(
+        list || [],
+        'startNs',
+        'dur',
+        data.params.startNS,
+        data.params.endNS,
+        data.params.width,
+        'value'
+      );
     }
-    arrayBufferHandler(data, res,true);
+    arrayBufferHandler(data, res, true);
   } else {
     let sql = chartClockDataSql(data.params);
     let res = proc(sql);
-    arrayBufferHandler(data, res,data.params.trafic !== TraficEnum.SharedArrayBuffer);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 

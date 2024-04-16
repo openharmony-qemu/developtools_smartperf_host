@@ -122,4 +122,4 @@ export const TimerShaftElementHtml = `
     </div>
     <canvas class="panel"></canvas>
 </div>
-`
+`;

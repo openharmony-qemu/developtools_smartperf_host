@@ -306,8 +306,7 @@ export class TabpaneNMCalltree extends BaseElement {
     this.getChildTree(fileMerageBean.children as Array<FileMerageBean>, maxId, children);
     let resultValue = parents.reverse().concat(children.reverse());
     for (let data of resultValue) {
-      data.type =
-        data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
+      data.type = data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
     }
     let resultLength = resultValue.length;
     this.filesystemTbr!.dataSource = resultLength == 0 ? [] : resultValue;

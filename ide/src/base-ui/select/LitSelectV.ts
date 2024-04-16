@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../BaseElement';
 import { LitSelectOption } from './LitSelectOption';
-import {selectHtmlStr, selectVHtmlStr} from './LitSelectHtml';
+import { selectHtmlStr, selectVHtmlStr } from './LitSelectHtml';
 
 @element('lit-select-v')
 export class LitSelectV extends BaseElement {
@@ -197,7 +197,7 @@ export class LitSelectV extends BaseElement {
     this.setEvent();
   }
 
-  setEvent():void{
+  setEvent(): void {
     this.onmouseout = this.onblur = (ev) => {
       this.focused = false;
     };

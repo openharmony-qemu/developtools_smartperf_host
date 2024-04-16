@@ -19,7 +19,7 @@ import './LitMainMenuGroup';
 import { LitMainMenuGroup } from './LitMainMenuGroup';
 import { LitMainMenuItem } from './LitMainMenuItem';
 
-const initHtmlStyle:string = `
+const initHtmlStyle: string = `
     <style>
         :host{
             width: 248px;
@@ -140,15 +140,21 @@ export class LitMainMenu extends BaseElement {
           } else {
             secondGroup.removeAttribute('describe');
           }
-          this.setChildren(item,group,groupName,groupDescribe,secondGroup);
+          this.setChildren(item, group, groupName, groupDescribe, secondGroup);
         } else {
-          this.notChildren(item,group,groupName,groupDescribe);
+          this.notChildren(item, group, groupName, groupDescribe);
         }
       });
     });
   }
 
-  setChildren(item:any,group: LitMainMenuGroup,groupName: LitMainMenuGroup,groupDescribe: LitMainMenuGroup,secondGroup: LitMainMenuGroup):void{
+  setChildren(
+    item: any,
+    group: LitMainMenuGroup,
+    groupName: LitMainMenuGroup,
+    groupDescribe: LitMainMenuGroup,
+    secondGroup: LitMainMenuGroup
+  ): void {
     secondGroup.setAttribute('icon', item.icon || '');
     if (item.second) {
       secondGroup.setAttribute('second', '');
@@ -196,7 +202,7 @@ export class LitMainMenu extends BaseElement {
     });
   }
 
-  notChildren(item:any,group: LitMainMenuGroup,groupName: LitMainMenuGroup,groupDescribe: LitMainMenuGroup):void{
+  notChildren(item: any, group: LitMainMenuGroup, groupName: LitMainMenuGroup, groupDescribe: LitMainMenuGroup): void {
     let th = new LitMainMenuItem();
     th.setAttribute('icon', item.icon || '');
     th.setAttribute('title', item.title || '');

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import {DbPool} from "./database/SqlLite";
-import {log} from "../log/Log";
+import { DbPool } from './database/SqlLite';
+import { log } from '../log/Log';
 
 export const applicationHtml: string = `
         <style>
@@ -432,10 +432,8 @@ export function postLog(filename: string, fileSize: string) {
     }),
   })
     .then((response) => response.json())
-    .then((data) => {
-    })
-    .catch((error) => {
-    });
+    .then((data) => {})
+    .catch((error) => {});
 }
 
 export function indexedDataToBufferData(sourceData: any): ArrayBuffer {
@@ -482,7 +480,7 @@ export function findFreeSizeAlgorithm(numbers: Array<number>, freeSize: number):
   return finalIndex;
 }
 
-export function getCurrentDataTime(): string[]{
+export function getCurrentDataTime(): string[] {
   let current = new Date();
   let year = '' + current.getFullYear();
   let month = ('0' + (current.getMonth() + 1)).slice(-2);

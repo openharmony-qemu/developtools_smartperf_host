@@ -74,7 +74,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let usage = data.params.drawType === -2;
   let perfProcess = new PerfProcess(data, transfer, res.length);
   let maxEventCount = Math.max(
-    ...res.map(it => {
+    ...res.map((it) => {
       data.params.trafic === TraficEnum.ProtoBuffer && (it = it.hiperfData);
       return it.eventCount;
     })

@@ -261,8 +261,9 @@ export class SpAllocations extends BaseElement {
     this.statisticsSlider?.addEventListener('input', this.statisticsSliderInputEvent);
     this.intervalResultInput?.addEventListener('input', this.statisticsValueInputEvent);
     this.intervalResultInput?.addEventListener('focusout', this.statisticsFocusOutEvent);
-    this.statisticsSlider?.shadowRoot?.querySelector('#slider')!.
-      addEventListener('mouseup', this.statisticsSliderMouseupEvent);
+    this.statisticsSlider?.shadowRoot
+      ?.querySelector('#slider')!
+      .addEventListener('mouseup', this.statisticsSliderMouseupEvent);
     this.startupMode?.addEventListener('change', this.startupModeChangeEvent);
     this.jsStackModel?.addEventListener('change', this.jsStackModelChangeEvent);
     this.addOptionButton?.addEventListener('click', this.advanceOptionClickEvent);
@@ -281,8 +282,9 @@ export class SpAllocations extends BaseElement {
     this.statisticsSlider?.removeEventListener('input', this.statisticsSliderInputEvent);
     this.intervalResultInput?.removeEventListener('input', this.statisticsValueInputEvent);
     this.intervalResultInput?.removeEventListener('focusout', this.statisticsFocusOutEvent);
-    this.statisticsSlider?.shadowRoot?.querySelector('#slider')!.
-      removeEventListener('mouseup', this.statisticsSliderMouseupEvent);
+    this.statisticsSlider?.shadowRoot
+      ?.querySelector('#slider')!
+      .removeEventListener('mouseup', this.statisticsSliderMouseupEvent);
     this.startupMode?.removeEventListener('change', this.startupModeChangeEvent);
     this.jsStackModel?.removeEventListener('change', this.jsStackModelChangeEvent);
     this.addOptionButton?.removeEventListener('click', this.advanceOptionClickEvent);
@@ -319,7 +321,7 @@ export class SpAllocations extends BaseElement {
 
   statisticsValueInputEvent = (): void => {
     if (this.intervalResultInput!.value === '0') {
-      this.useStatisticsEl!.checked = false
+      this.useStatisticsEl!.checked = false;
       this.useStatisticsChangeHandle(false);
     } else {
       this.statisticsIntervalHandle();
@@ -343,18 +345,18 @@ export class SpAllocations extends BaseElement {
   useStatisticsChangeEvent = (): void => {
     let useStatistics = this.useStatisticsEl!.checked;
     this.useStatisticsChangeHandle(useStatistics);
-  }
+  };
 
   fpUnWindChangeEvent = (): void => {
     this.napiName!.disabled = !(!this.fp_unwind && this.recordJsStack);
-  }
+  };
 
   advanceOptionClickEvent = (): void => {
     if (!this.startSamp) {
       return;
     }
     this.advanceOptionHandle(this.addOptionButton!.textContent!);
-  }
+  };
 
   startupModeChangeEvent = (): void => {
     let process = this.processId?.shadowRoot?.querySelector('input') as HTMLInputElement;
@@ -393,7 +395,7 @@ export class SpAllocations extends BaseElement {
       this.intervalResultInput!.value = `${stepValue[index]}`;
       this.recordStatisticsResult!.setAttribute('percentValue', `${stepValue[index]}`);
       if (this.intervalResultInput!.value === '0') {
-        this.useStatisticsEl!.checked = false
+        this.useStatisticsEl!.checked = false;
         this.useStatisticsChangeHandle(false);
       }
     });
@@ -401,18 +403,18 @@ export class SpAllocations extends BaseElement {
 
   statisticsIntervalInputEvent = (): void => {
     let intervalValue = Number(this.statisticsIntervalInput!.value);
-    if(intervalValue > 65535){
+    if (intervalValue > 65535) {
       this.statisticsIntervalInput!.value = '65535';
     }
-    if(intervalValue === 0 || this.statisticsIntervalInput!.value.startsWith('0')){
+    if (intervalValue === 0 || this.statisticsIntervalInput!.value.startsWith('0')) {
       let resultValue = parseInt(this.statisticsIntervalInput!.value, 10);
       this.statisticsIntervalInput!.value = `${resultValue}`;
     }
-  }
+  };
 
   statisticsIntervalKeyUpEvent = (): void => {
-    this.statisticsIntervalInput!.value = this.statisticsIntervalInput!.value.replace(/\D/g,'');
-  }
+    this.statisticsIntervalInput!.value = this.statisticsIntervalInput!.value.replace(/\D/g, '');
+  };
 
   private useStatisticsChangeHandle(useStatistics: boolean): void {
     if (useStatistics) {
@@ -443,20 +445,29 @@ export class SpAllocations extends BaseElement {
     } else {
       this.addOptionButton!.textContent = 'Advance Options';
     }
-    this.advanceItems.forEach(itemEl => {
+    this.advanceItems.forEach((itemEl) => {
       if (itemEl) {
         itemEl.style.display = displayStyle;
       }
-    })
+    });
     this.jsStackDepth!.disabled = !this.recordJsStack;
     this.napiName!.disabled = !(!this.fp_unwind && this.recordJsStack);
   }
 
   private resetAdvanceItems(): void {
     this.advanceItems = [
-      this.recordAccuratelyDivEl, this.recordAccuratelyDivEl, this.offlineSymbolizationDivEl,
-      this.jsStackRecordDepthEl, this.napiRecordEl, this.maxUnwindLevelEl, this.sharedMemorySizeEl,
-      this.filterMemorySizeEl, this.sampleIntervalEl, this.useStartupEl, this.useResponseLibEl];
+      this.recordAccuratelyDivEl,
+      this.recordAccuratelyDivEl,
+      this.offlineSymbolizationDivEl,
+      this.jsStackRecordDepthEl,
+      this.napiRecordEl,
+      this.maxUnwindLevelEl,
+      this.sharedMemorySizeEl,
+      this.filterMemorySizeEl,
+      this.sampleIntervalEl,
+      this.useStartupEl,
+      this.useResponseLibEl,
+    ];
   }
 
   private initNativeSwitchOption(): void {

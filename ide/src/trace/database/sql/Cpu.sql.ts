@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { KeyPathStruct } from "../../bean/KeyPathStruct";
-import { CpuStruct } from "../ui-worker/cpu/ProcedureWorkerCPU";
-import { query } from "../SqlLite";
-import { CpuUsage, Freq } from "../../bean/CpuUsage";
-import { Counter } from "../../bean/BoxSelection";
-import { CpuFreqStruct } from "../ui-worker/ProcedureWorkerFreq";
-import { CpuFreqLimitsStruct } from "../ui-worker/cpu/ProcedureWorkerCpuFreqLimits";
-import { CpuFreqRowLimit } from "../../component/chart/SpFreqChart";
+import { KeyPathStruct } from '../../bean/KeyPathStruct';
+import { CpuStruct } from '../ui-worker/cpu/ProcedureWorkerCPU';
+import { query } from '../SqlLite';
+import { CpuUsage, Freq } from '../../bean/CpuUsage';
+import { Counter } from '../../bean/BoxSelection';
+import { CpuFreqStruct } from '../ui-worker/ProcedureWorkerFreq';
+import { CpuFreqLimitsStruct } from '../ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
+import { CpuFreqRowLimit } from '../../component/chart/SpFreqChart';
 
 export const queryCpuKeyPathData = (threads: Array<KeyPathStruct>): Promise<Array<CpuStruct>> => {
   const sqlArray: Array<string> = [];
@@ -150,7 +150,6 @@ export const getTabCpuFreq = (cpus: Array<number>, leftNs: number, rightNs: numb
     `,
     { $leftNS: leftNs, $rightNS: rightNs }
   );
-
 
 export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
   let processSql = `select
@@ -475,7 +474,7 @@ export const queryCpuFreqUsageData = (
     startNS: number;
     filter_id: number;
     value: number;
-    dur: number
+    dur: number;
   }>
 > =>
   query(
@@ -496,7 +495,7 @@ export const queryCpuFreqUsageData = (
 export const queryCpuFreqFilterId = (): Promise<
   Array<{
     id: number;
-    cpu: number
+    cpu: number;
   }>
 > =>
   query(

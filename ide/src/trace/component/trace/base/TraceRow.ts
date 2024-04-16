@@ -27,10 +27,7 @@ import '../../../../base-ui/tree/LitTree';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { info } from '../../../../log/Log';
 import { ColorUtils } from './ColorUtils';
-import {
-  drawSelectionRange,
-  isFrameContainPoint
-} from '../../../database/ui-worker/ProcedureWorkerCommon';
+import { drawSelectionRange, isFrameContainPoint } from '../../../database/ui-worker/ProcedureWorkerCommon';
 import { TraceRowConfig } from './TraceRowConfig';
 import { type TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree';
 import { SpSystemTrace } from '../../SpSystemTrace';
@@ -194,7 +191,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public loadingFrame: boolean = false; //实时查询,正在查询中
   public needRefresh: boolean = true;
   _frameRateList: Array<number> | undefined; //存储平均帧率数据
-  _avgRateTxt: string | undefined | null;//存储帧率显示文字
+  _avgRateTxt: string | undefined | null; //存储帧率显示文字
   public folderIcon: LitIcon | null | undefined;
   private sampleUploadEl: HTMLDivElement | null | undefined;
   private jsonFileEl: HTMLInputElement | null | undefined;
@@ -223,7 +220,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   ) {
     super();
     this.args = args;
-    this.attachShadow({mode: 'open'}).innerHTML = this.initHtml();
+    this.attachShadow({ mode: 'open' }).innerHTML = this.initHtml();
     this.initElements();
   }
 
@@ -558,19 +555,22 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   };
 
-  getHoverStruct(strict: boolean = true, offset: boolean = false, maxKey: string | undefined = undefined): T | undefined {
+  getHoverStruct(
+    strict: boolean = true,
+    offset: boolean = false,
+    maxKey: string | undefined = undefined
+  ): T | undefined {
     if (this.isHover) {
       if (maxKey) {
-        let arr = this.dataListCache.filter(
-          (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
-        ).sort((targetA, targetB) => (targetB as any)[maxKey] - (targetA as any)[maxKey]);
+        let arr = this.dataListCache
+          .filter((re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset))
+          .sort((targetA, targetB) => (targetB as any)[maxKey] - (targetA as any)[maxKey]);
         return arr[0];
       } else {
         return this.dataListCache.find(
           (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
         );
       }
-
     }
   }
 
@@ -625,22 +625,22 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       <label for="file" style="cursor:pointer">
         <lit-icon class="folder" name="copy-csv" size="19"></lit-icon>
       </label>
-    `
+    `;
     this.jsonFileEl = this.sampleUploadEl!.querySelector('.file') as HTMLInputElement;
     this.sampleUploadEl!.addEventListener('change', () => {
       let files = this.jsonFileEl!.files;
       if (files && files.length > 0) {
         this.sampleUploadEl!.dispatchEvent(
           new CustomEvent('sample-file-change', {
-            detail: files[0]
+            detail: files[0],
           })
-        )
+        );
         if (this.jsonFileEl) this.jsonFileEl.value = '';
       }
-    })
+    });
     this.sampleUploadEl!.addEventListener('click', (e) => {
       e.stopPropagation();
-    })
+    });
     this.describeEl?.appendChild(this.sampleUploadEl!);
   }
 
@@ -664,7 +664,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  sortRenderServiceData(child: TraceRow<BaseStruct>, targetRow: TraceRow<BaseStruct>, threadRowArr: Array<TraceRow<BaseStruct>>, flag: boolean) {
+  sortRenderServiceData(
+    child: TraceRow<BaseStruct>,
+    targetRow: TraceRow<BaseStruct>,
+    threadRowArr: Array<TraceRow<BaseStruct>>,
+    flag: boolean
+  ) {
     if (child.rowType === 'thread') {
       threadRowArr.push(child);
     } else {
@@ -676,17 +681,27 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
     }
     if (flag) {
-      let order: string[] = ['VSyncGenerator', 'VSync-rs', 'VSync-app', 'render_service', 'RSUniRenderThre', 'Acquire Fence', 'RSHardwareThrea', 'Present Fence'];
+      let order: string[] = [
+        'VSyncGenerator',
+        'VSync-rs',
+        'VSync-app',
+        'render_service',
+        'RSUniRenderThre',
+        'Acquire Fence',
+        'RSHardwareThrea',
+        'Present Fence',
+      ];
       let filterOrderArr: Array<TraceRow<BaseStruct>> = [];
       let filterNotOrderArr: Array<TraceRow<BaseStruct>> = [];
       for (let i = 0; i < threadRowArr.length; i++) {
         const element: TraceRow<any> = threadRowArr[i];
-        let renderFlag: boolean = element.name.startsWith('render_service') && element.rowId === element.rowParentId ? true : false;
+        let renderFlag: boolean =
+          element.name.startsWith('render_service') && element.rowId === element.rowParentId ? true : false;
         if (renderFlag) {
           filterOrderArr.push(element);
-        } else if (order.includes(element.namePrefix!) && !(element.name.startsWith('render_service'))) {
+        } else if (order.includes(element.namePrefix!) && !element.name.startsWith('render_service')) {
           filterOrderArr.push(element);
-        } else if (!(order.includes(element.namePrefix!)) || !renderFlag) {
+        } else if (!order.includes(element.namePrefix!) || !renderFlag) {
           filterNotOrderArr.push(element);
         }
       }
@@ -694,9 +709,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         return order.indexOf(star.namePrefix!) - order.indexOf(next.namePrefix!);
       });
       let combinedArr = [...filterOrderArr, ...filterNotOrderArr];
-      combinedArr.forEach((item) => { this.addChildTraceRow(item) })
+      combinedArr.forEach((item) => {
+        this.addChildTraceRow(item);
+      });
     }
-  }  
+  }
 
   set tip(value: string) {
     if (this.tipEL) {
@@ -878,19 +895,19 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.fileEL = this.rowCheckFilePop.querySelector('#jsoninput');
     this.rowCheckFilePop.addEventListener('click', (e) => {
       this.fileEL.click();
-    })
+    });
     this.fileEL.addEventListener('click', (event: Event) => {
       event.stopPropagation();
-    })
-    
+    });
+
     let that = this;
     window.addEventListener('storage', function (e) {
       if (e.storageArea === sessionStorage) {
-        if(e.key === 'freqInfoData'){
+        if (e.key === 'freqInfoData') {
           that.onRowCheckFileChangeHandler?.();
         }
       }
-    })
+    });
     this.fileEL.addEventListener(
       'change',
       (e: any) => {
@@ -900,7 +917,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
           file_reader.readAsText(file, 'UTF-8');
           file_reader.onload = () => {
             let fc = file_reader.result;
-            window.sessionStorage.setItem('freqInfoData',JSON.stringify(fc))
+            window.sessionStorage.setItem('freqInfoData', JSON.stringify(fc));
             this.onRowCheckFileChangeHandler?.();
             alert('json文件上传成功！');
             this.fileEL.value = '';
@@ -990,7 +1007,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   initCanvas(list: Array<HTMLCanvasElement>): void {
     let timerShaftEL = document!
-    .querySelector('body > sp-application')!
+      .querySelector('body > sp-application')!
       .shadowRoot!.querySelector('#sp-system-trace')!
       .shadowRoot!.querySelector('div > timer-shaft-element');
     let timerShaftCanvas = timerShaftEL!.shadowRoot!.querySelector<HTMLCanvasElement>('canvas');
@@ -1216,7 +1233,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             this.dataListCache.push(...this.fixedList);
             this.isComplete = true;
             this.loadingFrame = false;
-            let idx = TraceRow.currentActiveRows.findIndex(it => it === `${this.rowType}-${this.rowId}`);
+            let idx = TraceRow.currentActiveRows.findIndex((it) => it === `${this.rowType}-${this.rowId}`);
             if (idx != -1) {
               TraceRow.currentActiveRows.splice(idx, 1);
             }

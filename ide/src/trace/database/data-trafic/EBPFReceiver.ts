@@ -162,7 +162,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
     endNS[i] = it.endNs;
     size[i] = it.size;
     dur[i] = it.dur;
-    height[i] = Math.ceil(it.size / maxSize * 36);
+    height[i] = Math.ceil((it.size / maxSize) * 36);
   });
   (self as unknown as Worker).postMessage(
     {

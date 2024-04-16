@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import {JanksStruct} from '../../bean/JanksStruct';
-import {ColorUtils} from '../../component/trace/base/ColorUtils';
-import {TraceRow} from '../../component/trace/base/TraceRow';
+import { JanksStruct } from '../../bean/JanksStruct';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 import {
   drawLoadingFrame,
   drawString,
@@ -24,7 +24,7 @@ import {
   Render,
   RequestMessage,
 } from './ProcedureWorkerCommon';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class JankRender extends Render {
   renderMainThread(
@@ -76,8 +76,7 @@ export class JankRender extends Render {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {
-  }
+  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {}
 }
 
 export function jank(
@@ -118,7 +117,7 @@ export function jank(
   }
 }
 
-export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>,jankClickHandler: any) {
+export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>, jankClickHandler: any) {
   return new Promise((resolve, reject) => {
     JankStruct.hoverJankStruct = JankStruct.hoverJankStruct || row.getHoverStruct();
     if (clickRowType === TraceRow.ROW_TYPE_JANK && JankStruct.hoverJankStruct) {
@@ -136,7 +135,9 @@ export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, row: 
                 `trace-row[row-id='frameTime'][row-type='janks']`
               );
             } else {
-              endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-type='process'][row-id='${data.pid}'][folder]`);
+              endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(
+                `trace-row[row-type='process'][row-id='${data.pid}'][folder]`
+              );
             }
             sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data);
           });
@@ -148,7 +149,6 @@ export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, row: 
       resolve(null);
     }
   });
-
 }
 
 export class JankStruct extends JanksStruct {

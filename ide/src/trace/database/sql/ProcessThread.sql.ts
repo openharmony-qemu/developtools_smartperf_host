@@ -115,15 +115,15 @@ export const getTabBindersCount = (
     }
   );
 
-  export const querySchedThreadStates = (
-    pIds: Array<number>,
-    tIds: Array<number>,
-    leftStartNs: number,
-    rightEndNs: number
-  ): Promise<Array<any>> =>
-    query(
-      'getTabThreadStates',
-      `
+export const querySchedThreadStates = (
+  pIds: Array<number>,
+  tIds: Array<number>,
+  leftStartNs: number,
+  rightEndNs: number
+): Promise<Array<any>> =>
+  query(
+    'getTabThreadStates',
+    `
     select
       B.pid,
       B.tid,
@@ -144,18 +144,18 @@ export const getTabBindersCount = (
     order by
       B.pid;
     `,
-      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-    );
-  
-  export const querySingleCutData = (
-    funcName: string,
-    tIds: string,
-    leftStartNs: number,
-    rightEndNs: number
-  ): Promise<Array<any>> =>
-    query(
-      'querySingleCutData',
-      `
+    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+  );
+
+export const querySingleCutData = (
+  funcName: string,
+  tIds: string,
+  leftStartNs: number,
+  rightEndNs: number
+): Promise<Array<any>> =>
+  query(
+    'querySingleCutData',
+    `
     select 
       c.ts as cycleStartTime,
       c.ts + ifnull(c.dur, 0) as cycleEndTime,
@@ -178,18 +178,18 @@ export const getTabBindersCount = (
     order by
       c.ts
     `,
-      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-    );
-  
-  export const queryLoopCutData = (
-    funcName: string,
-    tIds: string,
-    leftStartNs: number,
-    rightEndNs: number
-  ): Promise<Array<any>> =>
-    query(
-      'queryLoopCutData',
-      `
+    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+  );
+
+export const queryLoopCutData = (
+  funcName: string,
+  tIds: string,
+  leftStartNs: number,
+  rightEndNs: number
+): Promise<Array<any>> =>
+  query(
+    'queryLoopCutData',
+    `
     select 
       c.ts as cycleStartTime,
       t.tid,
@@ -208,8 +208,8 @@ export const getTabBindersCount = (
     order by
       c.ts
     `,
-      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-    );
+    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+  );
 // 框选区域内sleeping的时间
 export const getTabSleepingTime = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(

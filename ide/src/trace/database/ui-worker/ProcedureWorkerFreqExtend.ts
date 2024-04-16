@@ -49,7 +49,7 @@ export class FreqExtendRender extends Render {
       } else if (freqReq.type === 'gpu-freq') {
         CpuFreqExtendStruct.gpuCycle = -1;
       } else {
-        CpuFreqExtendStruct.schedCycle = -1
+        CpuFreqExtendStruct.schedCycle = -1;
       }
       CpuFreqExtendStruct.isTabHover = false;
     }
@@ -61,18 +61,20 @@ export class FreqExtendRender extends Render {
       CpuFreqExtendStruct.draw(freqReq.context, re, freqReq.type, row);
     }
     // tab页不高亮也没有悬浮泳道，取消竖线
-    if(!CpuFreqExtendStruct.isTabHover && 
-      CpuFreqExtendStruct.hoverCpuFreqStruct === undefined && 
-      CpuFreqExtendStruct.selectCpuFreqStruct === undefined && 
+    if (
+      !CpuFreqExtendStruct.isTabHover &&
+      CpuFreqExtendStruct.hoverCpuFreqStruct === undefined &&
+      CpuFreqExtendStruct.selectCpuFreqStruct === undefined &&
       !BinderStruct.isTabHover &&
       !BinderStruct.selectCpuFreqStruct &&
       !BinderStruct.hoverCpuFreqStruct &&
-      !ThreadStruct.hoverThreadStruct && 
-      !TabPaneFreqStatesDataCut.isStateTabHover){
+      !ThreadStruct.hoverThreadStruct &&
+      !TabPaneFreqStatesDataCut.isStateTabHover
+    ) {
       SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
     }
     // 鼠标不在tab页内，取消所有tab页联动的参数
-    if(!SpSegmentationChart.trace.isMousePointInSheet) {
+    if (!SpSegmentationChart.trace.isMousePointInSheet) {
       CpuFreqExtendStruct.isTabHover = false;
       CpuFreqExtendStruct.cpuCycle = -1;
       CpuFreqExtendStruct.schedCycle = -1;
@@ -99,7 +101,12 @@ export class CpuFreqExtendStruct extends BaseStruct {
   cycle: number | undefined;
   colorIndex: number = 0;
 
-  static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqExtendStruct, type: string, row: TraceRow<CpuFreqExtendStruct>) {
+  static draw(
+    freqContext: CanvasRenderingContext2D,
+    data: CpuFreqExtendStruct,
+    type: string,
+    row: TraceRow<CpuFreqExtendStruct>
+  ) {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = data.colorIndex || 0;
@@ -114,32 +121,35 @@ export class CpuFreqExtendStruct extends BaseStruct {
             (data.cycle === CpuFreqExtendStruct.gpuCycle && CpuFreqExtendStruct.gpuCycle !== -1) ||
             (data.cycle === CpuFreqExtendStruct.schedCycle && CpuFreqExtendStruct.schedCycle !== -1)))
       ) {
-          if(data === CpuFreqExtendStruct.hoverCpuFreqStruct || CpuFreqExtendStruct.isTabHover){
-            let pointX: number = ns2x(
-              data.startNS || 0,
-              TraceRow.range!.startNS,
-              TraceRow.range!.endNS,
-              TraceRow.range!.totalNS,
-              new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
-            );
-            SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = new Flag(
-              Math.floor(pointX),
-              0,
-              0,
-              0,
-              data.startNS,
-              '#666666',
-              '',
-              true,
-              ''
-            ); 
-          } else {
-            SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
-          }
+        if (data === CpuFreqExtendStruct.hoverCpuFreqStruct || CpuFreqExtendStruct.isTabHover) {
+          let pointX: number = ns2x(
+            data.startNS || 0,
+            TraceRow.range!.startNS,
+            TraceRow.range!.endNS,
+            TraceRow.range!.totalNS,
+            new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
+          );
+          SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = new Flag(
+            Math.floor(pointX),
+            0,
+            0,
+            0,
+            data.startNS,
+            '#666666',
+            '',
+            true,
+            ''
+          );
+        } else {
+          SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
+        }
         let drawHeight: number = Math.floor(
-          ((data.value || 0) * (data.frame.height || 0) * 1.0) / (type === 'CPU-FREQ'
-            ? CpuFreqExtendStruct.cpuMaxValue : type === 'GPU-FREQ'
-              ? CpuFreqExtendStruct.gpuMaxValue : CpuFreqExtendStruct.schedMaxValue)
+          ((data.value || 0) * (data.frame.height || 0) * 1.0) /
+            (type === 'CPU-FREQ'
+              ? CpuFreqExtendStruct.cpuMaxValue
+              : type === 'GPU-FREQ'
+              ? CpuFreqExtendStruct.gpuMaxValue
+              : CpuFreqExtendStruct.schedMaxValue)
         );
         if (drawHeight < 1) {
           drawHeight = 1;
@@ -149,9 +159,12 @@ export class CpuFreqExtendStruct extends BaseStruct {
         freqContext.globalAlpha = 0.6;
         freqContext.lineWidth = 1;
         let drawHeight: number = Math.floor(
-          ((data.value || 0) * (data.frame.height || 0)) / (type === 'CPU-FREQ'
-            ? CpuFreqExtendStruct.cpuMaxValue : type === 'GPU-FREQ'
-              ? CpuFreqExtendStruct.gpuMaxValue : CpuFreqExtendStruct.schedMaxValue)
+          ((data.value || 0) * (data.frame.height || 0)) /
+            (type === 'CPU-FREQ'
+              ? CpuFreqExtendStruct.cpuMaxValue
+              : type === 'GPU-FREQ'
+              ? CpuFreqExtendStruct.gpuMaxValue
+              : CpuFreqExtendStruct.schedMaxValue)
         );
         if (drawHeight < 1) {
           drawHeight = 1;

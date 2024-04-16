@@ -112,8 +112,9 @@ export function JsCpuProfilerStructOnClick(clickRowType: string, sp: SpSystemTra
     if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
       if (row.findHoverStruct) {
         row.findHoverStruct();
-      }else {
-        JsCpuProfilerStruct.hoverJsCpuProfilerStruct = JsCpuProfilerStruct.hoverJsCpuProfilerStruct || row.getHoverStruct();
+      } else {
+        JsCpuProfilerStruct.hoverJsCpuProfilerStruct =
+          JsCpuProfilerStruct.hoverJsCpuProfilerStruct || row.getHoverStruct();
       }
     }
     if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER && JsCpuProfilerStruct.hoverJsCpuProfilerStruct) {

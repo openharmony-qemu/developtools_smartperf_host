@@ -39,7 +39,7 @@ export class TabPanePurgTotalSelection extends BaseElement {
       await querySysPurgeableSelectionTab(startNs).then((purgeTotalSelectResults) => {
         this.purgeableSelectionSource = [];
         if (purgeTotalSelectResults.length > 0) {
-          this.purgeableSelectionSource.push({name: 'TimeStamp', value: ns2s(startNs)});
+          this.purgeableSelectionSource.push({ name: 'TimeStamp', value: ns2s(startNs) });
           this.purgeableSelectionSource.push({
             name: 'TimeStamp(Absolute)',
             value: (startNs + (window as any).recordStartNS) / 1000000000,
@@ -55,7 +55,7 @@ export class TabPanePurgTotalSelection extends BaseElement {
       await queryProcessPurgeableSelectionTab(startNs, MemoryConfig.getInstance().iPid).then((results) => {
         this.purgeableSelectionSource = [];
         if (results.length > 0) {
-          this.purgeableSelectionSource.push({name: 'TimeStamp(Relative)', value: ns2s(startNs)});
+          this.purgeableSelectionSource.push({ name: 'TimeStamp(Relative)', value: ns2s(startNs) });
           this.purgeableSelectionSource.push({
             name: 'TimeStamp(Absolute)',
             value: (startNs + (window as any).recordStartNS) / 1000000000,

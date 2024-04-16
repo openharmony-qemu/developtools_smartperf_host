@@ -80,9 +80,10 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
     perfThread.eventTypeId[i] = it.eventTypeId;
     perfThread.callChainId[i] = it.callchainId;
     if (usage) {
-      perfThread.height[i] = maxCpuCount === -1
-        ? Math.floor((it.sampleCount / (10 / intervalPerf)) * 40)
-        : Math.floor((it.sampleCount / (10 / intervalPerf) / maxCpuCount) * 40);
+      perfThread.height[i] =
+        maxCpuCount === -1
+          ? Math.floor((it.sampleCount / (10 / intervalPerf)) * 40)
+          : Math.floor((it.sampleCount / (10 / intervalPerf) / maxCpuCount) * 40);
     } else {
       perfThread.height[i] = Math.floor((it.eventCount / maxEventCount) * 40);
     }

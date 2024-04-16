@@ -213,7 +213,7 @@ export class TimerShaftElement extends BaseElement {
   }
 
   reset(): void {
-    this.loadComplete = false; 
+    this.loadComplete = false;
     this.totalNS = 10_000_000_000;
     this.startNS = 0;
     this.endNS = 10_000_000_000;

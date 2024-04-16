@@ -101,7 +101,7 @@ export class TabPaneMemoryAbility extends BaseElement {
       'sys.mem.cma.total': 'cmaTotal',
       'sys.mem.cma.free': 'cmaFree',
       'sys.mem.kernel.reclaimable': 'kReclaimable',
-      'sys.mem.zram': 'zram'
+      'sys.mem.zram': 'zram',
     };
   }
 
@@ -116,10 +116,11 @@ export class TabPaneMemoryAbility extends BaseElement {
           let lastTime = 0;
           for (const item of items) {
             let systemMemorySummary = new SystemMemorySummary();
-            systemMemorySummary.startTimeStr = (item.startTime - startTime <= 0) ? '0:000.000.000'
-              : Utils.getTimeStampHMS(item.startTime - startTime);
-            systemMemorySummary.durationNumber = (lastTime !== 0) ? item.startTime - lastTime : 0;
-            systemMemorySummary.durationStr = (lastTime !== 0) ? Utils.getDurString(systemMemorySummary.durationNumber) : '-';
+            systemMemorySummary.startTimeStr =
+              item.startTime - startTime <= 0 ? '0:000.000.000' : Utils.getTimeStampHMS(item.startTime - startTime);
+            systemMemorySummary.durationNumber = lastTime !== 0 ? item.startTime - lastTime : 0;
+            systemMemorySummary.durationStr =
+              lastTime !== 0 ? Utils.getDurString(systemMemorySummary.durationNumber) : '-';
             lastTime = item.startTime;
             let memorys = item.value.split(',');
             let names = item.name.split(',');
@@ -134,7 +135,6 @@ export class TabPaneMemoryAbility extends BaseElement {
                 systemMemorySummary[key] = Utils.getBinaryKBWithUnit(Number(memorys[i]));
               }
             }
-            ;
             this.memoryAbilitySource.push(systemMemorySummary);
           }
           this.memoryAbilityTbl!.recycleDataSource = this.memoryAbilitySource;
@@ -199,9 +199,9 @@ export class TabPaneMemoryAbility extends BaseElement {
         if (type === 'number') {
           return sort === 2
             ? // @ts-ignore
-            parseFloat(memoryAbilityRightData[property]) - parseFloat(memoryAbilityLeftData[property])
+              parseFloat(memoryAbilityRightData[property]) - parseFloat(memoryAbilityLeftData[property])
             : // @ts-ignore
-            parseFloat(memoryAbilityLeftData[property]) - parseFloat(memoryAbilityRightData[property]);
+              parseFloat(memoryAbilityLeftData[property]) - parseFloat(memoryAbilityRightData[property]);
         } else if (type === 'durationStr') {
           return sort === 2
             ? memoryAbilityRightData.durationNumber - memoryAbilityLeftData.durationNumber

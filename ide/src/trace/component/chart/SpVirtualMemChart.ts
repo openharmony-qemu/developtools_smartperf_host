@@ -15,10 +15,7 @@
 
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
-import {
-  VirtualMemoryRender,
-  VirtualMemoryStruct
-} from '../../database/ui-worker/ProcedureWorkerVirtualMemory';
+import { VirtualMemoryRender, VirtualMemoryStruct } from '../../database/ui-worker/ProcedureWorkerVirtualMemory';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { virtualMemoryDataSender } from '../../database/data-trafic/VirtualMemoryDataSender';

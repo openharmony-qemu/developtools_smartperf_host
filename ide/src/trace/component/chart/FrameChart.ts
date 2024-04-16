@@ -240,7 +240,7 @@ export class FrameChart extends BaseElement {
    */
   private isJsStack(str: string): boolean {
     let keyList = jsStackPath;
-    if (this._mode === ChartMode.Count || ChartMode.EventCount){
+    if (this._mode === ChartMode.Count || ChartMode.EventCount) {
       keyList = jsStackPath.concat(jsHapKeys);
     }
     for (const format of keyList) {
@@ -1010,7 +1010,7 @@ export class FrameChart extends BaseElement {
       if (e.ctrlKey && e.key.toLocaleLowerCase() === 'c') {
         navigator.clipboard.writeText(ChartStruct.hoverFuncStruct!.symbol);
       }
-    })
+    });
     this.listenerResize();
   }
 

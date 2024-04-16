@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-const initHtmlStyle:string = `
+const initHtmlStyle: string = `
     <style>
         :host{ 
             display:inline-block; 
@@ -93,7 +93,7 @@ export default class LitSwitch extends BaseElement {
     return ['disabled', 'checked'];
   }
 
-  get disabled():boolean {
+  get disabled(): boolean {
     return this.getAttribute('disabled') !== null;
   }
 
@@ -109,7 +109,7 @@ export default class LitSwitch extends BaseElement {
     }
   }
 
-  set disabled(value:boolean) {
+  set disabled(value: boolean) {
     if (value === null || value === false) {
       this.removeAttribute('disabled');
     } else {
@@ -161,7 +161,7 @@ export default class LitSwitch extends BaseElement {
     this.setEvent();
   }
 
-  setEvent():void{
+  setEvent(): void {
     this.switch!.onfocus = (ev) => {
       ev.stopPropagation();
       if (!this.isfocus) {

@@ -21,7 +21,7 @@ import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 import '../../../../base-ui/popover/LitPopoverV';
 import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
-import {queryTransferList} from "../../../database/sql/Perf.sql";
+import { queryTransferList } from '../../../database/sql/Perf.sql';
 import { TabPaneFilterHtml } from './TabPaneFilter.html';
 
 export interface FilterData {
@@ -196,7 +196,7 @@ export class TabPaneFilter extends BaseElement {
       if (this.getFilter) {
         this.getFilter(this.filterData('mark', { mark: true }));
       }
-    }
+    };
     this.filterInputEL?.addEventListener('keyup', (event: any): void => {
       if (event.keyCode === 13 && this.getFilter) {
         this.getFilter(
@@ -383,7 +383,11 @@ export class TabPaneFilter extends BaseElement {
     return thtml;
   }
 
-  private getSelectSecondListHtml(secondTitle: string, secondList: Array<any> | null | undefined, html: string): string {
+  private getSelectSecondListHtml(
+    secondTitle: string,
+    secondList: Array<any> | null | undefined,
+    html: string
+  ): string {
     if (secondList) {
       html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">`;
       if (secondTitle != '') {
@@ -411,7 +415,7 @@ export class TabPaneFilter extends BaseElement {
     return html;
   }
 
-  private initSelectElListener(): void{
+  private initSelectElListener(): void {
     this.firstSelectEL!.onchange = (e): void => {
       if (this.getFilter) {
         this.getFilter(this.filterData('firstSelect'));
@@ -439,13 +443,13 @@ export class TabPaneFilter extends BaseElement {
     }
   }
 
-  private treeCheckClickSwitch(idx: number, check: boolean, row: NodeListOf<Element>): void{
+  private treeCheckClickSwitch(idx: number, check: boolean, row: NodeListOf<Element>): void {
     let checkList = [];
     for (let index = 0; index < 5; index++) {
       if (idx === index) {
         checkList.push(check);
       } else {
-        checkList.push(row[index].querySelector<LitCheckBox>('lit-check-box')!.checked)
+        checkList.push(row[index].querySelector<LitCheckBox>('lit-check-box')!.checked);
       }
     }
     this.getCallTree!({

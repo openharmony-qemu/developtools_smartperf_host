@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {JanksStruct} from "../../bean/JanksStruct";
-import {query} from "../SqlLite";
+import { JanksStruct } from '../../bean/JanksStruct';
+import { query } from '../SqlLite';
 
 export const queryExpectedFrameDate = (): Promise<Array<JanksStruct>> =>
   query(
@@ -90,7 +90,8 @@ export const queryJumpJanksData = (processId: number, vsync: number): Promise<Ar
             p.name AS cmdline
         FROM frame_slice AS fs, trace_range as TR
         LEFT JOIN process AS p ON fs.ipid = p.ipid
-        WHERE fs.type = 0 and p.pid = $processId and fs.vsync = $vsync;`,{ $processId: processId, $vsync: vsync }
+        WHERE fs.type = 0 and p.pid = $processId and fs.vsync = $vsync;`,
+    { $processId: processId, $vsync: vsync }
   );
 export const queryAllJankProcess = (): Promise<
   Array<{
@@ -184,10 +185,7 @@ export const queryActualFrameDate = (): Promise<Array<any>> =>
        AND fs.flag <> 2
      ORDER BY ts;`
   );
-export const querySelectRangeData = (
-  allPid: Array<number>,
-  leftNs: number,
-  rightNs: number): Promise<Array<any>> =>
+export const querySelectRangeData = (allPid: Array<number>, leftNs: number, rightNs: number): Promise<Array<any>> =>
   query(
     'querySelectRangeData',
     `

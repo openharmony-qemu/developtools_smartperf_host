@@ -63,7 +63,15 @@ self.onmessage = async (e: MessageEvent) => {
     let traceAllData = new Uint8Array(e.data.buffer);
     let isRawTraceConvert = isRawTrace(e.data);
     if (isRawTraceConvert) {
-      [totalSize, currentPosition, traceAllData] = handleRowTrace(e, fileData, dataHeader, traceInsPtr, currentPosition, traceAllData, totalSize);
+      [totalSize, currentPosition, traceAllData] = handleRowTrace(
+        e,
+        fileData,
+        dataHeader,
+        traceInsPtr,
+        currentPosition,
+        traceAllData,
+        totalSize
+      );
     } else {
       handleHTrace(fileData, dataHeader, traceInsPtr);
     }
@@ -79,7 +87,16 @@ self.onmessage = async (e: MessageEvent) => {
     };
     let bodyFn = convertModule.addFunction(callback, 'vii');
     convertModule._SetCallback(bodyFn, traceInsPtr);
-    convertData(currentPosition, traceAllData, arrayBufferPtr, dataPtr, traceInsPtr, isRawTraceConvert, stepSize, totalSize);
+    convertData(
+      currentPosition,
+      traceAllData,
+      arrayBufferPtr,
+      dataPtr,
+      traceInsPtr,
+      isRawTraceConvert,
+      stepSize,
+      totalSize
+    );
     convertModule._GetRemainingData(traceInsPtr);
     let headerData: string[] = [];
     let headerCallback = (heapPtr: number, size: number) => {
@@ -120,8 +137,8 @@ function handleRowTrace(
   currentPosition = 12;
   let allRowTraceData = new Uint8Array(e.data.buffer);
   let commonDataOffsetList: Array<{
-    startOffset: number
-    endOffset: number
+    startOffset: number;
+    endOffset: number;
   }> = [];
   let commonTotalLength = setCommonDataOffsetList(e, allRowTraceData, commonDataOffsetList);
   let commonTotalOffset = 0;
@@ -139,9 +156,13 @@ function handleRowTrace(
 }
 
 function isCommonData(dataType: number): boolean {
-  return dataType === CONTENT_TYPE_CMDLINES || dataType === CONTENT_TYPE_TGIDS ||
-    dataType === CONTENT_TYPE_HEADER_PAGE || dataType === CONTENT_TYPE_PRINTK_FORMATS ||
+  return (
+    dataType === CONTENT_TYPE_CMDLINES ||
+    dataType === CONTENT_TYPE_TGIDS ||
+    dataType === CONTENT_TYPE_HEADER_PAGE ||
+    dataType === CONTENT_TYPE_PRINTK_FORMATS ||
     dataType === CONTENT_TYPE_KALLSYMS
+  );
 }
 
 function setCommonDataOffsetList(
@@ -219,7 +240,7 @@ function postMessage(e: MessageEvent, allDataStr: Array<string>): void {
       id: e.data.id,
       action: 'convert',
       status: true,
-      results: new Blob(allDataStr, {type: 'text/plain'}),
+      results: new Blob(allDataStr, { type: 'text/plain' }),
       buffer: e.data.buffer,
     },
     // @ts-ignore

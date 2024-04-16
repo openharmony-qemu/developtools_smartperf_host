@@ -27,7 +27,6 @@ import { TraceSheet } from '../base/TraceSheet';
 
 @element('tabpane-datacut')
 export class TabPaneDataCut extends BaseElement {
-
   private currentSelection: SelectionParam | undefined;
   private tabSelector: LitSelect | undefined | null;
   private tabContainer: HTMLDivElement | undefined | null;
@@ -92,24 +91,29 @@ export class TabPaneDataCut extends BaseElement {
   initTabSelectorOptions(): void {
     let options = [];
     if (this.currentSelection!.threadIds.length > 0) {
-      options.push(...[
-        {
-          name: 'Sched Switch'
-        },
-        {
-          name: 'Thread Binder'
-        },
-        {
-          name: 'Cpu Freq'
-        },
-        {
-          name: 'Thread States'
-        },
-      ]);
+      options.push(
+        ...[
+          {
+            name: 'Sched Switch',
+          },
+          {
+            name: 'Thread Binder',
+          },
+          {
+            name: 'Cpu Freq',
+          },
+          {
+            name: 'Thread States',
+          },
+        ]
+      );
     }
-    if (this.currentSelection!.clockMapData.size === 1 && this.currentSelection!.clockMapData.has('gpufreq Frequency') === true) {
+    if (
+      this.currentSelection!.clockMapData.size === 1 &&
+      this.currentSelection!.clockMapData.has('gpufreq Frequency') === true
+    ) {
       options.push({
-        name: 'Gpu Freq'
+        name: 'Gpu Freq',
       });
     }
     this.currentTabKey = options[0].name;
@@ -124,7 +128,7 @@ export class TabPaneDataCut extends BaseElement {
     this.tabSelector!.onchange = () => {
       this.currentTabKey = this.tabSelector!.value;
       this.showTabPane();
-    }
+    };
   }
 
   connectedCallback() {

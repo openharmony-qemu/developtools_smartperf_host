@@ -47,7 +47,15 @@ export class LongTraceDBUtils {
     return this.indexedDBHelp.get(this.tableName, range, 'QueryFileByPage');
   }
 
-  addLongTableData(data: ArrayBuffer, fileType: string, timStamp: number, pageNumber: number, index: number, offset: number, sliceLen: number): Promise<any> {
+  addLongTableData(
+    data: ArrayBuffer,
+    fileType: string,
+    timStamp: number,
+    pageNumber: number,
+    index: number,
+    offset: number,
+    sliceLen: number
+  ): Promise<any> {
     return this.indexedDBHelp.add(this.tableName, {
       buf: data,
       id: `${fileType}_${timStamp}_${pageNumber}_${index}`,
@@ -57,6 +65,6 @@ export class LongTraceDBUtils {
       endOffset: offset + sliceLen,
       index: index,
       timStamp: timStamp,
-    })
+    });
   }
 }

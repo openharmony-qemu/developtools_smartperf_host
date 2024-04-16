@@ -81,7 +81,15 @@ export function logDataReceiver(data: any, proc: Function) {
       hiLogList.set(data.params.id, proc(sql));
     }
     let list = hiLogList.get(data.params.id) || [];
-    let res = filterDataByGroupLayer(list || [], 'depth','startTs', 'dur', data.params.startNS, data.params.endNS, data.params.width);
+    let res = filterDataByGroupLayer(
+      list || [],
+      'depth',
+      'startTs',
+      'dur',
+      data.params.startNS,
+      data.params.endNS,
+      data.params.width
+    );
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
     let sql = chartLogDataSql(data.params);
@@ -113,13 +121,13 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startTs: startTs.buffer,
-          pid: pid.buffer,
-          tid: tid.buffer,
-          dur: dur.buffer,
-          depth: depth.buffer,
-        }
+            id: id.buffer,
+            startTs: startTs.buffer,
+            pid: pid.buffer,
+            tid: tid.buffer,
+            dur: dur.buffer,
+            depth: depth.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,

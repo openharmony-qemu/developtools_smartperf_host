@@ -85,7 +85,7 @@ export let renders: any = {
   'app-start-up': new AppStartupRender(),
   'all-app-start-up': new AllAppStartupRender(),
   'ltpo-present': new LtpoRender(),
-  'hitch': new hitchTimeRender(),
+  hitch: new hitchTimeRender(),
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
   'heap-timeline': new HeapTimelineRender(),
@@ -243,5 +243,4 @@ function setReq(req: RequestMessage, e: any) {
   }
 }
 
-self.onmessageerror = function (e: any): void {
-};
+self.onmessageerror = function (e: any): void {};

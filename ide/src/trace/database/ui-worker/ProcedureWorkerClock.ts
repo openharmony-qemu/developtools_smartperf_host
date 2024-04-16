@@ -16,7 +16,7 @@
 import { BaseStruct, dataFilterHandler, drawLoadingFrame, isFrameContainPoint, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class ClockRender extends Render {
   renderMainThread(
@@ -73,11 +73,10 @@ export function ClockStructOnClick(clickRowType: string, sp: SpSystemTrace) {
       sp.traceSheetEL?.displayClockData(ClockStruct.selectClockStruct);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    }else{
+    } else {
       resolve(null);
     }
   });
-
 }
 export class ClockStruct extends BaseStruct {
   static maxValue: number = 0;

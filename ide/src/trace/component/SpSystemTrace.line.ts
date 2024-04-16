@@ -163,7 +163,9 @@ function addPointLink(
       if (data.children[0].frame_type == 'frameTime') {
         endP = sp.shadowRoot?.querySelector<TraceRow<any>>("trace-row[row-type='janks'][row-id='frameTime']");
       } else {
-        endP = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-type='process'][row-id='${data.children[0].pid}'][folder]`);
+        endP = sp.shadowRoot?.querySelector<TraceRow<any>>(
+          `trace-row[row-type='process'][row-id='${data.children[0].pid}'][folder]`
+        );
       }
       sp.drawJankLine(endP, findJankEntry, data.children[0]);
     }
@@ -483,8 +485,13 @@ export function spSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<
   }
 }
 
-
-function jankPoint(endRowStruct: any, selectThreadStruct: ThreadStruct, startRow: any, endParentRow: any, sp: SpSystemTrace) {
+function jankPoint(
+  endRowStruct: any,
+  selectThreadStruct: ThreadStruct,
+  startRow: any,
+  endParentRow: any,
+  sp: SpSystemTrace
+) {
   let findJankEntry = endRowStruct!.fixedList[0];
   let ts: number = 0;
   if (findJankEntry) {
@@ -546,5 +553,3 @@ export function spSystemTraceDrawThreadLine(
     }
   }
 }
-
-

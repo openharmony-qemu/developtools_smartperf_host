@@ -25,7 +25,7 @@ import { Utils } from '../../base/Utils';
 import { compare, resizeObserverFromMemory } from '../SheetUtils';
 import '../TabPaneJsMemoryFilter';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
-import {getTabGpuMemoryVmTrackerComparisonData} from "../../../../database/sql/Memory.sql";
+import { getTabGpuMemoryVmTrackerComparisonData } from '../../../../database/sql/Memory.sql';
 
 @element('tabpane-gpu-memory-vmtracker-comparison')
 export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {

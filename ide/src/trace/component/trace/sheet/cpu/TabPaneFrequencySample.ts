@@ -106,7 +106,7 @@ export class TabPaneFrequencySample extends BaseElement {
               freqFilter[i].value === data.value &&
               freqFilter[i].cpu === data.cpu &&
               Math.max(TraceRow.rangeSelectObject?.startNS!, freqFilter[i].startNS!) <
-              Math.min(TraceRow.rangeSelectObject?.endNS!, freqFilter[i].startNS! + freqFilter[i].dur!)
+                Math.min(TraceRow.rangeSelectObject?.endNS!, freqFilter[i].startNS! + freqFilter[i].dur!)
             ) {
               CpuFreqStruct.hoverCpuFreqStruct = freqFilter[i];
             }
@@ -189,7 +189,7 @@ export class TabPaneFrequencySample extends BaseElement {
       });
     } else {
       frqSampleParam.cpuFreqFilterNames.forEach((item: string) => {
-        let cpuStateIds:any = frqSampleParam.cpuStateRowsId.filter(
+        let cpuStateIds: any = frqSampleParam.cpuStateRowsId.filter(
           (it: any) => it.cpu === Number(item.replace(/[^\d]/g, ' ').trim())
         );
         stateFiliterIds.push(cpuStateIds[0].filterId);
@@ -201,7 +201,11 @@ export class TabPaneFrequencySample extends BaseElement {
         stateFiliterIds
       );
       let msg = {
-        timeParam: { leftNs: frqSampleParam.leftNs, rightNs: frqSampleParam.rightNs, recordStartNs: frqSampleParam.recordStartNs },
+        timeParam: {
+          leftNs: frqSampleParam.leftNs,
+          rightNs: frqSampleParam.rightNs,
+          recordStartNs: frqSampleParam.recordStartNs,
+        },
         result,
         sampleMap,
         res,
@@ -222,7 +226,9 @@ export class TabPaneFrequencySample extends BaseElement {
   getInitTime(initFreqResult: Array<any>, sampleMap: Map<any, any>, selectionParam: SelectionParam) {
     let leftStartNs = selectionParam.leftNs + selectionParam.recordStartNs;
     let rightEndNs = selectionParam.rightNs + selectionParam.recordStartNs;
-    if (initFreqResult.length === 0) { return };
+    if (initFreqResult.length === 0) {
+      return;
+    }
     let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
     if (includeData !== 0) {
       initFreqResult = initFreqResult.slice(
@@ -230,7 +236,9 @@ export class TabPaneFrequencySample extends BaseElement {
         initFreqResult.length
       );
     }
-    if (initFreqResult[0].ts < leftStartNs && includeData !== 0) { initFreqResult[0].ts = leftStartNs };
+    if (initFreqResult[0].ts < leftStartNs && includeData !== 0) {
+      initFreqResult[0].ts = leftStartNs;
+    }
     initFreqResult.forEach((item, idx) => {
       if (idx + 1 === initFreqResult.length) {
         item.time = rightEndNs - item.ts;

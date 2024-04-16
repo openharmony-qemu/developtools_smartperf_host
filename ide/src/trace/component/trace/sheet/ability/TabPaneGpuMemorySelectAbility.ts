@@ -18,7 +18,7 @@ import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type GpuMemory } from '../../../../bean/AbilityMonitor';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { Utils } from '../../base/Utils';
-import {getTabGpuMemoryAbilityClickData} from "../../../../database/sql/Ability.sql";
+import { getTabGpuMemoryAbilityClickData } from '../../../../database/sql/Ability.sql';
 
 @element('tabpane-gpu-memory-selection-ability')
 export class TabPaneGpuMemorySelectAbility extends BaseElement {
