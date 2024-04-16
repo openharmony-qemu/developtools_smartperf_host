@@ -43,6 +43,8 @@ import { CpuStateStructOnClick } from '../database/ui-worker/cpu/ProcedureWorker
 import { CpuFreqLimitsStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { FlagsConfig } from './SpFlags';
 import { LitMainMenu } from '../../base-ui/menu/LitMainMenu';
+import { PerfToolsStructOnClick } from "../database/ui-worker/ProcedureWorkerPerfTool";
+
 
 function timeoutJudge(sp: SpSystemTrace) {
   let timeoutJudge = setTimeout(() => {
@@ -321,6 +323,8 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
     .then(() => sampleStructOnClick(clickRowType, sp))
+    .then(() => PerfToolsStructOnClick(clickRowType, sp))
+    
     .then(() => {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
         sp.removeLinkLinesByBusinessType('janks');

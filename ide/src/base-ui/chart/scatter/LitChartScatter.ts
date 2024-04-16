@@ -400,8 +400,8 @@ export class LitChartScatter extends BaseElement {
    * 显示提示框
    */
   showTip(data: any): void {
-    const minWidth: number = 140;
-    const miniHeight: number = 60;
+    const minWidth: number = 160;
+    const miniHeight: number = 70;
     const canvasWidth: number = Number(this.canvas?.style.width.replace('px', ''));
     const canvasHeight: number = Number(this.canvas?.style.height.replace('px', ''));
     this.scatterTipEL!.style.display = 'flex';

@@ -150,6 +150,7 @@ export class RangeSelect {
         row.getAttribute('row-type') === 'func' &&
         row.parentRowEl?.getAttribute('name')?.startsWith('render_service')
       ) {
+        row.frameRateList = [];
         if (row.getAttribute('name')?.startsWith('render_service')) {
           this.filterRateData(row, this.docomList);
         } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
@@ -173,9 +174,9 @@ export class RangeSelect {
       }
     });
     if (row.frameRateList?.length) {
-      row.frameRateList = [...new Set(row.frameRateList)];
-      row.frameRateList.sort((a, b) => a - b);
-      if (row.frameRateList?.length >= 2) {
+      if (row.frameRateList.length < 2) {
+        row.frameRateList = [];
+      } else {
         const CONVERT_SECONDS = 1000000000;
         let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
         row.avgRateTxt = (((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1) + 'fps';
@@ -195,9 +196,9 @@ export class RangeSelect {
       }
     });
     if (row.frameRateList?.length) {
-      row.frameRateList = [...new Set(row.frameRateList)]; //去重
-      row.frameRateList.sort((a, b) => a - b); //排序
-      if (row.frameRateList?.length >= 2) {
+      if (row.frameRateList?.length < 2) {
+        row.frameRateList = [];
+      } else {
         let hitchTimeList: Array<number> = [];
         for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
           if (

@@ -26,6 +26,7 @@ import { SelectionParam } from '../../bean/BoxSelection';
 import { type SpSystemTrace, CurrentSlicesTime } from '../SpSystemTrace';
 import './timer-shaft/CollapseButton';
 import { TimerShaftElementHtml } from './TimerShaftElement.html';
+import { SpChartList } from './SpChartList';
 //随机生成十六位进制颜色
 export function randomRgbColor() {
   let r = Math.floor(Math.random() * 255);
@@ -141,6 +142,7 @@ export class TimerShaftElement extends BaseElement {
   public usageEL: HTMLDivElement | null | undefined;
   public timerShaftEL: TimerShaftElement | null | undefined;
   public rowsPaneEL: HTMLDivElement | null | undefined;
+  public favoriteChartListEL: SpChartList | undefined | null;
   _checkExpand: boolean = false; //是否展开
   _usageFoldHeight: number = 56.25; //初始化时折叠的负载区高度
   usageExpandHeight: number = 75; //给定的展开的负载区高度
@@ -279,6 +281,7 @@ export class TimerShaftElement extends BaseElement {
     this.usageEL = this.shadowRoot?.querySelector('.cpu-usage');
     this.timerShaftEL = this.shadowRoot!.host.parentNode?.querySelector('.timer-shaft');
     this.rowsPaneEL = this.shadowRoot!.host.parentNode?.querySelector('.rows-pane');
+    this.favoriteChartListEL = this.shadowRoot!.host.parentNode?.querySelector('#favorite-chart-list');
     const height = this.canvas?.clientHeight || 0;
     // 点击cpu usage部分，切换折叠展开
     this.usageEL?.addEventListener('click', (e) => {
@@ -298,6 +301,7 @@ export class TimerShaftElement extends BaseElement {
           this.sportRuler.frame.y = 100;
           this.render();
           this._checkExpand = false;
+          this.favoriteChartListEL?.refreshFavoriteCanvas();//刷新收藏泳道画布高度
         } else {
           sessionStorage.setItem('expand', String(this._checkExpand));
           sessionStorage.setItem('foldHeight', String(this._usageFoldHeight));
@@ -310,6 +314,7 @@ export class TimerShaftElement extends BaseElement {
           this.sportRuler.frame.y = 100 - this._usageFoldHeight;
           this.render();
           this._checkExpand = true;
+          this.favoriteChartListEL?.refreshFavoriteCanvas();//刷新收藏泳道画布高度
         }
       }
     });
@@ -479,7 +484,7 @@ export class TimerShaftElement extends BaseElement {
     this._rangeRuler?.keyUp(ev);
   };
 
-  disconnectedCallback(): void {}
+  disconnectedCallback(): void { }
 
   firstRender = true;
 

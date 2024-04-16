@@ -122,6 +122,7 @@ import spSystemTraceOnClickHandler, {
 } from './SpSystemTrace.event';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { readTraceFileBuffer } from '../SpApplicationPublicFunc';
+import { PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -582,19 +583,8 @@ export class SpSystemTrace extends BaseElement {
     //draw trace row
     this.visibleRows.forEach((v, i) => {
       if (v.collect) {
-        if (this.timerShaftEL?._checkExpand) {
-          if (SpSystemTrace.isHiddenMenu) {
-            v.translateY = v.getBoundingClientRect().top - 195 + this.timerShaftEL.usageFoldHeight! + 48;
-          } else {
-            v.translateY = v.getBoundingClientRect().top - 195 + this.timerShaftEL.usageFoldHeight!;
-          }
-        } else {
-          if (SpSystemTrace.isHiddenMenu) {
-            v.translateY = v.getBoundingClientRect().top - 195 + 48;
-          } else {
-            v.translateY = v.getBoundingClientRect().top - 195;
-          }
-        }
+        v.translateY = v.getBoundingClientRect().top -
+          this.timerShaftEL?.clientHeight! - this.parentElement!.previousElementSibling!.clientHeight - 1;
       } else {
         v.translateY = v.offsetTop - this.rowsPaneEL!.scrollTop;
       }
@@ -1058,6 +1048,7 @@ export class SpSystemTrace extends BaseElement {
     SnapshotStruct.hoverSnapshotStruct = undefined;
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
     SampleStruct.hoverSampleStruct = undefined;
+    PerfToolStruct.hoverPerfToolStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1088,6 +1079,7 @@ export class SpSystemTrace extends BaseElement {
     LtpoStruct.selectLtpoStruct = undefined;
     HitchTimeStruct.selectHitchTimeStruct = undefined;
     SampleStruct.selectSampleStruct = undefined;
+    PerfToolStruct.selectPerfToolStruct = undefined;
     return this;
   }
 
@@ -1413,7 +1405,7 @@ export class SpSystemTrace extends BaseElement {
           scrollTop: this.rowsEL!.scrollTop,
           favoriteScrollTop: this.favoriteChartListEL!.scrollTop,
         });
-        this.downloadRecordFile(data).then(() => {});
+        this.downloadRecordFile(data).then(() => { });
       }
     });
   }
@@ -2108,9 +2100,9 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
-    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => { });
     if (threadPool) {
-      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => {});
+      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => { });
     }
     this.times.clear();
     resetVSync();

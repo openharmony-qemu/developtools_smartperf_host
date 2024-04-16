@@ -87,6 +87,7 @@ import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruc
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { SpSystemTrace } from '../../SpSystemTrace';
+import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfTool';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -634,6 +635,8 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
+  displayPerfToolsData = (data: PerfToolStruct): void =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
   displayIrqData = (data: IrqStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setIrqData(data);
   displayStartupData = (data: AppStartupStruct, scrollCallback: Function, rowData: any): void =>

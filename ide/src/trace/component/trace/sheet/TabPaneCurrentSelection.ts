@@ -57,6 +57,7 @@ import { queryGpuDur } from '../../../database/sql/Gpu.sql';
 import { queryWakeupListPriority } from '../../../database/sql/Cpu.sql';
 import { TabPaneCurrentSelectionHtml } from './TabPaneCurrentSelection.html';
 import { queryRealTime } from '../../../database/sql/Clock.sql';
+import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfTool';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -536,6 +537,31 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl!.dataSource = list;
     let startTimeAbsolute = (data.startNS || 0) + (window as any).recordStartNS;
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
+  setPerfToolsData(data: PerfToolStruct): void {
+    this.setTableHeight('auto');
+    //Perf Tools info
+    this.tabCurrentSelectionInit('Slice Details');
+    let list: any[] = [];
+    list.push({
+      name: 'Name',
+      value: data.name,
+    });
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startNS || 0),
+    });
+    list.push({
+      name: 'StartTime(Absolute)',
+      value: ((data.startNS || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+    });
+    list.push({
+      name: 'Value',
+      value: Number(data.count),
+    });
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    this.currentSelectionTbl!.dataSource = list;
   }
 
   setMemData(data: ProcessMemStruct): void {

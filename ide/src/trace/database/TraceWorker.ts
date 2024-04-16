@@ -86,8 +86,12 @@ function initWASM() {
       locateFile: (s: any) => {
         return s;
       },
-      print: (line: any) => {},
-      printErr: (line: any) => {},
+      print: (line: any) => {
+        console.log(line);
+      },
+      printErr: (line: any) => {
+        console.error(line);
+      },
       onRuntimeInitialized: () => {
         resolve('ok');
       },
@@ -105,8 +109,12 @@ function initThirdWASM(wasmFunctionName: string) {
       locateFile: (s: any) => {
         return s;
       },
-      print: (line: any) => {},
-      printErr: (line: any) => {},
+      print: (line: any) => {
+        console.log(line);
+      },
+      printErr: (line: any) => {
+        console.error(line);
+      },
       onRuntimeInitialized: () => {},
       onAbort: () => {},
     });

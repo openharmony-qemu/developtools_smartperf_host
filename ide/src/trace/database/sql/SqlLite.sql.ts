@@ -1409,3 +1409,14 @@ export const queryStateFreqList = (startTime: number, endTime: number, cpu: numb
     $cpu: cpu,
   });
 };
+export const queryPerfOutputData = (): Promise<Array<any>> =>
+  query(
+    'queryPerfOutputData',
+    `SELECT name, ts FROM callstack where name like '%PERFORMANCE_DATA%'`,
+  );
+
+  export const queryPerfToolsDur = (): Promise<Array<any>> =>
+  query(
+    'queryPerfToolsDur',
+    `SELECT name, ts, dur FROM callstack where name = 'H:GRAB'`,
+  );

@@ -64,6 +64,7 @@ import { hitchTimeRender } from './ProcedureWorkerHitchTime';
 import { LtpoRender } from './ProcedureWorkerLTPO';
 import { BinderRender } from './procedureWorkerBinder';
 import { SampleRender } from './ProcedureWorkerBpftrace';
+import {PerfToolRender } from './ProcedureWorkerPerfTool'
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -125,6 +126,7 @@ export let renders: any = {
   'freq-extend': new FreqExtendRender(),
   binder: new BinderRender(),
   sample: new SampleRender(),
+  perfTool: new PerfToolRender(),
 };
 
 function match(type: string, req: RequestMessage): void {
