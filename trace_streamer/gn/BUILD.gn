@@ -191,7 +191,7 @@ config("default") {
     cflags += [ "-D is_linux" ]
   }
   if (is_mac) {
-    cflags += [ "-D is_mac"]
+    cflags += [ "-D is_mac" ]
   }
 }
 
