@@ -21,7 +21,7 @@ import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogi
 import { resizeObserver } from '../SheetUtils';
 import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
-import {queryGpuDataTab} from "../../../../database/sql/Gpu.sql";
+import { queryGpuDataTab } from '../../../../database/sql/Gpu.sql';
 
 interface Graph {
   startTs: number;

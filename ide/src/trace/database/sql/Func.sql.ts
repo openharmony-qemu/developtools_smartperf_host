@@ -115,62 +115,46 @@ export const queryAllFuncNames = (): Promise<Array<any>> => {
   );
 };
 
-export const queryProcessAsyncFunc = (_funName?: string): Promise<Array<any>> =>
+export const queryProcessAsyncFunc = (traceRange: { startTs: number; endTs: number }): Promise<Array<any>> =>
   query(
     'queryProcessAsyncFunc',
-    `
-select tid,
-    P.pid,
-    A.name as threadName,
-    is_main_thread,
-    c.callid as track_id,
-    c.ts-D.start_ts as startTs,
-    c.dur,
-    c.name as funName,
-    c.parent_id,
-    c.id,
-    c.cookie,
-    c.depth,
-    c.argsetid
-from thread A,trace_range D
-left join callstack C on A.id = C.callid
-left join process P on P.id = A.ipid
-where startTs not null and cookie not null ${_funName ? 'funName=$funName' : ''};`,
-    {
-      funName: _funName,
-    }
-  );
-
-export const getFunDataByTid = (tid: number, ipid: number): Promise<Array<FuncStruct>> =>
-  query(
-    'getFunDataByTid',
-    `
-    select 
-    c.ts-D.start_ts as startTs,
-    c.dur,
-    c.name as funName,
-    c.argsetid,
-    c.depth,
-    c.id as id,
-    A.itid as itid,
-    A.ipid as ipid
-from thread A,trace_range D
-left join callstack C on A.id = C.callid
-where startTs not null and c.cookie is null and tid = $tid and A.ipid = $ipid`,
-    { $tid: tid, $ipid: ipid }
+    `select tid,
+        P.pid,
+        c.ts-${traceRange.startTs} as startTs,
+        c.dur,
+        c.id,
+        c.depth
+    from thread A
+    left join callstack C on A.id = C.callid
+    left join process P on P.id = A.ipid
+    where startTs not null and cookie not null;`,
+    {}
   );
 
 export const getMaxDepthByTid = (): Promise<Array<any>> =>
   query(
     'getMaxDepthByTid',
-    `
-    select
-tid,
-ipid,
-    MAX(c.depth + 1) as maxDepth
-from thread A
-left join callstack C on A.id = C.callid
-where c.ts not null and c.cookie is null group by tid,ipid`,
+    `SELECT 
+      tid,
+      ipid,
+      maxDepth 
+    FROM
+      thread T
+      LEFT JOIN (
+      SELECT
+        callid,
+        MAX( c.depth + 1 ) AS maxDepth 
+      FROM
+        callstack C 
+      WHERE
+        c.ts IS NOT NULL 
+        AND c.cookie IS NULL 
+      GROUP BY
+        callid 
+      ) C ON T.id = C.callid 
+    WHERE
+      maxDepth NOT NULL
+`,
     {}
   );
 
@@ -233,13 +217,10 @@ export const queryFuncRowData = (funcName: string, tIds: number): Promise<Array<
     { $search: funcName }
   );
 
-  export const fuzzyQueryFuncRowData = (
-    funcName: string,
-    tIds: number
-  ): Promise<Array<SearchFuncBean>> =>
-    query(
-      'fuzzyQueryFuncRowData',
-      `select 
+export const fuzzyQueryFuncRowData = (funcName: string, tIds: number): Promise<Array<SearchFuncBean>> =>
+  query(
+    'fuzzyQueryFuncRowData',
+    `select 
         c.name as funName,
         c.ts - r.start_ts as startTime,
         c.ts - r.start_ts + c.dur as endTime,
@@ -261,8 +242,8 @@ export const queryFuncRowData = (funcName: string, tIds: number): Promise<Array<
       and 
         t.tid = ${tIds} 
               `,
-      { $search: funcName }
-    );
+    { $search: funcName }
+  );
 
 export const getTabSlicesAsyncFunc = (
   asyncNames: Array<string>,

@@ -1,17 +1,17 @@
 /*
-* Copyright (C) 2022 Huawei Device Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { SelectionParam } from '../../../../bean/BoxSelection';
@@ -219,7 +219,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
 
   private buildTreeTblNodes(eventTreeNodes: HiSysEventStruct[]): HiSysEventTreeNode[] {
     let id = 0;
-    let root: HiSysEventTreeNode = {id: id, depth: 0, children: [], summaryName: '', count: 0};
+    let root: HiSysEventTreeNode = { id: id, depth: 0, children: [], summaryName: '', count: 0 };
     eventTreeNodes.forEach((item) => {
       id++;
       let levelNode = root.children.find((node) => node.summaryName === item.level);
@@ -227,7 +227,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
         levelNode.count++;
       } else {
         id++;
-        levelNode = {id: id, depth: 0, children: [], summaryName: item.level, count: 1};
+        levelNode = { id: id, depth: 0, children: [], summaryName: item.level, count: 1 };
         root.children.push(levelNode);
       }
       let domainNode = levelNode.children.find((node) => node.summaryName === item.domain);
@@ -235,7 +235,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
         domainNode.count++;
       } else {
         id++;
-        domainNode = {id: id, depth: 1, children: [], summaryName: item.domain, count: 1};
+        domainNode = { id: id, depth: 1, children: [], summaryName: item.domain, count: 1 };
         levelNode.children.push(domainNode);
       }
       let eventNameNode = domainNode.children.find((node) => node.summaryName === item.eventName);
@@ -243,7 +243,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
         eventNameNode.count++;
       } else {
         id++;
-        eventNameNode = {id: id, depth: 2, children: [], summaryName: item.eventName, count: 1};
+        eventNameNode = { id: id, depth: 2, children: [], summaryName: item.eventName, count: 1 };
         domainNode.children.push(eventNameNode);
       }
       root.count++;

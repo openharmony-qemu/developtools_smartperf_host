@@ -18,7 +18,6 @@
 
 #include "binder_filter.h"
 #include "htrace_cpu_detail_parser.h"
-#include "htrace_event_parser.h"
 #include "trace_plugin_result.pb.h"
 #include "trace_plugin_result.pbreader.h"
 #include "trace_streamer_selector.h"

@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-const initHtmlStyle:string = `
+const initHtmlStyle: string = `
     <style>
             :host{
                 user-select: none;

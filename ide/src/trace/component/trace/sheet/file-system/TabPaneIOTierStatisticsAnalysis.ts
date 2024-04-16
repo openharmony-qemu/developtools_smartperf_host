@@ -78,7 +78,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       for (let ioTable of this.ioTableArray) {
         initSort(ioTable!, this.ioSortColumn, this.ioSortType);
       }
-    }   
+    }
     this.reset(this.ioTierTableProcess!, false);
     this.hideProcessCheckBox!.checked = false;
     this.hideThreadCheckBox!.checked = false;
@@ -108,7 +108,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         this.disableCheckBox();
         this.getIOTierProcess(this.processData);
       }
-    );   
+    );
   }
 
   initElements(): void {
@@ -188,7 +188,12 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         this.hideProcess();
       } else {
         this.reset(this.ioTierTableProcess!, false);
-        this.showAssignLevel(this.ioTierTableProcess!, this.ioTierTableThread!, 1, this.tierTableType!.recycleDataSource);
+        this.showAssignLevel(
+          this.ioTierTableProcess!,
+          this.ioTierTableThread!,
+          1,
+          this.tierTableType!.recycleDataSource
+        );
         this.getIOTierProcess(this.processData);
       }
     });
@@ -258,7 +263,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
           tierTable.style.display = 'grid';
           tierTable!.removeAttribute('hideDownload');
         } else {
-          tierTable!.style.display = 'none'; 
+          tierTable!.style.display = 'none';
           tierTable.setAttribute('hideDownload', '');
         }
       }
@@ -274,7 +279,12 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.tableFunction!.recycleDataSource = [];
   }
 
-  private showAssignLevel(showIoTable: LitTable, hideIoTable: LitTable, currentLevel: number,currentLevelData: Array<any>): void {
+  private showAssignLevel(
+    showIoTable: LitTable,
+    hideIoTable: LitTable,
+    currentLevel: number,
+    currentLevelData: Array<any>
+  ): void {
     showIoTable!.style.display = 'grid';
     hideIoTable!.style.display = 'none';
     hideIoTable.setAttribute('hideDownload', '');
@@ -287,7 +297,12 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.iOTierStatisticsAnalysisBack!.addEventListener('click', () => {
       if (this.tabName!.textContent === 'Statistic By type AllDuration') {
         this.iOTierStatisticsAnalysisBack!.style.visibility = 'hidden';
-        this.showAssignLevel(this.ioTierTableProcess!, this.tierTableType!, 0, this.ioTierTableProcess!.recycleDataSource);
+        this.showAssignLevel(
+          this.ioTierTableProcess!,
+          this.tierTableType!,
+          0,
+          this.ioTierTableProcess!.recycleDataSource
+        );
         this.processPieChart();
       } else if (this.tabName!.textContent === 'Statistic By Thread AllDuration') {
         if (this.hideProcessCheckBox?.checked) {
@@ -305,7 +320,12 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
           this.showAssignLevel(this.tierTableType!, this.ioTierTableSo!, 1, this.tierTableType!.recycleDataSource);
           this.typePieChart();
         } else {
-          this.showAssignLevel(this.ioTierTableThread!, this.ioTierTableSo!, 2, this.ioTierTableThread!.recycleDataSource);
+          this.showAssignLevel(
+            this.ioTierTableThread!,
+            this.ioTierTableSo!,
+            2,
+            this.ioTierTableThread!.recycleDataSource
+          );
           this.threadPieChart();
         }
       } else if (this.tabName!.textContent === 'Statistic By Function AllDuration') {
@@ -846,7 +866,9 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       for (let item of value) {
         dur += item.dur;
         tName = item.threadName =
-          item.threadName === null || item.threadName === undefined ? `Thread(${item.tid})` : `${item.threadName}(${item.tid})`;
+          item.threadName === null || item.threadName === undefined
+            ? `Thread(${item.tid})`
+            : `${item.threadName}(${item.tid})`;
       }
       const threadData = {
         tableName: tName,

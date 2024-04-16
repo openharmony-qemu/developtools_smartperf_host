@@ -23,16 +23,16 @@
 #include "file.h"
 #include "proto_reader_help.h"
 #include "pbreader_file_header.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-class HtraceClockDetailParser : public EventParserBase {
+class PbreaderClockDetailParser : public EventParserBase {
 public:
-    HtraceClockDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
-    ~HtraceClockDetailParser();
+    PbreaderClockDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
+    ~PbreaderClockDetailParser();
     void Parse(const ProtoReader::BytesView& tracePacket) const;
     void Parse(const ProfilerTraceFileHeader* profilerTraceFileHeader) const;
 

@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {query} from "../SqlLite";
-import {CounterStruct} from "../ui-worker/ProduceWorkerSdkCounter";
-import {CounterSummary, SdkSliceSummary} from "../../bean/SdkSummary";
-import {SdkSliceStruct} from "../ui-worker/ProduceWorkerSdkSlice";
+import { query } from '../SqlLite';
+import { CounterStruct } from '../ui-worker/ProduceWorkerSdkCounter';
+import { CounterSummary, SdkSliceSummary } from '../../bean/SdkSummary';
+import { SdkSliceStruct } from '../ui-worker/ProduceWorkerSdkSlice';
 
 export const querySdkCount = (sql: string, componentId: number, args?: any): Promise<Array<any>> =>
   query('querySdkCount', sql, args, 'exec-sdk-' + componentId);

@@ -102,6 +102,7 @@ import {
   spSystemTraceInit,
   spSystemTraceInitElement,
   spSystemTraceInitPointToEvent,
+  spSystemTraceParentRowSticky,
   spSystemTraceShowStruct,
 } from './SpSystemTrace.init';
 import {
@@ -121,6 +122,7 @@ import spSystemTraceOnClickHandler, {
 } from './SpSystemTrace.event';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { readTraceFileBuffer } from '../SpApplicationPublicFunc';
+import { PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -210,6 +212,7 @@ export class SpSystemTrace extends BaseElement {
   _flagList: Array<any> = [];
   static currentStartTime: number = 0;
   static retargetIndex: number = 0;
+  private prevScrollY: number = 0;
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -506,6 +509,8 @@ export class SpSystemTrace extends BaseElement {
   top: number = 0;
   handler: any = undefined;
   rowsElOnScroll = (e: any): void => {
+    const currentScrollY = e.target.scrollTop;
+    const deltaY = currentScrollY - this.prevScrollY;
     this.linkNodes.forEach((itln) => {
       if (itln[0].rowEL.collect) {
         if (this.timerShaftEL?._checkExpand) {
@@ -539,6 +544,8 @@ export class SpSystemTrace extends BaseElement {
       requestAnimationFrame(() => this.refreshCanvas(false));
     }, 200);
     requestAnimationFrame(() => this.refreshCanvas(false));
+    spSystemTraceParentRowSticky(this, deltaY);
+    this.prevScrollY = currentScrollY;
   };
 
   private scrollTimer: any;
@@ -576,19 +583,8 @@ export class SpSystemTrace extends BaseElement {
     //draw trace row
     this.visibleRows.forEach((v, i) => {
       if (v.collect) {
-        if (this.timerShaftEL?._checkExpand) {
-          if (SpSystemTrace.isHiddenMenu) {
-            v.translateY = v.getBoundingClientRect().top - 195 + this.timerShaftEL.usageFoldHeight! + 48;
-          } else {
-            v.translateY = v.getBoundingClientRect().top - 195 + this.timerShaftEL.usageFoldHeight!;
-          }
-        } else {
-          if (SpSystemTrace.isHiddenMenu) {
-            v.translateY = v.getBoundingClientRect().top - 195 + 48;
-          } else {
-            v.translateY = v.getBoundingClientRect().top - 195;
-          }
-        }
+        v.translateY = v.getBoundingClientRect().top -
+          this.timerShaftEL?.clientHeight! - this.parentElement!.previousElementSibling!.clientHeight - 1;
       } else {
         v.translateY = v.offsetTop - this.rowsPaneEL!.scrollTop;
       }
@@ -852,12 +848,13 @@ export class SpSystemTrace extends BaseElement {
    * @param type 标记类型（卡尺和旗子）
    * @param direction 跳转方向（前一个/后一个）
    */
-  MarkJump(list: Array<any>, type: string, direction: string): void {
+  MarkJump(list: Array<any>, type: string, direction: string, ev: KeyboardEvent): void {
     this.traceSheetEL = this.shadowRoot?.querySelector('.trace-sheet');
     let find = list.find((it) => it.selected);
     if (!find) {
       // 如果当前没有选中的，就选中第一个
       list.forEach((it) => (it.selected = false));
+      this.ifSliceInView(list[0], type, ev);
       list[0].selected = true;
     } else {
       for (let i = 0; i < list.length; i++) {
@@ -867,20 +864,24 @@ export class SpSystemTrace extends BaseElement {
           if (direction === 'previous') {
             if (i === 0) {
               // 如果当前选中的是第一个，就循环到最后一个上
+              this.ifSliceInView(list[list.length - 1], type, ev);
               list[list.length - 1].selected = true;
               break;
             } else {
               // 选中当前的上一个
+              this.ifSliceInView(list[i - 1], type, ev);
               list[i - 1].selected = true;
               break;
             }
           } else if (direction === 'next') {
             if (i === list.length - 1) {
               // 如果当前选中的是最后一个，就循环到第一个上
+              this.ifSliceInView(list[0], type, ev);
               list[0].selected = true;
               break;
             } else {
               // 选中当前的下一个
+              this.ifSliceInView(list[i + 1], type, ev);
               list[i + 1].selected = true;
               break;
             }
@@ -907,6 +908,23 @@ export class SpSystemTrace extends BaseElement {
           currentPane!.setTableSelection(index + 1);
         }
       });
+    }
+  }
+
+  ifSliceInView(data: any, type: string, ev: KeyboardEvent) {
+    let timeRangeEndNS = this.timerShaftEL?.getRangeRuler()?.range.endNS;
+    let timeRangeStartNS = this.timerShaftEL?.getRangeRuler()?.range.startNS;
+    if (type === 'flag') {
+      data.startTime = data.time;
+      data.endTime = data.time;
+    }
+    let endTime = data.endTime;
+    let startTime = data.startTime;
+    if (endTime > timeRangeEndNS! || startTime < timeRangeStartNS!) {
+      this.timerShaftEL!.documentOnKeyPress(ev, data);
+      setTimeout(() => {
+        this.timerShaftEL!.documentOnKeyUp(ev);
+      }, 1000);
     }
   }
 
@@ -1030,6 +1048,7 @@ export class SpSystemTrace extends BaseElement {
     SnapshotStruct.hoverSnapshotStruct = undefined;
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
     SampleStruct.hoverSampleStruct = undefined;
+    PerfToolStruct.hoverPerfToolStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1060,6 +1079,7 @@ export class SpSystemTrace extends BaseElement {
     LtpoStruct.selectLtpoStruct = undefined;
     HitchTimeStruct.selectHitchTimeStruct = undefined;
     SampleStruct.selectSampleStruct = undefined;
+    PerfToolStruct.selectPerfToolStruct = undefined;
     return this;
   }
 
@@ -1385,7 +1405,7 @@ export class SpSystemTrace extends BaseElement {
           scrollTop: this.rowsEL!.scrollTop,
           favoriteScrollTop: this.favoriteChartListEL!.scrollTop,
         });
-        this.downloadRecordFile(data).then(() => {});
+        this.downloadRecordFile(data).then(() => { });
       }
     });
   }
@@ -2080,14 +2100,14 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
-    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => { });
     if (threadPool) {
-      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => {});
+      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => { });
     }
     this.times.clear();
     resetVSync();
     SpSystemTrace.keyPathList = [];
-    TabPaneCurrentSelection.isTransformed = false;
+    Utils.isTransformed = false;
   }
 
   init = async (

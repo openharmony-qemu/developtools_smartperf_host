@@ -22,9 +22,10 @@ import {
   queryHeapFile,
   queryHeapInfo,
   queryHeapNode,
-  queryHeapSample, queryHeapString
-} from "../trace/database/sql/SqlLite.sql";
-import {queryHeapFunction, queryHeapTraceNode} from "../trace/database/sql/Func.sql";
+  queryHeapSample,
+  queryHeapString,
+} from '../trace/database/sql/SqlLite.sql';
+import { queryHeapFunction, queryHeapTraceNode } from '../trace/database/sql/Func.sql';
 
 export class LoadDatabase {
   private static loadDB: LoadDatabase;

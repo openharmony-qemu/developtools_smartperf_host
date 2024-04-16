@@ -20,8 +20,12 @@ function getBusyTime(
   leftStartNs: number,
   rightEndNs: number
 ) {
-  if (initFreqResult.length == 0) { return };
-  if (initStateResult.length == 0) { return };
+  if (initFreqResult.length == 0) {
+    return;
+  }
+  if (initStateResult.length == 0) {
+    return;
+  }
   //处理被框选的freq的第一个数据
   let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
   if (includeData !== 0) {
@@ -59,7 +63,12 @@ function getBusyTime(
   handleBusyTimeLogic(initFreqResult, initStateResult, sampleMap, startNS);
 }
 
-function handleBusyTimeLogic(initFreqResult: Array<any>, initStateResult: Array<any>, sampleMap: Map<any, any>, startNS: number) {
+function handleBusyTimeLogic(
+  initFreqResult: Array<any>,
+  initStateResult: Array<any>,
+  sampleMap: Map<any, any>,
+  startNS: number
+) {
   let freqIndex = 1;
   let stateIndex = 1;
   let beginNs = startNS;

@@ -27,7 +27,6 @@
 #include "ipi.pbreader.h"
 #include "irq_filter.h"
 #include "irq.pbreader.h"
-#include "log.h"
 #include "measure_filter.h"
 #include "oom.pbreader.h"
 #include "power.pbreader.h"
@@ -447,7 +446,7 @@ bool HtraceEventParser::BinderTractionAllocBufEvent(const EventInfo& event) cons
     uint64_t dataSize = msg.data_size();
     uint64_t offsetsSize = msg.offsets_size();
     streamFilters_->binderFilter_->TransactionAllocBuf(event.timeStamp_, event.pid_, dataSize, offsetsSize);
-    TS_LOGD("dataSize:%lu, offsetSize:%lu", dataSize, offsetsSize);
+    TS_LOGD("dataSize:%" PRIu64 ", offsetSize:%" PRIu64 "", dataSize, offsetsSize);
     return true;
 }
 bool HtraceEventParser::BinderTractionEvent(const EventInfo& event) const

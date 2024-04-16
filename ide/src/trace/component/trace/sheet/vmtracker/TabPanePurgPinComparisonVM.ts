@@ -21,7 +21,7 @@ import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
 import { CompareStruct, compare, resizeObserverFromMemory } from '../SheetUtils';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
-import {queryProcessPurgeableSelectionTab} from "../../../../database/sql/ProcessThread.sql";
+import { queryProcessPurgeableSelectionTab } from '../../../../database/sql/ProcessThread.sql';
 @element('tabpane-purgeable-pin-comparison-vm')
 export class TabPanePurgPinComparisonVM extends BaseElement {
   private purgeablePinTables: LitTable | null | undefined;

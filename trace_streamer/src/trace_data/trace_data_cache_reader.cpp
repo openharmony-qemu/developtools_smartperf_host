@@ -14,7 +14,6 @@
  */
 
 #include "trace_data_cache_reader.h"
-#include "log.h"
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;

@@ -798,8 +798,10 @@
 
       <p class="fontColor">
         Native
-        Memory分为三级统计，分别按照内存分配的类型(Alloc/Mmap)，lib库，函数进行统计分析。其中lib跟函数为每一条调用栈，从栈顶往下查找，非musl库与c++库的第一条函数及其lib为每次分配归属的函数及lib库。<br />
-        点击Analysis的Tab页，先以内存分配的类型去统计。<br />
+        Memory分为三级统计，分别按照内存分配的类型(Alloc/Mmap)，lib库，函数进行统计分析。其中lib跟函数为每一条调用栈，从栈顶往下查找，非musl库与c++库的第一条函数及其lib为每次分配归属的函数及lib库。
+        <br />
+        点击Analysis的Tab页，先以内存分配的类型去统计。
+        <br />
         <img src="../figures/ImportSo/Native_import_all.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -853,7 +855,8 @@ Transient：框选区域内释放的大小。
         </li>
       </ul>
       <p class="fontColor">
-        以lib库去统计，如图显示的是AllocEvent的so占比的饼图和Table表。<br />
+        以lib库去统计，如图显示的是AllocEvent的so占比的饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/Native_import_so_Existing.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -907,7 +910,8 @@ Transient：框选区域内释放的大小。
         </li>
       </ul>
       <p class="fontColor">
-        以函数去统计，如图显示的是AllocEvent/libmali-bifrost-g52-g2p0-ohos.so的函数占比的饼图和Table表。<br />
+        以函数去统计，如图显示的是AllocEvent/libmali-bifrost-g52-g2p0-ohos.so的函数占比的饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/Native_import_so_function.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -963,8 +967,10 @@ Transient：框选区域内释放的大小。
       <h2 class="mume-header fontColor">Hiperf文件的不同库函数占比</h2>
 
       <p class="fontColor">
-        Hiperf分为四级统计，分别按照进程，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈的栈顶函数及其lib。<br />
-        点击Analysis的Tab页，先以进程去统计。<br />
+        Hiperf分为四级统计，分别按照进程，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈的栈顶函数及其lib。
+        <br />
+        点击Analysis的Tab页，先以进程去统计。
+        <br />
         <img src="../figures/ImportSo/Hiperf_import_all.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -988,7 +994,8 @@ Weight：该进程下的调用方法的执行次数。
         </li>
       </ul>
       <p class="fontColor">
-        以线程统计，如图显示的是hiperf进程下的线程的饼图和Table表。<br />
+        以线程统计，如图显示的是hiperf进程下的线程的饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/Hiperf_import_thread.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1012,7 +1019,8 @@ Weight：该线程下的调用方法的执行次数。
         </li>
       </ul>
       <p class="fontColor">
-        以lib库统计，如图显示的是hiperf线程下的各so占比饼图和Table表。<br />
+        以lib库统计，如图显示的是hiperf线程下的各so占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/Hiperf_import_lib.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1036,7 +1044,8 @@ Weight：该so的调用方法的执行次数。
         </li>
       </ul>
       <p class="fontColor">
-        以函数统计，如图显示的是ld-musl-aarch64.so.1下的各函数占比饼图和Table表。<br />
+        以函数统计，如图显示的是ld-musl-aarch64.so.1下的各函数占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/Hiperf_import_Fuc.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1062,8 +1071,10 @@ Weight：该so的调用方法的执行次数。
       <h2 class="mume-header fontColor">FileSystem文件的不同库函数占比</h2>
 
       <p class="fontColor">
-        FileSystem分为五级统计，分别按照进程，系统调用类型，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈，从栈顶往下查找，非musl库与c++库的第一条函数及其lib为每次分配归属的函数及lib库。<br />
-        点击Analysis的Tab页，先以进程去统计。<br />
+        FileSystem分为五级统计，分别按照进程，系统调用类型，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈，从栈顶往下查找，非musl库与c++库的第一条函数及其lib为每次分配归属的函数及lib库。
+        <br />
+        点击Analysis的Tab页，先以进程去统计。
+        <br />
         <img src="../figures/ImportSo/filesystem_import_process.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1087,7 +1098,8 @@ Duration：总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以系统调用类型统计，如图显示的是grep进程下的Read和Write系统调用的时长占比饼图和Table表。<br />
+        以系统调用类型统计，如图显示的是grep进程下的Read和Write系统调用的时长占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/filesystem_import_Type.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1111,7 +1123,8 @@ Duration：系统调用的总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以线程统计，如图显示的是系统调用是Read类型的线程的占比饼图和Table表。<br />
+        以线程统计，如图显示的是系统调用是Read类型的线程的占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/filesystem_import_thread.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1135,7 +1148,8 @@ Duration：该线程的系统调用的总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以lib库统计，如图显示toybox的lib库的占比饼图和Table表。<br />
+        以lib库统计，如图显示toybox的lib库的占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/filesystem_import_lib.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1159,7 +1173,8 @@ Duration：该so的系统调用的总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以函数统计，如图显示0x558111afbc (toybox)的函数占比饼图和Table表。<br />
+        以函数统计，如图显示0x558111afbc (toybox)的函数占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/filesystem_import_func.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1185,8 +1200,10 @@ Duration：该函数的系统调用的总时长。
       <h2 class="mume-header fontColor">Bio文件的不同库函数占比</h2>
 
       <p class="fontColor">
-        Bio分为五级统计，分别按照进程，系统调用类型，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈，从栈顶往下查找，非submit_bio第一条函数及其lib为每次分配归属的函数及lib库。<br />
-        点击Analysis的Tab页，先以进程去统计。<br />
+        Bio分为五级统计，分别按照进程，系统调用类型，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈，从栈顶往下查找，非submit_bio第一条函数及其lib为每次分配归属的函数及lib库。
+        <br />
+        点击Analysis的Tab页，先以进程去统计。
+        <br />
         <img src="../figures/ImportSo/bio_import_process.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1210,7 +1227,8 @@ Duration：总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以系统调用类型统计，如图显示的是jbd2/mmcblk0p11进程下的DATA_WRITE系统调用的时长占比饼图和Table表。<br />
+        以系统调用类型统计，如图显示的是jbd2/mmcblk0p11进程下的DATA_WRITE系统调用的时长占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/bio_import_Type.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1234,7 +1252,8 @@ Duration：系统调用的总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以线程统计，如图显示的是系统调用是DATA_WRITE类型的线程的占比饼图和Table表。<br />
+        以线程统计，如图显示的是系统调用是DATA_WRITE类型的线程的占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/bio_import_thread.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1258,7 +1277,8 @@ Duration：该线程的系统调用的总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以lib库统计，如图显示kallsyms的lib库的占比饼图和Table表。<br />
+        以lib库统计，如图显示kallsyms的lib库的占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/bio_import_lib.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1282,7 +1302,8 @@ Duration：该so的系统调用的总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以函数统计，如图显示submit_bh的函数占比饼图和Table表。<br />
+        以函数统计，如图显示submit_bh的函数占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/bio_import_func.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1309,8 +1330,10 @@ Duration：该函数的系统调用的总时长。
 
       <p class="fontColor">
         Page
-        Fault分为五级统计，分别按照进程，系统调用类型，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈，从栈顶往下查找，非musl库与c++库的第一条函数及其lib为每次分配归属的函数及lib库。<br />
-        点击Analysis的Tab页，先以进程去统计。<br />
+        Fault分为五级统计，分别按照进程，系统调用类型，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈，从栈顶往下查找，非musl库与c++库的第一条函数及其lib为每次分配归属的函数及lib库。
+        <br />
+        点击Analysis的Tab页，先以进程去统计。
+        <br />
         <img src="../figures/ImportSo/pagefault_import_process.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1334,7 +1357,8 @@ Duration：总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以系统调用类型统计，如图显示的是1.ui进程下的File Backed In和Copy On Writer系统调用的时长占比饼图和Table表。<br />
+        以系统调用类型统计，如图显示的是1.ui进程下的File Backed In和Copy On Writer系统调用的时长占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/pagefault_import_Type.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1358,7 +1382,8 @@ Duration：系统调用的总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以线程统计，如图显示的是系统调用是File Backed In类型的线程的占比饼图和Table表。<br />
+        以线程统计，如图显示的是系统调用是File Backed In类型的线程的占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/pagefault_import_thread.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1382,7 +1407,8 @@ Duration：该线程的系统调用的总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以lib库统计，如图显示各lib库的占比饼图和Table表。<br />
+        以lib库统计，如图显示各lib库的占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/pagefault_import_lib.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1406,7 +1432,8 @@ Duration：该so的系统调用的总时长。
         </li>
       </ul>
       <p class="fontColor">
-        以函数统计，如图显示各函数占比饼图和Table表。<br />
+        以函数统计，如图显示各函数占比饼图和Table表。
+        <br />
         <img src="../figures/ImportSo/pagefault_import_func.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">

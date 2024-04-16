@@ -16,7 +16,7 @@
 import { element } from '../BaseElement';
 import { LitTabpane } from './lit-tabpane';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
-import {LitTabsHtml} from "./lit-tabs.html";
+import { LitTabsHtml } from './lit-tabs.html';
 
 @element('lit-tabs')
 export class LitTabs extends HTMLElement {
@@ -211,8 +211,8 @@ export class LitTabs extends HTMLElement {
     }).observe(this.shadowRoot!.querySelector('#tab-filling')!);
   }
 
-  setItemNode(elements: Element[] | undefined ):void{
-    let navHtml:string = '';
+  setItemNode(elements: Element[] | undefined): void {
+    let navHtml: string = '';
     elements
       ?.map((it) => it as LitTabpane)
       .forEach((a) => {
@@ -230,9 +230,7 @@ export class LitTabs extends HTMLElement {
                     </div>`;
         } else {
           if (a.key === this.activekey) {
-            navHtml += `<div class="nav-item" data-key="${a.key}" data-selected ${
-              a.closeable ? 'data-closeable' : ''
-            }>
+            navHtml += `<div class="nav-item" data-key="${a.key}" data-selected ${a.closeable ? 'data-closeable' : ''}>
                         ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``}
                         <span>${a.tab}</span>
                         <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
@@ -270,7 +268,7 @@ export class LitTabs extends HTMLElement {
       }
       if (a.getAttribute('data-key') === key) {
         a.setAttribute('data-selected', 'true');
-        this.byKeyIsValid(isValid,a)
+        this.byKeyIsValid(isValid, a);
       } else {
         a.removeAttribute('data-selected');
       }
@@ -288,7 +286,7 @@ export class LitTabs extends HTMLElement {
     });
   }
 
-  byKeyIsValid(isValid:boolean,a:Element):void{
+  byKeyIsValid(isValid: boolean, a: Element): void {
     if (isValid) {
       let span = a.querySelector('span') as HTMLSpanElement;
       let title = span.innerText;

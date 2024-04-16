@@ -11,12 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  cpuList,
-  processList,
-  sliceList,
-  threadStateList
-} from './utils/AllMemoryCache';
+import { cpuList, processList, sliceList, threadStateList } from './utils/AllMemoryCache';
 
 export const sliceSqlMem = (args: any): string => {
   return `
@@ -53,7 +48,7 @@ export function sliceReceiver(data: any, proc: Function): void {
         }
         cpuList.get(slice.cpu)!.push(slice);
       } else {
-        cpuList.set(slice.cpu,[slice]);
+        cpuList.set(slice.cpu, [slice]);
       }
     }
     if (slice.pid >= 0 && slice.cpu !== null && slice.cpu !== undefined) {
@@ -108,7 +103,8 @@ function postMsg(data: any, res: any): void {
       results: res,
       len: res.length,
       transfer: false,
-    }, []
+    },
+    []
   );
 }
 
@@ -307,4 +303,3 @@ function setSPTData(group: any, slice: any, item: any): void {
     });
   }
 }
-

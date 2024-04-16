@@ -27,10 +27,10 @@ import {
   nativeMemoryChartDataCacheSender,
   nativeMemoryChartDataSender,
 } from '../../database/data-trafic/NativeMemoryDataSender';
-import {queryNativeHookProcess, queryNativeHookStatisticsCount} from "../../database/sql/NativeHook.sql";
-import {queryHeapGroupByEvent} from "../../database/sql/SqlLite.sql";
-import {queryNativeMemoryRealTime} from "../../database/sql/Memory.sql";
-import {queryBootTime} from "../../database/sql/Clock.sql";
+import { queryNativeHookProcess, queryNativeHookStatisticsCount } from '../../database/sql/NativeHook.sql';
+import { queryHeapGroupByEvent } from '../../database/sql/SqlLite.sql';
+import { queryNativeMemoryRealTime } from '../../database/sql/Memory.sql';
+import { queryBootTime } from '../../database/sql/Clock.sql';
 
 export class SpNativeMemoryChart {
   static EVENT_HEAP: Array<NativeEventHeap> = [];

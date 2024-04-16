@@ -42,6 +42,13 @@ export class ChartStruct extends BaseStruct {
   symbol: string = '';
   lib: string = '';
 
+  id?: string;
+  eventType?: string;
+  parentId?: string;
+  self?: string; // only perf
+  eventPercent?: string; // only perf
+  title?: string;
+
   size: number = 0; // 实际size
   count: number = 0; // 实际count
   eventCount: number = 0;
@@ -168,9 +175,16 @@ export function draw(canvasCtx: CanvasRenderingContext2D, node: ChartStruct): vo
     } else {
       canvasCtx.fillStyle = '#000';
     }
-    drawString(canvasCtx, node.symbol || '', 5, node.frame, node);
+    drawString(canvasCtx, splitSymbol(node), 5, node.frame, node);
   }
   node.isDraw = true;
+}
+
+function splitSymbol(node: ChartStruct): string {
+  if (node.depth === 0 || node.isProcess || node.isThread) {
+    return node.symbol;
+  }
+  return node.symbol.split(' (')[0];
 }
 
 /**

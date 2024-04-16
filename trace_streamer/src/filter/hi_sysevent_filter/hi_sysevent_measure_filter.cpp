@@ -16,7 +16,6 @@
 #include "hi_sysevent_measure_filter.h"
 #include "clock_filter_ex.h"
 #include "filter_filter.h"
-#include "log.h"
 #include "stat_filter.h"
 #include "system_event_measure_filter.h"
 #include "ts_common.h"

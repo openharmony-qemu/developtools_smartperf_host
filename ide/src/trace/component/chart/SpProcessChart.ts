@@ -21,9 +21,9 @@ import { ProcessRender, ProcessStruct } from '../../database/ui-worker/Procedure
 import { ThreadRender, ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread';
 import { FuncRender, FuncStruct } from '../../database/ui-worker/ProcedureWorkerFunc';
 import { MemRender, ProcessMemStruct } from '../../database/ui-worker/ProcedureWorkerMem';
-import {folderSupplier, folderThreadHandler, getRowContext, rowThreadHandler, SpChartManager} from './SpChartManager';
+import { folderSupplier, folderThreadHandler, getRowContext, rowThreadHandler, SpChartManager } from './SpChartManager';
 import { JankRender, JankStruct } from '../../database/ui-worker/ProcedureWorkerJank';
-import {isFrameContainPoint, ns2xByTimeShaft, PairPoint} from '../../database/ui-worker/ProcedureWorkerCommon';
+import { isFrameContainPoint, ns2xByTimeShaft, PairPoint } from '../../database/ui-worker/ProcedureWorkerCommon';
 import { AppStartupRender, AppStartupStruct } from '../../database/ui-worker/ProcedureWorkerAppStartup';
 import { SoRender, SoStruct } from '../../database/ui-worker/ProcedureWorkerSoInit';
 import { FlagsConfig } from '../SpFlags';
@@ -78,8 +78,16 @@ export class SpProcessChart {
     this.trace = trace;
   }
 
-  initAsyncFuncData = async (): Promise<void> => {
-    let asyncFuncList: any[] = await queryProcessAsyncFunc();
+  initAsyncFuncData = async (traceRange: { startTs: number; endTs: number }): Promise<void> => {
+    const funcNamesArray = await queryAllFuncNames();
+    funcNamesArray.forEach((it) => {
+      this.funcNameMap.set(it.id, it.name);
+    });
+    let asyncFuncList: any[] = await queryProcessAsyncFunc(traceRange);
+    for (const func of asyncFuncList) {
+      func.funName = this.funcNameMap.get(func.id);
+      func.threadName = Utils.THREAD_MAP.get(func.tid);
+    }
     info('AsyncFuncData Count is: ', asyncFuncList!.length);
     this.processAsyncFuncArray = asyncFuncList;
     this.processAsyncFuncMap = Utils.groupBy(asyncFuncList, 'pid');
@@ -113,7 +121,11 @@ export class SpProcessChart {
     });
   };
 
-  private createDeliverInputEventRow(parentRow: TraceRow<any>, key: number,asyncFuncGroups: Array<any>): TraceRow<FuncStruct> {
+  private createDeliverInputEventRow(
+    parentRow: TraceRow<any>,
+    key: number,
+    asyncFuncGroups: Array<any>
+  ): TraceRow<FuncStruct> {
     let funcRow = TraceRow.skeleton<FuncStruct>();
     funcRow.rowId = `${asyncFuncGroups[0].funName}-${key}`;
     funcRow.asyncFuncName = asyncFuncGroups[0].funName;
@@ -125,20 +137,25 @@ export class SpProcessChart {
     funcRow.style.width = '100%';
     funcRow.name = `${asyncFuncGroups[0].funName} ${key}`;
     funcRow.setAttribute('children', '');
-    funcRow.supplierFrame = () => {
-      return processDeliverInputEventDataSender(key, funcRow!).then((res: Array<any>) => {
-        this.deliverInputEventSendCallback(res, funcRow, asyncFuncGroups);
-        return res;
-      });
+    funcRow.supplierFrame = async (): Promise<FuncStruct[]> => {
+      const res = await processDeliverInputEventDataSender(key, funcRow!);
+      this.deliverInputEventSendCallback(res, funcRow, asyncFuncGroups);
+      return res;
     };
     funcRow.findHoverStruct = (): void => {
       FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
-    }
+    };
     funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-    funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {
-      type: `func-${asyncFuncGroups[0].funName}-${key}`,
-    }, funcRow, this.trace);
+    funcRow.onThreadHandler = rowThreadHandler<FuncRender>(
+      'func',
+      'context',
+      {
+        type: `func-${asyncFuncGroups[0].funName}-${key}`,
+      },
+      funcRow,
+      this.trace
+    );
     return funcRow;
   }
   private deliverInputEventSendCallback(res: Array<any>, funcRow: TraceRow<any>, asyncFuncGroups: Array<any>): void {
@@ -147,7 +164,7 @@ export class SpProcessChart {
       left.dur + right.dur;
     let depths: any = [];
     let createDepth = (currentDepth: number, index: number): void => {
-      if (depths[currentDepth] == undefined || !isIntersect(depths[currentDepth], res[index])) {
+      if (depths[currentDepth] === undefined || !isIntersect(depths[currentDepth], res[index])) {
         res[index].depth = currentDepth;
         depths[currentDepth] = res[index];
       } else {
@@ -157,7 +174,7 @@ export class SpProcessChart {
     res.forEach((it, i) => {
       res[i].funName = this.funcNameMap.get(res[i].id!);
       res[i].threadName = Utils.THREAD_MAP.get(res[i].tid!);
-      if (it.dur == -1 || it.dur === null || it.dur === undefined) {
+      if (it.dur === -1 || it.dur === null || it.dur === undefined) {
         it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
         it.flag = 'Did not end';
       }
@@ -171,14 +188,12 @@ export class SpProcessChart {
     }
   }
 
-
-
   async init(): Promise<void> {
     await this.prepareData();
     if (
-      this.eventCountMap['print'] == 0 &&
-      this.eventCountMap['tracing_mark_write'] == 0 &&
-      this.eventCountMap['sched_switch'] == 0
+      this.eventCountMap['print'] === 0 &&
+      this.eventCountMap['tracing_mark_write'] === 0 &&
+      this.eventCountMap['sched_switch'] === 0
     ) {
       return;
     }
@@ -209,10 +224,7 @@ export class SpProcessChart {
     maxValues.forEach((it) => {
       this.filterIdMaxValue.set(it.filterId, it.maxValue);
     });
-    let funcNamesArray = await queryAllFuncNames();
-    funcNamesArray.forEach((it) => {
-      this.funcNameMap.set(it.id, it.name);
-    });
+
     let soInitNamesArray = await queryAllSoInitNames();
     soInitNamesArray.forEach((it) => {
       this.soInitNameMap.set(it.id, it.name);
@@ -254,14 +266,19 @@ export class SpProcessChart {
     info('The amount of initialized process threads data is : ', this.processThreads!.length);
   }
 
-  private async initProcessRow(pArr: Array<any>, allTaskPoolPid: Array<{ pid: number }>, jankArr: Array<number>, rsProcess: Array<any>) {
+  private async initProcessRow(
+    pArr: Array<any>,
+    allTaskPoolPid: Array<{ pid: number }>,
+    jankArr: Array<number>,
+    rsProcess: Array<any>
+  ): Promise<void> {
     for (let i = 0; i < pArr.length; i++) {
       const it = pArr[i];
       if (
-        (this.processThreadDataCountMap.get(it.pid) || 0) == 0 &&
-        (this.processThreadCountMap.get(it.pid) || 0) == 0 &&
-        (this.processFuncDataCountMap.get(it.pid) || 0) == 0 &&
-        (this.processMemDataCountMap.get(it.pid) || 0) == 0
+        (this.processThreadDataCountMap.get(it.pid) || 0) === 0 &&
+        (this.processThreadCountMap.get(it.pid) || 0) === 0 &&
+        (this.processFuncDataCountMap.get(it.pid) || 0) === 0 &&
+        (this.processMemDataCountMap.get(it.pid) || 0) === 0
       ) {
         continue;
       }
@@ -279,29 +296,39 @@ export class SpProcessChart {
           soRow = this.addSoInitRow(processRow, maxSoDepth.maxDepth);
         }
       }
-      /* Janks Frames */
+
       let actualRow: TraceRow<JankStruct> | null = null;
       let expectedRow: TraceRow<JankStruct> | null = null;
-      if (jankArr.indexOf(it.pid) > -1) {
-        expectedRow = this.addExpectedRow(it, processRow, rsProcess);
-        actualRow = this.addActualRow(it, processRow, rsProcess);
-      }
-      this.addProcessRowListener(processRow, actualRow);
       this.renderRow = null;
       if (it.processName === 'render_service') {
         this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow);
         this.addProcessMemInfo(it, processRow);
+        if (jankArr.indexOf(it.pid!) > -1) {
+          expectedRow = this.addExpectedRow(it, processRow, rsProcess);
+          actualRow = this.addActualRow(it, processRow, rsProcess);
+        }
+        this.addProcessRowListener(processRow, actualRow);
         this.addAsyncFunction(it, processRow);
       } else {
+        if (jankArr.indexOf(it.pid!) > -1) {
+          expectedRow = this.addExpectedRow(it, processRow, rsProcess);
+          actualRow = this.addActualRow(it, processRow, rsProcess);
+        }
+        this.addProcessRowListener(processRow, actualRow);
         this.addAsyncFunction(it, processRow);
         this.addProcessMemInfo(it, processRow);
         this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow);
       }
+
       await this.trace.chartManager?.frameTimeChart.initAnimatedScenesChart(processRow, it, expectedRow!, actualRow!);
     }
   }
 
-  private createProcessRow(index: number, process: any, allTaskPoolPid: Array<{ pid: number }>) {
+  private createProcessRow(
+    index: number,
+    process: any,
+    allTaskPoolPid: Array<{ pid: number }>
+  ): TraceRow<ProcessStruct> {
     let processRow = TraceRow.skeleton<ProcessStruct>();
     processRow.rowId = `${process.pid}`;
     processRow.index = index;
@@ -324,14 +351,20 @@ export class SpProcessChart {
     };
     processRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     processRow.selectChangeHandler = this.trace.selectChangeHandler;
-    processRow.onThreadHandler = rowThreadHandler<ProcessRender>('process', 'context', {
-      pid: process.pid,
-      type: `process ${processRow.index} ${process.processName}`
-    }, processRow, this.trace);
+    processRow.onThreadHandler = rowThreadHandler<ProcessRender>(
+      'process',
+      'context',
+      {
+        pid: process.pid,
+        type: `process ${processRow.index} ${process.processName}`,
+      },
+      processRow,
+      this.trace
+    );
     return processRow;
   }
 
-  addProcessRowListener(processRow: TraceRow<ProcessStruct>, actualRow: TraceRow<JankStruct> | null) {
+  addProcessRowListener(processRow: TraceRow<ProcessStruct>, actualRow: TraceRow<JankStruct> | null): void {
     let offsetYTimeOut: any = undefined;
     processRow.addEventListener('expansion-change', (e: any) => {
       JankStruct.delJankLineFlag = false;
@@ -375,9 +408,9 @@ export class SpProcessChart {
     });
   }
 
-  handler1(e: any, linkItem: PairPoint[], actualRow: TraceRow<JankStruct> | null) {
+  handler1(e: any, linkItem: PairPoint[], actualRow: TraceRow<JankStruct> | null): void {
     JankStruct.selectJankStructList?.forEach((selectProcessStruct: any) => {
-      if (e.detail.rowId == selectProcessStruct.pid) {
+      if (e.detail.rowId === selectProcessStruct.pid) {
         JankStruct.selectJankStruct = selectProcessStruct;
         JankStruct.hoverJankStruct = selectProcessStruct;
       }
@@ -387,12 +420,12 @@ export class SpProcessChart {
     this.updatePairPointTranslateY(linkItem[1]);
     linkItem[1].y = linkItem[1].rowEL!.translateY! + linkItem[1].offsetY;
     if (actualRow) {
-      if (linkItem[0].rowEL.rowId == e.detail.rowId) {
+      if (linkItem[0].rowEL.rowId === e.detail.rowId) {
         linkItem[0].x = ns2xByTimeShaft(linkItem[0].ns, this.trace.timerShaftEL!);
         linkItem[0].y = actualRow!.translateY! + linkItem[0].offsetY * 2;
         linkItem[0].offsetY = linkItem[0].offsetY * 2;
         linkItem[0].rowEL = actualRow!;
-      } else if (linkItem[1].rowEL.rowId == e.detail.rowId) {
+      } else if (linkItem[1].rowEL.rowId === e.detail.rowId) {
         linkItem[1].x = ns2xByTimeShaft(linkItem[1].ns, this.trace.timerShaftEL!);
         linkItem[1].y = actualRow!.translateY! + linkItem[1].offsetY * 2;
         linkItem[1].offsetY = linkItem[1].offsetY * 2;
@@ -401,21 +434,21 @@ export class SpProcessChart {
     }
   }
 
-  handler2(e: any, linkItem: PairPoint[], processRow: TraceRow<ProcessStruct>) {
+  handler2(e: any, linkItem: PairPoint[], processRow: TraceRow<ProcessStruct>): void {
     this.updatePairPointTranslateY(linkItem[0]);
     linkItem[0].y = linkItem[0].rowEL!.translateY! + linkItem[0].offsetY;
     this.updatePairPointTranslateY(linkItem[1]);
     linkItem[1].y = linkItem[1].rowEL!.translateY! + linkItem[1].offsetY;
-    if (linkItem[0].rowEL.rowParentId == e.detail.rowId) {
+    if (linkItem[0].rowEL.rowParentId === e.detail.rowId) {
       this.updatePairPoint(linkItem[0], processRow);
-    } else if (linkItem[1].rowEL.rowParentId == e.detail.rowId) {
+    } else if (linkItem[1].rowEL.rowParentId === e.detail.rowId) {
       this.updatePairPoint(linkItem[1], processRow);
     }
   }
 
-  handler3(e: any, linkItem: PairPoint[]) {
+  handler3(e: any, linkItem: PairPoint[]): void {
     ThreadStruct.selectThreadStructList?.forEach((selectProcessStruct: any) => {
-      if (e.detail.rowId == selectProcessStruct.pid) {
+      if (e.detail.rowId === selectProcessStruct.pid) {
         ThreadStruct.selectThreadStruct = selectProcessStruct;
         ThreadStruct.hoverThreadStruct = selectProcessStruct;
       }
@@ -436,20 +469,20 @@ export class SpProcessChart {
     }
   }
 
-  handler4(e: any, linkItem: PairPoint[], processRow: TraceRow<ProcessStruct>) {
+  handler4(e: any, linkItem: PairPoint[], processRow: TraceRow<ProcessStruct>): void {
     this.updatePairPointTranslateY(linkItem[0]);
     linkItem[0].y = processRow!.translateY + linkItem[0].offsetY;
     this.updatePairPointTranslateY(linkItem[1]);
     linkItem[1].y = linkItem[1].rowEL!.translateY + linkItem[1].offsetY;
-    if (linkItem[0].rowEL.rowParentId == e.detail.rowId) {
+    if (linkItem[0].rowEL.rowParentId === e.detail.rowId) {
       this.updatePairPoint(linkItem[0], processRow);
     }
-    if (linkItem[1].rowEL.rowParentId == e.detail.rowId) {
+    if (linkItem[1].rowEL.rowParentId === e.detail.rowId) {
       this.updatePairPoint(linkItem[1], processRow);
     }
   }
 
-  updatePairPointTranslateY(pair: PairPoint) {
+  updatePairPointTranslateY(pair: PairPoint): void {
     if (pair.rowEL.collect) {
       pair.rowEL.translateY = pair.rowEL.getBoundingClientRect().top - 195;
     } else {
@@ -457,7 +490,7 @@ export class SpProcessChart {
     }
   }
 
-  updatePairPoint(pair: PairPoint, processRow: TraceRow<ProcessStruct>) {
+  updatePairPoint(pair: PairPoint, processRow: TraceRow<ProcessStruct>): void {
     if (!pair.rowEL.collect) {
       pair.x = ns2xByTimeShaft(pair.ns, this.trace.timerShaftEL!);
       pair.y = processRow!.translateY! + pair.offsetY / 2;
@@ -465,7 +498,7 @@ export class SpProcessChart {
       pair.rowEL = processRow!;
     }
   }
-
+  /* Janks Frames */
   addExpectedRow(process: any, processRow: TraceRow<any>, renderServiceProcess: Array<any>): TraceRow<JankStruct> {
     let expectedRow = TraceRow.skeleton<JankStruct>();
     expectedRow.asyncFuncName = process.processName;
@@ -477,17 +510,27 @@ export class SpProcessChart {
     expectedRow.name = 'Expected Timeline';
     expectedRow.addTemplateTypes('FrameTimeline');
     expectedRow.setAttribute('children', '');
-    expectedRow.supplierFrame = async () => {
+    expectedRow.supplierFrame = async (): Promise<JankStruct[]> => {
       let res = await processExpectedDataSender(process.pid, expectedRow!);
       this.jankSenderCallback(res, 'expected', process, expectedRow, renderServiceProcess);
       return res;
     };
     expectedRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     expectedRow.selectChangeHandler = this.trace.selectChangeHandler;
-    expectedRow.onThreadHandler = rowThreadHandler<JankRender>('jank', 'context', {
-      type: 'expected_frame_timeline_slice',
-    }, expectedRow, this.trace);
-    processRow.addChildTraceRow(expectedRow);
+    expectedRow.onThreadHandler = rowThreadHandler<JankRender>(
+      'jank',
+      'context',
+      {
+        type: 'expected_frame_timeline_slice',
+      },
+      expectedRow,
+      this.trace
+    );
+    if (this.renderRow) {
+      processRow.addChildTraceRowBefore(expectedRow, this.renderRow);
+    } else {
+      processRow.addChildTraceRow(expectedRow);
+    }
     return expectedRow;
   }
 
@@ -500,21 +543,37 @@ export class SpProcessChart {
     actualRow.name = 'Actual Timeline';
     actualRow.addTemplateTypes('FrameTimeline');
     actualRow.setAttribute('children', '');
-    actualRow.supplierFrame = async () => {
+    actualRow.supplierFrame = async (): Promise<JankStruct[]> => {
       let res = await processActualDataSender(process.pid, actualRow!);
       this.jankSenderCallback(res, 'actual', process, actualRow, renderServiceProcess);
       return res;
     };
     actualRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     actualRow.selectChangeHandler = this.trace.selectChangeHandler;
-    actualRow.onThreadHandler = rowThreadHandler<JankRender>('jank', 'context', {
-      type: 'actual_frame_timeline_slice',
-    }, actualRow, this.trace);
-    processRow.addChildTraceRow(actualRow);
+    actualRow.onThreadHandler = rowThreadHandler<JankRender>(
+      'jank',
+      'context',
+      {
+        type: 'actual_frame_timeline_slice',
+      },
+      actualRow,
+      this.trace
+    );
+    if (this.renderRow) {
+      processRow.addChildTraceRowBefore(actualRow, this.renderRow);
+    } else {
+      processRow.addChildTraceRow(actualRow);
+    }
     return actualRow;
   }
 
-  jankSenderCallback(res: JankStruct[], type: string, process: any, row: TraceRow<JankStruct>, renderServiceProcess: Array<any>) {
+  jankSenderCallback(
+    res: JankStruct[],
+    type: string,
+    process: any,
+    row: TraceRow<JankStruct>,
+    renderServiceProcess: Array<any>
+  ): void {
     let maxDepth: number = 1;
     let unitHeight: number = 20;
     for (let j = 0; j < res.length; j++) {
@@ -557,11 +616,11 @@ export class SpProcessChart {
     startupRow.rowHidden = !processRow.expansion;
     startupRow.index = 0;
     startupRow.style.height = '30px';
-    startupRow.style.width = `100%`;
-    startupRow.name = `App Startups`;
+    startupRow.style.width = '100%';
+    startupRow.name = 'App Startups';
     startupRow.findHoverStruct = (): void => {
       AppStartupStruct.hoverStartupStruct = startupRow.getHoverStruct();
-    }
+    };
     startupRow.setAttribute('children', '');
     startupRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     startupRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -577,9 +636,15 @@ export class SpProcessChart {
         }
         return res;
       });
-    startupRow.onThreadHandler = rowThreadHandler<AppStartupRender>('app-start-up', 'appStartupContext', {
-      type: `app-startup ${processRow.rowId}`,
-    }, startupRow, this.trace);
+    startupRow.onThreadHandler = rowThreadHandler<AppStartupRender>(
+      'app-start-up',
+      'appStartupContext',
+      {
+        type: `app-startup ${processRow.rowId}`,
+      },
+      startupRow,
+      this.trace
+    );
     processRow.addChildTraceRow(startupRow);
     return startupRow;
   }
@@ -594,14 +659,14 @@ export class SpProcessChart {
     soRow.rowHidden = !processRow.expansion;
     soRow.index = 0;
     soRow.style.height = `${maxHeight}px`;
-    soRow.style.width = `100%`;
-    soRow.name = `Static Initialization`;
+    soRow.style.width = '100%';
+    soRow.name = 'Static Initialization';
     soRow.setAttribute('children', '');
     soRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     soRow.selectChangeHandler = this.trace.selectChangeHandler;
     soRow.findHoverStruct = (): void => {
       SoStruct.hoverSoStruct = soRow.getHoverStruct();
-    }
+    };
     soRow.supplierFrame = (): Promise<Array<SoStruct>> =>
       processSoInitDataSender(parseInt(processRow.rowId!), soRow).then((res) => {
         if (res.length <= 0) {
@@ -615,16 +680,22 @@ export class SpProcessChart {
         });
         return res;
       });
-    soRow.onThreadHandler = rowThreadHandler<SoRender>('app-so-init', 'context', {
-      type: `static-init ${processRow.rowId}`,
-    }, soRow, this.trace);
+    soRow.onThreadHandler = rowThreadHandler<SoRender>(
+      'app-so-init',
+      'context',
+      {
+        type: `static-init ${processRow.rowId}`,
+      },
+      soRow,
+      this.trace
+    );
     processRow.addChildTraceRow(soRow);
     return soRow;
   }
 
   insertAfter(newEl: HTMLElement, targetEl: HTMLElement): void {
     let parentEl = targetEl.parentNode;
-    if (parentEl!.lastChild == targetEl) {
+    if (parentEl!.lastChild === targetEl) {
       parentEl!.appendChild(newEl);
     } else {
       parentEl!.insertBefore(newEl, targetEl.nextSibling);
@@ -634,63 +705,69 @@ export class SpProcessChart {
   //add thread list
   addThreadList(
     it: { pid: number | null; processName: string | null },
-    processRow: TraceRow<ProcessStruct>,
+    pRow: TraceRow<ProcessStruct>,
     expectedRow: TraceRow<JankStruct> | null,
     actualRow: TraceRow<JankStruct> | null,
     soRow: TraceRow<SoStruct> | undefined,
-    startupRow: TraceRow<AppStartupStruct> | undefined,
-  ) {
-    let threads = this.processThreads.filter((thread) => thread.pid === it.pid && thread.tid != 0);
-    let threadRowArr: Array<TraceRow<BaseStruct>> = [];
+    startupRow: TraceRow<AppStartupStruct> | undefined
+  ): void {
+    let threads = this.processThreads.filter((thread) => thread.pid === it.pid && thread.tid !== 0);
+    let tRowArr: Array<TraceRow<BaseStruct>> = [];
     for (let j = 0; j < threads.length; j++) {
       let thread = threads[j];
-      let threadRow = TraceRow.skeleton<ThreadStruct>();
-      threadRow.rowId = `${thread.tid}`;
-      threadRow.rowType = TraceRow.ROW_TYPE_THREAD;
-      threadRow.rowParentId = `${it.pid}`;
-      threadRow.rowHidden = !processRow.expansion;
-      threadRow.index = j;
-      threadRow.style.height = '18px';
-      threadRow.style.width = '100%';
-      threadRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
-      threadRow.namePrefix = `${thread.threadName || 'Thread'}`;
-      threadRow.setAttribute('children', '');
-      threadRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      threadRow.selectChangeHandler = this.trace.selectChangeHandler;
-      threadRow.findHoverStruct = (): void => this.threadRowFindHoverStruct(threadRow);
-      threadRow.supplierFrame = async (): Promise<Array<ThreadStruct>> => {
-        const res = await threadDataSender(thread.tid || 0, it.pid || 0, threadRow);
+      let tRow = TraceRow.skeleton<ThreadStruct>();
+      tRow.rowId = `${thread.tid}`;
+      tRow.rowType = TraceRow.ROW_TYPE_THREAD;
+      tRow.rowParentId = `${it.pid}`;
+      tRow.rowHidden = !pRow.expansion;
+      tRow.index = j;
+      tRow.style.height = '18px';
+      tRow.style.width = '100%';
+      tRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
+      tRow.namePrefix = `${thread.threadName || 'Thread'}`;
+      tRow.setAttribute('children', '');
+      tRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+      tRow.selectChangeHandler = this.trace.selectChangeHandler;
+      tRow.findHoverStruct = (): void => this.threadRowFindHoverStruct(tRow);
+      tRow.supplierFrame = async (): Promise<Array<ThreadStruct>> => {
+        const res = await threadDataSender(thread.tid || 0, it.pid || 0, tRow);
         if (res === true) {
           return [];
         } else {
           let rs = res as ThreadStruct[];
-          if (rs.length <= 0 && !threadRow.isComplete) {
+          if (rs.length <= 0 && !tRow.isComplete) {
             this.trace.refreshCanvas(true);
           }
           return rs;
         }
       };
-      threadRow.onThreadHandler = rowThreadHandler<ThreadRender>('thread', 'context', {
-        type: `thread ${thread.tid} ${thread.threadName}`,
-        translateY: threadRow.translateY,
-      }, threadRow, this.trace);
-      this.insertThreadRowToDocument(it, j, thread, processRow, threadRow, threads, threadRowArr, actualRow, expectedRow, startupRow, soRow);
-      this.addFuncStackRow(it, thread, j, threads, threadRowArr, threadRow, processRow);
+      tRow.onThreadHandler = rowThreadHandler<ThreadRender>(
+        'thread',
+        'context',
+        {
+          type: `thread ${thread.tid} ${thread.threadName}`,
+          translateY: tRow.translateY,
+        },
+        tRow,
+        this.trace
+      );
+      this.insertRowToDoc(it, j, thread, pRow, tRow, threads, tRowArr, actualRow, expectedRow, startupRow, soRow);
+      this.addFuncStackRow(it, thread, j, threads, tRowArr, tRow, pRow);
       if ((thread.switchCount || 0) === 0) {
-        threadRow.rowDiscard = true;
+        tRow.rowDiscard = true;
       }
     }
   }
 
-  threadRowFindHoverStruct(threadRow: TraceRow<ThreadStruct>) {
+  threadRowFindHoverStruct(threadRow: TraceRow<ThreadStruct>): void {
     let arr = threadRow.dataListCache.filter(
       (re) => re.frame && isFrameContainPoint(re.frame, threadRow.hoverX, threadRow.hoverY, true, false)
     );
-    let runItem = arr.find(it => it.state === 'Running');
+    let runItem = arr.find((it) => it.state === 'Running');
     if (runItem) {
       ThreadStruct.hoverThreadStruct = runItem;
     } else {
-      let otherItem = arr.find(it => it.state !== 'S');
+      let otherItem = arr.find((it) => it.state !== 'S');
       if (otherItem) {
         ThreadStruct.hoverThreadStruct = otherItem;
       } else {
@@ -699,7 +776,7 @@ export class SpProcessChart {
     }
   }
 
-  insertThreadRowToDocument(
+  insertRowToDoc(
     it: any,
     index: number,
     thread: ThreadStruct,
@@ -711,7 +788,7 @@ export class SpProcessChart {
     expectedRow: TraceRow<any> | null,
     startupRow: TraceRow<AppStartupStruct> | null | undefined,
     soRow: TraceRow<SoStruct> | null | undefined
-  ) {
+  ): void {
     if (it.processName === 'render_service') {
       if (threadRow.name === `${it.processName} ${it.pid}`) {
         this.renderRow = threadRow;
@@ -745,8 +822,8 @@ export class SpProcessChart {
     threadRowArr: Array<any>,
     threadRow: TraceRow<ThreadStruct>,
     processRow: TraceRow<ProcessStruct>
-  ) {
-    if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) != undefined) {
+  ): void {
+    if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) !== undefined) {
       let max = this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) || 1;
       let maxHeight = max * 18 + 6;
       let funcRow = TraceRow.skeleton<FuncStruct>();
@@ -769,10 +846,16 @@ export class SpProcessChart {
       funcRow.selectChangeHandler = this.trace.selectChangeHandler;
       funcRow.findHoverStruct = (): void => {
         FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
-      }
-      funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {
-        type: `func${thread.tid}${thread.threadName}`,
-      }, funcRow, this.trace);
+      };
+      funcRow.onThreadHandler = rowThreadHandler<FuncRender>(
+        'func',
+        'context',
+        {
+          type: `func${thread.tid}${thread.threadName}`,
+        },
+        funcRow,
+        this.trace
+      );
       if (process.processName === 'render_service') {
         let flag = threads.length === index + 1;
         processRow.sortRenderServiceData(funcRow, threadRow, threadRowArr, flag);
@@ -808,7 +891,7 @@ export class SpProcessChart {
   }
 
   //进程内存信息
-  addProcessMemInfo(it: { pid: number | null; processName: string | null }, processRow: TraceRow<ProcessStruct>) {
+  addProcessMemInfo(it: { pid: number | null; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
     let processMem = this.processMem.filter((mem) => mem.pid === it.pid);
     processMem.forEach((mem) => {
       let row = TraceRow.skeleton<ProcessMemStruct>();
@@ -823,7 +906,11 @@ export class SpProcessChart {
       row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       row.selectChangeHandler = this.trace.selectChangeHandler;
       row.focusHandler = (): void => {
-        this.trace.displayTip(row, ProcessMemStruct.hoverProcessMemStruct, `<span>${ProcessMemStruct.hoverProcessMemStruct?.value || '0'}</span>`);
+        this.trace.displayTip(
+          row,
+          ProcessMemStruct.hoverProcessMemStruct,
+          `<span>${ProcessMemStruct.hoverProcessMemStruct?.value || '0'}</span>`
+        );
       };
       row.findHoverStruct = (): void => {
         ProcessMemStruct.hoverProcessMemStruct = row.getHoverStruct(false);
@@ -846,9 +933,15 @@ export class SpProcessChart {
           }
           return resultProcess;
         });
-      row.onThreadHandler = rowThreadHandler<MemRender>('mem', 'context', {
-        type: `mem ${mem.trackId} ${mem.trackName}`,
-      }, row, this.trace);
+      row.onThreadHandler = rowThreadHandler<MemRender>(
+        'mem',
+        'context',
+        {
+          type: `mem ${mem.trackId} ${mem.trackName}`,
+        },
+        row,
+        this.trace
+      );
       if (this.renderRow && row.name === 'H:PreferredFrameRate') {
         processRow.addChildTraceRowBefore(row, this.renderRow);
       } else {
@@ -856,7 +949,7 @@ export class SpProcessChart {
       }
     });
   }
-  private calMaxHeight(asyncFunctions: any[]) : number{
+  private calMaxHeight(asyncFunctions: any[]): number {
     let max = 0;
     asyncFunctions.forEach((it) => {
       const depth = it.depth || 0;
@@ -865,11 +958,11 @@ export class SpProcessChart {
       }
     });
     max += 1;
-    return max * 18 + 6;;
+    return max * 18 + 6;
   }
 
   //Async Function
-  addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>) {
+  addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
     let asyncFuncList = this.processAsyncFuncMap[it.pid] || [];
     let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');
     Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
@@ -885,7 +978,10 @@ export class SpProcessChart {
           }
           let currentDepth = 0;
           let index = i;
-          while (depthArray[currentDepth] !== undefined && isIntersect(depthArray[currentDepth], asyncFunctions[index])) {
+          while (
+            depthArray[currentDepth] !== undefined &&
+            isIntersect(depthArray[currentDepth], asyncFunctions[index])
+          ) {
             currentDepth++;
           }
           asyncFunctions[index].depth = currentDepth;
@@ -907,13 +1003,19 @@ export class SpProcessChart {
         funcRow.setAttribute('children', '');
         funcRow.findHoverStruct = (): void => {
           FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
-        }
+        };
         funcRow.supplier = (): Promise<any> => new Promise((resolve) => resolve(asyncFunctions));
         funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-        funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {
-          type: `func-${asyncFunctions[0].funName}-${it.pid}`,
-        }, funcRow, this.trace);
+        funcRow.onThreadHandler = rowThreadHandler<FuncRender>(
+          'func',
+          'context',
+          {
+            type: `func-${asyncFunctions[0].funName}-${it.pid}`,
+          },
+          funcRow,
+          this.trace
+        );
         processRow.addChildTraceRow(funcRow);
       }
     });

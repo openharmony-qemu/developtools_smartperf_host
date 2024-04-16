@@ -64,6 +64,7 @@ import { hitchTimeRender } from './ProcedureWorkerHitchTime';
 import { LtpoRender } from './ProcedureWorkerLTPO';
 import { BinderRender } from './procedureWorkerBinder';
 import { SampleRender } from './ProcedureWorkerBpftrace';
+import {PerfToolRender } from './ProcedureWorkerPerfTool'
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -85,7 +86,7 @@ export let renders: any = {
   'app-start-up': new AppStartupRender(),
   'all-app-start-up': new AllAppStartupRender(),
   'ltpo-present': new LtpoRender(),
-  'hitch': new hitchTimeRender(),
+  hitch: new hitchTimeRender(),
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
   'heap-timeline': new HeapTimelineRender(),
@@ -125,6 +126,7 @@ export let renders: any = {
   'freq-extend': new FreqExtendRender(),
   binder: new BinderRender(),
   sample: new SampleRender(),
+  perfTool: new PerfToolRender(),
 };
 
 function match(type: string, req: RequestMessage): void {
@@ -243,5 +245,4 @@ function setReq(req: RequestMessage, e: any) {
   }
 }
 
-self.onmessageerror = function (e: any): void {
-};
+self.onmessageerror = function (e: any): void {};

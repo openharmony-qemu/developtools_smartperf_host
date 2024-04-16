@@ -22,7 +22,6 @@
 #include "gpu_counter_object_table.h"
 #include "gpu_counter_table.h"
 #include "json.hpp"
-#include "log.h"
 #include "demo_meta_table.h"
 #include "sdk_plugin_data_parser.h"
 #include "slice_object_table.h"

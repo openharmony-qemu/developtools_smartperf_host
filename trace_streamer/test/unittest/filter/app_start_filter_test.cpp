@@ -17,7 +17,7 @@
 #include <hwext/gtest-tag.h>
 
 #include "app_start_filter.h"
-#include "parser/ptreader_parser/ptreader_parser.h"
+#include "ptreader_parser.h"
 #include "slice_filter.h"
 #include "trace_streamer_selector.h"
 

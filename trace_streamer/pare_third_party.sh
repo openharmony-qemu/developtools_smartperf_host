@@ -84,20 +84,12 @@ if [ ! -f "perf_include/libbpf/linux/perf_event.h" ];then
    $patch -p0 perf_include/libbpf/linux/perf_event.h ../prebuilts/patch_perf_event/perf_event.h.patch
 fi
 
-if [ ! -d "perf_include/hiviewdfx/hilog" ];then
-   rm -rf hiviewdfx_hilog perf_include/hiviewdfx/hilog
-   mkdir -p perf_include/hiviewdfx/hilog
-   git clone --depth=1 https://gitee.com/openharmony/hiviewdfx_hilog.git
-   mv hiviewdfx_hilog/interfaces/native/innerkits/include/ perf_include/hiviewdfx/hilog
-   rm -rf hiviewdfx_hilog
-fi
-
 if [ ! -d "perf_include/hiviewdfx/faultloggerd" ];then
    rm -rf hiviewdfx_faultloggerd perf_include/hiviewdfx/faultloggerd
    mkdir -p perf_include/hiviewdfx/faultloggerd/interfaces/innerkits
    git clone git@gitee.com:openharmony/hiviewdfx_faultloggerd.git
    cd hiviewdfx_faultloggerd
-   git reset --hard b7e7ae4340a39db64d2cdf5f8fdb96cdb368f6a7
+   git reset --hard 7bd128c8fa91b79606c1bb21f20123879b351a4f
    cd ..
    mv hiviewdfx_faultloggerd/common/ perf_include/hiviewdfx/faultloggerd
    mv hiviewdfx_faultloggerd/interfaces/common/ perf_include/hiviewdfx/faultloggerd/interfaces
@@ -109,14 +101,11 @@ if [ ! -d "perf_include/hiviewdfx/faultloggerd" ];then
    rm -rf perf_include/hiviewdfx/common/build
    rm -rf perf_include/hiviewdfx/common/cutil
    rm perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_regs_x86_64.cpp
-    $sed -i '/HiLogPrint/s/^/\/\/ /' perf_include/hiviewdfx/faultloggerd/common/dfxlog/dfx_log.cpp
     $sed -i '/TRAP_BRANCH/s/^/\/\/ /' perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_signal.cpp
     $sed -i '/TRAP_HWBKPT/s/^/\/\/ /' perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_signal.cpp
     $sed -i '/is_ohos/s/is_ohos/true/g' perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_mmap.cpp
     $sed -i '/is_ohos/s/is_ohos/true/g' perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include/dfx_regs.h
     $sed -i '/#include <vector>/a #include "debug_logger.h"' perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include/unwinder.h
-    $sed -i '/VerifyFilePath/s/const std::vector<const std::string>/std::vector\<std::string\>/g' perf_include/hiviewdfx/faultloggerd/common/dfxutil/dfx_util.h
-    $sed -i '/VerifyFilePath/s/const std::vector<const std::string>/std::vector\<std::string\>/g' perf_include/hiviewdfx/faultloggerd/common/dfxutil/dfx_util.cpp
     $sed -i '/getpid() == gettid()/s/getpid() == gettid()/false/g' perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/unwinder.cpp
     $sed -i '/!realpath(path, realPath)/s/!realpath(path, realPath)/false/g' perf_include/hiviewdfx/faultloggerd/common/dfxutil/dfx_util.cpp
     $sed -i '/#include "dfx_util.h"/a #include "utilities.h"' perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_mmap.cpp
@@ -132,12 +121,13 @@ if [ ! -d "perf_include/hiviewdfx/faultloggerd" ];then
     $sed -i '/#define DFX_NONLINUX_DEFINE_H/a #ifndef is_linux' perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux/dfx_nonlinux_define.h
     $sed -i '/#if is_mingw/s/#if is_mingw/#ifndef is_linux/g' perf_include/hiviewdfx/faultloggerd/interfaces/common/byte_order.h
     $sed -i '$a #endif' perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux/dfx_nonlinux_define.h
+    $cp ../prebuilts/patch_hiperf/string_view_util.h ../third_party/perf_include/hiviewdfx/faultloggerd/common/dfxutil/string_view_util.h
 fi
 if [ ! -f "hiperf/BUILD.gn" ];then
     rm -rf hiperf developtools_hiperf
     git clone git@gitee.com:openharmony/developtools_hiperf.git
     cd developtools_hiperf
-    git reset --hard 9d9322fcd0a83ab409f26b3c6dfaea2bb8d42628
+    git reset --hard 59eecf523796401740d02894f64b4d23f7d370a9
     cd ..
     if [ -d "developtools_hiperf" ];then
         mv developtools_hiperf hiperf

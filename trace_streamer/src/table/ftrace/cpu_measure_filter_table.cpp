@@ -17,8 +17,6 @@
 
 #include <cmath>
 
-#include "log.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, NAME, CPU };

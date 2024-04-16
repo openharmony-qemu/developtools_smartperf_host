@@ -24,22 +24,21 @@
 #include "ftrace_event.pbreader.h"
 #include "trace_plugin_result.pbreader.h"
 #endif
-#include "log.h"
 #ifdef ENABLE_MEMORY
 #include "memory_plugin_result.pbreader.h"
 #endif
 #include "stat_filter.h"
 #if IS_WASM
-#include "../rpc/wasm_func.h"
+#include "wasm_func.h"
 #endif
 namespace SysTuning {
 namespace TraceStreamer {
 PbreaderParser::PbreaderParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
     : ParserBase(filters),
+      pbreaderClockDetailParser_(std::make_unique<PbreaderClockDetailParser>(dataCache, filters)),
 #ifdef ENABLE_HTRACE
       htraceCpuDetailParser_(std::make_unique<HtraceCpuDetailParser>(dataCache, filters)),
       htraceSymbolsDetailParser_(std::make_unique<HtraceSymbolsDetailParser>(dataCache, filters)),
-      htraceClockDetailParser_(std::make_unique<HtraceClockDetailParser>(dataCache, filters)),
 #endif
 #ifdef ENABLE_MEMORY
       pbreaderMemParser_(std::make_unique<PbreaderMemParser>(dataCache, filters)),
@@ -165,6 +164,7 @@ void PbreaderParser::InitPluginNameIndex()
 #endif
 }
 
+#if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
 void PbreaderParser::ParserFileSO(std::string& directory, const std::vector<std::string>& relativeFilePaths)
 {
     for (const auto& filePath : relativeFilePaths) {
@@ -172,10 +172,11 @@ void PbreaderParser::ParserFileSO(std::string& directory, const std::vector<std:
         auto symbolsFile =
             OHOS::Developtools::HiPerf::SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, absoluteFilePath);
         symbolsFile->setSymbolsFilePath(directory);
-        symbolsFile->LoadSymbols(absoluteFilePath);
+        symbolsFile->LoadSymbols(nullptr, absoluteFilePath);
         symbolsFiles_.emplace_back(std::move(symbolsFile));
     }
 }
+#endif
 
 PbreaderParser::~PbreaderParser()
 {
@@ -194,7 +195,9 @@ bool PbreaderParser::ReparseSymbolFilesAndResymbolization(std::string& symbolsPa
 #ifdef ENABLE_HIPERF
     parseStatus = perfDataParser_->PerfReloadSymbolFiles(dirs);
 #endif
+#if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
     ParserFileSO(symbolsPath, symbolsPaths);
+#endif
 #ifdef ENABLE_NATIVE_HOOK
     if (traceDataCache_->GetNativeHookFrameData()->Size() > 0) {
         pbreaderNativeHookParser_->NativeHookReloadElfSymbolTable(symbolsFiles_);
@@ -630,10 +633,6 @@ void PbreaderParser::ParseMemory(const ProtoReader::ProfilerPluginData_Reader& p
                                  PbreaderDataSegment& dataSeg)
 {
     BuiltinClocks clockId = TS_CLOCK_REALTIME;
-    auto clockIdTemp = pluginDataZero.clock_id();
-    if (clockIdTemp == ProtoReader::ProfilerPluginData_ClockId_CLOCKID_REALTIME) {
-        clockId = TS_CLOCK_REALTIME;
-    }
     dataSourceTypeMemClockid_ = clockId;
     dataSeg.dataType = DATA_SOURCE_TYPE_MEM;
     dataSeg.clockId = clockId;
@@ -686,8 +685,8 @@ void PbreaderParser::ParseFtrace(PbreaderDataSegment& dataSeg)
         ProtoReader::FtraceCpuStatsMsg_Reader ftraceCpuStatsMsg(cpuStats.data_, cpuStats.size_);
         auto s = *ftraceCpuStatsMsg.per_cpu_stats();
         ProtoReader::PerCpuStatsMsg_Reader perCpuStatsMsg(s.data_, s.size_);
-        TS_LOGD("s.overrun():%lu", perCpuStatsMsg.overrun());
-        TS_LOGD("s.dropped_events():%lu", perCpuStatsMsg.dropped_events());
+        TS_LOGD("s.overrun():%" PRIu64 "", perCpuStatsMsg.overrun());
+        TS_LOGD("s.dropped_events():%" PRIu64 "", perCpuStatsMsg.dropped_events());
         auto clock = ftraceCpuStatsMsg.trace_clock().ToStdString();
         if (clock == "boot") {
             clock_ = TS_CLOCK_BOOTTIME;
@@ -713,7 +712,7 @@ void PbreaderParser::ParseFtrace(PbreaderDataSegment& dataSeg)
         haveSplitSeg = true;
     }
     if (tracePluginResult.has_clocks_detail()) {
-        htraceClockDetailParser_->Parse(dataSeg.protoData); // has Event
+        pbreaderClockDetailParser_->Parse(dataSeg.protoData); // has Event
         haveSplitSeg = true;
     }
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
@@ -1091,9 +1090,7 @@ bool PbreaderParser::InitProfilerTraceFileHeader()
     const int32_t DATA_TYPE_CLOCK = 100;
     TraceStreamer_Plugin_Out_SendData(reinterpret_cast<char*>(buffer), packetHeaderLength_, DATA_TYPE_CLOCK);
 #endif
-#ifdef ENABLE_HTRACE
-    htraceClockDetailParser_->Parse(pHeader);
-#endif
+    pbreaderClockDetailParser_->Parse(pHeader);
     return true;
 }
 } // namespace TraceStreamer

@@ -17,7 +17,6 @@
 #include <hwext/gtest-tag.h>
 
 #include "htrace_cpu_detail_parser.h"
-#include "htrace_event_parser.h"
 #include "irq_filter.h"
 #include "trace_plugin_result.pb.h"
 #include "trace_plugin_result.pbreader.h"

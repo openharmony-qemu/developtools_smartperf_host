@@ -69,7 +69,13 @@ export class PluginConvertUtils {
     }
   }
 
-  private static getPrefixText(prefixText: string, indentation: number, needColon: boolean, spacesNumber: number, bean: any): string {
+  private static getPrefixText(
+    prefixText: string,
+    indentation: number,
+    needColon: boolean,
+    spacesNumber: number,
+    bean: any
+  ): string {
     // @ts-ignore
     for (const [key, value] of Object.entries(bean)) {
       const repeatedKey = Array.isArray(value);
@@ -134,7 +140,13 @@ export class PluginConvertUtils {
     return prefixText;
   }
 
-  private static handleObjByStr(prefixText: string, value: any, spacesNumber: number, key: string, indentation: number): string {
+  private static handleObjByStr(
+    prefixText: string,
+    value: any,
+    spacesNumber: number,
+    key: string,
+    indentation: number
+  ): string {
     if (LevelConfigEnumList.indexOf(value) >= 0 || value.startsWith('IO_REPORT')) {
       prefixText =
         prefixText +
@@ -196,8 +208,14 @@ export class PluginConvertUtils {
     key: string,
     arrValue: any
   ): string {
-    return text + ' '.repeat(spacesNumber).repeat(indentation + 1) +
-      this.humpToSnake(key) + ': ' + arrValue.toString() + this.crlf;
+    return (
+      text +
+      ' '.repeat(spacesNumber).repeat(indentation + 1) +
+      this.humpToSnake(key) +
+      ': ' +
+      arrValue.toString() +
+      this.crlf
+    );
   }
 
   private static handleArrayByBoolean(
@@ -207,8 +225,14 @@ export class PluginConvertUtils {
     key: string,
     arrValue: any
   ): string {
-    return text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key) + ': ' +
-      arrValue.toString() + this.crlf;
+    return (
+      text +
+      ' '.repeat(spacesNumber).repeat(indentation + 1) +
+      this.humpToSnake(key) +
+      ': ' +
+      arrValue.toString() +
+      this.crlf
+    );
   }
 
   private static handleArrayByNumber(
@@ -218,8 +242,14 @@ export class PluginConvertUtils {
     key: string,
     arrValue: any
   ): string {
-    return text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key) + ': ' +
-      arrValue.toString() + this.crlf;
+    return (
+      text +
+      ' '.repeat(spacesNumber).repeat(indentation + 1) +
+      this.humpToSnake(key) +
+      ': ' +
+      arrValue.toString() +
+      this.crlf
+    );
   }
 
   private static handleArrayByStr(

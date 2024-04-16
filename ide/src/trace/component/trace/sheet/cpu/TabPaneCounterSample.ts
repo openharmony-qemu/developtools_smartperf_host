@@ -25,7 +25,7 @@ import { TraceRow } from '../../base/TraceRow';
 import { CpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerFreq';
 import { CpuState } from '../../../../database/logic-worker/ProcedureLogicWorkerCpuState';
 import { CpuStateStruct } from '../../../../database/ui-worker/cpu/ProcedureWorkerCpuState';
-import {getTabPaneCounterSampleData} from "../../../../database/sql/Cpu.sql";
+import { getTabPaneCounterSampleData } from '../../../../database/sql/Cpu.sql';
 
 @element('tabpane-counter-sample')
 export class TabPaneCounterSample extends BaseElement {
@@ -102,7 +102,7 @@ export class TabPaneCounterSample extends BaseElement {
                 cpuStateFilter[i].value === data.value &&
                 cpuStateFilter[i].cpu === data.cpu &&
                 Math.max(TraceRow.rangeSelectObject?.startNS!, cpuStateFilter[i].startTs!) <
-                Math.min(TraceRow.rangeSelectObject?.endNS!, cpuStateFilter[i].startTs! + cpuStateFilter[i].dur!)
+                  Math.min(TraceRow.rangeSelectObject?.endNS!, cpuStateFilter[i].startTs! + cpuStateFilter[i].dur!)
               ) {
                 CpuStateStruct.hoverStateStruct = cpuStateFilter[i];
               }

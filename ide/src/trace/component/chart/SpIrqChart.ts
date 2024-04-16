@@ -80,15 +80,25 @@ export class SpIrqChart {
       });
     };
     traceRow.focusHandler = (ev) => {
-      this.trace?.displayTip(traceRow, IrqStruct.hoverIrqStruct, `<span>${IrqStruct.hoverIrqStruct?.name || ''}</span>`);
+      this.trace?.displayTip(
+        traceRow,
+        IrqStruct.hoverIrqStruct,
+        `<span>${IrqStruct.hoverIrqStruct?.name || ''}</span>`
+      );
     };
     traceRow.findHoverStruct = () => {
       IrqStruct.hoverIrqStruct = traceRow.getHoverStruct();
     };
-    traceRow.onThreadHandler = rowThreadHandler<IrqRender>('irq', 'context', {
-      type: it.name,
-      index: index,
-    }, traceRow, this.trace);
+    traceRow.onThreadHandler = rowThreadHandler<IrqRender>(
+      'irq',
+      'context',
+      {
+        type: it.name,
+        index: index,
+      },
+      traceRow,
+      this.trace
+    );
     folder.addChildTraceRow(traceRow);
   }
 

@@ -799,7 +799,8 @@
       <h3 class="mume-header fontColor">页内存抓取配置参数</h3>
 
       <p class="fontColor">
-        <img src="../figures/EBPF/ebpfsetting.jpg" alt="GitHub Logo" /><br />
+        <img src="../figures/EBPF/ebpfsetting.jpg" alt="GitHub Logo" />
+        <br />
         配置项说明：
       </p>
       <ul class="fontColor">
@@ -824,15 +825,19 @@ Max Unwind Level：配置抓取调用栈的最大深度。
       </ul>
       <p class="fontColor">
         再点击Record setting，在output file path输入文件名hiprofiler_data_ebpf.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。<br />
-        <img src="../figures/EBPF/ebpfrecord.jpg" alt="GitHub Logo" /><br />
-        点击Trace command，就会根据上面的配置生成抓取命令，点击Record抓取，抓取过程中会显示抓取时长。<br />
+        size大小是64M，抓取时长是50s。
+        <br />
+        <img src="../figures/EBPF/ebpfrecord.jpg" alt="GitHub Logo" />
+        <br />
+        点击Trace command，就会根据上面的配置生成抓取命令，点击Record抓取，抓取过程中会显示抓取时长。
+        <br />
         <img src="../figures/EBPF/ebpfexcuting.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">页内存展示说明</h3>
 
       <p class="fontColor">
-        抓取结束后页内存的trace会自动加载展示。<br />
+        抓取结束后页内存的trace会自动加载展示。
+        <br />
         <img src="../figures/EBPF/ebpfsummary.jpg" alt="GitHub Logo" />
       </p>
       <p class="fontColor">界面布局介绍：页内存整体界面布局分为3个部分：</p>
@@ -859,16 +864,21 @@ Max Unwind Level：配置抓取调用栈的最大深度。
       <h3 class="mume-header fontColor">页内存泳道图展示</h3>
 
       <p class="fontColor">
-        页内存泳道图展示事件(Operation)发生的次数，每个事件都有持续时间，鼠标悬浮以10ms为区间进行次数统计。<br />
-        <img src="../figures/EBPF/EBPFchart.jpg" alt="GitHub Logo" /><br />
-        按住w键放大界面，悬浮框会显示当前时刻的事件发生次数。<br />
+        页内存泳道图展示事件(Operation)发生的次数，每个事件都有持续时间，鼠标悬浮以10ms为区间进行次数统计。
+        <br />
+        <img src="../figures/EBPF/EBPFchart.jpg" alt="GitHub Logo" />
+        <br />
+        按住w键放大界面，悬浮框会显示当前时刻的事件发生次数。
+        <br />
         <img src="../figures/EBPF/EBPFcount.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">页内存泳道图的框选功能</h3>
 
       <p class="fontColor">
-        可以对泳道图进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有三个tab页。<br />
-        Page Fault Statistics的Tab页如图：<br />
+        可以对泳道图进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有三个tab页。
+        <br />
+        Page Fault Statistics的Tab页如图：
+        <br />
         <img src="../figures/EBPF/vmstatistics.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -910,9 +920,12 @@ Max Duration：最大时长。
         </li>
       </ul>
       <p class="fontColor">
-        点击下方的Statistics by Thread，可以切换到按照Thread为基点显示数据。<br />
-        <img src="../figures/EBPF/ebpf_bythread.jpg" alt="GitHub Logo" /><br />
-        Page Fault Calltree的Tab页如图：<br />
+        点击下方的Statistics by Thread，可以切换到按照Thread为基点显示数据。
+        <br />
+        <img src="../figures/EBPF/ebpf_bythread.jpg" alt="GitHub Logo" />
+        <br />
+        Page Fault Calltree的Tab页如图：
+        <br />
         <img src="../figures/EBPF/VMCalltree.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -936,7 +949,8 @@ Weight：调用方法的执行占比。
         </li>
       </ul>
       <p class="fontColor">
-        Page Fault Events的Tab页如图：<br />
+        Page Fault Events的Tab页如图：
+        <br />
         <img src="../figures/EBPF/VMEvents.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -980,7 +994,8 @@ Size：内存大小。
       <h3 class="mume-header fontColor">页内存支持多种Options展示风格</h3>
 
       <p class="fontColor">
-        点击Page Fault Calltree的Tab页底部的Options，会有两个CheckBox复选框。<br />
+        点击Page Fault Calltree的Tab页底部的Options，会有两个CheckBox复选框。
+        <br />
         <img src="../figures/EBPF/vmOptions.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1001,7 +1016,8 @@ Hide System so：隐藏系统库文件。
 
       <p class="fontColor">
         点击Page Fault Calltree的Tab页底部的Sample Count
-        Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。<br />
+        Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。
+        <br />
         <img src="../figures/EBPF/vmcounter.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">页内存功能的调用栈Group展示-数据分析支持剪裁功能</h3>
@@ -1018,29 +1034,37 @@ Hide System so：隐藏系统库文件。
       <h3 class="mume-header fontColor">页内存功能的调用栈Group展示支持按条件过滤</h3>
 
       <p class="fontColor">
-        在Input Filter输入关键字，会显示出带有该关键字的展示信息。<br />
+        在Input Filter输入关键字，会显示出带有该关键字的展示信息。
+        <br />
         <img src="../figures/EBPF/vminputfilter.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">页内存辅助信息区展示调用栈</h3>
 
       <p class="fontColor">
-        当在详细信息区选择一个符号时，将展示与该符号相关的完整的调用栈。如下图的Heaviest Stack Trace：<br />
+        当在详细信息区选择一个符号时，将展示与该符号相关的完整的调用栈。如下图的Heaviest Stack Trace：
+        <br />
         <img src="../figures/EBPF/vmheaviesttrace.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">页内存的事件类型的过滤</h3>
 
       <p class="fontColor">
-        通过选择类型事件进行过滤。<br />
+        通过选择类型事件进行过滤。
+        <br />
         <img src="../figures/EBPF/VMfilter.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">页内存的火焰图功能</h3>
 
       <p class="fontColor">
-        点击Page Fault Calltree左下角的柱状图的图标，会切换到火焰图页面。<br />
-        <img src="../figures/EBPF/vmflame.jpg" alt="GitHub Logo" /><br />
-        进入到火焰图页面，火焰图的展示跟Callinfo的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和Duration时长。<br />
-        <img src="../figures/EBPF/vmflameshow.jpg" alt="GitHub Logo" /><br />
-        鼠标左键火焰图，会进入下一级界面，右键回到上一级。<br />
+        点击Page Fault Calltree左下角的柱状图的图标，会切换到火焰图页面。
+        <br />
+        <img src="../figures/EBPF/vmflame.jpg" alt="GitHub Logo" />
+        <br />
+        进入到火焰图页面，火焰图的展示跟Callinfo的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和Duration时长。
+        <br />
+        <img src="../figures/EBPF/vmflameshow.jpg" alt="GitHub Logo" />
+        <br />
+        鼠标左键火焰图，会进入下一级界面，右键回到上一级。
+        <br />
         <img src="../figures/EBPF/vmflamelevel.jpg" alt="GitHub Logo" />
       </p>
     </div>

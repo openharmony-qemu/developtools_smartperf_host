@@ -29,18 +29,18 @@
 #include "filter_filter.h"
 #include "frame_filter.h"
 #ifdef ENABLE_HISYSEVENT
-#include "hi_sysevent_filter/hi_sysevent_measure_filter.h"
+#include "hi_sysevent_measure_filter.h"
 #endif
 #include "irq_filter.h"
 #include "measure_filter.h"
 #include "task_pool_filter.h"
-#include "parser/ptreader_parser/ptreader_parser.h"
-#include "parser/pbreader_parser/pbreader_parser.h"
+#include "ptreader_parser.h"
+#include "pbreader_parser.h"
 #ifdef ENABLE_RAWTRACE
-#include "parser/rawtrace_parser/rawtrace_parser.h"
+#include "rawtrace_parser.h"
 #endif
 #ifdef ENABLE_HIPERF
-#include "perf_filter/perf_data_filter.h"
+#include "perf_data_filter.h"
 #endif
 #include "process_filter.h"
 #include "slice_filter.h"

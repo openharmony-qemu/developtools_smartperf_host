@@ -13,7 +13,7 @@
 - Native Memory: NativeMemory 数据的抓取参数配置。
 - Hiperf: Hiperf 数据的抓取参数配置。
 - eBPF Config: ebpf 数据的抓取参数配置。
-- VM Tracker: Smaps数据的抓取参数配置。
+- VM Tracker: Smaps 数据的抓取参数配置。
 - HiSystemEvent: HiSystemEvent 数据抓取参数配置。
 - SDK Config: SDK 数据抓取参数配置。
 

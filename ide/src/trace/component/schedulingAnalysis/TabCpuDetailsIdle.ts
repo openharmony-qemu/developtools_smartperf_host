@@ -115,8 +115,8 @@ export class TabCpuDetailsIdle extends BaseElement {
           type !== 'CPU Idle'
             ? undefined
             : (it) => {
-              return pieChartColors[(it as any).value];
-            },
+                return pieChartColors[(it as any).value];
+              },
       },
       hoverHandler: (data) => {
         if (data) {

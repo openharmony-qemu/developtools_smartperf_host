@@ -19,6 +19,7 @@ config("rawtrace_parser_comm") {
     "${SRC}/base",
     "${SRC}/cfg",
     "${SRC}/parser",
+    "${SRC}/rpc",
     "${SRC}/trace_streamer",
     "${SRC}/proto_reader/include",
     "${SRC}/trace_data",
@@ -81,8 +82,7 @@ ohos_static_library("rawtrace_parser") {
     cflags = [ "-includeMingW64Fix.h" ]
   }
 
-  public_deps = []
-  deps = [
+  public_deps = [
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp_standard",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ts_ftrace_data_cpp",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",

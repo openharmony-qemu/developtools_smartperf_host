@@ -19,8 +19,6 @@
 #include <cmath>
 #include <cstring>
 
-#include "log.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {

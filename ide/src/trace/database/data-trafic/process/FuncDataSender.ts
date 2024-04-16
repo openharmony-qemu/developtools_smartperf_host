@@ -16,7 +16,7 @@ import { threadPool } from '../../SqlLite';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { FuncStruct } from '../../ui-worker/ProcedureWorkerFunc';
 
-export function funcDataSender(tid: number, ipid: number, row: TraceRow<FuncStruct>): Promise<FuncStruct[]|boolean> {
+export function funcDataSender(tid: number, ipid: number, row: TraceRow<FuncStruct>): Promise<FuncStruct[] | boolean> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
@@ -43,12 +43,12 @@ export function funcDataSender(tid: number, ipid: number, row: TraceRow<FuncStru
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean,isEmpty:boolean) => {
-      if (isEmpty) {
+      (res: any, len: number, transfer: boolean, isEmpty: boolean) => {
+        if (isEmpty) {
           resolve(true);
-      }else {
+        } else {
           resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
-      }
+        }
       }
     );
   });

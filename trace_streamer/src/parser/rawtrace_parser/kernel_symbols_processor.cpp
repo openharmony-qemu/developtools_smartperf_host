@@ -14,7 +14,6 @@
  */
 #include "kernel_symbols_processor.h"
 
-#include "log.h"
 #include "string_help.h"
 #include "string_to_numerical.h"
 

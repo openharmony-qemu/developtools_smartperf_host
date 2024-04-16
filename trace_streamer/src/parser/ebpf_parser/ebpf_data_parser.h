@@ -20,7 +20,7 @@
 #include "ebpf_data_structure.h"
 #include "file_system_data_parser.h"
 #include "paged_memory_data_parser.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 
 namespace SysTuning {

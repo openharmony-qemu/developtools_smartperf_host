@@ -21,7 +21,7 @@ import { resizeObserverFromMemory } from '../SheetUtils';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
 import { TabPaneSmapsStatistics } from './TabPaneSmapsStatistics';
 import { type SmapsType } from '../../../../bean/SmapsStruct';
-import {getTabSmapsStatisticData} from "../../../../database/sql/Smaps.sql";
+import { getTabSmapsStatisticData } from '../../../../database/sql/Smaps.sql';
 
 @element('tabpane-smaps-comparison')
 export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {

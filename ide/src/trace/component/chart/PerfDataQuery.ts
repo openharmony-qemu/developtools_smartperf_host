@@ -18,7 +18,7 @@ import { info } from '../../../log/Log';
 import { SpHiPerf } from './SpHiPerf';
 import { procedurePool } from '../../database/Procedure';
 import { SpSystemTrace } from '../SpSystemTrace';
-import {queryPerfFiles} from "../../database/sql/Perf.sql";
+import { queryPerfFiles } from '../../database/sql/Perf.sql';
 
 export class PerfDataQuery {
   filesData: any = {};

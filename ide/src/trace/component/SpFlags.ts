@@ -57,7 +57,7 @@ export class SpFlags extends BaseElement {
     });
     configSelect.addEventListener('change', () => {
       let title = configSelect.getAttribute('title');
-      FlagsConfig.updateFlagsConfig(title!, configSelect.selectedOptions[0].value);    
+      FlagsConfig.updateFlagsConfig(title!, configSelect.selectedOptions[0].value);
       if (title === 'VSync' && configSelect.selectedOptions[0].value === 'Enabled') {
         let vsyncSelect = this.shadowRoot?.querySelector('#vsyncSelect');
         vsyncSelect?.removeAttribute('disabled');
@@ -129,9 +129,9 @@ export class SpFlags extends BaseElement {
         configDiv.appendChild(configFooterDiv);
       }
 
-      if(config.title === 'VSync'){  
-         let configFooterDiv = this.createVsyncOption();
-         configDiv.appendChild(configFooterDiv); 
+      if (config.title === 'VSync') {
+        let configFooterDiv = this.createVsyncOption();
+        configDiv.appendChild(configFooterDiv);
       }
 
       this.bodyEl!.appendChild(configDiv);
@@ -141,10 +141,10 @@ export class SpFlags extends BaseElement {
   private createVsyncOption(): HTMLDivElement {
     let configFooterDiv = document.createElement('div');
     configFooterDiv.className = 'config_footer';
-    let vsyncLableEl = document.createElement("lable");
+    let vsyncLableEl = document.createElement('lable');
     vsyncLableEl.className = 'vsync_lable';
-    let vsyncTypeEl = document.createElement("select");
-    vsyncTypeEl.setAttribute("id", "vsyncSelect");
+    let vsyncTypeEl = document.createElement('select');
+    vsyncTypeEl.setAttribute('id', 'vsyncSelect');
     vsyncTypeEl.className = 'flag-select';
     let vsyncGenOption = document.createElement('option'); // VsyncGeneratior = H:VsyncGenerator
     vsyncGenOption.value = 'H:VsyncGenerator';
@@ -238,6 +238,11 @@ export class FlagsConfig {
       title: 'VSync',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'VSync Signal drawing',
+    },
+    {
+      title: 'LTPO',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'Lost Frame and HitchTime templates',
     },
   ];
 

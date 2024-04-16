@@ -20,8 +20,8 @@
 #include <map>
 #include <stdexcept>
 #include <string>
-#include "proto_reader/include/data_area.h"
-#include "trace_data/trace_data_cache.h"
+#include "data_area.h"
+#include "trace_data_cache.h"
 #include "trace_plugin_result.pbreader.h"
 #include "trace_streamer_filters.h"
 namespace SysTuning {

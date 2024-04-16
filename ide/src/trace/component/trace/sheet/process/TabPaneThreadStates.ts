@@ -37,11 +37,14 @@ export class TabPaneThreadStates extends BaseElement {
     }
     this.currentSelectionParam = threadStatesParam;
     //@ts-ignore
-    this.threadStatesTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      `${this.parentElement!.clientHeight - 45  }px`;
+    this.threadStatesTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
     // // @ts-ignore
-    this.range!.textContent =
-      `Selected range: ${  ((threadStatesParam.rightNs - threadStatesParam.leftNs) / 1000000.0).toFixed(5)  } ms`;
+    this.range!.textContent = `Selected range: ${(
+      (threadStatesParam.rightNs - threadStatesParam.leftNs) /
+      1000000.0
+    ).toFixed(5)} ms`;
     this.threadStatesTbl!.loading = true;
     this.initThreadStates(threadStatesParam);
   }
@@ -116,7 +119,7 @@ export class TabPaneThreadStates extends BaseElement {
             state: current.state,
             wallDuration: current.dur || 0,
             avgDuration: 0,
-            occurrences: 1
+            occurrences: 1,
           });
         }
         return map;
@@ -138,7 +141,7 @@ export class TabPaneThreadStates extends BaseElement {
     for (let item of arr) {
       let key = `${item.state}-${item.pid}-${item.tid}`;
       if (target.has(key)) {
-        target.get(key).wallDuration += (rightNs - Math.max(item.ts, leftNs));
+        target.get(key).wallDuration += rightNs - Math.max(item.ts, leftNs);
       } else {
         target.set(key, {
           pid: item.pid,
@@ -146,7 +149,7 @@ export class TabPaneThreadStates extends BaseElement {
           state: item.state,
           wallDuration: rightNs - Math.max(item.ts, leftNs),
           avgDuration: 0,
-          occurrences: 1
+          occurrences: 1,
         });
       }
     }
@@ -173,7 +176,7 @@ export class TabPaneThreadStates extends BaseElement {
 
           e.stateJX = e.state;
           e.state = Utils.getEndState(e.stateJX);
-          e.avgDuration = parseFloat(((e.wallDuration / e.occurrences) / 1000000.0).toFixed(5));
+          e.avgDuration = parseFloat((e.wallDuration / e.occurrences / 1000000.0).toFixed(5));
           e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
           sumWall += e.wallDuration;
           sumOcc += e.occurrences;

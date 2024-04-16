@@ -85,7 +85,10 @@ ohos_static_library("ebpf_parser") {
     "paged_memory_data_parser.cpp",
   ]
   public_configs = [ ":ebpf_parser_cfg" ]
-  public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:memory_data_reader" ]
+  public_deps = [
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:memory_data_reader",
+    "${PERF_DIR}/hiperf:hiperf_platform_common",
+  ]
   deps = [
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",
     "${THIRD_PARTY}/protobuf:protobuf_static",

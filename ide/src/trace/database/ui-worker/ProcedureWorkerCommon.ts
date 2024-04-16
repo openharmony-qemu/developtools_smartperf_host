@@ -18,7 +18,6 @@ import { TraceRow } from '../../component/trace/base/TraceRow';
 import { TimerShaftElement } from '../../component/trace/TimerShaftElement';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
 import { drawVSync } from '../../component/chart/VSync';
-import { draw } from '../../bean/FrameChartStruct';
 
 export abstract class Render {
   abstract renderMainThread(req: any, row: TraceRow<any>): void;
@@ -50,10 +49,10 @@ export class RequestMessage {
   totalNS: any;
   slicesTime:
     | {
-      startTime: number | null;
-      endTime: number | null;
-      color: string | null;
-    }
+        startTime: number | null;
+        endTime: number | null;
+        color: string | null;
+      }
     | undefined;
   range: any;
   scale: any;
@@ -66,9 +65,9 @@ export class RequestMessage {
   id: any;
   postMessage:
     | {
-      (message: any, targetOrigin: string, transfer?: Transferable[]): void;
-      (message: any, options?: WindowPostMessageOptions): void;
-    }
+        (message: any, targetOrigin: string, transfer?: Transferable[]): void;
+        (message: any, options?: WindowPostMessageOptions): void;
+      }
     | undefined;
 }
 
@@ -101,8 +100,8 @@ export function ns2Timestamp(ns: number): string {
   return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second
     .toString()
     .padStart(2, '0')}:${millisecond.toString().padStart(3, '0')}:${microsecond
-      .toString()
-      .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
+    .toString()
+    .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
 }
 
 const offsetX = 5;
@@ -560,10 +559,10 @@ export function drawFlagLine(
   frame: any,
   slicesTime:
     | {
-      startTime: number | null | undefined;
-      endTime: number | null | undefined;
-      color: string | null | undefined;
-    }
+        startTime: number | null | undefined;
+        endTime: number | null | undefined;
+        color: string | null | undefined;
+      }
     | undefined
 ) {
   if (commonCtx) {
@@ -868,7 +867,7 @@ function changeFrameRatePoint(arrList: Array<number>, selectParams: TraceRow<any
       TraceRow.range?.totalNS ?? 0,
       selectParams.frame
     )
-  );// 起始坐标
+  ); // 起始坐标
   let avgRateEndX = Math.floor(
     ns2x(
       arrList[arrList.length - 1]!,
@@ -877,20 +876,22 @@ function changeFrameRatePoint(arrList: Array<number>, selectParams: TraceRow<any
       TraceRow.range?.totalNS ?? 0,
       selectParams.frame
     )
-  );// 结束坐标
+  ); // 结束坐标
   return [avgRateStartX, avgRateEndX];
 }
 
 // 处理文字坐标
 function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any>, textWidth: number) {
   const TEXT_WIDTH_HALF = 2;
-  let textX = Math.floor(ns2x(
-    (arrList[0]! + arrList[arrList.length - 1]!) / 2,
-    TraceRow.range?.startNS ?? 0,
-    TraceRow.range?.endNS ?? 0,
-    TraceRow.range?.totalNS ?? 0,
-    selectParams.frame
-  )); //根据帧率范围的中间值转换文本的起始x坐标
+  let textX = Math.floor(
+    ns2x(
+      (arrList[0]! + arrList[arrList.length - 1]!) / 2,
+      TraceRow.range?.startNS ?? 0,
+      TraceRow.range?.endNS ?? 0,
+      TraceRow.range?.totalNS ?? 0,
+      selectParams.frame
+    )
+  ); //根据帧率范围的中间值转换文本的起始x坐标
   textX = textX <= textWidth / TEXT_WIDTH_HALF ? textX : textX - textWidth / TEXT_WIDTH_HALF;
   let textY = selectParams.frame.y + 11;
   if (selectParams.avgRateTxt?.includes('HitchTime')) {
@@ -951,7 +952,12 @@ export function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams:
 
   const TEXT_RECT_PADDING = 2;
   ctx.fillStyle = 'red';
-  ctx.fillRect(textX - padding, textY - textHeight / TEXT_RECT_PADDING + padding, textWidth + padding * TEXT_RECT_PADDING, textHeight - padding * TEXT_RECT_PADDING);
+  ctx.fillRect(
+    textX - padding,
+    textY - textHeight / TEXT_RECT_PADDING + padding,
+    textWidth + padding * TEXT_RECT_PADDING,
+    textHeight - padding * TEXT_RECT_PADDING
+  );
 
   ctx.fillStyle = 'white';
   ctx.fillText(selectParams.avgRateTxt, textX, textY + 4);
@@ -1370,8 +1376,7 @@ export function drawLoading(
   frame: any,
   left: number,
   right: number
-) {
-}
+) {}
 
 let loadingText = 'Loading...';
 let loadingTextWidth = 0;
@@ -1413,19 +1418,26 @@ export function drawString(ctx: CanvasRenderingContext2D, str: string, textPaddi
   if (data.textMetricsWidth === undefined) {
     data.textMetricsWidth = ctx.measureText(str).width;
   }
+  const yPos = 1.5;
   let charWidth = Math.round(data.textMetricsWidth / str.length);
   let fillTextWidth = frame.width - textPadding * 2;
   if (data.textMetricsWidth < fillTextWidth) {
     let x2 = Math.floor(frame.width / 2 - data.textMetricsWidth / 2 + frame.x + textPadding);
-    ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2), fillTextWidth);
+    ctx.fillText(str, x2, Math.floor(frame.y + frame.height / yPos), fillTextWidth);
   } else {
     if (fillTextWidth >= charWidth) {
       let chatNum = fillTextWidth / charWidth;
       let x1 = frame.x + textPadding;
+
       if (chatNum < 2) {
-        ctx.fillText(str.substring(0, 1), x1, Math.floor(frame.y + frame.height / 2), fillTextWidth);
+        ctx.fillText(str.substring(0, 1), x1, Math.floor(frame.y + frame.height / yPos), fillTextWidth);
       } else {
-        ctx.fillText(str.substring(0, chatNum - 1) + '...', x1, Math.floor(frame.y + frame.height / 2), fillTextWidth);
+        ctx.fillText(
+          str.substring(0, chatNum - 1) + '...',
+          x1,
+          Math.floor(frame.y + frame.height / yPos),
+          fillTextWidth
+        );
       }
     }
   }
@@ -1447,7 +1459,12 @@ export function drawFunString(ctx: CanvasRenderingContext2D, str: string, textPa
       if (chatNum < 2) {
         ctx.fillText(str.substring(0, 1), x1, Math.floor(data.frame.height * (data.depth! + 0.5) + 3), fillTextWidth);
       } else {
-        ctx.fillText(str.substring(0, chatNum - 1) + '...', x1, Math.floor(data.frame.height * (data.depth! + 0.5) + 3), fillTextWidth);
+        ctx.fillText(
+          str.substring(0, chatNum - 1) + '...',
+          x1,
+          Math.floor(data.frame.height * (data.depth! + 0.5) + 3),
+          fillTextWidth
+        );
       }
     }
   }

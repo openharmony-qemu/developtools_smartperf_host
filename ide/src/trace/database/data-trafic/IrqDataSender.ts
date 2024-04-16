@@ -19,7 +19,7 @@ import { IrqStruct } from '../ui-worker/ProcedureWorkerIrq';
 export function irqDataSender(cpu: number, name: string, row: TraceRow<IrqStruct>): Promise<IrqStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       argSetId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       depth: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),

@@ -172,8 +172,8 @@ export class SpChartList extends BaseElement {
     }
   }
 
-  getRowScrollTop() : number {
-    return this.rootEl?.scrollTop || 0
+  getRowScrollTop(): number {
+    return this.rootEl?.scrollTop || 0;
   }
 
   expandSearchRowGroup(row: TraceRow<any>): void {
@@ -204,7 +204,7 @@ export class SpChartList extends BaseElement {
   }
 
   getCollectRowsInfo(group: string) {
-    return  (group === SpChartList.COLLECT_G1 ? this.collectRowList1 : this.collectRowList2).map(row => {
+    return (group === SpChartList.COLLECT_G1 ? this.collectRowList1 : this.collectRowList2).map((row) => {
       let rowJson = {
         type: row.rowType,
         name: row.name,
@@ -293,7 +293,7 @@ export class SpChartList extends BaseElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    const vessel = this.parentNode as HTMLDivElement
+    const vessel = this.parentNode as HTMLDivElement;
     vessel.addEventListener('mousedown', this.onMouseDown);
     vessel.addEventListener('mouseup', this.onMouseUp);
     vessel.addEventListener('mousemove', this.onMouseMove);
@@ -302,7 +302,7 @@ export class SpChartList extends BaseElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    const vessel = this.parentNode as HTMLDivElement
+    const vessel = this.parentNode as HTMLDivElement;
     vessel.removeEventListener('mousedown', this.onMouseDown);
     vessel.removeEventListener('mouseup', this.onMouseUp);
     vessel.removeEventListener('mousemove', this.onMouseMove);
@@ -380,7 +380,7 @@ export class SpChartList extends BaseElement {
     this.canResize = false;
     this.style.cursor = 'default';
     (window as any).collectResize = false;
-    if(this.style.display === 'flex'){
+    if (this.style.display === 'flex') {
       this.refreshFavoriteCanvas();
     }
   };

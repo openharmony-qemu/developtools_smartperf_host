@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,20 +47,22 @@ export class BinderRender extends Render {
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         BinderStruct.hoverCpuFreqStruct = re;
       }
-if (!row.isHover) {
+      if (!row.isHover) {
         BinderStruct.hoverCpuFreqStruct = undefined;
       }
       BinderStruct.draw(freqReq.context, re);
     }
     freqReq.context.closePath();
-    if (!BinderStruct.isTabHover && 
-      !BinderStruct.hoverCpuFreqStruct && 
-      !BinderStruct.selectCpuFreqStruct && 
-      !CpuFreqExtendStruct.isTabHover && 
-      !CpuFreqExtendStruct.hoverCpuFreqStruct && 
+    if (
+      !BinderStruct.isTabHover &&
+      !BinderStruct.hoverCpuFreqStruct &&
+      !BinderStruct.selectCpuFreqStruct &&
+      !CpuFreqExtendStruct.isTabHover &&
+      !CpuFreqExtendStruct.hoverCpuFreqStruct &&
       !CpuFreqExtendStruct.selectCpuFreqStruct &&
       !ThreadStruct.hoverThreadStruct &&
-      !TabPaneFreqStatesDataCut.isStateTabHover) {
+      !TabPaneFreqStatesDataCut.isStateTabHover
+    ) {
       SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
     }
     if (!SpSegmentationChart.trace.isMousePointInSheet) {

@@ -15,7 +15,6 @@
 
 #include "measure_filter.h"
 #include "filter_filter.h"
-#include "log.h"
 #include "ts_common.h"
 
 namespace SysTuning {

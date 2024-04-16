@@ -18,7 +18,9 @@ import { energyList } from './utils/AllMemoryCache';
 
 export const systemDataSql = (args: any): string => {
   return `SELECT S.id,
-                 S.ts - ${args.recordStartNS}                                                                   AS startNs,
+                 S.ts - ${
+                   args.recordStartNS
+                 }                                                                   AS startNs,
                  D.data                                                                                         AS eventName,
                  (case when D.data == 'POWER_RUNNINGLOCK' then 1 when D.data == 'GNSS_STATE' then 2 else 0 end) AS appKey,
                  contents                                                                                       AS eventValue,
@@ -197,8 +199,7 @@ function systemBufferHandler(data: any, res: any[], transfer: boolean) {
     if (typeof it.eventValue === 'string') {
       try {
         parsedData = JSON.parse(it.eventValue);
-      } catch (error) {
-      }
+      } catch (error) {}
     }
     it.eventValue = parsedData;
     let beanData: any = {};
@@ -342,26 +343,26 @@ function postMessage(data: any, transfer: boolean, hiSysEnergy: HiSysEnergy, len
       action: data.action,
       results: transfer
         ? {
-          id: hiSysEnergy.id.buffer,
-          startNs: hiSysEnergy.startNs.buffer,
-          count: hiSysEnergy.count.buffer,
-          type: hiSysEnergy.type.buffer,
-          token: hiSysEnergy.token.buffer,
-          dataType: hiSysEnergy.dataType.buffer,
-        }
+            id: hiSysEnergy.id.buffer,
+            startNs: hiSysEnergy.startNs.buffer,
+            count: hiSysEnergy.count.buffer,
+            type: hiSysEnergy.type.buffer,
+            token: hiSysEnergy.token.buffer,
+            dataType: hiSysEnergy.dataType.buffer,
+          }
         : {},
       len: len,
       transfer: transfer,
     },
     transfer
       ? [
-        hiSysEnergy.id.buffer,
-        hiSysEnergy.startNs.buffer,
-        hiSysEnergy.count.buffer,
-        hiSysEnergy.type.buffer,
-        hiSysEnergy.token.buffer,
-        hiSysEnergy.dataType.buffer,
-      ]
+          hiSysEnergy.id.buffer,
+          hiSysEnergy.startNs.buffer,
+          hiSysEnergy.count.buffer,
+          hiSysEnergy.type.buffer,
+          hiSysEnergy.token.buffer,
+          hiSysEnergy.dataType.buffer,
+        ]
       : []
   );
 }
@@ -398,9 +399,9 @@ function anomalyBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,
@@ -423,9 +424,9 @@ function powerBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,
@@ -459,10 +460,10 @@ function stateBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-          eventValue: eventValue.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+            eventValue: eventValue.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,

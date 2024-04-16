@@ -147,7 +147,8 @@ export class TabPaneNetworkAbility extends BaseElement {
     return this.compareFunction(sort, getProperty);
   }
 
-  compareFunction = (sort: number, getProperty: (data: SystemNetworkSummary) => number | string) =>
+  compareFunction =
+    (sort: number, getProperty: (data: SystemNetworkSummary) => number | string) =>
     (networkAbilityLeftData: SystemNetworkSummary, networkAbilityRightData: SystemNetworkSummary) => {
       let leftValue = getProperty(networkAbilityLeftData);
       let rightValue = getProperty(networkAbilityRightData);
@@ -160,23 +161,25 @@ export class TabPaneNetworkAbility extends BaseElement {
       return result;
     };
 
-  getPropertyByType = (property: string, type: string) => (data: SystemNetworkSummary): number | string => {
-    let typeMap = {
+  getPropertyByType =
+    (property: string, type: string) =>
+    (data: SystemNetworkSummary): number | string => {
+      let typeMap = {
+        // @ts-ignore
+        number: parseFloat(data[property]),
+        durationStr: data.duration,
+        dataReceivedStr: data.dataReceived,
+        dataReceivedSecStr: data.dataReceivedSec,
+        dataSendStr: data.dataSend,
+        dataSendSecStr: data.dataSendSec,
+        packetsInStr: data.packetsIn,
+        packetsInSecStr: data.packetsInSec,
+        packetsOutStr: data.packetsOut,
+        packetsOutSecStr: data.packetsOutSec,
+      };
       // @ts-ignore
-      number: parseFloat(data[property]),
-      durationStr: data.duration,
-      dataReceivedStr: data.dataReceived,
-      dataReceivedSecStr: data.dataReceivedSec,
-      dataSendStr: data.dataSend,
-      dataSendSecStr: data.dataSendSec,
-      packetsInStr: data.packetsIn,
-      packetsInSecStr: data.packetsInSec,
-      packetsOutStr: data.packetsOut,
-      packetsOutSecStr: data.packetsOutSec
+      return typeMap[type] || data[property];
     };
-    // @ts-ignore
-    return typeMap[type] || data[property];
-  };
 
   sortByColumn(detail: any) {
     // @ts-ignore

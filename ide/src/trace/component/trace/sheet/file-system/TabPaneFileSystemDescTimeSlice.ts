@@ -46,8 +46,9 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
     }
     if (this.fsDescTimeSliceTblData) {
       // @ts-ignore
-      this.fsDescTimeSliceTblData.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 20 - 31  }px`;
+      this.fsDescTimeSliceTblData.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 20 - 31
+      }px`;
     }
     this.fsDescTimeSliceTbl!.recycleDataSource = [];
     this.fsDescTimeSliceTblData!.recycleDataSource = [];
@@ -123,17 +124,19 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
       if (this.parentElement?.clientHeight != 0) {
         if (this.fsDescTimeSliceTbl) {
           // @ts-ignore
-          this.fsDescTimeSliceTbl.shadowRoot.querySelector('.table').style.height =
-            `${this.parentElement!.clientHeight - 10 - 31  }px`;
+          this.fsDescTimeSliceTbl.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 31
+          }px`;
           this.fsDescTimeSliceTbl.reMeauseHeight();
         }
-       if (this.fsDescTimeSliceTblData) {
-         // @ts-ignore
-         this.fsDescTimeSliceTblData.shadowRoot.querySelector('.table').style.height =
-           `${this.parentElement!.clientHeight - 10 - 31  }px`;
-         this.fsDescTimeSliceTblData.reMeauseHeight();
-         this.fsDescTimeSliceLoadingPage.style.height = `${this.parentElement!.clientHeight - 24  }px`;
-       }
+        if (this.fsDescTimeSliceTblData) {
+          // @ts-ignore
+          this.fsDescTimeSliceTblData.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 31
+          }px`;
+          this.fsDescTimeSliceTblData.reMeauseHeight();
+          this.fsDescTimeSliceLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
+        }
       }
     }).observe(this.parentElement!);
   }

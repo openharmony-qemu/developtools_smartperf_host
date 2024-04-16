@@ -28,15 +28,9 @@ import '../TabPaneFilter';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
 import '../../../../../base-ui/slicer/lit-slicer';
 import { procedurePool } from '../../../../database/Procedure';
-import {
-  formatRealDateMs,
-  getTimeString
-} from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { formatRealDateMs, getTimeString } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
-import {
-  queryAllHookData,
-  queryNativeHookSnapshotTypes
-} from '../../../../database/sql/NativeHook.sql';
+import { queryAllHookData, queryNativeHookSnapshotTypes } from '../../../../database/sql/NativeHook.sql';
 
 @element('tabpane-native-sample')
 export class TabPaneNMSampleList extends BaseElement {
@@ -69,14 +63,14 @@ export class TabPaneNMSampleList extends BaseElement {
       this.initTypes(sampleParam.nativeMemoryCurrentIPid);
     }
     if (sampleParam.nativeMemory.indexOf(this.nativeType[0]) !== -1) {
-      this.types.push('\'AllocEvent\'');
-      this.types.push('\'MmapEvent\'');
+      this.types.push("'AllocEvent'");
+      this.types.push("'MmapEvent'");
     } else {
       if (sampleParam.nativeMemory.indexOf(this.nativeType[1]) !== -1) {
-        this.types.push('\'AllocEvent\'');
+        this.types.push("'AllocEvent'");
       }
       if (sampleParam.nativeMemory.indexOf(this.nativeType[2]) !== -1) {
-        this.types.push('\'MmapEvent\'');
+        this.types.push("'MmapEvent'");
       }
     }
   }
@@ -98,8 +92,9 @@ export class TabPaneNMSampleList extends BaseElement {
     rootSample.snapshot = `Snapshot${this.numberToWord(this.samplerInfoSource.length + 1)}`;
     rootSample.startTs = data.startTs;
     rootSample.timestamp =
-      SpNativeMemoryChart.REAL_TIME_DIF === 0 ? getTimeString(data.startTs) :
-        formatRealDateMs(data.startTs + SpNativeMemoryChart.REAL_TIME_DIF);
+      SpNativeMemoryChart.REAL_TIME_DIF === 0
+        ? getTimeString(data.startTs)
+        : formatRealDateMs(data.startTs + SpNativeMemoryChart.REAL_TIME_DIF);
     rootSample.eventId = data.eventId;
     rootSample.threadId = data.threadId;
     rootSample.threadName = data.threadName;
@@ -151,8 +146,9 @@ export class TabPaneNMSampleList extends BaseElement {
           nameGroup[item.eventType].push(item);
         });
         let leftTime =
-          TabPaneNMSampleList.tableMarkData.length === 1 ? 0 :
-            TabPaneNMSampleList.tableMarkData[TabPaneNMSampleList.tableMarkData.length - 2].startTs;
+          TabPaneNMSampleList.tableMarkData.length === 1
+            ? 0
+            : TabPaneNMSampleList.tableMarkData[TabPaneNMSampleList.tableMarkData.length - 2].startTs;
         nmSamplerHookResult.forEach((item) => {
           item.threadId = rootSample.threadId;
           item.threadName = rootSample.threadName;
@@ -284,7 +280,7 @@ export class TabPaneNMSampleList extends BaseElement {
         let hookCallInfo = new NativeHookCallInfo();
         hookCallInfo.threadId = hookSamplerInfo.threadId;
         hookCallInfo.threadName = hookSamplerInfo.threadName;
-        hookCallInfo.title = `${hookSamplerInfo.threadName ?? ''}【${hookSamplerInfo.threadId}】`;
+        hookCallInfo.symbol = `${hookSamplerInfo.threadName ?? ''}【${hookSamplerInfo.threadId}】`;
         hookCallInfo.type = -1;
         source.push(hookCallInfo);
         source.push(...results);
@@ -416,7 +412,7 @@ export class TabPaneNMSampleList extends BaseElement {
                     <img src="img/function.png" size="20" v-if=" type === 0 ">
                 </template>
             </lit-table-column>
-            <lit-table-column class="nm-sample-column" width="1fr" title="" data-index="title" key="title"  align="flex-start">
+            <lit-table-column class="nm-sample-column" width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
             </lit-table-column>
         </lit-table>
         </lit-slicer>

@@ -15,7 +15,6 @@
 #include "frame_filter.h"
 #include <memory>
 #include <cinttypes>
-#include "log.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

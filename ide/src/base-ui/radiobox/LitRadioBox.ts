@@ -167,7 +167,6 @@ export class LitRadioBox extends BaseElement {
     return this.getAttribute('disabled') !== null;
   }
 
-
   get checked() {
     return this.getAttribute('checked') !== null;
   }

@@ -17,7 +17,6 @@
 
 #include "common_types.h"
 #include "string_help.h"
-#include "log.h"
 #include "string_to_numerical.h"
 #include "parser_base.h"
 #include "event_parser_base.h"

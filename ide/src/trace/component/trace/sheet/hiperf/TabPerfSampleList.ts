@@ -25,7 +25,7 @@ import { SpSystemTrace } from '../../../SpSystemTrace';
 import {
   queryPerfProcess,
   queryPerfSampleCallChain,
-  queryPerfSampleListByTimeRange
+  queryPerfSampleListByTimeRange,
 } from '../../../../database/sql/Perf.sql';
 
 @element('tabpane-perf-sample')
@@ -40,11 +40,12 @@ export class TabPanePerfSample extends BaseElement {
   set data(perfSampleSelection: SelectionParam | null | undefined) {
     this.perfSampleTbl!.style.visibility = 'visible';
     // @ts-ignore
-    this.perfSampleTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      `${this.parentElement!.clientHeight - 40  }px`;
+    this.perfSampleTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 40
+    }px`;
     this.perfSampleTbl!.recycleDataSource = [];
     // @ts-ignore
-    this.tblData?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 25  }px`;
+    this.tblData?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 25}px`;
     this.tblData!.recycleDataSource = [];
     if (perfSampleSelection) {
       Promise.all([
@@ -59,9 +60,9 @@ export class TabPanePerfSample extends BaseElement {
         ),
       ]).then((results) => {
         let processes = results[0] as Array<PerfThread>;
-        log(`queryPerfProcess size : ${  processes.length}`);
+        log(`queryPerfProcess size : ${processes.length}`);
         let samples = results[1] as Array<PerfSample>;
-        log(`queryPerfSampleListByTimeRange size : ${  samples.length}`);
+        log(`queryPerfSampleListByTimeRange size : ${samples.length}`);
         this.processMap.clear();
         for (let process of processes) {
           this.processMap.set(process.pid, process);
@@ -71,17 +72,17 @@ export class TabPanePerfSample extends BaseElement {
     }
   }
 
-  private initPerfSampleData(samples: PerfSample[]): void{
+  private initPerfSampleData(samples: PerfSample[]): void {
     for (let sample of samples) {
       let process = this.processMap.get(sample.pid);
       sample.processName =
-        process === null || process === undefined ?
-          `Process(${sample.pid})` :
-          `${process!.processName || 'Process'}(${sample.pid})`;
+        process === null || process === undefined
+          ? `Process(${sample.pid})`
+          : `${process!.processName || 'Process'}(${sample.pid})`;
       sample.threadName =
-        sample.threadName === null || sample.threadName === undefined ?
-          `Thread(${sample.tid})` :
-          `${sample.threadName}(${sample.tid})`;
+        sample.threadName === null || sample.threadName === undefined
+          ? `Thread(${sample.tid})`
+          : `${sample.threadName}(${sample.tid})`;
       sample.coreName = `CPU ${sample.core}`;
       sample.timeString = Utils.getTimeString(sample.time);
       sample.backtrace = [];
@@ -139,10 +140,11 @@ export class TabPanePerfSample extends BaseElement {
     new ResizeObserver(() => {
       if (this.parentElement?.clientHeight !== 0) {
         // @ts-ignore
-        this.perfSampleTbl?.shadowRoot.querySelector('.table').style.height =
-          `${this.parentElement!.clientHeight - 40  }px`;
+        this.perfSampleTbl?.shadowRoot.querySelector('.table').style.height = `${
+          this.parentElement!.clientHeight - 40
+        }px`;
         // @ts-ignore
-        this.tblData?.shadowRoot.querySelector('.table').style.height = `${this.parentElement.clientHeight - 25  }px`;
+        this.tblData?.shadowRoot.querySelector('.table').style.height = `${this.parentElement.clientHeight - 25}px`;
         this.perfSampleTbl?.reMeauseHeight();
         this.tblData?.reMeauseHeight();
       }

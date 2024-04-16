@@ -21,10 +21,9 @@
 #include <string>
 #include "event_parser_base.h"
 #include "htrace_event_parser.h"
-#include "log.h"
 #include "parser_base.h"
 #include "proto_reader_help.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_plugin_result.pbreader.h"
 #include "trace_streamer_filters.h"
 

@@ -205,7 +205,6 @@ export class SpSdkConfig extends BaseElement {
     this.isAbleShowConfig(true);
   }
 
-
   private sdkConfigByBooleanType(key: string, sdkConfigSwitch: LitSwitch, sdkConfigHeadDiv: HTMLDivElement): void {
     sdkConfigSwitch.className = 'switch1 config';
     sdkConfigSwitch.setAttribute('configName', key);

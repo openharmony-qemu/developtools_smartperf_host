@@ -72,11 +72,15 @@ export class RangeSelect {
     TraceRow.rangeSelectObject = undefined;
     // 遍历当前可视区域所有的泳道，如果有render_service进程，查询该进程下对应泳道的方法存起来，以便框选时直接使用
     this.trace?.visibleRows.forEach((row) => {
-      if (row.getAttribute('row-type') === 'process' && row.getAttribute('name')?.startsWith('render_service')) {
-        this.queryRowsData(row.childrenList)
+      if (row.getAttribute('name')?.startsWith('render_service')) {
+        if (row.getAttribute('row-type') === 'process') {
+          this.queryRowsData(row.childrenList);
+        } else {
+          this.queryRowsData(row.parentRowEl!.childrenList);
+        }
         return;
       }
-    })
+    });
   }
 
   // 对应查询方法行所有的数据
@@ -91,16 +95,13 @@ export class RangeSelect {
           this.savePresentData(row, 'H:Waiting for Present Fence');
         }
       }
-    })
+    });
   }
 
   // 查到所有的数据存储起来
   saveFrameRateData(row: TraceRow<any>, funcName: string): void {
-    let dataList: any = []
-    queryFuncRowData(
-      funcName,
-      Number(row?.getAttribute('row-id')),
-    ).then((res) => {
+    let dataList: any = [];
+    queryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res) => {
       if (res.length) {
         res.forEach((item) => {
           dataList?.push({ startTime: item.startTime!, tid: item.tid });
@@ -115,11 +116,8 @@ export class RangeSelect {
   }
   // 查到present泳道所有的数据存储起来
   savePresentData(row: TraceRow<any>, funcName: string): void {
-    let dataList: any = []
-    fuzzyQueryFuncRowData(
-      funcName,
-      Number(row?.getAttribute('row-id')),
-    ).then((res) => {
+    let dataList: any = [];
+    fuzzyQueryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res) => {
       if (res.length) {
         res.forEach((item) => {
           dataList?.push({ endTime: item.endTime!, tid: item.tid });
@@ -140,16 +138,19 @@ export class RangeSelect {
       }
       //查询render_service数据
       if (this.rangeTraceRow?.length) {
-        this.checkRowsName(this.rangeTraceRow)
+        this.checkRowsName(this.rangeTraceRow);
       }
     }
     this.isMouseDown = false;
   }
 
-
   checkRowsName(rowList: Array<TraceRow<any>>) {
     rowList.forEach((row) => {
-      if (row.getAttribute('row-type') === 'func' && row.parentRowEl?.getAttribute('name')?.startsWith('render_service')) {
+      if (
+        row.getAttribute('row-type') === 'func' &&
+        row.parentRowEl?.getAttribute('name')?.startsWith('render_service')
+      ) {
+        row.frameRateList = [];
         if (row.getAttribute('name')?.startsWith('render_service')) {
           this.filterRateData(row, this.docomList);
         } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
@@ -158,7 +159,7 @@ export class RangeSelect {
           this.filterPresentData(row, this.presentList);
         }
       }
-    })
+    });
   }
 
   // 过滤处理数据
@@ -171,14 +172,14 @@ export class RangeSelect {
       ) {
         row.frameRateList?.push(it.startTime);
       }
-    })
+    });
     if (row.frameRateList?.length) {
-      row.frameRateList = [...new Set(row.frameRateList)];
-      row.frameRateList.sort((a, b) => a - b);
-      if (row.frameRateList?.length >= 2) {
+      if (row.frameRateList.length < 2) {
+        row.frameRateList = [];
+      } else {
         const CONVERT_SECONDS = 1000000000;
-        let cutres: number = (row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0]);
-        row.avgRateTxt = ((row.frameRateList.length - 1) / cutres * CONVERT_SECONDS).toFixed(1) + 'fps';
+        let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
+        row.avgRateTxt = (((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1) + 'fps';
       }
     }
   }
@@ -191,32 +192,33 @@ export class RangeSelect {
         it.endTime <= TraceRow.rangeSelectObject!.endNS! &&
         Number(row.rowId) === Number(it.tid)
       ) {
-        row.frameRateList?.push(it.endTime)
+        row.frameRateList?.push(it.endTime);
       }
-    })
+    });
     if (row.frameRateList?.length) {
-      row.frameRateList = [...new Set(row.frameRateList)];//去重
-      row.frameRateList.sort((a, b) => a - b); //排序
-      if (row.frameRateList?.length >= 2) {
+      if (row.frameRateList?.length < 2) {
+        row.frameRateList = [];
+      } else {
         let hitchTimeList: Array<number> = [];
         for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
-          if (SpLtpoChart.sendHitchDataArr[i].startTs! >= row.frameRateList[0]!
-            &&
-            SpLtpoChart.sendHitchDataArr[i].startTs! < row.frameRateList[row.frameRateList.length - 1]!) {
-            hitchTimeList.push(SpLtpoChart.sendHitchDataArr[i].value!);
-          } else if (
-            SpLtpoChart.sendHitchDataArr[i].startTs! >= row.frameRateList[row.frameRateList.length - 1]!
+          if (
+            SpLtpoChart.sendHitchDataArr[i].startTs! >= row.frameRateList[0]! &&
+            SpLtpoChart.sendHitchDataArr[i].startTs! < row.frameRateList[row.frameRateList.length - 1]!
           ) {
+            hitchTimeList.push(SpLtpoChart.sendHitchDataArr[i].value!);
+          } else if (SpLtpoChart.sendHitchDataArr[i].startTs! >= row.frameRateList[row.frameRateList.length - 1]!) {
             break;
           }
         }
         const CONVERT_SECONDS = 1000000000;
-        let cutres: number = (row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0]);
-        let avgRate: string = ((row.frameRateList.length - 1) / cutres * CONVERT_SECONDS).toFixed(1) + 'fps';
+        let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
+        let avgRate: string = (((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1) + 'fps';
         let sum: number = hitchTimeList.reduce((accumulator, currentValue) => accumulator + currentValue, 0); // ∑hitchTimeData
-        let hitchRate: number = (sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000));
+        let hitchRate: number =
+          sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000);
         let perHitchRate: string = (Number(hitchRate) * 100).toFixed(2) + '%';
-        row.avgRateTxt = avgRate + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1) + 'ms' + ' ' + ',' + ' ' + perHitchRate;
+        row.avgRateTxt =
+          avgRate + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1) + 'ms' + ' ' + ',' + ' ' + perHitchRate;
       }
     }
   }
@@ -289,12 +291,15 @@ export class RangeSelect {
         itRect.height = 0;
       }
       if (
-        Rect.intersect(itRect as Rect, {
-          x: Math.min(this.startPageX, this.endPageX),
-          y: Math.min(this.startPageY, this.endPageY),
-          width: Math.abs(this.startPageX - this.endPageX),
-          height: Math.abs(this.startPageY - this.endPageY),
-        } as Rect)
+        Rect.intersect(
+          itRect as Rect,
+          {
+            x: Math.min(this.startPageX, this.endPageX),
+            y: Math.min(this.startPageY, this.endPageY),
+            width: Math.abs(this.startPageX - this.endPageX),
+            height: Math.abs(this.startPageY - this.endPageY),
+          } as Rect
+        )
       ) {
         if (!rangeSelect) {
           it.setTipLeft(0, null);
@@ -375,8 +380,7 @@ export class RangeSelect {
         (this.timerShaftEL?.canvas?.clientWidth || 0)) /
       (TraceRow.range!.endNS - TraceRow.range!.startNS);
     let x2 =
-      ((TraceRow.rangeSelectObject!.endNS! - TraceRow.range!.startNS) *
-        (this.timerShaftEL?.canvas?.clientWidth || 0)) /
+      ((TraceRow.rangeSelectObject!.endNS! - TraceRow.range!.startNS) * (this.timerShaftEL?.canvas?.clientWidth || 0)) /
       (TraceRow.range!.endNS - TraceRow.range!.startNS);
     this.mark = { startMark: x1, endMark: x2 };
     let mouseX = ev.pageX - this.rowsPaneEL!.getBoundingClientRect().left - 248;

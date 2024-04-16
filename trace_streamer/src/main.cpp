@@ -12,35 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
-#include <cinttypes>
 #include <dirent.h>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <regex>
-#include <cstdio>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include "codec_cov.h"
 #include "file.h"
-#include "filter/cpu_filter.h"
-#include "filter/frame_filter.h"
-#include "filter/slice_filter.h"
-#include "log.h"
-#include "metrics.h"
-#include "parser/ptreader_parser/bytrace_parser/bytrace_event_parser.h"
-#include "parser/ptreader_parser/ptreader_parser.h"
-#include "parting_string.h"
-#include "rpc_server.h"
+#include "cpu_filter.h"
+#include "frame_filter.h"
+#include "slice_filter.h"
 #include "string_help.h"
 
-#include "thread_state_flag.h"
-#include "trace_streamer/trace_streamer_selector.h"
-#include "trace_streamer_filters.h"
+#include "trace_streamer_selector.h"
 #include "version.h"
 using namespace SysTuning::TraceStreamer;
 using namespace SysTuning;
@@ -119,65 +107,107 @@ void PrintVersion()
 {
     (void)fprintf(stderr, "version %s\n", g_traceStreamerVersion.c_str());
 }
-void PrintDefaultAbilityInfo(std::string& disableInfo)
+void SetFtracePluginsAbilityInfo(std::string& disableInfo, std::string& enableInfo)
 {
 #ifndef ENABLE_BYTRACE
     disableInfo.append("\n\tbytrace");
+#else
+    enableInfo.append("\n\tbytrace");
 #endif
 #ifndef ENABLE_RAWTRACE
     disableInfo.append("\n\trawtrace");
+#else
+    enableInfo.append("\n\trawtrace");
 #endif
 #ifndef ENABLE_HTRACE
     disableInfo.append("\n\thtrace");
+#else
+    enableInfo.append("\n\thtrace");
 #endif
+}
+void PrintDefaultAbilityInfo(std::string& disableInfo, std::string& enableInfo)
+{
+    SetFtracePluginsAbilityInfo(disableInfo, enableInfo);
 #ifndef ENABLE_MEMORY
     disableInfo.append("\n\tmemory");
+#else
+    enableInfo.append("\n\tmemory");
 #endif
 #ifndef ENABLE_HTDUMP
     disableInfo.append("\n\thidump");
+#else
+    enableInfo.append("\n\thidump");
 #endif
 #ifndef ENABLE_CPUDATA
     disableInfo.append("\n\tcpudata");
+#else
+    enableInfo.append("\n\tcpudata");
 #endif
 #ifndef ENABLE_NETWORK
     disableInfo.append("\n\tnetwork");
+#else
+    enableInfo.append("\n\tnetwork");
 #endif
 #ifndef ENABLE_DISKIO
     disableInfo.append("\n\tdiskio");
+#else
+    enableInfo.append("\n\tdiskio");
 #endif
 #ifndef ENABLE_PROCESS
     disableInfo.append("\n\tprocess");
+#else
+    enableInfo.append("\n\tprocess");
 #endif
     printf(
         "the default support ability list:\n\thiperf,ebpf,native_hook,hilog,hisysevent,arkts\n\t"
         "bytrace,rawtrace,htrace,memory,hidump,cpudata,network,diskio,process\n");
 }
+void PrintExtendAbilityInfo(std::string& disableInfo, std::string& enableInfo)
+{
+#ifndef ENABLE_STREAM_EXTEND
+    disableInfo.append("\n\tstream_extend");
+#else
+    enableInfo.append("\n\tstream_extend");
+#endif
+    printf("the extend support ability list:\n\tstream_extend\n");
+}
 void PrintAbilityInfo()
 {
     std::string disableInfo;
+    std::string enableInfo;
 #ifndef ENABLE_HIPERF
     disableInfo.append("\n\thiperf");
+#else
+    enableInfo.append("\n\thiperf");
 #endif
 #ifndef ENABLE_EBPF
     disableInfo.append("\n\tebpf");
+#else
+    enableInfo.append("\n\tebpf");
 #endif
 #ifndef ENABLE_NATIVE_HOOK
     disableInfo.append("\n\tnative_hook");
+#else
+    enableInfo.append("\n\tnative_hook");
 #endif
 #ifndef ENABLE_HILOG
     disableInfo.append("\n\thilog");
+#else
+    enableInfo.append("\n\thilog");
 #endif
 #ifndef ENABLE_HISYSEVENT
     disableInfo.append("\n\thisysevent");
+#else
+    enableInfo.append("\n\thisysevent");
 #endif
 #ifndef ENABLE_ARKTS
     disableInfo.append("\n\tarkts");
+#else
+    enableInfo.append("\n\tarkts");
 #endif
-    PrintDefaultAbilityInfo(disableInfo);
-#ifndef ENABLE_STREAM_EXTEND
-    disableInfo.append("\n\tstream_extend");
-#endif
-    printf("the extend support ability list:\n\tstream_extend\n");
+    PrintDefaultAbilityInfo(disableInfo, enableInfo);
+    PrintExtendAbilityInfo(disableInfo, enableInfo);
+    printf("the enable ability list:%s\n", enableInfo.empty() ? "\n\tnull" : enableInfo.c_str());
     printf("the disable ability list:%s\n", disableInfo.empty() ? "\n\tnull" : disableInfo.c_str());
 }
 bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)

@@ -190,6 +190,9 @@ config("default") {
   if (is_linux) {
     cflags += [ "-D is_linux" ]
   }
+  if (is_mac) {
+    cflags += [ "-D is_mac" ]
+  }
 }
 
 config("symbols") {

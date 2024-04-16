@@ -21,7 +21,7 @@ export function filterData(
   width: number
 ): any[] {
   let pns = (endNS - startNS) / width; //每个像素多少ns
-  let slice = findRange(list, {startKey, durKey, startNS, endNS});
+  let slice = findRange(list, { startKey, durKey, startNS, endNS });
   let sum = 0;
   for (let i = 0; i < slice.length; i++) {
     if (i === slice.length - 1) {
@@ -61,7 +61,7 @@ export function filterDataByLayer(
   width: number
 ): any[] {
   let pns = (endNS - startNS) / width; //每个像素多少ns
-  let sliceArray = findRange(list, {startKey, durKey, startNS, endNS});
+  let sliceArray = findRange(list, { startKey, durKey, startNS, endNS });
   let groups = groupBy(sliceArray, layerKey);
   let res: any[] = [];
   Reflect.ownKeys(groups).map((key: any) => {
@@ -107,8 +107,9 @@ export function filterDataByGroup(
   endNS: number,
   width: number,
   valueKey?: string,
-  filter?: (a: any) => boolean): any[] {
-  let arr = findRange(list, {startKey, durKey, startNS, endNS})
+  filter?: (a: any) => boolean
+): any[] {
+  let arr = findRange(list, { startKey, durKey, startNS, endNS });
   arr = arr.map((it) => {
     it.px = Math.floor(it[startKey] / ((endNS - startNS) / width));
     return it;
@@ -118,19 +119,48 @@ export function filterDataByGroup(
   Reflect.ownKeys(group).map((key: any): void => {
     let arr = group[key] as any[];
     if (arr.length > 0) {
-      res.add(arr.reduce((p, c) => (p[durKey] > c[durKey]) ? p : c));
+      res.add(arr.reduce((p, c) => (p[durKey] > c[durKey] ? p : c)));
       if (valueKey) {
-        res.add(arr.reduce((p, c) => (p[valueKey] > c[valueKey]) ? p : c));
+        res.add(arr.reduce((p, c) => (p[valueKey] > c[valueKey] ? p : c)));
       }
       if (filter) {
-        let filterArr = arr.filter(a => filter(a));
+        let filterArr = arr.filter((a) => filter(a));
         if (filterArr && filterArr.length > 0) {
-          res.add(filterArr.reduce((p, c) => (p[durKey] > c[durKey]) ? p : c));
+          res.add(filterArr.reduce((p, c) => (p[durKey] > c[durKey] ? p : c)));
         }
       }
     }
   });
   return [...res];
+}
+
+function filterDataByGroupWithoutValue(
+  list: any[],
+  startKey: string,
+  durKey: string,
+  startNS: number,
+  endNS: number,
+  width: number
+) {
+  let arr: any[] = [];
+  // 标志位，判定何时进行新一轮数据统计处理
+  let flag: number = -1;
+  for (let i = 0; i < list.length; i++) {
+    // 筛选符合判断条件的数据，作进一步处理
+    if (list[i][startKey] + list[i][durKey] >= startNS && list[i][startKey] <= endNS) {
+      // 获取当前数据的像素值
+      const px: number = Math.floor(list[i][startKey] / ((endNS - startNS) / width));
+      list[i].px = px;
+      if (flag === px && arr[arr.length - 1] && list[i][durKey] > arr[arr.length - 1][durKey]) {
+        arr[arr.length - 1] = list[i];
+      }
+      if (flag !== px) {
+        flag = px;
+        arr.push(list[i]);
+      }
+    }
+  }
+  return arr;
 }
 
 export function filterDataByGroupLayer(
@@ -142,17 +172,18 @@ export function filterDataByGroupLayer(
   endNS: number,
   width: number
 ): any[] {
-  let arr = findRange(list, {startKey, durKey, startNS, endNS});
+  let arr = findRange(list, { startKey, durKey, startNS, endNS });
   arr = arr.map((it) => {
     it.px = Math.floor(it[startKey] / ((endNS - startNS) / width) + it[layerKey] * width);
     //设置临时变量durTmp 用于参与计算，分组后有dur为-1的数据按最长宽度显示
-    it.durTmp = (it[durKey] === -1 || it[durKey] === null || it[durKey] === undefined) ? (endNS - it[startKey]) : it[durKey];
+    it.durTmp =
+      it[durKey] === -1 || it[durKey] === null || it[durKey] === undefined ? endNS - it[startKey] : it[durKey];
     return it;
   });
   let group = groupBy(arr, 'px');
   let res: any[] = [];
   Reflect.ownKeys(group).map((key: any) => {
-    let childArray = (group[key] as any[]).reduce((p, c) => (p.durTmp > c.durTmp) ? p : c);
+    let childArray = (group[key] as any[]).reduce((p, c) => (p.durTmp > c.durTmp ? p : c));
     res.push(childArray);
   });
   return res;
@@ -174,5 +205,8 @@ function findRange(
     endNS: number;
   }
 ): Array<any> {
-  return fullData.filter(it => it[condition.startKey] + it[condition.durKey] >= condition.startNS && it[condition.startKey] <= condition.endNS);
+  return fullData.filter(
+    (it) =>
+      it[condition.startKey] + it[condition.durKey] >= condition.startNS && it[condition.startKey] <= condition.endNS
+  );
 }

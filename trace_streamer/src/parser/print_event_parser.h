@@ -19,10 +19,10 @@
 #include <string_view>
 #include "common_types.h"
 #include "event_parser_base.h"
-#include "filter/measure_filter.h"
-#include "filter/process_filter.h"
-#include "filter/slice_filter.h"
-#include "filter/task_pool_filter.h"
+#include "measure_filter.h"
+#include "process_filter.h"
+#include "slice_filter.h"
+#include "task_pool_filter.h"
 #include "string_to_numerical.h"
 #include "trace_streamer_config.h"
 namespace SysTuning {

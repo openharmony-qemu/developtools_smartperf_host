@@ -377,7 +377,7 @@ export class LitPopover extends BaseElement {
     }
   }
 
-  setMultiple(dataSource: Array<SelectBean>){
+  setMultiple(dataSource: Array<SelectBean>) {
     this.litGroup = new LitCheckGroup();
     this.litGroup.setAttribute('layout', 'dispersion');
     this.popContent!.appendChild(this.litGroup);

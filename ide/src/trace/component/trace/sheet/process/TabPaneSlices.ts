@@ -37,8 +37,9 @@ export class TabPaneSlices extends BaseElement {
       return;
     }
     this.currentSelectionParam = slicesParam;
-    this.slicesRange!.textContent =
-      `Selected range: ${  parseFloat(((slicesParam.rightNs - slicesParam.leftNs) / 1000000.0).toFixed(5))  } ms`;
+    this.slicesRange!.textContent = `Selected range: ${parseFloat(
+      ((slicesParam.rightNs - slicesParam.leftNs) / 1000000.0).toFixed(5)
+    )} ms`;
     let asyncNames: Array<string> = [];
     let asyncPid: Array<number> = [];
     slicesParam.funAsync.forEach((it: any) => {
@@ -46,6 +47,8 @@ export class TabPaneSlices extends BaseElement {
       asyncPid.push(it.pid);
     });
     this.slicesTbl!.loading = true;
+    let filterNameEL: HTMLInputElement | undefined | null =
+      this.shadowRoot?.querySelector<HTMLInputElement>('#filterName');
     getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {
       getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs).then(
         (res2) => {
@@ -66,8 +69,12 @@ export class TabPaneSlices extends BaseElement {
             count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
             count.occurrences = sumOcc;
             processSlicesResult.splice(0, 0, count);
-            this.slicesSource = processSlicesResult;
-            this.slicesTbl!.recycleDataSource = processSlicesResult;
+            if (filterNameEL && filterNameEL.value.trim() !== '') {
+              this.findName(filterNameEL.value);
+            } else {
+              this.slicesSource = processSlicesResult;
+              this.slicesTbl!.recycleDataSource = processSlicesResult;
+            }
           } else {
             this.slicesSource = [];
             this.slicesTbl!.recycleDataSource = this.slicesSource;
@@ -88,7 +95,7 @@ export class TabPaneSlices extends BaseElement {
     let data;
     this.slicesTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
-      data = evt.detail.data;  
+      data = evt.detail.data;
     });
     this.slicesTbl!.addEventListener('click', () => {
       FuncStruct.funcSelect = false;
@@ -156,9 +163,11 @@ export class TabPaneSlices extends BaseElement {
     // search 到的内容与框选泳道的内容取并集
     for (const searchItem of search.list) {
       for (const traceRow of sliceRowList) {
-        if (Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
-          Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
-          !rangeSelectList.includes(searchItem)) {
+        if (
+          Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
+            Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
+          !rangeSelectList.includes(searchItem)
+        ) {
           // 异步调用栈
           if (traceRow.asyncFuncName) {
             if (`${searchItem.pid}` === `${traceRow.asyncFuncNamePID}`) {
@@ -177,7 +186,7 @@ export class TabPaneSlices extends BaseElement {
     if (rangeSelectList.length === 0) {
       return;
     }
-    input.value = data.name
+    input.value = data.name;
     search.list = rangeSelectList;
     search.total = search.list.length;
     search.index = spSystemTrace!.showStruct(true, 1, search.list);
@@ -237,9 +246,9 @@ export class TabPaneSlices extends BaseElement {
           // @ts-ignore
           return slicesSort === 2
             ? // @ts-ignore
-            parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
+              parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
             : // @ts-ignore
-            parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
+              parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
         } else {
           // @ts-ignore
           if (slicesRightData[property] > slicesLeftData[property]) {
@@ -269,10 +278,10 @@ export class TabPaneSlices extends BaseElement {
     let searchData: Array<SelectionData> = [];
     let sumWallDuration: number = 0;
     let sumOccurrences: number = 0;
-    if(str === ''){
+    if (str === '') {
       this.slicesTbl!.recycleDataSource = this.slicesSource;
     } else {
-      this.slicesSource.forEach(item => {
+      this.slicesSource.forEach((item) => {
         if (item.name.toLowerCase().indexOf(str.toLowerCase()) !== -1) {
           searchData.push(item);
           sumWallDuration += item.wallDuration;

@@ -19,7 +19,7 @@ import { SelectionParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
-import {getTabFps} from "../../../../database/sql/SqlLite.sql";
+import { getTabFps } from '../../../../database/sql/SqlLite.sql';
 
 @element('tabpane-fps')
 export class TabPaneFps extends BaseElement {

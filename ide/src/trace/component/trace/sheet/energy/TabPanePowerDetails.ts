@@ -128,7 +128,7 @@ export class TabPanePowerDetails extends BaseElement {
       time_type: [],
       duration_type: [],
       energy_type: [],
-      count_type: []
+      count_type: [],
     };
     this.itemType.time_type = this.getTimeTypeValue();
     this.itemType.duration_type = this.getDurationTypeValue();
@@ -151,7 +151,8 @@ export class TabPanePowerDetails extends BaseElement {
   }
 
   getTotalEnergy(powerData: any) {
-    return powerData.POWER_IDE_CPU.getTotalEnergy(false) +
+    return (
+      powerData.POWER_IDE_CPU.getTotalEnergy(false) +
       powerData.POWER_IDE_LOCATION.getTotalEnergy(false) +
       powerData.POWER_IDE_GPU.getTotalEnergy(true) +
       powerData.POWER_IDE_DISPLAY.getTotalEnergy(true) +
@@ -159,7 +160,8 @@ export class TabPanePowerDetails extends BaseElement {
       powerData.POWER_IDE_BLUETOOTH.getTotalEnergy(false) +
       powerData.POWER_IDE_FLASHLIGHT.getTotalEnergy(false) +
       powerData.POWER_IDE_AUDIO.getTotalEnergy(false) +
-      powerData.POWER_IDE_WIFISCAN.getTotalEnergy(false);
+      powerData.POWER_IDE_WIFISCAN.getTotalEnergy(false)
+    );
   }
 
   queryDataByDB(val: SelectionParam | any): void {
@@ -182,9 +184,14 @@ export class TabPanePowerDetails extends BaseElement {
           tsMax = 0;
         } else if (currentAppIndex > -1 && (set.has(item.appKey) ? item.startNS >= tsMax : true)) {
           if (set.has(item.appKey)) {
-            powerDatum[item.appKey.toLocaleLowerCase()] = item.startNS >= tsMax ? (tsMax = item.startNS , item.eventValue) : powerDatum[item.appKey.toLocaleLowerCase()];
+            powerDatum[item.appKey.toLocaleLowerCase()] =
+              item.startNS >= tsMax
+                ? ((tsMax = item.startNS), item.eventValue)
+                : powerDatum[item.appKey.toLocaleLowerCase()];
           } else {
-            powerDatum[item.appKey.toLocaleLowerCase()] = (powerDatum[item.appKey.toLocaleLowerCase()] || 0) + parseInt(item.eventValue.split(',')[currentAppIndex]);
+            powerDatum[item.appKey.toLocaleLowerCase()] =
+              (powerDatum[item.appKey.toLocaleLowerCase()] || 0) +
+              parseInt(item.eventValue.split(',')[currentAppIndex]);
           }
         }
       });
@@ -261,13 +268,13 @@ export class TabPanePowerDetails extends BaseElement {
         if (type === 'number') {
           return sort === 2
             ? // @ts-ignore
-            parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]) -
-            // @ts-ignore
-            parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property])
+              parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]) -
+                // @ts-ignore
+                parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property])
             : // @ts-ignore
-            parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) -
-            // @ts-ignore
-            parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]);
+              parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) -
+                // @ts-ignore
+                parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]);
         } else {
           // @ts-ignore
           if (bPowerDetails[property] > aPowerDetails[property]) {

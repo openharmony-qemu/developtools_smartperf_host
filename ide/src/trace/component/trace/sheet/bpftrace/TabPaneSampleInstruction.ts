@@ -25,7 +25,7 @@ const Y_PADDING = 4;
 @element('tab-sample-instruction')
 export class TabPaneSampleInstruction extends BaseElement {
   private instructionEle: HTMLCanvasElement | undefined | null;
-  private ctx: CanvasRenderingContext2D| undefined | null;
+  private ctx: CanvasRenderingContext2D | undefined | null;
   private textEle: HTMLSpanElement | undefined | null;
   private instructionArray: Array<any> = [];
   private instructionData: Array<any> = [];
@@ -35,7 +35,7 @@ export class TabPaneSampleInstruction extends BaseElement {
   private canvasY = -1; // 鼠标当前所在画布y坐标
   private startX = 0; // 画布相对于整个界面的x坐标
   private startY = 0; // 画布相对于整个界面的y坐标
-  private hintContent = ""; //悬浮框内容
+  private hintContent = ''; //悬浮框内容
   private floatHint!: HTMLDivElement | undefined | null; //悬浮框
   private canvasScrollTop = 0; // tab页上下滚动位置
   private hoverSampleStruct: any | undefined;
@@ -90,7 +90,7 @@ export class TabPaneSampleInstruction extends BaseElement {
           <span class="headline">指令数数据流</span>
         </div>
       </div>
-    `
+    `;
   }
 
   initElements(): void {
@@ -105,7 +105,7 @@ export class TabPaneSampleInstruction extends BaseElement {
     this.parentElement!.onscroll = () => {
       this.canvasScrollTop = this.parentElement!.scrollTop;
       this.hideTip();
-    }
+    };
     this.instructionEle!.onmousemove = (e): void => {
       if (!this.isUpdateCanvas) {
         this.updateCanvasCoord();
@@ -113,21 +113,21 @@ export class TabPaneSampleInstruction extends BaseElement {
       this.canvasX = e.clientX - this.startX;
       this.canvasY = e.clientY - this.startY + this.canvasScrollTop;
       this.onMouseMove();
-    }
+    };
     this.instructionEle!.onmouseleave = () => {
       this.hideTip();
-    }
+    };
     document.addEventListener('sample-popver-change', (e: any) => {
       const select = Number(e.detail.select);
       this.isChecked = Boolean(select);
       this.hoverSampleStruct = undefined;
       this.drawInstructionData(this.isChecked);
-    })
+    });
     this.listenerResize();
   }
   /**
    * 初始化窗口大小
-   * @param newWidth 
+   * @param newWidth
    */
   updateCanvas(newWidth?: number): void {
     if (this.instructionEle instanceof HTMLCanvasElement) {
@@ -189,7 +189,7 @@ export class TabPaneSampleInstruction extends BaseElement {
       this.floatHint.style.display = 'none';
     }
   }
-  
+
   /**
    * 显示悬浮框
    */
@@ -199,7 +199,7 @@ export class TabPaneSampleInstruction extends BaseElement {
     let x = this.canvasX;
     let y = this.canvasY - this.canvasScrollTop;
     //右边的函数悬浮框显示在左侧
-    if (this.canvasX + this.floatHint!.clientWidth > (this.instructionEle!.clientWidth) || 0) {
+    if (this.canvasX + this.floatHint!.clientWidth > this.instructionEle!.clientWidth || 0) {
       x -= this.floatHint!.clientWidth - 1;
     } else {
       x += 30;
@@ -211,7 +211,7 @@ export class TabPaneSampleInstruction extends BaseElement {
 
   /**
    * 更新悬浮框内容
-   * @returns 
+   * @returns
    */
   updateTipContent(): void {
     const hoverNode = this.hoverSampleStruct;
@@ -219,16 +219,16 @@ export class TabPaneSampleInstruction extends BaseElement {
       return;
     }
     this.hintContent = `<span class="text">${hoverNode.detail}(${hoverNode.name})</span></br>
-      <span class="text">${ this.isChecked ? hoverNode.hoverCycles : hoverNode.hoverInstructions}
+      <span class="text">${this.isChecked ? hoverNode.hoverCycles : hoverNode.hoverInstructions}
       </span>
     `;
   }
 
   /**
    * 设置绘制所需的坐标及宽高
-   * @param sampleNode 
-   * @param instructions 
-   * @param x 
+   * @param sampleNode
+   * @param instructions
+   * @param x
    */
   setSampleFrame(sampleNode: SampleStruct, instructions: number, x: number): void {
     if (!sampleNode.frame) {
@@ -242,10 +242,10 @@ export class TabPaneSampleInstruction extends BaseElement {
 
   /**
    * 判断鼠标当前在那个函数上
-   * @param frame 
-   * @param x 
-   * @param y 
-   * @returns 
+   * @param frame
+   * @param x
+   * @param y
+   * @returns
    */
   isContains(frame: any, x: number, y: number): boolean {
     return x >= frame.x && x <= frame.x + frame.width && frame.y <= y && y <= frame.y + frame.height;
@@ -253,41 +253,46 @@ export class TabPaneSampleInstruction extends BaseElement {
 
   /**
    * 绘制
-   * @param isCycles 
+   * @param isCycles
    */
   drawInstructionData(isCycles: boolean): void {
-    this.isChecked ? this.textEle!.innerText = "cycles数据流" : this.textEle!.innerText = "instructions数据流";
+    this.isChecked ? (this.textEle!.innerText = 'cycles数据流') : (this.textEle!.innerText = 'instructions数据流');
     const clientWidth = this.instructionEle!.width;
     //将数据转换为层级结构
     const instructionArray = this.flattenTreeData
-    .filter((item: SampleStruct) => isCycles ? item.cycles : item.instructions)
-    .reduce((pre: any, cur: any) => {
-      (pre[`${cur.depth}`] = pre[`${cur.depth}`] || []).push(cur);
-      return pre;
-    }, {});
+      .filter((item: SampleStruct) => (isCycles ? item.cycles : item.instructions))
+      .reduce((pre: any, cur: any) => {
+        (pre[`${cur.depth}`] = pre[`${cur.depth}`] || []).push(cur);
+        return pre;
+      }, {});
     for (const key in instructionArray) {
       for (let i = 0; i < instructionArray[key].length; i++) {
         const cur = instructionArray[key][i];
         //第一级节点直接将宽度设置为容器宽度
         if (key === '0') {
-          this.setSampleFrame(cur, clientWidth, 0)
+          this.setSampleFrame(cur, clientWidth, 0);
         } else {
           //获取上一层级节点数据
           const preList = instructionArray[Number(key) - 1];
           //获取当前节点的父节点
           const parentNode = preList.find((node: SampleStruct) => node.name === cur.parentName);
           //计算当前节点下指令数之和 用于计算每个节点所占的宽度比
-          const total = isCycles ? instructionArray[key].filter((i: any) => i.parentName === parentNode.name).reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0) :
-            instructionArray[key].filter((i: any) => i.parentName === parentNode.name).reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
+          const total = isCycles
+            ? instructionArray[key]
+                .filter((i: any) => i.parentName === parentNode.name)
+                .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+            : instructionArray[key]
+                .filter((i: any) => i.parentName === parentNode.name)
+                .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
           const curWidth = isCycles ? cur.cycles : cur.instructions;
           const width = Math.floor(parentNode.frame.width * (curWidth / total));
           if (i === 0) {
             this.setSampleFrame(cur, width, parentNode.frame.x);
           } else {
             const preNode = instructionArray[key][i - 1];
-            preNode.parentName === parentNode.name ?
-              this.setSampleFrame(cur, width, preNode.frame.x + preNode.frame.width) :
-              this.setSampleFrame(cur, width, parentNode.frame.x);
+            preNode.parentName === parentNode.name
+              ? this.setSampleFrame(cur, width, preNode.frame.x + preNode.frame.width)
+              : this.setSampleFrame(cur, width, parentNode.frame.x);
           }
         }
       }
@@ -298,10 +303,10 @@ export class TabPaneSampleInstruction extends BaseElement {
     for (const key in this.instructionArray) {
       for (let i = 0; i < this.instructionArray[key].length; i++) {
         const cur = this.instructionArray[key][i];
-        this.draw(this.ctx!, cur)
+        this.draw(this.ctx!, cur);
       }
     }
-    this.ctx!.closePath()
+    this.ctx!.closePath();
   }
 
   /**
@@ -321,15 +326,15 @@ export class TabPaneSampleInstruction extends BaseElement {
 
   /**
    * 获取鼠标悬停的函数
-   * @param nodes 
-   * @param canvasX 
-   * @param canvasY 
-   * @returns 
+   * @param nodes
+   * @param canvasX
+   * @param canvasY
+   * @returns
    */
   searchDataByCoord(nodes: any, canvasX: number, canvasY: number) {
     for (const key in nodes) {
       for (let i = 0; i < nodes[key].length; i++) {
-       const cur = nodes[key][i];
+        const cur = nodes[key][i];
         if (this.isContains(cur.frame, canvasX, canvasY)) {
           return cur;
         }
@@ -340,15 +345,17 @@ export class TabPaneSampleInstruction extends BaseElement {
 
   /**
    * 绘制方法
-   * @param ctx 
-   * @param data 
+   * @param ctx
+   * @param data
    */
   draw(ctx: CanvasRenderingContext2D, data: SampleStruct) {
     let spApplication = <SpApplication>document.getElementsByTagName('sp-application')[0];
     if (data.frame) {
       ctx.globalAlpha = 1;
-      ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', data.depth!, ColorUtils.FUNC_COLOR.length)];
-      const textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', data.depth!, ColorUtils.FUNC_COLOR.length)];
+      ctx.fillStyle =
+        ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', data.depth!, ColorUtils.FUNC_COLOR.length)];
+      const textColor =
+        ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', data.depth!, ColorUtils.FUNC_COLOR.length)];
       ctx.lineWidth = 0.4;
       if (this.hoverSampleStruct && data.name == this.hoverSampleStruct.name) {
         if (spApplication.dark) {
@@ -372,36 +379,38 @@ export class TabPaneSampleInstruction extends BaseElement {
 
   /**
    * 关系树节点赋值
-   * @param relationData 
-   * @param clickData 
+   * @param relationData
+   * @param clickData
    */
   setRelationDataProperty(relationData: Array<any>, clickData: SampleStruct): void {
-    const propertyData = this.instructionData.find((subArr: any) => subArr.some((obj: SampleStruct) => obj.begin === clickData.begin));
+    const propertyData = this.instructionData.find((subArr: any) =>
+      subArr.some((obj: SampleStruct) => obj.begin === clickData.begin)
+    );
     //获取非unknown数据
-    const knownRelation = relationData.filter(relation => relation['name'].indexOf('unknown') < 0);
+    const knownRelation = relationData.filter((relation) => relation['name'].indexOf('unknown') < 0);
     propertyData.forEach((property: any) => {
-      const relation = knownRelation.find(relation => relation['name'] === property['func_name']);
+      const relation = knownRelation.find((relation) => relation['name'] === property['func_name']);
       relation['instructions'] = Math.ceil(property['instructions']) || 1;
       relation['hoverInstructions'] = Math.ceil(property['instructions']);
       relation['cycles'] = Math.ceil(property['cycles']) || 1;
       relation['hoverCycles'] = Math.ceil(property['cycles']);
       this.maxDepth = Math.max(this.maxDepth, relation['depth']);
-    })
+    });
     //获取所有unknown数据
     let instructionSum = 0;
     let cyclesSum = 0;
-    let hoverInstructionsSum= 0;
+    let hoverInstructionsSum = 0;
     let hoverCyclesSum = 0;
-    const unknownRelation = relationData.filter(relation => relation['name'].indexOf('unknown') > -1);
+    const unknownRelation = relationData.filter((relation) => relation['name'].indexOf('unknown') > -1);
     if (unknownRelation.length > 0) {
-      unknownRelation.forEach(unknownItem => {
+      unknownRelation.forEach((unknownItem) => {
         instructionSum = 0;
         cyclesSum = 0;
         hoverInstructionsSum = 0;
         hoverCyclesSum = 0;
         const children = unknownItem['children'];
         for (const key in children) {
-          const it = relationData.find(relation => relation['name'] === key);
+          const it = relationData.find((relation) => relation['name'] === key);
           instructionSum += it['instructions'] ?? 0;
           cyclesSum += it['cycles'] ?? 0;
           hoverInstructionsSum += it['hoverInstructions'] ?? 0;
@@ -411,7 +420,7 @@ export class TabPaneSampleInstruction extends BaseElement {
         unknownItem['hoverInstructions'] = hoverInstructionsSum;
         unknownItem['cycles'] = cyclesSum;
         unknownItem['hoverCycles'] = hoverCyclesSum;
-      })
+      });
     }
   }
 
@@ -424,11 +433,9 @@ export class TabPaneSampleInstruction extends BaseElement {
         const box = this.instructionEle!.getBoundingClientRect();
         const element = this.parentElement!;
         this.startX = box.left + Math.max(element.scrollLeft, document.body.scrollLeft) - element.clientLeft;
-        this.startY = 
+        this.startY =
           box.top + Math.max(element.scrollTop, document.body.scrollTop) - element.clientTop + this.canvasScrollTop;
       }
-    }).observe(this.parentElement!)
+    }).observe(this.parentElement!);
   }
-
-
 }

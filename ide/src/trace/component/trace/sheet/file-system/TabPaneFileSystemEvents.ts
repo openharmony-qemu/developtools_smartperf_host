@@ -246,9 +246,9 @@ export class TabPaneFileSystemEvents extends BaseElement {
       let arr = Array.from(this.fsSysEventFilterSource);
       arr.sort((fsEventA, fsEventB): number => {
         if (key == 'startTsStr') {
-          return (type === 1) ? (fsEventA.startTs - fsEventB.startTs) : (fsEventB.startTs - fsEventA.startTs);
+          return type === 1 ? fsEventA.startTs - fsEventB.startTs : fsEventB.startTs - fsEventA.startTs;
         } else if (key == 'durStr') {
-          return (type === 1) ? (fsEventA.dur - fsEventB.dur) : (fsEventB.dur - fsEventA.dur);
+          return type === 1 ? fsEventA.dur - fsEventB.dur : fsEventB.dur - fsEventA.dur;
         } else if (key == 'process') {
           return this.sortProcessCase(fsEventA, fsEventB, type);
         } else if (key == 'thread') {
@@ -256,7 +256,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
         } else if (key == 'typeStr') {
           return this.sortTypeCase(fsEventA, fsEventB, type);
         } else if (key == 'fd') {
-          return (type === 1) ? ((fsEventA.fd || 0) - (fsEventB.fd || 0)) : ((fsEventB.fd || 0) - (fsEventA.fd || 0));
+          return type === 1 ? (fsEventA.fd || 0) - (fsEventB.fd || 0) : (fsEventB.fd || 0) - (fsEventA.fd || 0);
         } else if (key == 'path') {
           return this.sortPathCase(fsEventA, fsEventB, type);
         } else {

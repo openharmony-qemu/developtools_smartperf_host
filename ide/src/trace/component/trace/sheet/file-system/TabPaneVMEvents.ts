@@ -21,7 +21,7 @@ import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressB
 import { procedurePool } from '../../../../database/Procedure';
 import { VirtualMemoryEvent, VM_TYPE_MAP } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
-import {getTabVirtualMemoryType} from '../../../../database/sql/Memory.sql';
+import { getTabVirtualMemoryType } from '../../../../database/sql/Memory.sql';
 import { TabPaneVMEventsHtml } from './TabPaneVMEvents.html';
 
 @element('tabpane-virtualmemory-event')
@@ -49,7 +49,8 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
     });
     if (this.vmEventTbl) {
       // @ts-ignore
-      this.vmEventTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+      this.vmEventTbl.shadowRoot.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 20 - 31 + 'px';
       this.vmEventTbl.recycleDataSource = [];
     }
     if (this.vmEventTblData) {
@@ -69,12 +70,12 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
             this.parentElement!.clientHeight - 10 - 33 + 'px';
           this.vmEventTbl.reMeauseHeight();
         }
-       if (this.vmEventTblData) {
-         // @ts-ignore
-         this.vmEventTblData.shadowRoot.querySelector('.table').style.height =
-           this.parentElement!.clientHeight - 10 - 33 + 'px';
-         this.vmEventTblData.reMeauseHeight();
-       }
+        if (this.vmEventTblData) {
+          // @ts-ignore
+          this.vmEventTblData.shadowRoot.querySelector('.table').style.height =
+            this.parentElement!.clientHeight - 10 - 33 + 'px';
+          this.vmEventTblData.reMeauseHeight();
+        }
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);

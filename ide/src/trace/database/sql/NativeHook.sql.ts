@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {query} from "../SqlLite";
-import {NativeHookMalloc, NativeHookProcess, NativeHookSampleQueryInfo} from "../../bean/NativeHook";
+import { query } from '../SqlLite';
+import { NativeHookMalloc, NativeHookProcess, NativeHookSampleQueryInfo } from '../../bean/NativeHook';
 
 export const queryNativeHookResponseTypes = (
   leftNs: number,
