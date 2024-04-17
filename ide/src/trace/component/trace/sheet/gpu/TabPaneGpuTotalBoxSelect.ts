@@ -22,7 +22,7 @@ import { resizeObserver } from '../SheetUtils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
-import { queryGpuDataByRange } from '../../../../database/sql/Gpu.sql';
+import {queryGpuDataByRange} from "../../../../database/sql/Gpu.sql";
 
 interface GpuTotal {
   startTs: number;

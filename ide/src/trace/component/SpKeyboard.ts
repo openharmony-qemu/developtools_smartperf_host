@@ -24,7 +24,7 @@ export class SpKeyboard extends BaseElement {
     parentElement.style.overflow = 'hidden';
     let closeWindow = this.shadowRoot?.querySelector('.close-icon');
     let keyboardDiv = document
-      .querySelector('body > sp-application')!
+    .querySelector('body > sp-application')!
       .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!;
     let shadow_box = this.shadowRoot?.querySelector('.shadow-box')!;
     closeWindow!.addEventListener('click', () => {

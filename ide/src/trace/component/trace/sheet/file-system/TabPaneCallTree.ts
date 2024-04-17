@@ -288,7 +288,8 @@ export class TabPaneCallTree extends BaseElement {
     this.getChildTree(bean.children as Array<MerageBean>, maxId, children);
     let callTreeArr = parents.reverse().concat(children.reverse());
     for (let data of callTreeArr) {
-      data.type = data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
+      data.type =
+        data.libName.endsWith('.so.1') || data.libName.endsWith('.dll') || data.libName.endsWith('.so') ? 0 : 1;
     }
     let len = callTreeArr.length;
     this.callTreeRightSource = callTreeArr;
@@ -405,10 +406,10 @@ export class TabPaneCallTree extends BaseElement {
   }
 
   private handleSymbolCase(data: any, callTreeFuncArgs: any[]): void {
-    this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.symbol }, data.item);
+    this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.symbolName }, data.item);
     callTreeFuncArgs.push({
       funcName: 'splitTree',
-      funcArgs: [this.callTreeSelectedData.symbol, false, true],
+      funcArgs: [this.callTreeSelectedData.symbolName, false, true],
     });
   }
 
@@ -452,10 +453,10 @@ export class TabPaneCallTree extends BaseElement {
         funcName: 'resetAllNode',
         funcArgs: [],
       });
-      list.forEach((symbol: string) => {
+      list.forEach((symbolName: string) => {
         callTreeFuncArgs.push({
           funcName: 'clearSplitMapData',
-          funcArgs: [symbol],
+          funcArgs: [symbolName],
         });
       });
     }

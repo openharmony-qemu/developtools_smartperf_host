@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-const initHtmlStyle: string = `
+const initHtmlStyle:string = `
     <style>
         :host(:not([collapsed])){ 
             width: 248px;

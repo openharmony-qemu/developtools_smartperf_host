@@ -42,9 +42,7 @@ export const chartProcessExpectedProtoDataSql = (args: any): string => {
          a.vsync              as name,
          a.type,
          a.depth,
-         (a.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)}) + (a.depth * ${
-    args.width
-  })  AS px
+         (a.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)}) + (a.depth * ${ args.width })  AS px
   FROM frame_slice AS a
   WHERE a.type = 1
     and (a.flag <> 2 or a.flag is null)

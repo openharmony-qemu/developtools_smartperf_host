@@ -26,41 +26,26 @@ import { LitSelect } from '../../../base-ui/select/LitSelect';
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {
-  // normal option
   private processId: LitSelectV | null | undefined;
   private packageName: LitSelect | null | undefined;
   private unwindEL: HTMLInputElement | null | undefined;
-  private intervalResultInput: HTMLInputElement | null | undefined;
-  private fpUnWind: LitSwitch | null | undefined;
-  private statisticsSlider: LitSlider | null | undefined;
-  private useStatisticsEl: LitSwitch | null | undefined;
-  private recordStatisticsResult: HTMLDivElement | null | undefined;
-  private addOptionButton: HTMLButtonElement | undefined | null;
-  // advance option
-  private recordAccuratelyDivEl: HTMLDivElement | undefined | null;
-  private offlineSymbolizationDivEl: HTMLDivElement | undefined | null;
-  private maxUnwindLevelEl: HTMLDivElement | undefined | null;
-  private sharedMemorySizeEl: HTMLDivElement | undefined | null;
-  private filterMemorySizeEl: HTMLDivElement | undefined | null;
-  private sampleIntervalEl: HTMLDivElement | undefined | null;
-  private useStartupEl: HTMLDivElement | undefined | null;
-  private useResponseLibEl: HTMLDivElement | undefined | null;
-  private jsStackRecordDepthEl: HTMLDivElement | undefined | null;
-  private napiRecordEl: HTMLDivElement | undefined | null;
-  private advanceItems: Array<HTMLDivElement | undefined | null> = [];
   private shareMemory: HTMLInputElement | null | undefined;
   private shareMemoryUnit: HTMLSelectElement | null | undefined;
   private filterMemory: HTMLInputElement | null | undefined;
+  private intervalResultInput: HTMLInputElement | null | undefined;
+  private fpUnWind: LitSwitch | null | undefined;
+  private statisticsSlider: LitSlider | null | undefined;
   private recordAccurately: LitSwitch | null | undefined;
   private offlineSymbol: LitSwitch | null | undefined;
   private startupMode: LitSwitch | null | undefined;
   private jsStackModel: LitSwitch | null | undefined;
   private responseLibMode: LitSwitch | null | undefined;
+  private recordStatisticsResult: HTMLDivElement | null | undefined;
+  private sampleInterval: HTMLInputElement | null | undefined;
+
+  private filterSize: HTMLInputElement | null | undefined;
   private napiName: HTMLInputElement | null | undefined;
   private jsStackDepth: HTMLInputElement | null | undefined;
-  private statisticsIntervalInput: HTMLInputElement | null | undefined;
-  private statisticsIntervalName: HTMLSpanElement | null | undefined;
-  private statisticsIntervalRange: HTMLSpanElement | null | undefined;
 
   set startSamp(allocationStart: boolean) {
     if (allocationStart) {
@@ -126,9 +111,9 @@ export class SpAllocations extends BaseElement {
   }
 
   get record_statistics(): boolean {
-    let value = this.useStatisticsEl!.checked;
-    if (value !== undefined) {
-      return value;
+    if (this.recordStatisticsResult?.hasAttribute('percent')) {
+      let value = Number(this.recordStatisticsResult?.getAttribute('percent'));
+      return value > 0;
     }
     return true;
   }
@@ -192,11 +177,11 @@ export class SpAllocations extends BaseElement {
   }
 
   get sample_interval(): number {
-    return Number(this.statisticsIntervalInput!.value);
+    return Number(this.sampleInterval!.value);
   }
 
   get filter_napi_name(): string {
-    if (this.jsStackModel?.checked && !this.fp_unwind) {
+    if (this.jsStackModel?.checked) {
       return this.napiName!.value || '';
     }
     return '';
@@ -204,161 +189,120 @@ export class SpAllocations extends BaseElement {
 
   get max_js_stack_depth(): number {
     if (this.jsStackModel?.checked) {
-      return Number(this.jsStackDepth!.value) || 10;
+      return Number(this.jsStackDepth!.value);
     }
     return 0;
   }
 
-  initElements(): void {
-    // normal option
-    this.processId = this.shadowRoot?.getElementById('pid') as LitSelectV;
-    this.packageName = this.shadowRoot?.getElementById('packageName') as LitSelect;
-    this.unwindEL = this.shadowRoot?.getElementById('unwind') as HTMLInputElement;
-    this.fpUnWind = this.shadowRoot?.getElementById('use_fp_unwind') as LitSwitch;
-    this.statisticsSlider = this.shadowRoot?.querySelector<LitSlider>('#interval-slider') as LitSlider;
-    this.recordStatisticsResult = this.shadowRoot?.querySelector<HTMLDivElement>('.record-statistics-result');
-    this.addOptionButton = this.shadowRoot?.querySelector<HTMLButtonElement>('#addOptions');
-    this.intervalResultInput = this.shadowRoot?.querySelector('.interval-result') as HTMLInputElement;
-    // advance option
-    this.recordAccuratelyDivEl = this.shadowRoot?.getElementById('record_accurately_div') as HTMLDivElement;
-    this.offlineSymbolizationDivEl = this.shadowRoot?.getElementById('offline_symbolization_div') as HTMLDivElement;
-    this.jsStackRecordDepthEl = this.shadowRoot?.getElementById('js-stack-depth-div') as HTMLDivElement;
-    this.napiRecordEl = this.shadowRoot?.getElementById('napi-div') as HTMLDivElement;
-    this.maxUnwindLevelEl = this.shadowRoot?.getElementById('max-unwind-level-el') as HTMLDivElement;
-    this.sharedMemorySizeEl = this.shadowRoot?.getElementById('shared-memory-size-el') as HTMLDivElement;
-    this.filterMemorySizeEl = this.shadowRoot?.getElementById('filter-memory-size-el') as HTMLDivElement;
-    this.sampleIntervalEl = this.shadowRoot?.getElementById('sample-interval-el') as HTMLDivElement;
-    this.useStartupEl = this.shadowRoot?.getElementById('use-startup-el') as HTMLDivElement;
-    this.useResponseLibEl = this.shadowRoot?.getElementById('use-response-lib-el') as HTMLDivElement;
-
-    this.recordAccurately = this.shadowRoot?.getElementById('use_record_accurately') as LitSwitch;
-    this.shareMemory = this.shadowRoot?.getElementById('shareMemory') as HTMLInputElement;
-    this.shareMemoryUnit = this.shadowRoot?.getElementById('shareMemoryUnit') as HTMLSelectElement;
-    this.filterMemory = this.shadowRoot?.getElementById('filterSized') as HTMLInputElement;
-    this.offlineSymbol = this.shadowRoot?.getElementById('use_offline_symbolization') as LitSwitch;
-    this.startupMode = this.shadowRoot?.getElementById('use_startup_mode') as LitSwitch;
-    this.jsStackModel = this.shadowRoot?.getElementById('use_js-stack') as LitSwitch;
-    this.responseLibMode = this.shadowRoot?.getElementById('response_lib_mode') as LitSwitch;
-    this.useStatisticsEl = this.shadowRoot?.getElementById('use_statistics') as LitSwitch;
-    this.statisticsIntervalInput = this.shadowRoot?.getElementById('statistics-interval-input') as HTMLInputElement;
-    this.napiName = this.shadowRoot?.getElementById('napiName') as HTMLInputElement;
-    this.jsStackDepth = this.shadowRoot?.getElementById('jsStackDepth') as HTMLInputElement;
-    this.statisticsIntervalName = this.shadowRoot?.getElementById('statistics-interval-name') as HTMLSpanElement;
-    this.statisticsIntervalRange = this.shadowRoot?.getElementById('statistics-interval-range') as HTMLSpanElement;
-    this.initNativeSwitchOption();
-  }
-
-  initHtml(): string {
-    return SpAllocationHtml;
-  }
-
   connectedCallback(): void {
-    this.unwindEL?.addEventListener('keydown', this.handleInputChangeEvent);
-    this.shareMemory?.addEventListener('keydown', this.handleInputChangeEvent);
-    this.shareMemoryUnit?.addEventListener('keydown', this.handleInputChangeEvent);
-    this.filterMemory?.addEventListener('keydown', this.handleInputChangeEvent);
-    this.intervalResultInput?.addEventListener('keydown', this.handleInputChangeEvent);
-    this.statisticsSlider?.addEventListener('input', this.statisticsSliderInputEvent);
-    this.intervalResultInput?.addEventListener('input', this.statisticsValueInputEvent);
-    this.intervalResultInput?.addEventListener('focusout', this.statisticsFocusOutEvent);
+    this.unwindEL?.addEventListener('keydown', this.handleInputChange);
+    this.shareMemory?.addEventListener('keydown', this.handleInputChange);
+    this.shareMemoryUnit?.addEventListener('keydown', this.handleInputChange);
+    this.filterMemory?.addEventListener('keydown', this.handleInputChange);
+    this.intervalResultInput?.addEventListener('keydown', this.handleInputChange);
+    this.filterSize?.addEventListener('keydown', this.handleInputChange);
+    this.statisticsSlider?.addEventListener('input', this.statisticsSliderInputHandler);
+    this.intervalResultInput?.addEventListener('input', this.intervalResultInputHandler);
+    this.intervalResultInput?.addEventListener('focusout', this.intervalResultFocusOutHandler);
     this.statisticsSlider?.shadowRoot
-      ?.querySelector('#slider')!
-      .addEventListener('mouseup', this.statisticsSliderMouseupEvent);
-    this.startupMode?.addEventListener('change', this.startupModeChangeEvent);
-    this.jsStackModel?.addEventListener('change', this.jsStackModelChangeEvent);
-    this.addOptionButton?.addEventListener('click', this.advanceOptionClickEvent);
-    this.fpUnWind?.addEventListener('change', this.fpUnWindChangeEvent);
-    this.useStatisticsEl?.addEventListener('change', this.useStatisticsChangeEvent);
-    this.statisticsIntervalInput?.addEventListener('input', this.statisticsIntervalInputEvent);
-    this.statisticsIntervalInput?.addEventListener('keyup', this.statisticsIntervalKeyUpEvent);
+      ?.querySelector<HTMLElement>('#slider')!
+      .addEventListener('mouseup', this.statisticsSliderMouseupHandler);
+    this.startupMode?.addEventListener('change', this.startupModeChangeHandler);
+    this.jsStackModel?.addEventListener('change', this.jsStackModelChangeHandler);
   }
 
   disconnectedCallback(): void {
-    this.unwindEL?.removeEventListener('keydown', this.handleInputChangeEvent);
-    this.shareMemory?.removeEventListener('keydown', this.handleInputChangeEvent);
-    this.shareMemoryUnit?.removeEventListener('keydown', this.handleInputChangeEvent);
-    this.filterMemory?.removeEventListener('keydown', this.handleInputChangeEvent);
-    this.intervalResultInput?.removeEventListener('keydown', this.handleInputChangeEvent);
-    this.statisticsSlider?.removeEventListener('input', this.statisticsSliderInputEvent);
-    this.intervalResultInput?.removeEventListener('input', this.statisticsValueInputEvent);
-    this.intervalResultInput?.removeEventListener('focusout', this.statisticsFocusOutEvent);
+    this.unwindEL?.removeEventListener('keydown', this.handleInputChange);
+    this.shareMemory?.removeEventListener('keydown', this.handleInputChange);
+    this.shareMemoryUnit?.removeEventListener('keydown', this.handleInputChange);
+    this.filterMemory?.removeEventListener('keydown', this.handleInputChange);
+    this.intervalResultInput?.removeEventListener('keydown', this.handleInputChange);
+    this.filterSize?.removeEventListener('keydown', this.handleInputChange);
+    this.statisticsSlider?.removeEventListener('input', this.statisticsSliderInputHandler);
+    this.intervalResultInput?.removeEventListener('input', this.intervalResultInputHandler);
+    this.intervalResultInput?.removeEventListener('focusout', this.jsStackModelChangeHandler);
     this.statisticsSlider?.shadowRoot
-      ?.querySelector('#slider')!
-      .removeEventListener('mouseup', this.statisticsSliderMouseupEvent);
-    this.startupMode?.removeEventListener('change', this.startupModeChangeEvent);
-    this.jsStackModel?.removeEventListener('change', this.jsStackModelChangeEvent);
-    this.addOptionButton?.removeEventListener('click', this.advanceOptionClickEvent);
-    this.fpUnWind?.removeEventListener('change', this.fpUnWindChangeEvent);
-    this.useStatisticsEl?.removeEventListener('change', this.useStatisticsChangeEvent);
-    this.statisticsIntervalInput?.removeEventListener('input', this.statisticsIntervalInputEvent);
-    this.statisticsIntervalInput?.removeEventListener('keyup', this.statisticsIntervalKeyUpEvent);
+      ?.querySelector<HTMLElement>('#slider')!
+      .removeEventListener('mouseup', this.statisticsSliderMouseupHandler);
+    this.startupMode?.removeEventListener('change', this.startupModeChangeHandler);
+    this.jsStackModel?.removeEventListener('change', this.startupModeChangeHandler);
   }
 
-  handleInputChangeEvent = (ev: KeyboardEvent): void => {
+  handleInputChange = (ev: KeyboardEvent): void => {
     // @ts-ignore
     if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
       ev.preventDefault();
     }
   };
 
-  statisticsSliderInputEvent = (): void => {
-    this.statisticsSlider!.sliderStyle = {
+  initElements(): void {
+    this.filterSize = this.shadowRoot?.querySelector('#filterSized');
+    this.processId = this.shadowRoot?.getElementById('pid') as LitSelectV;
+    this.packageName = this.shadowRoot?.getElementById('packageName') as LitSelect;
+    this.packageName.style.display = 'none';
+    let process = this.processId.shadowRoot?.querySelector('input') as HTMLInputElement;
+    process!.addEventListener('mousedown', () => {
+      this.processMouseDownHandler(process);
+    });
+    let packageInput = this.packageName.shadowRoot?.querySelector('input') as HTMLInputElement;
+    packageInput!.addEventListener('mousedown', () => {
+      this.packageMouseDownHandler(packageInput);
+    });
+    this.unwindEL = this.shadowRoot?.getElementById('unwind') as HTMLInputElement;
+    this.shareMemory = this.shadowRoot?.getElementById('shareMemory') as HTMLInputElement;
+    this.shareMemoryUnit = this.shadowRoot?.getElementById('shareMemoryUnit') as HTMLSelectElement;
+    this.filterMemory = this.shadowRoot?.getElementById('filterSized') as HTMLInputElement;
+    this.fpUnWind = this.shadowRoot?.getElementById('use_fp_unwind') as LitSwitch;
+    this.recordAccurately = this.shadowRoot?.getElementById('use_record_accurately') as LitSwitch;
+    this.offlineSymbol = this.shadowRoot?.getElementById('use_offline_symbolization') as LitSwitch;
+    this.startupMode = this.shadowRoot?.getElementById('use_startup_mode') as LitSwitch;
+    this.jsStackModel = this.shadowRoot?.getElementById('use_js-stack') as LitSwitch;
+    this.responseLibMode = this.shadowRoot?.getElementById('response_lib_mode') as LitSwitch;
+    this.sampleInterval = this.shadowRoot?.getElementById('sample-interval-input') as HTMLInputElement;
+    this.napiName = this.shadowRoot?.getElementById('napiName') as HTMLInputElement;
+    this.jsStackDepth = this.shadowRoot?.getElementById('jsStackDepth') as HTMLInputElement;
+    this.statisticsSlider = this.shadowRoot?.querySelector<LitSlider>('#interval-slider') as LitSlider;
+    this.recordStatisticsResult = this.shadowRoot?.querySelector<HTMLDivElement>(
+      '.record-statistics-result'
+    ) as HTMLDivElement;
+    this.statisticsSlider.sliderStyle = {
       minRange: 0,
       maxRange: 3600,
-      defaultValue: `${this.recordStatisticsResult!.getAttribute('percent')}`,
+      defaultValue: '900',
       resultUnit: 'S',
       stepSize: 450,
       lineColor: 'var(--dark-color3,#46B1E3)',
       buttonColor: '#999999',
     };
-    this.intervalResultInput!.style.color = 'var(--dark-color1,#000000)';
-    if (this.recordStatisticsResult!.hasAttribute('percent')) {
-      let step = Math.round(Number(this.recordStatisticsResult!.getAttribute('percent')) / NUM_450);
-      this.recordStatisticsResult!.setAttribute('percentValue', `${stepValue[step]}`);
-      this.intervalResultInput!.value = `${stepValue[step]}`;
-    }
-  };
-
-  statisticsValueInputEvent = (): void => {
-    if (this.intervalResultInput!.value === '0') {
-      this.useStatisticsEl!.checked = false;
-      this.useStatisticsChangeHandle(false);
-    } else {
-      this.statisticsIntervalHandle();
-    }
-  };
-
-  statisticsFocusOutEvent = (): void => {
     let parentElement = this.statisticsSlider!.parentNode as Element;
-    if (this.intervalResultInput!.value.trim() === '') {
-      parentElement.setAttribute('percent', '3600');
-      this.intervalResultInput!.value = '3600';
-      this.intervalResultInput!.style.color = 'var(--dark-color,#6a6f77)';
-      parentElement.setAttribute('percent', this.intervalResultInput!.value);
-      parentElement.setAttribute('percentValue', this.intervalResultInput!.value);
-      this.statisticsSlider!.percent = this.intervalResultInput!.value;
-      let htmlInputElement = this.statisticsSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
-      htmlInputElement.value = this.intervalResultInput!.value;
+    this.intervalResultInput = this.shadowRoot?.querySelector('.interval-result') as HTMLInputElement;
+    this.intervalResultInput.value = '10';
+    parentElement.setAttribute('percent', '3600');
+    this.intervalResultInput.style.color = 'var(--dark-color1,#000000)';
+    let litSwitch = this.shadowRoot?.querySelector('#switch-disabled') as LitSwitch;
+    litSwitch.addEventListener('change', (event: Event): void => {
+      // @ts-ignore
+      let detail = event.detail;
+      if (detail.checked) {
+        this.unDisable();
+      } else {
+        this.disable();
+      }
+    });
+    this.initProcessInputStatus();
+    this.disable();
+  }
+
+  private initProcessInputStatus(): void {
+    this.packageName!.style.display = 'none';
+    this.processId!.style.display = 'block';
+    let process = this.processId?.shadowRoot?.querySelector('.root') as HTMLDivElement;
+    if (process) {
+      process.style.width = 'auto';
     }
-  };
+  }
 
-  useStatisticsChangeEvent = (): void => {
-    let useStatistics = this.useStatisticsEl!.checked;
-    this.useStatisticsChangeHandle(useStatistics);
-  };
-
-  fpUnWindChangeEvent = (): void => {
-    this.napiName!.disabled = !(!this.fp_unwind && this.recordJsStack);
-  };
-
-  advanceOptionClickEvent = (): void => {
-    if (!this.startSamp) {
-      return;
-    }
-    this.advanceOptionHandle(this.addOptionButton!.textContent!);
-  };
-
-  startupModeChangeEvent = (): void => {
+  startupModeChangeHandler = (): void => {
     let process = this.processId?.shadowRoot?.querySelector('input') as HTMLInputElement;
     let processDiv = this.processId?.shadowRoot?.querySelector('.root') as HTMLDivElement;
     process.value = '';
@@ -382,140 +326,63 @@ export class SpAllocations extends BaseElement {
     }
   };
 
-  jsStackModelChangeEvent = (): void => {
-    this.jsStackDepth!.disabled = !this.recordJsStack;
-    this.napiName!.disabled = !(!this.fp_unwind && this.recordJsStack);
+  jsStackModelChangeHandler = (): void => {
+    let napiRecordName = this.shadowRoot?.querySelector('#napi-div') as HTMLDivElement;
+    let jsStackRecordDepth = this.shadowRoot?.querySelector('#js-stack-depth-div') as HTMLDivElement;
+    if (this.recordJsStack) {
+      napiRecordName.style.display = 'flex';
+      jsStackRecordDepth.style.display = 'flex';
+    } else {
+      napiRecordName.style.display = 'none';
+      jsStackRecordDepth.style.display = 'none';
+    }
   };
 
-  statisticsSliderMouseupEvent = (): void => {
-    setTimeout((): void => {
+  statisticsSliderMouseupHandler = (): void => {
+    setTimeout(() => {
       let percentValue = this.recordStatisticsResult!.getAttribute('percent');
       let index = Math.round(Number(percentValue) / NUM_450);
       index = index < 1 ? 0 : index;
       this.intervalResultInput!.value = `${stepValue[index]}`;
       this.recordStatisticsResult!.setAttribute('percentValue', `${stepValue[index]}`);
-      if (this.intervalResultInput!.value === '0') {
-        this.useStatisticsEl!.checked = false;
-        this.useStatisticsChangeHandle(false);
-      }
     });
   };
 
-  statisticsIntervalInputEvent = (): void => {
-    let intervalValue = Number(this.statisticsIntervalInput!.value);
-    if (intervalValue > 65535) {
-      this.statisticsIntervalInput!.value = '65535';
-    }
-    if (intervalValue === 0 || this.statisticsIntervalInput!.value.startsWith('0')) {
-      let resultValue = parseInt(this.statisticsIntervalInput!.value, 10);
-      this.statisticsIntervalInput!.value = `${resultValue}`;
+  intervalResultFocusOutHandler = (): void => {
+    let parentElement = this.statisticsSlider!.parentNode as Element;
+    if (this.intervalResultInput!.value.trim() === '') {
+      parentElement.setAttribute('percent', '3600');
+      this.intervalResultInput!.value = '3600';
+      this.intervalResultInput!.style.color = 'var(--dark-color,#6a6f77)';
+      parentElement.setAttribute('percent', this.intervalResultInput!.value);
+      parentElement.setAttribute('percentValue', this.intervalResultInput!.value);
+      this.statisticsSlider!.percent = this.intervalResultInput!.value;
+      let htmlInputElement = this.statisticsSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+      htmlInputElement.value = this.intervalResultInput!.value;
     }
   };
 
-  statisticsIntervalKeyUpEvent = (): void => {
-    this.statisticsIntervalInput!.value = this.statisticsIntervalInput!.value.replace(/\D/g, '');
-  };
-
-  private useStatisticsChangeHandle(useStatistics: boolean): void {
-    if (useStatistics) {
-      this.intervalResultInput!.value = '10';
-      this.statisticsIntervalHandle();
-      this.statisticsIntervalName!.textContent = 'Sample Interval';
-      this.statisticsIntervalRange!.textContent = 'Rang is 0 - 65535, default 10';
-      this.statisticsIntervalInput!.value = '10';
-      this.statisticsSlider!.disabled = false;
-      this.intervalResultInput!.disabled = false;
-    } else {
-      this.intervalResultInput!.value = '0';
-      this.statisticsIntervalHandle();
-      this.statisticsIntervalName!.textContent = 'Malloc Free Matching Interval';
-      this.statisticsIntervalRange!.textContent = 'Rang is 0 - 65535, default 10';
-      this.statisticsIntervalInput!.value = '10';
-      this.statisticsSlider!.disabled = true;
-      this.intervalResultInput!.disabled = true;
-    }
-  }
-
-  private advanceOptionHandle(textValue: string): void {
-    this.resetAdvanceItems();
-    let displayStyle = 'none';
-    if (textValue === 'Advance Options') {
-      this.addOptionButton!.textContent = 'Normal Options';
-      displayStyle = 'flex';
-    } else {
-      this.addOptionButton!.textContent = 'Advance Options';
-    }
-    this.advanceItems.forEach((itemEl) => {
-      if (itemEl) {
-        itemEl.style.display = displayStyle;
-      }
-    });
-    this.jsStackDepth!.disabled = !this.recordJsStack;
-    this.napiName!.disabled = !(!this.fp_unwind && this.recordJsStack);
-  }
-
-  private resetAdvanceItems(): void {
-    this.advanceItems = [
-      this.recordAccuratelyDivEl,
-      this.recordAccuratelyDivEl,
-      this.offlineSymbolizationDivEl,
-      this.jsStackRecordDepthEl,
-      this.napiRecordEl,
-      this.maxUnwindLevelEl,
-      this.sharedMemorySizeEl,
-      this.filterMemorySizeEl,
-      this.sampleIntervalEl,
-      this.useStartupEl,
-      this.useResponseLibEl,
-    ];
-  }
-
-  private initNativeSwitchOption(): void {
-    this.packageName!.style.display = 'none';
-    let processInputEl = this.processId!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    processInputEl.addEventListener('mousedown', (): void => {
-      this.processMouseDownHandler(processInputEl);
-    });
-    let packageInput = this.packageName!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    packageInput.addEventListener('mousedown', (): void => {
-      this.packageMouseDownHandler(packageInput);
-    });
+  statisticsSliderInputHandler = (): void => {
     this.statisticsSlider!.sliderStyle = {
       minRange: 0,
       maxRange: 3600,
-      defaultValue: '900',
+      defaultValue: `${this.recordStatisticsResult!.getAttribute('percent')}`,
       resultUnit: 'S',
       stepSize: 450,
       lineColor: 'var(--dark-color3,#46B1E3)',
       buttonColor: '#999999',
     };
-    let parentElement = this.statisticsSlider!.parentNode as Element;
-    this.intervalResultInput!.value = '10';
-    parentElement.setAttribute('percent', '3600');
     this.intervalResultInput!.style.color = 'var(--dark-color1,#000000)';
-    let litSwitch = this.shadowRoot?.querySelector('#switch-disabled') as LitSwitch;
-    litSwitch.addEventListener('change', (event: Event): void => {
-      // @ts-ignore
-      let detail = event.detail;
-      if (detail.checked) {
-        this.unDisable();
-      } else {
-        this.disable();
-      }
-      this.addOptionButton!.textContent = 'Advance Options';
-    });
-    this.packageName!.style.display = 'none';
-    this.processId!.style.display = 'block';
-    let processDivEl = this.processId?.shadowRoot?.querySelector('.root') as HTMLDivElement;
-    if (processDivEl) {
-      processDivEl.style.width = 'auto';
+    if (this.recordStatisticsResult!.hasAttribute('percent')) {
+      let step = Math.round(Number(this.recordStatisticsResult!.getAttribute('percent')) / NUM_450);
+      this.recordStatisticsResult!.setAttribute('percentValue', `${stepValue[step]}`);
+      this.intervalResultInput!.value = `${stepValue[step]}`;
     }
-    this.disable();
-  }
+  };
 
   private processMouseDownHandler(process: HTMLInputElement): void {
     if (this.startSamp && !this.startup_mode) {
-      Cmd.getProcess().then((processList: string[]): void => {
+      Cmd.getProcess().then((processList) => {
         this.processId?.dataSource(processList, '');
         if (processList.length > 0) {
           this.processId?.dataSource(processList, 'ALL-Process');
@@ -533,10 +400,9 @@ export class SpAllocations extends BaseElement {
     } else {
     }
   }
-
   private packageMouseDownHandler(packageInput: HTMLInputElement): void {
     if (this.startSamp && this.startup_mode) {
-      Cmd.getPackage().then((packageList: string[]): void => {
+      Cmd.getPackage().then((packageList) => {
         if (packageList.length > 0) {
           this.packageName!.dataSource = packageList;
         } else {
@@ -550,7 +416,7 @@ export class SpAllocations extends BaseElement {
     }
   }
 
-  private statisticsIntervalHandle(): void {
+  intervalResultInputHandler = (): void => {
     let parentElement = this.statisticsSlider!.parentNode as Element;
     if (this.recordStatisticsResult!.hasAttribute('percent')) {
       this.recordStatisticsResult!.removeAttribute('percent');
@@ -600,7 +466,7 @@ export class SpAllocations extends BaseElement {
       parentElement.setAttribute('percent', this.intervalResultInput!.value);
       parentElement.setAttribute('percentValue', this.intervalResultInput!.value);
     }
-  }
+  };
 
   private unDisable(): void {
     this.startSamp = true;
@@ -622,15 +488,12 @@ export class SpAllocations extends BaseElement {
     if (this.responseLibMode) {
       this.responseLibMode.disabled = false;
     }
-    if (this.statisticsIntervalInput) {
-      this.statisticsIntervalInput.disabled = false;
-    }
-    if (this.useStatisticsEl) {
-      this.useStatisticsEl.disabled = false;
+    if (this.sampleInterval) {
+      this.sampleInterval.disabled = false;
     }
     this.processId!.removeAttribute('disabled');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');
-    inputBoxes!.forEach((item: HTMLInputElement): void => {
+    inputBoxes!.forEach((item) => {
       item.disabled = false;
     });
     if (this.startup_mode) {
@@ -643,7 +506,6 @@ export class SpAllocations extends BaseElement {
 
   private disable(): void {
     this.startSamp = false;
-    this.advanceOptionHandle('Normal Options');
     if (this.fpUnWind) {
       this.fpUnWind.disabled = true;
     }
@@ -662,15 +524,12 @@ export class SpAllocations extends BaseElement {
     if (this.responseLibMode) {
       this.responseLibMode.disabled = true;
     }
-    if (this.statisticsIntervalInput) {
-      this.statisticsIntervalInput.disabled = true;
-    }
-    if (this.useStatisticsEl) {
-      this.useStatisticsEl.disabled = true;
+    if (this.sampleInterval) {
+      this.sampleInterval.disabled = true;
     }
     this.processId!.setAttribute('disabled', '');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');
-    inputBoxes!.forEach((item: HTMLInputElement): void => {
+    inputBoxes!.forEach((item) => {
       item.disabled = true;
     });
     if (this.startup_mode) {
@@ -680,6 +539,10 @@ export class SpAllocations extends BaseElement {
     }
     this.statisticsSlider!.disabled = true;
   }
+
+  initHtml(): string {
+    return SpAllocationHtml;
+  }
 }
 
-const stepValue: number[] = [0, 1, 10, NUM_30, NUM_60, NUM_300, NUM_600, NUM_1800, NUM_3600];
+const stepValue = [0, 1, 10, NUM_30, NUM_60, NUM_300, NUM_600, NUM_1800, NUM_3600];

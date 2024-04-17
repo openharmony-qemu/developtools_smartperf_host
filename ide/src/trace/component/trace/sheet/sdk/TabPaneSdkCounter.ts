@@ -21,8 +21,8 @@ import { Utils } from '../../base/Utils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { TabUtil } from './TabUtil';
 import { resizeObserver } from '../SheetUtils';
-import { getTabSdkCounterData, getTabSdkCounterLeftData } from '../../../../database/sql/Sdk.sql';
-import { queryStartTime } from '../../../../database/sql/SqlLite.sql';
+import { getTabSdkCounterData, getTabSdkCounterLeftData } from "../../../../database/sql/Sdk.sql";
+import { queryStartTime } from "../../../../database/sql/SqlLite.sql";
 
 @element('tabpane-sdk-counter')
 export class TabPaneSdkCounter extends BaseElement {
@@ -225,9 +225,9 @@ export class TabPaneSdkCounter extends BaseElement {
         if (type === 'number') {
           return countreSort === 2
             ? // @ts-ignore
-              parseFloat(bSdkCounter[property]) - parseFloat(aSdkCounter[property])
+            parseFloat(bSdkCounter[property]) - parseFloat(aSdkCounter[property])
             : // @ts-ignore
-              parseFloat(aSdkCounter[property]) - parseFloat(bSdkCounter[property]);
+            parseFloat(aSdkCounter[property]) - parseFloat(bSdkCounter[property]);
         }
         // @ts-ignore
         if (bSdkCounter[property] > aSdkCounter[property]) {

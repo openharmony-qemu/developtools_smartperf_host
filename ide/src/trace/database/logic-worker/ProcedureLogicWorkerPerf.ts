@@ -374,11 +374,20 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   setPerfCallChainFrameName(callChain: PerfCallChain): void {
     //设置调用栈的名称
     callChain.canCharge = true;
-    if (this.filesData[callChain.fileId] && this.filesData[callChain.fileId].length > 0) {
-      callChain.fileName = this.filesData[callChain.fileId][0].fileName;
-      callChain.path = this.filesData[callChain.fileId][0].path;
+    if (callChain.symbolId === -1) {
+      if (this.filesData[callChain.fileId] && this.filesData[callChain.fileId].length > 0) {
+        callChain.fileName = this.filesData[callChain.fileId][0].fileName;
+        callChain.path = this.filesData[callChain.fileId][0].path;
+      } else {
+        callChain.fileName = 'unknown';
+      }
     } else {
-      callChain.fileName = 'unknown';
+      if (this.filesData[callChain.fileId] && this.filesData[callChain.fileId].length > callChain.symbolId) {
+        callChain.fileName = this.filesData[callChain.fileId][callChain.symbolId].fileName;
+        callChain.path = this.filesData[callChain.fileId][callChain.symbolId].path;
+      } else {
+        callChain.fileName = 'unknown';
+      }
     }
   }
 

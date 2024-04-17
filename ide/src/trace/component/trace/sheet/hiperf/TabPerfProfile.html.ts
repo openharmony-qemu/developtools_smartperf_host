@@ -84,7 +84,7 @@ selector{
                 <img src="img/function.png" size="20" v-if=" type == 0 ">
             </template>
         </lit-table-column>
-        <lit-table-column width="1fr" title="" data-index="symbol" key="symbol"  
+        <lit-table-column width="1fr" title="" data-index="symbolName" key="symbolName"  
         align="flex-start"></lit-table-column>
     </lit-table>
     </div>

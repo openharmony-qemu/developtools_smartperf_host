@@ -161,11 +161,9 @@ function addPointLink(
     if (data.children.length >= 1) {
       let endP;
       if (data.children[0].frame_type == 'frameTime') {
-        endP = sp.shadowRoot?.querySelector<TraceRow<any>>("trace-row[row-type='janks'][row-id='frameTime']");
+        endP = sp.shadowRoot?.querySelector<TraceRow<any>>("trace-row[row-type='process'][row-id='frameTime']");
       } else {
-        endP = sp.shadowRoot?.querySelector<TraceRow<any>>(
-          `trace-row[row-type='process'][row-id='${data.children[0].pid}'][folder]`
-        );
+        endP = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-type='process'][row-id='${data.children[0].pid}'][folder]`);
       }
       sp.drawJankLine(endP, findJankEntry, data.children[0]);
     }
@@ -191,12 +189,9 @@ function drawJankLineEndParent(
   sp: SpSystemTrace,
   data: any,
   startRow: any,
-  selectJankStruct: JankStruct,
-  isBinderClick: boolean = false
+  selectJankStruct: JankStruct
 ): void {
-  if (isBinderClick) {
-    endParentRow.expansion = true;
-  }
+  endParentRow.expansion = true;
   //终点的父泳道过滤出选中的Struct
   let endRowStruct = getEndStruct(data, sp);
   //泳道未展开的情况，查找endRowStruct
@@ -241,8 +236,7 @@ export function spSystemTraceDrawJankLine(
   sp: SpSystemTrace,
   endParentRow: any,
   selectJankStruct: JankStruct,
-  data: any,
-  isBinderClick: boolean = false
+  data: any
 ): void {
   let collectList = sp.favoriteChartListEL!.getAllCollectRows();
   let startRow: any;
@@ -269,7 +263,7 @@ export function spSystemTraceDrawJankLine(
     }
   }
   if (endParentRow) {
-    drawJankLineEndParent(endParentRow, sp, data, startRow, selectJankStruct, isBinderClick);
+    drawJankLineEndParent(endParentRow, sp, data, startRow, selectJankStruct);
   }
 }
 
@@ -485,13 +479,8 @@ export function spSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<
   }
 }
 
-function jankPoint(
-  endRowStruct: any,
-  selectThreadStruct: ThreadStruct,
-  startRow: any,
-  endParentRow: any,
-  sp: SpSystemTrace
-) {
+
+function jankPoint(endRowStruct: any, selectThreadStruct: ThreadStruct, startRow: any, endParentRow: any, sp: SpSystemTrace) {
   let findJankEntry = endRowStruct!.fixedList[0];
   let ts: number = 0;
   if (findJankEntry) {
@@ -553,3 +542,5 @@ export function spSystemTraceDrawThreadLine(
     }
   }
 }
+
+

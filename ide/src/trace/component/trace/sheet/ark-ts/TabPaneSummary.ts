@@ -93,14 +93,14 @@ export class TabPaneSummary extends BaseElement {
     this.fileSize = file.size;
     this.summary.forEach((summaryEl: any) => {
       if (summaryEl.childCount > 1) {
-        let count = `${summaryEl.nodeName} ×${summaryEl.childCount}`;
+        let count = `${summaryEl.nodeName  } ×${summaryEl.childCount}`;
         summaryEl.objectName = count;
         summaryEl.count = ` ×${summaryEl.childCount}`;
       } else {
         summaryEl.objectName = summaryEl.nodeName;
       }
-      let shallow = `${Math.round((summaryEl.shallowSize / file.size) * 100)}%`;
-      let retained = `${Math.round((summaryEl.retainedSize / file.size) * 100)}%`;
+      let shallow = `${Math.round((summaryEl.shallowSize / file.size) * 100)  }%`;
+      let retained = `${Math.round((summaryEl.retainedSize / file.size) * 100)  }%`;
       summaryEl.shallowPercent = shallow;
       summaryEl.retainedPercent = retained;
       if (summaryEl.distance >= 100000000 || summaryEl.distance === -5) {
@@ -178,9 +178,9 @@ export class TabPaneSummary extends BaseElement {
   private retainsTableByObjectName(currentLeftItem: ConstructorItem, sort: number): void {
     const getList = function (list: Array<ConstructorItem>): void {
       list.sort((leftA, rightB) => {
-        return sort === 1
-          ? `${leftA.objectName}`.localeCompare(`${rightB.objectName}`)
-          : `${rightB.objectName}`.localeCompare(`${leftA.objectName}`);
+        return sort === 1 ?
+          (`${leftA.objectName  }`).localeCompare(`${rightB.objectName  }`) :
+          (`${rightB.objectName  }`).localeCompare(`${leftA.objectName  }`);
       });
       list.forEach(function (row) {
         if (row.children.length > 0) {
@@ -225,9 +225,9 @@ export class TabPaneSummary extends BaseElement {
   }
   private sortLeftByObjectNameColum(sort: number): void {
     this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
-      return sort === 1
-        ? `${leftData.objectName}`.localeCompare(`${rightData.objectName}`)
-        : `${rightData.objectName}`.localeCompare(`${leftData.objectName}`);
+      return sort === 1 ?
+        (`${leftData.objectName  }`).localeCompare(`${rightData.objectName  }`) :
+        (`${rightData.objectName  }`).localeCompare(`${leftData.objectName  }`);
     });
     this.leftArray.forEach((currentLeftItem) => {
       this.retainsTableByObjectName(currentLeftItem, sort);
@@ -237,9 +237,9 @@ export class TabPaneSummary extends BaseElement {
 
   private sortLeftByRetainedSizeColum(sort: number): void {
     this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
-      return sort === 1
-        ? leftData.retainedSize - rightData.retainedSize
-        : rightData.retainedSize - leftData.retainedSize;
+      return sort === 1 ?
+        leftData.retainedSize - rightData.retainedSize :
+        rightData.retainedSize - leftData.retainedSize;
     });
     this.leftArray.forEach((currentLeftItem) => {
       this.retainsTableByRetainedSize(currentLeftItem, sort);
@@ -249,7 +249,9 @@ export class TabPaneSummary extends BaseElement {
 
   private sortLeftByShallowSizeColum(sort: number): void {
     this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
-      return sort === 1 ? leftData.shallowSize - rightData.shallowSize : rightData.shallowSize - leftData.shallowSize;
+      return sort === 1 ?
+        leftData.shallowSize - rightData.shallowSize :
+        rightData.shallowSize - leftData.shallowSize;
     });
     this.leftArray.forEach((currentLeftItem) => {
       this.retainsTableByShallowSize(currentLeftItem, sort);
@@ -304,9 +306,9 @@ export class TabPaneSummary extends BaseElement {
             break;
           case 'objectName':
             this.tbs!.snapshotDataSource = this.rightArray.sort((a, b) => {
-              return sort === 1
-                ? `${a.objectName}`.localeCompare(`${b.objectName}`)
-                : `${b.objectName}`.localeCompare(`${a.objectName}`);
+              return sort === 1 ?
+                (`${a.objectName  }`).localeCompare(`${b.objectName  }`) :
+                (`${b.objectName  }`).localeCompare(`${a.objectName  }`);
             });
             this.rightArray.forEach((list) => {
               this.retainsTableByObjectName(list, sort);
@@ -391,29 +393,27 @@ export class TabPaneSummary extends BaseElement {
   connectedCallback(): void {
     super.connectedCallback();
     let filterHeight = 0;
-    let parentWidth = `${this.parentElement!.clientWidth}px`;
+    let parentWidth = `${this.parentElement!.clientWidth  }px`;
     let system = document
       .querySelector('body > sp-application')
       ?.shadowRoot?.querySelector('#app-content > sp-system-trace');
     new ResizeObserver(() => {
       let summaryPaneFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
-      if (summaryPaneFilter.clientHeight > 0) {
-        filterHeight = summaryPaneFilter.clientHeight;
-      }
+      if (summaryPaneFilter.clientHeight > 0) {filterHeight = summaryPaneFilter.clientHeight}
       if (this.parentElement!.clientHeight > filterHeight) {
         summaryPaneFilter.style.display = 'flex';
       } else {
         summaryPaneFilter.style.display = 'none';
       }
-      parentWidth = `${this.parentElement!.clientWidth}px`;
+      parentWidth = `${this.parentElement!.clientWidth  }px`;
       this.tbs!.style.height = 'calc(100% - 30px)';
       this.tbsTable!.style.width = `calc(${parentWidth} - ${this.leftTable!.style.width} - 5px)`;
       this.tbs!.reMeauseHeight();
       this.tblSummary!.reMeauseHeight();
     }).observe(this.parentElement!);
     new ResizeObserver(() => {
-      this.parentElement!.style.width = `${system!.clientWidth}px`;
-      this.style.width = `${system!.clientWidth}px`;
+      this.parentElement!.style.width = `${system!.clientWidth  }px`;
+      this.style.width = `${system!.clientWidth  }px`;
     }).observe(system!);
     new ResizeObserver(() => {
       this.tbsTable!.style.width = `calc(${parentWidth} - ${this.leftTable!.style.width} - 5px)`;
@@ -458,12 +458,12 @@ export class TabPaneSummary extends BaseElement {
       let retainsTable = (): void => {
         const getList = (list: Array<ConstructorItem>): void => {
           list.forEach((currentRow: ConstructorItem) => {
-            let shallow = `${Math.round((currentRow.shallowSize / this.fileSize) * 100)}%`;
-            let retained = `${Math.round((currentRow.retainedSize / this.fileSize) * 100)}%`;
+            let shallow = `${Math.round((currentRow.shallowSize / this.fileSize) * 100)  }%`;
+            let retained = `${Math.round((currentRow.retainedSize / this.fileSize) * 100)  }%`;
             currentRow.shallowPercent = shallow;
             currentRow.retainedPercent = retained;
-            let nodeId = `${currentRow.nodeName} @${currentRow.id}`;
-            currentRow.objectName = `${currentRow.edgeName}\xa0` + 'in' + `\xa0${nodeId}`;
+            let nodeId = `${currentRow.nodeName  } @${currentRow.id}`;
+            currentRow.objectName = `${currentRow.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
             if (currentRow.distance >= 100000000 || currentRow.distance === -5) {
               // @ts-ignore
               currentRow.distance = '-';
@@ -510,22 +510,22 @@ export class TabPaneSummary extends BaseElement {
           return b.retainedSize - a.retainedSize;
         });
         data.children.forEach((summaryDataEl: any) => {
-          let shallow = `${Math.round((summaryDataEl.shallowSize / this.fileSize) * 100)}%`;
-          let retained = `${Math.round((summaryDataEl.retainedSize / this.fileSize) * 100)}%`;
+          let shallow = `${Math.round((summaryDataEl.shallowSize / this.fileSize) * 100)  }%`;
+          let retained = `${Math.round((summaryDataEl.retainedSize / this.fileSize) * 100)  }%`;
           summaryDataEl.shallowPercent = shallow;
           summaryDataEl.retainedPercent = retained;
           if (summaryDataEl.distance >= 100000000 || summaryDataEl.distance === -5) {
             summaryDataEl.distance = '-';
           }
-          let nodeId = `${summaryDataEl.nodeName} @${summaryDataEl.id}`;
+          let nodeId = `${summaryDataEl.nodeName  } @${summaryDataEl.id}`;
           summaryDataEl.nodeId = ` @${summaryDataEl.id}`;
           if (data.isString()) {
-            summaryDataEl.objectName = `"${summaryDataEl.nodeName}"` + ` @${summaryDataEl.id}`;
+            summaryDataEl.objectName = `"${  summaryDataEl.nodeName  }"` + ` @${summaryDataEl.id}`;
           } else {
             summaryDataEl.objectName = nodeId;
           }
           if (summaryDataEl.edgeName !== '') {
-            summaryDataEl.objectName = `${summaryDataEl.edgeName}\xa0` + '::' + `\xa0${nodeId}`;
+            summaryDataEl.objectName = `${summaryDataEl.edgeName  }\xa0` + '::' + `\xa0${  nodeId}`;
           }
         });
       } else {
@@ -587,12 +587,12 @@ export class TabPaneSummary extends BaseElement {
       let retainsTable = (): void => {
         const getList = (list: Array<ConstructorItem>): void => {
           list.forEach((summaryRow: ConstructorItem) => {
-            let retainsShallow = `${Math.round((summaryRow.shallowSize / this.fileSize) * 100)}%`;
-            let retained = `${Math.round((summaryRow.retainedSize / this.fileSize) * 100)}%`;
+            let retainsShallow = `${Math.round((summaryRow.shallowSize / this.fileSize) * 100)  }%`;
+            let retained = `${Math.round((summaryRow.retainedSize / this.fileSize) * 100)  }%`;
             summaryRow.shallowPercent = retainsShallow;
             summaryRow.retainedPercent = retained;
-            let nodeId = `${summaryRow.nodeName} @${summaryRow.id}`;
-            summaryRow.objectName = `${summaryRow.edgeName}\xa0` + 'in' + `\xa0${nodeId}`;
+            let nodeId = `${summaryRow.nodeName  } @${summaryRow.id}`;
+            summaryRow.objectName = `${summaryRow.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
             if (summaryRow.distance >= 100000000 || summaryRow.distance === -5) {
               //@ts-ignore
               summaryRow.distance = '-';
@@ -625,16 +625,16 @@ export class TabPaneSummary extends BaseElement {
     this.retainsData = [];
     this.retainsData = HeapDataInterface.getInstance().getRetains(data);
     this.retainsData.forEach((element) => {
-      let shallow = `${Math.round((element.shallowSize / this.fileSize) * 100)}%`;
-      let retained = `${Math.round((element.retainedSize / this.fileSize) * 100)}%`;
+      let shallow = `${Math.round((element.shallowSize / this.fileSize) * 100)  }%`;
+      let retained = `${Math.round((element.retainedSize / this.fileSize) * 100)  }%`;
       element.shallowPercent = shallow;
       element.retainedPercent = retained;
       if (element.distance >= 100000000 || element.distance === -5) {
         //@ts-ignore
         element.distance = '-';
       }
-      let nodeId = `${element.nodeName} @${element.id}`;
-      element.objectName = `${element.edgeName}\xa0` + 'in' + `\xa0${nodeId}`;
+      let nodeId = `${element.nodeName  } @${element.id}`;
+      element.objectName = `${element.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
     });
   }
 

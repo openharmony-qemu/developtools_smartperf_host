@@ -321,7 +321,7 @@ margin-left: 15px;
     <lit-icon name="swap" class="spacing" size="16"></lit-icon>
     <div style="margin-left: 5px" class="describe statistics-name">Statistics by Thread</div>
 </div>
-`;
+`
 export const TabPaneFilterHtml = (input: string): string => {
   return replacePlaceholders(html, input);
-};
+}

@@ -194,7 +194,7 @@ export class CpuRender {
   }
 }
 export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHandler: any) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve,reject) => {
     if (rowType === TraceRow.ROW_TYPE_CPU && CpuStruct.hoverCpuStruct) {
       CpuStruct.selectCpuStruct = CpuStruct.hoverCpuStruct;
       sp.timerShaftEL?.drawTriangle(CpuStruct.selectCpuStruct!.startTime || 0, 'inverted');
@@ -208,10 +208,11 @@ export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHan
       );
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    } else {
+    }else{
       resolve(null);
     }
   });
+
 }
 export class CpuStruct extends BaseStruct {
   static cpuCount: number = 1; //最大cpu数量

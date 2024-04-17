@@ -796,8 +796,7 @@
       <h3 class="mume-header fontColor">Native Memory抓取配置参数</h3>
 
       <p class="fontColor">
-        <img src="../figures/NativeMemory/nativememorysetting.jpg" alt="GitHub Logo" />
-        <br />
+        <img src="../figures/NativeMemory/nativememorysetting.jpg" alt="GitHub Logo" /><br />
         配置参数说明：
       </p>
       <ul class="fontColor">
@@ -813,13 +812,11 @@
       </ul>
       <p class="fontColor">
         再点击Record setting，在output file path输入文件名hiprofiler_data_nativememory.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。
-        <br />
+        size大小是64M，抓取时长是50s。<br />
         <img src="../figures/NativeMemory/nativememoryset.jpg" alt="GitHub Logo" />
       </p>
       <p class="fontColor">
-        点击Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
-        <br />
+        点击Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。<br />
         <img src="../figures/NativeMemory/nativememorycommand.jpg" alt="GitHub Logo" />
       </p>
       <p class="fontColor">命令行参数说明：</p>
@@ -838,12 +835,9 @@
         <li>startup_mode: 是否需要抓取应用启动阶段内存。</li>
       </ul>
       <p class="fontColor">
-        输入hdc_std shell，进入设备，执行命令。
-        <br />
-        <img src="../figures/NativeMemory/nativeexcutecommand.jpg" alt="GitHub Logo" />
-        <br />
-        执行完成后，进入指定目录查看，在/data/local/tmp下就会生成trace文件。
-        <br />
+        输入hdc_std shell，进入设备，执行命令。<br />
+        <img src="../figures/NativeMemory/nativeexcutecommand.jpg" alt="GitHub Logo" /><br />
+        执行完成后，进入指定目录查看，在/data/local/tmp下就会生成trace文件。<br />
         <img src="../figures/NativeMemory/naitvememoryfile.jpg" alt="GitHub Logo" />
       </p>
       <h2 class="mume-header fontColor">Native Memory展示说明</h2>
@@ -852,8 +846,7 @@
       <h3 class="mume-header fontColor">Native Memory泳道图展示类型</h3>
 
       <p class="fontColor">
-        点击齿轮状的图标可以设置内存的展示单位。
-        <br />
+        点击齿轮状的图标可以设置内存的展示单位。<br />
         <img src="../figures/NativeMemory/NativeChart.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -891,10 +884,8 @@ All Anonymous VM：mmap分配的内存。
       <h3 class="mume-header fontColor">Native Memory泳道图的框选功能</h3>
 
       <p class="fontColor">
-        可以对内存的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有四个tab页。
-        <br />
-        Statistics的Tab页，主要显示了统计明细类型。
-        <br />
+        可以对内存的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有四个tab页。<br />
+        Statistics的Tab页，主要显示了统计明细类型。<br />
         <img src="../figures/NativeMemory/Statistics.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -954,8 +945,7 @@ Existing/Total：框选区间内剩余的内存比上申请的内存，其中浅
         </li>
       </ul>
       <p class="fontColor">
-        Call Info的Tab页，主要显示了调用树详细类型。
-        <br />
+        Call Info的Tab页，主要显示了调用树详细类型。<br />
         <img src="../figures/NativeMemory/CallInfo.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -979,8 +969,7 @@ Count：相同调用栈出现的次数。
         </li>
       </ul>
       <p class="fontColor">
-        Native Memory的Tab页，主要显示了单次分配信息列表。
-        <br />
+        Native Memory的Tab页，主要显示了单次分配信息列表。<br />
         <img src="../figures/NativeMemory/NativeMemory.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1028,8 +1017,7 @@ Responsible Caller  ：调用该函数的方法。
         </li>
       </ul>
       <p class="fontColor">
-        Snapshot List的Tab页，主要显示了各时刻内存的增长的差值。
-        <br />
+        Snapshot List的Tab页，主要显示了各时刻内存的增长的差值。<br />
         <img src="../figures/NativeMemory/Snapshotlist.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1067,16 +1055,14 @@ Total Growth ：自从上次Snapshot的增长量，是计算的每一次分配�
       <h3 class="mume-header fontColor">Native Memory的辅助信息功能</h3>
 
       <p class="fontColor">
-        在Call Info和Native Memory的Tab页，点击选中某一行，右边画红线处会显示出该行调用栈的树结构信息。
-        <br />
+        在Call Info和Native Memory的Tab页，点击选中某一行，右边画红线处会显示出该行调用栈的树结构信息。<br />
         <img src="../figures/NativeMemory/nativecallstack.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">Native Memory详细显示的过滤功能</h3>
 
       <p class="fontColor">
         点击下方的All Allocations可以对Allocation lifeSpan进行过滤，有三个选择：All Allocations，Created &amp;
-        Existing，Created &amp; Destroyed。
-        <br />
+        Existing，Created &amp; Destroyed。<br />
         <img src="../figures/NativeMemory/lifespan.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1100,8 +1086,7 @@ Total Growth ：自从上次Snapshot的增长量，是计算的每一次分配�
         </li>
       </ul>
       <p class="fontColor">
-        点击下方的All Heap&amp;Anonymous VM可以对内存类型进行过滤。
-        <br />
+        点击下方的All Heap&amp;Anonymous VM可以对内存类型进行过滤。<br />
         <img src="../figures/NativeMemory/AllocationType.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1126,22 +1111,19 @@ All Anonymous VM：mmap的匿名页。
       </ul>
       <p class="fontColor">
         点击下方的Mark Snapshot可以在时间轴上打标签。出现小旗的标志，通过标注多个时间点。点击到Snapshot
-        List标签页可以看到各个时间点的内存的增长值。
-        <br />
+        List标签页可以看到各个时间点的内存的增长值。<br />
         <img src="../figures/NativeMemory/Generation.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">Native Memory的火焰图功能</h3>
 
       <p class="fontColor">
-        火焰图的展示跟Callinfo的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，栈的所在库名，地址，size大小，栈的个数。
-        <br />
+        火焰图的展示跟Callinfo的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，栈的所在库名，地址，size大小，栈的个数。<br />
         <img src="../figures/NativeMemory/nativeflameshow.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">基于函数进行调用栈（单个或多个）选择后可以在时间轴上显示内存操作点</h3>
 
       <p class="fontColor">
-        点击火焰图函数时，触发火焰图点击中，显示调用栈中该函数出现在时间轴范围的分布情况。
-        <br />
+        点击火焰图函数时，触发火焰图点击中，显示调用栈中该函数出现在时间轴范围的分布情况。<br />
         <img src="../figures/NativeMemory/memoryframe.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">内存搜索大小写不敏感，上层火焰图的大小和总内存需要根据搜索内容动态调整</h3>
@@ -1152,8 +1134,7 @@ All Anonymous VM：mmap的匿名页。
       <h3 class="mume-header fontColor">焦点函数火焰图详细展开：选中函数的全部调用栈展示</h3>
 
       <p class="fontColor">
-        点击调用栈某个函数，点击函数调用的函数对应铺满画布，点击函数的parent，显示以及绘制的大小变化为点击函数的大小，如下图点击OHOS::EglCoreInit()函数，会显示该函数的全部调用栈。
-        <br />
+        点击调用栈某个函数，点击函数调用的函数对应铺满画布，点击函数的parent，显示以及绘制的大小变化为点击函数的大小，如下图点击OHOS::EglCoreInit()函数，会显示该函数的全部调用栈。<br />
         <img src="../figures/NativeMemory/eg_callstack.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">搜索框支持表达式输入</h3>
@@ -1163,11 +1144,9 @@ All Anonymous VM：mmap的匿名页。
         Library与Responsible Caller，其中Responsible Library，Responsible Caller表示从下往上非libc++
         musl的第一条调用栈的lib跟symbol，如下图所示，由于最后一条 [ operator new(unsigned long) ]
         libc++.so为libc++.so的函数，固跳过，所以该条调用栈的Responsible Library为
-        <a href="http://libhilog.so/">libhilog.so</a>
-        ，Responsible Caller为OHOS::HiviewDFX::GetDomainLevel(unsigned int) 。
-        <br />
-        <img src="../figures/NativeMemory/framecaller.jpg" alt="GitHub Logo" />
-        <br />
+        <a href="http://libhilog.so/">libhilog.so</a>，Responsible Caller为OHOS::HiviewDFX::GetDomainLevel(unsigned int)
+        。<br />
+        <img src="../figures/NativeMemory/framecaller.jpg" alt="GitHub Logo" /><br />
         表达式说明:在InputFilter输入框可以进行搜索过滤和表达式过滤，其中表达式必须以@开头，英文括号包起所需要过滤的内容，每个括号必须包括
         （Responsible Library，Responsible Caller）匹配全量以*表示，否则认为该输入为搜索过滤。
       </p>
@@ -1205,11 +1184,7 @@ All Anonymous VM：mmap的匿名页。
             <td>只显示Responsible Library路径/data/user且symbol为任意值的数据</td>
           </tr>
           <tr>
-            <td>
-              @(
-              <a href="http://mali.so/">mali.so</a>
-              *,libGLES_mali.so *)
-            </td>
+            <td>@(<a href="http://mali.so/">mali.so</a> *,libGLES_mali.so *)</td>
             <td>只显示Responsible Library包含mali.so或者libGLES_mali.so的数据</td>
           </tr>
           <tr>
@@ -1225,10 +1200,7 @@ All Anonymous VM：mmap的匿名页。
             <td>不显示Responsible Library包含libark且Responsible Caller包含jsvm或者table的数据</td>
           </tr>
           <tr>
-            <td>
-              @-(librender picture, libskia picture)
-              <br />
-            </td>
+            <td>@-(librender picture, libskia picture) <br /></td>
             <td>不显示Responsible Library包含librender或者libskia且Responsible Caller中包含picture的数据</td>
           </tr>
           <tr>
@@ -1253,15 +1225,13 @@ All Anonymous VM：mmap的匿名页。
 
       <p class="fontColor">
         选择Use Record Statistics和statistics interval配置项抓取的数据，只会显示Call Info的Tab页，Call
-        Info相关功能同上。
-        <br />
+        Info相关功能同上。<br />
         <img src="../figures/NativeMemory/statiscsCallInfo.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">Native Memory多进程数据显示</h3>
 
       <p class="fontColor">
-        前端可以支持多进程数据的展示，通过在tab页切换不同进程，可以显示不同进程的hook数据。
-        <br />
+        前端可以支持多进程数据的展示，通过在tab页切换不同进程，可以显示不同进程的hook数据。<br />
         <img src="../figures/NativeMemory/hook_moreprocess.jpg" alt="GitHub Logo" />
       </p>
     </div>

@@ -13,7 +13,7 @@
 
 import { TraficEnum } from '../utils/QueryEnum';
 import { filterDataByGroupLayer, filterDataByLayer } from '../utils/DataFilter';
-import { processList } from '../utils/AllMemoryCache';
+import {processList} from "../utils/AllMemoryCache";
 
 const sqlNormal = (args: any): string => {
   return `select ta.cpu,                                                            

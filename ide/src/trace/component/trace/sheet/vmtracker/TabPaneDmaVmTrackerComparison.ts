@@ -24,7 +24,7 @@ import { Utils } from '../../base/Utils';
 import { resizeObserverFromMemory } from '../SheetUtils';
 import '../TabPaneJsMemoryFilter';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
-import { getTabDmaVmTrackerComparisonData } from '../../../../database/sql/Dma.sql';
+import {getTabDmaVmTrackerComparisonData} from "../../../../database/sql/Dma.sql";
 
 @element('tabpane-dma-vmtracker-comparison')
 export class TabPaneDmaVmTrackerComparison extends BaseElement {

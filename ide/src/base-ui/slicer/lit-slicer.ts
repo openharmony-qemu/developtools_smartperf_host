@@ -162,7 +162,7 @@ export class LitSlicerTrack extends HTMLElement {
     }
   }
 
-  isDirection() {
+  isDirection(){
     this.line!.className = 'rootV';
     let previousElementSibling = this.previousElementSibling as HTMLElement;
     let preY: number, preHeight: number;

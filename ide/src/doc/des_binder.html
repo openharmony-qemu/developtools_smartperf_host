@@ -782,12 +782,9 @@
       <h1 class="mume-header fontColor">binder事件上下文如何关联</h1>
 
       <p class="fontColor">
-        binder事件相对复杂，这里是从ftrace事件中抽离出来的binder相关消息，用来作为开发者或用户追踪binder事件的参考
-        <br />
-        a binder event is identified by the sender and receive device, and a reply message only end
-        <br />
-        the last binder msg which reply the calling one.
-        <br />
+        binder事件相对复杂，这里是从ftrace事件中抽离出来的binder相关消息，用来作为开发者或用户追踪binder事件的参考<br />
+        a binder event is identified by the sender and receive device, and a reply message only end<br />
+        the last binder msg which reply the calling one.<br />
         the alloc_buf msg can always flow the binder_transaction, so we no need to identify the alloc msg with
         transactionID
       </p>

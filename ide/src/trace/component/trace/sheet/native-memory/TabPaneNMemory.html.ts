@@ -87,7 +87,7 @@ export const TabPaneNMemoryHtml = `
                             </template>
                         </lit-table-column>
                         <lit-table-column class="nm-memory-column" width="1fr" title="" 
-                        data-index="symbol" key="symbol"  align="flex-start">
+                        data-index="title" key="title"  align="flex-start">
                         </lit-table-column>
                     </lit-table>
                 </lit-slicer>

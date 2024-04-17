@@ -23,7 +23,7 @@ import {
   RequestMessage,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { SpSystemTrace } from '../../component/SpSystemTrace';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class FreqRender extends Render {
   renderMainThread(
@@ -76,7 +76,7 @@ export function CpuFreqStructOnClick(clickRowType: string, sp: SpSystemTrace) {
       sp.traceSheetEL?.displayFreqData();
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    } else {
+    }else{
       resolve(null);
     }
   });

@@ -23,7 +23,7 @@ import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { resizeObserver } from '../SheetUtils';
-import { querySmapsRecordTabData } from '../../../../database/sql/Smaps.sql';
+import {querySmapsRecordTabData} from "../../../../database/sql/Smaps.sql";
 @element('tabpane-smaps-record')
 export class TabPaneSmapsRecord extends BaseElement {
   private smapsRecordTable: LitTable | undefined | null;

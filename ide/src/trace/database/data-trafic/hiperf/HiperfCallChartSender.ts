@@ -69,9 +69,9 @@ export function hiperfCallChartDataCacheSender(): Promise<any> {
       QueryEnum.HiperfCallChart,
       {
         recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
         trafic: TraficEnum.TransferArrayBuffer,
         isCache: true,
+        endNS: (TraceRow.range?.endNS || 0) - (TraceRow.range?.startNS || 0),
       },
       (res: any, len: number): void => {
         resolve('ok');

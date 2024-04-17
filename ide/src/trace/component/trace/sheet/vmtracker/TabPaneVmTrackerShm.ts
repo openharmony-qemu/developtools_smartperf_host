@@ -18,7 +18,7 @@ import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
-import { queryVmTrackerShmSizeData } from '../../../../database/sql/Memory.sql';
+import {queryVmTrackerShmSizeData} from "../../../../database/sql/Memory.sql";
 import { TabPaneVmTrackerShmHtml } from './TabPaneVmTrackerShm.html';
 
 @element('tabpane-vmtracker-shm')

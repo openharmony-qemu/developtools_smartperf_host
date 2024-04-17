@@ -53,18 +53,16 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     });
     if (this.ioCompletionTimesTbl) {
       // @ts-ignore
-      this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - 20 - 31
-      }px`;
+      this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height =
+        `${this.parentElement!.clientHeight - 20 - 31  }px`;
       this.ioCompletionTimesTbl.recycleDataSource = [];
     }
-    if (this.ioCompletionTimesTblData) {
-      // @ts-ignore
-      this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - 20 - 31
-      }px`;
-      this.ioCompletionTimesTblData.recycleDataSource = [];
-    }
+   if (this.ioCompletionTimesTblData) {
+     // @ts-ignore
+     this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height =
+       `${this.parentElement!.clientHeight - 20 - 31  }px`;
+     this.ioCompletionTimesTblData.recycleDataSource = [];
+   }
   }
 
   connectedCallback() {
@@ -72,19 +70,17 @@ export class TabPaneIoCompletionTimes extends BaseElement {
       if (this.parentElement?.clientHeight != 0) {
         if (this.ioCompletionTimesTbl) {
           // @ts-ignore
-          this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height = `${
-            this.parentElement!.clientHeight - 10 - 33
-          }px`;
+          this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height =
+            `${this.parentElement!.clientHeight - 10 - 33  }px`;
           this.ioCompletionTimesTbl.reMeauseHeight();
         }
         if (this.ioCompletionTimesTblData) {
           // @ts-ignore
-          this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height = `${
-            this.parentElement!.clientHeight - 10 - 33
-          }px`;
+          this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height =
+            `${this.parentElement!.clientHeight - 10 - 33  }px`;
           this.ioCompletionTimesTblData.reMeauseHeight();
         }
-        this.ioCompletionTimesLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
+        this.ioCompletionTimesLoadingPage.style.height = `${this.parentElement!.clientHeight - 24  }px`;
       }
     }).observe(this.parentElement!);
   }
@@ -159,14 +155,14 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     if (this.currentSelection != ioCompletionTimeParam) {
       this.currentSelection = ioCompletionTimeParam;
       filter!.setSelectList(this.native_type, null, 'Tier');
-      filter!.firstSelect = `${typeIndexOf}`;
+      filter!.firstSelect = `${typeIndexOf  }`;
       this.queryData(ioCompletionTimeParam);
     } else {
       if (typeIndexOf == parseInt(filter!.firstSelect)) {
         return;
       }
       filter!.setSelectList(this.native_type, null, 'Tier');
-      filter!.firstSelect = `${typeIndexOf}`;
+      filter!.firstSelect = `${typeIndexOf  }`;
       this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);
       ioCompletionTimeParam.fileSystemIoData = undefined;
       this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
@@ -285,11 +281,8 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     });
   }
 
-  private sortOperationCase(
-    ioCompletionTimesA: IoCompletionTimes,
-    ioCompletionTimesB: IoCompletionTimes,
-    type: number
-  ): number {
+  private sortOperationCase(ioCompletionTimesA: IoCompletionTimes,
+    ioCompletionTimesB: IoCompletionTimes, type: number): number {
     if (ioCompletionTimesA.operation > ioCompletionTimesB.operation) {
       return type === 2 ? 1 : -1;
     } else if (ioCompletionTimesA.operation == ioCompletionTimesB.operation) {
@@ -299,11 +292,8 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     }
   }
 
-  private sortThreadCase(
-    ioCompletionTimesA: IoCompletionTimes,
-    ioCompletionTimesB: IoCompletionTimes,
-    type: number
-  ): number {
+  private sortThreadCase(ioCompletionTimesA: IoCompletionTimes,
+    ioCompletionTimesB: IoCompletionTimes, type: number): number {
     if (ioCompletionTimesA.thread > ioCompletionTimesB.thread) {
       return type === 2 ? 1 : -1;
     } else if (ioCompletionTimesA.thread == ioCompletionTimesB.thread) {
@@ -313,11 +303,8 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     }
   }
 
-  private sortProcessCase(
-    ioCompletionTimesA: IoCompletionTimes,
-    ioCompletionTimesB: IoCompletionTimes,
-    type: number
-  ): number {
+  private sortProcessCase(ioCompletionTimesA: IoCompletionTimes,
+    ioCompletionTimesB: IoCompletionTimes, type: number): number {
     if (ioCompletionTimesA.process > ioCompletionTimesB.process) {
       return type === 2 ? 1 : -1;
     } else if (ioCompletionTimesA.process == ioCompletionTimesB.process) {

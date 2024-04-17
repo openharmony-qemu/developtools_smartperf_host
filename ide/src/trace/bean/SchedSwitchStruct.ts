@@ -59,7 +59,7 @@ export class SchedSwitchCountBean {
     this.value = value;
     this.level = level;
     this.colorIndex = colorIndex;
-    this.children = children;
+    this.children = children
   }
 }
 export class TreeSwitchConfig {
@@ -96,5 +96,6 @@ export class CutDataObjConfig {
   processTitle: string = '';
   threadTitle: string = '';
   threadCountTotal: number = 0;
-  threadDurTotal!: number | string;
+  threadDurTotal!: number | string
 }
+

@@ -394,8 +394,10 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       target.depth = frame.depth;
       target.addr = frame.addr;
       target.symbol = this.groupCutFilePath(frame.symbolId, this.dataCache.dataDict.get(frame.symbolId) || '') ?? '';
-      target.lib = this.groupCutFilePath(frame.fileId, this.dataCache.dataDict.get(frame.fileId) || '') ?? '';
-      target.type = target.lib.endsWith('.so.1') || target.lib.endsWith('.dll') || target.lib.endsWith('.so') ? 0 : 1;
+      target.library = this.groupCutFilePath(frame.fileId, this.dataCache.dataDict.get(frame.fileId) || '') ?? '';
+      target.title = `[ ${target.symbol} ]  ${target.library}`;
+      target.type =
+        target.library.endsWith('.so.1') || target.library.endsWith('.dll') || target.library.endsWith('.so') ? 0 : 1;
       arr.push(target);
     });
     return arr;
@@ -773,7 +775,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         threadMerageData.canCharge = false;
         threadMerageData.type = -1;
         threadMerageData.isThread = true;
-        threadMerageData.symbol = `${merageData.threadName || 'Thread'} [${merageData.tid}]`;
+        threadMerageData.symbolName = `${merageData.threadName || 'Thread'} [${merageData.tid}]`;
+        threadMerageData.symbol = threadMerageData.symbolName;
         threadMerageData.children.push(merageData);
         threadMerageData.initChildren.push(merageData);
         threadMerageData.count = merageData.count || 1;
@@ -1042,7 +1045,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       return;
     }
     node.symbol = match[1].trim();
-    node.lib = match[2].replace(/^url:/, '');
+    node.path = match[2].replace(/^url:/, '');
   }
 
   private isHap(path: string): boolean {
@@ -1055,8 +1058,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   }
 
   setMerageName(currentNode: NativeHookCallInfo): void {
-    currentNode.lib = this.dataCache.dataDict.get(currentNode.fileId) || 'unknown';
-    if (this.isHap(currentNode.lib)) {
+    currentNode.path = this.dataCache.dataDict.get(currentNode.fileId) || 'unknown';
+    if (this.isHap(currentNode.path)) {
       const fullName = this.dataCache.dataDict.get(currentNode.symbolId);
       this.extractSymbolAndPath(currentNode, fullName);
     } else {
@@ -1064,11 +1067,15 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         this.groupCutFilePath(currentNode.symbolId, this.dataCache.dataDict.get(currentNode.symbolId) || '') ??
         'unknown';
     }
-    currentNode.lib = setFileName(currentNode.lib);
-    currentNode.lib = currentNode.lib;
-    currentNode.symbol = `${currentNode.symbol} (${currentNode.lib})`;
+    currentNode.libName = setFileName(currentNode.path);
+    currentNode.lib = currentNode.path;
+    currentNode.symbolName = `[${currentNode.symbol}] ${currentNode.libName}`;
     currentNode.type =
-      currentNode.lib.endsWith('.so.1') || currentNode.lib.endsWith('.dll') || currentNode.lib.endsWith('.so') ? 0 : 1;
+      currentNode.libName.endsWith('.so.1') ||
+      currentNode.libName.endsWith('.dll') ||
+      currentNode.libName.endsWith('.so')
+        ? 0
+        : 1;
   }
   clearSplitMapData(symbolName: string): void {
     delete this.splitMapData[symbolName];
@@ -1160,8 +1167,10 @@ export class NativeHookStatistics {
 export class NativeHookCallInfo extends MerageBean {
   #totalCount: number = 0;
   #totalSize: number = 0;
+  library: string = '';
   symbolId: number = 0;
   fileId: number = 0;
+  title: string = '';
   count: number = 0;
   countValue: string = '';
   countPercent: string = '';

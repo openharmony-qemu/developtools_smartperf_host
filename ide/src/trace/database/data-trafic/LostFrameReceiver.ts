@@ -11,25 +11,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { TraficEnum } from './utils/QueryEnum';
-import { lostFrameList } from './utils/AllMemoryCache';
+import {TraficEnum} from './utils/QueryEnum';
 
 export const queryPresentInfo = (args: any): string => {
   return `SELECT ts,dur,name FROM callstack WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${args.threadName}'))
-    AND name LIKE('${args.funcName}')`;
-};
+    AND name LIKE('${args.funcName}')`
+}
 
-export function lostFrameReceiver(data: any, proc: Function): void {
-  if (data.params.trafic === TraficEnum.Memory) {
-    if (!lostFrameList.has(data.params.pid)) {
-      lostFrameList.set(data.params.pid, proc(queryPresentInfo(data.params)));
-    }
-    let res = lostFrameList.get(data.params.pid)!;
-    arrayBufferHandler(data, res, true);
-  } else {
-    let res = proc(queryPresentInfo(data.params));
-    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
-  }
+export function lostFrameReceiver  (data: any, proc: Function) :void {
+  let sql = queryPresentInfo(data.params);
+  let res = proc(sql);
+  arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
 
 function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
@@ -45,7 +37,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
     dur[i] = it.dur;
     nofinish[i] = it.nofinish;
     argSetId[i] = it.argSetId;
-    presentId[i] = Number(nameCutArr[nameCutArr.length - 1]);
+    presentId[i] = Number(nameCutArr[nameCutArr.length-1]);
   });
   (self as unknown as Worker).postMessage(
     {
@@ -53,11 +45,11 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
       action: data.action,
       results: transfer
         ? {
-            startTime: startTime.buffer,
-            dur: dur.buffer,
-            argSetID: argSetId.buffer,
-            presentId: presentId.buffer,
-          }
+          startTime: startTime.buffer,
+          dur: dur.buffer,
+          argSetID: argSetId.buffer,
+          presentId: presentId.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,

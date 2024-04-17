@@ -27,13 +27,12 @@
 using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;
 
+namespace SysTuning {
+namespace TraceStreamer {
 const std::string TRACE_PATH = "../../test/resource/trace_small_10.systrace";
 constexpr size_t READ_SIZE = 1024;
 constexpr uint32_t LINE_LENGTH = 256;
 constexpr size_t G_FILE_PERMISSION = 664;
-
-namespace SysTuning {
-namespace TraceStreamer {
 class QueryMetricsTest : public ::testing::Test {
 protected:
     void SetUp() {}
@@ -47,20 +46,16 @@ void ParseTraceFile(TraceStreamerSelector& ts)
         TS_LOGD("Failed to open trace file (errno: %d, %s)", errno, strerror(errno));
         return;
     }
-
     while (true) {
         std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(READ_SIZE);
         auto rsize = base::Read(fd, buf.get(), READ_SIZE);
-
         if (rsize <= 0) {
             break;
         }
-
         if (!ts.ParseTraceDataSegment(std::move(buf), rsize, 0, 1)) {
             break;
         }
     }
-
     close(fd);
     ts.WaitForParserEnd();
 }

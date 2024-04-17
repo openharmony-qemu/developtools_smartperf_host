@@ -599,7 +599,7 @@ void PbreaderParser::ParserData(PbreaderDataSegment& dataSeg, bool isSplitFile)
         ParseDataByPluginName(dataSeg, pluginNameIndex, pluginDataZero, isSplitFile);
     } else {
 #if IS_WASM
-        TraceStreamer_Plugin_Out_Filter(reinterpret_cast<const char*>(pluginDataZero.data().data_),
+        TraceStreamerPluginOutFilter(reinterpret_cast<const char*>(pluginDataZero.data().data_),
                                         pluginDataZero.data().size_, pluginName);
 #endif
         dataSeg.status = TS_PARSE_STATUS_INVALID;
@@ -902,7 +902,7 @@ bool PbreaderParser::ParseSDKData()
         auto thirdPartySize = profilerDataLength_ - packetHeaderLength_;
         auto buffer = std::make_unique<uint8_t[]>(thirdPartySize).get();
         std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + thirdPartySize, buffer);
-        TraceStreamer_Plugin_Out_Filter(reinterpret_cast<const char*>(buffer), thirdPartySize, standalonePluginName_);
+        TraceStreamerPluginOutFilter(reinterpret_cast<const char*>(buffer), thirdPartySize, standalonePluginName_);
         return true;
     }
     return false;
@@ -1088,7 +1088,7 @@ bool PbreaderParser::InitProfilerTraceFileHeader()
             pHeader->data.length, pHeader->data.dataType, pHeader->data.boottime);
 #if IS_WASM
     const int32_t DATA_TYPE_CLOCK = 100;
-    TraceStreamer_Plugin_Out_SendData(reinterpret_cast<char*>(buffer), packetHeaderLength_, DATA_TYPE_CLOCK);
+    TraceStreamerPluginOutSendData(reinterpret_cast<char*>(buffer), packetHeaderLength_, DATA_TYPE_CLOCK);
 #endif
     pbreaderClockDetailParser_->Parse(pHeader);
     return true;

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 //  VM Tracker Gpu Resourcet泳道图
-import type { SnapshotStruct } from '../ui-worker/ProcedureWorkerSnapshot';
-import { query } from '../SqlLite';
+import type {SnapshotStruct} from "../ui-worker/ProcedureWorkerSnapshot";
+import {query} from "../SqlLite";
 
 export const queryGpuResourceData = (categoryNameId: number): Promise<Array<SnapshotStruct>> =>
   query(
@@ -69,6 +69,7 @@ export const queryGpuResourceTabData = (
     WHERE (ts - start_ts) = ${startNs}
     GROUP by ts, channelId`
   );
+
 
 export const queryGpuTotalType = (): Promise<Array<{ id: number; data: string }>> =>
   query(

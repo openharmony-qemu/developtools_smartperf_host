@@ -17,7 +17,7 @@ import '../icon/LitIcon';
 import { BaseElement, element } from '../BaseElement';
 import { type LitIcon } from '../icon/LitIcon';
 import { type TreeItemData } from './LitTree';
-import { LitTreeNodeHtmlStyle } from './LitTreeNode.html';
+import {LitTreeNodeHtmlStyle} from "./LitTreeNode.html";
 
 @element('lit-tree-node')
 export class LitTreeNode extends BaseElement {

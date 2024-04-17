@@ -173,12 +173,8 @@ export class TabPaneHistoryProcesses extends BaseElement {
 
     return function (historyProcessLeftData: ProcessHistory, historyProcessRightData: ProcessHistory) {
       if (type === 'number') {
-        return compareValues(
-          // @ts-ignore
-          parseFloat(historyProcessLeftData[property]),
-          // @ts-ignore
-          parseFloat(historyProcessRightData[property])
-        );
+        // @ts-ignore
+        return compareValues(parseFloat(historyProcessLeftData[property]), parseFloat(historyProcessRightData[property]));
       } else if (type === 'cpuTime' || type === 'lastSeen' || type === 'firstSeen') {
         // @ts-ignore
         return compareValues(historyProcessLeftData[type + 'Number'], historyProcessRightData[type + 'Number']);

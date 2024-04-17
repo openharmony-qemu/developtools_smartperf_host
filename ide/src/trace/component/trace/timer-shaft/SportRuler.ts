@@ -89,10 +89,10 @@ export class SportRuler extends Graph {
     endTime: number | null | undefined;
     color: string | null;
   } | null = {
-    startTime: null,
-    endTime: null,
-    color: null,
-  };
+      startTime: null,
+      endTime: null,
+      color: null,
+    };
   private timerShaftEL: TimerShaftElement | undefined | null;
   private timeArray: Array<number> = [];
   private countArray: Array<number> = [];
@@ -438,8 +438,7 @@ export class SportRuler extends Graph {
       this.context2D.fillStyle = color;
       this.context2D.strokeStyle = color;
       // ----------------修改小倒三角位置的绘制---------------------
-      if (sessionStorage.getItem('expand') === 'true') {
-        //展开
+      if (sessionStorage.getItem('expand') === 'true') {//展开
         this.context2D.moveTo(x - 3, 141);
         this.context2D.lineTo(x + 3, 141);
         this.context2D.lineTo(x, 145);
@@ -536,8 +535,7 @@ export class SportRuler extends Graph {
     this.context2D.fillStyle = slicesTime.color;
     this.range.slicesTime.color = slicesTime.color; //紫色
     // ---------------------------------------修改标记绘制位置-------------------------
-    if (sessionStorage.getItem('expand') === 'true') {
-      //展开
+    if (sessionStorage.getItem('expand') === 'true') {//展开
       this.context2D.moveTo(startX + TRIWIDTH, 132);
       this.context2D.lineTo(startX, 142);
       this.context2D.lineTo(startX, 132);
@@ -712,8 +710,7 @@ export class SportRuler extends Graph {
   findSlicesTime(x: number, y: number): SlicesTime | null {
     // --------------------------修改旗子和标记的小三角重叠时的情况-------------------
     let slicestime;
-    if (sessionStorage.getItem('expand') === 'false') {
-      //折叠
+    if (sessionStorage.getItem('expand') === 'false') {//折叠
       slicestime = this.slicesTimeList.find((slicesTime) => {
         return (
           ((x >= slicesTime.startX - 1 && x <= slicesTime.startX + TRIWIDTH + 1) || // 选中了帽子的左边三角形区域

@@ -193,7 +193,7 @@ export class LitChartColumn extends BaseElement {
     return this.litChartColumnCfg?.data || [];
   }
 
-  dataSort(): void {
+  dataSort():void{
     if (!this.litChartColumnCfg!.notSort) {
       this.litChartColumnCfg?.data.sort(
         (a, b) => b[this.litChartColumnCfg!.yField] - a[this.litChartColumnCfg!.yField]
@@ -201,7 +201,7 @@ export class LitChartColumn extends BaseElement {
     }
   }
 
-  haveSeriesField(): void {
+  haveSeriesField():void{
     let maxValue = Math.max(...this.litChartColumnCfg!.data.map((it) => it[this.litChartColumnCfg!.yField]));
     maxValue = Math.ceil(maxValue * 0.1) * 10;
     let partWidth = (this.clientWidth - this.offset!.x!) / this.litChartColumnCfg!.data.length;
@@ -249,15 +249,7 @@ export class LitChartColumn extends BaseElement {
     });
   }
 
-  noSeriesField(
-    itemEl: any,
-    y: number,
-    initH: number,
-    maxValue: number,
-    partWidth: number,
-    partHeight: number,
-    reduceGroupIndex: number
-  ): void {
+  noSeriesField(itemEl:any,y:number,initH:number,maxValue:number,partWidth:number,partHeight:number,reduceGroupIndex:number):void{
     this.data.push({
       color: this.litChartColumnCfg!.color(itemEl),
       obj: itemEl,
@@ -326,7 +318,7 @@ export class LitChartColumn extends BaseElement {
           let elements = reduceGroup[reduceGroupKey];
           let initH = 0;
           elements.forEach((itemEl: any, y: number) => {
-            this.noSeriesField(itemEl, y, initH, maxValue, partWidth, partHeight, reduceGroupIndex);
+            this.noSeriesField(itemEl,y,initH,maxValue,partWidth,partHeight,reduceGroupIndex);
             initH += (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue;
           });
         });

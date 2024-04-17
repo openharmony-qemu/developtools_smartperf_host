@@ -506,7 +506,8 @@ export class SpWebHdcShell extends BaseElement {
     const index = this.resultStr.lastIndexOf('\n');
     const resultStrLength = this.resultStr.length;
     if (index > -1 && resultStrLength > index) {
-      this.resultStr = this.resultStr.substring(0, index + 1) + this.textDecoder.decode(arrayA.slice(1, arrayA.length));
+      this.resultStr =
+        this.resultStr.substring(0, index + 1) + this.textDecoder.decode(arrayA.slice(1, arrayA.length));
     } else {
       if (this.resultStr.split('\n').length === 1) {
         const index = this.cursorRow.lastIndexOf('\n');

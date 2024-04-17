@@ -32,4 +32,4 @@ export const NUM_600 = 600;
 export const NUM_1800 = 1800;
 export const NUM_3600 = 3600;
 export const NUM_16384 = 16384;
-export const NUM_MILLON = 1000_000;
+export const NUM_MILLON= 1000_000;

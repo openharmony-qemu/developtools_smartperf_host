@@ -363,7 +363,7 @@ const sysMemInfo = [
   SysMeminfoType.PMEM_ACTIVE_PURG,
   SysMeminfoType.PMEM_INACTIVE_PURG,
   SysMeminfoType.PMEM_PINED_PURG,
-  SysMeminfoType.UNRECOGNIZED,
+  SysMeminfoType.UNRECOGNIZED
 ];
 
 const sysMeminfoCase = (object: any): SysMeminfoType => {
@@ -374,7 +374,7 @@ const sysMeminfoCase = (object: any): SysMeminfoType => {
         return sysMemType;
       }
     }
-    return SysMeminfoType.UNRECOGNIZED;
+    return SysMeminfoType.UNRECOGNIZED
   } else {
     // @ts-ignore
     let sysMemType = SysMeminfoType[object];
@@ -455,7 +455,6 @@ export interface NativeHookConfig {
   callframeCompress?: boolean;
   startupMode?: boolean;
   statisticsInterval?: number;
-  mallocFreeMatchingInterval?: number;
   sampleInterval?: number;
   expandPids?: number[];
   responseLibraryMode?: boolean;
@@ -490,7 +489,8 @@ export interface DiskioConfig {
   reportIoStats: string;
 }
 
-export interface NetworkConfig {}
+export interface NetworkConfig {
+}
 
 export interface HiperfPluginConfig {
   isRoot: boolean;

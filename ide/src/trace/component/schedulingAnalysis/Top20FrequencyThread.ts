@@ -26,7 +26,7 @@ import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar';
 import './TableNoData';
 import { TableNoData } from './TableNoData';
 import { getProbablyTime } from '../../database/logic-worker/ProcedureLogicWorkerCommon';
-import { queryThreads } from '../../database/sql/ProcessThread.sql';
+import {queryThreads} from "../../database/sql/ProcessThread.sql";
 import { Top20FrequencyThreadHtml } from './Top20FrequencyThread.html';
 
 @element('top20-frequency-thread')

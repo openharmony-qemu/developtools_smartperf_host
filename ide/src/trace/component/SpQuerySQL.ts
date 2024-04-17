@@ -24,7 +24,7 @@ import { PaginationBox } from '../../base-ui/chart/pagenation/PaginationBox';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 import { getAllSql } from './trace/base/CommonSql';
 import { LitIcon } from '../../base-ui/icon/LitIcon';
-import { queryCustomizeSelect } from '../database/sql/SqlLite.sql';
+import {queryCustomizeSelect} from "../database/sql/SqlLite.sql";
 import { SpQuerySQLHtml } from './SpQuerySQL.html';
 
 @element('sp-query-sql')

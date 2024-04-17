@@ -160,14 +160,13 @@ private:
     DoubleMap<uint32_t, uint32_t, std::shared_ptr<const ProtoReader::BytesView>> ipidToFrameIdToFrameBytes_;
     std::unordered_map<DataIndex, std::shared_ptr<std::set<size_t>>> filePathIndexToFrameTableRowMap_ = {};
     std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>> tsToMainEventsMap_ = {};
-    std::map<uint64_t /* ipidWithStackIdIndex */, std::shared_ptr<std::vector<uint64_t>>> reparseStackIdToFramesMap_ =
-        {};
-    std::map<uint64_t /* ipidWithStackIdIndex */, std::shared_ptr<std::vector<uint64_t>>> allStackIdToFramesMap_ = {};
-    std::map<uint64_t /* ipidWithStackIdIndex */, std::shared_ptr<std::vector<uint64_t>>> stackIdToFramesMap_ = {};
+    std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>> reparseStackIdToFramesMap_ = {};
+    std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>> allStackIdToFramesMap_ = {};
+    std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>> stackIdToFramesMap_ = {};
     std::map<uint32_t, uint64_t> callChainIdToStackHashValueMap_ = {};
     std::unordered_map<uint64_t, std::vector<uint64_t>> stackHashValueToFramesHashMap_ = {};
     std::unordered_map<uint64_t, std::unique_ptr<NativeHookFrameInfo>> frameHashToFrameInfoMap_ = {};
-    std::unordered_map<uint64_t /* ipidWithThreadNameIdIndex */, uint64_t> threadNameIdToThreadNameIndex_ = {};
+    std::unordered_map<uint64_t, uint64_t> threadNameIdToThreadNameIndex_ = {};
     std::unordered_map<uint32_t, std::tuple<uint64_t, uint64_t>> callIdToLastCallerPathIndex_ = {};
     std::unordered_map<uint64_t, std::string> functionNameIndexToVaddr_ = {};
     std::unordered_map<uint64_t, uint32_t> stackHashValueToCallChainIdMap_ = {};

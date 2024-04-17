@@ -17,7 +17,7 @@ import './LitTreeNode';
 import { BaseElement, element } from '../BaseElement';
 import { type LitTreeNode } from './LitTreeNode';
 
-export interface TreeItemData {
+export interface TreeItemData   {
   key: string;
   title: string;
   icon?: string; //节点的自定义图标  设置show-icon才会生效
@@ -177,13 +177,13 @@ export class LitTree extends BaseElement {
   }
 
   drawTree(parent: any, array: Array<TreeItemData>, topDepth: boolean = false): void {
-    array.forEach((a: TreeItemData) => {
+    array.forEach((a:TreeItemData) => {
       let li: HTMLLIElement = document.createElement('li');
       let node: LitTreeNode = document.createElement('lit-tree-node') as LitTreeNode;
       node.title = a.title;
       node.setAttribute('key', a.key);
       node.topDepth = topDepth;
-      this.treeNodeDragable(node, a);
+      this.treeNodeDragable(node,a);
       // @ts-ignore
       li.data = a;
       li.append(node);
@@ -192,7 +192,7 @@ export class LitTree extends BaseElement {
       // @ts-ignore
       ul.open = 'true';
       ul.style.transition = '.3s all';
-      this.addEvent(a, node, li, ul);
+      this.addEvent(a,node,li,ul);
       // node 添加右键菜单功能
       node.oncontextmenu = (ev): void => {
         ev.preventDefault();
@@ -212,7 +212,7 @@ export class LitTree extends BaseElement {
     };
   }
 
-  treeNodeDragable(node: LitTreeNode, a: TreeItemData): void {
+  treeNodeDragable(node: LitTreeNode,a:TreeItemData):void{
     let that = this;
     if (this.hasAttribute('dragable')) {
       node.draggable = true;
@@ -251,7 +251,7 @@ export class LitTree extends BaseElement {
     this.nodeList.push(node);
   }
 
-  addEvent(a: TreeItemData, node: LitTreeNode, li: HTMLLIElement, ul: HTMLUListElement): void {
+  addEvent(a:TreeItemData,node: LitTreeNode,li: HTMLLIElement,ul: HTMLUListElement):void{
     if (a.children && a.children.length > 0) {
       if (this.hasAttribute('show-icon')) {
         if (a.icon) {
@@ -454,7 +454,7 @@ export class LitTree extends BaseElement {
       this.treeData.push(obj);
     }
   }
-  insertNodeDragEvent(insertNode: LitTreeNode) {
+  insertNodeDragEvent(insertNode: LitTreeNode){
     if (this.hasAttribute('dragable')) {
       insertNode.draggable = true;
       document.ondragover = function (e): void {
@@ -517,12 +517,12 @@ export class LitTree extends BaseElement {
     // @ts-ignore
     ul.open = 'true';
     ul.style.transition = '.3s all';
-    this.setChildren(a, insertNode, li, ul);
+    this.setChildren(a,insertNode,li,ul);
     // node 添加右键菜单功能
     this.addedRightClickMenuFunction(insertNode);
   }
 
-  addedRightClickMenuFunction(insertNode: LitTreeNode): void {
+  addedRightClickMenuFunction(insertNode: LitTreeNode):void{
     insertNode.oncontextmenu = (ev): void => {
       ev.preventDefault();
       this.selectedNode(insertNode);
@@ -534,7 +534,7 @@ export class LitTree extends BaseElement {
     };
   }
 
-  setDragableOfEvent(insertNode: LitTreeNode): void {
+  setDragableOfEvent(insertNode: LitTreeNode):void{
     if (this.hasAttribute('dragable')) {
       insertNode.draggable = true;
       document.ondragover = function (e): void {
@@ -552,7 +552,7 @@ export class LitTree extends BaseElement {
     }
   }
 
-  setChildren(a: any, insertNode: LitTreeNode, li: HTMLLIElement, ul: HTMLUListElement): void {
+  setChildren(a:any,insertNode: LitTreeNode,li: HTMLLIElement,ul: HTMLUListElement):void{
     if (a.children && a.children.length > 0) {
       if (this.hasAttribute('show-icon')) {
         if (a.icon) {

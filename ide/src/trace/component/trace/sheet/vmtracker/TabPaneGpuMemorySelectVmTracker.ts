@@ -19,7 +19,7 @@ import { type GpuMemory } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { Utils } from '../../base/Utils';
-import { getTabGpuMemoryVMTrackerClickData } from '../../../../database/sql/Memory.sql';
+import {getTabGpuMemoryVMTrackerClickData} from "../../../../database/sql/Memory.sql";
 
 @element('tabpane-gpu-memory-selection-vmtracker')
 export class TabPaneGpuMemorySelectVmTracker extends BaseElement {

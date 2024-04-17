@@ -23,8 +23,8 @@ import { type LitSlicerTrack } from '../../../../../base-ui/slicer/lit-slicer';
 import {
   querySysLocationDetailsData,
   querySysLockDetailsData,
-  querySystemWorkData,
-} from '../../../../database/sql/SqlLite.sql';
+  querySystemWorkData
+} from "../../../../database/sql/SqlLite.sql";
 
 @element('tabpane-system-details')
 export class TabPaneSystemDetails extends BaseElement {
@@ -101,10 +101,10 @@ export class TabPaneSystemDetails extends BaseElement {
       this.detailsTbl!.dataSource = this.detailsSource;
       this.boxDetails!.style.width = '65%';
     }
-    this.detailsTblStyle();
+   this.detailsTblStyle();
   }
 
-  detailsTblStyle() {
+  detailsTblStyle(){
     this.detailsTbl!.shadowRoot?.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
       tr.style.gridTemplateColumns = '120px 1fr';
     });
@@ -173,7 +173,7 @@ export class TabPaneSystemDetails extends BaseElement {
     });
   }
 
-  tblSystemDetailsStyle() {
+  tblSystemDetailsStyle(){
     this.tblSystemDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
       td.style.fontSize = '14px';
       if (td.getAttribute('title') === 'Event Name' || td.getAttribute('title') === 'Time') {
@@ -213,7 +213,7 @@ export class TabPaneSystemDetails extends BaseElement {
             watchIndex[number] = number + filterData.ts;
           }
         } else {
-          lifeCycleData = this.getSysDataExtend(rightNs, watchIndex, filterData, lifeCycleData);
+          lifeCycleData = this.getSysDataExtend(rightNs, watchIndex, filterData, lifeCycleData)
         }
       }
     }
@@ -235,7 +235,12 @@ export class TabPaneSystemDetails extends BaseElement {
     return resultData;
   }
 
-  getSysDataExtend(rightNs: number, watchIndex: Array<string>, filterData: any, lifeCycleData: any[]): any[] {
+  getSysDataExtend(
+    rightNs: number,
+    watchIndex: Array<string>,
+    filterData: any,
+    lifeCycleData: any[]
+  ): any[]{
     let number = watchIndex.indexOf(filterData.workId);
     if (number > -1) {
       lifeCycleData[number].rangeData.push(filterData);

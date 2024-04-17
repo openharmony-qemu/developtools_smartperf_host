@@ -38,13 +38,13 @@ export class SpStatisticsHttpUtil {
     try {
       let req = new XMLHttpRequest();
       req.onreadystatechange = () => {
-        if (req.readyState === 4 && req.status === 200) {
+        if (req.readyState === 4 &&  req.status === 200) {
           let requestInfo = req.getResponseHeader('request_info');
           if (requestInfo && requestInfo.length > 0) {
             SpStatisticsHttpUtil.requestServerInfo = requestInfo;
           }
         }
-      };
+      }
       req.open(
         'GET',
         `${window.location.protocol}//${window.location.host.split(':')[0]}:${
@@ -54,7 +54,7 @@ export class SpStatisticsHttpUtil {
       );
       req.send(null);
     } catch {
-      warn('Connect Server Failed');
+      warn('Connect Server Failed')
     }
     return '';
   }

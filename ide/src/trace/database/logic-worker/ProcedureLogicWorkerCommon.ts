@@ -69,9 +69,13 @@ export class MerageBean extends ChartStruct {
   parent: MerageBean | undefined = undefined;
   id: string = '';
   parentId: string = '';
-  self?: string = '0s';
-  weight?: string;
-  weightPercent?: string;
+  symbolName: string = '';
+  symbol: string = '';
+  libName: string = '';
+  path: string = '';
+  self: string = '0s';
+  weight: string = '';
+  weightPercent: string = '';
   selfDur: number = 0;
   dur: number = 0;
   pid: number = 0;
@@ -128,7 +132,7 @@ class MerageBeanDataSplit {
   }
 
   recursionChargeInitTree(splitMapData: any, node: MerageBean, symbolName: string, isSymbol: boolean): void {
-    if ((isSymbol && node.symbol == symbolName) || (!isSymbol && node.lib == symbolName)) {
+    if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
       (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
       node.isStore++;
     }
@@ -140,7 +144,7 @@ class MerageBeanDataSplit {
   }
 
   recursionPruneInitTree(splitMapData: any, node: MerageBean, symbolName: string, isSymbol: boolean): void {
-    if ((isSymbol && node.symbol == symbolName) || (!isSymbol && node.lib == symbolName)) {
+    if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
       (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
       node.isStore++;
       this.pruneChildren(splitMapData, node, symbolName);
@@ -153,7 +157,7 @@ class MerageBeanDataSplit {
 
   //symbol lib prune
   recursionPruneTree(node: MerageBean, symbolName: string, isSymbol: boolean): void {
-    if ((isSymbol && node.symbol == symbolName) || (!isSymbol && node.lib == symbolName)) {
+    if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
       node.parent && node.parent.children.splice(node.parent.children.indexOf(node), 1);
     } else {
       node.children.forEach((child) => {
@@ -193,7 +197,7 @@ class MerageBeanDataSplit {
     allProcess.forEach((item) => {
       item.children = [];
       this.recursionChargeByRule(splitMapData, item, this.systmeRuleName, (node) => {
-        return node.lib.startsWith(this.systmeRuleName);
+        return node.path.startsWith(this.systmeRuleName);
       });
     });
   }
@@ -259,9 +263,9 @@ class MerageBeanDataSplit {
   findSearchNode(data: MerageBean[], search: string, parentSearch: boolean): void {
     search = search.toLocaleLowerCase();
     data.forEach((item) => {
-      if ((item.symbol && item.symbol.toLocaleLowerCase().includes(search)) || parentSearch) {
+      if ((item.symbolName && item.symbolName.toLocaleLowerCase().includes(search)) || parentSearch) {
         item.searchShow = true;
-        item.isSearch = item.symbol != undefined && item.symbol.toLocaleLowerCase().includes(search);
+        item.isSearch = item.symbolName != undefined && item.symbolName.toLocaleLowerCase().includes(search);
         let parentNode = item.parent;
         while (parentNode && !parentNode.searchShow) {
           parentNode.searchShow = true;
@@ -489,18 +493,6 @@ export function getProbablyTime(ns: number): string {
     res += (currentNs / microsecond1).toFixed(2) + 'μs ';
   } else if (currentNs > 0) {
     res += currentNs.toFixed(0) + 'ns ';
-  } else if (res == '') {
-    res = ns + '';
-  }
-  return res;
-}
-
-export function getThreadUsageProbablyTime(ns: number): string {
-  let currentNs = ns;
-  let microsecond1 = 1_000;
-  let res = '';
-  if (currentNs > 0) {
-    res += (currentNs / microsecond1).toFixed(2);
   } else if (res == '') {
     res = ns + '';
   }

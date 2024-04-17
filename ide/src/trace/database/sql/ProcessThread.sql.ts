@@ -115,22 +115,22 @@ export const getTabBindersCount = (
     }
   );
 
-export const querySchedThreadStates = (
-  pIds: Array<number>,
-  tIds: Array<number>,
-  leftStartNs: number,
-  rightEndNs: number
-): Promise<Array<any>> =>
-  query(
-    'getTabThreadStates',
-    `
+  export const querySchedThreadStates = (
+    pIds: Array<number>,
+    tIds: Array<number>,
+    leftStartNs: number,
+    rightEndNs: number
+  ): Promise<Array<any>> =>
+    query(
+      'getTabThreadStates',
+      `
     select
       B.pid,
       B.tid,
       B.state,
-      ifnull(B.dur,0) as dur,
+      B.dur,
       B.ts,
-      ifnull(B.dur,0) + B.ts as endTs
+      B.dur + B.ts as endTs
     from
       thread_state AS B
     where
@@ -144,23 +144,24 @@ export const querySchedThreadStates = (
     order by
       B.pid;
     `,
-    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-  );
-
-export const querySingleCutData = (
-  funcName: string,
-  tIds: string,
-  leftStartNs: number,
-  rightEndNs: number
-): Promise<Array<any>> =>
-  query(
-    'querySingleCutData',
-    `
+      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+    );
+  
+  export const querySingleCutData = (
+    funcName: string,
+    tIds: string,
+    leftStartNs: number,
+    rightEndNs: number
+  ): Promise<Array<any>> =>
+    query(
+      'querySingleCutData',
+      `
     select 
       c.ts as cycleStartTime,
-      c.ts + ifnull(c.dur, 0) as cycleEndTime,
+      c.ts + c.dur as cycleEndTime,
       t.tid,
-      p.pid
+      p.pid,
+      c.dur
       from
       callstack c 
     left join
@@ -178,18 +179,18 @@ export const querySingleCutData = (
     order by
       c.ts
     `,
-    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-  );
-
-export const queryLoopCutData = (
-  funcName: string,
-  tIds: string,
-  leftStartNs: number,
-  rightEndNs: number
-): Promise<Array<any>> =>
-  query(
-    'queryLoopCutData',
-    `
+      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+    );
+  
+  export const queryLoopCutData = (
+    funcName: string,
+    tIds: string,
+    leftStartNs: number,
+    rightEndNs: number
+  ): Promise<Array<any>> =>
+    query(
+      'queryLoopCutData',
+      `
     select 
       c.ts as cycleStartTime,
       t.tid,
@@ -208,8 +209,8 @@ export const queryLoopCutData = (
     order by
       c.ts
     `,
-    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-  );
+      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+    );
 // 框选区域内sleeping的时间
 export const getTabSleepingTime = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(

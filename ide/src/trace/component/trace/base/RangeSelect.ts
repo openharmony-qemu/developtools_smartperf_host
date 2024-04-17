@@ -41,9 +41,6 @@ export class RangeSelect {
   };
   private trace: SpSystemTrace | null | undefined;
   drag = false;
-  docomList: Array<number> = [];
-  repaintList: Array<number> = [];
-  presentList: Array<number> = [];
 
   constructor(trace: SpSystemTrace | null | undefined) {
     this.trace = trace;
@@ -70,61 +67,6 @@ export class RangeSelect {
     this.rangeTraceRow = [];
     this.isMouseDown = true;
     TraceRow.rangeSelectObject = undefined;
-    // 遍历当前可视区域所有的泳道，如果有render_service进程，查询该进程下对应泳道的方法存起来，以便框选时直接使用
-    this.trace?.visibleRows.forEach((row) => {
-      if (row.getAttribute('name')?.startsWith('render_service')) {
-        if (row.getAttribute('row-type') === 'process') {
-          this.queryRowsData(row.childrenList);
-        } else {
-          this.queryRowsData(row.parentRowEl!.childrenList);
-        }
-        return;
-      }
-    });
-  }
-
-  // 对应查询方法行所有的数据
-  queryRowsData(rowList: Array<TraceRow<any>>) {
-    rowList.forEach((row) => {
-      if (row.getAttribute('row-type') === 'func') {
-        if (row.getAttribute('name')?.startsWith('render_service')) {
-          this.saveFrameRateData(row, 'H:RSMainThread::DoComposition');
-        } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
-          this.saveFrameRateData(row, 'H:Repaint');
-        } else if (row.getAttribute('name')?.startsWith('Present')) {
-          this.savePresentData(row, 'H:Waiting for Present Fence');
-        }
-      }
-    });
-  }
-
-  // 查到所有的数据存储起来
-  saveFrameRateData(row: TraceRow<any>, funcName: string): void {
-    let dataList: any = [];
-    queryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res) => {
-      if (res.length) {
-        res.forEach((item) => {
-          dataList?.push({ startTime: item.startTime!, tid: item.tid });
-        });
-        if (funcName === 'H:RSMainThread::DoComposition') {
-          this.docomList = dataList;
-        } else {
-          this.repaintList = dataList;
-        }
-      }
-    });
-  }
-  // 查到present泳道所有的数据存储起来
-  savePresentData(row: TraceRow<any>, funcName: string): void {
-    let dataList: any = [];
-    fuzzyQueryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res) => {
-      if (res.length) {
-        res.forEach((item) => {
-          dataList?.push({ endTime: item.endTime!, tid: item.tid });
-        });
-        this.presentList = dataList;
-      }
-    });
   }
 
   mouseUp(mouseEventUp?: MouseEvent): void {
@@ -138,89 +80,83 @@ export class RangeSelect {
       }
       //查询render_service数据
       if (this.rangeTraceRow?.length) {
-        this.checkRowsName(this.rangeTraceRow);
+        this.checkRowsName(this.rangeTraceRow)
       }
     }
     this.isMouseDown = false;
   }
 
+  // 判断框选的线程行类型和名称
   checkRowsName(rowList: Array<TraceRow<any>>) {
     rowList.forEach((row) => {
-      if (
-        row.getAttribute('row-type') === 'func' &&
-        row.parentRowEl?.getAttribute('name')?.startsWith('render_service')
-      ) {
-        row.frameRateList = [];
+      if (row.getAttribute('row-type') === 'func' && row.parentRowEl?.getAttribute('name')?.startsWith('render_service')) {
         if (row.getAttribute('name')?.startsWith('render_service')) {
-          this.filterRateData(row, this.docomList);
+          this.handleFrameRateData(row, 'H:RSMainThread::DoComposition');
         } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
-          this.filterRateData(row, this.repaintList);
+          this.handleFrameRateData(row, 'H:Repaint');
         } else if (row.getAttribute('name')?.startsWith('Present')) {
-          this.filterPresentData(row, this.presentList);
+          this.handlePresentData(row, 'H:Waiting for Present Fence');
         }
       }
-    });
+    })
   }
 
-  // 过滤处理数据
-  filterRateData(row: TraceRow<any>, data: any) {
-    data.forEach((it: any) => {
-      if (
-        it.startTime >= TraceRow.rangeSelectObject!.startNS! &&
-        it.startTime <= TraceRow.rangeSelectObject!.endNS! &&
-        Number(row.rowId) === Number(it.tid)
-      ) {
-        row.frameRateList?.push(it.startTime);
-      }
-    });
-    if (row.frameRateList?.length) {
-      if (row.frameRateList.length < 2) {
-        row.frameRateList = [];
-      } else {
+  // 查询DoComposition方法和Repaint方法的数据  
+  handleFrameRateData(row: TraceRow<any>, funcName: string): void {
+    let dataList: Array<number> = []
+    queryFuncRowData(
+      funcName,
+      Number(row?.getAttribute('row-id')),
+      TraceRow.rangeSelectObject!.startNS!,
+      TraceRow.rangeSelectObject!.endNS!,
+    ).then((res) => {
+      if (res.length >= 2) {
+        res.forEach((item) => {
+          dataList?.push(item.startTime!);
+        });
+        row.frameRateList = dataList;
         const CONVERT_SECONDS = 1000000000;
-        let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
-        row.avgRateTxt = (((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1) + 'fps';
-      }
-    }
-  }
-
-  // 过滤并处理present数据
-  filterPresentData(row: TraceRow<any>, data: any) {
-    data.forEach((it: any) => {
-      if (
-        it.endTime >= TraceRow.rangeSelectObject!.startNS! &&
-        it.endTime <= TraceRow.rangeSelectObject!.endNS! &&
-        Number(row.rowId) === Number(it.tid)
-      ) {
-        row.frameRateList?.push(it.endTime);
+        let cutres: number = (dataList[dataList.length - 1] - dataList[0]);
+        row.avgRateTxt = ((dataList.length - 1) / cutres * CONVERT_SECONDS).toFixed(1) + 'fps';
       }
     });
-    if (row.frameRateList?.length) {
-      if (row.frameRateList?.length < 2) {
-        row.frameRateList = [];
-      } else {
+  }
+
+  // 查询H:Waiting for Present Fence方法数据
+  handlePresentData(row: TraceRow<any>, funcName: string): void {
+    let dataList: Array<number> = []
+    fuzzyQueryFuncRowData(
+      funcName,
+      Number(row?.getAttribute('row-id')),
+      TraceRow.rangeSelectObject!.startNS!,
+      TraceRow.rangeSelectObject!.endNS!,
+    ).then((res) => {
+      if (res.length >= 2) {
+        res.forEach((item) => {
+          dataList?.push(item.endTime!);
+        });
+        row.frameRateList = dataList;
         let hitchTimeList: Array<number> = [];
         for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
-          if (
-            SpLtpoChart.sendHitchDataArr[i].startTs! >= row.frameRateList[0]! &&
-            SpLtpoChart.sendHitchDataArr[i].startTs! < row.frameRateList[row.frameRateList.length - 1]!
-          ) {
+          if (SpLtpoChart.sendHitchDataArr[i].startTs! >= res[0].endTime!
+            &&
+            SpLtpoChart.sendHitchDataArr[i].startTs! < res[res.length - 1].endTime!) {
             hitchTimeList.push(SpLtpoChart.sendHitchDataArr[i].value!);
-          } else if (SpLtpoChart.sendHitchDataArr[i].startTs! >= row.frameRateList[row.frameRateList.length - 1]!) {
+          } else if (
+            SpLtpoChart.sendHitchDataArr[i].startTs! >= res[res.length - 1].endTime!
+          ) {
             break;
           }
         }
         const CONVERT_SECONDS = 1000000000;
-        let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
-        let avgRate: string = (((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1) + 'fps';
+        let cutres: number = (dataList[dataList.length - 1] - dataList[0]);
+        let avgRate: string = ((dataList.length - 1) / cutres * CONVERT_SECONDS).toFixed(1) + 'fps';
         let sum: number = hitchTimeList.reduce((accumulator, currentValue) => accumulator + currentValue, 0); // ∑hitchTimeData
-        let hitchRate: number =
-          sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000);
+        let hitchRate: number = (sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000));
         let perHitchRate: string = (Number(hitchRate) * 100).toFixed(2) + '%';
-        row.avgRateTxt =
-          avgRate + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1) + 'ms' + ' ' + ',' + ' ' + perHitchRate;
+        row.avgRateTxt = avgRate + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1) + 'ms' + ' ' + ',' + ' ' + perHitchRate;
       }
-    }
+    });
   }
 
   isDrag(): boolean {
@@ -291,15 +227,12 @@ export class RangeSelect {
         itRect.height = 0;
       }
       if (
-        Rect.intersect(
-          itRect as Rect,
-          {
-            x: Math.min(this.startPageX, this.endPageX),
-            y: Math.min(this.startPageY, this.endPageY),
-            width: Math.abs(this.startPageX - this.endPageX),
-            height: Math.abs(this.startPageY - this.endPageY),
-          } as Rect
-        )
+        Rect.intersect(itRect as Rect, {
+          x: Math.min(this.startPageX, this.endPageX),
+          y: Math.min(this.startPageY, this.endPageY),
+          width: Math.abs(this.startPageX - this.endPageX),
+          height: Math.abs(this.startPageY - this.endPageY),
+        } as Rect)
       ) {
         if (!rangeSelect) {
           it.setTipLeft(0, null);
@@ -380,7 +313,8 @@ export class RangeSelect {
         (this.timerShaftEL?.canvas?.clientWidth || 0)) /
       (TraceRow.range!.endNS - TraceRow.range!.startNS);
     let x2 =
-      ((TraceRow.rangeSelectObject!.endNS! - TraceRow.range!.startNS) * (this.timerShaftEL?.canvas?.clientWidth || 0)) /
+      ((TraceRow.rangeSelectObject!.endNS! - TraceRow.range!.startNS) *
+        (this.timerShaftEL?.canvas?.clientWidth || 0)) /
       (TraceRow.range!.endNS - TraceRow.range!.startNS);
     this.mark = { startMark: x1, endMark: x2 };
     let mouseX = ev.pageX - this.rowsPaneEL!.getBoundingClientRect().left - 248;

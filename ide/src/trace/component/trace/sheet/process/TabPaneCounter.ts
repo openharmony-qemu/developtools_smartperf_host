@@ -32,10 +32,10 @@ export class TabPaneCounter extends BaseElement {
     }
     this.currentSelectionParam = counterParam;
     //@ts-ignore
-    this.counterTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45}px`;
-    this.counterRange!.textContent = `Selected range: ${parseFloat(
-      ((counterParam.rightNs - counterParam.leftNs) / 1000000.0).toFixed(5)
-    )} ms`;
+    this.counterTbl?.shadowRoot?.querySelector('.table')?.style?.height =
+      `${this.parentElement!.clientHeight - 45  }px`;
+    this.counterRange!.textContent =
+      `Selected range: ${  parseFloat(((counterParam.rightNs - counterParam.leftNs) / 1000000.0).toFixed(5))  } ms`;
     this.counterTbl!.loading = true;
     getTabCounters(counterParam.processTrackIds, counterParam.virtualTrackIds, counterParam.rightNs).then((result) => {
       this.counterTbl!.loading = false;
@@ -143,12 +143,12 @@ export class TabPaneCounter extends BaseElement {
       let first = list[0];
       counterData.trackId = first.trackId;
       counterData.name = first.name;
-      counterData.first = `${first.value}`;
-      counterData.count = `${list.length}`;
-      counterData.last = `${list[list.length - 1].value}`;
-      counterData.delta = `${parseInt(counterData.last) - parseInt(counterData.first)}`;
+      counterData.first = `${first.value  }`;
+      counterData.count = `${list.length  }`;
+      counterData.last = `${list[list.length - 1].value  }`;
+      counterData.delta = `${parseInt(counterData.last) - parseInt(counterData.first)  }`;
       counterData.rate = (parseInt(counterData.delta) / ((range * 1.0) / 1000000000)).toFixed(4);
-      counterData.min = `${first.value}`;
+      counterData.min = `${first.value  }`;
       counterData.max = '0';
       let weightAvg = 0.0;
       for (let i = 0; i < list.length; i++) {
@@ -176,9 +176,9 @@ export class TabPaneCounter extends BaseElement {
           return 0;
         }
         if (type === 'number') {
-          return sort === 2 // @ts-ignore
-            ? parseFloat(counterRightData[property]) - parseFloat(counterLeftData[property]) // @ts-ignore
-            : parseFloat(counterLeftData[property]) - parseFloat(counterRightData[property]);
+          return sort === 2            ? // @ts-ignore
+            parseFloat(counterRightData[property]) - parseFloat(counterLeftData[property])            : // @ts-ignore
+            parseFloat(counterLeftData[property]) - parseFloat(counterRightData[property]);
         } else {
           // @ts-ignore
           if (counterRightData[property] > counterLeftData[property]) {

@@ -360,9 +360,9 @@ let css = `
         display: none;
     }
     </style>
-`;
+`
 const initHtmlStyle = (wid: string) => {
-  return replacePlaceholders(css, wid);
+  return replacePlaceholders(css,wid);
 };
 
 @element('lit-popover')

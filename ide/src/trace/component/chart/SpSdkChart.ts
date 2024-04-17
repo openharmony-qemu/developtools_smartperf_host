@@ -22,7 +22,12 @@ import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { SdkSliceRender, SdkSliceStruct } from '../../database/ui-worker/ProduceWorkerSdkSlice';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { TabUtil } from '../trace/sheet/sdk/TabUtil';
-import { queryCounterMax, querySdkCount, querySdkCounterData, querySdkSliceData } from '../../database/sql/Sdk.sql';
+import {
+  queryCounterMax,
+  querySdkCount,
+  querySdkCounterData,
+  querySdkSliceData
+} from '../../database/sql/Sdk.sql';
 import { queryStartTime } from '../../database/sql/SqlLite.sql';
 import { NUM_7 } from '../../bean/NumBean';
 
@@ -59,22 +64,27 @@ export class SpSdkChart {
       startTime,
       showType.tableName,
       showType.columns,
-      'where' + ` slice_id = $column_id and (start_ts - ${startTime}) between $startNS and $endNS;`
+      'where' + ` slice_id = $column_id and (start_ts - ${  startTime  }) between $startNS and $endNS;`
     );
     let innerTable = showType.inner;
     let countSql;
     let countOtherSql = '';
     if (configObj.pluginName === this.pluginName) {
-      countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns, 'where slice_name like $suffix');
+      countSql = this.createSql(
+        startTime,
+        innerTable.tableName,
+        innerTable.columns,
+        'where slice_name like $suffix'
+      );
       countOtherSql = this.createSql(
         startTime,
         innerTable.tableName,
         innerTable.columns,
         '' +
-          "where slice_name not like '%_cpu' and slice_name not like '%_display' and " +
-          "slice_name not like '%_gpu' and slice_name not like '%_System_idle' and " +
-          "slice_name not like '%_wifi_data' and slice_name not like '%_sensor' and " +
-          "slice_name not like '%_audio' "
+        'where slice_name not like \'%_cpu\' and slice_name not like \'%_display\' and ' +
+        'slice_name not like \'%_gpu\' and slice_name not like \'%_System_idle\' and ' +
+        'slice_name not like \'%_wifi_data\' and slice_name not like \'%_sensor\' and ' +
+        'slice_name not like \'%_audio\' '
       );
     } else {
       countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns);
@@ -89,7 +99,7 @@ export class SpSdkChart {
     });
   }
 
-  parseJson(startTime: number, map: Map<number, string>): Map<number, any> {
+  parseJson(startTime: number, map: Map<number, string>): Map<number, any>{
     let tablesMap = new Map();
     let keys = map.keys();
     for (let key of keys) {
@@ -122,28 +132,28 @@ export class SpSdkChart {
     for (let i = 0; i < columns.length; i++) {
       let column = columns[i];
       if (column.column === 'start_ts') {
-        column.column = `(start_ts - ${startTime}) AS start_ts`;
+        column.column = `(start_ts - ${  startTime  }) AS start_ts`;
       }
       if (column.column === 'end_ts') {
-        column.column = `(end_ts - ${startTime}) AS end_ts`;
+        column.column = `(end_ts - ${  startTime  }) AS end_ts`;
       }
       if (i === columns.length - 1) {
-        sliceSelectSql = `${sliceSelectSql + column.column} `;
+        sliceSelectSql = `${sliceSelectSql + column.column  } `;
       } else {
-        sliceSelectSql = `${sliceSelectSql + column.column}, `;
+        sliceSelectSql = `${sliceSelectSql + column.column  }, `;
       }
     }
-    sliceSelectSql = `${sliceSelectSql}from ${tableName}`;
+    sliceSelectSql = `${sliceSelectSql  }from ${  tableName}`;
     if (where !== undefined) {
-      sliceSelectSql = `${sliceSelectSql} ${where}`;
+      sliceSelectSql = `${sliceSelectSql  } ${  where}`;
     }
     return sliceSelectSql;
   }
 
   private createMaxValueSql(tableName: string, where?: string): string {
-    let selectSql = `select max(value) as max_value from ${tableName}`;
+    let selectSql = `select max(value) as max_value from ${  tableName}`;
     if (where !== undefined) {
-      selectSql = `${selectSql} ${where}`;
+      selectSql = `${selectSql  } ${  where}`;
     }
     return selectSql;
   }
@@ -153,26 +163,24 @@ export class SpSdkChart {
     for (let i = 0; i < columns.length; i++) {
       let column = columns[i];
       if (column.column === 'ts') {
-        column.column = `ts - ${startTime} AS ts`;
+        column.column = `ts - ${  startTime  } AS ts`;
       }
       if (i === columns.length - 1) {
-        selectSql = `${selectSql + column.column} `;
+        selectSql = `${selectSql + column.column  } `;
       } else {
-        selectSql = `${selectSql + column.column}, `;
+        selectSql = `${selectSql + column.column  }, `;
       }
     }
-    selectSql = `${selectSql}from ${tableName}`;
+    selectSql = `${selectSql  }from ${  tableName}`;
     if (where !== undefined) {
-      selectSql = `${selectSql} ${where}`;
+      selectSql = `${selectSql  } ${  where}`;
     }
     return selectSql;
   }
 
   async init(): Promise<void> {
     let configMap = SpSystemTrace.SDK_CONFIG_MAP;
-    if (configMap === undefined) {
-      return;
-    }
+    if (configMap === undefined) {return}
     let res = await queryStartTime();
     let startTime = res[0].start_ts;
     let tablesMap = this.parseJson(startTime, configMap);
@@ -191,7 +199,7 @@ export class SpSdkChart {
           } else if (sqlMap.type === 'slice' && sqlMap.pluginName === this.pluginName) {
             let suffixList = ['cpu', 'display', 'gpu', 'System_idle', 'wifi_data', 'sensor', 'audio'];
             for (let i = 0; i < suffixList.length; i++) {
-              let result = await querySdkCount(sqlMap.countSql, componentId, { $suffix: `%${suffixList[i]}` });
+              let result = await querySdkCount(sqlMap.countSql, componentId, {$suffix: `%${  suffixList[i]}`});
               if (result.length > 0) {
                 let groupNodeRow = await this.initSecondaryRow(nodeRow, i, suffixList[i]);
                 for (let i = 0; i < result.length; i++) {
@@ -216,7 +224,7 @@ export class SpSdkChart {
       }
     }
   }
-
+  
   private initCounterChartRow(
     componentId: number,
     expansion: boolean,
@@ -226,7 +234,7 @@ export class SpSdkChart {
     let traceRow = TraceRow.skeleton<CounterStruct>();
     traceRow.rowParentId = `Sdk-${componentId}`;
     traceRow.rowHidden = !expansion;
-    traceRow.rowId = `${counterId}-${componentId}`;
+    traceRow.rowId = `${counterId  }-${  componentId}`;
     traceRow.rowType = TraceRow.ROW_TYPE_SDK_COUNTER;
     traceRow.folderPaddingLeft = 30;
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -352,7 +360,7 @@ export class SpSdkChart {
     this.trace.rowsEL?.appendChild(sdkSecondFolder);
     return sdkSecondFolder;
   };
-
+  
   private initSliceChartRow(
     expansion: boolean,
     rowId: string,
@@ -371,7 +379,7 @@ export class SpSdkChart {
     traceRow.setAttribute('children', '');
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    traceRow.rowId = `${sliceId}-${componentId}`;
+    traceRow.rowId = `${sliceId  }-${  componentId}`;
     return traceRow;
   }
 
@@ -382,14 +390,9 @@ export class SpSdkChart {
     sqlMap: any,
     componentId: number
   ): Promise<void> => {
-    let traceRow = this.initSliceChartRow(
-      nodeRow.expansion,
-      nodeRow.rowId!,
-      result.slice_id,
-      result.slice_name,
-      componentId
-    );
-    traceRow.supplier = async (): Promise<SdkSliceStruct[]> =>
+    let traceRow = this.initSliceChartRow(nodeRow.expansion, nodeRow.rowId!,
+      result.slice_id, result.slice_name, componentId);
+    traceRow.supplier = async () : Promise<SdkSliceStruct[]>=>
       querySdkSliceData(
         sqlMap.chartSql,
         result.slice_id,

@@ -348,8 +348,6 @@ export class LitTable extends HTMLElement {
     });
     this.shadowRoot!.addEventListener('load', function (event) {});
     this.tableElement!.addEventListener('mouseout', (ev) => this.mouseOut());
-    this.treeElement && (this.treeElement!.style.transform = `translateY(0px)`);
-    this.tbodyElement && (this.tbodyElement!.style.transform = `translateY(0px)`);
   }
 
   resolvingArea(columns: any, x: any, y: any, area: Array<any>, rowElement: HTMLDivElement) {

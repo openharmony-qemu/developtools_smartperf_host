@@ -12,22 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FpsStruct } from '../ui-worker/ProcedureWorkerFPS';
-import { Counter, Fps } from '../../bean/BoxSelection';
-import { NativeEvent, NativeEventHeap } from '../../bean/NativeHook';
-import { HeapTreeDataBean } from '../logic-worker/ProcedureLogicWorkerCommon';
-import { EnergyAnomalyStruct } from '../ui-worker/ProcedureWorkerEnergyAnomaly';
-import { SystemDetailsEnergy } from '../../bean/EnergyStruct';
-import { EnergyStateStruct } from '../ui-worker/ProcedureWorkerEnergyState';
-import { FileInfo } from '../../../js-heap/model/UiStruct';
-import { HeapEdge, HeapLocation, HeapNode, HeapSample } from '../../../js-heap/model/DatabaseStruct';
-import { TaskTabStruct } from '../../component/trace/sheet/task/TabPaneTaskFrames';
-import type { FrameAnimationStruct } from '../ui-worker/ProcedureWorkerFrameAnimation';
-import type { FrameDynamicStruct } from '../ui-worker/ProcedureWorkerFrameDynamic';
-import type { FrameSpacingStruct } from '../ui-worker/ProcedureWorkerFrameSpacing';
-import type { DeviceStruct } from '../../bean/FrameComponentBean';
-import { LogStruct } from '../ui-worker/ProcedureWorkerLog';
-import { query } from '../SqlLite';
+import {FpsStruct} from "../ui-worker/ProcedureWorkerFPS";
+import {Counter, Fps} from "../../bean/BoxSelection";
+import {
+  NativeEvent,
+  NativeEventHeap,
+} from "../../bean/NativeHook";
+import {HeapTreeDataBean} from "../logic-worker/ProcedureLogicWorkerCommon";
+import {EnergyAnomalyStruct} from "../ui-worker/ProcedureWorkerEnergyAnomaly";
+import {SystemDetailsEnergy} from "../../bean/EnergyStruct";
+import {EnergyStateStruct} from "../ui-worker/ProcedureWorkerEnergyState";
+import {FileInfo} from "../../../js-heap/model/UiStruct";
+import {HeapEdge, HeapLocation, HeapNode, HeapSample} from "../../../js-heap/model/DatabaseStruct";
+import {TaskTabStruct} from "../../component/trace/sheet/task/TabPaneTaskFrames";
+import type {FrameAnimationStruct} from "../ui-worker/ProcedureWorkerFrameAnimation";
+import type {FrameDynamicStruct} from "../ui-worker/ProcedureWorkerFrameDynamic";
+import type {FrameSpacingStruct} from "../ui-worker/ProcedureWorkerFrameSpacing";
+import type {DeviceStruct} from "../../bean/FrameComponentBean";
+import {LogStruct} from "../ui-worker/ProcedureWorkerLog";
+import {query} from "../SqlLite";
 
 export const queryEventCountMap = (): Promise<
   Array<{
@@ -78,6 +81,7 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
     `,
     { $leftNS: leftNs, $rightNS: rightNs }
   );
+
 
 export const getTabVirtualCounters = (virtualFilterIds: Array<number>, startTime: number) =>
   query<Counter>(
@@ -188,6 +192,10 @@ export const queryHeapAllData = (
       (h.start_ts - t.start_ts between ${startTs} and ${endTs} or h.end_ts - t.start_ts between ${startTs} and ${endTs})`,
     { ipids: ipids, $startTs: startTs, $endTs: endTs }
   );
+
+
+
+
 
 export const querySelectTraceStats = (): Promise<
   Array<{
@@ -1285,7 +1293,7 @@ export const getSystemLogsData = (): Promise<
 export const queryLogData = (): Promise<Array<LogStruct>> =>
   query(
     'queryLogData',
-    `SELECT l.ts - tr.start_ts as startNs FROM log AS l, trace_range tr WHERE startNs > 0 LIMIT 1;`
+    `SELECT l.ts - tr.start_ts as startNs FROM log AS l, trace_range tr WHERE startNs > 0 LIMIT 1;`,
   );
 
 export const queryMetric = (metricName: string): Promise<Array<string>> =>
@@ -1312,6 +1320,7 @@ export const queryTraceType = (): Promise<
             WHERE 
                 m.name = 'source_type';`
   );
+
 
 export const queryLogAllData = (oneDayTime: number, leftNs: number, rightNs: number): Promise<Array<LogStruct>> =>
   query(
@@ -1343,80 +1352,4 @@ export const queryLogAllData = (oneDayTime: number, leftNs: number, rightNs: num
      ORDER BY
          l.ts;`,
     { $oneDayTime: oneDayTime }
-  );
-
-export const queryFpsSourceList = (
-  inputTime: number,
-  endTime: number,
-  name: string
-): Promise<
-  Array<{
-    name: string;
-    ts: number;
-    dur: number;
-    pid: number;
-    tid: number;
-    depth: number;
-  }>
-> =>
-  query(
-    'queryFpsSourceList',
-    `
-    SELECT
-	    t.tid,
-	    c.dur,
-	    c.depth,
-	    c.ts,
-	    c.name 
-    FROM
-	    callstack c
-	  INNER JOIN thread t ON c.callid = t.itid 
-    WHERE
-	    c.name LIKE '%${name}%' 
-	    AND 
-	    c.ts BETWEEN ${inputTime} and ${endTime} 
-	    AND 
-	    t.name = 'render_service';
-    `
-  );
-
-export const queryStateFreqList = (startTime: number, endTime: number, cpu: number): Promise<Array<any>> => {
-  let sql = `
-    select
-    c.value,
-    c.ts,
-    c.dur,
-    c.ts - r.start_ts AS startTime, 
-    c.ts - r.start_ts + c.dur AS endTime
-   from
-     measure c, trace_range r 
-   inner join
-     cpu_measure_filter t
-   on
-     c.filter_id = t.id
-   where
-     (name = 'cpufreq' or name='cpu_frequency')
-     and
-     t.cpu	= $cpu
-     and  
-     (((startTime < $startTime) and  (endtime > $endTime))
-      or ((startTime < $startTime) and ($startTime < endtime and endtime < $endTime)) 
-      or ((startTime > $startTime) and ( $startTime < endtime and endtime < $endTime)) 
-      or ((startTime > $startTime and startTime < $endTime) and (endtime > $endTime)))`;
-  return query('queryBinderByArgsId', sql, {
-    $endTime: endTime,
-    $startTime: startTime,
-    $cpu: cpu,
-  });
-};
-export const queryPerfOutputData = (): Promise<Array<any>> =>
-  query(
-    'queryPerfOutputData',
-    `SELECT name, ts FROM callstack where name like '%PERFORMANCE_DATA%'`,
-  );
-
-  export const queryPerfToolsDur = (): Promise<Array<any>> =>
-  query(
-    'queryPerfToolsDur',
-    `SELECT name, ts, dur FROM callstack where name = 'H:GRAB'`,
   );

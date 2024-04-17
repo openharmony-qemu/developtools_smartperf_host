@@ -20,7 +20,8 @@ import { TabPaneJsMemoryFilterHtml } from './TabPaneJsMemoryFilter.html';
 
 @element('tab-pane-js-memory-filter')
 export class TabPaneJsMemoryFilter extends BaseElement {
-  initElements(): void {}
+  initElements(): void {
+  }
 
   initHtml(): string {
     return TabPaneJsMemoryFilterHtml;

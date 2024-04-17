@@ -51,7 +51,7 @@ export class JSONToCSV {
       row = '';
       // 如果存在自定义key值
       if (columns.key.length) {
-        row = that.getCsvStr(columns, obj, n, row);
+        row = that.getCsvStr(columns,obj,n,row);
       } else {
         for (key in n) {
           row +=
@@ -67,7 +67,7 @@ export class JSONToCSV {
     this.saveCsvFile(fileName, csv);
   }
 
-  static getCsvStr(columns: any, obj: any, n: any, row: string) {
+  static getCsvStr(columns: any,obj: any,n: any,row: string){
     let that = this;
     columns.key.map(function (m: any, idx: number) {
       let strItem: any = '';
@@ -91,7 +91,8 @@ export class JSONToCSV {
           (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) +
           '",';
       } else {
-        row += '"' + (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) + '",';
+        row +=
+          '"' + (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) + '",';
       }
     });
     return row;

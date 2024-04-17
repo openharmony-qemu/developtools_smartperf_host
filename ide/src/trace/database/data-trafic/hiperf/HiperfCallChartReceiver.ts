@@ -73,11 +73,11 @@ export function hiPerfCallChartDataHandler(data: any, proc: Function): void {
         if (res[i].cpuId === res[i - 1].cpuId) {
           res[i - 1].dur = res[i].startTs - res[i - 1].startTs;
         } else {
-          res[i - 1].dur = data.params.recordEndNS - data.params.recordStartNS - res[i - 1].startTs;
+          res[i - 1].dur = data.params.endNS - res[i - 1].startTs;
         }
       }
       if (i === res.length - 1) {
-        res[i].dur = data.params.recordEndNS - data.params.recordStartNS - res[i].startTs;
+        res[i].dur = data.params.endNS - res[i].startTs;
       }
     }
     dataCache.sampleList = res;

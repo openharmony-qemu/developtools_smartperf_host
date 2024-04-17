@@ -42,10 +42,10 @@ export class SpClockChart {
       name: string;
       num: number;
       srcname: string;
-      maxValue?: number;
     },
     isState: boolean,
-    isScreenState: boolean
+    isScreenState: boolean,
+    maxValue: number
   ): void {
     traceRow.supplierFrame = (): Promise<ClockStruct[]> => {
       let promiseData = null;
@@ -62,8 +62,8 @@ export class SpClockChart {
         return promiseData.then((resultClock: Array<any>) => {
           for (let j = 0; j < resultClock.length; j++) {
             resultClock[j].type = 'measure';
-            if ((resultClock[j].value || 0) > it.maxValue!) {
-              it.maxValue = resultClock[j].value || 0;
+            if ((resultClock[j].value || 0) > maxValue) {
+              maxValue = resultClock[j].value || 0;
             }
             if (j > 0) {
               resultClock[j].delta = (resultClock[j].value || 0) - (resultClock[j - 1].value || 0);
@@ -83,10 +83,10 @@ export class SpClockChart {
       name: string;
       num: number;
       srcname: string;
-      maxValue?: number;
     },
     isState: boolean,
     isScreenState: boolean,
+    maxValue: number,
     clockId: number
   ): void {
     traceRow.onThreadHandler = (useCache): void => {
@@ -102,12 +102,10 @@ export class SpClockChart {
           context: context,
           useCache: useCache,
           type: it.name,
-          maxValue: it.maxValue === 0 ? 1 : it.maxValue!,
+          maxValue: maxValue === 0 ? 1 : maxValue,
           index: clockId,
           maxName:
-            isState || isScreenState
-              ? it.maxValue!.toString()
-              : Utils.getFrequencyWithUnit(it.maxValue! / 1000).maxFreqName,
+            isState || isScreenState ? maxValue.toString() : Utils.getFrequencyWithUnit(maxValue / 1000).maxFreqName,
         },
         traceRow
       );
@@ -126,7 +124,7 @@ export class SpClockChart {
     ClockStruct.maxValue = clockList.map((item) => item.num).reduce((a, b) => Math.max(a, b));
     for (let i = 0; i < clockList.length; i++) {
       const it = clockList[i];
-      it.maxValue = 0;
+      let maxValue = 0;
       let traceRow = TraceRow.skeleton<ClockStruct>();
       let isState = it.name.endsWith(' State');
       let isScreenState = it.name.endsWith('ScreenState');
@@ -139,7 +137,7 @@ export class SpClockChart {
       traceRow.setAttribute('children', '');
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-      this.clockSupplierFrame(traceRow, it, isState, isScreenState);
+      this.clockSupplierFrame(traceRow, it, isState, isScreenState, maxValue);
       traceRow.getCacheData = (args: any): Promise<Array<any>> | undefined => {
         if (it.name.endsWith(' Frequency')) {
           return clockDataSender(it.srcname, 'clockFrequency', traceRow, args);
@@ -159,7 +157,7 @@ export class SpClockChart {
       traceRow.findHoverStruct = (): void => {
         ClockStruct.hoverClockStruct = traceRow.getHoverStruct();
       };
-      this.clockThreadHandler(traceRow, it, isState, isScreenState, i);
+      this.clockThreadHandler(traceRow, it, isState, isScreenState, maxValue, i);
       folder.addChildTraceRow(traceRow);
     }
     let durTime = new Date().getTime() - clockStartTime;

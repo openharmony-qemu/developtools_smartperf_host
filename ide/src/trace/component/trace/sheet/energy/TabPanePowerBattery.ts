@@ -19,7 +19,7 @@ import { SelectionParam } from '../../../../bean/BoxSelection';
 import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart';
 import '../../../../../base-ui/table/lit-table';
 import { resizeObserver } from '../SheetUtils';
-import { getTabPowerBatteryData } from '../../../../database/sql/ProcessThread.sql';
+import {getTabPowerBatteryData} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-power-battery')
 export class TabPanePowerBattery extends BaseElement {

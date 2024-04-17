@@ -26,13 +26,7 @@ import {
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
 import { ThreadStruct as BaseThreadStruct } from '../../bean/ThreadStruct';
-import { SpSystemTrace } from '../../component/SpSystemTrace';
-import { SpSegmentationChart } from '../../component/chart/SpSegmentationChart';
-import { ns2x } from './ProcedureWorkerCommon';
-import { Flag } from '../../component/trace/timer-shaft/Flag';
-import { CpuFreqExtendStruct } from './ProcedureWorkerFreqExtend';
-import { BinderStruct } from './procedureWorkerBinder';
-import { TabPaneFreqStatesDataCut } from '../../component/trace/sheet/states/TabPaneFreqStatesDataCut';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 export class ThreadRender extends Render {
   renderMainThread(
     threadReq: {
@@ -57,29 +51,12 @@ export class ThreadRender extends Render {
     });
     drawLoadingFrame(threadReq.context, threadFilter, row);
     threadReq.context.beginPath();
-    let find: boolean = false;
     for (let re of threadFilter) {
       re.translateY = threadReq.translateY;
       ThreadStruct.drawThread(threadReq.context, re);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame!, row.hoverX, row.hoverY)) {
         ThreadStruct.hoverThreadStruct = re;
-        find = true;
       }
-    }
-    if (
-      row.rowId === 'statesrow' &&
-      (!row.isHover || !find) &&
-      !CpuFreqExtendStruct.isTabHover &&
-      CpuFreqExtendStruct.hoverCpuFreqStruct === undefined &&
-      CpuFreqExtendStruct.selectCpuFreqStruct === undefined &&
-      !BinderStruct.isTabHover &&
-      !BinderStruct.selectCpuFreqStruct &&
-      !BinderStruct.hoverCpuFreqStruct &&
-      !TabPaneFreqStatesDataCut.isStateTabHover
-    ) {
-      ThreadStruct.hoverThreadStruct = undefined;
-      SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
-      find = false;
     }
     threadReq.context.closePath();
   }
@@ -87,12 +64,7 @@ export class ThreadRender extends Render {
   render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>) {}
 }
 
-export function ThreadStructOnClick(
-  clickRowType: string,
-  sp: SpSystemTrace,
-  threadClickHandler: any,
-  cpuClickHandler: any
-) {
+export function ThreadStructOnClick(clickRowType:string,sp:SpSystemTrace,threadClickHandler:any,cpuClickHandler:any){
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_THREAD && ThreadStruct.hoverThreadStruct) {
       sp.removeLinkLinesByBusinessType('thread');
@@ -101,7 +73,7 @@ export function ThreadStructOnClick(
       sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct, threadClickHandler, cpuClickHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    } else {
+    }else{
       resolve(null);
     }
   });
@@ -115,7 +87,7 @@ export class ThreadStruct extends BaseThreadStruct {
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
   static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
-  static firstselectThreadStruct: ThreadStruct | undefined;
+  static firstselectThreadStruct: ThreadStruct | undefined;  
   argSetID: number | undefined;
   translateY: number | undefined;
   textMetricsWidth: number | undefined;
@@ -128,60 +100,37 @@ export class ThreadStruct extends BaseThreadStruct {
         threadContext.globalAlpha = 0.8;
       } else {
         threadContext.globalAlpha = 1;
-      }
-      if (
-        !ThreadStruct.selectThreadStruct &&
-        data.start_ts! + data.dur! > ThreadStruct.startCycleTime &&
-        data.start_ts! + data.dur! < ThreadStruct.endTime
-      ) {
+      };
+      if (!ThreadStruct.selectThreadStruct && data.start_ts! + data.dur! > ThreadStruct.startCycleTime && data.start_ts! + data.dur! < ThreadStruct.endTime) {
         threadContext.globalAlpha = 1;
-      }
-      let stateText = ThreadStruct.getEndState(
-        data.state === 'S' && data.name === 'Sleeping' ? data.name : data.state || ''
-      );
+      };
+      let stateText = ThreadStruct.getEndState(data.state === 'S' && data.name === 'Sleeping' ? data.name : data.state || '');
       if (data.name === 'all-state' && data.state === 'S') {
         stateText = 'Sleeping';
-      }
-      threadContext.fillStyle = Utils.getStateColor(
-        data.state === 'S' && data.name === 'all-state' ? 'Sleeping' : data.state || ''
-      );
+      };
+      threadContext.fillStyle = Utils.getStateColor(data.state === 'S' && data.name === 'all-state' ? 'Sleeping' : data.state || '');
       if ('S' === data.state && data.name !== 'all-state') {
         threadContext.globalAlpha = 0.2;
-      }
+      };
       threadContext.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
       threadContext.fillStyle = '#fff';
       threadContext.textBaseline = 'middle';
       threadContext.font = '8px sans-serif';
       if ('S' !== data.state || (data.name === 'all-state' && data.state === 'S')) {
         data.frame.width > 7 && drawString(threadContext, stateText, 2, data.frame, data);
-      }
+      };
       if (
         ThreadStruct.selectThreadStruct &&
         ThreadStruct.equals(ThreadStruct.selectThreadStruct, data) &&
-        (ThreadStruct.selectThreadStruct.state !== 'S' || data.name === 'all-state')
+        (ThreadStruct.selectThreadStruct.state !== 'S'|| data.name === 'all-state')
       ) {
         threadContext.strokeStyle = '#232c5d';
         threadContext.lineWidth = 2;
-        threadContext.strokeRect(data.frame.x, data.frame.y, data.frame.width - 2, data.frame.height);
-      }
-      if (ThreadStruct.hoverThreadStruct === data && data.name === 'all-state') {
-        let pointX: number = ns2x(
-          data.startTime || 0,
-          TraceRow.range!.startNS,
-          TraceRow.range!.endNS,
-          TraceRow.range!.totalNS,
-          new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
-        );
-        SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = new Flag(
-          Math.floor(pointX),
-          0,
-          0,
-          0,
-          data.startTime || 0,
-          '#000000',
-          '',
-          true,
-          ''
+        threadContext.strokeRect(
+          data.frame.x,
+          data.frame.y,
+          data.frame.width - 2,
+          data.frame.height
         );
       }
     }

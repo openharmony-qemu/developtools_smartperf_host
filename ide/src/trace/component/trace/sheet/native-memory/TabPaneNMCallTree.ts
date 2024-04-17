@@ -306,7 +306,8 @@ export class TabpaneNMCalltree extends BaseElement {
     this.getChildTree(fileMerageBean.children as Array<FileMerageBean>, maxId, children);
     let resultValue = parents.reverse().concat(children.reverse());
     for (let data of resultValue) {
-      data.type = data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
+      data.type =
+        data.libName.endsWith('.so.1') || data.libName.endsWith('.dll') || data.libName.endsWith('.so') ? 0 : 1;
     }
     let resultLength = resultValue.length;
     this.filesystemTbr!.dataSource = resultLength == 0 ? [] : resultValue;
@@ -526,10 +527,10 @@ export class TabpaneNMCalltree extends BaseElement {
         return nmCallTreeFuncArgs;
       }
       if (this.currentSelectedData !== undefined) {
-        this.nmCallTreeFilter!.addDataMining({ name: this.currentSelectedData.symbol }, nmCallTreeFuncData.item);
+        this.nmCallTreeFilter!.addDataMining({ name: this.currentSelectedData.symbolName }, nmCallTreeFuncData.item);
         nmCallTreeFuncArgs.push({
           funcName: 'splitTree',
-          funcArgs: [this.currentSelectedData.symbol, false, true],
+          funcArgs: [this.currentSelectedData.symbolName, false, true],
         });
       } else {
         return nmCallTreeFuncArgs;
@@ -554,8 +555,8 @@ export class TabpaneNMCalltree extends BaseElement {
         });
         nmCallTreeFuncArgs.push({ funcName: 'resotreAllNode', funcArgs: [list] });
         nmCallTreeFuncArgs.push({ funcName: 'resetAllNode', funcArgs: [] });
-        list.forEach((symbol: string): void => {
-          nmCallTreeFuncArgs.push({ funcName: 'clearSplitMapData', funcArgs: [symbol] });
+        list.forEach((symbolName: string): void => {
+          nmCallTreeFuncArgs.push({ funcName: 'clearSplitMapData', funcArgs: [symbolName] });
         });
       }
     }

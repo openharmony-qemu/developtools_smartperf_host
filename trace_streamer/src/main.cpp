@@ -105,7 +105,7 @@ void PrintInformation()
 }
 void PrintVersion()
 {
-    (void)fprintf(stderr, "version %s\n", g_traceStreamerVersion.c_str());
+    (void)fprintf(stderr, "version %s\n", TRACE_STREAMER_VERSION.c_str());
 }
 void SetFtracePluginsAbilityInfo(std::string& disableInfo, std::string& enableInfo)
 {
@@ -308,8 +308,8 @@ int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
         }
 #endif
         metaData->SetOutputFileName(fileNameTmp);
-        metaData->SetParserToolVersion(g_traceStreamerVersion);
-        metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion);
+        metaData->SetParserToolVersion(TRACE_STREAMER_VERSION);
+        metaData->SetParserToolPublishDateTime(TRACE_STREAMER_PUBLISH_VERSION);
         metaData->SetTraceDataSize(g_loadSize);
         if (ts.ExportDatabase(sqliteFilePath)) {
             fprintf(stdout, "ExportDatabase failed\n");
@@ -659,8 +659,8 @@ bool EnterInteractiveState(TraceStreamerSelector& ts)
 {
     MetaData* metaData = ts.GetMetaData();
     metaData->SetOutputFileName("command line mode");
-    metaData->SetParserToolVersion(g_traceStreamerVersion.c_str());
-    metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion.c_str());
+    metaData->SetParserToolVersion(TRACE_STREAMER_VERSION.c_str());
+    metaData->SetParserToolPublishDateTime(TRACE_STREAMER_PUBLISH_VERSION.c_str());
     metaData->SetTraceDataSize(g_loadSize);
     while (true) {
         auto values = ts.SearchData();
@@ -725,8 +725,8 @@ int main(int argc, char** argv)
     if (!traceExportOption.metricsIndex.empty()) {
         MetaData* metaData = ts.GetMetaData();
         metaData->SetOutputFileName("command line mode");
-        metaData->SetParserToolVersion(g_traceStreamerVersion.c_str());
-        metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion.c_str());
+        metaData->SetParserToolVersion(TRACE_STREAMER_VERSION.c_str());
+        metaData->SetParserToolPublishDateTime(TRACE_STREAMER_PUBLISH_VERSION.c_str());
         metaData->SetTraceDataSize(g_loadSize);
         ts.ParserAndPrintMetrics(traceExportOption.metricsIndex);
     }

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, drawString, drawLoadingFrame } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler, drawString } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import { querySingleAppStartupsName } from '../sql/ProcessThread.sql';
+import {querySingleAppStartupsName} from "../sql/ProcessThread.sql";
 import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class AllAppStartupRender {
@@ -43,7 +43,6 @@ export class AllAppStartupRender {
     req.appStartupContext.globalAlpha = 0.6;
     let find = false;
     let offset = 3;
-    drawLoadingFrame(req.appStartupContext, filter, appStartUpRow);
     for (let re of filter) {
       AllAppStartupStruct.draw(req.appStartupContext, re);
       if (appStartUpRow.isHover) {
@@ -62,14 +61,14 @@ export class AllAppStartupRender {
     }
   }
 }
-export function AllAppStartupStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollToFuncHandler: any) {
-  return new Promise((resolve, reject) => {
+export function AllAppStartupStructOnClick(clickRowType: string, sp: SpSystemTrace,scrollToFuncHandler:any) {
+  return new Promise((resolve,reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct) {
       AllAppStartupStruct.selectStartupStruct = AllAppStartupStruct.hoverStartupStruct;
       sp.traceSheetEL?.displayAllStartupData(AllAppStartupStruct.selectStartupStruct, scrollToFuncHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    } else {
+    }else{
       resolve(null);
     }
   });
@@ -113,4 +112,5 @@ export class AllAppStartupStruct extends BaseStruct {
       }
     }
   }
+
 }

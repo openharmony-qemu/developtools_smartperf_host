@@ -81,7 +81,7 @@
             }
           ]
         },
-        {
+		   {
           "component": "napi",
           "charts": [
             {
@@ -102,7 +102,7 @@
               "chartName": "accountmgr",
               "chartId": ""
             },
-            {
+			     {
               "chartName": "huawei_id_svc",
               "chartId": ""
             }
@@ -231,7 +231,7 @@
           ]
         },
         {
-          "component": "storage_service",
+          "component": "storage_service", 
           "charts": [
             {
               "chartName": "",
@@ -285,7 +285,7 @@
           ]
         },
         {
-          "component": "certificate_manager",
+          "component": "certificate_manager", 
           "charts": [
             {
               "chartName": "cert_manager_service",
@@ -368,7 +368,7 @@
             }
           ]
         },
-        {
+		    {
           "component": "appspawn",
           "charts": [
             {
@@ -572,7 +572,7 @@
           ]
         },
         {
-          "component": "distributed_bundle_framework",
+          "component": "distributed_bundle_framework", 
           "charts": [
             {
               "chartName": "dbms",
@@ -612,7 +612,7 @@
           ]
         },
         {
-          "component": "idl_tool",
+          "component": "idl_tool", 
           "charts": [
             {
               "chartName": "",
@@ -621,7 +621,7 @@
           ]
         },
         {
-          "component": "form_fwk",
+          "component": "form_fwk", 
           "charts": [
             {
               "chartName": "",
@@ -630,7 +630,7 @@
           ]
         },
         {
-          "component": "ability_base",
+          "component": "ability_base", 
           "charts": [
             {
               "chartName": "",
@@ -639,7 +639,7 @@
           ]
         },
         {
-          "component": "dmsfwk",
+          "component": "dmsfwk", 
           "charts": [
             {
               "chartName": "",
@@ -715,7 +715,7 @@
           ]
         },
         {
-          "component": "ipc_js",
+          "component": "ipc_js", 
           "charts": [
             {
               "chartName": "",
@@ -724,7 +724,7 @@
           ]
         },
         {
-          "component": "net_manager",
+          "component": "net_manager", 
           "charts": [
             {
               "chartName": "",
@@ -733,7 +733,7 @@
           ]
         },
         {
-          "component": "netmanager_base",
+          "component": "netmanager_base", 
           "charts": [
             {
               "chartName": "",
@@ -742,7 +742,7 @@
           ]
         },
         {
-          "component": "netmanager_ext",
+          "component": "netmanager_ext", 
           "charts": [
             {
               "chartName": "",
@@ -751,7 +751,7 @@
           ]
         },
         {
-          "component": "netstack",
+          "component": "netstack", 
           "charts": [
             {
               "chartName": "",
@@ -760,7 +760,7 @@
           ]
         },
         {
-          "component": "dsoftbus",
+          "component": "dsoftbus", 
           "charts": [
             {
               "chartName": "",
@@ -769,7 +769,7 @@
           ]
         },
         {
-          "component": "wifi",
+          "component": "wifi", 
           "charts": [
             {
               "chartName": "wifi_manager_service",
@@ -786,7 +786,7 @@
           ]
         },
         {
-          "component": "dhcp",
+          "component": "dhcp", 
           "charts": [
             {
               "chartName": "",
@@ -795,7 +795,7 @@
           ]
         },
         {
-          "component": "bluetooth_native_js",
+          "component": "bluetooth_native_js", 
           "charts": [
             {
               "chartName": "",
@@ -827,7 +827,7 @@
           ]
         },
         {
-          "component": "location_locator",
+          "component": "location_locator", 
           "charts": [
             {
               "chartName": "",
@@ -836,7 +836,7 @@
           ]
         },
         {
-          "component": "location_network",
+          "component": "location_network", 
           "charts": [
             {
               "chartName": "",
@@ -845,7 +845,7 @@
           ]
         },
         {
-          "component": "location_gnss",
+          "component": "location_gnss", 
           "charts": [
             {
               "chartName": "",
@@ -854,7 +854,7 @@
           ]
         },
         {
-          "component": "location_passive",
+          "component": "location_passive", 
           "charts": [
             {
               "chartName": "",
@@ -863,7 +863,7 @@
           ]
         },
         {
-          "component": "location_geocode",
+          "component": "location_geocode", 
           "charts": [
             {
               "chartName": "",
@@ -886,7 +886,7 @@
             {
               "chartName": "migrate_server",
               "chartId": ""
-            },
+            }, 
             {
               "chartName": "com.huawei.hmos.ouc",
               "chartId": ""
@@ -903,7 +903,7 @@
           ]
         },
         {
-          "component": "sys_installer",
+          "component": "sys_installer", 
           "charts": [
             {
               "chartName": "",
@@ -939,7 +939,7 @@
           ]
         },
         {
-          "component": "start",
+          "component": "start", 
           "charts": [
             {
               "chartName": "",
@@ -1012,7 +1012,7 @@
               "chartName": "face_auth_host",
               "chartId": ""
             },
-            {
+             {
               "chartName": "fingerprint_auth_host",
               "chartId": ""
             }
@@ -1582,7 +1582,7 @@
           ]
         },
         {
-          "component": "drivers_interface_camera",
+          "component": "drivers_interface_camera", 
           "charts": [
             {
               "chartName": "camera_host",
@@ -1591,7 +1591,7 @@
           ]
         },
         {
-          "component": "drivers_interface_codec",
+          "component": "drivers_interface_codec", 
           "charts": [
             {
               "chartName": "codec_host",
@@ -1600,7 +1600,7 @@
           ]
         },
         {
-          "component": "drivers_interface_motion",
+          "component": "drivers_interface_motion", 
           "charts": [
             {
               "chartName": "motion_host",
@@ -1609,7 +1609,7 @@
           ]
         },
         {
-          "component": "drivers_interface_light",
+          "component": "drivers_interface_light", 
           "charts": [
             {
               "chartName": "light_host",
@@ -1618,7 +1618,7 @@
           ]
         },
         {
-          "component": "drivers_interface_vibrator",
+          "component": "drivers_interface_vibrator", 
           "charts": [
             {
               "chartName": "vibrator_host",
@@ -1627,7 +1627,7 @@
           ]
         },
         {
-          "component": "drivers_interface_power",
+          "component": "drivers_interface_power", 
           "charts": [
             {
               "chartName": "power_host",
@@ -1636,7 +1636,7 @@
           ]
         },
         {
-          "component": "drivers_interface_battery",
+          "component": "drivers_interface_battery", 
           "charts": [
             {
               "chartName": "",
@@ -1645,7 +1645,7 @@
           ]
         },
         {
-          "component": "drivers_interface_thermal",
+          "component": "drivers_interface_thermal", 
           "charts": [
             {
               "chartName": "",
@@ -1654,7 +1654,7 @@
           ]
         },
         {
-          "component": "drivers_interface_pin_auth",
+          "component": "drivers_interface_pin_auth", 
           "charts": [
             {
               "chartName": "",
@@ -1663,7 +1663,7 @@
           ]
         },
         {
-          "component": "drivers_interface_face_auth",
+          "component": "drivers_interface_face_auth", 
           "charts": [
             {
               "chartName": "",
@@ -1672,7 +1672,7 @@
           ]
         },
         {
-          "component": "drivers_interface_user_auth",
+          "component": "drivers_interface_user_auth", 
           "charts": [
             {
               "chartName": "",
@@ -1681,7 +1681,7 @@
           ]
         },
         {
-          "component": "drivers_interface_fingerprint_auth",
+          "component": "drivers_interface_fingerprint_auth", 
           "charts": [
             {
               "chartName": "",
@@ -1690,7 +1690,7 @@
           ]
         },
         {
-          "component": "drivers_interface_input",
+          "component": "drivers_interface_input", 
           "charts": [
             {
               "chartName": "input_user_host",
@@ -1699,7 +1699,7 @@
           ]
         },
         {
-          "component": "drivers_interface_memorytracker",
+          "component": "drivers_interface_memorytracker", 
           "charts": [
             {
               "chartName": "",
@@ -1708,7 +1708,7 @@
           ]
         },
         {
-          "component": "drivers_interface_wlan",
+          "component": "drivers_interface_wlan", 
           "charts": [
             {
               "chartName": "wifi_host",
@@ -1717,7 +1717,7 @@
           ]
         },
         {
-          "component": "drivers_interface_location_agnss",
+          "component": "drivers_interface_location_agnss", 
           "charts": [
             {
               "chartName": "",
@@ -1726,7 +1726,7 @@
           ]
         },
         {
-          "component": "drivers_interface_location_geofence",
+          "component": "drivers_interface_location_geofence", 
           "charts": [
             {
               "chartName": "",
@@ -1735,7 +1735,7 @@
           ]
         },
         {
-          "component": "drivers_interface_location_gnss",
+          "component": "drivers_interface_location_gnss", 
           "charts": [
             {
               "chartName": "",
@@ -1744,7 +1744,7 @@
           ]
         },
         {
-          "component": "drivers_interface_usb",
+          "component": "drivers_interface_usb", 
           "charts": [
             {
               "chartName": "usb_host",
@@ -1753,7 +1753,7 @@
           ]
         },
         {
-          "component": "ril_device_driver_interface",
+          "component": "ril_device_driver_interface", 
           "charts": [
             {
               "chartName": "",
@@ -1762,7 +1762,7 @@
           ]
         },
         {
-          "component": "drivers_interface_display",
+          "component": "drivers_interface_display", 
           "charts": [
             {
               "chartName": "",
@@ -1771,7 +1771,7 @@
           ]
         },
         {
-          "component": "drivers_interface_distributed_camera",
+          "component": "drivers_interface_distributed_camera", 
           "charts": [
             {
               "chartName": "",
@@ -1780,7 +1780,7 @@
           ]
         },
         {
-          "component": "drivers_interface_ril",
+          "component": "drivers_interface_ril", 
           "charts": [
             {
               "chartName": "",
@@ -1789,7 +1789,7 @@
           ]
         },
         {
-          "component": "drivers_interface_partitionslot",
+          "component": "drivers_interface_partitionslot", 
           "charts": [
             {
               "chartName": "partitionslot_host",
@@ -1798,7 +1798,7 @@
           ]
         },
         {
-          "component": "drivers_interface_nnrt",
+          "component": "drivers_interface_nnrt", 
           "charts": [
             {
               "chartName": "",

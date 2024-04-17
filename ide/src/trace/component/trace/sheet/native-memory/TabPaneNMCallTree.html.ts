@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export const TabPaneNMCallTreeHtml = `
+export const TabPaneNMCallTreeHtml =  `
         <style>
         :host{
             padding: 10px 10px 0 10px;
@@ -59,7 +59,7 @@ export const TabPaneNMCallTreeHtml = `
             <tab-native-data-modal id="modal"></tab-native-data-modal>
             <lit-table id="tb-filesystem-calltree" style="height: auto" tree>
                 <lit-table-column class="nm-call-tree-column" width="60%" title="Symbol Name" 
-                data-index="symbol" key="symbol"  align="flex-start" retract>
+                data-index="symbolName" key="symbolName"  align="flex-start" retract>
                 </lit-table-column>
                 <lit-table-column class="nm-call-tree-column" width="1fr" title="Size" 
                 data-index="heapSizeStr" key="heapSizeStr"  align="flex-start" order>
@@ -96,7 +96,7 @@ export const TabPaneNMCallTreeHtml = `
                 </template>
             </lit-table-column>
             <lit-table-column class="nm-call-tree-column" width="1fr" title="" 
-            data-index="symbol" key="symbol"  align="flex-start"></lit-table-column>
+            data-index="symbolName" key="symbolName"  align="flex-start"></lit-table-column>
         </lit-table>
         </div>
         </lit-slicer>

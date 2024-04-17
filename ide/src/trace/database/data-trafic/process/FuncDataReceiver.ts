@@ -11,11 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { threadCallStackList } from '../utils/AllMemoryCache';
-import { filterDataByGroupLayer } from '../utils/DataFilter';
-import { TraficEnum } from '../utils/QueryEnum';
+import { threadCallStackList } from "../utils/AllMemoryCache";
+import { filterDataByGroupLayer } from "../utils/DataFilter";
+import { TraficEnum } from "../utils/QueryEnum";
 
-export const chartFuncDataSql = (args: any): string => {
+
+export const chartFuncDataSql = (args: any):string => {
   return `
     select
         startTs,
@@ -24,9 +25,7 @@ export const chartFuncDataSql = (args: any): string => {
         depth,
         id,
         max(dur2) as dur2,
-        (startTs) / (${Math.floor((args.endNS - args.startNS) / args.width)}) + (depth * ${
-    args.width
-  })                           AS px
+        (startTs) / (${Math.floor((args.endNS - args.startNS) / args.width)}) + (depth * ${ args.width })                           AS px
     from (
       select c.ts - ${args.recordStartNS} as startTs,
              c.dur as dur,
@@ -47,7 +46,7 @@ export const chartFuncDataSql = (args: any): string => {
 `;
 };
 
-export const chartFuncDataSqlMem = (args: any): string => {
+export const chartFuncDataSqlMem = (args:any):string =>{
   return `select c.ts - ${args.recordStartNS} as startTs,
              c.dur                  as dur,
              ifnull(c.argsetid, -1) as argsetid,
@@ -59,17 +58,16 @@ export const chartFuncDataSqlMem = (args: any): string => {
         and c.cookie is null
         and c.callid in (select id from thread where tid=${args.tid}
         and ipid=${args.ipid})`;
-};
-export function funcDataReceiver(data: any, proc: Function): void {
+}
+export function funcDataReceiver(data: any, proc: Function):void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let key = `${data.params.tid}${data.params.ipid}`;
+    let key = `${data.params.tid}${data.params.ipid}`
     if (!threadCallStackList.has(key)) {
       let list = proc(chartFuncDataSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {
         if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined) {
           list[i].nofinish = 1;
-          let totalNs = data.params.recordEndNS - data.params.recordStartNS;
-          list[i].dur = totalNs - list[i].startTs;
+          list[i].dur = data.params.endNS - list[i].startTs;
         } else {
           list[i].nofinish = 0;
         }
@@ -81,20 +79,16 @@ export function funcDataReceiver(data: any, proc: Function): void {
       array,
       'depth',
       'startTs',
-      'dur',
-      data.params.startNS,
-      data.params.endNS,
-      data.params.width
-    );
-    arrayBufferHandler(data, res, true, array.length === 0);
+      'dur', data.params.startNS, data.params.endNS, data.params.width);
+      arrayBufferHandler(data, res, true,array.length === 0);
   } else {
     let sql = chartFuncDataSql(data.params);
     let res = proc(sql);
-    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer, false);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer,false);
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean, isEmpty: boolean): void {
+function arrayBufferHandler(data: any, res: any[], transfer: boolean,isEmpty:boolean): void {
   let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs);
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
   let argsetid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.argsetid);
@@ -121,12 +115,12 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean, isEmpty: b
             argsetid: argsetid.buffer,
             depth: depth.buffer,
             id: id.buffer,
-            nofinish: nofinish.buffer,
+            nofinish: nofinish.buffer
           }
         : {},
       len: res.length,
       transfer: transfer,
-      isEmpty: isEmpty,
+      isEmpty:isEmpty,
     },
     transfer ? [startTs.buffer, dur.buffer, argsetid.buffer, depth.buffer, id.buffer, nofinish.buffer] : []
   );

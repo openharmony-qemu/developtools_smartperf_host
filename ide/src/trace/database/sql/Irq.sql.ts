@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { query } from '../SqlLite';
-import { IrqStruct } from '../ui-worker/ProcedureWorkerIrq';
+import {query} from "../SqlLite";
+import {IrqStruct} from "../ui-worker/ProcedureWorkerIrq";
 
 export const queryIrqList = (): Promise<Array<{ name: string; cpu: number }>> =>
   query('queryIrqList', `select cat as name,callid as cpu from irq where cat!= 'ipi' group by cat,callid`);

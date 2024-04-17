@@ -28,7 +28,7 @@ import {
 } from './ProcedureWorkerCommon';
 import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
 import { FlagsConfig } from '../../component/SpFlags';
-import { TabPaneTaskFrames } from '../../component/trace/sheet/task/TabPaneTaskFrames';
+import {TabPaneTaskFrames} from "../../component/trace/sheet/task/TabPaneTaskFrames";
 export class FuncRender extends Render {
   renderMainThread(
     req: {
@@ -126,34 +126,27 @@ export function func(
     });
   }
 }
-export function FuncStructOnClick(
-  clickRowType: string,
-  sp: any,
-  row: TraceRow<any> | undefined,
-  scrollToFuncHandler: any,
-  entry?: any
-) {
+export function FuncStructOnClick(clickRowType: string, sp:any,row:TraceRow<any>|undefined, scrollToFuncHandler: any) {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_FUNC && (FuncStruct.hoverFuncStruct || entry)) {
-      if (FuncStruct.funcSelect) {
-        TabPaneTaskFrames.TaskArray = [];
-        sp.removeLinkLinesByBusinessType('task');
-        let hoverFuncStruct = entry || FuncStruct.hoverFuncStruct;
-        FuncStruct.selectFuncStruct = hoverFuncStruct;
-        sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
-        let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
-        let showTabArray: Array<string> = ['current-selection'];
-        if (flagConfig!.TaskPool === 'Enabled') {
-          if (FuncStruct.selectFuncStruct?.funName) {
-            if (FuncStruct.selectFuncStruct.funName.indexOf('H:Task ') >= 0) {
-              showTabArray.push('box-task-frames');
-              sp.drawTaskPollLine(row);
-            }
+    if (clickRowType === TraceRow.ROW_TYPE_FUNC && FuncStruct.hoverFuncStruct) {
+      TabPaneTaskFrames.TaskArray = [];
+      sp.removeLinkLinesByBusinessType('task');
+      FuncStruct.selectFuncStruct = FuncStruct.hoverFuncStruct;
+      let hoverFuncStruct = FuncStruct.hoverFuncStruct;
+      sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
+      FuncStruct.selectFuncStruct = hoverFuncStruct;
+      let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
+      let showTabArray: Array<string> = ['current-selection'];
+      if (flagConfig!.TaskPool === 'Enabled') {
+        if (FuncStruct.selectFuncStruct?.funName) {
+          if (FuncStruct.selectFuncStruct.funName.indexOf('H:Task ') >= 0) {
+            showTabArray.push('box-task-frames');
+            sp.drawTaskPollLine(row);
           }
         }
-        sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct, scrollToFuncHandler);
-        sp.timerShaftEL?.modifyFlagList(undefined);
       }
+      sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct, scrollToFuncHandler);
+      sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {
       resolve(null);
@@ -165,7 +158,6 @@ export class FuncStruct extends BaseFuncStruct {
   static selectFuncStruct: FuncStruct | undefined;
   flag: string | undefined; // 570000
   textMetricsWidth: number | undefined;
-  static funcSelect: boolean = true;
   static setFuncFrame(funcNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
     let x1: number, x2: number;
     if ((funcNode.startTs || 0) > startNS && (funcNode.startTs || 0) <= endNS) {
@@ -208,11 +200,9 @@ export class FuncStruct extends BaseFuncStruct {
           ctx.textBaseline = 'middle';
           drawFunString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }
-        if (
-          data.callid == FuncStruct.selectFuncStruct?.callid &&
-          data.startTs == FuncStruct.selectFuncStruct?.startTs &&
-          data.depth == FuncStruct.selectFuncStruct?.depth
-        ) {
+        if (data.callid == FuncStruct.selectFuncStruct?.callid&&
+          data.startTs == FuncStruct.selectFuncStruct?.startTs&&
+          data.depth == FuncStruct.selectFuncStruct?.depth) {
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 2;
           ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, data.frame.height - 2);
@@ -234,7 +224,7 @@ export class FuncStruct extends BaseFuncStruct {
         }
         // 如果该函数没有结束时间，则绘制锯齿。
         if (data.nofinish && data.frame!.width > 4) {
-          FuncStruct.drawRupture(ctx, data.frame.x, data.frame.y, data.frame.width, data.frame.height);
+          FuncStruct.drawRupture(ctx, data.frame.x, data.frame.y , data.frame.width, data.frame.height );
         }
       }
     }
@@ -255,7 +245,10 @@ export class FuncStruct extends BaseFuncStruct {
     let len = height / ruptureNode;
     ctx.moveTo(x + width - 1, y);
     for (let i = 1; i <= ruptureNode; i++) {
-      ctx.lineTo(x + width - 1 - (i % 2 == 0 ? 0 : ruptureWidth), y + len * i - 2);
+      ctx.lineTo(
+        x + width - 1 - (i % 2 == 0 ? 0 : ruptureWidth),
+        y + len * i - 2
+      );
     }
     ctx.closePath();
     ctx.fill();

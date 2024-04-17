@@ -18,36 +18,30 @@ import { TraceRow } from '../../component/trace/base/TraceRow';
 export function sliceSender(): Promise<any> {
   let trafic: number = TraficEnum.Memory;
   return new Promise((resolve): void => {
-    threadPool.submitProto(
-      QueryEnum.SliceData,
-      {
-        trafic: trafic,
-        startNS: TraceRow.range?.startNS || 0,
-        endNS: TraceRow.range?.endNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
-      },
-      (res: any): void => {
-        resolve(res);
-      }
-    );
+    threadPool.submitProto(QueryEnum.SliceData, {
+      trafic: trafic,
+      startNS: TraceRow.range?.startNS || 0,
+      endNS: TraceRow.range?.endNS || 0,
+      recordStartNS: window.recordStartNS,
+      recordEndNS: window.recordEndNS,
+    }, (res: any): void => {
+      resolve(res);
+    });
   });
 }
 
 export function sliceSPTSender(leftNs: number, rightNs: number, cpus: Array<number>, func: string): Promise<any[]> {
   return new Promise((resolve): void => {
-    threadPool.submitProto(
-      QueryEnum.SliceSPTData,
-      {
-        leftNs: leftNs,
-        rightNs: rightNs,
-        cpus: cpus,
-        func: func,
-        trafic: TraficEnum.Memory,
-      },
-      (res: any, len: number, transfer: boolean): void => {
-        resolve(res);
-      }
-    );
+    threadPool.submitProto(QueryEnum.SliceSPTData, {
+      leftNs: leftNs,
+      rightNs: rightNs,
+      cpus: cpus,
+      func: func,
+      trafic: TraficEnum.Memory,
+    }, (res: any, len: number, transfer: boolean): void => {
+      resolve(res);
+    });
   });
 }
+
+

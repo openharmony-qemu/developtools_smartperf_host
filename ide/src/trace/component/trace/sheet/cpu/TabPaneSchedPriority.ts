@@ -21,7 +21,7 @@ import { Utils } from '../../base/Utils';
 import { Priority } from '../../../../bean/StateProcessThread';
 import { queryThreadStateArgsByName } from '../../../../database/sql/ProcessThread.sql';
 import { FlagsConfig } from '../../../../component/SpFlags';
-import { sliceSPTSender } from '../../../../database/data-trafic/SliceSender';
+import {sliceSPTSender} from "../../../../database/data-trafic/SliceSender";
 
 @element('tabpane-sched-priority')
 export class TabPaneSchedPriority extends BaseElement {
@@ -64,8 +64,8 @@ export class TabPaneSchedPriority extends BaseElement {
     function setPriority(item: Priority, strArg: string[]) {
       let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
       let flagsItemJson = JSON.parse(flagsItem!);
-      let hmKernel = flagsItemJson.HMKernel;
-      if (hmKernel === 'Enabled') {
+      let hmKernel = flagsItemJson.HMKernel; 
+      if (hmKernel === "Enabled") {
         if (item.priority >= 0 && item.priority <= 40) {
           item.priorityType = 'CFS';
         } else {
@@ -86,10 +86,11 @@ export class TabPaneSchedPriority extends BaseElement {
           item.priorityType = 'CFS';
         }
       }
+      
     }
     // thread_state表中runnable数据的Map
     const runnableMap = new Map<string, Priority>();
-    sliceSPTSender(sptParam.leftNs, sptParam.rightNs, [], 'spt-getCpuPriorityByTime').then((res) => {
+    sliceSPTSender(sptParam.leftNs, sptParam.rightNs, [], 'spt-getCpuPriorityByTime').then(res => {
       for (const item of res) {
         if (['R', 'R+'].includes(item.state)) {
           runnableMap.set(`${item.id}_${item.startTime + item.dur}`, item);
@@ -100,7 +101,7 @@ export class TabPaneSchedPriority extends BaseElement {
         this.fetchData(item, setPriority, resultData, runnableMap);
       }
       this.getDataByPriority(resultData);
-    });
+    })
   }
 
   private fetchData(

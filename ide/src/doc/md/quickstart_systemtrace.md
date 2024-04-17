@@ -97,25 +97,18 @@ Thread States、Thread Switches 的 2 个 Tab 页，点击移动到某一行，�
 点击画红框处的带箭头的标志，会从 CPU 的线程概览视图跳转到线程的详情视图，同时从线程的详情视图也能跳转到 CPU 的线程概览视图。
 ![GitHub Logo](../../figures/Web/jumpthread.jpg)
 
-#### 获取频点的 busy_time
-
-框选 Cpu Frequency 泳道的 Tab 页有 GetBusyTime 的按钮，该按钮获取每个频点在 Cpu State 等于 0 时的时间信息，体现频点的忙碌时间。
+#### 获取频点的busy_time
+框选Cpu Frequency泳道的Tab页有GetBusyTime的按钮，该按钮获取每个频点在Cpu State等于0时的时间信息，体现频点的忙碌时间。
 ![GitHub Logo](../../figures/Web/getbusytime.jpg)
-
-#### CPU 频点数据切割
-
-框选区域内所有 running 状态的频点数据，以用户输入的某一方法作为切割依据，将频点数据以 Single 和 Loop 两种方式切割后展示在 Tab 标签页的表格中。
+#### CPU频点数据切割
+框选区域内所有running状态的频点数据，以用户输入的某一方法作为切割依据，将频点数据以Single和Loop两种方式切割后展示在Tab标签页的表格中。
 ![GitHub Logo](../../figures/Web/Singe_loop.jpg)
-
 #### 关键路径标识
-
-在 ftrace 数据中的 cpu 泳道的区域，在界面顶部增加 json 文件导入按钮，导入 json 文件后，根据线程号跟对应的时间，在 cpu 区域高亮该时间的线程色块，点击界面上的 x,可以取消高亮。json 格式如下：
+在ftrace数据中的cpu泳道的区域，在界面顶部增加json文件导入按钮，导入json文件后，根据线程号跟对应的时间，在cpu区域高亮该时间的线程色块，点击界面上的x,可以取消高亮。json格式如下：
 ![GitHub Logo](../../figures/Web/json.jpg)
-导入 json 文件以后，会将 ACCS0 [2716]线程对应时间点的 slice 色块高亮显示
+导入json文件以后，会将ACCS0 [2716]线程对应时间点的slice色块高亮显示
 ![GitHub Logo](../../figures/Web/keyslice.jpg)
-
-### trace 的其他功能
-
+### trace的其他功能
 #### 小旗标志的功能
 
 将选中数据的时间点通过小旗的方式在时间轴上展示，直观的展示选中数据的时间。

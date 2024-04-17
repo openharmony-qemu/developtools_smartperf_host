@@ -59,7 +59,14 @@ export class LitChartScatter extends BaseElement {
   drawBackground(): void {
     let w: number = this.clientWidth;
     let h: number = this.clientHeight;
-    let color: CanvasGradient = this.ctx?.createRadialGradient(w / 2, h / 2, 0.2 * w, w / 2, h / 2, 0.5 * w)!;
+    let color: CanvasGradient = this.ctx?.createRadialGradient(
+      w / 2,
+      h / 2,
+      0.2 * w,
+      w / 2,
+      h / 2,
+      0.5 * w
+    )!;
     color?.addColorStop(0, '#eaeaea');
     color?.addColorStop(1, '#ccc');
     if (this.options) {
@@ -133,7 +140,8 @@ export class LitChartScatter extends BaseElement {
     // 画Y轴坐标尺
     for (let i = 0; i < yAxis.length; i++) {
       let length1: number =
-        (this.originY - this.finalY - ((this.originY - this.finalY) % QUYU)) * (yAxis[i] / yAxis[yAxis.length - 1]);
+        (this.originY - this.finalY - ((this.originY - this.finalY) % QUYU)) *
+        (yAxis[i] / yAxis[yAxis.length - 1]);
       let length2: number = this.originY - length1;
       let text: string = yAxis[i].toString();
       let x: number = this.originX - this.ctx?.measureText(text).width! - AXAIS_DELTA;
@@ -159,7 +167,8 @@ export class LitChartScatter extends BaseElement {
     }
     for (let i = 0; i < xAxis.length; i++) {
       let length3: number =
-        (this.finalX - this.originX - ((this.finalX - this.originX) % QUYU)) * (xAxis[i] / xAxis[xAxis.length - 1]);
+        (this.finalX - this.originX - ((this.finalX - this.originX) % QUYU)) *
+        (xAxis[i] / xAxis[xAxis.length - 1]);
       let length4: number = this.originX + length3;
       this.ctx?.beginPath();
       this.ctx?.moveTo(length4, this.originY);
@@ -220,14 +229,20 @@ export class LitChartScatter extends BaseElement {
       if (data[i].length) {
         rectY = rectY + 20;
         this.ctx?.fillText(colorPoolText[i] + ': ', this.clientWidth - WIDTH_DELTA, rectY + 4);
-        this.drawCycle(this.clientWidth - QUYU / 5, rectY, 7.5, 0.8, colorPool[i]);
+        this.drawCycle(this.clientWidth - (QUYU / 5), rectY, 7.5, 0.8, colorPool[i]);
       }
     }
   }
   /**
    * 画圆点
    */
-  drawCycle(x: number, y: number, r: number, transparency: number, color: string): void {
+  drawCycle(
+    x: number,
+    y: number,
+    r: number,
+    transparency: number,
+    color: string
+  ): void {
     this.ctx!.fillStyle = color;
     this.ctx?.beginPath();
     this.ctx!.globalAlpha = transparency;
@@ -248,8 +263,11 @@ export class LitChartScatter extends BaseElement {
     }
     // data[1]用来标注n Hz负载线
     let addr1: number =
-      this.originX + (this.finalX - this.originX - ((this.finalX - this.originX) % QUYU)) * (data[0] / maxXAxis);
-    let addr2: number = (this.originY - this.finalY - ((this.originY - this.finalY) % QUYU)) / FOR_VALUE;
+      this.originX +
+      (this.finalX - this.originX - ((this.finalX - this.originX) % QUYU)) *
+      (data[0] / maxXAxis);
+    let addr2: number =
+      (this.originY - this.finalY - ((this.originY - this.finalY) % QUYU)) / FOR_VALUE;
     let y: number = this.originY;
     this.ctx!.strokeStyle = '#ff0000';
     for (let i = 0; i < FOR_VALUE; i++) {
@@ -271,7 +289,11 @@ export class LitChartScatter extends BaseElement {
     this.ctx!.fillStyle = '#000000';
     this.ctx?.fillText('过供给区', addr1 / 2, y + FOR_VALUE / 2);
     this.ctx?.fillText('欠供给区', addr1 / 2, this.originY - this.finalY);
-    this.ctx?.fillText('超负载区', addr1 + FOR_VALUE / 3, (this.finalY + this.originY) / 2);
+    this.ctx?.fillText(
+      '超负载区',
+      addr1 + FOR_VALUE / 3,
+      (this.finalY + this.originY) / 2
+    );
   }
 
   /**
@@ -286,8 +308,10 @@ export class LitChartScatter extends BaseElement {
     }
     // data[1]用来标注n Hz均衡线
     let addr1: number =
-      ((this.finalX - this.originX - ((this.finalX - this.originX) % QUYU)) * (data[0] / maxXAxis)) / FOR_VALUE;
-    let addr2: number = (this.originY - this.finalY - ((this.originY - this.finalY) % QUYU)) / FOR_VALUE;
+      ((this.finalX - this.originX - ((this.finalX - this.originX) % QUYU)) *
+        (data[0] / maxXAxis)) / FOR_VALUE;
+    let addr2: number =
+      (this.originY - this.finalY - ((this.originY - this.finalY) % QUYU)) / FOR_VALUE;
     let x: number = this.originX;
     let y: number = this.originY;
     this.ctx!.strokeStyle = '#00ff00';
@@ -311,7 +335,10 @@ export class LitChartScatter extends BaseElement {
   }
 
   /*检测是否hover在散点之上*/
-  checkHover(options: LitChartScatterConfig | undefined, pos: Object): Object | boolean {
+  checkHover(
+    options: LitChartScatterConfig | undefined,
+    pos: Object
+  ): Object | boolean {
     let data: Array<Object> = [];
     if (options) {
       data = options.paintingData;
@@ -400,21 +427,10 @@ export class LitChartScatter extends BaseElement {
    * 显示提示框
    */
   showTip(data: any): void {
-    const minWidth: number = 160;
-    const miniHeight: number = 70;
-    const canvasWidth: number = Number(this.canvas?.style.width.replace('px', ''));
-    const canvasHeight: number = Number(this.canvas?.style.height.replace('px', ''));
+    const Y_DELTA: number = 70;
     this.scatterTipEL!.style.display = 'flex';
-    if (canvasWidth - data.x < minWidth && canvasHeight - data.y >= miniHeight) {
-      this.scatterTipEL!.style.top = `${data.y}px`;
-      this.scatterTipEL!.style.left = `${data.x - minWidth}px`;
-    } else if (canvasHeight - data.y < miniHeight && canvasWidth - data.x > minWidth) {
-      this.scatterTipEL!.style.top = `${data.y - miniHeight}px`;
-      this.scatterTipEL!.style.left = `${data.x}px`;
-    } else {
-      this.scatterTipEL!.style.top = `${data.y}px`;
-      this.scatterTipEL!.style.left = `${data.x}px`;
-    }
+    this.scatterTipEL!.style.top = `${data.y - Y_DELTA}px`;
+    this.scatterTipEL!.style.left = `${data.x}px`;
     this.scatterTipEL!.innerHTML = this.options!.tip(data);
     // @ts-ignore
     this.options!.hoverEvent('CPU-FREQ', true, data.c[2] - 1);
@@ -453,7 +469,8 @@ export class LitChartScatter extends BaseElement {
        */
       if (hoverPoint) {
         this.showTip(hoverPoint);
-        let samePoint: boolean = this.options!.hoverData === hoverPoint ? true : false;
+        let samePoint: boolean =
+          this.options!.hoverData === hoverPoint ? true : false;
         if (!samePoint) {
           this.resetHoverWithOffScreen();
           this.options!.hoverData = hoverPoint;
@@ -482,8 +499,7 @@ export class LitChartScatter extends BaseElement {
   }
 
   initHtml(): string {
-    return (
-      `
+    return `
             <style>   
             :host {
                 display: flex;
@@ -526,8 +542,7 @@ export class LitChartScatter extends BaseElement {
                 background-repeat:no-repeat;
                 background-position:center;
             }
-            ` + this.dismantlingHtml()
-    );
+            ` + this.dismantlingHtml();
   }
 
   /**
@@ -535,7 +550,7 @@ export class LitChartScatter extends BaseElement {
    * @returns html
    */
   dismantlingHtml(): string {
-    return `
+    return`
       #labels{
         display: grid;
         grid-template-columns: auto auto auto auto auto;

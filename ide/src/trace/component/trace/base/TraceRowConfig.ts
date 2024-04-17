@@ -82,12 +82,6 @@ export class TraceRowConfig extends BaseElement {
       );
     TraceRowConfig.allTraceRowList.push(...this.traceRowList!);
     this.refreshAllConfig(true, true);
-    // 鼠标移入该页面,隐藏泳道图tip
-    this.onmouseenter = () => {
-      this.spSystemTrace!.tipEL!.style.display = 'none';
-      this.spSystemTrace!.hoverStructNull();
-      this.spSystemTrace!.refreshCanvas(true);
-    };
   }
 
   private refreshAllConfig(
@@ -427,7 +421,7 @@ export class TraceRowConfig extends BaseElement {
     }/application/trace/config/custom_temp_config.json`;
     let localJson = '';
     this.switchButton!.addEventListener('click', () => {
-      if (this.switchButton!.title === 'Show charts template') {
+      if(this.switchButton!.title === 'Show charts template') {
         this.switchButton!.title = 'Show subSystem template';
         this.refreshAllConfig(true, true);
         this.resetChartTable();
@@ -440,22 +434,22 @@ export class TraceRowConfig extends BaseElement {
         this.exportFileIcon!.style.display = 'block';
         this.configTitle!.innerHTML = 'SubSystem Template';
         let localText = window.localStorage.getItem(LOCAL_STORAGE_JSON);
-        if (localText) {
+        if(localText) {
           this.loadTempConfig(localText);
         } else {
           if (localJson === '') {
             fetch(jsonUrl)
-              .then((res) => {
-                if (res.ok) {
-                  res.text().then((text) => {
-                    localJson = text;
-                    this.loadTempConfig(localJson);
-                  });
-                }
-              })
+            .then((res) => {
+              if (res.ok) {
+                res.text().then((text) => {
+                  localJson = text;
+                  this.loadTempConfig(localJson);
+                });
+              }
+            })
               ['catch']((err) => {
-                console.log(err);
-              });
+              console.log(err);
+            });
           } else {
             this.loadTempConfig(localJson);
           }
@@ -563,12 +557,8 @@ export class TraceRowConfig extends BaseElement {
     let subsystemList = [];
     for (let subIndex = 0; subIndex < subsystemsData.length; subIndex++) {
       let currentSystemData = subsystemsData[subIndex];
-      if (
-        !currentSystemData.hasOwnProperty('subsystem') ||
-        currentSystemData.subsystem === '' ||
-        subsystemList.indexOf(currentSystemData.subsystem) > -1 ||
-        Array.isArray(currentSystemData.subsystem)
-      ) {
+      if(!currentSystemData.hasOwnProperty('subsystem') || currentSystemData.subsystem === '' ||
+        subsystemList.indexOf(currentSystemData.subsystem) > -1 || Array.isArray(currentSystemData.subsystem)) {
         continue;
       }
       let currentSubName = currentSystemData.subsystem;
@@ -589,11 +579,8 @@ export class TraceRowConfig extends BaseElement {
         }
         for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
           let currentCompDate = currentCompDates[compIndex];
-          if (
-            !currentCompDate.hasOwnProperty('component') ||
-            currentCompDate.component === '' ||
-            !currentCompDate.hasOwnProperty('charts')
-          ) {
+          if(!currentCompDate.hasOwnProperty('component') || currentCompDate.component === '' ||
+            !currentCompDate.hasOwnProperty('charts')) {
             continue;
           }
           id = this.setSubsystemComp(currentCompDate, id, subsystemStruct);
@@ -632,10 +619,8 @@ export class TraceRowConfig extends BaseElement {
     };
     for (let chartIndex = 0; chartIndex < currentChartDates.length; chartIndex++) {
       let currentChartDate = currentChartDates[chartIndex];
-      if (
-        (!currentChartDate.hasOwnProperty('chartName') && !currentChartDate.hasOwnProperty('chartId')) ||
-        Array.isArray(currentChartDate.chartName)
-      ) {
+      if ((!currentChartDate.hasOwnProperty('chartName') && !currentChartDate.hasOwnProperty('chartId'))
+        || Array.isArray(currentChartDate.chartName)) {
         continue;
       }
       let currentChartName = `${currentChartDate.chartName}`;
@@ -669,12 +654,7 @@ export class TraceRowConfig extends BaseElement {
     return id;
   }
 
-  private setSubsystemChart(
-    currentChartName: string,
-    currentChartId: string,
-    scene: Array<string>,
-    findChartNames: Array<string>
-  ) {
+  private setSubsystemChart(currentChartName: string, currentChartId: string, scene: Array<string>, findChartNames: Array<string>) {
     if (this.traceRowList) {
       for (let index = 0; index < this.traceRowList.length; index++) {
         let item = this.traceRowList[index];
@@ -686,31 +666,21 @@ export class TraceRowConfig extends BaseElement {
           chartId = match[0].trim();
           name = item.name.split(match[0])[0];
           if (name !== 'Cpu') {
-            if (
-              (currentChartName !== undefined &&
-                currentChartName !== '' &&
-                name.toLowerCase().endsWith(currentChartName.toLowerCase())) ||
-              currentChartId === chartId
-            ) {
+            if ((currentChartName !== undefined && currentChartName !== '' &&
+              name.toLowerCase().endsWith(currentChartName.toLowerCase())) || currentChartId === chartId) {
               scene.push(...item.templateType);
               findChartNames.push(item.name);
             }
           } else {
-            if (
-              currentChartName !== undefined &&
-              currentChartName !== '' &&
-              name.toLowerCase().endsWith(currentChartName.toLowerCase())
-            ) {
+            if ((currentChartName !== undefined && currentChartName !== '' &&
+              name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
               scene.push(...item.templateType);
               findChartNames.push(item.name);
             }
           }
         } else {
-          if (
-            currentChartName !== undefined &&
-            currentChartName !== '' &&
-            name.toLowerCase().endsWith(currentChartName.toLowerCase())
-          ) {
+          if ((currentChartName !== undefined && currentChartName !== '' &&
+            name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
             scene.push(...item.templateType);
             findChartNames.push(item.name);
           }
@@ -854,21 +824,21 @@ export class TraceRowConfig extends BaseElement {
   private setChildIsSelect(node: SubsystemNode, configCheckBox: LitCheckBox): void {
     node.isCheck = configCheckBox.checked;
     if (node.children.length > 0) {
-      node.children.forEach((childItem) => {
+      node.children.forEach(childItem => {
         this.displayRow(childItem, configCheckBox);
         this.setChildIsSelect(childItem, configCheckBox);
       });
     }
   }
 
-  private displayRow(node: SubsystemNode, configCheckBox: LitCheckBox): void {
+  private displayRow(node:SubsystemNode, configCheckBox: LitCheckBox):void {
     if (node.depth === 3) {
-      let chartNumber = this.subsystemSelectList?.findIndex((item) => item.nodeName === node.nodeName!);
+      let chartNumber = this.subsystemSelectList?.findIndex(item => item.nodeName === node.nodeName!);
       if (configCheckBox.checked) {
-        if (chartNumber === -1) {
+        if(chartNumber === -1) {
           this.subsystemSelectList?.push({
             nodeName: node.nodeName!,
-            scene: configCheckBox.title.split(','),
+            scene: configCheckBox.title.split(',')
           });
         }
       } else {

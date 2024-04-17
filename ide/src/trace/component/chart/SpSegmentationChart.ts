@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +23,6 @@ import { queryIrqList } from '../../database/sql/Irq.sql';
 import { type BaseStruct } from '../../bean/BaseStruct';
 import { type ThreadRender, ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread';
 import { StateGroup } from '../../bean/StateModle';
-import { queryAllFuncNames } from '../../database/sql/Func.sql';
 const UNIT_HEIGHT: number = 20;
 const MS_TO_US: number = 1000000;
 const MIN_HEIGHT: number = 2;
@@ -51,7 +51,7 @@ export class SpSegmentationChart {
   // state泳道联动
   static setStateChartData(data: Array<StateGroup>) {
     let stateChartData = new Array();
-    stateChartData = data.map((v) => {
+    stateChartData = data.map(v => {
       return {
         dur: v.dur,
         pid: v.pid,
@@ -74,10 +74,10 @@ export class SpSegmentationChart {
     SpSegmentationChart.statesRow!.supplier = (): Promise<Array<ThreadStruct>> =>
       new Promise<Array<ThreadStruct>>((resolve) => resolve(stateChartData));
     SpSegmentationChart.trace.refreshCanvas(false);
-  }
+  };
 
-  // binder联动调用
-  static setBinderChartData(data: Array<Array<FreqChartDataStruct>>): void {
+   // binder联动调用
+   static setBinderChartData(data: Array<Array<FreqChartDataStruct>>): void {
     BinderStruct.maxHeight = 0;
     SpSegmentationChart.binderRow!.dataList = [];
     SpSegmentationChart.binderRow!.dataListCache = [];
@@ -97,10 +97,10 @@ export class SpSegmentationChart {
             v.name === 'binder transaction'
               ? 0
               : v.name === 'binder transaction async'
-              ? 1
-              : v.name === 'binder reply'
-              ? MS_TO_US
-              : 3,
+                ? 1
+                : v.name === 'binder reply'
+                  ? MS_TO_US
+                  : 3,
           startNS: v.startNS,
           dur: v.dur,
           name: `${v.name}`,
@@ -109,9 +109,7 @@ export class SpSegmentationChart {
           cycle: v.cycle,
         };
       });
-      SpSegmentationChart.binderRow!.style.height = `${
-        BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40
-      }px`;
+      SpSegmentationChart.binderRow!.style.height = `${BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40}px`;
       // @ts-ignore
       SpSegmentationChart.binderRow!.supplier = (): Promise<Array<FreqChartDataStruct>> =>
         new Promise<Array<FreqChartDataStruct>>((resolve) => resolve(chartData));
@@ -123,69 +121,53 @@ export class SpSegmentationChart {
   static tabHover(type: string, tableIsHover: boolean = false, cycle: number = -1): void {
     CpuFreqExtendStruct.isTabHover = tableIsHover;
     if (type === 'CPU-FREQ' || type === 'GPU-FREQ' || type === 'SCHED-SWITCH') {
-      // 竖线显示处理
-      if (type === 'SCHED-SWITCH') {
-        CpuFreqExtendStruct.cpuCycle = -1;
-        CpuFreqExtendStruct.gpuCycle = -1;
-        if (cycle === CpuFreqExtendStruct.schedCycle) {
-          CpuFreqExtendStruct.isTabHover = false;
+      CpuFreqExtendStruct.hoverType = type
+      if (tableIsHover) {
+        if (type === 'CPU-FREQ') {
+          CpuFreqExtendStruct.cpuCycle = cycle;
+          SpSegmentationChart.cpuRow!.isHover = false;
+          CpuFreqExtendStruct.gpuCycle = -1;
+          CpuFreqExtendStruct.schedCycle = -1;
+        } else if (type === 'GPU-FREQ') {
+          CpuFreqExtendStruct.gpuCycle = cycle;
+          SpSegmentationChart.GpuRow!.isHover = false;
+          CpuFreqExtendStruct.cpuCycle = -1;
           CpuFreqExtendStruct.schedCycle = -1;
         } else {
-          CpuFreqExtendStruct.isTabHover = true;
           CpuFreqExtendStruct.schedCycle = cycle;
-          BinderStruct.isTabHover = false;
-        }
-      } else if (type === 'CPU-FREQ') {
-        CpuFreqExtendStruct.gpuCycle = -1;
-        CpuFreqExtendStruct.schedCycle = -1;
-        if (cycle === CpuFreqExtendStruct.cpuCycle) {
-          CpuFreqExtendStruct.isTabHover = false;
-          CpuFreqExtendStruct.cpuCycle = -1;
-        } else {
-          CpuFreqExtendStruct.isTabHover = true;
-          CpuFreqExtendStruct.cpuCycle = cycle;
-          BinderStruct.isTabHover = false;
-        }
-      } else if (type === 'GPU-FREQ') {
-        CpuFreqExtendStruct.cpuCycle = -1;
-        CpuFreqExtendStruct.schedCycle = -1;
-        if (cycle === CpuFreqExtendStruct.gpuCycle) {
+          SpSegmentationChart.schedRow!.isHover = false;
           CpuFreqExtendStruct.gpuCycle = -1;
-          CpuFreqExtendStruct.isTabHover = false;
-        } else {
-          CpuFreqExtendStruct.gpuCycle = cycle;
-          CpuFreqExtendStruct.isTabHover = true;
-          BinderStruct.isTabHover = false;
+          CpuFreqExtendStruct.cpuCycle = -1;
         }
-      }
-      CpuFreqExtendStruct.hoverType = type;
-    } else if (type === 'BINDER') {
-      if (cycle === BinderStruct.hoverCycle) {
-        BinderStruct.hoverCycle = -1;
-        BinderStruct.isTabHover = false;
-        CpuFreqExtendStruct.isTabHover = false;
       } else {
+        if (type === 'CPU-FREQ') {
+          CpuFreqExtendStruct.cpuCycle = -1;
+        } else if (type === 'GPU-FREQ') {
+          CpuFreqExtendStruct.gpuCycle = -1;
+        } else {
+          CpuFreqExtendStruct.schedCycle = -1;
+        }
+        CpuFreqExtendStruct.hoverCpuFreqStruct = undefined;
+      }
+    } else if (type === 'BINDER') {
+      if (tableIsHover) {
         BinderStruct.hoverCycle = cycle;
-        BinderStruct.isTabHover = true;
+      } else {
+        BinderStruct.hoverCycle = -1;
       }
     }
-    SpSegmentationChart.trace.refreshCanvas(false);
+    SpSegmentationChart.trace.refreshCanvas(true, 'flagChange');
   }
   constructor(trace: SpSystemTrace) {
     SpSegmentationChart.trace = trace;
   }
   async init() {
-    let funArr = await queryAllFuncNames();
-    if (funArr.length > 0) {
-      await this.initFolder();
-      await this.initCpuFreq();
-      await this.initGpuTrace();
-      await this.initSchedTrace();
-      await this.initBinderTrace();
-      await this.initAllStates();
-    } else {
-      return;
-    }
+    await this.initFolder();
+    await this.initCpuFreq();
+    await this.initGpuTrace();
+    await this.initSchedTrace();
+    await this.initAllStates();
+    await this.initBinderTrace();
   }
   async initFolder() {
     let row = TraceRow.skeleton();
@@ -229,28 +211,24 @@ export class SpSegmentationChart {
     SpSegmentationChart.cpuRow.addRowCheckFilePop();
     SpSegmentationChart.cpuRow.rowSetting = 'checkFile';
     // 拿到了用户传递的数据
-    SpSegmentationChart.cpuRow.onRowCheckFileChangeHandler = (): void => {
-      SpSegmentationChart.freqInfoMapData = new Map<number, Map<number, number>>();
-      if (sessionStorage.getItem('freqInfoData')) {
-        // @ts-ignore
-        let chartData = JSON.parse(JSON.parse(sessionStorage.getItem('freqInfoData')));
-        let mapData = new Map<number, number>();
-        // @ts-ignore
-        chartData.map((v) => {
-          for (let key in v.freqInfo) {
-            mapData.set(Number(key), Number(v.freqInfo[key]));
-          }
-          SpSegmentationChart.freqInfoMapData.set(v.cpuId, mapData);
-          mapData = new Map();
-        });
-      }
+    SpSegmentationChart.cpuRow.onRowCheckFileChangeHandler = (e: string | ArrayBuffer | null): void => {
+      // @ts-ignore
+      let chartData = JSON.parse(e);
+      let mapData = new Map<number, number>();
+      // @ts-ignore
+      chartData.map((v) => {
+        for (let key in v.freqInfo) {
+          mapData.set(Number(key), Number(v.freqInfo[key]));
+        }
+        SpSegmentationChart.freqInfoMapData.set(v.cpuId, mapData);
+        mapData = new Map();
+      });
     };
     SpSegmentationChart.cpuRow.focusHandler = (ev): void => {
       SpSegmentationChart.trace?.displayTip(
         SpSegmentationChart.cpuRow!,
         CpuFreqExtendStruct.hoverCpuFreqStruct,
-        `<span>${
-          CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!
+        `<span>${CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!
         }</span>`
       );
     };
@@ -299,8 +277,7 @@ export class SpSegmentationChart {
       SpSegmentationChart.trace?.displayTip(
         SpSegmentationChart.GpuRow!,
         CpuFreqExtendStruct.hoverCpuFreqStruct,
-        `<span>${
-          CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!
+        `<span>${CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!
         }</span>`
       );
     };
@@ -393,9 +370,7 @@ export class SpSegmentationChart {
       if (SpSegmentationChart.statesRow!.currentContext) {
         context = SpSegmentationChart.statesRow!.currentContext;
       } else {
-        context = SpSegmentationChart.statesRow!.collect
-          ? SpSegmentationChart.trace.canvasFavoritePanelCtx!
-          : SpSegmentationChart.trace.canvasPanelCtx!;
+        context = SpSegmentationChart.statesRow!.collect ? SpSegmentationChart.trace.canvasFavoritePanelCtx! : SpSegmentationChart.trace.canvasPanelCtx!;
       }
       SpSegmentationChart.statesRow!.canvasSave(context);
       (renders['thread'] as ThreadRender).renderMainThread(
@@ -425,16 +400,14 @@ export class SpSegmentationChart {
     SpSegmentationChart.binderRow.findHoverStruct = () => {
       BinderStruct.hoverCpuFreqStruct = SpSegmentationChart.binderRow!.dataListCache.find((v: BinderStruct) => {
         if (SpSegmentationChart.binderRow!.isHover) {
-          if (
-            v.frame!.x < SpSegmentationChart.binderRow!.hoverX &&
-            v.frame!.x + v.frame!.width > SpSegmentationChart.binderRow!.hoverX &&
-            BinderStruct.maxHeight * 20 - v.depth * 20 + 20 < SpSegmentationChart.binderRow!.hoverY &&
-            BinderStruct.maxHeight * 20 - v.depth * 20 + v.value * 20 + 20 > SpSegmentationChart.binderRow!.hoverY
-          ) {
+          if (v.frame!.x < SpSegmentationChart.binderRow!.hoverX
+            && v.frame!.x + v.frame!.width > SpSegmentationChart.binderRow!.hoverX
+            && (BinderStruct.maxHeight * 20 - v.depth * 20 + 20) < SpSegmentationChart.binderRow!.hoverY
+            && BinderStruct.maxHeight * 20 - v.depth * 20 + v.value * 20 + 20 > SpSegmentationChart.binderRow!.hoverY) {
             return v;
           }
         }
-      });
+      })
     };
     SpSegmentationChart.binderRow.supplier = (): Promise<Array<BinderStruct>> =>
       new Promise<Array<BinderStruct>>((resolve) => resolve([]));
@@ -462,15 +435,12 @@ export class SpSegmentationChart {
       SpSegmentationChart.trace!.displayTip(
         SpSegmentationChart.binderRow!,
         BinderStruct.hoverCpuFreqStruct,
-        `<span style='font-weight: bold;'>Cycle: ${
-          BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.cycle : 0
+        `<span style='font-weight: bold;'>Cycle: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.cycle : 0
         }</span><br>
-                <span style='font-weight: bold;'>Name: ${
-                  BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.name : ''
-                }</span><br>
-                <span style='font-weight: bold;'>Count: ${
-                  BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.value : 0
-                }</span>`
+                <span style='font-weight: bold;'>Name: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.name : ''
+        }</span><br>
+                <span style='font-weight: bold;'>Count: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.value : 0
+        }</span>`
       );
     };
     SpSegmentationChart.trace.rowsEL?.appendChild(SpSegmentationChart.binderRow);
@@ -551,8 +521,8 @@ function setBinderData(data: Array<Array<FreqChartDataStruct>>, binderList: Arra
             return i.name === 'binder transaction';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder transaction';
-              })[0].value
+              return i.name === 'binder transaction';
+            })[0].value
             : 0);
       }
       if (t.name === 'binder reply') {
@@ -562,15 +532,15 @@ function setBinderData(data: Array<Array<FreqChartDataStruct>>, binderList: Arra
             return i.name === 'binder transaction';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder transaction';
-              })[0].value
+              return i.name === 'binder transaction';
+            })[0].value
             : 0) +
           (v.filter((i: FreqChartDataStruct) => {
             return i.name === 'binder transaction async';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder transaction async';
-              })[0].value
+              return i.name === 'binder transaction async';
+            })[0].value
             : 0);
       }
       if (t.name === 'binder async rcv') {
@@ -580,22 +550,22 @@ function setBinderData(data: Array<Array<FreqChartDataStruct>>, binderList: Arra
             return i.name === 'binder transaction';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder transaction';
-              })[0].value
+              return i.name === 'binder transaction';
+            })[0].value
             : 0) +
           (v.filter((i: FreqChartDataStruct) => {
             return i.name === 'binder transaction async';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder transaction async';
-              })[0].value
+              return i.name === 'binder transaction async';
+            })[0].value
             : 0) +
           (v.filter((i: FreqChartDataStruct) => {
             return i.name === 'binder reply';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder reply';
-              })[0].value
+              return i.name === 'binder reply';
+            })[0].value
             : 0);
       }
       binderList.push(t);

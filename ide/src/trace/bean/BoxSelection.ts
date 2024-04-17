@@ -136,13 +136,13 @@ export class SelectionParam {
     if (it.rowType == TraceRow.ROW_TYPE_SAMPLE) {
       let dataList: SampleStruct[] = JSON.parse(JSON.stringify(it.dataList));
       if (dataList.length > 0) {
-        dataList.forEach((SampleStruct) => {
-          SampleStruct.property = SampleStruct.property!.filter(
-            (i: any) =>
-              (i.begin! - i.startTs! ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
-              (i.end! - i.startTs! ?? 0) <= TraceRow.rangeSelectObject!.endNS!
-          );
-        });
+        dataList.forEach(
+          SampleStruct => {
+            SampleStruct.property = SampleStruct.property!.filter((i : any) => 
+              ((i.begin! - i.startTs!) ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
+              ((i.end! - i.startTs!) ?? 0) <= TraceRow.rangeSelectObject!.endNS!)
+          }
+        )
         if (dataList[0].property!.length !== 0) {
           this.sampleData.push(...dataList);
         }
@@ -159,7 +159,7 @@ export class SelectionParam {
 
   pushCpuStateFilterIds(it: TraceRow<any>) {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_STATE_ALL) {
-      it.childrenList.forEach((child) => {
+      it.childrenList.forEach(child => {
         child.rangeSelect = true;
         child.checkType = '2';
         this.pushCpuStateFilterIds(child);
@@ -175,7 +175,7 @@ export class SelectionParam {
 
   pushCpuFreqFilter(it: TraceRow<any>) {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_FREQ_ALL) {
-      it.childrenList.forEach((child) => {
+      it.childrenList.forEach(child => {
         child.rangeSelect = true;
         child.checkType = '2';
         this.pushCpuFreqFilter(child);
@@ -195,7 +195,7 @@ export class SelectionParam {
 
   pushCpuFreqLimit(it: TraceRow<any>) {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMITALL) {
-      it.childrenList.forEach((child) => {
+      it.childrenList.forEach(child => {
         child.rangeSelect = true;
         child.checkType = '2';
         this.pushCpuFreqLimit(child);
@@ -725,7 +725,7 @@ export class SelectionParam {
 
   pushIrq(it: TraceRow<any>) {
     if (it.rowType === TraceRow.ROW_TYPE_IRQ_GROUP) {
-      it.childrenList.forEach((child) => {
+      it.childrenList.forEach(child => {
         child.rangeSelect = true;
         child.checkType = '2';
         this.pushIrq(child);
@@ -942,7 +942,7 @@ export class SelectionParam {
 
   pushClock(it: TraceRow<any>, sp: SpSystemTrace) {
     if (it.rowType === TraceRow.ROW_TYPE_CLOCK_GROUP) {
-      it.childrenList.forEach((it) => {
+      it.childrenList.forEach(it => {
         it.rangeSelect = true;
         it.checkType = '2';
         this.clockMapData.set(it.rowId || '', it.getCacheData);

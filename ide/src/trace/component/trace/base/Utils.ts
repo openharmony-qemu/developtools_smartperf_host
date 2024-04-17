@@ -15,10 +15,9 @@
 
 import { SelectionParam } from '../../../bean/BoxSelection';
 import { procedurePool } from '../../../database/Procedure';
-import { queryNativeHookResponseTypes } from '../../../database/sql/NativeHook.sql';
+import {queryNativeHookResponseTypes} from "../../../database/sql/NativeHook.sql";
 
 export class Utils {
-  static isTransformed: boolean = false;
   private static statusMap: Map<string, string> = new Map<string, string>();
   private static instance: Utils | null = null;
   static THREAD_MAP: Map<number, string> = new Map<number, string>();

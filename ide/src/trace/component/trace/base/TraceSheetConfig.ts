@@ -129,6 +129,7 @@ import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSamp
 import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 
+
 export let tabConfig: any = {
   'current-selection': {
     title: 'Current Selection',
@@ -659,30 +660,28 @@ export let tabConfig: any = {
   'tabpane-gpufreq': {
     title: 'Gpufreq Usage',
     type: TabPaneGpufreq,
-    require: (param: SelectionParam) =>
-      param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true,
+    require: (param: SelectionParam) => param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true,
   },
   'tabpane-datacut': {
     title: 'Data Cut',
     type: TabPaneDataCut,
-    require: (param: SelectionParam) =>
-      param.threadIds.length > 0 ||
+    require: (param: SelectionParam) => param.threadIds.length > 0 ||
       (param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true),
   },
   'box-sample-instruction-selection': {
     title: 'Data Selection',
     type: TabPaneSampleInstructionSelection,
-    require: (param: SelectionParam) => param.sampleData.length > 0,
+    require: (param: SelectionParam) => param.sampleData.length > 0
   },
   'box-sample-instruction-distribution-selection': {
     title: 'Data Distribution',
     type: TabPaneSampleInstructionDistributions,
-    require: (param: SelectionParam) => param.sampleData.length > 0,
+    require: (param: SelectionParam) => param.sampleData.length > 0
   },
   'box-sample-instruction-totaltime-selection': {
     title: 'Total Duration',
     type: TabPaneSampleInstructionTotalTime,
-    require: (param: SelectionParam) => param.sampleData.length > 0,
+    require: (param: SelectionParam) => param.sampleData.length > 0
   },
   'box-sample-instruction': {
     title: 'Data Flow',

@@ -73,9 +73,11 @@ export class TabPanePurgPin extends BaseElement {
   getDataSource(res: any): void {
     if (res.length > 0) {
       for (let i = 0; i < res.length; i++) {
-        this.purgeablePinSource.push(this.toTabStruct(res[i].name, res[i].maxSize, res[i].minSize, res[i].avgSize));
+        this.purgeablePinSource.push(
+          this.toTabStruct(res[i].name, res[i].maxSize, res[i].minSize, res[i].avgSize)
+        );
       }
-      this.sortByColumn({ key: this.sortKey, sort: this.sortType });
+      this.sortByColumn({key: this.sortKey, sort: this.sortType});
       let total = this.totalData(this.purgeablePinSource);
       this.purgeablePinSource.unshift(total);
       this.purgeablePinTable!.recycleDataSource = this.purgeablePinSource;

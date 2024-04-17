@@ -20,7 +20,7 @@ import { temp_init_sql_list } from './TempSql';
 // @ts-ignore
 import { BatchSphData } from '../proto/SphBaseData';
 
-let wasmModule: any = null;
+let Module: any = null;
 let enc = new TextEncoder();
 let dec = new TextDecoder();
 let arr: Uint8Array | undefined;
@@ -34,11 +34,8 @@ let headUnitArray: Uint8Array | undefined;
 let thirdWasmMap = new Map();
 let thirdJsonResult = new Map();
 
-const CONTENT_TYPE_CMDLINES = 2;
-const CONTENT_TYPE_TGIDS = 3;
-const CONTENT_TYPE_HEADER_PAGE = 30;
-const CONTENT_TYPE_PRINTK_FORMATS = 31;
-const CONTENT_TYPE_KALLSYMS = 32;
+let CONTENT_TYPE_CMDLINES = 2;
+let CONTENT_TYPE_TGIDS = 3;
 
 let arkTsData: Array<Uint8Array> = [];
 let arkTsDataSize: number = 0;
@@ -47,13 +44,13 @@ let currentAction: string = '';
 let currentActionId: string = '';
 let ffrtFileCacheKey = '-1';
 let indexDB: IDBDatabase;
-const maxSize = 48 * 1024 * 1024;
+let maxSize = 48 * 1024 * 1024;
 
 let protoDataMap: Map<QueryEnum, any> = new Map<QueryEnum, any>();
 function clear() {
-  if (wasmModule != null) {
-    wasmModule._TraceStreamerReset();
-    wasmModule = null;
+  if (Module != null) {
+    Module._TraceStreamerReset();
+    Module = null;
   }
   if (arr) {
     arr = undefined;
@@ -82,16 +79,12 @@ function initWASM() {
   return new Promise((resolve, reject) => {
     //@ts-ignore
     let wasm = trace_streamer_builtin_wasm;
-    wasmModule = wasm({
+    Module = wasm({
       locateFile: (s: any) => {
         return s;
       },
-      print: (line: any) => {
-        console.log(line);
-      },
-      printErr: (line: any) => {
-        console.error(line);
-      },
+      print: (line: any) => {},
+      printErr: (line: any) => {},
       onRuntimeInitialized: () => {
         resolve('ok');
       },
@@ -109,12 +102,8 @@ function initThirdWASM(wasmFunctionName: string) {
       locateFile: (s: any) => {
         return s;
       },
-      print: (line: any) => {
-        console.log(line);
-      },
-      printErr: (line: any) => {
-        console.error(line);
-      },
+      print: (line: any) => {},
+      printErr: (line: any) => {},
       onRuntimeInitialized: () => {},
       onAbort: () => {},
     });
@@ -258,7 +247,7 @@ async function onmessageByOpenAction(e: MessageEvent): Promise<void> {
   } else {
     r2 = parseNormalTraceByOpenAction(wrSize, r2, uint8Array);
   }
-  wasmModule._TraceStreamerParseDataOver();
+  Module._TraceStreamerParseDataOver();
   for (let value of thirdWasmMap.values()) {
     value.model._TraceStreamer_In_ParseDataOver();
   }
@@ -267,18 +256,18 @@ async function onmessageByOpenAction(e: MessageEvent): Promise<void> {
 
 function initModuleCallBackAndFun(): void {
   let callback = (heapPtr: number, size: number, isEnd: number) => {
-    let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+    let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
     bufferSlice.push(out);
     if (isEnd == 1) {
       arr = merged();
       bufferSlice.length = 0;
     }
   };
-  let fn = wasmModule.addFunction(callback, 'viii');
-  reqBufferAddr = wasmModule._Initialize(fn, REQ_BUF_SIZE);
+  let fn = Module.addFunction(callback, 'viii');
+  reqBufferAddr = Module._Initialize(fn, REQ_BUF_SIZE);
   let ffrtConvertCallback = (heapPtr: number, size: number, isEnd: number) => {
     if (isEnd !== 1) {
-      let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+      let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
       bufferSlice.push(out);
     } else {
       arr = merged();
@@ -288,23 +277,23 @@ function initModuleCallBackAndFun(): void {
     }
   };
   let tlvResultCallback = (heapPtr: number, size: number, type: number, isEnd: number) => {
-    let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+    let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
     protoDataMap.set(type, BatchSphData.decode(out).values);
   };
-  let fn1 = wasmModule.addFunction(callback, 'viii');
-  let fn2 = wasmModule.addFunction(ffrtConvertCallback, 'viii');
-  let tlvResultFun = wasmModule.addFunction(tlvResultCallback, 'viiii');
-  wasmModule._TraceStreamer_Set_Log_Level(5);
-  reqBufferAddr = wasmModule._Initialize(REQ_BUF_SIZE, fn1, tlvResultFun, fn2);
+  let fn1 = Module.addFunction(callback, 'viii');
+  let fn2 = Module.addFunction(ffrtConvertCallback, 'viii');
+  let tlvResultFun = Module.addFunction(tlvResultCallback, 'viiii');
+  Module._TraceStreamer_Set_Log_Level(5);
+  reqBufferAddr = Module._Initialize(REQ_BUF_SIZE, fn1, tlvResultFun, fn2);
 }
 
 function parseThirdWasmByOpenAction(e: MessageEvent): void {
   let parseConfig = e.data.parseConfig;
   if (parseConfig !== '') {
     let parseConfigArray = enc.encode(parseConfig);
-    let parseConfigAddr = wasmModule._InitializeParseConfig(1024);
-    wasmModule.HEAPU8.set(parseConfigArray, parseConfigAddr);
-    wasmModule._TraceStreamerParserConfigEx(parseConfigArray.length);
+    let parseConfigAddr = Module._InitializeParseConfig(1024);
+    Module.HEAPU8.set(parseConfigArray, parseConfigAddr);
+    Module._TraceStreamerParserConfigEx(parseConfigArray.length);
   }
   let wasmConfigStr = e.data.wasmConfig;
   if (wasmConfigStr != '' && wasmConfigStr.indexOf('WasmFiles') != -1) {
@@ -315,14 +304,14 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
     });
     let thirdWasmStr: string = itemArray.join(';');
     let configUintArray = enc.encode(thirdWasmStr + ';');
-    wasmModule.HEAPU8.set(configUintArray, reqBufferAddr);
-    wasmModule._TraceStreamer_Init_ThirdParty_Config(configUintArray.length);
+    Module.HEAPU8.set(configUintArray, reqBufferAddr);
+    Module._TraceStreamer_Init_ThirdParty_Config(configUintArray.length);
     let first = true;
     let sendDataCallback = (heapPtr: number, size: number, componentID: number) => {
       if (componentID === 100) {
         if (first) {
           first = false;
-          headUnitArray = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+          headUnitArray = Module.HEAPU8.slice(heapPtr, heapPtr + size);
         }
         return;
       }
@@ -337,35 +326,25 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
           setThirdWasmMap(config, heapPtr, size, componentID);
         } else {
           let mm = model.model;
-          let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+          let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
           mm.HEAPU8.set(out, model.bufferAddr);
           mm._ParserData(out.length, componentID);
         }
       }
     };
-    let fn1 = wasmModule.addFunction(sendDataCallback, 'viii');
-    let reqBufferAddr1 = wasmModule._TraceStreamer_Set_ThirdParty_DataDealer(fn1, REQ_BUF_SIZE);
+    let fn1 = Module.addFunction(sendDataCallback, 'viii');
+    let reqBufferAddr1 = Module._TraceStreamer_Set_ThirdParty_DataDealer(fn1, REQ_BUF_SIZE);
   }
 }
 
-function isCommonData(dataType: number): boolean {
-  return (
-    dataType === CONTENT_TYPE_CMDLINES ||
-    dataType === CONTENT_TYPE_TGIDS ||
-    dataType === CONTENT_TYPE_HEADER_PAGE ||
-    dataType === CONTENT_TYPE_PRINTK_FORMATS ||
-    dataType === CONTENT_TYPE_KALLSYMS
-  );
-}
-
 function parseRawTraceByOpenAction(e: MessageEvent, wrSize: number, r2: number, uint8Array: Uint8Array): number {
-  let commonDataOffsetList: Array<{ startOffset: number; endOffset: number }> = []; // common Data
+  let commonDataOffsetList: Array<{ startOffset: number; endOffset: number}> = []; // common Data
   let offset = 12;
   let tlvTypeLength = 4;
   let headArray = uint8Array.slice(0, offset);
   let commonTotalLength = 0;
   while (offset < uint8Array.length) {
-    let commonDataOffset = { startOffset: offset, endOffset: offset };
+    let commonDataOffset = {startOffset: offset, endOffset: offset};
     let dataTypeData = e.data.buffer.slice(offset, offset + tlvTypeLength);
     offset += tlvTypeLength;
     let dataType = Array.from(new Uint32Array(dataTypeData));
@@ -374,7 +353,7 @@ function parseRawTraceByOpenAction(e: MessageEvent, wrSize: number, r2: number, 
     let currentVLength = Array.from(new Uint32Array(currentLData));
     offset += currentVLength[0];
     commonDataOffset.endOffset = offset;
-    if (isCommonData(dataType[0])) {
+    if (dataType[0] === CONTENT_TYPE_CMDLINES || dataType[0] === CONTENT_TYPE_TGIDS) {
       commonTotalLength += commonDataOffset.endOffset - commonDataOffset.startOffset;
       commonDataOffsetList.push(commonDataOffset);
     }
@@ -395,9 +374,9 @@ function parseRawTraceByOpenAction(e: MessageEvent, wrSize: number, r2: number, 
   while (wrSize < final.length) {
     const sliceLen = Math.min(final.length - wrSize, REQ_BUF_SIZE);
     const dataSlice = final.subarray(wrSize, wrSize + sliceLen);
-    wasmModule.HEAPU8.set(dataSlice, reqBufferAddr);
+    Module.HEAPU8.set(dataSlice, reqBufferAddr);
     wrSize += sliceLen;
-    r2 = wasmModule._TraceStreamerParseDataEx(sliceLen, wrSize === final.length ? 1 : 0);
+    r2 = Module._TraceStreamerParseDataEx(sliceLen, wrSize === final.length ? 1 : 0);
     if (r2 === -1) {
       break;
     }
@@ -409,9 +388,9 @@ function parseNormalTraceByOpenAction(wrSize: number, r2: number, uint8Array: Ui
   while (wrSize < uint8Array.length) {
     const sliceLen = Math.min(uint8Array.length - wrSize, REQ_BUF_SIZE);
     const dataSlice = uint8Array.subarray(wrSize, wrSize + sliceLen);
-    wasmModule.HEAPU8.set(dataSlice, reqBufferAddr);
+    Module.HEAPU8.set(dataSlice, reqBufferAddr);
     wrSize += sliceLen;
-    r2 = wasmModule._TraceStreamerParseDataEx(sliceLen, wrSize === uint8Array.length ? 1 : 0);
+    r2 = Module._TraceStreamerParseDataEx(sliceLen, wrSize === uint8Array.length ? 1 : 0);
     if (r2 == -1) {
       break;
     }
@@ -449,7 +428,7 @@ function setThirdWasmMap(config: any, heapPtr: number, size: number, componentID
   thirdMode._TraceStreamer_In_JsonConfig();
   thirdMode.HEAPU8.set(headUnitArray, thirdreqBufferAddr);
   thirdMode._ParserData(headUnitArray!.length, 100);
-  let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+  let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
   thirdMode.HEAPU8.set(out, thirdreqBufferAddr);
   thirdMode._ParserData(out.length, componentID);
   thirdWasmMap.set(componentID, {
@@ -492,8 +471,8 @@ function postMessageByOpenAction(r2: number, e: MessageEvent): void {
 function initTraceRange(thirdMode: any): any {
   let updateTraceTimeCallBack = (heapPtr: number, size: number) => {
     let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
-    wasmModule.HEAPU8.set(out, reqBufferAddr);
-    wasmModule._UpdateTraceTime(out.length);
+    Module.HEAPU8.set(out, reqBufferAddr);
+    Module._UpdateTraceTime(out.length);
   };
   let traceRangeFn = thirdMode.addFunction(updateTraceTimeCallBack, 'vii');
   let mm = thirdMode._InitTraceRange(traceRangeFn, 1024);
@@ -516,16 +495,16 @@ function onmessageByExecProtoAction(e: MessageEvent): void {
   execProtoForWorker(e.data, (sql: string) => {
     let sqlUintArray = enc.encode(sql);
     if (e.data.params.trafic !== TraficEnum.ProtoBuffer) {
-      wasmModule.HEAPU8.set(sqlUintArray, reqBufferAddr);
-      wasmModule._TraceStreamerSqlQueryEx(sqlUintArray.length);
+      Module.HEAPU8.set(sqlUintArray, reqBufferAddr);
+      Module._TraceStreamerSqlQueryEx(sqlUintArray.length);
       let jsonArray = convertJSON();
       return jsonArray;
     } else {
       let allArray = new Uint8Array(typeLength + sqlUintArray.length);
       allArray[0] = e.data.name;
       allArray.set(sqlUintArray, typeLength);
-      wasmModule.HEAPU8.set(allArray, reqBufferAddr);
-      wasmModule._TraceStreamerSqlQueryToProtoCallback(allArray.length);
+      Module.HEAPU8.set(allArray, reqBufferAddr);
+      Module._TraceStreamerSqlQueryToProtoCallback(allArray.length);
       let finalArrayBuffer = [];
       if (protoDataMap.has(e.data.name)) {
         finalArrayBuffer = protoDataMap.get(e.data.name);
@@ -596,7 +575,7 @@ function onmessageByDownloadDBAction(e: MessageEvent): void {
     return mergedArray;
   };
   let getDownloadDb = (heapPtr: number, size: number, isEnd: number) => {
-    let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+    let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
     bufferSliceUint.push(out);
     if (isEnd == 1) {
       let arr: Uint8Array = mergedUint();
@@ -607,20 +586,18 @@ function onmessageByDownloadDBAction(e: MessageEvent): void {
       });
     }
   };
-  let fn1 = wasmModule.addFunction(getDownloadDb, 'viii');
-  wasmModule._WasmExportDatabase(fn1);
+  let fn1 = Module.addFunction(getDownloadDb, 'viii');
+  Module._WasmExportDatabase(fn1);
 }
 
 function onmessageByUploadSoAction(e: MessageEvent): void {
   uploadSoActionId = e.data.id;
-  const fileList = e.data.params as Array<File>;
-  failedArray.length = 0;
+  let fileList = e.data.params as Array<File>;
   if (fileList) {
-    fileList.sort((a, b) => b.size - a.size);
     soFileList = fileList;
     uploadFileIndex = 0;
     if (!uploadSoCallbackFn) {
-      uploadSoCallbackFn = wasmModule.addFunction(uploadSoCallBack, 'viii');
+      uploadSoCallbackFn = Module.addFunction(uploadSoCallBack, 'viii');
     }
     uploadSoFile(soFileList[uploadFileIndex]).then();
   }
@@ -633,7 +610,7 @@ async function saveDataToIndexDB(
   timStamp: number,
   pageNum: number,
   saveIndex: number,
-  saveStartOffset: number
+  saveStartOffset: number,
 ): Promise<void> {
   let freeArray = currentChunk.slice(0, currentChunkOffset);
   await addDataToIndexeddb(indexDB, {
@@ -654,16 +631,10 @@ function cutLongTraceCallBackHandle(
   heapPtr: number,
   size: number,
   dataType: number,
-  newCutFilePageInfo: Map<
-    string,
-    {
-      traceFileType: string;
-      dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }];
-    }
-  >
+  newCutFilePageInfo: Map<string, { traceFileType: string; dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }] }>
 ) {
   let key = `${traceFileType}_${currentPageNum}`;
-  let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+  let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
   if (DataTypeEnum.data === dataType) {
     if (traceFileType === 'arkts') {
       arkTsData.push(out);
@@ -671,11 +642,11 @@ function cutLongTraceCallBackHandle(
     } else {
       if (newCutFilePageInfo.has(key)) {
         let newVar = newCutFilePageInfo.get(key);
-        newVar?.dataArray.push({ data: out, dataTypes: 'data' });
+        newVar?.dataArray.push({data: out, dataTypes: 'data'});
       } else {
         newCutFilePageInfo.set(key, {
           traceFileType: traceFileType,
-          dataArray: [{ data: out, dataTypes: 'data' }],
+          dataArray: [{data: out, dataTypes: 'data'}],
         });
       }
     }
@@ -685,18 +656,15 @@ function cutLongTraceCallBackHandle(
       let jsonStr: string = dec.decode(out);
       let jsonObj = JSON.parse(jsonStr);
       let valueArray: Array<{ offset: number; size: number }> = jsonObj.value;
-      cutFilePageInfo.dataArray.push({ data: valueArray, dataTypes: 'json' });
+      cutFilePageInfo.dataArray.push({data: valueArray, dataTypes: 'json'});
     }
   }
 }
 
-function initSplitLongTraceModuleAndFun(
-  headArray: Uint8Array,
-  cutFileCallBack: (heapPtr: number, size: number, dataType: number, isEnd: number) => void
-): number {
-  splitReqBufferAddr = wasmModule._InitializeSplitFile(wasmModule.addFunction(cutFileCallBack, 'viiii'), REQ_BUF_SIZE);
-  wasmModule.HEAPU8.set(headArray, splitReqBufferAddr);
-  wasmModule._TraceStreamerGetLongTraceTimeSnapEx(headArray.length);
+function initSplitLongTraceModuleAndFun(headArray: Uint8Array, cutFileCallBack: (heapPtr: number, size: number, dataType: number, isEnd: number) => void): number {
+  splitReqBufferAddr = Module._InitializeSplitFile(Module.addFunction(cutFileCallBack, 'viiii'), REQ_BUF_SIZE);
+  Module.HEAPU8.set(headArray, splitReqBufferAddr);
+  Module._TraceStreamerGetLongTraceTimeSnapEx(headArray.length);
   return splitReqBufferAddr;
 }
 
@@ -739,24 +707,10 @@ async function handleDataTypeBySplitLongTrace(
   return [currentChunkOffset, saveIndex, saveStartOffset, currentChunk];
 }
 
-async function saveAllDataByLongTrace(
-  range: IDBKeyRange,
-  nowCutInfoList: Array<any>,
-  searchDataInfo: {
-    fileType: string;
-    index: number;
-    pageNum: number;
-    startOffsetSize: number;
-    endOffsetSize: number;
-  }[],
-  currentChunkOffset: number,
-  currentChunk: Uint8Array,
-  fileType: string,
-  timStamp: number,
-  pageNum: number,
-  saveIndex: number,
-  saveStartOffset: number
-): Promise<[number, number, number, Uint8Array]> {
+async function saveAllDataByLongTrace(range: IDBKeyRange, nowCutInfoList: Array<any>,
+  searchDataInfo: { fileType: string; index: number; pageNum: number; startOffsetSize: number; endOffsetSize: number }[],
+  currentChunkOffset: number, currentChunk: Uint8Array, fileType: string, timStamp: number, pageNum: number,
+   saveIndex: number, saveStartOffset: number): Promise<[number, number, number, Uint8Array]> {
   let transaction = indexDB.transaction(STORE_NAME, 'readonly');
   let store = transaction.objectStore(STORE_NAME);
   let index = store.index('QueryCompleteFile');
@@ -787,16 +741,9 @@ async function saveAllDataByLongTrace(
           currentChunk.set(saveArray, currentChunkOffset);
           currentChunkOffset += saveArray.length;
         } else {
-          await addDataToIndexeddb(indexDB, {
-            buf: saveArray,
-            id: `${fileType}_new_${timStamp}_${pageNum}_${saveIndex}`,
-            fileType: `${fileType}_new`,
-            pageNum: pageNum,
-            startOffset: saveStartOffset,
-            endOffset: saveStartOffset + maxSize,
-            index: saveIndex,
-            timStamp: timStamp,
-          });
+          await addDataToIndexeddb(indexDB, { buf: saveArray, id: `${fileType}_new_${timStamp}_${pageNum}_${saveIndex}`,
+            fileType: `${fileType}_new`, pageNum: pageNum, startOffset: saveStartOffset,
+            endOffset: saveStartOffset + maxSize, index: saveIndex, timStamp: timStamp});
           saveStartOffset += maxSize;
           saveIndex++;
         }
@@ -811,13 +758,7 @@ async function saveAllDataByLongTrace(
 
 async function handleJsonTypeBySplitLongTrace(
   receiveData: { data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string },
-  allIndexDataList: Array<{
-    fileType: string;
-    index: number;
-    pageNum: number;
-    startOffsetSize: number;
-    endOffsetSize: number;
-  }>,
+  allIndexDataList: Array<{ fileType: string; index: number; pageNum: number; startOffsetSize: number; endOffsetSize: number }>,
   fileType: string,
   timStamp: number,
   currentChunkOffset: number,
@@ -842,40 +783,16 @@ async function handleJsonTypeBySplitLongTrace(
       let nowStartCutOffset = nowCutInfoList[0].offset;
       let nowEndCutOffset = cutInfo.offset + cutInfo.size;
       let searchDataInfo = allIndexDataList.filter(
-        (value: {
-          fileType: string;
-          index: number;
-          pageNum: number;
-          startOffsetSize: number;
-          endOffsetSize: number;
-        }) => {
-          return (
-            value.fileType === fileType &&
-            value.startOffsetSize <= nowEndCutOffset &&
-            value.endOffsetSize >= nowStartCutOffset
-          );
-        }
-      );
+        (value: { fileType: string; index: number; pageNum: number; startOffsetSize: number; endOffsetSize: number;}) => {
+          return ( value.fileType === fileType && value.startOffsetSize <= nowEndCutOffset &&
+            value.endOffsetSize >= nowStartCutOffset);});
       let startIndex = searchDataInfo[0].index;
       let endIndex = searchDataInfo[searchDataInfo.length - 1].index;
-      let range = IDBKeyRange.bound(
-        [timStamp, fileType, 0, startIndex],
-        [timStamp, fileType, 0, endIndex],
-        false,
-        false
-      );
-      [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] = await saveAllDataByLongTrace(
-        range,
-        nowCutInfoList,
-        searchDataInfo,
-        currentChunkOffset,
-        currentChunk,
-        fileType,
-        timStamp,
-        pageNum,
-        saveIndex,
-        saveStartOffset
-      );
+      let range = IDBKeyRange.bound([timStamp, fileType, 0, startIndex],
+        [timStamp, fileType, 0, endIndex],false,false);
+      [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] =
+        await saveAllDataByLongTrace(range, nowCutInfoList, searchDataInfo, currentChunkOffset, currentChunk, fileType,
+          timStamp, pageNum, saveIndex, saveStartOffset);
       isBeforeCutFinish = true;
     } else {
       nowCutInfoList.push(cutInfo);
@@ -885,26 +802,18 @@ async function handleJsonTypeBySplitLongTrace(
 }
 
 async function handleAllTypeDataByLongTrace(
-  newCutFilePageInfo: Map<
-    string,
-    {
-      traceFileType: string;
-      dataArray: [
-        {
-          data: Uint8Array | Array<{ offset: number; size: number }>;
-          dataTypes: string;
-        }
-      ];
-    }
-  >,
+  newCutFilePageInfo: Map<string, {
+    traceFileType: string;
+    dataArray: [{
+      data: Uint8Array | Array<{ offset: number; size: number }>;
+      dataTypes: string }] }>,
   timStamp: number,
   allIndexDataList: Array<{
     fileType: string;
     index: number;
     pageNum: number;
     startOffsetSize: number;
-    endOffsetSize: number;
-  }>
+    endOffsetSize: number}>
 ): Promise<void> {
   for (const [fileTypePageNum, fileMessage] of newCutFilePageInfo) {
     let fileTypePageNumArr = fileTypePageNum.split('_');
@@ -918,42 +827,19 @@ async function handleAllTypeDataByLongTrace(
     for (let fileDataIndex = 0; fileDataIndex < dataArray.length; fileDataIndex++) {
       let receiveData = dataArray[fileDataIndex];
       if (receiveData.dataTypes === 'data') {
-        [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] = await handleDataTypeBySplitLongTrace(
-          receiveData,
-          currentChunkOffset,
-          currentChunk,
-          fileType,
-          timStamp,
-          pageNum,
-          saveIndex,
-          saveStartOffset
-        );
+        [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] =
+          await handleDataTypeBySplitLongTrace(receiveData, currentChunkOffset, currentChunk, fileType,
+            timStamp, pageNum, saveIndex, saveStartOffset);
       } else {
         if (receiveData.data.length > 0) {
-          [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] = await handleJsonTypeBySplitLongTrace(
-            receiveData,
-            allIndexDataList,
-            fileType,
-            timStamp,
-            currentChunkOffset,
-            currentChunk,
-            pageNum,
-            saveIndex,
-            saveStartOffset
-          );
+          [currentChunkOffset, saveIndex, saveStartOffset, currentChunk] =
+            await handleJsonTypeBySplitLongTrace(receiveData, allIndexDataList, fileType, timStamp,
+              currentChunkOffset, currentChunk, pageNum, saveIndex, saveStartOffset);
         }
       }
     }
     if (currentChunkOffset !== 0) {
-      await saveDataToIndexDB(
-        currentChunk,
-        currentChunkOffset,
-        fileType,
-        timStamp,
-        pageNum,
-        saveIndex,
-        saveStartOffset
-      );
+      await saveDataToIndexDB(currentChunk, currentChunkOffset, fileType, timStamp, pageNum, saveIndex, saveStartOffset);
       saveStartOffset += maxSize;
       saveIndex++;
     }
@@ -967,11 +853,7 @@ async function onmessageByLongTraceAction(e: MessageEvent): Promise<void> {
   let timStamp = e.data.params.timeStamp;
   let allIndexDataList = e.data.params.splitDataList;
   let splitFileInfos = e.data.params.splitFileInfo as Array<{
-    fileType: string;
-    startIndex: number;
-    endIndex: number;
-    size: number;
-  }>;
+    fileType: string; startIndex: number; endIndex: number; size: number}>;
   let maxPageNum = headArray.length / 1024;
   let currentPageNum = 0;
   let splitReqBufferAddr: number;
@@ -980,13 +862,8 @@ async function onmessageByLongTraceAction(e: MessageEvent): Promise<void> {
     if (splitFileInfo && splitFileInfo.length > 0) {
       let traceFileType: string = '';
       indexDB = await openDB();
-      let newCutFilePageInfo: Map<
-        string,
-        {
-          traceFileType: string;
-          dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }];
-        }
-      > = new Map();
+      let newCutFilePageInfo: Map<string, { traceFileType: string;
+        dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }]}> = new Map();
       let cutFileCallBack = (heapPtr: number, size: number, dataType: number, isEnd: number) => {
         cutLongTraceCallBackHandle(traceFileType, currentPageNum, heapPtr, size, dataType, newCutFilePageInfo);
       };
@@ -1102,12 +979,7 @@ async function splitFileAndSaveArkTs(
   }
 }
 
-const splitFileAndSave = async (
-  timStamp: number,
-  fileInfo: any,
-  pageNum: number,
-  splitReqBufferAddr?: any
-): Promise<void> => {
+const splitFileAndSave = async (timStamp: number, fileInfo: any, pageNum: number, splitReqBufferAddr?: any): Promise<void> => {
   let fileType = fileInfo.fileType;
   let fileSize = fileInfo.size;
   let startIndex = fileInfo.startIndex;
@@ -1132,24 +1004,9 @@ const splitFileAndSave = async (
       let uint8Array = new Uint8Array(arrayBuffer.buf);
       let cutFileSize = 0;
       while (cutFileSize < uint8Array.length) {
-        [cutFileSize, resultFileSize] = execLongTraceSplitFileByModule(
-          pageNum,
-          fileSize,
-          resultFileSize,
-          cutFileSize,
-          uint8Array,
-          splitReqBufferAddr
-        );
+        [cutFileSize, resultFileSize] = execLongTraceSplitFileByModule(pageNum, fileSize, resultFileSize, cutFileSize, uint8Array, splitReqBufferAddr);
         if (arkTsDataSize > 0 && fileType === 'arkts') {
-          splitFileAndSaveArkTs(
-            currentChunkOffset,
-            currentChunk,
-            fileType,
-            pageNum,
-            saveStartOffset,
-            saveIndex,
-            timStamp
-          );
+          splitFileAndSaveArkTs(currentChunkOffset, currentChunk, fileType, pageNum, saveStartOffset, saveIndex, timStamp);
         }
       }
     }
@@ -1170,7 +1027,7 @@ async function getIndexedDBQueryData(db: IDBDatabase, range: IDBKeyRange): Promi
   const store = transaction.objectStore(STORE_NAME);
   const index = store.index('QueryCompleteFile');
   const getRequest = index.openCursor(range);
-  return await queryDataFromIndexeddb(getRequest);
+  return await queryDataFromIndexeddb(getRequest)
 }
 
 function execLongTraceSplitFileByModule(
@@ -1183,13 +1040,13 @@ function execLongTraceSplitFileByModule(
 ): [number, number] {
   const sliceLen = Math.min(uint8Array.length - cutFileSize, REQ_BUF_SIZE);
   const dataSlice = uint8Array.subarray(cutFileSize, cutFileSize + sliceLen);
-  wasmModule.HEAPU8.set(dataSlice, splitReqBufferAddr);
+  Module.HEAPU8.set(dataSlice, splitReqBufferAddr);
   cutFileSize += sliceLen;
   resultFileSize += sliceLen;
   if (resultFileSize >= fileSize) {
-    wasmModule._TraceStreamerLongTraceSplitFileEx(sliceLen, 1, pageNum);
+    Module._TraceStreamerLongTraceSplitFileEx(sliceLen, 1, pageNum);
   } else {
-    wasmModule._TraceStreamerLongTraceSplitFileEx(sliceLen, 0, pageNum);
+    Module._TraceStreamerLongTraceSplitFileEx(sliceLen, 0, pageNum);
   }
   return [cutFileSize, resultFileSize];
 }
@@ -1231,13 +1088,12 @@ let uploadSoActionId: string = '';
 let uploadFileIndex: number = 0;
 let uploadSoCallbackFn: any;
 let soFileList: Array<File | null> = [];
-const failedArray: Array<string> = [];
 const uploadSoFile = async (file: File | null): Promise<void> => {
   if (file) {
     let fileNameBuffer: Uint8Array | null = enc.encode(file.webkitRelativePath);
     let fileNameLength = fileNameBuffer.length;
-    let addr = wasmModule._InitFileName(uploadSoCallbackFn, fileNameBuffer.length);
-    wasmModule.HEAPU8.set(fileNameBuffer, addr);
+    let addr = Module._InitFileName(uploadSoCallbackFn, fileNameBuffer.length);
+    Module.HEAPU8.set(fileNameBuffer, addr);
     let writeSize = 0;
     let upRes = -1;
     while (writeSize < file.size) {
@@ -1246,9 +1102,10 @@ const uploadSoFile = async (file: File | null): Promise<void> => {
       let buffer: ArrayBuffer | null = await blob.arrayBuffer();
       let data: Uint8Array | null = new Uint8Array(buffer);
       let size = file.size;
-      wasmModule.HEAPU8.set(data, reqBufferAddr);
+      let lastFile = uploadFileIndex === soFileList.length - 1 ? 1 : 0;
+      Module.HEAPU8.set(data, reqBufferAddr);
       writeSize += sliceLen;
-      upRes = wasmModule._TraceStreamerDownloadELFEx(size, fileNameLength, sliceLen, 1);
+      upRes = Module._TraceStreamerDownloadELFEx(size, fileNameLength, sliceLen, lastFile);
       data = null;
       buffer = null;
       blob = null;
@@ -1260,26 +1117,21 @@ const uploadSoFile = async (file: File | null): Promise<void> => {
 };
 
 const uploadSoCallBack = (heapPtr: number, size: number, isFinish: number): void => {
-  let out: Uint8Array | null = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+  let out: Uint8Array | null = Module.HEAPU8.slice(heapPtr, heapPtr + size);
   if (out) {
     let res = dec.decode(out);
     out = null;
-    if (res.includes('ok') || res.includes('failed')) {
-      if (res.includes('failed')) {
-        failedArray.push(soFileList[uploadFileIndex]!.name);
-      }
+    if (res.includes('file send over')) {
       if (uploadFileIndex < soFileList.length - 1) {
-        uploadSoFile(soFileList[uploadFileIndex + 1]).then();
+        uploadFileIndex = uploadFileIndex + 1;
+        uploadSoFile(soFileList[uploadFileIndex]).then();
       }
-      uploadFileIndex++;
-    }
-    if (uploadFileIndex === soFileList.length) {
+    } else {
       soFileList.length = 0;
-      const result = failedArray.length === 0 ? 'ok' : 'failed';
       self.postMessage({
         id: uploadSoActionId,
         action: 'upload-so',
-        results: { result: result, failedArray: failedArray },
+        results: res.includes('ok') ? 'ok' : 'failed',
       });
     }
   }
@@ -1305,7 +1157,7 @@ function cutFileBufferByOffSet(out: Uint8Array, uint8Array: Uint8Array): Uint8Ar
   if (isRawTrace(uint8Array)) {
     let commDataSize = 0;
     let otherDataSize = 0;
-    valueArray.forEach((item) => {
+    valueArray.forEach(item => {
       const type = item.type;
       if (type === 0) {
         commDataSize += item.size;
@@ -1355,23 +1207,23 @@ function cutFileByRange(e: MessageEvent): void {
   let uint8Array = new Uint8Array(e.data.buffer);
   let resultBuffer: Array<any> = [];
   let cutFileCallBack = cutFileCallBackFunc(resultBuffer, uint8Array, e);
-  splitReqBufferAddr = wasmModule._InitializeSplitFile(wasmModule.addFunction(cutFileCallBack, 'viiii'), REQ_BUF_SIZE);
+  splitReqBufferAddr = Module._InitializeSplitFile(Module.addFunction(cutFileCallBack, 'viiii'), REQ_BUF_SIZE);
   let cutTimeRange = `${cutLeftTs};${cutRightTs};`;
   let cutTimeRangeBuffer = enc.encode(cutTimeRange);
-  wasmModule.HEAPU8.set(cutTimeRangeBuffer, splitReqBufferAddr);
-  wasmModule._TraceStreamerSplitFileEx(cutTimeRangeBuffer.length);
+  Module.HEAPU8.set(cutTimeRangeBuffer, splitReqBufferAddr);
+  Module._TraceStreamerSplitFileEx(cutTimeRangeBuffer.length);
   let cutFileSize = 0;
   let receiveFileResult = -1;
   while (cutFileSize < uint8Array.length) {
     const sliceLen = Math.min(uint8Array.length - cutFileSize, REQ_BUF_SIZE);
     const dataSlice = uint8Array.subarray(cutFileSize, cutFileSize + sliceLen);
-    wasmModule.HEAPU8.set(dataSlice, splitReqBufferAddr);
+    Module.HEAPU8.set(dataSlice, splitReqBufferAddr);
     cutFileSize += sliceLen;
     try {
       if (cutFileSize >= uint8Array.length) {
-        receiveFileResult = wasmModule._TraceStreamerReciveFileEx(sliceLen, 1);
+        receiveFileResult = Module._TraceStreamerReciveFileEx(sliceLen, 1);
       } else {
-        receiveFileResult = wasmModule._TraceStreamerReciveFileEx(sliceLen, 0);
+        receiveFileResult = Module._TraceStreamerReciveFileEx(sliceLen, 0);
       }
     } catch (error) {
       self.postMessage(
@@ -1390,7 +1242,7 @@ function cutFileByRange(e: MessageEvent): void {
 }
 function cutFileCallBackFunc(resultBuffer: Array<any>, uint8Array: Uint8Array, e: MessageEvent): Function {
   return (heapPtr: number, size: number, fileType: number, isEnd: number) => {
-    let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+    let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
     if (FileTypeEnum.data === fileType) {
       resultBuffer.push(out);
     } else if (FileTypeEnum.json === fileType) {
@@ -1424,8 +1276,8 @@ function cutFileCallBackFunc(resultBuffer: Array<any>, uint8Array: Uint8Array, e
 
 function createView(sql: string) {
   let array = enc.encode(sql);
-  wasmModule.HEAPU8.set(array, reqBufferAddr);
-  let res = wasmModule._TraceStreamerSqlOperateEx(array.length);
+  Module.HEAPU8.set(array, reqBufferAddr);
+  let res = Module._TraceStreamerSqlOperateEx(array.length);
   return res;
 }
 
@@ -1446,8 +1298,8 @@ function query(name: string, sql: string, params: any): void {
   }
   start = new Date().getTime();
   let sqlUintArray = enc.encode(sql);
-  wasmModule.HEAPU8.set(sqlUintArray, reqBufferAddr);
-  wasmModule._TraceStreamerSqlQueryEx(sqlUintArray.length);
+  Module.HEAPU8.set(sqlUintArray, reqBufferAddr);
+  Module._TraceStreamerSqlQueryEx(sqlUintArray.length);
 }
 
 function querySdk(name: string, sql: string, sdkParams: any, action: string): void {
@@ -1474,8 +1326,8 @@ function querySdk(name: string, sql: string, sdkParams: any, action: string): vo
 function queryMetric(name: string): void {
   start = new Date().getTime();
   let metricArray = enc.encode(name);
-  wasmModule.HEAPU8.set(metricArray, reqBufferAddr);
-  wasmModule._TraceStreamerSqlMetricsQuery(metricArray.length);
+  Module.HEAPU8.set(metricArray, reqBufferAddr);
+  Module._TraceStreamerSqlMetricsQuery(metricArray.length);
 }
 
 const DB_NAME = 'sp';

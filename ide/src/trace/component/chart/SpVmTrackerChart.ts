@@ -36,19 +36,19 @@ import {
   shmDataSender,
 } from '../../database/data-trafic/VmTrackerDataSender';
 import { resetVmTracker } from '../../database/data-trafic/VmTrackerDataReceiver';
-import { querySmapsExits } from '../../database/sql/Smaps.sql';
+import {querySmapsExits} from "../../database/sql/Smaps.sql";
 import {
   queryisExistsGpuMemoryData,
   queryisExistsPurgeableData,
-  queryisExistsShmData,
-} from '../../database/sql/Memory.sql';
-import { queryisExistsDmaData } from '../../database/sql/Dma.sql';
+  queryisExistsShmData
+} from "../../database/sql/Memory.sql";
+import {queryisExistsDmaData} from "../../database/sql/Dma.sql";
 import {
   queryGpuTotalType,
   queryGpuWindowType,
   queryisExistsGpuData,
-  queryisExistsGpuResourceData,
-} from '../../database/sql/Gpu.sql';
+  queryisExistsGpuResourceData
+} from "../../database/sql/Gpu.sql";
 
 export class VmTrackerChart {
   private trace: SpSystemTrace;

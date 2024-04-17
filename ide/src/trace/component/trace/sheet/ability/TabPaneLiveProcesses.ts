@@ -20,7 +20,7 @@ import { LiveProcess } from '../../../../bean/AbilityMonitor';
 import { Utils } from '../../base/Utils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
-import { getTabLiveProcessData } from '../../../../database/sql/ProcessThread.sql';
+import {getTabLiveProcessData} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-live-processes')
 export class TabPaneLiveProcesses extends BaseElement {

@@ -20,7 +20,7 @@ import { resizeObserver } from '../SheetUtils';
 import { type Dma } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
-import { getTabDmaVmTrackerData } from '../../../../database/sql/Dma.sql';
+import {getTabDmaVmTrackerData} from "../../../../database/sql/Dma.sql";
 
 @element('tabpane-dma-vmtracker')
 export class TabPaneDmaVmTracker extends BaseElement {

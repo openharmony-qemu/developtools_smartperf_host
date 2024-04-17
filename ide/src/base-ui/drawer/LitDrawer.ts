@@ -216,16 +216,7 @@ const initHtmlStyle = (padding: string, width: string) => {
 @element('lit-drawer')
 export class LitDrawer extends BaseElement {
   static get observedAttributes() {
-    return [
-      'drawer-title',
-      'visible',
-      'placement',
-      'mask',
-      'mask-closable',
-      'closeable',
-      'content-padding',
-      'content-width',
-    ];
+    return ['drawer-title', 'visible', 'placement', 'mask', 'mask-closable', 'closeable', 'content-padding', 'content-width'];
   }
 
   initHtml(): string {

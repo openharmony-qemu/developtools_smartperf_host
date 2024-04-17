@@ -124,23 +124,7 @@ constexpr uint8_t varIntValueBits = 7;
 constexpr uint8_t varIntValueMask = 0x7f; // 111 1111b
 constexpr uint8_t varIntValueDecodeMaxOffset = 64;
 constexpr uint8_t byteHighestBitMark = 0x80; // 1000 0000b
-inline const uint8_t* VarIntDecode(const uint8_t* start, const uint8_t* end, uint64_t* varIntValue)
-{
-    const uint8_t* cursor = start;
-    uint64_t temp = 0;
-    uint32_t shift = 0;
-    do {
-        uint8_t currentByte = *cursor++;
-        temp |= static_cast<uint64_t>(currentByte & varIntValueMask) << shift;
-        if (!(currentByte & byteHighestBitMark)) {
-            *varIntValue = temp;
-            return cursor;
-        }
-        shift += varIntValueBits;
-    } while (cursor < end && shift < varIntValueDecodeMaxOffset);
-    *varIntValue = 0;
-    return start;
-}
+const uint8_t* VarIntDecode(const uint8_t* start, const uint8_t* end, uint64_t* varIntValue);
 } // namespace ProtoReader
 } // namespace SysTuning
 #endif // PROTO_READER_HELP_H

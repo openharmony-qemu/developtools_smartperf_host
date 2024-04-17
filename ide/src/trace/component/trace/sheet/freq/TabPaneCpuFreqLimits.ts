@@ -20,7 +20,7 @@ import { Utils } from '../../base/Utils';
 import { ColorUtils } from '../../base/ColorUtils';
 import { CpuFreqLimitsStruct } from '../../../../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { resizeObserver } from '../SheetUtils';
-import { getCpuLimitFreqBoxSelect } from '../../../../database/sql/Cpu.sql';
+import { getCpuLimitFreqBoxSelect } from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-cpu-freq-limits')
 export class TabPaneCpuFreqLimits extends BaseElement {

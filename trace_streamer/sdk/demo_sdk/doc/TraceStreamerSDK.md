@@ -13,7 +13,7 @@
 `sliceTableName: sliceTableName表名`
 
 ```
-int SDK_SetTableName(std::string counterObjectTableName, std::string
+int SDKSetTableName(std::string counterObjectTableName, std::string
 counterTableName, std::string sliceObjectTableName, std::string
 sliceTableName);
 ```
@@ -27,7 +27,7 @@ sliceTableName);
 `return: 成功返回0，失败返回-1。`
 
 ```
-int SDK_AppendCounterObject(int counterId, const char* columnName)
+int SDKAppendCounterObject(int counterId, const char* columnName)
 ```
 
 ###### ******添加counter****业务表字段**
@@ -41,7 +41,7 @@ int SDK_AppendCounterObject(int counterId, const char* columnName)
 `return: 成功返回0，失败返回-1`
 
 ```
-int SDK_AppendCounter (int counterId, uint64_t ts, int value)
+int SDKAppendCounter (int counterId, uint64_t ts, int value)
 ```
 
 ###### **添加slice业务ID和名称对应关系表**
@@ -53,7 +53,7 @@ int SDK_AppendCounter (int counterId, uint64_t ts, int value)
 `return: 成功返回0，失败返回-1`
 
 ```
-int SDK_AppendSliceObject(int sliceId, const char* columnName)
+int SDKAppendSliceObject(int sliceId, const char* columnName)
 ```
 
 ###### ******添加slice****业务表字段**
@@ -69,7 +69,7 @@ int SDK_AppendSliceObject(int sliceId, const char* columnName)
 `return: 成功返回0，失败返回-1`
 
 ```
-int SDK_AppendSlice(int sliceId, uint64_t ts, uint64_t endTs, int value)
+int SDKAppendSlice(int sliceId, uint64_t ts, uint64_t endTs, int value)
 ```
 
 ### 1.2 TraceStreamer SDK需用户实现的功能(plugin目录下）
@@ -78,7 +78,7 @@ int SDK_AppendSlice(int sliceId, uint64_t ts, uint64_t endTs, int value)
 
 `1. sdk_plugin_init_table_name：设置用来保存slice数据和counter数据的4张数据表；`
 
-`2. sdk_plugin_data_parser：实现数据解析，并在解析到对应的数据时，使用1.1中的api即可，之后，上层IDE使用目录2中的方法，即可实现TraceStreamer和第三方插件（基于SDK开发）的数据互通。`
+`2. SDKPluginDataParser：实现数据解析，并在解析到对应的数据时，使用1.1中的api即可，之后，上层IDE使用目录2中的方法，即可实现TraceStreamer和第三方插件（基于SDK开发）的数据互通。`
 
 ### 1.3 TraceStreamer SDK修改配置项
 
@@ -160,7 +160,7 @@ EMSCRIPTEN_KEEPALIVE int UpdateTraceTime(int len)
 `return: 成功返回0。`
 
 ```
-EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamer_Set_ThirdParty_DataDealer(SendDataCallBack sendDataCallBack, uint32_t  reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamerSetThirdPartyDataDealer(SendDataCallBack sendDataCallBack, uint32_t  reqBufferSize)
 ```
 
 ###### **TS的数据解析接口，由JS调用。**
@@ -227,7 +227,7 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerCancel()
 `return: 成功返回0。`
 
 ```
-int TraceStreamer_Plugin_Out_SendData(const char* pluginData, int len, const std::string componentName)
+int TraceStreamerPluginOutSendData(const char* pluginData, int len, const std::string componentName)
 ```
 
 ###### **初始化配置接口，由JS调用。**
@@ -237,7 +237,7 @@ int TraceStreamer_Plugin_Out_SendData(const char* pluginData, int len, const std
 `return: 成功返回0。`
 
 ```
-EMSCRIPTEN_KEEPALIVE int TraceStreamer_Init_ThirdParty_Config(int dataLen)
+EMSCRIPTEN_KEEPALIVE int TraceStreamerInitThirdPartyConfig(int dataLen)
 ```
 
 WebAssembly通过非异步的通信方式和上层交互数据。

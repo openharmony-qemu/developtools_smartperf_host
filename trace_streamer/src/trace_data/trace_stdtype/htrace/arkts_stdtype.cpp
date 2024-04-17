@@ -99,8 +99,11 @@ const std::deque<uint32_t>& JsHeapEdges::ToNodeIds() const
     return toNodeIds_;
 }
 
-size_t
-    JsHeapInfo::AppendNewData(uint32_t fileId, std::string key, uint32_t type, int32_t intValue, std::string strValue)
+size_t JsHeapInfo::AppendNewData(uint32_t fileId,
+                                 std::string key,
+                                 uint32_t type,
+                                 int32_t intValue,
+                                 std::string strValue)
 {
     fileIds_.emplace_back(fileId);
     keys_.emplace_back(key);

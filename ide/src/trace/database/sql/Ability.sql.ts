@@ -17,14 +17,14 @@ import {
   GpuMemoryComparison,
   SystemCpuSummary,
   SystemDiskIOSummary,
-  SystemNetworkSummary,
-} from '../../bean/AbilityMonitor';
-import { query } from '../SqlLite';
-import { CpuAbilityMonitorStruct } from '../ui-worker/ProcedureWorkerCpuAbility';
-import { MemoryAbilityMonitorStruct } from '../ui-worker/ProcedureWorkerMemoryAbility';
-import { DiskAbilityMonitorStruct } from '../ui-worker/ProcedureWorkerDiskIoAbility';
-import { NetworkAbilityMonitorStruct } from '../ui-worker/ProcedureWorkerNetworkAbility';
-import type { SnapshotStruct } from '../ui-worker/ProcedureWorkerSnapshot';
+  SystemNetworkSummary
+} from "../../bean/AbilityMonitor";
+import {query} from "../SqlLite";
+import {CpuAbilityMonitorStruct} from "../ui-worker/ProcedureWorkerCpuAbility";
+import {MemoryAbilityMonitorStruct} from "../ui-worker/ProcedureWorkerMemoryAbility";
+import {DiskAbilityMonitorStruct} from "../ui-worker/ProcedureWorkerDiskIoAbility";
+import {NetworkAbilityMonitorStruct} from "../ui-worker/ProcedureWorkerNetworkAbility";
+import type {SnapshotStruct} from "../ui-worker/ProcedureWorkerSnapshot";
 
 export const getTabCpuAbilityData = (leftNs: number, rightNs: number): Promise<Array<SystemCpuSummary>> =>
   query<SystemCpuSummary>(
@@ -253,6 +253,7 @@ export const queryCachedFilesAbilityData = (id: string): Promise<Array<MemoryAbi
         from sys_mem_measure t, trace_range AS TR where t.filter_id = $id;`,
     { $id: id }
   );
+
 
 export const queryCompressedAbilityData = (id: string): Promise<Array<MemoryAbilityMonitorStruct>> =>
   query(
@@ -568,3 +569,5 @@ export const getTabGpuMemoryComparisonData = (startNs: number): Promise<Array<Gp
                 `,
     { $startNs: startNs }
   );
+
+

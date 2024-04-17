@@ -464,7 +464,7 @@ function filterDataByStartTime(startNS: number, endNS: number, totalNS: number, 
   }, groups);
 }
 function setDataSource(dataSource: any, groups: any): void {
-  Reflect.ownKeys(groups).map((kv) => {
+  Reflect.ownKeys(groups).map(kv => {
     let index = groups[kv as string];
     dataSource.column.push(jsDataCache.column[index]);
     dataSource.depth.push(jsDataCache.depth[index]);

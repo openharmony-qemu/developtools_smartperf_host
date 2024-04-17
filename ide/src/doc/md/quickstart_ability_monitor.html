@@ -749,35 +749,26 @@
       <h2 id="ability-monitor-的抓取">Ability Monitor 的抓取</h2>
       <h3 id="ability-monitor-抓取界面配置说明">Ability Monitor 抓取界面配置说明</h3>
       <p>
-        点击 Probes config，如选择抓取 AbilityMonitor。
-        <br />
+        点击 Probes config，如选择抓取 AbilityMonitor。<br />
         <img src="../../figures/AbilityMonitor/abilityset.jpg" alt="GitHub Logo" />
       </p>
       <h3 id="ability-monitor-文件的抓取">Ability Monitor 文件的抓取</h3>
       <p>
         点击 Record setting，在 output file path 输入文件名 hiprofiler_data_abilitymonitor.htrace，拖动滚动条设置 buffer
-        size 大小是 64M，抓取时长是 50s。
-        <br />
-        <img src="../../figures/AbilityMonitor/abilitysetting.jpg" alt="GitHub Logo" />
-        <br />
-        点击 Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
-        <br />
-        <img src="../../figures/AbilityMonitor/abilitycommand.jpg" alt="GitHub Logo" />
-        <br />
-        输入 hdc_shell，进入设备，执行命令。
-        <br />
-        <img src="../../figures/AbilityMonitor/abilityexcutecommand.jpg" alt="GitHub Logo" />
-        <br />
-        进入指定目录，cd /data/local/tmp 进入到目录，会看到生成的 trace 文件。
-        <br />
+        size 大小是 64M，抓取时长是 50s。<br />
+        <img src="../../figures/AbilityMonitor/abilitysetting.jpg" alt="GitHub Logo" /><br />
+        点击 Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。<br />
+        <img src="../../figures/AbilityMonitor/abilitycommand.jpg" alt="GitHub Logo" /><br />
+        输入 hdc_shell，进入设备，执行命令。<br />
+        <img src="../../figures/AbilityMonitor/abilityexcutecommand.jpg" alt="GitHub Logo" /><br />
+        进入指定目录，cd /data/local/tmp 进入到目录，会看到生成的 trace 文件。<br />
         <img src="../../figures/AbilityMonitor/abilityhtrace.jpg" alt="GitHub Logo" />
       </p>
       <h2 id="ability-monitor-功能介绍">Ability Monitor 功能介绍</h2>
       <p>将抓取的文件导入到 smartperf 工具查看，能了解 CPU，内存，磁盘 IO 和网络的使用情况。</p>
       <h3 id="ability-monitor-泳道图展示">Ability Monitor 泳道图展示</h3>
       <p>
-        Ability Monitor 展开就可以看到泳道图，包括 CPU，内存，磁盘 IO，网络的使用情况。
-        <br />
+        Ability Monitor 展开就可以看到泳道图，包括 CPU，内存，磁盘 IO，网络的使用情况。<br />
         <img src="../../figures/AbilityMonitor/abilitymonitorflowchart.jpg" alt="GitHub Logo" />
       </p>
       <ul>
@@ -869,10 +860,8 @@ Network Packets Out/Sec： 每秒发送的网络数据包数。
       <h3 id="ability-monitor-泳道图的框选功能">Ability Monitor 泳道图的框选功能</h3>
       <p>
         可以对 CPU，内存，磁盘 IO 和网络的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有六个 tab
-        页。
-        <br />
-        Live Processes 的 Tab 页如图：
-        <br />
+        页。<br />
+        Live Processes 的 Tab 页如图：<br />
         <img src="../../figures/AbilityMonitor/liveprocess.jpg" alt="GitHub Logo" />
       </p>
       <ul>
@@ -935,8 +924,7 @@ Disk Writes(B)：磁盘读入的字节数。
 Disk Reads(B)：磁盘写入的字节数。
 </pre
           >
-          Processes History 的 Tab 页如图：
-          <br />
+          Processes History 的 Tab 页如图：<br />
           <img src="../../figures/AbilityMonitor/ProcessesHistory.jpg" alt="GitHub Logo" />
         </li>
         <li>
@@ -986,8 +974,7 @@ User ID：用户ID。
 CPU Time：CPU运行时间。
 </pre
           >
-          框选 CPU Total Load，CPU User Load，CPU System Load 三个区域的泳道图，会展示 System CPU Summary 的 Tab 页。
-          <br />
+          框选 CPU Total Load，CPU User Load，CPU System Load 三个区域的泳道图，会展示 System CPU Summary 的 Tab 页。<br />
           <img src="../../figures/AbilityMonitor/cpusummary.jpg" alt="GitHub Logo" />
         </li>
         <li>
@@ -1025,8 +1012,7 @@ SystemLoad%：CPU在内核空间运行的使用率。
 Process：进程号。
 </pre
           >
-          框选 MemoryTotal，Cached，SwapTota 三个区域的泳道图，会展示 System Memory Summary 的 Tab 页。
-          <br />
+          框选 MemoryTotal，Cached，SwapTota 三个区域的泳道图，会展示 System Memory Summary 的 Tab 页。<br />
           <img src="../../figures/AbilityMonitor/memorytab.jpg" alt="GitHub Logo" />
         </li>
         <li>
@@ -1155,8 +1141,7 @@ CmaFree：空闲的可用内存。
 </pre
           >
           框选 Disk Bytes Read/Sec，Disk Bytes Written/Sec，Disk Read Ops/Sec，Disk Written Ops/Sec
-          四个区域的泳道图，会展示 System Disk Summary 的 Tab 页。
-          <br />
+          四个区域的泳道图，会展示 System Disk Summary 的 Tab 页。<br />
           <img src="../../figures/AbilityMonitor/disktab.jpg" alt="GitHub Logo" />
         </li>
         <li>
@@ -1219,8 +1204,7 @@ Write Out/sec：每秒写入的字节数。
 </pre
           >
           框选 Network Bytes In/Sec，Network Bytes Out/Sec，Network Packets In/Sec，Network Packets Out/Sec
-          四个区域的泳道图，会展示 System Network Summary 的 Tab 页。
-          <br />
+          四个区域的泳道图，会展示 System Network Summary 的 Tab 页。<br />
           <img src="../../figures/AbilityMonitor/network.jpg" alt="GitHub Logo" />
         </li>
         <li>

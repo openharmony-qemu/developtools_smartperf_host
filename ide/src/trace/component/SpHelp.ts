@@ -18,7 +18,6 @@ import { LitMainMenuGroup } from '../../base-ui/menu/LitMainMenuGroup';
 import { LitMainMenu, MenuItem } from '../../base-ui/menu/LitMainMenu';
 import { LitMainMenuItem } from '../../base-ui/menu/LitMainMenuItem';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
-import { eventDefinitions } from '../enums/helpDocEnums';
 
 @element('sp-help')
 export class SpHelp extends BaseElement {
@@ -72,29 +71,6 @@ export class SpHelp extends BaseElement {
         value.style.display = 'none';
       }
     });
-    let urlParams = new URL(window.location.href).searchParams;
-    if (urlParams && urlParams.get('action') && urlParams.get('action')!.length > 4) {
-      this.itemHelpClick(urlParams, that);
-    }
-  }
-
-  private itemHelpClick(urlParams: URLSearchParams, that: this) {
-    if (urlParams.get('action')!.length > 4) {
-      let helpDocIndex = urlParams.get('action')!.substring(5);
-      let helpDocDetail = this.getEventDefinitionByIndex(Number(helpDocIndex));
-      that.appContent!.innerHTML = `<object type="text/html" data='/application/doc/${helpDocDetail!.name}.html?${
-        that.dark
-      }' width="100%" height="100%"></object>`;
-    }
-  }
-
-  private getEventDefinitionByIndex(index: number) {
-    for (let key in eventDefinitions) {
-      if (eventDefinitions[key].index === index) {
-        return eventDefinitions[key];
-      }
-    }
-    return null;
   }
 
   private setupMainMenu(mainMenu: LitMainMenu, that: this): void {
@@ -137,7 +113,9 @@ export class SpHelp extends BaseElement {
         second: false,
         icon: 'caret-down',
         describe: '',
-        children: [this.setupSmartPerfMenu(that)],
+        children: [
+          this.setupSmartPerfMenu(that),
+        ],
       },
     ];
   }
@@ -154,21 +132,21 @@ export class SpHelp extends BaseElement {
           title: '设备端抓取trace说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'record', 'quickstart_device_record', '1');
+            that.handleMemoryMenuItemClick(that, 'record', 'quickstart_device_record');
           },
         },
         {
           title: 'web端抓取trace说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'online_record', 'quickstart_web_record', '2');
+            that.handleMemoryMenuItemClick(that, 'online_record', 'quickstart_web_record');
           },
         },
         {
           title: 'web端加载trace说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'load', 'quickstart_systemtrace', '3');
+            that.handleMemoryMenuItemClick(that, 'load', 'quickstart_systemtrace');
           },
         },
       ],
@@ -187,27 +165,28 @@ export class SpHelp extends BaseElement {
   }
   private setupOtherMenuItems(that: this): MenuItem[] {
     return [
-      this.createSubMenuItem('Sql分析和Metrics说明', 'sql', 'quickstart_sql_metrics', that, '17'),
-      this.createSubMenuItem('HiSystemEvent抓取和展示说明', 'hisys', 'quickstart_hisystemevent', that, '18'),
-      this.createSubMenuItem('sdk抓取和展示说明', 'sdk_record', 'quickstart_sdk', that, '19'),
-      this.createSubMenuItem('调用栈可视化和不同库函数调用占比说明', 'import_so', 'quickstart_Import_so', that, '20'),
-      this.createSubMenuItem('Hilog抓取和展示说明', 'hilog', 'quickstart_hilog', that, '21'),
-      this.createSubMenuItem('Ability Monitor抓取和展示说明', 'ability', 'quickstart_ability_monitor', that, '22'),
-      this.createSubMenuItem('Trace解析能力增强', 'trace_parsing', 'quickstart_parsing_ability', that, '23'),
-      this.createSubMenuItem('应用操作技巧', 'operation_skills', 'quickstart_Application_operation_skills', that, '24'),
-      this.createSubMenuItem('快捷键说明', 'keywords_shortcuts', 'quickstart_keywords_shortcuts', that, '25'),
+      this.createSubMenuItem('Sql分析和Metrics说明', 'sql', 'quickstart_sql_metrics', that),
+      this.createSubMenuItem('HiSystemEvent抓取和展示说明', 'hisys', 'quickstart_hisystemevent', that),
+      this.createSubMenuItem('sdk抓取和展示说明', 'sdk_record', 'quickstart_sdk', that),
+      this.createSubMenuItem('调用栈可视化和不同库函数调用占比说明', 'import_so', 'quickstart_Import_so', that),
+      this.createSubMenuItem('Hilog抓取和展示说明', 'hilog', 'quickstart_hilog', that),
+      this.createSubMenuItem('Ability Monitor抓取和展示说明', 'ability', 'quickstart_ability_monitor', that),
+      this.createSubMenuItem('Trace解析能力增强', 'trace_parsing', 'quickstart_parsing_ability', that),
+      this.createSubMenuItem('应用操作技巧', 'operation_skills', 'quickstart_Application_operation_skills', that),
+      this.createSubMenuItem('快捷键说明', 'keywords_shortcuts', 'quickstart_keywords_shortcuts', that),
     ];
   }
 
-  private createSubMenuItem(title: string, event: string, docName: string, that: this, index: string): MenuItem {
+  private createSubMenuItem(title: string, event: string, docName: string, that: this): MenuItem {
     return {
       title: title,
       icon: '',
       clickHandler: (item: MenuItem) => {
-        that.handleMemoryMenuItemClick(that, event, docName, index);
+        that.handleMemoryMenuItemClick(that, event, docName);
       },
     };
   }
+
 
   private setupMemoryMenu(that: this) {
     return {
@@ -221,54 +200,41 @@ export class SpHelp extends BaseElement {
           title: 'Js Memory抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'js_memory', 'quickstart_Js_memory', '4');
+            that.handleMemoryMenuItemClick(that, 'js_memory', 'quickstart_Js_memory');
           },
         },
         {
           title: 'Native Memory抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'native', 'quickstart_native_memory', '5');
+            that.handleMemoryMenuItemClick(that, 'native', 'quickstart_native_memory');
           },
         },
         {
           title: '页内存抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'virtual_memory', 'quickstart_page_fault', '6');
+            that.handleMemoryMenuItemClick(that, 'virtual_memory', 'quickstart_page_fault');
           },
         },
         {
           title: '系统内存抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'memory_template', 'quickstart_memory_template', '7');
+            that.handleMemoryMenuItemClick(that, 'memory_template', 'quickstart_memory_template');
           },
         },
       ],
     };
   }
 
-  private handleMemoryMenuItemClick(that: this, event: string, docName: string, index?: string): void {
+  private handleMemoryMenuItemClick(that: this, event: string, docName: string): void {
     SpStatisticsHttpUtil.addOrdinaryVisitAction({
       event: event,
       action: 'help_doc',
     });
-    that.appContent!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?${that.dark}' width="100%" height="100%"></object>`;
-    this.changeItemURL(index!);
-  }
-
-  private changeItemURL(index: string) {
-    let url = new URL(window.location.href);
-    let actionParam = url.searchParams.get('action');
-    let newActionValue = `help_${index}`;
-    if (actionParam) {
-      url.searchParams.set('action', newActionValue);
-      let newURL = url.href;
-      history.pushState({}, '', newURL);
-    } else {
-      history.pushState({}, '', window.location.origin + window.location.pathname);
-    }
+    that.appContent!.innerHTML =
+      `<object type="text/html" data='/application/doc/${docName}.html?${that.dark}' width="100%" height="100%"></object>`;
   }
 
   private setupNativeMenu(that: this) {
@@ -283,11 +249,11 @@ export class SpHelp extends BaseElement {
           title: 'HiPerf的抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'perf', 'quickstart_hiperf', '8');
+            that.handleMemoryMenuItemClick(that, 'perf', 'quickstart_hiperf');
           },
         },
       ],
-    };
+    }
   }
 
   private setupTsMenu(that: this) {
@@ -302,11 +268,11 @@ export class SpHelp extends BaseElement {
           title: 'Cpuprofiler抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'arkts', 'quickstart_arkts', '9');
+            that.handleMemoryMenuItemClick(that, 'arkts', 'quickstart_arkts');
           },
         },
       ],
-    };
+    }
   }
 
   private setupAnalysisTemplateMenu(that: this) {
@@ -321,39 +287,39 @@ export class SpHelp extends BaseElement {
           title: 'Frame timeline抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'frame_record', 'quickstart_Frametimeline', '10');
+            that.handleMemoryMenuItemClick(that, 'frame_record', 'quickstart_Frametimeline');
           },
         },
         {
           title: 'Animation的抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'animation', 'quickstart_animation', '11');
+            that.handleMemoryMenuItemClick(that, 'animation', 'quickstart_animation');
           },
         },
         {
           title: 'TaskPool抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'taskpool', 'quickstart_taskpool', '12');
+            that.handleMemoryMenuItemClick(that, 'taskpool', 'quickstart_taskpool');
           },
         },
         {
           title: 'App startup的抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'app_startup', 'quickstart_app_startup', '13');
+            that.handleMemoryMenuItemClick(that, 'app_startup', 'quickstart_app_startup');
           },
         },
         {
           title: 'Scheduling analysis抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'scheduling_record', 'quickstart_schedulinganalysis', '14');
+            that.handleMemoryMenuItemClick(that, 'scheduling_record', 'quickstart_schedulinganalysis');
           },
         },
       ],
-    };
+    }
   }
 
   private setupFileMenu(that: this) {
@@ -368,18 +334,18 @@ export class SpHelp extends BaseElement {
           title: 'FileSystem抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'file_system', 'quickstart_filesystem', '15');
+            that.handleMemoryMenuItemClick(that, 'file_system', 'quickstart_filesystem');
           },
         },
         {
           title: 'Bio抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem) {
-            that.handleMemoryMenuItemClick(that, 'bio', 'quickstart_bio', '16');
+            that.handleMemoryMenuItemClick(that, 'bio', 'quickstart_bio');
           },
         },
       ],
-    };
+    }
   }
 
   private setupDatabaseMenu(that: this) {
@@ -387,7 +353,7 @@ export class SpHelp extends BaseElement {
       title: 'TraceStreamer数据库说明',
       icon: '',
       clickHandler: function (item: MenuItem) {
-        that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables', '26');
+        that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables');
       },
     };
   }
@@ -429,7 +395,7 @@ export class SpHelp extends BaseElement {
       clickHandler: function (item: MenuItem) {
         that.handleMemoryMenuItemClick(that, 'support_event', 'des_support_event');
       },
-    };
+    }
   }
 
   private setupToolDescriptionMenu(that: this) {

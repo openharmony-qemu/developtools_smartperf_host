@@ -30,7 +30,8 @@ export class TabPaneIrqCounter extends BaseElement {
   set data(irqParam: SelectionParam | any) {
     if (this.irqCounterTbl) {
       //@ts-ignore
-      this.irqCounterTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45}px`;
+      this.irqCounterTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45
+      }px`;
     }
     this.irqRange!.textContent = `Selected range: ${parseFloat(
       ((irqParam.rightNs - irqParam.leftNs) / 1000000.0).toFixed(5)
@@ -110,7 +111,8 @@ export class TabPaneIrqCounter extends BaseElement {
       if (key === 'wallDurationFormat' || type === 0) {
         return (type === 1 ? 1 : -1) * (irqCounterLeftData.wallDuration - irqCounterRightData.wallDuration);
       } else if (key === 'count') {
-        return (type === 1 ? 1 : -1) * (parseInt(irqCounterLeftData.count) - parseInt(irqCounterRightData.count));
+        return (type === 1 ? 1 : -1) *
+          (parseInt(irqCounterLeftData.count) - parseInt(irqCounterRightData.count));
       } else if (key === 'maxDurationFormat') {
         return (type === 1 ? 1 : -1) * (irqCounterLeftData.maxDuration - irqCounterRightData.maxDuration);
       } else if (key === 'avgDuration') {

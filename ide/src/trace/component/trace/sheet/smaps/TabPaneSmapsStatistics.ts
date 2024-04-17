@@ -20,11 +20,10 @@ import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import {
-  getTabSmapsMaxSize,
-  getTabSmapsStatisticData,
+  getTabSmapsMaxSize, getTabSmapsStatisticData,
   getTabSmapsStatisticMaxSize,
-  getTabSmapsStatisticSelectData,
-} from '../../../../database/sql/Smaps.sql';
+  getTabSmapsStatisticSelectData
+} from "../../../../database/sql/Smaps.sql";
 @element('tabpane-smaps-statistics')
 export class TabPaneSmapsStatistics extends BaseElement {
   private tblSmapsStatistics: LitTable | null | undefined;
@@ -222,10 +221,10 @@ export class TabPaneSmapsStatistics extends BaseElement {
       this.filteredData(result, this.tblSmapsStatistics!, this.sumSize);
     });
   }
-
+  
   private initTreeObj(): Map<SmapsType, SmapsTreeObj> {
     let allTreeObjs: Map<SmapsType, SmapsTreeObj> = new Map<SmapsType, SmapsTreeObj>();
-    allTreeObjs.set(SmapsType.TYPE_CODE_SYS, new SmapsTreeObj('CODE_SYS', '', 'CODE_SYS'));
+    allTreeObjs.set(SmapsType.TYPE_CODE_SYS, new SmapsTreeObj('CODE_SYS', '', 'CODE_SYS'))
     allTreeObjs.set(SmapsType.TYPE_CODE_APP, new SmapsTreeObj('CODE_APP', '', 'CODE_APP'));
     allTreeObjs.set(SmapsType.TYPE_DATA_SYS, new SmapsTreeObj('DATA_SYS', '', 'DATA_SYS'));
     allTreeObjs.set(SmapsType.TYPE_DATA_APP, new SmapsTreeObj('DATA_APP', '', 'DATA_APP'));
@@ -332,7 +331,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
     this.sortArray.shift();
   }
 
-  private sortByKey(column: string, sort: number, table: LitTable): void {
+  private sortByKey(column: string, sort: number, table: LitTable): void{
     switch (sort) {
       case 0:
         this.sortArray.sort((previous, next) => {

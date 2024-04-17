@@ -19,7 +19,7 @@ import { getByteWithUnit } from '../../../../database/logic-worker/ProcedureLogi
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { resizeObserver } from '../SheetUtils';
-import { queryGpuResourceTabData } from '../../../../database/sql/Gpu.sql';
+import {queryGpuResourceTabData} from "../../../../database/sql/Gpu.sql";
 @element('tabpane-gpu-resource')
 export class TabPaneGpuResourceVmTracker extends BaseElement {
   private gpuResourceTable: LitTable | undefined | null;

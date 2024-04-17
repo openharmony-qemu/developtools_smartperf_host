@@ -21,8 +21,8 @@ import { FuncStruct } from '../../../../database/ui-worker/ProcedureWorkerFunc';
 import { BaseStruct } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
-import { queryTaskListByExecuteTaskIds, queryTaskPoolTotalNum } from '../../../../database/sql/SqlLite.sql';
-import { queryConcurrencyTask } from '../../../../database/sql/Perf.sql';
+import {queryTaskListByExecuteTaskIds, queryTaskPoolTotalNum} from "../../../../database/sql/SqlLite.sql";
+import {queryConcurrencyTask} from "../../../../database/sql/Perf.sql";
 
 const ALLOCATION_TASK = 'H:Task Allocation:';
 const PERFORM_TASK = 'H:Task Perform:';
@@ -137,7 +137,7 @@ export class TabPaneTaskFrames extends BaseElement {
     task.taskPriority = Priority[priorityId];
     task.taskST = this.getMsTime(sTime);
     task.taskET = this.getMsTime(eTime);
-    task.taskRT = rTime > 0 ? this.getMsTime(rTime) : '-';
+    task.taskRT = this.getMsTime(rTime);
     this.taskFramesSource = [task];
     this.taskFramesGroupSource = [[task]];
     this.taskFramesTbl!!.recycleDataSource = this.taskFramesSource;
@@ -399,7 +399,7 @@ export class TabPaneTaskFrames extends BaseElement {
       tempTask.taskPriority = Priority[value.priority!];
       tempTask.taskST = this.getMsTime(executeStartTime - allocationStartTime);
       tempTask.taskET = this.getMsTime(executeTime);
-      tempTask.taskRT = returnEndTime > 0 ? this.getMsTime(returnEndTime) : '-';
+      tempTask.taskRT = this.getMsTime(returnEndTime);
       tableList.push(tempTask);
     }
   }
@@ -424,7 +424,7 @@ export class TaskTabStruct extends BaseStruct {
   dur: number | undefined;
   taskST: number | undefined;
   taskET: number | undefined;
-  taskRT?: number | string;
+  taskRT: number | undefined;
   allocationTaskRow: number | undefined;
   executeTaskRow: number | undefined;
   returnTaskRow: number | undefined;

@@ -22,9 +22,9 @@ import {
   Render,
   RequestMessage,
   drawString,
-  drawLoadingFrame,
+  drawLoadingFrame
 } from './ProcedureWorkerCommon';
-import { SpSystemTrace } from '../../component/SpSystemTrace';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class SoRender extends Render {
   renderMainThread(
@@ -118,16 +118,16 @@ export function soDataFilter(
   }
 }
 export function SoStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollToFuncHandler: any) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, reject)=>{
     if (clickRowType === TraceRow.ROW_TYPE_STATIC_INIT && SoStruct.hoverSoStruct) {
       SoStruct.selectSoStruct = SoStruct.hoverSoStruct;
       sp.traceSheetEL?.displayStaticInitData(SoStruct.selectSoStruct, scrollToFuncHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    } else {
+    }else{
       resolve(null);
     }
-  });
+  })
 }
 export class SoStruct extends BaseStruct {
   static hoverSoStruct: SoStruct | undefined;

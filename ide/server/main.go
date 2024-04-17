@@ -42,7 +42,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"flag"
 )
 
 const HttpPort = 9000
@@ -113,16 +112,7 @@ func genSSL() {
 	keyOut.Close()
 }
 func main() {
-  port := HttpPort
-  isOpen := 1
-  flag.IntVar(&port, "p", HttpPort, "The port number used")
-  flag.IntVar(&isOpen, "o", 1 , "Whether to immediately open the website in your browser; 1 is true; 0 is false")
-  flag.Parse()
-  if isOpen < 0 || isOpen > 1 {
-    fmt.Println("Error: -o must be 0 or 1")
-    return
-  }
-	checkPort(port)
+	checkPort(HttpPort)
 	genSSL()
 	exPath = getCurrentAbPath()
 	fmt.Println(exPath)
@@ -147,25 +137,23 @@ func main() {
 		mux.Handle("/application/", http.StripPrefix("/application/", cors(fs, version)))
 		go func() {
 			ser := &http.Server{
-				Addr:    fmt.Sprintf(":%d", port),
+				Addr:    fmt.Sprintf(":%d", HttpPort),
 				Handler: mux,
 			}
-			log.Println(fmt.Sprintf("HTTPS[%d]服务启动", port))
+			log.Println(fmt.Sprintf("HTTPS[%d]服务启动", HttpPort))
 			err := ser.ListenAndServeTLS("cert/certFile.pem", "cert/keyFile.key")
 			CheckErr(err)
 		}()
 		go func() {
 			ser := &http.Server{
-				Addr:    fmt.Sprintf(":%d", port+1),
+				Addr:    fmt.Sprintf(":%d", HttpPort+1),
 				Handler: mux,
 			}
-			log.Println(fmt.Sprintf("HTTP[%d]服务启动", port))
+			log.Println(fmt.Sprintf("HTTP[%d]服务启动", HttpPort))
 			err := ser.ListenAndServe()
 			CheckErr(err)
 		}()
-    if (isOpen == 1){
-      open(fmt.Sprintf("https://localhost:%d/application", port))
-    }
+		open(fmt.Sprintf("https://localhost:%d/application", HttpPort))
 	}()
 	select {}
 }

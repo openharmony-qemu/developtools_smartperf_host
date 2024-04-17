@@ -75,7 +75,7 @@ export class TabPanePurgTotal extends BaseElement {
           this.toTabStruct(results[i].name, results[i].maxSize, results[i].minSize, results[i].avgSize)
         );
       }
-      this.sortByColumn({ key: this.sortKey, sort: this.sortType });
+      this.sortByColumn({key: this.sortKey, sort: this.sortType});
       let total = this.totalData(this.purgeableTotalSource);
       this.purgeableTotalSource.unshift(total);
       this.purgeableTotalTable!.recycleDataSource = this.purgeableTotalSource;

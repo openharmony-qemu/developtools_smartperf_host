@@ -22,10 +22,9 @@ import {
   queryHeapFile,
   queryHeapInfo,
   queryHeapNode,
-  queryHeapSample,
-  queryHeapString,
-} from '../trace/database/sql/SqlLite.sql';
-import { queryHeapFunction, queryHeapTraceNode } from '../trace/database/sql/Func.sql';
+  queryHeapSample, queryHeapString
+} from "../trace/database/sql/SqlLite.sql";
+import {queryHeapFunction, queryHeapTraceNode} from "../trace/database/sql/Func.sql";
 
 export class LoadDatabase {
   private static loadDB: LoadDatabase;
@@ -55,6 +54,7 @@ export class LoadDatabase {
         fileStruct.type = FileType.TIMELINE;
       }
       info(`read ${fileStruct.name} from db  ${getTimeForLog()}`);
+      //fileStruct.profile.root_index = 0
       await this.loadInfo(fileStruct);
       await this.loadStrings(fileStruct);
       await this.loadNode(fileStruct);

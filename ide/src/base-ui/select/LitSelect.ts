@@ -162,6 +162,7 @@ export class LitSelect extends BaseElement {
   }
 
   set dataSource(selectDataSource: any) {
+    
     this.innerHTML = `<slot></slot><slot name="footer"></slot>`;
     if (selectDataSource.length > 0) {
       this.bodyEl!.style.display = 'flex';

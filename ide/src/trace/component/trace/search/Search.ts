@@ -201,7 +201,7 @@ export class LitSearch extends BaseElement {
   }
 
   private searchKeyupListener(e: KeyboardEvent) {
-    if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+    if (e.code === 'Enter') {
       this.updateSearchList(this.search!.value);
       if (e.shiftKey) {
         this.dispatchEvent(
@@ -307,7 +307,6 @@ export class LitSearch extends BaseElement {
             this._retarge_index!.value = '';
           }, 2000);
         }
-        e.target.blur();
       }
       e.stopPropagation();
     });

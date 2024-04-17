@@ -30,7 +30,7 @@ import {
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../../component/trace/base/ColorUtils';
 import { convertJSON } from '../../logic-worker/ProcedureLogicWorkerCommon';
-import { SpSystemTrace } from '../../../component/SpSystemTrace';
+import {SpSystemTrace} from "../../../component/SpSystemTrace";
 
 export class CpuStateRender extends PerfRender {
   renderMainThread(
@@ -172,7 +172,7 @@ export function CpuStateStructOnClick(clickRowType: string, sp: SpSystemTrace) {
       sp.traceSheetEL?.displayCpuStateData();
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    } else {
+    }else{
       resolve(null);
     }
   });

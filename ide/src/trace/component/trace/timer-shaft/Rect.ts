@@ -76,12 +76,10 @@ export class Rect {
 
   containsWithPadding(x: number, y: number, paddingLeftOrRight: number, paddingTopOrBottom: number): boolean {
     // ------------------------修改rangeruler部分鼠标形态根据高度调整-------------------------
-    if (sessionStorage.getItem('expand') === 'true') {
-      //展开
+    if (sessionStorage.getItem('expand') === 'true') {//展开
       this.height = 75;
-    } else if (sessionStorage.getItem('expand') === 'false') {
-      //折叠
-      this.height = 75 - Number(sessionStorage.getItem('foldHeight'));
+    } else if (sessionStorage.getItem('expand') === 'false') {//折叠
+      this.height = 75 - Number(sessionStorage.getItem('foldHeight'))
     }
     return (
       this.x + paddingLeftOrRight <= x &&

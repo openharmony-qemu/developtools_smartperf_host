@@ -221,18 +221,18 @@ function setStatisticsCacheMapValue(obj: any, totalNS: number): any {
 }
 
 function cacheNativeMemoryChartData(model: string, totalNS: number, processes: number[], data: Array<any>): void {
-  processes.forEach((ipid) => {
-    let processData = data.filter((ne) => ne.ipid === ipid);
+  processes.forEach(ipid => {
+    let processData = data.filter(ne => ne.ipid === ipid);
     if (model === 'native_hook') {
       //正常模式
       normalChartDataHandler(processData, `${ipid}-0`, totalNS);
       normalChartDataHandler(
-        processData.filter((ne) => ne.eventType === 0 || ne.eventType === 2),
+        processData.filter(ne => ne.eventType === 0 || ne.eventType === 2),
         `${ipid}-1`,
         totalNS
       );
       normalChartDataHandler(
-        processData.filter((ne) => ne.eventType === 1 || ne.eventType === 3),
+        processData.filter(ne => ne.eventType === 1 || ne.eventType === 3),
         `${ipid}-2`,
         totalNS
       );
@@ -240,12 +240,12 @@ function cacheNativeMemoryChartData(model: string, totalNS: number, processes: n
       //统计模式
       statisticChartHandler(processData, `${ipid}-0`, totalNS);
       statisticChartHandler(
-        processData.filter((ne) => ne.type === 0),
+        processData.filter(ne => ne.type === 0),
         `${ipid}-1`,
         totalNS
       );
       statisticChartHandler(
-        processData.filter((ne) => ne.type > 0),
+        processData.filter(ne => ne.type > 0),
         `${ipid}-2`,
         totalNS
       );

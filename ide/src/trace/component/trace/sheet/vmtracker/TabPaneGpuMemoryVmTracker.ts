@@ -21,7 +21,7 @@ import { GpuMemory } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
-import { getTabGpuMemoryData } from '../../../../database/sql/Memory.sql';
+import {getTabGpuMemoryData} from "../../../../database/sql/Memory.sql";
 
 @element('tabpane-gpu-memory-vmtracker')
 export class TabPaneGpuMemoryVmTracker extends BaseElement {

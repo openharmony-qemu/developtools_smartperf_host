@@ -75,8 +75,8 @@ export class TabPaneHiLogs extends BaseElement {
     this.searchFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#search-filter');
     this.processFilter = this.shadowRoot?.querySelector<HTMLInputElement>('#process-filter');
     this.spSystemTrace = document
-      .querySelector('body > sp-application')
-      ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
+    .querySelector('body > sp-application')
+    ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
     this.tableTimeHandle = this.delayedRefresh(this.refreshTable);
     this.tableTitleTimeHandle = this.delayedRefresh(this.refreshLogsTitle);
     this.tagFilterDiv = this.shadowRoot!.querySelector<HTMLDivElement>('#tagFilter');

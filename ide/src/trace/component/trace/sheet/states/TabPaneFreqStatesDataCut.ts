@@ -18,11 +18,7 @@ import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table
 import { Utils } from '../../base/Utils';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { BinderGroup, DataSource } from '../../../../bean/BinderProcessThread';
-import {
-  querySingleFuncNameCycleStates,
-  queryStatesCut,
-  queryLoopFuncNameCycle,
-} from '../../../../database/sql/Func.sql';
+import { querySingleFuncNameCycleStates, queryStatesCut, queryLoopFuncNameCycle } from '../../../../database/sql/Func.sql';
 import { FuncNameCycle } from '../../../../bean/BinderProcessThread';
 import { resizeObserver } from '../SheetUtils';
 import { LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
@@ -58,7 +54,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
   private spSystemTrace: SpSystemTrace | undefined | null;
   private lineCycleNum: number = -1;
   private cycleIsClick: Boolean = false;
-  static isStateTabHover: boolean = false;
+
 
   // tab页入口函数
   set data(threadStatesParam: SelectionParam | any) {
@@ -131,11 +127,6 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       threadFunc.style.border = '1px solid rgb(151,151,151)';
       this.threadBindersTbl!.loading = true;
       this.funcNameCycleArr = await queryLoopFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
-      this.cycleStartTime = this.funcNameCycleArr!.length > 0 ? this.funcNameCycleArr![0].cycleStartTime : undefined;
-      this.cycleEndTime =
-        this.funcNameCycleArr!.length > 1
-          ? this.funcNameCycleArr![this.funcNameCycleArr!.length - 1].cycleStartTime
-          : undefined;
       // 遍历设置周期的起始时间
       for (let i = 0; i < this.funcNameCycleArr!.length - 1; i++) {
         this.funcNameCycleArr![i].endTime = this.funcNameCycleArr![i + 1].cycleStartTime;
@@ -149,22 +140,15 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         // pid数组去重
         processIds = Array.from(new Set(processIds));
         // 去除切割范围以外的数据
-        this.filterState = new Array<StateGroup>();
-        stateItemArr.map((stateItem) => {
+        this.filterState = new Array<StateGroup>;
+        stateItemArr.map(stateItem => {
           for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
-            if (
-              // @ts-ignore
-              stateItem.ts > this.funcNameCycleArr[i].cycleStartTime &&
-              // @ts-ignore
-              stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime &&
-              (stateItem.state === 'S' ||
-                stateItem.state === 'R' ||
-                stateItem.state === 'D' ||
-                stateItem.state === 'Running')
-            ) {
+            // @ts-ignore
+            if (stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime
+              && (stateItem.state === 'S' || stateItem.state === 'R' || stateItem.state === 'D' || stateItem.state === 'Running')) {
               this.filterState!.push(stateItem);
-            }
-          }
+            };
+          };
         });
         // 周期内有数据
         if (this.filterState.length !== 0) {
@@ -203,32 +187,22 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       this.threadBindersTbl!.loading = true;
       this.funcNameCycleArr = await querySingleFuncNameCycleStates(threadFuncName, threadIdValue, leftNS, rightNS);
       this.cycleStartTime = this.funcNameCycleArr!.length > 0 ? this.funcNameCycleArr![0].cycleStartTime : undefined;
-      this.cycleEndTime =
-        this.funcNameCycleArr!.length > 0
-          ? this.funcNameCycleArr![this.funcNameCycleArr!.length - 1].endTime
-          : undefined;
+      this.cycleEndTime = this.funcNameCycleArr!.length > 0 ? this.funcNameCycleArr![this.funcNameCycleArr!.length - 1].endTime : undefined;
       let stateItemArr = await queryStatesCut(threadIds, leftNS, rightNS);
       if (this.funcNameCycleArr!.length !== 0) {
         let stateCutArr: StateGroup[] = [];
         // pid数组去重
         processIds = Array.from(new Set(processIds));
         // 去除切割范围以外的数据
-        this.filterState = new Array<StateGroup>();
-        stateItemArr.map((stateItem) => {
+        this.filterState = new Array<StateGroup>;
+        stateItemArr.map(stateItem => {
           for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
-            if (
-              // @ts-ignore
-              stateItem.ts > this.funcNameCycleArr[i].cycleStartTime &&
-              // @ts-ignore
-              stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime &&
-              (stateItem.state === 'S' ||
-                stateItem.state === 'R' ||
-                stateItem.state === 'D' ||
-                stateItem.state === 'Running')
-            ) {
+            // @ts-ignore
+            if (stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime
+              && (stateItem.state === 'S' || stateItem.state === 'R' || stateItem.state === 'D' || stateItem.state === 'Running')) {
               this.filterState!.push(stateItem);
-            }
-          }
+            };
+          };
         });
         if (this.filterState.length > 0) {
           for (let i = 0; i < processIds.length; i++) {
@@ -253,114 +227,104 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
     // 当前进程级别的数据
     let filterObj = new StateGroup();
     // 筛选出当前进程下的所有数据
-    let processArr = new Array<StateGroup>();
-    filterState.map((filterItem) => {
+    let processArr = new Array<StateGroup>;
+    filterState.map(filterItem => {
       if (filterItem.pid === processId) {
         processArr.push(filterItem);
         filterObj.totalCount! += 1;
-        filterItem.state === 'R'
-          ? (filterObj.RunnableCount += 1)
-          : filterItem.state === 'Running'
-          ? (filterObj.RunningCount += 1)
-          : filterItem.state === 'D'
-          ? (filterObj.DCount += 1)
-          : (filterObj.SleepingCount += 1);
+        filterItem.state === 'R' ? filterObj.RunnableCount += 1 : filterItem.state === 'Running'
+          ? filterObj.RunningCount += 1 : filterItem.state === 'D'
+            ? filterObj.DCount += 1 : filterObj.SleepingCount += 1;
         filterObj.title = (Utils.PROCESS_MAP.get(processId) || 'Process') + processId;
         filterObj.pid = processId;
         filterObj.type = 'process';
       }
-    });
+    })
     if (processArr.length > 0) {
       filterObj.children = this.setThreadData(processArr);
     }
     stateCutArr.push(filterObj);
-  }
+  };
 
   // 处理线程数据
   setThreadData(threadData: Array<StateGroup>) {
     // 进程下面的线程,相当于process的children
-    let threadArr = new Array<StateGroup>();
+    let threadArr = new Array<StateGroup>;
     let threads = this.currentSelectionParam.threadIds;
     for (let i = 0; i < threads.length; i++) {
       // 单个线程
       let threadObj = new StateGroup();
       threadObj.tid = threads[i];
       threadObj.pid = threadData[0].pid;
-      threadObj.children = new Array<StateGroup>();
+      threadObj.children = new Array<StateGroup>;
       threadObj.type = 'thread';
-      (threadObj.title = (Utils.THREAD_MAP.get(threads[i]) || 'Process') + threads[i]), threadArr.push(threadObj);
+      threadObj.title = (Utils.THREAD_MAP.get(threads[i]) || 'Process') + threads[i],
+        threadArr.push(threadObj);
     }
     for (let i = 0; i < threadArr.length; i++) {
-      let threadList = new Array<StateGroup>();
-      threadData.map((threadItem) => {
+      let threadList = new Array<StateGroup>;
+      threadData.map(threadItem => {
         if (threadItem.tid === threadArr[i].tid) {
           threadList.push(threadItem);
           threadArr[i].totalCount! += 1;
           threadItem.state === 'R'
-            ? ((threadArr[i].RunnableCount += 1), (threadArr[i].RunnableDur += threadItem.dur!))
+            ? (threadArr[i].RunnableCount += 1, threadArr[i].RunnableDur += threadItem.dur!)
             : threadItem.state === 'Running'
-            ? ((threadArr[i].RunningCount += 1), (threadArr[i].RunningDur += threadItem.dur!))
-            : threadItem.state === 'S'
-            ? ((threadArr[i].SleepingCount += 1), (threadArr[i].SleepingDur += threadItem.dur!))
-            : ((threadArr[i].DCount += 1), (threadArr[i].DDur += threadItem.dur!));
+              ? (threadArr[i].RunningCount += 1, threadArr[i].RunningDur += threadItem.dur!)
+              : threadItem.state === 'S'
+                ? (threadArr[i].SleepingCount += 1, threadArr[i].SleepingDur += threadItem.dur!)
+                : (threadArr[i].DCount += 1, threadArr[i].DDur += threadItem.dur!);
         }
-      });
+      })
       threadArr[i].SleepingDur = Number((threadArr[i].SleepingDur / 1000000).toFixed(3));
       threadArr[i].RunnableDur = Number((threadArr[i].RunnableDur / 1000000).toFixed(3));
       threadArr[i].RunningDur = Number((threadArr[i].RunningDur / 1000000).toFixed(3));
       threadArr[i].DDur = Number((threadArr[i].DDur / 1000000).toFixed(3));
       if (threadList.length > 0) {
-        threadArr[i].children = this.setCycleData(threadList);
+        threadArr[i].children = this.setCycleData(threadList)
       }
     }
-    threadArr = threadArr.filter((V) => {
+    threadArr = threadArr.filter(V => {
       return V.totalCount! > 0;
-    });
+    })
     return threadArr;
   }
 
   // 处理周期数据
   setCycleData(threadData: Array<StateGroup>): Array<StateGroup> {
-    let cycleArr = new Array<StateGroup>();
+    let cycleArr = new Array<StateGroup>;
     if (this.funcNameCycleArr !== undefined && this.funcNameCycleArr.length > 0) {
       for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
         let cycleItem = new StateGroup();
         cycleItem.title = `cycle-${i + 1}`;
         cycleItem.cycle = i;
-        threadData.map((v) => {
+        threadData.map(v => {
           // @ts-ignore
-          if (v.ts > this.funcNameCycleArr[i].cycleStartTime && v.dur + v.ts < this.funcNameCycleArr[i].endTime) {
+          if (v.ts + v.dur > this.funcNameCycleArr[i].cycleStartTime && v.dur + v.ts < this.funcNameCycleArr[i].endTime) {
             cycleItem.totalCount! += 1;
             v.state === 'R'
-              ? ((cycleItem.RunnableCount += 1), (cycleItem.RunnableDur += v.dur!))
+              ? (cycleItem.RunnableCount += 1, cycleItem.RunnableDur += v.dur!)
               : v.state === 'Running'
-              ? ((cycleItem.RunningCount += 1), (cycleItem.RunningDur += v.dur!))
-              : v.state === 'S'
-              ? ((cycleItem.SleepingCount += 1), (cycleItem.SleepingDur += v.dur!))
-              : ((cycleItem.DCount += 1), (cycleItem.DDur += v.dur!));
+                ? (cycleItem.RunningCount += 1, cycleItem.RunningDur += v.dur!)
+                : v.state === 'S'
+                  ? (cycleItem.SleepingCount += 1, cycleItem.SleepingDur += v.dur!)
+                  : (cycleItem.DCount += 1, cycleItem.DDur += v.dur!);
           }
-        });
+        })
         cycleItem.SleepingDur = Number((cycleItem.SleepingDur / 1000000).toFixed(3));
         cycleItem.RunningDur = Number((cycleItem.RunningDur / 1000000).toFixed(3));
         cycleItem.RunnableDur = Number((cycleItem.RunnableDur / 1000000).toFixed(3));
         cycleItem.DDur = Number((cycleItem.DDur / 1000000).toFixed(3));
-        cycleItem.cycleDur! = Number(
-          ((this.funcNameCycleArr[i].endTime - this.funcNameCycleArr[i].cycleStartTime) / 1000000).toFixed(3)
-        );
+        cycleItem.cycleDur! = Number(((this.funcNameCycleArr[i].endTime - this.funcNameCycleArr[i].cycleStartTime) / 1000000).toFixed(3));
         cycleItem.type = 'cycle';
         cycleArr.push(cycleItem);
       }
     }
-    return cycleArr;
-  }
+    return cycleArr
+  };
 
   // 输入框为空点击按钮之后的样式
-  verifyInputIsEmpty(
-    threadIdValue: string,
-    threadFuncName: string,
-    threadId: HTMLInputElement,
-    threadFunc: HTMLInputElement
-  ): void {
+  verifyInputIsEmpty(threadIdValue: string, threadFuncName: string, threadId: HTMLInputElement, threadFunc: HTMLInputElement): void {
     if (threadIdValue === '') {
       threadId.style.border = '1px solid rgb(255,0,0)';
       threadId.setAttribute('placeholder', 'Please input thread id');
@@ -376,6 +340,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
     }
   }
 
+
   // 线程点击
   private theadClick(data: Array<BinderGroup>): void {
     let labels = this.threadBindersTbl?.shadowRoot?.querySelector('.th > .td')?.querySelectorAll('label');
@@ -386,10 +351,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
           if (label.includes('Process') && i === 0) {
             // 数据递归设置status
             this.threadBindersTbl!.setStatus(data, false);
-            this.threadBindersTbl!.recycleDs = this.threadBindersTbl!.meauseTreeRowElement(
-              data,
-              RedrawTreeForm.Retract
-            );
+            this.threadBindersTbl!.recycleDs = this.threadBindersTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Thread') && i === 1) {
             for (let item of data) {
               item.status = true;
@@ -397,10 +359,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
                 this.threadBindersTbl!.setStatus(item.children, false);
               }
             }
-            this.threadBindersTbl!.recycleDs = this.threadBindersTbl!.meauseTreeRowElement(
-              data,
-              RedrawTreeForm.Retract
-            );
+            this.threadBindersTbl!.recycleDs = this.threadBindersTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Cycle') && i === 2) {
             this.threadBindersTbl!.setStatus(data, true);
             this.threadBindersTbl!.recycleDs = this.threadBindersTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
@@ -424,21 +383,20 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       this.dataSource = [];
       // @ts-ignore
       this.dataSingleCut(this.threadStatesDIV!.children[0], this.threadStatesDIV?.children[1]);
-    });
+    })
     this.threadStatesDIV?.children[2].children[1].addEventListener('click', (e) => {
       this.dispalyQueryArea(true);
       this.dataSource = [];
       // @ts-ignore
       this.dataLoopCut(this.threadStatesDIV?.children[0], this.threadStatesDIV?.children[1]);
-    });
+    })
 
     this.threadBindersTbl!.addEventListener('mouseout', (): void => {
       this.cycleIsClick = false;
       this.lineCycleNum = -1;
       this.traceSheetEl!.systemLogFlag = undefined;
-      TabPaneFreqStatesDataCut.isStateTabHover = false;
       this.spSystemTrace?.refreshCanvas(false);
-    });
+    })
 
     this.threadBindersTbl!.addEventListener('row-click', (evt: any) => {
       let currentData: StateGroup = evt.detail.data;
@@ -450,13 +408,12 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         this.threadBindersTbl!.setCurrentSelection(currentData);
         this.rowCycleData = currentData.children;
         this.dispalyQueryArea(false);
-        let totalCount =
-          currentData.SleepingCount + currentData.RunnableCount + currentData.DCount + currentData.RunningCount;
+        let totalCount = currentData.SleepingCount + currentData.RunnableCount + currentData.DCount + currentData.RunningCount;
         this.dataSource = [];
         this.dataSource.push({
           xName: 'Total',
-          yAverage: totalCount !== 0 ? Math.ceil(totalCount! / this.rowCycleData!.length) : 0,
-        });
+          yAverage: totalCount !== 0 ? Math.ceil(totalCount! / this.rowCycleData!.length) : 0
+        })
         if (this.dataSource!.length !== 0) {
           this.drawColumn();
         }
@@ -469,7 +426,6 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         this.threadBindersTbl!.setCurrentSelection(currentData);
         if (currentData.cycle === this.lineCycleNum && this.cycleIsClick === true) {
           this.traceSheetEl!.systemLogFlag = undefined;
-          TabPaneFreqStatesDataCut.isStateTabHover = false;
           this.cycleIsClick = false;
         } else {
           let pointX: number = ns2x(
@@ -479,7 +435,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             TraceRow.range!.totalNS,
             new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
           );
-          SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = new Flag(
+          this.traceSheetEl!.systemLogFlag = new Flag(
             Math.floor(pointX),
             0,
             0,
@@ -490,57 +446,53 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             true,
             ''
           );
-          TabPaneFreqStatesDataCut.isStateTabHover = true;
           this.lineCycleNum = currentData.cycle;
           this.cycleIsClick = true;
         }
-        SpSegmentationChart.trace.refreshCanvas(false);
+        this.spSystemTrace?.refreshCanvas(false);
       }
     });
+
 
     // 筛选柱状图数据
     this.shadowRoot?.querySelector('#query-btn')?.addEventListener('click', () => {
       this.cycleARangeArr = this.rowCycleData?.filter((it: StateGroup) => {
-        return (
-          it.cycleDur! >= Number(this.cycleAStartRangeDIV!.value) &&
-          it.cycleDur! < Number(this.cycleAEndRangeDIV!.value)
-        );
-      });
+        return it.cycleDur! >= Number(this.cycleAStartRangeDIV!.value)
+          && it.cycleDur! < Number(this.cycleAEndRangeDIV!.value);
+      })
       this.cycleBRangeArr = this.rowCycleData?.filter((it: StateGroup) => {
-        return (
-          it.cycleDur! >= Number(this.cycleBStartRangeDIV!.value) &&
-          it.cycleDur! < Number(this.cycleBEndRangeDIV!.value)
-        );
-      });
+        return it.cycleDur! >= Number(this.cycleBStartRangeDIV!.value)
+          && it.cycleDur! < Number(this.cycleBEndRangeDIV!.value);
+      })
       let cycleACount: number = 0;
       this.cycleARangeArr?.forEach((it: StateGroup) => {
         cycleACount += it.totalCount!;
-      });
+      })
       let cycleBCount: number = 0;
       this.cycleBRangeArr?.forEach((it: StateGroup) => {
         cycleBCount += it.totalCount!;
-      });
+      })
       this.dataSource!.length > 1 && this.dataSource?.splice(1);
       this.dataSource!.push({
         xName: 'cycleA',
-        yAverage: cycleACount !== 0 ? Math.ceil(cycleACount / this.cycleARangeArr!.length) : 0,
-      });
+        yAverage: cycleACount !== 0 ? Math.ceil(cycleACount / this.cycleARangeArr!.length) : 0
+      })
       this.dataSource!.push({
         xName: 'cycleB',
-        yAverage: cycleBCount !== 0 ? Math.ceil(cycleBCount / this.cycleBRangeArr!.length) : 0,
-      });
+        yAverage: cycleBCount !== 0 ? Math.ceil(cycleBCount / this.cycleBRangeArr!.length) : 0
+      })
       if (this.dataSource!.length !== 0) {
         this.drawColumn();
       }
-    });
+    })
   }
 
   // 筛选出点击的线程数据
   filCycleData(pid: number, tid: number): Array<StateGroup> {
     return this.filterState?.filter((v: StateGroup) => {
-      return v.pid === pid && v.tid === tid && v.ts > this.cycleStartTime! && v.ts + v.dur! < this.cycleEndTime!;
-    });
-  }
+      return v.pid === pid && v.tid === tid && v.ts + v.dur! > this.cycleStartTime! && v.ts + v.dur! < this.cycleEndTime!;
+    })
+  };
 
   // 清空dur筛选输入框内容
   clearCycleRange(): void {
@@ -783,6 +735,6 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
                 </div>
             </lit-slicer>
         </div>
-        `;
+        `
   }
 }

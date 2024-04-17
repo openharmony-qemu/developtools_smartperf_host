@@ -59,11 +59,6 @@
 导入 trace 文件后，页面右上角的出现漏斗图标，点击会出现 Display Template 页面，Template Select 区域显示已经添加到显示模板中的泳道图，每类泳道图后面会有一个多选框，默认不勾选，如果勾选页面上就只保留勾选的泳道图。
 ![GitHub Logo](../../figures/OperationSkills/Tabskilltemple.jpg)
 
-点击![GitHub Logo](../../figures/OperationSkills/Tabskilltempleshow.jpg)图标会以子系统-->部件-->泳道层级去显示：
-![GitHub Logo](../../figures/OperationSkills/Tabskillsubsystem.jpg)
-点击![GitHub Logo](../../figures/OperationSkills/subsystemupload.jpg)导入模板的 json 配置，点击![GitHub Logo](../../figures/OperationSkills/subsystemdownload.jpg)下载模板的 json 配置，模板的配置文件格式如下：
-![GitHub Logo](../../figures/OperationSkills/subsystemsconfig.jpg)
-
 ### 所有进程的用户输入事件归一显示，观察操作事件和对象
 
 对于用户 InputEvent 会绘制到固定的泳道图。

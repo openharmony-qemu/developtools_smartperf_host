@@ -14,7 +14,7 @@
  */
 
 export class TabPaneFreqUsageConfig {
-  thread: string = '';
+  thread: string = "";
   ts: number | string;
   pid: number | string;
   tid: number | string;
@@ -22,9 +22,9 @@ export class TabPaneFreqUsageConfig {
   cpu: number | string;
   freq: number | string;
   dur: number = 0;
-  cdur: string = '';
+  cdur: string = "";
   percent: number | string;
-  flag: string = '';
+  flag: string = "";
   id: number = -1;
   children: Array<TabPaneFreqUsageConfig> | undefined;
   constructor(
@@ -59,14 +59,22 @@ export class TabPaneFreqUsageConfig {
 }
 
 export class TabPaneRunningConfig {
-  thread: string = '';
-  process: string = '';
+  thread: string = "";
+  process: string = "";
   ts: number = 0;
   pid: number = 0;
   tid: number = 0;
   cpu: number = -1;
   dur: number = 0;
-  constructor(process: string, thread: string, ts: number, pid: number, tid: number, cpu: number, dur: number) {
+  constructor(
+    process: string,
+    thread: string,
+    ts: number,
+    pid: number,
+    tid: number,
+    cpu: number,
+    dur: number
+  ) {
     this.process = process;
     this.thread = thread;
     this.ts = ts;
