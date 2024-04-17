@@ -32,7 +32,7 @@ class ProcedureThread {
     );
   }
 
-  queryFunc(type: string, args: any, transfer: any, handler: Function) {
+  queryFunc(type: string, args: any, transfer: any, handler: Function): void {
     this.busy = true;
     let id = this.uuid();
     this.taskMap[id] = handler;
@@ -58,7 +58,7 @@ class ProcedureThread {
     }
   }
 
-  cancel() {
+  cancel(): void {
     this.isCancelled = true;
     this.worker!.terminate();
   }
@@ -82,11 +82,11 @@ class ProcedurePool {
     this.init(threadBuild);
   }
 
-  static build(name: string, len: number) {
+  static build(name: string, len: number): string[] {
     return [...Array(len).keys()].map((it) => `${name}${it}`);
   }
 
-  init(threadBuild: (() => ProcedureThread) | undefined = undefined) {
+  init(threadBuild: (() => ProcedureThread) | undefined = undefined): void {
     this.maxThreadNumber = this.names.length;
     for (let i = 0; i < this.maxThreadNumber; i++) {
       this.newThread();
@@ -96,7 +96,7 @@ class ProcedurePool {
     }
   }
 
-  newThread() {
+  newThread(): ProcedureThread | undefined {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -107,9 +107,9 @@ class ProcedurePool {
       })
     );
     newThread.name = this.names[this.works.length];
-    newThread.worker!.onmessage = (event: MessageEvent) => {
+    newThread.worker!.onmessage = (event: MessageEvent): void => {
       newThread.busy = false;
-      if ((event.data.type as string) == 'timeline-range-changed') {
+      if ((event.data.type as string) === 'timeline-range-changed') {
         this.timelineChange?.(event.data.results);
         newThread.busy = false;
         return;
@@ -127,8 +127,8 @@ class ProcedurePool {
         this.onComplete();
       }
     };
-    newThread.worker!.onmessageerror = (e) => {};
-    newThread.worker!.onerror = (e) => {};
+    newThread.worker!.onmessageerror = (e): void => {};
+    newThread.worker!.onerror = (e): void => {};
     newThread.id = this.works.length;
     newThread.busy = false;
     this.works?.push(newThread);
@@ -147,8 +147,8 @@ class ProcedurePool {
     );
     thread.name = this.logicDataHandles[this.works.length - this.names.length];
     this.sendMessage(thread);
-    thread.worker!.onmessageerror = (e) => {};
-    thread.worker!.onerror = (e) => {};
+    thread.worker!.onmessageerror = (e): void => {};
+    thread.worker!.onerror = (e): void => {};
     thread.id = this.works.length;
     thread.busy = false;
     this.works?.push(thread);
@@ -156,7 +156,7 @@ class ProcedurePool {
   }
 
   private sendMessage(thread: ProcedureThread): void {
-    thread.worker!.onmessage = (event: MessageEvent) => {
+    thread.worker!.onmessage = (event: MessageEvent): void => {
       thread.busy = false;
       if (event.data.isQuery) {
         query(event.data.type, event.data.sql, event.data.args, 'exec-buf').then((res: any) => {
@@ -196,14 +196,14 @@ class ProcedurePool {
     };
   }
 
-  close = () => {
+  close = (): void => {
     for (let thread of this.works) {
       thread.worker!.terminate();
     }
     this.works.length = 0;
   };
 
-  clearCache = () => {
+  clearCache = (): void => {
     for (let thread of this.works) {
       thread.queryFunc('clear', {}, undefined, () => {});
     }
@@ -237,7 +237,7 @@ class ProcedurePool {
     });
   }
 
-  isIdle() {
+  isIdle(): boolean {
     return this.works.every((it) => !it.busy);
   }
 }

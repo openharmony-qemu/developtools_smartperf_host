@@ -18,11 +18,11 @@ import { LitTabs } from './lit-tabs';
 
 @element('lit-tabpane')
 export class LitTabpane extends BaseElement {
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['tab', 'key', 'disabled', 'icon', 'closeable', 'hidden'];
   }
 
-  get tab() {
+  get tab(): string | null {
     return this.getAttribute('tab');
   }
 
@@ -30,11 +30,11 @@ export class LitTabpane extends BaseElement {
     this.setAttribute('tab', value || '');
   }
 
-  get icon() {
+  get icon(): string | null {
     return this.getAttribute('icon');
   }
 
-  get disabled() {
+  get disabled(): boolean {
     return this.getAttribute('disabled') !== null;
   }
 
@@ -46,7 +46,7 @@ export class LitTabpane extends BaseElement {
     }
   }
 
-  get hidden() {
+  get hidden(): boolean {
     return this.getAttribute('hidden') !== null;
   }
 
@@ -54,7 +54,7 @@ export class LitTabpane extends BaseElement {
     this.setAttribute('hidden', `${value}`);
   }
 
-  get closeable() {
+  get closeable(): boolean {
     return this.getAttribute('closeable') !== null;
   }
 
@@ -66,7 +66,7 @@ export class LitTabpane extends BaseElement {
     }
   }
 
-  get key() {
+  get key(): string {
     return this.getAttribute('key') || '';
   }
 
@@ -90,13 +90,13 @@ export class LitTabpane extends BaseElement {
         `;
   }
 
-  connectedCallback() {}
+  connectedCallback(): void {}
 
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (oldValue !== newValue && newValue !== undefined) {
       if (name === 'tab' && this.parentNode && this.parentNode instanceof LitTabs) {
         this.parentNode.updateLabel && this.parentNode.updateLabel(this.key, newValue);

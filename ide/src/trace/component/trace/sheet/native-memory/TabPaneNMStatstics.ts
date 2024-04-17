@@ -23,11 +23,10 @@ import '../TabProgressBar';
 import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
 import { resizeObserver } from '../SheetUtils';
 import { TabPaneNMSampleList } from './TabPaneNMSampleList';
-import { env } from 'process';
 import {
   queryNativeHookStatistics,
   queryNativeHookStatisticsMalloc,
-  queryNativeHookStatisticsSubType
+  queryNativeHookStatisticsSubType,
 } from '../../../../database/sql/NativeHook.sql';
 
 @element('tabpane-native-statistics')
@@ -58,7 +57,9 @@ export class TabPaneNMStatstics extends BaseElement {
     }
     if (this.nativeStatisticsTbl) {
       // @ts-ignore
-      this.nativeStatisticsTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 25}px`;
+      this.nativeStatisticsTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 25
+      }px`;
       // @ts-ignore
       this.nativeStatisticsTbl.recycleDataSource = [];
     }
@@ -225,16 +226,16 @@ export class TabPaneNMStatstics extends BaseElement {
       this.sortByColumn(evt.detail.key, evt.detail.sort);
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('existingString', (value) => {
-      return `${value['existing']}`;
+      return `${value.existing}`;
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('freeByteString', (value) => {
-      return `${value['totalBytes'] - value['existing']}`;
+      return `${value.totalBytes - value.existing}`;
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('totalBytesString', (value) => {
-      return `${value['totalBytes']}`;
+      return `${value.totalBytes}`;
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('maxStr', (value) => {
-      return `${value['max']}`;
+      return `${value.max}`;
     });
   }
 
@@ -250,7 +251,12 @@ export class TabPaneNMStatstics extends BaseElement {
       this.nativeStatisticsTbl!.recycleDataSource = this.nativeStatisticsSource;
     } else {
       let arr = [...this.nativeStatisticsSource];
-      let compareFunction = (nativeStatisticsLeftData: any, nativeStatisticsRightData: any, column: string, sortType: number) => {
+      let compareFunction = (
+        nativeStatisticsLeftData: any,
+        nativeStatisticsRightData: any,
+        column: string,
+        sortType: number
+      ): number => {
         if (sortType === 1) {
           return nativeStatisticsLeftData[column] - nativeStatisticsRightData[column];
         } else {
@@ -265,7 +271,7 @@ export class TabPaneNMStatstics extends BaseElement {
         freeCount: 'freeCount',
         totalBytesString: 'totalBytes',
         maxStr: 'max',
-        totalCount: 'totalCount'
+        totalCount: 'totalCount',
       };
       let sortColumnKey = columnMap[nmStatColumn];
       this.nativeStatisticsTbl!.recycleDataSource = arr.sort((leftData, rightData) =>

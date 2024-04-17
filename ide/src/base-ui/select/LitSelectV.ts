@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../BaseElement';
 import { LitSelectOption } from './LitSelectOption';
-import {selectHtmlStr, selectVHtmlStr} from './LitSelectHtml';
+import { selectHtmlStr, selectVHtmlStr } from './LitSelectHtml';
 
 @element('lit-select-v')
 export class LitSelectV extends BaseElement {
@@ -31,15 +31,15 @@ export class LitSelectV extends BaseElement {
 
   private valueStr: string = '';
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['value', 'default-value', 'placeholder', 'disabled', 'show-search', 'border', 'mode'];
   }
 
-  get value() {
+  get value(): string {
     return this.selectVInputEl!.value || this.defaultValue;
   }
 
-  get rounded() {
+  get rounded(): boolean {
     return this.hasAttribute('rounded');
   }
 
@@ -63,7 +63,7 @@ export class LitSelectV extends BaseElement {
     }
   }
 
-  get border() {
+  get border(): string {
     return this.getAttribute('border') || 'true';
   }
 
@@ -75,11 +75,11 @@ export class LitSelectV extends BaseElement {
     }
   }
 
-  get defaultPlaceholder() {
+  get defaultPlaceholder(): string {
     return this.getAttribute('placeholder') || '';
   }
 
-  get defaultValue() {
+  get defaultValue(): string {
     return this.getAttribute('default-value') || '';
   }
 
@@ -87,7 +87,7 @@ export class LitSelectV extends BaseElement {
     this.setAttribute('default-value', selectVDefaultValue);
   }
 
-  get placeholder() {
+  get placeholder(): string {
     return this.getAttribute('placeholder') || this.defaultPlaceholder;
   }
 
@@ -103,17 +103,17 @@ export class LitSelectV extends BaseElement {
     }
   }
 
-  get all() {
+  get all(): boolean {
     return this.hasAttribute('is-all');
   }
 
-  dataSource(selectVData: Array<string>, valueStr: string) {
+  dataSource(selectVData: Array<string>, valueStr: string): void {
     this.selectVOptions!.innerHTML = '';
     if (selectVData.length > 0) {
       this.selectVBody!.style.display = 'block';
       this.valueStr = valueStr;
       this.itemValue = selectVData;
-      if (valueStr != '') {
+      if (valueStr !== '') {
         let option = document.createElement('lit-select-option');
         if (this.all) {
           option.setAttribute('selected', '');
@@ -131,13 +131,13 @@ export class LitSelectV extends BaseElement {
     } else {
       this.selectVBody!.style.display = 'none';
     }
-    if (this.title == 'Event List') {
+    if (this.title === 'Event List') {
       let inputElement = this.shadowRoot?.querySelector('input') as HTMLInputElement;
       inputElement.readOnly = false;
     }
   }
 
-  initDataItem(selectVDataItem: Array<string>) {
+  initDataItem(selectVDataItem: Array<string>): void {
     selectVDataItem.forEach((item) => {
       let selectVOption = document.createElement('lit-select-option');
       if (this.showItems.indexOf(item) > -1 || this.all) {
@@ -158,7 +158,7 @@ export class LitSelectV extends BaseElement {
     this.selectVBody = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
     this.selectVOptions = this.shadowRoot!.querySelector('.body-opt') as HTMLDivElement;
     this.selectVIconEl = this.shadowRoot!.querySelector('.icon');
-    this.selectVInputEl!.oninput = (ev: InputEvent) => {
+    this.selectVInputEl!.oninput = (ev: InputEvent): void => {
       // @ts-ignore
       if (this.selectVInputEl!.value === '00') {
         this.selectVInputEl!.value = '0';
@@ -171,13 +171,13 @@ export class LitSelectV extends BaseElement {
         });
       }
     };
-    this.selectVSearchInputEl!.onkeydown = (ev: KeyboardEvent) => {
+    this.selectVSearchInputEl!.onkeydown = (ev: KeyboardEvent): void => {
       // @ts-ignore
       if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
         ev.preventDefault();
       }
     };
-    this.onclick = (ev: any) => {
+    this.onclick = (ev: any): void => {
       if (this.focused === false) {
         this.focused = true;
       } else {
@@ -197,19 +197,23 @@ export class LitSelectV extends BaseElement {
     this.setEvent();
   }
 
-  setEvent():void{
-    this.onmouseout = this.onblur = (ev) => {
+  setEvent(): void {
+    this.onmouseout = this.onblur = (ev): void => {
       this.focused = false;
     };
-    this.selectVInputEl.onfocus = (ev: any) => {
-      if (this.hasAttribute('disabled')) return;
+    this.selectVInputEl.onfocus = (ev: any): void => {
+      if (this.hasAttribute('disabled')) {
+        return;
+      }
     };
-    this.selectVInputEl.onblur = (ev: any) => {
-      if (this.hasAttribute('disabled')) return;
+    this.selectVInputEl.onblur = (ev: any): void => {
+      if (this.hasAttribute('disabled')) {
+        return;
+      }
     };
   }
 
-  initHtml() {
+  initHtml(): string {
     return `
         ${selectVHtmlStr}
         <div class="root noSelect" tabindex="0" hidefocus="true">
@@ -228,9 +232,9 @@ export class LitSelectV extends BaseElement {
         `;
   }
 
-  connectedCallback() {}
+  connectedCallback(): void {}
 
-  initCustomOptions() {
+  initCustomOptions(): void {
     let querySelector = this.shadowRoot?.querySelector(
       `lit-select-option[value="${this.valueStr}"]`
     ) as LitSelectOption;
@@ -250,7 +254,7 @@ export class LitSelectV extends BaseElement {
         } else {
           let index = this.itemValue.indexOf(a.textContent!);
           let value = this.showItems.indexOf(a.textContent!);
-          if (index > -1 && value == -1) {
+          if (index > -1 && value === -1) {
             this.showItems.push(a.textContent!);
             this.selectVInputEl!.value = this.showItems;
           }
@@ -268,7 +272,7 @@ export class LitSelectV extends BaseElement {
     this.selectAll(querySelector);
   }
 
-  initOptions() {
+  initOptions(): void {
     this.shadowRoot?.querySelectorAll('lit-select-option').forEach((a) => {
       a.setAttribute('check', '');
       a.addEventListener('onSelected', (e: any) => {
@@ -288,9 +292,9 @@ export class LitSelectV extends BaseElement {
         let items = this.selectVInputEl!.value.split(',');
         this.customItem = [];
         items.forEach((item: string) => {
-          if (item.trim() != '') {
+          if (item.trim() !== '') {
             let indexItem = this.itemValue.indexOf(item.trim());
-            if (indexItem == -1) {
+            if (indexItem === -1) {
               this.customItem.push(item.trim());
             }
           }
@@ -304,7 +308,7 @@ export class LitSelectV extends BaseElement {
     });
   }
 
-  selectAll(querySelector: LitSelectOption) {
+  selectAll(querySelector: LitSelectOption): void {
     querySelector?.addEventListener('click', (ev) => {
       if (querySelector.hasAttribute('selected')) {
         this.shadowRoot?.querySelectorAll('lit-select-option').forEach((a) => {
@@ -326,5 +330,5 @@ export class LitSelectV extends BaseElement {
     });
   }
 
-  attributeChangedCallback(name: any, oldValue: any, newValue: any) {}
+  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {}
 }

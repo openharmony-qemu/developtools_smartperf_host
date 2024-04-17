@@ -124,7 +124,7 @@ export function frameAnimationReceiver(data: any, proc: Function): void {
   }
   postFrameAnimationMessage(data, transfer, frameAnimation, res.length);
 }
-function postFrameAnimationMessage(data: any, transfer: boolean, frameAnimation: FrameAnimation, len: number) {
+function postFrameAnimationMessage(data: any, transfer: boolean, frameAnimation: FrameAnimation, len: number): void {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,
@@ -252,7 +252,7 @@ export function frameSpacingReceiver(data: any, proc: Function): void {
   }
   postFrameSpacingMessage(data, transfer, frameSpacing, frameSpacingList.length);
 }
-function postFrameSpacingMessage(data: any, transfer: boolean, frameSpacing: FrameSpacing, len: number) {
+function postFrameSpacingMessage(data: any, transfer: boolean, frameSpacing: FrameSpacing, len: number): void {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,
@@ -298,7 +298,7 @@ function setSpacingStructs(
   nameDataMap: Map<string, Array<FrameSpacingStruct>>,
   itemData: FrameSpacingStruct,
   data: any
-) {
+): void {
   let unitIndex: number = 1;
   let secondToNanosecond: number = 1000_000_000;
   let spacingStructs = nameDataMap.get(itemData.nameId!);
@@ -323,7 +323,7 @@ function setSpacingStructs(
     spacingStructs.push(itemData);
   }
 }
-function setNameDataMap(nameDataMap: Map<string, Array<FrameSpacingStruct>>, itemData: FrameSpacingStruct) {
+function setNameDataMap(nameDataMap: Map<string, Array<FrameSpacingStruct>>, itemData: FrameSpacingStruct): void {
   itemData.frameSpacingResult = 0;
   itemData.preTs = 0;
   itemData.preFrameWidth = 0;

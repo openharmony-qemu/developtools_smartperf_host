@@ -33,26 +33,24 @@ export class ClientVessel {
     this._host = value;
   }
 
-  public registryClient(target: any, path: string) {}
-
-  public start() {
+  public start(): void {
     this.loadSettings();
     this._registryClient();
   }
 
-  private loadSettings() {
+  private loadSettings(): void {
     let { host, port } = SettingRegistry.settings;
     this._host = host;
     this._port = port;
   }
 
-  private _registryClient() {}
+  private _registryClient(): void {}
 }
 
 export class SettingRegistry {
   static settings: Settings;
 
-  static registry(settings: Settings) {
+  static registry(settings: Settings): void {
     this.settings = settings;
   }
 }

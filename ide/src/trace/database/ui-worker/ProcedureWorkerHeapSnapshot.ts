@@ -17,7 +17,7 @@ import { BaseStruct, Rect, Render, drawLoadingFrame, isFrameContainPoint } from 
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
 
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 export class HeapSnapshotRender extends Render {
   renderMainThread(
     req: {
@@ -26,7 +26,7 @@ export class HeapSnapshotRender extends Render {
       type: string;
     },
     row: TraceRow<HeapSnapshotStruct>
-  ) {
+  ): void {
     let filter = row.dataListCache;
     HeapSnapshot(
       filter,
@@ -58,18 +58,23 @@ export function HeapSnapshot(
   endNS: number,
   totalNS: number,
   frame: Rect
-) {
+): void {
   for (let file of list) {
     HeapSnapshotStruct.setFrame(file, startNS || 0, endNS || 0, totalNS || 0, frame);
   }
 }
 const padding = 3;
-export function HeapSnapshotStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>,snapshotClickHandler: any) {
+export function HeapSnapshotStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  row: TraceRow<any>,
+  snapshotClickHandler: any
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_HEAP_SNAPSHOT) {
       if (row.findHoverStruct) {
         row.findHoverStruct();
-      }else {
+      } else {
         HeapSnapshotStruct.hoverSnapshotStruct = HeapSnapshotStruct.hoverSnapshotStruct || row.getHoverStruct();
       }
       if (HeapSnapshotStruct.hoverSnapshotStruct) {
@@ -85,7 +90,6 @@ export function HeapSnapshotStructOnClick(clickRowType: string, sp: SpSystemTrac
       resolve(null);
     }
   });
-
 }
 export class HeapSnapshotStruct extends BaseStruct {
   startTs: number = 0;
@@ -98,7 +102,7 @@ export class HeapSnapshotStruct extends BaseStruct {
   static hoverSnapshotStruct: HeapSnapshotStruct | undefined;
   static selectSnapshotStruct: HeapSnapshotStruct | undefined;
 
-  static setFrame(node: HeapSnapshotStruct, startNS: number, endNS: number, totalNS: number, frame: Rect) {
+  static setFrame(node: HeapSnapshotStruct, startNS: number, endNS: number, totalNS: number, frame: Rect): void {
     node.frame = undefined;
     if ((node.startTs - startNS || node.startTs - startNS === 0) && node.endTs - node.startTs) {
       let rectangle: Rect = new Rect(
@@ -187,11 +191,11 @@ export class HeapSnapshotStruct extends BaseStruct {
     return (
       d1 &&
       d2 &&
-      d1.name == d2.name &&
-      d1.id == d2.id &&
-      d1.pid == d2.pid &&
-      d1.startTs == d2.startTs &&
-      d1.endTs == d2.endTs
+      d1.name === d2.name &&
+      d1.id === d2.id &&
+      d1.pid === d2.pid &&
+      d1.startTs === d2.startTs &&
+      d1.endTs === d2.endTs
     );
   }
 }

@@ -25,7 +25,9 @@ const filterPixel = 2; // 过滤像素
 const textMaxWidth = 50;
 const scaleRatio = 0.2; // 缩放比例
 const ms10 = 10_000_000;
+const jsHapKeys = ['.hap', 'hsp', 'har'];
 const jsStackPath = ['.ts', '.ets', '.js'];
+const textStyle = '12px bold';
 
 class NodeValue {
   size: number;
@@ -226,9 +228,8 @@ export class FrameChart extends BaseElement {
         currentValuePercent = this.total / this.rootNode.eventCount;
         break;
     }
-    this.rootNode.symbol = currentValuePercent
-      ? `Root : ${currentValue} (${(currentValuePercent * 100).toFixed(2)}%)`
-      : `Root : ${currentValue}`;
+    let endStr = currentValuePercent ? ` (${(currentValuePercent * 100).toFixed(2)}%)` : '';
+    this.rootNode.symbol = `Root : ${currentValue}${endStr}`;
   }
 
   /**
@@ -237,12 +238,32 @@ export class FrameChart extends BaseElement {
    * @returns 是否包含
    */
   private isJsStack(str: string): boolean {
-    for (const format of jsStackPath) {
+    let keyList = jsStackPath;
+    if (this._mode === ChartMode.Count || ChartMode.EventCount) {
+      keyList = jsStackPath.concat(jsHapKeys);
+    }
+    for (const format of keyList) {
       if (str.indexOf(format) > 0) {
         return true;
       }
     }
     return false;
+  }
+
+  private clearSuperfluousParams(node: ChartStruct): void {
+    node.id = undefined;
+    node.eventType = undefined;
+    node.parentId = undefined;
+    node.title = undefined;
+    node.eventType = undefined;
+    if (this.mode === ChartMode.Byte) {
+      node.self = undefined;
+      node.eventCount = 0;
+    }
+    if (this._mode !== ChartMode.Count && this._mode !== ChartMode.EventCount) {
+      node.eventCount = 0;
+      node.eventPercent = undefined;
+    }
   }
 
   /**
@@ -254,6 +275,7 @@ export class FrameChart extends BaseElement {
   private initData(node: ChartStruct, depth: number, calDisplay: boolean): void {
     node.depth = depth;
     depth++;
+    this.clearSuperfluousParams(node);
     if (this.isJsStack(node.lib)) {
       node.isJsStack = true;
     } else {
@@ -346,6 +368,7 @@ export class FrameChart extends BaseElement {
   public async calculateChartData(): Promise<void> {
     this.clearCanvas();
     this.canvasContext?.beginPath();
+    this.canvasContext.font = textStyle;
     // 绘制刻度线
     this.drawCalibrationTails();
     // 绘制root节点
@@ -811,7 +834,7 @@ export class FrameChart extends BaseElement {
   private updateTipContent(): void {
     const hoverNode = ChartStruct.hoverFuncStruct;
     if (hoverNode) {
-      const name = hoverNode?.symbol.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const name = hoverNode?.symbol.replace(/</g, '&lt;').replace(/>/g, '&gt;').split(' (')[0];
       const percent = ((hoverNode?.percent || 0) * 100).toFixed(2);
       const threadPercent = this.getCurrentPercentOfThread(hoverNode);
       const processPercent = this.getCurrentPercentOfProcess(hoverNode);
@@ -978,6 +1001,15 @@ export class FrameChart extends BaseElement {
           break;
       }
     });
+
+    document.addEventListener('keyup', (e) => {
+      if (!ChartStruct.hoverFuncStruct) {
+        return;
+      }
+      if (e.ctrlKey && e.key.toLocaleLowerCase() === 'c') {
+        navigator.clipboard.writeText(ChartStruct.hoverFuncStruct!.symbol);
+      }
+    });
     this.listenerResize();
   }
 
@@ -990,7 +1022,7 @@ export class FrameChart extends BaseElement {
                 background-color: white;
                 border: 1px solid #f9f9f9;
                 width: auto;
-                font-size: 8px;
+                font-size: 12px;
                 color: #50809e;
                 padding: 2px 10px;
                 display: none;

@@ -46,8 +46,9 @@ export class objectToMemorySize {
   }
 
   sizeOfObj(object: any): number {
-    if (object === null) return 0;
-
+    if (object === null) {
+      return 0;
+    }
     let bytes = 0;
     // The key in the object also takes up memory space
     const props = Object.keys(object);
@@ -57,7 +58,9 @@ export class objectToMemorySize {
       bytes += this.objectToSize(key);
       if (typeof object[key] === 'object' && object[key] !== null) {
         // 这里需要注意value使用相同内存空间（只需计算一次内存）
-        if (this.seen.has(object[key])) continue;
+        if (this.seen.has(object[key])) {
+          continue;
+        }
         this.seen.add(object[key]);
       }
       bytes += this.objectToSize(object[key]);

@@ -19,7 +19,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { JankFramesStruct } from '../../../../bean/JankFramesStruct';
 import { JanksStruct } from '../../../../bean/JanksStruct';
 import { resizeObserver } from '../SheetUtils';
-import {querySelectRangeData} from "../../../../database/sql/Janks.sql";
+import { querySelectRangeData } from '../../../../database/sql/Janks.sql';
 
 @element('tabpane-frames')
 export class TabPaneFrames extends BaseElement {
@@ -50,9 +50,9 @@ export class TabPaneFrames extends BaseElement {
           allData.push(data);
         }
       });
-      querySelectRangeData(allPid, framesParam.leftNs, framesParam.rightNs).then((result: any)=> {
+      querySelectRangeData(allPid, framesParam.leftNs, framesParam.rightNs).then((result: any) => {
         sumRes.occurrences = allData.length + result.length;
-        allData.forEach(item => {
+        allData.forEach((item) => {
           // frameTime
           this.frameTimelineJankDataHandle(item, appJank, noJank);
         });

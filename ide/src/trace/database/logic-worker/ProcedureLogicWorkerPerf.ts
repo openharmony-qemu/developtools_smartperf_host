@@ -374,20 +374,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   setPerfCallChainFrameName(callChain: PerfCallChain): void {
     //设置调用栈的名称
     callChain.canCharge = true;
-    if (callChain.symbolId === -1) {
-      if (this.filesData[callChain.fileId] && this.filesData[callChain.fileId].length > 0) {
-        callChain.fileName = this.filesData[callChain.fileId][0].fileName;
-        callChain.path = this.filesData[callChain.fileId][0].path;
-      } else {
-        callChain.fileName = 'unknown';
-      }
+    if (this.filesData[callChain.fileId] && this.filesData[callChain.fileId].length > 0) {
+      callChain.fileName = this.filesData[callChain.fileId][0].fileName;
+      callChain.path = this.filesData[callChain.fileId][0].path;
     } else {
-      if (this.filesData[callChain.fileId] && this.filesData[callChain.fileId].length > callChain.symbolId) {
-        callChain.fileName = this.filesData[callChain.fileId][callChain.symbolId].fileName;
-        callChain.path = this.filesData[callChain.fileId][callChain.symbolId].path;
-      } else {
-        callChain.fileName = 'unknown';
-      }
+      callChain.fileName = 'unknown';
     }
   }
 
@@ -543,7 +534,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    if (node! && !isEnd) this.mergeChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    if (node! && !isEnd) {
+      this.mergeChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    }
   }
 
   //所有的操作都是针对整个树结构的 不区分特定的数据

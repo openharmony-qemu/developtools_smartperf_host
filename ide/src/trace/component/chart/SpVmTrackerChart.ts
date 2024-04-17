@@ -36,19 +36,19 @@ import {
   shmDataSender,
 } from '../../database/data-trafic/VmTrackerDataSender';
 import { resetVmTracker } from '../../database/data-trafic/VmTrackerDataReceiver';
-import {querySmapsExits} from "../../database/sql/Smaps.sql";
+import { querySmapsExits } from '../../database/sql/Smaps.sql';
 import {
   queryisExistsGpuMemoryData,
   queryisExistsPurgeableData,
-  queryisExistsShmData
-} from "../../database/sql/Memory.sql";
-import {queryisExistsDmaData} from "../../database/sql/Dma.sql";
+  queryisExistsShmData,
+} from '../../database/sql/Memory.sql';
+import { queryisExistsDmaData } from '../../database/sql/Dma.sql';
 import {
   queryGpuTotalType,
   queryGpuWindowType,
   queryisExistsGpuData,
-  queryisExistsGpuResourceData
-} from "../../database/sql/Gpu.sql";
+  queryisExistsGpuResourceData,
+} from '../../database/sql/Gpu.sql';
 
 export class VmTrackerChart {
   private trace: SpSystemTrace;
@@ -69,7 +69,7 @@ export class VmTrackerChart {
     this.smapsRecordTab = this.trace
       .shadowRoot!.querySelector('div > trace-sheet')!
       .shadowRoot!.querySelector<TabPaneSmapsRecord>('#box-smaps-record > tabpane-smaps-record');
-    if (this.scratchId == -1) {
+    if (this.scratchId === -1) {
       for (let [key, value] of SpSystemTrace.DATA_DICT) {
         if (value === 'Scratch') {
           this.scratchId = key;
@@ -100,11 +100,11 @@ export class VmTrackerChart {
     await this.initGpuData();
   }
 
-  private async initGpuData() {
+  private async initGpuData(): Promise<void> {
     const isExistsGpuMemory = await queryisExistsGpuMemoryData(this.memoryConfig.iPid);
     const isExistsGpuResource = await queryisExistsGpuResourceData(this.scratchId);
-    const isExistsGraph = await queryisExistsGpuData(MemoryConfig.getInstance().iPid, "'mem.graph_pss'");
-    const isExistsGl = await queryisExistsGpuData(MemoryConfig.getInstance().iPid, "'mem.gl_pss'");
+    const isExistsGraph = await queryisExistsGpuData(MemoryConfig.getInstance().iPid, '\'mem.graph_pss\'');
+    const isExistsGl = await queryisExistsGpuData(MemoryConfig.getInstance().iPid, '\'mem.gl_pss\'');
     if (
       // @ts-ignore
       isExistsGpuMemory[0].data_exists ||
@@ -393,7 +393,7 @@ export class VmTrackerChart {
     graphRow.addTemplateTypes('sys-memory');
     graphRow.folderTextLeft = 40;
     graphRow.supplierFrame = (): Promise<SnapshotStruct[]> => {
-      return gpuGpuDataSender(this.memoryConfig.iPid, "'mem.graph_pss'", graphRow).then((graphData: any[]) => {
+      return gpuGpuDataSender(this.memoryConfig.iPid, '\'mem.graph_pss\'', graphRow).then((graphData: any[]) => {
         this.setName(graphData);
         return graphData;
       });
@@ -406,7 +406,7 @@ export class VmTrackerChart {
     glRow.addTemplateTypes('sys-memory');
     glRow.folderTextLeft = 40;
     glRow.supplierFrame = (): Promise<SnapshotStruct[]> => {
-      return gpuGpuDataSender(this.memoryConfig.iPid, "'mem.gl_pss'", glRow).then((glData: any[]) => {
+      return gpuGpuDataSender(this.memoryConfig.iPid, '\'mem.gl_pss\'', glRow).then((glData: any[]) => {
         this.setName(glData);
         return glData;
       });
@@ -513,7 +513,7 @@ export class VmTrackerChart {
   }
 
   private addHandleEventByGpuWindowRow(gpuWindowRow: TraceRow<SnapshotStruct>): void {
-    gpuWindowRow.onRowSettingChangeHandler = (setting) => {
+    gpuWindowRow.onRowSettingChangeHandler = (setting): void => {
       if (setting && setting.length > 0) {
         let split = setting[0].split('-');
         VmTrackerChart.gpuWindow = parseInt(split[0]);
@@ -525,7 +525,7 @@ export class VmTrackerChart {
         gpuWindowRow.drawFrame();
       }
     };
-    gpuWindowRow.supplierFrame = () => {
+    gpuWindowRow.supplierFrame = (): Promise<SnapshotStruct[]> => {
       return gpuWindowDataSender(VmTrackerChart.gpuWindow!, VmTrackerChart.gpuWindowModule, gpuWindowRow).then(
         (gpuWindowData: any[]) => {
           this.setName(gpuWindowData);
@@ -550,7 +550,7 @@ export class VmTrackerChart {
     vmTrackerTraceRow.focusHandler = (): void => {
       this.showTip(vmTrackerTraceRow);
     };
-    vmTrackerTraceRow.findHoverStruct = () => {
+    vmTrackerTraceRow.findHoverStruct = (): void => {
       SnapshotStruct.hoverSnapshotStruct = vmTrackerTraceRow.getHoverStruct();
     };
     vmTrackerTraceRow.onThreadHandler = (useCache): void => {

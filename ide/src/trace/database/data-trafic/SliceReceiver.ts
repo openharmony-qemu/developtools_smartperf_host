@@ -11,12 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  cpuList,
-  processList,
-  sliceList,
-  threadStateList
-} from './utils/AllMemoryCache';
+import { cpuList, processList, sliceList, threadStateList } from './utils/AllMemoryCache';
 
 export const sliceSqlMem = (args: any): string => {
   return `
@@ -29,7 +24,7 @@ export const sliceSqlMem = (args: any): string => {
              B.ts - ${args.recordStartNS} AS startTime,
              ifnull(B.arg_setid, -1)      as argSetId
       from thread_state AS B
-      where B.itid is not null and startTime >= 0 and B.ts + ifnull(B.dur, 0) < ${args.recordEndNS}`;
+      where B.itid is not null and B.ts + ifnull(B.dur, 0) < ${args.recordEndNS}`;
 };
 
 export function sliceReceiver(data: any, proc: Function): void {
@@ -48,12 +43,12 @@ export function sliceReceiver(data: any, proc: Function): void {
       if (cpuList.has(slice.cpu)) {
         let arr = cpuList.get(slice.cpu) || [];
         let last = arr[arr.length - 1];
-        if (last && last.dur === -1 || last.dur === null || last.dur === undefined) {
+        if (last && (last.dur === -1 || last.dur === null || last.dur === undefined)) {
           last.dur = slice.startTime - last.startTime;
         }
         cpuList.get(slice.cpu)!.push(slice);
       } else {
-        cpuList.set(slice.cpu,[slice]);
+        cpuList.set(slice.cpu, [slice]);
       }
     }
     if (slice.pid >= 0 && slice.cpu !== null && slice.cpu !== undefined) {
@@ -75,8 +70,9 @@ export function sliceReceiver(data: any, proc: Function): void {
   for (let key of cpuList.keys()) {
     let arr = cpuList.get(key) || [];
     let last = arr[arr.length - 1];
-    if (last && last.dur === -1 || last.dur === null || last.dur === undefined) {
-      last.dur = data.params.endNS - last.startTime;
+    if (last && (last.dur === -1 || last.dur === null || last.dur === undefined)) {
+      let totalNs = data.params.recordEndNS - data.params.recordStartNS;
+      last.dur = totalNs - last.startTime;
     }
     count.cpu.set(key, arr.length);
   }
@@ -107,7 +103,8 @@ function postMsg(data: any, res: any): void {
       results: res,
       len: res.length,
       transfer: false,
-    }, []
+    },
+    []
   );
 }
 
@@ -306,4 +303,3 @@ function setSPTData(group: any, slice: any, item: any): void {
     });
   }
 }
-

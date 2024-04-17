@@ -38,7 +38,7 @@ export class Top20ProcessSwitchCount extends BaseElement {
     this.processSwitchCountTbl = this.shadowRoot!.querySelector<LitTable>('#tb-process-switch-count');
     this.processSwitchCountPie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
 
-    this.processSwitchCountTbl!.addEventListener('row-click', (evt: any) => {
+    this.processSwitchCountTbl!.addEventListener('row-click', (evt: any): void => {
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
@@ -48,11 +48,11 @@ export class Top20ProcessSwitchCount extends BaseElement {
       }
     });
 
-    this.processSwitchCountTbl!.addEventListener('column-click', (evt) => {
+    this.processSwitchCountTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.processSwitchCountTbl!.addEventListener('row-hover', (evt: any) => {
+    this.processSwitchCountTbl!.addEventListener('row-hover', (evt: any): void => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -64,7 +64,7 @@ export class Top20ProcessSwitchCount extends BaseElement {
     });
   }
 
-  init() {
+  init(): void {
     if (!this.traceChange) {
       if (this.processSwitchCountTbl!.recycleDataSource.length > 0) {
         this.processSwitchCountTbl?.reMeauseHeight();
@@ -73,7 +73,7 @@ export class Top20ProcessSwitchCount extends BaseElement {
     }
     this.traceChange = false;
     this.processSwitchCountProgress!.loading = true;
-    this.queryLogicWorker('scheduling-Process SwitchCount', 'query Process Switch Count Analysis Time:', (res) => {
+    this.queryLogicWorker('scheduling-Process SwitchCount', 'query Process Switch Count Analysis Time:', (res): void => {
       this.nodata!.noData = res === undefined || res.length === 0;
       this.processSwitchCountTbl!.recycleDataSource = res;
       this.processSwitchCountData = res;
@@ -84,7 +84,7 @@ export class Top20ProcessSwitchCount extends BaseElement {
         angleField: 'switchCount',
         colorField: 'pid',
         radius: 0.8,
-        tip: (obj) => {
+        tip: (obj): string => {
           return `<div>
                              <div>pid:${obj.obj.tid}</div> 
                              <div>p_name:${obj.obj.tName}</div> 
@@ -95,7 +95,7 @@ export class Top20ProcessSwitchCount extends BaseElement {
         label: {
           type: 'outer',
         },
-        hoverHandler: (data) => {
+        hoverHandler: (data): void => {
           if (data) {
             this.processSwitchCountTbl!.setCurrentHover(data);
           } else {
@@ -112,28 +112,27 @@ export class Top20ProcessSwitchCount extends BaseElement {
     });
   }
 
-  clearData() {
+  clearData(): void {
     this.traceChange = true;
     this.processSwitchCountPie!.dataSource = [];
     this.processSwitchCountTbl!.recycleDataSource = [];
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
+  queryLogicWorker(option: string, log: string, handler: (res: any) => void): void {
     let processSwitchCountTime = new Date().getTime();
     procedurePool.submitWithName('logic0', option, {}, undefined, handler);
     let durTime = new Date().getTime() - processSwitchCountTime;
     info(log, durTime);
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     // @ts-ignore
     function compare(processSwitchCountProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2
-            ? parseFloat(b[processSwitchCountProperty]) - parseFloat(a[processSwitchCountProperty])
-            : parseFloat(a[processSwitchCountProperty]) - parseFloat(b[processSwitchCountProperty]);
+          return sort === 2 ? parseFloat(b[processSwitchCountProperty]) - parseFloat(a[processSwitchCountProperty]) :
+            parseFloat(a[processSwitchCountProperty]) - parseFloat(b[processSwitchCountProperty]);
         } else {
           if (sort === 2) {
             return b[processSwitchCountProperty].toString().localeCompare(a[processSwitchCountProperty].toString());

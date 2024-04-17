@@ -780,18 +780,20 @@
   <body for="html-export" id="body">
     <div class="mume md">
       <p class="fontColor">
-        各应用程序对于trace事件的waking和wakeup处理是略有区别的。<br />
-        waking是开始唤醒线程，wakeup是线程正式被唤醒，进入runnable（可运行状态）<br />
+        各应用程序对于trace事件的waking和wakeup处理是略有区别的。
+        <br />
+        waking是开始唤醒线程，wakeup是线程正式被唤醒，进入runnable（可运行状态）
+        <br />
         我们的策略是：被唤醒才是真正进入runnable状态，在没有wakeup事件的情况下，以waking为准。
       </p>
     </div>
     <script type="text/javascript">
       window.onload = () => {
         let isDark = window.location.search;
-        if (isDark.indexOf('?') != -1) {
+        if (isDark.indexOf('?') !== -1) {
           isDark = isDark.substr(1, isDark.length - 1);
         }
-        if (isDark == 'true') {
+        if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
           for (let i = 0; i < header.length; i++) {

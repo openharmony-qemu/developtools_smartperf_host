@@ -244,22 +244,25 @@ export class SpFrameTimeChart {
     let appNameMap: Map<number, string> = new Map();
     if (this.flagConfig?.AnimationAnalysis === 'Enabled') {
       if (process.processName?.startsWith('render_service')) {
+        let targetRowList = processRow.childrenList.filter(
+          (childRow) => childRow.rowType === 'thread' && childRow.name.startsWith('render_service')
+        );
         let nameArr: { name: string }[] = await queryFrameApp();
         if (nameArr && nameArr.length > 0) {
           let currentName = nameArr[0].name;
           let frameChart = await this.initFrameChart(processRow, nameArr);
-          if (secondRow !== null) {
-            processRow.addChildTraceRowAfter(frameChart, secondRow);
-          } else if (firstRow !== null) {
-            processRow.addChildTraceRowAfter(frameChart, firstRow);
+          if (firstRow !== null) {
+            processRow.addChildTraceRowBefore(frameChart, firstRow);
+          } else if (secondRow !== null) {
+            processRow.addChildTraceRowBefore(frameChart, secondRow);
           } else {
-            processRow.addChildTraceRowSpecifyLocation(frameChart, 0);
+            processRow.addChildTraceRowBefore(frameChart, targetRowList[0]);
           }
           let appNameList = await queryDynamicIdAndNameData();
           appNameList.forEach((item) => {
             appNameMap.set(item.id, item.appName);
           });
-          let animationRanges = await this.initAnimationChart(processRow, firstRow, secondRow);
+          let animationRanges = await this.initAnimationChart(processRow);
           await this.initDynamicCurveChart(appNameMap, frameChart, currentName, animationRanges);
           await this.initFrameSpacing(appNameMap, frameChart, currentName, animationRanges);
         }
@@ -320,9 +323,9 @@ export class SpFrameTimeChart {
       const result = await frameAnimationSender(row);
       let maxDepth = 0;
       result.forEach((item) => {
-        if (item.status === '1') {
+        if (`${item.status}` === '1') {
           item.status = 'Completion delay';
-        } else {
+        } else if (`${item.status}` === '0') {
           item.status = 'Response delay';
         }
         if (item.depth > maxDepth) {
@@ -357,11 +360,7 @@ export class SpFrameTimeChart {
     };
   }
 
-  async initAnimationChart(
-    processRow: TraceRow<BaseStruct>,
-    firstRow: TraceRow<BaseStruct>,
-    secondRow: TraceRow<BaseStruct>
-  ): Promise<AnimationRanges[]> {
+  async initAnimationChart(processRow: TraceRow<BaseStruct>): Promise<AnimationRanges[]> {
     let animationRanges: AnimationRanges[] = [];
     let frameAnimationRow = TraceRow.skeleton<FrameAnimationStruct>();
 
@@ -393,13 +392,7 @@ export class SpFrameTimeChart {
     frameAnimationRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     frameAnimationRow.selectChangeHandler = this.trace.selectChangeHandler;
     this.animationThreadHandler(frameAnimationRow);
-    if (firstRow !== null) {
-      processRow.addChildTraceRowBefore(frameAnimationRow, firstRow);
-    } else if (secondRow !== null) {
-      processRow.addChildTraceRowBefore(frameAnimationRow, secondRow);
-    } else {
-      processRow.addChildTraceRowSpecifyLocation(frameAnimationRow, 0);
-    }
+    processRow.addChildTraceRowSpecifyLocation(frameAnimationRow, 0);
     return animationRanges;
   }
 

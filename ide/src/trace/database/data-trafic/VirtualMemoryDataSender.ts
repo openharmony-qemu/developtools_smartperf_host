@@ -50,7 +50,7 @@ export function virtualMemoryDataSender(
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number) {
+function arrayBufferHandler(buffers: any, len: number): VirtualMemoryStruct[] {
   let filterID = new Uint8Array(buffers.filterID);
   let value = new Int32Array(buffers.value);
   let startTime = new Float64Array(buffers.startTime);

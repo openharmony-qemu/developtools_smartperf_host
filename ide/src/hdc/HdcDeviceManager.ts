@@ -110,7 +110,7 @@ export class HdcDeviceManager {
     // @ts-ignore
     const devices = await navigator.usb.getDevices();
     // @ts-ignore
-    return devices.find((dev) => dev.serialNumber === serialNumber);
+    return devices.find((dev): boolean => dev.serialNumber === serialNumber);
   }
 
   /**
@@ -122,7 +122,7 @@ export class HdcDeviceManager {
     const hdcClient = this.clientList.get(serialNumber);
     if (hdcClient) {
       await hdcClient.disconnect();
-      this.clientList['delete'](serialNumber);
+      this.clientList.delete(serialNumber);
       return true;
     } else {
       return true;

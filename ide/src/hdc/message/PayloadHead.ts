@@ -31,7 +31,7 @@ export class PayloadHead extends Object implements BaseBean {
     this._dataSize = dataSize;
   }
 
-  static getPayloadHeadLength() {
+  static getPayloadHeadLength(): number {
     return 11;
   }
   getDataView(): DataView {
@@ -87,6 +87,6 @@ export class PayloadHead extends Object implements BaseBean {
   }
 
   toString(): string {
-    return 'PayloadHead: ' + this.getDataView.toString() + ', parsePlayHead: ' + PayloadHead.parsePlayHead.toString();
+    return `PayloadHead: ${this.getDataView.toString()}, parsePlayHead: ${PayloadHead.parsePlayHead.toString()}`;
   }
 }

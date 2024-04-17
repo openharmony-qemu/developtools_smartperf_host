@@ -16,10 +16,14 @@ import { threadPool } from '../../SqlLite';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { ThreadStruct } from '../../ui-worker/ProcedureWorkerThread';
 
-export function threadDataSender(tid: number, pid: number, row: TraceRow<ThreadStruct>): Promise<ThreadStruct[]|boolean> {
+export function threadDataSender(
+  tid: number,
+  pid: number,
+  row: TraceRow<ThreadStruct>
+): Promise<ThreadStruct[] | boolean> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startTime: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       dur: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -45,10 +49,10 @@ export function threadDataSender(tid: number, pid: number, row: TraceRow<ThreadS
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean,isEmpty:boolean): void => {
+      (res: any, len: number, transfer: boolean, isEmpty: boolean): void => {
         if (isEmpty) {
           resolve(true);
-        }else{
+        } else {
           resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
         }
       }

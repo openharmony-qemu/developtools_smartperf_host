@@ -57,7 +57,7 @@ export class HiPerfSymbol {
 
   public clone(): HiPerfSymbol {
     const cloneSymbol = new HiPerfSymbol();
-    cloneSymbol.children = new Array<HiPerfSymbol>();
+    cloneSymbol.children = [];
     cloneSymbol.depth = this.depth;
     return cloneSymbol;
   }
@@ -69,13 +69,9 @@ export class MerageBean extends ChartStruct {
   parent: MerageBean | undefined = undefined;
   id: string = '';
   parentId: string = '';
-  symbolName: string = '';
-  symbol: string = '';
-  libName: string = '';
-  path: string = '';
-  self: string = '0s';
-  weight: string = '';
-  weightPercent: string = '';
+  self?: string = '0s';
+  weight?: string;
+  weightPercent?: string;
   selfDur: number = 0;
   dur: number = 0;
   pid: number = 0;
@@ -132,7 +128,7 @@ class MerageBeanDataSplit {
   }
 
   recursionChargeInitTree(splitMapData: any, node: MerageBean, symbolName: string, isSymbol: boolean): void {
-    if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
+    if ((isSymbol && node.symbol === symbolName) || (!isSymbol && node.lib === symbolName)) {
       (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
       node.isStore++;
     }
@@ -144,7 +140,7 @@ class MerageBeanDataSplit {
   }
 
   recursionPruneInitTree(splitMapData: any, node: MerageBean, symbolName: string, isSymbol: boolean): void {
-    if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
+    if ((isSymbol && node.symbol === symbolName) || (!isSymbol && node.lib === symbolName)) {
       (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
       node.isStore++;
       this.pruneChildren(splitMapData, node, symbolName);
@@ -157,7 +153,7 @@ class MerageBeanDataSplit {
 
   //symbol lib prune
   recursionPruneTree(node: MerageBean, symbolName: string, isSymbol: boolean): void {
-    if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
+    if ((isSymbol && node.symbol === symbolName) || (!isSymbol && node.lib === symbolName)) {
       node.parent && node.parent.children.splice(node.parent.children.indexOf(node), 1);
     } else {
       node.children.forEach((child) => {
@@ -197,13 +193,13 @@ class MerageBeanDataSplit {
     allProcess.forEach((item) => {
       item.children = [];
       this.recursionChargeByRule(splitMapData, item, this.systmeRuleName, (node) => {
-        return node.path.startsWith(this.systmeRuleName);
+        return node.lib.startsWith(this.systmeRuleName);
       });
     });
   }
 
   hideNumMaxAndMin(allProcess: MerageBean[], splitMapData: any, startNum: number, endNum: string): void {
-    let max = endNum == '∞' ? Number.POSITIVE_INFINITY : parseInt(endNum);
+    let max = endNum === '∞' ? Number.POSITIVE_INFINITY : parseInt(endNum);
     allProcess.forEach((item) => {
       item.children = [];
       this.recursionChargeByRule(splitMapData, item, this.numRuleName, (node) => {
@@ -215,7 +211,7 @@ class MerageBeanDataSplit {
   resotreAllNode(splitMapData: any, symbols: string[]): void {
     symbols.forEach((symbol) => {
       let list = splitMapData[symbol];
-      if (list != undefined) {
+      if (list !== undefined) {
         list.forEach((item: any) => {
           item.isStore--;
         });
@@ -230,7 +226,7 @@ class MerageBeanDataSplit {
       process.isSearch = false;
     });
     this.resetNewAllNode(data, currentTreeList);
-    if (searchValue != '') {
+    if (searchValue !== '') {
       this.findSearchNode(data, searchValue, false);
       this.resetNewAllNode(data, currentTreeList);
     }
@@ -245,10 +241,10 @@ class MerageBeanDataSplit {
       return item;
     });
     values.forEach((item: any) => {
-      if (item.parentNode != undefined) {
-        if (item.isStore == 0 && item.searchShow) {
+      if (item.parentNode !== undefined) {
+        if (item.isStore === 0 && item.searchShow) {
           let parentNode = item.parentNode;
-          while (parentNode != undefined && !(parentNode.isStore == 0 && parentNode.searchShow)) {
+          while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
             parentNode = parentNode.parentNode;
           }
           if (parentNode) {
@@ -263,9 +259,9 @@ class MerageBeanDataSplit {
   findSearchNode(data: MerageBean[], search: string, parentSearch: boolean): void {
     search = search.toLocaleLowerCase();
     data.forEach((item) => {
-      if ((item.symbolName && item.symbolName.toLocaleLowerCase().includes(search)) || parentSearch) {
+      if ((item.symbol && item.symbol.toLocaleLowerCase().includes(search)) || parentSearch) {
         item.searchShow = true;
-        item.isSearch = item.symbolName != undefined && item.symbolName.toLocaleLowerCase().includes(search);
+        item.isSearch = item.symbol !== undefined && item.symbol.toLocaleLowerCase().includes(search);
         let parentNode = item.parent;
         while (parentNode && !parentNode.searchShow) {
           parentNode.searchShow = true;
@@ -291,10 +287,10 @@ class MerageBeanDataSplit {
   splitAllProcess(allProcess: any[], splitMapData: any, list: any[]): void {
     list.forEach((item: any) => {
       allProcess.forEach((process) => {
-        if (item.select == '0') {
-          this.recursionChargeInitTree(splitMapData, process, item.name, item.type == 'symbol');
+        if (item.select === '0') {
+          this.recursionChargeInitTree(splitMapData, process, item.name, item.type === 'symbol');
         } else {
-          this.recursionPruneInitTree(splitMapData, process, item.name, item.type == 'symbol');
+          this.recursionPruneInitTree(splitMapData, process, item.name, item.type === 'symbol');
         }
       });
       if (!item.checked) {
@@ -348,9 +344,9 @@ export let postMessage = (id: any, action: string, results: Array<any>, pageSize
     let pageCount = Math.ceil(results.length / pageSize);
     for (let i = 1; i <= pageCount; i++) {
       let tag = 'start';
-      if (i == 1) {
+      if (i === 1) {
         tag = 'start';
-      } else if (i == pageCount) {
+      } else if (i === pageCount) {
         tag = 'end';
       } else {
         tag = 'sending';
@@ -358,12 +354,12 @@ export let postMessage = (id: any, action: string, results: Array<any>, pageSize
       let msg = new Msg();
       msg.tag = tag;
       msg.index = i;
-      msg.isSending = tag != 'end';
+      msg.isSending = tag !== 'end';
       msg.data = pagination(i, PAGE_SIZE, results);
       self.postMessage({
         id: id,
         action: action,
-        isSending: msg.tag != 'end',
+        isSending: msg.tag !== 'end',
         results: msg,
       });
     }
@@ -467,7 +463,7 @@ export let getTimeString = (ns: number): string => {
   if (currentNs > 0) {
     res += currentNs + 'ns ';
   }
-  if (res == '') {
+  if (res === '') {
     res = ns + '';
   }
   return res;
@@ -493,7 +489,19 @@ export function getProbablyTime(ns: number): string {
     res += (currentNs / microsecond1).toFixed(2) + 'μs ';
   } else if (currentNs > 0) {
     res += currentNs.toFixed(0) + 'ns ';
-  } else if (res == '') {
+  } else if (res === '') {
+    res = ns + '';
+  }
+  return res;
+}
+
+export function getThreadUsageProbablyTime(ns: number): string {
+  let currentNs = ns;
+  let microsecond1 = 1_000;
+  let res = '';
+  if (currentNs > 0) {
+    res += (currentNs / microsecond1).toFixed(2);
+  } else if (res === '') {
     res = ns + '';
   }
   return res;
@@ -537,14 +545,16 @@ export function formatRealDate(date: Date, fmt: string): string {
     'q+': Math.floor((date.getMonth() + 3) / 3),
     S: date.getMilliseconds(),
   };
-  if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
+  if (/(y+)/.test(fmt)) {
+    fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
+  }
   for (let key in obj) {
     if (new RegExp('(' + key + ')').test(fmt)) {
       // @ts-ignore
       fmt = fmt.replace(
         RegExp.$1,
         // @ts-ignore
-        RegExp.$1.length == 1 ? obj[key] : ('00' + obj[key]).substr(('' + obj[key]).length)
+        RegExp.$1.length === 1 ? obj[key] : ('00' + obj[key]).substr(('' + obj[key]).length)
       );
     }
   }
@@ -577,8 +587,8 @@ export class JsProfilerSymbol {
     cloneSymbol.name = this.name;
     cloneSymbol.url = this.url;
     cloneSymbol.hitCount = this.hitCount;
-    cloneSymbol.children = new Array<JsProfilerSymbol>();
-    cloneSymbol.childrenIds = new Array<number>();
+    cloneSymbol.children = [];
+    cloneSymbol.childrenIds = [];
     cloneSymbol.parentId = this.parentId;
     cloneSymbol.depth = this.depth;
     cloneSymbol.cpuProfilerData = this.cpuProfilerData;

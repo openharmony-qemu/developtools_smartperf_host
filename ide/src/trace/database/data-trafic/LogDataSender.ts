@@ -50,7 +50,7 @@ export function LogDataSender(row: TraceRow<LogStruct>): Promise<LogStruct[]> {
   });
 }
 
-function arrayBufferHandler(res: any, len: number) {
+function arrayBufferHandler(res: any, len: number): any[] {
   let outArr: LogStruct[] = [];
   let id = new Uint16Array(res.id);
   let startTs = new Float64Array(res.startTs);

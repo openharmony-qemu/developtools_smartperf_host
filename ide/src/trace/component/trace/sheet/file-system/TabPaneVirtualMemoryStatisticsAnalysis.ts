@@ -86,11 +86,11 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.virtualMemoryTitleEl!.textContent = '';
     this.tabName!.textContent = '';
     this.vmStatisticsAnalysisRange!.textContent =
-      'Selected range: ' +
-      parseFloat(
-        ((vmStatisticsAnalysisSelection.rightNs - vmStatisticsAnalysisSelection.leftNs) / 1000000.0).toFixed(5)
-      ) +
-      '  ms';
+      `Selected range: ${ 
+        parseFloat(
+          ((vmStatisticsAnalysisSelection.rightNs - vmStatisticsAnalysisSelection.leftNs) / 1000000.0).toFixed(5)
+        ) 
+      }  ms`;
     this.vmStatisticsAnalysisProgressEL!.loading = true;
     this.getVmDataByWorker(
       [
@@ -103,7 +103,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
           funcArgs: [{ queryFuncName: 'virtualMemory', ...vmStatisticsAnalysisSelection }],
         },
       ],
-      (results: any[]) => {
+      (results: any[]): void => {
         this.disableCheckBox(results);
         this.getVirtualMemoryProcess(results);
       }
@@ -132,7 +132,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.vmTableArray = this.shadowRoot!.querySelectorAll('lit-table') as NodeListOf<LitTable>;
     for (let vmTable of this.vmTableArray) {
       this.columnClickEvent(vmTable);
-      vmTable!.addEventListener('contextmenu', function (event) {
+      vmTable!.addEventListener('contextmenu', function (event: MouseEvent): void {
         event.preventDefault(); // 阻止默认的上下文菜单弹框
       });
       this.rowHoverEvent(vmTable);
@@ -141,8 +141,8 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     for (let box of this.checkBoxs) {
       this.checkBoxEvent(box);
     }
-    const addRowClickEventListener = (vmTable: LitTable, clickEvent: Function) => {
-      vmTable.addEventListener('row-click', (evt) => {
+    const addRowClickEventListener = (vmTable: LitTable, clickEvent: Function): void => {
+      vmTable.addEventListener('row-click', (evt: Event): void => {
         // @ts-ignore
         const detail = evt.detail;
         if (detail.button === 0 && detail.data.tableName !== '' && detail.data.duration !== 0) {
@@ -167,7 +167,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   }
 
   private columnClickEvent(vmTable: LitTable): void {
-    vmTable!.addEventListener('column-click', (evt) => {
+    vmTable!.addEventListener('column-click', (evt: Event): void => {
       // @ts-ignore
       this.vmSortColumn = evt.detail.key;
       // @ts-ignore
@@ -177,7 +177,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   }
 
   private checkBoxEvent(box: LitCheckBox): void {
-    box!.addEventListener('change', (event) => {
+    box!.addEventListener('change', (): void => {
       if (this.hideProcessCheckBox!.checked && this.hideThreadCheckBox!.checked) {
         this.hideThread();
         this.vmBack!.style.visibility = 'hidden';
@@ -190,8 +190,8 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     });
   }
 
-  private rowClickEvent(vmTable: LitTable) {
-    vmTable!.addEventListener('row-click', (evt) => {
+  private rowClickEvent(vmTable: LitTable): void {
+    vmTable!.addEventListener('row-click', (evt: Event): void => {
       // @ts-ignore
       let detail = evt.detail;
       if (detail.button === 2) {
@@ -211,7 +211,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         if (this.virtualMemoryTitleEl?.textContent === '') {
           title = detail.data.tableName;
         } else {
-          title = this.virtualMemoryTitleEl?.textContent + ' / ' + detail.data.tableName;
+          title = `${this.virtualMemoryTitleEl?.textContent  } / ${detail.data.tableName}`;
         }
         vmTab!.pieTitle = title;
         //  是否是在表格上右键点击跳转到火焰图的
@@ -222,7 +222,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   }
 
   private rowHoverEvent(vmTable: LitTable): void {
-    vmTable!.addEventListener('row-hover', (evt) => {
+    vmTable!.addEventListener('row-hover', (evt: Event): void => {
       // @ts-ignore
       let detail = evt.detail;
       if (detail.data) {
@@ -338,9 +338,9 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         type: 'outer',
       },
       tip: this.getVmTip(),
-      angleClick: (it): void => {
+      angleClick: (it: Object): void => {
         // @ts-ignore
-        if (it.tableName != 'other') {
+        if (it.tableName !== 'other') {
           this.vmProcessLevelClickEvent(it);
         }
       },
@@ -435,7 +435,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.vmPieChart?.hideTip();
     let title = '';
     if (this.vmProcessName.length > 0) {
-      title += this.vmProcessName + ' / ';
+      title += `${this.vmProcessName  } / `;
     }
     if (this.vmtypeName.length > 0) {
       title += this.vmtypeName;
@@ -456,9 +456,9 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         type: 'outer',
       },
       tip: this.getVmTip(),
-      angleClick: (it): void => {
+      angleClick: (it: Object): void => {
         // @ts-ignore
-        if (it.tableName != 'other') {
+        if (it.tableName !== 'other') {
           this.vmThreadLevelClickEvent(it);
         }
       },
@@ -477,7 +477,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     };
     let title = '';
     if (this.vmProcessName.length > 0) {
-      title += this.vmProcessName + ' / ';
+      title += `${this.vmProcessName  } / `;
     }
     if (this.vmtypeName.length > 0) {
       title += this.vmtypeName;
@@ -499,10 +499,10 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.vmPieChart?.hideTip();
     let virtualMemoryTitleTitle = '';
     if (this.vmProcessName.length > 0) {
-      virtualMemoryTitleTitle += this.vmProcessName + ' / ';
+      virtualMemoryTitleTitle += `${this.vmProcessName  } / `;
     }
     if (this.vmtypeName.length > 0) {
-      virtualMemoryTitleTitle += this.vmtypeName + ' / ';
+      virtualMemoryTitleTitle += `${this.vmtypeName  } / `;
     }
     if (this.vmThreadName.length > 0) {
       virtualMemoryTitleTitle += this.vmThreadName;
@@ -516,13 +516,13 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.setVmPieConfig();
     let title = '';
     if (this.vmProcessName.length > 0) {
-      title += this.vmProcessName + ' / ';
+      title += `${this.vmProcessName  } / `;
     }
     if (this.vmtypeName.length > 0) {
       if (this.hideThreadCheckBox?.checked) {
         title += this.vmtypeName;
       } else {
-        title += this.vmtypeName + ' / ';
+        title += `${this.vmtypeName  } / `;
       }
     }
     if (this.vmThreadName.length > 0) {
@@ -556,9 +556,9 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
                 </div>
                     `;
       },
-      angleClick: (it): void => {
+      angleClick: (it: Object): void => {
         // @ts-ignore
-        if (it.tableName != 'other') {
+        if (it.tableName !== 'other') {
           this.vmSoLevelClickEvent(it);
         }
       },
@@ -583,13 +583,13 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.vmPieChart?.hideTip();
     let title = '';
     if (this.vmProcessName.length > 0) {
-      title += this.vmProcessName + ' / ';
+      title += `${this.vmProcessName  } / `;
     }
     if (this.vmtypeName.length > 0) {
-      title += this.vmtypeName + ' / ';
+      title += `${this.vmtypeName  } / `;
     }
     if (this.vmThreadName.length > 0 && !this.hideThreadCheckBox!.checked) {
-      title += this.vmThreadName + ' / ';
+      title += `${this.vmThreadName  } / `;
     }
     if (it.tableName.length > 0) {
       title += it.tableName;
@@ -674,7 +674,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   }
 
   private sortTableNameCase(vmsCurrentTable: LitTable, vmsArray: any[]): void {
-    vmsCurrentTable!.recycleDataSource = vmsArray.sort((firstVMElement, secondVMElement) => {
+    vmsCurrentTable!.recycleDataSource = vmsArray.sort((firstVMElement, secondVMElement): number => {
       if (this.vmSortType === 1) {
         if (firstVMElement.tableName > secondVMElement.tableName) {
           return 1;
@@ -711,13 +711,13 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       if (vmMap.has(itemData.pid)) {
         vmMap.get(itemData.pid)?.push(itemData);
       } else {
-        let itemArray = new Array<number | string>();
+        let itemArray = [];
         itemArray.push(itemData);
         vmMap.set(itemData.pid, itemArray);
       }
     }
     this.vmStatisticsAnalysisPidData = [];
-    vmMap.forEach((value: Array<any>, key: string) => {
+    vmMap.forEach((value: Array<any>, key: string): void => {
       let vmPidDataDur = 0;
       let pName = '';
       for (let item of value) {
@@ -761,13 +761,13 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       if (vmTypeMap.has(vmsItem.type)) {
         vmTypeMap.get(vmsItem.type)?.push(vmsItem);
       } else {
-        let itemArray = new Array<number | string>();
+        let itemArray = [];
         itemArray.push(vmsItem);
         vmTypeMap.set(vmsItem.type, itemArray);
       }
     }
     this.vmStatisticsAnalysisTypeData = [];
-    vmTypeMap.forEach((value: Array<any>, key: number) => {
+    vmTypeMap.forEach((value: Array<any>, key: number): void => {
       let dur = 0;
       for (let vmItem of value) {
         dur += vmItem.dur;
@@ -810,7 +810,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       if (threadMap.has(vmapItem.tid)) {
         threadMap.get(vmapItem.tid)?.push(vmapItem);
       } else {
-        let itemArray = new Array<number | string>();
+        let itemArray = [];
         itemArray.push(vmapItem);
         threadMap.set(vmapItem.tid, itemArray);
       }
@@ -824,15 +824,15 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
 
   private updateVmThreadData(threadMap: Map<string, Array<number | string>>, item: any, allDur: number): void {
     this.vmStatisticsAnalysisThreadData = [];
-    threadMap.forEach((value: Array<any>, key: string) => {
+    threadMap.forEach((value: Array<any>, key: string): void => {
       let vmThreadDur = 0;
       let tName = '';
       for (let item of value) {
         vmThreadDur += item.dur;
         tName = item.threadName =
-          item.threadName === null || item.threadName === undefined
-            ? `Thread(${item.tid})`
-            : `${item.threadName}(${item.tid})`;
+          item.threadName === null || item.threadName === undefined ?
+            `Thread(${item.tid})` :
+            `${item.threadName}(${item.tid})`;
       }
       const threadData = {
         tableName: tName,
@@ -863,7 +863,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       if (libMap.has(vmItemData.libId)) {
         libMap.get(vmItemData.libId)?.push(vmItemData);
       } else {
-        let dataArray = new Array<number | string>();
+        let dataArray = [];
         dataArray.push(vmItemData);
         libMap.set(vmItemData.libId, dataArray);
       }
@@ -890,7 +890,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
 
   private updateVmSoData(libMap: Map<number, Array<number | string>>, item: any, allDur: number): void {
     this.vmStatisticsAnalysisSoData = [];
-    libMap.forEach((value: any[], key: number) => {
+    libMap.forEach((value: any[], key: number): void => {
       let dur = 0;
       let vmLibName = '';
       for (let item of value) {
@@ -939,7 +939,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       if (symbolMap.has(vmProcessData.symbolId)) {
         symbolMap.get(vmProcessData.symbolId)?.push(vmProcessData);
       } else {
-        let dataArray = new Array<number | string>();
+        let dataArray = [];
         dataArray.push(vmProcessData);
         symbolMap.set(vmProcessData.symbolId, dataArray);
       }
@@ -959,7 +959,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.currentLevelData = this.vmStatisticsAnalysisFunctionData;
   }
 
-  private setVmPieConfig() {
+  private setVmPieConfig(): void {
     this.vmPieChart!.config = {
       appendPadding: 0,
       data: this.getVmPieChartData(this.vmStatisticsAnalysisSoData),
@@ -992,7 +992,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     };
   }
 
-  private vmFunctionIsAccumulationData(vmProcessData: any, tid: number, pid: number, type: string, libId: number) {
+  private vmFunctionIsAccumulationData(vmProcessData: any, tid: number, pid: number, type: string, libId: number): boolean {
     if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
       return (
         vmProcessData.pid !== pid ||
@@ -1012,7 +1012,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
 
   private updateVmFunctionData(symbolMap: Map<number, Array<any>>, item: any, allDur: number): void {
     this.vmStatisticsAnalysisFunctionData = [];
-    symbolMap.forEach((symbolItems, key) => {
+    symbolMap.forEach((symbolItems, key): void => {
       let dur = 0;
       let symbolName = '';
       for (let symbolItem of symbolItems) {
@@ -1102,17 +1102,17 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   }
 
   public connectedCallback(): void {
-    new ResizeObserver(() => {
-      if (this.parentElement?.clientHeight != 0) {
-        this.vmStatisticsAnalysisTableProcess!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+    new ResizeObserver(():void => {
+      if (this.parentElement?.clientHeight !== 0) {
+        this.vmStatisticsAnalysisTableProcess!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.vmStatisticsAnalysisTableProcess?.reMeauseHeight();
-        this.vmStatisticsAnalysisTableType!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.vmStatisticsAnalysisTableType!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.vmStatisticsAnalysisTableType?.reMeauseHeight();
-        this.vmStatisticsAnalysisTableThread!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.vmStatisticsAnalysisTableThread!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.vmStatisticsAnalysisTableThread?.reMeauseHeight();
-        this.vmStatisticsAnalysisTableSo!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.vmStatisticsAnalysisTableSo!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.vmStatisticsAnalysisTableSo?.reMeauseHeight();
-        this.vmStatisticsAnalysisTableFunction!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.vmStatisticsAnalysisTableFunction!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.vmStatisticsAnalysisTableFunction?.reMeauseHeight();
         if (this.parentElement!.clientHeight >= 0 && this.parentElement!.clientHeight <= 31) {
           this.virtualMemoryFilterEl!.style.display = 'none';

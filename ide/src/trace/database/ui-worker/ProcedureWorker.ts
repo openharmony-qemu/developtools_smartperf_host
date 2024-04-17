@@ -85,7 +85,7 @@ export let renders: any = {
   'app-start-up': new AppStartupRender(),
   'all-app-start-up': new AllAppStartupRender(),
   'ltpo-present': new LtpoRender(),
-  'hitch': new hitchTimeRender(),
+  hitch: new hitchTimeRender(),
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
   'heap-timeline': new HeapTimelineRender(),
@@ -182,7 +182,7 @@ self.onmessage = (e: any): void => {
   match(req.type!, req);
 };
 
-function clear(e: any) {
+function clear(e: any): void {
   if (e.data.type && (e.data.type as string).startsWith('clear')) {
     dataList = {};
     dataList2 = {};
@@ -199,7 +199,7 @@ function clear(e: any) {
   }
 }
 
-function setReq(req: RequestMessage, e: any) {
+function setReq(req: RequestMessage, e: any): void {
   req.canvas = canvasList[e.data.type];
   req.context = contextList[e.data.type];
   req.type = e.data.type as string;
@@ -243,5 +243,4 @@ function setReq(req: RequestMessage, e: any) {
   }
 }
 
-self.onmessageerror = function (e: any): void {
-};
+self.onmessageerror = function (e: any): void {};

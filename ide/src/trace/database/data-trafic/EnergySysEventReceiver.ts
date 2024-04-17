@@ -18,9 +18,11 @@ import { energyList } from './utils/AllMemoryCache';
 
 export const systemDataSql = (args: any): string => {
   return `SELECT S.id,
-                 S.ts - ${args.recordStartNS}                                                                   AS startNs,
+                 S.ts - ${
+                   args.recordStartNS
+                 }                                                                   AS startNs,
                  D.data                                                                                         AS eventName,
-                 (case when D.data == 'POWER_RUNNINGLOCK' then 1 when D.data == 'GNSS_STATE' then 2 else 0 end) AS appKey,
+                 (case when D.data = 'POWER_RUNNINGLOCK' then 1 when D.data = 'GNSS_STATE' then 2 else 0 end) AS appKey,
                  contents                                                                                       AS eventValue,
                  ((S.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)}))   as px
           FROM hisys_all_event AS S
@@ -36,7 +38,7 @@ export const systemDataMemSql = (args: any): string => {
   return `SELECT S.id,
                  S.ts - ${args.recordStartNS}                                                                         AS startNs,
                  D.data                                                                                               AS eventName,
-                 (case when D.data == 'POWER_RUNNINGLOCK' then '1' when D.data == 'GNSS_STATE' then '2' else '0' end) AS appKey,
+                 (case when D.data = 'POWER_RUNNINGLOCK' then '1' when D.data = 'GNSS_STATE' then '2' else '0' end) AS appKey,
                  contents                                                                                             AS eventValue
           FROM hisys_all_event AS S
                    LEFT JOIN data_dict AS D ON S.event_name_id = D.id
@@ -72,7 +74,7 @@ export const queryPowerValueSql = (args: any): string => {
              S.ts - ${args.recordStartNS}                                                        as startNs,
              D.data                                                                              AS eventName,
              D2.data                                                                             AS appKey,
-             group_concat((CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END), ',') AS eventValue
+             group_concat((CASE WHEN S.type = 1 THEN S.string_value ELSE S.int_value END), ',') AS eventValue
       FROM hisys_event_measure AS S
                LEFT JOIN data_dict AS D
                          ON D.id = S.name_id
@@ -129,7 +131,7 @@ export function resetEnergyEvent(): void {
   powerList = [];
 }
 
-export function energySysEventReceiver(data: any, proc: Function) {
+export function energySysEventReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
     if (systemList.length === 0) {
       systemList = proc(systemDataMemSql(data.params));
@@ -142,7 +144,7 @@ export function energySysEventReceiver(data: any, proc: Function) {
   }
 }
 
-export function hiSysEnergyAnomalyDataReceiver(data: any, proc: Function) {
+export function hiSysEnergyAnomalyDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
     if (anomalyList.length === 0) {
       anomalyList = proc(chartEnergyAnomalyDataSql(data.params));
@@ -186,7 +188,7 @@ export function hiSysEnergyStateReceiver(data: any, proc: Function): void {
   }
 }
 
-function systemBufferHandler(data: any, res: any[], transfer: boolean) {
+function systemBufferHandler(data: any, res: any[], transfer: boolean): void {
   let hiSysEnergy = new HiSysEnergy(data, res, transfer);
   let systemDataList: any = [];
   let workCountMap: Map<string, number> = new Map<string, number>();
@@ -197,8 +199,7 @@ function systemBufferHandler(data: any, res: any[], transfer: boolean) {
     if (typeof it.eventValue === 'string') {
       try {
         parsedData = JSON.parse(it.eventValue);
-      } catch (error) {
-      }
+      } catch (error) {}
     }
     it.eventValue = parsedData;
     let beanData: any = {};
@@ -208,11 +209,11 @@ function systemBufferHandler(data: any, res: any[], transfer: boolean) {
       eventNameWithGnssState(beanData, it, systemDataList);
     } else {
       beanData.dataType = 3;
-      if (it.eventValue['NAME']) {
-        beanData.appName = it['NAME'];
+      if (it.eventValue.NAME) {
+        beanData.appName = it.NAME;
       }
-      if (it.eventValue['WORKID']) {
-        beanData.workId = it['WORKID'];
+      if (it.eventValue.WORKID) {
+        beanData.workId = it.WORKID;
       }
       if (it.eventName === 'WORK_START') {
         eventNameWithWorkStart(nameIdMap, beanData, workCountMap, it, systemDataList);
@@ -234,24 +235,24 @@ function eventNameWithPowerRunninglock(beanData: any, it: any, systemDataList: A
   let lockCount = 0;
   let tokedIds: Array<string> = [];
   beanData.dataType = 1;
-  if (it.eventValue['TAG'].endsWith('_ADD')) {
+  if (it.eventValue.TAG.endsWith('_ADD')) {
     beanData.startNs = it.startNs;
     lockCount++;
     beanData.id = it.id;
     beanData.count = lockCount;
-    beanData.token = it.eventValue['MESSAGE'].split('=')[1];
+    beanData.token = it.eventValue.MESSAGE.split('=')[1];
     beanData.type = 1;
     tokedIds.push(beanData.token);
     systemDataList.push(beanData);
   } else {
     beanData.id = it.id;
     beanData.startNs = it.startNs;
-    let toked = it.eventValue['MESSAGE'].split('=')[1];
+    let toked = it.eventValue.MESSAGE.split('=')[1];
     let number = tokedIds.indexOf(toked);
     if (number > -1) {
       lockCount--;
       beanData.count = lockCount;
-      beanData.token = it.eventValue['MESSAGE'].split('=')[1];
+      beanData.token = it.eventValue.MESSAGE.split('=')[1];
       beanData.type = 1;
       systemDataList.push(beanData);
       delete tokedIds[number];
@@ -263,8 +264,8 @@ function eventNameWithGnssState(beanData: any, it: any, systemDataList: Array<an
   let locationIndex = -1;
   let locationCount = 0;
   beanData.dataType = 2;
-  if (it.eventValue['STATE'] === 'stop') {
-    if (locationIndex == -1) {
+  if (it.eventValue.STATE === 'stop') {
+    if (locationIndex === -1) {
       beanData.startNs = 0;
       beanData.count = 1;
     } else {
@@ -293,7 +294,7 @@ function eventNameWithWorkStart(
 ): void {
   let nameIdList = nameIdMap.get(beanData.appName);
   let workCount = 0;
-  if (nameIdList == undefined) {
+  if (nameIdList === undefined) {
     workCount = 1;
     nameIdMap.set(beanData.appName, [beanData.workId]);
   } else {
@@ -301,7 +302,7 @@ function eventNameWithWorkStart(
     workCount = nameIdList.length;
   }
   let count = workCountMap.get(beanData.appName);
-  if (count == undefined) {
+  if (count === undefined) {
     workCountMap.set(beanData.appName, 1);
   } else {
     workCountMap.set(beanData.appName, count + 1);
@@ -321,10 +322,10 @@ function eventNameWithWorkStop(
 ): void {
   let nameIdList: any = nameIdMap.get(beanData.appName);
   let index = nameIdList.indexOf(beanData.workId);
-  if (nameIdList != undefined && index > -1) {
+  if (nameIdList !== undefined && index > -1) {
     delete nameIdList[index];
     let workCount = workCountMap.get(beanData.appName);
-    if (workCount != undefined) {
+    if (workCount !== undefined) {
       workCount = workCount - 1;
       workCountMap.set(beanData.appName, workCount);
       beanData.startNs = it.startNs;
@@ -342,26 +343,26 @@ function postMessage(data: any, transfer: boolean, hiSysEnergy: HiSysEnergy, len
       action: data.action,
       results: transfer
         ? {
-          id: hiSysEnergy.id.buffer,
-          startNs: hiSysEnergy.startNs.buffer,
-          count: hiSysEnergy.count.buffer,
-          type: hiSysEnergy.type.buffer,
-          token: hiSysEnergy.token.buffer,
-          dataType: hiSysEnergy.dataType.buffer,
-        }
+            id: hiSysEnergy.id.buffer,
+            startNs: hiSysEnergy.startNs.buffer,
+            count: hiSysEnergy.count.buffer,
+            type: hiSysEnergy.type.buffer,
+            token: hiSysEnergy.token.buffer,
+            dataType: hiSysEnergy.dataType.buffer,
+          }
         : {},
       len: len,
       transfer: transfer,
     },
     transfer
       ? [
-        hiSysEnergy.id.buffer,
-        hiSysEnergy.startNs.buffer,
-        hiSysEnergy.count.buffer,
-        hiSysEnergy.type.buffer,
-        hiSysEnergy.token.buffer,
-        hiSysEnergy.dataType.buffer,
-      ]
+          hiSysEnergy.id.buffer,
+          hiSysEnergy.startNs.buffer,
+          hiSysEnergy.count.buffer,
+          hiSysEnergy.type.buffer,
+          hiSysEnergy.token.buffer,
+          hiSysEnergy.dataType.buffer,
+        ]
       : []
   );
 }
@@ -384,7 +385,7 @@ class HiSysEnergy {
   }
 }
 
-function anomalyBufferHandler(data: any, res: any[], transfer: boolean) {
+function anomalyBufferHandler(data: any, res: any[], transfer: boolean): void {
   let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   let startNs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNs);
   res.forEach((it, index) => {
@@ -398,9 +399,9 @@ function anomalyBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,
@@ -409,7 +410,7 @@ function anomalyBufferHandler(data: any, res: any[], transfer: boolean) {
   );
 }
 
-function powerBufferHandler(data: any, res: any[], transfer: boolean) {
+function powerBufferHandler(data: any, res: any[], transfer: boolean): void {
   let id = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   let startNs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNs);
   res.forEach((it, index) => {
@@ -423,9 +424,9 @@ function powerBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,
@@ -434,7 +435,7 @@ function powerBufferHandler(data: any, res: any[], transfer: boolean) {
   );
 }
 
-function stateBufferHandler(data: any, res: any[], transfer: boolean) {
+function stateBufferHandler(data: any, res: any[], transfer: boolean): void {
   let startNs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNs);
   let eventValue = new Float32Array(transfer ? res.length : data.params.sharedArrayBuffers.eventValue);
   let id = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
@@ -459,10 +460,10 @@ function stateBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-          eventValue: eventValue.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+            eventValue: eventValue.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,

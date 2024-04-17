@@ -30,6 +30,7 @@ import {
   iconWidth,
   litPageTableHtml,
 } from './LitTableHtml';
+import { LitIcon } from '../icon/LitIcon';
 
 @element('lit-page-table')
 export class LitPageTable extends BaseElement {
@@ -62,7 +63,7 @@ export class LitPageTable extends BaseElement {
   private currentPage: number = 0;
   startSkip: number = 0;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return [
       'scroll-y',
       'selectable',
@@ -79,7 +80,7 @@ export class LitPageTable extends BaseElement {
     this.exportProgress!.loading = value;
   }
 
-  get hideDownload() {
+  get hideDownload(): boolean {
     return this.hasAttribute('hideDownload');
   }
 
@@ -91,7 +92,7 @@ export class LitPageTable extends BaseElement {
     }
   }
 
-  get selectable() {
+  get selectable(): boolean {
     return this.hasAttribute('selectable');
   }
 
@@ -103,14 +104,14 @@ export class LitPageTable extends BaseElement {
     }
   }
 
-  get scrollY() {
+  get scrollY(): string {
     return this.getAttribute('scroll-y') || 'auto';
   }
 
   set scrollY(value) {
     this.setAttribute('scroll-y', value);
   }
-  get recycleDataSource() {
+  get recycleDataSource(): any[] {
     return this.ds || [];
   }
 
@@ -139,7 +140,7 @@ export class LitPageTable extends BaseElement {
     }
   }
 
-  get pagination() {
+  get pagination(): boolean {
     return this.hasAttribute('pagination');
   }
 
@@ -160,19 +161,19 @@ export class LitPageTable extends BaseElement {
   }
 
   initPageEventListener(): void {
-    this.previousDiv!.onclick = () => {
+    this.previousDiv!.onclick = (): void => {
       if (this.currentPage > 0) {
         this.currentPage = Math.max(this.currentPage - 1, 0);
         this.showCurrentPageData();
       }
     };
-    this.nextDiv!.onclick = () => {
+    this.nextDiv!.onclick = (): void => {
       if (this.currentPage < this.ds.length - 1) {
         this.currentPage = Math.min(this.currentPage + 1, this.ds.length - 1);
         this.showCurrentPageData();
       }
     };
-    this.jumpDiv!.onclick = () => {
+    this.jumpDiv!.onclick = (): void => {
       let value = this.targetPageInput!.value;
       let reg = /^[0-9]*$/;
       if (value.length > 0 && reg.test(value)) {
@@ -194,7 +195,7 @@ export class LitPageTable extends BaseElement {
     };
   }
 
-  toTop() {
+  toTop(): void {
     if (this.rememberScrollTop) {
       this.tableElement!.scrollTop = 0;
       this.tableElement!.scrollLeft = 0;
@@ -203,7 +204,7 @@ export class LitPageTable extends BaseElement {
     }
   }
 
-  showCurrentPageData() {
+  showCurrentPageData(): void {
     this.toTop();
     this.currentPageDiv!.textContent = `第 ${(this.currentPage || 0) + 1} 页，共 ${this.ds.length} 页`;
     if (this.hasAttribute('tree')) {
@@ -250,7 +251,9 @@ export class LitPageTable extends BaseElement {
         this.resolvingArea(this.columns, 0, 0, pageArea, rowElement);
         pageArea.forEach((rows, j, array) => {
           for (let i = 0; i < this.colCount; i++) {
-            if (!rows[i]) rows[i] = array[j - 1][i];
+            if (!rows[i]) {
+              rows[i] = array[j - 1][i];
+            }
           }
         });
         if (this.selectable) {
@@ -273,9 +276,11 @@ export class LitPageTable extends BaseElement {
     this.tableElement!.addEventListener('mouseout', (ev) => this.mouseOut());
   }
 
-  resolvingArea(columns: any, x: any, y: any, area: Array<any>, rowElement: HTMLDivElement) {
+  resolvingArea(columns: any, x: any, y: any, area: Array<any>, rowElement: HTMLDivElement): void {
     columns.forEach((a: any, i: any) => {
-      if (!area[y]) area[y] = [];
+      if (!area[y]) {
+        area[y] = [];
+      }
       let key = a.getAttribute('key') || a.getAttribute('title');
       if (a.tagName === 'LIT-TABLE-GROUP') {
         let childList = [...a.children].filter((a) => a.tagName !== 'TEMPLATE');
@@ -329,7 +334,7 @@ export class LitPageTable extends BaseElement {
       head.classList.add('td-order');
       head.style.position = 'relative';
       let { upSvg, downSvg } = createDownUpSvg(index, head);
-      head.onclick = () => {
+      head.onclick = (): void => {
         if (this.isResize || this.resizeColumnIndex !== -1) {
           return;
         }
@@ -338,7 +343,7 @@ export class LitPageTable extends BaseElement {
           it.sortType = 0;
           it.style.display = 'none';
         });
-        if (head.sortType == undefined || head.sortType == null) {
+        if (head.sortType === undefined || head.sortType === null) {
           head.sortType = 0;
         } else if (head.sortType === 2) {
           head.sortType = 0;
@@ -378,7 +383,7 @@ export class LitPageTable extends BaseElement {
   private columnMinWidth: number = 50;
   private beforeResizeWidth: number = 0;
 
-  resizeMouseMoveEventHandler(header: HTMLDivElement) {
+  resizeMouseMoveEventHandler(header: HTMLDivElement): void {
     header.addEventListener('mousemove', (event) => {
       if (this.isResize) {
         header.style.cursor = 'col-resize';
@@ -472,7 +477,7 @@ export class LitPageTable extends BaseElement {
     let headHeight = 0;
     let totalHeight = headHeight;
     let visibleObjects: TableRowObject[] = [];
-    let itemHandler = (rowData: any, index: number) => {
+    let itemHandler = (rowData: any, index: number): void => {
       let height = this.meauseElementHeight(rowData);
       let tableRowObject = new TableRowObject();
       tableRowObject.height = height;
@@ -509,7 +514,7 @@ export class LitPageTable extends BaseElement {
 
   addOnScrollListener(visibleObjList: TableRowObject[]): void {
     this.tableElement &&
-      (this.tableElement.onscroll = (event) => {
+      (this.tableElement.onscroll = (event): void => {
         let tblScrollTop = this.tableElement!.scrollTop;
         let skip = 0;
         for (let i = 0; i < visibleObjList.length; i++) {
@@ -522,7 +527,7 @@ export class LitPageTable extends BaseElement {
           }
         }
         let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
-        if (reduce == 0) {
+        if (reduce === 0) {
           return;
         }
         while (
@@ -554,7 +559,7 @@ export class LitPageTable extends BaseElement {
     let headHeight = this.theadElement?.clientHeight || 0;
     let totalHeight = 0;
     let visibleObjects: TableRowObject[] = [];
-    let resetAllHeight = (list: any[], depth: number, parentNode?: TableRowObject) => {
+    let resetAllHeight = (list: any[], depth: number, parentNode?: TableRowObject): void => {
       list.forEach((item) => {
         let tableRowObject = new TableRowObject();
         tableRowObject.depth = depth;
@@ -581,9 +586,9 @@ export class LitPageTable extends BaseElement {
         totalHeight += tableRowObject.height;
         visibleObjects.push(tableRowObject);
         if (item.hasNext) {
-          if (item.parents != undefined && item.parents.length > 0 && item.status) {
+          if (item.parents !== undefined && item.parents.length > 0 && item.status) {
             resetAllHeight(item.parents, depth + 1, tableRowObject);
-          } else if (item.children != undefined && item.children.length > 0 && item.status) {
+          } else if (item.children !== undefined && item.children.length > 0 && item.status) {
             resetAllHeight(item.children, depth + 1, tableRowObject);
           }
         } else {
@@ -602,7 +607,7 @@ export class LitPageTable extends BaseElement {
 
   addTreeRowScrollListener(): void {
     this.tableElement &&
-      (this.tableElement.onscroll = (event) => {
+      (this.tableElement.onscroll = (event): void => {
         let visibleObjs = this.recycleDs.filter((item) => {
           return !item.rowHidden;
         });
@@ -616,7 +621,7 @@ export class LitPageTable extends BaseElement {
           }
         }
         let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
-        if (reduce == 0) {
+        if (reduce === 0) {
           return;
         }
         while (reduce <= this.tableElement!.clientHeight) {
@@ -672,8 +677,10 @@ export class LitPageTable extends BaseElement {
   }
 
   addRowElementEvent(newTableElement: HTMLDivElement, rowData: any): void {
-    newTableElement.onmouseenter = () => {
-      if ((newTableElement as any).data.isSelected) return;
+    newTableElement.onmouseenter = (): void => {
+      if ((newTableElement as any).data.isSelected) {
+        return;
+      }
       let indexOf = this.currentRecycleList.indexOf(newTableElement);
       this.currentTreeDivList.forEach((row) => {
         row.classList.remove('mouse-in');
@@ -682,20 +689,22 @@ export class LitPageTable extends BaseElement {
         this.setMouseIn(true, [this.treeElement?.children[indexOf] as HTMLElement]);
       }
     };
-    newTableElement.onmouseleave = () => {
-      if ((newTableElement as any).data.isSelected) return;
+    newTableElement.onmouseleave = (): void => {
+      if ((newTableElement as any).data.isSelected) {
+        return;
+      }
       let indexOf = this.currentRecycleList.indexOf(newTableElement);
       if (indexOf >= 0 && indexOf < this.treeElement!.children.length) {
         this.setMouseIn(false, [this.treeElement?.children[indexOf] as HTMLElement]);
       }
     };
-    newTableElement.onclick = (e) => {
+    newTableElement.onclick = (e): void => {
       let indexOf = this.currentRecycleList.indexOf(newTableElement);
       this.dispatchRowClickEvent(rowData, [this.treeElement?.children[indexOf] as HTMLElement, newTableElement]);
     };
   }
 
-  firstElementTdHandler(newTableElement: HTMLDivElement, dataIndex: string, rowData: any, column: any) {
+  firstElementTdHandler(newTableElement: HTMLDivElement, dataIndex: string, rowData: any, column: any): HTMLDivElement {
     let td: any;
     let text = formatName(dataIndex, rowData.data[dataIndex], this);
     if (column.template) {
@@ -735,28 +744,28 @@ export class LitPageTable extends BaseElement {
   }
 
   addFirstElementEvent(td: HTMLDivElement, tr: HTMLDivElement, rowData: any): void {
-    td.onmouseenter = () => {
+    td.onmouseenter = (): void => {
       let indexOf = this.currentTreeDivList.indexOf(td);
       this.currentRecycleList.forEach((row) => {
         row.classList.remove('mouse-in');
       });
-      if (indexOf >= 0 && indexOf < this.currentRecycleList.length && td.innerHTML != '') {
+      if (indexOf >= 0 && indexOf < this.currentRecycleList.length && td.innerHTML !== '') {
         this.setMouseIn(true, [td]);
       }
     };
-    td.onmouseleave = () => {
+    td.onmouseleave = (): void => {
       let indexOf = this.currentTreeDivList.indexOf(td);
       if (indexOf >= 0 && indexOf < this.currentRecycleList.length) {
         this.setMouseIn(false, [td]);
       }
     };
-    td.onclick = () => {
+    td.onclick = (): void => {
       let indexOf = this.currentTreeDivList.indexOf(td);
       this.dispatchRowClickEvent(rowData, [td, tr]);
     };
   }
 
-  otherElementHandler(dataIndex: string, rowData: any, column: any) {
+  otherElementHandler(dataIndex: string, rowData: any, column: any): HTMLDivElement {
     let text = formatName(dataIndex, rowData.data[dataIndex], this);
     let td: any = document.createElement('div');
     td = document.createElement('div');
@@ -786,7 +795,7 @@ export class LitPageTable extends BaseElement {
     }
     btn.addEventListener('click', (e: any) => {
       row.data.status = false;
-      const resetNodeHidden = (hidden: boolean, rowData: any) => {
+      const resetNodeHidden = (hidden: boolean, rowData: any): void => {
         if (hidden) {
           rowData.children.forEach((child: any) => {
             child.rowHidden = false;
@@ -815,7 +824,7 @@ export class LitPageTable extends BaseElement {
     return btn;
   }
 
-  createExpandBtn(row: any): any {
+  createExpandBtn(row: any): LitIcon {
     let btn: any = document.createElement('lit-icon');
     btn.classList.add('tree-icon');
     // @ts-ignore
@@ -824,8 +833,8 @@ export class LitPageTable extends BaseElement {
     } else {
       btn.name = 'plus-square';
     }
-    btn.onclick = (e: Event) => {
-      const resetNodeHidden = (hidden: boolean, rowData: any) => {
+    btn.onclick = (e: Event): void => {
+      const resetNodeHidden = (hidden: boolean, rowData: any): void => {
         if (rowData.children.length > 0) {
           if (hidden) {
             rowData.children.forEach((child: any) => {
@@ -856,7 +865,7 @@ export class LitPageTable extends BaseElement {
     return btn;
   }
 
-  getVisibleObjs() {
+  getVisibleObjs(): { visibleObjs: any[], skip: number, reduce: number } {
     let totalH = 0;
     this.recycleDs.forEach((it) => {
       if (!it.rowHidden) {
@@ -918,7 +927,7 @@ export class LitPageTable extends BaseElement {
     }
   }
 
-  createNewTableElement(rowData: any): any {
+  createNewTableElement(rowData: any): HTMLDivElement {
     let rowElement = document.createElement('div');
     rowElement.classList.add('tr');
     this?.columns?.forEach((column: any) => {
@@ -941,13 +950,13 @@ export class LitPageTable extends BaseElement {
       }
       rowElement.append(td);
     });
-    rowElement.onclick = () => {
+    rowElement.onclick = (): void => {
       this.dispatchRowClickEvent(rowData, [rowElement]);
     };
-    rowElement.onmouseover = () => {
+    rowElement.onmouseover = (): void => {
       this.dispatchRowHoverEvent(rowData, [rowElement]);
     };
-    if (rowData.data.isSelected != undefined) {
+    if (rowData.data.isSelected !== undefined) {
       this.setSelectedRow(rowData.data.isSelected, [rowElement]);
     }
     (rowElement as any).data = rowData.data;
@@ -963,7 +972,7 @@ export class LitPageTable extends BaseElement {
     return rowElement;
   }
 
-  freshCurrentLine(element: HTMLElement, rowObject: TableRowObject, firstElement?: HTMLElement) {
+  freshCurrentLine(element: HTMLElement, rowObject: TableRowObject, firstElement?: HTMLElement): void {
     if (!rowObject) {
       if (firstElement) {
         firstElement.style.display = 'none';
@@ -974,7 +983,9 @@ export class LitPageTable extends BaseElement {
     let childIndex = -1;
     this.setHighLight(rowObject.data.isSearch, element);
     element.childNodes.forEach((child) => {
-      if (child.nodeType != 1) return;
+      if (child.nodeType !== 1) {
+        return;
+      }
       childIndex++;
       let idx = firstElement !== undefined ? childIndex + 1 : childIndex;
       this.freshLineFirstElementHandler(firstElement, rowObject, childIndex);
@@ -1022,7 +1033,7 @@ export class LitPageTable extends BaseElement {
         rowFirstElement.insertBefore(btn, rowFirstElement.firstChild);
         rowFirstElement.style.paddingLeft = iconWidth * rowObject.depth + 'px';
       }
-      rowFirstElement.onclick = () => {
+      rowFirstElement.onclick = (): void => {
         this.dispatchRowClickEvent(rowObject, [rowFirstElement, element]);
       };
       rowFirstElement.style.transform = `translateY(${rowObject.top - this.tableElement!.scrollTop}px)`;
@@ -1042,14 +1053,14 @@ export class LitPageTable extends BaseElement {
     if (firstElement && firstElement.style.display === 'none') {
       firstElement.style.display = 'flex';
     }
-    element.onclick = (e) => {
+    element.onclick = (e): void => {
       if (firstElement !== undefined) {
         this.dispatchRowClickEvent(rowData, [firstElement, element]);
       } else {
         this.dispatchRowClickEvent(rowData, [element]);
       }
     };
-    element.onmouseenter = () => {
+    element.onmouseenter = (): void => {
       this.dispatchRowHoverEvent(rowData, [element]);
     };
     (element as any).data = rowData.data;
@@ -1098,7 +1109,7 @@ export class LitPageTable extends BaseElement {
   scrollToData(data: any): void {
     if (this.recycleDs.length > 0) {
       let filter = this.recycleDs.filter((item) => {
-        return item.data == data;
+        return item.data === data;
       });
       if (filter.length > 0) {
         this.tableElement!.scrollTop = filter[0].top;
@@ -1109,7 +1120,7 @@ export class LitPageTable extends BaseElement {
 
   expandList(datasource: any[]): void {
     let source = this.recycleDs.filter((item) => {
-      return datasource.indexOf(item.data) != -1;
+      return datasource.indexOf(item.data) !== -1;
     });
     if (source.length > 0) {
       source.forEach((item) => {
@@ -1122,7 +1133,7 @@ export class LitPageTable extends BaseElement {
 
   clearAllSelection(rowObjectData: any = undefined): void {
     this.recycleDs.forEach((item) => {
-      if (rowObjectData || (item.data != rowObjectData && item.data.isSelected)) {
+      if (rowObjectData || (item.data !== rowObjectData && item.data.isSelected)) {
         item.data.isSelected = false;
       }
     });
@@ -1132,7 +1143,7 @@ export class LitPageTable extends BaseElement {
 
   clearAllHover(rowObjectData: any): void {
     this.recycleDs.forEach((item) => {
-      if (item.data != rowObjectData && item.data.isHover) {
+      if (item.data !== rowObjectData && item.data.isHover) {
         item.data.isHover = false;
       }
     });
@@ -1155,14 +1166,14 @@ export class LitPageTable extends BaseElement {
   }
 
   setCurrentSelection(data: any): void {
-    if (data.isSelected != undefined) {
+    if (data.isSelected !== undefined) {
       this.currentTreeDivList.forEach((item) => {
-        if ((item as any).data == data) {
+        if ((item as any).data === data) {
           this.setSelectedRow(data.isSelected, [item]);
         }
       });
       this.currentRecycleList.forEach((item) => {
-        if ((item as any).data == data) {
+        if ((item as any).data === data) {
           this.setSelectedRow(data.isSelected, [item]);
         }
       });
@@ -1172,27 +1183,27 @@ export class LitPageTable extends BaseElement {
   setCurrentHover(data: any): void {
     this.setMouseIn(false, this.currentTreeDivList);
     this.setMouseIn(false, this.currentRecycleList);
-    if (data.isHover != undefined) {
+    if (data.isHover !== undefined) {
       this.currentTreeDivList.forEach((item) => {
-        if ((item as any).data == data) {
+        if ((item as any).data === data) {
           this.setMouseIn(data.isHover, [item]);
         }
       });
       this.currentRecycleList.forEach((item) => {
-        if ((item as any).data == data) {
+        if ((item as any).data === data) {
           this.setMouseIn(data.isHover, [item]);
         }
       });
     }
   }
 
-  dispatchRowClickEventIcon(rowObject: any, elements: any[]) {
+  dispatchRowClickEventIcon(rowObject: any, elements: any[]): void {
     this.dispatchEvent(
       new CustomEvent('icon-click', {
         detail: {
           ...rowObject.data,
           data: rowObject.data,
-          callBack: (isSelected: boolean) => {
+          callBack: (isSelected: boolean): void => {
             //是否爲单选
             if (isSelected) {
               this.clearAllSelection(rowObject.data);

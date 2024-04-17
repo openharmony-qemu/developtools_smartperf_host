@@ -176,12 +176,7 @@ export class TabPaneJsCpuStatistics extends BaseElement {
     time: number,
     percentage: number
   ): JsCpuProfilerStatisticsStruct {
-    return new JsCpuProfilerStatisticsStruct(
-      type,
-      time,
-      ns2s(time),
-      ((time / percentage || 0) * 100).toFixed(1)
-    );
+    return new JsCpuProfilerStatisticsStruct(type, time, ns2s(time), ((time / percentage || 0) * 100).toFixed(1));
   }
 
   private sortByColumn(detail: any): void {

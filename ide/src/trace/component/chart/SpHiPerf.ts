@@ -171,7 +171,7 @@ export class SpHiPerf {
       if (this.eventTypeId !== drawType) {
         this.eventTypeId = drawType;
         row.drawType = drawType;
-        row.childrenList.forEach((child) => {
+        row.childrenList.forEach((child): void => {
           if (child.drawType !== drawType) {
             child.drawType = drawType;
             child.needRefresh = true;
@@ -285,9 +285,15 @@ export class SpHiPerf {
     row.addRowSettingPop();
     row.rowSetting = 'enable';
     this.setCallChartRowSetting(row, cpuData, pt);
-    row.onThreadHandler = rowThreadHandler<HiPerfCallChartRender>('HiPerf-callchart', 'context', {
-      type: 'HiPerf-callchart',
-    }, row, this.trace);
+    row.onThreadHandler = rowThreadHandler<HiPerfCallChartRender>(
+      'HiPerf-callchart',
+      'context',
+      {
+        type: 'HiPerf-callchart',
+      },
+      row,
+      this.trace
+    );
   }
 
   setCallChartRowSetting(row: TraceRow<HiPerfCallChartStruct>, cpuData: Array<any>, pt: Map<string, any>): void {
@@ -363,16 +369,22 @@ export class SpHiPerf {
     cpuMergeRow.findHoverStruct = (): void => {
       HiPerfCpuStruct.hoverStruct = cpuMergeRow.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
     };
-    cpuMergeRow.onThreadHandler = this.rowThreadHandler<HiperfCpuRender2>('HiPerf-Cpu-2', 'context', {
-      type: 'HiPerf-Cpu-Merge',
-      maxCpu: this.maxCpuId + 1,
-      intervalPerf: SpHiPerf.stringResult?.fValue || 1,
-    }, cpuMergeRow, this.trace);
+    cpuMergeRow.onThreadHandler = this.rowThreadHandler<HiperfCpuRender2>(
+      'HiPerf-Cpu-2',
+      'context',
+      {
+        type: 'HiPerf-Cpu-Merge',
+        maxCpu: this.maxCpuId + 1,
+        intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+      },
+      cpuMergeRow,
+      this.trace
+    );
     this.rowFolder.addChildTraceRow(cpuMergeRow);
     this.rowList?.push(cpuMergeRow);
   }
 
-  rowThreadHandler<T>(tag: string,  contextField: string, arg: any, row: TraceRow<any>, trace: SpSystemTrace) {
+  rowThreadHandler<T>(tag: string, contextField: string, arg: any, row: TraceRow<any>, trace: SpSystemTrace) {
     return (useCache: boolean): void => {
       let context: CanvasRenderingContext2D = getRowContext(row, trace);
       row.canvasSave(context);
@@ -416,20 +428,26 @@ export class SpHiPerf {
       perfCpuRow.findHoverStruct = (): void => {
         HiPerfCpuStruct.hoverStruct = perfCpuRow.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
       };
-      perfCpuRow.onThreadHandler = this.rowThreadHandler<HiperfCpuRender2>('HiPerf-Cpu-2', 'context', {
-        type: `HiPerf-Cpu-${i}`,
-        maxCpu: this.maxCpuId + 1,
-        intervalPerf: SpHiPerf.stringResult?.fValue || 1,
-      }, perfCpuRow, this.trace);
+      perfCpuRow.onThreadHandler = this.rowThreadHandler<HiperfCpuRender2>(
+        'HiPerf-Cpu-2',
+        'context',
+        {
+          type: `HiPerf-Cpu-${i}`,
+          maxCpu: this.maxCpuId + 1,
+          intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+        },
+        perfCpuRow,
+        this.trace
+      );
       this.rowFolder.addChildTraceRow(perfCpuRow);
       this.rowList?.push(perfCpuRow);
     }
   }
 
   async initProcess(): Promise<void> {
-    Reflect.ownKeys(this.group).forEach((key, index) => {
+    Reflect.ownKeys(this.group).forEach((key, index): void => {
       let array = this.group[key] as Array<PerfThread>;
-      let process = array.filter((th) => th.pid === th.tid)[0];
+      let process = array.filter((th): boolean => th.pid === th.tid)[0];
       let row = TraceRow.skeleton<HiPerfProcessStruct>();
       row.rowId = `${process.pid}-Perf-Process`;
       row.index = index;
@@ -448,7 +466,8 @@ export class SpHiPerf {
       row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       row.selectChangeHandler = this.trace.selectChangeHandler;
       row.supplierFrame = (): Promise<any> => {
-        return hiperfProcessDataSender(process.pid,
+        return hiperfProcessDataSender(
+          process.pid,
           row.drawType,
           this.maxCpuId + 1,
           SpHiPerf.stringResult?.fValue || 1,
@@ -460,10 +479,16 @@ export class SpHiPerf {
       row.findHoverStruct = (): void => {
         HiPerfProcessStruct.hoverStruct = row.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
       };
-      row.onThreadHandler = this.rowThreadHandler<HiperfProcessRender2>('HiPerf-Process-2', 'context', {
-        type: `HiPerf-Process-${row.index}`,
-        intervalPerf: SpHiPerf.stringResult?.fValue || 1,
-      }, row, this.trace);
+      row.onThreadHandler = this.rowThreadHandler<HiperfProcessRender2>(
+        'HiPerf-Process-2',
+        'context',
+        {
+          type: `HiPerf-Process-${row.index}`,
+          intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+        },
+        row,
+        this.trace
+      );
       this.rowFolder.addChildTraceRow(row);
       this.rowList?.push(row);
       this.addHiPerfThreadRow(array, row);
@@ -471,7 +496,7 @@ export class SpHiPerf {
   }
 
   addHiPerfThreadRow(array: PerfThread[], row: TraceRow<HiPerfProcessStruct>): void {
-    array.forEach((thObj, thIdx) => {
+    array.forEach((thObj, thIdx): void => {
       let thread = TraceRow.skeleton<HiPerfThreadStruct>();
       thread.rowId = `${thObj.tid}-Perf-Thread`;
       thread.index = thIdx;
@@ -500,10 +525,16 @@ export class SpHiPerf {
       thread.findHoverStruct = (): void => {
         HiPerfThreadStruct.hoverStruct = thread.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
       };
-      thread.onThreadHandler = this.rowThreadHandler<HiperfThreadRender2>('HiPerf-Thread-2', 'context', {
-        type: `HiPerf-Thread-${row.index}-${thread.index}`,
-        intervalPerf: SpHiPerf.stringResult?.fValue || 1,
-      }, thread, this.trace);
+      thread.onThreadHandler = this.rowThreadHandler<HiperfThreadRender2>(
+        'HiPerf-Thread-2',
+        'context',
+        {
+          type: `HiPerf-Thread-${row.index}-${thread.index}`,
+          intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+        },
+        thread,
+        this.trace
+      );
       row.addChildTraceRow(thread);
       this.rowList?.push(thread);
     });

@@ -31,10 +31,10 @@ class ConvertThread {
     );
   }
 
-  getConvertData(handler: (status: boolean, msg: string, results: Blob) => void) {
+  getConvertData(handler: (status: boolean, msg: string, results: Blob) => void): void {
     this.busy = true;
     let id = this.uuid();
-    this.taskMap[id] = (res: any) => {
+    this.taskMap[id] = (res: any): void => {
       DbPool.sharedBuffer = res.buffer;
       handler(res.status, res.msg, res.results);
     };
@@ -61,7 +61,7 @@ class ConvertPool {
   progress: Function | undefined | null;
   static data: Array<string> = [];
   num = Math.floor(Math.random() * 10 + 1) + 20;
-  init = async (type: string) => {
+  init = async (type: string): Promise<void> => {
     // server
     await this.close();
     if (type === 'convert') {
@@ -72,7 +72,7 @@ class ConvertPool {
       if (type === 'convert') {
         thread = new ConvertThread(new Worker(new URL('./ConvertTraceWorker', import.meta.url)));
       }
-      thread!.worker!.onmessage = (event: MessageEvent) => {
+      thread!.worker!.onmessage = (event: MessageEvent): void => {
         thread.busy = false;
         ConvertPool.data = event.data.results;
         if (Reflect.has(thread.taskMap, event.data.id)) {
@@ -91,22 +91,22 @@ class ConvertPool {
           }
         }
       };
-      thread!.worker!.onmessageerror = (e) => {};
-      thread!.worker!.onerror = (e) => {};
+      thread!.worker!.onmessageerror = (e): void => {};
+      thread!.worker!.onerror = (e): void => {};
       thread!.id = i;
       thread!.busy = false;
       this.works?.push(thread!);
     }
   };
 
-  clearCache = () => {
+  clearCache = (): void => {
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
       thread.getConvertData(() => {});
     }
   };
 
-  close = () => {
+  close = (): void => {
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
       thread.worker!.terminate();
@@ -129,7 +129,7 @@ class ConvertPool {
     return thread;
   }
 
-  isIdle() {
+  isIdle(): boolean {
     return this.works.every((it) => !it.busy);
   }
 }

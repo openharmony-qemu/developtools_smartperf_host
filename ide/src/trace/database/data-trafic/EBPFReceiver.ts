@@ -13,7 +13,6 @@
 
 import { TraficEnum } from './utils/QueryEnum';
 
-let maxSize: number = 0;
 export const fileSystemDataGroupBy10MSProtoSql = (args: any): string => {
   return `SELECT
         startNs, endNs, max( count ) AS size,
@@ -116,7 +115,6 @@ export const eBPFVmDataProtoSql = (args: any): string => {
         order by A.start_ts;`;
 };
 
-let eBPFMap = new Map<any, number>();
 /**
  * @param data
  * @param proc
@@ -151,35 +149,20 @@ export function eBPFVmReceiver(data: any, proc: Function): void {
   let res = proc(sql);
   arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
+
 function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
   let endNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.endNS);
   let size = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.size);
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
   let height = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.height);
-  let type: any;
-
-  if (data.params.type) {
-    type = data.params.type;
-  } else if (data.params.typeArr) {
-    type = data.params.typeArr;
-  } else {
-    type = -1;
-  }
-  if (!eBPFMap!.get(type)) {
-    maxSize = Math.max(
-      ...res.map((it) => {
-        return it.size;
-      })
-    );
-    eBPFMap.set(type, maxSize);
-  }
+  let maxSize = Math.max(...res.map((it) => it.size));
   res.forEach((it, i) => {
     startNS[i] = it.startNs;
     endNS[i] = it.endNs;
     size[i] = it.size;
     dur[i] = it.dur;
-    height[i] = Math.ceil((it.size / eBPFMap!.get(type)!) * 36);
+    height[i] = Math.ceil((it.size / maxSize) * 36);
   });
   (self as unknown as Worker).postMessage(
     {

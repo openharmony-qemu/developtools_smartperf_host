@@ -24,7 +24,7 @@ import {
   Rect,
   Render,
 } from './ProcedureWorkerCommon';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class FrameAnimationRender extends Render {
   renderMainThread(
@@ -106,16 +106,25 @@ export class FrameAnimationRender extends Render {
     }
   }
 }
-export function FrameAnimationStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>) {
-  return new Promise((resolve,reject) => {
+export function FrameAnimationStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  scrollToFuncHandler: any,
+  row: TraceRow<any>
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FRAME_ANIMATION) {
-      FrameAnimationStruct.selectFrameAnimationStruct = FrameAnimationStruct.hoverFrameAnimationStruct || row.getHoverStruct();
+      FrameAnimationStruct.selectFrameAnimationStruct =
+        FrameAnimationStruct.hoverFrameAnimationStruct || row.getHoverStruct();
       if (FrameAnimationStruct.selectFrameAnimationStruct) {
-        sp.traceSheetEL?.displayFrameAnimationData(FrameAnimationStruct.selectFrameAnimationStruct);
+        sp.traceSheetEL?.displayFrameAnimationData(
+          FrameAnimationStruct.selectFrameAnimationStruct,
+          scrollToFuncHandler
+        );
         sp.timerShaftEL?.modifyFlagList(undefined);
       }
       reject(new Error());
-    }else{
+    } else {
       resolve(null);
     }
   });
@@ -132,6 +141,8 @@ export class FrameAnimationStruct extends BaseStruct {
   endTs: number = 0;
   frameInfo: string | undefined;
   name: string | undefined;
+  inputTime: number = 0;
+  endTime: number = 0;
 
   static setFrameAnimation(
     animationNode: FrameAnimationStruct,

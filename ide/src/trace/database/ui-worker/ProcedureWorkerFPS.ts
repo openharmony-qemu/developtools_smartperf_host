@@ -24,7 +24,7 @@ export class FpsRender extends Render {
       type: string;
     },
     row: TraceRow<FpsStruct>
-  ) {
+  ): void {
     let fpsList = row.dataList;
     let fpsFilter = row.dataListCache;
     fps(
@@ -45,7 +45,9 @@ export class FpsRender extends Render {
         fpsFind = true;
       }
     }
-    if (!fpsFind && row.isHover) FpsStruct.hoverFpsStruct = undefined;
+    if (!fpsFind && row.isHover) {
+      FpsStruct.hoverFpsStruct = undefined;
+    }
     req.context.closePath();
     let maxFps = FpsStruct.maxFps + 'FPS';
     let textMetrics = req.context.measureText(maxFps);
@@ -67,7 +69,7 @@ export function fps(
   totalNS: number,
   frame: any,
   use: boolean
-) {
+): void {
   if (use && res.length > 0) {
     res.forEach((it) => FpsStruct.setFrame(it, 5, startNS, endNS, totalNS, frame));
     return;
@@ -93,7 +95,7 @@ export function fps(
   }
 }
 
-function setFPSFilter(list: Array<any>, i: number, res: Array<any>) {
+function setFPSFilter(list: Array<any>, i: number, res: Array<any>): void {
   if (
     i > 0 &&
     (list[i - 1].frame?.x || 0) === (list[i].frame?.x || 0) &&
@@ -113,7 +115,7 @@ export class FpsStruct extends BaseStruct {
   startNS: number | undefined = 0;
   dur: number | undefined; //自补充，数据库没有返回
 
-  static draw(fpsContext: CanvasRenderingContext2D, data: FpsStruct) {
+  static draw(fpsContext: CanvasRenderingContext2D, data: FpsStruct): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       fpsContext.fillStyle = '#535da6';
@@ -144,8 +146,16 @@ export class FpsStruct extends BaseStruct {
     fpsContext.lineWidth = 1;
   }
 
-  static setFrame(fpsNode: FpsStruct, padding: number, startNS: number, endNS: number, totalNS: number, frame: Rect) {
-    let fpsLeftPointX: number, fpsRightPointX: number;
+  static setFrame(
+    fpsNode: FpsStruct,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: Rect
+  ): void {
+    let fpsLeftPointX: number;
+    let fpsRightPointX: number;
     if ((fpsNode.startNS || 0) < startNS) {
       fpsLeftPointX = 0;
     } else {

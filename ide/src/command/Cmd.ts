@@ -18,7 +18,7 @@ import { CmdConstant } from './CmdConstant';
 import { HdcDeviceManager } from '../hdc/HdcDeviceManager';
 
 export class Cmd {
-  static CmdSendPostUtils(uri: string, callback: Function, requestData: any) {
+  static CmdSendPostUtils(uri: string, callback: Function, requestData: any): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -29,7 +29,7 @@ export class Cmd {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestData),
-    }).then((response) => {
+    }).then((response): void => {
       if (response.ok) {
         let result = response.text();
         result.then((output) => {
@@ -45,7 +45,7 @@ export class Cmd {
    * @param addr addr of select line
    * @param callback result callback
    */
-  static execObjDump(command: string, addr: string, callback: Function) {
+  static execObjDump(command: string, addr: string, callback: Function): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -55,7 +55,7 @@ export class Cmd {
     Cmd.CmdSendPostUtils(uri, callback, data);
   }
 
-  static execHdcCmd(command: string, callback: Function) {
+  static execHdcCmd(command: string, callback: Function): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -68,7 +68,7 @@ export class Cmd {
     Cmd.CmdSendPostUtils(uri, callback, data);
   }
 
-  static async execFileRecv(command: string, filePath: string, callback: Function) {
+  static async execFileRecv(command: string, filePath: string, callback: Function): Promise<void> {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -90,7 +90,7 @@ export class Cmd {
     callback(buf);
   }
 
-  static execHdcTraceCmd(command: string, serialNumber: string, callback: Function) {
+  static execHdcTraceCmd(command: string, serialNumber: string, callback: Function): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -104,7 +104,7 @@ export class Cmd {
     Cmd.CmdSendPostUtils(uri, callback, data);
   }
 
-  static formatString(string: string, params: string[]) {
+  static formatString(string: string, params: string[]): string {
     if (params.length === 0) {
       return string;
     }
@@ -114,7 +114,7 @@ export class Cmd {
     return string;
   }
 
-  static showSaveFile(callback: Function) {
+  static showSaveFile(callback: Function): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -132,7 +132,7 @@ export class Cmd {
     });
   }
 
-  static uploadFile(fd: FormData, callback: Function) {
+  static uploadFile(fd: FormData, callback: Function): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -141,12 +141,12 @@ export class Cmd {
     fetch(uri, {
       method: 'POST',
       body: fd,
-    }).then((response) => {
+    }).then((response): void => {
       callback(response);
     });
   }
 
-  static copyFile(fileName: string, distFile: string, callback: Function) {
+  static copyFile(fileName: string, distFile: string, callback: Function): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -162,12 +162,12 @@ export class Cmd {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
-    }).then((response) => {
+    }).then((response): void => {
       callback(response);
     });
   }
 
-  static async openFileDialog() {
+  static async openFileDialog(): Promise<string> {
     // @ts-ignore
     if (window.useWb) {
       return '';
@@ -189,7 +189,7 @@ export class Cmd {
         } else {
           let process: string[] = lineVal.split(' ');
           if (process.length === 2) {
-            processData.push(process[1] + '(' + process[0] + ')');
+            processData.push(`${process[1]}(${process[0]})`);
           }
         }
       }
@@ -225,16 +225,16 @@ export class Cmd {
   }
 
   static getProcess(): Promise<string[]> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject): void => {
       if (SpRecordTrace.isVscode) {
         let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber]);
-        Cmd.execHdcCmd(cmd, (res: string) => {
+        Cmd.execHdcCmd(cmd, (res: string): void => {
           resolve(Cmd.convertOutProcessList(res));
         });
       } else {
-        HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
+        HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn): void => {
           if (conn) {
-            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((res) => {
+            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then((res): void => {
               resolve(Cmd.convertOutProcessList(res));
             });
           } else {
@@ -245,10 +245,10 @@ export class Cmd {
     });
   }
   static getPackage(): Promise<string[]> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject): void => {
       HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
         if (conn) {
-          HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PACKAGE, false).then((res) => {
+          HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PACKAGE, false).then((res): void => {
             resolve(Cmd.convertOutPackageList(res));
           });
         } else {

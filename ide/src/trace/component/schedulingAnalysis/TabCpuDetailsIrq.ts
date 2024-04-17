@@ -72,11 +72,11 @@ export class TabCpuDetailsIrq extends BaseElement {
     });
   }
 
-  init(cpu: number) {
+  init(cpu: number): void {
     this.queryPieChartDataByType('CPU Irq', cpu);
   }
 
-  queryPieChartDataByType(type: string, cpu: number) {
+  queryPieChartDataByType(type: string, cpu: number): void {
     if (this.traceChange) {
       return;
     }
@@ -86,10 +86,10 @@ export class TabCpuDetailsIrq extends BaseElement {
       this.cpuDetailsLrqProgress!.loading = false;
       this.cpuDetailsLrqData = res.get(cpu) || [];
       this.cpuDetailsLrqData = getDataNo(this.cpuDetailsLrqData);
-      this.tableNoData!.noData = this.cpuDetailsLrqData.length == 0;
-      this.noData(this.cpuDetailsLrqData.length == 0);
+      this.tableNoData!.noData = this.cpuDetailsLrqData.length === 0;
+      this.noData(this.cpuDetailsLrqData.length === 0);
       this.setLrqPieConfig();
-      if (this.cpuDetailsLrqSortColumn != '') {
+      if (this.cpuDetailsLrqSortColumn !== '') {
         this.sortByColumn({
           key: this.cpuDetailsLrqSortColumn,
           sort: this.sortType,
@@ -111,7 +111,7 @@ export class TabCpuDetailsIrq extends BaseElement {
       label: {
         type: 'outer',
       },
-      tip: (irqObj) => {
+      tip: (irqObj): string => {
         return `<div>
                                 <div>block:${irqObj.obj.block}</div> 
                                 <div>name:${irqObj.obj.value}</div>
@@ -123,7 +123,7 @@ export class TabCpuDetailsIrq extends BaseElement {
                             </div>
                                 `;
       },
-      hoverHandler: (data) => {
+      hoverHandler: (data): void => {
         if (data) {
           this.cpuDetailsLrqUsageTbl!.setCurrentHover(data);
         } else {
@@ -138,19 +138,19 @@ export class TabCpuDetailsIrq extends BaseElement {
     };
   }
 
-  noData(value: boolean) {
+  noData(value: boolean): void {
     this.shadowRoot!.querySelector<HTMLDivElement>('.irq-chart-box')!.style.display = value ? 'none' : 'block';
     this.shadowRoot!.querySelector<HTMLDivElement>('.table-box')!.style.width = value ? '100%' : '60%';
   }
 
-  clearData() {
+  clearData(): void {
     this.traceChange = false;
     this.cpuDetailsLrqPie!.dataSource = [];
     this.cpuDetailsLrqUsageTbl!.recycleDataSource = [];
     this.noData(false);
   }
 
-  queryLoginWorker(irqType: string, log: string, handler: (res: any) => void) {
+  queryLoginWorker(irqType: string, log: string, handler: (res: any) => void): void {
     let cpuDetailsLrqTime = new Date().getTime();
     procedurePool.submitWithName(
       'logic0',
@@ -166,15 +166,14 @@ export class TabCpuDetailsIrq extends BaseElement {
     info(log, durTime);
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     // @ts-ignore
     function compare(cpuDetailsLrqProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2
-            ? parseFloat(b[cpuDetailsLrqProperty]) - parseFloat(a[cpuDetailsLrqProperty])
-            : parseFloat(a[cpuDetailsLrqProperty]) - parseFloat(b[cpuDetailsLrqProperty]);
+          return sort === 2 ? parseFloat(b[cpuDetailsLrqProperty]) - parseFloat(a[cpuDetailsLrqProperty]) :
+            parseFloat(a[cpuDetailsLrqProperty]) - parseFloat(b[cpuDetailsLrqProperty]);
         } else {
           if (sort === 2) {
             return b[cpuDetailsLrqProperty].toString().localeCompare(a[cpuDetailsLrqProperty].toString());

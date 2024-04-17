@@ -17,15 +17,13 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
-import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
-import { dataFilterHandler, drawLines } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { drawLines } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { TraceRow } from '../../base/TraceRow';
 import { CpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerFreq';
-import { CpuState } from '../../../../database/logic-worker/ProcedureLogicWorkerCpuState';
 import { CpuStateStruct } from '../../../../database/ui-worker/cpu/ProcedureWorkerCpuState';
-import {getTabPaneCounterSampleData} from "../../../../database/sql/Cpu.sql";
+import { getTabPaneCounterSampleData } from '../../../../database/sql/Cpu.sql';
 
 @element('tabpane-counter-sample')
 export class TabPaneCounterSample extends BaseElement {
@@ -43,7 +41,7 @@ export class TabPaneCounterSample extends BaseElement {
   private _rangeRow: Array<TraceRow<any>> | undefined | null;
 
   set data(counterSampleValue: SelectionParam | any) {
-    if (counterSampleValue == this.selectionParam) {
+    if (counterSampleValue === this.selectionParam) {
       return;
     }
     this.sampleProgressEL!.loading = true;
@@ -52,7 +50,7 @@ export class TabPaneCounterSample extends BaseElement {
     if (this.counterSampleTbl) {
       // @ts-ignore
       this.counterSampleTbl.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 25 + 'px';
+        `${this.parentElement!.clientHeight - 25}px`;
     }
     this.queryDataByDB(counterSampleValue);
   }
@@ -65,10 +63,9 @@ export class TabPaneCounterSample extends BaseElement {
     this.sampleProgressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progressCounter');
     this.counterLoadingPage = this.shadowRoot!.querySelector('.loadingCounter');
     this.counterSampleTbl = this.shadowRoot!.querySelector<LitTable>('#tb-counter-sample');
-    this.systemTrace = document
-      .querySelector('body > sp-application')
-      ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
-    this.counterSampleTbl!.addEventListener('column-click', (evt) => {
+    this.systemTrace = document.querySelector('body > sp-application')?.shadowRoot!.
+      querySelector<SpSystemTrace>('#sp-system-trace');
+    this.counterSampleTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.counterSortKey = evt.detail.key;
       // @ts-ignore
@@ -80,7 +77,7 @@ export class TabPaneCounterSample extends BaseElement {
   }
 
   private rowClickEvent(): void {
-    this.counterSampleTbl!.addEventListener('row-click', (evt) => {
+    this.counterSampleTbl!.addEventListener('row-click', (evt): void => {
       // @ts-ignore
       let data = evt.detail.data;
       let path = new Path2D();
@@ -102,7 +99,7 @@ export class TabPaneCounterSample extends BaseElement {
                 cpuStateFilter[i].value === data.value &&
                 cpuStateFilter[i].cpu === data.cpu &&
                 Math.max(TraceRow.rangeSelectObject?.startNS!, cpuStateFilter[i].startTs!) <
-                Math.min(TraceRow.rangeSelectObject?.endNS!, cpuStateFilter[i].startTs! + cpuStateFilter[i].dur!)
+                  Math.min(TraceRow.rangeSelectObject?.endNS!, cpuStateFilter[i].startTs! + cpuStateFilter[i].dur!)
               ) {
                 CpuStateStruct.hoverStateStruct = cpuStateFilter[i];
               }
@@ -127,12 +124,12 @@ export class TabPaneCounterSample extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.counterSampleTbl!, 25, this.counterLoadingPage, 24);
   }
 
-  queryDataByDB(counterSampleParam: SelectionParam | any) {
+  queryDataByDB(counterSampleParam: SelectionParam | any): void {
     this.counterLoadingList.push(1);
     this.sampleProgressEL!.loading = true;
     this.counterLoadingPage.style.visibility = 'visible';
@@ -143,14 +140,14 @@ export class TabPaneCounterSample extends BaseElement {
       counterSampleParam.cpuStateFilterIds
     ).then((result) => {
       this.counterLoadingList.splice(0, 1);
-      if (this.counterLoadingList.length == 0) {
+      if (this.counterLoadingList.length === 0) {
         this.sampleProgressEL!.loading = false;
         this.counterLoadingPage.style.visibility = 'hidden';
       }
       let sampleMap = new Map<any, any>();
-      counterSampleParam.cpuStateFilterIds.forEach((a: number) => {
+      counterSampleParam.cpuStateFilterIds.forEach((a: number): void => {
         this.getInitTime(
-          result.filter((f) => f.filterId == a),
+          result.filter((f) => f.filterId === a),
           sampleMap,
           counterSampleParam
         );
@@ -165,59 +162,63 @@ export class TabPaneCounterSample extends BaseElement {
     });
   }
 
-  getInitTime(initCounterResultList: Array<any>, sampleMap: Map<any, any>, val: SelectionParam) {
+  getInitTime(initCounterResultList: Array<any>, sampleMap: Map<any, any>, val: SelectionParam): void {
     let leftNs = val.leftNs + val.recordStartNs;
     let rightNs = val.rightNs + val.recordStartNs;
-    if (initCounterResultList.length == 0) return;
+    if (initCounterResultList.length === 0) {
+      return;
+    }
     let idx = initCounterResultList.findIndex((a) => a.ts >= leftNs);
     if (idx !== 0) {
       initCounterResultList = initCounterResultList.slice(
-        idx == -1 ? initCounterResultList.length - 1 : idx - 1,
+        idx === -1 ? initCounterResultList.length - 1 : idx - 1,
         initCounterResultList.length
       );
     }
-    if (initCounterResultList[0].ts < leftNs && idx !== 0) initCounterResultList[0].ts = leftNs;
-    initCounterResultList.forEach((item, idx) => {
-      if (idx + 1 == initCounterResultList.length) {
+    if (initCounterResultList[0].ts < leftNs && idx !== 0) {
+      initCounterResultList[0].ts = leftNs;
+    }
+    initCounterResultList.forEach((item, idx): void => {
+      if (idx + 1 === initCounterResultList.length) {
         item.time = rightNs - item.ts;
       } else {
         item.time = initCounterResultList[idx + 1].ts - item.ts;
       }
-      if (sampleMap.has(item.filterId + '-' + item.value)) {
-        let obj = sampleMap.get(item.filterId + '-' + item.value);
+      if (sampleMap.has(`${item.filterId}-${item.value}`)) {
+        let obj = sampleMap.get(`${item.filterId}-${item.value}`);
         obj.time += item.time;
       } else {
-        sampleMap.set(item.filterId + '-' + item.value, {
+        sampleMap.set(`${item.filterId}-${item.value}`, {
           ...item,
-          counter: 'Cpu ' + item.cpu,
+          counter: `Cpu ${item.cpu}`,
           count: initCounterResultList.filter((ele) => ele.value === item.value).length,
         });
       }
     });
   }
 
-  sortTable(key: string, type: number) {
-    if (type == 0) {
+  sortTable(key: string, type: number): void {
+    if (type === 0) {
       this.counterSampleTbl!.recycleDataSource = this.counterSampleSource;
     } else {
       let arr = Array.from(this.counterSampleSource);
       arr.sort((sortByColumnLeftData, sortByColumnRightData): number => {
-        if (key == 'timeStr') {
-          if (type == 1) {
+        if (key === 'timeStr') {
+          if (type === 1) {
             return sortByColumnLeftData.time - sortByColumnRightData.time;
           } else {
             return sortByColumnRightData.time - sortByColumnLeftData.time;
           }
-        } else if (key == 'counter') {
+        } else if (key === 'counter') {
           if (sortByColumnLeftData.counter > sortByColumnRightData.counter) {
             return type === 2 ? -1 : 1;
-          } else if (sortByColumnLeftData.counter == sortByColumnRightData.counter) {
+          } else if (sortByColumnLeftData.counter === sortByColumnRightData.counter) {
             return 0;
           } else {
             return type === 2 ? 1 : -1;
           }
-        } else if (key == 'value') {
-          if (type == 1) {
+        } else if (key === 'value') {
+          if (type === 1) {
             return sortByColumnLeftData.value - sortByColumnRightData.value;
           } else {
             return sortByColumnRightData.value - sortByColumnLeftData.value;

@@ -53,18 +53,17 @@ export class TabPaneCpuByThread extends BaseElement {
     this.cpuByThreadTbl!.innerHTML = this.getTableColumns(cpuByThreadValue.cpus);
     this.cpuByThreadTbl!.injectColumns();
     this.range!.textContent =
-      'Selected range: ' +
-      parseFloat(((cpuByThreadValue.rightNs - cpuByThreadValue.leftNs) / 1000000.0).toFixed(5)) +
-      ' ms';
+      `Selected range: ${parseFloat(((cpuByThreadValue.rightNs - cpuByThreadValue.leftNs) / 1000000.0).
+        toFixed(5))} ms`;
     this.cpuByThreadTbl!.loading = true;
     this.handleAsyncRequest(cpuByThreadValue);
   }
 
   private handleAsyncRequest(cpuByThreadValue: any): void {
-    getTabCpuByThread(cpuByThreadValue.cpus, cpuByThreadValue.leftNs, cpuByThreadValue.rightNs).then((result) => {
+    getTabCpuByThread(cpuByThreadValue.cpus, cpuByThreadValue.leftNs, cpuByThreadValue.rightNs).then((result): void => {
       this.cpuByThreadTbl!.loading = false;
-      if (result != null && result.length > 0) {
-        log('getTabCpuByThread size :' + result.length);
+      if (result !== null && result.length > 0) {
+        log(`getTabCpuByThread size :${  result.length}`);
         this.processResult(result, cpuByThreadValue);
       } else {
         this.cpuByThreadSource = [];
@@ -106,8 +105,8 @@ export class TabPaneCpuByThread extends BaseElement {
     let cpuByThreadObject: any = {
       tid: e.tid,
       pid: e.pid,
-      thread: thread == null || thread.length == 0 ? '[NULL]' : thread,
-      process: process == null || process.length == 0 ? '[NULL]' : process,
+      thread: !thread || thread.length === 0 ? '[NULL]' : thread,
+      process: !process || process.length === 0 ? '[NULL]' : process,
       wallDuration: e.wallDuration || 0,
       occurrences: e.occurrences || 0,
       avgDuration: 0,
@@ -128,10 +127,7 @@ export class TabPaneCpuByThread extends BaseElement {
   private updateCpuValues(e: any, cpuByThreadValue: any, cpuByThreadObject: any): void {
     cpuByThreadObject[`cpu${e.cpu}`] = e.wallDuration || 0;
     cpuByThreadObject[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
-    let ratio = (
-      (100.0 * (e.wallDuration || 0)) /
-      (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
-    ).toFixed(2);
+    let ratio = ((100.0 * (e.wallDuration || 0)) / (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)).toFixed(2);
     if (ratio === '0.00') {
       ratio = '0';
     }
@@ -153,7 +149,7 @@ export class TabPaneCpuByThread extends BaseElement {
     this.cpuByThreadTbl!.recycleDataSource = arr;
   }
 
-  getTableColumns(cpus: Array<number>) {
+  getTableColumns(cpus: Array<number>): string {
     let cpuByThreadTblHtml = `${this.pubColumns}`;
     let cpuByThreadList = cpus.sort((cpuByThreadA, cpuByThreadB) => cpuByThreadA - cpuByThreadB);
     for (let index of cpuByThreadList) {
@@ -170,11 +166,11 @@ export class TabPaneCpuByThread extends BaseElement {
   initElements(): void {
     this.cpuByThreadTbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-thread');
     this.range = this.shadowRoot?.querySelector('#time-range');
-    this.cpuByThreadTbl!.addEventListener('column-click', (evt) => {
+    this.cpuByThreadTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.cpuByThreadTbl!.addEventListener('row-click', (evt: any) => {
+    this.cpuByThreadTbl!.addEventListener('row-click', (evt: any): void => {
       // @ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
@@ -183,7 +179,7 @@ export class TabPaneCpuByThread extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.cpuByThreadTbl!);
   }
@@ -209,23 +205,21 @@ export class TabPaneCpuByThread extends BaseElement {
         `;
   }
   compare(property: any, sort: any, type: string) {
-    return function (cpuByThreadLeftData: SelectionData, cpuByThreadRightData: SelectionData) {
-      if (cpuByThreadLeftData.process == ' ' || cpuByThreadRightData.process == ' ') {
+    return function (cpuByThreadLeftData: SelectionData, cpuByThreadRightData: SelectionData): number {
+      if (cpuByThreadLeftData.process === ' ' || cpuByThreadRightData.process === ' ') {
         return 0;
       }
       if (type === 'number') {
-        return sort === 2
-          ? // @ts-ignore
-            parseFloat(cpuByThreadRightData[property]) - parseFloat(cpuByThreadLeftData[property])
-          : // @ts-ignore
-            parseFloat(cpuByThreadLeftData[property]) - parseFloat(cpuByThreadRightData[property]);
+        return sort === 2 ? // @ts-ignore
+          parseFloat(cpuByThreadRightData[property]) - parseFloat(cpuByThreadLeftData[property]) : // @ts-ignore
+          parseFloat(cpuByThreadLeftData[property]) - parseFloat(cpuByThreadRightData[property]);
       } else {
         // @ts-ignore
         if (cpuByThreadRightData[property] > cpuByThreadLeftData[property]) {
           return sort === 2 ? 1 : -1;
         } else {
           // @ts-ignore
-          if (cpuByThreadRightData[property] == cpuByThreadLeftData[property]) {
+          if (cpuByThreadRightData[property] === cpuByThreadLeftData[property]) {
             return 0;
           } else {
             return sort === 2 ? -1 : 1;
@@ -234,7 +228,7 @@ export class TabPaneCpuByThread extends BaseElement {
       }
     };
   }
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     if ((detail.key as string).includes('cpu')) {
       if ((detail.key as string).includes('Ratio')) {
         this.cpuByThreadSource.sort(this.compare(detail.key, detail.sort, 'string'));
@@ -244,7 +238,7 @@ export class TabPaneCpuByThread extends BaseElement {
     } else {
       if (
         detail.key === 'pid' ||
-        detail.key == 'tid' ||
+        detail.key === 'tid' ||
         detail.key === 'wallDuration' ||
         detail.key === 'avgDuration' ||
         detail.key === 'occurrences'

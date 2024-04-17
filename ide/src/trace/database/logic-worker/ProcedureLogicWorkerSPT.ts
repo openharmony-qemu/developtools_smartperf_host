@@ -19,7 +19,7 @@ export class ProcedureLogicWorkerSPT extends LogicHandler {
   threadSlice: Array<ThreadSlice> = [];
   currentEventId: string = '';
 
-  clearAll() {
+  clearAll(): void {
     this.threadSlice.length = 0;
   }
 
@@ -57,6 +57,7 @@ export class ProcedureLogicWorkerSPT extends LogicHandler {
       this.getThreadState();
     }
   }
+
   private sptGetPTS(params: any): void {
     self.postMessage({
       id: this.currentEventId,
@@ -88,7 +89,7 @@ export class ProcedureLogicWorkerSPT extends LogicHandler {
       results: result,
     });
   }
-  queryData(queryName: string, sql: string, args: any) {
+  queryData(queryName: string, sql: string, args: unknown): void {
     self.postMessage({
       id: this.currentEventId,
       type: queryName,
@@ -98,7 +99,7 @@ export class ProcedureLogicWorkerSPT extends LogicHandler {
     });
   }
 
-  getThreadState() {
+  getThreadState(): void {
     this.queryData(
       'spt-init',
       `
@@ -118,7 +119,7 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
     );
   }
 
-  private getPTSData(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>) {
+  private getPTSData(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>): unknown[] {
     let ptsFilter = this.threadSlice.filter(
       (it) =>
         Math.max(ptsLeftNs, it.startTs!) < Math.min(ptsRightNs, it.startTs! + it.dur!) &&
@@ -162,7 +163,7 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
     });
     return Object.values(group);
   }
-  private setStateData(slice: ThreadSlice, title: string): any {
+  private setStateData(slice: ThreadSlice, title: string): unknown {
     return {
       title: title,
       count: 1,
@@ -175,7 +176,7 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
       avgDuration: `${slice.dur}`,
     };
   }
-  private setProcessData(slice: ThreadSlice, item: any): any {
+  private setProcessData(slice: ThreadSlice, item: any): unknown {
     return {
       title: `P-${slice.pid}`,
       count: 1,
@@ -199,7 +200,7 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
       ],
     };
   }
-  private setThreadData(slice: ThreadSlice, item: any): any {
+  private setThreadData(slice: ThreadSlice, item: unknown): unknown {
     return {
       title: `T-${slice.tid}`,
       count: 1,
@@ -212,7 +213,7 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
       children: [item],
     };
   }
-  private getSPTData(sptLeftNs: number, sptRightNs: number, cpus: Array<number>): any {
+  private getSPTData(sptLeftNs: number, sptRightNs: number, cpus: Array<number>): unknown {
     let sptFilter = this.threadSlice.filter(
       (it) =>
         Math.max(sptLeftNs, it.startTs!) < Math.min(sptRightNs, it.startTs! + it.dur!) &&
@@ -260,7 +261,7 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
     });
     return Object.values(group);
   }
-  private setSPTData(group: any, slice: ThreadSlice, item: any): void {
+  private setSPTData(group: any, slice: ThreadSlice, item: unknown): void {
     let state = group[`${slice.state}`];
     state.count += 1;
     state.wallDuration += slice.dur;

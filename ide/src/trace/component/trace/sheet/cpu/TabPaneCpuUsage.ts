@@ -18,7 +18,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { CpuUsage, Freq } from '../../../../bean/CpuUsage';
 import { resizeObserver } from '../SheetUtils';
-import {getTabCpuFreq, getTabCpuUsage} from "../../../../database/sql/Cpu.sql";
+import { getTabCpuFreq, getTabCpuUsage } from '../../../../database/sql/Cpu.sql';
 
 @element('tabpane-cpu-usage')
 export class TabPaneCpuUsage extends BaseElement {
@@ -33,12 +33,12 @@ export class TabPaneCpuUsage extends BaseElement {
     }
     this.currentSelectionParam = cpuUsageValue;
     this.range!.textContent =
-      'Selected range: ' + parseFloat(((cpuUsageValue.rightNs - cpuUsageValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+      `Selected range: ${parseFloat(((cpuUsageValue.rightNs - cpuUsageValue.leftNs) / 1000000.0).toFixed(5))} ms`;
     this.cpuUsageTbl!.loading = true;
     Promise.all([
       getTabCpuUsage(cpuUsageValue.cpus, cpuUsageValue.leftNs, cpuUsageValue.rightNs),
       getTabCpuFreq(cpuUsageValue.cpus, cpuUsageValue.leftNs, cpuUsageValue.rightNs),
-    ]).then((result) => {
+    ]).then((result): void => {
       this.cpuUsageTbl!.loading = false;
       let usages = result[0];
       let freqMap = this.groupByCpuToMap(result[1]);
@@ -47,8 +47,8 @@ export class TabPaneCpuUsage extends BaseElement {
       for (let cpu of cpuUsageValue.cpus) {
         let usage = new CpuUsage();
         usage.cpu = cpu;
-        let u = usages.find((e) => e.cpu == cpu);
-        if (u != undefined && u != null) {
+        let u = usages.find((e): boolean => e.cpu === cpu);
+        if (u) {
           usage.usage = u.usage;
         } else {
           usage.usage = 0;
@@ -56,7 +56,7 @@ export class TabPaneCpuUsage extends BaseElement {
         if (usage.usage > 1) {
           usage.usage = 1;
         }
-        usage.usageStr = (usage.usage * 100.0).toFixed(2) + '%';
+        usage.usageStr = `${(usage.usage * 100.0).toFixed(2)}%`;
         this.handleUsage(freqMap, usage, cpuUsageValue, range);
         data.push(usage);
       }
@@ -72,7 +72,7 @@ export class TabPaneCpuUsage extends BaseElement {
       let list = [];
       for (let i = 0; i < freqList!.length; i++) {
         let freq = freqList![i];
-        if (i == freqList!.length - 1) {
+        if (i === freqList!.length - 1) {
           freq.dur = cpuUsageValue.rightNs - freq.startNs;
         } else {
           freq.dur = freqList![i + 1].startNs - freq.startNs;
@@ -95,13 +95,13 @@ export class TabPaneCpuUsage extends BaseElement {
   initElements(): void {
     this.cpuUsageTbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-usage');
     this.range = this.shadowRoot?.querySelector('#time-range');
-    this.cpuUsageTbl?.addEventListener('column-click', (event) => {
+    this.cpuUsageTbl?.addEventListener('column-click', (event): void => {
       // @ts-ignore
       let orderType = event.detail;
-      if (orderType.sort == 1) {
+      if (orderType.sort === 1) {
         //倒序   注意  sort会改变原数组，需要传入table上的数组 不能传入缓存排序数组
         this.sortTable(this.cpuUsageTbl!.recycleDataSource, orderType.key, false);
-      } else if (orderType.sort == 2) {
+      } else if (orderType.sort === 2) {
         //正序
         this.sortTable(this.cpuUsageTbl!.recycleDataSource, orderType.key, true);
       } else {
@@ -111,13 +111,13 @@ export class TabPaneCpuUsage extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.cpuUsageTbl!);
   }
 
-  sortTable(arr: any[], key: string, sort: boolean) {
-    this.cpuUsageTbl!.recycleDataSource = arr.sort((item1, item2) => {
+  sortTable(arr: any[], key: string, sort: boolean): void {
+    this.cpuUsageTbl!.recycleDataSource = arr.sort((item1, item2): number => {
       let cpuUsageLeftData = Number(item1[key].toString().replace('%', ''));
       let cpuUsageRightData = Number(item2[key].toString().replace('%', ''));
       if (cpuUsageLeftData > cpuUsageRightData) {
@@ -145,19 +145,19 @@ export class TabPaneCpuUsage extends BaseElement {
     return array;
   }
 
-  getFreqTop3(usage: CpuUsage, top1: Array<number>, top2: Array<number>, top3: Array<number>, range: number) {
+  getFreqTop3(usage: CpuUsage, top1: Array<number>, top2: Array<number>, top3: Array<number>, range: number): void {
     // @ts-ignore
-    usage.top1 = top1 == undefined ? '-' : top1[0];
-    usage.top1Percent = top1 == undefined ? 0 : (top1[1] * 1.0) / range;
-    usage.top1PercentStr = top1 == undefined ? '-' : (usage.top1Percent * 100).toFixed(2) + '%';
+    usage.top1 = top1 === undefined ? '-' : top1[0];
+    usage.top1Percent = top1 === undefined ? 0 : (top1[1] * 1.0) / range;
+    usage.top1PercentStr = top1 === undefined ? '-' : `${(usage.top1Percent * 100).toFixed(2)}%`;
     // @ts-ignore
-    usage.top2 = top2 == undefined ? '-' : top2[0];
-    usage.top2Percent = top2 == undefined ? 0 : (top2[1] * 1.0) / range;
-    usage.top2PercentStr = top2 == undefined ? '-' : (usage.top2Percent * 100).toFixed(2) + '%';
+    usage.top2 = top2 === undefined ? '-' : top2[0];
+    usage.top2Percent = top2 === undefined ? 0 : (top2[1] * 1.0) / range;
+    usage.top2PercentStr = top2 === undefined ? '-' : `${(usage.top2Percent * 100).toFixed(2)}%`;
     // @ts-ignore
-    usage.top3 = top3 == undefined ? '-' : top3[0];
-    usage.top3Percent = top3 == undefined ? 0 : (top3[1] * 1.0) / range;
-    usage.top3PercentStr = top3 == undefined ? '-' : (usage.top3Percent * 100).toFixed(2) + '%';
+    usage.top3 = top3 === undefined ? '-' : top3[0];
+    usage.top3Percent = top3 === undefined ? 0 : (top3[1] * 1.0) / range;
+    usage.top3PercentStr = top3 === undefined ? '-' : `${(usage.top3Percent * 100).toFixed(2)}%`;
   }
 
   groupByCpuToMap(arr: Array<Freq>): Map<number, Array<Freq>> {

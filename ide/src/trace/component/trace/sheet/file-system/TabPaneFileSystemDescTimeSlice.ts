@@ -35,19 +35,20 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
   private currentSelection: SelectionParam | undefined | null;
 
   set data(fsDescTimeSliceSelection: SelectionParam | null | undefined) {
-    if (fsDescTimeSliceSelection == this.currentSelection) {
+    if (fsDescTimeSliceSelection === this.currentSelection) {
       return;
     }
     this.currentSelection = fsDescTimeSliceSelection;
     if (this.fsDescTimeSliceTbl) {
       // @ts-ignore
       this.fsDescTimeSliceTbl.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 20 - 31 + 'px';
+        `${this.parentElement!.clientHeight - 20 - 31}px`;
     }
     if (this.fsDescTimeSliceTblData) {
       // @ts-ignore
-      this.fsDescTimeSliceTblData.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 20 - 31  }px`;
+      this.fsDescTimeSliceTblData.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 20 - 31
+      }px`;
     }
     this.fsDescTimeSliceTbl!.recycleDataSource = [];
     this.fsDescTimeSliceTblData!.recycleDataSource = [];
@@ -67,13 +68,13 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
           tab: 'time-slice',
         },
         undefined,
-        (res: any) => {
+        (res: any): void => {
           this.fsDescTimeSliceSource = this.fsDescTimeSliceSource.concat(res.data);
           res.data = null;
           if (!res.isSending) {
             this.fsDescTimeSliceTbl!.recycleDataSource = this.fsDescTimeSliceSource;
             this.fsDescTimeSliceLoadingList.splice(0, 1);
-            if (this.fsDescTimeSliceLoadingList.length == 0) {
+            if (this.fsDescTimeSliceLoadingList.length === 0) {
               this.fsDescTimeSliceProgressEL!.loading = false;
               this.fsDescTimeSliceLoadingPage.style.visibility = 'hidden';
             }
@@ -88,7 +89,7 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
     this.fsDescTimeSliceProgressEL = this.shadowRoot?.querySelector('.fs-slice-progress') as LitProgressBar;
     this.fsDescTimeSliceTbl = this.shadowRoot?.querySelector<LitTable>('#tbl-filesystem-desc-time-slice');
     this.fsDescTimeSliceTblData = this.shadowRoot?.querySelector<LitTable>('#tbr-filesystem-desc-time-slice');
-    this.fsDescTimeSliceTbl!.addEventListener('row-click', (fsTimeSliceRowClickEvent) => {
+    this.fsDescTimeSliceTbl!.addEventListener('row-click', (fsTimeSliceRowClickEvent): void => {
       // @ts-ignore
       let data = fsTimeSliceRowClickEvent.detail.data as FileSysEvent;
       (data as any).isSelected = true;
@@ -102,12 +103,12 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
         'fileSystem-queryStack',
         { callchainId: data.callchainId },
         undefined,
-        (res: any) => {
+        (res: any): void => {
           this.fsDescTimeSliceTblData!.recycleDataSource = res;
         }
       );
     });
-    this.fsDescTimeSliceTbl!.addEventListener('column-click', (evt) => {
+    this.fsDescTimeSliceTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.fsDescTimeSliceSortKey = evt.detail.key;
       // @ts-ignore
@@ -117,55 +118,57 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
+    new ResizeObserver((): void => {
+      if (this.parentElement?.clientHeight !== 0) {
         if (this.fsDescTimeSliceTbl) {
           // @ts-ignore
-          this.fsDescTimeSliceTbl.shadowRoot.querySelector('.table').style.height =
-            `${this.parentElement!.clientHeight - 10 - 31  }px`;
+          this.fsDescTimeSliceTbl.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 31
+          }px`;
           this.fsDescTimeSliceTbl.reMeauseHeight();
         }
-       if (this.fsDescTimeSliceTblData) {
-         // @ts-ignore
-         this.fsDescTimeSliceTblData.shadowRoot.querySelector('.table').style.height =
-           `${this.parentElement!.clientHeight - 10 - 31  }px`;
-         this.fsDescTimeSliceTblData.reMeauseHeight();
-         this.fsDescTimeSliceLoadingPage.style.height = `${this.parentElement!.clientHeight - 24  }px`;
-       }
+        if (this.fsDescTimeSliceTblData) {
+          // @ts-ignore
+          this.fsDescTimeSliceTblData.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 31
+          }px`;
+          this.fsDescTimeSliceTblData.reMeauseHeight();
+          this.fsDescTimeSliceLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
+        }
       }
     }).observe(this.parentElement!);
   }
 
-  sortFsDescTimeSliceTable(key: string, type: number) {
-    if (type == 0) {
+  sortFsDescTimeSliceTable(key: string, type: number): void {
+    if (type === 0) {
       this.fsDescTimeSliceTbl!.recycleDataSource = this.fsDescTimeSliceSource;
     } else {
       let arr = Array.from(this.fsDescTimeSliceSource);
       arr.sort((fsTimeSliceA, fsTimeSliceB): number => {
-        if (key == 'startTsStr') {
-          if (type == 1) {
+        if (key === 'startTsStr') {
+          if (type === 1) {
             return fsTimeSliceA.startTs - fsTimeSliceB.startTs;
           } else {
             return fsTimeSliceB.startTs - fsTimeSliceA.startTs;
           }
-        } else if (key == 'durStr') {
-          if (type == 1) {
+        } else if (key === 'durStr') {
+          if (type === 1) {
             return fsTimeSliceA.dur - fsTimeSliceB.dur;
           } else {
             return fsTimeSliceB.dur - fsTimeSliceA.dur;
           }
-        } else if (key == 'process') {
+        } else if (key === 'process') {
           if (fsTimeSliceA.process > fsTimeSliceB.process) {
             return type === 2 ? 1 : -1;
-          } else if (fsTimeSliceA.process == fsTimeSliceB.process) {
+          } else if (fsTimeSliceA.process === fsTimeSliceB.process) {
             return 0;
           } else {
             return type === 2 ? -1 : 1;
           }
-        } else if (key == 'fd') {
-          if (type == 1) {
+        } else if (key === 'fd') {
+          if (type === 1) {
             return fsTimeSliceA.fd - fsTimeSliceB.fd;
           } else {
             return fsTimeSliceB.fd - fsTimeSliceA.fd;

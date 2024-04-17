@@ -340,12 +340,12 @@ export class Serialize {
     return -1;
   }
 
-  static readTagWireType(tagKey: number) {
+  static readTagWireType(tagKey: number): number {
     let wireNewType: WireType = tagKey & 0b0111;
     return tagKey >> 3;
   }
 
-  static getTag(wireType: WireType, dataView: DataView) {
+  static getTag(wireType: WireType, dataView: DataView): number {
     let tagKey = this.readVarIntU32(dataView);
     return this.readTagWireType(tagKey);
   }

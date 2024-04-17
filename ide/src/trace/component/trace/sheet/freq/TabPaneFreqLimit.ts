@@ -42,7 +42,7 @@ export class TabPaneFreqLimit extends BaseElement {
     this.freqLimitTbl = this.shadowRoot?.querySelector<LitTable>('#tb-freq-limit');
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.freqLimitTbl!);
   }

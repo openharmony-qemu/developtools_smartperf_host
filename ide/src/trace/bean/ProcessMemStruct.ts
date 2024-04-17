@@ -18,7 +18,6 @@ import { ColorUtils } from '../component/trace/base/ColorUtils';
 
 export class ProcessMemStruct extends BaseStruct {
   static hoverProcessMemStruct: ProcessMemStruct | undefined;
-  // trackId: number | undefined;
   processName: string | undefined;
   pid: number | undefined;
   upid: number | undefined;

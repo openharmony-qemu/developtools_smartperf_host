@@ -21,7 +21,7 @@ export class LitButton extends BaseElement {
   private button: HTMLButtonElement | null | undefined;
   private litIcon: LitButton | null | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return [
       'text',
       'back',
@@ -39,7 +39,7 @@ export class LitButton extends BaseElement {
     ];
   }
 
-  get text() {
+  get text(): string {
     return this.getAttribute('text') || '';
   }
 
@@ -47,7 +47,7 @@ export class LitButton extends BaseElement {
     this.setAttribute('text', text);
   }
 
-  get back() {
+  get back(): string {
     return this.getAttribute('back') || '';
   }
 
@@ -56,7 +56,7 @@ export class LitButton extends BaseElement {
     this.setAttribute('back', backColor);
   }
 
-  get icon() {
+  get icon(): string {
     return this.getAttribute('icon') || '';
   }
 
@@ -68,7 +68,7 @@ export class LitButton extends BaseElement {
     }
   }
 
-  get height() {
+  get height(): string {
     return this.getAttribute('height') || '';
   }
 
@@ -76,7 +76,7 @@ export class LitButton extends BaseElement {
     this.setAttribute('height', height);
   }
 
-  get width() {
+  get width(): string {
     return this.getAttribute('width') || '';
   }
 
@@ -183,19 +183,19 @@ export class LitButton extends BaseElement {
               opacity: 0.1;
             }
         </style>
-    `
+    `;
   }
 
   initElements(): void {
     this.slotHtml = this.shadowRoot?.querySelector('#sl') as HTMLElement;
     this.button = this.shadowRoot?.querySelector('#custom-button');
     this.litIcon = this.shadowRoot?.querySelector('#button-icon') as LitButton;
-    if (this.litIcon.getAttribute('name') == '') {
+    if (this.litIcon.getAttribute('name') === '') {
       this.litIcon!.style.display = 'none';
     }
   }
 
-  attributeChangedCallback(name: string, oldValue: string, value: string) {
+  attributeChangedCallback(name: string, oldValue: string, value: string): void {
     switch (name) {
       case 'text':
         this.slotHtml!.innerText = value;

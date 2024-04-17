@@ -19,7 +19,7 @@ declare interface HTMLTemplateElement {
   render(data: any): any;
 }
 
-(HTMLTemplateElement as any).prototype.render = function (data: any) {
+(HTMLTemplateElement as any).prototype.render = function (data: any): HTMLElement {
   if (!this.$fragment) {
     const rule = this.getAttribute('rule') || 'v-';
     this.$fragment = this.cloneNode(true);
@@ -76,7 +76,7 @@ declare interface HTMLTemplateElement {
   return this.fragment;
 };
 
-function parseFor(strFor: String) {
+function parseFor(strFor: String): { isArray: boolean, items: string | String, params: string[] } {
   // Whether it is an object
   const isObject = strFor.includes(' of ');
   const reg = /\s(?:in|of)\s/g;
@@ -87,7 +87,7 @@ function parseFor(strFor: String) {
 }
 
 // String to template string
-(String as any).prototype.interpolate = function (params: any) {
+(String as any).prototype.interpolate = function (params: any): Function {
   const names = Object.keys(params);
   // @ts-ignore
   const vals = Object.values(params);
@@ -96,7 +96,7 @@ function parseFor(strFor: String) {
 };
 
 // HTML Character inversion meaning   &lt;  =>  <
-function escape2Html(str: string) {
+function escape2Html(str: string): string {
   let arrEntities: any = { lt: '<', gt: '>', nbsp: ' ', amp: '&', quot: '"' };
   return str.replace(/&(lt|gt|nbsp|amp|quot);/gi, function (all, t) {
     return arrEntities[t];

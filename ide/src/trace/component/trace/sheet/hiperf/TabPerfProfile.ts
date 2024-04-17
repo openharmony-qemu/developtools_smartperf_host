@@ -273,8 +273,7 @@ export class TabpanePerfProfile extends BaseElement {
     this.getChildTree(chainMerageData.children as Array<PerfCallChainMerageData>, maxId, childrenMerageData);
     let perfProfileParentsList = parentsMerageData.reverse().concat(childrenMerageData.reverse());
     for (let data of perfProfileParentsList) {
-      data.type =
-        data.libName.endsWith('.so.1') || data.libName.endsWith('.dll') || data.libName.endsWith('.so') ? 0 : 1;
+      data.type = data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
     }
     let len = perfProfileParentsList.length;
     this.perfProfilerRightSource = perfProfileParentsList;

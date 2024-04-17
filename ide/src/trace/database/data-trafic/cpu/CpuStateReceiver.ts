@@ -50,7 +50,8 @@ export const chartCpuStateDataSqlMem = (args: any): string => {
 
 export function cpuStateReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: any[], list: any[];
+    let res: any[];
+    let list: any[];
     if (!cpuStateList.has(data.params.filterId)) {
       list = proc(chartCpuStateDataSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {

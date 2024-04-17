@@ -66,7 +66,13 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   });
   postMessage(data, transfer, processDeliverInputEvent, res.length);
 }
-function postMessage(data: any, transfer: boolean, processDeliverInputEvent: ProcessDeliverInputEvent, len: number) {
+
+function postMessage(
+  data: any,
+  transfer: boolean,
+  processDeliverInputEvent: ProcessDeliverInputEvent,
+  len: number
+): void {
   (self as unknown as Worker).postMessage(
     {
       transfer: transfer,

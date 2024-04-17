@@ -14,24 +14,30 @@
  */
 
 importScripts('trace_converter_builtin.js');
-self.onerror = function (error: any) {};
+self.onerror = function (error: any): void {};
 
 let convertModule: any = null;
 
-function initConvertWASM() {
+const CONTENT_TYPE_CMDLINES = 2;
+const CONTENT_TYPE_TGIDS = 3;
+const CONTENT_TYPE_HEADER_PAGE = 30;
+const CONTENT_TYPE_PRINTK_FORMATS = 31;
+const CONTENT_TYPE_KALLSYMS = 32;
+
+function initConvertWASM(): Promise<string> {
   return new Promise((resolve, reject) => {
     // @ts-ignore
     let wasm = trace_converter_builtin_wasm;
     convertModule = wasm({
-      locateFile: (s: any) => {
+      locateFile: (s: any): any => {
         return s;
       },
-      print: (line: any) => {},
-      printErr: (line: any) => {},
-      onAbort: () => {
+      print: (line: any): void => {},
+      printErr: (line: any): void => {},
+      onAbort: (): void => {
         reject('on abort');
       },
-      onRuntimeInitialized: () => {
+      onRuntimeInitialized: (): void => {
         resolve('ok');
       },
     });
@@ -44,7 +50,7 @@ function isRawTrace(uint8Array: Uint8Array): boolean {
 }
 
 const ARRAY_BUF_SIZE = 2 * 1024 * 1024;
-self.onmessage = async (e: MessageEvent) => {
+self.onmessage = async (e: MessageEvent): Promise<void> => {
   if (e.data.action === 'getConvertData') {
     await initConvertWASM();
     let fileData = e.data.buffer;
@@ -57,7 +63,15 @@ self.onmessage = async (e: MessageEvent) => {
     let traceAllData = new Uint8Array(e.data.buffer);
     let isRawTraceConvert = isRawTrace(e.data);
     if (isRawTraceConvert) {
-      [totalSize, currentPosition, traceAllData] = handleRowTrace(e, fileData, dataHeader, traceInsPtr, currentPosition, traceAllData, totalSize);
+      [totalSize, currentPosition, traceAllData] = handleRowTrace(
+        e,
+        fileData,
+        dataHeader,
+        traceInsPtr,
+        currentPosition,
+        traceAllData,
+        totalSize
+      );
     } else {
       handleHTrace(fileData, dataHeader, traceInsPtr);
     }
@@ -65,7 +79,7 @@ self.onmessage = async (e: MessageEvent) => {
     let arrayBufferPtr = convertModule._malloc(ARRAY_BUF_SIZE);
     convertModule._free(dataHeader);
     let bodyDataStr: string[] = [];
-    let callback = (heapPtr: number, size: number) => {
+    let callback = (heapPtr: number, size: number): void => {
       let out = convertModule.HEAPU8.slice(heapPtr, heapPtr + size);
       let dec = new TextDecoder();
       let str = dec.decode(out);
@@ -73,10 +87,19 @@ self.onmessage = async (e: MessageEvent) => {
     };
     let bodyFn = convertModule.addFunction(callback, 'vii');
     convertModule._SetCallback(bodyFn, traceInsPtr);
-    convertData(currentPosition, traceAllData, arrayBufferPtr, dataPtr, traceInsPtr, isRawTraceConvert, stepSize, totalSize);
+    convertData(
+      currentPosition,
+      traceAllData,
+      arrayBufferPtr,
+      dataPtr,
+      traceInsPtr,
+      isRawTraceConvert,
+      stepSize,
+      totalSize
+    );
     convertModule._GetRemainingData(traceInsPtr);
     let headerData: string[] = [];
-    let headerCallback = (heapPtr: number, size: number) => {
+    let headerCallback = (heapPtr: number, size: number): void => {
       let out = convertModule.HEAPU8.slice(heapPtr, heapPtr + size);
       let dec = new TextDecoder();
       let str = dec.decode(out);
@@ -93,7 +116,7 @@ self.onmessage = async (e: MessageEvent) => {
   }
 };
 
-function handleHTrace(fileData: Array<any>, dataHeader: any, traceInsPtr: any) {
+function handleHTrace(fileData: Array<any>, dataHeader: any, traceInsPtr: any): void {
   let uint8Array = new Uint8Array(fileData.slice(0, 1024));
   convertModule.HEAPU8.set(uint8Array, dataHeader);
   convertModule._SendFileHeader(dataHeader, 1024, traceInsPtr);
@@ -114,8 +137,8 @@ function handleRowTrace(
   currentPosition = 12;
   let allRowTraceData = new Uint8Array(e.data.buffer);
   let commonDataOffsetList: Array<{
-    startOffset: number
-    endOffset: number
+    startOffset: number;
+    endOffset: number;
   }> = [];
   let commonTotalLength = setCommonDataOffsetList(e, allRowTraceData, commonDataOffsetList);
   let commonTotalOffset = 0;
@@ -130,6 +153,16 @@ function handleRowTrace(
   traceAllData.set(allRowTraceData.slice(currentPosition), commonTotalData.length + currentPosition);
   totalSize += commonTotalData.length;
   return [totalSize, currentPosition, traceAllData];
+}
+
+function isCommonData(dataType: number): boolean {
+  return (
+    dataType === CONTENT_TYPE_CMDLINES ||
+    dataType === CONTENT_TYPE_TGIDS ||
+    dataType === CONTENT_TYPE_HEADER_PAGE ||
+    dataType === CONTENT_TYPE_PRINTK_FORMATS ||
+    dataType === CONTENT_TYPE_KALLSYMS
+  );
 }
 
 function setCommonDataOffsetList(
@@ -153,7 +186,7 @@ function setCommonDataOffsetList(
     let currentVLength = Array.from(new Uint32Array(currentLData));
     commonOffset += currentVLength[0];
     commonDataOffset.endOffset = commonOffset;
-    if (dataType[0] === 2 || dataType[0] === 3) {
+    if (isCommonData(dataType[0])) {
       commonTotalLength += commonDataOffset.endOffset - commonDataOffset.startOffset;
       commonDataOffsetList.push(commonDataOffset);
     }
@@ -207,7 +240,7 @@ function postMessage(e: MessageEvent, allDataStr: Array<string>): void {
       id: e.data.id,
       action: 'convert',
       status: true,
-      results: new Blob(allDataStr, {type: 'text/plain'}),
+      results: new Blob(allDataStr, { type: 'text/plain' }),
       buffer: e.data.buffer,
     },
     // @ts-ignore

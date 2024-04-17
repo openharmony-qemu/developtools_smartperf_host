@@ -88,7 +88,7 @@ function setSdkSliceFilter(
   endNS: number,
   totalNS: number,
   frame: any
-) {
+): void {
   for (let index = 0; index < sdkList.length; index++) {
     let item = sdkList[index];
     if (item.start_ts >= startNS && item.end_ts === 0) {
@@ -121,7 +121,7 @@ export class SdkSliceStruct extends BaseStruct {
   value: number | undefined;
   slice_message: string | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, data: SdkSliceStruct) {
+  static draw(ctx: CanvasRenderingContext2D, data: SdkSliceStruct): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = 4;
@@ -155,7 +155,8 @@ export class SdkSliceStruct extends BaseStruct {
     totalNS: number,
     frame: any
   ): void {
-    let sdkSliceStartPointX: number, sdkSliceEndPointX: number;
+    let sdkSliceStartPointX: number;
+    let sdkSliceEndPointX: number;
 
     if ((SdkSliceNode.start_ts || 0) < startNS) {
       sdkSliceStartPointX = 0;

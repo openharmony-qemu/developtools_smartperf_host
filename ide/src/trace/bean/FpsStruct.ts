@@ -66,7 +66,8 @@ export class FpsStruct extends BaseStruct {
     totalNS: number,
     frame: Rect
   ): void {
-    let fpsBeanStructX1: number, fpsBeanStructX2: number;
+    let fpsBeanStructX1: number;
+    let fpsBeanStructX2: number;
     if ((fpsStruct.startNS || 0) < startNS) {
       fpsBeanStructX1 = 0;
     } else {

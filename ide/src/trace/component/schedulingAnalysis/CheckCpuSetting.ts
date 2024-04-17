@@ -41,7 +41,7 @@ export class CheckCpuSetting extends BaseElement {
   initElements(): void {
     this.table = this.shadowRoot!.querySelector<HTMLDivElement>('#tb_cpu_setting');
     this.setUpload = this.shadowRoot!.querySelector<HTMLDivElement>('#set_upload');
-    this.setUpload!.addEventListener('click', (e) => {
+    this.setUpload!.addEventListener('click', (): void => {
       SpStatisticsHttpUtil.addOrdinaryVisitAction({
         event: 'Analysis Upload',
         action: 'scheduling_analysis',
@@ -55,7 +55,7 @@ export class CheckCpuSetting extends BaseElement {
     this.listener = listener;
   }
 
-  init() {
+  init(): void {
     this.initDefaultSetting();
     let data: any[] = [];
     this.table!.innerHTML = '';
@@ -75,7 +75,7 @@ export class CheckCpuSetting extends BaseElement {
     }
   }
 
-  initDefaultSetting() {
+  initDefaultSetting(): void {
     if (!CheckCpuSetting.init_setting) {
       CheckCpuSetting.mid_cores = [];
       CheckCpuSetting.big_cores = [];
@@ -86,44 +86,44 @@ export class CheckCpuSetting extends BaseElement {
     }
   }
 
-  createTableLine(cpuSetting: CpuSetting) {
+  createTableLine(cpuSetting: CpuSetting): void {
     let div = document.createElement('div');
     div.className = 'setting_line';
-    div.textContent = cpuSetting.cpu + '';
+    div.textContent = `${cpuSetting.cpu}`;
     let bigCheckBox: LitCheckBox = new LitCheckBox();
     bigCheckBox.checked = cpuSetting.big;
     let midCheckBox: LitCheckBox = new LitCheckBox();
     midCheckBox.checked = cpuSetting.middle;
     let smallCheckBox: LitCheckBox = new LitCheckBox();
     smallCheckBox.checked = cpuSetting.small;
-    bigCheckBox.addEventListener('change', (e) => {
+    bigCheckBox.addEventListener('change', (): void => {
       midCheckBox.checked = false;
       smallCheckBox.checked = false;
       cpuSetting.big = true;
       CheckCpuSetting.big_cores.push(cpuSetting.cpu);
-      CheckCpuSetting.mid_cores = CheckCpuSetting.mid_cores.filter((it) => it !== cpuSetting.cpu);
-      CheckCpuSetting.small_cores = CheckCpuSetting.small_cores.filter((it) => it !== cpuSetting.cpu);
+      CheckCpuSetting.mid_cores = CheckCpuSetting.mid_cores.filter((it): boolean => it !== cpuSetting.cpu);
+      CheckCpuSetting.small_cores = CheckCpuSetting.small_cores.filter((it): boolean => it !== cpuSetting.cpu);
     });
-    midCheckBox.addEventListener('change', (e) => {
+    midCheckBox.addEventListener('change', (): void => {
       bigCheckBox.checked = false;
       smallCheckBox.checked = false;
       cpuSetting.middle = true;
       CheckCpuSetting.mid_cores.push(cpuSetting.cpu);
-      CheckCpuSetting.big_cores = CheckCpuSetting.big_cores.filter((it) => it !== cpuSetting.cpu);
-      CheckCpuSetting.small_cores = CheckCpuSetting.small_cores.filter((it) => it !== cpuSetting.cpu);
+      CheckCpuSetting.big_cores = CheckCpuSetting.big_cores.filter((it): boolean => it !== cpuSetting.cpu);
+      CheckCpuSetting.small_cores = CheckCpuSetting.small_cores.filter((it): boolean => it !== cpuSetting.cpu);
     });
-    smallCheckBox.addEventListener('change', (e) => {
+    smallCheckBox.addEventListener('change', (): void => {
       midCheckBox.checked = false;
       bigCheckBox.checked = false;
       cpuSetting.small = true;
       CheckCpuSetting.small_cores.push(cpuSetting.cpu);
-      CheckCpuSetting.mid_cores = CheckCpuSetting.mid_cores.filter((it) => it !== cpuSetting.cpu);
-      CheckCpuSetting.big_cores = CheckCpuSetting.big_cores.filter((it) => it !== cpuSetting.cpu);
+      CheckCpuSetting.mid_cores = CheckCpuSetting.mid_cores.filter((it): boolean => it !== cpuSetting.cpu);
+      CheckCpuSetting.big_cores = CheckCpuSetting.big_cores.filter((it): boolean => it !== cpuSetting.cpu);
     });
     this.table?.append(...[div, bigCheckBox, midCheckBox, smallCheckBox]);
   }
 
-  createHeaderDiv() {
+  createHeaderDiv(): void {
     let column1 = document.createElement('div');
     column1.className = 'setting_line';
     column1.style.fontWeight = 'bold';
@@ -143,7 +143,7 @@ export class CheckCpuSetting extends BaseElement {
     this.table?.append(...[column1, column2, column3, column4]);
   }
 
-  static resetCpuSettings() {
+  static resetCpuSettings(): void {
     CheckCpuSetting.init_setting = false;
     CheckCpuSetting.big_cores = [];
     CheckCpuSetting.small_cores = [];

@@ -31,7 +31,7 @@ export class SpThirdParty extends BaseElement {
     this.inputEl = this.shadowRoot?.querySelector('#file');
     this.uploadEl?.addEventListener('click', () => {
       this.inputEl?.click();
-    })
+    });
     this.inputEl!.addEventListener('change', () => {
       let files = this.inputEl!.files;
       if (files && files.length > 0) {
@@ -40,11 +40,11 @@ export class SpThirdParty extends BaseElement {
         let child = children[0].children as Array<MenuItem>;
         let fileHandler = child[0].fileHandler!;
         fileHandler({
-          detail: files[0]
-        })
+          detail: files[0],
+        });
       }
       if (this.inputEl) this.inputEl.value = '';
-    })
+    });
   }
 
   initHtml(): string {
@@ -93,7 +93,4 @@ export class SpThirdParty extends BaseElement {
         </style>
     `;
   }
-
 }
-
-

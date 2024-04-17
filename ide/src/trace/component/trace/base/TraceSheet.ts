@@ -86,6 +86,7 @@ import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerBpftrac
 import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
+import { SpSystemTrace } from '../../SpSystemTrace';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -117,7 +118,7 @@ export class TraceSheet extends BaseElement {
 
   buildTabs(litTabs: LitTabs | undefined | null): void {
     this.fragment = document.createDocumentFragment();
-    Reflect.ownKeys(tabConfig).forEach((key, index) => {
+    Reflect.ownKeys(tabConfig).forEach((key, index): void => {
       let pane = new LitTabpane();
       pane.id = key.toString();
       pane.className = 'tabHeight';
@@ -165,7 +166,7 @@ export class TraceSheet extends BaseElement {
 
   initElements(): void {
     this.litTabs = this.shadowRoot?.querySelector('#tabs');
-    this.litTabs!.addEventListener('contextmenu', (e) => {
+    this.litTabs!.addEventListener('contextmenu', (e): void => {
       e.preventDefault();
     });
     this.importDiv = this.shadowRoot?.querySelector('#import_div');
@@ -178,11 +179,11 @@ export class TraceSheet extends BaseElement {
       document.dispatchEvent(
         new CustomEvent('sample-popver-change', {
           detail: {
-            select: select[0]
-          }
+            select: select[0],
+          },
         })
-      )
-    }
+      );
+    };
     this.processTree!.onChange = (e: any): void => {
       const select = this.processTree!.getCheckdKeys();
       const selectIPid = Number(select[0]);
@@ -253,7 +254,7 @@ export class TraceSheet extends BaseElement {
     }
   }
 
-  private nativeAnalysisListener(e: MouseEvent):void {
+  private nativeAnalysisListener(e: MouseEvent): void {
     //@ts-ignore
     if (e.detail.button === 2) {
       let pane = this.getPaneByID('box-native-calltree');
@@ -273,7 +274,7 @@ export class TraceSheet extends BaseElement {
 
   private virtualMemoryListener(e: any): void {
     if (e.detail.button === 0) {
-      this.selection!.fileSystemVMData = {path: e.detail.path};
+      this.selection!.fileSystemVMData = { path: e.detail.path };
       let pane = this.getPaneByID('box-vm-events');
       this.litTabs?.activeByKey(pane.key);
       if (e.detail.path) {
@@ -282,9 +283,9 @@ export class TraceSheet extends BaseElement {
     }
   }
 
-  private ioTierListener(e: any):void {
+  private ioTierListener(e: any): void {
     if (e.detail.button === 0) {
-      this.selection!.fileSystemIoData = {path: e.detail.path};
+      this.selection!.fileSystemIoData = { path: e.detail.path };
       let pane = this.getPaneByID('box-io-events');
       this.litTabs?.activeByKey(pane.key);
       if (e.detail.path) {
@@ -325,29 +326,28 @@ export class TraceSheet extends BaseElement {
     this.nav = this.shadowRoot?.querySelector('#tabs')?.shadowRoot?.querySelector('.tab-nav-vessel');
     this.tabs = this.shadowRoot?.querySelector('#tabs');
     this.navRoot = this.shadowRoot?.querySelector('#tabs')?.shadowRoot?.querySelector('.nav-root');
-    this.search = document.querySelector('body > sp-application')
-      ?.shadowRoot?.querySelector('div > div.search-vessel');
+    this.search = document.querySelector('body > sp-application')?.shadowRoot?.querySelector('div > div.search-vessel');
     this.timerShaft = this.parentElement?.querySelector('.timer-shaft');
     this.spacer = this.parentElement?.querySelector('.spacer');
     this.rowsPaneEL = this.parentElement?.querySelector('.rows-pane');
     let tabsOpenUp: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#max-btn');
     let tabsPackUp: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#min-btn');
     let borderTop: number = 1;
-    let initialHeight = { tabs: `calc(30vh + 39px)`, node: '30vh' };
+    let initialHeight = { tabs: 'calc(30vh + 39px)', node: '30vh' };
     this.initNavElements(tabsPackUp!, borderTop, initialHeight);
     this.exportBt = this.shadowRoot?.querySelector<LitIcon>('#export-btn');
     tabsOpenUp!.onclick = (): void => {
-      this.tabs!.style.height = window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop + 'px';
+      this.tabs!.style.height =
+        `${window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop}px`;
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
       litTabpane!.forEach((node: HTMLDivElement): void => {
         node!.style.height =
-          window.innerHeight -
+          `${window.innerHeight -
           this.search!.offsetHeight -
           this.timerShaft!.offsetHeight -
           this.navRoot!.offsetHeight -
-          borderTop +
-          'px';
+          borderTop}px`;
         initialHeight.node = node!.style.height;
       });
       initialHeight.tabs = this.tabs!.style.height;
@@ -356,10 +356,10 @@ export class TraceSheet extends BaseElement {
     tabsPackUp!.onclick = (): void => {
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
-      if (tabsPackUp!.name == 'down') {
+      if (tabsPackUp!.name === 'down') {
         let beforeHeight = this.clientHeight;
-        this.tabs!.style.height = this.navRoot!.offsetHeight + 'px';
-        window.publish(window.SmartEvent.UI.ShowBottomTab, { show: 2 , delta: beforeHeight - this.clientHeight })
+        this.tabs!.style.height = `${this.navRoot!.offsetHeight}px`;
+        window.publish(window.SmartEvent.UI.ShowBottomTab, { show: 2, delta: beforeHeight - this.clientHeight });
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = '0px'));
         tabsPackUp!.name = 'up';
         tabsPackUp!.title = 'Reset Tab';
@@ -379,6 +379,9 @@ export class TraceSheet extends BaseElement {
     let that = this;
     // 节点挂载时给Tab面板绑定鼠标按下事件
     this.nav!.onmousedown = (event): void => {
+      if (SpSystemTrace.isKeyUp === false) {
+        return;
+      }
       (window as any).isSheetMove = true;
       // 获取所有标签页的节点数组
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
@@ -386,7 +389,9 @@ export class TraceSheet extends BaseElement {
       // 获取当前选中面板的key值，后续用来确定当前面板是哪一个。 对于用户来说，直观看到的只有当前面板，其他面板可以在拖动完成后一次性设置好新的高度
       // @ts-ignore
       let litTabNavKey: string = this.nav!.querySelector('.nav-item[data-selected=true]').dataset.key;
-      let currentPane: HTMLDivElement = this.shadowRoot?.querySelector('#tabs > lit-tabpane[key="' + litTabNavKey + '"]')!;
+      let currentPane: HTMLDivElement = this.shadowRoot?.querySelector(
+        `#tabs > lit-tabpane[key="${litTabNavKey}"]`
+      )!;
       // 原函数 绑定鼠标移动事件，动态获取鼠标位置信息
       this.navMouseMove(event, currentPane!, that, tabsPackUp, borderTop);
       document.onmouseup = function (): void {
@@ -408,73 +413,76 @@ export class TraceSheet extends BaseElement {
     };
   }
 
-  private navMouseMove(event: MouseEvent, litTabpane: HTMLDivElement,
-    that: this, tabsPackUp: LitIcon, borderTop: number): void {
-      // 鼠标移动前记录此时的鼠标位置信息，后续根据新值与前次值作比对
-      let preY = event.pageY;
-      // 获取此时tab组件的偏移高度 需要包含水平滚动条的高度等
-      let preHeight = this.tabs!.offsetHeight;
-      // 获取此时整个滚动区域高度
-      let scrollH = that.rowsPaneEL!.scrollHeight;
-      // 获取此时滚动区域上方被隐藏的高度
-      let scrollT = that.rowsPaneEL!.scrollTop;
-      // 获取当前内容区高度加上上下内边距高度，即面板组件高度
-      let ch = that.clientHeight;
-      // 鼠标移动事件
-      document.onmousemove = function (event): void {
-        // 移动前的面板高度 - 移动前后鼠标的坐标差值 = 新的面板高度
-        let newHeight: number = preHeight - (event.pageY - preY);
-        // that指向的是tracesheet节点 spacer为垫片  rowsPaneEl为泳道   tabs为tab页组件  
-        // litTabpane为当前面板 navRoot为面板头部区的父级容器  search为顶部搜索区整个区域
-        // 这四个判断条件中，第一个尚未找到触发条件 后续和润和确认是否会触发
-        if (that.spacer!.offsetHeight > that.rowsPaneEL!.offsetHeight) {
-          that.tabs!.style.height = newHeight + 'px';
-          litTabpane!.style.height = newHeight - that.navRoot!.offsetHeight + 'px';
-          // 设置右上角面板大小化的箭头样式，面板在移动到最底部时，箭头向上，其余情况箭头向下
-          tabsPackUp!.name = 'down';
-        } else if (
-          // 只要没有移动到边界区域都会进入该条件
-          that.navRoot!.offsetHeight <= newHeight &&
-          that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight <=
+  private navMouseMove(
+    event: MouseEvent,
+    litTabpane: HTMLDivElement,
+    that: this,
+    tabsPackUp: LitIcon,
+    borderTop: number
+  ): void {
+    // 鼠标移动前记录此时的鼠标位置信息，后续根据新值与前次值作比对
+    let preY = event.pageY;
+    // 获取此时tab组件的偏移高度 需要包含水平滚动条的高度等
+    let preHeight = this.tabs!.offsetHeight;
+    // 获取此时整个滚动区域高度
+    let scrollH = that.rowsPaneEL!.scrollHeight;
+    // 获取此时滚动区域上方被隐藏的高度
+    let scrollT = that.rowsPaneEL!.scrollTop;
+    // 获取当前内容区高度加上上下内边距高度，即面板组件高度
+    let ch = that.clientHeight;
+    // 鼠标移动事件
+    document.onmousemove = function (event): void {
+      // 移动前的面板高度 - 移动前后鼠标的坐标差值 = 新的面板高度
+      let newHeight: number = preHeight - (event.pageY - preY);
+      // that指向的是tracesheet节点 spacer为垫片  rowsPaneEl为泳道   tabs为tab页组件
+      // litTabpane为当前面板 navRoot为面板头部区的父级容器  search为顶部搜索区整个区域
+      // 这四个判断条件中，第一个尚未找到触发条件 后续和润和确认是否会触发
+      if (that.spacer!.offsetHeight > that.rowsPaneEL!.offsetHeight) {
+        that.tabs!.style.height = `${newHeight}px`;
+        litTabpane!.style.height = `${newHeight - that.navRoot!.offsetHeight}px`;
+        // 设置右上角面板大小化的箭头样式，面板在移动到最底部时，箭头向上，其余情况箭头向下
+        tabsPackUp!.name = 'down';
+      } else if (
+        // 只要没有移动到边界区域都会进入该条件
+        that.navRoot!.offsetHeight <= newHeight &&
+        that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight <=
           window.innerHeight - newHeight
-        ) {
-          that.tabs!.style.height = newHeight + 'px';
-          litTabpane!.style.height = newHeight - that.navRoot!.offsetHeight + 'px';
-          tabsPackUp!.name = 'down';
-        } else if (that.navRoot!.offsetHeight >= newHeight) {
-          // 该条件在面板置底时触发
-          that.tabs!.style.height = that.navRoot!.offsetHeight + 'px';
-          litTabpane!.style.height = '0px';
-          tabsPackUp!.name = 'up';
-        } else if (
-          that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight >=
-          window.innerHeight - newHeight
-        ) {
-          // 该条件在面板高度置顶时触发
-          that.tabs!.style.height =
-            window.innerHeight -
-            that.search!.offsetHeight -
-            that.timerShaft!.offsetHeight -
-            borderTop -
-            that.spacer!.offsetHeight +
-            'px';
-          litTabpane!.style.height =
-            window.innerHeight -
-            that.search!.offsetHeight -
-            that.timerShaft!.offsetHeight -
-            that.navRoot!.offsetHeight -
-            borderTop -
-            that.spacer!.offsetHeight +
-            'px';
-          tabsPackUp!.name = 'down';
-        }
-        that.tabPaneHeight = litTabpane!.style.height;
-        let currentSH = that.rowsPaneEL!.scrollHeight;
-        // 第一个判断条件尚未确定如何触发,currentSH与scrollH始终相等
-        if (currentSH > scrollH && currentSH > that.rowsPaneEL!.scrollTop + that.clientHeight) {
-          that.rowsPaneEL!.scrollTop = scrollT - (ch - that.clientHeight);
-        }
-      };
+      ) {
+        that.tabs!.style.height = `${newHeight}px`;
+        litTabpane!.style.height = `${newHeight - that.navRoot!.offsetHeight}px`;
+        tabsPackUp!.name = 'down';
+      } else if (that.navRoot!.offsetHeight >= newHeight) {
+        // 该条件在面板置底时触发
+        that.tabs!.style.height = `${that.navRoot!.offsetHeight}px`;
+        litTabpane!.style.height = '0px';
+        tabsPackUp!.name = 'up';
+      } else if (
+        that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight >=
+        window.innerHeight - newHeight
+      ) {
+        // 该条件在面板高度置顶时触发
+        that.tabs!.style.height =
+          `${window.innerHeight -
+          that.search!.offsetHeight -
+          that.timerShaft!.offsetHeight -
+          borderTop -
+          that.spacer!.offsetHeight}px`;
+        litTabpane!.style.height =
+          `${window.innerHeight -
+          that.search!.offsetHeight -
+          that.timerShaft!.offsetHeight -
+          that.navRoot!.offsetHeight -
+          borderTop -
+          that.spacer!.offsetHeight}px`;
+        tabsPackUp!.name = 'down';
+      }
+      that.tabPaneHeight = litTabpane!.style.height;
+      let currentSH = that.rowsPaneEL!.scrollHeight;
+      // 第一个判断条件尚未确定如何触发,currentSH与scrollH始终相等
+      if (currentSH > scrollH && currentSH > that.rowsPaneEL!.scrollTop + that.clientHeight) {
+        that.rowsPaneEL!.scrollTop = scrollT - (ch - that.clientHeight);
+      }
+    };
   }
 
   private importClickEvent(): void {
@@ -496,12 +504,13 @@ export class TraceSheet extends BaseElement {
             'upload-so',
             '',
             fileList,
-            (res: string) => {
+            (res: any) => {
               importFileBt!.disabled = false;
-              if (res === 'ok') {
+              if (res.result === 'ok') {
                 window.publish(window.SmartEvent.UI.UploadSOFile, {});
               } else {
-                window.publish(window.SmartEvent.UI.Error, 'parse so file failed!');
+                const failedList = res.failedArray.join(',');
+                window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
               }
             },
             'upload-so'
@@ -610,8 +619,8 @@ export class TraceSheet extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: any) => void | undefined,
-    callback?: ((data: Array<any>, str:string) => void)
-  ) =>
+    callback?: (data: Array<any>, str: string) => void
+  ): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
       data,
       scrollCallback,
@@ -620,12 +629,12 @@ export class TraceSheet extends BaseElement {
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
-  displayClockData = (data: ClockStruct): void =>
+  displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayIrqData = (data: IrqStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setIrqData(data);
-  displayStartupData = (data: AppStartupStruct, scrollCallback: Function): void =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setStartupData(data, scrollCallback);
+  displayStartupData = (data: AppStartupStruct, scrollCallback: Function, rowData: any): void =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setStartupData(data, scrollCallback, rowData);
   displayAllStartupData = (data: AllAppStartupStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setAllStartupData(data, scrollCallback);
   displayStaticInitData = (data: SoStruct, scrollCallback: Function): void =>
@@ -654,13 +663,14 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneGpuClickSelect>('gpu-click-select', 'gpu-click-select-comparison').gpuClickData(dataObject);
   };
 
-  displayFuncData = (names: string[], data: FuncStruct, scrollCallback: Function): void =>
+  displayFuncData = (names: string[], data: FuncStruct, scrollCallback: Function): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, scrollCallback);
   displayCpuData = (
     data: CpuStruct,
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
     scrollCallback?: (data: CpuStruct) => void
-  ): void => this.displayTab<TabPaneCurrentSelection>('current-selection').setCpuData(data, callback, scrollCallback);
+  ): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setCpuData(data, callback, scrollCallback);
   displayJankData = (
     data: JankStruct,
     callback: ((data: Array<any>) => void) | undefined = undefined,
@@ -719,8 +729,8 @@ export class TraceSheet extends BaseElement {
   displayFreqLimitData = (): CpuFreqLimitsStruct | undefined =>
     (this.displayTab<TabPaneCurrentSelection>('box-freq-limit').data = CpuFreqLimitsStruct.selectCpuFreqLimitsStruct);
 
-  displayFrameAnimationData = (data: FrameAnimationStruct): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setFrameAnimationData(data);
+  displayFrameAnimationData = (data: FrameAnimationStruct, scrollCallback: Function): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setFrameAnimationData(data, scrollCallback);
   displayFrameDynamicData = (row: TraceRow<FrameDynamicStruct>, data: FrameDynamicStruct): void =>
     this.displayTab<TabPaneFrameDynamic>('box-frame-dynamic').buildDynamicTable([data], true);
   displayFrameSpacingData = (data: FrameSpacingStruct): void =>
@@ -820,12 +830,12 @@ export class TraceSheet extends BaseElement {
       ).queryGpuMemoryVmTrackerClickDataByDB(data);
     }
   };
-  displayGpuResourceVmTracker = (data: number) => {
+  displayGpuResourceVmTracker = (data: number): void => {
     this.displayTab<TabPaneGpuResourceVmTracker>('box-smaps-gpu-resource').data = data;
   };
 
   displaySystemLogsData = (): void => {
-    let tblHiLogPanel = this.shadowRoot?.querySelector<LitTabpane>("lit-tabpane[id='box-hilogs']");
+    let tblHiLogPanel = this.shadowRoot?.querySelector<LitTabpane>('lit-tabpane[id=\'box-hilogs\']');
     if (tblHiLogPanel) {
       let tblHiLog = tblHiLogPanel.querySelector<TabPaneHiLogs>('tab-hi-log');
       if (tblHiLog) {
@@ -835,17 +845,21 @@ export class TraceSheet extends BaseElement {
   };
   displaySampleData = (data: SampleStruct, reqProperty: any): void => {
     this.displayTab<TabPaneSampleInstruction>('box-sample-instruction').setSampleInstructionData(data, reqProperty);
-    this.optionsDiv!.style.display = "flex";
-    const select = this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
-    this.optionsSettingTree!.treeData = [{key: '0', title: 'instruction', checked: select[0] === '0'}, {key: '1', title: 'cycles', checked: select[0] === '1'}];
-  }
+    this.optionsDiv!.style.display = 'flex';
+    const select =
+      this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
+    this.optionsSettingTree!.treeData = [
+      { key: '0', title: 'instruction', checked: select[0] === '0' },
+      { key: '1', title: 'cycles', checked: select[0] === '1' },
+    ];
+  };
 
   displaySystemStatesData = (): void => {
-    let dataCutPane = this.shadowRoot?.querySelector<TabPaneDataCut>("tabpane-datacut");
+    let dataCutPane = this.shadowRoot?.querySelector<TabPaneDataCut>('tabpane-datacut');
     if (dataCutPane) {
       dataCutPane.initTabSheetEl(this);
     }
-    let tblStatesPanel = this.shadowRoot?.querySelector<TabPaneFreqStatesDataCut>("tabpane-states-datacut");
+    let tblStatesPanel = this.shadowRoot?.querySelector<TabPaneFreqStatesDataCut>('tabpane-states-datacut');
     if (tblStatesPanel) {
       tblStatesPanel.initTabSheetEl(this);
     }
@@ -875,7 +889,7 @@ export class TraceSheet extends BaseElement {
         return false;
       }
     } else {
-      let firstPane = this.shadowRoot!.querySelector<LitTabpane>(`lit-tabpane[hidden='false']`);
+      let firstPane = this.shadowRoot!.querySelector<LitTabpane>('lit-tabpane[hidden=\'false\']');
       if (firstPane) {
         this.litTabs?.activeByKey(firstPane.key);
         this.loadTabPaneData(firstPane.key);
@@ -891,8 +905,12 @@ export class TraceSheet extends BaseElement {
   showOptionsBt(selection: SelectionParam | null | undefined): void {
     if (selection && selection.sampleData.length > 0) {
       this.optionsDiv!.style.display = 'flex';
-      const select = this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
-      this.optionsSettingTree!.treeData = [{key: '0', title: 'instruction', checked: select[0] === '0'}, {key: '1', title: 'cycles', checked: select[0] === '1'}];
+      const select =
+        this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
+      this.optionsSettingTree!.treeData = [
+        { key: '0', title: 'instruction', checked: select[0] === '0' },
+        { key: '1', title: 'cycles', checked: select[0] === '1' },
+      ];
     } else {
       this.optionsDiv!.style.display = 'none';
     }
@@ -1016,12 +1034,12 @@ export class TraceSheet extends BaseElement {
     if (mode === 'hidden') {
       this.selection = undefined;
     }
-    window.publish(window.SmartEvent.UI.ShowBottomTab, { show: show , delta: delta});
+    window.publish(window.SmartEvent.UI.ShowBottomTab, { show: show, delta: delta });
   }
 
   rowClickHandler(e: any): void {
     this.currentPaneID = e.target.parentElement.id;
-    this.shadowRoot!.querySelectorAll<LitTabpane>(`lit-tabpane`).forEach((it) =>
+    this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
       it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
     );
     let pane = this.getPaneByID('box-cpu-child');

@@ -93,7 +93,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   }
   postProcessActualMessage(data, transfer, processActual, res.length);
 }
-function postProcessActualMessage(data: any, transfer: boolean, processActual: ProcessActual, len: number) {
+function postProcessActualMessage(data: any, transfer: boolean, processActual: ProcessActual, len: number): void {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,

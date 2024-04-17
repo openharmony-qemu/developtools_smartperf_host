@@ -12,8 +12,8 @@
 // limitations under the License.
 
 import { TraficEnum } from './utils/QueryEnum';
-import { filterDataByGroup } from "./utils/DataFilter";
-import {clockList} from "./utils/AllMemoryCache";
+import { filterDataByGroup } from './utils/DataFilter';
+import { clockList } from './utils/AllMemoryCache';
 
 export const chartClockDataSql = (args: any): string => {
   if (args.sqlType === 'clockFrequency') {
@@ -77,7 +77,9 @@ export const chartClockDataSqlMem = (args: any): string => {
              order by measure.ts))
             select s.filter_id as filterId,s.ts-r.start_ts as startNs,s.type,s.value,s.dur from state s,trace_range r`;
   } else if (args.sqlType === 'screenState') {
-    return `select m.type, m.ts-r.start_ts as startNs, value, filter_id  as filterId from measure m,trace_range r where filter_id in (select id from process_measure_filter where name = 'ScreenState')  order by startNs;`;
+    return `select m.type, m.ts-r.start_ts as startNs, value, filter_id  as filterId 
+    from measure m,trace_range r 
+    where filter_id in (select id from process_measure_filter where name = 'ScreenState')  order by startNs;`;
   } else {
     return '';
   }
@@ -85,11 +87,12 @@ export const chartClockDataSqlMem = (args: any): string => {
 
 export function clockDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: any[], list: any[];
+    let res: any[];
+    let list: any[];
     if (!clockList.has(data.params.sqlType + data.params.clockName)) {
       list = proc(chartClockDataSqlMem(data.params));
       for (let j = 0; j < list.length; j++) {
-        if (j == list.length - 1) {
+        if (j === list.length - 1) {
           list[j].dur = (data.params.totalNS || 0) - (list[j].startNs || 0);
         } else {
           list[j].dur = (list[j + 1].startNs || 0) - (list[j].startNs || 0);
@@ -101,15 +104,25 @@ export function clockDataReceiver(data: any, proc: Function): void {
     }
     if (data.params.queryAll) {
       //框选时候取数据，只需要根据时间过滤数据
-      res = (list || []).filter(it => it.startNs + it.dur >= data.params.selectStartNS && it.startNs <= data.params.selectEndNS);
+      res = (list || []).filter(
+        (it) => it.startNs + it.dur >= data.params.selectStartNS && it.startNs <= data.params.selectEndNS
+      );
     } else {
-      res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width, "value");
+      res = filterDataByGroup(
+        list || [],
+        'startNs',
+        'dur',
+        data.params.startNS,
+        data.params.endNS,
+        data.params.width,
+        'value'
+      );
     }
-    arrayBufferHandler(data, res,true);
+    arrayBufferHandler(data, res, true);
   } else {
     let sql = chartClockDataSql(data.params);
     let res = proc(sql);
-    arrayBufferHandler(data, res,data.params.trafic !== TraficEnum.SharedArrayBuffer);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 

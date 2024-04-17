@@ -20,7 +20,7 @@ export class AuthType {
   static AUTH_PUBLICKEY: number = 3; //uint8
   static AUTH_OK: number = 4; //uint8
 
-  static getAuthTypeLength() {
+  static getAuthTypeLength(): number {
     return 1;
   }
 }

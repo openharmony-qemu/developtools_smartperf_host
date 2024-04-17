@@ -51,7 +51,7 @@ export const TimerShaftElementHtml = `
 .cpu-usage{
     color: var(--dark-color1,#4b5766);
     font-size: 0.9rem;
-    text-align: left !important;
+    text-align: left;
     padding-left: 10px;
     width: 100%;
     background: var(--dark-background4,#F6F6F6);
@@ -122,4 +122,4 @@ export const TimerShaftElementHtml = `
     </div>
     <canvas class="panel"></canvas>
 </div>
-`
+`;

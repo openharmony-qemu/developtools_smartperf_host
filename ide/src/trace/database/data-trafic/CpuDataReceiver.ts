@@ -51,7 +51,8 @@ export const chartCpuDataProtoSqlMem = (args: any): string => {
 
 export function cpuDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: any[], list: any[];
+    let res: any[];
+    let list: any[];
     if (!cpuList.has(data.params.cpu)) {
       list = proc(chartCpuDataProtoSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {
@@ -84,7 +85,9 @@ export function searchDataHandler(data: any): void {
   let pidArr = data.params.pidArr as number[];
   let tidArr = data.params.tidArr as number[];
   for (let value of Array.from(cpuList.values())) {
-    res.push(...value.filter((cpuData) => pidArr.includes(cpuData.pid || cpuData.processId) || tidArr.includes(cpuData.tid)));
+    res.push(
+      ...value.filter((cpuData) => pidArr.includes(cpuData.pid || cpuData.processId) || tidArr.includes(cpuData.tid))
+    );
   }
   res.sort((dataA, dataB) => dataA.startTime - dataB.startTime);
   arrayBufferHandler(data, res, true);
@@ -129,6 +132,17 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
       len: res.length,
       transfer: transfer,
     },
-    transfer ? [startTime.buffer, dur.buffer, tid.buffer, id.buffer, processId.buffer, cpu.buffer, argSetId.buffer, nofinish.buffer] : []
+    transfer
+      ? [
+          startTime.buffer,
+          dur.buffer,
+          tid.buffer,
+          id.buffer,
+          processId.buffer,
+          cpu.buffer,
+          argSetId.buffer,
+          nofinish.buffer,
+        ]
+      : []
   );
 }

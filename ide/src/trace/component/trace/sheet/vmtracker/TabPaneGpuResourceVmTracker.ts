@@ -19,7 +19,7 @@ import { getByteWithUnit } from '../../../../database/logic-worker/ProcedureLogi
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { resizeObserver } from '../SheetUtils';
-import {queryGpuResourceTabData} from "../../../../database/sql/Gpu.sql";
+import { queryGpuResourceTabData } from '../../../../database/sql/Gpu.sql';
 @element('tabpane-gpu-resource')
 export class TabPaneGpuResourceVmTracker extends BaseElement {
   private gpuResourceTable: LitTable | undefined | null;
@@ -58,10 +58,10 @@ export class TabPaneGpuResourceVmTracker extends BaseElement {
     this.gpuResourceTable = this.shadowRoot?.querySelector<LitTable>('#gpu-resource-tbl');
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.gpuResourceTable!);
-    new ResizeObserver(() => {
+    new ResizeObserver((): void => {
       if (this.parentElement?.clientHeight !== 0) {
         this.gpuResourceTable!.shadowRoot!.querySelector<HTMLDivElement>('.table')!.style.height = '100%';
         this.gpuResourceTable!.reMeauseHeight();

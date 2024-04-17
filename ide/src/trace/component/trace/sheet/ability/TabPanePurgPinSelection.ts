@@ -20,8 +20,8 @@ import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
-import {querySysPurgeableSelectionTab} from "../../../../database/sql/Ability.sql";
-import {queryProcessPurgeableSelectionTab} from "../../../../database/sql/ProcessThread.sql";
+import { querySysPurgeableSelectionTab } from '../../../../database/sql/Ability.sql';
+import { queryProcessPurgeableSelectionTab } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-purg-pin-selection')
 export class TabPanePurgPinSelection extends BaseElement {

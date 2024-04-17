@@ -17,11 +17,15 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitButton } from '../../../../../base-ui/button/LitButton';
 import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
-import { querySchedThreadStates, querySingleCutData, queryLoopCutData } from '../../../../database/sql/ProcessThread.sql';
+import {
+  querySchedThreadStates,
+  querySingleCutData,
+  queryLoopCutData,
+} from '../../../../database/sql/ProcessThread.sql';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
-import { SpSegmentationChart } from '../../../../../trace/component/chart/SpSegmentationChart'
+import { SpSegmentationChart } from '../../../../../trace/component/chart/SpSegmentationChart';
 import {
   type TreeSwitchConfig,
   HistogramSourceConfig,
@@ -60,7 +64,9 @@ export class TabPaneSchedSwitch extends BaseElement {
   private clickThreadName: string = '';
 
   set data(threadStatesParam: SelectionParam) {
-    if (this.selectionParam === threadStatesParam) {return;};
+    if (this.selectionParam === threadStatesParam) {
+      return;
+    }
     let tabpaneSwitch = this.parentElement as HTMLElement;
     tabpaneSwitch.style.overflow = 'hidden';
     this.schedSwitchTbl!.recycleDataSource = [];
@@ -70,7 +76,7 @@ export class TabPaneSchedSwitch extends BaseElement {
     // @ts-ignore
     this.schedSwitchTbl!.value = [];
     this.funcNameInput!.style.border = '1px solid rgb(151,151,151)';
-    this.threadIdInput!.style.border = '1px solid rgb(151,151,151)';      
+    this.threadIdInput!.style.border = '1px solid rgb(151,151,151)';
     SpSegmentationChart.setChartData('SCHED-SWITCH', []);
     SpSegmentationChart.tabHover('SCHED-SWITCH', false, -1);
     this.canvansName!.textContent = 'sched switch平均分布图';
@@ -102,10 +108,18 @@ export class TabPaneSchedSwitch extends BaseElement {
     this.cycleBLeftInput = this.shadowRoot?.getElementById('leftB') as HTMLInputElement;
     this.cycleBRightInput = this.shadowRoot?.getElementById('rightB') as HTMLInputElement;
     this.queryButton = this.shadowRoot?.querySelector<LitButton>('.query-btn');
-    this.singleBtn?.addEventListener('click', (e) => { this.queryCutInfoFn(this.singleBtn!.innerHTML); });
-    this.loopBtn?.addEventListener('click', (e) => { this.queryCutInfoFn(this.loopBtn!.innerHTML); });
-    this.queryButton!.addEventListener('click', (e) => { this.queryCycleRangeData(); });
-    this.schedSwitchTbl!.addEventListener('row-click', (evt) => { this.clickTreeRowEvent(evt); });
+    this.singleBtn?.addEventListener('click', (e) => {
+      this.queryCutInfoFn(this.singleBtn!.innerHTML);
+    });
+    this.loopBtn?.addEventListener('click', (e) => {
+      this.queryCutInfoFn(this.loopBtn!.innerHTML);
+    });
+    this.queryButton!.addEventListener('click', (e) => {
+      this.queryCycleRangeData();
+    });
+    this.schedSwitchTbl!.addEventListener('row-click', (evt) => {
+      this.clickTreeRowEvent(evt);
+    });
     this.listenInputEvent();
   }
   //监听周期A、B对应输入框的值
@@ -173,8 +187,8 @@ export class TabPaneSchedSwitch extends BaseElement {
           secondInput!.style.color = 'black';
           this.queryButton!.style.pointerEvents = 'auto';
           this.canQueryButtonClick(true);
-        };
-      };
+        }
+      }
     } else if (
       (firstInput!.value === '' && secondInput!.value !== '') ||
       (firstInput!.value !== '' && secondInput!.value === '')
@@ -189,14 +203,14 @@ export class TabPaneSchedSwitch extends BaseElement {
     ) {
       this.queryButton!.style.pointerEvents = 'auto';
       this.canQueryButtonClick(true);
-    };
+    }
     if (
       (thirdInput!.value === '' && fourInput!.value !== '') ||
       (thirdInput!.value !== '' && fourInput!.value === '')
     ) {
       this.queryButton!.style.pointerEvents = 'none';
       this.canQueryButtonClick(false);
-    };
+    }
   }
   //点击树节点不同层级触发相应的功能
   clickTreeRowEvent(evt: Event): void {
@@ -216,7 +230,7 @@ export class TabPaneSchedSwitch extends BaseElement {
         this.cycleBLeftInput!.value = '';
         this.cycleBRightInput!.value = '';
         this.histogramSource = [];
-        SpSegmentationChart.tabHover('SCHED-SWITCH', false, -1);//清空上一次的泳道高亮
+        SpSegmentationChart.tabHover('SCHED-SWITCH', false, -1); //清空上一次的泳道高亮
         this.getThreadChildren = data.children;
         this.queryButton!.style.pointerEvents = 'none';
         this.isCanvansHidden(false);
@@ -237,7 +251,7 @@ export class TabPaneSchedSwitch extends BaseElement {
         this.schedSwitchTbl!.clearAllSelection(data);
         this.schedSwitchTbl!.setCurrentSelection(data);
         this.drawHistogramChart();
-      };
+      }
       //点击线程绘制对应泳道图
       SpSegmentationChart.setChartData('SCHED-SWITCH', data.children);
     } else if (data.level === 'cycle') {
@@ -246,8 +260,8 @@ export class TabPaneSchedSwitch extends BaseElement {
         this.schedSwitchTbl!.clearAllSelection(data);
         this.schedSwitchTbl!.setCurrentSelection(data);
         SpSegmentationChart.tabHover('SCHED-SWITCH', true, data!.cycle);
-      };
-    };
+      }
+    }
   }
   //点击single或loop按钮时触发
   async queryCutInfoFn(btnHtml: string): Promise<void> {
@@ -267,17 +281,19 @@ export class TabPaneSchedSwitch extends BaseElement {
       SpSegmentationChart.setChartData('SCHED-SWITCH', []);
       SpSegmentationChart.tabHover('SCHED-SWITCH', false, -1);
       //首次点击single或loop时去查询数据
-      if (!this.hasThreadStatesData) { this.initThreadStateData(this.selectionParam); };
+      if (!this.hasThreadStatesData) {
+        this.initThreadStateData(this.selectionParam);
+      }
       if (btnHtml === SINGLE_BUTTON_TEXT) {
         this.isSingleBtnColor(true);
         this.isLoopBtnColor(false);
         funcData = await querySingleCutData(threadFunName, threadId, leftStartNs, rightEndNs);
-      };
+      }
       if (btnHtml === LOOP_BUTTON_TEXT) {
         this.isSingleBtnColor(false);
         this.isLoopBtnColor(true);
         funcData = await queryLoopCutData(threadFunName, threadId, leftStartNs, rightEndNs);
-      };
+      }
       //获取到线程数据和方法数据，处理周期
       this.handleCycleLogic(funcData, btnHtml);
     } else {
@@ -286,14 +302,14 @@ export class TabPaneSchedSwitch extends BaseElement {
         this.threadIdInput!.setAttribute('placeholder', 'Please input thread id');
       } else {
         this.threadIdInput!.style.border = '1px solid rgb(151,151,151)';
-      };
+      }
       if (threadFunName === '') {
         this.funcNameInput!.style.border = '2px solid rgb(255,0,0)';
         this.funcNameInput!.setAttribute('placeholder', 'Please input function name');
       } else {
         this.funcNameInput!.style.border = '1px solid rgb(151,151,151)';
-      };
-    };
+      }
+    }
   }
 
   //获取每次被框选线程对应的state数据
@@ -302,7 +318,12 @@ export class TabPaneSchedSwitch extends BaseElement {
     let leftStartNs: number = threadParam!.leftNs + threadParam!.recordStartNs;
     let rightEndNs: number = threadParam!.rightNs + threadParam!.recordStartNs;
     let processIds: Array<number> = [...new Set(threadParam!.processIds)];
-    let res: Array<ThreadInitConfig> = await querySchedThreadStates(processIds, threadParam!.threadIds, leftStartNs, rightEndNs);
+    let res: Array<ThreadInitConfig> = await querySchedThreadStates(
+      processIds,
+      threadParam!.threadIds,
+      leftStartNs,
+      rightEndNs
+    );
     threadSourceData = JSON.parse(JSON.stringify(res));
     //每次新款选线程时清空Map对象
     this.threadMap.clear();
@@ -311,11 +332,11 @@ export class TabPaneSchedSwitch extends BaseElement {
       let stateItem = threadSourceData[i];
       if (this.threadMap.has(`${stateItem.pid} - ${stateItem.tid}`)) {
         let obj = this.threadMap.get(`${stateItem.pid} - ${stateItem.tid}`);
-        obj!.push(stateItem)
+        obj!.push(stateItem);
       } else {
         this.threadMap.set(`${stateItem.pid} - ${stateItem.tid}`, [stateItem]);
-      };
-    };
+      }
+    }
     this.hasThreadStatesData = true;
   }
 
@@ -345,11 +366,13 @@ export class TabPaneSchedSwitch extends BaseElement {
         processTitle: `${process}[${value[0].pid}]`,
         threadTitle: `${thread}[${[value[0].tid]}]`,
         threadCountTotal: 0,
-        threadDurTotal: 0
+        threadDurTotal: 0,
       };
       //此处根据切割方法不同处理一下方法循环长度
       for (let idx = 0; idx < (btnHtml === LOOP_BUTTON_TEXT ? res.length - 1 : res.length); idx++) {
-        if (btnHtml === LOOP_BUTTON_TEXT) { res[idx].cycleEndTime = res[idx + 1].cycleStartTime; };//当切割方法为loop时，处理出周期结束时间
+        if (btnHtml === LOOP_BUTTON_TEXT) {
+          res[idx].cycleEndTime = res[idx + 1].cycleStartTime;
+        } //当切割方法为loop时，处理出周期结束时间
         let duration = ((res[idx].cycleEndTime - res[idx].cycleStartTime) / UNIT).toFixed(NUM_DIGITS);
         let dur = Number(duration) * UNIT;
         value.map((item: ThreadInitConfig) => {
@@ -358,21 +381,37 @@ export class TabPaneSchedSwitch extends BaseElement {
             let nodeFlag = `${process} - ${item.pid} - ${thread} - ${item.tid}`;
             let startNS = res[idx].cycleStartTime - this.selectionParam!.recordStartNs;
             let cycleStartTime = (startNS / UNIT).toFixed(NUM_DIGITS);
-            let title = `cycle ${idx + 1}-` + thread;//周期名称
-            cyclesArr.push(new SchedSwitchCountBean(nodeFlag, startNS, cycleStartTime, dur, duration, idx + 1, title, 0, 'cycle', 9,[]));
-            cutDataObj!.threadDurTotal = (Number(duration) + Number(cutDataObj.threadDurTotal)).toFixed(NUM_DIGITS);//本次线程下所有周期的dur和
-          };
+            let title = `cycle ${idx + 1}-` + thread; //周期名称
+            cyclesArr.push(
+              new SchedSwitchCountBean(
+                nodeFlag,
+                startNS,
+                cycleStartTime,
+                dur,
+                duration,
+                idx + 1,
+                title,
+                0,
+                'cycle',
+                9,
+                []
+              )
+            );
+            cutDataObj!.threadDurTotal = (Number(duration) + Number(cutDataObj.threadDurTotal)).toFixed(NUM_DIGITS); //本次线程下所有周期的dur和
+          }
           //判断数据是否符合这个周期，符合的进入判断累加count
           if (res[idx].cycleEndTime > item.endTs && item.endTs > res[idx].cycleStartTime) {
             let index = cyclesArr.length - 1;
-            if (index === idx) { cyclesArr[index].value += 1; };
+            if (index === idx) {
+              cyclesArr[index].value += 1;
+            }
             cutDataObj.threadCountTotal += 1;
-          };
+          }
         });
       }
       //本轮线程处理过的数据传入并处理成树结构，放入group对象中
       this.translateIntoTree(cutDataObj, group);
-    };
+    }
     this.schedSwitchTbl!.recycleDataSource = Object.values(group);
     this.schedSwitchTbl!.loading = false;
     this.clickTableLabel(this.schedSwitchTbl!.recycleDataSource);
@@ -388,11 +427,7 @@ export class TabPaneSchedSwitch extends BaseElement {
       process.value += data.threadCountTotal;
       process.duration = (Number(data.threadDurTotal) + Number(process.duration)).toFixed(NUM_DIGITS);
       process.children.push(
-        new SchedSwitchCountBean(nodeFlag, -1, '',  dur, data.threadDurTotal, -1, data.threadTitle, data.threadCountTotal, 'thread', 9, data.cyclesArr)
-      );
-    } else {
-      group[data.pid] = new SchedSwitchCountBean(
-        '', -1, '', dur, data.threadDurTotal, -1, data.processTitle, data.threadCountTotal, 'process', 9, [new SchedSwitchCountBean(
+        new SchedSwitchCountBean(
           nodeFlag,
           -1,
           '',
@@ -404,7 +439,35 @@ export class TabPaneSchedSwitch extends BaseElement {
           'thread',
           9,
           data.cyclesArr
-        )]
+        )
+      );
+    } else {
+      group[data.pid] = new SchedSwitchCountBean(
+        '',
+        -1,
+        '',
+        dur,
+        data.threadDurTotal,
+        -1,
+        data.processTitle,
+        data.threadCountTotal,
+        'process',
+        9,
+        [
+          new SchedSwitchCountBean(
+            nodeFlag,
+            -1,
+            '',
+            dur,
+            data.threadDurTotal,
+            -1,
+            data.threadTitle,
+            data.threadCountTotal,
+            'thread',
+            9,
+            data.cyclesArr
+          ),
+        ]
       );
     }
   }
@@ -423,16 +486,16 @@ export class TabPaneSchedSwitch extends BaseElement {
               item.status = true;
               if (item.children !== undefined && item.children.length > 0) {
                 this.schedSwitchTbl!.setStatus(item.children, false);
-              };
+              }
             }
             this.schedSwitchTbl!.recycleDs = this.schedSwitchTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (lable.includes('Cycle')) {
             this.schedSwitchTbl!.setStatus(data, true);
             this.schedSwitchTbl!.recycleDs = this.schedSwitchTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
-          };
+          }
         });
-      };
-    };
+      }
+    }
   }
   //根据A、B周期输入的dur的范围值，计算对应周期的数据
   queryCycleRangeData(): void {
@@ -479,7 +542,7 @@ export class TabPaneSchedSwitch extends BaseElement {
         color: '#a285d2',
       };
       this.histogramSource.push(this.rangeB);
-    };
+    }
     this.drawHistogramChart();
   }
   //绘制柱状图
@@ -495,12 +558,12 @@ export class TabPaneSchedSwitch extends BaseElement {
       return data;
     });
     this.chartTotal!.config = {
-      data: source,//画柱状图的数据源
+      data: source, //画柱状图的数据源
       appendPadding: 10,
-      xField: 'cycle',//x轴代表属于那个周期
-      yField: 'average',//y轴代表count/周期个数的值
-      notSort: true,//绘制的柱状图不排序
-      removeUnit: true,//移除单位换算
+      xField: 'cycle', //x轴代表属于那个周期
+      yField: 'average', //y轴代表count/周期个数的值
+      notSort: true, //绘制的柱状图不排序
+      removeUnit: true, //移除单位换算
       seriesField: '',
       //设置柱状图的颜色
       color(a): string {
@@ -512,7 +575,7 @@ export class TabPaneSchedSwitch extends BaseElement {
           return '#a285d2';
         } else {
           return '#0a59f7';
-        };
+        }
       },
       //鼠标悬浮柱状图上方时显示对应的提示信息
       tip(a): string {
@@ -540,7 +603,7 @@ export class TabPaneSchedSwitch extends BaseElement {
       this.setAttribute('canvans-hidden', '');
     } else {
       this.removeAttribute('canvans-hidden');
-    };
+    }
   }
   //切换single按钮时颜色是否变化
   isSingleBtnColor(flag: boolean): void {
@@ -548,7 +611,7 @@ export class TabPaneSchedSwitch extends BaseElement {
       this.setAttribute('single', '');
     } else {
       this.removeAttribute('single');
-    };
+    }
   }
   //切换single按钮时颜色是否变化
   isLoopBtnColor(flag: boolean): void {
@@ -556,7 +619,7 @@ export class TabPaneSchedSwitch extends BaseElement {
       this.setAttribute('loop', '');
     } else {
       this.removeAttribute('loop');
-    };
+    }
   }
   //Query按钮能不能被点击，即在此处设置符合条件时鼠标箭头为手的样式表示可点击，反之表示禁止触发点击事件
   canQueryButtonClick(flag: boolean): void {
@@ -564,7 +627,7 @@ export class TabPaneSchedSwitch extends BaseElement {
       this.setAttribute('query-button', '');
     } else {
       this.removeAttribute('query-button');
-    };
+    }
   }
   //回调函数，this.schedSwitchTbl首次插入DOM时执行的初始化回调
   connectedCallback(): void {
@@ -572,7 +635,8 @@ export class TabPaneSchedSwitch extends BaseElement {
     resizeObserver(this.parentElement!, this.schedSwitchTbl!);
   }
   initHtml(): string {
-    return `
+    return (
+      `
       <style>
       :host{
           padding: 10px 10px;
@@ -617,7 +681,11 @@ export class TabPaneSchedSwitch extends BaseElement {
           font-size: 9pt;
           padding-right: 15px;
       }
-    `+ this.initStyleContent() + this.initTopContent() + this.initMainContent();
+    ` +
+      this.initStyleContent() +
+      this.initTopContent() +
+      this.initMainContent()
+    );
   }
   initStyleContent(): string {
     return `
@@ -664,7 +732,7 @@ export class TabPaneSchedSwitch extends BaseElement {
           display:flex;
           align-items: center;
       }
-    `
+    `;
   }
   initTopContent(): string {
     return `
@@ -702,7 +770,7 @@ export class TabPaneSchedSwitch extends BaseElement {
             <button class="loop-btn cut-button">Loop</button>
         </div>
       </div>
-    `
+    `;
   }
   initMainContent(): string {
     return `
@@ -747,6 +815,6 @@ export class TabPaneSchedSwitch extends BaseElement {
           </div>
         </div>
       </div>
-    `
+    `;
   }
 }

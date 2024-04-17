@@ -21,7 +21,7 @@ import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 import '../../../../base-ui/popover/LitPopoverV';
 import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
-import {queryTransferList} from "../../../database/sql/Perf.sql";
+import { queryTransferList } from '../../../database/sql/Perf.sql';
 import { TabPaneFilterHtml } from './TabPaneFilter.html';
 
 export interface FilterData {
@@ -60,9 +60,9 @@ export class TabPaneFilter extends BaseElement {
   private cutList: Array<any> | undefined;
   private libraryList: Array<any> | undefined;
   private transferChecked: string | undefined;
-  private isStatisticsMem: Boolean = false;
+  private isStatisticsMem: boolean = false;
 
-  get isStatisticsMemory() {
+  get isStatisticsMemory(): boolean {
     return this.isStatisticsMem;
   }
   set isStatisticsMemory(value) {
@@ -76,7 +76,18 @@ export class TabPaneFilter extends BaseElement {
     }
   }
 
-  filterData(type: string, data: object = {}) {
+  filterData(
+    type: string,
+    data: object = {}
+  ): {
+    type: string;
+    inputValue: string;
+    firstSelect: string | undefined;
+    secondSelect: string | undefined;
+    thirdSelect: string | undefined;
+    mark: boolean;
+    icon: string;
+  } {
     return {
       type: type,
       inputValue: this.filterInputEL!.value,
@@ -196,7 +207,7 @@ export class TabPaneFilter extends BaseElement {
       if (this.getFilter) {
         this.getFilter(this.filterData('mark', { mark: true }));
       }
-    }
+    };
     this.filterInputEL?.addEventListener('keyup', (event: any): void => {
       if (event.keyCode === 13 && this.getFilter) {
         this.getFilter(
@@ -267,10 +278,10 @@ export class TabPaneFilter extends BaseElement {
   }
 
   get icon(): string {
-    if (this.getAttribute('icon') != 'false') {
-      if (this.iconEL!.name == 'statistics') {
+    if (this.getAttribute('icon') !== 'false') {
+      if (this.iconEL!.name === 'statistics') {
         return 'tree';
-      } else if (this.iconEL!.name == 'menu') {
+      } else if (this.iconEL!.name === 'menu') {
         return 'block';
       } else {
         return '';
@@ -281,10 +292,10 @@ export class TabPaneFilter extends BaseElement {
   }
 
   set icon(value: string) {
-    if (value == 'block') {
+    if (value === 'block') {
       this.iconEL!.name = 'menu';
       this.iconEL!.size = 18;
-    } else if (value == 'tree') {
+    } else if (value === 'tree') {
       this.iconEL!.name = 'statistics';
       this.iconEL!.size = 16;
     }
@@ -335,7 +346,7 @@ export class TabPaneFilter extends BaseElement {
     thirdTitle = 'Responsible Library'
   ): void {
     let sLE = this.shadowRoot?.querySelector('#load');
-    let html = ``;
+    let html = '';
     html = this.getSelectFirstListHtml(firstTitle, firstList, html);
     html = this.getSelectSecondListHtml(secondTitle, secondList, html);
     let thtml = this.getSelectThirdListHtml(thirdTitle, thirdList);
@@ -379,14 +390,18 @@ export class TabPaneFilter extends BaseElement {
         thtml += `<lit-select-option value="${b}">${a}</lit-select-option>`;
       });
     }
-    thtml += `</lit-select>`;
+    thtml += '</lit-select>';
     return thtml;
   }
 
-  private getSelectSecondListHtml(secondTitle: string, secondList: Array<any> | null | undefined, html: string): string {
+  private getSelectSecondListHtml(
+    secondTitle: string,
+    secondList: Array<any> | null | undefined,
+    html: string
+  ): string {
     if (secondList) {
       html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">`;
-      if (secondTitle != '') {
+      if (secondTitle !== '') {
         html += `<lit-select-option value="${secondTitle}" disabled>${secondTitle}</lit-select-option>`;
       }
       secondList!.forEach((a, b) => {
@@ -400,7 +415,7 @@ export class TabPaneFilter extends BaseElement {
   private getSelectFirstListHtml(firstTitle: string, firstList: Array<any> | null | undefined, html: string): string {
     if (firstList) {
       html += `<lit-select default-value="" id="first-select" class="spacing" placeholder="please choose">`;
-      if (firstTitle != '') {
+      if (firstTitle !== '') {
         html += `<lit-select-option value="${firstTitle}" disabled>${firstTitle}</lit-select-option>`;
       }
       firstList!.forEach((a, b) => {
@@ -411,7 +426,7 @@ export class TabPaneFilter extends BaseElement {
     return html;
   }
 
-  private initSelectElListener(): void{
+  private initSelectElListener(): void {
     this.firstSelectEL!.onchange = (e): void => {
       if (this.getFilter) {
         this.getFilter(this.filterData('firstSelect'));
@@ -429,7 +444,7 @@ export class TabPaneFilter extends BaseElement {
     };
   }
 
-  setOptionsList(list: Array<any>) {
+  setOptionsList(list: Array<any>): void {
     let divEl = this.shadowRoot!.querySelector('#check-popover > div');
     divEl!.innerHTML = '';
     for (let text of list) {
@@ -439,13 +454,13 @@ export class TabPaneFilter extends BaseElement {
     }
   }
 
-  private treeCheckClickSwitch(idx: number, check: boolean, row: NodeListOf<Element>): void{
+  private treeCheckClickSwitch(idx: number, check: boolean, row: NodeListOf<Element>): void {
     let checkList = [];
     for (let index = 0; index < 5; index++) {
       if (idx === index) {
         checkList.push(check);
       } else {
-        checkList.push(row[index].querySelector<LitCheckBox>('lit-check-box')!.checked)
+        checkList.push(row[index].querySelector<LitCheckBox>('lit-check-box')!.checked);
       }
     }
     this.getCallTree!({
@@ -454,7 +469,7 @@ export class TabPaneFilter extends BaseElement {
     });
   }
 
-  initializeCallTree() {
+  initializeCallTree(): void {
     let row = this.shadowRoot!.querySelectorAll('.tree-check');
     row.forEach((e, idx): void => {
       let check = e.querySelector<LitCheckBox>('lit-check-box');
@@ -538,7 +553,7 @@ export class TabPaneFilter extends BaseElement {
       }
     };
     inputs.forEach((e: HTMLInputElement, idx: number): void => {
-      e.oninput = function () {
+      e.oninput = function (): void {
         // @ts-ignore
         this.value = this.value.replace(/\D/g, '');
       };
@@ -561,7 +576,7 @@ export class TabPaneFilter extends BaseElement {
   }
 
   initializeMining(): void {
-    let html = ``;
+    let html = '';
     this.cutList!.forEach((a: any, b: number): void => {
       html += `<div style="display: flex;padding: 4px 7px;" class="mining-checked" ${a.highlight ? 'highlight' : ''}>
                         <lit-check-box class="lit-check-box" not-close ${
@@ -595,7 +610,7 @@ export class TabPaneFilter extends BaseElement {
   }
 
   initializeLibrary(): void {
-    let html = ``;
+    let html = '';
     this.libraryList!.forEach((a: any, b: number): void => {
       html += `<div style="display: flex;padding: 4px 7px;" class="library-checked" ${a.highlight ? 'highlight' : ''}>
                         <lit-check-box class="lit-check-box" not-close ${
@@ -683,7 +698,7 @@ export class TabPaneFilter extends BaseElement {
       callTree: [row[0]!.checked, row[1]!.checked, row[2]!.checked, row[3]!.checked, row[4]!.checked],
       callTreeConstraints: {
         checked: check!.checked,
-        inputs: [inputs[0].value == '' ? '0' : inputs[0].value, inputs[1].value == '' ? '∞' : inputs[1].value],
+        inputs: [inputs[0].value === '' ? '0' : inputs[0].value, inputs[1].value === '' ? '∞' : inputs[1].value],
       },
       dataMining: this.cutList,
       dataLibrary: this.libraryList,

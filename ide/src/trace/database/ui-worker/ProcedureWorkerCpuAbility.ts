@@ -76,7 +76,7 @@ export class CpuAbilityRender extends Render {
     req.context.fillText(req.maxCpuUtilizationName, 4, 5 + 9);
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {}
+  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {}
 }
 
 export class CpuAbilityMonitorStruct extends BaseStruct {
@@ -140,7 +140,7 @@ export class CpuAbilityMonitorStruct extends BaseStruct {
     endNS: number,
     totalNS: number,
     frame: any
-  ) {
+  ): void {
     let cpuAbilityStartPointX: number, cpuAbilityEndPointX: number;
 
     if ((cpuAbilityNode.startNS || 0) < startNS) {

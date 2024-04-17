@@ -25,8 +25,8 @@ import { Flag } from '../../timer-shaft/Flag';
 import { TraceSheet } from '../../base/TraceSheet';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { ColorUtils } from '../../base/ColorUtils';
-import {queryHiSysEventTabData} from "../../../../database/sql/Perf.sql";
-import {queryRealTime} from "../../../../database/sql/Clock.sql";
+import { queryHiSysEventTabData } from '../../../../database/sql/Perf.sql';
+import { queryRealTime } from '../../../../database/sql/Clock.sql';
 import { TabPaneHiSysEventsHtml } from './TabPaneHisysEvents.html';
 
 @element('tab-hisysevents')
@@ -72,7 +72,7 @@ export class TabPaneHisysEvents extends BaseElement {
     this.initTabSheetEl();
     queryRealTime().then((result) => {
       if (result && result.length > 0) {
-        result.forEach(item => {
+        result.forEach((item) => {
           if (item.name === 'realtime') {
             this.realTime = item.ts;
           } else {
@@ -93,7 +93,7 @@ export class TabPaneHisysEvents extends BaseElement {
   queryElements(): void {
     this.boxDetails = this.shadowRoot?.querySelector<HTMLDivElement>('.box-details');
     this.hiSysEventTable = this.shadowRoot?.querySelector<LitPageTable>('#tb-hisysevent');
-    this.hiSysEventTable!.getItemTextColor = (data) => {
+    this.hiSysEventTable!.getItemTextColor = (data): string => {
       return ColorUtils.getHisysEventColor(data.level);
     };
     this.domainTagDiv = this.shadowRoot?.querySelector<HTMLDivElement>('#domainTagFilter');
@@ -101,7 +101,8 @@ export class TabPaneHisysEvents extends BaseElement {
     this.domainFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#domain-filter');
     this.eventNameFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#event-name-filter');
     this.levelFilter = this.shadowRoot?.querySelector<HTMLSelectElement>('#level-filter');
-    this.spSystemTrace = document.querySelector('body > sp-application')
+    this.spSystemTrace = document
+      .querySelector('body > sp-application')
       ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
     this.traceSheetEl = this.spSystemTrace?.shadowRoot?.querySelector('.trace-sheet');
     this.contentFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#contents-filter');
@@ -189,7 +190,7 @@ export class TabPaneHisysEvents extends BaseElement {
     };
   }
 
-  private refreshEventsTitle() {
+  private refreshEventsTitle(): void {
     let tbl = this.hiSysEventTable?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     let height = 0;
     let firstRowHeight = 27;
@@ -287,7 +288,7 @@ export class TabPaneHisysEvents extends BaseElement {
     let parentNode = ev.target.parentNode;
     if (parentNode && this.domainTagDiv!.contains(parentNode)) {
       this.domainTagDiv!.removeChild(parentNode);
-      this.domainTag['delete'](parentNode.textContent.trim().toLowerCase());
+      this.domainTag.delete(parentNode.textContent.trim().toLowerCase());
     }
     this.updateData();
   };
@@ -297,7 +298,7 @@ export class TabPaneHisysEvents extends BaseElement {
     let parentNode = ev.target.parentNode;
     if (parentNode && this.eventNameTagDiv!.contains(parentNode)) {
       this.eventNameTagDiv!.removeChild(parentNode);
-      this.eventNameTag['delete'](parentNode.textContent.trim().toLowerCase());
+      this.eventNameTag.delete(parentNode.textContent.trim().toLowerCase());
     }
     this.updateData();
   };
@@ -316,7 +317,7 @@ export class TabPaneHisysEvents extends BaseElement {
       if (index >= 0 && domainValue === '') {
         let childNode = this.domainTagDiv!.childNodes[index];
         this.domainTagDiv!.removeChild(childNode);
-        this.domainTag['delete'](childNode.textContent!.trim().toLowerCase());
+        this.domainTag.delete(childNode.textContent!.trim().toLowerCase());
       }
     }
     this.updateData();
@@ -340,7 +341,11 @@ export class TabPaneHisysEvents extends BaseElement {
   eventNameKeyEvent = (e: KeyboardEvent): void => {
     let eventNameValue = this.eventNameFilterInput!.value.trim();
     if (e.key === 'Enter') {
-      if (eventNameValue !== '' && !this.eventNameTag.has(eventNameValue.toLowerCase()) && this.eventNameTag.size < 10) {
+      if (
+        eventNameValue !== '' &&
+        !this.eventNameTag.has(eventNameValue.toLowerCase()) &&
+        this.eventNameTag.size < 10
+      ) {
         let tagElement = this.buildTag(eventNameValue);
         this.eventNameTag!.add(eventNameValue.toLowerCase());
         this.eventNameTagDiv!.append(tagElement);
@@ -351,7 +356,7 @@ export class TabPaneHisysEvents extends BaseElement {
       if (index >= 0 && eventNameValue === '') {
         let childNode = this.eventNameTagDiv!.childNodes[index];
         this.eventNameTagDiv!.removeChild(childNode);
-        this.eventNameTag['delete'](childNode.textContent!.trim().toLowerCase());
+        this.eventNameTag.delete(childNode.textContent!.trim().toLowerCase());
       }
     }
     this.updateData();
@@ -422,7 +427,7 @@ export class TabPaneHisysEvents extends BaseElement {
         let contentValue = value;
         if (key.endsWith('_TIME')) {
           if (!isNaN(Number(value))) {
-            contentValue = ((this.timestampToNS(value) - this.realTime) + this.bootTime).toString();
+            contentValue = (this.timestampToNS(value) - this.realTime + this.bootTime).toString();
             if (this.realTime < 0) {
               contentValue = value;
             }

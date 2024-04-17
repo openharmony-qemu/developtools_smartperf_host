@@ -19,9 +19,13 @@ function getBusyTime(
   sampleMap: Map<any, any>,
   leftStartNs: number,
   rightEndNs: number
-) {
-  if (initFreqResult.length == 0) { return };
-  if (initStateResult.length == 0) { return };
+): void {
+  if (initFreqResult.length === 0) {
+    return;
+  }
+  if (initStateResult.length === 0) {
+    return;
+  }
   //处理被框选的freq的第一个数据
   let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
   if (includeData !== 0) {
@@ -39,8 +43,9 @@ function getBusyTime(
       initStateResult.length
     );
   }
-  if (initStateResult[0].ts < startNS && includeStateData !== 0 && includeStateData !== -1)
+  if (initStateResult[0].ts < startNS && includeStateData !== 0 && includeStateData !== -1) {
     initStateResult[0].ts = startNS;
+  }
   //处理被框选的freq最后一个数据
   if (initFreqResult[initFreqResult.length - 1].ts !== rightEndNs) {
     initFreqResult.push({
@@ -59,7 +64,12 @@ function getBusyTime(
   handleBusyTimeLogic(initFreqResult, initStateResult, sampleMap, startNS);
 }
 
-function handleBusyTimeLogic(initFreqResult: Array<any>, initStateResult: Array<any>, sampleMap: Map<any, any>, startNS: number) {
+function handleBusyTimeLogic(
+  initFreqResult: Array<any>,
+  initStateResult: Array<any>,
+  sampleMap: Map<any, any>,
+  startNS: number
+): void {
   let freqIndex = 1;
   let stateIndex = 1;
   let beginNs = startNS;
@@ -93,7 +103,7 @@ function handleBusyTimeLogic(initFreqResult: Array<any>, initStateResult: Array<
       stateIndex++;
     }
     //取state = 0的情况并根据频率去加等赋值
-    if (stateVal == 0) {
+    if (stateVal === 0) {
       busyTime = newBeginNs - beginNs;
       if (sampleMap.has(freqId + '-' + freqVal)) {
         let obj = sampleMap.get(freqId + '-' + freqVal);
@@ -107,13 +117,13 @@ function handleBusyTimeLogic(initFreqResult: Array<any>, initStateResult: Array<
   }
 }
 
-self.onmessage = (e: MessageEvent) => {
+self.onmessage = (e: MessageEvent): void => {
   let leftStartNs = e.data.timeParam.leftNs + e.data.timeParam.recordStartNs;
   let rightEndNs = e.data.timeParam.rightNs + e.data.timeParam.recordStartNs;
   e.data.cpuFiliterOrder.forEach((a: number) => {
     getBusyTime(
-      e.data.result.filter((f: any) => f.cpu == a),
-      e.data.res.filter((f: any) => f.cpu == a),
+      e.data.result.filter((f: any) => f.cpu === a),
+      e.data.res.filter((f: any) => f.cpu === a),
       e.data.sampleMap,
       leftStartNs,
       rightEndNs

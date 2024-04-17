@@ -797,7 +797,8 @@
       <h2 class="mume-header fontColor">界面配置说明</h2>
 
       <p class="fontColor">
-        <img src="../figures/hiprofilercmd/systraceconfig.jpg" alt="GitHub Logo" /><br />
+        <img src="../figures/hiprofilercmd/systraceconfig.jpg" alt="GitHub Logo" />
+        <br />
         说明：
       </p>
       <ul class="fontColor">
@@ -814,13 +815,19 @@
       <h2 class="mume-header fontColor">命令行的生成和trace文件的抓取</h2>
 
       <p class="fontColor">
-        点击Probes config，如选择抓取Scheduling details。<br />
-        <img src="../figures/hiprofilercmd/Scheduling.jpg" alt="GitHub Logo" /><br />
+        点击Probes config，如选择抓取Scheduling details。
+        <br />
+        <img src="../figures/hiprofilercmd/Scheduling.jpg" alt="GitHub Logo" />
+        <br />
         再点击Record setting，在output file path输入文件名hiprofiler_data_example.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。<br />
-        <img src="../figures/hiprofilercmd/tracesetting.jpg" alt="GitHub Logo" /><br />
-        点击Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。<br />
-        <img src="../figures/hiprofilercmd/command.jpg" alt="GitHub Logo" /><br />
+        size大小是64M，抓取时长是50s。
+        <br />
+        <img src="../figures/hiprofilercmd/tracesetting.jpg" alt="GitHub Logo" />
+        <br />
+        点击Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
+        <br />
+        <img src="../figures/hiprofilercmd/command.jpg" alt="GitHub Logo" />
+        <br />
         命令参数说明：
       </p>
       <ul class="fontColor">
@@ -835,13 +842,17 @@
         <li>hitrace_time:hitrace命令行抓取时间，与hiprofiler_cmd下发的-t配置联动。</li>
       </ul>
       <p class="fontColor">
-        输入hdc_std shell，进入设备，执行命令。<br />
+        输入hdc_std shell，进入设备，执行命令。
+        <br />
         <img src="../figures/hiprofilercmd/excutecommand.jpg" alt="GitHub Logo" />
       </p>
       <p class="fontColor">
-        执行完成后，命令行会给出提示。<br />
-        <img src="../figures/hiprofilercmd/commandend.jpg" alt="GitHub Logo" /><br />
-        进入指定目录，cd /data/local/tmp 进入到目录，会看到生成的trace文件。<br />
+        执行完成后，命令行会给出提示。
+        <br />
+        <img src="../figures/hiprofilercmd/commandend.jpg" alt="GitHub Logo" />
+        <br />
+        进入指定目录，cd /data/local/tmp 进入到目录，会看到生成的trace文件。
+        <br />
         <img src="../figures/hiprofilercmd/htrace.jpg" alt="GitHub Logo" />
       </p>
     </div>
@@ -849,10 +860,10 @@
     <script>
       window.onload = () => {
         let isDark = window.location.search;
-        if (isDark.indexOf('?') != -1) {
+        if (isDark.indexOf('?') !== -1) {
           isDark = isDark.substr(1, isDark.length - 1);
         }
-        if (isDark == 'true') {
+        if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
           for (let i = 0; i < header.length; i++) {

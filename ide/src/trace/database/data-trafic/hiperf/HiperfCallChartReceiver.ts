@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ConstructorComparison } from '../../../../js-heap/model/UiStruct';
 import { TraficEnum } from '../utils/QueryEnum';
 
 interface HiPerfSampleType {
@@ -73,11 +72,11 @@ export function hiPerfCallChartDataHandler(data: any, proc: Function): void {
         if (res[i].cpuId === res[i - 1].cpuId) {
           res[i - 1].dur = res[i].startTs - res[i - 1].startTs;
         } else {
-          res[i - 1].dur = data.params.endNS - res[i - 1].startTs;
+          res[i - 1].dur = data.params.recordEndNS - data.params.recordStartNS - res[i - 1].startTs;
         }
       }
       if (i === res.length - 1) {
-        res[i].dur = data.params.endNS - res[i].startTs;
+        res[i].dur = data.params.recordEndNS - data.params.recordStartNS - res[i].startTs;
       }
     }
     dataCache.sampleList = res;
@@ -166,7 +165,7 @@ function arrayBufferCallback(data: any, transfer: boolean): void {
   }
   postPerfCallChartMessage(data, transfer, perfCallChart, len);
 }
-function postPerfCallChartMessage(data: any, transfer: boolean, perfCallChart: PerfCallChart, len: number) {
+function postPerfCallChartMessage(data: any, transfer: boolean, perfCallChart: PerfCallChart, len: number): void {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,
@@ -238,7 +237,7 @@ export function filterPerfCallChartData(
   setDataSource(data, dataSource);
   return dataSource;
 }
-function setDataSource(data: any, dataSource: DataSource) {
+function setDataSource(data: any, dataSource: DataSource): void {
   Reflect.ownKeys(data).map((kv: string | symbol): void => {
     let index = data[kv as string] as number;
     dataSource.startTs.push(dataCache.startTs[index]);
@@ -257,7 +256,7 @@ function combinePerfSampleByCallChainId(sampleList: Array<any>, params: any): an
   return combineChartData(
     sampleList.map((sample) => {
       let perfSample: any = {};
-      perfSample.children = new Array<any>();
+      perfSample.children = [];
       perfSample.children[0] = {};
       perfSample.depth = -1;
       perfSample.callchainId = sample.callchainId;
@@ -288,7 +287,7 @@ function combineChartData(samples: any, params: any): Array<any> {
       stackTopSymbol.cpuId = sample.cpuId;
       stackTopSymbol.eventCount = sample.eventCount;
       setDur(stackTopSymbol);
-      sample.children = new Array<any>();
+      sample.children = [];
       sample.children.push(stackTopSymbol);
       // 每一项都和combineSample对比
       if (combineSample.length === 0) {
@@ -346,7 +345,7 @@ function combinePerfCallData(data1: any, data2: any): void {
     } else if (data2.children && data2.children.length > 0 && (!data1.children || data1.children.length === 0)) {
       data1.endTime = data2.endTime;
       data1.totalTime = data1.endTime - data1.startTime;
-      data1.children = new Array<any>();
+      data1.children = [];
       data1.children.push(data2.children[0]);
     } else {
     }
@@ -405,7 +404,7 @@ function arrayBufferCallStackHandler(data: any, res: any[]): void {
     dataCache.callstack.set(`${item.callchainId}-${item.depth}`, item);
     let parentSymbol = dataCache.callstack.get(`${item.callchainId}-${item.depth - 1}`);
     if (parentSymbol && parentSymbol.callchainId === item.callchainId && parentSymbol.depth === item.depth - 1) {
-      parentSymbol.children = new Array<any>();
+      parentSymbol.children = [];
       parentSymbol.children.push(item);
     }
   }

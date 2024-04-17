@@ -32,7 +32,7 @@ let logicWorker: any = {
   jsCpuProfile: new ProcedureLogicWorkerJsCpuProfiler(),
 };
 
-function match(req: any) {
+function match(req: any): void {
   if (req.type === 'clear') {
     Reflect.ownKeys(logicWorker).forEach((key) => logicWorker[key].clearAll());
     DataCache.getInstance().clearAll();
@@ -54,6 +54,6 @@ function match(req: any) {
   });
 }
 
-self.onmessage = function (e: any) {
+self.onmessage = function (e: any): void {
   match(e.data);
 };

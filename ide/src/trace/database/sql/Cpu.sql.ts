@@ -12,18 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { KeyPathStruct } from "../../bean/KeyPathStruct";
-import { CpuStruct } from "../ui-worker/cpu/ProcedureWorkerCPU";
-import { query } from "../SqlLite";
-import { CpuUsage, Freq } from "../../bean/CpuUsage";
-import { Counter } from "../../bean/BoxSelection";
-import { CpuFreqStruct } from "../ui-worker/ProcedureWorkerFreq";
-import { CpuFreqLimitsStruct } from "../ui-worker/cpu/ProcedureWorkerCpuFreqLimits";
-import { CpuFreqRowLimit } from "../../component/chart/SpFreqChart";
+import { KeyPathStruct } from '../../bean/KeyPathStruct';
+import { CpuStruct } from '../ui-worker/cpu/ProcedureWorkerCPU';
+import { query } from '../SqlLite';
+import { CpuUsage, Freq } from '../../bean/CpuUsage';
+import { Counter } from '../../bean/BoxSelection';
+import { CpuFreqStruct } from '../ui-worker/ProcedureWorkerFreq';
+import { CpuFreqLimitsStruct } from '../ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
+import { CpuFreqRowLimit } from '../../component/chart/SpFreqChart';
 
 export const queryCpuKeyPathData = (threads: Array<KeyPathStruct>): Promise<Array<CpuStruct>> => {
   const sqlArray: Array<string> = [];
-  sqlArray.push(` 1 = 0`);
+  sqlArray.push(' 1 = 0');
   for (const thread of threads) {
     sqlArray.push(` or  (tid = ${thread.tid} and ts in (${thread.tsArray}))`);
   }
@@ -151,8 +151,11 @@ export const getTabCpuFreq = (cpus: Array<number>, leftNs: number, rightNs: numb
     { $leftNS: leftNs, $rightNS: rightNs }
   );
 
-
-export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
+export const getTabCounters = (
+  processFilterIds: Array<number>,
+  virtualFilterIds: Array<number>,
+  startTime: number
+): Promise<any> => {
   let processSql = `select
         t1.filter_id as trackId,
         t2.name,
@@ -199,7 +202,7 @@ export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds
   }
   return query<Counter>('getTabCounters', sql, {});
 };
-export const getTabCpuByProcess = (cpus: Array<number>, leftNS: number, rightNS: number) =>
+export const getTabCpuByProcess = (cpus: Array<number>, leftNS: number, rightNS: number): Promise<any[]> =>
   query<any>(
     'getTabCpuByProcess',
     `
@@ -222,8 +225,8 @@ export const getTabCpuByProcess = (cpus: Array<number>, leftNS: number, rightNS:
       wallDuration desc;`,
     { $rightNS: rightNS, $leftNS: leftNS }
   );
-export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: number) =>
-  query<any>(
+export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: number): Promise<unknown[]> =>
+  query<unknown>(
     'getTabCpuByThread',
     `
     select
@@ -326,7 +329,7 @@ export const queryCpuMax = (): Promise<Array<any>> =>
     desc limit 1;`
   );
 
-export const queryCpuDataCount = () =>
+export const queryCpuDataCount = (): Promise<unknown[]> =>
   query('queryCpuDataCount', 'select count(1) as count,cpu from thread_state where cpu not null group by cpu');
 
 export const queryCpuCount = (): Promise<Array<any>> =>
@@ -340,7 +343,7 @@ export const queryCpuCount = (): Promise<Array<any>> =>
 ) A;`
   );
 
-export const queryCpuSchedSlice = (): Promise<Array<any>> =>
+export const queryCpuSchedSlice = (): Promise<Array<unknown>> =>
   query(
     'queryCpuSchedSlice',
     `
@@ -354,7 +357,9 @@ export const queryCpuSchedSlice = (): Promise<Array<any>> =>
 export const queryCpuStateFilter = (): Promise<Array<any>> =>
   query(
     'queryCpuStateFilter',
-    `select cpu,id as filterId from cpu_measure_filter where name = 'cpu_idle' order by cpu;`,
+    `select cpu,id as filterId 
+    from cpu_measure_filter 
+    where name = 'cpu_idle' order by cpu;`,
     {}
   );
 
@@ -475,7 +480,7 @@ export const queryCpuFreqUsageData = (
     startNS: number;
     filter_id: number;
     value: number;
-    dur: number
+    dur: number;
   }>
 > =>
   query(
@@ -496,7 +501,7 @@ export const queryCpuFreqUsageData = (
 export const queryCpuFreqFilterId = (): Promise<
   Array<{
     id: number;
-    cpu: number
+    cpu: number;
   }>
 > =>
   query(

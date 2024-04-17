@@ -23,8 +23,8 @@ import { type LitSlicerTrack } from '../../../../../base-ui/slicer/lit-slicer';
 import {
   querySysLocationDetailsData,
   querySysLockDetailsData,
-  querySystemWorkData
-} from "../../../../database/sql/SqlLite.sql";
+  querySystemWorkData,
+} from '../../../../database/sql/SqlLite.sql';
 
 @element('tabpane-system-details')
 export class TabPaneSystemDetails extends BaseElement {
@@ -40,7 +40,7 @@ export class TabPaneSystemDetails extends BaseElement {
     this.queryDataByDB(valSystemDetails);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.tblSystemDetails!);
   }
@@ -50,7 +50,7 @@ export class TabPaneSystemDetails extends BaseElement {
     this.tblSystemDetails = this.shadowRoot?.querySelector<LitTable>('#tb-system-data');
     this.detailsTbl = this.shadowRoot?.querySelector<LitTable>('#tb-system-details-data');
     this.slicerTrack = this.shadowRoot?.querySelector<LitSlicerTrack>('lit-slicer-track');
-    this.tblSystemDetails!.addEventListener('row-click', (e) => {
+    this.tblSystemDetails!.addEventListener('row-click', (e): void => {
       this.detailsSource = [];
       // @ts-ignore
       let data = e.detail.data as SystemDetailsEnergy;
@@ -58,7 +58,7 @@ export class TabPaneSystemDetails extends BaseElement {
     });
   }
 
-  convertData(data: SystemDetailsEnergy) {
+  convertData(data: SystemDetailsEnergy): void {
     if (data.eventName === 'Event Name') {
       this.slicerTrack!.style.visibility = 'hidden';
       this.detailsTbl!.dataSource = [];
@@ -101,18 +101,18 @@ export class TabPaneSystemDetails extends BaseElement {
       this.detailsTbl!.dataSource = this.detailsSource;
       this.boxDetails!.style.width = '65%';
     }
-   this.detailsTblStyle();
+    this.detailsTblStyle();
   }
 
-  detailsTblStyle(){
-    this.detailsTbl!.shadowRoot?.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
+  detailsTblStyle(): void {
+    this.detailsTbl!.shadowRoot?.querySelectorAll<HTMLDivElement>('.tr').forEach((tr): void => {
       tr.style.gridTemplateColumns = '120px 1fr';
     });
-    this.detailsTbl!.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+    this.detailsTbl!.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td): void => {
       let item = td.getAttribute('title');
       td.style.fontSize = '14px';
       td.style.fontWeight = '400';
-      if (item != null && item.indexOf(':') > -1) {
+      if (item !== null && item.indexOf(':') > -1) {
         td.style.opacity = '0.9';
         td.style.lineHeight = '16px';
       } else {
@@ -122,12 +122,12 @@ export class TabPaneSystemDetails extends BaseElement {
     });
   }
 
-  queryDataByDB(val: SelectionParam | any) {
+  queryDataByDB(val: SelectionParam | any): void {
     Promise.all([
       querySystemWorkData(val.rightNs),
       querySysLockDetailsData(val.rightNs, 'POWER_RUNNINGLOCK'),
       querySysLocationDetailsData(val.rightNs, 'GNSS_STATE'),
-    ]).then((result) => {
+    ]).then((result): void => {
       let itemList: Array<any> = [];
       let systemWorkData = this.getSystemWorkData(result[0], val.leftNs, val.rightNs);
       if (systemWorkData.length > 0) {
@@ -137,13 +137,13 @@ export class TabPaneSystemDetails extends BaseElement {
       }
       let systemLockData = this.getSystemLockData(result[1], val.leftNs);
       if (systemLockData.length > 0) {
-        systemLockData.forEach((item) => {
+        systemLockData.forEach((item): void => {
           itemList.push(item);
         });
       }
       let systemLocationData = this.getSystemLocationData(result[2], val.leftNs);
       if (systemLocationData.length > 0) {
-        systemLocationData.forEach((item) => {
+        systemLocationData.forEach((item): void => {
           itemList.push(item);
         });
       }
@@ -173,8 +173,8 @@ export class TabPaneSystemDetails extends BaseElement {
     });
   }
 
-  tblSystemDetailsStyle(){
-    this.tblSystemDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+  tblSystemDetailsStyle(): void {
+    this.tblSystemDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td): void => {
       td.style.fontSize = '14px';
       if (td.getAttribute('title') === 'Event Name' || td.getAttribute('title') === 'Time') {
         td.style.fontWeight = '700';
@@ -186,13 +186,13 @@ export class TabPaneSystemDetails extends BaseElement {
     });
   }
 
-  private getSystemWorkData(data: Array<any>, leftNs: number, rightNs: number) {
+  private getSystemWorkData(data: Array<any>, leftNs: number, rightNs: number): any[] {
     let values = this.getConvertData(data);
     let lifeCycleData: Array<any> = [];
     let watchIndex: Array<string> = [];
     for (let index = 0; index < values.length; index++) {
       let filterData: any = values[index];
-      if (filterData.name == SpHiSysEnergyChart.app_name) {
+      if (filterData.name === SpHiSysEnergyChart.app_name) {
         if (filterData.eventName.indexOf('WORK_ADD') > -1) {
           watchIndex.push(filterData.workId);
           let number = watchIndex.indexOf(filterData.workId);
@@ -213,15 +213,15 @@ export class TabPaneSystemDetails extends BaseElement {
             watchIndex[number] = number + filterData.ts;
           }
         } else {
-          lifeCycleData = this.getSysDataExtend(rightNs, watchIndex, filterData, lifeCycleData)
+          lifeCycleData = this.getSysDataExtend(rightNs, watchIndex, filterData, lifeCycleData);
         }
       }
     }
     let resultData: Array<any> = [];
-    lifeCycleData.forEach((life: any) => {
+    lifeCycleData.forEach((life: any): void => {
       if (life.endData.ts >= leftNs) {
         let midData = life.rangeData;
-        midData.forEach((rang: any, index: number) => {
+        midData.forEach((rang: any, index: number): void => {
           if (rang.eventName.indexOf('WORK_STOP') > -1 && rang.ts >= leftNs) {
             resultData.push(life.startData);
             if (index - 1 >= 0 && midData[index - 1].eventName.indexOf('WORK_START') > -1) {
@@ -235,12 +235,7 @@ export class TabPaneSystemDetails extends BaseElement {
     return resultData;
   }
 
-  getSysDataExtend(
-    rightNs: number,
-    watchIndex: Array<string>,
-    filterData: any,
-    lifeCycleData: any[]
-  ): any[]{
+  getSysDataExtend(rightNs: number, watchIndex: Array<string>, filterData: any, lifeCycleData: any[]): any[] {
     let number = watchIndex.indexOf(filterData.workId);
     if (number > -1) {
       lifeCycleData[number].rangeData.push(filterData);
@@ -275,7 +270,7 @@ export class TabPaneSystemDetails extends BaseElement {
     return lifeCycleData;
   }
 
-  private getSystemLocationData(data: Array<any>, leftNs: number) {
+  private getSystemLocationData(data: Array<any>, leftNs: number): any[] {
     let values = this.getConvertData(data);
     let fillMap: Map<any, any> = new Map<any, any>();
     let leftMap: Map<any, any> = new Map<any, any>();
@@ -296,19 +291,19 @@ export class TabPaneSystemDetails extends BaseElement {
     }
 
     let locationData: Array<any> = [];
-    fillMap.forEach((value, key) => {
+    fillMap.forEach((value, key): void => {
       if (value.ts >= leftNs) {
         locationData.push(key);
         locationData.push(value);
       }
     });
-    leftMap.forEach((value, key) => {
+    leftMap.forEach((value, key): void => {
       locationData.push(value);
     });
     return locationData;
   }
 
-  private getSystemLockData(data: Array<any>, leftNs: number) {
+  private getSystemLockData(data: Array<any>, leftNs: number): any[] {
     let values = this.getConvertData(data);
     let watchIndex: Array<string> = [];
     let fillMap: Map<any, any> = new Map<any, any>();
@@ -328,25 +323,25 @@ export class TabPaneSystemDetails extends BaseElement {
       }
     }
     let lockData: Array<any> = [];
-    fillMap.forEach((value, key) => {
+    fillMap.forEach((value, key): void => {
       if (value.ts >= leftNs) {
         lockData.push(key);
         lockData.push(value);
       }
     });
-    leftMap.forEach((value, key) => {
+    leftMap.forEach((value, key): void => {
       lockData.push(value);
     });
     return lockData;
   }
 
-  private getConvertData(data: Array<any>) {
+  private getConvertData(data: Array<any>): any[] {
     let convertItem: any = {};
-    data.forEach((item: any) => {
-      if (convertItem[item.ts + item.eventName] == undefined) {
+    data.forEach((item: any): void => {
+      if (convertItem[item.ts + item.eventName] === undefined) {
         convertItem[item.ts + item.eventName] = {};
-        convertItem[item.ts + item.eventName]['ts'] = item.ts;
-        convertItem[item.ts + item.eventName]['eventName'] = item.eventName;
+        convertItem[item.ts + item.eventName].ts = item.ts;
+        convertItem[item.ts + item.eventName].eventName = item.eventName;
         convertItem[item.ts + item.eventName][item.appKey.toLocaleLowerCase()] = item.appValue;
       } else {
         convertItem[item.ts + item.eventName][item.appKey.toLocaleLowerCase()] = item.appValue;

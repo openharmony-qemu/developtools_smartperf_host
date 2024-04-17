@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import {DbPool} from "./database/SqlLite";
-import {log} from "../log/Log";
+import { DbPool } from './database/SqlLite';
+import { log } from '../log/Log';
 
 export const applicationHtml: string = `
         <style>
@@ -86,6 +86,7 @@ export const applicationHtml: string = `
             left: 0;
             right: 0;
         }
+
         :host(:not([search])) .search-vessel  {
            display: none;
         }
@@ -180,10 +181,6 @@ export const applicationHtml: string = `
             font-size: 20px;
             color: var(--dark-color1,#47A7E0);
          }
-         .chart-filter {
-            visibility: hidden;
-            z-index: -1;
-        }
         :host([chart_filter]) .chart-filter {
             display: grid;
             grid-template-rows: min-content min-content min-content max-content auto;
@@ -361,11 +358,11 @@ export const applicationHtml: string = `
             <div id="app-content" class="content">
                 <sp-welcome style="visibility:visible;top:0px;left:0px;position:absolute;z-index: 100" id="sp-welcome">
                 </sp-welcome>
-                <sp-system-trace style="visibility:hidden;position: relative;z-index: 101;" id="sp-system-trace">
+                <sp-system-trace style="visibility:hidden;z-index: 101;" id="sp-system-trace">
                 </sp-system-trace>
-                <sp-record-trace style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-trace">
+                <sp-record-trace style="overflow:auto;width:100%;height:100%;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-trace">
                 </sp-record-trace>
-                <sp-record-trace record_template='' style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-template">
+                <sp-record-trace record_template='' style="overflow:auto;width:100%;height:100%;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-template">
                 </sp-record-trace>
                 <sp-scheduling-analysis style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;" id="sp-scheduling-analysis"></sp-scheduling-analysis>
                 <sp-metrics style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 105" id="sp-metrics">
@@ -423,8 +420,7 @@ export function clearTraceFileCache(): void {
   });
 }
 
-export function postLog(filename: string, fileSize: string) {
-  log('postLog filename is: ' + filename + ' fileSize: ' + fileSize);
+export function postLog(filename: string, fileSize: string): void {
   fetch(`https://${window.location.host.split(':')[0]}:${window.location.port}/logger`, {
     method: 'POST',
     headers: {
@@ -436,10 +432,8 @@ export function postLog(filename: string, fileSize: string) {
     }),
   })
     .then((response) => response.json())
-    .then((data) => {
-    })
-    .catch((error) => {
-    });
+    .then((data) => {})
+    .catch((error) => {});
 }
 
 export function indexedDataToBufferData(sourceData: any): ArrayBuffer {
@@ -486,7 +480,7 @@ export function findFreeSizeAlgorithm(numbers: Array<number>, freeSize: number):
   return finalIndex;
 }
 
-export function getCurrentDataTime(): string[]{
+export function getCurrentDataTime(): string[] {
   let current = new Date();
   let year = '' + current.getFullYear();
   let month = ('0' + (current.getMonth() + 1)).slice(-2);

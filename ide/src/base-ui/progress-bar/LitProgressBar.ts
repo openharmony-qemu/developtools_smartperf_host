@@ -17,7 +17,7 @@ import { BaseElement, element } from '../BaseElement';
 
 @element('lit-progress-bar')
 export class LitProgressBar extends BaseElement {
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['loading'];
   }
 

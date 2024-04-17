@@ -115,7 +115,7 @@ let css = `
       }
       </style>
 `;
-const initHtmlStyle = (str: string | null, text: string | null) => {
+const initHtmlStyle = (str: string | null, text: string | null): string => {
   return replacePlaceholders(css, str!, text!);
 };
 
@@ -129,7 +129,7 @@ export class LitSlider extends BaseElement {
   private currentValue: number = 0;
   private defaultTimeText: string | undefined | null;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['percent', 'disabled-X', 'custom-slider', 'custom-line', 'custom-button', 'disabled'];
   }
 
@@ -157,7 +157,7 @@ export class LitSlider extends BaseElement {
     }
   }
 
-  get disabled() {
+  get disabled(): boolean {
     return this.getAttribute('disabled') !== null;
   }
 
@@ -194,7 +194,7 @@ export class LitSlider extends BaseElement {
     }
   }
 
-  get disabledX() {
+  get disabledX(): string {
     return this.getAttribute('disabled-X') || '';
   }
 
@@ -206,7 +206,7 @@ export class LitSlider extends BaseElement {
     }
   }
 
-  get customSlider() {
+  get customSlider(): string {
     return this.getAttribute('custom-slider') || '';
   }
 
@@ -218,7 +218,7 @@ export class LitSlider extends BaseElement {
     }
   }
 
-  get customLine() {
+  get customLine(): string {
     return this.getAttribute('custom-line') || '';
   }
 
@@ -226,7 +226,7 @@ export class LitSlider extends BaseElement {
     this.setAttribute('custom-line', value);
   }
 
-  get customButton() {
+  get customButton(): string {
     return this.getAttribute('custom-button') || '';
   }
 
@@ -234,7 +234,7 @@ export class LitSlider extends BaseElement {
     this.setAttribute('custom-button', value);
   }
 
-  get percent() {
+  get percent(): string {
     return this.getAttribute('percent') || '';
   }
 
@@ -245,7 +245,7 @@ export class LitSlider extends BaseElement {
     this.litSlider!.style.backgroundSize = resultNumber + '%';
   }
 
-  get resultUnit() {
+  get resultUnit(): string {
     return this.getAttribute('resultUnit') || '';
   }
 
@@ -258,11 +258,12 @@ export class LitSlider extends BaseElement {
   }
 
   initHtml(): string {
+    let htmlStyle = initHtmlStyle(
+      this.getAttribute('defaultColor') ? this.getAttribute('defaultColor') : '#46B1E3',
+      this.getAttribute('defaultColor') ? this.getAttribute('defaultColor') : '#46B1E3'
+    );
     return `
-        ${initHtmlStyle(
-          this.getAttribute('defaultColor') ? this.getAttribute('defaultColor') : '#46B1E3',
-          this.getAttribute('defaultColor') ? this.getAttribute('defaultColor') : '#46B1E3'
-        )}
+        ${htmlStyle}
         <slot id="slot"></slot>
         <div id='slider-con' dir="right">
             <input id="slider" type="range" max="10000000">
@@ -271,7 +272,7 @@ export class LitSlider extends BaseElement {
   }
 
   // It is called when the custom element is first inserted into the document DOM.
-  connectedCallback() {
+  connectedCallback(): void {
     this.slotEl = this.shadowRoot?.querySelector('#slot');
     this.litSliderCon = this.shadowRoot?.querySelector('#slider-con');
     // Add a slider for input event listeners
@@ -282,13 +283,13 @@ export class LitSlider extends BaseElement {
   }
 
   // @ts-ignore
-  inputKeyDownEvent = (ev) => {
+  inputKeyDownEvent = (ev): void => {
     if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
       ev.preventDefault();
     }
   };
 
-  inputChangeEvent = (event: any) => {
+  inputChangeEvent = (event: any): void => {
     if (this.litSlider) {
       this.currentValue = parseInt(this.litSlider?.value);
       let resultNumber =
@@ -307,15 +308,15 @@ export class LitSlider extends BaseElement {
     }
   };
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     this.litSlider?.removeEventListener('input', this.inputChangeEvent);
     this.litSlider?.removeEventListener('change', this.inputChangeEvent);
     this.litSlider?.removeEventListener('change', this.inputKeyDownEvent);
   }
 
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     switch (name) {
       case 'percent':
         if (newValue === null || newValue === '0%') {
@@ -330,7 +331,7 @@ export class LitSlider extends BaseElement {
     }
   }
 
-  formatSeconds(value: string) {
+  formatSeconds(value: string): string {
     let result = parseInt(value);
     let hours = Math.floor(result / 3600) < 10 ? '0' + Math.floor(result / 3600) : Math.floor(result / 3600);
     let minute =
@@ -338,12 +339,12 @@ export class LitSlider extends BaseElement {
     let second = Math.floor(result % 60) < 10 ? '0' + Math.floor(result % 60) : Math.floor(result % 60);
     let resultTime = '';
     if (hours === '00') {
-      resultTime += `00:`;
+      resultTime += '00:';
     } else {
       resultTime += `${hours}:`;
     }
     if (minute === '00') {
-      resultTime += `00:`;
+      resultTime += '00:';
     } else {
       resultTime += `${minute}:`;
     }

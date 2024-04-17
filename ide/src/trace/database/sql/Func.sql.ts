@@ -115,62 +115,46 @@ export const queryAllFuncNames = (): Promise<Array<any>> => {
   );
 };
 
-export const queryProcessAsyncFunc = (_funName?: string): Promise<Array<any>> =>
+export const queryProcessAsyncFunc = (traceRange: { startTs: number; endTs: number }): Promise<Array<any>> =>
   query(
     'queryProcessAsyncFunc',
-    `
-select tid,
-    P.pid,
-    A.name as threadName,
-    is_main_thread,
-    c.callid as track_id,
-    c.ts-D.start_ts as startTs,
-    c.dur,
-    c.name as funName,
-    c.parent_id,
-    c.id,
-    c.cookie,
-    c.depth,
-    c.argsetid
-from thread A,trace_range D
-left join callstack C on A.id = C.callid
-left join process P on P.id = A.ipid
-where startTs not null and cookie not null ${_funName ? 'funName=$funName' : ''};`,
-    {
-      funName: _funName,
-    }
-  );
-
-export const getFunDataByTid = (tid: number, ipid: number): Promise<Array<FuncStruct>> =>
-  query(
-    'getFunDataByTid',
-    `
-    select 
-    c.ts-D.start_ts as startTs,
-    c.dur,
-    c.name as funName,
-    c.argsetid,
-    c.depth,
-    c.id as id,
-    A.itid as itid,
-    A.ipid as ipid
-from thread A,trace_range D
-left join callstack C on A.id = C.callid
-where startTs not null and c.cookie is null and tid = $tid and A.ipid = $ipid`,
-    { $tid: tid, $ipid: ipid }
+    `select tid,
+        P.pid,
+        c.ts-${traceRange.startTs} as startTs,
+        c.dur,
+        c.id,
+        c.depth
+    from thread A
+    left join callstack C on A.id = C.callid
+    left join process P on P.id = A.ipid
+    where startTs not null and cookie not null;`,
+    {}
   );
 
 export const getMaxDepthByTid = (): Promise<Array<any>> =>
   query(
     'getMaxDepthByTid',
-    `
-    select
-tid,
-ipid,
-    MAX(c.depth + 1) as maxDepth
-from thread A
-left join callstack C on A.id = C.callid
-where c.ts not null and c.cookie is null group by tid,ipid`,
+    `SELECT 
+      tid,
+      ipid,
+      maxDepth 
+    FROM
+      thread T
+      LEFT JOIN (
+      SELECT
+        callid,
+        MAX( c.depth + 1 ) AS maxDepth 
+      FROM
+        callstack C 
+      WHERE
+        c.ts IS NOT NULL 
+        AND c.cookie IS NULL 
+      GROUP BY
+        callid 
+      ) C ON T.id = C.callid 
+    WHERE
+      maxDepth NOT NULL
+`,
     {}
   );
 
@@ -182,97 +166,82 @@ export const querySearchFuncData = (
 ): Promise<Array<SearchFuncBean>> =>
   query(
     'querySearchFuncData',
-    `
-        select 
-          c.ts - r.start_ts as startTime,
-          c.dur
-        from 
-          callstack c 
-        left join 
-          thread t 
-        on 
-          c.callid = t.id 
-        left join 
-          process p 
-        on 
-          t.ipid = p.id
-        left join 
-          trace_range r
-        where 
-          c.name like '${funcName}%' 
-        and 
-          t.tid = ${tIds} 
-        and
-          not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
-    `
+    `select 
+      c.ts - r.start_ts as startTime,
+      c.dur
+    from 
+      callstack c 
+    left join 
+      thread t 
+    on 
+      c.callid = t.id 
+    left join 
+      process p 
+    on 
+      t.ipid = p.id
+    left join 
+      trace_range r
+    where 
+      c.name like '${funcName}%' 
+    and 
+      t.tid = ${tIds} 
+    and
+      not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
+      `
   );
 
-export const queryFuncRowData = (
-  funcName: string,
-  tIds: number,
-  leftNS: number,
-  rightNS: number
-): Promise<Array<SearchFuncBean>> =>
+export const queryFuncRowData = (funcName: string, tIds: number): Promise<Array<SearchFuncBean>> =>
   query(
     'queryFuncRowData',
-    `
-          select 
-            c.name as funName,
-            c.ts - r.start_ts as startTime
-          from 
-            callstack c 
-          left join 
-            thread t 
-          on 
-            c.callid = t.id 
-          left join 
-            process p 
-          on 
-            t.ipid = p.id
-          left join 
-            trace_range r
-          where 
-            c.name like '${funcName}%' 
-          and 
-            t.tid = ${tIds} 
-          and
-            not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
-      `,
+    `select 
+      c.name as funName,
+      c.ts - r.start_ts as startTime,
+      t.tid as tid
+    from 
+      callstack c 
+    left join 
+      thread t 
+    on 
+      c.callid = t.id 
+    left join 
+      process p 
+    on 
+      t.ipid = p.id
+    left join 
+      trace_range r
+    where 
+      c.name like '${funcName}%' 
+    and 
+      t.tid = ${tIds} 
+              `,
     { $search: funcName }
   );
 
-export const fuzzyQueryFuncRowData = (
-  funcName: string,
-  tIds: number,
-  leftNS: number,
-  rightNS: number
-): Promise<Array<SearchFuncBean>> =>
+export const fuzzyQueryFuncRowData = (funcName: string, tIds: number): Promise<Array<SearchFuncBean>> =>
   query(
     'fuzzyQueryFuncRowData',
-    `
-          select 
-            c.name as funName,
-            c.ts - r.start_ts as startTime,
-            c.ts - r.start_ts + c.dur as endTime
-          from 
-            callstack c 
-          left join 
-            thread t 
-          on 
-            c.callid = t.id 
-          left join 
-            process p 
-          on 
-            t.ipid = p.id
-          left join 
-            trace_range r
-          where 
-            c.name like '%${funcName}%' 
-          and 
-            t.tid = ${tIds} 
-          and
-            not ((endTime < ${leftNS}) or (endTime > ${rightNS}));
-      `,
+    `select 
+        c.name as funName,
+        c.ts - r.start_ts as startTime,
+        c.ts - r.start_ts + c.dur as endTime,
+        t.tid as tid
+      from 
+        callstack c 
+      left join 
+        thread t 
+      on 
+        c.callid = t.id 
+      left join 
+        process p 
+      on 
+        t.ipid = p.id
+      left join 
+        trace_range r
+      where 
+        c.name like '%${funcName}%' 
+      and 
+        t.tid = ${tIds} 
+              `,
     { $search: funcName }
   );
 
@@ -495,7 +464,7 @@ export const queryLoopFuncNameCycle = (
             ON 
               t.ipid = p.id  
           WHERE 
-              c.name = '${funcName}' 
+              c.name like '${funcName}%'  
             AND 
               t.tid = ${tIds}
             AND NOT 
@@ -539,7 +508,7 @@ export const querySingleFuncNameCycleStates = (
               ON
                   t.ipid = p.id  
               WHERE 
-                  c.name = '${funcName}'
+                  c.name like '${funcName}%' 
               AND 
                   t.tid = ${tIds} 
               AND NOT 

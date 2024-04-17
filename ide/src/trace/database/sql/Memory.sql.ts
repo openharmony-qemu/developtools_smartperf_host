@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 //  VM Tracker Gpu Memory泳道图
-import type {SnapshotStruct} from "../ui-worker/ProcedureWorkerSnapshot";
-import {query} from "../SqlLite";
-import {GpuMemory, GpuMemoryComparison} from "../../bean/AbilityMonitor";
-import type {MemoryConfig} from "../../bean/MemoryConfig";
+import type { SnapshotStruct } from '../ui-worker/ProcedureWorkerSnapshot';
+import { query } from '../SqlLite';
+import { GpuMemory, GpuMemoryComparison } from '../../bean/AbilityMonitor';
+import type { MemoryConfig } from '../../bean/MemoryConfig';
 
 export const queryGpuMemoryData = (processId: number): Promise<Array<SnapshotStruct>> =>
   query(

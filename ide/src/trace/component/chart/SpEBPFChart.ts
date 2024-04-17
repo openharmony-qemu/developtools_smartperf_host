@@ -310,7 +310,7 @@ export class SpEBPFChart {
     return rowWrite;
   }
 
-  async initProcessDiskIOLatency(folder: TraceRow<any>):Promise<void> {
+  async initProcessDiskIOLatency(folder: TraceRow<any>): Promise<void> {
     let processes = (await getDiskIOProcess()) || [];
     for (let i = 0, len = processes.length; i < len; i++) {
       let process = processes[i];

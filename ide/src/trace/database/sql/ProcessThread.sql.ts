@@ -115,22 +115,22 @@ export const getTabBindersCount = (
     }
   );
 
-  export const querySchedThreadStates = (
-    pIds: Array<number>,
-    tIds: Array<number>,
-    leftStartNs: number,
-    rightEndNs: number
-  ): Promise<Array<any>> =>
-    query(
-      'getTabThreadStates',
-      `
+export const querySchedThreadStates = (
+  pIds: Array<number>,
+  tIds: Array<number>,
+  leftStartNs: number,
+  rightEndNs: number
+): Promise<Array<any>> =>
+  query(
+    'getTabThreadStates',
+    `
     select
       B.pid,
       B.tid,
       B.state,
-      B.dur,
+      ifnull(B.dur,0) as dur,
       B.ts,
-      B.dur + B.ts as endTs
+      ifnull(B.dur,0) + B.ts as endTs
     from
       thread_state AS B
     where
@@ -144,24 +144,23 @@ export const getTabBindersCount = (
     order by
       B.pid;
     `,
-      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-    );
-  
-  export const querySingleCutData = (
-    funcName: string,
-    tIds: string,
-    leftStartNs: number,
-    rightEndNs: number
-  ): Promise<Array<any>> =>
-    query(
-      'querySingleCutData',
-      `
+    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+  );
+
+export const querySingleCutData = (
+  funcName: string,
+  tIds: string,
+  leftStartNs: number,
+  rightEndNs: number
+): Promise<Array<any>> =>
+  query(
+    'querySingleCutData',
+    `
     select 
       c.ts as cycleStartTime,
-      c.ts + c.dur as cycleEndTime,
+      c.ts + ifnull(c.dur, 0) as cycleEndTime,
       t.tid,
-      p.pid,
-      c.dur
+      p.pid
       from
       callstack c 
     left join
@@ -179,18 +178,18 @@ export const getTabBindersCount = (
     order by
       c.ts
     `,
-      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-    );
-  
-  export const queryLoopCutData = (
-    funcName: string,
-    tIds: string,
-    leftStartNs: number,
-    rightEndNs: number
-  ): Promise<Array<any>> =>
-    query(
-      'queryLoopCutData',
-      `
+    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+  );
+
+export const queryLoopCutData = (
+  funcName: string,
+  tIds: string,
+  leftStartNs: number,
+  rightEndNs: number
+): Promise<Array<any>> =>
+  query(
+    'queryLoopCutData',
+    `
     select 
       c.ts as cycleStartTime,
       t.tid,
@@ -209,8 +208,8 @@ export const getTabBindersCount = (
     order by
       c.ts
     `,
-      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-    );
+    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+  );
 // 框选区域内sleeping的时间
 export const getTabSleepingTime = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
@@ -380,9 +379,9 @@ export const getTabBoxChildData = (
   threadId: number | undefined
 ): Promise<Array<SPTChild>> => {
   let condition = `
-      ${state != undefined && state != '' ? `and B.state = '${state}'` : ''}
-      ${processId != undefined && processId != -1 ? `and IP.pid = ${processId}` : ''}
-      ${threadId != undefined && threadId != -1 ? `and A.tid = ${threadId}` : ''}
+      ${state !== undefined && state !== '' ? `and B.state = '${state}'` : ''}
+      ${processId !== undefined && processId !== -1 ? `and IP.pid = ${processId}` : ''}
+      ${threadId !== undefined && threadId !== -1 ? `and A.tid = ${threadId}` : ''}
       ${cpus.length > 0 ? `and (B.cpu is null or B.cpu in (${cpus.join(',')}))` : ''}
   `;
   let sql = `select
@@ -916,7 +915,7 @@ export const getTabPowerDetailsData = (
         ( S.ts - TR.start_ts ) AS startNS,
         D.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
+        group_concat( ( CASE WHEN S.type = 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
         FROM
         trace_range AS TR,
         hisys_event_measure AS S
@@ -937,7 +936,7 @@ export const getTabPowerDetailsData = (
         ( S.ts - TR.start_ts ) AS startNS,
         D1.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
+        group_concat( ( CASE WHEN S.type = 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
         FROM
         trace_range AS TR,
         hisys_event_measure AS S
@@ -1020,7 +1019,7 @@ export const queryPowerData = (): Promise<
         ( S.ts - TR.start_ts ) AS startNS,
         D.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
+        group_concat( ( CASE WHEN S.type = 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
         FROM
         trace_range AS TR,
         hisys_event_measure AS S
@@ -1239,7 +1238,7 @@ export const queryAnomalyDetailedData = (leftNs: number, rightNs: number): Promi
   S.ts,
   D.data as eventName,
   D2.data as appKey,
-  group_concat((case when S.type == 1 then S.string_value else S.int_value end), ',') as Value
+  group_concat((case when S.type = 1 then S.string_value else S.int_value end), ',') as Value
   from trace_range AS TR,hisys_event_measure as S
   left join data_dict as D on D.id = S.name_id
   left join app_name as APP on APP.id = S.key_id

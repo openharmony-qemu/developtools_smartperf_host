@@ -113,15 +113,15 @@ export class LitAllocationSelect extends BaseElement {
   private selectAllocationOptions: any;
   private processDataList: Array<string> = [];
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['value', 'disabled', 'placeholder'];
   }
 
-  get defaultPlaceholder() {
+  get defaultPlaceholder(): string {
     return this.getAttribute('placeholder') || '';
   }
 
-  get placeholder() {
+  get placeholder(): string {
     return this.getAttribute('placeholder') || this.defaultPlaceholder;
   }
 
@@ -129,7 +129,7 @@ export class LitAllocationSelect extends BaseElement {
     this.setAttribute('placeholder', selectAllocationValue);
   }
 
-  get value() {
+  get value(): string {
     return this.getAttribute('value') || '';
   }
 
@@ -162,7 +162,7 @@ export class LitAllocationSelect extends BaseElement {
     }
   }
 
-  get listHeight() {
+  get listHeight(): string {
     return this.getAttribute('list-height') || '256px';
   }
 
@@ -170,7 +170,7 @@ export class LitAllocationSelect extends BaseElement {
     this.setAttribute('list-height', value);
   }
 
-  attributeChangedCallback(name: any, oldValue: any, newValue: any) {
+  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {
     switch (name) {
       case 'value':
         this.selectAllocationInputEl!.value = newValue;
@@ -184,7 +184,7 @@ export class LitAllocationSelect extends BaseElement {
   initElements(): void {
     this.selectAllocationInputContent = this.shadowRoot!.querySelector('.multipleSelect') as HTMLDivElement;
     this.addEventListener('click', () => {
-      if (this.selectAllocationOptions.style.visibility == 'visible') {
+      if (this.selectAllocationOptions.style.visibility === 'visible') {
         this.selectAllocationOptions.style.visibility = 'hidden';
         this.selectAllocationOptions.style.opacity = '0';
       } else {
@@ -199,7 +199,7 @@ export class LitAllocationSelect extends BaseElement {
     this.initData();
   }
 
-  showProcessList() {
+  showProcessList(): void {
     setTimeout(() => {
       if (this.processDataList.length > 0) {
         this.selectAllocationOptions.style.visibility = 'visible';
@@ -208,7 +208,7 @@ export class LitAllocationSelect extends BaseElement {
     }, 200);
   }
 
-  initHtml() {
+  initHtml(): string {
     return `
         ${initHtmlStyle(this.listHeight)}
         <div class="multipleSelect" tabindex="0">
@@ -224,7 +224,7 @@ export class LitAllocationSelect extends BaseElement {
         `;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     this.selectAllocationInputEl!.onkeydown = (ev): void => {
       // @ts-ignore
       if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
@@ -233,7 +233,7 @@ export class LitAllocationSelect extends BaseElement {
     };
   }
 
-  initData() {
+  initData(): void {
     this.selectAllocationInputEl = this.shadowRoot!.querySelector('input');
     this.selectAllocationOptions = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
     this.selectAllocationInputEl?.addEventListener('input', () => {

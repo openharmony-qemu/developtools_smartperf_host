@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {query} from "../SqlLite";
-import {Smaps} from "../../bean/SmapsStruct";
+import { query } from '../SqlLite';
+import { Smaps } from '../../bean/SmapsStruct';
 
 export const querySmapsExits = (): Promise<Array<any>> =>
   query(
@@ -47,6 +47,7 @@ SELECT (A.timestamp - B.start_ts) as startNS, sum(virtaul_size) *1024 as max_val
     { $rightNs: rightNs, $leftNs: leftNs, $dur: dur }
   );
 
+  
 export const getTabSmapsData = (leftNs: number, rightNs: number, dur: number): Promise<Array<Smaps>> =>
   query<Smaps>(
     'getTabSmapsData',

@@ -17,10 +17,10 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { log } from '../../../../../log/Log';
-import { Smaps, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct';
+import { Smaps, TYPE_STRING } from '../../../../bean/SmapsStruct';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { SpSystemTrace } from '../../../SpSystemTrace';
-import {getTabSmapsData, getTabSmapsSampleData} from "../../../../database/sql/Smaps.sql";
+import { getTabSmapsData, getTabSmapsSampleData } from '../../../../database/sql/Smaps.sql';
 @element('tabpane-smaps-sample')
 export class TabPaneSmapsSample extends BaseElement {
   private tblSmapsSample: LitTable | null | undefined;
@@ -49,10 +49,10 @@ export class TabPaneSmapsSample extends BaseElement {
       this.sortByColumn(evt.detail);
     });
   }
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     new ResizeObserver(() => {
-      if (this.parentElement?.clientHeight != 0) {
+      if (this.parentElement?.clientHeight !== 0) {
         // @ts-ignore
         this.tblSmapsSample?.shadowRoot?.querySelector('.table').style.height =
           this.parentElement!.clientHeight - 15 + 'px';
@@ -171,10 +171,10 @@ export class TabPaneSmapsSample extends BaseElement {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
-            // @ts-ignore
-            ? parseFloat(bSmapsSample[property]) - parseFloat(aSmapsSample[property])
-            // @ts-ignore
-            : parseFloat(aSmapsSample[property]) - parseFloat(bSmapsSample[property]);
+            ? // @ts-ignore
+              parseFloat(bSmapsSample[property]) - parseFloat(aSmapsSample[property])
+            : // @ts-ignore
+              parseFloat(aSmapsSample[property]) - parseFloat(bSmapsSample[property]);
         } else {
           // @ts-ignore
           if (bSmapsSample[property] > aSmapsSample[property]) {

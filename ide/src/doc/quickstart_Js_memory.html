@@ -797,7 +797,8 @@
       <h3 class="mume-header fontColor">Js Memory抓取配置参数</h3>
 
       <p class="fontColor">
-        <img src="../figures/Jsmemory/jsmemorysetting.jpg" alt="GitHub Logo" /><br />
+        <img src="../figures/Jsmemory/jsmemorysetting.jpg" alt="GitHub Logo" />
+        <br />
         配置参数说明：
       </p>
       <ul class="fontColor">
@@ -812,11 +813,13 @@
       </ul>
       <p class="fontColor">
         再点击Record setting，在output file path输入文件名hiprofiler_data_jsmemory.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是30s。<br />
+        size大小是64M，抓取时长是30s。
+        <br />
         <img src="../figures/Jsmemory/jsmemoryset.jpg" alt="GitHub Logo" />
       </p>
       <p class="fontColor">
-        点击Trace command，就会根据上面的配置生成抓取命令，点击Record抓取，抓取过程中会显示抓取时长。<br />
+        点击Trace command，就会根据上面的配置生成抓取命令，点击Record抓取，抓取过程中会显示抓取时长。
+        <br />
         <img src="../figures/Jsmemory/jsmemoryrecord.jpg" alt="GitHub Logo" />
       </p>
       <h2 class="mume-header fontColor">Js Memory展示说明</h2>
@@ -825,7 +828,8 @@
       <h3 class="mume-header fontColor">Js Memory泳道图展示类型</h3>
 
       <p class="fontColor">
-        堆快照类型文件的泳道图展示。<br />
+        堆快照类型文件的泳道图展示。
+        <br />
         <img src="../figures/Jsmemory/jsnapshotChart.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -837,7 +841,8 @@ Heapsnapshot：堆快照性能分析会显示网页的JavaScript对象和相关D
         </li>
       </ul>
       <p class="fontColor">
-        时间轴上分配插桩类型文件的泳道图展示。<br />
+        时间轴上分配插桩类型文件的泳道图展示。
+        <br />
         <img src="../figures/Jsmemory/jstimelineChart.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -851,8 +856,10 @@ Heaptimeline：分配时间轴显示了插桩的JavaScript内存分配随时间�
       <h3 class="mume-header fontColor">Js Memory泳道图的框选功能</h3>
 
       <p class="fontColor">
-        可以对内存的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有两个tab页。<br />
-        Summary的Tab页，主要显示了总览视图，通过类的名称来分组显示对象。<br />
+        可以对内存的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有两个tab页。
+        <br />
+        Summary的Tab页，主要显示了总览视图，通过类的名称来分组显示对象。
+        <br />
         <img src="../figures/Jsmemory/JsSummary.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -875,7 +882,8 @@ Distance：使用节点的最短简单路径显示到根的距离。
             Root为根节点，distance为0,G为上次GC之后新申请内存的实例，distance为100000000。在界面上显示为-，A、B、C、D、E、F、H为调用节点；以E为例，从A-&gt;D-&gt;F&gt;E,distance为4，从A-&gt;D-&gt;E，distance为3;从B-&gt;E,distance为2,遵循最小distance原则，E的distance为2,同理D的distance为2,F的distance为2,H的distance也为2。
           </p>
           <p class="fontColor">
-            其中第一层类的distance为该类所有实例中最小的distance,如果有实例的distance为-，类的distance也为-(-表示没有被root节点引用的实例，如下图的G)<br />
+            其中第一层类的distance为该类所有实例中最小的distance,如果有实例的distance为-，类的distance也为-(-表示没有被root节点引用的实例，如下图的G)
+            <br />
             <img src="../figures/Jsmemory/js_sample.png" alt="GitHub Logo" />
           </p>
         </li>
@@ -934,7 +942,8 @@ RetainedSize：Retained Size含义为表示当一个实例被GC回收时, 可以
         </li>
       </ul>
       <p class="fontColor">
-        Comparison的Tab页，主要显示了比较视图，显示两份快照间的不同之处，主要比较类创建与释放的实例数量。<br />
+        Comparison的Tab页，主要显示了比较视图，显示两份快照间的不同之处，主要比较类创建与释放的实例数量。
+        <br />
         <img src="../figures/Jsmemory/JsComparison.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -987,7 +996,8 @@ Size Delta：Delta的Size。
       <h3 class="mume-header fontColor">Js Memory的辅助信息功能</h3>
 
       <p class="fontColor">
-        在Summary和Comparison的Tab页，选中左边实例，右边Retainers的Tab页会显示多少个实例引用了左边选中的实例。<br />
+        在Summary和Comparison的Tab页，选中左边实例，右边Retainers的Tab页会显示多少个实例引用了左边选中的实例。
+        <br />
         <img src="../figures/Jsmemory/jsmemorycallstack.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1019,7 +1029,8 @@ RetainedSize：对象以及其相关的对象一起被删除后所释放的内�
       <h3 class="mume-header fontColor">Js Memory详细显示的过滤功能</h3>
 
       <p class="fontColor">
-        在下方的Class Filter中输入类名，可以对类名进行过滤，如下图输入array，会过滤出类名是array的相关数据。<br />
+        在下方的Class Filter中输入类名，可以对类名进行过滤，如下图输入array，会过滤出类名是array的相关数据。
+        <br />
         <img src="../figures/Jsmemory/Jsmemoryfilter.jpg" alt="GitHub Logo" />
       </p>
     </div>
@@ -1027,10 +1038,10 @@ RetainedSize：对象以及其相关的对象一起被删除后所释放的内�
     <script>
       window.onload = () => {
         let isDark = window.location.search;
-        if (isDark.indexOf('?') != -1) {
+        if (isDark.indexOf('?') !== -1) {
           isDark = isDark.substr(1, isDark.length - 1);
         }
-        if (isDark == 'true') {
+        if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
           for (let i = 0; i < header.length; i++) {

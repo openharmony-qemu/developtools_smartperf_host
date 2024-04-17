@@ -26,6 +26,12 @@ const lightBlue = {
   b: 255,
   a: 0.9,
 };
+const lightGreen = {
+  r: 132,
+  g: 200,
+  b: 112,
+  a: 0.9,
+};
 
 export class ChartStruct extends BaseStruct {
   static hoverFuncStruct: ChartStruct | undefined;
@@ -35,6 +41,13 @@ export class ChartStruct extends BaseStruct {
   depth: number = 0;
   symbol: string = '';
   lib: string = '';
+
+  id?: string;
+  eventType?: string;
+  parentId?: string;
+  self?: string; // only perf
+  eventPercent?: string; // only perf
+  title?: string;
 
   size: number = 0; // 实际size
   count: number = 0; // 实际count
@@ -131,7 +144,11 @@ export function draw(canvasCtx: CanvasRenderingContext2D, node: ChartStruct): vo
     if (node.isSearch) {
       canvasCtx.fillStyle = `rgba(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b}, ${lightBlue.a})`;
     } else {
-      canvasCtx.fillStyle = getHeatColor(node.percent);
+      if (node.isJsStack) {
+        canvasCtx.fillStyle = `rgba(${lightGreen.r}, ${lightGreen.g}, ${lightGreen.b}, ${lightGreen.a})`;
+      } else {
+        canvasCtx.fillStyle = getHeatColor(node.percent);
+      }
     }
   }
   canvasCtx.fillRect(node.frame.x, node.frame.y, node.frame.width, drawHeight);
@@ -144,15 +161,10 @@ export function draw(canvasCtx: CanvasRenderingContext2D, node: ChartStruct): vo
       canvasCtx.strokeStyle = '#000';
     }
   } else {
-    if (node.isJsStack) {
-      canvasCtx.lineWidth = 0.6;
-      canvasCtx.strokeStyle = `rgb(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b})`;
+    if (spApplication.dark) {
+      canvasCtx.strokeStyle = '#000';
     } else {
-      if (spApplication.dark) {
-        canvasCtx.strokeStyle = '#000';
-      } else {
-        canvasCtx.strokeStyle = '#fff';
-      }
+      canvasCtx.strokeStyle = '#fff';
     }
   }
   canvasCtx.strokeRect(node.frame.x, node.frame.y, node.frame.width - canvasCtx.lineWidth, drawHeight);
@@ -163,9 +175,16 @@ export function draw(canvasCtx: CanvasRenderingContext2D, node: ChartStruct): vo
     } else {
       canvasCtx.fillStyle = '#000';
     }
-    drawString(canvasCtx, node.symbol || '', 5, node.frame, node);
+    drawString(canvasCtx, splitSymbol(node), 5, node.frame, node);
   }
   node.isDraw = true;
+}
+
+function splitSymbol(node: ChartStruct): string {
+  if (node.depth === 0 || node.isProcess || node.isThread) {
+    return node.symbol;
+  }
+  return node.symbol.split(' (')[0];
 }
 
 /**

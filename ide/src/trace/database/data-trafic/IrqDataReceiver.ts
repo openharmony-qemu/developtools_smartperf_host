@@ -12,8 +12,8 @@
 // limitations under the License.
 
 import { TraficEnum } from './utils/QueryEnum';
-import {filterDataByGroup} from "./utils/DataFilter";
-import {lrqList} from "./utils/AllMemoryCache";
+import { filterDataByGroup } from './utils/DataFilter';
+import { lrqList } from './utils/AllMemoryCache';
 
 export const chartIrqDataSql = (args: any): string => {
   if (args.name === 'irq') {
@@ -74,7 +74,8 @@ trace_range t where i.callid = ${args.cpu} and i.cat = 'softirq'
 
 export function irqDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: any[], list: any[];
+    let res: any[];
+    let list: any[];
     if (!lrqList.has(data.params.cpu + data.params.name)) {
       list = proc(chartIrqDataSqlMem(data.params));
       lrqList.set(data.params.cpu + data.params.name, list);
@@ -82,11 +83,11 @@ export function irqDataReceiver(data: any, proc: Function): void {
       list = lrqList.get(data.params.cpu + data.params.name) || [];
     }
     res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width);
-    arrayBufferHandler(data, res,true);
+    arrayBufferHandler(data, res, true);
   } else {
     let sql = chartIrqDataSql(data.params);
     let res = proc(sql);
-    arrayBufferHandler(data, res,data.params.trafic !== TraficEnum.SharedArrayBuffer);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 

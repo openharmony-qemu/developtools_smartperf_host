@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-export function element(tag: string) {
-  return (el: any) => {
+export function element(tag: string): (el: any) => void {
+  return (el: any): void => {
     if (!customElements.get(tag)) {
       customElements.define(tag, el);
     }
@@ -35,11 +35,11 @@ export abstract class BaseElement extends HTMLElement {
 
   abstract initHtml(): string;
 
-  public connectedCallback() {}
+  public connectedCallback(): void {}
 
-  public disconnectedCallback() {}
+  public disconnectedCallback(): void {}
 
-  public adoptedCallback() {}
+  public adoptedCallback(): void {}
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {}
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {}
 }

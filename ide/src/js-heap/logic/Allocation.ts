@@ -28,15 +28,15 @@ export class AllocationLogic {
     this.setBottomUpTree();
   }
 
-  private setBottomUpTree() {
+  private setBottomUpTree(): void {
     let keyMap = new Map<String, AllocationFunction>();
     for (let node of this.traceNodes) {
       if (node.parentsId.length > 1) {
         node.hasParent = true;
-      } else if (node.parentsId.length == 0) {
+      } else if (node.parentsId.length === 0) {
         node.hasParent = false;
       } else {
-        if (node.parentsId[0] == -1) {
+        if (node.parentsId[0] === -1) {
           node.hasParent = false;
         } else {
           node.hasParent = true;
@@ -45,7 +45,9 @@ export class AllocationLogic {
       // combine node
       if (keyMap.has(node.name + node.functionIndex)) {
         let uniqueNode = keyMap.get(node.name + node.functionIndex);
-        if (!uniqueNode) continue;
+        if (!uniqueNode) {
+          continue;
+        }
         uniqueNode.size += node.size;
         uniqueNode.count += node.count;
         uniqueNode.liveSize += node.liveSize;
@@ -66,14 +68,14 @@ export class AllocationLogic {
 
   private getNodeById(id: number): AllocationFunction | null {
     for (let func of this.bottomUpList) {
-      if (func.id == id) {
+      if (func.id === id) {
         return func;
       }
     }
     return null;
   }
 
-  private getFunctionStack(node: AllocationFunction, functionList: Array<HeapTraceFunctionInfo>) {
+  private getFunctionStack(node: AllocationFunction, functionList: Array<HeapTraceFunctionInfo>): void {
     functionList.push(this.fileStruct.snapshotStruct.functionInfos[node.functionIndex]);
     if (node.parentsId.length > 0) {
       for (let parentId of node.parentsId) {
@@ -98,7 +100,7 @@ export class AllocationLogic {
    * node has multi parent because bottom up combine multi node
    * @param node selected node
    */
-  public getParent(node: AllocationFunction) {
+  public getParent(node: AllocationFunction): void {
     if (node.hasParent) {
       if (node.parentsId.length > 1) {
         for (let childrenId of node.parentsId) {
@@ -111,7 +113,9 @@ export class AllocationLogic {
         }
       } else if ((node.parentsId.length = 1)) {
         let childrenId = node.parentsId[0];
-        if (!node.parents) node.parents = new Array<AllocationFunction>();
+        if (!node.parents) {
+          node.parents = [];
+        }
         let children = this.traceNodes[childrenId - 1].clone();
         children.size = node.size;
         children.count = node.count;
@@ -146,7 +150,7 @@ export class AllocationLogic {
    */
   public getNodeStack(allocationNodeId: number): Array<HeapTraceFunctionInfo> {
     let currentNode = this.getNodeById(allocationNodeId);
-    let functionList = new Array<HeapTraceFunctionInfo>();
+    let functionList: HeapTraceFunctionInfo[] = [];
     if (currentNode) {
       this.getFunctionStack(currentNode, functionList);
     }

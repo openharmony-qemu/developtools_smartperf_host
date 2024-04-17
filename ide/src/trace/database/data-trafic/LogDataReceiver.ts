@@ -74,14 +74,22 @@ export const chartLogDataMemorySql = (args: any): string => {
           ORDER BY l.seq`;
 };
 
-export function logDataReceiver(data: any, proc: Function) {
+export function logDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
     if (!hiLogList.has(data.params.id)) {
       let sql = chartLogDataMemorySql(data.params);
       hiLogList.set(data.params.id, proc(sql));
     }
     let list = hiLogList.get(data.params.id) || [];
-    let res = filterDataByGroupLayer(list || [], 'depth','startTs', 'dur', data.params.startNS, data.params.endNS, data.params.width);
+    let res = filterDataByGroupLayer(
+      list || [],
+      'depth',
+      'startTs',
+      'dur',
+      data.params.startNS,
+      data.params.endNS,
+      data.params.width
+    );
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
     let sql = chartLogDataSql(data.params);
@@ -90,7 +98,7 @@ export function logDataReceiver(data: any, proc: Function) {
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
+function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let id = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs);
   let pid = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);
@@ -113,13 +121,13 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startTs: startTs.buffer,
-          pid: pid.buffer,
-          tid: tid.buffer,
-          dur: dur.buffer,
-          depth: depth.buffer,
-        }
+            id: id.buffer,
+            startTs: startTs.buffer,
+            pid: pid.buffer,
+            tid: tid.buffer,
+            dur: dur.buffer,
+            depth: depth.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,

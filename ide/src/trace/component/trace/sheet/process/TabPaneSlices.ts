@@ -23,6 +23,7 @@ import { LitSearch } from '../../search/Search';
 import { resizeObserver } from '../SheetUtils';
 import { getTabSlicesAsyncFunc } from '../../../../database/sql/Func.sql';
 import { getTabSlices } from '../../../../database/sql/ProcessThread.sql';
+import { FuncStruct } from '.././../../../database/ui-worker/ProcedureWorkerFunc';
 
 @element('tabpane-slices')
 export class TabPaneSlices extends BaseElement {
@@ -30,15 +31,15 @@ export class TabPaneSlices extends BaseElement {
   private slicesRange: HTMLLabelElement | null | undefined;
   private slicesSource: Array<SelectionData> = [];
   private currentSelectionParam: SelectionParam | undefined;
-  private flag: boolean = false;
 
   set data(slicesParam: SelectionParam | any) {
     if (this.currentSelectionParam === slicesParam) {
       return;
     }
     this.currentSelectionParam = slicesParam;
-    this.slicesRange!.textContent =
-      `Selected range: ${  parseFloat(((slicesParam.rightNs - slicesParam.leftNs) / 1000000.0).toFixed(5))  } ms`;
+    this.slicesRange!.textContent = `Selected range: ${parseFloat(
+      ((slicesParam.rightNs - slicesParam.leftNs) / 1000000.0).toFixed(5)
+    )} ms`;
     let asyncNames: Array<string> = [];
     let asyncPid: Array<number> = [];
     slicesParam.funAsync.forEach((it: any) => {
@@ -46,6 +47,8 @@ export class TabPaneSlices extends BaseElement {
       asyncPid.push(it.pid);
     });
     this.slicesTbl!.loading = true;
+    let filterNameEL: HTMLInputElement | undefined | null =
+      this.shadowRoot?.querySelector<HTMLInputElement>('#filterName');
     getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {
       getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs).then(
         (res2) => {
@@ -66,8 +69,12 @@ export class TabPaneSlices extends BaseElement {
             count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
             count.occurrences = sumOcc;
             processSlicesResult.splice(0, 0, count);
-            this.slicesSource = processSlicesResult;
-            this.slicesTbl!.recycleDataSource = processSlicesResult;
+            if (filterNameEL && filterNameEL.value.trim() !== '') {
+              this.findName(filterNameEL.value);
+            } else {
+              this.slicesSource = processSlicesResult;
+              this.slicesTbl!.recycleDataSource = processSlicesResult;
+            }
           } else {
             this.slicesSource = [];
             this.slicesTbl!.recycleDataSource = this.slicesSource;
@@ -85,53 +92,62 @@ export class TabPaneSlices extends BaseElement {
       this.sortByColumn(evt.detail);
     });
     // @ts-ignore
-    let testData;
-    this.slicesTbl!.addEventListener('contextmenu', async (evt) => {
-      let spApplication = document.querySelector('body > sp-application') as SpAllocations;
-      let spSystemTrace = spApplication?.shadowRoot?.querySelector(
-        'div > div.content > sp-system-trace'
-      ) as SpSystemTrace;
-      let search = spApplication.shadowRoot?.querySelector('#lit-search') as LitSearch;
-      spSystemTrace?.visibleRows.forEach((it) => {
-        it.highlight = false;
-        it.draw();
-      });
-      spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
+    let data;
+    this.slicesTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
-      await spSystemTrace!.searchFunction([], testData.name).then((mixedResults) => {
-        if (mixedResults && mixedResults.length === 0) {
-          return;
-        }
-        // @ts-ignore
-        search.list = mixedResults.filter((item) => item.funName === testData.name);
-        const sliceRowList: Array<TraceRow<any>> = [];
-        // 框选的slice泳道
-        for (let row of spSystemTrace.rangeSelect.rangeTraceRow!) {
-          if (row.rowType === 'func') {
-            sliceRowList.push(row);
-          }
-          if (row.childrenList) {
-            for (const childrenRow of row.childrenList) {
-              if (childrenRow.rowType === 'func') {
-                sliceRowList.push(childrenRow);
-              }
-            }
-          }
-        }
-        if (sliceRowList.length === 0) {
-          return;
-        }
-        // @ts-ignore
-        this.slicesTblFreshSearchSelect(search, sliceRowList, testData, spSystemTrace);
-      });
+      data = evt.detail.data;
     });
-    this.slicesTbl!.addEventListener('row-click', async (evt) => {
+    this.slicesTbl!.addEventListener('click', () => {
+      FuncStruct.funcSelect = false;
       // @ts-ignore
-      testData = evt.detail.data;  
+      this.orgnazitionData(data);
+    });
+    this.slicesTbl!.addEventListener('contextmenu', () => {
+      FuncStruct.funcSelect = true;
+      // @ts-ignore
+      this.orgnazitionData(data);
     });
     this.shadowRoot?.querySelector('#filterName')?.addEventListener('input', (e) => {
       // @ts-ignore
       this.findName(e.target.value);
+    });
+  }
+  async orgnazitionData(data: Object): Promise<void> {
+    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spSystemTrace = spApplication?.shadowRoot?.querySelector(
+      'div > div.content > sp-system-trace'
+    ) as SpSystemTrace;
+    let search = spApplication.shadowRoot?.querySelector('#lit-search') as LitSearch;
+    spSystemTrace?.visibleRows.forEach((it) => {
+      it.highlight = false;
+      it.draw();
+    });
+    spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
+    // @ts-ignore
+    await spSystemTrace!.searchFunction([], data.name).then((mixedResults) => {
+      if (mixedResults && mixedResults.length === 0) {
+        return;
+      }
+      // @ts-ignore
+      search.list = mixedResults.filter((item) => item.funName === data.name);
+      const sliceRowList: Array<TraceRow<any>> = [];
+      // 框选的slice泳道
+      for (let row of spSystemTrace.rangeSelect.rangeTraceRow!) {
+        if (row.rowType === 'func') {
+          sliceRowList.push(row);
+        }
+        if (row.childrenList) {
+          for (const childrenRow of row.childrenList) {
+            if (childrenRow.rowType === 'func') {
+              sliceRowList.push(childrenRow);
+            }
+          }
+        }
+      }
+      if (sliceRowList.length === 0) {
+        return;
+      }
+      this.slicesTblFreshSearchSelect(search, sliceRowList, data, spSystemTrace);
     });
   }
 
@@ -147,9 +163,11 @@ export class TabPaneSlices extends BaseElement {
     // search 到的内容与框选泳道的内容取并集
     for (const searchItem of search.list) {
       for (const traceRow of sliceRowList) {
-        if (Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
-          Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
-          !rangeSelectList.includes(searchItem)) {
+        if (
+          Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
+            Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
+          !rangeSelectList.includes(searchItem)
+        ) {
           // 异步调用栈
           if (traceRow.asyncFuncName) {
             if (`${searchItem.pid}` === `${traceRow.asyncFuncNamePID}`) {
@@ -168,7 +186,7 @@ export class TabPaneSlices extends BaseElement {
     if (rangeSelectList.length === 0) {
       return;
     }
-    input.value = data.name
+    input.value = data.name;
     search.list = rangeSelectList;
     search.total = search.list.length;
     search.index = spSystemTrace!.showStruct(true, 1, search.list);
@@ -228,9 +246,9 @@ export class TabPaneSlices extends BaseElement {
           // @ts-ignore
           return slicesSort === 2
             ? // @ts-ignore
-            parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
+              parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
             : // @ts-ignore
-            parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
+              parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
         } else {
           // @ts-ignore
           if (slicesRightData[property] > slicesLeftData[property]) {
@@ -260,10 +278,10 @@ export class TabPaneSlices extends BaseElement {
     let searchData: Array<SelectionData> = [];
     let sumWallDuration: number = 0;
     let sumOccurrences: number = 0;
-    if(str === ''){
+    if (str === '') {
       this.slicesTbl!.recycleDataSource = this.slicesSource;
     } else {
-      this.slicesSource.forEach(item => {
+      this.slicesSource.forEach((item) => {
         if (item.name.toLowerCase().indexOf(str.toLowerCase()) !== -1) {
           searchData.push(item);
           sumWallDuration += item.wallDuration;

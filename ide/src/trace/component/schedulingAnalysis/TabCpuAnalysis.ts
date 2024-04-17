@@ -48,17 +48,17 @@ export class TabCpuAnalysis extends BaseElement {
     this.schedulingSelect = this.shadowRoot?.querySelector<LitSelect>('#scheduling_select');
     this.drawer = this.shadowRoot!.querySelector<LitDrawer>('#drawer-right');
     this.drawerCpuTabs = this.shadowRoot?.querySelector<DrawerCpuTabs>('#drawer-cpu-tabs');
-    this.schedulingSelect!.onchange = (e) => {
+    this.schedulingSelect!.onchange = (e): void => {
       this.loadingPieData = true;
       this.progress!.loading = this.loadingUsage || this.loadingPieData;
       this.queryPieChartDataByType((e as any).detail.text);
     };
-    this.drawer!.onClose = (e: any) => {
+    this.drawer!.onClose = (): void => {
       this.drawerCpuTabs!.clearData();
     };
   }
 
-  init() {
+  init(): void {
     this.cpuPieMap.clear();
     this.cpuUsageGrid!.innerHTML = '';
     this.cpuUsageChart!.innerHTML = '';
@@ -74,7 +74,7 @@ export class TabCpuAnalysis extends BaseElement {
     this.loadingUsage = true;
     this.loadingPieData = true;
     this.progress!.loading = this.loadingUsage || this.loadingPieData;
-    this.queryLogicWorker('scheduling-getCpuUsage', 'query Cpu Usage Time:', (res) => {
+    this.queryLogicWorker('scheduling-getCpuUsage', 'query Cpu Usage Time:', (res): void => {
       if (res && res.length > 0) {
         this.cpuUsageGrid!.innerHTML = '';
         this.cpuUsageGrid!.append(this.createUsageItem('usage', '%'));
@@ -94,9 +94,9 @@ export class TabCpuAnalysis extends BaseElement {
     });
   }
 
-  queryPieChartDataByType(type: string) {
+  queryPieChartDataByType(type: string): void {
     SpStatisticsHttpUtil.addOrdinaryVisitAction({
-      event: 'Analysis ' + type,
+      event: `Analysis ${type}`,
       action: 'scheduling_analysis',
     });
     let tip = '';
@@ -107,7 +107,7 @@ export class TabCpuAnalysis extends BaseElement {
     } else {
       tip = 'irq:';
     }
-    this.queryLogicWorker(`scheduling-${type}`, `query ${type} Analysis Time:`, (res) => {
+    this.queryLogicWorker(`scheduling-${type}`, `query ${type} Analysis Time:`, (res): void => {
       for (let key of this.cpuPieMap.keys()) {
         this.cpuPieMap.get(key)!.config = {
           appendPadding: 10,
@@ -115,7 +115,7 @@ export class TabCpuAnalysis extends BaseElement {
           angleField: 'sum',
           colorField: 'value',
           radius: 0.8,
-          tip: (obj) => {
+          tip: (obj): string => {
             return `<div>
                                     <div>${tip}${obj.obj.value}</div> 
                                     <div>ratio:${obj.obj.ratio}%</div>
@@ -125,11 +125,9 @@ export class TabCpuAnalysis extends BaseElement {
           label: {
             type: 'outer',
             color:
-              type !== 'CPU Idle'
-                ? undefined
-                : (it) => {
-                    return pieChartColors[(it as any).value];
-                  },
+              type !== 'CPU Idle' ? undefined : (it): string => {
+                return pieChartColors[(it as any).value];
+              },
           },
           interactions: [
             {
@@ -143,7 +141,7 @@ export class TabCpuAnalysis extends BaseElement {
     });
   }
 
-  queryLogicWorker(cpuAnalysisType: string, log: string, handler: (res: any) => void) {
+  queryLogicWorker(cpuAnalysisType: string, log: string, handler: (res: any) => void): void {
     let cpuAnalysisTime = new Date().getTime();
     procedurePool.submitWithName(
       'logic0',
@@ -159,14 +157,14 @@ export class TabCpuAnalysis extends BaseElement {
     info(log, durTime);
   }
 
-  createUsageItem(name: string, value: any) {
+  createUsageItem(name: string, value: any): HTMLDivElement {
     let div = document.createElement('div');
     div.className = 'usage_item_box';
     div.innerHTML = `<div class="usage_item">${name}</div><div class="usage_item">${value}</div>`;
     return div;
   }
 
-  createUsageChartItem(cpu: number, pie: LitChartPie) {
+  createUsageChartItem(cpu: number, pie: LitChartPie): HTMLDivElement {
     let div = document.createElement('div');
     div.className = 'usage_chart';
     div.style.cursor = 'pointer';
@@ -174,7 +172,7 @@ export class TabCpuAnalysis extends BaseElement {
             <div style="height: 40px;line-height: 40px;margin-left: 10px">CPU: ${cpu}</div>
         `;
     div.append(pie);
-    div.addEventListener('click', (event) => {
+    div.addEventListener('click', (): void => {
       if (this.loadingUsage || this.loadingPieData) {
         return;
       }

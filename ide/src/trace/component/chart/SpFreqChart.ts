@@ -125,7 +125,6 @@ export class SpFreqChart {
         traceRow,
         this.trace
       );
-      this.trace.rowsEL?.appendChild(traceRow);
       this.folderRow!.addChildTraceRow(traceRow);
     }
   }

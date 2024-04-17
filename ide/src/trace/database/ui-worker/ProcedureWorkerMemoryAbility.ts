@@ -61,6 +61,7 @@ export class MemoryAbilityRender extends Render {
         find = true;
       }
     }
+
     if (!find && memoryAbilityRow.isHover) {
       MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = undefined;
     }
@@ -84,7 +85,7 @@ export function memoryAbility(
   totalNS: number,
   frame: any,
   use: boolean
-) {
+): void {
   if (use && res.length > 0) {
     for (let i = 0; i < res.length; i++) {
       let memoryAbilityItem = res[i];
@@ -109,7 +110,7 @@ function setMemoryAbility(
   endNS: number,
   totalNS: number,
   frame: any
-) {
+): void {
   if (memoryAbilityList) {
     for (let memoryAbilityIndex = 0; memoryAbilityIndex < memoryAbilityList.length; memoryAbilityIndex++) {
       let item = memoryAbilityList[memoryAbilityIndex];
@@ -122,8 +123,8 @@ function setMemoryAbility(
         if (
           !(
             memoryAbilityIndex > 0 &&
-            (memoryAbilityList[memoryAbilityIndex - 1].frame.x || 0) == (item.frame.x || 0) &&
-            (memoryAbilityList[memoryAbilityIndex - 1].frame.width || 0) == (item.frame.width || 0)
+            (memoryAbilityList[memoryAbilityIndex - 1].frame.x || 0) === (item.frame.x || 0) &&
+            (memoryAbilityList[memoryAbilityIndex - 1].frame.width || 0) === (item.frame.width || 0)
           )
         ) {
           res.push(item);
@@ -148,7 +149,7 @@ export class MemoryAbilityMonitorStruct extends BaseStruct {
     memoryAbilityData: MemoryAbilityMonitorStruct,
     maxMemoryByte: number,
     isHover: boolean
-  ) {
+  ): void {
     if (memoryAbilityData.frame) {
       let width = memoryAbilityData.frame.width || 0;
       let index = 2;
@@ -185,7 +186,14 @@ export class MemoryAbilityMonitorStruct extends BaseStruct {
     memoryAbilityContext2D.lineWidth = 1;
   }
 
-  static setMemoryFrame(memoryNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  static setMemoryFrame(
+    memoryNode: any,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any
+  ): void {
     let memoryStartPointX: number, memoryEndPointX: number;
 
     if ((memoryNode.startNS || 0) < startNS) {

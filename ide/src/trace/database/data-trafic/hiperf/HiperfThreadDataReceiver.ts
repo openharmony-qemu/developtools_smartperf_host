@@ -80,16 +80,17 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
     perfThread.eventTypeId[i] = it.eventTypeId;
     perfThread.callChainId[i] = it.callchainId;
     if (usage) {
-      perfThread.height[i] = maxCpuCount === -1
-        ? Math.floor((it.sampleCount / (10 / intervalPerf)) * 40)
-        : Math.floor((it.sampleCount / (10 / intervalPerf) / maxCpuCount) * 40);
+      perfThread.height[i] =
+        maxCpuCount === -1
+          ? Math.floor((it.sampleCount / (10 / intervalPerf)) * 40)
+          : Math.floor((it.sampleCount / (10 / intervalPerf) / maxCpuCount) * 40);
     } else {
       perfThread.height[i] = Math.floor((it.eventCount / maxEventCount) * 40);
     }
   });
   postPerfThreadMessage(data, transfer, perfThread, res.length);
 }
-function postPerfThreadMessage(data: any, transfer: boolean, perfThread: PerfThread, len: number) {
+function postPerfThreadMessage(data: any, transfer: boolean, perfThread: PerfThread, len: number): void {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,

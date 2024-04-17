@@ -56,7 +56,7 @@ function drawEBPF(
   filter: any[],
   groupBy10MS: boolean,
   eBPFtemRow: TraceRow<EBPFChartStruct>
-) {
+): void {
   req.context.beginPath();
   let find = false;
   let hoverRect: EBPFChartStruct | undefined = undefined;
@@ -68,7 +68,7 @@ function drawEBPF(
       eBPFtemRow.hoverX >= re.frame.x &&
       eBPFtemRow.hoverX <= re.frame.x + re.frame.width
     ) {
-      if (hoverRect == undefined || re.size! > hoverRect.size!) {
+      if (hoverRect === undefined || re.size! > hoverRect.size!) {
         hoverRect = re;
         find = true;
       }
@@ -109,7 +109,7 @@ export function eBPFChart(
   }
 }
 
-function setFrameGroupBy10MS(eBPFFilters: Array<any>, startNS: number, endNS: number, frame: Rect) {
+function setFrameGroupBy10MS(eBPFFilters: Array<any>, startNS: number, endNS: number, frame: Rect): void {
   let pns = (endNS - startNS) / frame.width;
   let y = frame.y;
   for (let i = 0; i < eBPFFilters.length; i++) {
@@ -134,7 +134,7 @@ function setFrameByArr(
   frame: Rect,
   totalNS: number,
   isDiskIO: boolean
-) {
+): void {
   let list: Array<any> = [];
   let pns = (endNS - startNS) / frame.width;
   let y = frame.y;
@@ -238,7 +238,7 @@ export class EBPFChartStruct extends BaseStruct {
           height: 0,
         };
         arr[i - 1].dur = heap.startNS - arr[i - 1].startNS;
-        if (i == len - 1) {
+        if (i === len - 1) {
           heap.dur = totalNS - heap.startNS;
         }
         heap.size = arr[i - 1].size + time[i].type;

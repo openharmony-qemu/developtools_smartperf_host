@@ -50,12 +50,12 @@ export class TabPaneSdkSlice extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.tblSdkSlice!);
   }
 
-  queryDataByDB(sdkSliceVal: SelectionParam | any) {
+  queryDataByDB(sdkSliceVal: SelectionParam | any): void {
     queryTotalTime().then((res) => {
       let startTime = res[0].recordStartNS;
       let totalTime = res[0].total;
@@ -69,7 +69,7 @@ export class TabPaneSdkSlice extends BaseElement {
       }
       this.parseJson(SpSystemTrace.SDK_CONFIG_MAP);
       let sql = this.sqlMap.get(componentId);
-      if (sql == undefined) {
+      if (sql === undefined) {
         return;
       }
       getTabSdkSliceData(sql, startTime, sdkSliceVal.leftNs, sdkSliceVal.rightNs, slices, componentId).then(
@@ -77,7 +77,7 @@ export class TabPaneSdkSlice extends BaseElement {
           this.keyList = [];
           this.tblSdkSlice!.innerHTML = '';
           this.statDataArray = [];
-          if (sliceItem.length != null && sliceItem.length > 0) {
+          if (sliceItem.length !== null && sliceItem.length > 0) {
             this.initSdkSliceData(sliceItem, totalTime, sdkSliceVal);
           } else {
             this.tblSdkSlice!.recycleDataSource = [];
@@ -87,7 +87,7 @@ export class TabPaneSdkSlice extends BaseElement {
           setTimeout(() => {
             this.tblSdkSlice!.recycleDataSource = this.statDataArray;
             new ResizeObserver(() => {
-              if (this.parentElement?.clientHeight != 0) {
+              if (this.parentElement?.clientHeight !== 0) {
                 this.tblSdkSlice!.style.height = '100%';
                 this.tblSdkSlice!.reMeauseHeight();
               }
@@ -111,44 +111,54 @@ export class TabPaneSdkSlice extends BaseElement {
           this.keyList!.push(sliceKey);
         }
         let sliceValue = values[sliceKeyIndex];
-        if (this.columnMap[sliceKey] == 'TimeStamp') {
+        if (this.columnMap[sliceKey] === 'TimeStamp') {
           sliceValue = Utils.getTimeString(Number(sliceValue));
-        } else if (this.columnMap[sliceKey] == 'ClockTime') {
+        } else if (this.columnMap[sliceKey] === 'ClockTime') {
           sliceValue = Utils.getTimeStampHMS(Number(sliceValue));
-        } else if (this.columnMap[sliceKey] == 'RangTime') {
+        } else if (this.columnMap[sliceKey] === 'RangTime') {
           sliceValue = Utils.getDurString(Number(sliceValue));
-        } else if (this.columnMap[sliceKey] == 'PercentType') {
+        } else if (this.columnMap[sliceKey] === 'PercentType') {
           sliceValue = sliceValue + '%';
-        } else if (this.columnMap[sliceKey] == 'CurrencyType') {
+        } else if (this.columnMap[sliceKey] === 'CurrencyType') {
           // @ts-ignore
           sliceValue = sliceValue.toString().replace(/\B(?=(\d{3})+$)/g, ',');
-        } else if (this.columnMap[sliceKey] == 'FIXED') {
+        } else if (this.columnMap[sliceKey] === 'FIXED') {
           sliceValue = sliceValue.toFixed(2);
         }
-        if (typeof sliceValue == 'string') {
+        if (typeof sliceValue === 'string') {
           sliceValue = sliceValue.replace(/</gi, '&lt;').replace(/>/gi, '&gt;');
         }
         sliceJsonText += '"' + sliceKey + '"' + ': ' + '"' + sliceValue + '"';
-        if (sliceKeyIndex != keys.length - 1) {
+        if (sliceKeyIndex !== keys.length - 1) {
           sliceJsonText += ',';
         } else {
           sliceJsonText += '}';
         }
       }
       let sliceParseData = JSON.parse(sliceJsonText);
-      if (sliceParseData.start_ts != null && sliceParseData.end_ts != null &&
-        sliceParseData.start_ts > sliceParseData.end_ts && sliceParseData.end_ts == 0) {
+      if (
+        sliceParseData.start_ts !== null &&
+        sliceParseData.end_ts !== null &&
+        sliceParseData.start_ts > sliceParseData.end_ts &&
+        sliceParseData.end_ts === 0
+      ) {
         sliceParseData.end_ts = totalTime;
       }
-      if (this.isDateIntersection(sdkSliceVal.leftNs, sdkSliceVal.rightNs,
-        sliceParseData.start_ts, sliceParseData.end_ts)) {
+      if (
+        this.isDateIntersection(sdkSliceVal.leftNs, sdkSliceVal.rightNs, sliceParseData.start_ts, sliceParseData.end_ts)
+      ) {
         this.statDataArray.push(sliceParseData);
       }
     }
     this.tblSdkSlice!.recycleDataSource = this.statDataArray;
   }
 
-  private isDateIntersection(selectStartTime: number, selectEndTime: number, startTime: number, endTime: number) {
+  private isDateIntersection(
+    selectStartTime: number,
+    selectEndTime: number,
+    startTime: number,
+    endTime: number
+  ): boolean {
     if (selectStartTime > startTime && selectStartTime < endTime) {
       return true;
     }
@@ -165,15 +175,15 @@ export class TabPaneSdkSlice extends BaseElement {
     for (let [key, value] of map) {
       let sliceConfigObj: any = value;
       if (sliceConfigObj !== undefined) {
-        let {jsonConfig} = sliceConfigObj;
-        let {tableConfig} = JSON.parse(jsonConfig);
+        let { jsonConfig } = sliceConfigObj;
+        let { tableConfig } = JSON.parse(jsonConfig);
         if (tableConfig) {
           for (let showType of tableConfig.showType) {
             let innerTableName = this.getInnerTableName(showType);
             let type = TabUtil.getTableType(showType);
             if (type === 'slice') {
               let sliceSelectSql = 'select ';
-              for (let {column, displayName, showType: columnShowType} of showType.columns) {
+              for (let { column, displayName, showType: columnShowType } of showType.columns) {
                 this.columnMap[column] = displayName;
                 if (columnShowType.includes(3)) {
                   switch (column) {
@@ -205,7 +215,7 @@ export class TabPaneSdkSlice extends BaseElement {
     return '';
   }
 
-  initDataElement() {
+  initDataElement(): void {
     if (this.keyList) {
       this.keyList.forEach((sdkSliceItemKey) => {
         let sdkSliceEl = document.createElement('lit-table-column') as LitTableColumn;
@@ -246,7 +256,7 @@ export class TabPaneSdkSlice extends BaseElement {
         `;
   }
 
-  sortByColumn(sliceDetail: any) {
+  sortByColumn(sliceDetail: any): void {
     // @ts-ignore
     function compare(property, sliceSort, type) {
       return function (aSdkSlice: SelectionData, bSdkSlice: SelectionData) {
@@ -256,9 +266,9 @@ export class TabPaneSdkSlice extends BaseElement {
         if (type === 'number') {
           return sliceSort === 2
             ? // @ts-ignore
-            parseFloat(bSdkSlice[property]) - parseFloat(aSdkSlice[property])
+              parseFloat(bSdkSlice[property]) - parseFloat(aSdkSlice[property])
             : // @ts-ignore
-            parseFloat(aSdkSlice[property]) - parseFloat(bSdkSlice[property]);
+              parseFloat(aSdkSlice[property]) - parseFloat(bSdkSlice[property]);
         }
         // @ts-ignore
         if (bSdkSlice[property] > aSdkSlice[property]) {
@@ -282,7 +292,7 @@ export class TabPaneSdkSlice extends BaseElement {
     this.tblSdkSlice!.recycleDataSource = this.statDataArray;
   }
 
-  private getInnerTableName(showType: any) {
+  private getInnerTableName(showType: any): string {
     let inner = showType.inner;
     if (inner !== null) {
       return inner.tableName;
@@ -290,7 +300,7 @@ export class TabPaneSdkSlice extends BaseElement {
     return '';
   }
 
-  filterSliceItem(sliceItem: Array<SdkSliceSummary>, totalTime: number, sdkSliceVal: any) {
+  filterSliceItem(sliceItem: Array<SdkSliceSummary>, totalTime: number, sdkSliceVal: any): void {
     this.tblSdkSlice!.innerHTML = '';
     this.statDataArray = [];
     if (sliceItem.length > 0) {
@@ -313,11 +323,22 @@ export class TabPaneSdkSlice extends BaseElement {
           }
         });
         let sliceParseData = JSON.parse(sliceJsonText);
-        if (sliceParseData.start_ts !== null && sliceParseData.end_ts !== null &&
-          sliceParseData.start_ts > sliceParseData.end_ts && sliceParseData.end_ts === 0) {
+        if (
+          sliceParseData.start_ts !== null &&
+          sliceParseData.end_ts !== null &&
+          sliceParseData.start_ts > sliceParseData.end_ts &&
+          sliceParseData.end_ts === 0
+        ) {
           sliceParseData.end_ts = totalTime;
         }
-        if (this.isDateIntersection(sdkSliceVal.leftNs, sdkSliceVal.rightNs, sliceParseData.start_ts, sliceParseData.end_ts)) {
+        if (
+          this.isDateIntersection(
+            sdkSliceVal.leftNs,
+            sdkSliceVal.rightNs,
+            sliceParseData.start_ts,
+            sliceParseData.end_ts
+          )
+        ) {
           this.statDataArray.push(sliceParseData);
         }
       });
@@ -327,7 +348,7 @@ export class TabPaneSdkSlice extends BaseElement {
     }
   }
 
-  getFormattedSliceValue(sliceKey: string, sliceValue: any) {
+  getFormattedSliceValue(sliceKey: string, sliceValue: any): any {
     switch (this.columnMap[sliceKey]) {
       case 'TimeStamp':
         return Utils.getTimeString(Number(sliceValue));

@@ -71,13 +71,15 @@ import { nativeMemoryDataHandler } from '../NativeMemoryDataReceiver';
 import { frameAnimationReceiver, frameDynamicReceiver, frameSpacingReceiver } from '../FrameDynamicEffectReceiver';
 import {
   energySysEventReceiver,
-  hiSysEnergyAnomalyDataReceiver, hiSysEnergyPowerReceiver,
-  hiSysEnergyStateReceiver
+  hiSysEnergyAnomalyDataReceiver,
+  hiSysEnergyPowerReceiver,
+  hiSysEnergyStateReceiver,
 } from '../EnergySysEventReceiver';
-import { clearMemoryCache } from "./AllMemoryCache";
+import { clearMemoryCache } from './AllMemoryCache';
 import { cpuFreqDataReceiver } from '../cpu/CpuFreqDataReceiver';
-import { lostFrameReceiver } from './../LostFrameReceiver'
+import { lostFrameReceiver } from './../LostFrameReceiver';
 import { sliceReceiver, sliceSPTReceiver } from '../SliceReceiver';
+
 
 const traficHandlers: Map<number, any> = new Map<number, any>([]);
 export const execProtoForWorker = (data: any, proc: Function): void => traficHandlers.get(data.name)?.(data, proc);

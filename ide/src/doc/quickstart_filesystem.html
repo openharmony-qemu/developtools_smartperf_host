@@ -799,7 +799,8 @@
       <h3 class="mume-header fontColor">FileSystem抓取配置参数</h3>
 
       <p class="fontColor">
-        <img src="../figures/FileSystem/filesystemsetting.jpg" alt="GitHub Logo" /><br />
+        <img src="../figures/FileSystem/filesystemsetting.jpg" alt="GitHub Logo" />
+        <br />
         配置项说明：
       </p>
       <ul class="fontColor">
@@ -824,19 +825,27 @@ Max Unwind Level：配置抓取调用栈的最大深度。
       </ul>
       <p class="fontColor">
         再点击Record setting，在output file path输入文件名hiprofiler_data_filesystem.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。<br />
-        <img src="../figures/FileSystem/filesystemrecord.jpg" alt="GitHub Logo" /><br />
-        点击Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。<br />
-        <img src="../figures/FileSystem/FileSystemcommand.jpg" alt="GitHub Logo" /><br />
-        输入hdc_std shell，进入设备，执行命令。<br />
-        <img src="../figures/FileSystem/FileSystemexcutecommand.jpg" alt="GitHub Logo" /><br />
-        执行完成后，进入指定目录查看，在/data/local/tmp下就会生成trace文件。<br />
+        size大小是64M，抓取时长是50s。
+        <br />
+        <img src="../figures/FileSystem/filesystemrecord.jpg" alt="GitHub Logo" />
+        <br />
+        点击Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
+        <br />
+        <img src="../figures/FileSystem/FileSystemcommand.jpg" alt="GitHub Logo" />
+        <br />
+        输入hdc_std shell，进入设备，执行命令。
+        <br />
+        <img src="../figures/FileSystem/FileSystemexcutecommand.jpg" alt="GitHub Logo" />
+        <br />
+        执行完成后，进入指定目录查看，在/data/local/tmp下就会生成trace文件。
+        <br />
         <img src="../figures/FileSystem/FileSystemfile.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">FileSystem展示说明</h3>
 
       <p class="fontColor">
-        将抓取的trace文件导入smartperf界面查看。<br />
+        将抓取的trace文件导入smartperf界面查看。
+        <br />
         <img src="../figures/FileSystem/FileSystemsummary.jpg" alt="GitHub Logo" />
       </p>
       <p class="fontColor">界面布局介绍：FileSystem整体界面布局分为3个部分：</p>
@@ -863,16 +872,21 @@ Max Unwind Level：配置抓取调用栈的最大深度。
       <h3 class="mume-header fontColor">FileSystem泳道图展示</h3>
 
       <p class="fontColor">
-        FileSystem泳道图按照读操作和写操作展示，鼠标移动都泳道图上，悬浮框会以10ms为周期展示读，写类型系统调用的次数。<br />
-        <img src="../figures/FileSystem/FileSystemchart.jpg" alt="GitHub Logo" /><br />
-        按住w键放大界面，悬浮框会显示当前时刻的文件读写次数。<br />
+        FileSystem泳道图按照读操作和写操作展示，鼠标移动都泳道图上，悬浮框会以10ms为周期展示读，写类型系统调用的次数。
+        <br />
+        <img src="../figures/FileSystem/FileSystemchart.jpg" alt="GitHub Logo" />
+        <br />
+        按住w键放大界面，悬浮框会显示当前时刻的文件读写次数。
+        <br />
         <img src="../figures/FileSystem/FileSystemcount.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">FileSystem泳道图的框选功能</h3>
 
       <p class="fontColor">
-        可以对读写操作泳道图进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有五个tab页。<br />
-        FileSystem statistics的Tab页如图：<br />
+        可以对读写操作泳道图进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有五个tab页。
+        <br />
+        FileSystem statistics的Tab页如图：
+        <br />
         <img src="../figures/FileSystem/FileSystemstatistics.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -932,7 +946,8 @@ Max Duration：最大时长。
         </li>
       </ul>
       <p class="fontColor">
-        FileSystem Calltree的Tab页如图：<br />
+        FileSystem Calltree的Tab页如图：
+        <br />
         <img src="../figures/FileSystem/FileSystemCalltree.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -956,7 +971,8 @@ Weight：调用方法的执行占比。
         </li>
       </ul>
       <p class="fontColor">
-        FileSystem Events的Tab页如图：<br />
+        FileSystem Events的Tab页如图：
+        <br />
         <img src="../figures/FileSystem/FileSystemevents.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1046,7 +1062,8 @@ Backtrace：调用栈顶部函数，并显示调用栈深度。
         </li>
       </ul>
       <p class="fontColor">
-        File Descriptor History的Tab页如图：<br />
+        File Descriptor History的Tab页如图：
+        <br />
         <img src="../figures/FileSystem/FileSystemhistory.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1088,7 +1105,8 @@ Backtrace：调用栈顶部函数，并显示调用栈深度。
         </li>
       </ul>
       <p class="fontColor">
-        File Descriptor Time Slice的Tab页如图：<br />
+        File Descriptor Time Slice的Tab页如图：
+        <br />
         <img src="../figures/FileSystem/FileSystemtimeslice.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1126,7 +1144,8 @@ Backtrace：调用栈顶部函数，并显示调用栈深度。
       <h3 class="mume-header fontColor">FileSystem支持多种Options展示风格</h3>
 
       <p class="fontColor">
-        点击FileSystem Calltree的Tab页底部的Options，会有两个CheckBox复选框。<br />
+        点击FileSystem Calltree的Tab页底部的Options，会有两个CheckBox复选框。
+        <br />
         <img src="../figures/FileSystem/FileSystemOptions.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1147,7 +1166,8 @@ Hide System so：隐藏系统库文件。
 
       <p class="fontColor">
         点击FileSystem Calltree的Tab页底部的Sample Count
-        Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。<br />
+        Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。
+        <br />
         <img src="../figures/FileSystem/FileSystemsamplecounter.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">FileSystem功能的调用栈Group展示-数据分析支持剪裁功能</h3>
@@ -1170,29 +1190,38 @@ Hide System so：隐藏系统库文件。
       <h3 class="mume-header fontColor">FileSystem功能的调用栈Group展示支持按条件过滤</h3>
 
       <p class="fontColor">
-        在Input Filter输入关键字，会显示出带有该关键字的展示信息。<br />
+        在Input Filter输入关键字，会显示出带有该关键字的展示信息。
+        <br />
         <img src="../figures/FileSystem/FileSysteminputfilter.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">FileSystem辅助信息区展示调用栈</h3>
 
       <p class="fontColor">
-        当在详细信息区选择一个符号时，将展示与该符号相关的完整的调用栈。如下图的Heaviest Stack Trace：<br />
+        当在详细信息区选择一个符号时，将展示与该符号相关的完整的调用栈。如下图的Heaviest Stack Trace：
+        <br />
         <img src="../figures/FileSystem/FileSystemheaviesttrace.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">FileSystem的事件类型的过滤</h3>
 
       <p class="fontColor">
-        通过选择可以过滤是Open类型，还是Close类型事件。<br />
+        通过选择可以过滤是Open类型，还是Close类型事件。
+        <br />
         <img src="../figures/FileSystem/filesystemfilter.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">FileSystem的火焰图功能</h3>
 
       <p class="fontColor">
-        点击FileSystem Calltre左下角的柱状图的图标，会切换到火焰图页面。<br />
-        <img src="../figures/FileSystem/FileSystemflame.jpg" alt="GitHub Logo" /><br />
-        进入到火焰图页面，火焰图的展示跟 Filesystem Calltree 的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和Duration时长。<br />
-        <img src="../figures/FileSystem/FileSystemflameshow.jpg" alt="GitHub Logo" /><br />
-        鼠标点击火焰图，会进入下一级界面，点击上级则返回上一级界面。<br />
+        点击FileSystem Calltre左下角的柱状图的图标，会切换到火焰图页面。
+        <br />
+        <img src="../figures/FileSystem/FileSystemflame.jpg" alt="GitHub Logo" />
+        <br />
+        进入到火焰图页面，火焰图的展示跟 Filesystem Calltree
+        的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和Duration时长。
+        <br />
+        <img src="../figures/FileSystem/FileSystemflameshow.jpg" alt="GitHub Logo" />
+        <br />
+        鼠标点击火焰图，会进入下一级界面，点击上级则返回上一级界面。
+        <br />
         <img src="../figures/FileSystem/FileSystemflamelevel.jpg" alt="GitHub Logo" />
       </p>
     </div>
@@ -1200,10 +1229,10 @@ Hide System so：隐藏系统库文件。
     <script>
       window.onload = () => {
         let isDark = window.location.search;
-        if (isDark.indexOf('?') != -1) {
+        if (isDark.indexOf('?') !== -1) {
           isDark = isDark.substr(1, isDark.length - 1);
         }
-        if (isDark == 'true') {
+        if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
           for (let i = 0; i < header.length; i++) {

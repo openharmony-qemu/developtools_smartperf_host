@@ -105,7 +105,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     this.map.set('big', { chart: this.chart4!, table: this.tableBig! });
     this.setting = this.shadowRoot!.querySelector<HTMLDivElement>('#setting');
     this.cpuSetting = this.shadowRoot!.querySelector<CheckCpuSetting>('#cpu_setting');
-    this.cpuSetting!.cpuSetListener = () => {
+    this.cpuSetting!.cpuSetListener = (): void => {
       this.cpuSetting!.style.display = 'none';
       (this.shadowRoot!.querySelector('#total')! as any).style.display = 'grid';
       (this.shadowRoot!.querySelector('#small')! as any).style.display =
@@ -116,7 +116,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
         CheckCpuSetting.big_cores.length > 0 ? 'grid' : 'none';
       this.queryData();
     };
-    this.setting?.addEventListener('click', (event) => {
+    this.setting?.addEventListener('click', (): void => {
       for (let node of this.shadowRoot!.querySelectorAll('.content_grid')) {
         (node as any).style.display = 'none';
       }
@@ -130,7 +130,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     for (let key of this.map!.keys()) {
       let tab = this.map!.get(key)!.table;
       let chart = this.map!.get(key)!.chart;
-      tab!.addEventListener('row-click', (evt: any) => {
+      tab!.addEventListener('row-click', (evt: any): void => {
         let data = evt.detail.data;
         data.isSelected = true;
         // @ts-ignore
@@ -139,20 +139,20 @@ export class Top20ThreadCpuUsage extends BaseElement {
           (evt.detail as any).callBack(true);
         }
       });
-      tab!.addEventListener('column-click', (evt: any) => {
+      tab!.addEventListener('column-click', (evt: any): void => {
         this.sort[key].key = evt.detail.key;
         this.sort[key].sort = evt.detail.sort;
-        if (key == 'total') {
+        if (key === 'total') {
           this.sortByColumn(evt.detail, tab, this.data);
-        } else if (key == 'small') {
+        } else if (key === 'small') {
           this.sortByColumn(evt.detail, tab, this.dataSmall);
-        } else if (key == 'mid') {
+        } else if (key === 'mid') {
           this.sortByColumn(evt.detail, tab, this.dataMid);
-        } else if (key == 'big') {
+        } else if (key === 'big') {
           this.sortByColumn(evt.detail, tab, this.dataBig);
         }
       });
-      tab!.addEventListener('row-hover', (evt: any) => {
+      tab!.addEventListener('row-hover', (evt: any): void => {
         if (evt.detail.data) {
           let data = evt.detail.data;
           data.isHover = true;
@@ -165,15 +165,14 @@ export class Top20ThreadCpuUsage extends BaseElement {
     }
   }
 
-  sortByColumn(detail: any, table: LitTable | null | undefined, data: Array<any>) {
+  sortByColumn(detail: any, table: LitTable | null | undefined, data: Array<any>): void {
     // @ts-ignore
     function compare(threadCpuUsageProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2
-            ? parseFloat(b[threadCpuUsageProperty]) - parseFloat(a[threadCpuUsageProperty])
-            : parseFloat(a[threadCpuUsageProperty]) - parseFloat(b[threadCpuUsageProperty]);
+          return sort === 2 ? parseFloat(b[threadCpuUsageProperty]) - parseFloat(a[threadCpuUsageProperty]) :
+            parseFloat(a[threadCpuUsageProperty]) - parseFloat(b[threadCpuUsageProperty]);
         } else {
           if (sort === 2) {
             return b[threadCpuUsageProperty].toString().localeCompare(a[threadCpuUsageProperty].toString());
@@ -207,7 +206,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     table!.recycleDataSource = data;
   }
 
-  init() {
+  init(): void {
     if (!this.traceChange) {
       for (let key of this.map!.keys()) {
         this.map!.get(key)!.table.reMeauseHeight();
@@ -239,7 +238,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     }
   }
 
-  clearData() {
+  clearData(): void {
     this.traceChange = true;
     for (let key of this.map!.keys()) {
       this.map!.get(key)!.chart.dataSource = [];
@@ -249,7 +248,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
 
   queryData(): void {
     this.progress!.loading = true;
-    this.queryLogicWorker(`scheduling-Thread CpuUsage`, `query Thread Cpu Usage Analysis Time:`, (res) => {
+    this.queryLogicWorker('scheduling-Thread CpuUsage', 'query Thread Cpu Usage Analysis Time:', (res): void => {
       this.nodata!.noData = res.keys().length === 0;
       for (let key of this.map!.keys()) {
         let obj = this.map!.get(key)!;
@@ -272,7 +271,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
             bigTimeStr: it.bigTimeStr,
             midTimeStr: it.midTimeStr,
             smallTimeStr: it.smallTimeStr,
-            hideHandler: () => {
+            hideHandler: (): void => {
               let arr = source.filter((o) => o.visible === 1);
               obj.chart.dataSource = this.getArrayDataBySize(key, arr);
             },
@@ -290,16 +289,16 @@ export class Top20ThreadCpuUsage extends BaseElement {
   }
 
   private assignmentData(key: string, source: any[], obj: { chart: LitChartColumn; table: LitTable }): void {
-    if (key == 'total') {
+    if (key === 'total') {
       this.data = source;
-    } else if (key == 'small') {
+    } else if (key === 'small') {
       this.dataSmall = source;
-    } else if (key == 'mid') {
+    } else if (key === 'mid') {
       this.dataMid = source;
-    } else if (key == 'big') {
+    } else if (key === 'big') {
       this.dataBig = source;
     }
-    if (this.sort[key].key != '') {
+    if (this.sort[key].key !== '') {
       this.sortByColumn(this.sort[key], obj.table, source);
     } else {
       obj.table.recycleDataSource = source;
@@ -313,7 +312,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
       xField: 'tid',
       yField: 'total',
       seriesField: key === 'total' ? 'size' : '',
-      color: (a) => {
+      color: (a): string => {
         if (a.size === 'big core') {
           return '#2f72f8';
         } else if (a.size === 'middle core') {
@@ -324,10 +323,10 @@ export class Top20ThreadCpuUsage extends BaseElement {
           return '#0a59f7';
         }
       },
-      hoverHandler: (no) => {
+      hoverHandler: (no): void => {
         this.setHover(source, no, obj);
       },
-      tip: (a) => {
+      tip: (a): string => {
         if (a && a[0]) {
           let tip = '';
           let total = 0;
@@ -335,9 +334,8 @@ export class Top20ThreadCpuUsage extends BaseElement {
             total += obj.obj.total;
             tip = `${tip}
                                 <div style="display:flex;flex-direction: row;align-items: center;">
-                                    <div style="width: 10px;height: 5px;background-color: ${
-                                      obj.color
-                                    };margin-right: 5px"></div>
+                                    <div style="width: 10px;height: 5px;background-color: ${obj.color};
+                                    margin-right: 5px"></div>
                                     <div>${obj.type || key}:${obj.obj.timeStr}</div>
                                 </div>
                             `;
@@ -366,7 +364,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     }
   }
 
-  getArrayDataBySize(type: string, arr: Array<any>) {
+  getArrayDataBySize(type: string, arr: Array<any>): any[] {
     let data: any[] = [];
     for (let obj of arr) {
       if (type === 'total') {
@@ -415,7 +413,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     return data;
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
+  queryLogicWorker(option: string, log: string, handler: (res: any) => void): void {
     let time = new Date().getTime();
     procedurePool.submitWithName(
       'logic0',
@@ -432,7 +430,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     info(log, durTime);
   }
 
-  getTableColumns(type: string) {
+  getTableColumns(type: string): string {
     if (type === 'total') {
       return `${this.publicColumns}${this.bigColumn}${this.midColumn}${this.smallColumn}`;
     } else if (type === 'big') {

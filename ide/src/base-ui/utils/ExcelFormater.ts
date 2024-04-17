@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-const htmlStr = () => {
-  const html_start = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
+const htmlStr = (): any => {
+  const html_start = '<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
   return {
-    uri : 'data:application/vnd.ms-excel;base64,',
-    template_ExcelWorksheet : `<x:ExcelWorksheet><x:Name>{SheetName}</x:Name><x:WorksheetSource HRef="sheet{SheetIndex}.htm"/><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>`,
-    template_ListWorksheet : `<o:File HRef="sheet{SheetIndex}.htm"/>`,
-    template_WorkBook :
-    `MIME-Version: 1.0
+    uri: 'data:application/vnd.ms-excel;base64,',
+    template_ExcelWorksheet: '<x:ExcelWorksheet><x:Name>{SheetName}</x:Name><x:WorksheetSource HRef="sheet{SheetIndex}.htm"/><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>',
+    template_ListWorksheet: '<o:File HRef="sheet{SheetIndex}.htm"/>',
+    template_WorkBook:
+      `MIME-Version: 1.0
 X-Document-Type: Workbook
 Content-Type: multipart/related; boundary="----=_NextPart_dummy"
 
@@ -29,8 +29,8 @@ Content-Location: WorkBook.htm
 Content-Type: text/html; charset=windows-1252
 
 ` +
-    html_start +
-    `
+      html_start +
+      `
 <head>
 <meta name="Excel Workbook Frameset">
 <meta http-equiv="Content-Type" charset="UTF-8" content="text/html; charset=windows-1252">
@@ -57,13 +57,13 @@ Content-Type: text/xml; charset="utf-8"
     <o:File HRef="filelist.xml"/>
 </xml>
 ------=_NextPart_dummy--
-`
-  }
-}
+`,
+  };
+};
 
 export class ExcelFormater {
   static tmplCellXML = '<Cell{attributeStyleID}{attributeFormula}><Data ss:Type="{nameType}">{data}</Data></Cell>';
-  static base64 = function (s: any) {
+  static base64 = function (s: any): string {
     return window.btoa(unescape(encodeURIComponent(s)));
   };
 
@@ -79,7 +79,7 @@ export class ExcelFormater {
     for (let k = 0; k < columns.length; k++) {
       let dataIndex = columns[k].getAttribute('data-index');
       let columnName = columns[k].getAttribute('title');
-      if (columnName == '') {
+      if (columnName === '') {
         columnName = dataIndex;
       }
       let ctx = {
@@ -91,7 +91,7 @@ export class ExcelFormater {
       rowsXML += this.format(this.tmplCellXML, ctx);
     }
     rowsXML += '</Row>';
-    if (data && data.children != undefined && data.children.length > 0) {
+    if (data && data.children !== undefined && data.children.length > 0) {
       data.children.forEach((child: any) => {
         rowsXML += this.createExcelRow(columns, child);
       });
@@ -99,7 +99,7 @@ export class ExcelFormater {
     return rowsXML;
   }
 
-  static addImage(baseStr: string) {
+  static addImage(baseStr: string): string {
     return `<Row>${this.format(this.tmplCellXML, {
       attributeStyleID: '',
       nameType: 'String',
@@ -108,7 +108,7 @@ export class ExcelFormater {
     })}</Row>`;
   }
 
-  static testExport(dataSource: { columns: any[]; tables: any[]; sheetName: string }[], fileName: string) {
+  static testExport(dataSource: { columns: any[]; tables: any[]; sheetName: string }[], fileName: string): void {
     this.tablesToHtmlExcelMultipleSheet(dataSource, fileName);
   }
 
@@ -116,20 +116,20 @@ export class ExcelFormater {
     dataSource: { columns: any[]; tables: any[]; sheetName: string }[],
     fileName: string,
     image?: string
-  ) {
+  ): void {
     let sheets: any[] = [];
-    dataSource.forEach((data) => {
+    dataSource.forEach((data): void => {
       sheets.push(this.createTableData(data.columns, data.tables, image));
     });
     this.tablesToExcelTestSheet(sheets, fileName, dataSource);
   }
 
-  static createTableData(columns: any[], dataSource: any[], image?: string) {
+  static createTableData(columns: any[], dataSource: any[], image?: string): string {
     let tableData = '';
     let columnDatas = columns.map((column) => {
       let dataIndex = column.getAttribute('data-index');
       let columnName = column.getAttribute('title');
-      if (columnName == '') {
+      if (columnName === '') {
         columnName = dataIndex;
       }
       return {
@@ -144,7 +144,7 @@ export class ExcelFormater {
     );
     let columnDataIndexes = columnDatas.map((item) => item.dataIndex);
     dataSource.forEach((data, index) => {
-      if (index == 0 && image) {
+      if (index === 0 && image) {
         tableData += this.createTableRow(columnDataIndexes, data, image);
       } else {
         tableData += this.createTableRow(columnDataIndexes, data);
@@ -153,7 +153,7 @@ export class ExcelFormater {
     return tableData;
   }
 
-  static createTHead(columns: any[]) {
+  static createTHead(columns: any[]): string {
     let header = '<thead>';
     columns.forEach((column) => {
       header += `<td>${column}</td>`;
@@ -162,7 +162,7 @@ export class ExcelFormater {
     return header;
   }
 
-  static createTableRow(columns: any[], data: any, image?: any) {
+  static createTableRow(columns: any[], data: any, image?: any): string {
     let childrenData = '';
     if (data.children !== undefined) {
       data.children.forEach((child: any) => {
@@ -182,18 +182,18 @@ export class ExcelFormater {
     tables: any[],
     filename: string,
     dataSource: { columns: any[]; tables: any[]; sheetName: string }[]
-  ) {
-    const html_start = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
-    let {uri,template_ExcelWorksheet,template_ListWorksheet,template_WorkBook} = htmlStr();
-      let template_HTMLWorksheet =
-        `
+  ): void {
+    const html_start = '<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+    let { uri, template_ExcelWorksheet, template_ListWorksheet, template_WorkBook } = htmlStr();
+    let template_HTMLWorksheet =
+      `
 ------=_NextPart_dummy
 Content-Location: sheet{SheetIndex}.htm
 Content-Type: text/html; charset=windows-1252
 
 ` +
-        html_start +
-        `
+      html_start +
+      `
 <head>
     <meta http-equiv="Content-Type" charset="UTF-8" content="text/html; charset=windows-1252">
     <link id="Main-File" rel="Main-File" href="../WorkBook.htm">

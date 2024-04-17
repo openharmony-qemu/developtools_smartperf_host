@@ -169,7 +169,9 @@ export class TabPaneDmaSelectAbility extends BaseElement {
       case 'expTaskComm':
       case 'bufName':
       case 'expName':
-        this.damClickTable!.recycleDataSource = array.sort((leftData, rightData) => sortFunction(leftData, rightData, sort, column));
+        this.damClickTable!.recycleDataSource = array.sort((leftData, rightData) =>
+          sortFunction(leftData, rightData, sort, column)
+        );
         break;
       case 'startNs':
       case 'fd':
@@ -177,7 +179,9 @@ export class TabPaneDmaSelectAbility extends BaseElement {
       case 'ino':
       case 'expPid':
       case 'flag':
-        this.damClickTable!.recycleDataSource = array.sort((leftData, rightData) => sortFunction(leftData, rightData, sort, column));
+        this.damClickTable!.recycleDataSource = array.sort((leftData, rightData) =>
+          sortFunction(leftData, rightData, sort, column)
+        );
         break;
     }
   }

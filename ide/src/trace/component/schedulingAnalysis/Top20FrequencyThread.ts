@@ -26,7 +26,7 @@ import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar';
 import './TableNoData';
 import { TableNoData } from './TableNoData';
 import { getProbablyTime } from '../../database/logic-worker/ProcedureLogicWorkerCommon';
-import {queryThreads} from "../../database/sql/ProcessThread.sql";
+import { queryThreads } from '../../database/sql/ProcessThread.sql';
 import { Top20FrequencyThreadHtml } from './Top20FrequencyThread.html';
 
 @element('top20-frequency-thread')
@@ -52,14 +52,14 @@ export class Top20FrequencyThread extends BaseElement {
     this.threadSelect = this.shadowRoot!.querySelector<LitSelect>('#thread_select');
     this.frequencyThreadPie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
 
-    this.threadSelect!.onchange = (e) => {
+    this.threadSelect!.onchange = (e): void => {
       this.currentThread!.textContent = (e as any).detail.text;
       this.currentTid = parseInt((e as any).detail.value);
       this.frequencyThreadProgress!.loading = true;
       this.queryData();
     };
 
-    this.frequencyThreadTbl!.addEventListener('row-click', (evt: any) => {
+    this.frequencyThreadTbl!.addEventListener('row-click', (evt: any): void => {
       let data = evt.detail.data;
       data.isSelected = true;
       if ((evt.detail as any).callBack) {
@@ -67,13 +67,13 @@ export class Top20FrequencyThread extends BaseElement {
       }
     });
 
-    this.frequencyThreadTbl!.addEventListener('column-click', (evt: any) => {
+    this.frequencyThreadTbl!.addEventListener('column-click', (evt: any): void => {
       this.sortColumn = evt.detail.key;
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.frequencyThreadTbl!.addEventListener('row-hover', (evt: any) => {
+    this.frequencyThreadTbl!.addEventListener('row-hover', (evt: any): void => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -86,15 +86,14 @@ export class Top20FrequencyThread extends BaseElement {
     this.frequencyThreadTbl!.itemTextHandleMap.set('freq', (value) => (value === -1 ? 'unknown' : value));
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     // @ts-ignore
     function compare(frequencyThreadProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2
-            ? parseFloat(b[frequencyThreadProperty]) - parseFloat(a[frequencyThreadProperty])
-            : parseFloat(a[frequencyThreadProperty]) - parseFloat(b[frequencyThreadProperty]);
+          return sort === 2 ? parseFloat(b[frequencyThreadProperty]) - parseFloat(a[frequencyThreadProperty]) :
+            parseFloat(a[frequencyThreadProperty]) - parseFloat(b[frequencyThreadProperty]);
         } else {
           if (sort === 2) {
             return b[frequencyThreadProperty].toString().localeCompare(a[frequencyThreadProperty].toString());
@@ -116,7 +115,7 @@ export class Top20FrequencyThread extends BaseElement {
     this.frequencyThreadTbl!.recycleDataSource = this.frequencyThreadData;
   }
 
-  async init() {
+  async init(): Promise<void> {
     if (!this.traceChange) {
       if (this.frequencyThreadTbl!.recycleDataSource.length > 0) {
         this.frequencyThreadTbl?.reMeauseHeight();
@@ -131,31 +130,31 @@ export class Top20FrequencyThread extends BaseElement {
       this.threadSelect!.innerHTML = '';
       let threads = Top20FrequencyThread.threads.map((it) => {
         let option = new LitSelectOption();
-        option.setAttribute('value', it.tid + '');
+        option.setAttribute('value', `${it.tid}`);
         option.textContent = it.name;
         return option;
       });
       this.threadSelect!.append(...threads);
       this.threadSelect?.initOptions();
-      this.threadSelect!.value = Top20FrequencyThread.threads[0].tid + '';
+      this.threadSelect!.value = `${Top20FrequencyThread.threads[0].tid}`;
       this.currentThread!.textContent = Top20FrequencyThread.threads[0].name;
       this.currentTid = Top20FrequencyThread.threads[0].tid;
       this.queryData();
     }
   }
 
-  queryData() {
-    this.queryLogicWorker('scheduling-Thread Freq', 'query Thread Top 20 Frequency Time:', (res) => {
+  queryData(): void {
+    this.queryLogicWorker('scheduling-Thread Freq', 'query Thread Top 20 Frequency Time:', (res): void => {
       this.nodata!.noData =
         Top20FrequencyThread.threads === undefined ||
         Top20FrequencyThread.threads.length === 0 ||
         res === undefined ||
         res.length === 0;
-      (res as any[]).map((it: any, index: number) => {
+      (res as any[]).map((it: any, index: number): void => {
         it.no = index + 1;
       });
       this.frequencyThreadData = res;
-      if (this.sortColumn != '') {
+      if (this.sortColumn !== '') {
         this.sortByColumn({
           key: this.sortColumn,
           sort: this.sortType,
@@ -181,7 +180,7 @@ export class Top20FrequencyThread extends BaseElement {
       label: {
         type: 'outer',
       },
-      tip: (obj) => {
+      tip: (obj): string => {
         return `<div>
                              <div>freq:${obj.obj.freq === -1 ? 'unknown' : obj.obj.freq}</div> 
                              <div>cpu:${obj.obj.cpu}</div> 
@@ -190,7 +189,7 @@ export class Top20FrequencyThread extends BaseElement {
                         </div>
                 `;
       },
-      hoverHandler: (data) => {
+      hoverHandler: (data): void => {
         if (data) {
           this.frequencyThreadTbl!.setCurrentHover(data);
         } else {
@@ -205,7 +204,7 @@ export class Top20FrequencyThread extends BaseElement {
     };
   }
 
-  getPieChartData(res: any[]) {
+  getPieChartData(res: any[]): any[] {
     if (res.length > 20) {
       let pieChartArr: any[] = [];
       let other: any = {
@@ -231,14 +230,14 @@ export class Top20FrequencyThread extends BaseElement {
     return res;
   }
 
-  clearData() {
+  clearData(): void {
     this.traceChange = true;
     this.threadSelect!.innerHTML = '';
     this.frequencyThreadPie!.dataSource = [];
     this.frequencyThreadTbl!.recycleDataSource = [];
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
+  queryLogicWorker(option: string, log: string, handler: (res: any) => void): void {
     let frequencyThreadTime = new Date().getTime();
     procedurePool.submitWithName('logic0', option, { tid: this.currentTid }, undefined, handler);
     let durTime = new Date().getTime() - frequencyThreadTime;

@@ -19,7 +19,7 @@ import { BaseElement, element } from '../BaseElement';
 export class LitPopoverTitle extends BaseElement {
   private titleText: HTMLElement | null | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['title'];
   }
 
@@ -45,10 +45,12 @@ export class LitPopoverTitle extends BaseElement {
         `;
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     switch (name) {
       case 'title':
-        if (this.titleText) this.titleText.textContent = newValue;
+        if (this.titleText) {
+          this.titleText.textContent = newValue;
+        }
         break;
       default:
         break;

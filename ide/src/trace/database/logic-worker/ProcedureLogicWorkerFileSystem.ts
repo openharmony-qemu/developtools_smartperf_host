@@ -241,7 +241,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
       this.isTopDown = false;
       this.handlerMap.get(data.params.callType).isHideEvent = false;
       this.handlerMap.get(data.params.callType).isHideThread = false;
-      let filter = data.params.args.filter((item: any) => item.funcName == 'getCurrentDataFromDb');
+      let filter = data.params.args.filter((item: any) => item.funcName === 'getCurrentDataFromDb');
       // 从lib层跳转
       let libFilter = data.params.args.filter((item: any): boolean => item.funcName === 'showLibLevelData');
       // 从fun层跳转
@@ -261,7 +261,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
           symbolName: funFilter[0].funcArgs[1],
         };
       }
-      if (filter.length == 0) {
+      if (filter.length === 0) {
         // @ts-ignore
         self.postMessage({
           id: data.id,
@@ -461,7 +461,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     for (let s of stacks) {
       let st: Stack = new Stack();
       st.path = (this.dataCache.dataDict?.get(s.pathId) ?? 'Unknown Path').split('/').reverse()[0];
-      st.symbol = `${s.symbolsId == null ? s.ip : this.dataCache.dataDict?.get(s.symbolsId) ?? ''} (${st.path})`;
+      st.symbol = `${s.symbolsId === null ? s.ip : this.dataCache.dataDict?.get(s.symbolsId) ?? ''} (${st.path})`;
       st.type = st.path.endsWith('.so.1') || st.path.endsWith('.dll') || st.path.endsWith('.so') ? 0 : 1;
       arr.push(st);
     }
@@ -552,7 +552,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     this.queryData(
       this.currentEventId,
       'fileSystem-queryCallchains',
-      `select callchain_id as callChainId,depth,symbols_id as symbolsId,file_path_id as pathId,ip from ebpf_callstack`,
+      'select callchain_id as callChainId,depth,symbols_id as symbolsId,file_path_id as pathId,ip from ebpf_callstack',
       {}
     );
   }
@@ -569,7 +569,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
   }
 
   fileSystemAnalysis(type: number, samplesList: Array<FileSample>, obj?: any): Array<FileAnalysisSample> {
-    let analysisSampleList = new Array<FileAnalysisSample>();
+    let analysisSampleList: Array<FileAnalysisSample> = [];
     for (let sample of samplesList) {
       let analysisSample = new FileAnalysisSample(sample);
       let callChainList = this.dataCache.eBpfCallChainsMap.get(sample.callChainId) || [];
@@ -636,7 +636,7 @@ class FileSystemCallTreeHandler {
   currentEventId: string = '';
   isHideThread: boolean = false;
   isHideEvent: boolean = false;
-  queryData = (eventId: string, action: string, sql: string, args: any) => {};
+  queryData = (eventId: string, action: string, sql: string, args: any): void => {};
 
   constructor(type: string, queryData: any) {
     this.currentDataType = type;
@@ -777,10 +777,10 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
       totalCount += sample.dur;
       let callChains = this.createThreadAndType(sample);
       let minDepth = 2;
-      if (this.isHideEvent){
+      if (this.isHideEvent) {
         minDepth--;
       }
-      if (this.isHideThread){
+      if (this.isHideThread) {
         minDepth--;
       }
       if (callChains.length === minDepth) {
@@ -797,7 +797,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
           this.currentTreeList.push(root);
         }
         FileMerageBean.merageCallChainSample(root, callChains[topIndex], sample, false);
-        if (callChains.length > 1){
+        if (callChains.length > 1) {
           this.merageChildrenByIndex(root, callChains, topIndex, sample, isTopDown);
         }
       }
@@ -813,8 +813,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
         let fileMerageBean = new FileMerageBean(); //新增进程的节点数据
         fileMerageBean.canCharge = false;
         fileMerageBean.isProcess = true;
-        fileMerageBean.symbolName = mergeData.processName;
-        fileMerageBean.symbol = fileMerageBean.symbolName;
+        fileMerageBean.symbol = mergeData.processName;
         fileMerageBean.children.push(mergeData);
         fileMerageBean.initChildren.push(mergeData);
         fileMerageBean.dur = mergeData.dur;
@@ -840,7 +839,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
     });
     return rootMerageMap;
   }
-  private handleCurrentTreeList(totalCount: number) {
+  private handleCurrentTreeList(totalCount: number): void {
     let id = 0;
     this.currentTreeList.forEach((currentNode: any): void => {
       currentNode.total = totalCount;
@@ -923,24 +922,26 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    if (node! && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    if (node! && !isEnd) {
+      this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    }
   }
 
   setMerageName(currentNode: FileMerageBean): void {
     if (currentNode.pathId === -1) {
       currentNode.canCharge = false;
       currentNode.symbol = currentNode.ip;
-      currentNode.symbolName = currentNode.symbol;
-      currentNode.libName = '';
-      currentNode.path = '';
+      currentNode.symbol = currentNode.symbol;
+      currentNode.lib = '';
+      currentNode.lib = '';
     } else {
       const dataCache = DataCache.getInstance();
       currentNode.symbol = dataCache.dataDict?.get(currentNode.symbolsId) || currentNode.ip || 'unknown';
-      currentNode.path = dataCache.dataDict?.get(currentNode.pathId) || 'unknown';
-      currentNode.libName = setFileName(currentNode.path);
-      currentNode.lib = currentNode.libName;
+      currentNode.lib = dataCache.dataDict?.get(currentNode.pathId) || 'unknown';
+      currentNode.lib = setFileName(currentNode.lib);
+      currentNode.lib = currentNode.lib;
       currentNode.addr = currentNode.ip;
-      currentNode.symbolName = `${currentNode.symbol} (${currentNode.libName})`;
+      currentNode.symbol = `${currentNode.symbol} (${currentNode.lib})`;
     }
   }
   public resolvingAction(params: any[]): FileMerageBean[] {
@@ -1019,7 +1020,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
     }
     return sql;
   }
-  clearAll() {
+  clearAll(): void {
     this.samplesList = [];
     this.splitMapData = {};
     this.currentTreeMapData = {};
@@ -1076,7 +1077,7 @@ export class FileMerageBean extends MerageBean {
     callChain: FileCallChain,
     sample: FileSample,
     isEnd: boolean
-  ) {
+  ): void {
     if (currentNode.processName === '') {
       currentNode.ip = callChain.ip;
       currentNode.pid = sample.pid;

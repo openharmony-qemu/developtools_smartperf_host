@@ -29,7 +29,7 @@ class PerfCallChainThread {
     );
   }
 
-  queryFunc(name: string, args: any, handler: Function, action: string | null) {
+  queryFunc(name: string, args: any, handler: Function, action: string | null): void {
     this.busy = true;
     let id = this.uuid();
     this.taskMap[id] = handler;
@@ -47,7 +47,7 @@ export class PerfCallChainPool {
   maxThreadNumber: number = 0;
   works: Array<PerfCallChainThread> = [];
 
-  close = async () => {
+  close = async (): Promise<void> => {
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
       thread.worker!.terminate();
@@ -55,12 +55,12 @@ export class PerfCallChainPool {
     this.works.length = 0;
   };
 
-  init = async () => {
+  init = async (): Promise<void> => {
     await this.close();
     let thread = new PerfCallChainThread(
       new Worker(new URL('../../component/chart/PerfDataQuery', import.meta.url), { type: 'module' })
-    ); //trace/component/chart/PerfDataQuery.js
-    thread!.worker!.onmessage = (event: MessageEvent) => {
+    );
+    thread!.worker!.onmessage = (event: MessageEvent): void => {
       thread.busy = false;
       let fun = thread.taskMap[event.data.id];
       if (fun) {
@@ -68,13 +68,13 @@ export class PerfCallChainPool {
       }
       Reflect.deleteProperty(thread.taskMap, event.data.id);
     };
-    thread!.worker!.onmessageerror = (e) => {};
-    thread!.worker!.onerror = (e) => {};
+    thread!.worker!.onmessageerror = (e): void => {};
+    thread!.worker!.onerror = (e): void => {};
     thread!.busy = false;
     this.works?.push(thread!);
   };
 
-  submit(name: string, args: any, handler: Function, action: string | null) {
+  submit(name: string, args: any, handler: Function, action: string | null): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
     let thread: PerfCallChainThread;
     if (noBusyThreads.length > 0) {

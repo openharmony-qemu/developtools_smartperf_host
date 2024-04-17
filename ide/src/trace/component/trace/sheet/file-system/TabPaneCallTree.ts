@@ -140,7 +140,7 @@ export class TabPaneCallTree extends BaseElement {
           funcArgs: [{ queryFuncName: this.queryFuncName, ...callTreeSelection }],
         },
       ],
-      (results: any[]) => {
+      (results: any[]): void => {
         this.setLTableData(results);
         this.callTreeTbr!.recycleDataSource = [];
         this.frameChart!.mode = this.flameChartMode;
@@ -189,7 +189,7 @@ export class TabPaneCallTree extends BaseElement {
       });
     }
 
-    this.getDataByWorker(args, (results: any[]) => {
+    this.getDataByWorker(args, (results: any[]): void => {
       this.callTreeProgressEL!.loading = false;
       this.loadingPage.style.visibility = 'hidden';
       this.setLTableData(results);
@@ -288,8 +288,7 @@ export class TabPaneCallTree extends BaseElement {
     this.getChildTree(bean.children as Array<MerageBean>, maxId, children);
     let callTreeArr = parents.reverse().concat(children.reverse());
     for (let data of callTreeArr) {
-      data.type =
-        data.libName.endsWith('.so.1') || data.libName.endsWith('.dll') || data.libName.endsWith('.so') ? 0 : 1;
+      data.type = data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
     }
     let len = callTreeArr.length;
     this.callTreeRightSource = callTreeArr;
@@ -308,7 +307,9 @@ export class TabPaneCallTree extends BaseElement {
     let filterHeight = 0;
     new ResizeObserver((entries: ResizeObserverEntry[]): void => {
       let callTreeTabFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
-      if (callTreeTabFilter.clientHeight > 0) filterHeight = callTreeTabFilter.clientHeight;
+      if (callTreeTabFilter.clientHeight > 0) {
+        filterHeight = callTreeTabFilter.clientHeight;
+      }
       if (this.parentElement!.clientHeight > filterHeight) {
         callTreeTabFilter.style.display = 'flex';
       } else {
@@ -329,16 +330,16 @@ export class TabPaneCallTree extends BaseElement {
         if (this.callTreeTbl) {
           // @ts-ignore
           this.callTreeTbl.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 10 - 35 - headLineHeight + 'px';
+            `${this.parentElement!.clientHeight - 10 - 35 - headLineHeight}px`;
           this.callTreeTbl.reMeauseHeight();
         }
         if (this.callTreeTbr) {
           // @ts-ignore
           this.callTreeTbr.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 45 - 21 - headLineHeight + 'px';
+            `${this.parentElement!.clientHeight - 45 - 21 - headLineHeight}px`;
           this.callTreeTbr.reMeauseHeight();
         }
-        this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
+        this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24  }px`;
       }
     }).observe(this.parentElement!);
   }
@@ -352,7 +353,7 @@ export class TabPaneCallTree extends BaseElement {
     this.callTreeTbl!.rememberScrollTop = true;
     this.callTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     this.callTreeFilter!.disabledTransfer(true);
-    this.addEventListener('contextmenu', (event) => {
+    this.addEventListener('contextmenu', (event): void => {
       event.preventDefault(); // 阻止默认的上下文菜单弹框
     });
     this.rowClickEvent();
@@ -406,10 +407,10 @@ export class TabPaneCallTree extends BaseElement {
   }
 
   private handleSymbolCase(data: any, callTreeFuncArgs: any[]): void {
-    this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.symbolName }, data.item);
+    this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.symbol }, data.item);
     callTreeFuncArgs.push({
       funcName: 'splitTree',
-      funcArgs: [this.callTreeSelectedData.symbolName, false, true],
+      funcArgs: [this.callTreeSelectedData.symbol, false, true],
     });
   }
 
@@ -426,10 +427,12 @@ export class TabPaneCallTree extends BaseElement {
   }
 
   private performDataProcessing(callTreeFuncArgs: any[]): void {
-    this.getDataByWorker(callTreeFuncArgs, (result: any[]) => {
+    this.getDataByWorker(callTreeFuncArgs, (result: any[]): void => {
       this.setLTableData(result);
       this.frameChart!.data = this.callTreeDataSource;
-      if (this.isChartShow) this.frameChart?.calculateChartData();
+      if (this.isChartShow) {
+        this.frameChart?.calculateChartData();
+      }
       this.callTreeTbl!.move1px();
       if (this.callTreeSelectedData) {
         this.callTreeSelectedData.isSelected = false;
@@ -453,10 +456,10 @@ export class TabPaneCallTree extends BaseElement {
         funcName: 'resetAllNode',
         funcArgs: [],
       });
-      list.forEach((symbolName: string) => {
+      list.forEach((symbol: string) => {
         callTreeFuncArgs.push({
           funcName: 'clearSplitMapData',
-          funcArgs: [symbolName],
+          funcArgs: [symbol],
         });
       });
     }
@@ -521,7 +524,9 @@ export class TabPaneCallTree extends BaseElement {
       this.getDataByWorker(callTreeConstraintsArgs, (result: any[]) => {
         this.setLTableData(result);
         this.frameChart!.data = this.callTreeDataSource;
-        if (this.isChartShow) this.frameChart?.calculateChartData();
+        if (this.isChartShow) {
+          this.frameChart?.calculateChartData();
+        }
       });
     });
   }
@@ -701,7 +706,9 @@ export class TabPaneCallTree extends BaseElement {
     this.getDataByWorker(callTreeArgs, (result: any[]): void => {
       this.setLTableData(result);
       this.frameChart!.data = this.callTreeDataSource;
-      if (this.isChartShow) this.frameChart?.calculateChartData();
+      if (this.isChartShow) {
+        this.frameChart?.calculateChartData();
+      }
     });
   }
 

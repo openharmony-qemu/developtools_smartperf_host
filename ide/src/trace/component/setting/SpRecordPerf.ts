@@ -155,7 +155,7 @@ export class SpRecordPerf extends BaseElement {
     if (processSelect.value.length > 0) {
       let result = processSelect.value.match(/\((.+?)\)/g);
       if (result) {
-        perfConfig.process = result.toString().replaceAll('(', '').replaceAll(')', '');
+        perfConfig.process = result.toString().replace(/[()]/g, '');
       } else {
         perfConfig.process = processSelect.value;
       }
@@ -401,23 +401,23 @@ export class SpRecordPerf extends BaseElement {
     this.initRecordPerfConfig();
     this.sp = document.querySelector('sp-application') as SpApplication;
     this.recordPerfSearch = this.sp?.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
-    this.processSelect = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v[title=\'Process\']');
+    this.processSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Process']");
     this.recordProcessInput = this.processSelect?.shadowRoot?.querySelector<HTMLInputElement>('input');
     this.processInput = this.processSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    this.cpuSelect = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v[title=\'CPU\']');
+    this.cpuSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='CPU']");
     this.inputCpu = this.cpuSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    this.eventSelect = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v[title=\'Event List\']');
+    this.eventSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Event List']");
     this.inputEvent = this.eventSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    this.frequencySetInput = this.shadowRoot?.querySelector<HTMLInputElement>('input[title=\'Frequency\']');
+    this.frequencySetInput = this.shadowRoot?.querySelector<HTMLInputElement>("input[title='Frequency']");
     this.frequencySetInput!.onkeydown = (ev): void => {
       // @ts-ignore
       if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
         ev.preventDefault();
       }
     };
-    this.offCPUSwitch = this.shadowRoot?.querySelector<LitSwitch>('lit-switch[title=\'Off CPU\']');
+    this.offCPUSwitch = this.shadowRoot?.querySelector<LitSwitch>("lit-switch[title='Off CPU']");
     this.kernelChainSwitch = this.shadowRoot?.querySelector<LitSwitch>("lit-switch[title='Kernel Chain']");
-    this.callSelect = this.shadowRoot?.querySelector<LitSelect>('lit-select[title=\'Call Stack\']');
+    this.callSelect = this.shadowRoot?.querySelector<LitSelect>("lit-select[title='Call Stack']");
     this.addOptionButton!.addEventListener('click', () => {
       if (!this.startSamp) {
         return;
@@ -554,8 +554,11 @@ mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom
         type = line.substring(line.indexOf(startSign) + startSign.length, line.lastIndexOf(':')).trim();
         events = [];
         eventMap.set(type, events);
-      } else if (line.indexOf('not support') !== -1 || line.trim().length === 0 ||
-        line.indexOf('Text file busy') !== -1) {
+      } else if (
+        line.indexOf('not support') !== -1 ||
+        line.trim().length === 0 ||
+        line.indexOf('Text file busy') !== -1
+      ) {
         // do not need deal with it
       } else {
         let event: string = line.split(' ')[0];
@@ -752,7 +755,7 @@ const perfConfigList = [
   },
   {
     title: 'No Inherit',
-    des: 'Don\'t trace child processes',
+    des: "Don't trace child processes",
     hidden: true,
     type: 'switch',
     value: false,

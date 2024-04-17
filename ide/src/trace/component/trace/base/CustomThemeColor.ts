@@ -48,7 +48,7 @@ export class CustomThemeColor extends BaseElement {
    * 更新色板
    * @param colorsEl 色板的父元素
    */
-  createColorsEl(colorsEl: HTMLDivElement) {
+  createColorsEl(colorsEl: HTMLDivElement): void {
     for (let i = 0; i < this.colorsArray!.length; i++) {
       let div = document.createElement('div');
       div.className = 'color-wrap';
@@ -58,7 +58,7 @@ export class CustomThemeColor extends BaseElement {
       input.value = this.colorsArray![i];
       div.appendChild(input);
       colorsEl?.appendChild(div);
-      input.addEventListener('change', (evt: any) => {
+      input.addEventListener('change', (evt: any): void => {
         input.value = evt?.target.value;
         this.colorsArray![i] = evt?.target.value;
       });
@@ -69,20 +69,18 @@ export class CustomThemeColor extends BaseElement {
    * 根据传入的主题改变color setting页面的单选框状态，更新颜色数组
    * @param theme 主题模式
    */
-  setRadioChecked(theme: Theme) {
+  setRadioChecked(theme: Theme): void {
     for (let i = 0; i < this.radios!.length; i++) {
       if (this.radios![i].innerHTML === theme) {
         this.radios![i].setAttribute('checked', '');
         if (theme === Theme.LIGHT) {
           this.colorsArray =
-            window.localStorage.getItem('LightThemeColors') === null
-              ? [...ColorUtils.FUNC_COLOR_A]
-              : JSON.parse(window.localStorage.getItem('LightThemeColors')!);
+            window.localStorage.getItem('LightThemeColors') === null ? [...ColorUtils.FUNC_COLOR_A] :
+              JSON.parse(window.localStorage.getItem('LightThemeColors')!);
         } else {
           this.colorsArray =
-            window.localStorage.getItem('DarkThemeColors') === null
-              ? [...ColorUtils.FUNC_COLOR_B]
-              : JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
+            window.localStorage.getItem('DarkThemeColors') === null ? [...ColorUtils.FUNC_COLOR_B] :
+              JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
         }
       } else {
         this.radios![i].removeAttribute('checked');
@@ -98,7 +96,7 @@ export class CustomThemeColor extends BaseElement {
     this.systemTrace = this.application.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     let close = this.shadowRoot?.querySelector('.page-close');
     this.radioClick();
-    close!.addEventListener('click', (ev) => {
+    close!.addEventListener('click', (): void => {
       if (this.application!.hasAttribute('custom-color')) {
         this.application!.removeAttribute('custom-color');
         this.setAttribute('hidden', '');
@@ -109,7 +107,7 @@ export class CustomThemeColor extends BaseElement {
     let previewBtn = this.shadowRoot?.querySelector<HTMLButtonElement>('#preview');
     let confirmBtn = this.shadowRoot?.querySelector<HTMLButtonElement>('#confirm');
 
-    resetBtn?.addEventListener('click', () => {
+    resetBtn?.addEventListener('click', (): void => {
       if (this.theme === Theme.LIGHT) {
         window.localStorage.setItem('LightThemeColors', JSON.stringify(ColorUtils.FUNC_COLOR_A));
       } else {
@@ -118,15 +116,15 @@ export class CustomThemeColor extends BaseElement {
       this.application!.changeTheme(this.theme);
     });
 
-    previewBtn?.addEventListener('click', () => {
+    previewBtn?.addEventListener('click', (): void => {
       this.application!.changeTheme(this.theme, [...this.colorsArray]);
     });
 
-    confirmBtn?.addEventListener('click', () => {
+    confirmBtn?.addEventListener('click', (): void => {
       this.confirmOPerate();
     });
     // 鼠标移入该页面，cpu泳道图恢复鼠标移出状态（鼠标移入cpu泳道图有数据的矩形上，和该矩形的tid或者pid不同的矩形会变灰，移出矩形，所有矩形恢复颜色）
-    this.addEventListener('mousemove', (event) => {
+    this.addEventListener('mousemove', (): void => {
       this.systemTrace!.tipEL!.style.display = 'none';
       this.systemTrace!.hoverStructNull();
       this.systemTrace!.refreshCanvas(true);
@@ -138,14 +136,13 @@ export class CustomThemeColor extends BaseElement {
     if (this.radios) {
       for (let i = 0; i < this.radios.length; i++) {
         this.radios![i].shadowRoot!.querySelector<HTMLSpanElement>('.selected')!.classList.add('blue');
-        this.radios[i].addEventListener('click', (evt) => {
+        this.radios[i].addEventListener('click', (): void => {
           // 点击颜色模式的单选框，色板切换
           if (this.radios![i].innerHTML === Theme.LIGHT) {
             if (this.radios![i].getAttribute('checked') === null) {
               this.colorsArray =
-                window.localStorage.getItem('LightThemeColors') === null
-                  ? [...ColorUtils.FUNC_COLOR_A]
-                  : JSON.parse(window.localStorage.getItem('LightThemeColors')!);
+                window.localStorage.getItem('LightThemeColors') === null ? [...ColorUtils.FUNC_COLOR_A] :
+                  JSON.parse(window.localStorage.getItem('LightThemeColors')!);
               this.theme = Theme.LIGHT;
             } else {
               return;
@@ -153,9 +150,8 @@ export class CustomThemeColor extends BaseElement {
           } else if (this.radios![i].innerHTML === Theme.DARK) {
             if (this.radios![i].getAttribute('checked') === null) {
               this.colorsArray =
-                window.localStorage.getItem('DarkThemeColors') === null
-                  ? [...ColorUtils.FUNC_COLOR_B]
-                  : JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
+                window.localStorage.getItem('DarkThemeColors') === null ? [...ColorUtils.FUNC_COLOR_B] :
+                  JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
               this.theme = Theme.DARK;
             } else {
               return;
@@ -169,7 +165,7 @@ export class CustomThemeColor extends BaseElement {
     }
   }
 
-  confirmOPerate() {
+  confirmOPerate(): void {
     window.localStorage.setItem('Theme', this.theme);
     if (this.theme === Theme.LIGHT) {
       window.localStorage.setItem('LightThemeColors', JSON.stringify([...this.colorsArray]));
@@ -184,15 +180,13 @@ export class CustomThemeColor extends BaseElement {
     if (window.localStorage.getItem('Theme') === 'light' || !window.localStorage.getItem('Theme')) {
       this.theme = Theme.LIGHT;
       this.colorsArray =
-        window.localStorage.getItem('LightThemeColors') === null
-          ? [...ColorUtils.FUNC_COLOR_A]
-          : JSON.parse(window.localStorage.getItem('LightThemeColors')!);
+        window.localStorage.getItem('LightThemeColors') === null ? [...ColorUtils.FUNC_COLOR_A] :
+          JSON.parse(window.localStorage.getItem('LightThemeColors')!);
     } else if (window.localStorage.getItem('Theme') === 'dark') {
       this.theme = Theme.DARK;
       this.colorsArray =
-        window.localStorage.getItem('DarkThemeColors') === null
-          ? [...ColorUtils.FUNC_COLOR_B]
-          : JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
+        window.localStorage.getItem('DarkThemeColors') === null ? [...ColorUtils.FUNC_COLOR_B] :
+          JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
     }
     this.application!.changeTheme(this.theme);
     // 恢复颜色模式单选框checked状态

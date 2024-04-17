@@ -14,17 +14,7 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {
-  BaseStruct,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawLoadingFrame,
-  drawSelection,
-  isFrameContainPoint,
-  PerfRender,
-  RequestMessage,
-} from './ProcedureWorkerCommon';
+import { BaseStruct, drawLoadingFrame, isFrameContainPoint, PerfRender, RequestMessage } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class EnergyAnomalyRender extends PerfRender {
@@ -37,7 +27,7 @@ export class EnergyAnomalyRender extends PerfRender {
       canvasWidth: number;
     },
     row: TraceRow<EnergyAnomalyStruct>
-  ) {
+  ): void {
     let list = row.dataList;
     let filter = row.dataListCache;
     anomaly(
@@ -69,16 +59,18 @@ export class EnergyAnomalyRender extends PerfRender {
         find = true;
       }
     }
-    if (!find && row.isHover) EnergyAnomalyStruct.hoverEnergyAnomalyStruct = undefined;
+    if (!find && row.isHover) {
+      EnergyAnomalyStruct.hoverEnergyAnomalyStruct = undefined;
+    }
     req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
     req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
     req.context.closePath();
   }
 
-  render(energyAnomalyRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {}
+  render(energyAnomalyRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void {}
 }
 
-export function drawLegend(req: any, isDark?: boolean) {
+export function drawLegend(req: any, isDark?: boolean): void {
   req.context.font = '12px Arial';
   let text = req.context.measureText('System Abnormality');
   req.context.fillStyle = '#E64566';
@@ -119,7 +111,7 @@ export function anomaly(
   frame: any,
   appName: string | undefined,
   use: boolean
-) {
+): void {
   arr.length = 0;
   if (use && res.length > 0) {
     let pns = (endNS - startNS) / frame.width;
@@ -137,7 +129,7 @@ export function anomaly(
           if (it.appKey === 'APPNAME' && it.eventValue.split(',').indexOf(appName) >= 0) {
             arr.push(it);
           }
-          if (it.appKey != 'APPNAME') {
+          if (it.appKey !== 'APPNAME') {
             arr.push(it);
           }
         }
@@ -168,7 +160,7 @@ export class EnergyAnomalyStruct extends BaseStruct {
   appKey: string | undefined;
   eventValue: string | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, data: EnergyAnomalyStruct) {
+  static draw(ctx: CanvasRenderingContext2D, data: EnergyAnomalyStruct): void {
     if (data.frame) {
       EnergyAnomalyStruct.drawRoundRectPath(ctx, data.frame.x - 7, 20 - 7, radius, data);
     }
@@ -180,7 +172,7 @@ export class EnergyAnomalyStruct extends BaseStruct {
     y: number,
     radius: number,
     data: EnergyAnomalyStruct
-  ) {
+  ): void {
     ctx.beginPath();
     ctx.arc(x + 7, y + 22, radius, 0, Math.PI * 2);
     ctx.closePath();
@@ -201,7 +193,7 @@ export class EnergyAnomalyStruct extends BaseStruct {
     ctx.fillText('E', x + 7, y + 23);
   }
 
-  static setAnomalyFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
+  static setAnomalyFrame(node: any, pns: number, startNS: number, endNS: number, frame: any): void {
     if ((node.startNS || 0) < startNS) {
       node.frame.x = 0;
     } else {

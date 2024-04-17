@@ -19,11 +19,11 @@ export class DataMessageQueue<T> {
   private eleArray: Array<T>;
 
   constructor() {
-    this.eleArray = new Array<T>();
+    this.eleArray = [];
   }
 
   public push(entry: T): boolean {
-    if (entry == null) {
+    if (entry === null) {
       return false;
     }
     this.eleArray.unshift(entry);
@@ -47,7 +47,7 @@ export class AsyncQueue<T> {
   private promiseQueue: DataMessageQueue<Promise<DataMessage>> = new DataMessageQueue<Promise<DataMessage>>();
   private resolverQueue: DataMessageQueue<Resolver> = new DataMessageQueue<Resolver>();
 
-  add() {
+  add(): void {
     this.promiseQueue.push(
       new Promise((resolve) => {
         this.resolverQueue.push(resolve);
@@ -55,8 +55,8 @@ export class AsyncQueue<T> {
     );
   }
 
-  enqueue(item: DataMessage) {
-    if (this.resolverQueue.size() == 0) {
+  enqueue(item: DataMessage): void {
+    if (this.resolverQueue.size() === 0) {
       this.add();
     }
     const resolve = this.resolverQueue.pop();
@@ -64,9 +64,9 @@ export class AsyncQueue<T> {
   }
 
   async dequeue(): Promise<DataMessage> {
-    if (this.promiseQueue.size() == 0) {
+    if (this.promiseQueue.size() === 0) {
       this.add();
     }
-    return this.promiseQueue.pop() || new Promise<DataMessage>(() => {});
+    return this.promiseQueue.pop() || new Promise<DataMessage>((): void => {});
   }
 }

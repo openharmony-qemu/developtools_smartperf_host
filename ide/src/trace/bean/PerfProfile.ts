@@ -21,7 +21,7 @@ export class PerfFile {
   symbol: string = '';
   fileName: string = '';
 
-  static setFileName(perfData: PerfFile) {
+  static setFileName(perfData: PerfFile): void {
     if (perfData.path) {
       let number = perfData.path.lastIndexOf('/');
       if (number > 0) {

@@ -61,7 +61,8 @@ export const chartCpuFreqDataSqlMem = (args: any): string => {
 
 export function cpuFreqDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: any[], list: any[];
+    let res: any[];
+    let list: any[];
     if (!cpuFreqList.has(data.params.cpu)) {
       list = proc(chartCpuFreqDataSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {

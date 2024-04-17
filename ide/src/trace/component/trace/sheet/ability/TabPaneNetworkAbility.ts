@@ -35,27 +35,27 @@ export class TabPaneNetworkAbility extends BaseElement {
     if (this.networkAbilityTbl) {
       // @ts-ignore
       this.networkAbilityTbl.shadowRoot?.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 45 + 'px';
+        `${this.parentElement!.clientHeight - 45}px`;
     }
     this.queryDataByDB(networkAbilityValue);
   }
 
   initElements(): void {
     this.networkAbilityTbl = this.shadowRoot?.querySelector<LitTable>('#tb-network-ability');
-    this.networkAbilityTbl!.addEventListener('column-click', (evt) => {
+    this.networkAbilityTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.networkAbilityTbl!);
   }
 
-  filterData() {
+  filterData(): void {
     if (this.queryResult.length > 0) {
-      let filterNetwork = this.queryResult.filter((item) => {
+      let filterNetwork = this.queryResult.filter((item): boolean => {
         let array = this.toNetWorkAbilityArray(item);
         let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
@@ -84,12 +84,12 @@ export class TabPaneNetworkAbility extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    getTabNetworkAbilityData(val.leftNs, val.rightNs).then((item) => {
-      log('getTabNetworkAbilityData result size : ' + item.length);
-      if (item.length != null && item.length > 0) {
+  queryDataByDB(val: SelectionParam | any): void {
+    getTabNetworkAbilityData(val.leftNs, val.rightNs).then((item): void => {
+      log(`getTabNetworkAbilityData result size : ${  item.length}`);
+      if (item.length !== null && item.length > 0) {
         for (const systemNetworkSummary of item) {
-          if (systemNetworkSummary.startTime == 0) {
+          if (systemNetworkSummary.startTime === 0) {
             systemNetworkSummary.startTimeStr = '0:000.000.000';
           } else {
             systemNetworkSummary.startTimeStr = Utils.getTimeStampHMS(systemNetworkSummary.startTime);
@@ -142,43 +142,46 @@ export class TabPaneNetworkAbility extends BaseElement {
         `;
   }
 
-  compare(property: string, sort: number, type: string) {
+  compare(property: string, sort: number, type: string): any {
     let getProperty = this.getPropertyByType(property, type);
     return this.compareFunction(sort, getProperty);
   }
 
-  compareFunction = (sort: number, getProperty: (data: SystemNetworkSummary) => number | string) =>
-    (networkAbilityLeftData: SystemNetworkSummary, networkAbilityRightData: SystemNetworkSummary) => {
-      let leftValue = getProperty(networkAbilityLeftData);
-      let rightValue = getProperty(networkAbilityRightData);
-      let result = 0;
-      if (leftValue > rightValue) {
-        result = sort === 2 ? -1 : 1;
-      } else if (leftValue < rightValue) {
-        result = sort === 2 ? 1 : -1;
-      }
-      return result;
-    };
+  compareFunction =
+    (sort: number, getProperty: (data: SystemNetworkSummary) => number | string) =>
+      (networkAbilityLeftData: SystemNetworkSummary, networkAbilityRightData: SystemNetworkSummary): number => {
+        let leftValue = getProperty(networkAbilityLeftData);
+        let rightValue = getProperty(networkAbilityRightData);
+        let result = 0;
+        if (leftValue > rightValue) {
+          result = sort === 2 ? -1 : 1;
+        } else if (leftValue < rightValue) {
+          result = sort === 2 ? 1 : -1;
+        }
+        return result;
+      };
 
-  getPropertyByType = (property: string, type: string) => (data: SystemNetworkSummary): number | string => {
-    let typeMap = {
-      // @ts-ignore
-      number: parseFloat(data[property]),
-      durationStr: data.duration,
-      dataReceivedStr: data.dataReceived,
-      dataReceivedSecStr: data.dataReceivedSec,
-      dataSendStr: data.dataSend,
-      dataSendSecStr: data.dataSendSec,
-      packetsInStr: data.packetsIn,
-      packetsInSecStr: data.packetsInSec,
-      packetsOutStr: data.packetsOut,
-      packetsOutSecStr: data.packetsOutSec
-    };
-    // @ts-ignore
-    return typeMap[type] || data[property];
-  };
+  getPropertyByType =
+    (property: string, type: string) =>
+      (data: SystemNetworkSummary): number | string => {
+        let typeMap = {
+        // @ts-ignore
+          number: parseFloat(data[property]),
+          durationStr: data.duration,
+          dataReceivedStr: data.dataReceived,
+          dataReceivedSecStr: data.dataReceivedSec,
+          dataSendStr: data.dataSend,
+          dataSendSecStr: data.dataSendSec,
+          packetsInStr: data.packetsIn,
+          packetsInSecStr: data.packetsInSec,
+          packetsOutStr: data.packetsOut,
+          packetsOutSecStr: data.packetsOutSec,
+        };
+        // @ts-ignore
+        return typeMap[type] || data[property];
+      };
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     // @ts-ignore
     if (detail.key === 'startTime') {
       this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'string'));

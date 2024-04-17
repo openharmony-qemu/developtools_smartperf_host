@@ -12,8 +12,7 @@
 // limitations under the License.
 
 import { TraficEnum } from '../utils/QueryEnum';
-import { filterData } from '../utils/DataFilter';
-import {memList} from "../utils/AllMemoryCache";
+import { memList } from '../utils/AllMemoryCache';
 
 export const chartProcessMemDataSql = (args: any): string => {
   return `
