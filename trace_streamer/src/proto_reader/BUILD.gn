@@ -21,7 +21,7 @@ ohos_source_set("proto_reader") {
   sources = [
     "proto_reader.cpp",
     "proto_reader_help.cpp",
-    ]
+  ]
   include_dirs += [
     "../include",
     "../base",
