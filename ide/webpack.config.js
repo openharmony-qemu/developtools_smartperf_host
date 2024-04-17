@@ -207,7 +207,6 @@ const config = {
       https: false,
       stream: false,
       crypto: false,
-      child_process: false,
       path: false, //if you want to use this module also don't forget npm i crypto-browserify
     },
   },

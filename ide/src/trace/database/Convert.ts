@@ -106,7 +106,7 @@ class ConvertPool {
     }
   };
 
-  close = (): void => {
+  close = async (): Promise<void> => {
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
       thread.worker!.terminate();

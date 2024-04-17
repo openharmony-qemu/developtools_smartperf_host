@@ -488,7 +488,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   }
 }
 
-export function SpSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev: KeyboardEvent): void {
+export function spSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev: KeyboardEvent): void {
   SpSystemTrace.isKeyUp = false;
   if (!sp.loadTraceCompleted) {
     return;

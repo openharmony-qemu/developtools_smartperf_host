@@ -20,7 +20,7 @@ import { resizeObserver } from '../SheetUtils';
 import { Utils } from '../../base/Utils';
 import { Priority } from '../../../../bean/StateProcessThread';
 import { queryThreadStateArgsByName } from '../../../../database/sql/ProcessThread.sql';
-import { FlagsConfig } from '../../../SpFlags.js';
+import { FlagsConfig } from '../../../SpFlags';
 import { sliceSPTSender } from '../../../../database/data-trafic/SliceSender';
 
 @element('tabpane-sched-priority')

@@ -227,7 +227,7 @@ export const queryVirtualMemoryData = (filterId: number): Promise<Array<any>> =>
   query(
     'queryVirtualMemoryData',
     `select ts-${
-      (window as any).recordStartNS
+      window.recordStartNS
     } as startTime,value,filter_id as filterID from sys_mem_measure where filter_id=$filter_id`,
     { $filter_id: filterId }
   );

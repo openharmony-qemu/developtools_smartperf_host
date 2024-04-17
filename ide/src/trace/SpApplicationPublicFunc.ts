@@ -14,7 +14,6 @@
  */
 
 import { DbPool } from './database/SqlLite';
-import { log } from '../log/Log';
 
 export const applicationHtml: string = `
         <style>
@@ -436,9 +435,11 @@ export function postLog(filename: string, fileSize: string): void {
     .catch((error) => {});
 }
 
-export function indexedDataToBufferData(sourceData: any): ArrayBuffer {
+export function indexedDataToBufferData(sourceData: unknown): ArrayBuffer {
   let uintArrayLength = 0;
-  let uintDataList = sourceData.map((item: any) => {
+  //@ts-ignore
+  let uintDataList = sourceData.map((item: unknown) => {
+    //@ts-ignore
     let currentBufData = new Uint8Array(item.buf);
     uintArrayLength += currentBufData.length;
     return currentBufData;

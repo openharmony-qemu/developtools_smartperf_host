@@ -245,7 +245,8 @@ export class LitMainMenu extends BaseElement {
       });
     });
     let versionDiv: HTMLElement | null | undefined = this.shadowRoot?.querySelector<HTMLElement>('.version');
-    versionDiv!.innerText = (window as any).version || '';
+    //@ts-ignore
+    versionDiv!.innerText = window.version || '';
   }
 
   initHtml(): string {

@@ -113,7 +113,7 @@ import {
 import spSystemTraceOnClickHandler, {
   spSystemTraceDocumentOnClick,
   spSystemTraceDocumentOnKeyDown,
-  SpSystemTraceDocumentOnKeyPress,
+  spSystemTraceDocumentOnKeyPress,
   spSystemTraceDocumentOnKeyUp,
   spSystemTraceDocumentOnMouseDown,
   spSystemTraceDocumentOnMouseMove,
@@ -725,7 +725,7 @@ export class SpSystemTrace extends BaseElement {
 
   documentOnKeyDown = (ev: KeyboardEvent): void => spSystemTraceDocumentOnKeyDown(this, ev);
 
-  documentOnKeyPress = (ev: KeyboardEvent): void => SpSystemTraceDocumentOnKeyPress(this, ev);
+  documentOnKeyPress = (ev: KeyboardEvent): void => spSystemTraceDocumentOnKeyPress(this, ev);
 
   verticalScrollToRow(): void {
     if (this.currentRow) {

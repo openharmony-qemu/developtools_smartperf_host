@@ -116,19 +116,17 @@ export class TabPaneCurrentSelection extends BaseElement {
   private wakeupListTbl: LitTable | undefined | null;
   private scrollView: HTMLDivElement | null | undefined;
   // @ts-ignore
-  private dpr: any = window.devicePixelRatio || window.webkitDevicePixelRatio || window.mozDevicePixelRatio || 1;
+  private dpr = window.devicePixelRatio || window.webkitDevicePixelRatio || window.mozDevicePixelRatio || 1;
   private wakeUp: string = '';
   private isFpsAvailable: boolean = true;
   private realTime: number = 0;
   private bootTime: number = 0;
 
-  set data(currentSelectionValue: any) {
-    if (
-      currentSelectionValue !== undefined &&
-      currentSelectionValue.constructor &&
-      currentSelectionValue.constructor.name !== 'SelectionParam'
-    ) {
-      this.setCpuData(currentSelectionValue);
+  set data(selection: unknown) {
+    // @ts-ignore
+    if (selection !== undefined && selection.constructor && selection.constructor.name !== 'SelectionParam') {
+      // @ts-ignore
+      this.setCpuData(selection);
     }
   }
 
@@ -1486,7 +1484,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let wakeup = await queryRunnableTimeByRunning(data.tid!, data.startTime);
     if (wakeup && wakeup[0]) {
       let wakeupTs = wakeup[0].ts as number;
-      let recordStartTs = (window as any).recordStartNS;
+      let recordStartTs = window.recordStartNS;
       let wf = await queryThreadWakeUpFrom(data.id, wakeupTs);
       if (wf && wf[0]) {
         wb = wf[0];

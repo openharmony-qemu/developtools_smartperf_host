@@ -472,7 +472,7 @@ export const queryProcessData = (pid: number, startNS: number, endNS: number): P
     `
     select  ta.cpu,
         dur, 
-        ts-${(window as any).recordStartNS} as startTime
+        ts-${window.recordStartNS} as startTime
 from thread_state ta
 where ta.cpu is not null and pid=$pid and startTime between $startNS and $endNS;`,
     {
@@ -504,7 +504,7 @@ export const queryProcessThreadDataCount = (): Promise<Array<any>> =>
     `queryProcessThreadDataCount`,
     `select pid,count(id) as count 
     from thread_state 
-    where ts between ${(window as any).recordStartNS} and ${(window as any).recordEndNS} group by pid;`,
+    where ts between ${window.recordStartNS} and ${window.recordEndNS} group by pid;`,
     {}
   );
 
@@ -517,7 +517,7 @@ export const queryProcessFuncDataCount = (): Promise<Array<any>> =>
     from callstack C
     left join thread A on A.id = C.callid
     left join process AS P on P.id = A.ipid
-    where  C.ts between ${(window as any).recordStartNS} and ${(window as any).recordEndNS} 
+    where  C.ts between ${window.recordStartNS} and ${window.recordEndNS} 
     group by pid;`,
     {}
   );
@@ -531,7 +531,7 @@ export const queryProcessMemDataCount = (): Promise<Array<any>> =>
     left join process_measure_filter f on f.id = c.filter_id
     left join process p on p.ipid = f.ipid
 where f.id not NULL and value>0 
- and c.ts between ${(window as any).recordStartNS} and ${(window as any).recordEndNS}
+ and c.ts between ${window.recordStartNS} and ${window.recordEndNS}
 group by p.pid`,
     {}
   );
@@ -750,13 +750,6 @@ export const queryThreadStateArgs = (argset: number): Promise<Array<BinderArgBea
 
 export const queryThreadStateArgsByName = (key: string): Promise<Array<{ argset: number; strValue: string }>> =>
   query('queryThreadStateArgsByName', ` select strValue, argset from args_view where keyName = $key`, { $key: key });
-
-export const queryWakeUpThread_Desc = (): Promise<Array<any>> =>
-  query(
-    'queryWakeUpThread_Desc',
-    `This is the interval from when the task became eligible to run
-(e.g.because of notifying a wait queue it was a suspended on) to when it started running.`
-  );
 
 export const queryThreadWakeUp = (itid: number, startTime: number, dur: number): Promise<Array<WakeupBean>> =>
   query(
