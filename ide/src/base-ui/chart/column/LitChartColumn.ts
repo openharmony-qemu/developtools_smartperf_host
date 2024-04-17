@@ -60,19 +60,19 @@ export class LitChartColumn extends BaseElement {
   data: Pillar[] = [];
   rowLines: RLine[] = [];
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this.litChartColumnTipEL = this.shadowRoot!.querySelector<HTMLDivElement>('#tip');
     this.litChartColumnCanvas = this.shadowRoot!.querySelector<HTMLCanvasElement>('#canvas');
     this.litChartColumnCtx = this.litChartColumnCanvas!.getContext('2d', { alpha: true });
     resizeCanvas(this.litChartColumnCanvas!);
     this.offset = { x: 60, y: 20 };
-    this.litChartColumnCanvas!.onmouseout = (e) => {
+    this.litChartColumnCanvas!.onmouseout = (e): void => {
       this.hideTip();
       this.data.forEach((it) => (it.hover = false));
       this.render();
     };
-    this.litChartColumnCanvas!.onmousemove = (ev) => {
+    this.litChartColumnCanvas!.onmousemove = (ev): void => {
       let rect = this.getBoundingClientRect();
       let x = ev.pageX - rect.left;
       let y = ev.pageY - rect.top;
@@ -103,14 +103,14 @@ export class LitChartColumn extends BaseElement {
         }
       }
 
-      if (this.data.filter((it) => it.process).length == 0) {
+      if (this.data.filter((it) => it.process).length === 0) {
         this.render();
       }
     };
     this.render();
   }
 
-  private tipTypeShow(x: number, y: number, pillars: Pillar[], innerHtml: string) {
+  private tipTypeShow(x: number, y: number, pillars: Pillar[], innerHtml: string): void {
     if (x >= this.clientWidth - this.litChartColumnTipEL!.clientWidth) {
       this.showTip(
         x - this.litChartColumnTipEL!.clientWidth - 10,
@@ -122,7 +122,7 @@ export class LitChartColumn extends BaseElement {
     }
   }
 
-  showHoverColumn(index: number) {
+  showHoverColumn(index: number): void {
     this.data.forEach((it) => {
       if (it.obj.no === index) {
         it.hover = true;
@@ -159,7 +159,7 @@ export class LitChartColumn extends BaseElement {
       }
     }
 
-    if (this.data.filter((it) => it.process).length == 0) {
+    if (this.data.filter((it) => it.process).length === 0) {
       this.render();
     }
   }
@@ -175,7 +175,9 @@ export class LitChartColumn extends BaseElement {
   }
 
   set config(litChartColumnConfig: LitChartColumnConfig | null | undefined) {
-    if (!litChartColumnConfig) return;
+    if (!litChartColumnConfig) {
+      return;
+    }
     this.litChartColumnCfg = litChartColumnConfig;
     this.measure();
     this.render();
@@ -189,7 +191,7 @@ export class LitChartColumn extends BaseElement {
     }
   }
 
-  get dataSource() {
+  get dataSource(): any[] {
     return this.litChartColumnCfg?.data || [];
   }
 
@@ -211,10 +213,7 @@ export class LitChartColumn extends BaseElement {
     for (let i = 0; i <= 5; i++) {
       this.rowLines.push({
         y: gap * i,
-        label:
-          this.litChartColumnCfg!.removeUnit === true
-            ? `${maxValue - valGap * i}`
-            : `${getProbablyTime(maxValue - valGap * i)}`,
+        label: this.litChartColumnCfg!.removeUnit === true ? `${maxValue - valGap * i}` : `${getProbablyTime(maxValue - valGap * i)}`,
       });
     }
     this.dataSort();
@@ -289,8 +288,10 @@ export class LitChartColumn extends BaseElement {
     });
   }
 
-  measure() {
-    if (!this.litChartColumnCfg) return;
+  measure(): void {
+    if (!this.litChartColumnCfg) {
+      return;
+    }
     this.data = [];
     this.rowLines = [];
     if (!this.litChartColumnCfg.seriesField) {
@@ -337,8 +338,10 @@ export class LitChartColumn extends BaseElement {
     return this.litChartColumnCfg;
   }
 
-  render(ease: boolean = true) {
-    if (!this.litChartColumnCanvas || !this.litChartColumnCfg) return;
+  render(ease: boolean = true): void {
+    if (!this.litChartColumnCanvas || !this.litChartColumnCfg) {
+      return;
+    }
     this.litChartColumnCtx!.clearRect(0, 0, this.clientWidth, this.clientHeight);
     this.drawLine(this.litChartColumnCtx!);
     this.data?.forEach((it) => this.drawColumn(this.litChartColumnCtx!, it, ease));
@@ -349,7 +352,7 @@ export class LitChartColumn extends BaseElement {
     }
   }
 
-  drawLine(c: CanvasRenderingContext2D) {
+  drawLine(c: CanvasRenderingContext2D): void {
     c.strokeStyle = '#dfdfdf';
     c.lineWidth = 1;
     c.beginPath();
@@ -357,7 +360,7 @@ export class LitChartColumn extends BaseElement {
     this.rowLines.forEach((it, i) => {
       c.moveTo(this.offset!.x!, it.y);
       c.lineTo(this.clientWidth, it.y);
-      if (i == 0) {
+      if (i === 0) {
         c.fillText(it.label, this.offset!.x! - c.measureText(it.label).width - 2, it.y + 11);
       } else {
         c.fillText(it.label, this.offset!.x! - c.measureText(it.label).width - 2, it.y + 4);
@@ -367,7 +370,7 @@ export class LitChartColumn extends BaseElement {
     c.closePath();
   }
 
-  drawColumn(c: CanvasRenderingContext2D, it: Pillar, ease: boolean) {
+  drawColumn(c: CanvasRenderingContext2D, it: Pillar, ease: boolean): void {
     if (it.hover) {
       c.globalAlpha = 0.2;
       c.fillStyle = '#999999';
@@ -418,7 +421,7 @@ export class LitChartColumn extends BaseElement {
     c.closePath();
   }
 
-  beginPath(stroke: boolean, fill: boolean) {
+  beginPath(stroke: boolean, fill: boolean): (fn: (c: CanvasRenderingContext2D) => void) => void  {
     return (fn: (c: CanvasRenderingContext2D) => void) => {
       this.litChartColumnCtx!.beginPath();
       fn?.(this.litChartColumnCtx!);
@@ -432,14 +435,14 @@ export class LitChartColumn extends BaseElement {
     };
   }
 
-  showTip(x: number, y: number, msg: string) {
+  showTip(x: number, y: number, msg: string): void {
     this.litChartColumnTipEL!.style.display = 'flex';
     this.litChartColumnTipEL!.style.top = `${y}px`;
     this.litChartColumnTipEL!.style.left = `${x}px`;
     this.litChartColumnTipEL!.innerHTML = msg;
   }
 
-  hideTip() {
+  hideTip(): void {
     this.litChartColumnTipEL!.style.display = 'none';
   }
 

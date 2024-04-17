@@ -16,13 +16,10 @@
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import {
-  BaseStruct,
   isFrameContainPoint,
   ns2x,
-  Rect,
   Render,
   RequestMessage,
-  drawString,
   drawFunString,
   drawLoadingFrame,
 } from './ProcedureWorkerCommon';
@@ -37,7 +34,7 @@ export class FuncRender extends Render {
       type: string;
     },
     row: TraceRow<FuncStruct>
-  ) {
+  ): void {
     let funcList = row.dataList;
     let funcFilter = row.dataListCache;
     func(
@@ -56,7 +53,7 @@ export class FuncRender extends Render {
     for (let re of funcFilter) {
       FuncStruct.draw(req.context, re);
       if (row.isHover) {
-        if (re.dur == 0 || re.dur == null || re.dur == undefined) {
+        if (re.dur === 0 || re.dur === null || re.dur === undefined) {
           if (
             re.frame &&
             re.itid &&
@@ -76,11 +73,13 @@ export class FuncRender extends Render {
         }
       }
     }
-    if (!funcFind && row.isHover) FuncStruct.hoverFuncStruct = undefined;
+    if (!funcFind && row.isHover) {
+      FuncStruct.hoverFuncStruct = undefined;
+    }
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {}
+  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {}
 }
 
 export function func(
@@ -92,7 +91,7 @@ export function func(
   frame: any,
   use: boolean,
   expand: boolean
-) {
+): void {
   if (use && funcFilter.length > 0) {
     for (let i = 0, len = funcFilter.length; i < len; i++) {
       if ((funcFilter[i].startTs || 0) + (funcFilter[i].dur || 0) >= startNS && (funcFilter[i].startTs || 0) <= endNS) {
@@ -132,7 +131,7 @@ export function FuncStructOnClick(
   row: TraceRow<any> | undefined,
   scrollToFuncHandler: any,
   entry?: any
-) {
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FUNC && (FuncStruct.hoverFuncStruct || entry)) {
       if (FuncStruct.funcSelect) {
@@ -166,8 +165,16 @@ export class FuncStruct extends BaseFuncStruct {
   flag: string | undefined; // 570000
   textMetricsWidth: number | undefined;
   static funcSelect: boolean = true;
-  static setFuncFrame(funcNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-    let x1: number, x2: number;
+  static setFuncFrame(
+    funcNode: any,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any
+  ): void {
+    let x1: number;
+    let x2: number;
     if ((funcNode.startTs || 0) > startNS && (funcNode.startTs || 0) <= endNS) {
       x1 = ns2x(funcNode.startTs || 0, startNS, endNS, totalNS, frame);
     } else {
@@ -191,15 +198,15 @@ export class FuncStruct extends BaseFuncStruct {
     funcNode.frame.height = 18;
   }
 
-  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct) {
+  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct): void {
     if (data.frame) {
       let isBinder = FuncStruct.isBinder(data);
-      if (data.dur == undefined || data.dur == null) {
+      if (data.dur === undefined || data.dur === null) {
       } else {
         ctx.globalAlpha = 1;
         ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
         let textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
-        if (FuncStruct.hoverFuncStruct && data.funName == FuncStruct.hoverFuncStruct.funName) {
+        if (FuncStruct.hoverFuncStruct && data.funName === FuncStruct.hoverFuncStruct.funName) {
           ctx.globalAlpha = 0.7;
         }
         ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
@@ -209,9 +216,9 @@ export class FuncStruct extends BaseFuncStruct {
           drawFunString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }
         if (
-          data.callid == FuncStruct.selectFuncStruct?.callid &&
-          data.startTs == FuncStruct.selectFuncStruct?.startTs &&
-          data.depth == FuncStruct.selectFuncStruct?.depth
+          data.callid === FuncStruct.selectFuncStruct?.callid &&
+          data.startTs === FuncStruct.selectFuncStruct?.startTs &&
+          data.depth === FuncStruct.selectFuncStruct?.depth
         ) {
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 2;
@@ -248,14 +255,14 @@ export class FuncStruct extends BaseFuncStruct {
    * @param width 函数矩形框的宽度
    * @param height 函数矩形框的高度
    */
-  static drawRupture(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
+  static drawRupture(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number): void {
     ctx.fillStyle = '#fff'; // 白色: '#fff' , 红色: '#FF0000';
     let ruptureWidth = 5;
     let ruptureNode = height / ruptureWidth;
     let len = height / ruptureNode;
     ctx.moveTo(x + width - 1, y);
     for (let i = 1; i <= ruptureNode; i++) {
-      ctx.lineTo(x + width - 1 - (i % 2 == 0 ? 0 : ruptureWidth), y + len * i - 2);
+      ctx.lineTo(x + width - 1 - (i % 2 === 0 ? 0 : ruptureWidth), y + len * i - 2);
     }
     ctx.closePath();
     ctx.fill();
@@ -301,9 +308,9 @@ export class FuncStruct extends BaseFuncStruct {
 
   static isSelected(data: FuncStruct): boolean {
     return (
-      FuncStruct.selectFuncStruct != undefined &&
-      FuncStruct.selectFuncStruct.startTs == data.startTs &&
-      FuncStruct.selectFuncStruct.depth == data.depth
+      FuncStruct.selectFuncStruct !== undefined &&
+      FuncStruct.selectFuncStruct.startTs === data.startTs &&
+      FuncStruct.selectFuncStruct.depth === data.depth
     );
   }
 }

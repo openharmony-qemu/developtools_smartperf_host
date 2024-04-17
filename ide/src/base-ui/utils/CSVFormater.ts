@@ -29,9 +29,9 @@ export class JSONToCSV {
       formatter: undefined,
     };
     let showLabel = typeof isShowLabel === 'undefined' ? true : isShowLabel;
-    let row = '',
-      csv = '',
-      key;
+    let row = '';
+    let csv = '';
+    let key: string;
     // 如果要现实表头文字
     if (showLabel) {
       // 如果有传入自定义的表头文字
@@ -41,7 +41,9 @@ export class JSONToCSV {
         });
       } else {
         // 如果没有，就直接取数据第一条的对象的属性
-        for (key in data[0]) row += key + ',';
+        for (key in data[0]) {
+          row += key + ',';
+        }
       }
       row = row.slice(0, -1);
       csv += row + '\r\n';
@@ -67,7 +69,7 @@ export class JSONToCSV {
     this.saveCsvFile(fileName, csv);
   }
 
-  static getCsvStr(columns: any, obj: any, n: any, row: string) {
+  static getCsvStr(columns: any, obj: any, n: any, row: string): string {
     let that = this;
     columns.key.map(function (m: any, idx: number) {
       let strItem: any = '';
@@ -78,16 +80,16 @@ export class JSONToCSV {
       } else {
         strItem = n[m];
       }
-      if (typeof strItem == 'undefined') {
+      if (typeof strItem === 'undefined') {
         strItem = '';
-      } else if (typeof strItem == 'object') {
+      } else if (typeof strItem === 'object') {
         strItem = JSON.stringify(strItem);
         strItem = strItem.replaceAll('"', '');
       }
-      if (idx === 0 && typeof n['depthCSV'] !== 'undefined') {
+      if (idx === 0 && typeof n.depthCSV !== 'undefined') {
         row +=
           '"' +
-          that.treeDepth(n['depthCSV']) +
+          that.treeDepth(n.depthCSV) +
           (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) +
           '",';
       } else {
@@ -124,7 +126,7 @@ export class JSONToCSV {
     }
   }
 
-  static getDownloadUrl(csvData: any) {
+  static getDownloadUrl(csvData: any): string | undefined {
     if (window.Blob && window.URL && (window.URL as any).createObjectURL) {
       return URL.createObjectURL(
         new Blob(['\uFEFF' + csvData], {
@@ -138,15 +140,13 @@ export class JSONToCSV {
     let type: any = {};
     let agent = navigator.userAgent.toLowerCase();
     let has;
-    (has = agent.indexOf('edge') !== -1 ? (type.edge = 'edge') : agent.match(/rv:([\d.]+)\) like gecko/))
-      ? (type.ie = has[1])
-      : (has = agent.match(/msie ([\d.]+)/))
-      ? (type.ie = has[1])
-      : 0;
+    (has = agent.indexOf('edge') !== -1 ? (type.edge = 'edge') :
+      agent.match(/rv:([\d.]+)\) like gecko/)) ? (type.ie = has[1]) :
+      (has = agent.match(/msie ([\d.]+)/)) ? (type.ie = has[1]) : 0;
     return type;
   }
 
-  static treeDepth(depth: number) {
+  static treeDepth(depth: number): string {
     let str = '';
     for (let i = 0; i < depth; i++) {
       str += '    ';
@@ -154,11 +154,11 @@ export class JSONToCSV {
     return str;
   }
 
-  static treeToArr(data: any) {
+  static treeToArr(data: any): any[] {
     const result: Array<any> = [];
     data.forEach((item: any) => {
       let depthCSV = 0;
-      const loop = (data: any, depth: any) => {
+      const loop = (data: any, depth: any): void => {
         result.push({ depthCSV: depth, ...data });
         let child = data.children;
         if (child) {
@@ -181,8 +181,8 @@ export class JSONToCSV {
     columns.forEach((column) => {
       let dataIndex = column.getAttribute('data-index');
       let columnName = column.getAttribute('title');
-      if (columnName == '') {
-        columnName = dataIndex == 'busyTimeStr' ? 'GetBusyTime(ms)' : dataIndex;
+      if (columnName === '') {
+        columnName = dataIndex === 'busyTimeStr' ? 'GetBusyTime(ms)' : dataIndex;
       }
       if (columnName !== '  ') {
         titleList.push(columnName);

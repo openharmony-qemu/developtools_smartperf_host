@@ -31,6 +31,7 @@ export class SpClockChart {
     this.trace = trace;
   }
 
+
   async init(): Promise<void> {
     let folder = await this.initFolder();
     await this.initData(folder);
@@ -105,9 +106,7 @@ export class SpClockChart {
           maxValue: it.maxValue === 0 ? 1 : it.maxValue!,
           index: clockId,
           maxName:
-            isState || isScreenState
-              ? it.maxValue!.toString()
-              : Utils.getFrequencyWithUnit(it.maxValue! / 1000).maxFreqName,
+            isState || isScreenState ? it.maxValue!.toString() : Utils.getFrequencyWithUnit(it.maxValue! / 1000).maxFreqName,
         },
         traceRow
       );

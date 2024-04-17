@@ -15,6 +15,7 @@ import { threadCallStackList } from '../utils/AllMemoryCache';
 import { filterDataByGroupLayer } from '../utils/DataFilter';
 import { TraficEnum } from '../utils/QueryEnum';
 
+
 export const chartFuncDataSql = (args: any): string => {
   return `
     select

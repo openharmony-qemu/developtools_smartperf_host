@@ -120,19 +120,19 @@ export class SpSdkConfig extends BaseElement {
     for (let i = 0; i < configVal!.length; i++) {
       let configName = configVal![i].getAttribute('configName');
       let type = configVal![i].getAttribute('type');
-      if (type == 'enum') {
+      if (type === 'enum') {
         let enumValue = configVal![i].getAttribute('value');
-        if (enumValue != undefined && enumValue != 'undefined') {
+        if (enumValue !== undefined && enumValue !== 'undefined') {
           // @ts-ignore
           gpuConfig[configName!] = enumValue;
         }
-      } else if (type == 'number' || type == 'integer' || type == 'num') {
+      } else if (type === 'number' || type === 'integer' || type === 'num') {
         // @ts-ignore
         gpuConfig[configName!] = Number(configVal![i].value);
-      } else if (type == 'boolean') {
+      } else if (type === 'boolean') {
         let attribute = configVal![i].getAttribute('value');
         // @ts-ignore
-        gpuConfig[configName!] = attribute == 'true';
+        gpuConfig[configName!] = attribute === 'true';
       } else {
         // @ts-ignore
         gpuConfig[configName!] = configVal![i].value;
@@ -149,7 +149,7 @@ export class SpSdkConfig extends BaseElement {
         wasmJsonUrl = `http://${window.location.host.split(':')[0]}:${window.location.port}/wasm.json`;
       }
       fetch(wasmJsonUrl)
-        .then((res) => {
+        .then((res): void => {
           if (res.ok) {
             res.text().then((text) => {
               this.wasmMap = new Map();
@@ -209,7 +209,7 @@ export class SpSdkConfig extends BaseElement {
     sdkConfigSwitch.className = 'switch1 config';
     sdkConfigSwitch.setAttribute('configName', key);
     sdkConfigSwitch.setAttribute('type', this.sdkConfigList.configuration[key].type);
-    if (this.sdkConfigList.configuration[key]['default'] == 'true') {
+    if (this.sdkConfigList.configuration[key].default === 'true') {
       sdkConfigSwitch.setAttribute('checked', '');
       sdkConfigSwitch.setAttribute('value', 'true');
     } else {
@@ -223,8 +223,8 @@ export class SpSdkConfig extends BaseElement {
   private sdkConfigByIntegerType(key: string, sdkConfigDiv: HTMLDivElement, sdkConfigTitle: HTMLSpanElement): void {
     let input = document.createElement('input');
     input.className = 'sdk-config-input config';
-    if (this.sdkConfigList.configuration[key]['default']) {
-      input.value = this.sdkConfigList.configuration[key]['default'];
+    if (this.sdkConfigList.configuration[key].default) {
+      input.value = this.sdkConfigList.configuration[key].default;
     }
     input.setAttribute('configName', key);
     input.setAttribute('type', this.sdkConfigList.configuration[key].type);
@@ -239,8 +239,8 @@ export class SpSdkConfig extends BaseElement {
   private sdkConfigByNumberType(key: string, sdkConfigDiv: HTMLDivElement): void {
     let numberInput = document.createElement('input');
     numberInput.className = 'sdk-config-input config';
-    if (this.sdkConfigList.configuration[key]['default']) {
-      numberInput.value = this.sdkConfigList.configuration[key]['default'];
+    if (this.sdkConfigList.configuration[key].default) {
+      numberInput.value = this.sdkConfigList.configuration[key].default;
     }
     numberInput.setAttribute('configName', key);
     numberInput.setAttribute('type', 'num');
@@ -253,10 +253,10 @@ export class SpSdkConfig extends BaseElement {
 
   private sdkConfigByStringType(key: string, sdkConfigDiv: HTMLDivElement): void {
     let html = '';
-    if (this.sdkConfigList.configuration[key]['enum']) {
+    if (this.sdkConfigList.configuration[key].enum) {
       let placeholder = '';
-      if (this.sdkConfigList.configuration[key]['default']) {
-        placeholder = this.sdkConfigList.configuration[key]['default'];
+      if (this.sdkConfigList.configuration[key].default) {
+        placeholder = this.sdkConfigList.configuration[key].default;
       }
       html += `<lit-select-v id="${key}" type="${this.sdkConfigList.configuration[key].type}" 
 default-value="" rounded="" class="sdk-config-select config" mode="multiple" canInsert="" 
@@ -265,8 +265,8 @@ rounded placement = "bottom" configName ="${key}" placeholder="${placeholder}"><
     } else {
       let inputElement = document.createElement('input');
       inputElement.className = 'sdk-config-input config';
-      if (this.sdkConfigList.configuration[key]['default']) {
-        inputElement.value = this.sdkConfigList.configuration[key]['default'];
+      if (this.sdkConfigList.configuration[key].default) {
+        inputElement.value = this.sdkConfigList.configuration[key].default;
       }
       inputElement.setAttribute('configName', key);
       inputElement.setAttribute('type', this.sdkConfigList.configuration[key].type);
@@ -308,11 +308,11 @@ rounded placement = "bottom" configName ="${key}" placeholder="${placeholder}"><
           break;
       }
       this.customConfig!.appendChild(sdkConfigDiv);
-      if (this.sdkConfigList.configuration[key]['enum']) {
+      if (this.sdkConfigList.configuration[key].enum) {
         let select = this.shadowRoot!.querySelector<LitSelectV>(`#${key}`);
         select!.setAttribute('type', 'enum');
-        select!.setAttribute('value', this.sdkConfigList.configuration[key]['default']);
-        select!.dataSource(this.sdkConfigList.configuration[key]['enum'], '');
+        select!.setAttribute('value', this.sdkConfigList.configuration.key.default);
+        select!.dataSource(this.sdkConfigList.configuration.key.enum, '');
         this.list.push(select!);
         select!.addEventListener('click', () => {
           select!.setAttribute('value', select!.value);

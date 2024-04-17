@@ -14,14 +14,7 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {
-  BaseStruct,
-  dataFilterHandler,
-  drawLoadingFrame,
-  isFrameContainPoint,
-  Render,
-  RequestMessage,
-} from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler, drawLoadingFrame, isFrameContainPoint, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
 
@@ -33,7 +26,7 @@ export class FreqRender extends Render {
       type: string;
     },
     row: TraceRow<CpuFreqStruct>
-  ) {
+  ): void {
     let freqList = row.dataList;
     let freqFilter = row.dataListCache;
     dataFilterHandler(freqList, freqFilter, {
@@ -56,7 +49,9 @@ export class FreqRender extends Render {
       }
       CpuFreqStruct.draw(freqReq.context, re);
     }
-    if (!find && row.isHover) CpuFreqStruct.hoverCpuFreqStruct = undefined;
+    if (!find && row.isHover) {
+      CpuFreqStruct.hoverCpuFreqStruct = undefined;
+    }
     freqReq.context.closePath();
     let s = CpuFreqStruct.maxFreqName;
     let textMetrics = freqReq.context.measureText(s);
@@ -69,7 +64,7 @@ export class FreqRender extends Render {
     freqReq.context.fillText(s, 4, 5 + 9);
   }
 }
-export function CpuFreqStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+export function CpuFreqStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_CPU_FREQ && CpuFreqStruct.hoverCpuFreqStruct) {
       CpuFreqStruct.selectCpuFreqStruct = CpuFreqStruct.hoverCpuFreqStruct;
@@ -91,7 +86,7 @@ export class CpuFreqStruct extends BaseStruct {
   startNS: number | undefined;
   dur: number | undefined; //自补充，数据库没有返回
 
-  static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqStruct) {
+  static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqStruct): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = data.cpu || 0;

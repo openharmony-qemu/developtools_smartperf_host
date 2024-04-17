@@ -34,29 +34,29 @@ export class TabPaneMemoryAbility extends BaseElement {
     if (this.memoryAbilityTbl) {
       // @ts-ignore
       this.memoryAbilityTbl.shadowRoot?.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 45 + 'px';
+        `${this.parentElement!.clientHeight - 45}px`;
     }
     this.queryDataByDB(memoryAbilityValue);
   }
 
   initElements(): void {
     this.memoryAbilityTbl = this.shadowRoot?.querySelector<LitTable>('#tb-memory-ability');
-    this.memoryAbilityTbl!.addEventListener('column-click', (evt) => {
+    this.memoryAbilityTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.memoryAbilityTbl!);
   }
 
-  filterData() {
+  filterData(): void {
     if (this.queryMemoryResult.length > 0) {
-      let filterMemory = this.queryMemoryResult.filter((item) => {
+      let filterMemory = this.queryMemoryResult.filter((item): boolean => {
         let array = this.toMemoryAbilityArray(item);
-        let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
+        let isInclude = array.filter((value): boolean => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
       if (filterMemory.length > 0) {
@@ -79,7 +79,7 @@ export class TabPaneMemoryAbility extends BaseElement {
     return array;
   }
 
-  getMemoryKeys() {
+  getMemoryKeys(): any {
     return {
       'sys.mem.total': 'memoryTotal',
       'sys.mem.free': 'memFree',
@@ -105,14 +105,14 @@ export class TabPaneMemoryAbility extends BaseElement {
     };
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    queryStartTime().then((res) => {
+  queryDataByDB(val: SelectionParam | any): void {
+    queryStartTime().then((res): void => {
       let startTime = res[0].start_ts;
-      getTabMemoryAbilityData(val.leftNs + startTime, val.rightNs + startTime).then((items) => {
-        log('getTabMemoryAbilityData result size : ' + items.length);
+      getTabMemoryAbilityData(val.leftNs + startTime, val.rightNs + startTime).then((items): void => {
+        log(`getTabMemoryAbilityData result size : ${  items.length}`);
         this.memoryAbilitySource = [];
         this.queryMemoryResult = [];
-        if (items.length != null && items.length > 0) {
+        if (items.length !== null && items.length > 0) {
           let lastTime = 0;
           for (const item of items) {
             let systemMemorySummary = new SystemMemorySummary();
@@ -124,7 +124,7 @@ export class TabPaneMemoryAbility extends BaseElement {
             lastTime = item.startTime;
             let memorys = item.value.split(',');
             let names = item.name.split(',');
-            if (memorys.length != names.length) {
+            if (memorys.length !== names.length) {
               continue;
             }
             let memoryKeys: { [key: string]: string } = this.getMemoryKeys();
@@ -192,27 +192,24 @@ export class TabPaneMemoryAbility extends BaseElement {
         `;
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (memoryAbilityLeftData: SystemMemorySummary, memoryAbilityRightData: SystemMemorySummary) {
+      return function (memoryAbilityLeftData: SystemMemorySummary, memoryAbilityRightData: SystemMemorySummary): number {
         if (type === 'number') {
-          return sort === 2
-            ? // @ts-ignore
-              parseFloat(memoryAbilityRightData[property]) - parseFloat(memoryAbilityLeftData[property])
-            : // @ts-ignore
-              parseFloat(memoryAbilityLeftData[property]) - parseFloat(memoryAbilityRightData[property]);
+          return sort === 2 ? // @ts-ignore
+            parseFloat(memoryAbilityRightData[property]) - parseFloat(memoryAbilityLeftData[property]) : // @ts-ignore
+            parseFloat(memoryAbilityLeftData[property]) - parseFloat(memoryAbilityRightData[property]);
         } else if (type === 'durationStr') {
-          return sort === 2
-            ? memoryAbilityRightData.durationNumber - memoryAbilityLeftData.durationNumber
-            : memoryAbilityLeftData.durationNumber - memoryAbilityRightData.durationNumber;
+          return sort === 2 ? memoryAbilityRightData.durationNumber - memoryAbilityLeftData.durationNumber :
+            memoryAbilityLeftData.durationNumber - memoryAbilityRightData.durationNumber;
         } else {
           // @ts-ignore
           if (memoryAbilityRightData[property] > memoryAbilityLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (memoryAbilityRightData[property] == memoryAbilityLeftData[property]) {
+            if (memoryAbilityRightData[property] === memoryAbilityLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;

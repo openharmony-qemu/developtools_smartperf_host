@@ -23,7 +23,6 @@ import '../TabProgressBar';
 import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
 import { resizeObserver } from '../SheetUtils';
 import { TabPaneNMSampleList } from './TabPaneNMSampleList';
-import { env } from 'process';
 import {
   queryNativeHookStatistics,
   queryNativeHookStatisticsMalloc,
@@ -227,16 +226,16 @@ export class TabPaneNMStatstics extends BaseElement {
       this.sortByColumn(evt.detail.key, evt.detail.sort);
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('existingString', (value) => {
-      return `${value['existing']}`;
+      return `${value.existing}`;
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('freeByteString', (value) => {
-      return `${value['totalBytes'] - value['existing']}`;
+      return `${value.totalBytes - value.existing}`;
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('totalBytesString', (value) => {
-      return `${value['totalBytes']}`;
+      return `${value.totalBytes}`;
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('maxStr', (value) => {
-      return `${value['max']}`;
+      return `${value.max}`;
     });
   }
 
@@ -257,7 +256,7 @@ export class TabPaneNMStatstics extends BaseElement {
         nativeStatisticsRightData: any,
         column: string,
         sortType: number
-      ) => {
+      ): number => {
         if (sortType === 1) {
           return nativeStatisticsLeftData[column] - nativeStatisticsRightData[column];
         } else {

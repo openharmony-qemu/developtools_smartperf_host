@@ -21,16 +21,16 @@ export class SpCheckDesBox extends BaseElement {
   private _checkBox: LitCheckBox | undefined;
   private _des: HTMLSpanElement | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['checked', 'value', 'des', 'disabled'];
   }
 
-  get disabled() {
+  get disabled(): boolean {
     return this.getAttribute('disabled') !== null;
   }
 
   set disabled(value) {
-    if (value === null || value === false) {
+    if (value === null || !value) {
       this.removeAttribute('disabled');
     } else {
       this.setAttribute('disabled', '');
@@ -50,8 +50,8 @@ export class SpCheckDesBox extends BaseElement {
     this._checkBox!.value = value;
   }
 
-  get checked() {
-    return this.getAttribute('checked') != null;
+  get checked(): boolean {
+    return this.getAttribute('checked') !== null;
   }
 
   set checked(checked: boolean) {
@@ -97,22 +97,22 @@ lit-check-box {
 </div>`;
   }
 
-  public connectedCallback() {
-    this._checkBox?.addEventListener('change', (ev: CustomEventInit<LitCheckBoxChangeEvent>) => {
+  public connectedCallback(): void {
+    this._checkBox?.addEventListener('change', (ev: CustomEventInit<LitCheckBoxChangeEvent>): void => {
       let detail = ev.detail;
       this.checked = detail!.checked;
       this.dispatchEvent(new CustomEvent('onchange', { detail }));
     });
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name == 'checked') {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+    if (name === 'checked') {
       this._checkBox!.checked = newValue !== null;
     }
-    if (name == 'value') {
+    if (name === 'value') {
       this._checkBox!.value = newValue;
     }
-    if (name == 'des') {
+    if (name === 'des') {
       this._des!.textContent = newValue;
     }
   }

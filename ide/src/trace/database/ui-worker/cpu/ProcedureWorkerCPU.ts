@@ -70,7 +70,7 @@ export class CpuRender {
       translateY: number;
     },
     row: TraceRow<CpuStruct>
-  ) {
+  ): void {
     let cpuList = row.dataList;
     let cpuFilter = row.dataListCache;
     let startNS = TraceRow.range!.startNS ?? 0;
@@ -95,15 +95,15 @@ export class CpuRender {
     });
     req.ctx.closePath();
     let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
-    let wakeup = req.type == `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined;
+    let wakeup = req.type === `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined;
     drawWakeUp(req.ctx, CpuStruct.wakeupBean, startNS, endNS, totalNS, row.frame, wakeup, currentCpu, true);
     for (let i = 0; i < SpSystemTrace.wakeupList.length; i++) {
-      if (i + 1 == SpSystemTrace.wakeupList.length) {
+      if (i + 1 === SpSystemTrace.wakeupList.length) {
         return;
       }
       let wake = SpSystemTrace.wakeupList[i + 1];
       let wakeupListItem =
-        req.type == `cpu-data-${SpSystemTrace.wakeupList[i]?.cpu || 0}` ? SpSystemTrace.wakeupList[i] : undefined;
+        req.type === `cpu-data-${SpSystemTrace.wakeupList[i]?.cpu || 0}` ? SpSystemTrace.wakeupList[i] : undefined;
       drawWakeUpList(req.ctx, wake, startNS, endNS, totalNS, row.frame, wakeupListItem, currentCpu, true);
     }
   }
@@ -126,7 +126,7 @@ export class CpuRender {
     }
   }
 
-  setFrameCpuByRes(cpuRes: Array<any>, startNS: number, endNS: number, frame: any) {
+  setFrameCpuByRes(cpuRes: Array<any>, startNS: number, endNS: number, frame: any): void {
     let pns = (endNS - startNS) / frame.width;
     let y = frame.y + 5;
     let height = frame.height - 10;
@@ -150,8 +150,8 @@ export class CpuRender {
     let pns = (endNS - startNS) / frame.width; //每个像素多少ns
     let y = frame.y + 5;
     let height = frame.height - 10;
-    let left = 0,
-      right = 0;
+    let left = 0;
+    let right = 0;
     for (let i = 0, j = cpuList.length - 1, ib = true, jb = true; i < cpuList.length, j >= 0; i++, j--) {
       if (cpuList[j].startTime <= endNS && jb) {
         right = j;
@@ -193,7 +193,7 @@ export class CpuRender {
     cpuRes.push(...slice.filter((it) => it.v));
   }
 }
-export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHandler: any) {
+export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHandler: any): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (rowType === TraceRow.ROW_TYPE_CPU && CpuStruct.hoverCpuStruct) {
       CpuStruct.selectCpuStruct = CpuStruct.hoverCpuStruct;
@@ -266,7 +266,7 @@ export class CpuStruct extends BaseStruct {
       CpuStruct.drawRim(ctx, data, width);
     }
   }
-  static drawText(ctx: CanvasRenderingContext2D, data: CpuStruct, width: number, pid: number, tid: number) {
+  static drawText(ctx: CanvasRenderingContext2D, data: CpuStruct, width: number, pid: number, tid: number): void {
     let textFillWidth = width - textPadding * 2;
     if (data.frame && textFillWidth > 3) {
       if (data.displayProcess === undefined) {
@@ -314,7 +314,7 @@ export class CpuStruct extends BaseStruct {
       }
     }
   }
-  static drawRim(ctx: CanvasRenderingContext2D, data: CpuStruct, width: number) {
+  static drawRim(ctx: CanvasRenderingContext2D, data: CpuStruct, width: number): void {
     if (data.frame) {
       if (data.nofinish && width > 4) {
         ctx.fillStyle = '#fff';
@@ -323,7 +323,7 @@ export class CpuStruct extends BaseStruct {
         ctx.moveTo(data.frame.x + data.frame.width - 1, data.frame.y);
         for (let i = 1; i <= ruptureNode; i++) {
           ctx.lineTo(
-            data.frame.x + data.frame.width - 1 - (i % 2 == 0 ? 0 : ruptureWidth),
+            data.frame.x + data.frame.width - 1 - (i % 2 === 0 ? 0 : ruptureWidth),
             data.frame.y + (data.frame.height / ruptureNode) * i
           );
         }

@@ -46,11 +46,11 @@ export class ThreadStruct extends BaseStruct {
   state: string | undefined;
   type: string | undefined;
 
-  static draw(threadBeanCanvasCtx: CanvasRenderingContext2D, threadBeanStructData: ThreadStruct) {
+  static draw(threadBeanCanvasCtx: CanvasRenderingContext2D, threadBeanStructData: ThreadStruct): void {
     if (threadBeanStructData.frame) {
       threadBeanCanvasCtx.globalAlpha = 1;
       let stateText = threadBeanStructData.state || '';
-      if ('S' == threadBeanStructData.state) {
+      if ('S' === threadBeanStructData.state) {
         threadBeanCanvasCtx.fillStyle = ThreadStruct.sColor;
         threadBeanCanvasCtx.globalAlpha = 0.2; // transparency
         threadBeanCanvasCtx.fillRect(
@@ -60,13 +60,13 @@ export class ThreadStruct extends BaseStruct {
           threadBeanStructData.frame.height - padding * 2
         );
         threadBeanCanvasCtx.globalAlpha = 1; // transparency
-      } else if ('R' == threadBeanStructData.state) {
+      } else if ('R' === threadBeanStructData.state) {
         threadBeanCanvasCtx.fillStyle = ThreadStruct.rColor;
         this.drawRectAndString(threadBeanCanvasCtx, threadBeanStructData);
-      } else if ('D' == threadBeanStructData.state) {
+      } else if ('D' === threadBeanStructData.state) {
         threadBeanCanvasCtx.fillStyle = ThreadStruct.uninterruptibleSleepColor;
         this.drawRectAndString(threadBeanCanvasCtx, threadBeanStructData);
-      } else if ('Running' == threadBeanStructData.state) {
+      } else if ('Running' === threadBeanStructData.state) {
         threadBeanCanvasCtx.fillStyle = ThreadStruct.runningColor;
         this.drawRectAndString(threadBeanCanvasCtx, threadBeanStructData);
       } else {
@@ -76,7 +76,7 @@ export class ThreadStruct extends BaseStruct {
       if (
         ThreadStruct.selectThreadStruct &&
         ThreadStruct.equals(ThreadStruct.selectThreadStruct, threadBeanStructData) &&
-        ThreadStruct.selectThreadStruct.state != 'S'
+        ThreadStruct.selectThreadStruct.state !== 'S'
       ) {
         threadBeanCanvasCtx.strokeStyle = '#232c5d';
         threadBeanCanvasCtx.lineWidth = 2;
@@ -90,7 +90,7 @@ export class ThreadStruct extends BaseStruct {
     }
   }
 
-  private static drawRectAndString(threadBeanCanvasCtx: CanvasRenderingContext2D, threadBeanStructData: ThreadStruct) {
+  private static drawRectAndString(threadBeanCanvasCtx: CanvasRenderingContext2D, threadBeanStructData: ThreadStruct): void {
     // @ts-ignore
     threadBeanCanvasCtx.fillRect(
       threadBeanStructData.frame!.x,
@@ -114,7 +114,7 @@ export class ThreadStruct extends BaseStruct {
     if (statusMapElement) {
       return statusMapElement;
     } else {
-      if ('' == statusMapElement || statusMapElement == null) {
+      if ('' === statusMapElement || statusMapElement === null) {
         return '';
       }
       return 'Unknown State';
@@ -125,11 +125,11 @@ export class ThreadStruct extends BaseStruct {
     return (
       d1 &&
       d2 &&
-      d1.cpu == d2.cpu &&
-      d1.tid == d2.tid &&
-      d1.state == d2.state &&
-      d1.startTime == d2.startTime &&
-      d1.dur == d2.dur
+      d1.cpu === d2.cpu &&
+      d1.tid === d2.tid &&
+      d1.state === d2.state &&
+      d1.startTime === d2.startTime &&
+      d1.dur === d2.dur
     );
   }
 }

@@ -74,7 +74,7 @@ export const chartLogDataMemorySql = (args: any): string => {
           ORDER BY l.seq`;
 };
 
-export function logDataReceiver(data: any, proc: Function) {
+export function logDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
     if (!hiLogList.has(data.params.id)) {
       let sql = chartLogDataMemorySql(data.params);
@@ -98,7 +98,7 @@ export function logDataReceiver(data: any, proc: Function) {
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
+function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let id = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs);
   let pid = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);

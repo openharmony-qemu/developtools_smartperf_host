@@ -39,13 +39,11 @@ export const queryEventCountMap = (): Promise<
 export const queryTotalTime = (): Promise<Array<{ total: number; recordStartNS: number; recordEndNS: number }>> =>
   query(
     'queryTotalTime',
-    `
-    select
-      start_ts as recordStartNS,end_ts as recordEndNS,end_ts-start_ts as total
+    `select start_ts as recordStartNS,end_ts as recordEndNS,end_ts-start_ts as total
     from
       trace_range;`
   );
-export const getFps = () =>
+export const getFps = (): Promise<FpsStruct[]> =>
   query<FpsStruct>(
     'getFps',
     `
@@ -79,7 +77,7 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
     { $leftNS: leftNs, $rightNS: rightNs }
   );
 
-export const getTabVirtualCounters = (virtualFilterIds: Array<number>, startTime: number) =>
+export const getTabVirtualCounters = (virtualFilterIds: Array<number>, startTime: number): Promise<Counter[]> =>
   query<Counter>(
     'getTabVirtualCounters',
     `
@@ -1107,7 +1105,7 @@ export const queryTaskPoolCallStack = (): Promise<Array<{ id: number; ts: number
   return query('queryTaskPoolCallStack', sqlStr, {});
 };
 
-export const queryTaskPoolTotalNum = (itid: number) =>
+export const queryTaskPoolTotalNum = (itid: number): Promise<number[]> =>
   query<number>(
     'queryTaskPoolTotalNum',
     `SELECT thread.tid
@@ -1182,8 +1180,7 @@ export const queryAnimationTimeRangeData = (): Promise<Array<FrameAnimationStruc
 export const queryFrameDynamicData = (): Promise<FrameDynamicStruct[]> =>
   query(
     'queryFrameDynamicData',
-    `SELECT
-           d.id,
+    `SELECT d.id,
            d.x,
            d.y,
            d.width,
@@ -1230,8 +1227,7 @@ export const queryFrameApp = (): Promise<
 export const queryFrameSpacing = (): Promise<Array<FrameSpacingStruct>> =>
   query(
     'queryFrameSpacing',
-    `SELECT
-         d.id,
+    `SELECT d.id,
          d.width AS currentFrameWidth,
          d.height AS currentFrameHeight,
          d.name AS nameId,
@@ -1267,8 +1263,7 @@ export const getSystemLogsData = (): Promise<
 > =>
   query(
     'getSystemLogsData',
-    `SELECT
-            ROW_NUMBER() OVER (ORDER BY l.ts) AS processName,
+    `SELECT ROW_NUMBER() OVER (ORDER BY l.ts) AS processName,
             l.seq AS id,
             (l.ts - TR.start_ts) AS ts,
             l.pid AS indexs,
@@ -1316,8 +1311,7 @@ export const queryTraceType = (): Promise<
 export const queryLogAllData = (oneDayTime: number, leftNs: number, rightNs: number): Promise<Array<LogStruct>> =>
   query(
     'queryLogAllData',
-    `SELECT
-         l.seq AS id,
+    `SELECT l.seq AS id,
          CASE
              WHEN l.ts < ${oneDayTime} THEN 0
              ELSE (l.ts - TR.start_ts)
@@ -1361,9 +1355,7 @@ export const queryFpsSourceList = (
 > =>
   query(
     'queryFpsSourceList',
-    `
-    SELECT
-	    t.tid,
+    `SELECT t.tid,
 	    c.dur,
 	    c.depth,
 	    c.ts,
@@ -1381,9 +1373,7 @@ export const queryFpsSourceList = (
   );
 
 export const queryStateFreqList = (startTime: number, endTime: number, cpu: number): Promise<Array<any>> => {
-  let sql = `
-    select
-    c.value,
+  let sql = `select c.value,
     c.ts,
     c.dur,
     c.ts - r.start_ts AS startTime, 
@@ -1397,7 +1387,7 @@ export const queryStateFreqList = (startTime: number, endTime: number, cpu: numb
    where
      (name = 'cpufreq' or name='cpu_frequency')
      and
-     t.cpu	= $cpu
+     t.cpu = $cpu
      and  
      (((startTime < $startTime) and  (endtime > $endTime))
       or ((startTime < $startTime) and ($startTime < endtime and endtime < $endTime)) 
@@ -1409,14 +1399,3 @@ export const queryStateFreqList = (startTime: number, endTime: number, cpu: numb
     $cpu: cpu,
   });
 };
-export const queryPerfOutputData = (): Promise<Array<any>> =>
-  query(
-    'queryPerfOutputData',
-    `SELECT name, ts FROM callstack where name like '%PERFORMANCE_DATA%'`,
-  );
-
-  export const queryPerfToolsDur = (): Promise<Array<any>> =>
-  query(
-    'queryPerfToolsDur',
-    `SELECT name, ts, dur FROM callstack where name = 'H:GRAB'`,
-  );

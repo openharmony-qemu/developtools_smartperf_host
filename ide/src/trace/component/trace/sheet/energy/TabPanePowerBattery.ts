@@ -29,7 +29,7 @@ export class TabPanePowerBattery extends BaseElement {
     this.queryDataByDB(valPower);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.tblPower!);
   }
@@ -38,8 +38,8 @@ export class TabPanePowerBattery extends BaseElement {
     this.tblPower = this.shadowRoot?.querySelector<LitTable>('#tb-power-battery-energy');
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    getTabPowerBatteryData(val.rightNs).then((result) => {
+  queryDataByDB(val: SelectionParam | any): void {
+    getTabPowerBatteryData(val.rightNs).then((result): void => {
       let powerData: any = {
         POWER_IDE_BATTERY: {
           gas_gauge: [],
@@ -52,29 +52,25 @@ export class TabPanePowerBattery extends BaseElement {
           uid: [],
         },
       };
-      result.forEach((item) => {
+      result.forEach((item): void => {
         let powerDatum: any = powerData[item.eventName];
         if (item.appKey.toLocaleLowerCase() === 'appname') {
           powerDatum.appName = SpHiSysEnergyChart.app_name;
         } else {
           let eventData: Array<string> = item.eventValue.split(',');
-          let eventValue = eventData[eventData.length - 1] || '';
-          powerDatum[item.appKey.toLocaleLowerCase()] = eventValue;
+          powerDatum[item.appKey.toLocaleLowerCase()] = eventData[eventData.length - 1] || '';
         }
       });
-      let list = [
-        { name: 'Gas Gauge', value: powerData.POWER_IDE_BATTERY.gas_gauge + ' mAh' },
+      this.tblPower!.recycleDataSource = [
+        { name: 'Gas Gauge', value: `${powerData.POWER_IDE_BATTERY.gas_gauge} mAh` },
         { name: 'Charge', value: powerData.POWER_IDE_BATTERY.charge },
         { name: 'Screen', value: powerData.POWER_IDE_BATTERY.screen },
-        { name: 'Level', value: powerData.POWER_IDE_BATTERY.level + ' %' },
-        { name: 'Current', value: powerData.POWER_IDE_BATTERY.current + ' mA' },
-        { name: 'Capacity', value: powerData.POWER_IDE_BATTERY.capacity + ' mAh' },
+        { name: 'Level', value: `${powerData.POWER_IDE_BATTERY.level} %` },
+        { name: 'Current', value: `${powerData.POWER_IDE_BATTERY.current} mA` },
+        { name: 'Capacity', value: `${powerData.POWER_IDE_BATTERY.capacity} mAh` },
         { name: 'APP Name', value: SpHiSysEnergyChart.app_name! },
       ];
-
-      this.tblPower!.recycleDataSource = list;
-
-      this.tblPower?.shadowRoot?.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
+      this.tblPower?.shadowRoot?.querySelectorAll<HTMLDivElement>('.tr').forEach((tr): void => {
         const td = tr.querySelectorAll<HTMLDivElement>('.td');
         this.setTableStyle(td[0], '0.9', '16px');
         this.setTableStyle(td[1], '0.6', '20px');
@@ -82,7 +78,7 @@ export class TabPanePowerBattery extends BaseElement {
     });
   }
 
-  setTableStyle(td: HTMLDivElement, opacity: string, lineHeight: string) {
+  setTableStyle(td: HTMLDivElement, opacity: string, lineHeight: string): void {
     td.style.fontWeight = '400';
     td.style.fontSize = '14px';
     td.style.opacity = opacity;

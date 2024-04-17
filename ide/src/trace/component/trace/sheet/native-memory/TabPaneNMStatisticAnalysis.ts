@@ -286,13 +286,13 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     });
     let exportHandlerMap = new Map<string, (value: any) => string>();
     exportHandlerMap.set('existSizeFormat', (value) => {
-      return `${value['existSize']}`;
+      return `${value.existSize}`;
     });
     exportHandlerMap.set('applySizeFormat', (value) => {
-      return `${value['applySize']}`;
+      return `${value.applySize}`;
     });
     exportHandlerMap.set('releaseSizeFormat', (value) => {
-      return `${value['releaseSize']}`;
+      return `${value.releaseSize}`;
     });
     this.tableType!.exportTextHandleMap = exportHandlerMap;
     this.threadUsageTbl!.exportTextHandleMap = exportHandlerMap;
@@ -444,7 +444,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       },
       angleClick: (it): void => {
         // @ts-ignore
-        if (it.tableName != 'other') {
+        if (it.tableName !== 'other') {
           this.nativeProcessLevelClickEvent(it);
         }
       },
@@ -496,7 +496,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       },
       angleClick: (it: any): void => {
         // @ts-ignore
-        if (it.tid != 'other') {
+        if (it.tid !== 'other') {
           this.nativeThreadLevelClickEvent(it);
         }
       },
@@ -558,7 +558,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       },
       angleClick: (it): void => {
         // @ts-ignore
-        if (it.tableName != 'other') {
+        if (it.tableName !== 'other') {
           this.nativeSoLevelClickEvent(it);
         }
       },
@@ -741,7 +741,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           if (subTypeMap.has(item.subType)) {
             subTypeMap.get(item.subType)?.push(item);
           } else {
-            let dataArray = new Array<number | string>();
+            let dataArray: Array<number | string> = [];
             dataArray.push(item);
             subTypeMap.set(item.subType, dataArray);
           }
@@ -749,7 +749,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           if (subTypeMap.has(TYPE_MAP_STRING)) {
             subTypeMap.get(TYPE_MAP_STRING)?.push(item);
           } else {
-            let dataArray = new Array<number | string>();
+            let dataArray: Array<number | string> = [];
             dataArray.push(item);
             subTypeMap.set(TYPE_MAP_STRING, dataArray);
           }
@@ -784,7 +784,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       if (threadMap.has(itemData.tid)) {
         threadMap.get(itemData.tid)?.push(itemData);
       } else {
-        let itemArray = new Array<number | string>();
+        let itemArray: Array<number | string> = [];
         itemArray.push(itemData);
         threadMap.set(itemData.tid, itemArray);
       }
@@ -852,7 +852,9 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.resetCurrentLevelData(item);
     let types = this.getTypes(item);
     this.soData = [];
-    if (!this.processData) return;
+    if (!this.processData) {
+      return;
+    }
     for (let itemData of this.processData) {
       if (this.shouldSkipItem(typeName, types, itemData)) {
         continue;
@@ -864,7 +866,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       if (libMap.has(libId)) {
         libMap.get(libId)?.push(itemData);
       } else {
-        let dataArray = new Array<number | string>();
+        let dataArray: Array<number | string> = [];
         dataArray.push(itemData);
         libMap.set(libId, dataArray);
       }
@@ -915,7 +917,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       if (symbolMap.has(data.symbolId)) {
         symbolMap.get(data.symbolId)?.push(data);
       } else {
-        let dataArray = new Array<number | string>();
+        let dataArray: Array<number | string> = [];
         dataArray.push(data);
         symbolMap.set(data.symbolId, dataArray);
       }
@@ -942,7 +944,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.functionPieChart();
   }
 
-  private skipItemByType(typeName: string, types: Array<string | number>, data: any, libId: number) {
+  private skipItemByType(typeName: string, types: Array<string | number>, data: any, libId: number): boolean {
     if (typeName === TYPE_ALLOC_STRING) {
       // @ts-ignore
       if (!types.includes(data.type) || data.libId !== libId) {
@@ -978,6 +980,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         return true;
       }
     }
+    return false;
   }
   private baseSort(data: Array<AnalysisObj>): void {
     if (data === this.functionData) {
@@ -1139,7 +1142,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           if (typeMap.has(TYPE_ALLOC)) {
             typeMap.get(TYPE_ALLOC)?.push(itemData);
           } else {
-            let itemArray = new Array<number | string>();
+            let itemArray: Array<number | string> = [];
             itemArray.push(itemData);
             typeMap.set(TYPE_ALLOC, itemArray);
           }
@@ -1149,7 +1152,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           if (typeMap.has(TYPE_MAP)) {
             typeMap.get(TYPE_MAP)?.push(itemData);
           } else {
-            let itemArray = new Array<number | string>();
+            let itemArray: Array<number | string> = [];
             itemArray.push(itemData);
             typeMap.set(TYPE_MAP, itemArray);
           }
@@ -1181,7 +1184,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   }
 
   private getTypes(parent: AnalysisObj): Array<number | string> {
-    let types = new Array<number | string>();
+    let types: Array<number | string> = [];
     types.push(parent.typeId!);
     types.push(parent.typeName!);
     if (!this.isStatistic) {
@@ -1392,7 +1395,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   public connectedCallback(): void {
     new ResizeObserver(() => {
       // @ts-ignore
-      if (this.parentElement?.clientHeight != 0) {
+      if (this.parentElement?.clientHeight !== 0) {
         if (this.tableType) {
           // @ts-ignore
           this.tableType.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 40 + 'px';

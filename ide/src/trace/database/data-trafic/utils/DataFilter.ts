@@ -12,45 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export function filterData(
-  list: any[],
-  startKey: string,
-  durKey: string,
-  startNS: number,
-  endNS: number,
-  width: number
-): any[] {
-  let pns = (endNS - startNS) / width; //每个像素多少ns
-  let slice = findRange(list, { startKey, durKey, startNS, endNS });
-  let sum = 0;
-  for (let i = 0; i < slice.length; i++) {
-    if (i === slice.length - 1) {
-      if (slice[i][durKey] === undefined || slice[i][durKey] === null) {
-        slice[i][durKey] = (endNS || 0) - (slice[i][startKey] || 0);
-      }
-    } else {
-      if (slice[i][durKey] === undefined || slice[i][durKey] === null) {
-        slice[i][durKey] = (slice[i + 1][startKey] || 0) - (slice[i][startKey] || 0);
-      }
-    }
-    if (slice[i][durKey] >= pns || slice.length < 100) {
-      slice[i].v = true;
-    } else {
-      if (i > 0) {
-        let c = slice[i][startKey] - slice[i - 1][startKey] - slice[i - 1][durKey];
-        if (c < pns && sum < pns) {
-          sum += c + slice[i - 1][durKey];
-          slice[i].v = false;
-        } else {
-          slice[i].v = true;
-          sum = 0;
-        }
-      }
-    }
-  }
-  return slice.filter((it) => it.v);
-}
-
 export function filterDataByLayer(
   list: any[],
   layerKey: string,
@@ -59,7 +20,7 @@ export function filterDataByLayer(
   startNS: number,
   endNS: number,
   width: number
-): any[] {
+): unknown[] {
   let pns = (endNS - startNS) / width; //每个像素多少ns
   let sliceArray = findRange(list, { startKey, durKey, startNS, endNS });
   let groups = groupBy(sliceArray, layerKey);
@@ -141,7 +102,7 @@ function filterDataByGroupWithoutValue(
   startNS: number,
   endNS: number,
   width: number
-) {
+): unknown[] {
   let arr: any[] = [];
   // 标志位，判定何时进行新一轮数据统计处理
   let flag: number = -1;
@@ -171,7 +132,7 @@ export function filterDataByGroupLayer(
   startNS: number,
   endNS: number,
   width: number
-): any[] {
+): unknown[] {
   let arr = findRange(list, { startKey, durKey, startNS, endNS });
   arr = arr.map((it) => {
     it.px = Math.floor(it[startKey] / ((endNS - startNS) / width) + it[layerKey] * width);

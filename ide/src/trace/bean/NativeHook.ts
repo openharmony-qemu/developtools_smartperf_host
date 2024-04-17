@@ -108,7 +108,7 @@ export class NativeHookSamplerInfo {
   threadId: number = 0;
   threadName: string = '';
 
-  merageObj(merageObj: NativeHookSamplerInfo) {
+  merageObj(merageObj: NativeHookSamplerInfo): void {
     this.currentSize += merageObj.currentSize;
     this.heapSize += merageObj.heapSize;
     this.existing += merageObj.existing;

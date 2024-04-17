@@ -46,6 +46,7 @@ export class SoRender extends Render {
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
+
     drawLoadingFrame(req.context, row.dataListCache, row);
     req.context.beginPath();
     let soFind = false;
@@ -71,7 +72,9 @@ export class SoRender extends Render {
         }
       }
     }
-    if (!soFind && row.isHover) SoStruct.hoverSoStruct = undefined;
+    if (!soFind && row.isHover) {
+      SoStruct.hoverSoStruct = undefined;
+    }
     req.context.closePath();
   }
 
@@ -117,7 +120,7 @@ export function soDataFilter(
     });
   }
 }
-export function SoStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollToFuncHandler: any) {
+export function SoStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollToFuncHandler: any): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_STATIC_INIT && SoStruct.hoverSoStruct) {
       SoStruct.selectSoStruct = SoStruct.hoverSoStruct;

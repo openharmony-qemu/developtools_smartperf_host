@@ -224,7 +224,7 @@ export class TabPaneNMSampleList extends BaseElement {
     });
   }
 
-  static prepChild(currentSample: NativeHookSamplerInfo, rootSample: NativeHookSamplerInfo) {
+  static prepChild(currentSample: NativeHookSamplerInfo, rootSample: NativeHookSamplerInfo): void {
     currentSample.heapSize -= rootSample.heapSize;
     currentSample.growth = Utils.getByteWithUnit(currentSample.heapSize);
     let currentMap: any = {};
@@ -242,7 +242,7 @@ export class TabPaneNMSampleList extends BaseElement {
     });
   }
 
-  static clearData() {
+  static clearData(): void {
     this.types = [];
     this.samplerInfoSource = [];
     this.tblData!.dataSource = [];
@@ -253,7 +253,7 @@ export class TabPaneNMSampleList extends BaseElement {
     TabPaneNMSampleList.filter!.firstSelect = '0';
   }
 
-  static numberToWord(num: number) {
+  static numberToWord(num: number): string {
     let word = '';
     while (num > 0) {
       let end = num % 26;
@@ -264,13 +264,13 @@ export class TabPaneNMSampleList extends BaseElement {
     return word.toUpperCase();
   }
 
-  startWorker(args: Map<string, any>, handler: Function) {
+  startWorker(args: Map<string, any>, handler: Function): void {
     procedurePool.submitWithName('logic0', 'native-memory-action', args, undefined, (res: any) => {
       handler(res);
     });
   }
 
-  setRightTableData(hookSamplerInfo: NativeHookSamplerInfo) {
+  setRightTableData(hookSamplerInfo: NativeHookSamplerInfo): void {
     let nmSamplerArgs = new Map<string, any>();
     nmSamplerArgs.set('eventId', hookSamplerInfo.eventId);
     nmSamplerArgs.set('actionType', 'memory-stack');
@@ -314,7 +314,7 @@ export class TabPaneNMSampleList extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight !== 0) {
@@ -330,7 +330,7 @@ export class TabPaneNMSampleList extends BaseElement {
     }).observe(this.parentElement!);
   }
 
-  filterAllList() {
+  filterAllList(): void {
     TabPaneNMSampleList.samplerInfoSource.forEach((nmRootSample) => {
       nmRootSample.heapSize = 0;
       nmRootSample.existing = 0;

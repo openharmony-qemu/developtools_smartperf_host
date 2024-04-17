@@ -98,7 +98,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   });
   postPerfProcessMessage(data, transfer, perfProcess, res.length);
 }
-function postPerfProcessMessage(data: any, transfer: boolean, perfProcess: PerfProcess, len: number) {
+function postPerfProcessMessage(data: any, transfer: boolean, perfProcess: PerfProcess, len: number): void {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,

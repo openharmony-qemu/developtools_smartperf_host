@@ -40,14 +40,14 @@ export class TabCpuDetailsThreads extends BaseElement {
     this.cpuDetailsThreadPie = this.shadowRoot!.querySelector<LitChartPie>('#cpu-thread-chart-pie');
     this.cpuDetailsThreadUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-cpu-usage');
 
-    this.shadowRoot!.querySelector<HTMLDivElement>('.cpu-thread-go-back')!.onclick = (e) => {
+    this.shadowRoot!.querySelector<HTMLDivElement>('.cpu-thread-go-back')!.onclick = (e): void => {
       if (!this.progress!.loading) {
         this.parentNode!.querySelector<HTMLDivElement>('.d-box')!.style.display = 'flex';
         this.setShow = false;
       }
     };
 
-    this.cpuDetailsThreadUsageTbl!.addEventListener('row-click', (evt: any) => {
+    this.cpuDetailsThreadUsageTbl!.addEventListener('row-click', (evt: any): void => {
       // @ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
@@ -58,13 +58,13 @@ export class TabCpuDetailsThreads extends BaseElement {
       }
     });
 
-    this.cpuDetailsThreadUsageTbl!.addEventListener('column-click', (evt: any) => {
+    this.cpuDetailsThreadUsageTbl!.addEventListener('column-click', (evt: any): void => {
       this.cpuDetailsThreadSortColumn = evt.detail.key;
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.cpuDetailsThreadUsageTbl!.addEventListener('row-hover', (evt: any) => {
+    this.cpuDetailsThreadUsageTbl!.addEventListener('row-hover', (evt: any): void => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -76,16 +76,16 @@ export class TabCpuDetailsThreads extends BaseElement {
     });
   }
 
-  init(cpu: number, it: any) {
+  init(cpu: number, it: any): void {
     this.shadowRoot!.querySelector<HTMLDivElement>('.cpu-thread-subheading')!.textContent =
-      'Threads in Freq ' + it.value;
+      `Threads in Freq ${it.value}`;
     this.progress!.loading = true;
     procedurePool.submitWithName(
       'logic0',
       'scheduling-CPU Frequency Thread',
       { cpu: cpu, freq: (it as any).value },
       undefined,
-      (res: any) => {
+      (res: any): void => {
         this.progress!.loading = false;
         this.queryPieChartDataByType(res);
       }
@@ -101,11 +101,11 @@ export class TabCpuDetailsThreads extends BaseElement {
     }
   }
 
-  queryPieChartDataByType(res: any) {
+  queryPieChartDataByType(res: any): void {
     this.data = res || [];
     this.data = getDataNo(this.data);
-    this.tableNoData!.noData = this.data.length == 0;
-    this.noData(this.data.length == 0);
+    this.tableNoData!.noData = this.data.length === 0;
+    this.noData(this.data.length === 0);
     this.cpuDetailsThreadPie!.config = {
       appendPadding: 0,
       data: this.data,
@@ -115,7 +115,7 @@ export class TabCpuDetailsThreads extends BaseElement {
       label: {
         type: 'outer',
       },
-      tip: (obj) => {
+      tip: (obj): string => {
         return `<div>
                                 <div>t_name:${obj.obj.tName}</div> 
                                 <div>tid:${obj.obj.tid}</div>
@@ -126,7 +126,7 @@ export class TabCpuDetailsThreads extends BaseElement {
                             </div>
                                 `;
       },
-      hoverHandler: (data) => {
+      hoverHandler: (data): void => {
         if (data) {
           this.cpuDetailsThreadUsageTbl!.setCurrentHover(data);
         } else {
@@ -139,7 +139,7 @@ export class TabCpuDetailsThreads extends BaseElement {
         },
       ],
     };
-    if (this.cpuDetailsThreadSortColumn != '') {
+    if (this.cpuDetailsThreadSortColumn !== '') {
       this.sortByColumn({ key: this.cpuDetailsThreadSortColumn, sort: this.sortType });
     } else {
       this.cpuDetailsThreadUsageTbl!.recycleDataSource = this.data;
@@ -147,26 +147,25 @@ export class TabCpuDetailsThreads extends BaseElement {
     this.cpuDetailsThreadUsageTbl?.reMeauseHeight();
   }
 
-  noData(value: boolean) {
+  noData(value: boolean): void {
     this.shadowRoot!.querySelector<HTMLDivElement>('.cpu-thread-chart-box')!.style.display = value ? 'none' : 'block';
     this.shadowRoot!.querySelector<HTMLDivElement>('.cpu-thread-table-box')!.style.width = value ? '100%' : '60%';
   }
 
-  clearData() {
+  clearData(): void {
     this.cpuDetailsThreadPie!.dataSource = [];
     this.cpuDetailsThreadUsageTbl!.recycleDataSource = [];
     this.noData(false);
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     // @ts-ignore
     function compare(cpuDetailsThreadProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2
-            ? parseFloat(b[cpuDetailsThreadProperty]) - parseFloat(a[cpuDetailsThreadProperty])
-            : parseFloat(a[cpuDetailsThreadProperty]) - parseFloat(b[cpuDetailsThreadProperty]);
+          return sort === 2 ? parseFloat(b[cpuDetailsThreadProperty]) - parseFloat(a[cpuDetailsThreadProperty]) :
+            parseFloat(a[cpuDetailsThreadProperty]) - parseFloat(b[cpuDetailsThreadProperty]);
         } else {
           if (sort === 2) {
             return b[cpuDetailsThreadProperty].toString().localeCompare(a[cpuDetailsThreadProperty].toString());

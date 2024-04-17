@@ -84,7 +84,7 @@ export function diskIoAbility(
   totalNS: number,
   frame: any,
   use: boolean
-) {
+): void {
   if (use && res.length > 0) {
     for (let i = 0; i < res.length; i++) {
       let diskIoAbilityItem = res[i];
@@ -109,7 +109,7 @@ function setDiskIoAbilityFilter(
   endNS: number,
   totalNS: number,
   frame: any
-) {
+): void {
   if (diskIoAbilityList) {
     for (let index = 0; index < diskIoAbilityList.length; index++) {
       let item = diskIoAbilityList[index];
@@ -146,7 +146,7 @@ export class DiskAbilityMonitorStruct extends BaseStruct {
     diskIoAbilityData: DiskAbilityMonitorStruct,
     maxDiskRate: number,
     isHover: boolean
-  ) {
+  ): void {
     if (diskIoAbilityData.frame) {
       let width = diskIoAbilityData.frame.width || 0;
       let index = 2;
@@ -184,7 +184,14 @@ export class DiskAbilityMonitorStruct extends BaseStruct {
     diskIoAbilityContext.lineWidth = 1;
   }
 
-  static setDiskIOFrame(diskIONode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  static setDiskIOFrame(
+    diskIONode: any,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any
+  ): void {
     let diskIOStartPointX: number, diskIOEndPointX: number;
 
     if ((diskIONode.startNS || 0) < startNS) {

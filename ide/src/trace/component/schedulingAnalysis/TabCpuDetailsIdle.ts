@@ -44,7 +44,7 @@ export class TabCpuDetailsIdle extends BaseElement {
     this.cpuDetailsLdlPie = this.shadowRoot!.querySelector<LitChartPie>('#cpu_idle_chart-pie');
     this.cpuDetailsLdlUsageTbl = this.shadowRoot!.querySelector<LitTable>('#idle-tb-cpu-usage');
 
-    this.cpuDetailsLdlUsageTbl!.addEventListener('row-click', (evt: any) => {
+    this.cpuDetailsLdlUsageTbl!.addEventListener('row-click', (evt: any): void => {
       // @ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
@@ -55,13 +55,13 @@ export class TabCpuDetailsIdle extends BaseElement {
       }
     });
 
-    this.cpuDetailsLdlUsageTbl!.addEventListener('column-click', (evt: any) => {
+    this.cpuDetailsLdlUsageTbl!.addEventListener('column-click', (evt: any): void => {
       this.cpuDetailsLdlSortColumn = evt.detail.key;
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.cpuDetailsLdlUsageTbl!.addEventListener('row-hover', (evt: any) => {
+    this.cpuDetailsLdlUsageTbl!.addEventListener('row-hover', (evt: any): void => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -73,24 +73,24 @@ export class TabCpuDetailsIdle extends BaseElement {
     });
   }
 
-  init(cpu: number) {
+  init(cpu: number): void {
     this.queryPieChartDataByType('CPU Idle', cpu);
   }
 
-  queryPieChartDataByType(type: string, cpu: number) {
+  queryPieChartDataByType(type: string, cpu: number): void {
     if (this.traceChange) {
       return;
     }
     this.cpuDetailsLdlProgress!.loading = true;
-    this.queryLoginWorker(`scheduling-${type}`, 'query Cpu Frequency Analysis Time:', (res) => {
+    this.queryLoginWorker(`scheduling-${type}`, 'query Cpu Frequency Analysis Time:', (res): void => {
       this.traceChange = true;
       this.cpuDetailsLdlProgress!.loading = false;
       this.cpuDetailsLdlData = res.get(cpu) || [];
       this.cpuDetailsLdlData = getDataNo(this.cpuDetailsLdlData);
-      this.tableNoData!.noData = this.cpuDetailsLdlData.length == 0;
-      this.noData(this.cpuDetailsLdlData.length == 0);
+      this.tableNoData!.noData = this.cpuDetailsLdlData.length === 0;
+      this.noData(this.cpuDetailsLdlData.length === 0);
       this.setLdlPieConfig(type);
-      if (this.cpuDetailsLdlSortColumn != '') {
+      if (this.cpuDetailsLdlSortColumn !== '') {
         this.sortByColumn({
           key: this.cpuDetailsLdlSortColumn,
           sort: this.sortType,
@@ -112,20 +112,18 @@ export class TabCpuDetailsIdle extends BaseElement {
       label: {
         type: 'outer',
         color:
-          type !== 'CPU Idle'
-            ? undefined
-            : (it) => {
-                return pieChartColors[(it as any).value];
-              },
+          type !== 'CPU Idle' ? undefined : (it): string => {
+            return pieChartColors[(it as any).value];
+          },
       },
-      hoverHandler: (data) => {
+      hoverHandler: (data): void => {
         if (data) {
           this.cpuDetailsLdlUsageTbl!.setCurrentHover(data);
         } else {
           this.cpuDetailsLdlUsageTbl!.mouseOut();
         }
       },
-      tip: (idleObj) => {
+      tip: (idleObj): string => {
         return `<div>
                                 <div>idle:${idleObj.obj.value}</div> 
                                 <div>min:${idleObj.obj.min}</div>
@@ -144,19 +142,19 @@ export class TabCpuDetailsIdle extends BaseElement {
     };
   }
 
-  noData(value: boolean) {
+  noData(value: boolean): void {
     this.shadowRoot!.querySelector<HTMLDivElement>('.idle-chart-box')!.style.display = value ? 'none' : 'block';
     this.shadowRoot!.querySelector<HTMLDivElement>('.cpu_idle_table-box')!.style.width = value ? '100%' : '60%';
   }
 
-  clearData() {
+  clearData(): void {
     this.traceChange = false;
     this.cpuDetailsLdlPie!.dataSource = [];
     this.cpuDetailsLdlUsageTbl!.recycleDataSource = [];
     this.noData(false);
   }
 
-  queryLoginWorker(idleType: string, log: string, handler: (res: any) => void) {
+  queryLoginWorker(idleType: string, log: string, handler: (res: any) => void): void {
     let cpuDetailsldleTime = new Date().getTime();
     procedurePool.submitWithName(
       'logic0',
@@ -172,15 +170,14 @@ export class TabCpuDetailsIdle extends BaseElement {
     info(log, durTime);
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     // @ts-ignore
     function compare(cpuDetailsLdlProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2
-            ? parseFloat(b[cpuDetailsLdlProperty]) - parseFloat(a[cpuDetailsLdlProperty])
-            : parseFloat(a[cpuDetailsLdlProperty]) - parseFloat(b[cpuDetailsLdlProperty]);
+          return sort === 2 ? parseFloat(b[cpuDetailsLdlProperty]) - parseFloat(a[cpuDetailsLdlProperty]) :
+            parseFloat(a[cpuDetailsLdlProperty]) - parseFloat(b[cpuDetailsLdlProperty]);
         } else {
           if (sort === 2) {
             return b[cpuDetailsLdlProperty].toString().localeCompare(a[cpuDetailsLdlProperty].toString());

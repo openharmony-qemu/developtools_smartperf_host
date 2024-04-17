@@ -44,9 +44,9 @@ SliceTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTableBase* table
 
 SliceTable::Cursor::~Cursor() {}
 
-int32_t SliceTable::Cursor::Column(int32_t SliceTabColumn) const
+int32_t SliceTable::Cursor::Column(int32_t sliceTabColumn) const
 {
-    switch (static_cast<Index>(SliceTabColumn)) {
+    switch (static_cast<Index>(sliceTabColumn)) {
         case Index::TS: {
             sqlite3_result_int64(demoContext_, static_cast<int64_t>(sliceDataObj_.TimeStamp()[CurrentRow()]));
             break;
@@ -64,7 +64,7 @@ int32_t SliceTable::Cursor::Column(int32_t SliceTabColumn) const
             break;
         }
         default:
-            TS_LOGF("Unregistered SliceTabColumn : %d", SliceTabColumn);
+            TS_LOGF("Unregistered sliceTabColumn : %d", sliceTabColumn);
             break;
     }
     return SQLITE_OK;

@@ -43,7 +43,6 @@ import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
 import { procedurePool } from '../../database/Procedure';
 import { SpSegmentationChart } from './SpSegmentationChart';
-import { SpPerfOutputDataChart } from './SpPerfOutputDataChart';
 import {
   queryAppStartupProcessIds,
   queryDataDICT,
@@ -83,7 +82,6 @@ export class SpChartManager {
   private spSegmentationChart: SpSegmentationChart;
   private spBpftraceChart: SpBpftraceChart;
   private tranceRange = { startTs: 0, endTs: 0 };
-  private spPerfOutputDataChart: SpPerfOutputDataChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -109,7 +107,6 @@ export class SpChartManager {
     this.SpLtpoChart = new SpLtpoChart(trace);
     this.spSegmentationChart = new SpSegmentationChart(trace);
     this.spBpftraceChart = new SpBpftraceChart(trace);
-    this.spPerfOutputDataChart = new SpPerfOutputDataChart(trace);
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
@@ -192,7 +189,6 @@ export class SpChartManager {
     await this.spAllAppStartupsChart.init();
     await this.SpLtpoChart.init();
     await this.frameTimeChart.init();
-    await this.spPerfOutputDataChart.init();
     progress('process', 92);
     await this.process.initAsyncFuncData(this.tranceRange);
     await this.process.initDeliverInputEvent();
@@ -324,7 +320,7 @@ export function rowThreadHandler<T>(
   row: TraceRow<any>,
   trace: SpSystemTrace
 ) {
-  return (useCache: boolean) => {
+  return (useCache: boolean) : void => {
     let context: CanvasRenderingContext2D = getRowContext(row, trace);
     row.canvasSave(context);
     arg.useCache = useCache;

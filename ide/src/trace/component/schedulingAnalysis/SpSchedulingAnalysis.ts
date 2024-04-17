@@ -40,14 +40,14 @@ export class SpSchedulingAnalysis extends BaseElement {
     this.tabThreadAnalysis = this.shadowRoot?.querySelector<TabThreadAnalysis>('#thread-analysis');
   }
 
-  static resetCpu() {
+  static resetCpu(): void {
     SpSchedulingAnalysis.traceChange = true;
     CheckCpuSetting.resetCpuSettings();
     Top20FrequencyThread.threads = undefined;
-    procedurePool.submitWithName('logic0', 'scheduling-clearData', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'scheduling-clearData', {}, undefined, (res: any): void => {});
   }
 
-  init() {
+  init(): void {
     if (SpSchedulingAnalysis.traceChange) {
       SpSchedulingAnalysis.traceChange = false;
       this.tabs!.activekey = '1';

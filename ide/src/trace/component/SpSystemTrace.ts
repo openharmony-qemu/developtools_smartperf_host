@@ -113,7 +113,7 @@ import {
 import spSystemTraceOnClickHandler, {
   spSystemTraceDocumentOnClick,
   spSystemTraceDocumentOnKeyDown,
-  SpSystemTraceDocumentOnKeyPress,
+  spSystemTraceDocumentOnKeyPress,
   spSystemTraceDocumentOnKeyUp,
   spSystemTraceDocumentOnMouseDown,
   spSystemTraceDocumentOnMouseMove,
@@ -122,7 +122,6 @@ import spSystemTraceOnClickHandler, {
 } from './SpSystemTrace.event';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { readTraceFileBuffer } from '../SpApplicationPublicFunc';
-import { PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -229,9 +228,9 @@ export class SpSystemTrace extends BaseElement {
   //节流处理
   throttle(fn: Function, t: number, ev?: any): Function {
     let timerId: any = null;
-    return () => {
+    return (): void => {
       if (!timerId) {
-        timerId = setTimeout(function () {
+        timerId = setTimeout(function (): void {
           if (ev) {
             fn(ev);
           } else {
@@ -247,11 +246,11 @@ export class SpSystemTrace extends BaseElement {
   // 防抖处理
   debounce(fn: Function, ms: number, ev?: any): Function {
     let timerId: undefined | number;
-    return () => {
+    return (): void => {
       if (timerId) {
         window.clearTimeout(timerId);
       } else {
-        timerId = window.setTimeout(() => {
+        timerId = window.setTimeout((): void => {
           if (ev) {
             fn(ev);
           } else {
@@ -421,13 +420,11 @@ export class SpSystemTrace extends BaseElement {
   }
 
   getScrollWidth(): number {
-    let totalScrollDiv,
-      scrollDiv,
-      overflowDiv = document.createElement('div');
+    let overflowDiv = document.createElement('div');
     overflowDiv.style.cssText = 'position:absolute; top:-2000px;width:200px; height:200px; overflow:hidden;';
-    totalScrollDiv = document.body.appendChild(overflowDiv).clientWidth;
+    let totalScrollDiv = document.body.appendChild(overflowDiv).clientWidth;
     overflowDiv.style.overflowY = 'scroll';
-    scrollDiv = overflowDiv.clientWidth;
+    let scrollDiv = overflowDiv.clientWidth;
     document.body.removeChild(overflowDiv);
     return totalScrollDiv - scrollDiv;
   }
@@ -583,8 +580,19 @@ export class SpSystemTrace extends BaseElement {
     //draw trace row
     this.visibleRows.forEach((v, i) => {
       if (v.collect) {
-        v.translateY = v.getBoundingClientRect().top -
-          this.timerShaftEL?.clientHeight! - this.parentElement!.previousElementSibling!.clientHeight - 1;
+        if (this.timerShaftEL?._checkExpand) {
+          if (SpSystemTrace.isHiddenMenu) {
+            v.translateY = v.getBoundingClientRect().top - 195 + this.timerShaftEL.usageFoldHeight! + 48;
+          } else {
+            v.translateY = v.getBoundingClientRect().top - 195 + this.timerShaftEL.usageFoldHeight!;
+          }
+        } else {
+          if (SpSystemTrace.isHiddenMenu) {
+            v.translateY = v.getBoundingClientRect().top - 195 + 48;
+          } else {
+            v.translateY = v.getBoundingClientRect().top - 195;
+          }
+        }
       } else {
         v.translateY = v.offsetTop - this.rowsPaneEL!.scrollTop;
       }
@@ -717,7 +725,7 @@ export class SpSystemTrace extends BaseElement {
 
   documentOnKeyDown = (ev: KeyboardEvent): void => spSystemTraceDocumentOnKeyDown(this, ev);
 
-  documentOnKeyPress = (ev: KeyboardEvent): void => SpSystemTraceDocumentOnKeyPress(this, ev);
+  documentOnKeyPress = (ev: KeyboardEvent): void => spSystemTraceDocumentOnKeyPress(this, ev);
 
   verticalScrollToRow(): void {
     if (this.currentRow) {
@@ -911,7 +919,7 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  ifSliceInView(data: any, type: string, ev: KeyboardEvent) {
+  ifSliceInView(data: any, type: string, ev: KeyboardEvent): void {
     let timeRangeEndNS = this.timerShaftEL?.getRangeRuler()?.range.endNS;
     let timeRangeStartNS = this.timerShaftEL?.getRangeRuler()?.range.startNS;
     if (type === 'flag') {
@@ -986,7 +994,7 @@ export class SpSystemTrace extends BaseElement {
   selectChangeHandler = (row: TraceRow<any>): void => {
     this.setParentCheckStatus(row);
     const rows = [
-      ...this.shadowRoot!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']"),
+      ...this.shadowRoot!.querySelectorAll<TraceRow<any>>('trace-row[check-type=\'2\']'),
       ...this.favoriteChartListEL!.getAllSelectCollectRows(),
     ];
     this.isSelectClick = true;
@@ -1048,7 +1056,6 @@ export class SpSystemTrace extends BaseElement {
     SnapshotStruct.hoverSnapshotStruct = undefined;
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
     SampleStruct.hoverSampleStruct = undefined;
-    PerfToolStruct.hoverPerfToolStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1079,7 +1086,6 @@ export class SpSystemTrace extends BaseElement {
     LtpoStruct.selectLtpoStruct = undefined;
     HitchTimeStruct.selectHitchTimeStruct = undefined;
     SampleStruct.selectSampleStruct = undefined;
-    PerfToolStruct.selectPerfToolStruct = undefined;
     return this;
   }
 
@@ -1405,7 +1411,7 @@ export class SpSystemTrace extends BaseElement {
           scrollTop: this.rowsEL!.scrollTop,
           favoriteScrollTop: this.favoriteChartListEL!.scrollTop,
         });
-        this.downloadRecordFile(data).then(() => { });
+        this.downloadRecordFile(data).then(() => {});
       }
     });
   }
@@ -1523,10 +1529,10 @@ export class SpSystemTrace extends BaseElement {
     });
   }
 
-  private wheelListener() {
+  private wheelListener(): void {
     document.addEventListener(
       'wheel',
-      (e) => {
+      (e): void => {
         if (e.ctrlKey) {
           if (e.deltaY > 0) {
             e.preventDefault();
@@ -1567,10 +1573,10 @@ export class SpSystemTrace extends BaseElement {
      * 否则泳道图会一直放大或一直缩小。
      * setTimeout()函数中的时间参数可以控制鼠标滚轮的频率。
      */
-    SpApplication.skinChange2 = (val: boolean) => {
+    SpApplication.skinChange2 = (val: boolean): void => {
       this.timerShaftEL?.render();
     };
-    window.subscribe(window.SmartEvent.UI.UploadSOFile, (data) => {
+    window.subscribe(window.SmartEvent.UI.UploadSOFile, (data): void => {
       this.chartManager?.importSoFileUpdate().then(() => {
         window.publish(window.SmartEvent.UI.Loading, { loading: false, text: 'Import So File' });
         let updateCanvas = this.traceSheetEL?.updateRangeSelect();
@@ -1579,7 +1585,7 @@ export class SpSystemTrace extends BaseElement {
         }
       });
     });
-    window.subscribe(window.SmartEvent.UI.KeyPath, (data) => {
+    window.subscribe(window.SmartEvent.UI.KeyPath, (data): void => {
       this.invisibleRows.forEach((it) => (it.needRefresh = true));
       this.visibleRows.forEach((it) => (it.needRefresh = true));
       if (data.length === 0) {
@@ -1588,13 +1594,13 @@ export class SpSystemTrace extends BaseElement {
         this.refreshCanvas(false);
       } else {
         // draw
-        queryCpuKeyPathData(data).then((res) => {
+        queryCpuKeyPathData(data).then((res): void => {
           SpSystemTrace.keyPathList = res;
           this.refreshCanvas(false);
         });
       }
     });
-    window.subscribe(window.SmartEvent.UI.CheckALL, (data) => {
+    window.subscribe(window.SmartEvent.UI.CheckALL, (data): void => {
       this.getCollectRows((row) => row.rowParentId === data.rowId).forEach((it) => {
         it.checkType = data.isCheck ? '2' : '0';
       });
@@ -1606,7 +1612,7 @@ export class SpSystemTrace extends BaseElement {
   private scrollH: number = 0;
 
   subscribeBottomTabVisibleEvent(): void {
-    window.subscribe(window.SmartEvent.UI.ShowBottomTab, (data: { show: number; delta: number }) => {
+    window.subscribe(window.SmartEvent.UI.ShowBottomTab, (data: { show: number; delta: number }): void => {
       if (data.show === 1) {
         //显示底部tab
         this.scrollH = this.rowsEL!.scrollHeight;
@@ -1627,7 +1633,7 @@ export class SpSystemTrace extends BaseElement {
     this.favoriteChartListEL?.expandSearchRowGroup(row);
   }
 
-  scrollToProcess(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true) {
+  scrollToProcess(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true): void {
     let traceRow =
       this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowId}'][row-type='${rowType}']`) ||
       this.favoriteChartListEL!.getCollectRow((row) => row.rowId === rowId && row.rowType === rowType);
@@ -1655,7 +1661,7 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  scrollToDepth(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true, depth: number) {
+  scrollToDepth(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true, depth: number): void {
     let rootRow =
       this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowId}'][row-type='${rowType}']`) ||
       this.favoriteChartListEL!.getCollectRow((row) => row.rowId === rowId && row.rowType === rowType);
@@ -1681,7 +1687,7 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  isInViewport(e: any) {
+  isInViewport(e: any): boolean {
     const rect = e.getBoundingClientRect();
     return (
       rect.top >= 0 &&
@@ -1691,7 +1697,7 @@ export class SpSystemTrace extends BaseElement {
     );
   }
 
-  scrollToFunction(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true) {
+  scrollToFunction(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true): void {
     let condition = `trace-row[row-id='${rowId}'][row-type='${rowType}'][row-parent-id='${rowParentId}']`;
     let rootRow =
       this.rowsEL!.querySelector<TraceRow<any>>(condition) ||
@@ -1723,7 +1729,7 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     this.timerShaftEL?.removeEventListener('range-change', this.timerShaftELRangeChange);
     this.rowsPaneEL?.removeEventListener('scroll', this.rowsElOnScroll);
     this.favoriteChartListEL?.removeEventListener('scroll', this.favoriteRowsElOnScroll);
@@ -1739,7 +1745,7 @@ export class SpSystemTrace extends BaseElement {
     window.unsubscribe(window.SmartEvent.UI.SliceMark, this.sliceMarkEventHandler.bind(this));
   }
 
-  sliceMarkEventHandler(ev: any) {
+  sliceMarkEventHandler(ev: any): void {
     SpSystemTrace.sliceRangeMark = ev;
     let startNS = ev.timestamp - (window as any).recordStartNS;
     let endNS = ev.maxDuration + startNS;
@@ -1785,7 +1791,7 @@ export class SpSystemTrace extends BaseElement {
     thirdPartyWasmConfigUrl: string,
     progress: (name: string, percent: number) => void,
     complete?: ((res: { status: boolean; msg: string }) => void) | undefined
-  ) {
+  ): void {
     this.observerScrollHeightEnable = false;
     this.init({ buf }, thirdPartyWasmConfigUrl, progress).then((res) => {
       this.rowsEL?.querySelectorAll('trace-row').forEach((it: any) => this.observer.observe(it));
@@ -1812,9 +1818,9 @@ export class SpSystemTrace extends BaseElement {
       top: 0,
       left: 0,
     });
-    this.chartManager?.initSample(ev).then(() => {
+    this.chartManager?.initSample(ev).then((): void => {
       this.loadTraceCompleted = true;
-      this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
+      this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it): void => {
         this.intersectionObserver?.observe(it);
       });
     });
@@ -1828,7 +1834,7 @@ export class SpSystemTrace extends BaseElement {
   }
 
   search(query: string): void {
-    this.queryAllTraceRow().forEach((item) => {
+    this.queryAllTraceRow().forEach((item): void => {
       if (query === null || query === undefined || query === '') {
         if (
           item.rowType === TraceRow.ROW_TYPE_CPU ||
@@ -1875,7 +1881,7 @@ export class SpSystemTrace extends BaseElement {
       this.shadowRoot!.querySelector<TraceRow<any>>('trace-row[scene]') ||
       this.favoriteChartListEL!.getCollectRow((row) => row.hasAttribute('scene'));
     if (traceRow) {
-      this.shadowRoot!.querySelectorAll<TraceRow<any>>("trace-row[row-type='process'][scene]").forEach((row) => {
+      this.shadowRoot!.querySelectorAll<TraceRow<any>>('trace-row[row-type=\'process\'][scene]').forEach((row): void => {
         processList.push(row.rowId!);
       });
       if (query.includes('_')) {
@@ -1900,19 +1906,19 @@ export class SpSystemTrace extends BaseElement {
     let traceRow =
       this.shadowRoot!.querySelector<TraceRow<any>>('trace-row[scene]') ||
       this.favoriteChartListEL!.getCollectRow((row) => row.hasAttribute('scene'));
-    let dataAll = "trace-row[row-type^='sdk']";
+    let dataAll = 'trace-row[row-type^=\'sdk\']';
     if (traceRow) {
-      dataAll = "trace-row[row-type^='sdk'][scene]";
+      dataAll = 'trace-row[row-type^=\'sdk\'][scene]';
     }
     let allTraceRow: any = [];
     let parentRows = this.shadowRoot!.querySelectorAll<TraceRow<any>>(`${dataAll}`);
-    parentRows.forEach((parentRow: TraceRow<any>) => {
+    parentRows.forEach((parentRow: TraceRow<any>): void => {
       allTraceRow.push(parentRow);
       if (parentRow.childrenList && parentRow.childrenList.length > 0) {
         allTraceRow.push(...parentRow.childrenList);
       }
     });
-    allTraceRow.forEach((row: any) => {
+    allTraceRow.forEach((row: any): void => {
       if (row!.name.indexOf(query) >= 0) {
         let searchSdkBean = new SearchSdkBean();
         searchSdkBean.startTime = TraceRow.range!.startNS;
@@ -2000,15 +2006,15 @@ export class SpSystemTrace extends BaseElement {
   }
 
   closeAllExpandRows(pid: string): void {
-    let expandRows = this.rowsEL?.querySelectorAll<TraceRow<ProcessStruct>>(`trace-row[row-type='process'][expansion]`);
-    expandRows?.forEach((row) => {
+    let expandRows = this.rowsEL?.querySelectorAll<TraceRow<ProcessStruct>>('trace-row[row-type=\'process\'][expansion]');
+    expandRows?.forEach((row): void => {
       if (row.rowId !== pid) {
         row.expansion = false;
       }
     });
   }
 
-  moveRangeToLeft(startTime: number, dur: number) {
+  moveRangeToLeft(startTime: number, dur: number): void {
     let startNS = this.timerShaftEL?.getRange()?.startNS || 0;
     let endNS = this.timerShaftEL?.getRange()?.endNS || 0;
     let harfDur = Math.trunc(endNS - startNS - dur / 2);
@@ -2100,9 +2106,9 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
-    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => { });
+    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
     if (threadPool) {
-      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => { });
+      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => {});
     }
     this.times.clear();
     resetVSync();
@@ -2119,9 +2125,9 @@ export class SpSystemTrace extends BaseElement {
   };
 
   extracted(it: TraceRow<any>) {
-    return () => {
+    return (): void => {
       if (it.hasAttribute('expansion')) {
-        it.childrenList.forEach((child) => {
+        it.childrenList.forEach((child): void => {
           if (child.hasAttribute('scene') && !child.collect) {
             child.rowHidden = false;
           }
@@ -2131,7 +2137,7 @@ export class SpSystemTrace extends BaseElement {
           this.intersectionObserver?.observe(child);
         });
       } else {
-        it.childrenList.forEach((child) => {
+        it.childrenList.forEach((child): void => {
           if (child.hasAttribute('scene') && !child.collect) {
             child.rowHidden = true;
             this.intersectionObserver?.unobserve(child);
@@ -2140,7 +2146,7 @@ export class SpSystemTrace extends BaseElement {
             child.removeEventListener('expansion-change', this.extracted(child));
           }
         });
-        this.linkNodes.map((value) => {
+        this.linkNodes.map((value): void => {
           if ('task' === value[0].business && value[0].rowEL.parentRowEl?.rowId === it.rowId) {
             value[0].hidden = true;
             value[1].hidden = true;

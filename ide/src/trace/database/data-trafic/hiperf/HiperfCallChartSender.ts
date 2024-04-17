@@ -13,7 +13,6 @@
 import { QueryEnum, TraficEnum } from '../utils/QueryEnum';
 import { threadPool } from '../../SqlLite';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
-import { FuncStruct } from '../../ui-worker/ProcedureWorkerFunc';
 import { SpSystemTrace } from '../../../component/SpSystemTrace';
 
 export function hiperfCallChartDataSender(
@@ -80,7 +79,13 @@ export function hiperfCallChartDataCacheSender(): Promise<any> {
   });
 }
 
-function arrayBufferHandler(res: any, len: number) {
+function arrayBufferHandler(
+  res: any,
+  len: number
+): {
+  maxDepth: any;
+  dataList: any[];
+} {
   let startTs = new Float64Array(res.startTs);
   let dur = new Float64Array(res.dur);
   let depth = new Int32Array(res.depth);

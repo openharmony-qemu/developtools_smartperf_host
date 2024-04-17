@@ -34,7 +34,7 @@ import { TraceSheet } from './trace/base/TraceSheet';
 import { TimerShaftElement } from './trace/TimerShaftElement';
 import { SpChartList } from './trace/SpChartList';
 type HTMLElementAlias = HTMLElement | null | undefined;
-function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias) {
+function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): any {
   Object.assign(sp, {
     ext(): string {
       return 'Handle the right button click event';
@@ -72,7 +72,7 @@ function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias) {
     }, 300);
     rightStar!.style.visibility = 'visible';
     rightStar!.style.cursor = 'pointer';
-    SpSystemTrace.btnTimer = setTimeout(() => {
+    SpSystemTrace.btnTimer = setTimeout((): void => {
       SpSystemTrace.btnTimer = null; // 2.清空节流阀，方便下次开启定时器
     }, 2000);
   };
@@ -405,7 +405,7 @@ function selectHandler(sp: SpSystemTrace): void {
     let checkRows = rows;
     if (!refreshCheckBox) {
       checkRows = [
-        ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']"),
+        ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>('trace-row[check-type=\'2\']'),
         ...sp.favoriteChartListEL!.getAllSelectCollectRows(),
       ];
     }
@@ -775,7 +775,7 @@ function spSystemTraceShowStructFindIndex(
 function findEntryTypeCpu(sp: SpSystemTrace, findEntry: any): void {
   CpuStruct.selectCpuStruct = findEntry;
   CpuStruct.hoverCpuStruct = CpuStruct.selectCpuStruct;
-  sp.queryAllTraceRow("trace-row[row-type='cpu-data']", (row) => row.rowType === 'cpu-data').forEach((item) => {
+  sp.queryAllTraceRow('trace-row[row-type=\'cpu-data\']', (row): boolean => row.rowType === 'cpu-data').forEach((item): void => {
     if (item.rowId === `${findEntry.cpu}`) {
       sp.rechargeCpuData(
         findEntry,
@@ -828,7 +828,7 @@ function findEntryTypeThreadProcess(sp: SpSystemTrace, findEntry: any): void {
   }
 }
 function findEntryTypeSdk(sp: SpSystemTrace, findEntry: any): void {
-  let parentRow = sp.shadowRoot!.querySelector<TraceRow<any>>("trace-row[row-type='sdk'][folder]");
+  let parentRow = sp.shadowRoot!.querySelector<TraceRow<any>>('trace-row[row-type=\'sdk\'][folder]');
   if (parentRow) {
     let sdkRow = parentRow.childrenList.filter(
       (child) => child.rowId === findEntry.rowId && child.rowType === findEntry.rowType

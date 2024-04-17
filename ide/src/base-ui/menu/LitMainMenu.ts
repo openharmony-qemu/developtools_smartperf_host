@@ -94,7 +94,7 @@ export class LitMainMenu extends BaseElement {
   private slotElements: Element[] | undefined;
   private _menus: Array<MenuGroup> | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return [];
   }
 
@@ -106,7 +106,7 @@ export class LitMainMenu extends BaseElement {
     this._menus = value;
     this.shadowRoot?.querySelectorAll('lit-main-menu-group').forEach((a) => a.remove());
     let menuBody = this.shadowRoot?.querySelector('.menu-body');
-    if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') == 'dark') {
+    if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') === 'dark') {
       this.style.backgroundColor = '#262f3c';
     } else {
       this.style.backgroundColor = '#fff';
@@ -195,7 +195,7 @@ export class LitMainMenu extends BaseElement {
           }
         });
       }
-      if (v.disabled != undefined) {
+      if (v.disabled !== undefined) {
         th.disabled = v.disabled;
       }
       secondGroup.appendChild(th);
@@ -230,7 +230,7 @@ export class LitMainMenu extends BaseElement {
         }
       });
     }
-    if (item.disabled != undefined) {
+    if (item.disabled !== undefined) {
       th.disabled = item.disabled;
     }
     group?.appendChild(th);
@@ -245,7 +245,8 @@ export class LitMainMenu extends BaseElement {
       });
     });
     let versionDiv: HTMLElement | null | undefined = this.shadowRoot?.querySelector<HTMLElement>('.version');
-    versionDiv!.innerText = (window as any).version || '';
+    //@ts-ignore
+    versionDiv!.innerText = window.version || '';
   }
 
   initHtml(): string {

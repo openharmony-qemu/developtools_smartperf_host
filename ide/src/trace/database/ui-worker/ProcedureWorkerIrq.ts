@@ -17,7 +17,6 @@ import {
   BaseStruct,
   dataFilterHandler,
   isFrameContainPoint,
-  Rect,
   Render,
   drawString,
   drawLoadingFrame,
@@ -35,7 +34,7 @@ export class IrqRender extends Render {
       index: number;
     },
     row: TraceRow<IrqStruct>
-  ) {
+  ): void {
     IrqStruct.index = irqReq.index;
     let irqList = row.dataList;
     let irqFilter = row.dataListCache;
@@ -59,7 +58,9 @@ export class IrqRender extends Render {
         find = true;
       }
     }
-    if (!find && row.isHover) IrqStruct.hoverIrqStruct = undefined;
+    if (!find && row.isHover) {
+      IrqStruct.hoverIrqStruct = undefined;
+    }
     irqReq.context.closePath();
     irqReq.context.globalAlpha = 0.8;
     irqReq.context.fillStyle = '#f0f0f0';
@@ -70,7 +71,7 @@ export class IrqRender extends Render {
 }
 
 const padding = 3;
-export function IrqStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+export function IrqStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_IRQ && IrqStruct.hoverIrqStruct) {
       IrqStruct.selectIrqStruct = IrqStruct.hoverIrqStruct;
@@ -95,7 +96,7 @@ export class IrqStruct extends BaseStruct {
   textMetricsWidth: number | undefined; //自补充
   argSetId: number | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, data: IrqStruct, isHover: boolean) {
+  static draw(ctx: CanvasRenderingContext2D, data: IrqStruct, isHover: boolean): void {
     if (data.frame) {
       ctx.fillStyle = ColorUtils.colorForName(data.name || '');
       ctx.strokeStyle = '#232c5d';

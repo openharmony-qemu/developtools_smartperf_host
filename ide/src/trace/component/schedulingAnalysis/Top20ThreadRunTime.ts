@@ -36,7 +36,7 @@ export class Top20ThreadRunTime extends BaseElement {
     this.threadRunTimeTbl = this.shadowRoot!.querySelector<LitTable>('#tb-thread-run-time');
     this.nodata = this.shadowRoot!.querySelector<TableNoData>('#nodata');
 
-    this.threadRunTimeTbl!.addEventListener('row-click', (evt: any) => {
+    this.threadRunTimeTbl!.addEventListener('row-click', (evt: any): void => {
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
@@ -46,13 +46,13 @@ export class Top20ThreadRunTime extends BaseElement {
       }
     });
 
-    this.threadRunTimeTbl!.addEventListener('column-click', (evt) => {
+    this.threadRunTimeTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
 
-  init() {
+  init(): void {
     if (!this.traceChange) {
       if (this.threadRunTimeTbl!.recycleDataSource.length > 0) {
         this.threadRunTimeTbl?.reMeauseHeight();
@@ -61,7 +61,7 @@ export class Top20ThreadRunTime extends BaseElement {
     }
     this.threadRunTimeProgress!.loading = true;
     this.traceChange = false;
-    this.queryLogicWorker(`scheduling-Thread RunTime`, `query Thread Cpu Run Time Analysis Time:`, (res) => {
+    this.queryLogicWorker('scheduling-Thread RunTime', 'query Thread Cpu Run Time Analysis Time:', (res): void => {
       this.nodata!.noData = res === undefined || res.length === 0;
       this.threadRunTimeTbl!.recycleDataSource = res;
       this.threadRunTimeTbl?.reMeauseHeight();
@@ -70,27 +70,26 @@ export class Top20ThreadRunTime extends BaseElement {
     });
   }
 
-  clearData() {
+  clearData(): void {
     this.traceChange = true;
     this.threadRunTimeTbl!.recycleDataSource = [];
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
+  queryLogicWorker(option: string, log: string, handler: (res: any) => void): void {
     let threadRunTime = new Date().getTime();
     procedurePool.submitWithName('logic0', option, { cpuMax: SpSchedulingAnalysis.cpuCount - 1 }, undefined, handler);
     let durTime = new Date().getTime() - threadRunTime;
     info(log, durTime);
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     // @ts-ignore
     function compare(threadRunTimeProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2
-            ? parseFloat(b[threadRunTimeProperty]) - parseFloat(a[threadRunTimeProperty])
-            : parseFloat(a[threadRunTimeProperty]) - parseFloat(b[threadRunTimeProperty]);
+          return sort === 2 ? parseFloat(b[threadRunTimeProperty]) - parseFloat(a[threadRunTimeProperty]) :
+            parseFloat(a[threadRunTimeProperty]) - parseFloat(b[threadRunTimeProperty]);
         } else {
           if (sort === 2) {
             return b[threadRunTimeProperty].toString().localeCompare(a[threadRunTimeProperty].toString());

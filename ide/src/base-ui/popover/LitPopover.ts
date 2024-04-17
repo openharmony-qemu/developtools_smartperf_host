@@ -299,11 +299,11 @@ export class LitPopover extends BaseElement {
   private litGroup: LitRadioGroup | LitCheckGroup | undefined;
   private _texBox: LitCheckBoxWithText | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return [];
   }
 
-  get type() {
+  get type(): string {
     return this.getAttribute('type') || '';
   }
 
@@ -311,7 +311,7 @@ export class LitPopover extends BaseElement {
     this.setAttribute('type', type);
   }
 
-  get title() {
+  get title(): string {
     return this.getAttribute('title') || '';
   }
 
@@ -352,7 +352,7 @@ export class LitPopover extends BaseElement {
         this.popContent!.appendChild(this.litGroup);
         dataSource.forEach((data) => {
           let litRadioBox = new LitRadioBox();
-          if (this.title == '') {
+          if (this.title === '') {
             litRadioBox.setAttribute('dis', 'round');
           } else {
             litRadioBox.setAttribute('dis', 'check');
@@ -377,7 +377,7 @@ export class LitPopover extends BaseElement {
     }
   }
 
-  setMultiple(dataSource: Array<SelectBean>) {
+  setMultiple(dataSource: Array<SelectBean>): void {
     this.litGroup = new LitCheckGroup();
     this.litGroup.setAttribute('layout', 'dispersion');
     this.popContent!.appendChild(this.litGroup);
@@ -398,11 +398,11 @@ export class LitPopover extends BaseElement {
     return this.litGroup?.value;
   }
 
-  get trigger() {
+  get trigger(): string | null {
     return this.getAttribute('trigger');
   }
 
-  get direction() {
+  get direction(): string {
     return this.getAttribute('direction') || 'topright';
   }
 
@@ -410,7 +410,7 @@ export class LitPopover extends BaseElement {
     this.setAttribute('direction', value);
   }
 
-  get open() {
+  get open(): boolean {
     return this.getAttribute('open') !== null;
   }
 
@@ -431,7 +431,7 @@ export class LitPopover extends BaseElement {
       `;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     if (!(this.trigger && this.trigger !== 'click')) {
       this.addEventListener('click', () => {
         this.popContent = this.querySelector<LitPopContent>('lit-pop-content');

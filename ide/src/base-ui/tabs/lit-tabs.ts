@@ -31,11 +31,11 @@ export class LitTabs extends HTMLElement {
     shadowRoot.innerHTML = LitTabsHtml;
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['activekey', 'mode', 'position'];
   }
 
-  get position() {
+  get position(): string {
     return this.getAttribute('position') || 'top';
   }
 
@@ -43,7 +43,7 @@ export class LitTabs extends HTMLElement {
     this.setAttribute('position', value);
   }
 
-  get mode() {
+  get mode(): string {
     return this.getAttribute('mode') || 'flat';
   }
 
@@ -51,7 +51,7 @@ export class LitTabs extends HTMLElement {
     this.setAttribute('mode', value);
   }
 
-  get activekey() {
+  get activekey(): string {
     return this.getAttribute('activekey') || '';
   }
 
@@ -63,7 +63,7 @@ export class LitTabs extends HTMLElement {
     this.addEventListener('onTabClick', fn);
   }
 
-  updateLabel(key: string, value: string) {
+  updateLabel(key: string, value: string): void {
     if (this.nav) {
       let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
       if (item) {
@@ -73,7 +73,7 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  updateDisabled(key: string, value: string) {
+  updateDisabled(key: string, value: string): void {
     if (this.nav) {
       let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
       if (item) {
@@ -87,7 +87,7 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  updateCloseable(key: string, value: string) {
+  updateCloseable(key: string, value: string): void {
     if (this.nav) {
       let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
       if (item) {
@@ -101,7 +101,7 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  updateHidden(key: string, value: string) {
+  updateHidden(key: string, value: string): void {
     if (this.nav) {
       let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
       if (item) {
@@ -115,7 +115,7 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  initTabPos() {
+  initTabPos(): void {
     const items = this.nav!.querySelectorAll<HTMLDivElement>('.nav-item');
     Array.from(items).forEach((a, index) => {
       // @ts-ignore
@@ -161,7 +161,7 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     let that = this;
     this.tabPos = {};
     this.nav = this.shadowRoot?.querySelector('#nav');
@@ -190,8 +190,10 @@ export class LitTabs extends HTMLElement {
       }
       this.setItemNode(elements);
     });
-    this.nav!.onclick = (e) => {
-      if ((e.target! as HTMLElement).closest('div')!.hasAttribute('data-disabled')) return;
+    this.nav!.onclick = (e): void => {
+      if ((e.target! as HTMLElement).closest('div')!.hasAttribute('data-disabled')) {
+        return;
+      }
       let key = (e.target! as HTMLElement).closest('div')!.dataset.key;
       if (key) {
         this.activeByKey(key);
@@ -218,26 +220,26 @@ export class LitTabs extends HTMLElement {
       .forEach((a) => {
         if (a.disabled) {
           navHtml += `<div class="nav-item" data-key="${a.key}" data-disabled ${a.closeable ? 'data-closeable' : ''}> 
-                    ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``} 
+                    ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ''} 
                     <span>${a.tab}</span>
                     <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                     </div>`;
         } else if (a.hidden) {
           navHtml += `<div class="nav-item" data-key="${a.key}" data-hidden ${a.closeable ? 'data-closeable' : ''}> 
-                    ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``} 
+                    ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ''} 
                     <span>${a.tab}</span>
                     <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                     </div>`;
         } else {
           if (a.key === this.activekey) {
             navHtml += `<div class="nav-item" data-key="${a.key}" data-selected ${a.closeable ? 'data-closeable' : ''}>
-                        ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``}
+                        ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ''}
                         <span>${a.tab}</span>
                         <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                         </div>`;
           } else {
             navHtml += `<div class="nav-item" data-key="${a.key}" ${a.closeable ? 'data-closeable' : ''}>
-                            ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``}
+                            ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ''}
                             <span>${a.tab}</span>
                             <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                             </div>`;
@@ -247,7 +249,7 @@ export class LitTabs extends HTMLElement {
     this.nav!.innerHTML = navHtml;
     this.initTabPos();
     this.nav!.querySelectorAll<HTMLElement>('.close-icon').forEach((a) => {
-      a.onclick = (e) => {
+      a.onclick = (e): void => {
         e.stopPropagation();
         const closeKey = (e.target! as HTMLElement).parentElement!.dataset.key;
         this.dispatchEvent(
@@ -260,8 +262,10 @@ export class LitTabs extends HTMLElement {
     });
   }
 
-  activeByKey(key: string, isValid: boolean = true) {
-    if (key === null || key === undefined) return; //如果没有key 不做相应
+  activeByKey(key: string, isValid: boolean = true): void {
+    if (key === null || key === undefined) {
+      return;
+    } //如果没有key 不做相应
     this.nav!.querySelectorAll('.nav-item').forEach((a) => {
       if (a.querySelector('span')?.innerText === 'Comparison') {
         a.setAttribute('id', 'nav-comparison');
@@ -332,8 +336,10 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  activePane(key: string) {
-    if (key === null || key === undefined) return false;
+  activePane(key: string): boolean {
+    if (key === null || key === undefined) {
+      return false;
+    }
     let tbp = this.querySelector(`lit-tabpane[key='${key}']`);
     if (tbp) {
       this.activeByKey(key);
@@ -343,12 +349,12 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name === 'activekey' && this.nav && oldValue !== newValue && newValue != '') {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+    if (name === 'activekey' && this.nav && oldValue !== newValue && newValue !== '') {
       this.activeByKey(newValue, false);
     }
   }

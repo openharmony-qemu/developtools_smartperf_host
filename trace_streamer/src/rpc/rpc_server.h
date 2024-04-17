@@ -51,7 +51,7 @@ public:
                                         size_t len,
                                         SqllitePreparCacheData::TLVResultCallBack callback) const;
     int32_t UpdateTraceTime(const uint8_t* data, int32_t len);
-    int32_t TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int32_t len);
+    int32_t TraceStreamerInitThirdPartyConfig(const uint8_t* data, int32_t len);
     int32_t WasmExportDatabase(ResultCallBack resultCallBack);
     bool ParserConfig(std::string parserConfigJson);
     bool SplitFile(std::string timeSnaps);

@@ -534,7 +534,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    if (node! && !isEnd) this.mergeChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    if (node! && !isEnd) {
+      this.mergeChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    }
   }
 
   //所有的操作都是针对整个树结构的 不区分特定的数据

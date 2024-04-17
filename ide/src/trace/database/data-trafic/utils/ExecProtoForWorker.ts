@@ -80,6 +80,7 @@ import { cpuFreqDataReceiver } from '../cpu/CpuFreqDataReceiver';
 import { lostFrameReceiver } from './../LostFrameReceiver';
 import { sliceReceiver, sliceSPTReceiver } from '../SliceReceiver';
 
+
 const traficHandlers: Map<number, any> = new Map<number, any>([]);
 export const execProtoForWorker = (data: any, proc: Function): void => traficHandlers.get(data.name)?.(data, proc);
 

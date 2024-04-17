@@ -379,9 +379,9 @@ export const getTabBoxChildData = (
   threadId: number | undefined
 ): Promise<Array<SPTChild>> => {
   let condition = `
-      ${state != undefined && state != '' ? `and B.state = '${state}'` : ''}
-      ${processId != undefined && processId != -1 ? `and IP.pid = ${processId}` : ''}
-      ${threadId != undefined && threadId != -1 ? `and A.tid = ${threadId}` : ''}
+      ${state !== undefined && state !== '' ? `and B.state = '${state}'` : ''}
+      ${processId !== undefined && processId !== -1 ? `and IP.pid = ${processId}` : ''}
+      ${threadId !== undefined && threadId !== -1 ? `and A.tid = ${threadId}` : ''}
       ${cpus.length > 0 ? `and (B.cpu is null or B.cpu in (${cpus.join(',')}))` : ''}
   `;
   let sql = `select
@@ -472,7 +472,7 @@ export const queryProcessData = (pid: number, startNS: number, endNS: number): P
     `
     select  ta.cpu,
         dur, 
-        ts-${(window as any).recordStartNS} as startTime
+        ts-${window.recordStartNS} as startTime
 from thread_state ta
 where ta.cpu is not null and pid=$pid and startTime between $startNS and $endNS;`,
     {
@@ -504,7 +504,7 @@ export const queryProcessThreadDataCount = (): Promise<Array<any>> =>
     `queryProcessThreadDataCount`,
     `select pid,count(id) as count 
     from thread_state 
-    where ts between ${(window as any).recordStartNS} and ${(window as any).recordEndNS} group by pid;`,
+    where ts between ${window.recordStartNS} and ${window.recordEndNS} group by pid;`,
     {}
   );
 
@@ -517,7 +517,7 @@ export const queryProcessFuncDataCount = (): Promise<Array<any>> =>
     from callstack C
     left join thread A on A.id = C.callid
     left join process AS P on P.id = A.ipid
-    where  C.ts between ${(window as any).recordStartNS} and ${(window as any).recordEndNS} 
+    where  C.ts between ${window.recordStartNS} and ${window.recordEndNS} 
     group by pid;`,
     {}
   );
@@ -531,7 +531,7 @@ export const queryProcessMemDataCount = (): Promise<Array<any>> =>
     left join process_measure_filter f on f.id = c.filter_id
     left join process p on p.ipid = f.ipid
 where f.id not NULL and value>0 
- and c.ts between ${(window as any).recordStartNS} and ${(window as any).recordEndNS}
+ and c.ts between ${window.recordStartNS} and ${window.recordEndNS}
 group by p.pid`,
     {}
   );
@@ -751,13 +751,6 @@ export const queryThreadStateArgs = (argset: number): Promise<Array<BinderArgBea
 export const queryThreadStateArgsByName = (key: string): Promise<Array<{ argset: number; strValue: string }>> =>
   query('queryThreadStateArgsByName', ` select strValue, argset from args_view where keyName = $key`, { $key: key });
 
-export const queryWakeUpThread_Desc = (): Promise<Array<any>> =>
-  query(
-    'queryWakeUpThread_Desc',
-    `This is the interval from when the task became eligible to run
-(e.g.because of notifying a wait queue it was a suspended on) to when it started running.`
-  );
-
 export const queryThreadWakeUp = (itid: number, startTime: number, dur: number): Promise<Array<WakeupBean>> =>
   query(
     'queryThreadWakeUp',
@@ -915,7 +908,7 @@ export const getTabPowerDetailsData = (
         ( S.ts - TR.start_ts ) AS startNS,
         D.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
+        group_concat( ( CASE WHEN S.type = 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
         FROM
         trace_range AS TR,
         hisys_event_measure AS S
@@ -936,7 +929,7 @@ export const getTabPowerDetailsData = (
         ( S.ts - TR.start_ts ) AS startNS,
         D1.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
+        group_concat( ( CASE WHEN S.type = 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
         FROM
         trace_range AS TR,
         hisys_event_measure AS S
@@ -1019,7 +1012,7 @@ export const queryPowerData = (): Promise<
         ( S.ts - TR.start_ts ) AS startNS,
         D.data AS eventName,
         D2.data AS appKey,
-        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
+        group_concat( ( CASE WHEN S.type = 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
         FROM
         trace_range AS TR,
         hisys_event_measure AS S
@@ -1238,7 +1231,7 @@ export const queryAnomalyDetailedData = (leftNs: number, rightNs: number): Promi
   S.ts,
   D.data as eventName,
   D2.data as appKey,
-  group_concat((case when S.type == 1 then S.string_value else S.int_value end), ',') as Value
+  group_concat((case when S.type = 1 then S.string_value else S.int_value end), ',') as Value
   from trace_range AS TR,hisys_event_measure as S
   left join data_dict as D on D.id = S.name_id
   left join app_name as APP on APP.id = S.key_id

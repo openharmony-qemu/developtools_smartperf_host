@@ -16,6 +16,7 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { type Smaps, SmapsTreeObj, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct';
+
 import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { SpSystemTrace } from '../../../SpSystemTrace';
@@ -46,7 +47,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
   }
 
   set data(valSmapsStatistics: SelectionParam) {
-    if (!this.tblSmapsStatistics || valSmapsStatistics == this.currentSelection) {
+    if (!this.tblSmapsStatistics || valSmapsStatistics === this.currentSelection) {
       return;
     }
     this.parentElement!.style.overflow = 'unset';
@@ -66,7 +67,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
   connectedCallback(): void {
     super.connectedCallback();
     new ResizeObserver(() => {
-      if (this.parentElement?.clientHeight != 0) {
+      if (this.parentElement?.clientHeight !== 0) {
         // @ts-ignore
         this.tblSmapsStatistics?.shadowRoot?.querySelector('.table').style.height =
           this.parentElement!.clientHeight - 15 + 'px';

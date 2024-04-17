@@ -119,7 +119,7 @@ export class TabPanePowerDetails extends BaseElement {
 
   initElements(): void {
     this.tblPowerDetails = this.shadowRoot?.querySelector<LitTable>('#tb-power-details-energy');
-    this.tblPowerDetails!.addEventListener('column-click', (evt) => {
+    this.tblPowerDetails!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -136,7 +136,7 @@ export class TabPanePowerDetails extends BaseElement {
     this.itemType.count_type = this.getCountTypeValue();
   }
 
-  getPowerData() {
+  getPowerData(): any {
     return {
       POWER_IDE_CPU: new PowerDetailsEnergy('CPU'),
       POWER_IDE_LOCATION: new PowerDetailsEnergy('LOCATION'),
@@ -150,7 +150,7 @@ export class TabPanePowerDetails extends BaseElement {
     };
   }
 
-  getTotalEnergy(powerData: any) {
+  getTotalEnergy(powerData: any): number {
     return (
       powerData.POWER_IDE_CPU.getTotalEnergy(false) +
       powerData.POWER_IDE_LOCATION.getTotalEnergy(false) +
@@ -165,8 +165,8 @@ export class TabPanePowerDetails extends BaseElement {
   }
 
   queryDataByDB(val: SelectionParam | any): void {
-    getTabPowerDetailsData(val.leftNs - val.leftNs, val.rightNs).then((items) => {
-      log('getTabPowerDetailsData size :' + items.length);
+    getTabPowerDetailsData(val.leftNs - val.leftNs, val.rightNs).then((items): void => {
+      log(`getTabPowerDetailsData size :${items.length}`);
       let detailsData: Array<any> = [];
       let set = new Set();
       set.add('COUNT');
@@ -176,7 +176,7 @@ export class TabPanePowerDetails extends BaseElement {
       let powerData: any = this.getPowerData();
       let tsMax = 0;
       let currentAppIndex = -1;
-      items.forEach((item) => {
+      items.forEach((item): void => {
         let powerDatum: any = powerData[item.eventName];
         if (item.appKey.toLocaleLowerCase() === 'appname') {
           powerDatum.appName = SpHiSysEnergyChart.app_name;
@@ -185,9 +185,8 @@ export class TabPanePowerDetails extends BaseElement {
         } else if (currentAppIndex > -1 && (set.has(item.appKey) ? item.startNS >= tsMax : true)) {
           if (set.has(item.appKey)) {
             powerDatum[item.appKey.toLocaleLowerCase()] =
-              item.startNS >= tsMax
-                ? ((tsMax = item.startNS), item.eventValue)
-                : powerDatum[item.appKey.toLocaleLowerCase()];
+              item.startNS >= tsMax ? ((tsMax = item.startNS), item.eventValue) :
+                powerDatum[item.appKey.toLocaleLowerCase()];
           } else {
             powerDatum[item.appKey.toLocaleLowerCase()] =
               (powerDatum[item.appKey.toLocaleLowerCase()] || 0) +
@@ -220,8 +219,8 @@ export class TabPanePowerDetails extends BaseElement {
     }
   }
 
-  updateTableStyles() {
-    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+  updateTableStyles(): void {
+    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td): void => {
       td.style.fontSize = '14px';
       td.style.fontWeight = '400';
       td.style.opacity = '0.9';
@@ -234,24 +233,24 @@ export class TabPanePowerDetails extends BaseElement {
     if (totalEnergy === 0) {
       powerData[energyName].energyConsumptionRatio = '0.000 %';
     } else {
-      powerData[energyName].energyConsumptionRatio = ratio.toFixed(NUM_3) + ' %';
+      powerData[energyName].energyConsumptionRatio = `${ratio.toFixed(NUM_3)} %`;
     }
     return this.getEnergyStyle(powerData, energyName, type);
   }
 
-  getEnergyStyle(powerData: any, energyName: string, type: any) {
-    this.itemType[type].forEach((item: any) => {
+  getEnergyStyle(powerData: any, energyName: string, type: any): any {
+    this.itemType[type].forEach((item: any): void => {
       powerData[energyName][item] = '-';
     });
     if (type === 'energy_type') {
       if (energyName === 'POWER_IDE_GPU') {
-        powerData[energyName]['duration'] = '-';
+        powerData[energyName].duration = '-';
       } else {
-        powerData[energyName]['usage'] = '-';
+        powerData[energyName].usage = '-';
       }
     } else if (type === 'duration_type') {
       if (energyName !== 'POWER_IDE_CAMERA') {
-        powerData[energyName]['camera_id'] = '-';
+        powerData[energyName].camera_id = '-';
       }
     }
     return powerData[energyName];
@@ -266,15 +265,11 @@ export class TabPanePowerDetails extends BaseElement {
     function compare(property, sort, type) {
       return function (aPowerDetails: PowerDetailsEnergy, bPowerDetails: PowerDetailsEnergy) {
         if (type === 'number') {
-          return sort === 2
-            ? // @ts-ignore
-              parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]) -
-                // @ts-ignore
-                parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property])
-            : // @ts-ignore
-              parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) -
-                // @ts-ignore
-                parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]);
+          return sort === 2 ? // @ts-ignore
+            parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]) - // @ts-ignore
+            parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) : // @ts-ignore
+            parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) - // @ts-ignore
+            parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]);
         } else {
           // @ts-ignore
           if (bPowerDetails[property] > aPowerDetails[property]) {
@@ -298,7 +293,7 @@ export class TabPanePowerDetails extends BaseElement {
     }
     this.tblPowerDetails!.recycleDataSource = this.sourcePowerDetails;
 
-    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td): void => {
       td.style.fontSize = '14px';
       td.style.fontWeight = '400';
       td.style.opacity = '0.9';

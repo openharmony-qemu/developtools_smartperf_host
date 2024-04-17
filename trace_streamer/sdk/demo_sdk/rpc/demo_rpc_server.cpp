@@ -28,32 +28,32 @@
 namespace SysTuning {
 namespace TraceStreamer {
 
-bool DemoRpcServer::DemoSqlOperate(const uint8_t* data, size_t len, ResultCallBack retCallBack)
+bool DemoRpcServer::DemoSqlOperate(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
     demoTs_->SetCancel(false);
     std::string demoSql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("RPC DemoSqlOperate(%s, %zu)", demoSql.c_str(), len);
 
     int32_t ret = demoTs_->OperateDatabase(demoSql);
-    if (retCallBack) {
+    if (resultCallBack) {
         std::string response = "ok\r\n";
         if (ret != 0) {
             response = "dberror\r\n";
         }
-        retCallBack(response, SEND_FINISH, 0);
+        resultCallBack(response, SEND_FINISH, 0);
     }
     return (ret == 0);
 }
 
-bool DemoRpcServer::DemoSqlQuery(const uint8_t* data, size_t len, ResultCallBack retCallBack)
+bool DemoRpcServer::DemoSqlQuery(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
     demoTs_->SetCancel(false);
     std::string demoSql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("RPC DemoSqlQuery %zu:%s", len, demoSql.c_str());
 
-    int32_t ret = demoTs_->SearchDatabase(demoSql, retCallBack);
-    if (retCallBack && ret != 0) {
-        retCallBack("dberror\r\n", SEND_FINISH, 0);
+    int32_t ret = demoTs_->SearchDatabase(demoSql, resultCallBack);
+    if (resultCallBack && ret != 0) {
+        resultCallBack("dberror\r\n", SEND_FINISH, 0);
     }
     demoTs_->SetCancel(false);
     return (ret == 0);
@@ -64,15 +64,15 @@ void DemoRpcServer::DemoCancelSqlQuery()
     demoTs_->SetCancel(true);
 }
 
-bool DemoRpcServer::DemoReset(const uint8_t* data, size_t len, ResultCallBack retCallBack)
+bool DemoRpcServer::DemoReset(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
     UNUSED(data);
     UNUSED(len);
     TS_LOGI("RPC DemoReset trace_streamer");
     demoTs_->WaitForParserEnd();
     demoTs_ = std::make_unique<TraceStreamerSelector>();
-    if (retCallBack) {
-        retCallBack("ok\r\n", SEND_FINISH, 0);
+    if (resultCallBack) {
+        resultCallBack("ok\r\n", SEND_FINISH, 0);
     }
     return true;
 }

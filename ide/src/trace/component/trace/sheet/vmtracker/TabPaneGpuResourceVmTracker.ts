@@ -58,10 +58,10 @@ export class TabPaneGpuResourceVmTracker extends BaseElement {
     this.gpuResourceTable = this.shadowRoot?.querySelector<LitTable>('#gpu-resource-tbl');
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.gpuResourceTable!);
-    new ResizeObserver(() => {
+    new ResizeObserver((): void => {
       if (this.parentElement?.clientHeight !== 0) {
         this.gpuResourceTable!.shadowRoot!.querySelector<HTMLDivElement>('.table')!.style.height = '100%';
         this.gpuResourceTable!.reMeauseHeight();

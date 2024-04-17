@@ -190,7 +190,7 @@ export class TabpaneNMCalltree extends BaseElement {
         });
         if (that.currentSelection?.nativeMemory && that.currentSelection.nativeMemory.length > 0) {
           const typeName = SpSystemTrace.DATA_DICT.get(memory);
-          if ((data.type === 'MmapEvent' && memory == -1) || data.type === typeName) {
+          if ((data.type === 'MmapEvent' && memory === -1) || data.type === typeName) {
             data.type = `${selections.length + 2}`;
           }
         } else {
@@ -309,7 +309,7 @@ export class TabpaneNMCalltree extends BaseElement {
       data.type = data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
     }
     let resultLength = resultValue.length;
-    this.filesystemTbr!.dataSource = resultLength == 0 ? [] : resultValue;
+    this.filesystemTbr!.dataSource = resultLength === 0 ? [] : resultValue;
   }
 
   //底部的筛选菜单
@@ -335,7 +335,7 @@ export class TabpaneNMCalltree extends BaseElement {
     this.currentNMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
     let secondFilterList = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
     let that = this;
-    function addSubType(subTypeList: any) {
+    function addSubType(subTypeList: any): void {
       if (!subTypeList) {
         return;
       }
@@ -367,9 +367,9 @@ export class TabpaneNMCalltree extends BaseElement {
     procedurePool.submitWithName('logic0', 'native-memory-get-responseType', {}, undefined, (res: any) => {
       this.responseTypes = res;
       let nullIndex = this.responseTypes.findIndex((item) => {
-        return item.key == 0;
+        return item.key === 0;
       });
-      if (nullIndex != -1) {
+      if (nullIndex !== -1) {
         this.responseTypes.splice(nullIndex, 1);
       }
       this.currentNMCallTreeFilter!.setSelectList(
@@ -416,7 +416,7 @@ export class TabpaneNMCalltree extends BaseElement {
       let nmCallTreeFuncArgs: any[] = [];
       if (nmCallTreeFuncData.type === 'check') {
         nmCallTreeFuncArgs = this.filterFuncByCheckType(nmCallTreeFuncData, nmCallTreeFuncArgs);
-      } else if (nmCallTreeFuncData.type == 'select') {
+      } else if (nmCallTreeFuncData.type === 'select') {
         nmCallTreeFuncArgs = this.filterFuncBySelectType(nmCallTreeFuncData, nmCallTreeFuncArgs);
       } else if (nmCallTreeFuncData.type === 'button') {
         nmCallTreeFuncArgs = this.filterFuncByButtonType(nmCallTreeFuncData, nmCallTreeFuncArgs);
@@ -424,7 +424,9 @@ export class TabpaneNMCalltree extends BaseElement {
       this.getDataByWorker(nmCallTreeFuncArgs, (result: any[]): void => {
         this.setLTableData(result);
         this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-        if (this.isChartShow) this.nmCallTreeFrameChart?.calculateChartData();
+        if (this.isChartShow) {
+          this.nmCallTreeFrameChart?.calculateChartData();
+        }
         this.nmCallTreeTbl!.move1px();
         if (this.currentSelectedData) {
           this.currentSelectedData.isSelected = false;
@@ -477,7 +479,9 @@ export class TabpaneNMCalltree extends BaseElement {
     this.getDataByWorker(nmCallTreeConstraintsArgs, (result: any[]): void => {
       this.setLTableData(result);
       this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-      if (this.isChartShow) this.nmCallTreeFrameChart?.calculateChartData();
+      if (this.isChartShow) {
+        this.nmCallTreeFrameChart?.calculateChartData();
+      }
     });
   }
 
@@ -515,13 +519,15 @@ export class TabpaneNMCalltree extends BaseElement {
       this.getDataByWorker(resultArgs, (result: any[]): void => {
         this.setLTableData(result);
         this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-        if (this.isChartShow) this.nmCallTreeFrameChart?.calculateChartData();
+        if (this.isChartShow) {
+          this.nmCallTreeFrameChart?.calculateChartData();
+        }
       });
     }
   }
 
   private filterFuncByButtonType(nmCallTreeFuncData: any, nmCallTreeFuncArgs: any[]): any[] {
-    if (nmCallTreeFuncData.item == 'symbol') {
+    if (nmCallTreeFuncData.item === 'symbol') {
       if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
         return nmCallTreeFuncArgs;
       }
@@ -538,7 +544,7 @@ export class TabpaneNMCalltree extends BaseElement {
       if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
         return nmCallTreeFuncArgs;
       }
-      if (this.currentSelectedData != undefined && this.currentSelectedData.libName !== '') {
+      if (this.currentSelectedData !== undefined && this.currentSelectedData.libName !== '') {
         this.nmCallTreeFilter!.addDataMining({ name: this.currentSelectedData.libName }, nmCallTreeFuncData.item);
         nmCallTreeFuncArgs.push({
           funcName: 'splitTree',
@@ -548,7 +554,7 @@ export class TabpaneNMCalltree extends BaseElement {
         return nmCallTreeFuncArgs;
       }
     } else if (nmCallTreeFuncData.item === 'restore') {
-      if (nmCallTreeFuncData.remove != undefined && nmCallTreeFuncData.remove.length > 0) {
+      if (nmCallTreeFuncData.remove !== undefined && nmCallTreeFuncData.remove.length > 0) {
         let list = nmCallTreeFuncData.remove.map((item: any): any => {
           return item.name;
         });
@@ -576,7 +582,7 @@ export class TabpaneNMCalltree extends BaseElement {
       funcArgs: [
         nmCallTreeFuncData.item.name,
         nmCallTreeFuncData.item.select === '0',
-        nmCallTreeFuncData.item.type == 'symbol',
+        nmCallTreeFuncData.item.type === 'symbol',
       ],
     });
     return nmCallTreeFuncArgs;
@@ -657,9 +663,9 @@ export class TabpaneNMCalltree extends BaseElement {
     }
   }
 
-  private initCloseCallBackByHeadLine() {
+  private initCloseCallBackByHeadLine(): void {
     //点击之后删除掉筛选条件  将所有重置  将目前的title隐藏 高度恢复
-    this.headLine!.closeCallback = () => {
+    this.headLine!.closeCallback = (): void => {
       this.headLine!.clear();
       this.searchValue = '';
       this.currentNMCallTreeFilter!.filterValue = '';
@@ -724,7 +730,7 @@ export class TabpaneNMCalltree extends BaseElement {
     };
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     super.disconnectedCallback();
     this.nmCallTreeTbl!.removeEventListener('row-click', this.nmCallTreeTblRowClickHandler);
     this.filesystemTbr!.removeEventListener('row-click', this.filesystemTbrRowClickHandler);
@@ -828,7 +834,9 @@ export class TabpaneNMCalltree extends BaseElement {
     this.getDataByWorker(nmCallTreeArgs, (result: any[]) => {
       this.setLTableData(result);
       this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-      if (this.isChartShow) this.nmCallTreeFrameChart?.calculateChartData();
+      if (this.isChartShow) {
+        this.nmCallTreeFrameChart?.calculateChartData();
+      }
     });
   }
 

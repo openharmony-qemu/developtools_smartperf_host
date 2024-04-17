@@ -209,8 +209,8 @@ bool PerfDataParser::SplitPerfParsingAttr(const std::deque<uint8_t>& dequeBuffer
         return false;
     }
 
-    uint64_t LengthRemain = size - processedLen;
-    if (LengthRemain < perfHeader_.attrs.size) {
+    uint64_t lengthRemain = size - processedLen;
+    if (lengthRemain < perfHeader_.attrs.size) {
         return false;
     }
 
@@ -283,8 +283,8 @@ SplitPerfState PerfDataParser::DataLengthProcessing(const std::deque<uint8_t>& d
         return SplitPerfState::PARSING_HEAD;
     }
 
-    uint64_t LengthRemain = size - processedLen;
-    if (LengthRemain < sizeof(perf_event_header)) {
+    uint64_t lengthRemain = size - processedLen;
+    if (lengthRemain < sizeof(perf_event_header)) {
         return SplitPerfState::STARTING;
     }
     std::copy_n(dequeBuffer.begin() + processedLen, sizeof(perf_event_header), reinterpret_cast<char*>(&dataHeader));
@@ -293,7 +293,7 @@ SplitPerfState PerfDataParser::DataLengthProcessing(const std::deque<uint8_t>& d
         invalid = true;
         return SplitPerfState::STARTING;
     }
-    if (LengthRemain < dataHeader.size) {
+    if (lengthRemain < dataHeader.size) {
         return SplitPerfState::STARTING;
     }
     if (totalDataRemain < sizeof(perf_event_header)) {
@@ -366,8 +366,8 @@ bool PerfDataParser::SplitPerfParsingFeatureSection(const std::deque<uint8_t>& d
         return false;
     }
 
-    uint64_t LengthRemain = size - processedLen;
-    if (LengthRemain < featureSectioSize_) {
+    uint64_t lengthRemain = size - processedLen;
+    if (lengthRemain < featureSectioSize_) {
         return false;
     }
 

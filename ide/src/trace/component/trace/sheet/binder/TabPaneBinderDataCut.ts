@@ -25,7 +25,7 @@ import {
   type BinderDataStruct,
   CycleBinderItem,
 } from '../../../../bean/BinderProcessThread';
-import { queryFuncNameCycle, queryLoopFuncNameCycle } from '../../../../../trace/database/sql/Func.sql';
+import { queryFuncNameCycle } from '../../../../../trace/database/sql/Func.sql';
 import { queryBinderByThreadId } from '../../../../../trace/database/sql/ProcessThread.sql';
 import { resizeObserver } from '../SheetUtils';
 import { type LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
@@ -54,9 +54,8 @@ export class TabPaneBinderDataCut extends BaseElement {
   private threadArr: Array<ThreadBinderItem> = [];
   private threadBinderMap: Map<string, Array<BinderItem>> = new Map();
   private processIds: Array<number> = [];
-  private funcCycleArr: Array<any> = [];
-  private currentCutThreadId: string | undefined;
-  private currentCutFuncName: string | undefined;
+  private isQueryDataFromDb: boolean = false;
+  private funcCycleArr: Array<FunctionItem> = [];
 
   set data(threadStatesParam: SelectionParam) {
     if (this.currentSelectionParam === threadStatesParam) {
@@ -72,11 +71,10 @@ export class TabPaneBinderDataCut extends BaseElement {
     this.hideQueryArea(true);
     this.clickLoop(false);
     this.clickSingle(false);
+    this.isQueryDataFromDb = false;
     this.threadBindersTbl!.recycleDataSource = [];
     this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
     this.parentElement!.style.overflow = 'hidden';
-    this.currentCutThreadId = '';
-    this.currentCutFuncName = '';
     new ResizeObserver(() => {
       // @ts-ignore
       let lastHeight: number = this.threadBindersTbl.tableElement!.offsetHeight;
@@ -114,18 +112,13 @@ export class TabPaneBinderDataCut extends BaseElement {
     threadFuncName: string,
     threadIds: Array<number>,
     leftNS: number,
-    rightNS: number,
-    type: string
+    rightNS: number
   ): Promise<void> {
     let binderArr: Array<BinderItem> = await queryBinderByThreadId(this.processIds, threadIds, leftNS, rightNS);
     if (binderArr.length > 0) {
       this.structureThreadBinderMap(binderArr);
     }
-    if (type === 'loop') {
-      this.funcCycleArr = await queryLoopFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
-    } else {
-      this.funcCycleArr = await queryFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
-    }
+    this.funcCycleArr = await queryFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
   }
 
   //点击single loop 切割按钮方法
@@ -133,7 +126,6 @@ export class TabPaneBinderDataCut extends BaseElement {
     this.currentThreadId = '';
     let threadIdValue = threadId.value.trim();
     let threadFuncName = threadFunc.value.trim();
-
     this.clickLoop(type === 'loop' ? true : false);
     this.clickSingle(type === 'loop' ? false : true);
     //清空泳道图
@@ -143,12 +135,13 @@ export class TabPaneBinderDataCut extends BaseElement {
       this.threadBindersTbl!.loading = true;
       threadId.style.border = '1px solid rgb(151,151,151)';
       threadFunc.style.border = '1px solid rgb(151,151,151)';
-      let threadIds = this.currentSelectionParam.threadIds;
-      let leftNS = this.currentSelectionParam.leftNs;
-      let rightNS = this.currentSelectionParam.rightNs;
-      this.threadArr = [];
-      this.threadBinderMap.clear();
-      await this.queryDataFromDb(threadIdValue, threadFuncName, threadIds, leftNS, rightNS, type);
+      if (!this.isQueryDataFromDb) {
+        let threadIds = this.currentSelectionParam.threadIds;
+        let leftNS = this.currentSelectionParam.leftNs;
+        let rightNS = this.currentSelectionParam.rightNs;
+        await this.queryDataFromDb(threadIdValue, threadFuncName, threadIds, leftNS, rightNS);
+        this.isQueryDataFromDb = true;
+      }
       if (this.funcCycleArr.length !== 0) {
         let cycleMap: Map<string, Array<CycleBinderItem>> = type === 'loop'
           ? this.loopDataCutCycleMap(this.funcCycleArr)
@@ -721,7 +714,7 @@ export class TabPaneBinderDataCut extends BaseElement {
             <lit-slicer style="width:100%">
                 <div style="width:65%;">
                     <lit-table id="tb-binder-count" style="height: auto; overflow-x:auto;width:100%" tree>
-                        <lit-table-column width="240px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
+                        <lit-table-column width="250px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
                         </lit-table-column>
                         <lit-table-column width="100px" title="Total count" data-index="totalCount" key="totalCount" align="center">
                         </lit-table-column>
@@ -735,7 +728,7 @@ export class TabPaneBinderDataCut extends BaseElement {
                         </lit-table-column>
                         <lit-table-column width="100px" title="Cycle start time(ms)" data-index="cycleStartTime" key="cycleStartTime" align="flex-start">
                         </lit-table-column>
-                        <lit-table-column width="110px" title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
+                        <lit-table-column width="100px" title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
                         </lit-table-column>
                     </lit-table>
                 </div>

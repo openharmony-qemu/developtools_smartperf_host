@@ -67,7 +67,7 @@ export const chartHiSysEventSql = (args: any): string => {
       ORDER BY S.id`;
 };
 
-export function hiSysEventDataReceiver(data: any, proc: Function) {
+export function hiSysEventDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
     if (!hiSysEventList.has(data.params.id)) {
       let sql = chartHiSysEventSql(data.params);
@@ -91,7 +91,7 @@ export function hiSysEventDataReceiver(data: any, proc: Function) {
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
+function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let id = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   let ts = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.ts);
   let pid = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);

@@ -87,7 +87,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.fileSystemTitleEl!.textContent = '';
     this.tabName!.textContent = '';
     this.fileStatisticsAnalysisRange!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / NUM_MILLON).toFixed(NUM_5)) + ' ms';
+      `Selected range: ${parseFloat(((val.rightNs - val.leftNs) / NUM_MILLON).toFixed(NUM_5))} ms`;
     this.fileStatisticsAnalysisProgressEL!.loading = true;
     this.getDataByWorker(
       [
@@ -100,7 +100,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
           funcArgs: [{ queryFuncName: 'fileSystem', ...val }],
         },
       ],
-      (results: any[]) => {
+      (results: any[]): void => {
         this.disableCheckBox(results);
         this.getFilesystemProcess(results);
       }
@@ -129,7 +129,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.fsTableArray = this.shadowRoot!.querySelectorAll('lit-table') as NodeListOf<LitTable>;
     for (let fsTable of this.fsTableArray) {
       this.columnClickListeners(fsTable);
-      fsTable!.addEventListener('contextmenu', function (event) {
+      fsTable!.addEventListener('contextmenu', function (event: MouseEvent): void {
         event.preventDefault(); // 阻止默认的上下文菜单弹框
       });
       this.initTableRowHoverListeners(fsTable);
@@ -138,8 +138,8 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     for (let box of this.checkBoxs) {
       this.checkBoxListener(box);
     }
-    const addRowClickEventListener = (fsTable: LitTable, clickEvent: Function) => {
-      fsTable.addEventListener('row-click', (evt) => {
+    const addRowClickEventListener = (fsTable: LitTable, clickEvent: Function): void => {
+      fsTable.addEventListener('row-click', (evt: Event): void => {
         // @ts-ignore
         const detail = evt.detail;
         if (detail.button === 0 && detail.data.tableName !== '' && detail.data.duration !== 0) {
@@ -163,7 +163,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
   }
 
   private checkBoxListener(box: LitCheckBox): void {
-    box!.addEventListener('change', () => {
+    box!.addEventListener('change', (): void => {
       if (this.hideProcessCheckBox!.checked && this.hideThreadCheckBox!.checked) {
         this.hideThread();
         this.fsBack!.style.visibility = 'hidden';
@@ -177,7 +177,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
   }
 
   private initTableRowClickListeners(fsTable: LitTable): void {
-    fsTable!.addEventListener('row-click', (evt) => {
+    fsTable!.addEventListener('row-click', (evt: Event): void => {
       // @ts-ignore
       let detail = evt.detail;
       if (detail.button === 2) {
@@ -197,7 +197,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         if (this.fileSystemTitleEl?.textContent === '') {
           title = detail.data.tableName;
         } else {
-          title = this.fileSystemTitleEl?.textContent + ' / ' + detail.data.tableName;
+          title = `${this.fileSystemTitleEl?.textContent  } / ${detail.data.tableName}`;
         }
         fsTab!.pieTitle = title;
         //  是否是在表格上右键点击跳转到火焰图的
@@ -432,7 +432,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.typeName = it.tableName;
     let title = '';
     if (this.fsProcessName.length > 0) {
-      title += this.fsProcessName + ' / ';
+      title += `${this.fsProcessName  } / `;
     }
     if (this.typeName.length > 0) {
       title += this.typeName;
@@ -456,7 +456,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       tip: this.getFileTypeTip(),
       angleClick: (it): void => {
         // @ts-ignore
-        if (it.tableName != 'other') {
+        if (it.tableName !== 'other') {
           this.fileThreadLevelClickEvent(it);
         }
       },
@@ -475,7 +475,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     };
     let title = '';
     if (this.fsProcessName.length > 0) {
-      title += this.fsProcessName + ' / ';
+      title += `${this.fsProcessName  } / `;
     }
     if (this.typeName.length > 0) {
       title += this.typeName;
@@ -508,10 +508,10 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.fileStatisticsAnalysisThreadName = it.tableName;
     let title = '';
     if (this.fsProcessName.length > 0) {
-      title += this.fsProcessName + ' / ';
+      title += `${this.fsProcessName  } / `;
     }
     if (this.typeName.length > 0) {
-      title += this.typeName + ' / ';
+      title += `${this.typeName  } / `;
     }
     if (this.fileStatisticsAnalysisThreadName.length > 0) {
       title += this.fileStatisticsAnalysisThreadName;
@@ -526,13 +526,13 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.setFsPieChartConfig();
     let fileSystemTitle = '';
     if (this.fsProcessName.length > 0) {
-      fileSystemTitle += this.fsProcessName + ' / ';
+      fileSystemTitle += `${this.fsProcessName} / `;
     }
     if (this.typeName.length > 0) {
       if (this.hideThreadCheckBox?.checked) {
         fileSystemTitle += this.typeName;
       } else {
-        fileSystemTitle += this.typeName + ' / ';
+        fileSystemTitle += `${this.typeName} / `;
       }
     }
     if (this.fileStatisticsAnalysisThreadName.length > 0) {
@@ -568,7 +568,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       },
       angleClick: (fileSysBean): void => {
         // @ts-ignore
-        if (fileSysBean.tableName != 'other') {
+        if (fileSysBean.tableName !== 'other') {
           this.fileSoLevelClickEvent(fileSysBean);
         }
       },
@@ -601,13 +601,13 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.getFilesystemFunction(allDur);
     let title = '';
     if (this.fsProcessName.length > 0) {
-      title += this.fsProcessName + ' / ';
+      title += `${this.fsProcessName  } / `;
     }
     if (this.typeName.length > 0) {
-      title += this.typeName + ' / ';
+      title += `${this.typeName  } / `;
     }
     if (this.fileStatisticsAnalysisThreadName.length > 0 && !this.hideThreadCheckBox!.checked) {
-      title += this.fileStatisticsAnalysisThreadName + ' / ';
+      title += `${this.fileStatisticsAnalysisThreadName  } / `;
     }
     if (it.tableName.length > 0) {
       title += it.tableName;
@@ -741,8 +741,8 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     fsaCurrentTable!.recycleDataSource = fsaArr;
   }
 
-  private sortTableNameCase(fsaCurrentTable: LitTable, fsaArray: any[]) {
-    fsaCurrentTable!.recycleDataSource = fsaArray.sort((firstElement, secondElement) => {
+  private sortTableNameCase(fsaCurrentTable: LitTable, fsaArray: any[]): void {
+    fsaCurrentTable!.recycleDataSource = fsaArray.sort((firstElement, secondElement): number => {
       if (this.fsSortType === 1) {
         if (firstElement.tableName > secondElement.tableName) {
           return 1;
@@ -778,13 +778,13 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       if (pidMap.has(itemData.pid)) {
         pidMap.get(itemData.pid)?.push(itemData);
       } else {
-        let itemArray = new Array<number | string>();
+        let itemArray = [];
         itemArray.push(itemData);
         pidMap.set(itemData.pid, itemArray);
       }
     }
     this.fileStatisticsAnalysisPidData = [];
-    pidMap.forEach((value: Array<any>, key: string) => {
+    pidMap.forEach((value: Array<any>, key: string): void => {
       let analysisPidDataDur = 0;
       let pName = '';
       for (let fileSysStatPidItem of value) {
@@ -817,7 +817,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.fileStatisticsAnalysisProgressEL!.loading = true;
     let typeMap = new Map<number, Array<number | string>>();
     let allDur = 0;
-    if (!this.fileStatisticsAnalysisProcessData || this.fileStatisticsAnalysisProcessData.length == 0) {
+    if (!this.fileStatisticsAnalysisProcessData || this.fileStatisticsAnalysisProcessData.length === 0) {
       return;
     }
     for (let fsItem of this.fileStatisticsAnalysisProcessData) {
@@ -828,13 +828,13 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       if (typeMap.has(fsItem.type)) {
         typeMap.get(fsItem.type)?.push(fsItem);
       } else {
-        let itemArray = new Array<number | string>();
+        let itemArray = [];
         itemArray.push(fsItem);
         typeMap.set(fsItem.type, itemArray);
       }
     }
     this.fileStatisticsAnalysisTypeData = [];
-    typeMap.forEach((value: Array<any>, key: number) => {
+    typeMap.forEach((value: Array<any>, key: number): void => {
       let dur = 0;
       for (let item of value) {
         dur += item.dur;
@@ -877,7 +877,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       if (threadMap.has(fspItem.tid)) {
         threadMap.get(fspItem.tid)?.push(fspItem);
       } else {
-        let itemArray = new Array<number | string>();
+        let itemArray = [];
         itemArray.push(fspItem);
         threadMap.set(fspItem.tid, itemArray);
       }
@@ -896,15 +896,15 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     allDur: number
   ): void {
     this.fileStatisticsAnalysisThreadData = [];
-    threadMap.forEach((value: Array<any>, key: string) => {
+    threadMap.forEach((value: Array<any>, key: string): void => {
       let dur = 0;
       let tName = '';
       for (let fileSysStatThreadItem of value) {
         dur += fileSysStatThreadItem.dur;
         tName = fileSysStatThreadItem.threadName =
-          fileSysStatThreadItem.threadName === null || fileSysStatThreadItem.threadName === undefined
-            ? `Thread(${fileSysStatThreadItem.tid})`
-            : `${fileSysStatThreadItem.threadName}(${fileSysStatThreadItem.tid})`;
+          fileSysStatThreadItem.threadName === null || fileSysStatThreadItem.threadName === undefined ?
+            `Thread(${fileSysStatThreadItem.tid})` :
+            `${fileSysStatThreadItem.threadName}(${fileSysStatThreadItem.tid})`;
       }
       const threadData = {
         tableName: tName,
@@ -943,7 +943,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       if (libMap.has(itemData.libId)) {
         libMap.get(itemData.libId)?.push(itemData);
       } else {
-        let dataArray = new Array<number | string>();
+        let dataArray = [];
         dataArray.push(itemData);
         libMap.set(itemData.libId, dataArray);
       }
@@ -972,7 +972,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
 
   private updateSoData(libMap: Map<number, Array<number | string>>, item: any, allDur: number): void {
     this.fileStatisticsAnalysisSoData = [];
-    libMap.forEach((value: any[], key: number) => {
+    libMap.forEach((value: any[], key: number): void => {
       let dur = 0;
       let soName = '';
       for (let item of value) {
@@ -1014,7 +1014,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       if (symbolMap.has(fsProcessData.symbolId)) {
         symbolMap.get(fsProcessData.symbolId)?.push(fsProcessData);
       } else {
-        let dataArray = new Array<number | string>();
+        let dataArray = [];
         dataArray.push(fsProcessData);
         symbolMap.set(fsProcessData.symbolId, dataArray);
       }
@@ -1048,7 +1048,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
 
   private updateFunctionData(symbolMap: Map<number, Array<any>>, item: any, allDur: number): void {
     this.fileStatisticsAnalysisFunctionData = [];
-    symbolMap.forEach((symbolItems, key) => {
+    symbolMap.forEach((symbolItems, key): void => {
       let dur = 0;
       let fsSymbolName = '';
       for (let symbolItem of symbolItems) {
@@ -1142,16 +1142,16 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
 
   public connectedCallback(): void {
     new ResizeObserver(() => {
-      if (this.parentElement?.clientHeight != 0) {
-        this.fileStatisticsAnalysisTableProcess!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+      if (this.parentElement?.clientHeight !== 0) {
+        this.fileStatisticsAnalysisTableProcess!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.fileStatisticsAnalysisTableProcess?.reMeauseHeight();
-        this.fileStatisticsAnalysisTableThread!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.fileStatisticsAnalysisTableThread!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.fileStatisticsAnalysisTableThread?.reMeauseHeight();
-        this.fileStatisticsAnalysisTableSo!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.fileStatisticsAnalysisTableSo!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.fileStatisticsAnalysisTableSo?.reMeauseHeight();
-        this.fileStatisticsAnalysisTableFunction!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.fileStatisticsAnalysisTableFunction!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.fileStatisticsAnalysisTableFunction?.reMeauseHeight();
-        this.fileStatisticsAnalysisTableType!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.fileStatisticsAnalysisTableType!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.fileStatisticsAnalysisTableType?.reMeauseHeight();
         if (this.parentElement!.clientHeight >= 0 && this.parentElement!.clientHeight <= 31) {
           this.fileSystemFilterEl!.style.display = 'none';

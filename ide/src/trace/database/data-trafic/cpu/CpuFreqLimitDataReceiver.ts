@@ -15,6 +15,7 @@ import { TraficEnum } from '../utils/QueryEnum';
 import { filterDataByGroup } from '../utils/DataFilter';
 import { cpuFreqLimitList } from '../utils/AllMemoryCache';
 
+
 export const chartCpuFreqLimitDataSql = (args: any): string => {
   return `
       SELECT 

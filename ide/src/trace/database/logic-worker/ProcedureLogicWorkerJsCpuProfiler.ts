@@ -20,8 +20,7 @@ const LAMBDA_FUNCTION_NAME = '(anonymous)';
 export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
   private currentEventId!: string;
   private dataCache = DataCache.getInstance();
-  private samples = Array<JsCpuProfilerSample>(); // Array index equals id;
-  private chartId = 0;
+  private samples: Array<JsCpuProfilerSample> = []; // Array index equals id;
   private tabDataId = 0;
   private chartData: Array<JsCpuProfilerChartFrame> = [];
   private leftNs: number = 0;
@@ -219,7 +218,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
     parent: JsCpuProfilerTabStruct | null
   ): Array<JsCpuProfilerTabStruct> {
     const sameSymbolMap = new Map<string, JsCpuProfilerTabStruct>();
-    const currentLevelData = new Array<JsCpuProfilerTabStruct>();
+    const currentLevelData: Array<JsCpuProfilerTabStruct> = [];
     const chartArray = combineSample || parent?.chartFrameChildren;
     if (!chartArray) {
       return [];
@@ -285,7 +284,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
    * @returns 合并的Array<JsCpuProfilerChartFrame>树结构
    */
   private combineBottomUpData(chartTreeArray: Array<JsCpuProfilerChartFrame>): Array<JsCpuProfilerTabStruct> {
-    const reverseTreeArray = new Array<JsCpuProfilerChartFrame>();
+    const reverseTreeArray: Array<JsCpuProfilerChartFrame> = [];
     // 将树结构逆序，parent变成children
     this.reverseChartFrameTree(chartTreeArray, reverseTreeArray);
     // 将逆序的树结构合并返回
@@ -302,7 +301,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
     reverseTreeArray: Array<JsCpuProfilerChartFrame>
   ): void {
     const that = this;
-    function recursionTree(chartFrame: JsCpuProfilerChartFrame) {
+    function recursionTree(chartFrame: JsCpuProfilerChartFrame): void {
       // isSelect为框选/点选范围内的函数，其他都不需要处理
       if (!chartFrame.isSelect) {
         return;

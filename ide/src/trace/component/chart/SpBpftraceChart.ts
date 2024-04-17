@@ -49,6 +49,9 @@ export class SpBpftraceChart {
     traceRow.name = 'bpftrace';
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    traceRow.findHoverStruct = () => {
+      SampleStruct.hoverSampleStruct = traceRow.getHoverStruct();
+    };
     //添加上传按钮
     traceRow.addRowSampleUpload();
     this.addTraceRowEventListener(traceRow, start_ts);
@@ -89,32 +92,6 @@ export class SpBpftraceChart {
         };
         traceRow.style.height = `${height}px`;
       });
-    } else {
-      traceRow.supplier = () =>
-        new Promise((resolve): void => {
-          resolve([])
-        })
-      traceRow.onThreadHandler = (useCache) => {
-        let context: CanvasRenderingContext2D;
-        if (traceRow.currentContext) {
-          context = traceRow.currentContext;
-        } else {
-          context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        traceRow.canvasSave(context);
-        (renders.sample as SampleRender).renderMainThread(
-          {
-            context: context,
-            useCache: useCache,
-            type: 'bpftrace',
-            start_ts: 0,
-            uniqueProperty: [],
-            flattenTreeArray: []
-          },
-          traceRow
-        );
-        traceRow.canvasRestore(context)
-      };
     }
     return traceRow;
   }

@@ -33,7 +33,7 @@ export class TabPaneIOTierStatistics extends BaseElement {
   private ioTierStatisticsSortType: number = 0;
 
   set data(ioTierStatisticsSelection: SelectionParam | any) {
-    if (ioTierStatisticsSelection == this.ioTierStatisticsSelectionParam) {
+    if (ioTierStatisticsSelection === this.ioTierStatisticsSelectionParam) {
       return;
     }
     this.ioTierStatisticsProgressEL!.loading = true;
@@ -41,7 +41,7 @@ export class TabPaneIOTierStatistics extends BaseElement {
     this.ioTierStatisticsSelectionParam = ioTierStatisticsSelection;
     // @ts-ignore
     this.ioTierStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 20 + 'px';
+      `${this.parentElement!.clientHeight - 20}px`;
     this.queryDataByDB(ioTierStatisticsSelection);
   }
 
@@ -54,33 +54,34 @@ export class TabPaneIOTierStatistics extends BaseElement {
       this.ioTierStatisticsSortKey = evt.detail.key;
       // @ts-ignore
       this.ioTierStatisticsSortType = evt.detail.sort;
-      if (this.ioTierStatisticsSortType != 0 && this.ioTierStatisticsSource.length > 0)
+      if (this.ioTierStatisticsSortType !== 0 && this.ioTierStatisticsSource.length > 0) {
         this.sortTable(this.ioTierStatisticsSource[0], this.ioTierStatisticsSortKey);
+      }
       this.ioTierStatisticsTbl!.recycleDataSource = this.ioTierStatisticsSource;
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement!.clientHeight != 0) {
+    new ResizeObserver((): void => {
+      if (this.parentElement!.clientHeight !== 0) {
         // @ts-ignore
         this.ioTierStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 25 + 'px';
+          `${this.parentElement!.clientHeight - 25  }px`;
         this.ioTierStatisticsTbl!.reMeauseHeight();
-        this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
+        this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
   }
 
-  getInitData(initIoTierItem: any, nameTitle: any = 'pname', subtitle: any = null) {
-    if (nameTitle == 'path') {
+  getInitData(initIoTierItem: any, nameTitle: any = 'pname', subtitle: any = null): any {
+    if (nameTitle === 'path') {
       initIoTierItem.path =
-        initIoTierItem.path != null ? SpSystemTrace.DATA_DICT.get(parseInt(initIoTierItem.path)) : '-';
+        initIoTierItem.path !== null ? SpSystemTrace.DATA_DICT.get(parseInt(initIoTierItem.path)) : '-';
     }
     return {
       ...initIoTierItem,
-      title: initIoTierItem[nameTitle] + (subtitle ? '(' + initIoTierItem[subtitle] + ')' : ''),
+      title: initIoTierItem[nameTitle] + (subtitle ? `(${initIoTierItem[subtitle]})` : ''),
       allDuration: Utils.getProbablyTime(initIoTierItem.allDuration),
       minDuration: Utils.getProbablyTime(initIoTierItem.minDuration),
       maxDuration: Utils.getProbablyTime(initIoTierItem.maxDuration),
@@ -89,7 +90,7 @@ export class TabPaneIOTierStatistics extends BaseElement {
     };
   }
 
-  queryDataByDB(ioTierParam: SelectionParam | any) {
+  queryDataByDB(ioTierParam: SelectionParam | any): void {
     this.loadingList.push(1);
     this.ioTierStatisticsProgressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
@@ -97,9 +98,9 @@ export class TabPaneIOTierStatistics extends BaseElement {
       ioTierParam.leftNs + ioTierParam.recordStartNs,
       ioTierParam.rightNs + ioTierParam.recordStartNs,
       ioTierParam.diskIOipids
-    ).then((result) => {
+    ).then((result): void => {
       this.loadingList.splice(0, 1);
-      if (this.loadingList.length == 0) {
+      if (this.loadingList.length === 0) {
         this.ioTierStatisticsProgressEL!.loading = false;
         this.loadingPage.style.visibility = 'hidden';
       }
@@ -111,7 +112,7 @@ export class TabPaneIOTierStatistics extends BaseElement {
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
-        labels[i].addEventListener('click', (e) => {
+        labels[i].addEventListener('click', (): void => {
           if (label.includes('Tier') && i === 0) {
             this.ioTierStatisticsTbl!.setStatus(res, false, 0, 1);
             this.ioTierStatisticsTbl!.recycleDs = this.ioTierStatisticsTbl!.meauseTreeRowElement(
@@ -136,7 +137,7 @@ export class TabPaneIOTierStatistics extends BaseElement {
     }
   }
 
-  sortioTierStatisticsStatus(result: Array<any>, firstLevel: string, secondLevel: string) {
+  sortioTierStatisticsStatus(result: Array<any>, firstLevel: string, secondLevel: string): void {
     let ioTierFatherMap = new Map<any, any>();
     let ioTierChildMap = new Map<any, any>();
     let ioTierAllNode: any = {
@@ -148,10 +149,10 @@ export class TabPaneIOTierStatistics extends BaseElement {
       avgDuration: '',
       children: [],
     };
-    result.forEach((resultItem, idx) => {
+    result.forEach((resultItem, idx): void => {
       this.updateIoTierChildMap(ioTierChildMap, resultItem, firstLevel, secondLevel);
       this.updateIoTierFatherMap(ioTierFatherMap, resultItem, firstLevel);
-      if (idx == 0) {
+      if (idx === 0) {
         ioTierAllNode.minDuration = resultItem.minDuration;
       } else {
         ioTierAllNode.minDuration =
@@ -167,8 +168,8 @@ export class TabPaneIOTierStatistics extends BaseElement {
     ioTierAllNode.title = 'All';
     ioTierAllNode.path = { tier: null, pid: null, path: null, value: 'All' };
     this.ioTierStatisticsSource = result.length > 0 ? [ioTierAllNode] : [];
-    if (this.ioTierStatisticsSortType != 0 && result.length > 0)
-      this.sortTable(this.ioTierStatisticsSource[0], this.ioTierStatisticsSortKey);
+    if (this.ioTierStatisticsSortType !== 0 && result.length > 0)
+    {this.sortTable(this.ioTierStatisticsSource[0], this.ioTierStatisticsSortKey)}
     this.theadClick(this.ioTierStatisticsSource);
     this.ioTierStatisticsTbl!.recycleDataSource = this.ioTierStatisticsSource;
   }
@@ -179,13 +180,13 @@ export class TabPaneIOTierStatistics extends BaseElement {
       currentFatherObject.count += resultItem.count;
       currentFatherObject.allDuration += resultItem.allDuration;
       currentFatherObject.minDuration =
-        currentFatherObject.minDuration <= resultItem.minDuration
-          ? currentFatherObject.minDuration
-          : resultItem.minDuration;
+        currentFatherObject.minDuration <= resultItem.minDuration ?
+          currentFatherObject.minDuration :
+          resultItem.minDuration;
       currentFatherObject.maxDuration =
-        currentFatherObject.maxDuration >= resultItem.maxDuration
-          ? currentFatherObject.maxDuration
-          : resultItem.maxDuration;
+        currentFatherObject.maxDuration >= resultItem.maxDuration ?
+          currentFatherObject.maxDuration :
+          resultItem.maxDuration;
       currentFatherObject.children.push(this.getInitData(resultItem));
     } else {
       ioTierFatherMap.set(resultItem[firstLevel], {
@@ -201,21 +202,21 @@ export class TabPaneIOTierStatistics extends BaseElement {
     firstLevel: string,
     secondLevel: string
   ): void {
-    if (ioTierChildMap.has(resultItem[firstLevel] + '_' + resultItem[secondLevel])) {
-      let currentChildObject = ioTierChildMap.get(resultItem[firstLevel] + '_' + resultItem[secondLevel]);
+    if (ioTierChildMap.has(`${resultItem[firstLevel]}_${resultItem[secondLevel]}`)) {
+      let currentChildObject = ioTierChildMap.get(`${resultItem[firstLevel]}_${resultItem[secondLevel]}`);
       currentChildObject.count += resultItem.count;
       currentChildObject.allDuration += resultItem.allDuration;
       currentChildObject.minDuration =
-        currentChildObject.minDuration <= resultItem.minDuration
-          ? currentChildObject.minDuration
-          : resultItem.minDuration;
+        currentChildObject.minDuration <= resultItem.minDuration ?
+          currentChildObject.minDuration :
+          resultItem.minDuration;
       currentChildObject.maxDuration =
-        currentChildObject.maxDuration >= resultItem.maxDuration
-          ? currentChildObject.maxDuration
-          : resultItem.maxDuration;
+        currentChildObject.maxDuration >= resultItem.maxDuration ?
+          currentChildObject.maxDuration :
+          resultItem.maxDuration;
       currentChildObject.children.push(this.getInitData(resultItem, 'path', null));
     } else {
-      ioTierChildMap.set(resultItem[firstLevel] + '_' + resultItem[secondLevel], {
+      ioTierChildMap.set(`${resultItem[firstLevel]}_${resultItem[secondLevel]}`, {
         ...resultItem,
         children: [this.getInitData(resultItem, 'path', null)],
       });
@@ -239,7 +240,7 @@ export class TabPaneIOTierStatistics extends BaseElement {
         value: ioTierNode.title,
       };
       for (let kst of ioTierChildMap.keys()) {
-        if (kst.startsWith(ks + '_')) {
+        if (kst.startsWith(`${ks}_`)) {
           let spt = ioTierChildMap.get(kst);
           spt.avgDuration = spt.allDuration / spt.count;
           let data = this.getInitData(spt!, 'pname', 'pid');
@@ -247,14 +248,14 @@ export class TabPaneIOTierStatistics extends BaseElement {
             tier: ioTierNode.tier,
             pid: data.pid,
             path: null,
-            value: 'All-' + ioTierNode.title + '-' + data.title,
+            value: `All-${ioTierNode.title}-${data.title}`,
           };
-          data.children.forEach((e: any) => {
+          data.children.forEach((e: any): void => {
             e.path = {
               tier: ioTierNode.tier,
               pid: data.pid,
               path: e.path,
-              value: 'All-' + ioTierNode.title + '-' + data.title + '-' + e.title,
+              value: `All-${ioTierNode.title}-${data.title}-${e.title}`,
             };
           });
           sp!.children.push(data);
@@ -266,27 +267,27 @@ export class TabPaneIOTierStatistics extends BaseElement {
     ioTierAllNode.avgDuration = ioTierAllNode.allDuration / ioTierAllNode.count;
   }
 
-  sortTable(allNode: any, key: string) {
+  sortTable(allNode: any, key: string): void {
     allNode.children.sort((ioTierStatNodeA: any, ioTierStatNodeB: any) => {
-      if (this.ioTierStatisticsSortType == 1) {
+      if (this.ioTierStatisticsSortType === 1) {
         return ioTierStatNodeA.node[key] - ioTierStatNodeB.node[key];
-      } else if (this.ioTierStatisticsSortType == 2) {
+      } else if (this.ioTierStatisticsSortType === 2) {
         return ioTierStatNodeB.node[key] - ioTierStatNodeA.node[key];
       }
     });
-    allNode.children.forEach((item: any) => {
+    allNode.children.forEach((item: any): void => {
       item.children.sort((ioTierStatItemA: any, ioTierStatItemB: any) => {
-        if (this.ioTierStatisticsSortType == 1) {
+        if (this.ioTierStatisticsSortType === 1) {
           return ioTierStatItemA.node[key] - ioTierStatItemB.node[key];
-        } else if (this.ioTierStatisticsSortType == 2) {
+        } else if (this.ioTierStatisticsSortType === 2) {
           return ioTierStatItemB.node[key] - ioTierStatItemA.node[key];
         }
       });
-      item.children.forEach((ioTierStatItem: any) => {
+      item.children.forEach((ioTierStatItem: any): void => {
         ioTierStatItem.children.sort((ioTierStatItemA: any, ioTierStatItemB: any) => {
-          if (this.ioTierStatisticsSortType == 1) {
+          if (this.ioTierStatisticsSortType === 1) {
             return ioTierStatItemA.node[key] - ioTierStatItemB.node[key];
-          } else if (this.ioTierStatisticsSortType == 2) {
+          } else if (this.ioTierStatisticsSortType === 2) {
             return ioTierStatItemB.node[key] - ioTierStatItemA.node[key];
           }
         });

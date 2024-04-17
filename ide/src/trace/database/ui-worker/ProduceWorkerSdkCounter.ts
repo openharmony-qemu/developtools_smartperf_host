@@ -71,7 +71,7 @@ export class SdkCounterRender extends Render {
     totalNS: number,
     frame: any,
     use: boolean
-  ) {
+  ): void {
     if (use && sdkCounterFilters.length > 0) {
       for (let index = 0; index < sdkCounterFilters.length; index++) {
         let item = sdkCounterFilters[index];
@@ -94,7 +94,7 @@ function setSdkCounterFilter(
   endNS: number,
   totalNS: number,
   frame: any
-) {
+): void {
   if (sdkCounterList) {
     for (let index = 0; index < sdkCounterList.length; index++) {
       let item = sdkCounterList[index];
@@ -128,7 +128,7 @@ export class CounterStruct extends BaseStruct {
   ts: number | undefined;
   counter_id: number | undefined;
 
-  static draw(sdkCounterContext: CanvasRenderingContext2D, data: CounterStruct, maxCounter: number) {
+  static draw(sdkCounterContext: CanvasRenderingContext2D, data: CounterStruct, maxCounter: number): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       sdkCounterContext.fillStyle = '#67B0FC';
@@ -164,8 +164,9 @@ export class CounterStruct extends BaseStruct {
     endNS: number,
     totalNS: number,
     frame: any
-  ) {
-    let sdkCounterStartPointX: number, sdkCountEndPointX: number;
+  ): void {
+    let sdkCounterStartPointX: number;
+    let sdkCountEndPointX: number;
 
     if ((counterNode.ts || 0) < startNS) {
       sdkCounterStartPointX = 0;

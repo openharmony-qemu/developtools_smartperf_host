@@ -24,7 +24,6 @@ let wasmModule: any = null;
 let enc = new TextEncoder();
 let dec = new TextDecoder();
 let arr: Uint8Array | undefined;
-let start: number;
 const REQ_BUF_SIZE = 4 * 1024 * 1024;
 let reqBufferAddr: number = -1;
 let bufferSlice: Array<any> = [];
@@ -50,8 +49,8 @@ let indexDB: IDBDatabase;
 const maxSize = 48 * 1024 * 1024;
 
 let protoDataMap: Map<QueryEnum, any> = new Map<QueryEnum, any>();
-function clear() {
-  if (wasmModule != null) {
+function clear(): void {
+  if (wasmModule !== null) {
     wasmModule._TraceStreamerReset();
     wasmModule = null;
   }
@@ -78,7 +77,7 @@ self.addEventListener('unhandledrejection', (err) => {
   });
 });
 
-function initWASM() {
+function initWASM(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     //@ts-ignore
     let wasm = trace_streamer_builtin_wasm;
@@ -86,12 +85,8 @@ function initWASM() {
       locateFile: (s: any) => {
         return s;
       },
-      print: (line: any) => {
-        console.log(line);
-      },
-      printErr: (line: any) => {
-        console.error(line);
-      },
+      print: (line: any) => {},
+      printErr: (line: any) => {},
       onRuntimeInitialized: () => {
         resolve('ok');
       },
@@ -102,28 +97,24 @@ function initWASM() {
   });
 }
 
-function initThirdWASM(wasmFunctionName: string) {
-  function callModelFun(functionName: string) {
+function initThirdWASM(wasmFunctionName: string): any {
+  function callModelFun(functionName: string): any {
     let func = eval(functionName);
     return new func({
-      locateFile: (s: any) => {
+      locateFile: (s: any): any => {
         return s;
       },
-      print: (line: any) => {
-        console.log(line);
-      },
-      printErr: (line: any) => {
-        console.error(line);
-      },
-      onRuntimeInitialized: () => {},
-      onAbort: () => {},
+      print: (line: any): void => {},
+      printErr: (line: any): void => {},
+      onRuntimeInitialized: (): void => {},
+      onAbort: (): void => {},
     });
   }
 
   return callModelFun(wasmFunctionName);
 }
 
-let merged = () => {
+let merged = (): Uint8Array => {
   let length = 0;
   bufferSlice.forEach((item) => {
     length += item.length;
@@ -142,7 +133,7 @@ let translateJsonString = (str: string): string => {
     .replace(/[\t|\r|\n]/g, '');
 };
 
-let convertJSON = () => {
+let convertJSON = (): any[] => {
   try {
     let str = dec.decode(arr);
     let jsonArray: Array<any> = [];
@@ -266,17 +257,17 @@ async function onmessageByOpenAction(e: MessageEvent): Promise<void> {
 }
 
 function initModuleCallBackAndFun(): void {
-  let callback = (heapPtr: number, size: number, isEnd: number) => {
+  let callback = (heapPtr: number, size: number, isEnd: number): void => {
     let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
     bufferSlice.push(out);
-    if (isEnd == 1) {
+    if (isEnd === 1) {
       arr = merged();
       bufferSlice.length = 0;
     }
   };
   let fn = wasmModule.addFunction(callback, 'viii');
   reqBufferAddr = wasmModule._Initialize(fn, REQ_BUF_SIZE);
-  let ffrtConvertCallback = (heapPtr: number, size: number, isEnd: number) => {
+  let ffrtConvertCallback = (heapPtr: number, size: number, isEnd: number): void => {
     if (isEnd !== 1) {
       let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
       bufferSlice.push(out);
@@ -287,7 +278,7 @@ function initModuleCallBackAndFun(): void {
       saveTraceFileBuffer(ffrtFileCacheKey, arr.buffer);
     }
   };
-  let tlvResultCallback = (heapPtr: number, size: number, type: number, isEnd: number) => {
+  let tlvResultCallback = (heapPtr: number, size: number, type: number, isEnd: number): void => {
     let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
     protoDataMap.set(type, BatchSphData.decode(out).values);
   };
@@ -307,7 +298,7 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
     wasmModule._TraceStreamerParserConfigEx(parseConfigArray.length);
   }
   let wasmConfigStr = e.data.wasmConfig;
-  if (wasmConfigStr != '' && wasmConfigStr.indexOf('WasmFiles') != -1) {
+  if (wasmConfigStr !== '' && wasmConfigStr.indexOf('WasmFiles') !== -1) {
     let wasmConfig = JSON.parse(wasmConfigStr);
     let wasmConfigs = wasmConfig.WasmFiles;
     let itemArray = wasmConfigs.map((item: any) => {
@@ -318,7 +309,7 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
     wasmModule.HEAPU8.set(configUintArray, reqBufferAddr);
     wasmModule._TraceStreamer_Init_ThirdParty_Config(configUintArray.length);
     let first = true;
-    let sendDataCallback = (heapPtr: number, size: number, componentID: number) => {
+    let sendDataCallback = (heapPtr: number, size: number, componentID: number): void => {
       if (componentID === 100) {
         if (first) {
           first = false;
@@ -327,7 +318,7 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
         return;
       }
       let configs = wasmConfigs.filter((wasmConfig: any) => {
-        return wasmConfig.componentId == componentID;
+        return wasmConfig.componentId === componentID;
       });
       if (configs.length > 0) {
         let config = configs[0];
@@ -412,22 +403,22 @@ function parseNormalTraceByOpenAction(wrSize: number, r2: number, uint8Array: Ui
     wasmModule.HEAPU8.set(dataSlice, reqBufferAddr);
     wrSize += sliceLen;
     r2 = wasmModule._TraceStreamerParseDataEx(sliceLen, wrSize === uint8Array.length ? 1 : 0);
-    if (r2 == -1) {
+    if (r2 === -1) {
       break;
     }
   }
   return r2;
 }
 
-function setThirdWasmMap(config: any, heapPtr: number, size: number, componentID: number) {
+function setThirdWasmMap(config: any, heapPtr: number, size: number, componentID: number): void {
   let thirdMode = initThirdWASM(config.wasmName);
   let configPluginName = config.pluginName;
   let pluginNameUintArray = enc.encode(configPluginName);
   let pluginNameBuffer = thirdMode._InitPluginName(pluginNameUintArray.length);
   thirdMode.HEAPU8.set(pluginNameUintArray, pluginNameBuffer);
   thirdMode._TraceStreamerGetPluginNameEx(configPluginName.length);
-  let thirdQueryDataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number) => {
-    if (isConfig == 1) {
+  let thirdQueryDataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number): void => {
+    if (isConfig === 1) {
       let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
       thirdJsonResult.set(componentID, {
         jsonConfig: dec.decode(out),
@@ -437,7 +428,7 @@ function setThirdWasmMap(config: any, heapPtr: number, size: number, componentID
     } else {
       let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
       bufferSlice.push(out);
-      if (isEnd == 1) {
+      if (isEnd === 1) {
         arr = merged();
         bufferSlice.length = 0;
       }
@@ -459,7 +450,7 @@ function setThirdWasmMap(config: any, heapPtr: number, size: number, componentID
 }
 
 function postMessageByOpenAction(r2: number, e: MessageEvent): void {
-  if (r2 == -1) {
+  if (r2 === -1) {
     // @ts-ignore
     self.postMessage({
       id: e.data.id,
@@ -470,7 +461,7 @@ function postMessageByOpenAction(r2: number, e: MessageEvent): void {
     return;
   }
   temp_init_sql_list.forEach((item, index) => {
-    let r = createView(item);
+    createView(item);
     // @ts-ignore
     self.postMessage({ id: e.data.id, ready: true, index: index + 1 });
   });
@@ -490,7 +481,7 @@ function postMessageByOpenAction(r2: number, e: MessageEvent): void {
 }
 
 function initTraceRange(thirdMode: any): any {
-  let updateTraceTimeCallBack = (heapPtr: number, size: number) => {
+  let updateTraceTimeCallBack = (heapPtr: number, size: number): void => {
     let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
     wasmModule.HEAPU8.set(out, reqBufferAddr);
     wasmModule._UpdateTraceTime(out.length);
@@ -569,7 +560,7 @@ function onmessageByExecMetricAction(e: MessageEvent): void {
 
 function onmessageByInitPortAction(e: MessageEvent): void {
   let port = e.ports[0];
-  port.onmessage = (me) => {
+  port.onmessage = (me): void => {
     query(me.data.action, me.data.sql, me.data.params);
     let msg = {
       id: me.data.id,
@@ -582,7 +573,7 @@ function onmessageByInitPortAction(e: MessageEvent): void {
 
 function onmessageByDownloadDBAction(e: MessageEvent): void {
   let bufferSliceUint: Array<any> = [];
-  let mergedUint = () => {
+  let mergedUint = (): Uint8Array => {
     let length = 0;
     bufferSliceUint.forEach((item) => {
       length += item.length;
@@ -595,10 +586,10 @@ function onmessageByDownloadDBAction(e: MessageEvent): void {
     });
     return mergedArray;
   };
-  let getDownloadDb = (heapPtr: number, size: number, isEnd: number) => {
+  let getDownloadDb = (heapPtr: number, size: number, isEnd: number): void => {
     let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
     bufferSliceUint.push(out);
-    if (isEnd == 1) {
+    if (isEnd === 1) {
       let arr: Uint8Array = mergedUint();
       self.postMessage({
         id: e.data.id,
@@ -661,7 +652,7 @@ function cutLongTraceCallBackHandle(
       dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }];
     }
   >
-) {
+): void {
   let key = `${traceFileType}_${currentPageNum}`;
   let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
   if (DataTypeEnum.data === dataType) {
@@ -987,7 +978,7 @@ async function onmessageByLongTraceAction(e: MessageEvent): Promise<void> {
           dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }];
         }
       > = new Map();
-      let cutFileCallBack = (heapPtr: number, size: number, dataType: number, isEnd: number) => {
+      let cutFileCallBack = (heapPtr: number, size: number, dataType: number, isEnd: number): void => {
         cutLongTraceCallBackHandle(traceFileType, currentPageNum, heapPtr, size, dataType, newCutFilePageInfo);
       };
       splitReqBufferAddr = initSplitLongTraceModuleAndFun(headArray, cutFileCallBack);
@@ -1023,15 +1014,15 @@ self.onmessage = async (e: MessageEvent): Promise<void> => {
     onmessageByExecAction(e);
   } else if (e.data.action === 'exec-proto') {
     onmessageByExecProtoAction(e);
-  } else if (e.data.action == 'exec-buf') {
+  } else if (e.data.action === 'exec-buf') {
     onmessageByExecBufAction(e);
   } else if (e.data.action.startsWith('exec-sdk')) {
     onmessageByExecSdkAction(e);
   } else if (e.data.action.startsWith('exec-metric')) {
     onmessageByExecMetricAction(e);
-  } else if (e.data.action == 'init-port') {
+  } else if (e.data.action === 'init-port') {
     onmessageByInitPortAction(e);
-  } else if (e.data.action == 'download-db') {
+  } else if (e.data.action === 'download-db') {
     onmessageByDownloadDBAction(e);
   } else if (e.data.action === 'upload-so') {
     onmessageByUploadSoAction(e);
@@ -1213,7 +1204,7 @@ function setArg(
     timStamp: timStamp,
   };
 }
-function getRange(timStamp: number, fileType: string, queryStartIndex: number, queryEndIndex: number) {
+function getRange(timStamp: number, fileType: string, queryStartIndex: number, queryEndIndex: number): IDBKeyRange {
   return IDBKeyRange.bound(
     [timStamp, fileType, 0, queryStartIndex],
     [timStamp, fileType, 0, queryEndIndex],
@@ -1422,16 +1413,11 @@ function cutFileCallBackFunc(resultBuffer: Array<any>, uint8Array: Uint8Array, e
   };
 }
 
-function createView(sql: string) {
+function createView(sql: string): any {
   let array = enc.encode(sql);
   wasmModule.HEAPU8.set(array, reqBufferAddr);
   let res = wasmModule._TraceStreamerSqlOperateEx(array.length);
   return res;
-}
-
-function queryJSON(name: string, sql: string, params: any) {
-  query(name, sql, params);
-  return convertJSON();
 }
 
 function query(name: string, sql: string, params: any): void {
@@ -1444,7 +1430,6 @@ function query(name: string, sql: string, params: any): void {
       }
     });
   }
-  start = new Date().getTime();
   let sqlUintArray = enc.encode(sql);
   wasmModule.HEAPU8.set(sqlUintArray, reqBufferAddr);
   wasmModule._TraceStreamerSqlQueryEx(sqlUintArray.length);
@@ -1464,7 +1449,7 @@ function querySdk(name: string, sql: string, sdkParams: any, action: string): vo
   let commentId = action.substring(action.lastIndexOf('-') + 1);
   let key = Number(commentId);
   let wasm = thirdWasmMap.get(key);
-  if (wasm != undefined) {
+  if (wasm !== undefined) {
     let wasmModel = wasm.model;
     wasmModel.HEAPU8.set(sqlUintArray, wasm.bufferAddr);
     wasmModel._TraceStreamerSqlQueryEx(sqlUintArray.length);
@@ -1472,7 +1457,6 @@ function querySdk(name: string, sql: string, sdkParams: any, action: string): vo
 }
 
 function queryMetric(name: string): void {
-  start = new Date().getTime();
   let metricArray = enc.encode(name);
   wasmModule.HEAPU8.set(metricArray, reqBufferAddr);
   wasmModule._TraceStreamerSqlMetricsQuery(metricArray.length);
@@ -1485,21 +1469,21 @@ const STORE_NAME = 'longTable';
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const openRequest = indexedDB.open(DB_NAME, DB_VERSION);
-    openRequest.onerror = () => reject(openRequest.error);
-    openRequest.onsuccess = () => {
+    openRequest.onerror = (): void => reject(openRequest.error);
+    openRequest.onsuccess = (): void => {
       resolve(openRequest.result);
     };
   });
 }
 
-function queryDataFromIndexeddb(getRequest: IDBRequest<IDBCursorWithValue | null>): Promise<any> {
+function queryDataFromIndexeddb(getRequest: IDBRequest<IDBCursorWithValue | null>): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let results: any[] = [];
-    getRequest.onerror = (event) => {
+    getRequest.onerror = (event): void => {
       // @ts-ignore
       reject(event.target.error);
     };
-    getRequest.onsuccess = (event) => {
+    getRequest.onsuccess = (event): void => {
       // @ts-ignore
       const cursor = event.target!.result;
       if (cursor) {
@@ -1513,16 +1497,16 @@ function queryDataFromIndexeddb(getRequest: IDBRequest<IDBCursorWithValue | null
   });
 }
 
-function addDataToIndexeddb(db: IDBDatabase, value: any, key?: IDBValidKey) {
+function addDataToIndexeddb(db: IDBDatabase, value: any, key?: IDBValidKey): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     const objectStore = transaction.objectStore(STORE_NAME);
     const request = objectStore.add(value, key);
-    request.onsuccess = function (event) {
+    request.onsuccess = function (event): void {
       // @ts-ignore
       resolve(event.target.result);
     };
-    request.onerror = (event) => {
+    request.onerror = (event): void => {
       reject(event);
     };
   });

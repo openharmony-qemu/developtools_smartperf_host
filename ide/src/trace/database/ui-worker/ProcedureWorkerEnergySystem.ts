@@ -31,7 +31,7 @@ export class EnergySystemRender extends Render {
       type: string;
     },
     row: TraceRow<EnergySystemStruct>
-  ) {
+  ): void {
     let systemList = row.dataList;
     let systemFilter = row.dataListCache;
     system(
@@ -48,7 +48,7 @@ export class EnergySystemRender extends Render {
   }
 }
 
-function drawProcedureWorkerEnergy(req: any, systemFilter: Array<any>, row: TraceRow<EnergySystemStruct>) {
+function drawProcedureWorkerEnergy(req: any, systemFilter: Array<any>, row: TraceRow<EnergySystemStruct>): void {
   req.context.beginPath();
   let find = false;
   let energySystemData: any = {};
@@ -81,7 +81,9 @@ function drawProcedureWorkerEnergy(req: any, systemFilter: Array<any>, row: Trac
       find = true;
     }
   }
-  if (!find && row.isHover) EnergySystemStruct.hoverEnergySystemStruct = undefined;
+  if (!find && row.isHover) {
+    EnergySystemStruct.hoverEnergySystemStruct = undefined;
+  }
   if (EnergySystemStruct.hoverEnergySystemStruct) {
     EnergySystemStruct.hoverEnergySystemStruct!.workScheduler =
       energySystemData.workScheduler === undefined ? '0' : energySystemData.workScheduler;
@@ -96,14 +98,14 @@ function drawProcedureWorkerEnergy(req: any, systemFilter: Array<any>, row: Trac
   req.context.closePath();
 }
 
-export function drawLegend(req: RequestMessage | any, isDark?: boolean) {
+export function drawLegend(req: RequestMessage | any, isDark?: boolean): void {
   let textList = ['WORKSCHEDULER', 'POWER_RUNNINGLOCK', 'LOCATION'];
   for (let index = 0; index < textList.length; index++) {
     let text = req.context.measureText(textList[index]);
     req.context.fillStyle = EnergySystemStruct.getColor(index);
     let canvasEndX = req.context.canvas.clientWidth - EnergySystemStruct.OFFSET_WIDTH;
     let textColor = isDark ? '#FFFFFF' : '#333';
-    if (textList[index] == 'WORKSCHEDULER') {
+    if (textList[index] === 'WORKSCHEDULER') {
       req.context.fillRect(canvasEndX - EnergySystemStruct.itemNumber * 120, 12, 8, 8);
       req.context.globalAlpha = 1;
       req.context.textBaseline = 'middle';
@@ -122,7 +124,7 @@ export function drawLegend(req: RequestMessage | any, isDark?: boolean) {
   req.context.fillStyle = '#333';
 }
 
-export function systemData(data: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
+export function systemData(data: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any): void {
   for (let index = 0; index < data.length; index++) {
     let systemItem = data[index];
     if (index === data.length - 1) {
@@ -130,7 +132,7 @@ export function systemData(data: Array<any>, startNS: number, endNS: number, tot
     } else {
       systemItem.dur = (data[index + 1].startNs! || 0) - (systemItem.startNs! || 0);
     }
-    if (systemItem.count == 0) {
+    if (systemItem.count === 0) {
       systemItem.dur = 0;
     }
     if (
@@ -150,7 +152,7 @@ export function system(
   totalNS: number,
   frame: any,
   use: boolean
-) {
+): void {
   if (use && res.length > 0) {
     let lockData: any = [];
     let locationData: any = [];
@@ -185,7 +187,7 @@ function setEnergySystemFilter(
   endNS: number,
   totalNS: number,
   frame: any
-) {
+): void {
   if (systemList) {
     for (let i = 0; i < 3; i++) {
       let arr = systemList[i];
@@ -197,7 +199,7 @@ function setEnergySystemFilter(
           } else {
             item.dur = (arr[index + 1].startNs || 0) - (item.startNs || 0);
           }
-          if (item.count == 0) {
+          if (item.count === 0) {
             item.dur = 0;
           }
           if ((item.startNs || 0) + (item.dur || 0) > startNS && (item.startNs || 0) < endNS) {
@@ -230,7 +232,7 @@ export class EnergySystemStruct extends BaseStruct {
   appKey: string | undefined;
   dataType: number | undefined;
 
-  static draw(energySystemContext: CanvasRenderingContext2D, data: EnergySystemStruct) {
+  static draw(energySystemContext: CanvasRenderingContext2D, data: EnergySystemStruct): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       energySystemContext.globalAlpha = 1.0;
@@ -243,7 +245,14 @@ export class EnergySystemStruct extends BaseStruct {
     energySystemContext.lineWidth = 1;
   }
 
-  static setSystemFrame(systemNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  static setSystemFrame(
+    systemNode: any,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any
+  ): void {
     let systemStartPointX: number;
     let systemEndPointX: number;
     if ((systemNode.startNs || 0) < startNS) {

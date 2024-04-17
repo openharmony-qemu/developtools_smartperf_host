@@ -153,7 +153,7 @@ export class ColorUtils {
   }
 
   public static colorForThread(thread: CpuStruct): string {
-    if (thread == null) {
+    if (thread === null) {
       return ColorUtils.GREY_COLOR;
     }
     let tid: number | undefined | null = (thread.processId || -1) >= 0 ? thread.processId : thread.tid;
@@ -178,7 +178,7 @@ export class ColorUtils {
     let l = Math.abs(str).toString().split('').reverse();
     let t: string = '';
     for (let i = 0; i < l.length; i++) {
-      t += l[i] + ((i + 1) % 3 == 0 && i + 1 != l.length ? ',' : '');
+      t += l[i] + ((i + 1) % 3 === 0 && i + 1 !== l.length ? ',' : '');
     }
     return unit + t.split('').reverse().join('');
   }
@@ -198,23 +198,23 @@ export class ColorUtils {
   }
 
   public static funcTextColor(val: string): string {
-    var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+    let reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
     // 把颜色值变成小写
-    var color = val.toLowerCase();
-    var result = '';
+    let color = val.toLowerCase();
+    let result = '';
     if (reg.test(color)) {
       if (color.length === 4) {
-        var colorNew = '#';
-        for (var i = 1; i < 4; i += 1) {
+        let colorNew = '#';
+        for (let i = 1; i < 4; i += 1) {
           colorNew += color.slice(i, i + 1).concat(color.slice(i, i + 1));
         }
         color = colorNew;
       }
-      var colorChange = [];
-      for (var i = 1; i < 7; i += 2) {
+      let colorChange = [];
+      for (let i = 1; i < 7; i += 2) {
         colorChange.push(parseInt(`0x${color.slice(i, i + 2)}`));
       }
-      var grayLevel = colorChange[0] * 0.299 + colorChange[1] * 0.587 + colorChange[2] * 0.114;
+      let grayLevel = colorChange[0] * 0.299 + colorChange[1] * 0.587 + colorChange[2] * 0.114;
       if (grayLevel >= 150) {
         //浅色模式
         return '#000';
@@ -239,17 +239,15 @@ export function interpolateColorBrightness(colorHex: string, percentage: number)
 
   // 将插值后的亮度值与原始的色相和饱和度值组合
   const interpolatedColor = hslToRgb(h, s, interpolatedL);
-  const interpolatedColorScaled = interpolatedColor.map((val) => Math.round(val * 255));
-
-  return interpolatedColorScaled;
+  return interpolatedColor.map((val) => Math.round(val * 255));
 }
 
 function rgbToHsl(r: number, g: number, b: number): number[] {
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  let h = 0,
-    s = 0,
-    l = (max + min) / 2;
+  let h = 0;
+  let s = 0;
+  let l = (max + min) / 2;
 
   if (max === min) {
     h = s = 0; // achromatic
@@ -289,7 +287,7 @@ function hexToRgb(colorHex: string): number[] {
     // 处理六位的颜色值，转为RGB
     let rgb = [];
     for (let i = 1; i < 7; i += 2) {
-      rgb.push(parseInt('0x' + color.slice(i, i + 2)));
+      rgb.push(parseInt(`0x${color.slice(i, i + 2)}`));
     }
     return rgb;
   }
@@ -297,19 +295,29 @@ function hexToRgb(colorHex: string): number[] {
 }
 
 function hslToRgb(h: number, s: number, l: number): number[] {
-  let r = 0,
-    g = 0,
-    b = 0;
+  let r = 0;
+  let g = 0;
+  let b = 0;
 
   if (s === 0) {
     r = g = b = l; // achromatic
   } else {
-    const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1 / 6) return p + (q - p) * 6 * t;
-      if (t < 1 / 2) return q;
-      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    const hue2rgb = (p: number, q: number, t: number): number => {
+      if (t < 0) {
+        t += 1;
+      }
+      if (t > 1) {
+        t -= 1;
+      }
+      if (t < 1 / 6) {
+        return p + (q - p) * 6 * t;
+      }
+      if (t < 1 / 2) {
+        return q;
+      }
+      if (t < 2 / 3) {
+        return p + (q - p) * (2 / 3 - t) * 6;
+      }
       return p;
     };
 

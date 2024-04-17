@@ -18,7 +18,7 @@ import { LitCheckBox } from './LitCheckBox';
 
 @element('lit-check-group')
 export class LitCheckGroup extends BaseElement {
-  get direction() {
+  get direction(): string | null {
     return this.getAttribute('direction');
   }
 
@@ -32,7 +32,7 @@ export class LitCheckGroup extends BaseElement {
 
   initElements(): void {}
 
-  connectedCallback() {}
+  connectedCallback(): void {}
 
   initHtml(): string {
     return `<style>   

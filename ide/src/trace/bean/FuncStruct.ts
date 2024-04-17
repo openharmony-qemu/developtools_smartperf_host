@@ -38,12 +38,12 @@ export class FuncStruct extends BaseStruct {
   track_id: number | undefined;
   nofinish: boolean = false;
 
-  static draw(funcBeanStructCanvasCtx: CanvasRenderingContext2D, funcBeanStruct: FuncStruct) {
+  static draw(funcBeanStructCanvasCtx: CanvasRenderingContext2D, funcBeanStruct: FuncStruct): void {
     if (funcBeanStruct.frame) {
       if (
-        funcBeanStruct.dur == undefined ||
-        funcBeanStruct.dur == null ||
-        funcBeanStruct.dur == 0 ||
+        funcBeanStruct.dur === undefined ||
+        funcBeanStruct.dur === null ||
+        funcBeanStruct.dur === 0 ||
         FuncStruct.isBinder(funcBeanStruct)
       ) {
       } else {
@@ -74,16 +74,16 @@ export class FuncStruct extends BaseStruct {
 
   static isSelected(data: FuncStruct): boolean {
     return (
-      FuncStruct.selectFuncStruct != undefined &&
-      FuncStruct.selectFuncStruct.startTs == data.startTs &&
-      FuncStruct.selectFuncStruct.dur == data.dur &&
-      FuncStruct.selectFuncStruct.funName == data.funName
+      FuncStruct.selectFuncStruct !== undefined &&
+      FuncStruct.selectFuncStruct.startTs === data.startTs &&
+      FuncStruct.selectFuncStruct.dur === data.dur &&
+      FuncStruct.selectFuncStruct.funName === data.funName
     );
   }
 
   static isBinder(data: FuncStruct): boolean {
     if (
-      data.funName != null &&
+      data.funName &&
       (data.funName.toLowerCase().startsWith('binder transaction') ||
         data.funName.toLowerCase().startsWith('binder async') ||
         data.funName.toLowerCase().startsWith('binder reply'))
@@ -95,7 +95,7 @@ export class FuncStruct extends BaseStruct {
   }
 
   static isBinderAsync(data: FuncStruct): boolean {
-    if (data.funName != null && data.funName.toLowerCase().includes('async')) {
+    if (data.funName && data.funName.toLowerCase().includes('async')) {
       return true;
     } else {
       return false;

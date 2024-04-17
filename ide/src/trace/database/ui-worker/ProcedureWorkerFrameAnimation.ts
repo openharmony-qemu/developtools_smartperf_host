@@ -111,7 +111,7 @@ export function FrameAnimationStructOnClick(
   sp: SpSystemTrace,
   scrollToFuncHandler: any,
   row: TraceRow<any>
-) {
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FRAME_ANIMATION) {
       FrameAnimationStruct.selectFrameAnimationStruct =

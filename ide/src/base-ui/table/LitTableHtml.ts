@@ -516,10 +516,10 @@ export const litTableHtml = `
         </div>
         `;
 
-export function createDownUpSvg(index: number, head: any) {
+export function createDownUpSvg(index: number, head: any): { upSvg: SVGSVGElement, downSvg: SVGSVGElement } {
   let NS = 'http://www.w3.org/2000/svg';
-  let upSvg: any = document.createElementNS(NS, 'svg');
-  let upPath: any = document.createElementNS(NS, 'path');
+  let upSvg: SVGSVGElement = document.createElementNS(NS, 'svg') as SVGSVGElement;
+  let upPath: Element = document.createElementNS(NS, 'path');
   upSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
   upSvg.setAttribute('viewBox', '0 0 1024 1024');
   upSvg.setAttribute('stroke', 'let(--dark-color1,#212121)');
@@ -529,8 +529,8 @@ export function createDownUpSvg(index: number, head: any) {
     'M858.9 689L530.5 308.2c-9.4-10.9-27.5-10.9-37 0L165.1 689c-12.2 14.2-1.2 35 18.5 35h656.8c19.7 0 30.7-20.8 18.5-35z'
   );
   upSvg.appendChild(upPath);
-  let downSvg: any = document.createElementNS(NS, 'svg');
-  let downPath: any = document.createElementNS(NS, 'path');
+  let downSvg: SVGSVGElement = document.createElementNS(NS, 'svg') as SVGSVGElement;
+  let downPath: Element = document.createElementNS(NS, 'path');
   downSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
   downSvg.setAttribute('viewBox', '0 0 1024 1024');
   downSvg.setAttribute('stroke', 'let(--dark-color1,#212121)');
@@ -540,7 +540,7 @@ export function createDownUpSvg(index: number, head: any) {
     'M840.4 300H183.6c-19.7 0-30.7 20.8-18.5 35l328.4 380.8c9.4 10.9 27.5 10.9 37 0L858.9 335c12.2-14.2 1.2-35-18.5-35z'
   );
   downSvg.appendChild(downPath);
-  if (index == 0) {
+  if (index === 0) {
     head.sortType = 0; // 默认以第一列 降序排序 作为默认排序
     upSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
     downSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
@@ -586,7 +586,7 @@ export function formatExportData(dataSource: any[], that: any): any[] {
       if (columnName === '') {
         columnName = dataIndex;
       }
-      if (dataIndex && columnName && item[dataIndex] != undefined) {
+      if (dataIndex && columnName && item[dataIndex] !== undefined) {
         formatData[columnName] = item[dataIndex];
       }
     });
@@ -620,7 +620,9 @@ export function addCopyEventListener(that: any): void {
   that.tableElement?.addEventListener('copy', (e: any) => {
     // @ts-ignore
     let clipboardData = e.clipboardData || window.clipboardData;
-    if (!clipboardData) return;
+    if (!clipboardData) {
+      return;
+    }
     // @ts-ignore
     let text = window.getSelection().toString();
     if (text) {
@@ -629,7 +631,7 @@ export function addCopyEventListener(that: any): void {
       let strings = text.split('\n');
       let formatStr = '';
       for (let i = 0; i < strings.length; i++) {
-        if (i % length != 0) {
+        if (i % length !== 0) {
           formatStr += '    ';
         }
         formatStr += strings[i];
@@ -653,7 +655,7 @@ export function addSelectAllBox(rowElement: HTMLDivElement, that: any): void {
     box.style.backgroundColor = '#ffffff66';
     let checkbox = document.createElement('lit-checkbox');
     checkbox.classList.add('row-checkbox-all');
-    checkbox.onchange = (e: any) => {
+    checkbox.onchange = (e: any): void => {
       that.shadowRoot!.querySelectorAll('.row-checkbox').forEach((a: any) => (a.checked = e.detail.checked));
       if (e.detail.checked) {
         that.shadowRoot!.querySelectorAll('.tr').forEach((a: any) => a.setAttribute('checked', ''));

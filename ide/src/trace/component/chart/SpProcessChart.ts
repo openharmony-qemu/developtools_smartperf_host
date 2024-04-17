@@ -171,7 +171,7 @@ export class SpProcessChart {
         createDepth(++currentDepth, index);
       }
     };
-    res.forEach((it, i) => {
+    res.forEach((it, i): void => {
       res[i].funName = this.funcNameMap.get(res[i].id!);
       res[i].threadName = Utils.THREAD_MAP.get(res[i].tid!);
       if (it.dur === -1 || it.dur === null || it.dur === undefined) {
@@ -191,9 +191,9 @@ export class SpProcessChart {
   async init(): Promise<void> {
     await this.prepareData();
     if (
-      this.eventCountMap['print'] === 0 &&
-      this.eventCountMap['tracing_mark_write'] === 0 &&
-      this.eventCountMap['sched_switch'] === 0
+      this.eventCountMap.print === 0 &&
+      this.eventCountMap.tracing_mark_write === 0 &&
+      this.eventCountMap.sched_switch === 0
     ) {
       return;
     }

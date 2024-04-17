@@ -39,7 +39,7 @@ export class Top20ProcessThreadCount extends BaseElement {
     this.processThreadCountTbl = this.shadowRoot!.querySelector<LitTable>('#tb-process-thread-count');
     this.processThreadCountPie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
 
-    this.processThreadCountTbl!.addEventListener('row-click', (evt: any) => {
+    this.processThreadCountTbl!.addEventListener('row-click', (evt: any): void => {
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
@@ -49,11 +49,11 @@ export class Top20ProcessThreadCount extends BaseElement {
       }
     });
 
-    this.processThreadCountTbl!.addEventListener('column-click', (evt) => {
+    this.processThreadCountTbl!.addEventListener('column-click', (evt): void  => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.processThreadCountTbl!.addEventListener('row-hover', (evt: any) => {
+    this.processThreadCountTbl!.addEventListener('row-hover', (evt: any): void  => {
       if (evt.detail.data) {
         let data = evt.detail.data;
         data.isHover = true;
@@ -65,7 +65,7 @@ export class Top20ProcessThreadCount extends BaseElement {
     });
   }
 
-  init() {
+  init(): void  {
     if (!this.traceChange) {
       if (this.processThreadCountTbl!.recycleDataSource.length > 0) {
         this.processThreadCountTbl?.reMeauseHeight();
@@ -74,7 +74,7 @@ export class Top20ProcessThreadCount extends BaseElement {
     }
     this.traceChange = false;
     this.processThreadCountProgress!.loading = true;
-    this.queryLogicWorker('scheduling-Process ThreadCount', 'query Process Thread Count Analysis Time:', (res) => {
+    this.queryLogicWorker('scheduling-Process ThreadCount', 'query Process Thread Count Analysis Time:', (res): void  => {
       this.nodata!.noData = res === undefined || res.length === 0;
       this.processThreadCountTbl!.recycleDataSource = res;
       this.processThreadCountTbl!.reMeauseHeight();
@@ -88,14 +88,14 @@ export class Top20ProcessThreadCount extends BaseElement {
         label: {
           type: 'outer',
         },
-        hoverHandler: (data) => {
+        hoverHandler: (data): void  => {
           if (data) {
             this.processThreadCountTbl!.setCurrentHover(data);
           } else {
             this.processThreadCountTbl!.mouseOut();
           }
         },
-        tip: (obj) => {
+        tip: (obj): string => {
           return `<div>
                              <div>pid:${obj.obj.pid}</div> 
                              <div>p_name:${obj.obj.pName}</div> 
@@ -113,28 +113,27 @@ export class Top20ProcessThreadCount extends BaseElement {
     });
   }
 
-  clearData() {
+  clearData(): void  {
     this.traceChange = true;
     this.processThreadCountPie!.dataSource = [];
     this.processThreadCountTbl!.recycleDataSource = [];
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
+  queryLogicWorker(option: string, log: string, handler: (res: any) => void): void  {
     let processThreadCountTime = new Date().getTime();
     procedurePool.submitWithName('logic0', option, {}, undefined, handler);
     let durTime = new Date().getTime() - processThreadCountTime;
     info(log, durTime);
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void  {
     // @ts-ignore
     function compare(processThreadCountProperty, sort, type) {
       return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2
-            ? parseFloat(b[processThreadCountProperty]) - parseFloat(a[processThreadCountProperty])
-            : parseFloat(a[processThreadCountProperty]) - parseFloat(b[processThreadCountProperty]);
+          return sort === 2 ? parseFloat(b[processThreadCountProperty]) - parseFloat(a[processThreadCountProperty]) :
+            parseFloat(a[processThreadCountProperty]) - parseFloat(b[processThreadCountProperty]);
         } else {
           if (sort === 2) {
             return b[processThreadCountProperty].toString().localeCompare(a[processThreadCountProperty].toString());

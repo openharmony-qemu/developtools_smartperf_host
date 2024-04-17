@@ -47,7 +47,7 @@ function drawHiPerfEvent(
   groupBy10MS: boolean,
   filter: HiPerfEventStruct[],
   row: TraceRow<HiPerfEventStruct>
-) {
+): void {
   hiPerfEventReq.context.beginPath();
   hiPerfEventReq.context.fillStyle = ColorUtils.FUNC_COLOR[0];
   hiPerfEventReq.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
@@ -101,7 +101,7 @@ export class HiPerfEventStruct extends HiPerfStruct {
         return hiPerfDataItem;
       })
       .reduce((pre, current) => {
-        (pre[current['timestamp_group']] = pre[current['timestamp_group']] || []).push(current);
+        (pre[current.timestamp_group] = pre[current.timestamp_group] || []).push(current);
         return pre;
       }, {});
     let eventArr: any[] = [];
@@ -110,7 +110,9 @@ export class HiPerfEventStruct extends HiPerfStruct {
       let sum = obj[aKey].reduce((pre: any, cur: any) => {
         return pre + cur.event_count;
       }, 0);
-      if (sum > max) max = sum;
+      if (sum > max) {
+        max = sum;
+      }
       let ns = parseInt(aKey);
       eventArr.push({
         startNS: ns,

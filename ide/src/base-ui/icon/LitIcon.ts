@@ -26,7 +26,7 @@ export class LitIcon extends BaseElement {
   private _color?: string;
   private _path?: string;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['name', 'size', 'color', 'path'];
   }
 
@@ -88,7 +88,7 @@ export class LitIcon extends BaseElement {
             `;
   }
 
-  initElements() {
+  initElements(): void {
     if (this.shadowRoot) {
       this.icon = this.shadowRoot.getElementById('icon');
       this.use = this.shadowRoot.querySelector('use');
@@ -96,20 +96,27 @@ export class LitIcon extends BaseElement {
     }
   }
 
-  attributeChangedCallback(name: string, oldValue: string, value: string) {
+  attributeChangedCallback(name: string, oldValue: string, value: string): void {
     switch (name) {
       case 'name':
-        if (this.use)
+        if (this.use) {
           this.use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `./base-ui/icon.svg#icon-${value}`);
+        }
         break;
       case 'path':
-        if (this.d) this.d.setAttribute('d', value);
+        if (this.d) {
+          this.d.setAttribute('d', value);
+        }
         break;
       case 'color':
-        if (this.icon) this.icon.style.color = value as string;
+        if (this.icon) {
+          this.icon.style.color = value as string;
+        }
         break;
       case 'size':
-        if (this.icon) this.icon.style.fontSize = `${value}px`;
+        if (this.icon) {
+          this.icon.style.fontSize = `${value}px`;
+        }
         break;
     }
   }

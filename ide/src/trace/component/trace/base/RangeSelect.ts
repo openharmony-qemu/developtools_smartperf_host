@@ -84,8 +84,8 @@ export class RangeSelect {
   }
 
   // 对应查询方法行所有的数据
-  queryRowsData(rowList: Array<TraceRow<any>>) {
-    rowList.forEach((row) => {
+  queryRowsData(rowList: Array<TraceRow<any>>): void {
+    rowList.forEach((row): void  => {
       if (row.getAttribute('row-type') === 'func') {
         if (row.getAttribute('name')?.startsWith('render_service')) {
           this.saveFrameRateData(row, 'H:RSMainThread::DoComposition');
@@ -101,9 +101,9 @@ export class RangeSelect {
   // 查到所有的数据存储起来
   saveFrameRateData(row: TraceRow<any>, funcName: string): void {
     let dataList: any = [];
-    queryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res) => {
+    queryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void  => {
       if (res.length) {
-        res.forEach((item) => {
+        res.forEach((item): void  => {
           dataList?.push({ startTime: item.startTime!, tid: item.tid });
         });
         if (funcName === 'H:RSMainThread::DoComposition') {
@@ -117,9 +117,9 @@ export class RangeSelect {
   // 查到present泳道所有的数据存储起来
   savePresentData(row: TraceRow<any>, funcName: string): void {
     let dataList: any = [];
-    fuzzyQueryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res) => {
+    fuzzyQueryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void  => {
       if (res.length) {
-        res.forEach((item) => {
+        res.forEach((item): void  => {
           dataList?.push({ endTime: item.endTime!, tid: item.tid });
         });
         this.presentList = dataList;
@@ -144,13 +144,12 @@ export class RangeSelect {
     this.isMouseDown = false;
   }
 
-  checkRowsName(rowList: Array<TraceRow<any>>) {
-    rowList.forEach((row) => {
+  checkRowsName(rowList: Array<TraceRow<any>>): void  {
+    rowList.forEach((row): void  => {
       if (
         row.getAttribute('row-type') === 'func' &&
         row.parentRowEl?.getAttribute('name')?.startsWith('render_service')
       ) {
-        row.frameRateList = [];
         if (row.getAttribute('name')?.startsWith('render_service')) {
           this.filterRateData(row, this.docomList);
         } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
@@ -163,8 +162,8 @@ export class RangeSelect {
   }
 
   // 过滤处理数据
-  filterRateData(row: TraceRow<any>, data: any) {
-    data.forEach((it: any) => {
+  filterRateData(row: TraceRow<any>, data: any): void  {
+    data.forEach((it: any): void  => {
       if (
         it.startTime >= TraceRow.rangeSelectObject!.startNS! &&
         it.startTime <= TraceRow.rangeSelectObject!.endNS! &&
@@ -174,19 +173,19 @@ export class RangeSelect {
       }
     });
     if (row.frameRateList?.length) {
-      if (row.frameRateList.length < 2) {
-        row.frameRateList = [];
-      } else {
+      row.frameRateList = [...new Set(row.frameRateList)];
+      row.frameRateList.sort((a, b) => a - b);
+      if (row.frameRateList?.length >= 2) {
         const CONVERT_SECONDS = 1000000000;
         let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
-        row.avgRateTxt = (((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1) + 'fps';
+        row.avgRateTxt = `${(((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1)}fps`;
       }
     }
   }
 
   // 过滤并处理present数据
-  filterPresentData(row: TraceRow<any>, data: any) {
-    data.forEach((it: any) => {
+  filterPresentData(row: TraceRow<any>, data: any): void  {
+    data.forEach((it: any): void  => {
       if (
         it.endTime >= TraceRow.rangeSelectObject!.startNS! &&
         it.endTime <= TraceRow.rangeSelectObject!.endNS! &&
@@ -196,9 +195,9 @@ export class RangeSelect {
       }
     });
     if (row.frameRateList?.length) {
-      if (row.frameRateList?.length < 2) {
-        row.frameRateList = [];
-      } else {
+      row.frameRateList = [...new Set(row.frameRateList)]; //去重
+      row.frameRateList.sort((a, b) => a - b); //排序
+      if (row.frameRateList?.length >= 2) {
         let hitchTimeList: Array<number> = [];
         for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
           if (
@@ -212,13 +211,13 @@ export class RangeSelect {
         }
         const CONVERT_SECONDS = 1000000000;
         let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
-        let avgRate: string = (((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1) + 'fps';
+        let avgRate: string = `${(((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1)  }fps`;
         let sum: number = hitchTimeList.reduce((accumulator, currentValue) => accumulator + currentValue, 0); // ∑hitchTimeData
         let hitchRate: number =
           sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000);
-        let perHitchRate: string = (Number(hitchRate) * 100).toFixed(2) + '%';
+        let perHitchRate: string = `${(Number(hitchRate) * 100).toFixed(2)  }%`;
         row.avgRateTxt =
-          avgRate + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1) + 'ms' + ' ' + ',' + ' ' + perHitchRate;
+          `${avgRate} ` + ',' + ' ' + 'HitchTime:' + ` ${sum.toFixed(1)}ms` + ' ' + ',' + ` ${perHitchRate}`;
       }
     }
   }
@@ -278,7 +277,7 @@ export class RangeSelect {
     let rangeSelect: RangeSelectStruct | undefined;
     let favoriteRect = this.trace?.favoriteChartListEL?.getBoundingClientRect();
     let favoriteLimit = favoriteRect!.top + favoriteRect!.height;
-    this.rangeTraceRow = rows.filter((it) => {
+    this.rangeTraceRow = rows.filter((it): boolean => {
       let domRect = it.getBoundingClientRect();
       let itRect = { x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height };
       if (itRect.y < favoriteLimit && !it.collect) {
@@ -306,8 +305,8 @@ export class RangeSelect {
           rangeSelect = new RangeSelectStruct();
           let startX = Math.min(this.startPageX, this.endPageX) - it.describeEl!.getBoundingClientRect().right;
           let endX = Math.max(this.startPageX, this.endPageX) - it.describeEl!.getBoundingClientRect().right;
-          if (startX <= 0) startX = 0;
-          if (endX > it.frame.width) endX = it.frame.width;
+          if (startX <= 0) {startX = 0}
+          if (endX > it.frame.width) {endX = it.frame.width}
           rangeSelect.startX = startX;
           rangeSelect.endX = endX;
           rangeSelect.startNS = RangeSelect.SetNS(it, startX);
@@ -344,8 +343,8 @@ export class RangeSelect {
           rangeSelect = new RangeSelectStruct();
           let mouseX = ev.pageX - this.rowsEL!.getBoundingClientRect().left - 248;
           mouseX = mouseX < 0 ? 0 : mouseX;
-          let markA = this.movingMark == 'markA' ? mouseX : this.mark.startMark;
-          let markB = this.movingMark == 'markB' ? mouseX : this.mark.endMark;
+          let markA = this.movingMark === 'markA' ? mouseX : this.mark.startMark;
+          let markB = this.movingMark === 'markB' ? mouseX : this.mark.endMark;
           let startX = markA < markB ? markA : markB;
           let endX = markB < markA ? markA : markB;
           rangeSelect.startX = startX;

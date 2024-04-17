@@ -27,11 +27,12 @@ interface GpuTreeItem {
   sizeStr: string;
   children?: GpuTreeItem[] | undefined;
 }
+
 @element('tabpane-gpu-click-select')
 export class TabPaneGpuClickSelect extends BaseElement {
   private gpuTbl: LitTable | null | undefined;
   private gpuSource: Array<GpuTreeItem> = [];
-  gpuClickData(gpu: { type: string; startTs: number }) {
+  gpuClickData(gpu: { type: string; startTs: number }): void {
     let td = this.gpuTbl!.shadowRoot!.querySelector('.thead')?.firstChild?.firstChild as HTMLDivElement;
     let title = gpu.type === 'total' ? 'Module / Category' : 'Window / Module / Category';
     let titleArr = title.split('/');
@@ -45,7 +46,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
       for (let i = 0; i < titleArr.length; i++) {
         let label = document.createElement('label');
         label.style.cursor = 'pointer';
-        i == 0 ? (label.innerHTML = titleArr[i]) : (label.innerHTML = '/' + titleArr[i]);
+        i === 0 ? (label.innerHTML = titleArr[i]) : (label.innerHTML = '/' + titleArr[i]);
         td.appendChild(label);
       }
     }
@@ -56,7 +57,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
     let module = gpu.type === 'total' ? VmTrackerChart.gpuTotalModule : VmTrackerChart.gpuWindowModule;
     queryGpuDataByTs(gpu.startTs, window || 0, module).then((result) => {
       this.gpuTbl!.loading = false;
-      if (result != null && result.length > 0) {
+      if (result !== null && result.length > 0) {
         log('queryGpuDataByTs result size : ' + result.length);
         let items = this.createTreeData(result);
         this.gpuSource = (gpu.type === 'total' ? items[0].children : items) || [];
@@ -136,7 +137,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
     this.parentElement!.style.overflow = 'hidden';
     resizeObserver(this.parentElement!, this.gpuTbl!, 18);
   }
-  public theadClick(table: LitTable, data: Array<any>) {
+  public theadClick(table: LitTable, data: Array<any>): void {
     let labels = table?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {

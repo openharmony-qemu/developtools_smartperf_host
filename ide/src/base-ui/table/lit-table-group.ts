@@ -28,11 +28,11 @@ export class LitTableGroup extends HTMLElement {
         `;
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['title'];
   }
 
-  get title() {
+  get title(): string {
     return this.getAttribute('title') || '';
   }
 
@@ -40,11 +40,11 @@ export class LitTableGroup extends HTMLElement {
     this.setAttribute('title', value);
   }
 
-  connectedCallback() {}
+  connectedCallback(): void {}
 
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {}
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {}
 }

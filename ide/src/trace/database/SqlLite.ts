@@ -26,7 +26,7 @@ class DataWorkerThread {
   }
 
   //发送方法名 参数 回调
-  queryFunc(action: string, args: any, handler: Function) {
+  queryFunc(action: string, args: any, handler: Function): void {
     let id = this.uuid();
     this.taskMap[id] = handler;
     let msg = {
@@ -57,7 +57,7 @@ class DbThread {
     );
   }
 
-  queryFunc(name: string, sql: string, args: any, handler: Function, action: string | null) {
+  queryFunc(name: string, sql: string, args: any, handler: Function, action: string | null): void {
     this.busy = true;
     let id = this.uuid();
     this.taskMap[id] = handler;
@@ -71,7 +71,7 @@ class DbThread {
     this.worker?.postMessage(msg);
   }
 
-  queryProto(name: number, args: any, handler: Function) {
+  queryProto(name: number, args: any, handler: Function): void {
     this.busy = true;
     let id = this.uuid();
     this.taskMap[id] = handler;
@@ -88,10 +88,10 @@ class DbThread {
     leftTs: number,
     rightTs: number,
     handler: (status: boolean, msg: string, splitBuffer?: ArrayBuffer) => void
-  ) {
+  ): void {
     this.busy = true;
     let id = this.uuid();
-    this.taskMap[id] = (res: any) => {
+    this.taskMap[id] = (res: any): void => {
       DbPool.sharedBuffer = res.buffer;
       if (res.cutStatus) {
         handler(res.cutStatus, res.msg, res.cutBuffer);
@@ -130,7 +130,7 @@ class DbThread {
   }> => {
     return new Promise<any>((resolve, reject) => {
       let id = this.uuid();
-      this.taskMap[id] = (res: any) => {
+      this.taskMap[id] = (res: any): any => {
         if (res.init) {
           resolve({
             status: res.init,
@@ -156,7 +156,7 @@ class DbThread {
     });
   };
 
-  resetWASM() {
+  resetWASM(): void {
     this.worker?.postMessage({
       id: this.uuid(),
       action: 'reset',
@@ -175,7 +175,7 @@ export class DbPool {
   dataWorker: DataWorkerThread | undefined | null;
   currentWasmThread: DbThread | undefined = undefined;
 
-  init = async (type: string, threadBuild: (() => DbThread) | undefined = undefined) => {
+  init = async (type: string, threadBuild: (() => DbThread) | undefined = undefined): Promise<void> => {
     // wasm | server | sqlite
     if (this.currentWasmThread) {
       this.currentWasmThread.resetWASM();
@@ -198,10 +198,10 @@ export class DbPool {
       }
       if (thread) {
         this.currentWasmThread = thread;
-        thread!.worker!.onerror = (err) => {
+        thread!.worker!.onerror = (err): void => {
           console.warn(err);
         };
-        thread!.worker!.onmessageerror = (err) => {
+        thread!.worker!.onmessageerror = (err): void => {
           console.warn(err);
         };
         this.threadPostMessage(thread);
@@ -211,8 +211,8 @@ export class DbPool {
       }
     }
   };
-  threadPostMessage(thread: DbThread) {
-    thread!.worker!.onmessage = (event: MessageEvent) => {
+  threadPostMessage(thread: DbThread): void {
+    thread!.worker!.onmessage = (event: MessageEvent): void => {
       thread!.busy = false;
       if (Reflect.has(thread!.taskMap, event.data.id)) {
         if (event.data.results) {
@@ -231,7 +231,7 @@ export class DbPool {
           this.progressTimer(this.num + event.data.index, this.progress!);
           DbPool.sharedBuffer = null;
         } else if (Reflect.has(event.data, 'init')) {
-          if (this.cutDownTimer != undefined) {
+          if (this.cutDownTimer !== undefined) {
             clearInterval(this.cutDownTimer);
           }
           let fun = thread!.taskMap[event.data.id];
@@ -271,7 +271,23 @@ export class DbPool {
     }
     return { status: true, msg: 'ok' };
   };
-  initSqlite = async (buf: ArrayBuffer, parseConfig: string, sdkWasmConfig: string, progress: Function) => {
+  initSqlite = async (
+    buf: ArrayBuffer,
+    parseConfig: string,
+    sdkWasmConfig: string,
+    progress: Function
+  ): Promise<
+    | {
+        status: false;
+        msg: string;
+        sdkConfigMap?: undefined;
+      }
+    | {
+        status: boolean;
+        msg: string;
+        sdkConfigMap: any;
+      }
+  > => {
     this.progress = progress;
     progress('database loaded', 15);
     DbPool.sharedBuffer = buf;
@@ -347,7 +363,7 @@ export class DbPool {
     }
   }
 
-  close = async () => {
+  close = async (): Promise<void> => {
     clearInterval(this.cutDownTimer);
     for (let thread of this.works) {
       thread.worker?.terminate();
@@ -355,7 +371,7 @@ export class DbPool {
     this.works.length = 0;
   };
 
-  submit(name: string, sql: string, args: any, handler: Function, action: string | null) {
+  submit(name: string, sql: string, args: any, handler: Function, action: string | null): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
     let thread: DbThread;
     if (noBusyThreads.length > 0) {
@@ -369,7 +385,7 @@ export class DbPool {
     }
   }
 
-  submitProto(name: number, args: any, handler: Function) {
+  submitProto(name: number, args: any, handler: Function): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
     let thread: DbThread;
     if (noBusyThreads.length > 0) {
@@ -386,11 +402,15 @@ export class DbPool {
   }
 
   //new method replace submit() method
-  submitTask(action: string, args: any, handler: Function) {
+  submitTask(action: string, args: any, handler: Function): void {
     this.dataWorker?.queryFunc(action, args, handler);
   }
 
-  cutFile(leftTs: number, rightTs: number, handler: (status: boolean, msg: string, splitBuffer?: ArrayBuffer) => void) {
+  cutFile(
+    leftTs: number,
+    rightTs: number,
+    handler: (status: boolean, msg: string, splitBuffer?: ArrayBuffer) => void
+  ): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
     let thread: DbThread;
     if (noBusyThreads.length > 0) {
@@ -402,7 +422,7 @@ export class DbPool {
     }
   }
 
-  progressTimer(num: number, progress: Function) {
+  progressTimer(num: number, progress: Function): void {
     let currentNum = num;
     clearInterval(this.cutDownTimer);
     this.cutDownTimer = setInterval(() => {

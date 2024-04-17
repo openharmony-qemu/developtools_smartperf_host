@@ -33,7 +33,7 @@ export class TabPaneFileStatistics extends BaseElement {
   private fileStatisticsSortType: number = 0;
 
   set data(fileStatisticsSelection: SelectionParam | any) {
-    if (fileStatisticsSelection == this.selectionParam) {
+    if (fileStatisticsSelection === this.selectionParam) {
       return;
     }
     this.fileStatisticsProgressEL!.loading = true;
@@ -41,7 +41,7 @@ export class TabPaneFileStatistics extends BaseElement {
     this.selectionParam = fileStatisticsSelection;
     // @ts-ignore
     this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 25 + 'px';
+      `${this.parentElement!.clientHeight - 25  }px`;
     this.queryDataByDB(fileStatisticsSelection);
   }
 
@@ -49,34 +49,35 @@ export class TabPaneFileStatistics extends BaseElement {
     this.fileStatisticsProgressEL = this.shadowRoot!.querySelector<LitProgressBar>('.file-statistics-progress');
     this.fileStatisticsLoadingPage = this.shadowRoot!.querySelector('.file-statistics-loading');
     this.fileStatisticsTbl = this.shadowRoot!.querySelector<LitTable>('#tb-file-statistics');
-    this.fileStatisticsTbl!.addEventListener('column-click', (evt) => {
+    this.fileStatisticsTbl!.addEventListener('column-click', (evt: Event): void => {
       // @ts-ignore
       this.fileStatisticsSortKey = evt.detail.key;
       // @ts-ignore
       this.fileStatisticsSortType = evt.detail.sort;
-      if (this.fileStatisticsSortType != 0 && this.fileStatisticsSource.length > 0)
+      if (this.fileStatisticsSortType !== 0 && this.fileStatisticsSource.length > 0) {
         this.sortTable(this.fileStatisticsSource[0], this.fileStatisticsSortKey);
+      }
       this.fileStatisticsTbl!.recycleDataSource = this.fileStatisticsSource;
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement!.clientHeight != 0) {
+    new ResizeObserver((): void => {
+      if (this.parentElement!.clientHeight !== 0) {
         // @ts-ignore
         this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 25 + 'px';
+          `${this.parentElement!.clientHeight - 25  }px`;
         this.fileStatisticsTbl!.reMeauseHeight();
-        this.fileStatisticsLoadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
+        this.fileStatisticsLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
   }
 
-  getInitData(item: any) {
+  getInitData(item: any): any {
     return {
       ...item,
-      title: item.name + '(' + item.pid + ')',
+      title: `${item.name}(${item.pid})`,
       logicalWrites: Utils.getBinaryByteWithUnit(item.logicalWrites),
       logicalReads: Utils.getBinaryByteWithUnit(item.logicalReads),
       otherFile: Utils.getBinaryByteWithUnit(item.otherFile),
@@ -96,9 +97,9 @@ export class TabPaneFileStatistics extends BaseElement {
       val.leftNs + val.recordStartNs,
       val.rightNs + val.recordStartNs,
       val.fileSystemType
-    ).then((result) => {
+    ).then((result): void => {
       this.fileStatisticsLoadingList.splice(0, 1);
-      if (this.fileStatisticsLoadingList.length == 0) {
+      if (this.fileStatisticsLoadingList.length === 0) {
         this.fileStatisticsProgressEL!.loading = false;
         this.fileStatisticsLoadingPage.style.visibility = 'hidden';
       }
@@ -116,7 +117,7 @@ export class TabPaneFileStatistics extends BaseElement {
         children: [],
       };
       this.handleResult(result, fileStatisticsFatherMap, fileStatisticsAllNode);
-      fileStatisticsFatherMap.forEach((item) => {
+      fileStatisticsFatherMap.forEach((item): void => {
         item.avgDuration = item.allDuration / item.count;
         let node = this.getInitData(item);
         if (item.type < 4) {
@@ -130,8 +131,9 @@ export class TabPaneFileStatistics extends BaseElement {
       fileStatisticsAllNode = this.getInitData(fileStatisticsAllNode);
       fileStatisticsAllNode.title = 'All';
       this.fileStatisticsSource = result.length > 0 ? [fileStatisticsAllNode] : [];
-      if (this.fileStatisticsSortType != 0 && result.length > 0)
+      if (this.fileStatisticsSortType !== 0 && result.length > 0) {
         this.sortTable(this.fileStatisticsSource[0], this.fileStatisticsSortKey);
+      }
       this.theadClick(this.fileStatisticsSource);
       this.fileStatisticsTbl!.recycleDataSource = this.fileStatisticsSource;
     });
@@ -141,7 +143,7 @@ export class TabPaneFileStatistics extends BaseElement {
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
-        labels[i].addEventListener('click', (e) => {
+        labels[i].addEventListener('click', (): void => {
           if (label.includes('Syscall') && i === 0) {
             this.fileStatisticsTbl!.setStatus(res, false, 0, 1);
             this.fileStatisticsTbl!.recycleDs = this.fileStatisticsTbl!.meauseTreeRowElement(
@@ -161,7 +163,7 @@ export class TabPaneFileStatistics extends BaseElement {
   }
 
   private handleResult(result: Array<any>, fileStatisticsFatherMap: Map<any, any>, fileStatisticsAllNode: any): void {
-    result.forEach((item, idx) => {
+    result.forEach((item, idx): void => {
       if (fileStatisticsFatherMap.has(item.type)) {
         let fileStatisticsObj = fileStatisticsFatherMap.get(item.type);
         fileStatisticsObj.count += item.count;
@@ -187,7 +189,7 @@ export class TabPaneFileStatistics extends BaseElement {
           children: [this.getInitData(item)],
         });
       }
-      if (idx == 0) {
+      if (idx === 0) {
         fileStatisticsAllNode.minDuration = item.minDuration;
       } else {
         fileStatisticsAllNode.minDuration =
@@ -203,19 +205,19 @@ export class TabPaneFileStatistics extends BaseElement {
     });
   }
 
-  sortTable(fileStatisticsAllNode: any, key: string) {
+  sortTable(fileStatisticsAllNode: any, key: string): void {
     fileStatisticsAllNode.children.sort((fileStatisticsA: any, fileStatisticsB: any) => {
-      if (this.fileStatisticsSortType == 1) {
+      if (this.fileStatisticsSortType === 1) {
         return fileStatisticsA.node[key] - fileStatisticsB.node[key];
-      } else if (this.fileStatisticsSortType == 2) {
+      } else if (this.fileStatisticsSortType === 2) {
         return fileStatisticsB.node[key] - fileStatisticsA.node[key];
       }
     });
-    fileStatisticsAllNode.children.forEach((item: any) => {
+    fileStatisticsAllNode.children.forEach((item: any): void => {
       item.children.sort((fileStatisticsA: any, fileStatisticsB: any) => {
-        if (this.fileStatisticsSortType == 1) {
+        if (this.fileStatisticsSortType === 1) {
           return fileStatisticsA.node[key] - fileStatisticsB.node[key];
-        } else if (this.fileStatisticsSortType == 2) {
+        } else if (this.fileStatisticsSortType === 2) {
           return fileStatisticsB.node[key] - fileStatisticsA.node[key];
         }
       });
@@ -248,7 +250,7 @@ export class TabPaneFileStatistics extends BaseElement {
         }
         </style>
         <lit-table id="tb-file-statistics" style="height: auto" tree>
-            <lit-table-column class="fs-stat-column" width="20%" title="Syscall/Process" data-index="title" key="title" align="flex-start"retract>
+            <lit-table-column class="fs-stat-column" width="20%" title="Syscall/Process" data-index="title" key="title" align="flex-start" retract>
             </lit-table-column>
             <lit-table-column class="fs-stat-column" width="1fr" title="Count" data-index="count" key="count" align="flex-start" order>
             </lit-table-column>

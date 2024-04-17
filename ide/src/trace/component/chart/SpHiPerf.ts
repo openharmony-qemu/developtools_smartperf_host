@@ -171,7 +171,7 @@ export class SpHiPerf {
       if (this.eventTypeId !== drawType) {
         this.eventTypeId = drawType;
         row.drawType = drawType;
-        row.childrenList.forEach((child) => {
+        row.childrenList.forEach((child): void => {
           if (child.drawType !== drawType) {
             child.drawType = drawType;
             child.needRefresh = true;
@@ -445,9 +445,9 @@ export class SpHiPerf {
   }
 
   async initProcess(): Promise<void> {
-    Reflect.ownKeys(this.group).forEach((key, index) => {
+    Reflect.ownKeys(this.group).forEach((key, index): void => {
       let array = this.group[key] as Array<PerfThread>;
-      let process = array.filter((th) => th.pid === th.tid)[0];
+      let process = array.filter((th): boolean => th.pid === th.tid)[0];
       let row = TraceRow.skeleton<HiPerfProcessStruct>();
       row.rowId = `${process.pid}-Perf-Process`;
       row.index = index;
@@ -496,7 +496,7 @@ export class SpHiPerf {
   }
 
   addHiPerfThreadRow(array: PerfThread[], row: TraceRow<HiPerfProcessStruct>): void {
-    array.forEach((thObj, thIdx) => {
+    array.forEach((thObj, thIdx): void => {
       let thread = TraceRow.skeleton<HiPerfThreadStruct>();
       thread.rowId = `${thObj.tid}-Perf-Thread`;
       thread.index = thIdx;
@@ -581,9 +581,8 @@ export class SpHiPerf {
         let perfCall = perfDataQuery.callChainMap.get(struct.callchain_id || 0);
         if (perfCall) {
           let perfName;
-          typeof perfCall.name === 'number'
-            ? (perfName = SpSystemTrace.DATA_DICT.get(parseInt(perfCall.name)))
-            : (perfName = perfCall.name);
+          typeof perfCall.name === 'number' ? (perfName = SpSystemTrace.DATA_DICT.get(parseInt(perfCall.name))) :
+            (perfName = perfCall.name);
           tip = `<span>${perfCall ? perfName : ''} (${perfCall ? perfCall.depth : '0'} other frames)</span>`;
         }
       }

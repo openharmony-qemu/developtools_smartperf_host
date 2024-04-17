@@ -46,7 +46,9 @@ export class HiperfCpuRender2 extends PerfRender {
       }
       HiPerfCpuStruct.draw(req.context, normalPath, normalPath, re, groupBy10MS, textMetrics);
     }
-    if (!find && row.isHover) HiPerfCpuStruct.hoverStruct = undefined;
+    if (!find && row.isHover) {
+      HiPerfCpuStruct.hoverStruct = undefined;
+    }
     if (groupBy10MS) {
       req.context.fill(normalPath);
     } else {

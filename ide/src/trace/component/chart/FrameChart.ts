@@ -228,9 +228,8 @@ export class FrameChart extends BaseElement {
         currentValuePercent = this.total / this.rootNode.eventCount;
         break;
     }
-    this.rootNode.symbol = currentValuePercent
-      ? `Root : ${currentValue} (${(currentValuePercent * 100).toFixed(2)}%)`
-      : `Root : ${currentValue}`;
+    let endStr = currentValuePercent ? ` (${(currentValuePercent * 100).toFixed(2)}%)` : '';
+    this.rootNode.symbol = `Root : ${currentValue}${endStr}`;
   }
 
   /**

@@ -35,6 +35,7 @@ namespace TraceStreamer {
 using namespace SysTuning::EbpfStdtype;
 class EbpfDataReader : private EventParserBase {
 public:
+    using ElfDoubleMap = DoubleMap<const ElfEventFixedHeader*, uint64_t, const uint8_t*>;
     EbpfDataReader(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     ~EbpfDataReader() = default;
     bool InitEbpfData(const std::deque<uint8_t>& dequeBuffer, uint64_t size);
@@ -43,7 +44,7 @@ public:
     const std::multimap<uint64_t, const PagedMemoryFixedHeader*>& GetPagedMemoryMap() const;
     const std::multimap<uint64_t, const BIOFixedHeader*>& GetBIOSampleMap() const;
     const DoubleMap<uint32_t, uint64_t, const MapsFixedHeader*>& GetPidAndStartAddrToMapsAddr() const;
-    const DoubleMap<const ElfEventFixedHeader*, uint64_t, const uint8_t*>& GetElfAddrAndStartValueToSymAddr() const;
+    const ElfDoubleMap& GetElfAddrAndStartValueToSymAddr() const;
     const std::map<DataIndex, const ElfEventFixedHeader*>& GetElfPathIndexToElfAddr() const;
     QuatraMap<uint32_t, uint32_t, uint32_t, uint64_t, DataIndex>& GetTracerEventToStrIndexMap();
     EbpfSymbolInfo GetSymbolNameIndexFromElfSym(uint64_t ip);
@@ -58,7 +59,7 @@ private:
     bool ReadItemEventPagedMemory(const uint8_t* buffer, uint32_t size);
     bool ReadItemEventBIO(const uint8_t* buffer, uint32_t size);
     bool ReadItemEventStr(const uint8_t* buffer, uint32_t size);
-    bool EbpfTypeHandle(EbpfTypeAndLength* dataTitle, const uint8_t* startAddr_);
+    bool EbpfTypeHandle(EbpfTypeAndLength* dataTitle, const uint8_t* startAddr);
     template <class T>
     void AddSymbolsToTable(T* firstSymbolAddr, const int size, const ElfEventFixedHeader* elfAddr);
     void UpdateElfAddrAndStValueToSymAddrMap(const ElfEventFixedHeader* elfAddr, uint32_t size);
@@ -80,7 +81,7 @@ private:
     std::multimap<uint64_t, const BIOFixedHeader*> endTsToBIOFixedHeader_ = {};
     std::map<DataIndex, const ElfEventFixedHeader*> elfPathIndexToElfFixedHeaderAddr_ = {};
     DoubleMap<uint32_t, uint64_t, const MapsFixedHeader*> pidAndStartAddrToMapsAddr_;
-    DoubleMap<const ElfEventFixedHeader*, uint64_t, const uint8_t*> elfAddrAndStValueToSymAddr_;
+    ElfDoubleMap elfAddrAndStValueToSymAddr_;
     QuatraMap<uint32_t, uint32_t, uint32_t, uint64_t, DataIndex> tracerEventToStrIndex_;
     DataIndex kernelFilePath_;
     struct AddrDesc {

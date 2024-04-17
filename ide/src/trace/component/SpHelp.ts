@@ -15,16 +15,16 @@
 
 import { BaseElement, element } from '../../base-ui/BaseElement';
 import { LitMainMenuGroup } from '../../base-ui/menu/LitMainMenuGroup';
-import { LitMainMenu, MenuItem } from '../../base-ui/menu/LitMainMenu';
+import { LitMainMenu, MenuGroup, MenuItem } from '../../base-ui/menu/LitMainMenu';
 import { LitMainMenuItem } from '../../base-ui/menu/LitMainMenuItem';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
-import { eventDefinitions } from '../enums/helpDocEnums';
+import { EventDefinition, eventDefinitions } from '../enums/helpDocEnums';
 
 @element('sp-help')
 export class SpHelp extends BaseElement {
   private appContent: HTMLElement | undefined | null;
 
-  get dark() {
+  get dark(): boolean {
     return this.hasAttribute('dark');
   }
 
@@ -60,15 +60,15 @@ export class SpHelp extends BaseElement {
       items.forEach((item) => {
         item.style.width = '330px';
       });
-      if (value.title == 'TraceStreamer') {
+      if (value.title === 'TraceStreamer') {
         let items = value.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
         items.forEach((i) => {
-          if (i.title != 'TraceStreamer数据库说明') {
+          if (i.title !== 'TraceStreamer数据库说明') {
             i.style.display = 'none';
           }
         });
       }
-      if (value.title == 'SmartPerf') {
+      if (value.title === 'SmartPerf') {
         value.style.display = 'none';
       }
     });
@@ -78,7 +78,7 @@ export class SpHelp extends BaseElement {
     }
   }
 
-  private itemHelpClick(urlParams: URLSearchParams, that: this) {
+  private itemHelpClick(urlParams: URLSearchParams, that: this): void {
     if (urlParams.get('action')!.length > 4) {
       let helpDocIndex = urlParams.get('action')!.substring(5);
       let helpDocDetail = this.getEventDefinitionByIndex(Number(helpDocIndex));
@@ -88,7 +88,7 @@ export class SpHelp extends BaseElement {
     }
   }
 
-  private getEventDefinitionByIndex(index: number) {
+  private getEventDefinitionByIndex(index: number): EventDefinition | null {
     for (let key in eventDefinitions) {
       if (eventDefinitions[key].index === index) {
         return eventDefinitions[key];
@@ -142,7 +142,7 @@ export class SpHelp extends BaseElement {
     ];
   }
 
-  private setupCaptureAndImportMenu(that: this) {
+  private setupCaptureAndImportMenu(that: this): MenuGroup {
     return {
       collapsed: false,
       title: '抓取和导入',
@@ -153,21 +153,21 @@ export class SpHelp extends BaseElement {
         {
           title: '设备端抓取trace说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'record', 'quickstart_device_record', '1');
           },
         },
         {
           title: 'web端抓取trace说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'online_record', 'quickstart_web_record', '2');
           },
         },
         {
           title: 'web端加载trace说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'load', 'quickstart_systemtrace', '3');
           },
         },
@@ -175,7 +175,7 @@ export class SpHelp extends BaseElement {
     };
   }
 
-  private setupOtherMenu(that: this) {
+  private setupOtherMenu(that: this): MenuGroup {
     return {
       collapsed: false,
       title: '其他',
@@ -203,13 +203,13 @@ export class SpHelp extends BaseElement {
     return {
       title: title,
       icon: '',
-      clickHandler: (item: MenuItem) => {
+      clickHandler: (item: MenuItem): void => {
         that.handleMemoryMenuItemClick(that, event, docName, index);
       },
     };
   }
 
-  private setupMemoryMenu(that: this) {
+  private setupMemoryMenu(that: this): MenuGroup {
     return {
       collapsed: false,
       title: '内存',
@@ -220,28 +220,28 @@ export class SpHelp extends BaseElement {
         {
           title: 'Js Memory抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'js_memory', 'quickstart_Js_memory', '4');
           },
         },
         {
           title: 'Native Memory抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'native', 'quickstart_native_memory', '5');
           },
         },
         {
           title: '页内存抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'virtual_memory', 'quickstart_page_fault', '6');
           },
         },
         {
           title: '系统内存抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'memory_template', 'quickstart_memory_template', '7');
           },
         },
@@ -258,7 +258,7 @@ export class SpHelp extends BaseElement {
     this.changeItemURL(index!);
   }
 
-  private changeItemURL(index: string) {
+  private changeItemURL(index: string): void {
     let url = new URL(window.location.href);
     let actionParam = url.searchParams.get('action');
     let newActionValue = `help_${index}`;
@@ -271,7 +271,7 @@ export class SpHelp extends BaseElement {
     }
   }
 
-  private setupNativeMenu(that: this) {
+  private setupNativeMenu(that: this): MenuGroup {
     return {
       collapsed: false,
       title: 'Native栈',
@@ -282,7 +282,7 @@ export class SpHelp extends BaseElement {
         {
           title: 'HiPerf的抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'perf', 'quickstart_hiperf', '8');
           },
         },
@@ -290,7 +290,7 @@ export class SpHelp extends BaseElement {
     };
   }
 
-  private setupTsMenu(that: this) {
+  private setupTsMenu(that: this): MenuGroup {
     return {
       collapsed: false,
       title: 'TS栈',
@@ -301,7 +301,7 @@ export class SpHelp extends BaseElement {
         {
           title: 'Cpuprofiler抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'arkts', 'quickstart_arkts', '9');
           },
         },
@@ -309,7 +309,7 @@ export class SpHelp extends BaseElement {
     };
   }
 
-  private setupAnalysisTemplateMenu(that: this) {
+  private setupAnalysisTemplateMenu(that: this): MenuGroup {
     return {
       collapsed: false,
       title: '分析模板',
@@ -320,35 +320,35 @@ export class SpHelp extends BaseElement {
         {
           title: 'Frame timeline抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'frame_record', 'quickstart_Frametimeline', '10');
           },
         },
         {
           title: 'Animation的抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'animation', 'quickstart_animation', '11');
           },
         },
         {
           title: 'TaskPool抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'taskpool', 'quickstart_taskpool', '12');
           },
         },
         {
           title: 'App startup的抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'app_startup', 'quickstart_app_startup', '13');
           },
         },
         {
           title: 'Scheduling analysis抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'scheduling_record', 'quickstart_schedulinganalysis', '14');
           },
         },
@@ -356,7 +356,7 @@ export class SpHelp extends BaseElement {
     };
   }
 
-  private setupFileMenu(that: this) {
+  private setupFileMenu(that: this): MenuGroup {
     return {
       collapsed: false,
       title: '文件',
@@ -367,14 +367,14 @@ export class SpHelp extends BaseElement {
         {
           title: 'FileSystem抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'file_system', 'quickstart_filesystem', '15');
           },
         },
         {
           title: 'Bio抓取和展示说明',
           icon: '',
-          clickHandler: function (item: MenuItem) {
+          clickHandler: function (item: MenuItem): void {
             that.handleMemoryMenuItemClick(that, 'bio', 'quickstart_bio', '16');
           },
         },
@@ -382,81 +382,81 @@ export class SpHelp extends BaseElement {
     };
   }
 
-  private setupDatabaseMenu(that: this) {
+  private setupDatabaseMenu(that: this): MenuItem {
     return {
       title: 'TraceStreamer数据库说明',
       icon: '',
-      clickHandler: function (item: MenuItem) {
+      clickHandler: function (item: MenuItem): void {
         that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables', '26');
       },
     };
   }
 
-  private setupCompileMenu(that: this) {
+  private setupCompileMenu(that: this): MenuItem {
     return {
       title: '编译Trace_streamer',
       icon: '',
-      clickHandler: function (item: MenuItem) {
+      clickHandler: function (item: MenuItem): void {
         that.handleMemoryMenuItemClick(that, 'trace_streamer_compile', 'compile_trace_streamer');
       },
     };
   }
 
-  private setupAnalysisMenu(that: this) {
+  private setupAnalysisMenu(that: this): MenuItem {
     return {
       title: 'TraceStreamer 解析数据状态表',
       icon: '',
-      clickHandler: function (item: MenuItem) {
+      clickHandler: function (item: MenuItem): void {
         that.handleMemoryMenuItemClick(that, 'trace_streamer_des', 'des_stat');
       },
     };
   }
 
-  private setupSmartPerfMenu(that: this) {
+  private setupSmartPerfMenu(that: this): MenuItem {
     return {
       title: 'SmartPerf 编译指导',
       icon: '',
-      clickHandler: function (item: MenuItem) {
+      clickHandler: function (item: MenuItem): void {
         that.handleMemoryMenuItemClick(that, 'smartperf_guide', 'quickstart_smartperflinux_compile_guide');
       },
     };
   }
 
-  private setupEventListMenu(that: this) {
+  private setupEventListMenu(that: this): MenuItem {
     return {
       title: 'TraceStreamer支持解析事件列表',
       icon: '',
-      clickHandler: function (item: MenuItem) {
+      clickHandler: function (item: MenuItem): void {
         that.handleMemoryMenuItemClick(that, 'support_event', 'des_support_event');
       },
     };
   }
 
-  private setupToolDescriptionMenu(that: this) {
+  private setupToolDescriptionMenu(that: this): MenuItem {
     return {
       title: 'trace_streamer工具说明',
       icon: '',
-      clickHandler: function (item: MenuItem) {
+      clickHandler: function (item: MenuItem): void {
         that.handleMemoryMenuItemClick(that, 'quickstart_trace_streamer', 'quickstart_trace_streamer');
       },
     };
   }
 
-  private setupBinderMenu(that: this) {
+  private setupBinderMenu(that: this): MenuItem {
     return {
       title: 'binder事件上下文如何关联',
       icon: '',
-      clickHandler: function (item: MenuItem) {
+      clickHandler: function (item: MenuItem): void {
         that.handleMemoryMenuItemClick(that, 'binder', 'des_binder');
       },
     };
   }
 
-  private setupWakeUpMenu(that: this) {
+  private setupWakeUpMenu(that: this): MenuItem {
     return {
       title: 'wakeup唤醒说明',
       icon: '',
-      clickHandler: function (item: MenuItem) {
+      clickHandler: function (item: MenuItem): void {
         that.handleMemoryMenuItemClick(that, 'wakeup', 'des_wakup');
       },
     };

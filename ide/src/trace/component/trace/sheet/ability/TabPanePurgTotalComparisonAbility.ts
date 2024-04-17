@@ -62,12 +62,14 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
     option.innerHTML = 'File Name';
     option.setAttribute('disabled', 'disabled');
     this.selectEl?.appendChild(option);
-    if (purgeTotalComFileArr[0].name) option.setAttribute('value', purgeTotalComFileArr[0].name);
+    if (purgeTotalComFileArr[0].name) {
+      option.setAttribute('value', purgeTotalComFileArr[0].name);
+    }
     this.selectEl!.defaultValue = purgeTotalComFileArr[0].name;
     this.selectEl!.placeholder = purgeTotalComFileArr[0].name;
     this.selectEl!.dataSource = purgeTotalComFileArr;
-    this.selectEl!.querySelectorAll('lit-select-option').forEach((a) => {
-      a.addEventListener('onSelected', (e: any) => {
+    this.selectEl!.querySelectorAll('lit-select-option').forEach((a): void => {
+      a.addEventListener('onSelected', (e: any): void => {
         for (let f of purgeTotalComFileArr) {
           if (input.value === f.name) {
             that.updateComparisonData(fileStartNs, f.startNs);
@@ -98,12 +100,12 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
     const baseArr: CompareStruct[] = [];
     const targetArr: CompareStruct[] = [];
     // 点击的
-    await querySysPurgeableSelectionTab(baseTime).then(async (results) => {
+    await querySysPurgeableSelectionTab(baseTime).then(async (results): Promise<void> => {
       for (let i = 0; i < results.length; i++) {
         baseArr.push(new CompareStruct(results[i].name, results[i].value));
       }
       // 被比较的
-      await querySysPurgeableSelectionTab(targetTime).then((results) => {
+      await querySysPurgeableSelectionTab(targetTime).then((results): void => {
         for (let i = 0; i < results.length; i++) {
           targetArr.push(new CompareStruct(results[i].name, results[i].value));
         }

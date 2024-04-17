@@ -16,20 +16,13 @@
 import {
   BaseStruct,
   dataFilterHandler,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
   drawLoadingFrame,
-  drawSelection,
-  drawWakeUp,
   ns2x,
   PerfRender,
-  Render,
   RequestMessage,
 } from '../ProcedureWorkerCommon';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../../component/trace/base/ColorUtils';
-import { convertJSON } from '../../logic-worker/ProcedureLogicWorkerCommon';
 import { SpSystemTrace } from '../../../component/SpSystemTrace';
 
 export class CpuStateRender extends PerfRender {
@@ -79,9 +72,9 @@ export class CpuStateRender extends PerfRender {
     req.cpuStateContext.fill(path);
   }
 
-  render(cpuStateReq: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {}
+  render(cpuStateReq: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void {}
 
-  setFrameByArr(cpuStateRes: any[], startNS: number, endNS: number, totalNS: number, frame: any, arr2: any[]) {
+  setFrameByArr(cpuStateRes: any[], startNS: number, endNS: number, totalNS: number, frame: any, arr2: any[]): void {
     let list: any[] = arr2;
     cpuStateRes.length = 0;
     let pns = (endNS - startNS) / frame.width;
@@ -130,7 +123,7 @@ export class CpuStateRender extends PerfRender {
     cpuStateRes.push(...slice.filter((it) => it.v));
   }
 
-  setFrameByFilter(cpuStateRes: any[], startNS: number, endNS: number, totalNS: number, frame: any) {
+  setFrameByFilter(cpuStateRes: any[], startNS: number, endNS: number, totalNS: number, frame: any): void {
     for (let i = 0, len = cpuStateRes.length; i < len; i++) {
       if (
         (cpuStateRes[i].startTs || 0) + (cpuStateRes[i].dur || 0) >= startNS &&
@@ -154,7 +147,7 @@ export class CpuStateRender extends PerfRender {
     totalNS: number,
     frame: any,
     use: boolean
-  ) {
+  ): void {
     if (use && cpuStateRes.length > 0) {
       this.setFrameByFilter(cpuStateRes, startNS, endNS, totalNS, frame);
       return;
@@ -165,7 +158,7 @@ export class CpuStateRender extends PerfRender {
     }
   }
 }
-export function CpuStateStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+export function CpuStateStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_CPU_STATE && CpuStateStruct.hoverStateStruct) {
       CpuStateStruct.selectStateStruct = CpuStateStruct.hoverStateStruct;
@@ -186,7 +179,7 @@ export class CpuStateStruct extends BaseStruct {
   height: number | undefined;
   cpu: number | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: CpuStateStruct) {
+  static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: CpuStateStruct): void {
     if (data.frame) {
       let chartColor = ColorUtils.colorForTid(data.cpu!);
       ctx.font = '11px sans-serif';
@@ -215,7 +208,7 @@ export class CpuStateStruct extends BaseStruct {
     }
   }
 
-  static setCpuFrame(cpuStateNode: any, pns: number, startNS: number, endNS: number, frame: any) {
+  static setCpuFrame(cpuStateNode: any, pns: number, startNS: number, endNS: number, frame: any): void {
     if ((cpuStateNode.startTime || 0) < startNS) {
       cpuStateNode.frame.x = 0;
     } else {
@@ -232,8 +225,16 @@ export class CpuStateStruct extends BaseStruct {
       cpuStateNode.frame.width = 1;
     }
   }
-  static setFrame(cpuStateNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-    let x1: number, x2: number;
+  static setFrame(
+    cpuStateNode: any,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any
+  ): void {
+    let x1: number;
+    let x2: number;
     if ((cpuStateNode.startTs || 0) < startNS) {
       x1 = 0;
     } else {

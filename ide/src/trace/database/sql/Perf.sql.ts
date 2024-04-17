@@ -67,7 +67,7 @@ where time >= $leftNs and time <= $rightNs and A.thread_id != 0
   if (eventTypeId !== undefined) {
     sql = `${sql} and event_type_id = ${eventTypeId}`;
   }
-  if (cpus.length != 0 || processes.length != 0 || threads.length != 0) {
+  if (cpus.length !== 0 || processes.length !== 0 || threads.length !== 0) {
     let arg1 = cpus.length > 0 ? `or core in (${cpus.join(',')}) ` : '';
     let arg2 = processes.length > 0 ? `or pid in (${processes.join(',')}) ` : '';
     let arg3 = threads.length > 0 ? `or tid in (${threads.join(',')})` : '';
@@ -93,7 +93,7 @@ from perf_sample A,trace_range R
 left join perf_thread C on A.thread_id = C.thread_id
 where (timestamp_trace - R.start_ts) >= $leftNs and (timestamp_trace - R.start_ts) <= $rightNs and A.thread_id != 0 
     `;
-  if (cpus.length != 0 || processes.length != 0 || threads.length != 0) {
+  if (cpus.length !== 0 || processes.length !== 0 || threads.length !== 0) {
     let arg1 = cpus.length > 0 ? `or A.cpu_id in (${cpus.join(',')}) ` : '';
     let arg2 = processes.length > 0 ? `or C.process_id in (${processes.join(',')}) ` : '';
     let arg3 = threads.length > 0 ? `or A.thread_id in (${threads.join(',')})` : '';

@@ -124,9 +124,7 @@ export class SpAllAppStartupsChart {
       if (row.currentContext) {
         context = row.currentContext;
       } else {
-        context = row.collect
-          ? SpAllAppStartupsChart.trace.canvasFavoritePanelCtx!
-          : SpAllAppStartupsChart.trace.canvasPanelCtx!;
+        context = row.collect ? SpAllAppStartupsChart.trace.canvasFavoritePanelCtx! : SpAllAppStartupsChart.trace.canvasPanelCtx!;
       }
       row.canvasSave(context);
       (renders['all-app-start-up'] as AllAppStartupRender).renderMainThread(

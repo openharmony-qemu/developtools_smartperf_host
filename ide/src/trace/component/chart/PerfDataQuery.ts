@@ -24,16 +24,17 @@ export class PerfDataQuery {
   filesData: any = {};
   callChainMap: Map<number, PerfCall> = new Map<number, PerfCall>();
 
-  async initPerfCache() {
+
+  async initPerfCache() : Promise<void> {
     await this.initPerfCallChainMap();
     await this.initPerfFiles();
   }
 
-  async initPerfCallChainMap() {
+  async initPerfCallChainMap(): Promise<void> {
     this.callChainMap.clear();
   }
 
-  async initPerfFiles() {
+  async initPerfFiles(): Promise<void> {
     let files = await queryPerfFiles();
     info('PerfFiles Data size is: ', files!.length);
     files.forEach((file) => {
@@ -53,9 +54,9 @@ export class PerfDataQuery {
     info('Perf Files Data initialized');
   }
 
-  getLibName(fileId: number, symbolId: number) {
+  getLibName(fileId: number, symbolId: number): string {
     let name = 'unknown';
-    if (symbolId == -1) {
+    if (symbolId === -1) {
       if (this.filesData[fileId] && this.filesData[fileId].length > 0) {
         name = this.filesData[fileId][0].fileName;
       }

@@ -599,7 +599,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       if (types[0] === 0) {
         condition = 'and type = 0';
       } else {
-        condition = 'and type != 0';
+        condition = 'and type !== 0';
       }
     }
     this.queryData(
@@ -874,7 +874,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       } else {
         if (filterAllocType === '1') {
           filterAllocation = item.heapSize > item.freeSize;
-        } else if (filterAllocType == '2') {
+        } else if (filterAllocType === '2') {
           filterAllocation = item.heapSize === item.freeSize;
         }
       }
@@ -914,8 +914,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         item.startTs >= leftNs &&
         item.startTs <= rightNs &&
         item.endTs <= rightNs &&
-        item.endTs != 0 &&
-        item.endTs != null;
+        item.endTs !== 0 &&
+        item.endTs !== null;
     }
     return filterAllocation;
   }

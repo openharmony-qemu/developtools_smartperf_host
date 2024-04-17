@@ -105,19 +105,23 @@ void EbpfSplitter::SplitEbpfBodyData(std::deque<uint8_t>& dequeBuffer)
             case ITEM_EVENT_STR:
             case ITEM_EVENT_KENEL_SYMBOL_INFO: {
                 AppendSplitOriginSegResult(segLen);
-            } break;
+                break;
+            }
             case ITEM_EVENT_FS: {
                 FsFixedHeader fsFixedHeader;
                 AppendSplitResultWithFixedHeader(segLen, dequeBuffer, fsFixedHeader);
-            } break;
+                break;
+            }
             case ITEM_EVENT_VM: {
                 PagedMemoryFixedHeader pagedMemoryFixedHeader;
                 AppendSplitResultWithFixedHeader(segLen, dequeBuffer, pagedMemoryFixedHeader);
-            } break;
+                break;
+            }
             case ITEM_EVENT_BIO: {
                 BIOFixedHeader bioFixedHeader;
                 AppendSplitResultWithFixedHeader(segLen, dequeBuffer, bioFixedHeader);
-            } break;
+                break;
+            }
             default:
                 TS_LOGI("Do not support EBPF type: %d, length: %d", dataTitle.type, dataTitle.length);
         }

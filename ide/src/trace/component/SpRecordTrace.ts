@@ -149,7 +149,7 @@ export class SpRecordTrace extends BaseElement {
       for (let index = 0; index < this.deviceSelect!.options.length; index++) {
         optionArray.push(this.deviceSelect!.options[index].value);
       }
-      devs.forEach((value) => {
+      devs.forEach((value): void => {
         if (optionArray.indexOf(value) === -1) {
           clearFlag = true;
         }
@@ -448,7 +448,7 @@ export class SpRecordTrace extends BaseElement {
         return flagItem.title === ev.detail!.elementId;
       })
     ) {
-      this.selectedTemplate['delete'](ev.detail!.elementId);
+      this.selectedTemplate.delete(ev.detail!.elementId);
       if (this.selectedTemplate.size === 0) {
         this.showHint = false;
       }
@@ -891,14 +891,14 @@ export class SpRecordTrace extends BaseElement {
         this.initRecordUIState();
         this.recordButtonText!.textContent = this.stop;
         this.cancelButtonShow(true);
-        Cmd.execHdcTraceCmd(traceCommandStr, SpRecordTrace.serialNumber, (traceResult: string) => {
-          if (traceResult.indexOf('DestroySession done') != -1) {
+        Cmd.execHdcTraceCmd(traceCommandStr, SpRecordTrace.serialNumber, (traceResult: string): void => {
+          if (traceResult.indexOf('DestroySession done') !== -1) {
             this.litSearch!.setPercent('tracing htrace down', -1);
             let cmd = Cmd.formatString(CmdConstant.CMD_FIEL_RECV_DEVICES, [
               SpRecordTrace.serialNumber,
               this.recordSetting!.output,
             ]);
-            Cmd.execFileRecv(cmd, this.recordSetting!.output, (rt: ArrayBuffer) => {
+            Cmd.execFileRecv(cmd, this.recordSetting!.output, (rt: ArrayBuffer): void => {
               this.litSearch!.setPercent('downloading Hitrace file ', 101);
               let fileName = this.recordSetting!.output.substring(this.recordSetting!.output.lastIndexOf('/') + 1);
               let file = new File([rt], fileName);
@@ -991,7 +991,7 @@ export class SpRecordTrace extends BaseElement {
     let request = this.makeRequest();
     this.showHint = true;
     if (request.pluginConfigs.length === 0) {
-      this.hintEl!.textContent = "It looks like you didn't add any probes. Please add at least one";
+      this.hintEl!.textContent = 'It looks like you didn\'t add any probes. Please add at least one';
       return;
     }
     this.showHint = false;
@@ -1145,8 +1145,8 @@ export class SpRecordTrace extends BaseElement {
     return traceTypePage;
   }
 
-  private loadLongTraceFile(timStamp: number) {
-    return new Promise(async (resolve) => {
+  private loadLongTraceFile(timStamp: number): Promise<unknown> {
+    return new Promise(async (resolve): Promise<void> => {
       let traceTypePage = this.getLongTraceTypePage();
       for (let fileIndex = 0; fileIndex < this.longTraceList.length; fileIndex++) {
         if (this.longTraceList[fileIndex] !== '') {
@@ -1180,7 +1180,7 @@ export class SpRecordTrace extends BaseElement {
     });
   }
 
-  private async saveIndexDBByLongTrace(pullRes: Blob, fileType: string, pageNumber: number, timStamp: number) {
+  private async saveIndexDBByLongTrace(pullRes: Blob, fileType: string, pageNumber: number, timStamp: number): Promise<void> {
     let buffer = await pullRes.arrayBuffer();
     let chunks = Math.ceil(buffer.byteLength / indexDBMaxSize);
     let offset = 0;

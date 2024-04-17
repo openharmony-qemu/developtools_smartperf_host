@@ -126,10 +126,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_PURGEABLE_TOTAL_VM = 'purgeable-total-vm';
   static ROW_TYPE_PURGEABLE_PIN_VM = 'purgeable-pin-vm';
   static ROW_TYPE_LOGS = 'logs';
-  static ROW_TYPE_SAMPLE = 'bpftrace';
+  static ROW_TYPE_SAMPLE = 'sample';
   static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups';
-  static ROW_TYPE_PERF_TOOL_GROUP = 'perf-tool-group';
-  static ROW_TYPE_PERF_TOOL = 'perf-tool';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
@@ -238,7 +236,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     return tr;
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return [
       'folder',
       'sticky',
@@ -262,7 +260,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     ];
   }
 
-  get uploadEl() {
+  get uploadEl(): HTMLDivElement | null | undefined {
     return this.sampleUploadEl;
   }
 
@@ -374,7 +372,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     return this.hasAttribute('collect-type');
   }
 
-  set collect(value) {
+  set collect(value: boolean) {
     if (value) {
       this.setAttribute('collect-type', '');
     } else {
@@ -576,7 +574,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  addChildTraceRow(child: TraceRow<any>) {
+  addChildTraceRow(child: TraceRow<any>): void {
     TraceRowConfig.allTraceRowList.push(child);
     child.parentRowEl = this;
     this.toParentAddTemplateType(child);
@@ -586,13 +584,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.fragment.appendChild(child);
   }
 
-  addChildTraceRowAfter(child: TraceRow<any>, targetRow: TraceRow<any>) {
+  addChildTraceRowAfter(child: TraceRow<any>, targetRow: TraceRow<any>): void {
     TraceRowConfig.allTraceRowList.push(child);
     child.parentRowEl = this;
     this.toParentAddTemplateType(child);
     let index = this.childrenList.indexOf(targetRow);
     child.setAttribute('scene', '');
-    if (index != -1) {
+    if (index !== -1) {
       this.childrenList.splice(index + 1, 0, child);
       child.rowHidden = false;
       this.fragment.insertBefore(child, this.fragment.childNodes.item(index + 1));
@@ -603,13 +601,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  addChildTraceRowBefore(child: TraceRow<BaseStruct>, targetRow: TraceRow<BaseStruct>) {
+  addChildTraceRowBefore(child: TraceRow<BaseStruct>, targetRow: TraceRow<BaseStruct>): void {
     TraceRowConfig.allTraceRowList.push(child);
     child.parentRowEl = this;
     this.toParentAddTemplateType(child);
     let index = this.childrenList.indexOf(targetRow);
     child.setAttribute('scene', '');
-    if (index != -1) {
+    if (index !== -1) {
       this.childrenList.splice(index, 0, child);
       this.fragment.insertBefore(child, this.fragment.childNodes.item(index));
     } else {
@@ -637,16 +635,18 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             detail: files[0],
           })
         );
-        if (this.jsonFileEl) this.jsonFileEl.value = '';
+        if (this.jsonFileEl) {
+          this.jsonFileEl.value = '';
+        }
       }
     });
-    this.sampleUploadEl!.addEventListener('click', (e) => {
+    this.sampleUploadEl!.addEventListener('click', (e): void => {
       e.stopPropagation();
     });
     this.describeEl?.appendChild(this.sampleUploadEl!);
   }
 
-  addChildTraceRowSpecifyLocation(child: TraceRow<any>, index: number) {
+  addChildTraceRowSpecifyLocation(child: TraceRow<any>, index: number): void {
     TraceRowConfig.allTraceRowList.push(child);
     child.parentRowEl = this;
     child.setAttribute('scene', '');
@@ -655,7 +655,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.fragment.insertBefore(child, this.fragment.childNodes.item(index));
   }
 
-  insertAfter(newEl: DocumentFragment, targetEl: HTMLElement) {
+  insertAfter(newEl: DocumentFragment, targetEl: HTMLElement): void {
     let parentEl = targetEl.parentNode;
     if (parentEl) {
       if (parentEl!.lastChild === targetEl) {
@@ -671,7 +671,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     targetRow: TraceRow<BaseStruct>,
     threadRowArr: Array<TraceRow<BaseStruct>>,
     flag: boolean
-  ) {
+  ): void {
     if (child.rowType === 'thread') {
       threadRowArr.push(child);
     } else {
@@ -711,7 +711,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         return order.indexOf(star.namePrefix!) - order.indexOf(next.namePrefix!);
       });
       let combinedArr = [...filterOrderArr, ...filterNotOrderArr];
-      combinedArr.forEach((item) => {
+      combinedArr.forEach((item): void => {
         this.addChildTraceRow(item);
       });
     }
@@ -810,12 +810,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   set folderPaddingLeft(value: number) {
     if (this.folderIcon) {
-      this.folderIcon.style.marginLeft = value + 'px';
+      this.folderIcon.style.marginLeft = `${value}px`;
     }
   }
 
   set folderTextLeft(value: number) {
-    this.nameEL!.style.marginLeft = value + 'px';
+    this.nameEL!.style.marginLeft = `${value}px`;
   }
 
   initElements(): void {
@@ -826,8 +826,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.nameEL = this.shadowRoot?.querySelector('.name');
     this.canvasVessel = this.shadowRoot?.querySelector('.panel-vessel');
     this.tipEL = this.shadowRoot?.querySelector('.tip');
-    let canvasNumber = this.args['canvasNumber'];
-    if (!this.args['skeleton']) {
+    let canvasNumber = this.args.canvasNumber;
+    if (!this.args.skeleton) {
       for (let i = 0; i < canvasNumber; i++) {
         let canvas = document.createElement('canvas');
         canvas.className = 'panel';
@@ -863,7 +863,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   private checkBoxEvent(): void {
-    this.checkBoxEL!.onchange = (ev: any) => {
+    this.checkBoxEL!.onchange = (ev: any): void => {
       info('checkBoxEL onchange ');
       if (!ev.target.checked) {
         info('checkBoxEL target not checked');
@@ -877,7 +877,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       ev.stopPropagation();
     };
     // 防止事件冒泡触发两次describeEl的点击事件
-    this.checkBoxEL!.onclick = (ev: any) => {
+    this.checkBoxEL!.onclick = (ev: any): void => {
       ev.stopPropagation();
     };
   }
@@ -891,11 +891,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.rowCheckFilePop.id = 'rowCheckFile';
     this.rowCheckFilePop.className = 'popover checkFile';
     this.rowCheckFilePop.setAttribute('trigger', 'click');
-    this.rowCheckFilePop?.addEventListener('mouseenter', (e) => {
+    this.rowCheckFilePop?.addEventListener('mouseenter', (e): void => {
       window.publish(window.SmartEvent.UI.HoverNull, undefined);
     });
     this.fileEL = this.rowCheckFilePop.querySelector('#jsoninput');
-    this.rowCheckFilePop.addEventListener('click', (e) => {
+    this.rowCheckFilePop.addEventListener('click', (e): void => {
       this.fileEL.click();
     });
     this.fileEL.addEventListener('click', (event: Event) => {
@@ -903,7 +903,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     });
 
     let that = this;
-    window.addEventListener('storage', function (e) {
+    window.addEventListener('storage', function (e): void {
       if (e.storageArea === sessionStorage) {
         if (e.key === 'freqInfoData') {
           that.onRowCheckFileChangeHandler?.();
@@ -912,12 +912,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     });
     this.fileEL.addEventListener(
       'change',
-      (e: any) => {
+      (e: any): void => {
         let file = e.target.files[0];
         if (file && file.type === 'application/json') {
           let file_reader = new FileReader();
           file_reader.readAsText(file, 'UTF-8');
-          file_reader.onload = () => {
+          file_reader.onload = (): void => {
             let fc = file_reader.result;
             window.sessionStorage.setItem('freqInfoData', JSON.stringify(fc));
             this.onRowCheckFileChangeHandler?.();
@@ -956,7 +956,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.rowSettingPop!.visible = isVisible;
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
     };
-    this.rowSettingPop?.addEventListener('mouseenter', (e) => {
+    this.rowSettingPop?.addEventListener('mouseenter', (): void => {
       window.publish(window.SmartEvent.UI.HoverNull, undefined);
     });
     this.describeEl?.appendChild(this.rowSettingPop);
@@ -984,7 +984,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   enableCollapseChart(): void {
     this._enableCollapseChart = true;
-    this.nameEL!.onclick = () => {
+    this.nameEL!.onclick = (): void => {
       if (this.funcMaxHeight > 20 || this.clientHeight > 20) {
         if (this.funcExpand) {
           this.funcMaxHeight = this.clientHeight;
@@ -1028,10 +1028,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       tempHeight = 40;
     }
     this.dpr = window.devicePixelRatio || 1;
-    list.forEach((canvas, i) => {
+    list.forEach((canvas): void => {
       this.rootEL!.style.height = `${this.getAttribute('height') || '40'}px`;
       canvas.style.width = timerShaftCanvas!.style.width;
-      canvas.style.height = tempHeight + 'px';
+      canvas.style.height = `${tempHeight}px`;
       this.canvasWidth = timerShaftCanvas!.width;
       this.canvasHeight = Math.ceil(tempHeight * this.dpr);
       canvas.width = this.canvasWidth;
@@ -1041,7 +1041,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     });
   }
 
-  updateWidth(width: number) {
+  updateWidth(width: number): void {
     this.dpr = window.devicePixelRatio || 1;
     let tempHeight: number = 0;
     if (this.rowType === TraceRow.ROW_TYPE_FUNC) {
@@ -1060,18 +1060,18 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     if (this.canvas.length > 1) {
       tempHeight = 20;
     }
-    this.canvas.forEach((it) => {
+    this.canvas.forEach((it): void => {
       this.canvasWidth = Math.ceil((width - (this.describeEl?.clientWidth || 248)) * this.dpr);
       this.canvasHeight = Math.ceil(tempHeight * this.dpr);
-      it!.style.width = width - (this.describeEl?.clientWidth || 248) + 'px';
+      it!.style.width = `${width - (this.describeEl?.clientWidth || 248)  }px`;
       if (this.args.isOffScreen) {
         this.draw(true);
       }
     });
   }
 
-  drawLine(item: HTMLDivElement, direction: string /*string[top|bottom]*/) {
-    if (!item) return;
+  drawLine(item: HTMLDivElement, direction: string /*string[top|bottom]*/): void {
+    if (!item) {return}
     switch (direction) {
       case 'top':
         item.classList.remove('line-bottom');
@@ -1088,14 +1088,14 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  connectedCallback() {
-    this.describeEl!.ondragstart = (ev: DragEvent) => this.rowDragstart(ev);
-    this.describeEl!.ondragleave = (ev: any) => {
+  connectedCallback(): void {
+    this.describeEl!.ondragstart = (ev: DragEvent): void => this.rowDragstart(ev);
+    this.describeEl!.ondragleave = (ev: any): void => {
       this.drawLine(ev.currentTarget, '');
       return undefined;
     };
     this.describeElEvent();
-    this.collectEL!.onclick = (e) => {
+    this.collectEL!.onclick = (e): void => {
       this.collect = !this.collect;
       if (this.collect) {
         this.describeEl!.draggable = false;
@@ -1112,21 +1112,22 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       );
       this.favoriteChangeHandler?.(this);
     };
-    if (!this.args['skeleton']) {
+    if (!this.args.skeleton) {
       this.initCanvas(this.canvas);
     }
   }
 
   private describeElEvent(): void {
-    this.describeEl!.ondragend = (ev: any) => {
+    this.describeEl!.ondragend = (ev: any): void => {
       rowDragElement = null;
       ev.target.classList.remove('drag');
       this.drawLine(ev.currentTarget, '');
       return undefined;
     };
-    this.describeEl!.ondragover = (ev: any) => {
-      if (!this.collect) return;
-      if (rowDragElement === this) return;
+    this.describeEl!.ondragover = (ev: any): undefined => {
+      if (!this.collect || rowDragElement === this) {
+        return;
+      }
       let rect = ev.currentTarget.getBoundingClientRect();
       if (ev.clientY >= rect.top && ev.clientY < rect.top + rect.height / 2) {
         //上面
@@ -1139,20 +1140,20 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
       return undefined;
     };
-    this.describeEl!.ondrop = (ev: any) => {
-      if (!this.collect) return;
+    this.describeEl!.ondrop = (ev: any): void => {
+      if (!this.collect) {return}
       this.drawLine(ev.currentTarget, '');
       let spacer = this.parentElement!.previousElementSibling! as HTMLDivElement;
-      let startDragNode = collectList.findIndex((it) => it === rowDragElement);
-      let endDragNode = collectList.findIndex((it) => it === this);
-      if (startDragNode === -1 || endDragNode === -1) return;
+      let startDragNode = collectList.findIndex((it): boolean => it === rowDragElement);
+      let endDragNode = collectList.findIndex((it): boolean => it === this);
+      if (startDragNode === -1 || endDragNode === -1) {return}
       if (startDragNode < endDragNode && dragDirection === 'top') {
         endDragNode--;
       } else if (startDragNode > endDragNode && dragDirection === 'bottom') {
         endDragNode++;
       }
       collectList.splice(endDragNode, 0, ...collectList.splice(startDragNode, 1));
-      collectList.forEach((it, i) => {
+      collectList.forEach((it, i): void => {
         if (i === 0) {
           it.style.top = `${spacer.offsetTop + 48}px`;
         } else {
@@ -1162,19 +1163,19 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     };
   }
 
-  rowDragstart(ev: any) {
+  rowDragstart(ev: any): void {
     rowDragElement = this;
     ev.target.classList.add('drag');
   }
 
-  setCheckBox(isCheck: boolean) {
+  setCheckBox(isCheck: boolean): void {
     if (this.folder) {
       // favorite row  check change;
       window.publish(window.SmartEvent.UI.CheckALL, {
         rowId: this.rowId,
         isCheck: isCheck,
       });
-      this.childrenList!.forEach((ck) => {
+      this.childrenList!.forEach((ck): void => {
         ck.setAttribute('check-type', isCheck ? '2' : '0');
         let allCheck: LitCheckBox | null | undefined = ck?.shadowRoot?.querySelector('.lit-check-box');
         if (allCheck) {
@@ -1192,7 +1193,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     return null;
   }
 
-  setTipLeft(x: number, struct: any) {
+  setTipLeft(x: number, struct: any): void {
     if (struct === null && this.tipEL) {
       this.tipEL.style.display = 'none';
       return;
@@ -1207,7 +1208,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  onMouseLeave(x: number, y: number) {
+  onMouseLeave(x: number, y: number): void {
     if (this.tipEL) {
       this.tipEL.style.display = 'none';
     }
@@ -1235,8 +1236,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             this.dataListCache.push(...this.fixedList);
             this.isComplete = true;
             this.loadingFrame = false;
-            let idx = TraceRow.currentActiveRows.findIndex((it) => it === `${this.rowType}-${this.rowId}`);
-            if (idx != -1) {
+            let idx = TraceRow.currentActiveRows.findIndex((it): boolean => it === `${this.rowType}-${this.rowId}`);
+            if (idx !== -1) {
               TraceRow.currentActiveRows.splice(idx, 1);
             }
             requestAnimationFrame(() => {
@@ -1255,7 +1256,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  draw(useCache: boolean = false) {
+  draw(useCache: boolean = false): void {
     this.dpr = window.devicePixelRatio || 1;
     if (this.sleeping) {
       return;
@@ -1280,7 +1281,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         this.must = true;
         let promise = this.supplier();
         if (promise) {
-          promise.then((res) => {
+          promise.then((res): void => {
             this.dataList = res;
             if (this.onComplete) {
               this.onComplete();
@@ -1304,7 +1305,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  canvasSave(ctx: CanvasRenderingContext2D) {
+  canvasSave(ctx: CanvasRenderingContext2D): void {
     ctx.save();
     ctx.translate(0, this.translateY);
     const clipRect = new Path2D();
@@ -1312,24 +1313,24 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     ctx.clip(clipRect);
   }
 
-  canvasRestore(ctx: CanvasRenderingContext2D, trace?: SpSystemTrace | null) {
+  canvasRestore(ctx: CanvasRenderingContext2D, trace?: SpSystemTrace | null): void {
     drawSelectionRange(ctx, this);
     ctx.restore();
   }
 
-  clearCanvas(ctx: CanvasRenderingContext2D) {
+  clearCanvas(ctx: CanvasRenderingContext2D): void {
     if (ctx) {
-      this.canvas.forEach((it) => {
+      this.canvas.forEach((it): void => {
         ctx.clearRect(0, 0, it!.clientWidth || 0, it!.clientHeight || 0);
       });
     }
   }
 
-  drawLines(ctx: CanvasRenderingContext2D) {
+  drawLines(ctx: CanvasRenderingContext2D): void {
     if (ctx) {
       ctx.lineWidth = 1;
       ctx.strokeStyle = this.getLineColor();
-      TraceRow.range?.xs.forEach((it) => {
+      TraceRow.range?.xs.forEach((it): void => {
         ctx.moveTo(Math.floor(it), 0);
         ctx.lineTo(Math.floor(it), this.shadowRoot?.host.clientHeight || 0);
       });
@@ -1337,11 +1338,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  getLineColor() {
+  getLineColor(): string {
     return window.getComputedStyle(this.rootEL!, null).getPropertyValue('border-bottom-color');
   }
 
-  drawSelection(ctx: CanvasRenderingContext2D) {
+  drawSelection(ctx: CanvasRenderingContext2D): void {
     if (this.rangeSelect) {
       TraceRow.rangeSelectObject!.startX = Math.floor(
         ns2x(
@@ -1382,7 +1383,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     );
   }
 
-  buildArgs(obj: any) {
+  buildArgs(obj: any): any {
     let result: any = {
       list: this.must ? this.dataList : undefined,
       offscreen: !this.isTransferCanvas ? this.offscreen[0] : undefined, //是否离屏
@@ -1407,13 +1408,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       flagSelectedInfo: null,
       wakeupBean: null,
     };
-    Reflect.ownKeys(obj).forEach((it) => {
+    Reflect.ownKeys(obj).forEach((it): void => {
       result[it] = obj[it];
     });
     return result;
   }
 
-  getTransferArray() {
+  getTransferArray(): any[] {
     let tsf = [];
     if (!this.isTransferCanvas) {
       tsf.push(this.offscreen[0]);
@@ -1424,7 +1425,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     return tsf;
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     switch (name) {
       case 'name':
         if (this.nameEL) {
@@ -1433,7 +1434,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
         break;
       case 'height':
-        if (newValue != oldValue) {
+        if (newValue !== oldValue) {
           if (!this.args.isOffScreen) {
           }
         }

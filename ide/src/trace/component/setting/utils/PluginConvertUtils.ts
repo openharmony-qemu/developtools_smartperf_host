@@ -19,27 +19,27 @@ export class PluginConvertUtils {
   private static rightBrace: string = '}';
   static pluginConfig: any[] = [];
 
-  public static createHdcCmd(requestString: string, outputPath: string, time: number) {
+  public static createHdcCmd(requestString: string, outputPath: string, time: number): string {
     return (
-      'hiprofiler_cmd \\' +
-      this.crlf +
-      '  -c - \\' +
-      this.crlf +
-      '  -o ' +
-      outputPath +
-      ' \\' +
-      this.crlf +
-      '  -t ' +
-      time +
-      ' \\' +
-      this.crlf +
-      '  -s \\' +
-      this.crlf +
-      '  -k \\' +
-      this.crlf +
-      '<<CONFIG' +
-      requestString +
-      'CONFIG'
+      `hiprofiler_cmd \\${
+        this.crlf
+      }  -c - \\${
+        this.crlf 
+      }  -o ${
+        outputPath
+      } \\${
+        this.crlf
+      }  -t ${
+        time
+      } \\${
+        this.crlf
+      }  -s \\${
+        this.crlf
+      }  -k \\${
+        this.crlf
+      }<<CONFIG${
+        requestString
+      }CONFIG`
     );
   }
 
@@ -49,12 +49,12 @@ export class PluginConvertUtils {
   }
 
   public static BeanToCmdTxtWithObjName(bean: any, needColon: boolean, objName: string, spacesNumber: number): string {
-    return objName + ': {' + this.handleObj(bean, 0, needColon, spacesNumber) + '}';
+    return `${objName}: {${this.handleObj(bean, 0, needColon, spacesNumber)}}`;
   }
 
   private static handleObj(bean: object, indentation: number, needColon: boolean, spacesNumber: number): string {
     let prefixText: string = '';
-    if (indentation == 0) {
+    if (indentation === 0) {
       prefixText = prefixText + this.crlf;
     } else {
       prefixText = prefixText + ' '.repeat(spacesNumber) + this.leftBrace + this.crlf;
@@ -62,7 +62,7 @@ export class PluginConvertUtils {
     if (bean) {
       prefixText = this.getPrefixText(prefixText, indentation, needColon, spacesNumber, bean);
     }
-    if (indentation == 0) {
+    if (indentation === 0) {
       return prefixText;
     } else {
       return prefixText + ' '.repeat(spacesNumber).repeat(indentation) + this.rightBrace;
@@ -90,13 +90,13 @@ export class PluginConvertUtils {
             prefixText = this.getMontageStrings(prefixText, spacesNumber, indentation, key, value);
             break;
           case 'number':
-            if (value == 0 && !needColon) {
+            if (value === 0 && !needColon) {
               break;
             }
             prefixText = this.getMontageStrings(prefixText, spacesNumber, indentation, key, value);
             break;
           case 'string':
-            if (value == '') {
+            if (value === '') {
               break;
             }
             prefixText = this.handleObjByStr(prefixText, value, spacesNumber, key, indentation);
@@ -120,22 +120,12 @@ export class PluginConvertUtils {
     needColon: boolean
   ): string {
     if (needColon) {
-      prefixText =
-        prefixText +
-        ' '.repeat(spacesNumber).repeat(indentation + 1) +
-        this.humpToSnake(key) +
-        ': ' +
-        this.handleObj(value, indentation + 1, needColon, spacesNumber) +
-        '' +
-        this.crlf;
+      prefixText = `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+        this.humpToSnake(key)}: ${this.handleObj(value, indentation + 1, needColon, spacesNumber)}${this.crlf}`;
     } else {
       prefixText =
-        prefixText +
-        ' '.repeat(spacesNumber).repeat(indentation + 1) +
-        this.humpToSnake(key) +
-        this.handleObj(value, indentation + 1, needColon, spacesNumber) +
-        '' +
-        this.crlf;
+        `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+        this.humpToSnake(key) + this.handleObj(value, indentation + 1, needColon, spacesNumber)}${this.crlf}`;
     }
     return prefixText;
   }
@@ -149,21 +139,12 @@ export class PluginConvertUtils {
   ): string {
     if (LevelConfigEnumList.indexOf(value) >= 0 || value.startsWith('IO_REPORT')) {
       prefixText =
-        prefixText +
-        ' '.repeat(spacesNumber).repeat(indentation + 1) +
-        this.humpToSnake(key) +
-        ': ' +
-        value.toString() +
-        this.crlf;
+        `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: 
+        ${value.toString()}${this.crlf}`;
     } else {
       prefixText =
-        prefixText +
-        ' '.repeat(spacesNumber).repeat(indentation + 1) +
-        this.humpToSnake(key) +
-        ': "' +
-        value.toString() +
-        '"' +
-        this.crlf;
+        `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+        this.humpToSnake(key)}: "${value.toString()}"${this.crlf}`;
     }
     return prefixText;
   }
@@ -176,7 +157,7 @@ export class PluginConvertUtils {
     spacesNumber: number
   ): string {
     let text = '';
-    arr.forEach((arrValue) => {
+    arr.forEach((arrValue): void => {
       switch (typeof arrValue) {
         case 'bigint':
           text = this.handleArrayByBigint(text, spacesNumber, indentation, key, arrValue);
@@ -188,7 +169,7 @@ export class PluginConvertUtils {
           text = this.handleArrayByNumber(text, spacesNumber, indentation, key, arrValue);
           break;
         case 'string':
-          if (arrValue == '') {
+          if (arrValue === '') {
             break;
           }
           text = this.handleArrayByStr(text, spacesNumber, indentation, key, arrValue);
@@ -208,14 +189,8 @@ export class PluginConvertUtils {
     key: string,
     arrValue: any
   ): string {
-    return (
-      text +
-      ' '.repeat(spacesNumber).repeat(indentation + 1) +
-      this.humpToSnake(key) +
-      ': ' +
-      arrValue.toString() +
-      this.crlf
-    );
+    return (`${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + 
+      this.humpToSnake(key)}: ${arrValue.toString()}${this.crlf}`);
   }
 
   private static handleArrayByBoolean(
@@ -225,14 +200,8 @@ export class PluginConvertUtils {
     key: string,
     arrValue: any
   ): string {
-    return (
-      text +
-      ' '.repeat(spacesNumber).repeat(indentation + 1) +
-      this.humpToSnake(key) +
-      ': ' +
-      arrValue.toString() +
-      this.crlf
-    );
+    return (`${text + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+      this.humpToSnake(key)}: ${arrValue.toString()}${this.crlf}`);
   }
 
   private static handleArrayByNumber(
@@ -242,14 +211,8 @@ export class PluginConvertUtils {
     key: string,
     arrValue: any
   ): string {
-    return (
-      text +
-      ' '.repeat(spacesNumber).repeat(indentation + 1) +
-      this.humpToSnake(key) +
-      ': ' +
-      arrValue.toString() +
-      this.crlf
-    );
+    return (`${text + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+      this.humpToSnake(key)}: ${arrValue.toString()}${this.crlf}`);
   }
 
   private static handleArrayByStr(
@@ -260,22 +223,11 @@ export class PluginConvertUtils {
     arrValue: any
   ): string {
     if (arrValue.startsWith('VMEMINFO') || arrValue.startsWith('PMEM')) {
-      text =
-        text +
-        ' '.repeat(spacesNumber).repeat(indentation + 1) +
-        this.humpToSnake(key) +
-        ': ' +
-        arrValue.toString() +
-        this.crlf;
+      text = `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+        this.humpToSnake(key)}: ${ arrValue.toString()}${this.crlf}`;
     } else {
-      text =
-        text +
-        ' '.repeat(spacesNumber).repeat(indentation + 1) +
-        this.humpToSnake(key) +
-        ': "' +
-        arrValue.toString() +
-        '"' +
-        this.crlf;
+      text = `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+        this.humpToSnake(key)}: "${arrValue.toString()}"${this.crlf}`;
     }
     return text;
   }
@@ -289,29 +241,18 @@ export class PluginConvertUtils {
     needColon: boolean
   ): string {
     if (needColon) {
-      text =
-        text +
-        ' '.repeat(spacesNumber).repeat(indentation + 1) +
-        this.humpToSnake(key) +
-        ': ' +
-        this.handleObj(arrValue, indentation + 1, needColon, spacesNumber) +
-        '' +
-        this.crlf;
+      text = `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+        this.humpToSnake(key)}: ${this.handleObj(arrValue, indentation + 1, needColon, spacesNumber)}${this.crlf}`;
     } else {
-      text =
-        text +
-        ' '.repeat(spacesNumber).repeat(indentation + 1) +
-        this.humpToSnake(key) +
-        this.handleObj(arrValue, indentation + 1, needColon, spacesNumber) +
-        '' +
-        this.crlf;
+      text = `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+        this.humpToSnake(key) + this.handleObj(arrValue, indentation + 1, needColon, spacesNumber)}${this.crlf}`;
     }
     return text;
   }
 
   // 驼峰转snake
   private static humpToSnake(humpString: string): string {
-    return humpString.replace(/[A-Z]/g, (value) => '_' + value.toLowerCase());
+    return humpString.replace(/[A-Z]/g, (value) => `_${value.toLowerCase()}`);
   }
 
   private static getMontageStrings<T extends Object>(
@@ -321,15 +262,9 @@ export class PluginConvertUtils {
     key: string,
     value: T
   ): string {
-    return (
-      prefixText +
-      ' '.repeat(spacesNumber).repeat(indentation + 1) +
-      this.humpToSnake(key) +
-      ': ' +
-      value.toString() +
-      this.crlf
-    );
+    return (`${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+      this.humpToSnake(key)}: ${value.toString()}${this.crlf}`);
   }
 }
 
-const LevelConfigEnumList = ['LEVEL_UNSPECIFIED', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'];
+const LevelConfigEnumList: string[] = ['LEVEL_UNSPECIFIED', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'];

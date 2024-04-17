@@ -20,7 +20,7 @@ import { resizeObserver } from '../SheetUtils';
 import { Utils } from '../../base/Utils';
 import { Priority } from '../../../../bean/StateProcessThread';
 import { queryThreadStateArgsByName } from '../../../../database/sql/ProcessThread.sql';
-import { FlagsConfig } from '../../../../component/SpFlags';
+import { FlagsConfig } from '../../../SpFlags';
 import { sliceSPTSender } from '../../../../database/data-trafic/SliceSender';
 
 @element('tabpane-sched-priority')
@@ -31,16 +31,16 @@ export class TabPaneSchedPriority extends BaseElement {
   private strValueMap: Map<number, string> = new Map<number, string>();
 
   set data(sptValue: SelectionParam) {
-    if (sptValue == this.selectionParam) {
+    if (sptValue === this.selectionParam) {
       return;
     }
     this.selectionParam = sptValue;
     if (this.priorityTbl) {
       // @ts-ignore
-      this.priorityTbl.shadowRoot.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
+      this.priorityTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45}px`;
     }
     this.range!.textContent =
-      'Selected range: ' + parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+      `Selected range: ${parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5))} ms`;
     this.queryDataByDB(sptValue);
   }
 
@@ -61,7 +61,7 @@ export class TabPaneSchedPriority extends BaseElement {
 
     const filterList = ['0', '0x0']; //next_info第2字段不为0 || next_info第3字段不为0
     // 通过priority与next_info结合判断优先级等级
-    function setPriority(item: Priority, strArg: string[]) {
+    function setPriority(item: Priority, strArg: string[]): void {
       let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
       let flagsItemJson = JSON.parse(flagsItem!);
       let hmKernel = flagsItemJson.HMKernel;
@@ -89,7 +89,7 @@ export class TabPaneSchedPriority extends BaseElement {
     }
     // thread_state表中runnable数据的Map
     const runnableMap = new Map<string, Priority>();
-    sliceSPTSender(sptParam.leftNs, sptParam.rightNs, [], 'spt-getCpuPriorityByTime').then((res) => {
+    sliceSPTSender(sptParam.leftNs, sptParam.rightNs, [], 'spt-getCpuPriorityByTime').then((res): void => {
       for (const item of res) {
         if (['R', 'R+'].includes(item.state)) {
           runnableMap.set(`${item.id}_${item.startTime + item.dur}`, item);
@@ -108,7 +108,7 @@ export class TabPaneSchedPriority extends BaseElement {
     setPriority: (item: Priority, strArg: string[]) => void,
     resultData: Array<Priority>,
     runnableMap: Map<string, Priority>
-  ) {
+  ): void {
     let strArg: string[] = [];
     const args = this.strValueMap.get(item.argSetId);
     if (args) {
@@ -135,9 +135,9 @@ export class TabPaneSchedPriority extends BaseElement {
     }
   }
 
-  private async fetchAndProcessData() {
+  private async fetchAndProcessData(): Promise<void> {
     if (this.strValueMap.size === 0) {
-      await queryThreadStateArgsByName('next_info').then((value) => {
+      await queryThreadStateArgsByName('next_info').then((value): void => {
         for (const item of value) {
           this.strValueMap.set(item.argset, item.strValue);
         }
@@ -155,7 +155,7 @@ export class TabPaneSchedPriority extends BaseElement {
       const ptsValues = priorityMap.get(key);
       ptsValues!.children = [];
       for (const itemKey of stateMap.keys()) {
-        if (itemKey.startsWith(key + '_')) {
+        if (itemKey.startsWith(`${key}_`)) {
           const sp = stateMap.get(itemKey);
           ptsValues!.children.push(sp!);
         }
@@ -167,10 +167,10 @@ export class TabPaneSchedPriority extends BaseElement {
     this.theadClick(priorityArr);
   }
 
-  private prepareMaps(source: Array<Priority>, priorityMap: Map<string, Priority>, stateMap: Map<string, Priority>) {
-    source.map((priorityItem) => {
-      if (priorityMap.has(priorityItem.priorityType + '')) {
-        const priorityMapObj = priorityMap.get(priorityItem.priorityType + '');
+  private prepareMaps(source: Array<Priority>, priorityMap: Map<string, Priority>, stateMap: Map<string, Priority>): void {
+    source.map((priorityItem): void => {
+      if (priorityMap.has(`${priorityItem.priorityType}`)) {
+        const priorityMapObj = priorityMap.get(`${priorityItem.priorityType}`);
         priorityMapObj!.count++;
         priorityMapObj!.wallDuration += priorityItem.dur;
         priorityMapObj!.avgDuration = (priorityMapObj!.wallDuration / priorityMapObj!.count).toFixed(2);
@@ -186,12 +186,12 @@ export class TabPaneSchedPriority extends BaseElement {
         stateMapObj.minDuration = priorityItem.dur;
         stateMapObj.maxDuration = priorityItem.dur;
         stateMapObj.count = 1;
-        stateMapObj.avgDuration = priorityItem.dur + '';
+        stateMapObj.avgDuration = `${priorityItem.dur}`;
         stateMapObj.wallDuration = priorityItem.dur;
-        priorityMap.set(priorityItem.priorityType + '', stateMapObj);
+        priorityMap.set(`${priorityItem.priorityType}`, stateMapObj);
       }
-      if (stateMap.has(priorityItem.priorityType + '_' + priorityItem.state)) {
-        const ptsPtMapObj = stateMap.get(priorityItem.priorityType + '_' + priorityItem.state);
+      if (stateMap.has(`${priorityItem.priorityType}_${priorityItem.state}`)) {
+        const ptsPtMapObj = stateMap.get(`${priorityItem.priorityType}_${priorityItem.state}`);
         ptsPtMapObj!.count++;
         ptsPtMapObj!.wallDuration += priorityItem.dur;
         ptsPtMapObj!.avgDuration = (ptsPtMapObj!.wallDuration / ptsPtMapObj!.count).toFixed(2);
@@ -207,19 +207,19 @@ export class TabPaneSchedPriority extends BaseElement {
         ptsPtMapObj.minDuration = priorityItem.dur;
         ptsPtMapObj.maxDuration = priorityItem.dur;
         ptsPtMapObj.count = 1;
-        ptsPtMapObj.avgDuration = priorityItem.dur + '';
+        ptsPtMapObj.avgDuration = `${priorityItem.dur}`;
         ptsPtMapObj.wallDuration = priorityItem.dur;
-        stateMap.set(priorityItem.priorityType + '_' + priorityItem.state, ptsPtMapObj);
+        stateMap.set(`${priorityItem.priorityType}_${priorityItem.state}`, ptsPtMapObj);
       }
     });
   }
 
-  private theadClick(data: Array<Priority>) {
+  private theadClick(data: Array<Priority>): void {
     let labels = this.priorityTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
-        labels[i].addEventListener('click', (e) => {
+        labels[i].addEventListener('click', (): void => {
           if (label.includes('Priority') && i === 0) {
             this.priorityTbl!.setStatus(data, false);
             this.priorityTbl!.recycleDs = this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);

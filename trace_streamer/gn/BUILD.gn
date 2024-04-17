@@ -196,7 +196,7 @@ config("default") {
 }
 
 config("symbols") {
-  cflags = [ "-O0" ]
+  cflags = [ "-O3" ]
   cflags += [
     "-fdata-sections",
     "-ffunction-sections",
@@ -214,7 +214,7 @@ config("release") {
   cflags += [ "-O3" ]
   ldflags = [ "-fstack-protector" ]
   if (!is_mac) {
-    ldflags += [ "-Wl,-O1" ]
+    ldflags += [ "-Wl,-O3" ]
     if (!is_win) {
       ldflags += [
         "-fuse-ld=gold",

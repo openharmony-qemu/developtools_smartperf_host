@@ -20,15 +20,15 @@ import { TraficEnum } from './data-trafic/utils/QueryEnum';
 
 let conn: any = null;
 let encoder = new TextEncoder();
-function initIndexedDB() {
+function initIndexedDB(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let request = indexedDB.open('systrace');
-    request.onerror = function (event) {};
-    request.onsuccess = function (event) {
+    request.onerror = function (event): void {};
+    request.onsuccess = function (event): void {
       let db = request.result;
       resolve(db);
     };
-    request.onupgradeneeded = function (event) {
+    request.onupgradeneeded = function (event): void {
       // @ts-ignore
       let db = event!.target!.result;
       if (!db.objectStoreNames.contains('connection')) {
@@ -38,7 +38,7 @@ function initIndexedDB() {
   });
 }
 
-function readConnection(store: IDBObjectStore) {
+function readConnection(store: IDBObjectStore): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let readRequest = store.get(1);
     readRequest.onsuccess = function (event): void {
@@ -66,7 +66,7 @@ function deleteConnection(store: IDBObjectStore, id: number): Promise<unknown> {
   });
 }
 
-let mergedUnitArray = (bufferSliceUint8: Array<Uint8Array>) => {
+let mergedUnitArray = (bufferSliceUint8: Array<Uint8Array>): Uint8Array => {
   let length = 0;
   bufferSliceUint8.forEach((item) => {
     length += item.length;
@@ -80,9 +80,9 @@ let mergedUnitArray = (bufferSliceUint8: Array<Uint8Array>) => {
   return mergedArray;
 };
 
-self.onerror = function (error) {};
+self.onerror = function (error): void {};
 
-self.onmessage = async (e: any) => {
+self.onmessage = async (e: any): Promise<void> => {
   if (e.data.action === 'open') {
     let array = new Uint8Array(e.data.buffer);
     // @ts-ignore

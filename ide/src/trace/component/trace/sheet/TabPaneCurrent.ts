@@ -29,13 +29,14 @@ export class TabPaneCurrent extends BaseElement {
   private tableDataSource: Array<MarkStruct | any> = [];
   private panelTable: LitTable | undefined | null;
 
+
   initElements(): void {
     this.systemTrace = document
       .querySelector('body > sp-application')
       ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.shadowRoot?.querySelector('#text')?.addEventListener('keyup', (event: any) => {
       event.stopPropagation();
-      if (event.keyCode == '13') {
+      if (event.keyCode === '13') {
         if (this.slicesTime) {
           window.publish(window.SmartEvent.UI.KeyboardEnable, {
             enable: true,
@@ -200,7 +201,7 @@ export class TabPaneCurrent extends BaseElement {
         if (
           this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
           this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime &&
-          event.keyCode == '13'
+          event.keyCode === '13'
         ) {
           this.systemTrace!.slicesList = this.slicesTimeList || [];
           this.slicesTimeList[i - 1].text = event?.target.value;

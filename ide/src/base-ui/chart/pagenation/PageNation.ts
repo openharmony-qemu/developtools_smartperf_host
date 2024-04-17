@@ -54,7 +54,7 @@ export class PageNation {
     this.bindPageEvent();
   }
 
-  setPageOptions(options: any) {
+  setPageOptions(options: any): void {
     // 当前页
     this.pageInfo.current = options.current || 1;
     // 一页显示多少条
@@ -73,16 +73,16 @@ export class PageNation {
       }
     }
     this.pageInfo.first = options.first || '<<';
-    this.pageInfo.change = options.change || function () {};
+    this.pageInfo.change = options.change || function (): void {};
   }
 
-  setElementStyles(ele: any, styles: any) {
+  setElementStyles(ele: any, styles: any): void {
     for (let key in styles) {
       ele.style[key] = styles[key];
     }
   }
 
-  setItemStyles() {
+  setItemStyles(): void {
     this.setElementStyles(this.element, {
       margin: '18px auto',
       display: 'flex',
@@ -123,14 +123,14 @@ export class PageNation {
       border: '0',
       'border-radius': '5px',
     });
-    this.btn.style.background = `url('img/arrowright.png') no-repeat 98% center var(--dark-background3,#FFFFFF)`;
+    this.btn.style.background = 'url("img/arrowright.png") no-repeat 98% center var(--dark-background3,#FFFFFF)';
     this.btn.style.backgroundPosition = 'center';
     jumpDiv.appendChild(this.btn);
     this.element.appendChild(jumpDiv);
   }
 
   // 创建元素 首页 上一页 按钮组  下一页 尾页 输入框 按钮
-  createPageElement() {
+  createPageElement(): void {
     //首页
     this.origin = document.createElement('p');
     this.setElementStyles(this.origin, {
@@ -180,7 +180,7 @@ export class PageNation {
   }
 
   // 判断首页 上一页 下一页 尾页 是否可以点击
-  bindPageHtml() {
+  bindPageHtml(): void {
     const { current, totalpage } = this.pageInfo;
     const disable = { color: '#999999', cursor: 'not-allowed' };
     const enable = {
@@ -209,7 +209,7 @@ export class PageNation {
     this.pageInfo.change(this.pageInfo.current);
   }
 
-  bindPageList() {
+  bindPageList(): void {
     this.list.innerHTML = ''; // clear ul its contents
     const { pageSize, current, totalpage } = this.pageInfo; //Clean the ul before each load
     const origin = document.createElement('li');
@@ -250,7 +250,7 @@ export class PageNation {
     }
   }
 
-  private buildLi(origin: HTMLElement, i: number, current: number) {
+  private buildLi(origin: HTMLElement, i: number, current: number): void {
     const li = origin.cloneNode(true);
     // @ts-ignore
     li.innerText = i + 1;
@@ -278,7 +278,7 @@ export class PageNation {
       }
       return true;
     }
-    if (current == 5) {
+    if (current === 5) {
       // 左边5个 中间 ... 右边2个
       for (let i = 0; i < 7; i++) {
         this.buildLi(origin, i, current);
@@ -306,7 +306,7 @@ export class PageNation {
       }
       return true;
     }
-    if (current == totalpage - 4) {
+    if (current === totalpage - 4) {
       // 左边5个 中间 ... 右边2个
       this.nodeAppendChild(origin, current, span, totalpage);
       return true;
@@ -326,7 +326,7 @@ export class PageNation {
     }
   }
 
-  bindPageEvent() {
+  bindPageEvent(): void {
     this.element.addEventListener(
       'click',
       (event: {
@@ -368,22 +368,30 @@ export class PageNation {
     };
   }): void {
     if (event.target.name === 'first') {
-      if (this.pageInfo.current === 1) return;
+      if (this.pageInfo.current === 1) {
+        return;
+      }
       this.pageInfo.current = 1;
       this.bindPageHtml();
     }
     if (event.target.name === 'prev') {
-      if (this.pageInfo.current === 1) return;
+      if (this.pageInfo.current === 1) {
+        return;
+      }
       this.pageInfo.current--;
       this.bindPageHtml();
     }
     if (event.target.name === 'next') {
-      if (this.pageInfo.current === this.pageInfo.totalpage) return;
+      if (this.pageInfo.current === this.pageInfo.totalpage) {
+        return;
+      }
       this.pageInfo.current++;
       this.bindPageHtml();
     }
     if (event.target.name === 'last') {
-      if (this.pageInfo.current === this.pageInfo.totalpage) return;
+      if (this.pageInfo.current === this.pageInfo.totalpage) {
+        return;
+      }
       this.pageInfo.current = this.pageInfo.totalpage;
       this.bindPageHtml();
     }

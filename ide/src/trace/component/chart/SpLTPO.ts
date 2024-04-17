@@ -433,18 +433,34 @@ export class SpLtpoChart {
     }
   }
   //六舍七入
-  specialValue(num: number) {
+  specialValue(valueType: string, num: number) {
     if (num < 0) {
       return 0;
     } else {
       if (!num.toString().split('.')[1]) {
         return num;
       } else {
-        let tempNum = Number(num.toString().split('.')[1].charAt(0));
-        if (tempNum > 6) {
-          return Math.ceil(num);
+        if (valueType === 'hitchTimes') {
+          if (num.toString().split('.')[1].split('').length > 1) {
+            //当hitchTime小数点后多于两位
+            let tempNum = num * 10;
+            let singleNumber = Number(tempNum.toString().split('.')[1].charAt(0));
+            if (singleNumber > 6) {
+              return Math.ceil(tempNum) / 10;
+            } else {
+              return Math.floor(tempNum) / 10;
+            }
+          } else {
+            //当hitchTime只有一位小数
+            return num;
+          }
         } else {
-          return Math.floor(num);
+          let tempNum = Number(num.toString().split('.')[1].charAt(0));
+          if (tempNum > 6) {
+            return Math.ceil(num);
+          } else {
+            return Math.floor(num);
+          }
         }
       }
     }
@@ -470,7 +486,7 @@ export class SpLtpoChart {
             ? SpLtpoChart.sendLTPODataArr[i].cutSendDur! / 1000000
             : SpLtpoChart.sendLTPODataArr[i].dur! / 1000000;
           let mathValue = (tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps)) / 1000 - 1;
-          SpLtpoChart.sendLTPODataArr[i].value = this.specialValue(mathValue);
+          SpLtpoChart.sendLTPODataArr[i].value = this.specialValue('lostFrames', mathValue);
         }
         return SpLtpoChart.sendLTPODataArr;
       });
@@ -524,18 +540,19 @@ export class SpLtpoChart {
 
           let mathValue = (tmpDur * Number(SpLtpoChart.sendHitchDataArr[i].fps)) / 1000 - 1;
           let finalValue = tmpVale! < 0 ? 0 : tmpVale;
-          SpLtpoChart.sendHitchDataArr[i].value = this.specialValue(finalValue);
-          SpLtpoChart.sendHitchDataArr[i].name = this.specialValue(mathValue)!.toString();
+          SpLtpoChart.sendHitchDataArr[i].value = this.specialValue('hitchTimes', finalValue);
+          SpLtpoChart.sendHitchDataArr[i].name = this.specialValue('lostFrames', mathValue)!.toString();
         }
         return SpLtpoChart.sendHitchDataArr;
       });
     };
     row.focusHandler = () => {
-      SpLtpoChart.trace?.displayTip(
-        row!,
-        HitchTimeStruct.hoverHitchTimeStruct,
-        `<span>${HitchTimeStruct.hoverHitchTimeStruct?.value!}</span>`
-      );
+      let viewValue = HitchTimeStruct.hoverHitchTimeStruct?.value!! + '';
+      let rep = /[\.]/;
+      if (!rep.test(viewValue) && viewValue !== '0') {
+        viewValue += '.0';
+      }
+      SpLtpoChart.trace?.displayTip(row!, HitchTimeStruct.hoverHitchTimeStruct, `<span>${viewValue}</span>`);
     };
     row.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;

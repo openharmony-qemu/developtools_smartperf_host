@@ -155,7 +155,7 @@ export class SpRecordPerf extends BaseElement {
     if (processSelect.value.length > 0) {
       let result = processSelect.value.match(/\((.+?)\)/g);
       if (result) {
-        perfConfig.process = result.toString().replaceAll('(', '').replaceAll(')', '');
+        perfConfig.process = result.toString().replace(/[()]/g, '');
       } else {
         perfConfig.process = processSelect.value;
       }

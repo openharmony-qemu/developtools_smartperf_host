@@ -49,7 +49,7 @@ export class TabPaneFrequencySample extends BaseElement {
     if (this.frequencySampleTbl) {
       // @ts-ignore
       this.frequencySampleTbl.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 25 + 'px';
+        `${this.parentElement!.clientHeight - 25}px`;
     }
     this.queryDataByDB(frequencySampleValue);
   }
@@ -61,10 +61,9 @@ export class TabPaneFrequencySample extends BaseElement {
   initElements(): void {
     this.frequencyLoadingPage = this.shadowRoot!.querySelector('.loadingFre');
     this.frequencySampleTbl = this.shadowRoot!.querySelector<LitTable>('#tb-states');
-    this.systemTrace = document
-      .querySelector('body > sp-application')
-      ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
-    this.frequencySampleTbl!.addEventListener('column-click', (evt) => {
+    this.systemTrace = document.querySelector('body > sp-application')?.shadowRoot!.
+      querySelector<SpSystemTrace>('#sp-system-trace');
+    this.frequencySampleTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.frequencySampleSortKey = evt.detail.key;
       // @ts-ignore
@@ -72,10 +71,10 @@ export class TabPaneFrequencySample extends BaseElement {
       // @ts-ignore
       this.sortTable(evt.detail.key, evt.detail.sort);
     });
-    this.frequencySampleTbl!.addEventListener('row-click', (evt) => {
+    this.frequencySampleTbl!.addEventListener('row-click', (evt): void => {
       this.clickTblRowEvent(evt);
     });
-    this.frequencySampleTbl!.addEventListener('button-click', (evt) => {
+    this.frequencySampleTbl!.addEventListener('button-click', (evt): void => {
       //@ts-ignore
       this.frequencySampleClickKey = evt.detail.key;
       this.frequencySampleClickType = !this.frequencySampleClickType;
@@ -143,31 +142,31 @@ export class TabPaneFrequencySample extends BaseElement {
     row.canvasRestore(context, this.systemTrace);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.frequencySampleTbl!, 25, this.frequencyLoadingPage, 24);
   }
 
-  async queryDataByDB(frqSampleParam: SelectionParam | any) {
+  async queryDataByDB(frqSampleParam: SelectionParam | any): Promise<void> {
     let sampleMap = new Map<any, any>();
-    let frqSampleList = new Array();
+    let frqSampleList: any[] = [];
     this.frequencySampleTbl!.loading = true;
-    if (this.frequencySampleClickType) this.frequencySampleClickType = !this.frequencySampleClickType;
-    if (this.busyTimeLoadingHide) this.busyTimeLoadingHide = !this.busyTimeLoadingHide;
+    if (this.frequencySampleClickType) {this.frequencySampleClickType = !this.frequencySampleClickType}
+    if (this.busyTimeLoadingHide) {this.busyTimeLoadingHide = !this.busyTimeLoadingHide}
     let result = await getTabPaneFrequencySampleData(
       frqSampleParam.leftNs + frqSampleParam.recordStartNs,
       frqSampleParam.rightNs + frqSampleParam.recordStartNs,
       frqSampleParam.cpuFreqFilterIds
     );
     this.freqResult = result;
-    frqSampleParam.cpuFreqFilterIds.forEach((a: number) => {
+    frqSampleParam.cpuFreqFilterIds.forEach((a: number): void => {
       this.getInitTime(
         result.filter((f) => f.filterId === a),
         sampleMap,
         frqSampleParam
       );
     });
-    sampleMap.forEach((a) => {
+    sampleMap.forEach((a): void => {
       a.timeStr = parseFloat((a.time / 1000000.0).toFixed(6));
       frqSampleList.push(a);
     });
@@ -177,18 +176,18 @@ export class TabPaneFrequencySample extends BaseElement {
     this.getBusyTimeData(frqSampleParam, sampleMap, result);
   }
 
-  async getBusyTimeData(frqSampleParam: SelectionParam, sampleMap: Map<any, any>, result: Array<any>) {
+  async getBusyTimeData(frqSampleParam: SelectionParam, sampleMap: Map<any, any>, result: Array<any>): Promise<void> {
     let stateFiliterIds: Array<any> = [];
     let cpuFiliterOrder: Array<any> = [];
     //找出框选的cpu fre所对应的cpu state
     this.freqBusyDataList = [];
     if (!frqSampleParam.cpuStateRowsId.length) {
-      sampleMap.forEach((value: any) => {
+      sampleMap.forEach((value: any): void => {
         value.busyTime = 'NULL';
         this.freqBusyDataList.push(value);
       });
     } else {
-      frqSampleParam.cpuFreqFilterNames.forEach((item: string) => {
+      frqSampleParam.cpuFreqFilterNames.forEach((item: string): void => {
         let cpuStateIds: any = frqSampleParam.cpuStateRowsId.filter(
           (it: any) => it.cpu === Number(item.replace(/[^\d]/g, ' ').trim())
         );
@@ -212,7 +211,7 @@ export class TabPaneFrequencySample extends BaseElement {
         cpuFiliterOrder,
       };
       this.worker!.postMessage(msg);
-      this.worker!.onmessage = (event: MessageEvent) => {
+      this.worker!.onmessage = (event: MessageEvent): void => {
         sampleMap = event.data;
         this.freqBusyDataList = [...sampleMap.values()];
         this.busyTimeLoadingHide = true;
@@ -223,7 +222,7 @@ export class TabPaneFrequencySample extends BaseElement {
       };
     }
   }
-  getInitTime(initFreqResult: Array<any>, sampleMap: Map<any, any>, selectionParam: SelectionParam) {
+  getInitTime(initFreqResult: Array<any>, sampleMap: Map<any, any>, selectionParam: SelectionParam): void {
     let leftStartNs = selectionParam.leftNs + selectionParam.recordStartNs;
     let rightEndNs = selectionParam.rightNs + selectionParam.recordStartNs;
     if (initFreqResult.length === 0) {
@@ -239,19 +238,19 @@ export class TabPaneFrequencySample extends BaseElement {
     if (initFreqResult[0].ts < leftStartNs && includeData !== 0) {
       initFreqResult[0].ts = leftStartNs;
     }
-    initFreqResult.forEach((item, idx) => {
+    initFreqResult.forEach((item, idx): void => {
       if (idx + 1 === initFreqResult.length) {
         item.time = rightEndNs - item.ts;
       } else {
         item.time = initFreqResult[idx + 1].ts - item.ts;
       }
-      if (sampleMap.has(item.filterId + '-' + item.value)) {
-        let obj = sampleMap.get(item.filterId + '-' + item.value);
+      if (sampleMap.has(`${item.filterId}-${item.value}`)) {
+        let obj = sampleMap.get(`${item.filterId}-${item.value}`);
         obj.time += item.time;
       } else {
-        sampleMap.set(item.filterId + '-' + item.value, {
+        sampleMap.set(`${item.filterId}-${item.value}`, {
           ...item,
-          counter: 'Cpu ' + item.cpu,
+          counter: `Cpu ${item.cpu}`,
           valueStr: ColorUtils.formatNumberComma(item.value),
           busyTimeStr: '-',
           busyTime: 0,
@@ -261,8 +260,8 @@ export class TabPaneFrequencySample extends BaseElement {
   }
 
   //点击按钮控制busyTime显示与否
-  handleClick(key: string, type: boolean) {
-    let res = new Array();
+  handleClick(key: string, type: boolean): void {
+    let res: any[] = [];
     if (this.freqResult.length === 0) {
       return;
     }
@@ -272,9 +271,9 @@ export class TabPaneFrequencySample extends BaseElement {
       this.frequencySampleSource = this.freqBusyDataList;
       this.sortTable(this.frequencySampleSortKey, this.frequencySampleSortType);
     }
-    this.frequencySampleTbl!.loading = this.freqBusyDataList.length > 0 ? false : true;
+    this.frequencySampleTbl!.loading = this.freqBusyDataList.length <= 0;
     if (this.freqBusyDataList.length > 0) {
-      this.frequencySampleTbl!.recycleDataSource.forEach((value) => {
+      this.frequencySampleTbl!.recycleDataSource.forEach((value): void => {
         value.busyTimeStr = type ? value.busyTime : '-';
         res.push(value);
       });
@@ -282,7 +281,7 @@ export class TabPaneFrequencySample extends BaseElement {
     }
   }
 
-  sortTable(key: string, type: number) {
+  sortTable(key: string, type: number): void {
     if (type === 0) {
       this.frequencySampleTbl!.recycleDataSource = this.frequencySampleSource;
     } else {

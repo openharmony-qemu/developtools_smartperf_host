@@ -95,7 +95,7 @@ export class TabPaneThreadStates extends BaseElement {
             pre.dur = pre.dur - (pre.ts + pre.dur - rightNs);
           }
           map.get(`${pre.state}-${mapKey}`).wallDuration += pre.dur;
-          durExceptionDataMap['delete'](mapKey);
+          durExceptionDataMap.delete(mapKey);
         }
         if (current.dur === null || current.dur === undefined || current.dur === -1) {
           //如果出现dur 为-1的数据，dur先以0计算,在后续循环中碰到相同线程数据，则补上dur的值
@@ -171,8 +171,8 @@ export class TabPaneThreadStates extends BaseElement {
         if (threadStatesParam.processIds.includes(e.pid)) {
           let process = Utils.PROCESS_MAP.get(e.pid);
           let thread = Utils.THREAD_MAP.get(e.tid);
-          e.process = process == null || process.length == 0 ? '[NULL]' : process;
-          e.thread = thread == null || thread.length == 0 ? '[NULL]' : thread;
+          e.process = process || '[NULL]';
+          e.thread = thread || '[NULL]';
 
           e.stateJX = e.state;
           e.state = Utils.getEndState(e.stateJX);
@@ -277,7 +277,7 @@ export class TabPaneThreadStates extends BaseElement {
         } else {
           if (threadStatesRightData[property] > threadStatesLeftData[property]) {
             return treadStatesSort === 2 ? 1 : -1;
-          } else if (threadStatesRightData[property] == threadStatesLeftData[property]) {
+          } else if (threadStatesRightData[property] === threadStatesLeftData[property]) {
             return 0;
           } else {
             return treadStatesSort === 2 ? -1 : 1;

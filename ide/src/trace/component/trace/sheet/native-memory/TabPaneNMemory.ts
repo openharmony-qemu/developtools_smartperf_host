@@ -330,13 +330,13 @@ export class TabPaneNMemory extends BaseElement {
         detail: {
           time: '',
           type: 'square',
-          timeCallback: (timeArr: number[]) => {
+          timeCallback: (timeArr: number[]): void => {
             if (timeArr && timeArr.length > 0) {
               let checkTs = timeArr[0];
               let minTs = 0;
               let minItem: any = undefined;
               let filterTemp = this.memorySource.filter((tempItem) => {
-                if (minTs === 0 || (tempItem.startTs - checkTs != 0 && Math.abs(tempItem.startTs - checkTs) < minTs)) {
+                if (minTs === 0 || (tempItem.startTs - checkTs !== 0 && Math.abs(tempItem.startTs - checkTs) < minTs)) {
                   minTs = Math.abs(tempItem.startTs - checkTs);
                   minItem = tempItem;
                 }
@@ -366,7 +366,7 @@ export class TabPaneNMemory extends BaseElement {
     );
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight !== 0) {

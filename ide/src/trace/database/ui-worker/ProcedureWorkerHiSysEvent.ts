@@ -26,7 +26,6 @@ export class HiSysEventRender extends Render {
     },
     row: TraceRow<HiSysEventStruct>
   ): void {
-    let hiSysEventList = row.dataList;
     let hiSysEventFilter = row.dataListCache;
     let minorFilter: HiSysEventStruct[] = [];
     let criticalFilter: HiSysEventStruct[] = [];
@@ -128,7 +127,8 @@ export class HiSysEventStruct extends BaseStruct {
     totalNS: number,
     frame: Rect
   ): void {
-    let x1: number, x2: number;
+    let x1: number;
+    let x2: number;
     if ((sysEventNode.startTs || 0) >= startNS && (sysEventNode.startTs || 0) <= endNS) {
       x1 = ns2x(sysEventNode.startTs || 0, startNS, endNS, totalNS, frame);
     } else {

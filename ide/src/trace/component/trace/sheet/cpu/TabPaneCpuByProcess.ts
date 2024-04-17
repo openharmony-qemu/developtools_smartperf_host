@@ -34,25 +34,24 @@ export class TabPaneCpuByProcess extends BaseElement {
     }
     this.currentSelectionParam = cpuByProcessValue;
     this.cpuByProcessRange!.textContent =
-      'Selected range: ' +
-      parseFloat(((cpuByProcessValue.rightNs - cpuByProcessValue.leftNs) / 1000000.0).toFixed(5)) +
-      ' ms';
+      `Selected range: ${ 
+        parseFloat(((cpuByProcessValue.rightNs - cpuByProcessValue.leftNs) / 1000000.0).toFixed(5))} ms`;
     if (this.cpuByProcessTbl) {
       // @ts-ignore
       this.cpuByProcessTbl.shadowRoot!.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 50 + 'px';
+        `${this.parentElement!.clientHeight - 50}px`;
     }
     this.cpuByProcessTbl!.recycleDataSource = [];
     this.cpuByProcessTbl!.loading = true;
     getTabCpuByProcess(cpuByProcessValue.cpus, cpuByProcessValue.leftNs, cpuByProcessValue.rightNs).then((result) => {
       this.cpuByProcessTbl!.loading = false;
-      if (result != null && result.length > 0) {
-        log('getTabCpuByProcess size :' + result.length);
+      if (result !== null && result.length > 0) {
+        log(`getTabCpuByProcess size :${  result.length}`);
         let sumWall = 0.0;
         let sumOcc = 0;
         for (let e of result) {
           let process = Utils.PROCESS_MAP.get(e.pid);
-          e.process = process == null || process.length == 0 ? '[NULL]' : process;
+          e.process = !process || process.length === 0 ? '[NULL]' : process;
           sumWall += e.wallDuration;
           sumOcc += e.occurrences;
           e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
@@ -75,13 +74,13 @@ export class TabPaneCpuByProcess extends BaseElement {
   initElements(): void {
     this.cpuByProcessTbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-process');
     this.cpuByProcessRange = this.shadowRoot?.querySelector('#cpu-process-time-range');
-    this.cpuByProcessTbl!.addEventListener('column-click', (evt) => {
+    this.cpuByProcessTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.cpuByProcessTbl!);
   }
@@ -117,26 +116,24 @@ export class TabPaneCpuByProcess extends BaseElement {
         `;
   }
 
-  sortByColumn(cpuByProcessDetail: any) {
+  sortByColumn(cpuByProcessDetail: any): void {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (cpuByProcessLeftData: SelectionData, cpuByProcessRightData: SelectionData) {
-        if (cpuByProcessLeftData.process == ' ' || cpuByProcessRightData.process == ' ') {
+      return function (cpuByProcessLeftData: SelectionData, cpuByProcessRightData: SelectionData): number {
+        if (cpuByProcessLeftData.process === ' ' || cpuByProcessRightData.process === ' ') {
           return 0;
         }
         if (type === 'number') {
-          return sort === 2
-            ? // @ts-ignore
-              parseFloat(cpuByProcessRightData[property]) - parseFloat(cpuByProcessLeftData[property])
-            : // @ts-ignore
-              parseFloat(cpuByProcessLeftData[property]) - parseFloat(cpuByProcessRightData[property]);
+          return sort === 2 ? // @ts-ignore
+            parseFloat(cpuByProcessRightData[property]) - parseFloat(cpuByProcessLeftData[property]) : // @ts-ignore
+            parseFloat(cpuByProcessLeftData[property]) - parseFloat(cpuByProcessRightData[property]);
         } else {
           // @ts-ignore
           if (cpuByProcessRightData[property] > cpuByProcessLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (cpuByProcessRightData[property] == cpuByProcessLeftData[property]) {
+            if (cpuByProcessRightData[property] === cpuByProcessLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;

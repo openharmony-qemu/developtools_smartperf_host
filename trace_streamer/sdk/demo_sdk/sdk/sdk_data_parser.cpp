@@ -67,7 +67,7 @@ int32_t SDKDataParser::ParserData(const uint8_t* data, int32_t len, int32_t comp
         ParserClock(data, len);
         return 0;
     }
-    sdk_plugin_data_parser(data, len);
+    SDKPluginDataParser(data, len);
     return 0;
 }
 

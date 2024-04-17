@@ -53,7 +53,7 @@ EMSCRIPTEN_KEEPALIVE int UpdateTraceTime(int len)
 * @ reqBufferSize: 返回的内存长度
 * return: 成功返回0
 */
-EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamer_Set_ThirdParty_DataDealer(SendDataCallBack sendDataCallBack, uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamerSetThirdPartyDataDealer(SendDataCallBack sendDataCallBack, uint32_t reqBufferSize)
 
 /* TraceStreamer的数据解析接口，由JS调用
  * 
@@ -101,14 +101,14 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerCancel()
 * @ componentName: 第三方插件名称
 * return: 成功返回0
 */
-int TraceStreamer_Plugin_Out_SendData(const char* pluginData, int len, const std::string componentName)
+int TraceStreamerPluginOutSendData(const char* pluginData, int len, const std::string componentName)
 
 /* 初始化配置接口，由JS调用
  * 
 * @ dataLen: 配置字符串的长度
 * return: 成功返回0
 */
-EMSCRIPTEN_KEEPALIVE int TraceStreamer_Init_ThirdParty_Config(int dataLen)
+EMSCRIPTEN_KEEPALIVE int TraceStreamerInitThirdPartyConfig(int dataLen)
 
 } // extern "C"
 ```

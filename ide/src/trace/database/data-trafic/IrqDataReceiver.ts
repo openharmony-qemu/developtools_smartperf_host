@@ -74,7 +74,8 @@ trace_range t where i.callid = ${args.cpu} and i.cat = 'softirq'
 
 export function irqDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: any[], list: any[];
+    let res: any[];
+    let list: any[];
     if (!lrqList.has(data.params.cpu + data.params.name)) {
       list = proc(chartIrqDataSqlMem(data.params));
       lrqList.set(data.params.cpu + data.params.name, list);

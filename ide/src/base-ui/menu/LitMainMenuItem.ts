@@ -90,7 +90,7 @@ export class LitMainMenuItem extends BaseElement {
   private iconEl: HTMLElement | null | undefined;
   private fileEL: HTMLInputElement | undefined | null;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['title', 'icon', 'file', 'disabled'];
   }
 
@@ -144,7 +144,7 @@ export class LitMainMenuItem extends BaseElement {
     return false;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     if (this.hasAttribute('file')) {
       if (this.fileEL) {
         this.fileEL!.addEventListener('change', (event) => {
@@ -168,7 +168,9 @@ export class LitMainMenuItem extends BaseElement {
                 })
               );
             }
-            if (this.fileEL) this.fileEL.value = '';
+            if (this.fileEL) {
+              this.fileEL.value = '';
+            }
             if (this.fileEL) {
               this.fileEL.value = '';
             }
@@ -192,7 +194,7 @@ export class LitMainMenuItem extends BaseElement {
         `;
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     switch (name) {
       case 'title':
         if (this.titleEl) {
@@ -211,7 +213,9 @@ export class LitMainMenuItem extends BaseElement {
         }
         break;
       case 'icon':
-        if (this.iconEl) this.iconEl.setAttribute('name', newValue);
+        if (this.iconEl) {
+          this.iconEl.setAttribute('name', newValue);
+        }
         break;
     }
   }

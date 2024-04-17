@@ -30,7 +30,7 @@ export class LitSelect extends BaseElement {
   private selectSearchEl: any;
   private selectMultipleRootEl: any;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return [
       'value',
       'default-value',
@@ -46,7 +46,7 @@ export class LitSelect extends BaseElement {
     ];
   }
 
-  get value() {
+  get value(): string {
     return this.getAttribute('value') || this.defaultValue;
   }
 
@@ -54,7 +54,7 @@ export class LitSelect extends BaseElement {
     this.setAttribute('value', selectValue);
   }
 
-  get rounded() {
+  get rounded(): boolean {
     return this.hasAttribute('rounded');
   }
 
@@ -78,7 +78,7 @@ export class LitSelect extends BaseElement {
     }
   }
 
-  get border() {
+  get border(): string {
     return this.getAttribute('border') || 'true';
   }
 
@@ -90,7 +90,7 @@ export class LitSelect extends BaseElement {
     }
   }
 
-  get listHeight() {
+  get listHeight(): string {
     return this.getAttribute('list-height') || '256px';
   }
 
@@ -98,7 +98,7 @@ export class LitSelect extends BaseElement {
     this.setAttribute('list-height', selectListHeight);
   }
 
-  get defaultPlaceholder() {
+  get defaultPlaceholder(): string {
     return this.getAttribute('placeholder') || '请选择';
   }
 
@@ -110,14 +110,14 @@ export class LitSelect extends BaseElement {
     }
   }
 
-  get canInsert() {
+  get canInsert(): boolean {
     return this.hasAttribute('canInsert');
   }
-  get showSearch() {
+  get showSearch(): boolean {
     return this.hasAttribute('show-search');
   }
 
-  get defaultValue() {
+  get defaultValue(): string {
     return this.getAttribute('default-value') || '';
   }
 
@@ -125,7 +125,7 @@ export class LitSelect extends BaseElement {
     this.setAttribute('default-value', selectDefaultValue);
   }
 
-  get placeholder() {
+  get placeholder(): string {
     return this.getAttribute('placeholder') || this.defaultPlaceholder;
   }
 
@@ -133,7 +133,7 @@ export class LitSelect extends BaseElement {
     this.setAttribute('placeholder', selectPlaceHolder);
   }
 
-  get loading() {
+  get loading(): boolean {
     return this.hasAttribute('loading');
   }
 
@@ -145,7 +145,7 @@ export class LitSelect extends BaseElement {
     }
   }
 
-  get showSearchInput() {
+  get showSearchInput(): boolean {
     return this.hasAttribute('showSearchInput');
   }
 
@@ -162,7 +162,7 @@ export class LitSelect extends BaseElement {
   }
 
   set dataSource(selectDataSource: any) {
-    this.innerHTML = `<slot></slot><slot name="footer"></slot>`;
+    this.innerHTML = '<slot></slot><slot name="footer"></slot>';
     if (selectDataSource.length > 0) {
       this.bodyEl!.style.display = 'flex';
       this.querySelectorAll('lit-select-option').forEach((a) => this.removeChild(a));
@@ -211,14 +211,13 @@ export class LitSelect extends BaseElement {
     }
   }
 
-  initHtml() {
+  initHtml(): string {
     return `
         ${selectHtmlStr(this.listHeight)}
         <div class="root noSelect" tabindex="0" hidefocus="true">
             <div class="multipleRoot">
-            <input placeholder="${this.placeholder}" autocomplete="off" ${
-      this.showSearch || this.canInsert ? '' : 'readonly'
-    } tabindex="0"></div>
+            <input placeholder="${this.placeholder}" autocomplete="off" ${this.showSearch || this.canInsert ? '' : 'readonly'} tabindex="0">
+            </div>
             <lit-loading class="loading" size="12"></lit-loading>
             <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>
             <lit-icon class="clear" name='close-circle-fill'></lit-icon>
@@ -236,11 +235,11 @@ export class LitSelect extends BaseElement {
         `;
   }
 
-  isMultiple() {
+  isMultiple(): boolean {
     return this.hasAttribute('mode') && this.getAttribute('mode') === 'multiple';
   }
 
-  newTag(value: any, text: any) {
+  newTag(value: any, text: any): HTMLDivElement {
     let tag: any = document.createElement('div');
     let icon: any = document.createElement('lit-icon');
     icon.classList.add('tag-close');
@@ -251,10 +250,10 @@ export class LitSelect extends BaseElement {
     span.textContent = text;
     tag.append(span);
     tag.append(icon);
-    icon.onclick = (ev: any) => {
+    icon.onclick = (ev: any): void => {
       tag.parentElement.removeChild(tag);
       this.querySelector(`lit-select-option[value=${value}]`)!.removeAttribute('selected');
-      if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
+      if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {
         this.selectInputEl.style.width = 'auto';
         this.selectInputEl.placeholder = this.defaultPlaceholder;
       }
@@ -267,7 +266,7 @@ export class LitSelect extends BaseElement {
     return tag;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     this.tabIndex = 0;
     this.focused = false;
     this.bodyEl = this.shadowRoot!.querySelector('.body');
@@ -279,8 +278,10 @@ export class LitSelect extends BaseElement {
     this.selectOptions = this.shadowRoot!.querySelector('.body-opt') as HTMLDivElement;
     this.setEventClick();
     this.setEvent();
-    this.selectInputEl.onblur = (ev: any) => {
-      if (this.hasAttribute('disabled')) return;
+    this.selectInputEl.onblur = (ev: any): void => {
+      if (this.hasAttribute('disabled')) {
+        return;
+      }
       if (this.isMultiple()) {
         if (this.hasAttribute('show-search')) {
           this.selectSearchEl.style.display = 'none';
@@ -302,7 +303,7 @@ export class LitSelect extends BaseElement {
   }
 
   setOninput(): void {
-    this.selectInputEl.oninput = (ev: any) => {
+    this.selectInputEl.oninput = (ev: any): void => {
       let els: Element[] = [...this.querySelectorAll('lit-select-option')];
       if (this.hasAttribute('show-search')) {
         if (!ev.target.value) {
@@ -331,7 +332,7 @@ export class LitSelect extends BaseElement {
   }
 
   setEventClick(): void {
-    this.selectClearEl.onclick = (ev: any) => {
+    this.selectClearEl.onclick = (ev: any): void => {
       if (this.isMultiple()) {
         let delNodes: Array<any> = [];
         this.selectMultipleRootEl.childNodes.forEach((a: any) => {
@@ -342,7 +343,7 @@ export class LitSelect extends BaseElement {
         for (let i = 0; i < delNodes.length; i++) {
           delNodes[i].remove();
         }
-        if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
+        if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {
           this.selectInputEl.style.width = 'auto';
           this.selectInputEl.placeholder = this.defaultPlaceholder;
         }
@@ -356,7 +357,7 @@ export class LitSelect extends BaseElement {
       this.dispatchEvent(new CustomEvent('onClear', { detail: ev }));
     };
     this.initOptions();
-    this.onclick = (ev: any) => {
+    this.onclick = (ev: any): void => {
       if (ev.target.tagName === 'LIT-SELECT') {
         if (this.focused === false) {
           this.selectInputEl.focus();
@@ -370,7 +371,7 @@ export class LitSelect extends BaseElement {
   }
 
   setEvent(): void {
-    this.onmouseover = this.onfocus = (ev) => {
+    this.onmouseover = this.onfocus = (ev): void => {
       if (this.focused === false && this.hasAttribute('adaptive-expansion')) {
         if (this.parentElement!.offsetTop < this.bodyEl!.clientHeight) {
           this.bodyEl!.classList.add('body-bottom');
@@ -388,15 +389,17 @@ export class LitSelect extends BaseElement {
         }
       }
     };
-    this.onmouseout = this.onblur = (ev) => {
+    this.onmouseout = this.onblur = (ev): void => {
       if (this.hasAttribute('allow-clear')) {
         this.selectClearEl.style.display = 'none';
         this.selectIconEl.style.display = 'flex';
       }
       this.focused = false;
     };
-    this.selectInputEl.onfocus = (ev: any) => {
-      if (this.hasAttribute('disabled')) return;
+    this.selectInputEl.onfocus = (ev: any): void => {
+      if (this.hasAttribute('disabled')) {
+        return;
+      }
       if (this.selectInputEl.value.length > 0) {
         this.selectInputEl.placeholder = this.selectInputEl.value;
         this.selectInputEl.value = '';
@@ -413,14 +416,14 @@ export class LitSelect extends BaseElement {
   }
 
   setOnkeydown(): void {
-    this.selectInputEl.onkeydown = (ev: any) => {
+    this.selectInputEl.onkeydown = (ev: any): void => {
       if (ev.key === 'Backspace') {
         if (this.isMultiple()) {
           let tag = this.selectMultipleRootEl.lastElementChild.previousElementSibling;
           if (tag) {
             this.querySelector(`lit-select-option[value=${tag.value}]`)?.removeAttribute('selected');
             tag.remove();
-            if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
+            if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {
               this.selectInputEl.style.width = 'auto';
               this.selectInputEl.placeholder = this.defaultPlaceholder;
             }
@@ -455,7 +458,7 @@ export class LitSelect extends BaseElement {
     };
   }
 
-  initOptions() {
+  initOptions(): void {
     this.querySelectorAll('lit-select-option').forEach((a) => {
       if (this.isMultiple()) {
         a.setAttribute('check', '');
@@ -499,7 +502,7 @@ export class LitSelect extends BaseElement {
           this.selectInputEl.value = '';
           this.selectInputEl.style.width = '1px';
         }
-        if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
+        if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {
           this.selectInputEl.style.width = 'auto';
           this.selectInputEl.placeholder = this.defaultPlaceholder;
         }
@@ -523,12 +526,12 @@ export class LitSelect extends BaseElement {
     });
   }
 
-  clear() {
+  clear(): void {
     this.selectInputEl.value = '';
     this.selectInputEl.placeholder = this.defaultPlaceholder;
   }
 
-  reset() {
+  reset(): void {
     this.querySelectorAll('lit-select-option').forEach((a) => {
       [...this.querySelectorAll('lit-select-option')].forEach((a) => a.removeAttribute('selected'));
       if (a.getAttribute('value') === this.defaultValue) {
@@ -538,11 +541,11 @@ export class LitSelect extends BaseElement {
     });
   }
 
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
-  attributeChangedCallback(name: any, oldValue: any, newValue: any) {
+  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {
     if (name === 'value' && this.selectInputEl) {
       if (newValue) {
         [...this.querySelectorAll('lit-select-option')].forEach((a) => {

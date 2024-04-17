@@ -43,10 +43,10 @@ export class SpHiSysEventChart {
     hiSysEventRow.rowType = TraceRow.ROW_TYPE_HI_SYSEVENT;
     hiSysEventRow.name = 'Hisysevent';
     hiSysEventRow.style.width = '100%';
-    hiSysEventRow.style.height = `40px`;
-    hiSysEventRow.setAttribute('height', `40px`);
+    hiSysEventRow.style.height = '40px';
+    hiSysEventRow.setAttribute('height', '40px');
     hiSysEventRow.setAttribute('children', '');
-    hiSysEventRow.supplierFrame = () => {
+    hiSysEventRow.supplierFrame = (): Promise<HiSysEventStruct[]> => {
       return hiSysEventDataSender(hiSysEventRow).then((res) => {
         return res;
       });

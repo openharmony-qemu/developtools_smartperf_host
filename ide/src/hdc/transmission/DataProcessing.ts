@@ -42,7 +42,7 @@ export class DataProcessing {
     try {
       while (this.readData) {
         let usbHead = await this.readUsbHead();
-        if (usbHead != null) {
+        if (usbHead !== null) {
           let dataSize = usbHead!.dataSize;
           if (dataSize > 0) {
             let body = await this.readBody(dataSize);
@@ -128,7 +128,7 @@ export class DataProcessing {
     return new Uint8Array(dataView.buffer);
   }
 
-  public stopReadData() {
+  public stopReadData(): void {
     this.readData = false;
   }
 }

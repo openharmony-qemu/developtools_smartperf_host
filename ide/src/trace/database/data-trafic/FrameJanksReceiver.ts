@@ -23,23 +23,23 @@ export const frameJankDataSql = (args: any, configure: any): string => {
   switch (configure) {
     case 'ExepectMemory':
       fsType = 1;
-      flag = `fs.flag as jankTag,`;
+      flag = 'fs.flag as jankTag,';
       break;
     case 'ExpectedData':
       fsType = 1;
-      flag = `fs.flag as jankTag,`;
+      flag = 'fs.flag as jankTag,';
       timeLimit = `
        AND (fs.ts - ${args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)}
        AND (fs.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}`;
       break;
     case 'ActualMemoryData':
       fsType = 0;
-      flag = `(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,`;
+      flag = '(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,';
       fsFlag = 'AND fs.flag <> 2';
       break;
     case 'ActualData':
       fsType = 0;
-      flag = `(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,`;
+      flag = '(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,';
       fsFlag = 'AND fs.flag <> 2';
       timeLimit = `AND (fs.ts - ${args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)}
        AND (fs.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}`;
@@ -98,11 +98,11 @@ function setFrameJanksSql(args: any, timeLimit: string, flag: string, fsType: nu
 
 export function frameExpectedReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    if (!processFrameList.has(`FrameTimeLine_expected`)) {
+    if (!processFrameList.has('FrameTimeLine_expected')) {
       let sql = frameJankDataSql(data.params, 'ExepectMemory');
-      processFrameList.set(`FrameTimeLine_expected`, proc(sql));
+      processFrameList.set('FrameTimeLine_expected', proc(sql));
     }
-    frameJanksReceiver(data, processFrameList.get(`FrameTimeLine_expected`)!, 'expected', true);
+    frameJanksReceiver(data, processFrameList.get('FrameTimeLine_expected')!, 'expected', true);
   } else {
     let sql = frameJankDataSql(data.params, 'ExpectedData');
     let res = proc(sql);
@@ -112,11 +112,11 @@ export function frameExpectedReceiver(data: any, proc: Function): void {
 
 export function frameActualReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    if (!processFrameList.has(`FrameTimeLine_actual`)) {
+    if (!processFrameList.has('FrameTimeLine_actual')) {
       let sql = frameJankDataSql(data.params, 'ActualMemoryData');
-      processFrameList.set(`FrameTimeLine_actual`, proc(sql));
+      processFrameList.set('FrameTimeLine_actual', proc(sql));
     }
-    frameJanksReceiver(data, processFrameList.get(`FrameTimeLine_actual`)!, 'actual', true);
+    frameJanksReceiver(data, processFrameList.get('FrameTimeLine_actual')!, 'actual', true);
   } else {
     let sql = frameJankDataSql(data.params, 'ActualData');
     let res = proc(sql);
@@ -161,7 +161,7 @@ function frameJanksReceiver(data: any, res: any[], type: string, transfer: boole
   }
   postFrameJanksMessage(data, transfer, frameJanks, res.length);
 }
-function setFrameJanks(frameJanks: FrameJanks, itemData: any, index: number) {
+function setFrameJanks(frameJanks: FrameJanks, itemData: any, index: number): void {
   frameJanks.id[index] = itemData.id;
   frameJanks.ipId[index] = itemData.ipid;
   frameJanks.name[index] = itemData.name;
@@ -178,7 +178,7 @@ function setFrameJanks(frameJanks: FrameJanks, itemData: any, index: number) {
   frameJanks.rsName[index] = itemData.rsName;
   frameJanks.depth[index] = itemData.depth;
 }
-function setResults(transfer: boolean, frameJanks: FrameJanks): any {
+function setResults(transfer: boolean, frameJanks: FrameJanks): unknown {
   return transfer
     ? {
         id: frameJanks.id.buffer,
@@ -199,7 +199,7 @@ function setResults(transfer: boolean, frameJanks: FrameJanks): any {
       }
     : {};
 }
-function postFrameJanksMessage(data: any, transfer: boolean, frameJanks: FrameJanks, len: number) {
+function postFrameJanksMessage(data: any, transfer: boolean, frameJanks: FrameJanks, len: number): void {
   let results = setResults(transfer, frameJanks);
   (self as unknown as Worker).postMessage(
     {

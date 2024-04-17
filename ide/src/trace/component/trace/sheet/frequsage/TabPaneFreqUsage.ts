@@ -557,7 +557,7 @@ function fixTotal(arr: Array<RunningFreqData>): Array<RunningFreqData> {
  * @param arr2 不区分线程的Total数据
  */
 function mergeTotal(arr1: Array<RunningFreqData>, arr2: Array<RunningFreqData>): void {
-  for (var i = 0; i < arr1.length; i++) {
+  for (let i = 0; i < arr1.length; i++) {
     const num: number = arr2.findIndex((item) => item.thread?.includes(arr1[i].thread!));
     arr2[num].thread = 'summary data';
     arr1[i].children?.unshift(arr2[num]);

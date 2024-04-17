@@ -58,24 +58,24 @@ export class TabThreadAnalysis extends BaseElement {
       this.shadowRoot!.querySelector<Top20ProcessSwitchCount>('#top20_process_switch_count');
     this.top20FrequencyThread = this.shadowRoot!.querySelector<Top20FrequencyThread>('#top20_frequency_thread');
 
-    this.tab1!.addEventListener('click', (event) => {
+    this.tab1!.addEventListener('click', (): void => {
       this.setClickTab(this.tab1!, this.top20ThreadCpuUsage!);
     });
-    this.tab2!.addEventListener('click', (event) => {
+    this.tab2!.addEventListener('click', (): void => {
       this.setClickTab(this.tab2!, this.top20ThreadRunTime!);
     });
-    this.tab3!.addEventListener('click', (event) => {
+    this.tab3!.addEventListener('click', (): void => {
       this.setClickTab(this.tab3!, this.top20ProcessThreadCount!);
     });
-    this.tab4!.addEventListener('click', (event) => {
+    this.tab4!.addEventListener('click', (): void => {
       this.setClickTab(this.tab4!, this.top20ProcessSwitchCount!);
     });
-    this.tab5!.addEventListener('click', (event) => {
+    this.tab5!.addEventListener('click', (): void => {
       this.setClickTab(this.tab5!, this.top20FrequencyThread!);
     });
   }
 
-  init() {
+  init(): void {
     this.top20FrequencyThread!.clearData();
     this.top20ThreadCpuUsage!.clearData();
     this.top20ThreadRunTime!.clearData();
@@ -86,7 +86,7 @@ export class TabThreadAnalysis extends BaseElement {
     this.setClickTab(this.tab1!, this.top20ThreadCpuUsage!, true);
   }
 
-  hideCurrentTab() {
+  hideCurrentTab(): void {
     if (this.currentTabID) {
       let clickTab = this.shadowRoot!.querySelector<HTMLDivElement>(`#${this.currentTabID}`);
       if (clickTab) {
@@ -107,7 +107,7 @@ export class TabThreadAnalysis extends BaseElement {
       | Top20ProcessThreadCount
       | Top20FrequencyThread,
     isInit: boolean = false
-  ) {
+  ): void {
     if (!isInit) {
       let event = showContent.id
         .replace(/_/g, ' ')

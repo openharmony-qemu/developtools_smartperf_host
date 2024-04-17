@@ -14,7 +14,7 @@
  */
 
 export class LitSlicer extends HTMLElement {
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['direction']; //direction = 'horizontal'或者'vertical'
   }
 
@@ -48,11 +48,11 @@ export class LitSlicer extends HTMLElement {
     }
   }
 
-  connectedCallback() {}
+  connectedCallback(): void {}
 
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
-  attributeChangedCallback(name: any, oldValue: any, newValue: any) {
+  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {
     (this as any)[name] = newValue;
   }
 
@@ -68,11 +68,11 @@ export class LitSlicerTrack extends HTMLElement {
   private draging: boolean = false;
   private normalWidth: number = 0;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['range-left', 'range-right'];
   }
 
-  get rangeLeft() {
+  get rangeLeft(): number {
     return parseInt(this.getAttribute('range-left') || '200');
   }
 
@@ -80,7 +80,7 @@ export class LitSlicerTrack extends HTMLElement {
     this.setAttribute('range-left', `${val}`);
   }
 
-  get rangeRight() {
+  get rangeRight(): number {
     return parseInt(this.getAttribute('range-right') || '300');
   }
 
@@ -115,24 +115,28 @@ export class LitSlicerTrack extends HTMLElement {
   }
 
   //当 custom element首次被插入文档DOM时，被调用。
-  connectedCallback() {
+  connectedCallback(): void {
     this.line = this.shadowRoot?.querySelector('#root');
     let parentDirection = this.parentElement!.getAttribute('direction') || 'horizontal';
     if (parentDirection.startsWith('h')) {
       this.line!.className = 'rootH';
       let previousElementSibling = this.previousElementSibling as HTMLElement;
-      let preX: number, preY: number, preWidth: number;
-      this.line!.onmousedown = (e) => {
+      let preX: number;
+      let preY: number;
+      let preWidth: number;
+      this.line!.onmousedown = (e): void => {
         this.draging = true;
         preX = e.pageX;
         preWidth = previousElementSibling!.clientWidth;
-        if (this.normalWidth == 0) this.normalWidth = previousElementSibling!.clientWidth;
+        if (this.normalWidth === 0) {
+          this.normalWidth = previousElementSibling!.clientWidth;
+        }
         previousElementSibling!.style.width = preWidth + 'px';
         document.body.style.userSelect = 'none';
         document.body.style.webkitUserSelect = 'none';
         // @ts-ignore
         document.body.style.msUserSelect = 'none';
-        document.onmousemove = (e1) => {
+        document.onmousemove = (e1): void => {
           if (this.draging) {
             if (
               preWidth + e1.pageX - preX >= this.normalWidth - this.rangeLeft &&
@@ -142,14 +146,14 @@ export class LitSlicerTrack extends HTMLElement {
             }
           }
         };
-        document.onmouseleave = (e2) => {
+        document.onmouseleave = (e2): void => {
           this.draging = false;
           document.body.style.userSelect = 'auto';
           document.body.style.webkitUserSelect = 'auto';
           // @ts-ignore
           document.body.style.msUserSelect = 'auto';
         };
-        document.onmouseup = (e3) => {
+        document.onmouseup = (e3): void => {
           this.draging = false;
           document.body.style.userSelect = 'auto';
           document.body.style.webkitUserSelect = 'auto';
@@ -162,39 +166,40 @@ export class LitSlicerTrack extends HTMLElement {
     }
   }
 
-  isDirection() {
+  isDirection(): void {
     this.line!.className = 'rootV';
     let previousElementSibling = this.previousElementSibling as HTMLElement;
-    let preY: number, preHeight: number;
-    this.line!.onmousedown = (e) => {
+    let preY: number;
+    let preHeight: number;
+    this.line!.onmousedown = (e): void => {
       this.draging = true;
       preY = e.pageY;
       preHeight = previousElementSibling?.clientHeight;
       previousElementSibling!.style!.height = preHeight + 'px';
-      document.onmousemove = (e1) => {
+      document.onmousemove = (e1): void => {
         if (this.draging) {
           previousElementSibling.style.height = preHeight + e1.pageY - preY + 'px';
         }
       };
-      document.onmouseleave = (e2) => {
+      document.onmouseleave = (e2): void => {
         this.draging = false;
       };
-      document.onmouseup = (e3) => {
+      document.onmouseup = (e3): void => {
         this.draging = false;
       };
     };
   }
 
   //当 custom element从文档DOM中删除时，被调用。
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     this.line!.onmousedown = null;
   }
 
   //当 custom element被移动到新的文档时，被调用。
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
   //当 custom element增加、删除、修改自身属性时，被调用。
-  attributeChangedCallback(name: any, oldValue: any, newValue: any) {}
+  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {}
 }
 
 if (!customElements.get('lit-slicer-track')) {

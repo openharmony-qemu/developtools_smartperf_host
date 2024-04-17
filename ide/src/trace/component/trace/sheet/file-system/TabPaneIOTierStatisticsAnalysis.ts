@@ -86,11 +86,11 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.tierTitleEl!.textContent = '';
     this.tabName!.textContent = '';
     this.range!.textContent =
-      'Selected range: ' +
-      parseFloat(
-        ((ioTierStatisticsAnalysisSelection.rightNs - ioTierStatisticsAnalysisSelection.leftNs) / 1000000.0).toFixed(5)
-      ) +
-      '  ms';
+      `Selected range: ${ 
+        parseFloat(
+          ((ioTierStatisticsAnalysisSelection.rightNs - ioTierStatisticsAnalysisSelection.leftNs) / 1000000.0).toFixed(5)
+        ) 
+      }  ms`;
     this.progressEL!.loading = true;
     this.getIoTierDataByWorker(
       [
@@ -141,8 +141,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       this.checkBoxEvent(box);
     }
 
-    const addRowClickEventListener = (ioTable: LitTable, clickEvent: Function) => {
-      ioTable.addEventListener('row-click', (evt) => {
+    const addRowClickEventListener = (ioTable: LitTable, clickEvent: Function): void => {
+      ioTable.addEventListener('row-click', (evt: Event): void => {
         // @ts-ignore
         const detail = evt.detail;
         if (detail.button === 0 && detail.data.tableName !== '' && detail.data.duration !== 0) {
@@ -167,20 +167,20 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
 
   private columnClickEvent(ioTable: LitTable): void {
-    ioTable!.addEventListener('column-click', (evt) => {
+    ioTable!.addEventListener('column-click', (evt: Event): void => {
       // @ts-ignore
       this.ioSortColumn = evt.detail.key;
       // @ts-ignore
       this.ioSortType = evt.detail.sort;
       this.sortByColumn();
     });
-    ioTable!.addEventListener('contextmenu', function (event) {
+    ioTable!.addEventListener('contextmenu', function (event: MouseEvent): void {
       event.preventDefault(); // 阻止默认的上下文菜单弹框
     });
   }
 
   private checkBoxEvent(box: LitCheckBox): void {
-    box!.addEventListener('change', (event) => {
+    box!.addEventListener('change', (): void => {
       if (this.hideProcessCheckBox!.checked && this.hideThreadCheckBox!.checked) {
         this.hideThread();
         this.iOTierStatisticsAnalysisBack!.style.visibility = 'hidden';
@@ -200,7 +200,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
 
   private rowClickEvent(ioTable: LitTable): void {
-    ioTable!.addEventListener('row-click', (evt) => {
+    ioTable!.addEventListener('row-click', (evt: Event): void => {
       // @ts-ignore
       let detail = evt.detail;
       if (detail.button === 2) {
@@ -221,7 +221,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
           if (this.tierTitleEl?.textContent === '') {
             ioTitle = detail.data.tableName;
           } else {
-            ioTitle = this.tierTitleEl?.textContent + ' / ' + detail.data.tableName;
+            ioTitle = `${this.tierTitleEl?.textContent} / ${detail.data.tableName}`;
           }
           ioTab!.pieTitle = ioTitle;
           //  是否是在表格上右键点击跳转到火焰图的
@@ -233,7 +233,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
 
   private rowHoverEvent(ioTable: LitTable): void {
-    ioTable!.addEventListener('row-hover', (evt) => {
+    ioTable!.addEventListener('row-hover', (evt: Event): void => {
       // @ts-ignore
       let detail = evt.detail;
       if (detail.data) {
@@ -294,7 +294,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
 
   private goBack(): void {
-    this.iOTierStatisticsAnalysisBack!.addEventListener('click', () => {
+    this.iOTierStatisticsAnalysisBack!.addEventListener('click', (): void => {
       if (this.tabName!.textContent === 'Statistic By type AllDuration') {
         this.iOTierStatisticsAnalysisBack!.style.visibility = 'hidden';
         this.showAssignLevel(
@@ -458,7 +458,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.ioPieChart?.hideTip();
     let tierTitle = '';
     if (this.processName.length > 0) {
-      tierTitle += this.processName + ' / ';
+      tierTitle += `${this.processName  } / `;
     }
     if (this.typeName.length > 0) {
       tierTitle += this.typeName;
@@ -502,7 +502,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     };
     let title = '';
     if (this.processName.length > 0) {
-      title += this.processName + ' / ';
+      title += `${this.processName  } / `;
     }
     if (this.typeName.length > 0) {
       title += this.typeName;
@@ -534,10 +534,10 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.ioPieChart?.hideTip();
     let title = '';
     if (this.processName.length > 0) {
-      title += this.processName + ' / ';
+      title += `${this.processName  } / `;
     }
     if (this.typeName.length > 0) {
-      title += this.typeName + ' / ';
+      title += `${this.typeName  } / `;
     }
     if (this.threadName.length > 0) {
       title += this.threadName;
@@ -597,13 +597,13 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   private ioTierTitle(): void {
     let title = '';
     if (this.processName.length > 0) {
-      title += this.processName + ' / ';
+      title += `${this.processName  } / `;
     }
     if (this.typeName.length > 0) {
       if (this.hideThreadCheckBox?.checked) {
         title += this.typeName;
       } else {
-        title += this.typeName + ' / ';
+        title += `${this.typeName  } / `;
       }
     }
     if (this.threadName.length > 0) {
@@ -619,13 +619,13 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.ioPieChart?.hideTip();
     let title = '';
     if (this.processName.length > 0) {
-      title += this.processName + ' / ';
+      title += `${this.processName  } / `;
     }
     if (this.typeName.length > 0) {
-      title += this.typeName + ' / ';
+      title += `${this.typeName  } / `;
     }
     if (this.threadName.length > 0 && !this.hideThreadCheckBox!.checked) {
-      title += this.threadName + ' / ';
+      title += `${this.threadName  } / `;
     }
     if (it.tableName.length > 0) {
       title += it.tableName;
@@ -684,7 +684,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       if (this.ioSortColumn === 'tableName') {
         this.sortTableNameCase(ioTierCurrentTable, sortIoArr);
       } else if (this.ioSortColumn === 'durFormat' || this.ioSortColumn === 'percent') {
-        ioTierCurrentTable!.recycleDataSource = sortIoArr.sort((a, b) => {
+        ioTierCurrentTable!.recycleDataSource = sortIoArr.sort((a, b): number => {
           return this.ioSortType === 1 ? a.duration - b.duration : b.duration - a.duration;
         });
       }
@@ -710,7 +710,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
 
   private sortTableNameCase(ioTierCurrentTable: LitTable, sortIoArr: any[]): void {
-    ioTierCurrentTable!.recycleDataSource = sortIoArr.sort((firstIOElement, secondIOElement) => {
+    ioTierCurrentTable!.recycleDataSource = sortIoArr.sort((firstIOElement, secondIOElement): number => {
       if (this.ioSortType === 1) {
         if (firstIOElement.tableName > secondIOElement.tableName) {
           return 1;
@@ -745,13 +745,13 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       if (ioMap.has(itemData.pid)) {
         ioMap.get(itemData.pid)?.push(itemData);
       } else {
-        let itemArray = new Array<number | string>();
+        let itemArray = [];
         itemArray.push(itemData);
         ioMap.set(itemData.pid, itemArray);
       }
     }
     this.pidData = [];
-    ioMap.forEach((value: Array<any>, key: string) => {
+    ioMap.forEach((value: Array<any>, key: string): void => {
       let ioPidDataDur = 0;
       let pName = '';
       for (let item of value) {
@@ -795,13 +795,13 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       if (ioTypeMap.has(processItem.type)) {
         ioTypeMap.get(processItem.type)?.push(processItem);
       } else {
-        let itemArray = new Array<number | string>();
+        let itemArray = [];
         itemArray.push(processItem);
         ioTypeMap.set(processItem.type, itemArray);
       }
     }
     this.typeData = [];
-    ioTypeMap.forEach((value: Array<any>, key: number) => {
+    ioTypeMap.forEach((value: Array<any>, key: number): void => {
       let dur = 0;
       for (let ioItem of value) {
         dur += ioItem.dur;
@@ -845,7 +845,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       if (threadMap.has(itemData.tid)) {
         threadMap.get(itemData.tid)?.push(itemData);
       } else {
-        let itemArray = new Array<number | string>();
+        let itemArray = [];
         itemArray.push(itemData);
         threadMap.set(itemData.tid, itemArray);
       }
@@ -860,15 +860,15 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
 
   private calculateThreadData(threadMap: Map<string, Array<number | string>>, item: any, allDur: number): void {
     this.threadData = [];
-    threadMap.forEach((value: Array<any>, key: string) => {
+    threadMap.forEach((value: Array<any>, key: string): void => {
       let dur = 0;
       let tName = '';
       for (let item of value) {
         dur += item.dur;
         tName = item.threadName =
-          item.threadName === null || item.threadName === undefined
-            ? `Thread(${item.tid})`
-            : `${item.threadName}(${item.tid})`;
+          item.threadName === null || item.threadName === undefined ?
+            `Thread(${item.tid})` :
+            `${item.threadName}(${item.tid})`;
       }
       const threadData = {
         tableName: tName,
@@ -898,7 +898,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       if (libMap.has(processItemData.libId)) {
         libMap.get(processItemData.libId)?.push(processItemData);
       } else {
-        let dataArray = new Array<number | string>();
+        let dataArray = [];
         dataArray.push(processItemData);
         libMap.set(processItemData.libId, dataArray);
       }
@@ -928,7 +928,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
 
   private updateSoData(libMap: Map<number, Array<number | string>>, item: any, allDur: number): void {
     this.soData = [];
-    libMap.forEach((value: any[], key: number) => {
+    libMap.forEach((value: any[], key: number): void => {
       let dur = 0;
       let libName = '';
       for (let item of value) {
@@ -978,7 +978,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       if (symbolMap.has(processData.symbolId)) {
         symbolMap.get(processData.symbolId)?.push(processData);
       } else {
-        let dataArray = new Array<number | string>();
+        let dataArray = [];
         dataArray.push(processData);
         symbolMap.set(processData.symbolId, dataArray);
       }
@@ -1044,7 +1044,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
 
   private updateFunctionData(symbolMap: Map<number, Array<any>>, item: any, allDur: number): void {
     this.functionData = [];
-    symbolMap.forEach((symbolItems, key) => {
+    symbolMap.forEach((symbolItems, key): void => {
       let dur = 0;
       let funSymbolName = '';
       for (let symbolItem of symbolItems) {
@@ -1145,7 +1145,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       'fileSystem-action',
       { args, callType: 'io', isAnalysis: true },
       undefined,
-      (results: any) => {
+      (results: any): void => {
         handler(results);
         this.progressEL!.loading = false;
       }
@@ -1153,17 +1153,17 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
 
   public connectedCallback(): void {
-    new ResizeObserver(() => {
+    new ResizeObserver((): void => {
       if (this.parentElement?.clientHeight !== 0) {
-        this.ioTierTableProcess!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.ioTierTableProcess!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.ioTierTableProcess?.reMeauseHeight();
-        this.ioTierTableThread!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.ioTierTableThread!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.ioTierTableThread?.reMeauseHeight();
-        this.ioTierTableSo!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.ioTierTableSo!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.ioTierTableSo?.reMeauseHeight();
-        this.tableFunction!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.tableFunction!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.tableFunction?.reMeauseHeight();
-        this.tierTableType!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.tierTableType!.style.height = `${this.parentElement!.clientHeight - 50}px`;
         this.tierTableType?.reMeauseHeight();
         if (this.parentElement!.clientHeight >= 0 && this.parentElement!.clientHeight <= 31) {
           this.tierFilterEl!.style.display = 'none';

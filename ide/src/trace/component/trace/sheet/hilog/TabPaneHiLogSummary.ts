@@ -181,7 +181,7 @@ export class TabPaneHiLogSummary extends BaseElement {
 
   private changeNode(currentNode: number): void {
     if (this.expandedNodeList.has(currentNode)) {
-      this.expandedNodeList['delete'](currentNode);
+      this.expandedNodeList.delete(currentNode);
     } else {
       this.expandedNodeList.add(currentNode);
     }

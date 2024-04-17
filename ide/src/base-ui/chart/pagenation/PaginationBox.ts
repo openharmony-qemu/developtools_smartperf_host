@@ -19,11 +19,11 @@ import { BaseElement, element } from '../../BaseElement';
 export class PaginationBox extends BaseElement {
   private paginationBoxPage: any;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['text', 'height', 'width'];
   }
 
-  get text() {
+  get text(): string {
     return this.getAttribute('text') || '';
   }
 
@@ -31,7 +31,7 @@ export class PaginationBox extends BaseElement {
     this.setAttribute('text', text);
   }
 
-  get height() {
+  get height(): string {
     return this.getAttribute('height') || '';
   }
 
@@ -58,7 +58,7 @@ export class PaginationBox extends BaseElement {
     this.paginationBoxPage = this.shadowRoot?.querySelector('#box');
   }
 
-  attributeChangedCallback(name: string, oldValue: string, value: string) {
+  attributeChangedCallback(name: string, oldValue: string, value: string): void {
     switch (name) {
     }
   }

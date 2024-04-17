@@ -18,7 +18,10 @@ ohos_source_set("proto_reader") {
   part_name = "${OHOS_PROFILER_PART_NAME}"
   public_deps = []
   include_dirs = [ "include" ]
-  sources = [ "proto_reader.cpp" ]
+  sources = [
+    "proto_reader.cpp",
+    "proto_reader_help.cpp",
+  ]
   include_dirs += [
     "../include",
     "../base",

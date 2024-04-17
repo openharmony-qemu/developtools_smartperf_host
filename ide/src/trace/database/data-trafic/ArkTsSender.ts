@@ -18,7 +18,7 @@ import { threadPool } from '../SqlLite';
 import { JsCpuProfilerStruct } from '../ui-worker/ProcedureWorkerCpuProfiler';
 import { CHART_OFFSET_LEFT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 
-export function cpuProfilerDataSender(row: TraceRow<JsCpuProfilerStruct>) {
+export function cpuProfilerDataSender(row: TraceRow<JsCpuProfilerStruct>): Promise<unknown> {
   let trafic: number = TraficEnum.ProtoBuffer;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   return new Promise((resolve, reject) => {
@@ -39,7 +39,13 @@ export function cpuProfilerDataSender(row: TraceRow<JsCpuProfilerStruct>) {
   });
 }
 
-function arrayBufferHandler(res: any, len: number) {
+function arrayBufferHandler(
+  res: any,
+  len: number
+): {
+  maxDepth: any;
+  dataList: any[];
+} {
   let outArr: any[] = [];
   let column = new Int32Array(res.column);
   let depth = new Int32Array(res.depth);

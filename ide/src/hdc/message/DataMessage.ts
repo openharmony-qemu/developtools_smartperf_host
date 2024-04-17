@@ -39,7 +39,7 @@ export class DataMessage extends Object {
     }
   }
 
-  splitData() {
+  splitData(): void {
     let playHeadArray = this.body!.buffer.slice(0, 11);
     let resultPayloadHead: PayloadHead = PayloadHead.parsePlayHead(new DataView(playHeadArray));
     let headSize = resultPayloadHead.headSize;
@@ -48,8 +48,8 @@ export class DataMessage extends Object {
     let payloadProtect = Serialize.parsePayloadProtect(resultPlayProtectBuffer);
     this._channelId = payloadProtect.channelId;
     this._commandFlag = payloadProtect.commandFlag;
-    if (payloadProtect.commandFlag == HdcCommand.CMD_KERNEL_CHANNEL_CLOSE) {
-      log('commandFlag: ' + payloadProtect.commandFlag);
+    if (payloadProtect.commandFlag === HdcCommand.CMD_KERNEL_CHANNEL_CLOSE) {
+      log(`commandFlag: ${payloadProtect.commandFlag}`);
       this._channelClose = true;
     } else {
       if (dataSize > 0) {
@@ -121,17 +121,6 @@ export class DataMessage extends Object {
   }
 
   toString(): string {
-    return (
-      'usbHead: ' +
-      this._usbHead +
-      ' channelId: ' +
-      this._channelId +
-      ' result: ' +
-      this._result +
-      ' channelClose: ' +
-      this._channelClose +
-      ' commandFlag: ' +
-      this._commandFlag
-    );
+    return `usbHead: ${this._usbHead} channelId: ${this._channelId} result: ${this._result} channelClose: ${this._channelClose} commandFlag: ${this._commandFlag}`;
   }
 }

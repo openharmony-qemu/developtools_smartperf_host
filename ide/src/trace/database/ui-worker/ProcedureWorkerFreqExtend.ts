@@ -30,7 +30,7 @@ export class FreqExtendRender extends Render {
       type: string;
     },
     row: TraceRow<CpuFreqExtendStruct>
-  ) {
+  ): void {
     let freqExtendList = row.dataList;
     let freqExtendFilter = row.dataListCache;
     dataFilterHandler(freqExtendList, freqExtendFilter, {
@@ -106,7 +106,7 @@ export class CpuFreqExtendStruct extends BaseStruct {
     data: CpuFreqExtendStruct,
     type: string,
     row: TraceRow<CpuFreqExtendStruct>
-  ) {
+  ): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = data.colorIndex || 0;

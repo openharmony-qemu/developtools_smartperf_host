@@ -63,7 +63,11 @@ export class AppStartupRender {
 }
 
 const padding = 3;
-export function AppStartupStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollToFuncHandler: any) {
+export function AppStartupStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  scrollToFuncHandler: any
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_APP_STARTUP && AppStartupStruct.hoverStartupStruct) {
       AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;

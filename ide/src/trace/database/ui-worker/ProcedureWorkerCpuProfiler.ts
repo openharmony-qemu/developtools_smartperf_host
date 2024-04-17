@@ -62,11 +62,11 @@ function setHoveStruct(
   jsCpuProfilerRow: TraceRow<JsCpuProfilerStruct>,
   re: JsCpuProfilerStruct,
   jsCpuProfilerFind: boolean
-) {
+): void {
   if (jsCpuProfilerRow.isHover) {
     if (
       re.endTime - re.startTime === 0 ||
-      re.endTime - re.startTime == null ||
+      re.endTime - re.startTime === null ||
       re.endTime - re.startTime === undefined
     ) {
       if (
@@ -107,7 +107,11 @@ export function jsCpuProfiler(
 }
 
 const padding = 1;
-export function JsCpuProfilerStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>) {
+export function JsCpuProfilerStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  row: TraceRow<any>
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
       if (row.findHoverStruct) {
@@ -138,7 +142,7 @@ function getTopJsCpuProfilerStruct(
   that: SpSystemTrace,
   dataArr: Array<JsCpuProfilerChartFrame> = [],
   parentIdArr: Array<number> = []
-) {
+): void {
   if (parentId === -1 && selectStruct.parentId === -1) {
     // 点击的函数是第一层，直接设置其children的isSelect为true，不用重新算totalTime
     let data = that.chartManager!.arkTsChart.chartFrameMap.get(selectStruct!.id);
@@ -168,7 +172,11 @@ function getTopJsCpuProfilerStruct(
   }
 }
 
-function getSelectStruct(data: JsCpuProfilerChartFrame, selectStruct: JsCpuProfilerStruct, parentIdArr: number[]) {
+function getSelectStruct(
+  data: JsCpuProfilerChartFrame,
+  selectStruct: JsCpuProfilerStruct,
+  parentIdArr: number[]
+): void {
   for (let child of data.children) {
     if (child === null) {
       continue;
@@ -187,7 +195,7 @@ function getSelectStruct(data: JsCpuProfilerChartFrame, selectStruct: JsCpuProfi
   }
 }
 
-function setSelectChildrenState(data: JsCpuProfilerChartFrame) {
+function setSelectChildrenState(data: JsCpuProfilerChartFrame): void {
   data.isSelect = true;
   if (data.children.length > 0) {
     for (let child of data.children) {
@@ -222,7 +230,8 @@ export class JsCpuProfilerStruct extends BaseStruct {
     totalNS: number,
     frame: Rect
   ): void {
-    let x1: number, x2: number;
+    let x1: number;
+    let x2: number;
     if ((jsCpuProfilerNode.startTime || 0) > startNS && (jsCpuProfilerNode.startTime || 0) < endNS) {
       x1 = ns2x(jsCpuProfilerNode.startTime || 0, startNS, endNS, totalNS, frame);
     } else {

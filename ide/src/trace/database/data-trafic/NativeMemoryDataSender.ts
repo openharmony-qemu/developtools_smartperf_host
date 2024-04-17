@@ -64,7 +64,7 @@ export function nativeMemoryChartDataCacheSender(processes: Array<number>, model
   });
 }
 
-function arrayBufferHandler(res: any, len: number) {
+function arrayBufferHandler(res: any, len: number): unknown[] {
   let outArr: any[] = [];
   let startTime = new Float64Array(res.startTime);
   let dur = new Float64Array(res.dur);

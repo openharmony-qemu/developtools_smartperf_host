@@ -30,7 +30,7 @@ export function HeapNodeToConstructorItem(node: HeapNode): ConstructorComparison
   return constructor;
 }
 
-export function getTimeForLog() {
+export function getTimeForLog(): string {
   let date = new Date(Date.now());
   return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds()} `;
 }

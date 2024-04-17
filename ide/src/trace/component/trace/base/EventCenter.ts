@@ -19,30 +19,34 @@ class Event {
     this.map = {};
   }
 
-  subscribe(event: string, fn: Function) {
+  subscribe(event: string, fn: Function): void {
     this.map[event] = this.map[event] || [];
     this.map[event].push(fn);
   }
-  publish(event: string, data: any) {
+  publish(event: string, data: any): void {
     const fnList = this.map[event] || [];
-    if (!fnList || fnList.length === 0) return;
+    if (!fnList || fnList.length === 0) {
+      return;
+    }
     fnList.forEach((fn: Function) => fn.call(undefined, data));
   }
-  unsubscribe(event: string, fn: Function) {
+  unsubscribe(event: string, fn: Function): void {
     const fnList = this.map[event] || [];
     const index = fnList.indexOf(fn);
-    if (index < 0) return;
+    if (index < 0) {
+      return;
+    }
     fnList.splice(index, 1);
   }
-  subscribeOnce(event: string, callback: Function) {
-    const f = (data: any) => {
+  subscribeOnce(event: string, callback: Function): void {
+    const f = (data: any): void => {
       callback(data);
       this.unsubscribe(event, f);
     };
     this.subscribe(event, f);
   }
 
-  clearTraceRowComplete() {
+  clearTraceRowComplete(): void {
     if (this.map[window.SmartEvent.UI.TraceRowComplete].length > 0) {
       this.map[window.SmartEvent.UI.TraceRowComplete] = [];
     }

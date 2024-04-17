@@ -110,7 +110,7 @@ export class TabPaneVmTrackerShmSelection extends BaseElement {
       this.TableEl!.snapshotDataSource = this.shmData;
     } else {
       const array = [...this.shmData];
-      const comparisonFunction = comparisonFunctions[column] || (() => 0);
+      const comparisonFunction = comparisonFunctions[column] || ((): number => 0);
       this.TableEl!.snapshotDataSource = array.sort(comparisonFunction);
     }
   }

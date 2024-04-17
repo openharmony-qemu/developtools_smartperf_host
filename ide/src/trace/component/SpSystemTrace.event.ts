@@ -43,11 +43,9 @@ import { CpuStateStructOnClick } from '../database/ui-worker/cpu/ProcedureWorker
 import { CpuFreqLimitsStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { FlagsConfig } from './SpFlags';
 import { LitMainMenu } from '../../base-ui/menu/LitMainMenu';
-import { PerfToolsStructOnClick } from "../database/ui-worker/ProcedureWorkerPerfTool";
 
-
-function timeoutJudge(sp: SpSystemTrace) {
-  let timeoutJudge = setTimeout(() => {
+function timeoutJudge(sp: SpSystemTrace): number {
+  let timeoutJudge = window.setTimeout((): void => {
     if (SpSystemTrace.wakeupList.length && CpuStruct.selectCpuStruct) {
       let checkHandlerKey: boolean = true;
       let saveSelectCpuStruct: any = JSON.parse(sessionStorage.getItem('saveselectcpustruct')!);
@@ -87,8 +85,8 @@ function timeoutJudge(sp: SpSystemTrace) {
   return timeoutJudge;
 }
 
-function threadClickHandlerFunc(sp: SpSystemTrace) {
-  let threadClickHandler = (d: ThreadStruct) => {
+function threadClickHandlerFunc(sp: SpSystemTrace): (e: ThreadStruct) => void {
+  let threadClickHandler = (d: ThreadStruct): void => {
     sp.observerScrollHeightEnable = false;
     sp.scrollToProcess(`${d.cpu}`, '', 'cpu-data', true);
     let cpuRow = sp.queryAllTraceRow<TraceRow<CpuStruct>>(
@@ -139,19 +137,19 @@ function threadClickHandlerFunc(sp: SpSystemTrace) {
 }
 
 function scrollToFuncHandlerFunc(sp: SpSystemTrace) {
-  return function (funcStruct: any) {
+  return function (funcStruct: any): void {
     sp.observerScrollHeightEnable = true;
     sp.moveRangeToCenter(funcStruct.startTs!, funcStruct.dur!);
     sp.scrollToActFunc(funcStruct, false);
   };
 }
 
-function jankClickHandlerFunc(sp: SpSystemTrace) {
-  let jankClickHandler = (d: any) => {
+function jankClickHandlerFunc(sp: SpSystemTrace): Function {
+  let jankClickHandler = (d: any): void => {
     sp.observerScrollHeightEnable = true;
     let jankRowParent: any;
     if (d.rowId === 'actual frameTime') {
-      jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>("trace-row[row-id='frameTime']");
+      jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>('trace-row[row-id=\'frameTime\']');
     } else {
       jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
         `trace-row[row-type='process'][row-id='${d.pid}']`
@@ -167,7 +165,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace) {
     sp.currentRow = jankRow;
     if (jankRow) {
       JankStruct.selectJankStructList.length = 0;
-      let findJankEntry = jankRow!.dataListCache!.find((dat: any) => dat.name == d.name && dat.pid == d.pid);
+      let findJankEntry = jankRow!.dataListCache!.find((dat: any) => dat.name === d.name && dat.pid === d.pid);
       if (findJankEntry) {
         if (
           findJankEntry!.ts! + findJankEntry!.dur! < TraceRow.range!.startNS ||
@@ -203,11 +201,11 @@ function jankClickHandlerFunc(sp: SpSystemTrace) {
   return jankClickHandler;
 }
 
-function snapshotClickHandlerFunc(sp: SpSystemTrace) {
-  let snapshotClickHandler = (d: HeapSnapshotStruct) => {
+function snapshotClickHandlerFunc(sp: SpSystemTrace): Function {
+  let snapshotClickHandler = (d: HeapSnapshotStruct): void => {
     sp.observerScrollHeightEnable = true;
-    let snapshotRow = sp.shadowRoot?.querySelector<TraceRow<HeapSnapshotStruct>>(`trace-row[row-id='heapsnapshot']`);
-    let task = () => {
+    let snapshotRow = sp.shadowRoot?.querySelector<TraceRow<HeapSnapshotStruct>>('trace-row[row-id=\'heapsnapshot\']');
+    let task = (): void => {
       if (snapshotRow) {
         let findEntry = snapshotRow!.dataListCache!.find((dat) => dat.startTs === d.startTs);
         sp.hoverStructNull();
@@ -228,7 +226,7 @@ function snapshotClickHandlerFunc(sp: SpSystemTrace) {
   return snapshotClickHandler;
 }
 
-function cpuClickHandlerTask(threadRow: TraceRow<any>, sp: SpSystemTrace, d: CpuStruct) {
+function cpuClickHandlerTask(threadRow: TraceRow<any>, sp: SpSystemTrace, d: CpuStruct): void {
   if (threadRow) {
     let findEntry = threadRow!.fixedList[0];
     if (
@@ -249,9 +247,9 @@ function cpuClickHandlerTask(threadRow: TraceRow<any>, sp: SpSystemTrace, d: Cpu
       ThreadStruct.selectThreadStruct!,
       threadClickHandlerFunc(sp),
       cpuClickHandlerFunc(sp),
-      (datas, str) => {
+      (datas, str): void => {
         sp.removeLinkLinesByBusinessType('thread');
-        if (str == 'wakeup tid') {
+        if (str === 'wakeup tid') {
           datas.forEach((data) => {
             let endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-id='${data.pid}'][folder]`);
             sp.drawThreadLine(endParentRow, ThreadStruct.firstselectThreadStruct, data);
@@ -265,7 +263,7 @@ function cpuClickHandlerTask(threadRow: TraceRow<any>, sp: SpSystemTrace, d: Cpu
 }
 
 function cpuClickHandlerFunc(sp: SpSystemTrace) {
-  return function (d: CpuStruct) {
+  return function (d: CpuStruct): void {
     let traceRow = sp.shadowRoot?.querySelector<TraceRow<any>>(
       `trace-row[row-id='${d.processId}'][row-type='process']`
     );
@@ -296,13 +294,13 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
       } else {
         sp.scrollToProcess(`${d.tid}`, `${d.processId}`, 'process', false);
         sp.scrollToProcess(`${d.tid}`, `${d.processId}`, 'thread', true);
-        threadRow!.onComplete = () => cpuClickHandlerTask(threadRow, sp, d);
+        threadRow!.onComplete = (): void => cpuClickHandlerTask(threadRow, sp, d);
       }
     }
   };
 }
 
-function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<any>, entry?: any) {
+function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<any>, entry?: any): void {
   CpuStructOnClick(clickRowType, sp, cpuClickHandlerFunc(sp))
     .then(() => ThreadStructOnClick(clickRowType, sp, threadClickHandlerFunc(sp), cpuClickHandlerFunc(sp)))
     .then(() => FuncStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp), entry))
@@ -323,8 +321,6 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
     .then(() => sampleStructOnClick(clickRowType, sp))
-    .then(() => PerfToolsStructOnClick(clickRowType, sp))
-    
     .then(() => {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
         sp.removeLinkLinesByBusinessType('janks');
@@ -337,22 +333,24 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
         sp.refreshCanvas(true);
       }
     })
-    .catch((e) => {});
+    .catch((e): void => {});
 }
 export default function spSystemTraceOnClickHandler(
   sp: SpSystemTrace,
   clickRowType: string,
   row?: TraceRow<any>,
   entry?: any
-) {
+): void {
   if (row) {
     sp.currentRow = row;
     sp.setAttribute('clickRow', clickRowType);
     sp.setAttribute('rowName', row.name!);
     sp.setAttribute('rowId', row.rowId!);
   }
-  if (!sp.loadTraceCompleted) return;
-  sp.queryAllTraceRow().forEach((it) => (it.rangeSelect = false));
+  if (!sp.loadTraceCompleted) {
+    return;
+  }
+  sp.queryAllTraceRow().forEach((it): boolean => (it.rangeSelect = false));
   sp.selectStructNull();
   // 判断点击的线程是否在唤醒树内
   timeoutJudge(sp);
@@ -372,7 +370,7 @@ export default function spSystemTraceOnClickHandler(
   }
 }
 
-function handleActions(sp: SpSystemTrace, rows: Array<TraceRow<any>>, ev: MouseEvent) {
+function handleActions(sp: SpSystemTrace, rows: Array<TraceRow<any>>, ev: MouseEvent): void {
   sp.rangeSelect.mouseMove(rows, ev);
   if (sp.rangeSelect.rangeTraceRow!.length > 0) {
     sp.tabCpuFreq!.rangeTraceRow = sp.rangeSelect.rangeTraceRow;
@@ -380,13 +378,13 @@ function handleActions(sp: SpSystemTrace, rows: Array<TraceRow<any>>, ev: MouseE
   }
   let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
   if (sp.rangeSelect.isMouseDown && search?.isClearValue) {
-    SpSystemTraceDocumentOnMouseMoveMouseDown(sp, search);
+    spSystemTraceDocumentOnMouseMoveMouseDown(sp, search);
   } else {
-    SpSystemTraceDocumentOnMouseMoveMouseUp(sp, rows, ev);
+    spSystemTraceDocumentOnMouseMoveMouseUp(sp, rows, ev);
   }
 }
 
-function handleMouseInTimeShaft(sp: SpSystemTrace, ev: MouseEvent) {
+function handleMouseInTimeShaft(sp: SpSystemTrace, ev: MouseEvent): boolean | undefined {
   let isMouseInTimeShaft = sp.timerShaftEL?.containPoint(ev);
   if (isMouseInTimeShaft) {
     sp.tipEL!.style.display = 'none';
@@ -395,7 +393,7 @@ function handleMouseInTimeShaft(sp: SpSystemTrace, ev: MouseEvent) {
   return isMouseInTimeShaft;
 }
 
-export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEvent): void {
   if (!sp.loadTraceCompleted || (window as any).flagInputFocus || !sp.mouseEventEnable) {
     return;
   }
@@ -412,7 +410,7 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
   if (ev.ctrlKey && ev.button === 0 && SpSystemTrace.isMouseLeftDown) {
     // 计算当前tab组件的高度
     let tabHeight: number =
-      sp.shadowRoot?.querySelector(`trace-sheet`)!.shadowRoot?.querySelector('lit-tabs')!.clientHeight! + 1;
+      sp.shadowRoot?.querySelector('trace-sheet')!.shadowRoot?.querySelector('lit-tabs')!.clientHeight! + 1;
     // 计算当前屏幕内高与鼠标位置坐标高度的差值
     let diffHeight: number = window.innerHeight - ev.clientY;
     // 如果差值大于面板高度，意味着鼠标位于泳道区域，可以通过ctrl+鼠标左键移动。否则不予生效
@@ -439,7 +437,7 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
   handleActions(sp, rows, ev);
 }
 
-function SpSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: LitSearch) {
+function spSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: LitSearch): void {
   sp.refreshCanvas(true);
   if (TraceRow.rangeSelectObject) {
     if (search && search.searchValue !== '') {
@@ -449,7 +447,7 @@ function SpSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: Li
   }
 }
 
-function SpSystemTraceDocumentOnMouseMoveMouseUp(sp: SpSystemTrace, rows: Array<TraceRow<any>>, ev: MouseEvent) {
+function spSystemTraceDocumentOnMouseMoveMouseUp(sp: SpSystemTrace, rows: Array<TraceRow<any>>, ev: MouseEvent): void {
   if (!sp.rowsPaneEL!.containPoint(ev, { left: 248 })) {
     sp.hoverStructNull();
   }
@@ -465,8 +463,8 @@ function SpSystemTraceDocumentOnMouseMoveMouseUp(sp: SpSystemTrace, rows: Array<
         );
       }
     })
-    .forEach((tr) => {
-      if (sp.currentRowType != tr.rowType) {
+    .forEach((tr): void => {
+      if (sp.currentRowType !== tr.rowType) {
         sp.currentRowType = tr.rowType || '';
       }
       tr.findHoverStruct?.();
@@ -475,7 +473,7 @@ function SpSystemTraceDocumentOnMouseMoveMouseUp(sp: SpSystemTrace, rows: Array<
   requestAnimationFrame(() => sp.refreshCanvas(true));
 }
 
-export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEvent): void {
   if (!sp.loadTraceCompleted) {
     return;
   }
@@ -490,7 +488,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   }
 }
 
-export function SpSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev: KeyboardEvent) {
+export function spSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev: KeyboardEvent): void {
   SpSystemTrace.isKeyUp = false;
   if (!sp.loadTraceCompleted) {
     return;
@@ -519,8 +517,8 @@ export function SpSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev
       let isSelectSliceOrFlag = false;
       // 设置当前选中的slicetime
       let selectSlice: any = undefined;
-      sp._slicesList.forEach((slice: { selected: boolean }) => {
-        if (slice.selected === true) {
+      sp._slicesList.forEach((slice: { selected: boolean }): void => {
+        if (slice.selected) {
           selectSlice = slice;
         }
       });
@@ -555,7 +553,7 @@ export function SpSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev
   }
 }
 
-export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEvent): void {
   if (!sp.loadTraceCompleted || !sp.mouseEventEnable) {
     return;
   }
@@ -600,7 +598,7 @@ export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEve
   }
 }
 
-function handleTimerShaftActions(ev: MouseEvent, sp: SpSystemTrace) {
+function handleTimerShaftActions(ev: MouseEvent, sp: SpSystemTrace): void {
   if (ev.offsetX > sp.timerShaftEL!.canvas!.offsetLeft) {
     let x = ev.offsetX - sp.timerShaftEL!.canvas!.offsetLeft;
     let y = ev.offsetY;
@@ -622,7 +620,7 @@ function handleTimerShaftActions(ev: MouseEvent, sp: SpSystemTrace) {
   }
 }
 
-export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent): void {
   if ((window as any).collectResize) {
     return;
   }
@@ -657,7 +655,7 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
   sp.timerShaftEL?.documentOnMouseUp(ev);
 }
 
-export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEvent) {
+export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEvent): void {
   SpSystemTrace.isKeyUp = true;
   if (sp.times.size > 0) {
     for (let timerId of sp.times) {
@@ -681,7 +679,9 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
       SpSystemTrace.keyboardFlar = true;
     }
   }
-  if (!sp.loadTraceCompleted) return;
+  if (!sp.loadTraceCompleted) {
+    return;
+  }
   let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
   let flagsItemJson = JSON.parse(flagsItem!);
   if (flagsItemJson.VSync === 'Enabled') {
@@ -719,7 +719,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   }
 }
 
-function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace, ev: KeyboardEvent) {
+function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace, ev: KeyboardEvent): void {
   if (keyPress === 'b') {
     let menuBox = document
       .querySelector('body > sp-application')!
@@ -750,7 +750,7 @@ function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace
       sidebarButton.style.width = '48px';
       importConfigDiv!.style.left = '45px';
       searchBox!.style.display = 'none';
-      rowPane.style.maxHeight = `100%`;
+      rowPane.style.maxHeight = '100%';
     } else {
       SpSystemTrace.isHiddenMenu = false;
       menuBox.style.width = '248px';
@@ -759,7 +759,7 @@ function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace
       sidebarButton.style.width = '0px';
       importConfigDiv!.style.left = '5px';
       searchBox!.style.display = '';
-      rowPane.style.maxHeight = `100%`;
+      rowPane.style.maxHeight = '100%';
     }
   }
   if (keyPress === '[' && sp._slicesList.length > 1) {
@@ -777,7 +777,7 @@ function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace
   }
 }
 
-function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEvent) {
+function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEvent): void {
   if (
     !(
       sp.timerShaftEL!.sportRuler!.frame.contains(x, y) &&
@@ -808,7 +808,7 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
   }
 }
 
-export function spSystemTraceDocumentOnClick(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnClick(sp: SpSystemTrace, ev: MouseEvent): void {
   if (!sp.loadTraceCompleted) {
     return;
   }
@@ -841,7 +841,7 @@ export function spSystemTraceDocumentOnClick(sp: SpSystemTrace, ev: MouseEvent) 
   ev.preventDefault();
 }
 
-export function spSystemTraceDocumentOnKeyDown(sp: SpSystemTrace, ev: KeyboardEvent) {
+export function spSystemTraceDocumentOnKeyDown(sp: SpSystemTrace, ev: KeyboardEvent): void {
   document.removeEventListener('keyup', sp.documentOnKeyUp);
   sp.debounce(sp.continueSearch, 250, ev)();
   document.addEventListener('keyup', sp.documentOnKeyUp);

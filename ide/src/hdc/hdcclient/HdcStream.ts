@@ -150,7 +150,7 @@ export class HdcStream {
     return this.dataMessages.dequeue();
   }
 
-  closeStream(): void {
+  async closeStream(): Promise<void> {
     this.hdcClient.unbindStream(this.channelId);
   }
 }

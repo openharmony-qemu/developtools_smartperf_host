@@ -239,7 +239,7 @@ export class LitTree extends BaseElement {
           item.data!.checked = item.checked;
         });
       }
-      var litTreeNodes = this.nodeList.filter((it) => it.checked);
+      let litTreeNodes = this.nodeList.filter((it) => it.checked);
       if (litTreeNodes.length === 0) {
         node.checked = true;
         node.data!.checked = true;

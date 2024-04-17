@@ -41,7 +41,7 @@ const events = {
   TRACE_STREAMER_EXPLAIN_EVENT: 'trace_streamer_explain',
 };
 
-interface EventDefinition {
+export interface EventDefinition {
   event: string;
   name: string;
   index: number;

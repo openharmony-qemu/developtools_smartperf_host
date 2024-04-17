@@ -20,6 +20,7 @@ import { SdkSliceStruct } from '../ui-worker/ProduceWorkerSdkSlice';
 export const querySdkCount = (sql: string, componentId: number, args?: any): Promise<Array<any>> =>
   query('querySdkCount', sql, args, 'exec-sdk-' + componentId);
 
+
 export const querySdkCounterData = (
   sql: string,
   counter_id: number,

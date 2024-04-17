@@ -19,7 +19,7 @@ import { CpuStruct } from './cpu/ProcedureWorkerCPU';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class ProcessRender extends Render {
-  renderMainThread(req: any, row: TraceRow<ProcessStruct>) {
+  renderMainThread(req: any, row: TraceRow<ProcessStruct>): void {
     if (row.expansion) {
       return;
     }
@@ -55,7 +55,7 @@ export function proc(
   totalNS: number,
   frame: any,
   use: boolean
-) {
+): void {
   if (use && res.length > 0) {
     res.forEach((it) => ProcessStruct.setProcessFrame(it, 5, startNS, endNS, totalNS, frame));
     return;
@@ -69,8 +69,8 @@ export function proc(
         if (
           !(
             i > 0 &&
-            (processList[i - 1].frame.x || 0) == (processList[i].frame.x || 0) &&
-            (processList[i - 1].frame.width || 0) == (processList[i].frame.width || 0)
+            (processList[i - 1].frame.x || 0) === (processList[i].frame.x || 0) &&
+            (processList[i - 1].frame.width || 0) === (processList[i].frame.width || 0)
           )
         ) {
           res.push(processList[i]);
@@ -96,13 +96,13 @@ export class ProcessStruct extends BaseStruct {
   type: string | undefined;
   utid: number | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: ProcessStruct, miniHeight: number) {
+  static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: ProcessStruct, miniHeight: number): void {
     if (data.frame) {
       path.rect(data.frame.x, data.frame.y + (data.cpu || 0) * miniHeight + padding, data.frame.width, miniHeight);
     }
   }
 
-  static setFrame(processNode: any, pns: number, startNS: number, endNS: number, frame: any) {
+  static setFrame(processNode: any, pns: number, startNS: number, endNS: number, frame: any): void {
     if ((processNode.startTime || 0) < startNS) {
       processNode.frame.x = 0;
     } else {
@@ -127,7 +127,7 @@ export class ProcessStruct extends BaseStruct {
     endNS: number,
     totalNS: number,
     frame: any
-  ) {
+  ): void {
     let x1: number;
     let x2: number;
     if ((processNode.startTime || 0) < startNS) {

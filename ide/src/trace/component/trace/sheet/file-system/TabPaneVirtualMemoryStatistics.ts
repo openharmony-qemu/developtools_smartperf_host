@@ -37,7 +37,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
   private vmStatisticsResultData: Array<any> = [];
 
   set data(vmStatisticsSelection: SelectionParam | any) {
-    if (vmStatisticsSelection == this.vmStatisticsSelectionParam) {
+    if (vmStatisticsSelection === this.vmStatisticsSelectionParam) {
       return;
     }
     this.vmStatisticsProgressEL!.loading = true;
@@ -45,7 +45,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     this.vmStatisticsSelectionParam = vmStatisticsSelection;
     // @ts-ignore
     this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 20 + 'px';
+      `${this.parentElement!.clientHeight - 20}px`;
     this.queryDataByDB(vmStatisticsSelection);
   }
 
@@ -58,41 +58,42 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       this.vmStatisticsSortKey = evt.detail.key;
       // @ts-ignore
       this.vmStatisticsSortType = evt.detail.sort;
-      if (this.vmStatisticsSortType != 0 && this.vmStatisticsSource.length > 0)
+      if (this.vmStatisticsSortType !== 0 && this.vmStatisticsSource.length > 0) {
         this.sortVmStatisticsTable(this.vmStatisticsSource[0], this.vmStatisticsSortKey);
+      }
       this.vmStatisticsTbl!.recycleDataSource = this.vmStatisticsSource;
     });
     this.vmStatisticsFilter = this.shadowRoot!.querySelector<TabPaneFilter>('#filter');
     this.vmStatisticsFilter!.getStatisticsTypeData((type) => {
-      if (type == 'operation') {
+      if (type === 'operation') {
         this.sortStatus(this.vmStatisticsResultData, 'ipid', 'itid');
       } else {
         this.sortStatus(this.vmStatisticsResultData, 'type', 'ipid');
       }
       this.vmStatisticsTbl!.shadowRoot!.querySelector('div > div.thead > div > div:nth-child(1) > label')!.textContent =
-        type == 'operation' ? 'Process/Thread/Operation' : 'Operation/Process/Thread';
+        type === 'operation' ? 'Process/Thread/Operation' : 'Operation/Process/Thread';
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement!.clientHeight != 0) {
+    new ResizeObserver((): void => {
+      if (this.parentElement!.clientHeight !== 0) {
         // @ts-ignore
         this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 10 - 32 + 'px';
+          `${this.parentElement!.clientHeight - 10 - 32}px`;
         this.vmStatisticsTbl!.reMeauseHeight();
-        this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
+        this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
   }
 
-  getInitData(initVmMemoryStatItem: any, nameTitle: any = 'pname', subtitle: any = null) {
+  getInitData(initVmMemoryStatItem: any, nameTitle: any = 'pname', subtitle: any = null): any {
     // @ts-ignore
-    let title = nameTitle == 'type' ? VM_TYPE_MAP[initVmMemoryStatItem[nameTitle]] : initVmMemoryStatItem[nameTitle];
+    let title = nameTitle === 'type' ? VM_TYPE_MAP[initVmMemoryStatItem[nameTitle]] : initVmMemoryStatItem[nameTitle];
     return {
       ...initVmMemoryStatItem,
-      title: title + (subtitle ? '(' + initVmMemoryStatItem[subtitle] + ')' : ''),
+      title: title + (subtitle ? `(${initVmMemoryStatItem[subtitle]})` : ''),
       allDuration: Utils.getProbablyTime(initVmMemoryStatItem.allDuration),
       minDuration: Utils.getProbablyTime(initVmMemoryStatItem.minDuration),
       maxDuration: Utils.getProbablyTime(initVmMemoryStatItem.maxDuration),
@@ -101,7 +102,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     };
   }
 
-  queryDataByDB(vmMemoryStatParam: SelectionParam | any) {
+  queryDataByDB(vmMemoryStatParam: SelectionParam | any): void {
     this.loadingList.push(1);
     this.vmStatisticsProgressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
@@ -110,7 +111,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       vmMemoryStatParam.rightNs + vmMemoryStatParam.recordStartNs
     ).then((result) => {
       this.loadingList.splice(0, 1);
-      if (this.loadingList.length == 0) {
+      if (this.loadingList.length === 0) {
         this.vmStatisticsProgressEL!.loading = false;
         this.loadingPage.style.visibility = 'hidden';
       }
@@ -134,7 +135,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     result.forEach((item, idx) => {
       this.processChildMap(vmMemoryStatChildMap, item, firstLevel, secondLevel);
       this.processFatherMap(vmMemoryStatFatherMap, item, firstLevel);
-      if (idx == 0) {
+      if (idx === 0) {
         vmMemoryStatAllNode.minDuration = item.minDuration;
       } else {
         vmMemoryStatAllNode.minDuration =
@@ -152,8 +153,9 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     vmMemoryStatAllNode.title = 'All';
     vmMemoryStatAllNode.path = { type: null, tid: null, pid: null, value: 'All' };
     this.vmStatisticsSource = result.length > 0 ? [vmMemoryStatAllNode] : [];
-    if (this.vmStatisticsSortType != 0 && result.length > 0)
+    if (this.vmStatisticsSortType !== 0 && result.length > 0) {
       this.sortVmStatisticsTable(this.vmStatisticsSource[0], this.vmStatisticsSortKey);
+    }
     this.theadClick(this.vmStatisticsSource);
     this.vmStatisticsTbl!.recycleDataSource = this.vmStatisticsSource;
   }
@@ -162,7 +164,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
-        labels[i].addEventListener('click', (e) => {
+        labels[i].addEventListener('click', (): void => {
           if (label.includes('Operation') && i === 0) {
             this.vmStatisticsTbl!.setStatus(res, false, 0, 1);
             this.vmStatisticsTbl!.recycleDs = this.vmStatisticsTbl!.meauseTreeRowElement(res, RedrawTreeForm.Retract);
@@ -189,12 +191,12 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       sp.avgDuration = sp.allDuration / sp.count;
       let vmMemoryStatNode = this.getInitData(
         sp,
-        firstLevel == 'type' ? 'type' : 'pname',
-        firstLevel == 'type' ? null : 'pid'
+        firstLevel === 'type' ? 'type' : 'pname',
+        firstLevel === 'type' ? null : 'pid'
       );
       vmMemoryStatNode.path = { type: null, tid: null, pid: null, value: vmMemoryStatNode.title };
-      vmMemoryStatNode.path[firstLevel == 'type' ? 'type' : 'pid'] =
-        vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
+      vmMemoryStatNode.path[firstLevel === 'type' ? 'type' : 'pid'] =
+        vmMemoryStatNode[firstLevel === 'type' ? 'type' : 'pid'];
       this.handleChildMap(vmMemoryStatChildMap, ks, firstLevel, vmMemoryStatNode, sp);
       vmMemoryStatAllNode.children.push(vmMemoryStatNode);
     }
@@ -208,38 +210,38 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     sp: any
   ): void {
     for (let kst of vmMemoryStatChildMap.keys()) {
-      if (kst.startsWith(ks + '_')) {
+      if (kst.startsWith(`${ks}_`)) {
         let spt = vmMemoryStatChildMap.get(kst);
         let data = this.getInitData(
           spt!,
-          firstLevel == 'type' ? 'pname' : 'tname',
-          firstLevel == 'type' ? 'pid' : 'tid'
+          firstLevel === 'type' ? 'pname' : 'tname',
+          firstLevel === 'type' ? 'pid' : 'tid'
         );
-        this.handledata(data, vmMemoryStatNode, firstLevel);
+        this.handleData(data, vmMemoryStatNode, firstLevel);
         sp!.children.push(data);
       }
     }
   }
 
-  private handledata(data: any, vmMemoryStatNode: any, firstLevel: string): void {
+  private handleData(data: any, vmMemoryStatNode: any, firstLevel: string): void {
     data.path = {
       type: null,
       tid: null,
       pid: null,
-      value: 'All-' + vmMemoryStatNode.title + '-' + data.title,
+      value: `All-${vmMemoryStatNode.title}-${data.title}`,
     };
-    data.path[firstLevel == 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
-    data.path[firstLevel == 'type' ? 'pid' : 'tid'] = data[firstLevel == 'type' ? 'pid' : 'tid'];
+    data.path[firstLevel === 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel === 'type' ? 'type' : 'pid'];
+    data.path[firstLevel === 'type' ? 'pid' : 'tid'] = data[firstLevel === 'type' ? 'pid' : 'tid'];
     data.children.forEach((e: any) => {
       e.path = {
         type: null,
         tid: null,
         pid: null,
-        value: 'All-' + vmMemoryStatNode.title + '-' + data.title + '-' + e.title,
+        value: `All-${vmMemoryStatNode.title}-${data.title}-${e.title}`,
       };
-      e.path[firstLevel == 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
-      e.path[firstLevel == 'type' ? 'pid' : 'tid'] = data[firstLevel == 'type' ? 'pid' : 'tid'];
-      e.path[firstLevel == 'type' ? 'tid' : 'type'] = e[firstLevel == 'type' ? 'tid' : 'type'];
+      e.path[firstLevel === 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel === 'type' ? 'type' : 'pid'];
+      e.path[firstLevel === 'type' ? 'pid' : 'tid'] = data[firstLevel === 'type' ? 'pid' : 'tid'];
+      e.path[firstLevel === 'type' ? 'tid' : 'type'] = e[firstLevel === 'type' ? 'tid' : 'type'];
     });
   }
 
@@ -267,8 +269,8 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     firstLevel: string,
     secondLevel: string
   ): void {
-    if (vmMemoryStatChildMap.has(item[firstLevel] + '_' + item[secondLevel])) {
-      let vmMemoryStatChildObj = vmMemoryStatChildMap.get(item[firstLevel] + '_' + item[secondLevel]);
+    if (vmMemoryStatChildMap.has(`${item[firstLevel]}_${item[secondLevel]}`)) {
+      let vmMemoryStatChildObj = vmMemoryStatChildMap.get(`${item[firstLevel]}_${item[secondLevel]}`);
       vmMemoryStatChildObj.count += item.count;
       vmMemoryStatChildObj.allDuration += item.allDuration;
       vmMemoryStatChildObj.minDuration =
@@ -276,39 +278,39 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       vmMemoryStatChildObj.maxDuration =
         vmMemoryStatChildObj.maxDuration >= item.maxDuration ? vmMemoryStatChildObj.maxDuration : item.maxDuration;
       vmMemoryStatChildObj.children.push(
-        this.getInitData(item, firstLevel == 'type' ? 'tname' : 'type', firstLevel == 'type' ? 'tid' : null)
+        this.getInitData(item, firstLevel === 'type' ? 'tname' : 'type', firstLevel === 'type' ? 'tid' : null)
       );
     } else {
-      vmMemoryStatChildMap.set(item[firstLevel] + '_' + item[secondLevel], {
+      vmMemoryStatChildMap.set(`${item[firstLevel]}_${item[secondLevel]}`, {
         ...item,
         children: [
-          this.getInitData(item, firstLevel == 'type' ? 'tname' : 'type', firstLevel == 'type' ? 'tid' : null),
+          this.getInitData(item, firstLevel === 'type' ? 'tname' : 'type', firstLevel === 'type' ? 'tid' : null),
         ],
       });
     }
   }
 
-  sortVmStatisticsTable(allNode: any, key: string) {
+  sortVmStatisticsTable(allNode: any, key: string): void {
     allNode.children.sort((vmStatNodeA: any, vmStatNodeB: any) => {
-      if (this.vmStatisticsSortType == 1) {
+      if (this.vmStatisticsSortType === 1) {
         return vmStatNodeA.node[key] - vmStatNodeB.node[key];
-      } else if (this.vmStatisticsSortType == 2) {
+      } else if (this.vmStatisticsSortType === 2) {
         return vmStatNodeB.node[key] - vmStatNodeA.node[key];
       }
     });
-    allNode.children.forEach((item: any) => {
+    allNode.children.forEach((item: any): void => {
       item.children.sort((vmStatNodeA: any, vmStatNodeB: any) => {
-        if (this.vmStatisticsSortType == 1) {
+        if (this.vmStatisticsSortType === 1) {
           return vmStatNodeA.node[key] - vmStatNodeB.node[key];
-        } else if (this.vmStatisticsSortType == 2) {
+        } else if (this.vmStatisticsSortType === 2) {
           return vmStatNodeB.node[key] - vmStatNodeA.node[key];
         }
       });
       item.children.forEach((vmStatItem: any) => {
         vmStatItem.children.sort((vmStatItemA: any, vmStatItemB: any) => {
-          if (this.vmStatisticsSortType == 1) {
+          if (this.vmStatisticsSortType === 1) {
             return vmStatItemA.node[key] - vmStatItemB.node[key];
-          } else if (this.vmStatisticsSortType == 2) {
+          } else if (this.vmStatisticsSortType === 2) {
             return vmStatItemB.node[key] - vmStatItemA.node[key];
           }
         });

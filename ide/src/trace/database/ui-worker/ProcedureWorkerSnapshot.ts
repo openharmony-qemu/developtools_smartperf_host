@@ -72,58 +72,58 @@ const padding = 2;
 const snapshotTypeHandlerMap = new Map<string, (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => void>([
   [
     TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayGpuDumpTotalSheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayGpuDumpTotalSheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayGpuDumpWindowSheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayGpuDumpWindowSheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_VM_TRACKER_SMAPS,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displaySmapsSheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displaySmapsSheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_VMTRACKER_SHM,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayShmSheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayShmSheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayTotalAbilitySheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayTotalAbilitySheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayPinAbilitySheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayPinAbilitySheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayTotalVMSheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayTotalVMSheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_PURGEABLE_PIN_VM,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayPinVMSheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayPinVMSheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_DMA_ABILITY,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayDmaAbilitySheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayDmaAbilitySheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_DMA_VMTRACKER,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayDmaVmTrackerSheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayDmaVmTrackerSheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayGpuMemoryAbilitySheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayGpuMemoryAbilitySheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayGpuMemoryVmTrackerSheet(sp, row, reject),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayGpuMemoryVmTrackerSheet(sp, row, reject),
   ],
   [
     TraceRow.ROW_TYPE_GPU_RESOURCE_VMTRACKER,
-    (sp: SpSystemTrace, row: TraceRow<any>, reject: any) => displayGpuResourceSheet(sp),
+    (sp: SpSystemTrace, row: TraceRow<any>, reject: any): void => displayGpuResourceSheet(sp),
   ],
 ]);
-export function SnapshotStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>) {
+export function SnapshotStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (snapshotTypeHandlerMap.has(clickRowType)) {
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct || row.getHoverStruct();
@@ -135,81 +135,81 @@ export function SnapshotStructOnClick(clickRowType: string, sp: SpSystemTrace, r
   });
 }
 
-function displayGpuDumpTotalSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayGpuDumpTotalSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayGpuSelectedData('total', SnapshotStruct.selectSnapshotStruct!.startNs, row!.dataListCache);
   sp.timerShaftEL?.modifyFlagList(undefined);
   reject();
 }
 
-function displayGpuDumpWindowSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayGpuDumpWindowSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayGpuSelectedData('window', SnapshotStruct.selectSnapshotStruct!.startNs, row!.dataListCache);
   sp.timerShaftEL?.modifyFlagList(undefined);
   reject();
 }
 
-function displaySmapsSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displaySmapsSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displaySmapsData(SnapshotStruct.selectSnapshotStruct!, row!.dataListCache);
   reject();
 }
 
-function displayShmSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayShmSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayShmData(SnapshotStruct.selectSnapshotStruct!, row!.dataListCache);
   reject();
 }
 
-function displayTotalAbilitySheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayTotalAbilitySheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayPurgTotalAbilityData(SnapshotStruct.hoverSnapshotStruct!, row!.dataListCache);
   reject();
 }
 
-function displayPinAbilitySheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayPinAbilitySheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayPurgPinAbilityData(SnapshotStruct.hoverSnapshotStruct!, row!.dataListCache);
   reject();
 }
 
-function displayTotalVMSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayTotalVMSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayPurgTotalVMData(SnapshotStruct.hoverSnapshotStruct!, row!.dataListCache);
   reject();
 }
 
-function displayPinVMSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayPinVMSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayPurgPinVMData(SnapshotStruct.hoverSnapshotStruct!, row!.dataListCache);
   reject();
 }
 
-function displayDmaAbilitySheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayDmaAbilitySheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayDmaAbility(SnapshotStruct.selectSnapshotStruct!.startNs, row!.dataListCache);
   reject();
 }
 
-function displayDmaVmTrackerSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayDmaVmTrackerSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayDmaVmTracker(SnapshotStruct.selectSnapshotStruct!.startNs, row!.dataListCache);
   reject();
 }
 
-function displayGpuMemoryAbilitySheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayGpuMemoryAbilitySheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayGpuMemoryAbility(SnapshotStruct.selectSnapshotStruct!.startNs, row!.dataListCache);
   reject();
 }
 
-function displayGpuMemoryVmTrackerSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void) {
+function displayGpuMemoryVmTrackerSheet(sp: SpSystemTrace, row: TraceRow<any>, reject: (reason?: any) => void): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayGpuMemoryVmTracker(SnapshotStruct.selectSnapshotStruct!.startNs, row!.dataListCache);
   reject();
 }
 
-function displayGpuResourceSheet(sp: SpSystemTrace) {
+function displayGpuResourceSheet(sp: SpSystemTrace): void {
   SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
   sp.traceSheetEL?.displayGpuResourceVmTracker(SnapshotStruct.selectSnapshotStruct!.startNs);
 }

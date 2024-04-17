@@ -14,7 +14,7 @@
  */
 
 importScripts('trace_converter_builtin.js');
-self.onerror = function (error: any) {};
+self.onerror = function (error: any): void {};
 
 let convertModule: any = null;
 
@@ -24,20 +24,20 @@ const CONTENT_TYPE_HEADER_PAGE = 30;
 const CONTENT_TYPE_PRINTK_FORMATS = 31;
 const CONTENT_TYPE_KALLSYMS = 32;
 
-function initConvertWASM() {
+function initConvertWASM(): Promise<string> {
   return new Promise((resolve, reject) => {
     // @ts-ignore
     let wasm = trace_converter_builtin_wasm;
     convertModule = wasm({
-      locateFile: (s: any) => {
+      locateFile: (s: any): any => {
         return s;
       },
-      print: (line: any) => {},
-      printErr: (line: any) => {},
-      onAbort: () => {
+      print: (line: any): void => {},
+      printErr: (line: any): void => {},
+      onAbort: (): void => {
         reject('on abort');
       },
-      onRuntimeInitialized: () => {
+      onRuntimeInitialized: (): void => {
         resolve('ok');
       },
     });
@@ -50,7 +50,7 @@ function isRawTrace(uint8Array: Uint8Array): boolean {
 }
 
 const ARRAY_BUF_SIZE = 2 * 1024 * 1024;
-self.onmessage = async (e: MessageEvent) => {
+self.onmessage = async (e: MessageEvent): Promise<void> => {
   if (e.data.action === 'getConvertData') {
     await initConvertWASM();
     let fileData = e.data.buffer;
@@ -79,7 +79,7 @@ self.onmessage = async (e: MessageEvent) => {
     let arrayBufferPtr = convertModule._malloc(ARRAY_BUF_SIZE);
     convertModule._free(dataHeader);
     let bodyDataStr: string[] = [];
-    let callback = (heapPtr: number, size: number) => {
+    let callback = (heapPtr: number, size: number): void => {
       let out = convertModule.HEAPU8.slice(heapPtr, heapPtr + size);
       let dec = new TextDecoder();
       let str = dec.decode(out);
@@ -99,7 +99,7 @@ self.onmessage = async (e: MessageEvent) => {
     );
     convertModule._GetRemainingData(traceInsPtr);
     let headerData: string[] = [];
-    let headerCallback = (heapPtr: number, size: number) => {
+    let headerCallback = (heapPtr: number, size: number): void => {
       let out = convertModule.HEAPU8.slice(heapPtr, heapPtr + size);
       let dec = new TextDecoder();
       let str = dec.decode(out);
@@ -116,7 +116,7 @@ self.onmessage = async (e: MessageEvent) => {
   }
 };
 
-function handleHTrace(fileData: Array<any>, dataHeader: any, traceInsPtr: any) {
+function handleHTrace(fileData: Array<any>, dataHeader: any, traceInsPtr: any): void {
   let uint8Array = new Uint8Array(fileData.slice(0, 1024));
   convertModule.HEAPU8.set(uint8Array, dataHeader);
   convertModule._SendFileHeader(dataHeader, 1024, traceInsPtr);

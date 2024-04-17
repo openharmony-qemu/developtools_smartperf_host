@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Render, BaseStruct, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon';
+import { Render, BaseStruct, isFrameContainPoint, ns2x, Rect } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class SdkSliceRender extends Render {
@@ -61,7 +61,7 @@ export class SdkSliceRender extends Render {
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any,
+    frame: Rect,
     use: boolean
   ): void {
     if (use && sdkSliceFilters.length > 0) {
@@ -87,8 +87,8 @@ function setSdkSliceFilter(
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any
-) {
+  frame: Rect
+): void {
   for (let index = 0; index < sdkList.length; index++) {
     let item = sdkList[index];
     if (item.start_ts >= startNS && item.end_ts === 0) {
@@ -115,19 +115,18 @@ export class SdkSliceStruct extends BaseStruct {
   static hoverSdkSliceStruct: SdkSliceStruct | undefined;
   static selectSdkSliceStruct: SdkSliceStruct | undefined;
 
-  start_ts: number | undefined;
-  end_ts: number | undefined;
+  startTs: number | undefined;
+  endTs: number | undefined;
 
   value: number | undefined;
   slice_message: string | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, data: SdkSliceStruct) {
+  static draw(ctx: CanvasRenderingContext2D, data: SdkSliceStruct): void {
     if (data.frame) {
       let width = data.frame.width || 0;
-      let index = 4;
       ctx.fillStyle = '#6DC0DC';
       ctx.strokeStyle = '#6DC0DC';
-      if (data.start_ts === SdkSliceStruct.hoverSdkSliceStruct?.start_ts) {
+      if (data.startTs === SdkSliceStruct.hoverSdkSliceStruct?.startTs) {
         ctx.lineWidth = 1;
         ctx.fillRect(data.frame.x, data.frame.y + 4, width, data.frame.height - 10);
         ctx.beginPath();
@@ -153,9 +152,10 @@ export class SdkSliceStruct extends BaseStruct {
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
-    let sdkSliceStartPointX: number, sdkSliceEndPointX: number;
+    let sdkSliceStartPointX: number;
+    let sdkSliceEndPointX: number;
 
     if ((SdkSliceNode.start_ts || 0) < startNS) {
       sdkSliceStartPointX = 0;

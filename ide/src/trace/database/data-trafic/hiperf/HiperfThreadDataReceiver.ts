@@ -90,7 +90,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   });
   postPerfThreadMessage(data, transfer, perfThread, res.length);
 }
-function postPerfThreadMessage(data: any, transfer: boolean, perfThread: PerfThread, len: number) {
+function postPerfThreadMessage(data: any, transfer: boolean, perfThread: PerfThread, len: number): void {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,

@@ -16,7 +16,7 @@ import { TraficEnum } from '../utils/QueryEnum';
 export const chartHiperfCpuData10MSProtoSql = (args: any): string => {
   return `select 
                  startNS as startNS,
-                 max(event_count)                                                         eventCount,
+                 max(event_count) as eventCount,
                  sample_count as sampleCount,
                  event_type_id as eventTypeId,
                  callchain_id as callchainId,
@@ -96,7 +96,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   });
   postPerfCpuMessage(data, transfer, perfCpu, res.length);
 }
-function postPerfCpuMessage(data: any, transfer: boolean, perfCpu: PerfCpu, len: number) {
+function postPerfCpuMessage(data: any, transfer: boolean, perfCpu: PerfCpu, len: number): void {
   (self as unknown as Worker).postMessage(
     {
       transfer: transfer,

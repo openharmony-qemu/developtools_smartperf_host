@@ -200,7 +200,9 @@ export function fillCacheDataIdx(filterData: Array<any>, slice: number[], condit
     let height = condition.frame.height - condition.paddingTop * 2;
     for (let i = slice[0]; i <= slice[1]; i++) {
       let it = filterData[i];
-      if (!it) continue;
+      if (!it) {
+        continue;
+      }
       if (
         (it[condition.startKey] || 0) + (it[condition.durKey] || 0) > condition.startNS &&
         (it[condition.startKey] || 0) < condition.endNS
@@ -233,7 +235,9 @@ export function bsearch(haystack: ArrayLike<any>, needle: any): number {
 }
 
 function searchImpl(stack: ArrayLike<any>, cfg: FilterConfig, i: number, j: number): number {
-  if (i === j) return -1;
+  if (i === j) {
+    return -1;
+  }
   if (i + 1 === j) {
     return cfg.endNS >= stack[i][cfg.startKey] ? i : -1;
   }
@@ -253,8 +257,8 @@ export function findRangeIdx(fullData: Array<any>, condition: FilterConfig): num
 }
 
 export function findRange(fullData: Array<any>, condition: FilterConfig): Array<any> {
-  let left = 0,
-    right = 0;
+  let left = 0;
+  let right = 0;
   for (let i = 0, j = fullData.length - 1, ib = true, jb = true; i < fullData.length, j >= 0; i++, j--) {
     if (fullData[j][condition.startKey] <= condition.endNS && jb) {
       right = j;
@@ -300,7 +304,7 @@ export const dataFilterHandler = (fullData: Array<any>, filterData: Array<any>, 
   }
 };
 
-function setSliceFrame(slice: Array<any>, condition: FilterConfig, pns: number, i: number) {
+function setSliceFrame(slice: Array<any>, condition: FilterConfig, pns: number, i: number): void {
   let sum = 0;
   if (slice[i][condition.durKey] >= pns || slice.length < 100) {
     slice[i].v = true;
@@ -344,7 +348,7 @@ function setNodeFrame(
   frame: any,
   startKey: string,
   durKey: string
-) {
+): void {
   if ((node[startKey] || 0) < startNS) {
     node.frame.x = 0;
   } else {
@@ -360,7 +364,7 @@ function setNodeFrame(
   }
 }
 
-export function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: any) {
+export function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: any): number {
   if (endNS === 0) {
     endNS = duration;
   }
@@ -373,7 +377,7 @@ export function ns2x(ns: number, startNS: number, endNS: number, duration: numbe
   return xSize;
 }
 
-export function nsx(ns: number, width: number) {
+export function nsx(ns: number, width: number): number {
   let startNS = TraceRow.range?.startNS || 0;
   let endNS = TraceRow.range?.endNS || 0;
   let duration = TraceRow.range?.totalNS || 0;
@@ -389,7 +393,7 @@ export function nsx(ns: number, width: number) {
   return xSize;
 }
 
-export function ns2xByTimeShaft(ns: number, tse: TimerShaftElement) {
+export function ns2xByTimeShaft(ns: number, tse: TimerShaftElement): number {
   let startNS = tse.getRange()!.startNS;
   let endNS = tse.getRange()!.endNS;
   let duration = tse.getRange()!.totalNS;
@@ -535,7 +539,7 @@ export class BaseStruct {
   isHover: boolean = false;
 }
 
-export function drawLines(ctx: CanvasRenderingContext2D, xs: Array<any>, height: number, lineColor: string) {
+export function drawLines(ctx: CanvasRenderingContext2D, xs: Array<any>, height: number, lineColor: string): void {
   if (ctx) {
     ctx.beginPath();
     ctx.lineWidth = 1;
@@ -564,7 +568,7 @@ export function drawFlagLine(
         color: string | null | undefined;
       }
     | undefined
-) {
+): void {
   if (commonCtx) {
     if (hoverFlag) {
       setHoverFlag(hoverFlag, commonCtx, frame);
@@ -712,7 +716,7 @@ export function drawLogsLineSegment(
   }
 }
 
-export function drawSelection(ctx: any, params: any) {
+export function drawSelection(ctx: any, params: any): void {
   if (params.isRangeSelect && params.rangeSelectObject) {
     params.rangeSelectObject!.startX = Math.floor(
       ns2x(params.rangeSelectObject!.startNS!, params.startNS, params.endNS, params.totalNS, params.frame)
@@ -735,7 +739,7 @@ export function drawSelection(ctx: any, params: any) {
 }
 
 // draw range select
-export function drawSelectionRange(context: any, params: TraceRow<any>) {
+export function drawSelectionRange(context: any, params: TraceRow<any>): void {
   if (params.rangeSelect && TraceRow.rangeSelectObject) {
     setStartXEndX(params);
     if (context) {
@@ -756,7 +760,7 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
   }
 }
 
-function setStartXEndX(params: TraceRow<any>) {
+function setStartXEndX(params: TraceRow<any>): void {
   TraceRow.rangeSelectObject!.startX = Math.floor(
     ns2x(
       TraceRow.rangeSelectObject!.startNS!,
@@ -777,7 +781,7 @@ function setStartXEndX(params: TraceRow<any>) {
   );
 }
 
-function setAvgRateStartXEndX(rateList: number[], params: TraceRow<any>) {
+function setAvgRateStartXEndX(rateList: number[], params: TraceRow<any>): number[] {
   let avgRateStartX = Math.floor(
     ns2x(
       rateList[0]!,
@@ -799,7 +803,7 @@ function setAvgRateStartXEndX(rateList: number[], params: TraceRow<any>) {
   return [avgRateStartX, avgRateEndX];
 }
 
-function setTextXY(rateList: number[], params: TraceRow<any>, textWidth: any) {
+function setTextXY(rateList: number[], params: TraceRow<any>, textWidth: any): number[] {
   let textX =
     Math.floor(
       ns2x(
@@ -815,7 +819,7 @@ function setTextXY(rateList: number[], params: TraceRow<any>, textWidth: any) {
   return [textX, textY];
 }
 
-function drawSelectionRangeContext(rateList: number[], context: any, params: TraceRow<any>) {
+function drawSelectionRangeContext(rateList: number[], context: any, params: TraceRow<any>): void {
   let cutres: number = rateList[rateList.length - 1]! - rateList[0]!;
   let avgFrameRate: string = (((rateList.length - 1) / cutres) * 1000000000).toFixed(1) + 'fps';
   let avgRateStartX = setAvgRateStartXEndX(rateList, params)[0];
@@ -840,7 +844,7 @@ function drawSelectionRangeContext(rateList: number[], context: any, params: Tra
   context.lineTo(avgRateEndX, textY);
   context.stroke();
   const arrowSize = 5.5;
-  const arrowHead = (x: number, y: number, direction: 'left' | 'right') => {
+  const arrowHead = (x: number, y: number, direction: 'left' | 'right'): void => {
     context.beginPath();
     const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
     const headY = y - arrowSize / 2;
@@ -858,7 +862,7 @@ function drawSelectionRangeContext(rateList: number[], context: any, params: Tra
 }
 
 // 转换起始点坐标
-function changeFrameRatePoint(arrList: Array<number>, selectParams: TraceRow<any>) {
+function changeFrameRatePoint(arrList: Array<number>, selectParams: TraceRow<any>): number[] {
   let avgRateStartX = Math.floor(
     ns2x(
       arrList[0]!,
@@ -881,7 +885,7 @@ function changeFrameRatePoint(arrList: Array<number>, selectParams: TraceRow<any
 }
 
 // 处理文字坐标
-function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any>, textWidth: number) {
+function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any>, textWidth: number): number[] {
   const TEXT_WIDTH_HALF = 2;
   let textX = Math.floor(
     ns2x(
@@ -936,7 +940,7 @@ export function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams:
   ctx.stroke();
 
   const arrowSize = 5.5;
-  const arrowHead = (x: number, y: number, direction: 'left' | 'right') => {
+  const arrowHead = (x: number, y: number, direction: 'left' | 'right'): void => {
     ctx.beginPath();
     const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
     const headY = y - arrowSize / 2;
@@ -971,7 +975,7 @@ function drawAvgFrameRateArrow(
   startX: number,
   endX: number,
   avgFrameRate: string
-) {
+): void {
   const textHeight = 25;
   const padding = 5;
   const TEXT_RECT_PADDING = 2;
@@ -995,7 +999,7 @@ function drawAvgFrameRateArrow(
 }
 
 const arrowSize = 5.5;
-const arrowHead = (ctx: any, x: number, y: number, direction: 'left' | 'right') => {
+const arrowHead = (ctx: any, x: number, y: number, direction: 'left' | 'right'): void => {
   ctx.beginPath();
   const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
   const headY = y - arrowSize / 2;
@@ -1017,7 +1021,7 @@ export function drawWakeUp(
   selectCpuStruct: CpuStruct | undefined = undefined,
   wakeUpCurrentCpu: number | undefined = undefined,
   noVerticalLine = false
-) {
+): void {
   if (wake) {
     let x1 = Math.floor(ns2x(wake.wakeupTime || 0, startNS, endNS, totalNS, frame));
     wakeUpContext.beginPath();
@@ -1056,7 +1060,7 @@ function drawWakeUpIfSelect(
   wakeUpContext: any,
   wake: any,
   x1: number
-) {
+): void {
   let x2 = Math.floor(ns2x(selectCpuStruct.startTime || 0, startNS, endNS, totalNS, frame));
   let y = frame.y + frame.height - 10;
   wakeUpContext.moveTo(x1, y);
@@ -1095,7 +1099,7 @@ export function drawLinkLines(
   tm: TimerShaftElement,
   isFavorite: boolean,
   favoriteHeight: number
-) {
+): void {
   let percentage =
     (tm.getRange()!.totalNS - Math.abs(tm.getRange()!.endNS - tm.getRange()!.startNS)) / tm.getRange()!.totalNS;
   let maxWidth = tm.getBoundingClientRect().width - 268;
@@ -1156,7 +1160,7 @@ function drawLinesByType(
   maxWidth: number,
   context: CanvasRenderingContext2D,
   percentage: number
-) {
+): void {
   switch (lineType) {
     case LineType.brokenLine:
       drawBrokenLine([newFirstNode, newSecondNode], maxWidth, context);
@@ -1172,7 +1176,12 @@ function drawLinesByType(
   }
 }
 
-function drawBezierCurve(it: PairPoint[], maxWidth: number, context: CanvasRenderingContext2D, percentage: number) {
+function drawBezierCurve(
+  it: PairPoint[],
+  maxWidth: number,
+  context: CanvasRenderingContext2D,
+  percentage: number
+): void {
   let bezierCurveStart = it[0].x > it[1].x ? it[1] : it[0];
   let bezierCurveEnd = it[0].x > it[1].x ? it[0] : it[1];
   if (bezierCurveStart && bezierCurveEnd) {
@@ -1199,20 +1208,19 @@ function drawBezierCurveContext(
   bezierCurveStart: PairPoint,
   bezierCurveEnd: PairPoint,
   percentage: number
-) {
+): void {
   context.beginPath();
   context.lineWidth = 2;
   context.fillStyle = linkLineColor;
   context.strokeStyle = linkLineColor;
-  let x0, y0, x1, x2, y1, y2, x3, y3;
-  x0 = bezierCurveStart.x ?? 0;
-  y0 = bezierCurveStart.y ?? 0;
-  x3 = bezierCurveEnd.x ?? 0;
-  y3 = bezierCurveEnd.y ?? 0;
-  x2 = bezierCurveEnd.isRight ? x3 - 100 * percentage : x3 + 100 * percentage;
-  y2 = y3 - 40 * percentage;
-  x1 = bezierCurveStart.isRight ? x0 - 100 * percentage : x0 + 100 * percentage;
-  y1 = y0 + 40 * percentage;
+  let x0 = bezierCurveStart.x ?? 0;
+  let y0 = bezierCurveStart.y ?? 0;
+  let x3 = bezierCurveEnd.x ?? 0;
+  let y3 = bezierCurveEnd.y ?? 0;
+  let x2 = bezierCurveEnd.isRight ? x3 - 100 * percentage : x3 + 100 * percentage;
+  let y2 = y3 - 40 * percentage;
+  let x1 = bezierCurveStart.isRight ? x0 - 100 * percentage : x0 + 100 * percentage;
+  let y1 = y0 + 40 * percentage;
   if (!bezierCurveStart.isRight) {
     x0 -= 5;
   }
@@ -1243,7 +1251,7 @@ function drawBezierCurveContext(
   context.closePath();
 }
 
-function drawStraightLine(it: PairPoint[], maxWidth: number, context: CanvasRenderingContext2D) {
+function drawStraightLine(it: PairPoint[], maxWidth: number, context: CanvasRenderingContext2D): void {
   let startPoint = it[0].x > it[1].x ? it[1] : it[0];
   let endPoint = it[0].x > it[1].x ? it[0] : it[1];
   let arrowSize = 8;
@@ -1266,7 +1274,12 @@ function drawStraightLine(it: PairPoint[], maxWidth: number, context: CanvasRend
   }
 }
 
-function drawArrow(context: CanvasRenderingContext2D, startPoint: PairPoint, endPoint: PairPoint, arrowSize: number) {
+function drawArrow(
+  context: CanvasRenderingContext2D,
+  startPoint: PairPoint,
+  endPoint: PairPoint,
+  arrowSize: number
+): void {
   context.beginPath();
   context.lineWidth = 2;
   context.strokeStyle = '#0000FF';
@@ -1324,16 +1337,17 @@ function drawBrokenLineContext(
   context: CanvasRenderingContext2D,
   brokenLineStart: PairPoint,
   brokenLineEnd: PairPoint
-) {
+): void {
   context.beginPath();
   context.lineWidth = 2;
   context.fillStyle = '#46B1E3';
   context.strokeStyle = '#46B1E3';
-  let x0, y0, x1, y1, x2, y2;
-  x0 = brokenLineStart.x ?? 0;
-  y0 = brokenLineStart.y ?? 0;
-  y2 = brokenLineEnd.y ?? 0;
-  x2 = brokenLineEnd.x ?? 0;
+  let x0 = brokenLineStart.x ?? 0;
+  let y0 = brokenLineStart.y ?? 0;
+  let y2 = brokenLineEnd.y ?? 0;
+  let x2 = brokenLineEnd.x ?? 0;
+  let x1;
+  let y1;
   let leftEndpointX, leftEndpointY, rightEndpointX, rightEndpointY;
   if (brokenLineStart.y < brokenLineEnd.y) {
     x1 = brokenLineStart.x ?? 0;
@@ -1376,7 +1390,7 @@ export function drawLoading(
   frame: any,
   left: number,
   right: number
-) {}
+): void {}
 
 let loadingText = 'Loading...';
 let loadingTextWidth = 0;
@@ -1389,7 +1403,7 @@ export function drawLoadingFrame(
   list: Array<any>,
   row: TraceRow<any>,
   sort: boolean = false
-) {
+): void {
   ctx.beginPath();
   ctx.clearRect(0, 0, row.frame.width, row.frame.height);
   drawLines(ctx, TraceRow.range?.xs || [], row.frame.height, '#dadada');
@@ -1414,7 +1428,13 @@ export function drawLoadingFrame(
   ctx.closePath();
 }
 
-export function drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {
+export function drawString(
+  ctx: CanvasRenderingContext2D,
+  str: string,
+  textPadding: number,
+  frame: Rect,
+  data: any
+): void {
   if (data.textMetricsWidth === undefined) {
     data.textMetricsWidth = ctx.measureText(str).width;
   }
@@ -1443,7 +1463,13 @@ export function drawString(ctx: CanvasRenderingContext2D, str: string, textPaddi
   }
 }
 
-export function drawFunString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {
+export function drawFunString(
+  ctx: CanvasRenderingContext2D,
+  str: string,
+  textPadding: number,
+  frame: Rect,
+  data: any
+): void {
   if (data.textMetricsWidth === undefined) {
     data.textMetricsWidth = ctx.measureText(str).width;
   }
@@ -1477,8 +1503,10 @@ export function drawString2Line(
   textPadding: number,
   frame: Rect,
   data: any
-) {
-  if (frame.height < 30) return;
+): void {
+  if (frame.height < 30) {
+    return;
+  }
   if (data.textMetrics1Width === undefined) {
     data.textMetrics1Width = ctx.measureText(str1).width;
     data.textMetrics2Width = ctx.measureText(str2).width;
@@ -1537,7 +1565,7 @@ export function hiPerf(
   }
 }
 
-function setFrameByRes(res: Array<any>, startNS: number, endNS: number, frame: any) {
+function setFrameByRes(res: Array<any>, startNS: number, endNS: number, frame: any): void {
   let pns = (endNS - startNS) / frame.width;
   let y = frame.y;
   for (let i = 0; i < res.length; i++) {
@@ -1563,7 +1591,7 @@ function setFrameByArr(
   endNS: number,
   frame: any,
   groupBy10MS: boolean
-) {
+): void {
   let list = groupBy10MS ? arr2 : arr;
   let pns = (endNS - startNS) / frame.width;
   let y = frame.y;
@@ -1581,7 +1609,7 @@ function setFrameByArr(
   }
 }
 
-function setResultArr(groupBy10MS: boolean, list: Array<any>, i: number, res: Array<any>) {
+function setResultArr(groupBy10MS: boolean, list: Array<any>, i: number, res: Array<any>): void {
   if (groupBy10MS) {
     let flag: boolean =
       i > 0 &&
@@ -1637,7 +1665,7 @@ export class HiPerfStruct extends BaseStruct {
   eventCount: number | undefined;
   sampleCount: number | undefined;
 
-  static drawRoundRectPath(cxt: Path2D, x: number, y: number, width: number, height: number, radius: number) {
+  static drawRoundRectPath(cxt: Path2D, x: number, y: number, width: number, height: number, radius: number): void {
     cxt.arc(x + width - radius, y + height - radius, radius, 0, Math.PI / 2);
     cxt.lineTo(x + radius, y + height);
     cxt.arc(x + radius, y + height - radius, radius, Math.PI / 2, Math.PI);
@@ -1666,7 +1694,7 @@ export class HiPerfStruct extends BaseStruct {
     data: any,
     groupBy10MS: boolean,
     textMetrics?: TextMetrics
-  ) {
+  ): void {
     if (data.frame) {
       if (groupBy10MS) {
         let width = data.frame.width;
@@ -1686,14 +1714,14 @@ export class HiPerfStruct extends BaseStruct {
     }
   }
 
-  static drawSpecialPath(ctx: CanvasRenderingContext2D, specPath: Path2D) {
+  static drawSpecialPath(ctx: CanvasRenderingContext2D, specPath: Path2D): void {
     ctx.strokeStyle = '#9fafc4';
     ctx.globalAlpha = 0.5;
     ctx.stroke(specPath);
     ctx.globalAlpha = 1;
   }
 
-  static setFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
+  static setFrame(node: any, pns: number, startNS: number, endNS: number, frame: any): void {
     if ((node.startNS || 0) < startNS) {
       node.frame.x = 0;
     } else {
@@ -1723,7 +1751,7 @@ export class HiPerfStruct extends BaseStruct {
       let ns = parseInt(aKey);
       let height: number = 0;
       if (usage) {
-        if (maxCpu != undefined) {
+        if (maxCpu !== undefined) {
           height = Math.floor((obj[aKey].sampleCount / (10 / intervalPerf) / maxCpu) * 40);
         } else {
           height = Math.floor((obj[aKey].sampleCount / (10 / intervalPerf)) * 40);
@@ -1743,7 +1771,7 @@ export class HiPerfStruct extends BaseStruct {
   }
 }
 
-function filterGroupArray(groupArray: Array<any>, maxEventCount: number, usage?: boolean, event?: number) {
+function filterGroupArray(groupArray: Array<any>, maxEventCount: number, usage?: boolean, event?: number): any {
   return groupArray
     .map((it) => {
       it.timestamp_group = Math.trunc(it.startNS / 10_000_000) * 10_000_000;
@@ -1766,7 +1794,7 @@ function filterGroupArray(groupArray: Array<any>, maxEventCount: number, usage?:
     }, {});
 }
 
-function setMemFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+function setMemFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any): void {
   let x1: number;
   let x2: number;
   if ((node.startTime || 0) <= startNS) {
@@ -1797,7 +1825,7 @@ export function mem(
   totalNS: number,
   frame: any,
   use: boolean
-) {
+): void {
   if (use && memFilter.length > 0) {
     for (let i = 0, len = memFilter.length; i < len; i++) {
       if (
@@ -1822,7 +1850,7 @@ function setMemFilter(
   endNS: number,
   totalNS: number,
   frame: any
-) {
+): void {
   if (list) {
     for (let i = 0, len = list.length; i < len; i++) {
       let it = list[i];
@@ -1851,7 +1879,7 @@ export function drawWakeUpList(
   wakeup: WakeupBean | undefined = undefined,
   currentCpu: number | undefined | null = undefined,
   noVerticalLine = false
-) {
+): void {
   if (wake) {
     let x1 = Math.floor(ns2x(wake.wakeupTime || 0, startNS, endNS, totalNS, frame));
     wakeUpListContext.beginPath();
@@ -1890,7 +1918,7 @@ function drawWakeUpListIfWakeUp(
   frame: Rect,
   wakeup: any,
   x1: number
-) {
+): void {
   let x2 = Math.floor(ns2x(wakeup.ts || 0, startNS, endNS, totalNS, frame));
   let y = frame.y + frame.height - 10;
   wakeUpListContext.moveTo(x1, y);
@@ -1927,7 +1955,7 @@ export function findSearchNode(data: any[], search: string, parentSearch: boolea
   data.forEach((node) => {
     if ((node.symbolName && node.symbolName.toLocaleLowerCase().includes(search) && search !== '') || parentSearch) {
       node.searchShow = true;
-      node.isSearch = node.symbolName != undefined && node.symbolName.toLocaleLowerCase().includes(search);
+      node.isSearch = node.symbolName !== undefined && node.symbolName.toLocaleLowerCase().includes(search);
       let parentNode = node.parent;
       while (parentNode && !parentNode.searchShow) {
         parentNode.searchShow = true;

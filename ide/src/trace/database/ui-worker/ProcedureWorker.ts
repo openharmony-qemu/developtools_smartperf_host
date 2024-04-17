@@ -64,7 +64,6 @@ import { hitchTimeRender } from './ProcedureWorkerHitchTime';
 import { LtpoRender } from './ProcedureWorkerLTPO';
 import { BinderRender } from './procedureWorkerBinder';
 import { SampleRender } from './ProcedureWorkerBpftrace';
-import {PerfToolRender } from './ProcedureWorkerPerfTool'
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -126,7 +125,6 @@ export let renders: any = {
   'freq-extend': new FreqExtendRender(),
   binder: new BinderRender(),
   sample: new SampleRender(),
-  perfTool: new PerfToolRender(),
 };
 
 function match(type: string, req: RequestMessage): void {
@@ -184,7 +182,7 @@ self.onmessage = (e: any): void => {
   match(req.type!, req);
 };
 
-function clear(e: any) {
+function clear(e: any): void {
   if (e.data.type && (e.data.type as string).startsWith('clear')) {
     dataList = {};
     dataList2 = {};
@@ -201,7 +199,7 @@ function clear(e: any) {
   }
 }
 
-function setReq(req: RequestMessage, e: any) {
+function setReq(req: RequestMessage, e: any): void {
   req.canvas = canvasList[e.data.type];
   req.context = contextList[e.data.type];
   req.type = e.data.type as string;

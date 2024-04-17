@@ -85,14 +85,15 @@ hiperf_default_configs = [
   "//gn:hiperf_trace_cfg",
 ]
 
-set_defaults("static_library") {
-  configs = default_configs
-}
 if (!is_debug) {
   default_configs -= [ "//gn:symbols" ]
   default_configs += [ "//gn:release" ]
   hiperf_default_configs -= [ "//gn:symbols" ]
   hiperf_default_configs += [ "//gn:release" ]
+}
+
+set_defaults("static_library") {
+  configs = default_configs
 }
 
 set_defaults("ohos_source_set") {

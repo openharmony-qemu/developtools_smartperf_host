@@ -105,7 +105,7 @@ export class SpFileSystem extends BaseElement {
           if (processSelect.value.length > 0) {
             let result = processSelect.value.match(/\((.+?)\)/g);
             if (result) {
-              systemConfig.process = result.toString().replaceAll('(', '').replaceAll(')', '');
+              systemConfig.process = result.toString().replace(/[()]/g, '');
             } else {
               systemConfig.process = processSelect.value;
             }

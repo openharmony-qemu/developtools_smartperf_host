@@ -80,7 +80,7 @@ function setLogFilter(
   endNS: number,
   totalNS: number,
   frame: any
-) {
+): void {
   if (logList) {
     let allTypeDataMap: Map<number, Array<LogStruct>> = new Map();
     for (let index: number = 0; index < logList.length; index++) {
@@ -139,7 +139,8 @@ export class LogStruct extends BaseStruct {
     totalNS: number,
     frame: any
   ): void {
-    let x1: number, x2: number;
+    let x1: number;
+    let x2: number;
     if ((logNode.startTs || 0) > startNS && (logNode.startTs || 0) <= endNS) {
       x1 = ns2x(logNode.startTs || 0, startNS, endNS, totalNS, frame);
     } else {

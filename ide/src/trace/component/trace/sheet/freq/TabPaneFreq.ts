@@ -41,7 +41,7 @@ export class TabPaneFreq extends BaseElement {
     this.freqTbl = this.shadowRoot?.querySelector<LitTable>('#tb-freq');
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.freqTbl!);
   }

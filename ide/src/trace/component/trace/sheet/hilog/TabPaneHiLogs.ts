@@ -82,7 +82,7 @@ export class TabPaneHiLogs extends BaseElement {
     this.tagFilterDiv = this.shadowRoot!.querySelector<HTMLDivElement>('#tagFilter');
     this.hiLogsTbl = this.shadowRoot!.querySelector<LitPageTable>('#tb-hilogs');
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
-    this.hiLogsTbl!.getItemTextColor = (data) => {
+    this.hiLogsTbl!.getItemTextColor = (data): string => {
       return ColorUtils.getHilogColor(data.level);
     };
     this.hiLogsTbl!.itemTextHandleMap.set('startTs', (startTs) => {
@@ -126,7 +126,7 @@ export class TabPaneHiLogs extends BaseElement {
       let parentNode = ev.target.parentNode;
       if (parentNode && this.tagFilterDiv!.contains(parentNode)) {
         this.tagFilterDiv!.removeChild(parentNode);
-        this.allowTag['delete'](parentNode.textContent.trim().toLowerCase());
+        this.allowTag.delete(parentNode.textContent.trim().toLowerCase());
       }
       this.tableTimeHandle?.();
     };
@@ -266,7 +266,7 @@ export class TabPaneHiLogs extends BaseElement {
       if (index >= 0 && inputValue === '') {
         let childNode = this.tagFilterDiv!.childNodes[index];
         this.tagFilterDiv!.removeChild(childNode);
-        this.allowTag['delete'](childNode.textContent!.trim().toLowerCase());
+        this.allowTag.delete(childNode.textContent!.trim().toLowerCase());
       }
     }
     this.tableTimeHandle?.();

@@ -503,9 +503,9 @@ int32_t RpcServer::UpdateTraceTime(const uint8_t* data, int32_t len)
     return 0;
 }
 
-int32_t RpcServer::TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int32_t len)
+int32_t RpcServer::TraceStreamerInitThirdPartyConfig(const uint8_t* data, int32_t len)
 {
-    TS_LOGI("TraceStreamer_Init_ThirdParty_Config is comming!");
+    TS_LOGI("TraceStreamerInitThirdPartyConfig is comming!");
     std::string thirdPartyConfig = reinterpret_cast<const char*>(data);
     TS_LOGI("thirdPartyConfig = %s", thirdPartyConfig.c_str());
     std::vector<std::string> comPonentStr = SplitStringToVec(thirdPartyConfig, ";");
@@ -530,8 +530,8 @@ bool RpcServer::ParseDataOver(const uint8_t* data, size_t len, ResultCallBack re
     MetaData* metaData = ts_->GetMetaData();
     metaData->SetSourceFileName("input stream mode");
     metaData->SetOutputFileName("wasm mode");
-    metaData->SetParserToolVersion(g_traceStreamerVersion);
-    metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion);
+    metaData->SetParserToolVersion(TRACE_STREAMER_VERSION);
+    metaData->SetParserToolPublishDateTime(TRACE_STREAMER_PUBLISH_VERSION);
     metaData->SetTraceDataSize(g_loadSize);
     metaData->SetTraceType((ts_->DataType() == TRACE_FILETYPE_H_TRACE) ? "proto-based-trace" : "txt-based-trace");
     TS_LOGI("RPC ParseDataOver, has parsed len %zu", lenParseData_);

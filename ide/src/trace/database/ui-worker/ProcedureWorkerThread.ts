@@ -14,7 +14,6 @@
  */
 
 import {
-  BaseStruct,
   dataFilterHandler,
   isFrameContainPoint,
   Rect,
@@ -42,7 +41,7 @@ export class ThreadRender extends Render {
       translateY: number;
     },
     row: TraceRow<ThreadStruct>
-  ) {
+  ): void {
     let threadList = row.dataList;
     let threadFilter = row.dataListCache;
     dataFilterHandler(threadList, threadFilter, {
@@ -84,7 +83,7 @@ export class ThreadRender extends Render {
     threadReq.context.closePath();
   }
 
-  render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>) {}
+  render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>): void {}
 }
 
 export function ThreadStructOnClick(
@@ -92,7 +91,7 @@ export function ThreadStructOnClick(
   sp: SpSystemTrace,
   threadClickHandler: any,
   cpuClickHandler: any
-) {
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_THREAD && ThreadStruct.hoverThreadStruct) {
       sp.removeLinkLinesByBusinessType('thread');
@@ -114,7 +113,7 @@ export class ThreadStruct extends BaseThreadStruct {
   static sColor = '#FBFBFB';
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
-  static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
+  static selectThreadStructList: Array<ThreadStruct> = [];
   static firstselectThreadStruct: ThreadStruct | undefined;
   argSetID: number | undefined;
   translateY: number | undefined;
@@ -122,7 +121,7 @@ export class ThreadStruct extends BaseThreadStruct {
   static startCycleTime: number = 0;
   static endTime: number = 0;
 
-  static drawThread(threadContext: CanvasRenderingContext2D, data: ThreadStruct) {
+  static drawThread(threadContext: CanvasRenderingContext2D, data: ThreadStruct): void {
     if (data.frame) {
       if (data.name === 'all-state') {
         threadContext.globalAlpha = 0.8;

@@ -43,9 +43,9 @@ GpuCounterTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTableBase* 
 
 GpuCounterTable::Cursor::~Cursor() {}
 
-int32_t GpuCounterTable::Cursor::Column(int32_t GpuCntColumn) const
+int32_t GpuCounterTable::Cursor::Column(int32_t gpuCntColumn) const
 {
-    switch (static_cast<Index>(GpuCntColumn)) {
+    switch (static_cast<Index>(gpuCntColumn)) {
         case Index::TS: {
             sqlite3_result_int64(demoContext_, static_cast<int64_t>(gpuCounterDataObj_.TimeStamp()[CurrentRow()]));
             break;
@@ -59,7 +59,7 @@ int32_t GpuCounterTable::Cursor::Column(int32_t GpuCntColumn) const
             break;
         }
         default:
-            TS_LOGF("Unregistered GpuCntColumn : %d", GpuCntColumn);
+            TS_LOGF("Unregistered gpuCntColumn : %d", gpuCntColumn);
             break;
     }
     return SQLITE_OK;

@@ -89,7 +89,7 @@ export default class LitSwitch extends BaseElement {
   private switch: HTMLInputElement | null | undefined;
   private isfocus: boolean | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['disabled', 'checked'];
   }
 
@@ -97,7 +97,7 @@ export default class LitSwitch extends BaseElement {
     return this.getAttribute('disabled') !== null;
   }
 
-  get checked() {
+  get checked(): boolean {
     return this.getAttribute('checked') !== null;
   }
 
@@ -117,7 +117,7 @@ export default class LitSwitch extends BaseElement {
     }
   }
 
-  get name() {
+  get name(): string | null {
     return this.getAttribute('name');
   }
 
@@ -130,11 +130,11 @@ export default class LitSwitch extends BaseElement {
         `;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     this.switch = this.shadowRoot?.getElementById('switch') as HTMLInputElement;
     this.disabled = this.disabled;
     this.checked = this.checked;
-    this.switch!.onchange = (ev) => {
+    this.switch!.onchange = (ev): void => {
       this.checked = this.switch!.checked;
       let changeEvent: CustomEventInit<LitSwitchChangeEvent> = {
         detail: {
@@ -143,7 +143,7 @@ export default class LitSwitch extends BaseElement {
       };
       this.dispatchEvent(new CustomEvent('change', changeEvent));
     };
-    this.switch.onkeydown = (ev) => {
+    this.switch.onkeydown = (ev): void => {
       switch (ev.keyCode) {
         case 13: //enter
           this.checked = !this.checked;
@@ -162,7 +162,7 @@ export default class LitSwitch extends BaseElement {
   }
 
   setEvent(): void {
-    this.switch!.onfocus = (ev) => {
+    this.switch!.onfocus = (ev): void => {
       ev.stopPropagation();
       if (!this.isfocus) {
         this.dispatchEvent(
@@ -172,9 +172,9 @@ export default class LitSwitch extends BaseElement {
         );
       }
     };
-    this.switch!.onblur = (ev) => {
+    this.switch!.onblur = (ev): void => {
       ev.stopPropagation();
-      if (getComputedStyle(this.switch!).zIndex == '2') {
+      if (getComputedStyle(this.switch!).zIndex === '2') {
         this.isfocus = true;
       } else {
         this.isfocus = false;
@@ -187,7 +187,7 @@ export default class LitSwitch extends BaseElement {
     };
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (name === 'disabled' && this.switch) {
       if (newValue !== null) {
         this.switch.setAttribute('disabled', '');

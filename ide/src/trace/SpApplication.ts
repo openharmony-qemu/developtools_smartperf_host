@@ -135,7 +135,7 @@ export class SpApplication extends BaseElement {
   private importConfigDiv: HTMLInputElement | undefined | null;
   private closeKeyPath: HTMLDivElement | undefined | null;
   private importFileBt: HTMLInputElement | undefined | null;
-  private childComponent: Array<any> | undefined | null;
+  private childComponent: Array<unknown> | undefined | null;
   private keyCodeMap = {
     61: true,
     107: true,
@@ -146,7 +146,7 @@ export class SpApplication extends BaseElement {
   };
   private traceFileName: string | undefined;
   private markJson: string | undefined;
-  colorTransiton: any;
+  colorTransiton?: NodeJS.Timeout;
   static isLongTrace: boolean = false;
   fileTypeList: string[] = ['ebpf', 'arkts', 'hiperf'];
   private pageTimStamp: number = 0;
@@ -297,6 +297,7 @@ export class SpApplication extends BaseElement {
     this.initCustomColorHandler();
     this.initImportConfigEvent();
     this.initSlideMenuEvents();
+    // @ts-ignore
     this.mainMenu!.menus = [this.initNavigationMenu(), this.initSupportMenus()];
     this.initGlobalEvents();
     this.initDocumentListener();
@@ -314,7 +315,7 @@ export class SpApplication extends BaseElement {
     }
   }
 
-  private helpClick(urlParams: URLSearchParams) {
+  private helpClick(urlParams: URLSearchParams): void {
     if (urlParams.get('action') === 'help') {
       SpStatisticsHttpUtil.addOrdinaryVisitAction({
         event: 'help_page',
@@ -349,14 +350,15 @@ export class SpApplication extends BaseElement {
     ];
   }
 
-  private openLongTraceFile(ev: any, isRecordTrace: boolean = false) {
+  private openLongTraceFile(ev: unknown, isRecordTrace: boolean = false): void {
+    const self = this;
     this.returnOriginalUrl();
     this.wasm = true;
     this.openFileInit();
-    let detail = (ev as any).detail;
+    // @ts-ignore
+    let detail = ev.detail;
     let initRes = this.longTraceFileInit(isRecordTrace, detail);
     if (!isRecordTrace && initRes) {
-      let that = this;
       let readSize = 0;
       let timStamp = new Date().getTime();
       const { traceTypePage, allFileSize, normalTraceNames, specialTraceNames } = initRes;
@@ -368,12 +370,12 @@ export class SpApplication extends BaseElement {
         traceTypePage: Array<number>,
         normalNames: Array<string>,
         specialNames: Array<string>
-      ): Promise<any> => {
+      ): Promise<unknown> => {
         const promises = Array.from(files).map((file) => {
           if (normalNames.indexOf(file.name.toLowerCase()) >= 0) {
-            return that.longTraceFileRead(file, true, traceTypePage, readSize, timStamp, allFileSize);
+            return self.longTraceFileRead(file, true, traceTypePage, readSize, timStamp, allFileSize);
           } else if (specialNames.indexOf(file.name.toLowerCase()) >= 0) {
-            return that.longTraceFileRead(file, false, traceTypePage, readSize, timStamp, allFileSize);
+            return self.longTraceFileRead(file, false, traceTypePage, readSize, timStamp, allFileSize);
           } else {
             return;
           }
@@ -389,7 +391,7 @@ export class SpApplication extends BaseElement {
   }
 
   private longTraceFileRead = async (
-    file: any,
+    file: File,
     isNormalType: boolean,
     traceTypePage: Array<number>,
     readSize: number,
@@ -397,7 +399,7 @@ export class SpApplication extends BaseElement {
     allFileSize: number
   ): Promise<boolean> => {
     info('reading long trace file ', file.name);
-    let that = this;
+    const self = this;
     return new Promise((resolve, reject) => {
       let fr = new FileReader();
       let message = { fileType: '', startIndex: 0, endIndex: 0, size: 0 };
@@ -412,7 +414,7 @@ export class SpApplication extends BaseElement {
         LongTraceDBUtils.getInstance()
           .addLongTableData(data, fileType, timStamp, pageNumber, index, offset, sliceLen)
           .then(() => {
-            that.longTraceFileReadMessagePush(index, isNormalType, pageNumber, offset, sliceLen, fileType, data);
+            self.longTraceFileReadMessagePush(index, isNormalType, pageNumber, offset, sliceLen, fileType, data);
             offset += sliceLen;
             if (offset < file.size) {
               index++;
@@ -424,7 +426,7 @@ export class SpApplication extends BaseElement {
         if (offset >= file.size) {
           message.endIndex = index;
           message.size = file.size;
-          that.longTraceFileReadMessageHandler(pageNumber, message);
+          self.longTraceFileReadMessageHandler(pageNumber, message);
           resolve(true);
           return;
         }
@@ -436,7 +438,7 @@ export class SpApplication extends BaseElement {
         let slice = file.slice(offset, offset + sliceLen);
         readSize += slice.size;
         let percentValue = ((readSize * 100) / allFileSize).toFixed(2);
-        that.litSearch!.setPercent('Read in file: ', Number(percentValue));
+        self.litSearch!.setPercent('Read in file: ', Number(percentValue));
         fr.readAsArrayBuffer(slice);
       }
       continueReading();
@@ -445,7 +447,14 @@ export class SpApplication extends BaseElement {
     });
   };
 
-  getFileTypeAndPages(fileName: string, isNormalType: boolean, traceTypePage: Array<number>): any {
+  getFileTypeAndPages(
+    fileName: string,
+    isNormalType: boolean,
+    traceTypePage: Array<number>
+  ): {
+    fileType: string;
+    pageNumber: number;
+  } {
     let fileType = 'trace';
     let pageNumber = 0;
     let firstLastIndexOf = fileName.lastIndexOf('.');
@@ -460,7 +469,17 @@ export class SpApplication extends BaseElement {
     return { fileType, pageNumber };
   }
 
-  private longTraceFileInit(isRecordTrace: boolean, detail: any): any {
+  private longTraceFileInit(
+    isRecordTrace: boolean,
+    detail: unknown
+  ):
+    | {
+        traceTypePage: number[];
+        allFileSize: number;
+        normalTraceNames: string[];
+        specialTraceNames: string[];
+      }
+    | undefined {
     if (!this.wasm) {
       this.progressEL!.loading = false;
       return;
@@ -472,6 +491,7 @@ export class SpApplication extends BaseElement {
     }
     this.currentPageNum = 1;
     if (isRecordTrace) {
+      //@ts-ignore
       this.sendCutFileMessage(detail.timeStamp);
       return undefined;
     } else {
@@ -482,7 +502,9 @@ export class SpApplication extends BaseElement {
       let allFileSize = 0;
       let normalTraceNames: Array<string> = [];
       let specialTraceNames: Array<string> = [];
+      //@ts-ignore
       for (let index = 0; index < detail.length; index++) {
+        //@ts-ignore
         let file = detail[index];
         let fileName = file.name as string;
         allFileSize += file.size;
@@ -515,7 +537,7 @@ export class SpApplication extends BaseElement {
     sliceLen: number,
     fileType: string,
     data: ArrayBuffer
-  ) {
+  ): void {
     if (index === 1 && isNormalType) {
       this.longTraceHeadMessageList.push({
         pageNum: pageNumber,
@@ -531,22 +553,25 @@ export class SpApplication extends BaseElement {
     });
   }
 
-  longTraceFileReadMessageHandler(pageNumber: number, message: any): void {
+  longTraceFileReadMessageHandler(pageNumber: number, message: unknown): void {
     if (this.longTraceTypeMessageMap) {
       if (this.longTraceTypeMessageMap?.has(pageNumber)) {
         let oldTypeList = this.longTraceTypeMessageMap?.get(pageNumber);
+        //@ts-ignore
         oldTypeList?.push(message);
         this.longTraceTypeMessageMap?.set(pageNumber, oldTypeList!);
       } else {
+        //@ts-ignore
         this.longTraceTypeMessageMap?.set(pageNumber, [message]);
       }
     } else {
       this.longTraceTypeMessageMap = new Map();
+      //@ts-ignore
       this.longTraceTypeMessageMap.set(pageNumber, [message]);
     }
   }
 
-  private openTraceFile(ev: any, isClickHandle?: boolean) {
+  private openTraceFile(ev: unknown, isClickHandle?: boolean): void {
     this.returnOriginalUrl();
     this.removeAttribute('custom-color');
     this.customColor!.setAttribute('hidden', '');
@@ -559,11 +584,13 @@ export class SpApplication extends BaseElement {
       this.importConfigDiv.style.display = 'none';
       this.closeKeyPath.style.display = 'none';
     }
-    let fileName = (ev as any).name;
+    //@ts-ignore
+    let fileName = ev.name;
     this.traceFileName = fileName;
     let showFileName = fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
     TraceRow.rangeSelectObject = undefined;
-    let typeHeader = (ev as any).slice(0, 6);
+    //@ts-ignore
+    let typeHeader = ev.slice(0, 6);
     let reader: FileReader | null = new FileReader();
     reader.readAsText(typeHeader);
     reader.onloadend = (event): void => {
@@ -571,11 +598,13 @@ export class SpApplication extends BaseElement {
       if (headerStr.indexOf('SQLite') === 0) {
         info('Parse trace headerStr sql mode');
         this.wasm = false;
-        this.handleSqliteMode(ev, showFileName, (ev as any).size, fileName);
+        //@ts-ignore
+        this.handleSqliteMode(ev, showFileName, ev.size, fileName);
       } else {
         info('Parse trace using wasm mode ');
         this.wasm = true;
-        this.handleWasmMode(ev, showFileName, (ev as any).size, fileName);
+        //@ts-ignore
+        this.handleWasmMode(ev, showFileName, ev.size, fileName);
       }
     };
   }
@@ -640,13 +669,15 @@ export class SpApplication extends BaseElement {
     let body = document.querySelector('body');
     body!.addEventListener(
       'drop',
-      (e: any) => {
+      (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (this.rootEL!.classList.contains('filedrag')) {
           this.rootEL!.classList.remove('filedrag');
         }
+        //@ts-ignore
         if (e.dataTransfer.items !== undefined && e.dataTransfer.items.length > 0) {
+          //@ts-ignore
           let item = e.dataTransfer.items[0];
           if (item.webkitGetAsEntry()?.isFile) {
             this.openTraceFile(item.getAsFile());
@@ -667,10 +698,12 @@ export class SpApplication extends BaseElement {
     let body = document.querySelector('body');
     body!.addEventListener(
       'dragover',
-      (e: any) => {
+      (e) => {
         e.preventDefault();
         e.stopPropagation();
+        //@ts-ignore
         if (e.dataTransfer.items.length > 0 && e.dataTransfer.items[0].kind === 'file') {
+          //@ts-ignore
           e.dataTransfer.dropEffect = 'copy';
           if (!this.rootEL!.classList.contains('filedrag')) {
             this.rootEL!.classList.add('filedrag');
@@ -713,7 +746,8 @@ export class SpApplication extends BaseElement {
     document.addEventListener('keydown', (event) => {
       const e = event || window.event;
       const ctrlKey = e.ctrlKey || e.metaKey;
-      if (ctrlKey && (this.keyCodeMap as any)[e.keyCode]) {
+      //@ts-ignore
+      if (ctrlKey && this.keyCodeMap[e.keyCode]) {
         e.preventDefault();
       } else if (e.detail) {
         // Firefox
@@ -738,7 +772,7 @@ export class SpApplication extends BaseElement {
     );
   }
 
-  private initNavigationMenu() {
+  private initNavigationMenu(): unknown {
     return {
       collapsed: false,
       title: 'Navigation',
@@ -751,9 +785,9 @@ export class SpApplication extends BaseElement {
           icon: 'folder',
           fileChoose: true,
           fileHandler: (ev: InputEvent): void => {
-            this.openTraceFile(ev.detail as any);
+            this.openTraceFile(ev.detail);
           },
-          clickHandler: (hand: any) => {
+          clickHandler: (hand: unknown): void => {
             this.openTraceFile(hand, true);
           },
         },
@@ -764,7 +798,7 @@ export class SpApplication extends BaseElement {
           fileHandler: (ev: InputEvent): void => {
             this.openLongTraceFile(ev);
           },
-          clickHandler: (hand: any): void => {
+          clickHandler: (hand: InputEvent): void => {
             this.openLongTraceFile(hand, true);
           },
         },
@@ -782,7 +816,7 @@ export class SpApplication extends BaseElement {
     };
   }
 
-  private initSupportMenus() {
+  private initSupportMenus(): unknown {
     return {
       collapsed: false,
       title: 'Support',
@@ -869,7 +903,7 @@ export class SpApplication extends BaseElement {
     this.showContent(this.spRecordTemplate!);
   }
 
-  private changeUrl() {
+  private changeUrl(): void {
     let url = new URL(window.location.href);
     let actionParam = url.searchParams.get('action');
     let newActionValue = 'help';
@@ -882,76 +916,77 @@ export class SpApplication extends BaseElement {
     history.pushState({}, '', newURL);
   }
 
-  private returnOriginalUrl() {
+  private returnOriginalUrl(): void {
     history.pushState({}, '', window.location.origin + window.location.pathname);
   }
 
-  private handleSqliteMode(ev: any, showFileName: string, fileSize: number, fileName: string): void {
-    let that = this;
+  private handleSqliteMode(ev: unknown, showFileName: string, fileSize: number, fileName: string): void {
+    const self = this;
     let fileSizeStr = (fileSize / 1048576).toFixed(1);
     postLog(fileName, fileSizeStr);
     document.title = `${showFileName} (${fileSizeStr}M)`;
     this.litSearch!.setPercent('', 0);
     threadPool.init('sqlite').then((res) => {
       let reader = new FileReader();
-      reader.readAsArrayBuffer(ev as any);
+      reader.readAsArrayBuffer(ev as Blob);
       reader.onloadend = function (ev): void {
         SpApplication.loadingProgress = 0;
         SpApplication.progressStep = 3;
-        that.spSystemTrace!.loadDatabaseArrayBuffer(
+        self.spSystemTrace!.loadDatabaseArrayBuffer(
           this.result as ArrayBuffer,
           '',
           (command: string, _: number) => {
-            that.setProgress(command);
+            self.setProgress(command);
           },
           () => {
-            that.mainMenu!.menus!.splice(1, that.mainMenu!.menus!.length > 2 ? 1 : 0, {
+            self.mainMenu!.menus!.splice(1, self.mainMenu!.menus!.length > 2 ? 1 : 0, {
               collapsed: false,
               title: 'Current Trace',
               second: false,
               icon: '',
               describe: 'Actions on the current trace',
-              children: that.getTraceOptionMenus(showFileName, fileSizeStr, fileName, true),
+              children: self.getTraceOptionMenus(showFileName, fileSizeStr, fileName, true),
             });
-            that.mainMenu!.menus!.splice(2, 1, {
+            self.mainMenu!.menus!.splice(2, 1, {
               collapsed: false,
               title: 'Support',
               second: false,
               icon: '',
               describe: 'Support',
-              children: that.getTraceSupportMenus(),
+              children: self.getTraceSupportMenus(),
             });
-            that.litSearch!.setPercent('', 101);
-            that.chartFilter!.setAttribute('mode', '');
-            that.progressEL!.loading = false;
-            that.freshMenuDisable(false);
-            that.spInfoAndStats!.initInfoAndStatsData();
-            that.cutTraceFile!.style.display = 'none';
-            that.headerDiv!.style.pointerEvents = 'auto';
+            self.litSearch!.setPercent('', 101);
+            self.chartFilter!.setAttribute('mode', '');
+            self.progressEL!.loading = false;
+            self.freshMenuDisable(false);
+            self.spInfoAndStats!.initInfoAndStatsData();
+            self.cutTraceFile!.style.display = 'none';
+            self.headerDiv!.style.pointerEvents = 'auto';
           }
         );
       };
     });
   }
 
-  private handleWasmMode(ev: any, showFileName: string, fileSize: number, fileName: string): void {
-    let that = this;
+  private handleWasmMode(ev: unknown, showFileName: string, fileSize: number, fileName: string): void {
+    const self = this;
     this.litSearch!.setPercent('', 1);
     if (fileName.endsWith('.json')) {
-      that.progressEL!.loading = true;
-      that.spSystemTrace!.loadSample(ev).then(() => {
-        that.showContent(that.spSystemTrace!);
-        that.litSearch!.setPercent('', 101);
-        that.freshMenuDisable(false);
-        that.chartFilter!.setAttribute('mode', '');
-        that.progressEL!.loading = false;
+      self.progressEL!.loading = true;
+      //@ts-ignore
+      self.spSystemTrace!.loadSample(ev).then(() => {
+        self.showContent(self.spSystemTrace!);
+        self.litSearch!.setPercent('', 101);
+        self.freshMenuDisable(false);
+        self.chartFilter!.setAttribute('mode', '');
+        self.progressEL!.loading = false;
       });
     } else {
       let fileSizeStr = (fileSize / 1048576).toFixed(1);
       postLog(fileName, fileSizeStr);
       document.title = `${showFileName} (${fileSizeStr}M)`;
       info('Parse trace using wasm mode ');
-      let completeHandler = async (res: any): Promise<void> => {
+      let completeHandler = async (res: unknown): Promise<void> => {
         await this.traceLoadCompleteHandler(res, fileSizeStr, showFileName, fileName);
         if (this.markJson) {
           window.publish(window.SmartEvent.UI.ImportRecord, this.markJson);
@@ -959,19 +994,20 @@ export class SpApplication extends BaseElement {
       };
       threadPool.init('wasm').then((res) => {
         let reader: FileReader | null = new FileReader();
-        reader.readAsArrayBuffer(ev as any);
+        //@ts-ignore
+        reader.readAsArrayBuffer(ev);
         reader.onloadend = function (ev): void {
           info('read file onloadend');
-          that.litSearch!.setPercent('ArrayBuffer loaded  ', 2);
+          self.litSearch!.setPercent('ArrayBuffer loaded  ', 2);
           let wasmUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`;
           SpApplication.loadingProgress = 0;
           SpApplication.progressStep = 3;
-          let data = that.markPositionHandler(this.result as ArrayBuffer);
+          let data = self.markPositionHandler(this.result as ArrayBuffer);
           info('initData start Parse Data');
-          that.spSystemTrace!.loadDatabaseArrayBuffer(
+          self.spSystemTrace!.loadDatabaseArrayBuffer(
             data,
             wasmUrl,
-            (command: string, _: number) => that.setProgress(command),
+            (command: string, _: number) => self.setProgress(command),
             completeHandler
           );
         };
@@ -996,7 +1032,7 @@ export class SpApplication extends BaseElement {
   }
 
   private async traceLoadCompleteHandler(
-    res: any,
+    res: unknown,
     fileSize: string,
     showFileName: string,
     fileName: string
@@ -1022,9 +1058,11 @@ export class SpApplication extends BaseElement {
       index = 3;
     }
     this.loadTraceCompleteMenuHandler(index);
+    //@ts-ignore
     if (res.status) {
       info('loadDatabaseArrayBuffer success');
-      (window as any).traceFileName = fileName;
+      //@ts-ignore
+      window.traceFileName = fileName;
       this.showCurrentTraceMenu(fileSize, showFileName, fileName);
       this.importConfigDiv!.style.display = Utils.SCHED_SLICE_MAP.size > 0 ? 'block' : 'none';
       this.showContent(this.spSystemTrace!);
@@ -1033,6 +1071,7 @@ export class SpApplication extends BaseElement {
       this.freshMenuDisable(false);
     } else {
       info('loadDatabaseArrayBuffer failed');
+      //@ts-ignore
       this.litSearch!.setPercent(res.msg || 'This File is not supported!', -1);
       this.freshMenuDisable(false);
       this.mainMenu!.menus!.splice(1, 1);
@@ -1066,7 +1105,6 @@ export class SpApplication extends BaseElement {
   }
 
   private loadTraceCompleteMenuHandler(index: number): void {
-    const that = this;
     this.mainMenu!.menus!.splice(index, 1, {
       collapsed: false,
       title: 'Support',
@@ -1116,7 +1154,7 @@ export class SpApplication extends BaseElement {
     indexedDbPageNum: number,
     maxTraceFileLength: number,
     traceRange: IDBKeyRange
-  ) {
+  ): void {
     instance.indexedDBHelp.get(instance.tableName, traceRange, 'QueryFileByPage').then((result) => {
       let traceData = indexedDataToBufferData(result);
       let ebpfRange = this.getIDBKeyRange(indexedDbPageNum, 'ebpf_new');
@@ -1237,7 +1275,7 @@ export class SpApplication extends BaseElement {
           splitFileInfo: this.longTraceTypeMessageMap?.get(0),
           splitDataList: this.longTraceDataList,
         },
-        (res: Array<any>) => {
+        (res: Array<unknown>) => {
           this.litSearch!.setPercent('Cut in file ', 100);
           this.currentDataTime = getCurrentDataTime();
           if (this.longTraceHeadMessageList.length > 0) {
@@ -1383,7 +1421,7 @@ export class SpApplication extends BaseElement {
     this.progressEL!.loading = true;
   }
 
-  private restoreDownLoadIcons() {
+  private restoreDownLoadIcons(): void {
     let querySelectorAll = this.mainMenu!.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
     querySelectorAll!.forEach((menuGroup) => {
       let attribute = menuGroup.getAttribute('title');
@@ -1418,7 +1456,7 @@ export class SpApplication extends BaseElement {
     });
   }
 
-  private pushConvertTrace(fileName: string): Array<any> {
+  private pushConvertTrace(fileName: string): Array<unknown> {
     let instance = this;
     let menus = [];
     menus.push({
@@ -1472,7 +1510,7 @@ export class SpApplication extends BaseElement {
     fileName: string,
     isServer: boolean,
     dbName?: string
-  ): Array<any> {
+  ): Array<unknown> {
     let menus = [
       {
         title: `${showFileName} (${fileSize}M)`,
@@ -1520,13 +1558,14 @@ export class SpApplication extends BaseElement {
       },
     ];
     this.getTraceQuerySqlMenus(menus);
-    if ((window as any).cpuCount === 0 || !FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
+    //@ts-ignore
+    if (window.cpuCount === 0 || !FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
       menus.splice(1, 1);
     }
     return menus;
   }
 
-  private getTraceSupportMenus(): Array<any> {
+  private getTraceSupportMenus(): Array<unknown> {
     return [
       {
         title: 'Help Documents',
@@ -1579,7 +1618,7 @@ export class SpApplication extends BaseElement {
     ];
   }
 
-  private getTraceQuerySqlMenus(menus: Array<any>): void {
+  private getTraceQuerySqlMenus(menus: Array<unknown>): void {
     if (this.querySql) {
       if (this.spQuerySQL) {
         this.spQuerySQL!.reset();
@@ -1727,7 +1766,7 @@ export class SpApplication extends BaseElement {
     });
   }
 
-  private filterRowConfigClickHandle() {
+  private filterRowConfigClickHandle(): void {
     if (this!.hasAttribute('chart_filter')) {
       this!.removeAttribute('chart_filter');
       this.chartFilter!.setAttribute('hidden', '');
@@ -1749,14 +1788,16 @@ export class SpApplication extends BaseElement {
   }
 
   private initSearchChangeEvents(): void {
-    let timer: any = null;
-    this.litSearch!.valueChangeHandler = (value: string) => {
+    let timer: NodeJS.Timeout;
+    this.litSearch!.valueChangeHandler = (value: string): void => {
       this.litSearch!.list = [];
-      if (timer) clearTimeout(timer);
+      if (timer) {
+        clearTimeout(timer);
+      }
       timer = setTimeout(() => {
         this.litSearch!.isClearValue = false;
         if (value.length > 0) {
-          let list: any[] = [];
+          let list = [];
           this.progressEL!.loading = true;
           this.spSystemTrace!.searchCPU(value).then((cpus) => {
             list = cpus;
@@ -1792,20 +1833,22 @@ export class SpApplication extends BaseElement {
         enable: true,
       });
     });
-    this.litSearch!.addEventListener('previous-data', (ev: any) => {
+    this.litSearch!.addEventListener('previous-data', (ev) => {
       this.litSearch!.index = this.spSystemTrace!.showStruct(true, this.litSearch!.index, this.litSearch!.list);
       this.litSearch!.blur();
     });
-    this.litSearch!.addEventListener('next-data', (ev: any) => {
+    this.litSearch!.addEventListener('next-data', (ev) => {
       this.litSearch!.index = this.spSystemTrace!.showStruct(false, this.litSearch!.index, this.litSearch!.list);
       this.litSearch!.blur();
     });
     // 翻页事件
-    this.litSearch!.addEventListener('retarget-data', (ev: any) => {
+    this.litSearch!.addEventListener('retarget-data', (ev) => {
       this.litSearch!.index = this.spSystemTrace!.showStruct(
         true,
+        //@ts-ignore
         ev.detail.value,
         this.litSearch!.list,
+        //@ts-ignore
         ev.detail.value
       );
       this.litSearch!.blur();
@@ -1814,10 +1857,10 @@ export class SpApplication extends BaseElement {
   }
 
   private initSystemTraceEvents(): void {
-    this.spSystemTrace?.addEventListener('trace-previous-data', (ev: any) => {
+    this.spSystemTrace?.addEventListener('trace-previous-data', (ev) => {
       this.litSearch!.index = this.spSystemTrace!.showStruct(true, this.litSearch!.index, this.litSearch!.list);
     });
-    this.spSystemTrace?.addEventListener('trace-next-data', (ev: any) => {
+    this.spSystemTrace?.addEventListener('trace-next-data', (ev) => {
       this.litSearch!.index = this.spSystemTrace!.showStruct(false, this.litSearch!.index, this.litSearch!.list);
     });
   }
@@ -1870,8 +1913,10 @@ export class SpApplication extends BaseElement {
     caches.has(DbPool.fileCacheKey).then((exist) => {
       if (!exist) {
         this.mainMenu!.menus?.forEach((mg) => {
-          mg.children.forEach((mi: any) => {
+          mg.children.forEach((mi: unknown) => {
+            //@ts-ignore
             if (mi.title === 'Download File') {
+              //@ts-ignore
               mi.disabled = true;
             }
           });
@@ -2119,7 +2164,7 @@ export class SpApplication extends BaseElement {
     if (cutRightNs === cutLeftNs) {
       return;
     }
-    let recordStartNS = (window as any).recordStartNS;
+    let recordStartNS = window.recordStartNS;
     let cutLeftTs = recordStartNS + cutLeftNs;
     let cutRightTs = recordStartNS + cutRightNs;
     let minCutDur = 1_000_000;
@@ -2168,15 +2213,15 @@ export class SpApplication extends BaseElement {
       'download-db',
       '',
       {},
-      (reqBufferDB: any) => {
+      (reqBufferDB: ArrayBuffer) => {
         let a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([reqBufferDB]));
         a.download = fileName;
         a.click();
         this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', true);
-        let that = this;
+        const self = this;
         let timer = setInterval(function () {
-          that.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
+          self.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
           clearInterval(timer);
         }, 4000);
       },
@@ -2202,10 +2247,10 @@ export class SpApplication extends BaseElement {
     a.download = fileName;
     a.click();
     window.URL.revokeObjectURL(a.href);
-    let that = this;
+    const self = this;
     this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', true);
     let timer = setInterval(function () {
-      that.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
+      self.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
       clearInterval(timer);
     }, 4000);
   }

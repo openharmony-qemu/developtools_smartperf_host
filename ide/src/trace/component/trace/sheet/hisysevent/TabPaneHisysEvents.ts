@@ -93,7 +93,7 @@ export class TabPaneHisysEvents extends BaseElement {
   queryElements(): void {
     this.boxDetails = this.shadowRoot?.querySelector<HTMLDivElement>('.box-details');
     this.hiSysEventTable = this.shadowRoot?.querySelector<LitPageTable>('#tb-hisysevent');
-    this.hiSysEventTable!.getItemTextColor = (data) => {
+    this.hiSysEventTable!.getItemTextColor = (data): string => {
       return ColorUtils.getHisysEventColor(data.level);
     };
     this.domainTagDiv = this.shadowRoot?.querySelector<HTMLDivElement>('#domainTagFilter');
@@ -190,7 +190,7 @@ export class TabPaneHisysEvents extends BaseElement {
     };
   }
 
-  private refreshEventsTitle() {
+  private refreshEventsTitle(): void {
     let tbl = this.hiSysEventTable?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     let height = 0;
     let firstRowHeight = 27;
@@ -288,7 +288,7 @@ export class TabPaneHisysEvents extends BaseElement {
     let parentNode = ev.target.parentNode;
     if (parentNode && this.domainTagDiv!.contains(parentNode)) {
       this.domainTagDiv!.removeChild(parentNode);
-      this.domainTag['delete'](parentNode.textContent.trim().toLowerCase());
+      this.domainTag.delete(parentNode.textContent.trim().toLowerCase());
     }
     this.updateData();
   };
@@ -298,7 +298,7 @@ export class TabPaneHisysEvents extends BaseElement {
     let parentNode = ev.target.parentNode;
     if (parentNode && this.eventNameTagDiv!.contains(parentNode)) {
       this.eventNameTagDiv!.removeChild(parentNode);
-      this.eventNameTag['delete'](parentNode.textContent.trim().toLowerCase());
+      this.eventNameTag.delete(parentNode.textContent.trim().toLowerCase());
     }
     this.updateData();
   };
@@ -317,7 +317,7 @@ export class TabPaneHisysEvents extends BaseElement {
       if (index >= 0 && domainValue === '') {
         let childNode = this.domainTagDiv!.childNodes[index];
         this.domainTagDiv!.removeChild(childNode);
-        this.domainTag['delete'](childNode.textContent!.trim().toLowerCase());
+        this.domainTag.delete(childNode.textContent!.trim().toLowerCase());
       }
     }
     this.updateData();
@@ -356,7 +356,7 @@ export class TabPaneHisysEvents extends BaseElement {
       if (index >= 0 && eventNameValue === '') {
         let childNode = this.eventNameTagDiv!.childNodes[index];
         this.eventNameTagDiv!.removeChild(childNode);
-        this.eventNameTag['delete'](childNode.textContent!.trim().toLowerCase());
+        this.eventNameTag.delete(childNode.textContent!.trim().toLowerCase());
       }
     }
     this.updateData();

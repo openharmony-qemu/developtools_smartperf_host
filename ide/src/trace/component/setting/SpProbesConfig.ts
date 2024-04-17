@@ -45,7 +45,7 @@ export class SpProbesConfig extends BaseElement {
     return this.hasAttribute('startSamp');
   }
 
-  get traceConfig() {
+  get traceConfig(): string[] {
     let selectedTrace = this._traceConfig?.querySelectorAll<SpCheckDesBox>('check-des-box[checked]') || [];
     let values = [];
     for (const litCheckBoxElement of selectedTrace) {
@@ -65,7 +65,7 @@ export class SpProbesConfig extends BaseElement {
     return 20480;
   }
 
-  get memoryConfig() {
+  get memoryConfig(): string[] {
     let values = [];
     let selectedMemory = this._memoryConfig?.querySelectorAll<SpCheckDesBox>(
       'check-des-box[checked]'
@@ -84,7 +84,7 @@ export class SpProbesConfig extends BaseElement {
     return selectedMemory.length > 0;
   }
 
-  get traceEvents() {
+  get traceEvents(): string[] {
     let values = [];
     if (this.hitrace && this.hitrace.checked) {
       let parent = this.shadowRoot?.querySelector('.user-events') as Element;
@@ -97,7 +97,7 @@ export class SpProbesConfig extends BaseElement {
     return values;
   }
 
-  get hilogConfig() {
+  get hilogConfig(): string[] {
     let logLevel = this.shadowRoot?.getElementById('logLevel') as LitCheckBox;
     if (logLevel.checked) {
       let logRadio = this.shadowRoot?.getElementById('log-radio') as LitRadioGroup;
@@ -292,7 +292,7 @@ export class SpProbesConfig extends BaseElement {
     let litCheckBoxDis = this.shadowRoot?.querySelectorAll<LitCheckBox>('lit-check-box');
     let defaultSelected: any = [];
     defaultSelected = defaultSelected.concat(traceConfigList, memoryConfigList, abilityConfigList, hiTraceConfigList);
-    this.shadowRoot?.querySelector<SpCheckDesBox>("[value='Hitrace categories']")?.setAttribute('checked', 'true');
+    this.shadowRoot?.querySelector<SpCheckDesBox>('[value=\'Hitrace categories\']')?.setAttribute('checked', 'true');
     this.ftraceSlider!.removeAttribute('disabled');
     checkDesBoxDis?.forEach((item: SpCheckDesBox) => {
       item.removeAttribute('disabled');

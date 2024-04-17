@@ -26,7 +26,7 @@ export class EnergyStateRender extends Render {
       maxStateName: string;
     },
     row: TraceRow<EnergyStateStruct>
-  ) {
+  ): void {
     let stateList = row.dataList;
     let stateFilter = row.dataListCache;
     state(
@@ -49,8 +49,10 @@ export class EnergyStateRender extends Render {
         find = true;
       }
     }
-    if (!find && row.isHover) EnergyStateStruct.hoverEnergyStateStruct = undefined;
-    if (req.maxStateName != 'enable' && req.maxStateName != 'disable' && req.maxStateName != '-1') {
+    if (!find && row.isHover) {
+      EnergyStateStruct.hoverEnergyStateStruct = undefined;
+    }
+    if (req.maxStateName !== 'enable' && req.maxStateName !== 'disable' && req.maxStateName !== '-1') {
       let s = req.maxStateName;
       let textMetrics = req.context.measureText(s);
       req.context.globalAlpha = 1.0;
@@ -72,7 +74,7 @@ export function state(
   totalNS: number,
   frame: any,
   use: boolean
-) {
+): void {
   if (use && res.length > 0) {
     for (let i = 0; i < res.length; i++) {
       let stateItem = res[i];
@@ -110,8 +112,8 @@ function stateFilter(
         if (
           !(
             index > 0 &&
-            (stateList[index - 1].frame?.x || 0) == (stateList[index].frame?.x || 0) &&
-            (stateList[index - 1].frame?.width || 0) == (stateList[index].frame?.width || 0)
+            (stateList[index - 1].frame?.x || 0) === (stateList[index].frame?.x || 0) &&
+            (stateList[index - 1].frame?.width || 0) === (stateList[index].frame?.width || 0)
           )
         ) {
           res.push(item);
@@ -141,7 +143,7 @@ export class EnergyStateStruct extends BaseStruct {
     data: EnergyStateStruct,
     maxState: number,
     maxStateName: string
-  ) {
+  ): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       let drawColor = this.setDrawColor(data.type!);
@@ -151,7 +153,7 @@ export class EnergyStateStruct extends BaseStruct {
       energyStateContext.lineWidth = 1;
       let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / maxState);
       if (maxStateName === 'enable' || maxStateName === 'disable') {
-        if (data.value == 0) {
+        if (data.value === 0) {
           drawHeight = data.frame.height;
           energyStateContext.fillRect(data.frame.x, data.frame.y + 4, width, data.frame.height);
         }
@@ -160,7 +162,7 @@ export class EnergyStateStruct extends BaseStruct {
       }
       if (data.startNs === EnergyStateStruct.hoverEnergyStateStruct?.startNs) {
         let pointy = data.frame.y + data.frame.height + 4;
-        if (data.value == 0) {
+        if (data.value === 0) {
           pointy -= drawHeight;
         }
         energyStateContext.beginPath();
@@ -179,8 +181,16 @@ export class EnergyStateStruct extends BaseStruct {
     energyStateContext.lineWidth = 1;
   }
 
-  static setStateFrame(stateNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-    let stateStartPointX: number, stateEndPointX: number;
+  static setStateFrame(
+    stateNode: any,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: any
+  ): void {
+    let stateStartPointX: number;
+    let stateEndPointX: number;
 
     if ((stateNode.startNs || 0) < startNS) {
       stateStartPointX = 0;

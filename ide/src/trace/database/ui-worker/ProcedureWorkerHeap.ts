@@ -18,7 +18,7 @@ import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HeapStruct as BaseHeapStruct } from '../../bean/HeapStruct';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
 export class NativeMemoryRender extends Render {
-  renderMainThread(req: any, row: TraceRow<any>) {}
+  renderMainThread(req: any, row: TraceRow<any>): void {}
 }
 export class HeapRender {
   renderMainThread(
@@ -28,7 +28,7 @@ export class HeapRender {
       type: string;
     },
     row: TraceRow<HeapStruct>
-  ) {
+  ): void {
     let heapList = row.dataList;
     let heapFilter = row.dataListCache;
     heap(
@@ -69,7 +69,7 @@ function drawHeap(
   },
   heapFilter: HeapStruct[],
   row: TraceRow<HeapStruct>
-) {
+): void {
   req.context.beginPath();
   let find = false;
   for (let re of heapFilter) {
@@ -81,7 +81,9 @@ function drawHeap(
   for (let re of heapFilter) {
     HeapStruct.drawHeap(req.context, re, row.drawType);
   }
-  if (!find && row.isHover) HeapStruct.hoverHeapStruct = undefined;
+  if (!find && row.isHover) {
+    HeapStruct.hoverHeapStruct = undefined;
+  }
   req.context.closePath();
 }
 
@@ -93,7 +95,7 @@ export function heap(
   totalNS: number,
   frame: any,
   use: boolean
-) {
+): void {
   if (use && res.length > 0) {
     setHeapFrameIfUse(res, startNS, endNS, totalNS, frame);
     return;
@@ -105,7 +107,7 @@ export function heap(
       HeapStruct.setFrame(it, 5, startNS, endNS, totalNS, frame);
       if (i > 0) {
         let last = heapList[i - 1];
-        if (last.frame?.x != it.frame.x || last.frame.width != it.frame.width) {
+        if (last.frame?.x !== it.frame.x || last.frame.width !== it.frame.width) {
           res.push(it);
         }
       } else {
@@ -115,7 +117,7 @@ export function heap(
   }
 }
 
-function setHeapFrameIfUse(res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
+function setHeapFrameIfUse(res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any): void {
   for (let i = 0; i < res.length; i++) {
     let it = res[i];
     if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) <= endNS) {
@@ -126,7 +128,11 @@ function setHeapFrameIfUse(res: Array<any>, startNS: number, endNS: number, tota
   }
 }
 
-export function HeapStructOnClick(clickRowType: string, sp: SpSystemTrace, row: undefined | TraceRow<any>) {
+export function HeapStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  row: undefined | TraceRow<any>
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (
       clickRowType === TraceRow.ROW_TYPE_HEAP &&
@@ -154,8 +160,16 @@ export class HeapStruct extends BaseHeapStruct {
   maxDensity: number = 0;
   minDensity: number = 0;
 
-  static setFrame(node: HeapStruct, padding: number, startNS: number, endNS: number, totalNS: number, frame: Rect) {
-    let x1: number, x2: number;
+  static setFrame(
+    node: HeapStruct,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: Rect
+  ): void {
+    let x1: number;
+    let x2: number;
     if ((node.startTime || 0) < startNS) {
       x1 = 0;
     } else {
@@ -183,13 +197,13 @@ export class HeapStruct extends BaseHeapStruct {
     node.frame = rectangle;
   }
 
-  static drawHeap(heapContext: CanvasRenderingContext2D, data: HeapStruct, drawType: number) {
+  static drawHeap(heapContext: CanvasRenderingContext2D, data: HeapStruct, drawType: number): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       heapContext.fillStyle = '#2db3aa';
       heapContext.strokeStyle = '#2db3aa';
       let drawHeight: number = 0;
-      if (drawType == 0) {
+      if (drawType === 0) {
         if (data.minHeapSize < 0) {
           drawHeight = Math.ceil(
             (((data.heapsize || 0) - data.minHeapSize) * (data.frame.height || 0)) /
@@ -207,7 +221,7 @@ export class HeapStruct extends BaseHeapStruct {
           drawHeight = Math.ceil(((data.density || 0) * (data.frame.height || 0)) / data.maxDensity);
         }
       }
-      if (data == HeapStruct.hoverHeapStruct || data == HeapStruct.selectHeapStruct) {
+      if (data === HeapStruct.hoverHeapStruct || data === HeapStruct.selectHeapStruct) {
         heapContext.lineWidth = 1;
         heapContext.globalAlpha = 0.6;
         heapContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
