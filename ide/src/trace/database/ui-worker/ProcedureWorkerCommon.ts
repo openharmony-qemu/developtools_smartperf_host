@@ -746,9 +746,9 @@ export function drawSelectionRange(context: any, params: TraceRow<any>): void {
       context.globalAlpha = 0.5;
       context.fillStyle = '#666666';
       context.fillRect(
-        TraceRow.rangeSelectObject!.startX!,
+        TraceRow.rangeSelectObject!.startX!,// @ts-ignore
         params.frame.y,
-        TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!,
+        TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!,// @ts-ignore
         params.frame.height
       );
       context.globalAlpha = 1;
@@ -814,7 +814,7 @@ function setTextXY(rateList: number[], params: TraceRow<any>, textWidth: any): n
         params.frame
       )
     ) -
-    textWidth / 2;
+    textWidth / 2;// @ts-ignore
   let textY = params.frame.y + 25;
   return [textX, textY];
 }
@@ -831,9 +831,9 @@ function drawSelectionRangeContext(rateList: number[], context: any, params: Tra
   const textY = setTextXY(rateList, params, textWidth)[1];
   avgRateStartX = avgRateStartX <= 0 ? -100 : avgRateStartX;
   avgRateEndX = avgRateEndX <= 0 ? -100 : avgRateEndX;
-  textX = textX <= 0 ? -100 : textX;
-  textX = textX + textWidth / 2 >= params.frame.width ? params.frame.width + 100 : textX;
-  avgRateStartX = avgRateStartX >= params.frame.width ? params.frame.width + 100 : avgRateStartX;
+  textX = textX <= 0 ? -100 : textX;// @ts-ignore
+  textX = textX + textWidth / 2 >= params.frame.width ? params.frame.width + 100 : textX;// @ts-ignore
+  avgRateStartX = avgRateStartX >= params.frame.width ? params.frame.width + 100 : avgRateStartX;// @ts-ignore
   avgRateEndX = avgRateEndX >= params.frame.width ? params.frame.width + 100 : avgRateEndX;
   context.fillStyle = 'red';
   context.fillRect(textX - padding, textY - textHeight + padding, textWidth + padding * 2, textHeight - padding * 2);
@@ -896,15 +896,15 @@ function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any
       selectParams.frame
     )
   ); //根据帧率范围的中间值转换文本的起始x坐标
-  textX = textX <= textWidth / TEXT_WIDTH_HALF ? textX : textX - textWidth / TEXT_WIDTH_HALF;
+  textX = textX <= textWidth / TEXT_WIDTH_HALF ? textX : textX - textWidth / TEXT_WIDTH_HALF;// @ts-ignore
   let textY = selectParams.frame.y + 11;
-  if (selectParams.avgRateTxt?.includes('HitchTime')) {
+  if (selectParams.avgRateTxt?.includes('HitchTime')) {// @ts-ignore
     textY = selectParams.frame.y + 11;
   } else {
     // 展开时显示在第二行，折叠显示第一行
-    if (selectParams.funcExpand) {
+    if (selectParams.funcExpand) {// @ts-ignore
       textY = selectParams.frame.y + 29;
-    } else {
+    } else {// @ts-ignore
       textY = selectParams.frame.y + 11;
     }
   }
@@ -927,9 +927,9 @@ export function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams:
   endX = endX <= 0 ? -100 : endX;
   textX = textX <= 0 ? -200 : textX;
   //右移到边界，不画线和文字
-  const ADD_DISTANCE = 100;
-  textX = textX + textWidth / 2 >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : textX;
-  startX = startX >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : startX;
+  const ADD_DISTANCE = 100;// @ts-ignore
+  textX = textX + textWidth / 2 >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : textX;// @ts-ignore
+  startX = startX >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : startX;// @ts-ignore
   endX = endX >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : endX;
 
   ctx.lineWidth = 2;
@@ -1404,24 +1404,24 @@ export function drawLoadingFrame(
   row: TraceRow<any>,
   sort: boolean = false
 ): void {
-  ctx.beginPath();
-  ctx.clearRect(0, 0, row.frame.width, row.frame.height);
-  drawLines(ctx, TraceRow.range?.xs || [], row.frame.height, '#dadada');
+  ctx.beginPath();// @ts-ignore
+  ctx.clearRect(0, 0, row.frame.width, row.frame.height);// @ts-ignore
+  drawLines(ctx, TraceRow.range?.xs || [], row.frame.height, '#dadada');// @ts-ignore
   drawVSync(ctx, row.frame.width, row.frame.height);
   if (row.loadingFrame) {
     if (loadingTextWidth === 0) {
       loadingTextWidth = ctx.measureText(loadingText).width;
-    }
-    let firstPx = nsx(row.loadingPin1, row.frame.width);
+    }// @ts-ignore
+    let firstPx = nsx(row.loadingPin1, row.frame.width);// @ts-ignore
     let lastPx = nsx(row.loadingPin2, row.frame.width);
-    ctx.fillStyle = loadingBackground;
-    ctx.fillRect(0, 1, firstPx, row.frame.height - 2);
+    ctx.fillStyle = loadingBackground;// @ts-ignore
+    ctx.fillRect(0, 1, firstPx, row.frame.height - 2);// @ts-ignore
     ctx.fillRect(lastPx, 1, row.frame.width - lastPx, row.frame.height - 2);
     ctx.fillStyle = loadingFontColor;
-    if (firstPx > loadingTextWidth) {
+    if (firstPx > loadingTextWidth) {// @ts-ignore
       ctx.fillText(loadingText, (firstPx - loadingTextWidth) / 2, row.frame.height / 2);
-    }
-    if (row.frame.width - lastPx > loadingTextWidth) {
+    }// @ts-ignore
+    if (row.frame.width - lastPx > loadingTextWidth) {// @ts-ignore
       ctx.fillText(loadingText, lastPx + (row.frame.width - lastPx) / 2 - loadingTextWidth / 2, row.frame.height / 2);
     }
   }

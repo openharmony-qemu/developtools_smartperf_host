@@ -52,29 +52,45 @@ export function frameJanksSender(queryEnum: number, row: TraceRow<JanksStruct>):
         trafic: transferJankDataType,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
+        // @ts-ignore
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(res: any, len: number): any[] {
+function arrayBufferHandler(res: unknown, len: number): unknown[] {
   let outArr = [];
+  // @ts-ignore
   let id = new Uint16Array(res.id);
+  // @ts-ignore
   let ipId = new Uint16Array(res.ipid);
+  // @ts-ignore
   let nameId = new Int32Array(res.name);
+  // @ts-ignore
   let app_dur = new Float64Array(res.app_dur);
+  // @ts-ignore
   let dur = new Float64Array(res.dur);
+  // @ts-ignore
   let ts = new Float64Array(res.ts);
+  // @ts-ignore
   let jank_tag = new Uint16Array(res.jank_tag);
+  // @ts-ignore
   let pid = new Uint16Array(res.pid);
+  // @ts-ignore
   let rsTs = new Float64Array(res.rs_ts);
+  // @ts-ignore
   let rs_vsync = new Int32Array(res.rs_vsync);
+  // @ts-ignore
   let rs_dur = new Float64Array(res.rs_dur);
+  // @ts-ignore
   let rs_ipId = new Uint16Array(res.rs_ipid);
+  // @ts-ignore
   let rs_pid = new Uint16Array(res.rs_pid);
+  // @ts-ignore
   let rs_name = new Int32Array(res.rs_name);
+  // @ts-ignore
   let depth = new Uint16Array(res.depth);
   for (let index = 0; index < len; index++) {
     outArr.push({

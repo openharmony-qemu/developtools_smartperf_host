@@ -21,7 +21,7 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { queryPerfFiles } from '../../database/sql/Perf.sql';
 
 export class PerfDataQuery {
-  filesData: any = {};
+  filesData: unknown = {};
   callChainMap: Map<number, PerfCall> = new Map<number, PerfCall>();
 
 
@@ -37,31 +37,31 @@ export class PerfDataQuery {
   async initPerfFiles(): Promise<void> {
     let files = await queryPerfFiles();
     info('PerfFiles Data size is: ', files!.length);
-    files.forEach((file) => {
+    files.forEach((file) => {// @ts-ignore
       this.filesData[file.fileId] = this.filesData[file.fileId] || [];
-      PerfFile.setFileName(file);
+      PerfFile.setFileName(file);// @ts-ignore
       this.filesData[file.fileId].push(file);
     });
     const data = {
       fValue: SpHiPerf.stringResult?.fValue,
     };
-    let results = await new Promise<any>((resolve, reject) => {
-      procedurePool.submitWithName('logic0', 'perf-init', data, undefined, (res: any) => {
+    let results = await new Promise<unknown>((resolve, reject) => {
+      procedurePool.submitWithName('logic0', 'perf-init', data, undefined, (res: unknown) => {
         resolve(res);
       });
-    });
-    this.callChainMap = results as any;
+    });// @ts-ignore
+    this.callChainMap = results as unknown;
     info('Perf Files Data initialized');
   }
 
   getLibName(fileId: number, symbolId: number): string {
     let name = 'unknown';
-    if (symbolId === -1) {
-      if (this.filesData[fileId] && this.filesData[fileId].length > 0) {
+    if (symbolId === -1) {// @ts-ignore
+      if (this.filesData[fileId] && this.filesData[fileId].length > 0) {// @ts-ignore
         name = this.filesData[fileId][0].fileName;
       }
-    } else {
-      if (this.filesData[fileId] && this.filesData[fileId].length > symbolId) {
+    } else {// @ts-ignore
+      if (this.filesData[fileId] && this.filesData[fileId].length > symbolId) {// @ts-ignore
         name = this.filesData[fileId][symbolId].fileName;
       }
     }

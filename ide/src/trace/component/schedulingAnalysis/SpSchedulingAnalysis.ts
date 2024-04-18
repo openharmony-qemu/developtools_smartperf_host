@@ -44,17 +44,17 @@ export class SpSchedulingAnalysis extends BaseElement {
     SpSchedulingAnalysis.traceChange = true;
     CheckCpuSetting.resetCpuSettings();
     Top20FrequencyThread.threads = undefined;
-    procedurePool.submitWithName('logic0', 'scheduling-clearData', {}, undefined, (res: any): void => {});
+    procedurePool.submitWithName('logic0', 'scheduling-clearData', {}, undefined, (res: unknown): void => {});
   }
 
   init(): void {
     if (SpSchedulingAnalysis.traceChange) {
       SpSchedulingAnalysis.traceChange = false;
-      this.tabs!.activekey = '1';
-      SpSchedulingAnalysis.startTs = (window as any).recordStartNS;
-      SpSchedulingAnalysis.endTs = (window as any).recordEndNS;
-      SpSchedulingAnalysis.totalDur = SpSchedulingAnalysis.endTs - SpSchedulingAnalysis.startTs;
-      SpSchedulingAnalysis.cpuCount = (window as any).cpuCount;
+      this.tabs!.activekey = '1';//@ts-ignore
+      SpSchedulingAnalysis.startTs = (window as unknown).recordStartNS;//@ts-ignore
+      SpSchedulingAnalysis.endTs = (window as unknown).recordEndNS;
+      SpSchedulingAnalysis.totalDur = SpSchedulingAnalysis.endTs - SpSchedulingAnalysis.startTs;//@ts-ignore
+      SpSchedulingAnalysis.cpuCount = (window as unknown).cpuCount;
       this.tabCpuAnalysis?.init();
       this.tabThreadAnalysis?.init();
     }

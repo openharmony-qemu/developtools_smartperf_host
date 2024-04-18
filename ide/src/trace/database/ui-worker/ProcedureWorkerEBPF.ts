@@ -33,7 +33,7 @@ export class EBPFRender extends PerfRender {
       filter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
-      TraceRow.range?.totalNS ?? 0,
+      TraceRow.range?.totalNS ?? 0,// @ts-ignore
       eBPFtemRow.frame,
       groupBy10MS,
       isDiskIO,

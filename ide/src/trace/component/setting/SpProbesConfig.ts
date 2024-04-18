@@ -152,10 +152,12 @@ export class SpProbesConfig extends BaseElement {
   private initHiTraceConfigList(): void {
     this.hitrace = this.shadowRoot?.getElementById('hitrace') as SpCheckDesBox;
     let parent = this.shadowRoot?.querySelector('.user-events') as Element;
-    hiTraceConfigList.forEach((hitraceConfig: any) => {
+    hiTraceConfigList.forEach((hitraceConfig: unknown) => {
       let litCheckBox = new LitCheckBox();
       litCheckBox.setAttribute('name', 'userEvents');
+      //@ts-ignore
       litCheckBox.value = hitraceConfig.value;
+      //@ts-ignore
       litCheckBox.checked = hitraceConfig.isSelect;
       litCheckBox.addEventListener('change', (ev: CustomEventInit<LitCheckBoxChangeEvent>) => {
         let detail = ev.detail;
@@ -182,8 +184,10 @@ export class SpProbesConfig extends BaseElement {
 
   initElements(): void {
     this.ftraceBuffSizeResultInput = this.shadowRoot?.querySelector('.ftrace-buff-size-result') as HTMLInputElement;
-    this.ftraceBuffSizeResultInput!.addEventListener('keydown', (ev: any) => {
+    this.ftraceBuffSizeResultInput!.addEventListener('keydown', (ev: unknown) => {
+      //@ts-ignore
       if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
+        //@ts-ignore
         ev.preventDefault();
       }
     });
@@ -194,7 +198,8 @@ export class SpProbesConfig extends BaseElement {
     this.bufferSizeSliderInit();
     let litSwitch = this.shadowRoot?.querySelector('lit-switch') as LitSwitch;
     this.ftraceSlider = this.shadowRoot?.querySelector<LitSlider>('#ftrace-buff-size-slider');
-    litSwitch.addEventListener('change', (event: any) => {
+    litSwitch.addEventListener('change', (event: unknown) => {
+      //@ts-ignore
       let detail = event.detail;
       if (detail!.checked) {
         this.unDisable();
@@ -290,7 +295,8 @@ export class SpProbesConfig extends BaseElement {
     this.startSamp = true;
     let checkDesBoxDis = this.shadowRoot?.querySelectorAll<SpCheckDesBox>('check-des-box');
     let litCheckBoxDis = this.shadowRoot?.querySelectorAll<LitCheckBox>('lit-check-box');
-    let defaultSelected: any = [];
+    let defaultSelected: unknown = [];
+    //@ts-ignore
     defaultSelected = defaultSelected.concat(traceConfigList, memoryConfigList, abilityConfigList, hiTraceConfigList);
     this.shadowRoot?.querySelector<SpCheckDesBox>('[value=\'Hitrace categories\']')?.setAttribute('checked', 'true');
     this.ftraceSlider!.removeAttribute('disabled');
@@ -300,8 +306,11 @@ export class SpProbesConfig extends BaseElement {
     litCheckBoxDis?.forEach((item: LitCheckBox) => {
       item.removeAttribute('disabled');
     });
-    defaultSelected.filter((item: any) => {
+    //@ts-ignore
+    defaultSelected.filter((item: unknown) => {
+      //@ts-ignore
       if (item.isSelect) {
+        //@ts-ignore
         this.shadowRoot?.querySelector<SpCheckDesBox>(`[value='${item.value}']`)?.setAttribute('checked', 'true');
       }
     });

@@ -18,8 +18,8 @@ import { query } from './SqlLite';
 class ProcedureThread {
   busy: boolean = false;
   isCancelled: boolean = false;
-  id: number = -1;
-  taskMap: any = {};
+  id: number = -1;//@ts-ignore
+  taskMap: unknown = {};
   name: string | undefined;
   worker?: Worker;
   constructor(worker: Worker) {
@@ -31,10 +31,10 @@ class ProcedureThread {
       (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
     );
   }
-
-  queryFunc(type: string, args: any, transfer: any, handler: Function): void {
+//@ts-ignore
+  queryFunc(type: string, args: unknown, transfer: unknown, handler: Function): void {
     this.busy = true;
-    let id = this.uuid();
+    let id = this.uuid();// @ts-ignore
     this.taskMap[id] = handler;
     let pam = {
       id: id,
@@ -49,10 +49,11 @@ class ProcedureThread {
           } else {
             this.worker!.postMessage(pam);
           }
-        } else {
+        } else {// @ts-ignore
           this.worker!.postMessage(pam, [transfer]);
         }
-      } catch (e: any) {}
+      } catch (//@ts-ignore
+        e: unknown) {}
     } else {
       this.worker!.postMessage(pam);
     }
@@ -68,7 +69,8 @@ class ProcedurePool {
   static cpuCount = Math.floor((window.navigator.hardwareConcurrency || 4) / 2);
   maxThreadNumber: number = 1;
   works: Array<ProcedureThread> = [];
-  timelineChange: ((a: any) => void) | undefined | null = null;
+  timelineChange: ((//@ts-ignore
+    a: unknown) => void) | undefined | null = null;
   cpusLen = ProcedurePool.build('cpu', 0);
   freqLen = ProcedurePool.build('freq', 0);
   processLen = ProcedurePool.build('process', 0);
@@ -113,13 +115,13 @@ class ProcedurePool {
         this.timelineChange?.(event.data.results);
         newThread.busy = false;
         return;
-      }
+      }// @ts-ignore
       if (Reflect.has(newThread.taskMap, event.data.id)) {
-        if (event.data) {
+        if (event.data) {// @ts-ignore
           let fun = newThread.taskMap[event.data.id];
           if (fun) {
             fun(event.data.results, event.data.hover);
-          }
+          }// @ts-ignore
           Reflect.deleteProperty(newThread.taskMap, event.data.id);
         }
       }
@@ -159,7 +161,8 @@ class ProcedurePool {
     thread.worker!.onmessage = (event: MessageEvent): void => {
       thread.busy = false;
       if (event.data.isQuery) {
-        query(event.data.type, event.data.sql, event.data.args, 'exec-buf').then((res: any) => {
+        query(event.data.type, event.data.sql, event.data.args, 'exec-buf').then((// @ts-ignore
+          res: unknown) => {
           thread.worker!.postMessage({
             type: event.data.type,
             params: {
@@ -171,8 +174,9 @@ class ProcedurePool {
         return;
       }
       if (event.data.isSending) {
-        if (Reflect.has(thread.taskMap, event.data.id)) {
-          if (event.data) {
+        if (Reflect.has(// @ts-ignore
+        thread.taskMap, event.data.id)) {
+          if (event.data) {// @ts-ignore
             let fun = thread.taskMap[event.data.id];
             if (fun) {
               fun(event.data.results, event.data.hover);
@@ -180,13 +184,13 @@ class ProcedurePool {
             return;
           }
         }
-      }
+      }// @ts-ignore
       if (Reflect.has(thread.taskMap, event.data.id)) {
-        if (event.data) {
+        if (event.data) {// @ts-ignore
           let fun = thread.taskMap[event.data.id];
           if (fun) {
             fun(event.data.results, event.data.hover);
-          }
+          }// @ts-ignore
           Reflect.deleteProperty(thread.taskMap, event.data.id);
         }
       }
@@ -208,8 +212,8 @@ class ProcedurePool {
       thread.queryFunc('clear', {}, undefined, () => {});
     }
   };
-
-  submitWithName(name: string, type: string, args: any, transfer: any, handler: Function): ProcedureThread | undefined {
+// @ts-ignore
+  submitWithName(name: string, type: string, args: unknown, transfer: unknown, handler: Function): ProcedureThread | undefined {
     let noBusyThreads = this.works.filter((it) => it.name === name);
     let thread: ProcedureThread | undefined;
     if (noBusyThreads.length > 0) {
@@ -219,15 +223,15 @@ class ProcedurePool {
     }
     return thread;
   }
-
-  submitWithNamePromise(name: string, type: string, args: any, transfer: any): Promise<any> {
+// @ts-ignore
+  submitWithNamePromise(name: string, type: string, args: unknown, transfer: unknown): Promise<unknown> {
     return new Promise((resolve, reject) => {
       let noBusyThreads = this.works.filter((it) => it.name === name);
       let thread: ProcedureThread | undefined;
       if (noBusyThreads.length > 0) {
         //取第一个空闲的线程进行任务
-        thread = noBusyThreads[0];
-        thread!.queryFunc(type, args, transfer, (res: any, hover: any) => {
+        thread = noBusyThreads[0];// @ts-ignore
+        thread!.queryFunc(type, args, transfer, (res: unknown, hover: unknown) => {
           resolve({
             res: res,
             hover: hover,

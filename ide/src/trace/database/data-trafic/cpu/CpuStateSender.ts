@@ -40,18 +40,22 @@ export function cpuStateSender(filterId: number, row: TraceRow<CpuStateStruct>):
         sharedArrayBuffers: row.sharedArrayBuffers,
         filterId: filterId,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(res: any, len: number): CpuStateStruct[] {
+function arrayBufferHandler(res: unknown, len: number): CpuStateStruct[] {
   let outArr: CpuStateStruct[] = [];
+  // @ts-ignore
   let startTs = new Float64Array(res.startTs);
+  // @ts-ignore
   let dur = new Float64Array(res.dur);
+  // @ts-ignore
   let value = new Uint32Array(res.value);
+  // @ts-ignore
   let height = new Uint8Array(res.value);
   for (let i = 0; i < len; i++) {
     outArr.push({

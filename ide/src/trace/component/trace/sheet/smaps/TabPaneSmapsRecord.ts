@@ -27,7 +27,7 @@ import { querySmapsRecordTabData } from '../../../../database/sql/Smaps.sql';
 @element('tabpane-smaps-record')
 export class TabPaneSmapsRecord extends BaseElement {
   private smapsRecordTable: LitTable | undefined | null;
-  private smapsRecordDataSource: Array<any> = [];
+  private smapsRecordDataSource: Array<unknown> = [];
   private _GLESHostCache: Array<SnapshotStruct> = [];
   private pixelmapId = -1;
   private typeId = SmapsType.TYPE_NATIVE_HEAP;
@@ -35,7 +35,7 @@ export class TabPaneSmapsRecord extends BaseElement {
   set GLESHostCache(value: Array<SnapshotStruct>) {
     this._GLESHostCache = value;
   }
-  set data(smapsValue: SelectionParam | any) {
+  set data(smapsValue: SelectionParam | unknown) {
     this.smapsRecordDataSource = [];
     if (smapsValue) {
       if (this.pixelmapId == -1) {
@@ -46,6 +46,7 @@ export class TabPaneSmapsRecord extends BaseElement {
           }
         }
       }
+      // @ts-ignore
       this.setSmapsRecordTableData(smapsValue.leftNs);
     }
   }
@@ -91,7 +92,8 @@ export class TabPaneSmapsRecord extends BaseElement {
           this.smapsRecordDataSource.push({ name: 'ProcessCache', size: getByteWithUnit(ProcessCacheSize) });
           this.smapsRecordDataSource.unshift(
             { name: 'TimeStamp', size: ns2s(startNs) },
-            { name: 'TimeStamp(Absolute)', size: (startNs + (window as any).recordStartNS) / 1000000000 },
+            // @ts-ignore
+            { name: 'TimeStamp(Absolute)', size: (startNs + (window as unknown).recordStartNS) / 1000000000 },
             { name: 'Total', size: getByteWithUnit(totalSize) }
           );
         }

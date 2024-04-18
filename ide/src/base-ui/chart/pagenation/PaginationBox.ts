@@ -17,7 +17,7 @@ import { BaseElement, element } from '../../BaseElement';
 
 @element('pagination-box')
 export class PaginationBox extends BaseElement {
-  private paginationBoxPage: any;
+  private paginationBoxPage: unknown;
 
   static get observedAttributes(): string[] {
     return ['text', 'height', 'width'];

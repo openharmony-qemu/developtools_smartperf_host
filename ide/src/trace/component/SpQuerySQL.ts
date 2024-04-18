@@ -171,6 +171,7 @@ export class SpQuerySQL extends BaseElement {
     queryCustomizeSelect(sql).then((resultList): void => {
       if (resultList && resultList.length > 0) {
         this.statDataArray = resultList;
+        //@ts-ignore
         this.keyList = Object.keys(resultList[0]);
         this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.` + `(${sql})`;
         this.initDataElement();

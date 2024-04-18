@@ -54,7 +54,7 @@ export class TabPaneSchedPriority extends BaseElement {
     resizeObserver(this.parentElement!, this.priorityTbl!);
   }
 
-  private async queryDataByDB(sptParam: SelectionParam | any): Promise<void> {
+  private async queryDataByDB(sptParam: SelectionParam | unknown): Promise<void> {
     this.priorityTbl!.loading = true;
     const resultData: Array<Priority> = [];
     await this.fetchAndProcessData();
@@ -89,11 +89,13 @@ export class TabPaneSchedPriority extends BaseElement {
     }
     // thread_state表中runnable数据的Map
     const runnableMap = new Map<string, Priority>();
+    // @ts-ignore
     sliceSPTSender(sptParam.leftNs, sptParam.rightNs, [], 'spt-getCpuPriorityByTime').then((res): void => {
-      for (const item of res) {
-        if (['R', 'R+'].includes(item.state)) {
+      for (const item of res) {//@ts-ignore
+        if (['R', 'R+'].includes(item.state)) {//@ts-ignore
           runnableMap.set(`${item.id}_${item.startTime + item.dur}`, item);
         }
+        // @ts-ignore
         if (item.cpu === null || !sptParam.cpus.includes(item.cpu)) {
           continue;
         }

@@ -21,7 +21,8 @@ import { GpuCountBean, SearchGpuFuncBean } from '../../bean/GpufreqBean';
 export const queryPerfFiles = (): Promise<Array<PerfFile>> =>
   query('queryPerfFiles', `select file_id as fileId,symbol,path from perf_files`, {});
 
-export const queryPerfCallChainName = (): Promise<Array<any>> =>
+export const queryPerfCallChainName = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query('queryPerfCallChainName', `select callchain_id,depth,name from perf_callchain`, {});
 
 export const queryPerfProcess = (): Promise<Array<PerfThread>> =>
@@ -142,9 +143,11 @@ select distinct event_type_id from perf_sample);
 /**
  * HiPerf
  */
-export const queryHiPerfEventList = (): Promise<Array<any>> =>
+export const queryHiPerfEventList = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query('queryHiPerfEventList', `select id,report_value from perf_report where report_type='config_name'`, {});
-export const queryHiPerfEventListData = (eventTypeId: number): Promise<Array<any>> =>
+export const queryHiPerfEventListData = (eventTypeId: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryHiPerfEventListData',
     `
@@ -158,7 +161,8 @@ export const queryHiPerfEventListData = (eventTypeId: number): Promise<Array<any
 `,
     { $eventTypeId: eventTypeId }
   );
-export const queryHiPerfEventData = (eventTypeId: number, cpu: number): Promise<Array<any>> =>
+export const queryHiPerfEventData = (eventTypeId: number, cpu: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryHiPerfEventList',
     `
@@ -173,7 +177,8 @@ export const queryHiPerfEventData = (eventTypeId: number, cpu: number): Promise<
 `,
     { $eventTypeId: eventTypeId, $cpu: cpu }
   );
-export const queryHiPerfCpuData = (cpu: number): Promise<Array<any>> =>
+export const queryHiPerfCpuData = (cpu: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryHiPerfCpuData',
     `
@@ -185,21 +190,24 @@ export const queryHiPerfCpuData = (cpu: number): Promise<Array<any>> =>
         and s.thread_id != 0;`,
     { $cpu: cpu }
   );
-export const queryHiPerfCpuMergeData = (): Promise<Array<any>> =>
+export const queryHiPerfCpuMergeData = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryHiPerfCpuData',
     `select s.callchain_id,(s.timestamp_trace-t.start_ts) startNS, event_count, event_type_id from perf_sample s,trace_range t 
 where s.thread_id != 0;`,
     {}
   );
-export const queryHiPerfCpuMergeData2 = (): Promise<Array<any>> =>
+export const queryHiPerfCpuMergeData2 = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryHiPerfCpuData2',
     `select distinct cpu_id from perf_sample where thread_id != 0 order by cpu_id desc;`,
     {}
   );
 
-export const queryHiPerfProcessData = (pid: number): Promise<Array<any>> =>
+export const queryHiPerfProcessData = (pid: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryHiPerfProcessData',
     `
@@ -217,7 +225,8 @@ where pid = ${pid} and sp.thread_id != 0 `,
     { $pid: pid }
   );
 
-export const queryHiPerfThreadData = (tid: number): Promise<Array<any>> =>
+export const queryHiPerfThreadData = (tid: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryHiPerfThreadData',
     `
@@ -384,7 +393,8 @@ export const queryHiPerfProcessCount = (
   cpus: Array<number>,
   threads: Array<number>,
   processes: Array<number>
-): Promise<Array<any>> => {
+)://@ts-ignore
+ Promise<Array<unknown>> => {
   let str = '';
   if (processes.length > 0) {
     str = ` and C.process_id in (${processes.join(',')})`;

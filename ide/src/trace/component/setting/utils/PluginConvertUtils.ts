@@ -17,38 +17,32 @@ export class PluginConvertUtils {
   private static crlf: string = '\n';
   private static leftBrace: string = '{';
   private static rightBrace: string = '}';
-  static pluginConfig: any[] = [];
+  static pluginConfig: unknown[] = [];
 
   public static createHdcCmd(requestString: string, outputPath: string, time: number): string {
     return (
-      `hiprofiler_cmd \\${
-        this.crlf
-      }  -c - \\${
-        this.crlf 
-      }  -o ${
-        outputPath
-      } \\${
-        this.crlf
-      }  -t ${
-        time
-      } \\${
-        this.crlf
-      }  -s \\${
-        this.crlf
-      }  -k \\${
-        this.crlf
-      }<<CONFIG${
-        requestString
+      `hiprofiler_cmd \\${this.crlf
+      }  -c - \\${this.crlf
+      }  -o ${outputPath
+      } \\${this.crlf
+      }  -t ${time
+      } \\${this.crlf
+      }  -s \\${this.crlf
+      }  -k \\${this.crlf
+      }<<CONFIG${requestString
       }CONFIG`
     );
   }
 
-  public static BeanToCmdTxt(bean: any, needColon: boolean): string {
+  public static BeanToCmdTxt(bean: unknown, needColon: boolean): string {
+    //@ts-ignore
     PluginConvertUtils.pluginConfig = bean.pluginConfigs;
+    //@ts-ignore
     return this.handleObj(bean, 0, needColon, 1);
   }
 
-  public static BeanToCmdTxtWithObjName(bean: any, needColon: boolean, objName: string, spacesNumber: number): string {
+  public static BeanToCmdTxtWithObjName(bean: unknown, needColon: boolean, objName: string, spacesNumber: number): string {
+    //@ts-ignore
     return `${objName}: {${this.handleObj(bean, 0, needColon, spacesNumber)}}`;
   }
 
@@ -74,7 +68,7 @@ export class PluginConvertUtils {
     indentation: number,
     needColon: boolean,
     spacesNumber: number,
-    bean: any
+    bean: unknown
   ): string {
     // @ts-ignore
     for (const [key, value] of Object.entries(bean)) {
@@ -113,7 +107,7 @@ export class PluginConvertUtils {
 
   private static handleObjByDefault(
     prefixText: string,
-    value: any,
+    value: unknown,
     spacesNumber: number,
     key: string,
     indentation: number,
@@ -121,10 +115,12 @@ export class PluginConvertUtils {
   ): string {
     if (needColon) {
       prefixText = `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+        //@ts-ignore
         this.humpToSnake(key)}: ${this.handleObj(value, indentation + 1, needColon, spacesNumber)}${this.crlf}`;
     } else {
       prefixText =
         `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) +
+        //@ts-ignore
         this.humpToSnake(key) + this.handleObj(value, indentation + 1, needColon, spacesNumber)}${this.crlf}`;
     }
     return prefixText;
@@ -132,19 +128,24 @@ export class PluginConvertUtils {
 
   private static handleObjByStr(
     prefixText: string,
-    value: any,
+    value: unknown,
     spacesNumber: number,
     key: string,
     indentation: number
   ): string {
+    //@ts-ignore
     if (LevelConfigEnumList.indexOf(value) >= 0 || value.startsWith('IO_REPORT')) {
       prefixText =
         `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: 
-        ${value.toString()}${this.crlf}`;
+        
+       ${//@ts-ignore
+        value.toString()}${this.crlf}`;
     } else {
       prefixText =
         `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) +
-        this.humpToSnake(key)}: "${value.toString()}"${this.crlf}`;
+        this.humpToSnake(key)}: "${
+          //@ts-ignore
+          value.toString()}"${this.crlf}`;
     }
     return prefixText;
   }
@@ -189,7 +190,7 @@ export class PluginConvertUtils {
     key: string,
     arrValue: any
   ): string {
-    return (`${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + 
+    return (`${text + ' '.repeat(spacesNumber).repeat(indentation + 1) +
       this.humpToSnake(key)}: ${arrValue.toString()}${this.crlf}`);
   }
 
@@ -224,7 +225,7 @@ export class PluginConvertUtils {
   ): string {
     if (arrValue.startsWith('VMEMINFO') || arrValue.startsWith('PMEM')) {
       text = `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) +
-        this.humpToSnake(key)}: ${ arrValue.toString()}${this.crlf}`;
+        this.humpToSnake(key)}: ${arrValue.toString()}${this.crlf}`;
     } else {
       text = `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) +
         this.humpToSnake(key)}: "${arrValue.toString()}"${this.crlf}`;

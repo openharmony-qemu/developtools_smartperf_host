@@ -18,7 +18,7 @@ import { CmdConstant } from './CmdConstant';
 import { HdcDeviceManager } from '../hdc/HdcDeviceManager';
 
 export class Cmd {
-  static CmdSendPostUtils(uri: string, callback: Function, requestData: any): void {
+  static CmdSendPostUtils(uri: string, callback: Function, requestData: unknown): void {
     // @ts-ignore
     if (window.useWb) {
       return;

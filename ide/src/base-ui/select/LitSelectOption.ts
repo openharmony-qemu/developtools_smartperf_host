@@ -109,7 +109,7 @@ export class LitSelectOption extends BaseElement {
   adoptedCallback(): void {}
 
   //当 custom element增加、删除、修改自身属性时，被调用。
-  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {}
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {}
 }
 
 if (!customElements.get('lit-select-option')) {

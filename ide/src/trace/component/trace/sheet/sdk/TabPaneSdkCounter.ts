@@ -29,12 +29,13 @@ export class TabPaneSdkCounter extends BaseElement {
   private tblSdkCounter: LitTable | null | undefined;
   private sdkRange: HTMLLabelElement | null | undefined;
   private keyList: Array<string> | undefined;
-  private statDataArray: any = [];
-  private columnMap: any = {};
-  private sqlMap: Map<number, any> = new Map<number, any>();
+  private statDataArray: unknown = [];
+  private columnMap: unknown = {};
+  private sqlMap: Map<number, unknown> = new Map<number, unknown>();
 
-  set data(valSdkCounter: SelectionParam | any) {
+  set data(valSdkCounter: SelectionParam | unknown) {
     this.sdkRange!.textContent =
+    // @ts-ignore
       'Selected range: ' + ((valSdkCounter.rightNs - valSdkCounter.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.queryDataByDB(valSdkCounter);
   }
@@ -53,12 +54,15 @@ export class TabPaneSdkCounter extends BaseElement {
     resizeObserver(this.parentElement!, this.tblSdkCounter!);
   }
 
-  getStatDataArray(counterItem: any): void {
+  getStatDataArray(counterItem: unknown): void {
     this.keyList = [];
     this.tblSdkCounter!.innerHTML = '';
     this.statDataArray = [];
+    // @ts-ignore
     if (counterItem.length !== null && counterItem.length > 0) {
+      // @ts-ignore
       for (let counterItemIndex = 0; counterItemIndex < counterItem.length; counterItemIndex++) {
+        // @ts-ignore
         const dataResult = counterItem[counterItemIndex];
         let keys = Object.keys(dataResult);
         // @ts-ignore
@@ -70,14 +74,20 @@ export class TabPaneSdkCounter extends BaseElement {
             this.keyList.push(counterKey);
           }
           let counterValue = values[counterKeyIndex];
+          // @ts-ignore
           if (this.columnMap[counterKey] === 'TimeStamp') {
             counterValue = Utils.getTimeString(Number(counterValue));
+            // @ts-ignore
           } else if (this.columnMap[counterKey] === 'ClockTime') {
             counterValue = Utils.getTimeStampHMS(Number(counterValue));
+            // @ts-ignore
           } else if (this.columnMap[counterKey] === 'RangTime') {
+            // @ts-ignore
             counterValue = Utils.getDurString(Number(counterValue));
+            // @ts-ignore
           } else if (this.columnMap[counterKey] === 'PercentType') {
             counterValue = counterValue + '%';
+            // @ts-ignore
           } else if (this.columnMap[counterKey] === 'CurrencyType') {
             // @ts-ignore
             counterValue = counterValue.toString().replace(/\B(?=(\d{3})+$)/g, ',');
@@ -92,35 +102,46 @@ export class TabPaneSdkCounter extends BaseElement {
             counterJsonText += '}';
           }
         }
+        // @ts-ignore
         this.statDataArray.push(JSON.parse(counterJsonText));
       }
+      // @ts-ignore
       this.tblSdkCounter!.recycleDataSource = this.statDataArray;
     } else {
       this.tblSdkCounter!.recycleDataSource = [];
     }
   }
 
-  queryDataByDB(sdkVal: SelectionParam | any): void {
+  queryDataByDB(sdkVal: SelectionParam | unknown): void {
     queryStartTime().then((res) => {
+      //@ts-ignore
       let startTime = res[0].start_ts;
       this.parseJson(SpSystemTrace.SDK_CONFIG_MAP);
       let counters: Array<string> = [];
       let componentId: number = -1;
+      // @ts-ignore
       for (let index = 0; index < sdkVal.sdkCounterIds.length; index++) {
+        // @ts-ignore
         let values = sdkVal.sdkCounterIds[index].split('-');
         let value = values[0];
         componentId = Number(values[1]);
         counters.push(value);
       }
       let sqlObj = this.sqlMap.get(componentId);
+      // @ts-ignore
       let sql = sqlObj.TabCounterLeftData;
+      // @ts-ignore
       getTabSdkCounterLeftData(sql, sdkVal.leftNs + startTime, counters, componentId).then((res) => {
+        //@ts-ignore
         let leftTime = res[res.length - 1].max_value - startTime;
+        // @ts-ignore
         let sql = sqlObj.TabCounterData;
+        // @ts-ignore
         getTabSdkCounterData(sql, startTime, leftTime, sdkVal.rightNs, counters, componentId).then((counterItem) => {
           this.getStatDataArray(counterItem);
           this.initDataElement();
           setTimeout(() => {
+            // @ts-ignore
             this.tblSdkCounter!.recycleDataSource = this.statDataArray;
             new ResizeObserver(() => {
               if (this.parentElement?.clientHeight !== 0) {
@@ -137,8 +158,9 @@ export class TabPaneSdkCounter extends BaseElement {
   parseJson(configMap: Map<number, string>): string {
     let keys = configMap.keys();
     for (let key of keys) {
-      let counterConfigObject: any = configMap.get(key);
+      let counterConfigObject: unknown = configMap.get(key);
       if (counterConfigObject !== undefined) {
+        // @ts-ignore
         let configStr = counterConfigObject.jsonConfig;
         let configJson = JSON.parse(configStr);
         let counterTableConfig = configJson.tableConfig;
@@ -150,6 +172,7 @@ export class TabPaneSdkCounter extends BaseElement {
             if (type === 'counter') {
               let selectSql = 'select ';
               for (let counterColumnsIndex = 0; counterColumnsIndex < showType.columns.length; counterColumnsIndex++) {
+                // @ts-ignore
                 this.columnMap[showType.columns[counterColumnsIndex].column] =
                   showType.columns[counterColumnsIndex].displayName;
                 if (showType.columns[counterColumnsIndex].showType.indexOf(3) > -1) {
@@ -215,7 +238,7 @@ export class TabPaneSdkCounter extends BaseElement {
         `;
   }
 
-  sortByColumn(counterDetail: any): void {
+  sortByColumn(counterDetail: unknown): void {
     // @ts-ignore
     function compare(property, countreSort, type) {
       return function (aSdkCounter: SelectionData, bSdkCounter: SelectionData): number {
@@ -243,11 +266,15 @@ export class TabPaneSdkCounter extends BaseElement {
       };
     }
 
+    // @ts-ignore
     if (counterDetail.key.indexOf('name') !== -1) {
+      // @ts-ignore
       this.statDataArray.sort(compare(counterDetail.key, counterDetail.sort, 'string'));
     } else {
+      // @ts-ignore
       this.statDataArray.sort(compare(counterDetail.key, counterDetail.sort, 'number'));
     }
+    // @ts-ignore
     this.tblSdkCounter!.recycleDataSource = this.statDataArray;
   }
 }

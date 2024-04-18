@@ -15,18 +15,18 @@
 
 const mallocSize = 1024 * 1024;
 
-let Module_T: any = null;
+let Module_T: unknown = null;
 
 function initConfigWASM(wasmFunctionName: string): Promise<string> {
   return new Promise((resolve, reject) => {
     function callModelFun(functionName: string): void {
       let func = eval(functionName);
       Module_T = new func({
-        locateFile: (s: any): any => {
+        locateFile: (s: unknown): unknown => {
           return s;
         },
-        print: (line: any): void => {},
-        printErr: (line: any): void => {},
+        print: (line: unknown): void => {},
+        printErr: (line: unknown): void => {},
         onRuntimeInitialized: (): void => {
           resolve('ok');
         },
@@ -44,6 +44,7 @@ self.onmessage = async (e: MessageEvent): Promise<void> => {
     await initConfigWASM(e.data.WasmName);
     let dataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number) => {
       if (isConfig === 1) {
+        // @ts-ignore
         let jsonOut: Uint8Array = Module_T.HEAPU8.slice(heapPtr, heapPtr + size);
         let decoder = new TextDecoder();
         let result = decoder.decode(jsonOut);
@@ -53,8 +54,11 @@ self.onmessage = async (e: MessageEvent): Promise<void> => {
         });
       }
     };
+    // @ts-ignore
     let fn = Module_T.addFunction(dataCallBack, 'viiii');
+    // @ts-ignore
     Module_T._Init(fn, mallocSize);
+    // @ts-ignore
     Module_T._TraceStreamer_In_JsonConfig();
   }
 };

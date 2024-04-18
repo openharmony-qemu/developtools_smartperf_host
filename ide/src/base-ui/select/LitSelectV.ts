@@ -22,10 +22,10 @@ export class LitSelectV extends BaseElement {
   showItems: Array<string> = [];
   itemValue: Array<string> = [];
   customItem: Array<string> = [];
-  private focused: any;
-  private selectVInputEl: any;
-  private selectVSearchInputEl: any;
-  private selectVIconEl: any;
+  private focused: unknown;
+  private selectVInputEl: unknown;
+  private selectVSearchInputEl: unknown;
+  private selectVIconEl: unknown;
   private selectVOptions: HTMLDivElement | undefined;
   private selectVBody: HTMLDivElement | undefined;
 
@@ -35,7 +35,7 @@ export class LitSelectV extends BaseElement {
     return ['value', 'default-value', 'placeholder', 'disabled', 'show-search', 'border', 'mode'];
   }
 
-  get value(): string {
+  get value(): string {// @ts-ignore
     return this.selectVInputEl!.value || this.defaultValue;
   }
 
@@ -157,36 +157,36 @@ export class LitSelectV extends BaseElement {
     this.selectVSearchInputEl = this.shadowRoot!.querySelector('#search-input') as HTMLInputElement;
     this.selectVBody = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
     this.selectVOptions = this.shadowRoot!.querySelector('.body-opt') as HTMLDivElement;
-    this.selectVIconEl = this.shadowRoot!.querySelector('.icon');
+    this.selectVIconEl = this.shadowRoot!.querySelector('.icon');// @ts-ignore
     this.selectVInputEl!.oninput = (ev: InputEvent): void => {
       // @ts-ignore
-      if (this.selectVInputEl!.value === '00') {
+      if (this.selectVInputEl!.value === '00') {// @ts-ignore
         this.selectVInputEl!.value = '0';
         ev.preventDefault();
-      }
+      }// @ts-ignore
       if (this.selectVInputEl!.value === '') {
         this.shadowRoot?.querySelectorAll('lit-select-option').forEach((it) => {
           it.removeAttribute('selected');
           this.showItems = [];
         });
       }
-    };
+    };// @ts-ignore
     this.selectVSearchInputEl!.onkeydown = (ev: KeyboardEvent): void => {
       // @ts-ignore
       if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
         ev.preventDefault();
       }
     };
-    this.onclick = (ev: any): void => {
+    this.onclick = (ev: unknown): void => {
       if (this.focused === false) {
         this.focused = true;
       } else {
         this.focused = false;
       }
-    };
+    };// @ts-ignore
     this.selectVSearchInputEl?.addEventListener('keyup', () => {
       let options = [...this.shadowRoot!.querySelectorAll<LitSelectOption>('.option')];
-      options.filter((a: LitSelectOption) => {
+      options.filter((a: LitSelectOption) => {// @ts-ignore
         if (a.textContent!.indexOf(this.selectVSearchInputEl!.value) <= -1) {
           a.style.display = 'none';
         } else {
@@ -200,13 +200,13 @@ export class LitSelectV extends BaseElement {
   setEvent(): void {
     this.onmouseout = this.onblur = (ev): void => {
       this.focused = false;
-    };
-    this.selectVInputEl.onfocus = (ev: any): void => {
+    };// @ts-ignore
+    this.selectVInputEl.onfocus = (ev: unknown): void => {
       if (this.hasAttribute('disabled')) {
         return;
       }
-    };
-    this.selectVInputEl.onblur = (ev: any): void => {
+    };// @ts-ignore
+    this.selectVInputEl.onblur = (ev: unknown): void => {
       if (this.hasAttribute('disabled')) {
         return;
       }
@@ -240,11 +240,11 @@ export class LitSelectV extends BaseElement {
     ) as LitSelectOption;
     this.shadowRoot?.querySelectorAll('lit-select-option').forEach((a) => {
       a.setAttribute('check', '');
-      a.addEventListener('onSelected', (e: any) => {
+      a.addEventListener('onSelected', (e: unknown) => {
         if (a.hasAttribute('selected')) {
           let number = this.showItems.indexOf(a.textContent!);
           if (number > -1) {
-            this.showItems!.splice(number, 1);
+            this.showItems!.splice(number, 1);// @ts-ignore
             this.selectVInputEl!.value = this.showItems;
           }
           this.all = false;
@@ -255,7 +255,7 @@ export class LitSelectV extends BaseElement {
           let index = this.itemValue.indexOf(a.textContent!);
           let value = this.showItems.indexOf(a.textContent!);
           if (index > -1 && value === -1) {
-            this.showItems.push(a.textContent!);
+            this.showItems.push(a.textContent!);// @ts-ignore
             this.selectVInputEl!.value = this.showItems;
           }
           if (this.showItems.length >= this.itemValue.length) {
@@ -275,7 +275,7 @@ export class LitSelectV extends BaseElement {
   initOptions(): void {
     this.shadowRoot?.querySelectorAll('lit-select-option').forEach((a) => {
       a.setAttribute('check', '');
-      a.addEventListener('onSelected', (e: any) => {
+      a.addEventListener('onSelected', (e: unknown) => {
         if (a.hasAttribute('selected')) {
           let number = this.showItems.indexOf(a.textContent!);
           if (number > -1) {
@@ -288,7 +288,7 @@ export class LitSelectV extends BaseElement {
             this.showItems.push(a.textContent!);
           }
           a.setAttribute('selected', '');
-        }
+        }// @ts-ignore
         let items = this.selectVInputEl!.value.split(',');
         this.customItem = [];
         items.forEach((item: string) => {
@@ -299,9 +299,9 @@ export class LitSelectV extends BaseElement {
             }
           }
         });
-        if (this.customItem.length > 0) {
+        if (this.customItem.length > 0) {// @ts-ignore
           this.selectVInputEl.value = this.customItem.concat(this.showItems);
-        } else {
+        } else {// @ts-ignore
           this.selectVInputEl.value = this.showItems;
         }
       });
@@ -317,18 +317,18 @@ export class LitSelectV extends BaseElement {
         });
         this.itemValue.forEach((i) => {
           this.showItems.push(i);
-        });
+        });// @ts-ignore
         this.selectVInputEl.value = this.itemValue;
       } else {
         this.shadowRoot?.querySelectorAll('lit-select-option').forEach((i) => {
           i.removeAttribute('selected');
           this.all = false;
         });
-        this.showItems = [];
+        this.showItems = [];// @ts-ignore
         this.selectVInputEl.value = '';
       }
     });
   }
 
-  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {}
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {}
 }

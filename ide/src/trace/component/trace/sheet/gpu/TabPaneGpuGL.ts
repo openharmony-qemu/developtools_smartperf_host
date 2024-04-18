@@ -37,18 +37,22 @@ export class TabPaneGpuGL extends BaseElement {
   private glSource: Array<GL> = [];
   private currentSelectionParam: SelectionParam | undefined;
 
-  set data(glParam: SelectionParam | any) {
+  set data(glParam: SelectionParam | unknown) {
     if (this.currentSelectionParam === glParam) {
       return;
     }
+    // @ts-ignore
     this.currentSelectionParam = glParam;
     //@ts-ignore
     this.glTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    // @ts-ignore
     this.range!.textContent = 'Selected range: ' + ((glParam.rightNs - glParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.glTbl!.loading = true;
     queryGpuDataTab(
       MemoryConfig.getInstance().iPid,
+      // @ts-ignore
       glParam.leftNs,
+      // @ts-ignore
       glParam.rightNs,
       MemoryConfig.getInstance().snapshotDur,
       "'mem.gl_pss'"
@@ -72,7 +76,8 @@ export class TabPaneGpuGL extends BaseElement {
   initElements(): void {
     this.glTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gl');
     this.range = this.shadowRoot?.querySelector('#gl-time-range');
-    this.glTbl!.addEventListener('column-click', (evt: any) => {
+    this.glTbl!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
@@ -115,8 +120,10 @@ export class TabPaneGpuGL extends BaseElement {
         return gpuA.startTs - gpuB.startTs;
       } else {
         let key = detail.key.replace('Str', '');
-        let valueA = (gpuA as any)[key];
-        let valueB = (gpuB as any)[key];
+        // @ts-ignore
+        let valueA = (gpuA as unknown)[key];
+        // @ts-ignore
+        let valueB = (gpuB as unknown)[key];
         return detail.sort === 1 ? valueA - valueB : valueB - valueA;
       }
     });

@@ -15,10 +15,12 @@ import { TraficEnum } from './utils/QueryEnum';
 import { filterDataByGroup } from './utils/DataFilter';
 import { lrqList } from './utils/AllMemoryCache';
 
-export const chartIrqDataSql = (args: any): string => {
+export const chartIrqDataSql = (args: unknown): string => {
+  // @ts-ignore
   if (args.name === 'irq') {
     return `
         select i.ts - ${
+          // @ts-ignore
           args.recordStartNS
         }                                                                                                   as startNs,
                max(i.dur)                                                                                       as dur,
@@ -26,34 +28,53 @@ export const chartIrqDataSql = (args: any): string => {
                ifnull(argsetid, -1)                                                                         as argSetId,
                i.id,
                case when i.cat = 'ipi' then 'IPI' || i.name else i.name end                                 as name,
-               ((i.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+               ((i.ts - ${
+                // @ts-ignore
+                args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
         from irq i
-        where i.callid = ${args.cpu}
+        where i.callid = ${
+          // @ts-ignore
+          args.cpu}
           and ((i.cat = 'irq' and i.flag = '1') or i.cat = 'ipi')
-          and startNs + dur >= ${Math.floor(args.startNS)}
-          and startNs <= ${Math.floor(args.endNS)}
+          and startNs + dur >= ${
+            // @ts-ignore
+            Math.floor(args.startNS)}
+          and startNs <= ${
+            // @ts-ignore
+            Math.floor(args.endNS)}
         group by px;
     `;
   } else {
     return `
-        select i.ts - ${args.recordStartNS}                                                                 as startNs,
+        select i.ts - ${
+          // @ts-ignore
+          args.recordStartNS}                                                                 as startNs,
                max(i.dur)                                                                                       as dur,
                i.depth,
                ifnull(argsetid,-1)                                                                            as argSetId,
                i.id,
                i.name,
-               ((i.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+               ((i.ts - ${
+                // @ts-ignore
+                args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
         from irq i
-        where i.callid = ${args.cpu}
+        where i.callid = ${
+          // @ts-ignore
+          args.cpu}
           and i.cat = 'softirq'
-          and startNs + dur >= ${Math.floor(args.startNS)}
-          and startNs <= ${Math.floor(args.endNS)}
+          and startNs + dur >= ${
+            // @ts-ignore
+            Math.floor(args.startNS)}
+          and startNs <= ${
+            // @ts-ignore
+            Math.floor(args.endNS)}
         group by px;
     `;
   }
 };
 
-export const chartIrqDataSqlMem = (args: any): string => {
+export const chartIrqDataSqlMem = (args: unknown): string => {
+  // @ts-ignore
   if (args.name === 'irq') {
     return `
         select i.ts - t.start_ts as startNs,i.dur,
@@ -62,52 +83,77 @@ export const chartIrqDataSqlMem = (args: any): string => {
         ifnull(argsetid, -1) as argSetId,
         i.id 
         from irq i,trace_range t 
-        where i.callid = ${args.cpu} and ((i.cat = 'irq' and i.flag ='1') or i.cat = 'ipi') 
+        where i.callid = ${
+          // @ts-ignore
+          args.cpu} and ((i.cat = 'irq' and i.flag ='1') or i.cat = 'ipi') 
     `;
   } else {
     return `
         select i.ts - t.start_ts as startNs,i.dur,i.name,i.depth,ifnull(argsetid, -1) as argSetId,i.id from irq i,
-trace_range t where i.callid = ${args.cpu} and i.cat = 'softirq'
+trace_range t where i.callid = ${
+  // @ts-ignore
+  args.cpu} and i.cat = 'softirq'
     `;
   }
 };
 
-export function irqDataReceiver(data: any, proc: Function): void {
+export function irqDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: any[];
-    let list: any[];
+    let res: unknown[];
+    let list: unknown[];
+    // @ts-ignore
     if (!lrqList.has(data.params.cpu + data.params.name)) {
+      // @ts-ignore
       list = proc(chartIrqDataSqlMem(data.params));
+      // @ts-ignore
       lrqList.set(data.params.cpu + data.params.name, list);
     } else {
+      // @ts-ignore
       list = lrqList.get(data.params.cpu + data.params.name) || [];
     }
+    // @ts-ignore
     res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width);
     arrayBufferHandler(data, res, true);
   } else {
+    // @ts-ignore
     let sql = chartIrqDataSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
+  // @ts-ignore
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
+  // @ts-ignore
   let depth = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
+  // @ts-ignore
   let argSetId = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.argSetId);
+  // @ts-ignore
   let id = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   res.forEach((it, i) => {
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.irqData);
+    // @ts-ignore
     startNS[i] = it.startNs;
+    // @ts-ignore
     dur[i] = it.dur;
+    // @ts-ignore
     depth[i] = it.depth;
+    // @ts-ignore
     argSetId[i] = it.argSetId;
+    // @ts-ignore
     id[i] = it.id;
   });
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {

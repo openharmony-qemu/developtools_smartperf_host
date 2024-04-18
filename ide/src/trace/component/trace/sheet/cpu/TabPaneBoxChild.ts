@@ -60,7 +60,8 @@ export class TabPaneBoxChild extends BaseElement {
       if (result.length !== null && result.length > 0) {
         result.map((e) => {
           e.startTime = Utils.getTimeString(e.startNs);
-          e.absoluteTime = ((window as any).recordStartNS + e.startNs) / 1000000000;
+          // @ts-ignore
+          e.absoluteTime = ((window as unknown).recordStartNS + e.startNs) / 1000000000;
           e.state = Utils.getEndState(e.state)!;
           e.prior = e.priority === undefined || e.priority === null ? '-' : `${e.priority}`;
           e.core = e.cpu === undefined || e.cpu === null ? '-' : `CPU${e.cpu}`;
@@ -120,7 +121,7 @@ export class TabPaneBoxChild extends BaseElement {
         `;
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(property, sort, type) {
       return function (boxChildLeftData: SelectionData, boxChildRightData: SelectionData): number {

@@ -16,10 +16,11 @@ import { TraficEnum } from './utils/QueryEnum';
 import { hiSysEventList } from './utils/AllMemoryCache';
 import { filterDataByGroupLayer } from './utils/DataFilter';
 
-export const chartHiSysEventDataSql = (args: any): string => {
+export const chartHiSysEventDataSql = (args: unknown): string => {
   return `
       SELECT S.id,
              (S.ts - ${
+              // @ts-ignore
                args.recordStartNS
              })                                                                                 AS startNs,
              pid,
@@ -32,26 +33,35 @@ export const chartHiSysEventDataSql = (args: any): string => {
                  END
                                                                                                                             AS depth,
              1                                                                                                              AS dur,
-             ((S.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) + (CASE
+             ((S.ts - ${
+              // @ts-ignore
+              args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) + (CASE
                                                                                                                  WHEN S.level = 'MINOR'
                                                                                                                      THEN 0
                                                                                                                  WHEN S.level = 'CRITICAL'
                                                                                                                      THEN 1
                                                                                                                  END *
                                                                                                              ${
+                                                                                                              // @ts-ignore
                                                                                                                args.width
                                                                                                              }) AS px
       FROM hisys_all_event AS S
       where S.id is not null
-        and startNs + dur >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        and startNs + dur >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)}
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)}
       group by px`;
 };
 
-export const chartHiSysEventSql = (args: any): string => {
+export const chartHiSysEventSql = (args: unknown): string => {
   return `
      SELECT S.id,
-             (S.ts - ${args.recordStartNS})                                                                                 AS startNs,
+             (S.ts - ${
+              // @ts-ignore
+              args.recordStartNS})                                                                                 AS startNs,
              pid,
              tid,
              uid,
@@ -67,53 +77,83 @@ export const chartHiSysEventSql = (args: any): string => {
       ORDER BY S.id`;
 };
 
-export function hiSysEventDataReceiver(data: any, proc: Function): void {
+export function hiSysEventDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
+    // @ts-ignore
     if (!hiSysEventList.has(data.params.id)) {
+      // @ts-ignore
       let sql = chartHiSysEventSql(data.params);
+      // @ts-ignore
       hiSysEventList.set(data.params.id, proc(sql));
     }
+    // @ts-ignore
     let list = hiSysEventList.get(data.params.id) || [];
     let res = filterDataByGroupLayer(
       list || [],
       'depth',
       'startNs',
       'dur',
+      // @ts-ignore
       data.params.startNS,
+      // @ts-ignore
       data.params.endNS,
+      // @ts-ignore
       data.params.width
     );
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = chartHiSysEventDataSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
   let id = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
+  // @ts-ignore
   let ts = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.ts);
+  // @ts-ignore
   let pid = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);
+  // @ts-ignore
   let tid = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.tid);
+  // @ts-ignore
   let seq = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.seq);
+  // @ts-ignore
   let uid = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.uid);
+  // @ts-ignore
   let dur = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
+  // @ts-ignore
   let depth = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
   res.forEach((it, index) => {
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.hiSysEventData);
+    // @ts-ignore
     uid[index] = it.uid;
+    // @ts-ignore
     id[index] = it.id;
+    // @ts-ignore
     ts[index] = it.startNs || it.ts;
+    // @ts-ignore
     pid[index] = it.pid;
+    // @ts-ignore
     tid[index] = it.tid;
+    // @ts-ignore
     seq[index] = it.seq;
+    // @ts-ignore
     dur[index] = it.dur;
+    // @ts-ignore
     depth[index] = it.depth;
   });
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {

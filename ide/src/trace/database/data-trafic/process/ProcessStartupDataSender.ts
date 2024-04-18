@@ -43,19 +43,19 @@ export function processStartupDataSender(pid: number, row: TraceRow<AppStartupSt
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): AppStartupStruct[] {
-  let startName = new Int32Array(buffers.startName);
-  let pid = new Int32Array(buffers.pid);
-  let tid = new Int32Array(buffers.tid);
-  let itid = new Int32Array(buffers.itid);
-  let startTs = new Float64Array(buffers.startTs);
+function arrayBufferHandler(buffers: unknown, len: number): AppStartupStruct[] {//@ts-ignore
+  let startName = new Int32Array(buffers.startName);//@ts-ignore
+  let pid = new Int32Array(buffers.pid);//@ts-ignore
+  let tid = new Int32Array(buffers.tid);//@ts-ignore
+  let itid = new Int32Array(buffers.itid);//@ts-ignore
+  let startTs = new Float64Array(buffers.startTs);//@ts-ignore
   let dur = new Float64Array(buffers.dur);
   let outArr: AppStartupStruct[] = [];
   for (let i = 0; i < len; i++) {

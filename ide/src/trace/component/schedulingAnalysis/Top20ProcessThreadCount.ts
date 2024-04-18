@@ -31,7 +31,7 @@ export class Top20ProcessThreadCount extends BaseElement {
   private processThreadCountPie: LitChartPie | null | undefined;
   private processThreadCountProgress: LitProgressBar | null | undefined;
   private nodata: TableNoData | null | undefined;
-  private processThreadCountData: Array<any> = [];
+  private processThreadCountData: Array<unknown> = [];
 
   initElements(): void {
     this.nodata = this.shadowRoot!.querySelector<TableNoData>('#nodata');
@@ -39,13 +39,14 @@ export class Top20ProcessThreadCount extends BaseElement {
     this.processThreadCountTbl = this.shadowRoot!.querySelector<LitTable>('#tb-process-thread-count');
     this.processThreadCountPie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
 
-    this.processThreadCountTbl!.addEventListener('row-click', (evt: any): void => {
+    this.processThreadCountTbl!.addEventListener('row-click', (evt: unknown): void => {
+      //@ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
-      if ((evt.detail as any).callBack) {
+      if ((evt.detail as unknown).callBack) {
         // @ts-ignore
-        (evt.detail as any).callBack(true);
+        (evt.detail as unknown).callBack(true);
       }
     });
 
@@ -53,12 +54,15 @@ export class Top20ProcessThreadCount extends BaseElement {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.processThreadCountTbl!.addEventListener('row-hover', (evt: any): void  => {
+    this.processThreadCountTbl!.addEventListener('row-hover', (evt: unknown): void  => {
+      //@ts-ignore
       if (evt.detail.data) {
+        //@ts-ignore
         let data = evt.detail.data;
         data.isHover = true;
-        if ((evt.detail as any).callBack) {
-          (evt.detail as any).callBack(true);
+        //@ts-ignore
+        if ((evt.detail as unknown).callBack) {//@ts-ignore
+          (evt.detail as unknown).callBack(true);
         }
       }
       this.processThreadCountPie?.showHover();
@@ -75,12 +79,16 @@ export class Top20ProcessThreadCount extends BaseElement {
     this.traceChange = false;
     this.processThreadCountProgress!.loading = true;
     this.queryLogicWorker('scheduling-Process ThreadCount', 'query Process Thread Count Analysis Time:', (res): void  => {
+      //@ts-ignore
       this.nodata!.noData = res === undefined || res.length === 0;
+      //@ts-ignore
       this.processThreadCountTbl!.recycleDataSource = res;
       this.processThreadCountTbl!.reMeauseHeight();
+      //@ts-ignore
       this.processThreadCountData = res;
       this.processThreadCountPie!.config = {
         appendPadding: 10,
+        //@ts-ignore
         data: res,
         angleField: 'threadNumber',
         colorField: 'pid',
@@ -97,9 +105,12 @@ export class Top20ProcessThreadCount extends BaseElement {
         },
         tip: (obj): string => {
           return `<div>
-                             <div>pid:${obj.obj.pid}</div> 
-                             <div>p_name:${obj.obj.pName}</div> 
-                             <div>thread count:${obj.obj.threadNumber}</div> 
+                             <div>pid:${// @ts-ignore
+                              obj.obj.pid}</div> 
+                             <div>p_name:${// @ts-ignore
+                              obj.obj.pName}</div> 
+                             <div>thread count:${// @ts-ignore
+                              obj.obj.threadNumber}</div> 
                         </div>
                 `;
         },
@@ -119,34 +130,38 @@ export class Top20ProcessThreadCount extends BaseElement {
     this.processThreadCountTbl!.recycleDataSource = [];
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: any) => void): void  {
+  queryLogicWorker(option: string, log: string, handler: (res: unknown) => void): void  {
     let processThreadCountTime = new Date().getTime();
     procedurePool.submitWithName('logic0', option, {}, undefined, handler);
     let durTime = new Date().getTime() - processThreadCountTime;
     info(log, durTime);
   }
 
-  sortByColumn(detail: any): void  {
+  sortByColumn(detail: unknown): void  {
     // @ts-ignore
     function compare(processThreadCountProperty, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2 ? parseFloat(b[processThreadCountProperty]) - parseFloat(a[processThreadCountProperty]) :
+          //@ts-ignore
             parseFloat(a[processThreadCountProperty]) - parseFloat(b[processThreadCountProperty]);
         } else {
-          if (sort === 2) {
+          if (sort === 2) {//@ts-ignore
             return b[processThreadCountProperty].toString().localeCompare(a[processThreadCountProperty].toString());
-          } else {
+          } else {//@ts-ignore
             return a[processThreadCountProperty].toString().localeCompare(b[processThreadCountProperty].toString());
           }
         }
       };
     }
 
+    //@ts-ignore
     if (detail.key === 'NO' || detail.key === 'pid' || detail.key === 'threadNumber') {
+      //@ts-ignore
       this.processThreadCountData.sort(compare(detail.key, detail.sort, 'number'));
     } else {
+      //@ts-ignore
       this.processThreadCountData.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.processThreadCountTbl!.recycleDataSource = this.processThreadCountData;

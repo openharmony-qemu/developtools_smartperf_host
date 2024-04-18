@@ -40,7 +40,7 @@ export function lostFrameSender(tName: String, fName: String, row: TraceRow<Ltpo
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );

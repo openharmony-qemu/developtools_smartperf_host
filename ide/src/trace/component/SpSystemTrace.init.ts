@@ -448,7 +448,7 @@ function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<any>>): void 
     if (sp.rangeTraceRow!.length !== rows.length) {
       let event = sp.createPointEvent(it);
       SpStatisticsHttpUtil.addOrdinaryVisitAction({
-        action: 'trace_row',
+        action: 'trace_row',// @ts-ignore
         event: event,
       });
     }
@@ -461,7 +461,9 @@ function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<any>>): void 
         selection.diskIOipids
       ).then((res) => {
         if (res.length > 0) {
+          //@ts-ignore
           selection.fsCount = res[0].fsCount;
+          //@ts-ignore
           selection.vmCount = res[0].vmCount;
         }
         return new Promise((resolve) => resolve(1));
@@ -544,7 +546,7 @@ function intersectionObserverHandler(sp: SpSystemTrace): void {
           sp.visibleRows.indexOf(tr) === -1 && sp.visibleRows.push(tr);
           sp.invisibleRows = sp.invisibleRows.filter((it) => it.sleeping);
         }
-        if (sp.handler) {
+        if (sp.handler) {// @ts-ignore
           clearTimeout(sp.handler);
         }
         sp.handler = setTimeout(() => sp.refreshCanvas(false), 100);
@@ -577,12 +579,12 @@ function smartEventSubscribe(sp: SpSystemTrace): void {
   window.subscribe(window.SmartEvent.UI.SliceMark, (data) => sp.sliceMarkEventHandler(data));
   window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => {});
   window.subscribe(window.SmartEvent.UI.RefreshCanvas, () => sp.refreshCanvas(false));
-  window.subscribe(window.SmartEvent.UI.KeyboardEnable, (tr) => {
+  window.subscribe(window.SmartEvent.UI.KeyboardEnable, (tr) => {//@ts-ignore
     sp.keyboardEnable = tr.enable;
     if (!sp.keyboardEnable) {
       sp.stopWASD();
     }
-  });
+  });//@ts-ignore
   window.subscribe(window.SmartEvent.UI.CollapseAllLane, (collapse: boolean) => {
     if (!collapse) {
       // 一键折叠之前，记录当前打开的泳道图
@@ -595,14 +597,14 @@ function smartEventSubscribe(sp: SpSystemTrace): void {
     sp.removeAttribute('disable');
     sp.refreshCanvas(true);
   });
-  window.subscribe(window.SmartEvent.UI.MouseEventEnable, (tr) => {
+  window.subscribe(window.SmartEvent.UI.MouseEventEnable, (tr) => {//@ts-ignore
     sp.mouseEventEnable = tr.mouseEnable;
     if (sp.mouseEventEnable) {
       sp.removeAttribute('disable');
     } else {
       sp.setAttribute('disable', '');
     }
-  });
+  });//@ts-ignore
   window.subscribe(window.SmartEvent.UI.CollectGroupChange, (group: string) => (sp.currentCollectGroup = group));
 }
 
@@ -778,7 +780,7 @@ function findEntryTypeCpu(sp: SpSystemTrace, findEntry: any): void {
   sp.queryAllTraceRow('trace-row[row-type=\'cpu-data\']', (row): boolean => row.rowType === 'cpu-data').forEach((item): void => {
     if (item.rowId === `${findEntry.cpu}`) {
       sp.rechargeCpuData(
-        findEntry,
+        findEntry,// @ts-ignore
         item.dataListCache.find((it) => it.startTime > findEntry.startTime)
       );
       item.fixedList = [findEntry];

@@ -80,15 +80,15 @@ export class SpCpuChart {
     let CpuStartTime = new Date().getTime();
     let array = await queryCpuMax();
     let cpuCountResult = await queryCpuCount();
-    if (cpuCountResult && cpuCountResult.length > 0 && cpuCountResult[0]) {
-      (window as any).cpuCount = cpuCountResult[0].cpuCount;
-    } else {
-      (window as any).cpuCount = 0;
+    if (cpuCountResult && cpuCountResult.length > 0 && cpuCountResult[0]) {// @ts-ignore
+      (window as unknown).cpuCount = cpuCountResult[0].cpuCount;
+    } else {// @ts-ignore
+      (window as unknown).cpuCount = 0;
     }
     let cpuSchedSlice = await queryCpuSchedSlice();
     this.initSchedSliceData(cpuSchedSlice);
     info('Cpu trace row data size is: ', array.length);
-    if (array && array.length > 0 && array[0]) {
+    if (array && array.length > 0 && array[0]) {//@ts-ignore
       let cpuMax = array[0].cpu;
       CpuStruct.cpuCount = cpuMax + 1;
       for (let i1 = 0; i1 < CpuStruct.cpuCount; i1++) {
@@ -129,7 +129,7 @@ export class SpCpuChart {
   initProcessThreadStateData = async (progress: Function): Promise<void> => {
     let time = new Date().getTime();
     progress('StateProcessThread', 93);
-    procedurePool.submitWithName('logic0', 'spt-init', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'spt-init', {}, undefined, (res: unknown) => {});
     let durTime = new Date().getTime() - time;
     info('The time to load the first ProcessThreadState data is: ', durTime);
   };
@@ -140,20 +140,20 @@ export class SpCpuChart {
     procedurePool.submitWithName(
       'logic0',
       'scheduling-getCpuIdle0',
-      {
-        endTs: (window as any).recordEndNS,
-        total: (window as any).totalNS,
+      {// @ts-ignore
+        endTs: (window as unknown).recordEndNS,// @ts-ignore
+        total: (window as unknown).totalNS,
       },
       undefined,
-      (res: any) => {}
+      (res: unknown) => {}
     );
     let durTime = new Date().getTime() - time;
     info('The time to load the first CPU Idle0 data is: ', durTime);
   };
 
-  initSchedSliceData(arr: any[]): void {
+  initSchedSliceData(arr: unknown[]): void {
     Utils.SCHED_SLICE_MAP.clear();
-    arr.forEach((value) => {
+    arr.forEach((value) => {// @ts-ignore
       Utils.SCHED_SLICE_MAP.set(`${value.itid}-${value.ts}`, { endState: value.endState, priority: value.priority });
     });
   }
@@ -161,7 +161,7 @@ export class SpCpuChart {
   initSchedulingPTData = async (progress: Function): Promise<void> => {
     let time = new Date().getTime();
     progress('CPU Idle', 94);
-    procedurePool.submitWithName('logic0', 'scheduling-getProcessAndThread', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'scheduling-getProcessAndThread', {}, undefined, (res: unknown) => {});
     let durTime = new Date().getTime() - time;
     info('The time to load the first CPU Idle0 data is: ', durTime);
   };
@@ -169,7 +169,7 @@ export class SpCpuChart {
   initSchedulingFreqData = async (progress: Function): Promise<void> => {
     let time = new Date().getTime();
     progress('CPU Scheduling Freq', 94);
-    procedurePool.submitWithName('logic0', 'scheduling-initFreqData', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'scheduling-initFreqData', {}, undefined, (res: unknown) => {});
     let durTime = new Date().getTime() - time;
     info('The time to load the first CPU Idle0 data is: ', durTime);
   };

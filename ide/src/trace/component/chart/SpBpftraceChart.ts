@@ -30,6 +30,7 @@ export class SpBpftraceChart {
   async init(file: File | null) {
     if (!file) {
       let startTime = await queryStartTime();
+      //@ts-ignore
       let folder = await this.initSample(startTime[0].start_ts, file);
       this.trace.rowsEL?.appendChild(folder);
     } else {

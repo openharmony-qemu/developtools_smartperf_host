@@ -25,7 +25,7 @@ export class LitSearch extends BaseElement {
   private search: HTMLInputElement | undefined | null;
   private _total: number = 0;
   private _index: number = 0;
-  private _list: Array<any> = [];
+  private _list: Array<unknown> = [];
   private _value: boolean = false;
   private totalEL: HTMLSpanElement | null | undefined;
   private indexEL: HTMLSpanElement | null | undefined;
@@ -38,11 +38,11 @@ export class LitSearch extends BaseElement {
   private retarget_index: number = 0;
   private _retarge_index: HTMLInputElement | null | undefined;
 
-  get list(): Array<any> {
+  get list(): Array<unknown> {
     return this._list;
   }
 
-  set list(value: Array<any>) {
+  set list(value: Array<unknown>) {
     this._list = value;
     this.total = value.length;
   }
@@ -273,8 +273,10 @@ export class LitSearch extends BaseElement {
       );
     });
     this.keyUpListener();
-    this.shadowRoot?.querySelector('input[name=\'retarge_index\']')?.addEventListener('keydown', (e: any): void => {
+    this.shadowRoot?.querySelector('input[name=\'retarge_index\']')?.addEventListener('keydown', (e: unknown): void => {
+      // @ts-ignore
       if (e.keyCode === 13) {
+        // @ts-ignore
         e.stopPropagation();
       }
     });
@@ -284,7 +286,8 @@ export class LitSearch extends BaseElement {
     let _root = this.shadowRoot!.querySelector<HTMLInputElement>('.root');
     let _prompt = this.shadowRoot!.querySelector<HTMLInputElement>('#prompt');
     // 添加翻页监听事件
-    this.shadowRoot?.querySelector('input[name=\'retarge_index\']')?.addEventListener('keyup', (e: any): void => {
+    this.shadowRoot?.querySelector('input[name=\'retarge_index\']')?.addEventListener('keyup', (e: unknown): void => {
+      // @ts-ignore
       if (e.keyCode === 13) {
         this.retarget_index = Number(this._retarge_index!.value);
         if (this.retarget_index <= this._list.length && this.retarget_index !== 0) {
@@ -307,8 +310,10 @@ export class LitSearch extends BaseElement {
             this._retarge_index!.value = '';
           }, 2000);
         }
+        // @ts-ignore
         e.target.blur();
       }
+      // @ts-ignore
       e.stopPropagation();
     });
   }

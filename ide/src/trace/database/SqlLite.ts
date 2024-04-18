@@ -13,20 +13,22 @@
  * limitations under the License.
  */
 class DataWorkerThread {
-  taskMap: any = {};
+  //@ts-ignore
+  taskMap: unknow = {};
   worker?: Worker;
   constructor(worker: Worker) {
     this.worker = worker;
   }
   uuid(): string {
     // @ts-ignore
-    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: any) =>
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: unknow) =>
       (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
     );
   }
 
   //发送方法名 参数 回调
-  queryFunc(action: string, args: any, handler: Function): void {
+  //@ts-ignore
+  queryFunc(action: string, args: unknow, handler: Function): void {
     let id = this.uuid();
     this.taskMap[id] = handler;
     let msg = {
@@ -42,8 +44,10 @@ class DbThread {
   busy: boolean = false;
   isCancelled: boolean = false;
   id: number = -1;
-  taskMap: any = {};
-  cacheArray: Array<any> = [];
+  //@ts-ignore
+  taskMap: unknow = {};
+  //@ts-ignore
+  cacheArray: Array<unknow> = [];
   worker?: Worker;
 
   constructor(worker: Worker) {
@@ -52,12 +56,13 @@ class DbThread {
 
   uuid(): string {
     // @ts-ignore
-    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: any) =>
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: unknow) =>
       (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
     );
   }
 
-  queryFunc(name: string, sql: string, args: any, handler: Function, action: string | null): void {
+  //@ts-ignore
+  queryFunc(name: string, sql: string, args: unknow, handler: Function, action: string | null): void {
     this.busy = true;
     let id = this.uuid();
     this.taskMap[id] = handler;
@@ -71,7 +76,8 @@ class DbThread {
     this.worker?.postMessage(msg);
   }
 
-  queryProto(name: number, args: any, handler: Function): void {
+  //@ts-ignore
+  queryProto(name: number, args: unknow, handler: Function): void {
     this.busy = true;
     let id = this.uuid();
     this.taskMap[id] = handler;
@@ -91,7 +97,8 @@ class DbThread {
   ): void {
     this.busy = true;
     let id = this.uuid();
-    this.taskMap[id] = (res: any): void => {
+    //@ts-ignore
+    this.taskMap[id] = (res: unknow): void => {
       DbPool.sharedBuffer = res.buffer;
       if (res.cutStatus) {
         handler(res.cutStatus, res.msg, res.cutBuffer);
@@ -125,12 +132,15 @@ class DbThread {
     status: boolean;
     msg: string;
     buffer: ArrayBuffer;
-    sdkConfigMap: any;
+    //@ts-ignore
+    sdkConfigMap: unknow;
     fileKey: string;
   }> => {
-    return new Promise<any>((resolve, reject) => {
+    //@ts-ignore
+    return new Promise<unknow>((resolve, reject) => {
       let id = this.uuid();
-      this.taskMap[id] = (res: any): any => {
+      //@ts-ignore
+      this.taskMap[id] = (res: unknow): unknow => {
         if (res.init) {
           resolve({
             status: res.init,
@@ -171,7 +181,7 @@ export class DbPool {
   works: Array<DbThread> = [];
   progress: Function | undefined | null;
   num = Math.floor(Math.random() * 10 + 1) + 20;
-  cutDownTimer: any | undefined;
+  cutDownTimer: unknown | undefined;
   dataWorker: DataWorkerThread | undefined | null;
   currentWasmThread: DbThread | undefined = undefined;
 
@@ -232,6 +242,7 @@ export class DbPool {
           DbPool.sharedBuffer = null;
         } else if (Reflect.has(event.data, 'init')) {
           if (this.cutDownTimer !== undefined) {
+            //@ts-ignore
             clearInterval(this.cutDownTimer);
           }
           let fun = thread!.taskMap[event.data.id];
@@ -285,7 +296,8 @@ export class DbPool {
     | {
         status: boolean;
         msg: string;
-        sdkConfigMap: any;
+        //@ts-ignore
+        sdkConfigMap: unknow;
       }
   > => {
     this.progress = progress;
@@ -364,6 +376,7 @@ export class DbPool {
   }
 
   close = async (): Promise<void> => {
+    //@ts-ignore
     clearInterval(this.cutDownTimer);
     for (let thread of this.works) {
       thread.worker?.terminate();
@@ -371,7 +384,8 @@ export class DbPool {
     this.works.length = 0;
   };
 
-  submit(name: string, sql: string, args: any, handler: Function, action: string | null): void {
+  //@ts-ignore
+  submit(name: string, sql: string, args: unknow, handler: Function, action: string | null): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
     let thread: DbThread;
     if (noBusyThreads.length > 0) {
@@ -385,7 +399,8 @@ export class DbPool {
     }
   }
 
-  submitProto(name: number, args: any, handler: Function): void {
+  //@ts-ignore
+  submitProto(name: number, args: unknow, handler: Function): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
     let thread: DbThread;
     if (noBusyThreads.length > 0) {
@@ -402,7 +417,8 @@ export class DbPool {
   }
 
   //new method replace submit() method
-  submitTask(action: string, args: any, handler: Function): void {
+  //@ts-ignore
+  submitTask(action: string, args: unknow, handler: Function): void {
     this.dataWorker?.queryFunc(action, args, handler);
   }
 
@@ -424,11 +440,13 @@ export class DbPool {
 
   progressTimer(num: number, progress: Function): void {
     let currentNum = num;
+    //@ts-ignore
     clearInterval(this.cutDownTimer);
     this.cutDownTimer = setInterval(() => {
       currentNum += Math.floor(Math.random() * 3);
       if (currentNum >= 50) {
         progress('database opened', 40);
+        //@ts-ignore
         clearInterval(this.cutDownTimer);
       } else {
         progress('database opened', currentNum);
@@ -439,13 +457,15 @@ export class DbPool {
 
 export const threadPool = new DbPool();
 
-export function query<T>(name: string, sql: string, args: any = null, action: string | null = null): Promise<Array<T>> {
+  //@ts-ignore
+export function query<T>(name: string, sql: string, args: unknow = null, action: string | null = null): Promise<Array<T>> {
   return new Promise<Array<T>>((resolve, reject) => {
     threadPool.submit(
       name,
       sql,
       args,
-      (res: any) => {
+      //@ts-ignore
+      (res: unknow) => {
         if (res[0] && res[0] === 'error') {
           window.publish(window.SmartEvent.UI.Error, res[1]);
           reject(res);

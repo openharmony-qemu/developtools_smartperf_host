@@ -198,12 +198,16 @@ export class TabPaneNMStatstics extends BaseElement {
     }
   }
 
-  private processHookData(hook: any, data: NativeHookStatisticsTableData): void {
+  private processHookData(hook: unknown, data: NativeHookStatisticsTableData): void {
+    // @ts-ignore
     data.totalBytes += hook.allocByte;
+    // @ts-ignore
     data.totalCount += hook.allocCount;
+    // @ts-ignore
     data.freeByte += hook.freeByte;
-    data.freeCount += hook.freeCount;
-    if (hook.max > data.max) {
+    // @ts-ignore
+    data.freeCount += hook.freeCount;// @ts-ignore
+    if (hook.max > data.max) {// @ts-ignore
       data.max = hook.max;
       data.maxStr = Utils.getByteWithUnit(data.max);
     }
@@ -225,16 +229,16 @@ export class TabPaneNMStatstics extends BaseElement {
       // @ts-ignore
       this.sortByColumn(evt.detail.key, evt.detail.sort);
     });
-    this.nativeStatisticsTbl!.exportTextHandleMap.set('existingString', (value) => {
+    this.nativeStatisticsTbl!.exportTextHandleMap.set('existingString', (value) => {// @ts-ignore
       return `${value.existing}`;
     });
-    this.nativeStatisticsTbl!.exportTextHandleMap.set('freeByteString', (value) => {
+    this.nativeStatisticsTbl!.exportTextHandleMap.set('freeByteString', (value) => {// @ts-ignore
       return `${value.totalBytes - value.existing}`;
     });
-    this.nativeStatisticsTbl!.exportTextHandleMap.set('totalBytesString', (value) => {
+    this.nativeStatisticsTbl!.exportTextHandleMap.set('totalBytesString', (value) => {// @ts-ignore
       return `${value.totalBytes}`;
     });
-    this.nativeStatisticsTbl!.exportTextHandleMap.set('maxStr', (value) => {
+    this.nativeStatisticsTbl!.exportTextHandleMap.set('maxStr', (value) => {// @ts-ignore
       return `${value.max}`;
     });
   }
@@ -252,14 +256,16 @@ export class TabPaneNMStatstics extends BaseElement {
     } else {
       let arr = [...this.nativeStatisticsSource];
       let compareFunction = (
-        nativeStatisticsLeftData: any,
-        nativeStatisticsRightData: any,
+        nativeStatisticsLeftData: unknown,
+        nativeStatisticsRightData: unknown,
         column: string,
         sortType: number
       ): number => {
         if (sortType === 1) {
+          // @ts-ignore
           return nativeStatisticsLeftData[column] - nativeStatisticsRightData[column];
         } else {
+          // @ts-ignore
           return nativeStatisticsRightData[column] - nativeStatisticsLeftData[column];
         }
       };

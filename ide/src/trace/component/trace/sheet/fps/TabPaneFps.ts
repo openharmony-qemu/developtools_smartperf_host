@@ -26,14 +26,14 @@ export class TabPaneFps extends BaseElement {
   private fpsTbl: LitTable | null | undefined;
   private fpsRange: HTMLLabelElement | null | undefined;
 
-  set data(fpsSelection: SelectionParam | any) {
-    this.fpsRange!.textContent = `Selected range: ${parseFloat(
+  set data(fpsSelection: SelectionParam | unknown) {
+    this.fpsRange!.textContent = `Selected range: ${parseFloat(// @ts-ignore
       ((fpsSelection.rightNs - fpsSelection.leftNs) / 1000000.0).toFixed(5)
-    )} ms`;
+    )} ms`;// @ts-ignore
     getTabFps(fpsSelection.leftNs, fpsSelection.rightNs).then((fpsResult) => {
       if (fpsResult !== null && fpsResult.length > 0) {
         log('getTabFps result size : ' + fpsResult.length);
-
+        // @ts-ignore
         let index = fpsResult.findIndex((d) => d.startNS >= fpsSelection.leftNs);
         if (index !== -1) {
           let arr = fpsResult.splice(index > 0 ? index - 1 : index);

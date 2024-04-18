@@ -81,12 +81,14 @@ export class IndexedDBHelp {
 
   public get(storeName: string, query: IDBValidKey | IDBKeyRange, queryIndex?: string): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {
-        let request: IDBRequest<any>;
+      this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {// @ts-ignore
+        let request: IDBRequest<unknown>;
         if (queryIndex) {
           const index = objectStore.index(queryIndex);
+          //@ts-ignore
           request = index.getAll(query);
         } else {
+          //@ts-ignore
           request = objectStore.getAll(query);
         }
         request.onsuccess = function (event): void {
@@ -99,8 +101,8 @@ export class IndexedDBHelp {
       });
     });
   }
-
-  public add(storeName: string, value: any, key?: IDBValidKey): Promise<unknown> {
+// @ts-ignore
+  public add(storeName: string, value: unknown, key?: IDBValidKey): Promise<unknown> {
     return new Promise((resolve, reject) => {
       this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {
         const request = objectStore.add(value, key);
@@ -129,8 +131,8 @@ export class IndexedDBHelp {
       });
     });
   }
-
-  public put(storeName: string, value: any, key?: IDBValidKey): Promise<unknown> {
+// @ts-ignore
+  public put(storeName: string, value: unknown, key?: IDBValidKey): Promise<unknown> {
     return new Promise((resolve, reject) => {
       this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {
         const request = objectStore.put(value, key);

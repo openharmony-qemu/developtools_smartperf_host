@@ -15,7 +15,7 @@ import { QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
-export function sliceSender(): Promise<any> {
+export function sliceSender(): Promise<unknown> {
   let trafic: number = TraficEnum.Memory;
   return new Promise((resolve): void => {
     threadPool.submitProto(
@@ -27,14 +27,14 @@ export function sliceSender(): Promise<any> {
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
       },
-      (res: any): void => {
+      (res: unknown): void => {
         resolve(res);
       }
     );
   });
 }
 
-export function sliceSPTSender(leftNs: number, rightNs: number, cpus: Array<number>, func: string): Promise<any[]> {
+export function sliceSPTSender(leftNs: number, rightNs: number, cpus: Array<number>, func: string): Promise<unknown[]> {
   return new Promise((resolve): void => {
     threadPool.submitProto(
       QueryEnum.SliceSPTData,
@@ -45,7 +45,8 @@ export function sliceSPTSender(leftNs: number, rightNs: number, cpus: Array<numb
         func: func,
         trafic: TraficEnum.Memory,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
+        //@ts-ignore
         resolve(res);
       }
     );

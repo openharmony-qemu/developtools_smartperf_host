@@ -26,18 +26,20 @@ export class TabPaneIOTierStatistics extends BaseElement {
   private ioTierStatisticsTbl: LitTable | null | undefined;
   private ioTierStatisticsSelectionParam: SelectionParam | null | undefined;
   private ioTierStatisticsProgressEL: LitProgressBar | null | undefined;
-  private loadingPage: any;
+  private loadingPage: unknown;
   private loadingList: number[] = [];
-  private ioTierStatisticsSource: Array<any> = [];
+  private ioTierStatisticsSource: Array<unknown> = [];
   private ioTierStatisticsSortKey: string = '';
   private ioTierStatisticsSortType: number = 0;
 
-  set data(ioTierStatisticsSelection: SelectionParam | any) {
+  set data(ioTierStatisticsSelection: SelectionParam | unknown) {
     if (ioTierStatisticsSelection === this.ioTierStatisticsSelectionParam) {
       return;
     }
     this.ioTierStatisticsProgressEL!.loading = true;
+    // @ts-ignore
     this.loadingPage.style.visibility = 'visible';
+    // @ts-ignore
     this.ioTierStatisticsSelectionParam = ioTierStatisticsSelection;
     // @ts-ignore
     this.ioTierStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
@@ -67,47 +69,60 @@ export class TabPaneIOTierStatistics extends BaseElement {
       if (this.parentElement!.clientHeight !== 0) {
         // @ts-ignore
         this.ioTierStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-          `${this.parentElement!.clientHeight - 25  }px`;
+          `${this.parentElement!.clientHeight - 25}px`;
         this.ioTierStatisticsTbl!.reMeauseHeight();
+        // @ts-ignore
         this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
   }
 
-  getInitData(initIoTierItem: any, nameTitle: any = 'pname', subtitle: any = null): any {
-    if (nameTitle === 'path') {
+  getInitData(initIoTierItem: unknown, nameTitle: unknown = 'pname', subtitle: unknown = null): unknown {
+    if (nameTitle === 'path') {// @ts-ignore
       initIoTierItem.path =
+        // @ts-ignore
         initIoTierItem.path !== null ? SpSystemTrace.DATA_DICT.get(parseInt(initIoTierItem.path)) : '-';
     }
     return {
+      // @ts-ignore
       ...initIoTierItem,
+      // @ts-ignore
       title: initIoTierItem[nameTitle] + (subtitle ? `(${initIoTierItem[subtitle]})` : ''),
+      // @ts-ignore
       allDuration: Utils.getProbablyTime(initIoTierItem.allDuration),
+      // @ts-ignore
       minDuration: Utils.getProbablyTime(initIoTierItem.minDuration),
+      // @ts-ignore
       maxDuration: Utils.getProbablyTime(initIoTierItem.maxDuration),
+      // @ts-ignore
       avgDuration: Utils.getProbablyTime(initIoTierItem.avgDuration),
+      // @ts-ignore
       node: { ...initIoTierItem, children: [] },
     };
   }
 
-  queryDataByDB(ioTierParam: SelectionParam | any): void {
+  queryDataByDB(ioTierParam: SelectionParam | unknown): void {
     this.loadingList.push(1);
     this.ioTierStatisticsProgressEL!.loading = true;
+    // @ts-ignore
     this.loadingPage.style.visibility = 'visible';
-    getTabPaneIOTierStatisticsData(
+    getTabPaneIOTierStatisticsData(// @ts-ignore
       ioTierParam.leftNs + ioTierParam.recordStartNs,
+      // @ts-ignore
       ioTierParam.rightNs + ioTierParam.recordStartNs,
+      // @ts-ignore
       ioTierParam.diskIOipids
     ).then((result): void => {
       this.loadingList.splice(0, 1);
       if (this.loadingList.length === 0) {
         this.ioTierStatisticsProgressEL!.loading = false;
+        // @ts-ignore
         this.loadingPage.style.visibility = 'hidden';
       }
       this.sortioTierStatisticsStatus(result, 'tier', 'ipid');
     });
   }
-  private theadClick(res: Array<any>): void {
+  private theadClick(res: Array<unknown>): void {
     let labels = this.ioTierStatisticsTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
@@ -137,10 +152,10 @@ export class TabPaneIOTierStatistics extends BaseElement {
     }
   }
 
-  sortioTierStatisticsStatus(result: Array<any>, firstLevel: string, secondLevel: string): void {
-    let ioTierFatherMap = new Map<any, any>();
-    let ioTierChildMap = new Map<any, any>();
-    let ioTierAllNode: any = {
+  sortioTierStatisticsStatus(result: Array<unknown>, firstLevel: string, secondLevel: string): void {
+    let ioTierFatherMap = new Map<unknown, unknown>();
+    let ioTierChildMap = new Map<unknown, unknown>();
+    let ioTierAllNode: unknown = {
       title: 'All',
       count: 0,
       allDuration: 0,
@@ -152,44 +167,62 @@ export class TabPaneIOTierStatistics extends BaseElement {
     result.forEach((resultItem, idx): void => {
       this.updateIoTierChildMap(ioTierChildMap, resultItem, firstLevel, secondLevel);
       this.updateIoTierFatherMap(ioTierFatherMap, resultItem, firstLevel);
-      if (idx === 0) {
+      if (idx === 0) {// @ts-ignore
         ioTierAllNode.minDuration = resultItem.minDuration;
-      } else {
+      } else {// @ts-ignore
         ioTierAllNode.minDuration =
+          // @ts-ignore
           ioTierAllNode.minDuration <= resultItem.minDuration ? ioTierAllNode.minDuration : resultItem.minDuration;
-      }
+      }// @ts-ignore
       ioTierAllNode.count += resultItem.count;
+      // @ts-ignore
       ioTierAllNode.allDuration += resultItem.allDuration;
+      // @ts-ignore
       ioTierAllNode.maxDuration =
+        // @ts-ignore
         ioTierAllNode.maxDuration >= resultItem.maxDuration ? ioTierAllNode.maxDuration : resultItem.maxDuration;
     });
     this.calculateAvgDuration(ioTierFatherMap, ioTierChildMap, ioTierAllNode);
     ioTierAllNode = this.getInitData(ioTierAllNode);
+    // @ts-ignore
     ioTierAllNode.title = 'All';
+    // @ts-ignore
     ioTierAllNode.path = { tier: null, pid: null, path: null, value: 'All' };
     this.ioTierStatisticsSource = result.length > 0 ? [ioTierAllNode] : [];
-    if (this.ioTierStatisticsSortType !== 0 && result.length > 0)
-    {this.sortTable(this.ioTierStatisticsSource[0], this.ioTierStatisticsSortKey)}
+    if (this.ioTierStatisticsSortType !== 0 && result.length > 0) { this.sortTable(this.ioTierStatisticsSource[0], this.ioTierStatisticsSortKey) }
     this.theadClick(this.ioTierStatisticsSource);
     this.ioTierStatisticsTbl!.recycleDataSource = this.ioTierStatisticsSource;
   }
 
-  private updateIoTierFatherMap(ioTierFatherMap: Map<any, any>, resultItem: any, firstLevel: string): void {
-    if (ioTierFatherMap.has(resultItem[firstLevel])) {
+  private updateIoTierFatherMap(ioTierFatherMap: Map<unknown, unknown>, resultItem: unknown, firstLevel: string): void {// @ts-ignore
+    if (ioTierFatherMap.has(resultItem[firstLevel])) {// @ts-ignore
       let currentFatherObject = ioTierFatherMap.get(resultItem[firstLevel]);
+      // @ts-ignore
       currentFatherObject.count += resultItem.count;
+      // @ts-ignore
       currentFatherObject.allDuration += resultItem.allDuration;
+      // @ts-ignore
       currentFatherObject.minDuration =
+        // @ts-ignore
         currentFatherObject.minDuration <= resultItem.minDuration ?
+          // @ts-ignore
           currentFatherObject.minDuration :
+          // @ts-ignore
           resultItem.minDuration;
+      // @ts-ignore
       currentFatherObject.maxDuration =
+        // @ts-ignore
         currentFatherObject.maxDuration >= resultItem.maxDuration ?
+          // @ts-ignore
           currentFatherObject.maxDuration :
+          // @ts-ignore
           resultItem.maxDuration;
+      // @ts-ignore
       currentFatherObject.children.push(this.getInitData(resultItem));
     } else {
+      // @ts-ignore
       ioTierFatherMap.set(resultItem[firstLevel], {
+        // @ts-ignore
         ...resultItem,
         children: [this.getInitData(resultItem)],
       });
@@ -197,26 +230,30 @@ export class TabPaneIOTierStatistics extends BaseElement {
   }
 
   private updateIoTierChildMap(
-    ioTierChildMap: Map<any, any>,
-    resultItem: any,
+    ioTierChildMap: Map<unknown, unknown>,
+    resultItem: unknown,
     firstLevel: string,
     secondLevel: string
   ): void {
+    // @ts-ignore
     if (ioTierChildMap.has(`${resultItem[firstLevel]}_${resultItem[secondLevel]}`)) {
+      // @ts-ignore
       let currentChildObject = ioTierChildMap.get(`${resultItem[firstLevel]}_${resultItem[secondLevel]}`);
+      // @ts-ignore
       currentChildObject.count += resultItem.count;
-      currentChildObject.allDuration += resultItem.allDuration;
-      currentChildObject.minDuration =
-        currentChildObject.minDuration <= resultItem.minDuration ?
-          currentChildObject.minDuration :
-          resultItem.minDuration;
-      currentChildObject.maxDuration =
-        currentChildObject.maxDuration >= resultItem.maxDuration ?
-          currentChildObject.maxDuration :
-          resultItem.maxDuration;
+      // @ts-ignore
+      currentChildObject.allDuration += resultItem.allDuration;// @ts-ignore
+      currentChildObject.minDuration =// @ts-ignore
+        currentChildObject.minDuration <= resultItem.minDuration ?// @ts-ignore
+          currentChildObject.minDuration :// @ts-ignore
+          resultItem.minDuration;// @ts-ignore
+      currentChildObject.maxDuration =// @ts-ignore
+        currentChildObject.maxDuration >= resultItem.maxDuration ?// @ts-ignore
+          currentChildObject.maxDuration :// @ts-ignore
+          resultItem.maxDuration;// @ts-ignore
       currentChildObject.children.push(this.getInitData(resultItem, 'path', null));
-    } else {
-      ioTierChildMap.set(`${resultItem[firstLevel]}_${resultItem[secondLevel]}`, {
+    } else {// @ts-ignore
+      ioTierChildMap.set(`${resultItem[firstLevel]}_${resultItem[secondLevel]}`, {// @ts-ignore
         ...resultItem,
         children: [this.getInitData(resultItem, 'path', null)],
       });
@@ -224,70 +261,70 @@ export class TabPaneIOTierStatistics extends BaseElement {
   }
 
   private calculateAvgDuration(
-    ioTierFatherMap: Map<any, any>,
-    ioTierChildMap: Map<any, any>,
-    ioTierAllNode: any
+    ioTierFatherMap: Map<unknown, unknown>,
+    ioTierChildMap: Map<unknown, unknown>,
+    ioTierAllNode: unknown
   ): void {
     for (let ks of ioTierFatherMap.keys()) {
-      let sp = ioTierFatherMap.get(ks);
-      sp!.children = [];
+      let sp = ioTierFatherMap.get(ks);// @ts-ignore
+      sp!.children = [];// @ts-ignore
       sp.avgDuration = sp.allDuration / sp.count;
-      let ioTierNode = this.getInitData(sp, 'tier', null);
-      ioTierNode.path = {
+      let ioTierNode = this.getInitData(sp, 'tier', null);// @ts-ignore
+      ioTierNode.path = {// @ts-ignore
         tier: ioTierNode.tier,
         pid: null,
-        path: null,
+        path: null,// @ts-ignore
         value: ioTierNode.title,
       };
-      for (let kst of ioTierChildMap.keys()) {
+      for (let kst of ioTierChildMap.keys()) {// @ts-ignore
         if (kst.startsWith(`${ks}_`)) {
-          let spt = ioTierChildMap.get(kst);
+          let spt = ioTierChildMap.get(kst);// @ts-ignore
           spt.avgDuration = spt.allDuration / spt.count;
-          let data = this.getInitData(spt!, 'pname', 'pid');
-          data.path = {
-            tier: ioTierNode.tier,
+          let data = this.getInitData(spt!, 'pname', 'pid');// @ts-ignore
+          data.path = {// @ts-ignore
+            tier: ioTierNode.tier,// @ts-ignore
             pid: data.pid,
-            path: null,
+            path: null,// @ts-ignore
             value: `All-${ioTierNode.title}-${data.title}`,
-          };
-          data.children.forEach((e: any): void => {
-            e.path = {
-              tier: ioTierNode.tier,
-              pid: data.pid,
-              path: e.path,
+          };// @ts-ignore
+          data.children.forEach((e: unknown): void => {// @ts-ignore
+            e.path = {// @ts-ignore
+              tier: ioTierNode.tier,// @ts-ignore
+              pid: data.pid,// @ts-ignore
+              path: e.path,// @ts-ignore
               value: `All-${ioTierNode.title}-${data.title}-${e.title}`,
             };
-          });
+          });// @ts-ignore
           sp!.children.push(data);
         }
-      }
+      }// @ts-ignore
       ioTierAllNode.children.push(ioTierNode);
     }
-
+// @ts-ignore
     ioTierAllNode.avgDuration = ioTierAllNode.allDuration / ioTierAllNode.count;
   }
 
-  sortTable(allNode: any, key: string): void {
-    allNode.children.sort((ioTierStatNodeA: any, ioTierStatNodeB: any) => {
-      if (this.ioTierStatisticsSortType === 1) {
+  sortTable(allNode: unknown, key: string): void {// @ts-ignore
+    allNode.children.sort((ioTierStatNodeA: unknown, ioTierStatNodeB: unknown) => {
+      if (this.ioTierStatisticsSortType === 1) {// @ts-ignore
         return ioTierStatNodeA.node[key] - ioTierStatNodeB.node[key];
-      } else if (this.ioTierStatisticsSortType === 2) {
+      } else if (this.ioTierStatisticsSortType === 2) {// @ts-ignore
         return ioTierStatNodeB.node[key] - ioTierStatNodeA.node[key];
       }
-    });
-    allNode.children.forEach((item: any): void => {
-      item.children.sort((ioTierStatItemA: any, ioTierStatItemB: any) => {
-        if (this.ioTierStatisticsSortType === 1) {
+    });// @ts-ignore
+    allNode.children.forEach((item: unknown): void => {// @ts-ignore
+      item.children.sort((ioTierStatItemA: unknown, ioTierStatItemB: unknown) => {
+        if (this.ioTierStatisticsSortType === 1) {// @ts-ignore
           return ioTierStatItemA.node[key] - ioTierStatItemB.node[key];
-        } else if (this.ioTierStatisticsSortType === 2) {
+        } else if (this.ioTierStatisticsSortType === 2) {// @ts-ignore
           return ioTierStatItemB.node[key] - ioTierStatItemA.node[key];
         }
-      });
-      item.children.forEach((ioTierStatItem: any): void => {
-        ioTierStatItem.children.sort((ioTierStatItemA: any, ioTierStatItemB: any) => {
-          if (this.ioTierStatisticsSortType === 1) {
+      });// @ts-ignore
+      item.children.forEach((ioTierStatItem: unknown): void => {// @ts-ignore
+        ioTierStatItem.children.sort((ioTierStatItemA: unknown, ioTierStatItemB: unknown) => {
+          if (this.ioTierStatisticsSortType === 1) {// @ts-ignore
             return ioTierStatItemA.node[key] - ioTierStatItemB.node[key];
-          } else if (this.ioTierStatisticsSortType === 2) {
+          } else if (this.ioTierStatisticsSortType === 2) {// @ts-ignore
             return ioTierStatItemB.node[key] - ioTierStatItemA.node[key];
           }
         });

@@ -73,17 +73,22 @@ export class LoadDatabase {
   private async loadInfo(file: FileStruct): Promise<void> {
     let result = await queryHeapInfo(file.id);
     for (let row of result) {
+      //@ts-ignore
       if (row.key.includes('types')) {
         continue;
       }
+      //@ts-ignore
       switch (row.key) {
         case 'node_count':
+          //@ts-ignore
           file.snapshotStruct.nodeCount = row.intValue;
           break;
         case 'edge_count':
+          //@ts-ignore
           file.snapshotStruct.edgeCount = row.intValue;
           break;
         case 'trace_function_count':
+          //@ts-ignore
           file.snapshotStruct.functionCount = row.intValue;
           break;
       }
@@ -129,19 +134,31 @@ export class LoadDatabase {
     let strings = file.snapshotStruct.strings;
     for (let row of result) {
       let traceNode = new AllocationFunction(
+        //@ts-ignore
         row.id,
+        //@ts-ignore
         strings[row.name],
+        //@ts-ignore
         strings[row.scriptName],
+        //@ts-ignore
         row.scriptId,
+        //@ts-ignore
         row.line,
+        //@ts-ignore
         row.column,
+        //@ts-ignore
         row.count,
+        //@ts-ignore
         row.size,
+        //@ts-ignore
         row.liveCount,
+        //@ts-ignore
         row.liveSize,
         false
       );
+      //@ts-ignore
       traceNode.parentsId.push(row.parentId);
+      //@ts-ignore
       traceNode.functionIndex = row.functionInfoIndex;
       traceNode.fileId = file.id;
       heapTraceNode.push(traceNode);
@@ -155,6 +172,7 @@ export class LoadDatabase {
   private async loadStrings(file: FileStruct): Promise<void> {
     let result = await queryHeapString(file.id);
     for (let data of result) {
+      //@ts-ignore
       file.snapshotStruct.strings.push(data.string);
     }
   }

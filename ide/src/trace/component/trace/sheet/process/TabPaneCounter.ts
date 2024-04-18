@@ -26,32 +26,39 @@ export class TabPaneCounter extends BaseElement {
   private counterSource: Array<SelectionData> = [];
   private currentSelectionParam: SelectionParam | undefined;
 
-  set data(counterParam: SelectionParam | any) {
+  set data(counterParam: SelectionParam | unknown) {
     if (this.currentSelectionParam === counterParam) {
       return;
     }
+    // @ts-ignore
     this.currentSelectionParam = counterParam;
     //@ts-ignore
     this.counterTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45}px`;
     this.counterRange!.textContent = `Selected range: ${parseFloat(
+      // @ts-ignore
       ((counterParam.rightNs - counterParam.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
     this.counterTbl!.loading = true;
+    // @ts-ignore
     getTabCounters(counterParam.processTrackIds, counterParam.virtualTrackIds, counterParam.rightNs).then((result) => {
       this.counterTbl!.loading = false;
+      //@ts-ignore
       if (result !== null && result.length > 0) {
         let dataSource: Array<SelectionData> = [];
+        //@ts-ignore
         let collect = this.groupByTrackIdToMap(result);
         let sumCount = 0;
         for (let key of collect.keys()) {
           let counters = collect.get(key);
           let list: Array<Counter> = [];
+          // @ts-ignore
           let index = counters!.findIndex((item) => item.startTime >= counterParam.leftNs);
           if (index !== -1) {
             list = counters!.splice(index > 0 ? index - 1 : index);
           } else {
             list.push(counters![counters!.length - 1]);
           }
+          // @ts-ignore
           let sd = this.createSelectCounterData(list, counterParam.leftNs, counterParam.rightNs);
           sumCount += Number.parseInt(sd.count);
           dataSource.push(sd);
@@ -168,7 +175,7 @@ export class TabPaneCounter extends BaseElement {
     return counterData;
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(property, sort, type) {
       return function (counterLeftData: SelectionData, counterRightData: SelectionData) {
@@ -195,9 +202,12 @@ export class TabPaneCounter extends BaseElement {
       };
     }
 
+    // @ts-ignore
     if (detail.key === 'name') {
+      // @ts-ignore
       this.counterSource.sort(compare(detail.key, detail.sort, 'string'));
     } else {
+      // @ts-ignore
       this.counterSource.sort(compare(detail.key, detail.sort, 'number'));
     }
     this.counterTbl!.recycleDataSource = this.counterSource;

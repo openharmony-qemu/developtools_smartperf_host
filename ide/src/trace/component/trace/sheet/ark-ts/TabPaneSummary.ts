@@ -91,19 +91,19 @@ export class TabPaneSummary extends BaseElement {
     this.progressEL!.loading = true;
     this.summary = HeapDataInterface.getInstance().getClassesListForSummary(file.id, minNodeId, maxNodeId);
     this.fileSize = file.size;
-    this.summary.forEach((summaryEl: any) => {
-      if (summaryEl.childCount > 1) {
-        let count = `${summaryEl.nodeName} ×${summaryEl.childCount}`;
-        summaryEl.objectName = count;
-        summaryEl.count = ` ×${summaryEl.childCount}`;
-      } else {
-        summaryEl.objectName = summaryEl.nodeName;
-      }
-      let shallow = `${Math.round((summaryEl.shallowSize / file.size) * 100)}%`;
-      let retained = `${Math.round((summaryEl.retainedSize / file.size) * 100)}%`;
-      summaryEl.shallowPercent = shallow;
-      summaryEl.retainedPercent = retained;
-      if (summaryEl.distance >= 100000000 || summaryEl.distance === -5) {
+    this.summary.forEach((summaryEl: unknown) => {// @ts-ignore
+      if (summaryEl.childCount > 1) {// @ts-ignore
+        let count = `${summaryEl.nodeName} ×${summaryEl.childCount}`;// @ts-ignore
+        summaryEl.objectName = count;// @ts-ignore
+        summaryEl.count = ` ×${summaryEl.childCount}`;// @ts-ignore
+      } else {// @ts-ignore
+        summaryEl.objectName = summaryEl.nodeName;// @ts-ignore
+      }// @ts-ignore
+      let shallow = `${Math.round((summaryEl.shallowSize / file.size) * 100)}%`;// @ts-ignore
+      let retained = `${Math.round((summaryEl.retainedSize / file.size) * 100)}%`;// @ts-ignore
+      summaryEl.shallowPercent = shallow;// @ts-ignore
+      summaryEl.retainedPercent = retained;// @ts-ignore
+      if (summaryEl.distance >= 100000000 || summaryEl.distance === -5) {// @ts-ignore
         summaryEl.distance = '-';
       }
     });

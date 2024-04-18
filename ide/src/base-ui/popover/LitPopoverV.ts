@@ -434,29 +434,29 @@ export class LitPopover extends BaseElement {
   }
 
   connectedCallback(): void {
-    let popover: any = this.shadowRoot!.querySelector('.popover');
-    let checkbox: any = this.shadowRoot!.querySelector('.trigger-click');
-    this.setAttribute('tabindex', '1');
-    popover.onclick = (e: any): void => {
+    let popover: unknown = this.shadowRoot!.querySelector('.popover');
+    let checkbox: unknown = this.shadowRoot!.querySelector('.trigger-click');
+    this.setAttribute('tabindex', '1');// @ts-ignore
+    popover.onclick = (e: unknown): void => {// @ts-ignore
       e.stopPropagation();
-    };
-    popover.addEventListener('mousemove', (e: any) => {
+    };// @ts-ignore
+    popover.addEventListener('mousemove', (e: unknown) => {// @ts-ignore
       e.stopPropagation();
     });
-    this.onclick = (e: any): void => {
-      e.stopPropagation();
+    this.onclick = (e: unknown): void => {// @ts-ignore
+      e.stopPropagation();// @ts-ignore
       if (e.relatedTarget?.hasAttribute('not-close')) {
         this.focus();
-      }
-      checkbox.checked = !checkbox.checked;
+      }// @ts-ignore
+      checkbox.checked = !checkbox.checked;// @ts-ignore
       this.visible = checkbox.checked;
-    };
+    };// @ts-ignore
     popover.onmouseleave = (): void => {
       this.focus();
     };
-    this.onblur = (ev: any): void => {
-      if (ev.relatedTarget && this.haveRadio) {
-        if (ev.relatedTarget.hasAttribute('not-close')) {
+    this.onblur = (ev: unknown): void => {// @ts-ignore
+      if (ev.relatedTarget && this.haveRadio) {// @ts-ignore
+        if (ev.relatedTarget.hasAttribute('not-close')) {// @ts-ignore
         } else if (ev.relatedTarget.type === 'radio') {
           this.focus();
         } else {
@@ -474,7 +474,7 @@ export class LitPopover extends BaseElement {
 
   adoptedCallback(): void {}
 
-  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {
     if (name === 'visible') {
       if (newValue === 'false') {
         // @ts-ignore

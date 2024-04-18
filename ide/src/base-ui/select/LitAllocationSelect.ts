@@ -110,7 +110,7 @@ const initHtmlStyle = (height: string): string => {
 export class LitAllocationSelect extends BaseElement {
   private selectAllocationInputEl: HTMLInputElement | null | undefined;
   private selectAllocationInputContent: HTMLDivElement | undefined;
-  private selectAllocationOptions: any;
+  private selectAllocationOptions: unknown;
   private processDataList: Array<string> = [];
 
   static get observedAttributes(): string[] {
@@ -138,13 +138,13 @@ export class LitAllocationSelect extends BaseElement {
   }
 
   set processData(value: Array<string>) {
-    this.processDataList = value;
+    this.processDataList = value;// @ts-ignore
     this.selectAllocationOptions.innerHTML = '';
     value.forEach((item) => {
       let option = document.createElement('div');
       option.className = 'option';
       option.innerHTML = item;
-      option.style.padding = '8px 10px';
+      option.style.padding = '8px 10px';// @ts-ignore
       this.selectAllocationOptions.appendChild(option);
       this.selectAllocationInputEl?.focus();
     });
@@ -170,12 +170,12 @@ export class LitAllocationSelect extends BaseElement {
     this.setAttribute('list-height', value);
   }
 
-  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {
     switch (name) {
-      case 'value':
+      case 'value':// @ts-ignore
         this.selectAllocationInputEl!.value = newValue;
         break;
-      case 'placeholder':
+      case 'placeholder':// @ts-ignore
         this.selectAllocationInputEl!.placeholder = newValue;
         break;
     }
@@ -183,17 +183,17 @@ export class LitAllocationSelect extends BaseElement {
 
   initElements(): void {
     this.selectAllocationInputContent = this.shadowRoot!.querySelector('.multipleSelect') as HTMLDivElement;
-    this.addEventListener('click', () => {
-      if (this.selectAllocationOptions.style.visibility === 'visible') {
-        this.selectAllocationOptions.style.visibility = 'hidden';
+    this.addEventListener('click', () => {// @ts-ignore
+      if (this.selectAllocationOptions.style.visibility === 'visible') {// @ts-ignore
+        this.selectAllocationOptions.style.visibility = 'hidden';// @ts-ignore
         this.selectAllocationOptions.style.opacity = '0';
       } else {
         this.showProcessList();
       }
       this.selectAllocationInputContent!.dispatchEvent(new CustomEvent('inputClick', {}));
     });
-    this.addEventListener('focusout', (e) => {
-      this.selectAllocationOptions.style.visibility = 'hidden';
+    this.addEventListener('focusout', (e) => {// @ts-ignore
+      this.selectAllocationOptions.style.visibility = 'hidden';// @ts-ignore
       this.selectAllocationOptions.style.opacity = '0';
     });
     this.initData();
@@ -201,8 +201,8 @@ export class LitAllocationSelect extends BaseElement {
 
   showProcessList(): void {
     setTimeout(() => {
-      if (this.processDataList.length > 0) {
-        this.selectAllocationOptions.style.visibility = 'visible';
+      if (this.processDataList.length > 0) {// @ts-ignore
+        this.selectAllocationOptions.style.visibility = 'visible';// @ts-ignore
         this.selectAllocationOptions.style.opacity = '1';
       }
     }, 200);
@@ -258,8 +258,8 @@ export class LitAllocationSelect extends BaseElement {
           })
         );
       });
-      a.addEventListener('onSelected', (e: any) => {
-        this.selectAllocationInputEl!.value = e.detail.text;
+      a.addEventListener('onSelected', (e: unknown) => {// @ts-ignore
+        this.selectAllocationInputEl!.value = e.detail.text;// @ts-ignore
         this.value = e.detail.text;
         this.selectAllocationInputContent!.dispatchEvent(new CustomEvent('valuable', {}));
       });

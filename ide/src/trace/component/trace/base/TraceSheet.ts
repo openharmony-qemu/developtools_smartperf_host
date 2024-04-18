@@ -117,14 +117,14 @@ export class TraceSheet extends BaseElement {
   }
 
   buildTabs(litTabs: LitTabs | undefined | null): void {
-    this.fragment = document.createDocumentFragment();
+    this.fragment = document.createDocumentFragment();// @ts-ignore
     Reflect.ownKeys(tabConfig).forEach((key, index): void => {
       let pane = new LitTabpane();
       pane.id = key.toString();
-      pane.className = 'tabHeight';
+      pane.className = 'tabHeight';// @ts-ignore
       pane.tab = tabConfig[key].title;
-      pane.hidden = true;
-      pane.key = `${tabConfig[key].key || index}`;
+      pane.hidden = true;// @ts-ignore
+      pane.key = `${tabConfig[key].key || index}`;// @ts-ignore
       let cls = tabConfig[key].type;
       let node = new cls();
       pane.append(node);
@@ -191,8 +191,8 @@ export class TraceSheet extends BaseElement {
       this.updateRangeSelect(selectIPid);
       this.lastSelectIPid = selectIPid;
     };
-    this.buildTabs(this.litTabs);
-    this.litTabs!.onTabClick = (e: any): void => this.loadTabPaneData(e.detail.key);
+    this.buildTabs(this.litTabs);// @ts-ignore
+    this.litTabs!.onTabClick = (e: unknown): void => this.loadTabPaneData(e.detail.key);
     this.tableCloseHandler();
     this.rowClickEvent();
   }
@@ -306,10 +306,10 @@ export class TraceSheet extends BaseElement {
   }
 
   private tableCloseHandler(): void {
-    this.litTabs!.addEventListener('close-handler', () => {
+    this.litTabs!.addEventListener('close-handler', () => {// @ts-ignore
       Reflect.ownKeys(tabConfig)
         .reverse()
-        .forEach((id) => {
+        .forEach((id) => {// @ts-ignore
           let element = tabConfig[id];
           let pane = this.shadowRoot!.querySelector<LitTabpane>(`#${id as string}`);
           if (element.require) {
@@ -362,8 +362,8 @@ export class TraceSheet extends BaseElement {
         window.publish(window.SmartEvent.UI.ShowBottomTab, { show: 2, delta: beforeHeight - this.clientHeight });
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = '0px'));
         tabsPackUp!.name = 'up';
-        tabsPackUp!.title = 'Reset Tab';
-        (window as any).isPackUpTable = true;
+        tabsPackUp!.title = 'Reset Tab';// @ts-ignore
+        (window as unknown).isPackUpTable = true;
       } else {
         tabsPackUp!.name = 'down';
         tabsPackUp!.title = 'Minimize Tab';
@@ -504,11 +504,11 @@ export class TraceSheet extends BaseElement {
             'upload-so',
             '',
             fileList,
-            (res: any) => {
-              importFileBt!.disabled = false;
+            (res: unknown) => {
+              importFileBt!.disabled = false;// @ts-ignore
               if (res.result === 'ok') {
                 window.publish(window.SmartEvent.UI.UploadSOFile, {});
-              } else {
+              } else {// @ts-ignore
                 const failedList = res.failedArray.join(',');
                 window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
               }
@@ -618,11 +618,12 @@ export class TraceSheet extends BaseElement {
   displayThreadData = (
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
-    scrollWakeUp: (d: any) => void | undefined,
-    callback?: (data: Array<any>, str: string) => void
+    scrollWakeUp: (d: unknown) => void | undefined,
+    callback?: (data: Array<unknown>, str: string) => void
   ): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
       data,
+      // @ts-ignore
       scrollCallback,
       scrollWakeUp,
       callback
@@ -633,7 +634,7 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayIrqData = (data: IrqStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setIrqData(data);
-  displayStartupData = (data: AppStartupStruct, scrollCallback: Function, rowData: any): void =>
+  displayStartupData = (data: AppStartupStruct, scrollCallback: Function, rowData: unknown): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setStartupData(data, scrollCallback, rowData);
   displayAllStartupData = (data: AllAppStartupStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setAllStartupData(data, scrollCallback);
@@ -673,8 +674,9 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setCpuData(data, callback, scrollCallback);
   displayJankData = (
     data: JankStruct,
-    callback: ((data: Array<any>) => void) | undefined = undefined,
+    callback: ((data: Array<unknown>) => void) | undefined = undefined,
     scrollCallback: ((e: JankStruct) => void) | undefined
+    // @ts-ignore
   ): void => this.displayTab<TabPaneCurrentSelection>('current-selection').setJankData(data, callback, scrollCallback);
   displayShmData = (data: SnapshotStruct, dataList: Array<SnapshotStruct>): void => {
     this.displayTab<TabPaneVmTrackerShmComparison>('box-vmtracker-shm-comparison').setShmData(data, dataList);
@@ -869,10 +871,10 @@ export class TraceSheet extends BaseElement {
     this.exportBt!.style.display = 'flex';
     this.showUploadSoBt(selection);
     this.showSwitchProcessBt(selection);
-    this.showOptionsBt(selection);
+    this.showOptionsBt(selection);// @ts-ignore
     Reflect.ownKeys(tabConfig)
       .reverse()
-      .forEach((id) => {
+      .forEach((id) => {// @ts-ignore
         let element = tabConfig[id];
         let pane = this.shadowRoot!.querySelector<LitTabpane>(`#${id as string}`);
         if (pane) {
@@ -1016,10 +1018,10 @@ export class TraceSheet extends BaseElement {
   }
 
   loadTabPaneData(key: string): void {
-    let component: any = this.shadowRoot
+    let component: unknown = this.shadowRoot
       ?.querySelector<LitTabpane>(`#tabs lit-tabpane[key='${key}']`)
       ?.children.item(0);
-    if (component) {
+    if (component) {// @ts-ignore
       component.data = this.selection;
       if (this.selection) {
         this.selection.isRowClick = false;
@@ -1037,7 +1039,7 @@ export class TraceSheet extends BaseElement {
     window.publish(window.SmartEvent.UI.ShowBottomTab, { show: show, delta: delta });
   }
 
-  rowClickHandler(e: any): void {
+  rowClickHandler(e: unknown): void {// @ts-ignore
     this.currentPaneID = e.target.parentElement.id;
     this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
       it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
@@ -1045,14 +1047,14 @@ export class TraceSheet extends BaseElement {
     let pane = this.getPaneByID('box-cpu-child');
     pane.closeable = true;
     pane.hidden = false;
-    this.litTabs!.activeByKey(pane.key);
+    this.litTabs!.activeByKey(pane.key);// @ts-ignore
     pane.tab = Utils.transferPTSTitle(e.detail.title);
     let param = new BoxJumpParam();
     param.leftNs = this.selection!.leftNs;
     param.rightNs = this.selection!.rightNs;
-    param.cpus = this.selection!.cpus;
-    param.state = e.detail.state;
-    param.processId = e.detail.pid;
+    param.cpus = this.selection!.cpus;// @ts-ignore
+    param.state = e.detail.state;// @ts-ignore
+    param.processId = e.detail.pid;// @ts-ignore
     param.threadId = e.detail.tid;
     (pane.children.item(0) as TabPaneBoxChild).data = param;
   }

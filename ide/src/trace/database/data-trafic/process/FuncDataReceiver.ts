@@ -16,7 +16,7 @@ import { filterDataByGroupLayer } from '../utils/DataFilter';
 import { TraficEnum } from '../utils/QueryEnum';
 
 
-export const chartFuncDataSql = (args: any): string => {
+export const chartFuncDataSql = (args: unknown): string => {
   return `
     select
         startTs,
@@ -25,13 +25,16 @@ export const chartFuncDataSql = (args: any): string => {
         depth,
         id,
         max(dur2) as dur2,
-        (startTs) / (${Math.floor((args.endNS - args.startNS) / args.width)}) + (depth * ${
+        (startTs) / (${//@ts-ignore
+          Math.floor((args.endNS - args.startNS) / args.width)}) + (depth * ${//@ts-ignore
     args.width
   })                           AS px
     from (
-      select c.ts - ${args.recordStartNS} as startTs,
+      select c.ts - ${//@ts-ignore
+        args.recordStartNS} as startTs,
              c.dur as dur,
-             case when (c.dur=-1 or c.dur is null ) then ${args.recordEndNS} else c.dur end                   as dur2,
+             case when (c.dur=-1 or c.dur is null ) then ${//@ts-ignore
+              args.recordEndNS} else c.dur end                   as dur2,
              c.argsetid,
              c.depth,
              c.id                         as id
@@ -39,16 +42,20 @@ export const chartFuncDataSql = (args: any): string => {
       from callstack C
       where startTs not null
         and c.cookie is null
-        and c.callid in (select id from thread where tid=${args.tid}
-        and ipid=${args.ipid})
-        and startTs + dur2 >= ${Math.floor(args.startNS)}
-        and startTs <= ${Math.floor(args.endNS)}
+        and c.callid in (select id from thread where tid=${//@ts-ignore
+          args.tid}
+        and ipid=${//@ts-ignore
+          args.ipid})
+        and startTs + dur2 >= ${Math.floor(//@ts-ignore
+        args.startNS)}
+        and startTs <= ${Math.floor(//@ts-ignore
+        args.endNS)}
     )
     group by px;  
 `;
 };
 
-export const chartFuncDataSqlMem = (args: any): string => {
+export const chartFuncDataSqlMem = (args: unknown): string => {//@ts-ignore
   return `select c.ts - ${args.recordStartNS} as startTs,
              c.dur                  as dur,
              ifnull(c.argsetid, -1) as argsetid,
@@ -58,17 +65,19 @@ export const chartFuncDataSqlMem = (args: any): string => {
       from callstack C
       where startTs not null
         and c.cookie is null
-        and c.callid in (select id from thread where tid=${args.tid}
-        and ipid=${args.ipid})`;
+        and c.callid in (select id from thread where tid=${//@ts-ignore
+          args.tid}
+        and ipid=${//@ts-ignore
+          args.ipid})`;
 };
-export function funcDataReceiver(data: any, proc: Function): void {
-  if (data.params.trafic === TraficEnum.Memory) {
+export function funcDataReceiver(data: unknown, proc: Function): void {//@ts-ignore
+  if (data.params.trafic === TraficEnum.Memory) {//@ts-ignore
     let key = `${data.params.tid}${data.params.ipid}`;
-    if (!threadCallStackList.has(key)) {
+    if (!threadCallStackList.has(key)) {//@ts-ignore
       let list = proc(chartFuncDataSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {
         if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined) {
-          list[i].nofinish = 1;
+          list[i].nofinish = 1;//@ts-ignore
           let totalNs = data.params.recordEndNS - data.params.recordStartNS;
           list[i].dur = totalNs - list[i].startTs;
         } else {
@@ -82,38 +91,38 @@ export function funcDataReceiver(data: any, proc: Function): void {
       array,
       'depth',
       'startTs',
-      'dur',
-      data.params.startNS,
-      data.params.endNS,
+      'dur',//@ts-ignore
+      data.params.startNS,//@ts-ignore
+      data.params.endNS,//@ts-ignore
       data.params.width
     );
     arrayBufferHandler(data, res, true, array.length === 0);
-  } else {
+  } else {//@ts-ignore
     let sql = chartFuncDataSql(data.params);
-    let res = proc(sql);
+    let res = proc(sql);//@ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer, false);
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean, isEmpty: boolean): void {
-  let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs);
-  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
-  let argsetid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.argsetid);
-  let depth = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
-  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean, isEmpty: boolean): void {//@ts-ignore
+  let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs);//@ts-ignore
+  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);//@ts-ignore
+  let argsetid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.argsetid);//@ts-ignore
+  let depth = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);//@ts-ignore
+  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);//@ts-ignore
   let nofinish = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.nofinish);
-  res.forEach((it, i) => {
-    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processFuncData);
-    startTs[i] = it.startTs;
-    dur[i] = it.dur;
-    argsetid[i] = it.argsetid;
-    depth[i] = it.depth;
-    id[i] = it.id;
+  res.forEach((it, i) => {//@ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processFuncData);//@ts-ignore
+    startTs[i] = it.startTs;//@ts-ignore
+    dur[i] = it.dur;//@ts-ignore
+    argsetid[i] = it.argsetid;//@ts-ignore
+    depth[i] = it.depth;//@ts-ignore
+    id[i] = it.id;//@ts-ignore
     nofinish[i] = it.nofinish;
   });
   (self as unknown as Worker).postMessage(
-    {
-      id: data.id,
+    {//@ts-ignore
+      id: data.id,//@ts-ignore
       action: data.action,
       results: transfer
         ? {

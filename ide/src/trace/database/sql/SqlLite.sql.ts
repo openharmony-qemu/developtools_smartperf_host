@@ -102,7 +102,9 @@ export const getTabVirtualCounters = (virtualFilterIds: Array<number>, startTime
     { $startTime: startTime }
   );
 
-export const queryAllSoInitNames = (): Promise<Array<any>> => {
+export const queryAllSoInitNames = ():
+//@ts-ignore
+ Promise<Array<unknown>> => {
   return query(
     'queryAllSoInitNames',
     `
@@ -110,7 +112,9 @@ export const queryAllSoInitNames = (): Promise<Array<any>> => {
   );
 };
 
-export const queryAllSrcSlices = (): Promise<Array<any>> => {
+export const queryAllSrcSlices = (): 
+//@ts-ignore
+Promise<Array<unknown>> => {
   return query(
     'queryAllSrcSlices',
     `
@@ -197,7 +201,9 @@ export const querySelectTraceStats = (): Promise<
   }>
 > => query('querySelectTraceStats', 'select event_name,stat_type,count,source,serverity from stat');
 
-export const queryCustomizeSelect = (sql: string): Promise<Array<any>> => query('queryCustomizeSelect', sql);
+export const queryCustomizeSelect = (sql: string): 
+//@ts-ignore
+Promise<Array<unknown>> => query('queryCustomizeSelect', sql);
 
 export const queryDistributedTerm = (): Promise<
   Array<{
@@ -307,7 +313,9 @@ export const querySystemCalls = (): Promise<
     frequency desc limit 100`
   );
 
-export const queryNetWorkMaxData = (): Promise<Array<any>> =>
+export const queryNetWorkMaxData = ():
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryNetWorkMaxData',
     `select 
@@ -318,7 +326,9 @@ export const queryNetWorkMaxData = (): Promise<Array<any>> =>
      from network`
   );
 
-export const queryDiskIoMaxData = (): Promise<Array<any>> =>
+export const queryDiskIoMaxData = (): 
+//@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryDiskIoMaxData',
     `select
@@ -328,8 +338,12 @@ export const queryDiskIoMaxData = (): Promise<Array<any>> =>
     ifnull(max(wr_count_speed),0)  as writeOps
     from diskio`
   );
-export const queryStartTime = (): Promise<Array<any>> => query('queryStartTime', `SELECT start_ts FROM trace_range`);
-export const queryBinderBySliceId = (id: number): Promise<Array<any>> =>
+export const queryStartTime = ():
+//@ts-ignore
+ Promise<Array<unknown>> => query('queryStartTime', `SELECT start_ts FROM trace_range`);
+export const queryBinderBySliceId = (id: number): 
+//@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryBinderBySliceId',
     `select c.ts-D.start_ts as startTs,
@@ -342,7 +356,9 @@ where cat = 'binder' and c.id = $id;`,
     { $id: id }
   );
 
-export const queryThreadByItid = (itid: number, ts: number): Promise<Array<any>> =>
+export const queryThreadByItid = (itid: number, ts: number): 
+//@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryThreadByItid',
     `select tid,pid,c.dur,c.depth,c.name 
@@ -351,7 +367,9 @@ left join callstack c on t.itid = c.callid
 where itid = $itid and c.ts = $ts;`,
     { $itid: itid, $ts: ts }
   );
-export const queryBinderByArgsId = (id: number, startTime: number, isNext: boolean): Promise<Array<any>> => {
+export const queryBinderByArgsId = (id: number, startTime: number, isNext: boolean):
+//@ts-ignore
+ Promise<Array<unknown>> => {
   let sql = `
 select c.ts - D.start_ts as startTs,
     c.dur,
@@ -376,7 +394,9 @@ where cat = 'binder' and  c.argsetid = $id`;
   });
 };
 
-export const getTabPaneFilesystemStatisticsFather = (leftNs: number, rightNs: number): Promise<Array<any>> =>
+export const getTabPaneFilesystemStatisticsFather = (leftNs: number, rightNs: number):
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'getTabPaneFilesystemStatisticsFather',
     `
@@ -398,7 +418,9 @@ export const getTabPaneFilesystemStatisticsFather = (leftNs: number, rightNs: nu
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const getTabPaneFilesystemStatisticsChild = (leftNs: number, rightNs: number): Promise<Array<any>> =>
+export const getTabPaneFilesystemStatisticsChild = (leftNs: number, rightNs: number):
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'getTabPaneFilesystemStatisticsChild',
     `
@@ -419,7 +441,9 @@ export const getTabPaneFilesystemStatisticsChild = (leftNs: number, rightNs: num
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const getTabPaneFilesystemStatisticsAll = (leftNs: number, rightNs: number): Promise<Array<any>> =>
+export const getTabPaneFilesystemStatisticsAll = (leftNs: number, rightNs: number): 
+//@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'getTabPaneFilesystemStatisticsAll',
     `
@@ -436,7 +460,9 @@ export const getTabPaneFilesystemStatisticsAll = (leftNs: number, rightNs: numbe
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const getTabPaneFilesystemStatistics = (leftNs: number, rightNs: number, types: number[]): Promise<Array<any>> =>
+export const getTabPaneFilesystemStatistics = (leftNs: number, rightNs: number, types: number[]):
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'getTabPaneFilesystemStatistics',
     `
@@ -466,7 +492,9 @@ export const getTabPaneIOTierStatisticsData = (
   leftNs: number,
   rightNs: number,
   diskIOipids: Array<number>
-): Promise<Array<any>> => {
+):
+//@ts-ignore
+ Promise<Array<unknown>> => {
   let str = '';
   if (diskIOipids.length > 0) {
     str = ` and i.ipid in (${diskIOipids.join(',')})`;
@@ -499,7 +527,9 @@ export const getTabPaneFrequencySampleData = (
   leftNs: number,
   rightNs: number,
   cpuFreqFilterIds: Array<number>
-): Promise<Array<any>> => {
+):
+//@ts-ignore
+ Promise<Array<unknown>> => {
   let str = '';
   if (cpuFreqFilterIds.length > 0) {
     str = ` and filter_id in (${cpuFreqFilterIds.join(',')})`;
@@ -516,7 +546,9 @@ export const getTabPaneFrequencySampleData = (
   );
 };
 
-export const getFileSysChartDataByType = (type: number): Promise<Array<any>> =>
+export const getFileSysChartDataByType = (type: number):
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'getFileSysChartData',
     `
@@ -530,7 +562,9 @@ export const getFileSysChartDataByType = (type: number): Promise<Array<any>> =>
     'exec'
   );
 
-export const getDiskIOProcess = (): Promise<Array<any>> =>
+export const getDiskIOProcess = ():
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'getDiskIOProcess',
     `
@@ -544,7 +578,9 @@ export const getDiskIOLatencyChartDataByProcess = (
   all: boolean,
   ipid: number,
   typeArr: Array<number>
-): Promise<Array<any>> =>
+): 
+//@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'getDiskIOLatencyChartDataByProcess',
     `
@@ -833,7 +869,9 @@ export const getTabIoCompletionTimesType = (startTime: number, endTime: number):
     'exec'
   );
 
-export const queryEnergyEventExits = (): Promise<Array<any>> =>
+export const queryEnergyEventExits = ():
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryEnergyEventExits',
     `select 
@@ -922,7 +960,9 @@ export const queryConfigEnergyAppName = (): Promise<
     SELECT value from trace_config where trace_source = 'hisys_event' and key = 'process_name'`
   );
 
-export const queryAllExpectedData = (): Promise<Array<any>> =>
+export const queryAllExpectedData = ():
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryAllExpectedData',
     `
@@ -941,7 +981,9 @@ export const queryAllExpectedData = (): Promise<Array<any>> =>
         ORDER BY a.ipid,ts;`
   );
 
-export const queryFlowsData = (src_slice: Array<string>): Promise<Array<any>> =>
+export const queryFlowsData = (src_slice: Array<string>):
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryFlowsData',
     `
@@ -955,7 +997,9 @@ export const queryFlowsData = (src_slice: Array<string>): Promise<Array<any>> =>
         AND fs.id IN (${src_slice.join(',')});`
   );
 
-export const queryPrecedingData = (dst_slice: string): Promise<Array<any>> =>
+export const queryPrecedingData = (dst_slice: string):
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryFlowsData',
     `
@@ -970,7 +1014,9 @@ export const queryPrecedingData = (dst_slice: string): Promise<Array<any>> =>
     { $dst_slice: dst_slice }
   );
 
-export const queryFrameTimeData = (): Promise<Array<any>> =>
+export const queryFrameTimeData = ():
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryFrameTimeData',
     `
@@ -1010,7 +1056,9 @@ export const queryHeapFile = (): Promise<Array<FileInfo>> =>
         OR f.file_name = 'Timeline'`
   );
 
-export const queryHeapInfo = (fileId: number): Promise<Array<any>> =>
+export const queryHeapInfo = (fileId: number):
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryHeapInfo',
     `SELECT file_id as fileId, key, type, int_value as intValue, str_value as strValue
@@ -1044,13 +1092,17 @@ export const queryHeapLocation = (fileId: number): Promise<Array<HeapLocation>> 
       FROM js_heap_location WHERE file_id = ${fileId}`
   );
 
-export const queryHeapString = (fileId: number): Promise<Array<any>> =>
+export const queryHeapString = (fileId: number):
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryHeapString',
     `SELECT string
       FROM js_heap_string WHERE file_id = ${fileId}`
   );
-export const queryTraceRange = (): Promise<Array<any>> =>
+export const queryTraceRange = ():
+//@ts-ignore
+ Promise<Array<unknown>> =>
   query('queryTraceRange', `SELECT t.start_ts as startTs, t.end_ts as endTs FROM trace_range t`);
 
 export const queryBySelectAllocationOrReturn = (
@@ -1372,7 +1424,9 @@ export const queryFpsSourceList = (
     `
   );
 
-export const queryStateFreqList = (startTime: number, endTime: number, cpu: number): Promise<Array<any>> => {
+export const queryStateFreqList = (startTime: number, endTime: number, cpu: number):
+//@ts-ignore
+ Promise<Array<unknown>> => {
   let sql = `select c.value,
     c.ts,
     c.dur,

@@ -24,8 +24,10 @@ import { queryTaskPoolOtherRelationData, queryTaskPoolRelationData } from '../da
 import { queryBySelectAllocationOrReturn } from '../database/sql/SqlLite.sql';
 import { ThreadStruct } from '../database/ui-worker/ProcedureWorkerThread';
 
-function collectionHasJank(jankRow: any, collectList: TraceRow<any>[]): boolean {
+//@ts-ignore
+function collectionHasJank(jankRow: unknown, collectList: TraceRow<unknown>[]): boolean {
   for (let item of collectList!) {
+    //@ts-ignore
     if (item.rowId === jankRow.rowId && item.rowType === jankRow.rowType) {
       return false;
     }
@@ -38,10 +40,10 @@ function setPoint(
   y: number,
   offsetY: number,
   ns: number,
-  rowEL: any,
+  rowEL: unknown,
   isRight: boolean,
   business: string
-): any {
+): unknown {
   return {
     x: x,
     y: y,
@@ -54,21 +56,23 @@ function setPoint(
 }
 
 function selectJankApp(
-  endParentRow: any,
+  endParentRow: unknown,
   sp: SpSystemTrace,
-  data: any,
-  startRow: any,
+  data: unknown,
+  startRow: unknown,
   selectJankStruct: JankStruct,
-  endRowStruct: any
+  endRowStruct: unknown
 ): void {
   let collectList = sp.favoriteChartListEL!.getAllCollectRows();
-  let findJankEntry = endRowStruct!.dataListCache!.find((dat: any) => dat.name === data.name && dat.pid === data.pid);
+  //@ts-ignore
+  let findJankEntry = endRowStruct!.dataListCache!.find((dat: unknown) => dat.name === data.name && dat.pid === data.pid);
   let tts =
     findJankEntry.frame_type === 'frameTime' ? selectJankStruct.ts! : selectJankStruct.ts! + selectJankStruct.dur!;
-  let startParentRow: any;
+  let startParentRow: unknown;
   // startRow为子泳道，子泳道不存在，使用父泳道
   if (startRow) {
     startParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+      //@ts-ignore
       `trace-row[row-type='process'][row-id='${startRow.rowParentId}'][folder]`
     );
   } else {
@@ -76,20 +80,26 @@ function selectJankApp(
       `trace-row[row-type='process'][row-id='${selectJankStruct?.pid}'][folder]`
     );
   }
+  //@ts-ignore
   let endY = endRowStruct!.translateY! + 20 * (findJankEntry!.depth! + 0.5);
   let endRowEl = endRowStruct;
   let endOffSetY = 20 * (findJankEntry!.depth! + 0.5);
   let expansionFlag = collectionHasJank(endRowStruct, collectList);
+  //@ts-ignore
   if (!endParentRow.expansion && expansionFlag) {
+    //@ts-ignore
     endY = endParentRow!.translateY! + 10 * (findJankEntry!.depth! + 0.5);
     endRowEl = endParentRow;
     endOffSetY = 10 * (findJankEntry!.depth! + 0.5);
   }
+  //@ts-ignore
   let startY = startRow!.translateY! + 20 * (selectJankStruct!.depth! + 0.5);
   let startRowEl = startRow;
   let startOffSetY = 20 * (selectJankStruct!.depth! + 0.5);
   expansionFlag = collectionHasJank(startRow, collectList);
+  //@ts-ignore
   if (startParentRow && !startParentRow.expansion && expansionFlag) {
+    //@ts-ignore
     startY = startParentRow!.translateY! + 10 * (selectJankStruct!.depth! + 0.5);
     startRowEl = startParentRow;
     startOffSetY = 10 * (selectJankStruct!.depth! + 0.5);
@@ -98,34 +108,40 @@ function selectJankApp(
   let endX = ns2xByTimeShaft(findJankEntry.ts!, sp.timerShaftEL!);
   const startPoint = setPoint(startX, startY, startOffSetY, tts, startRowEl, selectJankStruct.ts === tts, 'janks');
   const endPoint = setPoint(endX, endY, endOffSetY, findJankEntry.ts!, endRowEl, true, 'janks');
+  //@ts-ignore
   sp.addPointPair(startPoint, endPoint);
 }
 
 function findJankApp(
-  endParentRow: any,
+  endParentRow: unknown,
   sp: SpSystemTrace,
-  data: any,
-  startRow: any,
+  startRow: unknown,
   selectJankStruct: JankStruct,
-  endRowStruct: any
+  endRowStruct: unknown
 ): void {
   let collectList = sp.favoriteChartListEL!.getAllCollectRows();
-  let findJankEntry = endRowStruct!.dataListCache!.find((dat: any) => dat.name === data.name && dat.pid === data.pid);
+  //@ts-ignore
+  let findJankEntry = endRowStruct!.dataListCache!.find((dat: unknown) => dat.name === data.name && dat.pid === data.pid);
   let tts = selectJankStruct.frame_type === 'frameTime' ? findJankEntry.ts : findJankEntry.ts! + findJankEntry.dur!;
+  //@ts-ignore
   let endY = endRowStruct!.translateY! + 20 * (findJankEntry!.depth! + 0.5);
   let endRowEl = endRowStruct;
   let endOffSetY = 20 * (findJankEntry!.depth! + 0.5);
   let expansionFlag = collectionHasJank(endRowStruct, collectList);
+  //@ts-ignore
   if (!endParentRow.expansion && expansionFlag) {
+    //@ts-ignore
     endY = endParentRow!.translateY! + 10 * (findJankEntry!.depth! + 0.5);
     endRowEl = endParentRow;
     endOffSetY = 10 * (findJankEntry!.depth! + 0.5);
   }
+  //@ts-ignore
   let startY = startRow!.translateY! + 20 * (selectJankStruct!.depth! + 0.5);
   let startRowEl = startRow;
   expansionFlag = collectionHasJank(startRow, collectList);
   let startOffsetY = 20 * (selectJankStruct!.depth! + 0.5);
   let startParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+    //@ts-ignore
     `trace-row[row-type='process'][row-id='${startRow.rowParentId}'][folder]`
   );
   if (startParentRow && !startParentRow.expansion && expansionFlag) {
@@ -137,18 +153,20 @@ function findJankApp(
   let endX = ns2xByTimeShaft(tts, sp.timerShaftEL!);
   const startPoint = setPoint(startX, startY, startOffsetY, selectJankStruct.ts!, startRowEl, true, 'janks');
   const endPoint = setPoint(endX, endY, endOffSetY, tts, endRowEl, selectJankStruct.ts === tts, 'janks');
+  //@ts-ignore
   sp.addPointPair(startPoint, endPoint);
 }
 
 function addPointLink(
-  endParentRow: any,
+  endParentRow: unknown,
   sp: SpSystemTrace,
-  data: any,
-  startRow: any,
+  data: unknown,
+  startRow: unknown,
   selectJankStruct: JankStruct,
-  endRowStruct: any
+  endRowStruct: unknown
 ): void {
-  let findJankEntry = endRowStruct!.dataListCache!.find((dat: any) => dat.name === data.name && dat.pid === data.pid);
+  //@ts-ignore
+  let findJankEntry = endRowStruct!.dataListCache!.find((dat: unknown) => dat.name === data.name && dat.pid === data.pid);
   //连线规则：frametimeline的头----app的头，app的尾----renderservice的头
   let tts: number = 0;
   if (findJankEntry) {
@@ -156,30 +174,39 @@ function addPointLink(
       selectJankApp(endParentRow, sp, data, startRow, selectJankStruct, endRowStruct);
     }
     if (findJankEntry.frame_type === 'app') {
+      //@ts-ignore
       findJankApp(endParentRow, sp, data, startRow, selectJankStruct, endRowStruct);
     }
+    //@ts-ignore
     if (data.children.length >= 1) {
       let endP;
+      //@ts-ignore
       if (data.children[0].frame_type === 'frameTime') {
-        endP = sp.shadowRoot?.querySelector<TraceRow<any>>('trace-row[row-type=\'janks\'][row-id=\'frameTime\']');
+        //@ts-ignore
+        endP = sp.shadowRoot?.querySelector<TraceRow<unknown>>('trace-row[row-type=\'janks\'][row-id=\'frameTime\']');
       } else {
-        endP = sp.shadowRoot?.querySelector<TraceRow<any>>(
+        //@ts-ignore
+        endP = sp.shadowRoot?.querySelector<TraceRow<unknown>>(
+          //@ts-ignore
           `trace-row[row-type='process'][row-id='${data.children[0].pid}'][folder]`
         );
       }
+      //@ts-ignore
       sp.drawJankLine(endP, findJankEntry, data.children[0]);
     }
   }
 }
 
-function getEndStruct(data: any, sp: SpSystemTrace): any {
-  let endRowStruct: any;
+function getEndStruct(data: unknown, sp: SpSystemTrace): unknown {
+  let endRowStruct: unknown;
+  //@ts-ignore
   if (data.frame_type === 'frameTime') {
     endRowStruct = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
       'trace-row[row-id=\'actual frameTime\'][row-type=\'janks\']'
     );
   } else {
     endRowStruct = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+      //@ts-ignore
       `trace-row[row-id='${data.type}-${data.pid}'][row-type='janks']`
     );
   }
@@ -187,21 +214,24 @@ function getEndStruct(data: any, sp: SpSystemTrace): any {
 }
 
 function drawJankLineEndParent(
-  endParentRow: any,
+  endParentRow: unknown,
   sp: SpSystemTrace,
-  data: any,
-  startRow: any,
+  data: unknown,
+  startRow: unknown,
   selectJankStruct: JankStruct,
   isBinderClick: boolean = false
 ): void {
   if (isBinderClick) {
+    //@ts-ignore
     endParentRow.expansion = true;
   }
   //终点的父泳道过滤出选中的Struct
   let endRowStruct = getEndStruct(data, sp);
   //泳道未展开的情况，查找endRowStruct
   if (!endRowStruct) {
+    //@ts-ignore
     if (data.frame_type === 'frameTime') {
+      //@ts-ignore
       endParentRow.childrenList.forEach((item: TraceRow<JankStruct>) => {
         if (item.rowId === 'actual frameTime' && item.rowType === 'janks') {
           endRowStruct = item;
@@ -210,6 +240,7 @@ function drawJankLineEndParent(
       //frameTime未展开
       if (!endRowStruct) {
         endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>('trace-row[row-id=\'frameTime\'][folder]');
+        //@ts-ignore
         endParentRow?.childrenList?.forEach((item: TraceRow<JankStruct>): void => {
           if (item.rowId === 'actual frameTime' && item.rowType === 'janks') {
             endRowStruct = item;
@@ -217,6 +248,7 @@ function drawJankLineEndParent(
         });
       }
     } else {
+      //@ts-ignore
       endParentRow.childrenList.forEach((item: TraceRow<JankStruct>) => {
         if (item.name.startsWith('Actual Timeline') && item.rowType === 'janks') {
           endRowStruct = item;
@@ -225,11 +257,15 @@ function drawJankLineEndParent(
     }
   }
   if (endRowStruct) {
+    //@ts-ignore
     if (endRowStruct.isComplete) {
       addPointLink(endParentRow, sp, data, startRow, selectJankStruct, endRowStruct);
     } else {
-      endRowStruct.supplierFrame!().then((res: any) => {
+      //@ts-ignore
+      endRowStruct.supplierFrame!().then((res: unknown) => {
+        //@ts-ignore
         endRowStruct.dataListCache = res;
+        //@ts-ignore
         endRowStruct.loadingFrame = false;
         addPointLink(endParentRow, sp, data, startRow, selectJankStruct, endRowStruct);
       });
@@ -239,13 +275,13 @@ function drawJankLineEndParent(
 
 export function spSystemTraceDrawJankLine(
   sp: SpSystemTrace,
-  endParentRow: any,
+  endParentRow: unknown,
   selectJankStruct: JankStruct,
-  data: any,
+  data: unknown,
   isBinderClick: boolean = false
 ): void {
   let collectList = sp.favoriteChartListEL!.getAllCollectRows();
-  let startRow: any;
+  let startRow: unknown;
   if (!selectJankStruct) {
     return;
   }
@@ -274,13 +310,15 @@ export function spSystemTraceDrawJankLine(
 }
 
 function taskPoolOtherRelationData(
-  selectRow: any,
+  selectRow: unknown,
   sp: SpSystemTrace,
-  row: TraceRow<any>,
+  //@ts-ignore
+  row: TraceRow<unknown>,
   relationDataList: FuncStruct[],
-  res: any
+  res: unknown
 ): void {
   sp.clearPointPair();
+  //@ts-ignore
   selectRow!.fixedList = relationDataList;
   if (FuncStruct.selectFuncStruct === undefined || FuncStruct.selectFuncStruct === null) {
     return;
@@ -290,9 +328,11 @@ function taskPoolOtherRelationData(
     // allocation to execute
     const selectY = (FuncStruct.selectFuncStruct!.depth! + 0.5) * 20;
     const offSetY = (value.depth! + 0.5) * 20;
+    //@ts-ignore
     const selectRowY = selectRow?.translateY!;
     const selectStartTs = FuncStruct.selectFuncStruct!.startTs!;
     const selectDur = FuncStruct.selectFuncStruct!.dur!;
+    //@ts-ignore
     if (value.id === res[0].allocation_task_row) {
       sp.addPointPair(
         sp.makePoint(value.startTs!, 0, selectRowY, selectRow, offSetY, 'task', LineType.bezierCurve, true),
@@ -311,14 +351,16 @@ function taskPoolOtherRelationData(
 function taskPoolRelationDataAllocation(
   executeRow: TraceRow<FuncStruct> | null | undefined,
   sp: SpSystemTrace,
-  row: TraceRow<any>,
+  //@ts-ignore
+  row: TraceRow<unknown>,
   relationDataList: FuncStruct[],
-  res: any
+  res: unknown
 ): void {
   sp.clearPointPair();
   if (FuncStruct.selectFuncStruct === undefined || FuncStruct.selectFuncStruct === null) {
     return;
   }
+  //@ts-ignore
   let executeStruct = relationDataList.filter((item) => item.id === res[0].execute_task_row)[0];
   relationDataList.forEach((value) => {
     const selectY = (FuncStruct.selectFuncStruct!.depth! + 0.5) * 20;
@@ -327,6 +369,7 @@ function taskPoolRelationDataAllocation(
     const selectStartTs = FuncStruct.selectFuncStruct!.startTs!;
     const executeY = (executeStruct.depth! + 0.5) * 20;
     TabPaneTaskFrames.TaskArray.push(value);
+    //@ts-ignore
     if (value.id === res[0].execute_task_row) {
       sp.addPointPair(
         sp.makePoint(selectStartTs, 0, row?.translateY!, row, selectY, 'task', LineType.bezierCurve, true),
@@ -353,14 +396,16 @@ function taskPoolRelationDataAllocation(
 function taskPoolRelationDataPerformTask(
   executeRow: TraceRow<FuncStruct> | null | undefined,
   sp: SpSystemTrace,
-  row: TraceRow<any>,
+  //@ts-ignore
+  row: TraceRow<unknown>,
   relationDataList: FuncStruct[],
-  res: any
+  res: unknown
 ): void {
   sp.clearPointPair();
   if (FuncStruct.selectFuncStruct === undefined || FuncStruct.selectFuncStruct === null) {
     return;
   }
+  //@ts-ignore
   let executeStruct = relationDataList.filter((item) => item.id === res[0].execute_task_row)[0];
   relationDataList.forEach((value) => {
     const executeRowY = executeRow?.translateY!;
@@ -369,6 +414,7 @@ function taskPoolRelationDataPerformTask(
     const selectY = (FuncStruct.selectFuncStruct!.depth! + 0.5) * 20;
     const offSetY = (value.depth! + 0.5) * 20;
     TabPaneTaskFrames.TaskArray.push(value);
+    //@ts-ignore
     if (value.id === res[0].execute_task_row) {
       sp.addPointPair(
         sp.makePoint(
@@ -393,7 +439,8 @@ function taskPoolRelationDataPerformTask(
   sp.refreshCanvas(true);
 }
 
-function taskAllocationOrPerformTask(sp: SpSystemTrace, row: TraceRow<any>, executeID: string): void {
+//@ts-ignore
+function taskAllocationOrPerformTask(sp: SpSystemTrace, row: TraceRow<unknown>, executeID: string): void {
   TabPaneTaskFrames.IsShowConcurrency = false;
   sp.clearPointPair();
   queryBySelectAllocationOrReturn(executeID, FuncStruct.selectFuncStruct!.itid!).then((res) => {
@@ -442,7 +489,8 @@ function taskAllocationOrPerformTask(sp: SpSystemTrace, row: TraceRow<any>, exec
   });
 }
 
-export function spSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<any>): void {
+//@ts-ignore
+export function spSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<unknown>): void {
   if (FuncStruct.selectFuncStruct === undefined || FuncStruct.selectFuncStruct === null) {
     return;
   }
@@ -463,6 +511,7 @@ export function spSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<
           let collectList = sp.favoriteChartListEL!.getAllCollectRows();
           for (let selectCollectRow of collectList) {
             if (selectCollectRow.rowId === allocationRowId.toString() && selectCollectRow.rowType === 'func') {
+              // @ts-ignore
               selectRow = selectCollectRow;
               break;
             }
@@ -486,12 +535,13 @@ export function spSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<
 }
 
 function jankPoint(
-  endRowStruct: any,
+  endRowStruct: unknown,
   selectThreadStruct: ThreadStruct,
-  startRow: any,
-  endParentRow: any,
+  startRow: unknown,
+  endParentRow: unknown,
   sp: SpSystemTrace
 ): void {
+  //@ts-ignore
   let findJankEntry = endRowStruct!.fixedList[0];
   let ts: number = 0;
   if (findJankEntry) {
@@ -525,9 +575,9 @@ function jankPoint(
 
 export function spSystemTraceDrawThreadLine(
   sp: SpSystemTrace,
-  endParentRow: any,
+  endParentRow: unknown,
   selectThreadStruct: ThreadStruct | undefined,
-  data: any
+  data: unknown
 ): void {
   let collectList = sp.favoriteChartListEL!.getCollectRows();
   if (!selectThreadStruct) {
@@ -537,16 +587,21 @@ export function spSystemTraceDrawThreadLine(
   let startRow = sp.getStartRow(selectRowId, collectList);
 
   if (endParentRow) {
+    //@ts-ignore
     endParentRow.expansion = true;
-    let endRowStruct: any = sp.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+    let endRowStruct: unknown = sp.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+      //@ts-ignore
       `trace-row[row-id='${data.tid}'][row-type='thread']`
     );
     if (!endRowStruct) {
+      //@ts-ignore
       endRowStruct = endParentRow.childrenList.find((item: TraceRow<ThreadStruct>) => {
+        //@ts-ignore
         return item.rowId === `${data.tid}` && item.rowType === 'thread';
       });
     }
     if (endRowStruct) {
+      //@ts-ignore
       if (endRowStruct.isComplete) {
         jankPoint(endRowStruct, selectThreadStruct, startRow, endParentRow, sp);
       }

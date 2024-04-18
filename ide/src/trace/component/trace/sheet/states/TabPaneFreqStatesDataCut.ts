@@ -77,7 +77,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
     this.clickSingle(false);
     this.currentSelectionParam = threadStatesParam;
     // 清空表格数据
-    this.threadBindersTbl!.recycleDataSource = [];
+    this.threadBindersTbl!.recycleDataSource = [];// @ts-ignore
     this.theadClick(this.threadBindersTbl!.recycleDataSource);
   }
 
@@ -175,10 +175,11 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         this.threadBindersTbl!.recycleDataSource = stateCutArr;
         this.threadBindersTbl!.loading = false;
         // 表格添加点击事件
+        // @ts-ignore
         this.theadClick(this.threadBindersTbl!.recycleDataSource);
       } else {
         this.threadBindersTbl!.recycleDataSource = [];
-        this.threadBindersTbl!.loading = false;
+        this.threadBindersTbl!.loading = false;// @ts-ignore
         this.theadClick(this.threadBindersTbl!.recycleDataSource);
       }
     } else {
@@ -236,11 +237,11 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
           }
         }
         this.threadBindersTbl!.recycleDataSource = stateCutArr;
-        this.threadBindersTbl!.loading = false;
+        this.threadBindersTbl!.loading = false;// @ts-ignore
         this.theadClick(this.threadBindersTbl!.recycleDataSource);
       } else {
         this.threadBindersTbl!.recycleDataSource = [];
-        this.threadBindersTbl!.loading = false;
+        this.threadBindersTbl!.loading = false;// @ts-ignore
         this.theadClick(this.threadBindersTbl!.recycleDataSource);
       }
     } else {
@@ -561,22 +562,23 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       seriesField: '',
       removeUnit: true,
       notSort: true,
-      color: (a) => {
+      color: (a) => {//@ts-ignore
         if (a.xName === 'Total') {
-          return '#2f72f8';
+          return '#2f72f8';//@ts-ignore
         } else if (a.xName === 'cycleA') {
-          return '#ffab67';
+          return '#ffab67';//@ts-ignore
         } else if (a.xName === 'cycleB') {
           return '#a285d2';
         } else {
           return '#0a59f7';
         }
       },
-      tip: (a) => {
+      tip: (a) => {//@ts-ignore
         if (a && a[0]) {
           let tip: string = '';
           tip = `<div>
-                    <div>Average count: ${a[0].obj.yAverage}</div>
+                    <div>Average count: ${//@ts-ignore
+                      a[0].obj.yAverage}</div>
                 </div>`;
           return tip;
         } else {

@@ -35,10 +35,10 @@ import {
 import { promises } from 'dns';
 
 export class SpFreqChart {
-  private trace: SpSystemTrace;
-  private folderRow: TraceRow<any> | undefined;
-  private folderRowState: TraceRow<any> | undefined;
-  private folderRowLimit: TraceRow<any> | undefined;
+  private trace: SpSystemTrace;//@ts-ignore
+  private folderRow: TraceRow<unknown> | undefined;//@ts-ignore
+  private folderRowState: TraceRow<unknown> | undefined;//@ts-ignore
+  private folderRowLimit: TraceRow<unknown> | undefined;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -47,6 +47,7 @@ export class SpFreqChart {
   async init(): Promise<void> {
     let freqList = await queryCpuFreq();
     let cpuStateFilterIds = await queryCpuStateFilter();
+    //@ts-ignore
     this.trace.stateRowsId = cpuStateFilterIds;
     let cpuFreqLimits = await getCpuLimitFreqId();
     let cpuFreqLimitsMax = await getCpuLimitFreqMax(cpuFreqLimits.map((limit) => limit.maxFilterId).join(','));
@@ -77,34 +78,36 @@ export class SpFreqChart {
     }
   }
 
-  createFolderRow(): TraceRow<any> {
-    let folder = new TraceRow<any>();
+  //@ts-ignore
+  createFolderRow(): TraceRow<unknown> {//@ts-ignore
+    let folder = new TraceRow<unknown>();
     folder.rowParentId = '';
     folder.folder = true;
     folder.style.height = '40px';
     folder.rowHidden = folder.expansion;
     folder.setAttribute('children', '');
+    // @ts-ignore
     folder.supplier = folderSupplier();
     folder.onThreadHandler = folderThreadHandler(folder, this.trace);
     return folder;
   }
 
   async addFreqRows(freqList: Array<any>): Promise<void> {
-    let freqMaxList = await queryCpuMaxFreq();
-    CpuFreqStruct.maxFreq = freqMaxList[0].maxFreq;
+    let freqMaxList = await queryCpuMaxFreq();//@ts-ignore
+    CpuFreqStruct.maxFreq = freqMaxList[0].maxFreq;//@ts-ignore
     let maxFreqObj = Utils.getFrequencyWithUnit(freqMaxList[0].maxFreq);
     CpuFreqStruct.maxFreq = maxFreqObj.maxFreq;
     CpuFreqStruct.maxFreqName = maxFreqObj.maxFreqName;
     for (let i = 0; i < freqList.length; i++) {
       const it = freqList[i];
-      let traceRow = TraceRow.skeleton<CpuFreqStruct>();
+      let traceRow = TraceRow.skeleton<CpuFreqStruct>();//@ts-ignore
       traceRow.rowId = `${it.filterId}`;
       traceRow.rowType = TraceRow.ROW_TYPE_CPU_FREQ;
       traceRow.rowParentId = '';
-      traceRow.style.height = '40px';
+      traceRow.style.height = '40px';//@ts-ignore
       traceRow.name = `Cpu ${it.cpu} Frequency`;
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      traceRow.selectChangeHandler = this.trace.selectChangeHandler;
+      traceRow.selectChangeHandler = this.trace.selectChangeHandler;//@ts-ignore
       traceRow.supplierFrame = (): Promise<CpuFreqStruct[]> => cpuFreqDataSender(it.cpu, traceRow); //queryCpuFreqData
       traceRow.focusHandler = (ev): void => {
         this.trace?.displayTip(
@@ -119,7 +122,7 @@ export class SpFreqChart {
       traceRow.onThreadHandler = rowThreadHandler<FreqRender>(
         'freq',
         'context',
-        {
+        {//@ts-ignore
           type: `freq${it.cpu}`,
         },
         traceRow,
@@ -129,18 +132,18 @@ export class SpFreqChart {
     }
   }
 
-  addStateRows(cpuStateFilterIds: Array<any>): void {
+  addStateRows(cpuStateFilterIds: Array<unknown>): void {
     for (let it of cpuStateFilterIds) {
-      let cpuStateRow = TraceRow.skeleton<CpuStateStruct>();
+      let cpuStateRow = TraceRow.skeleton<CpuStateStruct>();//@ts-ignore
       cpuStateRow.rowId = `${it.filterId}`;
       cpuStateRow.rowType = TraceRow.ROW_TYPE_CPU_STATE;
       cpuStateRow.rowParentId = '';
-      cpuStateRow.style.height = '40px';
+      cpuStateRow.style.height = '40px';//@ts-ignore
       cpuStateRow.name = `Cpu ${it.cpu} State`;
       cpuStateRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       cpuStateRow.selectChangeHandler = this.trace.selectChangeHandler;
-      cpuStateRow.supplierFrame = async (): Promise<CpuStateStruct[]> => {
-        let rs = await cpuStateSender(it.filterId, cpuStateRow);
+      cpuStateRow.supplierFrame = async (): Promise<CpuStateStruct[]> => {//@ts-ignore
+        let rs = await cpuStateSender(it.filterId, cpuStateRow);//@ts-ignore
         rs.forEach((t) => (t.cpu = it.cpu));
         return rs;
       };
@@ -157,8 +160,8 @@ export class SpFreqChart {
       cpuStateRow.onThreadHandler = rowThreadHandler<CpuStateRender>(
         'cpu-state',
         'cpuStateContext',
-        {
-          type: `cpu-state-${it.cpu}`,
+        {//@ts-ignore
+          type: `cpu-state-${it.cpu}`,//@ts-ignore
           cpu: it.cpu,
         },
         cpuStateRow,
@@ -168,24 +171,24 @@ export class SpFreqChart {
     }
   }
 
-  addFreqLimitRows(cpuFreqLimits: Array<any>, cpuFreqLimitsMax: Array<any>): void {
+  addFreqLimitRows(cpuFreqLimits: Array<unknown>, cpuFreqLimitsMax: Array<unknown>): void {
     for (let limit of cpuFreqLimits) {
-      let findMax = Utils.getFrequencyWithUnit(
+      let findMax = Utils.getFrequencyWithUnit(//@ts-ignore
         cpuFreqLimitsMax.find((maxLimit) => maxLimit.filterId === limit.maxFilterId)?.maxValue || 0
       );
-      let cpuFreqLimitRow = TraceRow.skeleton<CpuFreqLimitsStruct>();
+      let cpuFreqLimitRow = TraceRow.skeleton<CpuFreqLimitsStruct>();//@ts-ignore
       cpuFreqLimitRow.rowId = `${limit.cpu}`;
       cpuFreqLimitRow.rowType = TraceRow.ROW_TYPE_CPU_FREQ_LIMIT;
       cpuFreqLimitRow.rowParentId = '';
-      cpuFreqLimitRow.style.height = '40px';
+      cpuFreqLimitRow.style.height = '40px';//@ts-ignore
       cpuFreqLimitRow.name = `Cpu ${limit.cpu} Freq Limit`;
       cpuFreqLimitRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      cpuFreqLimitRow.selectChangeHandler = this.trace.selectChangeHandler;
-      cpuFreqLimitRow.setAttribute('maxFilterId', `${limit.maxFilterId}`);
-      cpuFreqLimitRow.setAttribute('minFilterId', `${limit.minFilterId}`);
+      cpuFreqLimitRow.selectChangeHandler = this.trace.selectChangeHandler;//@ts-ignore
+      cpuFreqLimitRow.setAttribute('maxFilterId', `${limit.maxFilterId}`);//@ts-ignore
+      cpuFreqLimitRow.setAttribute('minFilterId', `${limit.minFilterId}`);//@ts-ignore
       cpuFreqLimitRow.setAttribute('cpu', `${limit.cpu}`);
-      cpuFreqLimitRow.supplierFrame = async (): Promise<CpuFreqLimitsStruct[]> => {
-        const res = await cpuFreqLimitSender(limit.maxFilterId, limit.minFilterId, limit.cpu, cpuFreqLimitRow);
+      cpuFreqLimitRow.supplierFrame = async (): Promise<CpuFreqLimitsStruct[]> => {//@ts-ignore
+        const res = await cpuFreqLimitSender(limit.maxFilterId, limit.minFilterId, limit.cpu, cpuFreqLimitRow);//@ts-ignore
         res.forEach((item) => (item.cpu = limit.cpu));
         return res;
       };
@@ -206,8 +209,8 @@ export class SpFreqChart {
       cpuFreqLimitRow.onThreadHandler = rowThreadHandler<CpuFreqLimitRender>(
         'cpu-limit-freq',
         'context',
-        {
-          type: `cpu-limit-freq-${limit.cpu}`,
+        {//@ts-ignore
+          type: `cpu-limit-freq-${limit.cpu}`,//@ts-ignore
           cpu: limit.cpu,
           maxFreq: findMax?.maxFreq || 0,
           maxFreqName: findMax?.maxFreqName || '',

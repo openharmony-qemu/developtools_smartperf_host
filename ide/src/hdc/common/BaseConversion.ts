@@ -61,6 +61,6 @@ export function uint8ArrayToString(array: Uint8Array, convertToHex16: boolean): 
   return result;
 }
 
-export const Sleep = (ms: number): Promise<any> => {
+export const Sleep = (ms: number): Promise<unknown> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };

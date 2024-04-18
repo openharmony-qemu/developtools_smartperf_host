@@ -119,7 +119,7 @@ export class RangeRuler extends Graph {
   p: number = 1000;
   private readonly notifyHandler: (r: TimeRange) => void;
   private scale: number = 0;
-  private delayTimer: any = null;
+  private delayTimer: unknown = null;
   private rulerW = 0;
   _cpuCountData: number | undefined;
 
@@ -479,6 +479,7 @@ export class RangeRuler extends Graph {
 
   delayDraw(): void {
     if (this.delayTimer) {
+      // @ts-ignore
       clearTimeout(this.delayTimer);
     }
     this.delayTimer = setTimeout(() => {
@@ -561,7 +562,7 @@ export class RangeRuler extends Graph {
     }
   }
 
-  cancelTimeOut: any = undefined;
+  cancelTimeOut: unknown = undefined;
   isKeyPress: boolean = false;
 
   keyPress(keyboardEvent: KeyboardEvent, currentSlicesTime?: CurrentSlicesTime): void {
@@ -586,6 +587,7 @@ export class RangeRuler extends Graph {
       this.cancelUpFrame();
       this.pressedKeys.push(keyboardEvent.key.toLocaleLowerCase());
       this.animaStartTime = new Date().getTime(); //记录按下的时间
+      // @ts-ignore
       this.keyboardKeyPressMap[this.pressedKeys[this.pressedKeys.length - 1]]?.bind(this)();
     }
   }
@@ -763,7 +765,7 @@ export class RangeRuler extends Graph {
     this.pressFrameIdD = requestAnimationFrame(animD);
   }
 
-  keyboardKeyPressMap: any = {
+  keyboardKeyPressMap: unknown = {
     w: this.keyPressW,
     s: this.keyPressS,
     a: this.keyPressA,
@@ -775,7 +777,7 @@ export class RangeRuler extends Graph {
     ',': this.scrollFlagIntoView,
   };
 
-  keyboardKeyUpMap: any = {
+  keyboardKeyUpMap: unknown = {
     w: this.keyUpW,
     s: this.keyUpS,
     a: this.keyUpA,
@@ -789,6 +791,7 @@ export class RangeRuler extends Graph {
       if (number === this.pressedKeys.length - 1) {
         this.animaStartTime = undefined;
         this.cancelPressFrame();
+        // @ts-ignore
         this.keyboardKeyUpMap[ev.key]?.bind(this)();
       }
       if (number !== -1) {

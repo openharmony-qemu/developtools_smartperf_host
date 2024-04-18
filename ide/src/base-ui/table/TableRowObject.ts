@@ -17,9 +17,9 @@ export class TableRowObject {
   public top: number = 0;
   public height: number = 0;
   public rowIndex: number = 0;
-  public data: any | undefined;
+  public data: unknown | undefined;
   public expanded: boolean = true;
   public rowHidden: boolean = false;
-  public children: any[] = [];
+  public children: unknown[] = [];
   public depth: number = -1;
 }

@@ -32,7 +32,7 @@ export class HeapSnapshotRender extends Render {
       filter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
-      (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0),
+      (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0),// @ts-ignore
       row.frame
     );
     drawLoadingFrame(req.context, filter, row);

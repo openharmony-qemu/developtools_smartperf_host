@@ -48,17 +48,20 @@ function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
     if (SpSystemTrace.wakeupList.length && CpuStruct.selectCpuStruct) {
       let checkHandlerKey: boolean = true;
-      let saveSelectCpuStruct: any = JSON.parse(sessionStorage.getItem('saveselectcpustruct')!);
+      let saveSelectCpuStruct: unknown = JSON.parse(sessionStorage.getItem('saveselectcpustruct')!);
       for (const item of SpSystemTrace.wakeupList) {
         if (item.ts === CpuStruct.selectCpuStruct.startTime && item.dur === CpuStruct.selectCpuStruct.dur) {
           checkHandlerKey = false;
           if (SpSystemTrace.wakeupList[0].schedulingDesc) {
+            //@ts-ignore
             SpSystemTrace.wakeupList.unshift(saveSelectCpuStruct);
           }
           sp.refreshCanvas(true);
           break;
         } else if (
+          //@ts-ignore
           saveSelectCpuStruct.startTime === CpuStruct.selectCpuStruct.startTime &&
+          //@ts-ignore
           saveSelectCpuStruct.dur === CpuStruct.selectCpuStruct.dur
         ) {
           // 如果点击的是第一层，保持唤醒树不变
@@ -106,22 +109,22 @@ function threadClickHandlerFunc(sp: SpSystemTrace): (e: ThreadStruct) => void {
       },
     ];
     let findEntry = cpuRow!.fixedList[0];
-    sp.rechargeCpuData(
-      findEntry,
+    sp.rechargeCpuData(// @ts-ignore
+      findEntry,// @ts-ignore
       cpuRow.dataListCache.find((it) => it.startTime > findEntry.startTime)
     );
-    if (
-      findEntry!.startTime! + findEntry!.dur! < TraceRow.range!.startNS ||
+    if (// @ts-ignore
+      findEntry!.startTime! + findEntry!.dur! < TraceRow.range!.startNS ||// @ts-ignore
       findEntry!.startTime! > TraceRow.range!.endNS
     ) {
-      sp.timerShaftEL?.setRangeNS(
-        findEntry!.startTime! - findEntry!.dur! * 2,
+      sp.timerShaftEL?.setRangeNS(// @ts-ignore
+        findEntry!.startTime! - findEntry!.dur! * 2,// @ts-ignore
         findEntry!.startTime! + findEntry!.dur! + findEntry!.dur! * 2
       );
     }
-    sp.hoverStructNull().selectStructNull().wakeupListNull();
-    CpuStruct.hoverCpuStruct = findEntry;
-    CpuStruct.selectCpuStruct = findEntry;
+    sp.hoverStructNull().selectStructNull().wakeupListNull();// @ts-ignore
+    CpuStruct.hoverCpuStruct = findEntry;// @ts-ignore
+    CpuStruct.selectCpuStruct = findEntry;// @ts-ignore
     sp.timerShaftEL?.drawTriangle(findEntry!.startTime || 0, 'inverted');
     sp.traceSheetEL?.displayCpuData(
       CpuStruct.selectCpuStruct!,
@@ -137,35 +140,43 @@ function threadClickHandlerFunc(sp: SpSystemTrace): (e: ThreadStruct) => void {
 }
 
 function scrollToFuncHandlerFunc(sp: SpSystemTrace) {
-  return function (funcStruct: any): void {
+  return function (funcStruct: unknown): void {
     sp.observerScrollHeightEnable = true;
+    //@ts-ignore
     sp.moveRangeToCenter(funcStruct.startTs!, funcStruct.dur!);
     sp.scrollToActFunc(funcStruct, false);
   };
 }
 
 function jankClickHandlerFunc(sp: SpSystemTrace): Function {
-  let jankClickHandler = (d: any): void => {
+  let jankClickHandler = (d: unknown): void => {
     sp.observerScrollHeightEnable = true;
-    let jankRowParent: any;
+    let jankRowParent: unknown;
+    //@ts-ignore
     if (d.rowId === 'actual frameTime') {
       jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>('trace-row[row-id=\'frameTime\']');
     } else {
       jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+        //@ts-ignore
         `trace-row[row-type='process'][row-id='${d.pid}']`
       );
     }
+    //@ts-ignore
     jankRowParent!.expansion = true;
-    let jankRow: any;
+    let jankRow: unknown;
+    //@ts-ignore
     jankRowParent.childrenList.forEach((item: TraceRow<JankStruct>) => {
+      //@ts-ignore
       if (item.rowId === `${d.rowId}` && item.rowType === 'janks') {
         jankRow = item;
       }
     });
+    //@ts-ignore
     sp.currentRow = jankRow;
     if (jankRow) {
       JankStruct.selectJankStructList.length = 0;
-      let findJankEntry = jankRow!.dataListCache!.find((dat: any) => dat.name === d.name && dat.pid === d.pid);
+      //@ts-ignore
+      let findJankEntry = jankRow!.dataListCache!.find((dat: unknown) => dat.name === d.name && dat.pid === d.pid);
       if (findJankEntry) {
         if (
           findJankEntry!.ts! + findJankEntry!.dur! < TraceRow.range!.startNS ||
@@ -186,7 +197,8 @@ function jankClickHandlerFunc(sp: SpSystemTrace): Function {
             sp.removeLinkLinesByBusinessType('janks');
             // 绘制跟自己关联的线
             datas.forEach((data) => {
-              let endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(
+              //@ts-ignore
+              let endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(// @ts-ignore
                 `trace-row[row-type='process'][row-id='${data.pid}'][folder]`
               );
               sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data, true);
@@ -195,6 +207,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace): Function {
           jankClickHandler
         );
       }
+      //@ts-ignore
       sp.scrollToProcess(jankRow.rowId!, jankRow.rowParentId!, jankRow.rowType!, true);
     }
   };
@@ -226,32 +239,41 @@ function snapshotClickHandlerFunc(sp: SpSystemTrace): Function {
   return snapshotClickHandler;
 }
 
-function cpuClickHandlerTask(threadRow: TraceRow<any>, sp: SpSystemTrace, d: CpuStruct): void {
+//@ts-ignore
+function cpuClickHandlerTask(threadRow: TraceRow<unknown>, sp: SpSystemTrace, d: CpuStruct): void {
   if (threadRow) {
     let findEntry = threadRow!.fixedList[0];
     if (
+      //@ts-ignore
       findEntry!.startTime! + findEntry!.dur! < TraceRow.range!.startNS ||
+      //@ts-ignore
       findEntry!.startTime! > TraceRow.range!.endNS
     ) {
       sp.timerShaftEL?.setRangeNS(
+        //@ts-ignore
         findEntry!.startTime! - findEntry!.dur! * 2,
+        //@ts-ignore
         findEntry!.startTime! + findEntry!.dur! + findEntry!.dur! * 2
       );
     }
     ThreadStruct.firstselectThreadStruct = ThreadStruct.selectThreadStruct;
     sp.hoverStructNull().selectStructNull().wakeupListNull();
+    //@ts-ignore
     ThreadStruct.hoverThreadStruct = findEntry;
+    //@ts-ignore
     ThreadStruct.selectThreadStruct = findEntry;
+    //@ts-ignore
     sp.timerShaftEL?.drawTriangle(findEntry!.startTime || 0, 'inverted');
     sp.traceSheetEL?.displayThreadData(
       ThreadStruct.selectThreadStruct!,
-      threadClickHandlerFunc(sp),
+      threadClickHandlerFunc(sp),// @ts-ignore
       cpuClickHandlerFunc(sp),
       (datas, str): void => {
         sp.removeLinkLinesByBusinessType('thread');
         if (str === 'wakeup tid') {
           datas.forEach((data) => {
-            let endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-id='${data.pid}'][folder]`);
+            //@ts-ignore
+            let endParentRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>(`trace-row[row-id='${data.pid}'][folder]`);
             sp.drawThreadLine(endParentRow, ThreadStruct.firstselectThreadStruct, data);
           });
         }
@@ -264,7 +286,8 @@ function cpuClickHandlerTask(threadRow: TraceRow<any>, sp: SpSystemTrace, d: Cpu
 
 function cpuClickHandlerFunc(sp: SpSystemTrace) {
   return function (d: CpuStruct): void {
-    let traceRow = sp.shadowRoot?.querySelector<TraceRow<any>>(
+    //@ts-ignore
+    let traceRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>(
       `trace-row[row-id='${d.processId}'][row-type='process']`
     );
     if (traceRow) {
@@ -300,7 +323,8 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
   };
 }
 
-function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<any>, entry?: any): void {
+//@ts-ignore
+function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<unknown>, entry?: unknown): void {
   CpuStructOnClick(clickRowType, sp, cpuClickHandlerFunc(sp))
     .then(() => ThreadStructOnClick(clickRowType, sp, threadClickHandlerFunc(sp), cpuClickHandlerFunc(sp)))
     .then(() => FuncStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp), entry))
@@ -338,8 +362,9 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
 export default function spSystemTraceOnClickHandler(
   sp: SpSystemTrace,
   clickRowType: string,
-  row?: TraceRow<any>,
-  entry?: any
+  //@ts-ignore
+  row?: TraceRow<unknown>,
+  entry?: unknown
 ): void {
   if (row) {
     sp.currentRow = row;
@@ -364,13 +389,14 @@ export default function spSystemTraceOnClickHandler(
   if (row) {
     let pointEvent = sp.createPointEvent(row);
     SpStatisticsHttpUtil.addOrdinaryVisitAction({
-      action: 'trace_row',
+      action: 'trace_row',// @ts-ignore
       event: pointEvent,
     });
   }
 }
 
-function handleActions(sp: SpSystemTrace, rows: Array<TraceRow<any>>, ev: MouseEvent): void {
+//@ts-ignore
+function handleActions(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
   sp.rangeSelect.mouseMove(rows, ev);
   if (sp.rangeSelect.rangeTraceRow!.length > 0) {
     sp.tabCpuFreq!.rangeTraceRow = sp.rangeSelect.rangeTraceRow;
@@ -394,10 +420,12 @@ function handleMouseInTimeShaft(sp: SpSystemTrace, ev: MouseEvent): boolean | un
 }
 
 export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEvent): void {
-  if (!sp.loadTraceCompleted || (window as any).flagInputFocus || !sp.mouseEventEnable) {
+  //@ts-ignore
+  if (!sp.loadTraceCompleted || (window as unknown).flagInputFocus || !sp.mouseEventEnable) {
     return;
   }
-  if ((window as any).collectResize) {
+  //@ts-ignore
+  if ((window as unknown).collectResize) {
     sp.style.cursor = 'row-resize';
     sp.cancelDrag();
     return;
@@ -422,7 +450,8 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
     }
   }
   sp.inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
-  if ((window as any).isSheetMove || sp.isMouseInSheet(ev)) {
+  //@ts-ignore
+  if ((window as unknown).isSheetMove || sp.isMouseInSheet(ev)) {
     sp.hoverStructNull();
     sp.tipEL!.style.display = 'none';
     return;
@@ -447,7 +476,8 @@ function spSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: Li
   }
 }
 
-function spSystemTraceDocumentOnMouseMoveMouseUp(sp: SpSystemTrace, rows: Array<TraceRow<any>>, ev: MouseEvent): void {
+//@ts-ignore
+function spSystemTraceDocumentOnMouseMoveMouseUp(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
   if (!sp.rowsPaneEL!.containPoint(ev, { left: 248 })) {
     sp.hoverStructNull();
   }
@@ -488,7 +518,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   }
 }
 
-export function spSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev: KeyboardEvent): void {
+export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace, ev: KeyboardEvent): void {
   SpSystemTrace.isKeyUp = false;
   if (!sp.loadTraceCompleted) {
     return;
@@ -516,14 +546,16 @@ export function spSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev
     if (keyPress === 'f') {
       let isSelectSliceOrFlag = false;
       // 设置当前选中的slicetime
-      let selectSlice: any = undefined;
+      let selectSlice: unknown = undefined;
       sp._slicesList.forEach((slice: { selected: boolean }): void => {
         if (slice.selected) {
           selectSlice = slice;
         }
       });
       if (!!selectSlice) {
+        //@ts-ignore
         sp.currentSlicesTime.startTime = selectSlice.startTime;
+        //@ts-ignore
         sp.currentSlicesTime.endTime = selectSlice.endTime;
         isSelectSliceOrFlag = true;
       }
@@ -621,7 +653,8 @@ function handleTimerShaftActions(ev: MouseEvent, sp: SpSystemTrace): void {
 }
 
 export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent): void {
-  if ((window as any).collectResize) {
+  //@ts-ignore
+  if ((window as unknown).collectResize) {
     return;
   }
   if (!sp.loadTraceCompleted || !sp.mouseEventEnable) {
@@ -642,7 +675,8 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
   }
   TraceRow.isUserInteraction = false;
   sp.rangeSelect.isMouseDown = false;
-  if ((window as any).isSheetMove) {
+  //@ts-ignore
+  if ((window as unknown).isSheetMove) {
     return;
   }
   if (sp.isMouseInSheet(ev)) {
@@ -818,14 +852,17 @@ export function spSystemTraceDocumentOnClick(sp: SpSystemTrace, ev: MouseEvent):
     ev.stopPropagation();
     return;
   }
-  if ((window as any).isSheetMove) {
+  //@ts-ignore
+  if ((window as unknown).isSheetMove) {
     return;
   }
   if (sp.isMouseInSheet(ev)) {
     return;
   }
-  if ((window as any).isPackUpTable) {
-    (window as any).isPackUpTable = false;
+  //@ts-ignore
+  if ((window as unknown).isPackUpTable) {
+    //@ts-ignore
+    (window as unknown).isPackUpTable = false;
     return;
   }
   let x = ev.offsetX - sp.timerShaftEL!.canvas!.offsetLeft;

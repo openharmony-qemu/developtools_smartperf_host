@@ -280,7 +280,8 @@ export class TimerShaftElement extends BaseElement {
         window.publish(window.SmartEvent.UI.CollectGroupChange, e.target.value);
       }
     });
-    procedurePool.timelineChange = (a: any): void => this.rangeChangeHandler?.(a);
+    // @ts-ignore
+    procedurePool.timelineChange = (a: unknown): void => this.rangeChangeHandler?.(a);
     window.subscribe(window.SmartEvent.UI.TimeRange, (b) => this.setRangeNS(b.startNS, b.endNS));
     // -----------------------------点击负载区展开折叠---------------------------------
     this.usageEL = this.shadowRoot?.querySelector('.cpu-usage');
@@ -443,14 +444,16 @@ export class TimerShaftElement extends BaseElement {
   }
 
   documentOnMouseDown = (ev: MouseEvent): void => {
-    if ((window as any).isSheetMove) {
+    // @ts-ignore
+    if ((window as unknown).isSheetMove) {
       return;
     }
     this._rangeRuler?.mouseDown(ev);
   };
 
   documentOnMouseUp = (ev: MouseEvent): void => {
-    if ((window as any).isSheetMove) {
+    // @ts-ignore
+    if ((window as unknown).isSheetMove) {
       return;
     }
     this._rangeRuler?.mouseUp(ev);
@@ -483,7 +486,8 @@ export class TimerShaftElement extends BaseElement {
   };
 
   documentOnKeyPress = (ev: KeyboardEvent, currentSlicesTime?: CurrentSlicesTime): void => {
-    if ((window as any).flagInputFocus) {
+    // @ts-ignore
+    if ((window as unknown).flagInputFocus) {
       return;
     }
     this._rangeRuler?.keyPress(ev, currentSlicesTime);
@@ -491,7 +495,8 @@ export class TimerShaftElement extends BaseElement {
   };
 
   documentOnKeyUp = (ev: KeyboardEvent): void => {
-    if ((window as any).flagInputFocus) {
+    // @ts-ignore
+    if ((window as unknown).flagInputFocus) {
       return;
     }
     this._rangeRuler?.keyUp(ev);
@@ -533,7 +538,7 @@ export class TimerShaftElement extends BaseElement {
           frame: this.frame,
         },
         this.must ? this.offscreen : undefined,
-        (res: any) => {
+        (res: unknown) => {
           this.must = false;
         }
       );
@@ -555,7 +560,8 @@ export class TimerShaftElement extends BaseElement {
     this._rangeRuler?.cancelUpFrame();
   }
 
-  stopWASD(ev: any): void {
+  stopWASD(ev: unknown): void {
+    // @ts-ignore
     this._rangeRuler?.keyUp(ev);
   }
 

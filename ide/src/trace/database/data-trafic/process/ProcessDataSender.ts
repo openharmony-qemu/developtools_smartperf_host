@@ -41,17 +41,17 @@ export function processDataSender(pid: number, row: TraceRow<ProcessStruct>): Pr
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): ProcessStruct[] {
-  let outArr: ProcessStruct[] = [];
-  let cpu = new Uint8Array(buffers.cpu);
-  let startTime = new Float64Array(buffers.startTime);
+function arrayBufferHandler(buffers: unknown, len: number): ProcessStruct[] {
+  let outArr: ProcessStruct[] = [];//@ts-ignore
+  let cpu = new Uint8Array(buffers.cpu);//@ts-ignore
+  let startTime = new Float64Array(buffers.startTime);//@ts-ignore
   let dur = new Float64Array(buffers.dur);
   for (let i = 0; i < len; i++) {
     outArr.push({

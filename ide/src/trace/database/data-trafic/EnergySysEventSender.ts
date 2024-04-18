@@ -46,7 +46,8 @@ export function energySysEventSender(row: TraceRow<EnergySystemStruct>): Promise
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
+        // @ts-ignore
         resolve(systemBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
@@ -74,7 +75,7 @@ export function hiSysEnergyAnomalyDataSender(row: TraceRow<EnergyAnomalyStruct>)
         width: width,
         trafic: trafic,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(anomalyBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
@@ -102,7 +103,7 @@ export function hiSysEnergyPowerSender(row: TraceRow<EnergyPowerStruct>): Promis
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(powerBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
@@ -136,20 +137,26 @@ export function hiSysEnergyStateSender(
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(stateArrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function systemBufferHandler(res: any, len: number): any[] {
+function systemBufferHandler(res: unknown, len: number): unknown[] {
   let outArr: EnergySystemStruct[] = [];
+  // @ts-ignore
   let startNs = new Float64Array(res.startNs);
+  // @ts-ignore
   let id = new Uint16Array(res.id);
+  // @ts-ignore
   let count = new Uint32Array(res.count);
+  // @ts-ignore
   let type = new Uint32Array(res.type);
+  // @ts-ignore
   let token = new Float64Array(res.token);
+  // @ts-ignore
   let dataType = new Uint16Array(res.dataType);
   for (let index = 0; index < len; index++) {
     outArr.push({
@@ -164,9 +171,11 @@ function systemBufferHandler(res: any, len: number): any[] {
   return outArr;
 }
 
-function anomalyBufferHandler(res: any, len: number): EnergyAnomalyStruct[] {
+function anomalyBufferHandler(res: unknown, len: number): EnergyAnomalyStruct[] {
   let outArr: EnergyAnomalyStruct[] = [];
+  // @ts-ignore
   let startNs = new Float64Array(res.startNs);
+  // @ts-ignore
   let id = new Int32Array(res.id);
   for (let index = 0; index < len; index++) {
     outArr.push({
@@ -177,9 +186,11 @@ function anomalyBufferHandler(res: any, len: number): EnergyAnomalyStruct[] {
   return outArr;
 }
 
-function powerBufferHandler(buffers: any, len: number): EnergyPowerStruct[] {
+function powerBufferHandler(buffers: unknown, len: number): EnergyPowerStruct[] {
   let outArr: EnergyPowerStruct[] = [];
+  // @ts-ignore
   let startNs = new Float64Array(buffers.startNs);
+  // @ts-ignore
   let id = new Uint32Array(buffers.id);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -190,10 +201,13 @@ function powerBufferHandler(buffers: any, len: number): EnergyPowerStruct[] {
   return outArr;
 }
 
-function stateArrayBufferHandler(buffers: any, len: number): EnergyStateStruct[] {
+function stateArrayBufferHandler(buffers: unknown, len: number): EnergyStateStruct[] {
   let outArr: EnergyStateStruct[] = [];
+  // @ts-ignore
   let startNs = new Float64Array(buffers.startNs);
+  // @ts-ignore
   let eventValue = new Float32Array(buffers.eventValue);
+  // @ts-ignore
   let id = new Uint32Array(buffers.id);
   for (let i = 0; i < len; i++) {
     outArr.push({

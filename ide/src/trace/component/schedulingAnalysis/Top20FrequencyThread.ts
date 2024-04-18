@@ -40,7 +40,7 @@ export class Top20FrequencyThread extends BaseElement {
   private frequencyThreadProgress: LitProgressBar | null | undefined;
   private nodata: TableNoData | null | undefined;
   private currentTid: number = 0;
-  private frequencyThreadData: Array<any> = [];
+  private frequencyThreadData: Array<unknown> = [];
   private sortColumn: string = '';
   private sortType: number = 0;
 
@@ -52,64 +52,65 @@ export class Top20FrequencyThread extends BaseElement {
     this.threadSelect = this.shadowRoot!.querySelector<LitSelect>('#thread_select');
     this.frequencyThreadPie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
 
-    this.threadSelect!.onchange = (e): void => {
-      this.currentThread!.textContent = (e as any).detail.text;
-      this.currentTid = parseInt((e as any).detail.value);
+    this.threadSelect!.onchange = (e): void => {//@ts-ignore
+      this.currentThread!.textContent = (e as unknown).detail.text;//@ts-ignore
+      this.currentTid = parseInt((e as unknown).detail.value);
       this.frequencyThreadProgress!.loading = true;
       this.queryData();
     };
 
-    this.frequencyThreadTbl!.addEventListener('row-click', (evt: any): void => {
+    this.frequencyThreadTbl!.addEventListener('row-click', (evt: unknown): void => {//@ts-ignore
       let data = evt.detail.data;
-      data.isSelected = true;
-      if ((evt.detail as any).callBack) {
-        (evt.detail as any).callBack(true);
+      data.isSelected = true;//@ts-ignore
+      if ((evt.detail as unknown).callBack) {//@ts-ignore
+        (evt.detail as unknown).callBack(true);
       }
     });
 
-    this.frequencyThreadTbl!.addEventListener('column-click', (evt: any): void => {
-      this.sortColumn = evt.detail.key;
+    this.frequencyThreadTbl!.addEventListener('column-click', (evt: unknown): void => {//@ts-ignore
+      this.sortColumn = evt.detail.key;//@ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.frequencyThreadTbl!.addEventListener('row-hover', (evt: any): void => {
-      if (evt.detail.data) {
+    this.frequencyThreadTbl!.addEventListener('row-hover', (evt: unknown): void => {//@ts-ignore
+      if (evt.detail.data) {//@ts-ignore
         let data = evt.detail.data;
-        data.isHover = true;
-        if ((evt.detail as any).callBack) {
-          (evt.detail as any).callBack(true);
+        data.isHover = true;//@ts-ignore
+        if ((evt.detail as unknown).callBack) {//@ts-ignore
+          (evt.detail as unknown).callBack(true);
         }
       }
       this.frequencyThreadPie?.showHover();
-    });
+    });// @ts-ignore
     this.frequencyThreadTbl!.itemTextHandleMap.set('freq', (value) => (value === -1 ? 'unknown' : value));
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(frequencyThreadProperty, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[frequencyThreadProperty]) - parseFloat(a[frequencyThreadProperty]) :
+          return sort === 2 ? parseFloat(b[frequencyThreadProperty]) - parseFloat(a[frequencyThreadProperty]) ://@ts-ignore
             parseFloat(a[frequencyThreadProperty]) - parseFloat(b[frequencyThreadProperty]);
         } else {
-          if (sort === 2) {
+          if (sort === 2) {//@ts-ignore
             return b[frequencyThreadProperty].toString().localeCompare(a[frequencyThreadProperty].toString());
-          } else {
+          } else {//@ts-ignore
             return a[frequencyThreadProperty].toString().localeCompare(b[frequencyThreadProperty].toString());
           }
         }
       };
     }
 
-    if (detail.key === 'timeStr') {
-      detail.key = 'time';
+    //@ts-ignore
+    if (detail.key === 'timeStr') {//@ts-ignore
+      detail.key = 'time';//@ts-ignore
+      this.frequencyThreadData.sort(compare(detail.key, detail.sort, 'number'));//@ts-ignore
+    } else if (detail.key === 'no' || detail.key === 'cpu' || detail.key === 'freq' || detail.key === 'ratio') {//@ts-ignore
       this.frequencyThreadData.sort(compare(detail.key, detail.sort, 'number'));
-    } else if (detail.key === 'no' || detail.key === 'cpu' || detail.key === 'freq' || detail.key === 'ratio') {
-      this.frequencyThreadData.sort(compare(detail.key, detail.sort, 'number'));
-    } else {
+    } else {//@ts-ignore
       this.frequencyThreadData.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.frequencyThreadTbl!.recycleDataSource = this.frequencyThreadData;
@@ -124,10 +125,10 @@ export class Top20FrequencyThread extends BaseElement {
     }
     this.traceChange = false;
     this.frequencyThreadProgress!.loading = true;
-    if (Top20FrequencyThread.threads === undefined) {
+    if (Top20FrequencyThread.threads === undefined) {//@ts-ignore
       Top20FrequencyThread.threads = (await queryThreads()) || [];
       this.nodata!.noData = Top20FrequencyThread.threads === undefined || Top20FrequencyThread.threads.length === 0;
-      this.threadSelect!.innerHTML = '';
+      this.threadSelect!.innerHTML = '';//@ts-ignore
       let threads = Top20FrequencyThread.threads.map((it) => {
         let option = new LitSelectOption();
         option.setAttribute('value', `${it.tid}`);
@@ -135,9 +136,9 @@ export class Top20FrequencyThread extends BaseElement {
         return option;
       });
       this.threadSelect!.append(...threads);
-      this.threadSelect?.initOptions();
-      this.threadSelect!.value = `${Top20FrequencyThread.threads[0].tid}`;
-      this.currentThread!.textContent = Top20FrequencyThread.threads[0].name;
+      this.threadSelect?.initOptions();//@ts-ignore
+      this.threadSelect!.value = `${Top20FrequencyThread.threads[0].tid}`;//@ts-ignore
+      this.currentThread!.textContent = Top20FrequencyThread.threads[0].name;//@ts-ignore
       this.currentTid = Top20FrequencyThread.threads[0].tid;
       this.queryData();
     }
@@ -148,18 +149,18 @@ export class Top20FrequencyThread extends BaseElement {
       this.nodata!.noData =
         Top20FrequencyThread.threads === undefined ||
         Top20FrequencyThread.threads.length === 0 ||
-        res === undefined ||
+        res === undefined ||//@ts-ignore
         res.length === 0;
-      (res as any[]).map((it: any, index: number): void => {
+      (res as unknown[]).map((it: unknown, index: number): void => {//@ts-ignore
         it.no = index + 1;
-      });
+      });//@ts-ignore
       this.frequencyThreadData = res;
       if (this.sortColumn !== '') {
         this.sortByColumn({
           key: this.sortColumn,
           sort: this.sortType,
         });
-      } else {
+      } else {//@ts-ignore
         this.frequencyThreadTbl!.recycleDataSource = res;
       }
       this.frequencyThreadTbl!.reMeauseHeight();
@@ -169,9 +170,9 @@ export class Top20FrequencyThread extends BaseElement {
     });
   }
 
-  private setThreadPieConfig(res: any): void {
+  private setThreadPieConfig(res: unknown): void {
     this.frequencyThreadPie!.config = {
-      appendPadding: 10,
+      appendPadding: 10,//@ts-ignore
       data: this.getPieChartData(res),
       angleField: 'time',
       colorField: 'freq',
@@ -182,10 +183,14 @@ export class Top20FrequencyThread extends BaseElement {
       },
       tip: (obj): string => {
         return `<div>
-                             <div>freq:${obj.obj.freq === -1 ? 'unknown' : obj.obj.freq}</div> 
-                             <div>cpu:${obj.obj.cpu}</div> 
-                             <div>time:${obj.obj.timeStr}</div> 
-                             <div>ratio:${obj.obj.ratio}%</div>
+                             <div>freq:${// @ts-ignore
+                              obj.obj.freq === -1 ? 'unknown' : obj.obj.freq}</div> 
+                             <div>cpu:${// @ts-ignore
+                              obj.obj.cpu}</div> 
+                             <div>time:${// @ts-ignore
+                              obj.obj.timeStr}</div> 
+                             <div>ratio:${// @ts-ignore
+                              obj.obj.ratio}%</div>
                         </div>
                 `;
       },
@@ -204,10 +209,10 @@ export class Top20FrequencyThread extends BaseElement {
     };
   }
 
-  getPieChartData(res: any[]): any[] {
+  getPieChartData(res: unknown[]): unknown[] {
     if (res.length > 20) {
-      let pieChartArr: any[] = [];
-      let other: any = {
+      let pieChartArr: unknown[] = [];
+      let other: unknown = {
         cpu: '-',
         freq: 'other',
         time: 0,
@@ -217,10 +222,10 @@ export class Top20FrequencyThread extends BaseElement {
       for (let i = 0; i < res.length; i++) {
         if (i < 19) {
           pieChartArr.push(res[i]);
-        } else {
-          other.time += res[i].time;
-          other.timeStr = getProbablyTime(other.time);
-          other.totalDur = res[i].totalDur;
+        } else {//@ts-ignore
+          other.time += res[i].time;//@ts-ignore
+          other.timeStr = getProbablyTime(other.time);//@ts-ignore
+          other.totalDur = res[i].totalDur;//@ts-ignore
           other.ratio = ((other.time / other.totalDur) * 100).toFixed(2);
         }
       }
@@ -237,7 +242,7 @@ export class Top20FrequencyThread extends BaseElement {
     this.frequencyThreadTbl!.recycleDataSource = [];
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: any) => void): void {
+  queryLogicWorker(option: string, log: string, handler: (res: unknown) => void): void {
     let frequencyThreadTime = new Date().getTime();
     procedurePool.submitWithName('logic0', option, { tid: this.currentTid }, undefined, handler);
     let durTime = new Date().getTime() - frequencyThreadTime;

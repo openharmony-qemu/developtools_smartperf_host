@@ -45,7 +45,7 @@ export class SmapsTreeObj {
   id: string = '';
   pid: string = '';
   typeName: string = '';
-  path: any = '';
+  path: unknown = '';
   size: number = 0;
   sizeStr: string = '';
   sizePro: number = 0;

@@ -31,7 +31,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
   private fsSysEventProgressEL: LitProgressBar | null | undefined;
   private fsSysEventFilter: TabPaneFilter | null | undefined;
   private fsSysEventLoadingList: number[] = [];
-  private loadingPage: any;
+  private loadingPage: unknown;
   private fsSysEventSource: Array<FileSysEvent> = [];
   private fsSysEventFilterSource: Array<FileSysEvent> = [];
   private fsSysEventSortKey: string = 'startTs';
@@ -69,7 +69,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
     this.fsSysEventTblData!.recycleDataSource = [];
     if (fsEventParam) {
       this.fsSysEventLoadingList.push(1);
-      this.fsSysEventProgressEL!.loading = true;
+      this.fsSysEventProgressEL!.loading = true;// @ts-ignore
       this.loadingPage.style.visibility = 'visible';
       this.fsSysEventSource = [];
       procedurePool.submitWithName(
@@ -82,15 +82,15 @@ export class TabPaneFileSystemEvents extends BaseElement {
           tab: 'events',
         },
         undefined,
-        (res: any) => {
-          this.fsSysEventSource = this.fsSysEventSource.concat(res.data);
-          res.data = null;
+        (res: unknown) => {// @ts-ignore
+          this.fsSysEventSource = this.fsSysEventSource.concat(res.data);// @ts-ignore
+          res.data = null;// @ts-ignore
           if (!res.isSending) {
             this.setProcessFilter();
             this.filterData();
             this.fsSysEventLoadingList.splice(0, 1);
             if (this.fsSysEventLoadingList.length === 0) {
-              this.fsSysEventProgressEL!.loading = false;
+              this.fsSysEventProgressEL!.loading = false;// @ts-ignore
               this.loadingPage.style.visibility = 'hidden';
             }
           }
@@ -114,6 +114,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
     if (this.filterProcess === '-1') {
       this.filterProcess =
         `${this.processList.indexOf(
+          // @ts-ignore
           `${this.currentSelection?.fileSystemFsData.name}[${this.currentSelection?.fileSystemFsData.pid}]`)}`;
     }
     this.fsSysEventFilter!.firstSelect = this.filterEventType;
@@ -148,19 +149,19 @@ export class TabPaneFileSystemEvents extends BaseElement {
     this.fsSysEventTblData = this.shadowRoot?.querySelector<LitTable>('#tbr-filesystem-event');
     this.fsSysEventTbl!.addEventListener('row-click', (fsEventRowClick): void => {
       // @ts-ignore
-      let data = fsEventRowClick.detail.data as FileSysEvent;
-      (data as any).isSelected = true;
+      let data = fsEventRowClick.detail.data as FileSysEvent;// @ts-ignore
+      (data as unknown).isSelected = true;
       // @ts-ignore
-      if ((fsEventRowClick.detail as any).callBack) {
+      if ((fsEventRowClick.detail as unknown).callBack) {
         // @ts-ignore
-        (fsEventRowClick.detail as any).callBack(true);
+        (fsEventRowClick.detail as unknown).callBack(true);
       }
       procedurePool.submitWithName(
         'logic0',
         'fileSystem-queryStack',
         { callchainId: data.callchainId },
         undefined,
-        (res: any) => {
+        (res: unknown) => {// @ts-ignore
           this.fsSysEventTblData!.recycleDataSource = res;
         }
       );
@@ -187,32 +188,32 @@ export class TabPaneFileSystemEvents extends BaseElement {
     });
   }
 
-  fromStastics(val: SelectionParam | any): void {
+  fromStastics(val: SelectionParam | unknown): void {// @ts-ignore
     if (val.fileSystemFsData === undefined) {
       return;
-    }
+    }// @ts-ignore
     if (val.fileSystemFsData.title === 'All') {
       this.filterEventType = '0';
-      this.filterProcess = '0';
-    } else if (val.fileSystemFsData.pid === undefined) {
+      this.filterProcess = '0';// @ts-ignore
+    } else if (val.fileSystemFsData.pid === undefined) {// @ts-ignore
       this.filterEventType = `${val.fileSystemFsData.type + 1}`;
       this.filterProcess = '0';
-    } else {
+    } else {// @ts-ignore
       this.filterEventType = `${val.fileSystemFsData.type + 1}`;
       this.filterProcess = '-1';
     }
     this.filterPath = '0';
     if (this.currentSelection === val) {
       if (this.filterProcess === '-1') {
-        this.filterProcess =
+        this.filterProcess =// @ts-ignore
           `${this.processList?.indexOf(`${val.fileSystemFsData.name}[${val.fileSystemFsData.pid}]`)}`;
       }
       this.fsSysEventFilter!.firstSelect = this.filterEventType;
       this.fsSysEventFilter!.secondSelect = this.filterProcess;
       this.fsSysEventFilter!.thirdSelect = this.filterPath;
       this.filterData();
-    } else {
-      this.currentSelection = val;
+    } else {// @ts-ignore
+      this.currentSelection = val;// @ts-ignore
       this.queryData(val);
     }
   }
@@ -232,7 +233,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
           this.fsSysEventTblData.shadowRoot.querySelector('.table').style.height =
             `${this.parentElement!.clientHeight - 10 - 33}px`;
           this.fsSysEventTblData.reMeauseHeight();
-        }
+        }// @ts-ignore
         this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);

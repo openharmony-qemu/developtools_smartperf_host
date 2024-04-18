@@ -39,8 +39,8 @@ export function sMapsDataSender(rowName: string, row: TraceRow<SnapshotStruct>):
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
         name: rowName,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -68,8 +68,8 @@ export function dmaDataSender(ipid: number, row: TraceRow<SnapshotStruct>): Prom
         trafic: trafic,
         ipid: ipid,
         sharedArrayBuffers: row.sharedArrayBuffers,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -97,8 +97,8 @@ export function gpuMemoryDataSender(ipid: number, row: TraceRow<SnapshotStruct>)
         trafic: trafic,
         ipid: ipid,
         sharedArrayBuffers: row.sharedArrayBuffers,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -125,8 +125,8 @@ export function gpuResourceDataSender(scratchId: number, row: TraceRow<SnapshotS
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
         scratchId: scratchId,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -155,8 +155,8 @@ export function gpuGpuDataSender(ipid: number, name: string, row: TraceRow<Snaps
         sharedArrayBuffers: row.sharedArrayBuffers,
         ipid: ipid,
         name: name,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -184,8 +184,8 @@ export function gpuTotalDataSender(moduleId: number | null, row: TraceRow<Snapsh
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
         moduleId: moduleId,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -218,8 +218,8 @@ export function gpuWindowDataSender(
         sharedArrayBuffers: row.sharedArrayBuffers,
         windowId: windowId,
         moduleId: moduleId,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -247,8 +247,8 @@ export function shmDataSender(ipid: number, row: TraceRow<SnapshotStruct>): Prom
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
         ipid: ipid,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -281,8 +281,8 @@ export function purgeableDataSender(
         width: purgeWidth,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
-      },
-      (res: any, len: number, transfer: boolean): void => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -315,8 +315,8 @@ export function abilityPurgeableDataSender(
         sharedArrayBuffers: row.sharedArrayBuffers,
         dur: dur,
         isPin: isPin,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -347,8 +347,8 @@ export function abilityDmaDataSender(row: TraceRow<SnapshotStruct>, dur: number)
         sharedArrayBuffers: row.sharedArrayBuffers,
         dma: 'dma',
         dur: dur,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -376,17 +376,17 @@ export function abilityGpuMemoryDataSender(row: TraceRow<SnapshotStruct>, dur: n
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
         dur: dur,
-      },
-      (res: any, len: number, transfer: boolean) => {
+      },// @ts-ignore
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
       }
     );
   });
 }
-
-function arrayBufferHandler(buffers: any, len: number): SnapshotStruct[] {
-  let outArr: SnapshotStruct[] = [];
-  let startNs = new Float64Array(buffers.startNs);
+// @ts-ignore
+function arrayBufferHandler(buffers: unknown, len: number): SnapshotStruct[] {
+  let outArr: SnapshotStruct[] = [];// @ts-ignore
+  let startNs = new Float64Array(buffers.startNs);// @ts-ignore
   let value = new Uint32Array(buffers.value);
   for (let i = 0; i < len; i++) {
     outArr.push({

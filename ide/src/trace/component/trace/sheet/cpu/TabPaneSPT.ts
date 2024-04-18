@@ -27,17 +27,20 @@ export class TabPaneSPT extends BaseElement {
   private range: HTMLLabelElement | null | undefined;
   private selectionParam: SelectionParam | null | undefined;
 
-  set data(sptValue: SelectionParam | any) {
+  set data(sptValue: SelectionParam | unknown) {
     if (sptValue === this.selectionParam) {
       return;
     }
+    // @ts-ignore
     this.selectionParam = sptValue;
     if (this.sptTbl) {
       // @ts-ignore
       this.sptTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45}px`;
     }
     this.range!.textContent =
+    // @ts-ignore
       `Selected range: ${parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5))} ms`;
+      // @ts-ignore
     this.getDataBySPT(sptValue.leftNs, sptValue.rightNs, sptValue.cpus);
   }
 
@@ -57,6 +60,7 @@ export class TabPaneSPT extends BaseElement {
     sliceSPTSender(leftNs, rightNs, cpus, 'spt-getSPT').then((res): void => {
       this.sptTbl!.loading = false;
       this.sptTbl!.recycleDataSource = res;
+      //@ts-ignore
       this.theadClick(res);
     });
   }

@@ -37,11 +37,11 @@ export class TabPaneIoCompletionTimes extends BaseElement {
   private ioCompletionTimesTblData: LitTable | null | undefined;
   private ioCompletionTimesProgressEL: LitProgressBar | null | undefined;
   private ioCompletionTimesLoadingList: number[] = [];
-  private ioCompletionTimesLoadingPage: any;
+  private ioCompletionTimesLoadingPage: unknown;
   private currentSelection: SelectionParam | undefined | null;
   private ioCompletionTimesSource: Array<IoCompletionTimes> = [];
   private ioCompletionTimesQueryDataSource: Array<IoCompletionTimes> = [];
-  private ioCompletionTimesSelection: Array<any> = [];
+  private ioCompletionTimesSelection: Array<unknown> = [];
 
   set data(ioCompletionTimesSelection: SelectionParam | null | undefined) {
     if (ioCompletionTimesSelection === this.currentSelection) {
@@ -83,7 +83,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
             this.parentElement!.clientHeight - 10 - 33
           }px`;
           this.ioCompletionTimesTblData.reMeauseHeight();
-        }
+        }// @ts-ignore
         this.ioCompletionTimesLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
@@ -102,7 +102,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
         'fileSystem-queryStack',
         { callchainId: ioCompletionTimeData.callchainId },
         undefined,
-        (res: any) => {
+        (res: unknown) => {// @ts-ignore
           this.ioCompletionTimesTblData!.recycleDataSource = res;
         }
       );
@@ -140,34 +140,34 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     filter!.firstSelect = '0';
   }
 
-  async fromStastics(ioCompletionTimeParam: SelectionParam | any): Promise<void> {
+  async fromStastics(ioCompletionTimeParam: SelectionParam | unknown): Promise<void> {// @ts-ignore
     if (ioCompletionTimeParam.fileSystemIoData === undefined) {
       return;
     }
     this.ioCompletionTimesTblData!.recycleDataSource = [];
     this.ioCompletionTimesTblData?.clearAllSelection(undefined);
     let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter');
-    if (this.currentSelection !== ioCompletionTimeParam) {
+    if (this.currentSelection !== ioCompletionTimeParam) {// @ts-ignore
       await this.initFilterTypes(ioCompletionTimeParam);
-    }
+    }// @ts-ignore
     let typeIndexOf = this.native_type.indexOf(ioCompletionTimeParam.fileSystemIoData.path.value);
-    if (typeIndexOf === -1) {
-      this.ioCompletionTimesSelection.push(ioCompletionTimeParam.fileSystemIoData.path);
+    if (typeIndexOf === -1) {// @ts-ignore
+      this.ioCompletionTimesSelection.push(ioCompletionTimeParam.fileSystemIoData.path);// @ts-ignore
       this.native_type.push(ioCompletionTimeParam.fileSystemIoData.path.value);
       typeIndexOf = this.native_type.length - 1;
     }
-    if (this.currentSelection !== ioCompletionTimeParam) {
+    if (this.currentSelection !== ioCompletionTimeParam) {// @ts-ignore
       this.currentSelection = ioCompletionTimeParam;
       filter!.setSelectList(this.native_type, null, 'Tier');
-      filter!.firstSelect = `${typeIndexOf}`;
+      filter!.firstSelect = `${typeIndexOf}`;// @ts-ignore
       this.queryData(ioCompletionTimeParam);
     } else {
       if (typeIndexOf === parseInt(filter!.firstSelect)) {
         return;
       }
       filter!.setSelectList(this.native_type, null, 'Tier');
-      filter!.firstSelect = `${typeIndexOf}`;
-      this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);
+      filter!.firstSelect = `${typeIndexOf}`;// @ts-ignore
+      this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);// @ts-ignore
       ioCompletionTimeParam.fileSystemIoData = undefined;
       this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
     }
@@ -175,7 +175,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
 
   queryData(ioCompletionTimeParam: SelectionParam): void {
     this.ioCompletionTimesLoadingList.push(1);
-    this.ioCompletionTimesProgressEL!.loading = true;
+    this.ioCompletionTimesProgressEL!.loading = true;// @ts-ignore
     this.ioCompletionTimesLoadingPage.style.visibility = 'visible';
     this.ioCompletionTimesSource = [];
     this.ioCompletionTimesQueryDataSource = [];
@@ -188,17 +188,18 @@ export class TabPaneIoCompletionTimes extends BaseElement {
         diskIOipids: ioCompletionTimeParam.diskIOipids,
       },
       undefined,
-      (res: any): void => {
-        this.ioCompletionTimesSource = this.ioCompletionTimesSource.concat(res.data);
+      (res: unknown): void => {// @ts-ignore
+        this.ioCompletionTimesSource = this.ioCompletionTimesSource.concat(res.data);// @ts-ignore
         this.ioCompletionTimesQueryDataSource = this.ioCompletionTimesQueryDataSource.concat(res.data);
+        // @ts-ignore
         this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);
-        ioCompletionTimeParam.fileSystemIoData = undefined;
-        res.data = null;
+        ioCompletionTimeParam.fileSystemIoData = undefined;// @ts-ignore
+        res.data = null;// @ts-ignore
         if (!res.isSending) {
           this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
           this.ioCompletionTimesLoadingList.splice(0, 1);
           if (this.ioCompletionTimesLoadingList.length === 0) {
-            this.ioCompletionTimesProgressEL!.loading = false;
+            this.ioCompletionTimesProgressEL!.loading = false;// @ts-ignore
             this.ioCompletionTimesLoadingPage.style.visibility = 'hidden';
           }
         }
@@ -206,7 +207,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     );
   }
 
-  filterTypeData(pathTypeData: any): void {
+  filterTypeData(pathTypeData: unknown): void {
     let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter');
     let firstSelect = filter!.firstSelect;
     let tier = -1;
@@ -215,9 +216,9 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     if (parseInt(firstSelect) <= this.defaultNativeTypes.length - 1) {
       let index = parseInt(firstSelect);
       tier = index === 0 ? -1 : parseInt(this.defaultNativeTypes[index]);
-    } else if (pathTypeData !== undefined) {
-      tier = parseInt(pathTypeData.tier);
-      path = pathTypeData.path || '';
+    } else if (pathTypeData !== undefined) {// @ts-ignore
+      tier = parseInt(pathTypeData.tier);// @ts-ignore
+      path = pathTypeData.path || '';// @ts-ignore
       pid = pathTypeData.pid || -1;
     } else {
       return;

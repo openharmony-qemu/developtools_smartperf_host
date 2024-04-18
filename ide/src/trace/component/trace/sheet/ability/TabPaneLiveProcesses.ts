@@ -29,7 +29,7 @@ export class TabPaneLiveProcesses extends BaseElement {
   private queryLiveResult: Array<LiveProcess> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(liveProcessValue: SelectionParam | any) {
+  set data(liveProcessValue: SelectionParam | unknown) {
     if (this.liveProcessTbl) {
       // @ts-ignore
       this.liveProcessTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement.clientHeight - 45}px`;
@@ -52,7 +52,7 @@ export class TabPaneLiveProcesses extends BaseElement {
   filterData(): void {
     if (this.queryLiveResult.length > 0) {
       let filterLive = this.queryLiveResult.filter((item): boolean => {
-        let array = this.toLiveProcessArray(item);
+        let array = this.toLiveProcessArray(item);// @ts-ignore
         let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
@@ -66,7 +66,7 @@ export class TabPaneLiveProcesses extends BaseElement {
     }
   }
 
-  toLiveProcessArray(liveProcess: LiveProcess): any[] {
+  toLiveProcessArray(liveProcess: LiveProcess): unknown[] {
     let array: Array<string> = [];
     array.push(liveProcess.processId.toString());
     array.push(liveProcess.processName);
@@ -80,7 +80,7 @@ export class TabPaneLiveProcesses extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam | any): void {
+  queryDataByDB(val: SelectionParam | unknown): void {// @ts-ignore
     getTabLiveProcessData(val.leftNs, val.rightNs).then((item): void => {
       if (item.length !== null && item.length > 0) {
         log(`getTabLiveProcessData result size : ${  item.length}`);
@@ -160,7 +160,7 @@ export class TabPaneLiveProcesses extends BaseElement {
         `;
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(property, sort, type) {
       return function (liveProcessLeftData: LiveProcess, liveProcessRightData: LiveProcess): number {
@@ -189,14 +189,14 @@ export class TabPaneLiveProcesses extends BaseElement {
         }
       };
     }
-
-    if (detail.key === 'startTime' || detail.key === 'processName') {
-      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'string'));
-    } else if (detail.key === 'cpuTime') {
-      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'cpuTime'));
-    } else if (detail.key === 'memory') {
-      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'memory'));
-    } else {
+// @ts-ignore
+    if (detail.key === 'startTime' || detail.key === 'processName') {// @ts-ignore
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'string'));// @ts-ignore
+    } else if (detail.key === 'cpuTime') {// @ts-ignore
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'cpuTime'));// @ts-ignore
+    } else if (detail.key === 'memory') {// @ts-ignore
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'memory'));// @ts-ignore
+    } else {// @ts-ignore
       this.liveProcessSource.sort(compare(detail.key, detail.sort, 'number'));
     }
     this.liveProcessTbl!.recycleDataSource = this.liveProcessSource;

@@ -71,7 +71,8 @@ export const queryExpectedFrameDate = (): Promise<Array<JanksStruct>> =>
     AND fs.type = 1
     ORDER BY ts;`
   );
-export const queryJumpJanksData = (processId: number, vsync: number): Promise<Array<any>> =>
+export const queryJumpJanksData = (processId: number, vsync: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryJumpJanksData',
     `
@@ -106,7 +107,8 @@ export const queryAllJankProcess = (): Promise<
         LEFT JOIN process AS p ON a.ipid = p.ipid
         `
   );
-export const queryAllActualData = (): Promise<Array<any>> =>
+export const queryAllActualData = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryAllActualData',
     `
@@ -128,7 +130,8 @@ export const queryAllActualData = (): Promise<Array<any>> =>
           AND a.flag <> 2
         ORDER BY a.ipid, ts;`
   );
-export const queryActualFrameDate = (): Promise<Array<any>> =>
+export const queryActualFrameDate = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryActualFrameDate',
     `SELECT
@@ -178,14 +181,15 @@ export const queryActualFrameDate = (): Promise<Array<any>> =>
          NULL AS rs_name
      FROM frame_slice AS fs
               LEFT JOIN process AS pro ON pro.id = fs.ipid
-              LEFT JOIN trace_range TR
+              LEFT JOIN trace_range TRs
      WHERE fs.dst IS NULL
        AND pro.name NOT LIKE '%render_service%'
        AND fs.type = 0
        AND fs.flag <> 2
      ORDER BY ts;`
   );
-export const querySelectRangeData = (allPid: Array<number>, leftNs: number, rightNs: number): Promise<Array<any>> =>
+export const querySelectRangeData = (allPid: Array<number>, leftNs: number, rightNs: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'querySelectRangeData',
     `

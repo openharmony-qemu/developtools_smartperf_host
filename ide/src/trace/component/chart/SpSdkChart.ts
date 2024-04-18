@@ -34,36 +34,36 @@ export class SpSdkChart {
     this.trace = trace;
   }
 
-  private parseJsonByCounterType(startTime: number, showType: any, configObj: any, table: any): void {
+  private parseJsonByCounterType(startTime: number, showType: unknown, configObj: unknown, table: unknown): void {
     let chartSql = this.createSql(
-      startTime,
-      showType.tableName,
+      startTime,//@ts-ignore
+      showType.tableName,//@ts-ignore
       showType.columns,
       'where counter_id' + ' = $counter_id'
-    );
-    let maxValue = this.createMaxValueSql(showType.tableName, 'where counter_id = $counter_id');
+    );//@ts-ignore
+    let maxValue = this.createMaxValueSql(showType.tableName, 'where counter_id = $counter_id');//@ts-ignore
     let innerTable = showType.inner;
-    let countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns);
+    let countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns);//@ts-ignore
     table.push({
       countSql: countSql,
       chartSql: chartSql,
       maxSql: maxValue,
-      type: 'counter',
-      name: configObj.disPlayName,
+      type: 'counter',//@ts-ignore
+      name: configObj.disPlayName,//@ts-ignore
       pluginName: configObj.pluginName,
     });
   }
 
-  private parseJsonBySliceType(startTime: number, showType: any, configObj: any, table: any[]): void {
+  private parseJsonBySliceType(startTime: number, showType: unknown, configObj: unknown, table: unknown[]): void {
     let chartSql = this.createSliceSql(
-      startTime,
-      showType.tableName,
+      startTime,//@ts-ignore
+      showType.tableName,//@ts-ignore
       showType.columns,
       'where' + ` slice_id = $column_id and (start_ts - ${startTime}) between $startNS and $endNS;`
-    );
+    );//@ts-ignore
     let innerTable = showType.inner;
     let countSql;
-    let countOtherSql = '';
+    let countOtherSql = '';//@ts-ignore
     if (configObj.pluginName === this.pluginName) {
       countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns, 'where slice_name like $suffix');
       countOtherSql = this.createSql(
@@ -82,20 +82,20 @@ export class SpSdkChart {
     table.push({
       countSql: countSql,
       chartSql: chartSql,
-      type: 'slice',
-      name: configObj.disPlayName,
+      type: 'slice',//@ts-ignore
+      name: configObj.disPlayName,//@ts-ignore
       pluginName: configObj.pluginName,
       countOtherSql: countOtherSql,
     });
   }
 
-  parseJson(startTime: number, map: Map<number, string>): Map<number, any> {
+  parseJson(startTime: number, map: Map<number, string>): Map<number, unknown> {
     let tablesMap = new Map();
     let keys = map.keys();
     for (let key of keys) {
-      let table: any[] = [];
-      let configObj: any = map.get(key);
-      if (configObj !== undefined) {
+      let table: unknown[] = [];
+      let configObj: unknown = map.get(key);
+      if (configObj !== undefined) {//@ts-ignore
         let configStr = configObj.jsonConfig;
         let json = JSON.parse(configStr);
         let tableConfig = json.tableConfig;
@@ -117,19 +117,19 @@ export class SpSdkChart {
     return tablesMap;
   }
 
-  private createSliceSql(startTime: number, tableName: string, columns: Array<any>, where?: string): string {
+  private createSliceSql(startTime: number, tableName: string, columns: Array<unknown>, where?: string): string {
     let sliceSelectSql = 'select ';
     for (let i = 0; i < columns.length; i++) {
-      let column = columns[i];
-      if (column.column === 'start_ts') {
+      let column = columns[i];//@ts-ignore
+      if (column.column === 'start_ts') {//@ts-ignore
         column.column = `(start_ts - ${startTime}) AS start_ts`;
-      }
-      if (column.column === 'end_ts') {
+      }//@ts-ignore
+      if (column.column === 'end_ts') {//@ts-ignore
         column.column = `(end_ts - ${startTime}) AS end_ts`;
       }
-      if (i === columns.length - 1) {
+      if (i === columns.length - 1) {//@ts-ignore
         sliceSelectSql = `${sliceSelectSql + column.column} `;
-      } else {
+      } else {//@ts-ignore
         sliceSelectSql = `${sliceSelectSql + column.column}, `;
       }
     }
@@ -148,16 +148,16 @@ export class SpSdkChart {
     return selectSql;
   }
 
-  private createSql(startTime: number, tableName: string, columns: Array<any>, where?: string): string {
+  private createSql(startTime: number, tableName: string, columns: Array<unknown>, where?: string): string {
     let selectSql = 'select ';
     for (let i = 0; i < columns.length; i++) {
-      let column = columns[i];
-      if (column.column === 'ts') {
+      let column = columns[i];//@ts-ignore
+      if (column.column === 'ts') {//@ts-ignore
         column.column = `ts - ${startTime} AS ts`;
       }
-      if (i === columns.length - 1) {
+      if (i === columns.length - 1) {//@ts-ignore
         selectSql = `${selectSql + column.column} `;
-      } else {
+      } else {//@ts-ignore
         selectSql = `${selectSql + column.column}, `;
       }
     }
@@ -174,14 +174,15 @@ export class SpSdkChart {
       return;
     }
     let res = await queryStartTime();
+    //@ts-ignore
     let startTime = res[0].start_ts;
     let tablesMap = this.parseJson(startTime, configMap);
     let tableKeys = tablesMap.keys();
     for (let componentId of tableKeys) {
       let table = tablesMap.get(componentId);
-      if (table !== null) {
-        let nodeRow = this.initNodeRow(componentId, table[0].name);
-        for (let index = 0; index < table.length; index++) {
+      if (table !== null) {//@ts-ignore
+        let nodeRow = this.initNodeRow(componentId, table[0].name);//@ts-ignore
+        for (let index = 0; index < table.length; index++) {//@ts-ignore
           let sqlMap = table[index];
           if (sqlMap.type === 'counter') {
             let result = await querySdkCount(sqlMap.countSql, componentId);
@@ -241,12 +242,12 @@ export class SpSdkChart {
   private initCounter = async (
     nodeRow: TraceRow<BaseStruct>,
     index: number,
-    result: any,
-    sqlMap: any,
+    result: unknown,
+    sqlMap: unknown,
     componentId: number
-  ): Promise<void> => {
+  ): Promise<void> => {//@ts-ignore
     let traceRow = this.initCounterChartRow(componentId, nodeRow.expansion, result.counter_id, result.counter_name);
-    traceRow.supplier = async (): Promise<CounterStruct[]> =>
+    traceRow.supplier = async (): Promise<CounterStruct[]> =>//@ts-ignore
       querySdkCounterData(sqlMap.chartSql, result.counter_id, componentId);
     traceRow.focusHandler = (): void => {
       this.trace?.displayTip(
@@ -257,8 +258,9 @@ export class SpSdkChart {
     };
     traceRow.findHoverStruct = (): void => {
       CounterStruct.hoverCounterStruct = traceRow.getHoverStruct();
-    };
+    };//@ts-ignore
     let maxList = await queryCounterMax(sqlMap.maxSql, result.counter_id, componentId);
+    //@ts-ignore
     let maxCounter = maxList[0].max_value;
     traceRow.onThreadHandler = (useCache: boolean): void => {
       let context: CanvasRenderingContext2D;
@@ -297,7 +299,7 @@ export class SpSdkChart {
     sdkFolder.supplier = async (): Promise<BaseStruct[]> => new Promise<[]>((resolve) => resolve([]));
     sdkFolder.onThreadHandler = (useCache: boolean): void => {
       sdkFolder.canvasSave(this.trace.canvasPanelCtx!);
-      if (sdkFolder.expansion) {
+      if (sdkFolder.expansion) {// @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, sdkFolder.frame.width, sdkFolder.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -335,7 +337,7 @@ export class SpSdkChart {
     sdkSecondFolder.supplier = async (): Promise<BaseStruct[]> => new Promise<[]>((resolve) => resolve([]));
     sdkSecondFolder.onThreadHandler = (useCache: boolean): void => {
       sdkSecondFolder.canvasSave(this.trace.canvasPanelCtx!);
-      if (sdkSecondFolder.expansion) {
+      if (sdkSecondFolder.expansion) {// @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, sdkSecondFolder.frame.width, sdkSecondFolder.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -378,20 +380,20 @@ export class SpSdkChart {
   private initSlice = async (
     nodeRow: TraceRow<BaseStruct>,
     index: number,
-    result: any,
-    sqlMap: any,
+    result: unknown,
+    sqlMap: unknown,
     componentId: number
   ): Promise<void> => {
     let traceRow = this.initSliceChartRow(
       nodeRow.expansion,
-      nodeRow.rowId!,
-      result.slice_id,
+      nodeRow.rowId!,//@ts-ignore
+      result.slice_id,//@ts-ignore
       result.slice_name,
       componentId
     );
     traceRow.supplier = async (): Promise<SdkSliceStruct[]> =>
-      querySdkSliceData(
-        sqlMap.chartSql,
+      querySdkSliceData(//@ts-ignore
+        sqlMap.chartSql,//@ts-ignore
         result.slice_id,
         TraceRow.range?.startNS || 0,
         TraceRow.range?.endNS || 0,

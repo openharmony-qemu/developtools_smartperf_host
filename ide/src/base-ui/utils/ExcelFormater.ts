@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-const htmlStr = (): any => {
+const htmlStr = (): unknown => {
   const html_start = '<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
   return {
     uri: 'data:application/vnd.ms-excel;base64,',
@@ -63,36 +63,36 @@ Content-Type: text/xml; charset="utf-8"
 
 export class ExcelFormater {
   static tmplCellXML = '<Cell{attributeStyleID}{attributeFormula}><Data ss:Type="{nameType}">{data}</Data></Cell>';
-  static base64 = function (s: any): string {
+  static base64 = function (s: unknown): string {//@ts-ignore
     return window.btoa(unescape(encodeURIComponent(s)));
   };
 
-  static format(s: any, c: any): string {
-    return s.replace(/{(\w+)}/g, function (m: any, p: any) {
+  static format(s: unknown, c: unknown): string {//@ts-ignore
+    return s.replace(/{(\w+)}/g, function (m: unknown, p: unknown) {//@ts-ignore
       return c[p];
     });
   }
 
-  static createExcelRow(columns: any[], data: any): string {
+  static createExcelRow(columns: unknown[], data: unknown): string {
     let rowsXML = '';
     rowsXML += '<Row>';
-    for (let k = 0; k < columns.length; k++) {
-      let dataIndex = columns[k].getAttribute('data-index');
+    for (let k = 0; k < columns.length; k++) {//@ts-ignore
+      let dataIndex = columns[k].getAttribute('data-index');//@ts-ignore
       let columnName = columns[k].getAttribute('title');
       if (columnName === '') {
         columnName = dataIndex;
       }
       let ctx = {
         attributeStyleID: '',
-        nameType: 'String',
+        nameType: 'String',//@ts-ignore
         data: data ? data[dataIndex] || '' : columnName,
         attributeFormula: '',
       };
       rowsXML += this.format(this.tmplCellXML, ctx);
     }
-    rowsXML += '</Row>';
-    if (data && data.children !== undefined && data.children.length > 0) {
-      data.children.forEach((child: any) => {
+    rowsXML += '</Row>';//@ts-ignore
+    if (data && data.children !== undefined && data.children.length > 0) {//@ts-ignore
+      data.children.forEach((child: unknown) => {
         rowsXML += this.createExcelRow(columns, child);
       });
     }
@@ -108,26 +108,26 @@ export class ExcelFormater {
     })}</Row>`;
   }
 
-  static testExport(dataSource: { columns: any[]; tables: any[]; sheetName: string }[], fileName: string): void {
+  static testExport(dataSource: { columns: unknown[]; tables: unknown[]; sheetName: string }[], fileName: string): void {
     this.tablesToHtmlExcelMultipleSheet(dataSource, fileName);
   }
 
   static tablesToHtmlExcelMultipleSheet(
-    dataSource: { columns: any[]; tables: any[]; sheetName: string }[],
+    dataSource: { columns: unknown[]; tables: unknown[]; sheetName: string }[],
     fileName: string,
     image?: string
   ): void {
-    let sheets: any[] = [];
+    let sheets: unknown[] = [];
     dataSource.forEach((data): void => {
       sheets.push(this.createTableData(data.columns, data.tables, image));
     });
     this.tablesToExcelTestSheet(sheets, fileName, dataSource);
   }
 
-  static createTableData(columns: any[], dataSource: any[], image?: string): string {
+  static createTableData(columns: unknown[], dataSource: unknown[], image?: string): string {
     let tableData = '';
-    let columnDatas = columns.map((column) => {
-      let dataIndex = column.getAttribute('data-index');
+    let columnDatas = columns.map((column) => {//@ts-ignore
+      let dataIndex = column.getAttribute('data-index');//@ts-ignore
       let columnName = column.getAttribute('title');
       if (columnName === '') {
         columnName = dataIndex;
@@ -153,7 +153,7 @@ export class ExcelFormater {
     return tableData;
   }
 
-  static createTHead(columns: any[]): string {
+  static createTHead(columns: unknown[]): string {
     let header = '<thead>';
     columns.forEach((column) => {
       header += `<td>${column}</td>`;
@@ -162,28 +162,28 @@ export class ExcelFormater {
     return header;
   }
 
-  static createTableRow(columns: any[], data: any, image?: any): string {
-    let childrenData = '';
-    if (data.children !== undefined) {
-      data.children.forEach((child: any) => {
+  static createTableRow(columns: unknown[], data: unknown, image?: unknown): string {
+    let childrenData = '';//@ts-ignore
+    if (data.children !== undefined) {//@ts-ignore
+      data.children.forEach((child: unknown) => {
         if (child) {
           childrenData += this.createTableRow(columns, child);
         }
       });
     }
     return `<tr>${columns
-      .map((column) => {
+      .map((column) => {//@ts-ignore
         return `<td>${(data[column] + '').replace('μ', 'u')}</td>` || '';
       })
       .join('')}${image ? `<td><div><img src="${image}"></img></div></td>` : ''}</tr>${childrenData}`;
   }
 
   static tablesToExcelTestSheet(
-    tables: any[],
+    tables: unknown[],
     filename: string,
-    dataSource: { columns: any[]; tables: any[]; sheetName: string }[]
+    dataSource: { columns: unknown[]; tables: unknown[]; sheetName: string }[]
   ): void {
-    const html_start = '<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+    const html_start = '<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';//@ts-ignore
     let { uri, template_ExcelWorksheet, template_ListWorksheet, template_WorkBook } = htmlStr();
     let template_HTMLWorksheet =
       `

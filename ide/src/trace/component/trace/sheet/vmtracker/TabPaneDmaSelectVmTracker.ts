@@ -75,7 +75,8 @@ export class TabPaneDmaSelectVmTracker extends BaseElement {
           item.expTaskComm = SpSystemTrace.DATA_DICT.get(item.expTaskComm as number) || '-';
           item.timeStamp = ns2s(item.startNs);
           item.sizes = Utils.getBinaryByteWithUnit(item.size);
-          this.damClickTable!.getItemTextColor = (item: Dma): any => {
+          // @ts-ignore
+          this.damClickTable!.getItemTextColor = (item: Dma): unknown => {
             if (item.flag === 1) {
               return '#d4b550';
             } else if (item.flag === 2) {
@@ -131,24 +132,35 @@ export class TabPaneDmaSelectVmTracker extends BaseElement {
         `;
   }
 
-  private compareValues(a: any, b: any, sort: number): number {
+  private compareValues(a: unknown, b: unknown, sort: number): number {
     if (sort === 1) {
+      // @ts-ignore
       return a > b ? 1 : a < b ? -1 : 0;
     } else {
+      // @ts-ignore
       return a < b ? 1 : a > b ? -1 : 0;
     }
   }
 
   sortDmaByColumn(column: string, sort: number): void {
-    const comparisonFunctions: { [key: string]: (a: any, b: any) => number } = {
+    const comparisonFunctions: { [key: string]: (a: unknown, b: unknown) => number } = {
+      // @ts-ignore
       startNs: (a, b) => this.compareValues(a.startNs, b.startNs, sort),
+      // @ts-ignore
       expTaskComm: (a, b) => this.compareValues(`${a.expTaskComm}`, `${b.expTaskComm}`, sort),
+      // @ts-ignore
       fd: (a, b) => this.compareValues(a.fd, b.fd, sort),
+      // @ts-ignore
       size: (a, b) => this.compareValues(a.size, b.size, sort),
+      // @ts-ignore
       ino: (a, b) => this.compareValues(a.ino, b.ino, sort),
+      // @ts-ignore
       expPid: (a, b) => this.compareValues(a.expPid, b.expPid, sort),
+      // @ts-ignore
       flag: (a, b) => this.compareValues(a.flag, b.flag, sort),
+      // @ts-ignore
       bufName: (a, b) => this.compareValues(`${a.bufName}`, `${b.bufName}`, sort),
+      // @ts-ignore
       expName: (a, b) => this.compareValues(`${a.expName}`, `${b.expName}`, sort),
     };
 

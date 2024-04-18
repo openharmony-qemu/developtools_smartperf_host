@@ -20,13 +20,13 @@ import { temp_init_sql_list } from './TempSql';
 // @ts-ignore
 import { BatchSphData } from '../proto/SphBaseData';
 
-let wasmModule: any = null;
+let wasmModule: unknown = null;
 let enc = new TextEncoder();
 let dec = new TextDecoder();
 let arr: Uint8Array | undefined;
 const REQ_BUF_SIZE = 4 * 1024 * 1024;
 let reqBufferAddr: number = -1;
-let bufferSlice: Array<any> = [];
+let bufferSlice: Array<unknown> = [];
 let json: string;
 
 let headUnitArray: Uint8Array | undefined;
@@ -48,9 +48,10 @@ let ffrtFileCacheKey = '-1';
 let indexDB: IDBDatabase;
 const maxSize = 48 * 1024 * 1024;
 
-let protoDataMap: Map<QueryEnum, any> = new Map<QueryEnum, any>();
+let protoDataMap: Map<QueryEnum, unknown> = new Map<QueryEnum, unknown>();
 function clear(): void {
   if (wasmModule !== null) {
+    //@ts-ignore
     wasmModule._TraceStreamerReset();
     wasmModule = null;
   }
@@ -82,11 +83,11 @@ function initWASM(): Promise<unknown> {
     //@ts-ignore
     let wasm = trace_streamer_builtin_wasm;
     wasmModule = wasm({
-      locateFile: (s: any) => {
+      locateFile: (s: unknown):unknown => {
         return s;
       },
-      print: (line: any) => {},
-      printErr: (line: any) => {},
+      print: (line: unknown) => {},
+      printErr: (line: unknown) => {},
       onRuntimeInitialized: () => {
         resolve('ok');
       },
@@ -97,15 +98,15 @@ function initWASM(): Promise<unknown> {
   });
 }
 
-function initThirdWASM(wasmFunctionName: string): any {
-  function callModelFun(functionName: string): any {
+function initThirdWASM(wasmFunctionName: string): unknown {
+  function callModelFun(functionName: string): unknown {
     let func = eval(functionName);
     return new func({
-      locateFile: (s: any): any => {
+      locateFile: (s: unknown): any => {
         return s;
       },
-      print: (line: any): void => {},
-      printErr: (line: any): void => {},
+      print: (line: unknown): void => {},
+      printErr: (line: unknown): void => {},
       onRuntimeInitialized: (): void => {},
       onAbort: (): void => {},
     });
@@ -117,12 +118,15 @@ function initThirdWASM(wasmFunctionName: string): any {
 let merged = (): Uint8Array => {
   let length = 0;
   bufferSlice.forEach((item) => {
+    //@ts-ignore
     length += item.length;
   });
   let mergedArray = new Uint8Array(length);
   let offset = 0;
   bufferSlice.forEach((item) => {
+    //@ts-ignore
     mergedArray.set(item, offset);
+    //@ts-ignore
     offset += item.length;
   });
   return mergedArray;
@@ -133,10 +137,10 @@ let translateJsonString = (str: string): string => {
     .replace(/[\t|\r|\n]/g, '');
 };
 
-let convertJSON = (): any[] => {
+let convertJSON = (): unknown[] => {
   try {
     let str = dec.decode(arr);
-    let jsonArray: Array<any> = [];
+    let jsonArray: Array<unknown> = [];
     str = str.substring(str.indexOf('\n') + 1);
     if (!str) {
     } else {
@@ -157,8 +161,9 @@ let convertJSON = (): any[] => {
       let columns = parse.columns;
       let values = parse.values;
       for (let i = 0; i < values.length; i++) {
-        let obj: any = {};
+        let obj: unknown = {};
         for (let j = 0; j < columns.length; j++) {
+          //@ts-ignore
           obj[columns[j]] = values[i][j];
         }
         jsonArray.push(obj);
@@ -171,7 +176,8 @@ let convertJSON = (): any[] => {
       action: currentAction,
       init: false,
       status: false,
-      msg: (e as any).message,
+      //@ts-ignore
+      msg: (e as unknown).message,
     });
     return [];
   }
@@ -249,6 +255,7 @@ async function onmessageByOpenAction(e: MessageEvent): Promise<void> {
   } else {
     r2 = parseNormalTraceByOpenAction(wrSize, r2, uint8Array);
   }
+  //@ts-ignore
   wasmModule._TraceStreamerParseDataOver();
   for (let value of thirdWasmMap.values()) {
     value.model._TraceStreamer_In_ParseDataOver();
@@ -258,6 +265,7 @@ async function onmessageByOpenAction(e: MessageEvent): Promise<void> {
 
 function initModuleCallBackAndFun(): void {
   let callback = (heapPtr: number, size: number, isEnd: number): void => {
+    //@ts-ignore
     let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
     bufferSlice.push(out);
     if (isEnd === 1) {
@@ -265,10 +273,13 @@ function initModuleCallBackAndFun(): void {
       bufferSlice.length = 0;
     }
   };
+  //@ts-ignore
   let fn = wasmModule.addFunction(callback, 'viii');
+  //@ts-ignore
   reqBufferAddr = wasmModule._Initialize(fn, REQ_BUF_SIZE);
   let ffrtConvertCallback = (heapPtr: number, size: number, isEnd: number): void => {
     if (isEnd !== 1) {
+      //@ts-ignore
       let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
       bufferSlice.push(out);
     } else {
@@ -279,13 +290,19 @@ function initModuleCallBackAndFun(): void {
     }
   };
   let tlvResultCallback = (heapPtr: number, size: number, type: number, isEnd: number): void => {
+    //@ts-ignore
     let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
     protoDataMap.set(type, BatchSphData.decode(out).values);
   };
+  //@ts-ignore
   let fn1 = wasmModule.addFunction(callback, 'viii');
+  //@ts-ignore
   let fn2 = wasmModule.addFunction(ffrtConvertCallback, 'viii');
+  //@ts-ignore
   let tlvResultFun = wasmModule.addFunction(tlvResultCallback, 'viiii');
+  //@ts-ignore
   wasmModule._TraceStreamer_Set_Log_Level(5);
+  //@ts-ignore
   reqBufferAddr = wasmModule._Initialize(REQ_BUF_SIZE, fn1, tlvResultFun, fn2);
 }
 
@@ -293,31 +310,39 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
   let parseConfig = e.data.parseConfig;
   if (parseConfig !== '') {
     let parseConfigArray = enc.encode(parseConfig);
+    //@ts-ignore
     let parseConfigAddr = wasmModule._InitializeParseConfig(1024);
+    //@ts-ignore
     wasmModule.HEAPU8.set(parseConfigArray, parseConfigAddr);
+    //@ts-ignore
     wasmModule._TraceStreamerParserConfigEx(parseConfigArray.length);
   }
   let wasmConfigStr = e.data.wasmConfig;
   if (wasmConfigStr !== '' && wasmConfigStr.indexOf('WasmFiles') !== -1) {
     let wasmConfig = JSON.parse(wasmConfigStr);
     let wasmConfigs = wasmConfig.WasmFiles;
-    let itemArray = wasmConfigs.map((item: any) => {
+    let itemArray = wasmConfigs.map((item: unknown) => {
+      //@ts-ignore
       return item.componentId + ';' + item.pluginName;
     });
     let thirdWasmStr: string = itemArray.join(';');
     let configUintArray = enc.encode(thirdWasmStr + ';');
+    //@ts-ignore
     wasmModule.HEAPU8.set(configUintArray, reqBufferAddr);
+    //@ts-ignore
     wasmModule._TraceStreamer_Init_ThirdParty_Config(configUintArray.length);
     let first = true;
     let sendDataCallback = (heapPtr: number, size: number, componentID: number): void => {
       if (componentID === 100) {
         if (first) {
           first = false;
+          //@ts-ignore
           headUnitArray = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
         }
         return;
       }
-      let configs = wasmConfigs.filter((wasmConfig: any) => {
+      let configs = wasmConfigs.filter((wasmConfig: unknown) => {
+        //@ts-ignore
         return wasmConfig.componentId === componentID;
       });
       if (configs.length > 0) {
@@ -328,13 +353,16 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
           setThirdWasmMap(config, heapPtr, size, componentID);
         } else {
           let mm = model.model;
+          //@ts-ignore
           let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
           mm.HEAPU8.set(out, model.bufferAddr);
           mm._ParserData(out.length, componentID);
         }
       }
     };
+    //@ts-ignore
     let fn1 = wasmModule.addFunction(sendDataCallback, 'viii');
+    //@ts-ignore
     let reqBufferAddr1 = wasmModule._TraceStreamer_Set_ThirdParty_DataDealer(fn1, REQ_BUF_SIZE);
   }
 }
@@ -386,8 +414,10 @@ function parseRawTraceByOpenAction(e: MessageEvent, wrSize: number, r2: number, 
   while (wrSize < final.length) {
     const sliceLen = Math.min(final.length - wrSize, REQ_BUF_SIZE);
     const dataSlice = final.subarray(wrSize, wrSize + sliceLen);
+    //@ts-ignore
     wasmModule.HEAPU8.set(dataSlice, reqBufferAddr);
     wrSize += sliceLen;
+    //@ts-ignore
     r2 = wasmModule._TraceStreamerParseDataEx(sliceLen, wrSize === final.length ? 1 : 0);
     if (r2 === -1) {
       break;
@@ -400,8 +430,10 @@ function parseNormalTraceByOpenAction(wrSize: number, r2: number, uint8Array: Ui
   while (wrSize < uint8Array.length) {
     const sliceLen = Math.min(uint8Array.length - wrSize, REQ_BUF_SIZE);
     const dataSlice = uint8Array.subarray(wrSize, wrSize + sliceLen);
+    //@ts-ignore
     wasmModule.HEAPU8.set(dataSlice, reqBufferAddr);
     wrSize += sliceLen;
+    //@ts-ignore
     r2 = wasmModule._TraceStreamerParseDataEx(sliceLen, wrSize === uint8Array.length ? 1 : 0);
     if (r2 === -1) {
       break;
@@ -410,22 +442,31 @@ function parseNormalTraceByOpenAction(wrSize: number, r2: number, uint8Array: Ui
   return r2;
 }
 
-function setThirdWasmMap(config: any, heapPtr: number, size: number, componentID: number): void {
+function setThirdWasmMap(config: unknown, heapPtr: number, size: number, componentID: number): void {
+  //@ts-ignore
   let thirdMode = initThirdWASM(config.wasmName);
+  //@ts-ignore
   let configPluginName = config.pluginName;
   let pluginNameUintArray = enc.encode(configPluginName);
+  //@ts-ignore
   let pluginNameBuffer = thirdMode._InitPluginName(pluginNameUintArray.length);
+  //@ts-ignore
   thirdMode.HEAPU8.set(pluginNameUintArray, pluginNameBuffer);
+  //@ts-ignore
   thirdMode._TraceStreamerGetPluginNameEx(configPluginName.length);
   let thirdQueryDataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number): void => {
     if (isConfig === 1) {
+      //@ts-ignore
       let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
       thirdJsonResult.set(componentID, {
         jsonConfig: dec.decode(out),
+        //@ts-ignore
         disPlayName: config.disPlayName,
+        //@ts-ignore
         pluginName: config.pluginName,
       });
     } else {
+      //@ts-ignore
       let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
       bufferSlice.push(out);
       if (isEnd === 1) {
@@ -434,14 +475,22 @@ function setThirdWasmMap(config: any, heapPtr: number, size: number, componentID
       }
     }
   };
+  //@ts-ignore
   let fn = thirdMode.addFunction(thirdQueryDataCallBack, 'viiii');
+  //@ts-ignore
   let thirdreqBufferAddr = thirdMode._Init(fn, REQ_BUF_SIZE);
   let mm = initTraceRange(thirdMode);
+  //@ts-ignore
   thirdMode._TraceStreamer_In_JsonConfig();
+  //@ts-ignore
   thirdMode.HEAPU8.set(headUnitArray, thirdreqBufferAddr);
+  //@ts-ignore
   thirdMode._ParserData(headUnitArray!.length, 100);
+  //@ts-ignore
   let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
+  //@ts-ignore
   thirdMode.HEAPU8.set(out, thirdreqBufferAddr);
+  //@ts-ignore
   thirdMode._ParserData(out.length, componentID);
   thirdWasmMap.set(componentID, {
     model: thirdMode,
@@ -480,13 +529,18 @@ function postMessageByOpenAction(r2: number, e: MessageEvent): void {
   );
 }
 
-function initTraceRange(thirdMode: any): any {
+function initTraceRange(thirdMode: unknown): unknown {
   let updateTraceTimeCallBack = (heapPtr: number, size: number): void => {
+    //@ts-ignore
     let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
+    //@ts-ignore
     wasmModule.HEAPU8.set(out, reqBufferAddr);
+    //@ts-ignore
     wasmModule._UpdateTraceTime(out.length);
   };
+  //@ts-ignore
   let traceRangeFn = thirdMode.addFunction(updateTraceTimeCallBack, 'vii');
+  //@ts-ignore
   let mm = thirdMode._InitTraceRange(traceRangeFn, 1024);
   return mm;
 }
@@ -507,7 +561,9 @@ function onmessageByExecProtoAction(e: MessageEvent): void {
   execProtoForWorker(e.data, (sql: string) => {
     let sqlUintArray = enc.encode(sql);
     if (e.data.params.trafic !== TraficEnum.ProtoBuffer) {
+      //@ts-ignore
       wasmModule.HEAPU8.set(sqlUintArray, reqBufferAddr);
+      //@ts-ignore
       wasmModule._TraceStreamerSqlQueryEx(sqlUintArray.length);
       let jsonArray = convertJSON();
       return jsonArray;
@@ -515,10 +571,13 @@ function onmessageByExecProtoAction(e: MessageEvent): void {
       let allArray = new Uint8Array(typeLength + sqlUintArray.length);
       allArray[0] = e.data.name;
       allArray.set(sqlUintArray, typeLength);
+      //@ts-ignore
       wasmModule.HEAPU8.set(allArray, reqBufferAddr);
+      //@ts-ignore
       wasmModule._TraceStreamerSqlQueryToProtoCallback(allArray.length);
       let finalArrayBuffer = [];
       if (protoDataMap.has(e.data.name)) {
+        //@ts-ignore
         finalArrayBuffer = protoDataMap.get(e.data.name);
         protoDataMap.delete(e.data.name);
       }
@@ -572,21 +631,25 @@ function onmessageByInitPortAction(e: MessageEvent): void {
 }
 
 function onmessageByDownloadDBAction(e: MessageEvent): void {
-  let bufferSliceUint: Array<any> = [];
+  let bufferSliceUint: Array<unknown> = [];
   let mergedUint = (): Uint8Array => {
     let length = 0;
     bufferSliceUint.forEach((item) => {
+      //@ts-ignore
       length += item.length;
     });
     let mergedArray = new Uint8Array(length);
     let offset = 0;
     bufferSliceUint.forEach((item) => {
+      //@ts-ignore
       mergedArray.set(item, offset);
+      //@ts-ignore
       offset += item.length;
     });
     return mergedArray;
   };
   let getDownloadDb = (heapPtr: number, size: number, isEnd: number): void => {
+    //@ts-ignore
     let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
     bufferSliceUint.push(out);
     if (isEnd === 1) {
@@ -598,7 +661,9 @@ function onmessageByDownloadDBAction(e: MessageEvent): void {
       });
     }
   };
+  //@ts-ignore
   let fn1 = wasmModule.addFunction(getDownloadDb, 'viii');
+  //@ts-ignore
   wasmModule._WasmExportDatabase(fn1);
 }
 
@@ -611,6 +676,7 @@ function onmessageByUploadSoAction(e: MessageEvent): void {
     soFileList = fileList;
     uploadFileIndex = 0;
     if (!uploadSoCallbackFn) {
+      //@ts-ignore
       uploadSoCallbackFn = wasmModule.addFunction(uploadSoCallBack, 'viii');
     }
     uploadSoFile(soFileList[uploadFileIndex]).then();
@@ -654,6 +720,7 @@ function cutLongTraceCallBackHandle(
   >
 ): void {
   let key = `${traceFileType}_${currentPageNum}`;
+  //@ts-ignore
   let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
   if (DataTypeEnum.data === dataType) {
     if (traceFileType === 'arkts') {
@@ -685,8 +752,11 @@ function initSplitLongTraceModuleAndFun(
   headArray: Uint8Array,
   cutFileCallBack: (heapPtr: number, size: number, dataType: number, isEnd: number) => void
 ): number {
+  //@ts-ignore
   splitReqBufferAddr = wasmModule._InitializeSplitFile(wasmModule.addFunction(cutFileCallBack, 'viiii'), REQ_BUF_SIZE);
+  //@ts-ignore
   wasmModule.HEAPU8.set(headArray, splitReqBufferAddr);
+  //@ts-ignore
   wasmModule._TraceStreamerGetLongTraceTimeSnapEx(headArray.length);
   return splitReqBufferAddr;
 }
@@ -732,7 +802,7 @@ async function handleDataTypeBySplitLongTrace(
 
 async function saveAllDataByLongTrace(
   range: IDBKeyRange,
-  nowCutInfoList: Array<any>,
+  nowCutInfoList: Array<unknown>,
   searchDataInfo: {
     fileType: string;
     index: number;
@@ -756,8 +826,10 @@ async function saveAllDataByLongTrace(
   let mergeData = indexedDataToBufferData(queryAllData);
   for (let cutOffsetObjIndex = 0; cutOffsetObjIndex < nowCutInfoList.length; cutOffsetObjIndex++) {
     let cutUseOffsetObj = nowCutInfoList[cutOffsetObjIndex];
+    //@ts-ignore
     let endOffset = cutUseOffsetObj.offset + cutUseOffsetObj.size;
     let sliceData = mergeData.slice(
+      //@ts-ignore
       cutUseOffsetObj.offset - searchDataInfo[0].startOffsetSize,
       endOffset - searchDataInfo[0].startOffsetSize
     );
@@ -819,7 +891,7 @@ async function handleJsonTypeBySplitLongTrace(
 ): Promise<[number, number, number, Uint8Array]> {
   let needCutMessage = receiveData.data as Array<{ offset: number; size: number }>;
   let startOffset = needCutMessage[0].offset;
-  let nowCutInfoList: Array<any> = [];
+  let nowCutInfoList: Array<unknown> = [];
   let isBeforeCutFinish = false;
   for (let needCutIndex = 0; needCutIndex < needCutMessage.length; needCutIndex++) {
     let cutInfo = needCutMessage[needCutIndex];
@@ -830,6 +902,7 @@ async function handleJsonTypeBySplitLongTrace(
     }
     if (cutInfo.offset + cutInfo.size - startOffset >= maxSize * 10 || needCutIndex === needCutMessage.length - 1) {
       nowCutInfoList.push(cutInfo);
+      //@ts-ignore
       let nowStartCutOffset = nowCutInfoList[0].offset;
       let nowEndCutOffset = cutInfo.offset + cutInfo.size;
       let searchDataInfo = allIndexDataList.filter(
@@ -1033,9 +1106,11 @@ self.onmessage = async (e: MessageEvent): Promise<void> => {
   }
 };
 
-function indexedDataToBufferData(sourceData: any): Uint8Array {
+function indexedDataToBufferData(sourceData: unknown): Uint8Array {
   let uintArrayLength = 0;
-  let uintDataList = sourceData.map((item: any) => {
+  //@ts-ignore
+  let uintDataList = sourceData.map((item: unknown) => {
+    //@ts-ignore
     let currentBufData = new Uint8Array(item.buf);
     uintArrayLength += currentBufData.length;
     return currentBufData;
@@ -1095,13 +1170,17 @@ async function splitFileAndSaveArkTs(
 
 const splitFileAndSave = async (
   timStamp: number,
-  fileInfo: any,
+  fileInfo: unknown,
   pageNum: number,
-  splitReqBufferAddr?: any
+  splitReqBufferAddr?: unknown
 ): Promise<void> => {
+  //@ts-ignore
   let fileType = fileInfo.fileType;
+  //@ts-ignore
   let fileSize = fileInfo.size;
+  //@ts-ignore
   let startIndex = fileInfo.startIndex;
+  //@ts-ignore
   let endIndex = fileInfo.endIndex;
   let queryStartIndex = startIndex;
   let queryEndIndex = startIndex;
@@ -1118,7 +1197,9 @@ const splitFileAndSave = async (
     let range = getRange(timStamp, fileType, queryStartIndex, queryEndIndex);
     let res = await getIndexedDBQueryData(indexDB, range);
     queryStartIndex = queryEndIndex + 1;
+    //@ts-ignore
     for (let i = 0; i < res.length; i++) {
+      //@ts-ignore
       let arrayBuffer = res[i];
       let uint8Array = new Uint8Array(arrayBuffer.buf);
       let cutFileSize = 0;
@@ -1156,7 +1237,7 @@ const splitFileAndSave = async (
   }
 };
 
-async function getIndexedDBQueryData(db: IDBDatabase, range: IDBKeyRange): Promise<any> {
+async function getIndexedDBQueryData(db: IDBDatabase, range: IDBKeyRange): Promise<unknown> {
   const transaction = db.transaction(STORE_NAME, 'readonly');
   const store = transaction.objectStore(STORE_NAME);
   const index = store.index('QueryCompleteFile');
@@ -1170,16 +1251,19 @@ function execLongTraceSplitFileByModule(
   resultFileSize: number,
   cutFileSize: number,
   uint8Array: Uint8Array,
-  splitReqBufferAddr?: any
+  splitReqBufferAddr?: unknown
 ): [number, number] {
   const sliceLen = Math.min(uint8Array.length - cutFileSize, REQ_BUF_SIZE);
   const dataSlice = uint8Array.subarray(cutFileSize, cutFileSize + sliceLen);
+  //@ts-ignore
   wasmModule.HEAPU8.set(dataSlice, splitReqBufferAddr);
   cutFileSize += sliceLen;
   resultFileSize += sliceLen;
   if (resultFileSize >= fileSize) {
+    //@ts-ignore
     wasmModule._TraceStreamerLongTraceSplitFileEx(sliceLen, 1, pageNum);
   } else {
+    //@ts-ignore
     wasmModule._TraceStreamerLongTraceSplitFileEx(sliceLen, 0, pageNum);
   }
   return [cutFileSize, resultFileSize];
@@ -1192,7 +1276,7 @@ function setArg(
   saveStartOffset: number,
   saveIndex: number,
   timStamp: number
-): any {
+): unknown {
   return {
     buf: remnantArray,
     id: `${fileType}_new_${timStamp}_${pageNum}_${saveIndex}`,
@@ -1220,14 +1304,16 @@ enum DataTypeEnum {
 
 let uploadSoActionId: string = '';
 let uploadFileIndex: number = 0;
-let uploadSoCallbackFn: any;
+let uploadSoCallbackFn: unknown;
 let soFileList: Array<File | null> = [];
 const failedArray: Array<string> = [];
 const uploadSoFile = async (file: File | null): Promise<void> => {
   if (file) {
     let fileNameBuffer: Uint8Array | null = enc.encode(file.webkitRelativePath);
     let fileNameLength = fileNameBuffer.length;
+    //@ts-ignore
     let addr = wasmModule._InitFileName(uploadSoCallbackFn, fileNameBuffer.length);
+    //@ts-ignore
     wasmModule.HEAPU8.set(fileNameBuffer, addr);
     let writeSize = 0;
     let upRes = -1;
@@ -1237,8 +1323,10 @@ const uploadSoFile = async (file: File | null): Promise<void> => {
       let buffer: ArrayBuffer | null = await blob.arrayBuffer();
       let data: Uint8Array | null = new Uint8Array(buffer);
       let size = file.size;
+      //@ts-ignore
       wasmModule.HEAPU8.set(data, reqBufferAddr);
       writeSize += sliceLen;
+      //@ts-ignore
       upRes = wasmModule._TraceStreamerDownloadELFEx(size, fileNameLength, sliceLen, 1);
       data = null;
       buffer = null;
@@ -1251,6 +1339,7 @@ const uploadSoFile = async (file: File | null): Promise<void> => {
 };
 
 const uploadSoCallBack = (heapPtr: number, size: number, isFinish: number): void => {
+  //@ts-ignore
   let out: Uint8Array | null = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
   if (out) {
     let res = dec.decode(out);
@@ -1344,24 +1433,30 @@ function cutFileByRange(e: MessageEvent): void {
   let cutLeftTs = e.data.leftTs;
   let cutRightTs = e.data.rightTs;
   let uint8Array = new Uint8Array(e.data.buffer);
-  let resultBuffer: Array<any> = [];
+  let resultBuffer: Array<unknown> = [];
   let cutFileCallBack = cutFileCallBackFunc(resultBuffer, uint8Array, e);
+  //@ts-ignore
   splitReqBufferAddr = wasmModule._InitializeSplitFile(wasmModule.addFunction(cutFileCallBack, 'viiii'), REQ_BUF_SIZE);
   let cutTimeRange = `${cutLeftTs};${cutRightTs};`;
   let cutTimeRangeBuffer = enc.encode(cutTimeRange);
+  //@ts-ignore
   wasmModule.HEAPU8.set(cutTimeRangeBuffer, splitReqBufferAddr);
+  //@ts-ignore
   wasmModule._TraceStreamerSplitFileEx(cutTimeRangeBuffer.length);
   let cutFileSize = 0;
   let receiveFileResult = -1;
   while (cutFileSize < uint8Array.length) {
     const sliceLen = Math.min(uint8Array.length - cutFileSize, REQ_BUF_SIZE);
     const dataSlice = uint8Array.subarray(cutFileSize, cutFileSize + sliceLen);
+    //@ts-ignore
     wasmModule.HEAPU8.set(dataSlice, splitReqBufferAddr);
     cutFileSize += sliceLen;
     try {
       if (cutFileSize >= uint8Array.length) {
+        //@ts-ignore
         receiveFileResult = wasmModule._TraceStreamerReciveFileEx(sliceLen, 1);
       } else {
+        //@ts-ignore
         receiveFileResult = wasmModule._TraceStreamerReciveFileEx(sliceLen, 0);
       }
     } catch (error) {
@@ -1379,8 +1474,9 @@ function cutFileByRange(e: MessageEvent): void {
     }
   }
 }
-function cutFileCallBackFunc(resultBuffer: Array<any>, uint8Array: Uint8Array, e: MessageEvent): Function {
+function cutFileCallBackFunc(resultBuffer: Array<unknown>, uint8Array: Uint8Array, e: MessageEvent): Function {
   return (heapPtr: number, size: number, fileType: number, isEnd: number) => {
+    //@ts-ignore
     let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
     if (FileTypeEnum.data === fileType) {
       resultBuffer.push(out);
@@ -1389,11 +1485,15 @@ function cutFileCallBackFunc(resultBuffer: Array<any>, uint8Array: Uint8Array, e
       resultBuffer.push(cutBuffer);
     }
     if (isEnd) {
+      //@ts-ignore
       const cutResultFileLength = resultBuffer.reduce((total, obj) => total + obj.length, 0);
+      //@ts-ignore
       let cutBuffer = new Uint8Array(cutResultFileLength);
       let offset = 0;
       resultBuffer.forEach((item) => {
+        //@ts-ignore
         cutBuffer.set(item, offset);
+        //@ts-ignore
         offset += item.length;
       });
       resultBuffer.length = 0;
@@ -1413,34 +1513,44 @@ function cutFileCallBackFunc(resultBuffer: Array<any>, uint8Array: Uint8Array, e
   };
 }
 
-function createView(sql: string): any {
+function createView(sql: string): unknown {
   let array = enc.encode(sql);
+  //@ts-ignore
   wasmModule.HEAPU8.set(array, reqBufferAddr);
+  //@ts-ignore
   let res = wasmModule._TraceStreamerSqlOperateEx(array.length);
   return res;
 }
 
-function query(name: string, sql: string, params: any): void {
+function query(name: string, sql: string, params: unknown): void {
   if (params) {
-    Reflect.ownKeys(params).forEach((key: any) => {
+    Reflect.ownKeys(params).forEach((key: unknown) => {
+      //@ts-ignore
       if (typeof params[key] === 'string') {
+        //@ts-ignore
         sql = sql.replace(new RegExp(`\\${key}`, 'g'), `'${params[key]}'`);
       } else {
+        //@ts-ignore
         sql = sql.replace(new RegExp(`\\${key}`, 'g'), params[key]);
       }
     });
   }
   let sqlUintArray = enc.encode(sql);
+  //@ts-ignore
   wasmModule.HEAPU8.set(sqlUintArray, reqBufferAddr);
+  //@ts-ignore
   wasmModule._TraceStreamerSqlQueryEx(sqlUintArray.length);
 }
 
-function querySdk(name: string, sql: string, sdkParams: any, action: string): void {
+function querySdk(name: string, sql: string, sdkParams: unknown, action: string): void {
   if (sdkParams) {
-    Reflect.ownKeys(sdkParams).forEach((key: any) => {
+    Reflect.ownKeys(sdkParams).forEach((key: unknown) => {
+      //@ts-ignore
       if (typeof sdkParams[key] === 'string') {
+        //@ts-ignore
         sql = sql.replace(new RegExp(`\\${key}`, 'g'), `'${sdkParams[key]}'`);
       } else {
+        //@ts-ignore
         sql = sql.replace(new RegExp(`\\${key}`, 'g'), sdkParams[key]);
       }
     });
@@ -1458,7 +1568,9 @@ function querySdk(name: string, sql: string, sdkParams: any, action: string): vo
 
 function queryMetric(name: string): void {
   let metricArray = enc.encode(name);
+  //@ts-ignore
   wasmModule.HEAPU8.set(metricArray, reqBufferAddr);
+  //@ts-ignore
   wasmModule._TraceStreamerSqlMetricsQuery(metricArray.length);
 }
 
@@ -1478,7 +1590,7 @@ function openDB(): Promise<IDBDatabase> {
 
 function queryDataFromIndexeddb(getRequest: IDBRequest<IDBCursorWithValue | null>): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    let results: any[] = [];
+    let results: unknown[] = [];
     getRequest.onerror = (event): void => {
       // @ts-ignore
       reject(event.target.error);
@@ -1497,7 +1609,7 @@ function queryDataFromIndexeddb(getRequest: IDBRequest<IDBCursorWithValue | null
   });
 }
 
-function addDataToIndexeddb(db: IDBDatabase, value: any, key?: IDBValidKey): Promise<unknown> {
+function addDataToIndexeddb(db: IDBDatabase, value: unknown, key?: IDBValidKey): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     const objectStore = transaction.objectStore(STORE_NAME);

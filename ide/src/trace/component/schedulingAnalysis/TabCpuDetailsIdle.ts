@@ -34,7 +34,7 @@ export class TabCpuDetailsIdle extends BaseElement {
   private cpuDetailsLdlProgress: LitProgressBar | null | undefined;
   traceChange: boolean = false;
   private cpuDetailsLdlPie: LitChartPie | null | undefined;
-  private cpuDetailsLdlData: Array<any> = [];
+  private cpuDetailsLdlData: Array<unknown> = [];
   private cpuDetailsLdlSortColumn: string = '';
   private sortType: number = 0;
 
@@ -44,29 +44,29 @@ export class TabCpuDetailsIdle extends BaseElement {
     this.cpuDetailsLdlPie = this.shadowRoot!.querySelector<LitChartPie>('#cpu_idle_chart-pie');
     this.cpuDetailsLdlUsageTbl = this.shadowRoot!.querySelector<LitTable>('#idle-tb-cpu-usage');
 
-    this.cpuDetailsLdlUsageTbl!.addEventListener('row-click', (evt: any): void => {
+    this.cpuDetailsLdlUsageTbl!.addEventListener('row-click', (evt: unknown): void => {
       // @ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
-      if ((evt.detail as any).callBack) {
+      if ((evt.detail as unknown).callBack) {
         // @ts-ignore
-        (evt.detail as any).callBack(true);
+        (evt.detail as unknown).callBack(true);
       }
     });
 
-    this.cpuDetailsLdlUsageTbl!.addEventListener('column-click', (evt: any): void => {
-      this.cpuDetailsLdlSortColumn = evt.detail.key;
+    this.cpuDetailsLdlUsageTbl!.addEventListener('column-click', (evt: unknown): void => {//@ts-ignore
+      this.cpuDetailsLdlSortColumn = evt.detail.key;//@ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.cpuDetailsLdlUsageTbl!.addEventListener('row-hover', (evt: any): void => {
-      if (evt.detail.data) {
+    this.cpuDetailsLdlUsageTbl!.addEventListener('row-hover', (evt: unknown): void => {//@ts-ignore
+      if (evt.detail.data) {//@ts-ignore
         let data = evt.detail.data;
-        data.isHover = true;
-        if ((evt.detail as any).callBack) {
-          (evt.detail as any).callBack(true);
+        data.isHover = true;//@ts-ignore
+        if ((evt.detail as unknown).callBack) {//@ts-ignore
+          (evt.detail as unknown).callBack(true);
         }
       }
       this.cpuDetailsLdlPie?.showHover();
@@ -84,7 +84,7 @@ export class TabCpuDetailsIdle extends BaseElement {
     this.cpuDetailsLdlProgress!.loading = true;
     this.queryLoginWorker(`scheduling-${type}`, 'query Cpu Frequency Analysis Time:', (res): void => {
       this.traceChange = true;
-      this.cpuDetailsLdlProgress!.loading = false;
+      this.cpuDetailsLdlProgress!.loading = false;//@ts-ignore
       this.cpuDetailsLdlData = res.get(cpu) || [];
       this.cpuDetailsLdlData = getDataNo(this.cpuDetailsLdlData);
       this.tableNoData!.noData = this.cpuDetailsLdlData.length === 0;
@@ -112,8 +112,8 @@ export class TabCpuDetailsIdle extends BaseElement {
       label: {
         type: 'outer',
         color:
-          type !== 'CPU Idle' ? undefined : (it): string => {
-            return pieChartColors[(it as any).value];
+          type !== 'CPU Idle' ? undefined : (it): string => {//@ts-ignore
+            return pieChartColors[(it as unknown).value];
           },
       },
       hoverHandler: (data): void => {
@@ -125,12 +125,18 @@ export class TabCpuDetailsIdle extends BaseElement {
       },
       tip: (idleObj): string => {
         return `<div>
-                                <div>idle:${idleObj.obj.value}</div> 
-                                <div>min:${idleObj.obj.min}</div>
-                                <div>max:${idleObj.obj.max}</div>
-                                <div>average:${idleObj.obj.avg}</div>
-                                <div>duration:${idleObj.obj.sumTimeStr}</div>
-                                <div>ratio:${idleObj.obj.ratio}%</div>
+                                <div>idle:${// @ts-ignore
+                                  idleObj.obj.value}</div> 
+                                <div>min:${// @ts-ignore
+                                  idleObj.obj.min}</div>
+                                <div>max:${// @ts-ignore
+                                  idleObj.obj.max}</div>
+                                <div>average:${// @ts-ignore
+                                  idleObj.obj.avg}</div>
+                                <div>duration:${// @ts-ignore
+                                  idleObj.obj.sumTimeStr}</div>
+                                <div>ratio:${// @ts-ignore
+                                  idleObj.obj.ratio}%</div>
                             </div>
                                 `;
       },
@@ -154,7 +160,7 @@ export class TabCpuDetailsIdle extends BaseElement {
     this.noData(false);
   }
 
-  queryLoginWorker(idleType: string, log: string, handler: (res: any) => void): void {
+  queryLoginWorker(idleType: string, log: string, handler: (res: unknown) => void): void {
     let cpuDetailsldleTime = new Date().getTime();
     procedurePool.submitWithName(
       'logic0',
@@ -170,39 +176,40 @@ export class TabCpuDetailsIdle extends BaseElement {
     info(log, durTime);
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(cpuDetailsLdlProperty, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[cpuDetailsLdlProperty]) - parseFloat(a[cpuDetailsLdlProperty]) :
+          return sort === 2 ? parseFloat(b[cpuDetailsLdlProperty]) - parseFloat(a[cpuDetailsLdlProperty]) ://@ts-ignore
             parseFloat(a[cpuDetailsLdlProperty]) - parseFloat(b[cpuDetailsLdlProperty]);
         } else {
-          if (sort === 2) {
+          if (sort === 2) {//@ts-ignore
             return b[cpuDetailsLdlProperty].toString().localeCompare(a[cpuDetailsLdlProperty].toString());
-          } else {
+          } else {//@ts-ignore
             return a[cpuDetailsLdlProperty].toString().localeCompare(b[cpuDetailsLdlProperty].toString());
           }
         }
       };
     }
 
-    if (detail.key === 'min') {
-      detail.key = 'minValue';
+    //@ts-ignore
+    if (detail.key === 'min') {//@ts-ignore
+      detail.key = 'minValue';//@ts-ignore
+      this.cpuDetailsLdlData.sort(compare(detail.key, detail.sort, 'number'));//@ts-ignore
+    } else if (detail.key === 'max') {//@ts-ignore
+      detail.key = 'maxValue';//@ts-ignore
+      this.cpuDetailsLdlData.sort(compare(detail.key, detail.sort, 'number'));//@ts-ignore
+    } else if (detail.key === 'avg') {//@ts-ignore
+      detail.key = 'avgValue';//@ts-ignore
+      this.cpuDetailsLdlData.sort(compare(detail.key, detail.sort, 'number'));//@ts-ignore
+    } else if (detail.key === 'sumTimeStr') {//@ts-ignore
+      detail.key = 'sum';//@ts-ignore
+      this.cpuDetailsLdlData.sort(compare(detail.key, detail.sort, 'number'));//@ts-ignore
+    } else if (detail.key === 'value' || detail.key === 'ratio' || detail.key === 'index') {//@ts-ignore
       this.cpuDetailsLdlData.sort(compare(detail.key, detail.sort, 'number'));
-    } else if (detail.key === 'max') {
-      detail.key = 'maxValue';
-      this.cpuDetailsLdlData.sort(compare(detail.key, detail.sort, 'number'));
-    } else if (detail.key === 'avg') {
-      detail.key = 'avgValue';
-      this.cpuDetailsLdlData.sort(compare(detail.key, detail.sort, 'number'));
-    } else if (detail.key === 'sumTimeStr') {
-      detail.key = 'sum';
-      this.cpuDetailsLdlData.sort(compare(detail.key, detail.sort, 'number'));
-    } else if (detail.key === 'value' || detail.key === 'ratio' || detail.key === 'index') {
-      this.cpuDetailsLdlData.sort(compare(detail.key, detail.sort, 'number'));
-    } else {
+    } else {//@ts-ignore
       this.cpuDetailsLdlData.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.cpuDetailsLdlUsageTbl!.recycleDataSource = this.cpuDetailsLdlData;

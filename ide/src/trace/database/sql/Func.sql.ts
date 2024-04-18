@@ -107,7 +107,8 @@ export const querySingleFuncNameCycle = (
     }
   );
 
-export const queryAllFuncNames = (): Promise<Array<any>> => {
+export const queryAllFuncNames = ()://@ts-ignore
+ Promise<Array<unknown>> => {
   return query(
     'queryAllFuncNames',
     `
@@ -115,7 +116,8 @@ export const queryAllFuncNames = (): Promise<Array<any>> => {
   );
 };
 
-export const queryProcessAsyncFunc = (traceRange: { startTs: number; endTs: number }): Promise<Array<any>> =>
+export const queryProcessAsyncFunc = (traceRange: { startTs: number; endTs: number })://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryProcessAsyncFunc',
     `select tid,
@@ -131,7 +133,8 @@ export const queryProcessAsyncFunc = (traceRange: { startTs: number; endTs: numb
     {}
   );
 
-export const getMaxDepthByTid = (): Promise<Array<any>> =>
+export const getMaxDepthByTid = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'getMaxDepthByTid',
     `SELECT 
@@ -250,7 +253,8 @@ export const getTabSlicesAsyncFunc = (
   asyncPid: Array<number>,
   leftNS: number,
   rightNS: number
-): Promise<Array<any>> =>
+)://@ts-ignore
+ Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabSlicesAsyncFunc',
     `
@@ -336,7 +340,8 @@ export const queryHeapFunction = (fileId: number): Promise<Array<HeapTraceFuncti
       FROM js_heap_trace_function_info WHERE file_id = ${fileId}`
   );
 
-export const queryHeapTraceNode = (fileId: number): Promise<Array<any>> =>
+export const queryHeapTraceNode = (fileId: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryHeapTraceNode',
     `SELECT F.name,

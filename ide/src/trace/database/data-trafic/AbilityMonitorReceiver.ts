@@ -11,226 +11,445 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import { TraficEnum } from './utils/QueryEnum';
-export const cpuAbilityMonitorDataSql = (args: any): string => {
+export const cpuAbilityMonitorDataSql = (args: unknown): string => {
   return `select 
         (t.total_load) as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from cpu_usage t`;
 };
-export const cpuAbilityUserDataSql = (args: any): string => {
+export const cpuAbilityUserDataSql = (args: unknown): string => {
   return `select 
         t.user_load as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from cpu_usage t`;
 };
-export const cpuAbilitySystemDataSql = (args: any): string => {
+export const cpuAbilitySystemDataSql = (args: unknown): string => {
   return `select 
         t.system_load as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from cpu_usage t`;
 };
-export const abilityMemoryDataSql = (args: any): string => {
+export const abilityMemoryDataSql = (args: unknown): string => {
   return `select 
         t.value as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from sys_mem_measure t 
-        where t.filter_id = ${args.id}`;
+        where t.filter_id = ${
+          // @ts-ignore
+          args.id
+        }`;
 };
-export const abilityBytesReadDataSql = (args: any): string => {
+export const abilityBytesReadDataSql = (args: unknown): string => {
   return `select 
         t.rd_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from diskio t`;
 };
-export const abilityBytesWrittenDataSql = (args: any): string => {
+export const abilityBytesWrittenDataSql = (args: unknown): string => {
   return `select 
         t.wr_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from diskio t`;
 };
-export const abilityReadOpsDataSql = (args: any): string => {
+export const abilityReadOpsDataSql = (args: unknown): string => {
   return `select 
         t.rd_count_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from diskio t`;
 };
-export const abilityWrittenOpsDataSql = (args: any): string => {
+export const abilityWrittenOpsDataSql = (args: unknown): string => {
   return `select 
         t.wr_count_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from diskio t`;
 };
-export const abilityBytesInTraceDataSql = (args: any): string => {
+export const abilityBytesInTraceDataSql = (args: unknown): string => {
   return `select 
         t.tx_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from network t`;
 };
-export const abilityBytesOutTraceDataSql = (args: any): string => {
+export const abilityBytesOutTraceDataSql = (args: unknown): string => {
   return `select 
         t.rx_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from network t`;
 };
-export const abilityPacketInDataSql = (args: any): string => {
+export const abilityPacketInDataSql = (args: unknown): string => {
   return `select 
         t.packet_in_sec as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from network t`;
 };
-export const abilityPacketsOutDataSql = (args: any): string => {
+export const abilityPacketsOutDataSql = (args: unknown): string => {
   return `select 
         t.packet_out_sec as value,
-        (t.ts - ${args.recordStartNS} ) as startNs
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs
         from network t`;
 };
-export const cpuAbilityMonitorDataProtoSql = (args: any): string => {
+export const cpuAbilityMonitorDataProtoSql = (args: unknown): string => {
   return `select 
         (t.total_load) as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
+        max(ifnull(t.dur, ${
+          // @ts-ignore
+          args.recordEndNS
+        } - t.ts)) as dur,
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        }) / (${
+          // @ts-ignore
+          Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from cpu_usage t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const cpuAbilityUserDataProtoSql = (args: any): string => {
+export const cpuAbilityUserDataProtoSql = (args: unknown): string => {
   return `select 
         t.user_load as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
+        max(ifnull(t.dur, ${
+          // @ts-ignore
+          args.recordEndNS
+        } - t.ts)) as dur,
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from cpu_usage t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const cpuAbilitySystemDataProtoSql = (args: any): string => {
+export const cpuAbilitySystemDataProtoSql = (args: unknown): string => {
   return `select 
         t.system_load as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
+        max(ifnull(t.dur, ${
+          // @ts-ignore
+          args.recordEndNS
+        } - t.ts)) as dur,
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from cpu_usage t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const abilityMemoryDataProtoSql = (args: any): string => {
+export const abilityMemoryDataProtoSql = (args: unknown): string => {
   return `select 
         t.value as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
         t.dur as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from sys_mem_measure t 
-        where t.filter_id = ${args.id}
-        and startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where t.filter_id = ${
+          // @ts-ignore
+          args.id
+        }
+        and startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const abilityBytesReadDataProtoSql = (args: any): string => {
+export const abilityBytesReadDataProtoSql = (args: unknown): string => {
   return `select 
         t.rd_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
+        max(ifnull(t.dur, ${
+          // @ts-ignore
+          args.recordEndNS
+        } - t.ts)) as dur,
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from diskio t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const abilityBytesWrittenDataProtoSql = (args: any): string => {
+export const abilityBytesWrittenDataProtoSql = (args: unknown): string => {
   return `select 
         t.wr_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
+        max(ifnull(t.dur, ${
+          // @ts-ignore
+          args.recordEndNS
+        } - t.ts)) as dur,
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from diskio t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const abilityReadOpsDataProtoSql = (args: any): string => {
+export const abilityReadOpsDataProtoSql = (args: unknown): string => {
   return `select 
         t.rd_count_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
+        max(ifnull(t.dur, ${
+          // @ts-ignore
+          args.recordEndNS
+        } - t.ts)) as dur,
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from diskio t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const abilityWrittenOpsDataProtoSql = (args: any): string => {
+export const abilityWrittenOpsDataProtoSql = (args: unknown): string => {
   return `select 
         t.wr_count_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
+        max(ifnull(t.dur, ${
+          // @ts-ignore
+          args.recordEndNS
+        } - t.ts)) as dur,
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from diskio t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const abilityBytesInTraceDataProtoSql = (args: any): string => {
+export const abilityBytesInTraceDataProtoSql = (args: unknown): string => {
   return `select 
         t.tx_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
         t.dur as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from network t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const abilityBytesOutTraceDataProtoSql = (args: any): string => {
+export const abilityBytesOutTraceDataProtoSql = (args: unknown): string => {
   return `select 
         t.rx_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
+        max(ifnull(t.dur, ${
+          // @ts-ignore
+          args.recordEndNS
+        } - t.ts)) as dur,
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from network t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const abilityPacketInDataProtoSql = (args: any): string => {
+export const abilityPacketInDataProtoSql = (args: unknown): string => {
   return `select 
         t.packet_in_sec as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
+        max(ifnull(t.dur, ${
+          // @ts-ignore
+          args.recordEndNS
+        } - t.ts)) as dur,
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from network t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
-export const abilityPacketsOutDataProtoSql = (args: any): string => {
+export const abilityPacketsOutDataProtoSql = (args: unknown): string => {
   return `select 
         t.packet_out_sec as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        } ) as startNs,
+        max(ifnull(t.dur, ${
+          // @ts-ignore
+          args.recordEndNS
+        } - t.ts)) as dur,
+        ((t.ts - ${
+          // @ts-ignore
+          args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
+        })) as px
         from network t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
+        where startNs + (ifnull(dur,0)) >= ${
+          // @ts-ignore
+          Math.floor(args.startNS)
+        }
+        and startNs <= ${
+          // @ts-ignore
+          Math.floor(args.endNS)
+        }
         group by px`;
 };
 
-let totalList: Array<any> = [];
-let userList: Array<any> = [];
-let systemList: Array<any> = [];
-let memoryList: Array<any> = [];
-let memoryListMap = new Map<string, Array<any>>();
-let bytesReadList: Array<any> = [];
-let bytesWriteList: Array<any> = [];
-let readOpsList: Array<any> = [];
-let writeOpsList: Array<any> = [];
-let bytesInList: Array<any> = [];
-let bytesOutList: Array<any> = [];
-let packetInList: Array<any> = [];
-let packetOutList: Array<any> = [];
+let totalList: Array<unknown> = [];
+let userList: Array<unknown> = [];
+let systemList: Array<unknown> = [];
+let memoryList: Array<unknown> = [];
+let memoryListMap = new Map<string, Array<unknown>>();
+let bytesReadList: Array<unknown> = [];
+let bytesWriteList: Array<unknown> = [];
+let readOpsList: Array<unknown> = [];
+let writeOpsList: Array<unknown> = [];
+let bytesInList: Array<unknown> = [];
+let bytesOutList: Array<unknown> = [];
+let packetInList: Array<unknown> = [];
+let packetOutList: Array<unknown> = [];
 
 export function resetAbilityMonitor(): void {
   totalList = [];
@@ -252,166 +471,238 @@ export function resetAbilityMonitor(): void {
  * @param proc
  */
 
-export function cpuAbilityMonitorDataReceiver(data: any, proc: Function): void {
+export function cpuAbilityMonitorDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (totalList.length === 0) {
+      // @ts-ignore
       totalList = proc(cpuAbilityMonitorDataSql(data.params));
     }
+    // @ts-ignore
     cpuArrayBufferHandler(data, totalList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = cpuAbilityMonitorDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     cpuArrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function cpuAbilityUserDataReceiver(data: any, proc: Function): void {
+export function cpuAbilityUserDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (userList.length === 0) {
+      // @ts-ignore
       userList = proc(cpuAbilityUserDataSql(data.params));
     }
+    // @ts-ignore
     cpuArrayBufferHandler(data, userList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = cpuAbilityUserDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     cpuArrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function cpuAbilitySystemDataReceiver(data: any, proc: Function): void {
+export function cpuAbilitySystemDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (systemList.length === 0) {
+      // @ts-ignore
       systemList = proc(cpuAbilitySystemDataSql(data.params));
     }
+    // @ts-ignore
     cpuArrayBufferHandler(data, systemList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = cpuAbilitySystemDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     cpuArrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function abilityMemoryUsedDataReceiver(data: any, proc: Function): void {
+export function abilityMemoryUsedDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
+    // @ts-ignore
     if (!memoryListMap.has(data.params.id)) {
+      // @ts-ignore
       memoryList = proc(abilityMemoryDataSql(data.params));
+      // @ts-ignore
       memoryListMap.set(data.params.id, memoryList);
     }
+    // @ts-ignore
     let list = memoryListMap.get(data.params.id) || [];
+    // @ts-ignore
     arrayBufferHandler(data, list, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = abilityMemoryDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function abilityBytesReadDataReceiver(data: any, proc: Function): void {
+export function abilityBytesReadDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (bytesReadList.length === 0) {
+      // @ts-ignore
       bytesReadList = proc(abilityBytesReadDataSql(data.params));
     }
+    // @ts-ignore
     arrayBufferHandler(data, bytesReadList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = abilityBytesReadDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function abilityBytesWrittenDataReceiver(data: any, proc: Function): void {
+export function abilityBytesWrittenDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (bytesWriteList.length === 0) {
+      // @ts-ignore
       bytesWriteList = proc(abilityBytesWrittenDataSql(data.params));
     }
+    // @ts-ignore
     arrayBufferHandler(data, bytesWriteList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = abilityBytesWrittenDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function abilityReadOpsDataReceiver(data: any, proc: Function): void {
+export function abilityReadOpsDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (readOpsList.length === 0) {
+      // @ts-ignore
       readOpsList = proc(abilityReadOpsDataSql(data.params));
     }
+    // @ts-ignore
     arrayBufferHandler(data, readOpsList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = abilityReadOpsDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function abilityWrittenOpsDataReceiver(data: any, proc: Function): void {
+export function abilityWrittenOpsDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (writeOpsList.length === 0) {
+      // @ts-ignore
       writeOpsList = proc(abilityWrittenOpsDataSql(data.params));
     }
+    // @ts-ignore
     arrayBufferHandler(data, writeOpsList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = abilityWrittenOpsDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function abilityBytesInTraceDataReceiver(data: any, proc: Function): void {
+export function abilityBytesInTraceDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (bytesInList.length === 0) {
+      // @ts-ignore
       bytesInList = proc(abilityBytesInTraceDataSql(data.params));
     }
+    // @ts-ignore
     arrayBufferHandler(data, bytesInList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = abilityBytesInTraceDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function abilityBytesOutTraceDataReceiver(data: any, proc: Function): void {
+export function abilityBytesOutTraceDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (bytesOutList.length === 0) {
+      // @ts-ignore
       bytesOutList = proc(abilityBytesOutTraceDataSql(data.params));
     }
+    // @ts-ignore
     arrayBufferHandler(data, bytesOutList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = abilityBytesOutTraceDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function abilityPacketInTraceDataReceiver(data: any, proc: Function): void {
+export function abilityPacketInTraceDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (packetInList.length === 0) {
+      // @ts-ignore
       packetInList = proc(abilityPacketInDataSql(data.params));
     }
+    // @ts-ignore
     arrayBufferHandler(data, packetInList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = abilityPacketInDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
-export function abilityPacketsOutTraceDataReceiver(data: any, proc: Function): void {
+export function abilityPacketsOutTraceDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     if (packetOutList.length === 0) {
+      // @ts-ignore
       packetOutList = proc(abilityPacketsOutDataSql(data.params));
     }
+    // @ts-ignore
     arrayBufferHandler(data, packetOutList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   } else {
+    // @ts-ignore
     let sql = abilityPacketsOutDataProtoSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
+  // @ts-ignore
   let value = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.value);
+  // @ts-ignore
   let dur = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
   res.forEach((it, i) => {
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.abilityData);
+    // @ts-ignore
     startNS[i] = it.startNs;
+    // @ts-ignore
     value[i] = it.value;
+    // @ts-ignore
     dur[i] = it.dur;
   });
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {
@@ -427,19 +718,28 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   );
 }
 
-function cpuArrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function cpuArrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
+  // @ts-ignore
   let value = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.value);
+  // @ts-ignore
   let dur = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
   res.forEach((it, i) => {
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.cpuAbilityData);
+    // @ts-ignore
     startNS[i] = it.startNs;
+    // @ts-ignore
     value[i] = it.value;
+    // @ts-ignore
     dur[i] = it.dur;
   });
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {

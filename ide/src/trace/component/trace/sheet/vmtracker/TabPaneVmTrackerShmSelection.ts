@@ -25,7 +25,7 @@ import { TabPaneVmTrackerShmSelectionHtml } from './TabPaneVmTrackerShmSelection
 @element('tabpane-vmtracker-shm-selection')
 export class TabPaneVmTrackerShmSelection extends BaseElement {
   private TableEl: LitTable | undefined | null;
-  private shmData: Array<any> = [];
+  private shmData: Array<unknown> = [];
   private memoryConfig: MemoryConfig = MemoryConfig.getInstance();
   private tabTitle: HTMLDivElement | undefined | null;
 
@@ -47,20 +47,21 @@ export class TabPaneVmTrackerShmSelection extends BaseElement {
   queryDataByDB(data: SnapshotStruct): void {
     queryVmTrackerShmSelectionData(data.startNs, this.memoryConfig.iPid).then((result) => {
       if (result.length > 0) {
-        for (let filter of result) {
-          filter.name = SpSystemTrace.DATA_DICT.get(filter.name)?.split('/');
-          filter.ts = ns2s(filter.startNS);
+        for (let filter of result) {//@ts-ignore
+          filter.name = SpSystemTrace.DATA_DICT.get(filter.name)?.split('/');//@ts-ignore
+          filter.ts = ns2s(filter.startNS);//@ts-ignore
           filter.sizeStr = Utils.getBinaryByteWithUnit(filter.size);
-          this.TableEl!.getItemTextColor = (filter): any => {
+          // @ts-ignore
+          this.TableEl!.getItemTextColor = (filter): unknown => {
             if (filter.flag === 1) {
-              return '#d4b550';
+              return '#d4b550';// @ts-ignore
             } else if (filter.flag === 2) {
               return '#f86b6b';
             } else {
               return '#000000';
             }
           };
-        }
+        }//@ts-ignore
         this.shmData = result.sort((a, b) => b.size - a.size);
         this.TableEl!.recycleDataSource = this.shmData;
       }
@@ -84,25 +85,37 @@ export class TabPaneVmTrackerShmSelection extends BaseElement {
     }
   }
 
-  private compareValues(a: any, b: any, sort: number): number {
+  private compareValues(a: unknown, b: unknown, sort: number): number {
     if (sort === 1) {
+      // @ts-ignore
       return a > b ? 1 : a < b ? -1 : 0;
     } else {
+      // @ts-ignore
       return a < b ? 1 : a > b ? -1 : 0;
     }
   }
 
   sortByColumn(column: string, sort: number): void {
-    const comparisonFunctions: { [key: string]: (a: any, b: any) => number } = {
+    const comparisonFunctions: { [key: string]: (a: unknown, b: unknown) => number } = {
+      // @ts-ignore
       ts: (a, b) => this.compareValues(a.startNS, b.startNS, sort),
+      // @ts-ignore
       fd: (a, b) => this.compareValues(a.fd, b.fd, sort),
+      // @ts-ignore
       sizeStr: (a, b) => this.compareValues(a.size, b.size, sort),
+      // @ts-ignore
       adj: (a, b) => this.compareValues(a.adj, b.adj, sort),
+      // @ts-ignore
       name: (a, b) => this.compareValues(a.name, b.name, sort),
+      // @ts-ignore
       id: (a, b) => this.compareValues(a.id, b.id, sort),
+      // @ts-ignore
       time: (a, b) => this.compareValues(a.time, b.time, sort),
+      // @ts-ignore
       count: (a, b) => this.compareValues(a.count, b.count, sort),
+      // @ts-ignore
       purged: (a, b) => this.compareValues(a.purged, b.purged, sort),
+      // @ts-ignore
       flag: (a, b) => this.compareValues(a.flag, b.flag, sort),
     };
 

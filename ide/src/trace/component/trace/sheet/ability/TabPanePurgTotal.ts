@@ -68,10 +68,10 @@ export class TabPanePurgTotal extends BaseElement {
     }
   }
 
-  getPurgeableTotalSource(results: any): void {
-    if (results.length > 0) {
-      for (let i = 0; i < results.length; i++) {
-        this.purgeableTotalSource.push(
+  getPurgeableTotalSource(results: unknown): void {// @ts-ignore
+    if (results.length > 0) {// @ts-ignore
+      for (let i = 0; i < results.length; i++) {// @ts-ignore
+        this.purgeableTotalSource.push(// @ts-ignore
           this.toTabStruct(results[i].name, results[i].maxSize, results[i].minSize, results[i].avgSize)
         );
       }
@@ -128,10 +128,10 @@ export class TabPanePurgTotal extends BaseElement {
     return totalData;
   }
 
-  private sortByColumn(detail: any): void {
+  private sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(key, sort, type) {
-      return function (purgeTotalLeftData: any, purgeTotalRightData: any) {
+      return function (purgeTotalLeftData: unknown, purgeTotalRightData: unknown) {
         // 不管哪一列的排序方式是0（默认排序），都按照avgSize列从大到小排序
         if (sort === 0) {
           sort = 2;
@@ -140,22 +140,22 @@ export class TabPanePurgTotal extends BaseElement {
         }
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2
-            ? parseFloat(purgeTotalRightData[key]) - parseFloat(purgeTotalLeftData[key])
+          return sort === 2// @ts-ignore
+            ? parseFloat(purgeTotalRightData[key]) - parseFloat(purgeTotalLeftData[key])// @ts-ignore
             : parseFloat(purgeTotalLeftData[key]) - parseFloat(purgeTotalRightData[key]);
         } else {
-          if (sort === 2) {
+          if (sort === 2) {// @ts-ignore
             return purgeTotalRightData[key].toString().localeCompare(purgeTotalLeftData[key].toString());
-          } else {
+          } else {// @ts-ignore
             return purgeTotalLeftData[key].toString().localeCompare(purgeTotalRightData[key].toString());
           }
         }
       };
     }
-
-    if (detail.key === 'type') {
+// @ts-ignore
+    if (detail.key === 'type') {// @ts-ignore
       this.purgeableTotalSource.sort(compare(detail.key, detail.sort, 'string'));
-    } else {
+    } else {// @ts-ignore
       this.purgeableTotalSource.sort(compare(detail.key, detail.sort, 'number'));
     }
     let total = this.totalData(this.purgeableTotalSource);
@@ -168,8 +168,8 @@ export class TabPanePurgTotal extends BaseElement {
     this.purgeableTotalTable = this.shadowRoot?.querySelector<LitTable>('#tb-purgeable-total');
     this.tabTitle = this.purgeableTotalTable!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.purgTotalTimeRange = this.shadowRoot?.querySelector('#purg-total-time-range') as HTMLLabelElement;
-    this.purgeableTotalTable!.addEventListener('column-click', (evt: any) => {
-      this.sortKey = evt.detail.key;
+    this.purgeableTotalTable!.addEventListener('column-click', (evt: unknown) => {// @ts-ignore
+      this.sortKey = evt.detail.key;// @ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);

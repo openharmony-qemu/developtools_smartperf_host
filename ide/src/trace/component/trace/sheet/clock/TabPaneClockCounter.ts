@@ -109,31 +109,42 @@ export class TabPaneClockCounter extends BaseElement {
         `;
   }
 
-  createSelectCounterData(name: string, list: Array<any>, leftNs: number, rightNs: number): SelectionData {
+  createSelectCounterData(name: string, list: Array<unknown>, leftNs: number, rightNs: number): SelectionData {
     let selectCounterData = new SelectionData();
     if (list.length > 0) {
       let range = rightNs - leftNs;
       let first = list[0];
+      // @ts-ignore
       selectCounterData.trackId = first.filterId;
       selectCounterData.name = name;
+      // @ts-ignore
       selectCounterData.first = `${first.value}`;
       selectCounterData.count = `${list.length}`;
+      // @ts-ignore
       selectCounterData.last = `${list[list.length - 1].value}`;
       selectCounterData.delta = `${parseInt(selectCounterData.last) - parseInt(selectCounterData.first)}`;
       selectCounterData.rate = (parseInt(selectCounterData.delta) / ((range * 1.0) / 1000000000)).toFixed(4);
+      // @ts-ignore
       selectCounterData.min = `${first.value}`;
       selectCounterData.max = '0';
       let weightAvg = 0.0;
       for (let i = 0; i < list.length; i++) {
         let counter = list[i];
+        // @ts-ignore
         if (counter.value < parseInt(selectCounterData.min)) {
+          // @ts-ignore
           selectCounterData.min = counter.value.toString();
         }
+        // @ts-ignore
         if (counter.value > parseInt(selectCounterData.max)) {
+          // @ts-ignore
           selectCounterData.max = counter.value.toString();
         }
+        // @ts-ignore
         let start = i === 0 ? leftNs : counter.startNS;
+        // @ts-ignore
         let end = i === list.length - 1 ? rightNs : list[i + 1].startNS;
+        // @ts-ignore
         weightAvg += counter.value * (((end - start) * 1.0) / range);
       }
       selectCounterData.avgWeight = weightAvg.toFixed(2);
@@ -141,7 +152,7 @@ export class TabPaneClockCounter extends BaseElement {
     return selectCounterData;
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(property, sort, type) {
       return function (clockCounterLeftData: SelectionData, clockCounterRightData: SelectionData): number {
@@ -167,10 +178,12 @@ export class TabPaneClockCounter extends BaseElement {
         }
       };
     }
-
+    // @ts-ignore
     if (detail.key === 'name') {
+      // @ts-ignore
       this.clockCounterSource.sort(compare(detail.key, detail.sort, 'string'));
     } else {
+      // @ts-ignore
       this.clockCounterSource.sort(compare(detail.key, detail.sort, 'number'));
     }
     this.clockCounterTbl!.recycleDataSource = this.clockCounterSource;

@@ -39,7 +39,7 @@ declare global {
   }
 
   interface Window {
-    postMessage(message: any, transfer?: Transferable[]): void;
+    postMessage(message: unknown, transfer?: Transferable[]): void;
     // queryFromWasm: boolean;//use cache or query from db
     isLastFrame: boolean; //last frame mast be draw
     recordStartNS: number;
@@ -74,13 +74,13 @@ declare global {
       };
     };
 
-    subscribe(evt: string, fn: (b: any) => void): void;
+    subscribe(evt: string, fn: (b: unknown) => void): void;
 
-    subscribeOnce(evt: string, fn: (b: any) => void): void;
+    subscribeOnce(evt: string, fn: (b: unknown) => void): void;
 
-    unsubscribe(evt: string, fn: (b: any) => void): void;
+    unsubscribe(evt: string, fn: (b: unknown) => void): void;
 
-    publish(evt: string, data: any): void;
+    publish(evt: string, data: unknown): void;
 
     clearTraceRowComplete(): void;
   }

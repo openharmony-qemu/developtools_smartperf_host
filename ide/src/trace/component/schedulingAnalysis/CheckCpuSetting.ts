@@ -57,7 +57,7 @@ export class CheckCpuSetting extends BaseElement {
 
   init(): void {
     this.initDefaultSetting();
-    let data: any[] = [];
+    let data: unknown[] = [];
     this.table!.innerHTML = '';
     this.createHeaderDiv();
     for (let i = 0; i < SpSchedulingAnalysis.cpuCount; i++) {

@@ -19,7 +19,7 @@ import { resizeCanvas } from '../helper';
 import { getProbablyTime } from '../../../trace/database/logic-worker/ProcedureLogicWorkerCommon';
 
 class Pillar {
-  obj?: any;
+  obj?: unknown;
   xLabel?: string;
   yLabel?: string;
   type?: string;
@@ -78,7 +78,7 @@ export class LitChartColumn extends BaseElement {
       let y = ev.pageY - rect.top;
       this.data.forEach((it) => {
         if (contains(it.bgFrame!, x, y)) {
-          it.hover = true;
+          it.hover = true;//@ts-ignore
           this.litChartColumnCfg?.hoverHandler?.(it.obj.no);
         } else {
           it.hover = false;
@@ -89,7 +89,7 @@ export class LitChartColumn extends BaseElement {
         if (pillars.length > 0) {
           let titleEl = `<label>${this.litChartColumnCfg.xField}: ${pillars[0].xLabel}</label>`;
           let messageEl = pillars.map((it) => `<label>${it.type}: ${it.yLabel}</label>`).join('');
-          let sumEl = `<label>Total: ${pillars
+          let sumEl = `<label>Total: ${pillars//@ts-ignore
             .map((item) => item.obj[this.litChartColumnCfg?.yField!])
             .reduce((pre, current) => pre + current, 0)}</label>`;
           let innerHtml = `<div class="tip-content">${titleEl}${messageEl}${sumEl}</div>`;
@@ -123,7 +123,7 @@ export class LitChartColumn extends BaseElement {
   }
 
   showHoverColumn(index: number): void {
-    this.data.forEach((it) => {
+    this.data.forEach((it) => {//@ts-ignore
       if (it.obj.no === index) {
         it.hover = true;
       } else {
@@ -136,7 +136,7 @@ export class LitChartColumn extends BaseElement {
         let hoverData = pillars[0];
         let title = `<label>${this.litChartColumnCfg.xField}: ${pillars[0].xLabel}</label>`;
         let msg = pillars.map((it) => `<label>${it.type}: ${it.yLabel}</label>`).join('');
-        let sum = `<label>Total: ${pillars
+        let sum = `<label>Total: ${pillars//@ts-ignore
           .map((it) => it.obj[this.litChartColumnCfg?.yField!])
           .reduce((pre, current) => pre + current, 0)}</label>`;
         let innerHtml = `<div class="tip-content">${title}${msg}${sum}</div>`;
@@ -183,7 +183,7 @@ export class LitChartColumn extends BaseElement {
     this.render();
   }
 
-  set dataSource(litChartColumnArr: any[]) {
+  set dataSource(litChartColumnArr: unknown[]) {
     if (this.litChartColumnCfg) {
       this.litChartColumnCfg.data = litChartColumnArr;
       this.measure();
@@ -191,19 +191,19 @@ export class LitChartColumn extends BaseElement {
     }
   }
 
-  get dataSource(): any[] {
+  get dataSource(): unknown[] {
     return this.litChartColumnCfg?.data || [];
   }
 
   dataSort(): void {
     if (!this.litChartColumnCfg!.notSort) {
-      this.litChartColumnCfg?.data.sort(
+      this.litChartColumnCfg?.data.sort(//@ts-ignore
         (a, b) => b[this.litChartColumnCfg!.yField] - a[this.litChartColumnCfg!.yField]
       );
     }
   }
 
-  haveSeriesField(): void {
+  haveSeriesField(): void {//@ts-ignore
     let maxValue = Math.max(...this.litChartColumnCfg!.data.map((it) => it[this.litChartColumnCfg!.yField]));
     maxValue = Math.ceil(maxValue * 0.1) * 10;
     let partWidth = (this.clientWidth - this.offset!.x!) / this.litChartColumnCfg!.data.length;
@@ -221,8 +221,8 @@ export class LitChartColumn extends BaseElement {
       this.data.push({
         color: this.litChartColumnCfg!.color(litChartColumnItem),
         obj: litChartColumnItem,
-        root: true,
-        xLabel: litChartColumnItem[this.litChartColumnCfg!.xField],
+        root: true,//@ts-ignore
+        xLabel: litChartColumnItem[this.litChartColumnCfg!.xField],//@ts-ignore
         yLabel: litChartColumnItem[this.litChartColumnCfg!.yField],
         bgFrame: {
           x: this.offset!.x! + partWidth * litChartColumnIndex,
@@ -232,16 +232,16 @@ export class LitChartColumn extends BaseElement {
         },
         centerX: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 2,
         centerY:
-          partHeight -
-          (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue +
+          partHeight -//@ts-ignore
+          (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue +//@ts-ignore
           (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 2,
         frame: {
-          x: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 6,
+          x: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 6,//@ts-ignore
           y: partHeight - (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
-          w: partWidth - partWidth / 3,
+          w: partWidth - partWidth / 3,//@ts-ignore
           h: (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
         },
-        height: 0,
+        height: 0,//@ts-ignore
         heightStep: Math.ceil((litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 60),
         process: true,
       });
@@ -249,7 +249,7 @@ export class LitChartColumn extends BaseElement {
   }
 
   noSeriesField(
-    itemEl: any,
+    itemEl: unknown,
     y: number,
     initH: number,
     maxValue: number,
@@ -260,9 +260,9 @@ export class LitChartColumn extends BaseElement {
     this.data.push({
       color: this.litChartColumnCfg!.color(itemEl),
       obj: itemEl,
-      root: y === 0,
-      type: itemEl[this.litChartColumnCfg!.seriesField],
-      xLabel: itemEl[this.litChartColumnCfg!.xField],
+      root: y === 0,//@ts-ignore
+      type: itemEl[this.litChartColumnCfg!.seriesField],//@ts-ignore
+      xLabel: itemEl[this.litChartColumnCfg!.xField],//@ts-ignore
       yLabel: itemEl[this.litChartColumnCfg!.yField],
       bgFrame: {
         x: this.offset!.x! + partWidth * reduceGroupIndex,
@@ -273,16 +273,16 @@ export class LitChartColumn extends BaseElement {
       centerX: this.offset!.x! + partWidth * reduceGroupIndex + partWidth / 2,
       centerY:
         partHeight -
-        initH -
-        (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue +
+        initH -//@ts-ignore
+        (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue +//@ts-ignore
         (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 2,
       frame: {
-        x: this.offset!.x! + partWidth * reduceGroupIndex + partWidth / 6,
+        x: this.offset!.x! + partWidth * reduceGroupIndex + partWidth / 6,//@ts-ignore
         y: partHeight - (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue - initH,
-        w: partWidth - partWidth / 3,
+        w: partWidth - partWidth / 3,//@ts-ignore
         h: (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
       },
-      height: 0,
+      height: 0,//@ts-ignore
       heightStep: Math.ceil((itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 60),
       process: true,
     });
@@ -297,16 +297,16 @@ export class LitChartColumn extends BaseElement {
     if (!this.litChartColumnCfg.seriesField) {
       this.haveSeriesField();
     } else {
-      let reduceGroup = this.litChartColumnCfg!.data.reduce((pre, current, index, arr) => {
+      let reduceGroup = this.litChartColumnCfg!.data.reduce((pre, current, index, arr) => {//@ts-ignore
         (pre[current[this.litChartColumnCfg!.xField]] = pre[current[this.litChartColumnCfg!.xField]] || []).push(
           current
         );
         return pre;
-      }, {});
-      let sums = Reflect.ownKeys(reduceGroup).map((k) =>
-        (reduceGroup[k] as any[]).reduce((pre, current) => pre + current[this.litChartColumnCfg!.yField], 0)
-      );
-      let maxValue = Math.ceil(Math.max(...sums) * 0.1) * 10;
+      }, {});//@ts-ignore
+      let sums = Reflect.ownKeys(reduceGroup).map((k) =>//@ts-ignore
+        (reduceGroup[k] as unknown[]).reduce((pre, current) => pre + current[this.litChartColumnCfg!.yField], 0)
+      );//@ts-ignore
+      let maxValue = Math.ceil(Math.max(...sums) * 0.1) * 10;//@ts-ignore
       let partWidth = (this.clientWidth - this.offset!.x!) / Reflect.ownKeys(reduceGroup).length;
       let partHeight = this.clientHeight - this.offset!.y!;
       let gap = partHeight / 5;
@@ -316,18 +316,18 @@ export class LitChartColumn extends BaseElement {
           y: gap * index,
           label: `${getProbablyTime(maxValue - valGap * index)} `,
         });
-      }
+      }//@ts-ignore
       Reflect.ownKeys(reduceGroup)
         .sort(
-          (b, a) =>
-            (reduceGroup[a] as any[]).reduce((pre, cur) => pre + (cur[this.litChartColumnCfg!.yField] as number), 0) -
-            (reduceGroup[b] as any[]).reduce((pre, cur) => pre + (cur[this.litChartColumnCfg!.yField] as number), 0)
+          (b, a) =>//@ts-ignore
+            (reduceGroup[a] as unknown[]).reduce((pre, cur) => pre + (cur[this.litChartColumnCfg!.yField] as number), 0) -//@ts-ignore
+            (reduceGroup[b] as unknown[]).reduce((pre, cur) => pre + (cur[this.litChartColumnCfg!.yField] as number), 0)
         )
-        .forEach((reduceGroupKey, reduceGroupIndex) => {
+        .forEach((reduceGroupKey, reduceGroupIndex) => {//@ts-ignore
           let elements = reduceGroup[reduceGroupKey];
           let initH = 0;
-          elements.forEach((itemEl: any, y: number) => {
-            this.noSeriesField(itemEl, y, initH, maxValue, partWidth, partHeight, reduceGroupIndex);
+          elements.forEach((itemEl: unknown, y: number) => {
+            this.noSeriesField(itemEl, y, initH, maxValue, partWidth, partHeight, reduceGroupIndex);//@ts-ignore
             initH += (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue;
           });
         });

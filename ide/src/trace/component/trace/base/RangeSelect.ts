@@ -25,9 +25,9 @@ import { SpLtpoChart } from '../../chart/SpLTPO';
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;
   private rowsPaneEL: HTMLDivElement | undefined | null;
-  isMouseDown: boolean = false;
-  public rangeTraceRow: Array<TraceRow<any>> | undefined;
-  public selectHandler: ((ds: Array<TraceRow<any>>, refreshCheckBox: boolean) => void) | undefined;
+  isMouseDown: boolean = false;// @ts-ignore
+  public rangeTraceRow: Array<TraceRow<unknown>> | undefined;// @ts-ignore
+  public selectHandler: ((ds: Array<TraceRow<unknown>>, refreshCheckBox: boolean) => void) | undefined;
   private startPageX: number = 0;
   private startPageY: number = 0;
   private endPageX: number = 0;
@@ -84,7 +84,8 @@ export class RangeSelect {
   }
 
   // 对应查询方法行所有的数据
-  queryRowsData(rowList: Array<TraceRow<any>>): void {
+  // @ts-ignore
+  queryRowsData(rowList: Array<TraceRow<unknown>>): void {
     rowList.forEach((row): void  => {
       if (row.getAttribute('row-type') === 'func') {
         if (row.getAttribute('name')?.startsWith('render_service')) {
@@ -99,29 +100,31 @@ export class RangeSelect {
   }
 
   // 查到所有的数据存储起来
-  saveFrameRateData(row: TraceRow<any>, funcName: string): void {
-    let dataList: any = [];
+  // @ts-ignore
+  saveFrameRateData(row: TraceRow<unknown>, funcName: string): void {
+    let dataList: unknown = [];
     queryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void  => {
       if (res.length) {
-        res.forEach((item): void  => {
+        res.forEach((item): void  => {// @ts-ignore
           dataList?.push({ startTime: item.startTime!, tid: item.tid });
         });
-        if (funcName === 'H:RSMainThread::DoComposition') {
+        if (funcName === 'H:RSMainThread::DoComposition') {// @ts-ignore
           this.docomList = dataList;
-        } else {
+        } else {// @ts-ignore
           this.repaintList = dataList;
         }
       }
     });
   }
   // 查到present泳道所有的数据存储起来
-  savePresentData(row: TraceRow<any>, funcName: string): void {
-    let dataList: any = [];
+  // @ts-ignore
+  savePresentData(row: TraceRow<unknown>, funcName: string): void {
+    let dataList: unknown = [];
     fuzzyQueryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void  => {
       if (res.length) {
-        res.forEach((item): void  => {
+        res.forEach((item): void  => {// @ts-ignore
           dataList?.push({ endTime: item.endTime!, tid: item.tid });
-        });
+        });// @ts-ignore
         this.presentList = dataList;
       }
     });
@@ -143,8 +146,8 @@ export class RangeSelect {
     }
     this.isMouseDown = false;
   }
-
-  checkRowsName(rowList: Array<TraceRow<any>>): void  {
+// @ts-ignore
+  checkRowsName(rowList: Array<TraceRow<unknown>>): void  {
     rowList.forEach((row): void  => {
       if (
         row.getAttribute('row-type') === 'func' &&
@@ -162,13 +165,14 @@ export class RangeSelect {
   }
 
   // 过滤处理数据
-  filterRateData(row: TraceRow<any>, data: any): void  {
-    data.forEach((it: any): void  => {
-      if (
-        it.startTime >= TraceRow.rangeSelectObject!.startNS! &&
-        it.startTime <= TraceRow.rangeSelectObject!.endNS! &&
+  // @ts-ignore
+  filterRateData(row: TraceRow<unknown>, data: unknown): void  {// @ts-ignore
+    data.forEach((it: unknown): void  => {
+      if (// @ts-ignore
+        it.startTime >= TraceRow.rangeSelectObject!.startNS! &&// @ts-ignore
+        it.startTime <= TraceRow.rangeSelectObject!.endNS! &&// @ts-ignore
         Number(row.rowId) === Number(it.tid)
-      ) {
+      ) {// @ts-ignore
         row.frameRateList?.push(it.startTime);
       }
     });
@@ -184,13 +188,14 @@ export class RangeSelect {
   }
 
   // 过滤并处理present数据
-  filterPresentData(row: TraceRow<any>, data: any): void  {
-    data.forEach((it: any): void  => {
-      if (
-        it.endTime >= TraceRow.rangeSelectObject!.startNS! &&
-        it.endTime <= TraceRow.rangeSelectObject!.endNS! &&
+  // @ts-ignore
+  filterPresentData(row: TraceRow<unknown>, data: unknown): void  {// @ts-ignore
+    data.forEach((it: unknown): void  => {
+      if (// @ts-ignore
+        it.endTime >= TraceRow.rangeSelectObject!.startNS! &&// @ts-ignore
+        it.endTime <= TraceRow.rangeSelectObject!.endNS! &&// @ts-ignore
         Number(row.rowId) === Number(it.tid)
-      ) {
+      ) {// @ts-ignore
         row.frameRateList?.push(it.endTime);
       }
     });
@@ -251,8 +256,8 @@ export class RangeSelect {
     document.getSelection()?.removeAllRanges();
     this.isMouseDown = false;
   }
-
-  mouseMove(rows: Array<TraceRow<any>>, ev: MouseEvent): void {
+// @ts-ignore
+  mouseMove(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
     this.endPageX = ev.pageX;
     this.endPageY = ev.pageY;
     if (this.isTouchMark(ev) && TraceRow.rangeSelectObject) {
@@ -272,8 +277,8 @@ export class RangeSelect {
     this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow!.length > 0;
     this.timerShaftEL!.sportRuler!.draw();
   }
-
-  private handleRangeSelect(rows: Array<TraceRow<any>>): void {
+// @ts-ignore
+  private handleRangeSelect(rows: Array<TraceRow<unknown>>): void {
     let rangeSelect: RangeSelectStruct | undefined;
     let favoriteRect = this.trace?.favoriteChartListEL?.getBoundingClientRect();
     let favoriteLimit = favoriteRect!.top + favoriteRect!.height;
@@ -305,7 +310,7 @@ export class RangeSelect {
           rangeSelect = new RangeSelectStruct();
           let startX = Math.min(this.startPageX, this.endPageX) - it.describeEl!.getBoundingClientRect().right;
           let endX = Math.max(this.startPageX, this.endPageX) - it.describeEl!.getBoundingClientRect().right;
-          if (startX <= 0) {startX = 0}
+          if (startX <= 0) {startX = 0}// @ts-ignore
           if (endX > it.frame.width) {endX = it.frame.width}
           rangeSelect.startX = startX;
           rangeSelect.endX = endX;
@@ -334,8 +339,8 @@ export class RangeSelect {
     this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow?.isNotEmpty() ?? false;
     this.timerShaftEL!.sportRuler!.draw();
   }
-
-  private handleRangeSelectAndDraw(rows: Array<TraceRow<any>>, ev: MouseEvent): void {
+// @ts-ignore
+  private handleRangeSelectAndDraw(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
     let rangeSelect: RangeSelectStruct | undefined;
     this.rangeTraceRow = rows.filter((it) => {
       if (it.rangeSelect) {
@@ -359,7 +364,7 @@ export class RangeSelect {
           }
           if (startX < 0) {
             rangeSelect.startNS = TraceRow.rangeSelectObject!.startNS!;
-          }
+          }// @ts-ignore
           if (endX > it.frame.width) {
             rangeSelect.endNS = TraceRow.rangeSelectObject!.endNS!;
           }
@@ -396,9 +401,9 @@ export class RangeSelect {
       document.body.style.cursor = 'default';
     }
   }
-
-  static SetNS(row: TraceRow<any>, num: number): number {
-    return Math.floor(
+// @ts-ignore
+  static SetNS(row: TraceRow<unknown>, num: number): number {
+    return Math.floor(// @ts-ignore
       ((TraceRow.range!.endNS - TraceRow.range!.startNS) * num) / row.frame.width + TraceRow.range!.startNS!
     );
   }

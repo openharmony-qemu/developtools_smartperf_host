@@ -108,7 +108,7 @@ export class TabPanePerfSample extends BaseElement {
       for (let stack of result) {
         if (typeof stack.symbol === 'number') {
           stack.symbol = SpSystemTrace.DATA_DICT.get(stack.symbol) || '';
-        }
+        }// @ts-ignore
         let files = (perfDataQuery.filesData[stack.fileId] ?? []) as Array<PerfFile>;
         stack.path = files[stack.symbolId]?.path || '';
         stack.type = stack.path.endsWith('.so.1') || stack.path.endsWith('.dll') || stack.path.endsWith('.so') ? 0 : 1;

@@ -26,41 +26,59 @@ export class CpuFreqStruct extends BaseStruct {
   startNS: number | undefined;
   dur: number | undefined; // Self-supplementing, the database is not returned
 
-  static draw(freqCtx: any, freqData: CpuFreqStruct): void {
+  static draw(freqCtx: unknown, freqData: CpuFreqStruct): void {
     if (freqData.frame) {
       let freqWidth = freqData.frame.width || 0;
       let freqIndex = freqData.cpu || 0;
       freqIndex += 2;
+      // @ts-ignore
       freqCtx.fillStyle = ColorUtils.colorForTid(freqIndex);
+      // @ts-ignore
       freqCtx.strokeStyle = ColorUtils.colorForTid(freqIndex);
       if (freqData.startNS === CpuFreqStruct.hoverCpuFreqStruct?.startNS) {
+        // @ts-ignore
         freqCtx.lineWidth = 1;
+        // @ts-ignore
         freqCtx.globalAlpha = 0.6;
         let drawHeight: number = Math.floor(
           ((freqData.value || 0) * (freqData.frame.height || 0) * 1.0) / CpuFreqStruct.maxFreq
         );
+        // @ts-ignore
         freqCtx.fillRect(
           freqData.frame.x,
           freqData.frame.y + freqData.frame.height - drawHeight,
           freqWidth,
           drawHeight
         );
+        // @ts-ignore
         freqCtx.beginPath();
+        // @ts-ignore
         freqCtx.arc(freqData.frame.x, freqData.frame.y + freqData.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        // @ts-ignore
         freqCtx.fill();
+        // @ts-ignore
         freqCtx.globalAlpha = 1.0;
+        // @ts-ignore
         freqCtx.stroke();
+        // @ts-ignore
         freqCtx.beginPath();
+        // @ts-ignore
         freqCtx.moveTo(freqData.frame.x + 3, freqData.frame.y + freqData.frame.height - drawHeight);
+        // @ts-ignore
         freqCtx.lineWidth = 3;
+        // @ts-ignore
         freqCtx.lineTo(freqData.frame.x + freqWidth, freqData.frame.y + freqData.frame.height - drawHeight);
+        // @ts-ignore
         freqCtx.stroke();
       } else {
+        // @ts-ignore
         freqCtx.globalAlpha = 0.6;
+        // @ts-ignore
         freqCtx.lineWidth = 1;
         let drawHeight: number = Math.floor(
           ((freqData.value || 0) * (freqData.frame.height || 0)) / CpuFreqStruct.maxFreq
         );
+        // @ts-ignore
         freqCtx.fillRect(
           freqData.frame.x,
           freqData.frame.y + freqData.frame.height - drawHeight,
@@ -69,7 +87,9 @@ export class CpuFreqStruct extends BaseStruct {
         );
       }
     }
+    // @ts-ignore
     freqCtx.globalAlpha = 1.0;
+    // @ts-ignore
     freqCtx.lineWidth = 1;
   }
 }

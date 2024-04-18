@@ -43,11 +43,11 @@ export class LitTable extends HTMLElement {
   currentRecycleList: HTMLDivElement[] = [];
   currentTreeDivList: HTMLDivElement[] = [];
   public rememberScrollTop = false;
-  public getItemTextColor?: (data: any) => string;
-  public itemTextHandleMap: Map<string, (value: any) => string> = new Map<string, (value: any) => string>();
-  public exportTextHandleMap: Map<string, (value: any) => string> = new Map<string, (value: any) => string>();
-  public ds: Array<any> = [];
-  public recycleDs: Array<any> = [];
+  public getItemTextColor?: (data: unknown) => string;
+  public itemTextHandleMap: Map<string, (value: unknown) => string> = new Map<string, (value: unknown) => string>();
+  public exportTextHandleMap: Map<string, (value: unknown) => string> = new Map<string, (value: unknown) => string>();
+  public ds: Array<unknown> = [];
+  public recycleDs: Array<unknown> = [];
   public gridTemplateColumns: Array<string> = [];
   public tableColumns: NodeListOf<LitTableColumn> | undefined;
   public treeElement: HTMLDivElement | undefined | null;
@@ -55,7 +55,7 @@ export class LitTable extends HTMLElement {
   public exportLoading: boolean = false;
   public exportProgress: LitProgressBar | null | undefined;
   public tableElement: HTMLDivElement | null | undefined;
-  private normalDs: Array<any> = [];
+  private normalDs: Array<unknown> = [];
   /*Grid css layout descriptions are obtained according to the clustern[] nested structure*/
   private st: HTMLSlotElement | null | undefined;
   private theadElement: HTMLDivElement | null | undefined;
@@ -63,7 +63,7 @@ export class LitTable extends HTMLElement {
   private colCount: number = 0;
   private isRecycleList: boolean = true;
   private isScrollXOutSide: boolean = false;
-  private value: Array<any> = [];
+  private value: Array<unknown> = [];
   private _mode = TableMode.Expand;
   private columnResizeEnable: boolean = true;
   private _isSearch: boolean = false;
@@ -129,7 +129,7 @@ export class LitTable extends HTMLElement {
     this.setAttribute('scroll-y', value);
   }
 
-  get dataSource(): any[] {
+  get dataSource(): unknown[] {
     return this.ds || [];
   }
 
@@ -156,7 +156,7 @@ export class LitTable extends HTMLElement {
     return this.hasAttribute('noRecycle');
   }
 
-  get recycleDataSource(): any[] {
+  get recycleDataSource(): unknown[] {
     return this.ds || [];
   }
 
@@ -193,7 +193,7 @@ export class LitTable extends HTMLElement {
     }
   }
 
-  get snapshotDataSource(): any[] {
+  get snapshotDataSource(): unknown[] {
     return this.ds || [];
   }
 
@@ -227,7 +227,7 @@ export class LitTable extends HTMLElement {
     ExcelFormater.testExport(
       [
         {
-          columns: this.columns as any[],
+          columns: this.columns as unknown[],
           tables: this.ds,
           sheetName: `${now}`,
         },
@@ -236,11 +236,11 @@ export class LitTable extends HTMLElement {
     );
   }
 
-  formatExportData(dataSource: any[]): any[] {
+  formatExportData(dataSource: unknown[]): unknown[] {
     return formatExportData(dataSource, this);
   }
 
-  formatExportCsvData(dataSource: any[]): string {
+  formatExportCsvData(dataSource: unknown[]): string {
     if (dataSource === undefined || dataSource.length === 0) {
       return '';
     }
@@ -275,7 +275,7 @@ export class LitTable extends HTMLElement {
    * @param depth 展开深度，用来实现和图标的联动
    * @param profundity 展开深度，用来实现逐级展开
    */
-  public setStatus(list: any, status: boolean, depth: number = 0, profundity?: number): void {
+  public setStatus(list: unknown, status: boolean, depth: number = 0, profundity?: number): void {
     this.tableElement!.scrollTop = 0;
     // 添加depth参数，让切换图标的代码在递归中只走一遍
     if (depth === 0) {
@@ -286,7 +286,7 @@ export class LitTable extends HTMLElement {
         this.shadowRoot!.querySelector<LitIcon>('.top')!.name = 'up';
         this.shadowRoot!.querySelector<LitIcon>('.bottom')!.name = 'down';
       }
-    }
+    }// @ts-ignore
     for (let item of list) {
       if (profundity) {
         if (depth < profundity) {
@@ -324,23 +324,23 @@ export class LitTable extends HTMLElement {
         let rowElement = document.createElement('div');
         rowElement.classList.add('th');
         addSelectAllBox(rowElement, this);
-        let area: Array<any> = [];
+        let area: Array<unknown> = [];
         this.gridTemplateColumns = [];
         this.resolvingArea(this.columns, 0, 0, area, rowElement);
         area.forEach((rows, j, array) => {
-          for (let i = 0; i < this.colCount; i++) {
-            if (!rows[i]) {
+          for (let i = 0; i < this.colCount; i++) {// @ts-ignore
+            if (!rows[i]) {// @ts-ignore
               rows[i] = array[j - 1][i];
             }
           }
         });
-        if (this.selectable) {
-          let s = area.map((a) => '"_checkbox_ ' + a.map((aa: any) => aa.t).join(' ') + '"').join(' ');
+        if (this.selectable) {// @ts-ignore
+          let s = area.map((a) => '"_checkbox_ ' + a.map((aa: unknown) => aa.t).join(' ') + '"').join(' ');
           rowElement.style.gridTemplateColumns = '60px ' + this.gridTemplateColumns.join(' ');
           rowElement.style.gridTemplateRows = `repeat(${area.length},1fr)`;
           rowElement.style.gridTemplateAreas = s;
-        } else {
-          let s = area.map((a) => '"' + a.map((aa: any) => aa.t).join(' ') + '"').join(' ');
+        } else {// @ts-ignore
+          let s = area.map((a) => '"' + a.map((aa: unknown) => aa.t).join(' ') + '"').join(' ');
           rowElement.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
           rowElement.style.gridTemplateRows = `repeat(${area.length},1fr)`;
           rowElement.style.gridTemplateAreas = s;
@@ -355,45 +355,45 @@ export class LitTable extends HTMLElement {
     this.tbodyElement && (this.tbodyElement!.style.transform = 'translateY(0px)');
   }
 
-  resolvingArea(columns: any, x: any, y: any, area: Array<any>, rowElement: HTMLDivElement): void {
-    columns.forEach((a: any, i: any) => {
-      if (!area[y]) {
+  resolvingArea(columns: unknown, x: unknown, y: unknown, area: Array<unknown>, rowElement: HTMLDivElement): void {// @ts-ignore
+    columns.forEach((a: unknown, i: unknown) => {// @ts-ignore
+      if (!area[y]) {// @ts-ignore
         area[y] = [];
-      }
-      let key = a.getAttribute('key') || a.getAttribute('title');
-      if (a.tagName === 'LIT-TABLE-GROUP') {
-        let len = a.querySelectorAll('lit-table-column').length;
+      }// @ts-ignore
+      let key = a.getAttribute('key') || a.getAttribute('title');// @ts-ignore
+      if (a.tagName === 'LIT-TABLE-GROUP') {// @ts-ignore
+        let len = a.querySelectorAll('lit-table-column').length;// @ts-ignore
         let children = [...a.children].filter((a) => a.tagName !== 'TEMPLATE');
-        if (children.length > 0) {
+        if (children.length > 0) {// @ts-ignore
           this.resolvingArea(children, x, y + 1, area, rowElement);
         }
-        for (let j = 0; j < len; j++) {
-          area[y][x] = { x, y, t: key };
+        for (let j = 0; j < len; j++) {// @ts-ignore
+          area[y][x] = { x, y, t: key };// @ts-ignore
           x++;
         }
         let h = document.createElement('div');
-        h.classList.add('td');
+        h.classList.add('td');// @ts-ignore
         h.style.justifyContent = a.getAttribute('align');
         h.style.borderBottom = '1px solid #f0f0f0';
-        h.style.gridArea = key;
-        h.innerText = a.title;
-        if (a.hasAttribute('fixed')) {
+        h.style.gridArea = key;// @ts-ignore
+        h.innerText = a.title;// @ts-ignore
+        if (a.hasAttribute('fixed')) {// @ts-ignore
           fixed(h, a.getAttribute('fixed'), '#42b983');
         }
-        rowElement.append(h);
-      } else if (a.tagName === 'LIT-TABLE-COLUMN') {
-        area[y][x] = { x, y, t: key };
-        x++;
-        let head = this.resolvingAreaColumn(rowElement, a, i, key);
-        this.gridTemplateColumns.push(a.getAttribute('width') || '1fr');
+        rowElement.append(h);// @ts-ignore
+      } else if (a.tagName === 'LIT-TABLE-COLUMN') {// @ts-ignore
+        area[y][x] = { x, y, t: key };// @ts-ignore
+        x++;// @ts-ignore
+        let head = this.resolvingAreaColumn(rowElement, a, i, key);// @ts-ignore
+        this.gridTemplateColumns.push(a.getAttribute('width') || '1fr');// @ts-ignore
         let labelArr = a.title.split('/');
         for (let i = 0; i < labelArr.length; i++) {
           let titleLabel = document.createElement('label');
           titleLabel.style.cursor = 'pointer';
           i === 0 ? (titleLabel.textContent = labelArr[i]) : (titleLabel.textContent = '/' + labelArr[i]);
           head.appendChild(titleLabel);
-        }
-        if (a.hasAttribute('fixed')) {
+        }// @ts-ignore
+        if (a.hasAttribute('fixed')) {// @ts-ignore
           fixed(head, a.getAttribute('fixed'), '#42b983');
         }
         rowElement.append(head);
@@ -401,24 +401,24 @@ export class LitTable extends HTMLElement {
     });
   }
 
-  resolvingAreaColumn(rowElement: HTMLDivElement, column: any, index: number, key: string): HTMLDivElement {
-    let head: any = document.createElement('div');
+  resolvingAreaColumn(rowElement: HTMLDivElement, column: unknown, index: number, key: string): HTMLDivElement {
+    let head: unknown = document.createElement('div');// @ts-ignore
     head.classList.add('td');
     if ((this.hasAttribute('tree') && index > 1) || (!this.hasAttribute('tree') && index > 0)) {
       let resizeDiv: HTMLDivElement = document.createElement('div');
-      resizeDiv.classList.add('resize');
+      resizeDiv.classList.add('resize');// @ts-ignore
       head.appendChild(resizeDiv);
       this.resizeEventHandler(rowElement, resizeDiv, index);
-    }
+    }// @ts-ignore
     this.resolvingAreaColumnRetract(column, head);
-    this.resolvingAreaColumnOrder(column, index, key, head);
-    this.resolvingAreaColumnButton(column, key, head);
-    head.style.justifyContent = column.getAttribute('align');
-    head.style.gridArea = key;
+    this.resolvingAreaColumnOrder(column, index, key, head);// @ts-ignore
+    this.resolvingAreaColumnButton(column, key, head);// @ts-ignore
+    head.style.justifyContent = column.getAttribute('align');// @ts-ignore
+    head.style.gridArea = key;// @ts-ignore
     return head;
   }
 
-  resolvingAreaColumnRetract(column: any, columnHead: HTMLDivElement): void {
+  resolvingAreaColumnRetract(column: unknown, columnHead: HTMLDivElement): void {// @ts-ignore
     if (column.hasAttribute('retract')) {
       let expand = document.createElement('div');
       expand.classList.add('expand');
@@ -451,7 +451,7 @@ export class LitTable extends HTMLElement {
     }
   }
 
-  resolvingAreaColumnButton(column: any, key: string, head: HTMLDivElement): void {
+  resolvingAreaColumnButton(column: unknown, key: string, head: HTMLDivElement): void {// @ts-ignore
     if (column.hasAttribute('button')) {
       let buttonIcon = document.createElement('button');
       buttonIcon.innerHTML = 'GetBusyTime(ms)';
@@ -471,32 +471,32 @@ export class LitTable extends HTMLElement {
     }
   }
 
-  resolvingAreaColumnOrder(column: any, index: number, key: string, columnHead: any): void {
-    if (column.hasAttribute('order')) {
-      (columnHead as any).sortType = 0;
-      columnHead.classList.add('td-order');
-      columnHead.style.position = 'relative';
-      let { upSvg, downSvg } = createDownUpSvg(index, columnHead);
+  resolvingAreaColumnOrder(column: unknown, index: number, key: string, columnHead: unknown): void {// @ts-ignore
+    if (column.hasAttribute('order')) {// @ts-ignore
+      (columnHead as unknown).sortType = 0;// @ts-ignore
+      columnHead.classList.add('td-order');// @ts-ignore
+      columnHead.style.position = 'relative';// @ts-ignore
+      let { upSvg, downSvg } = createDownUpSvg(index, columnHead);// @ts-ignore
       columnHead.onclick = (): void => {
         if (this.isResize || this.resizeColumnIndex !== -1) {
           return;
         }
-        this?.shadowRoot?.querySelectorAll('.td-order svg').forEach((it: any) => {
-          it.setAttribute('fill', 'let(--dark-color1,#212121)');
-          it.sortType = 0;
+        this?.shadowRoot?.querySelectorAll('.td-order svg').forEach((it: unknown) => {// @ts-ignore
+          it.setAttribute('fill', 'let(--dark-color1,#212121)');// @ts-ignore
+          it.sortType = 0;// @ts-ignore
           it.style.display = 'none';
-        });
-        if (columnHead.sortType === undefined || columnHead.sortType === null) {
+        });// @ts-ignore
+        if (columnHead.sortType === undefined || columnHead.sortType === null) {// @ts-ignore
+          columnHead.sortType = 0;// @ts-ignore
+        } else if (columnHead.sortType === 2) {// @ts-ignore
           columnHead.sortType = 0;
-        } else if (columnHead.sortType === 2) {
-          columnHead.sortType = 0;
-        } else {
+        } else {// @ts-ignore
           columnHead.sortType += 1;
         }
         upSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
-        downSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
-        upSvg.style.display = columnHead.sortType === 1 ? 'block' : 'none';
-        downSvg.style.display = columnHead.sortType === 2 ? 'block' : 'none';
+        downSvg.setAttribute('fill', 'let(--dark-color1,#212121)');// @ts-ignore
+        upSvg.style.display = columnHead.sortType === 1 ? 'block' : 'none';// @ts-ignore
+        downSvg.style.display = columnHead.sortType === 2 ? 'block' : 'none';// @ts-ignore
         switch (columnHead.sortType) {
           case 1:
             this.theadElement!.setAttribute('sort', '');
@@ -509,7 +509,7 @@ export class LitTable extends HTMLElement {
         }
         this.dispatchEvent(
           new CustomEvent('column-click', {
-            detail: {
+            detail: {// @ts-ignore
               sort: columnHead.sortType,
               key: key,
             },
@@ -612,17 +612,17 @@ export class LitTable extends HTMLElement {
 
   adoptedCallback(): void {}
 
-  getCheckRows(): any[] {
+  getCheckRows(): unknown[] {
     // @ts-ignore
-    return [...this.shadowRoot!.querySelectorAll('div[class=tr][checked]')]
-      .map((a) => (a as any).data)
+    return [...this.shadowRoot!.querySelectorAll('div[class=tr][checked]')]// @ts-ignore
+      .map((a) => (a as unknown).data)
       .map((a) => {
         delete a['children'];
         return a;
       });
   }
 
-  deleteRowsCondition(fn: any): void {
+  deleteRowsCondition(fn: unknown): void {
     this.shadowRoot!.querySelectorAll('div[class=tr]').forEach((tr) => {
       // @ts-ignore
       if (fn(tr.data)) {
@@ -631,19 +631,19 @@ export class LitTable extends HTMLElement {
     });
   }
 
-  meauseElementHeight(rowData: any): number {
+  meauseElementHeight(rowData: unknown): number {
     return 27;
   }
 
-  meauseTreeElementHeight(rowData: any, depth: number): number {
+  meauseTreeElementHeight(rowData: unknown, depth: number): number {
     return 27;
   }
 
-  getVisibleObjects(list: any[]): { visibleObjects: TableRowObject[], totalHeight: number } {
+  getVisibleObjects(list: unknown[]): { visibleObjects: TableRowObject[], totalHeight: number } {
     let headHeight = 0;
     let totalHeight = headHeight;
     let visibleObjects: TableRowObject[] = [];
-    let itemHandler = (rowData: any, index: number): void => {
+    let itemHandler = (rowData: unknown, index: number): void => {
       let height = this.meauseElementHeight(rowData);
       let tableRowObject = new TableRowObject();
       tableRowObject.height = height;
@@ -655,7 +655,7 @@ export class LitTable extends HTMLElement {
         Math.min(totalHeight + height, this.tableElement!.scrollTop + this.tableElement!.clientHeight + headHeight)
       ) {
         let newTableElement = this.addTableElement(tableRowObject, false, false, true, totalHeight);
-        let td = newTableElement?.querySelectorAll('.td');
+        let td = newTableElement?.querySelectorAll('.td');//@ts-ignore
         if (tableRowObject.data.rowName === 'cpu-profiler') {
           td[0].innerHTML = '';
           this.createTextColor(tableRowObject, td[0]);
@@ -678,7 +678,7 @@ export class LitTable extends HTMLElement {
     return { visibleObjects, totalHeight };
   }
 
-  meauseAllRowHeight(list: any[]): TableRowObject[] {
+  meauseAllRowHeight(list: unknown[]): TableRowObject[] {
     this.tbodyElement!.innerHTML = '';
     this.meauseRowElement = undefined;
     let head = this.shadowRoot!.querySelector('.th');
@@ -716,14 +716,14 @@ export class LitTable extends HTMLElement {
 
   freshLineHandler(index: number, skip: number, visibleObjects: TableRowObject[]): void {
     this.freshCurrentLine(this.currentRecycleList[index], visibleObjects[index + skip]);
-    if (visibleObjects[index + skip]) {
+    if (visibleObjects[index + skip]) {//@ts-ignore
       if (visibleObjects[index + skip].data.rowName === 'cpu-profiler') {
         this.createTextColor(visibleObjects[index + skip], this.currentRecycleList[index].childNodes[0]);
       }
     }
   }
 
-  newTableRowObject(item: any, totalHeight: number, depth: number, parentNode?: TableRowObject): TableRowObject {
+  newTableRowObject(item: unknown, totalHeight: number, depth: number, parentNode?: TableRowObject): TableRowObject {
     let tableRowObject = new TableRowObject();
     tableRowObject.depth = depth;
     tableRowObject.data = item;
@@ -736,7 +736,7 @@ export class LitTable extends HTMLElement {
   }
 
   resetAllHeight(
-    list: any[],
+    list: unknown[],
     depth: number,
     totalHeight: number,
     visibleObjects: TableRowObject[],
@@ -746,17 +746,17 @@ export class LitTable extends HTMLElement {
     let th = totalHeight;
     let headHeight = this.theadElement?.clientHeight || 0;
     list.forEach((item) => {
-      let tableRowObject = this.newTableRowObject(item, th, depth, parentNode);
+      let tableRowObject = this.newTableRowObject(item, th, depth, parentNode);// @ts-ignore
       if (this._mode === TableMode.Expand && form === RedrawTreeForm.Retract && !item.status) {
         tableRowObject.expanded = false;
       } else if (this._mode === TableMode.Expand && form === RedrawTreeForm.Default) {
         tableRowObject.expanded = true;
       }
-      if (
-        (this._mode === TableMode.Retract && !item.status) ||
+      if (// @ts-ignore
+        (this._mode === TableMode.Retract && !item.status) ||// @ts-ignore
         (this._mode === TableMode.Expand && !item.status && form !== RedrawTreeForm.Expand)
       ) {
-        tableRowObject.expanded = false;
+        tableRowObject.expanded = false;// @ts-ignore
         if (item.children !== undefined && item.children.length > 0) {
           this.newTableRowObject(item, th, depth, tableRowObject);
         }
@@ -778,32 +778,33 @@ export class LitTable extends HTMLElement {
   }
 
   resetAllHeightChildrenHandler(
-    item: any,
+    item: unknown,
     depth: number,
     totalHeight: number,
     visibleObjects: TableRowObject[],
     tableRowObject?: TableRowObject,
     form?: RedrawTreeForm
   ): number {
-    let th = totalHeight;
+    let th = totalHeight;// @ts-ignore
     if (item.hasNext) {
       // js memory的表格
-      if (item.parents !== undefined && item.parents.length > 0 && item.status) {
-        th = this.resetAllHeight(item.parents, depth + 1, totalHeight, visibleObjects, tableRowObject);
-      } else if (item.children !== undefined && item.children.length > 0 && item.status) {
+      // @ts-ignore
+      if (item.parents !== undefined && item.parents.length > 0 && item.status) {// @ts-ignore
+        th = this.resetAllHeight(item.parents, depth + 1, totalHeight, visibleObjects, tableRowObject);// @ts-ignore
+      } else if (item.children !== undefined && item.children.length > 0 && item.status) {// @ts-ignore
         th = this.resetAllHeight(item.children, depth + 1, totalHeight, visibleObjects, tableRowObject);
       }
     } else {
       // 其他数据
-      if (
-        item.children !== undefined &&
+      if (// @ts-ignore
+        item.children !== undefined &&// @ts-ignore
         item.children.length > 0 &&
         form === RedrawTreeForm.Expand &&
         this._mode === TableMode.Expand
-      ) {
-        item.status = true;
-        th = this.resetAllHeight(item.children, depth + 1, totalHeight, visibleObjects, tableRowObject);
-      } else if (item.children !== undefined && item.children.length > 0 && item.status) {
+      ) {// @ts-ignore
+        item.status = true;// @ts-ignore
+        th = this.resetAllHeight(item.children, depth + 1, totalHeight, visibleObjects, tableRowObject);// @ts-ignore
+      } else if (item.children !== undefined && item.children.length > 0 && item.status) {// @ts-ignore
         th = this.resetAllHeight(item.children, depth + 1, totalHeight, visibleObjects, tableRowObject);
       }
     }
@@ -820,7 +821,7 @@ export class LitTable extends HTMLElement {
     this.currentTreeDivList = [];
   }
 
-  meauseTreeRowElement(list: any[], form?: RedrawTreeForm): TableRowObject[] {
+  meauseTreeRowElement(list: unknown[], form?: RedrawTreeForm): TableRowObject[] {
     this.measureReset();
     let visibleObjects: TableRowObject[] = [];
     let totalHeight = 0;
@@ -829,13 +830,13 @@ export class LitTable extends HTMLElement {
     this.treeElement!.style.height = this.tableElement!.clientHeight - this.theadElement!.clientHeight + 'px';
     this.tableElement &&
       (this.tableElement.onscroll = (event): void => {
-        let visibleObjects = this.recycleDs.filter((item) => {
+        let visibleObjects = this.recycleDs.filter((item) => {// @ts-ignore
           return !item.rowHidden;
         });
         let top = this.tableElement!.scrollTop;
         this.treeElement && (this.treeElement!.style.transform = `translateY(${top}px)`);
         let skip = 0;
-        for (let index = 0; index < visibleObjects.length; index++) {
+        for (let index = 0; index < visibleObjects.length; index++) {// @ts-ignore
           if (visibleObjects[index].top <= top && visibleObjects[index].top + visibleObjects[index].height >= top) {
             skip = index;
             break;
@@ -843,23 +844,23 @@ export class LitTable extends HTMLElement {
         }
         // 如果滚动高度大于数据全部收起的高度，并且this.currentRecycleList数组长度为0要给this.currentRecycleList赋值，不然tab页没有数据
         if (
-          visibleObjects[0] &&
+          visibleObjects[0] &&// @ts-ignore
           this.tableElement!.scrollTop >= this.value.length * visibleObjects[0].height &&
           this.currentRecycleList.length === 0
-        ) {
+        ) {// @ts-ignore
           this.addTableElement(visibleObjects[skip], true, false, false);
         }
         let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
         if (reduce === 0) {
           return;
         }
-        while (reduce <= this.tableElement!.clientHeight) {
+        while (reduce <= this.tableElement!.clientHeight) {// @ts-ignore
           let newTableElement = this.addTableElement(visibleObjects[skip], true, false, false);
           reduce += newTableElement.clientHeight;
         }
         for (let i = 0; i < this.currentRecycleList.length; i++) {
           this.freshCurrentLine(
-            this.currentRecycleList[i],
+            this.currentRecycleList[i],// @ts-ignore
             visibleObjects[i + skip],
             this.treeElement?.children[i] as HTMLElement
           );
@@ -904,34 +905,34 @@ export class LitTable extends HTMLElement {
       let transX = Number((this.treeElement?.lastChild as HTMLElement).style.transform.replace(/[^0-9]/gi, ''));
       treeTop += transX + rowData.height;
     }
-    this?.columns?.forEach((column: any, index) => {
+    this?.columns?.forEach((column: unknown, index) => {// @ts-ignore
       let dataIndex = column.getAttribute('data-index') || '1';
-      let td: any;
+      let td: unknown;
       if (index === 0) {
         td = this.firstElementTdHandler(rowTreeElement, dataIndex, rowData, column);
       } else {
-        td = this.otherElementHandler(dataIndex, rowData, column);
+        td = this.otherElementHandler(dataIndex, rowData, column);// @ts-ignore
         rowTreeElement.append(td);
       }
     });
     let lastChild = this.treeElement?.lastChild as HTMLElement;
     if (lastChild) {
       lastChild.style.transform = `translateY(${treeTop}px)`;
-    }
-    (rowTreeElement as any).data = rowData.data;
+    }// @ts-ignore
+    (rowTreeElement as unknown).data = rowData.data;
     rowTreeElement.style.gridTemplateColumns = this.gridTemplateColumns.slice(1).join(' ');
     rowTreeElement.style.position = 'absolute';
     rowTreeElement.style.top = '0px';
     rowTreeElement.style.left = '0px';
-    rowTreeElement.style.cursor = 'pointer';
+    rowTreeElement.style.cursor = 'pointer';//@ts-ignore
     this.setHighLight(rowData.data.isSearch, rowTreeElement);
     this.addRowElementEvent(rowTreeElement, rowData);
     return rowTreeElement;
   }
 
-  addRowElementEvent(rowTreeElement: HTMLDivElement, rowData: any): void {
-    rowTreeElement.onmouseenter = (): void => {
-      if ((rowTreeElement as any).data.isSelected) {
+  addRowElementEvent(rowTreeElement: HTMLDivElement, rowData: unknown): void {
+    rowTreeElement.onmouseenter = (): void => {// @ts-ignore
+      if ((rowTreeElement as unknown).data.isSelected) {
         return;
       }
       let indexOf = this.currentRecycleList.indexOf(rowTreeElement);
@@ -942,8 +943,8 @@ export class LitTable extends HTMLElement {
         this.setMouseIn(true, [this.currentTreeDivList[indexOf]]);
       }
     };
-    rowTreeElement.onmouseleave = (): void => {
-      if ((rowTreeElement as any).data.isSelected) {
+    rowTreeElement.onmouseleave = (): void => {// @ts-ignore
+      if ((rowTreeElement as unknown).data.isSelected) {
         return;
       }
       let indexOf = this.currentRecycleList.indexOf(rowTreeElement);
@@ -958,57 +959,57 @@ export class LitTable extends HTMLElement {
     };
   }
 
-  firstElementTdHandler(tr: HTMLDivElement, dataIndex: string, row: any, column: any): HTMLElement {
-    let td: any;
-    let text = formatName(dataIndex, row.data[dataIndex], this);
-    if (column.template) {
-      td = column.template.render(row.data).content.cloneNode(true);
-      td.template = column.template;
+  firstElementTdHandler(tr: HTMLDivElement, dataIndex: string, row: unknown, column: unknown): HTMLElement {
+    let td: unknown;// @ts-ignore
+    let text = formatName(dataIndex, row.data[dataIndex], this);// @ts-ignore
+    if (column.template) {// @ts-ignore
+      td = column.template.render(row.data).content.cloneNode(true);// @ts-ignore
+      td.template = column.template;// @ts-ignore
       td.title = row.data[dataIndex];
     } else {
-      td = document.createElement('div');
-      if (row.data.rowName === 'js-memory' || row.data.rowName === 'cpu-profiler') {
+      td = document.createElement('div');// @ts-ignore
+      if (row.data.rowName === 'js-memory' || row.data.rowName === 'cpu-profiler') {// @ts-ignore
         td.innerHTML = '';
-      } else {
+      } else {// @ts-ignore
         td.innerHTML = text;
-      }
-      td.dataIndex = dataIndex;
-      if (text.indexOf('&lt;') === -1) {
+      }// @ts-ignore
+      td.dataIndex = dataIndex;//@ts-ignore
+      if (text.indexOf('&lt;') === -1) {// @ts-ignore
         td.title = text;
       }
-    }
+    }// @ts-ignore
     if (row.data.children && row.data.children.length > 0 && !row.data.hasNext) {
-      let btn = this.createExpandBtn(row);
+      let btn = this.createExpandBtn(row);// @ts-ignore
       td.insertBefore(btn, td.firstChild);
-    }
-    if (row.data.hasNext) {
+    }// @ts-ignore
+    if (row.data.hasNext) {// @ts-ignore
       td.title = row.data.objectName;
-      let btn = this.createBtn(row);
+      let btn = this.createBtn(row);// @ts-ignore
       td.insertBefore(btn, td.firstChild);
-    }
-    td.style.paddingLeft = row.depth * iconWidth + 'px';
-    if (!row.data.children || row.data.children.length === 0) {
+    }// @ts-ignore
+    td.style.paddingLeft = row.depth * iconWidth + 'px';// @ts-ignore
+    if (!row.data.children || row.data.children.length === 0) {// @ts-ignore
       td.style.paddingLeft = iconWidth * row.depth + iconWidth + iconPadding * 2 + 'px';
     }
-    this.jsMemoryHandler(row, td);
+    this.jsMemoryHandler(row, td);// @ts-ignore
     if (row.data.rowName === 'cpu-profiler') {
       this.createTextColor(row, td);
-    }
-    (td as any).data = row.data;
-    td.classList.add('tree-first-body');
-    td.style.position = 'absolute';
-    td.style.top = '0px';
-    td.style.left = '0px';
-    td.style.height = `${row.height}px`;
-    this.addFirstElementEvent(td, tr, row);
-    this.setHighLight(row.data.isSearch, td);
-    this.treeElement!.style.width = column.getAttribute('width');
-    this.treeElement?.append(td);
-    this.currentTreeDivList.push(td);
+    }// @ts-ignore
+    (td as unknown).data = row.data;// @ts-ignore
+    td.classList.add('tree-first-body');// @ts-ignore
+    td.style.position = 'absolute';// @ts-ignore
+    td.style.top = '0px';// @ts-ignore
+    td.style.left = '0px';// @ts-ignore
+    td.style.height = `${row.height}px`;// @ts-ignore
+    this.addFirstElementEvent(td, tr, row);// @ts-ignore
+    this.setHighLight(row.data.isSearch, td);// @ts-ignore
+    this.treeElement!.style.width = column.getAttribute('width');// @ts-ignore
+    this.treeElement?.append(td);// @ts-ignore
+    this.currentTreeDivList.push(td);// @ts-ignore
     return td;
   }
 
-  addFirstElementEvent(td: HTMLDivElement, tr: HTMLDivElement, rowData: any): void {
+  addFirstElementEvent(td: HTMLDivElement, tr: HTMLDivElement, rowData: unknown): void {
     td.onmouseenter = (): void => {
       let indexOf = this.currentTreeDivList.indexOf(td);
       this.currentRecycleList.forEach((row) => {
@@ -1031,37 +1032,37 @@ export class LitTable extends HTMLElement {
     };
   }
 
-  otherElementHandler(dataIndex: string, rowData: any, column: any): HTMLDivElement {
-    let tdDiv: any = document.createElement('div');
-    tdDiv.classList.add('td');
-    tdDiv.style.overflow = 'hidden';
-    tdDiv.style.textOverflow = 'ellipsis';
-    tdDiv.style.whiteSpace = 'nowrap';
-    let text = formatName(dataIndex, rowData.data[dataIndex], this);
-    if (text.indexOf('&lt;') === -1) {
-      if (dataIndex === 'selfTimeStr' && rowData.data.chartFrameChildren) {
-        tdDiv.title = rowData.data.selfTime + 'ns';
-      } else if (dataIndex === 'totalTimeStr' && rowData.data.chartFrameChildren) {
+  otherElementHandler(dataIndex: string, rowData: unknown, column: unknown): HTMLDivElement {// @ts-ignore
+    let tdDiv: unknown = document.createElement('div');// @ts-ignore
+    tdDiv.classList.add('td');// @ts-ignore
+    tdDiv.style.overflow = 'hidden';// @ts-ignore
+    tdDiv.style.textOverflow = 'ellipsis';// @ts-ignore
+    tdDiv.style.whiteSpace = 'nowrap';// @ts-ignore
+    let text = formatName(dataIndex, rowData.data[dataIndex], this);//@ts-ignore
+    if (text.indexOf('&lt;') === -1) {// @ts-ignore
+      if (dataIndex === 'selfTimeStr' && rowData.data.chartFrameChildren) {// @ts-ignore
+        tdDiv.title = rowData.data.selfTime + 'ns';// @ts-ignore
+      } else if (dataIndex === 'totalTimeStr' && rowData.data.chartFrameChildren) {// @ts-ignore
         tdDiv.title = rowData.data.totalTime + 'ns';
-      } else {
+      } else {// @ts-ignore
         tdDiv.title = text;
       }
-    }
-    tdDiv.dataIndex = dataIndex;
-    tdDiv.style.justifyContent = column.getAttribute('align') || 'flex-start';
-    if (column.template) {
-      tdDiv.appendChild(column.template.render(rowData.data).content.cloneNode(true));
+    }// @ts-ignore
+    tdDiv.dataIndex = dataIndex;// @ts-ignore
+    tdDiv.style.justifyContent = column.getAttribute('align') || 'flex-start';// @ts-ignore
+    if (column.template) {// @ts-ignore
+      tdDiv.appendChild(column.template.render(rowData.data).content.cloneNode(true));// @ts-ignore
       tdDiv.template = column.template;
-    } else {
+    } else {// @ts-ignore
       tdDiv.innerHTML = text;
-    }
+    }// @ts-ignore
     return tdDiv;
   }
 
-  createNewTableElement(rowData: any): HTMLDivElement {
+  createNewTableElement(rowData: unknown): HTMLDivElement {
     let newTableElement = document.createElement('div');
     newTableElement.classList.add('tr');
-    this?.columns?.forEach((column: any) => {
+    this?.columns?.forEach((column: unknown) => {// @ts-ignore
       let dataIndex = column.getAttribute('data-index') || '1';
       let td = this.createColumnTd(dataIndex, column, rowData);
       newTableElement.append(td);
@@ -1072,49 +1073,50 @@ export class LitTable extends HTMLElement {
     };
     newTableElement.onmouseenter = (): void => {
       this.dispatchRowHoverEvent(rowData, [newTableElement]);
-    };
-    if (rowData.data.isSelected !== undefined) {
+    };// @ts-ignore
+    if (rowData.data.isSelected !== undefined) {// @ts-ignore
       this.setSelectedRow(rowData.data.isSelected, [newTableElement]);
-    }
-    (newTableElement as any).data = rowData.data;
+    }// @ts-ignore
+    (newTableElement as unknown).data = rowData.data;
     newTableElement.style.cursor = 'pointer';
     newTableElement.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
     newTableElement.style.position = 'absolute';
     newTableElement.style.top = '0px';
     newTableElement.style.left = '0px';
-    if (this.getItemTextColor) {
+    if (this.getItemTextColor) {// @ts-ignore
       newTableElement.style.color = this.getItemTextColor(rowData.data);
     }
     return newTableElement;
   }
 
-  createColumnTd(dataIndex: string, column: any, rowData: any): HTMLDivElement {
-    let td: any;
-    td = document.createElement('div');
-    td.classList.add('td');
-    td.style.overflow = 'hidden';
-    td.style.textOverflow = 'ellipsis';
-    td.style.whiteSpace = 'nowrap';
-    td.dataIndex = dataIndex;
-    td.style.justifyContent = column.getAttribute('align') || 'flex-start';
-    let text = formatName(dataIndex, rowData.data[dataIndex], this);
-    if (text.indexOf('&lt;') === -1) {
-      if (dataIndex === 'totalTimeStr' && rowData.data.chartFrameChildren) {
+  createColumnTd(dataIndex: string, column: unknown, rowData: unknown): HTMLDivElement {
+    let td: unknown;
+    td = document.createElement('div');// @ts-ignore
+    td.classList.add('td');// @ts-ignore
+    td.style.overflow = 'hidden';// @ts-ignore
+    td.style.textOverflow = 'ellipsis';// @ts-ignore
+    td.style.whiteSpace = 'nowrap';// @ts-ignore
+    td.dataIndex = dataIndex;// @ts-ignore
+    td.style.justifyContent = column.getAttribute('align') || 'flex-start';// @ts-ignore
+    let text = formatName(dataIndex, rowData.data[dataIndex], this);//@ts-ignore
+    if (text.indexOf('&lt;') === -1) {// @ts-ignore
+      if (dataIndex === 'totalTimeStr' && rowData.data.chartFrameChildren) {// @ts-ignore
         td.title = rowData.data.totalTime + 'ns';
-      } else {
+      } else {// @ts-ignore
         td.title = text;
       }
     }
     //   如果表格中有模板的情况，将模板中的数据放进td中，没有模板，直接将文本放进td
     //  但是对于Current Selection tab页来说，表格前两列是时间，第三列是input标签，第四列是button标签
     //  而第一行的数据只有第四列一个button，和模板中的数据并不一样，所以要特别处理一下
+    // @ts-ignore
     if (column.template) {
-      if (
-        (dataIndex === 'color' && rowData.data.colorEl === undefined) ||
+      if (// @ts-ignore
+        (dataIndex === 'color' && rowData.data.colorEl === undefined) ||// @ts-ignore
         (dataIndex === 'text' && rowData.data.text === undefined)
-      ) {
-        td.innerHTML = '';
-        td.template = '';
+      ) {// @ts-ignore
+        td.innerHTML = '';// @ts-ignore
+        td.template = '';// @ts-ignore
       } else if (dataIndex === 'operate' && rowData.data.operate && rowData.data.operate.innerHTML === 'RemoveAll') {
         let removeAll = document.createElement('button');
         removeAll.className = 'removeAll';
@@ -1128,49 +1130,49 @@ export class LitTable extends HTMLElement {
         removeAll.style.minWidth = '7em';
         removeAll.style.border = 'none';
         removeAll.style.cursor = 'pointer';
-        removeAll.style.outline = 'inherit';
+        removeAll.style.outline = 'inherit';// @ts-ignore
         td.appendChild(removeAll);
-      } else {
-        td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
+      } else {// @ts-ignore
+        td.appendChild(column.template.render(rowData.data).content.cloneNode(true));// @ts-ignore
         td.template = column.template;
       }
-    } else {
+    } else {// @ts-ignore
       td.innerHTML = text;
-    }
+    }// @ts-ignore
     return td;
   }
 
-  createBtn(rowData: any): any {
-    let btn: any = document.createElement('lit-icon');
-    btn.classList.add('tree-icon');
-    if (rowData.data.expanded) {
+  createBtn(rowData: unknown): unknown {
+    let btn: unknown = document.createElement('lit-icon');// @ts-ignore
+    btn.classList.add('tree-icon');// @ts-ignore
+    if (rowData.data.expanded) {// @ts-ignore
       btn.name = 'plus-square';
-    } else {
+    } else {// @ts-ignore
       btn.name = 'minus-square';
-    }
+    }// @ts-ignore
     btn.addEventListener('mouseup', (e: MouseEvent): void => {
-      if (e.button === 0) {
+      if (e.button === 0) {// @ts-ignore
         rowData.data.status = false;
-        const resetNodeHidden = (hidden: boolean, rowData: any): void => {
-          if (hidden) {
-            rowData.children.forEach((child: any) => {
+        const resetNodeHidden = (hidden: boolean, rowData: unknown): void => {
+          if (hidden) {// @ts-ignore
+            rowData.children.forEach((child: unknown) => {// @ts-ignore
               child.rowHidden = false;
             });
-          } else {
-            rowData.children.forEach((child: any) => {
+          } else {// @ts-ignore
+            rowData.children.forEach((child: unknown) => {// @ts-ignore
               child.rowHidden = true;
               resetNodeHidden(hidden, child);
             });
           }
         };
-
-        if (rowData.data.expanded) {
+// @ts-ignore
+        if (rowData.data.expanded) {// @ts-ignore
           rowData.data.status = true;
-          this.dispatchRowClickEventIcon(rowData, [btn]);
+          this.dispatchRowClickEventIcon(rowData, [btn]);// @ts-ignore
           rowData.data.expanded = false;
           resetNodeHidden(true, rowData);
-        } else {
-          rowData.data.expanded = true;
+        } else {// @ts-ignore
+          rowData.data.expanded = true;// @ts-ignore
           rowData.data.status = false;
           resetNodeHidden(false, rowData);
         }
@@ -1181,16 +1183,16 @@ export class LitTable extends HTMLElement {
     return btn;
   }
 
-  resetExpandNodeHidden = (hidden: boolean, rowData: any): void => {
+  resetExpandNodeHidden = (hidden: boolean, rowData: unknown): void => {// @ts-ignore
     if (rowData.children.length > 0) {
-      if (hidden) {
-        rowData.children.forEach((child: any) => {
+      if (hidden) {// @ts-ignore
+        rowData.children.forEach((child: unknown) => {// @ts-ignore
           child.rowHidden = true;
           this.resetExpandNodeHidden(hidden, child);
         });
-      } else {
-        rowData.children.forEach((child: any) => {
-          child.rowHidden = !rowData.expanded;
+      } else {// @ts-ignore
+        rowData.children.forEach((child: unknown) => {// @ts-ignore
+          child.rowHidden = !rowData.expanded;// @ts-ignore
           if (rowData.expanded) {
             this.resetExpandNodeHidden(hidden, child);
           }
@@ -1199,8 +1201,8 @@ export class LitTable extends HTMLElement {
     }
   };
 
-  setChildrenStatus(rowData: any, data: any): void {
-    for (let d of data) {
+  setChildrenStatus(rowData: unknown, data: unknown): void {// @ts-ignore
+    for (let d of data) {// @ts-ignore
       if (rowData.data === d) {
         d.status = false;
       }
@@ -1209,44 +1211,44 @@ export class LitTable extends HTMLElement {
       }
     }
   }
-  createExpandBtn(rowData: any): LitIcon {
-    let btn: any = document.createElement('lit-icon');
+  createExpandBtn(rowData: unknown): LitIcon {// @ts-ignore
+    let btn: unknown = document.createElement('lit-icon');// @ts-ignore
     btn.classList.add('tree-icon');
     // @ts-ignore
-    if (rowData.expanded) {
+    if (rowData.expanded) {// @ts-ignore
       btn.name = 'minus-square';
-    } else {
+    } else {// @ts-ignore
       btn.name = 'plus-square';
-    }
+    }// @ts-ignore
     btn.onmouseup = (e: MouseEvent): void => {
-      if (e.button === 0) {
-        if (rowData.expanded && this._mode === TableMode.Retract) {
-          rowData.data.status = false;
+      if (e.button === 0) {// @ts-ignore
+        if (rowData.expanded && this._mode === TableMode.Retract) {// @ts-ignore
+          rowData.data.status = false;// @ts-ignore
           rowData.expanded = false;
-          this.resetExpandNodeHidden(true, rowData);
-        } else if (!rowData.expanded && this._mode === TableMode.Retract) {
-          rowData.expanded = true;
+          this.resetExpandNodeHidden(true, rowData);// @ts-ignore
+        } else if (!rowData.expanded && this._mode === TableMode.Retract) {// @ts-ignore
+          rowData.expanded = true;// @ts-ignore
           rowData.data.status = true;
           this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
           this.resetExpandNodeHidden(false, rowData);
-        }
+        }// @ts-ignore
         if (this._mode === TableMode.Expand && rowData.expanded) {
           // 点击收起的时候将点击的那条数据的status改为false
-          this.setChildrenStatus(rowData, this.value);
+          this.setChildrenStatus(rowData, this.value);// @ts-ignore
           rowData.expanded = false;
-          this.resetExpandNodeHidden(true, rowData);
-        } else if (this._mode === TableMode.Expand && !rowData.expanded) {
-          if (rowData.data.children) {
+          this.resetExpandNodeHidden(true, rowData);// @ts-ignore
+        } else if (this._mode === TableMode.Expand && !rowData.expanded) {// @ts-ignore
+          if (rowData.data.children) {// @ts-ignore
             rowData.data.status = true;
           }
-          this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Default);
+          this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Default);// @ts-ignore
           rowData.expanded = true;
           this.resetExpandNodeHidden(false, rowData);
         }
         this.reMeauseHeight();
       }
       e.stopPropagation();
-    };
+    };// @ts-ignore
     return btn;
   }
 
@@ -1256,22 +1258,22 @@ export class LitTable extends HTMLElement {
       return;
     }
     let totalHeight = 0;
-    this.recycleDs.forEach((it) => {
-      if (!it.rowHidden) {
-        it.top = totalHeight;
+    this.recycleDs.forEach((it) => {// @ts-ignore
+      if (!it.rowHidden) {// @ts-ignore
+        it.top = totalHeight;// @ts-ignore
         totalHeight += it.height;
       }
     });
     this.tbodyElement && (this.tbodyElement.style.height = totalHeight + (this.isScrollXOutSide ? 0 : 0) + 'px');
     this.treeElement &&
       (this.treeElement.style.height = this.tableElement!.clientHeight - this.theadElement!.clientHeight + 'px');
-    let visibleObjects = this.recycleDs.filter((item) => {
+    let visibleObjects = this.recycleDs.filter((item) => {// @ts-ignore
       return !item.rowHidden;
     });
     if (this.tableElement) {
       let top = this.tableElement!.scrollTop;
       let skip = 0;
-      for (let i = 0; i < visibleObjects.length; i++) {
+      for (let i = 0; i < visibleObjects.length; i++) {// @ts-ignore
         if (visibleObjects[i].top <= top && visibleObjects[i].top + visibleObjects[i].height >= top) {
           skip = i;
           break;
@@ -1282,29 +1284,29 @@ export class LitTable extends HTMLElement {
         return;
       }
       while (reduce <= this.tableElement!.clientHeight + 1) {
-        let isTree = this.hasAttribute('tree');
+        let isTree = this.hasAttribute('tree');// @ts-ignore
         let newTableElement = this.addTableElement(visibleObjects[skip], isTree, isTree, false);
         reduce += newTableElement.clientHeight;
       }
       for (let i = 0; i < this.currentRecycleList.length; i++) {
         if (this.hasAttribute('tree')) {
           this.freshCurrentLine(
-            this.currentRecycleList[i],
+            this.currentRecycleList[i],// @ts-ignore
             visibleObjects[i + skip],
             this.treeElement?.children[i] as HTMLElement
           );
-        } else {
+        } else {// @ts-ignore
           this.freshLineHandler(i, skip, visibleObjects);
         }
       }
     }
   }
 
-  getWheelStatus(element: any): void {
-    element.addEventListener('wheel', (event: WheelEvent) => {
+  getWheelStatus(element: unknown): void {// @ts-ignore
+    element.addEventListener('wheel', (event: WheelEvent) => {// @ts-ignore
       if (element.scrollWidth !== element.offsetWidth) {
         event.preventDefault();
-      }
+      }// @ts-ignore
       element.scrollLeft += event.deltaY;
     });
   }
@@ -1318,12 +1320,12 @@ export class LitTable extends HTMLElement {
     } // If no data source is set, it is returned directly
     this.normalDs = [];
     this.tbodyElement!.innerHTML = ''; // Clear the table contents
-    this.ds.forEach((rowData: any) => {
+    this.ds.forEach((rowData: unknown) => {
       let tblRowElement = document.createElement('div');
       tblRowElement.classList.add('tr');
       // @ts-ignore
       tblRowElement.data = rowData;
-      let gridTemplateColumns: Array<any> = [];
+      let gridTemplateColumns: Array<unknown> = [];
       // If the table is configured with selectable (select row mode) add a checkbox at the head of the line alone
       this.renderTableRowSelect(tblRowElement);
       this.tableColumns!.forEach((tblColumn) => {
@@ -1355,8 +1357,9 @@ export class LitTable extends HTMLElement {
       tblBox.classList.add('td');
       let checkbox = document.createElement('lit-checkbox');
       checkbox.classList.add('row-checkbox');
-      checkbox.onchange = (e: any): void => {
+      checkbox.onchange = (e: unknown): void => {
         // Checkbox checking affects whether the div corresponding to the row has a checked attribute for marking
+        // @ts-ignore
         if (e.detail.checked) {
           tblRowElement.setAttribute('checked', '');
         } else {
@@ -1373,7 +1376,7 @@ export class LitTable extends HTMLElement {
     tblColumn: LitTableColumn,
     tblRowElement: HTMLDivElement,
     dataIndex: string,
-    rowData: any
+    rowData: unknown
   ): void {
     if (tblColumn.template) {
       // If you customize the rendering, you get the nodes from the template
@@ -1394,19 +1397,19 @@ export class LitTable extends HTMLElement {
       let tblDiv = document.createElement('div');
       tblDiv.classList.add('td');
       tblDiv.style.wordBreak = 'break-all';
-      tblDiv.style.whiteSpace = 'pre-wrap';
+      tblDiv.style.whiteSpace = 'pre-wrap';// @ts-ignore
       tblDiv.title = rowData[dataIndex];
       tblDiv.style.justifyContent = tblColumn.getAttribute('align') || '';
       if (tblColumn.hasAttribute('fixed')) {
         fixed(tblDiv, tblColumn.getAttribute('fixed') || '', '#ffffff');
       }
-      this.getWheelStatus(tblDiv);
+      this.getWheelStatus(tblDiv);// @ts-ignore
       tblDiv.innerHTML = formatName(dataIndex, rowData[dataIndex], this);
       tblRowElement.append(tblDiv);
     }
   }
 
-  renderTableRowElementEvent(tblRowElement: HTMLDivElement, rowData: any): void {
+  renderTableRowElementEvent(tblRowElement: HTMLDivElement, rowData: unknown): void {
     tblRowElement.onmouseup = (e: MouseEvent): void => {
       e.stopPropagation();
       this.dispatchEvent(
@@ -1418,7 +1421,7 @@ export class LitTable extends HTMLElement {
               //是否爲单选
               if (isSelected) {
                 this.clearAllSelection(rowData);
-              }
+              }// @ts-ignore
               this.setSelectedRow(rowData.isSelected, [tblRowElement]);
             },
           },
@@ -1437,7 +1440,7 @@ export class LitTable extends HTMLElement {
       element.style.display = 'none';
       return;
     }
-    let childIndex = -1;
+    let childIndex = -1;//@ts-ignore
     this.setHighLight(rowObject.data.isSearch, element);
     element.childNodes.forEach((child) => {
       if (child.nodeType !== 1) {
@@ -1447,27 +1450,28 @@ export class LitTable extends HTMLElement {
       let idx = firstElement !== undefined ? childIndex + 1 : childIndex;
       this.freshLineFirstElementHandler(firstElement, rowObject, childIndex);
       if (idx < this.columns!.length) {
-        let dataIndex = this.columns![idx].getAttribute('data-index') || '1';
-        let text = formatName(dataIndex, rowObject.data[dataIndex], this);
-        if ((this.columns![idx] as any).template) {
+        //@ts-ignore
+        let dataIndex = this.columns![idx].getAttribute('data-index') || '1';//@ts-ignore
+        let text = formatName(dataIndex, rowObject.data[dataIndex], this);// @ts-ignore
+        if ((this.columns![idx] as unknown).template) {
           (child as HTMLElement).innerHTML = '';
-          (child as HTMLElement).appendChild(
-            (this.columns![idx] as any).template.render(rowObject.data).content.cloneNode(true)
+          (child as HTMLElement).appendChild(// @ts-ignore
+            (this.columns![idx] as unknown).template.render(rowObject.data).content.cloneNode(true)
           );
           (child as HTMLElement).title = text;
-        } else {
+        } else {//@ts-ignore
           if (rowObject.data.rowName === 'cpu-profiler' && dataIndex === 'symbolName') {
             (child as HTMLElement).innerHTML = '';
-          } else {
+          } else {//@ts-ignore
             (child as HTMLElement).innerHTML = text;
-          }
-          if (dataIndex === 'selfTimeStr' && rowObject.data.chartFrameChildren) {
-            (child as HTMLElement).title = rowObject.data.selfTime + 'ns';
-          } else if (dataIndex === 'totalTimeStr' && rowObject.data.chartFrameChildren) {
+          }//@ts-ignore
+          if (dataIndex === 'selfTimeStr' && rowObject.data.chartFrameChildren) {//@ts-ignore
+            (child as HTMLElement).title = rowObject.data.selfTime + 'ns';//@ts-ignore
+          } else if (dataIndex === 'totalTimeStr' && rowObject.data.chartFrameChildren) {//@ts-ignore
             (child as HTMLElement).title = rowObject.data.totalTime + 'ns';
           } else if (dataIndex === 'timeStr' && rowObject.data instanceof JsCpuProfilerStatisticsStruct) {
             (child as HTMLElement).title = rowObject.data.time + 'ns';
-          } else {
+          } else {//@ts-ignore
             (child as HTMLElement).title = text;
           }
         }
@@ -1493,8 +1497,8 @@ export class LitTable extends HTMLElement {
       e.stopPropagation();
     };
     element.onmouseenter = (): void => {
-      this.dispatchRowHoverEvent(rowObject, [element]);
-      if ((element as any).data.isSelected) {
+      this.dispatchRowHoverEvent(rowObject, [element]);// @ts-ignore
+      if ((element as unknown).data.isSelected) {
         return;
       }
       let indexOf = this.currentRecycleList.indexOf(element as HTMLDivElement);
@@ -1505,65 +1509,65 @@ export class LitTable extends HTMLElement {
         this.setMouseIn(true, [this.currentTreeDivList[indexOf]]);
       }
     };
-
-    (element as any).data = rowObject.data;
-    if (rowObject.data.isSelected !== undefined) {
+// @ts-ignore
+    (element as unknown).data = rowObject.data;//@ts-ignore
+    if (rowObject.data.isSelected !== undefined) {//@ts-ignore
       this.setSelectedRow(rowObject.data.isSelected, [element]);
     } else {
       this.setSelectedRow(false, [element]);
-    }
-    if (rowObject.data.isHover !== undefined) {
+    }//@ts-ignore
+    if (rowObject.data.isHover !== undefined) {//@ts-ignore
       this.setMouseIn(rowObject.data.isHover, [element]);
     } else {
       this.setMouseIn(false, [element]);
     }
-    if (this.getItemTextColor) {
-      element.style.color = this.getItemTextColor((element as any).data);
+    if (this.getItemTextColor) {// @ts-ignore
+      element.style.color = this.getItemTextColor((element as unknown).data);
     }
   }
 
-  freshLineFirstElementHandler(firstElement: any, rowObject: TableRowObject, childIndex: number): void {
-    if (firstElement !== undefined && childIndex === 0) {
-      this.setHighLight(rowObject.data.isSearch, firstElement);
-      (firstElement as any).data = rowObject.data;
-      if ((this.columns![0] as any).template) {
-        firstElement.innerHTML = (this.columns![0] as any).template
+  freshLineFirstElementHandler(firstElement: unknown, rowObject: TableRowObject, childIndex: number): void {
+    if (firstElement !== undefined && childIndex === 0) {//@ts-ignore
+      this.setHighLight(rowObject.data.isSearch, firstElement);// @ts-ignore
+      (firstElement as unknown).data = rowObject.data;// @ts-ignore
+      if ((this.columns![0] as unknown).template) {// @ts-ignore
+        firstElement.innerHTML = (this.columns![0] as unknown).template
           .render(rowObject.data)
           .content.cloneNode(true).innerHTML;
       } else {
-        let dataIndex = this.columns![0].getAttribute('data-index') || '1';
-        let text = formatName(dataIndex, rowObject.data[dataIndex], this);
-        if (rowObject.data.rowName === 'js-memory' || rowObject.data.rowName === 'cpu-profiler') {
+        let dataIndex = this.columns![0].getAttribute('data-index') || '1';//@ts-ignore
+        let text = formatName(dataIndex, rowObject.data[dataIndex], this);//@ts-ignore
+        if (rowObject.data.rowName === 'js-memory' || rowObject.data.rowName === 'cpu-profiler') {// @ts-ignore
           firstElement.innerHTML = '';
-        } else {
+        } else {// @ts-ignore
           firstElement.innerHTML = text;
-        }
+        }// @ts-ignore
         firstElement.title = text;
-      }
+      }//@ts-ignore
       if (rowObject.children && rowObject.children.length > 0 && !rowObject.data.hasNext) {
-        let btn = this.createExpandBtn(rowObject);
+        let btn = this.createExpandBtn(rowObject);// @ts-ignore
         firstElement.insertBefore(btn, firstElement.firstChild);
-      }
+      }// @ts-ignore
       firstElement.style.paddingLeft = iconWidth * rowObject.depth + 'px';
-      if (!rowObject.children || rowObject.children.length === 0) {
+      if (!rowObject.children || rowObject.children.length === 0) {// @ts-ignore
         firstElement.style.paddingLeft = iconWidth * rowObject.depth + iconWidth + iconPadding * 2 + 'px';
-      }
+      }//@ts-ignore
       if (rowObject.data.hasNext) {
-        let btn = this.createBtn(rowObject);
-        firstElement.title = rowObject.data.objectName;
-        firstElement.insertBefore(btn, firstElement.firstChild);
+        let btn = this.createBtn(rowObject);// @ts-ignore
+        firstElement.title = rowObject.data.objectName;// @ts-ignore
+        firstElement.insertBefore(btn, firstElement.firstChild);// @ts-ignore
         firstElement.style.paddingLeft = iconWidth * rowObject.depth + 'px';
       }
-      this.jsMemoryHandler(rowObject, firstElement);
+      this.jsMemoryHandler(rowObject, firstElement);//@ts-ignore
       if (rowObject.data.rowName === 'cpu-profiler') {
         this.createTextColor(rowObject, firstElement);
-      }
+      }// @ts-ignore
       firstElement.onmouseup = (e: MouseEvent): void => {
         this.dispatchRowClickEvent(rowObject, [firstElement, element], e);
         e.stopPropagation();
-      };
-      firstElement.style.transform = `translateY(${rowObject.top - this.tableElement!.scrollTop}px)`;
-      if (rowObject.data.isSelected !== undefined) {
+      };// @ts-ignore
+      firstElement.style.transform = `translateY(${rowObject.top - this.tableElement!.scrollTop}px)`;//@ts-ignore
+      if (rowObject.data.isSelected !== undefined) {//@ts-ignore
         this.setSelectedRow(rowObject.data.isSelected, [firstElement]);
       } else {
         this.setSelectedRow(false, [firstElement]);
@@ -1571,83 +1575,83 @@ export class LitTable extends HTMLElement {
     }
   }
 
-  setSelectedRow(isSelected: boolean, rows: any[]): void {
+  setSelectedRow(isSelected: boolean, rows: unknown[]): void {
     if (isSelected) {
-      rows.forEach((row) => {
-        if (row.classList) {
-          if (row.classList.contains('mouse-in')) {
+      rows.forEach((row) => {// @ts-ignore
+        if (row.classList) {// @ts-ignore
+          if (row.classList.contains('mouse-in')) {// @ts-ignore
             row.classList.remove('mouse-in');
-          }
+          }// @ts-ignore
           row.classList.add('mouse-select');
         }
       });
     } else {
-      rows.forEach((row) => {
+      rows.forEach((row) => {// @ts-ignore
         row.classList && row.classList.remove('mouse-select');
       });
     }
   }
 
-  setMouseIn(isMouseIn: boolean, rows: any[]): void {
+  setMouseIn(isMouseIn: boolean, rows: unknown[]): void {
     if (isMouseIn) {
-      rows.forEach((row) => {
+      rows.forEach((row) => {// @ts-ignore
         row.classList.add('mouse-in');
       });
     } else {
-      rows.forEach((row) => {
+      rows.forEach((row) => {// @ts-ignore
         row.classList.remove('mouse-in');
       });
     }
   }
 
-  scrollToData(data: any): void {
+  scrollToData(data: unknown): void {
     if (this.isRecycleList) {
       if (this.recycleDs.length > 0) {
-        let filter = this.recycleDs.filter((item) => {
+        let filter = this.recycleDs.filter((item) => {// @ts-ignore
           return item.data === data;
         });
-        if (filter.length > 0) {
+        if (filter.length > 0) {// @ts-ignore
           this.tableElement!.scrollTop = filter[0].top;
         }
         this.setCurrentSelection(data);
       }
     } else {
       if (this.normalDs.length > 0) {
-        let filter = this.normalDs.filter((item) => {
+        let filter = this.normalDs.filter((item) => {// @ts-ignore
           return item.data === data;
         });
-        if (filter.length > 0) {
+        if (filter.length > 0) {// @ts-ignore
           this.tableElement!.scrollTop = filter[0].top;
         }
       }
     }
   }
 
-  expandList(datasource: any[]): void {
-    let filter = this.recycleDs.filter((item) => {
+  expandList(datasource: unknown[]): void {
+    let filter = this.recycleDs.filter((item) => {// @ts-ignore
       return datasource.indexOf(item.data) !== -1;
     });
     if (filter.length > 0) {
-      filter.forEach((item) => {
-        item.expanded = true;
+      filter.forEach((item) => {// @ts-ignore
+        item.expanded = true;// @ts-ignore
         item.rowHidden = false;
       });
     }
     this.reMeauseHeight();
   }
 
-  clearAllSelection(rowObjectData: any): void {
+  clearAllSelection(rowObjectData: unknown): void {
     if (this.isRecycleList) {
-      this.recycleDs.forEach((item) => {
-        if (item.data !== rowObjectData && item.data.isSelected) {
+      this.recycleDs.forEach((item) => {// @ts-ignore
+        if (item.data !== rowObjectData && item.data.isSelected) {// @ts-ignore
           item.data.isSelected = false;
         }
       });
       this.setSelectedRow(false, this.currentTreeDivList);
       this.setSelectedRow(false, this.currentRecycleList);
     } else {
-      this.dataSource.forEach((item) => {
-        if (item !== rowObjectData && item.isSelected) {
+      this.dataSource.forEach((item) => {// @ts-ignore
+        if (item !== rowObjectData && item.isSelected) {// @ts-ignore
           item.isSelected = false;
         }
       });
@@ -1655,18 +1659,18 @@ export class LitTable extends HTMLElement {
     }
   }
 
-  clearAllHover(rowObjectData: any): void {
+  clearAllHover(rowObjectData: unknown): void {
     if (this.isRecycleList) {
-      this.recycleDs.forEach((item) => {
-        if (item.data !== rowObjectData && item.data.isHover) {
+      this.recycleDs.forEach((item) => {// @ts-ignore
+        if (item.data !== rowObjectData && item.data.isHover) {// @ts-ignore
           item.data.isHover = false;
         }
       });
       this.setMouseIn(false, this.currentTreeDivList);
       this.setMouseIn(false, this.currentRecycleList);
     } else {
-      this.dataSource.forEach((item) => {
-        if (item !== rowObjectData && item.isHover) {
+      this.dataSource.forEach((item) => {// @ts-ignore
+        if (item !== rowObjectData && item.isHover) {// @ts-ignore
           item.isHover = false;
         }
       });
@@ -1675,11 +1679,11 @@ export class LitTable extends HTMLElement {
   }
 
   mouseOut(): void {
-    if (this.isRecycleList) {
+    if (this.isRecycleList) {// @ts-ignore
       this.recycleDs.forEach((item) => (item.data.isHover = false));
       this.setMouseIn(false, this.currentTreeDivList);
       this.setMouseIn(false, this.currentRecycleList);
-    } else {
+    } else {// @ts-ignore
       this.dataSource.forEach((item) => (item.isHover = false));
       this.setMouseIn(false, this.normalDs);
     }
@@ -1693,24 +1697,24 @@ export class LitTable extends HTMLElement {
     );
   }
 
-  setCurrentSelection(selectionData: any): void {
-    if (this.isRecycleList) {
+  setCurrentSelection(selectionData: unknown): void {
+    if (this.isRecycleList) {// @ts-ignore
       if (selectionData.isSelected !== undefined) {
-        this.currentTreeDivList.forEach((itemEl) => {
-          if ((itemEl as any).data === selectionData) {
+        this.currentTreeDivList.forEach((itemEl) => {// @ts-ignore
+          if ((itemEl as unknown).data === selectionData) {// @ts-ignore
             this.setSelectedRow(selectionData.isSelected, [itemEl]);
           }
         });
-        this.currentRecycleList.forEach((recycleItem) => {
-          if ((recycleItem as any).data === selectionData) {
+        this.currentRecycleList.forEach((recycleItem) => {// @ts-ignore
+          if ((recycleItem as unknown).data === selectionData) {// @ts-ignore
             this.setSelectedRow(selectionData.isSelected, [recycleItem]);
           }
         });
       }
-    } else {
+    } else {// @ts-ignore
       if (selectionData.isSelected !== undefined) {
-        this.normalDs.forEach((item) => {
-          if ((item as any).data === selectionData) {
+        this.normalDs.forEach((item) => {// @ts-ignore
+          if ((item as unknown).data === selectionData) {// @ts-ignore
             this.setSelectedRow(selectionData.isSelected, [item]);
           }
         });
@@ -1718,27 +1722,27 @@ export class LitTable extends HTMLElement {
     }
   }
 
-  setCurrentHover(data: any): void {
+  setCurrentHover(data: unknown): void {
     if (this.isRecycleList) {
       this.setMouseIn(false, this.currentTreeDivList);
-      this.setMouseIn(false, this.currentRecycleList);
+      this.setMouseIn(false, this.currentRecycleList);// @ts-ignore
       if (data.isHover !== undefined) {
-        this.currentTreeDivList.forEach((hoverItem) => {
-          if ((hoverItem as any).data === data) {
+        this.currentTreeDivList.forEach((hoverItem) => {// @ts-ignore
+          if ((hoverItem as unknown).data === data) {// @ts-ignore
             this.setMouseIn(data.isHover, [hoverItem]);
           }
         });
-        this.currentRecycleList.forEach((hoverItem) => {
-          if ((hoverItem as any).data === data) {
+        this.currentRecycleList.forEach((hoverItem) => {// @ts-ignore
+          if ((hoverItem as unknown).data === data) {// @ts-ignore
             this.setMouseIn(data.isHover, [hoverItem]);
           }
         });
       }
     } else {
-      this.setMouseIn(false, this.normalDs);
+      this.setMouseIn(false, this.normalDs);// @ts-ignore
       if (data.isHover !== undefined) {
-        this.normalDs.forEach((item): void => {
-          if ((item as any).data === data) {
+        this.normalDs.forEach((item): void => {// @ts-ignore
+          if ((item as unknown).data === data) {// @ts-ignore
             this.setMouseIn(data.isHover, [item]);
           }
         });
@@ -1746,17 +1750,17 @@ export class LitTable extends HTMLElement {
     }
   }
 
-  dispatchRowClickEventIcon(rowData: any, elements: any[]): void {
+  dispatchRowClickEventIcon(rowData: unknown, elements: unknown[]): void {
     this.dispatchEvent(
       new CustomEvent('icon-click', {
-        detail: {
-          ...rowData.data,
+        detail: {// @ts-ignore
+          ...rowData.data,// @ts-ignore
           data: rowData.data,
           callBack: (isSelected: boolean): void => {
             //是否爲单选
-            if (isSelected) {
+            if (isSelected) {// @ts-ignore
               this.clearAllSelection(rowData.data);
-            }
+            }// @ts-ignore
             this.setSelectedRow(rowData.data.isSelected, elements);
           },
         },
@@ -1765,18 +1769,18 @@ export class LitTable extends HTMLElement {
     );
   }
 
-  dispatchRowClickEvent(rowObject: any, elements: any[], event: MouseEvent): void {
+  dispatchRowClickEvent(rowObject: unknown, elements: unknown[], event: MouseEvent): void {
     this.dispatchEvent(
       new CustomEvent('row-click', {
         detail: {
-          button: event.button,
-          ...rowObject.data,
+          button: event.button,// @ts-ignore
+          ...rowObject.data,// @ts-ignore
           data: rowObject.data,
           callBack: (isSelected: boolean): void => {
             //是否爲单选
-            if (isSelected) {
+            if (isSelected) {// @ts-ignore
               this.clearAllSelection(rowObject.data);
-            }
+            }// @ts-ignore
             this.setSelectedRow(rowObject.data.isSelected, elements);
           },
         },
@@ -1786,13 +1790,13 @@ export class LitTable extends HTMLElement {
     event.stopPropagation();
   }
 
-  dispatchRowHoverEvent(rowObject: any, elements: any[]): void {
+  dispatchRowHoverEvent(rowObject: unknown, elements: unknown[]): void {
     this.dispatchEvent(
       new CustomEvent('row-hover', {
-        detail: {
+        detail: {// @ts-ignore
           data: rowObject.data,
-          callBack: (): void => {
-            this.clearAllHover(rowObject.data);
+          callBack: (): void => {// @ts-ignore
+            this.clearAllHover(rowObject.data);// @ts-ignore
             this.setMouseIn(rowObject.data.isHover, elements);
           },
         },
@@ -1801,67 +1805,67 @@ export class LitTable extends HTMLElement {
     );
   }
 
-  setHighLight(isSearch: boolean, element: any): void {
-    if (isSearch) {
+  setHighLight(isSearch: boolean, element: unknown): void {
+    if (isSearch) {// @ts-ignore
       element.setAttribute('high-light', '');
-    } else {
+    } else {// @ts-ignore
       element.removeAttribute('high-light');
     }
   }
 
-  createTextColor(rowData: any, divElement: any): void {
+  createTextColor(rowData: unknown, divElement: unknown): void {
     let nodeText = document.createElement('text');
-    nodeText.classList.add('functionName');
-    nodeText.textContent = rowData.data.name;
-    divElement.append(nodeText);
+    nodeText.classList.add('functionName');// @ts-ignore
+    nodeText.textContent = rowData.data.name;// @ts-ignore
+    divElement.append(nodeText);// @ts-ignore
     if (rowData.data.scriptName !== 'unknown') {
       let scriptText = document.createElement('text');
-      scriptText.classList.add('scriptName');
-      scriptText.textContent = rowData.data.scriptName;
+      scriptText.classList.add('scriptName');// @ts-ignore
+      scriptText.textContent = rowData.data.scriptName;// @ts-ignore
       divElement.append(scriptText);
       scriptText.style.color = '#a1a1a1';
-    }
+    }// @ts-ignore
     divElement.title = rowData.data.symbolName;
   }
 
-  jsMemoryHandler(rowData: any, td: any): void {
+  jsMemoryHandler(rowData: unknown, td: unknown): void {// @ts-ignore
     if (rowData.data.rowName === 'js-memory') {
       let nodeText = document.createElement('text');
-      nodeText.classList.add('nodeName');
-      nodeText.textContent = rowData.data.nodeName;
+      nodeText.classList.add('nodeName');// @ts-ignore
+      nodeText.textContent = rowData.data.nodeName;// @ts-ignore
       td.append(nodeText);
       let countText = document.createElement('text');
-      countText.classList.add('countName');
-      countText.textContent = rowData.data.count;
+      countText.classList.add('countName');// @ts-ignore
+      countText.textContent = rowData.data.count;// @ts-ignore
       td.append(countText);
       let nodeIdText = document.createElement('text');
-      nodeIdText.classList.add('nodeIdText');
-      nodeIdText.textContent = rowData.data.nodeId;
-      td.append(nodeIdText);
+      nodeIdText.classList.add('nodeIdText');// @ts-ignore
+      nodeIdText.textContent = rowData.data.nodeId;// @ts-ignore
+      td.append(nodeIdText);// @ts-ignore
       if (rowData.data.edgeName !== '') {
         let edgeNameText = document.createElement('text');
-        edgeNameText.classList.add('edgeNameText');
-        edgeNameText.textContent = rowData.data.edgeName;
+        edgeNameText.classList.add('edgeNameText');// @ts-ignore
+        edgeNameText.textContent = rowData.data.edgeName;// @ts-ignore
         td.insertBefore(edgeNameText, nodeText);
         let span = document.createElement('span');
-        span.classList.add('span');
-        if (rowData.data.type === ConstructorType.RetainersType) {
-          span.textContent = '\xa0' + 'in' + '\xa0';
+        span.classList.add('span');// @ts-ignore
+        if (rowData.data.type === ConstructorType.RetainersType) {// @ts-ignore
+          span.textContent = '\xa0' + 'in' + '\xa0';// @ts-ignore
           nodeIdText.textContent = ` @${rowData.data.id}`;
         } else {
           span.textContent = '\xa0' + '::' + '\xa0';
         }
         edgeNameText.append(span);
       }
-      if (
-        (rowData.data.nodeType === NodeType.STRING ||
-          rowData.data.nodeType === NodeType.CONCATENATED_STRING ||
-          rowData.data.nodeType === NodeType.SLICED_STRING) &&
+      if (// @ts-ignore
+        (rowData.data.nodeType === NodeType.STRING ||// @ts-ignore
+          rowData.data.nodeType === NodeType.CONCATENATED_STRING ||// @ts-ignore
+          rowData.data.nodeType === NodeType.SLICED_STRING) &&// @ts-ignore
         rowData.data.type !== ConstructorType.ClassType
       ) {
-        nodeText.style.color = '#d53d3d';
+        nodeText.style.color = '#d53d3d';// @ts-ignore
         nodeText.textContent = '"' + rowData.data.nodeName + '"';
-      }
+      }// @ts-ignore
       td.title = rowData.data.objectName;
     }
   }

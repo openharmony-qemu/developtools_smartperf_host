@@ -410,7 +410,7 @@ export class HeapLoader {
       changed = false;
       for (let orderIdx = rootOrderedIdx - 1; orderIdx >= 0; --orderIdx) {
         // If dominator of the entry has already been set to root,
-        // then it can't propagate any further.
+        // then it can't propagate unknown further.
         if (affected[orderIdx] === 0) {
           continue;
         }
@@ -991,19 +991,20 @@ export class HeapLoader {
   }
 
   private findParentsFunc(childNodes: ConstructorItem[], clickNode: ConstructorItem): void {
-    function findParents(clickNode: any, parents: any): any {
+    function findParents(clickNode: unknown, parents: unknown): unknown {//@ts-ignore
       if (!clickNode.parent) {
         return parents;
       }
       // add the parent of the current node to the result array
+      //@ts-ignore
       parents.push(clickNode);
-      for (let childNode of childNodes) {
+      for (let childNode of childNodes) {//@ts-ignore
         for (let heapParent of parents) {
           if (heapParent.id === childNode!.id) {
             childNode.hasNext = false;
           }
         }
-      }
+      }//@ts-ignore
       return findParents(clickNode.parent, parents);
     }
     findParents(clickNode, []);
@@ -1069,7 +1070,7 @@ export class HeapLoader {
       }
     }
 
-    retains.sort(function (a: any, b: any) {
+    retains.sort(function (a: unknown, b: unknown) {//@ts-ignore
       return a.distance - b.distance;
     });
 

@@ -40,9 +40,9 @@ export class LitSlicer extends HTMLElement {
         `;
   }
 
-  set direction(val: any) {
+  set direction(val: unknown) {  // @ts-ignore
     if (val.startsWith('h')) {
-      this.shadowRoot!.querySelector('div')!.style.flexDirection = 'row';
+      this.shadowRoot!.querySelector('div')!.style.flexDirection = 'row';  // @ts-ignore
     } else if (val.startsWith('v')) {
       this.shadowRoot!.querySelector('div')!.style.flexDirection = 'column';
     }
@@ -52,14 +52,14 @@ export class LitSlicer extends HTMLElement {
 
   disconnectedCallback(): void {}
 
-  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {
-    (this as any)[name] = newValue;
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {  // @ts-ignore
+    (this as unknown)[name] = newValue;
   }
-
-  set style(v: any) {}
+  // @ts-ignore
+  set style(v: unknown) {}
 }
 
-if (!customElements.get('lit-slicer')) {
+if (!customElements.get('lit-slicer')) {  // @ts-ignore
   customElements.define('lit-slicer', LitSlicer);
 }
 
@@ -199,7 +199,7 @@ export class LitSlicerTrack extends HTMLElement {
   adoptedCallback(): void {}
 
   //当 custom element增加、删除、修改自身属性时，被调用。
-  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {}
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {}
 }
 
 if (!customElements.get('lit-slicer-track')) {

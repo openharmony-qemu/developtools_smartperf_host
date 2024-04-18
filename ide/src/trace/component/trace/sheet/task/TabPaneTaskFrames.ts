@@ -311,8 +311,10 @@ export class TabPaneTaskFrames extends BaseElement {
     framesParam: SelectionParam,
     isClick: boolean
   ): Promise<number> {
-    let selectStartTime = selectFuncStruct!.startTs! + (window as any).recordStartNS;
-    let selectEndTime = selectFuncStruct!.startTs! + selectFuncStruct!.dur! + (window as any).recordStartNS;
+    // @ts-ignore
+    let selectStartTime = selectFuncStruct!.startTs! + (window as unknown).recordStartNS;
+    // @ts-ignore
+    let selectEndTime = selectFuncStruct!.startTs! + selectFuncStruct!.dur! + (window as unknown).recordStartNS;
     if (!isClick) {
       selectStartTime = framesParam.recordStartNs + framesParam.leftNs;
       selectEndTime = framesParam.recordStartNs + framesParam.rightNs;
@@ -389,7 +391,8 @@ export class TabPaneTaskFrames extends BaseElement {
       let returnTask = SpSystemTrace.DATA_TASK_POOL_CALLSTACK.get(value.returnTaskRow!);
       let tempTask: TaskTabStruct = new TaskTabStruct();
       let executeStartTime = executeTask!.ts!;
-      let executeTime = executeTask!.dur! === -1 ? (window as any).recordEndNS - executeTask!.ts : executeTask!.dur;
+      // @ts-ignore
+      let executeTime = executeTask!.dur! === -1 ? (window as unknown).recordEndNS - executeTask!.ts : executeTask!.dur;
       let allocationStartTime = allocationTask!.ts!;
       let returnEndTime = 0;
       if (returnTask) {

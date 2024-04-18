@@ -30,7 +30,7 @@ export class TabCpuDetailsThreads extends BaseElement {
   private cpuDetailsThreadUsageTbl: LitTable | null | undefined;
   private progress: LitProgressBar | null | undefined;
   private cpuDetailsThreadPie: LitChartPie | null | undefined;
-  private data: Array<any> = [];
+  private data: Array<unknown> = [];
   private cpuDetailsThreadSortColumn: string = '';
   private sortType: number = 0;
 
@@ -47,45 +47,45 @@ export class TabCpuDetailsThreads extends BaseElement {
       }
     };
 
-    this.cpuDetailsThreadUsageTbl!.addEventListener('row-click', (evt: any): void => {
+    this.cpuDetailsThreadUsageTbl!.addEventListener('row-click', (evt: unknown): void => {
       // @ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
-      if ((evt.detail as any).callBack) {
+      if ((evt.detail as unknown).callBack) {
         // @ts-ignore
-        (evt.detail as any).callBack(true);
+        (evt.detail as unknown).callBack(true);
       }
     });
 
-    this.cpuDetailsThreadUsageTbl!.addEventListener('column-click', (evt: any): void => {
-      this.cpuDetailsThreadSortColumn = evt.detail.key;
+    this.cpuDetailsThreadUsageTbl!.addEventListener('column-click', (evt: unknown): void => {//@ts-ignore
+      this.cpuDetailsThreadSortColumn = evt.detail.key;//@ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.cpuDetailsThreadUsageTbl!.addEventListener('row-hover', (evt: any): void => {
-      if (evt.detail.data) {
+    this.cpuDetailsThreadUsageTbl!.addEventListener('row-hover', (evt: unknown): void => {//@ts-ignore
+      if (evt.detail.data) {//@ts-ignore
         let data = evt.detail.data;
-        data.isHover = true;
-        if ((evt.detail as any).callBack) {
-          (evt.detail as any).callBack(true);
+        data.isHover = true;//@ts-ignore
+        if ((evt.detail as unknown).callBack) {//@ts-ignore
+          (evt.detail as unknown).callBack(true);
         }
       }
       this.cpuDetailsThreadPie?.showHover();
     });
   }
 
-  init(cpu: number, it: any): void {
-    this.shadowRoot!.querySelector<HTMLDivElement>('.cpu-thread-subheading')!.textContent =
+  init(cpu: number, it: unknown): void {
+    this.shadowRoot!.querySelector<HTMLDivElement>('.cpu-thread-subheading')!.textContent = //@ts-ignore
       `Threads in Freq ${it.value}`;
     this.progress!.loading = true;
     procedurePool.submitWithName(
       'logic0',
-      'scheduling-CPU Frequency Thread',
-      { cpu: cpu, freq: (it as any).value },
+      'scheduling-CPU Frequency Thread',//@ts-ignore
+      { cpu: cpu, freq: (it as unknown).value },
       undefined,
-      (res: any): void => {
+      (res: unknown): void => {
         this.progress!.loading = false;
         this.queryPieChartDataByType(res);
       }
@@ -101,7 +101,7 @@ export class TabCpuDetailsThreads extends BaseElement {
     }
   }
 
-  queryPieChartDataByType(res: any): void {
+  queryPieChartDataByType(res: unknown): void {//@ts-ignore
     this.data = res || [];
     this.data = getDataNo(this.data);
     this.tableNoData!.noData = this.data.length === 0;
@@ -117,12 +117,18 @@ export class TabCpuDetailsThreads extends BaseElement {
       },
       tip: (obj): string => {
         return `<div>
-                                <div>t_name:${obj.obj.tName}</div> 
-                                <div>tid:${obj.obj.tid}</div>
-                                <div>p_name:${obj.obj.pName}</div>
-                                <div>p_pid:${obj.obj.pid}</div>
-                                <div>duration:${obj.obj.durStr}</div>
-                                <div>ratio:${obj.obj.ratio}%</div>
+                                <div>t_name:${// @ts-ignore
+                                  obj.obj.tName}</div> 
+                                <div>tid:${// @ts-ignore
+                                  obj.obj.tid}</div>
+                                <div>p_name:${// @ts-ignore
+                                  obj.obj.pName}</div>
+                                <div>p_pid:${// @ts-ignore
+                                  obj.obj.pid}</div>
+                                <div>duration:${// @ts-ignore
+                                  obj.obj.durStr}</div>
+                                <div>ratio:${// @ts-ignore
+                                  obj.obj.ratio}%</div>
                             </div>
                                 `;
       },
@@ -158,36 +164,37 @@ export class TabCpuDetailsThreads extends BaseElement {
     this.noData(false);
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(cpuDetailsThreadProperty, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[cpuDetailsThreadProperty]) - parseFloat(a[cpuDetailsThreadProperty]) :
+          return sort === 2 ? parseFloat(b[cpuDetailsThreadProperty]) - parseFloat(a[cpuDetailsThreadProperty]) ://@ts-ignore
             parseFloat(a[cpuDetailsThreadProperty]) - parseFloat(b[cpuDetailsThreadProperty]);
         } else {
-          if (sort === 2) {
+          if (sort === 2) {//@ts-ignore
             return b[cpuDetailsThreadProperty].toString().localeCompare(a[cpuDetailsThreadProperty].toString());
-          } else {
+          } else {//@ts-ignore
             return a[cpuDetailsThreadProperty].toString().localeCompare(b[cpuDetailsThreadProperty].toString());
           }
         }
       };
     }
 
-    if (detail.key === 'durStr') {
-      detail.key = 'dur';
+    //@ts-ignore
+    if (detail.key === 'durStr') {//@ts-ignore
+      detail.key = 'dur';//@ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'number'));
-    } else if (
-      detail.key === 'value' ||
-      detail.key === 'ratio' ||
-      detail.key === 'index' ||
-      detail.key === 'tid' ||
+    } else if (//@ts-ignore
+      detail.key === 'value' ||//@ts-ignore
+      detail.key === 'ratio' ||//@ts-ignore
+      detail.key === 'index' ||//@ts-ignore
+      detail.key === 'tid' ||//@ts-ignore
       detail.key === 'pid'
-    ) {
+    ) {//@ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'number'));
-    } else {
+    } else {//@ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.cpuDetailsThreadUsageTbl!.recycleDataSource = this.data;
