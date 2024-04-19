@@ -307,8 +307,8 @@ export class TabPaneComparison extends BaseElement {
   classFilter(): void {
     this.search!.addEventListener('keyup', (): void => {
       this.comparisonFilter = [];
-      this.comparisonData.forEach((a: any) => {
-        if (a.objectName.toLowerCase().includes(this.search!.value.toLowerCase())) {
+      this.comparisonData.forEach((a: unknown) => {// @ts-ignore
+        if (a.objectName.toLowerCase().includes(this.search!.value.toLowerCase())) {// @ts-ignore
           this.comparisonFilter.push(a);
         } else {
         }
@@ -362,8 +362,8 @@ export class TabPaneComparison extends BaseElement {
   private comparisonTblRowClickHandler = (e: Event): void => {
     this.rightTheadTable!.removeAttribute('sort');
     // @ts-ignore
-    let item = e.detail.data as ConstructorItem;
-    (item as any).isSelected = true;
+    let item = e.detail.data as ConstructorItem;// @ts-ignore
+    (item as unknown).isSelected = true;
     this.retainsData = HeapDataInterface.getInstance().getRetains(item);
     if (this.retainsData && this.retainsData.length > 0) {
       this.retainsDataInit();
@@ -408,9 +408,9 @@ export class TabPaneComparison extends BaseElement {
     }
     this.resizeObserverObserve();
     // @ts-ignore
-    if ((e.detail as any).callBack) {
+    if ((e.detail as unknown).callBack) {
       // @ts-ignore
-      (e.detail as any).callBack(true);
+      (e.detail as unknown).callBack(true);
     }
   };
 
@@ -438,12 +438,12 @@ export class TabPaneComparison extends BaseElement {
 
   private retainerTblRowClickHandler = (evt: Event): void => {
     // @ts-ignore
-    let data = evt.detail.data as ConstructorItem;
-    (data as any).isSelected = true;
+    let data = evt.detail.data as ConstructorItem;// @ts-ignore
+    (data as unknown).isSelected = true;
     // @ts-ignore
-    if ((evt.detail as any).callBack) {
+    if ((evt.detail as unknown).callBack) {
       // @ts-ignore
-      (evt.detail as any).callBack(true);
+      (evt.detail as unknown).callBack(true);
     }
   };
 

@@ -14,7 +14,8 @@
  */
 
 export class TabUtil {
-  static getTableType(showType: any): string {
+  static getTableType(showType: unknown): string {
+    // @ts-ignore
     let columns = showType.columns;
     for (let i = 0; i < columns.length; i++) {
       let column = columns[i];

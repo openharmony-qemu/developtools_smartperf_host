@@ -41,18 +41,22 @@ export function cpuFreqDataSender(cpu: number, row: TraceRow<CpuFreqStruct>): Pr
         sharedArrayBuffers: row.sharedArrayBuffers,
         width: width,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): CpuFreqStruct[] {
+function arrayBufferHandler(buffers: unknown, len: number): CpuFreqStruct[] {
   let outArr: CpuFreqStruct[] = [];
+  // @ts-ignore
   let cpu = new Uint8Array(buffers.cpu);
+  // @ts-ignore
   let value = new Uint32Array(buffers.value);
+  // @ts-ignore
   let startNS = new Float64Array(buffers.startNS);
+  // @ts-ignore
   let dur = new Float64Array(buffers.dur);
   for (let i = 0; i < len; i++) {
     outArr.push({

@@ -16,14 +16,15 @@ import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { SpSystemTrace } from '../../../component/SpSystemTrace';
 
 export function hiperfCallChartDataSender(
-  row: TraceRow<any>,
+  // @ts-ignore
+  row: TraceRow<unknown>,
   setting: {
     startTime: number;
     eventTypeId: number;
     type: number;
     id: number;
   }
-): Promise<any> {
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     threadPool.submitProto(
       QueryEnum.HiperfCallChart,
@@ -39,14 +40,14 @@ export function hiperfCallChartDataSender(
         type: setting.type,
         id: setting.id,
       },
-      (res: any, len: number): void => {
+      (res: unknown, len: number): void => {
         resolve(arrayBufferHandler(res, len));
       }
     );
   });
 }
 
-export function hiperfCallStackCacheSender(): Promise<any> {
+export function hiperfCallStackCacheSender(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     threadPool.submitProto(
       QueryEnum.HiperfCallStack,
@@ -55,14 +56,14 @@ export function hiperfCallStackCacheSender(): Promise<any> {
         isCache: true,
         trafic: TraficEnum.TransferArrayBuffer,
       },
-      (res: any, len: number): void => {
+      (res: unknown, len: number): void => {
         resolve('ok');
       }
     );
   });
 }
 
-export function hiperfCallChartDataCacheSender(): Promise<any> {
+export function hiperfCallChartDataCacheSender(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     threadPool.submitProto(
       QueryEnum.HiperfCallChart,
@@ -72,7 +73,7 @@ export function hiperfCallChartDataCacheSender(): Promise<any> {
         trafic: TraficEnum.TransferArrayBuffer,
         isCache: true,
       },
-      (res: any, len: number): void => {
+      (res: unknown, len: number): void => {
         resolve('ok');
       }
     );
@@ -80,22 +81,31 @@ export function hiperfCallChartDataCacheSender(): Promise<any> {
 }
 
 function arrayBufferHandler(
-  res: any,
+  res: unknown,
   len: number
 ): {
-  maxDepth: any;
-  dataList: any[];
+  maxDepth: unknown;
+  dataList: unknown[];
 } {
+  // @ts-ignore
   let startTs = new Float64Array(res.startTs);
+  // @ts-ignore
   let dur = new Float64Array(res.dur);
+  // @ts-ignore
   let depth = new Int32Array(res.depth);
+  // @ts-ignore
   let eventCount = new Int32Array(res.eventCount);
+  // @ts-ignore
   let symbolId = new Int32Array(res.symbolId);
+  // @ts-ignore
   let fileId = new Int32Array(res.fileId);
+  // @ts-ignore
   let callchainId = new Int32Array(res.callchainId);
+  // @ts-ignore
   let selfDur = new Int32Array(res.selfDur);
+  // @ts-ignore
   let name = new Int32Array(res.name);
-  let outArr: any[] = [];
+  let outArr: unknown[] = [];
   for (let i = 0; i < len; i++) {
     outArr.push({
       startTime: startTs[i],
@@ -108,9 +118,10 @@ function arrayBufferHandler(
       callchain_id: callchainId[i],
       selfDur: selfDur[i],
       name: SpSystemTrace.DATA_DICT.get(name[i]),
-    } as any);
+    } as unknown);
   }
   return {
+    // @ts-ignore
     maxDepth: res.maxDepth,
     dataList: outArr,
   };

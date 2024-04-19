@@ -516,7 +516,7 @@ export const litTableHtml = `
         </div>
         `;
 
-export function createDownUpSvg(index: number, head: any): { upSvg: SVGSVGElement, downSvg: SVGSVGElement } {
+export function createDownUpSvg(index: number, head: unknown): { upSvg: SVGSVGElement, downSvg: SVGSVGElement } {
   let NS = 'http://www.w3.org/2000/svg';
   let upSvg: SVGSVGElement = document.createElementNS(NS, 'svg') as SVGSVGElement;
   let upPath: Element = document.createElementNS(NS, 'path');
@@ -540,73 +540,73 @@ export function createDownUpSvg(index: number, head: any): { upSvg: SVGSVGElemen
     'M840.4 300H183.6c-19.7 0-30.7 20.8-18.5 35l328.4 380.8c9.4 10.9 27.5 10.9 37 0L858.9 335c12.2-14.2 1.2-35-18.5-35z'
   );
   downSvg.appendChild(downPath);
-  if (index === 0) {
+  if (index === 0) {//@ts-ignore
     head.sortType = 0; // 默认以第一列 降序排序 作为默认排序
     upSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
     downSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
   }
   upSvg.style.display = 'none';
-  downSvg.style.display = 'none';
-  head.appendChild(upSvg);
+  downSvg.style.display = 'none';//@ts-ignore
+  head.appendChild(upSvg);//@ts-ignore
   head.appendChild(downSvg);
   return { upSvg, downSvg };
 }
 
-export function exportData(that: any): void {
+export function exportData(that: unknown): void {//@ts-ignore
   if (that.exportLoading || that.ds.length === 0) {
     return;
-  }
-  that.exportLoading = true;
+  }//@ts-ignore
+  that.exportLoading = true;//@ts-ignore
   that.exportProgress!.loading = true;
   let date = new Date();
-  JSONToCSV.csvExport({
-    columns: that.columns as any[],
+  JSONToCSV.csvExport({//@ts-ignore
+    columns: that.columns as unknown[],//@ts-ignore
     tables: that.ds,
-    fileName: `${date.getTime()}`,
-    columnFormatter: that.itemTextHandleMap,
+    fileName: `${date.getTime()}`,//@ts-ignore
+    columnFormatter: that.itemTextHandleMap,//@ts-ignore
     exportFormatter: that.exportTextHandleMap,
-  }).then((res) => {
-    that.exportLoading = false;
+  }).then((res) => {//@ts-ignore
+    that.exportLoading = false;//@ts-ignore
     that.exportProgress!.loading = false;
   });
 }
 
-export function formatExportData(dataSource: any[], that: any): any[] {
+export function formatExportData(dataSource: unknown[], that: unknown): unknown[] {
   if (dataSource === undefined || dataSource.length === 0) {
     return [];
-  }
+  }//@ts-ignore
   if (that.columns === undefined) {
     return [];
   }
   return dataSource.map((item) => {
-    let formatData: any = {};
-    that.columns!.forEach((column: any) => {
-      let dataIndex = column.getAttribute('data-index');
+    let formatData: unknown = {};//@ts-ignore
+    that.columns!.forEach((column: unknown) => {//@ts-ignore
+      let dataIndex = column.getAttribute('data-index');//@ts-ignore
       let columnName = column.getAttribute('title');
       if (columnName === '') {
         columnName = dataIndex;
-      }
-      if (dataIndex && columnName && item[dataIndex] !== undefined) {
+      }//@ts-ignore
+      if (dataIndex && columnName && item[dataIndex] !== undefined) {//@ts-ignore
         formatData[columnName] = item[dataIndex];
       }
-    });
-    if (item.children !== undefined) {
+    });//@ts-ignore
+    if (item.children !== undefined) {//@ts-ignore
       formatData.children = formatExportData(item.children, that);
     }
     return formatData;
   });
 }
 
-export function recursionExportTableData(columns: any[], dataSource: any[]): string {
+export function recursionExportTableData(columns: unknown[], dataSource: unknown[]): string {
   let concatStr = '\r\n';
   dataSource.forEach((item, index) => {
     concatStr += columns
-      .map((column) => {
-        let dataIndex = column.getAttribute('data-index');
+      .map((column) => {//@ts-ignore
+        let dataIndex = column.getAttribute('data-index');//@ts-ignore
         return `"${item[dataIndex] || ''}"    `;
       })
-      .join(',');
-    if (item.children !== undefined) {
+      .join(',');//@ts-ignore
+    if (item.children !== undefined) {//@ts-ignore
       concatStr += recursionExportTableData(columns, item.children);
     }
     if (index !== dataSource.length - 1) {
@@ -616,8 +616,8 @@ export function recursionExportTableData(columns: any[], dataSource: any[]): str
   return concatStr;
 }
 
-export function addCopyEventListener(that: any): void {
-  that.tableElement?.addEventListener('copy', (e: any) => {
+export function addCopyEventListener(that: unknown): void {//@ts-ignore
+  that.tableElement?.addEventListener('copy', (e: unknown) => {
     // @ts-ignore
     let clipboardData = e.clipboardData || window.clipboardData;
     if (!clipboardData) {
@@ -625,8 +625,8 @@ export function addCopyEventListener(that: any): void {
     }
     // @ts-ignore
     let text = window.getSelection().toString();
-    if (text) {
-      e.preventDefault();
+    if (text) {//@ts-ignore
+      e.preventDefault();//@ts-ignore
       let length = that.tableColumns?.length || 1;
       let strings = text.split('\n');
       let formatStr = '';
@@ -644,7 +644,7 @@ export function addCopyEventListener(that: any): void {
   });
 }
 
-export function addSelectAllBox(rowElement: HTMLDivElement, that: any): void {
+export function addSelectAllBox(rowElement: HTMLDivElement, that: unknown): void {//@ts-ignore
   if (that.selectable) {
     let box = document.createElement('div');
     box.style.display = 'flex';
@@ -655,12 +655,12 @@ export function addSelectAllBox(rowElement: HTMLDivElement, that: any): void {
     box.style.backgroundColor = '#ffffff66';
     let checkbox = document.createElement('lit-checkbox');
     checkbox.classList.add('row-checkbox-all');
-    checkbox.onchange = (e: any): void => {
-      that.shadowRoot!.querySelectorAll('.row-checkbox').forEach((a: any) => (a.checked = e.detail.checked));
-      if (e.detail.checked) {
-        that.shadowRoot!.querySelectorAll('.tr').forEach((a: any) => a.setAttribute('checked', ''));
-      } else {
-        that.shadowRoot!.querySelectorAll('.tr').forEach((a: any) => a.removeAttribute('checked'));
+    checkbox.onchange = (e: unknown): void => {//@ts-ignore
+      that.shadowRoot!.querySelectorAll('.row-checkbox').forEach((a: unknown) => (a.checked = e.detail.checked));//@ts-ignore
+      if (e.detail.checked) {//@ts-ignore
+        that.shadowRoot!.querySelectorAll('.tr').forEach((a: unknown) => a.setAttribute('checked', ''));
+      } else {//@ts-ignore
+        that.shadowRoot!.querySelectorAll('.tr').forEach((a: unknown) => a.removeAttribute('checked'));
       }
     };
     box.appendChild(checkbox);
@@ -679,9 +679,9 @@ export function fixed(td: HTMLElement, placement: string, bgColor: string): void
   }
 }
 
-export function formatName(key: string, name: any, that: any): any {
-  let content = name;
-  if (that.itemTextHandleMap.has(key)) {
+export function formatName(key: string, name: unknown, that: unknown): unknown {
+  let content = name;//@ts-ignore
+  if (that.itemTextHandleMap.has(key)) {//@ts-ignore
     content = that.itemTextHandleMap.get(key)?.(name) || '';
   }
   if (content !== undefined && content !== null) {

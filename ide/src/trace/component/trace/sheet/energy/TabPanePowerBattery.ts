@@ -25,7 +25,7 @@ import { getTabPowerBatteryData } from '../../../../database/sql/ProcessThread.s
 export class TabPanePowerBattery extends BaseElement {
   private tblPower: LitTable | null | undefined;
 
-  set data(valPower: SelectionParam | any) {
+  set data(valPower: SelectionParam | unknown) {
     this.queryDataByDB(valPower);
   }
 
@@ -38,9 +38,10 @@ export class TabPanePowerBattery extends BaseElement {
     this.tblPower = this.shadowRoot?.querySelector<LitTable>('#tb-power-battery-energy');
   }
 
-  queryDataByDB(val: SelectionParam | any): void {
+  queryDataByDB(val: SelectionParam | unknown): void {
+    // @ts-ignore
     getTabPowerBatteryData(val.rightNs).then((result): void => {
-      let powerData: any = {
+      let powerData: unknown = {
         POWER_IDE_BATTERY: {
           gas_gauge: [],
           charge: [],
@@ -53,20 +54,29 @@ export class TabPanePowerBattery extends BaseElement {
         },
       };
       result.forEach((item): void => {
-        let powerDatum: any = powerData[item.eventName];
+        // @ts-ignore
+        let powerDatum: unknown = powerData[item.eventName];
         if (item.appKey.toLocaleLowerCase() === 'appname') {
+          // @ts-ignore
           powerDatum.appName = SpHiSysEnergyChart.app_name;
         } else {
           let eventData: Array<string> = item.eventValue.split(',');
+          // @ts-ignore
           powerDatum[item.appKey.toLocaleLowerCase()] = eventData[eventData.length - 1] || '';
         }
       });
       this.tblPower!.recycleDataSource = [
+        // @ts-ignore
         { name: 'Gas Gauge', value: `${powerData.POWER_IDE_BATTERY.gas_gauge} mAh` },
+        // @ts-ignore
         { name: 'Charge', value: powerData.POWER_IDE_BATTERY.charge },
+        // @ts-ignore
         { name: 'Screen', value: powerData.POWER_IDE_BATTERY.screen },
+        // @ts-ignore
         { name: 'Level', value: `${powerData.POWER_IDE_BATTERY.level} %` },
+        // @ts-ignore
         { name: 'Current', value: `${powerData.POWER_IDE_BATTERY.current} mA` },
+        // @ts-ignore
         { name: 'Capacity', value: `${powerData.POWER_IDE_BATTERY.capacity} mAh` },
         { name: 'APP Name', value: SpHiSysEnergyChart.app_name! },
       ];

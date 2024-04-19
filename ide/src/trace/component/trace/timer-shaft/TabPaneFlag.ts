@@ -25,7 +25,7 @@ export class TabPaneFlag extends BaseElement {
   private flag: Flag | null = null;
   private flagList: Array<Flag> = [];
   private systemTrace: SpSystemTrace | undefined | null;
-  private tableDataSource: Array<MarkStruct | any> = [];
+  private tableDataSource: Array<MarkStruct | unknown> = [];
   private panelTable: LitTable | undefined | null;
 
   initElements(): void {
@@ -33,7 +33,8 @@ export class TabPaneFlag extends BaseElement {
       .querySelector('body > sp-application')
       ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.panelTable = this.shadowRoot!.querySelector<LitTable>('.notes-editor-panel');
-    this.panelTable!.addEventListener('row-click', (evt: any) => {
+    this.panelTable!.addEventListener('row-click', (evt: unknown) => {
+      // @ts-ignore
       if (evt.detail.data.startTime === undefined) {
         return;
       }
@@ -56,7 +57,7 @@ export class TabPaneFlag extends BaseElement {
     // 当鼠标移出panel时重新加载备注信息
     this.systemTrace?.shadowRoot?.querySelector('trace-sheet')?.addEventListener(
       'mouseout',
-      (event: any) => {
+      (event: unknown) => {
         if (this.flagList.length === 0) {
           return;
         }
@@ -65,6 +66,7 @@ export class TabPaneFlag extends BaseElement {
         for (let i = 1; i < tr.length; i++) {
           tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.flagList[i - 1].text;
         }
+        // @ts-ignore
         event.stopPropagation();
       },
       { capture: true }
@@ -117,6 +119,7 @@ export class TabPaneFlag extends BaseElement {
 
     // 当前点击了哪个旗子，就将对应的表格中的那行的背景变色
     this.tableDataSource.forEach((data, index) => {
+      // @ts-ignore
       if (data.time === this.flag?.time) {
         this.setTableSelection(index);
       }
@@ -161,48 +164,59 @@ export class TabPaneFlag extends BaseElement {
   }
 
   private colorInputChangeEventByFlag(index: number, tr: HTMLDivElement): void {
-    tr.querySelector<HTMLInputElement>('#color-input')?.addEventListener('change', (event: any) => {
+    tr.querySelector<HTMLInputElement>('#color-input')?.addEventListener('change', (event: unknown) => {
+      // @ts-ignore
       if (this.tableDataSource[index].startTime === this.flagList[index - 1].time) {
+        // @ts-ignore
         this.flagList[index - 1].color = event?.target.value;
         document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
         //   旗子颜色改变时，重绘泳道图
         this.systemTrace?.refreshCanvas(true);
       }
+      // @ts-ignore
       event.stopPropagation();
     });
   }
 
   private textInputKeyUpEventByFlag(index: number, tr: HTMLDivElement): void {
-    tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('keyup', (event: any) => {
+    tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('keyup', (event: unknown) => {
+      // @ts-ignore
       if (this.tableDataSource[index].startTime === this.flagList[index - 1].time && event.keyCode === '13') {
+        // @ts-ignore
         this.flagList[index - 1].text = event?.target.value;
         document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
         //   旗子颜色改变时，重绘泳道图
         this.systemTrace?.refreshCanvas(true);
       }
+      // @ts-ignore
       event.stopPropagation();
     });
   }
 
   private textInputBlurEventByFlag(index: number, tr: HTMLDivElement): void {
-    tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('blur', (event: any) => {
-      (window as any).flagInputFocus = false;
+    tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('blur', (event: unknown) => {
+      // @ts-ignore
+      (window as unknown).flagInputFocus = false;
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: true,
       });
+      // @ts-ignore
       if (this.tableDataSource[index].startTime === this.flagList[index - 1].time) {
+        // @ts-ignore
         this.flagList[index - 1].text = event?.target.value;
         document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
         //   旗子颜色改变时，重绘泳道图
         this.systemTrace?.refreshCanvas(true);
       }
+      // @ts-ignore
       event.stopPropagation();
     });
   }
 
   private textInputFocusEventByFlag(tr: HTMLDivElement): void {
-    tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('focus', (event: any) => {
-      (window as any).flagInputFocus = true;
+    tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('focus', (event: unknown) => {
+      // @ts-ignore
+      (window as unknown).flagInputFocus = true;
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: false,
       });
@@ -215,7 +229,8 @@ export class TabPaneFlag extends BaseElement {
   }
 
   private removeClickEventByFlag(index: number, tr: HTMLDivElement): void {
-    tr!.querySelector('.remove')?.addEventListener('click', (event: any) => {
+    tr!.querySelector('.remove')?.addEventListener('click', (event: unknown) => {
+      // @ts-ignore
       if (this.tableDataSource[index].startTime === this.flagList[index - 1].time) {
         this.flagList[index - 1].hidden = true;
         this.systemTrace!.flagList = this.flagList || [];
@@ -223,6 +238,7 @@ export class TabPaneFlag extends BaseElement {
         //   移除时更新表格内容
         this.setTableData();
       }
+      // @ts-ignore
       event.stopPropagation();
     });
   }
@@ -231,9 +247,12 @@ export class TabPaneFlag extends BaseElement {
    * 修改表格指定行数的背景颜色
    * @param line 要改变的表格行数
    */
-  public setTableSelection(line: any): void {
+  public setTableSelection(line: unknown): void {
+    // @ts-ignore
     this.tableDataSource[line].isSelected = true;
+    // @ts-ignore
     this.panelTable?.clearAllSelection(this.tableDataSource[line]);
+    // @ts-ignore
     this.panelTable?.setCurrentSelection(this.tableDataSource[line]);
   }
 

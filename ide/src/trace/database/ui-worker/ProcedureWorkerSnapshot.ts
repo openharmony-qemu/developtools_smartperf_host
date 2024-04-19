@@ -37,7 +37,7 @@ export class SnapshotRender extends Render {
       filter,
       maxValue,
       TraceRow.range?.startNS ?? 0,
-      (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0),
+      (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0),// @ts-ignore
       row.frame
     );
     drawLoadingFrame(req.context, row.dataListCache, row);

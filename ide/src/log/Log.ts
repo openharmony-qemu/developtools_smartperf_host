@@ -23,22 +23,22 @@ export enum LogLevel {
   ALL = Number.MIN_VALUE,
 }
 
-export const error = (message?: any, ...optionalParams: any[]): void => {
+export const error = (message?: unknown, ...optionalParams: unknown[]): void => {
   SpLog.logger(LogLevel.ERROR, message, ...optionalParams);
 };
-export const warn = (message?: any, ...optionalParams: any[]): void => {
+export const warn = (message?: unknown, ...optionalParams: unknown[]): void => {
   SpLog.logger(LogLevel.WARN, message, ...optionalParams);
 };
-export const info = (message?: any, ...optionalParams: any[]): void => {
+export const info = (message?: unknown, ...optionalParams: unknown[]): void => {
   SpLog.logger(LogLevel.INFO, message, ...optionalParams);
 };
-export const debug = (message?: any, ...optionalParams: any[]): void => {
+export const debug = (message?: unknown, ...optionalParams: unknown[]): void => {
   SpLog.logger(LogLevel.DEBUG, message, ...optionalParams);
 };
-export const trace = (message?: any, ...optionalParams: any[]): void => {
+export const trace = (message?: unknown, ...optionalParams: unknown[]): void => {
   SpLog.logger(LogLevel.TRACE, message, ...optionalParams);
 };
-export const log = (message?: any): void => {
+export const log = (message?: unknown): void => {
   SpLog.logger(LogLevel.TRACE, message);
 };
 
@@ -58,7 +58,7 @@ class SpLog {
     return timeString;
   }
 
-  public static logger(logLevel: LogLevel, message?: any, ...optionalParams: any[]): void {
+  public static logger(logLevel: LogLevel, message?: unknown, ...optionalParams: unknown[]): void {
     if (logLevel >= SpLog.nowLogLevel) {
       switch (logLevel) {
         case LogLevel.ERROR:

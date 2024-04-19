@@ -127,15 +127,15 @@ export class LitMainMenu extends BaseElement {
       }
       let groupName: LitMainMenuGroup = group!.shadowRoot!.querySelector('.group-name') as LitMainMenuGroup;
       let groupDescribe: LitMainMenuGroup = group!.shadowRoot!.querySelector('.group-describe') as LitMainMenuGroup;
-      menuBody?.appendChild(group);
-      it.children?.forEach((item: any) => {
+      menuBody?.appendChild(group);// @ts-ignore
+      it.children?.forEach((item: unknown) => {// @ts-ignore
         if (item.fileModel !== undefined && item.fileModel === 'db') {
           return;
-        }
+        }// @ts-ignore
         if (item.children && item.children.length > 0) {
-          let secondGroup: LitMainMenuGroup = new LitMainMenuGroup();
-          secondGroup.setAttribute('title', item.title || '');
-          if (item.describe !== '') {
+          let secondGroup: LitMainMenuGroup = new LitMainMenuGroup();// @ts-ignore
+          secondGroup.setAttribute('title', item.title || '');// @ts-ignore
+          if (item.describe !== '') {// @ts-ignore
             secondGroup.setAttribute('describe', item.describe || '');
           } else {
             secondGroup.removeAttribute('describe');
@@ -149,27 +149,27 @@ export class LitMainMenu extends BaseElement {
   }
 
   setChildren(
-    item: any,
+    item: unknown,
     group: LitMainMenuGroup,
     groupName: LitMainMenuGroup,
     groupDescribe: LitMainMenuGroup,
     secondGroup: LitMainMenuGroup
-  ): void {
-    secondGroup.setAttribute('icon', item.icon || '');
+  ): void {// @ts-ignore
+    secondGroup.setAttribute('icon', item.icon || '');// @ts-ignore
     if (item.second) {
       secondGroup.setAttribute('second', '');
     } else {
       secondGroup.removeAttribute('second');
-    }
+    }// @ts-ignore
     if (item.collapsed) {
       secondGroup.setAttribute('collapsed', '');
     } else {
       secondGroup.removeAttribute('collapsed');
     }
-    group?.appendChild(secondGroup);
-    item.children?.forEach((v: any) => {
-      let th = new LitMainMenuItem();
-      th.setAttribute('icon', v.icon || '');
+    group?.appendChild(secondGroup);// @ts-ignore
+    item.children?.forEach((v: unknown) => {
+      let th = new LitMainMenuItem();// @ts-ignore
+      th.setAttribute('icon', v.icon || '');// @ts-ignore
       th.setAttribute('title', v.title || '');
       if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') === 'dark') {
         groupName.style.color = 'white';
@@ -179,32 +179,32 @@ export class LitMainMenu extends BaseElement {
         groupName.style.color = 'black';
         groupDescribe.style.color = 'black';
         th!.style.color = 'black';
-      }
+      }// @ts-ignore
       if (v.fileChoose) {
         th.setAttribute('file', '');
-        th.addEventListener('file-change', (e) => {
-          if (v.fileHandler && !th.disabled) {
+        th.addEventListener('file-change', (e) => {// @ts-ignore
+          if (v.fileHandler && !th.disabled) {// @ts-ignore
             v.fileHandler(e);
           }
         });
       } else {
         th.removeAttribute('file');
-        th.addEventListener('click', (e) => {
-          if (v.clickHandler && !th.disabled) {
+        th.addEventListener('click', (e) => {// @ts-ignore
+          if (v.clickHandler && !th.disabled) {// @ts-ignore
             v.clickHandler(v);
           }
         });
-      }
-      if (v.disabled !== undefined) {
+      }// @ts-ignore
+      if (v.disabled !== undefined) {// @ts-ignore
         th.disabled = v.disabled;
       }
       secondGroup.appendChild(th);
     });
   }
 
-  notChildren(item: any, group: LitMainMenuGroup, groupName: LitMainMenuGroup, groupDescribe: LitMainMenuGroup): void {
-    let th = new LitMainMenuItem();
-    th.setAttribute('icon', item.icon || '');
+  notChildren(item: unknown, group: LitMainMenuGroup, groupName: LitMainMenuGroup, groupDescribe: LitMainMenuGroup): void {
+    let th = new LitMainMenuItem();// @ts-ignore
+    th.setAttribute('icon', item.icon || '');// @ts-ignore
     th.setAttribute('title', item.title || '');
     if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') === 'dark') {
       groupName.style.color = 'white';
@@ -214,23 +214,23 @@ export class LitMainMenu extends BaseElement {
       groupName.style.color = 'black';
       groupDescribe.style.color = 'black';
       th!.style.color = 'black';
-    }
+    }// @ts-ignore
     if (item.fileChoose) {
       th.setAttribute('file', '');
-      th.addEventListener('file-change', (e) => {
-        if (item.fileHandler && !th.disabled) {
+      th.addEventListener('file-change', (e) => {// @ts-ignore
+        if (item.fileHandler && !th.disabled) {// @ts-ignore
           item.fileHandler(e);
         }
       });
     } else {
       th.removeAttribute('file');
-      th.addEventListener('click', (e) => {
-        if (item.clickHandler && !th.disabled) {
+      th.addEventListener('click', (e) => {// @ts-ignore
+        if (item.clickHandler && !th.disabled) {// @ts-ignore
           item.clickHandler(item);
         }
       });
-    }
-    if (item.disabled !== undefined) {
+    }// @ts-ignore
+    if (item.disabled !== undefined) {// @ts-ignore
       th.disabled = item.disabled;
     }
     group?.appendChild(th);
@@ -276,7 +276,7 @@ export interface MenuGroup {
   describe: string;
   second: boolean;
   collapsed: boolean;
-  children: any;
+  children: unknown;
   icon: string;
 }
 

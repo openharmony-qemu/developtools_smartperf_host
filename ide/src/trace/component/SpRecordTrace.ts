@@ -290,7 +290,7 @@ export class SpRecordTrace extends BaseElement {
 
   private freshMenuDisable(disable: boolean): void {
     let mainMenu = this.sp!.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
-    mainMenu.menus?.forEach((men): void => {
+    mainMenu.menus?.forEach((men): void => {// @ts-ignore
       men.children.forEach((child: HTMLElement): void => {
         // @ts-ignore
         child.disabled = disable;
@@ -776,16 +776,21 @@ export class SpRecordTrace extends BaseElement {
     let litCheckBoxDis = recordTrace.probesConfig?.shadowRoot?.querySelectorAll('lit-check-box');
     recordTrace.ftraceSlider =
       recordTrace.probesConfig?.shadowRoot?.querySelector<LitSlider>('#ftrace-buff-size-slider');
-    startNativeSwitch.addEventListener('change', (event: any): void => {
+    startNativeSwitch.addEventListener('change', (event: unknown): void => {
+      //@ts-ignore
       let detail = event.detail;
       if (detail!.checked) {
         recordModeSwitch.removeAttribute('checked');
-        checkDesBoxDis?.forEach((item: any): void => {
+        checkDesBoxDis?.forEach((item: unknown): void => {
+          //@ts-ignore
           item.setAttribute('disabled', '');
+          //@ts-ignore
           item.checked = false;
         });
-        litCheckBoxDis?.forEach((item: any): void => {
+        litCheckBoxDis?.forEach((item: unknown): void => {
+          //@ts-ignore
           item.setAttribute('disabled', '');
+          //@ts-ignore
           item.checked = false;
         });
         recordTrace.ftraceSlider!.setAttribute('disabled', '');

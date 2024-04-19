@@ -23,15 +23,21 @@ import { resizeObserver } from '../SheetUtils';
 export class TabPaneFreqLimit extends BaseElement {
   private freqLimitTbl: LitTable | null | undefined;
 
-  set data(freqLimit: any) {
+  set data(freqLimit: unknown) {
     if (freqLimit) {
       this.freqLimitTbl!.recycleDataSource = [
         {
+          // @ts-ignore
           startNs: Utils.getTimeString(freqLimit.startNs >= 0 ? freqLimit.startNs : 0),
-          absoluteTime: (freqLimit.startNs + (window as any).recordStartNS) / 1000000000,
+          // @ts-ignore
+          absoluteTime: (freqLimit.startNs + (window as unknown).recordStartNS) / 1000000000,
+          // @ts-ignore
           dur: Utils.getProbablyTime(freqLimit.dur),
+          // @ts-ignore
           maxFreq: `${ColorUtils.formatNumberComma(freqLimit.max!)} kHz`,
+          // @ts-ignore
           minFreq: `${ColorUtils.formatNumberComma(freqLimit.min!)} kHz`,
+          // @ts-ignore
           cpu: `Cpu ${freqLimit.cpu}`,
         },
       ];

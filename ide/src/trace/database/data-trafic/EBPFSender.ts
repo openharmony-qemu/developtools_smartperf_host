@@ -44,7 +44,7 @@ export function fileSystemSender(
         type: type,
         scale: scale,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
@@ -83,7 +83,7 @@ export function diskIoSender(
         typeArr: typeArr,
         scale: scale,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
@@ -112,18 +112,23 @@ export function fileSysVMSender(scale: number, row: TraceRow<EBPFChartStruct>): 
         sharedArrayBuffers: row.sharedArrayBuffers,
         scale: scale,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
-function arrayBufferHandler(buffers: any, len: number): EBPFChartStruct[] {
+function arrayBufferHandler(buffers: unknown, len: number): EBPFChartStruct[] {
   let outArr: EBPFChartStruct[] = [];
+  // @ts-ignore
   let endNS = new Float64Array(buffers.endNS);
+  // @ts-ignore
   let startNS = new Float64Array(buffers.startNS);
+  // @ts-ignore
   let size = new Float64Array(buffers.size);
+  // @ts-ignore
   let dur = new Float64Array(buffers.dur);
+  // @ts-ignore
   let height = new Int32Array(buffers.height);
   for (let i = 0; i < len; i++) {
     outArr.push({

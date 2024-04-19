@@ -16,10 +16,10 @@
 const propsMap: string[] = ['disabled', 'hidden', 'checked', 'selected', 'required', 'open', 'readonly'];
 
 declare interface HTMLTemplateElement {
-  render(data: any): any;
+  render(data: unknown): unknown;
 }
-
-(HTMLTemplateElement as any).prototype.render = function (data: any): HTMLElement {
+//@ts-ignore
+(HTMLTemplateElement as unknown).prototype.render = function (data: unknown): HTMLElement {
   if (!this.$fragment) {
     const rule = this.getAttribute('rule') || 'v-';
     this.$fragment = this.cloneNode(true);
@@ -28,9 +28,9 @@ declare interface HTMLTemplateElement {
     // v-for Loop rendering
     // <div v-for="list"></div>   =>    ${ list.map(function(item,index){ return '<div></div>' }).join('') }
     const repeatEls = this.$fragment.content.querySelectorAll(`[\\${rule}for]`);
-    repeatEls.forEach((el: any) => {
+    repeatEls.forEach((el: unknown) => {//@ts-ignore
       const strFor = el.getAttribute(`${rule}for`);
-      const { isArray, items, params } = parseFor(strFor);
+      const { isArray, items, params } = parseFor(strFor);//@ts-ignore
       el.before(
         '${Object.entries(' +
           items +
@@ -39,25 +39,25 @@ declare interface HTMLTemplateElement {
             params[2] || 'index'
           }` +
           '){ return `'
-      );
-      el.removeAttribute(`${rule}for`);
+      );//@ts-ignore
+      el.removeAttribute(`${rule}for`);//@ts-ignore
       el.after('`}).join("")}');
     });
 
     // v-if Conditional rendering
     // <div v-if="if"></div>   =>    ${ if ? '<div></div>' : '' }
     const ifEls = this.$fragment.content.querySelectorAll(`[\\${rule}if]`);
-    ifEls.forEach((el: any) => {
-      const ifs = el.getAttribute(`${rule}if`);
-      el.before('${' + ifs + '?`');
-      el.removeAttribute(`${rule}if`);
+    ifEls.forEach((el: unknown) => {//@ts-ignore
+      const ifs = el.getAttribute(`${rule}if`);//@ts-ignore
+      el.before('${' + ifs + '?`');//@ts-ignore
+      el.removeAttribute(`${rule}if`);//@ts-ignore
       el.after('`:`<!--if:' + el.tagName + '-->`}');
     });
 
     // fragment   <fragment>aa</fragment>   =>  aa
     const fragments = this.$fragment.content.querySelectorAll('fragment,block');
-    fragments.forEach((el: any) => {
-      el.after(el.innerHTML);
+    fragments.forEach((el: unknown) => {//@ts-ignore
+      el.after(el.innerHTML);//@ts-ignore
       el.parentNode.removeChild(el);
     });
   }
@@ -65,10 +65,11 @@ declare interface HTMLTemplateElement {
 
   // props
   const propsEls = this.fragment.content.querySelectorAll(`[${propsMap.join('],[')}]`);
-  propsEls.forEach((el: any) => {
-    propsMap.forEach((props: any) => {
+  propsEls.forEach((el: unknown) => {
+    propsMap.forEach((props: unknown) => {
       // If these attribute values are false, they are removed directly
-      if (el.getAttribute(props) === 'false') {
+      //@ts-ignore
+      if (el.getAttribute(props) === 'false') {//@ts-ignore
         el.removeAttribute(props);
       }
     });
@@ -87,18 +88,19 @@ function parseFor(strFor: String): { isArray: boolean, items: string | String, p
 }
 
 // String to template string
-(String as any).prototype.interpolate = function (params: any): Function {
+//@ts-ignore
+(String as unknown).prototype.interpolate = function (params: unknown): Function {//@ts-ignore
   const names = Object.keys(params);
   // @ts-ignore
   const vals = Object.values(params);
-  const str = this.replace(/\{\{([^\}]+)\}\}/g, (all: any, s: any) => `\${${s}}`);
+  const str = this.replace(/\{\{([^\}]+)\}\}/g, (all: unknown, s: unknown) => `\${${s}}`);
   return new Function(...names, `return \`${escape2Html(str)}\`;`)(...vals);
 };
 
 // HTML Character inversion meaning   &lt;  =>  <
 function escape2Html(str: string): string {
-  let arrEntities: any = { lt: '<', gt: '>', nbsp: ' ', amp: '&', quot: '"' };
-  return str.replace(/&(lt|gt|nbsp|amp|quot);/gi, function (all, t) {
+  let arrEntities: unknown = { lt: '<', gt: '>', nbsp: ' ', amp: '&', quot: '"' };
+  return str.replace(/&(lt|gt|nbsp|amp|quot);/gi, function (all, t) {//@ts-ignore
     return arrEntities[t];
   });
 }

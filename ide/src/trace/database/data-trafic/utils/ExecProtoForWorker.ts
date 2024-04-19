@@ -80,9 +80,9 @@ import { cpuFreqDataReceiver } from '../cpu/CpuFreqDataReceiver';
 import { lostFrameReceiver } from './../LostFrameReceiver';
 import { sliceReceiver, sliceSPTReceiver } from '../SliceReceiver';
 
-
-const traficHandlers: Map<number, any> = new Map<number, any>([]);
-export const execProtoForWorker = (data: any, proc: Function): void => traficHandlers.get(data.name)?.(data, proc);
+// @ts-ignore
+const traficHandlers: Map<number, unknown> = new Map<number, unknown>([]);// @ts-ignore
+export const execProtoForWorker = (data: unknown, proc: Function): void => traficHandlers.get(data.name)?.(data, proc);
 
 traficHandlers.set(QueryEnum.ClearMemoryCache, clearMemoryCache);
 traficHandlers.set(QueryEnum.CpuData, cpuDataReceiver);

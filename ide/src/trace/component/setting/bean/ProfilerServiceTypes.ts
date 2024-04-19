@@ -74,7 +74,7 @@ export interface TracePluginConfig {
 export interface CreateSessionRequest {
   requestId: number;
   sessionConfig: ProfilerSessionConfig | undefined;
-  pluginConfigs: ProfilerPluginConfig<any>[];
+  pluginConfigs: ProfilerPluginConfig<unknown>[];
 }
 
 export interface ProfilerPluginConfig<T> {
@@ -124,7 +124,7 @@ export interface MemoryConfig {
   reportGpuDumpInfo?: boolean;
 }
 
-const switchCase = (object: any): SysVMeminfoType => {
+const switchCase = (object: unknown): SysVMeminfoType => {
   if (typeof object === 'number') {
     let sysVMemInfos = Object.keys(SysVMeminfoType);
     if (object < 0) {
@@ -145,7 +145,7 @@ const switchCase = (object: any): SysVMeminfoType => {
   }
 };
 
-export function sysVMeminfoTypeFromJSON(object: any): SysVMeminfoType {
+export function sysVMeminfoTypeFromJSON(object: unknown): SysVMeminfoType {
   return switchCase(object);
 }
 
@@ -366,7 +366,7 @@ const sysMemInfo = [
   SysMeminfoType.UNRECOGNIZED,
 ];
 
-const sysMeminfoCase = (object: any): SysMeminfoType => {
+const sysMeminfoCase = (object: unknown): SysMeminfoType => {
   if (typeof object === 'number') {
     if (object >= 0) {
       let sysMemType = sysMemInfo[object];
@@ -385,7 +385,7 @@ const sysMeminfoCase = (object: any): SysMeminfoType => {
   }
 };
 
-export function sysMeminfoTypeFromJSON(object: any): SysMeminfoType {
+export function sysMeminfoTypeFromJSON(object: unknown): SysMeminfoType {
   return sysMeminfoCase(object);
 }
 
@@ -402,7 +402,7 @@ export interface HilogConfig {
   needClear: boolean;
 }
 
-export function levelFromJSON(object: any): Level {
+export function levelFromJSON(object: unknown): Level {
   switch (object) {
     case 0:
     case 'LEVEL_UNSPECIFIED':

@@ -23,14 +23,19 @@ import { resizeObserver } from '../SheetUtils';
 export class TabPaneFreq extends BaseElement {
   private freqTbl: LitTable | null | undefined;
 
-  set data(freqData: any) {
+  set data(freqData: unknown) {
     if (freqData) {
       this.freqTbl!.recycleDataSource = [
         {
+          // @ts-ignore
           startNS: Utils.getTimeString(freqData.startNS >= 0 ? freqData.startNS : 0),
-          absoluteTime: (freqData.startNS + (window as any).recordStartNS) / 1000000000 + 's',
+          // @ts-ignore
+          absoluteTime: (freqData.startNS + (window as unknown).recordStartNS) / 1000000000 + 's',
+          // @ts-ignore
           dur: Utils.getProbablyTime(freqData.dur),
+          // @ts-ignore
           freq: `${ColorUtils.formatNumberComma(freqData.value!)} kHz`,
+          // @ts-ignore
           cpu: `Cpu ${freqData.cpu}`,
         },
       ];

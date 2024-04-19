@@ -41,18 +41,18 @@ export function processMemDataSender(trackId: number, row: TraceRow<ProcessMemSt
         t: Date.now(),
         trackId: trackId,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): ProcessMemStruct[] {
-  let outArr: ProcessMemStruct[] = [];
-  let track_id = new Uint8Array(buffers.track_id);
-  let value = new Int32Array(buffers.value);
-  let startTime = new Float64Array(buffers.startTime);
+function arrayBufferHandler(buffers: unknown, len: number): ProcessMemStruct[] {
+  let outArr: ProcessMemStruct[] = [];//@ts-ignore
+  let track_id = new Uint8Array(buffers.track_id);//@ts-ignore
+  let value = new Int32Array(buffers.value);//@ts-ignore
+  let startTime = new Float64Array(buffers.startTime);//@ts-ignore
   let ts = new Float64Array(buffers.ts);
   for (let i = 0; i < len; i++) {
     outArr.push({

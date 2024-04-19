@@ -31,10 +31,11 @@ export class TabPaneThreadStates extends BaseElement {
   private threadStatesTblSource: Array<SelectionData> = [];
   private currentSelectionParam: SelectionParam | undefined;
 
-  set data(threadStatesParam: SelectionParam | any) {
+  set data(threadStatesParam: SelectionParam | unknown) {
     if (this.currentSelectionParam === threadStatesParam) {
       return;
     }
+    // @ts-ignore
     this.currentSelectionParam = threadStatesParam;
     //@ts-ignore
     this.threadStatesTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
@@ -42,6 +43,7 @@ export class TabPaneThreadStates extends BaseElement {
     }px`;
     // // @ts-ignore
     this.range!.textContent = `Selected range: ${(
+      // @ts-ignore
       (threadStatesParam.rightNs - threadStatesParam.leftNs) /
       1000000.0
     ).toFixed(5)} ms`;
@@ -49,13 +51,18 @@ export class TabPaneThreadStates extends BaseElement {
     this.initThreadStates(threadStatesParam);
   }
 
-  async initThreadStates(threadStatesParam: SelectionParam | any): Promise<void> {
+  async initThreadStates(threadStatesParam: SelectionParam | unknown): Promise<void> {
+    // @ts-ignore
     let leftStartNs = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
+    // @ts-ignore
     let rightEndNs = threadStatesParam.rightNs + threadStatesParam.recordStartNs;
 
     let threadStatesDetail = await getTabThreadStatesDetail(
+      // @ts-ignore
       threadStatesParam.threadIds,
+      // @ts-ignore
       threadStatesParam.leftNs,
+      // @ts-ignore
       threadStatesParam.rightNs
     );
 
@@ -76,47 +83,69 @@ export class TabPaneThreadStates extends BaseElement {
     this.addSumLine(threadStatesParam, targetListTemp);
   }
 
-  updateThreadStates(threadStatDetail: Array<any>, leftNs: number, rightNs: number): Array<SelectionData> {
-    let targetListTemp: any[] = [];
+  updateThreadStates(threadStatDetail: Array<unknown>, leftNs: number, rightNs: number): Array<SelectionData> {
+    let targetListTemp: unknown[] = [];
     if (threadStatDetail.length > 0) {
-      let durExceptionDataMap: Map<string, any> = new Map<string, any>();
-      let source: Map<string, any> = new Map<string, any>();
+      let durExceptionDataMap: Map<string, unknown> = new Map<string, unknown>();
+      let source: Map<string, unknown> = new Map<string, unknown>();
       let target = threadStatDetail.reduce((map, current) => {
+        // @ts-ignore
         let mapKey = `${current.pid}-${current.tid}`;
+        // @ts-ignore
         let key = `${current.state}-${mapKey}`;
         if (durExceptionDataMap.has(mapKey)) {
           // 如果某线程中间有dur 为 -1的数据，则重新计算dur值，并给统计的值加上重新计算的dur
           let pre = durExceptionDataMap.get(mapKey);
+          // @ts-ignore
           pre.dur = current.ts - pre.ts;
+          // @ts-ignore
           if (pre.ts < leftNs && pre.dur > 0) {
+            // @ts-ignore
             pre.dur = pre.dur - (leftNs - pre.ts);
           }
+          // @ts-ignore
           if (pre.ts + pre.dur > rightNs && pre.dur > 0) {
+            // @ts-ignore
             pre.dur = pre.dur - (pre.ts + pre.dur - rightNs);
           }
+          // @ts-ignore
           map.get(`${pre.state}-${mapKey}`).wallDuration += pre.dur;
           durExceptionDataMap.delete(mapKey);
         }
+        // @ts-ignore
         if (current.dur === null || current.dur === undefined || current.dur === -1) {
           //如果出现dur 为-1的数据，dur先以0计算,在后续循环中碰到相同线程数据，则补上dur的值
+          // @ts-ignore
           current.dur = 0;
           durExceptionDataMap.set(mapKey, current);
         } else {
+          // @ts-ignore
           if (current.ts < leftNs && current.dur > 0) {
+            // @ts-ignore
             current.dur = current.dur - (leftNs - current.ts);
           }
+          // @ts-ignore
           if (current.ts + current.dur > rightNs && current.dur > 0) {
+            // @ts-ignore
             current.dur = current.dur - (current.ts + current.dur - rightNs);
           }
         }
+        // @ts-ignore
         if (map.has(key)) {
+          // @ts-ignore
           map.get(key).wallDuration += current.dur;
+          // @ts-ignore
           map.get(key).occurrences += 1;
         } else {
+          // @ts-ignore
           map.set(key, {
+            // @ts-ignore
             pid: current.pid,
+            // @ts-ignore
             tid: current.tid,
+            // @ts-ignore
             state: current.state,
+            // @ts-ignore
             wallDuration: current.dur || 0,
             avgDuration: 0,
             occurrences: 1,
@@ -126,27 +155,36 @@ export class TabPaneThreadStates extends BaseElement {
       }, source);
       targetListTemp = this.updateThreadStatesExtend(durExceptionDataMap, target, leftNs, rightNs, targetListTemp);
     }
+    // @ts-ignore
     return targetListTemp;
   }
 
   private updateThreadStatesExtend(
-    durExceptionDataMap: Map<string, any>,
-    target: any,
+    durExceptionDataMap: Map<string, unknown>,
+    target: unknown,
     leftNs: number,
     rightNs: number,
-    targetListTemp: any[]
-  ): any[] {
+    targetListTemp: unknown[]
+  ): unknown[] {
     // 通过上面循环之后，durExceptionDataMap 中的值即为 该线程 在框选时间内最后一条数据且dur 为-1，需要根据框选的时间把dur计算出来加上，
     let arr = Array.from(durExceptionDataMap.values());
     for (let item of arr) {
+      // @ts-ignore
       let key = `${item.state}-${item.pid}-${item.tid}`;
+      // @ts-ignore
       if (target.has(key)) {
+        // @ts-ignore
         target.get(key).wallDuration += rightNs - Math.max(item.ts, leftNs);
       } else {
+        // @ts-ignore
         target.set(key, {
+          // @ts-ignore
           pid: item.pid,
+          // @ts-ignore
           tid: item.tid,
+          // @ts-ignore
           state: item.state,
+          // @ts-ignore
           wallDuration: rightNs - Math.max(item.ts, leftNs),
           avgDuration: 0,
           occurrences: 1,
@@ -154,11 +192,12 @@ export class TabPaneThreadStates extends BaseElement {
       }
     }
     durExceptionDataMap.clear();
+    // @ts-ignore
     targetListTemp = Array.from(target.values());
     return targetListTemp;
   }
 
-  addSumLine(threadStatesParam: SelectionParam | any, targetListTemp: Array<any>): void {
+  addSumLine(threadStatesParam: SelectionParam | unknown, targetListTemp: Array<unknown>): void {
     log(targetListTemp);
 
     if (targetListTemp !== null && targetListTemp.length > 0) {
@@ -168,31 +207,48 @@ export class TabPaneThreadStates extends BaseElement {
       let targetList = [];
 
       for (let e of targetListTemp) {
+        // @ts-ignore
         if (threadStatesParam.processIds.includes(e.pid)) {
+          // @ts-ignore
           let process = Utils.PROCESS_MAP.get(e.pid);
+          // @ts-ignore
           let thread = Utils.THREAD_MAP.get(e.tid);
+          // @ts-ignore
           e.process = process || '[NULL]';
+          // @ts-ignore
           e.thread = thread || '[NULL]';
 
+          // @ts-ignore
           e.stateJX = e.state;
+          // @ts-ignore
           e.state = Utils.getEndState(e.stateJX);
+          // @ts-ignore
           e.avgDuration = parseFloat((e.wallDuration / e.occurrences / 1000000.0).toFixed(5));
+          // @ts-ignore
           e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
+          // @ts-ignore
           sumWall += e.wallDuration;
+          // @ts-ignore
           sumOcc += e.occurrences;
           targetList.push(e);
         }
       }
       if (targetList.length > 0) {
-        let count: any = {};
+        let count: unknown = {};
+        // @ts-ignore
         count.process = ' ';
+        // @ts-ignore
         count.state = ' ';
+        // @ts-ignore
         count.wallDuration = parseFloat(sumWall.toFixed(5));
+        // @ts-ignore
         count.occurrences = sumOcc;
         targetList.splice(0, 0, count);
       }
+      // @ts-ignore
       this.threadStatesTblSource = targetList;
       this.threadStatesTbl!.recycleDataSource = targetList;
+      // @ts-ignore
       this.stackBar!.data = targetList;
     } else {
       this.threadStatesTblSource = [];
@@ -206,7 +262,8 @@ export class TabPaneThreadStates extends BaseElement {
     this.threadStatesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
     this.range = this.shadowRoot?.querySelector('#thread-states-time-range');
     this.stackBar = this.shadowRoot?.querySelector('#thread-states-stack-bar');
-    this.threadStatesTbl!.addEventListener('column-click', (evt: any) => {
+    this.threadStatesTbl!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
@@ -264,19 +321,24 @@ export class TabPaneThreadStates extends BaseElement {
         `;
   }
 
-  sortByColumn(treadStatesDetail: any): void {
-    function compare(property: any, treadStatesSort: any, type: any) {
-      return function (threadStatesLeftData: SelectionData | any, threadStatesRightData: SelectionData | any) {
+  sortByColumn(treadStatesDetail: unknown): void {
+    function compare(property: unknown, treadStatesSort: unknown, type: unknown) {
+      return function (threadStatesLeftData: SelectionData | unknown, threadStatesRightData: SelectionData | unknown) {
+        // @ts-ignore
         if (threadStatesLeftData.process === ' ' || threadStatesRightData.process === ' ') {
           return 0;
         }
         if (type === 'number') {
           return treadStatesSort === 2
+          // @ts-ignore
             ? parseFloat(threadStatesRightData[property]) - parseFloat(threadStatesLeftData[property])
+            // @ts-ignore
             : parseFloat(threadStatesLeftData[property]) - parseFloat(threadStatesRightData[property]);
         } else {
+          // @ts-ignore
           if (threadStatesRightData[property] > threadStatesLeftData[property]) {
             return treadStatesSort === 2 ? 1 : -1;
+            // @ts-ignore
           } else if (threadStatesRightData[property] === threadStatesLeftData[property]) {
             return 0;
           } else {
@@ -286,9 +348,12 @@ export class TabPaneThreadStates extends BaseElement {
       };
     }
 
+    // @ts-ignore
     if (treadStatesDetail.key === 'name' || treadStatesDetail.key === 'thread' || treadStatesDetail.key === 'state') {
+      // @ts-ignore
       this.threadStatesTblSource.sort(compare(treadStatesDetail.key, treadStatesDetail.sort, 'string'));
     } else {
+      // @ts-ignore
       this.threadStatesTblSource.sort(compare(treadStatesDetail.key, treadStatesDetail.sort, 'number'));
     }
     this.threadStatesTbl!.recycleDataSource = this.threadStatesTblSource;

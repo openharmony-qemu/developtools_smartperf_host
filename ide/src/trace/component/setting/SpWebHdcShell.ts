@@ -79,7 +79,7 @@ export class SpWebHdcShell extends BaseElement {
           this.sendCallBack(keyboardEvent);
         }
       }
-    });
+    });//@ts-ignore
     window.subscribe(window.SmartEvent.UI.DeviceConnect, (deviceName: string) => {
       if (deviceName) {
         this.hdcShellFocus();

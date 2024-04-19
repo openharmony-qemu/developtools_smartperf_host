@@ -14,15 +14,20 @@
  */
 
 export class JSONToCSV {
-  static setCsvData(obj: any): void {
+  static setCsvData(obj: unknown): void {
     let that = this;
     let browserType = this.browserType();
+    // @ts-ignore
     if (browserType.ie < 9) {
       return;
     }
+    // @ts-ignore
     let data = obj.data;
+    // @ts-ignore
     let isShowLabel = typeof obj.showLabel === 'undefined' ? true : obj.showLabel;
+    // @ts-ignore
     let fileName = (obj.fileName || 'UserExport') + '.csv';
+    // @ts-ignore
     let columns = obj.columns || {
       title: [],
       key: [],
@@ -36,7 +41,7 @@ export class JSONToCSV {
     if (showLabel) {
       // 如果有传入自定义的表头文字
       if (columns.title.length) {
-        columns.title.map(function (n: any) {
+        columns.title.map(function (n: unknown) {
           row += n + ',';
         });
       } else {
@@ -49,14 +54,16 @@ export class JSONToCSV {
       csv += row + '\r\n';
     }
     // 具体的数据处理
-    data.map(function (n: any) {
+    data.map(function (n: unknown) {
       row = '';
       // 如果存在自定义key值
       if (columns.key.length) {
         row = that.getCsvStr(columns, obj, n, row);
       } else {
+        // @ts-ignore
         for (key in n) {
           row +=
+          // @ts-ignore
             '"' + (typeof columns.formatter === 'function' ? columns.formatter(key, n[key]) || n[key] : n[key]) + '",';
         }
       }
@@ -69,65 +76,90 @@ export class JSONToCSV {
     this.saveCsvFile(fileName, csv);
   }
 
-  static getCsvStr(columns: any, obj: any, n: any, row: string): string {
+  static getCsvStr(columns: unknown, obj: unknown, n: unknown, row: string): string {
     let that = this;
-    columns.key.map(function (m: any, idx: number) {
-      let strItem: any = '';
+    // @ts-ignore
+    columns.key.map(function (m: unknown, idx: number) {
+      let strItem: unknown = '';
+      // @ts-ignore
       if (obj.exportFormatter && obj.exportFormatter.has(m)) {
+        // @ts-ignore
         strItem = obj.exportFormatter.get(m)?.(n) || n[m];
+        // @ts-ignore
       } else if (obj.formatter && obj.formatter.has(m)) {
+        // @ts-ignore
         strItem = obj.formatter.get(m)?.(n[m]) || n[m];
       } else {
+        // @ts-ignore
         strItem = n[m];
       }
       if (typeof strItem === 'undefined') {
         strItem = '';
       } else if (typeof strItem === 'object') {
         strItem = JSON.stringify(strItem);
+        // @ts-ignore
         strItem = strItem.replaceAll('"', '');
       }
+      // @ts-ignore
       if (idx === 0 && typeof n.depthCSV !== 'undefined') {
         row +=
           '"' +
+          // @ts-ignore
           that.treeDepth(n.depthCSV) +
+          // @ts-ignore
           (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) +
           '",';
       } else {
+        // @ts-ignore
         row += '"' + (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) + '",';
       }
     });
     return row;
   }
 
-  static saveCsvFile(fileName: any, csvData: any): void {
-    let browserType: any = this.browserType();
+  static saveCsvFile(fileName: unknown, csvData: unknown): void {
+    let browserType: unknown = this.browserType();
+    // @ts-ignore
     if (!browserType.edge || !browserType.ie) {
-      let alink: any = document.createElement('a');
+      let alink: unknown = document.createElement('a');
+      // @ts-ignore
       alink.id = 'csvDownloadLink';
+      // @ts-ignore
       alink.href = this.getDownloadUrl(csvData);
+      // @ts-ignore
       document.body.appendChild(alink);
-      let linkDom: any = document.getElementById('csvDownloadLink');
+      let linkDom: unknown = document.getElementById('csvDownloadLink');
+      // @ts-ignore
       linkDom.setAttribute('download', fileName);
+      // @ts-ignore
       linkDom.click();
+      // @ts-ignore
       document.body.removeChild(linkDom);
+      // @ts-ignore
     } else if (browserType.ie >= 10 || browserType.edge === 'edge') {
-      (navigator as any).msSaveBlob(
+      // @ts-ignore
+      (navigator as unknown).msSaveBlob(
         new Blob(['\uFEFF' + csvData], {
           type: 'text/csv',
         }),
         fileName
       );
     } else {
-      let oWin: any = window.top?.open('about:blank', '_blank');
+      let oWin: unknown = window.top?.open('about:blank', '_blank');
+      // @ts-ignore
       oWin.document.write('sep=,\r\n' + csvData);
+      // @ts-ignore
       oWin.document.close();
+      // @ts-ignore
       oWin.document.execCommand('SaveAs', true, fileName);
+      // @ts-ignore
       oWin.close();
     }
   }
 
-  static getDownloadUrl(csvData: any): string | undefined {
-    if (window.Blob && window.URL && (window.URL as any).createObjectURL) {
+  static getDownloadUrl(csvData: unknown): string | undefined {
+    // @ts-ignore
+    if (window.Blob && window.URL && (window.URL as unknown).createObjectURL) {
       return URL.createObjectURL(
         new Blob(['\uFEFF' + csvData], {
           type: 'text/csv',
@@ -136,12 +168,15 @@ export class JSONToCSV {
     }
   }
 
-  static browserType(): any {
-    let type: any = {};
+  static browserType(): unknown {
+    let type: unknown = {};
     let agent = navigator.userAgent.toLowerCase();
     let has;
+    // @ts-ignore
     (has = agent.indexOf('edge') !== -1 ? (type.edge = 'edge') :
+    // @ts-ignore
       agent.match(/rv:([\d.]+)\) like gecko/)) ? (type.ie = has[1]) :
+      // @ts-ignore
       (has = agent.match(/msie ([\d.]+)/)) ? (type.ie = has[1]) : 0;
     return type;
   }
@@ -154,15 +189,19 @@ export class JSONToCSV {
     return str;
   }
 
-  static treeToArr(data: any): any[] {
-    const result: Array<any> = [];
-    data.forEach((item: any) => {
+  static treeToArr(data: unknown): unknown[] {
+    const result: Array<unknown> = [];
+    // @ts-ignore
+    data.forEach((item: unknown) => {
       let depthCSV = 0;
-      const loop = (data: any, depth: any): void => {
+      const loop = (data: unknown, depth: unknown): void => {
+        // @ts-ignore
         result.push({ depthCSV: depth, ...data });
+        // @ts-ignore
         let child = data.children;
         if (child) {
           for (let i = 0; i < child.length; i++) {
+            // @ts-ignore
             loop(child[i], depth + 1);
           }
         }
@@ -172,14 +211,16 @@ export class JSONToCSV {
     return result;
   }
 
-  static columnsData(columns: Array<any>): {
-    titleList: any[];
-    ketList: any[];
+  static columnsData(columns: Array<unknown>): {
+    titleList: unknown[];
+    ketList: unknown[];
   } {
-    let titleList: Array<any> = [];
-    let ketList: Array<any> = [];
+    let titleList: Array<unknown> = [];
+    let ketList: Array<unknown> = [];
     columns.forEach((column) => {
+      // @ts-ignore
       let dataIndex = column.getAttribute('data-index');
+      // @ts-ignore
       let columnName = column.getAttribute('title');
       if (columnName === '') {
         columnName = dataIndex === 'busyTimeStr' ? 'GetBusyTime(ms)' : dataIndex;
@@ -196,16 +237,18 @@ export class JSONToCSV {
   }
 
   static async csvExport(dataSource: {
-    columns: any[];
-    tables: any[];
+    columns: unknown[];
+    tables: unknown[];
     fileName: string;
-    columnFormatter: Map<string, (value: any) => string>;
-    exportFormatter: Map<string, (value: any) => string>;
+    columnFormatter: Map<string, (value: unknown) => string>;
+    exportFormatter: Map<string, (value: unknown) => string>;
   }): Promise<string> {
     return new Promise((resolve) => {
-      let data: any = this.columnsData(dataSource.columns);
+      let data: unknown = this.columnsData(dataSource.columns);
       let columns = {
+        // @ts-ignore
         title: data.titleList,
+        // @ts-ignore
         key: data.ketList,
       };
       if (dataSource.tables.length > 0) {

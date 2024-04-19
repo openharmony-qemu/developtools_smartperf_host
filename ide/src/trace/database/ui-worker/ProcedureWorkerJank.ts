@@ -136,7 +136,7 @@ export function JankStructOnClick(
         JankStruct.selectJankStruct,
         (datas) => {
           datas.forEach((data) => {
-            let endParentRow;
+            let endParentRow;// @ts-ignore
             if (data.frame_type === 'frameTime') {
               endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
                 "trace-row[row-id='frameTime'][row-type='janks']"

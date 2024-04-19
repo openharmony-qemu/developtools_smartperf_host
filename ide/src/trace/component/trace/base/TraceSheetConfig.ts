@@ -129,7 +129,7 @@ import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSamp
 import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 
-export let tabConfig: any = {
+export let tabConfig: unknown = {
   'current-selection': {
     title: 'Current Selection',
     type: TabPaneCurrentSelection,

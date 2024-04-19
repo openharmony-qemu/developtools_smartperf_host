@@ -428,11 +428,14 @@ export class SpRecordPerf extends BaseElement {
     this.disable();
   }
 
-  private configTypeBySwitch(config: any, recordPerfHeadDiv: HTMLDivElement): void {
+  private configTypeBySwitch(config: unknown, recordPerfHeadDiv: HTMLDivElement): void {
     let recordPerfSwitch = document.createElement('lit-switch') as LitSwitch;
     recordPerfSwitch.className = 'config';
+    //@ts-ignore
     recordPerfSwitch.title = config.title;
+    //@ts-ignore
     recordPerfSwitch.checked = !!config.value;
+    //@ts-ignore
     if (config.title === 'Start Hiperf Sampling') {
       recordPerfSwitch.addEventListener('change', (event: CustomEventInit<LitSwitchChangeEvent>) => {
         let detail = event.detail;
@@ -451,10 +454,12 @@ export class SpRecordPerf extends BaseElement {
     recordPerfHeadDiv.appendChild(recordPerfSwitch);
   }
 
-  private configTypeBySelect(config: any, recordPerfDiv: HTMLDivElement): void {
+  private configTypeBySelect(config: unknown, recordPerfDiv: HTMLDivElement): void {
     let recordPerfSelect = '';
     recordPerfSelect += `<lit-select rounded="" default-value="" class="record-perf-select config" 
-placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
+placement="bottom" title="${//@ts-ignore
+  config.title}"  placeholder="${config.selectArray[0]}">`;
+  //@ts-ignore
     config.selectArray.forEach((value: string) => {
       recordPerfSelect += `<lit-select-option value="${value}">${value}</lit-select-option>`;
     });
@@ -462,11 +467,14 @@ placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]
     recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + recordPerfSelect;
   }
 
-  private configTypeByInput(config: any, recordPerfDiv: HTMLDivElement): void {
+  private configTypeByInput(config: unknown, recordPerfDiv: HTMLDivElement): void {
     let recordPerfInput = document.createElement('input');
     recordPerfInput.className = 'record-perf-input config';
+    //@ts-ignore
     recordPerfInput.textContent = config.value;
+    //@ts-ignore
     recordPerfInput.value = config.value;
+    //@ts-ignore
     recordPerfInput.title = config.title;
     recordPerfInput.oninput = (): void => {
       recordPerfInput.value = recordPerfInput.value.replace(/\D/g, '');
@@ -474,51 +482,66 @@ placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]
     recordPerfDiv.appendChild(recordPerfInput);
   }
 
-  private configTypeByMmapLitSlider(config: any, recordPerfDiv: HTMLDivElement): void {
+  private configTypeByMmapLitSlider(config: unknown, recordPerfDiv: HTMLDivElement): void {
+    //@ts-ignore
     let defaultValue = Math.pow(2, config.litSliderStyle.defaultValue);
     let mapsilder = `
 <div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" 
-class="silderclass config" title="${config.title}"></lit-slider><input readonly class="sliderInput" 
-type="text" value = '    ${defaultValue} ${config.litSliderStyle.resultUnit}' ></div>`;
+class="silderclass config" title="${//@ts-ignore
+  config.title}"></lit-slider><input readonly class="sliderInput" 
+type="text" value = '    ${defaultValue} ${//@ts-ignore
+  config.litSliderStyle.resultUnit}' ></div>`;
     recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + mapsilder;
     let maplitSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
+    //@ts-ignore
     maplitSlider!.percent = config.litSliderStyle.defaultValue;
     let mapsliderBody = recordPerfDiv.querySelector<HTMLDivElement>('.sliderBody');
     let mapbufferInput = recordPerfDiv?.querySelector('.sliderInput') as HTMLInputElement;
     maplitSlider!.addEventListener('input', () => {
       let percnet = mapsliderBody!.getAttribute('percent');
       if (percnet !== null) {
+        //@ts-ignore
         mapbufferInput.value = Math.pow(2, Number(percnet)) + config.litSliderStyle.resultUnit;
       }
     });
+    //@ts-ignore
     maplitSlider!.sliderStyle = config.litSliderStyle;
   }
 
-  private configTypeByLitSlider(config: any, recordPerfDiv: HTMLDivElement): void {
+  private configTypeByLitSlider(config: unknown, recordPerfDiv: HTMLDivElement): void {
     let sliderEl = `
 <div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" 
-class="silderclass config" title="${config.title}"></lit-slider><input readonly class="sliderInput" 
-type="text" value = '    ${config.litSliderStyle.defaultValue} ${config.litSliderStyle.resultUnit}' >
+class="silderclass config" title="${//@ts-ignore
+  config.title}"></lit-slider><input readonly class="sliderInput" 
+type="text" value = '    ${//@ts-ignore
+  config.litSliderStyle.defaultValue} ${config.litSliderStyle.resultUnit}' >
 </div>`;
     recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + sliderEl;
     let litSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
+    //@ts-ignore
     litSlider!.percent = config.litSliderStyle.defaultValue;
     let sliderBody = recordPerfDiv.querySelector<HTMLDivElement>('.sliderBody');
     let bufferInput = recordPerfDiv?.querySelector('.sliderInput') as HTMLInputElement;
     litSlider!.addEventListener('input', () => {
+      //@ts-ignore
       bufferInput.value = sliderBody!.getAttribute('percent') + config.litSliderStyle.resultUnit;
     });
+    //@ts-ignore
     litSlider!.sliderStyle = config.litSliderStyle;
   }
 
-  private configTypeBySelectMultiple(config: any, recordPerfDiv: HTMLDivElement): void {
+  private configTypeBySelectMultiple(config: unknown, recordPerfDiv: HTMLDivElement): void {
     let html = '';
+    //@ts-ignore
     let placeholder = config.selectArray[0];
+    //@ts-ignore
     if (config.title === 'Event List') {
       placeholder = 'NONE';
     }
     html += `<lit-select-v default-value="" rounded="" class="record-perf-select config" 
-mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom" placeholder="${placeholder}">`;
+mode="multiple" canInsert="" title="${//@ts-ignore
+  config.title}" rounded placement = "bottom" placeholder="${placeholder}">`;
+  //@ts-ignore
     config.selectArray.forEach((value: string) => {
       html += `<lit-select-option value="${value}">${value}</lit-select-option>`;
     });

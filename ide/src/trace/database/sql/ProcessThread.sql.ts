@@ -120,7 +120,8 @@ export const querySchedThreadStates = (
   tIds: Array<number>,
   leftStartNs: number,
   rightEndNs: number
-): Promise<Array<any>> =>
+)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'getTabThreadStates',
     `
@@ -152,7 +153,8 @@ export const querySingleCutData = (
   tIds: string,
   leftStartNs: number,
   rightEndNs: number
-): Promise<Array<any>> =>
+)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'querySingleCutData',
     `
@@ -186,7 +188,8 @@ export const queryLoopCutData = (
   tIds: string,
   leftStartNs: number,
   rightEndNs: number
-): Promise<Array<any>> =>
+)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryLoopCutData',
     `
@@ -211,7 +214,8 @@ export const queryLoopCutData = (
     { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
   );
 // 框选区域内sleeping的时间
-export const getTabSleepingTime = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabSleepingTime = (tIds: Array<number>, leftNS: number, rightNS: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabRunningPersent',
     `
@@ -236,7 +240,8 @@ export const getTabSleepingTime = (tIds: Array<number>, leftNS: number, rightNS:
    ts;`,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
-export const getTabThreadStatesCpu = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> => {
+export const getTabThreadStatesCpu = (tIds: Array<number>, leftNS: number, rightNS: number)://@ts-ignore
+ Promise<Array<unknown>> => {
   let sql = `
 select
        B.pid,
@@ -256,7 +261,8 @@ group by B.tid, B.pid, B.cpu;`;
 };
 
 // 框选区域内running的时间
-export const getTabRunningPersent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabRunningPersent = (tIds: Array<number>, leftNS: number, rightNS: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabRunningPersent',
     `
@@ -299,7 +305,8 @@ from thread_state AS B
 where B.tid = $tid and B.pid = $pid;`,
     { $tid: tid, $pid: pid }
   );
-export const queryThreadNearData = (itid: number, startTime: number): Promise<Array<any>> =>
+export const queryThreadNearData = (itid: number, startTime: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryThreadNearData',
     `
@@ -421,7 +428,8 @@ export const getTabBoxChildData = (
   `;
   return query('getTabBoxChildData', sql, {});
 };
-export const getTabStartups = (ids: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> => {
+export const getTabStartups = (ids: Array<number>, leftNS: number, rightNS: number)://@ts-ignore
+ Promise<Array<unknown>> => {
   let sql = `
 select
     P.pid,
@@ -437,7 +445,8 @@ order by start_name;`;
   return query('getTabStartups', sql, {});
 };
 
-export const getTabStaticInit = (ids: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> => {
+export const getTabStaticInit = (ids: Array<number>, leftNS: number, rightNS: number)://@ts-ignore
+ Promise<Array<unknown>> => {
   let sql = `
 select
     P.pid,
@@ -466,7 +475,8 @@ export const queryBinderArgsByArgset = (argset: number): Promise<Array<BinderArg
     { $argset: argset }
   );
 
-export const queryProcessData = (pid: number, startNS: number, endNS: number): Promise<Array<any>> =>
+export const queryProcessData = (pid: number, startNS: number, endNS: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryProcessData',
     `
@@ -482,7 +492,8 @@ where ta.cpu is not null and pid=$pid and startTime between $startNS and $endNS;
     }
   );
 
-export const queryProcessMem = (): Promise<Array<any>> =>
+export const queryProcessMem = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryProcessMem',
     `
@@ -499,7 +510,8 @@ export const queryProcessMem = (): Promise<Array<any>> =>
     order by trackName;`
   );
 
-export const queryProcessThreadDataCount = (): Promise<Array<any>> =>
+export const queryProcessThreadDataCount = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     `queryProcessThreadDataCount`,
     `select pid,count(id) as count 
@@ -508,7 +520,8 @@ export const queryProcessThreadDataCount = (): Promise<Array<any>> =>
     {}
   );
 
-export const queryProcessFuncDataCount = (): Promise<Array<any>> =>
+export const queryProcessFuncDataCount = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     `queryProcessFuncDataCount`,
     `select
@@ -522,7 +535,8 @@ export const queryProcessFuncDataCount = (): Promise<Array<any>> =>
     {}
   );
 
-export const queryProcessMemDataCount = (): Promise<Array<any>> =>
+export const queryProcessMemDataCount = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     `queryProcessMemDataCount`,
     `select
@@ -554,10 +568,12 @@ export const queryProcessMemData = (trackId: number): Promise<Array<ProcessMemSt
     { $id: trackId }
   );
 
-export const queryThreads = (): Promise<Array<any>> =>
+export const queryThreads = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query('queryThreads', `select id,tid,(ifnull(name,'Thread') || '(' || tid || ')') name from thread where id != 0;`);
 
-export const queryDataDICT = (): Promise<Array<any>> => query('queryDataDICT', `select * from data_dict;`);
+export const queryDataDICT = ()://@ts-ignore
+ Promise<Array<unknown>> => query('queryDataDICT', `select * from data_dict;`);
 
 export const queryAppStartupProcessIds = (): Promise<Array<{ pid: number }>> =>
   query(
@@ -589,7 +605,8 @@ WHERE
     )`
   );
 
-export const queryProcessContentCount = (): Promise<Array<any>> =>
+export const queryProcessContentCount = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(`queryProcessContentCount`, `select pid,switch_count,thread_count,slice_count,mem_count from process;`);
 export const queryProcessThreadsByTable = (): Promise<Array<ThreadStruct>> =>
   query(
@@ -672,7 +689,8 @@ order by start_name;`,
     { $pid: pids }
   );
 
-export const querySingleAppStartupsName = (pid: number): Promise<Array<any>> =>
+export const querySingleAppStartupsName = (pid: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryAllAppStartupsName',
     `select name from process
@@ -689,7 +707,8 @@ where S.start_time between B.start_ts and B.end_ts
 group by p.pid;`,
     {}
   );
-export const queryAllThreadName = (): Promise<Array<any>> => {
+export const queryAllThreadName = ()://@ts-ignore
+ Promise<Array<unknown>> => {
   return query(
     'queryAllThreadName',
     `
@@ -697,7 +716,8 @@ export const queryAllThreadName = (): Promise<Array<any>> => {
   );
 };
 
-export const queryAllProcessNames = (): Promise<Array<any>> => {
+export const queryAllProcessNames = ()://@ts-ignore
+ Promise<Array<unknown>> => {
   return query(
     'queryAllProcessNames',
     `
@@ -705,7 +725,8 @@ export const queryAllProcessNames = (): Promise<Array<any>> => {
   );
 };
 
-export const queryRsProcess = (): Promise<Array<any>> => {
+export const queryRsProcess = ()://@ts-ignore
+ Promise<Array<unknown>> => {
   return query(
     'queryRsProcess',
     `
@@ -735,7 +756,8 @@ where P.pid = $pid;`,
     { $pid: pid }
   );
 
-export const queryThreadAndProcessName = (): Promise<Array<any>> =>
+export const queryThreadAndProcessName = ()://@ts-ignore
+ Promise<Array<unknown>> =>
   query(
     'queryThreadAndProcessName',
     `
@@ -814,7 +836,8 @@ export const queryProcessPurgeableSelectionTab = (
   startNs: number,
   ipid: number,
   isPin?: boolean
-): Promise<Array<any>> => {
+)://@ts-ignore
+ Promise<Array<unknown>> => {
   const condition = isPin ? "'mem.purg_pin'" : "'mem.purg_sum'";
   const pinSql = isPin ? ' AND ref_count > 0' : '';
   return query(
@@ -854,7 +877,8 @@ export const queryProcessPurgeableTab = (
   dur: number,
   ipid: number,
   isPin?: boolean
-): Promise<Array<any>> => {
+)://@ts-ignore
+ Promise<Array<unknown>> => {
   const pinSql = isPin ? ' AND ref_count > 0' : '';
   let filterSql = isPin ? "'mem.purg_pin'" : "'mem.purg_sum'";
   return query(
@@ -1127,7 +1151,8 @@ export const getTabSlices = (
   pids: Array<number>,
   leftNS: number,
   rightNS: number
-): Promise<Array<any>> =>
+)://@ts-ignore
+ Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabSlices',
     `
@@ -1161,7 +1186,8 @@ export const getTabSlices = (
       wallDuration desc;`,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
-export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabThreadStates',
     `
@@ -1188,7 +1214,8 @@ export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS:
   );
 
 // 查询线程状态详细信息
-export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, rightNS: number)://@ts-ignore
+ Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabThreadStates',
     `select

@@ -41,7 +41,7 @@ export class JsCpuProfilerRender extends Render {
       filter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
+      TraceRow.range!.totalNS,// @ts-ignore
       jsCpuProfilerRow.frame,
       req.useCache || !TraceRow.range!.refresh
     );

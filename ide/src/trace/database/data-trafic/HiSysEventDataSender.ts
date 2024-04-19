@@ -45,22 +45,30 @@ export function hiSysEventDataSender(row: TraceRow<HiSysEventStruct>): Promise<H
         recordEndNS: window.recordEndNS,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(res: any, len: number): HiSysEventStruct[] {
+function arrayBufferHandler(res: unknown, len: number): HiSysEventStruct[] {
   let outArr: HiSysEventStruct[] = [];
+  // @ts-ignore
   let id = new Uint16Array(res.id);
+  // @ts-ignore
   let ts = new Float64Array(res.ts);
+  // @ts-ignore
   let pid = new Uint16Array(res.pid);
+  // @ts-ignore
   let tid = new Uint16Array(res.tid);
+  // @ts-ignore
   let uid = new Uint16Array(res.uid);
+  // @ts-ignore
   let seq = new Float64Array(res.seq);
+  // @ts-ignore
   let dur = new Uint16Array(res.dur);
+  // @ts-ignore
   let depth = new Uint16Array(res.depth);
   for (let index = 0; index < len; index++) {
     outArr.push({

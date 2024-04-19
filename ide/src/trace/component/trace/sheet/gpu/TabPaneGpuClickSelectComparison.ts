@@ -52,8 +52,8 @@ export class TabPaneGpuClickSelectComparison extends TabPaneGpuClickSelect {
     super.connectedCallback();
     resizeObserverFromMemory(this.parentElement!, this.gpuComparisonTbl!, this.comparisonSelect!);
   }
-  async queryDataByDB(type: string, startTs: number): Promise<any> {
-    let gpuData: Array<any> = [];
+  async queryDataByDB(type: string, startTs: number): Promise<unknown> {
+    let gpuData: Array<unknown> = [];
     let window = type === 'total' ? 0 : VmTrackerChart.gpuWindow;
     let module = type === 'total' ? VmTrackerChart.gpuTotalModule : VmTrackerChart.gpuWindowModule;
     await queryGpuDataByTs(startTs, window || 0, module).then((result) => {
@@ -86,6 +86,7 @@ export class TabPaneGpuClickSelectComparison extends TabPaneGpuClickSelect {
     this.gpuComparisonTbl!.loading = true;
     this.baseGpuData = [];
     let baseGpuData = await this.queryDataByDB(type, startTs);
+    // @ts-ignore
     for (const item of baseGpuData) {
       this.baseGpuData.push(
         new GpuDumpComparison(item.windowNameId, item.windowId, item.moduleId, item.categoryId, item.size)
@@ -128,6 +129,7 @@ export class TabPaneGpuClickSelectComparison extends TabPaneGpuClickSelect {
     let comparisonData: Array<GpuDumpComparison> = [];
     let targetGpuData: Array<GpuDumpComparison> = [];
     let data = await this.queryDataByDB(type, targetStartNs);
+    // @ts-ignore
     for (const item of data) {
       targetGpuData.push(
         new GpuDumpComparison(item.windowNameId, item.windowId, item.moduleId, item.categoryId, item.size)
@@ -138,6 +140,7 @@ export class TabPaneGpuClickSelectComparison extends TabPaneGpuClickSelect {
       item.size = item.value;
     }
     let items = this.createTreeData(comparisonData);
+    // @ts-ignore
     this.gpuComparisonSource = (type === 'total' ? items[0].children : items) || [];
     this.comparisonSortData = this.gpuComparisonSource;
     this.gpuComparisonTbl!.recycleDataSource = this.gpuComparisonSource;

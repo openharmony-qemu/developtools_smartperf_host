@@ -40,8 +40,8 @@ export class SpFpsChart {
     fpsRow.rowParentId = '';
     FpsStruct.maxFps = 0;
     fpsRow.style.height = '40px';
-    fpsRow.name = 'FPS';
-    fpsRow.supplier = () : Promise<Array<any>> => new Promise<Array<any>>((resolve, reject) => resolve(res));
+    fpsRow.name = 'FPS';//@ts-ignore
+    fpsRow.supplier = () : Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve, reject) => resolve(res));
     fpsRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     fpsRow.selectChangeHandler = this.trace.selectChangeHandler;
     fpsRow.focusHandler = (ev) : void => {

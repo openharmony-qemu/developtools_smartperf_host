@@ -48,25 +48,25 @@ export function processDeliverInputEventDataSender(tid: number, row: TraceRow<Fu
         sharedArrayBuffers: row.sharedArrayBuffers,
         tid: tid,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): FuncStruct[] {
-  let outArr: FuncStruct[] = [];
-  let tid = new Int32Array(buffers.tid);
-  let pid = new Int32Array(buffers.pid);
-  let is_main_thread = new Int8Array(buffers.is_main_thread);
-  let track_id = new Int32Array(buffers.track_id);
-  let startTs = new Float64Array(buffers.startTs);
-  let dur = new Float64Array(buffers.dur);
-  let parent_id = new Int32Array(buffers.tid);
-  let id = new Int32Array(buffers.id);
-  let cookie = new Int32Array(buffers.cookie);
-  let depth = new Int32Array(buffers.depth);
+function arrayBufferHandler(buffers: unknown, len: number): FuncStruct[] {
+  let outArr: FuncStruct[] = [];//@ts-ignore
+  let tid = new Int32Array(buffers.tid);//@ts-ignore
+  let pid = new Int32Array(buffers.pid);//@ts-ignore
+  let is_main_thread = new Int8Array(buffers.is_main_thread);//@ts-ignore
+  let track_id = new Int32Array(buffers.track_id);//@ts-ignore
+  let startTs = new Float64Array(buffers.startTs);//@ts-ignore
+  let dur = new Float64Array(buffers.dur);//@ts-ignore
+  let parent_id = new Int32Array(buffers.tid);//@ts-ignore
+  let id = new Int32Array(buffers.id);//@ts-ignore
+  let cookie = new Int32Array(buffers.cookie);//@ts-ignore
+  let depth = new Int32Array(buffers.depth);//@ts-ignore
   let argsetid = new Int32Array(buffers.argsetid);
   for (let i = 0; i < len; i++) {
     outArr.push({

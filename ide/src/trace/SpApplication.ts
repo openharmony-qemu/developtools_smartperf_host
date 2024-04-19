@@ -1725,11 +1725,11 @@ export class SpApplication extends BaseElement {
 
   private initCustomEvents(): void {
     window.subscribe(window.SmartEvent.UI.MenuTrace, () => this.showContent(this.spSystemTrace!));
-    window.subscribe(window.SmartEvent.UI.Error, (err) => {
+    window.subscribe(window.SmartEvent.UI.Error, (err) => {//@ts-ignore
       this.litSearch!.setPercent(err, -1);
       this.progressEL!.loading = false;
       this.freshMenuDisable(false);
-    });
+    });//@ts-ignore
     window.subscribe(window.SmartEvent.UI.Loading, (arg: { loading: boolean; text?: string }) => {
       if (arg.text) {
         this.litSearch!.setPercent(arg.text || '', arg.loading ? -1 : 101);
@@ -1912,7 +1912,7 @@ export class SpApplication extends BaseElement {
   private validateFileCacheLost(): void {
     caches.has(DbPool.fileCacheKey).then((exist) => {
       if (!exist) {
-        this.mainMenu!.menus?.forEach((mg) => {
+        this.mainMenu!.menus?.forEach((mg) => {// @ts-ignore
           mg.children.forEach((mi: unknown) => {
             //@ts-ignore
             if (mi.title === 'Download File') {

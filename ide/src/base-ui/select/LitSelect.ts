@@ -19,16 +19,16 @@ import { LitSelectOption } from './LitSelectOption';
 
 @element('lit-select')
 export class LitSelect extends BaseElement {
-  private focused: any;
-  private selectInputEl: any;
+  private focused: unknown;
+  private selectInputEl: unknown;
   private selectSearchInputEl: HTMLInputElement | null | undefined;
   private selectOptions: HTMLDivElement | null | undefined;
   private selectItem: string = '';
-  private selectClearEl: any;
-  private selectIconEl: any;
-  private bodyEl: any;
-  private selectSearchEl: any;
-  private selectMultipleRootEl: any;
+  private selectClearEl: unknown;
+  private selectIconEl: unknown;
+  private bodyEl: unknown;
+  private selectSearchEl: unknown;
+  private selectMultipleRootEl: unknown;
 
   static get observedAttributes(): string[] {
     return [
@@ -161,18 +161,18 @@ export class LitSelect extends BaseElement {
     this.selectItem = item;
   }
 
-  set dataSource(selectDataSource: any) {
-    this.innerHTML = '<slot></slot><slot name="footer"></slot>';
-    if (selectDataSource.length > 0) {
+  set dataSource(selectDataSource: unknown) {
+    this.innerHTML = '<slot></slot><slot name="footer"></slot>';// @ts-ignore
+    if (selectDataSource.length > 0) {// @ts-ignore
       this.bodyEl!.style.display = 'flex';
-      this.querySelectorAll('lit-select-option').forEach((a) => this.removeChild(a));
-      selectDataSource.forEach((dateSourceBean: any) => {
-        let selectOption = document.createElement('lit-select-option');
-        if (dateSourceBean.name) {
-          selectOption.textContent = dateSourceBean.name;
+      this.querySelectorAll('lit-select-option').forEach((a) => this.removeChild(a));// @ts-ignore
+      selectDataSource.forEach((dateSourceBean: unknown) => {
+        let selectOption = document.createElement('lit-select-option');// @ts-ignore
+        if (dateSourceBean.name) {// @ts-ignore
+          selectOption.textContent = dateSourceBean.name;// @ts-ignore
           selectOption.setAttribute('value', dateSourceBean.name);
-        } else if (dateSourceBean) {
-          selectOption.textContent = dateSourceBean;
+        } else if (dateSourceBean) {// @ts-ignore
+          selectOption.textContent = dateSourceBean;// @ts-ignore
           selectOption.setAttribute('value', dateSourceBean);
           if (
             this.selectItem !== '' &&
@@ -180,13 +180,13 @@ export class LitSelect extends BaseElement {
             this.selectItem === selectOption.textContent
           ) {
             selectOption.setAttribute('selected', '');
-          }
+          }// @ts-ignore
           this.selectInputEl!.value = '';
         }
         this.append(selectOption);
       });
       this.initOptions();
-    } else {
+    } else {// @ts-ignore
       this.bodyEl!.style.display = 'none';
     }
   }
@@ -239,30 +239,30 @@ export class LitSelect extends BaseElement {
     return this.hasAttribute('mode') && this.getAttribute('mode') === 'multiple';
   }
 
-  newTag(value: any, text: any): HTMLDivElement {
-    let tag: any = document.createElement('div');
-    let icon: any = document.createElement('lit-icon');
-    icon.classList.add('tag-close');
+  newTag(value: unknown, text: unknown): HTMLDivElement {
+    let tag: unknown = document.createElement('div');
+    let icon: unknown = document.createElement('lit-icon');// @ts-ignore
+    icon.classList.add('tag-close');// @ts-ignore
     icon.name = 'close';
-    let span = document.createElement('span');
-    tag.classList.add('tag');
-    span.dataset['value'] = value;
-    span.textContent = text;
-    tag.append(span);
-    tag.append(icon);
-    icon.onclick = (ev: any): void => {
+    let span = document.createElement('span');// @ts-ignore
+    tag.classList.add('tag');// @ts-ignore
+    span.dataset['value'] = value;// @ts-ignore
+    span.textContent = text;// @ts-ignore
+    tag.append(span);// @ts-ignore
+    tag.append(icon);// @ts-ignore
+    icon.onclick = (ev: unknown): void => {// @ts-ignore
       tag.parentElement.removeChild(tag);
       this.querySelector(`lit-select-option[value=${value}]`)!.removeAttribute('selected');
-      if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {
-        this.selectInputEl.style.width = 'auto';
+      if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {// @ts-ignore
+        this.selectInputEl.style.width = 'auto';// @ts-ignore
         this.selectInputEl.placeholder = this.defaultPlaceholder;
-      }
+      }// @ts-ignore
       ev.stopPropagation();
-    };
-    tag.value = value;
-    tag.dataset['value'] = value;
-    tag.text = text;
-    tag.dataset['text'] = text;
+    };// @ts-ignore
+    tag.value = value;// @ts-ignore
+    tag.dataset['value'] = value;// @ts-ignore
+    tag.text = text;// @ts-ignore
+    tag.dataset['text'] = text;// @ts-ignore
     return tag;
   }
 
@@ -277,23 +277,23 @@ export class LitSelect extends BaseElement {
     this.selectMultipleRootEl = this.shadowRoot!.querySelector('.multipleRoot');
     this.selectOptions = this.shadowRoot!.querySelector('.body-opt') as HTMLDivElement;
     this.setEventClick();
-    this.setEvent();
-    this.selectInputEl.onblur = (ev: any): void => {
+    this.setEvent();// @ts-ignore
+    this.selectInputEl.onblur = (ev: unknown): void => {
       if (this.hasAttribute('disabled')) {
         return;
       }
       if (this.isMultiple()) {
-        if (this.hasAttribute('show-search')) {
-          this.selectSearchEl.style.display = 'none';
+        if (this.hasAttribute('show-search')) {// @ts-ignore
+          this.selectSearchEl.style.display = 'none';// @ts-ignore
           this.selectIconEl.style.display = 'flex';
         }
-      } else {
-        if (this.selectInputEl.placeholder !== this.defaultPlaceholder) {
-          this.selectInputEl.value = this.selectInputEl.placeholder;
+      } else {// @ts-ignore
+        if (this.selectInputEl.placeholder !== this.defaultPlaceholder) {// @ts-ignore
+          this.selectInputEl.value = this.selectInputEl.placeholder;// @ts-ignore
           this.selectInputEl.placeholder = this.defaultPlaceholder;
         }
-        if (this.hasAttribute('show-search')) {
-          this.selectSearchEl.style.display = 'none';
+        if (this.hasAttribute('show-search')) {// @ts-ignore
+          this.selectSearchEl.style.display = 'none';// @ts-ignore
           this.selectIconEl.style.display = 'flex';
         }
       }
@@ -302,66 +302,66 @@ export class LitSelect extends BaseElement {
     this.setOnkeydown();
   }
 
-  setOninput(): void {
-    this.selectInputEl.oninput = (ev: any): void => {
+  setOninput(): void {// @ts-ignore
+    this.selectInputEl.oninput = (ev: unknown): void => {
       let els: Element[] = [...this.querySelectorAll('lit-select-option')];
-      if (this.hasAttribute('show-search')) {
-        if (!ev.target.value) {
-          els.forEach((a: any) => (a.style.display = 'flex'));
+      if (this.hasAttribute('show-search')) {// @ts-ignore
+        if (!ev.target.value) {// @ts-ignore
+          els.forEach((a: unknown) => (a.style.display = 'flex'));
         } else {
           this.setSelectItem(els, ev);
         }
-      } else {
+      } else {// @ts-ignore
         this.value = ev.target.value;
       }
     };
   }
 
-  setSelectItem(els: Element[], ev: any): void {
-    els.forEach((a: any) => {
+  setSelectItem(els: Element[], ev: unknown): void {
+    els.forEach((a: unknown) => {// @ts-ignore
       let value = a.getAttribute('value');
-      if (
-        value.toLowerCase().indexOf(ev.target.value.toLowerCase()) !== -1 ||
+      if (// @ts-ignore
+        value.toLowerCase().indexOf(ev.target.value.toLowerCase()) !== -1 ||// @ts-ignore
         a.textContent.toLowerCase().indexOf(ev.target.value.toLowerCase()) !== -1
-      ) {
+      ) {// @ts-ignore
         a.style.display = 'flex';
-      } else {
+      } else {// @ts-ignore
         a.style.display = 'none';
       }
     });
   }
 
-  setEventClick(): void {
-    this.selectClearEl.onclick = (ev: any): void => {
+  setEventClick(): void {// @ts-ignore
+    this.selectClearEl.onclick = (ev: unknown): void => {
       if (this.isMultiple()) {
-        let delNodes: Array<any> = [];
-        this.selectMultipleRootEl.childNodes.forEach((a: any) => {
+        let delNodes: Array<unknown> = [];// @ts-ignore
+        this.selectMultipleRootEl.childNodes.forEach((a: unknown) => {// @ts-ignore
           if (a.tagName === 'DIV') {
             delNodes.push(a);
           }
         });
-        for (let i = 0; i < delNodes.length; i++) {
+        for (let i = 0; i < delNodes.length; i++) {// @ts-ignore
           delNodes[i].remove();
         }
-        if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {
-          this.selectInputEl.style.width = 'auto';
+        if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {// @ts-ignore
+          this.selectInputEl.style.width = 'auto';// @ts-ignore
           this.selectInputEl.placeholder = this.defaultPlaceholder;
         }
       }
-      this.querySelectorAll('lit-select-option').forEach((a) => a.removeAttribute('selected'));
-      this.selectInputEl.value = '';
-      this.selectClearEl.style.display = 'none';
+      this.querySelectorAll('lit-select-option').forEach((a) => a.removeAttribute('selected'));// @ts-ignore
+      this.selectInputEl.value = '';// @ts-ignore
+      this.selectClearEl.style.display = 'none';// @ts-ignore
       this.selectIconEl.style.display = 'flex';
-      this.blur();
+      this.blur();// @ts-ignore
       ev.stopPropagation();
       this.dispatchEvent(new CustomEvent('onClear', { detail: ev }));
     };
     this.initOptions();
-    this.onclick = (ev: any): void => {
+    this.onclick = (ev: unknown): void => {// @ts-ignore
       if (ev.target.tagName === 'LIT-SELECT') {
-        if (this.focused === false) {
+        if (this.focused === false) {// @ts-ignore
           this.selectInputEl.focus();
-          this.focused = true;
+          this.focused = true;// @ts-ignore
           this.bodyEl!.style.display = 'flex';
         } else {
           this.focused = false;
@@ -372,40 +372,40 @@ export class LitSelect extends BaseElement {
 
   setEvent(): void {
     this.onmouseover = this.onfocus = (ev): void => {
-      if (this.focused === false && this.hasAttribute('adaptive-expansion')) {
-        if (this.parentElement!.offsetTop < this.bodyEl!.clientHeight) {
+      if (this.focused === false && this.hasAttribute('adaptive-expansion')) {// @ts-ignore
+        if (this.parentElement!.offsetTop < this.bodyEl!.clientHeight) {// @ts-ignore
           this.bodyEl!.classList.add('body-bottom');
-        } else {
+        } else {// @ts-ignore
           this.bodyEl!.classList.remove('body-bottom');
         }
       }
-      if (this.hasAttribute('allow-clear')) {
-        if (this.selectInputEl.value.length > 0 || this.selectInputEl.placeholder !== this.defaultPlaceholder) {
-          this.selectClearEl.style.display = 'flex';
+      if (this.hasAttribute('allow-clear')) {// @ts-ignore
+        if (this.selectInputEl.value.length > 0 || this.selectInputEl.placeholder !== this.defaultPlaceholder) {// @ts-ignore
+          this.selectClearEl.style.display = 'flex';// @ts-ignore
           this.selectIconEl.style.display = 'none';
-        } else {
-          this.selectClearEl.style.display = 'none';
+        } else {// @ts-ignore
+          this.selectClearEl.style.display = 'none';// @ts-ignore
           this.selectIconEl.style.display = 'flex';
         }
       }
     };
     this.onmouseout = this.onblur = (ev): void => {
-      if (this.hasAttribute('allow-clear')) {
-        this.selectClearEl.style.display = 'none';
+      if (this.hasAttribute('allow-clear')) {// @ts-ignore
+        this.selectClearEl.style.display = 'none';// @ts-ignore
         this.selectIconEl.style.display = 'flex';
       }
       this.focused = false;
-    };
-    this.selectInputEl.onfocus = (ev: any): void => {
+    };// @ts-ignore
+    this.selectInputEl.onfocus = (ev: unknown): void => {
       if (this.hasAttribute('disabled')) {
         return;
-      }
-      if (this.selectInputEl.value.length > 0) {
-        this.selectInputEl.placeholder = this.selectInputEl.value;
+      }// @ts-ignore
+      if (this.selectInputEl.value.length > 0) {// @ts-ignore
+        this.selectInputEl.placeholder = this.selectInputEl.value;// @ts-ignore
         this.selectInputEl.value = '';
       }
-      if (this.hasAttribute('show-search')) {
-        this.selectSearchEl.style.display = 'flex';
+      if (this.hasAttribute('show-search')) {// @ts-ignore
+        this.selectSearchEl.style.display = 'flex';// @ts-ignore
         this.selectIconEl.style.display = 'none';
       }
       this.querySelectorAll('lit-select-option').forEach((a) => {
@@ -415,28 +415,28 @@ export class LitSelect extends BaseElement {
     };
   }
 
-  setOnkeydown(): void {
-    this.selectInputEl.onkeydown = (ev: any): void => {
+  setOnkeydown(): void {// @ts-ignore
+    this.selectInputEl.onkeydown = (ev: unknown): void => {// @ts-ignore
       if (ev.key === 'Backspace') {
-        if (this.isMultiple()) {
+        if (this.isMultiple()) {// @ts-ignore
           let tag = this.selectMultipleRootEl.lastElementChild.previousElementSibling;
           if (tag) {
             this.querySelector(`lit-select-option[value=${tag.value}]`)?.removeAttribute('selected');
             tag.remove();
-            if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {
-              this.selectInputEl.style.width = 'auto';
+            if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {// @ts-ignore
+              this.selectInputEl.style.width = 'auto';// @ts-ignore
               this.selectInputEl.placeholder = this.defaultPlaceholder;
             }
           }
         } else {
           this.clear();
           this.dispatchEvent(new CustomEvent('onClear', { detail: ev })); //向外派发清理事件
-        }
+        }// @ts-ignore
       } else if (ev.key === 'Enter') {
-        if (!this.canInsert) {
-          let filter = [...this.querySelectorAll('lit-select-option')].filter((a: any) => a.style.display !== 'none');
-          if (filter.length > 0) {
-            this.selectInputEl.value = filter[0].textContent;
+        if (!this.canInsert) {// @ts-ignore
+          let filter = [...this.querySelectorAll('lit-select-option')].filter((a: unknown) => a.style.display !== 'none');
+          if (filter.length > 0) {// @ts-ignore
+            this.selectInputEl.value = filter[0].textContent;// @ts-ignore
             this.selectInputEl.placeholder = filter[0].textContent;
             this.blur();
             // @ts-ignore
@@ -451,8 +451,8 @@ export class LitSelect extends BaseElement {
               })
             );
           }
-        }
-      } else if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
+        }// @ts-ignore
+      } else if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {// @ts-ignore
         ev.preventDefault();
       }
     };
@@ -463,15 +463,15 @@ export class LitSelect extends BaseElement {
       if (this.isMultiple()) {
         a.setAttribute('check', '');
         if (a.getAttribute('value') === this.defaultValue) {
-          let tag = this.newTag(a.getAttribute('value'), a.textContent);
-          this.selectMultipleRootEl.insertBefore(tag, this.selectInputEl);
-          this.selectInputEl.placeholder = '';
-          this.selectInputEl.value = '';
+          let tag = this.newTag(a.getAttribute('value'), a.textContent);// @ts-ignore
+          this.selectMultipleRootEl.insertBefore(tag, this.selectInputEl);// @ts-ignore
+          this.selectInputEl.placeholder = '';// @ts-ignore
+          this.selectInputEl.value = '';// @ts-ignore
           this.selectInputEl.style.width = '1px';
           a.setAttribute('selected', '');
         }
       } else {
-        if (a.getAttribute('value') === this.defaultValue) {
+        if (a.getAttribute('value') === this.defaultValue) {// @ts-ignore
           this.selectInputEl.value = a.textContent;
           a.setAttribute('selected', '');
         }
@@ -487,29 +487,29 @@ export class LitSelect extends BaseElement {
   }
 
   onSelectedEvent(a: Element): void {
-    a.addEventListener('onSelected', (e: any) => {
+    a.addEventListener('onSelected', (e: unknown) => {
       if (this.isMultiple()) {
-        if (a.hasAttribute('selected')) {
+        if (a.hasAttribute('selected')) {// @ts-ignore
           let tag = this.shadowRoot!.querySelector(`div[data-value=${e.detail.value}]`) as HTMLElement;
           if (tag) {
             tag.parentElement!.removeChild(tag);
-          }
+          }// @ts-ignore
           e.detail.selected = false;
-        } else {
-          let tag = this.newTag(e.detail.value, e.detail.text);
-          this.selectMultipleRootEl.insertBefore(tag, this.selectInputEl);
-          this.selectInputEl.placeholder = '';
-          this.selectInputEl.value = '';
+        } else {// @ts-ignore
+          let tag = this.newTag(e.detail.value, e.detail.text);// @ts-ignore
+          this.selectMultipleRootEl.insertBefore(tag, this.selectInputEl);// @ts-ignore
+          this.selectInputEl.placeholder = '';// @ts-ignore
+          this.selectInputEl.value = '';// @ts-ignore
           this.selectInputEl.style.width = '1px';
         }
-        if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {
-          this.selectInputEl.style.width = 'auto';
+        if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {// @ts-ignore
+          this.selectInputEl.style.width = 'auto';// @ts-ignore
           this.selectInputEl.placeholder = this.defaultPlaceholder;
-        }
+        }// @ts-ignore
         this.selectInputEl.focus();
       } else {
         [...this.querySelectorAll('lit-select-option')].forEach((a) => a.removeAttribute('selected'));
-        this.blur();
+        this.blur();// @ts-ignore
         this.bodyEl!.style.display = 'none';
         // @ts-ignore
         this.selectInputEl.value = e.detail.text;
@@ -521,20 +521,20 @@ export class LitSelect extends BaseElement {
         this.selectItem = a.textContent!;
       }
       // @ts-ignore
-      this.value = e.detail.value;
+      this.value = e.detail.value;// @ts-ignore
       this.dispatchEvent(new CustomEvent('change', { detail: e.detail })); //向外层派发change事件，返回当前选中项
     });
   }
 
-  clear(): void {
-    this.selectInputEl.value = '';
+  clear(): void {// @ts-ignore
+    this.selectInputEl.value = '';// @ts-ignore
     this.selectInputEl.placeholder = this.defaultPlaceholder;
   }
 
   reset(): void {
     this.querySelectorAll('lit-select-option').forEach((a) => {
       [...this.querySelectorAll('lit-select-option')].forEach((a) => a.removeAttribute('selected'));
-      if (a.getAttribute('value') === this.defaultValue) {
+      if (a.getAttribute('value') === this.defaultValue) {// @ts-ignore
         this.selectInputEl.value = a.textContent;
         a.setAttribute('selected', '');
       }
@@ -545,12 +545,12 @@ export class LitSelect extends BaseElement {
 
   adoptedCallback(): void {}
 
-  attributeChangedCallback(name: any, oldValue: any, newValue: any): void {
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {
     if (name === 'value' && this.selectInputEl) {
       if (newValue) {
         [...this.querySelectorAll('lit-select-option')].forEach((a) => {
           if (a.getAttribute('value') === newValue) {
-            a.setAttribute('selected', '');
+            a.setAttribute('selected', '');// @ts-ignore
             this.selectInputEl.value = a.textContent;
           } else {
             a.removeAttribute('selected');

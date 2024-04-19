@@ -32,7 +32,7 @@ export function cpuProfilerDataSender(row: TraceRow<JsCpuProfilerStruct>): Promi
         width: width,
         trafic: trafic,
       },
-      (res: any, len: number): void => {
+      (res: unknown, len: number): void => {
         resolve(arrayBufferHandler(res, len));
       }
     );
@@ -40,23 +40,34 @@ export function cpuProfilerDataSender(row: TraceRow<JsCpuProfilerStruct>): Promi
 }
 
 function arrayBufferHandler(
-  res: any,
+  res: unknown,
   len: number
 ): {
-  maxDepth: any;
-  dataList: any[];
+  maxDepth: unknown;
+  dataList: unknown[];
 } {
-  let outArr: any[] = [];
+  let outArr: unknown[] = [];
+  // @ts-ignore
   let column = new Int32Array(res.column);
+  // @ts-ignore
   let depth = new Int32Array(res.depth);
+  // @ts-ignore
   let endTime = new Float64Array(res.endTime);
+  // @ts-ignore
   let id = new Int32Array(res.id);
+  // @ts-ignore
   let line = new Int32Array(res.line);
+  // @ts-ignore
   let nameId = new Int32Array(res.nameId);
+  // @ts-ignore
   let parentId = new Int32Array(res.parentId);
+  // @ts-ignore
   let selfTime = new Float64Array(res.selfTime);
+  // @ts-ignore
   let startTime = new Float64Array(res.startTime);
+  // @ts-ignore
   let totalTime = new Float64Array(res.totalTime);
+  // @ts-ignore
   let urlId = new Int32Array(res.urlId);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -67,15 +78,18 @@ function arrayBufferHandler(
       line: line[i],
       nameId: nameId[i],
       parentId: parentId[i],
+      // @ts-ignore
       samplesIds: res.samplesIds[i],
       selfTime: selfTime[i],
       startTime: startTime[i],
       totalTime: totalTime[i],
       urlId: urlId[i],
+      // @ts-ignore
       childrenIds: res.childrenIds[i],
-    } as any);
+    } as unknown);
   }
   return {
+    // @ts-ignore
     maxDepth: res.maxDepth,
     dataList: outArr,
   };

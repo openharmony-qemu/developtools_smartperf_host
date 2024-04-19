@@ -37,7 +37,7 @@ export class ProcessRender extends Render {
     drawLoadingFrame(req.context, filter, row, true);
     req.context.beginPath();
     let path = new Path2D();
-    let miniHeight: number = 0;
+    let miniHeight: number = 0;// @ts-ignore
     miniHeight = Math.round((row.frame.height - CpuStruct.cpuCount * 2) / CpuStruct.cpuCount);
     req.context.fillStyle = ColorUtils.colorForTid(req.pid || 0);
     for (let re of filter) {

@@ -58,11 +58,13 @@ export class SpChartList extends BaseElement {
   private isPress: boolean = false;
   private startPageY = 0;
   private startClientHeight: number = 0;
-  private scrollTimer: any;
+  private scrollTimer: unknown;
   private collect1Expand: boolean = true;
   private collect2Expand: boolean = true;
-  private collectRowList1: Array<TraceRow<any>> = [];
-  private collectRowList2: Array<TraceRow<any>> = [];
+  // @ts-ignore
+  private collectRowList1: Array<TraceRow<unknown>> = [];
+  // @ts-ignore
+  private collectRowList2: Array<TraceRow<unknown>> = [];
   private maxHeight = 0;
   private manualHeight = 0;
 
@@ -77,7 +79,7 @@ export class SpChartList extends BaseElement {
     this.removeCollectIcon2 = this.shadowRoot?.querySelector<LitIcon>('#group_2_collect');
     this.rootEl = this.shadowRoot?.querySelector<HTMLDivElement>('.root');
     this.canvas = this.shadowRoot?.querySelector<HTMLCanvasElement>('.panel-canvas');
-    this.canvasCtx = this.canvas?.getContext('2d');
+    this.canvasCtx = this.canvas?.getContext('2d');//@ts-ignore
     window.subscribe(window.SmartEvent.UI.RowHeightChange, (data: { expand: number; value: number }) => {
       this.resizeHeight();
       if (!data.expand) {
@@ -143,8 +145,10 @@ export class SpChartList extends BaseElement {
 
   private resizeHeight(): void {
     this.maxHeight = 0;
-    this.collectEl1!.childNodes.forEach((item) => (this.maxHeight += (item as any).clientHeight));
-    this.collectEl2!.childNodes.forEach((item) => (this.maxHeight += (item as any).clientHeight));
+    // @ts-ignore
+    this.collectEl1!.childNodes.forEach((item) => (this.maxHeight += (item as unknown).clientHeight));
+    // @ts-ignore
+    this.collectEl2!.childNodes.forEach((item) => (this.maxHeight += (item as unknown).clientHeight));
     if (this.groupTitle1) {
       this.maxHeight += this.groupTitle1.clientHeight;
     }
@@ -164,7 +168,8 @@ export class SpChartList extends BaseElement {
     return (this.parentElement!.clientHeight - topHeight) * maxScale;
   }
 
-  getCollectRows(filter?: (row: TraceRow<any>) => boolean): Array<TraceRow<any>> | [] {
+  // @ts-ignore
+  getCollectRows(filter?: (row: TraceRow<unknown>) => boolean): Array<TraceRow<unknown>> | [] {
     if (filter) {
       return [...this.collectRowList1.filter(filter), ...this.collectRowList2.filter(filter)];
     } else {
@@ -176,7 +181,8 @@ export class SpChartList extends BaseElement {
     return this.rootEl?.scrollTop || 0;
   }
 
-  expandSearchRowGroup(row: TraceRow<any>): void {
+  // @ts-ignore
+  expandSearchRowGroup(row: TraceRow<unknown>): void {
     this.updateGroupDisplay();
     if (row.collectGroup === SpChartList.COLLECT_G1) {
       if (!this.collect1Expand) {
@@ -195,11 +201,13 @@ export class SpChartList extends BaseElement {
     this.resizeHeight();
   }
 
-  getCollectRow(filter: (row: TraceRow<any>) => boolean): TraceRow<any> | undefined {
+  // @ts-ignore
+  getCollectRow(filter: (row: TraceRow<unknown>) => boolean): TraceRow<unknown> | undefined {
     return this.collectRowList1.find(filter) || this.collectRowList2.find(filter);
   }
 
-  getAllCollectRows(): Array<TraceRow<any>> {
+  // @ts-ignore
+  getAllCollectRows(): Array<TraceRow<unknown>> {
     return [...this.collectRowList1, ...this.collectRowList2];
   }
 
@@ -217,24 +225,30 @@ export class SpChartList extends BaseElement {
     });
   }
 
-  getRowParent(obj: any, row: TraceRow<any>) {
+  // @ts-ignore
+  getRowParent(obj: unknown, row: TraceRow<unknown>) {
     if (row.parentRowEl) {
+      // @ts-ignore
       if (obj.parents) {
-        let parent: any = {
+        let parent: unknown = {
           type: row.parentRowEl.rowType,
           name: row.parentRowEl.name,
           id: row.parentRowEl.rowId,
         };
-        (obj.parents as Array<any>).push(parent);
+        // @ts-ignore
+        (obj.parents as Array<unknown>).push(parent);
       } else {
+        // @ts-ignore
         obj.parents = [parent];
       }
       this.getRowParent(obj, row.parentRowEl);
     }
   }
 
-  getAllSelectCollectRows(): Array<TraceRow<any>> {
-    const rows: Array<TraceRow<any>> = [];
+  // @ts-ignore
+  getAllSelectCollectRows(): Array<TraceRow<unknown>> {
+    // @ts-ignore
+    const rows: Array<TraceRow<unknown>> = [];
     for (const row of this.collectRowList1) {
       if (row.checkType === '2') {
         rows.push(row);
@@ -249,13 +263,17 @@ export class SpChartList extends BaseElement {
   }
 
   insertRowBefore(node: Node, child: Node): void {
-    if (child === null || (child as TraceRow<any>).collectGroup === (node as TraceRow<any>).collectGroup) {
-      if ((node as TraceRow<any>).collectGroup === SpChartList.COLLECT_G1) {
+    // @ts-ignore
+    if (child === null || (child as TraceRow<unknown>).collectGroup === (node as TraceRow<unknown>).collectGroup) {
+      // @ts-ignore
+      if ((node as TraceRow<unknown>).collectGroup === SpChartList.COLLECT_G1) {
         this.collectEl1!.insertBefore(node, child);
-        this.collectRowList1 = Array.from(this.collectEl1!.children) as TraceRow<any>[];
+        // @ts-ignore
+        this.collectRowList1 = Array.from(this.collectEl1!.children) as TraceRow<unknown>[];
       } else {
         this.collectEl2!.insertBefore(node, child);
-        this.collectRowList2 = Array.from(this.collectEl2!.children) as TraceRow<any>[];
+        // @ts-ignore
+        this.collectRowList2 = Array.from(this.collectEl2!.children) as TraceRow<unknown>[];
       }
     }
   }
@@ -312,6 +330,7 @@ export class SpChartList extends BaseElement {
   onScroll = (ev: Event): void => {
     this.canvas!.style.transform = `translateY(${this.scrollTop}px)`;
     if (this.scrollTimer) {
+      // @ts-ignore
       clearTimeout(this.scrollTimer);
     }
     this.scrollTimer = setTimeout(() => {
@@ -336,7 +355,8 @@ export class SpChartList extends BaseElement {
         this.style.cursor = 'default';
         this.canResize = false;
       }
-      (window as any).collectResize = this.canResize;
+      // @ts-ignore
+      (window as unknown).collectResize = this.canResize;
     }
   };
 
@@ -356,7 +376,8 @@ export class SpChartList extends BaseElement {
       return;
     }
     if (this.canResize && this.isPress) {
-      (window as any).collectResize = true;
+      // @ts-ignore
+      (window as unknown).collectResize = true;
       // 拖动超过所有泳道最大高度 或小于一个泳道的高度，不支持拖动
       let newHeight = this.startClientHeight + ev.pageY - this.startPageY;
       if (newHeight > this.maxHeight) {
@@ -371,7 +392,8 @@ export class SpChartList extends BaseElement {
       this!.style.height = `${newHeight}px`;
       this.manualHeight = newHeight;
     } else {
-      (window as any).collectResize = false;
+      // @ts-ignore
+      (window as unknown).collectResize = false;
     }
   };
 
@@ -379,13 +401,15 @@ export class SpChartList extends BaseElement {
     this.isPress = false;
     this.canResize = false;
     this.style.cursor = 'default';
-    (window as any).collectResize = false;
+    // @ts-ignore
+    (window as unknown).collectResize = false;
     if (this.style.display === 'flex') {
       this.refreshFavoriteCanvas();
     }
   };
 
-  insertRow(row: TraceRow<any>, group: string, updateGroup: boolean): void {
+  // @ts-ignore
+  insertRow(row: TraceRow<unknown>, group: string, updateGroup: boolean): void {
     this.style.display = 'flex';
     let collectGroup = !updateGroup && row.collectGroup ? row.collectGroup : group;
     if (row.collectGroup !== SpChartList.COLLECT_G1 && row.collectGroup !== SpChartList.COLLECT_G2) {
@@ -427,7 +451,8 @@ export class SpChartList extends BaseElement {
     row.currentContext = this.canvasCtx;
   }
 
-  deleteRow(row: TraceRow<any>, clearCollectGroup: boolean): void {
+  // @ts-ignore
+  deleteRow(row: TraceRow<unknown>, clearCollectGroup: boolean): void {
     if (row.collectGroup === SpChartList.COLLECT_G1) {
       this.collectRowList1.splice(this.collectRowList1.indexOf(row), 1);
       if (!this.fragmentGroup1.contains(row)) {

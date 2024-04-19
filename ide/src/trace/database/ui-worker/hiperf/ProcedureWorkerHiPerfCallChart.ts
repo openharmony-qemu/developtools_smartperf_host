@@ -35,7 +35,7 @@ export class HiPerfCallChartRender extends Render {
       filter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
+      TraceRow.range!.totalNS,// @ts-ignore
       row.frame,
       req.useCache || !TraceRow.range!.refresh,
       row.funcExpand

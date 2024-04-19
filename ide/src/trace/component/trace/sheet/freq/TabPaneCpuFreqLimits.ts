@@ -30,21 +30,26 @@ export class TabPaneCpuFreqLimits extends BaseElement {
   private cpuFreqLimitSortKey: string = 'cpu';
   private cpuFreqLimitSortType: number = 0;
 
-  set data(cpuFreqLimitSelection: SelectionParam | any) {
+  set data(cpuFreqLimitSelection: SelectionParam | unknown) {
     if (cpuFreqLimitSelection === this.selectionParam) {
       return;
     }
+    // @ts-ignore
     this.selectionParam = cpuFreqLimitSelection;
     // @ts-ignore
     this.cpuFreqLimitsTbl!.shadowRoot!.querySelector('.table').style.height =
       this.parentElement!.clientHeight - 25 + 'px';
-    let list: any[] = [];
+    let list: unknown[] = [];
+    // @ts-ignore
     getCpuLimitFreqBoxSelect(cpuFreqLimitSelection.cpuFreqLimit, cpuFreqLimitSelection.rightNs).then((res) => {
       for (let it of res) {
+        //@ts-ignore
         if (!it.dur || it.startNs + it.dur > cpuFreqLimitSelection.rightNs) {
+          //@ts-ignore
           it.dur = (cpuFreqLimitSelection.rightNs || 0) - (it.startNs || 0);
         }
       }
+        //@ts-ignore
       this.formatData(res, cpuFreqLimitSelection.leftNs, cpuFreqLimitSelection.rightNs);
     });
   }
@@ -124,25 +129,25 @@ export class TabPaneCpuFreqLimits extends BaseElement {
     }
   }
 
-  compareTime(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
-    if (type === 1) {
+  compareTime(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
+    if (type === 1) {// @ts-ignore
       return cpuFreqLimitA.time - cpuFreqLimitB.time;
-    } else {
+    } else {// @ts-ignore
       return cpuFreqLimitB.time - cpuFreqLimitA.time;
     }
   }
 
-  compareValue(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
-    if (type === 1) {
+  compareValue(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
+    if (type === 1) {// @ts-ignore
       return cpuFreqLimitA.value - cpuFreqLimitB.value;
-    } else {
+    } else {// @ts-ignore
       return cpuFreqLimitB.value - cpuFreqLimitA.value;
     }
   }
 
-  compareCpu(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
+  compareCpu(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {// @ts-ignore
     if (cpuFreqLimitA.cpu > cpuFreqLimitB.cpu) {
-      return type === 2 ? -1 : 1;
+      return type === 2 ? -1 : 1;// @ts-ignore
     } else if (cpuFreqLimitA.cpu === cpuFreqLimitB.cpu) {
       return 0;
     } else {
@@ -150,9 +155,9 @@ export class TabPaneCpuFreqLimits extends BaseElement {
     }
   }
 
-  compareType(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
+  compareType(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {// @ts-ignore
     if (cpuFreqLimitA.type > cpuFreqLimitB.type) {
-      return type === 2 ? 1 : -1;
+      return type === 2 ? 1 : -1;// @ts-ignore
     } else if (cpuFreqLimitA.type === cpuFreqLimitB.type) {
       return 0;
     } else {

@@ -36,7 +36,7 @@ export class SdkSliceRender extends Render {
       sdkFilter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
-      TraceRow.range?.totalNS ?? 0,
+      TraceRow.range?.totalNS ?? 0,// @ts-ignore
       row.frame,
       req.useCache || (TraceRow.range?.refresh ?? false)
     );

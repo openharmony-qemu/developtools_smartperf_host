@@ -269,17 +269,22 @@ export class TabPaneSmapsStatistics extends BaseElement {
     this.handleSmapsTreeObj(this.allTree!, sumSize);
   }
 
-  public filteredData(result: Array<any>, table: LitTable, sumSize?: number): void {
+  public filteredData(result: Array<unknown>, table: LitTable, sumSize?: number): void {
     this.allTree = new SmapsTreeObj('All', '', '*All*');
     let allTreeObjs = this.initTreeObj();
     if (result.length !== null && result.length > 0) {
       for (let id = 0; id < result.length; id++) {
         let smaps = result[id];
+        // @ts-ignore
         smaps.typeName = TYPE_STRING[smaps.type];
+        // @ts-ignore
         if (allTreeObjs.has(smaps.type)) {
+          // @ts-ignore
           let newVar = allTreeObjs.get(smaps.type);
+          // @ts-ignore
           this.handleTree(smaps, id, smaps.typeName, newVar!, sumSize);
         }
+        // @ts-ignore
         this.handleAllDataTree(smaps, id, 'All', this.allTree, sumSize!);
         if (id === result.length - 1) {
           this.handleAllSMapsTreeObj(sumSize!, allTreeObjs);

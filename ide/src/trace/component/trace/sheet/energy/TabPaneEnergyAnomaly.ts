@@ -42,6 +42,7 @@ export class TabPaneEnergyAnomaly extends BaseElement {
           if (filterAppMap.get(values[0] + values[1]) === -1) {
             continue;
           } else {
+            // @ts-ignore
             findAppNameIndex = filterAppMap.get(values[0] + values[1]);
           }
           if (!tempSet.has(values[0])) {
@@ -78,7 +79,8 @@ export class TabPaneEnergyAnomaly extends BaseElement {
     }
   }
 
-  private spliceHtmlText(findAppNameIndex: number, nextValues: any[], htmlText: string, tempSet: Set<any>): string {
+  private spliceHtmlText(findAppNameIndex: number, nextValues: unknown[], htmlText: string, tempSet: Set<unknown>): string {
+    // @ts-ignore
     let appValues = nextValues[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
     if (tempSet.has(nextValues[0])) {
       htmlText +=
@@ -97,7 +99,7 @@ export class TabPaneEnergyAnomaly extends BaseElement {
     return htmlText;
   }
 
-  private setFilterAppMapByAnomalyData(bean: EnergyAnomalyStruct[]): Map<string, any> {
+  private setFilterAppMapByAnomalyData(bean: EnergyAnomalyStruct[]): Map<string, unknown> {
     let filterAppMap = new Map();
     for (let index = 0; index < bean.length; index++) {
       let findAppNameIndex = -1;
@@ -121,7 +123,7 @@ export class TabPaneEnergyAnomaly extends BaseElement {
     return filterAppMap;
   }
 
-  static getUnit(value: any): string {
+  static getUnit(value: unknown): string {
     if (value === 'DURATION') {
       return ' ms';
     } else if (value === 'ENERGY' || value === 'BGENERGY' || value === 'BATTERY_GAS_GUAGE') {

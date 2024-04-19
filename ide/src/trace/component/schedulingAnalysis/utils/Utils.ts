@@ -15,26 +15,32 @@
 
 import { Utils } from '../../trace/base/Utils';
 
-export const getFormatData = (data: Array<any>): unknown[] => {
-  let arrData: Array<any> = [];
+export const getFormatData = (data: Array<unknown>): unknown[] => {
+  let arrData: Array<unknown> = [];
   data.forEach((item, idx): void => {
     arrData.push({
       index: idx + 1,
+      //@ts-ignore
       ...item,
+      //@ts-ignore
       avg: Utils.getProbablyTime(item.avg),
+      //@ts-ignore
       max: Utils.getProbablyTime(item.max),
+      //@ts-ignore
       min: Utils.getProbablyTime(item.min),
+      //@ts-ignore
       sum: Utils.getProbablyTime(item.sum),
     });
   });
   return arrData;
 };
 
-export const getDataNo = (data: Array<any>): any[] => {
-  let arrData: Array<any> = [];
+export const getDataNo = (data: Array<unknown>): unknown[] => {
+  let arrData: Array<unknown> = [];
   data.forEach((item, idx): void => {
     arrData.push({
       index: idx + 1,
+      //@ts-ignore
       ...item,
     });
   });

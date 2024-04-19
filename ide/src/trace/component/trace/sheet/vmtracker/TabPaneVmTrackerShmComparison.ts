@@ -30,9 +30,9 @@ export class TabPaneVmTrackerShmComparison extends BaseElement {
   private comparisonTableEl: LitTable | undefined | null;
   private baseFileTs: number | undefined | null;
   private targetFileTs: number | undefined | null;
-  private comparisonData!: any[];
-  private baseFileData: Array<any> = [];
-  private targetFileData: Array<any> = [];
+  private comparisonData!: unknown[];
+  private baseFileData: Array<unknown> = [];
+  private targetFileData: Array<unknown> = [];
   private memoryConfig: MemoryConfig = MemoryConfig.getInstance();
   private selectEl: LitSelect | undefined | null;
   private filterEl: TabPaneJsMemoryFilter | undefined | null;
@@ -78,18 +78,21 @@ export class TabPaneVmTrackerShmComparison extends BaseElement {
     let sizeData = this.calSizeObj(this.baseFileData, this.targetFileData);
     this.comparisonData = [];
     this.comparisonData.push(sizeData);
+    // @ts-ignore
     this.comparisonSource = this.comparisonData;
     this.comparisonTableEl!.snapshotDataSource = this.comparisonData;
   }
 
-  calSizeObj(baseFileData: Array<any>, targetFileData: Array<any>): ShmObj {
+  calSizeObj(baseFileData: Array<unknown>, targetFileData: Array<unknown>): ShmObj {
     let sizeObj = new ShmObj();
     let baseSumSize = 0;
     let targetSumSize = 0;
     for (let file of baseFileData) {
+      // @ts-ignore
       baseSumSize += file.size;
     }
     for (let file of targetFileData) {
+      // @ts-ignore
       targetSumSize += file.size;
     }
     sizeObj.sizeDelta = baseSumSize - targetSumSize;

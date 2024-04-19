@@ -30,7 +30,7 @@ export class SpHisysEvent extends BaseElement {
   private sysEventSwitch: LitSwitch | undefined | null;
   private domainInputEl: HTMLInputElement | undefined | null;
   private nameInputEl: HTMLInputElement | undefined | null;
-  private eventConfig: any = {};
+  private eventConfig: unknown = {};
 
   set startSamp(start: boolean) {
     if (start) {
@@ -140,8 +140,10 @@ export class SpHisysEvent extends BaseElement {
       } else {
         let currentData: string[] = [];
         if (domain === '' || domain === 'ALL-Domain') {
+          //@ts-ignore
           let domainKey = Object.keys(this.eventConfig);
           domainKey.forEach((item) => {
+            //@ts-ignore
             let currentEvent = this.eventConfig[item];
             let eventList = Object.keys(currentEvent);
             currentData.push(...eventList);

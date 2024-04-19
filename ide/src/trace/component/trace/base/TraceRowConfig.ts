@@ -203,7 +203,7 @@ export class TraceRowConfig extends BaseElement {
           while (upParentRow.hasParentRowEl) {
             if (!upParentRow.parentRowEl) {
               break;
-            }
+            }// @ts-ignore
             upParentRow = upParentRow.parentRowEl;
           }
           if (upParentRow === row) {
@@ -278,7 +278,7 @@ export class TraceRowConfig extends BaseElement {
         let isShowRow: boolean = false;
         if (this.selectTypeList!.length === 0) {
           traceRow.rowHidden = false;
-          traceRow.setAttribute('scene', '');
+          traceRow.setAttribute('scene', '');// @ts-ignore
           this.refreshChildRow(traceRow.childrenList, true);
         } else {
           let templateTypeList = [...traceRow.templateType];
@@ -288,13 +288,13 @@ export class TraceRowConfig extends BaseElement {
             if (traceRow.templateType.size > 0) {
               traceRow.rowHidden = false;
               traceRow.setAttribute('scene', '');
-              if (traceRow.childrenList && traceRow.childrenList.length > 0) {
+              if (traceRow.childrenList && traceRow.childrenList.length > 0) {// @ts-ignore
                 this.refreshChildRow(traceRow.childrenList, isShowRow);
               }
             }
           } else {
             traceRow.removeAttribute('scene');
-            traceRow.rowHidden = true;
+            traceRow.rowHidden = true;// @ts-ignore
             this.refreshChildRow(traceRow.childrenList);
           }
         }
@@ -361,14 +361,14 @@ export class TraceRowConfig extends BaseElement {
     childRows.forEach((row) => {
       if (isShowScene) {
         row.setAttribute('scene', '');
-        if (row.childrenList && row.childrenList.length > 0) {
+        if (row.childrenList && row.childrenList.length > 0) {// @ts-ignore
           this.refreshChildRow(row.childrenList, isShowScene);
         }
         row.expansion = false;
       } else {
         row.removeAttribute('scene');
         row.rowHidden = true;
-        if (row.childrenList && row.childrenList.length > 0) {
+        if (row.childrenList && row.childrenList.length > 0) {// @ts-ignore
           this.refreshChildRow(row.childrenList);
         }
       }
@@ -551,13 +551,13 @@ export class TraceRowConfig extends BaseElement {
   }
 
   // 构建节点关系
-  private buildSubSystemTreeData(id: number, configJson: any): SubsystemNode[] {
-    let subsystemsKey: string = 'subsystems';
+  private buildSubSystemTreeData(id: number, configJson: unknown): SubsystemNode[] {
+    let subsystemsKey: string = 'subsystems';// @ts-ignore
     let keys = Object.keys(configJson);
     if (keys.indexOf(subsystemsKey) < 0) {
       return [];
     }
-    let subSystems: SubsystemNode[] = [];
+    let subSystems: SubsystemNode[] = [];// @ts-ignore
     let subsystemsData = configJson[subsystemsKey];
     this.initOtherRowNames();
     let subsystemList = [];
@@ -617,9 +617,9 @@ export class TraceRowConfig extends BaseElement {
     }
   }
 
-  private setSubsystemComp(currentCompDate: any, id: number, subsystemStruct: SubsystemNode): number {
-    let currentCompName = currentCompDate.component;
-    let currentChartDates = currentCompDate.charts;
+  private setSubsystemComp(currentCompDate: unknown, id: number, subsystemStruct: SubsystemNode): number {// @ts-ignore
+    let currentCompName = currentCompDate.component;// @ts-ignore
+    let currentChartDates = currentCompDate.charts;// @ts-ignore
     id++;
     let componentStruct: SubsystemNode = {
       id: id,

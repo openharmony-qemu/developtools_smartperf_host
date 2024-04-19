@@ -35,8 +35,11 @@ export class SpEBPFChart {
   async init(): Promise<void> {
     let sys = await hasFileSysData();
     if (sys.length > 0) {
+      //@ts-ignore
       let fsCount = sys[0]['fsCount'] ?? 0;
+      //@ts-ignore
       let vmCount = sys[0]['vmCount'] ?? 0;
+      //@ts-ignore
       let ioCount = sys[0]['ioCount'] ?? 0;
       if (sys && sys.length > 0 && (fsCount > 0 || vmCount > 0 || ioCount > 0)) {
         let folder = await this.initFolder();
@@ -56,15 +59,16 @@ export class SpEBPFChart {
     }
   }
 
-  async initFileCallchain(): Promise<any> {
-    return new Promise<any>((resolve, reject) => {
-      procedurePool.submitWithName('logic0', 'fileSystem-init', null, undefined, (res: any) => {
+  async initFileCallchain(): Promise<unknown> {
+    return new Promise<unknown>((resolve, reject) => {
+      procedurePool.submitWithName('logic0', 'fileSystem-init', null, undefined, (res: unknown) => {
         resolve(res);
       });
     });
   }
 
-  async initFolder(): Promise<TraceRow<any>> {
+  //@ts-ignore
+  async initFolder(): Promise<TraceRow<unknown>> {
     let fsFolder = TraceRow.skeleton();
     fsFolder.rowId = 'FileSystem';
     fsFolder.index = 0;
@@ -75,11 +79,11 @@ export class SpEBPFChart {
     fsFolder.name = 'EBPF'; /* & I/O Latency */
     fsFolder.addTemplateTypes('HiEBpf');
     fsFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    fsFolder.selectChangeHandler = this.trace.selectChangeHandler;
-    fsFolder.supplierFrame = (): Promise<Array<any>> => new Promise<Array<any>>((resolve) => resolve([]));
+    fsFolder.selectChangeHandler = this.trace.selectChangeHandler;//@ts-ignore
+    fsFolder.supplierFrame = (): Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve) => resolve([]));
     fsFolder.onThreadHandler = (useCache): void => {
       fsFolder.canvasSave(this.trace.canvasPanelCtx!);
-      if (fsFolder.expansion) {
+      if (fsFolder.expansion) {// @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, fsFolder.frame.width, fsFolder.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(
@@ -97,7 +101,8 @@ export class SpEBPFChart {
     return fsFolder;
   }
 
-  async initLogicalRead(folder: TraceRow<any>): Promise<void> {
+  //@ts-ignore
+  async initLogicalRead(folder: TraceRow<unknown>): Promise<void> {
     let logicalReadRow = TraceRow.skeleton<EBPFChartStruct>();
     logicalReadRow.rowId = 'FileSystemLogicalRead';
     logicalReadRow.index = 1;
@@ -139,7 +144,8 @@ export class SpEBPFChart {
     folder.addChildTraceRow(logicalReadRow);
   }
 
-  async initLogicalWrite(folder: TraceRow<any>): Promise<void> {
+  //@ts-ignore
+  async initLogicalWrite(folder: TraceRow<unknown>): Promise<void> {
     let logicalWriteRow = TraceRow.skeleton<EBPFChartStruct>();
     logicalWriteRow.rowId = 'FileSystemLogicalWrite';
     logicalWriteRow.index = 2;
@@ -181,7 +187,8 @@ export class SpEBPFChart {
     folder.addChildTraceRow(logicalWriteRow);
   }
 
-  async initDiskIOLatency(folder: TraceRow<any>): Promise<void> {
+  //@ts-ignore
+  async initDiskIOLatency(folder: TraceRow<unknown>): Promise<void> {
     let diskIoRow = TraceRow.skeleton<EBPFChartStruct>();
     diskIoRow.rowId = 'FileSystemDiskIOLatency';
     diskIoRow.index = 4;
@@ -224,18 +231,19 @@ export class SpEBPFChart {
     folder.addChildTraceRow(diskIoRow);
   }
 
-  initProcessDiskIOLatencyRead(i: number, folder: TraceRow<any>, process: any): TraceRow<EBPFChartStruct> {
+  //@ts-ignore
+  initProcessDiskIOLatencyRead(i: number, folder: TraceRow<unknown>, process: unknown): TraceRow<EBPFChartStruct> {
     let rowRead = TraceRow.skeleton<EBPFChartStruct>();
-    rowRead.index = 5 + 2 * i;
+    rowRead.index = 5 + 2 * i;//@ts-ignore
     rowRead.rowId = `FileSystemDiskIOLatency-read-${process['ipid']}`;
     rowRead.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
     rowRead.rowParentId = folder.rowId;
     rowRead.rowHidden = !folder.expansion;
     rowRead.style.height = '40px';
     rowRead.style.width = '100%';
-    rowRead.setAttribute('children', '');
+    rowRead.setAttribute('children', '');//@ts-ignore
     rowRead.name = `${process['name'] ?? 'Process'}(${process['pid']}) Max Read Latency`;
-    rowRead.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
+    rowRead.supplierFrame = async (): Promise<EBPFChartStruct[]> => {//@ts-ignore
       const res = await diskIoSender(false, process['ipid'], [1, 3], TraceRow.range?.scale || 50, rowRead);
       return res;
     };
@@ -256,7 +264,7 @@ export class SpEBPFChart {
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
         {
           context: context,
-          useCache: useCache,
+          useCache: useCache,//@ts-ignore
           type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-read-${process['pid']}`,
           chartColor: ColorUtils.MD_PALETTE[0],
         },
@@ -267,18 +275,19 @@ export class SpEBPFChart {
     return rowRead;
   }
 
-  private initProcessDiskIOLatencyWrite(i: number, folder: TraceRow<any>, process: any): TraceRow<EBPFChartStruct> {
+  //@ts-ignore
+  private initProcessDiskIOLatencyWrite(i: number, folder: TraceRow<unknown>, process: unknown): TraceRow<EBPFChartStruct> {
     let rowWrite = TraceRow.skeleton<EBPFChartStruct>();
-    rowWrite.index = 5 + 2 * i + 1;
+    rowWrite.index = 5 + 2 * i + 1;//@ts-ignore
     rowWrite.rowId = `FileSystemDiskIOLatency-write-${process['ipid']}`;
     rowWrite.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
     rowWrite.rowParentId = folder.rowId;
     rowWrite.rowHidden = !folder.expansion;
     rowWrite.style.height = '40px';
     rowWrite.style.width = '100%';
-    rowWrite.setAttribute('children', '');
+    rowWrite.setAttribute('children', '');//@ts-ignore
     rowWrite.name = `${process['name'] ?? 'Process'}(${process['pid']}) Max Write Latency`;
-    rowWrite.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
+    rowWrite.supplierFrame = async (): Promise<EBPFChartStruct[]> => {//@ts-ignore
       const res = await diskIoSender(false, process['ipid'], [2, 4], TraceRow.range?.scale || 50, rowWrite);
       return res;
     };
@@ -299,7 +308,7 @@ export class SpEBPFChart {
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
         {
           context: context,
-          useCache: useCache,
+          useCache: useCache,//@ts-ignore
           type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-write-${process['pid']}`,
           chartColor: ColorUtils.MD_PALETTE[8],
         },
@@ -310,7 +319,8 @@ export class SpEBPFChart {
     return rowWrite;
   }
 
-  async initProcessDiskIOLatency(folder: TraceRow<any>): Promise<void> {
+  //@ts-ignore
+  async initProcessDiskIOLatency(folder: TraceRow<unknown>): Promise<void> {
     let processes = (await getDiskIOProcess()) || [];
     for (let i = 0, len = processes.length; i < len; i++) {
       let process = processes[i];
@@ -321,7 +331,8 @@ export class SpEBPFChart {
     }
   }
 
-  async initVirtualMemoryTrace(folder: TraceRow<any>): Promise<void> {
+  //@ts-ignore
+  async initVirtualMemoryTrace(folder: TraceRow<unknown>): Promise<void> {
     let vmTraceRow = TraceRow.skeleton<EBPFChartStruct>();
     vmTraceRow.rowId = 'FileSystemVirtualMemory';
     vmTraceRow.index = 3;

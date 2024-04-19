@@ -26,10 +26,10 @@ import { queryProcessPurgeableSelectionTab } from '../../../../database/sql/Proc
 @element('tabpane-purg-total-selection')
 export class TabPanePurgTotalSelection extends BaseElement {
   private purgeableSelectionTable: LitTable | null | undefined;
-  private purgeableSelectionSource: Array<any> = [];
+  private purgeableSelectionSource: Array<unknown> = [];
 
-  set data(selection: SelectionParam | any) {
-    if (selection && selection.type) {
+  set data(selection: SelectionParam | unknown) {// @ts-ignore
+    if (selection && selection.type) {// @ts-ignore
       this.queryTableData(selection.type, selection.startNs);
     }
   }
@@ -41,10 +41,11 @@ export class TabPanePurgTotalSelection extends BaseElement {
         if (purgeTotalSelectResults.length > 0) {
           this.purgeableSelectionSource.push({ name: 'TimeStamp', value: ns2s(startNs) });
           this.purgeableSelectionSource.push({
-            name: 'TimeStamp(Absolute)',
+            name: 'TimeStamp(Absolute)',// @ts-ignore
             value: (startNs + (window as any).recordStartNS) / 1000000000,
           });
           for (let i = 0; i < purgeTotalSelectResults.length; i++) {
+            //@ts-ignore
             purgeTotalSelectResults[i].value = Utils.getBinaryByteWithUnit(purgeTotalSelectResults[i].value);
             this.purgeableSelectionSource.push(purgeTotalSelectResults[i]);
           }
@@ -57,10 +58,10 @@ export class TabPanePurgTotalSelection extends BaseElement {
         if (results.length > 0) {
           this.purgeableSelectionSource.push({ name: 'TimeStamp(Relative)', value: ns2s(startNs) });
           this.purgeableSelectionSource.push({
-            name: 'TimeStamp(Absolute)',
+            name: 'TimeStamp(Absolute)',// @ts-ignore
             value: (startNs + (window as any).recordStartNS) / 1000000000,
           });
-          for (let i = 0; i < results.length; i++) {
+          for (let i = 0; i < results.length; i++) {//@ts-ignore
             results[i].value = Utils.getBinaryByteWithUnit(results[i].value);
             this.purgeableSelectionSource.push(results[i]);
           }

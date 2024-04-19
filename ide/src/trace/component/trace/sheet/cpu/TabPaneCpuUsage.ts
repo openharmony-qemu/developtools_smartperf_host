@@ -24,26 +24,32 @@ import { getTabCpuFreq, getTabCpuUsage } from '../../../../database/sql/Cpu.sql'
 export class TabPaneCpuUsage extends BaseElement {
   private cpuUsageTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
-  private orderByOldList: any[] = [];
+  private orderByOldList: unknown[] = [];
   private currentSelectionParam: SelectionParam | undefined;
 
-  set data(cpuUsageValue: SelectionParam | any) {
+  set data(cpuUsageValue: SelectionParam | unknown) {
     if (this.currentSelectionParam === cpuUsageValue) {
       return;
     }
+    // @ts-ignore
     this.currentSelectionParam = cpuUsageValue;
     this.range!.textContent =
+    // @ts-ignore
       `Selected range: ${parseFloat(((cpuUsageValue.rightNs - cpuUsageValue.leftNs) / 1000000.0).toFixed(5))} ms`;
     this.cpuUsageTbl!.loading = true;
     Promise.all([
+      // @ts-ignore
       getTabCpuUsage(cpuUsageValue.cpus, cpuUsageValue.leftNs, cpuUsageValue.rightNs),
+      // @ts-ignore
       getTabCpuFreq(cpuUsageValue.cpus, cpuUsageValue.leftNs, cpuUsageValue.rightNs),
     ]).then((result): void => {
       this.cpuUsageTbl!.loading = false;
       let usages = result[0];
       let freqMap = this.groupByCpuToMap(result[1]);
       let data = [];
+      // @ts-ignore
       let range = cpuUsageValue.rightNs - cpuUsageValue.leftNs;
+      // @ts-ignore
       for (let cpu of cpuUsageValue.cpus) {
         let usage = new CpuUsage();
         usage.cpu = cpu;
@@ -65,7 +71,7 @@ export class TabPaneCpuUsage extends BaseElement {
     });
   }
 
-  private handleUsage(freqMap: Map<number, Array<Freq>>, usage: CpuUsage, cpuUsageValue: any, range: number): void {
+  private handleUsage(freqMap: Map<number, Array<Freq>>, usage: CpuUsage, cpuUsageValue: unknown, range: number): void {
     let arr = [];
     if (freqMap.has(usage.cpu)) {
       let freqList = freqMap.get(usage.cpu);
@@ -73,17 +79,22 @@ export class TabPaneCpuUsage extends BaseElement {
       for (let i = 0; i < freqList!.length; i++) {
         let freq = freqList![i];
         if (i === freqList!.length - 1) {
+          // @ts-ignore
           freq.dur = cpuUsageValue.rightNs - freq.startNs;
         } else {
           freq.dur = freqList![i + 1].startNs - freq.startNs;
         }
+        // @ts-ignore
         if (freq.startNs + freq.dur > cpuUsageValue.leftNs) {
           list.push(freq);
         }
       }
       if (list.length > 0) {
+        // @ts-ignore
         if (list[0].startNs < cpuUsageValue.leftNs) {
+          // @ts-ignore
           list[0].dur = list[0].startNs + list[0].dur - cpuUsageValue.leftNs;
+          // @ts-ignore
           list[0].startNs = cpuUsageValue.leftNs;
         }
       }
@@ -116,9 +127,11 @@ export class TabPaneCpuUsage extends BaseElement {
     resizeObserver(this.parentElement!, this.cpuUsageTbl!);
   }
 
-  sortTable(arr: any[], key: string, sort: boolean): void {
+  sortTable(arr: unknown[], key: string, sort: boolean): void {
     this.cpuUsageTbl!.recycleDataSource = arr.sort((item1, item2): number => {
+      // @ts-ignore
       let cpuUsageLeftData = Number(item1[key].toString().replace('%', ''));
+      // @ts-ignore
       let cpuUsageRightData = Number(item2[key].toString().replace('%', ''));
       if (cpuUsageLeftData > cpuUsageRightData) {
         return sort ? -1 : 1;

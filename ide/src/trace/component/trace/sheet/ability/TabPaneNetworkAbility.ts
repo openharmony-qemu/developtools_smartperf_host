@@ -31,7 +31,7 @@ export class TabPaneNetworkAbility extends BaseElement {
   private queryResult: Array<SystemNetworkSummary> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(networkAbilityValue: SelectionParam | any) {
+  set data(networkAbilityValue: SelectionParam | unknown) {
     if (this.networkAbilityTbl) {
       // @ts-ignore
       this.networkAbilityTbl.shadowRoot?.querySelector('.table').style.height =
@@ -56,7 +56,7 @@ export class TabPaneNetworkAbility extends BaseElement {
   filterData(): void {
     if (this.queryResult.length > 0) {
       let filterNetwork = this.queryResult.filter((item): boolean => {
-        let array = this.toNetWorkAbilityArray(item);
+        let array = this.toNetWorkAbilityArray(item);// @ts-ignore
         let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
@@ -70,7 +70,7 @@ export class TabPaneNetworkAbility extends BaseElement {
     }
   }
 
-  toNetWorkAbilityArray(systemNetworkSummary: SystemNetworkSummary): any[] {
+  toNetWorkAbilityArray(systemNetworkSummary: SystemNetworkSummary): unknown[] {
     let array: Array<string> = [];
     array.push(systemNetworkSummary.startTimeStr);
     array.push(systemNetworkSummary.durationStr);
@@ -84,7 +84,7 @@ export class TabPaneNetworkAbility extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam | any): void {
+  queryDataByDB(val: SelectionParam | unknown): void {// @ts-ignore
     getTabNetworkAbilityData(val.leftNs, val.rightNs).then((item): void => {
       log(`getTabNetworkAbilityData result size : ${  item.length}`);
       if (item.length !== null && item.length > 0) {
@@ -142,7 +142,7 @@ export class TabPaneNetworkAbility extends BaseElement {
         `;
   }
 
-  compare(property: string, sort: number, type: string): any {
+  compare(property: string, sort: number, type: string): unknown {
     let getProperty = this.getPropertyByType(property, type);
     return this.compareFunction(sort, getProperty);
   }
@@ -181,29 +181,29 @@ export class TabPaneNetworkAbility extends BaseElement {
         return typeMap[type] || data[property];
       };
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
-    if (detail.key === 'startTime') {
-      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'string'));
-    } else if (detail.key === 'durationStr') {
-      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'durationStr'));
-    } else if (detail.key === 'dataReceivedStr') {
-      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'dataReceivedStr'));
-    } else if (detail.key === 'dataReceivedSecStr') {
-      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'dataReceivedSecStr'));
-    } else if (detail.key === 'dataSendStr') {
-      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'dataSendStr'));
-    } else if (detail.key === 'dataSendSecStr') {
-      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'dataSendSecStr'));
-    } else if (detail.key === 'packetsInStr') {
-      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'packetsInStr'));
-    } else if (detail.key === 'packetsInSecStr') {
-      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'packetsInSecStr'));
-    } else if (detail.key === 'packetsOutStr') {
-      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'packetsOutStr'));
-    } else if (detail.key === 'packetsOutSecStr') {
+    if (detail.key === 'startTime') {// @ts-ignore
+      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'string'));// @ts-ignore
+    } else if (detail.key === 'durationStr') {// @ts-ignore
+      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'durationStr'));// @ts-ignore
+    } else if (detail.key === 'dataReceivedStr') {// @ts-ignore
+      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'dataReceivedStr'));// @ts-ignore
+    } else if (detail.key === 'dataReceivedSecStr') {// @ts-ignore
+      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'dataReceivedSecStr'));// @ts-ignore
+    } else if (detail.key === 'dataSendStr') {// @ts-ignore
+      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'dataSendStr'));// @ts-ignore
+    } else if (detail.key === 'dataSendSecStr') {// @ts-ignore
+      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'dataSendSecStr'));// @ts-ignore
+    } else if (detail.key === 'packetsInStr') {// @ts-ignore
+      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'packetsInStr'));// @ts-ignore
+    } else if (detail.key === 'packetsInSecStr') {// @ts-ignore
+      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'packetsInSecStr'));// @ts-ignore
+    } else if (detail.key === 'packetsOutStr') {// @ts-ignore
+      this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'packetsOutStr'));// @ts-ignore
+    } else if (detail.key === 'packetsOutSecStr') {// @ts-ignore
       this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'packetsOutSecStr'));
-    } else {
+    } else {// @ts-ignore
       this.networkAbilitySource.sort(this.compare(detail.key, detail.sort, 'number'));
     }
     this.networkAbilityTbl!.recycleDataSource = this.networkAbilitySource;

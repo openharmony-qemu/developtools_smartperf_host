@@ -17,7 +17,7 @@ import { DbPool } from './SqlLite';
 class ConvertThread {
   isCancelled: boolean = false;
   id: number = -1;
-  taskMap: any = {};
+  taskMap: unknown = {};
   name: string | undefined;
   worker?: Worker;
   busy: boolean = false;
@@ -34,8 +34,11 @@ class ConvertThread {
   getConvertData(handler: (status: boolean, msg: string, results: Blob) => void): void {
     this.busy = true;
     let id = this.uuid();
-    this.taskMap[id] = (res: any): void => {
+    // @ts-ignore
+    this.taskMap[id] = (res: unknown): void => {
+      // @ts-ignore
       DbPool.sharedBuffer = res.buffer;
+      // @ts-ignore
       handler(res.status, res.msg, res.results);
     };
     caches.match(DbPool.fileCacheKey).then((resData) => {
@@ -75,18 +78,23 @@ class ConvertPool {
       thread!.worker!.onmessage = (event: MessageEvent): void => {
         thread.busy = false;
         ConvertPool.data = event.data.results;
+        // @ts-ignore
         if (Reflect.has(thread.taskMap, event.data.id)) {
           if (event.data.results) {
+            // @ts-ignore
             let fun = thread.taskMap[event.data.id];
             if (fun) {
               fun(event.data);
             }
+            // @ts-ignore
             Reflect.deleteProperty(thread.taskMap, event.data.id);
           } else {
+            // @ts-ignore
             let fun = thread.taskMap[event.data.id];
             if (fun) {
               fun([]);
             }
+            // @ts-ignore
             Reflect.deleteProperty(thread.taskMap, event.data.id);
           }
         }

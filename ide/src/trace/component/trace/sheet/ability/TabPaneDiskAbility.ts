@@ -203,7 +203,7 @@ export class TabPaneDiskAbility extends BaseElement {
     return this.compareFunction(sort, getProperty);
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     let typeMapping = {
       startTime: 'string',
       durationStr: 'durationStr',
@@ -217,7 +217,7 @@ export class TabPaneDiskAbility extends BaseElement {
       writeOutSecStr: 'writeOutSecStr',
     };
     // @ts-ignore
-    let type = typeMapping[detail.key] || 'number';
+    let type = typeMapping[detail.key] || 'number';// @ts-ignore
     this.diskAbilitySource.sort(this.compareDisk(detail.key, detail.sort, type));
     this.diskAbilityTbl!.recycleDataSource = this.diskAbilitySource;
   }

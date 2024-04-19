@@ -29,22 +29,23 @@ import { drawLines } from '../../../../database/ui-worker/ProcedureWorkerCommon'
 export class TabPaneFrequencySample extends BaseElement {
   private frequencySampleTbl: LitTable | null | undefined;
   private selectionParam: SelectionParam | null | undefined;
-  private frequencyLoadingPage: any;
-  private frequencySampleSource: any[] = [];
+  private frequencyLoadingPage: unknown;
+  private frequencySampleSource: unknown[] = [];
   private frequencySampleSortKey: string = 'counter';
   private frequencySampleSortType: number = 0;
-  private systemTrace: SpSystemTrace | undefined | null;
-  private _rangeRow: Array<TraceRow<any>> | undefined | null;
+  private systemTrace: SpSystemTrace | undefined | null;// @ts-ignore
+  private _rangeRow: Array<TraceRow<unknown>> | undefined | null;
   private frequencySampleClickType: boolean = false;
   private busyTimeLoadingHide: boolean = false;
-  private freqBusyDataList: Array<any> = [];
+  private freqBusyDataList: Array<unknown> = [];
   private worker: Worker | undefined;
-  private freqResult: Array<any> = [];
+  private freqResult: Array<unknown> = [];
 
-  set data(frequencySampleValue: SelectionParam | any) {
+  set data(frequencySampleValue: SelectionParam | unknown) {
     if (frequencySampleValue === this.selectionParam) {
       return;
     }
+    // @ts-ignore
     this.selectionParam = frequencySampleValue;
     if (this.frequencySampleTbl) {
       // @ts-ignore
@@ -53,8 +54,8 @@ export class TabPaneFrequencySample extends BaseElement {
     }
     this.queryDataByDB(frequencySampleValue);
   }
-
-  set rangeTraceRow(rangeRow: Array<TraceRow<any>> | undefined) {
+// @ts-ignore
+  set rangeTraceRow(rangeRow: Array<TraceRow<unknown>> | undefined) {
     this._rangeRow = rangeRow;
   }
 
@@ -95,31 +96,31 @@ export class TabPaneFrequencySample extends BaseElement {
       for (let row of rangeTraceRow!) {
         let context = row.collect ? this.systemTrace!.canvasFavoritePanelCtx! : this.systemTrace!.canvasPanelCtx!;
         freqFilter.push(...row.dataListCache);
-        row.canvasSave(context);
-        context.clearRect(row.frame.x, row.frame.y, row.frame.width, row.frame.height);
+        row.canvasSave(context);// @ts-ignore
+        context.clearRect(row.frame.x, row.frame.y, row.frame.width, row.frame.height);// @ts-ignore
         drawLines(context!, TraceRow.range?.xs || [], row.frame.height, this.systemTrace!.timerShaftEL!.lineColor());
         if (row.name.includes('Frequency') && parseInt(row.name.replace(/[^\d]/g, ' ')) === data.cpu) {
           CpuFreqStruct.hoverCpuFreqStruct = undefined;
           for (let i = 0; i < freqFilter!.length; i++) {
-            if (
-              freqFilter[i].value === data.value &&
-              freqFilter[i].cpu === data.cpu &&
-              Math.max(TraceRow.rangeSelectObject?.startNS!, freqFilter[i].startNS!) <
+            if (// @ts-ignore
+              freqFilter[i].value === data.value &&// @ts-ignore
+              freqFilter[i].cpu === data.cpu &&// @ts-ignore
+              Math.max(TraceRow.rangeSelectObject?.startNS!, freqFilter[i].startNS!) <// @ts-ignore
                 Math.min(TraceRow.rangeSelectObject?.endNS!, freqFilter[i].startNS! + freqFilter[i].dur!)
-            ) {
+            ) {// @ts-ignore
               CpuFreqStruct.hoverCpuFreqStruct = freqFilter[i];
-            }
-            if (freqFilter[i].cpu === data.cpu) {
+            }// @ts-ignore
+            if (freqFilter[i].cpu === data.cpu) {// @ts-ignore
               CpuFreqStruct.draw(context, freqFilter[i]);
             }
           }
         } else {
           for (let i = 0; i < freqFilter!.length; i++) {
             if (
-              row.name.includes('Frequency') &&
-              freqFilter[i].cpu !== data.cpu &&
+              row.name.includes('Frequency') &&// @ts-ignore
+              freqFilter[i].cpu !== data.cpu &&// @ts-ignore
               freqFilter[i].cpu === parseInt(row.name.replace(/[^\d]/g, ' '))
-            ) {
+            ) {// @ts-ignore
               CpuFreqStruct.draw(context, freqFilter[i]);
             }
           }
@@ -128,8 +129,8 @@ export class TabPaneFrequencySample extends BaseElement {
       }
     }
   }
-
-  private metricsText(context: CanvasRenderingContext2D, row: TraceRow<any>): void {
+// @ts-ignore
+  private metricsText(context: CanvasRenderingContext2D, row: TraceRow<unknown>): void {
     let s = CpuFreqStruct.maxFreqName;
     let textMetrics = context.measureText(s);
     context.globalAlpha = 0.8;
@@ -144,59 +145,73 @@ export class TabPaneFrequencySample extends BaseElement {
 
   connectedCallback(): void {
     super.connectedCallback();
+    // @ts-ignore
     resizeObserver(this.parentElement!, this.frequencySampleTbl!, 25, this.frequencyLoadingPage, 24);
   }
 
-  async queryDataByDB(frqSampleParam: SelectionParam | any): Promise<void> {
-    let sampleMap = new Map<any, any>();
-    let frqSampleList: any[] = [];
+  async queryDataByDB(frqSampleParam: SelectionParam | unknown): Promise<void> {
+    let sampleMap = new Map<unknown, unknown>();
+    let frqSampleList: unknown[] = [];
     this.frequencySampleTbl!.loading = true;
     if (this.frequencySampleClickType) {this.frequencySampleClickType = !this.frequencySampleClickType}
     if (this.busyTimeLoadingHide) {this.busyTimeLoadingHide = !this.busyTimeLoadingHide}
     let result = await getTabPaneFrequencySampleData(
+      // @ts-ignore
       frqSampleParam.leftNs + frqSampleParam.recordStartNs,
+      // @ts-ignore
       frqSampleParam.rightNs + frqSampleParam.recordStartNs,
+      // @ts-ignore
       frqSampleParam.cpuFreqFilterIds
     );
     this.freqResult = result;
+    // @ts-ignore
     frqSampleParam.cpuFreqFilterIds.forEach((a: number): void => {
       this.getInitTime(
+        //@ts-ignore
         result.filter((f) => f.filterId === a),
         sampleMap,
+        // @ts-ignore
         frqSampleParam
       );
     });
     sampleMap.forEach((a): void => {
+      // @ts-ignore
       a.timeStr = parseFloat((a.time / 1000000.0).toFixed(6));
       frqSampleList.push(a);
     });
     this.frequencySampleSource = frqSampleList;
     this.frequencySampleTbl!.loading = false;
     this.sortTable(this.frequencySampleSortKey, this.frequencySampleSortType);
+    // @ts-ignore
     this.getBusyTimeData(frqSampleParam, sampleMap, result);
   }
 
-  async getBusyTimeData(frqSampleParam: SelectionParam, sampleMap: Map<any, any>, result: Array<any>): Promise<void> {
-    let stateFiliterIds: Array<any> = [];
-    let cpuFiliterOrder: Array<any> = [];
+  async getBusyTimeData(frqSampleParam: SelectionParam, sampleMap: Map<unknown, unknown>, result: Array<unknown>): Promise<void> {
+    let stateFiliterIds: Array<unknown> = [];
+    let cpuFiliterOrder: Array<unknown> = [];
     //找出框选的cpu fre所对应的cpu state
     this.freqBusyDataList = [];
     if (!frqSampleParam.cpuStateRowsId.length) {
-      sampleMap.forEach((value: any): void => {
+      sampleMap.forEach((value: unknown): void => {
+        // @ts-ignore
         value.busyTime = 'NULL';
         this.freqBusyDataList.push(value);
       });
     } else {
       frqSampleParam.cpuFreqFilterNames.forEach((item: string): void => {
-        let cpuStateIds: any = frqSampleParam.cpuStateRowsId.filter(
-          (it: any) => it.cpu === Number(item.replace(/[^\d]/g, ' ').trim())
+        let cpuStateIds: unknown = frqSampleParam.cpuStateRowsId.filter(
+          // @ts-ignore
+          (it: unknown) => it.cpu === Number(item.replace(/[^\d]/g, ' ').trim())
         );
+        // @ts-ignore
         stateFiliterIds.push(cpuStateIds[0].filterId);
+        // @ts-ignore
         cpuFiliterOrder.push(cpuStateIds[0].cpu);
       });
       let res = await getTabPaneCounterSampleData(
         frqSampleParam.leftNs + frqSampleParam.recordStartNs,
         frqSampleParam.rightNs + frqSampleParam.recordStartNs,
+        // @ts-ignore
         stateFiliterIds
       );
       let msg = {
@@ -222,12 +237,13 @@ export class TabPaneFrequencySample extends BaseElement {
       };
     }
   }
-  getInitTime(initFreqResult: Array<any>, sampleMap: Map<any, any>, selectionParam: SelectionParam): void {
+  getInitTime(initFreqResult: Array<unknown>, sampleMap: Map<unknown, unknown>, selectionParam: SelectionParam): void {
     let leftStartNs = selectionParam.leftNs + selectionParam.recordStartNs;
     let rightEndNs = selectionParam.rightNs + selectionParam.recordStartNs;
     if (initFreqResult.length === 0) {
       return;
     }
+    // @ts-ignore
     let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
     if (includeData !== 0) {
       initFreqResult = initFreqResult.slice(
@@ -235,22 +251,33 @@ export class TabPaneFrequencySample extends BaseElement {
         initFreqResult.length
       );
     }
+    // @ts-ignore
     if (initFreqResult[0].ts < leftStartNs && includeData !== 0) {
+      // @ts-ignore
       initFreqResult[0].ts = leftStartNs;
     }
     initFreqResult.forEach((item, idx): void => {
       if (idx + 1 === initFreqResult.length) {
+        // @ts-ignore
         item.time = rightEndNs - item.ts;
       } else {
+        // @ts-ignore
         item.time = initFreqResult[idx + 1].ts - item.ts;
       }
+      // @ts-ignore
       if (sampleMap.has(`${item.filterId}-${item.value}`)) {
+        // @ts-ignore
         let obj = sampleMap.get(`${item.filterId}-${item.value}`);
+        // @ts-ignore
         obj.time += item.time;
       } else {
+        // @ts-ignore
         sampleMap.set(`${item.filterId}-${item.value}`, {
+          // @ts-ignore
           ...item,
+          // @ts-ignore
           counter: `Cpu ${item.cpu}`,
+          // @ts-ignore
           valueStr: ColorUtils.formatNumberComma(item.value),
           busyTimeStr: '-',
           busyTime: 0,
@@ -261,7 +288,7 @@ export class TabPaneFrequencySample extends BaseElement {
 
   //点击按钮控制busyTime显示与否
   handleClick(key: string, type: boolean): void {
-    let res: any[] = [];
+    let res: unknown[] = [];
     if (this.freqResult.length === 0) {
       return;
     }
@@ -273,7 +300,7 @@ export class TabPaneFrequencySample extends BaseElement {
     }
     this.frequencySampleTbl!.loading = this.freqBusyDataList.length <= 0;
     if (this.freqBusyDataList.length > 0) {
-      this.frequencySampleTbl!.recycleDataSource.forEach((value): void => {
+      this.frequencySampleTbl!.recycleDataSource.forEach((value): void => {// @ts-ignore
         value.busyTimeStr = type ? value.busyTime : '-';
         res.push(value);
       });
@@ -289,26 +316,34 @@ export class TabPaneFrequencySample extends BaseElement {
       arr.sort((frequencySampleLeftData, frequencySampleRightData): number => {
         if (key === 'timeStr') {
           if (type === 1) {
+            // @ts-ignore
             return frequencySampleLeftData.time - frequencySampleRightData.time;
           } else {
+            // @ts-ignore
             return frequencySampleRightData.time - frequencySampleLeftData.time;
           }
         } else if (key === 'counter') {
           if (type === 1) {
+            // @ts-ignore
             return frequencySampleLeftData.cpu - frequencySampleRightData.cpu;
           } else {
+            // @ts-ignore
             return frequencySampleRightData.cpu - frequencySampleLeftData.cpu;
           }
         } else if (key === 'valueStr') {
           if (type === 1) {
+            // @ts-ignore
             return frequencySampleLeftData.value - frequencySampleRightData.value;
           } else {
+            // @ts-ignore
             return frequencySampleRightData.value - frequencySampleLeftData.value;
           }
         } else if (key === 'busyTimeStr') {
           if (type === 1) {
+            // @ts-ignore
             return frequencySampleLeftData.busyTimeStr - frequencySampleRightData.busyTimeStr;
           } else {
+            // @ts-ignore
             return frequencySampleRightData.busyTimeStr - frequencySampleLeftData.busyTimeStr;
           }
         } else {

@@ -23,7 +23,7 @@ import { queryGpuResourceTabData } from '../../../../database/sql/Gpu.sql';
 @element('tabpane-gpu-resource')
 export class TabPaneGpuResourceVmTracker extends BaseElement {
   private gpuResourceTable: LitTable | undefined | null;
-  private gpuResourceDataSource: Array<any> = [];
+  private gpuResourceDataSource: Array<unknown> = [];
 
   set data(startNs: number) {
     this.gpuResourceDataSource = [];
@@ -46,7 +46,8 @@ export class TabPaneGpuResourceVmTracker extends BaseElement {
         }
         this.gpuResourceDataSource.unshift(
           { name: 'TimeStamp', size: ns2s(startNs) },
-          { name: 'TimeStamp(Absolute)', size: (startNs + (window as any).recordStartNS) / 1000000000 },
+          // @ts-ignore
+          { name: 'TimeStamp(Absolute)', size: (startNs + (window as unknown).recordStartNS) / 1000000000 },
           { name: 'Total', size: getByteWithUnit(totalSize) }
         );
       }

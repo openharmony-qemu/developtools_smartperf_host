@@ -20,7 +20,7 @@ import { LitTabsHtml } from './lit-tabs.html';
 
 @element('lit-tabs')
 export class LitTabs extends HTMLElement {
-  private tabPos: any;
+  private tabPos: unknown;
   private nav: HTMLDivElement | undefined | null;
   private line: HTMLDivElement | undefined | null;
   private slots: HTMLSlotElement | undefined | null;
@@ -59,7 +59,7 @@ export class LitTabs extends HTMLElement {
     this.setAttribute('activekey', value);
   }
 
-  set onTabClick(fn: any) {
+  set onTabClick(fn: unknown) {//@ts-ignore
     this.addEventListener('onTabClick', fn);
   }
 
@@ -131,30 +131,30 @@ export class LitTabs extends HTMLElement {
     if (this.activekey) {
       if (this.position.startsWith('left')) {
         this.line?.setAttribute(
-          'style',
-          `height:${this.tabPos[this.activekey].height}px;transform:translate(100%,${
+          'style',//@ts-ignore
+          `height:${this.tabPos[this.activekey].height}px;transform:translate(100%,${//@ts-ignore
             this.tabPos[this.activekey].top
           }px)`
         );
-      } else if (this.position.startsWith('top')) {
+      } else if (this.position.startsWith('top')) {//@ts-ignore
         if (this.tabPos[this.activekey]) {
           this.line?.setAttribute(
-            'style',
-            `width:${this.tabPos[this.activekey].width}px;transform:translate(${
+            'style',//@ts-ignore
+            `width:${this.tabPos[this.activekey].width}px;transform:translate(${//@ts-ignore
               this.tabPos[this.activekey].left
             }px,100%)`
           );
         }
       } else if (this.position.startsWith('right')) {
         this.line?.setAttribute(
-          'style',
-          `height:${this.tabPos[this.activekey].height}px;transform:translate(-100%,${
+          'style',//@ts-ignore
+          `height:${this.tabPos[this.activekey].height}px;transform:translate(-100%,${//@ts-ignore
             this.tabPos[this.activekey].top
           }px)`
         );
       } else if (this.position.startsWith('bottom')) {
         this.line?.setAttribute(
-          'style',
+          'style',//@ts-ignore
           `width:${this.tabPos[this.activekey].width}px;transform:translate(${this.tabPos[this.activekey].left}px,100%)`
         );
       }

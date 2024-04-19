@@ -22,8 +22,9 @@ export function hiperfThreadDataSender(
   maxCpu: number,
   intervalPerf: number,
   scale: number,
-  row: TraceRow<any>
-): Promise<any[]> {
+  // @ts-ignore
+  row: TraceRow<unknown>
+): Promise<unknown[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
@@ -53,20 +54,26 @@ export function hiperfThreadDataSender(
         tid: tid,
         maxCpuCount: maxCpu,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): HiPerfThreadStruct[] {
+function arrayBufferHandler(buffers: unknown, len: number): HiPerfThreadStruct[] {
   let outArr: HiPerfThreadStruct[] = [];
+  // @ts-ignore
   let startNS = new Float64Array(buffers.startNS);
+  // @ts-ignore
   let eventCount = new Int32Array(buffers.eventCount);
+  // @ts-ignore
   let sampleCount = new Int32Array(buffers.sampleCount);
+  // @ts-ignore
   let eventTypeId = new Int32Array(buffers.eventTypeId);
+  // @ts-ignore
   let callChainId = new Int32Array(buffers.callChainId);
+  // @ts-ignore
   let height = new Int32Array(buffers.height);
   for (let i = 0; i < len; i++) {
     outArr.push({

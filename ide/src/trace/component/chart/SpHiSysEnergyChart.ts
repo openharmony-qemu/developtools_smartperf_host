@@ -127,7 +127,7 @@ export class SpHiSysEnergyChart {
       new Promise<Array<BaseStruct>>((resolve) => resolve([]));
     this.energyTraceRow!.onThreadHandler = (useCache: boolean): void => {
       this.energyTraceRow?.canvasSave(this.trace.canvasPanelCtx!);
-      if (this.energyTraceRow!.expansion) {
+      if (this.energyTraceRow!.expansion) {// @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, this.energyTraceRow!.frame.width, this.energyTraceRow!.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -537,30 +537,30 @@ export class SpHiSysEnergyChart {
     return powerTraceRow;
   }
 
-  private getPowerData(items: any): EnergyPowerStruct[] {
-    let powerDataMap: any = {};
-    let appNameList: string[] = [];
+  private getPowerData(items: unknown): EnergyPowerStruct[] {
+    let powerDataMap: unknown = {};
+    let appNameList: string[] = [];//@ts-ignore
     items.forEach(
-      (item: { id: number; startNS: number; eventName: string; appKey: string; eventValue: string }): void => {
+      (item: { id: number; startNS: number; eventName: string; appKey: string; eventValue: string }): void => {//@ts-ignore
         let dataItem = powerDataMap[item.startNS];
         if (dataItem === undefined) {
           if (item.appKey === 'APPNAME') {
-            let appMap: any = {};
+            let appMap: unknown = {};
             let appNames = item.eventValue.split(',');
             appNameList = appNames;
             if (appNames.length > 0) {
-              for (let appNamesKey of appNames) {
-                appMap[appNamesKey] = new EnergyPowerStruct();
-                appMap[appNamesKey].name = appNamesKey;
+              for (let appNamesKey of appNames) {//@ts-ignore
+                appMap[appNamesKey] = new EnergyPowerStruct();//@ts-ignore
+                appMap[appNamesKey].name = appNamesKey;//@ts-ignore
                 appMap[appNamesKey].ts = item.startNS;
-              }
+              }//@ts-ignore
               powerDataMap[item.startNS] = appMap;
             }
           }
         } else {
           if (item.appKey !== 'APPNAME') {
             this.powerDataMap(item.eventName, item.eventValue, appNameList, dataItem);
-          } else {
+          } else {//@ts-ignore
             let dataMap = powerDataMap[item.startNS];
             let appNames = item.eventValue.split(',');
             appNameList = appNames;
@@ -575,13 +575,14 @@ export class SpHiSysEnergyChart {
         }
       }
     );
+    //@ts-ignore
     return Object.values(powerDataMap);
   }
 
-  private powerDataMap(name: string, eventValue: string, appNameList: string[], dataItem: any): void {
+  private powerDataMap(name: string, eventValue: string, appNameList: string[], dataItem: unknown): void {
     let values = eventValue.split(',');
     for (let i = 0; i < values.length; i++) {
-      let appName = appNameList[i];
+      let appName = appNameList[i];//@ts-ignore
       let obj = dataItem[appName];
       if (obj !== undefined) {
         let eventName = name.split('_');

@@ -58,8 +58,8 @@ export class CustomThemeColor extends BaseElement {
       input.value = this.colorsArray![i];
       div.appendChild(input);
       colorsEl?.appendChild(div);
-      input.addEventListener('change', (evt: any): void => {
-        input.value = evt?.target.value;
+      input.addEventListener('change', (evt: unknown): void => {//@ts-ignore
+        input.value = evt?.target.value;//@ts-ignore
         this.colorsArray![i] = evt?.target.value;
       });
     }

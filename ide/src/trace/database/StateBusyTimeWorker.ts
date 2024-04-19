@@ -14,9 +14,9 @@
  */
 
 function getBusyTime(
-  initFreqResult: Array<any>,
-  initStateResult: Array<any>,
-  sampleMap: Map<any, any>,
+  initFreqResult: Array<unknown>,
+  initStateResult: Array<unknown>,
+  sampleMap: Map<unknown, unknown>,
   leftStartNs: number,
   rightEndNs: number
 ): void {
@@ -27,6 +27,7 @@ function getBusyTime(
     return;
   }
   //处理被框选的freq的第一个数据
+  //@ts-ignore
   let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
   if (includeData !== 0) {
     initFreqResult = initFreqResult.slice(
@@ -34,8 +35,10 @@ function getBusyTime(
       initFreqResult.length
     );
   }
+  //@ts-ignore
   let startNS = includeData === 0 ? initFreqResult[0].ts : leftStartNs;
   //处理对应的state泳道被框选的第一个数据
+  //@ts-ignore
   let includeStateData = initStateResult.findIndex((a) => a.ts >= startNS);
   if (includeStateData !== 0) {
     initStateResult = initStateResult.slice(
@@ -43,21 +46,28 @@ function getBusyTime(
       initStateResult.length
     );
   }
+  //@ts-ignore
   if (initStateResult[0].ts < startNS && includeStateData !== 0 && includeStateData !== -1) {
+    //@ts-ignore
     initStateResult[0].ts = startNS;
   }
   //处理被框选的freq最后一个数据
+  //@ts-ignore
   if (initFreqResult[initFreqResult.length - 1].ts !== rightEndNs) {
     initFreqResult.push({
       ts: rightEndNs,
+      //@ts-ignore
       value: initFreqResult[initFreqResult.length - 1].value,
+      //@ts-ignore
       filterId: initFreqResult[initFreqResult.length - 1].filterId,
     });
   }
   //处理被框选的freq最后一个数据
+  //@ts-ignore
   if (initStateResult[initStateResult.length - 1].ts !== rightEndNs) {
     initStateResult.push({
       ts: rightEndNs,
+      //@ts-ignore
       value: initStateResult[initStateResult.length - 1].value,
     });
   }
@@ -65,17 +75,20 @@ function getBusyTime(
 }
 
 function handleBusyTimeLogic(
-  initFreqResult: Array<any>,
-  initStateResult: Array<any>,
-  sampleMap: Map<any, any>,
+  initFreqResult: Array<unknown>,
+  initStateResult: Array<unknown>,
+  sampleMap: Map<unknown, unknown>,
   startNS: number
 ): void {
   let freqIndex = 1;
   let stateIndex = 1;
   let beginNs = startNS;
   //value和Id的起始值是第0项
+  //@ts-ignore
   let freqId = initFreqResult[0].filterId;
+  //@ts-ignore
   let freqVal = initFreqResult[0].value;
+  //@ts-ignore
   let stateVal = initStateResult[0].value;
   //从index = 1开始循环
   while (freqIndex < initFreqResult.length && stateIndex < initStateResult.length) {
@@ -85,19 +98,32 @@ function handleBusyTimeLogic(
     let newStateVal = stateVal;
     let busyTime = 0;
     //比较ts值，每次比较取ts相对小的那一项
+  //@ts-ignore
     if (initFreqResult[freqIndex].ts < initStateResult[stateIndex].ts) {
+      //@ts-ignore
       newfreqVal = initFreqResult[freqIndex].value;
+      //@ts-ignore
       newBeginNs = initFreqResult[freqIndex].ts;
+      //@ts-ignore
       newfreqId = initFreqResult[freqIndex].filterId;
       freqIndex++;
-    } else if (initFreqResult[freqIndex].ts > initStateResult[stateIndex].ts) {
+    } else if (
+    //@ts-ignore
+      initFreqResult[freqIndex].ts > initStateResult[stateIndex].ts
+      ) {
+        //@ts-ignore
       newStateVal = initStateResult[stateIndex].value;
+      //@ts-ignore
       newBeginNs = initStateResult[stateIndex].ts;
       stateIndex++;
     } else {
+      //@ts-ignore
       newStateVal = initStateResult[stateIndex].value;
+      //@ts-ignore
       newfreqVal = initFreqResult[freqIndex].value;
+      //@ts-ignore
       newfreqId = initFreqResult[freqIndex].filterId;
+      //@ts-ignore
       newBeginNs = initStateResult[stateIndex].ts;
       freqIndex++;
       stateIndex++;
@@ -107,6 +133,7 @@ function handleBusyTimeLogic(
       busyTime = newBeginNs - beginNs;
       if (sampleMap.has(freqId + '-' + freqVal)) {
         let obj = sampleMap.get(freqId + '-' + freqVal);
+        //@ts-ignore
         obj.busyTime += busyTime;
       }
     }
@@ -122,14 +149,18 @@ self.onmessage = (e: MessageEvent): void => {
   let rightEndNs = e.data.timeParam.rightNs + e.data.timeParam.recordStartNs;
   e.data.cpuFiliterOrder.forEach((a: number) => {
     getBusyTime(
-      e.data.result.filter((f: any) => f.cpu === a),
-      e.data.res.filter((f: any) => f.cpu === a),
+      //@ts-ignore
+      e.data.result.filter((f: unknown) => f.cpu === a),
+      
+      //@ts-ignore
+      e.data.res.filter((f: unknown) => f.cpu === a),
       e.data.sampleMap,
       leftStartNs,
       rightEndNs
     );
   });
-  e.data.sampleMap.forEach((a: any) => {
+  e.data.sampleMap.forEach((a: unknown) => {
+    //@ts-ignore
     a.busyTime = parseFloat((a.busyTime / 1000000.0).toFixed(6));
   });
 

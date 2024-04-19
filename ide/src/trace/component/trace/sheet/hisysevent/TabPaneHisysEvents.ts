@@ -94,6 +94,7 @@ export class TabPaneHisysEvents extends BaseElement {
     this.boxDetails = this.shadowRoot?.querySelector<HTMLDivElement>('.box-details');
     this.hiSysEventTable = this.shadowRoot?.querySelector<LitPageTable>('#tb-hisysevent');
     this.hiSysEventTable!.getItemTextColor = (data): string => {
+      // @ts-ignore
       return ColorUtils.getHisysEventColor(data.level);
     };
     this.domainTagDiv = this.shadowRoot?.querySelector<HTMLDivElement>('#domainTagFilter');

@@ -289,7 +289,7 @@ export class LitSlider extends BaseElement {
     }
   };
 
-  inputChangeEvent = (event: any): void => {
+  inputChangeEvent = (event: unknown): void => {
     if (this.litSlider) {
       this.currentValue = parseInt(this.litSlider?.value);
       let resultNumber =

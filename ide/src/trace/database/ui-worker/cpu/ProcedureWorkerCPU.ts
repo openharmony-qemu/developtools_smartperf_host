@@ -95,7 +95,7 @@ export class CpuRender {
     });
     req.ctx.closePath();
     let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
-    let wakeup = req.type === `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined;
+    let wakeup = req.type === `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined;// @ts-ignore
     drawWakeUp(req.ctx, CpuStruct.wakeupBean, startNS, endNS, totalNS, row.frame, wakeup, currentCpu, true);
     for (let i = 0; i < SpSystemTrace.wakeupList.length; i++) {
       if (i + 1 === SpSystemTrace.wakeupList.length) {
@@ -103,7 +103,7 @@ export class CpuRender {
       }
       let wake = SpSystemTrace.wakeupList[i + 1];
       let wakeupListItem =
-        req.type === `cpu-data-${SpSystemTrace.wakeupList[i]?.cpu || 0}` ? SpSystemTrace.wakeupList[i] : undefined;
+        req.type === `cpu-data-${SpSystemTrace.wakeupList[i]?.cpu || 0}` ? SpSystemTrace.wakeupList[i] : undefined;// @ts-ignore
       drawWakeUpList(req.ctx, wake, startNS, endNS, totalNS, row.frame, wakeupListItem, currentCpu, true);
     }
   }

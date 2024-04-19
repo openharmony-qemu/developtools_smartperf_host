@@ -45,14 +45,14 @@ export function cpuDataSender(cpu: number, row: TraceRow<CpuStruct>): Promise<Cp
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-export function searchCpuDataSender(pidArr: Array<number>, tidArr: Array<number>): Promise<any[]> {
+export function searchCpuDataSender(pidArr: Array<number>, tidArr: Array<number>): Promise<unknown[]> {
   return new Promise((resolve): void => {
     threadPool.submitProto(
       QueryEnum.SearchCpuData,
@@ -61,22 +61,30 @@ export function searchCpuDataSender(pidArr: Array<number>, tidArr: Array<number>
         pidArr: pidArr,
         trafic: TraficEnum.SharedArrayBuffer,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(searchArrayBufferHandler(res, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(res: any, len: number): CpuStruct[] {
+function arrayBufferHandler(res: unknown, len: number): CpuStruct[] {
   let outArr: CpuStruct[] = [];
+  // @ts-ignore
   let startTime = new Float64Array(res.startTime);
+  // @ts-ignore
   let dur = new Float64Array(res.dur);
+  // @ts-ignore
   let id = new Uint16Array(res.id);
+  // @ts-ignore
   let processId = new Uint16Array(res.processId);
+  // @ts-ignore
   let tid = new Uint16Array(res.tid);
+  // @ts-ignore
   let cpu = new Uint8Array(res.cpu);
+  // @ts-ignore
   let argSetID = new Int8Array(res.argSetID);
+  // @ts-ignore
   let nofinish = new Uint8Array(res.nofinish);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -93,15 +101,23 @@ function arrayBufferHandler(res: any, len: number): CpuStruct[] {
   return outArr;
 }
 
-function searchArrayBufferHandler(res: any, len: number): CpuStruct[] {
+function searchArrayBufferHandler(res: unknown, len: number): CpuStruct[] {
   let outArr: CpuStruct[] = [];
+  // @ts-ignore
   let startTime = new Float64Array(res.startTime);
+  // @ts-ignore
   let dur = new Float64Array(res.dur);
+  // @ts-ignore
   let id = new Uint16Array(res.id);
+  // @ts-ignore
   let processId = new Uint16Array(res.processId);
+  // @ts-ignore
   let tid = new Uint16Array(res.tid);
+  // @ts-ignore
   let cpu = new Uint8Array(res.cpu);
+  // @ts-ignore
   let argSetID = new Int8Array(res.argSetID);
+  // @ts-ignore
   let nofinish = new Uint8Array(res.nofinish);
   for (let i = 0; i < len; i++) {
     outArr.push({

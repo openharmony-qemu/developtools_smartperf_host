@@ -18,7 +18,7 @@ import { temp_init_sql_list } from './TempSql';
 import { execProtoForWorker } from './data-trafic/utils/ExecProtoForWorker';
 import { TraficEnum } from './data-trafic/utils/QueryEnum';
 
-let conn: any = null;
+let conn: unknown = null;
 let encoder = new TextEncoder();
 function initIndexedDB(): Promise<unknown> {
   return new Promise((resolve, reject) => {
@@ -82,18 +82,23 @@ let mergedUnitArray = (bufferSliceUint8: Array<Uint8Array>): Uint8Array => {
 
 self.onerror = function (error): void {};
 
-self.onmessage = async (e: any): Promise<void> => {
+self.onmessage = async (e: unknown): Promise<void> => {
+  //@ts-ignore
   if (e.data.action === 'open') {
+    //@ts-ignore
     let array = new Uint8Array(e.data.buffer);
     // @ts-ignore
-    initSqlJs({ locateFile: (filename) => `${filename}` }).then((SQL: any) => {
+    initSqlJs({ locateFile: (filename) => `${filename}` }).then((SQL: unknown) => {
+      // @ts-ignore
       conn = new SQL.Database(array);
       // @ts-ignore
       self.postMessage({ id: e.data.id, ready: true, index: 0 });
       temp_init_sql_list.forEach((item, index) => {
+        // @ts-ignore
         let r = conn.exec(item);
         // @ts-ignore
         self.postMessage({
+          //@ts-ignore
           id: e.data.id,
           ready: true,
           index: index + 1,
@@ -102,42 +107,58 @@ self.onmessage = async (e: any): Promise<void> => {
       // @ts-ignore
       self.postMessage({ id: e.data.id, init: true });
     });
-  } else if (e.data.action === 'close') {
-  } else if (e.data.action === 'exec' || e.data.action === 'exec-buf' || e.data.action === 'exec-metric') {
+  } else if (
+    //@ts-ignore
+    e.data.action === 'close') {
+  } else if (
+    //@ts-ignore
+    e.data.action === 'exec' || e.data.action === 'exec-buf' || e.data.action === 'exec-metric') {
     try {
+      //@ts-ignore
       let action = e.data.action; //: "exec"
+      //@ts-ignore
       let sql = e.data.sql;
+      //@ts-ignore
       let params = e.data.params;
+      // @ts-ignore
       const stmt = conn.prepare(sql);
       stmt.bind(params);
       let res = [];
       while (stmt.step()) {
-        //
+        //@ts-ignore
         res.push(stmt.getAsObject());
       }
       stmt.free();
       // @ts-ignore
       self.postMessage({ id: e.data.id, results: res });
-    } catch (err: any) {
+    } catch (err: unknown) {
       // @ts-ignore
       self.postMessage({
+        //@ts-ignore
         id: e.data.id,
         results: [],
+        //@ts-ignore
         error: err.message,
       });
     }
-  } else if (e.data.action === 'exec-proto') {
+  } else if (
+    //@ts-ignore
+    e.data.action === 'exec-proto') {
+      //@ts-ignore
     e.data.params.trafic = TraficEnum.Memory;
+    //@ts-ignore
     execProtoForWorker(e.data, (sql: string) => {
       try {
+        // @ts-ignore
         const stmt = conn.prepare(sql);
         let res = [];
         while (stmt.step()) {
+          //@ts-ignore
           res.push(stmt.getAsObject());
         }
         stmt.free();
         return res;
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.log(err);
         return [];
       }

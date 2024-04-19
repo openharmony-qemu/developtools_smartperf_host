@@ -53,7 +53,7 @@ export function cpuAbilityUserDataSender(
         endNS: TraceRow.range?.endNS || 0,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(cpuAbilityMonitorArrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
@@ -85,7 +85,7 @@ export function abilityMemoryUsedDataSender(
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(memoryArrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
@@ -126,7 +126,7 @@ export function abilityBytesReadDataSender(
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
@@ -167,16 +167,19 @@ export function abilityBytesInTraceDataSender(
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(networkArrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
-function memoryArrayBufferHandler(buffers: any, len: number): MemoryAbilityMonitorStruct[] {
+function memoryArrayBufferHandler(buffers: unknown, len: number): MemoryAbilityMonitorStruct[] {
   let outArr: MemoryAbilityMonitorStruct[] = [];
+  // @ts-ignore
   let value = new Float64Array(buffers.value);
+  // @ts-ignore
   let startNS = new Float64Array(buffers.startNS);
+  // @ts-ignore
   let dur = new Int32Array(buffers.dur);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -187,10 +190,13 @@ function memoryArrayBufferHandler(buffers: any, len: number): MemoryAbilityMonit
   }
   return outArr;
 }
-function cpuAbilityMonitorArrayBufferHandler(buffers: any, len: number): CpuAbilityMonitorStruct[] {
+function cpuAbilityMonitorArrayBufferHandler(buffers: unknown, len: number): CpuAbilityMonitorStruct[] {
   let outArr: CpuAbilityMonitorStruct[] = [];
+  // @ts-ignore
   let value = new Float64Array(buffers.value);
+  // @ts-ignore
   let startNS = new Float64Array(buffers.startNS);
+  // @ts-ignore
   let dur = new Int32Array(buffers.dur);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -201,10 +207,13 @@ function cpuAbilityMonitorArrayBufferHandler(buffers: any, len: number): CpuAbil
   }
   return outArr;
 }
-function arrayBufferHandler(buffers: any, len: number): DiskAbilityMonitorStruct[] {
+function arrayBufferHandler(buffers: unknown, len: number): DiskAbilityMonitorStruct[] {
   let outArr: DiskAbilityMonitorStruct[] = [];
+  // @ts-ignore
   let value = new Float64Array(buffers.value);
+  // @ts-ignore
   let startNS = new Float64Array(buffers.startNS);
+  // @ts-ignore
   let dur = new Int32Array(buffers.dur);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -215,10 +224,13 @@ function arrayBufferHandler(buffers: any, len: number): DiskAbilityMonitorStruct
   }
   return outArr;
 }
-function networkArrayBufferHandler(buffers: any, len: number): NetworkAbilityMonitorStruct[] {
+function networkArrayBufferHandler(buffers: unknown, len: number): NetworkAbilityMonitorStruct[] {
   let outArr: NetworkAbilityMonitorStruct[] = [];
+  // @ts-ignore
   let value = new Float64Array(buffers.value);
+  // @ts-ignore
   let startNS = new Float64Array(buffers.startNS);
+  // @ts-ignore
   let dur = new Int32Array(buffers.dur);
   for (let i = 0; i < len; i++) {
     outArr.push({

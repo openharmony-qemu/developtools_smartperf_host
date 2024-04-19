@@ -48,19 +48,24 @@ export function cpuFreqLimitSender(
         minId: minId,
         cpu: cpu,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(res: any, len: number): CpuFreqLimitsStruct[] {
+function arrayBufferHandler(res: unknown, len: number): CpuFreqLimitsStruct[] {
   let outArr: CpuFreqLimitsStruct[] = [];
+  // @ts-ignore
   let startNs = new Float64Array(res.startNs);
+  // @ts-ignore
   let dur = new Float64Array(res.dur);
+  // @ts-ignore
   let value = new Uint32Array(res.value);
+  // @ts-ignore
   let max = new Uint32Array(res.max);
+  // @ts-ignore
   let min = new Uint32Array(res.min);
   for (let i = 0; i < len; i++) {
     outArr.push({

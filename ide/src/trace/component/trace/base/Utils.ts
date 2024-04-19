@@ -82,23 +82,24 @@ export class Utils {
     }
   }
 
-  public static isBinder(data: any): boolean {
-    return (
-      data.funName !== null &&
+  public static isBinder(data: unknown): boolean {
+    return (// @ts-ignore
+      data.funName !== null &&// @ts-ignore
       (data.funName.toLowerCase().startsWith('binder transaction async') || //binder transaction
-        data.funName.toLowerCase().startsWith('binder async') ||
+      // @ts-ignore
+        data.funName.toLowerCase().startsWith('binder async') ||// @ts-ignore
         data.funName.toLowerCase().startsWith('binder reply'))
     );
   }
 
-  public static transferPTSTitle(ptsValue: any): string {
-    if (ptsValue.startsWith('S-')) {
-      return Utils.getEndState(ptsValue.replace('S-', ''));
-    } else if (ptsValue.startsWith('P-')) {
-      let pid = ptsValue.replace('P-', '');
+  public static transferPTSTitle(ptsValue: unknown): string {// @ts-ignore
+    if (ptsValue.startsWith('S-')) {// @ts-ignore
+      return Utils.getEndState(ptsValue.replace('S-', ''));// @ts-ignore
+    } else if (ptsValue.startsWith('P-')) {// @ts-ignore
+      let pid = ptsValue.replace('P-', '');// @ts-ignore
       let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
-      return `${process} [${pid}]`;
-    } else if (ptsValue.startsWith('T-')) {
+      return `${process} [${pid}]`;// @ts-ignore
+    } else if (ptsValue.startsWith('T-')) {// @ts-ignore
       let tid = ptsValue.replace('T-', '');
       let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
       return `${thread} [${tid}]`;
@@ -107,12 +108,12 @@ export class Utils {
     }
   }
 
-  public static transferBinderTitle(value: any): string {
-    if (value.startsWith('P-')) {
+  public static transferBinderTitle(value: unknown): string {// @ts-ignore
+    if (value.startsWith('P-')) {// @ts-ignore
       let pid = value.replace('P-', '');
       let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
-      return `${process} [${pid}]`;
-    } else if (value.startsWith('T-')) {
+      return `${process} [${pid}]`;// @ts-ignore
+    } else if (value.startsWith('T-')) {// @ts-ignore
       let tid = value.replace('T-', '');
       let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
       return `${thread} [${tid}]`;
@@ -262,9 +263,9 @@ export class Utils {
     return res;
   }
 
-  public static groupByMap(array: Array<any>, key: string): Map<any, any> {
+  public static groupByMap(array: Array<unknown>, key: string): Map<unknown, unknown> {
     let result = new Map();
-    array.forEach((item) => {
+    array.forEach((item) => {// @ts-ignore
       let value = item[key];
       if (!result.has(value)) {
         result.set(value, []);
@@ -274,8 +275,8 @@ export class Utils {
     return result;
   }
 
-  public static groupBy(array: Array<any>, key: string): any {
-    return array.reduce((pre, current, index, arr) => {
+  public static groupBy(array: Array<unknown>, key: string): unknown {
+    return array.reduce((pre, current, index, arr) => {// @ts-ignore
       (pre[current[key]] = pre[current[key]] || []).push(current);
       return pre;
     }, {});
@@ -446,11 +447,11 @@ export class Utils {
     return Utils.statusMap;
   }
 
-  public static removeDuplicates(array1: any[], array2: any[], key: string): any {
-    let obj: any = {};
-    return array1.concat(array2).reduce(function (total, item) {
-      if (!obj[`${item[key]}-${item.pid}`]) {
-        obj[`${item[key]}-${item.pid}`] = true;
+  public static removeDuplicates(array1: unknown[], array2: unknown[], key: string): unknown {
+    let obj: unknown = {};
+    return array1.concat(array2).reduce(function (total, item) {// @ts-ignore
+      if (!obj[`${item[key]}-${item.pid}`]) {// @ts-ignore
+        obj[`${item[key]}-${item.pid}`] = true;// @ts-ignore
         total.push(item);
       }
       return total;

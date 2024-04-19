@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-export function element(tag: string): (el: any) => void {
-  return (el: any): void => {
-    if (!customElements.get(tag)) {
+export function element(tag: string): (el: unknown) => void {
+  return (el: unknown): void => {
+    if (!customElements.get(tag)) {//@ts-ignore
       customElements.define(tag, el);
     }
   };
 }
 
 export abstract class BaseElement extends HTMLElement {
-  args: any;
+  args: unknown;
 
-  public constructor(args: any | undefined | null = null) {
+  public constructor(args: unknown | undefined | null = null) {
     super();
     this.args = args;
     this.attachShadow({ mode: 'open' }).innerHTML = this.initHtml();

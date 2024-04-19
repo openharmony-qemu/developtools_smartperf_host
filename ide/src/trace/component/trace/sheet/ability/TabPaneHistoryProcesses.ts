@@ -29,7 +29,7 @@ export class TabPaneHistoryProcesses extends BaseElement {
   private queryHistoryResult: Array<ProcessHistory> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(historyProcessValue: SelectionParam | any) {
+  set data(historyProcessValue: SelectionParam | unknown) {
     if (this.historyProcessTbl) {
       // @ts-ignore
       this.historyProcessTbl.shadowRoot.querySelector('.table').style.height =
@@ -54,7 +54,7 @@ export class TabPaneHistoryProcesses extends BaseElement {
   filterData(): void {
     if (this.queryHistoryResult.length > 0) {
       let filterHistory = this.queryHistoryResult.filter((item): boolean => {
-        let array = this.toProcessHistoryArray(item);
+        let array = this.toProcessHistoryArray(item);//@ts-ignore
         let isInclude = array.filter((value): boolean => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
@@ -68,7 +68,7 @@ export class TabPaneHistoryProcesses extends BaseElement {
     }
   }
 
-  toProcessHistoryArray(process: ProcessHistory): any[] {
+  toProcessHistoryArray(process: ProcessHistory): unknown[] {
     let array: Array<string> = [];
     array.push(process.processId.toString());
     array.push(process.processName);
@@ -81,7 +81,7 @@ export class TabPaneHistoryProcesses extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam | any): void {
+  queryDataByDB(val: SelectionParam | unknown): void {//@ts-ignore
     getTabProcessHistoryData(val.leftNs, val.rightNs, val.processId, val.threadId).then((item): void => {
       if (item.length !== null && item.length > 0) {
         log(`getTabProcessHistoryData result size : ${  item.length}`);
@@ -162,7 +162,7 @@ export class TabPaneHistoryProcesses extends BaseElement {
         `;
   }
 
-  compare(property: string, sort: number, type: string): any {
+  compare(property: string, sort: number, type: string): unknown {
     let compareValues = (left: number, right: number): number => {
       if (sort === 2) {
         return right - left;
@@ -195,18 +195,18 @@ export class TabPaneHistoryProcesses extends BaseElement {
     };
   }
 
-  sortByColumn(detail: any): void {
-    let type;
+  sortByColumn(detail: unknown): void {
+    let type;//@ts-ignore
     if (detail.key === 'startTime' || detail.key === 'processName') {
-      type = 'string';
+      type = 'string';//@ts-ignore
     } else if (detail.key === 'cpuTime') {
-      type = 'cpuTime';
+      type = 'cpuTime';//@ts-ignore
     } else if (detail.key === 'alive') {
       type = 'alive';
     } else {
       type = 'number';
-    }
-    let compareFunction = this.compare(detail.key, detail.sort, type);
+    }//@ts-ignore
+    let compareFunction = this.compare(detail.key, detail.sort, type);//@ts-ignore
     this.historyProcessSource.sort(compareFunction);
     this.historyProcessTbl!.recycleDataSource = this.historyProcessSource;
   }

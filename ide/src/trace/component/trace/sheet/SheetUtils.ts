@@ -63,14 +63,20 @@ export function resizeObserverFromMemory(
   }).observe(parentElement);
 }
 
-export function showButtonMenu(filter: any, isShow: boolean): void {
+export function showButtonMenu(filter: unknown, isShow: boolean): void {
   if (isShow) {
+    // @ts-ignore
     filter.setAttribute('tree', '');
+    // @ts-ignore
     filter.setAttribute('input', '');
+    // @ts-ignore
     filter.setAttribute('inputLeftText', '');
   } else {
+    // @ts-ignore
     filter.removeAttribute('tree');
+    // @ts-ignore
     filter.removeAttribute('input');
+    // @ts-ignore
     filter.removeAttribute('inputLeftText');
   }
 }

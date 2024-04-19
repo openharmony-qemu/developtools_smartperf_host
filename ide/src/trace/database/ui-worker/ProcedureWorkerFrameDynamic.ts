@@ -48,7 +48,7 @@ export class FrameDynamicRender extends Render {
       let isDraw = false;
       let selectUnitWidth: number = 0;
       for (let index: number = 0; index < frameDynamicList.length; index++) {
-        let currDynamic: FrameDynamicStruct = frameDynamicList[index];
+        let currDynamic: FrameDynamicStruct = frameDynamicList[index];// @ts-ignore
         selectUnitWidth = computeUnitWidth(preDynamic.ts, currDynamic.ts, row.frame.width, selectUnitWidth);
         this.refreshPointY(currDynamic, row, modelType, minValue, maxValue);
         if (currDynamic.groupId === 0) {
@@ -63,7 +63,7 @@ export class FrameDynamicRender extends Render {
         FrameDynamicStruct.drawSelect(req.context, currDynamic, row);
         preDynamic = currDynamic;
       }
-      if (isDraw) {
+      if (isDraw) {// @ts-ignore
         this.drawDynamicPointYStr(req.context, frameDynamicList, row.frame, minValue, maxValue);
       }
       if (!this.setHoverFrameDynamic(row, frameDynamicList, selectUnitWidth) && row.isHover) {
@@ -101,7 +101,7 @@ export class FrameDynamicRender extends Render {
   ): void {
     let startNS: number = TraceRow.range!.startNS;
     let endNS: number = TraceRow.range!.endNS;
-    let totalNS: number = TraceRow.range!.totalNS;
+    let totalNS: number = TraceRow.range!.totalNS;// @ts-ignore
     let frame: Rect = row.frame;
     let modelName: string | undefined | null = row.getAttribute('model-name');
     if ((use || !TraceRow.range!.refresh) && dynamicFilter.length > 0) {
@@ -178,9 +178,9 @@ export class FrameDynamicRender extends Render {
     let smallArcRadius: number = 2;
     // @ts-ignore
     currDynamic.typeValue = currDynamic[modelType];
-    currDynamic.frame!.y =
+    currDynamic.frame!.y =// @ts-ignore
       row.frame.height -
-      padding -
+      padding -// @ts-ignore
       ((row.frame.height - padding * multiple) * ((currDynamic.typeValue || 0) - minValue)) / (maxValue - minValue);
     ctx.beginPath();
     ctx.lineWidth = 1;
@@ -202,8 +202,8 @@ export class FrameDynamicRender extends Render {
   ): void {
     // @ts-ignore
     let currDynamicValue = curDynamic[modelType];
-    if (curDynamic.frame) {
-      let pointY = (row.frame.height - padding * multiple) * ((currDynamicValue - minValue) / (maxValue - minValue));
+    if (curDynamic.frame) {// @ts-ignore
+      let pointY = (row.frame.height - padding * multiple) * ((currDynamicValue - minValue) / (maxValue - minValue));// @ts-ignore
       curDynamic.frame.y = row.frame.height - padding - pointY;
     }
   }

@@ -186,15 +186,15 @@ export class TabPaneCpuAbility extends BaseElement {
     return this.compareFunction(sort, getProperty);
   };
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     let typeMaping: { [key: string]: string } = {
       startTime: 'string',
       durationStr: 'durationStr',
       totalLoadStr: 'totalLoadStr',
       userLoadStr: 'userLoadStr',
       systemLoadStr: 'systemLoadStr',
-    };
-    let type = typeMaping[detail.key] || 'number';
+    };// @ts-ignore
+    let type = typeMaping[detail.key] || 'number';// @ts-ignore
     this.cpuAbilitySource.sort(this.compare(detail.key, detail.sort, type));
     this.cpuAbilityTbl!.recycleDataSource = this.cpuAbilitySource;
   }

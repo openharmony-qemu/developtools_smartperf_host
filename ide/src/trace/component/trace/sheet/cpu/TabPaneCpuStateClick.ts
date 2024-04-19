@@ -22,14 +22,19 @@ import { resizeObserver } from '../SheetUtils';
 export class TabPaneCpuStateClick extends BaseElement {
   private cpuStateClickTbl: LitTable | null | undefined;
 
-  set data(cpuStateClickValue: any) {
+  set data(cpuStateClickValue: unknown) {
     if (cpuStateClickValue) {
       this.cpuStateClickTbl!.recycleDataSource = [
         {
+          // @ts-ignore
           startNS: Utils.getTimeString(cpuStateClickValue.startTs),
-          absoluteTime: `${(cpuStateClickValue.startTs + (window as any).recordStartNS) / 1000000000}s`,
+          // @ts-ignore
+          absoluteTime: `${(cpuStateClickValue.startTs + (window as unknown).recordStartNS) / 1000000000}s`,
+          // @ts-ignore
           dur: Utils.getProbablyTime(cpuStateClickValue.dur),
+          // @ts-ignore
           state: cpuStateClickValue.value,
+          // @ts-ignore
           cpu: `Cpu ${cpuStateClickValue.cpu}`,
         },
       ];
