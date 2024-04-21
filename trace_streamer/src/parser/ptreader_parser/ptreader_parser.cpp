@@ -28,7 +28,7 @@
 #include "system_event_measure_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PtreaderParser::PtreaderParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters, TraceFileType fileType)
+PtreaderParser::PtreaderParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters, TraceFileType fileType)
     : ParserBase(filters),
       traceDataCache_(dataCache),
 #ifdef ENABLE_BYTRACE
@@ -83,9 +83,9 @@ bool PtreaderParser::UpdateSplitPos()
 }
 
 template <typename Iterator>
-int32_t PtreaderParser::WhileDetermine(Iterator& packagesLine,
-                                       Iterator& packagesBegin,
-                                       bool& isParsingOver_,
+int32_t PtreaderParser::WhileDetermine(Iterator &packagesLine,
+                                       Iterator &packagesBegin,
+                                       bool &isParsingOver_,
                                        bool isFinish)
 {
     // While loop break and continue
@@ -105,7 +105,7 @@ int32_t PtreaderParser::WhileDetermine(Iterator& packagesLine,
     return DETERMINE_RETURN;
 }
 
-int32_t PtreaderParser::GotoDetermine(std::string& bufferLine, bool& haveSplitSeg)
+int32_t PtreaderParser::GotoDetermine(std::string &bufferLine, bool &haveSplitSeg)
 {
     if (traceDataCache_->isSplitFile_) {
         mPtreaderSplitData_.emplace_back(curFileOffset_, curDataSize_);
@@ -214,7 +214,7 @@ void PtreaderParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr,
     return;
 }
 
-void PtreaderParser::ParseTraceDataItem(const std::string& buffer)
+void PtreaderParser::ParseTraceDataItem(const std::string &buffer)
 {
 #ifdef ENABLE_BYTRACE
     if (!traceDataCache_->supportThread_ || traceDataCache_->isSplitFile_) {
@@ -259,7 +259,7 @@ int32_t PtreaderParser::GetNextSegment()
     int32_t head;
     std::lock_guard<std::mutex> muxLockGuard(dataSegMux_);
     head = parseHead_;
-    DataSegment& seg = dataSegArray_[head];
+    DataSegment &seg = dataSegArray_[head];
     if (seg.status.load() != TS_PARSE_STATUS_SEPRATED) {
         if (toExit_) {
             parserThreadCount_--;
@@ -279,7 +279,7 @@ int32_t PtreaderParser::GetNextSegment()
     return head;
 }
 
-void PtreaderParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLine) const
+void PtreaderParser::GetDataSegAttr(DataSegment &seg, const std::smatch &matcheLine) const
 {
     const uint64_t S_TO_NS = 1e9;
     size_t index = 0;
@@ -333,12 +333,12 @@ void PtreaderParser::ParseThread()
             }
             return;
         }
-        DataSegment& seg = dataSegArray_[head];
+        DataSegment &seg = dataSegArray_[head];
         ParserData(seg);
     }
 }
 
-void PtreaderParser::ParserData(DataSegment& seg)
+void PtreaderParser::ParserData(DataSegment &seg)
 {
     std::smatch matcheLine;
     if (!std::regex_search(seg.seg, matcheLine, bytraceMatcher_)) {
@@ -367,13 +367,13 @@ void PtreaderParser::ParserData(DataSegment& seg)
 void PtreaderParser::FilterThread()
 {
     while (true) {
-        DataSegment& seg = dataSegArray_[filterHead_];
+        DataSegment &seg = dataSegArray_[filterHead_];
         if (!FilterData(seg)) {
             return;
         }
     }
 }
-bool PtreaderParser::FilterData(DataSegment& seg)
+bool PtreaderParser::FilterData(DataSegment &seg)
 {
     if (!traceDataCache_->supportThread_ || traceDataCache_->isSplitFile_) {
         if (seg.status.load() != TS_PARSE_STATUS_INVALID) {
@@ -406,7 +406,7 @@ bool PtreaderParser::FilterData(DataSegment& seg)
     return true;
 }
 // Remove space at the beginning and end of the string
-std::string PtreaderParser::StrTrim(const std::string& input) const
+std::string PtreaderParser::StrTrim(const std::string &input) const
 {
     std::string str = input;
     if (str.empty()) {

@@ -56,10 +56,10 @@ public:
 
     void TearDown() {}
 
-    void InitData(std::string& hilogData, bool isRepeatedData = false)
+    void InitData(std::string &hilogData, bool isRepeatedData = false)
     {
-        HilogInfo* hilogInfo = new HilogInfo();
-        HilogDetails* hilogDetails = new HilogDetails();
+        HilogInfo *hilogInfo = new HilogInfo();
+        HilogDetails *hilogDetails = new HilogDetails();
         hilogDetails->set_tv_sec(TV_SEC);
         hilogDetails->set_tv_nsec(TV_NSEC);
         hilogDetails->set_pid(PID);
@@ -73,7 +73,7 @@ public:
         hilogLine->set_id(LOG_ID);
 
         if (isRepeatedData) {
-            HilogDetails* hilogDetailsSecond = new HilogDetails();
+            HilogDetails *hilogDetailsSecond = new HilogDetails();
             hilogDetailsSecond->set_tv_sec(TV_SEC_02);
             hilogDetailsSecond->set_tv_nsec(TV_NSEC_02);
             hilogDetailsSecond->set_pid(PID_02);
@@ -102,11 +102,11 @@ public:
 HWTEST_F(HilogParserTest, ParseHilogInfoWithoutHilogLine, TestSize.Level1)
 {
     TS_LOGI("test8-1");
-    HilogInfo* hilogInfo = new HilogInfo();
+    HilogInfo *hilogInfo = new HilogInfo();
     PbreaderHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hilogData = "";
     hilogInfo->SerializeToString(&hilogData);
-    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t*>(hilogData.data()), hilogData.size());
+    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t *>(hilogData.data()), hilogData.size());
     bool issplit = false;
     htraceHiLogParser.Parse(hilogInfoData, issplit);
     auto size = stream_.traceDataCache_->GetConstHilogData().Size();
@@ -125,7 +125,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithOneHilogLine, TestSize.Level1)
     std::string hilogData = "";
     InitData(hilogData);
     PbreaderHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t*>(hilogData.data()), hilogData.size());
+    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t *>(hilogData.data()), hilogData.size());
     bool issplit = false;
     htraceHiLogParser.Parse(hilogInfoData, issplit);
 
@@ -139,7 +139,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithOneHilogLine, TestSize.Level1)
     if (iter == htraceHiLogParser.logLevelString_.end()) {
         EXPECT_FALSE(0);
     }
-    auto& dataDict = stream_.traceDataCache_->dataDict_;
+    auto &dataDict = stream_.traceDataCache_->dataDict_;
     EXPECT_EQ(constHilogData.Levels()[0], dataDict.GetStringIndex(iter->second.c_str()));
     EXPECT_EQ(constHilogData.Tags()[0], dataDict.GetStringIndex(LOG_TAG));
     EXPECT_EQ(constHilogData.Contexts()[0], dataDict.GetStringIndex(LOG_CONTEXT));
@@ -158,7 +158,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithMultipleHilogLine, TestSize.Level1)
     std::string hilogData = "";
     InitData(hilogData, true);
     PbreaderHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t*>(hilogData.data()), hilogData.size());
+    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t *>(hilogData.data()), hilogData.size());
     bool issplit = false;
     htraceHiLogParser.Parse(hilogInfoData, issplit);
 
@@ -176,7 +176,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithMultipleHilogLine, TestSize.Level1)
     if (iterFirst == htraceHiLogParser.logLevelString_.end()) {
         EXPECT_FALSE(0);
     }
-    auto& dataDict = stream_.traceDataCache_->dataDict_;
+    auto &dataDict = stream_.traceDataCache_->dataDict_;
     EXPECT_EQ(constHilogData.Levels()[0], dataDict.GetStringIndex(iterFirst->second.c_str()));
 
     auto iterSecond = htraceHiLogParser.logLevelString_.find(LOG_LEVEL_E);
@@ -201,14 +201,14 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithErrLevelHilogLine, TestSize.Level1)
 {
     TS_LOGI("test8-4");
 
-    HilogDetails* hilogDetails = new HilogDetails();
+    HilogDetails *hilogDetails = new HilogDetails();
     hilogDetails->set_tv_sec(TV_SEC);
     hilogDetails->set_tv_nsec(TV_NSEC);
     hilogDetails->set_pid(PID);
     hilogDetails->set_tid(TID);
     hilogDetails->set_tag(LOG_TAG);
 
-    HilogInfo* hilogInfo = new HilogInfo();
+    HilogInfo *hilogInfo = new HilogInfo();
     auto hilogLine = hilogInfo->add_info();
     hilogLine->set_allocated_detail(hilogDetails);
     hilogLine->set_context(LOG_CONTEXT);
@@ -217,7 +217,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithErrLevelHilogLine, TestSize.Level1)
     PbreaderHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hilogData = "";
     hilogInfo->SerializeToString(&hilogData);
-    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t*>(hilogData.data()), hilogData.size());
+    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t *>(hilogData.data()), hilogData.size());
     bool issplit = false;
     htraceHiLogParser.Parse(hilogInfoData, issplit);
 
@@ -236,7 +236,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoLostHilogLine, TestSize.Level1)
 {
     TS_LOGI("test8-5");
 
-    HilogDetails* hilogDetails = new HilogDetails();
+    HilogDetails *hilogDetails = new HilogDetails();
     hilogDetails->set_tv_sec(TV_SEC);
     hilogDetails->set_tv_nsec(TV_NSEC);
     hilogDetails->set_pid(PID);
@@ -244,7 +244,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoLostHilogLine, TestSize.Level1)
     hilogDetails->set_level(LOG_LEVEL_D);
     hilogDetails->set_tag(LOG_TAG);
 
-    HilogInfo* hilogInfo = new HilogInfo();
+    HilogInfo *hilogInfo = new HilogInfo();
     auto hilogLine = hilogInfo->add_info();
     hilogLine->set_allocated_detail(hilogDetails);
     hilogLine->set_context(LOG_CONTEXT);
@@ -253,7 +253,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoLostHilogLine, TestSize.Level1)
     PbreaderHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hilogData = "";
     hilogInfo->SerializeToString(&hilogData);
-    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t*>(hilogData.data()), hilogData.size());
+    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t *>(hilogData.data()), hilogData.size());
     bool issplit = false;
     htraceHiLogParser.Parse(hilogInfoData, issplit);
 
@@ -272,7 +272,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoHasDuplicateHilogLine, TestSize.Level1)
 {
     TS_LOGI("test8-6");
 
-    HilogDetails* hilogDetails = new HilogDetails();
+    HilogDetails *hilogDetails = new HilogDetails();
     hilogDetails->set_tv_sec(TV_SEC);
     hilogDetails->set_tv_nsec(TV_NSEC);
     hilogDetails->set_pid(PID);
@@ -280,7 +280,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoHasDuplicateHilogLine, TestSize.Level1)
     hilogDetails->set_level(LOG_LEVEL_D);
     hilogDetails->set_tag(LOG_TAG);
 
-    HilogInfo* hilogInfo = new HilogInfo();
+    HilogInfo *hilogInfo = new HilogInfo();
     auto hilogLineFirst = hilogInfo->add_info();
     hilogLineFirst->set_allocated_detail(hilogDetails);
     hilogLineFirst->set_context(LOG_CONTEXT);
@@ -293,7 +293,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoHasDuplicateHilogLine, TestSize.Level1)
     PbreaderHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hilogData = "";
     hilogInfo->SerializeToString(&hilogData);
-    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t*>(hilogData.data()), hilogData.size());
+    ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t *>(hilogData.data()), hilogData.size());
     bool issplit = false;
     htraceHiLogParser.Parse(hilogInfoData, issplit);
 

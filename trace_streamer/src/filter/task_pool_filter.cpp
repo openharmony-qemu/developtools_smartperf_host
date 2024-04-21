@@ -19,7 +19,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-TaskPoolFilter::TaskPoolFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+TaskPoolFilter::TaskPoolFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : FilterBase(dataCache, filter), IpidExecuteMap_(INVALID_INT32)
 {
 }
@@ -43,8 +43,8 @@ uint32_t TaskPoolFilter::CheckTheSameTask(uint64_t taskId, uint32_t index)
     return IpidExecuteMap_.Find(GetIpId(index), taskId);
 }
 
-void TaskPoolFilter::TaskPoolFieldSegmentation(const std::string& taskPoolStr,
-                                               std::unordered_map<std::string, std::string>& args)
+void TaskPoolFilter::TaskPoolFieldSegmentation(const std::string &taskPoolStr,
+                                               std::unordered_map<std::string, std::string> &args)
 {
     for (base::PartingString ss(taskPoolStr, ','); ss.Next();) {
         std::string key;
@@ -60,22 +60,22 @@ void TaskPoolFilter::TaskPoolFieldSegmentation(const std::string& taskPoolStr,
     }
 }
 
-bool TaskPoolFilter::TaskPoolEvent(const std::string& taskPoolStr, uint32_t index)
+bool TaskPoolFilter::TaskPoolEvent(const std::string &taskPoolStr, uint32_t index)
 {
     if (StartWith(taskPoolStr, targetStr_)) {
         std::unordered_map<std::string, std::string> args;
         if (StartWith(taskPoolStr, allocationStr_)) {
-            const auto& infoStr = taskPoolStr.substr(allocationStr_.length(), taskPoolStr.length());
+            const auto &infoStr = taskPoolStr.substr(allocationStr_.length(), taskPoolStr.length());
             TaskPoolFieldSegmentation(infoStr, args);
             return UpdateAssignData(args, index);
         }
         if (StartWith(taskPoolStr, executeStr_)) {
-            const auto& infoStr = taskPoolStr.substr(executeStr_.length(), taskPoolStr.length());
+            const auto &infoStr = taskPoolStr.substr(executeStr_.length(), taskPoolStr.length());
             TaskPoolFieldSegmentation(infoStr, args);
             return UpdateExecuteData(args, index);
         }
         if (StartWith(taskPoolStr, returnStr_)) {
-            const auto& infoStr = taskPoolStr.substr(returnStr_.length(), taskPoolStr.length());
+            const auto &infoStr = taskPoolStr.substr(returnStr_.length(), taskPoolStr.length());
             TaskPoolFieldSegmentation(infoStr, args);
             return UpdateReturnData(args, index);
         }
@@ -87,7 +87,7 @@ bool TaskPoolFilter::TaskPoolEvent(const std::string& taskPoolStr, uint32_t inde
 }
 // The old business is run in three phases by associating the application with the executeId,New business runs in three
 // phases by associating an application with the taskid
-auto TaskPoolFilter::GetExecuteIdOrTaskId(const std::unordered_map<std::string, std::string>& args)
+auto TaskPoolFilter::GetExecuteIdOrTaskId(const std::unordered_map<std::string, std::string> &args)
 {
     std::optional<uint64_t> id;
     if (args.find("executeId") != args.end()) {
@@ -97,7 +97,7 @@ auto TaskPoolFilter::GetExecuteIdOrTaskId(const std::unordered_map<std::string, 
     }
     return id;
 }
-bool TaskPoolFilter::UpdateAssignData(const std::unordered_map<std::string, std::string>& args, uint32_t index)
+bool TaskPoolFilter::UpdateAssignData(const std::unordered_map<std::string, std::string> &args, uint32_t index)
 {
     if (index >= traceDataCache_->GetConstInternalSlicesData().CallIds().size()) {
         return false;
@@ -118,7 +118,7 @@ bool TaskPoolFilter::UpdateAssignData(const std::unordered_map<std::string, std:
     return true;
 }
 
-bool TaskPoolFilter::UpdateExecuteData(const std::unordered_map<std::string, std::string>& args, uint32_t index)
+bool TaskPoolFilter::UpdateExecuteData(const std::unordered_map<std::string, std::string> &args, uint32_t index)
 {
     if (index >= traceDataCache_->GetConstInternalSlicesData().CallIds().size()) {
         return false;
@@ -143,7 +143,7 @@ bool TaskPoolFilter::UpdateExecuteData(const std::unordered_map<std::string, std
     return true;
 }
 
-bool TaskPoolFilter::UpdateReturnData(const std::unordered_map<std::string, std::string>& args, uint32_t index)
+bool TaskPoolFilter::UpdateReturnData(const std::unordered_map<std::string, std::string> &args, uint32_t index)
 {
     if (index >= traceDataCache_->GetConstInternalSlicesData().CallIds().size()) {
         return false;

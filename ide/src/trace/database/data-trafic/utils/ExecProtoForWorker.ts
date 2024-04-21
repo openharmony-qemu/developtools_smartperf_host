@@ -81,7 +81,7 @@ import { lostFrameReceiver } from './../LostFrameReceiver';
 import { sliceReceiver, sliceSPTReceiver } from '../SliceReceiver';
 
 // @ts-ignore
-const traficHandlers: Map<number, unknown> = new Map<number, unknown>([]);// @ts-ignore
+const traficHandlers: Map<number, unknown> = new Map<number, unknown>([]); // @ts-ignore
 export const execProtoForWorker = (data: unknown, proc: Function): void => traficHandlers.get(data.name)?.(data, proc);
 
 traficHandlers.set(QueryEnum.ClearMemoryCache, clearMemoryCache);

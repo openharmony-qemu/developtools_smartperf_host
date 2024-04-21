@@ -11,69 +11,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from '../CommonArgs';
 import { TraficEnum } from '../utils/QueryEnum';
 
-export const chartHiperfCpuData10MSProtoSql = (args: unknown): string => {
+export const chartHiperfCpuData10MSProtoSql = (args: Args): string => {
   return `select 
                  startNS as startNS,
                  max(event_count) as eventCount,
                  sample_count as sampleCount,
                  event_type_id as eventTypeId,
                  callchain_id as callchainId,
-                 (startNS / (${
-                  // @ts-ignore
-                  Math.floor((args.endNS - args.startNS) / args.width)})) AS px
+                 (startNS / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
           from (select s.callchain_id,
-                       (s.timestamp_trace - ${
-                        // @ts-ignore
-                        args.recordStartNS}) / 10000000 * 10000000 startNS,
+                       (s.timestamp_trace - ${args.recordStartNS}) / 10000000 * 10000000 startNS,
                        sum(event_count)                                                  event_count,
                        count(event_count)                                                sample_count,
                        event_type_id
                 from perf_sample s
-                where s.thread_id != 0 ${
-                  // @ts-ignore
-                  args.cpu >= 0 ? 'and cpu_id =' + args.cpu : ''} ${
-                    // @ts-ignore
+                where s.thread_id != 0 ${args.cpu >= 0 ? 'and cpu_id =' + args.cpu : ''} ${
     args.drawType >= 0 ? 'and event_type_id =' + args.drawType : ''
   }
                 group by startNS)
-          where startNS + 10000000 >= ${
-            // @ts-ignore
-            Math.floor(args.startNS)}
-            and startNS <= ${
-              // @ts-ignore
-              Math.floor(args.endNS)}
+          where startNS + 10000000 >= ${Math.floor(args.startNS)}
+            and startNS <= ${Math.floor(args.endNS)}
           group by px;`;
 };
-export const chartHiperfCpuDataProtoSql = (args: unknown): string => {
+export const chartHiperfCpuDataProtoSql = (args: Args): string => {
   return `select 
-                 (s.timestamp_trace - ${
-                  // @ts-ignore
-                  args.recordStartNS})          startNS,
+                 (s.timestamp_trace - ${args.recordStartNS})          startNS,
                  event_count as eventCount,
                  1 as sampleCount,
                  event_type_id as eventTypeId,
                  s.callchain_id as callchainId,
-                 (s.timestamp_trace - ${
-                  // @ts-ignore
-                  args.recordStartNS}) / (${Math.floor(
-                    // @ts-ignore
+                 (s.timestamp_trace - ${args.recordStartNS}) / (${Math.floor(
     (args.endNS - args.startNS) / args.width
   )}) AS      px
           from perf_sample s
-          where s.thread_id != 0 ${
-            // @ts-ignore
-            args.cpu >= 0 ? 'and cpu_id =' + args.cpu : ''} ${
-              // @ts-ignore
+          where s.thread_id != 0 ${args.cpu >= 0 ? 'and cpu_id =' + args.cpu : ''} ${
     args.drawType >= 0 ? 'and event_type_id =' + args.drawType : ''
   }
-            and startNS >= ${
-              // @ts-ignore
-              Math.floor(args.startNS)}
-            and startNS <= ${
-              // @ts-ignore
-              Math.floor(args.endNS)}
+            and startNS >= ${Math.floor(args.startNS)}
+            and startNS <= ${Math.floor(args.endNS)}
           group by px;
   `;
 };

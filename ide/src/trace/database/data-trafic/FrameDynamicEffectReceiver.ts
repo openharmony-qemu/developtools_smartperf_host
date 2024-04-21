@@ -14,28 +14,20 @@
 import { TraficEnum } from './utils/QueryEnum';
 import { FrameAnimationStruct } from '../ui-worker/ProcedureWorkerFrameAnimation';
 import { FrameSpacingStruct } from '../ui-worker/ProcedureWorkerFrameSpacing';
+import { Args } from './CommonArgs';
 
-export const chartFrameAnimationDataProtoSql = (args: unknown): string => {
+export const chartFrameAnimationDataProtoSql = (args: Args): string => {
   return `
       SELECT
           a.id AS animationId,
           0 AS status,
           ( 
               CASE WHEN a.input_time NOT NULL 
-                  THEN ( a.input_time - ${
-                    // @ts-ignore
-                    args.recordStartNS
-                  } ) 
-                  ELSE ( a.start_point - ${
-                    // @ts-ignore
-                    args.recordStartNS
-                  } ) 
+                  THEN ( a.input_time - ${args.recordStartNS} ) 
+                  ELSE ( a.start_point - ${args.recordStartNS} ) 
               END 
           ) AS startTs,
-          ( a.start_point - ${
-            // @ts-ignore
-            args.recordStartNS
-          } ) AS endTs,
+          ( a.start_point - ${args.recordStartNS} ) AS endTs,
           a.name AS name
       FROM
           animation AS a 
@@ -45,26 +37,17 @@ export const chartFrameAnimationDataProtoSql = (args: unknown): string => {
           1 AS status,
           ( 
               CASE WHEN a.input_time NOT NULL 
-                  THEN ( a.input_time - ${
-                    // @ts-ignore
-                    args.recordStartNS
-                  } ) 
-                  ELSE ( a.start_point - ${
-                    // @ts-ignore
-                    args.recordStartNS
-                  } ) 
+                  THEN ( a.input_time - ${args.recordStartNS} ) 
+                  ELSE ( a.start_point - ${args.recordStartNS} ) 
               END 
           ) AS startTs,
-          ( a.end_point - ${
-            // @ts-ignore
-            args.recordStartNS
-          } ) AS endTs,
+          ( a.end_point - ${args.recordStartNS} ) AS endTs,
           a.name AS name
       FROM
           animation AS a;`;
 };
 
-export const chartFrameDynamicDataMemSql = (args: unknown): string => {
+export const chartFrameDynamicDataMemSql = (args: Args): string => {
   return `
         SELECT
            dy.id,
@@ -73,24 +56,15 @@ export const chartFrameDynamicDataMemSql = (args: unknown): string => {
            dy.width,
            dy.height,
            dy.alpha,
-           (dy.end_time - ${
-            // @ts-ignore
-            args.recordStartNS
-          }) AS ts,
+           (dy.end_time - ${args.recordStartNS}) AS ts,
            dy.name as appName
         FROM 
             dynamic_frame AS dy
-        WHERE ts >= ${
-          // @ts-ignore
-          Math.floor(args.startNS)
-        }
-          and ts <= ${
-            // @ts-ignore
-            Math.floor(args.endNS)
-          }`;
+        WHERE ts >= ${Math.floor(args.startNS)}
+          and ts <= ${Math.floor(args.endNS)}`;
 };
 
-export const chartFrameSpacingDataMemSql = (args: unknown): string => {
+export const chartFrameSpacingDataMemSql = (args: Args): string => {
   return `
       SELECT
           d.id,
@@ -98,21 +72,12 @@ export const chartFrameSpacingDataMemSql = (args: unknown): string => {
           d.y,
           d.width AS currentFrameWidth,
           d.height AS currentFrameHeight,
-          (d.end_time - ${
-            // @ts-ignore
-            args.recordStartNS
-          }) AS currentTs,
+          (d.end_time - ${args.recordStartNS}) AS currentTs,
           d.name AS nameId
       FROM
           dynamic_frame AS d
-      WHERE currentTs >= ${
-        // @ts-ignore
-        Math.floor(args.startNS)
-      }
-          and currentTs <= ${
-            // @ts-ignore
-            Math.floor(args.endNS)
-          };`;
+      WHERE currentTs >= ${Math.floor(args.startNS)}
+          and currentTs <= ${Math.floor(args.endNS)};`;
 };
 
 export function frameAnimationReceiver(data: unknown, proc: Function): void {
@@ -164,7 +129,12 @@ export function frameAnimationReceiver(data: unknown, proc: Function): void {
   }
   postFrameAnimationMessage(data, transfer, frameAnimation, res.length);
 }
-function postFrameAnimationMessage(data: unknown, transfer: boolean, frameAnimation: FrameAnimation, len: number): void {
+function postFrameAnimationMessage(
+  data: unknown,
+  transfer: boolean,
+  frameAnimation: FrameAnimation,
+  len: number
+): void {
   (self as unknown as Worker).postMessage(
     {
       // @ts-ignore

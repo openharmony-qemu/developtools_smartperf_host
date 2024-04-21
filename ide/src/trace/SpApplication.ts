@@ -135,6 +135,9 @@ export class SpApplication extends BaseElement {
   private importConfigDiv: HTMLInputElement | undefined | null;
   private closeKeyPath: HTMLDivElement | undefined | null;
   private importFileBt: HTMLInputElement | undefined | null;
+  private contentLeftOption: HTMLDivElement | undefined | null;
+  private contentCenterOption: HTMLDivElement | undefined | null;
+  private contentRightOption: HTMLDivElement | undefined | null;
   private childComponent: Array<unknown> | undefined | null;
   private keyCodeMap = {
     61: true,
@@ -290,6 +293,9 @@ export class SpApplication extends BaseElement {
     this.importConfigDiv = this.shadowRoot?.querySelector<HTMLInputElement>('#import-key-path');
     this.closeKeyPath = this.shadowRoot?.querySelector<HTMLDivElement>('#close-key-path');
     this.importFileBt = this.shadowRoot?.querySelector<HTMLInputElement>('#import-config');
+    this.contentRightOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-right-option');
+    this.contentLeftOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-left-option');
+    this.contentCenterOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-center-option');
     this.initElementsAttr();
     this.initEvents();
     this.initRecordEvents();
@@ -1725,11 +1731,12 @@ export class SpApplication extends BaseElement {
 
   private initCustomEvents(): void {
     window.subscribe(window.SmartEvent.UI.MenuTrace, () => this.showContent(this.spSystemTrace!));
-    window.subscribe(window.SmartEvent.UI.Error, (err) => {//@ts-ignore
+    window.subscribe(window.SmartEvent.UI.Error, (err) => {
+      //@ts-ignore
       this.litSearch!.setPercent(err, -1);
       this.progressEL!.loading = false;
       this.freshMenuDisable(false);
-    });//@ts-ignore
+    }); //@ts-ignore
     window.subscribe(window.SmartEvent.UI.Loading, (arg: { loading: boolean; text?: string }) => {
       if (arg.text) {
         this.litSearch!.setPercent(arg.text || '', arg.loading ? -1 : 101);
@@ -1872,6 +1879,9 @@ export class SpApplication extends BaseElement {
       this.search = true;
       this.litRecordSearch!.style.display = 'none';
       this.litSearch!.style.display = 'block';
+      this.contentRightOption!.style.display = 'flex';
+      this.contentLeftOption!.style.display = 'flex';
+      this.contentCenterOption!.style.display = 'flex';
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: true,
       });
@@ -1883,6 +1893,9 @@ export class SpApplication extends BaseElement {
       this.menu!.style.pointerEvents = 'none';
       this.sidebarButton!.style.pointerEvents = 'none';
       this.search = this.litSearch!.isLoading;
+      this.contentRightOption!.style.display = 'none';
+      this.contentLeftOption!.style.display = 'none';
+      this.contentCenterOption!.style.display = 'none';
       if (!this.search) {
         this.litSearch!.style.display = 'none';
         this.litRecordSearch!.style.display = 'block';
@@ -1912,7 +1925,8 @@ export class SpApplication extends BaseElement {
   private validateFileCacheLost(): void {
     caches.has(DbPool.fileCacheKey).then((exist) => {
       if (!exist) {
-        this.mainMenu!.menus?.forEach((mg) => {// @ts-ignore
+        this.mainMenu!.menus?.forEach((mg) => {
+          // @ts-ignore
           mg.children.forEach((mi: unknown) => {
             //@ts-ignore
             if (mi.title === 'Download File') {

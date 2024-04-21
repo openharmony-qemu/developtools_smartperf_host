@@ -11,80 +11,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from '../CommonArgs';
 import { TraficEnum } from '../utils/QueryEnum';
 
-export const chartHiperfProcessData10MSProtoSql = (args: unknown): string => {
+export const chartHiperfProcessData10MSProtoSql = (args: Args): string => {
   return `select startNS as startNS,
                  max(event_count)                                                         eventCount,
                  sample_count as sampleCount,
                  event_type_id as eventTypeId,
                  callchain_id as callchainId,
-                 (startNS / (${
-                  // @ts-ignore
-                  Math.floor((args.endNS - args.startNS) / args.width)
-                })) AS px
+                 (startNS / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
           from (SELECT sp.callchain_id,
---                        th.thread_name,
---                        th.thread_id                                             tid,
---                        th.process_id                                            pid,
-                       (sp.timestamp_trace - ${
-                        // @ts-ignore
-                        args.recordStartNS
-                      }) / 10000000 * 10000000 startNS,
+                       (sp.timestamp_trace - ${args.recordStartNS}) / 10000000 * 10000000 startNS,
                        sum(event_count)                                                   event_count,
                        count(event_count)                                                 sample_count,
                        event_type_id
                 from perf_sample sp
                 where sp.thread_id in (select thread_id
                                        from perf_thread
-                                       where perf_thread.process_id = ${
-                                        // @ts-ignore
-                                        args.pid
-                                      })
-                  and sp.thread_id != 0 ${
-                    // @ts-ignore
-                    args.drawType >= 0 ? 'and event_type_id =' + args.drawType : ''
-                  }
+                                       where perf_thread.process_id = ${args.pid})
+                  and sp.thread_id != 0 ${args.drawType >= 0 ? 'and event_type_id =' + args.drawType : ''}
                 group by startNS)
-          where startNS + 10000000 >= ${
-            // @ts-ignore
-            Math.floor(args.startNS)
-          }
-            and startNS <= ${
-              // @ts-ignore
-              Math.floor(args.endNS)
-            }
+          where startNS + 10000000 >= ${Math.floor(args.startNS)}
+            and startNS <= ${Math.floor(args.endNS)}
           group by px;`;
 };
-export const chartHiperfProcessDataProtoSql = (args: unknown): string => {
-  return `SELECT (sp.timestamp_trace - ${
-    // @ts-ignore
-    args.recordStartNS})          startNS,
+export const chartHiperfProcessDataProtoSql = (args: Args): string => {
+  return `SELECT (sp.timestamp_trace - ${args.recordStartNS})          startNS,
                  event_count as eventCount,
                  1 as sampleCount,
                  event_type_id as eventTypeId,
                  sp.callchain_id as callchainId,
-                 (sp.timestamp_trace - ${
-                  // @ts-ignore
-                  args.recordStartNS}) / (${Math.floor(
-                  // @ts-ignore
+                 (sp.timestamp_trace - ${args.recordStartNS}) / (${Math.floor(
     (args.endNS - args.startNS) / args.width
   )}) AS px
           from perf_sample sp
           where sp.thread_id in (select thread_id
                                  from perf_thread
-                                 where perf_thread.process_id = ${
-                                  // @ts-ignore
-                                  args.pid})
-            and sp.thread_id != 0 ${
-              // @ts-ignore
-              args.drawType >= 0 ? 'and event_type_id =' + args.drawType : ''}
-            and startNS >= ${
-              // @ts-ignore
-              Math.floor(args.startNS)}
-            and startNS <= ${
-              // @ts-ignore
-              Math.floor(args.endNS)}
+                                 where perf_thread.process_id = ${args.pid})
+            and sp.thread_id != 0 ${args.drawType >= 0 ? 'and event_type_id =' + args.drawType : ''}
+            and startNS >= ${Math.floor(args.startNS)}
+            and startNS <= ${Math.floor(args.endNS)}
           group by px;`;
 };
 

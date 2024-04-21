@@ -50,19 +50,21 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
     this.currentSelection = fsDescHistorySelection;
     if (this.fsDescHistoryTbl) {
       // @ts-ignore
-      this.fsDescHistoryTbl.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 20 - 31}px`;
+      this.fsDescHistoryTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 20 - 31
+      }px`;
       this.fsDescHistoryTbl.recycleDataSource = [];
     }
     if (this.fsDescHistoryTblData) {
       // @ts-ignore
-      this.fsDescHistoryTblData.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 20 - 31}px`;
+      this.fsDescHistoryTblData.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 20 - 31
+      }px`;
       this.fsDescHistoryTblData.recycleDataSource = [];
     }
     if (fsDescHistorySelection) {
       this.fsDescHistoryLoadingList.push(1);
-      this.fsDescHistoryProgressEL!.loading = true;// @ts-ignore
+      this.fsDescHistoryProgressEL!.loading = true; // @ts-ignore
       this.fsDescHistoryLoadingPage.style.visibility = 'visible';
       this.fsDescHistorySource = [];
       procedurePool.submitWithName(
@@ -75,16 +77,17 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
           tab: 'history',
         },
         undefined,
-        (res: unknown): void => {// @ts-ignore
-          this.fsDescHistorySource = this.fsDescHistorySource.concat(res.data);// @ts-ignore
-          res.data = null;// @ts-ignore
+        (res: unknown): void => {
+          // @ts-ignore
+          this.fsDescHistorySource = this.fsDescHistorySource.concat(res.data); // @ts-ignore
+          res.data = null; // @ts-ignore
           if (!res.isSending) {
             this.fsDescHistoryTbl!.recycleDataSource = this.fsDescHistorySource;
             this.fsDescHistoryFilterSource = this.fsDescHistorySource;
             this.setProcessFilter();
             this.fsDescHistoryLoadingList.splice(0, 1);
             if (this.fsDescHistoryLoadingList.length === 0) {
-              this.fsDescHistoryProgressEL!.loading = false;// @ts-ignore
+              this.fsDescHistoryProgressEL!.loading = false; // @ts-ignore
               this.fsDescHistoryLoadingPage.style.visibility = 'hidden';
             }
           }
@@ -146,7 +149,7 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
     this.fsDescHistoryTblData = this.shadowRoot?.querySelector<LitTable>('#tbr-file-system-desc-history');
     this.fsDescHistoryTbl!.addEventListener('row-click', (e): void => {
       // @ts-ignore
-      let data = e.detail.data as FileSysEvent;// @ts-ignore
+      let data = e.detail.data as FileSysEvent; // @ts-ignore
       (data as unknown).isSelected = true;
       // @ts-ignore
       if ((e.detail as unknown).callBack) {
@@ -158,7 +161,8 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
         'fileSystem-queryStack',
         { callchainId: data.callchainId },
         undefined,
-        (res: unknown): void => {// @ts-ignore
+        (res: unknown): void => {
+          // @ts-ignore
           this.fsDescHistoryTblData!.recycleDataSource = res;
         }
       );
@@ -191,16 +195,18 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
       if (this.parentElement?.clientHeight !== 0) {
         if (this.fsDescHistoryTbl) {
           // @ts-ignore
-          this.fsDescHistoryTbl.shadowRoot.querySelector('.table').style.height =
-            `${this.parentElement!.clientHeight - 10 - 31}px`;
+          this.fsDescHistoryTbl.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 31
+          }px`;
           this.fsDescHistoryTbl.reMeauseHeight();
         }
         if (this.fsDescHistoryTblData) {
           // @ts-ignore
-          this.fsDescHistoryTblData.shadowRoot.querySelector('.table').style.height =
-            `${this.parentElement!.clientHeight - 10 - 31}px`;
+          this.fsDescHistoryTblData.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 31
+          }px`;
           this.fsDescHistoryTblData.reMeauseHeight();
-        }// @ts-ignore
+        } // @ts-ignore
         this.fsDescHistoryLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
@@ -231,24 +237,29 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
   }
 
   compareStartTs(fsHistoryA: unknown, fsHistoryB: unknown, type: number): number {
-    if (type === 1) {// @ts-ignore
+    if (type === 1) {
+      // @ts-ignore
       return fsHistoryA.startTs - fsHistoryB.startTs;
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       return fsHistoryB.startTs - fsHistoryA.startTs;
     }
   }
 
   compareDur(fsHistoryA: unknown, fsHistoryB: unknown, type: number): number {
-    if (type === 1) {// @ts-ignore
+    if (type === 1) {
+      // @ts-ignore
       return fsHistoryA.dur - fsHistoryB.dur;
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       return fsHistoryB.dur - fsHistoryA.dur;
     }
   }
 
-  compareProcess(fsHistoryA: unknown, fsHistoryB: unknown, type: number): number {// @ts-ignore
+  compareProcess(fsHistoryA: unknown, fsHistoryB: unknown, type: number): number {
+    // @ts-ignore
     if (fsHistoryA.process > fsHistoryB.process) {
-      return type === 2 ? 1 : -1;// @ts-ignore
+      return type === 2 ? 1 : -1; // @ts-ignore
     } else if (fsHistoryA.process === fsHistoryB.process) {
       return 0;
     } else {
@@ -256,9 +267,10 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
     }
   }
 
-  compareTypeStr(fsHistoryA: unknown, fsHistoryB: unknown, type: number): number {// @ts-ignore
+  compareTypeStr(fsHistoryA: unknown, fsHistoryB: unknown, type: number): number {
+    // @ts-ignore
     if (fsHistoryA.typeStr > fsHistoryB.typeStr) {
-      return type === 2 ? 1 : -1;// @ts-ignore
+      return type === 2 ? 1 : -1; // @ts-ignore
     } else if (fsHistoryA.typeStr === fsHistoryB.typeStr) {
       return 0;
     } else {
@@ -267,9 +279,11 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
   }
 
   compareFd(fsHistoryA: unknown, fsHistoryB: unknown, type: number): number {
-    if (type === 1) {// @ts-ignore
+    if (type === 1) {
+      // @ts-ignore
       return fsHistoryA.fd - fsHistoryB.fd;
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       return fsHistoryB.fd - fsHistoryA.fd;
     }
   }

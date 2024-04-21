@@ -39,7 +39,7 @@ protected:
     void TearDown() {}
 };
 
-void ParseTraceFile(TraceStreamerSelector& ts)
+void ParseTraceFile(TraceStreamerSelector &ts)
 {
     int32_t fd(base::OpenFile(TRACE_PATH, O_RDONLY, G_FILE_PERMISSION));
     if (fd < 0) {
@@ -60,7 +60,7 @@ void ParseTraceFile(TraceStreamerSelector& ts)
     ts.WaitForParserEnd();
 }
 
-void ExecuteMetricsTest(TraceStreamerSelector& ts, std::string metricName)
+void ExecuteMetricsTest(TraceStreamerSelector &ts, std::string metricName)
 {
     ts.EnableMetaTable(false);
     ts.SetCleanMode(false);

@@ -45,11 +45,11 @@ public:
 
     std::string SetIrqHandlerEntryFormat(int64_t ts, uint32_t cpu)
     {
-        IrqHandlerEntryFormat* irqHandlerEvent = new IrqHandlerEntryFormat();
+        IrqHandlerEntryFormat *irqHandlerEvent = new IrqHandlerEntryFormat();
         irqHandlerEvent->set_irq(IRQ);
         irqHandlerEvent->set_name("user_irq");
         TracePluginResult tracePacket;
-        FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+        FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
         ftraceCpuDetail->set_cpu(cpu);
         auto ftraceEvent = ftraceCpuDetail->add_event();
         ftraceEvent->set_timestamp(ts);
@@ -64,11 +64,11 @@ public:
 
     std::string SetIrqHandlerExitFormat(int64_t ts, uint32_t cpu)
     {
-        IrqHandlerExitFormat* irqHandlerExitEvent = new IrqHandlerExitFormat();
+        IrqHandlerExitFormat *irqHandlerExitEvent = new IrqHandlerExitFormat();
         irqHandlerExitEvent->set_irq(IRQ);
         irqHandlerExitEvent->set_ret(RET);
         TracePluginResult tracePacket;
-        FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+        FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
         ftraceCpuDetail->set_cpu(cpu);
         auto ftraceEvent = ftraceCpuDetail->add_event();
         ftraceEvent->set_timestamp(ts);
@@ -83,10 +83,10 @@ public:
 
     std::string SetSoftIrqEntryFormat(int64_t ts, uint32_t cpu)
     {
-        SoftirqEntryFormat* softirqEntryEvent = new SoftirqEntryFormat();
+        SoftirqEntryFormat *softirqEntryEvent = new SoftirqEntryFormat();
         softirqEntryEvent->set_vec(VEC);
         TracePluginResult tracePacket;
-        FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+        FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
         ftraceCpuDetail->set_cpu(cpu);
         auto ftraceEvent = ftraceCpuDetail->add_event();
         ftraceEvent->set_timestamp(ts);
@@ -101,10 +101,10 @@ public:
 
     std::string SetSoftIrqExitFormat(int64_t ts, uint32_t cpu)
     {
-        SoftirqExitFormat* softirqExitEvent = new SoftirqExitFormat();
+        SoftirqExitFormat *softirqExitEvent = new SoftirqExitFormat();
         softirqExitEvent->set_vec(VEC);
         TracePluginResult tracePacket;
-        FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+        FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
         ftraceCpuDetail->set_cpu(cpu);
         auto ftraceEvent = ftraceCpuDetail->add_event();
         ftraceEvent->set_timestamp(ts);
@@ -136,7 +136,7 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEntryTest, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetIrqHandlerEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -164,7 +164,7 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEntryTestNotMatch, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetIrqHandlerEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -180,7 +180,7 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEntryTestNotMatch, TestSize.Level1)
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetIrqHandlerEntryFormat(ts2, cpu);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t *>(dataSeg2.seg->data()),
                                                dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
@@ -209,7 +209,7 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerExitTestEmpty, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetIrqHandlerExitFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -240,7 +240,7 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTest, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetIrqHandlerEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -255,7 +255,7 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTest, TestSize.Level1)
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetIrqHandlerExitFormat(ts, cpu);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t *>(dataSeg2.seg->data()),
                                                dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
@@ -282,7 +282,7 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTestTwice, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetIrqHandlerEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -299,7 +299,7 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTestTwice, TestSize.Level1)
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetIrqHandlerExitFormat(ts2, cpu2);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t *>(dataSeg2.seg->data()),
                                                dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
@@ -314,7 +314,7 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTestTwice, TestSize.Level1)
     dataSeg3.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetIrqHandlerExitFormat(ts3, cpu);
     dataSeg3.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView3(reinterpret_cast<const uint8_t*>(dataSeg3.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView3(reinterpret_cast<const uint8_t *>(dataSeg3.seg->data()),
                                                dataSeg3.seg->size());
     dataSeg3.protoData = cpuDetailBytesView3;
     ProtoReader::TracePluginResult_Reader tracePluginResult3(dataSeg3.protoData);
@@ -340,7 +340,7 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqEntryTest, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetSoftIrqEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -368,7 +368,7 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqEntryNotMatch, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetSoftIrqEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -384,7 +384,7 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqEntryNotMatch, TestSize.Level1)
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetSoftIrqEntryFormat(ts2, cpu);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t *>(dataSeg2.seg->data()),
                                                dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
@@ -411,7 +411,7 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqExitEmptyTest, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetSoftIrqExitFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -441,7 +441,7 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqTest, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetSoftIrqEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -459,7 +459,7 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqTest, TestSize.Level1)
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetSoftIrqExitFormat(ts1, cpu);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t *>(dataSeg2.seg->data()),
                                                dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
@@ -484,7 +484,7 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqTestNotMatch, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetSoftIrqEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -502,7 +502,7 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqTestNotMatch, TestSize.Level1)
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetSoftIrqExitFormat(ts2, cpu2);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t *>(dataSeg2.seg->data()),
                                                dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);

@@ -83,10 +83,12 @@ export class TabPaneHiLogs extends BaseElement {
     this.tagFilterDiv = this.shadowRoot!.querySelector<HTMLDivElement>('#tagFilter');
     this.hiLogsTbl = this.shadowRoot!.querySelector<LitPageTable>('#tb-hilogs');
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
-    this.hiLogsTbl!.getItemTextColor = (data): string => {// @ts-ignore
+    this.hiLogsTbl!.getItemTextColor = (data): string => {
+      // @ts-ignore
       return ColorUtils.getHilogColor(data.level);
     };
-    this.hiLogsTbl!.itemTextHandleMap.set('startTs', (startTs) => {// @ts-ignore
+    this.hiLogsTbl!.itemTextHandleMap.set('startTs', (startTs) => {
+      // @ts-ignore
       return ns2Timestamp(startTs);
     });
     this.hiLogsTbl!.addEventListener('row-hover', (e): void => {

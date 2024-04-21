@@ -28,7 +28,7 @@ enum class Index : int32_t {
     CPU_ID,
     THREAD_STATE
 };
-PerfSampleTable::PerfSampleTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+PerfSampleTable::PerfSampleTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
@@ -44,14 +44,14 @@ PerfSampleTable::PerfSampleTable(const TraceDataCache* dataCache) : TableBase(da
 
 PerfSampleTable::~PerfSampleTable() {}
 
-void PerfSampleTable::FilterByConstraint(FilterConstraints& samplefc,
-                                         double& samplefilterCost,
+void PerfSampleTable::FilterByConstraint(FilterConstraints &samplefc,
+                                         double &samplefilterCost,
                                          size_t samplerowCount,
                                          uint32_t samplecurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& samplec = samplefc.GetConstraints()[samplecurrenti];
+    const auto &samplec = samplefc.GetConstraints()[samplecurrenti];
     switch (static_cast<Index>(samplec.col)) {
         case Index::ID: {
             if (CanFilterId(samplec.op, samplerowCount)) {
@@ -73,7 +73,7 @@ std::unique_ptr<TableBase::Cursor> PerfSampleTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-PerfSampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+PerfSampleTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstPerfSampleData().Size())),
       perfSampleObj_(dataCache->GetConstPerfSampleData())
 {
@@ -81,7 +81,7 @@ PerfSampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tabl
 
 PerfSampleTable::Cursor::~Cursor() {}
 
-int32_t PerfSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t PerfSampleTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -94,7 +94,7 @@ int32_t PerfSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(perfSampleCs, sId);
     for (size_t i = 0; i < perfSampleCs.size(); i++) {
-        const auto& c = perfSampleCs[i];
+        const auto &c = perfSampleCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -179,7 +179,7 @@ int32_t PerfSampleTable::Cursor::Column(int32_t column) const
     return SQLITE_OK;
 }
 
-void PerfSampleTable::GetOrbyes(FilterConstraints& samplefc, EstimatedIndexInfo& sampleei)
+void PerfSampleTable::GetOrbyes(FilterConstraints &samplefc, EstimatedIndexInfo &sampleei)
 {
     auto sampleorderbys = samplefc.GetOrderBys();
     for (auto i = 0; i < sampleorderbys.size(); i++) {

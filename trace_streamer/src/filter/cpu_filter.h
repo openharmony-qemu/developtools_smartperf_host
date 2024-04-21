@@ -32,9 +32,9 @@ namespace SysTuning {
 namespace TraceStreamer {
 class CpuFilter : private FilterBase {
 public:
-    CpuFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    CpuFilter(const CpuFilter&) = delete;
-    CpuFilter& operator=(const CpuFilter&) = delete;
+    CpuFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
+    CpuFilter(const CpuFilter &) = delete;
+    CpuFilter &operator=(const CpuFilter &) = delete;
     ~CpuFilter() override;
 
 public:
@@ -64,7 +64,7 @@ public:
     {
         UpdateProcessData();
         uint64_t minSchedSliceRowToBeUpdated = INVALID_UINT64;
-        for (const auto& [_, binderTransactionInfo] : transactionIdToInfo_) {
+        for (const auto &[_, binderTransactionInfo] : transactionIdToInfo_) {
             if (minSchedSliceRowToBeUpdated > binderTransactionInfo.schedSliceRow) {
                 minSchedSliceRowToBeUpdated = binderTransactionInfo.schedSliceRow;
             }
@@ -90,7 +90,7 @@ private:
                                 uint64_t cpu,
                                 uint32_t prevPid,
                                 uint64_t prevState,
-                                BinderTransactionInfo& btInfo);
+                                BinderTransactionInfo &btInfo);
     bool UpdateSchedSliceReadySize(uint64_t minSchedSliceRowToBeUpdated = INVALID_UINT64);
 
 private:

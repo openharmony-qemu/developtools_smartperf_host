@@ -343,7 +343,7 @@ input:disabled {
   <div class="allocation-switchstyle version-controller advance-option-div" id="sample-interval-el" style="flex-wrap: wrap;">
     <span class="allocation-inner-font-style" id="statistics-interval-name">Sample Interval</span>
     <span class="record-mode-available" style="margin-right: auto;">(Available on recent OpenHarmony 4.0)</span>
-    <span class="value-range" style="margin-right: auto;" id="statistics-interval-range">Rang is 0 - 65535, default 10 S</span>
+    <span class="value-range" style="margin-right: auto;" id="statistics-interval-range">Rang is 0 - 65535, default 10 byte</span>
     <input id= "statistics-interval-input" style="width: auto;" class="allocation-inputstyle inputBoxes" type="text"
     placeholder="Enter the interval" value="10">
   </div>
@@ -380,7 +380,7 @@ input:disabled {
   <!-- Filter Memory Size(advance) -->
   <div class="allocation-application advance-option-div" id="filter-memory-size-el">
     <span class="allocation-inner-font-style" >Filter Memory Size </span>
-    <span class="value-range" style="margin-right: auto;">Range is 0 - 65535, default 0 Byte</span>
+    <span class="value-range" style="margin-right: auto;">Range is 0 - 65535, default 0 byte</span>
     <input id = "filterSized" style="width: auto;" class="allocation-inputstyle inputBoxes" type="text"
        placeholder="Enter the Filter Memory Size"
        oninput="if(this.value > 65535){this.value = '65535'} if(this.value > 0 &&

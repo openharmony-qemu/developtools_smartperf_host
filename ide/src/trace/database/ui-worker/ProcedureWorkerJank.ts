@@ -21,12 +21,13 @@ import {
   drawString,
   isFrameContainPoint,
   ns2x,
+  Rect,
   Render,
   RequestMessage,
 } from './ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
 
-export class JankRender extends Render {
+export class JankRender {
   renderMainThread(
     req: {
       useCache: boolean;
@@ -78,16 +79,16 @@ export class JankRender extends Render {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {}
+  render(req: RequestMessage, list: Array<JankStruct>, filter: Array<JankStruct>): void {}
 }
 
 export function jank(
-  jankList: Array<any>,
-  jankFilter: Array<any>,
+  jankList: Array<JankStruct>,
+  jankFilter: Array<JankStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
 ): void {
   if (use && jankFilter.length > 0) {
@@ -95,7 +96,7 @@ export function jank(
       if ((jankFilter[i].ts || 0) + (jankFilter[i].dur || 0) >= startNS && (jankFilter[i].ts || 0) <= endNS) {
         JankStruct.setJankFrame(jankFilter[i], 0, startNS, endNS, totalNS, frame);
       } else {
-        jankFilter[i].frame = null;
+        jankFilter[i].frame = undefined;
       }
     }
     return;
@@ -109,11 +110,13 @@ export function jank(
         return it;
       })
       .reduce((pre, current, index, arr) => {
+        // @ts-ignore
         (pre[`${current.frame.x}-${current.depth}`] = pre[`${current.frame.x}-${current.depth}`] || []).push(current);
         return pre;
       }, {});
     Reflect.ownKeys(groups).map((kv) => {
-      let arr = groups[kv].sort((a: any, b: any) => b.dur - a.dur);
+      // @ts-ignore
+      let arr = groups[kv].sort((a: JankStruct, b: JankStruct) => b.dur - a.dur);
       jankFilter.push(arr[0]);
     });
   }
@@ -122,8 +125,8 @@ export function jank(
 export function JankStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  row: TraceRow<any>,
-  jankClickHandler: any
+  row: TraceRow<JankStruct>,
+  jankClickHandler: unknown
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     JankStruct.hoverJankStruct = JankStruct.hoverJankStruct || row.getHoverStruct();
@@ -136,19 +139,20 @@ export function JankStructOnClick(
         JankStruct.selectJankStruct,
         (datas) => {
           datas.forEach((data) => {
-            let endParentRow;// @ts-ignore
+            let endParentRow; // @ts-ignore
             if (data.frame_type === 'frameTime') {
               endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
                 "trace-row[row-id='frameTime'][row-type='janks']"
               );
             } else {
-              endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(
+              endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
                 "trace-row[row-type='process'][row-id='${data.pid}'][folder]"
               );
             }
             sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data);
           });
         },
+        // @ts-ignore
         jankClickHandler
       );
       reject(new Error());
@@ -164,12 +168,12 @@ export class JankStruct extends JanksStruct {
   static selectJankStructList: Array<JankStruct> = [];
 
   static setJankFrame(
-    jankNode: any,
+    jankNode: JankStruct,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
     let x1: number;
     let x2: number;
@@ -184,11 +188,11 @@ export class JankStruct extends JanksStruct {
       x2 = frame.width;
     }
     if (!jankNode.frame) {
-      jankNode.frame = {};
+      jankNode.frame = new Rect(0, 0, 0, 0);
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
     jankNode.frame.x = Math.floor(x1);
-    jankNode.frame.y = jankNode.depth * 20;
+    jankNode.frame.y = jankNode.depth! * 20;
     jankNode.frame.width = Math.ceil(getV);
     jankNode.frame.height = 20;
   }

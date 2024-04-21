@@ -55,14 +55,15 @@ export class TabPaneEnergyAnomaly extends BaseElement {
           // @ts-ignore
           if (tempSet.has(Object.values(bean[index])[0])) {
             let appValues = values[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
-            htmlText +=
-              `<tr><td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>${ 
-                values[TabPaneEnergyAnomaly.KEY_INDEX] 
-              }</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>${ 
-                findAppNameIndex >= 0 ? appValues.length > 1 ? appValues[findAppNameIndex] : 
-                  values[TabPaneEnergyAnomaly.VALUE_INDEX] : values[TabPaneEnergyAnomaly.VALUE_INDEX] 
-              }${TabPaneEnergyAnomaly.getUnit(values[TabPaneEnergyAnomaly.KEY_INDEX]) 
-              }</td><td style='width:100px'></td>`;
+            htmlText += `<tr><td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>${
+              values[TabPaneEnergyAnomaly.KEY_INDEX]
+            }</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>${
+              findAppNameIndex >= 0
+                ? appValues.length > 1
+                  ? appValues[findAppNameIndex]
+                  : values[TabPaneEnergyAnomaly.VALUE_INDEX]
+                : values[TabPaneEnergyAnomaly.VALUE_INDEX]
+            }${TabPaneEnergyAnomaly.getUnit(values[TabPaneEnergyAnomaly.KEY_INDEX])}</td><td style='width:100px'></td>`;
           }
           if (index + 1 < bean.length) {
             // @ts-ignore
@@ -79,18 +80,24 @@ export class TabPaneEnergyAnomaly extends BaseElement {
     }
   }
 
-  private spliceHtmlText(findAppNameIndex: number, nextValues: unknown[], htmlText: string, tempSet: Set<unknown>): string {
+  private spliceHtmlText(
+    findAppNameIndex: number,
+    nextValues: unknown[],
+    htmlText: string,
+    tempSet: Set<unknown>
+  ): string {
     // @ts-ignore
     let appValues = nextValues[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
     if (tempSet.has(nextValues[0])) {
-      htmlText +=
-        `<td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>${ 
-          nextValues[TabPaneEnergyAnomaly.KEY_INDEX] 
-        }</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>${ 
-          findAppNameIndex >= 0 ? appValues.length > 1 ? appValues[findAppNameIndex] : 
-            nextValues[TabPaneEnergyAnomaly.VALUE_INDEX] : nextValues[TabPaneEnergyAnomaly.VALUE_INDEX] 
-        }${TabPaneEnergyAnomaly.getUnit(nextValues[TabPaneEnergyAnomaly.KEY_INDEX]) 
-        }</td></tr>`;
+      htmlText += `<td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>${
+        nextValues[TabPaneEnergyAnomaly.KEY_INDEX]
+      }</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>${
+        findAppNameIndex >= 0
+          ? appValues.length > 1
+            ? appValues[findAppNameIndex]
+            : nextValues[TabPaneEnergyAnomaly.VALUE_INDEX]
+          : nextValues[TabPaneEnergyAnomaly.VALUE_INDEX]
+      }${TabPaneEnergyAnomaly.getUnit(nextValues[TabPaneEnergyAnomaly.KEY_INDEX])}</td></tr>`;
     } else {
       htmlText += '</tr>';
       htmlText += '</tbody></table></div>';

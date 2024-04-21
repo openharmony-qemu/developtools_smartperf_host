@@ -58,8 +58,9 @@ export class CustomThemeColor extends BaseElement {
       input.value = this.colorsArray![i];
       div.appendChild(input);
       colorsEl?.appendChild(div);
-      input.addEventListener('change', (evt: unknown): void => {//@ts-ignore
-        input.value = evt?.target.value;//@ts-ignore
+      input.addEventListener('change', (evt: unknown): void => {
+        //@ts-ignore
+        input.value = evt?.target.value; //@ts-ignore
         this.colorsArray![i] = evt?.target.value;
       });
     }
@@ -75,12 +76,14 @@ export class CustomThemeColor extends BaseElement {
         this.radios![i].setAttribute('checked', '');
         if (theme === Theme.LIGHT) {
           this.colorsArray =
-            window.localStorage.getItem('LightThemeColors') === null ? [...ColorUtils.FUNC_COLOR_A] :
-              JSON.parse(window.localStorage.getItem('LightThemeColors')!);
+            window.localStorage.getItem('LightThemeColors') === null
+              ? [...ColorUtils.FUNC_COLOR_A]
+              : JSON.parse(window.localStorage.getItem('LightThemeColors')!);
         } else {
           this.colorsArray =
-            window.localStorage.getItem('DarkThemeColors') === null ? [...ColorUtils.FUNC_COLOR_B] :
-              JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
+            window.localStorage.getItem('DarkThemeColors') === null
+              ? [...ColorUtils.FUNC_COLOR_B]
+              : JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
         }
       } else {
         this.radios![i].removeAttribute('checked');
@@ -141,8 +144,9 @@ export class CustomThemeColor extends BaseElement {
           if (this.radios![i].innerHTML === Theme.LIGHT) {
             if (this.radios![i].getAttribute('checked') === null) {
               this.colorsArray =
-                window.localStorage.getItem('LightThemeColors') === null ? [...ColorUtils.FUNC_COLOR_A] :
-                  JSON.parse(window.localStorage.getItem('LightThemeColors')!);
+                window.localStorage.getItem('LightThemeColors') === null
+                  ? [...ColorUtils.FUNC_COLOR_A]
+                  : JSON.parse(window.localStorage.getItem('LightThemeColors')!);
               this.theme = Theme.LIGHT;
             } else {
               return;
@@ -150,8 +154,9 @@ export class CustomThemeColor extends BaseElement {
           } else if (this.radios![i].innerHTML === Theme.DARK) {
             if (this.radios![i].getAttribute('checked') === null) {
               this.colorsArray =
-                window.localStorage.getItem('DarkThemeColors') === null ? [...ColorUtils.FUNC_COLOR_B] :
-                  JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
+                window.localStorage.getItem('DarkThemeColors') === null
+                  ? [...ColorUtils.FUNC_COLOR_B]
+                  : JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
               this.theme = Theme.DARK;
             } else {
               return;
@@ -180,13 +185,15 @@ export class CustomThemeColor extends BaseElement {
     if (window.localStorage.getItem('Theme') === 'light' || !window.localStorage.getItem('Theme')) {
       this.theme = Theme.LIGHT;
       this.colorsArray =
-        window.localStorage.getItem('LightThemeColors') === null ? [...ColorUtils.FUNC_COLOR_A] :
-          JSON.parse(window.localStorage.getItem('LightThemeColors')!);
+        window.localStorage.getItem('LightThemeColors') === null
+          ? [...ColorUtils.FUNC_COLOR_A]
+          : JSON.parse(window.localStorage.getItem('LightThemeColors')!);
     } else if (window.localStorage.getItem('Theme') === 'dark') {
       this.theme = Theme.DARK;
       this.colorsArray =
-        window.localStorage.getItem('DarkThemeColors') === null ? [...ColorUtils.FUNC_COLOR_B] :
-          JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
+        window.localStorage.getItem('DarkThemeColors') === null
+          ? [...ColorUtils.FUNC_COLOR_B]
+          : JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
     }
     this.application!.changeTheme(this.theme);
     // 恢复颜色模式单选框checked状态

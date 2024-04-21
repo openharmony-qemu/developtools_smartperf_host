@@ -27,9 +27,9 @@ constexpr uint8_t DYNAMICFRAME_MATCH_LAST = 5;
 class CacheBase {
 public:
     size_t Size() const;
-    const std::deque<uint64_t>& IdsData() const;
-    const std::deque<uint64_t>& TimeStampData() const;
-    const std::deque<InternalTid>& InternalTidsData() const;
+    const std::deque<uint64_t> &IdsData() const;
+    const std::deque<uint64_t> &TimeStampData() const;
+    const std::deque<InternalTid> &InternalTidsData() const;
     virtual void Clear()
     {
         internalTids_.clear();
@@ -47,8 +47,8 @@ public:
 
 class CpuCacheBase {
 public:
-    const std::deque<uint64_t>& DursData() const;
-    const std::deque<uint32_t>& CpusData() const;
+    const std::deque<uint64_t> &DursData() const;
+    const std::deque<uint32_t> &CpusData() const;
     virtual void Clear()
     {
         durs_.clear();
@@ -69,7 +69,7 @@ public:
     }
     virtual void ClearExportedData() = 0;
     template <typename T, typename... changedata>
-    void EraseElements(T& deq, changedata&... args)
+    void EraseElements(T &deq, changedata &... args)
     {
         deq.erase(deq.begin(), deq.begin() + readySize_);
         EraseElements(args...);
@@ -77,7 +77,7 @@ public:
         readySize_ = 0;
     }
     template <typename T1>
-    void EraseElements(T1& deq)
+    void EraseElements(T1 &deq)
     {
         deq.erase(deq.begin(), deq.begin() + readySize_);
     }

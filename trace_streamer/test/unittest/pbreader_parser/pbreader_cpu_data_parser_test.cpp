@@ -64,7 +64,7 @@ public:
 
     void TearDown() const {}
 
-    std::string SetCpuData(CpudataInfo& cpudataInfo, bool isSetUsageInfo)
+    std::string SetCpuData(CpudataInfo &cpudataInfo, bool isSetUsageInfo)
     {
         auto cpuInfo(std::make_unique<CpuData>());
         cpuInfo->set_total_load(cpudataInfo.total_load);
@@ -72,7 +72,7 @@ public:
         cpuInfo->set_sys_load(cpudataInfo.sys_load);
         cpuInfo->set_process_num(cpudataInfo.process_num);
         if (isSetUsageInfo) {
-            CpuUsageInfo* cpuUsageInfo = new CpuUsageInfo();
+            CpuUsageInfo *cpuUsageInfo = new CpuUsageInfo();
             cpuInfo->set_allocated_cpu_usage_info(cpuUsageInfo);
         }
 
@@ -97,7 +97,7 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithoutCpuData, TestSize.Level1)
     auto cpuInfo = std::make_unique<CpuData>();
     std::string cpuData = "";
     cpuInfo->SerializeToString(&cpuData);
-    ProtoReader::BytesView cpuInfoData(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     PbreaderCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceCpuDataParser.Parse(cpuInfoData, TS);
     auto size = stream_.traceDataCache_->GetConstCpuUsageInfoData().Size();
@@ -115,7 +115,7 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithOneCpuData, TestSize.Level1)
 
     CpudataInfo cpudataInfo = {TOTALLOAD_01, USERLOAD_01, SYSTEMLOAD_01, PROCESS_NUM_01};
     std::string cpuData = SetCpuData(cpudataInfo, false);
-    ProtoReader::BytesView cpuInfoData(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     PbreaderCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceCpuDataParser.Parse(cpuInfoData, TS);
     htraceCpuDataParser.Finish();
@@ -134,13 +134,13 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithTwoCpuData, TestSize.Level1)
 
     CpudataInfo cpudataInfo01 = {TOTALLOAD_01, USERLOAD_01, SYSTEMLOAD_01, PROCESS_NUM_01};
     std::string cpuData = SetCpuData(cpudataInfo01, true);
-    ProtoReader::BytesView cpuInfoData01(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData01(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     PbreaderCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceCpuDataParser.Parse(cpuInfoData01, TS);
 
     CpudataInfo cpudataInfo02 = {TOTALLOAD_02, USERLOAD_02, SYSTEMLOAD_02, PROCESS_NUM_02};
     cpuData = SetCpuData(cpudataInfo02, true);
-    ProtoReader::BytesView cpuInfoData02(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData02(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     htraceCpuDataParser.Parse(cpuInfoData02, TS);
     htraceCpuDataParser.Finish();
 
@@ -162,18 +162,18 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithThreeCpuData, TestSize.Level1)
 
     CpudataInfo cpudataInfo01 = {TOTALLOAD_01, USERLOAD_01, SYSTEMLOAD_01, PROCESS_NUM_01};
     std::string cpuData = SetCpuData(cpudataInfo01, true);
-    ProtoReader::BytesView cpuInfoData01(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData01(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     PbreaderCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceCpuDataParser.Parse(cpuInfoData01, TS);
 
     CpudataInfo cpudataInfo02 = {TOTALLOAD_02, USERLOAD_02, SYSTEMLOAD_02, PROCESS_NUM_02};
     cpuData = SetCpuData(cpudataInfo02, true);
-    ProtoReader::BytesView cpuInfoData02(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData02(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     htraceCpuDataParser.Parse(cpuInfoData02, TS);
 
     CpudataInfo cpudataInfo03 = {TOTALLOAD_03, USERLOAD_03, SYSTEMLOAD_03, PROCESS_NUM_03};
     cpuData = SetCpuData(cpudataInfo03, true);
-    ProtoReader::BytesView cpuInfoData03(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData03(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     htraceCpuDataParser.Parse(cpuInfoData03, TS);
     htraceCpuDataParser.Finish();
 
@@ -198,23 +198,23 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithMultipleCpuData, TestSize.Level
 
     CpudataInfo cpudataInfo01 = {TOTALLOAD_01, USERLOAD_01, SYSTEMLOAD_01, PROCESS_NUM_01};
     std::string cpuData = SetCpuData(cpudataInfo01, true);
-    ProtoReader::BytesView cpuInfoData01(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData01(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     PbreaderCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceCpuDataParser.Parse(cpuInfoData01, TS);
 
     CpudataInfo cpudataInfo02 = {TOTALLOAD_02, USERLOAD_02, SYSTEMLOAD_02, PROCESS_NUM_02};
     cpuData = SetCpuData(cpudataInfo02, true);
-    ProtoReader::BytesView cpuInfoData02(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData02(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     htraceCpuDataParser.Parse(cpuInfoData02, TS);
 
     CpudataInfo cpudataInfo03 = {TOTALLOAD_03, USERLOAD_03, SYSTEMLOAD_03, PROCESS_NUM_03};
     cpuData = SetCpuData(cpudataInfo03, true);
-    ProtoReader::BytesView cpuInfoData03(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData03(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     htraceCpuDataParser.Parse(cpuInfoData03, TS);
 
     CpudataInfo cpudataInfo04 = {TOTALLOAD_04, USERLOAD_04, SYSTEMLOAD_04, PROCESS_NUM_04};
     cpuData = SetCpuData(cpudataInfo04, true);
-    ProtoReader::BytesView cpuInfoData04(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
+    ProtoReader::BytesView cpuInfoData04(reinterpret_cast<const uint8_t *>(cpuData.data()), cpuData.size());
     htraceCpuDataParser.Parse(cpuInfoData04, TS);
     htraceCpuDataParser.Finish();
 

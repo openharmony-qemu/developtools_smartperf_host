@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class SystemEventFilterTable : public TableBase {
 public:
-    explicit SystemEventFilterTable(const TraceDataCache*);
+    explicit SystemEventFilterTable(const TraceDataCache *);
     ~SystemEventFilterTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,23 +32,23 @@ private:
     {
         return dataCache_->GetConstSysMeasureFilterData().Size();
     }
-    void GetOrbyes(FilterConstraints& eventfc, EstimatedIndexInfo& eventei) override;
-    void FilterByConstraint(FilterConstraints& eventfc,
-                            double& eventfilterCost,
+    void GetOrbyes(FilterConstraints &eventfc, EstimatedIndexInfo &eventei) override;
+    void FilterByConstraint(FilterConstraints &eventfc,
+                            double &eventfilterCost,
                             size_t eventrowCount,
                             uint32_t eventcurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t col) const override;
 
-        void FilterSorted(int32_t col, unsigned char op, sqlite3_value* argv);
+        void FilterSorted(int32_t col, unsigned char op, sqlite3_value *argv);
 
     private:
-        const SysMeasureFilter& sysEventObj_;
+        const SysMeasureFilter &sysEventObj_;
     };
 };
 } // namespace TraceStreamer

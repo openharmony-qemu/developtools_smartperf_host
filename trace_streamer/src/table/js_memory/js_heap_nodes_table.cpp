@@ -28,7 +28,7 @@ enum class Index : int32_t {
     TRACE_NODE_ID,
     DETACHEDNESS
 };
-JsHeapNodesTable::JsHeapNodesTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+JsHeapNodesTable::JsHeapNodesTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("node_index", "INTEGER"));
@@ -49,7 +49,7 @@ std::unique_ptr<TableBase::Cursor> JsHeapNodesTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-JsHeapNodesTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+JsHeapNodesTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstJsHeapNodesData().Size())),
       jsHeapNodes_(dataCache->GetConstJsHeapNodesData())
 {

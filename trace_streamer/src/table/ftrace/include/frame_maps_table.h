@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class FrameMapsTable : public TableBase {
 public:
-    explicit FrameMapsTable(const TraceDataCache* dataCache);
+    explicit FrameMapsTable(const TraceDataCache *dataCache);
     ~FrameMapsTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,21 +32,21 @@ private:
     {
         return dataCache_->GetConstFrameMapsData().Size();
     }
-    void GetOrbyes(FilterConstraints& mapfc, EstimatedIndexInfo& mapei) override;
-    void FilterByConstraint(FilterConstraints& mapfc,
-                            double& mapfilterCost,
+    void GetOrbyes(FilterConstraints &mapfc, EstimatedIndexInfo &mapei) override;
+    void FilterByConstraint(FilterConstraints &mapfc,
+                            double &mapfilterCost,
                             size_t maprowCount,
                             uint32_t mapcurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const FrameMaps& frameMapsObj_;
+        const FrameMaps &frameMapsObj_;
     };
 };
 } // namespace TraceStreamer

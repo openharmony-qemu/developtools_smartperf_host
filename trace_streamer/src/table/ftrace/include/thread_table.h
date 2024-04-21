@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class ThreadTable : public TableBase {
 public:
-    explicit ThreadTable(const TraceDataCache* dataCache);
+    explicit ThreadTable(const TraceDataCache *dataCache);
     ~ThreadTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,33 +32,33 @@ private:
     {
         return dataCache_->ThreadSize();
     }
-    void GetOrbyes(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
-    void FilterByConstraint(FilterConstraints& threadfc,
-                            double& threadfilterCost,
+    void GetOrbyes(FilterConstraints &fc, EstimatedIndexInfo &ei) override;
+    void FilterByConstraint(FilterConstraints &threadfc,
+                            double &threadfilterCost,
                             size_t threadrowCount,
                             uint32_t threadcurrenti) override;
-    int32_t Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid) override;
+    int32_t Update(int32_t argc, sqlite3_value **argv, sqlite3_int64 *pRowid) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         void FilterIpid(unsigned char op, uint64_t value);
         void FilterTid(unsigned char op, uint64_t value);
         void FilterSwitchCount(unsigned char op, uint64_t value);
-        void FilterIndex(int32_t col, unsigned char op, sqlite3_value* argv);
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        void FilterIndex(int32_t col, unsigned char op, sqlite3_value *argv);
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t col) const override;
-        void FilterId(unsigned char op, sqlite3_value* argv) override;
+        void FilterId(unsigned char op, sqlite3_value *argv) override;
 
     private:
-        void SetNameColumn(const Thread& thread) const;
+        void SetNameColumn(const Thread &thread) const;
         template <typename Value, typename Size>
         void HandleIpidConstraint(bool remove,
-                                  bool& changed,
+                                  bool &changed,
                                   Value value,
                                   Size size,
-                                  const std::deque<SysTuning::TraceStdtype::Thread>& threadQueue)
+                                  const std::deque<SysTuning::TraceStdtype::Thread> &threadQueue)
         {
             if (remove) {
                 for (auto idx = indexMapBack_->rowIndex_.begin(); idx != indexMapBack_->rowIndex_.end();) {
@@ -84,10 +84,10 @@ private:
         }
         template <typename Value, typename Size>
         void HandleSwitchCount(bool remove,
-                               bool& isChanged,
+                               bool &isChanged,
                                Value value,
                                Size size,
-                               const std::deque<SysTuning::TraceStdtype::Thread>& threadQueue)
+                               const std::deque<SysTuning::TraceStdtype::Thread> &threadQueue)
         {
             if (remove) {
                 for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
@@ -111,12 +111,12 @@ private:
             }
             indexMapBack_->FixSize();
         }
-        void HandleIpidConstraint(const std::deque<SysTuning::TraceStdtype::Thread>& threadQueue,
+        void HandleIpidConstraint(const std::deque<SysTuning::TraceStdtype::Thread> &threadQueue,
                                   std::size_t size,
                                   bool remove,
                                   bool changed);
         std::vector<TableRowId> rowIndexBak_;
-        IndexMap* indexMapBack_ = nullptr;
+        IndexMap *indexMapBack_ = nullptr;
     };
 };
 } // namespace TraceStreamer

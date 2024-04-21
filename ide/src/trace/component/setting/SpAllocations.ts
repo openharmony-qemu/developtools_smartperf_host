@@ -421,7 +421,7 @@ export class SpAllocations extends BaseElement {
       this.intervalResultInput!.value = '10';
       this.statisticsIntervalHandle();
       this.statisticsIntervalName!.textContent = 'Sample Interval';
-      this.statisticsIntervalRange!.textContent = 'Rang is 0 - 65535, default 10';
+      this.statisticsIntervalRange!.textContent = 'Rang is 0 - 65535, default 10 byte';
       this.statisticsIntervalInput!.value = '10';
       this.statisticsSlider!.disabled = false;
       this.intervalResultInput!.disabled = false;
@@ -429,7 +429,7 @@ export class SpAllocations extends BaseElement {
       this.intervalResultInput!.value = '0';
       this.statisticsIntervalHandle();
       this.statisticsIntervalName!.textContent = 'Malloc Free Matching Interval';
-      this.statisticsIntervalRange!.textContent = 'Rang is 0 - 65535, default 10';
+      this.statisticsIntervalRange!.textContent = 'Rang is 0 - 65535, default 10 byte';
       this.statisticsIntervalInput!.value = '10';
       this.statisticsSlider!.disabled = true;
       this.intervalResultInput!.disabled = true;

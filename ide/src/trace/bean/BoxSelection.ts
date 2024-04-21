@@ -36,7 +36,6 @@ import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuPro
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 
 export class SelectionParam {
-
   recordStartNs: number = 0;
   leftNs: number = 0;
   rightNs: number = 0;
@@ -112,11 +111,11 @@ export class SelectionParam {
     gpuTotal: boolean;
     gpuWindow: boolean;
   } = {
-      gl: false,
-      graph: false,
-      gpuWindow: false,
-      gpuTotal: false,
-    };
+    gl: false,
+    graph: false,
+    gpuWindow: false,
+    gpuTotal: false,
+  };
   purgeableTotalAbility: Array<unknown> = [];
   purgeableTotalVM: Array<unknown> = [];
   purgeablePinAbility: Array<unknown> = [];
@@ -133,7 +132,7 @@ export class SelectionParam {
   hiSysEvents: Array<string> = [];
   sampleData: Array<unknown> = [];
 
-    // @ts-ignore
+  // @ts-ignore
   pushSampleData(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_SAMPLE) {
       let dataList: SampleStruct[] = JSON.parse(JSON.stringify(it.dataList));
@@ -141,7 +140,7 @@ export class SelectionParam {
         dataList.forEach((SampleStruct) => {
           SampleStruct.property = SampleStruct.property!.filter(
             (i: unknown) =>
-            // @ts-ignore
+              // @ts-ignore
               (i.begin! - i.startTs! ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
               // @ts-ignore
               (i.end! - i.startTs! ?? 0) <= TraceRow.rangeSelectObject!.endNS!
@@ -154,7 +153,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushCpus(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_CPU) {
       this.cpus.push(parseInt(it.rowId!));
@@ -162,7 +161,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushCpuStateFilterIds(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_STATE_ALL) {
       it.childrenList.forEach((child) => {
@@ -179,7 +178,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushCpuFreqFilter(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_FREQ_ALL) {
       it.childrenList.forEach((child) => {
@@ -200,7 +199,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushCpuFreqLimit(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMITALL) {
       it.childrenList.forEach((child) => {
@@ -221,7 +220,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushProcess(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_PROCESS) {
       sp.pushPidToSelection(this, it.rowId!);
@@ -261,7 +260,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushNativeMemory(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_NATIVE_MEMORY) {
       // @ts-ignore
@@ -296,7 +295,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushFunc(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_FUNC) {
       TabPaneTaskFrames.TaskArray = [];
@@ -310,12 +309,12 @@ export class SelectionParam {
         this.funTids.push(parseInt(it.rowId!));
       }
 
-      let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct) : boolean =>
+      let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct): boolean =>
         Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
           Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
           filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
         filterFunc.funName!.indexOf('H:Task ') >= 0;
-        // @ts-ignore
+      // @ts-ignore
       let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
         taskData!.tid = parseInt(it.rowId!);
         return isIntersect(taskData, TraceRow.rangeSelectObject!);
@@ -328,7 +327,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushHeap(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_HEAP) {
       const key = it.rowParentId!.split(' ');
@@ -354,7 +353,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushMonitor(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_MONITOR) {
       // @ts-ignore
@@ -389,7 +388,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushHiperf(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType?.startsWith('hiperf')) {
       if (it.rowType === TraceRow.ROW_TYPE_HIPERF_EVENT || it.rowType === TraceRow.ROW_TYPE_HIPERF_REPORT) {
@@ -441,7 +440,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushFileSystem(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM) {
       if (it.rowId === 'FileSystemLogicalWrite') {
@@ -489,7 +488,7 @@ export class SelectionParam {
       this.gpu.gl =
         item.dataListCache.filter(
           (it) =>
-          // @ts-ignore
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
             // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -499,7 +498,7 @@ export class SelectionParam {
         item.dataListCache.filter(
           // @ts-ignore
           (it) =>
-          // @ts-ignore
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
             // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -508,7 +507,7 @@ export class SelectionParam {
       this.gpu.gpuTotal =
         item.dataListCache.filter(
           (it) =>
-          // @ts-ignore
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
             // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -517,7 +516,7 @@ export class SelectionParam {
       this.gpu.gpuWindow =
         item.dataListCache.filter(
           (it) =>
-          // @ts-ignore
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
             // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -577,7 +576,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushJank(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_JANK) {
       let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct): boolean =>
@@ -615,7 +614,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushHeapTimeline(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_HEAP_TIMELINE) {
       const [rangeStart, rangeEnd] = [TraceRow.range?.startNS, TraceRow.range?.endNS];
@@ -647,7 +646,7 @@ export class SelectionParam {
       }
 
       // If the start time range of the selected box is greater than the end time of the sampled data
-    // @ts-ignore
+      // @ts-ignore
       if (startNS! >= it.dataListCache[it.dataListCache.length - 1].timestamp * 1000) {
         // @ts-ignore
         minNodeId = it.dataListCache[it.dataListCache.length - 1].lastAssignedId;
@@ -657,7 +656,7 @@ export class SelectionParam {
         minNodeId = HeapDataInterface.getInstance().getMinNodeId(sp.snapshotFiles!.id);
       }
       //If you select the box from the ending
-    // @ts-ignore
+      // @ts-ignore
       if (endNS! >= rangeEnd! || endNS! >= it.dataListCache[it.dataListCache.length - 1].timestampUs * 1000) {
         maxNodeId = HeapDataInterface.getInstance().getMaxNodeId(sp.snapshotFiles!.id);
       }
@@ -669,7 +668,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushJsCpuProfiler(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
       let isIntersect = (a: JsCpuProfilerStruct, b: RangeSelectStruct): boolean =>
@@ -698,7 +697,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushSysMemoryGpu(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     // @ts-ignore
     if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU) {
@@ -718,7 +717,7 @@ export class SelectionParam {
           this.gpu.gl =
             th.dataListCache.filter(
               (it) =>
-              // @ts-ignore
+                // @ts-ignore
                 (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
                 // @ts-ignore
                 (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -727,7 +726,7 @@ export class SelectionParam {
           this.gpu.graph =
             th.dataListCache.filter(
               (it) =>
-              // @ts-ignore
+                // @ts-ignore
                 (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
                 // @ts-ignore
                 (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -736,7 +735,7 @@ export class SelectionParam {
           this.gpu.gpuTotal =
             th.dataListCache.filter(
               (it) =>
-              // @ts-ignore
+                // @ts-ignore
                 (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
                 // @ts-ignore
                 (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -745,7 +744,7 @@ export class SelectionParam {
           this.gpu.gpuWindow =
             th.dataListCache.filter(
               (it) =>
-              // @ts-ignore
+                // @ts-ignore
                 (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
                 // @ts-ignore
                 (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -755,13 +754,13 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushSDK(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType?.startsWith(TraceRow.ROW_TYPE_SDK)) {
       if (it.rowType === TraceRow.ROW_TYPE_SDK) {
         // @ts-ignore
         let sdkRows: Array<TraceRow<unknown>> = [
-    // @ts-ignore
+          // @ts-ignore
           ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
         ];
         if (!it.expansion) {
@@ -781,7 +780,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushVmTrackerSmaps(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
       this.smapsType.push(...intersectData(it)!);
@@ -802,7 +801,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushIrq(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_IRQ_GROUP) {
       it.childrenList.forEach((child) => {
@@ -825,13 +824,13 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushSysMemoryGpuGl(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
       this.gpu.gl =
         it.dataListCache.filter(
           (it) =>
-          // @ts-ignore
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
             // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -839,11 +838,11 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushFrameDynamic(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC) {
       let appName = it.getAttribute('model-name');
-      let isSelect = (dynamicStruct: FrameDynamicStruct, b: RangeSelectStruct) : boolean =>
+      let isSelect = (dynamicStruct: FrameDynamicStruct, b: RangeSelectStruct): boolean =>
         dynamicStruct.ts >= b.startNS! && dynamicStruct.ts <= b.endNS!;
       let frameDynamicList = it.dataListCache.filter(
         // @ts-ignore
@@ -857,13 +856,13 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushFrameSpacing(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_FRAME_SPACING) {
       let appName = it.getAttribute('model-name');
-      let isSelect = (a: FrameSpacingStruct, b: RangeSelectStruct) : boolean =>
+      let isSelect = (a: FrameSpacingStruct, b: RangeSelectStruct): boolean =>
         a.currentTs >= b.startNS! && a.currentTs <= b.endNS!;
-        // @ts-ignore
+      // @ts-ignore
       let frameDatas = it.dataListCache.filter((frameData: FrameSpacingStruct) => {
         return (
           isSelect(frameData, TraceRow.rangeSelectObject!) &&
@@ -877,14 +876,14 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushFrameAnimation(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_FRAME_ANIMATION) {
       let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct): boolean =>
         Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
           Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
         animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
-        // @ts-ignore
+      // @ts-ignore
       let frameAnimationList = it.dataListCache.filter((frameAnimationBean: FrameAnimationStruct) => {
         return isIntersect(frameAnimationBean, TraceRow.rangeSelectObject!);
       });
@@ -893,13 +892,13 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushSysMemoryGpuWindow(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
       this.gpu.gpuWindow =
         it.dataListCache.filter(
           (it) =>
-          // @ts-ignore
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
             // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -907,13 +906,13 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushSysMemoryGpuTotal(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
       this.gpu.gpuTotal =
         it.dataListCache.filter(
           (it) =>
-          // @ts-ignore
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
             // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -921,13 +920,13 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushSysMemoryGpuGraph(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
       this.gpu.graph =
         it.dataListCache.filter(
           (it) =>
-          // @ts-ignore
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
             // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
@@ -935,7 +934,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushStaticInit(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_STATIC_INIT) {
       this.staticInit = true;
@@ -944,7 +943,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushAppStartUp(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_APP_STARTUP) {
       this.startup = true;
@@ -953,7 +952,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushThread(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_THREAD) {
       sp.pushPidToSelection(this, it.rowParentId!);
@@ -962,7 +961,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushVirtualMemory(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_MEM || it.rowType === TraceRow.ROW_TYPE_VIRTUAL_MEMORY) {
       if (it.rowType === TraceRow.ROW_TYPE_MEM) {
@@ -974,7 +973,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushFps(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_FPS) {
       this.hasFps = true;
@@ -982,7 +981,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushCpuAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_ABILITY) {
       this.cpuAbilityIds.push(it.rowId!);
@@ -990,7 +989,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushMemoryAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_MEMORY_ABILITY) {
       this.memoryAbilityIds.push(it.rowId!);
@@ -998,7 +997,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushDiskAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_DISK_ABILITY) {
       this.diskAbilityIds.push(it.rowId!);
@@ -1006,7 +1005,7 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushNetworkAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_NETWORK_ABILITY) {
       this.networkAbilityIds.push(it.rowId!);
@@ -1014,49 +1013,49 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushDmaAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_DMA_ABILITY) {
       this.dmaAbilityData.push(...intersectData(it)!);
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushGpuMemoryAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY) {
       this.gpuMemoryAbilityData.push(...intersectData(it)!);
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushPowerEnergy(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_POWER_ENERGY) {
       this.powerEnergy.push(it.rowId!);
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushSystemEnergy(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_SYSTEM_ENERGY) {
       this.systemEnergy.push(it.rowId!);
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushAnomalyEnergy(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_ANOMALY_ENERGY) {
       this.anomalyEnergy.push(it.rowId!);
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushVmTrackerShm(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_VMTRACKER_SHM) {
       this.vmtrackershm.push(...intersectData(it)!);
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushClock(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_CLOCK_GROUP) {
       it.childrenList.forEach((it) => {
@@ -1070,21 +1069,21 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushGpuMemoryVmTracker(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
       this.gpuMemoryTrackerData.push(...intersectData(it)!);
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushDmaVmTracker(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_DMA_VMTRACKER) {
       this.dmaVmTrackerData.push(...intersectData(it)!);
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushPugreable(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY) {
       this.purgeableTotalAbility.push(...intersectData(it));
@@ -1100,42 +1099,42 @@ export class SelectionParam {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushPugreablePinAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY) {
       this.purgeablePinAbility.push(...intersectData(it));
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushPugreableTotalVm(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM) {
       this.purgeableTotalVM.push(...intersectData(it));
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushPugreablePinVm(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_VM) {
       this.purgeablePinVM.push(...intersectData(it));
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushLogs(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_LOGS) {
       this.hiLogs.push(it.rowId!);
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushHiSysEvent(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_HI_SYSEVENT) {
       this.hiSysEvents.push(it.rowId!);
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   pushSelection(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     this.pushCpus(it);
     this.pushCpuStateFilterIds(it);

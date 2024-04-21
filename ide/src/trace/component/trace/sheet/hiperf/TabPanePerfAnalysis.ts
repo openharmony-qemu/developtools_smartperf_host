@@ -328,16 +328,26 @@ export class TabPanePerfAnalysis extends BaseElement {
       },
       tip: (perfObj): string => {
         return `<div>
-                                <div>Process:${// @ts-ignore
-                                  perfObj.obj.tableName}</div>
-                                <div>Sample Count:${// @ts-ignore
-                                  perfObj.obj.count}</div>
-                                <div>Percent:${// @ts-ignore
-                                  perfObj.obj.percent}%</div> 
-                                <div>Event Count:${// @ts-ignore
-                                  perfObj.obj.eventCount}</div>
-                                <div>Percent:${// @ts-ignore
-                                  perfObj.obj.eventPercent}%</div> 
+                                <div>Process:${
+                                  // @ts-ignore
+                                  perfObj.obj.tableName
+                                }</div>
+                                <div>Sample Count:${
+                                  // @ts-ignore
+                                  perfObj.obj.count
+                                }</div>
+                                <div>Percent:${
+                                  // @ts-ignore
+                                  perfObj.obj.percent
+                                }%</div> 
+                                <div>Event Count:${
+                                  // @ts-ignore
+                                  perfObj.obj.eventCount
+                                }</div>
+                                <div>Percent:${
+                                  // @ts-ignore
+                                  perfObj.obj.eventPercent
+                                }%</div> 
                             </div>
                                `;
       },
@@ -408,14 +418,14 @@ export class TabPanePerfAnalysis extends BaseElement {
       label: {
         type: 'outer',
       },
-      tip: (obj): string => {
-        return `<div><div>Thread:${// @ts-ignore
-          obj.obj.tableName}</div><div>Sample Count:${// @ts-ignore
-          obj.obj.count}</div>
-<div>Percent:${// @ts-ignore
-  obj.obj.percent}%</div><div>Event Count:${obj.obj.eventCount}</div>
-<div>Percent:${// @ts-ignore
-  obj.obj.eventPercent}%</div>  </div>`;
+      tip: (threadObj): string => {
+        // @ts-ignore
+        const obj = threadObj.obj as AnalysisObj;
+        return `<div><div>Thread:${obj.tableName}</div>
+        <div>Sample Count:${obj.count}</div>
+        <div>Percent:${obj.percent}%</div>
+        <div>Event Count:${obj.eventCount}</div>
+        <div>Percent:${obj.eventPercent}%</div>  </div>`;
       },
       angleClick: (it): void => {
         // @ts-ignore
@@ -467,20 +477,16 @@ export class TabPanePerfAnalysis extends BaseElement {
       label: {
         type: 'outer',
       },
-      tip: (obj): string => {
+      tip: (processObj): string => {
+        // @ts-ignore
+        const obj = processObj.obj as AnalysisObj;
         return `<div>
-                                <div>Library:${// @ts-ignore
-                                  obj.obj.tableName}</div>
-                                <div>Sample Count:${// @ts-ignore
-                                  obj.obj.count}</div>
-                                <div>Percent:${// @ts-ignore
-                                  obj.obj.percent}%</div> 
-                                <div>Event Count:${// @ts-ignore
-                                  obj.obj.eventCount}</div>
-                                <div>Percent:${// @ts-ignore
-                                  obj.obj.eventPercent}%</div>  
-                            </div>
-                                `;
+                <div>Library:${obj.tableName}</div>
+                <div>Sample Count:${obj.count}</div>
+                <div>Percent:${obj.percent}%</div> 
+                <div>Event Count:${obj.eventCount}</div>
+                <div>Percent:${obj.eventPercent}%</div>  
+                </div>`;
       },
       angleClick: (it): void => {
         // @ts-ignore
@@ -1003,7 +1009,9 @@ export class TabPanePerfAnalysis extends BaseElement {
   }
 
   private getTip() {
-    return (obj: { obj: { tableName: unknown; count: unknown; percent: unknown; eventCount: unknown; eventPercent: unknown } }): string => {
+    return (obj: {
+      obj: { tableName: unknown; count: unknown; percent: unknown; eventCount: unknown; eventPercent: unknown };
+    }): string => {
       return `<div>
                     <div>Function:${obj.obj.tableName}</div>
                     <div>Sample Count:${obj.obj.count}</div>

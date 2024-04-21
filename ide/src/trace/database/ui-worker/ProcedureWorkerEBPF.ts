@@ -33,7 +33,7 @@ export class EBPFRender extends PerfRender {
       filter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
-      TraceRow.range?.totalNS ?? 0,// @ts-ignore
+      TraceRow.range?.totalNS ?? 0, // @ts-ignore
       eBPFtemRow.frame,
       groupBy10MS,
       isDiskIO,
@@ -43,7 +43,12 @@ export class EBPFRender extends PerfRender {
     drawEBPF(req, filter, groupBy10MS, eBPFtemRow);
   }
 
-  render(eBPFRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void {}
+  render(
+    eBPFRequest: RequestMessage,
+    list: Array<EBPFChartStruct>,
+    filter: Array<EBPFChartStruct>,
+    dataList2: Array<EBPFChartStruct>
+  ): void {}
 }
 
 function drawEBPF(
@@ -53,7 +58,7 @@ function drawEBPF(
     type: string;
     chartColor: string;
   },
-  filter: any[],
+  filter: EBPFChartStruct[],
   groupBy10MS: boolean,
   eBPFtemRow: TraceRow<EBPFChartStruct>
 ): void {
@@ -91,7 +96,7 @@ function drawEBPF(
 }
 
 export function eBPFChart(
-  eBPFFilters: Array<any>,
+  eBPFFilters: Array<EBPFChartStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
@@ -109,38 +114,42 @@ export function eBPFChart(
   }
 }
 
-function setFrameGroupBy10MS(eBPFFilters: Array<any>, startNS: number, endNS: number, frame: Rect): void {
+function setFrameGroupBy10MS(eBPFFilters: Array<EBPFChartStruct>, startNS: number, endNS: number, frame: Rect): void {
   let pns = (endNS - startNS) / frame.width;
   let y = frame.y;
   for (let i = 0; i < eBPFFilters.length; i++) {
     let it = eBPFFilters[i];
     if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
       if (!it.frame) {
-        it.frame = {};
+        it.frame = new Rect(0, 0, 0, 0);
         it.frame.y = y;
       }
-      it.frame.height = it.height;
+      it.frame.height = it.height!;
       EBPFChartStruct.setFrame(it, pns, startNS, endNS, frame, true);
     } else {
-      it.frame = null;
+      it.frame = undefined;
     }
   }
 }
 
 function setFrameByArr(
-  eBPFFilters: Array<any>,
+  eBPFFilters: Array<EBPFChartStruct>,
   startNS: number,
   endNS: number,
   frame: Rect,
   totalNS: number,
   isDiskIO: boolean
 ): void {
-  let list: Array<any> = [];
+  let list: Array<EBPFChartStruct> = [];
   let pns = (endNS - startNS) / frame.width;
   let y = frame.y;
-  let filter: any[] = [];
+  let filter: EBPFChartStruct[] = [];
   for (let index = 0; index < eBPFFilters.length; index++) {
-    if (eBPFFilters[index].endNS > startNS && (eBPFFilters[index].startNS || 0) < endNS && eBPFFilters[index].dur > 0) {
+    if (
+      eBPFFilters[index].endNS! > startNS &&
+      (eBPFFilters[index].startNS || 0) < endNS &&
+      eBPFFilters[index].dur! > 0
+    ) {
       if (index >= 1 && eBPFFilters[index - 1].endNS === eBPFFilters[index].startNS) {
         continue;
       } else {
@@ -151,14 +160,14 @@ function setFrameByArr(
   }
   eBPFFilters.length = 0;
   list = isDiskIO
-    ? EBPFChartStruct.computeHeightNoGroupLatency(filter, totalNS)
-    : EBPFChartStruct.computeHeightNoGroup(filter, totalNS);
+    ? (EBPFChartStruct.computeHeightNoGroupLatency(filter, totalNS) as Array<EBPFChartStruct>)
+    : (EBPFChartStruct.computeHeightNoGroup(filter, totalNS) as Array<EBPFChartStruct>);
   list.map((it) => {
     if (!it.frame) {
-      it.frame = {};
+      it.frame = new Rect(0, 0, 0, 0);
       it.frame.y = y;
     }
-    if (it.size > 0) {
+    if (it.size && it.size > 0) {
       EBPFChartStruct.setFrame(it, pns, startNS, endNS, frame, false);
       eBPFFilters.push(it);
     }
@@ -183,43 +192,49 @@ export class EBPFChartStruct extends BaseStruct {
   }
 
   static setFrame(
-    eBPFtemNode: any,
+    eBPFtemNode: EBPFChartStruct,
     pns: number,
     startNS: number,
     endNS: number,
-    frame: any,
+    frame: Rect,
     groupBy10MS: boolean
   ): void {
     if ((eBPFtemNode.startNS || 0) < startNS) {
-      eBPFtemNode.frame.x = 0;
+      eBPFtemNode.frame!.x = 0;
     } else {
-      eBPFtemNode.frame.x = Math.floor(((eBPFtemNode.startNS || 0) - startNS) / pns);
+      eBPFtemNode.frame!.x = Math.floor(((eBPFtemNode.startNS || 0) - startNS) / pns);
     }
     if ((eBPFtemNode.startNS || 0) + (eBPFtemNode.dur || 0) > endNS) {
-      eBPFtemNode.frame.width = frame.width - eBPFtemNode.frame.x;
+      eBPFtemNode.frame!.width = frame.width - eBPFtemNode.frame!.x;
     } else {
       if (groupBy10MS) {
-        eBPFtemNode.frame.width = Math.ceil(((eBPFtemNode.endNS || 0) - (eBPFtemNode.startNS || 0)) / pns);
+        eBPFtemNode.frame!.width = Math.ceil(((eBPFtemNode.endNS || 0) - (eBPFtemNode.startNS || 0)) / pns);
       } else {
-        eBPFtemNode.frame.width = Math.ceil(
-          ((eBPFtemNode.startNS || 0) + (eBPFtemNode.dur || 0) - startNS) / pns - eBPFtemNode.frame.x
+        eBPFtemNode.frame!.width = Math.ceil(
+          ((eBPFtemNode.startNS || 0) + (eBPFtemNode.dur || 0) - startNS) / pns - eBPFtemNode.frame!.x
         );
       }
     }
-    if (eBPFtemNode.frame.width < 1) {
-      eBPFtemNode.frame.width = 1;
+    if (eBPFtemNode.frame!.width < 1) {
+      eBPFtemNode.frame!.width = 1;
     }
   }
 
-  static computeHeightNoGroup(array: Array<any>, totalNS: number): Array<any> {
+  static computeHeightNoGroup(array: Array<EBPFChartStruct>, totalNS: number): Array<unknown> {
     if (array.length > 0) {
       let time: Array<{ time: number; type: number }> = [];
       array.map((item) => {
-        time.push({ time: item.startNS, type: 1 });
+        time.push({ time: item.startNS!, type: 1 });
         time.push({ time: item.endNS || totalNS, type: -1 });
       });
       time = time.sort((a, b) => a.time - b.time);
-      let arr: Array<any> = [];
+      let arr: Array<{
+        startNS: number;
+        dur: number;
+        size: number;
+        group10Ms: boolean;
+        height: number;
+      }> = [];
       let first = {
         startNS: time[0].time ?? 0,
         dur: 0,
@@ -253,19 +268,19 @@ export class EBPFChartStruct extends BaseStruct {
     }
   }
 
-  static computeHeightNoGroupLatency(array: Array<any>, totalNS: number): Array<any> {
+  static computeHeightNoGroupLatency(array: Array<EBPFChartStruct>, totalNS: number): Array<unknown> {
     if (array.length > 0) {
       let max = 0;
-      let arr: Array<any> = [];
+      let arr: Array<{ startNS: number; dur: number; size: number; group10Ms: boolean; height: number }> = [];
       for (let io of array) {
         let ioItem = {
-          startNS: io.startNS,
-          dur: io.endNS > totalNS ? totalNS - io.startNS : io.endNS - io.startNS,
-          size: io.dur,
+          startNS: io.startNS!,
+          dur: io.endNS! > totalNS ? totalNS - io.startNS! : io.endNS! - io.startNS!,
+          size: io.dur!,
           group10Ms: false,
           height: 0,
         };
-        max = max > ioItem.size ? max : ioItem.size;
+        max = max > ioItem.size! ? max : ioItem.size!;
         arr.push(ioItem);
       }
       arr.map((it) => {

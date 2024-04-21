@@ -23,7 +23,7 @@ namespace TraceStreamer {
 constexpr size_t G_FILE_PERMISSION = 664;
 constexpr uint8_t RAW_TRACE_PARSE_MAX = 2;
 constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
-bool ParseTraceFile(TraceStreamerSelector& ts, const std::string& tracePath);
+bool ParseTraceFile(TraceStreamerSelector &ts, const std::string &tracePath);
 } // namespace TraceStreamer
 } // namespace SysTuning
 

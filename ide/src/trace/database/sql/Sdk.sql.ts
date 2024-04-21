@@ -20,7 +20,6 @@ import { SdkSliceStruct } from '../ui-worker/ProduceWorkerSdkSlice';
 export const querySdkCount = (sql: string, componentId: number, args?: unknown): Promise<Array<unknown>> =>
   query('querySdkCount', sql, args, 'exec-sdk-' + componentId);
 
-
 export const querySdkCounterData = (
   sql: string,
   counter_id: number,
@@ -53,10 +52,9 @@ export const getTabSdkCounterLeftData = (
   leftNs: number,
   counters: Array<string>,
   componentId: number
-): 
-//@ts-ignore
+): //@ts-ignore
 Promise<Array<unknown>> =>
-//@ts-ignore
+  //@ts-ignore
   query<unknown>(
     'getTabSdkCounterLeftData',
     sqlStr,
@@ -100,7 +98,9 @@ export const querySdkSliceData = (
     { $column_id: column_id, $startNS: startNS, $endNS: endNS },
     'exec-sdk-' + componentId
   );
-export const queryCounterMax = (sqlStr: string, counter_id: number, componentId: number):
-//@ts-ignore
- Promise<Array<unknown>> =>
-  query('queryCounterMax', sqlStr, { $counter_id: counter_id }, 'exec-sdk-' + componentId);
+export const queryCounterMax = (
+  sqlStr: string,
+  counter_id: number,
+  componentId: number
+): //@ts-ignore
+Promise<Array<unknown>> => query('queryCounterMax', sqlStr, { $counter_id: counter_id }, 'exec-sdk-' + componentId);

@@ -47,14 +47,14 @@ export class TabPaneBinders extends BaseElement {
         binderList = result;
       }
       if (binderList.length > 0) {
-        this.threadBindersTbl!.recycleDataSource = this.transferToTreeData(binderList);// @ts-ignore
+        this.threadBindersTbl!.recycleDataSource = this.transferToTreeData(binderList); // @ts-ignore
         this.threadBindersTblSource = this.threadBindersTbl!.recycleDataSource;
-        this.threadBindersTbl!.loading = false;// @ts-ignore
+        this.threadBindersTbl!.loading = false; // @ts-ignore
         this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
       } else if (binderList.length === 0) {
         this.threadBindersTbl!.recycleDataSource = [];
         this.threadBindersTblSource = [];
-        this.threadBindersTbl!.loading = false;// @ts-ignore
+        this.threadBindersTbl!.loading = false; // @ts-ignore
         this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
       }
     });

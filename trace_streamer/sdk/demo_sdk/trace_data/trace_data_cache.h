@@ -26,8 +26,8 @@ using namespace TraceStdtype;
 class TraceDataCache : public DemoTraceDataCacheReader, public DemoTraceDataCacheWriter, public DemoTraceDataDB {
 public:
     TraceDataCache();
-    TraceDataCache(const TraceDataCache* dataCache) = delete;
-    TraceDataCache* operator=(const TraceDataCache* dataCache) = delete;
+    TraceDataCache(const TraceDataCache *dataCache) = delete;
+    TraceDataCache *operator=(const TraceDataCache *dataCache) = delete;
     ~TraceDataCache() override;
     void DemoInitDB() override;
     bool dbInited = false;

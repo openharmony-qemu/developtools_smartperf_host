@@ -18,7 +18,7 @@ import { ThreadStruct, ThreadStructOnClick } from '../database/ui-worker/Procedu
 import { TraceRow } from './trace/base/TraceRow';
 import { JankStruct, JankStructOnClick } from '../database/ui-worker/ProcedureWorkerJank';
 import { HeapSnapshotStruct, HeapSnapshotStructOnClick } from '../database/ui-worker/ProcedureWorkerHeapSnapshot';
-import { FuncStructOnClick } from '../database/ui-worker/ProcedureWorkerFunc';
+import { funcStructOnClick } from '../database/ui-worker/ProcedureWorkerFunc';
 import { CpuFreqStructOnClick } from '../database/ui-worker/ProcedureWorkerFreq';
 import { ClockStructOnClick } from '../database/ui-worker/ProcedureWorkerClock';
 import { SnapshotStructOnClick } from '../database/ui-worker/ProcedureWorkerSnapshot';
@@ -26,7 +26,7 @@ import { IrqStructOnClick } from '../database/ui-worker/ProcedureWorkerIrq';
 import { HeapStructOnClick } from '../database/ui-worker/ProcedureWorkerHeap';
 import { JsCpuProfilerStructOnClick } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { AppStartupStructOnClick } from '../database/ui-worker/ProcedureWorkerAppStartup';
-import { AllAppStartupStructOnClick } from '../database/ui-worker/ProcedureWorkerAllAppStartup';
+import { allAppStartupStructOnClick } from '../database/ui-worker/ProcedureWorkerAllAppStartup';
 import { SoStructOnClick } from '../database/ui-worker/ProcedureWorkerSoInit';
 import { FrameAnimationStructOnClick } from '../database/ui-worker/ProcedureWorkerFrameAnimation';
 import { FrameDynamicStructOnClick } from '../database/ui-worker/ProcedureWorkerFrameDynamic';
@@ -43,6 +43,8 @@ import { CpuStateStructOnClick } from '../database/ui-worker/cpu/ProcedureWorker
 import { CpuFreqLimitsStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { FlagsConfig } from './SpFlags';
 import { LitMainMenu } from '../../base-ui/menu/LitMainMenu';
+import { PerfToolsStructOnClick } from '../database/ui-worker/ProcedureWorkerPerfTool';
+import { BaseStruct } from '../bean/BaseStruct';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -109,22 +111,25 @@ function threadClickHandlerFunc(sp: SpSystemTrace): (e: ThreadStruct) => void {
       },
     ];
     let findEntry = cpuRow!.fixedList[0];
-    sp.rechargeCpuData(// @ts-ignore
-      findEntry,// @ts-ignore
+    sp.rechargeCpuData(
+      // @ts-ignore
+      findEntry, // @ts-ignore
       cpuRow.dataListCache.find((it) => it.startTime > findEntry.startTime)
     );
-    if (// @ts-ignore
-      findEntry!.startTime! + findEntry!.dur! < TraceRow.range!.startNS ||// @ts-ignore
+    if (
+      // @ts-ignore
+      findEntry!.startTime! + findEntry!.dur! < TraceRow.range!.startNS || // @ts-ignore
       findEntry!.startTime! > TraceRow.range!.endNS
     ) {
-      sp.timerShaftEL?.setRangeNS(// @ts-ignore
-        findEntry!.startTime! - findEntry!.dur! * 2,// @ts-ignore
+      sp.timerShaftEL?.setRangeNS(
+        // @ts-ignore
+        findEntry!.startTime! - findEntry!.dur! * 2, // @ts-ignore
         findEntry!.startTime! + findEntry!.dur! + findEntry!.dur! * 2
       );
     }
-    sp.hoverStructNull().selectStructNull().wakeupListNull();// @ts-ignore
-    CpuStruct.hoverCpuStruct = findEntry;// @ts-ignore
-    CpuStruct.selectCpuStruct = findEntry;// @ts-ignore
+    sp.hoverStructNull().selectStructNull().wakeupListNull(); // @ts-ignore
+    CpuStruct.hoverCpuStruct = findEntry; // @ts-ignore
+    CpuStruct.selectCpuStruct = findEntry; // @ts-ignore
     sp.timerShaftEL?.drawTriangle(findEntry!.startTime || 0, 'inverted');
     sp.traceSheetEL?.displayCpuData(
       CpuStruct.selectCpuStruct!,
@@ -154,7 +159,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace): Function {
     let jankRowParent: unknown;
     //@ts-ignore
     if (d.rowId === 'actual frameTime') {
-      jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>('trace-row[row-id=\'frameTime\']');
+      jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>("trace-row[row-id='frameTime']");
     } else {
       jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
         //@ts-ignore
@@ -198,7 +203,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace): Function {
             // 绘制跟自己关联的线
             datas.forEach((data) => {
               //@ts-ignore
-              let endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(// @ts-ignore
+              let endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>( // @ts-ignore
                 `trace-row[row-type='process'][row-id='${data.pid}'][folder]`
               );
               sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data, true);
@@ -217,7 +222,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace): Function {
 function snapshotClickHandlerFunc(sp: SpSystemTrace): Function {
   let snapshotClickHandler = (d: HeapSnapshotStruct): void => {
     sp.observerScrollHeightEnable = true;
-    let snapshotRow = sp.shadowRoot?.querySelector<TraceRow<HeapSnapshotStruct>>('trace-row[row-id=\'heapsnapshot\']');
+    let snapshotRow = sp.shadowRoot?.querySelector<TraceRow<HeapSnapshotStruct>>("trace-row[row-id='heapsnapshot']");
     let task = (): void => {
       if (snapshotRow) {
         let findEntry = snapshotRow!.dataListCache!.find((dat) => dat.startTs === d.startTs);
@@ -266,14 +271,16 @@ function cpuClickHandlerTask(threadRow: TraceRow<unknown>, sp: SpSystemTrace, d:
     sp.timerShaftEL?.drawTriangle(findEntry!.startTime || 0, 'inverted');
     sp.traceSheetEL?.displayThreadData(
       ThreadStruct.selectThreadStruct!,
-      threadClickHandlerFunc(sp),// @ts-ignore
+      threadClickHandlerFunc(sp), // @ts-ignore
       cpuClickHandlerFunc(sp),
       (datas, str): void => {
         sp.removeLinkLinesByBusinessType('thread');
         if (str === 'wakeup tid') {
           datas.forEach((data) => {
             //@ts-ignore
-            let endParentRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>(`trace-row[row-id='${data.pid}'][folder]`);
+            let endParentRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>( //@ts-ignore
+              `trace-row[row-id='${data.pid}'][folder]`
+            );
             sp.drawThreadLine(endParentRow, ThreadStruct.firstselectThreadStruct, data);
           });
         }
@@ -327,24 +334,32 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
 function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<unknown>, entry?: unknown): void {
   CpuStructOnClick(clickRowType, sp, cpuClickHandlerFunc(sp))
     .then(() => ThreadStructOnClick(clickRowType, sp, threadClickHandlerFunc(sp), cpuClickHandlerFunc(sp)))
-    .then(() => FuncStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp), entry))
+    //@ts-ignore
+    .then(() => funcStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp), entry))
     .then(() => CpuFreqStructOnClick(clickRowType, sp))
     .then(() => CpuStateStructOnClick(clickRowType, sp))
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp))
     .then(() => ClockStructOnClick(clickRowType, sp))
+    //@ts-ignore
     .then(() => SnapshotStructOnClick(clickRowType, sp, row!))
     .then(() => IrqStructOnClick(clickRowType, sp))
+    //@ts-ignore
     .then(() => HeapStructOnClick(clickRowType, sp, row))
+    //@ts-ignore
     .then(() => JankStructOnClick(clickRowType, sp, row!, jankClickHandlerFunc(sp)))
+    //@ts-ignore
     .then(() => HeapSnapshotStructOnClick(clickRowType, sp, row!, snapshotClickHandlerFunc(sp)))
+    //@ts-ignore
     .then(() => JsCpuProfilerStructOnClick(clickRowType, sp, row!))
     .then(() => AppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
-    .then(() => AllAppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
-    .then(() => SoStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
+    .then(() => allAppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
+    .then(() => SoStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp))) //@ts-ignore
     .then(() => FrameAnimationStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp), row!))
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
     .then(() => sampleStructOnClick(clickRowType, sp))
+    .then(() => PerfToolsStructOnClick(clickRowType, sp))
+
     .then(() => {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
         sp.removeLinkLinesByBusinessType('janks');
@@ -389,7 +404,7 @@ export default function spSystemTraceOnClickHandler(
   if (row) {
     let pointEvent = sp.createPointEvent(row);
     SpStatisticsHttpUtil.addOrdinaryVisitAction({
-      action: 'trace_row',// @ts-ignore
+      action: 'trace_row', // @ts-ignore
       event: pointEvent,
     });
   }
@@ -476,8 +491,11 @@ function spSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: Li
   }
 }
 
-//@ts-ignore
-function spSystemTraceDocumentOnMouseMoveMouseUp(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
+function spSystemTraceDocumentOnMouseMoveMouseUp(
+  sp: SpSystemTrace, //@ts-ignore
+  rows: Array<TraceRow<unknown>>,
+  ev: MouseEvent
+): void {
   if (!sp.rowsPaneEL!.containPoint(ev, { left: 248 })) {
     sp.hoverStructNull();
   }

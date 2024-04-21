@@ -24,7 +24,7 @@ struct StdevCtx {
     double rSValue;
     int64_t cntValue;
 };
-void ts_create_extend_function(sqlite3* db);
+void ts_create_extend_function(sqlite3 *db);
 } // namespace base
 } // namespace SysTuning
 #endif

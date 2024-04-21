@@ -60,24 +60,25 @@ export class TabPaneNMemory extends BaseElement {
   set data(memoryParam: SelectionParam | unknown) {
     if (memoryParam === this.currentSelection) {
       return;
-    }//@ts-ignore
+    } //@ts-ignore
     this.currentSelection = memoryParam;
     this.queryData(memoryParam);
   }
 
   queryData(memoryParam: SelectionParam | unknown, resetFilter: boolean = true): void {
-    this.eventTypes = [];//@ts-ignore
+    this.eventTypes = []; //@ts-ignore
     if (memoryParam.nativeMemory.indexOf(this.defaultNativeTypes[0]) !== -1) {
       this.eventTypes.push("'AllocEvent'");
       this.eventTypes.push("'MmapEvent'");
-    } else {//@ts-ignore
+    } else {
+      //@ts-ignore
       if (memoryParam.nativeMemory.indexOf(this.defaultNativeTypes[1]) !== -1) {
         this.eventTypes.push("'AllocEvent'");
-      }//@ts-ignore
+      } //@ts-ignore
       if (memoryParam.nativeMemory.indexOf(this.defaultNativeTypes[2]) !== -1) {
         this.eventTypes.push("'MmapEvent'");
       }
-    }//@ts-ignore
+    } //@ts-ignore
     TabPaneNMSampleList.serSelection(memoryParam);
     if (this.memoryTbl) {
       // @ts-ignore
@@ -105,16 +106,17 @@ export class TabPaneNMemory extends BaseElement {
     let args = new Map<string, unknown>();
     args.set('filterAllocType', this.filterAllocationType);
     args.set('filterEventType', this.filterNativeType);
-    args.set('filterResponseType', this.filterResponseType);//@ts-ignore
-    args.set('leftNs', val.leftNs);//@ts-ignore
+    args.set('filterResponseType', this.filterResponseType); //@ts-ignore
+    args.set('leftNs', val.leftNs); //@ts-ignore
     args.set('rightNs', val.rightNs);
     args.set('types', this.eventTypes);
     args.set('refresh', refresh);
     let selections: Array<unknown> = [];
     if (this.statsticsSelection.length > 0) {
       this.statsticsSelection.map((memory) => {
-        selections.push({//@ts-ignore
-          memoryTap: memory.memoryTap,//@ts-ignore
+        selections.push({
+          //@ts-ignore
+          memoryTap: memory.memoryTap, //@ts-ignore
           max: memory.max,
         });
       });
@@ -141,12 +143,15 @@ export class TabPaneNMemory extends BaseElement {
 
   startNmMemoryWorker(type: string, args: unknown, handler: Function): void {
     this.setNmMemoryLoading(true);
-    procedurePool.submitWithName('logic0', type, args, undefined, (res: unknown) => {//@ts-ignore
-      if (Array.isArray(res) || (res.tag === 'end' && res.index === 0)) {//@ts-ignore
+    procedurePool.submitWithName('logic0', type, args, undefined, (res: unknown) => {
+      //@ts-ignore
+      if (Array.isArray(res) || (res.tag === 'end' && res.index === 0)) {
+        //@ts-ignore
         handler(res.data ? res.data : res);
         this.setNmMemoryLoading(false);
-      } else {//@ts-ignore
-        this.memorySource.push(res.data);//@ts-ignore
+      } else {
+        //@ts-ignore
+        this.memorySource.push(res.data); //@ts-ignore
         if (res.tag === 'end') {
           handler(this.memorySource);
           this.setNmMemoryLoading(false);
@@ -158,12 +163,12 @@ export class TabPaneNMemory extends BaseElement {
   setNmMemoryLoading(loading: boolean): void {
     if (loading) {
       this.nmMemoryLoadingList.push(1);
-      this.progressEL!.loading = true;//@ts-ignore
+      this.progressEL!.loading = true; //@ts-ignore
       this.loadingPage.style.visibility = 'visible';
     } else {
       this.nmMemoryLoadingList.splice(0, 1);
       if (this.nmMemoryLoadingList.length === 0) {
-        this.progressEL!.loading = false;//@ts-ignore
+        this.progressEL!.loading = false; //@ts-ignore
         this.loadingPage.style.visibility = 'hidden';
       }
     }
@@ -173,7 +178,8 @@ export class TabPaneNMemory extends BaseElement {
     let nmFilterEl = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     if (this.currentSelection !== val) {
       this.resetFilter();
-      this.initFilterTypes(() => {//@ts-ignore
+      this.initFilterTypes(() => {
+        //@ts-ignore
         this.currentSelection = val;
         let typeIndexOf = this.setFilterNativeTypeSelection(this.currentSelection!);
         this.filterSetSelectList(nmFilterEl!, typeIndexOf);
@@ -181,7 +187,8 @@ export class TabPaneNMemory extends BaseElement {
         this.rowSelectData = undefined;
         this.queryData(val, false);
       });
-    } else {//@ts-ignore
+    } else {
+      //@ts-ignore
       let typeIndexOf = this.setFilterNativeTypeSelection(val);
       this.tblData!.recycleDataSource = [];
       this.rowSelectData = undefined;
@@ -219,7 +226,8 @@ export class TabPaneNMemory extends BaseElement {
       this.nativeType,
       'Allocation Lifespan',
       'Allocation Type',
-      this.responseTypes.map((item: unknown) => {//@ts-ignore
+      this.responseTypes.map((item: unknown) => {
+        //@ts-ignore
         return item.value;
       })
     );
@@ -238,14 +246,15 @@ export class TabPaneNMemory extends BaseElement {
         null,
         this.nativeType,
         'Allocation Lifespan',
-        'Allocation Type',//@ts-ignore
-        res.map((item: unknown) => {//@ts-ignore
+        'Allocation Type', //@ts-ignore
+        res.map((item: unknown) => {
+          //@ts-ignore
           return item.value;
         })
       );
       this.filter!.setFilterModuleSelect('#first-select', 'width', '150px');
       this.filter!.setFilterModuleSelect('#second-select', 'width', '150px');
-      this.filter!.setFilterModuleSelect('#third-select', 'width', '150px');//@ts-ignore
+      this.filter!.setFilterModuleSelect('#third-select', 'width', '150px'); //@ts-ignore
       this.responseTypes = res;
       this.rowSelectData = undefined;
       if (initCallback) {
@@ -281,13 +290,15 @@ export class TabPaneNMemory extends BaseElement {
         })
       );
     });
-    this.memoryTbl!.addEventListener('column-click', (evt: unknown) => {//@ts-ignore
-      this.sortColumn = evt.detail.key;//@ts-ignore
+    this.memoryTbl!.addEventListener('column-click', (evt: unknown) => {
+      //@ts-ignore
+      this.sortColumn = evt.detail.key; //@ts-ignore
       this.sortType = evt.detail.sort;
       this.getDataByNativeMemoryWorker(this.currentSelection);
     });
     this.setItemTextHandleMapByMemoryTbl();
-    this.memoryTbl!.exportTextHandleMap.set('heapSize', (value) => {// @ts-ignore
+    this.memoryTbl!.exportTextHandleMap.set('heapSize', (value) => {
+      // @ts-ignore
       return `${value['heapSize']}`;
     });
     this.shadowRoot?.querySelector<TabPaneFilter>('#filter')!.getFilterData((data: FilterData) => {
@@ -299,7 +310,7 @@ export class TabPaneNMemory extends BaseElement {
         this.filterResponseSelect = data.thirdSelect || '0';
         let thirdIndex = parseInt(data.thirdSelect || '0');
         if (this.responseTypes.length > thirdIndex) {
-          this.filterResponseType =//@ts-ignore
+          this.filterResponseType = //@ts-ignore
             this.responseTypes[thirdIndex].key === undefined ? -1 : this.responseTypes[thirdIndex].key;
         }
         this.getDataByNativeMemoryWorker(this.currentSelection);
@@ -310,19 +321,21 @@ export class TabPaneNMemory extends BaseElement {
 
   private setItemTextHandleMapByMemoryTbl(): void {
     this.memoryTbl!.itemTextHandleMap.set('startTs', (startTs) => {
-      return SpNativeMemoryChart.REAL_TIME_DIF === 0// @ts-ignore
-        ? getTimeString(startTs)// @ts-ignore
+      return SpNativeMemoryChart.REAL_TIME_DIF === 0 // @ts-ignore
+        ? getTimeString(startTs) // @ts-ignore
         : formatRealDateMs(startTs + SpNativeMemoryChart.REAL_TIME_DIF);
     });
-    this.memoryTbl!.itemTextHandleMap.set('endTs', (endTs) => {// @ts-ignore
-      return endTs > this.currentSelection!.leftNs &&// @ts-ignore
+    this.memoryTbl!.itemTextHandleMap.set('endTs', (endTs) => {
+      // @ts-ignore
+      return endTs > this.currentSelection!.leftNs && // @ts-ignore
         endTs <= this.currentSelection!.rightNs &&
         endTs !== 0 &&
         endTs !== null
         ? 'Freed'
         : 'Existing';
     });
-    this.memoryTbl!.itemTextHandleMap.set('heapSize', (heapSize) => {// @ts-ignore
+    this.memoryTbl!.itemTextHandleMap.set('heapSize', (heapSize) => {
+      // @ts-ignore
       return getByteWithUnit(heapSize);
     });
   }
@@ -338,24 +351,27 @@ export class TabPaneNMemory extends BaseElement {
               let checkTs = timeArr[0];
               let minTs = 0;
               let minItem: unknown = undefined;
-              let filterTemp = this.memorySource.filter((tempItem) => {//@ts-ignore
-                if (minTs === 0 || (tempItem.startTs - checkTs !== 0 && Math.abs(tempItem.startTs - checkTs) < minTs)) {//@ts-ignore
+              let filterTemp = this.memorySource.filter((tempItem) => {
+                //@ts-ignore
+                if (minTs === 0 || (tempItem.startTs - checkTs !== 0 && Math.abs(tempItem.startTs - checkTs) < minTs)) {
+                  //@ts-ignore
                   minTs = Math.abs(tempItem.startTs - checkTs);
                   minItem = tempItem;
-                }//@ts-ignore
+                } //@ts-ignore
                 return tempItem.startTs === checkTs;
               });
-              if (filterTemp.length > 0) {//@ts-ignore
+              if (filterTemp.length > 0) {
+                //@ts-ignore
                 filterTemp[0].isSelected = true;
               } else {
                 if (minItem) {
-                  filterTemp.push(minItem);//@ts-ignore
+                  filterTemp.push(minItem); //@ts-ignore
                   minItem.isSelected = true;
                 }
               }
               if (filterTemp.length > 0) {
                 this.rowSelectData = filterTemp[0];
-                let args = new Map<string, unknown>();//@ts-ignore
+                let args = new Map<string, unknown>(); //@ts-ignore
                 args.set('startTs', this.rowSelectData.startTs);
                 args.set('actionType', 'native-memory-state-change');
                 this.startNmMemoryWorker('native-memory-action', args, (results: unknown[]) => {});
@@ -386,7 +402,7 @@ export class TabPaneNMemory extends BaseElement {
             this.parentElement!.clientHeight - 10 - 31
           }px`;
         }
-        this.tblData?.reMeauseHeight();//@ts-ignore
+        this.tblData?.reMeauseHeight(); //@ts-ignore
         this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);

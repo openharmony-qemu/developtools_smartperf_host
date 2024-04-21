@@ -54,9 +54,9 @@ export const chartHiperfCallChartDataSql = (args: unknown): string => {
   const sql = `
     select callchain_id                             as callchainId,
            timestamp_trace - ${
-            // @ts-ignore
-            args.recordStartNS
-          }  as startTs,
+             // @ts-ignore
+             args.recordStartNS
+           }  as startTs,
            event_count                              as eventCount,
            A.thread_id                              as threadId,
            cpu_id                                   as cpuId,
@@ -331,7 +331,7 @@ function combinePerfSampleByCallChainId(sampleList: Array<unknown>, params: unkn
 function combineChartData(samples: unknown, params: unknown): Array<unknown> {
   let combineSample: unknown = [];
   // 遍历sample表查到的数据，并且为其匹配相应的callchain数据
-            // @ts-ignore
+  // @ts-ignore
   for (let sample of samples) {
     let stackTop = dataCache.callstack.get(`${sample.callchainId}-0`);
     if (stackTop) {
@@ -346,7 +346,7 @@ function combineChartData(samples: unknown, params: unknown): Array<unknown> {
       sample.children = [];
       sample.children.push(stackTopSymbol);
       // 每一项都和combineSample对比
-            // @ts-ignore
+      // @ts-ignore
       if (combineSample.length === 0) {
         // @ts-ignore
         combineSample.push(sample);

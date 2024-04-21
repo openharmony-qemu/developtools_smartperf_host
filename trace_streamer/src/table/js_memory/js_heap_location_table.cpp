@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { FILE_ID = 0, OBJECT_INDEX, SCRIPT_ID, LINE, COLUMN };
-JsHeapLocationTable::JsHeapLocationTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+JsHeapLocationTable::JsHeapLocationTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("object_index", "INTEGER"));
@@ -35,7 +35,7 @@ std::unique_ptr<TableBase::Cursor> JsHeapLocationTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-JsHeapLocationTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+JsHeapLocationTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstJsHeapLocationData().Size())),
       jsHeapLocation_(dataCache->GetConstJsHeapLocationData())
 {

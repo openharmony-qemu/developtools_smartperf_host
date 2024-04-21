@@ -44,8 +44,9 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     this.loadingPage.style.visibility = 'visible';
     this.vmStatisticsSelectionParam = vmStatisticsSelection;
     // @ts-ignore
-    this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-      `${this.parentElement!.clientHeight - 20}px`;
+    this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${
+      this.parentElement!.clientHeight - 20
+    }px`;
     this.queryDataByDB(vmStatisticsSelection);
   }
 
@@ -80,8 +81,9 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     new ResizeObserver((): void => {
       if (this.parentElement!.clientHeight !== 0) {
         // @ts-ignore
-        this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-          `${this.parentElement!.clientHeight - 10 - 32}px`;
+        this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${
+          this.parentElement!.clientHeight - 10 - 32
+        }px`;
         this.vmStatisticsTbl!.reMeauseHeight();
         this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }

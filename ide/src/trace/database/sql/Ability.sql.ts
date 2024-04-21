@@ -345,8 +345,8 @@ export const queryPacketsOutAbilityData = (): Promise<Array<NetworkAbilityMonito
         (t.ts - TR.start_ts) as startNS
         from network t, trace_range AS TR;`
   );
-export const queryAbilityExits = ()://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryAbilityExits = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryAbilityExits',
     `select 
@@ -355,8 +355,8 @@ export const queryAbilityExits = ()://@ts-ignore
       where s.event_name in ('trace_diskio','trace_network', 'trace_cpu_usage','sys_memory') 
       and s.stat_type ='received' and s.count > 0`
   );
-export const queryCPuAbilityMaxData = ()://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryCPuAbilityMaxData = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryCPuAbilityMaxData',
     `select ifnull(max(total_load),0) as totalLoad, 
@@ -395,8 +395,10 @@ export const queryDmaAbilityData = (): Promise<Array<SnapshotStruct>> =>
     LIMIT 1;`
   );
 // Ability Monitor Purgeable泳道图
-export const queryPurgeableSysData = (isPin?: boolean)://@ts-ignore
- Promise<Array<unknown>> => {
+export const queryPurgeableSysData = (
+  isPin?: boolean
+): //@ts-ignore
+Promise<Array<unknown>> => {
   const pinCondition = isPin ? ' AND a.ref_count > 0' : '';
   const names = isPin ? " ('sys.mem.pined.purg')" : "('sys.mem.active.purg','sys.mem.inactive.purg')";
   return query(
@@ -442,8 +444,8 @@ export const querySysPurgeableTab = (
   rightNs: number,
   dur: number,
   isPin?: boolean
-)://@ts-ignore
- Promise<Array<unknown>> => {
+): //@ts-ignore
+Promise<Array<unknown>> => {
   let pinsql = isPin ? ' AND ref_count > 0' : '';
   const names = isPin ? " ('sys.mem.pined.purg')" : "('sys.mem.active.purg','sys.mem.inactive.purg')";
   return query(
@@ -484,8 +486,11 @@ export const querySysPurgeableTab = (
 };
 
 //Ability Monitor Purgeable 点选 tab页
-export const querySysPurgeableSelectionTab = (startNs: number, isPin?: boolean)://@ts-ignore
- Promise<Array<unknown>> => {
+export const querySysPurgeableSelectionTab = (
+  startNs: number,
+  isPin?: boolean
+): //@ts-ignore
+Promise<Array<unknown>> => {
   const pinSql = isPin ? ' AND ref_count > 0' : '';
   const names = isPin ? " ('sys.mem.pined.purg')" : "('sys.mem.active.purg','sys.mem.inactive.purg')";
   return query(

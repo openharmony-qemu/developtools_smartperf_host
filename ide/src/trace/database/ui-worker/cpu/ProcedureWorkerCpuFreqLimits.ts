@@ -20,6 +20,7 @@ import {
   ns2x,
   Render,
   drawLoadingFrame,
+  Rect,
 } from '../ProcedureWorkerCommon';
 import { ColorUtils } from '../../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
@@ -157,12 +158,12 @@ export class CpuFreqLimitsStruct extends BaseStruct {
   }
 
   static setFreqLimitFrame(
-    freqLimitNode: any,
+    freqLimitNode: CpuFreqLimitsStruct,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
     let x1: number;
     let x2: number;
@@ -178,7 +179,7 @@ export class CpuFreqLimitsStruct extends BaseStruct {
     }
     let cpuFreqLimitsGetV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
     if (!freqLimitNode.frame) {
-      freqLimitNode.frame = {};
+      freqLimitNode.frame = new Rect(0, 0, 0, 0);
     }
     freqLimitNode.frame.x = Math.floor(x1);
     freqLimitNode.frame.y = frame.y + padding;

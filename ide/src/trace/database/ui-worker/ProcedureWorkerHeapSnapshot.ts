@@ -32,7 +32,7 @@ export class HeapSnapshotRender extends Render {
       filter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
-      (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0),// @ts-ignore
+      (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0), // @ts-ignore
       row.frame
     );
     drawLoadingFrame(req.context, filter, row);
@@ -67,8 +67,8 @@ const padding = 3;
 export function HeapSnapshotStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  row: TraceRow<any>,
-  snapshotClickHandler: any
+  row: TraceRow<HeapSnapshotStruct>,
+  snapshotClickHandler: unknown
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_HEAP_SNAPSHOT) {
@@ -82,6 +82,7 @@ export function HeapSnapshotStructOnClick(
         sp.traceSheetEL?.displaySnapshotData(
           HeapSnapshotStruct.selectSnapshotStruct!,
           row!.dataListCache,
+          //@ts-ignore
           snapshotClickHandler
         );
       }

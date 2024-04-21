@@ -421,7 +421,11 @@ export class TabPaneFilter extends BaseElement {
     return html;
   }
 
-  private getSelectFirstListHtml(firstTitle: string, firstList: Array<unknown> | null | undefined, html: string): string {
+  private getSelectFirstListHtml(
+    firstTitle: string,
+    firstList: Array<unknown> | null | undefined,
+    html: string
+  ): string {
     if (firstList) {
       html += `<lit-select default-value="" id="first-select" class="spacing" placeholder="please choose">`;
       if (firstTitle !== '') {
@@ -605,7 +609,11 @@ export class TabPaneFilter extends BaseElement {
                         
                         <div id="title" title="${
                           // @ts-ignore
-                          a.name}">${a.name}</div></div>`;
+                          a.name
+                        }">${
+        // @ts-ignore
+        a.name
+      }</div></div>`;
     });
 
     this.shadowRoot!.querySelector<HTMLDivElement>('#mining-row')!.innerHTML = html;
@@ -649,7 +657,11 @@ export class TabPaneFilter extends BaseElement {
                         } style="display: flex"></lit-check-box>
                         <div id="title" title="${
                           // @ts-ignore
-                          a.name}">${a.name}</div></div>`;
+                          a.name
+                        }">${
+        // @ts-ignore
+        a.name
+      }</div></div>`;
     });
 
     this.shadowRoot!.querySelector<HTMLDivElement>('#library-row')!.innerHTML = html;

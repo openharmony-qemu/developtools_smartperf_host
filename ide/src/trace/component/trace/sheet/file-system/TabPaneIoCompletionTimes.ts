@@ -83,7 +83,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
             this.parentElement!.clientHeight - 10 - 33
           }px`;
           this.ioCompletionTimesTblData.reMeauseHeight();
-        }// @ts-ignore
+        } // @ts-ignore
         this.ioCompletionTimesLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
@@ -102,7 +102,8 @@ export class TabPaneIoCompletionTimes extends BaseElement {
         'fileSystem-queryStack',
         { callchainId: ioCompletionTimeData.callchainId },
         undefined,
-        (res: unknown) => {// @ts-ignore
+        (res: unknown) => {
+          // @ts-ignore
           this.ioCompletionTimesTblData!.recycleDataSource = res;
         }
       );
@@ -140,34 +141,38 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     filter!.firstSelect = '0';
   }
 
-  async fromStastics(ioCompletionTimeParam: SelectionParam | unknown): Promise<void> {// @ts-ignore
+  async fromStastics(ioCompletionTimeParam: SelectionParam | unknown): Promise<void> {
+    // @ts-ignore
     if (ioCompletionTimeParam.fileSystemIoData === undefined) {
       return;
     }
     this.ioCompletionTimesTblData!.recycleDataSource = [];
     this.ioCompletionTimesTblData?.clearAllSelection(undefined);
     let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter');
-    if (this.currentSelection !== ioCompletionTimeParam) {// @ts-ignore
+    if (this.currentSelection !== ioCompletionTimeParam) {
+      // @ts-ignore
       await this.initFilterTypes(ioCompletionTimeParam);
-    }// @ts-ignore
+    } // @ts-ignore
     let typeIndexOf = this.native_type.indexOf(ioCompletionTimeParam.fileSystemIoData.path.value);
-    if (typeIndexOf === -1) {// @ts-ignore
-      this.ioCompletionTimesSelection.push(ioCompletionTimeParam.fileSystemIoData.path);// @ts-ignore
+    if (typeIndexOf === -1) {
+      // @ts-ignore
+      this.ioCompletionTimesSelection.push(ioCompletionTimeParam.fileSystemIoData.path); // @ts-ignore
       this.native_type.push(ioCompletionTimeParam.fileSystemIoData.path.value);
       typeIndexOf = this.native_type.length - 1;
     }
-    if (this.currentSelection !== ioCompletionTimeParam) {// @ts-ignore
+    if (this.currentSelection !== ioCompletionTimeParam) {
+      // @ts-ignore
       this.currentSelection = ioCompletionTimeParam;
       filter!.setSelectList(this.native_type, null, 'Tier');
-      filter!.firstSelect = `${typeIndexOf}`;// @ts-ignore
+      filter!.firstSelect = `${typeIndexOf}`; // @ts-ignore
       this.queryData(ioCompletionTimeParam);
     } else {
       if (typeIndexOf === parseInt(filter!.firstSelect)) {
         return;
       }
       filter!.setSelectList(this.native_type, null, 'Tier');
-      filter!.firstSelect = `${typeIndexOf}`;// @ts-ignore
-      this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);// @ts-ignore
+      filter!.firstSelect = `${typeIndexOf}`; // @ts-ignore
+      this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined); // @ts-ignore
       ioCompletionTimeParam.fileSystemIoData = undefined;
       this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
     }
@@ -175,7 +180,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
 
   queryData(ioCompletionTimeParam: SelectionParam): void {
     this.ioCompletionTimesLoadingList.push(1);
-    this.ioCompletionTimesProgressEL!.loading = true;// @ts-ignore
+    this.ioCompletionTimesProgressEL!.loading = true; // @ts-ignore
     this.ioCompletionTimesLoadingPage.style.visibility = 'visible';
     this.ioCompletionTimesSource = [];
     this.ioCompletionTimesQueryDataSource = [];
@@ -188,18 +193,19 @@ export class TabPaneIoCompletionTimes extends BaseElement {
         diskIOipids: ioCompletionTimeParam.diskIOipids,
       },
       undefined,
-      (res: unknown): void => {// @ts-ignore
-        this.ioCompletionTimesSource = this.ioCompletionTimesSource.concat(res.data);// @ts-ignore
+      (res: unknown): void => {
+        // @ts-ignore
+        this.ioCompletionTimesSource = this.ioCompletionTimesSource.concat(res.data); // @ts-ignore
         this.ioCompletionTimesQueryDataSource = this.ioCompletionTimesQueryDataSource.concat(res.data);
         // @ts-ignore
         this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);
-        ioCompletionTimeParam.fileSystemIoData = undefined;// @ts-ignore
-        res.data = null;// @ts-ignore
+        ioCompletionTimeParam.fileSystemIoData = undefined; // @ts-ignore
+        res.data = null; // @ts-ignore
         if (!res.isSending) {
           this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
           this.ioCompletionTimesLoadingList.splice(0, 1);
           if (this.ioCompletionTimesLoadingList.length === 0) {
-            this.ioCompletionTimesProgressEL!.loading = false;// @ts-ignore
+            this.ioCompletionTimesProgressEL!.loading = false; // @ts-ignore
             this.ioCompletionTimesLoadingPage.style.visibility = 'hidden';
           }
         }
@@ -216,9 +222,10 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     if (parseInt(firstSelect) <= this.defaultNativeTypes.length - 1) {
       let index = parseInt(firstSelect);
       tier = index === 0 ? -1 : parseInt(this.defaultNativeTypes[index]);
-    } else if (pathTypeData !== undefined) {// @ts-ignore
-      tier = parseInt(pathTypeData.tier);// @ts-ignore
-      path = pathTypeData.path || '';// @ts-ignore
+    } else if (pathTypeData !== undefined) {
+      // @ts-ignore
+      tier = parseInt(pathTypeData.tier); // @ts-ignore
+      path = pathTypeData.path || ''; // @ts-ignore
       pid = pathTypeData.pid || -1;
     } else {
       return;
@@ -255,26 +262,31 @@ export class TabPaneIoCompletionTimes extends BaseElement {
   private sortHandle(arr: IoCompletionTimes[], ioCompletionTimesKey: string, type: number): void {
     arr.sort((ioCompletionTimesA, ioCompletionTimesB): number => {
       if (ioCompletionTimesKey === 'startTsStr') {
-        return type === 1 ? ioCompletionTimesA.startTs - ioCompletionTimesB.startTs :
-          ioCompletionTimesB.startTs - ioCompletionTimesA.startTs;
+        return type === 1
+          ? ioCompletionTimesA.startTs - ioCompletionTimesB.startTs
+          : ioCompletionTimesB.startTs - ioCompletionTimesA.startTs;
       } else if (ioCompletionTimesKey === 'durStr') {
-        return type === 1 ? ioCompletionTimesA.dur - ioCompletionTimesB.dur :
-          ioCompletionTimesB.dur - ioCompletionTimesA.dur;
+        return type === 1
+          ? ioCompletionTimesA.dur - ioCompletionTimesB.dur
+          : ioCompletionTimesB.dur - ioCompletionTimesA.dur;
       } else if (ioCompletionTimesKey === 'process') {
         return this.sortProcessCase(ioCompletionTimesA, ioCompletionTimesB, type);
       } else if (ioCompletionTimesKey === 'durPer4kStr') {
-        return type === 1 ? ioCompletionTimesA.durPer4k - ioCompletionTimesB.durPer4k :
-          ioCompletionTimesB.durPer4k - ioCompletionTimesA.durPer4k;
+        return type === 1
+          ? ioCompletionTimesA.durPer4k - ioCompletionTimesB.durPer4k
+          : ioCompletionTimesB.durPer4k - ioCompletionTimesA.durPer4k;
       } else if (ioCompletionTimesKey === 'thread') {
         return this.sortThreadCase(ioCompletionTimesA, ioCompletionTimesB, type);
       } else if (ioCompletionTimesKey === 'operation') {
         return this.sortOperationCase(ioCompletionTimesA, ioCompletionTimesB, type);
       } else if (ioCompletionTimesKey === 'sizeStr') {
-        return type === 1 ? ioCompletionTimesA.size - ioCompletionTimesB.size :
-          ioCompletionTimesB.size - ioCompletionTimesA.size;
+        return type === 1
+          ? ioCompletionTimesA.size - ioCompletionTimesB.size
+          : ioCompletionTimesB.size - ioCompletionTimesA.size;
       } else if (ioCompletionTimesKey === 'tier') {
-        return type === 1 ? ioCompletionTimesA.tier - ioCompletionTimesB.tier:
-          ioCompletionTimesB.tier - ioCompletionTimesA.tier;
+        return type === 1
+          ? ioCompletionTimesA.tier - ioCompletionTimesB.tier
+          : ioCompletionTimesB.tier - ioCompletionTimesA.tier;
       } else {
         return 0;
       }

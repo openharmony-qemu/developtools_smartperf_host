@@ -52,13 +52,13 @@ export function processSoInitDataSender(pid: number, row: TraceRow<SoStruct>): P
 }
 
 function arrayBufferHandler(buffers: unknown, len: number): SoStruct[] {
-  let outArr: SoStruct[] = [];//@ts-ignore
-  let id = new Int32Array(buffers.id);//@ts-ignore
-  let depth = new Int32Array(buffers.depth);//@ts-ignore
-  let pid = new Int32Array(buffers.pid);//@ts-ignore
-  let tid = new Int32Array(buffers.tid);//@ts-ignore
-  let itid = new Int32Array(buffers.itid);//@ts-ignore
-  let startTs = new Float64Array(buffers.startTs);//@ts-ignore
+  let outArr: SoStruct[] = []; //@ts-ignore
+  let id = new Int32Array(buffers.id); //@ts-ignore
+  let depth = new Int32Array(buffers.depth); //@ts-ignore
+  let pid = new Int32Array(buffers.pid); //@ts-ignore
+  let tid = new Int32Array(buffers.tid); //@ts-ignore
+  let itid = new Int32Array(buffers.itid); //@ts-ignore
+  let startTs = new Float64Array(buffers.startTs); //@ts-ignore
   let dur = new Float64Array(buffers.dur);
   for (let i = 0; i < len; i++) {
     outArr.push({

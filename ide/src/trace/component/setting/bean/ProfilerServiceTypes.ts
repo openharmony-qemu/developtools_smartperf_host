@@ -459,7 +459,7 @@ export interface NativeHookConfig {
   sampleInterval?: number;
   expandPids?: number[];
   responseLibraryMode?: boolean;
-  jsStackReport?: boolean;
+  jsStackReport?: number;
   maxJsStackDepth?: number;
   filterNapiName?: string;
 }

@@ -50,10 +50,10 @@ export class SpSchedulingAnalysis extends BaseElement {
   init(): void {
     if (SpSchedulingAnalysis.traceChange) {
       SpSchedulingAnalysis.traceChange = false;
-      this.tabs!.activekey = '1';//@ts-ignore
-      SpSchedulingAnalysis.startTs = (window as unknown).recordStartNS;//@ts-ignore
+      this.tabs!.activekey = '1'; //@ts-ignore
+      SpSchedulingAnalysis.startTs = (window as unknown).recordStartNS; //@ts-ignore
       SpSchedulingAnalysis.endTs = (window as unknown).recordEndNS;
-      SpSchedulingAnalysis.totalDur = SpSchedulingAnalysis.endTs - SpSchedulingAnalysis.startTs;//@ts-ignore
+      SpSchedulingAnalysis.totalDur = SpSchedulingAnalysis.endTs - SpSchedulingAnalysis.startTs; //@ts-ignore
       SpSchedulingAnalysis.cpuCount = (window as unknown).cpuCount;
       this.tabCpuAnalysis?.init();
       this.tabThreadAnalysis?.init();

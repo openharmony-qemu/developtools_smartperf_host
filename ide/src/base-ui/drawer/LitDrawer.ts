@@ -260,7 +260,8 @@ export class LitDrawer extends BaseElement {
   get placement(): string | null {
     return this.getAttribute('placement');
   }
-  set placement(value: unknown) {// @ts-ignore
+  set placement(value: unknown) {
+    // @ts-ignore
     this.setAttribute('placement', value);
   }
   get drawerTitle(): string {
@@ -274,7 +275,8 @@ export class LitDrawer extends BaseElement {
     return this.getAttribute('visible') !== null;
   }
   set visible(value: unknown) {
-    if (value) {// @ts-ignore
+    if (value) {
+      // @ts-ignore
       this.setAttribute('visible', value);
     } else {
       this.removeAttribute('visible');
@@ -316,20 +318,23 @@ export class LitDrawer extends BaseElement {
   initElements(): void {
     let bg: HTMLDivElement | null = this.shadowRoot!.querySelector('.bg');
     if (this.maskCloseable) {
-      bg!.onclick = (e: unknown): void => {// @ts-ignore
+      bg!.onclick = (e: unknown): void => {
+        // @ts-ignore
         e.stopPropagation();
-        this.visible = false;// @ts-ignore
+        this.visible = false; // @ts-ignore
         this.dispatchEvent(new CustomEvent('onClose', e));
       };
     }
-    if (this.closeable) {// @ts-ignore
+    if (this.closeable) {
+      // @ts-ignore
       (this.shadowRoot!.querySelector('.close-icon') as unknown).onclick = (e: unknown): void => {
-        this.visible = false;// @ts-ignore
+        this.visible = false; // @ts-ignore
         this.dispatchEvent(new CustomEvent('onClose', e));
       };
     }
   }
-  set onClose(fn: unknown) {// @ts-ignore
+  set onClose(fn: unknown) {
+    // @ts-ignore
     this.addEventListener('onClose', fn);
   }
   //当 custom element从文档DOM中删除时，被调用。

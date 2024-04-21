@@ -42,14 +42,14 @@ constexpr int32_t DETERMINE_CONTINUE = 2;
 constexpr int32_t DETERMINE_RETURN = 3;
 class PtreaderParser : public ParserBase {
 public:
-    PtreaderParser(TraceDataCache* dataCache,
-                   const TraceStreamerFilters* filters,
+    PtreaderParser(TraceDataCache *dataCache,
+                   const TraceStreamerFilters *filters,
                    TraceFileType fileType = TRACE_FILETYPE_BY_TRACE);
     ~PtreaderParser();
 
     template <typename Iterator>
-    int32_t WhileDetermine(Iterator& determine, Iterator& packagesBegin, bool& isParsingOver_, bool isFinish);
-    int32_t GotoDetermine(std::string& bufferLine, bool& haveSplitSeg);
+    int32_t WhileDetermine(Iterator &determine, Iterator &packagesBegin, bool &isParsingOver_, bool isFinish);
+    int32_t GotoDetermine(std::string &bufferLine, bool &haveSplitSeg);
 
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish = false) override;
     size_t ParsedTraceValidLines() const
@@ -78,7 +78,7 @@ public:
     {
         return maxSplitPos_;
     }
-    const auto& GetPtreaderSplitData()
+    const auto &GetPtreaderSplitData()
     {
         return mPtreaderSplitData_;
     }
@@ -96,39 +96,39 @@ public:
 
 private:
     bool UpdateSplitPos();
-    void ParseTraceDataItem(const std::string& buffer) override;
+    void ParseTraceDataItem(const std::string &buffer) override;
 #ifdef ENABLE_BYTRACE
     int32_t GetNextSegment();
-    void GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLine) const;
+    void GetDataSegAttr(DataSegment &seg, const std::smatch &matcheLine) const;
     inline static bool IsNotSpace(char c)
     {
         return !std::isspace(c);
     }
-    inline static bool IsTraceComment(const std::string& buffer)
+    inline static bool IsTraceComment(const std::string &buffer)
     {
         return ((buffer[0] == '#') || buffer.find("TASK-PID") != std::string::npos);
     }
-    inline static bool IsHtmlTrace(const std::string& buffer)
+    inline static bool IsHtmlTrace(const std::string &buffer)
     {
         std::string lower(buffer);
         transform(buffer.begin(), buffer.end(), lower.begin(), ::tolower);
         return ((lower.compare(0, std::string("<!doctype html>").length(), "<!doctype html>") == 0) ||
                 (lower.compare(0, std::string("<html>").length(), "<html>") == 0));
     }
-    inline static bool IsHtmlTraceBegin(const std::string& buffer)
+    inline static bool IsHtmlTraceBegin(const std::string &buffer)
     {
         return buffer.find(R"(<script class="trace-data" type="application/text">)") != std::string::npos;
     }
-    std::string StrTrim(const std::string& input) const;
-    void ParserData(DataSegment& seg);
+    std::string StrTrim(const std::string &input) const;
+    void ParserData(DataSegment &seg);
     void ParseThread();
-    bool FilterData(DataSegment& seg);
+    bool FilterData(DataSegment &seg);
     void FilterThread();
 #endif
 
 private:
     TraceFileType fileType_ = TRACE_FILETYPE_BY_TRACE;
-    TraceDataCache* traceDataCache_;
+    TraceDataCache *traceDataCache_;
 #ifdef ENABLE_BYTRACE
     std::unique_ptr<BytraceEventParser> bytraceEventParser_;
     const std::regex bytraceMatcher_ = std::regex(R"(-(\d+)\s+\(?\s*(\d+|-+)?\)?\s?\[(\d+)\]\s*)"

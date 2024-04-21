@@ -32,17 +32,17 @@ constexpr uint32_t FTRACE_PAGE_SIZE = 4096;
 constexpr uint32_t RMQ_ENTRY_ALIGN_MASK = (1 << 2) - 1;
 class FtraceProcessor {
 public:
-    FtraceProcessor(TraceDataCache* traceDataCache);
+    FtraceProcessor(TraceDataCache *traceDataCache);
     ~FtraceProcessor();
 
-    bool SetupEvent(const std::string& desc);
+    bool SetupEvent(const std::string &desc);
 
-    bool HandlePage(FtraceCpuDetailMsg& cpuMsg,
-                    CpuDetailParser& cpuDetailParser,
+    bool HandlePage(FtraceCpuDetailMsg &cpuMsg,
+                    CpuDetailParser &cpuDetailParser,
                     uint8_t page[],
-                    bool& haveSplitSeg,
+                    bool &haveSplitSeg,
                     size_t size = FTRACE_PAGE_SIZE);
-    bool IsSplitCpuTimeStampData(uint64_t CurTimeStamp, bool& haveSplitSeg)
+    bool IsSplitCpuTimeStampData(uint64_t CurTimeStamp, bool &haveSplitSeg)
     {
         if (traceDataCache_->SplitFileMinTime() <= CurTimeStamp &&
             traceDataCache_->SplitFileMaxTime() >= CurTimeStamp) {
@@ -51,41 +51,41 @@ public:
         }
         return false;
     }
-    void HmProcessPageTraceDataEvents(RmqConsumerData* rmqData,
+    void HmProcessPageTraceDataEvents(RmqConsumerData *rmqData,
                                       uint64_t timeStampBase,
-                                      FtraceCpuDetailMsg& cpuMsg,
-                                      CpuDetailParser& cpuDetailParser,
-                                      bool& haveSplitSeg);
-    bool HmParsePageData(FtraceCpuDetailMsg& cpuMsg,
-                         CpuDetailParser& cpuDetailParser,
-                         uint8_t*& data,
-                         bool& haveSplitSeg);
-    bool HandleTgids(const std::string& tgids);
-    bool HandleCmdlines(const std::string& cmdlines);
+                                      FtraceCpuDetailMsg &cpuMsg,
+                                      CpuDetailParser &cpuDetailParser,
+                                      bool &haveSplitSeg);
+    bool HmParsePageData(FtraceCpuDetailMsg &cpuMsg,
+                         CpuDetailParser &cpuDetailParser,
+                         uint8_t *&data,
+                         bool &haveSplitSeg);
+    bool HandleTgids(const std::string &tgids);
+    bool HandleCmdlines(const std::string &cmdlines);
 
 public:
-    bool GetEventFormatById(uint32_t id, EventFormat& format);
+    bool GetEventFormatById(uint32_t id, EventFormat &format);
 
     int HeaderPageCommitSize(void);
-    bool HandleHeaderPageFormat(const std::string& formatInfo);
-    bool HandleEventFormat(const std::string& formatInfo, EventFormat& format);
-    bool HandleFieldFormat(const std::string& fieldLine, EventFormat& format);
-    bool HandleFieldType(const std::string& type, FieldFormat& field);
-    void PrintedFieldDetails(const FieldFormat& info);
-    static void HandleProtoType(FieldFormat& fieldFormat);
+    bool HandleHeaderPageFormat(const std::string &formatInfo);
+    bool HandleEventFormat(const std::string &formatInfo, EventFormat &format);
+    bool HandleFieldFormat(const std::string &fieldLine, EventFormat &format);
+    bool HandleFieldType(const std::string &type, FieldFormat &field);
+    void PrintedFieldDetails(const FieldFormat &info);
+    static void HandleProtoType(FieldFormat &fieldFormat);
 
     bool HandlePageHeader();
 
     // handle different page types
-    bool HandlePaddingData(const FtraceEventHeader& eventHeader);
-    bool HandleTimeExtend(const FtraceEventHeader& eventHeader);
-    bool HandleTimeStamp(const FtraceEventHeader& eventHeader);
-    bool HandleDataRecord(const FtraceEventHeader& eventHeader,
-                          FtraceCpuDetailMsg& cpuMsg,
-                          CpuDetailParser& cpuDetailParser);
+    bool HandlePaddingData(const FtraceEventHeader &eventHeader);
+    bool HandleTimeExtend(const FtraceEventHeader &eventHeader);
+    bool HandleTimeStamp(const FtraceEventHeader &eventHeader);
+    bool HandleDataRecord(const FtraceEventHeader &eventHeader,
+                          FtraceCpuDetailMsg &cpuMsg,
+                          CpuDetailParser &cpuDetailParser);
 
-    bool HandleFtraceEvent(FtraceEvent& ftraceEvent, uint8_t data[], size_t dataSize, const EventFormat& format);
-    bool HandleFtraceCommonFields(FtraceEvent& ftraceEvent, uint8_t data[], size_t dataSize, const EventFormat& format);
+    bool HandleFtraceEvent(FtraceEvent &ftraceEvent, uint8_t data[], size_t dataSize, const EventFormat &format);
+    bool HandleFtraceCommonFields(FtraceEvent &ftraceEvent, uint8_t data[], size_t dataSize, const EventFormat &format);
 
 private:
     std::regex fixedCharArrayRegex_;
@@ -96,10 +96,10 @@ private:
     std::string savedTgidPath_ = "";
     std::string savedCmdlines_ = "";
 
-    uint8_t* curPos_ = nullptr;
-    uint8_t* curPage_ = nullptr;      // cur page start
-    uint8_t* endPosOfData_ = nullptr; // end pos of event data
-    uint8_t* endPosOfPage_ = nullptr; // end pos of full page
+    uint8_t *curPos_ = nullptr;
+    uint8_t *curPage_ = nullptr;      // cur page start
+    uint8_t *endPosOfData_ = nullptr; // end pos of event data
+    uint8_t *endPosOfPage_ = nullptr; // end pos of full page
     uint64_t curTimestamp_ = 0;
     PageHeader curPageHeader_ = {};
 
@@ -107,7 +107,7 @@ private:
     std::unordered_map<int32_t, int32_t> tgidDict_ = {};
     // first is pid, second is taskName
     std::unordered_map<int32_t, std::string> taskNameDict_ = {};
-    TraceDataCache* traceDataCache_ = nullptr;
+    TraceDataCache *traceDataCache_ = nullptr;
 
     const std::string nameLinePrefix_ = "name:";
     const std::string idLinePrefix_ = "ID:";

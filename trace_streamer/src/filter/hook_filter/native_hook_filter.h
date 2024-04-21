@@ -65,26 +65,26 @@ struct CommHookData {
 };
 class NativeHookFilter : public OfflineSymbolizationFilter {
 public:
-    NativeHookFilter(TraceDataCache*, const TraceStreamerFilters*);
-    NativeHookFilter(const NativeHookFilter&) = delete;
-    NativeHookFilter& operator=(const NativeHookFilter&) = delete;
+    NativeHookFilter(TraceDataCache *, const TraceStreamerFilters *);
+    NativeHookFilter(const NativeHookFilter &) = delete;
+    NativeHookFilter &operator=(const NativeHookFilter &) = delete;
     ~NativeHookFilter() override = default;
 
 public:
     void MaybeParseNativeHookMainEvent(uint64_t timeStamp, std::unique_ptr<NativeHookMetaData> nativeHookMetaData);
-    void ParseConfigInfo(ProtoReader::BytesView& protoData);
-    void AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vector<uint64_t>& frames);
-    void AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const ProtoReader::BytesView& bytesView);
+    void ParseConfigInfo(ProtoReader::BytesView &protoData);
+    void AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vector<uint64_t> &frames);
+    void AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const ProtoReader::BytesView &bytesView);
     void AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex);
     void AppendSymbolMap(uint32_t ipid, uint32_t symId, uint64_t symbolIndex);
     void AppendThreadNameMap(uint32_t ipid, uint32_t nameId, uint64_t threadNameIndex);
-    void ParseMapsEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
-    void ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
-    void ParseTagEvent(const ProtoReader::BytesView& bytesView);
+    void ParseMapsEvent(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData);
+    void ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData);
+    void ParseTagEvent(const ProtoReader::BytesView &bytesView);
     void FinishParseNativeHookData();
-    bool NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>>& symbolsFiles);
-    CommHookData& GetCommHookData();
-    ProfilerPluginData* GetHookPluginData();
+    bool NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
+    CommHookData &GetCommHookData();
+    ProfilerPluginData *GetHookPluginData();
     void SerializeHookCommDataToString();
     const bool IsSingleProcData()
     {
@@ -99,25 +99,25 @@ public:
 private:
     void ProcSymbolTable(uint32_t ipid, uint32_t filePathId, std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
     void FilterNativeHookMainEvent(size_t num);
-    void ParseStatisticEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
+    void ParseStatisticEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
     template <class T1, class T2>
-    void UpdateMap(std::unordered_map<T1, T2>& sourceMap, T1 key, T2 value);
-    void ParseAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
-    void ParseFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
-    void SetFreeEventCallChainId(uint32_t& callChainId,
+    void UpdateMap(std::unordered_map<T1, T2> &sourceMap, T1 key, T2 value);
+    void ParseAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
+    void ParseFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
+    void SetFreeEventCallChainId(uint32_t &callChainId,
                                  uint32_t ipid,
                                  uint32_t itid,
-                                 const ProtoReader::FreeEvent_Reader& freeEventReader);
-    void ParseMmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
-    void SetMmapEventCallChainId(uint32_t& callChainId,
+                                 const ProtoReader::FreeEvent_Reader &freeEventReader);
+    void ParseMmapEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
+    void SetMmapEventCallChainId(uint32_t &callChainId,
                                  uint32_t ipid,
                                  uint32_t itid,
-                                 const ProtoReader::MmapEvent_Reader& mMapEventReader);
-    void ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
-    void SetMunmapEventCallChainId(uint32_t& callChainId,
+                                 const ProtoReader::MmapEvent_Reader &mMapEventReader);
+    void ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
+    void SetMunmapEventCallChainId(uint32_t &callChainId,
                                    uint32_t ipid,
                                    uint32_t itid,
-                                   const ProtoReader::MunmapEvent_Reader& mUnmapEventReader);
+                                   const ProtoReader::MunmapEvent_Reader &mUnmapEventReader);
 
     void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc);
     void UpdateThreadNameWithNativeHookData() const;
@@ -129,7 +129,7 @@ private:
     void ParseFramesWithOutCallStackCompressedMode();
     void ParseSymbolizedNativeHookFrame();
     template <class T>
-    void UpdateSymbolTablePtrAndStValueToSymAddrMap(T* firstSymbolAddr,
+    void UpdateSymbolTablePtrAndStValueToSymAddrMap(T *firstSymbolAddr,
                                                     const int size,
                                                     std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
     std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> OfflineSymbolization(
@@ -142,9 +142,9 @@ private:
     std::tuple<uint64_t, uint64_t> GetNeedUpdateProcessMapsAddrRange(uint32_t ipid,
                                                                      uint64_t startAddr,
                                                                      uint64_t endAddr);
-    std::unique_ptr<NativeHookFrameInfo> ParseFrame(uint64_t row, const ProtoReader::DataArea& frame);
+    std::unique_ptr<NativeHookFrameInfo> ParseFrame(uint64_t row, const ProtoReader::DataArea &frame);
     template <class T>
-    void UpdateFilePathIdAndStValueToSymAddrMap(T* firstSymbolAddr, const int size, uint32_t filePathId);
+    void UpdateFilePathIdAndStValueToSymAddrMap(T *firstSymbolAddr, const int size, uint32_t filePathId);
     uint64_t GetMemMapSubTypeWithAddr(uint64_t addr);
     void UpdateAnonMmapDataDbIndex(uint64_t addr, uint32_t size, uint64_t row);
     void UpdateLastCallerPathAndSymbolIndexs();
@@ -172,8 +172,8 @@ private:
     std::unordered_map<uint64_t, uint32_t> stackHashValueToCallChainIdMap_ = {};
     std::unordered_map<uint32_t, uint64_t> itidToThreadNameId_ = {};
     std::unordered_map<uint32_t, uint32_t> stackIdToCallChainIdMap_ = {};
-    std::unordered_map<uint64_t, uint64_t>* addrToAllocEventRow_ = nullptr;
-    std::unordered_map<uint64_t, uint64_t>* addrToMmapEventRow_ = nullptr;
+    std::unordered_map<uint64_t, uint64_t> *addrToAllocEventRow_ = nullptr;
+    std::unordered_map<uint64_t, uint64_t> *addrToMmapEventRow_ = nullptr;
     std::set<DataIndex> invalidLibPathIndexs_ = {};
     std::deque<std::string> vaddrs_ = {};
     // munmap update anonymous or named memory tag always use the last addrToMmapTag_ value

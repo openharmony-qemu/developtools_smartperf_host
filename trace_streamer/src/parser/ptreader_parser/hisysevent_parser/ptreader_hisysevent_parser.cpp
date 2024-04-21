@@ -17,15 +17,15 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-PtreaderHiSysEventParser::PtreaderHiSysEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
+PtreaderHiSysEventParser::PtreaderHiSysEventParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters)
     : EventParserBase(dataCache, filters)
 {
 }
 
 PtreaderHiSysEventParser::~PtreaderHiSysEventParser() = default;
-void PtreaderHiSysEventParser::ParseHiSysEventDataItem(const std::string& buffer,
+void PtreaderHiSysEventParser::ParseHiSysEventDataItem(const std::string &buffer,
                                                        const uint64_t lineSeq,
-                                                       bool& haveSplitSeg)
+                                                       bool &haveSplitSeg)
 {
     json jMessage;
     if (!jMessage.accept(buffer)) {

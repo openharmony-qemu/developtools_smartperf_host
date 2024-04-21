@@ -203,7 +203,7 @@ export class TraceRowConfig extends BaseElement {
           while (upParentRow.hasParentRowEl) {
             if (!upParentRow.parentRowEl) {
               break;
-            }// @ts-ignore
+            } // @ts-ignore
             upParentRow = upParentRow.parentRowEl;
           }
           if (upParentRow === row) {
@@ -278,7 +278,7 @@ export class TraceRowConfig extends BaseElement {
         let isShowRow: boolean = false;
         if (this.selectTypeList!.length === 0) {
           traceRow.rowHidden = false;
-          traceRow.setAttribute('scene', '');// @ts-ignore
+          traceRow.setAttribute('scene', ''); // @ts-ignore
           this.refreshChildRow(traceRow.childrenList, true);
         } else {
           let templateTypeList = [...traceRow.templateType];
@@ -288,13 +288,14 @@ export class TraceRowConfig extends BaseElement {
             if (traceRow.templateType.size > 0) {
               traceRow.rowHidden = false;
               traceRow.setAttribute('scene', '');
-              if (traceRow.childrenList && traceRow.childrenList.length > 0) {// @ts-ignore
+              if (traceRow.childrenList && traceRow.childrenList.length > 0) {
+                // @ts-ignore
                 this.refreshChildRow(traceRow.childrenList, isShowRow);
               }
             }
           } else {
             traceRow.removeAttribute('scene');
-            traceRow.rowHidden = true;// @ts-ignore
+            traceRow.rowHidden = true; // @ts-ignore
             this.refreshChildRow(traceRow.childrenList);
           }
         }
@@ -361,14 +362,16 @@ export class TraceRowConfig extends BaseElement {
     childRows.forEach((row) => {
       if (isShowScene) {
         row.setAttribute('scene', '');
-        if (row.childrenList && row.childrenList.length > 0) {// @ts-ignore
+        if (row.childrenList && row.childrenList.length > 0) {
+          // @ts-ignore
           this.refreshChildRow(row.childrenList, isShowScene);
         }
         row.expansion = false;
       } else {
         row.removeAttribute('scene');
         row.rowHidden = true;
-        if (row.childrenList && row.childrenList.length > 0) {// @ts-ignore
+        if (row.childrenList && row.childrenList.length > 0) {
+          // @ts-ignore
           this.refreshChildRow(row.childrenList);
         }
       }
@@ -552,19 +555,19 @@ export class TraceRowConfig extends BaseElement {
 
   // 构建节点关系
   private buildSubSystemTreeData(id: number, configJson: unknown): SubsystemNode[] {
-    let subsystemsKey: string = 'subsystems';// @ts-ignore
+    let subsystemsKey: string = 'subsystems'; // @ts-ignore
     let keys = Object.keys(configJson);
     if (keys.indexOf(subsystemsKey) < 0) {
       return [];
     }
-    let subSystems: SubsystemNode[] = [];// @ts-ignore
+    let subSystems: SubsystemNode[] = []; // @ts-ignore
     let subsystemsData = configJson[subsystemsKey];
     this.initOtherRowNames();
     let subsystemList = [];
     for (let subIndex = 0; subIndex < subsystemsData.length; subIndex++) {
       let currentSystemData = subsystemsData[subIndex];
       if (
-        !currentSystemData.hasOwnProperty('subsystem') ||
+        !('subsystem' in currentSystemData) ||
         currentSystemData.subsystem === '' ||
         subsystemList.indexOf(currentSystemData.subsystem) > -1 ||
         Array.isArray(currentSystemData.subsystem)
@@ -589,11 +592,7 @@ export class TraceRowConfig extends BaseElement {
         }
         for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
           let currentCompDate = currentCompDates[compIndex];
-          if (
-            !currentCompDate.hasOwnProperty('component') ||
-            currentCompDate.component === '' ||
-            !currentCompDate.hasOwnProperty('charts')
-          ) {
+          if (!('component' in currentCompDate) || currentCompDate.component === '' || !('charts' in currentCompDate)) {
             continue;
           }
           id = this.setSubsystemComp(currentCompDate, id, subsystemStruct);
@@ -617,9 +616,10 @@ export class TraceRowConfig extends BaseElement {
     }
   }
 
-  private setSubsystemComp(currentCompDate: unknown, id: number, subsystemStruct: SubsystemNode): number {// @ts-ignore
-    let currentCompName = currentCompDate.component;// @ts-ignore
-    let currentChartDates = currentCompDate.charts;// @ts-ignore
+  private setSubsystemComp(currentCompDate: unknown, id: number, subsystemStruct: SubsystemNode): number {
+    // @ts-ignore
+    let currentCompName = currentCompDate.component; // @ts-ignore
+    let currentChartDates = currentCompDate.charts; // @ts-ignore
     id++;
     let componentStruct: SubsystemNode = {
       id: id,
@@ -633,8 +633,8 @@ export class TraceRowConfig extends BaseElement {
     for (let chartIndex = 0; chartIndex < currentChartDates.length; chartIndex++) {
       let currentChartDate = currentChartDates[chartIndex];
       if (
-        (!currentChartDate.hasOwnProperty('chartName') && !currentChartDate.hasOwnProperty('chartId')) ||
-        Array.isArray(currentChartDate.chartName)
+        (!('chartName' in currentChartDate) && !('chartId' in currentChartDate)) ||
+        Object.keys(currentChartDate).includes('chartName')
       ) {
         continue;
       }

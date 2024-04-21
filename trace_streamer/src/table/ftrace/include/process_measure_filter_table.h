@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class ProcessMeasureFilterTable : public TableBase {
 public:
-    explicit ProcessMeasureFilterTable(const TraceDataCache* dataCache);
+    explicit ProcessMeasureFilterTable(const TraceDataCache *dataCache);
     ~ProcessMeasureFilterTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,17 +32,17 @@ private:
     {
         return dataCache_->GetConstProcessMeasureFilterData().Size();
     }
-    void GetOrbyes(FilterConstraints& filterfc, EstimatedIndexInfo& filterei) override;
-    void FilterByConstraint(FilterConstraints& filterfc,
-                            double& filterfilterCost,
+    void GetOrbyes(FilterConstraints &filterfc, EstimatedIndexInfo &filterei) override;
+    void FilterByConstraint(FilterConstraints &filterfc,
+                            double &filterfilterCost,
                             size_t filterrowCount,
                             uint32_t filtercurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t procMeasureFilterCol) const override;
     };
 };

@@ -56,7 +56,7 @@ using namespace SysTuning::base;
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-bool IsHisysEventData(const std::string& bytraceMode)
+bool IsHisysEventData(const std::string &bytraceMode)
 {
     auto firstLine = std::find(bytraceMode.begin(), bytraceMode.end(), '}');
     if (firstLine == bytraceMode.end()) {
@@ -73,12 +73,12 @@ bool IsHisysEventData(const std::string& bytraceMode)
     }
     return true;
 }
-TraceFileType GuessFileType(const uint8_t* data, size_t size)
+TraceFileType GuessFileType(const uint8_t *data, size_t size)
 {
     if (size == 0) {
         return TRACE_FILETYPE_UN_KNOW;
     }
-    std::string start(reinterpret_cast<const char*>(data), std::min<size_t>(size, 20));
+    std::string start(reinterpret_cast<const char *>(data), std::min<size_t>(size, 20));
     if (start.find("# tracer") != std::string::npos) {
         return TRACE_FILETYPE_BY_TRACE;
     }
@@ -113,7 +113,7 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
     const std::regex bytraceMatcher = std::regex(R"(-(\d+)\s+\(?\s*(\d+|-+)?\)?\s?\[(\d+)\]\s*)"
                                                  R"([a-zA-Z0-9.]{0,5}\s+(\d+\.\d+):\s+(\S+):)");
     std::smatch matcheLine;
-    std::string bytraceMode(reinterpret_cast<const char*>(data), size);
+    std::string bytraceMode(reinterpret_cast<const char *>(data), size);
     if (std::regex_search(bytraceMode, matcheLine, bytraceMatcher)) {
         return TRACE_FILETYPE_BY_TRACE;
     }
@@ -218,7 +218,7 @@ void TraceStreamerSelector::WaitForParserEnd()
     }
 }
 
-MetaData* TraceStreamerSelector::GetMetaData()
+MetaData *TraceStreamerSelector::GetMetaData()
 {
     return traceDataCache_->GetMetaData();
 }
@@ -258,10 +258,10 @@ bool TraceStreamerSelector::BatchParseTraceDataSegment(std::unique_ptr<uint8_t[]
     return true;
 }
 
-void TraceStreamerSelector::GetMarkPositionData(std::unique_ptr<uint8_t[]>& data, size_t& size)
+void TraceStreamerSelector::GetMarkPositionData(std::unique_ptr<uint8_t[]> &data, size_t &size)
 {
     if (!markHeard_) {
-        std::string markStr(reinterpret_cast<const char*>(data.get()), size);
+        std::string markStr(reinterpret_cast<const char *>(data.get()), size);
         auto foundPos = markStr.find("MarkPositionJSON->");
         if (foundPos == std::string::npos) {
             // trace not MarkPosition,parse trace data
@@ -279,7 +279,7 @@ void TraceStreamerSelector::GetMarkPositionData(std::unique_ptr<uint8_t[]>& data
         // Move the data pointer to the starting position of the remaining data
         // The remaining data size is equal to the data size minus the current markinfo size
         size -= curMarkSize;
-        std::unique_ptr<uint8_t[]> remainingData(new uint8_t[size]);
+        auto remainingData = std::make_unique<uint8_t>(size);
         memcpy_s(remainingData.get(), size, data.get() + curMarkSize, size);
         data.reset(remainingData.release());
     }
@@ -386,7 +386,7 @@ void TraceStreamerSelector::SetCleanMode(bool cleanMode)
     g_curLogLevel = LOG_OFF;
 }
 
-int32_t TraceStreamerSelector::ExportDatabase(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack)
+int32_t TraceStreamerSelector::ExportDatabase(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack)
 {
     traceDataCache_->UpdateTraceRange();
     return traceDataCache_->ExportDatabase(outputName, resultCallBack);
@@ -395,37 +395,37 @@ int32_t TraceStreamerSelector::CreatEmptyBatchDB(const std::string dbPath)
 {
     return traceDataCache_->CreatEmptyBatchDB(dbPath);
 }
-int32_t TraceStreamerSelector::BatchExportDatabase(const std::string& outputName)
+int32_t TraceStreamerSelector::BatchExportDatabase(const std::string &outputName)
 {
     traceDataCache_->UpdateTraceRange();
     return traceDataCache_->BatchExportDatabase(outputName);
 }
-void TraceStreamerSelector::RevertTableName(const std::string& outputName)
+void TraceStreamerSelector::RevertTableName(const std::string &outputName)
 {
     return traceDataCache_->RevertTableName(outputName);
 }
-int32_t TraceStreamerSelector::ExportPerfReadableText(const std::string& outputName,
+int32_t TraceStreamerSelector::ExportPerfReadableText(const std::string &outputName,
                                                       TraceDataDB::ResultCallBack resultCallBack)
 {
     traceDataCache_->UpdateTraceRange();
     return traceDataCache_->ExportPerfReadableText(outputName, resultCallBack);
 }
 
-int32_t TraceStreamerSelector::ExportHookReadableText(const std::string& outputName,
+int32_t TraceStreamerSelector::ExportHookReadableText(const std::string &outputName,
                                                       TraceDataDB::ResultCallBack resultCallBack)
 {
     traceDataCache_->UpdateTraceRange();
     return traceDataCache_->ExportHookReadableText(outputName, resultCallBack);
 }
 
-int32_t TraceStreamerSelector::ExportEbpfReadableText(const std::string& outputName,
+int32_t TraceStreamerSelector::ExportEbpfReadableText(const std::string &outputName,
                                                       TraceDataDB::ResultCallBack resultCallBack)
 {
     traceDataCache_->UpdateTraceRange();
     return traceDataCache_->ExportEbpfReadableText(outputName, resultCallBack);
 }
 
-bool TraceStreamerSelector::ReloadSymbolFiles(std::string& directory, std::vector<std::string>& symbolsPaths)
+bool TraceStreamerSelector::ReloadSymbolFiles(std::string &directory, std::vector<std::string> &symbolsPaths)
 {
     TS_LOGE("directory is %s", directory.c_str());
     for (auto file : symbolsPaths) {
@@ -442,32 +442,32 @@ std::vector<std::string> TraceStreamerSelector::SearchData()
 {
     return traceDataCache_->SearchData();
 }
-int32_t TraceStreamerSelector::OperateDatabase(const std::string& sql)
+int32_t TraceStreamerSelector::OperateDatabase(const std::string &sql)
 {
     return traceDataCache_->OperateDatabase(sql);
 }
-int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack)
+int32_t TraceStreamerSelector::SearchDatabase(const std::string &sql, TraceDataDB::ResultCallBack resultCallBack)
 {
     return traceDataCache_->SearchDatabase(sql, resultCallBack);
 }
-int32_t TraceStreamerSelector::SearchDatabaseToProto(const std::string& data,
+int32_t TraceStreamerSelector::SearchDatabaseToProto(const std::string &data,
                                                      SqllitePreparCacheData::TLVResultCallBack resultCallBack)
 {
     return traceDataCache_->SearchDatabaseToProto(data, resultCallBack);
 }
-int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
+int32_t TraceStreamerSelector::SearchDatabase(const std::string &sql, uint8_t *out, int32_t outLen)
 {
     return traceDataCache_->SearchDatabase(sql, out, outLen);
 }
-int32_t TraceStreamerSelector::SearchDatabase(std::string& sql, bool printf)
+int32_t TraceStreamerSelector::SearchDatabase(std::string &sql, bool printf)
 {
     return traceDataCache_->SearchDatabase(sql, printf);
 }
-std::string TraceStreamerSelector::SearchDatabase(const std::string& sql)
+std::string TraceStreamerSelector::SearchDatabase(const std::string &sql)
 {
     return traceDataCache_->SearchDatabase(sql);
 }
-void TraceStreamerSelector::InitMetricsMap(std::map<std::string, std::string>& metricsMap)
+void TraceStreamerSelector::InitMetricsMap(std::map<std::string, std::string> &metricsMap)
 {
     metricsMap.emplace(TRACE_MEM_UNAGG, MEM_UNAGG_QUERY);
     metricsMap.emplace(TRACE_MEM, MEM_QUERY);
@@ -477,7 +477,7 @@ void TraceStreamerSelector::InitMetricsMap(std::map<std::string, std::string>& m
     metricsMap.emplace(TRACE_STATS, TRACE_STATE_QUERY);
     metricsMap.emplace(TRACE_TASK_NAMES, TRACE_TASK_NAME);
 }
-const std::string TraceStreamerSelector::MetricsSqlQuery(const std::string& metrics)
+const std::string TraceStreamerSelector::MetricsSqlQuery(const std::string &metrics)
 {
     std::map<std::string, std::string> metricsMap;
     InitMetricsMap(metricsMap);
@@ -488,7 +488,7 @@ const std::string TraceStreamerSelector::MetricsSqlQuery(const std::string& metr
     }
     return itor->second;
 }
-int32_t TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int32_t len)
+int32_t TraceStreamerSelector::UpdateTraceRangeTime(uint8_t *data, int32_t len)
 {
     std::string traceRangeStr;
     (void)memcpy_s(&traceRangeStr, len, data, len);
@@ -523,7 +523,7 @@ void TraceStreamerSelector::UpdateHMKernelTraceStatus(bool status)
 {
     traceDataCache_->UpdateHMKernelTraceStatus(status);
 }
-bool TraceStreamerSelector::LoadQueryFile(const std::string& sqlOperator, std::vector<std::string>& sqlStrings)
+bool TraceStreamerSelector::LoadQueryFile(const std::string &sqlOperator, std::vector<std::string> &sqlStrings)
 {
     std::ifstream file(sqlOperator);
     if (!file.is_open()) {
@@ -546,7 +546,7 @@ bool TraceStreamerSelector::LoadQueryFile(const std::string& sqlOperator, std::v
     file.close();
     return true;
 }
-bool TraceStreamerSelector::ReadSqlFileAndPrintResult(const std::string& sqlOperator)
+bool TraceStreamerSelector::ReadSqlFileAndPrintResult(const std::string &sqlOperator)
 {
     std::vector<std::string> sqlStrings;
     if (!LoadQueryFile(sqlOperator, sqlStrings)) {
@@ -556,15 +556,15 @@ bool TraceStreamerSelector::ReadSqlFileAndPrintResult(const std::string& sqlOper
         TS_LOGE("%s is empty!", sqlOperator.c_str());
         return false;
     }
-    for (auto& str : sqlStrings) {
+    for (auto &str : sqlStrings) {
         SearchDatabase(str, true);
     }
     return true;
 }
-bool TraceStreamerSelector::ParserAndPrintMetrics(const std::string& metrics)
+bool TraceStreamerSelector::ParserAndPrintMetrics(const std::string &metrics)
 {
     auto metricsName = SplitStringToVec(metrics, ",");
-    for (const auto& itemName : metricsName) {
+    for (const auto &itemName : metricsName) {
         std::string result = SearchDatabase(MetricsSqlQuery(itemName));
         if (result == "") {
             return false;

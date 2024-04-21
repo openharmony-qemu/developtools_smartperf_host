@@ -26,11 +26,12 @@ export class TabPaneClockCounter extends BaseElement {
 
   set data(clockCounterValue: SelectionParam) {
     //@ts-ignore
-    this.clockCounterTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      `${this.parentElement!.clientHeight - 45}px`;
-    this.clockCounterRange!.textContent =
-      `Selected range: ${ 
-        parseFloat(((clockCounterValue.rightNs - clockCounterValue.leftNs) / 1000000.0).toFixed(5))} ms`;
+    this.clockCounterTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
+    this.clockCounterRange!.textContent = `Selected range: ${parseFloat(
+      ((clockCounterValue.rightNs - clockCounterValue.leftNs) / 1000000.0).toFixed(5)
+    )} ms`;
     this.getCounterData(clockCounterValue).then();
   }
 
@@ -160,9 +161,9 @@ export class TabPaneClockCounter extends BaseElement {
           return 0;
         }
         if (type === 'number') {
-          return sort === 2 ? // @ts-ignore
-            parseFloat(clockCounterRightData[property]) - parseFloat(clockCounterLeftData[property]) : // @ts-ignore
-            parseFloat(clockCounterLeftData[property]) - parseFloat(clockCounterRightData[property]);
+          return sort === 2 // @ts-ignore
+            ? parseFloat(clockCounterRightData[property]) - parseFloat(clockCounterLeftData[property]) // @ts-ignore
+            : parseFloat(clockCounterLeftData[property]) - parseFloat(clockCounterRightData[property]);
         } else {
           // @ts-ignore
           if (clockCounterRightData[property] > clockCounterLeftData[property]) {

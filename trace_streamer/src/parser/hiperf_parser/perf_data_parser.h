@@ -50,16 +50,16 @@ enum class SplitPerfState {
 };
 class PerfDataParser : public EventParserBase, public HtracePluginTimeParser {
 public:
-    PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    PerfDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~PerfDataParser();
-    uint64_t InitPerfDataAndLoad(const std::deque<uint8_t>& dequeBuffer,
+    uint64_t InitPerfDataAndLoad(const std::deque<uint8_t> &dequeBuffer,
                                  uint64_t size,
                                  uint64_t offset,
                                  bool isSplitFile,
                                  bool isFinish);
     void Finish();
-    bool PerfReloadSymbolFiles(std::vector<std::string>& symbolsPaths);
-    const auto& GetPerfSplitResult()
+    bool PerfReloadSymbolFiles(std::vector<std::string> &symbolsPaths);
+    const auto &GetPerfSplitResult()
     {
         return splitResult_;
     }
@@ -84,7 +84,7 @@ public:
         splitDataSize_ = 0;
         return;
     }
-    void RecordPerfProfilerHeader(uint8_t* buffer, uint32_t len)
+    void RecordPerfProfilerHeader(uint8_t *buffer, uint32_t len)
     {
         (void)memcpy_s(&profilerHeader_, sizeof(profilerHeader_), buffer, len);
         hasProfilerHead_ = true;
@@ -100,52 +100,52 @@ private:
     void UpdateSymbolAndFilesData();
     void UpdateClockType();
     bool RecordCallBack(std::unique_ptr<PerfEventRecord> record);
-    void UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample>& sample);
-    uint32_t UpdateCallChainUnCompressed(const std::unique_ptr<PerfRecordSample>& sample);
-    SplitPerfState DataLengthProcessing(const std::deque<uint8_t>& dequeBuffer,
-                                        perf_event_header& dataHeader,
+    void UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample> &sample);
+    uint32_t UpdateCallChainUnCompressed(const std::unique_ptr<PerfRecordSample> &sample);
+    SplitPerfState DataLengthProcessing(const std::deque<uint8_t> &dequeBuffer,
+                                        perf_event_header &dataHeader,
                                         uint64_t size,
-                                        uint64_t& processedLen,
-                                        bool& invalid);
+                                        uint64_t &processedLen,
+                                        bool &invalid);
     bool PerfSplitCallBack(std::unique_ptr<PerfEventRecord> record);
-    uint64_t SplitPerfData(const std::deque<uint8_t>& dequeBuffer, uint64_t size, uint64_t offset, bool isFinish);
+    uint64_t SplitPerfData(const std::deque<uint8_t> &dequeBuffer, uint64_t size, uint64_t offset, bool isFinish);
 
-    uint64_t DataProcessingLength(const std::deque<uint8_t>& dequeBuffer,
+    uint64_t DataProcessingLength(const std::deque<uint8_t> &dequeBuffer,
                                   uint64_t size,
                                   uint64_t offset,
                                   bool isFinish);
-    bool SplitPerfStarting(const std::deque<uint8_t>& dequeBuffer,
+    bool SplitPerfStarting(const std::deque<uint8_t> &dequeBuffer,
                            uint64_t size,
-                           uint64_t& processedLen,
-                           bool& invalid);
-    bool SplitPerfParsingHead(const std::deque<uint8_t>& dequeBuffer,
+                           uint64_t &processedLen,
+                           bool &invalid);
+    bool SplitPerfParsingHead(const std::deque<uint8_t> &dequeBuffer,
                               uint64_t size,
-                              uint64_t& processedLen,
-                              bool& invalid);
-    bool SplitPerfWaitForAttr(const std::deque<uint8_t>& dequeBuffer,
+                              uint64_t &processedLen,
+                              bool &invalid);
+    bool SplitPerfWaitForAttr(const std::deque<uint8_t> &dequeBuffer,
                               uint64_t size,
-                              uint64_t& processedLen,
-                              bool& invalid);
-    bool SplitPerfParsingAttr(const std::deque<uint8_t>& dequeBuffer,
+                              uint64_t &processedLen,
+                              bool &invalid);
+    bool SplitPerfParsingAttr(const std::deque<uint8_t> &dequeBuffer,
                               uint64_t size,
-                              uint64_t& processedLen,
-                              bool& invalid);
-    bool SplitPerfWaitForData(const std::deque<uint8_t>& dequeBuffer,
+                              uint64_t &processedLen,
+                              bool &invalid);
+    bool SplitPerfWaitForData(const std::deque<uint8_t> &dequeBuffer,
                               uint64_t size,
-                              uint64_t& processedLen,
-                              bool& invalid);
-    bool SplitPerfParsingData(const std::deque<uint8_t>& dequeBuffer,
+                              uint64_t &processedLen,
+                              bool &invalid);
+    bool SplitPerfParsingData(const std::deque<uint8_t> &dequeBuffer,
                               uint64_t size,
-                              uint64_t& processedLen,
-                              bool& invalid);
-    bool SplitPerfParsingFeatureSection(const std::deque<uint8_t>& dequeBuffer,
+                              uint64_t &processedLen,
+                              bool &invalid);
+    bool SplitPerfParsingFeatureSection(const std::deque<uint8_t> &dequeBuffer,
                                         uint64_t size,
-                                        uint64_t& processedLen,
-                                        bool& invalid);
-    bool SplitPerfWaitForFinish(const std::deque<uint8_t>& dequeBuffer,
+                                        uint64_t &processedLen,
+                                        bool &invalid);
+    bool SplitPerfWaitForFinish(const std::deque<uint8_t> &dequeBuffer,
                                 uint64_t size,
-                                uint64_t& processedLen,
-                                bool& invalid);
+                                uint64_t &processedLen,
+                                bool &invalid);
 
     uint32_t callChainId_ = 0;
     std::unique_ptr<PerfFileReader> recordDataReader_ = nullptr;

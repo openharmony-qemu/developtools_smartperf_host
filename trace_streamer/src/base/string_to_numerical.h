@@ -26,17 +26,6 @@
 namespace SysTuning {
 namespace base {
 enum IntegerRadixType { INTEGER_RADIX_TYPE_DEC = 10, INTEGER_RADIX_TYPE_HEX = 16 };
-inline uint16_t GetNameASCIISumNoNum(const std::string& str)
-{
-    uint32_t sum = 0;
-    int32_t len = str.length() - 1;
-    while (len >= 0) {
-        sum += std::isdigit(str.at(len)) ? 0 : str.at(len);
-        len--;
-    }
-    return sum % INTEGER_RADIX_TYPE_HEX;
-}
-
 inline std::string number(uint64_t value, int32_t base = INTEGER_RADIX_TYPE_DEC)
 {
     std::stringstream ss;
@@ -57,10 +46,10 @@ inline std::string ConvertTimestampToSecStr(uint64_t timestamp, uint8_t precisio
 }
 
 template <typename T>
-std::optional<T> StrToInt(const std::string& str, int32_t base = INTEGER_RADIX_TYPE_DEC)
+std::optional<T> StrToInt(const std::string &str, int32_t base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
-        char* endPtr = nullptr;
+        char *endPtr = nullptr;
         T value;
         if constexpr (std::is_same_v<T, uint32_t>) {
             value = static_cast<T>(std::strtoul(str.c_str(), &endPtr, base));
@@ -79,11 +68,11 @@ std::optional<T> StrToInt(const std::string& str, int32_t base = INTEGER_RADIX_T
     return std::nullopt;
 }
 
-inline std::optional<double> StrToDouble(const std::string& str)
+inline std::optional<double> StrToDouble(const std::string &str)
 {
     if (!str.empty()) {
 #ifdef WIN32_
-        char* end = nullptr;
+        char *end = nullptr;
         double value = std::strtod(str.c_str(), &end);
 #else
         double value = std::stod(str);

@@ -16,7 +16,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-EbpfBase::EbpfBase(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+EbpfBase::EbpfBase(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx),
       pidAndIpToEbpfSymbolInfo_(EbpfSymbolInfo(false)),
       filePathIndexAndStValueToSymAddr_(nullptr),
@@ -30,7 +30,7 @@ EbpfBase::~EbpfBase()
     filePathIndexToPidAndIpMap_.clear();
     filePathIndexAndStValueToSymAddr_.Clear();
 }
-bool EbpfBase::InitEbpfDataParser(EbpfDataReader* reader)
+bool EbpfBase::InitEbpfDataParser(EbpfDataReader *reader)
 {
     auto clockId = reader->GetEbpfDataHeader()->header.clock;
     auto itor = ebpfToTSClockType_.find(clockId);
@@ -42,7 +42,7 @@ bool EbpfBase::InitEbpfDataParser(EbpfDataReader* reader)
     return true;
 }
 
-void EbpfBase::ParseCallStackData(const uint64_t* userIpsAddr, uint16_t count, uint32_t pid, uint32_t callId)
+void EbpfBase::ParseCallStackData(const uint64_t *userIpsAddr, uint16_t count, uint32_t pid, uint32_t callId)
 {
     uint64_t depth = 0;
     for (auto i = count - 1; i >= 0; i--) {
@@ -77,7 +77,7 @@ EbpfSymbolInfo EbpfBase::GetEbpfSymbolInfo(uint32_t pid, uint64_t ip)
     return GetSymbolNameIndexFromElfSym(pid, ip);
 }
 
-DataIndex EbpfBase::GetSymbolNameIndexFromSymVaddr(const ElfEventFixedHeader* elfHeaderAddr, uint64_t symVaddr)
+DataIndex EbpfBase::GetSymbolNameIndexFromSymVaddr(const ElfEventFixedHeader *elfHeaderAddr, uint64_t symVaddr)
 {
     uint32_t symbolStart = INVALID_UINT32;
     auto startValueToSymAddr = reader_->GetElfAddrAndStartValueToSymAddr().Find(elfHeaderAddr);
@@ -90,21 +90,21 @@ DataIndex EbpfBase::GetSymbolNameIndexFromSymVaddr(const ElfEventFixedHeader* el
     if (length > 0) {
         end--;
         if (symEntLen == ELF32_SYM) {
-            GetSymbolStartIndex(reinterpret_cast<const Elf32_Sym*>(end->second), symbolStart, symVaddr);
+            GetSymbolStartIndex(reinterpret_cast<const Elf32_Sym *>(end->second), symbolStart, symVaddr);
         } else {
-            GetSymbolStartIndex(reinterpret_cast<const Elf64_Sym*>(end->second), symbolStart, symVaddr);
+            GetSymbolStartIndex(reinterpret_cast<const Elf64_Sym *>(end->second), symbolStart, symVaddr);
         }
     }
     if (symbolStart == INVALID_UINT32) {
         return INVALID_UINT64;
     }
     // Take out the string according to the subscript
-    auto strTabAddr = reinterpret_cast<const char*>(elfHeaderAddr + 1);
+    auto strTabAddr = reinterpret_cast<const char *>(elfHeaderAddr + 1);
     if (symbolStart > elfHeaderAddr->strTabLen) {
         TS_LOGE("symbolStart = %u, elfHeaderAddr->strTabLen = %u", symbolStart, elfHeaderAddr->strTabLen);
         return INVALID_UINT64;
     }
-    auto mangle = reinterpret_cast<const char*>(strTabAddr) + symbolStart;
+    auto mangle = reinterpret_cast<const char *>(strTabAddr) + symbolStart;
     auto demangle = GetDemangleSymbolIndex(mangle);
     auto index = traceDataCache_->GetDataIndex(demangle);
     if (demangle != mangle) {
@@ -125,8 +125,8 @@ void EbpfBase::UpdateFilePathIndexToPidAndIpMap(DataIndex filePathIndex, uint32_
 }
 
 template <typename StartToMapsAddr>
-void EbpfBase::GetSymbolSave(EbpfSymbolInfo& ebpfSymbolInfo,
-                             StartToMapsAddr& startToMapsAddr,
+void EbpfBase::GetSymbolSave(EbpfSymbolInfo &ebpfSymbolInfo,
+                             StartToMapsAddr &startToMapsAddr,
                              uint32_t pid,
                              uint64_t ip)
 {
@@ -143,7 +143,7 @@ void EbpfBase::GetSymbolSave(EbpfSymbolInfo& ebpfSymbolInfo,
             vmStart = end->first;
             vmOffset = end->second->offset;
             ebpfSymbolInfo.filePathIndex =
-                traceDataCache_->GetDataIndex(reinterpret_cast<const char*>((end->second) + 1));
+                traceDataCache_->GetDataIndex(reinterpret_cast<const char *>((end->second) + 1));
         }
     }
     ebpfSymbolInfo.flag = true;
@@ -181,7 +181,7 @@ EbpfSymbolInfo EbpfBase::GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip)
         return ebpfSymbolInfo;
     }
 
-    auto& pidAndStartAddrToMapsAddr = reader_->GetPidAndStartAddrToMapsAddr();
+    auto &pidAndStartAddrToMapsAddr = reader_->GetPidAndStartAddrToMapsAddr();
     auto startToMapsAddr = pidAndStartAddrToMapsAddr.Find(pid);
     if (!startToMapsAddr) {
         ebpfSymbolInfo.flag = true;
@@ -203,25 +203,25 @@ DataIndex EbpfBase::ConvertToHexTextIndex(uint64_t number)
     return traceDataCache_->GetDataIndex(str.c_str());
 }
 template <class T>
-void EbpfBase::UpdateFilePathIndexAndStValueToSymAddrMap(T* firstSymbolAddr, const int size, uint32_t filePathIndex)
+void EbpfBase::UpdateFilePathIndexAndStValueToSymAddrMap(T *firstSymbolAddr, const int size, uint32_t filePathIndex)
 {
     for (auto i = 0; i < size; i++) {
         auto symAddr = firstSymbolAddr + i;
         if ((symAddr->st_info & STT_FUNC) && (symAddr->st_value)) {
             filePathIndexAndStValueToSymAddr_.Insert(filePathIndex, symAddr->st_value,
-                                                     reinterpret_cast<const uint8_t*>(symAddr));
+                                                     reinterpret_cast<const uint8_t *>(symAddr));
         }
     }
 }
-bool EbpfBase::EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>>& symbolsFiles)
+bool EbpfBase::EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
 {
     auto ebpfCallStackDate = traceDataCache_->GetEbpfCallStack();
     auto size = ebpfCallStackDate->Size();
     auto filePathIndexs = ebpfCallStackDate->FilePathIds();
     auto vaddrs = ebpfCallStackDate->Vaddrs();
-    for (const auto& symbolsFile : symbolsFiles) {
+    for (const auto &symbolsFile : symbolsFiles) {
         std::shared_ptr<std::set<size_t>> rows = nullptr;
-        for (const auto& item : filePathIndexToCallStackRowMap_) {
+        for (const auto &item : filePathIndexToCallStackRowMap_) {
             auto originFilePath = traceDataCache_->GetDataFromDict(item.first);
             if (EndWith(originFilePath, symbolsFile->filePath_)) {
                 rows = item.second;
@@ -243,7 +243,7 @@ bool EbpfBase::EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<Symbol
 }
 
 template <class T>
-void EbpfBase::GetSymbolStartIndex(T* elfSym, uint32_t& symbolStart, uint64_t symVaddr)
+void EbpfBase::GetSymbolStartIndex(T *elfSym, uint32_t &symbolStart, uint64_t symVaddr)
 {
     if (elfSym->st_value + elfSym->st_size >= symVaddr) {
         symbolStart = elfSym->st_name;

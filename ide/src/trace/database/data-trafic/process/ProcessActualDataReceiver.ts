@@ -13,15 +13,14 @@
 
 import { TraficEnum } from '../utils/QueryEnum';
 import { processFrameList } from '../utils/AllMemoryCache';
+import { Args } from '../CommonArgs';
 
-export const chartProcessActualDataSql = (args: unknown): string => {
+export const chartProcessActualDataSql = (args: Args): string => {
   return `
   SELECT
-               (a.ts - ${//@ts-ignore
-                args.recordStartNS}) AS ts,
+               (a.ts - ${args.recordStartNS}) AS ts,
                a.dur,
-               ${//@ts-ignore
-                args.pid} as pid,
+               ${args.pid} as pid,
                a.id,
                a.vsync AS name,
                a.type,
@@ -31,54 +30,50 @@ export const chartProcessActualDataSql = (args: unknown): string => {
         FROM frame_slice AS a
         WHERE a.type = 0
           AND a.flag <> 2
-          AND a.ipid in (select p.ipid from process AS p where p.pid = ${//@ts-ignore
-            args.pid})
+          AND a.ipid in (select p.ipid from process AS p where p.pid = ${args.pid})
         ORDER BY a.ipid;`;
 };
 
-export const chartProcessActualProtoDataSql = (args: unknown): string => {
+export const chartProcessActualProtoDataSql = (args: Args): string => {
   return `
   SELECT
-               (a.ts - ${//@ts-ignore
-                args.recordStartNS}) AS ts,
+               (a.ts - ${args.recordStartNS}) AS ts,
                a.dur,
-               ${//@ts-ignore
-                args.pid} as pid,
+               ${args.pid} as pid,
                a.id,
                a.vsync AS name,
                a.type,
                a.flag AS jankTag,
                a.dst AS dstSlice,
                a.depth,
-               (a.ts - ${//@ts-ignore
-                args.recordStartNS}) / (${Math.floor(//@ts-ignore
-    (args.endNS - args.startNS) / args.width//@ts-ignore
+               (a.ts - ${args.recordStartNS}) / (${Math.floor(
+    (args.endNS - args.startNS) / args.width
   )}) + (a.depth * ${args.width})  AS px
         FROM frame_slice AS a
         WHERE a.type = 0
           AND a.flag <> 2
-          AND a.ipid in (select p.ipid from process AS p where p.pid = ${//@ts-ignore
-            args.pid})
-          AND (a.ts - ${//@ts-ignore
-            args.recordStartNS}) + dur >= ${Math.floor(//@ts-ignore
-          args.startNS)}
+          AND a.ipid in (select p.ipid from process AS p where p.pid = ${args.pid})
+          AND (a.ts - ${args.recordStartNS}) + dur >= ${Math.floor(args.startNS)}
           
-          AND (a.ts - ${//@ts-ignore
-            args.recordStartNS}) <= ${Math.floor(args.endNS)}
+          AND (a.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}
         group by px
         ORDER BY a.ipid;`;
 };
 
-export function processActualDataReceiver(data: unknown, proc: Function): void {//@ts-ignore
-  if (data.params.trafic === TraficEnum.Memory) {//@ts-ignore
-    if (!processFrameList.has(`${data.params.pid}_actual`)) {//@ts-ignore
-      let sql = chartProcessActualDataSql(data.params);//@ts-ignore
+export function processActualDataReceiver(data: unknown, proc: Function): void {
+  //@ts-ignore
+  if (data.params.trafic === TraficEnum.Memory) {
+    //@ts-ignore
+    if (!processFrameList.has(`${data.params.pid}_actual`)) {
+      //@ts-ignore
+      let sql = chartProcessActualDataSql(data.params); //@ts-ignore
       processFrameList.set(`${data.params.pid}_actual`, proc(sql));
-    }//@ts-ignore
+    } //@ts-ignore
     arrayBufferHandler(data, processFrameList.get(`${data.params.pid}_actual`)!, true);
-  } else {//@ts-ignore
+  } else {
+    //@ts-ignore
     let sql = chartProcessActualProtoDataSql(data.params);
-    let res = proc(sql);//@ts-ignore
+    let res = proc(sql); //@ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
@@ -86,27 +81,28 @@ export function processActualDataReceiver(data: unknown, proc: Function): void {
 function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
   let processActual = new ProcessActual(data, transfer, res.length);
   for (let index = 0; index < res.length; index++) {
-    let itemData = res[index];//@ts-ignore
-    data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.processJanksActualData);//@ts-ignore
+    let itemData = res[index]; //@ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.processJanksActualData); //@ts-ignore
     if (!itemData.dur || itemData.dur < 0) {
       continue;
-    }//@ts-ignore
-    processActual.dur[index] = itemData.dur;//@ts-ignore
-    processActual.ts[index] = itemData.ts;//@ts-ignore
-    processActual.pid[index] = itemData.pid;//@ts-ignore
-    processActual.id[index] = itemData.id;//@ts-ignore
-    processActual.name[index] = itemData.name;//@ts-ignore
-    processActual.type[index] = itemData.type;//@ts-ignore
-    processActual.jank_tag[index] = itemData.jankTag;//@ts-ignore
-    processActual.dst_slice[index] = itemData.dstSlice;//@ts-ignore
+    } //@ts-ignore
+    processActual.dur[index] = itemData.dur; //@ts-ignore
+    processActual.ts[index] = itemData.ts; //@ts-ignore
+    processActual.pid[index] = itemData.pid; //@ts-ignore
+    processActual.id[index] = itemData.id; //@ts-ignore
+    processActual.name[index] = itemData.name; //@ts-ignore
+    processActual.type[index] = itemData.type; //@ts-ignore
+    processActual.jank_tag[index] = itemData.jankTag; //@ts-ignore
+    processActual.dst_slice[index] = itemData.dstSlice; //@ts-ignore
     processActual.depth[index] = itemData.depth;
   }
   postProcessActualMessage(data, transfer, processActual, res.length);
 }
 function postProcessActualMessage(data: unknown, transfer: boolean, processActual: ProcessActual, len: number): void {
   (self as unknown as Worker).postMessage(
-    {//@ts-ignore
-      id: data.id,//@ts-ignore
+    {
+      //@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
       results: transfer
         ? {
@@ -149,15 +145,16 @@ class ProcessActual {
   jank_tag: Int32Array;
   dst_slice: Int32Array;
   depth: Uint16Array;
-  constructor(data: unknown, transfer: boolean, len: number) {//@ts-ignore
-    this.ts = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.ts);//@ts-ignore
-    this.dur = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.dur);//@ts-ignore
-    this.pid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.pid);//@ts-ignore
-    this.id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.id);//@ts-ignore
-    this.name = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.name);//@ts-ignore
-    this.type = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.type);//@ts-ignore
-    this.jank_tag = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.jank_tag);//@ts-ignore
-    this.dst_slice = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.dst_slice);//@ts-ignore
+  constructor(data: unknown, transfer: boolean, len: number) {
+    //@ts-ignore
+    this.ts = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.ts); //@ts-ignore
+    this.dur = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.dur); //@ts-ignore
+    this.pid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.pid); //@ts-ignore
+    this.id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.id); //@ts-ignore
+    this.name = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.name); //@ts-ignore
+    this.type = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.type); //@ts-ignore
+    this.jank_tag = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.jank_tag); //@ts-ignore
+    this.dst_slice = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.dst_slice); //@ts-ignore
     this.depth = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.depth);
   }
 }

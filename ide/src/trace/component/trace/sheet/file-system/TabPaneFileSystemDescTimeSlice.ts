@@ -41,8 +41,9 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
     this.currentSelection = fsDescTimeSliceSelection;
     if (this.fsDescTimeSliceTbl) {
       // @ts-ignore
-      this.fsDescTimeSliceTbl.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 20 - 31}px`;
+      this.fsDescTimeSliceTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 20 - 31
+      }px`;
     }
     if (this.fsDescTimeSliceTblData) {
       // @ts-ignore
@@ -54,8 +55,8 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
     this.fsDescTimeSliceTblData!.recycleDataSource = [];
     if (fsDescTimeSliceSelection) {
       this.fsDescTimeSliceLoadingList.push(1);
-      this.fsDescTimeSliceProgressEL!.loading = true;// @ts-ignore
-      this.fsDescTimeSliceLoadingPage.style.visibility = 'visible';// @ts-ignore
+      this.fsDescTimeSliceProgressEL!.loading = true; // @ts-ignore
+      this.fsDescTimeSliceLoadingPage.style.visibility = 'visible'; // @ts-ignore
       let startNs = (window as unknown).recordStartNS ?? 0;
       this.fsDescTimeSliceSource = [];
       procedurePool.submitWithName(
@@ -68,14 +69,15 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
           tab: 'time-slice',
         },
         undefined,
-        (res: unknown): void => {// @ts-ignore
-          this.fsDescTimeSliceSource = this.fsDescTimeSliceSource.concat(res.data);// @ts-ignore
-          res.data = null;// @ts-ignore
+        (res: unknown): void => {
+          // @ts-ignore
+          this.fsDescTimeSliceSource = this.fsDescTimeSliceSource.concat(res.data); // @ts-ignore
+          res.data = null; // @ts-ignore
           if (!res.isSending) {
             this.fsDescTimeSliceTbl!.recycleDataSource = this.fsDescTimeSliceSource;
             this.fsDescTimeSliceLoadingList.splice(0, 1);
             if (this.fsDescTimeSliceLoadingList.length === 0) {
-              this.fsDescTimeSliceProgressEL!.loading = false;// @ts-ignore
+              this.fsDescTimeSliceProgressEL!.loading = false; // @ts-ignore
               this.fsDescTimeSliceLoadingPage.style.visibility = 'hidden';
             }
           }
@@ -91,7 +93,7 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
     this.fsDescTimeSliceTblData = this.shadowRoot?.querySelector<LitTable>('#tbr-filesystem-desc-time-slice');
     this.fsDescTimeSliceTbl!.addEventListener('row-click', (fsTimeSliceRowClickEvent): void => {
       // @ts-ignore
-      let data = fsTimeSliceRowClickEvent.detail.data as FileSysEvent;// @ts-ignore
+      let data = fsTimeSliceRowClickEvent.detail.data as FileSysEvent; // @ts-ignore
       (data as unknown).isSelected = true;
       // @ts-ignore
       if ((fsTimeSliceRowClickEvent.detail as unknown).callBack) {
@@ -103,7 +105,8 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
         'fileSystem-queryStack',
         { callchainId: data.callchainId },
         undefined,
-        (res: unknown): void => {// @ts-ignore
+        (res: unknown): void => {
+          // @ts-ignore
           this.fsDescTimeSliceTblData!.recycleDataSource = res;
         }
       );
@@ -134,7 +137,7 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
           this.fsDescTimeSliceTblData.shadowRoot.querySelector('.table').style.height = `${
             this.parentElement!.clientHeight - 10 - 31
           }px`;
-          this.fsDescTimeSliceTblData.reMeauseHeight();// @ts-ignore
+          this.fsDescTimeSliceTblData.reMeauseHeight(); // @ts-ignore
           this.fsDescTimeSliceLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
         }
       }

@@ -30,7 +30,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-std::string GetFunctionName(const std::string_view& text, const std::string_view& delimiter)
+std::string GetFunctionName(const std::string_view &text, const std::string_view &delimiter)
 {
     std::string str("");
     if (delimiter.empty()) {
@@ -46,7 +46,7 @@ std::string GetFunctionName(const std::string_view& text, const std::string_view
 }
 } // namespace
 
-BytraceEventParser::BytraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+BytraceEventParser::BytraceEventParser(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : EventParserBase(dataCache, filter), printEventParser_(traceDataCache_, streamFilters_)
 {
     printEventParser_.SetTraceType(TRACE_FILETYPE_BY_TRACE);
@@ -175,7 +175,7 @@ void BytraceEventParser::StackEventsInitialization()
         bind(&BytraceEventParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-bool BytraceEventParser::SchedSwitchEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::SchedSwitchEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_SCHED_SWITCH_ARGS_COUNT) {
         TS_LOGW("Failed to parse sched_switch event, no args or args size < 6, argsStr=%s.", line.argsStr.data());
@@ -221,7 +221,7 @@ bool BytraceEventParser::SchedSwitchEvent(const ArgsMap& args, const BytraceLine
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_RECEIVED);
     return true;
 }
-bool BytraceEventParser::BlockedReason(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::BlockedReason(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_BLOCKED_REASON_ARGS_COUNT) {
         TS_LOGD("Failed to parse blocked_reason event, no args or args size < %d", MIN_BLOCKED_REASON_ARGS_COUNT);
@@ -255,7 +255,7 @@ bool BytraceEventParser::BlockedReason(const ArgsMap& args, const BytraceLine& l
     return true;
 }
 
-bool BytraceEventParser::TaskRenameEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::TaskRenameEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_TASK_RENAME_ARGS_COUNT) {
         TS_LOGD("Failed to parse task_rename event, no args or args size < 2");
@@ -268,7 +268,7 @@ bool BytraceEventParser::TaskRenameEvent(const ArgsMap& args, const BytraceLine&
     return true;
 }
 
-bool BytraceEventParser::TaskNewtaskEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::TaskNewtaskEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TASK_NEWTASK, STAT_EVENT_RECEIVED);
     // the clone flag from txt trace from kernel original is HEX, but when it is converted from proto
@@ -277,13 +277,13 @@ bool BytraceEventParser::TaskNewtaskEvent(const ArgsMap& args, const BytraceLine
     return true;
 }
 
-bool BytraceEventParser::TracingMarkWriteOrPrintEvent(const ArgsMap& args, const BytraceLine& line)
+bool BytraceEventParser::TracingMarkWriteOrPrintEvent(const ArgsMap &args, const BytraceLine &line)
 {
     Unused(args);
     return printEventParser_.ParsePrintEvent(line.task, line.ts, line.pid, line.argsStr.c_str(), line);
 }
 // prefer to use waking, unless no waking, can use wakeup
-bool BytraceEventParser::SchedWakeupEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::SchedWakeupEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.size() < MIN_SCHED_WAKEUP_ARGS_COUNT) {
         TS_LOGD("Failed to parse SchedWakeupEvent event, no args or args size < 2");
@@ -311,7 +311,7 @@ bool BytraceEventParser::SchedWakeupEvent(const ArgsMap& args, const BytraceLine
     return true;
 }
 
-bool BytraceEventParser::SchedWakingEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::SchedWakingEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_SCHED_WAKING_ARGS_COUNT) {
         TS_LOGD("Failed to parse sched_waking event, no args or args size < 4");
@@ -341,7 +341,7 @@ bool BytraceEventParser::SchedWakingEvent(const ArgsMap& args, const BytraceLine
     return true;
 }
 
-bool BytraceEventParser::CpuIdleEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::CpuIdleEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_CPU_IDLE_ARGS_COUNT) {
         TS_LOGD("Failed to parse cpu_idle event, no args or args size < 2");
@@ -368,7 +368,7 @@ bool BytraceEventParser::CpuIdleEvent(const ArgsMap& args, const BytraceLine& li
     return true;
 }
 
-bool BytraceEventParser::CpuFrequencyEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::CpuFrequencyEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_FREQUENCY, STAT_EVENT_RECEIVED);
     if (args.empty() || args.size() < MIN_CPU_FREQUENCY_ARGS_COUNT) {
@@ -395,7 +395,7 @@ bool BytraceEventParser::CpuFrequencyEvent(const ArgsMap& args, const BytraceLin
                                                             newStateValue.value());
     return true;
 }
-bool BytraceEventParser::CpuFrequencyLimitsEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::CpuFrequencyLimitsEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_FREQUENCY_LIMITS, STAT_EVENT_RECEIVED);
     if (args.empty() || args.size() < MIN_CPU_FREQUENCY_ARGS_COUNT) {
@@ -439,7 +439,7 @@ bool BytraceEventParser::CpuFrequencyLimitsEvent(const ArgsMap& args, const Bytr
     return true;
 }
 
-bool BytraceEventParser::WorkqueueExecuteStartEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::WorkqueueExecuteStartEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     Unused(args);
     auto splitStr = GetFunctionName(line.argsStr, "function ");
@@ -456,7 +456,7 @@ bool BytraceEventParser::WorkqueueExecuteStartEvent(const ArgsMap& args, const B
     }
 }
 
-bool BytraceEventParser::WorkqueueExecuteEndEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::WorkqueueExecuteEndEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     Unused(args);
     if (streamFilters_->sliceFilter_->EndSlice(line.ts, line.pid, 0, workQueueId_)) {
@@ -468,7 +468,7 @@ bool BytraceEventParser::WorkqueueExecuteEndEvent(const ArgsMap& args, const Byt
     }
 }
 
-bool BytraceEventParser::ProcessExitEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::ProcessExitEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_PROCESS_EXIT_ARGS_COUNT) {
         TS_LOGD("Failed to parse process_exit event, no args or args size < 2");
@@ -491,7 +491,7 @@ bool BytraceEventParser::ProcessExitEvent(const ArgsMap& args, const BytraceLine
     }
 }
 
-bool BytraceEventParser::SetRateEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::SetRateEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_CLOCK_SET_RATE_ARGS_COUNT) {
         TS_LOGD("Failed to parse clock_set_rate event, no args or args size < 3");
@@ -507,7 +507,7 @@ bool BytraceEventParser::SetRateEvent(const ArgsMap& args, const BytraceLine& li
     return true;
 }
 
-bool BytraceEventParser::ClockEnableEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::ClockEnableEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_CLOCK_ENABLE_ARGS_COUNT) {
         TS_LOGD("Failed to parse clock_enable event, no args or args size < 3");
@@ -522,7 +522,7 @@ bool BytraceEventParser::ClockEnableEvent(const ArgsMap& args, const BytraceLine
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_ENABLE, STAT_EVENT_RECEIVED);
     return true;
 }
-bool BytraceEventParser::ClockDisableEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::ClockDisableEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_CLOCK_DISABLE_ARGS_COUNT) {
         TS_LOGD("Failed to parse clock_disable event, no args or args size < 3");
@@ -538,7 +538,7 @@ bool BytraceEventParser::ClockDisableEvent(const ArgsMap& args, const BytraceLin
     return true;
 }
 
-bool BytraceEventParser::RegulatorSetVoltageEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::RegulatorSetVoltageEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     Unused(args);
     Unused(line);
@@ -546,7 +546,7 @@ bool BytraceEventParser::RegulatorSetVoltageEvent(const ArgsMap& args, const Byt
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_SET_VOLTAGE, STAT_EVENT_NOTSUPPORTED);
     return true;
 }
-bool BytraceEventParser::RegulatorSetVoltageCompleteEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::RegulatorSetVoltageCompleteEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     Unused(args);
     Unused(line);
@@ -555,7 +555,7 @@ bool BytraceEventParser::RegulatorSetVoltageCompleteEvent(const ArgsMap& args, c
                                                     STAT_EVENT_NOTSUPPORTED);
     return true;
 }
-bool BytraceEventParser::RegulatorDisableEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::RegulatorDisableEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     Unused(args);
     Unused(line);
@@ -563,7 +563,7 @@ bool BytraceEventParser::RegulatorDisableEvent(const ArgsMap& args, const Bytrac
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_DISABLE, STAT_EVENT_NOTSUPPORTED);
     return true;
 }
-bool BytraceEventParser::RegulatorDisableCompleteEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::RegulatorDisableCompleteEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     Unused(args);
     Unused(line);
@@ -572,21 +572,21 @@ bool BytraceEventParser::RegulatorDisableCompleteEvent(const ArgsMap& args, cons
     return true;
 }
 
-bool BytraceEventParser::IpiEntryEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::IpiEntryEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     Unused(args);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IPI_ENTRY, STAT_EVENT_RECEIVED);
     streamFilters_->irqFilter_->IpiHandlerEntry(line.ts, line.cpu, traceDataCache_->GetDataIndex(line.argsStr));
     return true;
 }
-bool BytraceEventParser::IpiExitEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::IpiExitEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     Unused(args);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IPI_EXIT, STAT_EVENT_RECEIVED);
     streamFilters_->irqFilter_->IpiHandlerExit(line.ts, line.cpu);
     return true;
 }
-bool BytraceEventParser::IrqHandlerEntryEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::IrqHandlerEntryEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_IRQ_HANDLER_ENTRY_ARGS_COUNT) {
         TS_LOGD("Failed to parse irq_handler_entry event, no args or args size < 2");
@@ -598,7 +598,7 @@ bool BytraceEventParser::IrqHandlerEntryEvent(const ArgsMap& args, const Bytrace
     streamFilters_->irqFilter_->IrqHandlerEntry(line.ts, line.cpu, traceDataCache_->GetDataIndex(name));
     return true;
 }
-bool BytraceEventParser::IrqHandlerExitEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::IrqHandlerExitEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_IRQ_HANDLER_EXIT_ARGS_COUNT) {
         TS_LOGD("Failed to parse irq_handler_exit event, no args or args size < 2");
@@ -611,7 +611,7 @@ bool BytraceEventParser::IrqHandlerExitEvent(const ArgsMap& args, const BytraceL
     streamFilters_->irqFilter_->IrqHandlerExit(line.ts, line.cpu, irq.value(), ret);
     return true;
 }
-bool BytraceEventParser::SoftIrqRaiseEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::SoftIrqRaiseEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     Unused(args);
     Unused(line);
@@ -619,7 +619,7 @@ bool BytraceEventParser::SoftIrqRaiseEvent(const ArgsMap& args, const BytraceLin
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_SOFTIRQ_RAISE, STAT_EVENT_NOTSUPPORTED);
     return true;
 }
-bool BytraceEventParser::SoftIrqEntryEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::SoftIrqEntryEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_SOFTIRQ_ENTRY_ARGS_COUNT) {
         TS_LOGD("Failed to parse softirq_entry event, no args or args size < 2");
@@ -631,7 +631,7 @@ bool BytraceEventParser::SoftIrqEntryEvent(const ArgsMap& args, const BytraceLin
     streamFilters_->irqFilter_->SoftIrqEntry(line.ts, line.cpu, vec.value());
     return true;
 }
-bool BytraceEventParser::SoftIrqExitEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::SoftIrqExitEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_SOFTIRQ_EXIT_ARGS_COUNT) {
         TS_LOGD("Failed to parse softirq_exit event, no args or args size < 2");
@@ -644,7 +644,7 @@ bool BytraceEventParser::SoftIrqExitEvent(const ArgsMap& args, const BytraceLine
     return true;
 }
 
-bool BytraceEventParser::BinderTransaction(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::BinderTransaction(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_BINDER_TRANSACTION_ARGS_COUNT) {
         TS_LOGD("Failed to parse binder_transaction event, no args or args size < 7");
@@ -673,7 +673,7 @@ bool BytraceEventParser::BinderTransaction(const ArgsMap& args, const BytraceLin
     }
     return true;
 }
-bool BytraceEventParser::BinderTransactionReceived(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::BinderTransactionReceived(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_BINDER_TRANSACTION_RECEIVED_ARGS_COUNT) {
         TS_LOGD("Failed to parse binder_transaction_received event, no args or args size < 1");
@@ -690,7 +690,7 @@ bool BytraceEventParser::BinderTransactionReceived(const ArgsMap& args, const By
     TS_LOGD("ts:%" PRIu64 ", pid:%u, transactionId:%" PRIu64 "", line.ts, line.pid, transactionId.value());
     return true;
 }
-bool BytraceEventParser::BinderTransactionAllocBufEvent(const ArgsMap& args, const BytraceLine& line) const
+bool BytraceEventParser::BinderTransactionAllocBufEvent(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_BINDER_TRANSACTION_ALLOC_BUF_ARGS_COUNT) {
         TS_LOGD("Failed to parse binder_transaction_alloc_buf event, no args or args size < 3");
@@ -704,7 +704,7 @@ bool BytraceEventParser::BinderTransactionAllocBufEvent(const ArgsMap& args, con
     TS_LOGD("dataSize:%" PRIu64 ", offsetSize:%" PRIu64 "", dataSize.value(), offsetsSize.value());
     return true;
 }
-void BytraceEventParser::ParseDataItem(const BytraceLine& line)
+void BytraceEventParser::ParseDataItem(const BytraceLine &line)
 {
     eventList_.push_back(std::make_unique<EventInfo>(line.ts, std::move(line)));
     size_t maxBuffSize = 1000 * 1000;
@@ -712,20 +712,20 @@ void BytraceEventParser::ParseDataItem(const BytraceLine& line)
     if (eventList_.size() < maxBuffSize * maxQueue) {
         return;
     }
-    auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
+    auto cmp = [](const std::unique_ptr<EventInfo> &a, const std::unique_ptr<EventInfo> &b) {
         return a->eventTimestamp < b->eventTimestamp;
     };
     std::stable_sort(eventList_.begin(), eventList_.end(), cmp);
     auto endOfList = eventList_.begin() + maxBuffSize;
     for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
-        EventInfo* event = itor->get();
+        EventInfo *event = itor->get();
         BeginFilterEvents(event);
         itor->reset();
     }
     eventList_.erase(eventList_.begin(), endOfList);
     return;
 }
-void BytraceEventParser::GetDataSegArgs(BytraceLine& bufLine, ArgsMap& args, uint32_t& tgid) const
+void BytraceEventParser::GetDataSegArgs(BytraceLine &bufLine, ArgsMap &args, uint32_t &tgid) const
 {
     if (bufLine.tGidStr.size() && bufLine.tGidStr.at(0) != '-') {
         tgid = base::StrToInt<uint32_t>(bufLine.tGidStr).value_or(0);
@@ -756,7 +756,7 @@ void BytraceEventParser::GetDataSegArgs(BytraceLine& bufLine, ArgsMap& args, uin
 
 void BytraceEventParser::FilterAllEvents()
 {
-    auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
+    auto cmp = [](const std::unique_ptr<EventInfo> &a, const std::unique_ptr<EventInfo> &b) {
         return a->eventTimestamp < b->eventTimestamp;
     };
     std::stable_sort(eventList_.begin(), eventList_.end(), cmp);
@@ -765,7 +765,7 @@ void BytraceEventParser::FilterAllEvents()
         int32_t size = std::min(maxBuffSize, eventList_.size());
         auto endOfList = eventList_.begin() + size;
         for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
-            EventInfo* event = itor->get();
+            EventInfo *event = itor->get();
             BeginFilterEvents(event);
             itor->reset();
         }
@@ -781,7 +781,7 @@ void BytraceEventParser::FilterAllEvents()
     traceDataCache_->GetThreadStateData()->SortAllRowByTs();
 }
 
-void BytraceEventParser::BeginFilterEvents(EventInfo* event)
+void BytraceEventParser::BeginFilterEvents(EventInfo *event)
 {
     auto it = eventToFunctionMap_.find(event->line.eventName);
     if (it != eventToFunctionMap_.end()) {
@@ -805,7 +805,7 @@ void BytraceEventParser::BeginFilterEvents(EventInfo* event)
 
 void BytraceEventParser::Clear()
 {
-    const_cast<TraceStreamerFilters*>(streamFilters_)->FilterClear();
+    const_cast<TraceStreamerFilters *>(streamFilters_)->FilterClear();
     printEventParser_.Finish();
 }
 } // namespace TraceStreamer

@@ -37,8 +37,9 @@ export class TabPaneIrqCounter extends BaseElement {
       ((irqParam.rightNs - irqParam.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
     let dataSource: Array<SelectionData> = [];
-    Promise.all([// @ts-ignore
-      queryIrqDataBoxSelect(irqParam.irqCallIds, irqParam.leftNs, irqParam.rightNs),// @ts-ignore
+    Promise.all([
+      // @ts-ignore
+      queryIrqDataBoxSelect(irqParam.irqCallIds, irqParam.leftNs, irqParam.rightNs), // @ts-ignore
       querySoftIrqDataBoxSelect(irqParam.softIrqCallIds, irqParam.leftNs, irqParam.rightNs),
     ]).then((resArr) => {
       resArr.forEach((res) => {

@@ -62,12 +62,12 @@ export class FpsRender extends Render {
 }
 
 export function fps(
-  list: Array<any>,
-  res: Array<any>,
+  list: Array<FpsStruct>,
+  res: Array<FpsStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
 ): void {
   if (use && res.length > 0) {
@@ -95,7 +95,7 @@ export function fps(
   }
 }
 
-function setFPSFilter(list: Array<any>, i: number, res: Array<any>): void {
+function setFPSFilter(list: Array<FpsStruct>, i: number, res: Array<FpsStruct>): void {
   if (
     i > 0 &&
     (list[i - 1].frame?.x || 0) === (list[i].frame?.x || 0) &&

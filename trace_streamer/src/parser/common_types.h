@@ -79,7 +79,7 @@ struct RawtraceDataSegment {
 class TracePoint {
 public:
     TracePoint() {}
-    TracePoint(const TracePoint& point)
+    TracePoint(const TracePoint &point)
         : phase_(point.phase_),
           tgid_(point.tgid_),
           name_(point.name_),
@@ -95,7 +95,7 @@ public:
           funcArgs_(point.funcArgs_)
     {
     }
-    void operator=(const TracePoint& point)
+    void operator=(const TracePoint &point)
     {
         phase_ = point.phase_;
         tgid_ = point.tgid_;
@@ -132,7 +132,7 @@ struct HtraceSplitResult {
     int32_t type;
     union {
         struct {
-            uint8_t* address;
+            uint8_t *address;
             uint64_t size;
         } buffer;
         struct {

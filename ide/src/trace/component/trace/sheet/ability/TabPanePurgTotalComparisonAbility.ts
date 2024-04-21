@@ -43,14 +43,15 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
       }px`;
     }
     this.purgeableTotalSource = [];
-    let fileArr: unknown[] = [];// @ts-ignore
-    for (let file of dataList) {// @ts-ignore
+    let fileArr: unknown[] = []; // @ts-ignore
+    for (let file of dataList) {
+      // @ts-ignore
       if (file.startNs !== purgeTotalComParam.startNs) {
         fileArr.push(file);
       }
     }
-    fileArr = fileArr.sort();// @ts-ignore
-    this.initSelect(purgeTotalComParam.startNs, fileArr);// @ts-ignore
+    fileArr = fileArr.sort(); // @ts-ignore
+    this.initSelect(purgeTotalComParam.startNs, fileArr); // @ts-ignore
     this.updateComparisonData(purgeTotalComParam.startNs, fileArr[0].startNs);
   }
 
@@ -61,20 +62,23 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
     let option = new LitSelectOption();
     option.innerHTML = 'File Name';
     option.setAttribute('disabled', 'disabled');
-    this.selectEl?.appendChild(option);// @ts-ignore
-    if (purgeTotalComFileArr[0].name) {// @ts-ignore
+    this.selectEl?.appendChild(option); // @ts-ignore
+    if (purgeTotalComFileArr[0].name) {
+      // @ts-ignore
       option.setAttribute('value', purgeTotalComFileArr[0].name);
-    }// @ts-ignore
-    this.selectEl!.defaultValue = purgeTotalComFileArr[0].name;// @ts-ignore
+    } // @ts-ignore
+    this.selectEl!.defaultValue = purgeTotalComFileArr[0].name; // @ts-ignore
     this.selectEl!.placeholder = purgeTotalComFileArr[0].name;
     this.selectEl!.dataSource = purgeTotalComFileArr;
     this.selectEl!.querySelectorAll('lit-select-option').forEach((a): void => {
       a.addEventListener('onSelected', (e: unknown): void => {
-        for (let f of purgeTotalComFileArr) {// @ts-ignore
-          if (input.value === f.name) {// @ts-ignore
+        for (let f of purgeTotalComFileArr) {
+          // @ts-ignore
+          if (input.value === f.name) {
+            // @ts-ignore
             that.updateComparisonData(fileStartNs, f.startNs);
           }
-        }// @ts-ignore
+        } // @ts-ignore
         e.stopPropagation();
       });
     });
@@ -107,7 +111,8 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
       }
       // 被比较的
       await querySysPurgeableSelectionTab(targetTime).then((results): void => {
-        for (let i = 0; i < results.length; i++) { //@ts-ignore
+        for (let i = 0; i < results.length; i++) {
+          //@ts-ignore
           targetArr.push(new CompareStruct(results[i].name, results[i].value));
         }
         let compareData = compare(baseArr, targetArr);

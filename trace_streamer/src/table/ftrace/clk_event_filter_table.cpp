@@ -20,7 +20,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, TYPE, NAME, CPU };
-ClkEventFilterTable::ClkEventFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+ClkEventFilterTable::ClkEventFilterTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
@@ -36,7 +36,7 @@ std::unique_ptr<TableBase::Cursor> ClkEventFilterTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-ClkEventFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+ClkEventFilterTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstClkEventFilterData().Size()))
 {
 }

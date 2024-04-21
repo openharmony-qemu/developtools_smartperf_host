@@ -23,7 +23,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-bool TraceStreamerSelectorFuzzTest(const uint8_t* data, size_t size)
+bool TraceStreamerSelectorFuzzTest(const uint8_t *data, size_t size)
 {
     TraceStreamerSelector stream_ = {};
     std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(size);
@@ -39,7 +39,7 @@ bool TraceStreamerSelectorFuzzTest(const uint8_t* data, size_t size)
 } // namespace SysTuning
 
 /* Fuzzer entry point */
-extern "C" int32_t LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int32_t LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     SysTuning::TraceStreamer::TraceStreamerSelectorFuzzTest(data, size);

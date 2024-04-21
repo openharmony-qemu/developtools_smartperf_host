@@ -58,7 +58,7 @@ public:
 HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
 {
     TS_LOGI("test14-1");
-    SchedSwitchFormat* event = new SchedSwitchFormat();
+    SchedSwitchFormat *event = new SchedSwitchFormat();
     event->set_prev_prio(PRIORITY_01);
     event->set_next_prio(PRIORITY_02);
     event->set_prev_pid(PID_01);
@@ -68,7 +68,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
     event->set_prev_state(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -83,7 +83,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -108,7 +108,7 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgHasNoEvent, TestSize.Leve
 {
     TS_LOGI("test14-2");
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
 
@@ -117,7 +117,7 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgHasNoEvent, TestSize.Leve
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -139,7 +139,7 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgHasNoEvent, TestSize.Leve
 HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.Level1)
 {
     TS_LOGI("test14-3");
-    SchedSwitchFormat* event = new SchedSwitchFormat();
+    SchedSwitchFormat *event = new SchedSwitchFormat();
     event->set_prev_prio(PRIORITY_01);
     event->set_next_prio(PRIORITY_02);
     event->set_prev_pid(PID_01);
@@ -149,7 +149,7 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.L
     event->set_prev_state(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(1);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -164,7 +164,7 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.L
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -185,14 +185,14 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.L
 HWTEST_F(HtraceEventParserTest, ParseTaskRenameEvent, TestSize.Level1)
 {
     TS_LOGI("test14-4");
-    TaskRenameFormat* taskRenameEvent = new TaskRenameFormat();
+    TaskRenameFormat *taskRenameEvent = new TaskRenameFormat();
     taskRenameEvent->set_pid(PID_01);
     taskRenameEvent->set_oldcomm(THREAD_NAME_01);
     taskRenameEvent->set_newcomm(THREAD_NAME_02);
     taskRenameEvent->set_oom_score_adj(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -207,7 +207,7 @@ HWTEST_F(HtraceEventParserTest, ParseTaskRenameEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -229,14 +229,14 @@ HWTEST_F(HtraceEventParserTest, ParseTaskRenameEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseTaskNewtaskEvent, TestSize.Level1)
 {
     TS_LOGI("test14-5");
-    TaskNewtaskFormat* newTaskEvent = new TaskNewtaskFormat();
+    TaskNewtaskFormat *newTaskEvent = new TaskNewtaskFormat();
     newTaskEvent->set_pid(PID_01);
     newTaskEvent->set_comm(THREAD_NAME_01);
     newTaskEvent->set_clone_flags(0);
     newTaskEvent->set_oom_score_adj(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -251,7 +251,7 @@ HWTEST_F(HtraceEventParserTest, ParseTaskNewtaskEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -273,14 +273,14 @@ HWTEST_F(HtraceEventParserTest, ParseTaskNewtaskEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseSchedWakeupEvent, TestSize.Level1)
 {
     TS_LOGI("test14-6");
-    SchedWakeupFormat* wakeupEvent = new SchedWakeupFormat();
+    SchedWakeupFormat *wakeupEvent = new SchedWakeupFormat();
     wakeupEvent->set_comm(THREAD_NAME_01);
     wakeupEvent->set_pid(PRIORITY_02);
     wakeupEvent->set_prio(PID_01);
     wakeupEvent->set_target_cpu(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -295,7 +295,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakeupEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -317,14 +317,14 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakeupEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseSchedWakingEvent, TestSize.Level1)
 {
     TS_LOGI("test14-7");
-    SchedWakingFormat* wakingEvent = new SchedWakingFormat();
+    SchedWakingFormat *wakingEvent = new SchedWakingFormat();
     wakingEvent->set_comm(THREAD_NAME_01);
     wakingEvent->set_pid(PRIORITY_02);
     wakingEvent->set_prio(PID_01);
     wakingEvent->set_target_cpu(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -339,7 +339,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakingEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -361,12 +361,12 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakingEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseCpuIdleEvent, TestSize.Level1)
 {
     TS_LOGI("test14-8");
-    CpuIdleFormat* cpuIdleEvent = new CpuIdleFormat();
+    CpuIdleFormat *cpuIdleEvent = new CpuIdleFormat();
     cpuIdleEvent->set_cpu_id(0);
     cpuIdleEvent->set_state(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -381,7 +381,7 @@ HWTEST_F(HtraceEventParserTest, ParseCpuIdleEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -403,12 +403,12 @@ HWTEST_F(HtraceEventParserTest, ParseCpuIdleEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseCpuFrequencyEvent, TestSize.Level1)
 {
     TS_LOGI("test14-9");
-    CpuFrequencyFormat* cpuFrequencyEvent = new CpuFrequencyFormat();
+    CpuFrequencyFormat *cpuFrequencyEvent = new CpuFrequencyFormat();
     cpuFrequencyEvent->set_cpu_id(0);
     cpuFrequencyEvent->set_state(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -423,7 +423,7 @@ HWTEST_F(HtraceEventParserTest, ParseCpuFrequencyEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -447,12 +447,12 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1
     TS_LOGI("test14-10");
     stream_.traceDataCache_->GetSymbolsData()->UpdateSymbol(1, 1);
     auto funcNum = stream_.traceDataCache_->GetSymbolsData()->GetFunc(1);
-    WorkqueueExecuteStartFormat* workqueueExecuteStartEvent = new WorkqueueExecuteStartFormat();
+    WorkqueueExecuteStartFormat *workqueueExecuteStartEvent = new WorkqueueExecuteStartFormat();
     workqueueExecuteStartEvent->set_work(0);
     workqueueExecuteStartEvent->set_function(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -467,7 +467,7 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -489,11 +489,11 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1
 HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteEndEvent, TestSize.Level1)
 {
     TS_LOGI("test14-11");
-    WorkqueueExecuteEndFormat* workqueueExecuteEndEvent = new WorkqueueExecuteEndFormat();
+    WorkqueueExecuteEndFormat *workqueueExecuteEndEvent = new WorkqueueExecuteEndFormat();
     workqueueExecuteEndEvent->set_work(0);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -508,7 +508,7 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteEndEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -530,13 +530,13 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteEndEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseClockDisableEvent, TestSize.Level1)
 {
     TS_LOGI("test14-12");
-    ClockDisableFormat* clockDisableEvent = new ClockDisableFormat();
+    ClockDisableFormat *clockDisableEvent = new ClockDisableFormat();
     clockDisableEvent->set_name(THREAD_NAME_02);
     clockDisableEvent->set_cpu_id(0);
     clockDisableEvent->set_state(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -551,7 +551,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockDisableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -573,13 +573,13 @@ HWTEST_F(HtraceEventParserTest, ParseClockDisableEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseClockEnableEvent, TestSize.Level1)
 {
     TS_LOGI("test14-13");
-    ClockEnableFormat* clockEnableEvent = new ClockEnableFormat();
+    ClockEnableFormat *clockEnableEvent = new ClockEnableFormat();
     clockEnableEvent->set_name(THREAD_NAME_02);
     clockEnableEvent->set_cpu_id(0);
     clockEnableEvent->set_state(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -594,7 +594,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockEnableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -616,13 +616,13 @@ HWTEST_F(HtraceEventParserTest, ParseClockEnableEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseClockSetRateEvent, TestSize.Level1)
 {
     TS_LOGI("test14-14");
-    ClockSetRateFormat* clockSetRateEvent = new ClockSetRateFormat();
+    ClockSetRateFormat *clockSetRateEvent = new ClockSetRateFormat();
     clockSetRateEvent->set_name(THREAD_NAME_02);
     clockSetRateEvent->set_cpu_id(0);
     clockSetRateEvent->set_state(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -637,7 +637,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockSetRateEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -659,11 +659,11 @@ HWTEST_F(HtraceEventParserTest, ParseClockSetRateEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseClkDisableEvent, TestSize.Level1)
 {
     TS_LOGI("test14-15");
-    ClkDisableFormat* clkDisableEvent = new ClkDisableFormat();
+    ClkDisableFormat *clkDisableEvent = new ClkDisableFormat();
     clkDisableEvent->set_name(THREAD_NAME_02);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -678,7 +678,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkDisableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -700,11 +700,11 @@ HWTEST_F(HtraceEventParserTest, ParseClkDisableEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseClkEnableEvent, TestSize.Level1)
 {
     TS_LOGI("test14-16");
-    ClkEnableFormat* clkEnableEvent = new ClkEnableFormat();
+    ClkEnableFormat *clkEnableEvent = new ClkEnableFormat();
     clkEnableEvent->set_name(THREAD_NAME_02);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -719,7 +719,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkEnableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -741,12 +741,12 @@ HWTEST_F(HtraceEventParserTest, ParseClkEnableEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseClkSetRateEvent, TestSize.Level1)
 {
     TS_LOGI("test14-17");
-    ClkSetRateFormat* clkSetRateEvent = new ClkSetRateFormat();
+    ClkSetRateFormat *clkSetRateEvent = new ClkSetRateFormat();
     clkSetRateEvent->set_name(THREAD_NAME_02);
     clkSetRateEvent->set_rate(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -761,7 +761,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkSetRateEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -783,11 +783,11 @@ HWTEST_F(HtraceEventParserTest, ParseClkSetRateEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseSysEnterEvent, TestSize.Level1)
 {
     TS_LOGI("test14-18");
-    SysEnterFormat* sysEnterEvent = new SysEnterFormat();
+    SysEnterFormat *sysEnterEvent = new SysEnterFormat();
     sysEnterEvent->set_id(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -802,7 +802,7 @@ HWTEST_F(HtraceEventParserTest, ParseSysEnterEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
@@ -823,12 +823,12 @@ HWTEST_F(HtraceEventParserTest, ParseSysEnterEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseSystemExitEvent, TestSize.Level1)
 {
     TS_LOGI("test14-19");
-    SysExitFormat* sysExitEvent = new SysExitFormat();
+    SysExitFormat *sysExitEvent = new SysExitFormat();
     sysExitEvent->set_id(1);
     sysExitEvent->set_ret(1);
 
     TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+    FtraceCpuDetailMsg *ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
     ftraceCpuDetail->set_cpu(0);
     ftraceCpuDetail->set_overwrite(0);
     auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -843,7 +843,7 @@ HWTEST_F(HtraceEventParserTest, ParseSystemExitEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                               dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 

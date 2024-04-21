@@ -20,7 +20,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-PerfDataParser::PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PerfDataParser::PerfDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx),
       configNameIndex_(traceDataCache_->dataDict_.GetStringIndex("config_name")),
       workloaderIndex_(traceDataCache_->dataDict_.GetStringIndex("workload_cmd")),
@@ -32,7 +32,7 @@ PerfDataParser::PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFil
 {
     SymbolsFile::onRecording_ = false;
 }
-uint64_t PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t>& dequeBuffer,
+uint64_t PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t> &dequeBuffer,
                                              uint64_t size,
                                              uint64_t offset,
                                              bool isSplitFile,
@@ -50,12 +50,12 @@ uint64_t PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t>& dequeBuf
     return size;
 }
 
-uint64_t PerfDataParser::DataProcessingLength(const std::deque<uint8_t>& dequeBuffer,
+uint64_t PerfDataParser::DataProcessingLength(const std::deque<uint8_t> &dequeBuffer,
                                               uint64_t size,
                                               uint64_t offset,
                                               bool isFinish)
 {
-    using PerfSplitFunc = bool (PerfDataParser::*)(const std::deque<uint8_t>&, uint64_t, uint64_t&, bool&);
+    using PerfSplitFunc = bool (PerfDataParser::*)(const std::deque<uint8_t> &, uint64_t, uint64_t &, bool &);
     std::vector<PerfSplitFunc> splitFunc = {&PerfDataParser::SplitPerfStarting,
                                             &PerfDataParser::SplitPerfParsingHead,
                                             &PerfDataParser::SplitPerfWaitForAttr,
@@ -103,7 +103,7 @@ uint64_t PerfDataParser::DataProcessingLength(const std::deque<uint8_t>& dequeBu
     return processedLen;
 }
 
-uint64_t PerfDataParser::SplitPerfData(const std::deque<uint8_t>& dequeBuffer,
+uint64_t PerfDataParser::SplitPerfData(const std::deque<uint8_t> &dequeBuffer,
                                        uint64_t size,
                                        uint64_t offset,
                                        bool isFinish)
@@ -121,14 +121,14 @@ uint64_t PerfDataParser::SplitPerfData(const std::deque<uint8_t>& dequeBuffer,
     return datalength;
 }
 
-bool PerfDataParser::SplitPerfStarting(const std::deque<uint8_t>& dequeBuffer,
+bool PerfDataParser::SplitPerfStarting(const std::deque<uint8_t> &dequeBuffer,
                                        uint64_t size,
-                                       uint64_t& processedLen,
-                                       bool& invalid)
+                                       uint64_t &processedLen,
+                                       bool &invalid)
 {
     if (hasProfilerHead_) {
         HtraceSplitResult htraceHead = {.type = (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
-                                        .buffer = {.address = reinterpret_cast<uint8_t*>(&profilerHeader_),
+                                        .buffer = {.address = reinterpret_cast<uint8_t *>(&profilerHeader_),
                                                    .size = sizeof(ProfilerTraceFileHeader)}};
         splitResult_.emplace_back(htraceHead);
     }
@@ -137,17 +137,17 @@ bool PerfDataParser::SplitPerfStarting(const std::deque<uint8_t>& dequeBuffer,
     return true;
 }
 
-bool PerfDataParser::SplitPerfParsingHead(const std::deque<uint8_t>& dequeBuffer,
+bool PerfDataParser::SplitPerfParsingHead(const std::deque<uint8_t> &dequeBuffer,
                                           uint64_t size,
-                                          uint64_t& processedLen,
-                                          bool& invalid)
+                                          uint64_t &processedLen,
+                                          bool &invalid)
 {
     processedLen = 0;
     if (size < sizeof(perf_file_header)) {
         return false;
     }
 
-    std::copy_n(dequeBuffer.begin(), sizeof(perf_file_header), reinterpret_cast<char*>(&perfHeader_));
+    std::copy_n(dequeBuffer.begin(), sizeof(perf_file_header), reinterpret_cast<char *>(&perfHeader_));
 
     if (memcmp(perfHeader_.magic, PERF_MAGIC, sizeof(perfHeader_.magic))) {
         TS_LOGE("invalid magic id");
@@ -169,17 +169,17 @@ bool PerfDataParser::SplitPerfParsingHead(const std::deque<uint8_t>& dequeBuffer
 
     HtraceSplitResult perfHead = {
         .type = (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
-        .buffer = {.address = reinterpret_cast<uint8_t*>(&perfHeader_), .size = sizeof(perf_file_header)}};
+        .buffer = {.address = reinterpret_cast<uint8_t *>(&perfHeader_), .size = sizeof(perf_file_header)}};
     splitResult_.emplace_back(perfHead);
     processedLen += sizeof(perf_file_header);
     splitState_ = SplitPerfState::WAIT_FOR_ATTR;
     return true;
 }
 
-bool PerfDataParser::SplitPerfWaitForAttr(const std::deque<uint8_t>& dequeBuffer,
+bool PerfDataParser::SplitPerfWaitForAttr(const std::deque<uint8_t> &dequeBuffer,
                                           uint64_t size,
-                                          uint64_t& processedLen,
-                                          bool& invalid)
+                                          uint64_t &processedLen,
+                                          bool &invalid)
 {
     if (processedLength_ + processedLen > perfHeader_.attrs.offset) {
         TS_LOGE("offset of attr is wrong %" PRIu64 "", perfHeader_.attrs.offset);
@@ -197,10 +197,10 @@ bool PerfDataParser::SplitPerfWaitForAttr(const std::deque<uint8_t>& dequeBuffer
     return true;
 }
 
-bool PerfDataParser::SplitPerfParsingAttr(const std::deque<uint8_t>& dequeBuffer,
+bool PerfDataParser::SplitPerfParsingAttr(const std::deque<uint8_t> &dequeBuffer,
                                           uint64_t size,
-                                          uint64_t& processedLen,
-                                          bool& invalid)
+                                          uint64_t &processedLen,
+                                          bool &invalid)
 {
     int attrCount = perfHeader_.attrs.size / perfHeader_.attrSize;
     if (attrCount == 0) {
@@ -218,7 +218,7 @@ bool PerfDataParser::SplitPerfParsingAttr(const std::deque<uint8_t>& dequeBuffer
     std::copy_n(dequeBuffer.begin() + processedLen, perfHeader_.attrs.size, buffer.get());
     std::vector<perf_file_attr> vecAttr;
     for (int index = 0; index < attrCount; ++index) {
-        perf_file_attr* attr = reinterpret_cast<perf_file_attr*>(buffer.get() + perfHeader_.attrSize * index);
+        perf_file_attr *attr = reinterpret_cast<perf_file_attr *>(buffer.get() + perfHeader_.attrSize * index);
         vecAttr.push_back(*attr);
         // for Update Clock Type
         if (index == 0) {
@@ -243,10 +243,10 @@ bool PerfDataParser::SplitPerfParsingAttr(const std::deque<uint8_t>& dequeBuffer
     return true;
 }
 
-bool PerfDataParser::SplitPerfWaitForData(const std::deque<uint8_t>& dequeBuffer,
+bool PerfDataParser::SplitPerfWaitForData(const std::deque<uint8_t> &dequeBuffer,
                                           uint64_t size,
-                                          uint64_t& processedLen,
-                                          bool& invalid)
+                                          uint64_t &processedLen,
+                                          bool &invalid)
 {
     if (processedLength_ + processedLen > perfHeader_.data.offset) {
         TS_LOGE("offset of data is wrong %" PRIu64 "", perfHeader_.data.offset);
@@ -269,11 +269,11 @@ bool PerfDataParser::SplitPerfWaitForData(const std::deque<uint8_t>& dequeBuffer
     return true;
 }
 
-SplitPerfState PerfDataParser::DataLengthProcessing(const std::deque<uint8_t>& dequeBuffer,
-                                                    perf_event_header& dataHeader,
+SplitPerfState PerfDataParser::DataLengthProcessing(const std::deque<uint8_t> &dequeBuffer,
+                                                    perf_event_header &dataHeader,
                                                     uint64_t size,
-                                                    uint64_t& processedLen,
-                                                    bool& invalid)
+                                                    uint64_t &processedLen,
+                                                    bool &invalid)
 {
     uint64_t totalDataRemain = perfHeader_.data.offset + perfHeader_.data.size - processedLength_ - processedLen;
     if (totalDataRemain < sizeof(perf_event_header)) {
@@ -287,7 +287,7 @@ SplitPerfState PerfDataParser::DataLengthProcessing(const std::deque<uint8_t>& d
     if (lengthRemain < sizeof(perf_event_header)) {
         return SplitPerfState::STARTING;
     }
-    std::copy_n(dequeBuffer.begin() + processedLen, sizeof(perf_event_header), reinterpret_cast<char*>(&dataHeader));
+    std::copy_n(dequeBuffer.begin() + processedLen, sizeof(perf_event_header), reinterpret_cast<char *>(&dataHeader));
     if (dataHeader.size < sizeof(perf_event_header)) {
         TS_LOGE("invalid data size %u", dataHeader.size);
         invalid = true;
@@ -305,10 +305,10 @@ SplitPerfState PerfDataParser::DataLengthProcessing(const std::deque<uint8_t>& d
     return SplitPerfState::WAIT_FOR_ATTR;
 }
 
-bool PerfDataParser::SplitPerfParsingData(const std::deque<uint8_t>& dequeBuffer,
+bool PerfDataParser::SplitPerfParsingData(const std::deque<uint8_t> &dequeBuffer,
                                           uint64_t size,
-                                          uint64_t& processedLen,
-                                          bool& invalid)
+                                          uint64_t &processedLen,
+                                          bool &invalid)
 {
     perf_event_header dataHeader;
     auto ret = DataLengthProcessing(dequeBuffer, dataHeader, size, processedLen, invalid);
@@ -324,7 +324,7 @@ bool PerfDataParser::SplitPerfParsingData(const std::deque<uint8_t>& dequeBuffer
         auto buffer = std::make_unique<uint8_t[]>(dataHeader.size);
         std::copy_n(dequeBuffer.begin() + processedLen + sizeof(perf_event_header),
                     dataHeader.size - sizeof(perf_event_header), buffer.get());
-        uint64_t time = *(reinterpret_cast<uint64_t*>(buffer.get() + sampleTimeOffset_));
+        uint64_t time = *(reinterpret_cast<uint64_t *>(buffer.get() + sampleTimeOffset_));
         uint64_t newTimeStamp = 0;
         if (useClockId_ != 0) {
             newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(perfToTSClockType_.at(clockId_), time);
@@ -354,10 +354,10 @@ bool PerfDataParser::SplitPerfParsingData(const std::deque<uint8_t>& dequeBuffer
     return true;
 }
 
-bool PerfDataParser::SplitPerfParsingFeatureSection(const std::deque<uint8_t>& dequeBuffer,
+bool PerfDataParser::SplitPerfParsingFeatureSection(const std::deque<uint8_t> &dequeBuffer,
                                                     uint64_t size,
-                                                    uint64_t& processedLen,
-                                                    bool& invalid)
+                                                    uint64_t &processedLen,
+                                                    bool &invalid)
 {
     featureSectioSize_ = featureCount_ * sizeof(perf_file_section);
     if (featureSectioSize_ == 0) {
@@ -375,7 +375,7 @@ bool PerfDataParser::SplitPerfParsingFeatureSection(const std::deque<uint8_t>& d
     std::copy_n(dequeBuffer.begin() + processedLen, featureSectioSize_, featureSection_.get());
     uint64_t splitDropSize = perfHeader_.data.size - splitDataSize_;
     for (auto i = 0; i < featureCount_; ++i) {
-        perf_file_section* featureSections = reinterpret_cast<perf_file_section*>(featureSection_.get());
+        perf_file_section *featureSections = reinterpret_cast<perf_file_section *>(featureSection_.get());
         featureSections[i].offset -= splitDropSize;
     }
     HtraceSplitResult featureBuff = {.type = (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
@@ -389,10 +389,10 @@ bool PerfDataParser::SplitPerfParsingFeatureSection(const std::deque<uint8_t>& d
     return true;
 }
 
-bool PerfDataParser::SplitPerfWaitForFinish(const std::deque<uint8_t>& dequeBuffer,
+bool PerfDataParser::SplitPerfWaitForFinish(const std::deque<uint8_t> &dequeBuffer,
                                             uint64_t size,
-                                            uint64_t& processedLen,
-                                            bool& invalid)
+                                            uint64_t &processedLen,
+                                            bool &invalid)
 {
     return false;
 }
@@ -407,7 +407,7 @@ PerfDataParser::~PerfDataParser()
             static_cast<unsigned long long>(GetPluginEndTime()));
 }
 
-bool PerfDataParser::PerfReloadSymbolFiles(std::vector<std::string>& symbolsPaths)
+bool PerfDataParser::PerfReloadSymbolFiles(std::vector<std::string> &symbolsPaths)
 {
     if (access(tmpPerfData_.c_str(), F_OK) != 0) {
         TS_LOGE("perf file:%s not exist", tmpPerfData_.c_str());
@@ -483,7 +483,7 @@ void PerfDataParser::UpdateEventConfigInfo()
     if (cpuOffMode_) {
         TS_LOGD("this is cpuOffMode ");
     }
-    const PerfFileSection* featureSection = recordDataReader_->GetFeatureSection(FEATURE::EVENT_DESC);
+    const PerfFileSection *featureSection = recordDataReader_->GetFeatureSection(FEATURE::EVENT_DESC);
     if (featureSection) {
         TS_LOGI("have EVENT_DESC");
         LoadEventDesc();
@@ -495,17 +495,17 @@ void PerfDataParser::UpdateEventConfigInfo()
 void PerfDataParser::LoadEventDesc()
 {
     const auto featureSection = recordDataReader_->GetFeatureSection(FEATURE::EVENT_DESC);
-    const auto& sectionEventdesc = *static_cast<const PerfFileSectionEventDesc*>(featureSection);
+    const auto &sectionEventdesc = *static_cast<const PerfFileSectionEventDesc *>(featureSection);
     TS_LOGI("Event descriptions: %zu", sectionEventdesc.eventDesces_.size());
     for (size_t i = 0; i < sectionEventdesc.eventDesces_.size(); i++) {
-        const auto& fileAttr = sectionEventdesc.eventDesces_[i];
+        const auto &fileAttr = sectionEventdesc.eventDesces_[i];
         TS_LOGI("event name[%zu]: %s ids: %s", i, fileAttr.name.c_str(), VectorToString(fileAttr.ids).c_str());
         for (uint64_t id : fileAttr.ids) {
             report_->configIdIndexMaps_[id] = report_->configs_.size(); // setup index
             TS_LOGI("add config id map %" PRIu64 " to %zu", id, report_->configs_.size());
         }
         // when cpuOffMode_ , don't use count mode , use time mode.
-        auto& config = report_->configs_.emplace_back(fileAttr.name, fileAttr.attr.type, fileAttr.attr.config,
+        auto &config = report_->configs_.emplace_back(fileAttr.name, fileAttr.attr.type, fileAttr.attr.config,
                                                       cpuOffMode_ ? false : true);
         config.ids_ = fileAttr.ids;
         TS_ASSERT(config.ids_.size() > 0);
@@ -523,7 +523,7 @@ void PerfDataParser::UpdateReportWorkloadInfo() const
     std::string workloader = "";
     if (featureSection) {
         TS_LOGI("found HIPERF_META_WORKLOAD_CMD");
-        auto sectionString = static_cast<const PerfFileSectionString*>(featureSection);
+        auto sectionString = static_cast<const PerfFileSectionString *>(featureSection);
         workloader = sectionString->toString();
     } else {
         TS_LOGW("NOT found HIPERF_META_WORKLOAD_CMD");
@@ -553,16 +553,16 @@ void PerfDataParser::UpdateSymbolAndFilesData()
     // found symbols in file
     const auto featureSection = recordDataReader_->GetFeatureSection(FEATURE::HIPERF_FILES_SYMBOL);
     if (featureSection != nullptr) {
-        const PerfFileSectionSymbolsFiles* sectionSymbolsFiles =
-            static_cast<const PerfFileSectionSymbolsFiles*>(featureSection);
+        const PerfFileSectionSymbolsFiles *sectionSymbolsFiles =
+            static_cast<const PerfFileSectionSymbolsFiles *>(featureSection);
         report_->virtualRuntime_.UpdateFromPerfData(sectionSymbolsFiles->symbolFileStructs_);
     }
     // fileid, symbolIndex, filePathIndex
     uint64_t fileId = 0;
-    for (auto& symbolsFile : report_->virtualRuntime_.GetSymbolsFiles()) {
+    for (auto &symbolsFile : report_->virtualRuntime_.GetSymbolsFiles()) {
         auto filePathIndex = traceDataCache_->dataDict_.GetStringIndex(symbolsFile->filePath_.c_str());
         uint32_t serial = 0;
-        for (auto& symbol : symbolsFile->GetSymbols()) {
+        for (auto &symbol : symbolsFile->GetSymbols()) {
             auto symbolIndex = traceDataCache_->dataDict_.GetStringIndex(symbol.GetName());
             streamFilters_->statFilter_->IncreaseStat(TRACE_PERF, STAT_EVENT_RECEIVED);
             streamFilters_->perfDataFilter_->AppendPerfFiles(fileId, serial++, symbolIndex, filePathIndex);
@@ -576,7 +576,7 @@ void PerfDataParser::UpdateSymbolAndFilesData()
 }
 void PerfDataParser::UpdateClockType()
 {
-    const auto& attrIds_ = recordDataReader_->GetAttrSection();
+    const auto &attrIds_ = recordDataReader_->GetAttrSection();
     if (attrIds_.size() > 0) {
         useClockId_ = attrIds_[0].attr.use_clockid;
         clockId_ = attrIds_[0].attr.clockid;
@@ -589,11 +589,11 @@ bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
     report_->virtualRuntime_.UpdateFromRecord(*record);
 
     if (record->GetType() == PERF_RECORD_SAMPLE) {
-        std::unique_ptr<PerfRecordSample> sample(static_cast<PerfRecordSample*>(record.release()));
+        std::unique_ptr<PerfRecordSample> sample(static_cast<PerfRecordSample *>(record.release()));
         uint32_t callChainId = UpdateCallChainUnCompressed(sample);
         UpdatePerfSampleData(callChainId, sample);
     } else if (record->GetType() == PERF_RECORD_COMM) {
-        auto recordComm = static_cast<PerfRecordComm*>(record.get());
+        auto recordComm = static_cast<PerfRecordComm *>(record.get());
         auto range = tidToPid_.equal_range(recordComm->data_.tid);
         for (auto it = range.first; it != range.second; it++) {
             if (it->second == recordComm->data_.pid) {
@@ -608,10 +608,10 @@ bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
     return true;
 }
 
-uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfRecordSample>& sample)
+uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfRecordSample> &sample)
 {
     std::string stackStr = "";
-    for (auto& callFrame : sample->callFrames_) {
+    for (auto &callFrame : sample->callFrames_) {
         stackStr += "+" + base::number(callFrame.pc, base::INTEGER_RADIX_TYPE_HEX);
     }
     auto stackHash = hashFun_(stackStr);
@@ -635,7 +635,7 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
     return callChainId;
 }
 
-void PerfDataParser::UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample>& sample)
+void PerfDataParser::UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample> &sample)
 {
     auto perfSampleData = traceDataCache_->GetPerfSampleData();
     uint64_t newTimeStamp = 0;

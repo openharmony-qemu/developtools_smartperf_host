@@ -29,9 +29,9 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PbreaderHiLogParser : public EventParserBase, public HtracePluginTimeParser {
 public:
-    PbreaderHiLogParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    PbreaderHiLogParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~PbreaderHiLogParser();
-    void Parse(ProtoReader::BytesView tracePacket, bool& haveSplitSeg);
+    void Parse(ProtoReader::BytesView tracePacket, bool &haveSplitSeg);
     std::map<uint32_t, std::string> logLevelString_ = {{TS_DEBUG, "D"},
                                                        {TS_ERROR, "E"},
                                                        {TS_INFO, "I"},

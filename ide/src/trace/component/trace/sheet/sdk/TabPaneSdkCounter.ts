@@ -35,7 +35,7 @@ export class TabPaneSdkCounter extends BaseElement {
 
   set data(valSdkCounter: SelectionParam | unknown) {
     this.sdkRange!.textContent =
-    // @ts-ignore
+      // @ts-ignore
       'Selected range: ' + ((valSdkCounter.rightNs - valSdkCounter.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.queryDataByDB(valSdkCounter);
   }
@@ -116,6 +116,7 @@ export class TabPaneSdkCounter extends BaseElement {
     queryStartTime().then((res) => {
       //@ts-ignore
       let startTime = res[0].start_ts;
+      // @ts-ignore
       this.parseJson(SpSystemTrace.SDK_CONFIG_MAP);
       let counters: Array<string> = [];
       let componentId: number = -1;

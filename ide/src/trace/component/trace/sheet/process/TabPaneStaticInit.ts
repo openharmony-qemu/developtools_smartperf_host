@@ -38,8 +38,9 @@ export class TabPaneStaticInit extends BaseElement {
   private currentSelectionParam: SelectionParam | undefined;
 
   set data(staticinitParam: SelectionParam | unknown) {
-    this.initStaticTblStyle(staticinitParam);// @ts-ignore
-    getTabStaticInit(staticinitParam.processIds, staticinitParam.leftNs, staticinitParam.rightNs).then(//@ts-ignore
+    this.initStaticTblStyle(staticinitParam); // @ts-ignore
+    getTabStaticInit(staticinitParam.processIds, staticinitParam.leftNs, staticinitParam.rightNs).then(
+      //@ts-ignore
       (result: SoStruct[]) => {
         this.staticinitTbl!.loading = false;
         if (result !== null && result.length > 0) {
@@ -89,12 +90,12 @@ export class TabPaneStaticInit extends BaseElement {
   private initStaticTblStyle(staticParam: SelectionParam | unknown): void {
     if (this.currentSelectionParam === staticParam) {
       return;
-    }// @ts-ignore
+    } // @ts-ignore
     this.currentSelectionParam = staticParam;
     //@ts-ignore
     this.staticinitTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
       this.parentElement!.clientHeight - 45
-    }px`;// @ts-ignore
+    }px`; // @ts-ignore
     this.range!.textContent = `Selected range: ${((staticParam.rightNs - staticParam.leftNs) / 1000000.0).toFixed(
       5
     )} ms`;
@@ -104,7 +105,8 @@ export class TabPaneStaticInit extends BaseElement {
   initElements(): void {
     this.staticinitTbl = this.shadowRoot?.querySelector<LitTable>('#tb-staticinit');
     this.range = this.shadowRoot?.querySelector('#staticinit-time-range');
-    this.staticinitTbl!.addEventListener('column-click', (evt: unknown) => {// @ts-ignore
+    this.staticinitTbl!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
@@ -146,9 +148,9 @@ export class TabPaneStaticInit extends BaseElement {
         `;
   }
 
-  sortByColumn(soDetail: unknown): void {
-    let compare = (soA: SoTreeItem, soB: SoTreeItem): number =>// @ts-ignore
-      soDetail.sort === 1 ? soA.dur - soB.dur : soB.dur - soA.dur;
+  sortByColumn(soDetail: { sort: number; dur: number }): void {
+    let compare = (soA: SoTreeItem, soB: SoTreeItem): number =>
+      soDetail.sort === 1 ? soA.dur - soB.dur : soB.dur - soA.dur; 
     this.staticinitSource.forEach((it) => it.children?.sort(compare));
     this.staticinitSource.sort(compare);
     this.staticinitTbl!.recycleDataSource = this.staticinitSource;

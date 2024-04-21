@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, CALLCHAIN_ID, TYPE, IPID, START_TS, END_TS, DUR, SIZE, ADDR, ITID };
-PagedMemorySampleTable::PagedMemorySampleTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+PagedMemorySampleTable::PagedMemorySampleTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
@@ -40,7 +40,7 @@ std::unique_ptr<TableBase::Cursor> PagedMemorySampleTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-PagedMemorySampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+PagedMemorySampleTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstPagedMemorySampleData().Size())),
       PagedMemorySampleDataObj_(dataCache->GetConstPagedMemorySampleData())
 {

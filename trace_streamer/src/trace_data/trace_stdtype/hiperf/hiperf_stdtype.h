@@ -27,13 +27,13 @@ public:
                                   uint64_t vaddrInFile,
                                   uint64_t fileId,
                                   uint64_t symbolId);
-    const std::deque<uint32_t>& CallChainIds() const;
-    const std::deque<uint32_t>& Depths() const;
-    const std::deque<uint64_t>& Ips() const;
-    const std::deque<uint64_t>& VaddrInFiles() const;
-    const std::deque<uint64_t>& FileIds() const;
-    const std::deque<uint64_t>& SymbolIds() const;
-    const std::deque<DataIndex>& Names() const;
+    const std::deque<uint32_t> &CallChainIds() const;
+    const std::deque<uint32_t> &Depths() const;
+    const std::deque<uint64_t> &Ips() const;
+    const std::deque<uint64_t> &VaddrInFiles() const;
+    const std::deque<uint64_t> &FileIds() const;
+    const std::deque<uint64_t> &SymbolIds() const;
+    const std::deque<DataIndex> &Names() const;
     void SetName(uint64_t index, DataIndex name);
     void UpdateSymbolId(size_t index, DataIndex symbolId);
     void Clear() override;
@@ -51,10 +51,10 @@ private:
 class PerfFiles : public CacheBase {
 public:
     size_t AppendNewPerfFiles(uint64_t fileIds, uint32_t serial, DataIndex symbols, DataIndex filePath);
-    const std::deque<uint64_t>& FileIds() const;
-    const std::deque<DataIndex>& Symbols() const;
-    const std::deque<DataIndex>& FilePaths() const;
-    const std::deque<uint32_t>& Serials() const;
+    const std::deque<uint64_t> &FileIds() const;
+    const std::deque<DataIndex> &Symbols() const;
+    const std::deque<DataIndex> &FilePaths() const;
+    const std::deque<uint32_t> &Serials() const;
     void Clear() override;
 
 private:
@@ -74,13 +74,13 @@ public:
                                uint64_t timestampTrace,
                                uint64_t cpuId,
                                uint64_t threadState);
-    const std::deque<uint32_t>& SampleIds() const;
-    const std::deque<uint32_t>& Tids() const;
-    const std::deque<uint64_t>& EventCounts() const;
-    const std::deque<uint64_t>& EventTypeIds() const;
-    const std::deque<uint64_t>& TimestampTraces() const;
-    const std::deque<uint64_t>& CpuIds() const;
-    const std::deque<DataIndex>& ThreadStates() const;
+    const std::deque<uint32_t> &SampleIds() const;
+    const std::deque<uint32_t> &Tids() const;
+    const std::deque<uint64_t> &EventCounts() const;
+    const std::deque<uint64_t> &EventTypeIds() const;
+    const std::deque<uint64_t> &TimestampTraces() const;
+    const std::deque<uint64_t> &CpuIds() const;
+    const std::deque<DataIndex> &ThreadStates() const;
     void Clear() override;
 
 private:
@@ -96,9 +96,9 @@ private:
 class PerfThread : public CacheBase {
 public:
     size_t AppendNewPerfThread(uint32_t pid, uint32_t tid, DataIndex threadName);
-    const std::deque<uint32_t>& Pids() const;
-    const std::deque<uint32_t>& Tids() const;
-    const std::deque<DataIndex>& ThreadNames() const;
+    const std::deque<uint32_t> &Pids() const;
+    const std::deque<uint32_t> &Tids() const;
+    const std::deque<DataIndex> &ThreadNames() const;
     void Clear() override;
 
 private:
@@ -110,8 +110,8 @@ private:
 class PerfReport : public CacheBase {
 public:
     size_t AppendNewPerfReport(DataIndex type, DataIndex value);
-    const std::deque<DataIndex>& Types() const;
-    const std::deque<DataIndex>& Values() const;
+    const std::deque<DataIndex> &Types() const;
+    const std::deque<DataIndex> &Values() const;
 
 private:
     std::deque<DataIndex> types_ = {};

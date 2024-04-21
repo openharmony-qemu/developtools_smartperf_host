@@ -34,7 +34,7 @@ export class TabPaneCpuUsage extends BaseElement {
     // @ts-ignore
     this.currentSelectionParam = cpuUsageValue;
     this.range!.textContent =
-    // @ts-ignore
+      // @ts-ignore
       `Selected range: ${parseFloat(((cpuUsageValue.rightNs - cpuUsageValue.leftNs) / 1000000.0).toFixed(5))} ms`;
     this.cpuUsageTbl!.loading = true;
     Promise.all([

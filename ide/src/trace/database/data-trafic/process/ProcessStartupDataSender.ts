@@ -50,12 +50,13 @@ export function processStartupDataSender(pid: number, row: TraceRow<AppStartupSt
   });
 }
 
-function arrayBufferHandler(buffers: unknown, len: number): AppStartupStruct[] {//@ts-ignore
-  let startName = new Int32Array(buffers.startName);//@ts-ignore
-  let pid = new Int32Array(buffers.pid);//@ts-ignore
-  let tid = new Int32Array(buffers.tid);//@ts-ignore
-  let itid = new Int32Array(buffers.itid);//@ts-ignore
-  let startTs = new Float64Array(buffers.startTs);//@ts-ignore
+function arrayBufferHandler(buffers: unknown, len: number): AppStartupStruct[] {
+  //@ts-ignore
+  let startName = new Int32Array(buffers.startName); //@ts-ignore
+  let pid = new Int32Array(buffers.pid); //@ts-ignore
+  let tid = new Int32Array(buffers.tid); //@ts-ignore
+  let itid = new Int32Array(buffers.itid); //@ts-ignore
+  let startTs = new Float64Array(buffers.startTs); //@ts-ignore
   let dur = new Float64Array(buffers.dur);
   let outArr: AppStartupStruct[] = [];
   for (let i = 0; i < len; i++) {

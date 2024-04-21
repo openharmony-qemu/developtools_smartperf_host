@@ -37,17 +37,17 @@ public:
     void UpdateReturnTaskData(uint32_t index, uint32_t returnTaskRow, uint32_t returnItid, uint32_t returnState);
     void AppendTimeoutRow(uint32_t index, uint32_t timeoutRow);
 
-    const std::deque<uint32_t>& AllocationTaskRows() const;
-    const std::deque<uint32_t>& ExecuteTaskRows() const;
-    const std::deque<uint32_t>& ReturnTaskRows() const;
-    const std::deque<uint32_t>& AllocationItids() const;
-    const std::deque<uint32_t>& ExecuteItids() const;
-    const std::deque<uint32_t>& ReturnItids() const;
-    const std::deque<uint64_t>& TaskIds() const;
-    const std::deque<uint32_t>& Prioritys() const;
-    const std::deque<uint32_t>& ExecuteStates() const;
-    const std::deque<uint32_t>& ReturnStates() const;
-    const std::deque<uint32_t>& TimeoutRows() const;
+    const std::deque<uint32_t> &AllocationTaskRows() const;
+    const std::deque<uint32_t> &ExecuteTaskRows() const;
+    const std::deque<uint32_t> &ReturnTaskRows() const;
+    const std::deque<uint32_t> &AllocationItids() const;
+    const std::deque<uint32_t> &ExecuteItids() const;
+    const std::deque<uint32_t> &ReturnItids() const;
+    const std::deque<uint64_t> &TaskIds() const;
+    const std::deque<uint32_t> &Prioritys() const;
+    const std::deque<uint32_t> &ExecuteStates() const;
+    const std::deque<uint32_t> &ReturnStates() const;
+    const std::deque<uint32_t> &TimeoutRows() const;
     void Clear() override
     {
         CacheBase::Clear();

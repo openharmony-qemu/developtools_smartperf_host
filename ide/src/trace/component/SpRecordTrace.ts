@@ -290,7 +290,8 @@ export class SpRecordTrace extends BaseElement {
 
   private freshMenuDisable(disable: boolean): void {
     let mainMenu = this.sp!.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
-    mainMenu.menus?.forEach((men): void => {// @ts-ignore
+    mainMenu.menus?.forEach((men): void => {
+      // @ts-ignore
       men.children.forEach((child: HTMLElement): void => {
         // @ts-ignore
         child.disabled = disable;
@@ -996,7 +997,7 @@ export class SpRecordTrace extends BaseElement {
     let request = this.makeRequest();
     this.showHint = true;
     if (request.pluginConfigs.length === 0) {
-      this.hintEl!.textContent = 'It looks like you didn\'t add any probes. Please add at least one';
+      this.hintEl!.textContent = "It looks like you didn't add any probes. Please add at least one";
       return;
     }
     this.showHint = false;
@@ -1185,7 +1186,12 @@ export class SpRecordTrace extends BaseElement {
     });
   }
 
-  private async saveIndexDBByLongTrace(pullRes: Blob, fileType: string, pageNumber: number, timStamp: number): Promise<void> {
+  private async saveIndexDBByLongTrace(
+    pullRes: Blob,
+    fileType: string,
+    pageNumber: number,
+    timStamp: number
+  ): Promise<void> {
     let buffer = await pullRes.arrayBuffer();
     let chunks = Math.ceil(buffer.byteLength / indexDBMaxSize);
     let offset = 0;

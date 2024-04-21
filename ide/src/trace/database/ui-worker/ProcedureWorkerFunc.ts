@@ -22,11 +22,13 @@ import {
   RequestMessage,
   drawFunString,
   drawLoadingFrame,
+  Rect,
 } from './ProcedureWorkerCommon';
 import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
 import { FlagsConfig } from '../../component/SpFlags';
 import { TabPaneTaskFrames } from '../../component/trace/sheet/task/TabPaneTaskFrames';
-export class FuncRender extends Render {
+import { SpSystemTrace } from '../../component/SpSystemTrace';
+export class FuncRender {
   renderMainThread(
     req: {
       useCache: boolean;
@@ -79,16 +81,16 @@ export class FuncRender extends Render {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {}
+  render(req: RequestMessage, list: Array<FuncStruct>, filter: Array<FuncStruct>): void {}
 }
 
 export function func(
-  funcList: Array<any>,
-  funcFilter: Array<any>,
+  funcList: Array<FuncStruct>,
+  funcFilter: Array<FuncStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean,
   expand: boolean
 ): void {
@@ -97,7 +99,7 @@ export function func(
       if ((funcFilter[i].startTs || 0) + (funcFilter[i].dur || 0) >= startNS && (funcFilter[i].startTs || 0) <= endNS) {
         FuncStruct.setFuncFrame(funcFilter[i], 0, startNS, endNS, totalNS, frame);
       } else {
-        funcFilter[i].frame = null;
+        funcFilter[i].frame = undefined;
       }
     }
     return;
@@ -116,21 +118,23 @@ export function func(
         return it;
       })
       .reduce((pre, current, index, arr) => {
+        //@ts-ignore
         (pre[`${current.frame.x}-${current.depth}`] = pre[`${current.frame.x}-${current.depth}`] || []).push(current);
         return pre;
       }, {});
     Reflect.ownKeys(groups).map((kv) => {
-      let arr = groups[kv].sort((a: any, b: any) => b.dur - a.dur);
+      //@ts-ignore
+      let arr = groups[kv].sort((a: FuncStruct, b: FuncStruct) => b.dur - a.dur);
       funcFilter.push(arr[0]);
     });
   }
 }
-export function FuncStructOnClick(
+export function funcStructOnClick(
   clickRowType: string,
-  sp: any,
-  row: TraceRow<any> | undefined,
-  scrollToFuncHandler: any,
-  entry?: any
+  sp: SpSystemTrace,
+  row: TraceRow<FuncStruct> | undefined,
+  scrollToFuncHandler: Function,
+  entry?: FuncStruct
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FUNC && (FuncStruct.hoverFuncStruct || entry)) {
@@ -150,7 +154,7 @@ export function FuncStructOnClick(
             }
           }
         }
-        sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct, scrollToFuncHandler);
+        sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct!, scrollToFuncHandler);
         sp.timerShaftEL?.modifyFlagList(undefined);
       }
       reject(new Error());
@@ -166,12 +170,12 @@ export class FuncStruct extends BaseFuncStruct {
   textMetricsWidth: number | undefined;
   static funcSelect: boolean = true;
   static setFuncFrame(
-    funcNode: any,
+    funcNode: FuncStruct,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
     let x1: number;
     let x2: number;
@@ -189,11 +193,11 @@ export class FuncStruct extends BaseFuncStruct {
       x2 = frame.width;
     }
     if (!funcNode.frame) {
-      funcNode.frame = {};
+      funcNode.frame = new Rect(0, 0, 0, 0);
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
     funcNode.frame.x = Math.floor(x1);
-    funcNode.frame.y = funcNode.depth * 18 + 3;
+    funcNode.frame.y = funcNode.depth! * 18 + 3;
     funcNode.frame.width = Math.ceil(getV);
     funcNode.frame.height = 18;
   }

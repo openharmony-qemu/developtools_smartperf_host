@@ -26,17 +26,17 @@ public:
 
     bool Next();
 
-    char* GetCur()
+    char *GetCur()
     {
         return cur_;
     }
 
 private:
-    PartingString(const PartingString&) = delete;
-    PartingString& operator=(const PartingString&) = delete;
+    PartingString(const PartingString &) = delete;
+    PartingString &operator=(const PartingString &) = delete;
 
     std::string str_;
-    char* cur_ = nullptr;
+    char *cur_ = nullptr;
     std::string::iterator begin_;
     std::string::iterator end_;
     const char delimiter_;

@@ -73,7 +73,7 @@ void DemoTraceDataDB::DemoEnableMetaTable(bool enabled)
 {
     demoExportMetaTable_ = enabled;
 }
-int32_t DemoTraceDataDB::DemoExportDatabase(const std::string& outputName)
+int32_t DemoTraceDataDB::DemoExportDatabase(const std::string &outputName)
 {
     {
         int32_t demoFd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
@@ -88,7 +88,7 @@ int32_t DemoTraceDataDB::DemoExportDatabase(const std::string& outputName)
 
     std::string demoAttachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
 #ifdef _WIN32
-    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(demoAttachSql.c_str()), demoAttachSql.length())) {
+    if (!base::GetCoding(reinterpret_cast<const uint8_t *>(demoAttachSql.c_str()), demoAttachSql.length())) {
         demoAttachSql = base::GbkToUtf8(demoAttachSql.c_str());
     }
 #endif
@@ -134,9 +134,9 @@ void DemoTraceDataDB::DemoPrepare()
         "is_main_thread = 1)";
     DemoExecuteSql(demoUpdateProcessNewName);
 }
-void DemoTraceDataDB::DemoExecuteSql(const std::string_view& sql)
+void DemoTraceDataDB::DemoExecuteSql(const std::string_view &sql)
 {
-    sqlite3_stmt* demoStmt = nullptr;
+    sqlite3_stmt *demoStmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(demoDb_, sql.data(), static_cast<int32_t>(sql.size()), &demoStmt, nullptr);
 
     while (!ret) {
@@ -196,11 +196,11 @@ int32_t DemoTraceDataDB::DemoSearchData()
     }
     return 0;
 }
-int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, bool print)
+int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string &sql, bool print)
 {
     DemoPrepare();
     int32_t demoRowCount = 0;
-    sqlite3_stmt* demoStmt = nullptr;
+    sqlite3_stmt *demoStmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(demoDb_, sql.c_str(), static_cast<int32_t>(sql.size()), &demoStmt, nullptr);
     if (ret != SQLITE_OK) {
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(demoDb_));
@@ -221,7 +221,7 @@ int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, bool print)
     while (sqlite3_step(demoStmt) == SQLITE_ROW) {
         demoRowCount++;
         for (int32_t i = 0; i < demoColCount; i++) {
-            const char* sqlVal = reinterpret_cast<const char*>(sqlite3_column_text(demoStmt, i));
+            const char *sqlVal = reinterpret_cast<const char *>(sqlite3_column_text(demoStmt, i));
             int32_t type = sqlite3_column_type(demoStmt, i);
             if (!print) {
                 continue;
@@ -243,10 +243,10 @@ int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, bool print)
     sqlite3_finalize(demoStmt);
     return demoRowCount;
 }
-int32_t DemoTraceDataDB::DemoOperateDatabase(const std::string& sql)
+int32_t DemoTraceDataDB::DemoOperateDatabase(const std::string &sql)
 {
     DemoPrepare();
-    char* errMsg = nullptr;
+    char *errMsg = nullptr;
     int32_t ret = sqlite3_exec(demoDb_, sql.c_str(), NULL, NULL, &errMsg);
     if (ret != SQLITE_OK && errMsg) {
         TS_LOGE("sqlite3_exec(%s) failed: %d:%s", sql.c_str(), ret, errMsg);
@@ -255,10 +255,10 @@ int32_t DemoTraceDataDB::DemoOperateDatabase(const std::string& sql)
     return ret;
 }
 
-int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, ResultCallBack resultCallBack)
+int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string &sql, ResultCallBack resultCallBack)
 {
     DemoPrepare();
-    sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt *stmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(demoDb_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
     if (ret != SQLITE_OK) {
         resultCallBack("false\r\n", SEND_FINISH, 0);
@@ -304,10 +304,10 @@ int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, ResultCallBa
     return ret;
 }
 
-bool DemoTraceDataDB::AddColumnsToJsonArray(sqlite3_stmt* stmtSql,
-                                            char* resValue,
+bool DemoTraceDataDB::AddColumnsToJsonArray(sqlite3_stmt *stmtSql,
+                                            char *resValue,
                                             const int32_t outLen,
-                                            int32_t& pos,
+                                            int32_t &pos,
                                             const int32_t colCount)
 {
     int32_t retSnprintf = snprintf_s(resValue + pos, outLen - pos, 1, "%s", "{\"columns\":[");
@@ -331,10 +331,10 @@ bool DemoTraceDataDB::AddColumnsToJsonArray(sqlite3_stmt* stmtSql,
     pos += retSnprintf;
     return true;
 }
-bool DemoTraceDataDB::AddRowsToJsonArray(sqlite3_stmt* stmtSql,
-                                         char* resValue,
+bool DemoTraceDataDB::AddRowsToJsonArray(sqlite3_stmt *stmtSql,
+                                         char *resValue,
                                          const int32_t outLen,
-                                         int32_t& pos,
+                                         int32_t &pos,
                                          const int32_t colCount)
 {
     bool hasRow = false;
@@ -368,16 +368,16 @@ bool DemoTraceDataDB::AddRowsToJsonArray(sqlite3_stmt* stmtSql,
     pos += retSnprintf;
     return true;
 }
-int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
+int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string &sql, uint8_t *out, int32_t outLen)
 {
     DemoPrepare();
-    sqlite3_stmt* stmtSql = nullptr;
+    sqlite3_stmt *stmtSql = nullptr;
     int32_t ret = sqlite3_prepare_v2(demoDb_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmtSql, nullptr);
     if (ret != SQLITE_OK) {
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(demoDb_));
         return -1;
     }
-    char* resValue = reinterpret_cast<char*>(out);
+    char *resValue = reinterpret_cast<char *>(out);
     int32_t retSnprintf = snprintf_s(resValue, outLen, 1, "ok\r\n");
     if (retSnprintf < 0) {
         return -1;
@@ -397,12 +397,12 @@ int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, uint8_t* out
     return pos;
 }
 
-void DemoTraceDataDB::DemoGetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowString)
+void DemoTraceDataDB::DemoGetRowString(sqlite3_stmt *stmt, int32_t colCount, std::string &rowString)
 {
     rowString.clear();
     rowString = "[";
     for (int32_t i = 0; i < colCount; i++) {
-        const char* p = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
+        const char *p = reinterpret_cast<const char *>(sqlite3_column_text(stmt, i));
         if (p == nullptr) {
             rowString += "null,";
             continue;

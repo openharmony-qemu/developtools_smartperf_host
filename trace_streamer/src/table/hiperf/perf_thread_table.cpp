@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, THREAD_ID, PROCESS_ID, THREAD_NAME };
-PerfThreadTable::PerfThreadTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+PerfThreadTable::PerfThreadTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("thread_id", "INTEGER"));
@@ -29,12 +29,12 @@ PerfThreadTable::PerfThreadTable(const TraceDataCache* dataCache) : TableBase(da
 
 PerfThreadTable::~PerfThreadTable() {}
 
-void PerfThreadTable::FilterByConstraint(FilterConstraints& threadfc,
-                                         double& threadfilterCost,
+void PerfThreadTable::FilterByConstraint(FilterConstraints &threadfc,
+                                         double &threadfilterCost,
                                          size_t threadRowCnt,
                                          uint32_t threadcurrenti)
 {
-    const auto& perfThreadc = threadfc.GetConstraints()[threadcurrenti];
+    const auto &perfThreadc = threadfc.GetConstraints()[threadcurrenti];
     switch (static_cast<Index>(perfThreadc.col)) {
         case Index::ID: {
             if (CanFilterId(perfThreadc.op, threadRowCnt)) {
@@ -56,7 +56,7 @@ std::unique_ptr<TableBase::Cursor> PerfThreadTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-PerfThreadTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+PerfThreadTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstPerfThreadData().Size())),
       perfThreadObj_(dataCache->GetConstPerfThreadData())
 {
@@ -64,7 +64,7 @@ PerfThreadTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tabl
 
 PerfThreadTable::Cursor::~Cursor() {}
 
-int32_t PerfThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t PerfThreadTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -77,7 +77,7 @@ int32_t PerfThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(perfThreadCs, sId);
     for (size_t i = 0; i < perfThreadCs.size(); i++) {
-        const auto& c = perfThreadCs[i];
+        const auto &c = perfThreadCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -139,7 +139,7 @@ int32_t PerfThreadTable::Cursor::Column(int32_t column) const
     return SQLITE_OK;
 }
 
-void PerfThreadTable::GetOrbyes(FilterConstraints& threadfc, EstimatedIndexInfo& threadei)
+void PerfThreadTable::GetOrbyes(FilterConstraints &threadfc, EstimatedIndexInfo &threadei)
 {
     auto threadorderbys = threadfc.GetOrderBys();
     for (auto i = 0; i < threadorderbys.size(); i++) {

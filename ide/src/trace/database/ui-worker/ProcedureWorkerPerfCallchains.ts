@@ -14,7 +14,7 @@
  */
 
 class PerfCallChainThread {
-  taskMap: any = {};
+  taskMap: unknown = {};
   worker?: Worker;
   busy: boolean = false;
 
@@ -24,14 +24,15 @@ class PerfCallChainThread {
 
   uuid(): string {
     // @ts-ignore
-    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: any) =>
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: number) =>
       (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
     );
   }
 
-  queryFunc(name: string, args: any, handler: Function, action: string | null): void {
+  queryFunc(name: string, args: unknown, handler: Function, action: string | null): void {
     this.busy = true;
     let id = this.uuid();
+    // @ts-ignore
     this.taskMap[id] = handler;
     let msg = {
       id: id,
@@ -62,10 +63,12 @@ export class PerfCallChainPool {
     );
     thread!.worker!.onmessage = (event: MessageEvent): void => {
       thread.busy = false;
+      // @ts-ignore
       let fun = thread.taskMap[event.data.id];
       if (fun) {
         fun(event.data.results);
       }
+      // @ts-ignore
       Reflect.deleteProperty(thread.taskMap, event.data.id);
     };
     thread!.worker!.onmessageerror = (e): void => {};

@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { TS = 0, COUNTER_ID = 1, VALUE = 2 };
-GpuCounterTable::GpuCounterTable(const TraceDataCache* dataCache) : DemoTableBase(dataCache)
+GpuCounterTable::GpuCounterTable(const TraceDataCache *dataCache) : DemoTableBase(dataCache)
 {
     demoTableColumn_.push_back(DemoTableBase::ColumnInfo("ts", "INTEGER"));
     demoTableColumn_.push_back(DemoTableBase::ColumnInfo("counter_id", "INTEGER"));
@@ -35,7 +35,7 @@ std::unique_ptr<DemoTableBase::Cursor> GpuCounterTable::CreateCursor()
     return std::make_unique<Cursor>(demoTraceDataCache_, this);
 }
 
-GpuCounterTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTableBase* table)
+GpuCounterTable::Cursor::Cursor(const TraceDataCache *dataCache, DemoTableBase *table)
     : DemoTableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstGpuCounterData().Size())),
       gpuCounterDataObj_(dataCache->GetConstGpuCounterData())
 {

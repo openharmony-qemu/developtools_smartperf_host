@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, FILE_ID, SERIAL_ID, SYMBOL, PATH };
-PerfFilesTable::PerfFilesTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+PerfFilesTable::PerfFilesTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
@@ -30,14 +30,14 @@ PerfFilesTable::PerfFilesTable(const TraceDataCache* dataCache) : TableBase(data
 
 PerfFilesTable::~PerfFilesTable() {}
 
-void PerfFilesTable::FilterByConstraint(FilterConstraints& filesfc,
-                                        double& filesfilterCost,
+void PerfFilesTable::FilterByConstraint(FilterConstraints &filesfc,
+                                        double &filesfilterCost,
                                         size_t filesrowCount,
                                         uint32_t filescurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& filesc = filesfc.GetConstraints()[filescurrenti];
+    const auto &filesc = filesfc.GetConstraints()[filescurrenti];
     switch (static_cast<Index>(filesc.col)) {
         case Index::ID: {
             if (CanFilterId(filesc.op, filesrowCount)) {
@@ -59,7 +59,7 @@ std::unique_ptr<TableBase::Cursor> PerfFilesTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-PerfFilesTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+PerfFilesTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstPerfFilesData().Size())),
       perfFilesObj_(dataCache->GetConstPerfFilesData())
 {
@@ -67,7 +67,7 @@ PerfFilesTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table
 
 PerfFilesTable::Cursor::~Cursor() {}
 
-int32_t PerfFilesTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t PerfFilesTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -80,7 +80,7 @@ int32_t PerfFilesTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(perfFilesTabCs, sId);
     for (size_t i = 0; i < perfFilesTabCs.size(); i++) {
-        const auto& c = perfFilesTabCs[i];
+        const auto &c = perfFilesTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -141,7 +141,7 @@ int32_t PerfFilesTable::Cursor::Column(int32_t column) const
     return SQLITE_OK;
 }
 
-void PerfFilesTable::GetOrbyes(FilterConstraints& filesfc, EstimatedIndexInfo& filesei)
+void PerfFilesTable::GetOrbyes(FilterConstraints &filesfc, EstimatedIndexInfo &filesei)
 {
     auto filesorderbys = filesfc.GetOrderBys();
     for (auto i = 0; i < filesorderbys.size(); i++) {

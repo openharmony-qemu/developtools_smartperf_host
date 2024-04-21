@@ -25,8 +25,8 @@ import { SpLtpoChart } from '../../chart/SpLTPO';
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;
   private rowsPaneEL: HTMLDivElement | undefined | null;
-  isMouseDown: boolean = false;// @ts-ignore
-  public rangeTraceRow: Array<TraceRow<unknown>> | undefined;// @ts-ignore
+  isMouseDown: boolean = false; // @ts-ignore
+  public rangeTraceRow: Array<TraceRow<unknown>> | undefined; // @ts-ignore
   public selectHandler: ((ds: Array<TraceRow<unknown>>, refreshCheckBox: boolean) => void) | undefined;
   private startPageX: number = 0;
   private startPageY: number = 0;
@@ -86,7 +86,7 @@ export class RangeSelect {
   // 对应查询方法行所有的数据
   // @ts-ignore
   queryRowsData(rowList: Array<TraceRow<unknown>>): void {
-    rowList.forEach((row): void  => {
+    rowList.forEach((row): void => {
       if (row.getAttribute('row-type') === 'func') {
         if (row.getAttribute('name')?.startsWith('render_service')) {
           this.saveFrameRateData(row, 'H:RSMainThread::DoComposition');
@@ -103,14 +103,17 @@ export class RangeSelect {
   // @ts-ignore
   saveFrameRateData(row: TraceRow<unknown>, funcName: string): void {
     let dataList: unknown = [];
-    queryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void  => {
+    queryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void => {
       if (res.length) {
-        res.forEach((item): void  => {// @ts-ignore
+        res.forEach((item): void => {
+          // @ts-ignore
           dataList?.push({ startTime: item.startTime!, tid: item.tid });
         });
-        if (funcName === 'H:RSMainThread::DoComposition') {// @ts-ignore
+        if (funcName === 'H:RSMainThread::DoComposition') {
+          // @ts-ignore
           this.docomList = dataList;
-        } else {// @ts-ignore
+        } else {
+          // @ts-ignore
           this.repaintList = dataList;
         }
       }
@@ -120,11 +123,12 @@ export class RangeSelect {
   // @ts-ignore
   savePresentData(row: TraceRow<unknown>, funcName: string): void {
     let dataList: unknown = [];
-    fuzzyQueryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void  => {
+    fuzzyQueryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void => {
       if (res.length) {
-        res.forEach((item): void  => {// @ts-ignore
+        res.forEach((item): void => {
+          // @ts-ignore
           dataList?.push({ endTime: item.endTime!, tid: item.tid });
-        });// @ts-ignore
+        }); // @ts-ignore
         this.presentList = dataList;
       }
     });
@@ -146,13 +150,14 @@ export class RangeSelect {
     }
     this.isMouseDown = false;
   }
-// @ts-ignore
-  checkRowsName(rowList: Array<TraceRow<unknown>>): void  {
-    rowList.forEach((row): void  => {
+  // @ts-ignore
+  checkRowsName(rowList: Array<TraceRow<unknown>>): void {
+    rowList.forEach((row): void => {
       if (
         row.getAttribute('row-type') === 'func' &&
         row.parentRowEl?.getAttribute('name')?.startsWith('render_service')
       ) {
+        row.frameRateList = [];
         if (row.getAttribute('name')?.startsWith('render_service')) {
           this.filterRateData(row, this.docomList);
         } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
@@ -166,20 +171,23 @@ export class RangeSelect {
 
   // 过滤处理数据
   // @ts-ignore
-  filterRateData(row: TraceRow<unknown>, data: unknown): void  {// @ts-ignore
-    data.forEach((it: unknown): void  => {
-      if (// @ts-ignore
-        it.startTime >= TraceRow.rangeSelectObject!.startNS! &&// @ts-ignore
-        it.startTime <= TraceRow.rangeSelectObject!.endNS! &&// @ts-ignore
+  filterRateData(row: TraceRow<unknown>, data: unknown): void {
+    // @ts-ignore
+    data.forEach((it: unknown): void => {
+      if (
+        // @ts-ignore
+        it.startTime >= TraceRow.rangeSelectObject!.startNS! && // @ts-ignore
+        it.startTime <= TraceRow.rangeSelectObject!.endNS! && // @ts-ignore
         Number(row.rowId) === Number(it.tid)
-      ) {// @ts-ignore
+      ) {
+        // @ts-ignore
         row.frameRateList?.push(it.startTime);
       }
     });
     if (row.frameRateList?.length) {
-      row.frameRateList = [...new Set(row.frameRateList)];
-      row.frameRateList.sort((a, b) => a - b);
-      if (row.frameRateList?.length >= 2) {
+      if (row.frameRateList.length < 2) {
+        row.frameRateList = [];
+      } else {
         const CONVERT_SECONDS = 1000000000;
         let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
         row.avgRateTxt = `${(((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1)}fps`;
@@ -189,20 +197,23 @@ export class RangeSelect {
 
   // 过滤并处理present数据
   // @ts-ignore
-  filterPresentData(row: TraceRow<unknown>, data: unknown): void  {// @ts-ignore
-    data.forEach((it: unknown): void  => {
-      if (// @ts-ignore
-        it.endTime >= TraceRow.rangeSelectObject!.startNS! &&// @ts-ignore
-        it.endTime <= TraceRow.rangeSelectObject!.endNS! &&// @ts-ignore
+  filterPresentData(row: TraceRow<unknown>, data: unknown): void {
+    // @ts-ignore
+    data.forEach((it: unknown): void => {
+      if (
+        // @ts-ignore
+        it.endTime >= TraceRow.rangeSelectObject!.startNS! && // @ts-ignore
+        it.endTime <= TraceRow.rangeSelectObject!.endNS! && // @ts-ignore
         Number(row.rowId) === Number(it.tid)
-      ) {// @ts-ignore
+      ) {
+        // @ts-ignore
         row.frameRateList?.push(it.endTime);
       }
     });
     if (row.frameRateList?.length) {
-      row.frameRateList = [...new Set(row.frameRateList)]; //去重
-      row.frameRateList.sort((a, b) => a - b); //排序
-      if (row.frameRateList?.length >= 2) {
+      if (row.frameRateList?.length < 2) {
+        row.frameRateList = [];
+      } else {
         let hitchTimeList: Array<number> = [];
         for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
           if (
@@ -216,11 +227,11 @@ export class RangeSelect {
         }
         const CONVERT_SECONDS = 1000000000;
         let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
-        let avgRate: string = `${(((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1)  }fps`;
+        let avgRate: string = `${(((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1)}fps`;
         let sum: number = hitchTimeList.reduce((accumulator, currentValue) => accumulator + currentValue, 0); // ∑hitchTimeData
         let hitchRate: number =
           sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000);
-        let perHitchRate: string = `${(Number(hitchRate) * 100).toFixed(2)  }%`;
+        let perHitchRate: string = `${(Number(hitchRate) * 100).toFixed(2)}%`;
         row.avgRateTxt =
           `${avgRate} ` + ',' + ' ' + 'HitchTime:' + ` ${sum.toFixed(1)}ms` + ' ' + ',' + ` ${perHitchRate}`;
       }
@@ -239,10 +250,10 @@ export class RangeSelect {
     if (!notTimeHeight) {
       return false;
     }
-    if ((this.rangeTraceRow?.isEmpty() ?? false) && !this.isMouseDown) {
+    if ((this.rangeTraceRow ?? false) && !this.isMouseDown) {
       this.isHover = false;
     }
-    return notTimeHeight && (this.rangeTraceRow?.isNotEmpty() ?? false) && !this.isMouseDown;
+    return notTimeHeight && (!this.rangeTraceRow ?? false) && !this.isMouseDown;
   }
 
   mouseOut(mouseEventOut: MouseEvent): void {
@@ -256,7 +267,7 @@ export class RangeSelect {
     document.getSelection()?.removeAllRanges();
     this.isMouseDown = false;
   }
-// @ts-ignore
+  // @ts-ignore
   mouseMove(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
     this.endPageX = ev.pageX;
     this.endPageY = ev.pageY;
@@ -277,7 +288,7 @@ export class RangeSelect {
     this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow!.length > 0;
     this.timerShaftEL!.sportRuler!.draw();
   }
-// @ts-ignore
+  // @ts-ignore
   private handleRangeSelect(rows: Array<TraceRow<unknown>>): void {
     let rangeSelect: RangeSelectStruct | undefined;
     let favoriteRect = this.trace?.favoriteChartListEL?.getBoundingClientRect();
@@ -310,8 +321,12 @@ export class RangeSelect {
           rangeSelect = new RangeSelectStruct();
           let startX = Math.min(this.startPageX, this.endPageX) - it.describeEl!.getBoundingClientRect().right;
           let endX = Math.max(this.startPageX, this.endPageX) - it.describeEl!.getBoundingClientRect().right;
-          if (startX <= 0) {startX = 0}// @ts-ignore
-          if (endX > it.frame.width) {endX = it.frame.width}
+          if (startX <= 0) {
+            startX = 0;
+          }
+          if (endX > it.frame.width) {
+            endX = it.frame.width;
+          }
           rangeSelect.startX = startX;
           rangeSelect.endX = endX;
           rangeSelect.startNS = RangeSelect.SetNS(it, startX);
@@ -336,10 +351,10 @@ export class RangeSelect {
   }
 
   private handleDrawForNotMouseDown(): void {
-    this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow?.isNotEmpty() ?? false;
+    this.timerShaftEL!.sportRuler!.isRangeSelect = !this.rangeTraceRow ?? false;
     this.timerShaftEL!.sportRuler!.draw();
   }
-// @ts-ignore
+  // @ts-ignore
   private handleRangeSelectAndDraw(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
     let rangeSelect: RangeSelectStruct | undefined;
     this.rangeTraceRow = rows.filter((it) => {
@@ -364,7 +379,7 @@ export class RangeSelect {
           }
           if (startX < 0) {
             rangeSelect.startNS = TraceRow.rangeSelectObject!.startNS!;
-          }// @ts-ignore
+          } // @ts-ignore
           if (endX > it.frame.width) {
             rangeSelect.endNS = TraceRow.rangeSelectObject!.endNS!;
           }
@@ -401,9 +416,10 @@ export class RangeSelect {
       document.body.style.cursor = 'default';
     }
   }
-// @ts-ignore
+  // @ts-ignore
   static SetNS(row: TraceRow<unknown>, num: number): number {
-    return Math.floor(// @ts-ignore
+    return Math.floor(
+      // @ts-ignore
       ((TraceRow.range!.endNS - TraceRow.range!.startNS) * num) / row.frame.width + TraceRow.range!.startNS!
     );
   }

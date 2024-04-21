@@ -62,10 +62,10 @@ export class AllAppStartupRender {
     }
   }
 }
-export function AllAppStartupStructOnClick(
+export function allAppStartupStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  scrollToFuncHandler: any
+  scrollToFuncHandler: Function
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct) {

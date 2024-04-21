@@ -14,97 +14,58 @@
 import { TraficEnum } from '../utils/QueryEnum';
 import { filterDataByGroup } from '../utils/DataFilter';
 import { cpuFreqList } from '../utils/AllMemoryCache';
+import { Args } from '../CommonArgs';
 
-export const chartCpuFreqDataSql = (args: unknown): string => {
-  // @ts-ignore
-  return `select ${
-    // @ts-ignore
-    args.cpu
-    } cpu,
+export const chartCpuFreqDataSql = (args: Args): string => {
+  const endNS = args.endNS;
+  const startNS = args.startNS;
+  const recordStartNS = args.recordStartNS;
+  const cpu = args.cpu;
+  const width = args.width;
+  const recordEndNS = args.recordEndNS;
+  return `select ${cpu} cpu,
                  value,
-                 max(ifnull(dur, ${
-    // @ts-ignore
-    args.recordEndNS
-    }-c.ts)) dur,
-                 ts - ${
-    // @ts-ignore
-    args.recordStartNS
-    } as startNs,
-                 ((ts - ${
-    // @ts-ignore
-    args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
-    })) AS px
+                 max(ifnull(dur, ${recordEndNS}-c.ts)) dur,
+                 ts - ${recordStartNS} as startNs,
+                 ((ts - ${recordStartNS}) / (${Math.floor((endNS - startNS) / width)})) AS px
           from measure c
-          where c.filter_id = (select id from cpu_measure_filter t where t.cpu = ${
-    // @ts-ignore
-    args.cpu
-    } 
+          where c.filter_id = (select id from cpu_measure_filter t where t.cpu = ${cpu} 
           and (t.name = 'cpufreq' or t.name = 'cpu_frequency')
               limit 1)
-            and startNs + ifnull(dur, ${
-    // @ts-ignore
-    args.recordEndNS}-c.ts) >= ${Math.floor(args.startNS)
-    }
-            and startNs <= ${
-    // @ts-ignore
-    Math.floor(args.endNS)
-    }
+            and startNs + ifnull(dur, ${recordEndNS}-c.ts) >= ${Math.floor(startNS)}
+            and startNs <= ${Math.floor(endNS)}
           group by px
             union
-            select ${
-    // @ts-ignore
-    args.cpu
-    } cpu,
+            select ${cpu} cpu,
                  max(value),
                  dur dur,
-                 ts - ${
-    // @ts-ignore
-    args.recordStartNS
-    } as startNs,
-                 ((ts - ${
-    // @ts-ignore
-    args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
-    })) AS px
+                 ts - ${recordStartNS} as startNs,
+                 ((ts - ${recordStartNS}) / (${Math.floor((endNS - startNS) / width)})) AS px
           from measure c
-          where c.filter_id = (select id from cpu_measure_filter t where t.cpu = ${
-    // @ts-ignore
-    args.cpu
-    } 
+          where c.filter_id = (select id from cpu_measure_filter t where t.cpu = ${cpu} 
             and (t.name = 'cpufreq' or t.name = 'cpu_frequency')
               limit 1)
-            and startNs + ifnull(dur, ${
-    // @ts-ignore
-    args.recordEndNS}-c.ts) >= ${Math.floor(args.startNS)
-    }
-            and startNs <= ${
-    // @ts-ignore
-    Math.floor(args.endNS)
-    }
+            and startNs + ifnull(dur, ${recordEndNS}-c.ts) >= ${Math.floor(startNS)}
+            and startNs <= ${Math.floor(endNS)}
           group by px;
         ;`;
 };
 
-export const chartCpuFreqDataSqlMem = (args: unknown): string => {
+export const chartCpuFreqDataSqlMem = (args: Args): string => {
+  const recordStartNS = args.recordStartNS;
+  const cpu = args.cpu;
+  const recordEndNS = args.recordEndNS;
   return `
       select cpu,
              value,
-             ifnull(dur, ${
-    // @ts-ignore
-    args.recordEndNS
-    } - c.ts) dur,
-             ts - ${
-    // @ts-ignore
-    args.recordStartNS
-    } as           startNs
+             ifnull(dur, ${recordEndNS} - c.ts) dur,
+             ts - ${recordStartNS} as           startNs
       from measure c
                inner join
            cpu_measure_filter t
            on c.filter_id = t.id
       where (name = 'cpufreq' or name = 'cpu_frequency')
-        and cpu = ${
-    // @ts-ignore
-    args.cpu
-    };
+        and cpu = ${cpu};
   `;
 };
 
@@ -181,11 +142,11 @@ export function arrayBufferHandler(data: unknown, res: unknown[], transfer: bool
       action: data.action,
       results: transfer
         ? {
-          startNS: startNS.buffer,
-          dur: dur.buffer,
-          value: value.buffer,
-          cpu: cpu.buffer,
-        }
+            startNS: startNS.buffer,
+            dur: dur.buffer,
+            value: value.buffer,
+            cpu: cpu.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,

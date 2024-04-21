@@ -170,7 +170,7 @@ export class SpSdkConfig extends BaseElement {
             });
           }
         })
-        ['catch'](() => {});
+        .catch(() => {});
       if (this.worker === null) {
         // @ts-ignore
         if (window.useWb) {

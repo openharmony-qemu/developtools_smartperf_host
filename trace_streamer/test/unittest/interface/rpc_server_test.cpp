@@ -52,13 +52,13 @@ HWTEST_F(RpcServerTest, CorrectTraceData, TestSize.Level1)
     std::string SQLQUERY("select * from measure;");
 
     RpcServer rpcServer;
-    auto ret = rpcServer.ParseData((const uint8_t*)PARSERDATA.c_str(), PARSERDATA.length(), res, 0);
+    auto ret = rpcServer.ParseData((const uint8_t *)PARSERDATA.c_str(), PARSERDATA.length(), res, 0);
     EXPECT_TRUE(res);
     EXPECT_TRUE(ret);
-    ret = rpcServer.ParseDataOver((const uint8_t*)PARSERDATA.c_str(), PARSERDATA.length(), res);
+    ret = rpcServer.ParseDataOver((const uint8_t *)PARSERDATA.c_str(), PARSERDATA.length(), res);
     EXPECT_TRUE(res);
     EXPECT_TRUE(ret);
-    ret = rpcServer.SqlQuery((const uint8_t*)SQLQUERY.c_str(), SQLQUERY.length(), res);
+    ret = rpcServer.SqlQuery((const uint8_t *)SQLQUERY.c_str(), SQLQUERY.length(), res);
     EXPECT_TRUE(res);
     EXPECT_TRUE(ret);
 }
@@ -75,13 +75,13 @@ HWTEST_F(RpcServerTest, WrongTraceData, TestSize.Level1)
     std::string SQLQUERY("select * from measure_e;");
 
     RpcServer rpcServer;
-    auto ret = rpcServer.ParseData((const uint8_t*)PARSERDATA.c_str(), PARSERDATA.length(), res, 0);
+    auto ret = rpcServer.ParseData((const uint8_t *)PARSERDATA.c_str(), PARSERDATA.length(), res, 0);
     EXPECT_TRUE(res);
     EXPECT_TRUE(ret);
-    ret = rpcServer.ParseDataOver((const uint8_t*)PARSERDATA.c_str(), PARSERDATA.length(), res);
+    ret = rpcServer.ParseDataOver((const uint8_t *)PARSERDATA.c_str(), PARSERDATA.length(), res);
     EXPECT_TRUE(res);
     EXPECT_TRUE(ret);
-    ret = rpcServer.SqlQuery((const uint8_t*)SQLQUERY.c_str(), SQLQUERY.length(), res);
+    ret = rpcServer.SqlQuery((const uint8_t *)SQLQUERY.c_str(), SQLQUERY.length(), res);
     EXPECT_TRUE(g_result == "dberror\r\n");
     EXPECT_FALSE(ret);
 }

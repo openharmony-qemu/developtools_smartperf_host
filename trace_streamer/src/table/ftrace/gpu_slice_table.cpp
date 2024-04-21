@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, FRAME_ROW, DUR };
-GPUSliceTable::GPUSliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+GPUSliceTable::GPUSliceTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("frame_row", "INTEGER"));
@@ -28,14 +28,14 @@ GPUSliceTable::GPUSliceTable(const TraceDataCache* dataCache) : TableBase(dataCa
 
 GPUSliceTable::~GPUSliceTable() {}
 
-void GPUSliceTable::FilterByConstraint(FilterConstraints& gpufc,
-                                       double& gpufilterCost,
+void GPUSliceTable::FilterByConstraint(FilterConstraints &gpufc,
+                                       double &gpufilterCost,
                                        size_t gpurowCount,
                                        uint32_t gpucurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& gpuc = gpufc.GetConstraints()[gpucurrenti];
+    const auto &gpuc = gpufc.GetConstraints()[gpucurrenti];
     switch (static_cast<Index>(gpuc.col)) {
         case Index::ID: {
             if (CanFilterId(gpuc.op, gpurowCount)) {
@@ -57,7 +57,7 @@ std::unique_ptr<TableBase::Cursor> GPUSliceTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-GPUSliceTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+GPUSliceTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstGPUSliceData().Size())),
       gpuSliceObj_(dataCache->GetConstGPUSliceData())
 {
@@ -65,7 +65,7 @@ GPUSliceTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 GPUSliceTable::Cursor::~Cursor() {}
 
-int32_t GPUSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t GPUSliceTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -78,7 +78,7 @@ int32_t GPUSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(gpuSliceTabCs, sId);
     for (size_t i = 0; i < gpuSliceTabCs.size(); i++) {
-        const auto& c = gpuSliceTabCs[i];
+        const auto &c = gpuSliceTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -131,7 +131,7 @@ int32_t GPUSliceTable::Cursor::Column(int32_t column) const
     }
     return SQLITE_OK;
 }
-void GPUSliceTable::GetOrbyes(FilterConstraints& gpufc, EstimatedIndexInfo& gpuei)
+void GPUSliceTable::GetOrbyes(FilterConstraints &gpufc, EstimatedIndexInfo &gpuei)
 {
     auto gpuorderbys = gpufc.GetOrderBys();
     for (auto i = 0; i < gpuorderbys.size(); i++) {

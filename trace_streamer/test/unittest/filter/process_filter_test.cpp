@@ -53,7 +53,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThread, TestSize.Level1)
     uint32_t iTid1 = streamFilters_.processFilter_->UpdateOrCreateThread(0, tid1);
     EXPECT_TRUE(iTid1 == 2);
 
-    Thread* thread = traceDataCache_.GetThreadData(iTid0);
+    Thread *thread = traceDataCache_.GetThreadData(iTid0);
     EXPECT_TRUE(thread->tid_ == tid0);
 
     thread = traceDataCache_.GetThreadData(iTid1);
@@ -77,7 +77,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithName, TestSize.Level1)
     uint32_t iPid1 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid1, processName);
     EXPECT_TRUE(iPid1 == 2);
 
-    Process* process = traceDataCache_.GetProcessData(iPid0);
+    Process *process = traceDataCache_.GetProcessData(iPid0);
     EXPECT_TRUE(process->pid_ == pid0);
 
     process = traceDataCache_.GetProcessData(iPid1);
@@ -129,7 +129,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameSinglePid, TestSize.Lev
     uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
     EXPECT_TRUE(iPid0 == 1);
 
-    Process* process = traceDataCache_.GetProcessData(iPid0);
+    Process *process = traceDataCache_.GetProcessData(iPid0);
     EXPECT_TRUE(process->pid_ == pid);
 }
 
@@ -154,7 +154,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameMultiPid, TestSize.Leve
     uint32_t iPid2 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(87091, processName);
     EXPECT_TRUE(iPid2 == 3);
 
-    Process* process = traceDataCache_.GetProcessData(iPid0);
+    Process *process = traceDataCache_.GetProcessData(iPid0);
     EXPECT_TRUE(process->pid_ == pid0);
 
     process = traceDataCache_.GetProcessData(iPid1);
@@ -183,7 +183,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithName, TestSize.Level1)
     uint32_t iTid1 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts2, tid2, threadName2);
     EXPECT_TRUE(iTid1 == 2);
 
-    Thread* thread = traceDataCache_.GetThreadData(iTid0);
+    Thread *thread = traceDataCache_.GetThreadData(iTid0);
     EXPECT_TRUE(thread->tid_ == tid);
     EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName));
 
@@ -220,7 +220,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameGenarateTidAndItid, Test
     std::string_view threadName = "RenderThread2";
     uint32_t iTid0 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts, tid, threadName);
     EXPECT_TRUE(iTid0 == 1);
-    Thread* thread = traceDataCache_.GetThreadData(iTid0);
+    Thread *thread = traceDataCache_.GetThreadData(iTid0);
     EXPECT_TRUE(thread->tid_ == tid);
     EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName));
 }
@@ -291,7 +291,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndName, TestSize.Level1)
     auto itid = streamFilters_.processFilter_->GetInternalTid(tid);
     EXPECT_TRUE(itid != INVALID_ID);
 
-    Thread* thread = traceDataCache_.GetThreadData(itid);
+    Thread *thread = traceDataCache_.GetThreadData(itid);
     EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName));
 }
 
@@ -360,7 +360,7 @@ HWTEST_F(ProcessFilterTest, UpdateThreadWithName, TestSize.Level1)
     streamFilters_.processFilter_->UpdateOrCreateThreadWithName(timeStamp, tid, threadName);
     auto itid = streamFilters_.processFilter_->GetInternalTid(tid);
     EXPECT_TRUE(itid != INVALID_ID);
-    Thread* thread = traceDataCache_.GetThreadData(itid);
+    Thread *thread = traceDataCache_.GetThreadData(itid);
     EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName));
 }
 
@@ -378,7 +378,7 @@ HWTEST_F(ProcessFilterTest, UpdateProcessWithName, TestSize.Level1)
     auto ipid = streamFilters_.processFilter_->GetOrCreateInternalPid(timeStamp, pid);
     EXPECT_TRUE(ipid != INVALID_ID);
     streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
-    Process* process = traceDataCache_.GetProcessData(ipid);
+    Process *process = traceDataCache_.GetProcessData(ipid);
     EXPECT_TRUE(process->cmdLine_ == processName);
 }
 } // namespace TraceStreamer

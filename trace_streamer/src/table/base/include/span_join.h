@@ -34,7 +34,7 @@ struct TableDesc {
 };
 
 struct TableColumnInfo {
-    TableDesc* tableDesc;
+    TableDesc *tableDesc;
     int32_t colIdx;
 };
 
@@ -47,32 +47,32 @@ enum class PartitionState : int32_t {
 
 class SpanJoin : public TableBase {
 public:
-    explicit SpanJoin(const TraceDataCache*);
+    explicit SpanJoin(const TraceDataCache *);
     ~SpanJoin() override{};
-    void Parse(const std::string& tablePartition, TableParse& tableParse);
-    void GetTableField(const TableParse& tableParse, TableDesc& tableDesc);
-    void GetColumns(const TraceDataCache* dataCache,
-                    const std::string& tableName,
-                    std::vector<TableBase::ColumnInfo>& columns);
-    void CreateCols(TableDesc& tableDesc, std::vector<ColumnInfo>& cols);
-    bool IsTsOrDurCol(const std::string& name);
-    bool DeduplicationForColumn(const std::string& name, std::vector<ColumnInfo>& cols);
-    void Init(int32_t argc, const char* const* argv) override;
+    void Parse(const std::string &tablePartition, TableParse &tableParse);
+    void GetTableField(const TableParse &tableParse, TableDesc &tableDesc);
+    void GetColumns(const TraceDataCache *dataCache,
+                    const std::string &tableName,
+                    std::vector<TableBase::ColumnInfo> &columns);
+    void CreateCols(TableDesc &tableDesc, std::vector<ColumnInfo> &cols);
+    bool IsTsOrDurCol(const std::string &name);
+    bool DeduplicationForColumn(const std::string &name, std::vector<ColumnInfo> &cols);
+    void Init(int32_t argc, const char *const *argv) override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
     class CaclSpan {
     public:
-        CaclSpan(TableBase* tableBase, const TableDesc* tableDesc, sqlite3* db);
+        CaclSpan(TableBase *tableBase, const TableDesc *tableDesc, sqlite3 *db);
         virtual ~CaclSpan();
-        static std::string GetMergeColumns(std::vector<std::string>& columns);
-        int32_t InitQuerySql(sqlite3_value** argv);
+        static std::string GetMergeColumns(std::vector<std::string> &columns);
+        int32_t InitQuerySql(sqlite3_value **argv);
         bool IsQueryNext();
         bool GetCursorNext();
         bool GetNextState();
         bool SearchNextslice();
         void Next();
         std::string GetSqlQuery();
-        void setResult(sqlite3_context* context, size_t index) const;
+        void setResult(sqlite3_context *context, size_t index) const;
         int64_t GetPatitonForMiss();
 
     public:
@@ -84,16 +84,16 @@ public:
         int32_t missPartitionStart_ = 0;
         int32_t missPartitionEnd_ = 0;
         std::string sqlQuery_;
-        sqlite3_stmt* stmt_ = nullptr;
-        const TableDesc* desc_ = nullptr;
-        sqlite3* db_ = nullptr;
-        SpanJoin* table_ = nullptr;
+        sqlite3_stmt *stmt_ = nullptr;
+        const TableDesc *desc_ = nullptr;
+        sqlite3 *db_ = nullptr;
+        SpanJoin *table_ = nullptr;
     };
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, SpanJoin* table);
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        explicit Cursor(const TraceDataCache *dataCache, SpanJoin *table);
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
         int32_t Next() override
         {
@@ -112,11 +112,11 @@ public:
     private:
         bool IsFindSpan();
         bool CaclOverLap();
-        CaclSpan* FindQueryResult();
+        CaclSpan *FindQueryResult();
         CaclSpan tableFirst_;
         CaclSpan tableSecond_;
-        CaclSpan* queryNext_ = nullptr;
-        SpanJoin* spanTable_;
+        CaclSpan *queryNext_ = nullptr;
+        SpanJoin *spanTable_;
     };
 
 public:

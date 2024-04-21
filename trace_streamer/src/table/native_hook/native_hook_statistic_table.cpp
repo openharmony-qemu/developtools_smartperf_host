@@ -31,7 +31,7 @@ enum class Index : int32_t {
     LAST_LIB_ID,
     LAST_SYMBOL_ID
 };
-NativeHookStatisticTable::NativeHookStatisticTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+NativeHookStatisticTable::NativeHookStatisticTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
@@ -50,14 +50,14 @@ NativeHookStatisticTable::NativeHookStatisticTable(const TraceDataCache* dataCac
 
 NativeHookStatisticTable::~NativeHookStatisticTable() {}
 
-void NativeHookStatisticTable::FilterByConstraint(FilterConstraints& statisticfc,
-                                                  double& statisticfilterCost,
+void NativeHookStatisticTable::FilterByConstraint(FilterConstraints &statisticfc,
+                                                  double &statisticfilterCost,
                                                   size_t statisticrowCount,
                                                   uint32_t statisticcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& statisticc = statisticfc.GetConstraints()[statisticcurrenti];
+    const auto &statisticc = statisticfc.GetConstraints()[statisticcurrenti];
     switch (static_cast<Index>(statisticc.col)) {
         case Index::ID: {
             if (CanFilterId(statisticc.op, statisticrowCount)) {
@@ -79,7 +79,7 @@ std::unique_ptr<TableBase::Cursor> NativeHookStatisticTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-NativeHookStatisticTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+NativeHookStatisticTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstNativeHookStatisticData().Size())),
       nativeHookStatisticInfoObj_(dataCache->GetConstNativeHookStatisticData())
 {
@@ -87,7 +87,7 @@ NativeHookStatisticTable::Cursor::Cursor(const TraceDataCache* dataCache, TableB
 
 NativeHookStatisticTable::Cursor::~Cursor() {}
 
-int32_t NativeHookStatisticTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t NativeHookStatisticTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -100,7 +100,7 @@ int32_t NativeHookStatisticTable::Cursor::Filter(const FilterConstraints& fc, sq
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(nativeHookStatisticCs, sId);
     for (size_t i = 0; i < nativeHookStatisticCs.size(); i++) {
-        const auto& c = nativeHookStatisticCs[i];
+        const auto &c = nativeHookStatisticCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -176,7 +176,7 @@ int32_t NativeHookStatisticTable::Cursor::Column(int32_t column) const
     return SQLITE_OK;
 }
 
-void NativeHookStatisticTable::GetOrbyes(FilterConstraints& statisticfc, EstimatedIndexInfo& statisticei)
+void NativeHookStatisticTable::GetOrbyes(FilterConstraints &statisticfc, EstimatedIndexInfo &statisticei)
 {
     auto statisticorderbys = statisticfc.GetOrderBys();
     for (auto i = 0; i < statisticorderbys.size(); i++) {

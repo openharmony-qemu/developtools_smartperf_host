@@ -64,10 +64,10 @@ HWTEST_F(MeasureFilterTest, CpuFilter, TestSize.Level1)
     filterId = stream_.streamFilters_->cpuMeasureFilter_->GetOrCreateFilterId(CPU_ID_1, nameIndex_1);
     EXPECT_TRUE(filterId == 1);
 
-    Filter* filterTable = stream_.traceDataCache_->GetFilterData();
+    Filter *filterTable = stream_.traceDataCache_->GetFilterData();
     EXPECT_TRUE(filterTable->Size() == 2);
 
-    CpuMeasureFilter* cpuMeasureTable = stream_.traceDataCache_->GetCpuMeasuresData();
+    CpuMeasureFilter *cpuMeasureTable = stream_.traceDataCache_->GetCpuMeasuresData();
     EXPECT_TRUE(cpuMeasureTable->Size() == 2);
     EXPECT_TRUE(cpuMeasureTable->IdsData()[0] == 0);
     EXPECT_TRUE(cpuMeasureTable->IdsData()[1] == 1);
@@ -91,10 +91,10 @@ HWTEST_F(MeasureFilterTest, ClockRateFilter, TestSize.Level1)
     filterId = stream_.streamFilters_->clockRateFilter_->GetOrCreateFilterId(CPU_ID_1, nameIndex_1);
     EXPECT_TRUE(filterId == 1);
 
-    Filter* filterTable = stream_.traceDataCache_->GetFilterData();
+    Filter *filterTable = stream_.traceDataCache_->GetFilterData();
     EXPECT_TRUE(filterTable->Size() == 2);
 
-    ClockEventData* clockEventTable = stream_.traceDataCache_->GetClockEventFilterData();
+    ClockEventData *clockEventTable = stream_.traceDataCache_->GetClockEventFilterData();
     EXPECT_TRUE(clockEventTable->Size() == 2);
     EXPECT_TRUE(clockEventTable->CpusData()[0] == CPU_ID_0);
     EXPECT_TRUE(clockEventTable->CpusData()[1] == CPU_ID_1);
@@ -118,10 +118,10 @@ HWTEST_F(MeasureFilterTest, ClockEnableFilter, TestSize.Level1)
     filterId = stream_.streamFilters_->clockEnableFilter_->GetOrCreateFilterId(CPU_ID_1, nameIndex_1);
     EXPECT_TRUE(filterId == 1);
 
-    Filter* filterTable = stream_.traceDataCache_->GetFilterData();
+    Filter *filterTable = stream_.traceDataCache_->GetFilterData();
     EXPECT_TRUE(filterTable->Size() == 2);
 
-    ClockEventData* clockEventTable = stream_.traceDataCache_->GetClockEventFilterData();
+    ClockEventData *clockEventTable = stream_.traceDataCache_->GetClockEventFilterData();
     EXPECT_TRUE(clockEventTable->Size() == 2);
     EXPECT_TRUE(clockEventTable->CpusData()[0] == CPU_ID_0);
     EXPECT_TRUE(clockEventTable->CpusData()[1] == CPU_ID_1);
@@ -145,10 +145,10 @@ HWTEST_F(MeasureFilterTest, ClockDisableFilter, TestSize.Level1)
     filterId = stream_.streamFilters_->clockDisableFilter_->GetOrCreateFilterId(CPU_ID_1, nameIndex_1);
     EXPECT_TRUE(filterId == 1);
 
-    Filter* filterTable = stream_.traceDataCache_->GetFilterData();
+    Filter *filterTable = stream_.traceDataCache_->GetFilterData();
     EXPECT_TRUE(filterTable->Size() == 2);
 
-    ClockEventData* clockEventTable = stream_.traceDataCache_->GetClockEventFilterData();
+    ClockEventData *clockEventTable = stream_.traceDataCache_->GetClockEventFilterData();
     EXPECT_TRUE(clockEventTable->Size() == 2);
     EXPECT_TRUE(clockEventTable->CpusData()[0] == CPU_ID_0);
     EXPECT_TRUE(clockEventTable->CpusData()[1] == CPU_ID_1);

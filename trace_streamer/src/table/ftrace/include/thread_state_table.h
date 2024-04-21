@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class ThreadStateTable : public TableBase {
 public:
-    explicit ThreadStateTable(const TraceDataCache* dataCache);
+    explicit ThreadStateTable(const TraceDataCache *dataCache);
     ~ThreadStateTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,22 +32,22 @@ private:
     {
         return dataCache_->GetConstThreadStateData().Size();
     }
-    void GetOrbyes(FilterConstraints& statefc, EstimatedIndexInfo& stateei) override;
-    void FilterByConstraint(FilterConstraints& statefc,
-                            double& statefilterCost,
+    void GetOrbyes(FilterConstraints &statefc, EstimatedIndexInfo &stateei) override;
+    void FilterByConstraint(FilterConstraints &statefc,
+                            double &statefilterCost,
                             size_t staterowCount,
                             uint32_t statecurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t col) const override;
-        void HandleIndex(const FilterConstraints& fc, sqlite3_value** argv, IndexMap* indexMapBack);
+        void HandleIndex(const FilterConstraints &fc, sqlite3_value **argv, IndexMap *indexMapBack);
 
     private:
-        const ThreadStateData& threadStateObj_;
+        const ThreadStateData &threadStateObj_;
     };
 };
 } // namespace TraceStreamer

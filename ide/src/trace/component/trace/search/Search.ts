@@ -238,7 +238,7 @@ export class LitSearch extends BaseElement {
     this.totalEL = this.shadowRoot!.querySelector<HTMLSpanElement>('#total');
     this.indexEL = this.shadowRoot!.querySelector<HTMLSpanElement>('#index');
     this.searchHistoryListEL = this.shadowRoot!.querySelector<HTMLUListElement>('.search-history-list');
-    this._retarge_index = this.shadowRoot!.querySelector<HTMLInputElement>('input[name=\'retarge_index\']');
+    this._retarge_index = this.shadowRoot!.querySelector<HTMLInputElement>("input[name='retarge_index']");
     this.search!.addEventListener('focus', (): void => {
       this.searchFocusListener();
     });
@@ -273,7 +273,7 @@ export class LitSearch extends BaseElement {
       );
     });
     this.keyUpListener();
-    this.shadowRoot?.querySelector('input[name=\'retarge_index\']')?.addEventListener('keydown', (e: unknown): void => {
+    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: unknown): void => {
       // @ts-ignore
       if (e.keyCode === 13) {
         // @ts-ignore
@@ -286,7 +286,7 @@ export class LitSearch extends BaseElement {
     let _root = this.shadowRoot!.querySelector<HTMLInputElement>('.root');
     let _prompt = this.shadowRoot!.querySelector<HTMLInputElement>('#prompt');
     // 添加翻页监听事件
-    this.shadowRoot?.querySelector('input[name=\'retarge_index\']')?.addEventListener('keyup', (e: unknown): void => {
+    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keyup', (e: unknown): void => {
       // @ts-ignore
       if (e.keyCode === 13) {
         this.retarget_index = Number(this._retarge_index!.value);

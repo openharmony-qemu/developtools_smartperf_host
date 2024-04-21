@@ -31,11 +31,11 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PbreaderHisyseventParser : public EventParserBase {
 public:
-    PbreaderHisyseventParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    PbreaderHisyseventParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~PbreaderHisyseventParser();
     void Finish();
-    void Parse(ProtoReader::HisyseventInfo_Reader* tracePacket, uint64_t ts, bool& haveSplitSeg);
-    void Parse(ProtoReader::HisyseventConfig_Reader* tracePacket, uint64_t ts);
+    void Parse(ProtoReader::HisyseventInfo_Reader *tracePacket, uint64_t ts, bool &haveSplitSeg);
+    void Parse(ProtoReader::HisyseventConfig_Reader *tracePacket, uint64_t ts);
 
 private:
     const uint64_t MSEC_TO_NS = 1000 * 1000;

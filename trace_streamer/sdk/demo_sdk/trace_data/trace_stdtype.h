@@ -40,15 +40,15 @@ public:
     {
         return std::max(demoTimeStamps_.size(), demoIds_.size());
     }
-    const std::deque<uint64_t>& IdsData() const
+    const std::deque<uint64_t> &IdsData() const
     {
         return demoIds_;
     }
-    const std::deque<uint64_t>& TimeStampData() const
+    const std::deque<uint64_t> &TimeStampData() const
     {
         return demoTimeStamps_;
     }
-    const std::deque<InternalTid>& InternalTidsData() const
+    const std::deque<InternalTid> &InternalTidsData() const
     {
         return demoInternalTids_;
     }
@@ -70,8 +70,8 @@ public:
     GpuCounterObject() = default;
     ~GpuCounterObject() = default;
     void AppendNewData(int32_t counterId, const std::string counterName);
-    const std::deque<int32_t>& CounterId() const;
-    const std::deque<std::string>& CounterName() const;
+    const std::deque<int32_t> &CounterId() const;
+    const std::deque<std::string> &CounterName() const;
 
 private:
     std::deque<int32_t> counterId_ = {};
@@ -82,9 +82,9 @@ public:
     GpuCounter() = default;
     ~GpuCounter() = default;
     void AppendNewData(uint64_t ts, int32_t counterId, int32_t value);
-    const std::deque<uint64_t>& TimeStamp() const;
-    const std::deque<int32_t>& CounterId() const;
-    const std::deque<int32_t>& Value() const;
+    const std::deque<uint64_t> &TimeStamp() const;
+    const std::deque<int32_t> &CounterId() const;
+    const std::deque<int32_t> &Value() const;
 
 private:
     std::deque<uint64_t> ts_ = {};
@@ -97,8 +97,8 @@ public:
     SliceObject() = default;
     ~SliceObject() = default;
     void AppendNewData(int32_t sliceId, std::string sliceName);
-    const std::deque<int32_t>& SliceId() const;
-    const std::deque<std::string>& SliceName() const;
+    const std::deque<int32_t> &SliceId() const;
+    const std::deque<std::string> &SliceName() const;
 
 private:
     std::deque<int32_t> sliceId_ = {};
@@ -109,10 +109,10 @@ public:
     SliceData() = default;
     ~SliceData() = default;
     void AppendNewData(int32_t sliceId, uint64_t startTs, uint64_t endTs, int32_t value);
-    const std::deque<int32_t>& SliceId() const;
-    const std::deque<uint64_t>& TimeStamp() const;
-    const std::deque<uint64_t>& EndTs() const;
-    const std::deque<int32_t>& Value() const;
+    const std::deque<int32_t> &SliceId() const;
+    const std::deque<uint64_t> &TimeStamp() const;
+    const std::deque<uint64_t> &EndTs() const;
+    const std::deque<int32_t> &Value() const;
 
 private:
     std::deque<uint64_t> startTs_ = {};
@@ -125,10 +125,10 @@ public:
     MetaData() = default;
     ~MetaData() = default;
     void InitMetaData();
-    void SetParserToolVersion(const std::string& version);
-    void SetParserToolPublishDateTime(const std::string& datetime);
-    const std::string& Value(uint64_t row) const;
-    const std::string& Name(uint64_t row) const;
+    void SetParserToolVersion(const std::string &version);
+    void SetParserToolPublishDateTime(const std::string &datetime);
+    const std::string &Value(uint64_t row) const;
+    const std::string &Name(uint64_t row) const;
     void Clear() override
     {
         columnNames_.clear();

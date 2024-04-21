@@ -18,7 +18,7 @@ import { query } from './SqlLite';
 class ProcedureThread {
   busy: boolean = false;
   isCancelled: boolean = false;
-  id: number = -1;//@ts-ignore
+  id: number = -1; //@ts-ignore
   taskMap: unknown = {};
   name: string | undefined;
   worker?: Worker;
@@ -31,10 +31,10 @@ class ProcedureThread {
       (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
     );
   }
-//@ts-ignore
+  //@ts-ignore
   queryFunc(type: string, args: unknown, transfer: unknown, handler: Function): void {
     this.busy = true;
-    let id = this.uuid();// @ts-ignore
+    let id = this.uuid(); // @ts-ignore
     this.taskMap[id] = handler;
     let pam = {
       id: id,
@@ -49,11 +49,14 @@ class ProcedureThread {
           } else {
             this.worker!.postMessage(pam);
           }
-        } else {// @ts-ignore
+        } else {
+          // @ts-ignore
           this.worker!.postMessage(pam, [transfer]);
         }
-      } catch (//@ts-ignore
-        e: unknown) {}
+      } catch (
+        //@ts-ignore
+        e: unknown
+      ) {}
     } else {
       this.worker!.postMessage(pam);
     }
@@ -69,8 +72,13 @@ class ProcedurePool {
   static cpuCount = Math.floor((window.navigator.hardwareConcurrency || 4) / 2);
   maxThreadNumber: number = 1;
   works: Array<ProcedureThread> = [];
-  timelineChange: ((//@ts-ignore
-    a: unknown) => void) | undefined | null = null;
+  timelineChange:
+    | ((
+        //@ts-ignore
+        a: unknown
+      ) => void)
+    | undefined
+    | null = null;
   cpusLen = ProcedurePool.build('cpu', 0);
   freqLen = ProcedurePool.build('freq', 0);
   processLen = ProcedurePool.build('process', 0);
@@ -98,7 +106,7 @@ class ProcedurePool {
     }
   }
 
-  newThread(): ProcedureThread | undefined {
+  newThread(): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -115,13 +123,14 @@ class ProcedurePool {
         this.timelineChange?.(event.data.results);
         newThread.busy = false;
         return;
-      }// @ts-ignore
+      } // @ts-ignore
       if (Reflect.has(newThread.taskMap, event.data.id)) {
-        if (event.data) {// @ts-ignore
+        if (event.data) {
+          // @ts-ignore
           let fun = newThread.taskMap[event.data.id];
           if (fun) {
             fun(event.data.results, event.data.hover);
-          }// @ts-ignore
+          } // @ts-ignore
           Reflect.deleteProperty(newThread.taskMap, event.data.id);
         }
       }
@@ -134,10 +143,9 @@ class ProcedurePool {
     newThread.id = this.works.length;
     newThread.busy = false;
     this.works?.push(newThread);
-    return newThread;
   }
 
-  private logicDataThread(): ProcedureThread | undefined {
+  private logicDataThread(): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -154,29 +162,38 @@ class ProcedurePool {
     thread.id = this.works.length;
     thread.busy = false;
     this.works?.push(thread);
-    return thread;
   }
 
   private sendMessage(thread: ProcedureThread): void {
     thread.worker!.onmessage = (event: MessageEvent): void => {
       thread.busy = false;
       if (event.data.isQuery) {
-        query(event.data.type, event.data.sql, event.data.args, 'exec-buf').then((// @ts-ignore
-          res: unknown) => {
-          thread.worker!.postMessage({
-            type: event.data.type,
-            params: {
-              list: res,
-            },
-            id: event.data.id,
-          });
-        });
+        query(event.data.type, event.data.sql, event.data.args, 'exec-buf').then(
+          (
+            // @ts-ignore
+            res: unknown
+          ) => {
+            thread.worker!.postMessage({
+              type: event.data.type,
+              params: {
+                list: res,
+              },
+              id: event.data.id,
+            });
+          }
+        );
         return;
       }
       if (event.data.isSending) {
-        if (Reflect.has(// @ts-ignore
-        thread.taskMap, event.data.id)) {
-          if (event.data) {// @ts-ignore
+        if (
+          Reflect.has(
+            // @ts-ignore
+            thread.taskMap,
+            event.data.id
+          )
+        ) {
+          if (event.data) {
+            // @ts-ignore
             let fun = thread.taskMap[event.data.id];
             if (fun) {
               fun(event.data.results, event.data.hover);
@@ -184,13 +201,14 @@ class ProcedurePool {
             return;
           }
         }
-      }// @ts-ignore
+      } // @ts-ignore
       if (Reflect.has(thread.taskMap, event.data.id)) {
-        if (event.data) {// @ts-ignore
+        if (event.data) {
+          // @ts-ignore
           let fun = thread.taskMap[event.data.id];
           if (fun) {
             fun(event.data.results, event.data.hover);
-          }// @ts-ignore
+          } // @ts-ignore
           Reflect.deleteProperty(thread.taskMap, event.data.id);
         }
       }
@@ -212,8 +230,8 @@ class ProcedurePool {
       thread.queryFunc('clear', {}, undefined, () => {});
     }
   };
-// @ts-ignore
-  submitWithName(name: string, type: string, args: unknown, transfer: unknown, handler: Function): ProcedureThread | undefined {
+
+  submitWithName(name: string, type: string, args: unknown, transfer: unknown, handler: Function): unknown {
     let noBusyThreads = this.works.filter((it) => it.name === name);
     let thread: ProcedureThread | undefined;
     if (noBusyThreads.length > 0) {
@@ -223,14 +241,14 @@ class ProcedurePool {
     }
     return thread;
   }
-// @ts-ignore
+  // @ts-ignore
   submitWithNamePromise(name: string, type: string, args: unknown, transfer: unknown): Promise<unknown> {
     return new Promise((resolve, reject) => {
       let noBusyThreads = this.works.filter((it) => it.name === name);
       let thread: ProcedureThread | undefined;
       if (noBusyThreads.length > 0) {
         //取第一个空闲的线程进行任务
-        thread = noBusyThreads[0];// @ts-ignore
+        thread = noBusyThreads[0]; // @ts-ignore
         thread!.queryFunc(type, args, transfer, (res: unknown, hover: unknown) => {
           resolve({
             res: res,

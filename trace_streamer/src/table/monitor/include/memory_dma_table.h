@@ -23,19 +23,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class MemoryDmaTable : public TableBase {
 public:
-    explicit MemoryDmaTable(const TraceDataCache* dataCache);
+    explicit MemoryDmaTable(const TraceDataCache *dataCache);
     ~MemoryDmaTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const DmaMemData& DmaMemDataObj_;
+        const DmaMemData &DmaMemDataObj_;
     };
 };
 } // namespace TraceStreamer

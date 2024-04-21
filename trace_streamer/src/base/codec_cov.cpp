@@ -38,7 +38,7 @@ int32_t PreNum(unsigned char byte)
     return num;
 }
 
-bool IsUTF8(const uint8_t* data, int32_t len)
+bool IsUTF8(const uint8_t *data, int32_t len)
 {
     constexpr uint8_t MASK = 0x80;
     constexpr uint8_t FIRST_BYTE = 0xc0;
@@ -64,7 +64,7 @@ bool IsUTF8(const uint8_t* data, int32_t len)
     return true;
 }
 
-bool IsGBK(const uint8_t* data, int32_t len)
+bool IsGBK(const uint8_t *data, int32_t len)
 {
     constexpr int32_t STEP = 2;
     constexpr uint8_t ASCII_END = 0x7f;
@@ -91,7 +91,7 @@ bool IsGBK(const uint8_t* data, int32_t len)
     return true;
 }
 
-CODING GetCoding(const uint8_t* data, int32_t len)
+CODING GetCoding(const uint8_t *data, int32_t len)
 {
     CODING coding;
     if (IsUTF8(data, len)) {
@@ -105,7 +105,7 @@ CODING GetCoding(const uint8_t* data, int32_t len)
 }
 
 #ifdef _WIN32
-std::string GbkToUtf8(const char* srcStr)
+std::string GbkToUtf8(const char *srcStr)
 {
     int32_t len = MultiByteToWideChar(CP_ACP, 0, srcStr, -1, NULL, 0);
     std::unique_ptr<wchar_t[]> wstr = std::make_unique<wchar_t[]>(len + 1);

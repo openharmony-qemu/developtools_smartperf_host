@@ -14,7 +14,7 @@ import { QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
-export function nativeMemoryChartDataSender(//@ts-ignore
+export function nativeMemoryChartDataSender( //@ts-ignore
   row: TraceRow<unknown>,
   setting: {
     eventType: number;
@@ -65,20 +65,20 @@ export function nativeMemoryChartDataCacheSender(processes: Array<number>, model
 }
 
 function arrayBufferHandler(res: unknown, len: number): unknown[] {
-  let outArr: unknown[] = [];//@ts-ignore
-  let startTime = new Float64Array(res.startTime);//@ts-ignore
-  let dur = new Float64Array(res.dur);//@ts-ignore
-  let density = new Int32Array(res.density);//@ts-ignore
+  let outArr: unknown[] = []; //@ts-ignore
+  let startTime = new Float64Array(res.startTime); //@ts-ignore
+  let dur = new Float64Array(res.dur); //@ts-ignore
+  let density = new Int32Array(res.density); //@ts-ignore
   let heapSize = new Int32Array(res.heapSize);
   for (let i = 0; i < len; i++) {
     outArr.push({
       startTime: startTime[i],
       dur: dur[i],
       heapsize: heapSize[i],
-      density: density[i],//@ts-ignore
-      maxHeapSize: res.maxSize,//@ts-ignore
-      maxDensity: res.maxDensity,//@ts-ignore
-      minHeapSize: res.minSize,//@ts-ignore
+      density: density[i], //@ts-ignore
+      maxHeapSize: res.maxSize, //@ts-ignore
+      maxDensity: res.maxDensity, //@ts-ignore
+      minHeapSize: res.minSize, //@ts-ignore
       minDensity: res.minDensity,
     } as unknown);
   }

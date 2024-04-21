@@ -28,7 +28,7 @@ enum class Index : int32_t {
     CHILDREN,
     PARENT_ID
 };
-JsCpuProfilerNodeTable::JsCpuProfilerNodeTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+JsCpuProfilerNodeTable::JsCpuProfilerNodeTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("function_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("function_index", "INTEGER"));
@@ -49,7 +49,7 @@ std::unique_ptr<TableBase::Cursor> JsCpuProfilerNodeTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-JsCpuProfilerNodeTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+JsCpuProfilerNodeTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstJsCpuProfilerNodeData().Size())),
       jsCpuProfilerNodes_(dataCache->GetConstJsCpuProfilerNodeData())
 {

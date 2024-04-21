@@ -20,7 +20,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, TYPE, NAME };
-SystemEventFilterTable::SystemEventFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+SystemEventFilterTable::SystemEventFilterTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
@@ -30,12 +30,12 @@ SystemEventFilterTable::SystemEventFilterTable(const TraceDataCache* dataCache) 
 
 SystemEventFilterTable::~SystemEventFilterTable() {}
 
-void SystemEventFilterTable::FilterByConstraint(FilterConstraints& eventfc,
-                                                double& eventfilterCost,
+void SystemEventFilterTable::FilterByConstraint(FilterConstraints &eventfc,
+                                                double &eventfilterCost,
                                                 size_t eventrowCount,
                                                 uint32_t eventcurrenti)
 {
-    const auto& eventc = eventfc.GetConstraints()[eventcurrenti];
+    const auto &eventc = eventfc.GetConstraints()[eventcurrenti];
     switch (static_cast<Index>(eventc.col)) {
         case Index::ID: {
             auto eventoldRowCount = eventrowCount;
@@ -58,7 +58,7 @@ std::unique_ptr<TableBase::Cursor> SystemEventFilterTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-SystemEventFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+SystemEventFilterTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSysMeasureFilterData().Size())),
       sysEventObj_(dataCache->GetConstSysMeasureFilterData())
 {
@@ -66,7 +66,7 @@ SystemEventFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBas
 
 SystemEventFilterTable::Cursor::~Cursor() {}
 
-int32_t SystemEventFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t SystemEventFilterTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -75,9 +75,9 @@ int32_t SystemEventFilterTable::Cursor::Filter(const FilterConstraints& fc, sqli
         return SQLITE_OK;
     }
 
-    auto& systemEventFilterCs = fc.GetConstraints();
+    auto &systemEventFilterCs = fc.GetConstraints();
     for (size_t i = 0; i < systemEventFilterCs.size(); i++) {
-        const auto& c = systemEventFilterCs[i];
+        const auto &c = systemEventFilterCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterSorted(c.col, c.op, argv[i]);
@@ -123,7 +123,7 @@ int32_t SystemEventFilterTable::Cursor::Column(int32_t col) const
     return SQLITE_OK;
 }
 
-void SystemEventFilterTable::Cursor::FilterSorted(int32_t col, unsigned char op, sqlite3_value* argv)
+void SystemEventFilterTable::Cursor::FilterSorted(int32_t col, unsigned char op, sqlite3_value *argv)
 {
     auto type = sqlite3_value_type(argv);
     if (type != SQLITE_INTEGER) {
@@ -135,7 +135,7 @@ void SystemEventFilterTable::Cursor::FilterSorted(int32_t col, unsigned char op,
     switch (static_cast<Index>(col)) {
         case Index::ID: {
             auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-            auto getValue = [](const uint32_t& row) { return row; };
+            auto getValue = [](const uint32_t &row) { return row; };
             switch (op) {
                 case SQLITE_INDEX_CONSTRAINT_EQ:
                     indexMap_->IntersectabcEqual(sysEventObj_.IdsData(), v, getValue);
@@ -162,7 +162,7 @@ void SystemEventFilterTable::Cursor::FilterSorted(int32_t col, unsigned char op,
     }
 }
 
-void SystemEventFilterTable::GetOrbyes(FilterConstraints& eventfc, EstimatedIndexInfo& eventei)
+void SystemEventFilterTable::GetOrbyes(FilterConstraints &eventfc, EstimatedIndexInfo &eventei)
 {
     auto eventorderbys = eventfc.GetOrderBys();
     for (auto i = 0; i < eventorderbys.size(); i++) {

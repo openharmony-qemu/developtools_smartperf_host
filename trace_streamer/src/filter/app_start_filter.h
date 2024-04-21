@@ -52,9 +52,9 @@ public:
 
 class APPStartupFilter : private FilterBase {
 public:
-    APPStartupFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    APPStartupFilter(const APPStartupFilter&) = delete;
-    APPStartupFilter& operator=(const APPStartupFilter&) = delete;
+    APPStartupFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
+    APPStartupFilter(const APPStartupFilter &) = delete;
+    APPStartupFilter &operator=(const APPStartupFilter &) = delete;
     ~APPStartupFilter() override;
     void FilterAllAPPStartupData();
 
@@ -62,15 +62,15 @@ private:
     using appMap = std::unordered_map<DataIndex, std::map<uint32_t, std::unique_ptr<APPStartupData>>>;
     void ParserSoInitalization();
     void CalcDepthByTimeStamp(std::map<uint32_t, std::map<uint64_t, uint32_t>>::iterator it,
-                              uint32_t& depth,
+                              uint32_t &depth,
                               uint64_t endTime,
                               uint64_t startTime);
     void ParserAppStartup();
-    void UpdatePidByNameIndex(const appMap& mAPPStartupData);
-    bool CaclRsDataByPid(appMap& mAPPStartupData);
-    void AppendData(const appMap& mAPPStartupData);
-    bool UpdateAPPStartupData(uint32_t row, const std::string& nameString, uint32_t startIndex);
-    bool ProcAbilityLaunchData(const std::string& nameString, uint64_t raw);
+    void UpdatePidByNameIndex(const appMap &mAPPStartupData);
+    bool CaclRsDataByPid(appMap &mAPPStartupData);
+    void AppendData(const appMap &mAPPStartupData);
+    bool UpdateAPPStartupData(uint32_t row, const std::string &nameString, uint32_t startIndex);
+    bool ProcAbilityLaunchData(const std::string &nameString, uint64_t raw);
     void ProcForegroundData(uint64_t raw);
 
 private:

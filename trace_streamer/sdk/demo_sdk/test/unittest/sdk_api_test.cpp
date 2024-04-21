@@ -35,7 +35,7 @@ public:
 
 public:
     TraceStreamerSelector stream_ = {};
-    RpcServer* rpcServer = new RpcServer();
+    RpcServer *rpcServer = new RpcServer();
 };
 
 std::string g_resultTest;
@@ -46,7 +46,7 @@ void res(const std::string result, int32_t finish, int32_t isConfig)
 }
 
 std::string g_reply;
-void QueryResultCallback(const std::string& jsonResult, int32_t finish, int32_t isConfig)
+void QueryResultCallback(const std::string &jsonResult, int32_t finish, int32_t isConfig)
 {
     g_reply = jsonResult;
 }
@@ -67,20 +67,20 @@ HWTEST_F(SDKApiTest, SetTableName, TestSize.Level1)
     ret = rpcServer->ts_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from first_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
     EXPECT_TRUE(ret);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
 
     std::string sqlQueryCounterObj("select * from second_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
     std::string sqlQuerySlice("select * from third_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
     std::string sqlQuerySliceObj("select * from fouth_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -99,19 +99,19 @@ HWTEST_F(SDKApiTest, DefaultTableName, TestSize.Level1)
     ret = rpcServer->ts_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from counter_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
     std::string sqlQueryCounterObj("select * from gpu_counter_object;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
     std::string sqlQuerySlice("select * from slice_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -132,19 +132,19 @@ HWTEST_F(SDKApiTest, NullTableName, TestSize.Level1)
     ret = rpcServer->ts_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from counter_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
     std::string sqlQueryCounterObj("select * from gpu_counter_object;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
     std::string sqlQuerySlice("select * from slice_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
 }
@@ -165,19 +165,19 @@ HWTEST_F(SDKApiTest, NullAndManuallyCounterTableName, TestSize.Level1)
     ret = rpcServer->ts_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from first_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
     std::string sqlQueryCounterObj("select * from second_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
     std::string sqlQuerySlice("select * from slice_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
 }
@@ -198,19 +198,19 @@ HWTEST_F(SDKApiTest, NullAndManuallySliceTableName, TestSize.Level1)
     ret = rpcServer->ts_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from counter_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
     std::string sqlQueryCounterObj("select * from gpu_counter_object;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
     std::string sqlQuerySlice("select * from first_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
     std::string sqlQuerySliceObj("select * from second_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -231,7 +231,7 @@ HWTEST_F(SDKApiTest, CurrentDataForCounterObjectWithDefaultTableName, TestSize.L
     ret = SDKAppendCounterObject(1, "counter_1");
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounterObj("select * from gpu_counter_object;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -253,7 +253,7 @@ HWTEST_F(SDKApiTest, CurrentDataForCounterObjectWithManuallyTableName, TestSize.
     ret = SDKAppendCounterObject(1, "counter_1");
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounterObj("select * from second_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -274,7 +274,7 @@ HWTEST_F(SDKApiTest, WrongDataForCounterObjectWithDefaultTableName, TestSize.Lev
     ret = SDKAppendCounterObject(INVALID_INT32, "counter_1");
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounterObj("select * from gpu_counter_object;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -296,7 +296,7 @@ HWTEST_F(SDKApiTest, WrongDataForCounterObjectWithManuallyTableName, TestSize.Le
     ret = SDKAppendCounterObject(INVALID_INT32, "counter_1");
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounterObj("select * from second_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -318,7 +318,7 @@ HWTEST_F(SDKApiTest, WrongDataForCounterObject, TestSize.Level1)
     ret = SDKAppendCounterObject(INVALID_INT32, " ");
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounterObj("select * from gpu_counter_object;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
 }
@@ -339,7 +339,7 @@ HWTEST_F(SDKApiTest, CurrentDataForCounterWithDefaultTableName, TestSize.Level1)
     ret = SDKAppendCounter(1, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from counter_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -361,7 +361,7 @@ HWTEST_F(SDKApiTest, CurrentDataForCounterWithManuallyTableName, TestSize.Level1
     ret = SDKAppendCounter(1, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from first_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -382,7 +382,7 @@ HWTEST_F(SDKApiTest, WrongDataForCounterWithDefaultTableName, TestSize.Level1)
     ret = SDKAppendCounter(INVALID_INT32, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from counter_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -404,7 +404,7 @@ HWTEST_F(SDKApiTest, WrongDataForCounterWithManuallyTableName, TestSize.Level1)
     ret = SDKAppendCounter(INVALID_INT32, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from first_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -425,7 +425,7 @@ HWTEST_F(SDKApiTest, CounterWithWrongData, TestSize.Level1)
     ret = SDKAppendCounter(INVALID_INT32, INVALID_UINT64, INVALID_INT32);
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from counter_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -446,7 +446,7 @@ HWTEST_F(SDKApiTest, CurrentDataForSliceObjectWithDefaultTableName, TestSize.Lev
     ret = SDKAppendSliceObject(1, "slice_1");
     EXPECT_EQ(0, ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -468,7 +468,7 @@ HWTEST_F(SDKApiTest, CurrentDataForSliceObjectWithManuallyTableName, TestSize.Le
     ret = SDKAppendSliceObject(1, "slice_1");
     EXPECT_EQ(0, ret);
     std::string sqlQuerySliceObj("select * from fourth_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -489,7 +489,7 @@ HWTEST_F(SDKApiTest, WrongDataForSliceObjectWithDefaultTableName, TestSize.Level
     ret = SDKAppendSliceObject(1, "slice_1");
     EXPECT_EQ(0, ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -511,7 +511,7 @@ HWTEST_F(SDKApiTest, WrongDataForSliceObjectWithManuallyTableName, TestSize.Leve
     ret = SDKAppendSliceObject(INVALID_INT32, "slice_1");
     EXPECT_EQ(0, ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
 }
@@ -533,7 +533,7 @@ HWTEST_F(SDKApiTest, WrongDataForSliceObject, TestSize.Level1)
     ret = SDKAppendSliceObject(INVALID_INT32, " ");
     EXPECT_EQ(0, ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), string::npos);
     EXPECT_FALSE(ret);
 }
@@ -554,7 +554,7 @@ HWTEST_F(SDKApiTest, CurrentDataForSliceWithDefaultTableName, TestSize.Level1)
     ret = SDKAppendSlice(1, 100, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQuerySlice("select * from Slice_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -576,7 +576,7 @@ HWTEST_F(SDKApiTest, CurrentDataForSliceWithManuallyTableName, TestSize.Level1)
     ret = SDKAppendSlice(1, 100, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQuerySlice("select * from third_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -597,7 +597,7 @@ HWTEST_F(SDKApiTest, WrongDataForSliceWithDefaultTableName, TestSize.Level1)
     ret = SDKAppendSlice(INVALID_INT32, 100, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQuerySlice("select * from Slice_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -619,7 +619,7 @@ HWTEST_F(SDKApiTest, WrongDataForSliceWithManuallyTableName, TestSize.Level1)
     ret = SDKAppendSlice(INVALID_INT32, 100, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQuerySlice("select * from third_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }
@@ -640,7 +640,7 @@ HWTEST_F(SDKApiTest, SliceWithWrongData, TestSize.Level1)
     ret = SDKAppendSlice(INVALID_INT32, INVALID_UINT64, INVALID_UINT64, INVALID_INT32);
     EXPECT_EQ(0, ret);
     std::string sqlQuerySlice("select * from slice_table;");
-    ret = rpcServer->SqlQuery((const uint8_t*)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
+    ret = rpcServer->SqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
     EXPECT_EQ(g_resultTest.find("ok"), 0);
     EXPECT_TRUE(ret);
 }

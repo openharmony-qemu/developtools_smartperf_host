@@ -18,6 +18,7 @@ import {
   drawLoadingFrame,
   isFrameContainPoint,
   ns2x,
+  Rect,
   Render,
   RequestMessage,
 } from './ProcedureWorkerCommon';
@@ -48,10 +49,18 @@ export class EnergySystemRender extends Render {
   }
 }
 
-function drawProcedureWorkerEnergy(req: any, systemFilter: Array<any>, row: TraceRow<EnergySystemStruct>): void {
+function drawProcedureWorkerEnergy(
+  req: {
+    useCache: boolean;
+    context: CanvasRenderingContext2D;
+    type: string;
+  },
+  systemFilter: Array<EnergySystemStruct>,
+  row: TraceRow<EnergySystemStruct>
+): void {
   req.context.beginPath();
   let find = false;
-  let energySystemData: any = {};
+  let energySystemData: unknown = {};
   for (let i = 0; i < systemFilter.length; i++) {
     let energySysStruct = systemFilter[i];
     EnergySystemStruct.draw(req.context, energySysStruct);
@@ -59,22 +68,28 @@ function drawProcedureWorkerEnergy(req: any, systemFilter: Array<any>, row: Trac
       EnergySystemStruct.hoverEnergySystemStruct = energySysStruct;
       if (energySysStruct.type === 0) {
         if (energySysStruct.count !== undefined) {
+          // @ts-ignore
           energySystemData.workScheduler = energySysStruct.count;
         } else {
+          // @ts-ignore
           energySystemData.workScheduler = '0';
         }
       }
       if (energySysStruct.type === 1) {
         if (energySysStruct.count !== undefined) {
+          // @ts-ignore
           energySystemData.power = energySysStruct.count + '';
         } else {
+          // @ts-ignore
           energySystemData.power = '0';
         }
       }
       if (energySysStruct.type === 2) {
         if (energySysStruct.count !== undefined) {
+          // @ts-ignore
           energySystemData.location = energySysStruct.count + '';
         } else {
+          // @ts-ignore
           energySystemData.location = '0';
         }
       }
@@ -86,10 +101,13 @@ function drawProcedureWorkerEnergy(req: any, systemFilter: Array<any>, row: Trac
   }
   if (EnergySystemStruct.hoverEnergySystemStruct) {
     EnergySystemStruct.hoverEnergySystemStruct!.workScheduler =
+      // @ts-ignore
       energySystemData.workScheduler === undefined ? '0' : energySystemData.workScheduler;
     EnergySystemStruct.hoverEnergySystemStruct!.power =
+      // @ts-ignore
       energySystemData.power === undefined ? '0' : energySystemData.power;
     EnergySystemStruct.hoverEnergySystemStruct!.location =
+      // @ts-ignore
       energySystemData.location === undefined ? '0' : energySystemData.location;
   }
   let spApplication = document.getElementsByTagName('sp-application')[0];
@@ -98,7 +116,14 @@ function drawProcedureWorkerEnergy(req: any, systemFilter: Array<any>, row: Trac
   req.context.closePath();
 }
 
-export function drawLegend(req: RequestMessage | any, isDark?: boolean): void {
+export function drawLegend(
+  req: {
+    useCache: boolean;
+    context: CanvasRenderingContext2D;
+    type: string;
+  },
+  isDark?: boolean
+): void {
   let textList = ['WORKSCHEDULER', 'POWER_RUNNINGLOCK', 'LOCATION'];
   for (let index = 0; index < textList.length; index++) {
     let text = req.context.measureText(textList[index]);
@@ -124,7 +149,13 @@ export function drawLegend(req: RequestMessage | any, isDark?: boolean): void {
   req.context.fillStyle = '#333';
 }
 
-export function systemData(data: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any): void {
+export function systemData(
+  data: Array<EnergySystemStruct>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: Rect
+): void {
   for (let index = 0; index < data.length; index++) {
     let systemItem = data[index];
     if (index === data.length - 1) {
@@ -145,18 +176,18 @@ export function systemData(data: Array<any>, startNS: number, endNS: number, tot
 }
 
 export function system(
-  systemList: Array<any>,
-  res: Array<any>,
+  systemList: Array<EnergySystemStruct>,
+  res: Array<EnergySystemStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
 ): void {
   if (use && res.length > 0) {
-    let lockData: any = [];
-    let locationData: any = [];
-    let workData: any = [];
+    let lockData: EnergySystemStruct[] = [];
+    let locationData: EnergySystemStruct[] = [];
+    let workData: EnergySystemStruct[] = [];
     res.forEach((item) => {
       if (item.dataType === 1) {
         lockData.push(item);
@@ -181,22 +212,26 @@ export function system(
   setEnergySystemFilter(systemList, res, startNS, endNS, totalNS, frame);
 }
 function setEnergySystemFilter(
-  systemList: Array<any>,
-  res: Array<any>,
+  systemList: Array<unknown>,
+  res: Array<unknown>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any
+  frame: Rect
 ): void {
   if (systemList) {
     for (let i = 0; i < 3; i++) {
       let arr = systemList[i];
       if (arr) {
+        //@ts-ignore
         for (let index = 0; index < arr.length; index++) {
+          //@ts-ignore
           let item = arr[index];
+          //@ts-ignore
           if (index === arr.length - 1) {
             item.dur = endNS - (item.startNs || 0);
           } else {
+            //@ts-ignore
             item.dur = (arr[index + 1].startNs || 0) - (item.startNs || 0);
           }
           if (item.count === 0) {
@@ -246,12 +281,12 @@ export class EnergySystemStruct extends BaseStruct {
   }
 
   static setSystemFrame(
-    systemNode: any,
+    systemNode: EnergySystemStruct,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
     let systemStartPointX: number;
     let systemEndPointX: number;
@@ -267,7 +302,7 @@ export class EnergySystemStruct extends BaseStruct {
     }
     let frameWidth: number = systemEndPointX - systemStartPointX <= 1 ? 1 : systemEndPointX - systemStartPointX;
     if (!systemNode.frame) {
-      systemNode.frame = {};
+      systemNode.frame = new Rect(0, 0, 0, 0);
     }
     systemNode.frame.x = Math.floor(systemStartPointX);
     if (systemNode.type === 0) {

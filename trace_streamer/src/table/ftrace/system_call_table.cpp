@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { SYSCALL_NUM = 0, TYPE, IPID, TS, RET };
-SystemCallTable::SystemCallTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+SystemCallTable::SystemCallTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("syscall_num", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
@@ -35,7 +35,7 @@ std::unique_ptr<TableBase::Cursor> SystemCallTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-SystemCallTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+SystemCallTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSysCallData().Size())),
       sysCallObj_(dataCache->GetConstSysCallData())
 {

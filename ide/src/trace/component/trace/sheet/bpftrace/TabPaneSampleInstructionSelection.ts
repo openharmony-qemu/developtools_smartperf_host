@@ -364,7 +364,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
           ctx.strokeStyle = '#fff';
         } else {
           ctx.strokeStyle = '#000';
-        }
+      }
       } else {
         if (spApplication.dark) {
           ctx.strokeStyle = '#000';

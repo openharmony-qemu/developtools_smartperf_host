@@ -18,7 +18,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-FrameFilter::FrameFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter)
+FrameFilter::FrameFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter) : FilterBase(dataCache, filter)
 {
 }
 FrameFilter::~FrameFilter() = default;
@@ -89,7 +89,7 @@ bool FrameFilter::BeginRSTransactionData(uint64_t ts, uint32_t itid, uint32_t fr
 // for RS
 bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
                                          uint32_t itid,
-                                         const std::vector<FrameMap>& frames,
+                                         const std::vector<FrameMap> &frames,
                                          uint32_t sliceIndex)
 {
     auto frame = vsyncRenderSlice_.find(itid);
@@ -99,7 +99,7 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
     TS_CHECK_TRUE_RET(!lastFrameSlice->vsyncEnd_, false);
     std::vector<uint64_t> fromSlices = {};
     std::vector<uint64_t> fromExpectedSlices = {};
-    for (auto& it : frames) {
+    for (auto &it : frames) {
         auto sourceFrameMap = dstRenderSlice_.find(it.sourceItid);
         if (sourceFrameMap == dstRenderSlice_.end()) {
             continue;
@@ -112,7 +112,7 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
         fromExpectedSlices.push_back(srcFrame->second->frameExpectedSliceRow_);
         srcFrame->second->dstFrameSliceId_ = lastFrameSlice->frameSliceRow_;
         srcFrame->second->dstExpectedFrameSliceId_ = lastFrameSlice->frameExpectedSliceRow_;
-        TraceStdtype::FrameSlice* frameSlice = traceDataCache_->GetFrameSliceData();
+        TraceStdtype::FrameSlice *frameSlice = traceDataCache_->GetFrameSliceData();
         (void)traceDataCache_->GetFrameMapsData()->AppendNew(frameSlice, srcFrame->second->frameSliceRow_,
                                                              srcFrame->second->dstFrameSliceId_);
         (void)traceDataCache_->GetFrameMapsData()->AppendNew(frameSlice, srcFrame->second->frameExpectedSliceRow_,
@@ -196,7 +196,7 @@ bool FrameFilter::EndFrameQueue(uint64_t ts, uint32_t itid)
         return false;
     }
     auto firstFrameSlicePos = frame->second.begin();
-    TraceStdtype::FrameSlice* frameSlice = traceDataCache_->GetFrameSliceData();
+    TraceStdtype::FrameSlice *frameSlice = traceDataCache_->GetFrameSliceData();
     (void)traceDataCache_->GetGPUSliceData()->AppendNew(frameSlice->diskTableSize_ +
                                                             (*firstFrameSlicePos)->frameSliceRow_,
                                                         ts - firstFrameSlicePos->get()->frameQueueStartTs_);
@@ -211,9 +211,9 @@ bool FrameFilter::EndFrameQueue(uint64_t ts, uint32_t itid)
     }
     return true;
 }
-void FrameFilter::SetMinFrameSliceRow(uint64_t& minFrameSliceRowToBeUpdated)
+void FrameFilter::SetMinFrameSliceRow(uint64_t &minFrameSliceRowToBeUpdated)
 {
-    for (const auto& [_, frameSlices] : vsyncRenderSlice_) {
+    for (const auto &[_, frameSlices] : vsyncRenderSlice_) {
         for (size_t idx = 0; idx < frameSlices.size(); idx++) {
             if (minFrameSliceRowToBeUpdated > frameSlices[idx]->frameSliceRow_) {
                 minFrameSliceRowToBeUpdated = frameSlices[idx]->frameSliceRow_;
@@ -223,8 +223,8 @@ void FrameFilter::SetMinFrameSliceRow(uint64_t& minFrameSliceRowToBeUpdated)
             }
         }
     }
-    for (const auto& pair : dstRenderSlice_) {
-        for (const auto& [_, frameSlice] : pair.second) {
+    for (const auto &pair : dstRenderSlice_) {
+        for (const auto &[_, frameSlice] : pair.second) {
             if (minFrameSliceRowToBeUpdated > frameSlice->frameSliceRow_) {
                 minFrameSliceRowToBeUpdated = frameSlice->frameSliceRow_;
             }
@@ -246,14 +246,14 @@ bool FrameFilter::UpdateFrameSliceReadySize()
     frameSlice->UpdateReadySize(minFrameSliceRowToBeUpdated);
     TS_LOGI("minFrameSliceRowToBeUpdated=%" PRIu64 ", size=%zu, ready.size=%zu\n", minFrameSliceRowToBeUpdated,
             frameSlice->Size(), frameSlice->readySize_);
-    for (auto& [_, frameSlices] : vsyncRenderSlice_) {
+    for (auto &[_, frameSlices] : vsyncRenderSlice_) {
         for (size_t idx = 0; idx < frameSlices.size(); idx++) {
             frameSlices[idx]->frameSliceRow_ -= minFrameSliceRowToBeUpdated;
             frameSlices[idx]->frameExpectedSliceRow_ -= minFrameSliceRowToBeUpdated;
         }
     }
-    for (const auto& pair : dstRenderSlice_) {
-        for (const auto& [_, frameSlice] : pair.second) {
+    for (const auto &pair : dstRenderSlice_) {
+        for (const auto &[_, frameSlice] : pair.second) {
             frameSlice->frameSliceRow_ -= minFrameSliceRowToBeUpdated;
             frameSlice->frameExpectedSliceRow_ -= minFrameSliceRowToBeUpdated;
         }

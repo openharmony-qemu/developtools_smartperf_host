@@ -50,18 +50,19 @@ export class Top20ProcessThreadCount extends BaseElement {
       }
     });
 
-    this.processThreadCountTbl!.addEventListener('column-click', (evt): void  => {
+    this.processThreadCountTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.processThreadCountTbl!.addEventListener('row-hover', (evt: unknown): void  => {
+    this.processThreadCountTbl!.addEventListener('row-hover', (evt: unknown): void => {
       //@ts-ignore
       if (evt.detail.data) {
         //@ts-ignore
         let data = evt.detail.data;
         data.isHover = true;
         //@ts-ignore
-        if ((evt.detail as unknown).callBack) {//@ts-ignore
+        if ((evt.detail as unknown).callBack) {
+          //@ts-ignore
           (evt.detail as unknown).callBack(true);
         }
       }
@@ -69,7 +70,7 @@ export class Top20ProcessThreadCount extends BaseElement {
     });
   }
 
-  init(): void  {
+  init(): void {
     if (!this.traceChange) {
       if (this.processThreadCountTbl!.recycleDataSource.length > 0) {
         this.processThreadCountTbl?.reMeauseHeight();
@@ -78,79 +79,93 @@ export class Top20ProcessThreadCount extends BaseElement {
     }
     this.traceChange = false;
     this.processThreadCountProgress!.loading = true;
-    this.queryLogicWorker('scheduling-Process ThreadCount', 'query Process Thread Count Analysis Time:', (res): void  => {
-      //@ts-ignore
-      this.nodata!.noData = res === undefined || res.length === 0;
-      //@ts-ignore
-      this.processThreadCountTbl!.recycleDataSource = res;
-      this.processThreadCountTbl!.reMeauseHeight();
-      //@ts-ignore
-      this.processThreadCountData = res;
-      this.processThreadCountPie!.config = {
-        appendPadding: 10,
+    this.queryLogicWorker(
+      'scheduling-Process ThreadCount',
+      'query Process Thread Count Analysis Time:',
+      (res): void => {
         //@ts-ignore
-        data: res,
-        angleField: 'threadNumber',
-        colorField: 'pid',
-        radius: 0.8,
-        label: {
-          type: 'outer',
-        },
-        hoverHandler: (data): void  => {
-          if (data) {
-            this.processThreadCountTbl!.setCurrentHover(data);
-          } else {
-            this.processThreadCountTbl!.mouseOut();
-          }
-        },
-        tip: (obj): string => {
-          return `<div>
-                             <div>pid:${// @ts-ignore
-                              obj.obj.pid}</div> 
-                             <div>p_name:${// @ts-ignore
-                              obj.obj.pName}</div> 
-                             <div>thread count:${// @ts-ignore
-                              obj.obj.threadNumber}</div> 
+        this.nodata!.noData = res === undefined || res.length === 0;
+        //@ts-ignore
+        this.processThreadCountTbl!.recycleDataSource = res;
+        this.processThreadCountTbl!.reMeauseHeight();
+        //@ts-ignore
+        this.processThreadCountData = res;
+        this.processThreadCountPie!.config = {
+          appendPadding: 10,
+          //@ts-ignore
+          data: res,
+          angleField: 'threadNumber',
+          colorField: 'pid',
+          radius: 0.8,
+          label: {
+            type: 'outer',
+          },
+          hoverHandler: (data): void => {
+            if (data) {
+              this.processThreadCountTbl!.setCurrentHover(data);
+            } else {
+              this.processThreadCountTbl!.mouseOut();
+            }
+          },
+          tip: (obj): string => {
+            return `<div>
+                             <div>pid:${
+                               // @ts-ignore
+                               obj.obj.pid
+                             }</div> 
+                             <div>p_name:${
+                               // @ts-ignore
+                               obj.obj.pName
+                             }</div> 
+                             <div>thread count:${
+                               // @ts-ignore
+                               obj.obj.threadNumber
+                             }</div> 
                         </div>
                 `;
-        },
-        interactions: [
-          {
-            type: 'element-active',
           },
-        ],
-      };
-      this.processThreadCountProgress!.loading = false;
-    });
+          interactions: [
+            {
+              type: 'element-active',
+            },
+          ],
+        };
+        this.processThreadCountProgress!.loading = false;
+      }
+    );
   }
 
-  clearData(): void  {
+  clearData(): void {
     this.traceChange = true;
     this.processThreadCountPie!.dataSource = [];
     this.processThreadCountTbl!.recycleDataSource = [];
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: unknown) => void): void  {
+  queryLogicWorker(option: string, log: string, handler: (res: unknown) => void): void {
     let processThreadCountTime = new Date().getTime();
     procedurePool.submitWithName('logic0', option, {}, undefined, handler);
     let durTime = new Date().getTime() - processThreadCountTime;
     info(log, durTime);
   }
 
-  sortByColumn(detail: unknown): void  {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
-    function compare(processThreadCountProperty, sort, type) {
+    function compare(property, sort, type) {
       return function (a: unknown, b: unknown) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[processThreadCountProperty]) - parseFloat(a[processThreadCountProperty]) :
-          //@ts-ignore
-            parseFloat(a[processThreadCountProperty]) - parseFloat(b[processThreadCountProperty]);
+          return sort === 2
+            ? //@ts-ignore
+              parseFloat(b[property]) - parseFloat(a[property])
+            : //@ts-ignore
+              parseFloat(a[property]) - parseFloat(b[property]);
         } else {
-          if (sort === 2) {//@ts-ignore
-            return b[processThreadCountProperty].toString().localeCompare(a[processThreadCountProperty].toString());
-          } else {//@ts-ignore
-            return a[processThreadCountProperty].toString().localeCompare(b[processThreadCountProperty].toString());
+          if (sort === 2) {
+            //@ts-ignore
+            return b[property].toString().localeCompare(a[property].toString());
+          } else {
+            //@ts-ignore
+            return a[property].toString().localeCompare(b[property].toString());
           }
         }
       };

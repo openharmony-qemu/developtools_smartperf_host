@@ -30,10 +30,11 @@ export class TabPanePTS extends BaseElement {
   set data(ptsValue: SelectionParam | unknown) {
     if (ptsValue === this.selectionParam) {
       return;
-    }// @ts-ignore
+    } // @ts-ignore
     this.selectionParam = ptsValue;
-    this.ptsRange!.textContent =// @ts-ignore
-      `Selected range: ${parseFloat(((ptsValue.rightNs - ptsValue.leftNs) / 1000000.0).toFixed(5))} ms`;// @ts-ignore
+    this.ptsRange!.textContent =
+      // @ts-ignore
+      `Selected range: ${parseFloat(((ptsValue.rightNs - ptsValue.leftNs) / 1000000.0).toFixed(5))} ms`; // @ts-ignore
     this.getDataByPTS(ptsValue.leftNs, ptsValue.rightNs, ptsValue.cpus);
   }
 

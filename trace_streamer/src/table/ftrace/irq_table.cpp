@@ -34,7 +34,7 @@ enum class Index : int32_t {
     FLAG,
     ARGS
 };
-IrqTable::IrqTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+IrqTable::IrqTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.emplace_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -58,14 +58,14 @@ IrqTable::IrqTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 
 IrqTable::~IrqTable() {}
 
-void IrqTable::FilterByConstraint(FilterConstraints& irqfc,
-                                  double& irqfilterCost,
+void IrqTable::FilterByConstraint(FilterConstraints &irqfc,
+                                  double &irqfilterCost,
                                   size_t irqrowCount,
                                   uint32_t irqcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& irqc = irqfc.GetConstraints()[irqcurrenti];
+    const auto &irqc = irqfc.GetConstraints()[irqcurrenti];
     switch (static_cast<Index>(irqc.col)) {
         case Index::ID: {
             if (CanFilterId(irqc.op, irqrowCount)) {
@@ -87,7 +87,7 @@ std::unique_ptr<TableBase::Cursor> IrqTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-IrqTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+IrqTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstIrqData().Size())),
       slicesObj_(dataCache->GetConstIrqData())
 {
@@ -95,7 +95,7 @@ IrqTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 IrqTable::Cursor::~Cursor() {}
 
-int32_t IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t IrqTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -104,9 +104,9 @@ int32_t IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         return SQLITE_OK;
     }
 
-    auto& irqCs = fc.GetConstraints();
+    auto &irqCs = fc.GetConstraints();
     for (size_t i = 0; i < irqCs.size(); i++) {
-        const auto& c = irqCs[i];
+        const auto &c = irqCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -197,7 +197,7 @@ void IrqTable::Cursor::HandleTypeColumns(int32_t column) const
             break;
     }
 }
-void IrqTable::GetOrbyes(FilterConstraints& irqfc, EstimatedIndexInfo& irqei)
+void IrqTable::GetOrbyes(FilterConstraints &irqfc, EstimatedIndexInfo &irqei)
 {
     auto irqorderbys = irqfc.GetOrderBys();
     for (auto i = 0; i < irqorderbys.size(); i++) {

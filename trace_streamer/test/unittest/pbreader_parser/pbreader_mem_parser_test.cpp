@@ -55,10 +55,10 @@ public:
         }
     }
 
-    std::string SetProcessesinfo(MemoryData& tracePacket, uint32_t pid, std::string name)
+    std::string SetProcessesinfo(MemoryData &tracePacket, uint32_t pid, std::string name)
     {
         std::string memStrMsg = "";
-        ProcessMemoryInfo* memoryInfo = tracePacket.add_processesinfo();
+        ProcessMemoryInfo *memoryInfo = tracePacket.add_processesinfo();
         if (memoryInfo == nullptr || (name == "Process1" && tracePacket.processesinfo_size() != 1) ||
             (name == "Process2" && tracePacket.processesinfo_size() != 2)) {
             return memStrMsg;
@@ -89,17 +89,17 @@ public:
 HWTEST_F(HtraceMemParserTest, ParseMemParse, TestSize.Level1)
 {
     TS_LOGI("test16-1");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    ProcessMemoryInfo* memoryInfo = tracePacket.add_processesinfo();
+    ProcessMemoryInfo *memoryInfo = tracePacket.add_processesinfo();
     EXPECT_TRUE(memoryInfo != nullptr);
     int32_t size = tracePacket.processesinfo_size();
     EXPECT_TRUE(size == 1);
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg_.protoData = memBytesView;
 
     memParser->Parse(dataSeg_, dataSeg_.timeStamp, dataSeg_.clockId);
@@ -122,13 +122,13 @@ HWTEST_F(HtraceMemParserTest, ParseMemParse, TestSize.Level1)
 HWTEST_F(HtraceMemParserTest, ParseMemParseTestMeasureDataSize, TestSize.Level1)
 {
     TS_LOGI("test16-2");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
     const uint32_t pid = 12;
     std::string memStrMsg = SetProcessesinfo(tracePacket, pid, "Process1");
     EXPECT_TRUE(memStrMsg != "");
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg_.protoData = memBytesView;
 
     memParser->Parse(dataSeg_, dataSeg_.timeStamp, dataSeg_.clockId);
@@ -168,14 +168,14 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMeasureDataSize, TestSize.Level1)
 HWTEST_F(HtraceMemParserTest, ParseMemParseTestMutiMeasureData, TestSize.Level1)
 {
     TS_LOGI("test16-3");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
     const uint32_t pid = 12;
     const uint32_t pid2 = 13;
     std::string memStrMsg = SetProcessesinfo(tracePacket, pid, "Process1");
     memStrMsg = SetProcessesinfo(tracePacket, pid2, "Process2");
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg_.protoData = memBytesView;
 
     memParser->Parse(dataSeg_, dataSeg_.timeStamp, dataSeg_.clockId);
@@ -201,22 +201,22 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMutiMeasureData, TestSize.Level1)
 HWTEST_F(HtraceMemParserTest, ParseMultiEmptyProcessMemoryInfo, TestSize.Level1)
 {
     TS_LOGI("test16-4");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    ProcessMemoryInfo* memoryInfo = tracePacket.add_processesinfo();
+    ProcessMemoryInfo *memoryInfo = tracePacket.add_processesinfo();
     EXPECT_TRUE(memoryInfo != nullptr);
     int32_t size = tracePacket.processesinfo_size();
     EXPECT_TRUE(size == 1);
 
-    ProcessMemoryInfo* memoryInfo2 = tracePacket.add_processesinfo();
+    ProcessMemoryInfo *memoryInfo2 = tracePacket.add_processesinfo();
     EXPECT_TRUE(memoryInfo2 != nullptr);
     size = tracePacket.processesinfo_size();
     EXPECT_TRUE(size == 2);
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg_.protoData = memBytesView;
 
     memParser->Parse(dataSeg_, dataSeg_.timeStamp, dataSeg_.clockId);
@@ -241,7 +241,7 @@ HWTEST_F(HtraceMemParserTest, ParseMultiEmptyProcessMemoryInfo, TestSize.Level1)
 HWTEST_F(HtraceMemParserTest, ParseEmptyMemoryData, TestSize.Level1)
 {
     TS_LOGI("test16-5");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
     int32_t size = tracePacket.processesinfo_size();
@@ -251,7 +251,7 @@ HWTEST_F(HtraceMemParserTest, ParseEmptyMemoryData, TestSize.Level1)
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg_.protoData = memBytesView;
 
     memParser->Parse(dataSeg_, dataSeg_.timeStamp, dataSeg_.clockId);
@@ -270,10 +270,10 @@ HWTEST_F(HtraceMemParserTest, ParseEmptyMemoryData, TestSize.Level1)
 HWTEST_F(HtraceMemParserTest, ParseAshmemInfo, TestSize.Level1)
 {
     TS_LOGI("test16-6");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    AshmemInfo* ashmemInfo = tracePacket.add_ashmeminfo();
+    AshmemInfo *ashmemInfo = tracePacket.add_ashmeminfo();
     EXPECT_TRUE(ashmemInfo != nullptr);
     int32_t size = tracePacket.ashmeminfo_size();
     EXPECT_TRUE(size == 1);
@@ -297,7 +297,7 @@ HWTEST_F(HtraceMemParserTest, ParseAshmemInfo, TestSize.Level1)
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg_.protoData = memBytesView;
 
     memParser->Parse(dataSeg_, dataSeg_.timeStamp, dataSeg_.clockId);
@@ -320,10 +320,10 @@ HWTEST_F(HtraceMemParserTest, ParseAshmemInfo, TestSize.Level1)
 HWTEST_F(HtraceMemParserTest, ParseDmaMemInfo, TestSize.Level1)
 {
     TS_LOGI("test16-7");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    DmaInfo* dmaInfo = tracePacket.add_dmainfo();
+    DmaInfo *dmaInfo = tracePacket.add_dmainfo();
     EXPECT_TRUE(dmaInfo != nullptr);
     int32_t size = tracePacket.dmainfo_size();
     EXPECT_TRUE(size == 1);
@@ -341,7 +341,7 @@ HWTEST_F(HtraceMemParserTest, ParseDmaMemInfo, TestSize.Level1)
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg_.protoData = memBytesView;
 
     memParser->Parse(dataSeg_, dataSeg_.timeStamp, dataSeg_.clockId);
@@ -364,17 +364,17 @@ HWTEST_F(HtraceMemParserTest, ParseDmaMemInfo, TestSize.Level1)
 HWTEST_F(HtraceMemParserTest, ParseGpuProcessMemInfo, TestSize.Level1)
 {
     TS_LOGI("test16-8");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    GpuMemoryInfo* gpuMemoryInfo = tracePacket.add_gpumemoryinfo();
+    GpuMemoryInfo *gpuMemoryInfo = tracePacket.add_gpumemoryinfo();
 
     int32_t allGpuSize = 0;
     gpuMemoryInfo->set_all_gpu_size(allGpuSize);
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg_.protoData = memBytesView;
 
     memParser->Parse(dataSeg_, dataSeg_.timeStamp, dataSeg_.clockId);
@@ -395,14 +395,14 @@ HWTEST_F(HtraceMemParserTest, ParseGpuProcessMemInfo, TestSize.Level1)
 HWTEST_F(HtraceMemParserTest, ParseGpuWindowMemInfo, TestSize.Level1)
 {
     TS_LOGI("test16-9");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    GpuDumpInfo* gpuDumpInfo = tracePacket.add_gpudumpinfo();
+    GpuDumpInfo *gpuDumpInfo = tracePacket.add_gpudumpinfo();
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg_.protoData = memBytesView;
 
     memParser->Parse(dataSeg_, dataSeg_.timeStamp, dataSeg_.clockId);
@@ -424,13 +424,17 @@ HWTEST_F(HtraceMemParserTest, AshMemDeduplicateTest, TestSize.Level1)
 {
     TS_LOGI("test16-10");
 
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    uint32_t adj = 6;
-    uint32_t fd = 6;
-    DataIndex ashmemNameId = stream_.traceDataCache_->GetDataIndex("xxx");
-    uint64_t size = 222;
-    uint64_t refCount = 3;
-    uint64_t purged = 1;
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    AshMemRow row;
+
+    row.adj = 6;
+    row.fd = 6;
+    row.ashmemNameId = stream_.traceDataCache_->GetDataIndex("xxx");
+    row.size = 222;
+    row.refCount = 3;
+    row.purged = 1;
+    row.pss = 0;
+    row.flag = 0;
 
     struct DeduplicateVar {
         uint64_t timeStamp;
@@ -447,10 +451,12 @@ HWTEST_F(HtraceMemParserTest, AshMemDeduplicateTest, TestSize.Level1)
         {1616439855302, 1, "aaa", 1, 1}, {1616439855302, 1, "aaa", 1, 1}, {1616439855302, 2, "bbb", 2, 2},
         {1616439855302, 3, "ccc", 2, 2},
     };
-    for (auto& m : stubVars) {
-        auto ipid = stream_.streamFilters_->processFilter_->UpdateOrCreateProcessWithName(m.pid, m.pidName);
-        stream_.traceDataCache_->GetAshMemData()->AppendNewData(ipid, m.timeStamp, adj, fd, ashmemNameId, size, 0,
-                                                                m.ashmemId, m.time, refCount, purged, 0);
+    for (auto &m : stubVars) {
+        row.ts = m.timeStamp;
+        row.ashmemId = m.ashmemId;
+        row.ipid = stream_.streamFilters_->processFilter_->UpdateOrCreateProcessWithName(m.pid, m.pidName);
+        row.time = m.time;
+        stream_.traceDataCache_->GetAshMemData()->AppendNewData(row);
     }
 
     memParser->AshMemDeduplicate();
@@ -478,8 +484,7 @@ HWTEST_F(HtraceMemParserTest, AshMemDeduplicateTest, TestSize.Level1)
 HWTEST_F(HtraceMemParserTest, DmaMemDeduplicateTest, TestSize.Level1)
 {
     TS_LOGI("test16-11");
-
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     uint32_t fd = 6;
     uint64_t size = 222;
     uint64_t expPid = 5;
@@ -507,14 +512,21 @@ HWTEST_F(HtraceMemParserTest, DmaMemDeduplicateTest, TestSize.Level1)
         {1616439855302, 3, "composer_host", 2},
         {1616439855302, 3, "composer_host", 2},
     };
-    for (auto& m : stubVars) {
-        auto ipid = stream_.streamFilters_->processFilter_->UpdateOrCreateProcessWithName(m.pid, m.pidName);
-        stream_.traceDataCache_->GetDmaMemData()->AppendNewData(ipid, m.timeStamp, fd, size, m.ino, expPid,
-                                                                expTaskCommId, bufNameId, expNameId, 0);
+    DmaMemRow row;
+    for (auto &m : stubVars) {
+        row.ipid = stream_.streamFilters_->processFilter_->UpdateOrCreateProcessWithName(m.pid, m.pidName);
+        row.ts = m.timeStamp;
+        row.fd = fd;
+        row.size = size;
+        row.ino = m.ino;
+        row.expPid = expPid;
+        row.expTaskCommId = expTaskCommId;
+        row.bufNameId = bufNameId;
+        row.expNameId = expNameId;
+        row.flag = 0;
+        stream_.traceDataCache_->GetDmaMemData()->AppendNewData(row);
     }
-
     memParser->DmaMemDeduplicate();
-
     auto DmaData = stream_.traceDataCache_->GetConstDmaMemData();
     EXPECT_EQ(DmaData.Flags()[0], 2);
     EXPECT_EQ(DmaData.Flags()[1], 1);

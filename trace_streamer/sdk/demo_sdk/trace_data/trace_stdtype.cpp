@@ -26,15 +26,15 @@ void GpuCounter::AppendNewData(uint64_t ts, int32_t counterId, int32_t value)
     value_.emplace_back(value);
     demoIds_.push_back(counterId_.size() - 1);
 }
-const std::deque<uint64_t>& GpuCounter::TimeStamp() const
+const std::deque<uint64_t> &GpuCounter::TimeStamp() const
 {
     return ts_;
 }
-const std::deque<int32_t>& GpuCounter::CounterId() const
+const std::deque<int32_t> &GpuCounter::CounterId() const
 {
     return counterId_;
 }
-const std::deque<int32_t>& GpuCounter::Value() const
+const std::deque<int32_t> &GpuCounter::Value() const
 {
     return value_;
 }
@@ -45,11 +45,11 @@ void GpuCounterObject::AppendNewData(int32_t counterId, const std::string counte
     counterName_.emplace_back(counterName);
     demoIds_.push_back(counterId_.size() - 1);
 }
-const std::deque<int32_t>& GpuCounterObject::CounterId() const
+const std::deque<int32_t> &GpuCounterObject::CounterId() const
 {
     return counterId_;
 }
-const std::deque<std::string>& GpuCounterObject::CounterName() const
+const std::deque<std::string> &GpuCounterObject::CounterName() const
 {
     return counterName_;
 }
@@ -59,11 +59,11 @@ void SliceObject::AppendNewData(int32_t sliceId, std::string sliceName)
     sliceName_.emplace_back(sliceName);
     demoIds_.push_back(sliceId_.size() - 1);
 }
-const std::deque<int32_t>& SliceObject::SliceId() const
+const std::deque<int32_t> &SliceObject::SliceId() const
 {
     return sliceId_;
 }
-const std::deque<std::string>& SliceObject::SliceName() const
+const std::deque<std::string> &SliceObject::SliceName() const
 {
     return sliceName_;
 }
@@ -75,19 +75,19 @@ void SliceData::AppendNewData(int32_t sliceId, uint64_t startTs, uint64_t endTs,
     value_.emplace_back(value);
     demoIds_.push_back(sliceId_.size() - 1);
 }
-const std::deque<int32_t>& SliceData::SliceId() const
+const std::deque<int32_t> &SliceData::SliceId() const
 {
     return sliceId_;
 }
-const std::deque<uint64_t>& SliceData::TimeStamp() const
+const std::deque<uint64_t> &SliceData::TimeStamp() const
 {
     return startTs_;
 }
-const std::deque<uint64_t>& SliceData::EndTs() const
+const std::deque<uint64_t> &SliceData::EndTs() const
 {
     return endTs_;
 }
-const std::deque<int32_t>& SliceData::Value() const
+const std::deque<int32_t> &SliceData::Value() const
 {
     return value_;
 }
@@ -98,19 +98,19 @@ void MetaData::InitMetaData()
     columnNames_[METADATA_ITEM_PARSERTOOL_VERSION] = METADATA_ITEM_PARSERTOOL_VERSION_COLNAME;
     columnNames_[METADATA_ITEM_PARSERTOOL_PUBLISH_DATETIME] = METADATA_ITEM_PARSERTOOL_PUBLISH_DATETIME_COLNAME;
 }
-void MetaData::SetParserToolVersion(const std::string& version)
+void MetaData::SetParserToolVersion(const std::string &version)
 {
     values_[METADATA_ITEM_PARSERTOOL_VERSION] = version;
 }
-void MetaData::SetParserToolPublishDateTime(const std::string& datetime)
+void MetaData::SetParserToolPublishDateTime(const std::string &datetime)
 {
     values_[METADATA_ITEM_PARSERTOOL_PUBLISH_DATETIME] = datetime;
 }
-const std::string& MetaData::Value(uint64_t row) const
+const std::string &MetaData::Value(uint64_t row) const
 {
     return values_[row];
 }
-const std::string& MetaData::Name(uint64_t row) const
+const std::string &MetaData::Name(uint64_t row) const
 {
     return columnNames_[row];
 }

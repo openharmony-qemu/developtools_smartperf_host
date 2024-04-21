@@ -200,7 +200,8 @@ export class SpSegmentationChart {
     row.supplier = (): Promise<Array<BaseStruct>> => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
     row.onThreadHandler = (useCache): void => {
       row.canvasSave(SpSegmentationChart.trace.canvasPanelCtx!);
-      if (row.expansion) {// @ts-ignore
+      if (row.expansion) {
+        // @ts-ignore
         SpSegmentationChart.trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(

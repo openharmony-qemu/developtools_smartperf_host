@@ -22,7 +22,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderClockDetailParser::PbreaderClockDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
+PbreaderClockDetailParser::PbreaderClockDetailParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters)
     : EventParserBase(dataCache, filters)
 {
     for (auto i = 0; i < MEM_MAX; i++) {
@@ -33,7 +33,7 @@ PbreaderClockDetailParser::PbreaderClockDetailParser(TraceDataCache* dataCache, 
 }
 
 PbreaderClockDetailParser::~PbreaderClockDetailParser() = default;
-void PbreaderClockDetailParser::Parse(const ProtoReader::BytesView& tracePacket) const
+void PbreaderClockDetailParser::Parse(const ProtoReader::BytesView &tracePacket) const
 {
     if (traceDataCache_->isSplitFile_) {
         return;
@@ -42,7 +42,7 @@ void PbreaderClockDetailParser::Parse(const ProtoReader::BytesView& tracePacket)
         TS_LOGW("already has clock snapshot!!!");
         return;
     }
-    ProtoReader::TracePluginResult_Reader reader((const uint8_t*)(tracePacket.data_), tracePacket.size_);
+    ProtoReader::TracePluginResult_Reader reader((const uint8_t *)(tracePacket.data_), tracePacket.size_);
     if (!reader.has_clocks_detail()) {
         TS_LOGE("!!! no clock snapshot");
         return;
@@ -62,7 +62,7 @@ void PbreaderClockDetailParser::Parse(const ProtoReader::BytesView& tracePacket)
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_SYNC, STAT_EVENT_RECEIVED);
 }
 
-void PbreaderClockDetailParser::Parse(const ProfilerTraceFileHeader* profilerTraceFileHeader) const
+void PbreaderClockDetailParser::Parse(const ProfilerTraceFileHeader *profilerTraceFileHeader) const
 {
     if (streamFilters_->clockFilter_->HasInitSnapShot()) {
         TS_LOGW("already has clock snapshot!!!");

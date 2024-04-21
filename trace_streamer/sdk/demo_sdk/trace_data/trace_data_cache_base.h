@@ -29,8 +29,8 @@ using namespace TraceStdtype;
 class TraceDataCacheBase {
 public:
     TraceDataCacheBase() = default;
-    TraceDataCacheBase(const TraceDataCacheBase&) = delete;
-    TraceDataCacheBase& operator=(const TraceDataCacheBase&) = delete;
+    TraceDataCacheBase(const TraceDataCacheBase &) = delete;
+    TraceDataCacheBase &operator=(const TraceDataCacheBase &) = delete;
     virtual ~TraceDataCacheBase() = default;
 
 public:

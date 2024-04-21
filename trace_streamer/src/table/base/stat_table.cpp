@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { EVENT_NAME = 0, STAT_EVENT_TYPE = 1, COUNT = 2, SEVERITY = 3, SOURCE = 4 };
-StatTable::StatTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+StatTable::StatTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("event_name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("stat_type", "TEXT"));
@@ -36,7 +36,7 @@ std::unique_ptr<TableBase::Cursor> StatTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-StatTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+StatTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, STAT_EVENT_MAX * TRACE_EVENT_MAX)
 {
 }

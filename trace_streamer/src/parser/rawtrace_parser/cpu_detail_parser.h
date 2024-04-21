@@ -30,54 +30,54 @@ struct RawTraceEventInfo {
 };
 class CpuDetailParser {
 public:
-    CpuDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    CpuDetailParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~CpuDetailParser() = default;
     void EventAppend(std::shared_ptr<RawTraceEventInfo> event);
     void ResizeStandAloneCpuEventList(uint32_t cpuNum);
-    bool FilterAllEvents(FtraceCpuDetailMsg& cpuDetail, bool isFinished = false);
+    bool FilterAllEvents(FtraceCpuDetailMsg &cpuDetail, bool isFinished = false);
     void FinishCpuDetailParser();
     void Clear();
 
 private:
     bool SortStandAloneCpuEventList(bool isFinished = false);
-    void UpdateCpuOverwrite(FtraceCpuDetailMsg& cpuDetail);
-    void DealEvent(const RawTraceEventInfo& event);
-    bool SchedSwitchEvent(const RawTraceEventInfo& event);
-    bool SchedBlockReasonEvent(const RawTraceEventInfo& event);
-    bool SchedWakeupEvent(const RawTraceEventInfo& event) const;
-    bool SchedWakingEvent(const RawTraceEventInfo& event) const;
-    bool SchedWakeupNewEvent(const RawTraceEventInfo& event) const;
-    bool ProcessExitEvent(const RawTraceEventInfo& event) const;
-    bool ProcessFreeEvent(const RawTraceEventInfo& event) const;
-    bool BinderTractionEvent(const RawTraceEventInfo& event) const;
-    bool BinderTractionReceivedEvent(const RawTraceEventInfo& event) const;
-    bool BinderTractionAllocBufEvent(const RawTraceEventInfo& event) const;
-    bool BinderTractionLockEvent(const RawTraceEventInfo& event) const;
-    bool BinderTractionLockedEvent(const RawTraceEventInfo& event) const;
-    bool BinderTractionUnLockEvent(const RawTraceEventInfo& event) const;
-    bool TaskRenameEvent(const RawTraceEventInfo& event) const;
-    bool TaskNewtaskEvent(const RawTraceEventInfo& event) const;
-    bool ParseTracingMarkWriteOrPrintEvent(const RawTraceEventInfo& event);
-    bool CpuIdleEvent(const RawTraceEventInfo& event) const;
-    bool CpuFrequencyEvent(const RawTraceEventInfo& event) const;
-    bool CpuFrequencyLimitsEvent(const RawTraceEventInfo& event) const;
-    bool SuspendResumeEvent(const RawTraceEventInfo& event) const;
-    bool WorkqueueExecuteStartEvent(const RawTraceEventInfo& event) const;
-    bool WorkqueueExecuteEndEvent(const RawTraceEventInfo& event) const;
-    bool IrqHandlerEntryEvent(const RawTraceEventInfo& event) const;
-    bool IrqHandlerExitEvent(const RawTraceEventInfo& event) const;
-    bool IpiHandlerEntryEvent(const RawTraceEventInfo& event) const;
-    bool IpiHandlerExitEvent(const RawTraceEventInfo& event) const;
-    bool SoftIrqEntryEvent(const RawTraceEventInfo& event) const;
-    bool SoftIrqRaiseEvent(const RawTraceEventInfo& event) const;
-    bool SoftIrqExitEvent(const RawTraceEventInfo& event) const;
-    bool SetRateEvent(const RawTraceEventInfo& event) const;
-    bool ClockEnableEvent(const RawTraceEventInfo& event) const;
-    bool ClockDisableEvent(const RawTraceEventInfo& event) const;
-    bool RegulatorSetVoltageEvent(const RawTraceEventInfo& event) const;
-    bool RegulatorSetVoltageCompleteEvent(const RawTraceEventInfo& event) const;
-    bool RegulatorDisableEvent(const RawTraceEventInfo& event) const;
-    bool RegulatorDisableCompleteEvent(const RawTraceEventInfo& event) const;
+    void UpdateCpuOverwrite(FtraceCpuDetailMsg &cpuDetail);
+    void DealEvent(const RawTraceEventInfo &event);
+    bool SchedSwitchEvent(const RawTraceEventInfo &event);
+    bool SchedBlockReasonEvent(const RawTraceEventInfo &event);
+    bool SchedWakeupEvent(const RawTraceEventInfo &event) const;
+    bool SchedWakingEvent(const RawTraceEventInfo &event) const;
+    bool SchedWakeupNewEvent(const RawTraceEventInfo &event) const;
+    bool ProcessExitEvent(const RawTraceEventInfo &event) const;
+    bool ProcessFreeEvent(const RawTraceEventInfo &event) const;
+    bool BinderTractionEvent(const RawTraceEventInfo &event) const;
+    bool BinderTractionReceivedEvent(const RawTraceEventInfo &event) const;
+    bool BinderTractionAllocBufEvent(const RawTraceEventInfo &event) const;
+    bool BinderTractionLockEvent(const RawTraceEventInfo &event) const;
+    bool BinderTractionLockedEvent(const RawTraceEventInfo &event) const;
+    bool BinderTractionUnLockEvent(const RawTraceEventInfo &event) const;
+    bool TaskRenameEvent(const RawTraceEventInfo &event) const;
+    bool TaskNewtaskEvent(const RawTraceEventInfo &event) const;
+    bool ParseTracingMarkWriteOrPrintEvent(const RawTraceEventInfo &event);
+    bool CpuIdleEvent(const RawTraceEventInfo &event) const;
+    bool CpuFrequencyEvent(const RawTraceEventInfo &event) const;
+    bool CpuFrequencyLimitsEvent(const RawTraceEventInfo &event) const;
+    bool SuspendResumeEvent(const RawTraceEventInfo &event) const;
+    bool WorkqueueExecuteStartEvent(const RawTraceEventInfo &event) const;
+    bool WorkqueueExecuteEndEvent(const RawTraceEventInfo &event) const;
+    bool IrqHandlerEntryEvent(const RawTraceEventInfo &event) const;
+    bool IrqHandlerExitEvent(const RawTraceEventInfo &event) const;
+    bool IpiHandlerEntryEvent(const RawTraceEventInfo &event) const;
+    bool IpiHandlerExitEvent(const RawTraceEventInfo &event) const;
+    bool SoftIrqEntryEvent(const RawTraceEventInfo &event) const;
+    bool SoftIrqRaiseEvent(const RawTraceEventInfo &event) const;
+    bool SoftIrqExitEvent(const RawTraceEventInfo &event) const;
+    bool SetRateEvent(const RawTraceEventInfo &event) const;
+    bool ClockEnableEvent(const RawTraceEventInfo &event) const;
+    bool ClockDisableEvent(const RawTraceEventInfo &event) const;
+    bool RegulatorSetVoltageEvent(const RawTraceEventInfo &event) const;
+    bool RegulatorSetVoltageCompleteEvent(const RawTraceEventInfo &event) const;
+    bool RegulatorDisableEvent(const RawTraceEventInfo &event) const;
+    bool RegulatorDisableCompleteEvent(const RawTraceEventInfo &event) const;
 
     void InterruptEventInitialization();
     void ClockEventInitialization();
@@ -91,9 +91,9 @@ public:
     uint32_t cpuCoreMax_ = CPU_CORE_MAX;
 
 private:
-    using FuncCall = std::function<bool(const RawTraceEventInfo& event)>;
-    const TraceStreamerFilters* streamFilters_;
-    TraceDataCache* traceDataCache_;
+    using FuncCall = std::function<bool(const RawTraceEventInfo &event)>;
+    const TraceStreamerFilters *streamFilters_;
+    TraceDataCache *traceDataCache_;
     PrintEventParser printEventParser_;
 
     uint32_t eventPid_ = INVALID_UINT32;

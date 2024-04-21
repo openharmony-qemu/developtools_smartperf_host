@@ -35,21 +35,24 @@ export class TabPaneSlices extends BaseElement {
   set data(slicesParam: SelectionParam | unknown) {
     if (this.currentSelectionParam === slicesParam) {
       return;
-    }//@ts-ignore
+    } //@ts-ignore
     this.currentSelectionParam = slicesParam;
-    this.slicesRange!.textContent = `Selected range: ${parseFloat(//@ts-ignore
+    this.slicesRange!.textContent = `Selected range: ${parseFloat(
+      //@ts-ignore
       ((slicesParam.rightNs - slicesParam.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
     let asyncNames: Array<string> = [];
-    let asyncPid: Array<number> = [];//@ts-ignore
-    slicesParam.funAsync.forEach((it: unknown) => {//@ts-ignore
-      asyncNames.push(it.name);//@ts-ignore
+    let asyncPid: Array<number> = []; //@ts-ignore
+    slicesParam.funAsync.forEach((it: unknown) => {
+      //@ts-ignore
+      asyncNames.push(it.name); //@ts-ignore
       asyncPid.push(it.pid);
     });
     this.slicesTbl!.loading = true;
     let filterNameEL: HTMLInputElement | undefined | null =
-      this.shadowRoot?.querySelector<HTMLInputElement>('#filterName');//@ts-ignore
-    getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {//@ts-ignore
+      this.shadowRoot?.querySelector<HTMLInputElement>('#filterName'); //@ts-ignore
+    getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {
+      //@ts-ignore
       getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs).then(
         (res2) => {
           this.slicesTbl!.loading = false;
@@ -135,7 +138,7 @@ export class TabPaneSlices extends BaseElement {
         return;
       }
       // @ts-ignore
-      search.list = mixedResults.filter((item) => item.funName === data.name);//@ts-ignore
+      search.list = mixedResults.filter((item) => item.funName === data.name); //@ts-ignore
       const sliceRowList: Array<TraceRow<unknown>> = [];
       // 框选的slice泳道
       for (let row of spSystemTrace.rangeSelect.rangeTraceRow!) {
@@ -158,7 +161,7 @@ export class TabPaneSlices extends BaseElement {
   }
 
   private slicesTblFreshSearchSelect(
-    search: LitSearch,//@ts-ignore
+    search: LitSearch, //@ts-ignore
     sliceRowList: Array<TraceRow<unknown>>,
     data: unknown,
     spSystemTrace: SpSystemTrace
@@ -172,8 +175,8 @@ export class TabPaneSlices extends BaseElement {
         if (
           // @ts-ignore
           Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
-          // @ts-ignore
-          Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
+            // @ts-ignore
+            Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
           !rangeSelectList.includes(searchItem)
         ) {
           // 异步调用栈
@@ -195,7 +198,7 @@ export class TabPaneSlices extends BaseElement {
 
     if (rangeSelectList.length === 0) {
       return;
-    }//@ts-ignore
+    } //@ts-ignore
     input.value = data.name;
     search.list = rangeSelectList;
     search.total = search.list.length;
@@ -256,9 +259,9 @@ export class TabPaneSlices extends BaseElement {
           // @ts-ignore
           return slicesSort === 2
             ? // @ts-ignore
-            parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
+              parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
             : // @ts-ignore
-            parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
+              parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
         } else {
           // @ts-ignore
           if (slicesRightData[property] > slicesLeftData[property]) {
@@ -274,10 +277,12 @@ export class TabPaneSlices extends BaseElement {
         }
       };
     }
-//@ts-ignore
-    if (slicesDetail.key === 'name') {//@ts-ignore
+    //@ts-ignore
+    if (slicesDetail.key === 'name') {
+      //@ts-ignore
       this.slicesSource.sort(compare(slicesDetail.key, slicesDetail.sort, 'string'));
-    } else {//@ts-ignore
+    } else {
+      //@ts-ignore
       this.slicesSource.sort(compare(slicesDetail.key, slicesDetail.sort, 'number'));
     }
     this.slicesTbl!.recycleDataSource = this.slicesSource;

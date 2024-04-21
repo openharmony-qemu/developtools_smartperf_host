@@ -25,10 +25,10 @@ namespace SysTuning {
 namespace TraceStreamer {
 class KernelSymbolsProcessor {
 public:
-    KernelSymbolsProcessor(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
+    KernelSymbolsProcessor(TraceDataCache *dataCache, const TraceStreamerFilters *filters);
     ~KernelSymbolsProcessor();
 
-    bool HandleKallSyms(const std::string& kallsyms);
+    bool HandleKallSyms(const std::string &kallsyms);
 
 private:
     struct KernelSymbol {
@@ -38,11 +38,11 @@ private:
     };
 
 private:
-    static bool IsValidKernelSymbol(const KernelSymbol& symbol);
+    static bool IsValidKernelSymbol(const KernelSymbol &symbol);
 
 private:
-    TraceDataCache* traceDataCache_;
-    const TraceStreamerFilters* streamFilters_;
+    TraceDataCache *traceDataCache_;
+    const TraceStreamerFilters *streamFilters_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

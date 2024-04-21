@@ -23,7 +23,7 @@ void SDKPluginIinitTableName()
 {
     SDKSetTableName("counter_table", "gpu_counter_object", "slice_table", "slice_object_table");
 }
-int32_t SDKPluginDataParser(const uint8_t* data, int32_t len)
+int32_t SDKPluginDataParser(const uint8_t *data, int32_t len)
 {
     std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(len);
     std::copy(data, data + len, buf.get());
@@ -43,7 +43,7 @@ int32_t SDKPluginDataParser(const uint8_t* data, int32_t len)
     return 0;
 }
 
-int32_t SDKPluginParser(const uint8_t* data, int32_t len, MockData mockData)
+int32_t SDKPluginParser(const uint8_t *data, int32_t len, MockData mockData)
 {
     // parser counterObject
     for (auto i = 0; i < mockData.counterobj_size(); i++) {

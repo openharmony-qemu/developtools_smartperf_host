@@ -60,8 +60,9 @@ export class SpFrameTimeChart {
     this.idToProcessNameMap.clear();
     if (frameTimeData.length > 0) {
       let processNamesArray = await queryAllProcessNames();
-      processNamesArray.forEach((it) => {//@ts-ignore
-        this.pidToProcessNameMap.set(it.pid, it.name);//@ts-ignore
+      processNamesArray.forEach((it) => {
+        //@ts-ignore
+        this.pidToProcessNameMap.set(it.pid, it.name); //@ts-ignore
         this.idToProcessNameMap.set(it.id, it.name);
       });
       let frameTimeLineRow: TraceRow<JanksStruct> = await this.initFrameTimeLine();
@@ -255,7 +256,8 @@ export class SpFrameTimeChart {
             processRow.addChildTraceRowBefore(frameChart, firstRow);
           } else if (secondRow !== null) {
             processRow.addChildTraceRowBefore(frameChart, secondRow);
-          } else {// @ts-ignore
+          } else {
+            // @ts-ignore
             processRow.addChildTraceRowBefore(frameChart, targetRowList[0]);
           }
           let appNameList = await queryDynamicIdAndNameData();
@@ -574,19 +576,19 @@ export class SpFrameTimeChart {
         } else {
           linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
         }
-        linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;//@ts-ignore
+        linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY; //@ts-ignore
         if (linkNode[0].rowEL.rowParentId === event.detail?.rowId) {
           if (!linkNode[0].rowEL.collect) {
             linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
             linkNode[0].y = frameTimeLineRow!.translateY! + linkNode[0].offsetY / halfNumber;
-            linkNode[0].offsetY = linkNode[0].offsetY / halfNumber;
+            linkNode[0].offsetY = linkNode[0].offsetY / halfNumber; //@ts-ignore
             linkNode[0].rowEL = frameTimeLineRow;
-          }//@ts-ignore
+          } //@ts-ignore
         } else if (linkNode[1].rowEL.rowParentId === event.detail?.rowId) {
           if (!linkNode[1].rowEL.collect) {
             linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
             linkNode[1].y = frameTimeLineRow!.translateY! + linkNode[1].offsetY / halfNumber;
-            linkNode[1].offsetY = linkNode[1].offsetY / halfNumber;
+            linkNode[1].offsetY = linkNode[1].offsetY / halfNumber; //@ts-ignore
             linkNode[1].rowEL = frameTimeLineRow!;
           }
         }
@@ -631,11 +633,13 @@ export class SpFrameTimeChart {
           linkFrameNode[0].x = ns2xByTimeShaft(linkFrameNode[0].ns, this.trace.timerShaftEL!);
           linkFrameNode[0].y = actualTimeLineRow!.translateY! + linkFrameNode[0].offsetY * halfNumber;
           linkFrameNode[0].offsetY = linkFrameNode[0].offsetY * halfNumber;
+          //@ts-ignore
           linkFrameNode[0].rowEL = actualTimeLineRow;
         } else if (linkFrameNode[1].rowEL.rowId === event.detail?.rowId) {
           linkFrameNode[1].x = ns2xByTimeShaft(linkFrameNode[1].ns, this.trace.timerShaftEL!);
           linkFrameNode[1].y = actualTimeLineRow!.translateY! + linkFrameNode[1].offsetY * halfNumber;
           linkFrameNode[1].offsetY = linkFrameNode[1].offsetY * halfNumber;
+          //@ts-ignore
           linkFrameNode[1].rowEL = actualTimeLineRow!;
         }
       });

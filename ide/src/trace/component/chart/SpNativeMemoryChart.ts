@@ -44,7 +44,8 @@ export class SpNativeMemoryChart {
   folderThreadHandler(row: TraceRow<BaseStruct>): void {
     row.onThreadHandler = (useCache): void => {
       row.canvasSave(this.trace.canvasPanelCtx!);
-      if (row.expansion) {// @ts-ignore
+      if (row.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -155,7 +156,7 @@ export class SpNativeMemoryChart {
       };
       allHeapRow.findHoverStruct = (): void => {
         HeapStruct.hoverHeapStruct = allHeapRow.getHoverStruct();
-      };//@ts-ignore
+      }; //@ts-ignore
       allHeapRow.supplierFrame = (): Promise<unknown> =>
         nativeMemoryChartDataSender(allHeapRow, {
           eventType: i,

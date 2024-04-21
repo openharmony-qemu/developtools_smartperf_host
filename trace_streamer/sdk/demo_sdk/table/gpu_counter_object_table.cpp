@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { COUNTER_ID = 0, COUNTER_NAME = 1 };
-GpuCounterObjectTable::GpuCounterObjectTable(const TraceDataCache* dataCache) : DemoTableBase(dataCache)
+GpuCounterObjectTable::GpuCounterObjectTable(const TraceDataCache *dataCache) : DemoTableBase(dataCache)
 {
     demoTableColumn_.push_back(DemoTableBase::ColumnInfo("counter_id", "INTEGER"));
     demoTableColumn_.push_back(DemoTableBase::ColumnInfo("counter_name", "REAL"));
@@ -33,7 +33,7 @@ std::unique_ptr<DemoTableBase::Cursor> GpuCounterObjectTable::CreateCursor()
     return std::make_unique<Cursor>(demoTraceDataCache_, this);
 }
 
-GpuCounterObjectTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTableBase* table)
+GpuCounterObjectTable::Cursor::Cursor(const TraceDataCache *dataCache, DemoTableBase *table)
     : DemoTableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstGpuCounterObjectData().Size())),
       gpuCounterObjectDataObj_(dataCache->GetConstGpuCounterObjectData())
 {
@@ -41,9 +41,9 @@ GpuCounterObjectTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTable
 
 GpuCounterObjectTable::Cursor::~Cursor() {}
 
-int32_t GpuCounterObjectTable::Cursor::Column(int32_t GpuCntObjColumn) const
+int32_t GpuCounterObjectTable::Cursor::Column(int32_t gpuCntObjColumn) const
 {
-    switch (static_cast<Index>(GpuCntObjColumn)) {
+    switch (static_cast<Index>(gpuCntObjColumn)) {
         case Index::COUNTER_ID: {
             sqlite3_result_int64(demoContext_,
                                  static_cast<int64_t>(gpuCounterObjectDataObj_.CounterId()[CurrentRow()]));
@@ -55,7 +55,7 @@ int32_t GpuCounterObjectTable::Cursor::Column(int32_t GpuCntObjColumn) const
             break;
         }
         default:
-            TS_LOGF("Unregistered GpuCntObjColumn : %d", GpuCntObjColumn);
+            TS_LOGF("Unregistered gpuCntObjColumn : %d", gpuCntObjColumn);
             break;
     }
     return SQLITE_OK;

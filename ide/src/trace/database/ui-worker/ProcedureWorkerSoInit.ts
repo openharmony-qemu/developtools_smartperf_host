@@ -23,6 +23,7 @@ import {
   RequestMessage,
   drawString,
   drawLoadingFrame,
+  Rect,
 } from './ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
 
@@ -78,7 +79,7 @@ export class SoRender extends Render {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {}
+  render(req: RequestMessage, list: Array<unknown>, filter: Array<unknown>): void {}
 }
 
 export function soDataFilter(
@@ -87,7 +88,7 @@ export function soDataFilter(
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
 ): void {
   if (use && soFilter.length > 0) {
@@ -108,19 +109,26 @@ export function soDataFilter(
         SoStruct.setSoFrame(it, 0, startNS, endNS, totalNS, frame);
         return it;
       })
-      .reduce((pre: any, current, index, arr) => {
+      .reduce((pre: unknown, current, index, arr) => {
         if (current.frame) {
+          //@ts-ignore
           (pre[`${current.frame.x}-${current.depth}`] = pre[`${current.frame.x}-${current.depth}`] || []).push(current);
         }
         return pre;
       }, {});
+    //@ts-ignore
     Reflect.ownKeys(groups).map((kv) => {
-      let arr = groups[kv].sort((a: any, b: any) => b.dur - a.dur);
+      //@ts-ignore
+      let arr = groups[kv].sort((a: unknown, b: unknown) => b.dur - a.dur);
       soFilter.push(arr[0]);
     });
   }
 }
-export function SoStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollToFuncHandler: any): Promise<unknown> {
+export function SoStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  scrollToFuncHandler: Function
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_STATIC_INIT && SoStruct.hoverSoStruct) {
       SoStruct.selectSoStruct = SoStruct.hoverSoStruct;
@@ -146,7 +154,14 @@ export class SoStruct extends BaseStruct {
   itid: number | undefined;
   id: number | undefined;
 
-  static setSoFrame(soNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any): void {
+  static setSoFrame(
+    soNode: SoStruct,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: Rect
+  ): void {
     let x1: number;
     let x2: number;
     if ((soNode.startTs || 0) > startNS && (soNode.startTs || 0) < endNS) {
@@ -160,11 +175,11 @@ export class SoStruct extends BaseStruct {
       x2 = frame.width;
     }
     if (!soNode.frame) {
-      soNode.frame = {};
+      soNode.frame = new Rect(0, 0, 0, 0);
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
     soNode.frame.x = Math.floor(x1);
-    soNode.frame.y = soNode.depth * 20;
+    soNode.frame.y = soNode.depth! * 20;
     soNode.frame.width = Math.ceil(getV);
     soNode.frame.height = 20;
   }

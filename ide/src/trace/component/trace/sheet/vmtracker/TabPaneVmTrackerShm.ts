@@ -64,13 +64,14 @@ export class TabPaneVmTrackerShm extends BaseElement {
       (MemoryConfig.getInstance().interval * 1000_000) / 5
     ).then((result) => {
       if (result.length > 0) {
-        for (let filter of result) {//@ts-ignore
-          filter.time = ns2s(filter.startNS);//@ts-ignore
-          filter.sumSizeStr = Utils.getBinaryByteWithUnit(filter.sum);//@ts-ignore
-          filter.avgSizeStr = Utils.getBinaryByteWithUnit(filter.avg);//@ts-ignore
-          filter.minSizeStr = Utils.getBinaryByteWithUnit(filter.min);//@ts-ignore
+        for (let filter of result) {
+          //@ts-ignore
+          filter.time = ns2s(filter.startNS); //@ts-ignore
+          filter.sumSizeStr = Utils.getBinaryByteWithUnit(filter.sum); //@ts-ignore
+          filter.avgSizeStr = Utils.getBinaryByteWithUnit(filter.avg); //@ts-ignore
+          filter.minSizeStr = Utils.getBinaryByteWithUnit(filter.min); //@ts-ignore
           filter.maxSizeStr = Utils.getBinaryByteWithUnit(filter.max);
-        }//@ts-ignore
+        } //@ts-ignore
         this.shmData = result.sort((a, b) => b.avg - a.avg);
         this.TableEl!.recycleDataSource = this.shmData;
       }
@@ -104,8 +105,11 @@ export class TabPaneVmTrackerShm extends BaseElement {
         switch (column) {
           case 'time':
             this.TableEl!.snapshotDataSource = this.sortArray.sort((leftStartNS, rightStartNS) => {
-              // @ts-ignore
-              return sort === 1 ? leftStartNS.startNS - rightStartNS.startNS : rightStartNS.startNS - leftStartNS.startNS;
+              return sort === 1
+                ? // @ts-ignore
+                  leftStartNS.startNS - rightStartNS.startNS
+                : // @ts-ignore
+                  rightStartNS.startNS - leftStartNS.startNS;
             });
             break;
           case 'flag':

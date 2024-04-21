@@ -48,7 +48,8 @@ export class SpVirtualMemChart {
     vmFolder.supplier = async (): Promise<BaseStruct[]> => new Promise<[]>((resolve) => resolve([]));
     vmFolder.onThreadHandler = (useCache): void => {
       vmFolder.canvasSave(this.trace.canvasPanelCtx!);
-      if (vmFolder.expansion) {// @ts-ignore
+      if (vmFolder.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, vmFolder.frame.width, vmFolder.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(

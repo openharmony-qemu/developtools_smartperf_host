@@ -18,25 +18,28 @@ import { drawLoadingFrame, hiPerf, hiPerf2, HiPerfStruct, PerfRender, RequestMes
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 
 export class HiperfProcessRender2 extends PerfRender {
-  renderMainThread(req: any, row: TraceRow<HiPerfProcessStruct>): void {
+  renderMainThread(req: unknown, row: TraceRow<HiPerfProcessStruct>): void {
+    //@ts-ignore
+    const ctx = req.context as CanvasRenderingContext2D;
     let hiperfProcessFilter = row.dataListCache;
+    //@ts-ignore
     let groupBy10MS = req.scale > 30_000_000;
     let textMetrics;
     if (!groupBy10MS) {
-      req.context.font = 'normal 12px Arial';
-      textMetrics = req.context.measureText('🄿');
+      ctx.font = 'normal 12px Arial';
+      textMetrics = ctx.measureText('🄿');
     }
     hiPerf2(hiperfProcessFilter, TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, row.frame);
-    drawLoadingFrame(req.context, hiperfProcessFilter, row);
-    req.context.beginPath();
-    req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
-    req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+    drawLoadingFrame(ctx, hiperfProcessFilter, row);
+    ctx.beginPath();
+    ctx.fillStyle = ColorUtils.FUNC_COLOR[0];
+    ctx.strokeStyle = ColorUtils.FUNC_COLOR[0];
     let normalPath = new Path2D();
     let specPath = new Path2D();
     let offset = groupBy10MS ? 0 : 3;
     let find = false;
     for (let it of hiperfProcessFilter) {
-      HiPerfProcessStruct.draw(req.context, normalPath, specPath, it, groupBy10MS, textMetrics);
+      HiPerfProcessStruct.draw(ctx, normalPath, specPath, it, groupBy10MS, textMetrics);
       if (row.isHover) {
         if (it.frame && row.hoverX >= it.frame.x - offset && row.hoverX <= it.frame.x + it.frame.width + offset) {
           HiPerfProcessStruct.hoverStruct = it;
@@ -48,15 +51,20 @@ export class HiperfProcessRender2 extends PerfRender {
       HiPerfProcessStruct.hoverStruct = undefined;
     }
     if (groupBy10MS) {
-      req.context.fill(normalPath);
+      ctx.fill(normalPath);
     } else {
-      req.context.stroke(normalPath);
-      HiPerfStruct.drawSpecialPath(req.context, specPath);
+      ctx.stroke(normalPath);
+      HiPerfStruct.drawSpecialPath(ctx, specPath);
     }
-    req.context.closePath();
+    ctx.closePath();
   }
 
-  render(hiPerfProcessRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void {}
+  render(
+    hiPerfProcessRequest: RequestMessage,
+    list: Array<unknown>,
+    filter: Array<unknown>,
+    dataList2: Array<unknown>
+  ): void {}
 }
 
 export class HiPerfProcessStruct extends HiPerfStruct {

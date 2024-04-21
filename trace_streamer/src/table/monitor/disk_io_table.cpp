@@ -29,7 +29,7 @@ enum class Index : int32_t {
     RD_COUNT_SPEED,
     WR_COUNT_SPEED,
 };
-DiskIOTable::DiskIOTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+DiskIOTable::DiskIOTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
@@ -51,7 +51,7 @@ std::unique_ptr<TableBase::Cursor> DiskIOTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-DiskIOTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+DiskIOTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstDiskIOData().Size())),
       diskIODataObj_(dataCache->GetConstDiskIOData())
 {

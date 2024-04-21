@@ -22,7 +22,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-HiSysEventMeasureFilter::HiSysEventMeasureFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+HiSysEventMeasureFilter::HiSysEventMeasureFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : FilterBase(dataCache, filter), appKey_(INVALID_UINT64), appName_(INVALID_UINT64)
 {
 }
@@ -74,7 +74,7 @@ void HiSysEventMeasureFilter::AppendNewValue(int32_t brightnessState,
         accessibility, recording, streamAll);
     return;
 }
-bool HiSysEventMeasureFilter::FilterAllHiSysEvent(const json& jMessage, uint64_t serial, bool& haveSplitSeg)
+bool HiSysEventMeasureFilter::FilterAllHiSysEvent(const json &jMessage, uint64_t serial, bool &haveSplitSeg)
 {
     TS_CHECK_TRUE_RET(SaveAllHiSysEvent(jMessage, haveSplitSeg), false);
     size_t maxArraySize = 0;
@@ -93,7 +93,7 @@ bool HiSysEventMeasureFilter::FilterAllHiSysEvent(const json& jMessage, uint64_t
     }
     return true;
 }
-void HiSysEventMeasureFilter::FillJsMessage(const json& jMessage, JsonMessage& jsMessage)
+void HiSysEventMeasureFilter::FillJsMessage(const json &jMessage, JsonMessage &jsMessage)
 {
     for (auto item = jMessage.begin(); item != jMessage.end(); item++) {
         if (item.key() == "domain_") {
@@ -130,7 +130,7 @@ void HiSysEventMeasureFilter::FillJsMessage(const json& jMessage, JsonMessage& j
         }
     }
 }
-bool HiSysEventMeasureFilter::SaveAllHiSysEvent(json jMessage, bool& haveSplitSeg)
+bool HiSysEventMeasureFilter::SaveAllHiSysEvent(json jMessage, bool &haveSplitSeg)
 {
     JsonMessage jsMessage;
     FillJsMessage(jMessage, jsMessage);
@@ -146,18 +146,18 @@ bool HiSysEventMeasureFilter::SaveAllHiSysEvent(json jMessage, bool& haveSplitSe
     UpdataAllHiSysEvent(jsMessage, newTimeStamp);
     return true;
 }
-void HiSysEventMeasureFilter::UpdataAllHiSysEvent(const JsonMessage& jsMessage, uint64_t newTimeStamp)
+void HiSysEventMeasureFilter::UpdataAllHiSysEvent(const JsonMessage &jsMessage, uint64_t newTimeStamp)
 {
     traceDataCache_->GetHiSysEventAllEventData()->AppendHiSysEventData(
         jsMessage.domainId, jsMessage.eventNameId, newTimeStamp, jsMessage.type, jsMessage.timeZone, jsMessage.pid,
         jsMessage.tid, jsMessage.uid, jsMessage.level, jsMessage.tag, jsMessage.eventId, jsMessage.seq, jsMessage.info,
         jsMessage.content.dump());
 }
-bool HiSysEventMeasureFilter::JGetData(const json& jMessage,
-                                       JsonData& jData,
-                                       size_t& maxArraySize,
-                                       std::vector<size_t>& noArrayIndex,
-                                       std::vector<size_t>& arrayIndex)
+bool HiSysEventMeasureFilter::JGetData(const json &jMessage,
+                                       JsonData &jData,
+                                       size_t &maxArraySize,
+                                       std::vector<size_t> &noArrayIndex,
+                                       std::vector<size_t> &arrayIndex)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_HISYSEVENT, STAT_EVENT_RECEIVED);
     for (auto subItem = jMessage.begin(); subItem != jMessage.end(); subItem++) {
@@ -229,7 +229,7 @@ void HiSysEventMeasureFilter::ArrayDataParse(JsonData jData,
         }
     }
 }
-void HiSysEventMeasureFilter::AppendStringValue(nlohmann::json& value,
+void HiSysEventMeasureFilter::AppendStringValue(nlohmann::json &value,
                                                 uint64_t hiSysEventLineId,
                                                 DataIndex eventSourceIndex,
                                                 DataIndex keyIndex,

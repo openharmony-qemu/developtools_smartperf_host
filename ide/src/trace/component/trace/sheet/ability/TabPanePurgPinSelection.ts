@@ -30,7 +30,8 @@ export class TabPanePurgPinSelection extends BaseElement {
 
   set data(selection: SelectionParam | unknown) {
     // @ts-ignore
-    if (selection && selection.type) {// @ts-ignore
+    if (selection && selection.type) {
+      // @ts-ignore
       this.queryTableData(selection.type, selection.startNs);
     }
   }
@@ -59,7 +60,8 @@ export class TabPanePurgPinSelection extends BaseElement {
           name: 'TimeStamp(Absolute)',
           value: (startNs + (window as any).recordStartNS) / 1000000000,
         });
-        for (let i = 0; i < results.length; i++) {//@ts-ignore
+        for (let i = 0; i < results.length; i++) {
+          //@ts-ignore
           results[i].value = Utils.getBinaryByteWithUnit(results[i].value);
           this.purgeableSelectionSource.push(results[i]);
           this.purgeableSelectionTable!.recycleDataSource = this.purgeableSelectionSource;

@@ -27,7 +27,6 @@ export class SpFpsChart {
     this.trace = trace;
   }
 
-
   async init(): Promise<void> {
     let res = await getFps();
     if (res.length === 0) {
@@ -40,21 +39,21 @@ export class SpFpsChart {
     fpsRow.rowParentId = '';
     FpsStruct.maxFps = 0;
     fpsRow.style.height = '40px';
-    fpsRow.name = 'FPS';//@ts-ignore
-    fpsRow.supplier = () : Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve, reject) => resolve(res));
+    fpsRow.name = 'FPS'; //@ts-ignore
+    fpsRow.supplier = (): Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve, reject) => resolve(res));
     fpsRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     fpsRow.selectChangeHandler = this.trace.selectChangeHandler;
-    fpsRow.focusHandler = (ev) : void => {
+    fpsRow.focusHandler = (ev): void => {
       let tip = '';
       if (FpsStruct.hoverFpsStruct) {
         tip = `<span>${FpsStruct.hoverFpsStruct.fps || 0}</span> `;
       }
       this.trace?.displayTip(fpsRow, FpsStruct.hoverFpsStruct, tip);
     };
-    fpsRow.findHoverStruct = () : void => {
+    fpsRow.findHoverStruct = (): void => {
       FpsStruct.hoverFpsStruct = fpsRow.getHoverStruct();
     };
-    fpsRow.onThreadHandler = (useCache) : void => {
+    fpsRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (fpsRow.currentContext) {
         context = fpsRow.currentContext;

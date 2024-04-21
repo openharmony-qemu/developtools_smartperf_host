@@ -42,11 +42,8 @@ export class TabPaneThreadStates extends BaseElement {
       this.parentElement!.clientHeight - 45
     }px`;
     // // @ts-ignore
-    this.range!.textContent = `Selected range: ${(
-      // @ts-ignore
-      (threadStatesParam.rightNs - threadStatesParam.leftNs) /
-      1000000.0
-    ).toFixed(5)} ms`;
+    this.range!.textContent = `Selected range: ${// @ts-ignore
+    ((threadStatesParam.rightNs - threadStatesParam.leftNs) / 1000000.0).toFixed(5)} ms`;
     this.threadStatesTbl!.loading = true;
     this.initThreadStates(threadStatesParam);
   }
@@ -330,10 +327,10 @@ export class TabPaneThreadStates extends BaseElement {
         }
         if (type === 'number') {
           return treadStatesSort === 2
-          // @ts-ignore
-            ? parseFloat(threadStatesRightData[property]) - parseFloat(threadStatesLeftData[property])
-            // @ts-ignore
-            : parseFloat(threadStatesLeftData[property]) - parseFloat(threadStatesRightData[property]);
+            ? // @ts-ignore
+              parseFloat(threadStatesRightData[property]) - parseFloat(threadStatesLeftData[property])
+            : // @ts-ignore
+              parseFloat(threadStatesLeftData[property]) - parseFloat(threadStatesRightData[property]);
         } else {
           // @ts-ignore
           if (threadStatesRightData[property] > threadStatesLeftData[property]) {

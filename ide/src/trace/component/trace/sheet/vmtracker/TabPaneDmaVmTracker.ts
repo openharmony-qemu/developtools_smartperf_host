@@ -33,7 +33,7 @@ export class TabPaneDmaVmTracker extends BaseElement {
     // @ts-ignore
     if (dmaValue.dmaVmTrackerData.length > 0) {
       this.dmaTimeRange!.textContent =
-      // @ts-ignore
+        // @ts-ignore
         'Selected range: ' + ((dmaValue.rightNs - dmaValue.leftNs) / 1000000.0).toFixed(5) + ' ms';
       this.dmaTbl!.loading = true;
       this.queryDataByDB(dmaValue);

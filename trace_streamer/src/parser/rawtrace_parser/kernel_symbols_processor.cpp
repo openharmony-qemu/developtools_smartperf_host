@@ -19,7 +19,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-KernelSymbolsProcessor::KernelSymbolsProcessor(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
+KernelSymbolsProcessor::KernelSymbolsProcessor(TraceDataCache *dataCache, const TraceStreamerFilters *filters)
     : traceDataCache_(dataCache), streamFilters_(filters)
 {
     if (!streamFilters_) {
@@ -33,7 +33,7 @@ KernelSymbolsProcessor::~KernelSymbolsProcessor()
     TS_LOGI("KernelSymbolsProcessor destroy!");
 }
 
-bool KernelSymbolsProcessor::IsValidKernelSymbol(const KernelSymbol& symbol)
+bool KernelSymbolsProcessor::IsValidKernelSymbol(const KernelSymbol &symbol)
 {
     if (symbol.addr == 0 || symbol.name.empty()) {
         return false;
@@ -48,7 +48,7 @@ bool KernelSymbolsProcessor::IsValidKernelSymbol(const KernelSymbol& symbol)
     return true;
 }
 
-bool KernelSymbolsProcessor::HandleKallSyms(const std::string& kallsyms)
+bool KernelSymbolsProcessor::HandleKallSyms(const std::string &kallsyms)
 {
     TS_CHECK_TRUE(!kallsyms.empty(), false, "kallsyms is empty!");
     std::stringstream symsStream(kallsyms);

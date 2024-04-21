@@ -50,29 +50,37 @@ export class LitTree extends BaseElement {
 
     /*双向绑定*/
     const handler = {
-      get: (target: unknown, propkey: unknown): unknown => {//@ts-ignore
+      get: (target: unknown, propkey: unknown): unknown => {
+        //@ts-ignore
         return target[propkey];
       },
-      set: (target: unknown, propkey: unknown, value: unknown, receiver: unknown): boolean => {//@ts-ignore
-        if (target[propkey] !== value) {//@ts-ignore
-          if (!value.children) {//@ts-ignore
+      set: (target: unknown, propkey: unknown, value: unknown, receiver: unknown): boolean => {
+        //@ts-ignore
+        if (target[propkey] !== value) {
+          //@ts-ignore
+          if (!value.children) {
+            //@ts-ignore
             value.children = new Proxy([], handler);
-          } else {//@ts-ignore
+          } else {
+            //@ts-ignore
             value.children = new Proxy(value.children, handler);
-          }//@ts-ignore
+          } //@ts-ignore
           target[propkey] = value;
           if (!this.currentSelectedNode) {
             this._insertNode(null, value);
-          } else {//@ts-ignore
-            if (this.currentSelectedNode.nextElementSibling) {//@ts-ignore
+          } else {
+            //@ts-ignore
+            if (this.currentSelectedNode.nextElementSibling) {
+              //@ts-ignore
               this._insertNode(this.currentSelectedNode.nextElementSibling, value);
-            } else {//@ts-ignore
+            } else {
+              //@ts-ignore
               this.currentSelectedNode.setAttribute('show-arrow', 'true');
               let ul = document.createElement('ul');
               // @ts-ignore
               ul.open = 'true';
-              ul.style.transition = '.3s all';//@ts-ignore
-              this.currentSelectedNode.parentElement.append(ul);//@ts-ignore
+              ul.style.transition = '.3s all'; //@ts-ignore
+              this.currentSelectedNode.parentElement.append(ul); //@ts-ignore
               this.currentSelectedNode.arrow = true;
               this._insertNode(ul, value);
             }
@@ -83,9 +91,11 @@ export class LitTree extends BaseElement {
     };
     let setProxy = (v: Array<TreeItemData>): void => {
       v.forEach((a) => {
-        if (!a.children) {//@ts-ignore
+        if (!a.children) {
+          //@ts-ignore
           a.children = new Proxy([], handler);
-        } else {//@ts-ignore
+        } else {
+          //@ts-ignore
           a.children = new Proxy(a.children, handler);
           setProxy(a.children || []);
         }
@@ -107,15 +117,18 @@ export class LitTree extends BaseElement {
     }
   }
 
-  get treeData(): TreeItemData[] {//@ts-ignore
+  get treeData(): TreeItemData[] {
+    //@ts-ignore
     return this.proxyData;
   }
 
-  set onSelect(fn: unknown) {//@ts-ignore
+  set onSelect(fn: unknown) {
+    //@ts-ignore
     this.addEventListener('onSelect', fn);
   }
 
-  set onChange(fn: unknown) {//@ts-ignore
+  set onChange(fn: unknown) {
+    //@ts-ignore
     this.addEventListener('onChange', fn);
   }
 
@@ -137,30 +150,37 @@ export class LitTree extends BaseElement {
     };
   }
 
-  getCheckdKeys(): unknown[] {//@ts-ignore
+  getCheckdKeys(): unknown[] {
+    //@ts-ignore
     return Array.from(this.shadowRoot!.querySelectorAll('lit-tree-node[checked]')).map((a: unknown) => a.data.key);
   }
 
-  getCheckdNodes(): unknown[] {//@ts-ignore
+  getCheckdNodes(): unknown[] {
+    //@ts-ignore
     return Array.from(this.shadowRoot!.querySelectorAll('lit-tree-node[checked]')).map((a: unknown) => a.data);
   }
 
   //展开所有节点
-  expandKeys(keys: Array<string>): void {//@ts-ignore
-    keys.forEach((k) => this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: unknown) => b.expand()));
+  expandKeys(keys: Array<string>): void {
+    keys.forEach((k) =>
+      //@ts-ignore
+      this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: unknown) => b.expand())
+    );
   }
 
-  //收起所有节点
   collapseKeys(keys: Array<string>): void {
-    keys.forEach((k) =>//@ts-ignore
+    keys.forEach((k) =>
+      //@ts-ignore
       this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: unknown) => b.collapse())
     );
   }
 
   checkedKeys(keys: Array<string>): void {
     keys.forEach((k) =>
-      this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: unknown) => {//@ts-ignore
-        b.setAttribute('checked', 'true');//@ts-ignore
+      this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: unknown) => {
+        //@ts-ignore
+        b.setAttribute('checked', 'true');
+        //@ts-ignore
         b.checkHandler();
       })
     );
@@ -168,9 +188,10 @@ export class LitTree extends BaseElement {
 
   uncheckedKeys(keys: Array<string>): void {
     keys.forEach((k) =>
-      this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: unknown) => {//@ts-ignore
-        b.removeAttribute('checked');//@ts-ignore
-        b.removeAttribute('missing');//@ts-ignore
+      this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: unknown) => {
+        //@ts-ignore
+        b.removeAttribute('checked'); //@ts-ignore
+        b.removeAttribute('missing'); //@ts-ignore
         b.checkHandler();
       })
     );
@@ -186,7 +207,7 @@ export class LitTree extends BaseElement {
       this.treeNodeDragable(node, a);
       // @ts-ignore
       li.data = a;
-      li.append(node);//@ts-ignore
+      li.append(node); //@ts-ignore
       parent.append(li);
       let ul: HTMLUListElement = document.createElement('ul');
       // @ts-ignore
@@ -232,7 +253,8 @@ export class LitTree extends BaseElement {
     node.selected = a.selected || false; //是否选中行
     node.checked = a.checked || false; // 是否勾选
     node.data = a;
-    node.addEventListener('change', (e: unknown): void => {//@ts-ignore
+    node.addEventListener('change', (e: unknown): void => {
+      //@ts-ignore
       if (e.detail && !this.multiple) {
         this.nodeList.forEach((item) => {
           item.checked = item.data!.key === node.data!.key;
@@ -243,7 +265,7 @@ export class LitTree extends BaseElement {
       if (litTreeNodes.length === 0) {
         node.checked = true;
         node.data!.checked = true;
-      }//@ts-ignore
+      } //@ts-ignore
       that.dispatchEvent(new CustomEvent('onChange', { detail: { data: (node as unknown).data, checked: e.detail } }));
     });
     node.multiple = this.hasAttribute('multiple');
@@ -254,9 +276,11 @@ export class LitTree extends BaseElement {
   addEvent(a: TreeItemData, node: LitTreeNode, li: HTMLLIElement, ul: HTMLUListElement): void {
     if (a.children && a.children.length > 0) {
       if (this.hasAttribute('show-icon')) {
-        if (a.icon) {//@ts-ignore
+        if (a.icon) {
+          //@ts-ignore
           (node as unknown).iconName = a.icon;
-        } else {//@ts-ignore
+        } else {
+          //@ts-ignore
           (node as unknown).iconName = 'folder';
         }
       } else {
@@ -330,10 +354,10 @@ export class LitTree extends BaseElement {
   }
 
   onDragOver(ev: MouseEvent): undefined {
-    let node = ev.target as LitTreeNode;//@ts-ignore
+    let node = ev.target as LitTreeNode; //@ts-ignore
     if (this.srcDragElement.data.key === node.data!.key) {
       return;
-    }//@ts-ignore
+    } //@ts-ignore
     let rect = (ev.currentTarget! as unknown).getBoundingClientRect();
     if (ev.clientX >= rect.left + rect.width / 3 && ev.clientX < rect.left + rect.width) {
       //bottom-right
@@ -450,7 +474,8 @@ export class LitTree extends BaseElement {
   }
 
   insert(obj: TreeItemData): void {
-    if (this.currentSelectedData) {//@ts-ignore
+    if (this.currentSelectedData) {
+      //@ts-ignore
       this.currentSelectedData.children.push(obj);
     } else {
       this.treeData.push(obj);
@@ -478,8 +503,8 @@ export class LitTree extends BaseElement {
       parent = this.shadowRoot!.querySelector('#root');
     }
     let li: HTMLLIElement = document.createElement('li');
-    let insertNode: LitTreeNode = document.createElement('lit-tree-node') as LitTreeNode;//@ts-ignore
-    insertNode.title = a.title;//@ts-ignore
+    let insertNode: LitTreeNode = document.createElement('lit-tree-node') as LitTreeNode; //@ts-ignore
+    insertNode.title = a.title; //@ts-ignore
     insertNode.setAttribute('key', a.key);
     this.setDragableOfEvent(insertNode);
     if (this.hasAttribute('dragable')) {
@@ -496,18 +521,19 @@ export class LitTree extends BaseElement {
       insertNode.ondragover = (ev): undefined => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
       insertNode.ondragleave = (ev): undefined => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
       insertNode.ondrop = (ev): undefined => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
-    }//@ts-ignore
+    } //@ts-ignore
     insertNode.selected = a.selected || false; //是否选中行
     //@ts-ignore
     insertNode.checked = a.checked || false; // 是否勾选
     //@ts-ignore
     insertNode.data = a;
-    insertNode.addEventListener('change', (e: unknown) => {//@ts-ignore
+    insertNode.addEventListener('change', (e: unknown) => {
+      //@ts-ignore
       if (e.detail && !this.multiple) {
         this.nodeList.forEach((node) => {
           node.checked = node.data!.key === insertNode.data!.key;
         });
-      }//@ts-ignore
+      } //@ts-ignore
       this.dispatchEvent(new CustomEvent('onChange', { detail: { data: insertNode.data, checked: e.detail } }));
     });
     this.nodeList.push(insertNode);
@@ -515,7 +541,7 @@ export class LitTree extends BaseElement {
     insertNode.multiple = this.hasAttribute('multiple');
     // @ts-ignore
     li.data = a;
-    li.append(insertNode);//@ts-ignore
+    li.append(insertNode); //@ts-ignore
     parent.append(li);
     let ul: HTMLUListElement = document.createElement('ul');
     // @ts-ignore
@@ -556,10 +582,13 @@ export class LitTree extends BaseElement {
     }
   }
 
-  setChildren(a: unknown, insertNode: LitTreeNode, li: HTMLLIElement, ul: HTMLUListElement): void {//@ts-ignore
+  setChildren(a: unknown, insertNode: LitTreeNode, li: HTMLLIElement, ul: HTMLUListElement): void {
+    //@ts-ignore
     if (a.children && a.children.length > 0) {
-      if (this.hasAttribute('show-icon')) {//@ts-ignore
-        if (a.icon) {//@ts-ignore
+      if (this.hasAttribute('show-icon')) {
+        //@ts-ignore
+        if (a.icon) {
+          //@ts-ignore
           insertNode.iconName = a.icon;
         } else {
           insertNode.iconName = 'folder';
@@ -568,11 +597,13 @@ export class LitTree extends BaseElement {
         insertNode.iconName = '';
       }
       insertNode.arrow = true;
-      li.append(ul);//@ts-ignore
+      li.append(ul); //@ts-ignore
       this.drawTree(ul, a.children);
     } else {
-      if (this.hasAttribute('show-icon')) {//@ts-ignore
-        if (a.icon) {//@ts-ignore
+      if (this.hasAttribute('show-icon')) {
+        //@ts-ignore
+        if (a.icon) {
+          //@ts-ignore
           insertNode.iconName = a.icon;
         } else {
           insertNode.iconName = 'file';

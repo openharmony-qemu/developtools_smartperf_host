@@ -42,7 +42,7 @@ export class FrameAnimationRender extends Render {
       frameAnimationFilter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,// @ts-ignore
+      TraceRow.range!.totalNS, // @ts-ignore
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
@@ -109,8 +109,8 @@ export class FrameAnimationRender extends Render {
 export function FrameAnimationStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  scrollToFuncHandler: any,
-  row: TraceRow<any>
+  scrollToFuncHandler: Function,
+  row: TraceRow<FrameAnimationStruct>
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FRAME_ANIMATION) {

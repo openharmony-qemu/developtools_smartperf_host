@@ -40,7 +40,7 @@ TraceParserStatus GetAnalysisResult()
     return g_status;
 }
 
-ssize_t Read(int32_t fd, uint8_t* dst, size_t dstSize)
+ssize_t Read(int32_t fd, uint8_t *dst, size_t dstSize)
 {
 #if defined(_WIN32)
     return _read(fd, dst, static_cast<unsigned>(dstSize));
@@ -52,7 +52,7 @@ ssize_t Read(int32_t fd, uint8_t* dst, size_t dstSize)
     return ret;
 #endif
 }
-int32_t OpenFile(const std::string& path, int32_t flags, uint32_t mode)
+int32_t OpenFile(const std::string &path, int32_t flags, uint32_t mode)
 {
     TS_ASSERT((flags & O_CREAT) == 0 || mode != K_FILE_MODE_INVALID);
 #if defined(_WIN32)

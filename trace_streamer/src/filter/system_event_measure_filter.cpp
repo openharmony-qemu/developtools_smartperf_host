@@ -19,8 +19,8 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-SystemEventMeasureFilter::SystemEventMeasureFilter(TraceDataCache* dataCache,
-                                                   const TraceStreamerFilters* filter,
+SystemEventMeasureFilter::SystemEventMeasureFilter(TraceDataCache *dataCache,
+                                                   const TraceStreamerFilters *filter,
                                                    SysEventType e)
     : FilterBase(dataCache, filter), filterType_(e)
 {

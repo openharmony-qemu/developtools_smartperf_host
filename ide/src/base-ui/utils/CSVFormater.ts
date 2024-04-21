@@ -63,7 +63,7 @@ export class JSONToCSV {
         // @ts-ignore
         for (key in n) {
           row +=
-          // @ts-ignore
+            // @ts-ignore
             '"' + (typeof columns.formatter === 'function' ? columns.formatter(key, n[key]) || n[key] : n[key]) + '",';
         }
       }
@@ -168,16 +168,19 @@ export class JSONToCSV {
     }
   }
 
-  static browserType(): unknown {
-    let type: unknown = {};
-    let agent = navigator.userAgent.toLowerCase();
-    let has;
-    // @ts-ignore
-    (has = agent.indexOf('edge') !== -1 ? (type.edge = 'edge') :
-    // @ts-ignore
-      agent.match(/rv:([\d.]+)\) like gecko/)) ? (type.ie = has[1]) :
-      // @ts-ignore
-      (has = agent.match(/msie ([\d.]+)/)) ? (type.ie = has[1]) : 0;
+  static browserType(): { edge: string; ie: string } {
+    const type: { edge: string; ie: string } = { edge: '', ie: '' };
+    const agent = navigator.userAgent.toLowerCase();
+    const edgeMatch = agent.match(/edge/);
+    if (edgeMatch) {
+      type.edge = 'edge';
+    } else {
+      const ieMatch = agent.match(/rv:([\d.]+)\) like gecko/) || agent.match(/msie ([\d.]+)/);
+      if (ieMatch) {
+        type.ie = ieMatch[1];
+      }
+    }
+
     return type;
   }
 

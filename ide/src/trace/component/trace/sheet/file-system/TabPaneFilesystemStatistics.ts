@@ -36,12 +36,13 @@ export class TabPaneFileStatistics extends BaseElement {
     if (fileStatisticsSelection === this.selectionParam) {
       return;
     }
-    this.fileStatisticsProgressEL!.loading = true;// @ts-ignore
-    this.fileStatisticsLoadingPage.style.visibility = 'visible';// @ts-ignore
+    this.fileStatisticsProgressEL!.loading = true; // @ts-ignore
+    this.fileStatisticsLoadingPage.style.visibility = 'visible'; // @ts-ignore
     this.selectionParam = fileStatisticsSelection;
     // @ts-ignore
-    this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-      `${this.parentElement!.clientHeight - 25  }px`;
+    this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${
+      this.parentElement!.clientHeight - 25
+    }px`;
     this.queryDataByDB(fileStatisticsSelection);
   }
 
@@ -66,41 +67,44 @@ export class TabPaneFileStatistics extends BaseElement {
     new ResizeObserver((): void => {
       if (this.parentElement!.clientHeight !== 0) {
         // @ts-ignore
-        this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height =
-          `${this.parentElement!.clientHeight - 25  }px`;
-        this.fileStatisticsTbl!.reMeauseHeight();// @ts-ignore
+        this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${
+          this.parentElement!.clientHeight - 25
+        }px`;
+        this.fileStatisticsTbl!.reMeauseHeight(); // @ts-ignore
         this.fileStatisticsLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
   }
 
   getInitData(item: unknown): unknown {
-    return {// @ts-ignore
-      ...item,// @ts-ignore
-      title: `${item.name}(${item.pid})`,// @ts-ignore
-      logicalWrites: Utils.getBinaryByteWithUnit(item.logicalWrites),// @ts-ignore
-      logicalReads: Utils.getBinaryByteWithUnit(item.logicalReads),// @ts-ignore
-      otherFile: Utils.getBinaryByteWithUnit(item.otherFile),// @ts-ignore
-      allDuration: Utils.getProbablyTime(item.allDuration),// @ts-ignore
-      minDuration: Utils.getProbablyTime(item.minDuration),// @ts-ignore
-      maxDuration: Utils.getProbablyTime(item.maxDuration),// @ts-ignore
-      avgDuration: Utils.getProbablyTime(item.avgDuration),// @ts-ignore
+    return {
+      // @ts-ignore
+      ...item, // @ts-ignore
+      title: `${item.name}(${item.pid})`, // @ts-ignore
+      logicalWrites: Utils.getBinaryByteWithUnit(item.logicalWrites), // @ts-ignore
+      logicalReads: Utils.getBinaryByteWithUnit(item.logicalReads), // @ts-ignore
+      otherFile: Utils.getBinaryByteWithUnit(item.otherFile), // @ts-ignore
+      allDuration: Utils.getProbablyTime(item.allDuration), // @ts-ignore
+      minDuration: Utils.getProbablyTime(item.minDuration), // @ts-ignore
+      maxDuration: Utils.getProbablyTime(item.maxDuration), // @ts-ignore
+      avgDuration: Utils.getProbablyTime(item.avgDuration), // @ts-ignore
       node: { ...item, children: [] },
     };
   }
 
   queryDataByDB(val: SelectionParam | unknown): void {
     this.fileStatisticsLoadingList.push(1);
-    this.fileStatisticsProgressEL!.loading = true;// @ts-ignore
+    this.fileStatisticsProgressEL!.loading = true; // @ts-ignore
     this.fileStatisticsLoadingPage.style.visibility = 'visible';
-    getTabPaneFilesystemStatistics(// @ts-ignore
-      val.leftNs + val.recordStartNs,// @ts-ignore
-      val.rightNs + val.recordStartNs,// @ts-ignore
+    getTabPaneFilesystemStatistics(
+      // @ts-ignore
+      val.leftNs + val.recordStartNs, // @ts-ignore
+      val.rightNs + val.recordStartNs, // @ts-ignore
       val.fileSystemType
     ).then((result): void => {
       this.fileStatisticsLoadingList.splice(0, 1);
       if (this.fileStatisticsLoadingList.length === 0) {
-        this.fileStatisticsProgressEL!.loading = false;// @ts-ignore
+        this.fileStatisticsProgressEL!.loading = false; // @ts-ignore
         this.fileStatisticsLoadingPage.style.visibility = 'hidden';
       }
       let fileStatisticsFatherMap = new Map<unknown, unknown>();
@@ -117,18 +121,21 @@ export class TabPaneFileStatistics extends BaseElement {
         children: [],
       };
       this.handleResult(result, fileStatisticsFatherMap, fileStatisticsAllNode);
-      fileStatisticsFatherMap.forEach((item): void => {// @ts-ignore
+      fileStatisticsFatherMap.forEach((item): void => {
+        // @ts-ignore
         item.avgDuration = item.allDuration / item.count;
-        let node = this.getInitData(item);// @ts-ignore
-        if (item.type < 4) {// @ts-ignore
+        let node = this.getInitData(item); // @ts-ignore
+        if (item.type < 4) {
+          // @ts-ignore
           node.title = this.typeList[item.type];
-        } else {// @ts-ignore
+        } else {
+          // @ts-ignore
           node.title = item.type;
-        }// @ts-ignore
+        } // @ts-ignore
         fileStatisticsAllNode.children.push(node);
-      });// @ts-ignore
+      }); // @ts-ignore
       fileStatisticsAllNode.avgDuration = fileStatisticsAllNode.allDuration / fileStatisticsAllNode.count;
-      fileStatisticsAllNode = this.getInitData(fileStatisticsAllNode);// @ts-ignore
+      fileStatisticsAllNode = this.getInitData(fileStatisticsAllNode); // @ts-ignore
       fileStatisticsAllNode.title = 'All';
       this.fileStatisticsSource = result.length > 0 ? [fileStatisticsAllNode] : [];
       if (this.fileStatisticsSortType !== 0 && result.length > 0) {
@@ -162,62 +169,78 @@ export class TabPaneFileStatistics extends BaseElement {
     }
   }
 
-  private handleResult(result: Array<unknown>, fileStatisticsFatherMap: Map<unknown, unknown>, fileStatisticsAllNode: unknown): void {
-    result.forEach((item, idx): void => {// @ts-ignore
-      if (fileStatisticsFatherMap.has(item.type)) {// @ts-ignore
-        let fileStatisticsObj = fileStatisticsFatherMap.get(item.type);// @ts-ignore
-        fileStatisticsObj.count += item.count;// @ts-ignore
-        fileStatisticsObj.logicalReads += item.logicalReads;// @ts-ignore
-        fileStatisticsObj.logicalWrites += item.logicalWrites;// @ts-ignore
-        fileStatisticsObj.otherFile += item.otherFile;// @ts-ignore
-        fileStatisticsObj.allDuration += item.allDuration;// @ts-ignore
-        fileStatisticsObj.minDuration =// @ts-ignore
-          fileStatisticsObj.minDuration <= item.minDuration ? fileStatisticsObj.minDuration : item.minDuration;// @ts-ignore
-        fileStatisticsObj.maxDuration =// @ts-ignore
-          fileStatisticsObj.maxDuration >= item.maxDuration ? fileStatisticsObj.maxDuration : item.maxDuration;// @ts-ignore
+  private handleResult(
+    result: Array<unknown>,
+    fileStatisticsFatherMap: Map<unknown, unknown>,
+    fileStatisticsAllNode: unknown
+  ): void {
+    result.forEach((item, idx): void => {
+      // @ts-ignore
+      if (fileStatisticsFatherMap.has(item.type)) {
+        // @ts-ignore
+        let fileStatisticsObj = fileStatisticsFatherMap.get(item.type); // @ts-ignore
+        fileStatisticsObj.count += item.count; // @ts-ignore
+        fileStatisticsObj.logicalReads += item.logicalReads; // @ts-ignore
+        fileStatisticsObj.logicalWrites += item.logicalWrites; // @ts-ignore
+        fileStatisticsObj.otherFile += item.otherFile; // @ts-ignore
+        fileStatisticsObj.allDuration += item.allDuration; // @ts-ignore
+        fileStatisticsObj.minDuration = // @ts-ignore
+          fileStatisticsObj.minDuration <= item.minDuration ? fileStatisticsObj.minDuration : item.minDuration; // @ts-ignore
+        fileStatisticsObj.maxDuration = // @ts-ignore
+          fileStatisticsObj.maxDuration >= item.maxDuration ? fileStatisticsObj.maxDuration : item.maxDuration; // @ts-ignore
         fileStatisticsObj.children.push(this.getInitData(item));
-      } else {// @ts-ignore
-        fileStatisticsFatherMap.set(item.type, {// @ts-ignore
-          type: item.type,// @ts-ignore
-          count: item.count,// @ts-ignore
-          logicalReads: item.logicalReads,// @ts-ignore
-          logicalWrites: item.logicalWrites,// @ts-ignore
-          otherFile: item.otherFile,// @ts-ignore
-          allDuration: item.allDuration,// @ts-ignore
-          minDuration: item.minDuration,// @ts-ignore
-          maxDuration: item.maxDuration,// @ts-ignore
+      } else {
+        // @ts-ignore
+        fileStatisticsFatherMap.set(item.type, {
+          // @ts-ignore
+          type: item.type, // @ts-ignore
+          count: item.count, // @ts-ignore
+          logicalReads: item.logicalReads, // @ts-ignore
+          logicalWrites: item.logicalWrites, // @ts-ignore
+          otherFile: item.otherFile, // @ts-ignore
+          allDuration: item.allDuration, // @ts-ignore
+          minDuration: item.minDuration, // @ts-ignore
+          maxDuration: item.maxDuration, // @ts-ignore
           children: [this.getInitData(item)],
         });
       }
-      if (idx === 0) {// @ts-ignore
+      if (idx === 0) {
+        // @ts-ignore
         fileStatisticsAllNode.minDuration = item.minDuration;
-      } else {// @ts-ignore
-        fileStatisticsAllNode.minDuration =// @ts-ignore
+      } else {
+        // @ts-ignore
+        fileStatisticsAllNode.minDuration = // @ts-ignore
           fileStatisticsAllNode.minDuration <= item.minDuration ? fileStatisticsAllNode.minDuration : item.minDuration;
-      }// @ts-ignore
-      fileStatisticsAllNode.count += item.count;// @ts-ignore
-      fileStatisticsAllNode.logicalReads += item.logicalReads;// @ts-ignore
-      fileStatisticsAllNode.logicalWrites += item.logicalWrites;// @ts-ignore
-      fileStatisticsAllNode.otherFile += item.otherFile;// @ts-ignore
-      fileStatisticsAllNode.allDuration += item.allDuration;// @ts-ignore
-      fileStatisticsAllNode.maxDuration =// @ts-ignore
+      } // @ts-ignore
+      fileStatisticsAllNode.count += item.count; // @ts-ignore
+      fileStatisticsAllNode.logicalReads += item.logicalReads; // @ts-ignore
+      fileStatisticsAllNode.logicalWrites += item.logicalWrites; // @ts-ignore
+      fileStatisticsAllNode.otherFile += item.otherFile; // @ts-ignore
+      fileStatisticsAllNode.allDuration += item.allDuration; // @ts-ignore
+      fileStatisticsAllNode.maxDuration = // @ts-ignore
         fileStatisticsAllNode.maxDuration >= item.maxDuration ? fileStatisticsAllNode.maxDuration : item.maxDuration;
     });
   }
 
-  sortTable(fileStatisticsAllNode: unknown, key: string): void {// @ts-ignore
+  sortTable(fileStatisticsAllNode: unknown, key: string): void {
+    // @ts-ignore
     fileStatisticsAllNode.children.sort((fileStatisticsA: unknown, fileStatisticsB: unknown) => {
-      if (this.fileStatisticsSortType === 1) {// @ts-ignore
+      if (this.fileStatisticsSortType === 1) {
+        // @ts-ignore
         return fileStatisticsA.node[key] - fileStatisticsB.node[key];
-      } else if (this.fileStatisticsSortType === 2) {// @ts-ignore
+      } else if (this.fileStatisticsSortType === 2) {
+        // @ts-ignore
         return fileStatisticsB.node[key] - fileStatisticsA.node[key];
       }
-    });// @ts-ignore
-    fileStatisticsAllNode.children.forEach((item: unknown): void => {// @ts-ignore
+    }); // @ts-ignore
+    fileStatisticsAllNode.children.forEach((item: unknown): void => {
+      // @ts-ignore
       item.children.sort((fileStatisticsA: unknown, fileStatisticsB: unknown) => {
-        if (this.fileStatisticsSortType === 1) {// @ts-ignore
+        if (this.fileStatisticsSortType === 1) {
+          // @ts-ignore
           return fileStatisticsA.node[key] - fileStatisticsB.node[key];
-        } else if (this.fileStatisticsSortType === 2) {// @ts-ignore
+        } else if (this.fileStatisticsSortType === 2) {
+          // @ts-ignore
           return fileStatisticsB.node[key] - fileStatisticsA.node[key];
         }
       });

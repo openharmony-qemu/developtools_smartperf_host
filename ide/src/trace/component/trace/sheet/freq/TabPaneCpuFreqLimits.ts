@@ -49,7 +49,7 @@ export class TabPaneCpuFreqLimits extends BaseElement {
           it.dur = (cpuFreqLimitSelection.rightNs || 0) - (it.startNs || 0);
         }
       }
-        //@ts-ignore
+      //@ts-ignore
       this.formatData(res, cpuFreqLimitSelection.leftNs, cpuFreqLimitSelection.rightNs);
     });
   }
@@ -130,24 +130,29 @@ export class TabPaneCpuFreqLimits extends BaseElement {
   }
 
   compareTime(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
-    if (type === 1) {// @ts-ignore
+    if (type === 1) {
+      // @ts-ignore
       return cpuFreqLimitA.time - cpuFreqLimitB.time;
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       return cpuFreqLimitB.time - cpuFreqLimitA.time;
     }
   }
 
   compareValue(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
-    if (type === 1) {// @ts-ignore
+    if (type === 1) {
+      // @ts-ignore
       return cpuFreqLimitA.value - cpuFreqLimitB.value;
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       return cpuFreqLimitB.value - cpuFreqLimitA.value;
     }
   }
 
-  compareCpu(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {// @ts-ignore
+  compareCpu(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
+    // @ts-ignore
     if (cpuFreqLimitA.cpu > cpuFreqLimitB.cpu) {
-      return type === 2 ? -1 : 1;// @ts-ignore
+      return type === 2 ? -1 : 1; // @ts-ignore
     } else if (cpuFreqLimitA.cpu === cpuFreqLimitB.cpu) {
       return 0;
     } else {
@@ -155,9 +160,10 @@ export class TabPaneCpuFreqLimits extends BaseElement {
     }
   }
 
-  compareType(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {// @ts-ignore
+  compareType(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
+    // @ts-ignore
     if (cpuFreqLimitA.type > cpuFreqLimitB.type) {
-      return type === 2 ? 1 : -1;// @ts-ignore
+      return type === 2 ? 1 : -1; // @ts-ignore
     } else if (cpuFreqLimitA.type === cpuFreqLimitB.type) {
       return 0;
     } else {

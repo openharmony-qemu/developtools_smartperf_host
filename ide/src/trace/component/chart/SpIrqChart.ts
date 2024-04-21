@@ -65,18 +65,19 @@ export class SpIrqChart {
     traceRow.rowId = it.name + it.cpu;
     traceRow.rowType = TraceRow.ROW_TYPE_IRQ;
     traceRow.rowParentId = folder.rowId;
-    traceRow.style.height = '40px';//@ts-ignore
+    traceRow.style.height = '40px'; //@ts-ignore
     traceRow.name = `${it.name} Cpu ${it.cpu}`;
     traceRow.rowHidden = !folder.expansion;
-    traceRow.setAttribute('children', '');//@ts-ignore
-    traceRow.setAttribute('callId', `${it.cpu}`);//@ts-ignore
+    traceRow.setAttribute('children', ''); //@ts-ignore
+    traceRow.setAttribute('callId', `${it.cpu}`); //@ts-ignore
     traceRow.setAttribute('cat', `${it.name}`);
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    traceRow.supplierFrame = (): Promise<IrqStruct[]> => {//@ts-ignore
+    traceRow.supplierFrame = (): Promise<IrqStruct[]> => {
+      //@ts-ignore
       return irqDataSender(it.cpu, it.name, traceRow).then((irqs) => {
         irqs.forEach((irq): void => {
-          let irqData = this.irqNameMap.get(irq.id!);//@ts-ignore
+          let irqData = this.irqNameMap.get(irq.id!); //@ts-ignore
           irq.name = (it.name === 'irq' ? irqData?.ipiName : irqData?.name) || '';
         });
         return irqs;
@@ -95,7 +96,8 @@ export class SpIrqChart {
     traceRow.onThreadHandler = rowThreadHandler<IrqRender>(
       'irq',
       'context',
-      {//@ts-ignore
+      {
+        //@ts-ignore
         type: it.name,
         index: index,
       },
@@ -116,11 +118,12 @@ export class SpIrqChart {
     irqFolder.folder = true;
     irqFolder.name = 'Irs'; /* & I/O Latency */
     irqFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    irqFolder.selectChangeHandler = this.trace.selectChangeHandler;//@ts-ignore
+    irqFolder.selectChangeHandler = this.trace.selectChangeHandler; //@ts-ignore
     irqFolder.supplier = (): Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve) => resolve([]));
     irqFolder.onThreadHandler = (useCache): void => {
       irqFolder.canvasSave(this.trace.canvasPanelCtx!);
-      if (irqFolder.expansion) {// @ts-ignore
+      if (irqFolder.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, irqFolder.frame.width, irqFolder.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(

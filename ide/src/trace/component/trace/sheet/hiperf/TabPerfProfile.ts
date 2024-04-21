@@ -94,7 +94,7 @@ export class TabpanePerfProfile extends BaseElement {
     if (perfProfilerSelection === this.currentSelection && !this.currentSelection?.isRowClick) {
       return;
     }
-    this.searchValue = '';// @ts-ignore
+    this.searchValue = ''; // @ts-ignore
     this.currentSelection = perfProfilerSelection;
     this.currentRowClickData = this._rowClickData;
     this.perfProfilerTbl!.style.visibility = 'visible';
@@ -107,8 +107,8 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfilerFilter!.disabledTransfer(true);
     this.perfProfilerFilter!.initializeFilterTree(true, true, true);
     this.perfProfilerFilter!.filterValue = '';
-    this.perfProfileProgressEL!.loading = true;// @ts-ignore
-    this.perfProfileLoadingPage.style.visibility = 'visible';// @ts-ignore
+    this.perfProfileProgressEL!.loading = true; // @ts-ignore
+    this.perfProfileLoadingPage.style.visibility = 'visible'; // @ts-ignore
     this.getDataByWorkAndUpDateCanvas(perfProfilerSelection);
   }
 
@@ -127,7 +127,11 @@ export class TabpanePerfProfile extends BaseElement {
     }
   }
 
-  initGetData(perfProfilerSelection: SelectionParam | unknown, initWidth: number, eventTypeId: undefined | number): void {
+  initGetData(
+    perfProfilerSelection: SelectionParam | unknown,
+    initWidth: number,
+    eventTypeId: undefined | number
+  ): void {
     let perfProfileArgs: unknown[] = [];
     perfProfileArgs.push(
       {
@@ -148,7 +152,7 @@ export class TabpanePerfProfile extends BaseElement {
       } else {
         this.perfProfileFrameChart!.mode = ChartMode.EventCount;
       }
-      this.perfProfileFrameChart?.updateCanvas(true, initWidth);// @ts-ignore
+      this.perfProfileFrameChart?.updateCanvas(true, initWidth); // @ts-ignore
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       this.switchFlameChart();
       this.perfProfilerFilter!.icon = 'block';
@@ -168,9 +172,10 @@ export class TabpanePerfProfile extends BaseElement {
    */
   private getDataByPieLevel(eventTypeId: number | undefined): void {
     this.perfLevel = new PerfLevelStruct();
-    this.perfLevel = {// @ts-ignore
-      processId: this._rowClickData.pid,// @ts-ignore
-      threadId: this._rowClickData.tid,// @ts-ignore
+    this.perfLevel = {
+      // @ts-ignore
+      processId: this._rowClickData.pid, // @ts-ignore
+      threadId: this._rowClickData.tid, // @ts-ignore
       libId: this._rowClickData.libId,
     };
     let args = [];
@@ -178,15 +183,17 @@ export class TabpanePerfProfile extends BaseElement {
       funcName: 'getCurrentDataFromDb',
       funcArgs: [this.currentSelection, this.perfLevel],
     });
-// @ts-ignore
-    if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentLevel === 2) {// @ts-ignore
+    // @ts-ignore
+    if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentLevel === 2) {
+      // @ts-ignore
       this.perfLevel!.libName = this._rowClickData.tableName;
       args.push({
         funcName: 'showLibLevelData',
         funcArgs: [this.perfLevel!.libId, this.perfLevel!.libName],
-      });// @ts-ignore
-    } else if (this._rowClickData && this._rowClickData.symbolId !== undefined && this._currentLevel === 3) {// @ts-ignore
-      this.perfLevel!.symbolId = this._rowClickData.symbolId;// @ts-ignore
+      }); // @ts-ignore
+    } else if (this._rowClickData && this._rowClickData.symbolId !== undefined && this._currentLevel === 3) {
+      // @ts-ignore
+      this.perfLevel!.symbolId = this._rowClickData.symbolId; // @ts-ignore
       this.perfLevel!.symbolName = this._rowClickData.tableName;
       args.push({
         funcName: 'showFunLevelData',
@@ -195,7 +202,7 @@ export class TabpanePerfProfile extends BaseElement {
     }
 
     this.getDataByWorker(args, (results: unknown[]) => {
-      this.perfProfileProgressEL!.loading = false;// @ts-ignore
+      this.perfProfileProgressEL!.loading = false; // @ts-ignore
       this.perfProfileLoadingPage.style.visibility = 'hidden';
       this.setPerfProfilerLeftTableData(results);
       this.perfProfilerList!.recycleDataSource = [];
@@ -204,7 +211,7 @@ export class TabpanePerfProfile extends BaseElement {
       } else {
         this.perfProfileFrameChart!.mode = ChartMode.EventCount;
       }
-      this.perfProfileFrameChart?.updateCanvas(true, this.initWidth);// @ts-ignore
+      this.perfProfileFrameChart?.updateCanvas(true, this.initWidth); // @ts-ignore
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       this.switchFlameChart();
       this.perfProfilerFilter!.icon = 'block';
@@ -251,7 +258,7 @@ export class TabpanePerfProfile extends BaseElement {
 
   setRightTableData(chainMerageData: PerfCallChainMerageData): void {
     let parentsMerageData: Array<PerfCallChainMerageData> = [];
-    let childrenMerageData: Array<PerfCallChainMerageData> = [];// @ts-ignore
+    let childrenMerageData: Array<PerfCallChainMerageData> = []; // @ts-ignore
     this.getParentTree(this.perfProfilerDataSource, chainMerageData, parentsMerageData);
     let maxId = chainMerageData.id;
     let maxDur = 0;
@@ -329,7 +336,7 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfilerList!.addEventListener('row-click', (evt: unknown): void => {
       // @ts-ignore
       let data = evt.detail.data as PerfCallChainMerageData;
-      this.perfProfilerTbl?.clearAllSelection(data);// @ts-ignore
+      this.perfProfilerTbl?.clearAllSelection(data); // @ts-ignore
       (data as unknown).isSelected = true;
       this.perfProfilerTbl!.scrollToData(data);
       // @ts-ignore
@@ -349,20 +356,21 @@ export class TabpanePerfProfile extends BaseElement {
       // @ts-ignore
       this.perfProfileSortType = evt.detail.sort;
       // @ts-ignore
-      this.setPerfProfilerLeftTableData(this.perfProfilerDataSource);// @ts-ignore
+      this.setPerfProfilerLeftTableData(this.perfProfilerDataSource); // @ts-ignore
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
     });
   }
 
-  private filterFuncByCheckType(data: unknown, perfProfileFuncArgs: unknown[]): void {// @ts-ignore
+  private filterFuncByCheckType(data: unknown, perfProfileFuncArgs: unknown[]): void {
+    // @ts-ignore
     if (data.item.checked) {
       perfProfileFuncArgs.push({
-        funcName: 'splitTree',// @ts-ignore
+        funcName: 'splitTree', // @ts-ignore
         funcArgs: [data.item.name, data.item.select === '0', data.item.type === 'symbol'],
       });
     } else {
       perfProfileFuncArgs.push({
-        funcName: 'resotreAllNode',// @ts-ignore
+        funcName: 'resotreAllNode', // @ts-ignore
         funcArgs: [[data.item.name]],
       });
       perfProfileFuncArgs.push({
@@ -370,7 +378,7 @@ export class TabpanePerfProfile extends BaseElement {
         funcArgs: [],
       });
       perfProfileFuncArgs.push({
-        funcName: 'clearSplitMapData',// @ts-ignore
+        funcName: 'clearSplitMapData', // @ts-ignore
         funcArgs: [data.item.name],
       });
     }
@@ -378,49 +386,57 @@ export class TabpanePerfProfile extends BaseElement {
 
   private filterFuncBySelect(data: unknown, perfProfileFuncArgs: unknown[]): void {
     perfProfileFuncArgs.push({
-      funcName: 'resotreAllNode',// @ts-ignore
+      funcName: 'resotreAllNode', // @ts-ignore
       funcArgs: [[data.item.name]],
     });
     perfProfileFuncArgs.push({
-      funcName: 'clearSplitMapData',// @ts-ignore
+      funcName: 'clearSplitMapData', // @ts-ignore
       funcArgs: [data.item.name],
     });
     perfProfileFuncArgs.push({
-      funcName: 'splitTree',// @ts-ignore
+      funcName: 'splitTree', // @ts-ignore
       funcArgs: [data.item.name, data.item.select === '0', data.item.type === 'symbol'],
     });
   }
 
-  private filterFuncByButton(data: unknown, perfProfileFuncArgs: unknown[]): void {// @ts-ignore
-    if (data.item === 'symbol') {// @ts-ignore
+  private filterFuncByButton(data: unknown, perfProfileFuncArgs: unknown[]): void {
+    // @ts-ignore
+    if (data.item === 'symbol') {
+      // @ts-ignore
       if (this.perfSelectedData && !this.perfSelectedData.canCharge) {
         return;
       }
-      if (this.perfSelectedData !== undefined) {// @ts-ignore
+      if (this.perfSelectedData !== undefined) {
+        // @ts-ignore
         this.perfProfilerFilter!.addDataMining({ name: this.perfSelectedData.symbolName }, data.item);
         perfProfileFuncArgs.push({
-          funcName: 'splitTree',// @ts-ignore
+          funcName: 'splitTree', // @ts-ignore
           funcArgs: [this.perfSelectedData.symbolName, false, true],
         });
       } else {
         return;
-      }// @ts-ignore
-    } else if (data.item === 'library') {// @ts-ignore
+      } // @ts-ignore
+    } else if (data.item === 'library') {
+      // @ts-ignore
       if (this.perfSelectedData && !this.perfSelectedData.canCharge) {
         return;
-      }// @ts-ignore
-      if (this.perfSelectedData !== undefined && this.perfSelectedData.libName !== '') {// @ts-ignore
+      } // @ts-ignore
+      if (this.perfSelectedData !== undefined && this.perfSelectedData.libName !== '') {
+        // @ts-ignore
         this.perfProfilerFilter!.addDataMining({ name: this.perfSelectedData.libName }, data.item);
         perfProfileFuncArgs.push({
-          funcName: 'splitTree',// @ts-ignore
+          funcName: 'splitTree', // @ts-ignore
           funcArgs: [this.perfSelectedData.libName, false, false],
         });
       } else {
         return;
-      }// @ts-ignore
-    } else if (data.item === 'restore') {// @ts-ignore
-      if (data.remove !== undefined && data.remove.length > 0) {// @ts-ignore
-        let list = data.remove.map((item: unknown) => {// @ts-ignore
+      } // @ts-ignore
+    } else if (data.item === 'restore') {
+      // @ts-ignore
+      if (data.remove !== undefined && data.remove.length > 0) {
+        // @ts-ignore
+        let list = data.remove.map((item: unknown) => {
+          // @ts-ignore
           return item.name;
         });
         perfProfileFuncArgs.push({
@@ -442,22 +458,23 @@ export class TabpanePerfProfile extends BaseElement {
   }
 
   private filterFunc(data: unknown): void {
-    let perfProfileFuncArgs: unknown[] = [];// @ts-ignore
+    let perfProfileFuncArgs: unknown[] = []; // @ts-ignore
     if (data.type === 'check') {
-      this.filterFuncByCheckType(data, perfProfileFuncArgs);// @ts-ignore
+      this.filterFuncByCheckType(data, perfProfileFuncArgs); // @ts-ignore
     } else if (data.type === 'select') {
-      this.filterFuncBySelect(data, perfProfileFuncArgs);// @ts-ignore
+      this.filterFuncBySelect(data, perfProfileFuncArgs); // @ts-ignore
     } else if (data.type === 'button') {
       this.filterFuncByButton(data, perfProfileFuncArgs);
     }
     this.getDataByWorker(perfProfileFuncArgs, (result: unknown[]): void => {
-      this.setPerfProfilerLeftTableData(result);// @ts-ignore
+      this.setPerfProfilerLeftTableData(result); // @ts-ignore
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       if (this.isChartShow) {
         this.perfProfileFrameChart?.calculateChartData();
       }
       this.perfProfilerTbl!.move1px();
-      if (this.perfSelectedData) {// @ts-ignore
+      if (this.perfSelectedData) {
+        // @ts-ignore
         this.perfSelectedData.isSelected = false;
         this.perfProfilerTbl?.clearAllSelection(this.perfSelectedData);
         this.perfProfilerList!.recycleDataSource = [];
@@ -484,7 +501,7 @@ export class TabpanePerfProfile extends BaseElement {
       this.getDataByWorker(perfArgs, (result: unknown[]): void => {
         this.perfProfilerTbl!.isSearch = true;
         this.perfProfilerTbl!.setStatus(result, true);
-        this.setPerfProfilerLeftTableData(result);// @ts-ignore
+        this.setPerfProfilerLeftTableData(result); // @ts-ignore
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
         this.switchFlameChart(data);
       });
@@ -505,10 +522,10 @@ export class TabpanePerfProfile extends BaseElement {
         funcName: 'clearSplitMapData',
         funcArgs: [this.perfProfileNumRuleName],
       },
-    ];// @ts-ignore
+    ]; // @ts-ignore
     if (data.checked) {
       perfProfilerConstraintsArgs.push({
-        funcName: 'hideNumMaxAndMin',// @ts-ignore
+        funcName: 'hideNumMaxAndMin', // @ts-ignore
         funcArgs: [parseInt(data.min), data.max],
       });
     }
@@ -517,7 +534,7 @@ export class TabpanePerfProfile extends BaseElement {
       funcArgs: [],
     });
     this.getDataByWorker(perfProfilerConstraintsArgs, (result: unknown[]): void => {
-      this.setPerfProfilerLeftTableData(result);// @ts-ignore
+      this.setPerfProfilerLeftTableData(result); // @ts-ignore
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       if (this.isChartShow) {
         this.perfProfileFrameChart?.calculateChartData();
@@ -525,14 +542,15 @@ export class TabpanePerfProfile extends BaseElement {
     });
   }
 
-  private perfProfilerFilterGetCallTree(data: unknown): void {// @ts-ignore
+  private perfProfilerFilterGetCallTree(data: unknown): void {
+    // @ts-ignore
     if (callTreeValueNoSample.includes(data.value)) {
       this.refreshAllNode({
-        ...this.perfProfilerFilter!.getFilterTreeData(),// @ts-ignore
+        ...this.perfProfilerFilter!.getFilterTreeData(), // @ts-ignore
         callTree: data.checks,
       });
     } else {
-      let perfProfileArgs: unknown[] = [];// @ts-ignore
+      let perfProfileArgs: unknown[] = []; // @ts-ignore
       if (data.checks[1]) {
         perfProfileArgs.push({
           funcName: 'hideSystemLibrary',
@@ -553,7 +571,7 @@ export class TabpanePerfProfile extends BaseElement {
         funcArgs: [],
       });
       this.getDataByWorker(perfProfileArgs, (result: unknown[]): void => {
-        this.setPerfProfilerLeftTableData(result);// @ts-ignore
+        this.setPerfProfilerLeftTableData(result); // @ts-ignore
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
         if (this.isChartShow) {
           this.perfProfileFrameChart?.calculateChartData();
@@ -599,7 +617,7 @@ export class TabpanePerfProfile extends BaseElement {
         this.perfProfilerList?.shadowRoot.querySelector('.table').style.height =
           // @ts-ignore
           `${this.parentElement.clientHeight - 45 - 21 - headLineHeight}px`;
-        this.perfProfilerList?.reMeauseHeight();// @ts-ignore
+        this.perfProfilerList?.reMeauseHeight(); // @ts-ignore
         this.perfProfileLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
@@ -607,14 +625,14 @@ export class TabpanePerfProfile extends BaseElement {
 
   switchFlameChart(data?: unknown): void {
     let perfProfilerPageTab = this.shadowRoot?.querySelector('#show_table');
-    let perfProfilerPageChart = this.shadowRoot?.querySelector('#show_chart');// @ts-ignore
+    let perfProfilerPageChart = this.shadowRoot?.querySelector('#show_chart'); // @ts-ignore
     if (!data || data.icon === 'block') {
       perfProfilerPageChart?.setAttribute('class', 'show');
       perfProfilerPageTab?.setAttribute('class', '');
       this.isChartShow = true;
       this.perfProfilerFilter!.disabledMining = true;
       showButtonMenu(this.perfProfilerFilter, this.needShowMenu);
-      this.perfProfileFrameChart?.calculateChartData();// @ts-ignore
+      this.perfProfileFrameChart?.calculateChartData(); // @ts-ignore
     } else if (data.icon === 'tree') {
       perfProfilerPageChart?.setAttribute('class', '');
       perfProfilerPageTab?.setAttribute('class', 'show');
@@ -627,11 +645,11 @@ export class TabpanePerfProfile extends BaseElement {
   }
 
   refreshAllNode(filterData: unknown): void {
-    let perfProfileArgs: unknown[] = [];// @ts-ignore
-    let isTopDown: boolean = !filterData.callTree[0];// @ts-ignore
-    let isHideSystemLibrary: boolean = filterData.callTree[1];// @ts-ignore
-    let isHideThread: boolean = filterData.callTree[3];// @ts-ignore
-    let isHideThreadState: boolean = filterData.callTree[4];// @ts-ignore
+    let perfProfileArgs: unknown[] = []; // @ts-ignore
+    let isTopDown: boolean = !filterData.callTree[0]; // @ts-ignore
+    let isHideSystemLibrary: boolean = filterData.callTree[1]; // @ts-ignore
+    let isHideThread: boolean = filterData.callTree[3]; // @ts-ignore
+    let isHideThreadState: boolean = filterData.callTree[4]; // @ts-ignore
     let list = filterData.dataMining.concat(filterData.dataLibrary);
     perfProfileArgs.push({
       funcName: 'hideThread',
@@ -652,10 +670,10 @@ export class TabpanePerfProfile extends BaseElement {
         funcName: 'hideSystemLibrary',
         funcArgs: [],
       });
-    }// @ts-ignore
+    } // @ts-ignore
     if (filterData.callTreeConstraints.checked) {
       perfProfileArgs.push({
-        funcName: 'hideNumMaxAndMin',// @ts-ignore
+        funcName: 'hideNumMaxAndMin', // @ts-ignore
         funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]],
       });
     }
@@ -670,12 +688,13 @@ export class TabpanePerfProfile extends BaseElement {
     this.refreshAllNodeExtend(perfProfileArgs);
   }
 
-  refreshAllNodeExtend(perfProfileArgs: unknown[]): void {// @ts-ignore
+  refreshAllNodeExtend(perfProfileArgs: unknown[]): void {
+    // @ts-ignore
     if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentLevel === 2) {
       perfProfileArgs.push({
         funcName: 'showLibLevelData',
         funcArgs: [this.perfLevel!.libId, this.perfLevel!.libName],
-      });// @ts-ignore
+      }); // @ts-ignore
     } else if (this._rowClickData && this._rowClickData.symbolId && this._currentLevel === 3) {
       perfProfileArgs.push({
         funcName: 'showFunLevelData',
@@ -683,7 +702,7 @@ export class TabpanePerfProfile extends BaseElement {
       });
     }
     this.getDataByWorker(perfProfileArgs, (result: unknown[]): void => {
-      this.setPerfProfilerLeftTableData(result);// @ts-ignore
+      this.setPerfProfilerLeftTableData(result); // @ts-ignore
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       if (this.isChartShow) {
         this.perfProfileFrameChart?.calculateChartData();
@@ -699,35 +718,42 @@ export class TabpanePerfProfile extends BaseElement {
   sortTree(arr: Array<unknown>): Array<unknown> {
     let perfProfileSortArr = arr.sort((perfProfileA, perfProfileB): number => {
       if (this.perfProfileSortKey === 'selfDur') {
-        if (this.perfProfileSortType === 0) {// @ts-ignore
+        if (this.perfProfileSortType === 0) {
+          // @ts-ignore
           return perfProfileB.dur - perfProfileA.dur;
-        } else if (this.perfProfileSortType === 1) {// @ts-ignore
+        } else if (this.perfProfileSortType === 1) {
+          // @ts-ignore
           return perfProfileA.selfDur - perfProfileB.selfDur;
-        } else {// @ts-ignore
+        } else {
+          // @ts-ignore
           return perfProfileB.selfDur - perfProfileA.selfDur;
         }
       } else {
-        if (this.perfProfileSortType === 0) {// @ts-ignore
+        if (this.perfProfileSortType === 0) {
+          // @ts-ignore
           return perfProfileB.dur - perfProfileA.dur;
-        } else if (this.perfProfileSortType === 1) {// @ts-ignore
+        } else if (this.perfProfileSortType === 1) {
+          // @ts-ignore
           return perfProfileA.dur - perfProfileB.dur;
-        } else {// @ts-ignore
+        } else {
+          // @ts-ignore
           return perfProfileB.dur - perfProfileA.dur;
         }
       }
     });
-    perfProfileSortArr.map((call: unknown): void => {// @ts-ignore
+    perfProfileSortArr.map((call: unknown): void => {
+      // @ts-ignore
       call.children = this.sortTree(call.children);
     });
     return perfProfileSortArr;
   }
 
   getDataByWorker(args: unknown[], handler: Function): void {
-    this.perfProfileProgressEL!.loading = true;// @ts-ignore
+    this.perfProfileProgressEL!.loading = true; // @ts-ignore
     this.perfProfileLoadingPage.style.visibility = 'visible';
     procedurePool.submitWithName('logic0', 'perf-action', args, undefined, (results: unknown): void => {
       handler(results);
-      this.perfProfileProgressEL!.loading = false;// @ts-ignore
+      this.perfProfileProgressEL!.loading = false; // @ts-ignore
       this.perfProfileLoadingPage.style.visibility = 'hidden';
     });
   }

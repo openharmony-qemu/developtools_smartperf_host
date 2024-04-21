@@ -35,18 +35,18 @@ public:
     static void Sort();
     void Print();
     void Init();
-    bool Merge(IndexMap* other);
-    void FilterId(unsigned char op, sqlite3_value* argv);
-    void FilterTS(unsigned char op, sqlite3_value* argv, const std::deque<InternalTime>& times);
+    bool Merge(IndexMap *other);
+    void FilterId(unsigned char op, sqlite3_value *argv);
+    void FilterTS(unsigned char op, sqlite3_value *argv, const std::deque<InternalTime> &times);
     template <class T>
-    void ProcessData(const std::deque<T>& dataQueue,
+    void ProcessData(const std::deque<T> &dataQueue,
                      bool remove,
                      std::function<bool(TableRowId)> firstCheck,
                      std::function<bool(TableRowId)> scondCheck)
     {
         if (remove) {
             bool changed = false;
-            for (const auto& val : rowIndex_) {
+            for (const auto &val : rowIndex_) {
                 if (!firstCheck(val)) {
                     changed = true;
                     rowIndexBak_.push_back(val);
@@ -65,7 +65,7 @@ public:
         indexType_ = INDEX_TYPE_OUTER_INDEX;
         FixSize();
     }
-    void PrepMixRange(bool& remove)
+    void PrepMixRange(bool &remove)
     {
         filters_++;
         if (HasData()) {
@@ -75,7 +75,7 @@ public:
         rowIndexBak_.clear();
     }
     template <class T>
-    void MixRange(unsigned char op, T value, const std::deque<T>& dataQueue)
+    void MixRange(unsigned char op, T value, const std::deque<T> &dataQueue)
     {
         auto invalidValue = std::numeric_limits<T>::max();
         bool remove = false;
@@ -157,8 +157,8 @@ public:
     void Intersect(TableRowId start, TableRowId end);
 
     // the follow functions require that thecolData is sotred
-    template <typename Row, typename Val, typename GetV = const Val&(const Row&)>
-    void IntersectabcEqual(const std::deque<Row>& rows, Val v, GetV getValue)
+    template <typename Row, typename Val, typename GetV = const Val &(const Row &)>
+    void IntersectabcEqual(const std::deque<Row> &rows, Val v, GetV getValue)
     {
         auto start = std::lower_bound(rows.begin() + start_, rows.begin() + end_, v);
         auto end = std::upper_bound(start, rows.begin() + end_, v);
@@ -168,27 +168,27 @@ public:
         return;
     }
 
-    template <typename Row, typename Val, typename GetV = const Val&(const Row&)>
-    void IntersectGreaterEqual(const std::deque<Row>& rows, Val v, GetV getValue)
+    template <typename Row, typename Val, typename GetV = const Val &(const Row &)>
+    void IntersectGreaterEqual(const std::deque<Row> &rows, Val v, GetV getValue)
     {
         auto start = std::lower_bound(rows.begin() + start_, rows.begin() + end_, v,
-                                      [&](const Row& row, const Val& v) { return v > getValue(row); });
+                                      [&](const Row &row, const Val &v) { return v > getValue(row); });
         auto newStart = std::distance(rows.begin(), start);
         Intersect(newStart, INVALID_INT32);
         return;
     }
 
-    template <typename Row, typename Val, typename GetV = const Val&(const Row&)>
-    void IntersectLessEqual(const std::deque<Row>& rows, Val v, GetV getValue)
+    template <typename Row, typename Val, typename GetV = const Val &(const Row &)>
+    void IntersectLessEqual(const std::deque<Row> &rows, Val v, GetV getValue)
     {
         auto end = std::upper_bound(rows.begin() + start_, rows.begin() + end_, v,
-                                    [&](const Row& row, const Val& v) { return v > getValue(row); });
+                                    [&](const Row &row, const Val &v) { return v > getValue(row); });
         auto newEnd = std::distance(rows.begin(), end);
         Intersect(0, newEnd);
         return;
     }
     template <typename T>
-    void RemoveNullElements(const std::deque<T>& rows, T v)
+    void RemoveNullElements(const std::deque<T> &rows, T v)
     {
         auto invalidValue = std::numeric_limits<T>::max();
         bool remove = false;
@@ -223,7 +223,7 @@ public:
     std::vector<TableRowId> rowIndexBak_ = {};
 
 private:
-    bool MergeIndexTypeId(IndexMap* other);
+    bool MergeIndexTypeId(IndexMap *other);
 
 private:
     TableRowId end_ = INVALID_INT32;

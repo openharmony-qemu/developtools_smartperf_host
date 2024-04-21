@@ -256,7 +256,12 @@ export class TabPaneSystemDetails extends BaseElement {
     return resultData;
   }
 
-  getSysDataExtend(rightNs: number, watchIndex: Array<string>, filterData: unknown, lifeCycleData: unknown[]): unknown[] {
+  getSysDataExtend(
+    rightNs: number,
+    watchIndex: Array<string>,
+    filterData: unknown,
+    lifeCycleData: unknown[]
+  ): unknown[] {
     // @ts-ignore
     let number = watchIndex.indexOf(filterData.workId);
     if (number > -1) {

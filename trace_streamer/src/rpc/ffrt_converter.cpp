@@ -16,7 +16,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-bool FfrtConverter::RecoverTraceAndGenerateNewFile(const std::string& ffrtFileName, std::ofstream& outFile)
+bool FfrtConverter::RecoverTraceAndGenerateNewFile(const std::string &ffrtFileName, std::ofstream &outFile)
 {
     std::ifstream ffrtFile(ffrtFileName);
     if (!ffrtFile.is_open() || !outFile.is_open()) {
@@ -31,12 +31,12 @@ bool FfrtConverter::RecoverTraceAndGenerateNewFile(const std::string& ffrtFileNa
     CheckTraceMarker(lines);
     TypeFfrtPid result = ClassifyLogsForFfrtWorker(lines);
     ConvertFfrtThreadToFfrtTask(lines, result);
-    for (const std::string& lineergodic : lines) {
+    for (const std::string &lineergodic : lines) {
         outFile << lineergodic << std::endl;
     }
     return true;
 }
-void FfrtConverter::CheckTraceMarker(vector<std::string>& lines)
+void FfrtConverter::CheckTraceMarker(vector<std::string> &lines)
 {
     for (auto line : lines) {
         if (line.find(" tracing_mark_write: ") != std::string::npos) {
@@ -49,7 +49,7 @@ void FfrtConverter::CheckTraceMarker(vector<std::string>& lines)
         }
     }
 }
-int FfrtConverter::ExtractProcessId(const std::string& log)
+int FfrtConverter::ExtractProcessId(const std::string &log)
 {
     std::smatch match;
     static const std::regex pidPattern = std::regex(R"(\(\s*\d+\) \[)");
@@ -67,7 +67,7 @@ int FfrtConverter::ExtractProcessId(const std::string& log)
     }
 }
 
-std::string FfrtConverter::ExtractTimeStr(const std::string& log)
+std::string FfrtConverter::ExtractTimeStr(const std::string &log)
 {
     std::smatch match;
     static const std::regex timePattern = std::regex(R"( (\d+)\.(\d+):)");
@@ -78,7 +78,7 @@ std::string FfrtConverter::ExtractTimeStr(const std::string& log)
     }
 }
 
-std::string FfrtConverter::ExtractCpuId(const std::string& log)
+std::string FfrtConverter::ExtractCpuId(const std::string &log)
 {
     std::smatch match;
     static const std::regex cpuIdPattern = std::regex(R"(\) \[.*?\])");
@@ -91,12 +91,12 @@ std::string FfrtConverter::ExtractCpuId(const std::string& log)
     }
 }
 
-std::string FfrtConverter::MakeBeginFakeLog(const std::string& mark,
+std::string FfrtConverter::MakeBeginFakeLog(const std::string &mark,
                                             const int pid,
-                                            const std::string& label,
+                                            const std::string &label,
                                             const long long gid,
                                             const int tid,
-                                            const std::string& threadName,
+                                            const std::string &threadName,
                                             const int prio)
 {
     auto beginTimeStamp = ExtractTimeStr(mark);
@@ -112,12 +112,12 @@ std::string FfrtConverter::MakeBeginFakeLog(const std::string& mark,
     return mark + result.get();
 }
 
-std::string FfrtConverter::MakeEndFakeLog(const std::string& mark,
+std::string FfrtConverter::MakeEndFakeLog(const std::string &mark,
                                           const int pid,
-                                          const std::string& label,
+                                          const std::string &label,
                                           const long long gid,
                                           const int tid,
-                                          const std::string& threadName,
+                                          const std::string &threadName,
                                           const int prio)
 {
     auto endTimeStamp = ExtractTimeStr(mark);
@@ -135,10 +135,10 @@ std::string FfrtConverter::MakeEndFakeLog(const std::string& mark,
     return fakeLog;
 }
 
-std::string FfrtConverter::ReplaceSchedSwitchLog(std::string& fakeLog,
-                                                 const std::string& mark,
+std::string FfrtConverter::ReplaceSchedSwitchLog(std::string &fakeLog,
+                                                 const std::string &mark,
                                                  const int pid,
-                                                 const std::string& label,
+                                                 const std::string &label,
                                                  const long long gid,
                                                  const int tid)
 {
@@ -176,8 +176,8 @@ std::string FfrtConverter::ReplaceSchedSwitchLog(std::string& fakeLog,
     return fakeLog;
 }
 
-std::string FfrtConverter::ReplaceSchedWakeLog(std::string& fakeLog,
-                                               const std::string& label,
+std::string FfrtConverter::ReplaceSchedWakeLog(std::string &fakeLog,
+                                               const std::string &label,
                                                const int pid,
                                                const long long gid)
 {
@@ -195,7 +195,7 @@ std::string FfrtConverter::ReplaceSchedWakeLog(std::string& fakeLog,
     return fakeLog;
 }
 
-std::string FfrtConverter::ReplaceSchedBlockLog(std::string& fakeLog, const int pid, const long long gid)
+std::string FfrtConverter::ReplaceSchedBlockLog(std::string &fakeLog, const int pid, const long long gid)
 {
     std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
     auto taskId = GetTaskId(pid, gid);
@@ -205,8 +205,8 @@ std::string FfrtConverter::ReplaceSchedBlockLog(std::string& fakeLog, const int 
     fakeLog = fakeLog.substr(0, pidPos) + result.get() + fakeLog.substr(ioPos);
     return fakeLog;
 }
-std::string FfrtConverter::ReplaceTracingMarkLog(std::string& fakeLog,
-                                                 const std::string& label,
+std::string FfrtConverter::ReplaceTracingMarkLog(std::string &fakeLog,
+                                                 const std::string &label,
                                                  const int pid,
                                                  const long long gid)
 {
@@ -220,9 +220,9 @@ std::string FfrtConverter::ReplaceTracingMarkLog(std::string& fakeLog,
     }
     return fakeLog;
 }
-std::string FfrtConverter::ConvertWorkerLogToTask(const std::string& mark,
+std::string FfrtConverter::ConvertWorkerLogToTask(const std::string &mark,
                                                   const int pid,
-                                                  const std::string& label,
+                                                  const std::string &label,
                                                   const long long gid,
                                                   const int tid)
 {
@@ -238,7 +238,7 @@ std::string FfrtConverter::ConvertWorkerLogToTask(const std::string& mark,
     }
     return ReplaceTracingMarkLog(fakeLog, label, pid, gid);
 }
-int FfrtConverter::FindTid(std::string& log)
+int FfrtConverter::FindTid(std::string &log)
 {
     std::string index = "prev_pid=";
     auto beginPos = log.find(index);
@@ -248,10 +248,10 @@ int FfrtConverter::FindTid(std::string& log)
     return tid;
 }
 
-void FfrtConverter::ClassifySchedSwitchLogs(std::string& log,
+void FfrtConverter::ClassifySchedSwitchLogs(std::string &log,
                                             size_t line,
-                                            std::unordered_map<int, std::vector<int>>& traceMap,
-                                            FfrtConverter::TypeFfrtPid& ffrtPidsMap)
+                                            std::unordered_map<int, std::vector<int>> &traceMap,
+                                            FfrtConverter::TypeFfrtPid &ffrtPidsMap)
 {
     if (log.find("prev_comm=ffrt") != std::string::npos || log.find("prev_comm=OS_FFRT") != std::string::npos) {
         auto pid = ExtractProcessId(log);
@@ -283,10 +283,10 @@ void FfrtConverter::ClassifySchedSwitchLogs(std::string& log,
     traceMap[nextTid].push_back(line);
     return;
 }
-void FfrtConverter::FindFfrtProcessAndClassifyLogs(std::string& log,
+void FfrtConverter::FindFfrtProcessAndClassifyLogs(std::string &log,
                                                    size_t line,
-                                                   std::unordered_map<int, std::vector<int>>& traceMap,
-                                                   FfrtConverter::TypeFfrtPid& ffrtPidsMap)
+                                                   std::unordered_map<int, std::vector<int>> &traceMap,
+                                                   FfrtConverter::TypeFfrtPid &ffrtPidsMap)
 {
     if (log.find("sched_switch") != std::string::npos) {
         ClassifySchedSwitchLogs(log, line, traceMap, ffrtPidsMap);
@@ -335,7 +335,7 @@ std::string FfrtConverter::GetTaskId(int pid, long long gid)
     return str;
 }
 
-bool FfrtConverter::IsDigit(const std::string& str)
+bool FfrtConverter::IsDigit(const std::string &str)
 {
     auto endPos = str.find_last_not_of(" ");
     string newStr = str;
@@ -351,34 +351,34 @@ bool FfrtConverter::IsDigit(const std::string& str)
     return true;
 }
 
-FfrtConverter::TypeFfrtPid FfrtConverter::ClassifyLogsForFfrtWorker(vector<std::string>& results)
+FfrtConverter::TypeFfrtPid FfrtConverter::ClassifyLogsForFfrtWorker(vector<std::string> &results)
 {
     TypeFfrtPid ffrtPidMap;
     std::unordered_map<int, std::vector<int>> traceMap;
     for (auto line = 0; line < results.size(); line++) {
         FindFfrtProcessAndClassifyLogs(results[line], line, traceMap, ffrtPidMap);
     }
-    for (auto& [pid, tids] : ffrtPidMap) {
-        for (const auto& pair : tids) {
+    for (auto &[pid, tids] : ffrtPidMap) {
+        for (const auto &pair : tids) {
             auto tid = pair.first;
             ffrtPidMap[pid][tid].line = traceMap[tid];
         }
     }
     return ffrtPidMap;
 }
-void FfrtConverter::ConvertFfrtThreadToFfrtTask(vector<std::string>& results, TypeFfrtPid& ffrtPidsMap)
+void FfrtConverter::ConvertFfrtThreadToFfrtTask(vector<std::string> &results, TypeFfrtPid &ffrtPidsMap)
 {
     int prio;
     std::unordered_map<int, std::unordered_map<int, std::string>> taskLabels;
-    for (auto& [pid, tids] : ffrtPidsMap) {
+    for (auto &[pid, tids] : ffrtPidsMap) {
         taskLabels[pid] = {};
-        for (auto& [tid, info] : ffrtPidsMap[pid]) {
-            auto& threadName = info.name;
+        for (auto &[tid, info] : ffrtPidsMap[pid]) {
+            auto &threadName = info.name;
             auto switchInFakeLog = false;
             auto switchOutFakeLog = false;
             auto ffbkMarkRemove = false;
             auto gid = WAKE_EVENT_DEFAULT_VALUE;
-            for (auto& line : info.line) {
+            for (auto &line : info.line) {
                 auto mark = results[line];
                 ProcessMarkWithSchedSwitch(results, line, tid, prio, mark);
                 if (mark.find("|FFRT") != std::string::npos || mark.find("|H:FFRT") != std::string::npos) {
@@ -412,11 +412,11 @@ void FfrtConverter::ConvertFfrtThreadToFfrtTask(vector<std::string>& results, Ty
     }
     return;
 }
-void FfrtConverter::ProcessMarkWithSchedSwitch(vector<std::string>& results,
-                                               const int& line,
-                                               const int& tid,
-                                               int& prio,
-                                               const std::string& mark)
+void FfrtConverter::ProcessMarkWithSchedSwitch(vector<std::string> &results,
+                                               const int &line,
+                                               const int &tid,
+                                               int &prio,
+                                               const std::string &mark)
 {
     if (mark.find("sched_switch:") != std::string::npos) {
         if (mark.find("prev_pid=" + std::to_string(tid) + " ") != std::string::npos) {
@@ -433,7 +433,7 @@ void FfrtConverter::ProcessMarkWithSchedSwitch(vector<std::string>& results,
         }
     }
 }
-std::string FfrtConverter::GetLabel(const string& mark)
+std::string FfrtConverter::GetLabel(const string &mark)
 {
     std::string label;
     if (mark.find("|H:FFRT") != std::string::npos) {
@@ -463,15 +463,15 @@ std::string FfrtConverter::GetLabel(const string& mark)
     }
     return label;
 }
-bool FfrtConverter::ProcessMarkWithFFRT(vector<std::string>& results,
-                                        const int& line,
-                                        const std::string& threadName,
-                                        int& prio,
-                                        const int& tid,
-                                        const int& pid,
-                                        int32_t& gid,
-                                        std::unordered_map<int, std::unordered_map<int, std::string>>& taskLabels,
-                                        const std::string& mark)
+bool FfrtConverter::ProcessMarkWithFFRT(vector<std::string> &results,
+                                        const int &line,
+                                        const std::string &threadName,
+                                        int &prio,
+                                        const int &tid,
+                                        const int &pid,
+                                        int32_t &gid,
+                                        std::unordered_map<int, std::unordered_map<int, std::string>> &taskLabels,
+                                        const std::string &mark)
 {
     std::string missLog;
     auto label = GetLabel(mark);
@@ -503,11 +503,11 @@ bool FfrtConverter::ProcessMarkWithFFRT(vector<std::string>& results,
     }
     return true;
 }
-bool FfrtConverter::DeleteRedundance(bool& switchInFakeLog,
-                                     bool& switchOutFakeLog,
-                                     const std::string& mark,
-                                     const int& line,
-                                     vector<std::string>& results)
+bool FfrtConverter::DeleteRedundance(bool &switchInFakeLog,
+                                     bool &switchOutFakeLog,
+                                     const std::string &mark,
+                                     const int &line,
+                                     vector<std::string> &results)
 {
     static const std::regex CoPattern = std::regex(R"( F\|(\d+)\|Co\|(\d+))");
     static const std::regex HCoPattern = std::regex(R"( F\|(\d+)\|H:Co\s(\d+))");

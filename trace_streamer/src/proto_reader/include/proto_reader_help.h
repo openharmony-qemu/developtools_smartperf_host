@@ -26,13 +26,13 @@ constexpr int DATA_AREA_ID = 3;
 class BytesView {
 public:
     BytesView() : data_(nullptr), size_(0) {}
-    BytesView(const uint8_t* data, size_t size) : data_(data), size_(size) {}
-    BytesView(const BytesView& bytesView)
+    BytesView(const uint8_t *data, size_t size) : data_(data), size_(size) {}
+    BytesView(const BytesView &bytesView)
     {
         data_ = bytesView.data_;
         size_ = bytesView.size_;
     }
-    BytesView& operator=(const BytesView& bytesView)
+    BytesView &operator=(const BytesView &bytesView)
     {
         data_ = bytesView.data_;
         size_ = bytesView.size_;
@@ -40,17 +40,17 @@ public:
     }
     std::string ToStdString() const
     {
-        return std::string(reinterpret_cast<const char*>(data_), size_);
+        return std::string(reinterpret_cast<const char *>(data_), size_);
     }
     size_t Size() const
     {
         return size_;
     }
-    const uint8_t* Data() const
+    const uint8_t *Data() const
     {
         return data_;
     }
-    const uint8_t* data_;
+    const uint8_t *data_;
     size_t size_;
 };
 
@@ -60,7 +60,7 @@ struct CharsView {
         return std::string(data, size);
     }
 
-    const char* data;
+    const char *data;
     size_t size;
 };
 
@@ -86,7 +86,7 @@ inline char Uppercase(char c)
     return ('a' <= c && c <= 'z') ? static_cast<char>(c + ('A' - 'a')) : c;
 }
 
-inline std::string ToUppercase(const std::string& str)
+inline std::string ToUppercase(const std::string &str)
 {
     std::string string(str);
     auto end = string.end();
@@ -95,7 +95,7 @@ inline std::string ToUppercase(const std::string& str)
     return string;
 }
 
-inline std::string ToLowercase(const std::string& str)
+inline std::string ToLowercase(const std::string &str)
 {
     std::string string(str);
     auto end = string.end();
@@ -124,7 +124,7 @@ constexpr uint8_t varIntValueBits = 7;
 constexpr uint8_t varIntValueMask = 0x7f; // 111 1111b
 constexpr uint8_t varIntValueDecodeMaxOffset = 64;
 constexpr uint8_t byteHighestBitMark = 0x80; // 1000 0000b
-const uint8_t* VarIntDecode(const uint8_t* start, const uint8_t* end, uint64_t* varIntValue);
+const uint8_t *VarIntDecode(const uint8_t *start, const uint8_t *end, uint64_t *varIntValue);
 } // namespace ProtoReader
 } // namespace SysTuning
 #endif // PROTO_READER_HELP_H

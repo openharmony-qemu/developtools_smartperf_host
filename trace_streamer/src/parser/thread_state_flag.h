@@ -40,7 +40,7 @@ enum class Stat : uint32_t {
 };
 class ThreadStateFlag {
 public:
-    explicit ThreadStateFlag(const std::string& stateStr);
+    explicit ThreadStateFlag(const std::string &stateStr);
     ~ThreadStateFlag() {}
 
     uint32_t State() const
@@ -58,7 +58,7 @@ private:
         state_ |= static_cast<uint32_t>(value);
     }
 
-    void ProcessSate(const std::string& stateStr);
+    void ProcessSate(const std::string &stateStr);
     Direction SetStatByChar(char ch);
 
 private:

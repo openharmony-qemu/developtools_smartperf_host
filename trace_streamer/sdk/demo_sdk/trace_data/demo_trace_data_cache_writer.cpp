@@ -20,23 +20,23 @@ namespace TraceStreamer {
 using namespace TraceStdtype;
 DemoTraceDataCacheWriter::~DemoTraceDataCacheWriter() {}
 
-GpuCounter* DemoTraceDataCacheWriter::GetGpuCounterData()
+GpuCounter *DemoTraceDataCacheWriter::GetGpuCounterData()
 {
     return &gpuCounter_;
 }
-GpuCounterObject* DemoTraceDataCacheWriter::GetGpuCounterObjectData()
+GpuCounterObject *DemoTraceDataCacheWriter::GetGpuCounterObjectData()
 {
     return &gpuCounterObject_;
 }
-SliceObject* DemoTraceDataCacheWriter::GetSliceObjectData()
+SliceObject *DemoTraceDataCacheWriter::GetSliceObjectData()
 {
     return &sliceObject_;
 }
-SliceData* DemoTraceDataCacheWriter::GetSliceTableData()
+SliceData *DemoTraceDataCacheWriter::GetSliceTableData()
 {
     return &sliceData_;
 }
-MetaData* DemoTraceDataCacheWriter::GetMetaData()
+MetaData *DemoTraceDataCacheWriter::GetMetaData()
 {
     return &metaData_;
 }

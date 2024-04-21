@@ -14,8 +14,9 @@
 import { TraficEnum } from './utils/QueryEnum';
 import { filterDataByGroup } from './utils/DataFilter';
 import { cpuList } from './utils/AllMemoryCache';
+import { Args } from './CommonArgs';
 
-export const chartCpuDataProtoSql = (args: unknown): string => {
+export const chartCpuDataProtoSql = (args: Args): string => {
   return `
       SELECT B.pid                                                                                        as processId,
              B.cpu,
@@ -23,49 +24,30 @@ export const chartCpuDataProtoSql = (args: unknown): string => {
              B.itid                                                                                       as id,
              max(B.dur)                                                                                   AS dur,
              B.ts - ${
-              // @ts-ignore
                args.recordStartNS
              }                                                                                            AS startTime,
              ifnull(B.arg_setid, -1)                                                                      as argSetId,
-             ((B.ts - ${
-              // @ts-ignore
-              args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
-            })) AS px
+             ((B.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
       from thread_state AS B
       where B.itid is not null
-        and B.cpu = ${
-          // @ts-ignore
-          args.cpu
-        }
-        and startTime + dur >= ${
-          // @ts-ignore
-          Math.floor(args.startNS)
-        }
-        and startTime <= ${
-          // @ts-ignore
-          Math.floor(args.endNS)
-        }
+        and B.cpu = ${args.cpu}
+        and startTime + dur >= ${Math.floor(args.startNS)}
+        and startTime <= ${Math.floor(args.endNS)}
       group by px;`;
 };
 
-export const chartCpuDataProtoSqlMem = (args: unknown): string => {
+export const chartCpuDataProtoSqlMem = (args: Args): string => {
   return `
       SELECT B.pid                        as processId,
              B.cpu,
              B.tid,
              B.itid                       as id,
              B.dur                        AS dur,
-             B.ts - ${
-              // @ts-ignore
-              args.recordStartNS
-            } AS startTime,
+             B.ts - ${args.recordStartNS} AS startTime,
              ifnull(B.arg_setid, -1)      as argSetId
       from thread_state AS B
       where B.itid is not null
-        and B.cpu = ${
-          // @ts-ignore
-          args.cpu
-        };`;
+        and B.cpu = ${args.cpu};`;
 };
 
 export function cpuDataReceiver(data: unknown, proc: Function): void {

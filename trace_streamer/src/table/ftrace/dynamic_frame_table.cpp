@@ -20,7 +20,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, X, Y, WIDTH, HEIGHT, ALPHA, NAME, END_TIME };
-DynamicFrameTable::DynamicFrameTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+DynamicFrameTable::DynamicFrameTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("x", "INTEGER"));
@@ -40,7 +40,7 @@ std::unique_ptr<TableBase::Cursor> DynamicFrameTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-DynamicFrameTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+DynamicFrameTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstDynamicFrame().Size())),
       dynamicFrameObj_(dataCache->GetConstDynamicFrame())
 {
@@ -71,7 +71,7 @@ int32_t DynamicFrameTable::Cursor::Column(int32_t col) const
         }
         case Index::ALPHA: {
             if (dynamicFrameObj_.Alphas()[CurrentRow()] != INVALID_UINT64) {
-                const std::string& str =
+                const std::string &str =
                     dataCache_->GetDataFromDict(static_cast<size_t>(dynamicFrameObj_.Alphas()[CurrentRow()]));
                 sqlite3_result_text(context_, str.c_str(), STR_DEFAULT_LEN, nullptr);
             }
@@ -79,7 +79,7 @@ int32_t DynamicFrameTable::Cursor::Column(int32_t col) const
         }
         case Index::NAME: {
             if (dynamicFrameObj_.Names()[CurrentRow()] != INVALID_UINT64) {
-                const std::string& str =
+                const std::string &str =
                     dataCache_->GetDataFromDict(static_cast<size_t>(dynamicFrameObj_.Names()[CurrentRow()]));
                 sqlite3_result_text(context_, str.c_str(), STR_DEFAULT_LEN, nullptr);
             }

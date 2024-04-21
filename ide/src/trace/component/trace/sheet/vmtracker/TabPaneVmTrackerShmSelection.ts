@@ -47,21 +47,23 @@ export class TabPaneVmTrackerShmSelection extends BaseElement {
   queryDataByDB(data: SnapshotStruct): void {
     queryVmTrackerShmSelectionData(data.startNs, this.memoryConfig.iPid).then((result) => {
       if (result.length > 0) {
-        for (let filter of result) {//@ts-ignore
-          filter.name = SpSystemTrace.DATA_DICT.get(filter.name)?.split('/');//@ts-ignore
-          filter.ts = ns2s(filter.startNS);//@ts-ignore
+        for (let filter of result) {
+          //@ts-ignore
+          filter.name = SpSystemTrace.DATA_DICT.get(filter.name)?.split('/'); //@ts-ignore
+          filter.ts = ns2s(filter.startNS); //@ts-ignore
           filter.sizeStr = Utils.getBinaryByteWithUnit(filter.size);
           // @ts-ignore
           this.TableEl!.getItemTextColor = (filter): unknown => {
+            // @ts-ignore
             if (filter.flag === 1) {
-              return '#d4b550';// @ts-ignore
+              return '#d4b550'; // @ts-ignore
             } else if (filter.flag === 2) {
               return '#f86b6b';
             } else {
               return '#000000';
             }
           };
-        }//@ts-ignore
+        } //@ts-ignore
         this.shmData = result.sort((a, b) => b.size - a.size);
         this.TableEl!.recycleDataSource = this.shmData;
       }

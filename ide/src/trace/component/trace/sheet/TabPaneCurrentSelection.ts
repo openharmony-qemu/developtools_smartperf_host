@@ -57,6 +57,7 @@ import { queryGpuDur } from '../../../database/sql/Gpu.sql';
 import { queryWakeupListPriority } from '../../../database/sql/Cpu.sql';
 import { TabPaneCurrentSelectionHtml } from './TabPaneCurrentSelection.html';
 import { queryRealTime } from '../../../database/sql/Clock.sql';
+import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfTool';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -544,6 +545,31 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
   }
 
+  setPerfToolsData(data: PerfToolStruct): void {
+    this.setTableHeight('auto');
+    //Perf Tools info
+    this.tabCurrentSelectionInit('Slice Details');
+    let list: any[] = [];
+    list.push({
+      name: 'Name',
+      value: data.name,
+    });
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startNS || 0),
+    });
+    list.push({
+      name: 'StartTime(Absolute)',
+      value: ((data.startNS || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+    });
+    list.push({
+      name: 'Value',
+      value: Number(data.count),
+    });
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    this.currentSelectionTbl!.dataSource = list;
+  }
+
   setMemData(data: ProcessMemStruct): void {
     this.setTableHeight('auto');
     //时钟信息
@@ -628,8 +654,10 @@ export class TabPaneCurrentSelection extends BaseElement {
   private sortByNearData(nearData: unknown[], data: ThreadStruct, list: unknown[]): unknown[] {
     let preData: unknown = undefined;
     let nextData: unknown = undefined;
-    // @ts-ignore
-    nearData .sort((near1, near2) => near1.startTime - near2.startTime)
+
+    nearData
+      // @ts-ignore
+      .sort((near1, near2) => near1.startTime - near2.startTime)
       .forEach((near) => {
         // @ts-ignore
         if (near.itid === data.id) {
@@ -641,7 +669,8 @@ export class TabPaneCurrentSelection extends BaseElement {
               value: `<div style="white-space: nowrap;display: flex;align-items: center">
               <div style="white-space:pre-wrap">${
                 // @ts-ignore
-                Utils.getEndState(near.state)}</div>
+                Utils.getEndState(near.state)
+              }</div>
               <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="previous-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
               </div>`,
             });
@@ -652,7 +681,8 @@ export class TabPaneCurrentSelection extends BaseElement {
               value: `<div style="white-space: nowrap;display: flex;align-items: center">
               <div style="white-space:pre-wrap">${
                 // @ts-ignore
-                Utils.getEndState(near.state)}</div>
+                Utils.getEndState(near.state)
+              }</div>
               <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="next-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
               </div>`,
             });
@@ -1076,7 +1106,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             list.push({
               name: 'Slice',
               value:
-              // @ts-ignore
+                // @ts-ignore
                 a.cmdline +
                 ' [' +
                 // @ts-ignore
@@ -1119,7 +1149,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             list.push({
               name: 'Slice',
               value:
-              // @ts-ignore
+                // @ts-ignore
                 a.cmdline +
                 ' [' +
                 // @ts-ignore
@@ -1137,7 +1167,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             list.push({
               name: 'Slice',
               value:
-              // @ts-ignore
+                // @ts-ignore
                 a.cmdline +
                 ' [' +
                 // @ts-ignore
@@ -1724,7 +1754,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
     this.wakeupListTbl = this.shadowRoot?.querySelector<LitTable>('#wakeupListTbl');
     this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
-    this.currentSelectionTbl?.addEventListener('column-click', (ev: any): void => {});//@ts-ignore
+    this.currentSelectionTbl?.addEventListener('column-click', (ev: any): void => {}); //@ts-ignore
     window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => this.showWakeupListTableData(data));
   }
 
@@ -1753,7 +1783,8 @@ export class TabPaneCurrentSelection extends BaseElement {
         };
         //@ts-ignore
         let find = res.find((re) => re.cpu === it.cpu && re.itid === it.itid && re.ts === it.ts);
-        if (find) {//@ts-ignore
+        if (find) {
+          //@ts-ignore
           wake.priority = find.priority;
         }
         maxDuration = Math.max(maxDuration, it.dur!);

@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PerfThreadTable : public TableBase {
 public:
-    explicit PerfThreadTable(const TraceDataCache* dataCache);
+    explicit PerfThreadTable(const TraceDataCache *dataCache);
     ~PerfThreadTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,21 +32,21 @@ private:
     {
         return dataCache_->GetConstPerfThreadData().Size();
     }
-    void GetOrbyes(FilterConstraints& threadfc, EstimatedIndexInfo& threadei) override;
-    void FilterByConstraint(FilterConstraints& threadfc,
-                            double& threadfilterCost,
+    void GetOrbyes(FilterConstraints &threadfc, EstimatedIndexInfo &threadei) override;
+    void FilterByConstraint(FilterConstraints &threadfc,
+                            double &threadfilterCost,
                             size_t threadrowCount,
                             uint32_t threadcurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const PerfThread& perfThreadObj_;
+        const PerfThread &perfThreadObj_;
     };
 };
 } // namespace TraceStreamer

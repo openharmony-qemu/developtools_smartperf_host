@@ -58,17 +58,21 @@ export class TabCpuDetailsThreads extends BaseElement {
       }
     });
 
-    this.cpuDetailsThreadUsageTbl!.addEventListener('column-click', (evt: unknown): void => {//@ts-ignore
-      this.cpuDetailsThreadSortColumn = evt.detail.key;//@ts-ignore
+    this.cpuDetailsThreadUsageTbl!.addEventListener('column-click', (evt: unknown): void => {
+      //@ts-ignore
+      this.cpuDetailsThreadSortColumn = evt.detail.key; //@ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.cpuDetailsThreadUsageTbl!.addEventListener('row-hover', (evt: unknown): void => {//@ts-ignore
-      if (evt.detail.data) {//@ts-ignore
+    this.cpuDetailsThreadUsageTbl!.addEventListener('row-hover', (evt: unknown): void => {
+      //@ts-ignore
+      if (evt.detail.data) {
+        //@ts-ignore
         let data = evt.detail.data;
-        data.isHover = true;//@ts-ignore
-        if ((evt.detail as unknown).callBack) {//@ts-ignore
+        data.isHover = true; //@ts-ignore
+        if ((evt.detail as unknown).callBack) {
+          //@ts-ignore
           (evt.detail as unknown).callBack(true);
         }
       }
@@ -77,12 +81,13 @@ export class TabCpuDetailsThreads extends BaseElement {
   }
 
   init(cpu: number, it: unknown): void {
-    this.shadowRoot!.querySelector<HTMLDivElement>('.cpu-thread-subheading')!.textContent = //@ts-ignore
+    this.shadowRoot!.querySelector<HTMLDivElement>('.cpu-thread-subheading')!.textContent =
+      //@ts-ignore
       `Threads in Freq ${it.value}`;
     this.progress!.loading = true;
     procedurePool.submitWithName(
       'logic0',
-      'scheduling-CPU Frequency Thread',//@ts-ignore
+      'scheduling-CPU Frequency Thread', //@ts-ignore
       { cpu: cpu, freq: (it as unknown).value },
       undefined,
       (res: unknown): void => {
@@ -101,7 +106,8 @@ export class TabCpuDetailsThreads extends BaseElement {
     }
   }
 
-  queryPieChartDataByType(res: unknown): void {//@ts-ignore
+  queryPieChartDataByType(res: unknown): void {
+    //@ts-ignore
     this.data = res || [];
     this.data = getDataNo(this.data);
     this.tableNoData!.noData = this.data.length === 0;
@@ -117,18 +123,30 @@ export class TabCpuDetailsThreads extends BaseElement {
       },
       tip: (obj): string => {
         return `<div>
-                                <div>t_name:${// @ts-ignore
-                                  obj.obj.tName}</div> 
-                                <div>tid:${// @ts-ignore
-                                  obj.obj.tid}</div>
-                                <div>p_name:${// @ts-ignore
-                                  obj.obj.pName}</div>
-                                <div>p_pid:${// @ts-ignore
-                                  obj.obj.pid}</div>
-                                <div>duration:${// @ts-ignore
-                                  obj.obj.durStr}</div>
-                                <div>ratio:${// @ts-ignore
-                                  obj.obj.ratio}%</div>
+                                <div>t_name:${
+                                  // @ts-ignore
+                                  obj.obj.tName
+                                }</div> 
+                                <div>tid:${
+                                  // @ts-ignore
+                                  obj.obj.tid
+                                }</div>
+                                <div>p_name:${
+                                  // @ts-ignore
+                                  obj.obj.pName
+                                }</div>
+                                <div>p_pid:${
+                                  // @ts-ignore
+                                  obj.obj.pid
+                                }</div>
+                                <div>duration:${
+                                  // @ts-ignore
+                                  obj.obj.durStr
+                                }</div>
+                                <div>ratio:${
+                                  // @ts-ignore
+                                  obj.obj.ratio
+                                }%</div>
                             </div>
                                 `;
       },
@@ -164,37 +182,37 @@ export class TabCpuDetailsThreads extends BaseElement {
     this.noData(false);
   }
 
-  sortByColumn(detail: unknown): void {
+  sortByColumn(detail: any): void {
     // @ts-ignore
     function compare(cpuDetailsThreadProperty, sort, type) {
-      return function (a: unknown, b: unknown) {
+      return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(b[cpuDetailsThreadProperty]) - parseFloat(a[cpuDetailsThreadProperty]) ://@ts-ignore
-            parseFloat(a[cpuDetailsThreadProperty]) - parseFloat(b[cpuDetailsThreadProperty]);
+          return sort === 2
+            ? parseFloat(b[cpuDetailsThreadProperty]) - parseFloat(a[cpuDetailsThreadProperty])
+            : parseFloat(a[cpuDetailsThreadProperty]) - parseFloat(b[cpuDetailsThreadProperty]);
         } else {
-          if (sort === 2) {//@ts-ignore
+          if (sort === 2) {
             return b[cpuDetailsThreadProperty].toString().localeCompare(a[cpuDetailsThreadProperty].toString());
-          } else {//@ts-ignore
+          } else {
             return a[cpuDetailsThreadProperty].toString().localeCompare(b[cpuDetailsThreadProperty].toString());
           }
         }
       };
     }
 
-    //@ts-ignore
-    if (detail.key === 'durStr') {//@ts-ignore
-      detail.key = 'dur';//@ts-ignore
+    if (detail.key === 'durStr') {
+      detail.key = 'dur';
       this.data.sort(compare(detail.key, detail.sort, 'number'));
-    } else if (//@ts-ignore
-      detail.key === 'value' ||//@ts-ignore
-      detail.key === 'ratio' ||//@ts-ignore
-      detail.key === 'index' ||//@ts-ignore
-      detail.key === 'tid' ||//@ts-ignore
+    } else if (
+      detail.key === 'value' ||
+      detail.key === 'ratio' ||
+      detail.key === 'index' ||
+      detail.key === 'tid' ||
       detail.key === 'pid'
-    ) {//@ts-ignore
+    ) {
       this.data.sort(compare(detail.key, detail.sort, 'number'));
-    } else {//@ts-ignore
+    } else {
       this.data.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.cpuDetailsThreadUsageTbl!.recycleDataSource = this.data;

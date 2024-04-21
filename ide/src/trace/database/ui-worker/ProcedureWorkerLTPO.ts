@@ -101,7 +101,7 @@ export class LtpoStruct extends BaseStruct {
         ctx.globalAlpha = 1.0;
         ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight);
         ctx.lineWidth = 1;
-        ctx.strokeStyle = '	#0000FF';
+        ctx.strokeStyle = '#0000FF';
         ctx.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight);
       } else {
         ctx.globalAlpha = 0.6;

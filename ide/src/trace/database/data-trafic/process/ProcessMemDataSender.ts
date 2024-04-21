@@ -22,7 +22,7 @@ export function processMemDataSender(trackId: number, row: TraceRow<ProcessMemSt
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       track_id: new SharedArrayBuffer(Uint8Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      value: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      value: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       startTime: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       ts: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
     };
@@ -49,10 +49,10 @@ export function processMemDataSender(trackId: number, row: TraceRow<ProcessMemSt
 }
 
 function arrayBufferHandler(buffers: unknown, len: number): ProcessMemStruct[] {
-  let outArr: ProcessMemStruct[] = [];//@ts-ignore
-  let track_id = new Uint8Array(buffers.track_id);//@ts-ignore
-  let value = new Int32Array(buffers.value);//@ts-ignore
-  let startTime = new Float64Array(buffers.startTime);//@ts-ignore
+  let outArr: ProcessMemStruct[] = []; //@ts-ignore
+  let track_id = new Uint8Array(buffers.track_id); //@ts-ignore
+  let value = new Float64Array(buffers.value); //@ts-ignore
+  let startTime = new Float64Array(buffers.startTime); //@ts-ignore
   let ts = new Float64Array(buffers.ts);
   for (let i = 0; i < len; i++) {
     outArr.push({

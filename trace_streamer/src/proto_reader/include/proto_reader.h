@@ -39,9 +39,9 @@ class RepeatedDataAreaIterator {
 public:
     RepeatedDataAreaIterator() = default;
     RepeatedDataAreaIterator(uint32_t dataAreaId,
-                             const DataArea* currentAddr,
-                             const DataArea* endAddr,
-                             const DataArea* lastAddr)
+                             const DataArea *currentAddr,
+                             const DataArea *endAddr,
+                             const DataArea *lastAddr)
         : dataAreaId_(dataAreaId), currentAddr_(currentAddr), endAddr_(endAddr), lastAddr_(lastAddr)
     {
         FindNextMatchingDataAreaId();
@@ -51,7 +51,7 @@ public:
     {
         return currentAddr_ != endAddr_;
     }
-    const DataArea& GetDataArea() const
+    const DataArea &GetDataArea() const
     {
         return *currentAddr_;
     }
@@ -62,12 +62,12 @@ public:
         currentAddr_->GetValue(&value);
         return value;
     }
-    const DataArea* operator->() const
+    const DataArea *operator->() const
     {
         return currentAddr_;
     }
 
-    RepeatedDataAreaIterator& operator++()
+    RepeatedDataAreaIterator &operator++()
     {
         if (currentAddr_ != lastAddr_) {
             currentAddr_++;
@@ -98,15 +98,15 @@ private:
     }
 
     uint32_t dataAreaId_ = INVALID_DATA_AREA_ID;
-    const DataArea* currentAddr_ = nullptr;
-    const DataArea* endAddr_ = nullptr;
-    const DataArea* lastAddr_ = nullptr;
+    const DataArea *currentAddr_ = nullptr;
+    const DataArea *endAddr_ = nullptr;
+    const DataArea *lastAddr_ = nullptr;
 };
 
 template <ProtoWireType wireType, typename cppType>
 class PackedRepeatedDataAreaIterator {
 public:
-    PackedRepeatedDataAreaIterator(const uint8_t* startAddr, size_t length, bool* parseStatus)
+    PackedRepeatedDataAreaIterator(const uint8_t *startAddr, size_t length, bool *parseStatus)
         : endAddr_(startAddr ? startAddr + length : nullptr), currentReadAddr_(startAddr), parseStatus_(parseStatus)
     {
         static_assert(wireType != ProtoWireType::kLengthDelimited, "invalid type");
@@ -133,7 +133,7 @@ public:
         return currentValueValid_;
     }
 
-    PackedRepeatedDataAreaIterator& operator++()
+    PackedRepeatedDataAreaIterator &operator++()
     {
         if (!currentValueValid_) {
             return *this;
@@ -146,7 +146,7 @@ public:
 
         if (wireType == ProtoWireType::kVarInt) {
             uint64_t newValue = 0;
-            const uint8_t* nextPos = VarIntDecode(currentReadAddr_, endAddr_, &newValue);
+            const uint8_t *nextPos = VarIntDecode(currentReadAddr_, endAddr_, &newValue);
 
             if (nextPos != currentReadAddr_) {
                 currentReadAddr_ = nextPos;
@@ -172,29 +172,29 @@ public:
     }
 
 private:
-    const uint8_t* const endAddr_;
-    const uint8_t* currentReadAddr_;
+    const uint8_t *const endAddr_;
+    const uint8_t *currentReadAddr_;
     cppType currentValue_ = 0;
     bool currentValueValid_ = true;
-    bool* const parseStatus_;
+    bool *const parseStatus_;
 };
 
 enum ParseProtoStatus { ABORT, SKIP, OK };
 struct ParseDataAreaResult {
     ParseProtoStatus status;
-    const uint8_t* next;
+    const uint8_t *next;
     DataArea dataArea;
 };
 
 class ProtoReaderBase {
 public:
     ProtoReaderBase() : startAddr_(0), endAddr_(0), dataAreas_(nullptr), dataAreasCount_(0), size_(0), volume_(0) {}
-    ProtoReaderBase(DataArea* storage, uint32_t dataAreasCount, const uint8_t* buffer, size_t length);
-    const uint8_t* GetStartAddr() const
+    ProtoReaderBase(DataArea *storage, uint32_t dataAreasCount, const uint8_t *buffer, size_t length);
+    const uint8_t *GetStartAddr() const
     {
         return startAddr_;
     }
-    const uint8_t* GetEndAddr() const
+    const uint8_t *GetEndAddr() const
     {
         return endAddr_;
     }
@@ -203,7 +203,7 @@ public:
         currentReadAddr_ = startAddr_;
     }
 
-    void ResetCurrentAddr(const uint8_t* pos)
+    void ResetCurrentAddr(const uint8_t *pos)
     {
         currentReadAddr_ = pos;
     }
@@ -220,7 +220,7 @@ public:
 
     DataArea ReadNextDataArea();
     DataArea FindDataArea(uint32_t dataAreaId);
-    const DataArea& Get(uint32_t id) const
+    const DataArea &Get(uint32_t id) const
     {
         if (id < dataAreasCount_) {
             return dataAreas_[id];
@@ -236,9 +236,9 @@ public:
     }
 
     template <ProtoWireType wireType, typename cppType>
-    PackedRepeatedDataAreaIterator<wireType, cppType> GetPackedRepeated(uint32_t dataAreaId, bool* parseErrorAddr) const
+    PackedRepeatedDataAreaIterator<wireType, cppType> GetPackedRepeated(uint32_t dataAreaId, bool *parseErrorAddr) const
     {
-        const DataArea& dataArea = Get(dataAreaId);
+        const DataArea &dataArea = Get(dataAreaId);
         if (dataArea.DataAreaValid()) {
             return PackedRepeatedDataAreaIterator<wireType, cppType>(dataArea.Data(), dataArea.Size(), parseErrorAddr);
         } else {
@@ -246,42 +246,42 @@ public:
         }
     }
 
-    using ParseDataAreaValueByType = std::function<bool(ParseDataAreaResult&, const uint8_t*, const uint8_t* const)>;
+    using ParseDataAreaValueByType = std::function<bool(ParseDataAreaResult &, const uint8_t *, const uint8_t *const)>;
     static std::map<ProtoWireType, ParseDataAreaValueByType> DATA_AREA_TYPE_TO_PARSE_FUNC_MAP;
 
 protected:
-    ParseDataAreaResult ParseOneDataArea(const uint8_t* const startAddr, const uint8_t* const endAddr);
+    ParseDataAreaResult ParseOneDataArea(const uint8_t *const startAddr, const uint8_t *const endAddr);
     void ParseAllDataAreas();
     void MoveToLargerHeapStorage();
 
-    const uint8_t* const startAddr_;
-    const uint8_t* const endAddr_;
-    const uint8_t* currentReadAddr_ = nullptr;
+    const uint8_t *const startAddr_;
+    const uint8_t *const endAddr_;
+    const uint8_t *currentReadAddr_ = nullptr;
     std::unique_ptr<DataArea[]> lagerHeapStorage_;
-    DataArea* dataAreas_;
+    DataArea *dataAreas_;
     uint32_t dataAreasCount_;
     uint32_t size_;
     uint32_t volume_;
 
 private:
-    const uint8_t* GetNextProtoTag(const uint8_t* const startAddr, const uint8_t* const endAddr, uint64_t* dataAreaTag);
-    static bool ParseVarIntValue(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
-    static bool ParseLengthDelimitedValue(ParseDataAreaResult& result,
-                                          const uint8_t* startAddr,
-                                          const uint8_t* const endAddr);
-    static bool ParseFixed64Value(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
-    static bool ParseFixed32Value(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
+    const uint8_t *GetNextProtoTag(const uint8_t *const startAddr, const uint8_t *const endAddr, uint64_t *dataAreaTag);
+    static bool ParseVarIntValue(ParseDataAreaResult &result, const uint8_t *startAddr, const uint8_t *const endAddr);
+    static bool ParseLengthDelimitedValue(ParseDataAreaResult &result,
+                                          const uint8_t *startAddr,
+                                          const uint8_t *const endAddr);
+    static bool ParseFixed64Value(ParseDataAreaResult &result, const uint8_t *startAddr, const uint8_t *const endAddr);
+    static bool ParseFixed32Value(ParseDataAreaResult &result, const uint8_t *startAddr, const uint8_t *const endAddr);
 };
 
 template <int32_t MAX_DATA_AREA_ID>
 class TypedProtoReader : public ProtoReaderBase {
 public:
-    TypedProtoReader(const uint8_t* buffer, size_t length)
+    TypedProtoReader(const uint8_t *buffer, size_t length)
         : ProtoReaderBase(defaultStorage_, MAX_DATA_AREA_ID + 1, buffer, length)
     {
         ProtoReaderBase::ParseAllDataAreas();
     }
-    TypedProtoReader(TypedProtoReader&& other) noexcept : ProtoReaderBase(std::move(other))
+    TypedProtoReader(TypedProtoReader &&other) noexcept : ProtoReaderBase(std::move(other))
     {
         if (dataAreas_ == other.defaultStorage_) {
             dataAreas_ = defaultStorage_;
@@ -289,7 +289,7 @@ public:
         }
     }
     template <uint32_t DATA_AREA_ID>
-    const DataArea& at() const
+    const DataArea &at() const
     {
         return dataAreas_[DATA_AREA_ID];
     }

@@ -22,7 +22,7 @@ import { ColorUtils } from '../../component/trace/base/ColorUtils';
 const LOG_STRUCT_HEIGHT = 7;
 const Y_PADDING = 2;
 
-export class LogRender extends Render {
+export class LogRender {
   renderMainThread(
     req: {
       useCache: boolean;
@@ -57,7 +57,7 @@ export function filterLogData(
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
 ): void {
   if (use && logFilter.length > 0) {
@@ -79,7 +79,7 @@ function setLogFilter(
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any
+  frame: Rect
 ): void {
   if (logList) {
     let allTypeDataMap: Map<number, Array<LogStruct>> = new Map();
@@ -137,7 +137,7 @@ export class LogStruct extends BaseStruct {
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
     let x1: number;
     let x2: number;

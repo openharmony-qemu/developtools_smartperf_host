@@ -55,12 +55,12 @@ export function funcDataSender(tid: number, ipid: number, row: TraceRow<FuncStru
 }
 
 function arrayBufferHandler(buffers: unknown, len: number): FuncStruct[] {
-  let outArr: unknown[] = [];//@ts-ignore
-  let startTs = new Float64Array(buffers.startTs);//@ts-ignore
-  let dur = new Float64Array(buffers.dur);//@ts-ignore
-  let argsetid = new Int32Array(buffers.argsetid);//@ts-ignore
-  let depth = new Int32Array(buffers.depth);//@ts-ignore
-  let id = new Int32Array(buffers.id);//@ts-ignore
+  let outArr: unknown[] = []; //@ts-ignore
+  let startTs = new Float64Array(buffers.startTs); //@ts-ignore
+  let dur = new Float64Array(buffers.dur); //@ts-ignore
+  let argsetid = new Int32Array(buffers.argsetid); //@ts-ignore
+  let depth = new Int32Array(buffers.depth); //@ts-ignore
+  let id = new Int32Array(buffers.id); //@ts-ignore
   let nofinish = new Uint8Array(buffers.nofinish);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -71,6 +71,6 @@ function arrayBufferHandler(buffers: unknown, len: number): FuncStruct[] {
       id: id[i],
       nofinish: nofinish[i] === 1,
     });
-  }//@ts-ignore
+  } //@ts-ignore
   return outArr;
 }

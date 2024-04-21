@@ -106,11 +106,17 @@ export class TabPaneJsCpuStatistics extends BaseElement {
       },
       tip: (obj): string => {
         return `<div>
-                    <div>type: ${// @ts-ignore
-                      obj.obj.type}</div>
-                    <div>total: ${// @ts-ignore
-                      ns2s(obj.obj.time)} (${// @ts-ignore
-                        obj.obj.percentage}%)</div>
+                    <div>type: ${
+                      // @ts-ignore
+                      obj.obj.type
+                    }</div>
+                    <div>total: ${
+                      // @ts-ignore
+                      ns2s(obj.obj.time)
+                    } (${
+          // @ts-ignore
+          obj.obj.percentage
+        }%)</div>
                 </div> `;
       },
       hoverHandler: (data): void => {
@@ -126,11 +132,14 @@ export class TabPaneJsCpuStatistics extends BaseElement {
         },
       ],
     };
-    this.statisticsTable!.addEventListener('row-hover', (statisticsRowHover: unknown) => {// @ts-ignore
-      if (statisticsRowHover.detail.data) {// @ts-ignore
-        let data = statisticsRowHover.detail.data;// @ts-ignore
-        data.isHover = true;// @ts-ignore
-        if ((statisticsRowHover.detail as unknown).callBack) {// @ts-ignore
+    this.statisticsTable!.addEventListener('row-hover', (statisticsRowHover: unknown) => {
+      // @ts-ignore
+      if (statisticsRowHover.detail.data) {
+        // @ts-ignore
+        let data = statisticsRowHover.detail.data; // @ts-ignore
+        data.isHover = true; // @ts-ignore
+        if ((statisticsRowHover.detail as unknown).callBack) {
+          // @ts-ignore
           (statisticsRowHover.detail as unknown).callBack(true);
         }
       }
@@ -196,17 +205,21 @@ export class TabPaneJsCpuStatistics extends BaseElement {
           // @ts-ignore
           return sort === 2 ? parseFloat(b[key]) - parseFloat(a[key]) : parseFloat(a[key]) - parseFloat(b[key]);
         } else {
-          if (sort === 2) {// @ts-ignore
+          if (sort === 2) {
+            // @ts-ignore
             return b[key].toString().localeCompare(a[key].toString());
-          } else {// @ts-ignore
+          } else {
+            // @ts-ignore
             return a[key].toString().localeCompare(b[key].toString());
           }
         }
       };
-    }// @ts-ignore
-    if (detail.key === 'timeStr' || detail.key === 'percentage') {// @ts-ignore
-      this.statisticsSource.sort(compare('time', detail.sort, 'number'));// @ts-ignore
-    } else if (detail.key === 'type') {// @ts-ignore
+    } // @ts-ignore
+    if (detail.key === 'timeStr' || detail.key === 'percentage') {
+      // @ts-ignore
+      this.statisticsSource.sort(compare('time', detail.sort, 'number')); // @ts-ignore
+    } else if (detail.key === 'type') {
+      // @ts-ignore
       this.statisticsSource.sort(compare(detail.key, detail.sort, 'string'));
     }
     if (this.statisticsSource.length > 0) {
@@ -228,8 +241,9 @@ export class TabPaneJsCpuStatistics extends BaseElement {
     this.statisticsPie = this.shadowRoot?.querySelector('#chart-pie') as LitChartPie;
     this.tabTitle = this.statisticsTable!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
 
-    this.statisticsTable!.addEventListener('column-click', (evt: unknown) => {// @ts-ignore
-      this.sortKey = evt.detail.key;// @ts-ignore
+    this.statisticsTable!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
+      this.sortKey = evt.detail.key; // @ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);

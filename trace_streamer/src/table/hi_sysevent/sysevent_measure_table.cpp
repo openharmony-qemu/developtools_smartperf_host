@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, SERIAL, TS, NAME_ID, KEY_ID, TYPE, INT_VALUE, STRING_VALUE };
-SysEventMeasureTable::SysEventMeasureTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+SysEventMeasureTable::SysEventMeasureTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("serial", "INTEGER"));
@@ -38,7 +38,7 @@ std::unique_ptr<TableBase::Cursor> SysEventMeasureTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-SysEventMeasureTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+SysEventMeasureTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstHiSyseventMeasureData().Size())),
       sysEventMeasure_(dataCache->GetConstHiSyseventMeasureData())
 {

@@ -44,7 +44,7 @@ public:
     TraceStreamerSelector ts_;
 };
 
-bool ParseTraceFile(TraceStreamerSelector& ts, const std::string& tracePath)
+bool ParseTraceFile(TraceStreamerSelector &ts, const std::string &tracePath)
 {
     int32_t fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
     TS_CHECK_TRUE(fd >= 0, false, "Failed to open trace file (errno: %d, %s)", errno, strerror(errno));

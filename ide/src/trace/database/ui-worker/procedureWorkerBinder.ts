@@ -29,7 +29,7 @@ export class BinderRender extends Render {
       type: string;
     },
     row: TraceRow<BinderStruct>
-  ) {
+  ): void {
     let binderList = row.dataList;
     let binderFilter = row.dataListCache;
     dataFilterHandler(binderList, binderFilter, {
@@ -83,7 +83,7 @@ export class BinderStruct extends BaseStruct {
   dur: number | undefined; //自补充，数据库没有返回
   name: string | undefined;
   depth: number = 0;
-  static draw(freqContext: CanvasRenderingContext2D, data: BinderStruct) {
+  static draw(freqContext: CanvasRenderingContext2D, data: BinderStruct): void {
     if (data.frame) {
       let color = '';
       if (data.name === 'binder transaction') {

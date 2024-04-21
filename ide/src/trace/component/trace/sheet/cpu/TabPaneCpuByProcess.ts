@@ -28,20 +28,20 @@ export class TabPaneCpuByProcess extends BaseElement {
   private cpuByProcessSource: Array<SelectionData> = [];
   private currentSelectionParam: SelectionParam | undefined;
 
-  set data(cpuByProcessValue: SelectionParam | unknown) {
+  set data(cpuByProcessValue: SelectionParam) {
     if (this.currentSelectionParam === cpuByProcessValue) {
       return;
     }
     // @ts-ignore
     this.currentSelectionParam = cpuByProcessValue;
-    this.cpuByProcessRange!.textContent =
-      `Selected range: ${ 
-        // @ts-ignore
-        parseFloat(((cpuByProcessValue.rightNs - cpuByProcessValue.leftNs) / 1000000.0).toFixed(5))} ms`;
+    this.cpuByProcessRange!.textContent = `Selected range: ${parseFloat(
+      ((cpuByProcessValue.rightNs - cpuByProcessValue.leftNs) / 1000000.0).toFixed(5)
+    )} ms`;
     if (this.cpuByProcessTbl) {
       // @ts-ignore
-      this.cpuByProcessTbl.shadowRoot!.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 50}px`;
+      this.cpuByProcessTbl.shadowRoot!.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 50
+      }px`;
     }
     this.cpuByProcessTbl!.recycleDataSource = [];
     this.cpuByProcessTbl!.loading = true;
@@ -49,23 +49,23 @@ export class TabPaneCpuByProcess extends BaseElement {
     getTabCpuByProcess(cpuByProcessValue.cpus, cpuByProcessValue.leftNs, cpuByProcessValue.rightNs).then((result) => {
       this.cpuByProcessTbl!.loading = false;
       if (result !== null && result.length > 0) {
-        log(`getTabCpuByProcess size :${  result.length}`);
+        log(`getTabCpuByProcess size :${result.length}`);
         let sumWall = 0.0;
         let sumOcc = 0;
         for (let e of result) {
           //@ts-ignore
-          let process = Utils.PROCESS_MAP.get(e.pid);//@ts-ignore
-          e.process = !process || process.length === 0 ? '[NULL]' : process;//@ts-ignore
-          sumWall += e.wallDuration;//@ts-ignore
-          sumOcc += e.occurrences;//@ts-ignore
-          e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));//@ts-ignore
+          let process = Utils.PROCESS_MAP.get(e.pid); //@ts-ignore
+          e.process = !process || process.length === 0 ? '[NULL]' : process; //@ts-ignore
+          sumWall += e.wallDuration; //@ts-ignore
+          sumOcc += e.occurrences; //@ts-ignore
+          e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5)); //@ts-ignore
           e.avgDuration = parseFloat((parseFloat(e.avgDuration) / 1000000.0).toFixed(5)).toString();
         }
         let count = new SelectionData();
         count.process = ' ';
         count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
         count.occurrences = sumOcc;
-        result.splice(0, 0, count);//@ts-ignore
+        result.splice(0, 0, count); //@ts-ignore
         this.cpuByProcessSource = result;
         this.cpuByProcessTbl!.recycleDataSource = result;
       } else {
@@ -128,9 +128,9 @@ export class TabPaneCpuByProcess extends BaseElement {
           return 0;
         }
         if (type === 'number') {
-          return sort === 2 ? // @ts-ignore
-            parseFloat(cpuByProcessRightData[property]) - parseFloat(cpuByProcessLeftData[property]) : // @ts-ignore
-            parseFloat(cpuByProcessLeftData[property]) - parseFloat(cpuByProcessRightData[property]);
+          return sort === 2 // @ts-ignore
+            ? parseFloat(cpuByProcessRightData[property]) - parseFloat(cpuByProcessLeftData[property]) // @ts-ignore
+            : parseFloat(cpuByProcessLeftData[property]) - parseFloat(cpuByProcessRightData[property]);
         } else {
           // @ts-ignore
           if (cpuByProcessRightData[property] > cpuByProcessLeftData[property]) {

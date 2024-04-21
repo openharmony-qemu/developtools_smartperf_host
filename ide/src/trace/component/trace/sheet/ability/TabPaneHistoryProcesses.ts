@@ -32,8 +32,9 @@ export class TabPaneHistoryProcesses extends BaseElement {
   set data(historyProcessValue: SelectionParam | unknown) {
     if (this.historyProcessTbl) {
       // @ts-ignore
-      this.historyProcessTbl.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 45}px`;
+      this.historyProcessTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 45
+      }px`;
     }
     this.queryDataByDB(historyProcessValue);
   }
@@ -54,7 +55,7 @@ export class TabPaneHistoryProcesses extends BaseElement {
   filterData(): void {
     if (this.queryHistoryResult.length > 0) {
       let filterHistory = this.queryHistoryResult.filter((item): boolean => {
-        let array = this.toProcessHistoryArray(item);//@ts-ignore
+        let array = this.toProcessHistoryArray(item); //@ts-ignore
         let isInclude = array.filter((value): boolean => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
@@ -81,10 +82,11 @@ export class TabPaneHistoryProcesses extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam | unknown): void {//@ts-ignore
+  queryDataByDB(val: SelectionParam | unknown): void {
+    //@ts-ignore
     getTabProcessHistoryData(val.leftNs, val.rightNs, val.processId, val.threadId).then((item): void => {
       if (item.length !== null && item.length > 0) {
-        log(`getTabProcessHistoryData result size : ${  item.length}`);
+        log(`getTabProcessHistoryData result size : ${item.length}`);
         for (const processHistory of item) {
           processHistory.alive = processHistory.alive === '0' ? 'No' : 'Yes';
           if (Number(processHistory.firstSeen) <= 0) {
@@ -130,7 +132,7 @@ export class TabPaneHistoryProcesses extends BaseElement {
       currentTimeMs = currentTimeMs - Math.floor(currentTimeMs / second1) * second1;
     }
     if (currentTimeMs > 0) {
-      res += `${currentTimeMs  } ms `;
+      res += `${currentTimeMs} ms `;
     } else {
       res += '0 ms ';
     }
@@ -181,7 +183,7 @@ export class TabPaneHistoryProcesses extends BaseElement {
         );
       } else if (type === 'cpuTime' || type === 'lastSeen' || type === 'firstSeen') {
         // @ts-ignore
-        return compareValues(historyProcessLeftData[`${type  }Number`], historyProcessRightData[`${type  }Number`]);
+        return compareValues(historyProcessLeftData[`${type}Number`], historyProcessRightData[`${type}Number`]);
       } else if (type === 'alive') {
         // @ts-ignore
         let leftValue = historyProcessLeftData[property] === 'Yes' ? 1 : 0;
@@ -196,17 +198,17 @@ export class TabPaneHistoryProcesses extends BaseElement {
   }
 
   sortByColumn(detail: unknown): void {
-    let type;//@ts-ignore
+    let type; //@ts-ignore
     if (detail.key === 'startTime' || detail.key === 'processName') {
-      type = 'string';//@ts-ignore
+      type = 'string'; //@ts-ignore
     } else if (detail.key === 'cpuTime') {
-      type = 'cpuTime';//@ts-ignore
+      type = 'cpuTime'; //@ts-ignore
     } else if (detail.key === 'alive') {
       type = 'alive';
     } else {
       type = 'number';
-    }//@ts-ignore
-    let compareFunction = this.compare(detail.key, detail.sort, type);//@ts-ignore
+    } //@ts-ignore
+    let compareFunction = this.compare(detail.key, detail.sort, type); //@ts-ignore
     this.historyProcessSource.sort(compareFunction);
     this.historyProcessTbl!.recycleDataSource = this.historyProcessSource;
   }

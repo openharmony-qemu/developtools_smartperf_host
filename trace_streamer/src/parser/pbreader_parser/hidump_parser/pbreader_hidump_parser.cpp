@@ -19,7 +19,7 @@
 #include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderHidumpParser::PbreaderHidumpParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderHidumpParser::PbreaderHidumpParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx), clockId_(0)
 {
 }

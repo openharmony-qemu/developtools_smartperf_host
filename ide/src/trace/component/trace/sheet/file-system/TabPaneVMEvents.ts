@@ -75,7 +75,7 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
           this.vmEventTblData.shadowRoot.querySelector('.table').style.height =
             this.parentElement!.clientHeight - 10 - 33 + 'px';
           this.vmEventTblData.reMeauseHeight();
-        }// @ts-ignore
+        } // @ts-ignore
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
@@ -88,7 +88,7 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
     this.vmEventTblData = this.shadowRoot?.querySelector<LitTable>('#vm-event-tbr');
     this.vmEventTbl!.addEventListener('row-click', (vmEventRowClick) => {
       // @ts-ignore
-      let data = vmEventRowClick.detail.data;// @ts-ignore
+      let data = vmEventRowClick.detail.data; // @ts-ignore
       (data as unknown).isSelected = true;
       // @ts-ignore
       if ((vmEventRowClick.detail as unknown).callBack) {
@@ -100,7 +100,8 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
         'fileSystem-queryStack',
         { callchainId: data.callchainId },
         undefined,
-        (res: unknown) => {// @ts-ignore
+        (res: unknown) => {
+          // @ts-ignore
           this.vmEventTblData!.recycleDataSource = res;
         }
       );
@@ -138,34 +139,38 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
     filter!.firstSelect = '0';
   }
 
-  async fromStastics(vmEventParam: SelectionParam | unknown): Promise<void> {// @ts-ignore
+  async fromStastics(vmEventParam: SelectionParam | unknown): Promise<void> {
+    // @ts-ignore
     if (vmEventParam.fileSystemVMData === undefined) {
       return;
     }
     this.vmEventTblData!.recycleDataSource = [];
     this.vmEventTblData?.clearAllSelection(undefined);
     let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#vm-event-filter');
-    if (this.currentSelection !== vmEventParam) {// @ts-ignore
+    if (this.currentSelection !== vmEventParam) {
+      // @ts-ignore
       await this.initFilterTypes(vmEventParam);
-    }// @ts-ignore
+    } // @ts-ignore
     let typeIndexOf = this.nativeType.indexOf(vmEventParam.fileSystemVMData.path.value);
-    if (typeIndexOf === -1) {// @ts-ignore
-      this.statsticsSelection.push(vmEventParam.fileSystemVMData.path);// @ts-ignore
+    if (typeIndexOf === -1) {
+      // @ts-ignore
+      this.statsticsSelection.push(vmEventParam.fileSystemVMData.path); // @ts-ignore
       this.nativeType.push(vmEventParam.fileSystemVMData.path.value);
       typeIndexOf = this.nativeType.length - 1;
     }
-    if (this.currentSelection !== vmEventParam) {// @ts-ignore
+    if (this.currentSelection !== vmEventParam) {
+      // @ts-ignore
       this.currentSelection = vmEventParam;
       filter!.setSelectList(this.nativeType, null, 'Operation Type');
-      filter!.firstSelect = typeIndexOf + '';// @ts-ignore
+      filter!.firstSelect = typeIndexOf + ''; // @ts-ignore
       this.queryData(vmEventParam);
     } else {
       if (typeIndexOf === parseInt(filter!.firstSelect)) {
         return;
       }
       filter!.setSelectList(this.nativeType, null, 'Operation Type');
-      filter!.firstSelect = typeIndexOf + '';// @ts-ignore
-      this.filterTypeData(vmEventParam?.fileSystemVMData?.path || undefined);// @ts-ignore
+      filter!.firstSelect = typeIndexOf + ''; // @ts-ignore
+      this.filterTypeData(vmEventParam?.fileSystemVMData?.path || undefined); // @ts-ignore
       vmEventParam.fileSystemVMData = undefined;
       this.vmEventTbl!.recycleDataSource = this.vmEventSource;
     }
@@ -173,7 +178,7 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
 
   queryData(vmEventParam: SelectionParam): void {
     this.loadingList.push(1);
-    this.vmEventProgressEL!.loading = true;// @ts-ignore
+    this.vmEventProgressEL!.loading = true; // @ts-ignore
     this.loadingPage.style.visibility = 'visible';
     this.vmEventSource = [];
     this.queryVmEventDataSource = [];
@@ -186,18 +191,19 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
         typeArr: vmEventParam.fileSystemType,
       },
       undefined,
-      (res: unknown) => {// @ts-ignore
-        this.vmEventSource = this.vmEventSource.concat(res.data);// @ts-ignore
+      (res: unknown) => {
+        // @ts-ignore
+        this.vmEventSource = this.vmEventSource.concat(res.data); // @ts-ignore
         this.queryVmEventDataSource = this.queryVmEventDataSource.concat(res.data);
         // @ts-ignore
         this.filterTypeData(vmEventParam?.fileSystemVMData?.path || undefined);
-        vmEventParam.fileSystemVMData = undefined;// @ts-ignore
-        res.data = null;// @ts-ignore
+        vmEventParam.fileSystemVMData = undefined; // @ts-ignore
+        res.data = null; // @ts-ignore
         if (!res.isSending) {
           this.vmEventTbl!.recycleDataSource = this.vmEventSource;
           this.loadingList.splice(0, 1);
           if (this.loadingList.length === 0) {
-            this.vmEventProgressEL!.loading = false;// @ts-ignore
+            this.vmEventProgressEL!.loading = false; // @ts-ignore
             this.loadingPage.style.visibility = 'hidden';
           }
         }
@@ -217,9 +223,10 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
         return entry[1] === this.defaultNativeTypes[parseInt(firstSelect)];
       });
       type = typeEntry ? parseInt(typeEntry[0]) : 0;
-    } else if (pathData !== undefined) {// @ts-ignore
-      type = parseInt(pathData.type || 0);// @ts-ignore
-      tid = pathData.tid || -1;// @ts-ignore
+    } else if (pathData !== undefined) {
+      // @ts-ignore
+      type = parseInt(pathData.type || 0); // @ts-ignore
+      tid = pathData.tid || -1; // @ts-ignore
       pid = pathData.pid || -1;
     } else if (pathData === undefined) {
       return;

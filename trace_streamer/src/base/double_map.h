@@ -59,7 +59,7 @@ public:
             return invalidValue_;
         }
     }
-    const std::map<T2, T3>* Find(T1 t1) const
+    const std::map<T2, T3> *Find(T1 t1) const
     {
         auto streamIdHookidMap = internalMap_.find(t1);
         if (streamIdHookidMap != internalMap_.end()) {

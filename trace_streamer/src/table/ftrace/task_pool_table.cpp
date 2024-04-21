@@ -31,7 +31,7 @@ enum class Index : int32_t {
     RETURN_STATE,
     TIMEOUT_ROW
 };
-TaskPoolTable::TaskPoolTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+TaskPoolTable::TaskPoolTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("allocation_task_row", "INTEGER"));
@@ -55,7 +55,7 @@ std::unique_ptr<TableBase::Cursor> TaskPoolTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-TaskPoolTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+TaskPoolTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstTaskPoolData().Size())),
       taskPoolObj_(dataCache->GetConstTaskPoolData())
 {

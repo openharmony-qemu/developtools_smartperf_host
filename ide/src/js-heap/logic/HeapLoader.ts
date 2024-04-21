@@ -252,12 +252,12 @@ export class HeapLoader {
   }
 
   private buildOrderIdxInit(): {
-      stackNodes: Uint32Array;
-      stackCurrentEdge: Uint32Array;
-      orderIdx2NodeIdx: Uint32Array;
-      nodeIdx2OrderIdx: Uint32Array;
-      visited: Uint8Array;
-      } {
+    stackNodes: Uint32Array;
+    stackCurrentEdge: Uint32Array;
+    orderIdx2NodeIdx: Uint32Array;
+    nodeIdx2OrderIdx: Uint32Array;
+    visited: Uint8Array;
+  } {
     const state = {
       stackNodes: new Uint32Array(this.nodeCount),
       stackCurrentEdge: new Uint32Array(this.nodeCount),
@@ -532,7 +532,7 @@ export class HeapLoader {
     }
   }
 
-  getMinAndMaxNodeId(): { minNodeId: number, maxNodeId: number } {
+  getMinAndMaxNodeId(): { minNodeId: number; maxNodeId: number } {
     return {
       minNodeId: this.nodes[0].id,
       maxNodeId: this.nodes[this.nodeCount - 1].id,
@@ -618,7 +618,7 @@ export class HeapLoader {
     if (newState === DetachedNessState.ATTACHED) {
       domState.attached.push(node.id);
     } else if (newState === DetachedNessState.DETACHED) {
-      node.displayName =  `Detached ${node.name}`;
+      node.displayName = `Detached ${node.name}`;
       // mark detached dom
       node.flag |= DETACHED_DOM_NODE;
       domState.detached.push(node.id);
@@ -914,7 +914,10 @@ export class HeapLoader {
    * @param targetFileId to compare file's id
    * @param targetFileClasses to compare file's constructor
    */
-  public getClassesForComparison(targetFileId: number, targetFileClasses: Map<string, ConstructorItem>): Map<string, ConstructorComparison> | undefined {
+  public getClassesForComparison(
+    targetFileId: number,
+    targetFileClasses: Map<string, ConstructorItem>
+  ): Map<string, ConstructorComparison> | undefined {
     // Return the result if it has been obtained before
     if (this.diffToOtherFile.has(targetFileId)) {
       return this.diffToOtherFile.get(targetFileId);
@@ -991,20 +994,22 @@ export class HeapLoader {
   }
 
   private findParentsFunc(childNodes: ConstructorItem[], clickNode: ConstructorItem): void {
-    function findParents(clickNode: unknown, parents: unknown): unknown {//@ts-ignore
+    function findParents(clickNode: unknown, parents: unknown): unknown {
+      //@ts-ignore
       if (!clickNode.parent) {
         return parents;
       }
       // add the parent of the current node to the result array
       //@ts-ignore
       parents.push(clickNode);
-      for (let childNode of childNodes) {//@ts-ignore
+      for (let childNode of childNodes) {
+        //@ts-ignore
         for (let heapParent of parents) {
           if (heapParent.id === childNode!.id) {
             childNode.hasNext = false;
           }
         }
-      }//@ts-ignore
+      } //@ts-ignore
       return findParents(clickNode.parent, parents);
     }
     findParents(clickNode, []);
@@ -1070,7 +1075,8 @@ export class HeapLoader {
       }
     }
 
-    retains.sort(function (a: unknown, b: unknown) {//@ts-ignore
+    retains.sort(function (a: unknown, b: unknown) {
+      //@ts-ignore
       return a.distance - b.distance;
     });
 

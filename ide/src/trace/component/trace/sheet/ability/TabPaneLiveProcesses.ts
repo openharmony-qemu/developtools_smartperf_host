@@ -52,7 +52,7 @@ export class TabPaneLiveProcesses extends BaseElement {
   filterData(): void {
     if (this.queryLiveResult.length > 0) {
       let filterLive = this.queryLiveResult.filter((item): boolean => {
-        let array = this.toLiveProcessArray(item);// @ts-ignore
+        let array = this.toLiveProcessArray(item); // @ts-ignore
         let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
@@ -80,10 +80,11 @@ export class TabPaneLiveProcesses extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam | unknown): void {// @ts-ignore
+  queryDataByDB(val: SelectionParam | unknown): void {
+    // @ts-ignore
     getTabLiveProcessData(val.leftNs, val.rightNs).then((item): void => {
       if (item.length !== null && item.length > 0) {
-        log(`getTabLiveProcessData result size : ${  item.length}`);
+        log(`getTabLiveProcessData result size : ${item.length}`);
         for (const liveProcess of item) {
           liveProcess.processName = `${liveProcess.processName}(${liveProcess.processId})`;
           liveProcess.memoryNumber = Number(liveProcess.memory);
@@ -165,15 +166,17 @@ export class TabPaneLiveProcesses extends BaseElement {
     function compare(property, sort, type) {
       return function (liveProcessLeftData: LiveProcess, liveProcessRightData: LiveProcess): number {
         if (type === 'number') {
-          return sort === 2 ? // @ts-ignore
-            parseFloat(liveProcessRightData[property]) - parseFloat(liveProcessLeftData[property]) : // @ts-ignore
-            parseFloat(liveProcessLeftData[property]) - parseFloat(liveProcessRightData[property]);
+          return sort === 2 // @ts-ignore
+            ? parseFloat(liveProcessRightData[property]) - parseFloat(liveProcessLeftData[property]) // @ts-ignore
+            : parseFloat(liveProcessLeftData[property]) - parseFloat(liveProcessRightData[property]);
         } else if (type === 'cpuTime') {
-          return sort === 2 ? liveProcessRightData.cpuTimeNumber - liveProcessLeftData.cpuTimeNumber :
-            liveProcessLeftData.cpuTimeNumber - liveProcessRightData.cpuTimeNumber;
+          return sort === 2
+            ? liveProcessRightData.cpuTimeNumber - liveProcessLeftData.cpuTimeNumber
+            : liveProcessLeftData.cpuTimeNumber - liveProcessRightData.cpuTimeNumber;
         } else if (type === 'memory') {
-          return sort === 2 ? liveProcessRightData.memoryNumber - liveProcessLeftData.memoryNumber :
-            liveProcessLeftData.memoryNumber - liveProcessRightData.memoryNumber;
+          return sort === 2
+            ? liveProcessRightData.memoryNumber - liveProcessLeftData.memoryNumber
+            : liveProcessLeftData.memoryNumber - liveProcessRightData.memoryNumber;
         } else {
           // @ts-ignore
           if (liveProcessRightData[property] > liveProcessLeftData[property]) {
@@ -189,14 +192,18 @@ export class TabPaneLiveProcesses extends BaseElement {
         }
       };
     }
-// @ts-ignore
-    if (detail.key === 'startTime' || detail.key === 'processName') {// @ts-ignore
-      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'string'));// @ts-ignore
-    } else if (detail.key === 'cpuTime') {// @ts-ignore
-      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'cpuTime'));// @ts-ignore
-    } else if (detail.key === 'memory') {// @ts-ignore
-      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'memory'));// @ts-ignore
-    } else {// @ts-ignore
+    // @ts-ignore
+    if (detail.key === 'startTime' || detail.key === 'processName') {
+      // @ts-ignore
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'string')); // @ts-ignore
+    } else if (detail.key === 'cpuTime') {
+      // @ts-ignore
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'cpuTime')); // @ts-ignore
+    } else if (detail.key === 'memory') {
+      // @ts-ignore
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'memory')); // @ts-ignore
+    } else {
+      // @ts-ignore
       this.liveProcessSource.sort(compare(detail.key, detail.sort, 'number'));
     }
     this.liveProcessTbl!.recycleDataSource = this.liveProcessSource;

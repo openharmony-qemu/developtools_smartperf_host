@@ -15,12 +15,12 @@
 import { TraficEnum } from './utils/QueryEnum';
 import { hiSysEventList } from './utils/AllMemoryCache';
 import { filterDataByGroupLayer } from './utils/DataFilter';
+import { Args } from './CommonArgs';
 
-export const chartHiSysEventDataSql = (args: unknown): string => {
+export const chartHiSysEventDataSql = (args: Args): string => {
   return `
       SELECT S.id,
              (S.ts - ${
-              // @ts-ignore
                args.recordStartNS
              })                                                                                 AS startNs,
              pid,
@@ -33,35 +33,26 @@ export const chartHiSysEventDataSql = (args: unknown): string => {
                  END
                                                                                                                             AS depth,
              1                                                                                                              AS dur,
-             ((S.ts - ${
-              // @ts-ignore
-              args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) + (CASE
+             ((S.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) + (CASE
                                                                                                                  WHEN S.level = 'MINOR'
                                                                                                                      THEN 0
                                                                                                                  WHEN S.level = 'CRITICAL'
                                                                                                                      THEN 1
                                                                                                                  END *
                                                                                                              ${
-                                                                                                              // @ts-ignore
                                                                                                                args.width
                                                                                                              }) AS px
       FROM hisys_all_event AS S
       where S.id is not null
-        and startNs + dur >= ${
-          // @ts-ignore
-          Math.floor(args.startNS)}
-        and startNs <= ${
-          // @ts-ignore
-          Math.floor(args.endNS)}
+        and startNs + dur >= ${Math.floor(args.startNS)}
+        and startNs <= ${Math.floor(args.endNS)}
       group by px`;
 };
 
-export const chartHiSysEventSql = (args: unknown): string => {
+export const chartHiSysEventSql = (args: Args): string => {
   return `
      SELECT S.id,
-             (S.ts - ${
-              // @ts-ignore
-              args.recordStartNS})                                                                                 AS startNs,
+             (S.ts - ${args.recordStartNS})                                                                                 AS startNs,
              pid,
              tid,
              uid,

@@ -52,12 +52,13 @@ export class TabPaneCounterSample extends BaseElement {
     this.selectionParam = counterSampleValue;
     if (this.counterSampleTbl) {
       // @ts-ignore
-      this.counterSampleTbl.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 25}px`;
+      this.counterSampleTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 25
+      }px`;
     }
     this.queryDataByDB(counterSampleValue);
   }
-// @ts-ignore
+  // @ts-ignore
   set rangeTraceRow(rangeRow: Array<TraceRow<unknown>> | undefined) {
     this._rangeRow = rangeRow;
   }
@@ -66,8 +67,9 @@ export class TabPaneCounterSample extends BaseElement {
     this.sampleProgressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progressCounter');
     this.counterLoadingPage = this.shadowRoot!.querySelector('.loadingCounter');
     this.counterSampleTbl = this.shadowRoot!.querySelector<LitTable>('#tb-counter-sample');
-    this.systemTrace = document.querySelector('body > sp-application')?.shadowRoot!.
-      querySelector<SpSystemTrace>('#sp-system-trace');
+    this.systemTrace = document
+      .querySelector('body > sp-application')
+      ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.counterSampleTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.counterSortKey = evt.detail.key;
@@ -92,8 +94,8 @@ export class TabPaneCounterSample extends BaseElement {
         for (let row of rangeTraceRow!) {
           let context = row.collect ? this.systemTrace!.canvasFavoritePanelCtx! : this.systemTrace!.canvasPanelCtx!;
           cpuStateFilter.push(...row.dataListCache);
-          row.canvasSave(context);// @ts-ignore
-          context.clearRect(row.frame.x, row.frame.y, row.frame.width, row.frame.height);// @ts-ignore
+          row.canvasSave(context); // @ts-ignore
+          context.clearRect(row.frame.x, row.frame.y, row.frame.width, row.frame.height); // @ts-ignore
           drawLines(context!, TraceRow.range?.xs || [], row.frame.height, this.systemTrace!.timerShaftEL!.lineColor());
           if (row.name.includes('State') && parseInt(row.name.replace(/[^\d]/g, ' ')) === data.cpu) {
             CpuFreqStruct.hoverCpuFreqStruct = undefined;
@@ -105,7 +107,7 @@ export class TabPaneCounterSample extends BaseElement {
                 cpuStateFilter[i].cpu === data.cpu &&
                 // @ts-ignore
                 Math.max(TraceRow.rangeSelectObject?.startNS!, cpuStateFilter[i].startTs!) <
-                // @ts-ignore
+                  // @ts-ignore
                   Math.min(TraceRow.rangeSelectObject?.endNS!, cpuStateFilter[i].startTs! + cpuStateFilter[i].dur!)
               ) {
                 // @ts-ignore
@@ -185,7 +187,7 @@ export class TabPaneCounterSample extends BaseElement {
       this.sortTable(this.counterSortKey, this.counterSortType);
     });
   }
-// @ts-ignore
+  // @ts-ignore
   getInitTime(initCounterResultList: Array<unknown>, sampleMap: Map<unknown, unknown>, val: SelectionParam): void {
     let leftNs = val.leftNs + val.recordStartNs;
     let rightNs = val.rightNs + val.recordStartNs;

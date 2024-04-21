@@ -34,30 +34,30 @@ class SDKDataParser : public HtracePluginTimeParser {
 public:
     using TraceRangeCallbackFunction = std::function<void(const std::string)>;
     using QueryResultCallbackFunction = std::function<void(const std::string /* result */, int32_t, int32_t)>;
-    explicit SDKDataParser(TraceDataCache* dataCache);
+    explicit SDKDataParser(TraceDataCache *dataCache);
     ~SDKDataParser(){};
 
     // third_party
     int32_t CreateTableByJson();
-    int32_t SetTableName(const char* counterTableName,
-                         const char* counterObjectTableName,
-                         const char* sliceTableName,
-                         const char* sliceObjectName);
+    int32_t SetTableName(const char *counterTableName,
+                         const char *counterObjectTableName,
+                         const char *sliceTableName,
+                         const char *sliceObjectName);
     int32_t GetJsonConfig(QueryResultCallbackFunction queryResultCallbackFunction);
     int32_t GetPluginName(std::string pluginName);
     int32_t ParseDataOver(TraceRangeCallbackFunction traceRangeCallbackFunction);
-    int32_t ParserData(const uint8_t* data, int32_t len, int32_t componentId);
-    int32_t AppendCounterObject(int32_t counterId, const char* columnName);
+    int32_t ParserData(const uint8_t *data, int32_t len, int32_t componentId);
+    int32_t AppendCounterObject(int32_t counterId, const char *columnName);
     int32_t AppendCounter(int32_t counterId, uint64_t ts, int32_t value);
-    int32_t AppendSliceObject(int32_t sliceId, const char* columnName);
+    int32_t AppendSliceObject(int32_t sliceId, const char *columnName);
     int32_t AppendSlice(int32_t sliceId, uint64_t ts, uint64_t endTs, int32_t value);
 
 private:
-    int32_t CreateCounterObjectTable(const std::string& tableName);
-    int32_t CreateCounterTable(const std::string& tableName);
-    int32_t CreateSliceObjectTable(const std::string& tableName);
-    int32_t CreateSliceTable(const std::string& tableName);
-    int32_t ParserClock(const uint8_t* data, int32_t len);
+    int32_t CreateCounterObjectTable(const std::string &tableName);
+    int32_t CreateCounterTable(const std::string &tableName);
+    int32_t CreateSliceObjectTable(const std::string &tableName);
+    int32_t CreateSliceTable(const std::string &tableName);
+    int32_t ParserClock(const uint8_t *data, int32_t len);
     int32_t UpdateJson();
 
 public:
@@ -90,7 +90,7 @@ public:
         "}}}";
 
 private:
-    TraceDataCache* traceDataCache_ = nullptr;
+    TraceDataCache *traceDataCache_ = nullptr;
     std::unique_ptr<ClockFilter> clockFilter_ = {};
 };
 } // namespace TraceStreamer

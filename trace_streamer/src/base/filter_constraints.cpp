@@ -21,7 +21,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 void FilterConstraints::AddConstraint(int32_t idx, int32_t col, unsigned char op, bool isSupport)
 {
-    Constraint& c = constraints_.emplace_back();
+    Constraint &c = constraints_.emplace_back();
     c.idxInaConstraint = idx;
     c.col = col;
     c.op = op;
@@ -37,7 +37,7 @@ void FilterConstraints::UpdateConstraint(int32_t idx, bool isSupport)
 
 void FilterConstraints::AddOrderBy(int32_t col, unsigned char desc)
 {
-    OrderBy& o = orderBys_.emplace_back();
+    OrderBy &o = orderBys_.emplace_back();
     o.iColumn = col;
     o.desc = desc;
 }
@@ -48,7 +48,7 @@ void FilterConstraints::Clear()
     orderBys_.clear();
 }
 
-void FilterConstraints::ToString(std::string& idxStr) const
+void FilterConstraints::ToString(std::string &idxStr) const
 {
     idxStr.clear();
     idxStr.reserve(idxStrSize_);
@@ -64,7 +64,7 @@ void FilterConstraints::ToString(std::string& idxStr) const
     }
 }
 
-void FilterConstraints::GetColAndOp(const char** p, char** pNext, int32_t& col, unsigned char& op)
+void FilterConstraints::GetColAndOp(const char **p, char **pNext, int32_t &col, unsigned char &op)
 {
     *p = *pNext;
     errno = 0;
@@ -85,10 +85,10 @@ void FilterConstraints::GetColAndOp(const char** p, char** pNext, int32_t& col, 
     TS_ASSERT(p != pNext);
 }
 
-void FilterConstraints::FromString(const std::string& idxStr)
+void FilterConstraints::FromString(const std::string &idxStr)
 {
-    const char* p = static_cast<const char*>(idxStr.c_str());
-    char* pNext = nullptr;
+    const char *p = static_cast<const char *>(idxStr.c_str());
+    char *pNext = nullptr;
     TS_ASSERT(*p == 'C');
     errno = 0;
     int32_t constraintCount = static_cast<int32_t>(strtol(p + 1, &pNext, 10));

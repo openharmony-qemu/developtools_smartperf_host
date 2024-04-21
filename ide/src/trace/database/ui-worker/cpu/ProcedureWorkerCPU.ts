@@ -23,6 +23,7 @@ import {
   drawSelection,
   drawWakeUp,
   drawWakeUpList,
+  Rect,
   Render,
   RequestMessage,
 } from '../ProcedureWorkerCommon';
@@ -30,20 +31,21 @@ import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { SpSystemTrace } from '../../../component/SpSystemTrace';
 
 export class EmptyRender extends Render {
-  renderMainThread(req: any, row: TraceRow<any>): void {
+  renderMainThread(req: unknown, row: TraceRow<any>): void {
+    //@ts-ignore
     drawLoadingFrame(req.context, [], row);
   }
-  render(cpuReqMessage: RequestMessage, list: Array<any>, filter: Array<any>): void {
+  render(cpuReqMessage: RequestMessage, list: Array<CpuStruct>, filter: Array<CpuStruct>): void {
     if (cpuReqMessage.canvas) {
       cpuReqMessage.context.clearRect(0, 0, cpuReqMessage.frame.width, cpuReqMessage.frame.height);
       cpuReqMessage.context.beginPath();
-      drawLines(cpuReqMessage.context, cpuReqMessage.xs, cpuReqMessage.frame.height, cpuReqMessage.lineColor);
+      drawLines(cpuReqMessage.context, cpuReqMessage.xs!, cpuReqMessage.frame.height, cpuReqMessage.lineColor);
       drawSelection(cpuReqMessage.context, cpuReqMessage.params);
       cpuReqMessage.context.closePath();
       drawFlagLine(
         cpuReqMessage.context,
-        cpuReqMessage.flagMoveInfo,
-        cpuReqMessage.flagSelectedInfo,
+        cpuReqMessage.flagMoveInfo!,
+        cpuReqMessage.flagSelectedInfo!,
         cpuReqMessage.startNS,
         cpuReqMessage.endNS,
         cpuReqMessage.totalNS,
@@ -95,7 +97,7 @@ export class CpuRender {
     });
     req.ctx.closePath();
     let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
-    let wakeup = req.type === `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined;// @ts-ignore
+    let wakeup = req.type === `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined; // @ts-ignore
     drawWakeUp(req.ctx, CpuStruct.wakeupBean, startNS, endNS, totalNS, row.frame, wakeup, currentCpu, true);
     for (let i = 0; i < SpSystemTrace.wakeupList.length; i++) {
       if (i + 1 === SpSystemTrace.wakeupList.length) {
@@ -103,18 +105,18 @@ export class CpuRender {
       }
       let wake = SpSystemTrace.wakeupList[i + 1];
       let wakeupListItem =
-        req.type === `cpu-data-${SpSystemTrace.wakeupList[i]?.cpu || 0}` ? SpSystemTrace.wakeupList[i] : undefined;// @ts-ignore
+        req.type === `cpu-data-${SpSystemTrace.wakeupList[i]?.cpu || 0}` ? SpSystemTrace.wakeupList[i] : undefined; // @ts-ignore
       drawWakeUpList(req.ctx, wake, startNS, endNS, totalNS, row.frame, wakeupListItem, currentCpu, true);
     }
   }
 
   cpu(
-    cpuList: Array<any>,
-    cpuRes: Array<any>,
+    cpuList: Array<CpuStruct>,
+    cpuRes: Array<CpuStruct>,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any,
+    frame: Rect,
     use: boolean
   ): void {
     if (use && cpuRes.length > 0) {
@@ -126,7 +128,7 @@ export class CpuRender {
     }
   }
 
-  setFrameCpuByRes(cpuRes: Array<any>, startNS: number, endNS: number, frame: any): void {
+  setFrameCpuByRes(cpuRes: Array<CpuStruct>, startNS: number, endNS: number, frame: Rect): void {
     let pns = (endNS - startNS) / frame.width;
     let y = frame.y + 5;
     let height = frame.height - 10;
@@ -134,18 +136,24 @@ export class CpuRender {
       let it = cpuRes[i];
       if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
         if (!cpuRes[i].frame) {
-          cpuRes[i].frame = {};
-          cpuRes[i].frame.y = y;
-          cpuRes[i].frame.height = height;
+          cpuRes[i].frame = new Rect(0, 0, 0, 0);
+          cpuRes[i].frame!.y = y;
+          cpuRes[i].frame!.height = height;
         }
         CpuStruct.setCpuFrame(cpuRes[i], pns, startNS, endNS, frame);
       } else {
-        cpuRes[i].frame = null;
+        cpuRes[i].frame = undefined;
       }
     }
   }
 
-  setFrameCpuByList(cpuRes: Array<any>, startNS: number, endNS: number, frame: any, cpuList: Array<any>): void {
+  setFrameCpuByList(
+    cpuRes: Array<CpuStruct>,
+    startNS: number,
+    endNS: number,
+    frame: Rect,
+    cpuList: Array<CpuStruct>
+  ): void {
     cpuRes.length = 0;
     let pns = (endNS - startNS) / frame.width; //每个像素多少ns
     let y = frame.y + 5;
@@ -153,11 +161,11 @@ export class CpuRender {
     let left = 0;
     let right = 0;
     for (let i = 0, j = cpuList.length - 1, ib = true, jb = true; i < cpuList.length, j >= 0; i++, j--) {
-      if (cpuList[j].startTime <= endNS && jb) {
+      if (cpuList[j].startTime! <= endNS && jb) {
         right = j;
         jb = false;
       }
-      if (cpuList[i].startTime + cpuList[i].dur >= startNS && ib) {
+      if (cpuList[i].startTime! + cpuList[i].dur! >= startNS && ib) {
         left = i;
         ib = false;
       }
@@ -169,18 +177,18 @@ export class CpuRender {
     let sum = 0;
     for (let i = 0; i < slice.length; i++) {
       if (!slice[i].frame) {
-        slice[i].frame = {};
-        slice[i].frame.y = y;
-        slice[i].frame.height = height;
+        slice[i].frame = new Rect(0, 0, 0, 0);
+        slice[i].frame!.y = y;
+        slice[i].frame!.height = height;
       }
-      if (slice[i].dur >= pns) {
+      if (slice[i].dur! >= pns) {
         slice[i].v = true;
         CpuStruct.setCpuFrame(slice[i], pns, startNS, endNS, frame);
       } else {
         if (i > 0) {
-          let c = slice[i].startTime - slice[i - 1].startTime - slice[i - 1].dur;
+          let c = slice[i].startTime! - slice[i - 1].startTime! - slice[i - 1].dur!;
           if (c < pns && sum < pns) {
-            sum += c + slice[i - 1].dur;
+            sum += c + slice[i - 1].dur!;
             slice[i].v = false;
           } else {
             slice[i].v = true;
@@ -193,7 +201,7 @@ export class CpuRender {
     cpuRes.push(...slice.filter((it) => it.v));
   }
 }
-export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHandler: any): Promise<unknown> {
+export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHandler: unknown): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (rowType === TraceRow.ROW_TYPE_CPU && CpuStruct.hoverCpuStruct) {
       CpuStruct.selectCpuStruct = CpuStruct.hoverCpuStruct;
@@ -204,6 +212,7 @@ export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHan
           CpuStruct.wakeupBean = wakeUpBean;
           sp.refreshCanvas(false);
         },
+        //@ts-ignore
         cpuClickHandler
       );
       sp.timerShaftEL?.modifyFlagList(undefined);
@@ -347,7 +356,10 @@ export class CpuStruct extends BaseStruct {
     }
   }
 
-  static setCpuFrame(cpuNode: any, pns: number, startNS: number, endNS: number, frame: any): void {
+  static setCpuFrame(cpuNode: CpuStruct, pns: number, startNS: number, endNS: number, frame: Rect): void {
+    if (!cpuNode.frame) {
+      return;
+    }
     if ((cpuNode.startTime || 0) < startNS) {
       cpuNode.frame.x = 0;
     } else {

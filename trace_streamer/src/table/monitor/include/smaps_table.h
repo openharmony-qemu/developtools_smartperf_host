@@ -23,20 +23,20 @@ namespace SysTuning {
 namespace TraceStreamer {
 class SmapsTable : public TableBase {
 public:
-    explicit SmapsTable(const TraceDataCache* dataCache);
+    explicit SmapsTable(const TraceDataCache *dataCache);
     ~SmapsTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t col) const override;
 
     private:
         void HandleTypeColumns(int32_t column) const;
-        const SmapsData& smapsObj_;
+        const SmapsData &smapsObj_;
     };
 };
 } // namespace TraceStreamer

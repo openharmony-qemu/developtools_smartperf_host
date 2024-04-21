@@ -50,7 +50,7 @@ public:
     uint64_t symVaddr_;
 };
 struct NativeHookMetaData {
-    NativeHookMetaData(const std::shared_ptr<const std::string>& seg,
+    NativeHookMetaData(const std::shared_ptr<const std::string> &seg,
                        std::unique_ptr<ProtoReader::NativeHookData_Reader> reader)
         : seg_(seg), reader_(std::move(reader))
     {
@@ -60,7 +60,7 @@ struct NativeHookMetaData {
 };
 class OfflineSymbolizationFilter : public FilterBase {
 public:
-    OfflineSymbolizationFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
+    OfflineSymbolizationFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
     ~OfflineSymbolizationFilter() override = default;
     std::shared_ptr<FrameInfo> OfflineSymbolizationByIp(uint64_t ipid, uint64_t ip);
     DataIndex OfflineSymbolizationByVaddr(uint64_t symVaddr, DataIndex filePathIndex);
@@ -68,8 +68,8 @@ public:
 protected:
     enum SYSTEM_ENTRY_VALUE { ELF32_SYM = 16, ELF64_SYM = 24 };
     using StartAddrToMapsInfoType = std::map<uint64_t, std::shared_ptr<ProtoReader::MapsInfo_Reader>>;
-    DoubleMap<uint32_t, uint64_t, const uint8_t*> filePathIdAndStValueToSymAddr_;
-    DoubleMap<std::shared_ptr<ProtoReader::SymbolTable_Reader>, uint64_t, const uint8_t*>
+    DoubleMap<uint32_t, uint64_t, const uint8_t *> filePathIdAndStValueToSymAddr_;
+    DoubleMap<std::shared_ptr<ProtoReader::SymbolTable_Reader>, uint64_t, const uint8_t *>
         symbolTablePtrAndStValueToSymAddr_;
     // first is ipid, second is startAddr, third is MapsInfo ptr
     DoubleMap<uint64_t /* ipid */, uint64_t /* startAddr */, std::shared_ptr<ProtoReader::MapsInfo_Reader>>
@@ -88,17 +88,17 @@ protected:
 
 private:
     template <class T>
-    static void GetSymbolStartMaybeUpdateFrameInfo(T* elfSym,
-                                                   uint32_t& symbolStart,
+    static void GetSymbolStartMaybeUpdateFrameInfo(T *elfSym,
+                                                   uint32_t &symbolStart,
                                                    uint64_t symVaddr,
                                                    uint64_t ip,
-                                                   FrameInfo* frameInfo);
-    bool FillFrameInfo(const std::shared_ptr<FrameInfo>& frameInfo, uint64_t ip, uint64_t ipid);
+                                                   FrameInfo *frameInfo);
+    bool FillFrameInfo(const std::shared_ptr<FrameInfo> &frameInfo, uint64_t ip, uint64_t ipid);
     bool CalcSymInfo(uint64_t ipid,
                      uint64_t ip,
-                     uint32_t& symbolStart,
-                     std::shared_ptr<FrameInfo>& frameInfo,
-                     std::shared_ptr<ProtoReader::SymbolTable_Reader>& symbolTable);
+                     uint32_t &symbolStart,
+                     std::shared_ptr<FrameInfo> &frameInfo,
+                     std::shared_ptr<ProtoReader::SymbolTable_Reader> &symbolTable);
     uint64_t vmStart_ = INVALID_UINT64;
     uint64_t vmOffset_ = INVALID_UINT64;
 };

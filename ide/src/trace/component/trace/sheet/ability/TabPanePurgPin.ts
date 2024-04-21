@@ -70,9 +70,12 @@ export class TabPanePurgPin extends BaseElement {
     }
   }
 
-  getDataSource(res: unknown): void {// @ts-ignore
-    if (res.length > 0) {// @ts-ignore
-      for (let i = 0; i < res.length; i++) {// @ts-ignore
+  getDataSource(res: unknown): void {
+    // @ts-ignore
+    if (res.length > 0) {
+      // @ts-ignore
+      for (let i = 0; i < res.length; i++) {
+        // @ts-ignore
         this.purgeablePinSource.push(this.toTabStruct(res[i].name, res[i].maxSize, res[i].minSize, res[i].avgSize));
       }
       this.sortByColumn({ key: this.sortKey, sort: this.sortType });
@@ -145,22 +148,26 @@ export class TabPanePurgPin extends BaseElement {
         }
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2// @ts-ignore
-            ? parseFloat(purgePinRightData[key]) - parseFloat(purgePinLeftData[key])// @ts-ignore
+          return sort === 2 // @ts-ignore
+            ? parseFloat(purgePinRightData[key]) - parseFloat(purgePinLeftData[key]) // @ts-ignore
             : parseFloat(purgePinLeftData[key]) - parseFloat(purgePinRightData[key]);
         } else {
-          if (sort === 2) {// @ts-ignore
+          if (sort === 2) {
+            // @ts-ignore
             return purgePinRightData[key].toString().localeCompare(purgePinLeftData[key].toString());
-          } else {// @ts-ignore
+          } else {
+            // @ts-ignore
             return purgePinLeftData[key].toString().localeCompare(purgePinRightData[key].toString());
           }
         }
       };
     }
-// @ts-ignore
-    if (detail.key === 'type') {// @ts-ignore
+    // @ts-ignore
+    if (detail.key === 'type') {
+      // @ts-ignore
       this.purgeablePinSource.sort(compare(detail.key, detail.sort, 'string'));
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       this.purgeablePinSource.sort(compare(detail.key, detail.sort, 'number'));
     }
     let pin = this.totalData(this.purgeablePinSource);
@@ -173,8 +180,9 @@ export class TabPanePurgPin extends BaseElement {
     this.purgeablePinTable = this.shadowRoot?.querySelector<LitTable>('#tb-purgeable-pin');
     this.tabTitle = this.purgeablePinTable!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.purgPinTimeRange = this.shadowRoot?.querySelector<HTMLLabelElement>('#purg-pin-time-range');
-    this.purgeablePinTable!.addEventListener('column-click', (evt: unknown) => {// @ts-ignore
-      this.sortKey = evt.detail.key;// @ts-ignore
+    this.purgeablePinTable!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
+      this.sortKey = evt.detail.key; // @ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);

@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class GPUSliceTable : public TableBase {
 public:
-    explicit GPUSliceTable(const TraceDataCache* dataCache);
+    explicit GPUSliceTable(const TraceDataCache *dataCache);
     ~GPUSliceTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,21 +32,21 @@ private:
     {
         return dataCache_->GetConstGPUSliceData().Size();
     }
-    void GetOrbyes(FilterConstraints& gpufc, EstimatedIndexInfo& gpuei) override;
-    void FilterByConstraint(FilterConstraints& gpufc,
-                            double& gpufilterCost,
+    void GetOrbyes(FilterConstraints &gpufc, EstimatedIndexInfo &gpuei) override;
+    void FilterByConstraint(FilterConstraints &gpufc,
+                            double &gpufilterCost,
                             size_t gpurowCount,
                             uint32_t gpucurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const GPUSlice& gpuSliceObj_;
+        const GPUSlice &gpuSliceObj_;
     };
 };
 } // namespace TraceStreamer

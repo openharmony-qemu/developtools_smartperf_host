@@ -33,32 +33,32 @@ using namespace SysTuning::EbpfStdtype;
 using namespace OHOS::Developtools::HiPerf;
 class EbpfBase : virtual public EventParserBase {
 public:
-    EbpfBase(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    EbpfBase(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~EbpfBase();
-    bool InitEbpfDataParser(EbpfDataReader* reader);
-    bool EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>>& symbolsFiles);
+    bool InitEbpfDataParser(EbpfDataReader *reader);
+    bool EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
 
 protected:
-    void ParseCallStackData(const uint64_t* userIpsAddr, uint16_t count, uint32_t pid, uint32_t callId);
-    DataIndex GetSymbolNameIndexFromSymVaddr(const ElfEventFixedHeader* elfHeaderAddr, uint64_t symVaddr);
+    void ParseCallStackData(const uint64_t *userIpsAddr, uint16_t count, uint32_t pid, uint32_t callId);
+    DataIndex GetSymbolNameIndexFromSymVaddr(const ElfEventFixedHeader *elfHeaderAddr, uint64_t symVaddr);
     EbpfSymbolInfo GetEbpfSymbolInfo(uint32_t pid, uint64_t ip);
     EbpfSymbolInfo GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip);
     template <typename StartToMapsAddr>
-    void GetSymbolSave(EbpfSymbolInfo& ebpfSymbolInfo, StartToMapsAddr& startToMapsAddr, uint32_t pid, uint64_t ip);
+    void GetSymbolSave(EbpfSymbolInfo &ebpfSymbolInfo, StartToMapsAddr &startToMapsAddr, uint32_t pid, uint64_t ip);
     void UpdateFilePathIndexToPidAndIpMap(DataIndex filePathIndex, uint32_t pid, uint64_t ip);
     DataIndex ConvertToHexTextIndex(uint64_t number);
     template <class T>
-    void UpdateFilePathIndexAndStValueToSymAddrMap(T* firstSymbolAddr, const int size, uint32_t filePathIndex);
+    void UpdateFilePathIndexAndStValueToSymAddrMap(T *firstSymbolAddr, const int size, uint32_t filePathIndex);
     template <class T>
-    void GetSymbolStartIndex(T* elfSym, uint32_t& symbolStart, uint64_t symVaddr);
+    void GetSymbolStartIndex(T *elfSym, uint32_t &symbolStart, uint64_t symVaddr);
     ClockId clockId_ = INVALID_UINT32;
     std::hash<std::string_view> hashFun_;
-    EbpfDataReader* reader_ = nullptr;
+    EbpfDataReader *reader_ = nullptr;
     DoubleMap<uint32_t, uint64_t, EbpfSymbolInfo> pidAndIpToEbpfSymbolInfo_;
     std::map<DataIndex, std::shared_ptr<std::set<std::tuple<uint32_t, uint64_t>>>> filePathIndexToPidAndIpMap_ = {};
     std::map<DataIndex, uint64_t> ipStrIndexToIpMap_ = {};
     std::map<uint32_t, uint32_t> callIdToPid_ = {};
-    DoubleMap<uint32_t, uint64_t, const uint8_t*> filePathIndexAndStValueToSymAddr_;
+    DoubleMap<uint32_t, uint64_t, const uint8_t *> filePathIndexAndStValueToSymAddr_;
     std::map<DataIndex, std::shared_ptr<ElfSymbolTable>> filePathIndexToImportSymbolTableMap_ = {};
     DoubleMap<uint32_t, uint64_t, uint64_t> pidAndipsToCallId_;
     uint64_t callChainId_ = 0;

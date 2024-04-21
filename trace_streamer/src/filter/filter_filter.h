@@ -24,9 +24,9 @@ namespace TraceStreamer {
 class TraceStreamerFilters;
 class FilterFilter : private FilterBase {
 public:
-    FilterFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    FilterFilter(const FilterFilter&) = delete;
-    FilterFilter& operator=(const FilterFilter&) = delete;
+    FilterFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
+    FilterFilter(const FilterFilter &) = delete;
+    FilterFilter &operator=(const FilterFilter &) = delete;
     ~FilterFilter() override;
 
     uint32_t AddFilter(std::string type, std::string name, uint64_t arg);

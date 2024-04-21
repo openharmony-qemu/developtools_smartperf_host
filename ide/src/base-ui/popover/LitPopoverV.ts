@@ -436,27 +436,33 @@ export class LitPopover extends BaseElement {
   connectedCallback(): void {
     let popover: unknown = this.shadowRoot!.querySelector('.popover');
     let checkbox: unknown = this.shadowRoot!.querySelector('.trigger-click');
-    this.setAttribute('tabindex', '1');// @ts-ignore
-    popover.onclick = (e: unknown): void => {// @ts-ignore
+    this.setAttribute('tabindex', '1'); // @ts-ignore
+    popover.onclick = (e: unknown): void => {
+      // @ts-ignore
       e.stopPropagation();
-    };// @ts-ignore
-    popover.addEventListener('mousemove', (e: unknown) => {// @ts-ignore
+    }; // @ts-ignore
+    popover.addEventListener('mousemove', (e: unknown) => {
+      // @ts-ignore
       e.stopPropagation();
     });
-    this.onclick = (e: unknown): void => {// @ts-ignore
-      e.stopPropagation();// @ts-ignore
+    this.onclick = (e: unknown): void => {
+      // @ts-ignore
+      e.stopPropagation(); // @ts-ignore
       if (e.relatedTarget?.hasAttribute('not-close')) {
         this.focus();
-      }// @ts-ignore
-      checkbox.checked = !checkbox.checked;// @ts-ignore
+      } // @ts-ignore
+      checkbox.checked = !checkbox.checked; // @ts-ignore
       this.visible = checkbox.checked;
-    };// @ts-ignore
+    }; // @ts-ignore
     popover.onmouseleave = (): void => {
       this.focus();
     };
-    this.onblur = (ev: unknown): void => {// @ts-ignore
-      if (ev.relatedTarget && this.haveRadio) {// @ts-ignore
-        if (ev.relatedTarget.hasAttribute('not-close')) {// @ts-ignore
+    this.onblur = (ev: unknown): void => {
+      // @ts-ignore
+      if (ev.relatedTarget && this.haveRadio) {
+        // @ts-ignore
+        if (ev.relatedTarget.hasAttribute('not-close')) {
+          // @ts-ignore
         } else if (ev.relatedTarget.type === 'radio') {
           this.focus();
         } else {

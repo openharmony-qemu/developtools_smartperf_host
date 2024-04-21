@@ -22,22 +22,22 @@ export class TraceRowRecyclerView extends BaseElement {
   private recycler: boolean = true;
   private gasketEL: HTMLDivElement | null | undefined;
   private vessel: HTMLDivElement | null | undefined;
-  private visibleRowsCount: number = 0;// @ts-ignore
+  private visibleRowsCount: number = 0; // @ts-ignore
   private visibleObjects: TraceRowObject<unknown>[] = [];
   private totalHeight: number = 0;
-// @ts-ignore
+  // @ts-ignore
   private _dataSource: Array<TraceRowObject<unknown>> = [];
   private _renderType: string = 'div';
-// @ts-ignore
+  // @ts-ignore
   get dataSource(): Array<TraceRowObject<unknown>> {
     return this._dataSource;
   }
-// @ts-ignore
+  // @ts-ignore
   set dataSource(value: Array<TraceRowObject<unknown>>) {
-    log(`dataSource TraceRowObject size :${  value.length}`);
+    log(`dataSource TraceRowObject size :${value.length}`);
     this._dataSource = value;
     this.measureHeight();
-    this.initUI();// @ts-ignore
+    this.initUI(); // @ts-ignore
     let els = [...this.shadowRoot!.querySelectorAll<TraceRow<unknown>>('.recycler-cell')];
     for (let i = 0; i < els.length; i++) {
       this.refreshRow(els[i], this.visibleObjects[i]);
@@ -51,7 +51,7 @@ export class TraceRowRecyclerView extends BaseElement {
   set renderType(value: string) {
     this._renderType = value;
   }
-// @ts-ignore
+  // @ts-ignore
   refreshRow(el: TraceRow<unknown>, obj: TraceRowObject<unknown>): void {
     if (!obj) {
       return;
@@ -77,7 +77,7 @@ export class TraceRowRecyclerView extends BaseElement {
 
   initElements(): void {
     this.vessel = this.shadowRoot?.querySelector<HTMLDivElement>('.vessel');
-    this.gasketEL = this.shadowRoot?.querySelector<HTMLDivElement>('.gasket');// @ts-ignore
+    this.gasketEL = this.shadowRoot?.querySelector<HTMLDivElement>('.gasket'); // @ts-ignore
     let els: Array<TraceRow<unknown>> | undefined | null;
     this.vessel!.onscroll = (ev): void => {
       let top = this.vessel!.scrollTop;
@@ -91,7 +91,8 @@ export class TraceRowRecyclerView extends BaseElement {
       if (skip < 0) {
         skip = 0;
       }
-      if (!els) {// @ts-ignore
+      if (!els) {
+        // @ts-ignore
         els = [...this.shadowRoot!.querySelectorAll<TraceRow<unknown>>('.recycler-cell')];
       }
       for (let i = 0; i < els.length; i++) {
@@ -123,7 +124,8 @@ export class TraceRowRecyclerView extends BaseElement {
     if (!this.recycler) {
       this.visibleRowsCount = this.dataSource.length;
     }
-    for (let i = 0; i <= this.visibleRowsCount; i++) {// @ts-ignore
+    for (let i = 0; i <= this.visibleRowsCount; i++) {
+      // @ts-ignore
       let el = new TraceRow<unknown>({
         canvasNumber: 1,
         alpha: true,
@@ -132,14 +134,17 @@ export class TraceRowRecyclerView extends BaseElement {
       });
       el.className = 'recycler-cell';
       this.vessel?.appendChild(el);
-      el.addEventListener('expansion-change', (ev: unknown): void => {// @ts-ignore
+      el.addEventListener('expansion-change', (ev: unknown): void => {
+        // @ts-ignore
         el.obj!.expansion = ev.detail.expansion;
-        for (let j = 0; j < this.dataSource.length; j++) {// @ts-ignore
-          if (this.dataSource[j].rowParentId === ev.detail.rowId) {// @ts-ignore
+        for (let j = 0; j < this.dataSource.length; j++) {
+          // @ts-ignore
+          if (this.dataSource[j].rowParentId === ev.detail.rowId) {
+            // @ts-ignore
             this.dataSource[j].rowHidden = !ev.detail.expansion;
           }
         }
-        this.measureHeight();// @ts-ignore
+        this.measureHeight(); // @ts-ignore
         let els = [...this.shadowRoot!.querySelectorAll<TraceRow<unknown>>('.recycler-cell')];
         let top = this.vessel!.scrollTop;
         let skip = 0;

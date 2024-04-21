@@ -36,7 +36,7 @@ public:
     void SetEndTime(uint64_t row, uint64_t end);
     void SetType(uint64_t row, uint8_t type);
     void SetDst(uint64_t row, uint64_t dst);
-    void SetSrcs(uint64_t row, const std::vector<uint64_t>& fromSlices);
+    void SetSrcs(uint64_t row, const std::vector<uint64_t> &fromSlices);
     void SetFlags(uint64_t row, const uint32_t flags);
     void UpdateDepth();
     const std::deque<uint32_t> Ipids() const;
@@ -49,7 +49,7 @@ public:
     const std::deque<uint8_t> Flags() const;
     const std::deque<uint8_t> Depths() const;
     const std::deque<uint32_t> FrameNos() const;
-    const std::deque<std::string>& Srcs() const;
+    const std::deque<std::string> &Srcs() const;
     void UpdateCallStackSliceId(uint64_t row, uint64_t callStackSliceId);
     void SetEndTimeAndFlag(uint64_t row, uint64_t ts, uint64_t expectDur, uint64_t expectEnd);
     void Erase(uint64_t row);
@@ -86,8 +86,8 @@ private:
 class GPUSlice : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNew(uint32_t frameRow, uint64_t dur);
-    const std::deque<uint32_t>& FrameRows() const;
-    const std::deque<uint64_t>& Durs() const;
+    const std::deque<uint32_t> &FrameRows() const;
+    const std::deque<uint64_t> &Durs() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -106,9 +106,9 @@ private:
 
 class FrameMaps : public CacheBase, public BatchCacheBase {
 public:
-    size_t AppendNew(FrameSlice* frameSlice, uint64_t src, uint64_t dst);
-    const std::deque<uint64_t>& SrcIndexs() const;
-    const std::deque<uint64_t>& DstIndexs() const;
+    size_t AppendNew(FrameSlice *frameSlice, uint64_t src, uint64_t dst);
+    const std::deque<uint64_t> &SrcIndexs() const;
+    const std::deque<uint64_t> &DstIndexs() const;
     void ClearExportedData() override
     {
         EraseElements(timeStamps_, ids_, srcs_, dsts_);

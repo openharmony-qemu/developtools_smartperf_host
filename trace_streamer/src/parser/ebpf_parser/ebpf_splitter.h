@@ -39,12 +39,12 @@ class EbpfSplitter {
 public:
     void SetEbpfDataOffset(uint64_t offset);
     void SetSpliteTimeRange(uint64_t splitFileMinTs, uint64_t splitFileMaxTs);
-    bool AddAndSplitEbpfData(std::deque<uint8_t>& dequeBuffer);
-    void RecordEbpfProfilerHeader(uint8_t* buffer, uint32_t len)
+    bool AddAndSplitEbpfData(std::deque<uint8_t> &dequeBuffer);
+    void RecordEbpfProfilerHeader(uint8_t *buffer, uint32_t len)
     {
         (void)memcpy_s(&profilerHeader_, sizeof(profilerHeader_), buffer, len);
     }
-    const auto& GetEbpfSplitResult()
+    const auto &GetEbpfSplitResult()
     {
         return ebpfSplitResult_;
     }
@@ -59,13 +59,13 @@ public:
     }
 
 private:
-    bool SplitEbpfHeader(std::deque<uint8_t>& dequeBuffer);
-    void SplitEbpfBodyData(std::deque<uint8_t>& dequeBuffer);
+    bool SplitEbpfHeader(std::deque<uint8_t> &dequeBuffer);
+    void SplitEbpfBodyData(std::deque<uint8_t> &dequeBuffer);
     void AppendSplitOriginSegResult(uint32_t segLen);
     template <typename FixedHeader>
-    void AppendSplitResultWithFixedHeader(uint32_t segLen, std::deque<uint8_t>& dequeBuffer, FixedHeader& fixedHeader)
+    void AppendSplitResultWithFixedHeader(uint32_t segLen, std::deque<uint8_t> &dequeBuffer, FixedHeader &fixedHeader)
     {
-        std::copy_n(dequeBuffer.begin() + EBPF_TITLE_SIZE, sizeof(FixedHeader), reinterpret_cast<char*>(&fixedHeader));
+        std::copy_n(dequeBuffer.begin() + EBPF_TITLE_SIZE, sizeof(FixedHeader), reinterpret_cast<char *>(&fixedHeader));
         if (fixedHeader.endTime <= splitFileMaxTs_ && fixedHeader.startTime >= splitFileMinTs_) {
             AppendSplitOriginSegResult(segLen);
         }

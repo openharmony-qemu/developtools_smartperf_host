@@ -63,8 +63,8 @@ order by measure.ts))
 select s.filter_id as filterId,s.ts-r.start_ts as startNS,s.type,s.value,s.dur from state s,trace_range r`,
     { $clockName: clockName }
   );
-export const queryBootTime = ()://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryBootTime = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryBootTime',
     `select CS.ts -TR.start_ts as ts ,clock_name from clock_snapshot as CS ,trace_range as TR

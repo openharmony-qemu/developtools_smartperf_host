@@ -23,19 +23,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PagedMemorySampleTable : public TableBase {
 public:
-    explicit PagedMemorySampleTable(const TraceDataCache* dataCache);
+    explicit PagedMemorySampleTable(const TraceDataCache *dataCache);
     ~PagedMemorySampleTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const PagedMemorySampleData& PagedMemorySampleDataObj_;
+        const PagedMemorySampleData &PagedMemorySampleDataObj_;
     };
 };
 } // namespace TraceStreamer

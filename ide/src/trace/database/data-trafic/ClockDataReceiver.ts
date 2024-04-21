@@ -14,9 +14,9 @@
 import { TraficEnum } from './utils/QueryEnum';
 import { filterDataByGroup } from './utils/DataFilter';
 import { clockList } from './utils/AllMemoryCache';
+import { Args } from './CommonArgs';
 
-export const chartClockDataSql = (args: unknown): string => {
-  // @ts-ignore
+export const chartClockDataSql = (args: Args): string => {
   if (args.sqlType === 'clockFrequency') {
     return `
     with freq as (
@@ -27,100 +27,56 @@ export const chartClockDataSql = (args: unknown): string => {
         from measure
         where measure.filter_id in (select id
                                     from clock_event_filter
-                                    where clock_event_filter.name = '${
-      // @ts-ignore
-      args.clockName
-      }'
+                                    where clock_event_filter.name = '${args.clockName}'
                                       and clock_event_filter.type = 'clock_set_rate')
-                                      --and startNs >= ${
-      // @ts-ignore
-      Math.floor(args.startNS)
-      }
-                                      --and startNs <= ${
-      // @ts-ignore
-      Math.floor(args.endNS)
-      }
+                                      --and startNs >= ${Math.floor(args.startNS)}
+                                      --and startNs <= ${Math.floor(args.endNS)}
     )
-    select freq.filter_id as filterId, freq.value, freq.ts - ${
-      // @ts-ignore
-      args.recordStartNS
-      } as startNs, freq.type
+    select freq.filter_id as filterId, freq.value, freq.ts - ${args.recordStartNS} as startNs, freq.type
     from freq
     order by startNs;
     `;
-    // @ts-ignore
   } else if (args.sqlType === 'clockState') {
     return `select measure.filter_id                                     as filterId,
                    measure.value                                         as value,
-                   measure.ts - ${
-      // @ts-ignore
-      args.recordStartNS
-      }                    as startNs,
+                   measure.ts - ${args.recordStartNS}                    as startNs,
                    (lead(ts, 1, null) over ( order by measure.ts)) - ts as dur,
                    measure.type                                          as type
             from measure
             where measure.filter_id in (select id
                 from clock_event_filter
-                where clock_event_filter.name = '${
-      // @ts-ignore
-      args.clockName
-      }'
+                where clock_event_filter.name = '${args.clockName}'
                 and clock_event_filter.type != 'clock_set_rate')
-            --and startNs + dur >= ${
-      // @ts-ignore
-      Math.floor(args.startNS)
-      }
-            --and startNs <= ${
-      // @ts-ignore
-      Math.floor(args.endNS)
-      }`;
-    // @ts-ignore
+            --and startNs + dur >= ${Math.floor(args.startNS)}
+            --and startNs <= ${Math.floor(args.endNS)}`;
   } else if (args.sqlType === 'screenState') {
-    return `select filter_id as filterId,value,  m.ts - ${
-      // @ts-ignore
-      args.recordStartNS
-      } as startNs, m.type
+    return `select filter_id as filterId,value,  m.ts - ${args.recordStartNS} as startNs, m.type
             from measure m
             where filter_id in (select id from process_measure_filter where name = 'ScreenState')
-            --and startNs >= ${
-      // @ts-ignore
-      Math.floor(args.startNS)
-      }
-            --and startNs <= ${
-      // @ts-ignore
-      Math.floor(args.endNS)
-      };`;
+            --and startNs >= ${Math.floor(args.startNS)}
+            --and startNs <= ${Math.floor(args.endNS)};`;
   } else {
     return '';
   }
 };
 
-export const chartClockDataSqlMem = (args: unknown): string => {
-  // @ts-ignore
+export const chartClockDataSqlMem = (args: Args): string => {
   if (args.sqlType === 'clockFrequency') {
     return `
         with freq as (  select measure.filter_id, measure.ts, measure.type, measure.value from clock_event_filter
                                                                                                    left join measure
-                        where clock_event_filter.name = '${
-      // @ts-ignore
-      args.clockName
-      }' and clock_event_filter.type = 'clock_set_rate' and clock_event_filter.id = measure.filter_id
+                        where clock_event_filter.name = '${args.clockName}' and clock_event_filter.type = 'clock_set_rate' and clock_event_filter.id = measure.filter_id
                         order by measure.ts)
         select freq.filter_id as filterId,freq.ts - r.start_ts as startNs,freq.type,freq.value from freq,trace_range r order by startNs;
     `;
-    // @ts-ignore
   } else if (args.sqlType === 'clockState') {
     return `with state as (
         select filter_id, ts, endts, endts-ts as dur, type, value from
             (select measure.filter_id, measure.ts, lead(ts, 1, null) over( order by measure.ts) endts, measure.type, measure.value from clock_event_filter,trace_range
                                                                                                                                                                left join measure
-             where clock_event_filter.name = '${
-      // @ts-ignore
-      args.clockName
-      }' and clock_event_filter.type != 'clock_set_rate' and clock_event_filter.id = measure.filter_id
+             where clock_event_filter.name = '${args.clockName}' and clock_event_filter.type != 'clock_set_rate' and clock_event_filter.id = measure.filter_id
              order by measure.ts))
             select s.filter_id as filterId,s.ts-r.start_ts as startNs,s.type,s.value,s.dur from state s,trace_range r`;
-    // @ts-ignore
   } else if (args.sqlType === 'screenState') {
     return `select m.type, m.ts-r.start_ts as startNs, value, filter_id  as filterId 
     from measure m,trace_range r 
@@ -214,11 +170,11 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
       action: data.action,
       results: transfer
         ? {
-          dur: dur.buffer,
-          startNS: startNS.buffer,
-          value: value.buffer,
-          filterId: filterId.buffer,
-        }
+            dur: dur.buffer,
+            startNS: startNS.buffer,
+            value: value.buffer,
+            filterId: filterId.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,

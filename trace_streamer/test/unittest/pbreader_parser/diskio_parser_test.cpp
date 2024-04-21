@@ -64,10 +64,10 @@ public:
 
     void TearDown() {}
 
-    std::string SetDiskioData(DiskiodataInfo& diskiodataInfo)
+    std::string SetDiskioData(DiskiodataInfo &diskiodataInfo)
     {
         auto diskioInfo(std::make_unique<DiskioData>());
-        StatsData* statsDataSecond = new StatsData();
+        StatsData *statsDataSecond = new StatsData();
         auto ioStatDataSecond = statsDataSecond->add_statsinfo();
         ioStatDataSecond->set_rd_kb(diskiodataInfo.rd_kb);
         ioStatDataSecond->set_wr_kb(diskiodataInfo.wr_kb);
@@ -95,7 +95,7 @@ HWTEST_F(PbreaderDiskioParserTest, ParsePbreaderDiskioWithoutDiskioData, TestSiz
     auto diskioInfo = std::make_unique<DiskioData>();
     std::string diskioData = "";
     diskioInfo->SerializeToString(&diskioData);
-    ProtoReader::BytesView diskioInfoData(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
     PbreaderDiskIOParser pbreaderDiskioParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     pbreaderDiskioParser.Parse(diskioInfoData, TS);
     auto size = stream_.traceDataCache_->GetConstDiskIOData().Size();
@@ -113,7 +113,7 @@ HWTEST_F(PbreaderDiskioParserTest, ParsePbreaderDiskioWithOneDiskioData, TestSiz
 
     DiskiodataInfo diskiodataInfo = {RD_01, WR_01, RDPERSEC_01, WRPERSEC_01};
     std::string diskioData = SetDiskioData(diskiodataInfo);
-    ProtoReader::BytesView diskioInfoData(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
     PbreaderDiskIOParser pbreaderDiskioParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     pbreaderDiskioParser.Parse(diskioInfoData, TS);
     pbreaderDiskioParser.Finish();
@@ -132,14 +132,14 @@ HWTEST_F(PbreaderDiskioParserTest, ParsePbreaderDiskioWithTwoDiskioData, TestSiz
 
     DiskiodataInfo diskiodataInfo = {RD_01, WR_01, RDPERSEC_01, WRPERSEC_01};
     std::string diskioData = SetDiskioData(diskiodataInfo);
-    ProtoReader::BytesView diskioInfoData01(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData01(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
 
     PbreaderDiskIOParser pbreaderDiskioParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     pbreaderDiskioParser.Parse(diskioInfoData01, TS);
 
     DiskiodataInfo diskiodataInfo02 = {RD_02, WR_02, RDPERSEC_02, WRPERSEC_02};
     diskioData = SetDiskioData(diskiodataInfo02);
-    ProtoReader::BytesView diskioInfoData02(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData02(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
     pbreaderDiskioParser.Parse(diskioInfoData02, TS);
     pbreaderDiskioParser.Finish();
 
@@ -162,19 +162,19 @@ HWTEST_F(PbreaderDiskioParserTest, ParsePbreaderDiskioWithThreeDiskioData, TestS
 
     DiskiodataInfo diskiodataInfo = {RD_01, WR_01, RDPERSEC_01, WRPERSEC_01};
     std::string diskioData = SetDiskioData(diskiodataInfo);
-    ProtoReader::BytesView diskioInfoData01(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData01(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
 
     PbreaderDiskIOParser pbreaderDiskioParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     pbreaderDiskioParser.Parse(diskioInfoData01, TS);
 
     DiskiodataInfo diskiodataInfo02 = {RD_02, WR_02, RDPERSEC_02, WRPERSEC_02};
     diskioData = SetDiskioData(diskiodataInfo02);
-    ProtoReader::BytesView diskioInfoData02(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData02(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
     pbreaderDiskioParser.Parse(diskioInfoData02, TS);
 
     DiskiodataInfo diskiodataInfo03 = {RD_03, WR_03, RDPERSEC_03, WRPERSEC_03};
     diskioData = SetDiskioData(diskiodataInfo03);
-    ProtoReader::BytesView diskioInfoData03(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData03(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
     pbreaderDiskioParser.Parse(diskioInfoData03, TS);
     pbreaderDiskioParser.Finish();
 
@@ -201,24 +201,24 @@ HWTEST_F(PbreaderDiskioParserTest, ParsePbreaderDiskioWithMultipleDiskioData, Te
 
     DiskiodataInfo diskiodataInfo = {RD_01, WR_01, RDPERSEC_01, WRPERSEC_01};
     std::string diskioData = SetDiskioData(diskiodataInfo);
-    ProtoReader::BytesView diskioInfoData01(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData01(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
 
     PbreaderDiskIOParser pbreaderDiskioParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     pbreaderDiskioParser.Parse(diskioInfoData01, TS);
 
     DiskiodataInfo diskiodataInfo02 = {RD_02, WR_02, RDPERSEC_02, WRPERSEC_02};
     diskioData = SetDiskioData(diskiodataInfo02);
-    ProtoReader::BytesView diskioInfoData02(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData02(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
     pbreaderDiskioParser.Parse(diskioInfoData02, TS);
 
     DiskiodataInfo diskiodataInfo03 = {RD_03, WR_03, RDPERSEC_03, WRPERSEC_03};
     diskioData = SetDiskioData(diskiodataInfo03);
-    ProtoReader::BytesView diskioInfoData03(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData03(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
     pbreaderDiskioParser.Parse(diskioInfoData03, TS);
 
     DiskiodataInfo diskiodataInfo04 = {RD_04, WR_04, RDPERSEC_04, WRPERSEC_04};
     diskioData = SetDiskioData(diskiodataInfo04);
-    ProtoReader::BytesView diskioInfoData04(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
+    ProtoReader::BytesView diskioInfoData04(reinterpret_cast<const uint8_t *>(diskioData.data()), diskioData.size());
     pbreaderDiskioParser.Parse(diskioInfoData04, TS);
     pbreaderDiskioParser.Finish();
 

@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { TS = 0, NAME, REF, WAKEUP_FROM, REF_TYPE, VALUE };
-InstantsTable::InstantsTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+InstantsTable::InstantsTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
@@ -38,7 +38,7 @@ std::unique_ptr<TableBase::Cursor> InstantsTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-InstantsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+InstantsTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstInstantsData().Size())),
       InstantsObj_(dataCache->GetConstInstantsData())
 {
@@ -46,12 +46,12 @@ InstantsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 InstantsTable::Cursor::~Cursor() {}
 
-void InstantsTable::FilterByConstraint(FilterConstraints& instantsfc,
-                                       double& instantsfilterCost,
+void InstantsTable::FilterByConstraint(FilterConstraints &instantsfc,
+                                       double &instantsfilterCost,
                                        size_t instantsrowCount,
                                        uint32_t instantscurrenti)
 {
-    const auto& instantsc = instantsfc.GetConstraints()[instantscurrenti];
+    const auto &instantsc = instantsfc.GetConstraints()[instantscurrenti];
     switch (static_cast<Index>(instantsc.col)) {
         case Index::TS: {
             auto instantsoldRowCount = instantsrowCount;
@@ -69,7 +69,7 @@ void InstantsTable::FilterByConstraint(FilterConstraints& instantsfc,
     }
 }
 
-void InstantsTable::Cursor::SortOfIndexMap(const FilterConstraints& fc)
+void InstantsTable::Cursor::SortOfIndexMap(const FilterConstraints &fc)
 {
     auto orderbys = fc.GetOrderBys();
     for (auto i = orderbys.size(); i > 0;) {
@@ -84,7 +84,7 @@ void InstantsTable::Cursor::SortOfIndexMap(const FilterConstraints& fc)
     }
 }
 
-int32_t InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t InstantsTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -95,7 +95,7 @@ int32_t InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
     SwapIndexFront(instantsTabCs, sId);
     for (size_t i = 0; i < instantsTabCs.size(); i++) {
-        const auto& c = instantsTabCs[i];
+        const auto &c = instantsTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::TS:
                 FilterTS(c.op, argv[c.idxInaConstraint], InstantsObj_.TimeStampData());
@@ -103,7 +103,7 @@ int32_t InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
             case Index::NAME:
                 indexMap_->MixRange(c.op,
                                     dataCache_->GetConstDataIndex(std::string(
-                                        reinterpret_cast<const char*>(sqlite3_value_text(argv[c.idxInaConstraint])))),
+                                        reinterpret_cast<const char *>(sqlite3_value_text(argv[c.idxInaConstraint])))),
                                     InstantsObj_.NameIndexsData());
                 break;
             case Index::REF:
@@ -155,7 +155,7 @@ int32_t InstantsTable::Cursor::Column(int32_t column) const
     }
     return SQLITE_OK;
 }
-void InstantsTable::GetOrbyes(FilterConstraints& instantsfc, EstimatedIndexInfo& instantsei)
+void InstantsTable::GetOrbyes(FilterConstraints &instantsfc, EstimatedIndexInfo &instantsei)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop

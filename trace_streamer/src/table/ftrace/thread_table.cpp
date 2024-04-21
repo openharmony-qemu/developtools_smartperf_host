@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, ITID, TID, NAME, START_TS, END_TS, INTERNAL_PID, IS_MAIN_THREAD, SWITCH_COUNT };
-ThreadTable::ThreadTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+ThreadTable::ThreadTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
@@ -34,14 +34,14 @@ ThreadTable::ThreadTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 
 ThreadTable::~ThreadTable() {}
 
-void ThreadTable::FilterByConstraint(FilterConstraints& threadfc,
-                                     double& threadfilterCost,
+void ThreadTable::FilterByConstraint(FilterConstraints &threadfc,
+                                     double &threadfilterCost,
                                      size_t threadrowCount,
                                      uint32_t threadcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& threadc = threadfc.GetConstraints()[threadcurrenti];
+    const auto &threadc = threadfc.GetConstraints()[threadcurrenti];
     switch (static_cast<Index>(threadc.col)) {
         case Index::ITID:
         case Index::ID: {
@@ -64,7 +64,7 @@ std::unique_ptr<TableBase::Cursor> ThreadTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-ThreadTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+ThreadTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, dataCache->ThreadSize())
 {
 }
@@ -77,7 +77,7 @@ void ThreadTable::Cursor::FilterTid(unsigned char op, uint64_t value)
         indexMapBack_->CovertToIndexMap();
         remove = true;
     }
-    const auto& threadQueue = dataCache_->GetConstThreadData();
+    const auto &threadQueue = dataCache_->GetConstThreadData();
     auto size = threadQueue.size();
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
@@ -128,7 +128,7 @@ void ThreadTable::Cursor::FilterIpid(unsigned char op, uint64_t value)
         indexMapBack_->CovertToIndexMap();
         isRemove = true;
     }
-    const auto& threadQueue = dataCache_->GetConstThreadData();
+    const auto &threadQueue = dataCache_->GetConstThreadData();
     auto thdQueueSize = threadQueue.size();
     rowIndexBak_.clear();
     bool changed = false;
@@ -146,7 +146,7 @@ void ThreadTable::Cursor::FilterIpid(unsigned char op, uint64_t value)
             break;
     } // end of switch (op)
 }
-void ThreadTable::Cursor::HandleIpidConstraint(const std::deque<SysTuning::TraceStdtype::Thread>& threadQueue,
+void ThreadTable::Cursor::HandleIpidConstraint(const std::deque<SysTuning::TraceStdtype::Thread> &threadQueue,
                                                std::size_t size,
                                                bool remove,
                                                bool changed)
@@ -180,7 +180,7 @@ void ThreadTable::Cursor::FilterSwitchCount(unsigned char op, uint64_t value)
         indexMapBack_->CovertToIndexMap();
         remove = true;
     }
-    const auto& threadQueue = dataCache_->GetConstThreadData();
+    const auto &threadQueue = dataCache_->GetConstThreadData();
     auto size = threadQueue.size();
     rowIndexBak_.clear();
     bool changed = false;
@@ -218,7 +218,7 @@ void ThreadTable::Cursor::FilterSwitchCount(unsigned char op, uint64_t value)
             break;
     } // end of switch (op)
 }
-void ThreadTable::Cursor::FilterIndex(int32_t col, unsigned char op, sqlite3_value* argv)
+void ThreadTable::Cursor::FilterIndex(int32_t col, unsigned char op, sqlite3_value *argv)
 {
     switch (static_cast<Index>(col)) {
         case Index::INTERNAL_PID:
@@ -235,7 +235,7 @@ void ThreadTable::Cursor::FilterIndex(int32_t col, unsigned char op, sqlite3_val
             break;
     }
 }
-int32_t ThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t ThreadTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMapBack_
     if (rowCount_ <= 0) {
@@ -249,7 +249,7 @@ int32_t ThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(cs, sId);
     for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+        const auto &c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
             case Index::ITID:
@@ -286,7 +286,7 @@ int32_t ThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
 
 int32_t ThreadTable::Cursor::Column(int32_t col) const
 {
-    const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
+    const auto &thread = dataCache_->GetConstThreadData(CurrentRow());
     switch (static_cast<Index>(col)) {
         case Index::ID:
         case Index::ITID: {
@@ -316,7 +316,7 @@ int32_t ThreadTable::Cursor::Column(int32_t col) const
             if (thread.internalPid_ == INVALID_UINT32) {
                 break;
             }
-            const auto& process = dataCache_->GetConstProcessData(thread.internalPid_);
+            const auto &process = dataCache_->GetConstProcessData(thread.internalPid_);
             sqlite3_result_int(context_, thread.tid_ == process.pid_);
             break;
         }
@@ -333,15 +333,15 @@ int32_t ThreadTable::Cursor::Column(int32_t col) const
     return SQLITE_OK;
 }
 
-void ThreadTable::Cursor::SetNameColumn(const Thread& thread) const
+void ThreadTable::Cursor::SetNameColumn(const Thread &thread) const
 {
-    const auto& name = dataCache_->GetDataFromDict(thread.nameIndex_);
+    const auto &name = dataCache_->GetDataFromDict(thread.nameIndex_);
     if (name.size()) {
         sqlite3_result_text(context_, name.c_str(), static_cast<int32_t>(name.length()), nullptr);
     }
 }
 
-int32_t ThreadTable::Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid)
+int32_t ThreadTable::Update(int32_t argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {
     if (argc <= 1) {
         return SQLITE_READONLY;
@@ -365,7 +365,7 @@ int32_t ThreadTable::Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* p
     }
     return SQLITE_OK;
 }
-void ThreadTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
+void ThreadTable::Cursor::FilterId(unsigned char op, sqlite3_value *argv)
 {
     auto type = sqlite3_value_type(argv);
     if (type != SQLITE_INTEGER) {
@@ -398,7 +398,7 @@ void ThreadTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
             break;
     }
 }
-void ThreadTable::GetOrbyes(FilterConstraints& fc, EstimatedIndexInfo& ei)
+void ThreadTable::GetOrbyes(FilterConstraints &fc, EstimatedIndexInfo &ei)
 {
     auto orderbys = fc.GetOrderBys();
     for (auto i = 0; i < orderbys.size(); i++) {

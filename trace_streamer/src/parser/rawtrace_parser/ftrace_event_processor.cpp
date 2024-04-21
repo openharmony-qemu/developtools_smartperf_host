@@ -16,7 +16,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-FtraceEventProcessor& FtraceEventProcessor::GetInstance()
+FtraceEventProcessor &FtraceEventProcessor::GetInstance()
 {
     static FtraceEventProcessor instance;
     return instance;
@@ -196,12 +196,12 @@ bool FtraceEventProcessor::IsSupported(uint32_t eventId) const
     return eventIdToFunctions_.count(eventId);
 }
 
-bool FtraceEventProcessor::IsSupported(const std::string& eventName) const
+bool FtraceEventProcessor::IsSupported(const std::string &eventName) const
 {
     return eventNameToFunctions_.count(eventName) > 0;
 }
 
-bool FtraceEventProcessor::HandleEvent(FtraceEvent& event, uint8_t data[], size_t size, const EventFormat& format) const
+bool FtraceEventProcessor::HandleEvent(FtraceEvent &event, uint8_t data[], size_t size, const EventFormat &format) const
 {
     auto iter = eventIdToFunctions_.find(format.eventId);
     TS_CHECK_TRUE_RET(iter != eventIdToFunctions_.end(), false);
@@ -209,7 +209,7 @@ bool FtraceEventProcessor::HandleEvent(FtraceEvent& event, uint8_t data[], size_
     return true;
 }
 
-bool FtraceEventProcessor::SetupEvent(const EventFormat& format)
+bool FtraceEventProcessor::SetupEvent(const EventFormat &format)
 {
     auto it = eventNameToFunctions_.find(format.eventName);
     TS_CHECK_TRUE_RET(it != eventNameToFunctions_.end(), false);
@@ -217,14 +217,14 @@ bool FtraceEventProcessor::SetupEvent(const EventFormat& format)
     eventIdToNames_[format.eventId] = format.eventName;
     return true;
 }
-const std::string& FtraceEventProcessor::GetEventNameById(uint32_t eventId)
+const std::string &FtraceEventProcessor::GetEventNameById(uint32_t eventId)
 {
     auto iter = eventIdToNames_.find(eventId);
     TS_CHECK_TRUE_RET(iter != eventIdToNames_.end(), INVALID_STRING);
     return iter->second;
 }
 
-bool FtraceEventProcessor::SchedSwitch(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+bool FtraceEventProcessor::SchedSwitch(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
     auto schedSwitchMsg = ftraceEvent.mutable_sched_switch_format();
@@ -237,10 +237,10 @@ bool FtraceEventProcessor::SchedSwitch(FtraceEvent& ftraceEvent, uint8_t data[],
     schedSwitchMsg->set_next_prio(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::SchedBlockedReason(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::SchedBlockedReason(FtraceEvent &ftraceEvent,
                                               uint8_t data[],
                                               size_t size,
-                                              const EventFormat& format)
+                                              const EventFormat &format)
 {
     uint8_t index = 0;
     auto schedBlockedMsg = ftraceEvent.mutable_sched_blocked_reason_format();
@@ -249,7 +249,7 @@ bool FtraceEventProcessor::SchedBlockedReason(FtraceEvent& ftraceEvent,
     schedBlockedMsg->set_io_wait(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::SchedWakeup(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+bool FtraceEventProcessor::SchedWakeup(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
     auto schedWakeupMsg = ftraceEvent.mutable_sched_wakeup_format();
@@ -260,7 +260,7 @@ bool FtraceEventProcessor::SchedWakeup(FtraceEvent& ftraceEvent, uint8_t data[],
     schedWakeupMsg->set_target_cpu(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::SchedWaking(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+bool FtraceEventProcessor::SchedWaking(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
     auto schedWakingMsg = ftraceEvent.mutable_sched_waking_format();
@@ -271,10 +271,10 @@ bool FtraceEventProcessor::SchedWaking(FtraceEvent& ftraceEvent, uint8_t data[],
     schedWakingMsg->set_target_cpu(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::SchedWakeupNew(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::SchedWakeupNew(FtraceEvent &ftraceEvent,
                                           uint8_t data[],
                                           size_t size,
-                                          const EventFormat& format)
+                                          const EventFormat &format)
 {
     uint8_t index = 0;
     auto wakeupNewMsg = ftraceEvent.mutable_sched_wakeup_new_format();
@@ -285,10 +285,10 @@ bool FtraceEventProcessor::SchedWakeupNew(FtraceEvent& ftraceEvent,
     wakeupNewMsg->set_target_cpu(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::SchedProcessExit(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::SchedProcessExit(FtraceEvent &ftraceEvent,
                                             uint8_t data[],
                                             size_t size,
-                                            const EventFormat& format)
+                                            const EventFormat &format)
 {
     uint8_t index = 0;
     auto processExitMsg = ftraceEvent.mutable_sched_process_exit_format();
@@ -297,10 +297,10 @@ bool FtraceEventProcessor::SchedProcessExit(FtraceEvent& ftraceEvent,
     processExitMsg->set_prio(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::SchedProcessFree(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::SchedProcessFree(FtraceEvent &ftraceEvent,
                                             uint8_t data[],
                                             size_t size,
-                                            const EventFormat& format)
+                                            const EventFormat &format)
 {
     uint8_t index = 0;
     auto processFreeMsg = ftraceEvent.mutable_sched_process_free_format();
@@ -310,10 +310,10 @@ bool FtraceEventProcessor::SchedProcessFree(FtraceEvent& ftraceEvent,
     return true;
 }
 
-bool FtraceEventProcessor::BinderTransaction(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::BinderTransaction(FtraceEvent &ftraceEvent,
                                              uint8_t data[],
                                              size_t size,
-                                             const EventFormat& format)
+                                             const EventFormat &format)
 {
     uint8_t index = 0;
     auto transactionMsg = ftraceEvent.mutable_binder_transaction_format();
@@ -326,10 +326,10 @@ bool FtraceEventProcessor::BinderTransaction(FtraceEvent& ftraceEvent,
     transactionMsg->set_flags(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::BinderTransactionReceived(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::BinderTransactionReceived(FtraceEvent &ftraceEvent,
                                                      uint8_t data[],
                                                      size_t size,
-                                                     const EventFormat& format)
+                                                     const EventFormat &format)
 {
     uint8_t index = 0;
     auto transactionReceivedMsg = ftraceEvent.mutable_binder_transaction_received_format();
@@ -337,10 +337,10 @@ bool FtraceEventProcessor::BinderTransactionReceived(FtraceEvent& ftraceEvent,
         FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::BinderTransactionAllocBuf(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::BinderTransactionAllocBuf(FtraceEvent &ftraceEvent,
                                                      uint8_t data[],
                                                      size_t size,
-                                                     const EventFormat& format)
+                                                     const EventFormat &format)
 {
     uint8_t index = 0;
     auto transactionAllocBufMsg = ftraceEvent.mutable_binder_transaction_alloc_buf_format();
@@ -354,30 +354,30 @@ bool FtraceEventProcessor::BinderTransactionAllocBuf(FtraceEvent& ftraceEvent,
         FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::BinderTransactionAllocLock(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::BinderTransactionAllocLock(FtraceEvent &ftraceEvent,
                                                       uint8_t data[],
                                                       size_t size,
-                                                      const EventFormat& format)
+                                                      const EventFormat &format)
 {
     uint8_t index = 0;
     auto transactionLockMsg = ftraceEvent.mutable_binder_lock_format();
     transactionLockMsg->set_tag(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::BinderTransactionAllocLocked(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::BinderTransactionAllocLocked(FtraceEvent &ftraceEvent,
                                                         uint8_t data[],
                                                         size_t size,
-                                                        const EventFormat& format)
+                                                        const EventFormat &format)
 {
     uint8_t index = 0;
     auto transactionLockedMsg = ftraceEvent.mutable_binder_locked_format();
     transactionLockedMsg->set_tag(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::BinderTransactionAllocUnlock(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::BinderTransactionAllocUnlock(FtraceEvent &ftraceEvent,
                                                         uint8_t data[],
                                                         size_t size,
-                                                        const EventFormat& format)
+                                                        const EventFormat &format)
 {
     uint8_t index = 0;
     auto transactionUnlockMsg = ftraceEvent.mutable_binder_unlock_format();
@@ -385,7 +385,7 @@ bool FtraceEventProcessor::BinderTransactionAllocUnlock(FtraceEvent& ftraceEvent
     return true;
 }
 
-bool FtraceEventProcessor::TaskRename(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+bool FtraceEventProcessor::TaskRename(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
     auto taskRenameMsg = ftraceEvent.mutable_task_rename_format();
@@ -395,7 +395,7 @@ bool FtraceEventProcessor::TaskRename(FtraceEvent& ftraceEvent, uint8_t data[], 
     taskRenameMsg->set_oom_score_adj(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::TaskNewtask(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+bool FtraceEventProcessor::TaskNewtask(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
     auto newTaskMsg = ftraceEvent.mutable_task_newtask_format();
@@ -406,10 +406,10 @@ bool FtraceEventProcessor::TaskNewtask(FtraceEvent& ftraceEvent, uint8_t data[],
     return true;
 }
 
-bool FtraceEventProcessor::TracingMarkWriteOrPrintFormat(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::TracingMarkWriteOrPrintFormat(FtraceEvent &ftraceEvent,
                                                          uint8_t data[],
                                                          size_t size,
-                                                         const EventFormat& format)
+                                                         const EventFormat &format)
 {
     uint8_t index = 0;
     auto printMsg = ftraceEvent.mutable_print_format();
@@ -420,7 +420,7 @@ bool FtraceEventProcessor::TracingMarkWriteOrPrintFormat(FtraceEvent& ftraceEven
     return true;
 }
 
-bool FtraceEventProcessor::CpuIdle(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+bool FtraceEventProcessor::CpuIdle(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
     auto cpuIdleMsg = ftraceEvent.mutable_cpu_idle_format();
@@ -428,10 +428,10 @@ bool FtraceEventProcessor::CpuIdle(FtraceEvent& ftraceEvent, uint8_t data[], siz
     cpuIdleMsg->set_cpu_id(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::CpuFrequency(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::CpuFrequency(FtraceEvent &ftraceEvent,
                                         uint8_t data[],
                                         size_t size,
-                                        const EventFormat& format)
+                                        const EventFormat &format)
 {
     uint8_t index = 0;
     auto cpuFrequencyMsg = ftraceEvent.mutable_cpu_frequency_format();
@@ -439,10 +439,10 @@ bool FtraceEventProcessor::CpuFrequency(FtraceEvent& ftraceEvent,
     cpuFrequencyMsg->set_cpu_id(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::CpuFrequencyLimits(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::CpuFrequencyLimits(FtraceEvent &ftraceEvent,
                                               uint8_t data[],
                                               size_t size,
-                                              const EventFormat& format)
+                                              const EventFormat &format)
 {
     uint8_t index = 0;
     auto frequencyLimitsMsg = ftraceEvent.mutable_cpu_frequency_limits_format();
@@ -454,10 +454,10 @@ bool FtraceEventProcessor::CpuFrequencyLimits(FtraceEvent& ftraceEvent,
     return true;
 }
 
-bool FtraceEventProcessor::SuspendResume(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::SuspendResume(FtraceEvent &ftraceEvent,
                                          uint8_t data[],
                                          size_t size,
-                                         const EventFormat& format)
+                                         const EventFormat &format)
 {
     uint8_t index = 0;
     auto resumeMsg = ftraceEvent.mutable_suspend_resume_format();
@@ -466,10 +466,10 @@ bool FtraceEventProcessor::SuspendResume(FtraceEvent& ftraceEvent,
     resumeMsg->set_start(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::WorkqueueExecuteStart(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::WorkqueueExecuteStart(FtraceEvent &ftraceEvent,
                                                  uint8_t data[],
                                                  size_t size,
-                                                 const EventFormat& format)
+                                                 const EventFormat &format)
 {
     uint8_t index = 0;
     auto executeStartMsg = ftraceEvent.mutable_workqueue_execute_start_format();
@@ -477,10 +477,10 @@ bool FtraceEventProcessor::WorkqueueExecuteStart(FtraceEvent& ftraceEvent,
     executeStartMsg->set_function(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::WorkqueueExecuteEnd(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::WorkqueueExecuteEnd(FtraceEvent &ftraceEvent,
                                                uint8_t data[],
                                                size_t size,
-                                               const EventFormat& format)
+                                               const EventFormat &format)
 {
     uint8_t index = 0;
     auto executeEndMsg = ftraceEvent.mutable_workqueue_execute_end_format();
@@ -488,24 +488,24 @@ bool FtraceEventProcessor::WorkqueueExecuteEnd(FtraceEvent& ftraceEvent,
     return true;
 }
 
-bool FtraceEventProcessor::IpiEntry(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+bool FtraceEventProcessor::IpiEntry(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
     auto ipiEntryMsg = ftraceEvent.mutable_ipi_entry_format();
     ipiEntryMsg->set_reason(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::IpiExit(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+bool FtraceEventProcessor::IpiExit(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
     auto ipiExitMsg = ftraceEvent.mutable_ipi_exit_format();
     ipiExitMsg->set_reason(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::IrqHandlerEntry(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::IrqHandlerEntry(FtraceEvent &ftraceEvent,
                                            uint8_t data[],
                                            size_t size,
-                                           const EventFormat& format)
+                                           const EventFormat &format)
 {
     uint8_t index = 0;
     auto handlerEntryMsg = ftraceEvent.mutable_irq_handler_entry_format();
@@ -513,10 +513,10 @@ bool FtraceEventProcessor::IrqHandlerEntry(FtraceEvent& ftraceEvent,
     handlerEntryMsg->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::IrqHandlerExit(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::IrqHandlerExit(FtraceEvent &ftraceEvent,
                                           uint8_t data[],
                                           size_t size,
-                                          const EventFormat& format)
+                                          const EventFormat &format)
 {
     uint8_t index = 0;
     auto handlerExitMsg = ftraceEvent.mutable_irq_handler_exit_format();
@@ -524,37 +524,37 @@ bool FtraceEventProcessor::IrqHandlerExit(FtraceEvent& ftraceEvent,
     handlerExitMsg->set_ret(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::SoftirqRaise(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::SoftirqRaise(FtraceEvent &ftraceEvent,
                                         uint8_t data[],
                                         size_t size,
-                                        const EventFormat& format)
+                                        const EventFormat &format)
 {
     uint8_t index = 0;
     auto softirqRaiseMsg = ftraceEvent.mutable_softirq_raise_format();
     softirqRaiseMsg->set_vec(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::SoftirqEntry(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::SoftirqEntry(FtraceEvent &ftraceEvent,
                                         uint8_t data[],
                                         size_t size,
-                                        const EventFormat& format)
+                                        const EventFormat &format)
 {
     uint8_t index = 0;
     auto softirqEntryMsg = ftraceEvent.mutable_softirq_entry_format();
     softirqEntryMsg->set_vec(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::SoftirqExit(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+bool FtraceEventProcessor::SoftirqExit(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
     auto softirqExitMsg = ftraceEvent.mutable_softirq_exit_format();
     softirqExitMsg->set_vec(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::ClockSetRate(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::ClockSetRate(FtraceEvent &ftraceEvent,
                                         uint8_t data[],
                                         size_t size,
-                                        const EventFormat& format)
+                                        const EventFormat &format)
 {
     uint8_t index = 0;
     auto clockSetRateMsg = ftraceEvent.mutable_clock_set_rate_format();
@@ -563,7 +563,7 @@ bool FtraceEventProcessor::ClockSetRate(FtraceEvent& ftraceEvent,
     clockSetRateMsg->set_cpu_id(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::ClockEnable(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+bool FtraceEventProcessor::ClockEnable(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
     auto clockEnable = ftraceEvent.mutable_clock_enable_format();
@@ -572,10 +572,10 @@ bool FtraceEventProcessor::ClockEnable(FtraceEvent& ftraceEvent, uint8_t data[],
     clockEnable->set_cpu_id(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::ClockDisable(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::ClockDisable(FtraceEvent &ftraceEvent,
                                         uint8_t data[],
                                         size_t size,
-                                        const EventFormat& format)
+                                        const EventFormat &format)
 {
     uint8_t index = 0;
     auto clockDisable = ftraceEvent.mutable_clock_disable_format();
@@ -584,10 +584,10 @@ bool FtraceEventProcessor::ClockDisable(FtraceEvent& ftraceEvent,
     clockDisable->set_cpu_id(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::RegulatorSetVoltage(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::RegulatorSetVoltage(FtraceEvent &ftraceEvent,
                                                uint8_t data[],
                                                size_t size,
-                                               const EventFormat& format)
+                                               const EventFormat &format)
 {
     uint8_t index = 0;
     auto regulatorSetVoltage = ftraceEvent.mutable_regulator_set_voltage_format();
@@ -596,10 +596,10 @@ bool FtraceEventProcessor::RegulatorSetVoltage(FtraceEvent& ftraceEvent,
     regulatorSetVoltage->set_max(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::RegulatorSetVoltageComplete(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::RegulatorSetVoltageComplete(FtraceEvent &ftraceEvent,
                                                        uint8_t data[],
                                                        size_t size,
-                                                       const EventFormat& format)
+                                                       const EventFormat &format)
 {
     uint8_t index = 0;
     auto regulatorSetVoltage = ftraceEvent.mutable_regulator_set_voltage_complete_format();
@@ -607,20 +607,20 @@ bool FtraceEventProcessor::RegulatorSetVoltageComplete(FtraceEvent& ftraceEvent,
     regulatorSetVoltage->set_val(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::RegulatorDisable(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::RegulatorDisable(FtraceEvent &ftraceEvent,
                                             uint8_t data[],
                                             size_t size,
-                                            const EventFormat& format)
+                                            const EventFormat &format)
 {
     uint8_t index = 0;
     auto regulatorDisable = ftraceEvent.mutable_regulator_disable_format();
     regulatorDisable->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
     return true;
 }
-bool FtraceEventProcessor::RegulatorDisableComplete(FtraceEvent& ftraceEvent,
+bool FtraceEventProcessor::RegulatorDisableComplete(FtraceEvent &ftraceEvent,
                                                     uint8_t data[],
                                                     size_t size,
-                                                    const EventFormat& format)
+                                                    const EventFormat &format)
 {
     uint8_t index = 0;
     auto regulatorDisableComplete = ftraceEvent.mutable_regulator_disable_complete_format();

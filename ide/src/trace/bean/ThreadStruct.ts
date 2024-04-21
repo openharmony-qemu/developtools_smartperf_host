@@ -90,7 +90,10 @@ export class ThreadStruct extends BaseStruct {
     }
   }
 
-  private static drawRectAndString(threadBeanCanvasCtx: CanvasRenderingContext2D, threadBeanStructData: ThreadStruct): void {
+  private static drawRectAndString(
+    threadBeanCanvasCtx: CanvasRenderingContext2D,
+    threadBeanStructData: ThreadStruct
+  ): void {
     // @ts-ignore
     threadBeanCanvasCtx.fillRect(
       threadBeanStructData.frame!.x,

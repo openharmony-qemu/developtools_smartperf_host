@@ -118,7 +118,7 @@ export class FrameSpacingRender extends Render {
       let currentStruct = frameSpacingFilter[index];
       selectUnitWidth = computeUnitWidth(
         preFrameSpacing.currentTs,
-        currentStruct.currentTs,// @ts-ignore
+        currentStruct.currentTs, // @ts-ignore
         row.frame.width,
         selectUnitWidth
       );
@@ -167,9 +167,10 @@ export class FrameSpacingRender extends Render {
     minValue: number,
     maxValue: number
   ): void {
-    let currentPointY =// @ts-ignore
+    let currentPointY = // @ts-ignore
       row.frame.height -
-      Math.floor(// @ts-ignore
+      Math.floor(
+        // @ts-ignore
         ((currentStruct.frameSpacingResult! - minValue) * (row.frame.height - padding * multiple)) /
           (maxValue - minValue)
       ) -
@@ -192,7 +193,8 @@ export class FrameSpacingRender extends Render {
     minVale: number,
     maxValue: number
   ): void {
-    for (let i = 0; i < dashedLines.length; i++) {// @ts-ignore
+    for (let i = 0; i < dashedLines.length; i++) {
+      // @ts-ignore
       FrameSpacingStruct.drawParallelLine(req.context, row.frame, dashedLines, i, minVale, maxValue);
     }
   }
@@ -206,7 +208,8 @@ export class FrameSpacingRender extends Render {
     row: TraceRow<FrameSpacingStruct>,
     animationRanges: AnimationRanges[],
     use: boolean
-  ): void {// @ts-ignore
+  ): void {
+    // @ts-ignore
     let frame: Rect = row.frame;
     let modelName: string | undefined | null = row.getAttribute('model-name');
     if ((use || !TraceRow.range!.refresh) && frameSpacingFilter.length > 0) {
@@ -365,9 +368,10 @@ export class FrameSpacingStruct extends BaseStruct {
     maxValue: number
   ): void {
     if (frameSpacing.frame) {
-      frameSpacing.frame.y =// @ts-ignore
+      frameSpacing.frame.y = // @ts-ignore
         row.frame.height -
-        Math.floor(// @ts-ignore
+        Math.floor(
+          // @ts-ignore
           ((frameSpacing.frameSpacingResult! - minValue) * (row.frame.height - padding * multiple)) /
             (maxValue - minValue)
         ) -
@@ -471,16 +475,18 @@ export class FrameSpacingStruct extends BaseStruct {
     maxValue: number
   ): void {
     ctx.beginPath();
-    let prePointY =// @ts-ignore
+    let prePointY = // @ts-ignore
       rowFrame.frame.height -
-      Math.floor(// @ts-ignore
+      Math.floor(
+        // @ts-ignore
         ((preFrameSpacing.frameSpacingResult! - minValue) * (rowFrame.frame.height - padding * multiple)) /
           (maxValue - minValue)
       ) -
       padding;
-    let currentPointY =// @ts-ignore
+    let currentPointY = // @ts-ignore
       rowFrame.frame.height -
-      Math.floor(// @ts-ignore
+      Math.floor(
+        // @ts-ignore
         ((currentStruct.frameSpacingResult! - minValue) * (rowFrame.frame.height - padding * multiple)) /
           (maxValue - minValue)
       ) -

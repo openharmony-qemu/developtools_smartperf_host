@@ -27,22 +27,22 @@ namespace SysTuning {
 namespace TraceStreamer {
 class EbpfDataParser : public FileSystemDataParser, public PagedMemoryDataParser, public BioLatencyDataParser {
 public:
-    EbpfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    EbpfDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~EbpfDataParser();
-    void InitAndParseEbpfData(const std::deque<uint8_t>& dequeBuffer, uint64_t size);
+    void InitAndParseEbpfData(const std::deque<uint8_t> &dequeBuffer, uint64_t size);
     void Finish();
     bool SupportImportSymbolTable()
     {
         return ebpfDataReader_ ? true : false;
     }
-    void RecordEbpfProfilerHeader(uint8_t* buffer, uint32_t len)
+    void RecordEbpfProfilerHeader(uint8_t *buffer, uint32_t len)
     {
         ebpfSplitter.RecordEbpfProfilerHeader(buffer, len);
     }
     void SetEbpfDataOffset(uint64_t offset);
     void SetSpliteTimeRange(uint64_t splitFileMinTs, uint64_t splitFileMaxTs);
-    bool AddAndSplitEbpfData(std::deque<uint8_t>& dequeBuffer);
-    const auto& GetEbpfSplitResult()
+    bool AddAndSplitEbpfData(std::deque<uint8_t> &dequeBuffer);
+    const auto &GetEbpfSplitResult()
     {
         return ebpfSplitter.GetEbpfSplitResult();
     }
@@ -55,7 +55,7 @@ public:
     }
 
 private:
-    bool Init(const std::deque<uint8_t>& dequeBuffer, uint64_t size);
+    bool Init(const std::deque<uint8_t> &dequeBuffer, uint64_t size);
     std::unique_ptr<EbpfDataReader> ebpfDataReader_;
     uint64_t ebpfAllEventStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t ebpfAllEventEndTime_ = 0;
