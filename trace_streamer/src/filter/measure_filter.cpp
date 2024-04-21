@@ -19,7 +19,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-MeasureFilter::MeasureFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter, FilterType e)
+MeasureFilter::MeasureFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter, FilterType e)
     : FilterBase(dataCache, filter), tidStreamIdFilterIdMap_(INVALID_UINT64), filterType_(e)
 {
 }

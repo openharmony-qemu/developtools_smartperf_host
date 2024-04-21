@@ -35,7 +35,8 @@ export class LitSelectV extends BaseElement {
     return ['value', 'default-value', 'placeholder', 'disabled', 'show-search', 'border', 'mode'];
   }
 
-  get value(): string {// @ts-ignore
+  get value(): string {
+    // @ts-ignore
     return this.selectVInputEl!.value || this.defaultValue;
   }
 
@@ -157,20 +158,21 @@ export class LitSelectV extends BaseElement {
     this.selectVSearchInputEl = this.shadowRoot!.querySelector('#search-input') as HTMLInputElement;
     this.selectVBody = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
     this.selectVOptions = this.shadowRoot!.querySelector('.body-opt') as HTMLDivElement;
-    this.selectVIconEl = this.shadowRoot!.querySelector('.icon');// @ts-ignore
+    this.selectVIconEl = this.shadowRoot!.querySelector('.icon'); // @ts-ignore
     this.selectVInputEl!.oninput = (ev: InputEvent): void => {
       // @ts-ignore
-      if (this.selectVInputEl!.value === '00') {// @ts-ignore
+      if (this.selectVInputEl!.value === '00') {
+        // @ts-ignore
         this.selectVInputEl!.value = '0';
         ev.preventDefault();
-      }// @ts-ignore
+      } // @ts-ignore
       if (this.selectVInputEl!.value === '') {
         this.shadowRoot?.querySelectorAll('lit-select-option').forEach((it) => {
           it.removeAttribute('selected');
           this.showItems = [];
         });
       }
-    };// @ts-ignore
+    }; // @ts-ignore
     this.selectVSearchInputEl!.onkeydown = (ev: KeyboardEvent): void => {
       // @ts-ignore
       if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
@@ -183,10 +185,11 @@ export class LitSelectV extends BaseElement {
       } else {
         this.focused = false;
       }
-    };// @ts-ignore
+    }; // @ts-ignore
     this.selectVSearchInputEl?.addEventListener('keyup', () => {
       let options = [...this.shadowRoot!.querySelectorAll<LitSelectOption>('.option')];
-      options.filter((a: LitSelectOption) => {// @ts-ignore
+      options.filter((a: LitSelectOption) => {
+        // @ts-ignore
         if (a.textContent!.indexOf(this.selectVSearchInputEl!.value) <= -1) {
           a.style.display = 'none';
         } else {
@@ -200,12 +203,12 @@ export class LitSelectV extends BaseElement {
   setEvent(): void {
     this.onmouseout = this.onblur = (ev): void => {
       this.focused = false;
-    };// @ts-ignore
+    }; // @ts-ignore
     this.selectVInputEl.onfocus = (ev: unknown): void => {
       if (this.hasAttribute('disabled')) {
         return;
       }
-    };// @ts-ignore
+    }; // @ts-ignore
     this.selectVInputEl.onblur = (ev: unknown): void => {
       if (this.hasAttribute('disabled')) {
         return;
@@ -244,7 +247,7 @@ export class LitSelectV extends BaseElement {
         if (a.hasAttribute('selected')) {
           let number = this.showItems.indexOf(a.textContent!);
           if (number > -1) {
-            this.showItems!.splice(number, 1);// @ts-ignore
+            this.showItems!.splice(number, 1); // @ts-ignore
             this.selectVInputEl!.value = this.showItems;
           }
           this.all = false;
@@ -255,7 +258,7 @@ export class LitSelectV extends BaseElement {
           let index = this.itemValue.indexOf(a.textContent!);
           let value = this.showItems.indexOf(a.textContent!);
           if (index > -1 && value === -1) {
-            this.showItems.push(a.textContent!);// @ts-ignore
+            this.showItems.push(a.textContent!); // @ts-ignore
             this.selectVInputEl!.value = this.showItems;
           }
           if (this.showItems.length >= this.itemValue.length) {
@@ -288,7 +291,7 @@ export class LitSelectV extends BaseElement {
             this.showItems.push(a.textContent!);
           }
           a.setAttribute('selected', '');
-        }// @ts-ignore
+        } // @ts-ignore
         let items = this.selectVInputEl!.value.split(',');
         this.customItem = [];
         items.forEach((item: string) => {
@@ -299,9 +302,11 @@ export class LitSelectV extends BaseElement {
             }
           }
         });
-        if (this.customItem.length > 0) {// @ts-ignore
+        if (this.customItem.length > 0) {
+          // @ts-ignore
           this.selectVInputEl.value = this.customItem.concat(this.showItems);
-        } else {// @ts-ignore
+        } else {
+          // @ts-ignore
           this.selectVInputEl.value = this.showItems;
         }
       });
@@ -317,14 +322,14 @@ export class LitSelectV extends BaseElement {
         });
         this.itemValue.forEach((i) => {
           this.showItems.push(i);
-        });// @ts-ignore
+        }); // @ts-ignore
         this.selectVInputEl.value = this.itemValue;
       } else {
         this.shadowRoot?.querySelectorAll('lit-select-option').forEach((i) => {
           i.removeAttribute('selected');
           this.all = false;
         });
-        this.showItems = [];// @ts-ignore
+        this.showItems = []; // @ts-ignore
         this.selectVInputEl.value = '';
       }
     });

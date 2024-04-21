@@ -52,13 +52,13 @@ export function processExpectedDataSender(pid: number, row: TraceRow<JankStruct>
 }
 
 function arrayBufferHandler(buffers: unknown, len: number): JankStruct[] {
-  let outArr: JankStruct[] = [];//@ts-ignore
-  let name = new Int32Array(buffers.name);//@ts-ignore
-  let pid = new Int32Array(buffers.pid);//@ts-ignore
-  let type = new Int32Array(buffers.type);//@ts-ignore
-  let id = new Int32Array(buffers.id);//@ts-ignore
-  let ts = new Float64Array(buffers.ts);//@ts-ignore
-  let dur = new Float64Array(buffers.dur);//@ts-ignore
+  let outArr: JankStruct[] = []; //@ts-ignore
+  let name = new Int32Array(buffers.name); //@ts-ignore
+  let pid = new Int32Array(buffers.pid); //@ts-ignore
+  let type = new Int32Array(buffers.type); //@ts-ignore
+  let id = new Int32Array(buffers.id); //@ts-ignore
+  let ts = new Float64Array(buffers.ts); //@ts-ignore
+  let dur = new Float64Array(buffers.dur); //@ts-ignore
   let depth = new Uint16Array(buffers.depth);
   for (let i = 0; i < len; i++) {
     outArr.push({

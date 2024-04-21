@@ -33,7 +33,7 @@ export class TabPaneFrequencySample extends BaseElement {
   private frequencySampleSource: unknown[] = [];
   private frequencySampleSortKey: string = 'counter';
   private frequencySampleSortType: number = 0;
-  private systemTrace: SpSystemTrace | undefined | null;// @ts-ignore
+  private systemTrace: SpSystemTrace | undefined | null; // @ts-ignore
   private _rangeRow: Array<TraceRow<unknown>> | undefined | null;
   private frequencySampleClickType: boolean = false;
   private busyTimeLoadingHide: boolean = false;
@@ -49,12 +49,13 @@ export class TabPaneFrequencySample extends BaseElement {
     this.selectionParam = frequencySampleValue;
     if (this.frequencySampleTbl) {
       // @ts-ignore
-      this.frequencySampleTbl.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 25}px`;
+      this.frequencySampleTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 25
+      }px`;
     }
     this.queryDataByDB(frequencySampleValue);
   }
-// @ts-ignore
+  // @ts-ignore
   set rangeTraceRow(rangeRow: Array<TraceRow<unknown>> | undefined) {
     this._rangeRow = rangeRow;
   }
@@ -62,8 +63,9 @@ export class TabPaneFrequencySample extends BaseElement {
   initElements(): void {
     this.frequencyLoadingPage = this.shadowRoot!.querySelector('.loadingFre');
     this.frequencySampleTbl = this.shadowRoot!.querySelector<LitTable>('#tb-states');
-    this.systemTrace = document.querySelector('body > sp-application')?.shadowRoot!.
-      querySelector<SpSystemTrace>('#sp-system-trace');
+    this.systemTrace = document
+      .querySelector('body > sp-application')
+      ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.frequencySampleTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.frequencySampleSortKey = evt.detail.key;
@@ -96,31 +98,35 @@ export class TabPaneFrequencySample extends BaseElement {
       for (let row of rangeTraceRow!) {
         let context = row.collect ? this.systemTrace!.canvasFavoritePanelCtx! : this.systemTrace!.canvasPanelCtx!;
         freqFilter.push(...row.dataListCache);
-        row.canvasSave(context);// @ts-ignore
-        context.clearRect(row.frame.x, row.frame.y, row.frame.width, row.frame.height);// @ts-ignore
+        row.canvasSave(context); // @ts-ignore
+        context.clearRect(row.frame.x, row.frame.y, row.frame.width, row.frame.height); // @ts-ignore
         drawLines(context!, TraceRow.range?.xs || [], row.frame.height, this.systemTrace!.timerShaftEL!.lineColor());
         if (row.name.includes('Frequency') && parseInt(row.name.replace(/[^\d]/g, ' ')) === data.cpu) {
           CpuFreqStruct.hoverCpuFreqStruct = undefined;
           for (let i = 0; i < freqFilter!.length; i++) {
-            if (// @ts-ignore
-              freqFilter[i].value === data.value &&// @ts-ignore
-              freqFilter[i].cpu === data.cpu &&// @ts-ignore
-              Math.max(TraceRow.rangeSelectObject?.startNS!, freqFilter[i].startNS!) <// @ts-ignore
+            if (
+              // @ts-ignore
+              freqFilter[i].value === data.value && // @ts-ignore
+              freqFilter[i].cpu === data.cpu && // @ts-ignore
+              Math.max(TraceRow.rangeSelectObject?.startNS!, freqFilter[i].startNS!) < // @ts-ignore
                 Math.min(TraceRow.rangeSelectObject?.endNS!, freqFilter[i].startNS! + freqFilter[i].dur!)
-            ) {// @ts-ignore
+            ) {
+              // @ts-ignore
               CpuFreqStruct.hoverCpuFreqStruct = freqFilter[i];
-            }// @ts-ignore
-            if (freqFilter[i].cpu === data.cpu) {// @ts-ignore
+            } // @ts-ignore
+            if (freqFilter[i].cpu === data.cpu) {
+              // @ts-ignore
               CpuFreqStruct.draw(context, freqFilter[i]);
             }
           }
         } else {
           for (let i = 0; i < freqFilter!.length; i++) {
             if (
-              row.name.includes('Frequency') &&// @ts-ignore
-              freqFilter[i].cpu !== data.cpu &&// @ts-ignore
+              row.name.includes('Frequency') && // @ts-ignore
+              freqFilter[i].cpu !== data.cpu && // @ts-ignore
               freqFilter[i].cpu === parseInt(row.name.replace(/[^\d]/g, ' '))
-            ) {// @ts-ignore
+            ) {
+              // @ts-ignore
               CpuFreqStruct.draw(context, freqFilter[i]);
             }
           }
@@ -129,7 +135,7 @@ export class TabPaneFrequencySample extends BaseElement {
       }
     }
   }
-// @ts-ignore
+  // @ts-ignore
   private metricsText(context: CanvasRenderingContext2D, row: TraceRow<unknown>): void {
     let s = CpuFreqStruct.maxFreqName;
     let textMetrics = context.measureText(s);
@@ -153,8 +159,12 @@ export class TabPaneFrequencySample extends BaseElement {
     let sampleMap = new Map<unknown, unknown>();
     let frqSampleList: unknown[] = [];
     this.frequencySampleTbl!.loading = true;
-    if (this.frequencySampleClickType) {this.frequencySampleClickType = !this.frequencySampleClickType}
-    if (this.busyTimeLoadingHide) {this.busyTimeLoadingHide = !this.busyTimeLoadingHide}
+    if (this.frequencySampleClickType) {
+      this.frequencySampleClickType = !this.frequencySampleClickType;
+    }
+    if (this.busyTimeLoadingHide) {
+      this.busyTimeLoadingHide = !this.busyTimeLoadingHide;
+    }
     let result = await getTabPaneFrequencySampleData(
       // @ts-ignore
       frqSampleParam.leftNs + frqSampleParam.recordStartNs,
@@ -186,7 +196,11 @@ export class TabPaneFrequencySample extends BaseElement {
     this.getBusyTimeData(frqSampleParam, sampleMap, result);
   }
 
-  async getBusyTimeData(frqSampleParam: SelectionParam, sampleMap: Map<unknown, unknown>, result: Array<unknown>): Promise<void> {
+  async getBusyTimeData(
+    frqSampleParam: SelectionParam,
+    sampleMap: Map<unknown, unknown>,
+    result: Array<unknown>
+  ): Promise<void> {
     let stateFiliterIds: Array<unknown> = [];
     let cpuFiliterOrder: Array<unknown> = [];
     //找出框选的cpu fre所对应的cpu state
@@ -300,7 +314,8 @@ export class TabPaneFrequencySample extends BaseElement {
     }
     this.frequencySampleTbl!.loading = this.freqBusyDataList.length <= 0;
     if (this.freqBusyDataList.length > 0) {
-      this.frequencySampleTbl!.recycleDataSource.forEach((value): void => {// @ts-ignore
+      this.frequencySampleTbl!.recycleDataSource.forEach((value): void => {
+        // @ts-ignore
         value.busyTimeStr = type ? value.busyTime : '-';
         res.push(value);
       });

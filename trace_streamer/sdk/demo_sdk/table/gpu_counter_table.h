@@ -23,19 +23,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class GpuCounterTable : public DemoTableBase {
 public:
-    explicit GpuCounterTable(const TraceDataCache* dataCache);
+    explicit GpuCounterTable(const TraceDataCache *dataCache);
     ~GpuCounterTable() override;
     std::unique_ptr<DemoTableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public DemoTableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, DemoTableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, DemoTableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t gpuCntColumn) const override;
 
     private:
-        const GpuCounter& gpuCounterDataObj_;
+        const GpuCounter &gpuCounterDataObj_;
     };
 };
 } // namespace TraceStreamer

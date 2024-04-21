@@ -33,13 +33,13 @@ public:
     }
 
 public:
-    void Prepare(const std::string& sql)
+    void Prepare(const std::string &sql)
     {
         int32_t size = static_cast<int32_t>(sql.size());
         sqlite3_prepare_v2(stream_.traceDataCache_->db_, sql.c_str(), size, &stmt_, nullptr);
     }
 
-    void Step(const std::string& sql)
+    void Step(const std::string &sql)
     {
         Prepare(sql);
         sqlite3_step(stmt_);
@@ -54,7 +54,7 @@ public:
             sqlite3_column_int64(stmt_, static_cast<int32_t>(i));
         }
     }
-    sqlite3_stmt* stmt_;
+    sqlite3_stmt *stmt_;
     TraceStreamerSelector stream_ = {};
 };
 /**

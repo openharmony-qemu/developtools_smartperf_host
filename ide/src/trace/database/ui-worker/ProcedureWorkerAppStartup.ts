@@ -66,7 +66,7 @@ const padding = 3;
 export function AppStartupStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  scrollToFuncHandler: any
+  scrollToFuncHandler: Function
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_APP_STARTUP && AppStartupStruct.hoverStartupStruct) {

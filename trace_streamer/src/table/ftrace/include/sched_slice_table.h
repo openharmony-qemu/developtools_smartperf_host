@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class SchedSliceTable : public TableBase {
 public:
-    explicit SchedSliceTable(const TraceDataCache* dataCache);
+    explicit SchedSliceTable(const TraceDataCache *dataCache);
     ~SchedSliceTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,21 +32,21 @@ private:
     {
         return dataCache_->GetConstSchedSliceData().Size();
     }
-    void GetOrbyes(FilterConstraints& schedfc, EstimatedIndexInfo& schedei) override;
-    void FilterByConstraint(FilterConstraints& schedfc,
-                            double& schedfilterCost,
+    void GetOrbyes(FilterConstraints &schedfc, EstimatedIndexInfo &schedei) override;
+    void FilterByConstraint(FilterConstraints &schedfc,
+                            double &schedfilterCost,
                             size_t schedrowCount,
                             uint32_t schedcurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t col) const override;
 
     private:
-        const SchedSlice& schedSliceObj_;
+        const SchedSlice &schedSliceObj_;
     };
 };
 } // namespace TraceStreamer

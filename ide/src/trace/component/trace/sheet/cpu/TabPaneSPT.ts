@@ -38,9 +38,9 @@ export class TabPaneSPT extends BaseElement {
       this.sptTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45}px`;
     }
     this.range!.textContent =
-    // @ts-ignore
-      `Selected range: ${parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5))} ms`;
       // @ts-ignore
+      `Selected range: ${parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5))} ms`;
+    // @ts-ignore
     this.getDataBySPT(sptValue.leftNs, sptValue.rightNs, sptValue.cpus);
   }
 

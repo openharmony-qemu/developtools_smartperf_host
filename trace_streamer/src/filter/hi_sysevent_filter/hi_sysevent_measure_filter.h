@@ -60,9 +60,9 @@ struct JsonMessage {
 
 class HiSysEventMeasureFilter : private FilterBase, public HtracePluginTimeParser {
 public:
-    HiSysEventMeasureFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    HiSysEventMeasureFilter(const HiSysEventMeasureFilter&) = delete;
-    HiSysEventMeasureFilter& operator=(const HiSysEventMeasureFilter&) = delete;
+    HiSysEventMeasureFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
+    HiSysEventMeasureFilter(const HiSysEventMeasureFilter &) = delete;
+    HiSysEventMeasureFilter &operator=(const HiSysEventMeasureFilter &) = delete;
     ~HiSysEventMeasureFilter() override;
     DataIndex AppendNewValue(uint64_t serial,
                              uint64_t timeStamp,
@@ -92,16 +92,16 @@ public:
                         int32_t accessibility,
                         int32_t recording,
                         int32_t streamAll);
-    bool SaveAllHiSysEvent(json jMessage, bool& haveSplitSeg);
+    bool SaveAllHiSysEvent(json jMessage, bool &haveSplitSeg);
     void Clear();
-    bool FilterAllHiSysEvent(const json& jMessage, uint64_t serial, bool& haveSplitSeg);
+    bool FilterAllHiSysEvent(const json &jMessage, uint64_t serial, bool &haveSplitSeg);
 
 private:
-    bool JGetData(const json& jMessage,
-                  JsonData& jData,
-                  size_t& maxArraySize,
-                  std::vector<size_t>& noArrayIndex,
-                  std::vector<size_t>& arrayIndex);
+    bool JGetData(const json &jMessage,
+                  JsonData &jData,
+                  size_t &maxArraySize,
+                  std::vector<size_t> &noArrayIndex,
+                  std::vector<size_t> &arrayIndex);
     void NoArrayDataParse(JsonData jData,
                           std::vector<size_t> noArrayIndex,
                           DataIndex eventSourceIndex,
@@ -112,13 +112,13 @@ private:
                         size_t maxArraySize,
                         uint64_t hiSysEventLineId);
     void CommonDataParser(JsonData jData, DataIndex eventSourceIndex, uint64_t hiSysEventLineId);
-    void AppendStringValue(nlohmann::json& value,
+    void AppendStringValue(nlohmann::json &value,
                            uint64_t hiSysEventLineId,
                            DataIndex eventSourceIndex,
                            DataIndex keyIndex,
                            uint64_t timeStamp);
-    void UpdataAllHiSysEvent(const JsonMessage& jsMessage, uint64_t newTimeStamp);
-    void FillJsMessage(const json& jMessage, JsonMessage& jsMessage);
+    void UpdataAllHiSysEvent(const JsonMessage &jsMessage, uint64_t newTimeStamp);
+    void FillJsMessage(const json &jMessage, JsonMessage &jsMessage);
 
 private:
     const uint64_t MSEC_TO_NS = 1000 * 1000;

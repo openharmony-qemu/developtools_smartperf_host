@@ -34,7 +34,7 @@ enum class Index : int32_t {
     INFO,
     CONTEXT
 };
-SysEventAllEventTable::SysEventAllEventTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+SysEventAllEventTable::SysEventAllEventTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("domain_id", "INTEGER"));
@@ -61,7 +61,7 @@ std::unique_ptr<TableBase::Cursor> SysEventAllEventTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-SysEventAllEventTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+SysEventAllEventTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstHiSysEventAllEventData().Size())),
       hiSysEventAllEventObj_(dataCache->GetConstHiSysEventAllEventData())
 {

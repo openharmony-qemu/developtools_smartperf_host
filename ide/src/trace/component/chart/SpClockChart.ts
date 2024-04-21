@@ -31,7 +31,6 @@ export class SpClockChart {
     this.trace = trace;
   }
 
-
   async init(): Promise<void> {
     let folder = await this.initFolder();
     await this.initData(folder);
@@ -57,18 +56,24 @@ export class SpClockChart {
       } else if (isScreenState) {
         promiseData = clockDataSender('', 'screenState', traceRow);
       }
-      if (promiseData === null) {// @ts-ignore
+      if (promiseData === null) {
+        // @ts-ignore
         return new Promise<Array<unknown>>((resolve) => resolve([]));
-      } else {// @ts-ignore
+      } else {
+        // @ts-ignore
         return promiseData.then((resultClock: Array<unknown>) => {
-          for (let j = 0; j < resultClock.length; j++) {// @ts-ignore
-            resultClock[j].type = 'measure';// @ts-ignore
-            if ((resultClock[j].value || 0) > it.maxValue!) {// @ts-ignore
+          for (let j = 0; j < resultClock.length; j++) {
+            // @ts-ignore
+            resultClock[j].type = 'measure'; // @ts-ignore
+            if ((resultClock[j].value || 0) > it.maxValue!) {
+              // @ts-ignore
               it.maxValue = resultClock[j].value || 0;
             }
-            if (j > 0) {// @ts-ignore
+            if (j > 0) {
+              // @ts-ignore
               resultClock[j].delta = (resultClock[j].value || 0) - (resultClock[j - 1].value || 0);
-            } else {// @ts-ignore
+            } else {
+              // @ts-ignore
               resultClock[j].delta = 0;
             }
           }
@@ -106,14 +111,16 @@ export class SpClockChart {
           maxValue: it.maxValue === 0 ? 1 : it.maxValue!,
           index: clockId,
           maxName:
-            isState || isScreenState ? it.maxValue!.toString() : Utils.getFrequencyWithUnit(it.maxValue! / 1000).maxFreqName,
+            isState || isScreenState
+              ? it.maxValue!.toString()
+              : Utils.getFrequencyWithUnit(it.maxValue! / 1000).maxFreqName,
         },
         traceRow
       );
       traceRow.canvasRestore(context, this.trace);
     };
   }
-// @ts-ignore
+  // @ts-ignore
   async initData(folder: TraceRow<unknown>): Promise<void> {
     let clockStartTime = new Date().getTime();
     let clockList = await queryClockData();
@@ -164,7 +171,7 @@ export class SpClockChart {
     let durTime = new Date().getTime() - clockStartTime;
     info('The time to load the ClockData is: ', durTime);
   }
-// @ts-ignore
+  // @ts-ignore
   async initFolder(): Promise<TraceRow<unknown>> {
     let clockFolder = TraceRow.skeleton();
     clockFolder.rowId = 'Clocks';
@@ -175,11 +182,12 @@ export class SpClockChart {
     clockFolder.folder = true;
     clockFolder.name = 'Clocks';
     clockFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    clockFolder.selectChangeHandler = this.trace.selectChangeHandler;// @ts-ignore
+    clockFolder.selectChangeHandler = this.trace.selectChangeHandler; // @ts-ignore
     clockFolder.supplier = (): Promise<unknown[]> => new Promise<Array<unknown>>((resolve) => resolve([]));
     clockFolder.onThreadHandler = (useCache): void => {
       clockFolder.canvasSave(this.trace.canvasPanelCtx!);
-      if (clockFolder.expansion) {// @ts-ignore
+      if (clockFolder.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, clockFolder.frame.width, clockFolder.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(

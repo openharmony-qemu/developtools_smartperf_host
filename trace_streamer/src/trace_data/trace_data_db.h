@@ -42,25 +42,25 @@ constexpr int32_t DATABASE_BASE = (1U << 20);
 class TraceDataDB {
 public:
     TraceDataDB();
-    TraceDataDB(const TraceDataDB&) = delete;
-    TraceDataDB& operator=(const TraceDataDB&) = delete;
+    TraceDataDB(const TraceDataDB &) = delete;
+    TraceDataDB &operator=(const TraceDataDB &) = delete;
     virtual ~TraceDataDB();
     void Prepare();
 
 public:
-    using ResultCallBack = std::function<void(const std::string& /* json or proto result */, int32_t)>;
-    int32_t ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack = nullptr);
-    int32_t BatchExportDatabase(const std::string& outputName);
-    int32_t CreatEmptyBatchDB(const std::string& outputName);
-    void RevertTableName(const std::string& outputName);
+    using ResultCallBack = std::function<void(const std::string & /* json or proto result */, int32_t)>;
+    int32_t ExportDatabase(const std::string &outputName, ResultCallBack resultCallBack = nullptr);
+    int32_t BatchExportDatabase(const std::string &outputName);
+    int32_t CreatEmptyBatchDB(const std::string &outputName);
+    void RevertTableName(const std::string &outputName);
     void CloseBatchDB();
     std::vector<std::string> SearchData();
-    int32_t OperateDatabase(const std::string& sql);
-    int32_t SearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
-    int32_t SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
-    int32_t SearchDatabase(std::string& sql, bool print);
-    int32_t SearchDatabaseToProto(const std::string& data, SqllitePreparCacheData::TLVResultCallBack resultCallBack);
-    std::string SearchDatabase(const std::string& sql);
+    int32_t OperateDatabase(const std::string &sql);
+    int32_t SearchDatabase(const std::string &sql, ResultCallBack resultCallBack);
+    int32_t SearchDatabase(const std::string &sql, uint8_t *out, int32_t outLen);
+    int32_t SearchDatabase(std::string &sql, bool print);
+    int32_t SearchDatabaseToProto(const std::string &data, SqllitePreparCacheData::TLVResultCallBack resultCallBack);
+    std::string SearchDatabase(const std::string &sql);
     void SetCancel(bool cancel);
     void AppendNewTable(std::string tableName);
     void EnableMetaTable(bool enabled);
@@ -70,20 +70,20 @@ public:
     }
 
 public:
-    sqlite3* db_;
+    sqlite3 *db_;
 
 protected:
     std::unordered_map<std::string, size_t> tableToCompletedSize_;
 
 private:
-    void ExecuteSql(const std::string_view& sql);
+    void ExecuteSql(const std::string_view &sql);
     void SendDatabase(ResultCallBack resultCallBack);
-    void ParseCommandLine(std::string& option, std::string line, std::vector<std::string>& values);
+    void ParseCommandLine(std::string &option, std::string line, std::vector<std::string> &values);
     void PrintSearchResult(std::string line, bool printResult);
-    int32_t HandleColumnNames(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount);
-    int32_t HandleRowData(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount);
-    static void GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowStr);
-    static void SqliteFinalize(sqlite3_stmt* ptr);
+    int32_t HandleColumnNames(sqlite3_stmt *stmt, char *res, int32_t outLen, int32_t pos, int32_t colCount);
+    int32_t HandleRowData(sqlite3_stmt *stmt, char *res, int32_t outLen, int32_t pos, int32_t colCount);
+    static void GetRowString(sqlite3_stmt *stmt, int32_t colCount, std::string &rowStr);
+    static void SqliteFinalize(sqlite3_stmt *ptr);
     void InitTableToCompletedSize();
 
 private:

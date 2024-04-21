@@ -31,20 +31,20 @@ namespace TraceStreamer {
 using namespace SysTuning::base;
 class AnimationFilter : private FilterBase {
 public:
-    AnimationFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
+    AnimationFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
     ~AnimationFilter() override;
-    bool UpdateDeviceInfoEvent(const TracePoint& point, const BytraceLine& line);
-    bool BeginDynamicFrameEvent(const TracePoint& point, size_t callStackRow);
+    bool UpdateDeviceInfoEvent(const TracePoint &point, const BytraceLine &line);
+    bool BeginDynamicFrameEvent(const TracePoint &point, size_t callStackRow);
     bool EndDynamicFrameEvent(uint64_t ts, size_t callStackRow);
-    bool StartAnimationEvent(const BytraceLine& line, const TracePoint& point, size_t callStackRow);
-    bool FinishAnimationEvent(const BytraceLine& line, size_t callStackRow);
+    bool StartAnimationEvent(const BytraceLine &line, const TracePoint &point, size_t callStackRow);
+    bool FinishAnimationEvent(const BytraceLine &line, size_t callStackRow);
     void UpdateDynamicFrameInfo();
     void UpdateFrameInfo();
     void Clear();
 
 private:
-    bool UpdateDeviceFps(const BytraceLine& line);
-    bool UpdateDeviceScreenSize(const TracePoint& point);
+    bool UpdateDeviceFps(const BytraceLine &line);
+    bool UpdateDeviceScreenSize(const TracePoint &point);
     bool UpdateDynamicEndTime(const uint64_t curFrameRow, uint64_t curStackRow);
     // for calculate the frame rate
     const std::string frameRateCmd_ = "H:GenerateVsyncCount";
@@ -67,8 +67,8 @@ private:
     std::unordered_map<DataIndex, uint64_t> realFrameRateFlagsDict_ = {};
     uint64_t generateFirstTime_ = INVALID_UINT64;
     uint8_t generateVsyncCnt_ = 0;
-    DynamicFrame* dynamicFrame_ = nullptr;
-    CallStack* callStackSlice_ = nullptr;
+    DynamicFrame *dynamicFrame_ = nullptr;
+    CallStack *callStackSlice_ = nullptr;
     const uint8_t inputTimeIndex_ = 3;
 };
 } // namespace TraceStreamer

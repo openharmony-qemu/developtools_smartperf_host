@@ -18,6 +18,6 @@
 #include <string>
 #include <sys/types.h>
 extern size_t g_loadSize;
-extern const std::string SDK_VERSION;        // version
-extern const std::string SDK_PUBLISHVERSION; // publish datetime
+extern const std::string SDK_VERSION;         // version
+extern const std::string SDK_PUBLISH_VERSION; // publish datetime
 #endif

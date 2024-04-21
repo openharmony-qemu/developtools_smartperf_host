@@ -27,7 +27,7 @@ export class TabPaneFrames extends BaseElement {
   private range: HTMLLabelElement | null | undefined;
   private framesSource: Array<unknown> = [];
   set data(framesParam: SelectionParam | unknown) {
-    this.range!.textContent =// @ts-ignore
+    this.range!.textContent = // @ts-ignore
       'Selected range: ' + parseFloat(((framesParam.rightNs - framesParam.leftNs) / 1000000.0).toFixed(5)) + '  ms';
     this.queryDataByDB(framesParam);
   }
@@ -37,10 +37,10 @@ export class TabPaneFrames extends BaseElement {
     let sumRes: JankFramesStruct = new JankFramesStruct();
     let appJank: JankFramesStruct = new JankFramesStruct();
     let rsJank: JankFramesStruct = new JankFramesStruct();
-    let noJank: JankFramesStruct = new JankFramesStruct();// @ts-ignore
+    let noJank: JankFramesStruct = new JankFramesStruct(); // @ts-ignore
     if (framesParam.jankFramesData.length > 0) {
       let allPid: Array<number> = [];
-      let allData: Array<unknown> = [];// @ts-ignore
+      let allData: Array<unknown> = []; // @ts-ignore
       framesParam.jankFramesData.forEach((data: unknown) => {
         if (typeof data === 'string') {
           if (Number(data) && allPid.indexOf(Number(data)) < 0) {
@@ -49,14 +49,15 @@ export class TabPaneFrames extends BaseElement {
         } else {
           allData.push(data);
         }
-      });// @ts-ignore
-      querySelectRangeData(allPid, framesParam.leftNs, framesParam.rightNs).then((result: unknown) => {// @ts-ignore
+      }); // @ts-ignore
+      querySelectRangeData(allPid, framesParam.leftNs, framesParam.rightNs).then((result: unknown) => {
+        // @ts-ignore
         sumRes.occurrences = allData.length + result.length;
         allData.forEach((item) => {
           // frameTime
           // @ts-ignore
           this.frameTimelineJankDataHandle(item, appJank, noJank);
-        });// @ts-ignore
+        }); // @ts-ignore
         result.forEach((structValue: JanksStruct) => {
           if (structValue.frame_type === 'app') {
             this.appJankDataHandle(structValue, appJank, noJank);
@@ -276,9 +277,11 @@ export class TabPaneFrames extends BaseElement {
     }
 
     // @ts-ignore
-    if (framesDetail.key === 'jankType') {// @ts-ignore
+    if (framesDetail.key === 'jankType') {
+      // @ts-ignore
       this.framesSource.sort(compare(framesDetail.key, framesDetail.sort, 'string'));
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       this.framesSource.sort(compare(framesDetail.key, framesDetail.sort, 'number'));
     }
     this.framesTbl!.recycleDataSource = this.framesSource;

@@ -23,19 +23,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class CpuUsageInfoTable : public TableBase {
 public:
-    explicit CpuUsageInfoTable(const TraceDataCache* dataCache);
+    explicit CpuUsageInfoTable(const TraceDataCache *dataCache);
     ~CpuUsageInfoTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const CpuUsageDetailData& cpuUsageInfoObj_;
+        const CpuUsageDetailData &cpuUsageInfoObj_;
     };
 };
 } // namespace TraceStreamer

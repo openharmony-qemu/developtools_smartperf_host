@@ -32,11 +32,11 @@ void EbpfSplitter::SetSpliteTimeRange(uint64_t splitFileMinTs, uint64_t splitFil
     splitFileMaxTs_ = splitFileMaxTs;
     TS_LOGI("splitFileMinTs_ = %" PRIu64 ", splitFileMaxTs_ = %" PRIu64 "", splitFileMinTs_, splitFileMaxTs_);
 }
-bool EbpfSplitter::SplitEbpfHeader(std::deque<uint8_t>& dequeBuffer)
+bool EbpfSplitter::SplitEbpfHeader(std::deque<uint8_t> &dequeBuffer)
 {
     splitEbpfHeader_ = std::make_unique<EbpfDataHeader>();
     std::copy_n(dequeBuffer.begin(), EbpfDataHeader::EBPF_DATA_HEADER_SIZE,
-                reinterpret_cast<char*>(splitEbpfHeader_.get()));
+                reinterpret_cast<char *>(splitEbpfHeader_.get()));
     if (splitEbpfHeader_->header.magic != EbpfDataHeader::HEADER_MAGIC) {
         TS_LOGE("Get EBPF file header failed! magic = %" PRIx64 "", splitEbpfHeader_->header.magic);
         return false;
@@ -53,17 +53,17 @@ bool EbpfSplitter::SplitEbpfHeader(std::deque<uint8_t>& dequeBuffer)
     return true;
 }
 
-bool EbpfSplitter::AddAndSplitEbpfData(std::deque<uint8_t>& dequeBuffer)
+bool EbpfSplitter::AddAndSplitEbpfData(std::deque<uint8_t> &dequeBuffer)
 {
     if (!splitEbpfHeader_) {
         HtraceSplitResult ebpfHtraceHead = {.type = (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
-                                            .buffer = {.address = reinterpret_cast<uint8_t*>(&profilerHeader_),
+                                            .buffer = {.address = reinterpret_cast<uint8_t *>(&profilerHeader_),
                                                        .size = sizeof(ProfilerTraceFileHeader)}};
         ebpfSplitResult_.emplace_back(ebpfHtraceHead);
         if (dequeBuffer.size() >= EbpfDataHeader::EBPF_DATA_HEADER_SIZE) {
             auto ret = SplitEbpfHeader(dequeBuffer);
             HtraceSplitResult ebpfHead = {.type = (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
-                                          .buffer = {.address = reinterpret_cast<uint8_t*>(splitEbpfHeader_.get()),
+                                          .buffer = {.address = reinterpret_cast<uint8_t *>(splitEbpfHeader_.get()),
                                                      .size = EbpfDataHeader::EBPF_DATA_HEADER_SIZE}};
             ebpfSplitResult_.emplace_back(ebpfHead);
             TS_ASSERT(ret);
@@ -89,12 +89,12 @@ void EbpfSplitter::AppendSplitOriginSegResult(uint32_t segLen)
     usefulDataLen_ += segLen;
     ebpfSplitResult_.emplace_back(publicDataOffset);
 }
-void EbpfSplitter::SplitEbpfBodyData(std::deque<uint8_t>& dequeBuffer)
+void EbpfSplitter::SplitEbpfBodyData(std::deque<uint8_t> &dequeBuffer)
 {
     while (profilerHeader_.data.length - sizeof(ProfilerTraceFileHeader) - splittedLen_ > EBPF_TITLE_SIZE &&
            dequeBuffer.size() > EBPF_TITLE_SIZE) {
         EbpfTypeAndLength dataTitle;
-        std::copy_n(dequeBuffer.begin(), EBPF_TITLE_SIZE, reinterpret_cast<char*>(&dataTitle));
+        std::copy_n(dequeBuffer.begin(), EBPF_TITLE_SIZE, reinterpret_cast<char *>(&dataTitle));
         if (dataTitle.length + EBPF_TITLE_SIZE > dequeBuffer.size()) {
             return;
         }

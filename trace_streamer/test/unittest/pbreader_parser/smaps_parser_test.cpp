@@ -51,9 +51,9 @@ public:
         }
     }
 
-    void SetSmapinfo(ProcessMemoryInfo* memInfo, bool isRepeated = false)
+    void SetSmapinfo(ProcessMemoryInfo *memInfo, bool isRepeated = false)
     {
-        SmapsInfo* smapsInfo = memInfo->add_smapinfo();
+        SmapsInfo *smapsInfo = memInfo->add_smapinfo();
         smapsInfo->set_start_addr("5589523000");
         smapsInfo->set_end_addr("5589543000");
         smapsInfo->set_permission(PERMISSION_01);
@@ -64,7 +64,7 @@ public:
         smapsInfo->set_reside(RESIDE_01);
 
         if (isRepeated) {
-            SmapsInfo* smapsInfo1 = memInfo->add_smapinfo();
+            SmapsInfo *smapsInfo1 = memInfo->add_smapinfo();
             smapsInfo1->set_start_addr("5589543000");
             smapsInfo1->set_end_addr("5589589000");
             smapsInfo1->set_permission(PERMISSION_02);
@@ -91,8 +91,8 @@ HWTEST_F(SmapsParserTest, ParseSmapsParse, TestSize.Level1)
     PbreaderMemParser SmapsEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    ProcessMemoryInfo* memInfo = tracePacket.add_processesinfo();
-    SmapsInfo* smapsInfo = memInfo->add_smapinfo();
+    ProcessMemoryInfo *memInfo = tracePacket.add_processesinfo();
+    SmapsInfo *smapsInfo = memInfo->add_smapinfo();
     EXPECT_TRUE(smapsInfo != nullptr);
     int32_t size = memInfo->smapinfo_size();
     EXPECT_TRUE(size == 1);
@@ -101,7 +101,7 @@ HWTEST_F(SmapsParserTest, ParseSmapsParse, TestSize.Level1)
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     ProtoReader::MemoryData_Reader memData(memBytesView);
     SmapsEvent.ParseProcessInfo(&memData, timeStamp);
     SmapsEvent.Finish();
@@ -125,11 +125,11 @@ HWTEST_F(SmapsParserTest, ParseSmapsParseTestMeasureDataSize, TestSize.Level1)
     TS_LOGI("test29-2");
 
     MemoryData tracePacket;
-    ProcessMemoryInfo* memInfo = tracePacket.add_processesinfo();
+    ProcessMemoryInfo *memInfo = tracePacket.add_processesinfo();
     SetSmapinfo(memInfo);
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     ProtoReader::MemoryData_Reader memData(memBytesView);
     uint64_t timeStamp = 1616439852302;
     PbreaderMemParser SmapsEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -166,11 +166,11 @@ HWTEST_F(SmapsParserTest, ParseSmapsParseTestMutiMeasureData, TestSize.Level1)
     TS_LOGI("test29-3");
 
     MemoryData tracePacket;
-    ProcessMemoryInfo* memInfo = tracePacket.add_processesinfo();
+    ProcessMemoryInfo *memInfo = tracePacket.add_processesinfo();
     SetSmapinfo(memInfo, true);
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     ProtoReader::MemoryData_Reader memData(memBytesView);
     uint64_t timeStamp = 1616439852302;
     PbreaderMemParser SmapsEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -215,22 +215,22 @@ HWTEST_F(SmapsParserTest, ParseMutiEmptySmapsDataAndCountStatInfo, TestSize.Leve
     PbreaderMemParser SmapsEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    ProcessMemoryInfo* memInfo = tracePacket.add_processesinfo();
-    SmapsInfo* smapsInfo0 = memInfo->add_smapinfo();
+    ProcessMemoryInfo *memInfo = tracePacket.add_processesinfo();
+    SmapsInfo *smapsInfo0 = memInfo->add_smapinfo();
     EXPECT_TRUE(smapsInfo0 != nullptr);
     int32_t size = memInfo->smapinfo_size();
     EXPECT_TRUE(size == 1);
     uint64_t timeStamp = 1616439852302;
     BuiltinClocks clock = TS_CLOCK_BOOTTIME;
 
-    SmapsInfo* smapsInfo1 = memInfo->add_smapinfo();
+    SmapsInfo *smapsInfo1 = memInfo->add_smapinfo();
     EXPECT_TRUE(smapsInfo1 != nullptr);
     size = memInfo->smapinfo_size();
     EXPECT_TRUE(size == 2);
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     ProtoReader::MemoryData_Reader memData(memBytesView);
     SmapsEvent.ParseProcessInfo(&memData, timeStamp);
     SmapsEvent.Finish();
@@ -261,7 +261,7 @@ HWTEST_F(SmapsParserTest, ParseEmptySmapsData, TestSize.Level1)
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     ProtoReader::MemoryData_Reader memData(memBytesView);
     SmapsEvent.ParseProcessInfo(&memData, timeStamp);
     SmapsEvent.Finish();

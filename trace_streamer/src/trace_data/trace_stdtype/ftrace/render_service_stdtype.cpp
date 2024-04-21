@@ -95,10 +95,10 @@ void FrameSlice::SetDst(uint64_t row, uint64_t dst)
     dsts_[row] = diskTableSize_ + dst;
 }
 
-void FrameSlice::SetSrcs(uint64_t row, const std::vector<uint64_t>& fromSlices)
+void FrameSlice::SetSrcs(uint64_t row, const std::vector<uint64_t> &fromSlices)
 {
     std::string s = "";
-    for (auto&& i : fromSlices) {
+    for (auto &&i : fromSlices) {
         s += std::to_string(diskTableSize_ + i) + ",";
     }
     s.pop_back();
@@ -149,7 +149,7 @@ const std::deque<uint32_t> FrameSlice::FrameNos() const
 {
     return frameNos_;
 }
-const std::deque<std::string>& FrameSlice::Srcs() const
+const std::deque<std::string> &FrameSlice::Srcs() const
 {
     return srcs_;
 }
@@ -177,16 +177,16 @@ size_t GPUSlice::AppendNew(uint32_t frameRow, uint64_t dur)
     durs_.emplace_back(dur);
     return Size() - 1;
 }
-const std::deque<uint32_t>& GPUSlice::FrameRows() const
+const std::deque<uint32_t> &GPUSlice::FrameRows() const
 {
     return frameRows_;
 }
-const std::deque<uint64_t>& GPUSlice::Durs() const
+const std::deque<uint64_t> &GPUSlice::Durs() const
 {
     return durs_;
 }
 
-size_t FrameMaps::AppendNew(FrameSlice* frameSlice, uint64_t src, uint64_t dst)
+size_t FrameMaps::AppendNew(FrameSlice *frameSlice, uint64_t src, uint64_t dst)
 {
     timeStamps_.emplace_back(0);
     ids_.emplace_back(id_++);
@@ -203,11 +203,11 @@ size_t FrameMaps::AppendNew(FrameSlice* frameSlice, uint64_t src, uint64_t dst)
 
     return Size() - 1;
 }
-const std::deque<uint64_t>& FrameMaps::SrcIndexs() const
+const std::deque<uint64_t> &FrameMaps::SrcIndexs() const
 {
     return srcs_;
 }
-const std::deque<uint64_t>& FrameMaps::DstIndexs() const
+const std::deque<uint64_t> &FrameMaps::DstIndexs() const
 {
     return dsts_;
 }

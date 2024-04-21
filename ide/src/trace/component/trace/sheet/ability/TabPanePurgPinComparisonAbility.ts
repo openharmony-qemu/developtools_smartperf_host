@@ -43,14 +43,15 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
       }px`;
     }
     this.purgeablePinSource = [];
-    let fileArr: unknown[] = [];// @ts-ignore
-    for (let file of dataList) {// @ts-ignore
+    let fileArr: unknown[] = []; // @ts-ignore
+    for (let file of dataList) {
+      // @ts-ignore
       if (file.startNs !== purgePinComParam.startNs) {
         fileArr.push(file);
       }
     }
-    fileArr = fileArr.sort();// @ts-ignore
-    this.initSelect(purgePinComParam.startNs, fileArr);// @ts-ignore
+    fileArr = fileArr.sort(); // @ts-ignore
+    this.initSelect(purgePinComParam.startNs, fileArr); // @ts-ignore
     this.updateComparisonData(purgePinComParam.startNs, fileArr[0].startNs);
   }
 
@@ -61,25 +62,28 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
     let option = new LitSelectOption();
     option.innerHTML = 'File Name';
     option.setAttribute('disabled', 'disabled');
-    this.selectEl?.appendChild(option);// @ts-ignore
-    if (purgePinComFileArr[0].name) {// @ts-ignore
+    this.selectEl?.appendChild(option); // @ts-ignore
+    if (purgePinComFileArr[0].name) {
+      // @ts-ignore
       option.setAttribute('value', purgePinComFileArr[0].name);
-    }// @ts-ignore
-    this.selectEl!.defaultValue = purgePinComFileArr[0].name;// @ts-ignore
+    } // @ts-ignore
+    this.selectEl!.defaultValue = purgePinComFileArr[0].name; // @ts-ignore
     this.selectEl!.placeholder = purgePinComFileArr[0].name;
     this.selectEl!.dataSource = purgePinComFileArr;
     this.selectEl!.querySelectorAll('lit-select-option').forEach((a) => {
       a.addEventListener('onSelected', (e: unknown) => {
-        for (let f of purgePinComFileArr) {// @ts-ignore
-          if (input.value === f.name) {// @ts-ignore
+        for (let f of purgePinComFileArr) {
+          // @ts-ignore
+          if (input.value === f.name) {
+            // @ts-ignore
             that.updateComparisonData(fileStartNs, f.startNs);
           }
-        }// @ts-ignore
+        } // @ts-ignore
         e.stopPropagation();
       });
     });
   }
-// @ts-ignore
+  // @ts-ignore
   private async updateComparisonData(baseTime: number, targetTime: number): Promise<unknown> {
     this.purgeablePinSource = [];
     let tableData = await this.queryTableData(baseTime, targetTime);
@@ -106,7 +110,8 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
       }
       // 被比较的
       await querySysPurgeableSelectionTab(targetTime, true).then((results) => {
-        for (let i = 0; i < results.length; i++) {//@ts-ignore
+        for (let i = 0; i < results.length; i++) {
+          //@ts-ignore
           targetArr.push(new CompareStruct(results[i].name, results[i].value));
         }
         let compareData = compare(baseArr, targetArr);

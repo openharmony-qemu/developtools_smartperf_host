@@ -20,7 +20,7 @@
 #include "string_to_numerical.h"
 namespace SysTuning {
 namespace TraceStreamer {
-BinderFilter::BinderFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+BinderFilter::BinderFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : FilterBase(dataCache, filter)
 {
     binderFlagDescs_ = {{noReturnMsgFlag_, " this is a one-way call: async, no return; "},
@@ -161,13 +161,13 @@ void BinderFilter::TransactionAllocBuf(int64_t ts, uint32_t pid, uint64_t dataSi
     (void)streamFilters_->sliceFilter_->AddArgs(pid, binderCatalogId_, transSliceId_, args);
     Unused(ts);
 }
-void BinderFilter::TractionLock(int64_t ts, uint32_t pid, const std::string& tag)
+void BinderFilter::TractionLock(int64_t ts, uint32_t pid, const std::string &tag)
 {
     Unused(tag);
     lastEventTs_[pid] = ts;
     (void)streamFilters_->sliceFilter_->BeginBinder(ts, pid, binderCatalogId_, lockTryId_);
 }
-void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string& tag)
+void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string &tag)
 {
     Unused(tag);
     if (!lastEventTs_.count(pid)) {
@@ -179,7 +179,7 @@ void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string& t
     lastEventTs_.erase(pid);
     lastEventTs_[pid] = ts;
 }
-void BinderFilter::TractionUnlock(int64_t ts, uint32_t pid, const std::string& tag)
+void BinderFilter::TractionUnlock(int64_t ts, uint32_t pid, const std::string &tag)
 {
     Unused(tag);
     if (!lastEventTs_.count(pid)) {

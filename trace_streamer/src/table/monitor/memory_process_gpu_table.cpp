@@ -27,7 +27,7 @@ enum class Index : int32_t {
     ITID,
     USED_GPU_SIZE,
 };
-MemoryProcessGpuTable::MemoryProcessGpuTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+MemoryProcessGpuTable::MemoryProcessGpuTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -47,7 +47,7 @@ std::unique_ptr<TableBase::Cursor> MemoryProcessGpuTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-MemoryProcessGpuTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+MemoryProcessGpuTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstGpuProcessMemData().Size())),
       GpuProcessMemDataObj_(dataCache->GetConstGpuProcessMemData())
 {

@@ -14,39 +14,41 @@
  */
 
 import { CpuStruct, WakeupBean } from './cpu/ProcedureWorkerCPU';
-import { TraceRow } from '../../component/trace/base/TraceRow';
+import { RangeSelectStruct, TraceRow } from '../../component/trace/base/TraceRow';
 import { TimerShaftElement } from '../../component/trace/TimerShaftElement';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
 import { drawVSync } from '../../component/chart/VSync';
+import { FuncStruct } from './ProcedureWorkerFunc';
+import { ProcessMemStruct } from './ProcedureWorkerMem';
 
 export abstract class Render {
-  abstract renderMainThread(req: any, row: TraceRow<any>): void;
+  abstract renderMainThread(req: unknown, row: unknown): void;
 }
 
 export abstract class PerfRender {
-  abstract render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void;
+  abstract render(req: RequestMessage, list: Array<unknown>, filter: Array<unknown>, dataList2: Array<unknown>): void;
 }
 
 export class RequestMessage {
   type: string | undefined | null;
   lazyRefresh: boolean | undefined;
-  intervalPerf: any;
-  canvas: any;
-  context: any;
-  params: any;
-  online: any;
-  buf: any;
-  isRangeSelect: any;
-  isHover: any;
-  xs: any;
-  frame: any;
-  flagMoveInfo: any;
-  flagSelectedInfo: any;
-  hoverX: any;
-  hoverY: any;
-  startNS: any;
-  endNS: any;
-  totalNS: any;
+  intervalPerf: unknown;
+  canvas: unknown;
+  context!: CanvasRenderingContext2D;
+  params: unknown;
+  online: unknown;
+  buf: unknown;
+  isRangeSelect!: boolean;
+  isHover!: boolean;
+  xs?: Array<number>;
+  frame!: Rect;
+  flagMoveInfo?: Flag;
+  flagSelectedInfo?: Flag;
+  hoverX: unknown;
+  hoverY: unknown;
+  startNS!: number;
+  endNS!: number;
+  totalNS!: number;
   slicesTime:
     | {
         startTime: number | null;
@@ -54,19 +56,19 @@ export class RequestMessage {
         color: string | null;
       }
     | undefined;
-  range: any;
-  scale: any;
-  chartColor: any;
-  canvasWidth: any;
-  canvasHeight: any;
-  useCache: any;
-  lineColor: any;
+  range: unknown;
+  scale: unknown;
+  chartColor: unknown;
+  canvasWidth: unknown;
+  canvasHeight: unknown;
+  useCache: unknown;
+  lineColor!: string;
   wakeupBean: WakeupBean | undefined | null;
-  id: any;
+  id: unknown;
   postMessage:
     | {
-        (message: any, targetOrigin: string, transfer?: Transferable[]): void;
-        (message: any, options?: WindowPostMessageOptions): void;
+        (message: unknown, targetOrigin: string, transfer?: Transferable[]): void;
+        (message: unknown, options?: WindowPostMessageOptions): void;
       }
     | undefined;
 }
@@ -152,31 +154,37 @@ class FilterConfig {
   startNS: number = 0;
   endNS: number = 0;
   totalNS: number = 0;
-  frame: any = null;
+  frame: Rect = new Rect(0, 0, 0, 0);
   useCache: boolean = false;
   startKey: string = 'startNS';
   durKey: string = 'dur';
   paddingTop: number = 0;
 }
 
-export function fillCacheData(filterList: Array<any>, condition: FilterConfig): boolean {
+interface CommonStruct {
+  frame: Rect;
+}
+
+export function fillCacheData(filterList: Array<unknown>, condition: FilterConfig): boolean {
   if (condition.useCache && filterList.length > 0) {
     let pns = (condition.endNS - condition.startNS) / condition.frame.width;
     let y = condition.frame.y + condition.paddingTop;
     let height = condition.frame.height - condition.paddingTop * 2;
     for (let i = 0, len = filterList.length; i < len; i++) {
-      let it = filterList[i];
+      let it = filterList[i] as BaseStruct;
       if (
+        //@ts-ignore
         (it[condition.startKey] || 0) + (it[condition.durKey] || 0) > condition.startNS &&
+        //@ts-ignore
         (it[condition.startKey] || 0) < condition.endNS
       ) {
-        if (!filterList[i].frame) {
-          filterList[i].frame = {};
-          filterList[i].frame.y = y;
-          filterList[i].frame.height = height;
+        if (!it.frame) {
+          it.frame = new Rect(0, 0, 0, 0);
+          it.frame.y = y;
+          it.frame.height = height;
         }
         setNodeFrame(
-          filterList[i],
+          it,
           pns,
           condition.startNS,
           condition.endNS,
@@ -185,7 +193,7 @@ export function fillCacheData(filterList: Array<any>, condition: FilterConfig): 
           condition.durKey
         );
       } else {
-        filterList[i].frame = null;
+        it.frame = undefined;
       }
     }
     return true;
@@ -193,27 +201,29 @@ export function fillCacheData(filterList: Array<any>, condition: FilterConfig): 
   return false;
 }
 
-export function fillCacheDataIdx(filterData: Array<any>, slice: number[], condition: FilterConfig): boolean {
+export function fillCacheDataIdx(filterData: Array<unknown>, slice: number[], condition: FilterConfig): boolean {
   if (condition.useCache && filterData.length > 0) {
     let pns = (condition.endNS - condition.startNS) / condition.frame.width;
     let y = condition.frame.y + condition.paddingTop;
     let height = condition.frame.height - condition.paddingTop * 2;
     for (let i = slice[0]; i <= slice[1]; i++) {
-      let it = filterData[i];
+      let it = filterData[i] as BaseStruct;
       if (!it) {
         continue;
       }
       if (
+        //@ts-ignore
         (it[condition.startKey] || 0) + (it[condition.durKey] || 0) > condition.startNS &&
+        //@ts-ignore
         (it[condition.startKey] || 0) < condition.endNS
       ) {
-        if (!filterData[i].frame) {
-          filterData[i].frame = {};
-          filterData[i].frame.y = y;
-          filterData[i].frame.height = height;
+        if (!it.frame) {
+          it.frame = new Rect(0, 0, 0, 0);
+          it.frame.y = y;
+          it.frame.height = height;
         }
         setNodeFrame(
-          filterData[i],
+          it,
           pns,
           condition.startNS,
           condition.endNS,
@@ -222,7 +232,7 @@ export function fillCacheDataIdx(filterData: Array<any>, slice: number[], condit
           condition.durKey
         );
       } else {
-        filterData[i].frame = null;
+        it.frame = undefined;
       }
     }
     return true;
@@ -230,18 +240,20 @@ export function fillCacheDataIdx(filterData: Array<any>, slice: number[], condit
   return false;
 }
 
-export function bsearch(haystack: ArrayLike<any>, needle: any): number {
+export function bsearch(haystack: ArrayLike<unknown>, needle: FilterConfig): number {
   return searchImpl(haystack, needle, 0, haystack.length);
 }
 
-function searchImpl(stack: ArrayLike<any>, cfg: FilterConfig, i: number, j: number): number {
+function searchImpl(stack: ArrayLike<unknown>, cfg: FilterConfig, i: number, j: number): number {
   if (i === j) {
     return -1;
   }
   if (i + 1 === j) {
+    //@ts-ignore
     return cfg.endNS >= stack[i][cfg.startKey] ? i : -1;
   }
   const middle = Math.floor((j - i) / 2) + i;
+  //@ts-ignore
   const middleValue = stack[middle][cfg.startKey];
   if (cfg.endNS < middleValue) {
     return searchImpl(stack, cfg, i, middle);
@@ -250,20 +262,23 @@ function searchImpl(stack: ArrayLike<any>, cfg: FilterConfig, i: number, j: numb
   }
 }
 
-export function findRangeIdx(fullData: Array<any>, condition: FilterConfig): number[] {
+export function findRangeIdx(fullData: Array<unknown>, condition: FilterConfig): number[] {
+  //@ts-ignore
   let a = fullData.findIndex((it) => it[condition.startKey] + it[condition.durKey] >= condition.startNS);
   let b = bsearch(fullData, condition);
   return [a, b + 1];
 }
 
-export function findRange(fullData: Array<any>, condition: FilterConfig): Array<any> {
+export function findRange(fullData: Array<unknown>, condition: FilterConfig): Array<unknown> {
   let left = 0;
   let right = 0;
   for (let i = 0, j = fullData.length - 1, ib = true, jb = true; i < fullData.length, j >= 0; i++, j--) {
+    //@ts-ignore
     if (fullData[j][condition.startKey] <= condition.endNS && jb) {
       right = j;
       jb = false;
     }
+    //@ts-ignore
     if (fullData[i][condition.startKey] + fullData[i][condition.durKey] >= condition.startNS && ib) {
       left = i;
       ib = false;
@@ -275,7 +290,11 @@ export function findRange(fullData: Array<any>, condition: FilterConfig): Array<
   return fullData.slice(left, right + 1);
 }
 
-export const dataFilterHandler = (fullData: Array<any>, filterData: Array<any>, condition: FilterConfig): void => {
+export const dataFilterHandler = (
+  fullData: Array<BaseStruct>,
+  filterData: Array<BaseStruct>,
+  condition: FilterConfig
+): void => {
   if (fillCacheData(filterData, condition)) {
     return;
   }
@@ -286,27 +305,34 @@ export const dataFilterHandler = (fullData: Array<any>, filterData: Array<any>, 
     let height = condition.frame.height - condition.paddingTop * 2;
     let slice = findRange(fullData, condition);
     for (let i = 0; i < slice.length; i++) {
-      if (!slice[i].frame) {
-        slice[i].frame = {};
-        slice[i].frame.y = y;
-        slice[i].frame.height = height;
+      const item = slice[i] as BaseStruct;
+      if (!item.frame) {
+        item.frame = new Rect(0, 0, 0, 0);
+        item.frame.y = y;
+        item.frame.height = height;
       }
-      if (slice[i][condition.durKey] === undefined || slice[i][condition.durKey] === null) {
+      //@ts-ignore
+      if (item[condition.durKey] === undefined || item[condition.durKey] === null) {
         if (i === slice.length - 1) {
-          slice[i][condition.durKey] = (condition.endNS || 0) - (slice[i][condition.startKey] || 0);
+          //@ts-ignore
+          item[condition.durKey] = (condition.endNS || 0) - (item[condition.startKey] || 0);
         } else {
-          slice[i][condition.durKey] = (slice[i + 1][condition.startKey] || 0) - (slice[i][condition.startKey] || 0);
+          //@ts-ignore
+          item[condition.durKey] = (slice[i + 1][condition.startKey] || 0) - (item[condition.startKey] || 0);
         }
       }
       setSliceFrame(slice, condition, pns, i);
     }
+    //@ts-ignore
     filterData.push(...slice.filter((it) => it.v));
   }
 };
 
-function setSliceFrame(slice: Array<any>, condition: FilterConfig, pns: number, i: number): void {
+function setSliceFrame(slice: Array<unknown>, condition: FilterConfig, pns: number, i: number): void {
   let sum = 0;
+  //@ts-ignore
   if (slice[i][condition.durKey] >= pns || slice.length < 100) {
+    //@ts-ignore
     slice[i].v = true;
     setNodeFrame(
       slice[i],
@@ -319,11 +345,15 @@ function setSliceFrame(slice: Array<any>, condition: FilterConfig, pns: number, 
     );
   } else {
     if (i > 0) {
+      //@ts-ignore
       let c = slice[i][condition.startKey] - slice[i - 1][condition.startKey] - slice[i - 1][condition.durKey];
       if (c < pns && sum < pns) {
+        //@ts-ignore
         sum += c + slice[i - 1][condition.durKey];
+        //@ts-ignore
         slice[i].v = false;
       } else {
+        //@ts-ignore
         slice[i].v = true;
         setNodeFrame(
           slice[i],
@@ -341,30 +371,38 @@ function setSliceFrame(slice: Array<any>, condition: FilterConfig, pns: number, 
 }
 
 function setNodeFrame(
-  node: any,
+  nodeItem: unknown,
   pns: number,
   startNS: number,
   endNS: number,
-  frame: any,
+  frame: Rect,
   startKey: string,
   durKey: string
 ): void {
-  if ((node[startKey] || 0) < startNS) {
+  const node = nodeItem as BaseStruct;
+  if (!node.frame) {
+    return;
+  }
+  //@ts-ignore
+  const start = node[startKey] as number;
+  //@ts-ignore
+  const dur = node[durKey] as number;
+  if ((start || 0) < startNS) {
     node.frame.x = 0;
   } else {
-    node.frame.x = Math.floor(((node[startKey] || 0) - startNS) / pns);
+    node.frame.x = Math.floor(((start || 0) - startNS) / pns);
   }
-  if ((node[startKey] || 0) + (node[durKey] || 0) > endNS) {
+  if ((start || 0) + (dur || 0) > endNS) {
     node.frame.width = frame.width - node.frame.x;
   } else {
-    node.frame.width = Math.ceil(((node[startKey] || 0) + (node[durKey] || 0) - startNS) / pns - node.frame.x);
+    node.frame.width = Math.ceil(((start || 0) + (dur || 0) - startNS) / pns - node.frame.x);
   }
   if (node.frame.width < 1) {
     node.frame.width = 1;
   }
 }
 
-export function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: any): number {
+export function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: Rect): number {
   if (endNS === 0) {
     endNS = duration;
   }
@@ -507,15 +545,15 @@ export class PairPoint {
   ns: number = 0;
   y: number = 0;
   offsetY: number = 0;
-  rowEL: TraceRow<any>;
+  rowEL: TraceRow<BaseStruct>;
   isRight: boolean = true;
   lineType?: LineType;
   business: string = '';
   hidden?: boolean = false;
-  backrowEL?: TraceRow<any>;
+  backrowEL?: TraceRow<BaseStruct>;
 
   constructor(
-    rowEL: TraceRow<any>,
+    rowEL: TraceRow<BaseStruct>,
     x: number,
     y: number,
     ns: number,
@@ -539,7 +577,7 @@ export class BaseStruct {
   isHover: boolean = false;
 }
 
-export function drawLines(ctx: CanvasRenderingContext2D, xs: Array<any>, height: number, lineColor: string): void {
+export function drawLines(ctx: CanvasRenderingContext2D, xs: Array<number>, height: number, lineColor: string): void {
   if (ctx) {
     ctx.beginPath();
     ctx.lineWidth = 1;
@@ -554,13 +592,13 @@ export function drawLines(ctx: CanvasRenderingContext2D, xs: Array<any>, height:
 }
 
 export function drawFlagLine(
-  commonCtx: any,
-  hoverFlag: any,
-  selectFlag: any,
+  commonCtx: CanvasRenderingContext2D,
+  hoverFlag: Flag,
+  selectFlag: Flag,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   slicesTime:
     | {
         startTime: number | null | undefined;
@@ -603,7 +641,7 @@ export function drawFlagLineSegment(
   ctx: CanvasRenderingContext2D | null | undefined,
   hoverFlag: Flag | null | undefined,
   selectFlag: Flag | null | undefined,
-  frame: any,
+  frame: Rect,
   tse: TimerShaftElement
 ): void {
   if (ctx) {
@@ -630,9 +668,9 @@ export function drawFlagLineSegment(
         );
         // 划线逻辑
         ctx.moveTo(Math.floor(x1), 0);
-        ctx.lineTo(Math.floor(x1), frame.height); //左边的线
+        ctx.lineTo(Math.floor(x1), frame.height!); //左边的线
         ctx.moveTo(Math.floor(x2), 0);
-        ctx.lineTo(Math.floor(x2), frame.height); // 右边的线
+        ctx.lineTo(Math.floor(x2), frame.height!); // 右边的线
         ctx.stroke();
         ctx.closePath();
       }
@@ -640,7 +678,7 @@ export function drawFlagLineSegment(
   }
 }
 
-function setHoverFlag(hoverFlag: Flag | null | undefined, ctx: CanvasRenderingContext2D, frame: any): void {
+function setHoverFlag(hoverFlag: Flag | null | undefined, ctx: CanvasRenderingContext2D, frame: Rect): void {
   if (hoverFlag) {
     ctx.beginPath();
     ctx.lineWidth = 2;
@@ -652,7 +690,7 @@ function setHoverFlag(hoverFlag: Flag | null | undefined, ctx: CanvasRenderingCo
   }
 }
 
-function setSelectFlag(selectFlag: Flag | null | undefined, ctx: CanvasRenderingContext2D, frame: any): void {
+function setSelectFlag(selectFlag: Flag | null | undefined, ctx: CanvasRenderingContext2D, frame: Rect): void {
   if (selectFlag) {
     ctx.beginPath();
     ctx.lineWidth = 2;
@@ -716,22 +754,32 @@ export function drawLogsLineSegment(
   }
 }
 
-export function drawSelection(ctx: any, params: any): void {
-  if (params.isRangeSelect && params.rangeSelectObject) {
-    params.rangeSelectObject!.startX = Math.floor(
-      ns2x(params.rangeSelectObject!.startNS!, params.startNS, params.endNS, params.totalNS, params.frame)
+interface SelectionParams {
+  isRangeSelect: boolean;
+  rangeSelectObject?: RangeSelectStruct;
+  startNS: number;
+  endNS: number;
+  totalNS: number;
+  frame: Rect;
+}
+
+export function drawSelection(ctx: CanvasRenderingContext2D, params: unknown): void {
+  const param = params as SelectionParams;
+  if (param.isRangeSelect && param.rangeSelectObject) {
+    param.rangeSelectObject!.startX = Math.floor(
+      ns2x(param.rangeSelectObject!.startNS!, param.startNS, param.endNS, param.totalNS, param.frame)
     );
-    params.rangeSelectObject!.endX = Math.floor(
-      ns2x(params.rangeSelectObject!.endNS!, params.startNS, params.endNS, params.totalNS, params.frame)
+    param.rangeSelectObject!.endX = Math.floor(
+      ns2x(param.rangeSelectObject!.endNS!, param.startNS, param.endNS, param.totalNS, param.frame)
     );
     if (ctx) {
       ctx.globalAlpha = 0.5;
       ctx.fillStyle = '#666666';
       ctx.fillRect(
-        params.rangeSelectObject!.startX!,
-        params.frame.y,
-        params.rangeSelectObject!.endX! - params.rangeSelectObject!.startX!,
-        params.frame.height
+        param.rangeSelectObject!.startX!,
+        param.frame.y,
+        param.rangeSelectObject!.endX! - param.rangeSelectObject!.startX!,
+        param.frame.height
       );
       ctx.globalAlpha = 1;
     }
@@ -739,28 +787,29 @@ export function drawSelection(ctx: any, params: any): void {
 }
 
 // draw range select
-export function drawSelectionRange(context: any, params: TraceRow<any>): void {
-  if (params.rangeSelect && TraceRow.rangeSelectObject) {
-    setStartXEndX(params);
+export function drawSelectionRange(context: CanvasRenderingContext2D, params: unknown): void {
+  const param = params as TraceRow<BaseStruct>;
+  if (param.rangeSelect && TraceRow.rangeSelectObject) {
+    setStartXEndX(param);
     if (context) {
       context.globalAlpha = 0.5;
       context.fillStyle = '#666666';
       context.fillRect(
-        TraceRow.rangeSelectObject!.startX!,// @ts-ignore
-        params.frame.y,
-        TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!,// @ts-ignore
-        params.frame.height
+        TraceRow.rangeSelectObject!.startX!,
+        param.frame.y,
+        TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!,
+        param.frame.height
       );
       context.globalAlpha = 1;
     }
     // 绘制线程中方法平均帧率的箭头指示线条
-    if (params.avgRateTxt && params.frameRateList && params.frameRateList.length) {
-      drawAvgFrameRate(params.frameRateList, context, params);
+    if (param.avgRateTxt && param.frameRateList && param.frameRateList.length) {
+      drawAvgFrameRate(param.frameRateList, context, param);
     }
   }
 }
 
-function setStartXEndX(params: TraceRow<any>): void {
+function setStartXEndX(params: TraceRow<BaseStruct>): void {
   TraceRow.rangeSelectObject!.startX = Math.floor(
     ns2x(
       TraceRow.rangeSelectObject!.startNS!,
@@ -781,7 +830,7 @@ function setStartXEndX(params: TraceRow<any>): void {
   );
 }
 
-function setAvgRateStartXEndX(rateList: number[], params: TraceRow<any>): number[] {
+function setAvgRateStartXEndX(rateList: number[], params: TraceRow<BaseStruct>): number[] {
   let avgRateStartX = Math.floor(
     ns2x(
       rateList[0]!,
@@ -803,7 +852,7 @@ function setAvgRateStartXEndX(rateList: number[], params: TraceRow<any>): number
   return [avgRateStartX, avgRateEndX];
 }
 
-function setTextXY(rateList: number[], params: TraceRow<any>, textWidth: any): number[] {
+function setTextXY(rateList: number[], params: TraceRow<BaseStruct>, textWidth: number): number[] {
   let textX =
     Math.floor(
       ns2x(
@@ -814,55 +863,13 @@ function setTextXY(rateList: number[], params: TraceRow<any>, textWidth: any): n
         params.frame
       )
     ) -
-    textWidth / 2;// @ts-ignore
+    textWidth / 2; // @ts-ignore
   let textY = params.frame.y + 25;
   return [textX, textY];
 }
 
-function drawSelectionRangeContext(rateList: number[], context: any, params: TraceRow<any>): void {
-  let cutres: number = rateList[rateList.length - 1]! - rateList[0]!;
-  let avgFrameRate: string = (((rateList.length - 1) / cutres) * 1000000000).toFixed(1) + 'fps';
-  let avgRateStartX = setAvgRateStartXEndX(rateList, params)[0];
-  let avgRateEndX = setAvgRateStartXEndX(rateList, params)[1];
-  const textWidth = context.measureText(avgFrameRate).width;
-  const textHeight = 25;
-  const padding = 5;
-  let textX = setTextXY(rateList, params, textWidth)[0];
-  const textY = setTextXY(rateList, params, textWidth)[1];
-  avgRateStartX = avgRateStartX <= 0 ? -100 : avgRateStartX;
-  avgRateEndX = avgRateEndX <= 0 ? -100 : avgRateEndX;
-  textX = textX <= 0 ? -100 : textX;// @ts-ignore
-  textX = textX + textWidth / 2 >= params.frame.width ? params.frame.width + 100 : textX;// @ts-ignore
-  avgRateStartX = avgRateStartX >= params.frame.width ? params.frame.width + 100 : avgRateStartX;// @ts-ignore
-  avgRateEndX = avgRateEndX >= params.frame.width ? params.frame.width + 100 : avgRateEndX;
-  context.fillStyle = 'red';
-  context.fillRect(textX - padding, textY - textHeight + padding, textWidth + padding * 2, textHeight - padding * 2);
-  context.lineWidth = 2;
-  context.strokeStyle = 'yellow';
-  context.beginPath();
-  context.moveTo(avgRateStartX, textY);
-  context.lineTo(avgRateEndX, textY);
-  context.stroke();
-  const arrowSize = 5.5;
-  const arrowHead = (x: number, y: number, direction: 'left' | 'right'): void => {
-    context.beginPath();
-    const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
-    const headY = y - arrowSize / 2;
-    context.moveTo(x, y);
-    context.lineTo(headX, headY);
-    context.lineTo(headX, y + arrowSize);
-    context.closePath();
-    context.fillStyle = 'yellow';
-    context.fill();
-  };
-  arrowHead(avgRateStartX, textY - 1, 'left');
-  arrowHead(avgRateEndX, textY - 1, 'right');
-  context.fillStyle = 'white';
-  context.fillText(avgFrameRate, textX, textY - 8);
-}
-
 // 转换起始点坐标
-function changeFrameRatePoint(arrList: Array<number>, selectParams: TraceRow<any>): number[] {
+function changeFrameRatePoint(arrList: Array<number>, selectParams: TraceRow<BaseStruct>): number[] {
   let avgRateStartX = Math.floor(
     ns2x(
       arrList[0]!,
@@ -885,7 +892,7 @@ function changeFrameRatePoint(arrList: Array<number>, selectParams: TraceRow<any
 }
 
 // 处理文字坐标
-function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any>, textWidth: number): number[] {
+function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<BaseStruct>, textWidth: number): number[] {
   const TEXT_WIDTH_HALF = 2;
   let textX = Math.floor(
     ns2x(
@@ -896,15 +903,18 @@ function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any
       selectParams.frame
     )
   ); //根据帧率范围的中间值转换文本的起始x坐标
-  textX = textX <= textWidth / TEXT_WIDTH_HALF ? textX : textX - textWidth / TEXT_WIDTH_HALF;// @ts-ignore
+  textX = textX <= textWidth / TEXT_WIDTH_HALF ? textX : textX - textWidth / TEXT_WIDTH_HALF; // @ts-ignore
   let textY = selectParams.frame.y + 11;
-  if (selectParams.avgRateTxt?.includes('HitchTime')) {// @ts-ignore
+  if (selectParams.avgRateTxt?.includes('HitchTime')) {
+    // @ts-ignore
     textY = selectParams.frame.y + 11;
   } else {
     // 展开时显示在第二行，折叠显示第一行
-    if (selectParams.funcExpand) {// @ts-ignore
+    if (selectParams.funcExpand) {
+      // @ts-ignore
       textY = selectParams.frame.y + 29;
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       textY = selectParams.frame.y + 11;
     }
   }
@@ -912,11 +922,15 @@ function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any
 }
 
 // 绘制平均帧率箭头指示线条
-export function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams: TraceRow<any>): void {
+export function drawAvgFrameRate(
+  arrList: Array<number>,
+  ctx: CanvasRenderingContext2D,
+  selectParams: TraceRow<BaseStruct>
+): void {
   let rateList: Array<number> = [...new Set(arrList)];
   let startX = changeFrameRatePoint(rateList, selectParams)[0];
   let endX = changeFrameRatePoint(rateList, selectParams)[1];
-  const textWidth = ctx.measureText(selectParams.avgRateTxt).width;
+  const textWidth = ctx.measureText(selectParams.avgRateTxt!).width;
 
   const textHeight = 25;
   const padding = 5;
@@ -927,9 +941,9 @@ export function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams:
   endX = endX <= 0 ? -100 : endX;
   textX = textX <= 0 ? -200 : textX;
   //右移到边界，不画线和文字
-  const ADD_DISTANCE = 100;// @ts-ignore
-  textX = textX + textWidth / 2 >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : textX;// @ts-ignore
-  startX = startX >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : startX;// @ts-ignore
+  const ADD_DISTANCE = 100; // @ts-ignore
+  textX = textX + textWidth / 2 >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : textX; // @ts-ignore
+  startX = startX >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : startX; // @ts-ignore
   endX = endX >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : endX;
 
   ctx.lineWidth = 2;
@@ -964,11 +978,11 @@ export function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams:
   );
 
   ctx.fillStyle = 'white';
-  ctx.fillText(selectParams.avgRateTxt, textX, textY + 4);
+  ctx.fillText(selectParams.avgRateTxt!, textX, textY + 4);
 }
 
 function drawAvgFrameRateArrow(
-  ctx: any,
+  ctx: CanvasRenderingContext2D,
   textX: number,
   textY: number,
   textWidth: number,
@@ -999,7 +1013,7 @@ function drawAvgFrameRateArrow(
 }
 
 const arrowSize = 5.5;
-const arrowHead = (ctx: any, x: number, y: number, direction: 'left' | 'right'): void => {
+const arrowHead = (ctx: CanvasRenderingContext2D, x: number, y: number, direction: 'left' | 'right'): void => {
   ctx.beginPath();
   const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
   const headY = y - arrowSize / 2;
@@ -1012,7 +1026,7 @@ const arrowHead = (ctx: any, x: number, y: number, direction: 'left' | 'right'):
 };
 
 export function drawWakeUp(
-  wakeUpContext: CanvasRenderingContext2D | any,
+  wakeUpContext: CanvasRenderingContext2D | undefined | null,
   wake: WakeupBean | undefined | null,
   startNS: number,
   endNS: number,
@@ -1022,7 +1036,7 @@ export function drawWakeUp(
   wakeUpCurrentCpu: number | undefined = undefined,
   noVerticalLine = false
 ): void {
-  if (wake) {
+  if (wake && wakeUpContext) {
     let x1 = Math.floor(ns2x(wake.wakeupTime || 0, startNS, endNS, totalNS, frame));
     wakeUpContext.beginPath();
     wakeUpContext.lineWidth = 2;
@@ -1057,14 +1071,15 @@ function drawWakeUpIfSelect(
   endNS: number,
   totalNS: number,
   frame: Rect,
-  wakeUpContext: any,
-  wake: any,
+  wakeUpContext: CanvasRenderingContext2D,
+  wake: unknown,
   x1: number
 ): void {
   let x2 = Math.floor(ns2x(selectCpuStruct.startTime || 0, startNS, endNS, totalNS, frame));
   let y = frame.y + frame.height - 10;
   wakeUpContext.moveTo(x1, y);
   wakeUpContext.lineTo(x2, y);
+  //@ts-ignore
   let s = ns2s((selectCpuStruct.startTime || 0) - (wake.wakeupTime || 0));
   let distance = x2 - x1;
   if (distance > 12) {
@@ -1106,13 +1121,22 @@ export function drawLinkLines(
   setLinkLinesNodes(nodes, isFavorite, favoriteHeight, maxWidth, context, percentage);
 }
 
-function setLinkLinesNodes(nodes: any, isFav: any, favH: number, max: number, context: any, perc: number): void {
+function setLinkLinesNodes(
+  nodes: PairPoint[][],
+  isFav: boolean,
+  favH: number,
+  max: number,
+  context: CanvasRenderingContext2D,
+  perc: number
+): void {
   for (let i = 0; i < nodes.length; i++) {
     let it = nodes[i];
-    it[0].y = it[0].rowEL.translateY + it[0].offsetY;
-    it[1].y = it[1].rowEL.translateY + it[1].offsetY;
+    const traceRow0 = it[0].rowEL as TraceRow<BaseStruct>;
+    const traceRow1 = it[1].rowEL as TraceRow<BaseStruct>;
+    it[0].y = traceRow0.translateY + it[0].offsetY;
+    it[1].y = traceRow1.translateY + it[1].offsetY;
     let newFirstNode = new PairPoint(
-      it[0].rowEL,
+      traceRow0,
       it[0].x,
       it[0].y,
       it[0].ns,
@@ -1121,7 +1145,7 @@ function setLinkLinesNodes(nodes: any, isFav: any, favH: number, max: number, co
       it[0].business
     );
     let newSecondNode = new PairPoint(
-      it[1].rowEL,
+      traceRow1,
       it[1].x,
       it[1].y,
       it[1].ns,
@@ -1133,20 +1157,20 @@ function setLinkLinesNodes(nodes: any, isFav: any, favH: number, max: number, co
       continue;
     }
     if (isFav) {
-      if (it[0].rowEL.collect && it[1].rowEL.collect) {
-      } else if (!it[0].rowEL.collect && !it[1].rowEL.collect) {
+      if (traceRow0.collect && traceRow1.collect) {
+      } else if (!traceRow0.collect && !traceRow1.collect) {
         continue;
       } else {
-        it[0].rowEL.collect
+        traceRow0.collect
           ? (newSecondNode.y = Math.max(it[1].y + favH, favH))
           : (newFirstNode.y = Math.max(it[0].y + favH, favH));
       }
     } else {
-      if (it[0].rowEL.collect && it[1].rowEL.collect) {
+      if (traceRow0.collect && traceRow1.collect) {
         continue;
-      } else if (!it[0].rowEL.collect && !it[1].rowEL.collect) {
+      } else if (!traceRow0.collect && !traceRow1.collect) {
       } else {
-        it[0].rowEL.collect ? (newFirstNode.y = it[0].y - favH) : (newSecondNode.y = it[1].y - favH);
+        traceRow0.collect ? (newFirstNode.y = it[0].y - favH) : (newSecondNode.y = it[1].y - favH);
       }
     }
     drawLinesByType(it[0].lineType, newFirstNode, newSecondNode, max, context, perc);
@@ -1382,16 +1406,6 @@ function drawBrokenLineContext(
   context.closePath();
 }
 
-export function drawLoading(
-  ctx: CanvasRenderingContext2D,
-  startNS: number,
-  endNS: number,
-  totalNS: number,
-  frame: any,
-  left: number,
-  right: number
-): void {}
-
 let loadingText = 'Loading...';
 let loadingTextWidth = 0;
 let loadingBackground = '#f1f1f1';
@@ -1400,28 +1414,29 @@ let loadingFontColor = '#696969';
 
 export function drawLoadingFrame(
   ctx: CanvasRenderingContext2D,
-  list: Array<any>,
-  row: TraceRow<any>,
+  list: Array<unknown>,
+  traceRow: unknown,
   sort: boolean = false
 ): void {
-  ctx.beginPath();// @ts-ignore
-  ctx.clearRect(0, 0, row.frame.width, row.frame.height);// @ts-ignore
-  drawLines(ctx, TraceRow.range?.xs || [], row.frame.height, '#dadada');// @ts-ignore
+  const row = traceRow as TraceRow<BaseStruct>;
+  ctx.beginPath();
+  ctx.clearRect(0, 0, row.frame.width, row.frame.height);
+  drawLines(ctx, TraceRow.range?.xs || [], row.frame.height, '#dadada');
   drawVSync(ctx, row.frame.width, row.frame.height);
   if (row.loadingFrame) {
     if (loadingTextWidth === 0) {
       loadingTextWidth = ctx.measureText(loadingText).width;
-    }// @ts-ignore
-    let firstPx = nsx(row.loadingPin1, row.frame.width);// @ts-ignore
+    }
+    let firstPx = nsx(row.loadingPin1, row.frame.width);
     let lastPx = nsx(row.loadingPin2, row.frame.width);
-    ctx.fillStyle = loadingBackground;// @ts-ignore
-    ctx.fillRect(0, 1, firstPx, row.frame.height - 2);// @ts-ignore
+    ctx.fillStyle = loadingBackground;
+    ctx.fillRect(0, 1, firstPx, row.frame.height - 2);
     ctx.fillRect(lastPx, 1, row.frame.width - lastPx, row.frame.height - 2);
     ctx.fillStyle = loadingFontColor;
-    if (firstPx > loadingTextWidth) {// @ts-ignore
+    if (firstPx > loadingTextWidth) {
       ctx.fillText(loadingText, (firstPx - loadingTextWidth) / 2, row.frame.height / 2);
-    }// @ts-ignore
-    if (row.frame.width - lastPx > loadingTextWidth) {// @ts-ignore
+    }
+    if (row.frame.width - lastPx > loadingTextWidth) {
       ctx.fillText(loadingText, lastPx + (row.frame.width - lastPx) / 2 - loadingTextWidth / 2, row.frame.height / 2);
     }
   }
@@ -1433,16 +1448,20 @@ export function drawString(
   str: string,
   textPadding: number,
   frame: Rect,
-  data: any
+  data: unknown
 ): void {
+  //@ts-ignore
   if (data.textMetricsWidth === undefined) {
-    data.textMetricsWidth = ctx.measureText(str).width;
+    //@ts-ignore
+    data.textMetricsWidth = ctx.measureText(str);
   }
+  //@ts-ignore
+  const textMetricsWidth = (data.textMetricsWidth as TextMetrics).width;
   const yPos = 1.5;
-  let charWidth = Math.round(data.textMetricsWidth / str.length);
+  let charWidth = Math.round(textMetricsWidth / str.length);
   let fillTextWidth = frame.width - textPadding * 2;
-  if (data.textMetricsWidth < fillTextWidth) {
-    let x2 = Math.floor(frame.width / 2 - data.textMetricsWidth / 2 + frame.x + textPadding);
+  if (textMetricsWidth < fillTextWidth) {
+    let x2 = Math.floor(frame.width / 2 - textMetricsWidth / 2 + frame.x + textPadding);
     ctx.fillText(str, x2, Math.floor(frame.y + frame.height / yPos), fillTextWidth);
   } else {
     if (fillTextWidth >= charWidth) {
@@ -1468,7 +1487,7 @@ export function drawFunString(
   str: string,
   textPadding: number,
   frame: Rect,
-  data: any
+  data: FuncStruct
 ): void {
   if (data.textMetricsWidth === undefined) {
     data.textMetricsWidth = ctx.measureText(str).width;
@@ -1477,18 +1496,18 @@ export function drawFunString(
   let fillTextWidth = frame.width - textPadding * 2;
   if (data.textMetricsWidth < fillTextWidth) {
     let x2 = Math.floor(frame.width / 2 - data.textMetricsWidth / 2 + frame.x + textPadding);
-    ctx.fillText(str, x2, Math.floor(data.frame.height * (data.depth! + 0.5) + 3), fillTextWidth);
+    ctx.fillText(str, x2, Math.floor(data.frame!.height * (data.depth! + 0.5) + 3), fillTextWidth);
   } else {
     if (fillTextWidth >= charWidth) {
       let chatNum = fillTextWidth / charWidth;
       let x1 = frame.x + textPadding;
       if (chatNum < 2) {
-        ctx.fillText(str.substring(0, 1), x1, Math.floor(data.frame.height * (data.depth! + 0.5) + 3), fillTextWidth);
+        ctx.fillText(str.substring(0, 1), x1, Math.floor(data.frame!.height * (data.depth! + 0.5) + 3), fillTextWidth);
       } else {
         ctx.fillText(
           str.substring(0, chatNum - 1) + '...',
           x1,
-          Math.floor(data.frame.height * (data.depth! + 0.5) + 3),
+          Math.floor(data.frame!.height * (data.depth! + 0.5) + 3),
           fillTextWidth
         );
       }
@@ -1496,62 +1515,13 @@ export function drawFunString(
   }
 }
 
-export function drawString2Line(
-  ctx: CanvasRenderingContext2D,
-  str1: string,
-  str2: string,
-  textPadding: number,
-  frame: Rect,
-  data: any
-): void {
-  if (frame.height < 30) {
-    return;
-  }
-  if (data.textMetrics1Width === undefined) {
-    data.textMetrics1Width = ctx.measureText(str1).width;
-    data.textMetrics2Width = ctx.measureText(str2).width;
-  }
-  let charWidth = Math.round(data.textMetrics1Width / str1.length);
-  let fillTextWidth = frame.width - textPadding * 2;
-  let y1 = frame.y + 12;
-  let y2 = y1 + 14;
-  if (data.textMetrics1Width < fillTextWidth) {
-    let x = Math.floor(frame.width / 2 - data.textMetrics1Width / 2 + frame.x + textPadding - 1);
-    ctx.fillText(str1, x, y1, fillTextWidth);
-  } else {
-    if (fillTextWidth >= charWidth) {
-      let chatNum = fillTextWidth / charWidth;
-      let x = frame.x + textPadding - 1;
-      if (chatNum < 2) {
-        ctx.fillText(str1.substring(0, 1), x, y1, fillTextWidth);
-      } else {
-        ctx.fillText(str1.substring(0, chatNum - 1) + '...', x, y1, fillTextWidth);
-      }
-    }
-  }
-  if (data.textMetrics2Width < fillTextWidth) {
-    let x = Math.floor(frame.width / 2 - data.textMetrics2Width / 2 + frame.x + textPadding - 1);
-    ctx.fillText(str2, x, y2, fillTextWidth);
-  } else {
-    if (fillTextWidth >= charWidth) {
-      let chatNum = fillTextWidth / charWidth;
-      let x = frame.x + textPadding - 1;
-      if (chatNum < 2) {
-        ctx.fillText(str2.substring(0, 1), x, y2, fillTextWidth);
-      } else {
-        ctx.fillText(str2.substring(0, chatNum - 1) + '...', x, y2, fillTextWidth);
-      }
-    }
-  }
-}
-
 export function hiPerf(
-  arr: Array<any>,
-  arr2: Array<any>,
-  res: Array<any>,
+  arr: Array<HiPerfStruct>,
+  arr2: Array<HiPerfStruct>,
+  res: Array<HiPerfStruct>,
   startNS: number,
   endNS: number,
-  frame: any,
+  frame: Rect,
   groupBy10MS: boolean,
   use: boolean
 ): void {
@@ -1565,31 +1535,31 @@ export function hiPerf(
   }
 }
 
-function setFrameByRes(res: Array<any>, startNS: number, endNS: number, frame: any): void {
+function setFrameByRes(res: Array<HiPerfStruct>, startNS: number, endNS: number, frame: Rect): void {
   let pns = (endNS - startNS) / frame.width;
   let y = frame.y;
   for (let i = 0; i < res.length; i++) {
     let item = res[i];
     if ((item.startNS || 0) + (item.dur || 0) > startNS && (item.startNS || 0) < endNS) {
       if (!item.frame) {
-        item.frame = {};
+        item.frame = new Rect(0, 0, 0, 0);
         item.frame.y = y;
       }
-      item.frame.height = item.height;
+      item.frame.height = item.height!;
       HiPerfStruct.setFrame(item, pns, startNS, endNS, frame);
     } else {
-      item.frame = null;
+      item.frame = undefined;
     }
   }
 }
 
 function setFrameByArr(
-  arr: Array<any>,
-  arr2: Array<any>,
-  res: Array<any>,
+  arr: Array<HiPerfStruct>,
+  arr2: Array<HiPerfStruct>,
+  res: Array<HiPerfStruct>,
   startNS: number,
   endNS: number,
-  frame: any,
+  frame: Rect,
   groupBy10MS: boolean
 ): void {
   let list = groupBy10MS ? arr2 : arr;
@@ -1599,34 +1569,38 @@ function setFrameByArr(
     let it = list[i];
     if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
       if (!list[i].frame) {
-        list[i].frame = {};
-        list[i].frame.y = y;
+        list[i].frame = new Rect(0, 0, 0, 0);
+        list[i].frame!.y = y;
       }
-      list[i].frame.height = it.height;
+      list[i].frame!.height = it.height!;
       HiPerfStruct.setFrame(list[i], pns, startNS, endNS, frame);
       setResultArr(groupBy10MS, list, i, res);
     }
   }
 }
 
-function setResultArr(groupBy10MS: boolean, list: Array<any>, i: number, res: Array<any>): void {
-  if (groupBy10MS) {
-    let flag: boolean =
-      i > 0 &&
-      (list[i - 1].frame.x || 0) === (list[i].frame.x || 0) &&
-      (list[i - 1].frame.width || 0) === (list[i].frame.width || 0) &&
-      (list[i - 1].frame.height || 0) === (list[i].frame.height || 0);
-    if (!flag) {
-      res.push(list[i]);
-    }
-  } else {
-    if (!(i > 0 && Math.abs((list[i - 1].frame.x || 0) - (list[i].frame.x || 0)) < 4)) {
-      res.push(list[i]);
+function setResultArr(groupBy10MS: boolean, list: Array<HiPerfStruct>, i: number, res: Array<HiPerfStruct>): void {
+  const itemI = list[i];
+  const itemBeforeI = list[i - 1];
+  if (itemI.frame && itemBeforeI.frame) {
+    if (groupBy10MS) {
+      let flag: boolean =
+        i > 0 &&
+        (itemBeforeI.frame.x || 0) === (itemI.frame.x || 0) &&
+        (itemBeforeI.frame.width || 0) === (itemI.frame.width || 0) &&
+        (itemBeforeI.frame.height || 0) === (itemI.frame.height || 0);
+      if (!flag) {
+        res.push(itemI);
+      }
+    } else {
+      if (!(i > 0 && Math.abs((itemBeforeI.frame.x || 0) - (itemI.frame.x || 0)) < 4)) {
+        res.push(itemI);
+      }
     }
   }
 }
 
-export function hiPerf2(filter: Array<any>, startNS: number, endNS: number, frame: any): void {
+export function hiPerf2(filter: Array<HiPerfStruct>, startNS: number, endNS: number, frame: Rect): void {
   if (filter.length > 0) {
     let pns = (endNS - startNS) / frame.width;
     let y = frame.y;
@@ -1634,13 +1608,13 @@ export function hiPerf2(filter: Array<any>, startNS: number, endNS: number, fram
       let it = filter[i];
       if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
         if (!it.frame) {
-          it.frame = {};
+          it.frame = new Rect(0, 0, 0, 0);
           it.frame.y = y;
         }
-        it.frame.height = it.height;
+        it.frame.height = it.height!;
         HiPerfStruct.setFrame(it, pns, startNS, endNS, frame);
       } else {
-        it.frame = null;
+        it.frame = undefined;
       }
     }
     return;
@@ -1691,7 +1665,7 @@ export class HiPerfStruct extends BaseStruct {
     ctx: CanvasRenderingContext2D,
     normalPath: Path2D,
     specPath: Path2D,
-    data: any,
+    data: HiPerfStruct,
     groupBy10MS: boolean,
     textMetrics?: TextMetrics
   ): void {
@@ -1721,7 +1695,10 @@ export class HiPerfStruct extends BaseStruct {
     ctx.globalAlpha = 1;
   }
 
-  static setFrame(node: any, pns: number, startNS: number, endNS: number, frame: any): void {
+  static setFrame(node: HiPerfStruct, pns: number, startNS: number, endNS: number, frame: Rect): void {
+    if (!node.frame) {
+      return;
+    }
     if ((node.startNS || 0) < startNS) {
       node.frame.x = 0;
     } else {
@@ -1738,12 +1715,12 @@ export class HiPerfStruct extends BaseStruct {
   }
 
   static groupBy10MS(
-    groupArray: Array<any>,
+    groupArray: Array<HiPerfStruct>,
     intervalPerf: number,
     maxCpu?: number | undefined,
     usage?: boolean,
     event?: number
-  ): Array<any> {
+  ): Array<HiPerfStruct> {
     let maxEventCount = 0;
     let obj = filterGroupArray(groupArray, maxEventCount, usage, event);
     let arr = [];
@@ -1752,49 +1729,72 @@ export class HiPerfStruct extends BaseStruct {
       let height: number = 0;
       if (usage) {
         if (maxCpu !== undefined) {
+          //@ts-ignore
           height = Math.floor((obj[aKey].sampleCount / (10 / intervalPerf) / maxCpu) * 40);
         } else {
+          //@ts-ignore
           height = Math.floor((obj[aKey].sampleCount / (10 / intervalPerf)) * 40);
         }
       } else {
+        //@ts-ignore
         height = Math.floor((obj[aKey].eventCount / maxEventCount) * 40);
       }
       arr.push({
         startNS: ns,
         dur: 10_000_000,
+        //@ts-ignore
         eventCount: obj[aKey].eventCount,
+        //@ts-ignore
         sampleCount: obj[aKey].sampleCount,
         height: height,
       });
     }
-    return arr;
+    return arr as HiPerfStruct[];
   }
 }
 
-function filterGroupArray(groupArray: Array<any>, maxEventCount: number, usage?: boolean, event?: number): any {
-  return groupArray
-    .map((it) => {
-      it.timestamp_group = Math.trunc(it.startNS / 10_000_000) * 10_000_000;
-      return it;
-    })
-    .reduce((pre: any, current) => {
-      if (usage || current.event_type_id === event || event === -1) {
-        if (pre[current['timestamp_group']]) {
-          pre[current['timestamp_group']].sampleCount += 1;
-          pre[current['timestamp_group']].eventCount += current.event_count;
-        } else {
-          pre[current['timestamp_group']] = {
-            sampleCount: 1,
-            eventCount: current.event_count,
-          };
-        }
-        maxEventCount = Math.max(pre[current['timestamp_group']].eventCount, maxEventCount);
+function filterGroupArray(
+  groupArray: Array<HiPerfStruct>,
+  maxEventCount: number,
+  usage?: boolean,
+  event?: number
+): HiPerfStruct {
+  const map = groupArray.map((it) => {
+    //@ts-ignore
+    it.timestamp_group = Math.trunc(it.startNS / 10_000_000) * 10_000_000;
+    return it;
+  });
+  const reduce = map.reduce((pre: HiPerfStruct, current: HiPerfStruct) => {
+    if (usage || current.event_type_id === event || event === -1) {
+      //@ts-ignore
+      if (pre[current.timestamp_group]) {
+        //@ts-ignore
+        pre[current.timestamp_group].sampleCount += 1;
+        //@ts-ignore
+        pre[current.timestamp_group].eventCount += current.event_count;
+      } else {
+        //@ts-ignore
+        pre[current.timestamp_group] = {
+          sampleCount: 1,
+          eventCount: current.event_count,
+        };
       }
-      return pre;
-    }, {});
+      //@ts-ignore
+      maxEventCount = Math.max(pre[current.timestamp_group].eventCount, maxEventCount);
+    }
+    return pre;
+  }, new HiPerfStruct());
+  return reduce;
 }
 
-function setMemFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any): void {
+function setMemFrame(
+  node: ProcessMemStruct,
+  padding: number,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: Rect
+): void {
   let x1: number;
   let x2: number;
   if ((node.startTime || 0) <= startNS) {
@@ -1809,7 +1809,7 @@ function setMemFrame(node: any, padding: number, startNS: number, endNS: number,
   }
   let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
   if (!node.frame) {
-    node.frame = {};
+    node.frame = new Rect(0, 0, 0, 0);
   }
   node.frame.x = Math.floor(x1);
   node.frame.y = Math.floor(frame.y + padding);
@@ -1818,38 +1818,43 @@ function setMemFrame(node: any, padding: number, startNS: number, endNS: number,
 }
 
 export function mem(
-  list: Array<any>,
-  memFilter: Array<any>,
+  list: Array<unknown>,
+  memFilter: Array<unknown>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
 ): void {
   if (use && memFilter.length > 0) {
     for (let i = 0, len = memFilter.length; i < len; i++) {
       if (
+        //@ts-ignore
         (memFilter[i].startTime || 0) + (memFilter[i].duration || 0) > startNS &&
+        //@ts-ignore
         (memFilter[i].startTime || 0) < endNS
       ) {
+        //@ts-ignore
         setMemFrame(memFilter[i], 5, startNS, endNS, totalNS, frame);
       } else {
-        memFilter[i].frame = null;
+        //@ts-ignore
+        memFilter[i].frame = undefined;
       }
     }
     return;
   }
   memFilter.length = 0;
+  //@ts-ignore
   setMemFilter(list, memFilter, startNS, endNS, totalNS, frame);
 }
 
 function setMemFilter(
-  list: Array<any>,
-  memFilter: Array<any>,
+  list: Array<ProcessMemStruct>,
+  memFilter: Array<ProcessMemStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any
+  frame: Rect
 ): void {
   if (list) {
     for (let i = 0, len = list.length; i < len; i++) {
@@ -1870,7 +1875,7 @@ function setMemFilter(
 }
 
 export function drawWakeUpList(
-  wakeUpListContext: CanvasRenderingContext2D | any,
+  wakeUpListContext: CanvasRenderingContext2D | undefined | null,
   wake: WakeupBean | undefined | null,
   startNS: number,
   endNS: number,
@@ -1880,6 +1885,9 @@ export function drawWakeUpList(
   currentCpu: number | undefined | null = undefined,
   noVerticalLine = false
 ): void {
+  if (!wakeUpListContext) {
+    return;
+  }
   if (wake) {
     let x1 = Math.floor(ns2x(wake.wakeupTime || 0, startNS, endNS, totalNS, frame));
     wakeUpListContext.beginPath();
@@ -1910,13 +1918,13 @@ export function drawWakeUpList(
 }
 
 function drawWakeUpListIfWakeUp(
-  wakeUpListContext: CanvasRenderingContext2D | any,
-  wake: any,
+  wakeUpListContext: CanvasRenderingContext2D,
+  wake: WakeupBean,
   startNS: number,
   endNS: number,
   totalNS: number,
   frame: Rect,
-  wakeup: any,
+  wakeup: WakeupBean,
   x1: number
 ): void {
   let x2 = Math.floor(ns2x(wakeup.ts || 0, startNS, endNS, totalNS, frame));
@@ -1949,10 +1957,18 @@ function drawWakeUpListIfWakeUp(
     }
   }
 }
+interface SearchNode {
+  symbolName?: string;
+  children: SearchNode[];
+  searchShow?: boolean;
+  isSearch?: boolean;
+  parent?: SearchNode;
+}
 
-export function findSearchNode(data: any[], search: string, parentSearch: boolean): void {
+export function findSearchNode(data: unknown[], search: string, parentSearch: boolean): void {
   search = search.toLocaleLowerCase();
-  data.forEach((node) => {
+  data.forEach((nodeIt) => {
+    const node = nodeIt as SearchNode;
     if ((node.symbolName && node.symbolName.toLocaleLowerCase().includes(search) && search !== '') || parentSearch) {
       node.searchShow = true;
       node.isSearch = node.symbolName !== undefined && node.symbolName.toLocaleLowerCase().includes(search);

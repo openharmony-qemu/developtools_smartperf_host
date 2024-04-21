@@ -31,9 +31,9 @@ namespace TraceStreamer {
 using namespace SysTuning::TraceCfg;
 class StatFilter : private FilterBase {
 public:
-    StatFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    StatFilter(const StatFilter&) = delete;
-    StatFilter& operator=(const StatFilter&) = delete;
+    StatFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
+    StatFilter(const StatFilter &) = delete;
+    StatFilter &operator=(const StatFilter &) = delete;
     ~StatFilter() override;
     void IncreaseStat(SupportedTraceEventType eventType, StatType type);
 };

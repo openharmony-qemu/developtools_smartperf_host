@@ -48,12 +48,12 @@ class TraceDataCache;
  */
 class ClockFilterEx : public FilterBase, public ClockFilter {
 public:
-    ClockFilterEx(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
+    ClockFilterEx(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
     ~ClockFilterEx() override;
-    void AddClockSnapshot(const std::vector<SnapShot>& snapShot);
+    void AddClockSnapshot(const std::vector<SnapShot> &snapShot);
 
 private:
-    TraceDataCache* dataCache_;
+    TraceDataCache *dataCache_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

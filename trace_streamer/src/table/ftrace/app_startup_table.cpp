@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, CALL_ID, IPID, TID, START_TIME, END_TIME, START_NAME, PACKED_NAME };
-AppStartupTable::AppStartupTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+AppStartupTable::AppStartupTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("call_id", "INTEGER"));
@@ -38,7 +38,7 @@ std::unique_ptr<TableBase::Cursor> AppStartupTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-AppStartupTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+AppStartupTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstAppStartupData().Size())),
       appStartupObj_(dataCache->GetConstAppStartupData())
 {

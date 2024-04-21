@@ -23,20 +23,20 @@ namespace SysTuning {
 namespace TraceStreamer {
 class DeviceStateTable : public TableBase {
 public:
-    explicit DeviceStateTable(const TraceDataCache*);
+    explicit DeviceStateTable(const TraceDataCache *);
     ~DeviceStateTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t column) const override;
 
     private:
         void HandleTypeColumns(int32_t column) const;
-        const HiSysEventDeviceStateData& deviceStateData_;
+        const HiSysEventDeviceStateData &deviceStateData_;
     };
 };
 } // namespace TraceStreamer

@@ -22,59 +22,59 @@ namespace SysTuning {
 namespace TraceStreamer {
 RpcServer g_wasmTraceStreamer;
 extern "C" {
-using ReplyFunction = void (*)(const char* data, uint32_t len, int32_t finish);
-using TLVReplyFunction = void (*)(const char* data, uint32_t len, uint32_t type, int32_t finish);
+using ReplyFunction = void (*)(const char *data, uint32_t len, int32_t finish);
+using TLVReplyFunction = void (*)(const char *data, uint32_t len, uint32_t type, int32_t finish);
 ReplyFunction g_reply;
 ReplyFunction g_ffrtConvertedReply;
 TLVReplyFunction g_replyTLV;
-uint8_t* g_reqBuf;
+uint8_t *g_reqBuf;
 uint32_t g_reqBufferSize;
 
-using SplitFileFunction = void (*)(const char* data, uint32_t len, int32_t dataType, int32_t isFinish);
+using SplitFileFunction = void (*)(const char *data, uint32_t len, int32_t dataType, int32_t isFinish);
 SplitFileFunction g_splitFile;
-uint8_t* g_splitFileBuf;
+uint8_t *g_splitFileBuf;
 uint32_t g_splitFileBufferSize;
 
-uint8_t* g_parserConfigBuf;
+uint8_t *g_parserConfigBuf;
 uint32_t g_parserConfigSize;
 
-using SendDataCallBack = void (*)(const char* data, int32_t len, int32_t componentId);
+using SendDataCallBack = void (*)(const char *data, int32_t len, int32_t componentId);
 SendDataCallBack g_sendData = nullptr;
-uint8_t* g_sendDataBuf;
+uint8_t *g_sendDataBuf;
 uint32_t g_sendDataBufSize;
 
-using ExportDBCallback = void (*)(const char* data, uint32_t len, int32_t finish);
+using ExportDBCallback = void (*)(const char *data, uint32_t len, int32_t finish);
 ExportDBCallback g_dbCallback;
 
-using ParseELFFunction = void (*)(const char* data, uint32_t len, int32_t finish);
+using ParseELFFunction = void (*)(const char *data, uint32_t len, int32_t finish);
 ParseELFFunction g_parseELFCallback;
-uint8_t* g_fileNameBuf;
+uint8_t *g_fileNameBuf;
 uint32_t g_fileNameSize;
 bool g_isSystrace = false;
 bool g_hasDeterminedSystrace = false;
 
-void ResultCallback(const std::string& jsonResult, int32_t finish)
+void ResultCallback(const std::string &jsonResult, int32_t finish)
 {
     g_reply(jsonResult.data(), jsonResult.size(), finish);
 }
-void TLVResultCallback(const char* data, uint32_t len, uint32_t type, int32_t finish)
+void TLVResultCallback(const char *data, uint32_t len, uint32_t type, int32_t finish)
 {
     g_replyTLV(data, len, type, finish);
 }
-void FfrtConvertedResultCallback(const std::string& content, int32_t finish)
+void FfrtConvertedResultCallback(const std::string &content, int32_t finish)
 {
     g_ffrtConvertedReply(content.data(), content.size(), finish);
 }
-void SplitFileCallback(const std::string& jsonResult, int32_t dataType, int32_t finish)
+void SplitFileCallback(const std::string &jsonResult, int32_t dataType, int32_t finish)
 {
     g_splitFile(jsonResult.data(), jsonResult.size(), dataType, finish);
 }
 
-void ParseELFCallback(const std::string& SODataResult, int32_t finish)
+void ParseELFCallback(const std::string &soDataResult, int32_t finish)
 {
-    g_parseELFCallback(SODataResult.data(), SODataResult.size(), finish);
+    g_parseELFCallback(soDataResult.data(), soDataResult.size(), finish);
 }
-EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(uint32_t reqBufferSize,
+EMSCRIPTEN_KEEPALIVE uint8_t *Initialize(uint32_t reqBufferSize,
                                          ReplyFunction replyFunction,
                                          TLVReplyFunction replyTLVFunction,
                                          ReplyFunction ffrtConvertedReply)
@@ -87,7 +87,7 @@ EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(uint32_t reqBufferSize,
     return g_reqBuf;
 }
 
-EMSCRIPTEN_KEEPALIVE uint8_t* InitializeSplitFile(SplitFileFunction splitFileFunction, uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t *InitializeSplitFile(SplitFileFunction splitFileFunction, uint32_t reqBufferSize)
 {
     g_splitFile = splitFileFunction;
     g_splitFileBuf = new uint8_t[reqBufferSize];
@@ -97,7 +97,7 @@ EMSCRIPTEN_KEEPALIVE uint8_t* InitializeSplitFile(SplitFileFunction splitFileFun
 
 EMSCRIPTEN_KEEPALIVE int TraceStreamerSplitFileEx(int dataLen)
 {
-    std::string timeSnaps(reinterpret_cast<const char*>(g_splitFileBuf), dataLen);
+    std::string timeSnaps(reinterpret_cast<const char *>(g_splitFileBuf), dataLen);
     if (g_wasmTraceStreamer.SplitFile(timeSnaps)) {
         return 0;
     }
@@ -112,7 +112,7 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerReciveFileEx(int32_t dataLen, int32_t isFi
     return -1;
 }
 
-EMSCRIPTEN_KEEPALIVE uint8_t* InitializeParseConfig(uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t *InitializeParseConfig(uint32_t reqBufferSize)
 {
     g_parserConfigBuf = new uint8_t[reqBufferSize];
     g_parserConfigSize = reqBufferSize;
@@ -121,7 +121,7 @@ EMSCRIPTEN_KEEPALIVE uint8_t* InitializeParseConfig(uint32_t reqBufferSize)
 
 EMSCRIPTEN_KEEPALIVE int TraceStreamerParserConfigEx(int dataLen)
 {
-    std::string parserConfig(reinterpret_cast<const char*>(g_parserConfigBuf), dataLen);
+    std::string parserConfig(reinterpret_cast<const char *>(g_parserConfigBuf), dataLen);
     if (g_wasmTraceStreamer.ParserConfig(parserConfig)) {
         return 0;
     }
@@ -129,7 +129,7 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerParserConfigEx(int dataLen)
 }
 EMSCRIPTEN_KEEPALIVE int TraceStreamerGetLongTraceTimeSnapEx(int dataLen)
 {
-    std::string dataString(reinterpret_cast<const char*>(g_splitFileBuf), dataLen);
+    std::string dataString(reinterpret_cast<const char *>(g_splitFileBuf), dataLen);
     if (g_wasmTraceStreamer.GetLongTraceTimeSnap(dataString)) {
         return 0;
     }
@@ -144,7 +144,7 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerLongTraceSplitFileEx(int dataLen, int32_t 
     return -1;
 }
 
-EMSCRIPTEN_KEEPALIVE uint8_t* InitFileName(ParseELFFunction parseELFCallback, uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t *InitFileName(ParseELFFunction parseELFCallback, uint32_t reqBufferSize)
 {
     g_parseELFCallback = parseELFCallback;
     if (reqBufferSize > NAME_MAX) {
@@ -163,15 +163,15 @@ EMSCRIPTEN_KEEPALIVE int32_t UpdateTraceTime(int32_t len)
     return g_wasmTraceStreamer.UpdateTraceTime(g_reqBuf, len);
 }
 
-void ThirdParySendDataCallback(const char* pluginData, int32_t len, int32_t componentId)
+void ThirdParySendDataCallback(const char *pluginData, int32_t len, int32_t componentId)
 {
     if (g_sendData) {
         g_sendData(pluginData, len, componentId);
     }
 }
 
-EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamerSetThirdPartyDataDealer(SendDataCallBack sendDataCallBack,
-                                                                      uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t *TraceStreamerSetThirdPartyDataDealer(SendDataCallBack sendDataCallBack,
+                                                                   uint32_t reqBufferSize)
 {
     g_sendData = sendDataCallBack;
     g_sendDataBuf = new uint8_t[reqBufferSize];
@@ -186,7 +186,7 @@ EMSCRIPTEN_KEEPALIVE void TraceStreamerSetLogLevel(uint32_t level)
     }
 }
 
-int32_t TraceStreamerPluginOutFilter(const char* pluginData, int32_t len, const std::string& componentName)
+int32_t TraceStreamerPluginOutFilter(const char *pluginData, int32_t len, const std::string &componentName)
 {
     std::map<int32_t, std::string>::iterator itor = g_wasmTraceStreamer.g_thirdPartyConfig.begin();
     int32_t componentId;
@@ -200,7 +200,7 @@ int32_t TraceStreamerPluginOutFilter(const char* pluginData, int32_t len, const 
 }
 
 // Tell js to call the corresponding third-party parser interface according to the compositeId
-int32_t TraceStreamerPluginOutSendData(const char* pluginData, int32_t len, int32_t componentId)
+int32_t TraceStreamerPluginOutSendData(const char *pluginData, int32_t len, int32_t componentId)
 {
     ThirdParySendDataCallback(pluginData, len, componentId);
     return 0;
@@ -212,7 +212,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerInitThirdPartyConfig(int32_t dataLen)
 }
 
 // return 0 while ok, -1 while failed
-EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseData(const uint8_t* data, int32_t dataLen)
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseData(const uint8_t *data, int32_t dataLen)
 {
     if (g_wasmTraceStreamer.ParseData(data, dataLen, nullptr, false)) {
         return 0;
@@ -240,7 +240,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerDownloadELFEx(int32_t totalLen,
                                                         int32_t dataLen,
                                                         int32_t finish)
 {
-    std::string fileName(reinterpret_cast<const char*>(g_fileNameBuf), fileNameLen);
+    std::string fileName(reinterpret_cast<const char *>(g_fileNameBuf), fileNameLen);
 #if IS_WASM
     if (g_wasmTraceStreamer.DownloadELFCallback(fileName, totalLen, g_reqBuf, dataLen, finish, &ParseELFCallback)) {
         return 0;
@@ -255,7 +255,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataOver()
     }
     return -1;
 }
-EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlOperate(const uint8_t* sql, int32_t sqlLen)
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlOperate(const uint8_t *sql, int32_t sqlLen)
 {
     if (g_wasmTraceStreamer.SqlOperate(sql, sqlLen, nullptr)) {
         return 0;
@@ -275,7 +275,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerReset()
     return 0;
 }
 // return the length of result, -1 while failed
-EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQuery(const uint8_t* sql, int32_t sqlLen, uint8_t* out, int32_t outLen)
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQuery(const uint8_t *sql, int32_t sqlLen, uint8_t *out, int32_t outLen)
 {
     return g_wasmTraceStreamer.WasmSqlQuery(sql, sqlLen, out, outLen);
 }
@@ -301,7 +301,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerCancel()
     return 0;
 }
 
-void ExportDatabaseCallback(const std::string& jsonResult, int32_t finish)
+void ExportDatabaseCallback(const std::string &jsonResult, int32_t finish)
 {
     g_dbCallback(jsonResult.data(), jsonResult.size(), finish);
 }

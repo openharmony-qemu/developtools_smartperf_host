@@ -117,7 +117,7 @@ export class UsbTransmissionChannel implements TransmissionInterface {
     filter: USBDeviceFilter
   ): matchingUsbDevice | null {
     for (const config of device.configurations) {
-      for (const intf of config.interfaces){
+      for (const intf of config.interfaces) {
         for (const al of intf.alternates) {
           if (
             filter.classCode === al.interfaceClass &&

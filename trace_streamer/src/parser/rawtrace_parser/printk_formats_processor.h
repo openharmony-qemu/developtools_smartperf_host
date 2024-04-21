@@ -22,9 +22,9 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PrintkFormatsProcessor {
 public:
-    static PrintkFormatsProcessor& GetInstance();
+    static PrintkFormatsProcessor &GetInstance();
     std::string GetSymbol(uint64_t addr);
-    bool HandlePrintkSyms(const std::string& printkFormats);
+    bool HandlePrintkSyms(const std::string &printkFormats);
     void Clear();
 
 private:

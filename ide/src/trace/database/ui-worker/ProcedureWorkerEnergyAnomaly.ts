@@ -14,7 +14,14 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import { BaseStruct, drawLoadingFrame, isFrameContainPoint, PerfRender, RequestMessage } from './ProcedureWorkerCommon';
+import {
+  BaseStruct,
+  drawLoadingFrame,
+  isFrameContainPoint,
+  PerfRender,
+  Rect,
+  RequestMessage,
+} from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class EnergyAnomalyRender extends PerfRender {
@@ -67,10 +74,24 @@ export class EnergyAnomalyRender extends PerfRender {
     req.context.closePath();
   }
 
-  render(energyAnomalyRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void {}
+  render(
+    energyAnomalyRequest: RequestMessage,
+    list: Array<EnergyAnomalyStruct>,
+    filter: Array<EnergyAnomalyStruct>,
+    dataList2: Array<EnergyAnomalyStruct>
+  ): void {}
 }
 
-export function drawLegend(req: any, isDark?: boolean): void {
+export function drawLegend(
+  req: {
+    useCache: boolean;
+    context: CanvasRenderingContext2D;
+    type: string;
+    appName: string;
+    canvasWidth: number;
+  },
+  isDark?: boolean
+): void {
   req.context.font = '12px Arial';
   let text = req.context.measureText('System Abnormality');
   req.context.fillStyle = '#E64566';
@@ -103,13 +124,13 @@ export function drawLegend(req: any, isDark?: boolean): void {
 }
 
 export function anomaly(
-  arr: Array<any>,
-  res: Array<any>,
+  arr: Array<EnergyAnomalyStruct>,
+  res: Array<EnergyAnomalyStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
-  appName: string | undefined,
+  frame: Rect,
+  appName: string,
   use: boolean
 ): void {
   arr.length = 0;
@@ -120,13 +141,13 @@ export function anomaly(
       let it = res[i];
       if ((it.startNS || 0) > startNS && (it.startNS || 0) < endNS) {
         if (!it.frame) {
-          it.frame = {};
+          it.frame = new Rect(0, 0, 0, 0);
           it.frame.y = y;
         }
         it.frame.height = 20 + radius * 2;
-        if (it.startNS + 50000 > (startNS || 0) && (it.startNS || 0) < (endNS || 0)) {
+        if (it.startNS! + 50000 > (startNS || 0) && (it.startNS || 0) < (endNS || 0)) {
           EnergyAnomalyStruct.setAnomalyFrame(it, pns, startNS || 0, endNS || 0, frame);
-          if (it.appKey === 'APPNAME' && it.eventValue.split(',').indexOf(appName) >= 0) {
+          if (it.appKey === 'APPNAME' && it.eventValue!.split(',').indexOf(appName!) >= 0) {
             arr.push(it);
           }
           if (it.appKey !== 'APPNAME') {
@@ -134,7 +155,7 @@ export function anomaly(
           }
         }
       } else {
-        it.frame = null;
+        it.frame = undefined;
       }
     }
     return;
@@ -193,7 +214,10 @@ export class EnergyAnomalyStruct extends BaseStruct {
     ctx.fillText('E', x + 7, y + 23);
   }
 
-  static setAnomalyFrame(node: any, pns: number, startNS: number, endNS: number, frame: any): void {
+  static setAnomalyFrame(node: EnergyAnomalyStruct, pns: number, startNS: number, endNS: number, frame: Rect): void {
+    if (!node.frame) {
+      node.frame = new Rect(0, 0, 0, 0);
+    }
     if ((node.startNS || 0) < startNS) {
       node.frame.x = 0;
     } else {

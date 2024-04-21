@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PerfSampleTable : public TableBase {
 public:
-    explicit PerfSampleTable(const TraceDataCache* dataCache);
+    explicit PerfSampleTable(const TraceDataCache *dataCache);
     ~PerfSampleTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,21 +32,21 @@ private:
     {
         return dataCache_->GetConstPerfSampleData().Size();
     }
-    void GetOrbyes(FilterConstraints& samplefc, EstimatedIndexInfo& sampleei) override;
-    void FilterByConstraint(FilterConstraints& samplefc,
-                            double& samplefilterCost,
+    void GetOrbyes(FilterConstraints &samplefc, EstimatedIndexInfo &sampleei) override;
+    void FilterByConstraint(FilterConstraints &samplefc,
+                            double &samplefilterCost,
                             size_t samplerowCount,
                             uint32_t samplecurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const PerfSample& perfSampleObj_;
+        const PerfSample &perfSampleObj_;
     };
 };
 } // namespace TraceStreamer

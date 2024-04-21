@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class NativeHookFrameTable : public TableBase {
 public:
-    explicit NativeHookFrameTable(const TraceDataCache* dataCache);
+    explicit NativeHookFrameTable(const TraceDataCache *dataCache);
     ~NativeHookFrameTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,21 +32,21 @@ private:
     {
         return dataCache_->GetConstNativeHookFrameData().Size();
     }
-    void GetOrbyes(FilterConstraints& framefc, EstimatedIndexInfo& frameei) override;
-    void FilterByConstraint(FilterConstraints& framefc,
-                            double& framefilterCost,
+    void GetOrbyes(FilterConstraints &framefc, EstimatedIndexInfo &frameei) override;
+    void FilterByConstraint(FilterConstraints &framefc,
+                            double &framefilterCost,
                             size_t framerowCount,
                             uint32_t framecurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const NativeHookFrame& nativeHookFrameInfoObj_;
+        const NativeHookFrame &nativeHookFrameInfoObj_;
     };
 };
 } // namespace TraceStreamer

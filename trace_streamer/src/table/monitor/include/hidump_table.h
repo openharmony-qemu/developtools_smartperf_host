@@ -23,19 +23,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class HidumpTable : public TableBase {
 public:
-    explicit HidumpTable(const TraceDataCache* dataCache);
+    explicit HidumpTable(const TraceDataCache *dataCache);
     ~HidumpTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const Hidump& hidumpObj_;
+        const Hidump &hidumpObj_;
     };
 };
 } // namespace TraceStreamer

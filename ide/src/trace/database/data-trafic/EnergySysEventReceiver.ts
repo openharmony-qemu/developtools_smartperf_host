@@ -15,40 +15,29 @@
 
 import { TraficEnum } from './utils/QueryEnum';
 import { energyList } from './utils/AllMemoryCache';
+import { Args } from './CommonArgs';
 
-export const systemDataSql = (args: unknown): string => {
+export const systemDataSql = (args: Args): string => {
   return `SELECT S.id,
                  S.ts - ${
-    // @ts-ignore
-    args.recordStartNS
-    }                                                                   AS startNs,
+                   args.recordStartNS
+                 }                                                                   AS startNs,
                  D.data                                                                                         AS eventName,
                  (case when D.data = 'POWER_RUNNINGLOCK' then 1 when D.data = 'GNSS_STATE' then 2 else 0 end) AS appKey,
                  contents                                                                                       AS eventValue,
-                 ((S.ts - ${
-    // @ts-ignore
-    args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)}))   as px
+                 ((S.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)}))   as px
           FROM hisys_all_event AS S
                    LEFT JOIN data_dict AS D ON S.event_name_id = D.id
                    LEFT JOIN data_dict AS D2 ON S.domain_id = D2.id
           WHERE eventName IN ('POWER_RUNNINGLOCK', 'GNSS_STATE', 'WORK_START', 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD')
-            and startNs >= ${
-    // @ts-ignore
-    Math.floor(args.startNS)
-    }
-            and startNs <= ${
-    // @ts-ignore
-    Math.floor(args.endNS)
-    }
+            and startNs >= ${Math.floor(args.startNS)}
+            and startNs <= ${Math.floor(args.endNS)}
           group by px;`;
 };
 
-export const systemDataMemSql = (args: unknown): string => {
+export const systemDataMemSql = (args: Args): string => {
   return `SELECT S.id,
-                 S.ts - ${
-    // @ts-ignore
-    args.recordStartNS
-    }                                                                         AS startNs,
+                 S.ts - ${args.recordStartNS}                                                                         AS startNs,
                  D.data                                                                                               AS eventName,
                  (case when D.data = 'POWER_RUNNINGLOCK' then '1' when D.data = 'GNSS_STATE' then '2' else '0' end) AS appKey,
                  contents                                                                                             AS eventValue
@@ -59,13 +48,10 @@ export const systemDataMemSql = (args: unknown): string => {
                 ('POWER_RUNNINGLOCK', 'GNSS_STATE', 'WORK_START', 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD');`;
 };
 
-export const chartEnergyAnomalyDataSql = (args: unknown): string => {
+export const chartEnergyAnomalyDataSql = (args: Args): string => {
   return `
       select S.id,
-             S.ts - ${
-    // @ts-ignore
-    args.recordStartNS
-    }                  as startNs,
+             S.ts - ${args.recordStartNS}                  as startNs,
              D.data                                        as eventName,
              D2.data                                       as appKey,
              (case
@@ -83,13 +69,10 @@ export const chartEnergyAnomalyDataSql = (args: unknown): string => {
           and D2.data in ('APPNAME'))
       group by S.serial, D.data`;
 };
-export const queryPowerValueSql = (args: unknown): string => {
+export const queryPowerValueSql = (args: Args): string => {
   return `
       SELECT S.id,
-             S.ts - ${
-    // @ts-ignore
-    args.recordStartNS
-    }                                                        as startNs,
+             S.ts - ${args.recordStartNS}                                                        as startNs,
              D.data                                                                              AS eventName,
              D2.data                                                                             AS appKey,
              group_concat((CASE WHEN S.type = 1 THEN S.string_value ELSE S.int_value END), ',') AS eventValue
@@ -111,13 +94,10 @@ export const queryPowerValueSql = (args: unknown): string => {
       ORDER BY eventName;`;
 };
 
-export const queryStateDataSql = (args: unknown): string => {
+export const queryStateDataSql = (args: Args): string => {
   return `
       select S.id,
-             S.ts - ${
-    // @ts-ignore
-    args.recordStartNS
-    } as startNs,
+             S.ts - ${args.recordStartNS} as startNs,
              D.data                       as eventName,
              D2.data                      as appKey,
              S.int_value                  as eventValue
@@ -125,34 +105,22 @@ export const queryStateDataSql = (args: unknown): string => {
                left join data_dict as D on D.id = S.name_id
                left join app_name as APP on APP.id = S.key_id
                left join data_dict as D2 on D2.id = APP.app_key
-      where (case when 'SENSOR_STATE'== '${
-    // @ts-ignore
-    args.eventName
-    }' then D.data like '%SENSOR%' else D.data = '${
-    // @ts-ignore
-    args.eventName
-    }' end)
+      where (case when 'SENSOR_STATE'== '${args.eventName}' then D.data like '%SENSOR%' else D.data = '${args.eventName}' end)
         and D2.data in ('BRIGHTNESS', 'STATE', 'VALUE', 'LEVEL', 'VOLUME', 'OPER_TYPE', 'VOLUME')
       group by S.serial, APP.app_key, D.data, D2.data;`;
 };
 
-export const queryStateProtoDataSql = (args: unknown): string => {
+export const queryStateProtoDataSql = (args: Args): string => {
   return `
       SELECT S.id,
-             S.ts - ${
-    // @ts-ignore
-    args.recordStartNS
-    } AS startNs,
+             S.ts - ${args.recordStartNS} AS startNs,
              D.data                       AS eventName,
              ''                           AS appKey,
              contents                     AS eventValue
       FROM hisys_all_event AS S
                LEFT JOIN data_dict AS D ON S.event_name_id = D.id
                LEFT JOIN data_dict AS D2 ON S.domain_id = D2.id
-      WHERE eventName = ${
-    // @ts-ignore
-    args.eventName
-    }`;
+      WHERE eventName = ${args.eventName}`;
 };
 let systemList: Array<unknown> = [];
 let anomalyList: Array<unknown> = [];
@@ -263,7 +231,7 @@ function systemBufferHandler(data: unknown, res: unknown[], transfer: boolean): 
       try {
         // @ts-ignore
         parsedData = JSON.parse(it.eventValue);
-      } catch (error) { }
+      } catch (error) {}
     }
     // @ts-ignore
     it.eventValue = parsedData;
@@ -471,26 +439,26 @@ function postMessage(data: unknown, transfer: boolean, hiSysEnergy: HiSysEnergy,
       action: data.action,
       results: transfer
         ? {
-          id: hiSysEnergy.id.buffer,
-          startNs: hiSysEnergy.startNs.buffer,
-          count: hiSysEnergy.count.buffer,
-          type: hiSysEnergy.type.buffer,
-          token: hiSysEnergy.token.buffer,
-          dataType: hiSysEnergy.dataType.buffer,
-        }
+            id: hiSysEnergy.id.buffer,
+            startNs: hiSysEnergy.startNs.buffer,
+            count: hiSysEnergy.count.buffer,
+            type: hiSysEnergy.type.buffer,
+            token: hiSysEnergy.token.buffer,
+            dataType: hiSysEnergy.dataType.buffer,
+          }
         : {},
       len: len,
       transfer: transfer,
     },
     transfer
       ? [
-        hiSysEnergy.id.buffer,
-        hiSysEnergy.startNs.buffer,
-        hiSysEnergy.count.buffer,
-        hiSysEnergy.type.buffer,
-        hiSysEnergy.token.buffer,
-        hiSysEnergy.dataType.buffer,
-      ]
+          hiSysEnergy.id.buffer,
+          hiSysEnergy.startNs.buffer,
+          hiSysEnergy.count.buffer,
+          hiSysEnergy.type.buffer,
+          hiSysEnergy.token.buffer,
+          hiSysEnergy.dataType.buffer,
+        ]
       : []
   );
 }
@@ -540,9 +508,9 @@ function anomalyBufferHandler(data: unknown, res: unknown[], transfer: boolean):
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,
@@ -572,9 +540,9 @@ function powerBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,
@@ -618,10 +586,10 @@ function stateBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-          eventValue: eventValue.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+            eventValue: eventValue.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,

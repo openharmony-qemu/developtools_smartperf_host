@@ -37,7 +37,7 @@ inline char Uppercase(char c)
     return ('a' <= c && c <= 'z') ? static_cast<char>(c + ('A' - 'a')) : c;
 }
 
-inline std::string ToUppercase(const std::string& str)
+inline std::string ToUppercase(const std::string &str)
 {
     std::string string(str);
     auto end = string.end();
@@ -49,19 +49,19 @@ inline std::string ToUppercase(const std::string& str)
 
 class ProtoReaderGenerator {
 public:
-    ProtoReaderGenerator(const FileDescriptor* file, Printer* printer) : fileDescriptor_(file), codePrinter_(printer) {}
+    ProtoReaderGenerator(const FileDescriptor *file, Printer *printer) : fileDescriptor_(file), codePrinter_(printer) {}
     bool WriteProtoReader();
     void ParserNamespace();
     void ParserDescriptors();
     void ParserDependencies();
     void GetPBReaderInfo();
     void WriteBegin();
-    void WriteEnumDescriptor(const EnumDescriptor* enumeration);
-    void WriteDecoder(const Descriptor* descriptor);
-    void WriteEnum(const Descriptor* descriptor);
-    void WriteFunc(const Descriptor* descriptor, const int32_t maxFieldID);
+    void WriteEnumDescriptor(const EnumDescriptor *enumeration);
+    void WriteDecoder(const Descriptor *descriptor);
+    void WriteEnum(const Descriptor *descriptor);
+    void WriteFunc(const Descriptor *descriptor, const int32_t maxFieldID);
     void WriteEnd();
-    const std::string& GetError() const
+    const std::string &GetError() const
     {
         return error_;
     }
@@ -71,7 +71,7 @@ public:
 
 private:
     template <class T>
-    inline std::string GetDescriptorName(const T* descriptor) const
+    inline std::string GetDescriptorName(const T *descriptor) const
     {
         if (!package_.empty()) {
             auto strTmp = package_ + ".";
@@ -81,7 +81,7 @@ private:
         }
     }
     template <class T>
-    const std::string GetDescriptorClass(const T* descriptor)
+    const std::string GetDescriptorClass(const T *descriptor)
     {
         std::string name = GetDescriptorName(descriptor);
         size_t pos = name.find(".");
@@ -90,7 +90,7 @@ private:
         }
         return name;
     }
-    std::string GetFieldNumberConstant(const FieldDescriptor* field);
+    std::string GetFieldNumberConstant(const FieldDescriptor *field);
 
 private:
     struct TypeDesc {
@@ -117,27 +117,27 @@ private:
         {FieldDescriptor::TYPE_MESSAGE, {"ToBytes", "BytesView", ""}},
         {FieldDescriptor::TYPE_BYTES, {"ToBytes", "BytesView", ""}},
     };
-    const FileDescriptor* const fileDescriptor_;
-    Printer* const codePrinter_;
+    const FileDescriptor *const fileDescriptor_;
+    Printer *const codePrinter_;
     std::string error_;
     std::string fileDefinded_;
     std::string package_;
     std::vector<std::string> vNamespaces_;
     std::string fullNamespacePrefix_;
-    std::vector<const Descriptor*> vDescriptor_;
-    std::vector<const EnumDescriptor*> vEnumDescriptor_;
-    std::set<const FileDescriptor*> publicImports_;
-    std::set<const Descriptor*> referencedMessages_;
-    std::set<const EnumDescriptor*> referencedEnums_;
+    std::vector<const Descriptor *> vDescriptor_;
+    std::vector<const EnumDescriptor *> vEnumDescriptor_;
+    std::set<const FileDescriptor *> publicImports_;
+    std::set<const Descriptor *> referencedMessages_;
+    std::set<const EnumDescriptor *> referencedEnums_;
 };
 class ProtoReaderPlugin : public ::google::protobuf::compiler::CodeGenerator {
 public:
     explicit ProtoReaderPlugin(){};
     ~ProtoReaderPlugin() override{};
-    bool Generate(const FileDescriptor* file,
-                  const std::string& options,
-                  GeneratorContext* context,
-                  std::string* error) const override;
+    bool Generate(const FileDescriptor *file,
+                  const std::string &options,
+                  GeneratorContext *context,
+                  std::string *error) const override;
 };
 } // namespace ProtoReader
 } // namespace SysTuning

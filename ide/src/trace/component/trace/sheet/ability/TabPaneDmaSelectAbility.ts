@@ -142,13 +142,15 @@ export class TabPaneDmaSelectAbility extends BaseElement {
 
   sortDmaByColumn(column: string, sort: number): void {
     const sortFunction = function (leftData: unknown, rightData: unknown, sortType: number, property: string): number {
-      if (sortType === 1) {// @ts-ignore
-        return typeof leftData[property] === 'string'// @ts-ignore
-          ? `${leftData[property]}`.localeCompare(`${rightData[property]}`)// @ts-ignore
+      if (sortType === 1) {
+        // @ts-ignore
+        return typeof leftData[property] === 'string' // @ts-ignore
+          ? `${leftData[property]}`.localeCompare(`${rightData[property]}`) // @ts-ignore
           : leftData[property] - rightData[property];
-      } else {// @ts-ignore
-        return typeof rightData[property] === 'string'// @ts-ignore
-          ? `${rightData[property]}`.localeCompare(`${leftData[property]}`)// @ts-ignore
+      } else {
+        // @ts-ignore
+        return typeof rightData[property] === 'string' // @ts-ignore
+          ? `${rightData[property]}`.localeCompare(`${leftData[property]}`) // @ts-ignore
           : rightData[property] - leftData[property];
       }
     };

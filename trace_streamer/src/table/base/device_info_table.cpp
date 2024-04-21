@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { PHYSICAL_WIDTH = 0, PHYSICAL_HEIGHT, PHYSICAL_FRAME_RATE };
-DeviceInfoTable::DeviceInfoTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+DeviceInfoTable::DeviceInfoTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("physical_width", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("physical_height", "INTEGER"));
@@ -33,7 +33,7 @@ std::unique_ptr<TableBase::Cursor> DeviceInfoTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-DeviceInfoTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+DeviceInfoTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, 1), deviceInfoObj_(dataCache->GetConstDeviceInfo())
 {
 }

@@ -22,13 +22,13 @@
 #include "string_help.h"
 namespace SysTuning {
 namespace TraceStreamer {
-ClockFilterEx::ClockFilterEx(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+ClockFilterEx::ClockFilterEx(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : FilterBase(dataCache, filter), dataCache_(dataCache)
 {
 }
 ClockFilterEx::~ClockFilterEx() {}
 
-void ClockFilterEx::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
+void ClockFilterEx::AddClockSnapshot(const std::vector<SnapShot> &snapShot)
 {
     ClockId srcId;
     ClockId desId;

@@ -33,32 +33,32 @@ size_t PerfCallChain::AppendNewPerfCallChain(uint32_t callChainId,
     names_.emplace_back(INVALID_UINT64);
     return Size() - 1;
 }
-const std::deque<uint32_t>& PerfCallChain::CallChainIds() const
+const std::deque<uint32_t> &PerfCallChain::CallChainIds() const
 {
     return callChainIds_;
 }
-const std::deque<uint32_t>& PerfCallChain::Depths() const
+const std::deque<uint32_t> &PerfCallChain::Depths() const
 {
     return depths_;
 }
-const std::deque<uint64_t>& PerfCallChain::Ips() const
+const std::deque<uint64_t> &PerfCallChain::Ips() const
 {
     return ips_;
 }
-const std::deque<uint64_t>& PerfCallChain::VaddrInFiles() const
+const std::deque<uint64_t> &PerfCallChain::VaddrInFiles() const
 {
     return vaddrInFiles_;
 }
-const std::deque<uint64_t>& PerfCallChain::FileIds() const
+const std::deque<uint64_t> &PerfCallChain::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<uint64_t>& PerfCallChain::SymbolIds() const
+const std::deque<uint64_t> &PerfCallChain::SymbolIds() const
 {
     return symbolIds_;
 }
 
-const std::deque<DataIndex>& PerfCallChain::Names() const
+const std::deque<DataIndex> &PerfCallChain::Names() const
 {
     return names_;
 }
@@ -92,20 +92,20 @@ size_t PerfFiles::AppendNewPerfFiles(uint64_t fileIds, uint32_t serial, DataInde
     filePaths_.emplace_back(filePath);
     return Size() - 1;
 }
-const std::deque<uint64_t>& PerfFiles::FileIds() const
+const std::deque<uint64_t> &PerfFiles::FileIds() const
 {
     return fileIds_;
 }
 
-const std::deque<uint32_t>& PerfFiles::Serials() const
+const std::deque<uint32_t> &PerfFiles::Serials() const
 {
     return serials_;
 }
-const std::deque<DataIndex>& PerfFiles::Symbols() const
+const std::deque<DataIndex> &PerfFiles::Symbols() const
 {
     return symbols_;
 }
-const std::deque<DataIndex>& PerfFiles::FilePaths() const
+const std::deque<DataIndex> &PerfFiles::FilePaths() const
 {
     return filePaths_;
 }
@@ -139,31 +139,31 @@ size_t PerfSample::AppendNewPerfSample(uint32_t sampleId,
     threadStates_.emplace_back(threadState);
     return Size() - 1;
 }
-const std::deque<uint32_t>& PerfSample::SampleIds() const
+const std::deque<uint32_t> &PerfSample::SampleIds() const
 {
     return sampleIds_;
 }
-const std::deque<uint32_t>& PerfSample::Tids() const
+const std::deque<uint32_t> &PerfSample::Tids() const
 {
     return tids_;
 }
-const std::deque<uint64_t>& PerfSample::EventCounts() const
+const std::deque<uint64_t> &PerfSample::EventCounts() const
 {
     return eventCounts_;
 }
-const std::deque<uint64_t>& PerfSample::EventTypeIds() const
+const std::deque<uint64_t> &PerfSample::EventTypeIds() const
 {
     return eventTypeIds_;
 }
-const std::deque<uint64_t>& PerfSample::TimestampTraces() const
+const std::deque<uint64_t> &PerfSample::TimestampTraces() const
 {
     return timestampTraces_;
 }
-const std::deque<uint64_t>& PerfSample::CpuIds() const
+const std::deque<uint64_t> &PerfSample::CpuIds() const
 {
     return cpuIds_;
 }
-const std::deque<DataIndex>& PerfSample::ThreadStates() const
+const std::deque<DataIndex> &PerfSample::ThreadStates() const
 {
     return threadStates_;
 }
@@ -188,15 +188,15 @@ size_t PerfThread::AppendNewPerfThread(uint32_t pid, uint32_t tid, DataIndex thr
     threadNames_.emplace_back(threadName);
     return Size() - 1;
 }
-const std::deque<uint32_t>& PerfThread::Pids() const
+const std::deque<uint32_t> &PerfThread::Pids() const
 {
     return pids_;
 }
-const std::deque<uint32_t>& PerfThread::Tids() const
+const std::deque<uint32_t> &PerfThread::Tids() const
 {
     return tids_;
 }
-const std::deque<DataIndex>& PerfThread::ThreadNames() const
+const std::deque<DataIndex> &PerfThread::ThreadNames() const
 {
     return threadNames_;
 }
@@ -214,11 +214,11 @@ size_t PerfReport::AppendNewPerfReport(DataIndex type, DataIndex value)
     values_.emplace_back(value);
     return Size() - 1;
 }
-const std::deque<DataIndex>& PerfReport::Types() const
+const std::deque<DataIndex> &PerfReport::Types() const
 {
     return types_;
 }
-const std::deque<DataIndex>& PerfReport::Values() const
+const std::deque<DataIndex> &PerfReport::Values() const
 {
     return values_;
 }

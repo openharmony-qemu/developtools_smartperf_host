@@ -65,7 +65,10 @@ function selectJankApp(
 ): void {
   let collectList = sp.favoriteChartListEL!.getAllCollectRows();
   //@ts-ignore
-  let findJankEntry = endRowStruct!.dataListCache!.find((dat: unknown) => dat.name === data.name && dat.pid === data.pid);
+  let findJankEntry = endRowStruct!.dataListCache!.find(
+    //@ts-ignore
+    (dat: unknown) => dat.name === data.name && dat.pid === data.pid
+  );
   let tts =
     findJankEntry.frame_type === 'frameTime' ? selectJankStruct.ts! : selectJankStruct.ts! + selectJankStruct.dur!;
   let startParentRow: unknown;
@@ -121,7 +124,10 @@ function findJankApp(
 ): void {
   let collectList = sp.favoriteChartListEL!.getAllCollectRows();
   //@ts-ignore
-  let findJankEntry = endRowStruct!.dataListCache!.find((dat: unknown) => dat.name === data.name && dat.pid === data.pid);
+  let findJankEntry = endRowStruct!.dataListCache!.find(
+    //@ts-ignore
+    (dat: unknown) => dat.name === data.name && dat.pid === data.pid
+  );
   let tts = selectJankStruct.frame_type === 'frameTime' ? findJankEntry.ts : findJankEntry.ts! + findJankEntry.dur!;
   //@ts-ignore
   let endY = endRowStruct!.translateY! + 20 * (findJankEntry!.depth! + 0.5);
@@ -166,7 +172,10 @@ function addPointLink(
   endRowStruct: unknown
 ): void {
   //@ts-ignore
-  let findJankEntry = endRowStruct!.dataListCache!.find((dat: unknown) => dat.name === data.name && dat.pid === data.pid);
+  let findJankEntry = endRowStruct!.dataListCache!.find(
+    //@ts-ignore
+    (dat: unknown) => dat.name === data.name && dat.pid === data.pid
+  );
   //连线规则：frametimeline的头----app的头，app的尾----renderservice的头
   let tts: number = 0;
   if (findJankEntry) {
@@ -183,7 +192,7 @@ function addPointLink(
       //@ts-ignore
       if (data.children[0].frame_type === 'frameTime') {
         //@ts-ignore
-        endP = sp.shadowRoot?.querySelector<TraceRow<unknown>>('trace-row[row-type=\'janks\'][row-id=\'frameTime\']');
+        endP = sp.shadowRoot?.querySelector<TraceRow<unknown>>("trace-row[row-type='janks'][row-id='frameTime']");
       } else {
         //@ts-ignore
         endP = sp.shadowRoot?.querySelector<TraceRow<unknown>>(
@@ -202,7 +211,7 @@ function getEndStruct(data: unknown, sp: SpSystemTrace): unknown {
   //@ts-ignore
   if (data.frame_type === 'frameTime') {
     endRowStruct = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
-      'trace-row[row-id=\'actual frameTime\'][row-type=\'janks\']'
+      "trace-row[row-id='actual frameTime'][row-type='janks']"
     );
   } else {
     endRowStruct = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
@@ -239,7 +248,7 @@ function drawJankLineEndParent(
       });
       //frameTime未展开
       if (!endRowStruct) {
-        endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>('trace-row[row-id=\'frameTime\'][folder]');
+        endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>("trace-row[row-id='frameTime'][folder]");
         //@ts-ignore
         endParentRow?.childrenList?.forEach((item: TraceRow<JankStruct>): void => {
           if (item.rowId === 'actual frameTime' && item.rowType === 'janks') {

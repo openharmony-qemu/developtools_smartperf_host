@@ -59,11 +59,11 @@ export class SpHiPerf {
   static stringResult: ResultData | undefined;
 
   private cpuData: Array<unknown> | undefined;
-  public maxCpuId: number = 0;//@ts-ignore
+  public maxCpuId: number = 0; //@ts-ignore
   private rowFolder!: TraceRow<unknown>;
   private perfThreads: Array<PerfThread> | undefined;
   private trace: SpSystemTrace;
-  private group: unknown;//@ts-ignore
+  private group: unknown; //@ts-ignore
   private rowList: TraceRow<unknown>[] | undefined;
   private eventTypeList: Array<{ id: number; report: string }> = [];
   private callChartType: number = 0;
@@ -84,7 +84,7 @@ export class SpHiPerf {
     this.cpuData = await queryHiPerfCpuMergeData2();
     this.callChartType = 0;
     this.callChartId = 0;
-    this.eventTypeId = -2;//@ts-ignore
+    this.eventTypeId = -2; //@ts-ignore
     this.maxCpuId = this.cpuData.length > 0 ? this.cpuData[0].cpu_id : -Infinity;
     if (this.cpuData.length > 0) {
       await this.initFolder();
@@ -136,16 +136,18 @@ export class SpHiPerf {
     this.folderRowSettingConfig(row);
     if (SpHiPerf.stringResult?.existA === true) {
       row.name = 'HiPerf (All)';
-    } else {//@ts-ignore
+    } else {
+      //@ts-ignore
       let names = Reflect.ownKeys(this.group)
-        .map((pid: unknown) => {//@ts-ignore
+        .map((pid: unknown) => {
+          //@ts-ignore
           let array = this.group[pid] as Array<PerfThread>;
           let process = array.filter((th) => th.pid === th.tid)[0];
           return process.processName;
         })
         .join(',');
       row.name = `HiPerf (${names})`;
-    }//@ts-ignore
+    } //@ts-ignore
     row.supplier = (): Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve) => resolve([]));
     row.onThreadHandler = folderThreadHandler(row, this.trace);
     this.rowFolder = row;
@@ -263,21 +265,28 @@ export class SpHiPerf {
   }
 
   //@ts-ignore
-  async setCallTotalRow(row: TraceRow<unknown>, cpuData: unknown = Array, threadData: unknown = Array): Promise<void> {//@ts-ignore
-    let pt: Map<string, unknown> = threadData.reduce((map: Map<string, unknown>, current: unknown) => {//@ts-ignore
+  async setCallTotalRow(row: TraceRow<unknown>, cpuData: unknown = Array, threadData: unknown = Array): Promise<void> {
+    //@ts-ignore
+    let pt: Map<string, unknown> = threadData.reduce((map: Map<string, unknown>, current: unknown) => {
+      //@ts-ignore
       const key = `${current.processName || 'Process'}(${current.pid})`;
-      const thread = {//@ts-ignore
-        key: `${current.tid}-t`,//@ts-ignore
+      const thread = {
+        //@ts-ignore
+        key: `${current.tid}-t`, //@ts-ignore
         title: `${current.threadName || 'Thread'}(${current.tid})`,
       };
-      if (map.has(key)) {//@ts-ignore
-        if (map.get(key).children) {//@ts-ignore
+      if (map.has(key)) {
+        //@ts-ignore
+        if (map.get(key).children) {
+          //@ts-ignore
           map.get(key).children.push(thread);
-        } else {//@ts-ignore
+        } else {
+          //@ts-ignore
           map.get(key).children = [thread];
         }
       } else {
-        map.set(key, {//@ts-ignore
+        map.set(key, {
+          //@ts-ignore
           key: `${current.pid}-p`,
           title: key,
           children: [thread],
@@ -288,7 +297,7 @@ export class SpHiPerf {
     }, new Map<string, unknown>());
     row.addTemplateTypes('hiperf-callchart');
     row.addRowSettingPop();
-    row.rowSetting = 'enable';//@ts-ignore
+    row.rowSetting = 'enable'; //@ts-ignore
     this.setCallChartRowSetting(row, cpuData, pt);
     row.onThreadHandler = rowThreadHandler<HiPerfCallChartRender>(
       'HiPerf-callchart',
@@ -301,7 +310,12 @@ export class SpHiPerf {
     );
   }
 
-  setCallChartRowSetting(row: TraceRow<HiPerfCallChartStruct>, cpuData: Array<unknown>, pt: Map<string, unknown>): void {//@ts-ignore
+  setCallChartRowSetting(
+    row: TraceRow<HiPerfCallChartStruct>,
+    cpuData: Array<unknown>,
+    pt: Map<string, unknown>
+  ): void {
+    //@ts-ignore
     row.rowSettingList = [
       ...cpuData.reverse().map(
         (
@@ -320,7 +334,8 @@ export class SpHiPerf {
       ),
       ...Array.from(pt.values()),
     ];
-    row.onRowSettingChangeHandler = (setting: unknown, nodes): void => {//@ts-ignore
+    row.onRowSettingChangeHandler = (setting: unknown, nodes): void => {
+      //@ts-ignore
       if (setting && setting.length > 0) {
         //type 0:cpu,1:process,2:thread
         //@ts-ignore
@@ -338,7 +353,7 @@ export class SpHiPerf {
           return;
         }
         this.callChartType = type;
-        this.callChartId = id;// @ts-ignore
+        this.callChartId = id; // @ts-ignore
         row.name = `CallChart [${nodes[0].title}]`;
         row.isComplete = false;
         row.needRefresh = true;
@@ -360,7 +375,7 @@ export class SpHiPerf {
     cpuMergeRow.style.height = '40px';
     cpuMergeRow.setAttribute('children', '');
     cpuMergeRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    cpuMergeRow.selectChangeHandler = this.trace.selectChangeHandler;//@ts-ignore
+    cpuMergeRow.selectChangeHandler = this.trace.selectChangeHandler; //@ts-ignore
     cpuMergeRow.supplierFrame = (): Promise<unknown> => {
       return hiperfCpuDataSender(
         -1,
@@ -394,13 +409,14 @@ export class SpHiPerf {
   rowThreadHandler<T>(tag: string, contextField: string, arg: unknown, row: TraceRow<unknown>, trace: SpSystemTrace) {
     return (useCache: boolean): void => {
       let context: CanvasRenderingContext2D = getRowContext(row, trace);
-      row.canvasSave(context);//@ts-ignore
-      arg.useCache = useCache;//@ts-ignore
-      arg.scale = TraceRow.range?.scale || 50;//@ts-ignore
+      row.canvasSave(context); //@ts-ignore
+      arg.useCache = useCache; //@ts-ignore
+      arg.scale = TraceRow.range?.scale || 50; //@ts-ignore
       arg.range = TraceRow.range;
-      if (contextField) {//@ts-ignore
+      if (contextField) {
+        //@ts-ignore
         arg[contextField] = context;
-      }//@ts-ignore
+      } //@ts-ignore
       (renders[tag] as unknown).renderMainThread(arg, row);
       row.canvasRestore(context, trace);
     };
@@ -420,7 +436,7 @@ export class SpHiPerf {
       perfCpuRow.setAttribute('children', '');
       perfCpuRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       perfCpuRow.selectChangeHandler = this.trace.selectChangeHandler;
-      perfCpuRow.style.height = '40px';//@ts-ignore
+      perfCpuRow.style.height = '40px'; //@ts-ignore
       perfCpuRow.supplierFrame = (): Promise<unknown> => {
         return hiperfCpuDataSender(
           i,
@@ -451,8 +467,10 @@ export class SpHiPerf {
     }
   }
 
-  async initProcess(): Promise<void> {//@ts-ignore
-    Reflect.ownKeys(this.group).forEach((key, index): void => {//@ts-ignore
+  async initProcess(): Promise<void> {
+    //@ts-ignore
+    Reflect.ownKeys(this.group).forEach((key, index): void => {
+      //@ts-ignore
       let array = this.group[key] as Array<PerfThread>;
       let process = array.filter((th): boolean => th.pid === th.tid)[0];
       let row = TraceRow.skeleton<HiPerfProcessStruct>();
@@ -471,7 +489,7 @@ export class SpHiPerf {
       row.folderPaddingLeft = 6;
       row.style.height = '40px';
       row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      row.selectChangeHandler = this.trace.selectChangeHandler;//@ts-ignore
+      row.selectChangeHandler = this.trace.selectChangeHandler; //@ts-ignore
       row.supplierFrame = (): Promise<unknown> => {
         return hiperfProcessDataSender(
           process.pid,
@@ -517,7 +535,7 @@ export class SpHiPerf {
       thread.folderPaddingLeft = 0;
       thread.style.height = '40px';
       thread.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      thread.selectChangeHandler = this.trace.selectChangeHandler;//@ts-ignore
+      thread.selectChangeHandler = this.trace.selectChangeHandler; //@ts-ignore
       thread.supplierFrame = (): Promise<unknown> => {
         return hiperfThreadDataSender(
           thObj.tid,
@@ -559,7 +577,8 @@ export class SpHiPerf {
     this.rowList?.forEach((row) => this.resetChartData(row));
   }
 
-  hoverTip(//@ts-ignore
+  hoverTip(
+    //@ts-ignore
     row: TraceRow<unknown>,
     struct:
       | HiPerfThreadStruct
@@ -589,8 +608,9 @@ export class SpHiPerf {
         let perfCall = perfDataQuery.callChainMap.get(struct.callchain_id || 0);
         if (perfCall) {
           let perfName;
-          typeof perfCall.name === 'number' ? (perfName = SpSystemTrace.DATA_DICT.get(parseInt(perfCall.name))) :
-            (perfName = perfCall.name);
+          typeof perfCall.name === 'number'
+            ? (perfName = SpSystemTrace.DATA_DICT.get(parseInt(perfCall.name)))
+            : (perfName = perfCall.name);
           tip = `<span>${perfCall ? perfName : ''} (${perfCall ? perfCall.depth : '0'} other frames)</span>`;
         }
       }

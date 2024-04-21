@@ -35,31 +35,31 @@ size_t LogInfo::AppendNewLogInfo(uint64_t seq,
     originTs_.emplace_back(originTs);
     return Size() - 1;
 }
-const std::deque<uint64_t>& LogInfo::HilogLineSeqs() const
+const std::deque<uint64_t> &LogInfo::HilogLineSeqs() const
 {
     return hilogLineSeqs_;
 }
-const std::deque<uint32_t>& LogInfo::Pids() const
+const std::deque<uint32_t> &LogInfo::Pids() const
 {
     return pids_;
 }
-const std::deque<uint32_t>& LogInfo::Tids() const
+const std::deque<uint32_t> &LogInfo::Tids() const
 {
     return tids_;
 }
-const std::deque<DataIndex>& LogInfo::Levels() const
+const std::deque<DataIndex> &LogInfo::Levels() const
 {
     return levels_;
 }
-const std::deque<DataIndex>& LogInfo::Tags() const
+const std::deque<DataIndex> &LogInfo::Tags() const
 {
     return tags_;
 }
-const std::deque<DataIndex>& LogInfo::Contexts() const
+const std::deque<DataIndex> &LogInfo::Contexts() const
 {
     return contexts_;
 }
-const std::deque<uint64_t>& LogInfo::OriginTimeStamData() const
+const std::deque<uint64_t> &LogInfo::OriginTimeStamData() const
 {
     return originTs_;
 }

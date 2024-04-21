@@ -21,6 +21,7 @@ import {
   isFrameContainPoint,
   ns2x,
   drawLoadingFrame,
+  Rect,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
@@ -78,24 +79,24 @@ export class MemoryAbilityRender extends Render {
 }
 
 export function memoryAbility(
-  memoryAbilityList: Array<any>,
-  res: Array<any>,
+  memoryAbilityList: Array<MemoryAbilityMonitorStruct>,
+  res: Array<MemoryAbilityMonitorStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
 ): void {
   if (use && res.length > 0) {
     for (let i = 0; i < res.length; i++) {
-      let memoryAbilityItem = res[i];
+      let memoryAbilityItem = res[i] as MemoryAbilityMonitorStruct;
       if (
         (memoryAbilityItem.startNS || 0) + (memoryAbilityItem.dur || 0) > startNS &&
         (memoryAbilityItem.startNS || 0) < endNS
       ) {
         MemoryAbilityMonitorStruct.setMemoryFrame(memoryAbilityItem, 5, startNS, endNS, totalNS, frame);
       } else {
-        memoryAbilityItem.frame = null;
+        memoryAbilityItem.frame = undefined;
       }
     }
     return;
@@ -104,27 +105,30 @@ export function memoryAbility(
   setMemoryAbility(memoryAbilityList, res, startNS, endNS, totalNS, frame);
 }
 function setMemoryAbility(
-  memoryAbilityList: Array<any>,
-  res: Array<any>,
+  list: Array<MemoryAbilityMonitorStruct>,
+  res: Array<MemoryAbilityMonitorStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any
+  frame: Rect
 ): void {
-  if (memoryAbilityList) {
-    for (let memoryAbilityIndex = 0; memoryAbilityIndex < memoryAbilityList.length; memoryAbilityIndex++) {
-      let item = memoryAbilityList[memoryAbilityIndex];
+  if (list) {
+    for (let index = 0; index < list.length; index++) {
+      let item = list[index] as MemoryAbilityMonitorStruct;
       item.dur =
-        memoryAbilityIndex === memoryAbilityList.length - 1
+        index === list.length - 1
           ? (endNS || 0) - (item.startNS || 0)
-          : (memoryAbilityList[memoryAbilityIndex + 1].startNS || 0) - (item.startNS || 0);
+          : // @ts-ignore
+            (list[index + 1].startNS || 0) - (item.startNS || 0);
       if ((item.startNS || 0) + (item.dur || 0) > startNS && (item.startNS || 0) < endNS) {
         MemoryAbilityMonitorStruct.setMemoryFrame(item, 5, startNS, endNS, totalNS, frame);
         if (
           !(
-            memoryAbilityIndex > 0 &&
-            (memoryAbilityList[memoryAbilityIndex - 1].frame.x || 0) === (item.frame.x || 0) &&
-            (memoryAbilityList[memoryAbilityIndex - 1].frame.width || 0) === (item.frame.width || 0)
+            index > 0 &&
+            // @ts-ignore
+            (list[index - 1].frame.x || 0) === (item.frame.x || 0) &&
+            // @ts-ignore
+            (list[index - 1].frame.width || 0) === (item.frame.width || 0)
           )
         ) {
           res.push(item);
@@ -187,12 +191,12 @@ export class MemoryAbilityMonitorStruct extends BaseStruct {
   }
 
   static setMemoryFrame(
-    memoryNode: any,
+    memoryNode: MemoryAbilityMonitorStruct,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
     let memoryStartPointX: number, memoryEndPointX: number;
 
@@ -208,7 +212,7 @@ export class MemoryAbilityMonitorStruct extends BaseStruct {
     }
     let frameWidth: number = memoryEndPointX - memoryStartPointX <= 1 ? 1 : memoryEndPointX - memoryStartPointX;
     if (!memoryNode.frame) {
-      memoryNode.frame = {};
+      memoryNode.frame = new Rect(0, 0, 0, 0);
     }
     memoryNode.frame.x = Math.floor(memoryStartPointX);
     memoryNode.frame.y = frame.y + padding;

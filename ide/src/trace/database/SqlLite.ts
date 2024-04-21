@@ -457,15 +457,18 @@ export class DbPool {
 
 export const threadPool = new DbPool();
 
-  //@ts-ignore
-export function query<T>(name: string, sql: string, args: unknow = null, action: string | null = null): Promise<Array<T>> {
+export function query<T>(
+  name: string,
+  sql: string,
+  args: unknown = null,
+  action: string | null = null
+): Promise<Array<T>> {
   return new Promise<Array<T>>((resolve, reject) => {
     threadPool.submit(
       name,
       sql,
       args,
-      //@ts-ignore
-      (res: unknow) => {
+      (res: Array<T>) => {
         if (res[0] && res[0] === 'error') {
           window.publish(window.SmartEvent.UI.Error, res[1]);
           reject(res);

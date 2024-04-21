@@ -15,7 +15,7 @@
 
 import {
   BaseStruct,
-  type Rect,
+  Rect,
   Render,
   drawString,
   isFrameContainPoint,
@@ -41,7 +41,7 @@ export class JsCpuProfilerRender extends Render {
       filter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,// @ts-ignore
+      TraceRow.range!.totalNS, // @ts-ignore
       jsCpuProfilerRow.frame,
       req.useCache || !TraceRow.range!.refresh
     );
@@ -88,7 +88,7 @@ function setHoveStruct(
   }
 }
 export function jsCpuProfiler(
-  filter: Array<any>,
+  filter: Array<JsCpuProfilerStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
@@ -100,7 +100,7 @@ export function jsCpuProfiler(
       if ((filter[i].startTime || 0) + (filter[i].totalTime || 0) >= startNS && (filter[i].startTime || 0) <= endNS) {
         JsCpuProfilerStruct.setJsCpuProfilerFrame(filter[i], startNS, endNS, totalNS, frame);
       } else {
-        filter[i].frame = null;
+        filter[i].frame = undefined;
       }
     }
   }
@@ -110,7 +110,7 @@ const padding = 1;
 export function JsCpuProfilerStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  row: TraceRow<any>
+  row: TraceRow<JsCpuProfilerStruct>
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
@@ -224,7 +224,7 @@ export class JsCpuProfilerStruct extends BaseStruct {
   isSelect: boolean = false;
 
   static setJsCpuProfilerFrame(
-    jsCpuProfilerNode: any,
+    jsCpuProfilerNode: JsCpuProfilerStruct,
     startNS: number,
     endNS: number,
     totalNS: number,
@@ -252,7 +252,7 @@ export class JsCpuProfilerStruct extends BaseStruct {
       x2 = frame.width;
     }
     if (!jsCpuProfilerNode.frame) {
-      jsCpuProfilerNode.frame = {};
+      jsCpuProfilerNode.frame = new Rect(0, 0, 0, 0);
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
     jsCpuProfilerNode.frame.x = Math.floor(x1);

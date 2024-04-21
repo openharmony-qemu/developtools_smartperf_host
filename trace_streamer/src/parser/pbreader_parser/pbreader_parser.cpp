@@ -33,7 +33,7 @@
 #endif
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderParser::PbreaderParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
+PbreaderParser::PbreaderParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters)
     : ParserBase(filters),
       pbreaderClockDetailParser_(std::make_unique<PbreaderClockDetailParser>(dataCache, filters)),
 #ifdef ENABLE_HTRACE
@@ -165,9 +165,9 @@ void PbreaderParser::InitPluginNameIndex()
 }
 
 #if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
-void PbreaderParser::ParserFileSO(std::string& directory, const std::vector<std::string>& relativeFilePaths)
+void PbreaderParser::ParserFileSO(std::string &directory, const std::vector<std::string> &relativeFilePaths)
 {
-    for (const auto& filePath : relativeFilePaths) {
+    for (const auto &filePath : relativeFilePaths) {
         auto absoluteFilePath = filePath.substr(directory.length());
         auto symbolsFile =
             OHOS::Developtools::HiPerf::SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, absoluteFilePath);
@@ -183,8 +183,8 @@ PbreaderParser::~PbreaderParser()
     TS_LOGI("clockid 2 is for RealTime and 1 is for BootTime");
 }
 
-bool PbreaderParser::ReparseSymbolFilesAndResymbolization(std::string& symbolsPath,
-                                                          std::vector<std::string>& symbolsPaths)
+bool PbreaderParser::ReparseSymbolFilesAndResymbolization(std::string &symbolsPath,
+                                                          std::vector<std::string> &symbolsPaths)
 {
     std::vector<std::string> dirs;
     auto parseStatus = false;
@@ -297,7 +297,7 @@ void PbreaderParser::WaitForParserEnd()
     processedDataLen_ = 0;
 }
 
-void PbreaderParser::ParseTraceDataItem(const std::string& buffer)
+void PbreaderParser::ParseTraceDataItem(const std::string &buffer)
 {
     int32_t head = rawDataHead_;
     if (!traceDataCache_->supportThread_ || traceDataCache_->isSplitFile_) {
@@ -341,7 +341,7 @@ void PbreaderParser::EnableFileSeparate(bool enabled)
     jsMemoryParser_->EnableSaveFile(enabled);
 }
 #endif
-void PbreaderParser::FilterData(PbreaderDataSegment& seg, bool isSplitFile)
+void PbreaderParser::FilterData(PbreaderDataSegment &seg, bool isSplitFile)
 {
     bool haveSplitSeg = false;
     if (seg.dataType == DATA_SOURCE_TYPE_TRACE) {
@@ -428,7 +428,7 @@ void PbreaderParser::FilterThread()
 {
     TS_LOGI("filter thread start work!");
     while (true) {
-        PbreaderDataSegment& seg = dataSegArray_[filterHead_];
+        PbreaderDataSegment &seg = dataSegArray_[filterHead_];
         if (seg.status.load() == TS_PARSE_STATUS_INVALID) {
             seg.status = TS_PARSE_STATUS_INIT;
             filterHead_ = (filterHead_ + 1) % maxSegArraySize;
@@ -453,7 +453,7 @@ void PbreaderParser::FilterThread()
     }
 }
 
-bool PbreaderParser::SpliteConfigData(const std::string& pluginName, const PbreaderDataSegment& dataSeg)
+bool PbreaderParser::SpliteConfigData(const std::string &pluginName, const PbreaderDataSegment &dataSeg)
 {
     if (EndWith(pluginName, "arkts-plugin_config")) {
         std::string dataString(dataSeg.seg->c_str(), dataSeg.seg->length());
@@ -466,7 +466,7 @@ bool PbreaderParser::SpliteConfigData(const std::string& pluginName, const Pbrea
     return false;
 }
 
-bool PbreaderParser::SpliteDataBySegment(DataIndex pluginNameIndex, PbreaderDataSegment& dataSeg)
+bool PbreaderParser::SpliteDataBySegment(DataIndex pluginNameIndex, PbreaderDataSegment &dataSeg)
 {
     bool isOtherPlugin = false;
 #ifdef ENABLE_HTRACE
@@ -500,9 +500,9 @@ bool PbreaderParser::SpliteDataBySegment(DataIndex pluginNameIndex, PbreaderData
     }
     return true;
 }
-void PbreaderParser::ParseDataByPluginName(PbreaderDataSegment& dataSeg,
+void PbreaderParser::ParseDataByPluginName(PbreaderDataSegment &dataSeg,
                                            DataIndex pulginNameIndex,
-                                           const ProtoReader::ProfilerPluginData_Reader& pluginDataZero,
+                                           const ProtoReader::ProfilerPluginData_Reader &pluginDataZero,
                                            bool isSplitFile)
 {
     if (ftracePluginIndex_.count(pulginNameIndex)) { // ok
@@ -575,9 +575,9 @@ void PbreaderParser::ParseDataByPluginName(PbreaderDataSegment& dataSeg,
 #endif
 }
 
-void PbreaderParser::ParserData(PbreaderDataSegment& dataSeg, bool isSplitFile)
+void PbreaderParser::ParserData(PbreaderDataSegment &dataSeg, bool isSplitFile)
 {
-    ProtoReader::ProfilerPluginData_Reader pluginDataZero(reinterpret_cast<const uint8_t*>(dataSeg.seg->c_str()),
+    ProtoReader::ProfilerPluginData_Reader pluginDataZero(reinterpret_cast<const uint8_t *>(dataSeg.seg->c_str()),
                                                           dataSeg.seg->length());
     if (!pluginDataZero.has_name()) {
         return;
@@ -599,8 +599,8 @@ void PbreaderParser::ParserData(PbreaderDataSegment& dataSeg, bool isSplitFile)
         ParseDataByPluginName(dataSeg, pluginNameIndex, pluginDataZero, isSplitFile);
     } else {
 #if IS_WASM
-        TraceStreamerPluginOutFilter(reinterpret_cast<const char*>(pluginDataZero.data().data_),
-                                        pluginDataZero.data().size_, pluginName);
+        TraceStreamerPluginOutFilter(reinterpret_cast<const char *>(pluginDataZero.data().data_),
+                                     pluginDataZero.data().size_, pluginName);
 #endif
         dataSeg.status = TS_PARSE_STATUS_INVALID;
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
@@ -623,14 +623,14 @@ void PbreaderParser::ParseThread()
                 continue;
             }
         }
-        PbreaderDataSegment& dataSeg = dataSegArray_[head];
+        PbreaderDataSegment &dataSeg = dataSegArray_[head];
         ParserData(dataSeg, false);
     }
 }
 
 #ifdef ENABLE_MEMORY
-void PbreaderParser::ParseMemory(const ProtoReader::ProfilerPluginData_Reader& pluginDataZero,
-                                 PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseMemory(const ProtoReader::ProfilerPluginData_Reader &pluginDataZero,
+                                 PbreaderDataSegment &dataSeg)
 {
     BuiltinClocks clockId = TS_CLOCK_REALTIME;
     dataSourceTypeMemClockid_ = clockId;
@@ -638,8 +638,8 @@ void PbreaderParser::ParseMemory(const ProtoReader::ProfilerPluginData_Reader& p
     dataSeg.clockId = clockId;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
-void PbreaderParser::ParseMemoryConfig(PbreaderDataSegment& dataSeg,
-                                       const ProtoReader::ProfilerPluginData_Reader& pluginDataZero)
+void PbreaderParser::ParseMemoryConfig(PbreaderDataSegment &dataSeg,
+                                       const ProtoReader::ProfilerPluginData_Reader &pluginDataZero)
 {
     if (pluginDataZero.has_sample_interval()) {
         uint32_t sampleInterval = pluginDataZero.sample_interval();
@@ -651,7 +651,7 @@ void PbreaderParser::ParseMemoryConfig(PbreaderDataSegment& dataSeg,
 }
 #endif
 #ifdef ENABLE_HILOG
-void PbreaderParser::ParseHilog(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseHilog(PbreaderDataSegment &dataSeg)
 {
     dataSeg.dataType = DATA_SOURCE_TYPE_HILOG;
     dataSourceTypeHilogClockid_ = TS_CLOCK_REALTIME;
@@ -659,12 +659,12 @@ void PbreaderParser::ParseHilog(PbreaderDataSegment& dataSeg)
 }
 #endif
 #ifdef ENABLE_NATIVE_HOOK
-void PbreaderParser::ParseNativeHookConfig(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseNativeHookConfig(PbreaderDataSegment &dataSeg)
 {
     dataSeg.dataType = DATA_SOURCE_TYPE_NATIVEHOOK_CONFIG;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
-void PbreaderParser::ParseNativeHook(PbreaderDataSegment& dataSeg, bool isSplitFile)
+void PbreaderParser::ParseNativeHook(PbreaderDataSegment &dataSeg, bool isSplitFile)
 {
     dataSourceTypeNativeHookClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_NATIVEHOOK;
@@ -676,7 +676,7 @@ void PbreaderParser::ParseNativeHook(PbreaderDataSegment& dataSeg, bool isSplitF
 #endif
 
 #ifdef ENABLE_HTRACE
-void PbreaderParser::ParseFtrace(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseFtrace(PbreaderDataSegment &dataSeg)
 {
     dataSeg.dataType = DATA_SOURCE_TYPE_TRACE;
     ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
@@ -728,7 +728,7 @@ void PbreaderParser::ParseFtrace(PbreaderDataSegment& dataSeg)
 #endif
 
 #ifdef ENABLE_HTDUMP
-void PbreaderParser::ParseFPS(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseFPS(PbreaderDataSegment &dataSeg)
 {
     dataSeg.dataType = DATA_SOURCE_TYPE_FPS;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
@@ -736,7 +736,7 @@ void PbreaderParser::ParseFPS(PbreaderDataSegment& dataSeg)
 #endif
 
 #ifdef ENABLE_CPUDATA
-void PbreaderParser::ParseCpuUsage(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseCpuUsage(PbreaderDataSegment &dataSeg)
 {
     dataSourceTypeCpuClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_CPU;
@@ -744,7 +744,7 @@ void PbreaderParser::ParseCpuUsage(PbreaderDataSegment& dataSeg)
 }
 #endif
 #ifdef ENABLE_NETWORK
-void PbreaderParser::ParseNetwork(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseNetwork(PbreaderDataSegment &dataSeg)
 {
     dataSourceTypeNetworkClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_NETWORK;
@@ -752,7 +752,7 @@ void PbreaderParser::ParseNetwork(PbreaderDataSegment& dataSeg)
 }
 #endif
 #ifdef ENABLE_DISKIO
-void PbreaderParser::ParseDiskIO(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseDiskIO(PbreaderDataSegment &dataSeg)
 {
     dataSourceTypeDiskioClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_DISKIO;
@@ -761,7 +761,7 @@ void PbreaderParser::ParseDiskIO(PbreaderDataSegment& dataSeg)
 #endif
 
 #ifdef ENABLE_PROCESS
-void PbreaderParser::ParseProcess(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseProcess(PbreaderDataSegment &dataSeg)
 {
     dataSourceTypeProcessClockid_ = TS_CLOCK_BOOTTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_PROCESS;
@@ -770,13 +770,13 @@ void PbreaderParser::ParseProcess(PbreaderDataSegment& dataSeg)
 #endif
 
 #ifdef ENABLE_HISYSEVENT
-void PbreaderParser::ParseHisysevent(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseHisysevent(PbreaderDataSegment &dataSeg)
 {
     dataSourceTypeHisyseventClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_HISYSEVENT;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
-void PbreaderParser::ParseHisyseventConfig(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseHisyseventConfig(PbreaderDataSegment &dataSeg)
 {
     dataSourceTypeHisyseventClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_HISYSEVENT_CONFIG;
@@ -785,8 +785,8 @@ void PbreaderParser::ParseHisyseventConfig(PbreaderDataSegment& dataSeg)
 #endif
 
 #ifdef ENABLE_ARKTS
-void PbreaderParser::ParseJSMemory(const ProtoReader::ProfilerPluginData_Reader& pluginDataZero,
-                                   PbreaderDataSegment& dataSeg,
+void PbreaderParser::ParseJSMemory(const ProtoReader::ProfilerPluginData_Reader &pluginDataZero,
+                                   PbreaderDataSegment &dataSeg,
                                    bool isSplitFile)
 {
     if (isSplitFile) {
@@ -803,7 +803,7 @@ void PbreaderParser::ParseJSMemory(const ProtoReader::ProfilerPluginData_Reader&
     dataSeg.dataType = DATA_SOURCE_TYPE_JSMEMORY;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
-void PbreaderParser::ParseJSMemoryConfig(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseJSMemoryConfig(PbreaderDataSegment &dataSeg)
 {
     dataSourceTypeJSMemoryClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_JSMEMORY_CONFIG;
@@ -812,7 +812,7 @@ void PbreaderParser::ParseJSMemoryConfig(PbreaderDataSegment& dataSeg)
 #endif
 
 #ifdef ENABLE_STREAM_EXTEND
-void PbreaderParser::ParseStream(PbreaderDataSegment& dataSeg)
+void PbreaderParser::ParseStream(PbreaderDataSegment &dataSeg)
 {
     dataSeg.dataType = DATA_SOURCE_TYPE_STREAM;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
@@ -824,7 +824,7 @@ int32_t PbreaderParser::GetNextSegment()
     int32_t head;
     std::lock_guard<std::mutex> muxLockGuard(pbreaderDataSegMux_);
     head = parseHead_;
-    PbreaderDataSegment& pbreaderDataSegmentSeg = dataSegArray_[head];
+    PbreaderDataSegment &pbreaderDataSegmentSeg = dataSegArray_[head];
     if (pbreaderDataSegmentSeg.status.load() != TS_PARSE_STATUS_SEPRATED) {
         if (toExit_) {
             parserThreadCount_--;
@@ -844,7 +844,7 @@ int32_t PbreaderParser::GetNextSegment()
     return head;
 }
 #ifdef ENABLE_EBPF
-bool PbreaderParser::CalcEbpfCutOffset(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
+bool PbreaderParser::CalcEbpfCutOffset(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength)
 {
     auto standaloneDataLength = profilerDataLength_ - packetHeaderLength_;
     if (traceDataCache_->isSplitFile_ && !parsedEbpfOver_) {
@@ -876,7 +876,7 @@ bool PbreaderParser::CalcEbpfCutOffset(std::deque<uint8_t>::iterator& packagesBe
 }
 #endif
 
-bool PbreaderParser::GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
+bool PbreaderParser::GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength)
 {
     if (!hasGotHeader_) {
         if (!InitProfilerTraceFileHeader()) {
@@ -902,15 +902,15 @@ bool PbreaderParser::ParseSDKData()
         auto thirdPartySize = profilerDataLength_ - packetHeaderLength_;
         auto buffer = std::make_unique<uint8_t[]>(thirdPartySize).get();
         std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + thirdPartySize, buffer);
-        TraceStreamerPluginOutFilter(reinterpret_cast<const char*>(buffer), thirdPartySize, standalonePluginName_);
+        TraceStreamerPluginOutFilter(reinterpret_cast<const char *>(buffer), thirdPartySize, standalonePluginName_);
         return true;
     }
     return false;
 }
 #endif
 
-bool PbreaderParser::ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::iterator& packagesBegin,
-                                                          size_t& currentLength)
+bool PbreaderParser::ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::iterator &packagesBegin,
+                                                          size_t &currentLength)
 {
     std::string bufferLine;
     if (!hasGotSegLength_) {
@@ -918,7 +918,7 @@ bool PbreaderParser::ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::i
             return false;
         }
         bufferLine.assign(packagesBegin, packagesBegin + packetSegLength_);
-        const uint32_t* len = reinterpret_cast<const uint32_t*>(bufferLine.data());
+        const uint32_t *len = reinterpret_cast<const uint32_t *>(bufferLine.data());
         nextLength_ = *len;
         lenBuffer_ = bufferLine;
         pbreaderLength_ += nextLength_ + packetSegLength_;
@@ -934,7 +934,7 @@ bool PbreaderParser::ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::i
     }
     return true;
 }
-bool PbreaderParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
+bool PbreaderParser::ParseDataRecursively(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength)
 {
     TS_CHECK_TRUE_RET(GetHeaderAndUpdateLengthMark(packagesBegin, currentLength), false);
 #ifdef ENABLE_HIPERF
@@ -993,7 +993,7 @@ void PbreaderParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr,
     return;
 }
 #ifdef ENABLE_HIPERF
-bool PbreaderParser::ParseHiperfData(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
+bool PbreaderParser::ParseHiperfData(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength)
 {
     if (!traceDataCache_->isSplitFile_) {
         if (packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength_) {
@@ -1056,7 +1056,7 @@ bool PbreaderParser::InitProfilerTraceFileHeader()
     for (auto it = packagesBuffer_.begin(); it != packagesBuffer_.begin() + packetHeaderLength_; ++it, ++i) {
         buffer[i] = *it;
     }
-    ProfilerTraceFileHeader* pHeader = reinterpret_cast<ProfilerTraceFileHeader*>(buffer);
+    ProfilerTraceFileHeader *pHeader = reinterpret_cast<ProfilerTraceFileHeader *>(buffer);
     if (pHeader->data.length <= packetHeaderLength_ || pHeader->data.magic != ProfilerTraceFileHeader::HEADER_MAGIC) {
         TS_LOGE("Profiler Trace data is truncated or invalid magic! len = %" PRIu64 ", maigc = %" PRIx64 "",
                 pHeader->data.length, pHeader->data.magic);
@@ -1088,7 +1088,7 @@ bool PbreaderParser::InitProfilerTraceFileHeader()
             pHeader->data.length, pHeader->data.dataType, pHeader->data.boottime);
 #if IS_WASM
     const int32_t DATA_TYPE_CLOCK = 100;
-    TraceStreamerPluginOutSendData(reinterpret_cast<char*>(buffer), packetHeaderLength_, DATA_TYPE_CLOCK);
+    TraceStreamerPluginOutSendData(reinterpret_cast<char *>(buffer), packetHeaderLength_, DATA_TYPE_CLOCK);
 #endif
     pbreaderClockDetailParser_->Parse(pHeader);
     return true;

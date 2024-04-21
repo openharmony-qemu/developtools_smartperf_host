@@ -18,7 +18,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, TS, NAME, CPU, INTERNAL_TID };
 enum RawType { RAW_CPU_IDLE = 1, RAW_SCHED_WAKEUP = 2, RAW_SCHED_WAKING = 3 };
-uint32_t GetNameIndex(const std::string& name)
+uint32_t GetNameIndex(const std::string &name)
 {
     if (name == "cpu_idle") {
         return RAW_CPU_IDLE;
@@ -30,7 +30,7 @@ uint32_t GetNameIndex(const std::string& name)
         return INVALID_UINT32;
     }
 }
-RawTable::RawTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+RawTable::RawTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -42,14 +42,14 @@ RawTable::RawTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 
 RawTable::~RawTable() {}
 
-void RawTable::FilterByConstraint(FilterConstraints& rawfc,
-                                  double& rawfilterCost,
+void RawTable::FilterByConstraint(FilterConstraints &rawfc,
+                                  double &rawfilterCost,
                                   size_t rawrowCount,
                                   uint32_t rawcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& rawc = rawfc.GetConstraints()[rawcurrenti];
+    const auto &rawc = rawfc.GetConstraints()[rawcurrenti];
     switch (static_cast<Index>(rawc.col)) {
         case Index::ID: {
             if (CanFilterId(rawc.op, rawrowCount)) {
@@ -71,14 +71,14 @@ std::unique_ptr<TableBase::Cursor> RawTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-RawTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+RawTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstRawTableData().Size())),
       rawObj_(dataCache->GetConstRawTableData())
 {
 }
 
 RawTable::Cursor::~Cursor() {}
-int32_t RawTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t RawTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -91,7 +91,7 @@ int32_t RawTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
     SwapIndexFront(RawTableCs, sId);
     for (size_t i = 0; i < RawTableCs.size(); i++) {
-        const auto& c = RawTableCs[i];
+        const auto &c = RawTableCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -99,7 +99,7 @@ int32_t RawTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
             case Index::NAME:
                 indexMap_->MixRange(c.op,
                                     GetNameIndex(std::string(
-                                        reinterpret_cast<const char*>(sqlite3_value_text(argv[c.idxInaConstraint])))),
+                                        reinterpret_cast<const char *>(sqlite3_value_text(argv[c.idxInaConstraint])))),
                                     rawObj_.NameData());
                 break;
             case Index::TS:
@@ -160,7 +160,7 @@ int32_t RawTable::Cursor::Column(int32_t column) const
     }
     return SQLITE_OK;
 }
-void RawTable::GetOrbyes(FilterConstraints& rawfc, EstimatedIndexInfo& rawei)
+void RawTable::GetOrbyes(FilterConstraints &rawfc, EstimatedIndexInfo &rawei)
 {
     auto raworderbys = rawfc.GetOrderBys();
     for (auto i = 0; i < raworderbys.size(); i++) {

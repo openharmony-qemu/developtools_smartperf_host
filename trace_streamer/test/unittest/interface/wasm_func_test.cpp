@@ -48,11 +48,12 @@ HWTEST_F(WasmFuncTest, CorrectTraceData, TestSize.Level1)
 
     char out[MAX_TESET_BUF_SIZE] = {0};
 
-    int32_t ret = TraceStreamerParseData((const uint8_t*)parseData.c_str(), parseData.length());
+    int32_t ret = TraceStreamerParseData((const uint8_t *)parseData.c_str(), parseData.length());
     EXPECT_EQ(0, ret);
     ret = TraceStreamerParseDataOver();
     EXPECT_EQ(0, ret);
-    ret = TraceStreamerSqlQuery((const uint8_t*)sqlQuery.c_str(), sqlQuery.length(), (uint8_t*)out, MAX_TESET_BUF_SIZE);
+    ret =
+        TraceStreamerSqlQuery((const uint8_t *)sqlQuery.c_str(), sqlQuery.length(), (uint8_t *)out, MAX_TESET_BUF_SIZE);
     TS_LOGI("sql value:%s", out);
     EXPECT_NE(-1, ret);
     ret = TraceStreamerReset();
@@ -72,11 +73,12 @@ HWTEST_F(WasmFuncTest, WrongTraceData, TestSize.Level1)
 
     char out[MAX_TESET_BUF_SIZE] = {0};
 
-    int32_t ret = TraceStreamerParseData((const uint8_t*)parseData.c_str(), parseData.length());
+    int32_t ret = TraceStreamerParseData((const uint8_t *)parseData.c_str(), parseData.length());
     EXPECT_EQ(0, ret);
     ret = TraceStreamerParseDataOver();
     EXPECT_EQ(0, ret);
-    ret = TraceStreamerSqlQuery((const uint8_t*)sqlQuery.c_str(), sqlQuery.length(), (uint8_t*)out, MAX_TESET_BUF_SIZE);
+    ret =
+        TraceStreamerSqlQuery((const uint8_t *)sqlQuery.c_str(), sqlQuery.length(), (uint8_t *)out, MAX_TESET_BUF_SIZE);
     TS_LOGI("sql value:%s", out);
     EXPECT_EQ(-1, ret);
     ret = TraceStreamerReset();

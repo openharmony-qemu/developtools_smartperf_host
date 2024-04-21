@@ -23,19 +23,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class JsHeapLocationTable : public TableBase {
 public:
-    explicit JsHeapLocationTable(const TraceDataCache* dataCache);
+    explicit JsHeapLocationTable(const TraceDataCache *dataCache);
     ~JsHeapLocationTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t col) const override;
 
     private:
-        const JsHeapLocation& jsHeapLocation_;
+        const JsHeapLocation &jsHeapLocation_;
     };
 };
 } // namespace TraceStreamer

@@ -83,23 +83,28 @@ export class Utils {
   }
 
   public static isBinder(data: unknown): boolean {
-    return (// @ts-ignore
-      data.funName !== null &&// @ts-ignore
-      (data.funName.toLowerCase().startsWith('binder transaction async') || //binder transaction
+    return (
       // @ts-ignore
-        data.funName.toLowerCase().startsWith('binder async') ||// @ts-ignore
+      data.funName !== null && // @ts-ignore
+      (data.funName.toLowerCase().startsWith('binder transaction async') || //binder transaction
+        // @ts-ignore
+        data.funName.toLowerCase().startsWith('binder async') || // @ts-ignore
         data.funName.toLowerCase().startsWith('binder reply'))
     );
   }
 
-  public static transferPTSTitle(ptsValue: unknown): string {// @ts-ignore
-    if (ptsValue.startsWith('S-')) {// @ts-ignore
-      return Utils.getEndState(ptsValue.replace('S-', ''));// @ts-ignore
-    } else if (ptsValue.startsWith('P-')) {// @ts-ignore
-      let pid = ptsValue.replace('P-', '');// @ts-ignore
+  public static transferPTSTitle(ptsValue: unknown): string {
+    // @ts-ignore
+    if (ptsValue.startsWith('S-')) {
+      // @ts-ignore
+      return Utils.getEndState(ptsValue.replace('S-', '')); // @ts-ignore
+    } else if (ptsValue.startsWith('P-')) {
+      // @ts-ignore
+      let pid = ptsValue.replace('P-', ''); // @ts-ignore
       let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
-      return `${process} [${pid}]`;// @ts-ignore
-    } else if (ptsValue.startsWith('T-')) {// @ts-ignore
+      return `${process} [${pid}]`; // @ts-ignore
+    } else if (ptsValue.startsWith('T-')) {
+      // @ts-ignore
       let tid = ptsValue.replace('T-', '');
       let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
       return `${thread} [${tid}]`;
@@ -108,12 +113,15 @@ export class Utils {
     }
   }
 
-  public static transferBinderTitle(value: unknown): string {// @ts-ignore
-    if (value.startsWith('P-')) {// @ts-ignore
+  public static transferBinderTitle(value: unknown): string {
+    // @ts-ignore
+    if (value.startsWith('P-')) {
+      // @ts-ignore
       let pid = value.replace('P-', '');
       let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
-      return `${process} [${pid}]`;// @ts-ignore
-    } else if (value.startsWith('T-')) {// @ts-ignore
+      return `${process} [${pid}]`; // @ts-ignore
+    } else if (value.startsWith('T-')) {
+      // @ts-ignore
       let tid = value.replace('T-', '');
       let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
       return `${thread} [${tid}]`;
@@ -265,7 +273,8 @@ export class Utils {
 
   public static groupByMap(array: Array<unknown>, key: string): Map<unknown, unknown> {
     let result = new Map();
-    array.forEach((item) => {// @ts-ignore
+    array.forEach((item) => {
+      // @ts-ignore
       let value = item[key];
       if (!result.has(value)) {
         result.set(value, []);
@@ -276,7 +285,8 @@ export class Utils {
   }
 
   public static groupBy(array: Array<unknown>, key: string): unknown {
-    return array.reduce((pre, current, index, arr) => {// @ts-ignore
+    return array.reduce((pre, current, index, arr) => {
+      // @ts-ignore
       (pre[current[key]] = pre[current[key]] || []).push(current);
       return pre;
     }, {});
@@ -326,11 +336,11 @@ export class Utils {
     let gib1 = 1024 * 1024;
     let res = '';
     if (currentBytes >= gib1) {
-      res += `${(currentBytes / gib1).toFixed(2)  }GB`;
+      res += `${(currentBytes / gib1).toFixed(2)}GB`;
     } else if (currentBytes >= mib1) {
-      res += `${(currentBytes / mib1).toFixed(2)  }MB`;
+      res += `${(currentBytes / mib1).toFixed(2)}MB`;
     } else {
-      res += `${currentBytes.toFixed(2)  }KB`;
+      res += `${currentBytes.toFixed(2)}KB`;
     }
     return res;
   }
@@ -349,13 +359,13 @@ export class Utils {
       currentBytes = Math.abs(currentBytes);
     }
     if (currentBytes >= gib1) {
-      res += `${(currentBytes / gib1).toFixed(2)  }GB`;
+      res += `${(currentBytes / gib1).toFixed(2)}GB`;
     } else if (currentBytes >= mib1) {
-      res += `${(currentBytes / mib1).toFixed(2)  }MB`;
+      res += `${(currentBytes / mib1).toFixed(2)}MB`;
     } else if (currentBytes >= kib1) {
-      res += `${(currentBytes / kib1).toFixed(2)  }KB`;
+      res += `${(currentBytes / kib1).toFixed(2)}KB`;
     } else {
-      res += `${currentBytes.toFixed(2)  }Bytes`;
+      res += `${currentBytes.toFixed(2)}Bytes`;
     }
     return res;
   }
@@ -369,27 +379,27 @@ export class Utils {
     let microsecond1 = 1_000; // 1 microsecond
     let res = '';
     if (currentNs >= hour1) {
-      res += `${this.getCompletionTime(Math.floor(currentNs / hour1), 2)  }:`;
+      res += `${this.getCompletionTime(Math.floor(currentNs / hour1), 2)}:`;
       currentNs = currentNs - Math.floor(currentNs / hour1) * hour1;
     }
     if (currentNs >= minute1) {
-      res += `${this.getCompletionTime(Math.floor(currentNs / minute1), 2)  }:`;
+      res += `${this.getCompletionTime(Math.floor(currentNs / minute1), 2)}:`;
       currentNs = currentNs - Math.floor(ns / minute1) * minute1;
     }
     if (currentNs >= second1) {
-      res += `${this.getCompletionTime(Math.floor(currentNs / second1), 2)  }:`;
+      res += `${this.getCompletionTime(Math.floor(currentNs / second1), 2)}:`;
       currentNs = currentNs - Math.floor(currentNs / second1) * second1;
     } else {
       res += '00:';
     }
     if (currentNs >= millisecond1) {
-      res += `${this.getCompletionTime(Math.floor(currentNs / millisecond1), 3)  }.`;
+      res += `${this.getCompletionTime(Math.floor(currentNs / millisecond1), 3)}.`;
       currentNs = currentNs - Math.floor(currentNs / millisecond1) * millisecond1;
     } else {
       res += '000.';
     }
     if (currentNs >= microsecond1) {
-      res += `${this.getCompletionTime(Math.floor(currentNs / microsecond1), 3)  }.`;
+      res += `${this.getCompletionTime(Math.floor(currentNs / microsecond1), 3)}.`;
       currentNs = currentNs - Math.floor(currentNs / microsecond1) * microsecond1;
     } else {
       res += '000';
@@ -410,11 +420,11 @@ export class Utils {
     let res = '';
     if (currentNs >= second1) {
       let cu = currentNs / second1;
-      res += `${cu.toFixed(3)  } s `;
+      res += `${cu.toFixed(3)} s `;
       return res;
     }
     if (currentNs >= millisecond1) {
-      res += `${Math.floor(currentNs / millisecond1)  } ms `;
+      res += `${Math.floor(currentNs / millisecond1)} ms `;
       return res;
     }
     if (res === '') {
@@ -449,18 +459,22 @@ export class Utils {
 
   public static removeDuplicates(array1: unknown[], array2: unknown[], key: string): unknown {
     let obj: unknown = {};
-    return array1.concat(array2).reduce(function (total, item) {// @ts-ignore
-      if (!obj[`${item[key]}-${item.pid}`]) {// @ts-ignore
-        obj[`${item[key]}-${item.pid}`] = true;// @ts-ignore
+    return array1.concat(array2).reduce(function (total, item) {
+      // @ts-ignore
+      if (!obj[`${item[key]}-${item.pid}`]) {
+        // @ts-ignore
+        obj[`${item[key]}-${item.pid}`] = true; // @ts-ignore
         total.push(item);
       }
       return total;
     }, []);
   }
 
-  static getFrequencyWithUnit = (maxFreq: number): {
-    maxFreqName: string,
-    maxFreq: number,
+  static getFrequencyWithUnit = (
+    maxFreq: number
+  ): {
+    maxFreqName: string;
+    maxFreq: number;
   } => {
     let maxFreqObj = {
       maxFreqName: ' ',
@@ -492,21 +506,21 @@ export class Utils {
       if (isStatistic) {
         types.push(0, 1);
       } else {
-        types.push('\'AllocEvent\'', '\'MmapEvent\'');
+        types.push("'AllocEvent'", "'MmapEvent'");
       }
     } else {
       if (selection.indexOf('All Heap') !== -1) {
         if (isStatistic) {
           types.push(0);
         } else {
-          types.push('\'AllocEvent\'');
+          types.push("'AllocEvent'");
         }
       }
       if (selection.indexOf('All Anonymous VM') !== -1) {
         if (isStatistic) {
           types.push(1);
         } else {
-          types.push('\'MmapEvent\'');
+          types.push("'MmapEvent'");
         }
       }
     }

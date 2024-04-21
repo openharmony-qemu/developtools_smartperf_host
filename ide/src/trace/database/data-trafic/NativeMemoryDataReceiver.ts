@@ -83,7 +83,9 @@ function normalChartDataHandler(data: Array<unknown>, key: string, totalNS: numb
   let nmFilterLevel = getFilterLevel(nmFilterLen);
   tempSize = 0;
   tempDensity = 0;
-  data.map((ne: unknown, index: number): void => mergeNormalChartData(ne, nmFilterLevel, index === nmFilterLen - 1, key));
+  data.map((ne: unknown, index: number): void =>
+    mergeNormalChartData(ne, nmFilterLevel, index === nmFilterLen - 1, key)
+  );
   let cache = dataCache.normalCache.get(key);
   if (cache && cache.dataList.length > 0) {
     cache.dataList[cache.dataList.length - 1].dur = totalNS - cache.dataList[cache.dataList.length - 1].startTime!;
@@ -427,15 +429,15 @@ function arrayBufferCallback(data: unknown, transfer: boolean): void {
       action: data.action,
       results: transfer
         ? {
-          startTime: startTime.buffer,
-          dur: dur.buffer,
-          density: density.buffer,
-          heapSize: heapSize.buffer,
-          maxSize: cache!.maxSize,
-          minSize: cache!.minSize,
-          maxDensity: cache!.maxDensity,
-          minDensity: cache!.minDensity,
-        }
+            startTime: startTime.buffer,
+            dur: dur.buffer,
+            density: density.buffer,
+            heapSize: heapSize.buffer,
+            maxSize: cache!.maxSize,
+            minSize: cache!.minSize,
+            maxDensity: cache!.maxDensity,
+            minDensity: cache!.minDensity,
+          }
         : {},
       len: len,
     },

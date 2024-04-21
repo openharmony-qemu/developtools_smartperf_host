@@ -30,12 +30,12 @@ namespace SysTuning {
 namespace TraceStreamer {
 class ArgsFilter : private FilterBase {
 public:
-    ArgsFilter(TraceDataCache*, const TraceStreamerFilters*);
-    ArgsFilter(const ArgsFilter&) = delete;
-    ArgsFilter& operator=(const ArgsFilter&) = delete;
+    ArgsFilter(TraceDataCache *, const TraceStreamerFilters *);
+    ArgsFilter(const ArgsFilter &) = delete;
+    ArgsFilter &operator=(const ArgsFilter &) = delete;
     ~ArgsFilter() override;
-    uint32_t NewArgs(const ArgsSet& args);
-    uint32_t AppendArgs(const ArgsSet& args, const size_t argSetId);
+    uint32_t NewArgs(const ArgsSet &args);
+    uint32_t AppendArgs(const ArgsSet &args, const size_t argSetId);
     int32_t count_ = 0;
 };
 } // namespace TraceStreamer

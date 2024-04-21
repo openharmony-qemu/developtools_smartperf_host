@@ -22,16 +22,16 @@ namespace SysTuning {
 namespace base {
 int32_t PreNum(unsigned char byte);
 
-bool IsUTF8(const uint8_t* data, int32_t len);
+bool IsUTF8(const uint8_t *data, int32_t len);
 
-bool IsGBK(const uint8_t* data, int32_t len);
+bool IsGBK(const uint8_t *data, int32_t len);
 
 typedef enum { GBK, UTF8, UNKOWN } CODING;
 
-CODING GetCoding(const uint8_t* data, int32_t len);
+CODING GetCoding(const uint8_t *data, int32_t len);
 
 #ifdef _WIN32
-std::string GbkToUtf8(const char* srcStr);
+std::string GbkToUtf8(const char *srcStr);
 #endif
 } // namespace base
 } // namespace SysTuning

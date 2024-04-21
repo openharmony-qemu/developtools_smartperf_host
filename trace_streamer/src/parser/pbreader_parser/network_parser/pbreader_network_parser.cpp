@@ -19,7 +19,7 @@
 #include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderNetworkParser::PbreaderNetworkParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderNetworkParser::PbreaderNetworkParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
 }
@@ -47,7 +47,7 @@ void PbreaderNetworkParser::Parse(ProtoReader::BytesView tracePacket, uint64_t t
 }
 void PbreaderNetworkParser::Finish()
 {
-    auto cmp = [](const TsNetworkData& a, const TsNetworkData& b) { return a.ts < b.ts; };
+    auto cmp = [](const TsNetworkData &a, const TsNetworkData &b) { return a.ts < b.ts; };
     std::stable_sort(networkData_.begin(), networkData_.end(), cmp);
     bool firstTime = true;
     uint64_t lastTs = 0;
@@ -69,10 +69,19 @@ void PbreaderNetworkParser::Finish()
         }
         auto dur = newTimeStamp - lastTs;
         auto durS = 1.0 * dur / SEC_TO_NS;
-        traceDataCache_->GetNetworkData()->AppendNewNetData(
-            newTimeStamp, itor->tx_bytes, itor->rx_bytes, dur, 1.0 * (itor->rx_bytes - lastRx) / durS,
-            1.0 * (itor->tx_bytes - lastTx) / durS, itor->rx_packets, 1.0 * (itor->rx_packets - lastPacketIn) / durS,
-            itor->tx_packets, 1.0 * (itor->tx_packets - lastPacketOut) / durS, "undefined");
+        NetDetailRow row;
+        row.newTimeStamp = newTimeStamp;
+        row.tx = itor->tx_bytes;
+        row.rx = itor->rx_bytes;
+        row.dur = dur;
+        row.rxSpeed = 1.0 * (itor->rx_bytes - lastRx) / durS;
+        row.txSpeed = 1.0 * (itor->tx_bytes - lastTx) / durS;
+        row.packetIn = itor->rx_packets;
+        row.packetInSec = 1.0 * (itor->rx_packets - lastPacketIn) / durS;
+        row.packetOut = itor->tx_packets;
+        row.packetOutSec = 1.0 * (itor->tx_packets - lastPacketOut) / durS;
+        row.netType = "undefined";
+        traceDataCache_->GetNetworkData()->AppendNewNetData(row);
         lastTs = newTimeStamp;
         lastRx = itor->rx_bytes;
         lastTx = itor->tx_bytes;

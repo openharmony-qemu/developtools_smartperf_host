@@ -28,13 +28,13 @@ public:
                          uint64_t endTime,
                          uint32_t startName,
                          DataIndex packedName);
-    const std::deque<uint32_t>& Pids() const;
-    const std::deque<uint32_t>& Tids() const;
-    const std::deque<uint32_t>& CallIds() const;
-    const std::deque<uint64_t>& StartTimes() const;
-    const std::deque<uint64_t>& EndTimes() const;
-    const std::deque<uint32_t>& StartNames() const;
-    const std::deque<DataIndex>& PackedNames() const;
+    const std::deque<uint32_t> &Pids() const;
+    const std::deque<uint32_t> &Tids() const;
+    const std::deque<uint32_t> &CallIds() const;
+    const std::deque<uint64_t> &StartTimes() const;
+    const std::deque<uint64_t> &EndTimes() const;
+    const std::deque<uint32_t> &StartNames() const;
+    const std::deque<DataIndex> &PackedNames() const;
 
     void Clear() override
     {
@@ -67,12 +67,12 @@ public:
                          uint64_t endTime,
                          DataIndex soName,
                          uint32_t depth);
-    const std::deque<uint32_t>& Pids() const;
-    const std::deque<uint32_t>& Tids() const;
-    const std::deque<uint32_t>& CallIds() const;
-    const std::deque<uint64_t>& StartTimes() const;
-    const std::deque<uint64_t>& EndTimes() const;
-    const std::deque<DataIndex>& SoNames() const;
+    const std::deque<uint32_t> &Pids() const;
+    const std::deque<uint32_t> &Tids() const;
+    const std::deque<uint32_t> &CallIds() const;
+    const std::deque<uint64_t> &StartTimes() const;
+    const std::deque<uint64_t> &EndTimes() const;
+    const std::deque<DataIndex> &SoNames() const;
     const std::deque<uint32_t> Depths() const;
 
     void Clear() override

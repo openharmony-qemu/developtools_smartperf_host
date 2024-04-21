@@ -56,7 +56,7 @@ export class JsCpuProfilerChartFrame extends JsCpuProfilerUIStruct {
   startTime: number;
   endTime: number;
   children: Array<JsCpuProfilerChartFrame>;
-  childrenIds: Array<unknown>;
+  childrenIds: Array<number>;
   samplesIds: Array<number>;
   isSelect: boolean = false;
   parent?: JsCpuProfilerChartFrame;

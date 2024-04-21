@@ -34,31 +34,31 @@ size_t AppStartup::AppendNewData(uint32_t ipid,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& AppStartup::Pids() const
+const std::deque<uint32_t> &AppStartup::Pids() const
 {
     return ipids_;
 }
-const std::deque<uint32_t>& AppStartup::Tids() const
+const std::deque<uint32_t> &AppStartup::Tids() const
 {
     return tids_;
 }
-const std::deque<uint32_t>& AppStartup::CallIds() const
+const std::deque<uint32_t> &AppStartup::CallIds() const
 {
     return callIds_;
 }
-const std::deque<uint64_t>& AppStartup::StartTimes() const
+const std::deque<uint64_t> &AppStartup::StartTimes() const
 {
     return startTimes_;
 }
-const std::deque<uint64_t>& AppStartup::EndTimes() const
+const std::deque<uint64_t> &AppStartup::EndTimes() const
 {
     return endTimes_;
 }
-const std::deque<uint32_t>& AppStartup::StartNames() const
+const std::deque<uint32_t> &AppStartup::StartNames() const
 {
     return startNames_;
 }
-const std::deque<DataIndex>& AppStartup::PackedNames() const
+const std::deque<DataIndex> &AppStartup::PackedNames() const
 {
     return packedNames_;
 }
@@ -81,27 +81,27 @@ size_t SoStaticInitalization::AppendNewData(uint32_t ipid,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& SoStaticInitalization::Pids() const
+const std::deque<uint32_t> &SoStaticInitalization::Pids() const
 {
     return ipids_;
 }
-const std::deque<uint32_t>& SoStaticInitalization::Tids() const
+const std::deque<uint32_t> &SoStaticInitalization::Tids() const
 {
     return tids_;
 }
-const std::deque<uint32_t>& SoStaticInitalization::CallIds() const
+const std::deque<uint32_t> &SoStaticInitalization::CallIds() const
 {
     return callIds_;
 }
-const std::deque<uint64_t>& SoStaticInitalization::StartTimes() const
+const std::deque<uint64_t> &SoStaticInitalization::StartTimes() const
 {
     return startTimes_;
 }
-const std::deque<uint64_t>& SoStaticInitalization::EndTimes() const
+const std::deque<uint64_t> &SoStaticInitalization::EndTimes() const
 {
     return endTimes_;
 }
-const std::deque<DataIndex>& SoStaticInitalization::SoNames() const
+const std::deque<DataIndex> &SoStaticInitalization::SoNames() const
 {
     return soNames_;
 }

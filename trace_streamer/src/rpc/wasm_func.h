@@ -35,15 +35,15 @@
 namespace SysTuning {
 namespace TraceStreamer {
 extern "C" {
-int32_t TraceStreamerParseData(const uint8_t* data, int32_t dataLen);
+int32_t TraceStreamerParseData(const uint8_t *data, int32_t dataLen);
 int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFinish);
 int32_t TraceStreamerParseDataOver();
-int32_t TraceStreamerSqlOperate(const uint8_t* sql, int32_t sqlLen);
+int32_t TraceStreamerSqlOperate(const uint8_t *sql, int32_t sqlLen);
 int32_t TraceStreamerSqlOperateEx(int32_t sqlLen);
 int32_t TraceStreamerReset();
-int32_t TraceStreamerSqlQuery(const uint8_t* sql, int32_t sqlLen, uint8_t* out, int32_t outLen);
-int32_t TraceStreamerPluginOutSendData(const char* pluginData, int32_t len, int32_t componentId);
-int32_t TraceStreamerPluginOutFilter(const char* pluginData, int32_t len, const std::string& componentName);
+int32_t TraceStreamerSqlQuery(const uint8_t *sql, int32_t sqlLen, uint8_t *out, int32_t outLen);
+int32_t TraceStreamerPluginOutSendData(const char *pluginData, int32_t len, int32_t componentId);
+int32_t TraceStreamerPluginOutFilter(const char *pluginData, int32_t len, const std::string &componentName);
 void TraceStreamerSetLogLevel(uint32_t level);
 
 int32_t TraceStreamerSqlQueryEx(int32_t sqlLen);

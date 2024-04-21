@@ -11,53 +11,55 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from '../CommonArgs';
 import { TraficEnum } from '../utils/QueryEnum';
 
-export const chartProcessStartupDataSql = (args: unknown): string => {
+export const chartProcessStartupDataSql = (args: Args): string => {
   return `
       select P.pid,
              A.tid,
              A.call_id                                                                         as itid,
-             (case when A.start_time < ${//@ts-ignore
-              args.recordStartNS} then 0 else (A.start_time - ${args.recordStartNS}) end) as startTime,
+             (case when A.start_time < ${args.recordStartNS} then 0 else (A.start_time - ${args.recordStartNS}) end) as startTime,
              (case
-                  when A.start_time < ${//@ts-ignore
-                    args.recordStartNS} then (A.end_time - ${args.recordStartNS})
+                  when A.start_time < ${args.recordStartNS} then (A.end_time - ${args.recordStartNS})
                   when A.end_time = -1 then 0
                   else (A.end_time - A.start_time) end)                                        as dur,
              A.start_name                                                                      as startName
       from app_startup A
                left join process P on A.ipid = P.ipid
-      where P.pid = ${//@ts-ignore
-        args.pid}
+      where P.pid = ${args.pid}
       order by start_name;`;
 };
 
-export function processStartupDataReceiver(data: unknown, proc: Function): void {//@ts-ignore
+export function processStartupDataReceiver(data: unknown, proc: Function): void {
+  //@ts-ignore
   let sql = chartProcessStartupDataSql(data.params);
-  let res = proc(sql);//@ts-ignore
+  let res = proc(sql); //@ts-ignore
   arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
 
-function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {//@ts-ignore
-  let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime);//@ts-ignore
-  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);//@ts-ignore
-  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);//@ts-ignore
-  let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid);//@ts-ignore
-  let itid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.itid);//@ts-ignore
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  //@ts-ignore
+  let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime); //@ts-ignore
+  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur); //@ts-ignore
+  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid); //@ts-ignore
+  let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid); //@ts-ignore
+  let itid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.itid); //@ts-ignore
   let startName = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.startName);
-  res.forEach((it, i) => {//@ts-ignore
-    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processStartupData);//@ts-ignore
-    dur[i] = it.dur || 0;//@ts-ignore
-    startTs[i] = it.startTime || 0;//@ts-ignore
-    pid[i] = it.pid || 0;//@ts-ignore
-    tid[i] = it.tid || 0;//@ts-ignore
-    itid[i] = it.itid || 0;//@ts-ignore
+  res.forEach((it, i) => {
+    //@ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processStartupData); //@ts-ignore
+    dur[i] = it.dur || 0; //@ts-ignore
+    startTs[i] = it.startTime || 0; //@ts-ignore
+    pid[i] = it.pid || 0; //@ts-ignore
+    tid[i] = it.tid || 0; //@ts-ignore
+    itid[i] = it.itid || 0; //@ts-ignore
     startName[i] = it.startName || 0;
   });
   (self as unknown as Worker).postMessage(
-    {//@ts-ignore
-      id: data.id,//@ts-ignore
+    {
+      //@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
       results: transfer
         ? {

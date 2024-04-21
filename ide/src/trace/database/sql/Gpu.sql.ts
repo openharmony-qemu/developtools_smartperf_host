@@ -238,8 +238,10 @@ where window_name_id != 0
 and A.ts < TR.end_ts
   `
   );
-export const queryGpuDur = (id: number)://@ts-ignore
- Promise<unknown[]> =>
+export const queryGpuDur = (
+  id: number
+): //@ts-ignore
+Promise<unknown[]> =>
   query(
     'queryGpuDur',
     `

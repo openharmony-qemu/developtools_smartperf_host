@@ -21,8 +21,11 @@ namespace SysTuning {
 namespace TraceStdtype {
 class ThreadStateData : public CacheBase, public BatchCacheBase {
 public:
-    TableRowId
-        AppendThreadState(InternalTime ts, InternalTime dur, InternalCpu cpu, InternalTid itid, TableRowId idState);
+    TableRowId AppendThreadState(InternalTime ts,
+                                 InternalTime dur,
+                                 InternalCpu cpu,
+                                 InternalTid itid,
+                                 TableRowId idState);
     void SetDuration(TableRowId index, InternalTime dur);
     TableRowId UpdateDuration(TableRowId index, InternalTime ts);
     bool End(TableRowId index, InternalTime ts);
@@ -46,31 +49,31 @@ public:
     {
         EraseElements(ids_, timeStamps_, durations_, itids_, tids_, pids_, states_, cpus_, argSetIds_);
     }
-    const std::deque<InternalTime>& DursData() const
+    const std::deque<InternalTime> &DursData() const
     {
         return durations_;
     }
-    const std::deque<InternalTid>& ItidsData() const
+    const std::deque<InternalTid> &ItidsData() const
     {
         return itids_;
     }
-    const std::deque<InternalTid>& TidsData() const
+    const std::deque<InternalTid> &TidsData() const
     {
         return tids_;
     }
-    const std::deque<InternalPid>& PidsData() const
+    const std::deque<InternalPid> &PidsData() const
     {
         return pids_;
     }
-    const std::deque<DataIndex>& StatesData() const
+    const std::deque<DataIndex> &StatesData() const
     {
         return states_;
     }
-    const std::deque<InternalCpu>& CpusData() const
+    const std::deque<InternalCpu> &CpusData() const
     {
         return cpus_;
     }
-    const std::deque<uint32_t>& ArgSetsData() const
+    const std::deque<uint32_t> &ArgSetsData() const
     {
         return argSetIds_;
     }
@@ -98,25 +101,25 @@ public:
     void UpdateEndState(uint64_t index, uint64_t state);
     void UpdateArg(uint64_t index, uint32_t argsetId);
 
-    const std::deque<uint64_t>& EndStatesData() const
+    const std::deque<uint64_t> &EndStatesData() const
     {
         return endStates_;
     }
 
-    const std::deque<int32_t>& PriorityData() const
+    const std::deque<int32_t> &PriorityData() const
     {
         return priority_;
     }
 
-    const std::deque<uint32_t>& ArgSetData() const
+    const std::deque<uint32_t> &ArgSetData() const
     {
         return argSets_;
     }
-    const std::deque<uint64_t>& TsEndData() const
+    const std::deque<uint64_t> &TsEndData() const
     {
         return tsEnds_;
     }
-    const std::deque<InternalPid>& InternalPidsData() const
+    const std::deque<InternalPid> &InternalPidsData() const
     {
         return internalPids_;
     }
@@ -151,11 +154,11 @@ private:
 class Raw : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendRawData(uint64_t timeStamp, uint32_t name, uint32_t cpu, uint32_t internalTid);
-    const std::deque<uint32_t>& NameData() const
+    const std::deque<uint32_t> &NameData() const
     {
         return nameDeque_;
     }
-    const std::deque<uint32_t>& CpuData() const
+    const std::deque<uint32_t> &CpuData() const
     {
         return cpuDeque_;
     }
@@ -182,11 +185,11 @@ public:
                                   int64_t internalTid,
                                   int64_t wakeupFromInternalPid);
 
-    const std::deque<DataIndex>& NameIndexsData() const
+    const std::deque<DataIndex> &NameIndexsData() const
     {
         return NameIndexs_;
     }
-    const std::deque<int64_t>& WakeupFromPidsData() const
+    const std::deque<int64_t> &WakeupFromPidsData() const
     {
         return wakeupFromInternalPids_;
     }

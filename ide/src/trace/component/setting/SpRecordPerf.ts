@@ -457,9 +457,14 @@ export class SpRecordPerf extends BaseElement {
   private configTypeBySelect(config: unknown, recordPerfDiv: HTMLDivElement): void {
     let recordPerfSelect = '';
     recordPerfSelect += `<lit-select rounded="" default-value="" class="record-perf-select config" 
-placement="bottom" title="${//@ts-ignore
-  config.title}"  placeholder="${config.selectArray[0]}">`;
-  //@ts-ignore
+placement="bottom" title="${
+      //@ts-ignore
+      config.title
+    }"  placeholder="${
+      //@ts-ignore
+      config.selectArray[0]
+    }">`;
+    //@ts-ignore
     config.selectArray.forEach((value: string) => {
       recordPerfSelect += `<lit-select-option value="${value}">${value}</lit-select-option>`;
     });
@@ -487,10 +492,14 @@ placement="bottom" title="${//@ts-ignore
     let defaultValue = Math.pow(2, config.litSliderStyle.defaultValue);
     let mapsilder = `
 <div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" 
-class="silderclass config" title="${//@ts-ignore
-  config.title}"></lit-slider><input readonly class="sliderInput" 
-type="text" value = '    ${defaultValue} ${//@ts-ignore
-  config.litSliderStyle.resultUnit}' ></div>`;
+class="silderclass config" title="${
+      //@ts-ignore
+      config.title
+    }"></lit-slider><input readonly class="sliderInput" 
+type="text" value = '    ${defaultValue} ${
+      //@ts-ignore
+      config.litSliderStyle.resultUnit
+    }' ></div>`;
     recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + mapsilder;
     let maplitSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
     //@ts-ignore
@@ -511,10 +520,17 @@ type="text" value = '    ${defaultValue} ${//@ts-ignore
   private configTypeByLitSlider(config: unknown, recordPerfDiv: HTMLDivElement): void {
     let sliderEl = `
 <div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" 
-class="silderclass config" title="${//@ts-ignore
-  config.title}"></lit-slider><input readonly class="sliderInput" 
-type="text" value = '    ${//@ts-ignore
-  config.litSliderStyle.defaultValue} ${config.litSliderStyle.resultUnit}' >
+class="silderclass config" title="${
+      //@ts-ignore
+      config.title
+    }"></lit-slider><input readonly class="sliderInput" 
+type="text" value = '    ${
+      //@ts-ignore
+      config.litSliderStyle.defaultValue
+    } ${
+      //@ts-ignore
+      config.litSliderStyle.resultUnit
+    }' >
 </div>`;
     recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + sliderEl;
     let litSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
@@ -539,9 +555,11 @@ type="text" value = '    ${//@ts-ignore
       placeholder = 'NONE';
     }
     html += `<lit-select-v default-value="" rounded="" class="record-perf-select config" 
-mode="multiple" canInsert="" title="${//@ts-ignore
-  config.title}" rounded placement = "bottom" placeholder="${placeholder}">`;
-  //@ts-ignore
+mode="multiple" canInsert="" title="${
+      //@ts-ignore
+      config.title
+    }" rounded placement = "bottom" placeholder="${placeholder}">`;
+    //@ts-ignore
     config.selectArray.forEach((value: string) => {
       html += `<lit-select-option value="${value}">${value}</lit-select-option>`;
     });

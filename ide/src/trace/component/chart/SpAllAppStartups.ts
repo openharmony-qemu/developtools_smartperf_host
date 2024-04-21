@@ -47,7 +47,7 @@ export class SpAllAppStartupsChart {
       let tmpSingleApp: unknown[] = await queryProcessStartup(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
       if (tmpSingleApp.length === 8) {
         let avilSingleName = await querySingleAppStartupsName(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
-        SpAllAppStartupsChart.allAppStartupsAva.push(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]);//@ts-ignore
+        SpAllAppStartupsChart.allAppStartupsAva.push(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]); //@ts-ignore
         SpAllAppStartupsChart.AllAppStartupsNameArr.push(avilSingleName![0].name);
       }
     }
@@ -87,7 +87,7 @@ export class SpAllAppStartupsChart {
         sendRes.push({
           dur: singleDur,
           startTs: minStartTs,
-          startName: undefined,// @ts-ignore
+          startName: undefined, // @ts-ignore
           stepName: SpAllAppStartupsChart.AllAppStartupsNameArr[i],
           translateY: undefined,
           frame: undefined,
@@ -124,7 +124,9 @@ export class SpAllAppStartupsChart {
       if (row.currentContext) {
         context = row.currentContext;
       } else {
-        context = row.collect ? SpAllAppStartupsChart.trace.canvasFavoritePanelCtx! : SpAllAppStartupsChart.trace.canvasPanelCtx!;
+        context = row.collect
+          ? SpAllAppStartupsChart.trace.canvasFavoritePanelCtx!
+          : SpAllAppStartupsChart.trace.canvasPanelCtx!;
       }
       row.canvasSave(context);
       (renders['all-app-start-up'] as AllAppStartupRender).renderMainThread(

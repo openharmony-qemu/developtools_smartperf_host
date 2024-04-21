@@ -30,7 +30,7 @@ enum class Index : int32_t {
     EXP_NAME_ID,
     FLAG,
 };
-MemoryDmaTable::MemoryDmaTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+MemoryDmaTable::MemoryDmaTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -53,7 +53,7 @@ std::unique_ptr<TableBase::Cursor> MemoryDmaTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-MemoryDmaTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+MemoryDmaTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstDmaMemData().Size())),
       DmaMemDataObj_(dataCache->GetConstDmaMemData())
 {

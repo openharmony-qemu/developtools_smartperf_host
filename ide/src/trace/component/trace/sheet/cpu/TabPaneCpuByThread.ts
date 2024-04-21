@@ -55,9 +55,8 @@ export class TabPaneCpuByThread extends BaseElement {
     this.cpuByThreadTbl!.innerHTML = this.getTableColumns(cpuByThreadValue.cpus);
     this.cpuByThreadTbl!.injectColumns();
     this.range!.textContent =
-    // @ts-ignore
-      `Selected range: ${parseFloat(((cpuByThreadValue.rightNs - cpuByThreadValue.leftNs) / 1000000.0).
-        toFixed(5))} ms`;
+      // @ts-ignore
+      `Selected range: ${parseFloat(((cpuByThreadValue.rightNs - cpuByThreadValue.leftNs) / 1000000.0).toFixed(5))} ms`;
     this.cpuByThreadTbl!.loading = true;
     this.handleAsyncRequest(cpuByThreadValue);
   }
@@ -67,7 +66,7 @@ export class TabPaneCpuByThread extends BaseElement {
     getTabCpuByThread(cpuByThreadValue.cpus, cpuByThreadValue.leftNs, cpuByThreadValue.rightNs).then((result): void => {
       this.cpuByThreadTbl!.loading = false;
       if (result !== null && result.length > 0) {
-        log(`getTabCpuByThread size :${  result.length}`);
+        log(`getTabCpuByThread size :${result.length}`);
         this.processResult(result, cpuByThreadValue);
       } else {
         this.cpuByThreadSource = [];
@@ -243,9 +242,9 @@ export class TabPaneCpuByThread extends BaseElement {
         return 0;
       }
       if (type === 'number') {
-        return sort === 2 ? // @ts-ignore
-          parseFloat(cpuByThreadRightData[property]) - parseFloat(cpuByThreadLeftData[property]) : // @ts-ignore
-          parseFloat(cpuByThreadLeftData[property]) - parseFloat(cpuByThreadRightData[property]);
+        return sort === 2 // @ts-ignore
+          ? parseFloat(cpuByThreadRightData[property]) - parseFloat(cpuByThreadLeftData[property]) // @ts-ignore
+          : parseFloat(cpuByThreadLeftData[property]) - parseFloat(cpuByThreadRightData[property]);
       } else {
         // @ts-ignore
         if (cpuByThreadRightData[property] > cpuByThreadLeftData[property]) {

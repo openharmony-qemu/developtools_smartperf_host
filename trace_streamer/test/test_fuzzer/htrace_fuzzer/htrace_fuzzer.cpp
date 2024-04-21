@@ -23,7 +23,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-bool HtraceParserFuzzTest(const uint8_t* data, size_t size)
+bool HtraceParserFuzzTest(const uint8_t *data, size_t size)
 {
     TraceStreamerSelector stream_ = {};
     stream_.SetDataType(TRACE_FILETYPE_H_TRACE);
@@ -40,7 +40,7 @@ bool HtraceParserFuzzTest(const uint8_t* data, size_t size)
 } // namespace SysTuning
 
 /* Fuzzer entry point */
-extern "C" int32_t LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int32_t LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     SysTuning::TraceStreamer::HtraceParserFuzzTest(data, size);

@@ -81,7 +81,8 @@ export class IndexedDBHelp {
 
   public get(storeName: string, query: IDBValidKey | IDBKeyRange, queryIndex?: string): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {// @ts-ignore
+      this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {
+        // @ts-ignore
         let request: IDBRequest<unknown>;
         if (queryIndex) {
           const index = objectStore.index(queryIndex);
@@ -101,7 +102,7 @@ export class IndexedDBHelp {
       });
     });
   }
-// @ts-ignore
+  // @ts-ignore
   public add(storeName: string, value: unknown, key?: IDBValidKey): Promise<unknown> {
     return new Promise((resolve, reject) => {
       this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {
@@ -131,7 +132,7 @@ export class IndexedDBHelp {
       });
     });
   }
-// @ts-ignore
+  // @ts-ignore
   public put(storeName: string, value: unknown, key?: IDBValidKey): Promise<unknown> {
     return new Promise((resolve, reject) => {
       this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {

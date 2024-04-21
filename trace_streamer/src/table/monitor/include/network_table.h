@@ -23,20 +23,20 @@ namespace SysTuning {
 namespace TraceStreamer {
 class NetworkTable : public TableBase {
 public:
-    explicit NetworkTable(const TraceDataCache* dataCache);
+    explicit NetworkTable(const TraceDataCache *dataCache);
     ~NetworkTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t column) const override;
 
     private:
         void HandleTypeColumns(int32_t column) const;
-        const NetDetailData& networkDataObj_;
+        const NetDetailData &networkDataObj_;
     };
 };
 } // namespace TraceStreamer

@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, NAME, CLOCK_ID };
-DataSourceClockIdTableTable::DataSourceClockIdTableTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+DataSourceClockIdTableTable::DataSourceClockIdTableTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("data_source_name", "TEXT"));
@@ -34,7 +34,7 @@ std::unique_ptr<TableBase::Cursor> DataSourceClockIdTableTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-DataSourceClockIdTableTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+DataSourceClockIdTableTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstDataSourceClockIdData().Size())),
       dataSourceClockIdData_(dataCache->GetConstDataSourceClockIdData())
 {

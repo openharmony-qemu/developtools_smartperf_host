@@ -23,19 +23,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class AnimationTable : public TableBase {
 public:
-    explicit AnimationTable(const TraceDataCache*);
+    explicit AnimationTable(const TraceDataCache *);
     ~AnimationTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t col) const override;
 
     private:
-        const Animation& animationObj_;
+        const Animation &animationObj_;
     };
 };
 } // namespace TraceStreamer

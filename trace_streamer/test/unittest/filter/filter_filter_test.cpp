@@ -52,7 +52,7 @@ HWTEST_F(FilterFilterTest, AddCpuCounterFilter, TestSize.Level1)
     filterId = streamFilters_.filterFilter_->AddFilter("cpu_counter_filter", "cpu2", 2);
     EXPECT_EQ(filterId, static_cast<uint32_t>(1));
 
-    Filter* filterTable = traceDataCache_.GetFilterData();
+    Filter *filterTable = traceDataCache_.GetFilterData();
     EXPECT_EQ(filterTable->Size(), static_cast<size_t>(2));
 }
 
@@ -70,7 +70,7 @@ HWTEST_F(FilterFilterTest, AddThreadFilter, TestSize.Level1)
     threadFilterId = streamFilters_.filterFilter_->AddFilter("thread_counter_filter", "threadCount2", 2);
     EXPECT_EQ(threadFilterId, static_cast<uint32_t>(1));
 
-    Filter* filterTable = traceDataCache_.GetFilterData();
+    Filter *filterTable = traceDataCache_.GetFilterData();
     EXPECT_EQ(filterTable->Size(), static_cast<size_t>(2));
 
     threadFilterId = streamFilters_.filterFilter_->AddFilter("thread_filter", "thread1", 1);

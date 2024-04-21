@@ -24,8 +24,7 @@ export class PerfDataQuery {
   filesData: unknown = {};
   callChainMap: Map<number, PerfCall> = new Map<number, PerfCall>();
 
-
-  async initPerfCache() : Promise<void> {
+  async initPerfCache(): Promise<void> {
     await this.initPerfCallChainMap();
     await this.initPerfFiles();
   }
@@ -37,9 +36,10 @@ export class PerfDataQuery {
   async initPerfFiles(): Promise<void> {
     let files = await queryPerfFiles();
     info('PerfFiles Data size is: ', files!.length);
-    files.forEach((file) => {// @ts-ignore
+    files.forEach((file) => {
+      // @ts-ignore
       this.filesData[file.fileId] = this.filesData[file.fileId] || [];
-      PerfFile.setFileName(file);// @ts-ignore
+      PerfFile.setFileName(file); // @ts-ignore
       this.filesData[file.fileId].push(file);
     });
     const data = {
@@ -49,19 +49,23 @@ export class PerfDataQuery {
       procedurePool.submitWithName('logic0', 'perf-init', data, undefined, (res: unknown) => {
         resolve(res);
       });
-    });// @ts-ignore
+    }); // @ts-ignore
     this.callChainMap = results as unknown;
     info('Perf Files Data initialized');
   }
 
   getLibName(fileId: number, symbolId: number): string {
     let name = 'unknown';
-    if (symbolId === -1) {// @ts-ignore
-      if (this.filesData[fileId] && this.filesData[fileId].length > 0) {// @ts-ignore
+    if (symbolId === -1) {
+      // @ts-ignore
+      if (this.filesData[fileId] && this.filesData[fileId].length > 0) {
+        // @ts-ignore
         name = this.filesData[fileId][0].fileName;
       }
-    } else {// @ts-ignore
-      if (this.filesData[fileId] && this.filesData[fileId].length > symbolId) {// @ts-ignore
+    } else {
+      // @ts-ignore
+      if (this.filesData[fileId] && this.filesData[fileId].length > symbolId) {
+        // @ts-ignore
         name = this.filesData[fileId][symbolId].fileName;
       }
     }

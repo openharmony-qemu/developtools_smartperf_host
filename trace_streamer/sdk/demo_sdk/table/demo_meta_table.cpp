@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { NAMEINDEX = 0, VALUE };
-DemoMetaTable::DemoMetaTable(const TraceDataCache* dataCache) : DemoTableBase(dataCache)
+DemoMetaTable::DemoMetaTable(const TraceDataCache *dataCache) : DemoTableBase(dataCache)
 {
     demoTableColumn_.push_back(DemoTableBase::ColumnInfo("name", "TEXT"));
     demoTableColumn_.push_back(DemoTableBase::ColumnInfo("value", "TEXT"));
@@ -33,7 +33,7 @@ std::unique_ptr<DemoTableBase::Cursor> DemoMetaTable::CreateCursor()
     return std::make_unique<Cursor>(demoTraceDataCache_, this);
 }
 
-DemoMetaTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTableBase* table)
+DemoMetaTable::Cursor::Cursor(const TraceDataCache *dataCache, DemoTableBase *table)
     : DemoTableBase::Cursor(dataCache, table, MetaDataItem::METADATA_ITEM_MAX)
 {
 }

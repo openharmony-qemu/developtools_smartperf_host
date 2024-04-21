@@ -50,9 +50,10 @@ export function virtualMemoryDataSender(
   });
 }
 
-function arrayBufferHandler(buffers: unknown, len: number): VirtualMemoryStruct[] {// @ts-ignore
-  let filterID = new Uint8Array(buffers.filterID);// @ts-ignore
-  let value = new Int32Array(buffers.value);// @ts-ignore
+function arrayBufferHandler(buffers: unknown, len: number): VirtualMemoryStruct[] {
+  // @ts-ignore
+  let filterID = new Uint8Array(buffers.filterID); // @ts-ignore
+  let value = new Int32Array(buffers.value); // @ts-ignore
   let startTime = new Float64Array(buffers.startTime);
   let outArr: VirtualMemoryStruct[] = [];
   for (let i = 0; i < len; i++) {

@@ -27,9 +27,10 @@ export class TabPaneFps extends BaseElement {
   private fpsRange: HTMLLabelElement | null | undefined;
 
   set data(fpsSelection: SelectionParam | unknown) {
-    this.fpsRange!.textContent = `Selected range: ${parseFloat(// @ts-ignore
+    this.fpsRange!.textContent = `Selected range: ${parseFloat(
+      // @ts-ignore
       ((fpsSelection.rightNs - fpsSelection.leftNs) / 1000000.0).toFixed(5)
-    )} ms`;// @ts-ignore
+    )} ms`; // @ts-ignore
     getTabFps(fpsSelection.leftNs, fpsSelection.rightNs).then((fpsResult) => {
       if (fpsResult !== null && fpsResult.length > 0) {
         log('getTabFps result size : ' + fpsResult.length);

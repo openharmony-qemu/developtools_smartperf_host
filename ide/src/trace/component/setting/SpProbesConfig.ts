@@ -298,7 +298,7 @@ export class SpProbesConfig extends BaseElement {
     let defaultSelected: unknown = [];
     //@ts-ignore
     defaultSelected = defaultSelected.concat(traceConfigList, memoryConfigList, abilityConfigList, hiTraceConfigList);
-    this.shadowRoot?.querySelector<SpCheckDesBox>('[value=\'Hitrace categories\']')?.setAttribute('checked', 'true');
+    this.shadowRoot?.querySelector<SpCheckDesBox>("[value='Hitrace categories']")?.setAttribute('checked', 'true');
     this.ftraceSlider!.removeAttribute('disabled');
     checkDesBoxDis?.forEach((item: SpCheckDesBox) => {
       item.removeAttribute('disabled');

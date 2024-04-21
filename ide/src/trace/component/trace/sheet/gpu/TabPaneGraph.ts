@@ -46,7 +46,7 @@ export class TabPaneGpuGraph extends BaseElement {
     //@ts-ignore
     this.graphTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
     this.range!.textContent =
-    // @ts-ignore
+      // @ts-ignore
       'Selected range: ' + ((graphParam.rightNs - graphParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.graphTbl!.loading = true;
     queryGpuDataTab(

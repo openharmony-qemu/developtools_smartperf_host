@@ -84,7 +84,7 @@ enum class SphQueryType : uint32_t {
     NATIVE_MEMORY_CHART_CACHE_STATISTIC = 207,
 };
 
-static inline int32_t Sqlite3ColumnInt(sqlite3_stmt* stmt, uint8_t curCol)
+static inline int32_t Sqlite3ColumnInt(sqlite3_stmt *stmt, uint8_t curCol)
 {
     if (sqlite3_column_type(stmt, curCol) == SQLITE_NULL) {
         return -1;
@@ -92,7 +92,7 @@ static inline int32_t Sqlite3ColumnInt(sqlite3_stmt* stmt, uint8_t curCol)
     return sqlite3_column_int(stmt, curCol);
 }
 
-static inline int64_t Sqlite3ColumnInt64(sqlite3_stmt* stmt, uint8_t curCol)
+static inline int64_t Sqlite3ColumnInt64(sqlite3_stmt *stmt, uint8_t curCol)
 {
     if (sqlite3_column_type(stmt, curCol) == SQLITE_NULL) {
         return -1;
@@ -100,9 +100,9 @@ static inline int64_t Sqlite3ColumnInt64(sqlite3_stmt* stmt, uint8_t curCol)
     return sqlite3_column_int64(stmt, curCol);
 }
 
-static inline std::string Sqlite3ColumnText(sqlite3_stmt* stmt, uint8_t curCol)
+static inline std::string Sqlite3ColumnText(sqlite3_stmt *stmt, uint8_t curCol)
 {
-    const char* textPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, curCol));
+    const char *textPtr = reinterpret_cast<const char *>(sqlite3_column_text(stmt, curCol));
     if (textPtr != nullptr) {
         return std::string(textPtr);
     }
@@ -338,19 +338,19 @@ void SqllitePreparCacheData::FillSphQueryFuncMapPartFive()
 template <typename T>
 static bool SendDBProto(uint32_t type,
                         const int32_t isFinish,
-                        T& sphData,
-                        SqllitePreparCacheData::TLVResultCallBack TLVResultCallBack)
+                        T &sphData,
+                        SqllitePreparCacheData::TLVResultCallBack tLVResultCallBack)
 {
     std::string bufferData;
     sphData.SerializeToString(&bufferData);
-    TLVResultCallBack(bufferData.data(), bufferData.size(), type, isFinish);
+    tLVResultCallBack(bufferData.data(), bufferData.size(), type, isFinish);
     sphData.Clear();
     return true;
 }
 
-void SqllitePreparCacheData::FillAndSendCpuDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendCpuDataProto(sqlite3_stmt *stmt,
                                                      uint32_t type,
-                                                     TLVResultCallBack TLVResultCallBack)
+                                                     TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchSphCpuData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -364,12 +364,12 @@ void SqllitePreparCacheData::FillAndSendCpuDataProto(sqlite3_stmt* stmt,
         cpuData->set_start_time(Sqlite3ColumnInt64(stmt, curCol++));
     }
 
-    SendDBProto(type, SEND_FINISH, batchSphCpuData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphCpuData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendCpuFreqDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendCpuFreqDataProto(sqlite3_stmt *stmt,
                                                          uint32_t type,
-                                                         TLVResultCallBack TLVResultCallBack)
+                                                         TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchSphCpuFreqData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -380,12 +380,12 @@ void SqllitePreparCacheData::FillAndSendCpuFreqDataProto(sqlite3_stmt* stmt,
         cpuFreqFata->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         cpuFreqFata->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchSphCpuFreqData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphCpuFreqData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendProcessDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendProcessDataProto(sqlite3_stmt *stmt,
                                                          uint32_t type,
-                                                         TLVResultCallBack TLVResultCallBack)
+                                                         TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchSphProcessData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -395,12 +395,12 @@ void SqllitePreparCacheData::FillAndSendProcessDataProto(sqlite3_stmt* stmt,
         processData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         processData->set_start_time(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchSphProcessData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphProcessData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendCpuFreqLimitDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendCpuFreqLimitDataProto(sqlite3_stmt *stmt,
                                                               uint32_t type,
-                                                              TLVResultCallBack TLVResultCallBack)
+                                                              TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchSphCpuFreqLimitData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -412,12 +412,12 @@ void SqllitePreparCacheData::FillAndSendCpuFreqLimitDataProto(sqlite3_stmt* stmt
         cpuFreqLimitData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         cpuFreqLimitData->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchSphCpuFreqLimitData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphCpuFreqLimitData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendCpuStateDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendCpuStateDataProto(sqlite3_stmt *stmt,
                                                           uint32_t type,
-                                                          TLVResultCallBack TLVResultCallBack)
+                                                          TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchSphCpuStateData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -427,28 +427,28 @@ void SqllitePreparCacheData::FillAndSendCpuStateDataProto(sqlite3_stmt* stmt,
         cpuStateData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         cpuStateData->set_start_ts(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchSphCpuStateData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphCpuStateData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendProcessMemDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendProcessMemDataProto(sqlite3_stmt *stmt,
                                                             uint32_t type,
-                                                            TLVResultCallBack TLVResultCallBack)
+                                                            TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchSphProcessMemData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         auto processMemData = batchSphProcessMemData.add_values()->mutable_process_mem_data();
         uint8_t curCol = 0;
         processMemData->set_track_id(Sqlite3ColumnInt(stmt, curCol++));
-        processMemData->set_value(Sqlite3ColumnInt(stmt, curCol++));
+        processMemData->set_value(Sqlite3ColumnInt64(stmt, curCol++));
         processMemData->set_start_time(Sqlite3ColumnInt64(stmt, curCol++));
         processMemData->set_ts(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchSphProcessMemData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphProcessMemData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendProcessSoInitDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendProcessSoInitDataProto(sqlite3_stmt *stmt,
                                                                uint32_t type,
-                                                               TLVResultCallBack TLVResultCallBack)
+                                                               TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchSphProcessSoInitData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -462,12 +462,12 @@ void SqllitePreparCacheData::FillAndSendProcessSoInitDataProto(sqlite3_stmt* stm
         processSoInitData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         processSoInitData->set_id(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchSphProcessSoInitData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphProcessSoInitData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendProcessStartupDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendProcessStartupDataProto(sqlite3_stmt *stmt,
                                                                 uint32_t type,
-                                                                TLVResultCallBack TLVResultCallBack)
+                                                                TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchSphProcessStartupData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -480,12 +480,12 @@ void SqllitePreparCacheData::FillAndSendProcessStartupDataProto(sqlite3_stmt* st
         processStartupDataData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         processStartupDataData->set_start_name(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchSphProcessStartupData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphProcessStartupData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendClockDataDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendClockDataDataProto(sqlite3_stmt *stmt,
                                                            uint32_t type,
-                                                           TLVResultCallBack TLVResultCallBack)
+                                                           TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchSphClockDataData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -495,12 +495,12 @@ void SqllitePreparCacheData::FillAndSendClockDataDataProto(sqlite3_stmt* stmt,
         clockDataData->set_value(Sqlite3ColumnInt(stmt, curCol++));
         clockDataData->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchSphClockDataData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphClockDataData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendIrqDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendIrqDataProto(sqlite3_stmt *stmt,
                                                      uint32_t type,
-                                                     TLVResultCallBack TLVResultCallBack)
+                                                     TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchSphIrqData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -512,12 +512,12 @@ void SqllitePreparCacheData::FillAndSendIrqDataProto(sqlite3_stmt* stmt,
         IrqData->set_arg_set_id(Sqlite3ColumnInt(stmt, curCol++));
         IrqData->set_id(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchSphIrqData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphIrqData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendHiSysEventDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendHiSysEventDataProto(sqlite3_stmt *stmt,
                                                             uint32_t type,
-                                                            TLVResultCallBack TLVResultCallBack)
+                                                            TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchHiSysEventData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -532,12 +532,12 @@ void SqllitePreparCacheData::FillAndSendHiSysEventDataProto(sqlite3_stmt* stmt,
         HiSysEventData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
         HiSysEventData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchHiSysEventData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchHiSysEventData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendLogDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendLogDataProto(sqlite3_stmt *stmt,
                                                      uint32_t type,
-                                                     TLVResultCallBack TLVResultCallBack)
+                                                     TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchLogData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -550,12 +550,12 @@ void SqllitePreparCacheData::FillAndSendLogDataProto(sqlite3_stmt* stmt,
         logData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
         logData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchLogData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchLogData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendVirtualMemDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendVirtualMemDataProto(sqlite3_stmt *stmt,
                                                             uint32_t type,
-                                                            TLVResultCallBack TLVResultCallBack)
+                                                            TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchVirtualMemData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -568,12 +568,12 @@ void SqllitePreparCacheData::FillAndSendVirtualMemDataProto(sqlite3_stmt* stmt,
         virtualMemData->set_max_value(Sqlite3ColumnInt64(stmt, curCol++));
         virtualMemData->set_delta(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchVirtualMemData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchVirtualMemData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendFrameDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendFrameDataProto(sqlite3_stmt *stmt,
                                                        uint32_t type,
-                                                       TLVResultCallBack TLVResultCallBack)
+                                                       TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchFrameData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -597,12 +597,12 @@ void SqllitePreparCacheData::FillAndSendFrameDataProto(sqlite3_stmt* stmt,
         frameData->set_rs_pid(Sqlite3ColumnInt(stmt, curCol++));
         frameData->set_rs_name(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchFrameData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchFrameData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendFrameAnimationDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendFrameAnimationDataProto(sqlite3_stmt *stmt,
                                                                 uint32_t type,
-                                                                TLVResultCallBack TLVResultCallBack)
+                                                                TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchFrameAnimationData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -614,12 +614,12 @@ void SqllitePreparCacheData::FillAndSendFrameAnimationDataProto(sqlite3_stmt* st
         frameAnimationData->set_end_ts(Sqlite3ColumnInt64(stmt, curCol++));
         frameAnimationData->set_name(Sqlite3ColumnText(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchFrameAnimationData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchFrameAnimationData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendFrameDynamicDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendFrameDynamicDataProto(sqlite3_stmt *stmt,
                                                               uint32_t type,
-                                                              TLVResultCallBack TLVResultCallBack)
+                                                              TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchFrameDynamicData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -634,12 +634,12 @@ void SqllitePreparCacheData::FillAndSendFrameDynamicDataProto(sqlite3_stmt* stmt
         frameDynamicData->set_ts(Sqlite3ColumnInt64(stmt, curCol++));
         frameDynamicData->set_app_name(Sqlite3ColumnText(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchFrameDynamicData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchFrameDynamicData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendFrameSpacingDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendFrameSpacingDataProto(sqlite3_stmt *stmt,
                                                               uint32_t type,
-                                                              TLVResultCallBack TLVResultCallBack)
+                                                              TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchFrameSpacingData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -653,12 +653,12 @@ void SqllitePreparCacheData::FillAndSendFrameSpacingDataProto(sqlite3_stmt* stmt
         frameSpacingData->set_current_ts(Sqlite3ColumnInt64(stmt, curCol++));
         frameSpacingData->set_name_id(Sqlite3ColumnText(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchFrameSpacingData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchFrameSpacingData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendTrackerDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendTrackerDataProto(sqlite3_stmt *stmt,
                                                          uint32_t type,
-                                                         TLVResultCallBack TLVResultCallBack)
+                                                         TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchTrackerData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -667,12 +667,12 @@ void SqllitePreparCacheData::FillAndSendTrackerDataProto(sqlite3_stmt* stmt,
         trackerData->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
         trackerData->set_value(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchTrackerData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchTrackerData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendAbilityDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendAbilityDataProto(sqlite3_stmt *stmt,
                                                          uint32_t type,
-                                                         TLVResultCallBack TLVResultCallBack)
+                                                         TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchAbilityData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -682,12 +682,12 @@ void SqllitePreparCacheData::FillAndSendAbilityDataProto(sqlite3_stmt* stmt,
         abilityData->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
         abilityData->set_dur(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchAbilityData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchAbilityData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendEnergyDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendEnergyDataProto(sqlite3_stmt *stmt,
                                                         uint32_t type,
-                                                        TLVResultCallBack TLVResultCallBack)
+                                                        TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchEnergyData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -699,12 +699,12 @@ void SqllitePreparCacheData::FillAndSendEnergyDataProto(sqlite3_stmt* stmt,
         energyData->set_app_key(Sqlite3ColumnText(stmt, curCol++));
         energyData->set_event_value(Sqlite3ColumnText(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchEnergyData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchEnergyData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendEbpfDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendEbpfDataProto(sqlite3_stmt *stmt,
                                                       uint32_t type,
-                                                      TLVResultCallBack TLVResultCallBack)
+                                                      TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchEbpfData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -715,12 +715,12 @@ void SqllitePreparCacheData::FillAndSendEbpfDataProto(sqlite3_stmt* stmt,
         ebpfData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         ebpfData->set_size(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchEbpfData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchEbpfData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendProcessThreadDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendProcessThreadDataProto(sqlite3_stmt *stmt,
                                                                uint32_t type,
-                                                               TLVResultCallBack TLVResultCallBack)
+                                                               TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchProcessThreadData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -735,12 +735,12 @@ void SqllitePreparCacheData::FillAndSendProcessThreadDataProto(sqlite3_stmt* stm
         processThreadData->set_start_time(Sqlite3ColumnInt64(stmt, curCol++));
         processThreadData->set_arg_set_id(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchProcessThreadData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchProcessThreadData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendProcessFuncDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendProcessFuncDataProto(sqlite3_stmt *stmt,
                                                              uint32_t type,
-                                                             TLVResultCallBack TLVResultCallBack)
+                                                             TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchProcessFuncData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -754,12 +754,12 @@ void SqllitePreparCacheData::FillAndSendProcessFuncDataProto(sqlite3_stmt* stmt,
         processFuncData->set_itid(Sqlite3ColumnInt(stmt, curCol++));
         processFuncData->set_ipid(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchProcessFuncData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchProcessFuncData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendHiperfDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendHiperfDataProto(sqlite3_stmt *stmt,
                                                         uint32_t type,
-                                                        TLVResultCallBack TLVResultCallBack)
+                                                        TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchHiperfData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -771,12 +771,12 @@ void SqllitePreparCacheData::FillAndSendHiperfDataProto(sqlite3_stmt* stmt,
         hiperfData->set_event_type_id(Sqlite3ColumnInt(stmt, curCol++));
         hiperfData->set_callchain_id(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchHiperfData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchHiperfData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendHiperfCallChartDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendHiperfCallChartDataProto(sqlite3_stmt *stmt,
                                                                  uint32_t type,
-                                                                 TLVResultCallBack TLVResultCallBack)
+                                                                 TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchHiperfCallChartData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -789,12 +789,12 @@ void SqllitePreparCacheData::FillAndSendHiperfCallChartDataProto(sqlite3_stmt* s
         hiperfCallChartData->set_cpu_id(Sqlite3ColumnInt64(stmt, curCol++));
         hiperfCallChartData->set_event_type_id(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchHiperfCallChartData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchHiperfCallChartData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendHiperfCallStackDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendHiperfCallStackDataProto(sqlite3_stmt *stmt,
                                                                  uint32_t type,
-                                                                 TLVResultCallBack TLVResultCallBack)
+                                                                 TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchHiperfCallStackData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -806,12 +806,12 @@ void SqllitePreparCacheData::FillAndSendHiperfCallStackDataProto(sqlite3_stmt* s
         hiperfCallStackData->set_symbol_id(Sqlite3ColumnInt64(stmt, curCol++));
         hiperfCallStackData->set_name(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchHiperfCallStackData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchHiperfCallStackData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendProcessJanksFramesDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendProcessJanksFramesDataProto(sqlite3_stmt *stmt,
                                                                     uint32_t type,
-                                                                    TLVResultCallBack TLVResultCallBack)
+                                                                    TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchProcessJanksFramesData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -825,12 +825,12 @@ void SqllitePreparCacheData::FillAndSendProcessJanksFramesDataProto(sqlite3_stmt
         processJanksFramesData->set_type(Sqlite3ColumnInt(stmt, curCol++));
         processJanksFramesData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchProcessJanksFramesData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchProcessJanksFramesData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendProcessJanksActualDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendProcessJanksActualDataProto(sqlite3_stmt *stmt,
                                                                     uint32_t type,
-                                                                    TLVResultCallBack TLVResultCallBack)
+                                                                    TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchProcessJanksActualData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -846,12 +846,12 @@ void SqllitePreparCacheData::FillAndSendProcessJanksActualDataProto(sqlite3_stmt
         processJanksActualData->set_dst_slice(Sqlite3ColumnInt(stmt, curCol++));
         processJanksActualData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchProcessJanksActualData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchProcessJanksActualData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendProcessInputEventDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendProcessInputEventDataProto(sqlite3_stmt *stmt,
                                                                    uint32_t type,
-                                                                   TLVResultCallBack TLVResultCallBack)
+                                                                   TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchProcessInputEventData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -869,12 +869,12 @@ void SqllitePreparCacheData::FillAndSendProcessInputEventDataProto(sqlite3_stmt*
         processInputEventData->set_cookie(Sqlite3ColumnInt(stmt, curCol++));
         processInputEventData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchProcessInputEventData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchProcessInputEventData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendHeapFilesDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendHeapFilesDataProto(sqlite3_stmt *stmt,
                                                            uint32_t type,
-                                                           TLVResultCallBack TLVResultCallBack)
+                                                           TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchHeapFilesData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -887,12 +887,12 @@ void SqllitePreparCacheData::FillAndSendHeapFilesDataProto(sqlite3_stmt* stmt,
         heapFilesData->set_size(Sqlite3ColumnInt64(stmt, curCol++));
         heapFilesData->set_pid(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchHeapFilesData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchHeapFilesData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendCpuProfilerDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendCpuProfilerDataProto(sqlite3_stmt *stmt,
                                                              uint32_t type,
-                                                             TLVResultCallBack TLVResultCallBack)
+                                                             TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchCpuProfilerData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -911,12 +911,12 @@ void SqllitePreparCacheData::FillAndSendCpuProfilerDataProto(sqlite3_stmt* stmt,
         cpuProfilerData->set_children_string(Sqlite3ColumnInt64(stmt, curCol++));
         cpuProfilerData->set_parent_id(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchCpuProfilerData, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchCpuProfilerData, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendNativeMemoryNormalProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendNativeMemoryNormalProto(sqlite3_stmt *stmt,
                                                                 uint32_t type,
-                                                                TLVResultCallBack TLVResultCallBack)
+                                                                TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchNativeMemoryNormal;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -927,12 +927,12 @@ void SqllitePreparCacheData::FillAndSendNativeMemoryNormalProto(sqlite3_stmt* st
         nativeMemoryNormal->set_event_type(Sqlite3ColumnInt64(stmt, curCol++));
         nativeMemoryNormal->set_ipid(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchNativeMemoryNormal, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchNativeMemoryNormal, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendNativeMemoryStatisticProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendNativeMemoryStatisticProto(sqlite3_stmt *stmt,
                                                                    uint32_t type,
-                                                                   TLVResultCallBack TLVResultCallBack)
+                                                                   TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchNativeMemoryStatistic;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -947,12 +947,12 @@ void SqllitePreparCacheData::FillAndSendNativeMemoryStatisticProto(sqlite3_stmt*
         nativeMemoryStatistic->set_ipid(Sqlite3ColumnInt64(stmt, curCol++));
         nativeMemoryStatistic->set_type(Sqlite3ColumnInt64(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchNativeMemoryStatistic, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchNativeMemoryStatistic, tLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendCpuAbilityDataProto(sqlite3_stmt* stmt,
+void SqllitePreparCacheData::FillAndSendCpuAbilityDataProto(sqlite3_stmt *stmt,
                                                             uint32_t type,
-                                                            TLVResultCallBack TLVResultCallBack)
+                                                            TLVResultCallBack tLVResultCallBack)
 {
     BatchSphData batchCpuAbility;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -962,7 +962,7 @@ void SqllitePreparCacheData::FillAndSendCpuAbilityDataProto(sqlite3_stmt* stmt,
         cpuAbility->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
         cpuAbility->set_dur(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchCpuAbility, TLVResultCallBack);
+    SendDBProto(type, SEND_FINISH, batchCpuAbility, tLVResultCallBack);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

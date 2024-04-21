@@ -17,8 +17,8 @@ import { Rect, Render, isFrameContainPoint, ns2x, drawLoadingFrame } from './Pro
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HeapStruct as BaseHeapStruct } from '../../bean/HeapStruct';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
-export class NativeMemoryRender extends Render {
-  renderMainThread(req: any, row: TraceRow<any>): void {}
+export class NativeMemoryRender {
+  renderMainThread(req: HeapStruct, row: TraceRow<HeapStruct>): void {}
 }
 export class HeapRender {
   renderMainThread(
@@ -89,12 +89,12 @@ function drawHeap(
 }
 
 export function heap(
-  heapList: Array<any>,
-  res: Array<any>,
+  heapList: Array<HeapStruct>,
+  res: Array<HeapStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
 ): void {
   if (use && res.length > 0) {
@@ -108,7 +108,7 @@ export function heap(
       HeapStruct.setFrame(it, 5, startNS, endNS, totalNS, frame);
       if (i > 0) {
         let last = heapList[i - 1];
-        if (last.frame?.x !== it.frame.x || last.frame.width !== it.frame.width) {
+        if (last.frame?.x !== it.frame!.x || last.frame.width !== it.frame!.width) {
           res.push(it);
         }
       } else {
@@ -118,13 +118,13 @@ export function heap(
   }
 }
 
-function setHeapFrameIfUse(res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any): void {
+function setHeapFrameIfUse(res: Array<HeapStruct>, startNS: number, endNS: number, totalNS: number, frame: Rect): void {
   for (let i = 0; i < res.length; i++) {
     let it = res[i];
     if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) <= endNS) {
       HeapStruct.setFrame(res[i], 5, startNS, endNS, totalNS, frame);
     } else {
-      res[i].frame = null;
+      res[i].frame = undefined;
     }
   }
 }
@@ -132,7 +132,7 @@ function setHeapFrameIfUse(res: Array<any>, startNS: number, endNS: number, tota
 export function HeapStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  row: undefined | TraceRow<any>
+  row: undefined | TraceRow<HeapStruct>
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (

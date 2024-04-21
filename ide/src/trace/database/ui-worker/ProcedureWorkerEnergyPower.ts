@@ -20,6 +20,7 @@ import {
   RequestMessage,
   isFrameContainPoint,
   drawLoadingFrame,
+  Rect,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
@@ -73,7 +74,10 @@ export class EnergyPowerRender extends Render {
   }
 }
 
-export function drawLegend(req: any, isDark?: boolean): void {
+export function drawLegend(
+  req: { useCache: boolean; context: CanvasRenderingContext2D; type: string; appName: string },
+  isDark?: boolean
+): void {
   let textList = ['CPU', 'LOCATION', 'GPU', 'DISPLAY', 'CAMERA', 'BLUETOOTH', 'FLASHLIGHT', 'AUDIO', 'WIFISCAN'];
   for (let index = 0; index < textList.length; index++) {
     let text = req.context.measureText(textList[index]);
@@ -101,12 +105,12 @@ export function drawLegend(req: any, isDark?: boolean): void {
 }
 
 export function power(
-  list: Array<any>,
-  res: Array<any>,
+  list: Array<EnergyPowerStruct>,
+  res: Array<EnergyPowerStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean,
   appName: string
 ): void {
@@ -116,6 +120,7 @@ export function power(
   if (use && res.length > 0) {
     for (let index = 0; index < res.length; index++) {
       let item = res[index];
+      //@ts-ignore
       let obj = item[appName];
       if (obj !== undefined && obj.ts + 1000000000 > (startNS || 0) && (obj.ts || 0) < (endNS || 0)) {
         firstData.push(obj);
@@ -127,7 +132,7 @@ export function power(
   }
 }
 
-function setFirstDataArray(array: any[], list: Array<any>): void {
+function setFirstDataArray(array: EnergyPowerStruct[], list: Array<EnergyPowerStruct>): void {
   array.forEach((item) => {
     if (
       list.length > 0 &&
@@ -150,12 +155,12 @@ function setFirstDataArray(array: any[], list: Array<any>): void {
 }
 
 function computeMaxPower(
-  array: Array<any>,
-  list: Array<any>,
+  array: Array<EnergyPowerStruct>,
+  list: Array<EnergyPowerStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any
+  frame: Rect
 ): void {
   array.forEach((item) => {
     if (list.indexOf(item) >= 0) {
@@ -203,7 +208,12 @@ export class EnergyPowerStruct extends BaseStruct {
   audio: number = 0;
   wifiscan: number = 0;
 
-  static draw(req: any, index: number, data: EnergyPowerStruct, row: TraceRow<EnergyPowerStruct>): void {
+  static draw(
+    req: { useCache: boolean; context: CanvasRenderingContext2D; type: string; appName: string },
+    index: number,
+    data: EnergyPowerStruct,
+    row: TraceRow<EnergyPowerStruct>
+  ): void {
     if (data.frame) {
       req!.context.globalAlpha = 1.0;
       req!.context.lineWidth = 1;
@@ -251,12 +261,12 @@ export class EnergyPowerStruct extends BaseStruct {
   }
 
   static drawHistogram(
-    req: RequestMessage,
+    req: { useCache: boolean; context: CanvasRenderingContext2D; type: string; appName: string },
     data: EnergyPowerStruct,
     height: number,
     itemValue: number,
     textItem: string,
-    rowFrame: any
+    rowFrame: Rect
   ): number {
     let endPointX = ns2x(
       (data.ts || 0) + 500000000,
@@ -297,10 +307,10 @@ export class EnergyPowerStruct extends BaseStruct {
   }
 
   static drawPolyline(
-    req: RequestMessage,
+    req: { useCache: boolean; context: CanvasRenderingContext2D; type: string; appName: string },
     index: number,
     data: EnergyPowerStruct,
-    rowFrame: any,
+    rowFrame: Rect,
     totalHeight: number
   ): number {
     let pointX = ns2x(data.ts || 0, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, rowFrame);

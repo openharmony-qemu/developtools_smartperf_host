@@ -53,7 +53,7 @@ message SphCpuStateData{
 
 message SphProcessMemData{
   int32 track_id = 1;
-  int32 value = 2;
+  int64 value = 2;
   int64 start_time = 3;
   int64 ts = 4;
 }

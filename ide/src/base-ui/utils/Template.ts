@@ -28,9 +28,10 @@ declare interface HTMLTemplateElement {
     // v-for Loop rendering
     // <div v-for="list"></div>   =>    ${ list.map(function(item,index){ return '<div></div>' }).join('') }
     const repeatEls = this.$fragment.content.querySelectorAll(`[\\${rule}for]`);
-    repeatEls.forEach((el: unknown) => {//@ts-ignore
+    repeatEls.forEach((el: unknown) => {
+      //@ts-ignore
       const strFor = el.getAttribute(`${rule}for`);
-      const { isArray, items, params } = parseFor(strFor);//@ts-ignore
+      const { isArray, items, params } = parseFor(strFor); //@ts-ignore
       el.before(
         '${Object.entries(' +
           items +
@@ -39,25 +40,27 @@ declare interface HTMLTemplateElement {
             params[2] || 'index'
           }` +
           '){ return `'
-      );//@ts-ignore
-      el.removeAttribute(`${rule}for`);//@ts-ignore
+      ); //@ts-ignore
+      el.removeAttribute(`${rule}for`); //@ts-ignore
       el.after('`}).join("")}');
     });
 
     // v-if Conditional rendering
     // <div v-if="if"></div>   =>    ${ if ? '<div></div>' : '' }
     const ifEls = this.$fragment.content.querySelectorAll(`[\\${rule}if]`);
-    ifEls.forEach((el: unknown) => {//@ts-ignore
-      const ifs = el.getAttribute(`${rule}if`);//@ts-ignore
-      el.before('${' + ifs + '?`');//@ts-ignore
-      el.removeAttribute(`${rule}if`);//@ts-ignore
+    ifEls.forEach((el: unknown) => {
+      //@ts-ignore
+      const ifs = el.getAttribute(`${rule}if`); //@ts-ignore
+      el.before('${' + ifs + '?`'); //@ts-ignore
+      el.removeAttribute(`${rule}if`); //@ts-ignore
       el.after('`:`<!--if:' + el.tagName + '-->`}');
     });
 
     // fragment   <fragment>aa</fragment>   =>  aa
     const fragments = this.$fragment.content.querySelectorAll('fragment,block');
-    fragments.forEach((el: unknown) => {//@ts-ignore
-      el.after(el.innerHTML);//@ts-ignore
+    fragments.forEach((el: unknown) => {
+      //@ts-ignore
+      el.after(el.innerHTML); //@ts-ignore
       el.parentNode.removeChild(el);
     });
   }
@@ -69,7 +72,8 @@ declare interface HTMLTemplateElement {
     propsMap.forEach((props: unknown) => {
       // If these attribute values are false, they are removed directly
       //@ts-ignore
-      if (el.getAttribute(props) === 'false') {//@ts-ignore
+      if (el.getAttribute(props) === 'false') {
+        //@ts-ignore
         el.removeAttribute(props);
       }
     });
@@ -77,7 +81,7 @@ declare interface HTMLTemplateElement {
   return this.fragment;
 };
 
-function parseFor(strFor: String): { isArray: boolean, items: string | String, params: string[] } {
+function parseFor(strFor: String): { isArray: boolean; items: string | String; params: string[] } {
   // Whether it is an object
   const isObject = strFor.includes(' of ');
   const reg = /\s(?:in|of)\s/g;
@@ -89,7 +93,8 @@ function parseFor(strFor: String): { isArray: boolean, items: string | String, p
 
 // String to template string
 //@ts-ignore
-(String as unknown).prototype.interpolate = function (params: unknown): Function {//@ts-ignore
+(String as unknown).prototype.interpolate = function (params: unknown): Function {
+  //@ts-ignore
   const names = Object.keys(params);
   // @ts-ignore
   const vals = Object.values(params);
@@ -100,7 +105,8 @@ function parseFor(strFor: String): { isArray: boolean, items: string | String, p
 // HTML Character inversion meaning   &lt;  =>  <
 function escape2Html(str: string): string {
   let arrEntities: unknown = { lt: '<', gt: '>', nbsp: ' ', amp: '&', quot: '"' };
-  return str.replace(/&(lt|gt|nbsp|amp|quot);/gi, function (all, t) {//@ts-ignore
+  return str.replace(/&(lt|gt|nbsp|amp|quot);/gi, function (all, t) {
+    //@ts-ignore
     return arrEntities[t];
   });
 }

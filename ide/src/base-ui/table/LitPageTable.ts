@@ -127,7 +127,8 @@ export class LitPageTable extends BaseElement {
     }
     if (this.hasAttribute('tree')) {
       this.recycleDs = this.meauseTreeRowElement(value);
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       this.recycleDs = this.meauseAllRowHeight(this.pagination ? value[0] : value);
     }
   }
@@ -207,9 +208,11 @@ export class LitPageTable extends BaseElement {
   showCurrentPageData(): void {
     this.toTop();
     this.currentPageDiv!.textContent = `第 ${(this.currentPage || 0) + 1} 页，共 ${this.ds.length} 页`;
-    if (this.hasAttribute('tree')) {// @ts-ignore
+    if (this.hasAttribute('tree')) {
+      // @ts-ignore
       this.recycleDs = this.meauseTreeRowElement(this.ds[this.currentPage]);
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       this.recycleDs = this.meauseAllRowHeight(this.ds[this.currentPage]);
     }
   }
@@ -250,18 +253,22 @@ export class LitPageTable extends BaseElement {
         addSelectAllBox(rowElement, this);
         this.resolvingArea(this.columns, 0, 0, pageArea, rowElement);
         pageArea.forEach((rows, j, array) => {
-          for (let i = 0; i < this.colCount; i++) {// @ts-ignore
-            if (!rows[i]) {// @ts-ignore
+          for (let i = 0; i < this.colCount; i++) {
+            // @ts-ignore
+            if (!rows[i]) {
+              // @ts-ignore
               rows[i] = array[j - 1][i];
             }
           }
         });
-        if (this.selectable) {// @ts-ignore
+        if (this.selectable) {
+          // @ts-ignore
           let s = pageArea.map((a) => '"_checkbox_ ' + a.map((aa: unknown) => aa.t).join(' ') + '"').join(' ');
           rowElement.style.gridTemplateColumns = '60px ' + this.gridTemplateColumns.join(' ');
           rowElement.style.gridTemplateRows = `repeat(${pageArea.length},1fr)`;
           rowElement.style.gridTemplateAreas = s;
-        } else {// @ts-ignore
+        } else {
+          // @ts-ignore
           let s = pageArea.map((a) => '"' + a.map((aa: unknown) => aa.t).join(' ') + '"').join(' ');
           rowElement.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
           rowElement.style.gridTemplateRows = `repeat(${pageArea.length},1fr)`;
@@ -276,84 +283,99 @@ export class LitPageTable extends BaseElement {
     this.tableElement!.addEventListener('mouseout', (ev) => this.mouseOut());
   }
 
-  resolvingArea(columns: unknown, x: unknown, y: unknown, area: Array<unknown>, rowElement: HTMLDivElement): void {// @ts-ignore
-    columns.forEach((a: unknown, i: unknown) => {// @ts-ignore
-      if (!area[y]) {// @ts-ignore
+  resolvingArea(columns: unknown, x: unknown, y: unknown, area: Array<unknown>, rowElement: HTMLDivElement): void {
+    // @ts-ignore
+    columns.forEach((a: unknown, i: unknown) => {
+      // @ts-ignore
+      if (!area[y]) {
+        // @ts-ignore
         area[y] = [];
-      }// @ts-ignore
-      let key = a.getAttribute('key') || a.getAttribute('title');// @ts-ignore
-      if (a.tagName === 'LIT-TABLE-GROUP') {// @ts-ignore
-        let childList = [...a.children].filter((a) => a.tagName !== 'TEMPLATE');// @ts-ignore
+      } // @ts-ignore
+      let key = a.getAttribute('key') || a.getAttribute('title'); // @ts-ignore
+      if (a.tagName === 'LIT-TABLE-GROUP') {
+        // @ts-ignore
+        let childList = [...a.children].filter((a) => a.tagName !== 'TEMPLATE'); // @ts-ignore
         let len = a.querySelectorAll('lit-table-column').length;
-        if (childList.length > 0) {// @ts-ignore
+        if (childList.length > 0) {
+          // @ts-ignore
           this.resolvingArea(childList, x, y + 1, area, rowElement);
         }
-        for (let j = 0; j < len; j++) {// @ts-ignore
-          area[y][x] = { x, y, t: key };// @ts-ignore
+        for (let j = 0; j < len; j++) {
+          // @ts-ignore
+          area[y][x] = { x, y, t: key }; // @ts-ignore
           x++;
         }
         let head = document.createElement('div');
-        head.classList.add('td');// @ts-ignore
+        head.classList.add('td'); // @ts-ignore
         head.style.justifyContent = a.getAttribute('align');
         head.style.borderBottom = '1px solid #f0f0f0';
-        head.style.gridArea = key;// @ts-ignore
-        head.innerText = a.title;// @ts-ignore
-        if (a.hasAttribute('fixed')) {// @ts-ignore
+        head.style.gridArea = key; // @ts-ignore
+        head.innerText = a.title; // @ts-ignore
+        if (a.hasAttribute('fixed')) {
+          // @ts-ignore
           fixed(head, a.getAttribute('fixed'), '#42b983');
         }
-        rowElement.append(head);// @ts-ignore
-      } else if (a.tagName === 'LIT-TABLE-COLUMN') {// @ts-ignore
-        area[y][x] = { x, y, t: key };// @ts-ignore
+        rowElement.append(head); // @ts-ignore
+      } else if (a.tagName === 'LIT-TABLE-COLUMN') {
+        // @ts-ignore
+        area[y][x] = { x, y, t: key }; // @ts-ignore
         x++;
-        let h: unknown = document.createElement('div');// @ts-ignore
-        h.classList.add('td');// @ts-ignore
+        let h: unknown = document.createElement('div'); // @ts-ignore
+        h.classList.add('td'); // @ts-ignore
         if (i > 0) {
           let resizeDiv: HTMLDivElement = document.createElement('div');
-          resizeDiv.classList.add('resize');// @ts-ignore
-          h.appendChild(resizeDiv);// @ts-ignore
+          resizeDiv.classList.add('resize'); // @ts-ignore
+          h.appendChild(resizeDiv); // @ts-ignore
           this.resizeEventHandler(rowElement, resizeDiv, i);
-        }// @ts-ignore
-        this.resolvingAreaColumnOrder(a, i, key, h);// @ts-ignore
-        h.style.justifyContent = a.getAttribute('align');// @ts-ignore
-        this.gridTemplateColumns.push(a.getAttribute('width') || '1fr');// @ts-ignore
+        } // @ts-ignore
+        this.resolvingAreaColumnOrder(a, i, key, h); // @ts-ignore
+        h.style.justifyContent = a.getAttribute('align'); // @ts-ignore
+        this.gridTemplateColumns.push(a.getAttribute('width') || '1fr'); // @ts-ignore
         h.style.gridArea = key;
-        let titleLabel = document.createElement('label');// @ts-ignore
-        titleLabel.textContent = a.title;// @ts-ignore
-        h.appendChild(titleLabel);// @ts-ignore
-        if (a.hasAttribute('fixed')) {// @ts-ignore
+        let titleLabel = document.createElement('label'); // @ts-ignore
+        titleLabel.textContent = a.title; // @ts-ignore
+        h.appendChild(titleLabel); // @ts-ignore
+        if (a.hasAttribute('fixed')) {
+          // @ts-ignore
           fixed(h, a.getAttribute('fixed'), '#42b983');
-        }// @ts-ignore
+        } // @ts-ignore
         rowElement.append(h);
       }
     });
   }
 
-  resolvingAreaColumnOrder(column: unknown, index: number, key: string, head: unknown): void {// @ts-ignore
-    if (column.hasAttribute('order')) {// @ts-ignore
-      (head as unknown).sortType = 0;// @ts-ignore
-      head.classList.add('td-order');// @ts-ignore
+  resolvingAreaColumnOrder(column: unknown, index: number, key: string, head: unknown): void {
+    // @ts-ignore
+    if (column.hasAttribute('order')) {
+      // @ts-ignore
+      (head as unknown).sortType = 0; // @ts-ignore
+      head.classList.add('td-order'); // @ts-ignore
       head.style.position = 'relative';
-      let { upSvg, downSvg } = createDownUpSvg(index, head);// @ts-ignore
+      let { upSvg, downSvg } = createDownUpSvg(index, head); // @ts-ignore
       head.onclick = (): void => {
         if (this.isResize || this.resizeColumnIndex !== -1) {
           return;
         }
-        this?.shadowRoot?.querySelectorAll('.td-order svg').forEach((it: unknown) => {// @ts-ignore
-          it.setAttribute('fill', 'let(--dark-color1,#212121)');// @ts-ignore
-          it.sortType = 0;// @ts-ignore
+        this?.shadowRoot?.querySelectorAll('.td-order svg').forEach((it: unknown) => {
+          // @ts-ignore
+          it.setAttribute('fill', 'let(--dark-color1,#212121)'); // @ts-ignore
+          it.sortType = 0; // @ts-ignore
           it.style.display = 'none';
-        });// @ts-ignore
-        if (head.sortType === undefined || head.sortType === null) {// @ts-ignore
-          head.sortType = 0;// @ts-ignore
-        } else if (head.sortType === 2) {// @ts-ignore
+        }); // @ts-ignore
+        if (head.sortType === undefined || head.sortType === null) {
+          // @ts-ignore
+          head.sortType = 0; // @ts-ignore
+        } else if (head.sortType === 2) {
+          // @ts-ignore
           head.sortType = 0;
-        } else {// @ts-ignore
+        } else {
+          // @ts-ignore
           head.sortType += 1;
         }
         upSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
-        downSvg.setAttribute('fill', 'let(--dark-color1,#212121)');// @ts-ignore
-        upSvg.style.display = head.sortType === 1 ? 'block' : 'none';// @ts-ignore
-        downSvg.style.display = head.sortType === 2 ? 'block' : 'none';// @ts-ignore
+        downSvg.setAttribute('fill', 'let(--dark-color1,#212121)'); // @ts-ignore
+        upSvg.style.display = head.sortType === 1 ? 'block' : 'none'; // @ts-ignore
+        downSvg.style.display = head.sortType === 2 ? 'block' : 'none'; // @ts-ignore
         switch (head.sortType) {
           case 1:
             this.theadElement!.setAttribute('sort', '');
@@ -366,7 +388,8 @@ export class LitPageTable extends BaseElement {
         }
         this.dispatchEvent(
           new CustomEvent('column-click', {
-            detail: {// @ts-ignore
+            detail: {
+              // @ts-ignore
               sort: head.sortType,
               key: key,
             },
@@ -575,24 +598,29 @@ export class LitPageTable extends BaseElement {
           this.tableElement!.scrollTop + this.tableElement!.clientHeight - headHeight
         );
         if (maxHeight <= minHeight) {
-          let newTableElement = this.createNewTreeTableElement(tableRowObject);// @ts-ignore
-          newTableElement.style.transform = `translateY(${totalHeight}px)`;// @ts-ignore
+          let newTableElement = this.createNewTreeTableElement(tableRowObject); // @ts-ignore
+          newTableElement.style.transform = `translateY(${totalHeight}px)`; // @ts-ignore
           this.tbodyElement?.append(newTableElement);
           if (this.treeElement?.lastChild) {
             (this.treeElement?.lastChild as HTMLElement).style.height = tableRowObject.height + 'px';
-          }// @ts-ignore
+          } // @ts-ignore
           this.currentRecycleList.push(newTableElement);
         }
         totalHeight += tableRowObject.height;
-        visibleObjects.push(tableRowObject);// @ts-ignore
-        if (item.hasNext) {// @ts-ignore
-          if (item.parents !== undefined && item.parents.length > 0 && item.status) {// @ts-ignore
-            resetAllHeight(item.parents, depth + 1, tableRowObject);// @ts-ignore
-          } else if (item.children !== undefined && item.children.length > 0 && item.status) {// @ts-ignore
+        visibleObjects.push(tableRowObject); // @ts-ignore
+        if (item.hasNext) {
+          // @ts-ignore
+          if (item.parents !== undefined && item.parents.length > 0 && item.status) {
+            // @ts-ignore
+            resetAllHeight(item.parents, depth + 1, tableRowObject); // @ts-ignore
+          } else if (item.children !== undefined && item.children.length > 0 && item.status) {
+            // @ts-ignore
             resetAllHeight(item.children, depth + 1, tableRowObject);
           }
-        } else {// @ts-ignore
-          if (item.children !== undefined && item.children.length > 0) {// @ts-ignore
+        } else {
+          // @ts-ignore
+          if (item.children !== undefined && item.children.length > 0) {
+            // @ts-ignore
             resetAllHeight(item.children, depth + 1, tableRowObject);
           }
         }
@@ -608,13 +636,15 @@ export class LitPageTable extends BaseElement {
   addTreeRowScrollListener(): void {
     this.tableElement &&
       (this.tableElement.onscroll = (event): void => {
-        let visibleObjs = this.recycleDs.filter((item) => {// @ts-ignore
+        let visibleObjs = this.recycleDs.filter((item) => {
+          // @ts-ignore
           return !item.rowHidden;
         });
         let top = this.tableElement!.scrollTop;
         this.treeElement!.style.transform = `translateY(${top}px)`;
         let skip = 0;
-        for (let index = 0; index < visibleObjs.length; index++) {// @ts-ignore
+        for (let index = 0; index < visibleObjs.length; index++) {
+          // @ts-ignore
           if (visibleObjs[index].top <= top && visibleObjs[index].top + visibleObjs[index].height >= top) {
             skip = index;
             break;
@@ -624,18 +654,20 @@ export class LitPageTable extends BaseElement {
         if (reduce === 0) {
           return;
         }
-        while (reduce <= this.tableElement!.clientHeight) {// @ts-ignore
-          let newTableElement = this.createNewTreeTableElement(visibleObjs[skip]);// @ts-ignore
+        while (reduce <= this.tableElement!.clientHeight) {
+          // @ts-ignore
+          let newTableElement = this.createNewTreeTableElement(visibleObjs[skip]); // @ts-ignore
           this.tbodyElement?.append(newTableElement);
-          if (this.treeElement?.lastChild) {// @ts-ignore
+          if (this.treeElement?.lastChild) {
+            // @ts-ignore
             (this.treeElement?.lastChild as HTMLElement).style.height = visibleObjs[skip].height + 'px';
-          }// @ts-ignore
-          this.currentRecycleList.push(newTableElement);// @ts-ignore
+          } // @ts-ignore
+          this.currentRecycleList.push(newTableElement); // @ts-ignore
           reduce += newTableElement.clientHeight;
         }
         for (let i = 0; i < this.currentRecycleList.length; i++) {
           this.freshCurrentLine(
-            this.currentRecycleList[i],// @ts-ignore
+            this.currentRecycleList[i], // @ts-ignore
             visibleObjs[i + skip],
             this.treeElement?.children[i] as HTMLElement
           );
@@ -651,33 +683,35 @@ export class LitPageTable extends BaseElement {
       let transX = Number((this.treeElement?.lastChild as HTMLElement).style.transform.replace(/[^0-9]/gi, ''));
       treeTop += transX + rowData.height;
     }
-    this?.columns?.forEach((column: unknown, index) => {// @ts-ignore
+    this?.columns?.forEach((column: unknown, index) => {
+      // @ts-ignore
       let dataIndex = column.getAttribute('data-index') || '1';
       let td: unknown;
       if (index === 0) {
         td = this.firstElementTdHandler(newTableElement, dataIndex, rowData, column);
       } else {
-        td = this.otherElementHandler(dataIndex, rowData, column);// @ts-ignore
+        td = this.otherElementHandler(dataIndex, rowData, column); // @ts-ignore
         newTableElement.append(td);
       }
     });
     let lastChild = this.treeElement?.lastChild as HTMLElement;
     if (lastChild) {
       lastChild.style.transform = `translateY(${treeTop}px)`;
-    }// @ts-ignore
+    } // @ts-ignore
     (newTableElement as unknown).data = rowData.data;
     newTableElement.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
     newTableElement.style.position = 'absolute';
     newTableElement.style.top = '0px';
     newTableElement.style.left = '0px';
-    newTableElement.style.cursor = 'pointer';//@ts-ignore
+    newTableElement.style.cursor = 'pointer'; //@ts-ignore
     this.setHighLight(rowData.data.isSearch, newTableElement);
     this.addRowElementEvent(newTableElement, rowData);
     return newTableElement;
   }
 
   addRowElementEvent(newTableElement: HTMLDivElement, rowData: unknown): void {
-    newTableElement.onmouseenter = (): void => {// @ts-ignore
+    newTableElement.onmouseenter = (): void => {
+      // @ts-ignore
       if ((newTableElement as unknown).data.isSelected) {
         return;
       }
@@ -689,7 +723,8 @@ export class LitPageTable extends BaseElement {
         this.setMouseIn(true, [this.treeElement?.children[indexOf] as HTMLElement]);
       }
     };
-    newTableElement.onmouseleave = (): void => {// @ts-ignore
+    newTableElement.onmouseleave = (): void => {
+      // @ts-ignore
       if ((newTableElement as unknown).data.isSelected) {
         return;
       }
@@ -704,42 +739,50 @@ export class LitPageTable extends BaseElement {
     };
   }
 
-  firstElementTdHandler(newTableElement: HTMLDivElement, dataIndex: string, rowData: unknown, column: unknown): HTMLDivElement {
-    let td: unknown;// @ts-ignore
-    let text = formatName(dataIndex, rowData.data[dataIndex], this);// @ts-ignore
-    if (column.template) {// @ts-ignore
-      td = column.template.render(rowData.data).content.cloneNode(true);// @ts-ignore
-      td.template = column.template;// @ts-ignore
+  firstElementTdHandler(
+    newTableElement: HTMLDivElement,
+    dataIndex: string,
+    rowData: unknown,
+    column: unknown
+  ): HTMLDivElement {
+    let td: unknown; // @ts-ignore
+    let text = formatName(dataIndex, rowData.data[dataIndex], this); // @ts-ignore
+    if (column.template) {
+      // @ts-ignore
+      td = column.template.render(rowData.data).content.cloneNode(true); // @ts-ignore
+      td.template = column.template; // @ts-ignore
       td.title = text;
     } else {
-      td = document.createElement('div');// @ts-ignore
-      td.innerHTML = text;// @ts-ignore
-      td.dataIndex = dataIndex;// @ts-ignore
+      td = document.createElement('div'); // @ts-ignore
+      td.innerHTML = text; // @ts-ignore
+      td.dataIndex = dataIndex; // @ts-ignore
       td.title = text;
-    }// @ts-ignore
+    } // @ts-ignore
     if (rowData.data.children && rowData.data.children.length > 0 && !rowData.data.hasNext) {
-      let btn = this.createExpandBtn(rowData);// @ts-ignore
+      let btn = this.createExpandBtn(rowData); // @ts-ignore
       td.insertBefore(btn, td.firstChild);
-    }// @ts-ignore
-    if (rowData.data.hasNext) {// @ts-ignore
+    } // @ts-ignore
+    if (rowData.data.hasNext) {
+      // @ts-ignore
       td.title = rowData.data.objectName;
-      let btn = this.createBtn(rowData);// @ts-ignore
+      let btn = this.createBtn(rowData); // @ts-ignore
       td.insertBefore(btn, td.firstChild);
-    }// @ts-ignore
-    td.style.paddingLeft = rowData.depth * iconWidth + 'px';// @ts-ignore
-    if (!rowData.data.children || rowData.data.children.length === 0) {// @ts-ignore
+    } // @ts-ignore
+    td.style.paddingLeft = rowData.depth * iconWidth + 'px'; // @ts-ignore
+    if (!rowData.data.children || rowData.data.children.length === 0) {
+      // @ts-ignore
       td.style.paddingLeft = iconWidth * rowData.depth + iconWidth + iconPadding * 2 + 'px';
-    }// @ts-ignore
-    (td as unknown).data = rowData.data;// @ts-ignore
-    td.classList.add('tree-first-body');// @ts-ignore
-    td.style.position = 'absolute';// @ts-ignore
-    td.style.top = '0px';// @ts-ignore
-    td.style.left = '0px';// @ts-ignore
-    this.addFirstElementEvent(td, newTableElement, rowData);// @ts-ignore
-    this.setHighLight(rowData.data.isSearch, td);// @ts-ignore
-    this.treeElement!.style.width = column.getAttribute('width');// @ts-ignore
-    this.treeElement?.append(td);// @ts-ignore
-    this.currentTreeDivList.push(td);// @ts-ignore
+    } // @ts-ignore
+    (td as unknown).data = rowData.data; // @ts-ignore
+    td.classList.add('tree-first-body'); // @ts-ignore
+    td.style.position = 'absolute'; // @ts-ignore
+    td.style.top = '0px'; // @ts-ignore
+    td.style.left = '0px'; // @ts-ignore
+    this.addFirstElementEvent(td, newTableElement, rowData); // @ts-ignore
+    this.setHighLight(rowData.data.isSearch, td); // @ts-ignore
+    this.treeElement!.style.width = column.getAttribute('width'); // @ts-ignore
+    this.treeElement?.append(td); // @ts-ignore
+    this.currentTreeDivList.push(td); // @ts-ignore
     return td;
   }
 
@@ -765,85 +808,104 @@ export class LitPageTable extends BaseElement {
     };
   }
 
-  otherElementHandler(dataIndex: string, rowData: unknown, column: unknown): HTMLDivElement {// @ts-ignore
+  otherElementHandler(dataIndex: string, rowData: unknown, column: unknown): HTMLDivElement {
+    // @ts-ignore
     let text = formatName(dataIndex, rowData.data[dataIndex], this);
     let td: unknown = document.createElement('div');
-    td = document.createElement('div');// @ts-ignore
-    td.classList.add('td');// @ts-ignore
-    td.style.overflow = 'hidden';// @ts-ignore
-    td.style.textOverflow = 'ellipsis';// @ts-ignore
-    td.style.whiteSpace = 'nowrap';// @ts-ignore
-    td.title = text;// @ts-ignore
-    td.dataIndex = dataIndex;// @ts-ignore
-    td.style.justifyContent = column.getAttribute('align') || 'flex-start';// @ts-ignore
-    if (column.template) {// @ts-ignore
-      td.appendChild(column.template.render(rowData.data).content.cloneNode(true));// @ts-ignore
+    td = document.createElement('div'); // @ts-ignore
+    td.classList.add('td'); // @ts-ignore
+    td.style.overflow = 'hidden'; // @ts-ignore
+    td.style.textOverflow = 'ellipsis'; // @ts-ignore
+    td.style.whiteSpace = 'nowrap'; // @ts-ignore
+    td.title = text; // @ts-ignore
+    td.dataIndex = dataIndex; // @ts-ignore
+    td.style.justifyContent = column.getAttribute('align') || 'flex-start'; // @ts-ignore
+    if (column.template) {
+      // @ts-ignore
+      td.appendChild(column.template.render(rowData.data).content.cloneNode(true)); // @ts-ignore
       td.template = column.template;
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       td.innerHTML = text;
-    }// @ts-ignore
+    } // @ts-ignore
     return td;
   }
 
   createBtn(row: unknown): unknown {
-    let btn: unknown = document.createElement('lit-icon');// @ts-ignore
-    btn.classList.add('tree-icon');// @ts-ignore
-    if (row.data.expanded) {// @ts-ignore
+    let btn: unknown = document.createElement('lit-icon'); // @ts-ignore
+    btn.classList.add('tree-icon'); // @ts-ignore
+    if (row.data.expanded) {
+      // @ts-ignore
       btn.name = 'plus-square';
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       btn.name = 'minus-square';
-    }// @ts-ignore
-    btn.addEventListener('click', (e: unknown) => {// @ts-ignore
+    } // @ts-ignore
+    btn.addEventListener('click', (e: unknown) => {
+      // @ts-ignore
       row.data.status = false;
       const resetNodeHidden = (hidden: boolean, rowData: unknown): void => {
-        if (hidden) {// @ts-ignore
-          rowData.children.forEach((child: unknown) => {// @ts-ignore
+        if (hidden) {
+          // @ts-ignore
+          rowData.children.forEach((child: unknown) => {
+            // @ts-ignore
             child.rowHidden = false;
           });
-        } else {// @ts-ignore
-          rowData.children.forEach((child: unknown) => {// @ts-ignore
+        } else {
+          // @ts-ignore
+          rowData.children.forEach((child: unknown) => {
+            // @ts-ignore
             child.rowHidden = true;
             resetNodeHidden(hidden, child);
           });
         }
       };
-// @ts-ignore
-      if (row.data.expanded) {// @ts-ignore
+      // @ts-ignore
+      if (row.data.expanded) {
+        // @ts-ignore
         row.data.status = true;
-        this.dispatchRowClickEventIcon(row, [btn]);// @ts-ignore
+        this.dispatchRowClickEventIcon(row, [btn]); // @ts-ignore
         row.data.expanded = false;
         resetNodeHidden(true, row);
-      } else {// @ts-ignore
-        row.data.expanded = true;// @ts-ignore
+      } else {
+        // @ts-ignore
+        row.data.expanded = true; // @ts-ignore
         row.data.status = false;
         resetNodeHidden(false, row);
       }
-      this.reMeauseHeight();// @ts-ignore
+      this.reMeauseHeight(); // @ts-ignore
       e.stopPropagation();
     });
     return btn;
   }
 
   createExpandBtn(row: unknown): LitIcon {
-    let btn: unknown = document.createElement('lit-icon');// @ts-ignore
+    let btn: unknown = document.createElement('lit-icon'); // @ts-ignore
     btn.classList.add('tree-icon');
     // @ts-ignore
-    if (row.expanded) {// @ts-ignore
+    if (row.expanded) {
+      // @ts-ignore
       btn.name = 'minus-square';
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       btn.name = 'plus-square';
-    }// @ts-ignore
+    } // @ts-ignore
     btn.onclick = (e: Event): void => {
-      const resetNodeHidden = (hidden: boolean, rowData: unknown): void => {// @ts-ignore
+      const resetNodeHidden = (hidden: boolean, rowData: unknown): void => {
+        // @ts-ignore
         if (rowData.children.length > 0) {
-          if (hidden) {// @ts-ignore
-            rowData.children.forEach((child: unknown) => {// @ts-ignore
+          if (hidden) {
+            // @ts-ignore
+            rowData.children.forEach((child: unknown) => {
+              // @ts-ignore
               child.rowHidden = true;
               resetNodeHidden(hidden, child);
             });
-          } else {// @ts-ignore
-            rowData.children.forEach((child: unknown) => {// @ts-ignore
-              child.rowHidden = !rowData.expanded;// @ts-ignore
+          } else {
+            // @ts-ignore
+            rowData.children.forEach((child: unknown) => {
+              // @ts-ignore
+              child.rowHidden = !rowData.expanded; // @ts-ignore
               if (rowData.expanded) {
                 resetNodeHidden(hidden, child);
               }
@@ -851,36 +913,42 @@ export class LitPageTable extends BaseElement {
           }
         }
       };
-// @ts-ignore
-      if (row.expanded) {// @ts-ignore
+      // @ts-ignore
+      if (row.expanded) {
+        // @ts-ignore
         row.expanded = false;
         resetNodeHidden(true, row);
-      } else {// @ts-ignore
+      } else {
+        // @ts-ignore
         row.expanded = true;
         resetNodeHidden(false, row);
       }
       this.reMeauseHeight();
       e.stopPropagation();
-    };// @ts-ignore
+    }; // @ts-ignore
     return btn;
   }
 
-  getVisibleObjs(): { visibleObjs: unknown[], skip: number, reduce: number } {
+  getVisibleObjs(): { visibleObjs: unknown[]; skip: number; reduce: number } {
     let totalH = 0;
-    this.recycleDs.forEach((it) => {// @ts-ignore
-      if (!it.rowHidden) {// @ts-ignore
-        it.top = totalH;// @ts-ignore
+    this.recycleDs.forEach((it) => {
+      // @ts-ignore
+      if (!it.rowHidden) {
+        // @ts-ignore
+        it.top = totalH; // @ts-ignore
         totalH += it.height;
       }
     });
     this.tbodyElement && (this.tbodyElement.style.height = totalH + (this.isScrollXOutSide ? 0 : 0) + 'px');
     this.treeElement!.style.height = this.tableElement!.clientHeight - this.theadElement!.clientHeight + 'px';
-    let visibleObjs = this.recycleDs.filter((item) => {// @ts-ignore
+    let visibleObjs = this.recycleDs.filter((item) => {
+      // @ts-ignore
       return !item.rowHidden;
     });
     let top = this.tableElement!.scrollTop;
     let skip = 0;
-    for (let i = 0; i < visibleObjs.length; i++) {// @ts-ignore
+    for (let i = 0; i < visibleObjs.length; i++) {
+      // @ts-ignore
       if (visibleObjs[i].top <= top && visibleObjs[i].top + visibleObjs[i].height >= top) {
         skip = i;
         break;
@@ -900,28 +968,31 @@ export class LitPageTable extends BaseElement {
     }
     while (reduce <= this.tableElement!.clientHeight + 1) {
       let rowElement;
-      if (this.hasAttribute('tree')) {// @ts-ignore
+      if (this.hasAttribute('tree')) {
+        // @ts-ignore
         rowElement = this.createNewTreeTableElement(visibleObjs[skip]);
       } else {
         rowElement = this.createNewTableElement(visibleObjs[skip]);
-      }// @ts-ignore
+      } // @ts-ignore
       this.tbodyElement?.append(rowElement);
       if (this.hasAttribute('tree')) {
-        if (this.treeElement?.lastChild) {// @ts-ignore
+        if (this.treeElement?.lastChild) {
+          // @ts-ignore
           (this.treeElement?.lastChild as HTMLElement).style.height = visibleObjs[skip].height + 'px';
         }
-      }// @ts-ignore
-      this.currentRecycleList.push(rowElement);// @ts-ignore
+      } // @ts-ignore
+      this.currentRecycleList.push(rowElement); // @ts-ignore
       reduce += rowElement.clientHeight;
     }
     for (let i = 0; i < this.currentRecycleList.length; i++) {
       if (this.hasAttribute('tree')) {
         this.freshCurrentLine(
-          this.currentRecycleList[i],// @ts-ignore
+          this.currentRecycleList[i], // @ts-ignore
           visibleObjs[i + skip],
           this.treeElement?.children[i] as HTMLElement
         );
-      } else {// @ts-ignore
+      } else {
+        // @ts-ignore
         this.freshCurrentLine(this.currentRecycleList[i], visibleObjs[i + skip]);
       }
     }
@@ -930,24 +1001,27 @@ export class LitPageTable extends BaseElement {
   createNewTableElement(rowData: unknown): HTMLDivElement {
     let rowElement = document.createElement('div');
     rowElement.classList.add('tr');
-    this?.columns?.forEach((column: unknown) => {// @ts-ignore
+    this?.columns?.forEach((column: unknown) => {
+      // @ts-ignore
       let dataIndex = column.getAttribute('data-index') || '1';
       let td: unknown;
-      td = document.createElement('div');// @ts-ignore
-      td.classList.add('td');// @ts-ignore
-      td.style.overflow = 'hidden';// @ts-ignore
-      td.style.textOverflow = 'ellipsis';// @ts-ignore
-      td.style.whiteSpace = 'nowrap';// @ts-ignore
-      td.dataIndex = dataIndex;// @ts-ignore
-      td.style.justifyContent = column.getAttribute('align') || 'flex-start';// @ts-ignore
-      let text = formatName(dataIndex, rowData.data[dataIndex], this);// @ts-ignore
-      td.title = text;// @ts-ignore
-      if (column.template) {// @ts-ignore
-        td.appendChild(column.template.render(rowData.data).content.cloneNode(true));// @ts-ignore
+      td = document.createElement('div'); // @ts-ignore
+      td.classList.add('td'); // @ts-ignore
+      td.style.overflow = 'hidden'; // @ts-ignore
+      td.style.textOverflow = 'ellipsis'; // @ts-ignore
+      td.style.whiteSpace = 'nowrap'; // @ts-ignore
+      td.dataIndex = dataIndex; // @ts-ignore
+      td.style.justifyContent = column.getAttribute('align') || 'flex-start'; // @ts-ignore
+      let text = formatName(dataIndex, rowData.data[dataIndex], this); // @ts-ignore
+      td.title = text; // @ts-ignore
+      if (column.template) {
+        // @ts-ignore
+        td.appendChild(column.template.render(rowData.data).content.cloneNode(true)); // @ts-ignore
         td.template = column.template;
-      } else {// @ts-ignore
+      } else {
+        // @ts-ignore
         td.innerHTML = text;
-      }// @ts-ignore
+      } // @ts-ignore
       rowElement.append(td);
     });
     rowElement.onclick = (): void => {
@@ -955,18 +1029,20 @@ export class LitPageTable extends BaseElement {
     };
     rowElement.onmouseover = (): void => {
       this.dispatchRowHoverEvent(rowData, [rowElement]);
-    };// @ts-ignore
-    if (rowData.data.isSelected !== undefined) {// @ts-ignore
+    }; // @ts-ignore
+    if (rowData.data.isSelected !== undefined) {
+      // @ts-ignore
       this.setSelectedRow(rowData.data.isSelected, [rowElement]);
-    }// @ts-ignore
+    } // @ts-ignore
     (rowElement as unknown).data = rowData.data;
     rowElement.style.cursor = 'pointer';
     rowElement.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
     rowElement.style.position = 'absolute';
     rowElement.style.top = '0px';
-    rowElement.style.left = '0px';// @ts-ignore
+    rowElement.style.left = '0px'; // @ts-ignore
     rowElement.style.height = `${rowData.height}px`;
-    if (this.getItemTextColor) {// @ts-ignore
+    if (this.getItemTextColor) {
+      // @ts-ignore
       rowElement.style.color = this.getItemTextColor(rowData.data);
     }
     return rowElement;
@@ -980,7 +1056,7 @@ export class LitPageTable extends BaseElement {
       element.style.display = 'none';
       return;
     }
-    let childIndex = -1;//@ts-ignore
+    let childIndex = -1; //@ts-ignore
     this.setHighLight(rowObject.data.isSearch, element);
     element.childNodes.forEach((child) => {
       if (child.nodeType !== 1) {
@@ -990,16 +1066,19 @@ export class LitPageTable extends BaseElement {
       let idx = firstElement !== undefined ? childIndex + 1 : childIndex;
       this.freshLineFirstElementHandler(firstElement, rowObject, childIndex);
       //@ts-ignore
-      let dataIndex = this.columns![idx].getAttribute('data-index') || '1';//@ts-ignore
-      let text = formatName(dataIndex, rowObject.data[dataIndex], this);// @ts-ignore
+      let dataIndex = this.columns![idx].getAttribute('data-index') || '1'; //@ts-ignore
+      let text = formatName(dataIndex, rowObject.data[dataIndex], this); // @ts-ignore
       if ((this.columns![idx] as unknown).template) {
         (child as HTMLElement).innerHTML = '';
-        (child as HTMLElement).appendChild(// @ts-ignore
+        (child as HTMLElement).appendChild(
+          // @ts-ignore
           (this.columns![idx] as unknown).template.render(rowObject.data).content.cloneNode(true)
         );
+        // @ts-ignore
         (child as HTMLElement).title = text;
-      } else {//@ts-ignore
-        (child as HTMLElement).innerHTML = text;//@ts-ignore
+      } else {
+        //@ts-ignore
+        (child as HTMLElement).innerHTML = text; //@ts-ignore
         (child as HTMLElement).title = text;
       }
     });
@@ -1007,38 +1086,42 @@ export class LitPageTable extends BaseElement {
   }
 
   freshLineFirstElementHandler(rowFirstElement: unknown, rowObject: TableRowObject, childIndex: number): void {
-    if (rowFirstElement !== undefined && childIndex === 0) {//@ts-ignore
-      this.setHighLight(rowObject.data.isSearch, rowFirstElement);// @ts-ignore
-      (rowFirstElement as unknown).data = rowObject.data;// @ts-ignore
-      if ((this.columns![0] as unknown).template) {// @ts-ignore
+    if (rowFirstElement !== undefined && childIndex === 0) {
+      //@ts-ignore
+      this.setHighLight(rowObject.data.isSearch, rowFirstElement); // @ts-ignore
+      (rowFirstElement as unknown).data = rowObject.data; // @ts-ignore
+      if ((this.columns![0] as unknown).template) {
+        // @ts-ignore
         rowFirstElement.innerHTML = (this.columns![0] as unknown).template
           .render(rowObject.data)
           .content.cloneNode(true).innerHTML;
       } else {
-        let dataIndex = this.columns![0].getAttribute('data-index') || '1';//@ts-ignore
-        let text = formatName(dataIndex, rowObject.data[dataIndex], this);// @ts-ignore
-        rowFirstElement.innerHTML = text;// @ts-ignore
+        let dataIndex = this.columns![0].getAttribute('data-index') || '1'; //@ts-ignore
+        let text = formatName(dataIndex, rowObject.data[dataIndex], this); // @ts-ignore
+        rowFirstElement.innerHTML = text; // @ts-ignore
         rowFirstElement.title = text;
-      }//@ts-ignore
+      } //@ts-ignore
       if (rowObject.children && rowObject.children.length > 0 && !rowObject.data.hasNext) {
-        let btn = this.createExpandBtn(rowObject);// @ts-ignore
+        let btn = this.createExpandBtn(rowObject); // @ts-ignore
         rowFirstElement.insertBefore(btn, rowFirstElement.firstChild);
-      }// @ts-ignore
+      } // @ts-ignore
       rowFirstElement.style.paddingLeft = iconWidth * rowObject.depth + 'px';
-      if (!rowObject.children || rowObject.children.length === 0) {// @ts-ignore
+      if (!rowObject.children || rowObject.children.length === 0) {
+        // @ts-ignore
         rowFirstElement.style.paddingLeft = iconWidth * rowObject.depth + iconWidth + iconPadding * 2 + 'px';
-      }//@ts-ignore
+      } //@ts-ignore
       if (rowObject.data.hasNext) {
-        let btn = this.createBtn(rowObject);// @ts-ignore
-        rowFirstElement.title = rowObject.data.objectName;// @ts-ignore
-        rowFirstElement.insertBefore(btn, rowFirstElement.firstChild);// @ts-ignore
+        let btn = this.createBtn(rowObject); // @ts-ignore
+        rowFirstElement.title = rowObject.data.objectName; // @ts-ignore
+        rowFirstElement.insertBefore(btn, rowFirstElement.firstChild); // @ts-ignore
         rowFirstElement.style.paddingLeft = iconWidth * rowObject.depth + 'px';
-      }// @ts-ignore
+      } // @ts-ignore
       rowFirstElement.onclick = (): void => {
         this.dispatchRowClickEvent(rowObject, [rowFirstElement, element]);
-      };// @ts-ignore
-      rowFirstElement.style.transform = `translateY(${rowObject.top - this.tableElement!.scrollTop}px)`;//@ts-ignore
-      if (rowObject.data.isSelected !== undefined) {//@ts-ignore
+      }; // @ts-ignore
+      rowFirstElement.style.transform = `translateY(${rowObject.top - this.tableElement!.scrollTop}px)`; //@ts-ignore
+      if (rowObject.data.isSelected !== undefined) {
+        //@ts-ignore
         this.setSelectedRow(rowObject.data.isSelected, [rowFirstElement]);
       } else {
         this.setSelectedRow(false, [rowFirstElement]);
@@ -1065,32 +1148,38 @@ export class LitPageTable extends BaseElement {
       this.dispatchRowHoverEvent(rowData, [element]);
     };
     // @ts-ignore
-    (element as unknown).data = rowData.data;//@ts-ignore
-    if (rowData.data.isSelected !== undefined) {//@ts-ignore
+    (element as unknown).data = rowData.data; //@ts-ignore
+    if (rowData.data.isSelected !== undefined) {
+      //@ts-ignore
       this.setSelectedRow(rowData.data.isSelected, [element]);
     } else {
       this.setSelectedRow(false, [element]);
-    }//@ts-ignore
-    if (rowData.data.isHover !== undefined) {//@ts-ignore
+    } //@ts-ignore
+    if (rowData.data.isHover !== undefined) {
+      //@ts-ignore
       this.setMouseIn(rowData.data.isHover, [element]);
     } else {
       this.setMouseIn(false, [element]);
     }
-    if (this.getItemTextColor) {// @ts-ignore
+    if (this.getItemTextColor) {
+      // @ts-ignore
       element.style.color = this.getItemTextColor((element as unknown).data);
     }
   }
 
   setSelectedRow(isSelected: boolean, rows: unknown[]): void {
     if (isSelected) {
-      rows.forEach((row) => {// @ts-ignore
-        if (row.classList.contains('mouse-in')) {// @ts-ignore
+      rows.forEach((row) => {
+        // @ts-ignore
+        if (row.classList.contains('mouse-in')) {
+          // @ts-ignore
           row.classList.remove('mouse-in');
-        }// @ts-ignore
+        } // @ts-ignore
         row.classList.add('mouse-select');
       });
     } else {
-      rows.forEach((row) => {// @ts-ignore
+      rows.forEach((row) => {
+        // @ts-ignore
         row.classList.remove('mouse-select');
       });
     }
@@ -1098,11 +1187,13 @@ export class LitPageTable extends BaseElement {
 
   setMouseIn(isMouseIn: boolean, rows: unknown[]): void {
     if (isMouseIn) {
-      rows.forEach((row) => {// @ts-ignore
+      rows.forEach((row) => {
+        // @ts-ignore
         row.classList.add('mouse-in');
       });
     } else {
-      rows.forEach((row) => {// @ts-ignore
+      rows.forEach((row) => {
+        // @ts-ignore
         row.classList.remove('mouse-in');
       });
     }
@@ -1110,10 +1201,12 @@ export class LitPageTable extends BaseElement {
 
   scrollToData(data: unknown): void {
     if (this.recycleDs.length > 0) {
-      let filter = this.recycleDs.filter((item) => {// @ts-ignore
+      let filter = this.recycleDs.filter((item) => {
+        // @ts-ignore
         return item.data === data;
       });
-      if (filter.length > 0) {// @ts-ignore
+      if (filter.length > 0) {
+        // @ts-ignore
         this.tableElement!.scrollTop = filter[0].top;
       }
       this.setCurrentSelection(data);
@@ -1121,12 +1214,14 @@ export class LitPageTable extends BaseElement {
   }
 
   expandList(datasource: unknown[]): void {
-    let source = this.recycleDs.filter((item) => {// @ts-ignore
+    let source = this.recycleDs.filter((item) => {
+      // @ts-ignore
       return datasource.indexOf(item.data) !== -1;
     });
     if (source.length > 0) {
-      source.forEach((item) => {// @ts-ignore
-        item.expanded = true;// @ts-ignore
+      source.forEach((item) => {
+        // @ts-ignore
+        item.expanded = true; // @ts-ignore
         item.rowHidden = false;
       });
     }
@@ -1134,8 +1229,10 @@ export class LitPageTable extends BaseElement {
   }
 
   clearAllSelection(rowObjectData: unknown = undefined): void {
-    this.recycleDs.forEach((item) => {// @ts-ignore
-      if (rowObjectData || (item.data !== rowObjectData && item.data.isSelected)) {// @ts-ignore
+    this.recycleDs.forEach((item) => {
+      // @ts-ignore
+      if (rowObjectData || (item.data !== rowObjectData && item.data.isSelected)) {
+        // @ts-ignore
         item.data.isSelected = false;
       }
     });
@@ -1144,8 +1241,10 @@ export class LitPageTable extends BaseElement {
   }
 
   clearAllHover(rowObjectData: unknown): void {
-    this.recycleDs.forEach((item) => {// @ts-ignore
-      if (item.data !== rowObjectData && item.data.isHover) {// @ts-ignore
+    this.recycleDs.forEach((item) => {
+      // @ts-ignore
+      if (item.data !== rowObjectData && item.data.isHover) {
+        // @ts-ignore
         item.data.isHover = false;
       }
     });
@@ -1153,7 +1252,8 @@ export class LitPageTable extends BaseElement {
     this.setMouseIn(false, this.currentRecycleList);
   }
 
-  mouseOut(): void {// @ts-ignore
+  mouseOut(): void {
+    // @ts-ignore
     this.recycleDs.forEach((item) => (item.data.isHover = false));
     this.setMouseIn(false, this.currentTreeDivList);
     this.setMouseIn(false, this.currentRecycleList);
@@ -1167,15 +1267,20 @@ export class LitPageTable extends BaseElement {
     );
   }
 
-  setCurrentSelection(data: unknown): void {// @ts-ignore
+  setCurrentSelection(data: unknown): void {
+    // @ts-ignore
     if (data.isSelected !== undefined) {
-      this.currentTreeDivList.forEach((item) => {// @ts-ignore
-        if ((item as unknown).data === data) {// @ts-ignore
+      this.currentTreeDivList.forEach((item) => {
+        // @ts-ignore
+        if ((item as unknown).data === data) {
+          // @ts-ignore
           this.setSelectedRow(data.isSelected, [item]);
         }
       });
-      this.currentRecycleList.forEach((item) => {// @ts-ignore
-        if ((item as unknown).data === data) {// @ts-ignore
+      this.currentRecycleList.forEach((item) => {
+        // @ts-ignore
+        if ((item as unknown).data === data) {
+          // @ts-ignore
           this.setSelectedRow(data.isSelected, [item]);
         }
       });
@@ -1184,15 +1289,19 @@ export class LitPageTable extends BaseElement {
 
   setCurrentHover(data: unknown): void {
     this.setMouseIn(false, this.currentTreeDivList);
-    this.setMouseIn(false, this.currentRecycleList);// @ts-ignore
+    this.setMouseIn(false, this.currentRecycleList); // @ts-ignore
     if (data.isHover !== undefined) {
-      this.currentTreeDivList.forEach((item) => {// @ts-ignore
-        if ((item as unknown).data === data) {// @ts-ignore
+      this.currentTreeDivList.forEach((item) => {
+        // @ts-ignore
+        if ((item as unknown).data === data) {
+          // @ts-ignore
           this.setMouseIn(data.isHover, [item]);
         }
       });
-      this.currentRecycleList.forEach((item) => {// @ts-ignore
-        if ((item as unknown).data === data) {// @ts-ignore
+      this.currentRecycleList.forEach((item) => {
+        // @ts-ignore
+        if ((item as unknown).data === data) {
+          // @ts-ignore
           this.setMouseIn(data.isHover, [item]);
         }
       });
@@ -1202,14 +1311,16 @@ export class LitPageTable extends BaseElement {
   dispatchRowClickEventIcon(rowObject: unknown, elements: unknown[]): void {
     this.dispatchEvent(
       new CustomEvent('icon-click', {
-        detail: {// @ts-ignore
-          ...rowObject.data,// @ts-ignore
+        detail: {
+          // @ts-ignore
+          ...rowObject.data, // @ts-ignore
           data: rowObject.data,
           callBack: (isSelected: boolean): void => {
             //是否爲单选
-            if (isSelected) {// @ts-ignore
+            if (isSelected) {
+              // @ts-ignore
               this.clearAllSelection(rowObject.data);
-            }// @ts-ignore
+            } // @ts-ignore
             this.setSelectedRow(rowObject.data.isSelected, elements);
           },
         },
@@ -1221,14 +1332,16 @@ export class LitPageTable extends BaseElement {
   dispatchRowClickEvent(rowObject: unknown, elements: unknown[]): void {
     this.dispatchEvent(
       new CustomEvent('row-click', {
-        detail: {// @ts-ignore
-          ...rowObject.data,// @ts-ignore
+        detail: {
+          // @ts-ignore
+          ...rowObject.data, // @ts-ignore
           data: rowObject.data,
           callBack: (isSelected: boolean): void => {
             //是否爲单选
-            if (isSelected) {// @ts-ignore
+            if (isSelected) {
+              // @ts-ignore
               this.clearAllSelection(rowObject.data);
-            }// @ts-ignore
+            } // @ts-ignore
             this.setSelectedRow(rowObject.data.isSelected, elements);
           },
         },
@@ -1240,10 +1353,12 @@ export class LitPageTable extends BaseElement {
   dispatchRowHoverEvent(rowObject: unknown, elements: unknown[]): void {
     this.dispatchEvent(
       new CustomEvent('row-hover', {
-        detail: {// @ts-ignore
+        detail: {
+          // @ts-ignore
           data: rowObject.data,
-          callBack: (): void => {// @ts-ignore
-            this.clearAllHover(rowObject.data);// @ts-ignore
+          callBack: (): void => {
+            // @ts-ignore
+            this.clearAllHover(rowObject.data); // @ts-ignore
             this.setMouseIn(rowObject.data.isHover, elements);
           },
         },
@@ -1252,9 +1367,11 @@ export class LitPageTable extends BaseElement {
     );
   }
   setHighLight(isSearch: boolean, element: unknown): void {
-    if (isSearch) {// @ts-ignore
+    if (isSearch) {
+      // @ts-ignore
       element.setAttribute('high-light', '');
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       element.removeAttribute('high-light');
     }
   }

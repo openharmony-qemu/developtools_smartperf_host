@@ -41,8 +41,12 @@ trace_range t where i.callid = ${callid} and i.cat = 'softirq'
   return query('queryIrqData', cat === 'irq' ? sqlIrq : sqlSoftIrq, {});
 };
 
-export const queryIrqDataBoxSelect = (callIds: Array<number>, startNS: number, endNS: number)://@ts-ignore
- Promise<Array<unknown>> => {
+export const queryIrqDataBoxSelect = (
+  callIds: Array<number>,
+  startNS: number,
+  endNS: number
+): //@ts-ignore
+Promise<Array<unknown>> => {
   let sqlIrq = `
 select case when i.cat = 'ipi' then 'IPI' || i.name else i.name end as irqName,
        sum(dur)                                                     as wallDuration,
@@ -63,8 +67,8 @@ export const querySoftIrqDataBoxSelect = (
   callIds: Array<number>,
   startNS: number,
   endNS: number
-)://@ts-ignore
- Promise<Array<unknown>> => {
+): //@ts-ignore
+Promise<Array<unknown>> => {
   let sqlIrq = `
 select i.name              as irqName,
        sum(dur)            as wallDuration,

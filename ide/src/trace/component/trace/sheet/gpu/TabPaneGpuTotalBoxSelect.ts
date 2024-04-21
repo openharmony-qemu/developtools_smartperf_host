@@ -55,7 +55,7 @@ export class TabPaneGpuTotalBoxSelect extends BaseElement {
     //@ts-ignore
     this.gpuBoxTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
     this.range!.textContent =
-    // @ts-ignore
+      // @ts-ignore
       'Selected range: ' + ((gpuTotalBoxParam.rightNs - gpuTotalBoxParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.gpuBoxTbl!.loading = true;
     // @ts-ignore

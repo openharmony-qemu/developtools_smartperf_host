@@ -22,6 +22,7 @@ import {
   RequestMessage,
   Render,
   drawLoadingFrame,
+  Rect,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
@@ -76,7 +77,7 @@ export class CpuAbilityRender extends Render {
     req.context.fillText(req.maxCpuUtilizationName, 4, 5 + 9);
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {}
+  render(req: unknown, list: Array<unknown>, filter: Array<unknown>): void {}
 }
 
 export class CpuAbilityMonitorStruct extends BaseStruct {
@@ -134,12 +135,12 @@ export class CpuAbilityMonitorStruct extends BaseStruct {
   }
 
   static setCpuAbilityFrame(
-    cpuAbilityNode: any,
+    cpuAbilityNode: CpuAbilityMonitorStruct,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
     let cpuAbilityStartPointX: number, cpuAbilityEndPointX: number;
 
@@ -162,16 +163,11 @@ export class CpuAbilityMonitorStruct extends BaseStruct {
     let frameWidth: number =
       cpuAbilityEndPointX - cpuAbilityStartPointX <= 1 ? 1 : cpuAbilityEndPointX - cpuAbilityStartPointX;
     if (!cpuAbilityNode.frame) {
-      cpuAbilityNode.frame = {};
+      cpuAbilityNode.frame = new Rect(0, 0, 0, 0);
     }
     cpuAbilityNode.frame.x = Math.floor(cpuAbilityStartPointX);
     cpuAbilityNode.frame.y = frame.y + padding;
     cpuAbilityNode.frame.width = Math.ceil(frameWidth);
     cpuAbilityNode.frame.height = Math.floor(frame.height - padding * 2);
   }
-}
-
-export class CpuAbility {
-  context: any;
-  params: any;
 }

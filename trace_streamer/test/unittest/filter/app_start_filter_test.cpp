@@ -73,13 +73,13 @@ HWTEST_F(AppStartFilterTest, ProcessAllTest, TestSize.Level1)
         "OHOS::AbilityRuntime::FAAbilityThread::HandleAbilityTransaction(const OHOS::AbilityRuntime::Want &, const "
         "OHOS::AbilityRuntime::LifeCycleStateInfo &, sptr<AppExecFwk::SessionInfo>)##EntryAbility");
     PtreaderParser ptreaderParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    for (auto&& str : processTouchEventVec) {
+    for (auto &&str : processTouchEventVec) {
         ptreaderParser.ParseTraceDataItem(str);
     }
-    for (auto&& str : startUIAbilityBySCBVec) {
+    for (auto &&str : startUIAbilityBySCBVec) {
         ptreaderParser.ParseTraceDataItem(str);
     }
-    for (auto&& str : loadAbilityVec) {
+    for (auto &&str : loadAbilityVec) {
         ptreaderParser.ParseTraceDataItem(str);
     }
     ptreaderParser.ParseTraceDataItem(appLaunchStr);

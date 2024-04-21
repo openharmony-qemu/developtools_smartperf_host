@@ -81,7 +81,8 @@ export function hiSysEvent(
   if (use && hiSysEventFilter.length > 0) {
     for (let i = 0, len = hiSysEventFilter.length; i < len; i++) {
       let item = hiSysEventFilter[i];
-      if ((item.startTs || 0) + (item.dur || 0) >= startNS && (item.startTs || 0) <= endNS) {// @ts-ignore
+      if ((item.startTs || 0) + (item.dur || 0) >= startNS && (item.startTs || 0) <= endNS) {
+        // @ts-ignore
         HiSysEventStruct.setSysEventFrame(item, startNS, endNS, totalNS, row.frame);
       } else {
         item.frame = undefined;
@@ -93,7 +94,8 @@ export function hiSysEvent(
   if (hiSysEventList) {
     for (let index = 0; index < hiSysEventList.length; index++) {
       let item = hiSysEventList[index];
-      if ((item.startTs || 0) + (item.dur || 0) >= startNS && (item.startTs || 0) <= endNS) {// @ts-ignore
+      if ((item.startTs || 0) + (item.dur || 0) >= startNS && (item.startTs || 0) <= endNS) {
+        // @ts-ignore
         HiSysEventStruct.setSysEventFrame(item, startNS, endNS, totalNS, row.frame);
         hiSysEventFilter.push(item);
       }

@@ -91,10 +91,11 @@ export class Top20ThreadRunTime extends BaseElement {
     function compare(threadRunTimeProperty, sort, type) {
       return function (a: unknown, b: unknown) {
         if (type === 'number') {
-          // @ts-ignore
-          return sort === 2 ? parseFloat(b[threadRunTimeProperty]) - parseFloat(a[threadRunTimeProperty]) :
-          //@ts-ignore
-            parseFloat(a[threadRunTimeProperty]) - parseFloat(b[threadRunTimeProperty]);
+          return sort === 2
+            ? // @ts-ignore
+              parseFloat(b[threadRunTimeProperty]) - parseFloat(a[threadRunTimeProperty])
+            : //@ts-ignore
+              parseFloat(a[threadRunTimeProperty]) - parseFloat(b[threadRunTimeProperty]);
         } else {
           if (sort === 2) {
             //@ts-ignore
@@ -106,30 +107,18 @@ export class Top20ThreadRunTime extends BaseElement {
         }
       };
     }
-
     //@ts-ignore
-    if (detail.key === 'maxDurationStr') {
+    let key = detail.key;
+    if (key === 'maxDurationStr') {
+      key = 'maxDuration';
       //@ts-ignore
-      detail.key = 'maxDuration';
+      this.threadRunTimeData.sort(compare(key, detail.sort, 'number'));
+    } else if (key === 'cpu' || key === 'no' || key === 'pid' || key === 'tid' || key === 'timestamp') {
       //@ts-ignore
-      this.threadRunTimeData.sort(compare(detail.key, detail.sort, 'number'));
-    } else if (
-      //@ts-ignore
-      detail.key === 'cpu' ||
-      //@ts-ignore
-      detail.key === 'no' ||
-      //@ts-ignore
-      detail.key === 'pid' ||
-      //@ts-ignore
-      detail.key === 'tid' ||
-      //@ts-ignore
-      detail.key === 'timestamp'
-    ) {
-      //@ts-ignore
-      this.threadRunTimeData.sort(compare(detail.key, detail.sort, 'number'));
+      this.threadRunTimeData.sort(compare(key, detail.sort, 'number'));
     } else {
       //@ts-ignore
-      this.threadRunTimeData.sort(compare(detail.key, detail.sort, 'string'));
+      this.threadRunTimeData.sort(compare(key, detail.sort, 'string'));
     }
     this.threadRunTimeTbl!.recycleDataSource = this.threadRunTimeData;
   }

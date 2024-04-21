@@ -23,8 +23,8 @@ namespace TraceStreamer {
 extern "C" {
 // set table name
 void SDKPluginIinitTableName();
-int32_t SDKPluginParser(const uint8_t* data, int32_t len, MockData mockData);
-int32_t SDKPluginDataParser(const uint8_t* data, int32_t len);
+int32_t SDKPluginParser(const uint8_t *data, int32_t len, MockData mockData);
+int32_t SDKPluginDataParser(const uint8_t *data, int32_t len);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

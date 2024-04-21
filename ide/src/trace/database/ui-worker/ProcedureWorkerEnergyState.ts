@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, isFrameContainPoint, drawLoadingFrame, ns2x, Render } from './ProcedureWorkerCommon';
+import { BaseStruct, isFrameContainPoint, drawLoadingFrame, ns2x, Render, Rect } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class EnergyStateRender extends Render {
@@ -67,12 +67,12 @@ export class EnergyStateRender extends Render {
 }
 
 export function state(
-  stateList: Array<any>,
-  res: Array<any>,
+  stateList: Array<EnergyStateStruct>,
+  res: Array<EnergyStateStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
 ): void {
   if (use && res.length > 0) {
@@ -93,12 +93,12 @@ export function state(
   stateFilter(stateList, startNS, endNS, totalNS, frame, res);
 }
 function stateFilter(
-  stateList: Array<any>,
+  stateList: Array<EnergyStateStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
-  res: Array<any>
+  frame: Rect,
+  res: Array<EnergyStateStruct>
 ): void {
   if (stateList) {
     for (let index = 0; index < stateList.length; index++) {
@@ -182,12 +182,12 @@ export class EnergyStateStruct extends BaseStruct {
   }
 
   static setStateFrame(
-    stateNode: any,
+    stateNode: EnergyStateStruct,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
     let stateStartPointX: number;
     let stateEndPointX: number;
@@ -204,7 +204,7 @@ export class EnergyStateStruct extends BaseStruct {
     }
     let frameWidth: number = stateEndPointX - stateStartPointX <= 1 ? 1 : stateEndPointX - stateStartPointX;
     if (!stateNode.frame) {
-      stateNode.frame = {};
+      stateNode.frame = new Rect(0, 0, 0, 0);
     }
     stateNode.frame.x = Math.floor(stateStartPointX);
     stateNode.frame.y = frame.y + padding;

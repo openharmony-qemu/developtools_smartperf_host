@@ -17,15 +17,15 @@
 #include "trace_plugin_result.pbreader.h"
 namespace SysTuning {
 namespace TraceStreamer {
-HtraceCpuDetailParser::HtraceCpuDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+HtraceCpuDetailParser::HtraceCpuDetailParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : eventParser_(std::make_unique<HtraceEventParser>(dataCache, ctx))
 {
 }
 
 HtraceCpuDetailParser::~HtraceCpuDetailParser() = default;
-void HtraceCpuDetailParser::Parse(PbreaderDataSegment& tracePacket,
-                                  ProtoReader::TracePluginResult_Reader& tracePluginResult,
-                                  bool& haveSplitSeg)
+void HtraceCpuDetailParser::Parse(PbreaderDataSegment &tracePacket,
+                                  ProtoReader::TracePluginResult_Reader &tracePluginResult,
+                                  bool &haveSplitSeg)
 {
     eventParser_->ParseDataItem(tracePacket, tracePluginResult, haveSplitSeg);
 }

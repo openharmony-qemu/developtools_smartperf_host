@@ -79,7 +79,7 @@ export class SpChartList extends BaseElement {
     this.removeCollectIcon2 = this.shadowRoot?.querySelector<LitIcon>('#group_2_collect');
     this.rootEl = this.shadowRoot?.querySelector<HTMLDivElement>('.root');
     this.canvas = this.shadowRoot?.querySelector<HTMLCanvasElement>('.panel-canvas');
-    this.canvasCtx = this.canvas?.getContext('2d');//@ts-ignore
+    this.canvasCtx = this.canvas?.getContext('2d'); //@ts-ignore
     window.subscribe(window.SmartEvent.UI.RowHeightChange, (data: { expand: number; value: number }) => {
       this.resizeHeight();
       if (!data.expand) {
@@ -530,12 +530,7 @@ export class SpChartList extends BaseElement {
       this.canvasCtx,
       hoverFlag,
       selectFlag,
-      {
-        x: 0,
-        y: 0,
-        width: TraceRow.FRAME_WIDTH,
-        height: this.canvas?.clientHeight,
-      },
+      new Rect(0, 0, TraceRow.FRAME_WIDTH, this.canvas?.clientHeight!),
       tse
     );
   }
@@ -547,12 +542,7 @@ export class SpChartList extends BaseElement {
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
       TraceRow.range!.totalNS,
-      {
-        x: 0,
-        y: 0,
-        width: TraceRow.FRAME_WIDTH,
-        height: this.canvas!.clientHeight!,
-      } as Rect
+      new Rect(0, 0, TraceRow.FRAME_WIDTH, this.canvas?.clientHeight!)
     );
   }
 

@@ -11,40 +11,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from './CommonArgs';
 import { TraficEnum } from './utils/QueryEnum';
 
-export const chartVirtualMemoryDataSql =
- (args: unknown): string => {
+export const chartVirtualMemoryDataSql = (args: Args): string => {
   return `
-    select ts - ${// @ts-ignore
-      args.recordStartNS} as startTime,
+    select ts - ${args.recordStartNS} as startTime,
            filter_id as filterId,
            value
     from sys_mem_measure
-    where filter_id = ${// @ts-ignore
-      args.filterId}`;
+    where filter_id = ${args.filterId}`;
 };
 
-export const chartVirtualMemoryDataProtoSql =
-(args: unknown): string => {
+export const chartVirtualMemoryDataProtoSql = (args: Args): string => {
   return `
-    select ts - ${// @ts-ignore
-      args.recordStartNS} as startTime,
+    select ts - ${args.recordStartNS} as startTime,
            filter_id as filterId,
            value,
-           ((ts - ${// @ts-ignore
-            args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
+           ((ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
     from sys_mem_measure
-    where filter_id = ${// @ts-ignore
-      args.filterId}
-      and startTime + (ifnull(dur,0)) >= ${Math.floor(// @ts-ignore
-      args.startNS)}
-      and startTime <= ${Math.floor(// @ts-ignore
-      args.endNS)}
+    where filter_id = ${args.filterId}
+      and startTime + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
+      and startTime <= ${Math.floor(args.endNS)}
     group by px;`;
 };
 
-let vmList: Array<unknown> = [];// @ts-ignore
+let vmList: Array<unknown> = []; // @ts-ignore
 let vmListMap = new Map<string, Array<unknown>>();
 
 export function resetVM(): void {
@@ -52,34 +44,41 @@ export function resetVM(): void {
   vmListMap.clear();
 }
 
-export function virtualMemoryDataReceiver(data: unknown, proc: Function): void {// @ts-ignore
-  if (data.params.trafic === TraficEnum.Memory) {// @ts-ignore
-    if (!vmListMap.has(data.params.filterId)) {// @ts-ignore
-      vmList = proc(chartVirtualMemoryDataSql(data.params));// @ts-ignore
+export function virtualMemoryDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
+  if (data.params.trafic === TraficEnum.Memory) {
+    // @ts-ignore
+    if (!vmListMap.has(data.params.filterId)) {
+      // @ts-ignore
+      vmList = proc(chartVirtualMemoryDataSql(data.params)); // @ts-ignore
       vmListMap.set(data.params.filterId, vmList);
-    }// @ts-ignore
-    let list = vmListMap.get(data.params.filterId) || [];// @ts-ignore
+    } // @ts-ignore
+    let list = vmListMap.get(data.params.filterId) || []; // @ts-ignore
     arrayBufferHandler(data, list, data.params.trafic !== TraficEnum.SharedArrayBuffer);
-  } else {// @ts-ignore
+  } else {
+    // @ts-ignore
     let sql = chartVirtualMemoryDataProtoSql(data.params);
-    let res = proc(sql);// @ts-ignore
+    let res = proc(sql); // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {// @ts-ignore
-  let startTime = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime);// @ts-ignore
-  let value = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.value);// @ts-ignore
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
+  let startTime = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime); // @ts-ignore
+  let value = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.value); // @ts-ignore
   let filterID = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.filterID);
-  res.forEach((it, i) => {// @ts-ignore
-    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.virtualMemData);// @ts-ignore
-    startTime[i] = it.startTime;// @ts-ignore
-    filterID[i] = it.filterId;// @ts-ignore
+  res.forEach((it, i) => {
+    // @ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.virtualMemData); // @ts-ignore
+    startTime[i] = it.startTime; // @ts-ignore
+    filterID[i] = it.filterId; // @ts-ignore
     value[i] = it.value;
   });
   (self as unknown as Worker).postMessage(
-    {// @ts-ignore
-      id: data.id,// @ts-ignore
+    {
+      // @ts-ignore
+      id: data.id, // @ts-ignore
       action: data.action,
       results: transfer
         ? {

@@ -11,162 +11,76 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from './CommonArgs';
 import { TraficEnum } from './utils/QueryEnum';
 
-export const fileSystemDataGroupBy10MSProtoSql = (args: unknown): string => {
+export const fileSystemDataGroupBy10MSProtoSql = (args: Args): string => {
   return `SELECT
         startNs, endNs, max( count ) AS size,
-        ( startNS / ( ( ${
-          // @ts-ignore
-          args.endNS
-        } - ${
-          // @ts-ignore
-          args.startNS
-        } ) / ${
-          // @ts-ignore
-          args.width
-        } ) ) AS px
+        ( startNS / ( ( ${args.endNS} - ${args.startNS} ) / ${args.width} ) ) AS px
         FROM
         (
         SELECT
-            ( A.start_ts - ${
-              // @ts-ignore
-              args.recordStartNS
-            } ) / 10000000 * 10000000 AS startNs,
-            ( A.start_ts - ${
-              // @ts-ignore
-              args.recordStartNS
-            } + 10000000 ) / 10000000 * 10000000 AS endNs,
+            ( A.start_ts - ${args.recordStartNS} ) / 10000000 * 10000000 AS startNs,
+            ( A.start_ts - ${args.recordStartNS} + 10000000 ) / 10000000 * 10000000 AS endNs,
             count( dur ) AS count
         FROM
             file_system_sample A
         WHERE
-            type = ${
-              // @ts-ignore
-              args.type
-            }
-            and startNs > ${
-              // @ts-ignore
-              Math.floor(args.startNS)
-            }
-            AND startNs + dur >= ${
-              // @ts-ignore
-              Math.floor(args.startNS)
-            }
-            AND startNs < ${
-              // @ts-ignore
-              Math.floor(args.endNS)
-            }
+            type = ${args.type}
+            and startNs > ${Math.floor(args.startNS)}
+            AND startNs + dur >= ${Math.floor(args.startNS)}
+            AND startNs < ${Math.floor(args.endNS)}
         GROUP BY
         startNs
         )
         GROUP BY px
             `;
 };
-export const fileSystemDataProtoSql = (args: unknown): string => {
+export const fileSystemDataProtoSql = (args: Args): string => {
   return `select
-          (A.start_ts - ${
-            // @ts-ignore
-            args.recordStartNS
-          }) as startNs,
-          (A.end_ts - ${
-            // @ts-ignore
-            args.recordStartNS
-          }) as endNs,
+          (A.start_ts - ${args.recordStartNS}) as startNs,
+          (A.end_ts - ${args.recordStartNS}) as endNs,
           dur
           from file_system_sample A
-          where type = ${
-            // @ts-ignore
-            args.type
-          }
+          where type = ${args.type}
           and startNs > 0
-          and startNs + dur > ${
-            // @ts-ignore
-            args.startNS
-          }
-          and startNs < ${
-            // @ts-ignore
-            args.endNS
-          }
+          and startNs + dur > ${args.startNS}
+          and startNs < ${args.endNS}
     `;
 };
-export const diskIoDataGroupBy10MSProtoSql = (args: unknown): string => {
+export const diskIoDataGroupBy10MSProtoSql = (args: Args): string => {
   return `SELECT
         startNs,
         endNs,
         max( dur ) AS size,
-        ( startNS / ( ( ${
-          // @ts-ignore
-          args.endNS
-        } - ${
-          // @ts-ignore
-          args.startNS
-        } ) / ${
-          // @ts-ignore
-          args.width
-        } ) ) AS px
+        ( startNS / ( ( ${args.endNS} - ${args.startNS} ) / ${args.width} ) ) AS px
         FROM
         (
         SELECT
-            ( A.start_ts - ${
-              // @ts-ignore
-              args.recordStartNS
-            } ) / 10000000 * 10000000 AS startNs,
-            ( A.start_ts - ${
-              // @ts-ignore
-              args.recordStartNS
-            } + 10000000 ) / 10000000 * 10000000 AS endNs,
+            ( A.start_ts - ${args.recordStartNS} ) / 10000000 * 10000000 AS startNs,
+            ( A.start_ts - ${args.recordStartNS} + 10000000 ) / 10000000 * 10000000 AS endNs,
             max( latency_dur ) AS dur
         FROM bio_latency_sample A
-            where type in (${
-              // @ts-ignore
-              args.typeArr.join(',')
-            }) and startNs > 0
-            ${
-              // @ts-ignore
-              args.all ? '' : 'and ipid = ' + args.ipid
-            }
-            and startNs + latency_dur > ${
-              // @ts-ignore
-              args.startNS
-            }
-            and startNs < ${
-              // @ts-ignore
-              args.endNS
-            }
+            where type in (${args.typeArr.join(',')}) and startNs > 0
+            ${args.all ? '' : 'and ipid = ' + args.ipid}
+            and startNs + latency_dur > ${args.startNS}
+            and startNs < ${args.endNS}
             GROUP BY startNs
             order by startNs
         )
         GROUP BY px`;
 };
-export const diskIoDataProtoSql = (args: unknown): string => {
+export const diskIoDataProtoSql = (args: Args): string => {
   return `select
-        (A.start_ts - ${
-          // @ts-ignore
-          args.recordStartNS
-        }) as startNs,
-        (A.start_ts - ${
-          // @ts-ignore
-          args.recordStartNS
-        } + A.latency_dur) as endNs,
+        (A.start_ts - ${args.recordStartNS}) as startNs,
+        (A.start_ts - ${args.recordStartNS} + A.latency_dur) as endNs,
         latency_dur as dur
         from bio_latency_sample A
-        where type in (${
-          // @ts-ignore
-          args.typeArr.join(',')
-        }) and startNs > 0
-        ${
-          // @ts-ignore
-          args.all ? '' : 'and ipid = ' + args.ipid
-        }
-        and startNs + dur > ${
-          // @ts-ignore
-          args.startNS
-        }
-        and startNs < ${
-          // @ts-ignore
-          args.endNS
-        }
+        where type in (${args.typeArr.join(',')}) and startNs > 0
+        ${args.all ? '' : 'and ipid = ' + args.ipid}
+        and startNs + dur > ${args.startNS}
+        and startNs < ${args.endNS}
         order by A.start_ts;`;
 };
 export const eBPFVmDataGroupBy10MSProtoSql = (args: unknown): string => {
@@ -175,12 +89,12 @@ export const eBPFVmDataGroupBy10MSProtoSql = (args: unknown): string => {
           // @ts-ignore
           args.endNS
         } - ${
-          // @ts-ignore
-          args.startNS
-        } ) / ${
-          // @ts-ignore
-          args.width
-        } ) ) AS px
+    // @ts-ignore
+    args.startNS
+  } ) / ${
+    // @ts-ignore
+    args.width
+  } ) ) AS px
         FROM
         (
         SELECT

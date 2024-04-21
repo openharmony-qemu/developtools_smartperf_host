@@ -23,7 +23,7 @@ namespace TraceStreamer {
 using namespace SysTuning::EbpfStdtype;
 class FileSystemDataParser : virtual public EbpfBase {
 public:
-    FileSystemDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    FileSystemDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~FileSystemDataParser();
 
     void ParseFileSystemEvent();
@@ -32,21 +32,21 @@ protected:
     std::unique_ptr<HtracePluginTimeParser> timeParser_;
 
 private:
-    void IpAndCallidFind(const FsFixedHeader* fsFixedHeadrAddr, bool& callIdExistFlag, const uint64_t* userIpsAddr);
+    void IpAndCallidFind(const FsFixedHeader *fsFixedHeadrAddr, bool &callIdExistFlag, const uint64_t *userIpsAddr);
 
     template <typename TracerEventToStrIndexMap>
-    size_t FileWriteOperation(TracerEventToStrIndexMap& tracerEventToStrIndexMap,
-                              const FsFixedHeader* fsFixedHeadrAddr,
+    size_t FileWriteOperation(TracerEventToStrIndexMap &tracerEventToStrIndexMap,
+                              const FsFixedHeader *fsFixedHeadrAddr,
                               uint32_t itid,
-                              uint64_t& filePathId,
+                              uint64_t &filePathId,
                               uint16_t type);
 
-    int32_t GetFileDescriptor(const FsFixedHeader* fsFixedHeader, uint32_t fucType);
-    uint64_t StartEndTime(const FsFixedHeader* fsFixedHeadrAddr,
+    int32_t GetFileDescriptor(const FsFixedHeader *fsFixedHeader, uint32_t fucType);
+    uint64_t StartEndTime(const FsFixedHeader *fsFixedHeadrAddr,
                           uint64_t newStartTs,
                           uint64_t newEndTs,
-                          DataIndex& returnValue,
-                          DataIndex& errorCode);
+                          DataIndex &returnValue,
+                          DataIndex &errorCode);
     uint64_t currentCallId_ = 0;
 };
 } // namespace TraceStreamer

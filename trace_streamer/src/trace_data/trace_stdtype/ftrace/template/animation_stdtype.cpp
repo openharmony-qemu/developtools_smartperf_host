@@ -48,27 +48,27 @@ size_t Animation::Size() const
 {
     return ids_.size();
 }
-const std::deque<InternalTime>& Animation::InputTimes() const
+const std::deque<InternalTime> &Animation::InputTimes() const
 {
     return inputTimes_;
 }
-const std::deque<InternalTime>& Animation::StartPoints() const
+const std::deque<InternalTime> &Animation::StartPoints() const
 {
     return startPoints_;
 }
-const std::deque<InternalTime>& Animation::EndPoints() const
+const std::deque<InternalTime> &Animation::EndPoints() const
 {
     return endPoins_;
 }
-const std::deque<DataIndex>& Animation::FrameInfos() const
+const std::deque<DataIndex> &Animation::FrameInfos() const
 {
     return frameInfos_;
 }
-const std::deque<DataIndex>& Animation::Names() const
+const std::deque<DataIndex> &Animation::Names() const
 {
     return names_;
 }
-const std::deque<uint64_t>& Animation::IdsData() const
+const std::deque<uint64_t> &Animation::IdsData() const
 {
     return ids_;
 }
@@ -93,7 +93,7 @@ uint32_t DeviceInfo::PhysicalFrameRate() const
 {
     return physicalFrameRate_;
 }
-void DeviceInfo::UpdateWidthAndHeight(const std::smatch& matcheLine)
+void DeviceInfo::UpdateWidthAndHeight(const std::smatch &matcheLine)
 {
     if (matcheLine.size() > DEVICEINFO_MATCH_LAST) {
         uint8_t matcheIndex = 0;
@@ -130,7 +130,7 @@ void DynamicFrame::UpdateNameIndex(TableRowId index, DataIndex nameId)
         names_[index] = nameId;
     }
 }
-void DynamicFrame::UpdatePosition(TableRowId index, const std::smatch& matcheLine, DataIndex alpha)
+void DynamicFrame::UpdatePosition(TableRowId index, const std::smatch &matcheLine, DataIndex alpha)
 {
     if (index <= Size() && matcheLine.size() > DYNAMICFRAME_MATCH_LAST) {
         uint8_t matcheIndex = 0;
@@ -151,35 +151,35 @@ size_t DynamicFrame::Size() const
 {
     return ids_.size();
 }
-const std::deque<uint64_t>& DynamicFrame::IdsData() const
+const std::deque<uint64_t> &DynamicFrame::IdsData() const
 {
     return ids_;
 }
-const std::deque<uint32_t>& DynamicFrame::Xs() const
+const std::deque<uint32_t> &DynamicFrame::Xs() const
 {
     return xs_;
 }
-const std::deque<uint32_t>& DynamicFrame::Ys() const
+const std::deque<uint32_t> &DynamicFrame::Ys() const
 {
     return ys_;
 }
-const std::deque<uint32_t>& DynamicFrame::Widths() const
+const std::deque<uint32_t> &DynamicFrame::Widths() const
 {
     return widths_;
 }
-const std::deque<uint32_t>& DynamicFrame::Heights() const
+const std::deque<uint32_t> &DynamicFrame::Heights() const
 {
     return heights_;
 }
-const std::deque<DataIndex>& DynamicFrame::Alphas() const
+const std::deque<DataIndex> &DynamicFrame::Alphas() const
 {
     return alphas_;
 }
-const std::deque<DataIndex>& DynamicFrame::Names() const
+const std::deque<DataIndex> &DynamicFrame::Names() const
 {
     return names_;
 }
-const std::deque<InternalTime>& DynamicFrame::EndTimes() const
+const std::deque<InternalTime> &DynamicFrame::EndTimes() const
 {
     return endTimes_;
 }

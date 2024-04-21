@@ -19,7 +19,7 @@
 #include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderDiskIOParser::PbreaderDiskIOParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderDiskIOParser::PbreaderDiskIOParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
 }
@@ -53,26 +53,32 @@ void PbreaderDiskIOParser::Parse(ProtoReader::BytesView tracePacket, uint64_t ts
 }
 void PbreaderDiskIOParser::Finish()
 {
-    auto cmp = [](const TsDiskIOData& a, const TsDiskIOData& b) { return a.ts < b.ts; };
+    auto cmp = [](const TsDiskIOData &a, const TsDiskIOData &b) { return a.ts < b.ts; };
     std::stable_sort(diskIOData_.begin(), diskIOData_.end(), cmp);
     bool first = true;
     uint64_t lastTs = 0;
     for (auto itor = diskIOData_.begin(); itor != diskIOData_.end(); itor++) {
-        itor->ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, itor->ts);
-        UpdatePluginTimeRange(TS_CLOCK_REALTIME, itor->ts, itor->ts);
+        DiskIoRow row;
+        row.ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, itor->ts);
+        // itor->ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, itor->ts);
+        UpdatePluginTimeRange(TS_CLOCK_REALTIME, row.ts, row.ts);
         if (first) {
-            lastTs = itor->ts;
+            lastTs = row.ts;
             first = false;
             continue;
         }
-        auto dur = itor->ts - lastTs;
-        auto durS = 1.0 * dur / SEC_TO_NS;
-        traceDataCache_->GetDiskIOData()->AppendNewData(
-            itor->ts, itor->ts - lastTs, itor->rdSectorsKb, itor->wrSectorsKb,
-            1.0 * (itor->rdSectorsKb - itor->prevRdSectorsKb) / durS,
-            1.0 * (itor->wrSectorsKb - itor->prevWrSectorsKb) / durS, itor->rdCountPerSec, itor->wrCountPerSec,
-            itor->rdCount, itor->wrCount);
-        lastTs = itor->ts;
+        row.dur = row.ts - lastTs;
+        auto durS = 1.0 * row.dur / SEC_TO_NS;
+        row.rd = itor->rdSectorsKb;
+        row.wr = itor->wrSectorsKb;
+        row.rdPerSec = 1.0 * (itor->rdSectorsKb - itor->prevRdSectorsKb) / durS;
+        row.wrPerSec = 1.0 * (itor->wrSectorsKb - itor->prevWrSectorsKb) / durS;
+        row.rdCountPerSec = itor->rdCountPerSec;
+        row.wrCountPerSec = itor->wrCountPerSec;
+        row.rdCount = itor->rdCount;
+        row.wrCount = itor->wrCount;
+        traceDataCache_->GetDiskIOData()->AppendNewData(row);
+        lastTs = row.ts;
     }
     diskIOData_.clear();
     traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());

@@ -31,10 +31,10 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PbreaderClockDetailParser : public EventParserBase {
 public:
-    PbreaderClockDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
+    PbreaderClockDetailParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters);
     ~PbreaderClockDetailParser();
-    void Parse(const ProtoReader::BytesView& tracePacket) const;
-    void Parse(const ProfilerTraceFileHeader* profilerTraceFileHeader) const;
+    void Parse(const ProtoReader::BytesView &tracePacket) const;
+    void Parse(const ProfilerTraceFileHeader *profilerTraceFileHeader) const;
 
 private:
     std::map<MemInfoType, DataIndex> memNameDictMap_ = {};

@@ -20,23 +20,23 @@ namespace TraceStreamer {
 using namespace TraceStdtype;
 DemoTraceDataCacheReader::~DemoTraceDataCacheReader() {}
 
-const GpuCounter& DemoTraceDataCacheReader::GetConstGpuCounterData() const
+const GpuCounter &DemoTraceDataCacheReader::GetConstGpuCounterData() const
 {
     return gpuCounter_;
 }
-const GpuCounterObject& DemoTraceDataCacheReader::GetConstGpuCounterObjectData() const
+const GpuCounterObject &DemoTraceDataCacheReader::GetConstGpuCounterObjectData() const
 {
     return gpuCounterObject_;
 }
-const SliceObject& DemoTraceDataCacheReader::GetConstSliceObjectData() const
+const SliceObject &DemoTraceDataCacheReader::GetConstSliceObjectData() const
 {
     return sliceObject_;
 }
-const SliceData& DemoTraceDataCacheReader::GetConstSliceData() const
+const SliceData &DemoTraceDataCacheReader::GetConstSliceData() const
 {
     return sliceData_;
 }
-const MetaData& DemoTraceDataCacheReader::GetConstMetaData() const
+const MetaData &DemoTraceDataCacheReader::GetConstMetaData() const
 {
     return metaData_;
 }

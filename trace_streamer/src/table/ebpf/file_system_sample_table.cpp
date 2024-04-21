@@ -36,7 +36,7 @@ enum class Index : int32_t {
     THIRD_ARGUMENT,
     FOURTH_ARGUMENT,
 };
-FileSystemSampleTable::FileSystemSampleTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+FileSystemSampleTable::FileSystemSampleTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
@@ -60,14 +60,14 @@ FileSystemSampleTable::FileSystemSampleTable(const TraceDataCache* dataCache) : 
 
 FileSystemSampleTable::~FileSystemSampleTable() {}
 
-void FileSystemSampleTable::FilterByConstraint(FilterConstraints& sysfc,
-                                               double& sysfilterCost,
+void FileSystemSampleTable::FilterByConstraint(FilterConstraints &sysfc,
+                                               double &sysfilterCost,
                                                size_t sysrowCount,
                                                uint32_t syscurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& sysc = sysfc.GetConstraints()[syscurrenti];
+    const auto &sysc = sysfc.GetConstraints()[syscurrenti];
     switch (static_cast<Index>(sysc.col)) {
         case Index::ID: {
             if (CanFilterId(sysc.op, sysrowCount)) {
@@ -89,7 +89,7 @@ std::unique_ptr<TableBase::Cursor> FileSystemSampleTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-FileSystemSampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+FileSystemSampleTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstFileSystemSample().Size())),
       fileSystemSampleTableObj_(dataCache->GetConstFileSystemSample())
 {
@@ -97,7 +97,7 @@ FileSystemSampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase
 
 FileSystemSampleTable::Cursor::~Cursor() {}
 
-int32_t FileSystemSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t FileSystemSampleTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -110,7 +110,7 @@ int32_t FileSystemSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(fileSystemSampleCs, sId);
     for (size_t i = 0; i < fileSystemSampleCs.size(); i++) {
-        const auto& c = fileSystemSampleCs[i];
+        const auto &c = fileSystemSampleCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -208,7 +208,7 @@ void FileSystemSampleTable::Cursor::HandleTypeColumns(int32_t fileSysSampleCol) 
             break;
     }
 }
-void FileSystemSampleTable::GetOrbyes(FilterConstraints& sysfc, EstimatedIndexInfo& sysei)
+void FileSystemSampleTable::GetOrbyes(FilterConstraints &sysfc, EstimatedIndexInfo &sysei)
 {
     auto sysOrderbys = sysfc.GetOrderBys();
     for (auto i = 0; i < sysOrderbys.size(); i++) {

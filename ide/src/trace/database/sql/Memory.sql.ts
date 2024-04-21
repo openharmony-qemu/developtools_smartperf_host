@@ -135,20 +135,21 @@ export const getTabVirtualMemoryType = (startTime: number, endTime: number): Pro
     { $startTime: startTime, $endTime: endTime },
     'exec'
   );
-export const queryNativeMemoryRealTime = ()://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryNativeMemoryRealTime = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryNativeMemoryRealTime',
     `select cs.ts,cs.clock_name from datasource_clockid dc left join clock_snapshot cs on dc.clock_id = cs.clock_id where data_source_name = 'memory-plugin' or data_source_name = 'nativehook'
 `,
     {}
   );
-export const queryJsMemoryData = ()://@ts-ignore
- Promise<Array<unknown>> =>
-  query('queryJsMemoryData', `SELECT 1 WHERE EXISTS(SELECT 1 FROM js_heap_nodes)`);
+export const queryJsMemoryData = (): //@ts-ignore
+Promise<Array<unknown>> => query('queryJsMemoryData', `SELECT 1 WHERE EXISTS(SELECT 1 FROM js_heap_nodes)`);
 
-export const queryVmTrackerShmData = (iPid: number)://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryVmTrackerShmData = (
+  iPid: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryVmTrackerShmData',
     `SELECT (A.ts - B.start_ts) as startNs,
@@ -163,8 +164,11 @@ export const queryVmTrackerShmData = (iPid: number)://@ts-ignore
     GROUP by A.ts`,
     {}
   );
-export const queryVmTrackerShmSelectionData = (startNs: number, ipid: number)://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryVmTrackerShmSelectionData = (
+  startNs: number,
+  ipid: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryVmTrackerShmSelectionData',
     `SELECT (A.ts - B.start_ts) as startNS,A.ipid,
@@ -190,8 +194,11 @@ export const queryMemoryConfig = (): Promise<Array<MemoryConfig>> =>
       ;`
   );
 // VM Tracker Purgeable泳道图
-export const queryPurgeableProcessData = (ipid: number, isPin?: boolean)://@ts-ignore
- Promise<Array<unknown>> => {
+export const queryPurgeableProcessData = (
+  ipid: number,
+  isPin?: boolean
+): //@ts-ignore
+Promise<Array<unknown>> => {
   const pinSql = isPin ? ' AND a.ref_count > 0' : '';
   const names = isPin ? " ('mem.purg_pin')" : "('mem.purg_sum')";
   return query(
@@ -226,16 +233,16 @@ export const queryPurgeableProcessData = (ipid: number, isPin?: boolean)://@ts-i
         GROUP BY startNs`
   );
 };
-export const queryVirtualMemory = ()://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryVirtualMemory = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query('queryVirtualMemory', `select id,name from sys_event_filter where type='sys_virtual_memory_filter'`);
-export const queryVirtualMemoryData = (filterId: number)://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryVirtualMemoryData = (
+  filterId: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryVirtualMemoryData',
-    `select ts-${
-      window.recordStartNS
-    } as startTime,value,filter_id as filterID from sys_mem_measure where filter_id=$filter_id`,
+    `select ts-${window.recordStartNS} as startTime,value,filter_id as filterID from sys_mem_measure where filter_id=$filter_id`,
     { $filter_id: filterId }
   );
 export const queryTraceMemory = (): Promise<
@@ -332,8 +339,10 @@ export const queryTraceMemoryUnAgg = (): Promise<
     order by 
     filter.ipid`
   );
-export const queryMemoryMaxData = (memoryName: string)://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryMemoryMaxData = (
+  memoryName: string
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryMemoryMaxData',
     `SELECT ifnull(max(m.value),0) as maxValue,
@@ -344,8 +353,11 @@ export const queryMemoryMaxData = (memoryName: string)://@ts-ignore
 `,
     { $memoryName: memoryName }
   );
-export const getTabPaneVirtualMemoryStatisticsData = (leftNs: number, rightNs: number)://@ts-ignore
- Promise<Array<unknown>> =>
+export const getTabPaneVirtualMemoryStatisticsData = (
+  leftNs: number,
+  rightNs: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'getTabPaneVirtualMemoryStatisticsData',
     `
@@ -369,8 +381,8 @@ export const getTabPaneVirtualMemoryStatisticsData = (leftNs: number, rightNs: n
 `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
-export const getFileSysVirtualMemoryChartData = ()://@ts-ignore
- Promise<Array<unknown>> =>
+export const getFileSysVirtualMemoryChartData = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'getFileSysVirtualMemoryChartData',
     `
@@ -384,8 +396,8 @@ export const getFileSysVirtualMemoryChartData = ()://@ts-ignore
     {},
     'exec'
   );
-export const hasFileSysData = ()://@ts-ignore
- Promise<Array<unknown>> =>
+export const hasFileSysData = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'hasFileSysData',
     `
@@ -399,8 +411,12 @@ export const hasFileSysData = ()://@ts-ignore
     `,
     {}
   );
-export const queryEbpfSamplesCount = (startTime: number, endTime: number, ipids: number[])://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryEbpfSamplesCount = (
+  startTime: number,
+  endTime: number,
+  ipids: number[]
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryEbpfSamplesCount',
     `
@@ -416,8 +432,10 @@ fsCount,
 `,
     { $startTime: startTime, $endTime: endTime }
   );
-export const queryisExistsShmData = (iPid: number)://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryisExistsShmData = (
+  iPid: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryisExistsShmData',
     `SELECT EXISTS (
@@ -435,8 +453,8 @@ export const queryVmTrackerShmSizeData = (
   rightNs: number,
   iPid: number,
   dur: number
-)://@ts-ignore
- Promise<Array<unknown>> =>
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryVmTrackerShmSizeData',
     `SELECT ( A.ts - B.start_ts ) AS startNS,
@@ -453,8 +471,11 @@ export const queryVmTrackerShmSizeData = (
         AND ipid = ${iPid}`,
     {}
   );
-export const queryisExistsPurgeableData = (ipid: number, isPin?: boolean)://@ts-ignore
- Promise<Array<unknown>> => {
+export const queryisExistsPurgeableData = (
+  ipid: number,
+  isPin?: boolean
+): //@ts-ignore
+Promise<Array<unknown>> => {
   const pinSql = isPin ? ' AND a.ref_count > 0' : '';
   const names = isPin ? " ('mem.purg_pin')" : "('mem.purg_sum')";
   return query(

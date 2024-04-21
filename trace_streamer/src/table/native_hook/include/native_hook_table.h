@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class NativeHookTable : public TableBase {
 public:
-    explicit NativeHookTable(const TraceDataCache* dataCache);
+    explicit NativeHookTable(const TraceDataCache *dataCache);
     ~NativeHookTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,22 +32,22 @@ private:
     {
         return dataCache_->GetConstNativeHookData().Size();
     }
-    void GetOrbyes(FilterConstraints& hookfc, EstimatedIndexInfo& hookei) override;
-    void FilterByConstraint(FilterConstraints& hookfc,
-                            double& hookfilterCost,
+    void GetOrbyes(FilterConstraints &hookfc, EstimatedIndexInfo &hookei) override;
+    void FilterByConstraint(FilterConstraints &hookfc,
+                            double &hookfilterCost,
                             size_t hookrowCount,
                             uint32_t hookcurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
 
     private:
         void HandleTypeColumns(int32_t column) const;
-        const NativeHook& nativeHookObj_;
+        const NativeHook &nativeHookObj_;
     };
 };
 } // namespace TraceStreamer

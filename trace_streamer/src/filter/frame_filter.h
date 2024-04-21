@@ -24,7 +24,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class FrameFilter : private FilterBase {
 public:
-    FrameFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
+    FrameFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
     ~FrameFilter() override;
     void BeginVsyncEvent(uint64_t ts,
                          uint32_t ipid,
@@ -39,7 +39,7 @@ public:
         uint32_t sourceItid;
         uint32_t frameNum;
     } FrameMap;
-    bool BeginProcessCommandUni(uint64_t ts, uint32_t itid, const std::vector<FrameMap>& frame, uint32_t sliceIndex);
+    bool BeginProcessCommandUni(uint64_t ts, uint32_t itid, const std::vector<FrameMap> &frame, uint32_t sliceIndex);
     bool EndVsyncEvent(uint64_t ts, uint32_t itid);
     bool StartFrameQueue(uint64_t ts, uint32_t itid);
     bool EndFrameQueue(uint64_t ts, uint32_t itid);
@@ -51,7 +51,7 @@ public:
 
 private:
     bool UpdateFrameSliceReadySize();
-    void SetMinFrameSliceRow(uint64_t& minFrameSliceRowToBeUpdated);
+    void SetMinFrameSliceRow(uint64_t &minFrameSliceRowToBeUpdated);
 
 private:
     class FrameSlice {

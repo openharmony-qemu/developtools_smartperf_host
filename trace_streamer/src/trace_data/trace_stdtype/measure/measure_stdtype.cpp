@@ -50,13 +50,13 @@ void Measure::UpdatePrevSizeAndAdapterRows(size_t size)
     }
     // find minRowToBeUpdated
     auto minRowToBeUpdated = filterIdToRow_.begin()->second;
-    for (const auto& pair : filterIdToRow_) {
+    for (const auto &pair : filterIdToRow_) {
         if (minRowToBeUpdated > pair.second) {
             minRowToBeUpdated = pair.second;
         }
     }
     readySize_ = minRowToBeUpdated;
-    for (auto& pair : filterIdToRow_) {
+    for (auto &pair : filterIdToRow_) {
         pair.second -= readySize_;
     }
 }
@@ -68,12 +68,12 @@ size_t SysMeasureFilter::AppendNewFilter(uint64_t filterId, DataIndex type, Data
     types_.emplace_back(type);
     return ids_.size() - 1;
 }
-const std::deque<DataIndex>& SysMeasureFilter::NamesData() const
+const std::deque<DataIndex> &SysMeasureFilter::NamesData() const
 {
     return names_;
 }
 
-const std::deque<DataIndex>& SysMeasureFilter::TypesData() const
+const std::deque<DataIndex> &SysMeasureFilter::TypesData() const
 {
     return types_;
 }

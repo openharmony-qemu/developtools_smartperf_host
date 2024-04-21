@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class FrameSliceTable : public TableBase {
 public:
-    explicit FrameSliceTable(const TraceDataCache* dataCache);
+    explicit FrameSliceTable(const TraceDataCache *dataCache);
     ~FrameSliceTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,23 +32,23 @@ private:
     {
         return dataCache_->GetConstFrameSliceData().Size();
     }
-    void GetOrbyes(FilterConstraints& slicefc, EstimatedIndexInfo& sliceei) override;
-    void FilterByConstraint(FilterConstraints& slicefc,
-                            double& slicefilterCost,
+    void GetOrbyes(FilterConstraints &slicefc, EstimatedIndexInfo &sliceei) override;
+    void FilterByConstraint(FilterConstraints &slicefc,
+                            double &slicefilterCost,
                             size_t slicerowCount,
                             uint32_t slicecurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
-        void HandleIndex(const FilterConstraints& fc, sqlite3_value** argv);
+        void HandleIndex(const FilterConstraints &fc, sqlite3_value **argv);
         void HandleTypeColumns(int32_t column) const;
 
     private:
-        const FrameSlice& frameSliceObj_;
+        const FrameSlice &frameSliceObj_;
     };
 };
 } // namespace TraceStreamer

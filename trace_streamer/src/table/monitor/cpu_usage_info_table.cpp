@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { TS = 0, DUR, TOTAL_LOAD, USER_LOAD, SYSTEM_LOAD, THREADS };
-CpuUsageInfoTable::CpuUsageInfoTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+CpuUsageInfoTable::CpuUsageInfoTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
@@ -36,7 +36,7 @@ std::unique_ptr<TableBase::Cursor> CpuUsageInfoTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-CpuUsageInfoTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+CpuUsageInfoTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstCpuUsageInfoData().Size())),
       cpuUsageInfoObj_(dataCache->GetConstCpuUsageInfoData())
 {

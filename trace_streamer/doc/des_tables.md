@@ -341,7 +341,6 @@ js_heap_sample:记录timeline的时间轴信息
 |dur           |INT       |
 |callid        |INT       |
 |cat           |TEXT      |
-|identify      |INT       |
 |name          |TEXT      |
 |depth         |INT       |
 |cookie        |INT       |
@@ -357,7 +356,6 @@ js_heap_sample:记录timeline的时间轴信息
 #### 字段详细描述
 - dur：调用时长  
 - callid：调用者的ID，比如针对线程表里面的id  
-- identify：调用栈的名字，与表dataDict相关联能够取出其string值  
 - name：调用名称  
 - depth：调用深度  
 - parent_id：父调用的id  

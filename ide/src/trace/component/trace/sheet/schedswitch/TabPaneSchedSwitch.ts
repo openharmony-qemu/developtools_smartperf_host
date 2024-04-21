@@ -286,12 +286,12 @@ export class TabPaneSchedSwitch extends BaseElement {
       }
       if (btnHtml === SINGLE_BUTTON_TEXT) {
         this.isSingleBtnColor(true);
-        this.isLoopBtnColor(false);//@ts-ignore
+        this.isLoopBtnColor(false); //@ts-ignore
         funcData = await querySingleCutData(threadFunName, threadId, leftStartNs, rightEndNs);
       }
       if (btnHtml === LOOP_BUTTON_TEXT) {
         this.isSingleBtnColor(false);
-        this.isLoopBtnColor(true);//@ts-ignore
+        this.isLoopBtnColor(true); //@ts-ignore
         funcData = await queryLoopCutData(threadFunName, threadId, leftStartNs, rightEndNs);
       }
       //获取到线程数据和方法数据，处理周期
@@ -317,7 +317,7 @@ export class TabPaneSchedSwitch extends BaseElement {
     let threadSourceData: Array<ThreadInitConfig> = [];
     let leftStartNs: number = threadParam!.leftNs + threadParam!.recordStartNs;
     let rightEndNs: number = threadParam!.rightNs + threadParam!.recordStartNs;
-    let processIds: Array<number> = [...new Set(threadParam!.processIds)];//@ts-ignore
+    let processIds: Array<number> = [...new Set(threadParam!.processIds)]; //@ts-ignore
     let res: Array<ThreadInitConfig> = await querySchedThreadStates(
       processIds,
       threadParam!.threadIds,
@@ -345,7 +345,7 @@ export class TabPaneSchedSwitch extends BaseElement {
     //处理sql查询数据为0条，或者当loop切割获取的数据时1条
     if (res.length === 0 || this.threadMap.size === 0 || (btnHtml === LOOP_BUTTON_TEXT && res.length === 1)) {
       this.schedSwitchTbl!.recycleDataSource = [];
-      this.schedSwitchTbl!.loading = false;// @ts-ignore
+      this.schedSwitchTbl!.loading = false; // @ts-ignore
       this.clickTableLabel(this.schedSwitchTbl!.recycleDataSource);
       return;
     }
@@ -413,7 +413,7 @@ export class TabPaneSchedSwitch extends BaseElement {
       this.translateIntoTree(cutDataObj, group);
     }
     this.schedSwitchTbl!.recycleDataSource = Object.values(group);
-    this.schedSwitchTbl!.loading = false;// @ts-ignore
+    this.schedSwitchTbl!.loading = false; // @ts-ignore
     this.clickTableLabel(this.schedSwitchTbl!.recycleDataSource);
   }
   //根据处理好的单个线程对应的周期数据、count总数、dur总数以及所属进程、线程相关信息，转换成树结构数据
@@ -566,11 +566,12 @@ export class TabPaneSchedSwitch extends BaseElement {
       removeUnit: true, //移除单位换算
       seriesField: '',
       //设置柱状图的颜色
-      color(a): string {//@ts-ignore
+      color(a): string {
+        //@ts-ignore
         if (a.cycle === 'Total') {
-          return '#2f72f8';//@ts-ignore
+          return '#2f72f8'; //@ts-ignore
         } else if (a.cycle === 'Cycle A') {
-          return '#ffab67';//@ts-ignore
+          return '#ffab67'; //@ts-ignore
         } else if (a.cycle === 'Cycle B') {
           return '#a285d2';
         } else {
@@ -578,9 +579,10 @@ export class TabPaneSchedSwitch extends BaseElement {
         }
       },
       //鼠标悬浮柱状图上方时显示对应的提示信息
-      tip(a): string {//@ts-ignore
+      tip(a): string {
+        //@ts-ignore
         if (a && a[0]) {
-          let tip = '';//@ts-ignore
+          let tip = ''; //@ts-ignore
           for (let obj of a) {
             tip = `${tip}
               <div style="display:flex;flex-direction: row;align-items: center;">

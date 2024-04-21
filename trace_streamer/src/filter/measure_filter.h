@@ -40,9 +40,9 @@ enum FilterType {
 
 class MeasureFilter : private FilterBase {
 public:
-    MeasureFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter, FilterType);
-    MeasureFilter(const MeasureFilter&) = delete;
-    MeasureFilter& operator=(const MeasureFilter&) = delete;
+    MeasureFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter, FilterType);
+    MeasureFilter(const MeasureFilter &) = delete;
+    MeasureFilter &operator=(const MeasureFilter &) = delete;
     ~MeasureFilter() override;
     bool AppendNewMeasureData(uint64_t internalTid, DataIndex nameIndex, uint64_t timeStamp, int64_t value);
     uint32_t GetOrCreateFilterId(uint64_t internalTid, DataIndex nameIndex);

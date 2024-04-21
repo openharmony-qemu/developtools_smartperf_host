@@ -39,8 +39,9 @@ export class TabPaneSchedPriority extends BaseElement {
       // @ts-ignore
       this.priorityTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45}px`;
     }
-    this.range!.textContent =
-      `Selected range: ${parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5))} ms`;
+    this.range!.textContent = `Selected range: ${parseFloat(
+      ((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5)
+    )} ms`;
     this.queryDataByDB(sptValue);
   }
 
@@ -91,8 +92,10 @@ export class TabPaneSchedPriority extends BaseElement {
     const runnableMap = new Map<string, Priority>();
     // @ts-ignore
     sliceSPTSender(sptParam.leftNs, sptParam.rightNs, [], 'spt-getCpuPriorityByTime').then((res): void => {
-      for (const item of res) {//@ts-ignore
-        if (['R', 'R+'].includes(item.state)) {//@ts-ignore
+      for (const item of res) {
+        //@ts-ignore
+        if (['R', 'R+'].includes(item.state)) {
+          //@ts-ignore
           runnableMap.set(`${item.id}_${item.startTime + item.dur}`, item);
         }
         // @ts-ignore
@@ -169,7 +172,11 @@ export class TabPaneSchedPriority extends BaseElement {
     this.theadClick(priorityArr);
   }
 
-  private prepareMaps(source: Array<Priority>, priorityMap: Map<string, Priority>, stateMap: Map<string, Priority>): void {
+  private prepareMaps(
+    source: Array<Priority>,
+    priorityMap: Map<string, Priority>,
+    stateMap: Map<string, Priority>
+  ): void {
     source.map((priorityItem): void => {
       if (priorityMap.has(`${priorityItem.priorityType}`)) {
         const priorityMapObj = priorityMap.get(`${priorityItem.priorityType}`);

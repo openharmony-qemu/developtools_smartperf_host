@@ -40,9 +40,10 @@ export class LitSlicer extends HTMLElement {
         `;
   }
 
-  set direction(val: unknown) {  // @ts-ignore
+  set direction(val: unknown) {
+    // @ts-ignore
     if (val.startsWith('h')) {
-      this.shadowRoot!.querySelector('div')!.style.flexDirection = 'row';  // @ts-ignore
+      this.shadowRoot!.querySelector('div')!.style.flexDirection = 'row'; // @ts-ignore
     } else if (val.startsWith('v')) {
       this.shadowRoot!.querySelector('div')!.style.flexDirection = 'column';
     }
@@ -52,14 +53,16 @@ export class LitSlicer extends HTMLElement {
 
   disconnectedCallback(): void {}
 
-  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {  // @ts-ignore
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {
+    // @ts-ignore
     (this as unknown)[name] = newValue;
   }
   // @ts-ignore
   set style(v: unknown) {}
 }
 
-if (!customElements.get('lit-slicer')) {  // @ts-ignore
+if (!customElements.get('lit-slicer')) {
+  // @ts-ignore
   customElements.define('lit-slicer', LitSlicer);
 }
 

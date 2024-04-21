@@ -17,7 +17,7 @@ import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { isFrameContainPoint, Render, mem, drawLoadingFrame } from './ProcedureWorkerCommon';
 import { ProcessMemStruct as BaseProcessMemStruct } from '../../bean/ProcessMemStruct';
-export class MemRender extends Render {
+export class MemRender {
   renderMainThread(
     req: {
       useCache: boolean;

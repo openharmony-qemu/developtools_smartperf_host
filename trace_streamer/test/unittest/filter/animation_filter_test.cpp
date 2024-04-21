@@ -78,7 +78,7 @@ HWTEST_F(AnimationFilterTest, InvalidCallStack, TestSize.Level1)
     std::string validName("H:RSUniRender::Process:[WindowScene_xxx] (0, 0, 1344, 2772) Alpha: 1.00");
     std::string invalidName("H:RSUniRender::Process:[xxx] (0, 0, 1344, 2772) Alpha: 1.00");
     const size_t CALLSTACK_SLICE_ID = 1;
-    CallStack* callStackSlice = stream_.traceDataCache_->GetInternalSlicesData();
+    CallStack *callStackSlice = stream_.traceDataCache_->GetInternalSlicesData();
     std::vector<DataIndex> callStackNames{
         stream_.traceDataCache_->GetDataIndex("H:RSMainThread::DoComposition"),
         stream_.traceDataCache_->GetDataIndex("H:ProcessDisplayRenderNode[0](0,0,0,0)"),
@@ -92,7 +92,7 @@ HWTEST_F(AnimationFilterTest, InvalidCallStack, TestSize.Level1)
     // invalid parentId
     for (size_t i = 0, depth = 0; i < callStackNames.size(); i++) {
         std::optional<uint64_t> parentId = 0;
-        callStackSlice->AppendInternalSlice(INVALID_TIME, INVALID_TIME, INVALID_UINT32, INVALID_UINT64, INVALID_UINT16,
+        callStackSlice->AppendInternalSlice(INVALID_TIME, INVALID_TIME, INVALID_UINT32, INVALID_UINT64,
                                             callStackNames[i], ++depth, parentId);
         point.funcPrefix_ = funcPrefixs[1];
         auto res = stream_.streamFilters_->animationFilter_->BeginDynamicFrameEvent(point, CALLSTACK_SLICE_ID);
@@ -107,7 +107,7 @@ HWTEST_F(AnimationFilterTest, InvalidCallStack, TestSize.Level1)
         }
         depth = i + 1;
         index = callStackSlice->AppendInternalSlice(INVALID_TIME, INVALID_TIME, INVALID_UINT32, INVALID_UINT64,
-                                                    INVALID_UINT16, callStackNames[i], depth, parentId);
+                                                    callStackNames[i], depth, parentId);
     }
     point.funcPrefix_ = funcPrefixs[1];
     point.name_ = invalidName;
@@ -220,7 +220,7 @@ HWTEST_F(AnimationFilterTest, UpdateDynamicFrameInfo, TestSize.Level1)
 {
     TS_LOGI("test36-5");
     TracePoint point;
-    CallStack* callStackSlice = stream_.traceDataCache_->GetInternalSlicesData();
+    CallStack *callStackSlice = stream_.traceDataCache_->GetInternalSlicesData();
     std::vector<DataIndex> callStackNames{
         stream_.traceDataCache_->GetDataIndex("H:RSMainThread::DoComposition"),
         stream_.traceDataCache_->GetDataIndex("H:ProcessDisplayRenderNode[0](0,0,0,0)"),
@@ -237,8 +237,8 @@ HWTEST_F(AnimationFilterTest, UpdateDynamicFrameInfo, TestSize.Level1)
             parentId = index;
         }
         depth = i + 1;
-        index = callStackSlice->AppendInternalSlice(startTime, dur, INVALID_UINT32, INVALID_UINT64, INVALID_UINT16,
-                                                    callStackNames[i], depth, parentId);
+        index = callStackSlice->AppendInternalSlice(startTime, dur, INVALID_UINT32, INVALID_UINT64, callStackNames[i],
+                                                    depth, parentId);
     }
     point.funcPrefix_ = funcPrefix;
     point.name_ = stream_.traceDataCache_->GetDataFromDict(callStackNames.back());
@@ -261,15 +261,15 @@ HWTEST_F(AnimationFilterTest, AnimationStartAndEnd, TestSize.Level1)
     BytraceLine line;
     line.ts = 59557002299000;
 
-    CallStack* callStackSlice = stream_.traceDataCache_->GetInternalSlicesData();
+    CallStack *callStackSlice = stream_.traceDataCache_->GetInternalSlicesData();
     uint8_t depth = 1;
     uint64_t dur = ONE_MILLION_NANOSECONDS;
     std::optional<uint64_t> parentId;
     DataIndex callStackName = stream_.traceDataCache_->GetDataIndex(
         "H:RSUniRender::Process:[WindowScene_xxx] (0, 0, 1344, 2772) Alpha: 1.00");
 
-    auto callStackRow = callStackSlice->AppendInternalSlice(line.ts, dur, INVALID_UINT32, INVALID_UINT64,
-                                                            INVALID_UINT16, callStackName, depth, parentId);
+    auto callStackRow = callStackSlice->AppendInternalSlice(line.ts, dur, INVALID_UINT32, INVALID_UINT64, callStackName,
+                                                            depth, parentId);
 
     TracePoint point;
     point.name_ = "H:APP_LIST_FLING, com.taobao.taobao, pages/Index, 1693876205590.";

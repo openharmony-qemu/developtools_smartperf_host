@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, FUNCTION_ID, START_TIME, END_TIME, DUR };
-JsCpuProfilerSampleTable::JsCpuProfilerSampleTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+JsCpuProfilerSampleTable::JsCpuProfilerSampleTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("function_id", "INTEGER"));
@@ -35,7 +35,7 @@ std::unique_ptr<TableBase::Cursor> JsCpuProfilerSampleTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-JsCpuProfilerSampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+JsCpuProfilerSampleTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstJsCpuProfilerSampleData().Size())),
       jsCpuProfilerSample_(dataCache->GetConstJsCpuProfilerSampleData())
 {

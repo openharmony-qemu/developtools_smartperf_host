@@ -18,89 +18,89 @@ namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
 TraceDataCacheReader::~TraceDataCacheReader() {}
-const std::string& TraceDataCacheReader::GetDataFromDict(DataIndex id) const
+const std::string &TraceDataCacheReader::GetDataFromDict(DataIndex id) const
 {
     return dataDict_.GetDataFromDict(id);
 }
 
-const std::deque<Process>& TraceDataCacheReader::GetConstProcessData() const
+const std::deque<Process> &TraceDataCacheReader::GetConstProcessData() const
 {
     return internalProcessesData_;
 }
-const Process& TraceDataCacheReader::GetConstProcessData(InternalPid internalPid) const
+const Process &TraceDataCacheReader::GetConstProcessData(InternalPid internalPid) const
 {
     TS_ASSERT(internalPid < internalProcessesData_.size());
     return internalProcessesData_[internalPid];
 }
-const Thread& TraceDataCacheReader::GetConstThreadData(InternalTid internalTid) const
+const Thread &TraceDataCacheReader::GetConstThreadData(InternalTid internalTid) const
 {
     TS_ASSERT(internalTid < internalThreadsData_.size());
     return internalThreadsData_[internalTid];
 }
 
-const std::deque<Thread>& TraceDataCacheReader::GetConstThreadData() const
+const std::deque<Thread> &TraceDataCacheReader::GetConstThreadData() const
 {
     return internalThreadsData_;
 }
-const CallStack& TraceDataCacheReader::GetConstInternalSlicesData() const
+const CallStack &TraceDataCacheReader::GetConstInternalSlicesData() const
 {
     return callstackData_;
 }
-const CallStack& TraceDataCacheReader::GetConstIrqData() const
+const CallStack &TraceDataCacheReader::GetConstIrqData() const
 {
     return irqData_;
 }
-const Filter& TraceDataCacheReader::GetConstFilterData() const
+const Filter &TraceDataCacheReader::GetConstFilterData() const
 {
     return filterData_;
 }
-const Raw& TraceDataCacheReader::GetConstRawTableData() const
+const Raw &TraceDataCacheReader::GetConstRawTableData() const
 {
     return rawData_;
 }
-const Measure& TraceDataCacheReader::GetConstMeasureData() const
+const Measure &TraceDataCacheReader::GetConstMeasureData() const
 {
     return measureData_;
 }
-const Measure& TraceDataCacheReader::GetConstSysMemMeasureData() const
+const Measure &TraceDataCacheReader::GetConstSysMemMeasureData() const
 {
     return sysMemMeasureData_;
 }
-const Measure& TraceDataCacheReader::GetConstProcessMeasureData() const
+const Measure &TraceDataCacheReader::GetConstProcessMeasureData() const
 {
     return processMeasureData_;
 }
 
-const ThreadStateData& TraceDataCacheReader::GetConstThreadStateData() const
+const ThreadStateData &TraceDataCacheReader::GetConstThreadStateData() const
 {
     return threadStateData_;
 }
-const SchedSlice& TraceDataCacheReader::GetConstSchedSliceData() const
+const SchedSlice &TraceDataCacheReader::GetConstSchedSliceData() const
 {
     return schedSliceData_;
 }
-const CpuMeasureFilter& TraceDataCacheReader::GetConstCpuMeasuresData() const
+const CpuMeasureFilter &TraceDataCacheReader::GetConstCpuMeasuresData() const
 {
     return cpuMeasureData_;
 }
-const Instants& TraceDataCacheReader::GetConstInstantsData() const
+const Instants &TraceDataCacheReader::GetConstInstantsData() const
 {
     return instantsData_;
 }
-const ProcessMeasureFilter& TraceDataCacheReader::GetConstProcessMeasureFilterData() const
+const ProcessMeasureFilter &TraceDataCacheReader::GetConstProcessMeasureFilterData() const
 {
     return processMeasureFilterData_;
 }
 
-const ClockEventData& TraceDataCacheReader::GetConstClockEventFilterData() const
+const ClockEventData &TraceDataCacheReader::GetConstClockEventFilterData() const
 {
     return clockEventFilterData_;
 }
-const ClkEventData& TraceDataCacheReader::GetConstClkEventFilterData() const
+const ClkEventData &TraceDataCacheReader::GetConstClkEventFilterData() const
 {
     return clkEventFilterData_;
 }
-const std::string& TraceDataCacheReader::GetConstSchedStateData(uint64_t rowId) const
+const std::string &TraceDataCacheReader::GetConstSchedStateData(uint64_t rowId) const
 {
     TS_ASSERT(statusString_.find(rowId) != statusString_.end());
     return statusString_.at(rowId);
@@ -114,257 +114,257 @@ uint64_t TraceDataCacheReader::TraceEndTime() const
     return traceEndTime_;
 }
 
-const StatAndInfo& TraceDataCacheReader::GetConstStatAndInfo() const
+const StatAndInfo &TraceDataCacheReader::GetConstStatAndInfo() const
 {
     return stat_;
 }
-const MetaData& TraceDataCacheReader::GetConstMetaData() const
+const MetaData &TraceDataCacheReader::GetConstMetaData() const
 {
     return metaData_;
 }
 
-const SymbolsData& TraceDataCacheReader::GetConstSymbolsData() const
+const SymbolsData &TraceDataCacheReader::GetConstSymbolsData() const
 {
     return symbolsData_;
 }
 
-const LogInfo& TraceDataCacheReader::GetConstHilogData() const
+const LogInfo &TraceDataCacheReader::GetConstHilogData() const
 {
     return hilogData_;
 }
 
-const NativeHook& TraceDataCacheReader::GetConstNativeHookData() const
+const NativeHook &TraceDataCacheReader::GetConstNativeHookData() const
 {
     return nativeHookData_;
 }
 
-const NativeHookFrame& TraceDataCacheReader::GetConstNativeHookFrameData() const
+const NativeHookFrame &TraceDataCacheReader::GetConstNativeHookFrameData() const
 {
     return nativeHookFrameData_;
 }
-const NativeHookStatistic& TraceDataCacheReader::GetConstNativeHookStatisticData() const
+const NativeHookStatistic &TraceDataCacheReader::GetConstNativeHookStatisticData() const
 {
     return nativeHookStatisticData_;
 }
-const Hidump& TraceDataCacheReader::GetConstHidumpData() const
+const Hidump &TraceDataCacheReader::GetConstHidumpData() const
 {
     return hidumpData_;
 }
 
-const PerfCallChain& TraceDataCacheReader::GetConstPerfCallChainData() const
+const PerfCallChain &TraceDataCacheReader::GetConstPerfCallChainData() const
 {
     return perfCallChain_;
 }
-const PerfFiles& TraceDataCacheReader::GetConstPerfFilesData() const
+const PerfFiles &TraceDataCacheReader::GetConstPerfFilesData() const
 {
     return perfFiles_;
 }
-const PerfSample& TraceDataCacheReader::GetConstPerfSampleData() const
+const PerfSample &TraceDataCacheReader::GetConstPerfSampleData() const
 {
     return perfSample_;
 }
-const PerfThread& TraceDataCacheReader::GetConstPerfThreadData() const
+const PerfThread &TraceDataCacheReader::GetConstPerfThreadData() const
 {
     return perfThread_;
 }
-const PerfReport& TraceDataCacheReader::GetConstPerfReportData() const
+const PerfReport &TraceDataCacheReader::GetConstPerfReportData() const
 {
     return perfReport_;
 }
-const SysCall& TraceDataCacheReader::GetConstSysCallData() const
+const SysCall &TraceDataCacheReader::GetConstSysCallData() const
 {
     return sysCallData_;
 }
-const ArgSet& TraceDataCacheReader::GetConstArgSetData() const
+const ArgSet &TraceDataCacheReader::GetConstArgSetData() const
 {
     return argSet_;
 }
-const TaskPoolInfo& TraceDataCacheReader::GetConstTaskPoolData() const
+const TaskPoolInfo &TraceDataCacheReader::GetConstTaskPoolData() const
 {
     return taskPoolInfo_;
 }
-const JsHeapFiles& TraceDataCacheReader::GetConstJsHeapFilesData() const
+const JsHeapFiles &TraceDataCacheReader::GetConstJsHeapFilesData() const
 {
     return jsHeapFilesData_;
 }
-const JsHeapEdges& TraceDataCacheReader::GetConstJsHeapEdgesData() const
+const JsHeapEdges &TraceDataCacheReader::GetConstJsHeapEdgesData() const
 {
     return jsHeapEdgesData_;
 }
-const JsHeapInfo& TraceDataCacheReader::GetConstJsHeapInfoData() const
+const JsHeapInfo &TraceDataCacheReader::GetConstJsHeapInfoData() const
 {
     return jsHeapInfoData_;
 }
-const JsHeapLocation& TraceDataCacheReader::GetConstJsHeapLocationData() const
+const JsHeapLocation &TraceDataCacheReader::GetConstJsHeapLocationData() const
 {
     return jsHeapLocationData_;
 }
-const JsHeapNodes& TraceDataCacheReader::GetConstJsHeapNodesData() const
+const JsHeapNodes &TraceDataCacheReader::GetConstJsHeapNodesData() const
 {
     return jsHeapNodesData_;
 }
-const JsHeapSample& TraceDataCacheReader::GetConstJsHeapSampleData() const
+const JsHeapSample &TraceDataCacheReader::GetConstJsHeapSampleData() const
 {
     return jsHeapSampleData_;
 }
-const JsHeapString& TraceDataCacheReader::GetConstJsHeapStringData() const
+const JsHeapString &TraceDataCacheReader::GetConstJsHeapStringData() const
 {
     return jsHeapStringData_;
 }
-const JsHeapTraceFuncInfo& TraceDataCacheReader::GetConstJsHeapTraceFuncInfoData() const
+const JsHeapTraceFuncInfo &TraceDataCacheReader::GetConstJsHeapTraceFuncInfoData() const
 {
     return jsHeapTraceFuncInfoData_;
 }
-const JsHeapTraceNode& TraceDataCacheReader::GetConstJsHeapTraceNodeData() const
+const JsHeapTraceNode &TraceDataCacheReader::GetConstJsHeapTraceNodeData() const
 {
     return jsHeapTraceNodeData_;
 }
-const JsCpuProfilerNode& TraceDataCacheReader::GetConstJsCpuProfilerNodeData() const
+const JsCpuProfilerNode &TraceDataCacheReader::GetConstJsCpuProfilerNodeData() const
 {
     return jsCpuProfilerNodeData_;
 }
-const JsCpuProfilerSample& TraceDataCacheReader::GetConstJsCpuProfilerSampleData() const
+const JsCpuProfilerSample &TraceDataCacheReader::GetConstJsCpuProfilerSampleData() const
 {
     return jsCpuProfilerSampleData_;
 }
 
-const JsConfig& TraceDataCacheReader::GetConstJsConfigData() const
+const JsConfig &TraceDataCacheReader::GetConstJsConfigData() const
 {
     return jsConfigData_;
 }
 
-const DataType& TraceDataCacheReader::GetConstDataTypeData() const
+const DataType &TraceDataCacheReader::GetConstDataTypeData() const
 {
     return dataType_;
 }
 
-const SysMeasureFilter& TraceDataCacheReader::GetConstSysMeasureFilterData() const
+const SysMeasureFilter &TraceDataCacheReader::GetConstSysMeasureFilterData() const
 {
     return sysEvent_;
 }
-const NetDetailData& TraceDataCacheReader::GetConstNetworkData() const
+const NetDetailData &TraceDataCacheReader::GetConstNetworkData() const
 {
     return networkData_;
 }
-const CpuUsageDetailData& TraceDataCacheReader::GetConstCpuUsageInfoData() const
+const CpuUsageDetailData &TraceDataCacheReader::GetConstCpuUsageInfoData() const
 {
     return cpuUsageData_;
 }
-const DiskIOData& TraceDataCacheReader::GetConstDiskIOData() const
+const DiskIOData &TraceDataCacheReader::GetConstDiskIOData() const
 {
     return diskIOData_;
 }
-const LiveProcessDetailData& TraceDataCacheReader::GetConstLiveProcessData() const
+const LiveProcessDetailData &TraceDataCacheReader::GetConstLiveProcessData() const
 {
     return liveProcessDetailData_;
 }
-const FileSystemSample& TraceDataCacheReader::GetConstFileSystemSample() const
+const FileSystemSample &TraceDataCacheReader::GetConstFileSystemSample() const
 {
     return fileSamplingTableData_;
 }
-const EbpfCallStackData& TraceDataCacheReader::GetConstEbpfCallStackData() const
+const EbpfCallStackData &TraceDataCacheReader::GetConstEbpfCallStackData() const
 {
     return ebpfCallStackData_;
 }
-const PagedMemorySampleData& TraceDataCacheReader::GetConstPagedMemorySampleData() const
+const PagedMemorySampleData &TraceDataCacheReader::GetConstPagedMemorySampleData() const
 {
     return pagedMemorySampleData_;
 }
-const HiSysEventSubkeys& TraceDataCacheReader::GetConstHiSysEventSubkeysData() const
+const HiSysEventSubkeys &TraceDataCacheReader::GetConstHiSysEventSubkeysData() const
 {
     return sysEventNameIds_;
 }
-const HiSysEventMeasureData& TraceDataCacheReader::GetConstHiSyseventMeasureData() const
+const HiSysEventMeasureData &TraceDataCacheReader::GetConstHiSyseventMeasureData() const
 {
     return sysEventMeasureData_;
 }
-const TraceConfig& TraceDataCacheReader::GetConstTraceConfigData() const
+const TraceConfig &TraceDataCacheReader::GetConstTraceConfigData() const
 {
     return traceConfigData_;
 }
-const HiSysEventDeviceStateData& TraceDataCacheReader::GetConstHiSysEventDeviceStateData() const
+const HiSysEventDeviceStateData &TraceDataCacheReader::GetConstHiSysEventDeviceStateData() const
 {
     return deviceStateData_;
 }
-const HiSysEventAllEventData& TraceDataCacheReader::GetConstHiSysEventAllEventData() const
+const HiSysEventAllEventData &TraceDataCacheReader::GetConstHiSysEventAllEventData() const
 {
     return hiSysEventAllEventData_;
 }
-const SmapsData& TraceDataCacheReader::GetConstSmapsData() const
+const SmapsData &TraceDataCacheReader::GetConstSmapsData() const
 {
     return smapsData_;
 }
-const BioLatencySampleData& TraceDataCacheReader::GetConstBioLatencySampleData() const
+const BioLatencySampleData &TraceDataCacheReader::GetConstBioLatencySampleData() const
 {
     return bioLatencySampleData_;
 }
 
-const ClockSnapshotData& TraceDataCacheReader::GetConstClockSnapshotData() const
+const ClockSnapshotData &TraceDataCacheReader::GetConstClockSnapshotData() const
 {
     return clockSnapshotData_;
 }
 
-const DataSourceClockIdData& TraceDataCacheReader::GetConstDataSourceClockIdData() const
+const DataSourceClockIdData &TraceDataCacheReader::GetConstDataSourceClockIdData() const
 {
     return dataSourceClockIdData_;
 }
-const FrameSlice& TraceDataCacheReader::GetConstFrameSliceData() const
+const FrameSlice &TraceDataCacheReader::GetConstFrameSliceData() const
 {
     return frameSliceData_;
 }
-const FrameMaps& TraceDataCacheReader::GetConstFrameMapsData() const
+const FrameMaps &TraceDataCacheReader::GetConstFrameMapsData() const
 {
     return frameMapsData_;
 }
-const GPUSlice& TraceDataCacheReader::GetConstGPUSliceData() const
+const GPUSlice &TraceDataCacheReader::GetConstGPUSliceData() const
 {
     return gpuSliceData_;
 }
-const AppStartup& TraceDataCacheReader::GetConstAppStartupData() const
+const AppStartup &TraceDataCacheReader::GetConstAppStartupData() const
 {
     return appStartupData_;
 }
-const SoStaticInitalization& TraceDataCacheReader::GetConstSoStaticInitalizationData() const
+const SoStaticInitalization &TraceDataCacheReader::GetConstSoStaticInitalizationData() const
 {
     return soStaticInitalizationData_;
 }
-const Animation& TraceDataCacheReader::GetConstAnimation() const
+const Animation &TraceDataCacheReader::GetConstAnimation() const
 {
     return animation_;
 }
-const DeviceInfo& TraceDataCacheReader::GetConstDeviceInfo() const
+const DeviceInfo &TraceDataCacheReader::GetConstDeviceInfo() const
 {
     return deviceInfo_;
 }
-const DynamicFrame& TraceDataCacheReader::GetConstDynamicFrame() const
+const DynamicFrame &TraceDataCacheReader::GetConstDynamicFrame() const
 {
     return dynamicFrame_;
 }
-const AshMemData& TraceDataCacheReader::GetConstAshMemData() const
+const AshMemData &TraceDataCacheReader::GetConstAshMemData() const
 {
     return ashMemData_;
 }
-const DmaMemData& TraceDataCacheReader::GetConstDmaMemData() const
+const DmaMemData &TraceDataCacheReader::GetConstDmaMemData() const
 {
     return dmaMemData_;
 }
-const GpuProcessMemData& TraceDataCacheReader::GetConstGpuProcessMemData() const
+const GpuProcessMemData &TraceDataCacheReader::GetConstGpuProcessMemData() const
 {
     return gpuProcessMemData_;
 }
-const GpuWindowMemData& TraceDataCacheReader::GetConstGpuWindowMemData() const
+const GpuWindowMemData &TraceDataCacheReader::GetConstGpuWindowMemData() const
 {
     return gpuWindowMemData_;
 }
-const CpuDumpInfo& TraceDataCacheReader::GetConstCpuDumpInfo() const
+const CpuDumpInfo &TraceDataCacheReader::GetConstCpuDumpInfo() const
 {
     return cpuDumpInfo_;
 }
-const ProfileMemInfo& TraceDataCacheReader::GetConstProfileMemInfo() const
+const ProfileMemInfo &TraceDataCacheReader::GetConstProfileMemInfo() const
 {
     return profileMemInfo_;
 }
-const RSImageDumpInfo& TraceDataCacheReader::GetConstRSImageDumpInfo() const
+const RSImageDumpInfo &TraceDataCacheReader::GetConstRSImageDumpInfo() const
 {
     return rsImageDumpInfo_;
 }

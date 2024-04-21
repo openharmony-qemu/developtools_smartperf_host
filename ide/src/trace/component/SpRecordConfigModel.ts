@@ -531,7 +531,7 @@ export function createNativePluginConfig(
           nativeConfig.mallocFreeMatchingInterval = spAllocations.sample_interval;
         }
       }
-      nativeConfig.jsStackReport = spAllocations!.recordJsStack;
+      nativeConfig.jsStackReport = spAllocations!.recordJsStack ? 1 : 0;
       if (spAllocations!.recordJsStack) {
         nativeConfig.maxJsStackDepth = spAllocations!.max_js_stack_depth;
         nativeConfig.filterNapiName = spAllocations!.filter_napi_name;

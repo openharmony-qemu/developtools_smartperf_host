@@ -61,14 +61,14 @@ export function threadDataSender(
 }
 
 function arrayBufferHandler(buffers: unknown, len: number): ThreadStruct[] {
-  let outArr: ThreadStruct[] = [];//@ts-ignore
-  let startTime = new Float64Array(buffers.startTime);//@ts-ignore
-  let dur = new Float64Array(buffers.dur);//@ts-ignore
-  let cpu = new Int8Array(buffers.cpu);//@ts-ignore
-  let id = new Int32Array(buffers.id);//@ts-ignore
-  let tid = new Int32Array(buffers.tid);//@ts-ignore
-  let state = new Int32Array(buffers.state);//@ts-ignore
-  let pid = new Int32Array(buffers.pid);//@ts-ignore
+  let outArr: ThreadStruct[] = []; //@ts-ignore
+  let startTime = new Float64Array(buffers.startTime); //@ts-ignore
+  let dur = new Float64Array(buffers.dur); //@ts-ignore
+  let cpu = new Int8Array(buffers.cpu); //@ts-ignore
+  let id = new Int32Array(buffers.id); //@ts-ignore
+  let tid = new Int32Array(buffers.tid); //@ts-ignore
+  let state = new Int32Array(buffers.state); //@ts-ignore
+  let pid = new Int32Array(buffers.pid); //@ts-ignore
   let argSetID = new Int32Array(buffers.argSetID);
   for (let i = 0; i < len; i++) {
     outArr.push({

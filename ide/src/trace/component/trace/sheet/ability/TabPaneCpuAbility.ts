@@ -193,8 +193,8 @@ export class TabPaneCpuAbility extends BaseElement {
       totalLoadStr: 'totalLoadStr',
       userLoadStr: 'userLoadStr',
       systemLoadStr: 'systemLoadStr',
-    };// @ts-ignore
-    let type = typeMaping[detail.key] || 'number';// @ts-ignore
+    }; // @ts-ignore
+    let type = typeMaping[detail.key] || 'number'; // @ts-ignore
     this.cpuAbilitySource.sort(this.compare(detail.key, detail.sort, type));
     this.cpuAbilityTbl!.recycleDataSource = this.cpuAbilitySource;
   }

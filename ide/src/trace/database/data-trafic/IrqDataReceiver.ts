@@ -14,13 +14,12 @@
 import { TraficEnum } from './utils/QueryEnum';
 import { filterDataByGroup } from './utils/DataFilter';
 import { lrqList } from './utils/AllMemoryCache';
+import { Args } from './CommonArgs';
 
-export const chartIrqDataSql = (args: unknown): string => {
-  // @ts-ignore
+export const chartIrqDataSql = (args: Args): string => {
   if (args.name === 'irq') {
     return `
         select i.ts - ${
-          // @ts-ignore
           args.recordStartNS
         }                                                                                                   as startNs,
                max(i.dur)                                                                                       as dur,
@@ -28,53 +27,34 @@ export const chartIrqDataSql = (args: unknown): string => {
                ifnull(argsetid, -1)                                                                         as argSetId,
                i.id,
                case when i.cat = 'ipi' then 'IPI' || i.name else i.name end                                 as name,
-               ((i.ts - ${
-                // @ts-ignore
-                args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+               ((i.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
         from irq i
-        where i.callid = ${
-          // @ts-ignore
-          args.cpu}
+        where i.callid = ${args.cpu}
           and ((i.cat = 'irq' and i.flag = '1') or i.cat = 'ipi')
-          and startNs + dur >= ${
-            // @ts-ignore
-            Math.floor(args.startNS)}
-          and startNs <= ${
-            // @ts-ignore
-            Math.floor(args.endNS)}
+          and startNs + dur >= ${Math.floor(args.startNS)}
+          and startNs <= ${Math.floor(args.endNS)}
         group by px;
     `;
   } else {
     return `
-        select i.ts - ${
-          // @ts-ignore
-          args.recordStartNS}                                                                 as startNs,
+        select i.ts - ${args.recordStartNS}                                                                 as startNs,
                max(i.dur)                                                                                       as dur,
                i.depth,
                ifnull(argsetid,-1)                                                                            as argSetId,
                i.id,
                i.name,
-               ((i.ts - ${
-                // @ts-ignore
-                args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+               ((i.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
         from irq i
-        where i.callid = ${
-          // @ts-ignore
-          args.cpu}
+        where i.callid = ${args.cpu}
           and i.cat = 'softirq'
-          and startNs + dur >= ${
-            // @ts-ignore
-            Math.floor(args.startNS)}
-          and startNs <= ${
-            // @ts-ignore
-            Math.floor(args.endNS)}
+          and startNs + dur >= ${Math.floor(args.startNS)}
+          and startNs <= ${Math.floor(args.endNS)}
         group by px;
     `;
   }
 };
 
-export const chartIrqDataSqlMem = (args: unknown): string => {
-  // @ts-ignore
+export const chartIrqDataSqlMem = (args: Args): string => {
   if (args.name === 'irq') {
     return `
         select i.ts - t.start_ts as startNs,i.dur,
@@ -83,16 +63,12 @@ export const chartIrqDataSqlMem = (args: unknown): string => {
         ifnull(argsetid, -1) as argSetId,
         i.id 
         from irq i,trace_range t 
-        where i.callid = ${
-          // @ts-ignore
-          args.cpu} and ((i.cat = 'irq' and i.flag ='1') or i.cat = 'ipi') 
+        where i.callid = ${args.cpu} and ((i.cat = 'irq' and i.flag ='1') or i.cat = 'ipi') 
     `;
   } else {
     return `
         select i.ts - t.start_ts as startNs,i.dur,i.name,i.depth,ifnull(argsetid, -1) as argSetId,i.id from irq i,
-trace_range t where i.callid = ${
-  // @ts-ignore
-  args.cpu} and i.cat = 'softirq'
+trace_range t where i.callid = ${args.cpu} and i.cat = 'softirq'
     `;
   }
 };

@@ -43,8 +43,8 @@ export class LongTraceDBUtils {
     ]);
   }
 
-  getByRange(range: IDBKeyRange):// @ts-ignore
-   Promise<unknown> {
+  getByRange(range: IDBKeyRange): // @ts-ignore
+  Promise<unknown> {
     return this.indexedDBHelp.get(this.tableName, range, 'QueryFileByPage');
   }
 
@@ -56,8 +56,8 @@ export class LongTraceDBUtils {
     index: number,
     offset: number,
     sliceLen: number
-  ):// @ts-ignore
-   Promise<unknown> {
+  ): // @ts-ignore
+  Promise<unknown> {
     return this.indexedDBHelp.add(this.tableName, {
       buf: data,
       id: `${fileType}_${timStamp}_${pageNumber}_${index}`,

@@ -15,7 +15,8 @@
 
 export function element(tag: string): (el: unknown) => void {
   return (el: unknown): void => {
-    if (!customElements.get(tag)) {//@ts-ignore
+    if (!customElements.get(tag)) {
+      //@ts-ignore
       customElements.define(tag, el);
     }
   };

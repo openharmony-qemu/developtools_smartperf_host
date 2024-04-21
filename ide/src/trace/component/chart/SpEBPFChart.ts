@@ -79,11 +79,12 @@ export class SpEBPFChart {
     fsFolder.name = 'EBPF'; /* & I/O Latency */
     fsFolder.addTemplateTypes('HiEBpf');
     fsFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    fsFolder.selectChangeHandler = this.trace.selectChangeHandler;//@ts-ignore
+    fsFolder.selectChangeHandler = this.trace.selectChangeHandler; //@ts-ignore
     fsFolder.supplierFrame = (): Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve) => resolve([]));
     fsFolder.onThreadHandler = (useCache): void => {
       fsFolder.canvasSave(this.trace.canvasPanelCtx!);
-      if (fsFolder.expansion) {// @ts-ignore
+      if (fsFolder.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, fsFolder.frame.width, fsFolder.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(
@@ -130,6 +131,7 @@ export class SpEBPFChart {
         context = logicalReadRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       logicalReadRow.canvasSave(context);
+      //@ts-ignore
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
         {
           context: context,
@@ -173,6 +175,7 @@ export class SpEBPFChart {
         context = logicalWriteRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       logicalWriteRow.canvasSave(context);
+      //@ts-ignore
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
         {
           context: context,
@@ -217,6 +220,7 @@ export class SpEBPFChart {
         context = diskIoRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       diskIoRow.canvasSave(context);
+      //@ts-ignore
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
         {
           context: context,
@@ -234,16 +238,17 @@ export class SpEBPFChart {
   //@ts-ignore
   initProcessDiskIOLatencyRead(i: number, folder: TraceRow<unknown>, process: unknown): TraceRow<EBPFChartStruct> {
     let rowRead = TraceRow.skeleton<EBPFChartStruct>();
-    rowRead.index = 5 + 2 * i;//@ts-ignore
+    rowRead.index = 5 + 2 * i; //@ts-ignore
     rowRead.rowId = `FileSystemDiskIOLatency-read-${process['ipid']}`;
     rowRead.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
     rowRead.rowParentId = folder.rowId;
     rowRead.rowHidden = !folder.expansion;
     rowRead.style.height = '40px';
     rowRead.style.width = '100%';
-    rowRead.setAttribute('children', '');//@ts-ignore
+    rowRead.setAttribute('children', ''); //@ts-ignore
     rowRead.name = `${process['name'] ?? 'Process'}(${process['pid']}) Max Read Latency`;
-    rowRead.supplierFrame = async (): Promise<EBPFChartStruct[]> => {//@ts-ignore
+    rowRead.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
+      //@ts-ignore
       const res = await diskIoSender(false, process['ipid'], [1, 3], TraceRow.range?.scale || 50, rowRead);
       return res;
     };
@@ -261,10 +266,11 @@ export class SpEBPFChart {
         context = rowRead.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       rowRead.canvasSave(context);
+      //@ts-ignore
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
         {
           context: context,
-          useCache: useCache,//@ts-ignore
+          useCache: useCache, //@ts-ignore
           type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-read-${process['pid']}`,
           chartColor: ColorUtils.MD_PALETTE[0],
         },
@@ -276,18 +282,19 @@ export class SpEBPFChart {
   }
 
   //@ts-ignore
-  private initProcessDiskIOLatencyWrite(i: number, folder: TraceRow<unknown>, process: unknown): TraceRow<EBPFChartStruct> {
+  private initProcessDiskIOWrite(i: number, folder: TraceRow<unknown>, process: unknown): TraceRow<EBPFChartStruct> {
     let rowWrite = TraceRow.skeleton<EBPFChartStruct>();
-    rowWrite.index = 5 + 2 * i + 1;//@ts-ignore
+    rowWrite.index = 5 + 2 * i + 1; //@ts-ignore
     rowWrite.rowId = `FileSystemDiskIOLatency-write-${process['ipid']}`;
     rowWrite.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
     rowWrite.rowParentId = folder.rowId;
     rowWrite.rowHidden = !folder.expansion;
     rowWrite.style.height = '40px';
     rowWrite.style.width = '100%';
-    rowWrite.setAttribute('children', '');//@ts-ignore
+    rowWrite.setAttribute('children', ''); //@ts-ignore
     rowWrite.name = `${process['name'] ?? 'Process'}(${process['pid']}) Max Write Latency`;
-    rowWrite.supplierFrame = async (): Promise<EBPFChartStruct[]> => {//@ts-ignore
+    rowWrite.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
+      //@ts-ignore
       const res = await diskIoSender(false, process['ipid'], [2, 4], TraceRow.range?.scale || 50, rowWrite);
       return res;
     };
@@ -305,10 +312,11 @@ export class SpEBPFChart {
         context = rowWrite.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       rowWrite.canvasSave(context);
+      //@ts-ignore
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
         {
           context: context,
-          useCache: useCache,//@ts-ignore
+          useCache: useCache, //@ts-ignore
           type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-write-${process['pid']}`,
           chartColor: ColorUtils.MD_PALETTE[8],
         },
@@ -326,7 +334,7 @@ export class SpEBPFChart {
       let process = processes[i];
       const rowRead = this.initProcessDiskIOLatencyRead(i, folder, process);
       folder.addChildTraceRow(rowRead);
-      const rowWrite = this.initProcessDiskIOLatencyWrite(i, folder, process);
+      const rowWrite = this.initProcessDiskIOWrite(i, folder, process);
       folder.addChildTraceRow(rowWrite);
     }
   }
@@ -362,6 +370,7 @@ export class SpEBPFChart {
         context = vmTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       vmTraceRow.canvasSave(context);
+      //@ts-ignore
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as EBPFRender).renderMainThread(
         {
           context: context,

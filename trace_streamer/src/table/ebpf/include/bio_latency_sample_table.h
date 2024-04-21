@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class BioLatencySampleTable : public TableBase {
 public:
-    explicit BioLatencySampleTable(const TraceDataCache* dataCache);
+    explicit BioLatencySampleTable(const TraceDataCache *dataCache);
     ~BioLatencySampleTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,21 +32,21 @@ private:
     {
         return dataCache_->GetConstBioLatencySampleData().Size();
     }
-    void GetOrbyes(FilterConstraints& biofc, EstimatedIndexInfo& bioei) override;
-    void FilterByConstraint(FilterConstraints& biofc,
-                            double& biofilterCost,
+    void GetOrbyes(FilterConstraints &biofc, EstimatedIndexInfo &bioei) override;
+    void FilterByConstraint(FilterConstraints &biofc,
+                            double &biofilterCost,
                             size_t biorowCount,
                             uint32_t biocurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fcs, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fcs, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const BioLatencySampleData& bioLatencySampleObj_;
+        const BioLatencySampleData &bioLatencySampleObj_;
     };
 };
 } // namespace TraceStreamer

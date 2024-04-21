@@ -62,7 +62,7 @@ public:
     }
     DataIndex GetStringIndex(std::string_view str);
     DataIndex GetStringIndexNoWrite(std::string_view str) const;
-    const std::string& GetDataFromDict(DataIndex id) const
+    const std::string &GetDataFromDict(DataIndex id) const
     {
         TS_ASSERT(id < dataDict_.size());
         return dataDict_[id];
@@ -88,15 +88,15 @@ class MetaData {
 public:
     MetaData();
     ~MetaData() = default;
-    void SetTraceType(const std::string& traceType);
-    void SetSourceFileName(const std::string& fileName);
-    void SetOutputFileName(const std::string& fileName);
-    void SetParserToolVersion(const std::string& version);
-    void SetParserToolPublishDateTime(const std::string& datetime);
+    void SetTraceType(const std::string &traceType);
+    void SetSourceFileName(const std::string &fileName);
+    void SetOutputFileName(const std::string &fileName);
+    void SetParserToolVersion(const std::string &version);
+    void SetParserToolPublishDateTime(const std::string &datetime);
     void SetTraceDataSize(uint64_t dataSize);
     void SetTraceDuration(uint64_t dur);
-    const std::string& Value(uint64_t row) const;
-    const std::string& Name(uint64_t row) const;
+    const std::string &Value(uint64_t row) const;
+    const std::string &Name(uint64_t row) const;
     void Clear()
     {
         columnNames_.clear();
@@ -119,7 +119,7 @@ private:
 
 class ClockSnapshotData {
 public:
-    size_t AppendNewSnapshot(uint8_t clockId, uint64_t ts, const std::string& name)
+    size_t AppendNewSnapshot(uint8_t clockId, uint64_t ts, const std::string &name)
     {
         clockIds_.emplace_back(clockId);
         ts_.emplace_back(ts);
@@ -130,15 +130,15 @@ public:
     {
         return ts_.size();
     }
-    const std::deque<uint8_t>& ClockIds() const
+    const std::deque<uint8_t> &ClockIds() const
     {
         return clockIds_;
     }
-    const std::deque<uint64_t>& Ts() const
+    const std::deque<uint64_t> &Ts() const
     {
         return ts_;
     }
-    const std::deque<std::string>& Names() const
+    const std::deque<std::string> &Names() const
     {
         return names_;
     }
@@ -152,7 +152,7 @@ private:
 class DataSourceClockIdData {
 public:
     DataSourceClockIdData();
-    size_t AppendNewDataSourceClockId(const std::string& dataSoruceName, uint8_t clockId)
+    size_t AppendNewDataSourceClockId(const std::string &dataSoruceName, uint8_t clockId)
     {
         dataSourceNames_.emplace_back(dataSoruceName);
         clockIds_.emplace_back(clockId);
@@ -162,11 +162,11 @@ public:
     {
         return dataSourceNames_.size();
     }
-    const std::deque<uint8_t>& ClockIds() const
+    const std::deque<uint8_t> &ClockIds() const
     {
         return clockIds_;
     }
-    const std::deque<std::string>& Names() const
+    const std::deque<std::string> &Names() const
     {
         return dataSourceNames_;
     }
@@ -185,11 +185,11 @@ public:
     StatAndInfo();
     ~StatAndInfo() = default;
     void IncreaseStat(SupportedTraceEventType eventType, StatType type);
-    const uint32_t& GetValue(SupportedTraceEventType eventType, StatType type) const;
-    const std::string& GetEvent(SupportedTraceEventType eventType) const;
-    const std::string& GetStat(StatType type) const;
-    const std::string& GetSeverityDesc(SupportedTraceEventType eventType, StatType type) const;
-    const StatSeverityLevel& GetSeverity(SupportedTraceEventType eventType, StatType type) const;
+    const uint32_t &GetValue(SupportedTraceEventType eventType, StatType type) const;
+    const std::string &GetEvent(SupportedTraceEventType eventType) const;
+    const std::string &GetStat(StatType type) const;
+    const std::string &GetSeverityDesc(SupportedTraceEventType eventType, StatType type) const;
+    const StatSeverityLevel &GetSeverity(SupportedTraceEventType eventType, StatType type) const;
     std::map<BuiltinClocks, std::string> clockid2ClockNameMap_ = {};
 
 private:
@@ -210,9 +210,9 @@ public:
     ~SymbolsData() = default;
     uint64_t Size() const;
     void UpdateSymbol(uint64_t addr, DataIndex funcNameDictIndex);
-    const DataIndex& GetFunc(uint64_t addr) const;
-    const std::deque<DataIndex>& GetConstFuncNames() const;
-    const std::deque<uint64_t>& GetConstAddrs() const;
+    const DataIndex &GetFunc(uint64_t addr) const;
+    const std::deque<DataIndex> &GetConstFuncNames() const;
+    const std::deque<uint64_t> &GetConstAddrs() const;
     void Clear()
     {
         addrs_.clear();
@@ -229,8 +229,8 @@ private:
 class DataType {
 public:
     void UpdateNewDataType(BaseDataType dataType, DataIndex dataDescIndex);
-    const std::deque<BaseDataType>& DataTypes() const;
-    const std::deque<DataIndex>& DataDesc() const;
+    const std::deque<BaseDataType> &DataTypes() const;
+    const std::deque<DataIndex> &DataDesc() const;
     size_t Size() const
     {
         return typeToDesc_.size();
@@ -251,10 +251,10 @@ private:
 class ArgSet : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewArg(DataIndex nameId, BaseDataType dataType, int64_t value, size_t argSet);
-    const std::deque<BaseDataType>& DataTypes() const;
-    const std::deque<int64_t>& ValuesData() const;
-    const std::deque<uint64_t>& ArgsData() const;
-    const std::deque<DataIndex>& NamesData() const;
+    const std::deque<BaseDataType> &DataTypes() const;
+    const std::deque<int64_t> &ValuesData() const;
+    const std::deque<uint64_t> &ArgsData() const;
+    const std::deque<DataIndex> &NamesData() const;
 
     void Clear() override
     {
@@ -280,9 +280,9 @@ private:
 class TraceConfig : public CacheBase {
 public:
     void AppendNewData(std::string traceSource, std::string key, std::string value);
-    const std::deque<std::string>& TraceSource() const;
-    const std::deque<std::string>& Key() const;
-    const std::deque<std::string>& Value() const;
+    const std::deque<std::string> &TraceSource() const;
+    const std::deque<std::string> &Key() const;
+    const std::deque<std::string> &Value() const;
     void Clear() override
     {
         CacheBase::Clear();

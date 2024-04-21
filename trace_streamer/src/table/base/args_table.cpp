@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, KEY, DATATYPE, VALUE, ARGSETID };
-ArgsTable::ArgsTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+ArgsTable::ArgsTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("key", "INTEGER"));
@@ -30,14 +30,14 @@ ArgsTable::ArgsTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 
 ArgsTable::~ArgsTable() {}
 
-void ArgsTable::FilterByConstraint(FilterConstraints& argsfc,
-                                   double& argsfilterCost,
+void ArgsTable::FilterByConstraint(FilterConstraints &argsfc,
+                                   double &argsfilterCost,
                                    size_t argsrowCount,
                                    uint32_t argscurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& argsc = argsfc.GetConstraints()[argscurrenti];
+    const auto &argsc = argsfc.GetConstraints()[argscurrenti];
     switch (static_cast<Index>(argsc.col)) {
         case Index::ID: {
             if (CanFilterId(argsc.op, argsrowCount)) {
@@ -59,7 +59,7 @@ std::unique_ptr<TableBase::Cursor> ArgsTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-ArgsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+ArgsTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstArgSetData().Size())),
       argSet_(dataCache->GetConstArgSetData())
 {
@@ -67,7 +67,7 @@ ArgsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 ArgsTable::Cursor::~Cursor() {}
 
-int32_t ArgsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t ArgsTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -76,9 +76,9 @@ int32_t ArgsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** a
         return SQLITE_OK;
     }
 
-    auto& argsTabCs = fc.GetConstraints();
+    auto &argsTabCs = fc.GetConstraints();
     for (size_t i = 0; i < argsTabCs.size(); i++) {
-        const auto& c = argsTabCs[i];
+        const auto &c = argsTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -128,7 +128,7 @@ int32_t ArgsTable::Cursor::Column(int32_t col) const
     return SQLITE_OK;
 }
 
-void ArgsTable::GetOrbyes(FilterConstraints& argsfc, EstimatedIndexInfo& argsei)
+void ArgsTable::GetOrbyes(FilterConstraints &argsfc, EstimatedIndexInfo &argsei)
 {
     auto argsorderbys = argsfc.GetOrderBys();
     for (auto i = 0; i < argsorderbys.size(); i++) {

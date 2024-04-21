@@ -29,14 +29,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PbreaderNativeHookParser : public EventParserBase, public HtracePluginTimeParser {
 public:
-    PbreaderNativeHookParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    PbreaderNativeHookParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~PbreaderNativeHookParser();
-    void ParseConfigInfo(PbreaderDataSegment& dataSeg);
-    void Parse(PbreaderDataSegment& dataSeg, bool& haveSplitSeg);
+    void ParseConfigInfo(PbreaderDataSegment &dataSeg);
+    void Parse(PbreaderDataSegment &dataSeg, bool &haveSplitSeg);
     void FinishSplitNativeHook();
     void FinishParseNativeHookData();
     void Finish();
-    bool NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>>& symbolsFile)
+    bool NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFile)
     {
         return nativeHookFilter_->NativeHookReloadElfSymbolTable(symbolsFile);
     }
@@ -47,13 +47,13 @@ public:
     }
 
 private:
-    void ParseNativeHookAuxiliaryEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
-    void ParseFileEvent(const ProtoReader::BytesView& bytesView);
-    void ParseSymbolEvent(const ProtoReader::BytesView& bytesView);
-    void ParseThreadEvent(const ProtoReader::BytesView& bytesView);
-    void ParseFrameMap(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
-    bool ParseStackMap(const ProtoReader::BytesView& bytesView);
-    void SplitHookData(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData, bool& haveSplitSeg);
+    void ParseNativeHookAuxiliaryEvent(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData);
+    void ParseFileEvent(const ProtoReader::BytesView &bytesView);
+    void ParseSymbolEvent(const ProtoReader::BytesView &bytesView);
+    void ParseThreadEvent(const ProtoReader::BytesView &bytesView);
+    void ParseFrameMap(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData);
+    bool ParseStackMap(const ProtoReader::BytesView &bytesView);
+    void SplitHookData(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData, bool &haveSplitSeg);
 
 private:
     std::vector<std::shared_ptr<const std::string>> segs_ = {};

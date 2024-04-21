@@ -14,11 +14,16 @@
 import { TraficEnum } from '../utils/QueryEnum';
 import { filterDataByGroup } from '../utils/DataFilter';
 import { cpuFreqLimitList } from '../utils/AllMemoryCache';
+import { Args } from '../CommonArgs';
 
-
-export const chartCpuFreqLimitDataSql = 
-//@ts-ignore
-       (args: unknown): string => {
+export const chartCpuFreqLimitDataSql = (args: Args): string => {
+  const endNS = args.endNS;
+  const startNS = args.startNS;
+  const recordStartNS = args.recordStartNS;
+  const cpu = args.cpu;
+  const width = args.width;
+  const maxId = args.maxId;
+  const minId = args.minId;
   return `
       SELECT 
              max AS max,
@@ -26,59 +31,32 @@ export const chartCpuFreqLimitDataSql =
              value,
              max(dura)     AS dur,
              startNs AS startNs,
-             ${
-              // @ts-ignore
-              args.cpu
-            } AS cpu,
-          (startNs / (${
-            // @ts-ignore
-            Math.floor((args.endNS - args.startNS) / args.width)
-          })) AS px
+             ${cpu} AS cpu,
+          (startNs / (${Math.floor((endNS - startNS) / width)})) AS px
       FROM (
-          SELECT  ts - ${
-            // @ts-ignore
-            args.recordStartNS
-          } AS startNs,
-          case when dur is null then (${
-            // @ts-ignore
-            args.endNS + args.recordStartNS
-          } - ts) else dur end AS dura,
+          SELECT  ts - ${recordStartNS} AS startNs,
+          case when dur is null then (${endNS + recordStartNS} - ts) else dur end AS dura,
           value,
           MAX (value) AS max,
           MIN (value) AS min
           FROM measure
-          WHERE filter_id IN (${
-            // @ts-ignore
-            args.maxId}, ${args.minId
-            })
-            AND startNs + dura >= ${
-              // @ts-ignore
-              Math.floor(args.startNS)
-            }
-            AND startNs <= ${
-              // @ts-ignore
-              Math.floor(args.endNS)
-            }
+          WHERE filter_id IN (${maxId}, ${minId})
+            AND startNs + dura >= ${Math.floor(startNS)}
+            AND startNs <= ${Math.floor(endNS)}
           GROUP BY ts
           ) AS subquery
       GROUP BY px;
   `;
 };
 
-export const chartCpuFreqLimitDataSqlMem = (args: unknown): string => {
+export const chartCpuFreqLimitDataSqlMem = (args: Args): string => {
   return `
-      select ts - ${
-        // @ts-ignore
-        args.recordStartNS
-      } as startNs,
+      select ts - ${args.recordStartNS} as startNs,
            dur,
            max(value) as max,
            min(value) as min,
             $cpu as cpu 
-    from measure where filter_id in (${
-      // @ts-ignore
-      args.maxId}, ${args.minId
-      }) 
+    from measure where filter_id in (${args.maxId}, ${args.minId}) 
                  group by ts;
   `;
 };

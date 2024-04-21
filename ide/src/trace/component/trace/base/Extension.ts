@@ -86,17 +86,6 @@ declare global {
   }
 }
 
-Number.prototype.n2x = function (): number {
-  return Number(this);
-};
-
-Array.prototype.isEmpty = function <T>(): boolean {
-  return this === null || this === undefined || this.length === 0;
-};
-Array.prototype.isNotEmpty = function <T>(): boolean {
-  return this !== null && this !== undefined && this.length > 0;
-};
-
 HTMLElement.prototype.containPoint = function (ev, cut): boolean {
   let rect = this.getBoundingClientRect();
   return (

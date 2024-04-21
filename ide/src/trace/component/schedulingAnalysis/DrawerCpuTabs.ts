@@ -36,11 +36,13 @@ export class DrawerCpuTabs extends BaseElement {
     this.tabCpuDetailsIdle = this.shadowRoot?.querySelector<TabCpuDetailsIdle>('#tab-cpu-details-idle');
     this.tabCpuDetailsIrq = this.shadowRoot?.querySelector<TabCpuDetailsIrq>('#tab-cpu-details-irq');
 
-    this.tabs!.onTabClick = (e: unknown): void => {//@ts-ignore
-      if (e.detail.key === '1') {//@ts-ignore
-        this.tabCpuDetailsIdle?.init(this.cpuNumber);//@ts-ignore
+    this.tabs!.onTabClick = (e: unknown): void => {
+      //@ts-ignore
+      if (e.detail.key === '1') {
+        //@ts-ignore
+        this.tabCpuDetailsIdle?.init(this.cpuNumber); //@ts-ignore
       } else if (e.detail.key === '2') {
-        this.tabCpuDetailsFrequency?.init(this.cpuNumber);//@ts-ignore
+        this.tabCpuDetailsFrequency?.init(this.cpuNumber); //@ts-ignore
       } else if (e.detail.key === '3') {
         this.tabCpuDetailsIrq?.init(this.cpuNumber);
       }

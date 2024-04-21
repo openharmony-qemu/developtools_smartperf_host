@@ -29,7 +29,6 @@ export class TabPaneCurrent extends BaseElement {
   private tableDataSource: Array<MarkStruct | unknown> = [];
   private panelTable: LitTable | undefined | null;
 
-
   initElements(): void {
     this.systemTrace = document
       .querySelector('body > sp-application')

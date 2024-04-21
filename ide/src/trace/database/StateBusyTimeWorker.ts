@@ -16,7 +16,7 @@
 function getBusyTime(
   initFreqResult: Array<unknown>,
   initStateResult: Array<unknown>,
-  sampleMap: Map<unknown, unknown>,
+  sampleMap: Map<string, unknown>,
   leftStartNs: number,
   rightEndNs: number
 ): void {
@@ -77,7 +77,7 @@ function getBusyTime(
 function handleBusyTimeLogic(
   initFreqResult: Array<unknown>,
   initStateResult: Array<unknown>,
-  sampleMap: Map<unknown, unknown>,
+  sampleMap: Map<string, unknown>,
   startNS: number
 ): void {
   let freqIndex = 1;
@@ -98,7 +98,7 @@ function handleBusyTimeLogic(
     let newStateVal = stateVal;
     let busyTime = 0;
     //比较ts值，每次比较取ts相对小的那一项
-  //@ts-ignore
+    //@ts-ignore
     if (initFreqResult[freqIndex].ts < initStateResult[stateIndex].ts) {
       //@ts-ignore
       newfreqVal = initFreqResult[freqIndex].value;
@@ -107,11 +107,9 @@ function handleBusyTimeLogic(
       //@ts-ignore
       newfreqId = initFreqResult[freqIndex].filterId;
       freqIndex++;
-    } else if (
-    //@ts-ignore
-      initFreqResult[freqIndex].ts > initStateResult[stateIndex].ts
-      ) {
-        //@ts-ignore
+      //@ts-ignore
+    } else if (initFreqResult[freqIndex].ts > initStateResult[stateIndex].ts) {
+      //@ts-ignore
       newStateVal = initStateResult[stateIndex].value;
       //@ts-ignore
       newBeginNs = initStateResult[stateIndex].ts;
@@ -145,22 +143,18 @@ function handleBusyTimeLogic(
 }
 
 self.onmessage = (e: MessageEvent): void => {
-  let leftStartNs = e.data.timeParam.leftNs + e.data.timeParam.recordStartNs;
-  let rightEndNs = e.data.timeParam.rightNs + e.data.timeParam.recordStartNs;
+  let leftStartNs = (e.data.timeParam.leftNs + e.data.timeParam.recordStartNs) as number;
+  let rightEndNs = (e.data.timeParam.rightNs + e.data.timeParam.recordStartNs) as number;
   e.data.cpuFiliterOrder.forEach((a: number) => {
     getBusyTime(
-      //@ts-ignore
-      e.data.result.filter((f: unknown) => f.cpu === a),
-      
-      //@ts-ignore
-      e.data.res.filter((f: unknown) => f.cpu === a),
+      e.data.result.filter((f: any) => f.cpu === a),
+      e.data.res.filter((f: any) => f.cpu === a),
       e.data.sampleMap,
       leftStartNs,
       rightEndNs
     );
   });
-  e.data.sampleMap.forEach((a: unknown) => {
-    //@ts-ignore
+  e.data.sampleMap.forEach((a: any) => {
     a.busyTime = parseFloat((a.busyTime / 1000000.0).toFixed(6));
   });
 

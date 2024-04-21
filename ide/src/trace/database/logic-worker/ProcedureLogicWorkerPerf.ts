@@ -13,21 +13,47 @@
  * limitations under the License.
  */
 
-import { LogicHandler, ChartStruct, convertJSON, DataCache, HiPerfSymbol } from './ProcedureLogicWorkerCommon';
+import {
+  LogicHandler,
+  ChartStruct,
+  convertJSON,
+  DataCache,
+  HiPerfSymbol,
+  PerfCall,
+} from './ProcedureLogicWorkerCommon';
 import { PerfBottomUpStruct } from '../../bean/PerfBottomUpStruct';
+import { SelectionParam } from '../../bean/BoxSelection';
 
 const systemRuleName: string = '/system/';
 const numRuleName: string = '/max/min/';
 const maxDepth: number = 256;
 
+type PerfThreadMap = {
+  [pid: string]: PerfThread;
+};
+type PerfCallChainMap = {
+  [id: number]: PerfCallChain[];
+};
+type FileMap = {
+  [id: number]: PerfFile[];
+};
+
+type MergeMap = {
+  [id: string]: PerfCallChainMerageData;
+};
+
+type spiltMap = {
+  [id: string]: PerfCallChainMerageData[];
+};
+
 export class ProcedureLogicWorkerPerf extends LogicHandler {
-  filesData: any = {};
-  samplesData: any = {};
-  threadData: any = {};
-  callChainData: any = {};
-  splitMapData: any = {};
-  currentTreeMapData: any = {};
-  currentTreeList: any[] = [];
+  filesData: FileMap = {};
+  samplesData: Array<PerfCountSample> = [];
+  threadData: PerfThreadMap = {};
+  callChainData: PerfCallChainMap = {};
+  splitMapData: spiltMap = {};
+  currentTreeMapData: MergeMap = {};
+  currentTreeList: PerfCallChainMerageData[] = [];
   searchValue: string = '';
   dataSource: PerfCallChainMerageData[] = [];
   allProcess: PerfCallChainMerageData[] = [];
@@ -38,25 +64,31 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   isHideThreadState: boolean = false;
   private lib: object | undefined;
   private symbol: object | undefined;
-  perfCallData: any[] = [];
   private dataCache = DataCache.getInstance();
   private isTopDown: boolean = true;
 
-  handle(data: any): void {
+  handle(data: unknown): void {
+    //@ts-ignore
     this.currentEventId = data.id;
+    //@ts-ignore
     if (data && data.type) {
+      //@ts-ignore
       switch (data.type) {
         case 'perf-init':
+          //@ts-ignore
           this.dataCache.perfCountToMs = data.params.fValue;
           this.initPerfFiles();
           break;
         case 'perf-queryPerfFiles':
+          //@ts-ignore
           this.perfQueryPerfFiles(data.params.list);
           break;
         case 'perf-queryPerfThread':
+          //@ts-ignore
           this.perfQueryPerfThread(data.params.list);
           break;
         case 'perf-queryPerfCalls':
+          //@ts-ignore
           this.perfQueryPerfCalls(data.params.list);
           break;
         case 'perf-queryPerfCallchains':
@@ -73,42 +105,49 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
     }
   }
-  private perfQueryPerfFiles(list: Array<any>): void {
+  private perfQueryPerfFiles(list: Array<PerfFile>): void {
     let files = convertJSON(list) || [];
-    files.forEach((file: any) => {
+    //@ts-ignore
+    files.forEach((file: PerfFile) => {
       this.filesData[file.fileId] = this.filesData[file.fileId] || [];
       PerfFile.setFileName(file);
       this.filesData[file.fileId].push(file);
     });
     this.initPerfThreads();
   }
-  private perfQueryPerfThread(list: Array<any>): void {
+  private perfQueryPerfThread(list: Array<PerfThread>): void {
     let threads = convertJSON(list) || [];
-    threads.forEach((thread: any): void => {
+    //@ts-ignore
+    threads.forEach((thread: PerfThread): void => {
       this.threadData[thread.tid] = thread;
     });
     this.initPerfCalls();
   }
-  private perfQueryPerfCalls(list: Array<any>): void {
+  private perfQueryPerfCalls(list: Array<PerfCall>): void {
     let perfCalls = convertJSON(list) || [];
     if (perfCalls.length !== 0) {
-      perfCalls.forEach((perfCall: any): void => {
+      //@ts-ignore
+      perfCalls.forEach((perfCall: PerfCall): void => {
         this.dataCache.perfCallChainMap.set(perfCall.sampleId, perfCall);
       });
     }
     this.initPerfCallchains();
   }
-  private perfQueryPerfCallchains(data: any): void {
+  private perfQueryPerfCallchains(data: unknown): void {
+    //@ts-ignore
     let arr = convertJSON(data.params.list) || [];
-    this.initPerfCallChainTopDown(arr);
-    // @ts-ignore
+    this.initPerfCallChainTopDown(arr as PerfCallChain[]);
+
     self.postMessage({
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: this.dataCache.perfCallChainMap,
     });
   }
-  private perfQueryCallchainsGroupSample(data: any): void {
+  private perfQueryCallchainsGroupSample(data: unknown): void {
+    //@ts-ignore
     this.samplesData = convertJSON(data.params.list) || [];
     let result;
     if (this.isAnalysis) {
@@ -146,7 +185,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
     }
     self.postMessage({
+      //@ts-ignore
       id: data.id,
+      //@ts-ignore
       action: data.action,
       results: result,
     });
@@ -154,11 +195,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       this.isAnalysis = false;
     }
   }
-  private perfAction(data: any): void {
-    if (data.params) {
-      let filter = data.params.filter((item: any): boolean => item.funcName === 'getCurrentDataFromDb');
-      let libFilter = data.params.filter((item: any): boolean => item.funcName === 'showLibLevelData');
-      let funFilter = data.params.filter((item: any): boolean => item.funcName === 'showFunLevelData');
+  private perfAction(data: unknown): void {
+    //@ts-ignore
+    const params = data.params;
+    if (params) {
+      let filter = params.filter((item: { funcName: string }): boolean => item.funcName === 'getCurrentDataFromDb');
+      let libFilter = params.filter((item: { funcName: string }): boolean => item.funcName === 'showLibLevelData');
+      let funFilter = params.filter((item: { funcName: string }): boolean => item.funcName === 'showFunLevelData');
       if (libFilter.length !== 0) {
         this.setLib(libFilter);
       }
@@ -166,14 +209,16 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.setSymbol(funFilter);
       }
       if (filter.length === 0) {
-        let result = this.calReturnData(data.params);
+        let result = this.calReturnData(params);
         self.postMessage({
+          //@ts-ignore
           id: data.id,
+          //@ts-ignore
           action: data.action,
           results: result,
         });
       } else {
-        this.resolvingAction(data.params);
+        this.resolvingAction(params);
       }
     }
   }
@@ -181,25 +226,39 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.isHideThread = false;
     this.isHideThreadState = false;
   }
-  private setLib(libFilter: any): void {
+  private setLib(libFilter: unknown): void {
     this.lib = {
+      //@ts-ignore
       libId: libFilter[0].funcArgs[0],
+      //@ts-ignore
       libName: libFilter[0].funcArgs[1],
     };
   }
-  private setSymbol(funFilter: any): void {
+  private setSymbol(funFilter: unknown): void {
     this.symbol = {
+      //@ts-ignore
       symbolId: funFilter[0].funcArgs[0],
+      //@ts-ignore
       symbolName: funFilter[0].funcArgs[1],
     };
   }
-  private calReturnData(params: any): Array<any> {
-    let result;
-    let callChainsFilter = params.filter((item: any): boolean => item.funcName === 'getCallChainsBySampleIds');
+  private calReturnData(params: unknown): Array<unknown> {
+    let result: unknown[];
+    //@ts-ignore
+    let callChainsFilter = params.filter(
+      (item: { funcName: string }): boolean => item.funcName === 'getCallChainsBySampleIds'
+    );
     callChainsFilter.length > 0 ? (this.isTopDown = callChainsFilter[0].funcArgs[0]) : (this.isTopDown = true);
-    let isHideSystemSoFilter = params.filter((item: any): boolean => item.funcName === 'hideSystemLibrary');
-    let hideThreadFilter = params.filter((item: any): boolean => item.funcName === 'hideThread');
-    let hideThreadStateFilter = params.filter((item: any): boolean => item.funcName === 'hideThreadState');
+    //@ts-ignore
+    let isHideSystemSoFilter = params.filter(
+      (item: { funcName: string }): boolean => item.funcName === 'hideSystemLibrary'
+    );
+    //@ts-ignore
+    let hideThreadFilter = params.filter((item: { funcName: string }): boolean => item.funcName === 'hideThread');
+    //@ts-ignore
+    let hideThreadStateFilter = params.filter(
+      (item: { funcName: string }): boolean => item.funcName === 'hideThreadState'
+    );
     if (this.lib) {
       if (
         callChainsFilter.length > 0 ||
@@ -208,6 +267,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         hideThreadStateFilter.length > 0
       ) {
         this.samplesData = this.combineCallChainForAnalysis(this.lib);
+        //@ts-ignore
         result = this.resolvingAction(params);
       } else {
         let libData = this.combineCallChainForAnalysis(this.lib);
@@ -223,6 +283,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         hideThreadStateFilter.length > 0
       ) {
         this.samplesData = this.combineCallChainForAnalysis(this.symbol);
+        //@ts-ignore
         result = this.resolvingAction(params);
       } else {
         let funData = this.combineCallChainForAnalysis(this.symbol);
@@ -231,6 +292,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.symbol = undefined;
       }
     } else {
+      //@ts-ignore
       result = this.resolvingAction(params);
     }
     return result;
@@ -289,7 +351,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
    * @param selectionParam
    * @param sql 从饼图进程或者线程层点击进入Perf Profile时传入
    */
-  private getCurrentDataFromDb(selectionParam: any, sql?: string): void {
+  private getCurrentDataFromDb(selectionParam: SelectionParam, sql?: string): void {
     let filterSql = this.setFilterSql(selectionParam, sql);
     this.queryData(
       this.currentEventId,
@@ -319,7 +381,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
     );
   }
-  private setFilterSql(selectionParam: any, sql?: string): string {
+  private setFilterSql(selectionParam: SelectionParam, sql?: string): string {
     let filterSql = '';
     if (sql) {
       const cpus = selectionParam.perfAll ? [] : selectionParam.perfCpus;
@@ -346,9 +408,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
 
   clearAll(): void {
     this.filesData = {};
-    this.samplesData = {};
+    this.samplesData = [];
     this.threadData = {};
-    this.perfCallData = [];
     this.callChainData = {};
     this.splitMapData = {};
     this.currentTreeMapData = {};
@@ -391,7 +452,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     currentCallChain.push(callChain);
   }
 
-  addOtherCallchainsData(countSample: PerfCountSample, list: any[]): void {
+  addOtherCallchainsData(countSample: PerfCountSample, list: PerfCallChain[]): void {
     let threadCallChain = new PerfCallChain(); //新增的线程数据
     threadCallChain.tid = countSample.tid;
     threadCallChain.canCharge = false;
@@ -423,10 +484,12 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.addOtherCallchainsData(perfSample, perfCallChains);
         let topIndex = isTopDown ? 0 : perfCallChains.length - 1;
         if (perfCallChains.length > 0) {
-          let symbolName = this.dataCache.dataDict.get(perfCallChains[topIndex].name) || '';
+          let symbolName = '';
           if (typeof perfCallChains[topIndex].name === 'number') {
+            //@ts-ignore
             symbolName = this.dataCache.dataDict.get(perfCallChains[topIndex].name) || '';
           } else {
+            //@ts-ignore
             symbolName = perfCallChains[topIndex].name;
           }
           let perfRootNode = this.currentTreeMapData[symbolName + perfSample.pid];
@@ -444,10 +507,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.handleCurrentTreeList(totalEventCount, totalSamplesCount);
     this.allProcess = Object.values(rootMerageMap);
   }
-  private mergeNodeData(totalEventCount: number, totalSamplesCount: number): Map<any, any> {
-    let rootMerageMap: any = {};
+  private mergeNodeData(totalEventCount: number, totalSamplesCount: number): MergeMap {
+    let rootMerageMap: MergeMap = {};
     // @ts-ignore
-    Object.values(this.currentTreeMapData).forEach((merageData: any): void => {
+    Object.values(this.currentTreeMapData).forEach((merageData: PerfCallChainMerageData): void => {
       if (rootMerageMap[merageData.pid] === undefined) {
         let perfProcessMerageData = new PerfCallChainMerageData(); //新增进程的节点数据
         perfProcessMerageData.canCharge = false;
@@ -483,7 +546,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
   private handleCurrentTreeList(totalEventCount: number, totalSamplesCount: number): void {
     let id = 0;
-    this.currentTreeList.forEach((perfTreeNode: any): void => {
+    this.currentTreeList.forEach((perfTreeNode: PerfCallChainMerageData): void => {
       perfTreeNode.total = totalSamplesCount;
       perfTreeNode.totalEvent = totalEventCount;
       if (perfTreeNode.id === '') {
@@ -640,7 +703,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     symbols.forEach((symbol: string): void => {
       let list = this.splitMapData[symbol];
       if (list !== undefined) {
-        list.forEach((item: any): void => {
+        list.forEach((item: PerfCallChainMerageData): void => {
           item.isStore--;
         });
       }
@@ -664,19 +727,19 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     sampleArray.forEach((process: PerfCallChainMerageData): void => {
       process.children = [];
     });
-    let values = this.currentTreeList.map((item: any): any => {
+    let values = this.currentTreeList.map((item: PerfCallChainMerageData): PerfCallChainMerageData => {
       item.children = [];
       return item;
     });
-    values.forEach((sample: any): void => {
+    values.forEach((sample: PerfCallChainMerageData): void => {
       if (sample.parentNode !== undefined) {
         if (sample.isStore === 0 && sample.searchShow) {
           let parentNode = sample.parentNode;
           while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
-            parentNode = parentNode.parentNode;
+            parentNode = parentNode.parentNode!;
           }
           if (parentNode) {
-            sample.currentTreeParentNode = parentNode;
+            sample.parent = parentNode;
             parentNode.children.push(sample);
           }
         }
@@ -706,14 +769,14 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   clearSearchNode(): void {
-    this.currentTreeList.forEach((sample: any): void => {
+    this.currentTreeList.forEach((sample: PerfCallChainMerageData): void => {
       sample.searchShow = true;
       sample.isSearch = false;
     });
   }
 
-  splitAllProcess(processArray: any[]): void {
-    processArray.forEach((item: any): void => {
+  splitAllProcess(processArray: { select: string; name: string; type: string; checked: boolean }[]): void {
+    processArray.forEach((item: { select: string; name: string; type: string; checked: boolean }): void => {
       this.allProcess.forEach((process): void => {
         if (item.select === '0') {
           this.recursionPerfChargeInitTree(process, item.name, item.type === 'symbol');
@@ -726,12 +789,15 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
     });
   }
-  resolvingAction(params: any[]): PerfCallChainMerageData[] | PerfAnalysisSample[] | PerfBottomUpStruct[] {
+  resolvingAction(params: unknown[]): unknown[] {
     if (params.length > 0) {
       for (let item of params) {
+        //@ts-ignore
         if (item.funcName && item.funcArgs) {
+          //@ts-ignore
           let result = this.handleDataByFuncName(item.funcName, item.funcArgs);
           if (result) {
+            //@ts-ignore
             return result;
           }
         }
@@ -742,24 +808,30 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
     return this.dataSource;
   }
-  private queryDataFromDb(funcArgs: any): void {
+  private queryDataFromDb(funcArgs: unknown[]): void {
     if (funcArgs[1]) {
       let sql = '';
+      //@ts-ignore
       if (funcArgs[1].processId !== undefined) {
+        //@ts-ignore
         sql += `and thread.process_id = ${funcArgs[1].processId}`;
       }
+      //@ts-ignore
       if (funcArgs[1].threadId !== undefined) {
+        //@ts-ignore
         sql += ` and s.thread_id = ${funcArgs[1].threadId}`;
       }
+      //@ts-ignore
       this.getCurrentDataFromDb(funcArgs[0], sql);
     } else {
+      //@ts-ignore
       this.getCurrentDataFromDb(funcArgs[0]);
     }
   }
-  private handleDataByFuncName(funcName: string, funcArgs: any): Array<any> | undefined {
+  private handleDataByFuncName(funcName: string, funcArgs: unknown[]): unknown {
     switch (funcName) {
       case 'getCallChainsBySampleIds':
-        this.freshPerfCallchains(this.samplesData, funcArgs[0]);
+        this.freshPerfCallchains(this.samplesData, funcArgs[0] as boolean);
         break;
       case 'getCurrentDataFromDb':
         this.queryDataFromDb(funcArgs);
@@ -768,31 +840,32 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.hideSystemLibrary();
         break;
       case 'hideThread':
-        this.isHideThread = funcArgs[0];
+        this.isHideThread = funcArgs[0] as boolean;
         break;
       case 'hideThreadState':
-        this.isHideThreadState = funcArgs[0];
+        this.isHideThreadState = funcArgs[0] as boolean;
         break;
       case 'hideNumMaxAndMin':
-        this.hideNumMaxAndMin(funcArgs[0], funcArgs[1]);
+        this.hideNumMaxAndMin(funcArgs[0] as number, funcArgs[1] as string);
         break;
       case 'splitAllProcess':
+        //@ts-ignore
         this.splitAllProcess(funcArgs[0]);
         break;
       case 'resetAllNode':
         this.resetAllNode(this.allProcess);
         break;
       case 'resotreAllNode':
-        this.resetAllSymbol(funcArgs[0]);
+        this.resetAllSymbol(funcArgs[0] as string[]);
         break;
       case 'clearSplitMapData':
-        this.clearSplitMapData(funcArgs[0]);
+        this.clearSplitMapData(funcArgs[0] as string);
         break;
       case 'splitTree':
-        this.splitPerfTree(this.allProcess, funcArgs[0], funcArgs[1], funcArgs[2]);
+        this.splitPerfTree(this.allProcess, funcArgs[0] as string, funcArgs[1] as boolean, funcArgs[2] as boolean);
         break;
       case 'setSearchValue':
-        this.searchValue = funcArgs[0];
+        this.searchValue = funcArgs[0] as string;
         break;
       case 'setCombineCallChain':
         this.isAnalysis = true;
@@ -807,16 +880,18 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
 
-  combineCallChainForAnalysis(obj?: any): PerfAnalysisSample[] {
+  combineCallChainForAnalysis(obj?: unknown): PerfAnalysisSample[] {
     let sampleCallChainList: Array<PerfAnalysisSample> = [];
     for (let sample of this.samplesData) {
       let callChains = [...this.callChainData[sample.sampleId]];
       const lastCallChain = callChains[callChains.length - 1];
       const threadName = this.threadData[sample.tid].threadName || 'Thread';
       const processName = this.threadData[sample.pid].threadName || 'Process';
-      const funcName = this.dataCache.dataDict.get(lastCallChain.name);
+      const funcName = this.dataCache.dataDict.get(lastCallChain.name as number);
       if (
+        //@ts-ignore
         (obj && obj.libId === lastCallChain.fileId && obj.libName === lastCallChain.fileName) ||
+        //@ts-ignore
         (obj && obj.symbolId === lastCallChain.symbolId && obj.symbolName === funcName) ||
         !obj
       ) {
@@ -826,7 +901,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           lastCallChain.fileId,
           lastCallChain.fileName,
           lastCallChain.symbolId,
-          this.dataCache.dataDict.get(lastCallChain.name) || ''
+          this.dataCache.dataDict.get(lastCallChain.name as number) || ''
         );
         analysisSample.tid = sample.tid;
         analysisSample.pid = sample.pid;
@@ -862,7 +937,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           existingNode.calculateSelfTime();
           existingNode.notifyParentUpdateSelfTime();
         } else {
-          const symbolName = this.dataCache.dataDict.get(item.name) || '';
+          const symbolName = this.dataCache.dataDict.get(item.name as number) || '';
           let newNode = new PerfBottomUpStruct(`${symbolName}(${item.fileName})`);
           newNode.totalTime = perfTime * sample.count;
           newNode.eventCount = sample.eventCount;

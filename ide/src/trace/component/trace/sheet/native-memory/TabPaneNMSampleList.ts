@@ -50,8 +50,8 @@ export class TabPaneNMSampleList extends BaseElement {
   set data(sampleParam: SelectionParam | unknown) {
     if (sampleParam === this.currentSelection) {
       return;
-    }// @ts-ignore
-    this.currentSelection = sampleParam;// @ts-ignore
+    } // @ts-ignore
+    this.currentSelection = sampleParam; // @ts-ignore
     TabPaneNMSampleList.serSelection(sampleParam);
     this.filterAllList();
   }
@@ -83,20 +83,21 @@ export class TabPaneNMSampleList extends BaseElement {
     });
   }
 
-  static addSampleData(data: unknown, ipid: number): void {// @ts-ignore
+  static addSampleData(data: unknown, ipid: number): void {
+    // @ts-ignore
     if (TabPaneNMSampleList.tableMarkData.indexOf(data) !== -1) {
       return;
-    }// @ts-ignore
+    } // @ts-ignore
     TabPaneNMSampleList.tableMarkData.push(data);
     let rootSample = new NativeHookSamplerInfo();
-    rootSample.snapshot = `Snapshot${this.numberToWord(this.samplerInfoSource.length + 1)}`;// @ts-ignore
+    rootSample.snapshot = `Snapshot${this.numberToWord(this.samplerInfoSource.length + 1)}`; // @ts-ignore
     rootSample.startTs = data.startTs;
     rootSample.timestamp =
-      SpNativeMemoryChart.REAL_TIME_DIF === 0// @ts-ignore
-        ? getTimeString(data.startTs)// @ts-ignore
-        : formatRealDateMs(data.startTs + SpNativeMemoryChart.REAL_TIME_DIF);// @ts-ignore
-    rootSample.eventId = data.eventId;// @ts-ignore
-    rootSample.threadId = data.threadId;// @ts-ignore
+      SpNativeMemoryChart.REAL_TIME_DIF === 0 // @ts-ignore
+        ? getTimeString(data.startTs) // @ts-ignore
+        : formatRealDateMs(data.startTs + SpNativeMemoryChart.REAL_TIME_DIF); // @ts-ignore
+    rootSample.eventId = data.eventId; // @ts-ignore
+    rootSample.threadId = data.threadId; // @ts-ignore
     rootSample.threadName = data.threadName;
     this.queryAllHookInfo(data, rootSample, ipid);
   }
@@ -124,7 +125,7 @@ export class TabPaneNMSampleList extends BaseElement {
           ? getTimeString(merageSample.startTs)
           : formatRealDateMs(merageSample.startTs + SpNativeMemoryChart.REAL_TIME_DIF);
       childSample.threadId = merageSample.threadId;
-      childSample.threadName = merageSample.threadName;// @ts-ignore
+      childSample.threadName = merageSample.threadName; // @ts-ignore
       (childSample as unknown).existing = '';
       rootSample.children.push(childSample);
     }
@@ -137,12 +138,13 @@ export class TabPaneNMSampleList extends BaseElement {
       copyType.eventType = type.eventType;
       copyType.subType = type.subType;
       return copyType;
-    });// @ts-ignore
+    }); // @ts-ignore
     queryAllHookData(data.startTs, ipid).then((nmSamplerHookResult) => {
       if (nmSamplerHookResult.length > 0) {
         let nameGroup: unknown = {};
-        copyTypes.forEach((item) => {// @ts-ignore
-          nameGroup[item.eventType] = nameGroup[item.eventType] || [];// @ts-ignore
+        copyTypes.forEach((item) => {
+          // @ts-ignore
+          nameGroup[item.eventType] = nameGroup[item.eventType] || []; // @ts-ignore
           nameGroup[item.eventType].push(item);
         });
         let leftTime =
@@ -151,15 +153,19 @@ export class TabPaneNMSampleList extends BaseElement {
             : TabPaneNMSampleList.tableMarkData[TabPaneNMSampleList.tableMarkData.length - 2].startTs;
         nmSamplerHookResult.forEach((item) => {
           item.threadId = rootSample.threadId;
-          item.threadName = rootSample.threadName;// @ts-ignore
+          item.threadName = rootSample.threadName; // @ts-ignore
           if (nameGroup[item.eventType] !== undefined) {
-            if (item.subType === null) {// @ts-ignore
+            if (item.subType === null) {
+              // @ts-ignore
               this.merageSampleData(leftTime, data.startTs, nameGroup[item.eventType][0], item);
-            } else {// @ts-ignore
-              let filter = nameGroup[item.eventType].filter((type: unknown) => {// @ts-ignore
+            } else {
+              // @ts-ignore
+              let filter = nameGroup[item.eventType].filter((type: unknown) => {
+                // @ts-ignore
                 return type.subType === item.subType;
               });
-              if (filter.length > 0) {// @ts-ignore
+              if (filter.length > 0) {
+                // @ts-ignore
                 this.merageSampleData(leftTime, data.startTs, filter[0], item);
               }
             }
@@ -176,36 +182,40 @@ export class TabPaneNMSampleList extends BaseElement {
 
   private static updateSampleTypesList(copyTypes: NativeHookSampleQueryInfo[]): void {
     if (this.sampleTypesList.length > 0) {
-      let sampleTypesListElement = this.sampleTypesList[this.sampleTypesList.length - 1];// @ts-ignore
+      let sampleTypesListElement = this.sampleTypesList[this.sampleTypesList.length - 1]; // @ts-ignore
       sampleTypesListElement.forEach((item: unknown, index: number) => {
         copyTypes[index].current = copyTypes[index].growth;
-        if (index < copyTypes.length) {// @ts-ignore
-          copyTypes[index].growth -= item.current;// @ts-ignore
+        if (index < copyTypes.length) {
+          // @ts-ignore
+          copyTypes[index].growth -= item.current; // @ts-ignore
           copyTypes[index].total -= item.total;
         }
       });
     } else {
-      copyTypes.forEach((item: unknown) => {// @ts-ignore
+      copyTypes.forEach((item: unknown) => {
+        // @ts-ignore
         item.current = item.growth;
       });
     }
     this.sampleTypesList.push(copyTypes);
   }
 
-  static createTree(nameGroup: unknown, rootSample: NativeHookSamplerInfo): void {// @ts-ignore
+  static createTree(nameGroup: unknown, rootSample: NativeHookSamplerInfo): void {
+    // @ts-ignore
     Object.keys(nameGroup).forEach((key) => {
       let parentSample = new NativeHookSamplerInfo();
-      parentSample.snapshot = key;// @ts-ignore
-      if (nameGroup[key].length > 0) {// @ts-ignore
+      parentSample.snapshot = key; // @ts-ignore
+      if (nameGroup[key].length > 0) {
+        // @ts-ignore
         nameGroup[key].forEach((child: unknown) => {
-          let childSample = new NativeHookSamplerInfo();// @ts-ignore
-          childSample.snapshot = child.subType || child.eventType;// @ts-ignore
-          childSample.heapSize = child.growth;// @ts-ignore
-          childSample.growth = Utils.getByteWithUnit(child.growth);// @ts-ignore
-          childSample.total = child.total;// @ts-ignore
-          childSample.totalGrowth = Utils.getByteWithUnit(child.total);// @ts-ignore
-          childSample.existing = child.existing;// @ts-ignore
-          childSample.currentSize = child.current;// @ts-ignore
+          let childSample = new NativeHookSamplerInfo(); // @ts-ignore
+          childSample.snapshot = child.subType || child.eventType; // @ts-ignore
+          childSample.heapSize = child.growth; // @ts-ignore
+          childSample.growth = Utils.getByteWithUnit(child.growth); // @ts-ignore
+          childSample.total = child.total; // @ts-ignore
+          childSample.totalGrowth = Utils.getByteWithUnit(child.total); // @ts-ignore
+          childSample.existing = child.existing; // @ts-ignore
+          childSample.currentSize = child.current; // @ts-ignore
           childSample.current = Utils.getByteWithUnit(child.current);
           childSample.threadName = rootSample.threadName;
           childSample.threadId = rootSample.threadId;
@@ -215,7 +225,8 @@ export class TabPaneNMSampleList extends BaseElement {
             // @ts-ignore
             childSample.children.push(...child.children);
             parentSample.children.push(childSample);
-          } else {// @ts-ignore
+          } else {
+            // @ts-ignore
             parentSample.children.push(...child.children);
           }
         });
@@ -229,16 +240,18 @@ export class TabPaneNMSampleList extends BaseElement {
     currentSample.heapSize -= rootSample.heapSize;
     currentSample.growth = Utils.getByteWithUnit(currentSample.heapSize);
     let currentMap: unknown = {};
-    currentSample.children.forEach((currentChild) => {// @ts-ignore
+    currentSample.children.forEach((currentChild) => {
+      // @ts-ignore
       currentMap[currentChild.snapshot] = currentChild;
     });
-    rootSample.children.forEach((rootChild) => {// @ts-ignore
+    rootSample.children.forEach((rootChild) => {
+      // @ts-ignore
       if (currentMap[rootChild.snapshot] === undefined) {
         let perpSample = new NativeHookSamplerInfo();
-        perpSample.snapshot = rootChild.snapshot;// @ts-ignore
+        perpSample.snapshot = rootChild.snapshot; // @ts-ignore
         currentMap[rootChild.snapshot] = perpSample;
         currentSample.children.push(perpSample);
-      }// @ts-ignore
+      } // @ts-ignore
       this.prepChild(currentMap[rootChild.snapshot], rootChild);
     });
   }
@@ -250,7 +263,7 @@ export class TabPaneNMSampleList extends BaseElement {
     this.sampleTbl!.recycleDataSource = [];
     TabPaneNMSampleList.sampleTbl!.recycleDataSource = [];
     this.sampleTypesList = [];
-    this.tableMarkData = [];// @ts-ignore
+    this.tableMarkData = []; // @ts-ignore
     TabPaneNMSampleList.filter!.firstSelect = '0';
   }
 
@@ -305,12 +318,14 @@ export class TabPaneNMSampleList extends BaseElement {
         TabPaneNMSampleList.filterSelect = data.firstSelect;
         this.filterAllList();
       }
-    });// @ts-ignore
+    }); // @ts-ignore
     TabPaneNMSampleList.filter!.firstSelect = TabPaneNMSampleList.filterSelect;
-    TabPaneNMSampleList.sampleTbl!.exportTextHandleMap.set('totalGrowth', (value) => {// @ts-ignore
+    TabPaneNMSampleList.sampleTbl!.exportTextHandleMap.set('totalGrowth', (value) => {
+      // @ts-ignore
       return `${value['total']}`;
     });
-    TabPaneNMSampleList.sampleTbl!.exportTextHandleMap.set('growth', (value) => {// @ts-ignore
+    TabPaneNMSampleList.sampleTbl!.exportTextHandleMap.set('growth', (value) => {
+      // @ts-ignore
       return `${value['heapSize']}`;
     });
   }

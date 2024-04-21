@@ -53,16 +53,17 @@ export function processActualDataSender(pid: number, row: TraceRow<JankStruct>):
   });
 }
 
-function arrayBufferHandler(buffers: unknown, len: number): JankStruct[] {//@ts-ignore
-  let name = new Int32Array(buffers.name);//@ts-ignore
-  let id = new Int32Array(buffers.id);//@ts-ignore
-  let pid = new Int32Array(buffers.pid);//@ts-ignore
-  let type = new Int32Array(buffers.type);//@ts-ignore
-  let ts = new Float64Array(buffers.ts);//@ts-ignore
+function arrayBufferHandler(buffers: unknown, len: number): JankStruct[] {
+  //@ts-ignore
+  let name = new Int32Array(buffers.name); //@ts-ignore
+  let id = new Int32Array(buffers.id); //@ts-ignore
+  let pid = new Int32Array(buffers.pid); //@ts-ignore
+  let type = new Int32Array(buffers.type); //@ts-ignore
+  let ts = new Float64Array(buffers.ts); //@ts-ignore
   let dur = new Float64Array(buffers.dur);
-  let outArr: JankStruct[] = [];//@ts-ignore
-  let jank_tag = new Int32Array(buffers.jank_tag);//@ts-ignore
-  let dst_slice = new Int32Array(buffers.dst_slice);//@ts-ignore
+  let outArr: JankStruct[] = []; //@ts-ignore
+  let jank_tag = new Int32Array(buffers.jank_tag); //@ts-ignore
+  let dst_slice = new Int32Array(buffers.dst_slice); //@ts-ignore
   let depth = new Uint16Array(buffers.depth);
   for (let i = 0; i < len; i++) {
     outArr.push({

@@ -31,7 +31,7 @@ constexpr int32_t PARTITIONED_COUNT = 3;
 
 enum class Index : int32_t { TS, DUR, PARTITION };
 
-SpanJoin::SpanJoin(const TraceDataCache* dataCache) : TableBase(dataCache)
+SpanJoin::SpanJoin(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_ = {};
     tablePriKey_ = {};
@@ -39,16 +39,16 @@ SpanJoin::SpanJoin(const TraceDataCache* dataCache) : TableBase(dataCache)
     tableSecondDesc_ = {};
 }
 
-void SpanJoin::Init(int32_t argc, const char* const* argv)
+void SpanJoin::Init(int32_t argc, const char *const *argv)
 {
     if (argc < MINSIZE) {
         return;
     }
     // Parse the fields of the two tables separately
     TableParse tableFirstParse;
-    Parse(std::string(reinterpret_cast<const char*>(argv[3])), tableFirstParse);
+    Parse(std::string(reinterpret_cast<const char *>(argv[3])), tableFirstParse);
     TableParse tableSecondParse;
-    Parse(std::string(reinterpret_cast<const char*>(argv[4])), tableSecondParse);
+    Parse(std::string(reinterpret_cast<const char *>(argv[4])), tableSecondParse);
 
     // you must ensure that the two partitions exist and are the same when using
     if (tableFirstDesc_.partition != tableSecondDesc_.partition) {
@@ -68,10 +68,10 @@ void SpanJoin::Init(int32_t argc, const char* const* argv)
     return;
 }
 
-void SpanJoin::CreateCols(TableDesc& tableDesc, std::vector<TableBase::ColumnInfo>& cols)
+void SpanJoin::CreateCols(TableDesc &tableDesc, std::vector<TableBase::ColumnInfo> &cols)
 {
     for (int32_t i = 0; i < tableDesc.cols.size(); i++) {
-        auto& n = tableDesc.cols.at(i).name_;
+        auto &n = tableDesc.cols.at(i).name_;
         if (IsTsOrDurCol(n)) {
             continue;
         }
@@ -85,7 +85,7 @@ void SpanJoin::CreateCols(TableDesc& tableDesc, std::vector<TableBase::ColumnInf
     }
 }
 
-bool SpanJoin::DeduplicationForColumn(const std::string& name, std::vector<ColumnInfo>& cols)
+bool SpanJoin::DeduplicationForColumn(const std::string &name, std::vector<ColumnInfo> &cols)
 {
     for (size_t i = 0; i < cols.size(); i++) {
         if (name == cols.at(i).name_) {
@@ -95,7 +95,7 @@ bool SpanJoin::DeduplicationForColumn(const std::string& name, std::vector<Colum
     return true;
 }
 
-void SpanJoin::Parse(const std::string& tablePartition, TableParse& tableParse)
+void SpanJoin::Parse(const std::string &tablePartition, TableParse &tableParse)
 {
     std::vector<std::string> result = base::SplitStringToVec(tablePartition, " ");
     if (result.size() < PARTITIONED_COUNT) {
@@ -110,7 +110,7 @@ void SpanJoin::Parse(const std::string& tablePartition, TableParse& tableParse)
     return;
 }
 
-bool SpanJoin::IsTsOrDurCol(const std::string& name)
+bool SpanJoin::IsTsOrDurCol(const std::string &name)
 {
     if (name == TS_COLUMN_NAME || name == DUR_COLUMN_NAME) {
         return true;
@@ -118,7 +118,7 @@ bool SpanJoin::IsTsOrDurCol(const std::string& name)
     return false;
 }
 
-void SpanJoin::GetTableField(const TableParse& tableParse, TableDesc& tableDesc)
+void SpanJoin::GetTableField(const TableParse &tableParse, TableDesc &tableDesc)
 {
     std::vector<TableBase::ColumnInfo> cols;
     GetColumns(dataCache_, tableParse.name, cols);
@@ -145,9 +145,9 @@ void SpanJoin::GetTableField(const TableParse& tableParse, TableDesc& tableDesc)
     return;
 }
 
-void SpanJoin::GetColumns(const TraceDataCache* dataCache,
-                          const std::string& tableName,
-                          std::vector<TableBase::ColumnInfo>& columns)
+void SpanJoin::GetColumns(const TraceDataCache *dataCache,
+                          const std::string &tableName,
+                          std::vector<TableBase::ColumnInfo> &columns)
 {
     char sql[MAXSIZE];
     std::string querySql = "SELECT name, type from PRAGMA_table_info(\"%s\")";
@@ -155,13 +155,13 @@ void SpanJoin::GetColumns(const TraceDataCache* dataCache,
     if (n < 0 || n >= sizeof(sql)) {
         TS_LOGE(" Failed to format SQL string ");
     }
-    sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt *stmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(dataCache->db_, sql, n, &stmt, nullptr);
     while (!ret) {
         int32_t err = sqlite3_step(stmt);
         if (err == SQLITE_ROW) {
-            columns.emplace_back((reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0))),
-                                 reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+            columns.emplace_back((reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0))),
+                                 reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1)));
             continue;
         }
         if (err == SQLITE_DONE) {
@@ -172,14 +172,14 @@ void SpanJoin::GetColumns(const TraceDataCache* dataCache,
     return;
 }
 
-SpanJoin::CaclSpan::CaclSpan(TableBase* tableBase, const TableDesc* tableDesc, sqlite3* db)
-    : desc_(tableDesc), db_(db), table_(reinterpret_cast<SpanJoin*>(tableBase))
+SpanJoin::CaclSpan::CaclSpan(TableBase *tableBase, const TableDesc *tableDesc, sqlite3 *db)
+    : desc_(tableDesc), db_(db), table_(reinterpret_cast<SpanJoin *>(tableBase))
 {
 }
 
 SpanJoin::CaclSpan::~CaclSpan() = default;
 
-int32_t SpanJoin::CaclSpan::InitQuerySql(sqlite3_value** argv)
+int32_t SpanJoin::CaclSpan::InitQuerySql(sqlite3_value **argv)
 {
     sqlQuery_ = GetSqlQuery();
     bool status = IsQueryNext();
@@ -200,7 +200,7 @@ std::string SpanJoin::CaclSpan::GetSqlQuery()
     return sql;
 }
 
-void SpanJoin::CaclSpan::setResult(sqlite3_context* context, size_t index) const
+void SpanJoin::CaclSpan::setResult(sqlite3_context *context, size_t index) const
 {
     if (partitionState_ != PartitionState::TS_REAL) {
         sqlite3_result_null(context);
@@ -208,7 +208,7 @@ void SpanJoin::CaclSpan::setResult(sqlite3_context* context, size_t index) const
     }
     int32_t sqliteType = sqlite3_column_type(stmt_, index);
     if (sqliteType == SQLITE_TEXT) {
-        sqlite3_result_text(context, reinterpret_cast<const char*>(sqlite3_column_int64(stmt_, index)), -1,
+        sqlite3_result_text(context, reinterpret_cast<const char *>(sqlite3_column_int64(stmt_, index)), -1,
                             reinterpret_cast<sqlite3_destructor_type>(-1));
     } else if (sqliteType == SQLITE_INTEGER) {
         sqlite3_result_int64(context, sqlite3_column_int64(stmt_, index));
@@ -314,7 +314,7 @@ bool SpanJoin::CaclSpan::GetNextState()
     }
 }
 
-std::string SpanJoin::CaclSpan::GetMergeColumns(std::vector<std::string>& columns)
+std::string SpanJoin::CaclSpan::GetMergeColumns(std::vector<std::string> &columns)
 {
     std::string str;
     int32_t size = columns.size();
@@ -338,7 +338,7 @@ std::unique_ptr<TableBase::Cursor> SpanJoin::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-SpanJoin::Cursor::Cursor(const TraceDataCache* dataCache, SpanJoin* table)
+SpanJoin::Cursor::Cursor(const TraceDataCache *dataCache, SpanJoin *table)
     : TableBase::Cursor(dataCache, table, 0),
       tableFirst_(table, &table->tableFirstDesc_, dataCache_->db_),
       tableSecond_(table, &table->tableSecondDesc_, dataCache_->db_),
@@ -346,7 +346,7 @@ SpanJoin::Cursor::Cursor(const TraceDataCache* dataCache, SpanJoin* table)
 {
 }
 
-int32_t SpanJoin::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t SpanJoin::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     tableFirst_.InitQuerySql(argv);
     tableSecond_.InitQuerySql(argv);
@@ -386,7 +386,7 @@ bool SpanJoin::Cursor::IsFindSpan()
     return true;
 }
 
-SpanJoin::CaclSpan* SpanJoin::Cursor::FindQueryResult()
+SpanJoin::CaclSpan *SpanJoin::Cursor::FindQueryResult()
 {
     if (!spanTable_->isSamepartitioning_) {
         return nullptr;

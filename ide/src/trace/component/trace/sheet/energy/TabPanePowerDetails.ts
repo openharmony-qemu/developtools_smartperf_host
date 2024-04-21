@@ -202,9 +202,10 @@ export class TabPanePowerDetails extends BaseElement {
           if (set.has(item.appKey)) {
             // @ts-ignore
             powerDatum[item.appKey.toLocaleLowerCase()] =
-              item.startNS >= tsMax ? ((tsMax = item.startNS), item.eventValue) :
-                // @ts-ignore
-                powerDatum[item.appKey.toLocaleLowerCase()];
+              item.startNS >= tsMax
+                ? ((tsMax = item.startNS), item.eventValue)
+                : // @ts-ignore
+                  powerDatum[item.appKey.toLocaleLowerCase()];
           } else {
             // @ts-ignore
             powerDatum[item.appKey.toLocaleLowerCase()] =
@@ -248,7 +249,13 @@ export class TabPanePowerDetails extends BaseElement {
     });
   }
 
-  setEnergyItems(powerData: unknown, totalEnergy: number, energyName: string, isSimpleEnergy: boolean, type: unknown): unknown {
+  setEnergyItems(
+    powerData: unknown,
+    totalEnergy: number,
+    energyName: string,
+    isSimpleEnergy: boolean,
+    type: unknown
+  ): unknown {
     // @ts-ignore
     let ratio = (powerData[energyName].getTotalEnergy(isSimpleEnergy) * NUM_100) / totalEnergy;
     if (totalEnergy === 0) {
@@ -294,11 +301,11 @@ export class TabPanePowerDetails extends BaseElement {
     function compare(property, sort, type) {
       return function (aPowerDetails: PowerDetailsEnergy, bPowerDetails: PowerDetailsEnergy) {
         if (type === 'number') {
-          return sort === 2 ? // @ts-ignore
-            parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]) - // @ts-ignore
-            parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) : // @ts-ignore
-            parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) - // @ts-ignore
-            parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]);
+          return sort === 2 // @ts-ignore
+            ? parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]) - // @ts-ignore
+                parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) // @ts-ignore
+            : parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) - // @ts-ignore
+                parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]);
         } else {
           // @ts-ignore
           if (bPowerDetails[property] > aPowerDetails[property]) {

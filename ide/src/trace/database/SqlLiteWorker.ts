@@ -19,103 +19,36 @@ import { execProtoForWorker } from './data-trafic/utils/ExecProtoForWorker';
 import { TraficEnum } from './data-trafic/utils/QueryEnum';
 
 let conn: unknown = null;
-let encoder = new TextEncoder();
-function initIndexedDB(): Promise<unknown> {
-  return new Promise((resolve, reject) => {
-    let request = indexedDB.open('systrace');
-    request.onerror = function (event): void {};
-    request.onsuccess = function (event): void {
-      let db = request.result;
-      resolve(db);
-    };
-    request.onupgradeneeded = function (event): void {
-      // @ts-ignore
-      let db = event!.target!.result;
-      if (!db.objectStoreNames.contains('connection')) {
-        db.createObjectStore('connection', { autoIncrement: true });
-      }
-    };
-  });
-}
-
-function readConnection(store: IDBObjectStore): Promise<unknown> {
-  return new Promise((resolve, reject) => {
-    let readRequest = store.get(1);
-    readRequest.onsuccess = function (event): void {
-      // @ts-ignore
-      resolve(event.target.result);
-    };
-    readRequest.onerror = function (event): void {
-      // @ts-ignore
-      reject(event.target.result);
-    };
-  });
-}
-
-function deleteConnection(store: IDBObjectStore, id: number): Promise<unknown> {
-  return new Promise((resolve, reject) => {
-    let deleteRequest = store.delete(id);
-    deleteRequest.onsuccess = function (event): void {
-      // @ts-ignore
-      resolve(event.target.result);
-    };
-    deleteRequest.onerror = function (event): void {
-      // @ts-ignore
-      reject(event.target.result);
-    };
-  });
-}
-
-let mergedUnitArray = (bufferSliceUint8: Array<Uint8Array>): Uint8Array => {
-  let length = 0;
-  bufferSliceUint8.forEach((item) => {
-    length += item.length;
-  });
-  let mergedArray = new Uint8Array(length);
-  let offset = 0;
-  bufferSliceUint8.forEach((item) => {
-    mergedArray.set(item, offset);
-    offset += item.length;
-  });
-  return mergedArray;
-};
 
 self.onerror = function (error): void {};
 
 self.onmessage = async (e: unknown): Promise<void> => {
   //@ts-ignore
-  if (e.data.action === 'open') {
+  const action = e.data.action;
+  //@ts-ignore
+  const id = e.data.id;
+  if (action === 'open') {
     //@ts-ignore
     let array = new Uint8Array(e.data.buffer);
     // @ts-ignore
     initSqlJs({ locateFile: (filename) => `${filename}` }).then((SQL: unknown) => {
       // @ts-ignore
       conn = new SQL.Database(array);
-      // @ts-ignore
-      self.postMessage({ id: e.data.id, ready: true, index: 0 });
+      self.postMessage({ id: id, ready: true, index: 0 });
       temp_init_sql_list.forEach((item, index) => {
         // @ts-ignore
         let r = conn.exec(item);
-        // @ts-ignore
         self.postMessage({
-          //@ts-ignore
-          id: e.data.id,
+          id: id,
           ready: true,
           index: index + 1,
         });
       });
-      // @ts-ignore
-      self.postMessage({ id: e.data.id, init: true });
+      self.postMessage({ id: id, init: true });
     });
-  } else if (
-    //@ts-ignore
-    e.data.action === 'close') {
-  } else if (
-    //@ts-ignore
-    e.data.action === 'exec' || e.data.action === 'exec-buf' || e.data.action === 'exec-metric') {
+  } else if (action === 'close') {
+  } else if (action === 'exec' || action === 'exec-buf' || action === 'exec-metric') {
     try {
-      //@ts-ignore
-      let action = e.data.action; //: "exec"
       //@ts-ignore
       let sql = e.data.sql;
       //@ts-ignore
@@ -130,21 +63,17 @@ self.onmessage = async (e: unknown): Promise<void> => {
       }
       stmt.free();
       // @ts-ignore
-      self.postMessage({ id: e.data.id, results: res });
-    } catch (err: unknown) {
-      // @ts-ignore
+      self.postMessage({ id: id, results: res });
+    } catch (err) {
       self.postMessage({
-        //@ts-ignore
-        id: e.data.id,
+        id: id,
         results: [],
         //@ts-ignore
         error: err.message,
       });
     }
-  } else if (
+  } else if (action === 'exec-proto') {
     //@ts-ignore
-    e.data.action === 'exec-proto') {
-      //@ts-ignore
     e.data.params.trafic = TraficEnum.Memory;
     //@ts-ignore
     execProtoForWorker(e.data, (sql: string) => {

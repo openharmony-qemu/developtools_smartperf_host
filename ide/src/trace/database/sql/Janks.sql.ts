@@ -71,8 +71,11 @@ export const queryExpectedFrameDate = (): Promise<Array<JanksStruct>> =>
     AND fs.type = 1
     ORDER BY ts;`
   );
-export const queryJumpJanksData = (processId: number, vsync: number)://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryJumpJanksData = (
+  processId: number,
+  vsync: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryJumpJanksData',
     `
@@ -107,8 +110,8 @@ export const queryAllJankProcess = (): Promise<
         LEFT JOIN process AS p ON a.ipid = p.ipid
         `
   );
-export const queryAllActualData = ()://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryAllActualData = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryAllActualData',
     `
@@ -130,8 +133,8 @@ export const queryAllActualData = ()://@ts-ignore
           AND a.flag <> 2
         ORDER BY a.ipid, ts;`
   );
-export const queryActualFrameDate = ()://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryActualFrameDate = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryActualFrameDate',
     `SELECT
@@ -188,8 +191,12 @@ export const queryActualFrameDate = ()://@ts-ignore
        AND fs.flag <> 2
      ORDER BY ts;`
   );
-export const querySelectRangeData = (allPid: Array<number>, leftNs: number, rightNs: number)://@ts-ignore
- Promise<Array<unknown>> =>
+export const querySelectRangeData = (
+  allPid: Array<number>,
+  leftNs: number,
+  rightNs: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'querySelectRangeData',
     `

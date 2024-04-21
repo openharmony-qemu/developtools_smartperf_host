@@ -202,7 +202,10 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
     }
     const detail = hoverNode!;
     // @ts-ignore
-    this.hintContent = ` <span class="blod">${detail.instruct}</span></br><span>${parseFloat(detail.heightPer)}</span> `;
+    this.hintContent = ` <span class="blod">${detail.instruct}</span></br><span>${parseFloat(
+      // @ts-ignore
+      detail.heightPer
+    )}</span> `;
   }
 
   /**
@@ -236,11 +239,12 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
     this.instructionChartEle!.width = this.clientWidth;
 
     this.xMaxValue =
-    // @ts-ignore
+      // @ts-ignore
       Object.keys(instructionArray)
         .map((i) => Number(i))
-        .reduce((pre, cur) => Math.max(pre, cur), 0) + 5;// @ts-ignore
-    const yMaxValue = Object.values(instructionArray).reduce(// @ts-ignore
+        .reduce((pre, cur) => Math.max(pre, cur), 0) + 5; // @ts-ignore
+    const yMaxValue = Object.values(instructionArray).reduce(
+      // @ts-ignore
       (pre: number, cur: unknown) => Math.max(pre, Number((cur.length / count).toFixed(2))),
       0
     );
@@ -259,14 +263,14 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
    */
   drawBar(instructionData: unknown, height: number, count: number) {
     const yTotal = Number((this.yAvg * 5).toFixed(2));
-    const interval = Math.floor((height - paddingBottom) / 6);// @ts-ignore
+    const interval = Math.floor((height - paddingBottom) / 6); // @ts-ignore
     for (const x in instructionData) {
       const xNum = Number(x);
-      const xPosition = xStart + (xNum / (this.xCount * this.xAvg)) * (this.xCount * this.xSpacing) - barWidth / 2;// @ts-ignore
+      const xPosition = xStart + (xNum / (this.xCount * this.xAvg)) * (this.xCount * this.xSpacing) - barWidth / 2; // @ts-ignore
       const yNum = Number((instructionData[x].length / count).toFixed(3));
       const percent = Number((yNum / yTotal).toFixed(2));
       const barHeight = (height - paddingBottom - interval) * percent;
-      this.drawRect(xPosition, height - paddingBottom - barHeight, barWidth, barHeight);// @ts-ignore
+      this.drawRect(xPosition, height - paddingBottom - barHeight, barWidth, barHeight); // @ts-ignore
       const existX = this.cacheData.find((i) => i.instruct === x);
       if (!existX) {
         this.cacheData.push({
@@ -276,7 +280,8 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
           height: barHeight,
           heightPer: parseFloat((yNum * 100).toFixed(2)),
         });
-      } else {// @ts-ignore
+      } else {
+        // @ts-ignore
         existX.x = xPosition;
       }
     }

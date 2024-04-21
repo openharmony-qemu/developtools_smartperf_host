@@ -33,7 +33,7 @@ Direction ThreadStateFlag::SetStatByChar(char ch)
     return NEED_GO;
 }
 
-void ThreadStateFlag::ProcessSate(const std::string& stateStr)
+void ThreadStateFlag::ProcessSate(const std::string &stateStr)
 {
     for (size_t i = 0; i < stateStr.size(); i++) {
         if (stateStr[i] == '+') {
@@ -50,7 +50,7 @@ void ThreadStateFlag::ProcessSate(const std::string& stateStr)
     }
 }
 
-ThreadStateFlag::ThreadStateFlag(const std::string& stateStr)
+ThreadStateFlag::ThreadStateFlag(const std::string &stateStr)
 {
     ProcessSate(stateStr);
 }

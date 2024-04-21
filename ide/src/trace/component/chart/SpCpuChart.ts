@@ -80,15 +80,18 @@ export class SpCpuChart {
     let CpuStartTime = new Date().getTime();
     let array = await queryCpuMax();
     let cpuCountResult = await queryCpuCount();
-    if (cpuCountResult && cpuCountResult.length > 0 && cpuCountResult[0]) {// @ts-ignore
+    if (cpuCountResult && cpuCountResult.length > 0 && cpuCountResult[0]) {
+      // @ts-ignore
       (window as unknown).cpuCount = cpuCountResult[0].cpuCount;
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       (window as unknown).cpuCount = 0;
     }
     let cpuSchedSlice = await queryCpuSchedSlice();
     this.initSchedSliceData(cpuSchedSlice);
     info('Cpu trace row data size is: ', array.length);
-    if (array && array.length > 0 && array[0]) {//@ts-ignore
+    if (array && array.length > 0 && array[0]) {
+      //@ts-ignore
       let cpuMax = array[0].cpu;
       CpuStruct.cpuCount = cpuMax + 1;
       for (let i1 = 0; i1 < CpuStruct.cpuCount; i1++) {
@@ -140,8 +143,9 @@ export class SpCpuChart {
     procedurePool.submitWithName(
       'logic0',
       'scheduling-getCpuIdle0',
-      {// @ts-ignore
-        endTs: (window as unknown).recordEndNS,// @ts-ignore
+      {
+        // @ts-ignore
+        endTs: (window as unknown).recordEndNS, // @ts-ignore
         total: (window as unknown).totalNS,
       },
       undefined,
@@ -153,7 +157,8 @@ export class SpCpuChart {
 
   initSchedSliceData(arr: unknown[]): void {
     Utils.SCHED_SLICE_MAP.clear();
-    arr.forEach((value) => {// @ts-ignore
+    arr.forEach((value) => {
+      // @ts-ignore
       Utils.SCHED_SLICE_MAP.set(`${value.itid}-${value.ts}`, { endState: value.endState, priority: value.priority });
     });
   }

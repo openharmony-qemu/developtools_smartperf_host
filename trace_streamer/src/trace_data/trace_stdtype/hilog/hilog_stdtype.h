@@ -29,13 +29,13 @@ public:
                             DataIndex tag,
                             DataIndex context,
                             uint64_t originTs);
-    const std::deque<uint64_t>& HilogLineSeqs() const;
-    const std::deque<uint32_t>& Pids() const;
-    const std::deque<uint32_t>& Tids() const;
-    const std::deque<DataIndex>& Levels() const;
-    const std::deque<DataIndex>& Tags() const;
-    const std::deque<DataIndex>& Contexts() const;
-    const std::deque<uint64_t>& OriginTimeStamData() const;
+    const std::deque<uint64_t> &HilogLineSeqs() const;
+    const std::deque<uint32_t> &Pids() const;
+    const std::deque<uint32_t> &Tids() const;
+    const std::deque<DataIndex> &Levels() const;
+    const std::deque<DataIndex> &Tags() const;
+    const std::deque<DataIndex> &Contexts() const;
+    const std::deque<uint64_t> &OriginTimeStamData() const;
     void Clear() override
     {
         CacheBase::Clear();

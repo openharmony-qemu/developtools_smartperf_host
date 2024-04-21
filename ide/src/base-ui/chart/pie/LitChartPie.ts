@@ -171,7 +171,8 @@ export class LitChartPie extends BaseElement {
 
   showHover(): void {
     let hasHover = false;
-    this.data.forEach((it) => {// @ts-ignore
+    this.data.forEach((it) => {
+      // @ts-ignore
       it.hover = it.obj.isHover;
       if (it.hover) {
         hasHover = true;
@@ -207,31 +208,35 @@ export class LitChartPie extends BaseElement {
     let startDegree = 0;
     let full = Math.PI / 180; //每度
     let fullDegree = 0; //每度
-    let sum = this.litChartPieConfig.data.reduce(// @ts-ignore
+    let sum = this.litChartPieConfig.data.reduce(
+      // @ts-ignore
       (previousValue, currentValue) => currentValue[pieCfg.angleField] + previousValue,
       0
     );
     let labelArray: string[] = [];
     this.litChartPieConfig.data.forEach((pieItem, index) => {
       let item: Sector = {
-        id: `id-${Utils.uuid()}`,// @ts-ignore
-        color: this.litChartPieConfig!.label.color ? this.litChartPieConfig!.label.color(pieItem) : pieChartColors[index % pieChartColors.length],
-        obj: pieItem,// @ts-ignore
-        key: pieItem[pieCfg.colorField],// @ts-ignore
+        id: `id-${Utils.uuid()}`,
+        color: this.litChartPieConfig!.label.color
+          ? // @ts-ignore
+            this.litChartPieConfig!.label.color(pieItem)
+          : pieChartColors[index % pieChartColors.length],
+        obj: pieItem, // @ts-ignore
+        key: pieItem[pieCfg.colorField], // @ts-ignore
         value: pieItem[pieCfg.angleField],
-        startAngle: startAngle,// @ts-ignore
+        startAngle: startAngle, // @ts-ignore
         endAngle: startAngle + full * ((pieItem[pieCfg.angleField] / sum) * 360),
-        startDegree: startDegree,// @ts-ignore
+        startDegree: startDegree, // @ts-ignore
         endDegree: startDegree + fullDegree + (pieItem[pieCfg.angleField] / sum) * 360,
         ease: {
-          initVal: 0,// @ts-ignore
+          initVal: 0, // @ts-ignore
           step: (startAngle + full * ((pieItem[pieCfg.angleField] / sum) * 360)) / startDegree,
           process: true,
         },
       };
-      this.data.push(item);// @ts-ignore
-      startAngle += full * ((pieItem[pieCfg.angleField] / sum) * 360);// @ts-ignore
-      startDegree += fullDegree + (pieItem[pieCfg.angleField] / sum) * 360;// @ts-ignore
+      this.data.push(item); // @ts-ignore
+      startAngle += full * ((pieItem[pieCfg.angleField] / sum) * 360); // @ts-ignore
+      startDegree += fullDegree + (pieItem[pieCfg.angleField] / sum) * 360; // @ts-ignore
       let colorFieldValue = item.obj[pieCfg.colorField];
       if (this.config?.colorFieldTransferHandler) {
         colorFieldValue = this.config.colorFieldTransferHandler(colorFieldValue);
@@ -260,7 +265,7 @@ export class LitChartPie extends BaseElement {
         let degree = this.computeDegree(x, y);
         this.data.forEach((it) => {
           it.hover = degree >= it.startDegree! && degree <= it.endDegree!;
-          this.updateHoverItemStatus(it);// @ts-ignore
+          this.updateHoverItemStatus(it); // @ts-ignore
           it.obj.isHover = it.hover;
           if (it.hover && this.litChartPieConfig) {
             this.litChartPieConfig.hoverHandler?.(it.obj);
@@ -274,7 +279,7 @@ export class LitChartPie extends BaseElement {
       } else {
         this.hideTip();
         this.data.forEach((it) => {
-          it.hover = false;// @ts-ignore
+          it.hover = false; // @ts-ignore
           it.obj.isHover = false;
           this.updateHoverItemStatus(it);
         });
@@ -311,7 +316,8 @@ export class LitChartPie extends BaseElement {
       if (isPointIsCircle(0, 0, x, y, this.radius!)) {
         let degree = this.computeDegree(x, y);
         this.data.forEach((it) => {
-          if (degree >= it.startDegree! && degree <= it.endDegree!) {// @ts-ignore
+          if (degree >= it.startDegree! && degree <= it.endDegree!) {
+            // @ts-ignore
             this.config?.angleClick?.(it.obj);
           }
         });
@@ -321,9 +327,11 @@ export class LitChartPie extends BaseElement {
     this.render();
   }
 
-  updateHoverItemStatus(item: unknown): void {// @ts-ignore
+  updateHoverItemStatus(item: unknown): void {
+    // @ts-ignore
     let label = this.shadowRoot!.querySelector(`#${item.id}`);
-    if (label) {// @ts-ignore
+    if (label) {
+      // @ts-ignore
       (label as HTMLLabelElement).style.boxShadow = item.hover ? '0 0 5px #22ffffff' : '';
     }
   }

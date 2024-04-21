@@ -14,29 +14,32 @@
  */
 
 import { ColorUtils } from '../../../component/trace/base/ColorUtils';
-import { drawLoadingFrame, hiPerf, hiPerf2, HiPerfStruct, PerfRender, RequestMessage } from '../ProcedureWorkerCommon';
+import { drawLoadingFrame, hiPerf2, HiPerfStruct, PerfRender, RequestMessage } from '../ProcedureWorkerCommon';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 
 export class HiperfThreadRender2 extends PerfRender {
-  renderMainThread(req: any, row: TraceRow<HiPerfThreadStruct>): void {
+  renderMainThread(req: unknown, row: TraceRow<HiPerfThreadStruct>): void {
     let hiperfThreadFilter = row.dataListCache;
+    //@ts-ignore
+    const ctx = req.context as CanvasRenderingContext2D;
+    //@ts-ignore
     let groupBy10MS = req.scale > 30_000_000;
     let textMetrics;
     if (!groupBy10MS) {
-      req.context.font = 'normal 12px Arial';
-      textMetrics = req.context.measureText('🄿');
+      ctx.font = 'normal 12px Arial';
+      textMetrics = ctx.measureText('🄿');
     }
     hiPerf2(hiperfThreadFilter, TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, row.frame);
-    drawLoadingFrame(req.context, hiperfThreadFilter, row);
-    req.context.beginPath();
-    req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
-    req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+    drawLoadingFrame(ctx, hiperfThreadFilter, row);
+    ctx.beginPath();
+    ctx.fillStyle = ColorUtils.FUNC_COLOR[0];
+    ctx.strokeStyle = ColorUtils.FUNC_COLOR[0];
     let normalPath = new Path2D();
     let specPath = new Path2D();
     let offset = groupBy10MS ? 0 : 3;
     let find = false;
     for (let re of hiperfThreadFilter) {
-      HiPerfThreadStruct.draw(req.context, normalPath, specPath, re, groupBy10MS, textMetrics);
+      HiPerfThreadStruct.draw(ctx, normalPath, specPath, re, groupBy10MS, textMetrics);
       if (row.isHover) {
         if (re.frame && row.hoverX >= re.frame.x - offset && row.hoverX <= re.frame.x + re.frame.width + offset) {
           HiPerfThreadStruct.hoverStruct = re;
@@ -48,15 +51,15 @@ export class HiperfThreadRender2 extends PerfRender {
       HiPerfThreadStruct.hoverStruct = undefined;
     }
     if (groupBy10MS) {
-      req.context.fill(normalPath);
+      ctx.fill(normalPath);
     } else {
-      req.context.stroke(normalPath);
-      HiPerfStruct.drawSpecialPath(req.context, specPath);
+      ctx.stroke(normalPath);
+      HiPerfStruct.drawSpecialPath(ctx, specPath);
     }
-    req.context.closePath();
+    ctx.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void {}
+  render(req: RequestMessage, list: Array<unknown>, filter: Array<unknown>, dataList2: Array<unknown>): void {}
 }
 
 export class HiPerfThreadStruct extends HiPerfStruct {

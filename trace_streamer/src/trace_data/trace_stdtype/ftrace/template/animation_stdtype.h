@@ -29,12 +29,12 @@ public:
     void UpdateEndPoint(TableRowId index, InternalTime endPoint);
     void UpdateFrameInfo(TableRowId index, InternalTime frameInfo);
     size_t Size() const;
-    const std::deque<InternalTime>& InputTimes() const;
-    const std::deque<InternalTime>& StartPoints() const;
-    const std::deque<InternalTime>& EndPoints() const;
-    const std::deque<DataIndex>& FrameInfos() const;
-    const std::deque<DataIndex>& Names() const;
-    const std::deque<uint64_t>& IdsData() const;
+    const std::deque<InternalTime> &InputTimes() const;
+    const std::deque<InternalTime> &StartPoints() const;
+    const std::deque<InternalTime> &EndPoints() const;
+    const std::deque<DataIndex> &FrameInfos() const;
+    const std::deque<DataIndex> &Names() const;
+    const std::deque<uint64_t> &IdsData() const;
     void Clear();
 
 private:
@@ -51,7 +51,7 @@ public:
     uint32_t PhysicalWidth() const;
     uint32_t PhysicalHeight() const;
     uint32_t PhysicalFrameRate() const;
-    void UpdateWidthAndHeight(const std::smatch& matcheLine);
+    void UpdateWidthAndHeight(const std::smatch &matcheLine);
     void UpdateFrameRate(uint32_t frameRate);
     void Clear();
 
@@ -65,18 +65,18 @@ class DynamicFrame {
 public:
     TableRowId AppendDynamicFrame(DataIndex nameId);
     void UpdateNameIndex(TableRowId index, DataIndex nameId);
-    void UpdatePosition(TableRowId index, const std::smatch& matcheLine, DataIndex alpha);
+    void UpdatePosition(TableRowId index, const std::smatch &matcheLine, DataIndex alpha);
     void UpdateEndTime(TableRowId index, InternalTime endTime);
 
     size_t Size() const;
-    const std::deque<uint64_t>& IdsData() const;
-    const std::deque<uint32_t>& Xs() const;
-    const std::deque<uint32_t>& Ys() const;
-    const std::deque<uint32_t>& Widths() const;
-    const std::deque<uint32_t>& Heights() const;
-    const std::deque<DataIndex>& Alphas() const;
-    const std::deque<DataIndex>& Names() const;
-    const std::deque<InternalTime>& EndTimes() const;
+    const std::deque<uint64_t> &IdsData() const;
+    const std::deque<uint32_t> &Xs() const;
+    const std::deque<uint32_t> &Ys() const;
+    const std::deque<uint32_t> &Widths() const;
+    const std::deque<uint32_t> &Heights() const;
+    const std::deque<DataIndex> &Alphas() const;
+    const std::deque<DataIndex> &Names() const;
+    const std::deque<InternalTime> &EndTimes() const;
     void Clear();
 
 private:

@@ -194,35 +194,44 @@ export class LitTreeNode extends BaseElement {
     if (this.hasAttribute('multiple')) {
       if (this.nextElementSibling) {
         if (this.checked) {
-          this.nextElementSibling.querySelectorAll('lit-tree-node').forEach((a: unknown) => {//@ts-ignore
-            a.checked = true;//@ts-ignore
+          this.nextElementSibling.querySelectorAll('lit-tree-node').forEach((a: unknown) => {
+            //@ts-ignore
+            a.checked = true; //@ts-ignore
             a.removeAttribute('missing');
           });
-        } else {//@ts-ignore
+        } else {
+          //@ts-ignore
           this.nextElementSibling.querySelectorAll('lit-tree-node').forEach((a: unknown) => (a.checked = false));
         }
       }
       let setCheckStatus = (element: unknown): void => {
-        if (//@ts-ignore
-          element.parentElement.parentElement.previousElementSibling &&//@ts-ignore
+        if (
+          //@ts-ignore
+          element.parentElement.parentElement.previousElementSibling && //@ts-ignore
           element.parentElement.parentElement.previousElementSibling.tagName === 'LIT-TREE-NODE'
-        ) {//@ts-ignore
-          let allChecked = Array.from(element.parentElement.parentElement.querySelectorAll('lit-tree-node')).every(//@ts-ignore
+        ) {
+          //@ts-ignore
+          let allChecked = Array.from(element.parentElement.parentElement.querySelectorAll('lit-tree-node')).every(
+            //@ts-ignore
             (item: unknown) => item.checked
-          );//@ts-ignore
-          let someChecked = Array.from(element.parentElement.parentElement.querySelectorAll('lit-tree-node')).some(//@ts-ignore
+          ); //@ts-ignore
+          let someChecked = Array.from(element.parentElement.parentElement.querySelectorAll('lit-tree-node')).some(
+            //@ts-ignore
             (item: unknown, index, array) => item.checked
           );
-          if (allChecked === true) {//@ts-ignore
-            element.parentElement.parentElement.previousElementSibling.checked = true;//@ts-ignore
+          if (allChecked === true) {
+            //@ts-ignore
+            element.parentElement.parentElement.previousElementSibling.checked = true; //@ts-ignore
             element.parentElement.parentElement.previousElementSibling.removeAttribute('missing');
-          } else if (someChecked) {//@ts-ignore
-            element.parentElement.parentElement.previousElementSibling.setAttribute('missing', '');//@ts-ignore
+          } else if (someChecked) {
+            //@ts-ignore
+            element.parentElement.parentElement.previousElementSibling.setAttribute('missing', ''); //@ts-ignore
             element.parentElement.parentElement.previousElementSibling.removeAttribute('checked');
-          } else {//@ts-ignore
-            element.parentElement.parentElement.previousElementSibling.removeAttribute('missing');//@ts-ignore
+          } else {
+            //@ts-ignore
+            element.parentElement.parentElement.previousElementSibling.removeAttribute('missing'); //@ts-ignore
             element.parentElement.parentElement.previousElementSibling.removeAttribute('checked');
-          }//@ts-ignore
+          } //@ts-ignore
           setCheckStatus(element.parentElement.parentElement.previousElementSibling);
         }
       };
@@ -263,14 +272,16 @@ export class LitTreeNode extends BaseElement {
   collapseSection(element: unknown): void {
     if (!element) {
       return;
-    }//@ts-ignore
-    let sectionHeight = element.scrollHeight;//@ts-ignore
-    let elementTransition = element.style.transition;//@ts-ignore
+    } //@ts-ignore
+    let sectionHeight = element.scrollHeight; //@ts-ignore
+    let elementTransition = element.style.transition; //@ts-ignore
     element.style.transition = '';
-    requestAnimationFrame(function () {//@ts-ignore
-      element.style.height = sectionHeight + 'px';//@ts-ignore
+    requestAnimationFrame(function () {
+      //@ts-ignore
+      element.style.height = sectionHeight + 'px'; //@ts-ignore
       element.style.transition = elementTransition;
-      requestAnimationFrame(function () {//@ts-ignore
+      requestAnimationFrame(function () {
+        //@ts-ignore
         element.style.height = 0 + 'px';
       });
     });
@@ -281,11 +292,12 @@ export class LitTreeNode extends BaseElement {
   expandSection(element: unknown): void {
     if (!element) {
       return;
-    }//@ts-ignore
-    let sectionHeight = element.scrollHeight;//@ts-ignore
-    element.style.height = sectionHeight + 'px';//@ts-ignore
-    element.ontransitionend = (e: unknown): void => {//@ts-ignore
-      element.ontransitionend = null;//@ts-ignore
+    } //@ts-ignore
+    let sectionHeight = element.scrollHeight; //@ts-ignore
+    element.style.height = sectionHeight + 'px'; //@ts-ignore
+    element.ontransitionend = (e: unknown): void => {
+      //@ts-ignore
+      element.ontransitionend = null; //@ts-ignore
       element.style.height = null;
       this.open = 'true';
     };
@@ -299,11 +311,13 @@ export class LitTreeNode extends BaseElement {
 
   //当 custom element增加、删除、修改自身属性时，被调用。
   attributeChangedCallback(name: string, oldValue: unknown, newValue: unknown): void {
-    if (name === 'title') {//@ts-ignore
+    if (name === 'title') {
+      //@ts-ignore
       this.shadowRoot!.querySelector('#title')!.textContent = newValue;
     } else if (name === 'icon-name') {
       if (this.iconElement) {
-        if (newValue !== null && newValue !== '' && newValue !== 'null') {//@ts-ignore
+        if (newValue !== null && newValue !== '' && newValue !== 'null') {
+          //@ts-ignore
           this.iconElement!.setAttribute('name', newValue);
           this.iconElement!.style.display = 'flex';
         } else {

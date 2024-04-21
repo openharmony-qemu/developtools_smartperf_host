@@ -26,7 +26,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class ProcessFilter : private FilterBase {
 public:
-    ProcessFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
+    ProcessFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
     ~ProcessFilter() override;
 
     uint32_t UpdateOrCreateProcessWithName(uint32_t pid, std::string_view name);
@@ -38,7 +38,7 @@ public:
     InternalPid GetOrCreateInternalPid(uint64_t timeStamp, uint32_t pid);
     bool IsThreadNameEmpty(uint32_t tid) const;
     InternalTid GetInternalTid(uint32_t tid) const;
-    std::vector<InternalTid>& GetInternalTids(uint32_t tid);
+    std::vector<InternalTid> &GetInternalTids(uint32_t tid);
     uint32_t UpdateOrCreateThreadWithNameIndex(uint64_t timeStamp, uint32_t tid, DataIndex threadNameIndex);
     void AddProcessMemory(uint32_t ipid);
     void AddThreadSliceNum(uint32_t itid);
@@ -47,9 +47,9 @@ public:
     void Clear();
 
 private:
-    std::tuple<uint32_t, TraceStdtype::Process*> CreateProcessMaybe(uint32_t pid, uint64_t startT);
-    std::tuple<uint32_t, TraceStdtype::Thread*> NewThread(uint32_t tid);
-    std::tuple<uint32_t, TraceStdtype::Process*> NewProcess(uint32_t pid);
+    std::tuple<uint32_t, TraceStdtype::Process *> CreateProcessMaybe(uint32_t pid, uint64_t startT);
+    std::tuple<uint32_t, TraceStdtype::Thread *> NewThread(uint32_t tid);
+    std::tuple<uint32_t, TraceStdtype::Process *> NewProcess(uint32_t pid);
 
     InternalTid GetInternalTid(uint32_t tid, uint32_t pid) const;
 

@@ -68,10 +68,14 @@ export class TabPanePurgTotal extends BaseElement {
     }
   }
 
-  getPurgeableTotalSource(results: unknown): void {// @ts-ignore
-    if (results.length > 0) {// @ts-ignore
-      for (let i = 0; i < results.length; i++) {// @ts-ignore
-        this.purgeableTotalSource.push(// @ts-ignore
+  getPurgeableTotalSource(results: unknown): void {
+    // @ts-ignore
+    if (results.length > 0) {
+      // @ts-ignore
+      for (let i = 0; i < results.length; i++) {
+        // @ts-ignore
+        this.purgeableTotalSource.push(
+          // @ts-ignore
           this.toTabStruct(results[i].name, results[i].maxSize, results[i].minSize, results[i].avgSize)
         );
       }
@@ -140,22 +144,26 @@ export class TabPanePurgTotal extends BaseElement {
         }
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2// @ts-ignore
-            ? parseFloat(purgeTotalRightData[key]) - parseFloat(purgeTotalLeftData[key])// @ts-ignore
+          return sort === 2 // @ts-ignore
+            ? parseFloat(purgeTotalRightData[key]) - parseFloat(purgeTotalLeftData[key]) // @ts-ignore
             : parseFloat(purgeTotalLeftData[key]) - parseFloat(purgeTotalRightData[key]);
         } else {
-          if (sort === 2) {// @ts-ignore
+          if (sort === 2) {
+            // @ts-ignore
             return purgeTotalRightData[key].toString().localeCompare(purgeTotalLeftData[key].toString());
-          } else {// @ts-ignore
+          } else {
+            // @ts-ignore
             return purgeTotalLeftData[key].toString().localeCompare(purgeTotalRightData[key].toString());
           }
         }
       };
     }
-// @ts-ignore
-    if (detail.key === 'type') {// @ts-ignore
+    // @ts-ignore
+    if (detail.key === 'type') {
+      // @ts-ignore
       this.purgeableTotalSource.sort(compare(detail.key, detail.sort, 'string'));
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       this.purgeableTotalSource.sort(compare(detail.key, detail.sort, 'number'));
     }
     let total = this.totalData(this.purgeableTotalSource);
@@ -168,8 +176,9 @@ export class TabPanePurgTotal extends BaseElement {
     this.purgeableTotalTable = this.shadowRoot?.querySelector<LitTable>('#tb-purgeable-total');
     this.tabTitle = this.purgeableTotalTable!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.purgTotalTimeRange = this.shadowRoot?.querySelector('#purg-total-time-range') as HTMLLabelElement;
-    this.purgeableTotalTable!.addEventListener('column-click', (evt: unknown) => {// @ts-ignore
-      this.sortKey = evt.detail.key;// @ts-ignore
+    this.purgeableTotalTable!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
+      this.sortKey = evt.detail.key; // @ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);

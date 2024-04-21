@@ -43,10 +43,10 @@ struct AsyncEvent {
 };
 class SliceFilter : private FilterBase {
 public:
-    SliceFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
+    SliceFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
     ~SliceFilter() override;
 
-    size_t BeginSlice(const std::string& comm,
+    size_t BeginSlice(const std::string &comm,
                       uint64_t timeStamp,
                       uint32_t pid,
                       uint32_t threadGroupId,
@@ -57,9 +57,9 @@ public:
                       uint32_t pid,
                       DataIndex cat,
                       DataIndex nameIndex,
-                      ArgsSet& args,
+                      ArgsSet &args,
                       SliceData sliceData = SliceData());
-    size_t AsyncBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat, DataIndex nameIndex, ArgsSet& args);
+    size_t AsyncBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat, DataIndex nameIndex, ArgsSet &args);
     size_t EndBinder(uint64_t timeStamp,
                      uint32_t pid,
                      DataIndex category = INVALID_UINT64,
@@ -76,12 +76,18 @@ public:
                     uint32_t threadGroupId,
                     DataIndex category = INVALID_UINT64,
                     DataIndex name = INVALID_UINT64);
-    uint64_t
-        StartAsyncSlice(uint64_t timeStamp, uint32_t pid, uint32_t threadGroupId, int64_t cookie, DataIndex nameIndex);
-    uint64_t
-        FinishAsyncSlice(uint64_t timeStamp, uint32_t pid, uint32_t threadGroupId, int64_t cookie, DataIndex nameIndex);
+    uint64_t StartAsyncSlice(uint64_t timeStamp,
+                             uint32_t pid,
+                             uint32_t threadGroupId,
+                             int64_t cookie,
+                             DataIndex nameIndex);
+    uint64_t FinishAsyncSlice(uint64_t timeStamp,
+                              uint32_t pid,
+                              uint32_t threadGroupId,
+                              int64_t cookie,
+                              DataIndex nameIndex);
     void IrqHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
-    std::tuple<uint64_t, uint32_t> AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet& args);
+    std::tuple<uint64_t, uint32_t> AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet &args);
     void IrqHandlerExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args);
     void IpiHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     void IpiHandlerExit(uint64_t timeStamp, uint32_t cpu);
@@ -104,15 +110,15 @@ private:
     using StackOfSlices = StackInfo;
     using StackOnDepth = std::map<uint32_t, bool>;
     void RememberSliceData(InternalTid internalTid,
-                           std::unordered_map<InternalTid, StackOfSlices>& stackMap,
-                           SliceData& slice,
+                           std::unordered_map<InternalTid, StackOfSlices> &stackMap,
+                           SliceData &slice,
                            uint32_t depth,
                            uint64_t index);
     uint8_t UpdateDepth(bool increase, InternalTid internalTid, int32_t depth = -1);
-    void CloseUnMatchedSlice(int64_t ts, SlicesStack& stack, InternalTid itid);
-    int32_t MatchingIncompleteSliceIndex(const SlicesStack& stack, DataIndex category, DataIndex name);
+    void CloseUnMatchedSlice(int64_t ts, SlicesStack &stack, InternalTid itid);
+    int32_t MatchingIncompleteSliceIndex(const SlicesStack &stack, DataIndex category, DataIndex name);
     uint8_t CurrentDepth(InternalTid internalTid);
-    void HandleAsyncEventAndOther(ArgsSet args, CallStack* slices, uint64_t lastRow, StackOfSlices& stackInfo);
+    void HandleAsyncEventAndOther(ArgsSet args, CallStack *slices, uint64_t lastRow, StackOfSlices &stackInfo);
     bool UpdateIrqReadySize();
 
 private:
@@ -131,7 +137,7 @@ private:
     std::unordered_map<uint32_t, IrqRecords> softIrqEventMap_ = {};
     std::map<uint64_t, AsyncEvent> asyncEventFilterMap_ = {};
     std::unordered_map<InternalTid, StackOfSlices> sliceStackMap_ = {};
-    std::unordered_map<InternalTid, StackOfSlices>& binderStackMap_ = sliceStackMap_;
+    std::unordered_map<InternalTid, StackOfSlices> &binderStackMap_ = sliceStackMap_;
     std::unordered_map<InternalTid, StackOnDepth> depthHolder_ = {};
     std::unordered_map<uint32_t, uint32_t> pidTothreadGroupId_ = {};
     uint64_t asyncEventSize_ = 0;

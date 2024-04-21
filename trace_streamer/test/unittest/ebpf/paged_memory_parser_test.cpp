@@ -33,6 +33,9 @@ const uint64_t PAGEED_MEM_ADDR = 46549876;
 const uint64_t IPS_01 = 548606407208;
 const uint64_t IPS_02 = 548607407208;
 const uint64_t EBPF_COMMAND_MAX_SIZE = 1000;
+const uint64_t PID = 32;
+const uint64_t TID = 32;
+const uint16_t TYPE = 2;
 
 class EbpfPagedMemoryParserTest : public ::testing::Test {
 public:
@@ -45,8 +48,8 @@ public:
         ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
         memcpy_s(ebpfHeader.cmdline, EbpfDataHeader::EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str(),
                  COMMAND_LINE.length());
-        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&ebpfHeader))[0],
-                            &(reinterpret_cast<uint8_t*>(&ebpfHeader))[EbpfDataHeader::EBPF_DATA_HEADER_SIZE]);
+        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t *>(&ebpfHeader))[0],
+                            &(reinterpret_cast<uint8_t *>(&ebpfHeader))[EbpfDataHeader::EBPF_DATA_HEADER_SIZE]);
     }
     void TearDown() {}
 
@@ -55,19 +58,19 @@ public:
         EbpfTypeAndLength ebpfTypeAndLength;
         ebpfTypeAndLength.length = length;
         ebpfTypeAndLength.type = ITEM_EVENT_VM;
-        pagedMemoryFixedHeader_.pid = 32;
-        pagedMemoryFixedHeader_.tid = 32;
+        pagedMemoryFixedHeader_.pid = PID;
+        pagedMemoryFixedHeader_.tid = TID;
         memcpy_s(pagedMemoryFixedHeader_.comm, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
         pagedMemoryFixedHeader_.startTime = ts1;
         pagedMemoryFixedHeader_.endTime = ts2;
         pagedMemoryFixedHeader_.addr = PAGEED_MEM_ADDR;
         pagedMemoryFixedHeader_.size = 1;
         pagedMemoryFixedHeader_.nips = nips;
-        pagedMemoryFixedHeader_.type = 2;
-        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[0],
-                            &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[sizeof(EbpfTypeAndLength)]);
-        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader_))[0],
-                            &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader_))[sizeof(PagedMemoryFixedHeader)]);
+        pagedMemoryFixedHeader_.type = TYPE;
+        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t *>(&ebpfTypeAndLength))[0],
+                            &(reinterpret_cast<uint8_t *>(&ebpfTypeAndLength))[sizeof(EbpfTypeAndLength)]);
+        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t *>(&pagedMemoryFixedHeader_))[0],
+                            &(reinterpret_cast<uint8_t *>(&pagedMemoryFixedHeader_))[sizeof(PagedMemoryFixedHeader)]);
     }
 
 public:
@@ -143,8 +146,8 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithOneCallback,
 
     InitData(sizeof(PagedMemoryFixedHeader), 1);
     const uint64_t ips[1] = {IPS_01};
-    dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(ips),
-                        reinterpret_cast<const uint8_t*>(&ips + 1));
+    dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t *>(ips),
+                        reinterpret_cast<const uint8_t *>(&ips + 1));
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
@@ -175,8 +178,8 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithMultipleCall
 
     InitData(sizeof(PagedMemoryFixedHeader) + 2 * sizeof(uint64_t), 2);
     const uint64_t ips[2] = {IPS_01, IPS_02};
-    dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(ips),
-                        reinterpret_cast<const uint8_t*>(&ips + 1));
+    dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t *>(ips),
+                        reinterpret_cast<const uint8_t *>(&ips + 1));
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));

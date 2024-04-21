@@ -29,7 +29,7 @@ enum class Index : int32_t {
     PURGEABLE_SIZE,
     IPID
 };
-MemoryWindowGpuTable::MemoryWindowGpuTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+MemoryWindowGpuTable::MemoryWindowGpuTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -51,7 +51,7 @@ std::unique_ptr<TableBase::Cursor> MemoryWindowGpuTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-MemoryWindowGpuTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+MemoryWindowGpuTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstGpuWindowMemData().Size())),
       GpuWindowMemDataObj_(dataCache->GetConstGpuWindowMemData())
 {

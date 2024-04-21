@@ -27,9 +27,9 @@ using namespace SysTuning::EbpfStdtype;
 
 class PagedMemoryDataParser : virtual public EbpfBase {
 public:
-    PagedMemoryDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    PagedMemoryDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~PagedMemoryDataParser();
-    int32_t PagingData(const PagedMemoryFixedHeader* pagedMemoryFixedHeadrAddr);
+    int32_t PagingData(const PagedMemoryFixedHeader *pagedMemoryFixedHeadrAddr);
     void ParsePagedMemoryEvent();
 
 protected:

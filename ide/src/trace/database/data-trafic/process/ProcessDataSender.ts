@@ -49,9 +49,9 @@ export function processDataSender(pid: number, row: TraceRow<ProcessStruct>): Pr
 }
 
 function arrayBufferHandler(buffers: unknown, len: number): ProcessStruct[] {
-  let outArr: ProcessStruct[] = [];//@ts-ignore
-  let cpu = new Uint8Array(buffers.cpu);//@ts-ignore
-  let startTime = new Float64Array(buffers.startTime);//@ts-ignore
+  let outArr: ProcessStruct[] = []; //@ts-ignore
+  let cpu = new Uint8Array(buffers.cpu); //@ts-ignore
+  let startTime = new Float64Array(buffers.startTime); //@ts-ignore
   let dur = new Float64Array(buffers.dur);
   for (let i = 0; i < len; i++) {
     outArr.push({

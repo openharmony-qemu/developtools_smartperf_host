@@ -25,7 +25,7 @@ using namespace OHOS::Profiler::Plugins;
 class FtraceFieldProcessor {
 public:
     template <typename T>
-    static T HandleIntField(const FieldFormat& format, uint8_t data[], size_t size)
+    static T HandleIntField(const FieldFormat &format, uint8_t data[], size_t size)
     {
         static_assert(std::is_integral<T>::value, "T must be Integral type.");
         T curValue = {};
@@ -36,7 +36,7 @@ public:
     }
 
     template <typename T>
-    static std::vector<T> HandleVectorIntField(const std::vector<FieldFormat>& fields,
+    static std::vector<T> HandleVectorIntField(const std::vector<FieldFormat> &fields,
                                                size_t id,
                                                uint8_t data[],
                                                size_t size)
@@ -58,23 +58,23 @@ public:
     }
 
     template <typename T>
-    static T HandleIntField(const std::vector<FieldFormat>& fields, size_t id, uint8_t data[], size_t size)
+    static T HandleIntField(const std::vector<FieldFormat> &fields, size_t id, uint8_t data[], size_t size)
     {
         static_assert(std::is_integral<T>::value, "T must be Integral type.");
         TS_CHECK_TRUE_RET(fields.size() > id, {});
         return HandleIntField<T>(fields[id], data, size);
     }
 
-    static std::string HandleStrField(const FieldFormat& format, uint8_t data[], size_t size);
+    static std::string HandleStrField(const FieldFormat &format, uint8_t data[], size_t size);
 
-    static std::string HandleStrField(const std::vector<FieldFormat>& fields, size_t id, uint8_t data[], size_t size)
+    static std::string HandleStrField(const std::vector<FieldFormat> &fields, size_t id, uint8_t data[], size_t size)
     {
         TS_CHECK_TRUE_RET(fields.size() > id, "");
         return HandleStrField(fields[id], data, size);
     }
 
 private:
-    static bool HandleTypeData(const uint8_t* startPos, const uint8_t* endPos, void* out, size_t size);
+    static bool HandleTypeData(const uint8_t *startPos, const uint8_t *endPos, void *out, size_t size);
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

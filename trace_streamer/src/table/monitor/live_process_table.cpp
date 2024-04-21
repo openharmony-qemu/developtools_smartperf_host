@@ -32,7 +32,7 @@ enum class Index : int32_t {
     DISK_WRITES,
     DISK_READS
 };
-LiveProcessTable::LiveProcessTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+LiveProcessTable::LiveProcessTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
@@ -57,7 +57,7 @@ std::unique_ptr<TableBase::Cursor> LiveProcessTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-LiveProcessTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+LiveProcessTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstLiveProcessData().Size())),
       liveProcessDetailDataObj_(dataCache->GetConstLiveProcessData())
 {

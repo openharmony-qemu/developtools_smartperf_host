@@ -29,15 +29,13 @@ enum class Index : int32_t {
     SLICE_COUNT,
     MEM_COUNT
 };
-ProcessTable::ProcessTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+ProcessTable::ProcessTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("pid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "INTEGER"));
-    // remove the 'swtich_count' after three release version
-    tableColumn_.push_back(TableBase::ColumnInfo("swtich_count", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("switch_count", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("thread_count", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("slice_count", "INTEGER"));
@@ -47,14 +45,14 @@ ProcessTable::ProcessTable(const TraceDataCache* dataCache) : TableBase(dataCach
 
 ProcessTable::~ProcessTable() {}
 
-void ProcessTable::FilterByConstraint(FilterConstraints& processfc,
-                                      double& processfilterCost,
+void ProcessTable::FilterByConstraint(FilterConstraints &processfc,
+                                      double &processfilterCost,
                                       size_t processrowCount,
                                       uint32_t processcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& processc = processfc.GetConstraints()[processcurrenti];
+    const auto &processc = processfc.GetConstraints()[processcurrenti];
     switch (static_cast<Index>(processc.col)) {
         case Index::IPID:
         case Index::ID: {
@@ -72,7 +70,7 @@ void ProcessTable::FilterByConstraint(FilterConstraints& processfc,
     }
 }
 
-int32_t ProcessTable::Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid)
+int32_t ProcessTable::Update(int32_t argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {
     if (argc <= 1) {
         return SQLITE_READONLY;
@@ -88,7 +86,7 @@ int32_t ProcessTable::Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* 
         if (static_cast<Index>(col) != Index::NAME) {
             continue;
         }
-        const char* name = reinterpret_cast<const char*>(sqlite3_value_text(argv[i]));
+        const char *name = reinterpret_cast<const char *>(sqlite3_value_text(argv[i]));
         if (name == nullptr) {
             process->cmdLine_.clear();
         } else {
@@ -104,14 +102,14 @@ std::unique_ptr<TableBase::Cursor> ProcessTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-ProcessTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+ProcessTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, dataCache->ProcessSize())
 {
 }
 
 ProcessTable::Cursor::~Cursor() {}
 
-int32_t ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t ProcessTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -124,7 +122,7 @@ int32_t ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(processTableCs, sId);
     for (size_t i = 0; i < processTableCs.size(); i++) {
-        const auto& c = processTableCs[i];
+        const auto &c = processTableCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
             case Index::IPID:
@@ -156,7 +154,7 @@ int32_t ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
 
 int32_t ProcessTable::Cursor::Column(int32_t col) const
 {
-    const auto& process = dataCache_->GetConstProcessData(CurrentRow());
+    const auto &process = dataCache_->GetConstProcessData(CurrentRow());
     switch (static_cast<Index>(col)) {
         case Index::ID:
         case Index::IPID:
@@ -177,7 +175,6 @@ int32_t ProcessTable::Cursor::Column(int32_t col) const
             }
             break;
         case Index::SWITCH_COUNT:
-        case Index::SWTICH_COUNT:
             sqlite3_result_int64(context_, process.switchCount_);
             break;
         case Index::THREAD_COUNT:
@@ -254,7 +251,7 @@ void ProcessTable::Cursor::HandleIndexConstraintNQ(bool remove, uint64_t value)
     }
     indexMap_->FixSize();
 }
-void ProcessTable::Cursor::FilterIndex(int32_t col, unsigned char op, sqlite3_value* argv)
+void ProcessTable::Cursor::FilterIndex(int32_t col, unsigned char op, sqlite3_value *argv)
 {
     switch (static_cast<Index>(col)) {
         case Index::PID:
@@ -266,7 +263,7 @@ void ProcessTable::Cursor::FilterIndex(int32_t col, unsigned char op, sqlite3_va
             break;
     }
 }
-void ProcessTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
+void ProcessTable::Cursor::FilterId(unsigned char op, sqlite3_value *argv)
 {
     auto procArgv = static_cast<TableRowId>(sqlite3_value_int64(argv));
     switch (op) {
@@ -293,7 +290,7 @@ void ProcessTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
     }
 }
 
-void ProcessTable::GetOrbyes(FilterConstraints& processfc, EstimatedIndexInfo& processei)
+void ProcessTable::GetOrbyes(FilterConstraints &processfc, EstimatedIndexInfo &processei)
 {
     auto processorderbys = processfc.GetOrderBys();
     for (auto i = 0; i < processorderbys.size(); i++) {

@@ -64,7 +64,7 @@ public:
     std::string SetNetworkSystemData(uint64_t rx_bytes, uint64_t tx_bytes, uint64_t rx_packets, uint64_t tx_packets)
     {
         auto networkInfo = std::make_unique<NetworkDatas>();
-        NetworkSystemData* networkSystemData = new NetworkSystemData();
+        NetworkSystemData *networkSystemData = new NetworkSystemData();
         networkSystemData->set_rx_bytes(rx_bytes);
         networkSystemData->set_tx_bytes(tx_bytes);
         networkSystemData->set_rx_packets(rx_packets);
@@ -91,7 +91,7 @@ HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithoutNetworkData, TestSize
     auto networkInfo = std::make_unique<NetworkDatas>();
     std::string networkData = "";
     networkInfo->SerializeToString(&networkData);
-    ProtoReader::BytesView networkInfoData(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
 
     PbreaderNetworkParser htraceNetworkParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceNetworkParser.Parse(networkInfoData, TS);
@@ -112,7 +112,7 @@ HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithNetworkData, TestSize.Le
     const uint64_t PACKETIN = 11431;
     const uint64_t PACKETOUT = 7373;
     std::string networkData = SetNetworkSystemData(RX, TX, PACKETIN, PACKETOUT);
-    ProtoReader::BytesView networkInfoData(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
 
     PbreaderNetworkParser htraceNetworkParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceNetworkParser.Parse(networkInfoData, TS);
@@ -130,13 +130,13 @@ HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithTwoNetworkData, TestSize
 {
     TS_LOGI("test17-3");
     std::string networkData = SetNetworkSystemData(RX_01, TX_01, PACKETIN_01, PACKETOUT_01);
-    ProtoReader::BytesView networkInfoData01(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData01(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
 
     PbreaderNetworkParser htraceNetworkParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceNetworkParser.Parse(networkInfoData01, TS);
 
     networkData = SetNetworkSystemData(RX_02, TX_02, PACKETIN_02, PACKETOUT_02);
-    ProtoReader::BytesView networkInfoData02(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData02(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
 
     htraceNetworkParser.Parse(networkInfoData02, TS);
     htraceNetworkParser.Finish();
@@ -157,17 +157,17 @@ HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithThreeNetworkData, TestSi
 {
     TS_LOGI("test17-4");
     std::string networkData = SetNetworkSystemData(RX_01, TX_01, PACKETIN_01, PACKETOUT_01);
-    ProtoReader::BytesView networkInfoData01(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData01(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
 
     PbreaderNetworkParser htraceNetworkParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceNetworkParser.Parse(networkInfoData01, TS);
 
     networkData = SetNetworkSystemData(RX_02, TX_02, PACKETIN_02, PACKETOUT_02);
-    ProtoReader::BytesView networkInfoData02(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData02(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
     htraceNetworkParser.Parse(networkInfoData02, TS);
 
     networkData = SetNetworkSystemData(RX_03, TX_03, PACKETIN_03, PACKETOUT_03);
-    ProtoReader::BytesView networkInfoData03(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData03(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
     htraceNetworkParser.Parse(networkInfoData03, TS);
     htraceNetworkParser.Finish();
 
@@ -191,21 +191,21 @@ HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithMultipleNetworkData, Tes
 {
     TS_LOGI("test17-5");
     std::string networkData = SetNetworkSystemData(RX_01, TX_01, PACKETIN_01, PACKETOUT_01);
-    ProtoReader::BytesView networkInfoData01(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData01(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
 
     PbreaderNetworkParser htraceNetworkParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceNetworkParser.Parse(networkInfoData01, TS);
 
     networkData = SetNetworkSystemData(RX_02, TX_02, PACKETIN_02, PACKETOUT_02);
-    ProtoReader::BytesView networkInfoData02(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData02(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
     htraceNetworkParser.Parse(networkInfoData02, TS);
 
     networkData = SetNetworkSystemData(RX_03, TX_03, PACKETIN_03, PACKETOUT_03);
-    ProtoReader::BytesView networkInfoData03(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData03(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
     htraceNetworkParser.Parse(networkInfoData03, TS);
 
     networkData = SetNetworkSystemData(RX_04, TX_04, PACKETIN_04, PACKETOUT_04);
-    ProtoReader::BytesView networkInfoData04(reinterpret_cast<const uint8_t*>(networkData.data()), networkData.size());
+    ProtoReader::BytesView networkInfoData04(reinterpret_cast<const uint8_t *>(networkData.data()), networkData.size());
     htraceNetworkParser.Parse(networkInfoData04, TS);
     htraceNetworkParser.Finish();
 

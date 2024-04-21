@@ -96,7 +96,7 @@ public:
 
     CharsView ToString() const
     {
-        return CharsView{reinterpret_cast<const char*>(Data()), size_};
+        return CharsView{reinterpret_cast<const char *>(Data()), size_};
     }
 
     std::string ToStdString() const
@@ -109,9 +109,9 @@ public:
         return BytesView(Data(), size_);
     }
 
-    const uint8_t* Data() const
+    const uint8_t *Data() const
     {
-        return reinterpret_cast<const uint8_t*>(intValue_);
+        return reinterpret_cast<const uint8_t *>(intValue_);
     }
 
     size_t Size() const
@@ -148,57 +148,57 @@ public:
         size_ = size;
     }
 
-    void GetValue(bool* val) const
+    void GetValue(bool *val) const
     {
         *val = ToBool();
     }
-    void GetValue(uint32_t* val) const
+    void GetValue(uint32_t *val) const
     {
         *val = ToUint32();
     }
-    void GetValue(int32_t* val) const
+    void GetValue(int32_t *val) const
     {
         *val = ToInt32();
     }
-    void GetValue(uint64_t* val) const
+    void GetValue(uint64_t *val) const
     {
         *val = ToUint64();
     }
-    void GetValue(int64_t* val) const
+    void GetValue(int64_t *val) const
     {
         *val = ToInt64();
     }
-    void GetValue(float* val) const
+    void GetValue(float *val) const
     {
         *val = ToFloat();
     }
-    void GetValue(double* val) const
+    void GetValue(double *val) const
     {
         *val = ToDouble();
     }
-    void GetValue(std::string* val) const
+    void GetValue(std::string *val) const
     {
         *val = ToStdString();
     }
-    void GetValue(CharsView* val) const
+    void GetValue(CharsView *val) const
     {
         *val = ToString();
     }
-    void GetValue(BytesView* val) const
+    void GetValue(BytesView *val) const
     {
         *val = ToBytes();
     }
-    void GetSignedValue(int32_t* val) const
+    void GetSignedValue(int32_t *val) const
     {
         *val = ToSint32();
     }
-    void GetSignedValue(int64_t* val) const
+    void GetSignedValue(int64_t *val) const
     {
         *val = ToSint64();
     }
 
     template <typename T, typename = typename std::enable_if<std::is_enum<T>::value, T>::type>
-    void getT(T* val) const
+    void getT(T *val) const
     {
         *val = static_cast<T>(ToInt32());
     }

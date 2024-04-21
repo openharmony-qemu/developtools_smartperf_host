@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { FILE_ID = 0, TRACE_NODE_ID, FUNCTION_INFO_INDEX, COUNT, SIZE, PARENT_ID };
-JsHeapTraceNodeTable::JsHeapTraceNodeTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+JsHeapTraceNodeTable::JsHeapTraceNodeTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
@@ -36,7 +36,7 @@ std::unique_ptr<TableBase::Cursor> JsHeapTraceNodeTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-JsHeapTraceNodeTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+JsHeapTraceNodeTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstJsHeapTraceNodeData().Size())),
       jsHeapTraceNode_(dataCache->GetConstJsHeapTraceNodeData())
 {

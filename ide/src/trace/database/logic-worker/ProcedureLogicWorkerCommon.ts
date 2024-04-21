@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 export class ChartStruct {
   depth: number = 0;
   symbol: string = '';
@@ -37,7 +38,7 @@ export class Msg {
   tag: string = '';
   index: number = 0;
   isSending: boolean = false;
-  data: Array<any> = [];
+  data: Array<unknown> = [];
 }
 
 export class HiPerfSymbol {
@@ -108,12 +109,12 @@ class MerageBeanDataSplit {
 
   //所有的操作都是针对整个树结构的, 不区分特定的数据
   splitTree(
-    splitMapData: any,
+    splitMapData: unknown,
     data: MerageBean[],
     name: string,
     isCharge: boolean,
     isSymbol: boolean,
-    currentTreeList: any[],
+    currentTreeList: ChartStruct[],
     searchValue: string
   ): void {
     data.forEach((process) => {
@@ -127,8 +128,9 @@ class MerageBeanDataSplit {
     this.resetAllNode(data, currentTreeList, searchValue);
   }
 
-  recursionChargeInitTree(splitMapData: any, node: MerageBean, symbolName: string, isSymbol: boolean): void {
+  recursionChargeInitTree(splitMapData: unknown, node: MerageBean, symbolName: string, isSymbol: boolean): void {
     if ((isSymbol && node.symbol === symbolName) || (!isSymbol && node.lib === symbolName)) {
+      //@ts-ignore
       (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
       node.isStore++;
     }
@@ -139,8 +141,9 @@ class MerageBeanDataSplit {
     }
   }
 
-  recursionPruneInitTree(splitMapData: any, node: MerageBean, symbolName: string, isSymbol: boolean): void {
+  recursionPruneInitTree(splitMapData: unknown, node: MerageBean, symbolName: string, isSymbol: boolean): void {
     if ((isSymbol && node.symbol === symbolName) || (!isSymbol && node.lib === symbolName)) {
+      //@ts-ignore
       (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
       node.isStore++;
       this.pruneChildren(splitMapData, node, symbolName);
@@ -163,7 +166,7 @@ class MerageBeanDataSplit {
   }
 
   recursionChargeByRule(
-    splitMapData: any,
+    splitMapData: unknown,
     node: MerageBean,
     ruleName: string,
     rule: (node: MerageBean) => boolean
@@ -171,6 +174,7 @@ class MerageBeanDataSplit {
     if (node.initChildren.length > 0) {
       node.initChildren.forEach((child) => {
         if (rule(child)) {
+          //@ts-ignore
           (splitMapData[ruleName] = splitMapData[ruleName] || []).push(child);
           child.isStore++;
         }
@@ -179,17 +183,18 @@ class MerageBeanDataSplit {
     }
   }
 
-  pruneChildren(splitMapData: any, node: MerageBean, symbolName: string): void {
+  pruneChildren(splitMapData: unknown, node: MerageBean, symbolName: string): void {
     if (node.initChildren.length > 0) {
       node.initChildren.forEach((child) => {
         child.isStore++;
+        //@ts-ignore
         (splitMapData[symbolName] = splitMapData[symbolName] || []).push(child);
         this.pruneChildren(splitMapData, child, symbolName);
       });
     }
   }
 
-  hideSystemLibrary(allProcess: MerageBean[], splitMapData: any): void {
+  hideSystemLibrary(allProcess: MerageBean[], splitMapData: unknown): void {
     allProcess.forEach((item) => {
       item.children = [];
       this.recursionChargeByRule(splitMapData, item, this.systmeRuleName, (node) => {
@@ -198,7 +203,7 @@ class MerageBeanDataSplit {
     });
   }
 
-  hideNumMaxAndMin(allProcess: MerageBean[], splitMapData: any, startNum: number, endNum: string): void {
+  hideNumMaxAndMin(allProcess: MerageBean[], splitMapData: unknown, startNum: number, endNum: string): void {
     let max = endNum === '∞' ? Number.POSITIVE_INFINITY : parseInt(endNum);
     allProcess.forEach((item) => {
       item.children = [];
@@ -208,18 +213,20 @@ class MerageBeanDataSplit {
     });
   }
 
-  resotreAllNode(splitMapData: any, symbols: string[]): void {
+  resotreAllNode(splitMapData: unknown, symbols: string[]): void {
     symbols.forEach((symbol) => {
+      //@ts-ignore
       let list = splitMapData[symbol];
       if (list !== undefined) {
-        list.forEach((item: any) => {
+        list.forEach((item: unknown) => {
+          //@ts-ignore
           item.isStore--;
         });
       }
     });
   }
 
-  resetAllNode(data: MerageBean[], currentTreeList: any[], searchValue: string): void {
+  resetAllNode(data: MerageBean[], currentTreeList: ChartStruct[], searchValue: string): void {
     this.clearSearchNode(currentTreeList);
     data.forEach((process) => {
       process.searchShow = true;
@@ -232,22 +239,26 @@ class MerageBeanDataSplit {
     }
   }
 
-  resetNewAllNode(data: MerageBean[], currentTreeList: any[]): void {
+  resetNewAllNode(data: MerageBean[], currentTreeList: ChartStruct[]): void {
     data.forEach((process) => {
       process.children = [];
     });
-    let values = currentTreeList.map((item: any) => {
+    let values = currentTreeList.map((item: ChartStruct) => {
       item.children = [];
       return item;
     });
-    values.forEach((item: any) => {
+    values.forEach((item: unknown) => {
+      //@ts-ignore
       if (item.parentNode !== undefined) {
+         //@ts-ignore
         if (item.isStore === 0 && item.searchShow) {
+           //@ts-ignore
           let parentNode = item.parentNode;
           while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
             parentNode = parentNode.parentNode;
           }
           if (parentNode) {
+             //@ts-ignore
             item.currentTreeParentNode = parentNode;
             parentNode.children.push(item);
           }
@@ -277,23 +288,30 @@ class MerageBeanDataSplit {
     });
   }
 
-  clearSearchNode(currentTreeList: any[]): void {
+  clearSearchNode(currentTreeList: ChartStruct[]): void {
     currentTreeList.forEach((node) => {
+      //@ts-ignore
       node.searchShow = true;
       node.isSearch = false;
     });
   }
 
-  splitAllProcess(allProcess: any[], splitMapData: any, list: any[]): void {
-    list.forEach((item: any) => {
+  splitAllProcess(allProcess: unknown[], splitMapData: unknown, list: unknown): void {
+    //@ts-ignore
+    list.forEach((item: unknown) => {
       allProcess.forEach((process) => {
+        //@ts-ignore
         if (item.select === '0') {
+          //@ts-ignore
           this.recursionChargeInitTree(splitMapData, process, item.name, item.type === 'symbol');
         } else {
+          //@ts-ignore
           this.recursionPruneInitTree(splitMapData, process, item.name, item.type === 'symbol');
         }
       });
+      //@ts-ignore
       if (!item.checked) {
+        //@ts-ignore
         this.resotreAllNode(splitMapData, [item.name]);
       }
     });
@@ -303,8 +321,8 @@ class MerageBeanDataSplit {
 export let merageBeanDataSplit = new MerageBeanDataSplit();
 
 export abstract class LogicHandler {
-  abstract handle(data: any): void;
-  queryData(eventId: string, queryName: string, sql: string, args: any): void {
+  abstract handle(data: unknown): void;
+  queryData(eventId: string, queryName: string, sql: string, args: unknown): void {
     self.postMessage({
       id: eventId,
       type: queryName,
@@ -331,7 +349,7 @@ export let setFileName = (path: string): string => {
   return path;
 };
 
-let pagination = (page: number, pageSize: number, source: Array<any>): any[] => {
+let pagination = (page: number, pageSize: number, source: Array<unknown>): unknown[] => {
   let offset = (page - 1) * pageSize;
   return offset + pageSize >= source.length
     ? source.slice(offset, source.length)
@@ -339,7 +357,7 @@ let pagination = (page: number, pageSize: number, source: Array<any>): any[] => 
 };
 
 const PAGE_SIZE: number = 50_0000;
-export let postMessage = (id: any, action: string, results: Array<any>, pageSize: number = PAGE_SIZE): void => {
+export let postMessage = (id: unknown, action: string, results: Array<unknown>, pageSize: number = PAGE_SIZE): void => {
   if (results.length > pageSize) {
     let pageCount = Math.ceil(results.length / pageSize);
     for (let i = 1; i <= pageCount; i++) {
@@ -380,7 +398,7 @@ export let translateJsonString = (str: string): string => {
     .replace(/\\/g, '\\\\');
 };
 
-export let convertJSON = (arrBuf: ArrayBuffer | Array<any>): any[] => {
+export let convertJSON = (arrBuf: ArrayBuffer | Array<unknown>): unknown[] => {
   if (arrBuf instanceof ArrayBuffer) {
     let string = dec.decode(arrBuf);
     let jsonArray = [];
@@ -398,8 +416,9 @@ export let convertJSON = (arrBuf: ArrayBuffer | Array<any>): any[] => {
       let columns = parse.columns;
       let values = parse.values;
       for (let i = 0; i < values.length; i++) {
-        let object: any = {};
+        let object = {};
         for (let j = 0; j < columns.length; j++) {
+          //@ts-ignore
           object[columns[j]] = values[i][j];
         }
         jsonArray.push(object);

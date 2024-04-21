@@ -145,7 +145,8 @@ export function enableVSync(press: boolean, ev: KeyboardEvent, handler?: Functio
 function ns2x(ns: number, width: number): number {
   let startNS = TraceRow.range?.startNS || 0;
   let endNS = TraceRow.range?.endNS || 0;
-  if (endNS === 0) {//@ts-ignore
+  if (endNS === 0) {
+    //@ts-ignore
     endNS = (window as unknown).totalNS;
   }
   let xWidth: number = ((ns - startNS) * width) / (endNS - startNS);

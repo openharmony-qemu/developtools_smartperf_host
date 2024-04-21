@@ -25,7 +25,7 @@ using namespace SysTuning::base;
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-TraceFileType GuessFileType(const uint8_t* data, size_t size)
+TraceFileType GuessFileType(const uint8_t *data, size_t size)
 {
     return TRACE_FILETYPE_UN_KNOW;
 }
@@ -43,7 +43,7 @@ void TraceStreamerSelector::InitFilter()
     sdkDataParser_ = std::move(std::make_unique<SDKDataParser>(traceDataCache_.get()));
 }
 
-MetaData* TraceStreamerSelector::GetMetaData()
+MetaData *TraceStreamerSelector::GetMetaData()
 {
     return traceDataCache_->GetMetaData();
 }
@@ -63,7 +63,7 @@ void TraceStreamerSelector::EnableMetaTable(bool enabled)
 }
 
 void TraceStreamerSelector::SetCleanMode(bool cleanMode) {}
-int32_t TraceStreamerSelector::ExportDatabase(const std::string& outputName) const
+int32_t TraceStreamerSelector::ExportDatabase(const std::string &outputName) const
 {
     return traceDataCache_->DemoExportDatabase(outputName);
 }
@@ -76,15 +76,15 @@ int32_t TraceStreamerSelector::SearchData()
 {
     return traceDataCache_->DemoSearchData();
 }
-int32_t TraceStreamerSelector::OperateDatabase(const std::string& sql)
+int32_t TraceStreamerSelector::OperateDatabase(const std::string &sql)
 {
     return traceDataCache_->DemoOperateDatabase(sql);
 }
-int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, DemoTraceDataDB::ResultCallBack resultCallBack)
+int32_t TraceStreamerSelector::SearchDatabase(const std::string &sql, DemoTraceDataDB::ResultCallBack resultCallBack)
 {
     return traceDataCache_->DemoSearchDatabase(sql, resultCallBack);
 }
-int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
+int32_t TraceStreamerSelector::SearchDatabase(const std::string &sql, uint8_t *out, int32_t outLen)
 {
     return traceDataCache_->DemoSearchDatabase(sql, out, outLen);
 }

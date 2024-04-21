@@ -82,7 +82,7 @@ export function clearMemoryCache(data: unknown, proc: Function) {
   (self as unknown as Worker).postMessage(
     {
       //@ts-ignore
-      id: data.id,//@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
       results: 'ok',
       len: 0,

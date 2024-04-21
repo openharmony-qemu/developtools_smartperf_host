@@ -46,8 +46,8 @@ using namespace TraceStdtype;
 class TraceDataCacheBase {
 public:
     TraceDataCacheBase();
-    TraceDataCacheBase(const TraceDataCacheBase&) = delete;
-    TraceDataCacheBase& operator=(const TraceDataCacheBase&) = delete;
+    TraceDataCacheBase(const TraceDataCacheBase &) = delete;
+    TraceDataCacheBase &operator=(const TraceDataCacheBase &) = delete;
     virtual ~TraceDataCacheBase() = default;
 
 public:
@@ -69,7 +69,7 @@ public:
     {
         metaData_.SetTraceDuration((traceEndTime_ - traceStartTime_) / SEC_TO_NS);
     }
-    uint64_t GetThreadStateValue(const std::string& status) const
+    uint64_t GetThreadStateValue(const std::string &status) const
     {
         if (threadStatus2Value_.count(status)) {
             return threadStatus2Value_.at(status);

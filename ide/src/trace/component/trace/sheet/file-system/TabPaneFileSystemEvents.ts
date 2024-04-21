@@ -51,13 +51,15 @@ export class TabPaneFileSystemEvents extends BaseElement {
     this.currentSelection = fsSysEventSelection;
     if (this.fsSysEventTbl) {
       // @ts-ignore
-      this.fsSysEventTbl.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 20 - 31}px`;
+      this.fsSysEventTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 20 - 31
+      }px`;
     }
     if (this.fsSysEventTblData) {
       // @ts-ignore
-      this.fsSysEventTblData.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 20 - 31}px`;
+      this.fsSysEventTblData.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 20 - 31
+      }px`;
     }
     this.filterEventType = '0';
     this.filterProcess = '0';
@@ -69,7 +71,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
     this.fsSysEventTblData!.recycleDataSource = [];
     if (fsEventParam) {
       this.fsSysEventLoadingList.push(1);
-      this.fsSysEventProgressEL!.loading = true;// @ts-ignore
+      this.fsSysEventProgressEL!.loading = true; // @ts-ignore
       this.loadingPage.style.visibility = 'visible';
       this.fsSysEventSource = [];
       procedurePool.submitWithName(
@@ -82,15 +84,16 @@ export class TabPaneFileSystemEvents extends BaseElement {
           tab: 'events',
         },
         undefined,
-        (res: unknown) => {// @ts-ignore
-          this.fsSysEventSource = this.fsSysEventSource.concat(res.data);// @ts-ignore
-          res.data = null;// @ts-ignore
+        (res: unknown) => {
+          // @ts-ignore
+          this.fsSysEventSource = this.fsSysEventSource.concat(res.data); // @ts-ignore
+          res.data = null; // @ts-ignore
           if (!res.isSending) {
             this.setProcessFilter();
             this.filterData();
             this.fsSysEventLoadingList.splice(0, 1);
             if (this.fsSysEventLoadingList.length === 0) {
-              this.fsSysEventProgressEL!.loading = false;// @ts-ignore
+              this.fsSysEventProgressEL!.loading = false; // @ts-ignore
               this.loadingPage.style.visibility = 'hidden';
             }
           }
@@ -112,10 +115,10 @@ export class TabPaneFileSystemEvents extends BaseElement {
     });
     this.fsSysEventFilter!.setSelectList(this.eventList, this.processList, '', '', this.pathList, '');
     if (this.filterProcess === '-1') {
-      this.filterProcess =
-        `${this.processList.indexOf(
-          // @ts-ignore
-          `${this.currentSelection?.fileSystemFsData.name}[${this.currentSelection?.fileSystemFsData.pid}]`)}`;
+      this.filterProcess = `${this.processList.indexOf(
+        // @ts-ignore
+        `${this.currentSelection?.fileSystemFsData.name}[${this.currentSelection?.fileSystemFsData.pid}]`
+      )}`;
     }
     this.fsSysEventFilter!.firstSelect = this.filterEventType;
     this.fsSysEventFilter!.secondSelect = this.filterProcess;
@@ -149,7 +152,7 @@ export class TabPaneFileSystemEvents extends BaseElement {
     this.fsSysEventTblData = this.shadowRoot?.querySelector<LitTable>('#tbr-filesystem-event');
     this.fsSysEventTbl!.addEventListener('row-click', (fsEventRowClick): void => {
       // @ts-ignore
-      let data = fsEventRowClick.detail.data as FileSysEvent;// @ts-ignore
+      let data = fsEventRowClick.detail.data as FileSysEvent; // @ts-ignore
       (data as unknown).isSelected = true;
       // @ts-ignore
       if ((fsEventRowClick.detail as unknown).callBack) {
@@ -161,7 +164,8 @@ export class TabPaneFileSystemEvents extends BaseElement {
         'fileSystem-queryStack',
         { callchainId: data.callchainId },
         undefined,
-        (res: unknown) => {// @ts-ignore
+        (res: unknown) => {
+          // @ts-ignore
           this.fsSysEventTblData!.recycleDataSource = res;
         }
       );
@@ -188,32 +192,37 @@ export class TabPaneFileSystemEvents extends BaseElement {
     });
   }
 
-  fromStastics(val: SelectionParam | unknown): void {// @ts-ignore
+  fromStastics(val: SelectionParam | unknown): void {
+    // @ts-ignore
     if (val.fileSystemFsData === undefined) {
       return;
-    }// @ts-ignore
+    } // @ts-ignore
     if (val.fileSystemFsData.title === 'All') {
       this.filterEventType = '0';
-      this.filterProcess = '0';// @ts-ignore
-    } else if (val.fileSystemFsData.pid === undefined) {// @ts-ignore
+      this.filterProcess = '0'; // @ts-ignore
+    } else if (val.fileSystemFsData.pid === undefined) {
+      // @ts-ignore
       this.filterEventType = `${val.fileSystemFsData.type + 1}`;
       this.filterProcess = '0';
-    } else {// @ts-ignore
+    } else {
+      // @ts-ignore
       this.filterEventType = `${val.fileSystemFsData.type + 1}`;
       this.filterProcess = '-1';
     }
     this.filterPath = '0';
     if (this.currentSelection === val) {
       if (this.filterProcess === '-1') {
-        this.filterProcess =// @ts-ignore
+        this.filterProcess =
+          // @ts-ignore
           `${this.processList?.indexOf(`${val.fileSystemFsData.name}[${val.fileSystemFsData.pid}]`)}`;
       }
       this.fsSysEventFilter!.firstSelect = this.filterEventType;
       this.fsSysEventFilter!.secondSelect = this.filterProcess;
       this.fsSysEventFilter!.thirdSelect = this.filterPath;
       this.filterData();
-    } else {// @ts-ignore
-      this.currentSelection = val;// @ts-ignore
+    } else {
+      // @ts-ignore
+      this.currentSelection = val; // @ts-ignore
       this.queryData(val);
     }
   }
@@ -224,16 +233,18 @@ export class TabPaneFileSystemEvents extends BaseElement {
       if (this.parentElement?.clientHeight !== 0) {
         if (this.fsSysEventTbl) {
           // @ts-ignore
-          this.fsSysEventTbl.shadowRoot.querySelector('.table').style.height =
-            `${this.parentElement!.clientHeight - 10 - 33}px`;
+          this.fsSysEventTbl.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 33
+          }px`;
           this.fsSysEventTbl.reMeauseHeight();
         }
         if (this.fsSysEventTblData) {
           // @ts-ignore
-          this.fsSysEventTblData.shadowRoot.querySelector('.table').style.height =
-            `${this.parentElement!.clientHeight - 10 - 33}px`;
+          this.fsSysEventTblData.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 33
+          }px`;
           this.fsSysEventTblData.reMeauseHeight();
-        }// @ts-ignore
+        } // @ts-ignore
         this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);

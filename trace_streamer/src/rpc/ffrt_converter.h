@@ -46,78 +46,78 @@ class FfrtConverter {
 public:
     FfrtConverter() = default;
     ~FfrtConverter() = default;
-    bool RecoverTraceAndGenerateNewFile(const std::string& ffrtFileName, std::ofstream& outFile);
+    bool RecoverTraceAndGenerateNewFile(const std::string &ffrtFileName, std::ofstream &outFile);
 
 private:
     using TypeFfrtPid = std::unordered_map<int, std::unordered_map<int, ffrtContent>>;
-    int ExtractProcessId(const std::string& log);
-    std::string ExtractTimeStr(const std::string& log);
-    std::string ExtractCpuId(const std::string& log);
-    TypeFfrtPid ClassifyLogsForFfrtWorker(vector<std::string>& results);
-    void FindFfrtProcessAndClassifyLogs(std::string& log,
+    int ExtractProcessId(const std::string &log);
+    std::string ExtractTimeStr(const std::string &log);
+    std::string ExtractCpuId(const std::string &log);
+    TypeFfrtPid ClassifyLogsForFfrtWorker(vector<std::string> &results);
+    void FindFfrtProcessAndClassifyLogs(std::string &log,
                                         size_t line,
-                                        std::unordered_map<int, std::vector<int>>& traceMap,
-                                        TypeFfrtPid& ffrtPidsMap);
-    void ClassifySchedSwitchLogs(std::string& log,
+                                        std::unordered_map<int, std::vector<int>> &traceMap,
+                                        TypeFfrtPid &ffrtPidsMap);
+    void ClassifySchedSwitchLogs(std::string &log,
                                  size_t line,
-                                 std::unordered_map<int, std::vector<int>>& traceMap,
-                                 FfrtConverter::TypeFfrtPid& ffrtPidsMap);
-    int FindTid(string& log);
-    std::string GetLabel(const std::string& mark);
-    void ConvertFfrtThreadToFfrtTask(vector<std::string>& results, TypeFfrtPid& ffrtPidsMap);
-    void ProcessMarkWithSchedSwitch(vector<std::string>& results,
-                                    const int& line,
-                                    const int& tid,
-                                    int& prio,
-                                    const std::string& mark);
-    bool ProcessMarkWithFFRT(vector<std::string>& results,
-                             const int& line,
-                             const std::string& threadName,
-                             int& prio,
-                             const int& tid,
-                             const int& pid,
-                             int32_t& gid,
-                             std::unordered_map<int, std::unordered_map<int, std::string>>& taskLabels,
-                             const std::string& mark);
-    bool DeleteRedundance(bool& switchInFakeLog,
-                          bool& switchOutFakeLog,
-                          const std::string& mark,
-                          const int& line,
-                          vector<std::string>& results);
-    std::string MakeBeginFakeLog(const std::string& mark,
+                                 std::unordered_map<int, std::vector<int>> &traceMap,
+                                 FfrtConverter::TypeFfrtPid &ffrtPidsMap);
+    int FindTid(string &log);
+    std::string GetLabel(const std::string &mark);
+    void ConvertFfrtThreadToFfrtTask(vector<std::string> &results, TypeFfrtPid &ffrtPidsMap);
+    void ProcessMarkWithSchedSwitch(vector<std::string> &results,
+                                    const int &line,
+                                    const int &tid,
+                                    int &prio,
+                                    const std::string &mark);
+    bool ProcessMarkWithFFRT(vector<std::string> &results,
+                             const int &line,
+                             const std::string &threadName,
+                             int &prio,
+                             const int &tid,
+                             const int &pid,
+                             int32_t &gid,
+                             std::unordered_map<int, std::unordered_map<int, std::string>> &taskLabels,
+                             const std::string &mark);
+    bool DeleteRedundance(bool &switchInFakeLog,
+                          bool &switchOutFakeLog,
+                          const std::string &mark,
+                          const int &line,
+                          vector<std::string> &results);
+    std::string MakeBeginFakeLog(const std::string &mark,
                                  const int pid,
-                                 const std::string& label,
+                                 const std::string &label,
                                  const long long gid,
                                  const int tid,
-                                 const std::string& threadName,
+                                 const std::string &threadName,
                                  const int prio);
-    std::string MakeEndFakeLog(const std::string& mark,
+    std::string MakeEndFakeLog(const std::string &mark,
                                const int pid,
-                               const std::string& label,
+                               const std::string &label,
                                const long long gid,
                                const int tid,
-                               const std::string& threadName,
+                               const std::string &threadName,
                                const int prio);
-    std::string ReplaceSchedSwitchLog(std::string& fakeLog,
-                                      const std::string& mark,
+    std::string ReplaceSchedSwitchLog(std::string &fakeLog,
+                                      const std::string &mark,
                                       const int pid,
-                                      const std::string& label,
+                                      const std::string &label,
                                       const long long gid,
                                       const int tid);
-    std::string ReplaceSchedWakeLog(std::string& fakeLog, const std::string& label, const int pid, const long long gid);
-    std::string ReplaceSchedBlockLog(std::string& fakeLog, const int pid, const long long gid);
-    std::string ReplaceTracingMarkLog(std::string& fakeLog,
-                                      const std::string& label,
+    std::string ReplaceSchedWakeLog(std::string &fakeLog, const std::string &label, const int pid, const long long gid);
+    std::string ReplaceSchedBlockLog(std::string &fakeLog, const int pid, const long long gid);
+    std::string ReplaceTracingMarkLog(std::string &fakeLog,
+                                      const std::string &label,
                                       const int pid,
                                       const long long gid);
-    std::string ConvertWorkerLogToTask(const std::string& mark,
+    std::string ConvertWorkerLogToTask(const std::string &mark,
                                        const int pid,
-                                       const std::string& label,
+                                       const std::string &label,
                                        const long long gid,
                                        const int tid);
     std::string GetTaskId(int pid, long long gid);
-    bool IsDigit(const std::string& str);
-    void CheckTraceMarker(vector<std::string>& lines);
+    bool IsDigit(const std::string &str);
+    void CheckTraceMarker(vector<std::string> &lines);
 
 private:
     const std::regex indexPattern_ = std::regex(R"(\(.+\)\s+\[\d)");

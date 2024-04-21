@@ -20,7 +20,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, INPUT_TIME, START_POINT, END_POINT, FRAME_INFO, NAME };
-AnimationTable::AnimationTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+AnimationTable::AnimationTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("input_time", "INTEGER"));
@@ -38,7 +38,7 @@ std::unique_ptr<TableBase::Cursor> AnimationTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-AnimationTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+AnimationTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstAnimation().Size())),
       animationObj_(dataCache->GetConstAnimation())
 {

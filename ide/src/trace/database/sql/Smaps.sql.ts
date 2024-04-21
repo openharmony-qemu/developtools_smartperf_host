@@ -47,7 +47,6 @@ SELECT (A.timestamp - B.start_ts) as startNS, sum(virtaul_size) *1024 as max_val
     { $rightNs: rightNs, $leftNs: leftNs, $dur: dur }
   );
 
-  
 export const getTabSmapsData = (leftNs: number, rightNs: number, dur: number): Promise<Array<Smaps>> =>
   query<Smaps>(
     'getTabSmapsData',

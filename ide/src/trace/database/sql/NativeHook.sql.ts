@@ -20,8 +20,8 @@ export const queryNativeHookResponseTypes = (
   rightNs: number,
   types: Array<string | number>,
   isStatistic: boolean
-)://@ts-ignore
- Promise<Array<unknown>> => {
+): //@ts-ignore
+Promise<Array<unknown>> => {
   const table = isStatistic ? 'native_hook_statistic' : 'native_hook';
   const tsKey = isStatistic ? 'ts' : 'start_ts';
   const type = isStatistic ? 'type' : 'event_type';
@@ -131,8 +131,12 @@ export const queryNativeHookStatisticsSubType = (
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookSubType = (leftNs: number, rightNs: number, ipid: number)://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryNativeHookSubType = (
+  leftNs: number,
+  rightNs: number,
+  ipid: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryNativeHookSubType',
     `select distinct(
@@ -150,8 +154,12 @@ where event_type = 'MmapEvent' and
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookStatisticSubType = (leftNs: number, rightNs: number, ipid: number)://@ts-ignore
- Promise<Array<unknown>> =>
+export const queryNativeHookStatisticSubType = (
+  leftNs: number,
+  rightNs: number,
+  ipid: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryNativeHookStatisticSubType',
     `SELECT DISTINCT

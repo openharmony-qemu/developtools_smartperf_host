@@ -48,7 +48,8 @@ export class TabCpuDetailsFrequency extends BaseElement {
     this.cpuDetailsFrequencyUsageTbl = this.shadowRoot!.querySelector<LitTable>('#fre-tb-cpu-usage');
     this.tabCpuDetailsThreads = this.shadowRoot!.querySelector<TabCpuDetailsThreads>('#tab-cpu-details-threads');
 
-    this.cpuDetailsFrequencyUsageTbl!.addEventListener('row-click', (evt: unknown): void => {//@ts-ignore
+    this.cpuDetailsFrequencyUsageTbl!.addEventListener('row-click', (evt: unknown): void => {
+      //@ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
@@ -58,17 +59,21 @@ export class TabCpuDetailsFrequency extends BaseElement {
       }
     });
 
-    this.cpuDetailsFrequencyUsageTbl!.addEventListener('column-click', (evt: unknown): void => {//@ts-ignore
-      this.cpuDetailsFrequencySortColumn = evt.detail.key;//@ts-ignore
+    this.cpuDetailsFrequencyUsageTbl!.addEventListener('column-click', (evt: unknown): void => {
+      //@ts-ignore
+      this.cpuDetailsFrequencySortColumn = evt.detail.key; //@ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.cpuDetailsFrequencyUsageTbl!.addEventListener('row-hover', (evt: unknown): void => {//@ts-ignore
-      if (evt.detail.data) {//@ts-ignore
+    this.cpuDetailsFrequencyUsageTbl!.addEventListener('row-hover', (evt: unknown): void => {
+      //@ts-ignore
+      if (evt.detail.data) {
+        //@ts-ignore
         let data = evt.detail.data;
-        data.isHover = true;//@ts-ignore
-        if ((evt.detail as unknown).callBack) {//@ts-ignore
+        data.isHover = true; //@ts-ignore
+        if ((evt.detail as unknown).callBack) {
+          //@ts-ignore
           (evt.detail as unknown).callBack(true);
         }
       }
@@ -88,7 +93,7 @@ export class TabCpuDetailsFrequency extends BaseElement {
     this.cpuDetailsFrequencyProgress!.loading = true;
     this.queryLoginWorker(`scheduling-${type}`, 'query Cpu Frequency Analysis Time:', (res) => {
       this.traceChange = true;
-      this.cpuDetailsFrequencyProgress!.loading = false;//@ts-ignore
+      this.cpuDetailsFrequencyProgress!.loading = false; //@ts-ignore
       this.cpuDetailsFrequencyData = res.get(cpu) || [];
       this.cpuDetailsFrequencyData = getDataNo(this.cpuDetailsFrequencyData);
       this.tableNoData!.noData = this.cpuDetailsFrequencyData.length === 0;
@@ -118,18 +123,30 @@ export class TabCpuDetailsFrequency extends BaseElement {
       },
       tip: (freObj): string => {
         return `<div>
-                                <div>frequency:${// @ts-ignore
-                                  freObj.obj.value}</div> 
-                                <div>min:${// @ts-ignore
-                                  freObj.obj.min}</div>
-                                <div>max:${// @ts-ignore
-                                  freObj.obj.max}</div>
-                                <div>average:${// @ts-ignore
-                                  freObj.obj.avg}</div>
-                                <div>duration:${// @ts-ignore
-                                  freObj.obj.sumTimeStr}</div>
-                                <div>ratio:${// @ts-ignore
-                                  freObj.obj.ratio}%</div>
+                                <div>frequency:${
+                                  // @ts-ignore
+                                  freObj.obj.value
+                                }</div> 
+                                <div>min:${
+                                  // @ts-ignore
+                                  freObj.obj.min
+                                }</div>
+                                <div>max:${
+                                  // @ts-ignore
+                                  freObj.obj.max
+                                }</div>
+                                <div>average:${
+                                  // @ts-ignore
+                                  freObj.obj.avg
+                                }</div>
+                                <div>duration:${
+                                  // @ts-ignore
+                                  freObj.obj.sumTimeStr
+                                }</div>
+                                <div>ratio:${
+                                  // @ts-ignore
+                                  freObj.obj.ratio
+                                }%</div>
                             </div>
                                 `;
       },
@@ -196,13 +213,17 @@ export class TabCpuDetailsFrequency extends BaseElement {
     function compare(cpuDetailsFrequencyProperty, sort, type) {
       return function (a: unknown, b: unknown) {
         if (type === 'number') {
-          // @ts-ignore
-          return sort === 2 ? parseFloat(b[cpuDetailsFrequencyProperty]) - parseFloat(a[cpuDetailsFrequencyProperty]) ://@ts-ignore
-            parseFloat(a[cpuDetailsFrequencyProperty]) - parseFloat(b[cpuDetailsFrequencyProperty]);
+          return sort === 2
+            ? // @ts-ignore
+              parseFloat(b[cpuDetailsFrequencyProperty]) - parseFloat(a[cpuDetailsFrequencyProperty])
+            : //@ts-ignore
+              parseFloat(a[cpuDetailsFrequencyProperty]) - parseFloat(b[cpuDetailsFrequencyProperty]);
         } else {
-          if (sort === 2) {//@ts-ignore
+          if (sort === 2) {
+            //@ts-ignore
             return b[cpuDetailsFrequencyProperty].toString().localeCompare(a[cpuDetailsFrequencyProperty].toString());
-          } else {//@ts-ignore
+          } else {
+            //@ts-ignore
             return a[cpuDetailsFrequencyProperty].toString().localeCompare(b[cpuDetailsFrequencyProperty].toString());
           }
         }
@@ -210,21 +231,27 @@ export class TabCpuDetailsFrequency extends BaseElement {
     }
 
     //@ts-ignore
-    if (detail.key === 'min') {//@ts-ignore
-      detail.key = 'minValue';//@ts-ignore
-      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number'));//@ts-ignore
-    } else if (detail.key === 'max') {//@ts-ignore
-      detail.key = 'maxValue';//@ts-ignore
-      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number'));//@ts-ignore
-    } else if (detail.key === 'avg') {//@ts-ignore
-      detail.key = 'avgValue';//@ts-ignore
-      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number'));//@ts-ignore
-    } else if (detail.key === 'sumTimeStr') {//@ts-ignore
-      detail.key = 'sum';//@ts-ignore
-      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number'));//@ts-ignore
-    } else if (detail.key === 'value' || detail.key === 'ratio' || detail.key === 'index') {//@ts-ignore
+    if (detail.key === 'min') {
+      //@ts-ignore
+      detail.key = 'minValue'; //@ts-ignore
+      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number')); //@ts-ignore
+    } else if (detail.key === 'max') {
+      //@ts-ignore
+      detail.key = 'maxValue'; //@ts-ignore
+      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number')); //@ts-ignore
+    } else if (detail.key === 'avg') {
+      //@ts-ignore
+      detail.key = 'avgValue'; //@ts-ignore
+      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number')); //@ts-ignore
+    } else if (detail.key === 'sumTimeStr') {
+      //@ts-ignore
+      detail.key = 'sum'; //@ts-ignore
+      this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number')); //@ts-ignore
+    } else if (detail.key === 'value' || detail.key === 'ratio' || detail.key === 'index') {
+      //@ts-ignore
       this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'number'));
-    } else {//@ts-ignore
+    } else {
+      //@ts-ignore
       this.cpuDetailsFrequencyData.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.cpuDetailsFrequencyUsageTbl!.recycleDataSource = this.cpuDetailsFrequencyData;

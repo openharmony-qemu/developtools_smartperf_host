@@ -18,7 +18,7 @@
 #include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderCpuDataParser::PbreaderCpuDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderCpuDataParser::PbreaderCpuDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
 }
@@ -49,7 +49,7 @@ void PbreaderCpuDataParser::Parse(ProtoReader::BytesView tracePacket, uint64_t t
 }
 void PbreaderCpuDataParser::Finish()
 {
-    auto cmp = [](const std::unique_ptr<TsCpuData>& a, const std::unique_ptr<TsCpuData>& b) { return a->ts_ < b->ts_; };
+    auto cmp = [](const std::unique_ptr<TsCpuData> &a, const std::unique_ptr<TsCpuData> &b) { return a->ts_ < b->ts_; };
     std::stable_sort(cpuData_.begin(), cpuData_.end(), cmp);
     bool firstTime = true;
     uint64_t lastTs = 0;
@@ -60,9 +60,14 @@ void PbreaderCpuDataParser::Finish()
             firstTime = false;
             continue;
         }
-        auto dur = newTimeStamp - lastTs;
-        traceDataCache_->GetCpuUsageInfoData()->AppendNewData(
-            newTimeStamp, dur, (*itor)->totalLoad_, (*itor)->userLoad_, (*itor)->sysLoad_, (*itor)->processNum_);
+        CpuUsageDetailRow row;
+        row.newTimeStamp = newTimeStamp;
+        row.dur = newTimeStamp - lastTs;
+        row.totalLoad = (*itor)->totalLoad_;
+        row.userLoad = (*itor)->userLoad_;
+        row.systemLoad = (*itor)->sysLoad_;
+        row.threads = (*itor)->processNum_;
+        traceDataCache_->GetCpuUsageInfoData()->AppendNewData(row);
         lastTs = newTimeStamp;
     }
     cpuData_.clear();

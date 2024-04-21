@@ -26,7 +26,7 @@ enum class Index : int32_t {
     CPU_PROFILER,
     CPU_PROFILER_INTERVAL
 };
-JsConfigTable::JsConfigTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+JsConfigTable::JsConfigTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("pid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "INTEGER"));
@@ -45,7 +45,7 @@ std::unique_ptr<TableBase::Cursor> JsConfigTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-JsConfigTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+JsConfigTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstJsConfigData().Size())),
       jsConfig_(dataCache->GetConstJsConfigData())
 {

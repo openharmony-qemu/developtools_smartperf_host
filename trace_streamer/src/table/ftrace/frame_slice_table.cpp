@@ -33,7 +33,7 @@ enum class Index : int32_t {
     DEPTH,
     FRAME_NO
 };
-FrameSliceTable::FrameSliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+FrameSliceTable::FrameSliceTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -54,14 +54,14 @@ FrameSliceTable::FrameSliceTable(const TraceDataCache* dataCache) : TableBase(da
 
 FrameSliceTable::~FrameSliceTable() {}
 
-void FrameSliceTable::FilterByConstraint(FilterConstraints& slicefc,
-                                         double& slicefilterCost,
+void FrameSliceTable::FilterByConstraint(FilterConstraints &slicefc,
+                                         double &slicefilterCost,
                                          size_t slicerowCount,
                                          uint32_t slicecurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& slicec = slicefc.GetConstraints()[slicecurrenti];
+    const auto &slicec = slicefc.GetConstraints()[slicecurrenti];
     switch (static_cast<Index>(slicec.col)) {
         case Index::ID: {
             if (CanFilterId(slicec.op, slicerowCount)) {
@@ -83,7 +83,7 @@ std::unique_ptr<TableBase::Cursor> FrameSliceTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-FrameSliceTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+FrameSliceTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstFrameSliceData().Size())),
       frameSliceObj_(dataCache->GetConstFrameSliceData())
 {
@@ -91,7 +91,7 @@ FrameSliceTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tabl
 
 FrameSliceTable::Cursor::~Cursor() {}
 
-int32_t FrameSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t FrameSliceTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -116,11 +116,11 @@ int32_t FrameSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
 
     return SQLITE_OK;
 }
-void FrameSliceTable::Cursor::HandleIndex(const FilterConstraints& fc, sqlite3_value** argv)
+void FrameSliceTable::Cursor::HandleIndex(const FilterConstraints &fc, sqlite3_value **argv)
 {
-    auto& cs = fc.GetConstraints();
+    auto &cs = fc.GetConstraints();
     for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+        const auto &c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -220,7 +220,7 @@ void FrameSliceTable::Cursor::HandleTypeColumns(int32_t column) const
             break;
     }
 }
-void FrameSliceTable::GetOrbyes(FilterConstraints& slicefc, EstimatedIndexInfo& sliceei)
+void FrameSliceTable::GetOrbyes(FilterConstraints &slicefc, EstimatedIndexInfo &sliceei)
 {
     auto sliceorderbys = slicefc.GetOrderBys();
     for (auto i = 0; i < sliceorderbys.size(); i++) {

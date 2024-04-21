@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, STR };
-DataDictTable::DataDictTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+DataDictTable::DataDictTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("data", "TEXT"));
@@ -28,14 +28,14 @@ DataDictTable::DataDictTable(const TraceDataCache* dataCache) : TableBase(dataCa
 
 DataDictTable::~DataDictTable() {}
 
-void DataDictTable::FilterByConstraint(FilterConstraints& dictfc,
-                                       double& dictfilterCost,
+void DataDictTable::FilterByConstraint(FilterConstraints &dictfc,
+                                       double &dictfilterCost,
                                        size_t dictrowCount,
                                        uint32_t dictcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& dictc = dictfc.GetConstraints()[dictcurrenti];
+    const auto &dictc = dictfc.GetConstraints()[dictcurrenti];
     switch (static_cast<Index>(dictc.col)) {
         case Index::ID: {
             if (CanFilterId(dictc.op, dictrowCount)) {
@@ -57,14 +57,14 @@ std::unique_ptr<TableBase::Cursor> DataDictTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-DataDictTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+DataDictTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->DataDictSize()))
 {
 }
 
 DataDictTable::Cursor::~Cursor() {}
 
-int32_t DataDictTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t DataDictTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -73,9 +73,9 @@ int32_t DataDictTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         return SQLITE_OK;
     }
 
-    auto& dataDictTabCs = fc.GetConstraints();
+    auto &dataDictTabCs = fc.GetConstraints();
     for (size_t i = 0; i < dataDictTabCs.size(); i++) {
-        const auto& c = dataDictTabCs[i];
+        const auto &c = dataDictTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -116,7 +116,7 @@ int32_t DataDictTable::Cursor::Column(int32_t col) const
     }
     return SQLITE_OK;
 }
-void DataDictTable::GetOrbyes(FilterConstraints& dictfc, EstimatedIndexInfo& dictei)
+void DataDictTable::GetOrbyes(FilterConstraints &dictfc, EstimatedIndexInfo &dictei)
 {
     auto dictorderbys = dictfc.GetOrderBys();
     for (auto i = 0; i < dictorderbys.size(); i++) {

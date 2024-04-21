@@ -16,9 +16,9 @@
 #include "proto_reader_help.h"
 namespace SysTuning {
 namespace ProtoReader {
-const uint8_t* VarIntDecode(const uint8_t* start, const uint8_t* end, uint64_t* varIntValue)
+const uint8_t *VarIntDecode(const uint8_t *start, const uint8_t *end, uint64_t *varIntValue)
 {
-    const uint8_t* cursor = start;
+    const uint8_t *cursor = start;
     uint64_t temp = 0;
     uint32_t shift = 0;
     do {

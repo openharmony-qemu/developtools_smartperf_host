@@ -27,15 +27,15 @@ public:
     using ResultCallBack = std::function<void(const std::string /* result */, int32_t, int32_t)>;
     using TraceRangeCallbackFunction = std::function<void(const std::string)>;
     // In order to bind HTTP, maintain a unified interface, even if some parameters are useless
-    bool DemoSqlOperate(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
-    bool DemoSqlQuery(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
-    bool DemoReset(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
+    bool DemoSqlOperate(const uint8_t *data, size_t len, ResultCallBack resultCallBack);
+    bool DemoSqlQuery(const uint8_t *data, size_t len, ResultCallBack resultCallBack);
+    bool DemoReset(const uint8_t *data, size_t len, ResultCallBack resultCallBack);
     void DemoCancelSqlQuery();
 
     // only for wasm, no callback
-    int32_t DemoWasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int32_t outLen);
-    int32_t DemoWasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
-    int32_t DemoWasmGetPluginNameWithCallback(const uint8_t* data, size_t len) const;
+    int32_t DemoWasmSqlQuery(const uint8_t *data, size_t len, uint8_t *out, int32_t outLen);
+    int32_t DemoWasmSqlQueryWithCallback(const uint8_t *data, size_t len, ResultCallBack callback) const;
+    int32_t DemoWasmGetPluginNameWithCallback(const uint8_t *data, size_t len) const;
 
 public:
     std::unique_ptr<TraceStreamerSelector> demoTs_ = std::make_unique<TraceStreamerSelector>();

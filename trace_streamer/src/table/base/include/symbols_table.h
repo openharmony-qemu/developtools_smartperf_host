@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class SymbolsTable : public TableBase {
 public:
-    explicit SymbolsTable(const TraceDataCache* dataCache);
+    explicit SymbolsTable(const TraceDataCache *dataCache);
     ~SymbolsTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,17 +32,17 @@ private:
     {
         return dataCache_->GetConstSymbolsData().Size();
     }
-    void GetOrbyes(FilterConstraints& symfc, EstimatedIndexInfo& symei) override;
-    void FilterByConstraint(FilterConstraints& symfc,
-                            double& symfilterCost,
+    void GetOrbyes(FilterConstraints &symfc, EstimatedIndexInfo &symei) override;
+    void FilterByConstraint(FilterConstraints &symfc,
+                            double &symfilterCost,
                             size_t symrowCount,
                             uint32_t symcurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t symbolsTabCol) const override;
     };
 };

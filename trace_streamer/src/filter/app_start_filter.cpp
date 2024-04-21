@@ -20,7 +20,7 @@ namespace TraceStreamer {
 constexpr uint32_t INVAILD_DATA = 2;
 constexpr uint32_t MIN_VECTOR_SIZE = 2;
 constexpr uint32_t VAILD_DATA_COUNT = 6;
-APPStartupFilter::APPStartupFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+APPStartupFilter::APPStartupFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : FilterBase(dataCache, filter), mAPPStartupData_(0)
 {
 }
@@ -33,11 +33,11 @@ void APPStartupFilter::FilterAllAPPStartupData()
     ParserSoInitalization();
 }
 
-bool APPStartupFilter::CaclRsDataByPid(appMap& mAPPStartupData)
+bool APPStartupFilter::CaclRsDataByPid(appMap &mAPPStartupData)
 {
     auto frameSliceData = traceDataCache_->GetFrameSliceData();
     auto sliceData = traceDataCache_->GetConstInternalSlicesData();
-    for (const auto& item : mAPPStartupData) {
+    for (const auto &item : mAPPStartupData) {
         if (item.second.empty()) {
             continue;
         }
@@ -76,10 +76,10 @@ bool APPStartupFilter::CaclRsDataByPid(appMap& mAPPStartupData)
     return false;
 }
 
-void APPStartupFilter::UpdatePidByNameIndex(const appMap& mAPPStartupData)
+void APPStartupFilter::UpdatePidByNameIndex(const appMap &mAPPStartupData)
 {
     auto threadData = traceDataCache_->GetConstThreadData();
-    for (const auto& item : mAPPStartupData) {
+    for (const auto &item : mAPPStartupData) {
         auto ipid = INVALID_UINT32;
         auto tid = INVALID_UINT32;
         if (item.second.count(UI_ABILITY_LAUNCHING)) {
@@ -93,14 +93,14 @@ void APPStartupFilter::UpdatePidByNameIndex(const appMap& mAPPStartupData)
                 }
             }
         }
-        for (const auto& itemSecond : item.second) {
+        for (const auto &itemSecond : item.second) {
             itemSecond.second->ipid_ = ipid;
             itemSecond.second->tid_ = tid;
         }
     }
 }
 
-void APPStartupFilter::AppendData(const appMap& mAPPStartupData)
+void APPStartupFilter::AppendData(const appMap &mAPPStartupData)
 {
     for (auto itor = mAPPStartupData.begin(); itor != mAPPStartupData.end(); ++itor) {
         if (!(itor->second).count(UI_ABILITY_LAUNCHING)) {
@@ -124,7 +124,7 @@ void APPStartupFilter::AppendData(const appMap& mAPPStartupData)
     }
 }
 
-bool APPStartupFilter::UpdateAPPStartupData(uint32_t row, const std::string& nameString, uint32_t startIndex)
+bool APPStartupFilter::UpdateAPPStartupData(uint32_t row, const std::string &nameString, uint32_t startIndex)
 {
     auto sliceData = traceDataCache_->GetConstInternalSlicesData();
     auto vNameString = SplitStringToVec(nameString, "##");
@@ -160,7 +160,7 @@ void APPStartupFilter::ParserAppStartup()
     auto sliceData = traceDataCache_->GetConstInternalSlicesData();
     std::string mainThreadName = "";
     for (auto i = 0; i < sliceData.NamesData().size(); i++) {
-        auto& nameString = traceDataCache_->GetDataFromDict(sliceData.NamesData()[i]);
+        auto &nameString = traceDataCache_->GetDataFromDict(sliceData.NamesData()[i]);
         auto callId = sliceData.CallIds()[i];
         auto startTime = sliceData.TimeStampData()[i];
         if (StartWith(nameString, procTouchCmd_)) {
@@ -180,7 +180,7 @@ void APPStartupFilter::ParserAppStartup()
             ProcForegroundData(i);
         }
     }
-    for (auto& item : mAPPStartupDataWithPid_) {
+    for (auto &item : mAPPStartupDataWithPid_) {
         UpdatePidByNameIndex(item.second);
         CaclRsDataByPid(item.second);
         AppendData(item.second);
@@ -188,7 +188,7 @@ void APPStartupFilter::ParserAppStartup()
     return;
 }
 
-bool APPStartupFilter::ProcAbilityLaunchData(const std::string& nameString, uint64_t raw)
+bool APPStartupFilter::ProcAbilityLaunchData(const std::string &nameString, uint64_t raw)
 {
     auto sliceData = traceDataCache_->GetConstInternalSlicesData();
     auto vNameString = SplitStringToVec(nameString, "##");
@@ -226,7 +226,7 @@ void APPStartupFilter::ProcForegroundData(uint64_t raw)
 }
 
 void APPStartupFilter::CalcDepthByTimeStamp(std::map<uint32_t, std::map<uint64_t, uint32_t>>::iterator it,
-                                            uint32_t& depth,
+                                            uint32_t &depth,
                                             uint64_t endTime,
                                             uint64_t startTime)
 {

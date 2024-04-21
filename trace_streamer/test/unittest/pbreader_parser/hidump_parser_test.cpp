@@ -61,7 +61,7 @@ HWTEST_F(HidumpParserTest, ParseEmptyHidumpInfo, TestSize.Level1)
     PbreaderHidumpParser htraceHidumpParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hidumpDatas = "";
     hidumpInfo.SerializeToString(&hidumpDatas);
-    ProtoReader::BytesView hidumpInfoData(reinterpret_cast<const uint8_t*>(hidumpDatas.data()), hidumpDatas.size());
+    ProtoReader::BytesView hidumpInfoData(reinterpret_cast<const uint8_t *>(hidumpDatas.data()), hidumpDatas.size());
     htraceHidumpParser.Parse(hidumpInfoData);
     auto size = stream_.traceDataCache_->GetConstHidumpData().Size();
     EXPECT_EQ(0, size);
@@ -83,7 +83,7 @@ HWTEST_F(HidumpParserTest, ParseLegalHidumpInfo, TestSize.Level1)
     timeSpec.set_tv_nsec(TV_NSEC);
     timeSpec.set_tv_sec(TV_SEC);
 
-    HidumpInfo* hidumpInfo = new HidumpInfo();
+    HidumpInfo *hidumpInfo = new HidumpInfo();
     auto fpsData = hidumpInfo->add_fps_event();
     fpsData->set_fps(FPS);
     fpsData->set_allocated_time(&timeSpec);
@@ -91,7 +91,7 @@ HWTEST_F(HidumpParserTest, ParseLegalHidumpInfo, TestSize.Level1)
     PbreaderHidumpParser htraceHidumpParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hidumpDatas = "";
     hidumpInfo->SerializeToString(&hidumpDatas);
-    ProtoReader::BytesView hidumpInfoData(reinterpret_cast<const uint8_t*>(hidumpDatas.data()), hidumpDatas.size());
+    ProtoReader::BytesView hidumpInfoData(reinterpret_cast<const uint8_t *>(hidumpDatas.data()), hidumpDatas.size());
     htraceHidumpParser.Parse(hidumpInfoData);
 
     auto Fps = stream_.traceDataCache_->GetConstHidumpData().Fpss()[0];
@@ -131,7 +131,7 @@ HWTEST_F(HidumpParserTest, ParseMultipleReasonableHidumpInfo, TestSize.Level1)
     timeSpecThird.set_tv_nsec(TV_NSEC_02);
     timeSpecThird.set_tv_sec(TV_SEC_02);
 
-    HidumpInfo* hidumpInfo = new HidumpInfo();
+    HidumpInfo *hidumpInfo = new HidumpInfo();
     auto fpsDataFirst = hidumpInfo->add_fps_event();
     fpsDataFirst->set_fps(FPS_00);
     fpsDataFirst->set_allocated_time(&timeSpecFirst);
@@ -147,7 +147,7 @@ HWTEST_F(HidumpParserTest, ParseMultipleReasonableHidumpInfo, TestSize.Level1)
     PbreaderHidumpParser htraceHidumpParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hidumpDatas = "";
     hidumpInfo->SerializeToString(&hidumpDatas);
-    ProtoReader::BytesView hidumpInfoData(reinterpret_cast<const uint8_t*>(hidumpDatas.data()), hidumpDatas.size());
+    ProtoReader::BytesView hidumpInfoData(reinterpret_cast<const uint8_t *>(hidumpDatas.data()), hidumpDatas.size());
     htraceHidumpParser.Parse(hidumpInfoData);
 
     auto Fps_00 = stream_.traceDataCache_->GetConstHidumpData().Fpss()[0];

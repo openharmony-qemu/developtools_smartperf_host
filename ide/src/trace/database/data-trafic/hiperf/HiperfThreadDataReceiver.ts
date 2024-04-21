@@ -11,79 +11,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from '../CommonArgs';
 import { TraficEnum } from '../utils/QueryEnum';
 
-export const chartHiperfThreadData10MSProtoSql = (args: unknown): string => {
+export const chartHiperfThreadData10MSProtoSql = (args: Args): string => {
   return `select startNS as startNS,
                  max(event_count)                                                         eventCount,
                  sample_count as sampleCount,
                  event_type_id as eventTypeId,
                  callchain_id as callchainId,
-                 (startNS / (${
-    // @ts-ignore
-    Math.floor((args.endNS - args.startNS) / args.width)
-    })) AS px
+                 (startNS / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
           from (SELECT sp.callchain_id,
-                       (sp.timestamp_trace - ${
-    // @ts-ignore
-    args.recordStartNS
-    }) / 10000000 * 10000000 startNS,
+                       (sp.timestamp_trace - ${args.recordStartNS}) / 10000000 * 10000000 startNS,
                        sum(event_count)                                                   event_count,
                        count(event_count)                                                 sample_count,
                        event_type_id
                 from perf_sample sp
-                where sp.thread_id = ${
-    // @ts-ignore
-    args.tid
-    }
-                  and sp.thread_id != 0 ${
-    // @ts-ignore
-    args.drawType >= 0 ? 'and event_type_id =' + args.drawType : ''
-    }
+                where sp.thread_id = ${args.tid}
+                  and sp.thread_id != 0 ${args.drawType >= 0 ? 'and event_type_id =' + args.drawType : ''}
                 group by startNS)
-          where startNS + 10000000 >= ${
-    // @ts-ignore
-    Math.floor(args.startNS)
-    }
-            and startNS <= ${
-    // @ts-ignore
-    Math.floor(args.endNS)
-    }
+          where startNS + 10000000 >= ${Math.floor(args.startNS)}
+            and startNS <= ${Math.floor(args.endNS)}
           group by px;`;
 };
-export const chartHiperfThreadDataProtoSql = (args: unknown): string => {
-  return `SELECT (sp.timestamp_trace - ${
-    // @ts-ignore
-    args.recordStartNS}
+export const chartHiperfThreadDataProtoSql = (args: Args): string => {
+  return `SELECT (sp.timestamp_trace - ${args.recordStartNS}
     )          startNS,
                  event_count as eventCount,
                  1 as sampleCount,
                  event_type_id as eventTypeId,
                  sp.callchain_id as callchainId,
-                 (sp.timestamp_trace - ${
-    // @ts-ignore
-    args.recordStartNS
-    }) / (${Math.floor(
-      // @ts-ignore
-      (args.endNS - args.startNS) / args.width
-    )}) AS px
+                 (sp.timestamp_trace - ${args.recordStartNS}) / (${Math.floor(
+    (args.endNS - args.startNS) / args.width
+  )}) AS px
           from perf_sample sp
-          where sp.thread_id = ${
-    // @ts-ignore
-    args.tid
-    }
-            and sp.thread_id != 0 ${
-    // @ts-ignore
-    args.drawType >= 0 ? 'and event_type_id =' + args.drawType : ''
-    }
-            and startNS >= ${
-    // @ts-ignore
-    Math.floor(args.startNS)
-    }
-            and startNS <= ${
-    // @ts-ignore
-    Math.floor(args.endNS)
-    }
+          where sp.thread_id = ${args.tid}
+            and sp.thread_id != 0 ${args.drawType >= 0 ? 'and event_type_id =' + args.drawType : ''}
+            and startNS >= ${Math.floor(args.startNS)}
+            and startNS <= ${Math.floor(args.endNS)}
           group by px;`;
 };
 
@@ -134,10 +99,10 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
     if (usage) {
       perfThread.height[i] =
         maxCpuCount === -1
-          // @ts-ignore
-          ? Math.floor((it.sampleCount / (10 / intervalPerf)) * 40)
-          // @ts-ignore
-          : Math.floor((it.sampleCount / (10 / intervalPerf) / maxCpuCount) * 40);
+          ? // @ts-ignore
+            Math.floor((it.sampleCount / (10 / intervalPerf)) * 40)
+          : // @ts-ignore
+            Math.floor((it.sampleCount / (10 / intervalPerf) / maxCpuCount) * 40);
     } else {
       // @ts-ignore
       perfThread.height[i] = Math.floor((it.eventCount / maxEventCount) * 40);
@@ -154,26 +119,26 @@ function postPerfThreadMessage(data: unknown, transfer: boolean, perfThread: Per
       action: data.action,
       results: transfer
         ? {
-          startNS: perfThread.startNS.buffer,
-          eventCount: perfThread.eventCount.buffer,
-          sampleCount: perfThread.sampleCount.buffer,
-          eventTypeId: perfThread.eventTypeId.buffer,
-          callChainId: perfThread.callChainId.buffer,
-          height: perfThread.height.buffer,
-        }
+            startNS: perfThread.startNS.buffer,
+            eventCount: perfThread.eventCount.buffer,
+            sampleCount: perfThread.sampleCount.buffer,
+            eventTypeId: perfThread.eventTypeId.buffer,
+            callChainId: perfThread.callChainId.buffer,
+            height: perfThread.height.buffer,
+          }
         : {},
       len: len,
       transfer: transfer,
     },
     transfer
       ? [
-        perfThread.startNS.buffer,
-        perfThread.eventCount.buffer,
-        perfThread.sampleCount.buffer,
-        perfThread.eventTypeId.buffer,
-        perfThread.callChainId.buffer,
-        perfThread.height.buffer,
-      ]
+          perfThread.startNS.buffer,
+          perfThread.eventCount.buffer,
+          perfThread.sampleCount.buffer,
+          perfThread.eventTypeId.buffer,
+          perfThread.callChainId.buffer,
+          perfThread.height.buffer,
+        ]
       : []
   );
 }

@@ -217,7 +217,7 @@ export class TabPaneDiskAbility extends BaseElement {
       writeOutSecStr: 'writeOutSecStr',
     };
     // @ts-ignore
-    let type = typeMapping[detail.key] || 'number';// @ts-ignore
+    let type = typeMapping[detail.key] || 'number'; // @ts-ignore
     this.diskAbilitySource.sort(this.compareDisk(detail.key, detail.sort, type));
     this.diskAbilityTbl!.recycleDataSource = this.diskAbilitySource;
   }

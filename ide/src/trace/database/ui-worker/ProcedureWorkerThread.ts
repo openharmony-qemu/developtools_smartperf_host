@@ -83,20 +83,21 @@ export class ThreadRender extends Render {
     threadReq.context.closePath();
   }
 
-  render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>): void {}
+  render(threadReq: RequestMessage, threadList: Array<unknown>, threadFilter: Array<unknown>): void {}
 }
 
 export function ThreadStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  threadClickHandler: any,
-  cpuClickHandler: any
+  threadClickHandler: unknown,
+  cpuClickHandler: unknown
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_THREAD && ThreadStruct.hoverThreadStruct) {
       sp.removeLinkLinesByBusinessType('thread');
       ThreadStruct.selectThreadStruct = ThreadStruct.hoverThreadStruct;
       sp.timerShaftEL?.drawTriangle(ThreadStruct.selectThreadStruct!.startTime || 0, 'inverted');
+      //@ts-ignore
       sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct, threadClickHandler, cpuClickHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());

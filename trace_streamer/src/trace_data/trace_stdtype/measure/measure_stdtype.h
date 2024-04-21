@@ -22,15 +22,15 @@ namespace TraceStdtype {
 class Filter : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewFilterData(std::string type, std::string name, uint64_t sourceArgSetId);
-    const std::deque<std::string>& NameData() const
+    const std::deque<std::string> &NameData() const
     {
         return nameDeque_;
     }
-    const std::deque<std::string>& TypeData() const
+    const std::deque<std::string> &TypeData() const
     {
         return typeDeque_;
     }
-    const std::deque<uint64_t>& SourceArgSetIdData() const
+    const std::deque<uint64_t> &SourceArgSetIdData() const
     {
         return sourceArgSetId_;
     }
@@ -55,20 +55,20 @@ private:
 class Measure : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendMeasureData(uint32_t type, uint64_t timeStamp, int64_t value, uint32_t filterId);
-    const std::deque<uint32_t>& TypeData() const
+    const std::deque<uint32_t> &TypeData() const
     {
         return typeDeque_;
     }
-    const std::deque<int64_t>& ValuesData() const
+    const std::deque<int64_t> &ValuesData() const
     {
         return valuesDeque_;
     }
-    const std::deque<uint64_t>& DursData() const
+    const std::deque<uint64_t> &DursData() const
     {
         return durDeque_;
     }
     void SetDur(uint32_t row, uint64_t timeStamp);
-    const std::deque<uint32_t>& FilterIdData() const
+    const std::deque<uint32_t> &FilterIdData() const
     {
         return filterIdDeque_;
     }
@@ -88,7 +88,7 @@ public:
     {
         EraseElements(timeStamps_, typeDeque_, durDeque_, valuesDeque_, filterIdDeque_);
     }
-    std::map<uint32_t, uint32_t>* GetFilterIdToRow()
+    std::map<uint32_t, uint32_t> *GetFilterIdToRow()
     {
         return &filterIdToRow_;
     }
@@ -109,8 +109,8 @@ private:
 class SysMeasureFilter : public CacheBase {
 public:
     size_t AppendNewFilter(uint64_t filterId, DataIndex type, DataIndex nameId);
-    const std::deque<DataIndex>& NamesData() const;
-    const std::deque<DataIndex>& TypesData() const;
+    const std::deque<DataIndex> &NamesData() const;
+    const std::deque<DataIndex> &TypesData() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -133,12 +133,12 @@ public:
         return Size() - 1;
     }
 
-    const std::deque<uint32_t>& CpuData() const
+    const std::deque<uint32_t> &CpuData() const
     {
         return cpu_;
     }
 
-    const std::deque<DataIndex>& NameData() const
+    const std::deque<DataIndex> &NameData() const
     {
         return name_;
     }
@@ -162,12 +162,12 @@ class ProcessMeasureFilter : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewFilter(uint64_t id, DataIndex name, uint32_t internalPid);
 
-    const std::deque<uint32_t>& UpidsData() const
+    const std::deque<uint32_t> &UpidsData() const
     {
         return internalPids_;
     }
 
-    const std::deque<DataIndex>& NamesData() const
+    const std::deque<DataIndex> &NamesData() const
     {
         return names_;
     }
@@ -191,16 +191,16 @@ class ClockEventData : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewFilter(uint64_t id, DataIndex type, DataIndex name, uint64_t cpu);
 
-    const std::deque<uint64_t>& CpusData() const
+    const std::deque<uint64_t> &CpusData() const
     {
         return cpus_;
     }
 
-    const std::deque<DataIndex>& NamesData() const
+    const std::deque<DataIndex> &NamesData() const
     {
         return names_;
     }
-    const std::deque<DataIndex>& TypesData() const
+    const std::deque<DataIndex> &TypesData() const
     {
         return types_;
     }
@@ -226,15 +226,15 @@ class ClkEventData : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewFilter(uint64_t id, uint64_t rate, DataIndex name, uint64_t cpu);
 
-    const std::deque<DataIndex>& NamesData() const
+    const std::deque<DataIndex> &NamesData() const
     {
         return names_;
     }
-    const std::deque<uint64_t>& RatesData() const
+    const std::deque<uint64_t> &RatesData() const
     {
         return rates_;
     }
-    const std::deque<uint64_t>& CpusData() const
+    const std::deque<uint64_t> &CpusData() const
     {
         return cpus_;
     }

@@ -26,7 +26,7 @@ constexpr uint16_t FPS_90 = 90;
 constexpr uint16_t FPS_100 = 100;
 constexpr uint16_t FPS_120 = 120;
 
-AnimationFilter::AnimationFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+AnimationFilter::AnimationFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : FilterBase(dataCache, filter)
 {
     dynamicFrame_ = traceDataCache_->GetDynamicFrame();
@@ -46,7 +46,7 @@ AnimationFilter::AnimationFilter(TraceDataCache* dataCache, const TraceStreamerF
         traceDataCache_->GetDataIndex("H:APP_LIST_FLING")};
 }
 AnimationFilter::~AnimationFilter() {}
-bool AnimationFilter::UpdateDeviceFps(const BytraceLine& line)
+bool AnimationFilter::UpdateDeviceFps(const BytraceLine &line)
 {
     generateVsyncCnt_++;
     if (generateFirstTime_ == INVALID_UINT64) {
@@ -68,7 +68,7 @@ bool AnimationFilter::UpdateDeviceFps(const BytraceLine& line)
     TS_LOGI("physical frame rate is %u", fps);
     return true;
 }
-bool AnimationFilter::UpdateDeviceScreenSize(const TracePoint& point)
+bool AnimationFilter::UpdateDeviceScreenSize(const TracePoint &point)
 {
     // get width and height, eg:funcArgs=(0, 0, 1344, 2772) Alpha: 1.00
     std::smatch matcheLine;
@@ -84,7 +84,7 @@ bool AnimationFilter::UpdateDeviceScreenSize(const TracePoint& point)
     TS_LOGI("physical width is %u, height is %u", width, height);
     return true;
 }
-bool AnimationFilter::UpdateDeviceInfoEvent(const TracePoint& point, const BytraceLine& line)
+bool AnimationFilter::UpdateDeviceInfoEvent(const TracePoint &point, const BytraceLine &line)
 {
     if (traceDataCache_->GetConstDeviceInfo().PhysicalFrameRate() == INVALID_UINT32 &&
         StartWith(point.name_, frameRateCmd_)) {
@@ -95,7 +95,7 @@ bool AnimationFilter::UpdateDeviceInfoEvent(const TracePoint& point, const Bytra
     }
     return false;
 }
-bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint& point, size_t callStackRow)
+bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint &point, size_t callStackRow)
 {
     if (StartWith(point.name_, frameCountCmd_)) {
         frameCountRows_.insert(callStackRow);
@@ -116,7 +116,7 @@ bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint& point, size_t cal
         return false;
     }
     // get the parent frame of data
-    const std::optional<uint64_t>& parentId = callStackSlice_->ParentIdData()[callStackRow];
+    const std::optional<uint64_t> &parentId = callStackSlice_->ParentIdData()[callStackRow];
     uint8_t depth = callStackSlice_->Depths()[callStackRow];
     TS_CHECK_TRUE_RET(depth >= DYNAMIC_STACK_DEPTH_MIN && parentId.has_value(), false);
     // get name 'xxx' from [xxx], eg:H:RSUniRender::Process:[xxx]
@@ -137,7 +137,7 @@ bool AnimationFilter::EndDynamicFrameEvent(uint64_t ts, size_t callStackRow)
     frameCountRows_.erase(iter);
     return true;
 }
-bool AnimationFilter::StartAnimationEvent(const BytraceLine& line, const TracePoint& point, size_t callStackRow)
+bool AnimationFilter::StartAnimationEvent(const BytraceLine &line, const TracePoint &point, size_t callStackRow)
 {
     auto infos = SplitStringToVec(point.name_, ", ");
     auto curAnimationIndex = traceDataCache_->GetDataIndex(infos.front());
@@ -145,7 +145,7 @@ bool AnimationFilter::StartAnimationEvent(const BytraceLine& line, const TracePo
     TS_CHECK_TRUE_RET(startEventIter != onAnimationStartEvents_.end() && infos.size() >= ANIMATION_INFO_NUM_MIN, false);
     auto nameIndex = traceDataCache_->GetDataIndex(infos[0] + ", " + infos[1]);
     // pop for '.': '1693876195576.'
-    auto& inputTimeStr = infos[inputTimeIndex_];
+    auto &inputTimeStr = infos[inputTimeIndex_];
     if (inputTimeStr.back() == '.') {
         inputTimeStr.pop_back();
     }
@@ -158,7 +158,7 @@ bool AnimationFilter::StartAnimationEvent(const BytraceLine& line, const TracePo
     realFrameRateFlagsDict_[traceDataCache_->GetDataIndex(point.name_)] = animationRow;
     return true;
 }
-bool AnimationFilter::FinishAnimationEvent(const BytraceLine& line, size_t callStackRow)
+bool AnimationFilter::FinishAnimationEvent(const BytraceLine &line, size_t callStackRow)
 {
     auto iter = animationCallIds_.find(callStackRow);
     if (iter == animationCallIds_.end()) {
@@ -212,11 +212,11 @@ void AnimationFilter::UpdateDynamicFrameInfo()
 {
     std::smatch matcheLine;
     std::regex framePixPattern(R"((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)\s+Alpha:\s+-*(\d+\.\d+))");
-    for (const auto& it : callStackRowMap_) {
+    for (const auto &it : callStackRowMap_) {
         // update dynamicFrame pix, eg:H:RSUniRender::Process:[xxx] (0, 0, 1344, 2772) Alpha: 1.00
         auto nameDataIndex = callStackSlice_->NamesData()[it.first];
-        const std::string& curStackName = traceDataCache_->GetDataFromDict(nameDataIndex);
-        const std::string& funcArgs = curStackName.substr(frameBeginCmd_.size());
+        const std::string &curStackName = traceDataCache_->GetDataFromDict(nameDataIndex);
+        const std::string &funcArgs = curStackName.substr(frameBeginCmd_.size());
         if (!std::regex_search(funcArgs, matcheLine, framePixPattern)) {
             TS_LOGE("Not support this event: %s\n", funcArgs.data());
             continue;

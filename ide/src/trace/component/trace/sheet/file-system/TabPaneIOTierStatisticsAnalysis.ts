@@ -85,12 +85,9 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.currentSelection = ioTierStatisticsAnalysisSelection;
     this.tierTitleEl!.textContent = '';
     this.tabName!.textContent = '';
-    this.range!.textContent =
-      `Selected range: ${ 
-        parseFloat(
-          ((ioTierStatisticsAnalysisSelection.rightNs - ioTierStatisticsAnalysisSelection.leftNs) / 1000000.0).toFixed(5)
-        ) 
-      }  ms`;
+    this.range!.textContent = `Selected range: ${parseFloat(
+      ((ioTierStatisticsAnalysisSelection.rightNs - ioTierStatisticsAnalysisSelection.leftNs) / 1000000.0).toFixed(5)
+    )}  ms`;
     this.progressEL!.loading = true;
     this.getIoTierDataByWorker(
       [
@@ -105,7 +102,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       ],
       (results: unknown[]) => {
         this.processData = JSON.parse(JSON.stringify(results));
-        this.disableCheckBox();// @ts-ignore
+        this.disableCheckBox(); // @ts-ignore
         this.getIOTierProcess(this.processData);
       }
     );
@@ -156,7 +153,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     addRowClickEventListener(this.ioTierTableThread!, this.ioTierThreadLevelClickEvent.bind(this));
     addRowClickEventListener(this.ioTierTableSo!, this.ioTierSoLevelClickEvent.bind(this));
   }
-  private disableCheckBox(): void {// @ts-ignore
+  private disableCheckBox(): void {
+    // @ts-ignore
     if (this.processData.length === 0) {
       this.hideProcessCheckBox?.setAttribute('disabled', 'disabled');
       this.hideThreadCheckBox?.setAttribute('disabled', 'disabled');
@@ -193,7 +191,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
           this.ioTierTableThread!,
           1,
           this.tierTableType!.recycleDataSource
-        );// @ts-ignore
+        ); // @ts-ignore
         this.getIOTierProcess(this.processData);
       }
     });
@@ -365,7 +363,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       radius: 1,
       label: {
         type: 'outer',
-      },// @ts-ignore
+      }, // @ts-ignore
       tip: this.getTip(),
       angleClick: (ioTierPieItem): void => {
         // @ts-ignore
@@ -399,7 +397,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   private ioTierProcessLevelClickEvent(it: unknown): void {
     this.reset(this.tierTableType!, true);
     this.showAssignLevel(this.tierTableType!, this.ioTierTableProcess!, 1, this.tierTableType!.recycleDataSource);
-    this.getIOTierType(it);// @ts-ignore
+    this.getIOTierType(it); // @ts-ignore
     this.processName = it.tableName;
     this.ioPieChart?.hideTip();
     this.tierTitleEl!.textContent = this.processName;
@@ -415,7 +413,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       label: {
         type: 'outer',
       },
-      tip: (obj): string => {// @ts-ignore
+      tip: (obj): string => {
+        // @ts-ignore
         return this.getIoTierTip(obj);
       },
       angleClick: (it): void => {
@@ -453,12 +452,12 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       this.reset(this.ioTierTableThread!, true);
       this.showAssignLevel(this.ioTierTableThread!, this.tierTableType!, 2, this.ioTierTableThread!.recycleDataSource);
       this.getIOTierThread(it);
-    }// @ts-ignore
+    } // @ts-ignore
     this.typeName = it.tableName;
     this.ioPieChart?.hideTip();
     let tierTitle = '';
     if (this.processName.length > 0) {
-      tierTitle += `${this.processName  } / `;
+      tierTitle += `${this.processName} / `;
     }
     if (this.typeName.length > 0) {
       tierTitle += this.typeName;
@@ -478,7 +477,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       label: {
         type: 'outer',
       },
-      tip: (obj): string => {// @ts-ignore
+      tip: (obj): string => {
+        // @ts-ignore
         return this.getIoTierTip(obj);
       },
       angleClick: (it): void => {
@@ -502,7 +502,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     };
     let title = '';
     if (this.processName.length > 0) {
-      title += `${this.processName  } / `;
+      title += `${this.processName} / `;
     }
     if (this.typeName.length > 0) {
       title += this.typeName;
@@ -529,15 +529,15 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   private ioTierThreadLevelClickEvent(it: unknown): void {
     this.reset(this.ioTierTableSo!, true);
     this.showAssignLevel(this.ioTierTableSo!, this.ioTierTableThread!, 3, this.ioTierTableSo!.recycleDataSource);
-    this.getIOTierSo(it);// @ts-ignore
+    this.getIOTierSo(it); // @ts-ignore
     this.threadName = it.tableName;
     this.ioPieChart?.hideTip();
     let title = '';
     if (this.processName.length > 0) {
-      title += `${this.processName  } / `;
+      title += `${this.processName} / `;
     }
     if (this.typeName.length > 0) {
-      title += `${this.typeName  } / `;
+      title += `${this.typeName} / `;
     }
     if (this.threadName.length > 0) {
       title += this.threadName;
@@ -559,12 +559,18 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       },
       tip: (ioTierObj): string => {
         return `<div>
-                    <div>Library:${// @ts-ignore
-                      ioTierObj.obj.tableName}</div>
-                    <div>Duration:${// @ts-ignore
-                      ioTierObj.obj.durFormat}</div>
-                    <div>Percent:${// @ts-ignore
-                      ioTierObj.obj.percent}%</div> 
+                    <div>Library:${
+                      // @ts-ignore
+                      ioTierObj.obj.tableName
+                    }</div>
+                    <div>Duration:${
+                      // @ts-ignore
+                      ioTierObj.obj.durFormat
+                    }</div>
+                    <div>Percent:${
+                      // @ts-ignore
+                      ioTierObj.obj.percent
+                    }%</div> 
                 </div>
             `;
       },
@@ -600,13 +606,13 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   private ioTierTitle(): void {
     let title = '';
     if (this.processName.length > 0) {
-      title += `${this.processName  } / `;
+      title += `${this.processName} / `;
     }
     if (this.typeName.length > 0) {
       if (this.hideThreadCheckBox?.checked) {
         title += this.typeName;
       } else {
-        title += `${this.typeName  } / `;
+        title += `${this.typeName} / `;
       }
     }
     if (this.threadName.length > 0) {
@@ -622,15 +628,16 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.ioPieChart?.hideTip();
     let title = '';
     if (this.processName.length > 0) {
-      title += `${this.processName  } / `;
+      title += `${this.processName} / `;
     }
     if (this.typeName.length > 0) {
-      title += `${this.typeName  } / `;
+      title += `${this.typeName} / `;
     }
     if (this.threadName.length > 0 && !this.hideThreadCheckBox!.checked) {
-      title += `${this.threadName  } / `;
-    }// @ts-ignore
-    if (it.tableName.length > 0) {// @ts-ignore
+      title += `${this.threadName} / `;
+    } // @ts-ignore
+    if (it.tableName.length > 0) {
+      // @ts-ignore
       title += it.tableName;
     }
     this.tierTitleEl!.textContent = title;
@@ -687,7 +694,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       if (this.ioSortColumn === 'tableName') {
         this.sortTableNameCase(ioTierCurrentTable, sortIoArr);
       } else if (this.ioSortColumn === 'durFormat' || this.ioSortColumn === 'percent') {
-        ioTierCurrentTable!.recycleDataSource = sortIoArr.sort((a, b): number => {// @ts-ignore
+        ioTierCurrentTable!.recycleDataSource = sortIoArr.sort((a, b): number => {
+          // @ts-ignore
           return this.ioSortType === 1 ? a.duration - b.duration : b.duration - a.duration;
         });
       }
@@ -714,17 +722,19 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
 
   private sortTableNameCase(ioTierCurrentTable: LitTable, sortIoArr: unknown[]): void {
     ioTierCurrentTable!.recycleDataSource = sortIoArr.sort((firstIOElement, secondIOElement): number => {
-      if (this.ioSortType === 1) {// @ts-ignore
+      if (this.ioSortType === 1) {
+        // @ts-ignore
         if (firstIOElement.tableName > secondIOElement.tableName) {
-          return 1;// @ts-ignore
+          return 1; // @ts-ignore
         } else if (firstIOElement.tableName === secondIOElement.tableName) {
           return 0;
         } else {
           return -1;
         }
-      } else {// @ts-ignore
+      } else {
+        // @ts-ignore
         if (secondIOElement.tableName > firstIOElement.tableName) {
-          return 1;// @ts-ignore
+          return 1; // @ts-ignore
         } else if (firstIOElement.tableName === secondIOElement.tableName) {
           return 0;
         } else {
@@ -734,7 +744,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     });
   }
 
-  private getIOTierProcess(result: Array<unknown>): void {// @ts-ignore
+  private getIOTierProcess(result: Array<unknown>): void {
+    // @ts-ignore
     if (!this.processData || this.processData.length === 0) {
       this.pidData = [];
       this.processStatisticsData = [];
@@ -743,13 +754,15 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     }
     let allDur = 0;
     let ioMap = new Map<string, Array<number | string>>();
-    for (let itemData of result) {// @ts-ignore
-      allDur += itemData.dur;// @ts-ignore
-      if (ioMap.has(itemData.pid)) {// @ts-ignore
+    for (let itemData of result) {
+      // @ts-ignore
+      allDur += itemData.dur; // @ts-ignore
+      if (ioMap.has(itemData.pid)) {
+        // @ts-ignore
         ioMap.get(itemData.pid)?.push(itemData);
       } else {
         let itemArray = [];
-        itemArray.push(itemData);// @ts-ignore
+        itemArray.push(itemData); // @ts-ignore
         ioMap.set(itemData.pid, itemArray);
       }
     }
@@ -757,15 +770,19 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     ioMap.forEach((value: Array<unknown>, key: string): void => {
       let ioPidDataDur = 0;
       let pName = '';
-      for (let item of value) {// @ts-ignore
-        if (item.processName && item.processName.length > 0) {// @ts-ignore
-          if (!item.processName.endsWith(`(${item.pid})`)) {// @ts-ignore
+      for (let item of value) {
+        // @ts-ignore
+        if (item.processName && item.processName.length > 0) {
+          // @ts-ignore
+          if (!item.processName.endsWith(`(${item.pid})`)) {
+            // @ts-ignore
             item.processName = `${item.processName}(${item.pid})`;
           }
-        } else {// @ts-ignore
+        } else {
+          // @ts-ignore
           item.processName = `Process(${item.pid})`;
-        }// @ts-ignore
-        pName = item.processName;// @ts-ignore
+        } // @ts-ignore
+        pName = item.processName; // @ts-ignore
         ioPidDataDur += item.dur;
       }
       this.pidData.push({
@@ -787,11 +804,12 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   private getIOTierType(item: unknown): void {
     this.progressEL!.loading = true;
     let ioTypeMap = new Map<number, Array<number | string>>();
-    let allDur = 0;// @ts-ignore
+    let allDur = 0; // @ts-ignore
     if (!this.processData || this.processData.length === 0) {
       return;
-    }// @ts-ignore
-    for (let processItem of this.processData) {// @ts-ignore
+    } // @ts-ignore
+    for (let processItem of this.processData) {
+      // @ts-ignore
       if (item && processItem.pid !== item.pid && !this.hideProcessCheckBox?.checked) {
         continue;
       }
@@ -807,12 +825,13 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.typeData = [];
     ioTypeMap.forEach((value: Array<unknown>, key: number): void => {
       let dur = 0;
-      for (let ioItem of value) {// @ts-ignore
+      for (let ioItem of value) {
+        // @ts-ignore
         dur += ioItem.dur;
       }
       const ioTypeData = {
-        tableName: this.typeIdToString(key),// @ts-ignore
-        pid: item === null ? value[0].pid : item.pid,// @ts-ignore
+        tableName: this.typeIdToString(key), // @ts-ignore
+        pid: item === null ? value[0].pid : item.pid, // @ts-ignore
         tid: item === null ? value[0].tid : item.tid,
         type: key,
         percent: ((dur / allDur) * 100).toFixed(2),
@@ -820,7 +839,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         duration: dur,
       };
       this.typeData.push(ioTypeData);
-    });// @ts-ignore
+    }); // @ts-ignore
     this.typeData.sort((a, b) => b.duration - a.duration);
     this.typeStatisticsData = this.totalDurationData(allDur);
     this.currentLevel = 1;
@@ -830,13 +849,13 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
 
   private getIOTierThread(item: unknown): void {
     this.progressEL!.loading = true;
-    let threadMap = new Map<string, Array<number | string>>();// @ts-ignore
-    let pid = item.pid;// @ts-ignore
+    let threadMap = new Map<string, Array<number | string>>(); // @ts-ignore
+    let pid = item.pid; // @ts-ignore
     let type = item.type;
-    let allDur = 0;// @ts-ignore
+    let allDur = 0; // @ts-ignore
     if (!this.processData || this.processData.length === 0) {
       return;
-    }// @ts-ignore
+    } // @ts-ignore
     for (let itemData of this.processData) {
       if (
         (!this.hideProcessCheckBox?.checked && itemData.pid !== pid) ||
@@ -854,7 +873,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         threadMap.set(itemData.tid, itemArray);
       }
     }
-    this.calculateThreadData(threadMap, item, allDur);// @ts-ignore
+    this.calculateThreadData(threadMap, item, allDur); // @ts-ignore
     this.threadData.sort((a, b) => b.duration - a.duration);
     this.threadStatisticsData = this.totalDurationData(allDur);
     this.currentLevel = 2;
@@ -867,15 +886,16 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     threadMap.forEach((value: Array<unknown>, key: string): void => {
       let dur = 0;
       let tName = '';
-      for (let item of value) {// @ts-ignore
-        dur += item.dur;// @ts-ignore
-        tName = item.threadName =
+      for (let item of value) {
         // @ts-ignore
-          item.threadName === null || item.threadName === undefined ?
+        dur += item.dur; // @ts-ignore
+        tName = item.threadName =
           // @ts-ignore
-            `Thread(${item.tid})` :
-            // @ts-ignore
-            `${item.threadName}(${item.tid})`;
+          item.threadName === null || item.threadName === undefined
+            ? // @ts-ignore
+              `Thread(${item.tid})`
+            : // @ts-ignore
+              `${item.threadName}(${item.tid})`;
       }
       const threadData = {
         tableName: tName,
@@ -895,10 +915,10 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   private getIOTierSo(item: unknown): void {
     this.progressEL!.loading = true;
     let allDur = 0;
-    let libMap = new Map<number, Array<number | string>>();// @ts-ignore
+    let libMap = new Map<number, Array<number | string>>(); // @ts-ignore
     if (!this.processData || this.processData.length === 0) {
       return;
-    }// @ts-ignore
+    } // @ts-ignore
     for (let processItemData of this.processData) {
       if (this.tierSoIsAccumulationData(item, processItemData)) {
         continue;
@@ -920,16 +940,20 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
 
   private tierSoIsAccumulationData(item: unknown, processItemData: unknown): boolean {
-    if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {// @ts-ignore
+    if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      // @ts-ignore
       return (
-        item &&// @ts-ignore
+        item && // @ts-ignore
         (processItemData.pid !== item.pid || processItemData.tid !== item.tid || processItemData.type !== item.type)
       );
-    } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {// @ts-ignore
+    } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      // @ts-ignore
       return item && (processItemData.pid !== item.pid || processItemData.type !== item.type);
-    } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {// @ts-ignore
+    } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      // @ts-ignore
       return (item && processItemData.tid !== item.tid) || processItemData.type !== item.type;
-    } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {// @ts-ignore
+    } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      // @ts-ignore
       return item && processItemData.type !== item.type;
     }
     return false;
@@ -940,11 +964,13 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     libMap.forEach((value: unknown[], key: number): void => {
       let dur = 0;
       let libName = '';
-      for (let item of value) {// @ts-ignore
+      for (let item of value) {
+        // @ts-ignore
         dur += item.dur;
-        if (key === null) {// @ts-ignore
+        if (key === null) {
+          // @ts-ignore
           item.libName = 'unknown';
-        }// @ts-ignore
+        } // @ts-ignore
         libName = item.libName;
       }
       let libPath = libName?.split('/');
@@ -952,7 +978,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         libName = libPath[libPath.length - 1];
       }
       const soData = {
-        tableName: libName,// @ts-ignore
+        tableName: libName, // @ts-ignore
         pid: item === null ? value[0].pid : item.pid,
         // @ts-ignore
         type: item === null ? value[0].type : item.type,
@@ -964,7 +990,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         duration: dur,
       };
       this.soData.push(soData);
-    });// @ts-ignore
+    }); // @ts-ignore
     this.soData.sort((a, b) => b.duration - a.duration);
   }
 
@@ -972,7 +998,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.progressEL!.loading = true;
     this.shadowRoot!.querySelector<HTMLDivElement>('.io-tier-subheading')!.textContent =
       'Statistic By Function AllDuration';
-      // @ts-ignore
+    // @ts-ignore
     let tid = item.tid;
     // @ts-ignore
     let pid = item.pid;
@@ -1024,7 +1050,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       radius: 1,
       label: {
         type: 'outer',
-      },// @ts-ignore
+      }, // @ts-ignore
       tip: this.getTip(),
       hoverHandler: (tierData): void => {
         if (tierData) {
@@ -1041,19 +1067,29 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     };
   }
 
-  private functionIsAccumulationData(processData: unknown, tid: number, pid: number, type: string, libId: number): boolean {
+  private functionIsAccumulationData(
+    processData: unknown,
+    tid: number,
+    pid: number,
+    type: string,
+    libId: number
+  ): boolean {
     if (!processData) {
       return false;
     }
     if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-      return (// @ts-ignore
+      return (
+        // @ts-ignore
         processData.pid !== pid || processData.tid !== tid || processData.type !== type || processData.libId !== libId
       );
-    } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {// @ts-ignore
+    } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      // @ts-ignore
       return processData.pid !== pid || processData.type !== type || processData.libId !== libId;
-    } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {// @ts-ignore
+    } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      // @ts-ignore
       return processData.tid !== tid || processData.type !== type || processData.libId !== libId;
-    } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {// @ts-ignore
+    } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      // @ts-ignore
       return processData.type !== type || processData.libId !== libId;
     }
     return false;
@@ -1064,7 +1100,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     symbolMap.forEach((symbolItems, key): void => {
       let dur = 0;
       let funSymbolName = '';
-      for (let symbolItem of symbolItems) {// @ts-ignore
+      for (let symbolItem of symbolItems) {
+        // @ts-ignore
         funSymbolName = symbolItem.symbolName;
         // @ts-ignore
         dur += symbolItem.dur;
@@ -1148,9 +1185,11 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         durFormat: 0,
       };
       for (let i = 0; i < res.length; i++) {
-        if (i < 19) {// @ts-ignore
+        if (i < 19) {
+          // @ts-ignore
           IOTierPieChartArr.push(res[i]);
-        } else {// @ts-ignore
+        } else {
+          // @ts-ignore
           other.duration += res[i].duration;
           // @ts-ignore
           other.durFormat = Utils.getProbablyTime(other.duration);

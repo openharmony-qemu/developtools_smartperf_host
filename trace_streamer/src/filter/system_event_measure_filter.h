@@ -31,9 +31,9 @@ enum SysEventType { E_SYS_MEMORY_FILTER, E_SYS_VIRTUAL_MEMORY_FILTER, E_SYS_EVEN
 
 class SystemEventMeasureFilter : private FilterBase {
 public:
-    SystemEventMeasureFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter, SysEventType);
-    SystemEventMeasureFilter(const SystemEventMeasureFilter&) = delete;
-    SystemEventMeasureFilter& operator=(const SystemEventMeasureFilter&) = delete;
+    SystemEventMeasureFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter, SysEventType);
+    SystemEventMeasureFilter(const SystemEventMeasureFilter &) = delete;
+    SystemEventMeasureFilter &operator=(const SystemEventMeasureFilter &) = delete;
     ~SystemEventMeasureFilter() override;
     void AppendNewMeasureData(DataIndex nameIndex, uint64_t timeStamp, int64_t value);
     uint32_t AppendNewMeasureFilter(DataIndex nameIndex);

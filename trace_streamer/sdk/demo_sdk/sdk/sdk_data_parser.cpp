@@ -32,7 +32,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-SDKDataParser::SDKDataParser(TraceDataCache* dataCache)
+SDKDataParser::SDKDataParser(TraceDataCache *dataCache)
     : traceDataCache_(dataCache), clockFilter_(std::make_unique<ClockFilter>())
 {
 }
@@ -61,7 +61,7 @@ int32_t SDKDataParser::GetJsonConfig(QueryResultCallbackFunction queryResultCall
     return 0;
 }
 
-int32_t SDKDataParser::ParserData(const uint8_t* data, int32_t len, int32_t componentId)
+int32_t SDKDataParser::ParserData(const uint8_t *data, int32_t len, int32_t componentId)
 {
     if (componentId == DATA_TYPE_CLOCK) {
         ParserClock(data, len);
@@ -71,15 +71,15 @@ int32_t SDKDataParser::ParserData(const uint8_t* data, int32_t len, int32_t comp
     return 0;
 }
 
-int32_t SDKDataParser::ParserClock(const uint8_t* data, int32_t len)
+int32_t SDKDataParser::ParserClock(const uint8_t *data, int32_t len)
 {
     return clockFilter_->InitSnapShotTimeRange(data, len);
 }
 
-int32_t SDKDataParser::SetTableName(const char* counterTableName,
-                                    const char* counterObjectTableName,
-                                    const char* sliceTableName,
-                                    const char* sliceObjectName)
+int32_t SDKDataParser::SetTableName(const char *counterTableName,
+                                    const char *counterObjectTableName,
+                                    const char *sliceTableName,
+                                    const char *sliceObjectName)
 {
     if (!g_isUseExternalModify) {
         counterTableName_ = counterTableName;
@@ -121,35 +121,35 @@ int32_t SDKDataParser::CreateTableByJson()
 }
 
 // 根据Json配置创建couter object表
-int32_t SDKDataParser::CreateCounterObjectTable(const std::string& tableName)
+int32_t SDKDataParser::CreateCounterObjectTable(const std::string &tableName)
 {
     DemoTableBase::TableDeclare<GpuCounterObjectTable>(*(traceDataCache_->demoDb_), traceDataCache_, tableName);
     return 0;
 }
 
 // 根据Json配置创建couter表
-int32_t SDKDataParser::CreateCounterTable(const std::string& tableName)
+int32_t SDKDataParser::CreateCounterTable(const std::string &tableName)
 {
     DemoTableBase::TableDeclare<GpuCounterTable>(*(traceDataCache_->demoDb_), traceDataCache_, tableName);
     return 0;
 }
 
 // 根据Json配置创建slice object表
-int32_t SDKDataParser::CreateSliceObjectTable(const std::string& tableName)
+int32_t SDKDataParser::CreateSliceObjectTable(const std::string &tableName)
 {
     DemoTableBase::TableDeclare<SliceObjectTable>(*(traceDataCache_->demoDb_), traceDataCache_, tableName);
     return 0;
 }
 
 // 根据Json配置创建slice表
-int32_t SDKDataParser::CreateSliceTable(const std::string& tableName)
+int32_t SDKDataParser::CreateSliceTable(const std::string &tableName)
 {
     DemoTableBase::TableDeclare<SliceTable>(*(traceDataCache_->demoDb_), traceDataCache_, tableName);
     return 0;
 }
 
 // Counter业务
-int32_t SDKDataParser::AppendCounterObject(int32_t counterId, const char* columnName)
+int32_t SDKDataParser::AppendCounterObject(int32_t counterId, const char *columnName)
 {
     traceDataCache_->GetGpuCounterObjectData()->AppendNewData(counterId, columnName);
     return 0;
@@ -164,7 +164,7 @@ int32_t SDKDataParser::AppendCounter(int32_t counterId, uint64_t ts, int32_t val
 }
 
 // Slice业务
-int32_t SDKDataParser::AppendSliceObject(int32_t sliceId, const char* columnName)
+int32_t SDKDataParser::AppendSliceObject(int32_t sliceId, const char *columnName)
 {
     traceDataCache_->GetSliceObjectData()->AppendNewData(sliceId, columnName);
     return 0;

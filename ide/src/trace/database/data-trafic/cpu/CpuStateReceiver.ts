@@ -14,82 +14,38 @@
 import { TraficEnum } from '../utils/QueryEnum';
 import { filterDataByGroup } from '../utils/DataFilter';
 import { cpuStateList } from '../utils/AllMemoryCache';
+import { Args } from '../CommonArgs';
 
-export const chartCpuStateDataSql = (args: unknown): string => {
+export const chartCpuStateDataSql = (args: Args): string => {
   return `
       select  (value) as value,
-              max(ifnull(dur, ${
-                // @ts-ignore
-                args.recordEndNS
-              } - A.ts))                                                 as dur,
-              (A.ts - ${
-                // @ts-ignore
-                args.recordStartNS
-              })                                                               as startTs,
-             ((A.ts - ${
-              // @ts-ignore
-              args.recordStartNS
-            }) / (${
-              // @ts-ignore
-              Math.floor((args.endNS - args.startNS) / args.width)
-            })) AS px
+              max(ifnull(dur, ${args.recordEndNS} - A.ts))                                                 as dur,
+              (A.ts - ${args.recordStartNS})                                                               as startTs,
+             ((A.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
       from measure A
-      where filter_id = ${
-        // @ts-ignore
-        args.filterId
-      }
-        and startTs + ifnull(dur, ${
-          // @ts-ignore
-          args.recordEndNS} - A.ts) >= ${Math.floor(args.startNS)
-          }
-        and startTs <= ${
-          // @ts-ignore
-          Math.floor(args.endNS)
-        }
+      where filter_id = ${args.filterId}
+        and startTs + ifnull(dur, ${args.recordEndNS} - A.ts) >= ${Math.floor(args.startNS)}
+        and startTs <= ${Math.floor(args.endNS)}
       group by px
       union
       select  max(value) as value,
-              (ifnull(dur, ${
-                // @ts-ignore
-                args.recordEndNS
-              } - A.ts))                                                 as dur,
-              (A.ts - ${
-                // @ts-ignore
-                args.recordStartNS
-              })                                                               as startTs,
-             ((A.ts - ${
-              // @ts-ignore
-              args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)
-            })) AS px
+              (ifnull(dur, ${args.recordEndNS} - A.ts))                                                 as dur,
+              (A.ts - ${args.recordStartNS})                                                               as startTs,
+             ((A.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
       from measure A
-      where filter_id = ${
-        // @ts-ignore
-        args.filterId
-      }
-        and startTs + ifnull(dur, ${
-          // @ts-ignore
-          args.recordEndNS} - A.ts) >= ${Math.floor(args.startNS)
-          }
-        and startTs <= ${
-          // @ts-ignore
-          Math.floor(args.endNS)
-        }
+      where filter_id = ${args.filterId}
+        and startTs + ifnull(dur, ${args.recordEndNS} - A.ts) >= ${Math.floor(args.startNS)}
+        and startTs <= ${Math.floor(args.endNS)}
       group by px
       ;`;
 };
 
-export const chartCpuStateDataSqlMem = (args: unknown): string => {
+export const chartCpuStateDataSqlMem = (args: Args): string => {
   return `
-   select (A.ts - ${
-    // @ts-ignore
-    args.recordStartNS}) as startTs,ifnull(dur,${args.recordEndNS
-    } - A.ts) dur,
+   select (A.ts - ${args.recordStartNS}) as startTs,ifnull(dur,${args.recordEndNS} - A.ts) dur,
             value
         from measure A
-        where filter_id = ${
-          // @ts-ignore
-          args.filterId
-        };
+        where filter_id = ${args.filterId};
       `;
 };
 

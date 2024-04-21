@@ -25,9 +25,9 @@ namespace SysTuning {
 namespace TraceStreamer {
 class IrqFilter : private FilterBase {
 public:
-    IrqFilter(TraceDataCache*, const TraceStreamerFilters*);
-    IrqFilter(const IrqFilter&) = delete;
-    IrqFilter& operator=(const IrqFilter&) = delete;
+    IrqFilter(TraceDataCache *, const TraceStreamerFilters *);
+    IrqFilter(const IrqFilter &) = delete;
+    IrqFilter &operator=(const IrqFilter &) = delete;
     ~IrqFilter() override;
 
 public:

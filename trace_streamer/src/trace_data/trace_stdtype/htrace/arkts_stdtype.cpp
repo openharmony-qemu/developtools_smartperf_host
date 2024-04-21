@@ -30,24 +30,24 @@ size_t JsHeapFiles::AppendNewData(uint32_t id,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsHeapFiles::IDs() const
+const std::deque<uint32_t> &JsHeapFiles::IDs() const
 {
     return fileIds_;
 }
-const std::deque<std::string>& JsHeapFiles::FilePaths() const
+const std::deque<std::string> &JsHeapFiles::FilePaths() const
 {
     return filePaths_;
 }
-const std::deque<uint64_t>& JsHeapFiles::StartTimes() const
+const std::deque<uint64_t> &JsHeapFiles::StartTimes() const
 {
     return startTimes_;
 }
-const std::deque<uint64_t>& JsHeapFiles::EndTimes() const
+const std::deque<uint64_t> &JsHeapFiles::EndTimes() const
 {
     return endTimes_;
 }
 
-const std::deque<uint64_t>& JsHeapFiles::SelfSizeCount() const
+const std::deque<uint64_t> &JsHeapFiles::SelfSizeCount() const
 {
     return selfSizeCount_;
 }
@@ -70,31 +70,31 @@ size_t JsHeapEdges::AppendNewData(uint32_t fileId,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsHeapEdges::FileIds() const
+const std::deque<uint32_t> &JsHeapEdges::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<uint32_t>& JsHeapEdges::EdgeIndexs() const
+const std::deque<uint32_t> &JsHeapEdges::EdgeIndexs() const
 {
     return edgeIndexs_;
 }
-const std::deque<uint32_t>& JsHeapEdges::Types() const
+const std::deque<uint32_t> &JsHeapEdges::Types() const
 {
     return types_;
 }
-const std::deque<uint32_t>& JsHeapEdges::NameOrIndexs() const
+const std::deque<uint32_t> &JsHeapEdges::NameOrIndexs() const
 {
     return nameOrIndexs_;
 }
-const std::deque<uint32_t>& JsHeapEdges::ToNodes() const
+const std::deque<uint32_t> &JsHeapEdges::ToNodes() const
 {
     return toNodes_;
 }
-const std::deque<uint32_t>& JsHeapEdges::FromNodeIds() const
+const std::deque<uint32_t> &JsHeapEdges::FromNodeIds() const
 {
     return fromNodeIds_;
 }
-const std::deque<uint32_t>& JsHeapEdges::ToNodeIds() const
+const std::deque<uint32_t> &JsHeapEdges::ToNodeIds() const
 {
     return toNodeIds_;
 }
@@ -113,23 +113,23 @@ size_t JsHeapInfo::AppendNewData(uint32_t fileId,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsHeapInfo::FileIds() const
+const std::deque<uint32_t> &JsHeapInfo::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<std::string>& JsHeapInfo::Keys() const
+const std::deque<std::string> &JsHeapInfo::Keys() const
 {
     return keys_;
 }
-const std::deque<uint32_t>& JsHeapInfo::Types() const
+const std::deque<uint32_t> &JsHeapInfo::Types() const
 {
     return types_;
 }
-const std::deque<int32_t>& JsHeapInfo::IntValues() const
+const std::deque<int32_t> &JsHeapInfo::IntValues() const
 {
     return intValues_;
 }
-const std::deque<std::string>& JsHeapInfo::StrValues() const
+const std::deque<std::string> &JsHeapInfo::StrValues() const
 {
     return strValues_;
 }
@@ -148,23 +148,23 @@ size_t JsHeapLocation::AppendNewData(uint32_t fileId,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsHeapLocation::FileIds() const
+const std::deque<uint32_t> &JsHeapLocation::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<uint32_t>& JsHeapLocation::ObjectIndexs() const
+const std::deque<uint32_t> &JsHeapLocation::ObjectIndexs() const
 {
     return objectIndexs_;
 }
-const std::deque<uint32_t>& JsHeapLocation::ScriptIds() const
+const std::deque<uint32_t> &JsHeapLocation::ScriptIds() const
 {
     return scriptIds_;
 }
-const std::deque<uint32_t>& JsHeapLocation::Lines() const
+const std::deque<uint32_t> &JsHeapLocation::Lines() const
 {
     return lines_;
 }
-const std::deque<uint32_t>& JsHeapLocation::Columns() const
+const std::deque<uint32_t> &JsHeapLocation::Columns() const
 {
     return columns_;
 }
@@ -191,39 +191,39 @@ size_t JsHeapNodes::AppendNewData(uint32_t fileId,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsHeapNodes::FileIds() const
+const std::deque<uint32_t> &JsHeapNodes::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<uint32_t>& JsHeapNodes::NodeIndexs() const
+const std::deque<uint32_t> &JsHeapNodes::NodeIndexs() const
 {
     return nodeIndexs_;
 }
-const std::deque<uint32_t>& JsHeapNodes::Types() const
+const std::deque<uint32_t> &JsHeapNodes::Types() const
 {
     return types_;
 }
-const std::deque<uint32_t>& JsHeapNodes::Names() const
+const std::deque<uint32_t> &JsHeapNodes::Names() const
 {
     return names_;
 }
-const std::deque<uint32_t>& JsHeapNodes::NodeIds() const
+const std::deque<uint32_t> &JsHeapNodes::NodeIds() const
 {
     return nodeIds_;
 }
-const std::deque<uint32_t>& JsHeapNodes::SelfSizes() const
+const std::deque<uint32_t> &JsHeapNodes::SelfSizes() const
 {
     return selfSizes_;
 }
-const std::deque<uint32_t>& JsHeapNodes::EdgeCounts() const
+const std::deque<uint32_t> &JsHeapNodes::EdgeCounts() const
 {
     return edgeCounts_;
 }
-const std::deque<uint32_t>& JsHeapNodes::TraceNodeIds() const
+const std::deque<uint32_t> &JsHeapNodes::TraceNodeIds() const
 {
     return traceNodeIds_;
 }
-const std::deque<uint32_t>& JsHeapNodes::DetachedNess() const
+const std::deque<uint32_t> &JsHeapNodes::DetachedNess() const
 {
     return detachedNess_;
 }
@@ -236,15 +236,15 @@ size_t JsHeapSample::AppendNewData(uint32_t fileId, uint64_t timeStampUs, uint32
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsHeapSample::FileIds() const
+const std::deque<uint32_t> &JsHeapSample::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<uint64_t>& JsHeapSample::TimeStampUs() const
+const std::deque<uint64_t> &JsHeapSample::TimeStampUs() const
 {
     return timeStampUs_;
 }
-const std::deque<uint32_t>& JsHeapSample::LastAssignedIds() const
+const std::deque<uint32_t> &JsHeapSample::LastAssignedIds() const
 {
     return lastAssignedIds_;
 }
@@ -257,15 +257,15 @@ size_t JsHeapString::AppendNewData(uint32_t fileId, uint32_t fileIndex, std::str
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsHeapString::FileIds() const
+const std::deque<uint32_t> &JsHeapString::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<uint64_t>& JsHeapString::FileIndexs() const
+const std::deque<uint64_t> &JsHeapString::FileIndexs() const
 {
     return fileIndexs_;
 }
-const std::deque<std::string>& JsHeapString::Strings() const
+const std::deque<std::string> &JsHeapString::Strings() const
 {
     return strings_;
 }
@@ -290,35 +290,35 @@ size_t JsHeapTraceFuncInfo::AppendNewData(uint32_t fileId,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsHeapTraceFuncInfo::FileIds() const
+const std::deque<uint32_t> &JsHeapTraceFuncInfo::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<uint32_t>& JsHeapTraceFuncInfo::FunctionIndexs() const
+const std::deque<uint32_t> &JsHeapTraceFuncInfo::FunctionIndexs() const
 {
     return functionIndexs_;
 }
-const std::deque<uint32_t>& JsHeapTraceFuncInfo::FunctionIds() const
+const std::deque<uint32_t> &JsHeapTraceFuncInfo::FunctionIds() const
 {
     return functionIds_;
 }
-const std::deque<uint32_t>& JsHeapTraceFuncInfo::Names() const
+const std::deque<uint32_t> &JsHeapTraceFuncInfo::Names() const
 {
     return names_;
 }
-const std::deque<uint32_t>& JsHeapTraceFuncInfo::ScriptNames() const
+const std::deque<uint32_t> &JsHeapTraceFuncInfo::ScriptNames() const
 {
     return scriptNames_;
 }
-const std::deque<uint32_t>& JsHeapTraceFuncInfo::ScriptIds() const
+const std::deque<uint32_t> &JsHeapTraceFuncInfo::ScriptIds() const
 {
     return scriptIds_;
 }
-const std::deque<uint32_t>& JsHeapTraceFuncInfo::Lines() const
+const std::deque<uint32_t> &JsHeapTraceFuncInfo::Lines() const
 {
     return lines_;
 }
-const std::deque<uint32_t>& JsHeapTraceFuncInfo::Columns() const
+const std::deque<uint32_t> &JsHeapTraceFuncInfo::Columns() const
 {
     return columns_;
 }
@@ -339,27 +339,27 @@ size_t JsHeapTraceNode::AppendNewData(uint32_t fileId,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsHeapTraceNode::FileIds() const
+const std::deque<uint32_t> &JsHeapTraceNode::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<uint32_t>& JsHeapTraceNode::TraceNodeIDs() const
+const std::deque<uint32_t> &JsHeapTraceNode::TraceNodeIDs() const
 {
     return traceNodeIds_;
 }
-const std::deque<uint32_t>& JsHeapTraceNode::FunctionInfoIndexs() const
+const std::deque<uint32_t> &JsHeapTraceNode::FunctionInfoIndexs() const
 {
     return functionInfoIndexs_;
 }
-const std::deque<uint32_t>& JsHeapTraceNode::Counts() const
+const std::deque<uint32_t> &JsHeapTraceNode::Counts() const
 {
     return counts_;
 }
-const std::deque<uint32_t>& JsHeapTraceNode::NodeSizes() const
+const std::deque<uint32_t> &JsHeapTraceNode::NodeSizes() const
 {
     return sizes_;
 }
-const std::deque<int32_t>& JsHeapTraceNode::ParentIds() const
+const std::deque<int32_t> &JsHeapTraceNode::ParentIds() const
 {
     return parentIds_;
 }
@@ -387,39 +387,39 @@ size_t JsCpuProfilerNode::AppendNewData(uint32_t functionId,
     return Size() - 1;
 }
 
-const std::deque<uint32_t>& JsCpuProfilerNode::FunctionIds() const
+const std::deque<uint32_t> &JsCpuProfilerNode::FunctionIds() const
 {
     return functionIds_;
 }
-const std::deque<uint32_t>& JsCpuProfilerNode::FunctionNames() const
+const std::deque<uint32_t> &JsCpuProfilerNode::FunctionNames() const
 {
     return functionNames_;
 }
-const std::deque<std::string>& JsCpuProfilerNode::ScriptIds() const
+const std::deque<std::string> &JsCpuProfilerNode::ScriptIds() const
 {
     return scriptIds_;
 }
-const std::deque<uint32_t>& JsCpuProfilerNode::Urls() const
+const std::deque<uint32_t> &JsCpuProfilerNode::Urls() const
 {
     return urls_;
 }
-const std::deque<uint32_t>& JsCpuProfilerNode::LineNumbers() const
+const std::deque<uint32_t> &JsCpuProfilerNode::LineNumbers() const
 {
     return lineNumbers_;
 }
-const std::deque<int32_t>& JsCpuProfilerNode::ColumnNumbers() const
+const std::deque<int32_t> &JsCpuProfilerNode::ColumnNumbers() const
 {
     return columnNumbers_;
 }
-const std::deque<int32_t>& JsCpuProfilerNode::HitCounts() const
+const std::deque<int32_t> &JsCpuProfilerNode::HitCounts() const
 {
     return hitCounts_;
 }
-const std::deque<std::string>& JsCpuProfilerNode::Children() const
+const std::deque<std::string> &JsCpuProfilerNode::Children() const
 {
     return children_;
 }
-const std::deque<uint32_t>& JsCpuProfilerNode::Parents() const
+const std::deque<uint32_t> &JsCpuProfilerNode::Parents() const
 {
     return parents_;
 }
@@ -433,19 +433,19 @@ size_t JsCpuProfilerSample::AppendNewData(uint32_t functionId, uint64_t startTim
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsCpuProfilerSample::FunctionIds() const
+const std::deque<uint32_t> &JsCpuProfilerSample::FunctionIds() const
 {
     return functionIds_;
 }
-const std::deque<uint64_t>& JsCpuProfilerSample::StartTimes() const
+const std::deque<uint64_t> &JsCpuProfilerSample::StartTimes() const
 {
     return startTimes_;
 }
-const std::deque<uint64_t>& JsCpuProfilerSample::EndTimes() const
+const std::deque<uint64_t> &JsCpuProfilerSample::EndTimes() const
 {
     return endTimes_;
 }
-const std::deque<uint64_t>& JsCpuProfilerSample::Durs() const
+const std::deque<uint64_t> &JsCpuProfilerSample::Durs() const
 {
     return durs_;
 }
@@ -468,31 +468,31 @@ size_t JsConfig::AppendNewData(uint32_t pid,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& JsConfig::Pids() const
+const std::deque<uint32_t> &JsConfig::Pids() const
 {
     return pids_;
 }
-const std::deque<uint64_t>& JsConfig::Types() const
+const std::deque<uint64_t> &JsConfig::Types() const
 {
     return types_;
 }
-const std::deque<uint32_t>& JsConfig::Intervals() const
+const std::deque<uint32_t> &JsConfig::Intervals() const
 {
     return intervals_;
 }
-const std::deque<uint32_t>& JsConfig::CaptureNumericValue() const
+const std::deque<uint32_t> &JsConfig::CaptureNumericValue() const
 {
     return captureNumericValues_;
 }
-const std::deque<uint32_t>& JsConfig::TrackAllocations() const
+const std::deque<uint32_t> &JsConfig::TrackAllocations() const
 {
     return trackAllocations_;
 }
-const std::deque<uint32_t>& JsConfig::CpuProfiler() const
+const std::deque<uint32_t> &JsConfig::CpuProfiler() const
 {
     return cpuProfilers_;
 }
-const std::deque<uint32_t>& JsConfig::CpuProfilerInterval() const
+const std::deque<uint32_t> &JsConfig::CpuProfilerInterval() const
 {
     return cpuProfilerIntervals_;
 }

@@ -47,7 +47,7 @@ public:
         fieldFormats_.push_back(fieldFormat);
     }
 
-    void AppendString(const std::string& str)
+    void AppendString(const std::string &str)
     {
         size_t offset = fieldBuffer_.size();
         fieldBuffer_.resize(fieldBuffer_.size() + str.size());

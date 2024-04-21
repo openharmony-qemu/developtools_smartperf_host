@@ -140,7 +140,7 @@ export class LitMainMenuGroup extends BaseElement {
     }
   }
 
-  get radius():boolean {
+  get radius(): boolean {
     return this.hasAttribute('radius');
   }
 

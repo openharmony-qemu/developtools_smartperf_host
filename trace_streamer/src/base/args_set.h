@@ -25,7 +25,7 @@ class ArgsSet {
 public:
     ArgsSet() {}
     ~ArgsSet() {}
-    ArgsSet& operator=(const ArgsSet& other)
+    ArgsSet &operator=(const ArgsSet &other)
     {
         this->valuesMap_ = other.valuesMap_;
         this->argSetId_ = other.argSetId_;

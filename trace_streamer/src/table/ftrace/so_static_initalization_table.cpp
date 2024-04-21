@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, IPID, TID, CALL_ID, START_TIME, END_TIME, SO_NAME, DEPTH };
-SoStaticInitalizationTable::SoStaticInitalizationTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+SoStaticInitalizationTable::SoStaticInitalizationTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
@@ -38,7 +38,7 @@ std::unique_ptr<TableBase::Cursor> SoStaticInitalizationTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-SoStaticInitalizationTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+SoStaticInitalizationTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSoStaticInitalizationData().Size())),
       staticInitalizationObj_(dataCache->GetConstSoStaticInitalizationData())
 {

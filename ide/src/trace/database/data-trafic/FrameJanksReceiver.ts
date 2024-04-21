@@ -14,12 +14,19 @@
 import { TraficEnum } from './utils/QueryEnum';
 import { JanksStruct } from '../../bean/JanksStruct';
 import { processFrameList } from './utils/AllMemoryCache';
+import { Args } from './CommonArgs';
 
-export const frameJankDataSql = (args: unknown, configure: unknown): string => {
+export const frameJankDataSql = (args: Args, configure: unknown): string => {
   let timeLimit: string = '';
   let flag: string = '';
   let fsType: number = -1;
   let fsFlag: string = '';
+  //@ts-ignore
+  const endNS = args.endNS;
+  //@ts-ignore
+  const startNS = args.startNS;
+  //@ts-ignore
+  const recordStartNS = args.recordStartNS;
   switch (configure) {
     case 'ExepectMemory':
       fsType = 1;
@@ -29,35 +36,22 @@ export const frameJankDataSql = (args: unknown, configure: unknown): string => {
       fsType = 1;
       flag = 'fs.flag as jankTag,';
       timeLimit = `
-       AND (fs.ts - ${
-        // @ts-ignore
-        args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)
-        }
-       AND (fs.ts - ${
-        // @ts-ignore
-        args.recordStartNS}) <= ${Math.floor(args.endNS)
-        }`;
+       AND (fs.ts - ${recordStartNS} + fs.dur) >= ${Math.floor(startNS)}
+       AND (fs.ts - ${recordStartNS}) <= ${Math.floor(endNS)}`;
       break;
     case 'ActualMemoryData':
       fsType = 0;
-      flag = '(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,';
+      flag =
+        '(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,';
       fsFlag = 'AND fs.flag <> 2';
       break;
     case 'ActualData':
       fsType = 0;
-      flag = '(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,';
+      flag =
+        '(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,';
       fsFlag = 'AND fs.flag <> 2';
-      timeLimit = `AND (fs.ts - ${
-        // @ts-ignore
-        args.recordStartNS
-      } + fs.dur) >= ${
-        // @ts-ignore
-        Math.floor(args.startNS)
-      }
-       AND (fs.ts - ${
-        // @ts-ignore
-        args.recordStartNS}) <= ${Math.floor(args.endNS)
-        }`;
+      timeLimit = `AND (fs.ts - ${recordStartNS} + fs.dur) >= ${Math.floor(startNS)}
+       AND (fs.ts - ${recordStartNS}) <= ${Math.floor(endNS)}`;
       break;
     default:
       break;
@@ -65,25 +59,21 @@ export const frameJankDataSql = (args: unknown, configure: unknown): string => {
   let sql = setFrameJanksSql(args, timeLimit, flag, fsType, fsFlag);
   return sql;
 };
-function setFrameJanksSql(args: unknown, timeLimit: string, flag: string, fsType: number, fsFlag: string): string {
+function setFrameJanksSql(args: Args, timeLimit: string, flag: string, fsType: number, fsFlag: string): string {
+  //@ts-ignore
+  const recordStartNS = args.recordStartNS;
   return `SELECT sf.id,
             'frameTime' as frameType,
             fs.ipid,
             fs.vsync as name,
             fs.dur as appDur,
             (sf.ts + sf.dur - fs.ts) as dur,
-            (fs.ts - ${
-              // @ts-ignore
-              args.recordStartNS
-            }) AS ts,
+            (fs.ts - ${recordStartNS}) AS ts,
             fs.type,
             ${flag}
             pro.pid,
             pro.name as cmdline,
-            (sf.ts - ${
-              // @ts-ignore
-              args.recordStartNS
-            }) AS rsTs,
+            (sf.ts - ${recordStartNS}) AS rsTs,
             sf.vsync AS rsVsync,
             sf.dur AS rsDur,
             sf.ipid AS rsIpid,
@@ -103,10 +93,7 @@ function setFrameJanksSql(args: unknown, timeLimit: string, flag: string, fsType
             fs.vsync  as name,
             fs.dur as appDur,
             fs.dur,
-            (fs.ts - ${
-              // @ts-ignore
-              args.recordStartNS
-            }) AS ts,
+            (fs.ts - ${recordStartNS}) AS ts,
             fs.type,
             fs.flag as jankTag,
             pro.pid,

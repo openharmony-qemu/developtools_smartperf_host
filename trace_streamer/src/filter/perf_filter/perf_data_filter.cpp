@@ -19,7 +19,7 @@
 #include "string_to_numerical.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PerfDataFilter::PerfDataFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+PerfDataFilter::PerfDataFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : FilterBase(dataCache, filter), fileIdToRowInFileTable_(INVALID_UINT64)
 {
 }

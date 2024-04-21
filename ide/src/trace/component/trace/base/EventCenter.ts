@@ -19,18 +19,21 @@ class Event {
     this.map = {};
   }
 
-  subscribe(event: string, fn: Function): void {//@ts-ignore
-    this.map[event] = this.map[event] || [];//@ts-ignore
+  subscribe(event: string, fn: Function): void {
+    //@ts-ignore
+    this.map[event] = this.map[event] || []; //@ts-ignore
     this.map[event].push(fn);
   }
-  publish(event: string, data: unknown): void {//@ts-ignore
+  publish(event: string, data: unknown): void {
+    //@ts-ignore
     const fnList = this.map[event] || [];
     if (!fnList || fnList.length === 0) {
       return;
     }
     fnList.forEach((fn: Function) => fn.call(undefined, data));
   }
-  unsubscribe(event: string, fn: Function): void {//@ts-ignore
+  unsubscribe(event: string, fn: Function): void {
+    //@ts-ignore
     const fnList = this.map[event] || [];
     const index = fnList.indexOf(fn);
     if (index < 0) {
@@ -46,8 +49,10 @@ class Event {
     this.subscribe(event, f);
   }
 
-  clearTraceRowComplete(): void {//@ts-ignore
-    if (this.map[window.SmartEvent.UI.TraceRowComplete].length > 0) {//@ts-ignore
+  clearTraceRowComplete(): void {
+    //@ts-ignore
+    if (this.map[window.SmartEvent.UI.TraceRowComplete].length > 0) {
+      //@ts-ignore
       this.map[window.SmartEvent.UI.TraceRowComplete] = [];
     }
   }

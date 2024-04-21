@@ -32,9 +32,9 @@ export class TabPaneBoxChild extends BaseElement {
       // @ts-ignore
       this.boxChildTbl.shadowRoot?.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45}px`;
     }
-    this.boxChildRange!.textContent =
-      `Selected range: ${
-        parseFloat(((boxChildValue.rightNs - boxChildValue.leftNs) / 1000000.0).toFixed(5))} ms`;
+    this.boxChildRange!.textContent = `Selected range: ${parseFloat(
+      ((boxChildValue.rightNs - boxChildValue.leftNs) / 1000000.0).toFixed(5)
+    )} ms`;
     this.boxChildTbl!.recycleDataSource = [];
     this.getDataByDB(boxChildValue);
   }
@@ -55,34 +55,35 @@ export class TabPaneBoxChild extends BaseElement {
 
   getDataByDB(val: BoxJumpParam): void {
     this.boxChildTbl!.loading = true;
-    getTabBoxChildData(val.leftNs, val.rightNs, val.cpus, val.state, val.processId, val.threadId).then((result): void => {
-      this.boxChildTbl!.loading = false;
-      if (result.length !== null && result.length > 0) {
-        result.map((e) => {
-          e.startTime = Utils.getTimeString(e.startNs);
-          // @ts-ignore
-          e.absoluteTime = ((window as unknown).recordStartNS + e.startNs) / 1000000000;
-          e.state = Utils.getEndState(e.state)!;
-          e.prior = e.priority === undefined || e.priority === null ? '-' : `${e.priority}`;
-          e.core = e.cpu === undefined || e.cpu === null ? '-' : `CPU${e.cpu}`;
-          e.processName =
-            `${e.process === undefined || e.process === null ? 'process' : e.process}(${e.processId})`;
-          e.threadName = `${e.thread === undefined || e.thread === null ? 'thread' : e.thread}(${e.threadId})`;
-          e.note = '-';
-        });
-        this.boxChildSource = result;
-        if (this.boxChildTbl) {
-          // @ts-ignore
-          this.boxChildTbl.recycleDataSource = result;
-        }
-      } else {
-        this.boxChildSource = [];
-        if (this.boxChildTbl) {
-          // @ts-ignore
-          this.boxChildTbl.recycleDataSource = [];
+    getTabBoxChildData(val.leftNs, val.rightNs, val.cpus, val.state, val.processId, val.threadId).then(
+      (result): void => {
+        this.boxChildTbl!.loading = false;
+        if (result.length !== null && result.length > 0) {
+          result.map((e) => {
+            e.startTime = Utils.getTimeString(e.startNs);
+            // @ts-ignore
+            e.absoluteTime = ((window as unknown).recordStartNS + e.startNs) / 1000000000;
+            e.state = Utils.getEndState(e.state)!;
+            e.prior = e.priority === undefined || e.priority === null ? '-' : `${e.priority}`;
+            e.core = e.cpu === undefined || e.cpu === null ? '-' : `CPU${e.cpu}`;
+            e.processName = `${e.process === undefined || e.process === null ? 'process' : e.process}(${e.processId})`;
+            e.threadName = `${e.thread === undefined || e.thread === null ? 'thread' : e.thread}(${e.threadId})`;
+            e.note = '-';
+          });
+          this.boxChildSource = result;
+          if (this.boxChildTbl) {
+            // @ts-ignore
+            this.boxChildTbl.recycleDataSource = result;
+          }
+        } else {
+          this.boxChildSource = [];
+          if (this.boxChildTbl) {
+            // @ts-ignore
+            this.boxChildTbl.recycleDataSource = [];
+          }
         }
       }
-    });
+    );
   }
 
   initHtml(): string {
@@ -126,9 +127,9 @@ export class TabPaneBoxChild extends BaseElement {
     function compare(property, sort, type) {
       return function (boxChildLeftData: SelectionData, boxChildRightData: SelectionData): number {
         if (type === 'number') {
-          return sort === 2 ? // @ts-ignore
-            parseFloat(boxChildRightData[property]) - parseFloat(boxChildLeftData[property]) : // @ts-ignore
-            parseFloat(boxChildLeftData[property]) - parseFloat(boxChildRightData[property]);
+          return sort === 2 // @ts-ignore
+            ? parseFloat(boxChildRightData[property]) - parseFloat(boxChildLeftData[property]) // @ts-ignore
+            : parseFloat(boxChildLeftData[property]) - parseFloat(boxChildRightData[property]);
         } else {
           // @ts-ignore
           if (boxChildRightData[property] > boxChildLeftData[property]) {

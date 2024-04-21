@@ -32,7 +32,7 @@ enum class Index : int32_t {
     PATH,
     DUR_PER_4K,
 };
-BioLatencySampleTable::BioLatencySampleTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+BioLatencySampleTable::BioLatencySampleTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
@@ -52,14 +52,14 @@ BioLatencySampleTable::BioLatencySampleTable(const TraceDataCache* dataCache) : 
 
 BioLatencySampleTable::~BioLatencySampleTable() {}
 
-void BioLatencySampleTable::FilterByConstraint(FilterConstraints& biofc,
-                                               double& biofilterCost,
+void BioLatencySampleTable::FilterByConstraint(FilterConstraints &biofc,
+                                               double &biofilterCost,
                                                size_t biorowCount,
                                                uint32_t biocurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& bioc = biofc.GetConstraints()[biocurrenti];
+    const auto &bioc = biofc.GetConstraints()[biocurrenti];
     switch (static_cast<Index>(bioc.col)) {
         case Index::ID: {
             if (CanFilterId(bioc.op, biorowCount)) {
@@ -81,7 +81,7 @@ std::unique_ptr<TableBase::Cursor> BioLatencySampleTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-BioLatencySampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+BioLatencySampleTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstBioLatencySampleData().Size())),
       bioLatencySampleObj_(dataCache->GetConstBioLatencySampleData())
 {
@@ -89,7 +89,7 @@ BioLatencySampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase
 
 BioLatencySampleTable::Cursor::~Cursor() {}
 
-int32_t BioLatencySampleTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t BioLatencySampleTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -98,9 +98,9 @@ int32_t BioLatencySampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         return SQLITE_OK;
     }
 
-    auto& bioLateSamTabCs = fc.GetConstraints();
+    auto &bioLateSamTabCs = fc.GetConstraints();
     for (size_t i = 0; i < bioLateSamTabCs.size(); i++) {
-        const auto& c = bioLateSamTabCs[i];
+        const auto &c = bioLateSamTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -174,7 +174,7 @@ int32_t BioLatencySampleTable::Cursor::Column(int32_t column) const
     }
     return SQLITE_OK;
 }
-void BioLatencySampleTable::GetOrbyes(FilterConstraints& biofc, EstimatedIndexInfo& bioei)
+void BioLatencySampleTable::GetOrbyes(FilterConstraints &biofc, EstimatedIndexInfo &bioei)
 {
     auto bioorderbys = biofc.GetOrderBys();
     for (auto i = 0; i < bioorderbys.size(); i++) {

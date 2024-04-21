@@ -67,7 +67,7 @@ public:
           priority_(priority),
           executeState_(executeState),
           returnState_(returnState){};
-    TaskPoolData(size_t index, const TaskPoolInfo* taskpool)
+    TaskPoolData(size_t index, const TaskPoolInfo *taskpool)
         : expectAllocationItid_(taskpool->allocationItids_[index]),
           expectExecuteItid_(taskpool->executeItids_[index]),
           expectReturnItid_(taskpool->returnItids_[index]),
@@ -75,7 +75,7 @@ public:
           priority_(taskpool->prioritys_[index]),
           executeState_(taskpool->executeStates_[index]),
           returnState_(taskpool->returnStates_[index]){};
-    friend bool operator==(const TaskPoolData& first, const TaskPoolData& second);
+    friend bool operator==(const TaskPoolData &first, const TaskPoolData &second);
 
 private:
     InternalTid expectAllocationItid_;
@@ -87,7 +87,7 @@ private:
     uint32_t returnState_;
 };
 
-bool operator==(const TaskPoolData& first, const TaskPoolData& second)
+bool operator==(const TaskPoolData &first, const TaskPoolData &second)
 {
     if (first.expectAllocationItid_ != second.expectAllocationItid_) {
         return false;

@@ -225,10 +225,10 @@ export class TabPaneThreadUsage extends BaseElement {
         }
         if (type === 'number') {
           return treadUsageSort === 2
-          // @ts-ignore
-            ? parseFloat(threadUsageRightData[property]) - parseFloat(threadUsageLeftData[property])
-            // @ts-ignore
-            : parseFloat(threadUsageLeftData[property]) - parseFloat(threadUsageRightData[property]);
+            ? // @ts-ignore
+              parseFloat(threadUsageRightData[property]) - parseFloat(threadUsageLeftData[property])
+            : // @ts-ignore
+              parseFloat(threadUsageLeftData[property]) - parseFloat(threadUsageRightData[property]);
         } else {
           // @ts-ignore
           if (threadUsageRightData[property] > threadUsageLeftData[property]) {

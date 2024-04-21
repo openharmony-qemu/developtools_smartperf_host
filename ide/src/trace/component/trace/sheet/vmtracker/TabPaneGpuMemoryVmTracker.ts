@@ -35,7 +35,7 @@ export class TabPaneGpuMemoryVmTracker extends BaseElement {
     // @ts-ignore
     if (gpuMemoryValue.gpuMemoryTrackerData.length > 0) {
       this.gpuMemoryTimeRange!.textContent =
-      // @ts-ignore
+        // @ts-ignore
         'Selected range: ' + ((gpuMemoryValue.rightNs - gpuMemoryValue.leftNs) / 1000000.0).toFixed(5) + ' ms';
       this.gpuMemoryTableTbl!.loading = true;
       this.queryDataByDB(gpuMemoryValue);

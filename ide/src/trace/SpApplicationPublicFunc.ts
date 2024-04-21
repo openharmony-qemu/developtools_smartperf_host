@@ -303,11 +303,17 @@ export const applicationHtml: string = `
             line-height: 24px;
         }
         .long_trace_page {
-            justify-content: flex-end;
+            justify-content: center;
             width: -webkit-fill-available;
-            margin-right: 80px;
+            margin-right: 5.2em;
             align-items: center;
             display: none;
+        }
+        .content-center-option {
+          justify-content: center;
+          width: -webkit-fill-available;
+          margin-right: 5.2em;
+          align-items: center;
         }
         .page-number-list {
             display: flex;
@@ -324,34 +330,40 @@ export const applicationHtml: string = `
                              <use id="use" xlink:href="./base-ui/icon.svg#icon-menu"></use>
                         </svg>
                     </div>
-                    <div title="Import Key Path" id="import-key-path" style="display: none ;text-align: left;
-                    position:  absolute;left: 5px ; cursor: pointer;top: 15px">
-                      <input id="import-config" style="display: none;pointer-events: none" type="file" accept=".json" >
-                      <label style="width: 20px;height: 20px;cursor: pointer;" for="import-config">
-                          <lit-icon id="import-btn" name="copy-csv" style="pointer-events: none" size="20">
-                          </lit-icon>
-                      </label>
+                    <div class = "content-left-option" style="text-align: left;
+                      position: absolute;left: 5px ; cursor: pointer;top: 15px">
+                      <div title="Import Key Path" id="import-key-path" style="display: none ;text-align: left;cursor: pointer;">
+                        <input id="import-config" style="display: none;pointer-events: none" type="file" accept=".json" >
+                        <label style="width: 20px;height: 20px;cursor: pointer;" for="import-config">
+                            <lit-icon id="import-btn" name="copy-csv" style="pointer-events: none" size="20">
+                            </lit-icon>
+                        </label>
+                      </div>
+                      <lit-icon  id="close-key-path" name="close" title="Close Key Path" color='#fff' size="20" style="display: none;text-align: left;cursor: pointer;">
+                      </lit-icon>
                     </div>
-                    <lit-icon  id="close-key-path" name="close" title="Close Key Path" color='#fff' size="20" style="display: none;text-align: left; position: absolute;left: 25px; cursor: pointer;top: 15px ">
-                    </lit-icon>
                     <lit-search id="lit-search"></lit-search>
                     <lit-search id="lit-record-search"></lit-search>
-                    <div class="long_trace_page" style="display: none;">
-                      <div class="page-button" id="preview-button">
-                         <img title="preview" src="img/preview.png"/>
-                         </div>
-                      <div class="page-number-list"></div>
-                      <div class="page-button" id="next-button" style="margin-right: 8px;">
-                         <img title="next" src="img/next.png"/>
+                    <div class="content-center-option" style="display: ">
+                      <div class="long_trace_page" style="display: none;">
+                        <div class="page-button" id="preview-button">
+                          <img title="preview" src="img/preview.png"/>
+                        </div>
+                        <div class="page-number-list"></div>
+                        <div class="page-button" id="next-button" style="margin-right: 8px;">
+                           <img title="next" src="img/next.png"/>
+                        </div>
+                        <div class="page-jump-font" style="margin-right: 8px;">To</div>
+                        <input class="page-input" />
+                        <div class="confirm-button">Confirm</div>
                       </div>
-                      <div class="page-jump-font" style="margin-right: 8px;">To</div>
-                      <input class="page-input" />
-                      <div class="confirm-button">Confirm</div>
                     </div>
                 </div>
-                <lit-icon class="export-record" title="Download Mark Trace" name="download" size="16" style="display: block;text-align: right;position: absolute;right: 5.2em;cursor: pointer;top: 20px"></lit-icon>
-                <img class="cut-trace-file" title="Cut Trace File" src="img/menu-cut.svg" style="display: block;text-align: right;position: absolute;right: 3.2em;cursor: pointer;top: 20px">
-                <img class="filter-config" title="Display Template" src="img/config_filter.png" style="display: block;text-align: right;position: absolute;right: 1.2em;cursor: pointer;top: 20px">
+                <div class = "content-right-option" style="display: flex;flex-flow: nowrap;text-align: right;position: absolute;right: 1.2em;cursor: pointer;top: 17px"">
+                  <lit-icon class="export-record" title="Download Mark Trace" name="download" size="16" style="margin-left: 0.8em;"></lit-icon>
+                  <img class="cut-trace-file" title="Cut Trace File" src="img/menu-cut.svg" style="margin-left: 0.8em;">
+                  <img class="filter-config" title="Display Template" src="img/config_filter.png" style="margin-left: 0.8em;">
+                </div>
                 <lit-progress-bar class="progress"></lit-progress-bar>
             </div>
             <div id="app-content" class="content">

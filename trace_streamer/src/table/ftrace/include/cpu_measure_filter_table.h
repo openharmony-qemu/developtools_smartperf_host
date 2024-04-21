@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class CpuMeasureFilterTable : public TableBase {
 public:
-    explicit CpuMeasureFilterTable(const TraceDataCache* dataCache);
+    explicit CpuMeasureFilterTable(const TraceDataCache *dataCache);
     ~CpuMeasureFilterTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,23 +32,23 @@ private:
     {
         return dataCache_->GetConstCpuMeasuresData().Size();
     }
-    void GetOrbyes(FilterConstraints& cpufc, EstimatedIndexInfo& cpuei) override;
-    void FilterByConstraint(FilterConstraints& cpufc,
-                            double& cpufilterCost,
+    void GetOrbyes(FilterConstraints &cpufc, EstimatedIndexInfo &cpuei) override;
+    void FilterByConstraint(FilterConstraints &cpufc,
+                            double &cpufilterCost,
                             size_t cpurowCount,
                             uint32_t cpucurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
 
-        void FilterSorted(int32_t col, unsigned char op, sqlite3_value* argv);
+        void FilterSorted(int32_t col, unsigned char op, sqlite3_value *argv);
 
     private:
-        const CpuMeasureFilter& cpuMeasureObj_;
+        const CpuMeasureFilter &cpuMeasureObj_;
     };
 };
 } // namespace TraceStreamer

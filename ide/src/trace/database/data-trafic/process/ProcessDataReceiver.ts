@@ -12,78 +12,79 @@
 // limitations under the License.
 
 import { TraficEnum } from '../utils/QueryEnum';
-import { filterDataByGroupLayer, filterDataByLayer } from '../utils/DataFilter';
+import { filterDataByLayer } from '../utils/DataFilter';
 import { processList } from '../utils/AllMemoryCache';
+import { Args } from '../CommonArgs';
 
-const sqlNormal = (args: unknown): string => {
+const sqlNormal = (args: Args): string => {
   return `select ta.cpu,                                                            
-                 max(dur)                                                                                                              as dur,
-                 ts - ${//@ts-ignore
-                   args.recordStartNS
-                 }                                                                                            as startTime,
-                 ((ts - ${//@ts-ignore
-                  args.recordStartNS}) / (${Math.floor(//@ts-ignore
-    (args.endNS - args.startNS) / args.width//@ts-ignore
+                 max(dur)  as dur,
+                 ts - ${args.recordStartNS} as startTime,
+                 ((ts - ${args.recordStartNS}) / (${Math.floor(
+    (args.endNS - args.startNS) / args.width
   )})) + (ta.cpu * ${args.width}) AS px
           from thread_state ta
           where ta.cpu is not null
-            and pid = ${//@ts-ignore
-              args.pid}
-            and startTime + dur >= ${Math.floor(//@ts-ignore
-            args.startNS)}
-            and startTime <= ${Math.floor(//@ts-ignore
-            args.endNS)}
+            and pid = ${args.pid}
+            and startTime + dur >= ${Math.floor(args.startNS)}
+            and startTime <= ${Math.floor(args.endNS)}
           group by px;`;
 };
 
-const sqlMem = (args: unknown): string => {
+const sqlMem = (args: Args): string => {
   return `select ta.cpu,
                  dur                        as dur,
-                 ts - ${//@ts-ignore
-                  args.recordStartNS} as startTime
+                 ts - ${args.recordStartNS} as startTime
           from thread_state ta
           where ta.cpu is not null
-            and pid = ${//@ts-ignore
-              args.pid};`;
+            and pid = ${args.pid};`;
 };
 
-export function processDataReceiver(data: unknown, proc: Function): void {//@ts-ignore
-  if (data.params.trafic === TraficEnum.Memory) {//@ts-ignore
-    if (!processList.has(data.params.pid)) {//@ts-ignore
+export function processDataReceiver(data: unknown, proc: Function): void {
+  //@ts-ignore
+  if (data.params.trafic === TraficEnum.Memory) {
+    //@ts-ignore
+    if (!processList.has(data.params.pid)) {
+      //@ts-ignore
       processList.set(data.params.pid, proc(sqlMem(data.params)));
     }
-    let res = filterDataByLayer(//@ts-ignore
+    let res = filterDataByLayer(
+      //@ts-ignore
       processList.get(data.params.pid) || [],
       'cpu',
       'startTime',
-      'dur',//@ts-ignore
-      data.params.startNS,//@ts-ignore
-      data.params.endNS,//@ts-ignore
+      'dur', //@ts-ignore
+      data.params.startNS, //@ts-ignore
+      data.params.endNS, //@ts-ignore
       data.params.width
     );
     arrayBufferHandler(data, res, true);
     return;
-  } else {//@ts-ignore
-    let transfer = data.params.trafic !== TraficEnum.SharedArrayBuffer;//@ts-ignore
+  } else {
+    //@ts-ignore
+    let transfer = data.params.trafic !== TraficEnum.SharedArrayBuffer; //@ts-ignore
     let sql = sqlNormal(data.params);
     let res: unknown[] = proc(sql);
     arrayBufferHandler(data, res, transfer);
   }
 }
 
-function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {//@ts-ignore
-  let startTime = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime);//@ts-ignore
-  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);//@ts-ignore
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  //@ts-ignore
+  let startTime = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime); //@ts-ignore
+  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur); //@ts-ignore
   let cpu = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.cpu);
-  res.forEach((it, i) => {//@ts-ignore
-    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processData);//@ts-ignore
-    startTime[i] = it.startTime;//@ts-ignore
-    dur[i] = it.dur;//@ts-ignore
+  res.forEach((it, i) => {
+    //@ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processData); //@ts-ignore
+    startTime[i] = it.startTime; //@ts-ignore
+    dur[i] = it.dur; //@ts-ignore
     cpu[i] = it.cpu;
   });
   (self as unknown as Worker).postMessage(
-    {//@ts-ignore
-      id: data.id,//@ts-ignore
+    {
+      //@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
       results: transfer
         ? {

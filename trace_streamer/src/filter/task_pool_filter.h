@@ -30,21 +30,21 @@ namespace TraceStreamer {
 using namespace SysTuning::base;
 class TaskPoolFilter : private FilterBase {
 public:
-    TaskPoolFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    TaskPoolFilter(const TaskPoolFilter&) = delete;
-    TaskPoolFilter& operator=(const TaskPoolFilter&) = delete;
+    TaskPoolFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
+    TaskPoolFilter(const TaskPoolFilter &) = delete;
+    TaskPoolFilter &operator=(const TaskPoolFilter &) = delete;
     ~TaskPoolFilter() override;
     uint32_t GetIpId(uint32_t index);
     uint32_t CheckTheSameTask(uint64_t taskId, uint32_t index);
-    bool TaskPoolEvent(const std::string& taskPoolStr, uint32_t index);
-    void TaskPoolFieldSegmentation(const std::string& taskPoolStr, std::unordered_map<std::string, std::string>& args);
-    bool UpdateAssignData(const std::unordered_map<std::string, std::string>& args, uint32_t index);
-    bool UpdateExecuteData(const std::unordered_map<std::string, std::string>& args, uint32_t index);
-    bool UpdateReturnData(const std::unordered_map<std::string, std::string>& args, uint32_t index);
+    bool TaskPoolEvent(const std::string &taskPoolStr, uint32_t index);
+    void TaskPoolFieldSegmentation(const std::string &taskPoolStr, std::unordered_map<std::string, std::string> &args);
+    bool UpdateAssignData(const std::unordered_map<std::string, std::string> &args, uint32_t index);
+    bool UpdateExecuteData(const std::unordered_map<std::string, std::string> &args, uint32_t index);
+    bool UpdateReturnData(const std::unordered_map<std::string, std::string> &args, uint32_t index);
     bool AppendTimeoutRow(uint32_t index);
 
 private:
-    auto GetExecuteIdOrTaskId(const std::unordered_map<std::string, std::string>& args);
+    auto GetExecuteIdOrTaskId(const std::unordered_map<std::string, std::string> &args);
     const std::string targetStr_ = "H:Task";
     const std::string allocationStr_ = "H:Task Allocation:";
     const std::string executeStr_ = "H:Task Perform:";

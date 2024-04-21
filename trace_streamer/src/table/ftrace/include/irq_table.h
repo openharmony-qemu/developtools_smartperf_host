@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class IrqTable : public TableBase {
 public:
-    explicit IrqTable(const TraceDataCache* dataCache);
+    explicit IrqTable(const TraceDataCache *dataCache);
     ~IrqTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,22 +32,22 @@ private:
     {
         return dataCache_->GetConstIrqData().Size();
     }
-    void GetOrbyes(FilterConstraints& irqfc, EstimatedIndexInfo& irqei) override;
-    void FilterByConstraint(FilterConstraints& irqfc,
-                            double& irqfilterCost,
+    void GetOrbyes(FilterConstraints &irqfc, EstimatedIndexInfo &irqei) override;
+    void FilterByConstraint(FilterConstraints &irqfc,
+                            double &irqfilterCost,
                             size_t irqrowCount,
                             uint32_t irqcurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
         void HandleTypeColumns(int32_t column) const;
 
     private:
-        const CallStack& slicesObj_;
+        const CallStack &slicesObj_;
     };
 };
 } // namespace TraceStreamer

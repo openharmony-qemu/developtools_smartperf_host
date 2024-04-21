@@ -45,7 +45,7 @@ def is_linux():
     return platform.system() == 'Linux'
 
 
-def open_web(url):
+def openWeb(url):
     webbrowser.open(url)
 
 
@@ -74,16 +74,19 @@ class SpRequestHandler(http.server.BaseHTTPRequestHandler):
     global version
     global serveInfo
 
-    def do_get(self):
+    def log_message(self, format, *args):
+        return
+
+    def do_GET(self):
         parse_result = urlparse(self.path)
         if parse_result.path == '/application/serverInfo':
-            self.server_info_handler()
+            self.serverInfo_handler()
         elif parse_result.path.startswith('/application'):
             self.application_handler(parse_result)
         else:
             self.send_error(404, 'Not found')
 
-    def do_post(self):
+    def do_POST(self):
         parse_result = urlparse(self.path)
         if parse_result.path.startswith('/logger'):
             self.console_handler()
@@ -108,8 +111,8 @@ class SpRequestHandler(http.server.BaseHTTPRequestHandler):
                 response = {"success": False, "code": -1, "message": str(e), "data": None}
                 self.wfile.write(bytes(json.dumps(response), "utf-8"))
                 return
-            suffix_str = os.path.splitext(url.split("/")[-1])[1]
-            file_name = f"upload/{datetime.now().strftime('%Y%m%d%H%M%S%f')}{suffix_str}"
+            suffixStr = os.path.splitext(url.split("/")[-1])[1]
+            file_name = f"upload/{datetime.now().strftime('%Y%m%d%H%M%S%f')}{suffixStr}"
             os.makedirs(os.path.dirname(file_name), exist_ok=True)
             try:
                 with open(file_name, "wb") as f:
@@ -150,15 +153,15 @@ class SpRequestHandler(http.server.BaseHTTPRequestHandler):
     def check_due(self, file_name):
         now = datetime.now()
         datetime_str = os.path.splitext(os.path.basename(file_name))[0]
-        file_date = datetime.strptime(datetime_str, "%Y%m%d%H%M%S%f")
-        return (now - file_date).total_seconds() > 3600
+        fileDate = datetime.strptime(datetime_str, "%Y%m%d%H%M%S%f")
+        return (now - fileDate).total_seconds() > 3600
 
     def console_handler(self):
         self.check_dir('./logger')
-        now_date = datetime.now()
-        now = now_date.strftime("%Y-%m-%d")
-        file_name = f"{now}.txt"
-        with open("./logger/" + file_name, "a") as dst:
+        nowDate = datetime.now()
+        now = nowDate.strftime("%Y-%m-%d")
+        fileName = f"{now}.txt"
+        with open(os.path.join("logger", fileName), "a") as dst:
             content_type = self.headers.get("Content-Type")
             if content_type and content_type.startswith("application/json"):
                 content_length = int(self.headers.get("Content-Length", 0))
@@ -202,7 +205,7 @@ class SpRequestHandler(http.server.BaseHTTPRequestHandler):
         except FileNotFoundError:
             self.send_error(404, 'File not found')
 
-    def server_info_handler(self):
+    def serverInfo_handler(self):
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("request_info", serveInfo)
@@ -261,7 +264,7 @@ class SpServer:
     def start(self):
         print(f'HTTPS[{PORT}] SmartPerf Server Start')
         if is_windows():
-            open_web("https://127.0.0.1:9000/application/")
+            openWeb("https://127.0.0.1:9000/application/")
         self.httpd.serve_forever()
 
 

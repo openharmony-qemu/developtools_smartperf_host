@@ -21,7 +21,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, TS, DUR, CPU, INTERNAL_TID, TID, PID, STATE, ARGSETID };
-ThreadStateTable::ThreadStateTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+ThreadStateTable::ThreadStateTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -37,14 +37,14 @@ ThreadStateTable::ThreadStateTable(const TraceDataCache* dataCache) : TableBase(
 
 ThreadStateTable::~ThreadStateTable() {}
 
-void ThreadStateTable::FilterByConstraint(FilterConstraints& statefc,
-                                          double& statefilterCost,
+void ThreadStateTable::FilterByConstraint(FilterConstraints &statefc,
+                                          double &statefilterCost,
                                           size_t staterowCount,
                                           uint32_t statecurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& statec = statefc.GetConstraints()[statecurrenti];
+    const auto &statec = statefc.GetConstraints()[statecurrenti];
     switch (static_cast<Index>(statec.col)) {
         case Index::ID: {
             if (CanFilterId(statec.op, staterowCount)) {
@@ -76,7 +76,7 @@ std::unique_ptr<TableBase::Cursor> ThreadStateTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-ThreadStateTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+ThreadStateTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, dataCache->GetConstThreadStateData().Size()),
       threadStateObj_(dataCache->GetConstThreadStateData())
 {
@@ -84,13 +84,13 @@ ThreadStateTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tab
 
 ThreadStateTable::Cursor::~Cursor() {}
 
-int32_t ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t ThreadStateTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset
     if (rowCount_ <= 0) {
         return SQLITE_OK;
     }
-    IndexMap* indexMapBack = indexMap_.get();
+    IndexMap *indexMapBack = indexMap_.get();
     if (indexMap_->HasData()) {
         indexMapBack = std::make_unique<IndexMap>(0, rowCount_).get();
     }
@@ -115,13 +115,13 @@ int32_t ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_va
     return SQLITE_OK;
 }
 
-void ThreadStateTable::Cursor::HandleIndex(const FilterConstraints& fc, sqlite3_value** argv, IndexMap* indexMapBack)
+void ThreadStateTable::Cursor::HandleIndex(const FilterConstraints &fc, sqlite3_value **argv, IndexMap *indexMapBack)
 {
     auto cs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
     SwapIndexFront(cs, sId);
     for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+        const auto &c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 indexMapBack->FilterId(c.op, argv[c.idxInaConstraint]);
@@ -153,7 +153,7 @@ void ThreadStateTable::Cursor::HandleIndex(const FilterConstraints& fc, sqlite3_
                 indexMapBack->MixRange(
                     c.op,
                     static_cast<DataIndex>(dataCache_->GetThreadStateValue(
-                        std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[c.idxInaConstraint]))))),
+                        std::string(reinterpret_cast<const char *>(sqlite3_value_text(argv[c.idxInaConstraint]))))),
                     threadStateObj_.StatesData());
                 break;
             case Index::ARGSETID:
@@ -193,7 +193,7 @@ int32_t ThreadStateTable::Cursor::Column(int32_t col) const
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.PidsData()[CurrentRow()]));
             break;
         case Index::STATE: {
-            const std::string& str = dataCache_->GetConstSchedStateData(threadStateObj_.StatesData()[CurrentRow()]);
+            const std::string &str = dataCache_->GetConstSchedStateData(threadStateObj_.StatesData()[CurrentRow()]);
             sqlite3_result_text(context_, str.c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         }
@@ -209,7 +209,7 @@ int32_t ThreadStateTable::Cursor::Column(int32_t col) const
     return SQLITE_OK;
 }
 
-void ThreadStateTable::GetOrbyes(FilterConstraints& statefc, EstimatedIndexInfo& stateei)
+void ThreadStateTable::GetOrbyes(FilterConstraints &statefc, EstimatedIndexInfo &stateei)
 {
     auto stateorderbys = statefc.GetOrderBys();
     for (auto i = 0; i < stateorderbys.size(); i++) {

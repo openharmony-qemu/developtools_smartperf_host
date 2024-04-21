@@ -26,7 +26,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PbreaderProcessParser : public EventParserBase, public HtracePluginTimeParser {
 public:
-    PbreaderProcessParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    PbreaderProcessParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~PbreaderProcessParser();
     void Parse(ProtoReader::BytesView tracePacket, uint64_t ts);
     void Finish();
@@ -69,7 +69,7 @@ public:
         uint64_t cpuTimeMs;
     };
     struct ProcessInfo {
-        ProcessInfo(int32_t pid, const std::string& name, int32_t ppid, int32_t uid)
+        ProcessInfo(int32_t pid, const std::string &name, int32_t ppid, int32_t uid)
             : pid(pid), name(name), ppid(ppid), uid(uid)
         {
         }
