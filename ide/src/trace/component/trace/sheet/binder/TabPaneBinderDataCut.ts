@@ -56,8 +56,6 @@ export class TabPaneBinderDataCut extends BaseElement {
   private threadBinderMap: Map<string, Array<BinderItem>> = new Map();
   private processIds: Array<number> = [];
   private funcCycleArr: Array<any> = [];
-  private currentCutThreadId: string | undefined;
-  private currentCutFuncName: string | undefined;
 
   set data(threadStatesParam: SelectionParam) {
     if (this.currentSelectionParam === threadStatesParam) {
@@ -76,13 +74,11 @@ export class TabPaneBinderDataCut extends BaseElement {
     this.threadBindersTbl!.recycleDataSource = [];
     this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
     this.parentElement!.style.overflow = 'hidden';
-    this.currentCutThreadId = '';
-    this.currentCutFuncName = '';
     new ResizeObserver(() => {
       // @ts-ignore
       let lastHeight: number = this.threadBindersTbl.tableElement!.offsetHeight;
       this.cycleColumnDiv!.style.height = lastHeight + 'px';
-    }).observe(this.parentElement!);
+    }).observe(this.threadBindersTbl!);
   }
 
   hideQueryArea(b: boolean): void {
@@ -709,7 +705,7 @@ export class TabPaneBinderDataCut extends BaseElement {
             <lit-slicer style="width:100%">
                 <div style="width:65%;">
                     <lit-table id="tb-binder-count" style="height: auto; overflow-x:auto;width:100%" tree>
-                        <lit-table-column width="240px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
+                        <lit-table-column width="250px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
                         </lit-table-column>
                         <lit-table-column width="100px" title="Total count" data-index="totalCount" key="totalCount" align="center">
                         </lit-table-column>
