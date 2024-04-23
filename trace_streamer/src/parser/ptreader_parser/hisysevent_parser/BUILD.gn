@@ -17,7 +17,7 @@ ohos_static_library("ptreader_hisysevent_parser") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [ "ptreader_hisysevent_parser.cpp" ]
-  public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hilog_data:hilog_data_reader" ]
+  public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hisysevent_data:hisysevent_data_reader" ]
   public_configs = [
     "../../:hisysevent_parser_cfg",
     "../../:parser_base_cfg",

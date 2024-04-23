@@ -21,6 +21,7 @@
 #include <limits>
 #include <map>
 #include <string>
+#include "log.h"
 using ClockId = uint32_t;
 constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
 constexpr size_t FLUSH_CHUNK_THRESHOLD = G_CHUNK_SIZE - 10000;

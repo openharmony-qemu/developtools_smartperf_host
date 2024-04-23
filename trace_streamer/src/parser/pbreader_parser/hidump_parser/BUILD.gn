@@ -13,11 +13,18 @@
 import("//build/ohos.gni")
 import("../../../../build/ts.gni")
 
+config("hidump_parser_cfg") {
+  include_dirs = [ "." ]
+}
+
 ohos_static_library("pbreader_hidump_parser") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [ "pbreader_hidump_parser.cpp" ]
   include_dirs = [ "." ]
   public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hidump_data:hidump_data_reader" ]
-  public_configs = [ "../../:parser_base_cfg" ]
+  public_configs = [
+    ":hidump_parser_cfg",
+    "../../:parser_base_cfg",
+  ]
 }

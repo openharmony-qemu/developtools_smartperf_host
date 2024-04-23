@@ -20,10 +20,9 @@
 #include <string>
 #include "common_types.h"
 #include "event_parser_base.h"
-#include "htrace_event_parser.h"
 #include "htrace_plugin_time_parser.h"
-#include "hook_filter/native_hook_filter.h"
-#include "hook_filter/offline_symbolization_filter.h"
+#include "native_hook_filter.h"
+#include "offline_symbolization_filter.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 namespace SysTuning {

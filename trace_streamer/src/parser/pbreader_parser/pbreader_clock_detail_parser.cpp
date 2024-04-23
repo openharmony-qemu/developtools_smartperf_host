@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "htrace_clock_detail_parser.h"
+#include "pbreader_clock_detail_parser.h"
 #include "clock_filter_ex.h"
-#include "htrace_event_parser.h"
+#include "trace_plugin_result.pbreader.h"
 #include "measure_filter.h"
 #include "process_filter.h"
 #include "stat_filter.h"
@@ -22,7 +22,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-HtraceClockDetailParser::HtraceClockDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
+PbreaderClockDetailParser::PbreaderClockDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
     : EventParserBase(dataCache, filters)
 {
     for (auto i = 0; i < MEM_MAX; i++) {
@@ -32,8 +32,8 @@ HtraceClockDetailParser::HtraceClockDetailParser(TraceDataCache* dataCache, cons
     }
 }
 
-HtraceClockDetailParser::~HtraceClockDetailParser() = default;
-void HtraceClockDetailParser::Parse(const ProtoReader::BytesView& tracePacket) const
+PbreaderClockDetailParser::~PbreaderClockDetailParser() = default;
+void PbreaderClockDetailParser::Parse(const ProtoReader::BytesView& tracePacket) const
 {
     if (traceDataCache_->isSplitFile_) {
         return;
@@ -62,7 +62,7 @@ void HtraceClockDetailParser::Parse(const ProtoReader::BytesView& tracePacket) c
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_SYNC, STAT_EVENT_RECEIVED);
 }
 
-void HtraceClockDetailParser::Parse(const ProfilerTraceFileHeader* profilerTraceFileHeader) const
+void PbreaderClockDetailParser::Parse(const ProfilerTraceFileHeader* profilerTraceFileHeader) const
 {
     if (streamFilters_->clockFilter_->HasInitSnapShot()) {
         TS_LOGW("already has clock snapshot!!!");

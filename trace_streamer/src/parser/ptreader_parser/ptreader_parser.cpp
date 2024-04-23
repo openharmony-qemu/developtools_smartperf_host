@@ -21,7 +21,7 @@
 #include "binder_filter.h"
 #include "cpu_filter.h"
 #ifdef ENABLE_HISYSEVENT
-#include "hi_sysevent_filter/hi_sysevent_measure_filter.h"
+#include "hi_sysevent_measure_filter.h"
 #endif
 #include "parting_string.h"
 #include "stat_filter.h"

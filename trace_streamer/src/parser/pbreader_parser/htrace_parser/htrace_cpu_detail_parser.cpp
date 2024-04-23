@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "htrace_cpu_detail_parser.h"
-#include "htrace_event_parser.h"
 #include "stat_filter.h"
 #include "trace_plugin_result.pbreader.h"
 namespace SysTuning {

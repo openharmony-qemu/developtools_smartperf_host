@@ -20,7 +20,6 @@
 #include <string>
 #include <vector>
 #include "json.hpp"
-#include "log.h"
 #include "memAggStrategy.h"
 #include "memStrategy.h"
 #include "metaDataStrategy.h"

@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <sstream>
 #include "base_stdtype.h"
-#include "cfg/trace_streamer_config.h"
+#include "trace_streamer_config.h"
 
 namespace SysTuning {
 namespace TraceStdtype {

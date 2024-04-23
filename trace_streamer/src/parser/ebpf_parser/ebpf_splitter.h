@@ -26,7 +26,7 @@
 #include "process_filter.h"
 #include "quatra_map.h"
 #include "string_help.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 #include "unordered_map"
 #include "pbreader_file_header.h"

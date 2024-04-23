@@ -18,7 +18,7 @@
 #include <functional>
 #include <memory>
 #include "metrics.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 
 namespace SysTuning {

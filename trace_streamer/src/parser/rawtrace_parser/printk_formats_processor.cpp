@@ -15,7 +15,6 @@
 #include "printk_formats_processor.h"
 
 #include <sstream>
-#include "log.h"
 #include "string_help.h"
 #include "string_to_numerical.h"
 

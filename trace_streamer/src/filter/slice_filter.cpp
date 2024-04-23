@@ -19,7 +19,6 @@
 #include <optional>
 
 #include "args_filter.h"
-#include "log.h"
 #include "measure_filter.h"
 #include "process_filter.h"
 #include "stat_filter.h"

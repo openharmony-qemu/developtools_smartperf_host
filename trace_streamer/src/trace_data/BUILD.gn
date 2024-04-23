@@ -19,17 +19,11 @@ ohos_source_set("trace_data") {
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [
     "sqllite_prepar_cache_data.cpp",
-    "sqllite_prepar_cache_data.h",
     "trace_data_cache.cpp",
-    "trace_data_cache.h",
     "trace_data_cache_base.cpp",
-    "trace_data_cache_base.h",
     "trace_data_cache_reader.cpp",
-    "trace_data_cache_reader.h",
     "trace_data_cache_writer.cpp",
-    "trace_data_cache_writer.h",
     "trace_data_db.cpp",
-    "trace_data_db.h",
     "trace_stdtype/base_stdtype.cpp",
     "trace_stdtype/common_stdtype.cpp",
     "trace_stdtype/ftrace/callstack_stdtype.cpp",
@@ -97,5 +91,10 @@ ohos_source_set("trace_data") {
 
   deps = [
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/smartperf_host:ts_all_sph_cpp",
+  ]
+
+  public_configs = [
+    "${SRC}/parser/ebpf_parser:ebpf_parser_cfg",
+    "${SRC}/base/sqlite_ext:sqlite_ext_cfg",
   ]
 }

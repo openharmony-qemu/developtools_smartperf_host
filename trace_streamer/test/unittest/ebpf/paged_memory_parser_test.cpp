@@ -121,7 +121,7 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserwrongWithoutCallback, T
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
     auto sampleData = stream_.traceDataCache_->GetConstPagedMemorySampleData();
-    EXPECT_FALSE(sampleData.CallChainIds()[0] == INVALID_UINT64);
+    EXPECT_FALSE(sampleData.CallChainIds()[0] == INVALID_UINT32);
     EXPECT_FALSE(sampleData.Types()[0] == 2);
     auto startTs = sampleData.StartTs()[0];
     auto endTs = sampleData.EndTs()[0];

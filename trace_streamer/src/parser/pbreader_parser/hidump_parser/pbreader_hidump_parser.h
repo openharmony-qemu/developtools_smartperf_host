@@ -20,7 +20,7 @@
 #include "common_types.h"
 #include "event_parser_base.h"
 #include "htrace_plugin_time_parser.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 

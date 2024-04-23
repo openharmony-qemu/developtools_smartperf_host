@@ -17,7 +17,6 @@
 #define BASE_STDTYPE_H
 
 #include <deque>
-#include "log.h"
 #include "ts_common.h"
 
 namespace SysTuning {

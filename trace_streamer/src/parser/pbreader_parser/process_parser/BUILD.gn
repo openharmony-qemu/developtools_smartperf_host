@@ -13,6 +13,10 @@
 import("//build/ohos.gni")
 import("../../../../build/ts.gni")
 
+config("process_parser_cfg") {
+  include_dirs = [ "." ]
+}
+
 ohos_static_library("process_parser") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
@@ -22,5 +26,8 @@ ohos_static_library("process_parser") {
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp_standard",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/process_data:process_data_reader",
   ]
-  public_configs = [ "../../:parser_base_cfg" ]
+  public_configs = [
+    ":process_parser_cfg",
+    "../../:parser_base_cfg",
+  ]
 }

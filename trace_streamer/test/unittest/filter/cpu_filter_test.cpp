@@ -74,7 +74,7 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTest, TestSize.Level1)
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_INTERRUPTIBLE, itidNext, nextPior,
                                                  INVALID_DATAINDEX); // 1st switch
-    printf("state of pre itid: %llu\n", streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre));
+    printf("state of pre itid: %" PRIu64 "\n", streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre));
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre) == TASK_INTERRUPTIBLE);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidNext) == TASK_RUNNING);
@@ -99,7 +99,7 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchFromZeroThread, TestSize.Level1)
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_INTERRUPTIBLE, itidNext, nextPior,
                                                  INVALID_DATAINDEX); // 1st switch
-    printf("state of pre itid: %llu\n", streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre));
+    printf("state of pre itid: %" PRIu64 "\n", streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre));
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre) == TASK_INVALID);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidNext) == TASK_RUNNING);
@@ -124,7 +124,7 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchToZeroThread, TestSize.Level1)
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_INTERRUPTIBLE, itidNext, nextPior,
                                                  INVALID_DATAINDEX); // 1st switch
-    printf("state of pre itid: %llu\n", streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre));
+    printf("state of pre itid: %" PRIu64 "\n", streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre));
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre) == TASK_INTERRUPTIBLE);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidNext) == TASK_INVALID);

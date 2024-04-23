@@ -13,10 +13,11 @@
 import("//build/ohos.gni")
 import("../../../../build/ts.gni")
 
-config("native_hook_cfg") {
+config("native_hook_parser_cfg") {
   include_dirs = [
     ".",
     "//third_party/hiperf/include",
+    "${SRC}/filter/hook_filter",
   ]
 }
 
@@ -28,9 +29,10 @@ ohos_static_library("native_hook_parser") {
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ftrace_data_reader",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/native_hook:native_hook_data_reader",
+    "${PERF_DIR}/hiperf:hiperf_platform_common",
   ]
   public_configs = [
-    ":native_hook_cfg",
+    ":native_hook_parser_cfg",
     "../../:parser_base_cfg",
   ]
 }

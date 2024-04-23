@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "htrace_symbols_detail_parser.h"
-#include "htrace_event_parser.h"
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceSymbolsDetailParser::HtraceSymbolsDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)

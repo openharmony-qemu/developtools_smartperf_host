@@ -25,7 +25,7 @@
 #include "htrace_plugin_time_parser.h"
 #include "memory_plugin_result.pbreader.h"
 #include "string_help.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 namespace SysTuning {

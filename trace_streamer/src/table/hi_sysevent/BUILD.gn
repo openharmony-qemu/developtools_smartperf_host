@@ -23,28 +23,8 @@ ohos_source_set("hi_sysevent_tables") {
     "sysevent_measure_table.cpp",
     "sysevent_subkey_table.cpp",
   ]
-  include_dirs = [
-    "include",
-    "../base/include",
-    "${THIRD_PARTY}/sqlite/include",
-    "${SRC}/base",
-    "../../parser",
-    "${SRC}/trace_data",
-    "${SRC}/include",
-    "${SRC}",
-    "${THIRD_PARTY}/protobuf/src",
-    "${THIRD_PARTY}/bounds_checking_function/include",
-  ]
-  include_dirs += [
-    "${SRC}/trace_data/trace_stdtype",
-    "${SRC}/trace_data/trace_stdtype/ftrace",
-    "${SRC}/trace_data/trace_stdtype/ftrace/template",
-    "${SRC}/trace_data/trace_stdtype/hilog",
-    "${SRC}/trace_data/trace_stdtype/hiperf",
-    "${SRC}/trace_data/trace_stdtype/hisysevent",
-    "${SRC}/trace_data/trace_stdtype/htrace",
-    "${SRC}/trace_data/trace_stdtype/measure",
-  ]
+  include_dirs = [ "include" ]
+  public_configs = [ "${SRC}/table/base:base_tables_cfg" ]
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]
   }

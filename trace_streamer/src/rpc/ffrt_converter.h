@@ -24,9 +24,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
-#include <variant>
 #include <vector>
-#include "log.h"
 #include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {

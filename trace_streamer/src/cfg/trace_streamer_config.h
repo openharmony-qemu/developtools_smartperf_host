@@ -207,9 +207,8 @@ private:
     void InitOtherEventNameMap();
     void InitEbpfEventNameMap();
     void InitHookEventNameMap();
-
+#ifdef ENABLE_MEMORY
     void InitSysMemMap();
-
     void InitSysVmemMap();
     void InitNrZoneEventSysVmemMap();
     void InitNrDirtierEventSysVmemMap();
@@ -222,6 +221,7 @@ private:
     void InitWorkingSetEventSysVmemMap();
     void InitPgEventSysVmemMap();
     void InitOtherEventSysVmemMap();
+#endif
 
     void InitSecurityMap();
     void InitBinderEventSecurityMap();

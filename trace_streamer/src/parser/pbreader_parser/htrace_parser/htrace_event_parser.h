@@ -25,10 +25,8 @@
 
 #include "event_parser_base.h"
 #include "ftrace_event.pbreader.h"
-#include "google/protobuf/message_lite.h"
-#include "log.h"
 #include "print_event_parser.h"
-#include "trace_data/trace_data_cache.h"
+#include "trace_data_cache.h"
 #include "trace_plugin_result.pbreader.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
@@ -36,7 +34,6 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-using namespace google::protobuf;
 class HtraceEventParser : private EventParserBase {
 public:
     HtraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);

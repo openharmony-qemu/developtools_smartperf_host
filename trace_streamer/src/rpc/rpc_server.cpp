@@ -26,8 +26,9 @@
 #include "ptreader_parser.h"
 #include "pbreader_parser.h"
 #include "json.hpp"
-#include "log.h"
+#ifdef ENABLE_RAWTRACE
 #include "rawtrace_parser.h"
+#endif
 #include "string_help.h"
 #include "trace_streamer_selector.h"
 #include "ts_common.h"
@@ -319,7 +320,7 @@ bool RpcServer::SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, i
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, isFinish);
     }
-    TS_LOGI("mTraceRawCpuData.size()= %lu, mTraceRawCommData.size()=%lu\n result=%s\n", mTraceRawCpuData.size(),
+    TS_LOGI("mTraceRawCpuData.size()= %zu, mTraceRawCommData.size()=%zu\n result=%s\n", mTraceRawCpuData.size(),
             mTraceRawCommData.size(), result.data());
     return true;
 }

@@ -35,7 +35,7 @@ bool PtreaderHilogParser::HilogTimeStrToTimestamp(std::string& timeStr, uint64_t
     if (std::regex_search(timeStr, matcheLine, std::regex(R"(^\d+\.(\d+)$)"))) {
         size_t index = 0;
         usecStr = matcheLine[++index].str();
-        sscanf_s(timeStr.c_str(), "%lu.%lu", &sec, &nsec);
+        sscanf_s(timeStr.c_str(), "%" PRIu64 ".%" PRIu64 "", &sec, &nsec);
     } else if (std::regex_search(timeStr, matcheLine,
                                  std::regex(R"(^(\d{4})?\-?(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d+)$)"))) {
         size_t index = 0;
