@@ -774,7 +774,7 @@ export class SpProcessChart {
       let funcRow = TraceRow.skeleton<FuncStruct>();
       funcRow.rowId = `${thread.tid}`;
       funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-      funcRow.enableCollapseChart('24px');  //允许折叠泳道图
+      funcRow.enableCollapseChart();  //允许折叠泳道图
       funcRow.rowParentId = `${process.pid}`;
       funcRow.rowHidden = !processRow.expansion;
       funcRow.checkType = threadRow.checkType;
