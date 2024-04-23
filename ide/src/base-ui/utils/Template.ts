@@ -99,6 +99,7 @@ function parseFor(strFor: String): { isArray: boolean; items: string | String; p
   // @ts-ignore
   const vals = Object.values(params);
   const str = this.replace(/\{\{([^\}]+)\}\}/g, (all: unknown, s: unknown) => `\${${s}}`);
+  // @ts-ignore
   return new Function(...names, `return \`${escape2Html(str)}\`;`)(...vals);
 };
 

@@ -305,16 +305,17 @@ PbreaderJSMemoryParser::~PbreaderJSMemoryParser()
 void PbreaderJSMemoryParser::ParseJSMemoryConfig(ProtoReader::BytesView tracePacket)
 {
     ProtoReader::ArkTSConfig_Reader jsHeapConfig(tracePacket.data_, tracePacket.size_);
-    auto pid = jsHeapConfig.pid();
+    JsConfigRow row;
+    row.pid = jsHeapConfig.pid();
     type_ = jsHeapConfig.type();
-    auto interval = jsHeapConfig.interval();
-    auto captureNumericValue = jsHeapConfig.capture_numeric_value() ? 1 : 0;
-    auto trackAllocation = jsHeapConfig.track_allocations() ? 1 : 0;
-    auto cpuProfiler = jsHeapConfig.enable_cpu_profiler() ? 1 : 0;
-    hasCpuProfiler_ = cpuProfiler ? true : false;
-    auto cpuProfilerInterval = jsHeapConfig.cpu_profiler_interval();
-    (void)traceDataCache_->GetJsConfigData()->AppendNewData(pid, type_, interval, captureNumericValue, trackAllocation,
-                                                            cpuProfiler, cpuProfilerInterval);
+    row.type = jsHeapConfig.type();
+    row.interval = jsHeapConfig.interval();
+    row.captureNumericValue = jsHeapConfig.capture_numeric_value() ? 1 : 0;
+    row.trackAllocation = jsHeapConfig.track_allocations() ? 1 : 0;
+    row.cpuProfiler = jsHeapConfig.enable_cpu_profiler() ? 1 : 0;
+    hasCpuProfiler_ = row.cpuProfiler ? true : false;
+    row.cpuProfilerInterval = jsHeapConfig.cpu_profiler_interval();
+    (void)traceDataCache_->GetJsConfigData()->AppendNewData(row);
 }
 struct timespec PbreaderJSMemoryParser::TimeToTimespec(uint64_t timeMs)
 {
@@ -629,26 +630,28 @@ void PbreaderJSMemoryParser::ParseNodes(int32_t fileId, const json &jMessage, ui
     json filteredNodes = nlohmann::json::array();
     jsonns::Nodes node = jMessage.at("nodes");
     for (size_t i = 0; i < node.names.size(); ++i) {
-        auto type = node.types[i];
-        auto name = node.names[i];
-        auto id = node.ids[i];
-        auto selfSize = node.selfSizes[i];
-        auto edgeCount = node.edgeCounts[i];
-        auto traceNodeId = node.traceNodeIds[i];
-        auto detachedness = node.detachedness[i];
         if (!isSplitFile) {
-            (void)traceDataCache_->GetJsHeapNodesData()->AppendNewData(fileId, i, type, name, id, selfSize, edgeCount,
-                                                                       traceNodeId, detachedness);
+            JsHeapNodesRow row;
+            row.fileId = fileId;
+            row.nodeIndex = i;
+            row.type = node.types[i];
+            row.name = node.names[i];
+            row.id = node.ids[i];
+            row.selfSize = node.selfSizes[i];
+            row.edgeCount = node.edgeCounts[i];
+            row.traceNodeId = node.traceNodeIds[i];
+            row.detachedNess = node.detachedness[i];
+            (void)traceDataCache_->GetJsHeapNodesData()->AppendNewData(row);
         }
-        selfSizeCount_ += selfSize;
-        if (isSplitFile && nodeFileId_ != INVALID_UINT32 && id <= nodeFileId_) {
-            filteredNodes.push_back(type);
-            filteredNodes.push_back(name);
-            filteredNodes.push_back(id);
-            filteredNodes.push_back(selfSize);
-            filteredNodes.push_back(edgeCount);
-            filteredNodes.push_back(traceNodeId);
-            filteredNodes.push_back(detachedness);
+        selfSizeCount_ += node.selfSizes[i];
+        if (isSplitFile && nodeFileId_ != INVALID_UINT32 && node.ids[i] <= nodeFileId_) {
+            filteredNodes.push_back(node.types[i]);
+            filteredNodes.push_back(node.names[i]);
+            filteredNodes.push_back(node.ids[i]);
+            filteredNodes.push_back(node.selfSizes[i]);
+            filteredNodes.push_back(node.edgeCounts[i]);
+            filteredNodes.push_back(node.traceNodeIds[i]);
+            filteredNodes.push_back(node.detachedness[i]);
             nodeCount_++;
         }
     }
@@ -663,14 +666,16 @@ void PbreaderJSMemoryParser::ParseEdges(int32_t fileId, const json &jMessage)
         return;
     }
     jsonns::Edges edge = jMessage.at("edges");
+    JsHeapEdgesRow row;
+    row.fileId = fileId;
     for (size_t i = 0; i < edge.types.size(); ++i) {
-        auto type = edge.types[i];
-        auto nameOrIndex = edge.nameOrIndexes[i];
-        auto toNode = edge.toNodes[i];
-        auto fromNodeId = edge.fromNodeIds[i];
-        auto toNodeid = edge.toNodeIds[i];
-        (void)traceDataCache_->GetJsHeapEdgesData()->AppendNewData(fileId, i, type, nameOrIndex, toNode, fromNodeId,
-                                                                   toNodeid);
+        row.edgeIndex = i;
+        row.type = edge.types[i];
+        row.nameOrIndex = edge.nameOrIndexes[i];
+        row.toNode = edge.toNodes[i];
+        row.fromNodeId = edge.fromNodeIds[i];
+        row.toNodeId = edge.toNodeIds[i];
+        (void)traceDataCache_->GetJsHeapEdgesData()->AppendNewData(row);
     }
     return;
 }
@@ -737,15 +742,17 @@ void PbreaderJSMemoryParser::ParseTraceFuncInfo(int32_t fileId, const json &jMes
         return;
     }
     jsonns::TraceFuncInfo traceFuncInfo = jMessage.at("trace_function_infos");
+    JsHeapTraceFuncRow row;
+    row.fileId = fileId;
     for (size_t i = 0; i < traceFuncInfo.functionIds.size(); ++i) {
-        auto functionId = traceFuncInfo.functionIds[i];
-        auto name = traceFuncInfo.names[i];
-        auto scriptName = traceFuncInfo.scriptNames[i];
-        auto scriptId = traceFuncInfo.scriptIds[i];
-        auto line = traceFuncInfo.lines[i];
-        auto column = traceFuncInfo.columns[i];
-        (void)traceDataCache_->GetJsHeapTraceFuncInfoData()->AppendNewData(fileId, i, functionId, name, scriptName,
-                                                                           scriptId, line, column);
+        row.functionIndex = i;
+        row.functionId = traceFuncInfo.functionIds[i];
+        row.name = traceFuncInfo.names[i];
+        row.scriptName = traceFuncInfo.scriptNames[i];
+        row.scriptId = traceFuncInfo.scriptIds[i];
+        row.line = traceFuncInfo.lines[i];
+        row.column = traceFuncInfo.columns[i];
+        (void)traceDataCache_->GetJsHeapTraceFuncInfoData()->AppendNewData(row);
     }
     return;
 }
@@ -754,15 +761,16 @@ void PbreaderJSMemoryParser::ParseTraceNode(int32_t fileId, const json &jMessage
     if (traceDataCache_->isSplitFile_) {
         return;
     }
+    JsHeapTraceNodeRow row;
+    row.fileId = fileId;
     jsonns::TraceTree traceTree = jMessage.at("trace_tree");
     for (size_t i = 0; i < traceTree.ids.size(); ++i) {
-        auto id = traceTree.ids[i];
-        auto funcInfoIndex = traceTree.functionInfoIndexes[i];
-        auto count = traceTree.counts[i];
-        auto size = traceTree.sizes[i];
-        auto parentId = traceTree.parentIds[i];
-        (void)traceDataCache_->GetJsHeapTraceNodeData()->AppendNewData(fileId, id, funcInfoIndex, count, size,
-                                                                       parentId);
+        row.traceNodeId = traceTree.ids[i];
+        row.functionInfoIndex = traceTree.functionInfoIndexes[i];
+        row.count = traceTree.counts[i];
+        row.size = traceTree.sizes[i];
+        row.parentId = traceTree.parentIds[i];
+        (void)traceDataCache_->GetJsHeapTraceNodeData()->AppendNewData(row);
     }
     return;
 }

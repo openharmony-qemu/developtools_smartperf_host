@@ -21,6 +21,7 @@ import './Extension';
 import { SpSystemTrace } from '../../SpSystemTrace';
 import { fuzzyQueryFuncRowData, queryFuncRowData } from '../../../database/sql/Func.sql';
 import { SpLtpoChart } from '../../chart/SpLTPO';
+import { isEmpty, isNotEmpty } from './Extension';
 
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;
@@ -250,10 +251,10 @@ export class RangeSelect {
     if (!notTimeHeight) {
       return false;
     }
-    if ((this.rangeTraceRow ?? false) && !this.isMouseDown) {
+    if ((isEmpty(this.rangeTraceRow) ?? false) && !this.isMouseDown) {
       this.isHover = false;
     }
-    return notTimeHeight && (!this.rangeTraceRow ?? false) && !this.isMouseDown;
+    return notTimeHeight && (isNotEmpty(this.rangeTraceRow) ?? false) && !this.isMouseDown;
   }
 
   mouseOut(mouseEventOut: MouseEvent): void {
@@ -351,7 +352,7 @@ export class RangeSelect {
   }
 
   private handleDrawForNotMouseDown(): void {
-    this.timerShaftEL!.sportRuler!.isRangeSelect = !this.rangeTraceRow ?? false;
+    this.timerShaftEL!.sportRuler!.isRangeSelect = isNotEmpty(this.rangeTraceRow) ?? false;
     this.timerShaftEL!.sportRuler!.draw();
   }
   // @ts-ignore

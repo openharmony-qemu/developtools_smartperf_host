@@ -28,7 +28,6 @@ import './timer-shaft/CollapseButton';
 import { TimerShaftElementHtml } from './TimerShaftElement.html';
 import { SpChartList } from './SpChartList';
 //随机生成十六位进制颜色
-//@ts-ignore
 export function randomRgbColor(): string {
   let r = Math.floor(Math.random() * 255);
   let g = Math.floor(Math.random() * 255);
@@ -40,7 +39,7 @@ export function randomRgbColor(): string {
     let color = '#' + r16 + g16 + b16;
     return color;
   } else {
-    randomRgbColor();
+    return randomRgbColor();
   }
 }
 

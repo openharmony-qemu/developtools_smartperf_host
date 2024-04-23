@@ -54,7 +54,6 @@ public:
                       DataIndex nameIndex);
     size_t BeginBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat, DataIndex nameIndex, ArgsSet args = ArgsSet());
     size_t StartSlice(uint64_t timeStamp,
-                      uint32_t pid,
                       DataIndex cat,
                       DataIndex nameIndex,
                       ArgsSet &args,
@@ -66,8 +65,7 @@ public:
                      DataIndex name = INVALID_UINT64,
                      ArgsSet args = {});
     size_t CompleteSlice(uint64_t timeStamp,
-                         uint32_t pid,
-                         uint32_t threadGroupId,
+                         uint32_t InternalTid,
                          DataIndex category = INVALID_UINT64,
                          DataIndex name = INVALID_UINT64,
                          ArgsSet args = {});

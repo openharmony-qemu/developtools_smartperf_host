@@ -56,7 +56,6 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
   }
 
   private initSelect(fileStartNs: number, purgePinComFileArr: Array<unknown>): void {
-    let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
     this.selectEl!.innerHTML = '';
     let option = new LitSelectOption();
@@ -76,7 +75,7 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
           // @ts-ignore
           if (input.value === f.name) {
             // @ts-ignore
-            that.updateComparisonData(fileStartNs, f.startNs);
+            this.updateComparisonData(fileStartNs, f.startNs);
           }
         } // @ts-ignore
         e.stopPropagation();

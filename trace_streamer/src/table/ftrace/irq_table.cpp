@@ -17,23 +17,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t {
-    ID = 0,
-    TS,
-    DURS,
-    CALL_IDS,
-    CAT,
-    NAME,
-    DEPTH,
-    COOKIE_ID,
-    PARENT_ID,
-    ARGSET,
-    CHAIN_IDS,
-    SPAN_IDS,
-    PARENT_SPAN_IDS,
-    FLAG,
-    ARGS
-};
+enum class Index : int32_t { ID = 0, TS, DURS, CALL_IDS, CAT, NAME, DEPTH, COOKIE_ID, PARENT_ID, ARGSET, FLAG };
 IrqTable::IrqTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.emplace_back(TableBase::ColumnInfo("id", "INTEGER"));
@@ -46,11 +30,7 @@ IrqTable::IrqTable(const TraceDataCache *dataCache) : TableBase(dataCache)
     tableColumn_.emplace_back(TableBase::ColumnInfo("cookie", "INTEGER"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("parent_id", "INTEGER"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("argsetid", "INTEGER"));
-    tableColumn_.emplace_back(TableBase::ColumnInfo("chainId", "TEXT"));
-    tableColumn_.emplace_back(TableBase::ColumnInfo("spanId", "TEXT"));
-    tableColumn_.emplace_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("flag", "TEXT"));
-    tableColumn_.emplace_back(TableBase::ColumnInfo("args", "TEXT"));
     tablePriKey_.emplace_back("callid");
     tablePriKey_.emplace_back("ts");
     tablePriKey_.emplace_back("depth");
@@ -177,20 +157,8 @@ void IrqTable::Cursor::HandleTypeColumns(int32_t column) const
         case Index::ARGSET:
             SetTypeColumnInt64(slicesObj_.ArgSetIdsData()[CurrentRow()], INVALID_UINT32);
             break;
-        case Index::CHAIN_IDS:
-            sqlite3_result_text(context_, slicesObj_.ChainIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            break;
-        case Index::SPAN_IDS:
-            sqlite3_result_text(context_, slicesObj_.SpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            break;
-        case Index::PARENT_SPAN_IDS:
-            sqlite3_result_text(context_, slicesObj_.ParentSpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            break;
         case Index::FLAG:
             sqlite3_result_text(context_, slicesObj_.Flags()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            break;
-        case Index::ARGS:
-            sqlite3_result_text(context_, slicesObj_.ArgsData()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

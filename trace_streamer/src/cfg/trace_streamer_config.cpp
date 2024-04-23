@@ -179,6 +179,7 @@ inline void TraceStreamerConfig::InitRegulatorEventNameMap()
 }
 inline void TraceStreamerConfig::InitOtherEventNameMap()
 {
+    eventNameMap_.emplace(TRACE_EVENT_FFRT, TRACE_ACTION_FFRT);
     eventNameMap_.emplace(TRACE_EVENT_PRINT, TRACE_ACTION_PRINT);
     eventNameMap_.emplace(TRACE_EVENT_TRACING_MARK_WRITE, TRACE_ACTION_TRACING_MARK_WRITE);
     eventNameMap_.emplace(TRACE_EVENT_TASK_RENAME, TRACE_ACTION_TASK_RENAME);
@@ -570,6 +571,7 @@ inline void TraceStreamerConfig::InitRegulatorEventSecurityMap()
 }
 inline void TraceStreamerConfig::InitOtherEventSecurityMap()
 {
+    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_FFRT, statSeverityDescMap_);
     eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_PRINT, statSeverityDescMap_);
     eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_TRACING_MARK_WRITE, statSeverityDescMap_);
     eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_TASK_RENAME, statSeverityDescMap_);

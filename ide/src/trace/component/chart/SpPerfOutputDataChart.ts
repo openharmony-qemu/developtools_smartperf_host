@@ -38,11 +38,14 @@ export class SpPerfOutputDataChart {
     }
     let perfToolsDur = await queryPerfToolsDur();
     if (perfToolsDur.length > 0) {
+      // @ts-ignore
       this.dur = perfToolsDur[0].dur;
     } else {
       this.dur = 3000000000;
     }
+    // @ts-ignore
     this.perfOutputArr = perfOutputData[0].name.split(':')[2].split(',');
+    // @ts-ignore
     let endTime: number = perfOutputData[0].ts;
     this.startTime = endTime - window.recordStartNS - this.dur!;
     if (this.startTime < 0) {
@@ -68,7 +71,7 @@ export class SpPerfOutputDataChart {
         context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       traceRow.canvasSave(context);
-      (renders['perfTool'] as PerfToolRender).renderMainThread(
+      (renders.perfTool as PerfToolRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -81,7 +84,8 @@ export class SpPerfOutputDataChart {
     };
   }
 
-  async initData(folder: TraceRow<any>): Promise<void> {
+    // @ts-ignore
+  async initData(folder: TraceRow<unknown>): Promise<void> {
     let perfToolStartTime = new Date().getTime();
     let perfToolList = [
       { name: 'Application Process CPU Power Consumption(MAS)', idx: 27 },
@@ -115,7 +119,8 @@ export class SpPerfOutputDataChart {
         data.count = this.perfOutputArr![it.idx];
         data.id = i + 1;
         data.name = it.name;
-        return new Promise<Array<any>>((resolve) => resolve([data]));
+        // @ts-ignore
+        return new Promise<Array<unknown>>((resolve) => resolve([data]));
       };
       traceRow.findHoverStruct = (): void => {
         PerfToolStruct.hoverPerfToolStruct = traceRow.getHoverStruct();
@@ -127,7 +132,8 @@ export class SpPerfOutputDataChart {
     info('The time to load the ClockData is: ', durTime);
   }
 
-  async initFolder(): Promise<TraceRow<any>> {
+    // @ts-ignore
+  async initFolder(): Promise<TraceRow<unknown>> {
     let perfFolder = TraceRow.skeleton();
     perfFolder.rowId = 'perfTool';
     perfFolder.index = 0;
@@ -138,13 +144,14 @@ export class SpPerfOutputDataChart {
     perfFolder.name = 'Perf Tools';
     perfFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     perfFolder.selectChangeHandler = this.trace.selectChangeHandler;
-    perfFolder.supplier = (): Promise<any[]> => new Promise<Array<any>>((resolve) => resolve([]));
+    // @ts-ignore
+    perfFolder.supplier = (): Promise<unknown[]> => new Promise<Array<unknown>>((resolve) => resolve([]));
     perfFolder.onThreadHandler = (useCache): void => {
       perfFolder.canvasSave(this.trace.canvasPanelCtx!);
       if (perfFolder.expansion) {
         this.trace.canvasPanelCtx?.clearRect(0, 0, perfFolder.frame.width, perfFolder.frame.height);
       } else {
-        (renders['empty'] as EmptyRender).renderMainThread(
+        (renders.empty as EmptyRender).renderMainThread(
           {
             context: this.trace.canvasPanelCtx,
             useCache: useCache,

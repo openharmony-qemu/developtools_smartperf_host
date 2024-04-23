@@ -124,6 +124,11 @@ void SetFtracePluginsAbilityInfo(std::string &disableInfo, std::string &enableIn
 #else
     enableInfo.append("\n\thtrace");
 #endif
+#ifndef ENABLE_FFRT
+    disableInfo.append("\n\tffrt");
+#else
+    enableInfo.append("\n\tffrt");
+#endif
 }
 void PrintDefaultAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 {
@@ -160,7 +165,7 @@ void PrintDefaultAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 #endif
     printf(
         "the default support ability list:\n\thiperf,ebpf,native_hook,hilog,hisysevent,arkts\n\t"
-        "bytrace,rawtrace,htrace,memory,hidump,cpudata,network,diskio,process\n");
+        "bytrace,rawtrace,htrace,ffrt,memory,hidump,cpudata,network,diskio,process\n");
 }
 void PrintExtendAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 {

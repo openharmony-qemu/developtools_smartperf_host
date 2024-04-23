@@ -30,7 +30,7 @@ PORT = 9000
 CERT_FILE = './cert/certFile.pem'
 KEY_FILE = './cert/keyFile.key'
 version = 'v1.0.0'
-serveInfo = ''
+server_info = ''
 
 
 def is_windows():
@@ -45,7 +45,7 @@ def is_linux():
     return platform.system() == 'Linux'
 
 
-def openWeb(url):
+def open_web(url):
     webbrowser.open(url)
 
 
@@ -72,21 +72,18 @@ def check_port(port):
 
 class SpRequestHandler(http.server.BaseHTTPRequestHandler):
     global version
-    global serveInfo
+    global server_info
 
-    def log_message(self, format, *args):
-        return
-
-    def do_GET(self):
+    def do_get(self):
         parse_result = urlparse(self.path)
         if parse_result.path == '/application/serverInfo':
-            self.serverInfo_handler()
+            self.server_info_handler()
         elif parse_result.path.startswith('/application'):
             self.application_handler(parse_result)
         else:
             self.send_error(404, 'Not found')
 
-    def do_POST(self):
+    def do_post(self):
         parse_result = urlparse(self.path)
         if parse_result.path.startswith('/logger'):
             self.console_handler()
@@ -111,8 +108,8 @@ class SpRequestHandler(http.server.BaseHTTPRequestHandler):
                 response = {"success": False, "code": -1, "message": str(e), "data": None}
                 self.wfile.write(bytes(json.dumps(response), "utf-8"))
                 return
-            suffixStr = os.path.splitext(url.split("/")[-1])[1]
-            file_name = f"upload/{datetime.now().strftime('%Y%m%d%H%M%S%f')}{suffixStr}"
+            suffix_str = os.path.splitext(url.split("/")[-1])[1]
+            file_name = f"upload/{datetime.now().strftime('%Y%m%d%H%M%S%f')}{suffix_str}"
             os.makedirs(os.path.dirname(file_name), exist_ok=True)
             try:
                 with open(file_name, "wb") as f:
@@ -153,13 +150,13 @@ class SpRequestHandler(http.server.BaseHTTPRequestHandler):
     def check_due(self, file_name):
         now = datetime.now()
         datetime_str = os.path.splitext(os.path.basename(file_name))[0]
-        fileDate = datetime.strptime(datetime_str, "%Y%m%d%H%M%S%f")
-        return (now - fileDate).total_seconds() > 3600
+        file_date = datetime.strptime(datetime_str, "%Y%m%d%H%M%S%f")
+        return (now - file_date).total_seconds() > 3600
 
     def console_handler(self):
         self.check_dir('./logger')
-        nowDate = datetime.now()
-        now = nowDate.strftime("%Y-%m-%d")
+        now_date = datetime.now()
+        now = now_date.strftime("%Y-%m-%d")
         fileName = f"{now}.txt"
         with open(os.path.join("logger", fileName), "a") as dst:
             content_type = self.headers.get("Content-Type")
@@ -205,10 +202,10 @@ class SpRequestHandler(http.server.BaseHTTPRequestHandler):
         except FileNotFoundError:
             self.send_error(404, 'File not found')
 
-    def serverInfo_handler(self):
+    def server_info_handler(self):
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("request_info", serveInfo)
+        self.send_header("request_info", server_info)
         self.end_headers()
 
 
@@ -252,9 +249,9 @@ def gen_ssl(cert_file, key_file):
 class SpServer:
     def __init__(self, server_address, cert_file_path, keyfile_path):
         global version
-        global serveInfo
+        global server_info
         version = read_text('version.txt')
-        serveInfo = read_text('server-config.txt')
+        server_info = read_text('server-config.txt')
         self.server_address = server_address
         self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
         self.context.load_cert_chain(cert_file_path, keyfile_path)
@@ -264,7 +261,7 @@ class SpServer:
     def start(self):
         print(f'HTTPS[{PORT}] SmartPerf Server Start')
         if is_windows():
-            openWeb("https://127.0.0.1:9000/application/")
+            open_web("https://127.0.0.1:9000/application/")
         self.httpd.serve_forever()
 
 

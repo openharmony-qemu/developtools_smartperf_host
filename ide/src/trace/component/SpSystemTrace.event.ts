@@ -203,7 +203,8 @@ function jankClickHandlerFunc(sp: SpSystemTrace): Function {
             // 绘制跟自己关联的线
             datas.forEach((data) => {
               //@ts-ignore
-              let endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>( // @ts-ignore
+              let endParentRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>(
+                // @ts-ignore
                 `trace-row[row-type='process'][row-id='${data.pid}'][folder]`
               );
               sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data, true);
@@ -372,7 +373,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
         sp.refreshCanvas(true);
       }
     })
-    .catch((e): void => {});
+    .catch((e): void => { });
 }
 export default function spSystemTraceOnClickHandler(
   sp: SpSystemTrace,
@@ -662,7 +663,7 @@ function handleTimerShaftActions(ev: MouseEvent, sp: SpSystemTrace): void {
         // 如果没有找到帽子，则绘制一个旗子
         let time = Math.round(
           (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) / sp.timerShaftEL!.canvas!.offsetWidth +
-            TraceRow.range?.startNS!
+          TraceRow.range?.startNS!
         );
         sp.timerShaftEL!.sportRuler!.drawTriangle(time, 'squre');
       }

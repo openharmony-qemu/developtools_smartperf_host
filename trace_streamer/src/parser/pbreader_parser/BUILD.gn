@@ -78,7 +78,8 @@ ohos_source_set("pbreader_parser_src") {
     cflags = [ "-includeMingW64Fix.h" ]
   }
   public_configs = [ "../ebpf_parser:ebpf_parser_cfg" ]
-  public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ftrace_data_reader" ]
+  public_deps =
+      [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp" ]
   if (enable_hiperf) {
     public_deps += [ "../hiperf_parser:hiperf_parser" ]
   }
@@ -96,6 +97,9 @@ ohos_source_set("pbreader_parser_src") {
   }
   if (enable_htrace) {
     public_deps += [ "htrace_parser:pbreader_htrace_parser" ]
+  }
+  if (enable_ffrt) {
+    public_deps += [ "ffrt_parser:pbreader_ffrt_parser" ]
   }
   if (enable_memory) {
     public_deps += [ "mem_parser:pbreader_mem_parser" ]

@@ -117,9 +117,9 @@ export class SpProcessChart {
     if (Reflect.ownKeys(asyncFuncGroup).length > 0) {
       this.trace.rowsEL?.appendChild(row);
     } // @ts-ignore
-    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+    Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => {
       // @ts-ignore
-      let asyncFuncGroups: Array<any> = asyncFuncGroup[key];
+      let asyncFuncGroups: Array<unknown> = asyncFuncGroup[key];
       if (asyncFuncGroups.length > 0) {
         //@ts-ignore
         row.addChildTraceRow(this.createDeliverInputEventRow(row, key, asyncFuncGroups));
@@ -1040,9 +1040,9 @@ export class SpProcessChart {
     //@ts-ignore
     let asyncFuncList = this.processAsyncFuncMap[it.pid] || [];
     let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName'); // @ts-ignore
-    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+    Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => {
       // @ts-ignore
-      let asyncFunctions: Array<any> = asyncFuncGroup[key];
+      let asyncFunctions: Array<unknown> = asyncFuncGroup[key];
       if (asyncFunctions.length > 0) {
         let isIntersect = (a: unknown, b: unknown): boolean =>
           //@ts-ignore

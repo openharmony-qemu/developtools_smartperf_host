@@ -21,6 +21,9 @@
 #include "clk.pbreader.h"
 #include "clock_filter_ex.h"
 #include "cpu_filter.h"
+#ifdef ENABLE_FFRT
+#include "ffrt_profiler_result.pbreader.h"
+#endif
 #include "ftrace.pbreader.h"
 #include "ftrace_event.pbreader.h"
 #include "sched.pbreader.h"
@@ -40,6 +43,7 @@
 #include "thread_state_flag.h"
 #include "trace_plugin_result.pbreader.h"
 #include "workqueue.pbreader.h"
+
 namespace SysTuning {
 namespace TraceStreamer {
 static constexpr uint8_t MIN_DATA_AREA = 10;
@@ -149,6 +153,10 @@ void HtraceEventParser::StackEventsInitialization()
 {
     eventToFunctionMap_.emplace(TRACE_EVENT_PRINT,
                                 std::bind(&HtraceEventParser::ParsePrintEvent, this, std::placeholders::_1));
+#ifdef ENABLE_FFRT
+    eventToFunctionMap_.emplace(TRACE_EVENT_FFRT,
+                                std::bind(&HtraceEventParser::ParseFfrtEvent, this, std::placeholders::_1));
+#endif
     eventToFunctionMap_.emplace(TRACE_EVENT_WORKQUEUE_EXECUTE_START,
                                 std::bind(&HtraceEventParser::WorkqueueExecuteStartEvent, this, std::placeholders::_1));
     eventToFunctionMap_.emplace(TRACE_EVENT_WORKQUEUE_EXECUTE_END,
@@ -157,12 +165,18 @@ void HtraceEventParser::StackEventsInitialization()
 
 HtraceEventParser::~HtraceEventParser()
 {
-    TS_LOGI("thread count:%u", static_cast<uint32_t>(tids_.size()));
-    TS_LOGI("process count:%u", static_cast<uint32_t>(pids_.size()));
     TS_LOGI("ftrace ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(ftraceStartTime_),
             static_cast<unsigned long long>(ftraceEndTime_));
     TS_LOGI("ftrace origin ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(ftraceOriginStartTime_),
             static_cast<unsigned long long>(ftraceOriginEndTime_));
+}
+
+void HtraceEventParser::AppendEvent(std::unique_ptr<EventInfo> event)
+{
+#ifdef SUPPORTTHREAD
+    std::lock_guard<std::mutex> muxLockGuard(mutex_);
+#endif
+    htraceEventList_.emplace_back(std::move(event));
 }
 
 void HtraceEventParser::ParserCpuEvent(PbreaderDataSegment &tracePacket,
@@ -515,12 +529,6 @@ bool HtraceEventParser::SchedSwitchEvent(const EventInfo &event)
     int32_t nextPrioValue = msg.next_prio();
     uint32_t prevPidValue = msg.prev_pid();
     uint32_t nextPidValue = msg.next_pid();
-    if (!tids_.count(prevPidValue)) {
-        tids_.insert(prevPidValue);
-    }
-    if (!tids_.count(nextPidValue)) {
-        tids_.insert(nextPidValue);
-    }
     std::string prevCommStr = msg.prev_comm().ToStdString();
     std::string nextCommStr = msg.next_comm().ToStdString();
     auto prevState = msg.prev_state();
@@ -542,8 +550,9 @@ bool HtraceEventParser::SchedBlockReasonEvent(const EventInfo &event)
     auto caller = traceDataCache_->GetDataIndex(
         std::string_view("0x" + SysTuning::base::number(msg.caller(), SysTuning::base::INTEGER_RADIX_TYPE_HEX)));
     auto itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp, pid);
-    if (!streamFilters_->cpuFilter_->InsertBlockedReasonEvent(event.timeStamp, event.cpu, itid, ioWait, caller,
-                                                              INVALID_UINT32)) {
+    if (streamFilters_->cpuFilter_->InsertBlockedReasonEvent(event.cpu, itid, ioWait, caller, INVALID_UINT32)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_RECEIVED);
+    } else {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_NOTMATCH);
     }
     return true;
@@ -597,21 +606,41 @@ bool HtraceEventParser::TaskNewtaskEvent(const EventInfo &event) const
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TASK_NEWTASK, STAT_EVENT_NOTSUPPORTED);
     return true;
 }
-bool HtraceEventParser::ParsePrintEvent(const EventInfo &event)
+void HtraceEventParser::DealPrintEvent(const EventInfo &event, const std::string &bufferLine)
 {
-    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PRINT, STAT_EVENT_RECEIVED);
-    ProtoReader::PrintFormat_Reader msg(event.detail);
     BytraceLine line;
     line.tgid = event.tgid;
     line.pid = event.pid;
     line.ts = event.timeStamp;
     const auto &taskName = traceDataCache_->GetDataFromDict(event.taskNameIndex);
-    printEventParser_.ParsePrintEvent(taskName, event.timeStamp, event.pid, msg.buf().ToStdString(), line);
-    if (!tids_.count(event.pid)) {
-        tids_.insert(event.pid);
-    }
+    printEventParser_.ParsePrintEvent(taskName, event.timeStamp, event.pid, bufferLine, line);
+}
+bool HtraceEventParser::ParsePrintEvent(const EventInfo &event)
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PRINT, STAT_EVENT_RECEIVED);
+    ProtoReader::PrintFormat_Reader msg(event.detail);
+    DealPrintEvent(event, msg.buf().ToStdString());
     return true;
 }
+#ifdef ENABLE_FFRT
+bool HtraceEventParser::ParseFfrtEvent(const EventInfo &event)
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_FFRT, STAT_EVENT_RECEIVED);
+    ProtoReader::TraceEvent_Reader ffrtTrace(event.detail);
+    std::string bufferLine(ffrtTrace.trace_type().ToStdString());
+    auto label = ffrtTrace.label().ToStdString();
+    bufferLine.append("|").append(std::to_string(event.tgid));
+    if (!label.empty()) {
+        RemoveNullTerminator(label);
+        bufferLine.append("|H:").append(label);
+    }
+    if (ffrtTrace.cookie()) {
+        bufferLine.append("|").append(std::to_string(ffrtTrace.cookie()));
+    }
+    DealPrintEvent(event, bufferLine);
+    return true;
+}
+#endif
 bool HtraceEventParser::SchedWakeupEvent(const EventInfo &event) const
 {
     ProtoReader::SchedWakeupFormat_Reader msg(event.detail);
@@ -901,9 +930,6 @@ void HtraceEventParser::FilterAllEventsReader()
     for (auto eventItor = htraceEventList_.begin(); eventItor != endOfList; ++eventItor) {
         auto event = eventItor->get();
         if (event->tgid != INVALID_INT32) {
-            if (!pids_.count(event->tgid)) {
-                pids_.insert(event->tgid);
-            }
             streamFilters_->processFilter_->GetOrCreateThreadWithPid(event->tgid, event->tgid);
         }
         ProtoReaderDealEvent(event);
@@ -926,9 +952,6 @@ void HtraceEventParser::FilterAllEvents()
         for (auto eventIter = htraceEventList_.begin(); eventIter != endOfList; ++eventIter) {
             auto event = eventIter->get();
             if (event->tgid != INVALID_INT32) {
-                if (!pids_.count(event->tgid)) {
-                    pids_.insert(event->tgid);
-                }
                 streamFilters_->processFilter_->GetOrCreateThreadWithPid(event->tgid, event->tgid);
             }
             ProtoReaderDealEvent(event);
@@ -949,9 +972,6 @@ void HtraceEventParser::FilterAllEvents()
 void HtraceEventParser::ProtoReaderDealEvent(EventInfo *eventInfo)
 {
     if (eventInfo->pid != INVALID_INT32) {
-        if (!tids_.count(eventInfo->pid)) {
-            tids_.insert(eventInfo->pid);
-        }
         streamFilters_->processFilter_->UpdateOrCreateThread(eventInfo->timeStamp, eventInfo->pid);
     }
     if (eventInfo->pid != INVALID_INT32 && eventInfo->tgid != INVALID_INT32) {

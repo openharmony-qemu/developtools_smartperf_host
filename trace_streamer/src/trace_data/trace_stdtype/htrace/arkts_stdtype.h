@@ -48,16 +48,18 @@ private:
     std::deque<uint64_t> endTimes_ = {};
     std::deque<uint64_t> selfSizeCount_ = {};
 };
-
+struct JsHeapEdgesRow {
+    uint32_t fileId = INVALID_UINT32;
+    uint32_t edgeIndex = INVALID_UINT32;
+    uint32_t type = INVALID_UINT32;
+    uint32_t nameOrIndex = INVALID_UINT32;
+    uint32_t toNode = INVALID_UINT32;
+    uint32_t fromNodeId = INVALID_UINT32;
+    uint32_t toNodeId = INVALID_UINT32;
+};
 class JsHeapEdges : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t fileId,
-                         uint32_t edgeIndex,
-                         uint32_t type,
-                         uint32_t nameOrIndex,
-                         uint32_t toNode,
-                         uint32_t fromNodeId,
-                         uint32_t toNodeId);
+    size_t AppendNewData(const JsHeapEdgesRow &jsHeapEdgesRow);
     const std::deque<uint32_t> &FileIds() const;
     const std::deque<uint32_t> &EdgeIndexs() const;
     const std::deque<uint32_t> &Types() const;
@@ -139,17 +141,20 @@ private:
     std::deque<uint32_t> columns_ = {};
 };
 
+struct JsHeapNodesRow {
+    uint32_t fileId = INVALID_UINT32;
+    uint32_t nodeIndex = INVALID_UINT32;
+    uint32_t type = INVALID_UINT32;
+    uint32_t name = INVALID_UINT32;
+    uint32_t id = INVALID_UINT32;
+    uint32_t selfSize = INVALID_UINT32;
+    uint32_t edgeCount = INVALID_UINT32;
+    uint32_t traceNodeId = INVALID_UINT32;
+    uint32_t detachedNess = INVALID_UINT32;
+};
 class JsHeapNodes : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t fileId,
-                         uint32_t nodeIndex,
-                         uint32_t type,
-                         uint32_t name,
-                         uint32_t id,
-                         uint32_t selfSize,
-                         uint32_t edgeCount,
-                         uint32_t traceNodeId,
-                         uint32_t detachedNess);
+    size_t AppendNewData(const JsHeapNodesRow &jsHeapNodesRow);
     const std::deque<uint32_t> &FileIds() const;
     const std::deque<uint32_t> &NodeIndexs() const;
     const std::deque<uint32_t> &Types() const;
@@ -225,16 +230,19 @@ private:
     std::deque<std::string> strings_ = {};
 };
 
+struct JsHeapTraceFuncRow {
+    uint32_t fileId = INVALID_UINT32;
+    uint32_t functionIndex = INVALID_UINT32;
+    uint32_t functionId = INVALID_UINT32;
+    uint32_t name = INVALID_UINT32;
+    uint32_t scriptName = INVALID_UINT32;
+    uint32_t scriptId = INVALID_UINT32;
+    uint32_t line = INVALID_UINT32;
+    uint32_t column = INVALID_UINT32;
+};
 class JsHeapTraceFuncInfo : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t fileId,
-                         uint32_t functionIndex,
-                         uint32_t functionId,
-                         uint32_t name,
-                         uint32_t scriptName,
-                         uint32_t scriptId,
-                         uint32_t line,
-                         uint32_t column);
+    size_t AppendNewData(const JsHeapTraceFuncRow &jsHeapTraceFuncRow);
     const std::deque<uint32_t> &FileIds() const;
     const std::deque<uint32_t> &FunctionIndexs() const;
     const std::deque<uint32_t> &FunctionIds() const;
@@ -266,15 +274,17 @@ private:
     std::deque<uint32_t> lines_ = {};
     std::deque<uint32_t> columns_ = {};
 };
-
+struct JsHeapTraceNodeRow {
+    uint32_t fileId = INVALID_UINT32;
+    uint32_t traceNodeId = INVALID_UINT32;
+    uint32_t functionInfoIndex = INVALID_UINT32;
+    uint32_t count = INVALID_UINT32;
+    uint32_t size = INVALID_UINT32;
+    int32_t parentId = INVALID_INT32;
+};
 class JsHeapTraceNode : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t fileId,
-                         uint32_t traceNodeId,
-                         uint32_t functionInfoIndex,
-                         uint32_t count,
-                         uint32_t size,
-                         int32_t parentId);
+    size_t AppendNewData(const JsHeapTraceNodeRow &jsHeapTraceNodeRow);
     const std::deque<uint32_t> &FileIds() const;
     const std::deque<uint32_t> &TraceNodeIDs() const;
     const std::deque<uint32_t> &FunctionInfoIndexs() const;
@@ -300,16 +310,18 @@ private:
     std::deque<uint32_t> sizes_ = {};
     std::deque<int32_t> parentIds_ = {};
 };
-
+struct JsConfigRow {
+    uint32_t pid = INVALID_UINT32;
+    uint64_t type = INVALID_UINT64;
+    uint32_t interval = INVALID_UINT32;
+    uint32_t captureNumericValue = INVALID_UINT32;
+    uint32_t trackAllocation = INVALID_UINT32;
+    uint32_t cpuProfiler = INVALID_UINT32;
+    uint32_t cpuProfilerInterval = INVALID_UINT32;
+};
 class JsConfig : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t pid,
-                         uint64_t type,
-                         uint32_t interval,
-                         uint32_t captureNumericValue,
-                         uint32_t trackAllocation,
-                         uint32_t cpuProfiler,
-                         uint32_t cpuProfilerInterval);
+    size_t AppendNewData(const JsConfigRow &jsConfigRow);
     const std::deque<uint32_t> &Pids() const;
     const std::deque<uint64_t> &Types() const;
     const std::deque<uint32_t> &Intervals() const;
@@ -338,18 +350,20 @@ private:
     std::deque<uint32_t> cpuProfilers_ = {};
     std::deque<uint32_t> cpuProfilerIntervals_ = {};
 };
-
+struct JsCpuProfilerNodeRow {
+    uint32_t functionId = INVALID_UINT32;
+    uint32_t functionName = INVALID_UINT32;
+    std::string scriptId = "";
+    uint32_t url = INVALID_UINT32;
+    uint32_t lineNumber = INVALID_UINT32;
+    uint32_t columnNumber = INVALID_UINT32;
+    uint32_t hitCount = INVALID_UINT32;
+    std::string children = "";
+    uint32_t parent = INVALID_UINT32;
+};
 class JsCpuProfilerNode : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t functionId,
-                         uint32_t functionName,
-                         std::string scriptId,
-                         uint32_t url,
-                         uint32_t lineNumber,
-                         uint32_t columnNumber,
-                         uint32_t hitCount,
-                         std::string children,
-                         uint32_t parent);
+    size_t AppendNewData(const JsCpuProfilerNodeRow &jsCpuProfilerNodeRow);
     const std::deque<uint32_t> &FunctionIds() const;
     const std::deque<uint32_t> &FunctionNames() const;
     const std::deque<std::string> &ScriptIds() const;

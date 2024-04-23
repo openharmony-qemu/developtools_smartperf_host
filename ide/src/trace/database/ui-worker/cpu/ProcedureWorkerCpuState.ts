@@ -94,8 +94,8 @@ export class CpuStateRender extends PerfRender {
     let pns = (endNS - startNS) / frame.width;
     let y = frame.y + 5;
     let frameHeight = frame.height - 10;
-    let left = 0,
-      right = 0;
+    let left = 0;
+    let right = 0;
     for (let i = 0, j = list.length - 1, ib = true, jb = true; i < list.length, j >= 0; i++, j--) {
       if (list[j].startTs! <= endNS && jb) {
         right = j;

@@ -29,19 +29,21 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
   private vmStatisticsSelectionParam: SelectionParam | null | undefined;
   private vmStatisticsProgressEL: LitProgressBar | null | undefined;
   private vmStatisticsFilter: TabPaneFilter | null | undefined;
-  private loadingPage: any;
+  private loadingPage: unknown;
   private loadingList: number[] = [];
-  private vmStatisticsSource: Array<any> = [];
+  private vmStatisticsSource: Array<unknown> = [];
   private vmStatisticsSortKey: string = '';
   private vmStatisticsSortType: number = 0;
-  private vmStatisticsResultData: Array<any> = [];
+  private vmStatisticsResultData: Array<unknown> = [];
 
-  set data(vmStatisticsSelection: SelectionParam | any) {
+  set data(vmStatisticsSelection: SelectionParam | unknown) {
     if (vmStatisticsSelection === this.vmStatisticsSelectionParam) {
       return;
     }
     this.vmStatisticsProgressEL!.loading = true;
+    // @ts-ignore
     this.loadingPage.style.visibility = 'visible';
+    // @ts-ignore
     this.vmStatisticsSelectionParam = vmStatisticsSelection;
     // @ts-ignore
     this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${
@@ -85,36 +87,48 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
           this.parentElement!.clientHeight - 10 - 32
         }px`;
         this.vmStatisticsTbl!.reMeauseHeight();
+        // @ts-ignore
         this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
   }
 
-  getInitData(initVmMemoryStatItem: any, nameTitle: any = 'pname', subtitle: any = null): any {
+  getInitData(initVmMemoryStatItem: unknown, nameTitle: unknown = 'pname', subtitle: unknown = null): unknown {
     // @ts-ignore
     let title = nameTitle === 'type' ? VM_TYPE_MAP[initVmMemoryStatItem[nameTitle]] : initVmMemoryStatItem[nameTitle];
     return {
+      // @ts-ignore
       ...initVmMemoryStatItem,
+      // @ts-ignore
       title: title + (subtitle ? `(${initVmMemoryStatItem[subtitle]})` : ''),
+      // @ts-ignore
       allDuration: Utils.getProbablyTime(initVmMemoryStatItem.allDuration),
+      // @ts-ignore
       minDuration: Utils.getProbablyTime(initVmMemoryStatItem.minDuration),
+      // @ts-ignore
       maxDuration: Utils.getProbablyTime(initVmMemoryStatItem.maxDuration),
+      // @ts-ignore
       avgDuration: Utils.getProbablyTime(initVmMemoryStatItem.avgDuration),
+      // @ts-ignore
       node: { ...initVmMemoryStatItem, children: [] },
     };
   }
 
-  queryDataByDB(vmMemoryStatParam: SelectionParam | any): void {
+  queryDataByDB(vmMemoryStatParam: SelectionParam | unknown): void {
     this.loadingList.push(1);
     this.vmStatisticsProgressEL!.loading = true;
+    // @ts-ignore
     this.loadingPage.style.visibility = 'visible';
     getTabPaneVirtualMemoryStatisticsData(
+      // @ts-ignore
       vmMemoryStatParam.leftNs + vmMemoryStatParam.recordStartNs,
+      // @ts-ignore
       vmMemoryStatParam.rightNs + vmMemoryStatParam.recordStartNs
     ).then((result) => {
       this.loadingList.splice(0, 1);
       if (this.loadingList.length === 0) {
         this.vmStatisticsProgressEL!.loading = false;
+        // @ts-ignore
         this.loadingPage.style.visibility = 'hidden';
       }
       this.vmStatisticsResultData = JSON.parse(JSON.stringify(result));
@@ -122,10 +136,10 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     });
   }
 
-  sortStatus(result: Array<any>, firstLevel: string, secondLevel: string): void {
-    let vmMemoryStatFatherMap = new Map<any, any>();
-    let vmMemoryStatChildMap = new Map<any, any>();
-    let vmMemoryStatAllNode: any = {
+  sortStatus(result: Array<unknown>, firstLevel: string, secondLevel: string): void {
+    let vmMemoryStatFatherMap = new Map<unknown, unknown>();
+    let vmMemoryStatChildMap = new Map<unknown, unknown>();
+    let vmMemoryStatAllNode: unknown = {
       title: 'All',
       count: 0,
       allDuration: 0,
@@ -138,21 +152,31 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       this.processChildMap(vmMemoryStatChildMap, item, firstLevel, secondLevel);
       this.processFatherMap(vmMemoryStatFatherMap, item, firstLevel);
       if (idx === 0) {
+        // @ts-ignore
         vmMemoryStatAllNode.minDuration = item.minDuration;
       } else {
+        // @ts-ignore
         vmMemoryStatAllNode.minDuration =
+          // @ts-ignore
           vmMemoryStatAllNode.minDuration <= item.minDuration ? vmMemoryStatAllNode.minDuration : item.minDuration;
       }
+      // @ts-ignore
       vmMemoryStatAllNode.count += item.count;
+      // @ts-ignore
       vmMemoryStatAllNode.allDuration += item.allDuration;
+      // @ts-ignore
       vmMemoryStatAllNode.maxDuration =
+        // @ts-ignore
         vmMemoryStatAllNode.maxDuration >= item.maxDuration ? vmMemoryStatAllNode.maxDuration : item.maxDuration;
     });
     this.handleFatherMap(vmMemoryStatFatherMap, firstLevel, vmMemoryStatChildMap, vmMemoryStatAllNode);
 
+    // @ts-ignore
     vmMemoryStatAllNode.avgDuration = vmMemoryStatAllNode.allDuration / vmMemoryStatAllNode.count;
     vmMemoryStatAllNode = this.getInitData(vmMemoryStatAllNode);
+    // @ts-ignore
     vmMemoryStatAllNode.title = 'All';
+    // @ts-ignore
     vmMemoryStatAllNode.path = { type: null, tid: null, pid: null, value: 'All' };
     this.vmStatisticsSource = result.length > 0 ? [vmMemoryStatAllNode] : [];
     if (this.vmStatisticsSortType !== 0 && result.length > 0) {
@@ -161,7 +185,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     this.theadClick(this.vmStatisticsSource);
     this.vmStatisticsTbl!.recycleDataSource = this.vmStatisticsSource;
   }
-  private theadClick(res: Array<any>): void {
+  private theadClick(res: Array<unknown>): void {
     let labels = this.vmStatisticsTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
@@ -182,36 +206,43 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     }
   }
   private handleFatherMap(
-    vmMemoryStatFatherMap: Map<any, any>,
+    vmMemoryStatFatherMap: Map<unknown, unknown>,
     firstLevel: string,
-    vmMemoryStatChildMap: Map<any, any>,
-    vmMemoryStatAllNode: any
+    vmMemoryStatChildMap: Map<unknown, unknown>,
+    vmMemoryStatAllNode: unknown
   ): void {
     for (let ks of vmMemoryStatFatherMap.keys()) {
       let sp = vmMemoryStatFatherMap.get(ks);
+      // @ts-ignore
       sp!.children = [];
+      // @ts-ignore
       sp.avgDuration = sp.allDuration / sp.count;
       let vmMemoryStatNode = this.getInitData(
         sp,
         firstLevel === 'type' ? 'type' : 'pname',
         firstLevel === 'type' ? null : 'pid'
       );
+      // @ts-ignore
       vmMemoryStatNode.path = { type: null, tid: null, pid: null, value: vmMemoryStatNode.title };
+      // @ts-ignore
       vmMemoryStatNode.path[firstLevel === 'type' ? 'type' : 'pid'] =
+        // @ts-ignore
         vmMemoryStatNode[firstLevel === 'type' ? 'type' : 'pid'];
       this.handleChildMap(vmMemoryStatChildMap, ks, firstLevel, vmMemoryStatNode, sp);
+      // @ts-ignore
       vmMemoryStatAllNode.children.push(vmMemoryStatNode);
     }
   }
 
   private handleChildMap(
-    vmMemoryStatChildMap: Map<any, any>,
-    ks: any,
+    vmMemoryStatChildMap: Map<unknown, unknown>,
+    ks: unknown,
     firstLevel: string,
-    vmMemoryStatNode: any,
-    sp: any
+    vmMemoryStatNode: unknown,
+    sp: unknown
   ): void {
     for (let kst of vmMemoryStatChildMap.keys()) {
+      // @ts-ignore
       if (kst.startsWith(`${ks}_`)) {
         let spt = vmMemoryStatChildMap.get(kst);
         let data = this.getInitData(
@@ -220,45 +251,67 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
           firstLevel === 'type' ? 'pid' : 'tid'
         );
         this.handleData(data, vmMemoryStatNode, firstLevel);
+        // @ts-ignore
         sp!.children.push(data);
       }
     }
   }
 
-  private handleData(data: any, vmMemoryStatNode: any, firstLevel: string): void {
+  private handleData(data: unknown, vmMemoryStatNode: unknown, firstLevel: string): void {
+    // @ts-ignore
     data.path = {
       type: null,
       tid: null,
       pid: null,
+      // @ts-ignore
       value: `All-${vmMemoryStatNode.title}-${data.title}`,
     };
+    // @ts-ignore
     data.path[firstLevel === 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel === 'type' ? 'type' : 'pid'];
+    // @ts-ignore
     data.path[firstLevel === 'type' ? 'pid' : 'tid'] = data[firstLevel === 'type' ? 'pid' : 'tid'];
-    data.children.forEach((e: any) => {
+    // @ts-ignore
+    data.children.forEach((e: unknown) => {
+      // @ts-ignore
       e.path = {
         type: null,
         tid: null,
         pid: null,
+        // @ts-ignore
         value: `All-${vmMemoryStatNode.title}-${data.title}-${e.title}`,
       };
+      // @ts-ignore
       e.path[firstLevel === 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel === 'type' ? 'type' : 'pid'];
+      // @ts-ignore
       e.path[firstLevel === 'type' ? 'pid' : 'tid'] = data[firstLevel === 'type' ? 'pid' : 'tid'];
+      // @ts-ignore
       e.path[firstLevel === 'type' ? 'tid' : 'type'] = e[firstLevel === 'type' ? 'tid' : 'type'];
     });
   }
 
-  private processFatherMap(vmMemoryStatFatherMap: Map<any, any>, item: any, firstLevel: string): void {
+  private processFatherMap(vmMemoryStatFatherMap: Map<unknown, unknown>, item: unknown, firstLevel: string): void {
+    // @ts-ignore
     if (vmMemoryStatFatherMap.has(item[firstLevel])) {
+      // @ts-ignore
       let vmMemoryStatFatherObj = vmMemoryStatFatherMap.get(item[firstLevel]);
+      // @ts-ignore
       vmMemoryStatFatherObj.count += item.count;
+      // @ts-ignore
       vmMemoryStatFatherObj.allDuration += item.allDuration;
+      // @ts-ignore
       vmMemoryStatFatherObj.minDuration =
+        // @ts-ignore
         vmMemoryStatFatherObj.minDuration <= item.minDuration ? vmMemoryStatFatherObj.minDuration : item.minDuration;
+      // @ts-ignore
       vmMemoryStatFatherObj.maxDuration =
+        // @ts-ignore
         vmMemoryStatFatherObj.maxDuration >= item.maxDuration ? vmMemoryStatFatherObj.maxDuration : item.maxDuration;
+      // @ts-ignore
       vmMemoryStatFatherObj.children.push(this.getInitData(item));
     } else {
+      // @ts-ignore
       vmMemoryStatFatherMap.set(item[firstLevel], {
+        // @ts-ignore
         ...item,
         children: [this.getInitData(item)],
       });
@@ -266,24 +319,35 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
   }
 
   private processChildMap(
-    vmMemoryStatChildMap: Map<any, any>,
-    item: any,
+    vmMemoryStatChildMap: Map<unknown, unknown>,
+    item: unknown,
     firstLevel: string,
     secondLevel: string
   ): void {
+    // @ts-ignore
     if (vmMemoryStatChildMap.has(`${item[firstLevel]}_${item[secondLevel]}`)) {
+      // @ts-ignore
       let vmMemoryStatChildObj = vmMemoryStatChildMap.get(`${item[firstLevel]}_${item[secondLevel]}`);
+      // @ts-ignore
       vmMemoryStatChildObj.count += item.count;
+      // @ts-ignore
       vmMemoryStatChildObj.allDuration += item.allDuration;
+      // @ts-ignore
       vmMemoryStatChildObj.minDuration =
+        // @ts-ignore
         vmMemoryStatChildObj.minDuration <= item.minDuration ? vmMemoryStatChildObj.minDuration : item.minDuration;
+      // @ts-ignore
       vmMemoryStatChildObj.maxDuration =
+        // @ts-ignore
         vmMemoryStatChildObj.maxDuration >= item.maxDuration ? vmMemoryStatChildObj.maxDuration : item.maxDuration;
+      // @ts-ignore
       vmMemoryStatChildObj.children.push(
         this.getInitData(item, firstLevel === 'type' ? 'tname' : 'type', firstLevel === 'type' ? 'tid' : null)
       );
     } else {
+      // @ts-ignore
       vmMemoryStatChildMap.set(`${item[firstLevel]}_${item[secondLevel]}`, {
+        // @ts-ignore
         ...item,
         children: [
           this.getInitData(item, firstLevel === 'type' ? 'tname' : 'type', firstLevel === 'type' ? 'tid' : null),
@@ -292,28 +356,45 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     }
   }
 
-  sortVmStatisticsTable(allNode: any, key: string): void {
-    allNode.children.sort((vmStatNodeA: any, vmStatNodeB: any) => {
+  sortVmStatisticsTable(allNode: unknown, key: string): void {
+    // @ts-ignore
+    allNode.children.sort((vmStatNodeA: unknown, vmStatNodeB: unknown): number => {
       if (this.vmStatisticsSortType === 1) {
+        // @ts-ignore
         return vmStatNodeA.node[key] - vmStatNodeB.node[key];
       } else if (this.vmStatisticsSortType === 2) {
+        // @ts-ignore
         return vmStatNodeB.node[key] - vmStatNodeA.node[key];
+      } else {
+        return 0;
       }
     });
-    allNode.children.forEach((item: any): void => {
-      item.children.sort((vmStatNodeA: any, vmStatNodeB: any) => {
+    // @ts-ignore
+    allNode.children.forEach((item: unknown): void => {
+      // @ts-ignore
+      item.children.sort((vmStatNodeA: unknown, vmStatNodeB: unknown): number => {
         if (this.vmStatisticsSortType === 1) {
+          // @ts-ignore
           return vmStatNodeA.node[key] - vmStatNodeB.node[key];
         } else if (this.vmStatisticsSortType === 2) {
+          // @ts-ignore
           return vmStatNodeB.node[key] - vmStatNodeA.node[key];
+        } else {
+          return 0;
         }
       });
-      item.children.forEach((vmStatItem: any) => {
-        vmStatItem.children.sort((vmStatItemA: any, vmStatItemB: any) => {
+      // @ts-ignore
+      item.children.forEach((vmStatItem: unknown) => {
+        // @ts-ignore
+        vmStatItem.children.sort((vmStatItemA: unknown, vmStatItemB: unknown): number => {
           if (this.vmStatisticsSortType === 1) {
+            // @ts-ignore
             return vmStatItemA.node[key] - vmStatItemB.node[key];
           } else if (this.vmStatisticsSortType === 2) {
+            // @ts-ignore
             return vmStatItemB.node[key] - vmStatItemA.node[key];
+          } else {
+            return 0;
           }
         });
       });

@@ -88,12 +88,11 @@ export class SpWebHdcShell extends BaseElement {
     window.subscribe(window.SmartEvent.UI.DeviceDisConnect, () => {
       this.clear();
     });
-    let that = this;
-    this.shellCanvas!.addEventListener('blur', function () {
-      if (that.intervalId) {
-        window.clearInterval(that.intervalId);
+    this.shellCanvas!.addEventListener('blur', () => {
+      if (this.intervalId) {
+        window.clearInterval(this.intervalId);
       }
-      that.shellCanvasCtx!.clearRect(that.shellStrLength, that.textY, 12, 3);
+      this.shellCanvasCtx!.clearRect(this.shellStrLength, this.textY, 12, 3);
     });
     new ResizeObserver(() => {
       this.resizeCanvas();
@@ -582,55 +581,53 @@ export class SpWebHdcShell extends BaseElement {
     let startY: number;
     let endX: number;
     let endY: number;
-    let that = this;
-    this.shellCanvas!.addEventListener('mousedown', function (event) {
-      if (that.resultStr.length === 0 && that.cursorRow.length === 0) {
+    this.shellCanvas!.addEventListener('mousedown', (event) => {
+      if (this.resultStr.length === 0 && this.cursorRow.length === 0) {
         return;
       }
-      that.isDragging = true;
+      this.isDragging = true;
       startX = event.offsetX;
       startY = event.offsetY;
-      that.refreshShellPage(false);
+      this.refreshShellPage(false);
     });
-    this.shellCanvas!.addEventListener('mousemove', function (event) {
-      if (!that.isDragging) {
+    this.shellCanvas!.addEventListener('mousemove', (event) => {
+      if (!this.isDragging) {
         return;
       }
-      if (that.resultStr.length === 0 && that.cursorRow.length === 0) {
+      if (this.resultStr.length === 0 && this.cursorRow.length === 0) {
         return;
       }
       endX = event.offsetX;
       endY = event.offsetY;
-      that.refreshShellPage(false);
-      that.points = undefined;
-      that.shellCanvasCtx!.fillStyle = 'rgba(128, 128, 128, 0.5)';
+      this.refreshShellPage(false);
+      this.points = undefined;
+      this.shellCanvasCtx!.fillStyle = 'rgba(128, 128, 128, 0.5)';
       if (endY > startY) {
-        that.forwardFlag = true;
-        that.forwardSelected(startX, startY, endX, endY);
+        this.forwardFlag = true;
+        this.forwardSelected(startX, startY, endX, endY);
       } else {
-        that.forwardFlag = false;
-        that.reverseSelected(startX, startY, endX, endY);
+        this.forwardFlag = false;
+        this.reverseSelected(startX, startY, endX, endY);
       }
     });
     this.shellCanvasAddMouseUpListener();
   }
 
   private shellCanvasAddMouseUpListener(): void {
-    let that = this;
-    this.shellCanvas!.addEventListener('mouseup', async function (event) {
-      if (!that.isDragging) {
+    this.shellCanvas!.addEventListener('mouseup', async (event) => {
+      if (!this.isDragging) {
         return;
       }
-      if (that.resultStr.length === 0 && that.cursorRow.length === 0) {
+      if (this.resultStr.length === 0 && this.cursorRow.length === 0) {
         return;
       }
-      that.isDragging = false;
+      this.isDragging = false;
       //右键
       if (event.button === 2) {
         let text: string = await navigator.clipboard.readText();
         if (text) {
-          if (that.sendCallBack) {
-            that.sendCallBack(text);
+          if (this.sendCallBack) {
+            this.sendCallBack(text);
           }
           return;
         }

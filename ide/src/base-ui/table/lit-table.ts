@@ -634,13 +634,17 @@ export class LitTable extends HTMLElement {
   adoptedCallback(): void {}
 
   getCheckRows(): unknown[] {
-    // @ts-ignore
-    return [...this.shadowRoot!.querySelectorAll('div[class=tr][checked]')] // @ts-ignore
-      .map((a) => (a as unknown).data)
-      .map((a) => {
-        delete a['children'];
-        return a;
-      });
+    return (
+      [...this.shadowRoot!.querySelectorAll('div[class=tr][checked]')]
+        // @ts-ignore
+        .map((a) => (a as HTMLDivElement).data)
+        .map((a) => {
+          if ('children' in a) {
+            delete a.children;
+          }
+          return a;
+        })
+    );
   }
 
   deleteRowsCondition(fn: unknown): void {

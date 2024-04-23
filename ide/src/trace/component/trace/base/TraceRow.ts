@@ -40,8 +40,8 @@ export class RangeSelectStruct {
   endNS: number | undefined;
 }
 
-let collectList: Array<unknown> = [];
-let rowDragElement: EventTarget | undefined | null;
+let collectList: Array<TraceRow<BaseStruct>> = [];
+let rowDragId: string | undefined | null;
 let dragDirection: string = '';
 
 @element('trace-row')
@@ -572,7 +572,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       } else {
         return this.dataListCache.find(
           (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
-        );
+        ) as T;
       }
     }
   }
@@ -915,11 +915,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       event.stopPropagation();
     });
 
-    let that = this;
-    window.addEventListener('storage', function (e): void {
+    window.addEventListener('storage', (e): void => {
       if (e.storageArea === sessionStorage) {
         if (e.key === 'freqInfoData') {
-          that.onRowCheckFileChangeHandler?.();
+          this.onRowCheckFileChangeHandler?.();
         }
       }
     }); // @ts-ignore
@@ -1137,13 +1136,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   private describeElEvent(): void {
     this.describeEl!.ondragend = (ev: unknown): void => {
-      rowDragElement = null; // @ts-ignore
+      rowDragId = null; // @ts-ignore
       ev.target.classList.remove('drag'); // @ts-ignore
       this.drawLine(ev.currentTarget, '');
       return undefined;
     };
     this.describeEl!.ondragover = (ev: unknown): undefined => {
-      if (!this.collect || rowDragElement === this) {
+      if (!this.collect || rowDragId === this.rowId) {
         return;
       } // @ts-ignore
       let rect = ev.currentTarget.getBoundingClientRect(); // @ts-ignore
@@ -1164,7 +1163,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       } // @ts-ignore
       this.drawLine(ev.currentTarget, '');
       let spacer = this.parentElement!.previousElementSibling! as HTMLDivElement;
-      let startDragNode = collectList.findIndex((it): boolean => it === rowDragElement);
+      let startDragNode = collectList.findIndex((it): boolean => it.rowId === rowDragId);
       let endDragNode = collectList.findIndex((it): boolean => it === this);
       if (startDragNode === -1 || endDragNode === -1) {
         return;
@@ -1180,7 +1179,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
           // @ts-ignore
           it.style.top = `${spacer.offsetTop + 48}px`;
         } else {
-          // @ts-ignore
           it.style.top = `${collectList[i - 1].offsetTop + collectList[i - 1].offsetHeight}px`;
         }
       });
@@ -1188,7 +1186,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   rowDragstart(ev: unknown): void {
-    rowDragElement = this; // @ts-ignore
+    rowDragId = this.rowId; // @ts-ignore
     ev.target.classList.add('drag');
   }
 
@@ -1278,10 +1276,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
       this.onThreadHandler?.(true, null);
     }
-  }
-
-  isEmpty(){
-
   }
 
   draw(useCache: boolean = false): void {

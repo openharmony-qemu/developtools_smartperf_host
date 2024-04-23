@@ -33,6 +33,9 @@
 #include "htrace_cpu_detail_parser.h"
 #include "htrace_symbols_detail_parser.h"
 #endif
+#ifdef ENABLE_FFRT
+#include "pbreader_ffrt_parser.h"
+#endif
 #include "htrace_plugin_time_parser.h"
 #ifdef ENABLE_CPUDATA
 #include "pbreader_cpu_data_parser.h"
@@ -194,6 +197,10 @@ private:
 #ifdef ENABLE_HTRACE
     void ParseFtrace(PbreaderDataSegment &dataSeg);
 #endif
+#ifdef ENABLE_FFRT
+    void ParseFfrtConfig(PbreaderDataSegment &dataSeg);
+    void ParseFfrt(PbreaderDataSegment &dataSeg);
+#endif
 #ifdef ENABLE_HTDUMP
     void ParseFPS(PbreaderDataSegment &dataSeg);
 #endif
@@ -259,6 +266,11 @@ private:
     bool onlyParseFtrace_ = false;
 #endif
     std::set<DataIndex> ftracePluginIndex_ = {};
+#ifdef ENABLE_FFRT
+    DataIndex ffrtPluginIndex_ = {};
+    DataIndex ffrtPluginConfigIndex_ = {};
+    std::unique_ptr<PbreaderFfrtDetailParser> pbreaderFfrtParser_;
+#endif
 #ifdef ENABLE_MEMORY
     std::unique_ptr<PbreaderMemParser> pbreaderMemParser_;
     ClockId dataSourceTypeMemClockid_ = TS_CLOCK_UNKNOW;

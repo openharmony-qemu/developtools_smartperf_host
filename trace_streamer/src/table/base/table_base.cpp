@@ -341,6 +341,23 @@ void TableBase::Cursor::FilterId(unsigned char op, sqlite3_value *argv)
     }
 }
 
+double TableBase::CalculateFilterCost(int64_t rowCount, FilterConstraints &fc)
+{
+    auto constraints = fc.GetConstraints();
+    if (constraints.empty()) { // scan all rows
+        return rowCount;
+    }
+    double filterCost = 0.0;
+    for (int32_t i = 0; i < static_cast<int32_t>(constraints.size()); i++) {
+        if (rowCount <= 1) {
+            // only one row or nothing, needn't filter by constraint
+            filterCost += rowCount;
+            break;
+        }
+        FilterByConstraint(fc, filterCost, rowCount, i);
+    }
+    return filterCost;
+}
 void TableBase::EstimateFilterCost(FilterConstraints &fc, EstimatedIndexInfo &ei)
 {
     constexpr double filterBaseCost = 1000.0; // set-up and tear-down
@@ -353,22 +370,7 @@ void TableBase::EstimateFilterCost(FilterConstraints &fc, EstimatedIndexInfo &ei
             ei.estimatedCost += indexCost * rowCount;
             return;
         }
-        double filterCost = 0.0;
-        auto constraints = fc.GetConstraints();
-        if (constraints.empty()) { // scan all rows
-            filterCost = rowCount;
-        } else {
-            for (int32_t i = 0; i < static_cast<int32_t>(constraints.size()); i++) {
-                if (rowCount <= 1) {
-                    // only one row or nothing, needn't filter by constraint
-                    filterCost += rowCount;
-                    break;
-                }
-                FilterByConstraint(fc, filterCost, rowCount, i);
-            }
-        }
-
-        ei.estimatedCost += filterCost;
+        ei.estimatedCost += CalculateFilterCost(rowCount, fc);
         ei.estimatedRows = rowCount;
         ei.estimatedCost += rowCount * indexCost;
         ei.isOrdered = true;

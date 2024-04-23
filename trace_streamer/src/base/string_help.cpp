@@ -103,5 +103,14 @@ std::string Strip(const std::string &str)
     }
     return str.substr(first, last - first + 1);
 }
+
+void RemoveNullTerminator(std::string &str)
+{
+    size_t pos = str.rfind('\0');
+    while (pos != std::string::npos) {
+        str.erase(pos, 1);
+        pos = str.rfind('\0');
+    }
+}
 } // namespace base
 } // namespace SysTuning

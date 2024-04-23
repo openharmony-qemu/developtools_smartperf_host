@@ -103,6 +103,8 @@ export class FrameChart extends BaseElement {
         return node.drawDur || node.dur;
       case ChartMode.EventCount:
         return node.drawEventCount || node.eventCount;
+      default:
+        return node.drawSize || node.size;
     }
   }
 
@@ -545,6 +547,8 @@ export class FrameChart extends BaseElement {
         return ignore.dur;
       case ChartMode.EventCount:
         return ignore.eventCount;
+      default:
+        return ignore.size;
     }
   }
 
@@ -558,6 +562,8 @@ export class FrameChart extends BaseElement {
         return node.searchDur > 0;
       case ChartMode.EventCount:
         return node.searchEventCount > 0;
+      default:
+        return node.searchSize > 0;
     }
   }
 

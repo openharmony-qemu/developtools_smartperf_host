@@ -19,10 +19,8 @@ import { Args } from './CommonArgs';
 export const chartIrqDataSql = (args: Args): string => {
   if (args.name === 'irq') {
     return `
-        select i.ts - ${
-          args.recordStartNS
-        }                                                                                                   as startNs,
-               max(i.dur)                                                                                       as dur,
+        select i.ts - ${args.recordStartNS} as startNs,
+               max(i.dur)  as dur,
                i.depth,
                ifnull(argsetid, -1)                                                                         as argSetId,
                i.id,

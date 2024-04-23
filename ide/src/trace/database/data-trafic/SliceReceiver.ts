@@ -90,7 +90,7 @@ export function sliceReceiver(data: unknown, proc: Function): void {
   postMsg(data, count);
 }
 
-export function sliceSPTReceiver(data: unknown) {
+export function sliceSPTReceiver(data: unknown): void {
   //@ts-ignore
   if (data && data.params.func) {
     //@ts-ignore

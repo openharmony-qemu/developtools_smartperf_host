@@ -696,7 +696,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   clearSplitMapData(symbolName: string): void {
-    delete this.splitMapData[symbolName];
+    if (symbolName in this.splitMapData){
+      delete this.splitMapData[symbolName];
+    }
   }
 
   resetAllSymbol(symbols: string[]): void {

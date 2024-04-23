@@ -137,7 +137,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     });
   }
   private fileSystemQueryFileSamples(data: unknown): void {
-    const fsHandler = this.handlerMap.get('io') as FileSystemCallTreeHandler;
+    const fsHandler = this.handlerMap.get('fileSystem') as FileSystemCallTreeHandler;
     //@ts-ignore
     this.handlerMap.get('fileSystem').samplesList = convertJSON(data.params.list) || [];
     let fsResults;
@@ -1103,7 +1103,9 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
   }
 
   clearSplitMapData(symbolName: string): void {
-    delete this.splitMapData[symbolName];
+    if (symbolName in this.splitMapData){
+      delete this.splitMapData[symbolName];
+    }
   }
 }
 

@@ -30,8 +30,8 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
   private action: string = '';
 
   public handle(msg: unknown): void {
-    if (!msg){
-      return
+    if (!msg) {
+      return;
     }
     //@ts-ignore
     this.currentEventId = msg.id;
@@ -40,7 +40,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
     //@ts-ignore
     this.action = msg.action;
     //@ts-ignore
-    this.param = msg.params
+    this.params = msg.params;
     if (this.type) {
       switch (this.type) {
         case 'jsCpuProfiler-call-chain':
@@ -322,21 +322,20 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
     chartTreeArray: Array<JsCpuProfilerChartFrame>,
     reverseTreeArray: Array<JsCpuProfilerChartFrame>
   ): void {
-    const that = this;
-    function recursionTree(chartFrame: JsCpuProfilerChartFrame): void {
+    const recursionTree = (chartFrame: JsCpuProfilerChartFrame): void => {
       // isSelect为框选/点选范围内的函数，其他都不需要处理
       if (!chartFrame.isSelect) {
         return;
       }
       //界面第一层只显示栈顶函数，只有栈顶函数的selfTime > 0
       if (chartFrame.selfTime > 0) {
-        const copyFrame = that.cloneChartFrame(chartFrame);
+        const copyFrame = this.cloneChartFrame(chartFrame);
         // 每个栈顶函数的parent的时间为栈顶函数的时间
         copyFrame.selfTime = chartFrame.selfTime;
         copyFrame.totalTime = chartFrame.totalTime;
         reverseTreeArray.push(copyFrame);
         // 递归处理parent的的totalTime selfTime
-        that.copyParent(copyFrame, chartFrame);
+        this.copyParent(copyFrame, chartFrame);
       }
 
       if (chartFrame.children.length > 0) {
@@ -345,7 +344,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
           recursionTree(children);
         }
       }
-    }
+    };
 
     //递归树结构
     for (const chartFrame of chartTreeArray) {

@@ -1372,7 +1372,10 @@ function drawBrokenLineContext(
   let x2 = brokenLineEnd.x ?? 0;
   let x1;
   let y1;
-  let leftEndpointX, leftEndpointY, rightEndpointX, rightEndpointY;
+  let leftEndpointX;
+  let leftEndpointY;
+  let rightEndpointX;
+  let rightEndpointY;
   if (brokenLineStart.y < brokenLineEnd.y) {
     x1 = brokenLineStart.x ?? 0;
     y1 = brokenLineEnd.y ?? 0;

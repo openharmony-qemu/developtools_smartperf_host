@@ -40,7 +40,6 @@ export class SpHelp extends BaseElement {
   }
 
   initElements(): void {
-    let that = this;
     let parentElement = this.parentNode as HTMLElement;
     parentElement.style.overflow = 'hidden';
     this.appContent = this.shadowRoot?.querySelector('#app-content') as HTMLElement;
@@ -51,7 +50,7 @@ export class SpHelp extends BaseElement {
     color.style.display = 'none';
     header.style.display = 'none';
     version.style.display = 'none';
-    this.setupMainMenu(mainMenu, that);
+    this.setupMainMenu(mainMenu, this);
     mainMenu.style.width = '330px';
     let body = mainMenu.shadowRoot?.querySelector('.menu-body') as HTMLDivElement;
     let groups = body.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
@@ -74,16 +73,16 @@ export class SpHelp extends BaseElement {
     });
     let urlParams = new URL(window.location.href).searchParams;
     if (urlParams && urlParams.get('action') && urlParams.get('action')!.length > 4) {
-      this.itemHelpClick(urlParams, that);
+      this.itemHelpClick(urlParams);
     }
   }
 
-  private itemHelpClick(urlParams: URLSearchParams, that: this): void {
+  private itemHelpClick(urlParams: URLSearchParams): void {
     if (urlParams.get('action')!.length > 4) {
       let helpDocIndex = urlParams.get('action')!.substring(5);
       let helpDocDetail = this.getEventDefinitionByIndex(Number(helpDocIndex));
-      that.appContent!.innerHTML = `<object type="text/html" data='/application/doc/${helpDocDetail!.name}.html?${
-        that.dark
+      this.appContent!.innerHTML = `<object type="text/html" data='/application/doc/${helpDocDetail!.name}.html?${
+        this.dark
       }' width="100%" height="100%"></object>`;
     }
   }

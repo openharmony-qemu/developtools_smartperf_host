@@ -40,6 +40,10 @@ PbreaderParser::PbreaderParser(TraceDataCache *dataCache, const TraceStreamerFil
       htraceCpuDetailParser_(std::make_unique<HtraceCpuDetailParser>(dataCache, filters)),
       htraceSymbolsDetailParser_(std::make_unique<HtraceSymbolsDetailParser>(dataCache, filters)),
 #endif
+#ifdef ENABLE_FFRT
+      pbreaderFfrtParser_(
+          std::make_unique<PbreaderFfrtDetailParser>(dataCache, filters, htraceCpuDetailParser_->eventParser_.get())),
+#endif
 #ifdef ENABLE_MEMORY
       pbreaderMemParser_(std::make_unique<PbreaderMemParser>(dataCache, filters)),
 #endif
@@ -157,6 +161,12 @@ void PbreaderParser::InitPluginNameIndex()
     ftracePluginIndex_.insert(traceDataCache_->GetDataIndex("ftrace-plugin"));
     ftracePluginIndex_.insert(traceDataCache_->GetDataIndex("/data/local/tmp/libftrace_plugin.z.so"));
     supportPluginNameIndex_.insert(ftracePluginIndex_.begin(), ftracePluginIndex_.end());
+#endif
+#ifdef ENABLE_FFRT
+    ffrtPluginIndex_ = traceDataCache_->GetDataIndex("ffrt-profiler");
+    ffrtPluginConfigIndex_ = traceDataCache_->GetDataIndex("ffrt-profiler_config");
+    supportPluginNameIndex_.insert(ffrtPluginIndex_);
+    supportPluginNameIndex_.insert(ffrtPluginConfigIndex_);
 #endif
 #ifdef ENABLE_STREAM_EXTEND
     streamPluginIndex_ = traceDataCache_->GetDataIndex("stream-plugin");
@@ -349,6 +359,11 @@ void PbreaderParser::FilterData(PbreaderDataSegment &seg, bool isSplitFile)
         htraceCpuDetailParser_->FilterAllEventsReader();
 #endif
     }
+#ifdef ENABLE_FFRT
+    else if (seg.dataType == DATA_SOURCE_TYPE_FFRT) {
+        pbreaderFfrtParser_->FilterAllEventsReader();
+    }
+#endif
 #ifdef ENABLE_NATIVE_HOOK
     else if (seg.dataType == DATA_SOURCE_TYPE_NATIVEHOOK) {
         pbreaderNativeHookParser_->Parse(seg, haveSplitSeg);
@@ -472,6 +487,9 @@ bool PbreaderParser::SpliteDataBySegment(DataIndex pluginNameIndex, PbreaderData
 #ifdef ENABLE_HTRACE
     isOtherPlugin = isOtherPlugin || ftracePluginIndex_.count(pluginNameIndex);
 #endif
+#ifdef ENABLE_FFRT
+    isOtherPlugin = isOtherPlugin || (ffrtPluginIndex_ == pluginNameIndex);
+#endif
 #ifdef ENABLE_HISYSEVENT
     isOtherPlugin = isOtherPlugin || (hisyseventPluginIndex_ == pluginNameIndex);
 #endif
@@ -510,6 +528,13 @@ void PbreaderParser::ParseDataByPluginName(PbreaderDataSegment &dataSeg,
         ParseFtrace(dataSeg);
 #endif
     }
+#ifdef ENABLE_FFRT
+    else if (ffrtPluginIndex_ == pulginNameIndex) {
+        ParseFfrt(dataSeg);
+    } else if (ffrtPluginConfigIndex_ == pulginNameIndex) {
+        ParseFfrtConfig(dataSeg);
+    }
+#endif
 #ifdef ENABLE_NATIVE_HOOK
     else if (nativeHookPluginIndex_.count(pulginNameIndex)) {
         ParseNativeHook(dataSeg, isSplitFile);
@@ -726,7 +751,24 @@ void PbreaderParser::ParseFtrace(PbreaderDataSegment &dataSeg)
     }
 }
 #endif
-
+#ifdef ENABLE_FFRT
+void PbreaderParser::ParseFfrtConfig(PbreaderDataSegment &dataSeg)
+{
+    pbreaderFfrtParser_->SetFfrtSrcClockid(dataSeg);
+    dataSeg.dataType = DATA_SOURCE_TYPE_FFRT_CONFIG;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+}
+void PbreaderParser::ParseFfrt(PbreaderDataSegment &dataSeg)
+{
+    bool haveSplitSeg = false;
+    pbreaderFfrtParser_->Parser(dataSeg, haveSplitSeg);
+    if (haveSplitSeg) {
+        mPbreaderSplitData_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
+    }
+    dataSeg.dataType = DATA_SOURCE_TYPE_FFRT;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+}
+#endif
 #ifdef ENABLE_HTDUMP
 void PbreaderParser::ParseFPS(PbreaderDataSegment &dataSeg)
 {

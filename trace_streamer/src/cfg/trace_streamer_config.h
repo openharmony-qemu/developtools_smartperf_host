@@ -84,6 +84,7 @@ enum SupportedTraceEventType {
     TRACE_EVENT_BLOCK_RQ_INSERT,
     TRACE_EVENT_BLOCK_RQ_REMAP,
     TRACE_EVENT_BLOCK_RQ_ISSUE,
+    TRACE_EVENT_FFRT,
     TRACE_MEMORY,
     TRACE_HILOG,
     TRACE_HIDUMP_FPS,
@@ -305,6 +306,7 @@ private:
     const std::string TRACE_ACTION_BLOCK_RQ_INSERT = "trace_block_rq_insert";
     const std::string TRACE_ACTION_BLOCK_RQ_REMAP = "trace_block_rq_remap";
     const std::string TRACE_ACTION_BLOCK_RQ_ISSUE = "trace_block_rq_issue";
+    const std::string TRACE_ACTION_FFRT = "trace_ffrt";
 
     const std::string TRACE_ACTION_SYS_MEMORY = "sys_memory";
     const std::string TRACE_ACTION_SYS_VIRTUAL_MEMORY = "sys_virtual_memory";

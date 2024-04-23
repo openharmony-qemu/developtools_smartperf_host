@@ -224,7 +224,7 @@ export class SpBpftraceChart {
       newNode['property'] = [];
       result.push(newNode);
       if (node.children) {
-        result = result.concat(this.getFlattenTreeData(node.children, depth + 1, node['function_name']));
+        result = result.concat(this.getFlattenTreeData(node.children, depth + 1, node.function_name));
       }
     });
     return result;
@@ -240,7 +240,7 @@ export class SpBpftraceChart {
     propertyData.forEach((propertyGroup) => {
       const groups: Array<any> = [];
       propertyGroup.forEach((property: any) => {
-        const duplicateObj = groups.find((group) => group['func_name'] === property['func_name']);
+        const duplicateObj = groups.find((group) => group.func_name === property.func_name);
         if (duplicateObj) {
           duplicateObj['begin'] = Math.min(duplicateObj['begin'], property['begin']);
           duplicateObj['end'] = Math.max(duplicateObj['end'], property['end']);
@@ -263,7 +263,7 @@ export class SpBpftraceChart {
     //数组每一项进行比对
     propertyData.forEach((propertyGroup) => {
       propertyGroup.forEach((property: any) => {
-        const relation = sampleProperty.find((relation) => relation['name'] === property['func_name']);
+        const relation = sampleProperty.find((relation) => relation.name === property.func_name);
         //property属性存储每帧数据
         relation?.property.push({
           name: property['func_name'],
@@ -272,13 +272,13 @@ export class SpBpftraceChart {
           begin: property['begin'],
           depth: relation['depth'],
           instructions: property['instructions'],
-          cycles: property['cycles'],
+          cycles: property.cycles,
         });
       });
     });
 
     //获取所有名字为unknown的数据
-    const unknownRelation = sampleProperty.filter((relation) => relation['name'].indexOf('unknown') > -1);
+    const unknownRelation = sampleProperty.filter((relation) => relation.name.indexOf('unknown') > -1);
     //二维数组 用于存放unknown下所有子节点的数据
     let twoDimensionalArray: Array<any> = [];
     let result: Array<any> = [];
@@ -288,7 +288,7 @@ export class SpBpftraceChart {
       const children = unknownItem['children'];
       //先获取到unknwon节点下每个子节点的property
       Object.keys(children).forEach((key) => {
-        unknownItem.children[key] = sampleProperty.find((relation) => relation['name'] === key).property;
+        unknownItem.children[key] = sampleProperty.find((relation) => relation.name === key).property;
       });
       //将每个子节点的property加到二维数组中
       Object.values(children).forEach((value: any) => {
@@ -304,11 +304,11 @@ export class SpBpftraceChart {
             detail: unknownItem['detail'],
             begin: twoDimensionalArray[0][i].begin,
             end: 0,
-            depth: unknownItem['depth'],
+            depth: unknownItem.depth,
           };
           for (let j = 0; j < twoDimensionalArray.length; j++) {
-            data['end'] = Math.max(twoDimensionalArray[j][i]['end'], data['end']);
-            data['begin'] = Math.min(twoDimensionalArray[j][i]['begin'], data['begin']);
+            data.end = Math.max(twoDimensionalArray[j][i].end, data.end);
+            data.begin = Math.min(twoDimensionalArray[j][i].begin, data.begin);
           }
           result.push(data);
         }
@@ -327,7 +327,7 @@ export class SpBpftraceChart {
     if (node['children']) {
       node['children'].forEach((child: any) => {
         if (child['function_name'].indexOf('unknown') < 0) {
-          names[child['function_name']] = [];
+          names[child.function_name] = [];
         } else {
           this.getUnknownAllChildrenNames(child, names);
         }

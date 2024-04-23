@@ -14,7 +14,10 @@
  */
 #include "pbreader_clock_detail_parser.h"
 #include "clock_filter_ex.h"
+#include "common_types.pb.h"
+#ifdef ENABLE_HTRACE
 #include "trace_plugin_result.pbreader.h"
+#endif
 #include "measure_filter.h"
 #include "process_filter.h"
 #include "stat_filter.h"
@@ -31,8 +34,8 @@ PbreaderClockDetailParser::PbreaderClockDetailParser(TraceDataCache *dataCache, 
                            traceDataCache_->GetDataIndex(config_.memNameMap_.at(static_cast<MemInfoType>(i)))));
     }
 }
-
 PbreaderClockDetailParser::~PbreaderClockDetailParser() = default;
+#ifdef ENABLE_HTRACE
 void PbreaderClockDetailParser::Parse(const ProtoReader::BytesView &tracePacket) const
 {
     if (traceDataCache_->isSplitFile_) {
@@ -61,6 +64,7 @@ void PbreaderClockDetailParser::Parse(const ProtoReader::BytesView &tracePacket)
     }
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_SYNC, STAT_EVENT_RECEIVED);
 }
+#endif
 
 void PbreaderClockDetailParser::Parse(const ProfilerTraceFileHeader *profilerTraceFileHeader) const
 {

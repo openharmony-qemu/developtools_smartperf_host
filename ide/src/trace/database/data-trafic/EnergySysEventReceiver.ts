@@ -192,7 +192,8 @@ export function hiSysEnergyPowerReceiver(data: unknown, proc: Function): void {
 export function hiSysEnergyStateReceiver(data: unknown, proc: Function): void {
   // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: unknown[], list: unknown[];
+    let res: unknown[];
+    let list: unknown[];
     // @ts-ignore
     if (!energyList.has(data.params.eventName)) {
       // @ts-ignore
@@ -321,7 +322,7 @@ function eventNameWithPowerRunninglock(beanData: unknown, it: unknown, systemDat
       // @ts-ignore
       beanData.type = 1;
       systemDataList.push(beanData);
-      delete tokedIds[number];
+      tokedIds.splice(number);
     }
   }
 }
@@ -412,7 +413,7 @@ function eventNameWithWorkStop(
   let index = nameIdList.indexOf(beanData.workId);
   if (nameIdList !== undefined && index > -1) {
     // @ts-ignore
-    delete nameIdList[index];
+    nameIdList.splice(index);
     // @ts-ignore
     let workCount = workCountMap.get(beanData.appName);
     if (workCount !== undefined) {

@@ -100,27 +100,34 @@ void APPStartupFilter::UpdatePidByNameIndex(const appMap &mAPPStartupData)
     }
 }
 
-void APPStartupFilter::AppendData(const appMap &mAPPStartupData)
+void APPStartupFilter::AppendAssociatedData(DataIndex packedNameIndex,
+                                            const std::map<uint32_t, std::unique_ptr<APPStartupData>> &stagesData)
+{
+    for (auto itorSecond = stagesData.begin(); itorSecond != stagesData.end(); ++itorSecond) {
+        auto item = itorSecond;
+        auto endTime = INVALID_UINT64;
+        if (item->first < VAILD_DATA_COUNT) {
+            int num = item->first + 1;
+            if ((++item) != stagesData.end() && num == item->first) {
+                endTime = (item)->second->startTime_;
+            }
+        } else {
+            endTime = itorSecond->second->endTime_;
+        }
+        traceDataCache_->GetAppStartupData()->AppendNewData(itorSecond->second->ipid_, itorSecond->second->tid_,
+                                                            itorSecond->second->callid_, itorSecond->second->startTime_,
+                                                            endTime, itorSecond->first, packedNameIndex);
+    }
+}
+
+// AppenAllData
+void APPStartupFilter::AppenAllData(const appMap &mAPPStartupData)
 {
     for (auto itor = mAPPStartupData.begin(); itor != mAPPStartupData.end(); ++itor) {
         if (!(itor->second).count(UI_ABILITY_LAUNCHING)) {
             continue;
         }
-        for (auto itorSecond = itor->second.begin(); itorSecond != itor->second.end(); ++itorSecond) {
-            auto item = itorSecond;
-            auto endTime = INVALID_UINT64;
-            if (item->first < VAILD_DATA_COUNT) {
-                int num = item->first + 1;
-                if ((++item) != itor->second.end() && num == item->first) {
-                    endTime = (item)->second->startTime_;
-                }
-            } else {
-                endTime = itorSecond->second->endTime_;
-            }
-            traceDataCache_->GetAppStartupData()->AppendNewData(
-                itorSecond->second->ipid_, itorSecond->second->tid_, itorSecond->second->callid_,
-                itorSecond->second->startTime_, endTime, itorSecond->first, itor->first);
-        }
+        AppendAssociatedData(itor->first, itor->second);
     }
 }
 
@@ -183,7 +190,7 @@ void APPStartupFilter::ParserAppStartup()
     for (auto &item : mAPPStartupDataWithPid_) {
         UpdatePidByNameIndex(item.second);
         CaclRsDataByPid(item.second);
-        AppendData(item.second);
+        AppenAllData(item.second);
     }
     return;
 }
@@ -230,25 +237,25 @@ void APPStartupFilter::CalcDepthByTimeStamp(std::map<uint32_t, std::map<uint64_t
                                             uint64_t endTime,
                                             uint64_t startTime)
 {
-    if (!it->second.empty()) {
-        auto itor = it->second.begin();
-        if (itor->first > startTime) {
-            depth = it->second.size();
-            it->second.insert(std::make_pair(endTime, it->second.size()));
-        } else {
-            depth = itor->second;
-            for (auto itorSecond = itor; itorSecond != it->second.end(); ++itorSecond) {
-                if (itorSecond->first < startTime && depth > itorSecond->second) {
-                    depth = itorSecond->second;
-                    itor = itorSecond;
-                }
-            }
-            it->second.erase(itor);
-            it->second.insert(std::make_pair(endTime, depth));
-        }
-    } else {
+    if (it->second.empty()) {
         it->second.insert(std::make_pair(endTime, 0));
+        return;
     }
+    auto itor = it->second.begin();
+    if (itor->first > startTime) {
+        depth = it->second.size();
+        it->second.insert(std::make_pair(endTime, it->second.size()));
+        return;
+    }
+    depth = itor->second;
+    for (auto itorSecond = itor; itorSecond != it->second.end(); ++itorSecond) {
+        if (itorSecond->first < startTime && depth > itorSecond->second) {
+            depth = itorSecond->second;
+            itor = itorSecond;
+        }
+    }
+    it->second.erase(itor);
+    it->second.insert(std::make_pair(endTime, depth));
 }
 
 void APPStartupFilter::ParserSoInitalization()

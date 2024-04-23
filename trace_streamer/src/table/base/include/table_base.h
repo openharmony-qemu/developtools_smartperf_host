@@ -184,6 +184,7 @@ protected:
     }
     // needs to correspond to Cursor::Filter()
     virtual void EstimateFilterCost(FilterConstraints &fc, EstimatedIndexInfo &ei);
+    double CalculateFilterCost(int64_t rowCount, FilterConstraints &fc);
 
     virtual std::unique_ptr<Cursor> CreateCursor() = 0;
     int32_t Open(sqlite3_vtab_cursor **ppCursor);

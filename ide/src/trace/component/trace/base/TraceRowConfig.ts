@@ -674,7 +674,7 @@ export class TraceRowConfig extends BaseElement {
     currentChartId: string,
     scene: Array<string>,
     findChartNames: Array<string>
-  ) {
+  ): void {
     if (this.traceRowList) {
       for (let index = 0; index < this.traceRowList.length; index++) {
         let item = this.traceRowList[index];

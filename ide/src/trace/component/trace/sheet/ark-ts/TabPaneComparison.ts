@@ -61,7 +61,6 @@ export class TabPaneComparison extends BaseElement {
     this.clear();
     this.retainerTableEl!.snapshotDataSource = [];
     let fileArr: HeapSnapshotStruct[] = [];
-    let that = this;
     for (let file of dataListCache) {
       if (file.id !== data.id) {
         fileArr.push(file);
@@ -72,7 +71,7 @@ export class TabPaneComparison extends BaseElement {
     this.initSelect(data.id, fileArr);
     this.baseFileId = data.id;
     this.targetFileId = fileArr[0].id;
-    that.updateComparisonData(data.id, fileArr[0].id);
+    this.updateComparisonData(data.id, fileArr[0].id);
     new ResizeObserver((): void => {
       this.comparisonTableEl!.style.height = '100%';
       this.comparisonTableEl!.reMeauseHeight();
@@ -94,7 +93,6 @@ export class TabPaneComparison extends BaseElement {
   }
 
   initSelect(fileId: number, comFileArr: Array<HeapSnapshotStruct>): void {
-    let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
     this.selectEl!.innerHTML = '';
     this.selectEl!.defaultValue = comFileArr[0].name || '';
@@ -113,7 +111,7 @@ export class TabPaneComparison extends BaseElement {
         this.retainerTableEl!.snapshotDataSource = [];
         for (let f of comFileArr) {
           if (input.value === f.name) {
-            that.updateComparisonData(fileId, f.id);
+            this.updateComparisonData(fileId, f.id);
           }
         }
         e.stopPropagation();
@@ -376,7 +374,6 @@ export class TabPaneComparison extends BaseElement {
     if (this.retainsData && this.retainsData.length > 0) {
       this.retainsDataInit();
       let i = 0;
-      let that = this;
       if (this.retainsData[0].distance > 1) {
         this.retainsData[0].getChildren();
         this.retainsData[0].expanded = false;
@@ -396,7 +393,7 @@ export class TabPaneComparison extends BaseElement {
             }
             i++;
             // @ts-ignore
-            if (i < that.retainsData[0].distance - 1 && list[0].distance !== '-') {
+            if (i < this.retainsData[0].distance - 1 && list[0].distance !== '-') {
               list[0].getChildren();
               list[0].expanded = false;
               if (structRow.hasNext) {
@@ -407,7 +404,7 @@ export class TabPaneComparison extends BaseElement {
             }
           });
         };
-        getList(that.retainsData[0].children);
+        getList(this.retainsData[0].children);
       };
       retainsTable();
       this.retainerTableEl!.snapshotDataSource = this.retainsData;
@@ -475,8 +472,7 @@ export class TabPaneComparison extends BaseElement {
         if (retainerNext.status) {
           retainerNext.getChildren();
           let i = 0;
-          let that = this;
-          let retainsTable = (): void => {
+          const retainsTable = (): void => {
             const getList = (comList: Array<ConstructorItem>): void => {
               comList.forEach((row): void => {
                 let shallow = `${Math.round((row.shallowSize / this.fileSize) * 100)}%`;
@@ -491,7 +487,7 @@ export class TabPaneComparison extends BaseElement {
                 }
                 i++;
                 // @ts-ignore
-                if (i < that.retainsData[0].distance - 1 && comList[0].distance !== '-') {
+                if (i < this.retainsData[0].distance - 1 && comList[0].distance !== '-') {
                   comList[0].getChildren();
                   comList[0].expanded = false;
                   if (row.hasNext) {

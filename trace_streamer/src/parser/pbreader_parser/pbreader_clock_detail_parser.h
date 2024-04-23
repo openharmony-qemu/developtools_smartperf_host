@@ -33,7 +33,9 @@ class PbreaderClockDetailParser : public EventParserBase {
 public:
     PbreaderClockDetailParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters);
     ~PbreaderClockDetailParser();
+#ifdef ENABLE_HTRACE
     void Parse(const ProtoReader::BytesView &tracePacket) const;
+#endif
     void Parse(const ProfilerTraceFileHeader *profilerTraceFileHeader) const;
 
 private:

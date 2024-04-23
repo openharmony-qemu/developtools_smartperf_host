@@ -666,7 +666,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       if (types[0] === 0) {
         condition = 'and type = 0';
       } else {
-        condition = 'and type !== 0';
+        condition = 'and type != 0';
       }
     }
     this.queryData(
@@ -1142,7 +1142,9 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       currentNode.lib.endsWith('.so.1') || currentNode.lib.endsWith('.dll') || currentNode.lib.endsWith('.so') ? 0 : 1;
   }
   clearSplitMapData(symbolName: string): void {
-    delete this.splitMapData[symbolName];
+    if (symbolName in this.splitMapData) {
+      delete this.splitMapData[symbolName];
+    }
   }
   resolvingNMCallAction(params: unknown[]): NativeHookCallInfo[] {
     if (params.length > 0) {

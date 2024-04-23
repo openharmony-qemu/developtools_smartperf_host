@@ -380,7 +380,7 @@ void FfrtConverter::ConvertFfrtThreadToFfrtTask(vector<std::string> &results, Ty
             auto gid = WAKE_EVENT_DEFAULT_VALUE;
             for (auto &line : info.line) {
                 auto mark = results[line];
-                ProcessMarkWithSchedSwitch(results, line, tid, prio, mark);
+                ProcessMarkWithSchedSwitch(tid, prio, mark);
                 if (mark.find("|FFRT") != std::string::npos || mark.find("|H:FFRT") != std::string::npos) {
                     auto returnValue =
                         ProcessMarkWithFFRT(results, line, threadName, prio, tid, pid, gid, taskLabels, mark);
@@ -412,9 +412,7 @@ void FfrtConverter::ConvertFfrtThreadToFfrtTask(vector<std::string> &results, Ty
     }
     return;
 }
-void FfrtConverter::ProcessMarkWithSchedSwitch(vector<std::string> &results,
-                                               const int &line,
-                                               const int &tid,
+void FfrtConverter::ProcessMarkWithSchedSwitch(const int &tid,
                                                int &prio,
                                                const std::string &mark)
 {

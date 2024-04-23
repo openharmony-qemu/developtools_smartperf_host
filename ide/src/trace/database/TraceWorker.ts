@@ -20,7 +20,7 @@ import { temp_init_sql_list } from './TempSql';
 // @ts-ignore
 import { BatchSphData } from '../proto/SphBaseData';
 
-let wasmModule: any = null;
+let wasmModule: unknown = null;
 let enc = new TextEncoder();
 let dec = new TextDecoder();
 let arr: Uint8Array | undefined;
@@ -49,6 +49,7 @@ const maxSize = 48 * 1024 * 1024;
 let protoDataMap: Map<QueryEnum, BatchSphData> = new Map<QueryEnum, BatchSphData>();
 function clear(): void {
   if (wasmModule !== null) {
+    //@ts-ignore
     wasmModule._TraceStreamerReset();
     wasmModule = null;
   }
@@ -255,7 +256,7 @@ async function onmessageByOpenAction(e: MessageEvent): Promise<void> {
   //@ts-ignore
   wasmModule._TraceStreamerParseDataOver();
   for (let value of thirdWasmMap.values()) {
-    value.model._TraceStreamer_In_ParseDataOver();
+    value.model._TraceStreamerInParseDataOver();
   }
   postMessageByOpenAction(r2, e);
 }
@@ -298,7 +299,7 @@ function initModuleCallBackAndFun(): void {
   //@ts-ignore
   let tlvResultFun = wasmModule.addFunction(tlvResultCallback, 'viiii');
   //@ts-ignore
-  wasmModule._TraceStreamer_Set_Log_Level(5);
+  wasmModule._TraceStreamerSetLogLevel(5);
   //@ts-ignore
   reqBufferAddr = wasmModule._Initialize(REQ_BUF_SIZE, fn1, tlvResultFun, fn2);
 }
@@ -307,8 +308,11 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
   let parseConfig = e.data.parseConfig;
   if (parseConfig !== '') {
     let parseConfigArray = enc.encode(parseConfig);
+    //@ts-ignore
     let parseConfigAddr = wasmModule._InitializeParseConfig(1024);
+    //@ts-ignore
     wasmModule.HEAPU8.set(parseConfigArray, parseConfigAddr);
+    //@ts-ignore
     wasmModule._TraceStreamerParserConfigEx(parseConfigArray.length);
   }
   let wasmConfigStr = e.data.wasmConfig;
@@ -321,13 +325,16 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
     });
     let thirdWasmStr: string = itemArray.join(';');
     let configUintArray = enc.encode(thirdWasmStr + ';');
+    //@ts-ignore
     wasmModule.HEAPU8.set(configUintArray, reqBufferAddr);
-    wasmModule._TraceStreamer_Init_ThirdParty_Config(configUintArray.length);
+    //@ts-ignore
+    wasmModule._TraceStreamerInitThirdPartyConfig(configUintArray.length);
     let first = true;
     let sendDataCallback = (heapPtr: number, size: number, componentID: number): void => {
       if (componentID === 100) {
         if (first) {
           first = false;
+          //@ts-ignore
           headUnitArray = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
         }
         return;
@@ -344,14 +351,17 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
           setThirdWasmMap(config, heapPtr, size, componentID);
         } else {
           let mm = model.model;
+          //@ts-ignore
           let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
           mm.HEAPU8.set(out, model.bufferAddr);
           mm._ParserData(out.length, componentID);
         }
       }
     };
+    //@ts-ignore
     let fn1 = wasmModule.addFunction(sendDataCallback, 'viii');
-    wasmModule._TraceStreamer_Set_ThirdParty_DataDealer(fn1, REQ_BUF_SIZE);
+    //@ts-ignore
+    wasmModule._TraceStreamerSetThirdPartyDataDealer(fn1, REQ_BUF_SIZE);
   }
 }
 
@@ -469,7 +479,7 @@ function setThirdWasmMap(config: unknown, heapPtr: number, size: number, compone
   let thirdreqBufferAddr = thirdMode._Init(fn, REQ_BUF_SIZE);
   initTraceRange(thirdMode);
   //@ts-ignore
-  thirdMode._TraceStreamer_In_JsonConfig();
+  thirdMode._TraceStreamerInJsonConfig();
   //@ts-ignore
   thirdMode.HEAPU8.set(headUnitArray, thirdreqBufferAddr);
   //@ts-ignore
@@ -521,7 +531,9 @@ function initTraceRange(thirdMode: unknown): void {
   let updateTraceTimeCallBack = (heapPtr: number, size: number): void => {
     //@ts-ignore
     let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
+    //@ts-ignore
     wasmModule.HEAPU8.set(out, reqBufferAddr);
+    //@ts-ignore
     wasmModule._UpdateTraceTime(out.length);
   };
   //@ts-ignore
@@ -631,6 +643,7 @@ function onmessageByDownloadDBAction(e: MessageEvent): void {
     return mergedArray;
   };
   let getDownloadDb = (heapPtr: number, size: number, isEnd: number): void => {
+    //@ts-ignore
     let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
     bufferSliceUint.push(out);
     if (isEnd === 1) {
@@ -1224,13 +1237,17 @@ function splitLongTrace(
   splitReqBufferAddr?: number
 ): [number, number] {
   const sliceLen = Math.min(uint8Array.length - cutFileSize, REQ_BUF_SIZE);
+  //@ts-ignore
   const dataSlice = uint8Array.subarray(cutFileSize, cutFileSize + sliceLen);
+  //@ts-ignore
   wasmModule.HEAPU8.set(dataSlice, splitReqBufferAddr);
   cutFileSize += sliceLen;
   resultFileSize += sliceLen;
   if (resultFileSize >= fileSize) {
+    //@ts-ignore
     wasmModule._TraceStreamerLongTraceSplitFileEx(sliceLen, 1, pageNum);
   } else {
+    //@ts-ignore
     wasmModule._TraceStreamerLongTraceSplitFileEx(sliceLen, 0, pageNum);
   }
   return [cutFileSize, resultFileSize];
@@ -1278,7 +1295,9 @@ const uploadSoFile = async (file: File | null): Promise<void> => {
   if (file) {
     let fileNameBuffer: Uint8Array | null = enc.encode(file.webkitRelativePath);
     let fileNameLength = fileNameBuffer.length;
+    //@ts-ignore
     let addr = wasmModule._InitFileName(uploadSoCallbackFn, fileNameBuffer.length);
+    //@ts-ignore
     wasmModule.HEAPU8.set(fileNameBuffer, addr);
     let writeSize = 0;
     let upRes = -1;
@@ -1400,22 +1419,28 @@ function cutFileByRange(e: MessageEvent): void {
   let uint8Array = new Uint8Array(e.data.buffer);
   let resultBuffer: Array<Uint8Array> = [];
   let cutFileCallBack = cutFileCallBackFunc(resultBuffer, uint8Array, e);
+  //@ts-ignore
   splitReqBufferAddr = wasmModule._InitializeSplitFile(wasmModule.addFunction(cutFileCallBack, 'viiii'), REQ_BUF_SIZE);
   let cutTimeRange = `${cutLeftTs};${cutRightTs};`;
   let cutTimeRangeBuffer = enc.encode(cutTimeRange);
+  //@ts-ignore
   wasmModule.HEAPU8.set(cutTimeRangeBuffer, splitReqBufferAddr);
+  //@ts-ignore
   wasmModule._TraceStreamerSplitFileEx(cutTimeRangeBuffer.length);
   let cutFileSize = 0;
   let receiveFileResult = -1;
   while (cutFileSize < uint8Array.length) {
     const sliceLen = Math.min(uint8Array.length - cutFileSize, REQ_BUF_SIZE);
     const dataSlice = uint8Array.subarray(cutFileSize, cutFileSize + sliceLen);
+    //@ts-ignore
     wasmModule.HEAPU8.set(dataSlice, splitReqBufferAddr);
     cutFileSize += sliceLen;
     try {
       if (cutFileSize >= uint8Array.length) {
+        //@ts-ignore
         receiveFileResult = wasmModule._TraceStreamerReciveFileEx(sliceLen, 1);
       } else {
+        //@ts-ignore
         receiveFileResult = wasmModule._TraceStreamerReciveFileEx(sliceLen, 0);
       }
     } catch (error) {
@@ -1435,6 +1460,7 @@ function cutFileByRange(e: MessageEvent): void {
 }
 function cutFileCallBackFunc(resultBuffer: Array<Uint8Array>, uint8Array: Uint8Array, e: MessageEvent): Function {
   return (heapPtr: number, size: number, fileType: number, isEnd: number) => {
+    //@ts-ignore
     let out: Uint8Array = wasmModule.HEAPU8.slice(heapPtr, heapPtr + size);
     if (FileTypeEnum.data === fileType) {
       resultBuffer.push(out);
@@ -1473,7 +1499,9 @@ function cutFileCallBackFunc(resultBuffer: Array<Uint8Array>, uint8Array: Uint8A
 
 function createView(sql: string): void {
   let array = enc.encode(sql);
+  //@ts-ignore
   wasmModule.HEAPU8.set(array, reqBufferAddr);
+  //@ts-ignore
   wasmModule._TraceStreamerSqlOperateEx(array.length);
 }
 
@@ -1491,7 +1519,9 @@ function query(name: string, sql: string, params: unknown): void {
     });
   }
   let sqlUintArray = enc.encode(sql);
+  //@ts-ignore
   wasmModule.HEAPU8.set(sqlUintArray, reqBufferAddr);
+  //@ts-ignore
   wasmModule._TraceStreamerSqlQueryEx(sqlUintArray.length);
 }
 
@@ -1553,7 +1583,7 @@ function queryDataFromIndexeddb(getRequest: IDBRequest<IDBCursorWithValue | null
       const cursor = event.target!.result;
       if (cursor) {
         results.push(cursor.value);
-        cursor['continue']();
+        cursor.continue();
       } else {
         // @ts-ignore
         resolve(results);

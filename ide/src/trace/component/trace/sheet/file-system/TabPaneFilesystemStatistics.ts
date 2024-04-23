@@ -231,6 +231,8 @@ export class TabPaneFileStatistics extends BaseElement {
       } else if (this.fileStatisticsSortType === 2) {
         // @ts-ignore
         return fileStatisticsB.node[key] - fileStatisticsA.node[key];
+      } else {
+        return 0;
       }
     }); // @ts-ignore
     fileStatisticsAllNode.children.forEach((item: unknown): void => {
@@ -242,6 +244,8 @@ export class TabPaneFileStatistics extends BaseElement {
         } else if (this.fileStatisticsSortType === 2) {
           // @ts-ignore
           return fileStatisticsB.node[key] - fileStatisticsA.node[key];
+        } else {
+          return 0;
         }
       });
     });

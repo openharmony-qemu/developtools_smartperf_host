@@ -65,9 +65,7 @@ private:
     int FindTid(string &log);
     std::string GetLabel(const std::string &mark);
     void ConvertFfrtThreadToFfrtTask(vector<std::string> &results, TypeFfrtPid &ffrtPidsMap);
-    void ProcessMarkWithSchedSwitch(vector<std::string> &results,
-                                    const int &line,
-                                    const int &tid,
+    void ProcessMarkWithSchedSwitch(const int &tid,
                                     int &prio,
                                     const std::string &mark);
     bool ProcessMarkWithFFRT(vector<std::string> &results,

@@ -53,20 +53,8 @@ HWTEST_F(TaskPoolFilterTest, CheckTheSameTaskTest, TestSize.Level1)
 }
 class TaskPoolData {
 public:
-    TaskPoolData(InternalTid expectAllocationItid,
-                 InternalTid expectExecuteItid,
-                 InternalTid expectReturnItid,
-                 uint64_t taskId,
-                 uint32_t priority,
-                 uint32_t executeState,
-                 uint32_t returnState)
-        : expectAllocationItid_(expectAllocationItid),
-          expectExecuteItid_(expectExecuteItid),
-          expectReturnItid_(expectReturnItid),
-          taskId_(taskId),
-          priority_(priority),
-          executeState_(executeState),
-          returnState_(returnState){};
+    TaskPoolData(uint64_t taskId, uint32_t priority, uint32_t executeState, uint32_t returnState)
+        : taskId_(taskId), priority_(priority), executeState_(executeState), returnState_(returnState){};
     TaskPoolData(size_t index, const TaskPoolInfo *taskpool)
         : expectAllocationItid_(taskpool->allocationItids_[index]),
           expectExecuteItid_(taskpool->executeItids_[index]),
@@ -76,11 +64,17 @@ public:
           executeState_(taskpool->executeStates_[index]),
           returnState_(taskpool->returnStates_[index]){};
     friend bool operator==(const TaskPoolData &first, const TaskPoolData &second);
+    void InitExpectId(InternalTid expectAllocationItid, InternalTid expectExecuteItid, InternalTid expectReturnItid)
+    {
+        expectAllocationItid_ = expectAllocationItid;
+        expectExecuteItid_ = expectExecuteItid;
+        expectReturnItid_ = expectReturnItid;
+    }
 
 private:
-    InternalTid expectAllocationItid_;
-    InternalTid expectExecuteItid_;
-    InternalTid expectReturnItid_;
+    InternalTid expectAllocationItid_ = INVALID_UINT64;
+    InternalTid expectExecuteItid_ = INVALID_UINT64;
+    InternalTid expectReturnItid_ = INVALID_UINT64;
     uint32_t taskId_;
     uint32_t priority_;
     uint32_t executeState_;
@@ -134,7 +128,8 @@ HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest1, TestSize.Level1)
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
 
     TaskPoolData firstResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData firstExpect(1, INVALID_INT32, INVALID_INT32, 9, 1, 1, INVALID_INT32);
+    TaskPoolData firstExpect(9, 1, 1, INVALID_INT32);
+    firstExpect.InitExpectId(1, INVALID_INT32, INVALID_INT32);
     EXPECT_TRUE(firstResult == firstExpect);
 
     comm = "e.myapplication";
@@ -142,14 +137,16 @@ HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest1, TestSize.Level1)
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
 
     TaskPoolData secondResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData secondExpect(1, 1, INVALID_INT32, 9, 1, 1, INVALID_INT32);
+    TaskPoolData secondExpect(9, 1, 1, INVALID_INT32);
+    secondExpect.InitExpectId(1, 1, INVALID_INT32);
     EXPECT_TRUE(secondResult == secondExpect);
 
     comm = "TaskWorkThread";
     taskPoolStr = "H:Task PerformTask End: taskId : 1, executeId : 9, performResult : IsCanceled";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData thirdResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData thirdExpect(1, 1, INVALID_INT32, 9, 1, 1, INVALID_INT32);
+    TaskPoolData thirdExpect(9, 1, 1, INVALID_INT32);
+    thirdExpect.InitExpectId(1, 1, INVALID_INT32);
     EXPECT_TRUE(thirdResult == thirdExpect);
 }
 
@@ -170,21 +167,24 @@ HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest2, TestSize.Level1)
     PrintEventParser printEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData firstResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData firstExpect(INVALID_INT32, 1, INVALID_INT32, 1, INVALID_INT32, INVALID_INT32, INVALID_INT32);
+    TaskPoolData firstExpect(1, INVALID_INT32, INVALID_INT32, INVALID_INT32);
+    firstExpect.InitExpectId(INVALID_INT32, 1, INVALID_INT32);
     EXPECT_TRUE(firstResult == firstExpect);
 
     comm = "e.myapplication";
     taskPoolStr = "B|16502|H:Task Allocation: taskId : 1, executeId : 1, priority : 1, executeState : 1";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData secondResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData secondExpect(1, 1, INVALID_INT32, 1, 1, 1, INVALID_INT32);
+    TaskPoolData secondExpect(1, 1, 1, INVALID_INT32);
+    secondExpect.InitExpectId(1, 1, INVALID_INT32);
     EXPECT_TRUE(secondResult == secondExpect);
 
     comm = "TaskWorkThread";
     taskPoolStr = "B|16502|H:Task PerformTask End: taskId : 1, executeId : 1, performResult : IsCanceled";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData thirdResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData thirdExpect(1, 1, 1, 1, 1, 1, 0);
+    TaskPoolData thirdExpect(1, 1, 1, 0);
+    thirdExpect.InitExpectId(1, 1, 1);
     EXPECT_TRUE(thirdResult == thirdExpect);
 }
 
@@ -205,21 +205,24 @@ HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest3, TestSize.Level1)
     PrintEventParser printEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData firstResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData firstExpect(INVALID_INT32, INVALID_INT32, 1, 1, INVALID_INT32, INVALID_INT32, 1);
+    TaskPoolData firstExpect(1, INVALID_INT32, INVALID_INT32, 1);
+    firstExpect.InitExpectId(INVALID_INT32, INVALID_INT32, 1);
     EXPECT_TRUE(firstResult == firstExpect);
 
     comm = "e.myapplication";
     taskPoolStr = "B|16502|H:Task Allocation: taskId : 1, executeId : 1, priority : 1, executeState : 1";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData secondResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData secondExpect(1, INVALID_INT32, 1, 1, 1, 1, 1);
+    TaskPoolData secondExpect(1, 1, 1, 1);
+    secondExpect.InitExpectId(1, INVALID_INT32, 1);
     EXPECT_TRUE(secondResult == secondExpect);
 
     comm = "TaskWorkThread";
     taskPoolStr = "B|16502|H:Task Perform: taskId : 1, executeId : 1";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData thirdResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData thirdExpect(1, 1, 1, 1, 1, 1, 1);
+    TaskPoolData thirdExpect(1, 1, 1, 1);
+    thirdExpect.InitExpectId(1, 1, 1);
     EXPECT_TRUE(thirdResult == thirdExpect);
 
     comm = "TaskWorkThread";
@@ -247,7 +250,8 @@ HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest4, TestSize.Level1)
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
 
     TaskPoolData firstResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData firstExpect(1, INVALID_INT32, INVALID_INT32, 544997587840, 1, 1, INVALID_INT32);
+    TaskPoolData firstExpect(544997587840, 1, 1, INVALID_INT32);
+    firstExpect.InitExpectId(1, INVALID_INT32, INVALID_INT32);
     EXPECT_TRUE(firstResult == firstExpect);
 
     comm = "e.myapplication";
@@ -255,14 +259,16 @@ HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest4, TestSize.Level1)
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
 
     TaskPoolData secondResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData secondExpect(1, 1, INVALID_INT32, 544997587840, 1, 1, INVALID_INT32);
+    TaskPoolData secondExpect(544997587840, 1, 1, INVALID_INT32);
+    secondExpect.InitExpectId(1, 1, INVALID_INT32);
     EXPECT_TRUE(secondResult == secondExpect);
 
     comm = "TaskWorkThread";
     taskPoolStr = "H:Task PerformTask End: taskId : 544997587840, performResult : IsCanceled";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData thirdResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData thirdExpect(1, 1, INVALID_INT32, 544997587840, 1, 1, INVALID_INT32);
+    TaskPoolData thirdExpect(544997587840, 1, 1, INVALID_INT32);
+    thirdExpect.InitExpectId(1, 1, INVALID_INT32);
     EXPECT_TRUE(thirdResult == thirdExpect);
 }
 
@@ -283,22 +289,24 @@ HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest5, TestSize.Level1)
     PrintEventParser printEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData firstResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData firstExpect(INVALID_INT32, 1, INVALID_INT32, 544997587840, INVALID_INT32, INVALID_INT32,
-                             INVALID_INT32);
+    TaskPoolData firstExpect(544997587840, INVALID_INT32, INVALID_INT32, INVALID_INT32);
+    firstExpect.InitExpectId(INVALID_INT32, 1, INVALID_INT32);
     EXPECT_TRUE(firstResult == firstExpect);
 
     comm = "e.myapplication";
     taskPoolStr = "B|8821|H:Task Allocation: taskId : 544997587840, priority : 1, executeState : 1";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData secondResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData secondExpect(1, 1, INVALID_INT32, 544997587840, 1, 1, INVALID_INT32);
+    TaskPoolData secondExpect(544997587840, 1, 1, INVALID_INT32);
+    secondExpect.InitExpectId(1, 1, INVALID_INT32);
     EXPECT_TRUE(secondResult == secondExpect);
 
     comm = "TaskWorkThread";
     taskPoolStr = "B|8821|H:Task PerformTask End: taskId : 544997587840, performResult : IsCanceled";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData thirdResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData thirdExpect(1, 1, 1, 544997587840, 1, 1, 0);
+    TaskPoolData thirdExpect(544997587840, 1, 1, 0);
+    thirdExpect.InitExpectId(1, 1, 1);
     EXPECT_TRUE(thirdResult == thirdExpect);
 }
 
@@ -319,21 +327,24 @@ HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest6, TestSize.Level1)
     PrintEventParser printEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData firstResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData firstExpect(INVALID_INT32, INVALID_INT32, 1, 544997587840, INVALID_INT32, INVALID_INT32, 1);
+    TaskPoolData firstExpect(544997587840, INVALID_INT32, INVALID_INT32, 1);
+    firstExpect.InitExpectId(INVALID_INT32, INVALID_INT32, 1);
     EXPECT_TRUE(firstResult == firstExpect);
 
     comm = "e.myapplication";
     taskPoolStr = "B|8821|H:Task Allocation: taskId : 544997587840, priority : 1, executeState : 1";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData secondResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData secondExpect(1, INVALID_INT32, 1, 544997587840, 1, 1, 1);
+    TaskPoolData secondExpect(544997587840, 1, 1, 1);
+    secondExpect.InitExpectId(1, INVALID_INT32, 1);
     EXPECT_TRUE(secondResult == secondExpect);
 
     comm = "TaskWorkThread";
     taskPoolStr = "B|8821|H:Task Perform: taskId : 544997587840";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     TaskPoolData thirdResult(0, stream_.traceDataCache_->GetTaskPoolData());
-    TaskPoolData thirdExpect(1, 1, 1, 544997587840, 1, 1, 1);
+    TaskPoolData thirdExpect(544997587840, 1, 1, 1);
+    thirdExpect.InitExpectId(1, 1, 1);
     EXPECT_TRUE(thirdResult == thirdExpect);
 
     comm = "TaskWorkThread";
