@@ -148,6 +148,8 @@ private:
     DataIndex asyncBeginTsId_ = traceDataCache_->GetDataIndex("legacy_unnestable_last_begin_ts");
     DataIndex ipiId_ = traceDataCache_->GetDataIndex("IPI");
     std::map<uint32_t /* cpu */, uint32_t> irqDataLinker_ = {};
+    const std::regex categoryReg_ = std::regex(R"((.+)\$\$(.+))");
+    const uint64_t categoryMatchedIdx_ = 1;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
