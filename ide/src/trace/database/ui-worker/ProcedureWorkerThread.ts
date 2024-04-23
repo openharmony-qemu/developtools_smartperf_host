@@ -68,13 +68,11 @@ export class ThreadRender extends Render {
     }
     if (row.rowId === 'statesrow' &&
       (!row.isHover || !find) &&
-      !CpuFreqExtendStruct.isTabHover &&
-      CpuFreqExtendStruct.hoverCpuFreqStruct === undefined &&
+      CpuFreqExtendStruct.hoverStruct === undefined &&
       CpuFreqExtendStruct.selectCpuFreqStruct === undefined &&
-      !BinderStruct.isTabHover &&
       !BinderStruct.selectCpuFreqStruct &&
-      !BinderStruct.hoverCpuFreqStruct && 
-      !TabPaneFreqStatesDataCut.isStateTabHover) {
+      !TabPaneFreqStatesDataCut.isStateTabHover &&
+      (SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key === '')) {
       ThreadStruct.hoverThreadStruct = undefined;
       SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
       find = false;
