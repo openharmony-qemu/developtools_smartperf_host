@@ -78,6 +78,7 @@ export enum QueryEnum {
   processExpectedData = 26,
   processActualData = 27,
   processDeliverInputEventData = 28,
+  processTouchEventDispatchData = 29,
   HeapTimelineData = 160,
   HeapSnapshotData = 161,
   CpuProfilerData = 162,

@@ -67,6 +67,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_NATIVE_MEMORY = 'native-memory';
   static ROW_TYPE_HIPERF = 'hiperf';
   static ROW_TYPE_DELIVER_INPUT_EVENT = 'DeliverInputEvent';
+  static ROW_TYPE_TOUCH_EVENT_DISPATCH = 'TouchEventDispatch';
   static ROW_TYPE_HIPERF_CPU = 'hiperf-cpu';
   static ROW_TYPE_PERF_CALLCHART = 'hiperf-callchart';
   static ROW_TYPE_HIPERF_PROCESS = 'hiperf-process';

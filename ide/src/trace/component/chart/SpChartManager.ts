@@ -189,6 +189,7 @@ export class SpChartManager {
     progress('process', 92);
     await this.process.initAsyncFuncData();
     await this.process.initDeliverInputEvent();
+    await this.process.initTouchEventDispatch();
     await this.process.init();
     progress('display', 95);
   }

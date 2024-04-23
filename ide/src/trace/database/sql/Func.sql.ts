@@ -280,11 +280,11 @@ export const getTabSlicesAsyncFunc = (
       count(c.name) as occurrences
     from
       thread A, trace_range D
+      left join process P on P.id = A.ipid
     left join
       callstack C
     on
       A.id = C.callid
-    left join process P on P.id = A.ipid
     where
       C.ts > 0
     and
