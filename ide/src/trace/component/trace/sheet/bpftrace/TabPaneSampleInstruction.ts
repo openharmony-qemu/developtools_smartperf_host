@@ -279,11 +279,13 @@ export class TabPaneSampleInstruction extends BaseElement {
           //计算当前节点下指令数之和 用于计算每个节点所占的宽度比
           const total = isCycles
             ? instructionArray[key]
-                .filter((i: any) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+            // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
             : instructionArray[key]
-                .filter((i: any) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
+            // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
           const curWidth = isCycles ? cur.cycles : cur.instructions;
           const width = Math.floor(parentNode.frame.width * (curWidth / total));
           if (i === 0) {
@@ -382,18 +384,25 @@ export class TabPaneSampleInstruction extends BaseElement {
    * @param relationData
    * @param clickData
    */
-  setRelationDataProperty(relationData: Array<any>, clickData: SampleStruct): void {
+  setRelationDataProperty(relationData: Array<unknown>, clickData: SampleStruct): void {
     const propertyData = this.instructionData.find((subArr: any) =>
       subArr.some((obj: SampleStruct) => obj.begin === clickData.begin)
     );
     //获取非unknown数据
-    const knownRelation = relationData.filter((relation) => relation['name'].indexOf('unknown') < 0);
+            // @ts-ignore
+    const knownRelation = relationData.filter((relation) => relation.name.indexOf('unknown') < 0);
     propertyData.forEach((property: any) => {
-      const relation = knownRelation.find((relation) => relation['name'] === property['func_name']);
+      // @ts-ignore
+      const relation = knownRelation.find((relation) => relation.name === property.func_name);
+      // @ts-ignore
       relation['instructions'] = Math.ceil(property['instructions']) || 1;
+      // @ts-ignore
       relation['hoverInstructions'] = Math.ceil(property['instructions']);
+      // @ts-ignore
       relation['cycles'] = Math.ceil(property['cycles']) || 1;
+      // @ts-ignore
       relation['hoverCycles'] = Math.ceil(property['cycles']);
+      // @ts-ignore
       this.maxDepth = Math.max(this.maxDepth, relation['depth']);
     });
     //获取所有unknown数据
@@ -401,24 +410,35 @@ export class TabPaneSampleInstruction extends BaseElement {
     let cyclesSum = 0;
     let hoverInstructionsSum = 0;
     let hoverCyclesSum = 0;
-    const unknownRelation = relationData.filter((relation) => relation['name'].indexOf('unknown') > -1);
+    // @ts-ignore
+    const unknownRelation = relationData.filter((relation) => relation.name.indexOf('unknown') > -1);
     if (unknownRelation.length > 0) {
       unknownRelation.forEach((unknownItem) => {
         instructionSum = 0;
         cyclesSum = 0;
         hoverInstructionsSum = 0;
         hoverCyclesSum = 0;
+        // @ts-ignore
         const children = unknownItem['children'];
         for (const key in children) {
-          const it = relationData.find((relation) => relation['name'] === key);
+          // @ts-ignore
+          const it = relationData.find((relation) => relation.name === key);
+          // @ts-ignore
           instructionSum += it['instructions'] ?? 0;
+          // @ts-ignore
           cyclesSum += it['cycles'] ?? 0;
+          // @ts-ignore
           hoverInstructionsSum += it['hoverInstructions'] ?? 0;
+          // @ts-ignore
           hoverCyclesSum += it['hoverCycles'] ?? 0;
         }
+        // @ts-ignore
         unknownItem['instructions'] = instructionSum;
+        // @ts-ignore
         unknownItem['hoverInstructions'] = hoverInstructionsSum;
+        // @ts-ignore
         unknownItem['cycles'] = cyclesSum;
+        // @ts-ignore
         unknownItem['hoverCycles'] = hoverCyclesSum;
       });
     }

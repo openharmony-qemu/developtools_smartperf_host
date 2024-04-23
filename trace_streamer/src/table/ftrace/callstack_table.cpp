@@ -31,8 +31,7 @@ enum class Index : int32_t {
     CHAIN_IDS,
     SPAN_IDS,
     PARENT_SPAN_IDS,
-    FLAGS,
-    ARGS
+    FLAGS
 };
 CallStackTable::CallStackTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
@@ -50,7 +49,6 @@ CallStackTable::CallStackTable(const TraceDataCache *dataCache) : TableBase(data
     tableColumn_.push_back(TableBase::ColumnInfo("spanId", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("flag", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("args", "TEXT"));
     tablePriKey_.push_back("callid");
     tablePriKey_.push_back("ts");
     tablePriKey_.push_back("depth");
@@ -205,10 +203,6 @@ void CallStackTable::Cursor::HandleTypeColumns(int32_t col) const
         case Index::FLAGS:
             SetTypeColumnTextNotEmpty(slicesObj_.Flags()[CurrentRow()].empty(),
                                       slicesObj_.Flags()[CurrentRow()].c_str());
-            break;
-        case Index::ARGS:
-            SetTypeColumnTextNotEmpty(slicesObj_.ArgsData()[CurrentRow()].empty(),
-                                      slicesObj_.ArgsData()[CurrentRow()].c_str());
             break;
         default:
             TS_LOGF("Unregistered column : %d", col);

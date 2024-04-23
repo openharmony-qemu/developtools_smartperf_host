@@ -549,7 +549,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.setTableHeight('auto');
     //Perf Tools info
     this.tabCurrentSelectionInit('Slice Details');
-    let list: any[] = [];
+    let list: unknown[] = [];
     list.push({
       name: 'Name',
       value: data.name,
@@ -560,7 +560,8 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     list.push({
       name: 'StartTime(Absolute)',
-      value: ((data.startNS || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+      // @ts-ignore
+      value: ((data.startNS || 0) + (window as unknown).recordStartNS) / 1000000000 + 's',
     });
     list.push({
       name: 'Value',
@@ -731,8 +732,8 @@ export class TabPaneCurrentSelection extends BaseElement {
       this.queryThreadStateDArgs(data.argSetID),
       queryThreadNearData(data.id!, data.startTime!),
     ]).then((result) => {
-      let fromBean = result[0];
-      let wakeUps = result[1];
+      let fromBean = result[0] as WakeupBean;
+      let wakeUps = result[1] as WakeupBean[];
       let args = result[2];
       let [preData, nextData] = this.sortByNearData(result[3], data, list);
       this.setWakeupData(fromBean, wakeUps, list);
@@ -1632,7 +1633,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   /**
    * 查询出 线程唤醒了哪些线程信息
    */
-  async queryThreadWakeUpFromData(itid: number, startTime: number, dur: number): Promise<WakeupBean | undefined> {
+  async queryThreadWakeUpFromData(itid: number, startTime: number, dur: number): Promise<unknown> {
     // @ts-ignore
     let wakeUps = await queryThreadWakeUpFrom(itid, startTime + (window as unknown).recordStartNS);
     if (wakeUps !== undefined && wakeUps.length > 0) {
@@ -1754,7 +1755,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
     this.wakeupListTbl = this.shadowRoot?.querySelector<LitTable>('#wakeupListTbl');
     this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
-    this.currentSelectionTbl?.addEventListener('column-click', (ev: any): void => {}); //@ts-ignore
+    this.currentSelectionTbl?.addEventListener('column-click', (ev: unknown): void => {}); //@ts-ignore
     window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => this.showWakeupListTableData(data));
   }
 

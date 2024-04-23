@@ -93,7 +93,7 @@ void PrintEventParser::ParseBeginEvent(const std::string &comm,
     if (index != INVALID_UINT32) {
         // add distributed data
         traceDataCache_->GetInternalSlicesData()->SetDistributeInfo(index, point.chainId_, point.spanId_,
-                                                                    point.parentSpanId_, point.flag_, point.args_);
+                                                                    point.parentSpanId_, point.flag_);
         if (pid == point.tgid_) {
             if (HandleFrameSliceBeginEvent(point.funcPrefixId_, index, point.funcArgs_, line)) {
                 return;
@@ -234,8 +234,8 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint &ou
         TS_LOGD("point name is empty!");
         return PARSE_ERROR;
     }
-    // Use $# to differentiate distributed data
-    if (outPoint.name_.find("$#") == std::string::npos) {
+    // Use ## to differentiate distributed data
+    if (outPoint.name_.find("##") == std::string::npos) {
         auto space = outPoint.name_.find(' ');
         if (space != std::string::npos) {
             outPoint.funcPrefix_ = outPoint.name_.substr(0, space);
@@ -248,10 +248,8 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint &ou
     }
     // Resolve distributed calls
     // the normal data mybe like:
-    // system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|[8b00e96b2,2,1]:C$#decodeFrame$#"
-    //    "{\"Process\":\"DecodeVideoFrame\",\"frameTimestamp\":37313484466} \
-    //        system - 1298(1298)[001]... 1 174330.287622 : tracing_mark_write : E | 1298 \n
-    const std::regex distributeMatcher = std::regex(R"((?:^\[([a-z0-9]+),(\d+),(\d+)\]:?([CS]?)\$#)?(.*)\$#(.*)$)");
+    // system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|H:[8b00e96b2,2,1]#C##decodeFrame"
+    const std::regex distributeMatcher = std::regex(R"(H:\[([a-z0-9]+),([a-z0-9]+),([a-z0-9]+)\]#([CS]?)##(.*))");
     std::smatch matcheLine;
     bool matched = std::regex_match(outPoint.name_, matcheLine, distributeMatcher);
     if (matched) {
@@ -260,8 +258,6 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint &ou
         outPoint.spanId_ = matcheLine[++index].str();
         outPoint.parentSpanId_ = matcheLine[++index].str();
         outPoint.flag_ = matcheLine[++index].str();
-        outPoint.name_ = matcheLine[++index].str();
-        outPoint.args_ = matcheLine[++index].str();
     }
     return PARSE_SUCCESS;
 }

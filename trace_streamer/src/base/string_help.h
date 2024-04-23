@@ -29,6 +29,7 @@ bool EndWith(const std::string &str, const std::string &res);
 std::string FormatString(const char *p);
 std::string Strip(const std::string &str);
 std::string TrimInvisibleCharacters(const std::string &str);
+void RemoveNullTerminator(std::string &str);
 } // namespace base
 } // namespace SysTuning
 #endif // SRC_TRACE_BASE_STRINGHELP_H

@@ -234,7 +234,7 @@ export class TabPaneThreadUsage extends BaseElement {
           if (threadUsageRightData[property] > threadUsageLeftData[property]) {
             return treadUsageSort === 2 ? 1 : -1;
             // @ts-ignore
-          } else if (threadUsageRightData[property] == threadUsageLeftData[property]) {
+          } else if (threadUsageRightData[property] === threadUsageLeftData[property]) {
             return 0;
           } else {
             return treadUsageSort === 2 ? -1 : 1;

@@ -15,7 +15,7 @@
 import { query } from '../SqlLite';
 import { Smaps } from '../../bean/SmapsStruct';
 
-export const querySmapsExits = (): Promise<Array<any>> =>
+export const querySmapsExits = (): Promise<Array<unknown>> =>
   query(
     'querySmapsExits',
     `select
@@ -25,21 +25,21 @@ export const querySmapsExits = (): Promise<Array<any>> =>
       and s.stat_type ='received' and s.count > 0`
   );
 
-export const querySmapsData = (columnName: string): Promise<Array<any>> =>
+export const querySmapsData = (columnName: string): Promise<Array<unknown>> =>
   query(
     'querySmapsCounterData',
     `SELECT (A.timestamp - B.start_ts) as startNs, sum(${columnName}) * 1024 as value, $columnName as name FROM smaps A,trace_range B WHERE A.timestamp < B.end_ts GROUP by A.timestamp;`,
     { $columnName: columnName }
   );
 
-export const querySmapsDataMax = (columnName: string): Promise<Array<any>> =>
+export const querySmapsDataMax = (columnName: string): Promise<Array<unknown>> =>
   query(
     'querySmapsDataMax',
     `
    SELECT (A.timestamp - B.start_ts) as startNS,sum(${columnName}) as max_value FROM smaps A,trace_range B GROUP by A.timestamp order by max_value desc LIMIT 1`
   );
 
-export const getTabSmapsMaxSize = (leftNs: number, rightNs: number, dur: number): Promise<Array<any>> =>
+export const getTabSmapsMaxSize = (leftNs: number, rightNs: number, dur: number): Promise<Array<unknown>> =>
   query<Smaps>(
     'getTabSmapsMaxRss',
     `
@@ -108,7 +108,7 @@ export const querySmapsRecordTabData = (
     where type = ${typeId} and (timeStamp - start_ts) = ${startNs}`
   );
 
-export const getTabSmapsStatisticMaxSize = (rightNs: number): Promise<Array<any>> =>
+export const getTabSmapsStatisticMaxSize = (rightNs: number): Promise<Array<unknown>> =>
   query<Smaps>(
     'getTabSmapsStatisticMaxRss',
     `

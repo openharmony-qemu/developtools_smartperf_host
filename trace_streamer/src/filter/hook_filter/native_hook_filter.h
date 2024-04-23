@@ -30,7 +30,6 @@ class NativeHookFrameInfo {
 public:
     NativeHookFrameInfo()
         : ip_(INVALID_UINT64),
-          sp_(INVALID_UINT64),
           symbolIndex_(INVALID_UINT64),
           filePathIndex_(INVALID_UINT64),
           offset_(INVALID_UINT64),
@@ -38,13 +37,11 @@ public:
     {
     }
     NativeHookFrameInfo(uint64_t ip,
-                        uint64_t sp,
                         uint64_t symbolIndex,
                         uint64_t filePathIndex,
                         uint64_t offset,
                         uint64_t symbolOffset)
         : ip_(ip),
-          sp_(sp),
           symbolIndex_(symbolIndex),
           filePathIndex_(filePathIndex),
           offset_(offset),
@@ -53,7 +50,6 @@ public:
     }
     ~NativeHookFrameInfo() {}
     uint64_t ip_;
-    uint64_t sp_;
     uint64_t symbolIndex_;
     uint64_t filePathIndex_;
     uint64_t offset_;
@@ -98,6 +94,8 @@ public:
 
 private:
     void ProcSymbolTable(uint32_t ipid, uint32_t filePathId, std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
+    std::tuple<uint64_t, uint64_t> GetIpRangeByIpidAndFilePathId(uint32_t ipid, uint32_t filePathId);
+    void DeleteFrameInfoWhichNeedsReparse(uint32_t ipid, uint32_t filePathId);
     void FilterNativeHookMainEvent(size_t num);
     void ParseStatisticEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
     template <class T1, class T2>
@@ -137,6 +135,7 @@ private:
     std::shared_ptr<FrameInfo> ParseArktsOfflineSymbolization(uint64_t ipid, uint64_t arktsIp);
     void FillOfflineSymbolizationFrames(std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator mapItor);
     void ReparseStacksWithAddrRange(uint64_t start, uint64_t end);
+    void UpdateReparseStack(uint64_t stackId, std::shared_ptr<std::vector<uint64_t>> frames);
     void ReparseStacksWithDifferentMeans();
     void CompressStackAndFrames(uint64_t row, ProtoReader::RepeatedDataAreaIterator<ProtoReader::BytesView> frames);
     std::tuple<uint64_t, uint64_t> GetNeedUpdateProcessMapsAddrRange(uint32_t ipid,

@@ -319,7 +319,7 @@ function getFilterLevel(len: number): number {
   }
 }
 
-export function nativeMemoryCacheClear() {
+export function nativeMemoryCacheClear(): void {
   dataCache.normalCache.clear();
   dataCache.statisticsCache.clear();
 }
@@ -497,7 +497,7 @@ export function filterNativeMemoryChartData(
   return dataSource;
 }
 
-function setDataSource(data: unknown, dataSource: NativeMemoryDataSource, cache: unknown) {
+function setDataSource(data: unknown, dataSource: NativeMemoryDataSource, cache: unknown): void {
   // @ts-ignore
   Reflect.ownKeys(data).map((kv: string | symbol): void => {
     // @ts-ignore

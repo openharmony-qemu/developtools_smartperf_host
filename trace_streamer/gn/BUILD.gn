@@ -83,6 +83,10 @@ config("default") {
   if (enable_rawtrace) {
     defines += [ "ENABLE_RAWTRACE" ]
   }
+  if (enable_ffrt) {
+    defines += [ "ENABLE_FFRT" ]
+    enable_htrace = true
+  }
   if (enable_htrace) {
     defines += [ "ENABLE_HTRACE" ]
   }

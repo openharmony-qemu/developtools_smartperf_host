@@ -46,22 +46,23 @@ void EbpfBase::ParseCallStackData(const uint64_t *userIpsAddr, uint16_t count, u
 {
     uint64_t depth = 0;
     for (auto i = count - 1; i >= 0; i--) {
-        if (userIpsAddr[i] > MIN_USER_IP) {
-            auto ebpfSymbolInfo = GetEbpfSymbolInfo(pid, userIpsAddr[i]);
-            auto ipIndex = ConvertToHexTextIndex(userIpsAddr[i]);
-            ipStrIndexToIpMap_.insert(std::make_pair(ipIndex, userIpsAddr[i]));
-            auto row =
-                traceDataCache_->GetEbpfCallStack()->AppendNewData(callId, depth++, ipIndex, ebpfSymbolInfo.symbolIndex,
-                                                                   ebpfSymbolInfo.filePathIndex, ebpfSymbolInfo.vaddr);
-            if (ebpfSymbolInfo.filePathIndex != INVALID_UINT64) {
-                if (filePathIndexToCallStackRowMap_.count(ebpfSymbolInfo.filePathIndex) == 0) {
-                    auto rows = std::make_shared<std::set<size_t>>();
-                    rows->insert(row);
-                    filePathIndexToCallStackRowMap_[ebpfSymbolInfo.filePathIndex] = rows;
-                } else {
-                    filePathIndexToCallStackRowMap_[ebpfSymbolInfo.filePathIndex]->insert(row);
-                }
-            }
+        if (userIpsAddr[i] <= MIN_USER_IP) {
+            continue;
+        }
+        auto ebpfSymbolInfo = GetEbpfSymbolInfo(pid, userIpsAddr[i]);
+        auto ipIndex = ConvertToHexTextIndex(userIpsAddr[i]);
+        ipStrIndexToIpMap_.insert(std::make_pair(ipIndex, userIpsAddr[i]));
+        auto row = traceDataCache_->GetEbpfCallStack()->AppendNewData(
+            callId, depth++, ipIndex, ebpfSymbolInfo.symbolIndex, ebpfSymbolInfo.filePathIndex, ebpfSymbolInfo.vaddr);
+        if (ebpfSymbolInfo.filePathIndex == INVALID_UINT64) {
+            continue;
+        }
+        if (filePathIndexToCallStackRowMap_.count(ebpfSymbolInfo.filePathIndex) == 0) {
+            auto rows = std::make_shared<std::set<size_t>>();
+            rows->insert(row);
+            filePathIndexToCallStackRowMap_[ebpfSymbolInfo.filePathIndex] = rows;
+        } else {
+            filePathIndexToCallStackRowMap_[ebpfSymbolInfo.filePathIndex]->insert(row);
         }
     }
     // Only one successful insertion is required, without considering repeated insertion failures

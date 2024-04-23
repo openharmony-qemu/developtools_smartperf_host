@@ -93,7 +93,7 @@ export class SpFreqChart {
     return folder;
   }
 
-  async addFreqRows(freqList: Array<any>): Promise<void> {
+  async addFreqRows(freqList: Array<unknown>): Promise<void> {
     let freqMaxList = await queryCpuMaxFreq(); //@ts-ignore
     CpuFreqStruct.maxFreq = freqMaxList[0].maxFreq; //@ts-ignore
     let maxFreqObj = Utils.getFrequencyWithUnit(freqMaxList[0].maxFreq);

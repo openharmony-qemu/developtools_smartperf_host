@@ -357,7 +357,6 @@ export class SpApplication extends BaseElement {
   }
 
   private openLongTraceFile(ev: unknown, isRecordTrace: boolean = false): void {
-    const self = this;
     this.returnOriginalUrl();
     this.wasm = true;
     this.openFileInit();
@@ -379,9 +378,9 @@ export class SpApplication extends BaseElement {
       ): Promise<unknown> => {
         const promises = Array.from(files).map((file) => {
           if (normalNames.indexOf(file.name.toLowerCase()) >= 0) {
-            return self.longTraceFileRead(file, true, traceTypePage, readSize, timStamp, allFileSize);
+            return this.longTraceFileRead(file, true, traceTypePage, readSize, timStamp, allFileSize);
           } else if (specialNames.indexOf(file.name.toLowerCase()) >= 0) {
-            return self.longTraceFileRead(file, false, traceTypePage, readSize, timStamp, allFileSize);
+            return this.longTraceFileRead(file, false, traceTypePage, readSize, timStamp, allFileSize);
           } else {
             return;
           }
@@ -405,7 +404,6 @@ export class SpApplication extends BaseElement {
     allFileSize: number
   ): Promise<boolean> => {
     info('reading long trace file ', file.name);
-    const self = this;
     return new Promise((resolve, reject) => {
       let fr = new FileReader();
       let message = { fileType: '', startIndex: 0, endIndex: 0, size: 0 };
@@ -415,12 +413,12 @@ export class SpApplication extends BaseElement {
       let offset = 0;
       let sliceLen = 0;
       let index = 1;
-      fr.onload = function (): void {
+      fr.onload = (): void => {
         let data = fr.result as ArrayBuffer;
         LongTraceDBUtils.getInstance()
           .addLongTableData(data, fileType, timStamp, pageNumber, index, offset, sliceLen)
           .then(() => {
-            self.longTraceFileReadMessagePush(index, isNormalType, pageNumber, offset, sliceLen, fileType, data);
+            this.longTraceFileReadMessagePush(index, isNormalType, pageNumber, offset, sliceLen, fileType, data);
             offset += sliceLen;
             if (offset < file.size) {
               index++;
@@ -428,11 +426,11 @@ export class SpApplication extends BaseElement {
             continueReading();
           });
       };
-      function continueReading(): void {
+      const continueReading = (): void => {
         if (offset >= file.size) {
           message.endIndex = index;
           message.size = file.size;
-          self.longTraceFileReadMessageHandler(pageNumber, message);
+          this.longTraceFileReadMessageHandler(pageNumber, message);
           resolve(true);
           return;
         }
@@ -444,9 +442,9 @@ export class SpApplication extends BaseElement {
         let slice = file.slice(offset, offset + sliceLen);
         readSize += slice.size;
         let percentValue = ((readSize * 100) / allFileSize).toFixed(2);
-        self.litSearch!.setPercent('Read in file: ', Number(percentValue));
+        this.litSearch!.setPercent('Read in file: ', Number(percentValue));
         fr.readAsArrayBuffer(slice);
-      }
+      };
       continueReading();
       fr.onerror = (): void => reject(false);
       info('read over long trace file ', file.name);
@@ -927,7 +925,6 @@ export class SpApplication extends BaseElement {
   }
 
   private handleSqliteMode(ev: unknown, showFileName: string, fileSize: number, fileName: string): void {
-    const self = this;
     let fileSizeStr = (fileSize / 1048576).toFixed(1);
     postLog(fileName, fileSizeStr);
     document.title = `${showFileName} (${fileSizeStr}M)`;
@@ -935,39 +932,39 @@ export class SpApplication extends BaseElement {
     threadPool.init('sqlite').then((res) => {
       let reader = new FileReader();
       reader.readAsArrayBuffer(ev as Blob);
-      reader.onloadend = function (ev): void {
+      reader.onloadend = (ev): void => {
         SpApplication.loadingProgress = 0;
         SpApplication.progressStep = 3;
-        self.spSystemTrace!.loadDatabaseArrayBuffer(
-          this.result as ArrayBuffer,
+        this.spSystemTrace!.loadDatabaseArrayBuffer(
+          reader.result as ArrayBuffer,
           '',
           (command: string, _: number) => {
-            self.setProgress(command);
+            this.setProgress(command);
           },
           () => {
-            self.mainMenu!.menus!.splice(1, self.mainMenu!.menus!.length > 2 ? 1 : 0, {
+            this.mainMenu!.menus!.splice(1, this.mainMenu!.menus!.length > 2 ? 1 : 0, {
               collapsed: false,
               title: 'Current Trace',
               second: false,
               icon: '',
               describe: 'Actions on the current trace',
-              children: self.getTraceOptionMenus(showFileName, fileSizeStr, fileName, true),
+              children: this.getTraceOptionMenus(showFileName, fileSizeStr, fileName, true),
             });
-            self.mainMenu!.menus!.splice(2, 1, {
+            this.mainMenu!.menus!.splice(2, 1, {
               collapsed: false,
               title: 'Support',
               second: false,
               icon: '',
               describe: 'Support',
-              children: self.getTraceSupportMenus(),
+              children: this.getTraceSupportMenus(),
             });
-            self.litSearch!.setPercent('', 101);
-            self.chartFilter!.setAttribute('mode', '');
-            self.progressEL!.loading = false;
-            self.freshMenuDisable(false);
-            self.spInfoAndStats!.initInfoAndStatsData();
-            self.cutTraceFile!.style.display = 'none';
-            self.headerDiv!.style.pointerEvents = 'auto';
+            this.litSearch!.setPercent('', 101);
+            this.chartFilter!.setAttribute('mode', '');
+            this.progressEL!.loading = false;
+            this.freshMenuDisable(false);
+            this.spInfoAndStats!.initInfoAndStatsData();
+            this.cutTraceFile!.style.display = 'none';
+            this.headerDiv!.style.pointerEvents = 'auto';
           }
         );
       };
@@ -975,17 +972,16 @@ export class SpApplication extends BaseElement {
   }
 
   private handleWasmMode(ev: unknown, showFileName: string, fileSize: number, fileName: string): void {
-    const self = this;
     this.litSearch!.setPercent('', 1);
     if (fileName.endsWith('.json')) {
-      self.progressEL!.loading = true;
+      this.progressEL!.loading = true;
       //@ts-ignore
       self.spSystemTrace!.loadSample(ev).then(() => {
-        self.showContent(self.spSystemTrace!);
-        self.litSearch!.setPercent('', 101);
-        self.freshMenuDisable(false);
-        self.chartFilter!.setAttribute('mode', '');
-        self.progressEL!.loading = false;
+        this.showContent(this.spSystemTrace!);
+        this.litSearch!.setPercent('', 101);
+        this.freshMenuDisable(false);
+        this.chartFilter!.setAttribute('mode', '');
+        this.progressEL!.loading = false;
       });
     } else {
       let fileSizeStr = (fileSize / 1048576).toFixed(1);
@@ -1002,18 +998,18 @@ export class SpApplication extends BaseElement {
         let reader: FileReader | null = new FileReader();
         //@ts-ignore
         reader.readAsArrayBuffer(ev);
-        reader.onloadend = function (ev): void {
+        reader.onloadend = (ev): void => {
           info('read file onloadend');
-          self.litSearch!.setPercent('ArrayBuffer loaded  ', 2);
+          this.litSearch!.setPercent('ArrayBuffer loaded  ', 2);
           let wasmUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`;
           SpApplication.loadingProgress = 0;
           SpApplication.progressStep = 3;
-          let data = self.markPositionHandler(this.result as ArrayBuffer);
+          let data = this.markPositionHandler(reader.result as ArrayBuffer);
           info('initData start Parse Data');
-          self.spSystemTrace!.loadDatabaseArrayBuffer(
+          this.spSystemTrace!.loadDatabaseArrayBuffer(
             data,
             wasmUrl,
-            (command: string, _: number) => self.setProgress(command),
+            (command: string, _: number) => this.setProgress(command),
             completeHandler
           );
         };
@@ -2233,9 +2229,8 @@ export class SpApplication extends BaseElement {
         a.download = fileName;
         a.click();
         this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', true);
-        const self = this;
-        let timer = setInterval(function () {
-          self.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
+        let timer = setInterval(() => {
+          this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
           clearInterval(timer);
         }, 4000);
       },
@@ -2261,10 +2256,9 @@ export class SpApplication extends BaseElement {
     a.download = fileName;
     a.click();
     window.URL.revokeObjectURL(a.href);
-    const self = this;
     this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', true);
-    let timer = setInterval(function () {
-      self.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
+    let timer = setInterval(() => {
+      this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
       clearInterval(timer);
     }, 4000);
   }

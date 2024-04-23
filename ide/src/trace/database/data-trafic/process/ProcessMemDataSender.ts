@@ -49,10 +49,14 @@ export function processMemDataSender(trackId: number, row: TraceRow<ProcessMemSt
 }
 
 function arrayBufferHandler(buffers: unknown, len: number): ProcessMemStruct[] {
-  let outArr: ProcessMemStruct[] = []; //@ts-ignore
-  let track_id = new Uint8Array(buffers.track_id); //@ts-ignore
+  let outArr: ProcessMemStruct[] = [];
+  //@ts-ignore
+  let track_id = new Uint8Array(buffers.track_id);
+  //@ts-ignore
   let value = new Float64Array(buffers.value); //@ts-ignore
-  let startTime = new Float64Array(buffers.startTime); //@ts-ignore
+  //@ts-ignore
+  let startTime = new Float64Array(buffers.startTime);
+  //@ts-ignore
   let ts = new Float64Array(buffers.ts);
   for (let i = 0; i < len; i++) {
     outArr.push({

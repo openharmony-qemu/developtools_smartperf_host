@@ -186,53 +186,54 @@ export class HdcDeviceManager {
   public static startShell(
     resultCallBack: (res: DataMessage) => void
   ): ((keyboardEvent: KeyboardEvent | string) => void | undefined) | undefined {
-    if (this.currentHdcClient) {
-      const hdcShellStream = new HdcStream(this.currentHdcClient, false);
-      this.shellInit(hdcShellStream, resultCallBack);
-      return (keyboardEvent: KeyboardEvent | string): void => {
-        let code = undefined;
-        if (keyboardEvent instanceof KeyboardEvent) {
-          const cmd = keyboardEvent.key;
-          if (keyboardEvent.shiftKey && keyboardEvent.key.toUpperCase() === 'SHIFT') {
-            return;
-          } else if (keyboardEvent.metaKey) {
-            return;
-          } else if (keyboardEvent.ctrlKey) {
-            // @ts-ignore
-            code = this.ctrlKey[keyboardEvent.key];
-            if (!code) {
-              return;
-            } else {
-              const dataArray = new Uint8Array(code);
-              hdcShellStream.sendToDaemon(
-                new FormatCommand(HdcCommand.CMD_SHELL_DATA, cmd, false),
-                dataArray,
-                dataArray.length
-              );
-            }
-          } else if (keyboardEvent.altKey) {
+    if (!this.currentHdcClient) {
+      return;
+    }
+    const hdcShellStream = new HdcStream(this.currentHdcClient, false);
+    this.shellInit(hdcShellStream, resultCallBack);
+    return (keyboardEvent: KeyboardEvent | string): void => {
+      let code = undefined;
+      if (keyboardEvent instanceof KeyboardEvent) {
+        const cmd = keyboardEvent.key;
+        if (keyboardEvent.shiftKey && keyboardEvent.key.toUpperCase() === 'SHIFT') {
+          return;
+        } else if (keyboardEvent.metaKey) {
+          return;
+        } else if (keyboardEvent.ctrlKey) {
+          // @ts-ignore
+          code = this.ctrlKey[keyboardEvent.key];
+          if (!code) {
             return;
           } else {
-            // @ts-ignore
-            code = this.escapeCharacterDict[cmd];
-            if (code) {
-              const dataArray = new Uint8Array(code);
-              hdcShellStream.sendToDaemon(
-                new FormatCommand(HdcCommand.CMD_SHELL_DATA, cmd, false),
-                dataArray,
-                dataArray.length
-              );
-            } else {
-              if (cmd.length === 1) {
-                hdcShellStream.DoCommand(cmd);
-              }
+            const dataArray = new Uint8Array(code);
+            hdcShellStream.sendToDaemon(
+              new FormatCommand(HdcCommand.CMD_SHELL_DATA, cmd, false),
+              dataArray,
+              dataArray.length
+            );
+          }
+        } else if (keyboardEvent.altKey) {
+          return;
+        } else {
+          // @ts-ignore
+          code = this.escapeCharacterDict[cmd];
+          if (code) {
+            const dataArray = new Uint8Array(code);
+            hdcShellStream.sendToDaemon(
+              new FormatCommand(HdcCommand.CMD_SHELL_DATA, cmd, false),
+              dataArray,
+              dataArray.length
+            );
+          } else {
+            if (cmd.length === 1) {
+              hdcShellStream.DoCommand(cmd);
             }
           }
-        } else {
-          hdcShellStream.DoCommand(HdcDeviceManager.processCommand(keyboardEvent));
         }
-      };
-    }
+      } else {
+        hdcShellStream.DoCommand(HdcDeviceManager.processCommand(keyboardEvent));
+      }
+    };
   }
 
   private static processCommand(command: string): string {

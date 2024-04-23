@@ -1151,25 +1151,23 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       return typeMap;
     }
 
-    let that = this;
-
-    function setSize(item: unknown): void {
+    const setSize = (item: unknown): void => {
       // @ts-ignore
-      that.currentLevelApplySize += item.size; // @ts-ignore
-      that.currentLevelApplyCount += item.count;
-      if (that.isStatistic) {
+      this.currentLevelApplySize += item.size; // @ts-ignore
+      this.currentLevelApplyCount += item.count;
+      if (this.isStatistic) {
         // @ts-ignore
-        that.currentLevelReleaseSize += item.releaseSize; // @ts-ignore
-        that.currentLevelReleaseCount += item.releaseCount;
+        this.currentLevelReleaseSize += item.releaseSize; // @ts-ignore
+        this.currentLevelReleaseCount += item.releaseCount;
       } else {
         // @ts-ignore
         if (item.isRelease) {
           // @ts-ignore
-          that.currentLevelReleaseSize += item.size; // @ts-ignore
-          that.currentLevelReleaseCount += item.count;
+          this.currentLevelReleaseSize += item.size; // @ts-ignore
+          this.currentLevelReleaseCount += item.count;
         }
       }
-    }
+    };
 
     for (let itemData of dbArray) {
       // @ts-ignore

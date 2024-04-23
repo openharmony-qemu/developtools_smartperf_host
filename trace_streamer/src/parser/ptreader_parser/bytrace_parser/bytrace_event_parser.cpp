@@ -246,8 +246,7 @@ bool BytraceEventParser::BlockedReason(const ArgsMap &args, const BytraceLine &l
         return false;
     }
     auto iTid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, tid.value());
-    if (streamFilters_->cpuFilter_->InsertBlockedReasonEvent(line.ts, line.cpu, iTid, iowait.value(), caller,
-                                                             delayValue)) {
+    if (streamFilters_->cpuFilter_->InsertBlockedReasonEvent(line.cpu, iTid, iowait.value(), caller, delayValue)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_RECEIVED);
     } else {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_NOTMATCH);

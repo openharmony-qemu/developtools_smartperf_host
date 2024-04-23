@@ -2260,7 +2260,6 @@ export class SpSystemTrace extends BaseElement {
     TabPaneCurrentSelection.queryCPUWakeUpListFromBean(data).then((a: unknown) => {
       if (a === null) {
         window.publish(window.SmartEvent.UI.WakeupList, SpSystemTrace.wakeupList);
-        return null;
       } // @ts-ignore
       SpSystemTrace.wakeupList.push(a); // @ts-ignore
       this.queryCPUWakeUpList(a);

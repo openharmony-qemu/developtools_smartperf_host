@@ -67,7 +67,7 @@ public:
     void UpdateHMKernelTraceStatus(bool status);
     void InitMetricsMap(std::map<std::string, std::string> &metricsMap);
     const std::string MetricsSqlQuery(const std::string &metrics);
-    auto GetBytraceData()
+    auto GetPtreaderParser()
     {
         return ptreaderParser_.get();
     }
@@ -77,7 +77,7 @@ public:
         return rawTraceParser_.get();
     }
 #endif
-    auto GetHtraceData()
+    auto GetPbreaderParser()
     {
         return pbreaderParser_.get();
     }

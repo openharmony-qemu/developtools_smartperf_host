@@ -153,9 +153,6 @@ std::unique_ptr<NativeHookFrameInfo> NativeHookFilter::ParseFrame(uint64_t row, 
     if (reader.has_ip()) {
         frameInfo->ip_ = reader.ip();
     }
-    if (reader.has_sp()) {
-        frameInfo->sp_ = reader.sp();
-    }
     if (reader.has_offset()) {
         frameInfo->offset_ = reader.offset();
     }
@@ -706,6 +703,19 @@ void NativeHookFilter::ReparseStacksWithDifferentMeans()
     reparseStackIdToFramesMap_.clear();
 }
 
+void NativeHookFilter::UpdateReparseStack(uint64_t stackId, std::shared_ptr<std::vector<uint64_t>> frames)
+{
+    // delete the stack ids whitch should be parsed again
+    if (stackIdToCallChainIdMap_.count(stackId)) {
+        stackIdToCallChainIdMap_.erase(stackId);
+    }
+    /* update reparseStackIdToFramesMap_. The reparseStackIdToFramesMap_ cannot be parsed immediately.
+    Wait until the relevant memmaps and symbolTable updates are completed. After the main event is
+    updated and before the main event is about to be parsed, parse reparseStackIdToFramesMap_ first. */
+    if (!stackIdToFramesMap_.count(stackId)) {
+        reparseStackIdToFramesMap_.emplace(std::make_pair(stackId, frames));
+    }
+}
 inline void NativeHookFilter::ReparseStacksWithAddrRange(uint64_t start, uint64_t end)
 {
     // Get the list of call stack ids that should be parsed again
@@ -713,16 +723,7 @@ inline void NativeHookFilter::ReparseStacksWithAddrRange(uint64_t start, uint64_
         auto ips = itor->second;
         for (auto ipsItor = ips->begin(); ipsItor != ips->end(); ipsItor++) {
             if (*ipsItor >= start && *ipsItor < end) {
-                // delete the stack ids whitch should be parsed again
-                if (stackIdToCallChainIdMap_.count(itor->first)) {
-                    stackIdToCallChainIdMap_.erase(itor->first);
-                }
-                /* update reparseStackIdToFramesMap_. The reparseStackIdToFramesMap_ cannot be parsed immediately.
-                Wait until the relevant memmaps and symbolTable updates are completed. After the main event is
-                updated and before the main event is about to be parsed, parse reparseStackIdToFramesMap_ first. */
-                if (!stackIdToFramesMap_.count(itor->first)) {
-                    reparseStackIdToFramesMap_.emplace(std::make_pair(itor->first, itor->second));
-                }
+                UpdateReparseStack(itor->first, itor->second);
                 break;
             }
         }
@@ -800,6 +801,37 @@ void NativeHookFilter::UpdateSymbolTablePtrAndStValueToSymAddrMap(
         }
     }
 }
+std::tuple<uint64_t, uint64_t> NativeHookFilter::GetIpRangeByIpidAndFilePathId(uint32_t ipid, uint32_t filePathId)
+{
+    uint64_t start = INVALID_UINT32;
+    uint64_t end = 0;
+    auto startAddrToMapsInfoMapPtr = ipidToStartAddrToMapsInfoMap_.Find(ipid);
+    if (startAddrToMapsInfoMapPtr != nullptr) {
+        for (auto itor = startAddrToMapsInfoMapPtr->begin(); itor != startAddrToMapsInfoMapPtr->end(); itor++) {
+            if (itor->second->file_path_id() == filePathId) {
+                start = std::min(itor->first, start);
+                end = std::max(itor->second->end(), end);
+            } else if (start != INVALID_UINT32) {
+                break;
+            }
+        }
+    }
+    return std::make_tuple(start, end);
+}
+void NativeHookFilter::DeleteFrameInfoWhichNeedsReparse(uint32_t ipid, uint32_t filePathId)
+{
+    // Delete symbolic results with the same filePathId
+    auto ipToFrameInfoPtr = const_cast<IpToFrameInfoType *>(ipidToIpToFrameInfo_.Find(ipid));
+    if (ipToFrameInfoPtr != nullptr) {
+        for (auto itor = ipToFrameInfoPtr->begin(); itor != ipToFrameInfoPtr->end();) {
+            if (itor->second->filePathId_ == filePathId) {
+                itor = ipToFrameInfoPtr->erase(itor);
+                continue;
+            }
+            itor++;
+        }
+    }
+}
 void NativeHookFilter::ProcSymbolTable(uint32_t ipid,
                                        uint32_t filePathId,
                                        std::shared_ptr<ProtoReader::SymbolTable_Reader> reader)
@@ -815,30 +847,10 @@ void NativeHookFilter::ProcSymbolTable(uint32_t ipid,
             ReparseStacksWithDifferentMeans();
             FilterNativeHookMainEvent(tsToMainEventsMap_.size());
         }
-        // Delete symbolic results with the same filePathId
-        auto ipToFrameInfoPtr = const_cast<IpToFrameInfoType *>(ipidToIpToFrameInfo_.Find(ipid));
-        if (ipToFrameInfoPtr != nullptr) {
-            for (auto itor = ipToFrameInfoPtr->begin(); itor != ipToFrameInfoPtr->end();) {
-                if (itor->second->filePathId_ == filePathId) {
-                    itor = ipToFrameInfoPtr->erase(itor);
-                    continue;
-                }
-                itor++;
-            }
-        }
+        DeleteFrameInfoWhichNeedsReparse(ipid, filePathId);
         uint64_t start = INVALID_UINT32;
         uint64_t end = 0;
-        auto startAddrToMapsInfoMapPtr = ipidToStartAddrToMapsInfoMap_.Find(ipid);
-        if (startAddrToMapsInfoMapPtr != nullptr) {
-            for (auto itor = startAddrToMapsInfoMapPtr->begin(); itor != startAddrToMapsInfoMapPtr->end(); itor++) {
-                if (itor->second->file_path_id() == filePathId) {
-                    start = std::min(itor->first, start);
-                    end = std::max(itor->second->end(), end);
-                } else if (start != INVALID_UINT32) {
-                    break;
-                }
-            }
-        }
+        std::tie(start, end) = GetIpRangeByIpidAndFilePathId(ipid, filePathId);
         ReparseStacksWithAddrRange(start, end);
         symbolTablePtr = reader;
     } else {

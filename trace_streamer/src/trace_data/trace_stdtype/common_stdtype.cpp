@@ -117,6 +117,7 @@ void DataDict::Finish()
 
 DataSourceClockIdData::DataSourceClockIdData()
     : dataSource2ClockIdMap_({{DATA_SOURCE_TYPE_TRACE, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_FFRT, TS_CLOCK_UNKNOW},
                               {DATA_SOURCE_TYPE_MEM, TS_CLOCK_UNKNOW},
                               {DATA_SOURCE_TYPE_HILOG, TS_CLOCK_UNKNOW},
                               {DATA_SOURCE_TYPE_NATIVEHOOK, TS_CLOCK_UNKNOW},
@@ -129,6 +130,7 @@ DataSourceClockIdData::DataSourceClockIdData()
                               {DATA_SOURCE_TYPE_JSMEMORY, TS_CLOCK_UNKNOW}}),
       dataSource2PluginNameMap_({
           {DATA_SOURCE_TYPE_TRACE, "ftrace-plugin"},
+          {DATA_SOURCE_TYPE_FFRT, "ffrt-profiler"},
           {DATA_SOURCE_TYPE_MEM, "memory-plugin"},
           {DATA_SOURCE_TYPE_HILOG, "hilog-plugin"},
           {DATA_SOURCE_TYPE_NATIVEHOOK, "nativehook"},

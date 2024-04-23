@@ -629,8 +629,8 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
         if (fileDataDictIdToFileId_.count(fileDataIndex) != 0) {
             fileId = fileDataDictIdToFileId_.at(fileDataIndex);
         }
-        streamFilters_->perfDataFilter_->AppendPerfCallChain(callChainId, depth++, frame->pc, frame->funcOffset, fileId,
-                                                             frame->index);
+        traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(callChainId, depth++, frame->pc,
+                                                                        frame->funcOffset, fileId, frame->index);
     }
     return callChainId;
 }

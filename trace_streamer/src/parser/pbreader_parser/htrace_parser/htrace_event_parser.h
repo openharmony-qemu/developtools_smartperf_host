@@ -36,16 +36,6 @@ namespace SysTuning {
 namespace TraceStreamer {
 class HtraceEventParser : private EventParserBase {
 public:
-    HtraceEventParser(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
-    ~HtraceEventParser();
-    void ParseDataItem(PbreaderDataSegment &tracePacket,
-                       ProtoReader::TracePluginResult_Reader &tracePluginResult,
-                       bool &haveSplitSeg);
-    void FilterAllEventsReader();
-    void FilterAllEvents();
-    void Clear();
-
-private:
     struct EventInfo {
         int32_t pid = 0;
         int32_t tgid = 0;
@@ -56,6 +46,18 @@ private:
         std::string detail;
     };
 
+public:
+    HtraceEventParser(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
+    ~HtraceEventParser();
+    void ParseDataItem(PbreaderDataSegment &tracePacket,
+                       ProtoReader::TracePluginResult_Reader &tracePluginResult,
+                       bool &haveSplitSeg);
+    void AppendEvent(std::unique_ptr<EventInfo> event);
+    void FilterAllEventsReader();
+    void FilterAllEvents();
+    void Clear();
+
+private:
     // Initialization
     void InterruptEventInitialization();
     void ClockEventInitialization();
@@ -111,7 +113,11 @@ private:
     bool ProcessFreeEvent(const EventInfo &event) const;
     bool TaskRenameEvent(const EventInfo &event) const;
     bool TaskNewtaskEvent(const EventInfo &event) const;
+    void DealPrintEvent(const EventInfo &event, const std::string &bufferLine);
     bool ParsePrintEvent(const EventInfo &event);
+#ifdef ENABLE_FFRT
+    bool ParseFfrtEvent(const EventInfo &event);
+#endif
     bool SchedWakeupEvent(const EventInfo &event) const;
     bool SchedWakeupNewEvent(const EventInfo &event) const;
     bool SchedWakingEvent(const EventInfo &event) const;
@@ -139,8 +145,7 @@ private:
     bool OomScoreAdjUpdate(const EventInfo &event) const;
     using FuncCall = std::function<bool(const EventInfo &event)>;
     std::map<uint32_t, FuncCall> eventToFunctionMap_ = {};
-    std::unordered_set<uint32_t> tids_ = {};
-    std::unordered_set<uint32_t> pids_ = {};
+    std::deque<std::unique_ptr<EventInfo>> htraceEventList_ = {};
     DataIndex workQueueId_ = 0;
     PrintEventParser printEventParser_;
     std::atomic<uint64_t> lastOverwrite_{0};
@@ -148,7 +153,6 @@ private:
     std::atomic<uint64_t> ftraceEndTime_{0};
     std::atomic<uint64_t> ftraceOriginStartTime_{std::numeric_limits<uint64_t>::max()};
     std::atomic<uint64_t> ftraceOriginEndTime_{0};
-    std::deque<std::unique_ptr<EventInfo>> htraceEventList_ = {};
     const DataIndex schedWakeupName_ = traceDataCache_->GetDataIndex("sched_wakeup");
     const DataIndex schedWakingName_ = traceDataCache_->GetDataIndex("sched_waking");
     const DataIndex schedWakeupNewName_ = traceDataCache_->GetDataIndex("sched_wakeup_new");

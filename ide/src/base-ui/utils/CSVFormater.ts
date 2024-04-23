@@ -15,7 +15,6 @@
 
 export class JSONToCSV {
   static setCsvData(obj: unknown): void {
-    let that = this;
     let browserType = this.browserType();
     // @ts-ignore
     if (browserType.ie < 9) {
@@ -54,11 +53,11 @@ export class JSONToCSV {
       csv += row + '\r\n';
     }
     // 具体的数据处理
-    data.map(function (n: unknown) {
+    data.map((n: unknown) => {
       row = '';
       // 如果存在自定义key值
       if (columns.key.length) {
-        row = that.getCsvStr(columns, obj, n, row);
+        row = this.getCsvStr(columns, obj, n, row);
       } else {
         // @ts-ignore
         for (key in n) {
@@ -77,7 +76,6 @@ export class JSONToCSV {
   }
 
   static getCsvStr(columns: unknown, obj: unknown, n: unknown, row: string): string {
-    let that = this;
     // @ts-ignore
     columns.key.map(function (m: unknown, idx: number) {
       let strItem: unknown = '';
@@ -105,7 +103,7 @@ export class JSONToCSV {
         row +=
           '"' +
           // @ts-ignore
-          that.treeDepth(n.depthCSV) +
+          this.treeDepth(n.depthCSV) +
           // @ts-ignore
           (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) +
           '",';
@@ -124,8 +122,10 @@ export class JSONToCSV {
       let alink: unknown = document.createElement('a');
       // @ts-ignore
       alink.id = 'csvDownloadLink';
+
+      const href = this.getDownloadUrl(csvData);
       // @ts-ignore
-      alink.href = this.getDownloadUrl(csvData);
+      alink.href = href === '' ? null : href;
       // @ts-ignore
       document.body.appendChild(alink);
       let linkDom: unknown = document.getElementById('csvDownloadLink');
@@ -157,7 +157,7 @@ export class JSONToCSV {
     }
   }
 
-  static getDownloadUrl(csvData: unknown): string | undefined {
+  static getDownloadUrl(csvData: unknown): string {
     // @ts-ignore
     if (window.Blob && window.URL && (window.URL as unknown).createObjectURL) {
       return URL.createObjectURL(
@@ -166,6 +166,7 @@ export class JSONToCSV {
         })
       );
     }
+    return '';
   }
 
   static browserType(): { edge: string; ie: string } {

@@ -52,7 +52,7 @@ size_t SliceFilter::BeginSlice(const std::string &comm,
     // make a SliceData DataItem, {timeStamp, dur, internalTid, cat, nameIndex}
     SliceData sliceData = {timeStamp, -1, internalTid, cat, nameIndex};
     ArgsSet args;
-    return StartSlice(timeStamp, pid, cat, nameIndex, args, sliceData);
+    return StartSlice(timeStamp, cat, nameIndex, args, sliceData);
 }
 
 void SliceFilter::IrqHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex)
@@ -177,7 +177,7 @@ size_t SliceFilter::AsyncBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat,
 {
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     SliceData sliceData = {timeStamp, 0, internalTid, cat, nameIndex};
-    return StartSlice(timeStamp, pid, cat, nameIndex, args, std::move(sliceData));
+    return StartSlice(timeStamp, cat, nameIndex, args, std::move(sliceData));
 }
 uint8_t SliceFilter::CurrentDepth(InternalTid internalTid)
 {
@@ -287,7 +287,6 @@ int32_t SliceFilter::MatchingIncompleteSliceIndex(const SlicesStack &stack, Data
     return -1;
 }
 size_t SliceFilter::StartSlice(uint64_t timeStamp,
-                               uint32_t pid,
                                DataIndex cat,
                                DataIndex nameIndex,
                                ArgsSet &args,
@@ -336,22 +335,16 @@ size_t SliceFilter::BeginBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat,
 {
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     SliceData sliceData = {timeStamp, -1, internalTid, cat, nameIndex};
-    return StartSlice(timeStamp, pid, cat, nameIndex, args, std::move(sliceData));
+    return StartSlice(timeStamp, cat, nameIndex, args, std::move(sliceData));
 }
 
 size_t SliceFilter::CompleteSlice(uint64_t timeStamp,
-                                  uint32_t pid,
-                                  uint32_t threadGroupId,
+                                  uint32_t internalTid,
                                   DataIndex category,
                                   DataIndex name,
                                   ArgsSet args)
 {
-    InternalTid internalTid = INVALID_ITID;
-    if (threadGroupId > 0) {
-        internalTid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(pid, threadGroupId);
-    } else {
-        internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
-    }
+
     TS_CHECK_TRUE_RET(binderStackMap_.find(internalTid) != binderStackMap_.end(), SIZE_MAX);
     auto &stackInfo = binderStackMap_[internalTid];
     SlicesStack &stack = stackInfo.sliceStack;
@@ -402,7 +395,8 @@ void SliceFilter::HandleAsyncEventAndOther(ArgsSet args, CallStack *slices, uint
 }
 size_t SliceFilter::EndBinder(uint64_t timeStamp, uint32_t pid, DataIndex category, DataIndex name, ArgsSet args)
 {
-    return CompleteSlice(timeStamp, pid, 0, category, name, args);
+    auto internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
+    return CompleteSlice(timeStamp, internalTid, category, name, args);
 }
 std::tuple<uint64_t, uint32_t> SliceFilter::AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet &args)
 {
@@ -487,7 +481,13 @@ size_t SliceFilter::EndSlice(uint64_t timeStamp,
                              DataIndex category,
                              DataIndex name)
 {
-    return CompleteSlice(timeStamp, pid, threadGroupId, category, name);
+    uint32_t internalTid = INVALID_UINT32;
+    if (threadGroupId > 0) {
+        internalTid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(pid, threadGroupId);
+    } else {
+        internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
+    }
+    return CompleteSlice(timeStamp, internalTid, category, name);
 }
 
 bool SliceFilter::UpdateIrqReadySize()

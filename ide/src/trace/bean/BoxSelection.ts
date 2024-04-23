@@ -620,7 +620,8 @@ export class SelectionParam {
       const [rangeStart, rangeEnd] = [TraceRow.range?.startNS, TraceRow.range?.endNS];
       const startNS = TraceRow.rangeSelectObject?.startNS || rangeStart;
       const endNS = TraceRow.rangeSelectObject?.endNS || rangeEnd;
-      let minNodeId, maxNodeId;
+      let minNodeId;
+      let maxNodeId;
       if (!it.dataListCache || it.dataListCache.length === 0) {
         return;
       }
@@ -683,7 +684,7 @@ export class SelectionParam {
       for (let data of copyFrameSelectData) {
         frameSelectDataIdArr.push(data.id);
       }
-      let jsCpuProfilerData = copyFrameSelectData.filter((item: unknown) => {
+      let jsCpuProfilerData = copyFrameSelectData.filter((item: unknown): unknown => {
         // @ts-ignore
         if (item.depth === 0) {
           // @ts-ignore

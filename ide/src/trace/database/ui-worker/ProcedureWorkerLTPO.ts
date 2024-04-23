@@ -56,7 +56,9 @@ export class LtpoRender {
           find = true;
         }
       }
-      if (!ltpoRow.isHover) LtpoStruct.hoverLtpoStruct = undefined;
+      if (!ltpoRow.isHover) {
+        LtpoStruct.hoverLtpoStruct = undefined;
+      }
       if (!find && ltpoRow.isHover) {
         LtpoStruct.hoverLtpoStruct = undefined;
       }

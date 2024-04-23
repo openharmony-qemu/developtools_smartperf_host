@@ -29,6 +29,9 @@ ohos_static_library("pbreader_htrace_parser") {
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ftrace_data_reader",
   ]
+  if (enable_ffrt) {
+    public_deps += [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ffrt_profiler:ffrt_profiler_data_reader" ]
+  }
   public_configs = [
     ":htrace_cfg",
     "../../:parser_base_cfg",

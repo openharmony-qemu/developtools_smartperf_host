@@ -55,7 +55,6 @@ export class TabPaneVmTrackerShmComparison extends BaseElement {
 
   setShmData(data: SnapshotStruct, dataList: Array<SnapshotStruct>): void {
     let fileArr: SnapshotStruct[] = [];
-    let that = this;
     for (let file of dataList) {
       if (file.startNs !== data.startNs) {
         fileArr.push(file);
@@ -65,7 +64,7 @@ export class TabPaneVmTrackerShmComparison extends BaseElement {
     this.baseFileTs = data.startNs;
     this.initSelect(data.startNs, fileArr);
     this.targetFileTs = fileArr[0].startNs;
-    that.updateComparisonData(data.startNs, fileArr[0].startNs);
+    this.updateComparisonData(data.startNs, fileArr[0].startNs);
   }
 
   async updateComparisonData(baseFileTs: number, targetFileTs: number): Promise<void> {
@@ -101,7 +100,6 @@ export class TabPaneVmTrackerShmComparison extends BaseElement {
   }
 
   initSelect(fileId: number, fileArr: Array<SnapshotStruct>): void {
-    let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
     this.selectEl!.innerHTML = '';
     let option = new LitSelectOption();
@@ -119,7 +117,7 @@ export class TabPaneVmTrackerShmComparison extends BaseElement {
         this.comparisonTableEl!.scrollTop = 0;
         for (let f of fileArr) {
           if (input.value === f.name) {
-            that.updateComparisonData(fileId, f.startNs);
+            this.updateComparisonData(fileId, f.startNs);
           }
         }
         e.stopPropagation();

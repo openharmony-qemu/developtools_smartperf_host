@@ -39,7 +39,7 @@ public:
     void FilterAllEventsReader();
     void FilterAllEvents();
 
-private:
+public:
     std::unique_ptr<HtraceEventParser> eventParser_;
 };
 } // namespace TraceStreamer

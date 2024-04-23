@@ -46,12 +46,7 @@ public:
                            uint32_t nextPid,
                            int32_t nextPrio,
                            DataIndex nextInfo);
-    bool InsertBlockedReasonEvent(uint64_t ts,
-                                  uint64_t cpu,
-                                  uint32_t iTid,
-                                  bool iowait,
-                                  DataIndex caller,
-                                  uint32_t delay);
+    bool InsertBlockedReasonEvent(uint64_t cpu, uint32_t iTid, bool iowait, DataIndex caller, uint32_t delay);
     void InsertWakeupEvent(uint64_t ts, uint32_t internalTid, bool isWaking = false);
     bool InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint32_t pid);
     bool InsertProcessFreeEvent(uint64_t ts, uint32_t pid);

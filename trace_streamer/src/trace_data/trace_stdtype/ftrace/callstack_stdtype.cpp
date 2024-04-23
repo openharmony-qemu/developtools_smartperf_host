@@ -65,28 +65,13 @@ void CallStack::SetDistributeInfo(size_t index,
                                   const std::string &chainId,
                                   const std::string &spanId,
                                   const std::string &parentSpanId,
-                                  const std::string &flag,
-                                  const std::string &args)
+                                  const std::string &flag)
 {
     chainIds_[index] = chainId;
     spanIds_[index] = spanId;
     parentSpanIds_[index] = parentSpanId;
     flags_[index] = flag;
-    args_[index] = args;
     argSet_[index] = INVALID_UINT32;
-}
-void CallStack::AppendDistributeInfo(const std::string &chainId,
-                                     const std::string &spanId,
-                                     const std::string &parentSpanId,
-                                     const std::string &flag,
-                                     const std::string &args)
-{
-    chainIds_.emplace_back(chainId);
-    spanIds_.emplace_back(spanId);
-    parentSpanIds_.emplace_back(parentSpanId);
-    flags_.emplace_back(flag);
-    args_.emplace_back(args);
-    argSet_.emplace_back(INVALID_UINT32);
 }
 void CallStack::AppendDistributeInfo()
 {
@@ -94,7 +79,6 @@ void CallStack::AppendDistributeInfo()
     spanIds_.emplace_back("");
     parentSpanIds_.emplace_back("");
     flags_.emplace_back("");
-    args_.emplace_back("");
     argSet_.emplace_back(INVALID_UINT32);
 }
 void CallStack::SetDuration(size_t index, uint64_t timeStamp)
@@ -173,10 +157,6 @@ const std::deque<std::string> &CallStack::ParentSpanIds() const
 const std::deque<std::string> &CallStack::Flags() const
 {
     return flags_;
-}
-const std::deque<std::string> &CallStack::ArgsData() const
-{
-    return args_;
 }
 const std::deque<uint32_t> &CallStack::ArgSetIdsData() const
 {

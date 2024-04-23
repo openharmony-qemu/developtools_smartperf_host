@@ -68,7 +68,9 @@ private:
     void ParserAppStartup();
     void UpdatePidByNameIndex(const appMap &mAPPStartupData);
     bool CaclRsDataByPid(appMap &mAPPStartupData);
-    void AppendData(const appMap &mAPPStartupData);
+    void AppenAllData(const appMap &mAPPStartupData);
+    void AppendAssociatedData(DataIndex packedNameIndex,
+                              const std::map<uint32_t, std::unique_ptr<APPStartupData>> &stagesData);
     bool UpdateAPPStartupData(uint32_t row, const std::string &nameString, uint32_t startIndex);
     bool ProcAbilityLaunchData(const std::string &nameString, uint64_t raw);
     void ProcForegroundData(uint64_t raw);

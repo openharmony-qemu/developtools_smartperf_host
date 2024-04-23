@@ -131,7 +131,7 @@ function filterDataByGroupWithoutValue(
 ): unknown[] {
   let arr: unknown[] = [];
   // 标志位，判定何时进行新一轮数据统计处理
-  let flag: number = -1;
+  let flag: number = flagInit;
   for (let i = 0; i < list.length; i++) {
     // 筛选符合判断条件的数据，作进一步处理
     //@ts-ignore

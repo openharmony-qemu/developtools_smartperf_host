@@ -31,7 +31,8 @@ import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { SpSystemTrace } from '../../../component/SpSystemTrace';
 
 export class EmptyRender extends Render {
-  renderMainThread(req: unknown, row: TraceRow<any>): void {
+  // @ts-ignore
+  renderMainThread(req: unknown, row: TraceRow<unknown>): void {
     //@ts-ignore
     drawLoadingFrame(req.context, [], row);
   }

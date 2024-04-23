@@ -403,6 +403,15 @@ function returnObj(
         dur: item.dur,
         percent: (item.dur / sum) * PERCENT,
       };
+    default:
+      return {
+        thread: item.pid + '_' + item.tid,
+        consumption: 0,
+        cpu: item.cpu,
+        frequency: 'unknown',
+        dur: item.dur,
+        percent: (item.dur / sum) * PERCENT,
+      };
   }
 }
 

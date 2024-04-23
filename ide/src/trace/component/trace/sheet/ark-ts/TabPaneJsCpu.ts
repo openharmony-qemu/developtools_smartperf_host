@@ -207,14 +207,16 @@ export class TabPaneJsCpuCallTree extends BaseElement {
   }
 
   private sortTree(arr: Array<JsCpuProfilerTabStruct>): Array<JsCpuProfilerTabStruct> {
-    const that = this;
-    function defaultSort(callTreeLeftData: JsCpuProfilerTabStruct, callTreeRightData: JsCpuProfilerTabStruct): number {
-      if (that.currentType === that.TYPE_TOP_DOWN) {
+    const defaultSort = (
+      callTreeLeftData: JsCpuProfilerTabStruct,
+      callTreeRightData: JsCpuProfilerTabStruct
+    ): number => {
+      if (this.currentType === this.TYPE_TOP_DOWN) {
         return callTreeRightData.totalTime - callTreeLeftData.totalTime;
       } else {
         return callTreeRightData.selfTime - callTreeLeftData.selfTime;
       }
-    }
+    };
     const CallTreeSortArr = arr.sort((callTreeLeftData, callTreeRightData) => {
       if (this.sortKey === 'selfTimeStr' || this.sortKey === 'selfTimePercent') {
         if (this.sortType === 0) {
@@ -247,11 +249,6 @@ export class TabPaneJsCpuCallTree extends BaseElement {
       call.children = this.sortTree(call.children);
     });
     return CallTreeSortArr;
-  }
-
-  private clearTab(): void {
-    this.stackTable!.recycleDataSource = [];
-    this.callTreeTable!.recycleDataSource = [];
   }
 
   public initHtml(): string {

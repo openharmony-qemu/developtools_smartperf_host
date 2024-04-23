@@ -28,7 +28,9 @@ export const chartProcessMemDataSql = (args: Args): string => {
 };
 
 export function processMemDataReceiver(data: unknown, proc: Function): void {
-  let res: unknown[], list: unknown[]; //@ts-ignore
+  let res: unknown[];
+  let list: unknown[];
+  //@ts-ignore
   if (!memList.has(data.params.trackId)) {
     //@ts-ignore
     list = proc(chartProcessMemDataSql(data.params)); //@ts-ignore
@@ -45,7 +47,7 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
   //@ts-ignore
   let startTime = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime); //@ts-ignore
   let ts = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.ts); //@ts-ignore
-  let value = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.value); //@ts-ignore
+  let value = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.value); //@ts-ignore
   let track_id = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.track_id);
   res.forEach((it, i) => {
     //@ts-ignore

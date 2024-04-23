@@ -134,3 +134,10 @@ export {};
 export function dpr(): number {
   return window.devicePixelRatio || 1;
 }
+
+export const isEmpty = function <T>(list: Array<T> | undefined): boolean {
+  return list === null || list === undefined || list.length === 0;
+};
+export const isNotEmpty = function <T>(list: Array<T> | undefined): boolean {
+  return list !== null && list !== undefined && list.length > 0;
+};

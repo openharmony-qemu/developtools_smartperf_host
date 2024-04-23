@@ -103,7 +103,7 @@ export class SpClockChart {
         context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       traceRow.canvasSave(context);
-      (renders['clock'] as ClockRender).renderMainThread(
+      (renders.clock as ClockRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -146,13 +146,15 @@ export class SpClockChart {
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
       this.clockSupplierFrame(traceRow, it, isState, isScreenState);
-      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> | undefined => {
+      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> => {
         if (it.name.endsWith(' Frequency')) {
           return clockDataSender(it.srcname, 'clockFrequency', traceRow, args);
         } else if (isState) {
           return clockDataSender(it.srcname, 'clockState', traceRow, args);
         } else if (isScreenState) {
           return clockDataSender('', 'screenState', traceRow, args);
+        } else {
+          return new Promise((): void => {});
         }
       };
       traceRow.focusHandler = (ev): void => {
@@ -190,7 +192,7 @@ export class SpClockChart {
         // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, clockFolder.frame.width, clockFolder.frame.height);
       } else {
-        (renders['empty'] as EmptyRender).renderMainThread(
+        (renders.empty as EmptyRender).renderMainThread(
           {
             context: this.trace.canvasPanelCtx,
             useCache: useCache,

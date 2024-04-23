@@ -816,17 +816,16 @@ export class SpRecordTrace extends BaseElement {
     clickHandlerFun?: Function,
     fileChoose: boolean = false
   ): MenuItem {
-    let that = this;
     return {
       title: title,
       icon: icon,
       fileChoose: fileChoose,
       clickHandler: (): void => {
-        that.appContent!.innerHTML = '';
-        that.appContent!.append(configPage);
-        that.freshMenuItemsStatus(title);
+        this.appContent!.innerHTML = '';
+        this.appContent!.append(configPage);
+        this.freshMenuItemsStatus(title);
         if (clickHandlerFun) {
-          clickHandlerFun(that);
+          clickHandlerFun(this);
         }
       },
     };

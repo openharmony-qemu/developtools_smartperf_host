@@ -263,11 +263,11 @@ bool RpcServer::DetermineSystrace(const uint8_t *data, size_t len)
 
 bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish)
 {
-    int32_t firstPos = ts_->GetBytraceData()->MinSplitPos();
-    int32_t lastPos = ts_->GetBytraceData()->MaxSplitPos();
+    int32_t firstPos = ts_->GetPtreaderParser()->MinSplitPos();
+    int32_t lastPos = ts_->GetPtreaderParser()->MaxSplitPos();
     TS_CHECK_TRUE(firstPos != INVALID_INT32 && lastPos != INVALID_INT32 && lastPos >= firstPos, false,
                   "firstPos(%d) or lastPos(%d) is INVALID_INT32!", firstPos, lastPos);
-    const auto &mTraceDataBytrace = ts_->GetBytraceData()->GetPtreaderSplitData();
+    const auto &mTraceDataBytrace = ts_->GetPtreaderParser()->GetPtreaderSplitData();
     // for 10% data
     int32_t tenPercentDataNum = 0.1 * (lastPos - firstPos);
     firstPos -= tenPercentDataNum;
@@ -284,14 +284,14 @@ bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, in
         result += SIZE + std::to_string(mTraceDataBytrace[index].second);
         result += "},";
     }
-    if (result != VALUE && !ts_->GetBytraceData()->GetPtreaderSplitData().empty()) {
+    if (result != VALUE && !ts_->GetPtreaderParser()->GetPtreaderSplitData().empty()) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, isFinish);
     }
     TS_LOGI("MinSplitPos=%d, MaxSplitPos=%d, tenPercentDataNum=%d, firstPos=%d, lastPos=%d\nresult=%s",
-            ts_->GetBytraceData()->MinSplitPos(), ts_->GetBytraceData()->MaxSplitPos(), tenPercentDataNum, firstPos,
-            lastPos, result.data());
+            ts_->GetPtreaderParser()->MinSplitPos(), ts_->GetPtreaderParser()->MaxSplitPos(), tenPercentDataNum,
+            firstPos, lastPos, result.data());
     return true;
 }
 
@@ -342,7 +342,7 @@ bool RpcServer::ParseSplitFileData(const uint8_t *data,
          ts_->GetFileType() == TRACE_FILETYPE_HI_SYSEVENT)) {
         SendBytraceSplitFileData(splitFileCallBack, 0);
         splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
-        ts_->GetBytraceData()->ClearPtreaderSplitData();
+        ts_->GetPtreaderParser()->ClearPtreaderSplitData();
         ts_->GetTraceDataCache()->isSplitFile_ = false;
         return true;
     }
@@ -364,9 +364,9 @@ bool RpcServer::ParseSplitFileData(const uint8_t *data,
     }
 #endif
     splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
-    ts_->GetHtraceData()->ClearPbreaderSplitData();
+    ts_->GetPbreaderParser()->ClearPbreaderSplitData();
 #ifdef ENABLE_ARKTS
-    ts_->GetHtraceData()->GetJsMemoryData()->ClearArkTsSplitFileData();
+    ts_->GetPbreaderParser()->GetJsMemoryData()->ClearArkTsSplitFileData();
 #endif
     ts_->GetTraceDataCache()->isSplitFile_ = false;
     return true;
@@ -376,20 +376,17 @@ void RpcServer::ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack)
     uint64_t dataSize = 0;
     std::string result = VALUE;
 #ifdef ENABLE_NATIVE_HOOK
-    ts_->GetHtraceData()->ClearNativehookData();
+    ts_->GetPbreaderParser()->ClearNativehookData();
 #endif
-    for (const auto &itemHtrace : ts_->GetHtraceData()->GetPbreaderSplitData()) {
-        dataSize += itemHtrace.second;
-        result += OFFSET + std::to_string(itemHtrace.first);
+    for (const auto &itemHtrace : ts_->GetPbreaderParser()->GetPbreaderSplitData()) {
         result += SIZE + std::to_string(itemHtrace.second);
-        result += "},";
     }
-    auto dataSourceType = ts_->GetHtraceData()->GetDataSourceType();
-    auto profilerHeader = ts_->GetHtraceData()->GetProfilerHeader();
+    auto dataSourceType = ts_->GetPbreaderParser()->GetDataSourceType();
+    auto profilerHeader = ts_->GetPbreaderParser()->GetProfilerHeader();
 #ifdef ENABLE_ARKTS
     if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
-        dataSize +=
-            ts_->GetHtraceData()->GetArkTsConfigData().size() + ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSize();
+        dataSize += ts_->GetPbreaderParser()->GetArkTsConfigData().size() +
+                    ts_->GetPbreaderParser()->GetJsMemoryData()->GetArkTsSize();
     }
 #endif
 #ifdef ENABLE_NATIVE_HOOK
@@ -405,15 +402,15 @@ void RpcServer::ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack)
 #ifdef ENABLE_NATIVE_HOOK
     ProcHookCommSplitResult(splitFileCallBack);
 #endif
-    if (result != VALUE && !ts_->GetHtraceData()->GetPbreaderSplitData().empty()) {
+    if (result != VALUE && !ts_->GetPbreaderParser()->GetPbreaderSplitData().empty()) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
     }
 #ifdef ENABLE_ARKTS
     if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
-        splitFileCallBack(ts_->GetHtraceData()->GetArkTsConfigData() +
-                              ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSplitFileData(),
+        splitFileCallBack(ts_->GetPbreaderParser()->GetArkTsConfigData() +
+                              ts_->GetPbreaderParser()->GetJsMemoryData()->GetArkTsSplitFileData(),
                           (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
     }
 #endif
@@ -440,7 +437,7 @@ void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
 #ifdef ENABLE_EBPF
 void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
-    auto ebpfSplitResult = ts_->GetHtraceData()->GetEbpfDataParser()->GetEbpfSplitResult();
+    auto ebpfSplitResult = ts_->GetPbreaderParser()->GetEbpfDataParser()->GetEbpfSplitResult();
     std::string result = VALUE;
     for (auto ebpfIter = ebpfSplitResult.begin(); ebpfIter != ebpfSplitResult.end(); ++ebpfIter) {
         if (ebpfIter->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
@@ -468,7 +465,7 @@ void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool is
 #ifdef ENABLE_HIPERF
 void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
-    auto perfSplitResult = ts_->GetHtraceData()->GetPerfSplitResult();
+    auto perfSplitResult = ts_->GetPbreaderParser()->GetPerfSplitResult();
     std::string result = VALUE;
     for (auto perfIter = perfSplitResult.begin(); perfIter != perfSplitResult.end(); ++perfIter) {
         if (perfIter->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {

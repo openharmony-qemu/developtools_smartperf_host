@@ -58,7 +58,9 @@ export class hitchTimeRender {
           find = true;
         }
       }
-      if (!hitchTimeRow.isHover) HitchTimeStruct.hoverHitchTimeStruct = undefined;
+      if (!hitchTimeRow.isHover) {
+        HitchTimeStruct.hoverHitchTimeStruct = undefined;
+      }
       if (!find && hitchTimeRow.isHover) {
         HitchTimeStruct.hoverHitchTimeStruct = undefined;
       }

@@ -211,7 +211,12 @@ export class SpChartList extends BaseElement {
     return [...this.collectRowList1, ...this.collectRowList2];
   }
 
-  getCollectRowsInfo(group: string) {
+  getCollectRowsInfo(group: string): {
+    type: string | null | undefined;
+    name: string;
+    id: string | null | undefined;
+    parents: never[];
+  }[] {
     return (group === SpChartList.COLLECT_G1 ? this.collectRowList1 : this.collectRowList2).map((row) => {
       let rowJson = {
         type: row.rowType,
@@ -226,7 +231,7 @@ export class SpChartList extends BaseElement {
   }
 
   // @ts-ignore
-  getRowParent(obj: unknown, row: TraceRow<unknown>) {
+  getRowParent(obj: unknown, row: TraceRow<unknown>): void {
     if (row.parentRowEl) {
       // @ts-ignore
       if (obj.parents) {
