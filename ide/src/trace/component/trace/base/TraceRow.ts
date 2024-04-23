@@ -131,7 +131,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_LOGS = 'logs';
   static ROW_TYPE_SAMPLE = 'sample';
   static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups';
-  static FRAME_WIDTH: number = 0;
+    static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
   static ROW_TYPE_HI_SYSEVENT = 'hi-sysevent';
@@ -183,7 +183,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   private _enableCollapseChart: boolean = false;
   online: boolean = false;
   static isUserInteraction: boolean;
-  asyncFuncName: string | undefined | null;
+  asyncFuncName: Array<any>| string | undefined | null;
   asyncFuncNamePID: number | undefined | null;
   translateY: number = 0; //single canvas offsetY;
   childrenList: Array<TraceRow<any>> = [];
@@ -963,13 +963,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  enableCollapseChart(): void {
+  enableCollapseChart(H?: string): void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = () => {
       if (this.funcMaxHeight > 20 || this.clientHeight > 20) {
         if (this.funcExpand) {
           this.funcMaxHeight = this.clientHeight;
-          this.style.height = '20px';
+          this.style.height = H ? H : '20px';
           this.funcExpand = false;
         } else {
           this.style.height = `${this.funcMaxHeight}px`;
