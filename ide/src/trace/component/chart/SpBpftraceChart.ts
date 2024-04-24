@@ -49,11 +49,8 @@ export class SpBpftraceChart {
     traceRow.name = 'bpftrace';
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    traceRow.findHoverStruct = () => {
-      SampleStruct.hoverSampleStruct = traceRow.getHoverStruct();
-    };
     //添加上传按钮
-    traceRow.addRowSampleUpload();
+    if (!file) traceRow.addRowSampleUpload();
     this.addTraceRowEventListener(traceRow, start_ts);
     //单独上传
     if (file) {

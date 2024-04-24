@@ -128,6 +128,8 @@ import { TabPaneSampleInstructionDistributions } from '../sheet/bpftrace/TabPane
 import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSampleInstructionSelectionTotalTime';
 import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
+import { TabPaneGpuCounterSelection } from '../sheet/gpu-counter/TabPaneGpuCounterSelection';
+import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
 
 
 export let tabConfig: any = {
@@ -686,5 +688,14 @@ export let tabConfig: any = {
   'box-sample-instruction': {
     title: 'Data Flow',
     type: TabPaneSampleInstruction,
+  },
+  'box-gpu-counter-selection': {
+    title: 'Gpu Counter',
+    type: TabPaneGpuCounterSelection,
+    require: (param: SelectionParam) => param.gpuCounter.length > 0
+  },
+  'box-gpu-counter': {
+    title: 'Gpu Counter',
+    type: TabPaneGpuCounter,
   },
 };

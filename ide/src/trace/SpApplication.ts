@@ -946,6 +946,15 @@ export class SpApplication extends BaseElement {
         that.chartFilter!.setAttribute('mode', '');
         that.progressEL!.loading = false;
       });
+    } else if (fileName.endsWith('.csv')) {
+      that.progressEL!.loading = true;
+      that.spSystemTrace!.loadGpuCounter(ev).then(() => {
+        that.showContent(that.spSystemTrace!);
+        that.litSearch!.setPercent('', 101);
+        that.freshMenuDisable(false);
+        that.chartFilter!.setAttribute('mode', '');
+        that.progressEL!.loading = false;
+      })
     } else {
       let fileSizeStr = (fileSize / 1048576).toFixed(1);
       postLog(fileName, fileSizeStr);

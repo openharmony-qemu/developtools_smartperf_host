@@ -87,6 +87,8 @@ import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruc
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { SpSystemTrace } from '../../SpSystemTrace';
+import { GpuCounterStruct } from '../../../database/ui-worker/ProcedureWorkerGpuCounter';
+import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -841,6 +843,10 @@ export class TraceSheet extends BaseElement {
     this.optionsDiv!.style.display = "flex";
     const select = this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
     this.optionsSettingTree!.treeData = [{key: '0', title: 'instruction', checked: select[0] === '0'}, {key: '1', title: 'cycles', checked: select[0] === '1'}];
+  }
+
+  displayGpuCounterData = (data: GpuCounterStruct): void => {
+    this.displayTab<TabPaneGpuCounter>('box-gpu-counter').data = data;
   }
 
   displaySystemStatesData = (): void => {

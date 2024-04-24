@@ -132,7 +132,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_LOGS = 'logs';
   static ROW_TYPE_SAMPLE = 'sample';
   static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups';
-    static FRAME_WIDTH: number = 0;
+  static ROW_TYPE_GPU_COUNTER_GROUP = 'gpu-counter-group';
+  static ROW_TYPE_GPU_COUNTER = 'gpu-counter';
+  static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
   static ROW_TYPE_HI_SYSEVENT = 'hi-sysevent';
@@ -618,11 +620,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  addRowSampleUpload(): void {
+  addRowSampleUpload(type: string = 'application/json'): void {
     this.sampleUploadEl = document.createElement('div');
     this.sampleUploadEl!.className = 'upload';
     this.sampleUploadEl!.innerHTML = `
-      <input id="file" class="file" accept="application/json"  type="file" style="display:none;pointer-events:none"/>
+      <input id="file" class="file" accept="${type}"  type="file" style="display:none;pointer-events:none"/>
       <label for="file" style="cursor:pointer">
         <lit-icon class="folder" name="copy-csv" size="19"></lit-icon>
       </label>
