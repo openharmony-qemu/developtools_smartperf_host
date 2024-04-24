@@ -99,8 +99,8 @@ void BioLatencyDataParser::ParseBioLatencyEvent()
         if (pathId != INVALID_UINT64) {
             tracerEventToStrIndexMap.Erase(ITEM_EVENT_FS, type, itid, startTs);
         }
-        traceDataCache_->GetBioLatencySampleData()->AppendNewData(
-            currentCallId_, type, ipid, itid, newStartTs, newEndTs, duration, prio, size, blkCount, pathId, durPer4K);
+        GetBioLatencySampleDataRow bioLatencySampleDataRow = {currentCallId_, type, ipid, itid, newStartTs, newEndTs, duration, prio, size, blkCount, pathId, durPer4K};
+        traceDataCache_->GetBioLatencySampleData()->AppendNewData(bioLatencySampleDataRow);
         if (!callIdExistFlag) {
             ParseCallStackData(userIpsAddr, bioFixedHeadrAddr->nips, bioFixedHeadrAddr->pid, currentCallId_);
         }

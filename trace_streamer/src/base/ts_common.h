@@ -22,6 +22,7 @@
 #include <map>
 #include <string>
 #include "log.h"
+namespace {
 using ClockId = uint32_t;
 constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
 constexpr size_t FLUSH_CHUNK_THRESHOLD = G_CHUNK_SIZE - 10000;
@@ -101,6 +102,7 @@ const std::string TRACE_STATE_QUERY = "select event_name,stat_type,count,source,
 const std::string TRACE_TASK_NAME =
     "select P.id as id, P.pid as pid, P.name as process_name, group_concat(T.name,',') as thread_name from process as "
     "P left join thread as T where P.id = T.ipid group by pid;";
+} // namespace
 enum BuiltinClocks {
     TS_CLOCK_UNKNOW = 0,
     TS_CLOCK_BOOTTIME = 1,

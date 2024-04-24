@@ -108,7 +108,7 @@ void DataDict::Finish()
         while ((pos = dataDict_[i].find("\"")) != std::string::npos) {
             dataDict_[i].replace(pos, 1, "\'");
         }
-        while (!dataDict_[i].empty() && ((dataDict_[i].back() >= SPASCII_START && dataDict_[i].back() <= SPASCII_END) ||
+        while (!dataDict_[i].empty() && ((dataDict_[i].back() >= spasciiStart_ && dataDict_[i].back() <= spasciiEnd_) ||
                                          dataDict_[i].back() == '\r')) {
             dataDict_[i].pop_back();
         }

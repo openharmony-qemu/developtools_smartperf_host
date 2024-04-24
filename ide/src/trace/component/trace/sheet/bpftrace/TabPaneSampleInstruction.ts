@@ -279,13 +279,13 @@ export class TabPaneSampleInstruction extends BaseElement {
           //计算当前节点下指令数之和 用于计算每个节点所占的宽度比
           const total = isCycles
             ? instructionArray[key]
-            // @ts-ignore
-              .filter((i: unknown) => i.parentName === parentNode.name)
-              .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+                // @ts-ignore
+                .filter((i: unknown) => i.parentName === parentNode.name)
+                .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
             : instructionArray[key]
-            // @ts-ignore
-              .filter((i: unknown) => i.parentName === parentNode.name)
-              .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
+                // @ts-ignore
+                .filter((i: unknown) => i.parentName === parentNode.name)
+                .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
           const curWidth = isCycles ? cur.cycles : cur.instructions;
           const width = Math.floor(parentNode.frame.width * (curWidth / total));
           if (i === 0) {
@@ -385,13 +385,14 @@ export class TabPaneSampleInstruction extends BaseElement {
    * @param clickData
    */
   setRelationDataProperty(relationData: Array<unknown>, clickData: SampleStruct): void {
-    const propertyData = this.instructionData.find((subArr: any) =>
+    const propertyData = this.instructionData.find((subArr: unknown) =>
+      // @ts-ignore
       subArr.some((obj: SampleStruct) => obj.begin === clickData.begin)
     );
     //获取非unknown数据
-            // @ts-ignore
+    // @ts-ignore
     const knownRelation = relationData.filter((relation) => relation.name.indexOf('unknown') < 0);
-    propertyData.forEach((property: any) => {
+    propertyData.forEach((property: unknown) => {
       // @ts-ignore
       const relation = knownRelation.find((relation) => relation.name === property.func_name);
       // @ts-ignore

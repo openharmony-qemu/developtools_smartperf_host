@@ -558,11 +558,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   };
 
-  getHoverStruct(
-    strict: boolean = true,
-    offset: boolean = false,
-    maxKey: string | undefined = undefined
-  ): T | undefined {
+  //@ts-ignore
+  getHoverStruct(strict: boolean = true, offset: boolean = false, maxKey?: string): T {
     if (this.isHover) {
       if (maxKey) {
         let arr = this.dataListCache

@@ -233,6 +233,7 @@ export class HdcDeviceManager {
       } else {
         hdcShellStream.DoCommand(HdcDeviceManager.processCommand(keyboardEvent));
       }
+      return;
     };
   }
 

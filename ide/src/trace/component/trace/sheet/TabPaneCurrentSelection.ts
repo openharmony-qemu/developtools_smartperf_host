@@ -1638,6 +1638,8 @@ export class TabPaneCurrentSelection extends BaseElement {
     let wakeUps = await queryThreadWakeUpFrom(itid, startTime + (window as unknown).recordStartNS);
     if (wakeUps !== undefined && wakeUps.length > 0) {
       return wakeUps[0];
+    } else {
+      return;
     }
   }
 

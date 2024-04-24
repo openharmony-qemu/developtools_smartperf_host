@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 #include "version.h"
+namespace SysTuning {
+namespace TraceStreamer {
 size_t g_loadSize = 0;
 const std::string SDK_VERSION = "1.0.2";             // version
 const std::string SDK_PUBLISH_VERSION = "2023/3/13"; // publish datetime
+} // namespace TraceStreamer
+} // namespace SysTuning

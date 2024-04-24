@@ -34,7 +34,7 @@ public:
     SqllitePreparCacheData(const SqllitePreparCacheData &) = delete;
     SqllitePreparCacheData &operator=(const SqllitePreparCacheData &) = delete;
     std::map<uint32_t, SphQueryCallBack> sphQueryFuncMap_;
-    static const uint8_t TYPE_SIZE = sizeof(uint32_t);
+    static const uint8_t typeSize_ = sizeof(uint32_t);
 
 private:
     void FillAndSendCpuDataProto(sqlite3_stmt *stmt, uint32_t type, TLVResultCallBack tLVResultCallBack);

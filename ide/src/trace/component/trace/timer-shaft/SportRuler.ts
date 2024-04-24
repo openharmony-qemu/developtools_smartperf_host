@@ -373,7 +373,7 @@ export class SportRuler extends Graph {
     return inRange;
   }
 
-  drawTriangle(time: number, type: string): void {
+  drawTriangle(time: number, type: string): unknown {
     if (time !== null && typeof time !== undefined) {
       let i = this.flagList.findIndex((it) => it.time === time);
       if (type === 'triangle') {
@@ -405,7 +405,7 @@ export class SportRuler extends Graph {
                 !this.hoverFlag.hidden ? this.hoverFlag : null,
                 this.flagList.find((it) => it.selected) || null
               );
-            //return this.flagList[triangle].time;
+            return this.flagList[triangle].time;
           }
         }
       } else if (type === 'inverted') {

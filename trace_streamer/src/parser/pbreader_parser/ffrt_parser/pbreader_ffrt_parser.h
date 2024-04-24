@@ -43,7 +43,8 @@ private:
 private:
     HtraceEventParser *eventParser_;
     ClockId ffrtClockid_ = TS_CLOCK_UNKNOW;
-    DoubleMap<int32_t /* tid */, int32_t /* pid */, DataIndex /* taskname*/> taskNameIndexMap_;
+    // tid, pid, taskname
+    DoubleMap<int32_t, int32_t, DataIndex> taskNameIndexMap_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

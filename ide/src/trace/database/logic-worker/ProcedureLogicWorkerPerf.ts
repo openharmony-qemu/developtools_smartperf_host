@@ -42,16 +42,12 @@ type MergeMap = {
   [id: string]: PerfCallChainMerageData;
 };
 
-type spiltMap = {
-  [id: string]: PerfCallChainMerageData[];
-};
-
 export class ProcedureLogicWorkerPerf extends LogicHandler {
   filesData: FileMap = {};
   samplesData: Array<PerfCountSample> = [];
   threadData: PerfThreadMap = {};
   callChainData: PerfCallChainMap = {};
-  splitMapData: spiltMap = {};
+  splitMapData: Map<string, PerfCallChainMerageData[]> = new Map<string, PerfCallChainMerageData[]>();
   currentTreeMapData: MergeMap = {};
   currentTreeList: PerfCallChainMerageData[] = [];
   searchValue: string = '';
@@ -411,7 +407,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.samplesData = [];
     this.threadData = {};
     this.callChainData = {};
-    this.splitMapData = {};
+    this.splitMapData.clear();
     this.currentTreeMapData = {};
     this.currentTreeList = [];
     this.searchValue = '';
@@ -617,7 +613,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
 
   recursionPerfChargeInitTree(sample: PerfCallChainMerageData, symbolName: string, isSymbol: boolean): void {
     if ((isSymbol && sample.symbolName === symbolName) || (!isSymbol && sample.libName === symbolName)) {
-      (this.splitMapData[symbolName] = this.splitMapData[symbolName] || []).push(sample);
+      if (!this.splitMapData.has(symbolName)) {
+        this.splitMapData.set(symbolName, []);
+      }
+      this.splitMapData.get(symbolName)!.push(sample);
       sample.isStore++;
     }
     if (sample.initChildren.length > 0) {
@@ -629,7 +628,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
 
   recursionPerfPruneInitTree(node: PerfCallChainMerageData, symbolName: string, isSymbol: boolean): void {
     if ((isSymbol && node.symbolName === symbolName) || (!isSymbol && node.libName === symbolName)) {
-      (this.splitMapData[symbolName] = this.splitMapData[symbolName] || []).push(node);
+      if (!this.splitMapData.has(symbolName)) {
+        this.splitMapData.set(symbolName, []);
+      }
+      this.splitMapData.get(symbolName)!.push(node);
       node.isStore++;
       this.pruneChildren(node, symbolName);
     } else if (node.initChildren.length > 0) {
@@ -658,7 +660,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     if (sample.initChildren.length > 0) {
       sample.initChildren.forEach((child): void => {
         if (rule(child)) {
-          (this.splitMapData[ruleName] = this.splitMapData[ruleName] || []).push(child);
+          if (!this.splitMapData.has(ruleName)) {
+            this.splitMapData.set(ruleName, []);
+          }
+          this.splitMapData.get(ruleName)!.push(child);
           child.isStore++;
         }
         this.recursionChargeByRule(child, ruleName, rule);
@@ -670,7 +675,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     if (sample.initChildren.length > 0) {
       sample.initChildren.forEach((child: PerfCallChainMerageData): void => {
         child.isStore++;
-        (this.splitMapData[symbolName] = this.splitMapData[symbolName] || []).push(child);
+        if (!this.splitMapData.has(symbolName)) {
+          this.splitMapData.set(symbolName, []);
+        }
+        this.splitMapData.get(symbolName)!.push(child);
         this.pruneChildren(child, symbolName);
       });
     }
@@ -696,14 +704,14 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   clearSplitMapData(symbolName: string): void {
-    if (symbolName in this.splitMapData){
-      delete this.splitMapData[symbolName];
+    if (this.splitMapData.has(symbolName)) {
+      this.splitMapData.delete(symbolName);
     }
   }
 
   resetAllSymbol(symbols: string[]): void {
     symbols.forEach((symbol: string): void => {
-      let list = this.splitMapData[symbol];
+      let list = this.splitMapData.get(symbol);
       if (list !== undefined) {
         list.forEach((item: PerfCallChainMerageData): void => {
           item.isStore--;
@@ -879,7 +887,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         return this.combineCallChainForAnalysis();
       case 'getBottomUp':
         return this.getBottomUp();
+      default:
+        return;
     }
+    return;
   }
 
   combineCallChainForAnalysis(obj?: unknown): PerfAnalysisSample[] {

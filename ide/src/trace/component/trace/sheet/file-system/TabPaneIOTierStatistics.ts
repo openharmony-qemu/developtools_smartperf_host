@@ -356,7 +356,7 @@ export class TabPaneIOTierStatistics extends BaseElement {
           } else if (this.ioTierStatisticsSortType === 2) {
             // @ts-ignore
             return ioTierStatItemB.node[key] - ioTierStatItemA.node[key];
-          } else{
+          } else {
             return 0;
           }
         });

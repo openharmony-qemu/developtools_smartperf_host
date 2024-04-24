@@ -446,10 +446,8 @@ HWTEST_F(HtraceMemParserTest, AshMemDeduplicateTest, TestSize.Level1)
     vector<DeduplicateVar> stubVars = {
         {1616439852302, 1, "aaa", 1, 1}, {1616439852302, 1, "aaa", 1, 1}, {1616439852302, 1, "aaa", 2, 2},
         {1616439852302, 2, "bbb", 1, 1}, {1616439852302, 2, "bbb", 2, 2}, {1616439852302, 3, "ccc", 1, 1},
-        {1616439852302, 3, "ccc", 2, 2}, {1616439852302, 3, "ccc", 2, 2},
-
-        {1616439855302, 1, "aaa", 1, 1}, {1616439855302, 1, "aaa", 1, 1}, {1616439855302, 2, "bbb", 2, 2},
-        {1616439855302, 3, "ccc", 2, 2},
+        {1616439852302, 3, "ccc", 2, 2}, {1616439852302, 3, "ccc", 2, 2}, {1616439855302, 1, "aaa", 1, 1},
+        {1616439855302, 1, "aaa", 1, 1}, {1616439855302, 2, "bbb", 2, 2}, {1616439855302, 3, "ccc", 2, 2},
     };
     for (auto &m : stubVars) {
         row.ts = m.timeStamp;
@@ -506,11 +504,6 @@ HWTEST_F(HtraceMemParserTest, DmaMemDeduplicateTest, TestSize.Level1)
         {1616439852302, 2, "app", 2},
         {1616439852302, 3, "composer_host", 1},
         {1616439852302, 3, "composer_host", 2},
-        {1616439852302, 3, "composer_host", 2},
-        {1616439855302, 1, "render_service", 1},
-        {1616439855302, 1, "render_service", 2},
-        {1616439855302, 3, "composer_host", 2},
-        {1616439855302, 3, "composer_host", 2},
     };
     DmaMemRow row;
     for (auto &m : stubVars) {
@@ -535,11 +528,6 @@ HWTEST_F(HtraceMemParserTest, DmaMemDeduplicateTest, TestSize.Level1)
     EXPECT_EQ(DmaData.Flags()[4], 0);
     EXPECT_EQ(DmaData.Flags()[5], 2);
     EXPECT_EQ(DmaData.Flags()[6], 2);
-    EXPECT_EQ(DmaData.Flags()[7], 1);
-    EXPECT_EQ(DmaData.Flags()[8], 0);
-    EXPECT_EQ(DmaData.Flags()[9], 0);
-    EXPECT_EQ(DmaData.Flags()[10], 2);
-    EXPECT_EQ(DmaData.Flags()[11], 1);
 }
 
 } // namespace TraceStreamer

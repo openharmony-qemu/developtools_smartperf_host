@@ -183,7 +183,6 @@ export class TabpaneNMCalltree extends BaseElement {
     if (data.type === 'AllocEvent') {
       data.type = '1';
     }
-    const that = this;
     if (this.subTypeArr.length > 0) {
       this.subTypeArr.map((memory): void => {
         selections.push({

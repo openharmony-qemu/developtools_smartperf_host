@@ -388,6 +388,7 @@ export class RangeSelect {
         TraceRow.rangeSelectObject = rangeSelect;
         return true;
       }
+      return false;
     });
     this.timerShaftEL!.sportRuler!.isRangeSelect = (this.rangeTraceRow?.length || 0) > 0;
     this.timerShaftEL!.sportRuler!.draw();

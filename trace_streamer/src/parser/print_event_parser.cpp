@@ -92,8 +92,9 @@ void PrintEventParser::ParseBeginEvent(const std::string &comm,
                                                               traceDataCache_->GetDataIndex(point.name_));
     if (index != INVALID_UINT32) {
         // add distributed data
-        traceDataCache_->GetInternalSlicesData()->SetDistributeInfo(index, point.chainId_, point.spanId_,
-                                                                    point.parentSpanId_, point.flag_);
+         CallStackDistributeInfoRow callStackDistributeInfoRow = {point.chainId_, point.spanId_,
+                                                                 point.parentSpanId_, point.flag_, point.args_};
+        traceDataCache_->GetInternalSlicesData()->SetDistributeInfo(index,callStackDistributeInfoRow);
         if (pid == point.tgid_) {
             if (HandleFrameSliceBeginEvent(point.funcPrefixId_, index, point.funcArgs_, line)) {
                 return;

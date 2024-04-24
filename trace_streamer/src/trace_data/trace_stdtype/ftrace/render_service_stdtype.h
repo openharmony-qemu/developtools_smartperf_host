@@ -23,16 +23,19 @@
 namespace SysTuning {
 namespace TraceStdtype {
 using namespace SysTuning::TraceStreamer;
+struct FrameSliceRow {
+    uint64_t ts = INVALID_UINT64;
+    uint32_t ipid = INVALID_UINT32;
+    uint32_t itid = INVALID_UINT32;
+    uint32_t vsyncId = INVALID_UINT32;
+    uint64_t callStackSliceId = INVALID_UINT64;
+    uint64_t end = INVALID_UINT64;
+    uint8_t type = INVALID_UINT8;
+};
 class FrameSlice : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendFrame(uint64_t ts, uint32_t ipid, uint32_t itid, uint32_t vsyncId, uint64_t callStackSliceId);
-    size_t AppendFrame(uint64_t ts,
-                       uint32_t ipid,
-                       uint32_t itid,
-                       uint32_t vsyncId,
-                       uint64_t callStackSliceId,
-                       uint64_t end,
-                       uint8_t type);
+    size_t AppendFrame(const FrameSliceRow &frameSliceRow);
     void SetEndTime(uint64_t row, uint64_t end);
     void SetType(uint64_t row, uint8_t type);
     void SetDst(uint64_t row, uint64_t dst);

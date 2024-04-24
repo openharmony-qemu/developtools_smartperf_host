@@ -19,15 +19,18 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
+struct AppStartupRow {
+    uint32_t ipid = INVALID_UINT32;
+    uint32_t tid = INVALID_UINT32;
+    uint32_t callId = INVALID_UINT32;
+    uint64_t startTime = INVALID_UINT64;
+    uint64_t endTime = INVALID_UINT64;
+    uint32_t startName = INVALID_UINT32;
+    DataIndex packedName = INVALID_UINT64;
+};
 class AppStartup : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t ipid,
-                         uint32_t tid,
-                         uint32_t callId,
-                         uint64_t startTime,
-                         uint64_t endTime,
-                         uint32_t startName,
-                         DataIndex packedName);
+    size_t AppendNewData(const AppStartupRow &appStartupRow);
     const std::deque<uint32_t> &Pids() const;
     const std::deque<uint32_t> &Tids() const;
     const std::deque<uint32_t> &CallIds() const;
@@ -57,16 +60,18 @@ private:
     std::deque<uint32_t> startNames_ = {};
     std::deque<DataIndex> packedNames_ = {};
 };
-
+struct SoStaticInitalizationRow {
+     uint32_t ipid = INVALID_UINT32;
+     uint32_t tid = INVALID_UINT32;
+     uint32_t callId = INVALID_UINT32;
+     uint64_t startTime = INVALID_UINT64;
+     uint64_t endTime = INVALID_UINT64;
+     DataIndex soName = INVALID_UINT64;
+     uint32_t depth = INVALID_UINT32;
+};
 class SoStaticInitalization : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t ipid,
-                         uint32_t tid,
-                         uint32_t callId,
-                         uint64_t startTime,
-                         uint64_t endTime,
-                         DataIndex soName,
-                         uint32_t depth);
+    size_t AppendNewData(const SoStaticInitalizationRow &soStaticInitalizationRow);
     const std::deque<uint32_t> &Pids() const;
     const std::deque<uint32_t> &Tids() const;
     const std::deque<uint32_t> &CallIds() const;

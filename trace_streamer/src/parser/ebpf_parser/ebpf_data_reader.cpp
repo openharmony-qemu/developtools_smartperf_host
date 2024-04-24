@@ -181,9 +181,9 @@ void EbpfDataReader::ReadKernelSymAddrMap(const KernelSymbolInfoHeader *elfAddr,
     maxKernelAddr_ = elfAddr->vaddrEnd;
     minKernelAddr_ = elfAddr->vaddrStart;
     for (uint32_t i = 0; i < sysItemSize; i++) {
-        (void)memset_s(strSymbolName_, MAX_SYMBOL_LENGTH, 0, MAX_SYMBOL_LENGTH);
+        (void)memset_s(strSymbolName_, maxSymbolLength, 0, maxSymbolLength);
         auto item = start + i;
-        if (strncpy_s(strSymbolName_, MAX_SYMBOL_LENGTH, strTab + item->nameOffset, MAX_SYMBOL_LENGTH) < 0) {
+        if (strncpy_s(strSymbolName_, maxSymbolLength, strTab + item->nameOffset, maxSymbolLength) < 0) {
             TS_LOGE("get kernel symbol name error");
         }
         AddrDesc desc{item->size, traceDataCache_->dataDict_.GetStringIndex(strSymbolName_)};

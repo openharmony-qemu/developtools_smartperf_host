@@ -136,7 +136,7 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
    * @param canvasY
    * @returns
    */
-  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number) {
+  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number): unknown {
     // @ts-ignore
     for (let i = 0; i < nodes.length; i++) {
       // @ts-ignore
@@ -210,12 +210,12 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
     const detail = hoverNode!;
     this.hintContent = `
       <span class="blod">${
-      // @ts-ignore
-      detail.instruct
+        // @ts-ignore
+        detail.instruct
       }</span></br>
       <span>${
-      // @ts-ignore
-      parseFloat(detail.heightPer)
+        // @ts-ignore
+        parseFloat(detail.heightPer)
       }</span>
       `;
   }
@@ -281,7 +281,7 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
    * @param height
    * @param count
    */
-  drawBar(instructionData: unknown, height: number, count: number) {
+  drawBar(instructionData: unknown, height: number, count: number): void {
     const yTotal = Number((this.yAvg * 5).toFixed(2));
     const interval = Math.floor((height - paddingBottom) / 6);
     // @ts-ignore

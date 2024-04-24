@@ -17,18 +17,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t {
-    ID = 0,
-    IPID,
-    PID,
-    NAME,
-    START_TS,
-    SWTICH_COUNT,
-    SWITCH_COUNT,
-    THREAD_COUNT,
-    SLICE_COUNT,
-    MEM_COUNT
-};
+enum class Index : int32_t { ID = 0, IPID, PID, NAME, START_TS, SWITCH_COUNT, THREAD_COUNT, SLICE_COUNT, MEM_COUNT };
 ProcessTable::ProcessTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));

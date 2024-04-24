@@ -40,22 +40,22 @@ int32_t PreNum(unsigned char byte)
 
 bool IsUTF8(const uint8_t *data, int32_t len)
 {
-    constexpr uint8_t MASK = 0x80;
-    constexpr uint8_t FIRST_BYTE = 0xc0;
-    constexpr int32_t TARGET = 2;
+    constexpr uint8_t mask = 0x80;
+    constexpr uint8_t firstByte = 0xc0;
+    constexpr int32_t target = 2;
     int32_t num = 0;
     int32_t i = 0;
     while (i < len) {
-        if ((data[i] & MASK) == 0x00) {
+        if ((data[i] & mask) == 0x00) {
             i++;
             continue;
         }
-        if ((num = PreNum(data[i])) <= TARGET) {
+        if ((num = PreNum(data[i])) <= target) {
             return false;
         }
         i++;
         for (int32_t j = 0; j < num - 1; j++) {
-            if ((data[i] & FIRST_BYTE) != MASK) {
+            if ((data[i] & firstByte) != mask) {
                 return false;
             }
             i++;
@@ -66,22 +66,22 @@ bool IsUTF8(const uint8_t *data, int32_t len)
 
 bool IsGBK(const uint8_t *data, int32_t len)
 {
-    constexpr int32_t STEP = 2;
-    constexpr uint8_t ASCII_END = 0x7f;
-    constexpr uint8_t FIRST_BYTE = 0x81;
-    constexpr uint8_t FIRST_BYTE_END = 0xfe;
-    constexpr uint8_t SECOND_BYTE_ONE = 0x40;
-    constexpr uint8_t SECOND_BYTE_TWO_END = 0xfe;
-    constexpr uint8_t GBK_MASK = 0xf7;
+    constexpr int32_t step = 2;
+    constexpr uint8_t asciiEnd = 0x7f;
+    constexpr uint8_t firstByte = 0x81;
+    constexpr uint8_t firstByteEnd = 0xfe;
+    constexpr uint8_t secondByteOne = 0x40;
+    constexpr uint8_t secondByteTwoEnd = 0xfe;
+    constexpr uint8_t gbkMask = 0xf7;
     int32_t i = 0;
     while (i < len) {
-        if (data[i] <= ASCII_END) {
+        if (data[i] <= asciiEnd) {
             i++;
             continue;
         } else {
-            if (data[i] >= FIRST_BYTE && data[i] <= FIRST_BYTE_END && data[i + 1] >= SECOND_BYTE_ONE &&
-                data[i + 1] <= SECOND_BYTE_TWO_END && data[i + 1] != GBK_MASK) {
-                i += STEP;
+            if (data[i] >= firstByte && data[i] <= firstByteEnd && data[i + 1] >= secondByteOne &&
+                data[i + 1] <= secondByteTwoEnd && data[i + 1] != gbkMask) {
+                i += step;
                 continue;
             } else {
                 return false;

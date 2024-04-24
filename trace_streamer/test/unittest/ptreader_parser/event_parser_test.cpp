@@ -212,8 +212,8 @@ HWTEST_F(EventParserTest, ParseTracingMarkWriteBE, TestSize.Level1)
 {
     TS_LOGI("test5-7");
     const uint8_t str[] =
-        "system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|Choreographer#doFrame\n \
-         system-1298 ( 1298) [001] ...1 174330.287622: tracing_mark_write: E|1298\n";
+        "system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|Choreographer#doFrame\n"
+        "system-1298 ( 1298) [001] ...1 174330.287622: tracing_mark_write: E|1298\n";
     auto buf = std::make_unique<uint8_t[]>(G_BUF_SIZE);
     if (memcpy_s(buf.get(), G_BUF_SIZE, str, sizeof(str))) {
         EXPECT_TRUE(false);
@@ -238,8 +238,8 @@ HWTEST_F(EventParserTest, ParseTracingMarkWriteSF, TestSize.Level1)
     TS_LOGI("test5-8");
 
     const uint8_t str[] =
-        "system-1298 ( 1298) [001] ...1 174330.287478: tracing_mark_write: S|1298|animator:translateX|18888109\n\
-         system-1298 ( 1298) [001] ...1 174330.287514: tracing_mark_write: F|1298|animator:translateX|18888109\n";
+        "system-1298 ( 1298) [001] ...1 174330.287478: tracing_mark_write: S|1298|animator:translateX|18888109\n"
+        "system-1298 ( 1298) [001] ...1 174330.287514: tracing_mark_write: F|1298|animator:translateX|18888109\n";
     auto buf = std::make_unique<uint8_t[]>(G_BUF_SIZE);
     if (memcpy_s(buf.get(), G_BUF_SIZE, str, sizeof(str))) {
         EXPECT_TRUE(false);
@@ -331,8 +331,8 @@ HWTEST_F(EventParserTest, ParseIrqHandlerExit, TestSize.Level1)
 {
     TS_LOGI("test5-12");
     const uint8_t str[] =
-        "ACCS0-2716  ( 2519) [000] d.h1 174330.280362: irq_handler_entry: irq=19 name=408000.qcom,cpu-bwmon\n \
-         ACCS0-2716  ( 2519) [000] d.h1 174330.280382: irq_handler_exit: irq=19 ret=handled\n";
+        "ACCS0-2716  ( 2519) [000] d.h1 174330.280362: irq_handler_entry: irq=19 name=408000.qcom,cpu-bwmon\n"
+        "ACCS0-2716  ( 2519) [000] d.h1 174330.280382: irq_handler_exit: irq=19 ret=handled\n";
     auto buf = std::make_unique<uint8_t[]>(G_BUF_SIZE);
     if (memcpy_s(buf.get(), G_BUF_SIZE, str, sizeof(str))) {
         EXPECT_TRUE(false);

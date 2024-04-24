@@ -40,8 +40,8 @@ void FrameFilter::BeginVsyncEvent(uint64_t ts,
     frame->vsyncId_ = vsyncId;
     frame->frameSliceRow_ =
         traceDataCache_->GetFrameSliceData()->AppendFrame(ts, ipid, itid, vsyncId, callStackSliceId);
-    frame->frameExpectedSliceRow_ = traceDataCache_->GetFrameSliceData()->AppendFrame(
-        expectStart, ipid, itid, vsyncId, callStackSliceId, expectEnd, (uint8_t)TraceStdtype::FrameSlice::EXPECT_SLICE);
+    FrameSliceRow frameSliceRow = {expectStart, ipid, itid, vsyncId, callStackSliceId, expectEnd, (uint8_t)TraceStdtype::FrameSlice::EXPECT_SLICE};
+    frame->frameExpectedSliceRow_ = traceDataCache_->GetFrameSliceData()->AppendFrame(frameSliceRow);
     if (vsyncRenderSlice_.count(itid)) {
         vsyncRenderSlice_[itid].push_back(frame);
     } else {

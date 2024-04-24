@@ -114,9 +114,10 @@ void APPStartupFilter::AppendAssociatedData(DataIndex packedNameIndex,
         } else {
             endTime = itorSecond->second->endTime_;
         }
-        traceDataCache_->GetAppStartupData()->AppendNewData(itorSecond->second->ipid_, itorSecond->second->tid_,
-                                                            itorSecond->second->callid_, itorSecond->second->startTime_,
-                                                            endTime, itorSecond->first, packedNameIndex);
+        AppStartupRow appStartupRow = {itorSecond->second->ipid_, itorSecond->second->tid_,
+                                       itorSecond->second->callid_, itorSecond->second->startTime_,
+                                       endTime, itorSecond->first, packedNameIndex};
+        traceDataCache_->GetAppStartupData()->AppendNewData(appStartupRow);
     }
 }
 
@@ -274,16 +275,28 @@ void APPStartupFilter::ParserSoInitalization()
             auto pid = threadData[callId].internalPid_;
             auto tid = threadData[callId].tid_;
             auto it = mMaxTimeAndDepthWithPid.find(pid);
+            SoStaticInitalizationRow soStaticInitalizationRow;
             if (it == mMaxTimeAndDepthWithPid.end()) {
                 mMaxTimeAndDepthWithPid.insert(std::make_pair(pid, std::map<uint64_t, uint32_t>{{endTime, 0}}));
-                traceDataCache_->GetSoStaticInitalizationData()->AppendNewData(pid, tid, callId, startTime, endTime,
-                                                                               sliceData.NamesData()[i], depth);
+                soStaticInitalizationRow.ipid = pid;
+                soStaticInitalizationRow.tid = tid;
+                soStaticInitalizationRow.callId = callId;
+                soStaticInitalizationRow.startTime = startTime;
+                soStaticInitalizationRow.endTime = endTime;
+                soStaticInitalizationRow.soName = sliceData.NamesData()[i];
+                soStaticInitalizationRow.depth = depth;
+                traceDataCache_->GetSoStaticInitalizationData()->AppendNewData(soStaticInitalizationRow);
                 continue;
             } else {
                 CalcDepthByTimeStamp(it, depth, endTime, startTime);
-                traceDataCache_->GetSoStaticInitalizationData()->AppendNewData(
-                    threadData[callId].internalPid_, threadData[callId].tid_, callId, startTime, endTime,
-                    sliceData.NamesData()[i], depth);
+                soStaticInitalizationRow.ipid = threadData[callId].internalPid_;
+                soStaticInitalizationRow.tid = threadData[callId].tid_;
+                soStaticInitalizationRow.callId = callId;
+                soStaticInitalizationRow.startTime = startTime;
+                soStaticInitalizationRow.endTime = endTime;
+                soStaticInitalizationRow.soName = sliceData.NamesData()[i];
+                soStaticInitalizationRow.depth = depth;
+                traceDataCache_->GetSoStaticInitalizationData()->AppendNewData(soStaticInitalizationRow);
             }
         }
     }
