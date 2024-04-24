@@ -371,6 +371,11 @@ export class SpSystemTrace extends BaseElement {
         if (it.rowParentId === TraceRow.ROW_TYPE_DELIVER_INPUT_EVENT) {
           event = 'DeliverInputEvent Func';
         }
+      } else if (it.rowType === TraceRow.ROW_TYPE_TOUCH_EVENT_DISPATCH) {
+        event = 'TouchEventDispatch';
+        if (it.rowParentId === TraceRow.ROW_TYPE_TOUCH_EVENT_DISPATCH) {
+          event = 'TouchEventDispatch Func';
+        }
       } else {
         event = it.name;
       }
@@ -1407,7 +1412,7 @@ export class SpSystemTrace extends BaseElement {
           scrollTop: this.rowsEL!.scrollTop,
           favoriteScrollTop: this.favoriteChartListEL!.scrollTop,
         });
-        this.downloadRecordFile(data).then(() => {});
+        this.downloadRecordFile(data).then(() => { });
       }
     });
   }
@@ -2102,9 +2107,9 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
-    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => { });
     if (threadPool) {
-      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => {});
+      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => { });
     }
     this.times.clear();
     resetVSync();
