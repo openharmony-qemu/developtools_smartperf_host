@@ -120,10 +120,10 @@ bool FtraceProcessor::HandleHeaderPageFormat(const std::string &formatInfo)
 int FtraceProcessor::HeaderPageCommitSize(void)
 {
     // return the size value (8B on 64bit device, 4B on 32bit device) of commit field read from events/header_page
-    const uint16_t DEFAULT_SIZE = 8;
+    const uint16_t defaultSize = 8;
     if (pageHeaderFormat_.commit.size == 0) {
         TS_LOGW("haven't header_page infos, set defalut size is 8B");
-        pageHeaderFormat_.commit.size = DEFAULT_SIZE;
+        pageHeaderFormat_.commit.size = defaultSize;
     }
     return pageHeaderFormat_.commit.size;
 }

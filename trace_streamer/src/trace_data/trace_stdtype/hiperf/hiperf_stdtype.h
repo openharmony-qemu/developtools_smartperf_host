@@ -19,14 +19,21 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
+
+struct PerfCallChainRow
+{
+    /* data */
+    uint32_t callChainId = INVALID_UINT32;
+    uint32_t depth = INVALID_UINT32;
+    uint64_t ip = INVALID_UINT64;
+    uint64_t vaddrInFile = INVALID_UINT64;
+    uint64_t fileId = INVALID_UINT64;
+    uint64_t symbolId = INVALID_UINT64;
+};
+
 class PerfCallChain : public CacheBase {
 public:
-    size_t AppendNewPerfCallChain(uint32_t callChainId,
-                                  uint32_t depth,
-                                  uint64_t ip,
-                                  uint64_t vaddrInFile,
-                                  uint64_t fileId,
-                                  uint64_t symbolId);
+    size_t AppendNewPerfCallChain(const PerfCallChainRow &context);
     const std::deque<uint32_t> &CallChainIds() const;
     const std::deque<uint32_t> &Depths() const;
     const std::deque<uint64_t> &Ips() const;

@@ -43,7 +43,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   queryAllCallchainsSamples: NativeHookStatistics[] = [];
   currentSamples: NativeHookStatistics[] = [];
   allThreads: NativeHookCallInfo[] = [];
-  splitMapData: CallInfoMap = {};
+  splitMapData: Map<string, NativeHookCallInfo[]> = new Map<string, NativeHookCallInfo[]>();
   searchValue: string = '';
   currentEventId: string = '';
   realTimeDif: number = 0;
@@ -616,7 +616,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   }
   clearAll(): void {
     this.dataCache.clearNM();
-    this.splitMapData = {};
+    this.splitMapData.clear();
     this.currentSamples = [];
     this.allThreads = [];
     this.queryAllCallchainsSamples = [];
@@ -1142,8 +1142,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       currentNode.lib.endsWith('.so.1') || currentNode.lib.endsWith('.dll') || currentNode.lib.endsWith('.so') ? 0 : 1;
   }
   clearSplitMapData(symbolName: string): void {
-    if (symbolName in this.splitMapData) {
-      delete this.splitMapData[symbolName];
+    if (this.splitMapData.has(symbolName)) {
+      this.splitMapData.delete(symbolName);
     }
   }
   resolvingNMCallAction(params: unknown[]): NativeHookCallInfo[] {

@@ -344,7 +344,6 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp,
                                   DataIndex name,
                                   ArgsSet args)
 {
-
     TS_CHECK_TRUE_RET(binderStackMap_.find(internalTid) != binderStackMap_.end(), SIZE_MAX);
     auto &stackInfo = binderStackMap_[internalTid];
     SlicesStack &stack = stackInfo.sliceStack;

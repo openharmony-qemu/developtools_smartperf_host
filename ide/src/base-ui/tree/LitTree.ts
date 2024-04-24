@@ -336,7 +336,7 @@ export class LitTree extends BaseElement {
 
   onDrag(e: MouseEvent): void {}
 
-  onDragStart(ev: MouseEvent) {
+  onDragStart(ev: MouseEvent): void {
     this.srcDragElement = ev.target;
     (ev.target! as LitTreeNode).open = 'true';
     (ev.target! as LitTreeNode).autoExpand();
@@ -350,7 +350,7 @@ export class LitTree extends BaseElement {
     (ev.target as LitTreeNode).style.backgroundColor = '#42b98333';
   }
 
-  onDragOver(ev: MouseEvent) {
+  onDragOver(ev: MouseEvent): void {
     let node = ev.target as LitTreeNode; //@ts-ignore
     if (this.srcDragElement.data.key === node.data!.key) {
       return;

@@ -686,13 +686,14 @@ export class SelectionParam {
       }
       let jsCpuProfilerData = copyFrameSelectData.filter((item: unknown): unknown => {
         // @ts-ignore
-        if (item.depth === 0) {
-          // @ts-ignore
-          setSelectState(item, frameSelectDataIdArr);
-          // @ts-ignore
-          item.isSelect = true;
-          return item;
+        if (item.depth !== 0) {
+          return;
         }
+        // @ts-ignore
+        setSelectState(item, frameSelectDataIdArr);
+        // @ts-ignore
+        item.isSelect = true;
+        return item;
       });
       this.jsCpuProfilerData = jsCpuProfilerData;
     }

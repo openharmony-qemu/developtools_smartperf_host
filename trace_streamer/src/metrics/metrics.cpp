@@ -60,18 +60,18 @@ void Metrics::ParserJson(const std::string &metrics, std::string &result)
 void Metrics::InitMemoryStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
-    const uint32_t TYPE_INFO_ITEM_MAX = 0;
-    const uint32_t TYPE_INFO_ITEM_MIN = 1;
-    const uint32_t TYPE_INFO_ITEM_AVG = 2;
-    const uint32_t PROCESS_METRICES_ITEMS_NAME = 4;
+    const uint32_t typeInfoItemMax = 0;
+    const uint32_t typeInfoItemMin = 1;
+    const uint32_t typeInfoItemAvg = 2;
+    const uint32_t processMetricesItemsName = 4;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         TypeInfoItem typeInfoItem;
-        typeInfoItem.max = jMessage.at("values")[i].at(TYPE_INFO_ITEM_MAX);
-        typeInfoItem.min = jMessage.at("values")[i].at(TYPE_INFO_ITEM_MIN);
-        typeInfoItem.avg = jMessage.at("values")[i].at(TYPE_INFO_ITEM_AVG);
+        typeInfoItem.max = jMessage.at("values")[i].at(typeInfoItemMax);
+        typeInfoItem.min = jMessage.at("values")[i].at(typeInfoItemMin);
+        typeInfoItem.avg = jMessage.at("values")[i].at(typeInfoItemAvg);
         ProcessMetricsItems processMetricsItems;
         processMetricsItems.overallCounters = typeInfoItem;
-        processMetricsItems.processName = jMessage.at("values")[i].at(PROCESS_METRICES_ITEMS_NAME);
+        processMetricsItems.processName = jMessage.at("values")[i].at(processMetricesItemsName);
         memStrategy_.emplace_back(std::move(processMetricsItems));
     }
     return;
@@ -79,20 +79,20 @@ void Metrics::InitMemoryStrategy(const std::string &result)
 void Metrics::InitMemoryUnAggStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
-    const uint32_t PROCESS_VALUES_ITEM_NAME = 0;
-    const uint32_t NAMES = 1;
-    const uint32_t VALUES = 2;
-    const uint32_t TIMES = 3;
+    const uint32_t processValuesItemName = 0;
+    const uint32_t namesIndex = 1;
+    const uint32_t valuesIndex = 2;
+    const uint32_t timesIndex = 3;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         ProcessValuesItem processValuesItem;
         if (jMessage.at("values")[i].at(0).is_null()) {
             processValuesItem.processName = "";
         } else {
-            processValuesItem.processName = jMessage.at("values")[i].at(PROCESS_VALUES_ITEM_NAME);
+            processValuesItem.processName = jMessage.at("values")[i].at(processValuesItemName);
         }
-        auto names = base::SplitStringToVec(jMessage.at("values")[i].at(NAMES), ",");
-        auto values = base::SplitStringToVec(jMessage.at("values")[i].at(VALUES), ",");
-        auto times = base::SplitStringToVec(jMessage.at("values")[i].at(TIMES), ",");
+        auto names = base::SplitStringToVec(jMessage.at("values")[i].at(namesIndex), ",");
+        auto values = base::SplitStringToVec(jMessage.at("values")[i].at(valuesIndex), ",");
+        auto times = base::SplitStringToVec(jMessage.at("values")[i].at(timesIndex), ",");
         auto oomScoreValue = 0;
         for (auto index = 0; index < names.size(); index++) {
             if (names[index] == "oom_score_adj") {
@@ -119,20 +119,20 @@ void Metrics::InitMemoryUnAggStrategy(const std::string &result)
 void Metrics::InitMemoryTaskNameStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
-    const uint32_t JMESSAGE_VALUE_SIZE_ONE = 1;
-    const uint32_t JMESSAGE_VALUE_SIZE_TWO = 2;
-    const uint32_t JMESSAGE_VALUE_SIZE_THREE = 3;
+    const uint32_t jmessageValueSizeOne = 1;
+    const uint32_t jmessageValueSizeTwo = 2;
+    const uint32_t jmessageValueSizeThree = 3;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         TaskProcessItem taskProcessItem;
-        taskProcessItem.pid = jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_ONE);
-        if (jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_TWO).is_null()) {
+        taskProcessItem.pid = jMessage.at("values")[i].at(jmessageValueSizeOne);
+        if (jMessage.at("values")[i].at(jmessageValueSizeTwo).is_null()) {
             taskProcessItem.processName = "";
         } else {
-            taskProcessItem.processName = jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_TWO);
+            taskProcessItem.processName = jMessage.at("values")[i].at(jmessageValueSizeTwo);
         }
-        if (!jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_THREE).is_null()) {
+        if (!jMessage.at("values")[i].at(jmessageValueSizeThree).is_null()) {
             taskProcessItem.threadName =
-                base::SplitStringToVec(jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_THREE), ",");
+                base::SplitStringToVec(jMessage.at("values")[i].at(jmessageValueSizeThree), ",");
         }
         taskNameStrategy_.emplace_back(taskProcessItem);
     }
@@ -141,16 +141,16 @@ void Metrics::InitMemoryTaskNameStrategy(const std::string &result)
 void Metrics::InitTraceStatsStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
-    const uint32_t STAT_ITEM_NAME = 0;
-    const uint32_t STAT_ITEM_COUNT = 2;
-    const uint32_t STAT_ITEM_SOURCE = 3;
-    const uint32_t STAT_ITEM_SEVERITY = 4;
+    const uint32_t statItemName = 0;
+    const uint32_t statItemCount = 2;
+    const uint32_t statItemSource = 3;
+    const uint32_t statItemSeverity = 4;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         StatItem statItem;
-        statItem.name = jMessage.at("values")[i].at(STAT_ITEM_NAME);
-        statItem.count = jMessage.at("values")[i].at(STAT_ITEM_COUNT);
-        statItem.source = jMessage.at("values")[i].at(STAT_ITEM_SOURCE);
-        statItem.severity = jMessage.at("values")[i].at(STAT_ITEM_SEVERITY);
+        statItem.name = jMessage.at("values")[i].at(statItemName);
+        statItem.count = jMessage.at("values")[i].at(statItemCount);
+        statItem.source = jMessage.at("values")[i].at(statItemSource);
+        statItem.severity = jMessage.at("values")[i].at(statItemSeverity);
         statStrategy_.emplace_back(statItem);
     }
     return;
@@ -158,12 +158,12 @@ void Metrics::InitTraceStatsStrategy(const std::string &result)
 void Metrics::InitTraceMetaDataStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
-    const uint32_t TRACE_METADATA_ITEM_NAME = 0;
-    const uint32_t TRACE_METADATA_ITEM_VALUE = 1;
+    const uint32_t traceMetaDataItemName = 0;
+    const uint32_t traceMetaDataItemValue = 1;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         TraceMetadataItem traceMetadataItem;
-        traceMetadataItem.name = jMessage.at("values")[i].at(TRACE_METADATA_ITEM_NAME);
-        traceMetadataItem.value = jMessage.at("values")[i].at(TRACE_METADATA_ITEM_VALUE);
+        traceMetadataItem.name = jMessage.at("values")[i].at(traceMetaDataItemName);
+        traceMetadataItem.value = jMessage.at("values")[i].at(traceMetaDataItemValue);
         metaDataStrategy_.emplace_back(traceMetadataItem);
     }
     return;

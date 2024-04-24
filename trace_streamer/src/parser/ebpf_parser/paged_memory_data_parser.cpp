@@ -57,9 +57,9 @@ int32_t PagedMemoryDataParser::PagingData(const PagedMemoryFixedHeader *pagedMem
 
     auto addr = ConvertToHexTextIndex(pagedMemoryFixedHeadrAddr->addr);
     auto size = pagedMemoryFixedHeadrAddr->size;
-
-    traceDataCache_->GetPagedMemorySampleData()->AppendNewData(currentCallId_, type, ipid, newStartTs, newEndTs,
-                                                               duration, size, addr, itid);
+    PagedMemorySampleDataRow pagedMemorySampleDataRow = {currentCallId_, type, ipid, newStartTs, newEndTs,
+                                                               duration, size, addr, itid};
+    traceDataCache_->GetPagedMemorySampleData()->AppendNewData(pagedMemorySampleDataRow);
     return 1;
 }
 

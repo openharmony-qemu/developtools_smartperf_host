@@ -570,8 +570,8 @@ export class TimerShaftElement extends BaseElement {
     this._rangeRuler?.keyUp(ev);
   }
 
-  drawTriangle(time: number, type: string): void {
-    this._sportRuler?.drawTriangle(time, type);
+  drawTriangle(time: number, type: string): unknown {
+    return this._sportRuler?.drawTriangle(time, type);
   }
 
   removeTriangle(type: string): void {

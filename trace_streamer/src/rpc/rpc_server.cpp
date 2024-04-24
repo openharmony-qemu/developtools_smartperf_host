@@ -39,7 +39,7 @@ namespace TraceStreamer {
 uint32_t g_fileLen = 0;
 FILE *g_importFileFd = nullptr;
 const size_t PACKET_HEADER_LENGTH = 1024;
-const std::string VALUE = "{\"value\":[";
+const std::string VALUE_STR = "{\"value\":[";
 const std::string OFFSET = "{\"offset\":";
 const std::string SIZE = ",\"size\":";
 const std::string TYPE = ",\"type\":";
@@ -278,13 +278,13 @@ bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, in
     if (lastPos >= mTraceDataBytrace.size()) {
         lastPos = mTraceDataBytrace.size() - 1;
     }
-    std::string result = VALUE;
+    std::string result = VALUE_STR;
     for (size_t index = firstPos; index <= lastPos; index++) {
         result += OFFSET + std::to_string(mTraceDataBytrace[index].first);
         result += SIZE + std::to_string(mTraceDataBytrace[index].second);
         result += "},";
     }
-    if (result != VALUE && !ts_->GetPtreaderParser()->GetPtreaderSplitData().empty()) {
+    if (result != VALUE_STR && !ts_->GetPtreaderParser()->GetPtreaderSplitData().empty()) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, isFinish);
@@ -300,7 +300,7 @@ bool RpcServer::SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, i
 {
     const auto &mTraceRawCpuData = ts_->GetRawtraceData()->GetRawtraceCpuData();
     const auto &mTraceRawCommData = ts_->GetRawtraceData()->GetRawtraceCommData();
-    std::string result = VALUE;
+    std::string result = VALUE_STR;
 
     for (size_t commDataIndex = 0; commDataIndex < mTraceRawCommData.size(); commDataIndex++) {
         result += OFFSET + std::to_string(mTraceRawCommData.at(commDataIndex).splitDataOffset_);
@@ -315,7 +315,7 @@ bool RpcServer::SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, i
         result += TYPE + std::to_string(mTraceRawCpuData.at(cpuDataIndex).splitType_);
         result += "},";
     }
-    if (result != VALUE && !ts_->GetRawtraceData()->GetRawtraceCommData().empty()) {
+    if (result != VALUE_STR && !ts_->GetRawtraceData()->GetRawtraceCommData().empty()) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, isFinish);
@@ -374,7 +374,7 @@ bool RpcServer::ParseSplitFileData(const uint8_t *data,
 void RpcServer::ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack)
 {
     uint64_t dataSize = 0;
-    std::string result = VALUE;
+    std::string result = VALUE_STR;
 #ifdef ENABLE_NATIVE_HOOK
     ts_->GetPbreaderParser()->ClearNativehookData();
 #endif
@@ -402,7 +402,7 @@ void RpcServer::ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack)
 #ifdef ENABLE_NATIVE_HOOK
     ProcHookCommSplitResult(splitFileCallBack);
 #endif
-    if (result != VALUE && !ts_->GetPbreaderParser()->GetPbreaderSplitData().empty()) {
+    if (result != VALUE_STR && !ts_->GetPbreaderParser()->GetPbreaderSplitData().empty()) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
@@ -438,24 +438,24 @@ void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
 void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
     auto ebpfSplitResult = ts_->GetPbreaderParser()->GetEbpfDataParser()->GetEbpfSplitResult();
-    std::string result = VALUE;
+    std::string result = VALUE_STR;
     for (auto ebpfIter = ebpfSplitResult.begin(); ebpfIter != ebpfSplitResult.end(); ++ebpfIter) {
         if (ebpfIter->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
             result += OFFSET + std::to_string(ebpfIter->originSeg.offset);
             result += SIZE + std::to_string(ebpfIter->originSeg.size);
             result += "},";
         } else {
-            if (result != VALUE) {
+            if (result != VALUE_STR) {
                 result.pop_back();
                 result += "]}\r\n";
                 splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
-                result = VALUE;
+                result = VALUE_STR;
             }
             std::string buffer(reinterpret_cast<char *>(ebpfIter->buffer.address), ebpfIter->buffer.size);
             splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
         }
     }
-    if (result != VALUE) {
+    if (result != VALUE_STR) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
@@ -466,25 +466,25 @@ void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool is
 void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
     auto perfSplitResult = ts_->GetPbreaderParser()->GetPerfSplitResult();
-    std::string result = VALUE;
+    std::string result = VALUE_STR;
     for (auto perfIter = perfSplitResult.begin(); perfIter != perfSplitResult.end(); ++perfIter) {
         if (perfIter->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
             result += OFFSET + std::to_string(perfIter->originSeg.offset);
             result += SIZE + std::to_string(perfIter->originSeg.size);
             result += "},";
         } else {
-            if (result != VALUE) {
+            if (result != VALUE_STR) {
                 result.pop_back();
                 result += "]}\r\n";
                 splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
-                result = VALUE;
+                result = VALUE_STR;
             }
             std::string buffer(reinterpret_cast<char *>(perfIter->buffer.address), perfIter->buffer.size);
             splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
         }
     }
 
-    if (result != VALUE) {
+    if (result != VALUE_STR) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
@@ -506,12 +506,12 @@ int32_t RpcServer::TraceStreamerInitThirdPartyConfig(const uint8_t *data, int32_
     std::string thirdPartyConfig = reinterpret_cast<const char *>(data);
     TS_LOGI("thirdPartyConfig = %s", thirdPartyConfig.c_str());
     std::vector<std::string> comPonentStr = SplitStringToVec(thirdPartyConfig, ";");
-    const int32_t EVENT_COUNT_PAIR = 2;
-    if (comPonentStr.size() % EVENT_COUNT_PAIR != 0) {
+    const int32_t eventCountPair = 2;
+    if (comPonentStr.size() % eventCountPair != 0) {
         TS_LOGI("thirdPartyConfig is wrong!");
         return -1;
     }
-    for (int32_t m = 0; m < comPonentStr.size(); m += EVENT_COUNT_PAIR) {
+    for (int32_t m = 0; m < comPonentStr.size(); m += eventCountPair) {
         int32_t componentId = std::stoi(comPonentStr.at(m));
         std::string componentName = comPonentStr.at(m + 1);
         TS_LOGI("comPonentStr[m] = %d, comPonentStr[m + 1] = %s", componentId, componentName.c_str());

@@ -52,8 +52,9 @@ void EbpfBase::ParseCallStackData(const uint64_t *userIpsAddr, uint16_t count, u
         auto ebpfSymbolInfo = GetEbpfSymbolInfo(pid, userIpsAddr[i]);
         auto ipIndex = ConvertToHexTextIndex(userIpsAddr[i]);
         ipStrIndexToIpMap_.insert(std::make_pair(ipIndex, userIpsAddr[i]));
-        auto row = traceDataCache_->GetEbpfCallStack()->AppendNewData(
-            callId, depth++, ipIndex, ebpfSymbolInfo.symbolIndex, ebpfSymbolInfo.filePathIndex, ebpfSymbolInfo.vaddr);
+        EbpfCallStackDataRow ebpfCallStackDataRow = {callId, depth++, ipIndex, ebpfSymbolInfo.symbolIndex,
+                                                                ebpfSymbolInfo.filePathIndex, ebpfSymbolInfo.vaddr};
+        auto row =  traceDataCache_->GetEbpfCallStack()->AppendNewData(ebpfCallStackDataRow);
         if (ebpfSymbolInfo.filePathIndex == INVALID_UINT64) {
             continue;
         }

@@ -376,6 +376,8 @@ export class TabPaneSdkSlice extends BaseElement {
       default:
         if (typeof sliceValue === 'string') {
           return sliceValue.replace(/</gi, '&lt;').replace(/>/gi, '&gt;');
+        } else {
+          return;
         }
     }
   }

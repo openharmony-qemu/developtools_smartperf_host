@@ -35,15 +35,22 @@ private:
     std::deque<DataIndex> sysEventNameIds_ = {};
     std::deque<DataIndex> subkeyNameIds_ = {};
 };
+
+struct HiSysEventMeasureDataRow
+{
+    /* data */
+    uint64_t serial = INVALID_UINT64;
+    uint64_t ts = INVALID_UINT64;
+    uint32_t nameId = INVALID_UINT32;
+    uint32_t keyId = INVALID_UINT32;
+    int32_t type = INVALID_UINT32;
+    double numericValue;
+    DataIndex stringValue = INVALID_DATAINDEX;
+};
+
 class HiSysEventMeasureData : public CacheBase {
 public:
-    void AppendData(uint64_t serial,
-                    uint64_t ts,
-                    uint32_t nameId,
-                    uint32_t keyId,
-                    int32_t type,
-                    double numericValue,
-                    DataIndex stringValue);
+    void AppendData(const HiSysEventMeasureDataRow &context);
     const std::deque<uint64_t> &Serial() const;
     const std::deque<uint64_t> &Ts() const;
     const std::deque<uint32_t> &NameFilterId() const;
@@ -74,28 +81,34 @@ private:
     uint32_t rowCount_ = 0;
 };
 
+struct HiSysEventDeviceStateDataRow
+{
+    /* data */
+    int32_t brightness = INVALID_UINT32;
+    int32_t btState = INVALID_UINT32;
+    int32_t location = INVALID_UINT32;
+    int32_t wifi = INVALID_UINT32;
+    int32_t streamDefault = INVALID_UINT32;
+    int32_t voiceCall = INVALID_UINT32;
+    int32_t music = INVALID_UINT32;
+    int32_t streamRing = INVALID_UINT32;
+    int32_t media = INVALID_UINT32;
+    int32_t voiceAssistant = INVALID_UINT32;
+    int32_t system = INVALID_UINT32;
+    int32_t alarm = INVALID_UINT32;
+    int32_t notification = INVALID_UINT32;
+    int32_t btSco = INVALID_UINT32;
+    int32_t enforcedAudible = INVALID_UINT32;
+    int32_t streamDtmf = INVALID_UINT32;
+    int32_t streamTts = INVALID_UINT32;
+    int32_t accessibility = INVALID_UINT32;
+    int32_t recording = INVALID_UINT32;
+    int32_t streamAll = INVALID_UINT32;
+};
+
 class HiSysEventDeviceStateData : public CacheBase {
 public:
-    void AppendNewData(int32_t brightness,
-                       int32_t btState,
-                       int32_t location,
-                       int32_t wifi,
-                       int32_t streamDefault,
-                       int32_t voiceCall,
-                       int32_t music,
-                       int32_t streamRing,
-                       int32_t media,
-                       int32_t voiceAssistant,
-                       int32_t system,
-                       int32_t alarm,
-                       int32_t notification,
-                       int32_t btSco,
-                       int32_t enforcedAudible,
-                       int32_t streamDtmf,
-                       int32_t streamTts,
-                       int32_t accessibility,
-                       int32_t recording,
-                       int32_t streamAll);
+    void AppendNewData(const HiSysEventDeviceStateDataRow &context);
     const std::deque<int32_t> &Brightness() const;
     const std::deque<int32_t> &BtState() const;
     const std::deque<int32_t> &Location() const;

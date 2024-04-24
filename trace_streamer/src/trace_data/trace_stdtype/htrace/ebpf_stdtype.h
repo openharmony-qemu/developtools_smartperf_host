@@ -19,24 +19,31 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
+
+struct FileSystemSampleRow
+{
+    /* data */
+    uint32_t callChainId = INVALID_UINT32;
+    uint16_t type = INVALID_UINT16;
+    uint32_t ipid = INVALID_UINT32;
+    uint32_t itid = INVALID_UINT32;
+    uint64_t startTs = INVALID_UINT64;
+    uint64_t endTs = INVALID_UINT64;
+    uint64_t dur = INVALID_UINT64;
+    DataIndex returnValue = INVALID_DATAINDEX;
+    DataIndex errorCode = INVALID_DATAINDEX;
+    size_t size;
+    int32_t fd = INVALID_UINT32;
+    DataIndex fileId = INVALID_DATAINDEX;
+    DataIndex firstArgument = INVALID_DATAINDEX;
+    DataIndex secondArgument = INVALID_DATAINDEX;
+    DataIndex thirdArgument = INVALID_DATAINDEX;
+    DataIndex fourthArgument = INVALID_DATAINDEX;
+};
+
 class FileSystemSample : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t callChainId,
-                         uint16_t type,
-                         uint32_t ipid,
-                         uint32_t itid,
-                         uint64_t startTs,
-                         uint64_t endTs,
-                         uint64_t dur,
-                         DataIndex returnValue,
-                         DataIndex errorCode,
-                         size_t size,
-                         int32_t fd,
-                         DataIndex fileId,
-                         DataIndex firstArgument,
-                         DataIndex secondArgument,
-                         DataIndex thirdArgument,
-                         DataIndex fourthArgument);
+    size_t AppendNewData(const FileSystemSampleRow &context);
     const std::deque<uint32_t> &CallChainIds() const;
     const std::deque<uint16_t> &Types() const;
     const std::deque<uint32_t> &Ipids() const;
@@ -92,17 +99,23 @@ private:
     std::deque<DataIndex> fourthArguments_ = {};
 };
 
+struct PagedMemorySampleDataRow
+{
+    /* data */
+    uint32_t callChainId = INVALID_UINT32;
+    uint16_t type = INVALID_UINT16;
+    uint32_t ipid = INVALID_UINT32;
+    uint64_t startTs = INVALID_UINT64;
+    uint64_t endTs = INVALID_UINT64;
+    uint64_t dur = INVALID_UINT64;
+    size_t size;
+    DataIndex addr = INVALID_DATAINDEX;
+    uint32_t itid = INVALID_UINT32;
+};
+
 class PagedMemorySampleData : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t callChainId,
-                         uint16_t type,
-                         uint32_t ipid,
-                         uint64_t startTs,
-                         uint64_t endTs,
-                         uint64_t dur,
-                         size_t size,
-                         DataIndex addr,
-                         uint32_t itid);
+    size_t AppendNewData(const PagedMemorySampleDataRow &context);
     const std::deque<uint32_t> &CallChainIds() const;
     const std::deque<uint16_t> &Types() const;
     const std::deque<uint32_t> &Ipids() const;
@@ -137,20 +150,27 @@ private:
     std::deque<DataIndex> addrs_ = {};
     std::deque<uint32_t> itids_ = {};
 };
+
+struct BioLatencySampleDataRow
+{
+    /* data */
+    uint32_t callChainId = INVALID_UINT32;
+    uint64_t type = INVALID_UINT64;
+    uint32_t ipid = INVALID_UINT32;
+    uint32_t itid = INVALID_UINT32;
+    uint64_t startTs = INVALID_UINT64;
+    uint64_t endTs = INVALID_UINT64;
+    uint64_t latencyDur = INVALID_UINT64;
+    uint32_t tier = INVALID_UINT32;
+    uint64_t size = INVALID_UINT64;
+    uint64_t blockNumber = INVALID_UINT64;
+    uint64_t filePathId = INVALID_UINT64;
+    uint64_t durPer4k = INVALID_UINT64;
+};
+
 class BioLatencySampleData : public CacheBase {
 public:
-    void AppendNewData(uint32_t callChainId,
-                       uint64_t type,
-                       uint32_t ipid,
-                       uint32_t itid,
-                       uint64_t startTs,
-                       uint64_t endTs,
-                       uint64_t latencyDur,
-                       uint32_t tier,
-                       uint64_t size,
-                       uint64_t blockNumber,
-                       uint64_t filePathId,
-                       uint64_t durPer4k);
+    void AppendNewData(const BioLatencySampleDataRow &context);
     const std::deque<uint32_t> &CallChainIds() const;
     const std::deque<uint64_t> &Types() const;
     const std::deque<uint32_t> &Ipids() const;
@@ -195,14 +215,21 @@ private:
     std::deque<uint64_t> durPer4ks_ = {};
     uint32_t rowCount_ = 0;
 };
+
+struct EbpfCallStackDataRow
+{
+    /* data */
+    uint32_t callChainId = INVALID_UINT32;
+    uint32_t depth = INVALID_UINT32;
+    DataIndex ip = INVALID_DATAINDEX;
+    DataIndex symbolId = INVALID_DATAINDEX;
+    DataIndex filePathId = INVALID_DATAINDEX;
+    uint64_t vaddr  = INVALID_UINT64;
+};
+
 class EbpfCallStackData : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t callChainId,
-                         uint32_t depth,
-                         DataIndex ip,
-                         DataIndex symbolId,
-                         DataIndex filePathId,
-                         uint64_t vaddr);
+    size_t AppendNewData(const EbpfCallStackDataRow &context);
     void UpdateEbpfSymbolInfo(size_t row, DataIndex symbolId);
     const std::deque<uint32_t> &CallChainIds() const;
     const std::deque<uint32_t> &Depths() const;

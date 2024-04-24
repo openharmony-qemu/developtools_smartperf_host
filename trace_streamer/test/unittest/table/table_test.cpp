@@ -391,8 +391,10 @@ HWTEST_F(TableTest, EbpfCallstackTableTest, TestSize.Level1)
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timestamp1, FPS1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect6, false), 2);
 
-    stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(CALLCHAIN_ID, depth, ip, symbolId, filePathId, 0);
-    stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(CALLCHAIN_ID1, depth1, ip1, symbolId1, filePathId1, 0);
+    EbpfCallStackDataRow ebpfCallStackDataRow = {CALLCHAIN_ID, depth, ip, symbolId, filePathId, 0};
+    stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(ebpfCallStackDataRow);
+    ebpfCallStackDataRow = {CALLCHAIN_ID1, depth1, ip1, symbolId1, filePathId1, 0};
+    stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(ebpfCallStackDataRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 0);
@@ -436,12 +438,12 @@ HWTEST_F(TableTest, FileSystemSampleTableTest, TestSize.Level1)
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 0);
 
-    stream_.traceDataCache_->GetFileSystemSample()->AppendNewData(
-        CALLCHAIN_ID, TYPE, IPID, ITID, START_TS, END_TS, DUR, returnValue, errorCode, SIZE, FD, fileId, firstArgument,
-        secondArgument, thirdArgument, fourthArgument);
-    stream_.traceDataCache_->GetFileSystemSample()->AppendNewData(
-        CALLCHAIN_ID1, TYPE1, IPID1, ITID1, START_TS1, END_TS1, DUR1, returnValue1, errorCode1, SIZE1, FD1, fileId1,
-        firstArgument1, secondArgument1, thirdArgument1, fourthArgument1);
+    FileSystemSampleRow fileSystemSampleRow = {CALLCHAIN_ID, TYPE, IPID, ITID, START_TS, END_TS, DUR, returnValue, errorCode, SIZE, FD, fileId, firstArgument,
+        secondArgument, thirdArgument, fourthArgument};
+    stream_.traceDataCache_->GetFileSystemSample()->AppendNewData(fileSystemSampleRow);
+    fileSystemSampleRow = {CALLCHAIN_ID1, TYPE1, IPID1, ITID1, START_TS1, END_TS1, DUR1, returnValue1, errorCode1, SIZE1, FD1, fileId1,
+        firstArgument1, secondArgument1, thirdArgument1, fourthArgument1};
+    stream_.traceDataCache_->GetFileSystemSample()->AppendNewData(fileSystemSampleRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
@@ -477,9 +479,9 @@ HWTEST_F(TableTest, HisysEventMeasureTableTest, TestSize.Level1)
     int32_t type = 1;
     double numericValue = 0;
     DataIndex stringValue = stream_.traceDataCache_->GetDataIndex("stringValue");
-
-    stream_.traceDataCache_->GetHiSysEventMeasureData()->AppendData(ts, nameId, keyId, type, numericValue, stringValue,
-                                                                    serial);
+    HiSysEventMeasureDataRow hiSysEventMeasureDataRow = {ts, nameId, keyId, type, numericValue, stringValue,
+                                                                    serial};
+    stream_.traceDataCache_->GetHiSysEventMeasureData()->AppendData(hiSysEventMeasureDataRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
@@ -571,11 +573,10 @@ HWTEST_F(TableTest, IoLatencySampleTableTest, TestSize.Level1)
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timestamp1, fps1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
 
-    stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(
-        CALLCHAIN_ID, TYPE, IPID, ITID, startTs, endTs, latencyDur, tier, size, blockNumber, filePathId, durPer4k);
-    stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(callChainId1, type1, ipid1, itid1, startTs1,
-                                                                      endTs1, latencyDur1, tier1, size1, blockNumber1,
-                                                                      filePathId1, durPer4k1);
+    GetBioLatencySampleDataRow bioLatencySampleDataRow = {CALLCHAIN_ID, TYPE, IPID, ITID, startTs, endTs, latencyDur, tier, size, blockNumber, filePathId, durPer4k};
+    stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(bioLatencySampleDataRow);
+    bioLatencySampleDataRow = {callChainId1, type1, ipid1, itid1, startTs1, endTs1, latencyDur1, tier1, size1, blockNumber1, filePathId1, durPer4k1};
+    stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(bioLatencySampleDataRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
 }
@@ -753,10 +754,10 @@ HWTEST_F(TableTest, NativeHookTableTest, TestSize.Level1)
     int64_t memSize1 = 2;
     int64_t curMemSize1 = 2;
 
-    stream_.traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
-        CALLCHAIN_ID, IPID, ITID, eventType, subType, timeStamp, endTimestamp, duration, addr, memSize);
-    stream_.traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
-        callChainId1, ipid1, itid1, eventType1, subType1, timestamp1, endTimestamp1, duration1, addr1, memSize1);
+    NativeHookRow nativeHookRow = {CALLCHAIN_ID, IPID, ITID, eventType, subType, timeStamp, endTimestamp, duration, addr, memSize};
+    stream_.traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
+    nativeHookRow = {callChainId1, ipid1, itid1, eventType1, subType1, timestamp1, endTimestamp1, duration1, addr1, memSize1};
+    stream_.traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
@@ -791,11 +792,11 @@ HWTEST_F(TableTest, NativeHookFrameTableTest, TestSize.Level1)
     uint64_t offset1 = 2;
     uint64_t symbolOffset1 = 2;
     const std::string vaddr1 = "addr1";
-
-    stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(CALLCHAIN_ID, depth, ip, symbolName,
-                                                                                filePath, offset, symbolOffset, vaddr);
-    stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-        CALLCHAIN_ID1, depth1, ip1, symbolName1, filePath1, offset1, symbolOffset1, vaddr1);
+    NativeHookFrameVaddrRow nativeHookFrameVaddrRow = {CALLCHAIN_ID, depth, ip, symbolName,
+                                                                                filePath, offset, symbolOffset, vaddr};
+    stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow);
+    nativeHookFrameVaddrRow = {CALLCHAIN_ID1, depth1, ip1, symbolName1, filePath1, offset1, symbolOffset1, vaddr1};
+    stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
@@ -856,12 +857,10 @@ HWTEST_F(TableTest, PerfCallchainTableTest, TestSize.Level1)
     uint64_t vaddrInFile1 = 2;
     uint64_t fileId1 = stream_.traceDataCache_->GetDataIndex("file1");
     uint64_t symbolId1 = stream_.traceDataCache_->GetDataIndex("symbolId1");
-
-    stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(callChainId, depth, vaddrInFile, ip, fileId,
-                                                                            symbolId);
-
-    stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(callChainId1, depth1, vaddrInFile1, ip1,
-                                                                            fileId1, symbolId1);
+    PerfCallChainRow perfCallChainRow = {callChainId, depth, vaddrInFile, ip, fileId, symbolId};
+    stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(perfCallChainRow);
+    perfCallChainRow = {callChainId1, depth1, vaddrInFile1, ip1, fileId1, symbolId1};
+    stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(perfCallChainRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 2);

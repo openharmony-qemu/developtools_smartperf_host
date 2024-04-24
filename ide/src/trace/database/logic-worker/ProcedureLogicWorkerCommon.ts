@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 export class ChartStruct {
   depth: number = 0;
   symbol: string = '';
@@ -64,6 +63,8 @@ export class HiPerfSymbol {
   }
 }
 
+type SplitMap = Map<string, MerageBean[]>;
+
 export class MerageBean extends ChartStruct {
   #parentNode: MerageBean | undefined = undefined;
   #total = 0;
@@ -109,7 +110,7 @@ class MerageBeanDataSplit {
 
   //所有的操作都是针对整个树结构的, 不区分特定的数据
   splitTree(
-    splitMapData: unknown,
+    splitMapData: SplitMap,
     data: MerageBean[],
     name: string,
     isCharge: boolean,
@@ -128,12 +129,18 @@ class MerageBeanDataSplit {
     this.resetAllNode(data, currentTreeList, searchValue);
   }
 
-  recursionChargeInitTree(splitMapData: unknown, node: MerageBean, symbolName: string, isSymbol: boolean): void {
+  splitPush(splitMapData: SplitMap, name: string, node: MerageBean) {
+    if (!splitMapData.has(name)) {
+      splitMapData.set(name, []);
+    }
+    splitMapData.get(name)!.push(node);
+  }
+
+  recursionChargeInitTree(splitMapData: SplitMap, node: MerageBean, symbolName: string, isSymbol: boolean): void {
     if ((isSymbol && node.symbol === symbolName) || (!isSymbol && node.lib === symbolName)) {
-      //@ts-ignore
-      (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
       node.isStore++;
     }
+    this.splitPush(splitMapData, symbolName, node);
     if (node.initChildren.length > 0) {
       node.initChildren.forEach((child) => {
         this.recursionChargeInitTree(splitMapData, child, symbolName, isSymbol);
@@ -141,10 +148,9 @@ class MerageBeanDataSplit {
     }
   }
 
-  recursionPruneInitTree(splitMapData: unknown, node: MerageBean, symbolName: string, isSymbol: boolean): void {
+  recursionPruneInitTree(splitMapData: SplitMap, node: MerageBean, symbolName: string, isSymbol: boolean): void {
     if ((isSymbol && node.symbol === symbolName) || (!isSymbol && node.lib === symbolName)) {
-      //@ts-ignore
-      (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
+      this.splitPush(splitMapData, symbolName, node);
       node.isStore++;
       this.pruneChildren(splitMapData, node, symbolName);
     } else if (node.initChildren.length > 0) {
@@ -166,7 +172,7 @@ class MerageBeanDataSplit {
   }
 
   recursionChargeByRule(
-    splitMapData: unknown,
+    splitMapData: SplitMap,
     node: MerageBean,
     ruleName: string,
     rule: (node: MerageBean) => boolean
@@ -174,8 +180,7 @@ class MerageBeanDataSplit {
     if (node.initChildren.length > 0) {
       node.initChildren.forEach((child) => {
         if (rule(child)) {
-          //@ts-ignore
-          (splitMapData[ruleName] = splitMapData[ruleName] || []).push(child);
+          this.splitPush(splitMapData, ruleName, child);
           child.isStore++;
         }
         this.recursionChargeByRule(splitMapData, child, ruleName, rule);
@@ -183,18 +188,17 @@ class MerageBeanDataSplit {
     }
   }
 
-  pruneChildren(splitMapData: unknown, node: MerageBean, symbolName: string): void {
+  pruneChildren(splitMapData: SplitMap, node: MerageBean, symbolName: string): void {
     if (node.initChildren.length > 0) {
       node.initChildren.forEach((child) => {
         child.isStore++;
-        //@ts-ignore
-        (splitMapData[symbolName] = splitMapData[symbolName] || []).push(child);
+        this.splitPush(splitMapData, symbolName, child);
         this.pruneChildren(splitMapData, child, symbolName);
       });
     }
   }
 
-  hideSystemLibrary(allProcess: MerageBean[], splitMapData: unknown): void {
+  hideSystemLibrary(allProcess: MerageBean[], splitMapData: SplitMap): void {
     allProcess.forEach((item) => {
       item.children = [];
       this.recursionChargeByRule(splitMapData, item, this.systmeRuleName, (node) => {
@@ -203,7 +207,7 @@ class MerageBeanDataSplit {
     });
   }
 
-  hideNumMaxAndMin(allProcess: MerageBean[], splitMapData: unknown, startNum: number, endNum: string): void {
+  hideNumMaxAndMin(allProcess: MerageBean[], splitMapData: SplitMap, startNum: number, endNum: string): void {
     let max = endNum === '∞' ? Number.POSITIVE_INFINITY : parseInt(endNum);
     allProcess.forEach((item) => {
       item.children = [];
@@ -216,7 +220,7 @@ class MerageBeanDataSplit {
   resotreAllNode(splitMapData: unknown, symbols: string[]): void {
     symbols.forEach((symbol) => {
       //@ts-ignore
-      let list = splitMapData[symbol];
+      let list = splitMapData.get(symbol);
       if (list !== undefined) {
         list.forEach((item: unknown) => {
           //@ts-ignore
@@ -250,15 +254,15 @@ class MerageBeanDataSplit {
     values.forEach((item: unknown) => {
       //@ts-ignore
       if (item.parentNode !== undefined) {
-         //@ts-ignore
+        //@ts-ignore
         if (item.isStore === 0 && item.searchShow) {
-           //@ts-ignore
+          //@ts-ignore
           let parentNode = item.parentNode;
           while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
             parentNode = parentNode.parentNode;
           }
           if (parentNode) {
-             //@ts-ignore
+            //@ts-ignore
             item.currentTreeParentNode = parentNode;
             parentNode.children.push(item);
           }

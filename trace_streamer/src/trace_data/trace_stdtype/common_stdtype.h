@@ -80,8 +80,8 @@ public:
 private:
     std::hash<std::string_view> hashFun;
     std::mutex mutex_;
-    const int8_t SPASCII_START = 0;
-    const int8_t SPASCII_END = 32;
+    const int8_t spasciiStart_ = 0;
+    const int8_t spasciiEnd_ = 32;
 };
 
 class MetaData {

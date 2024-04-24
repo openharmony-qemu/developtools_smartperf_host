@@ -60,7 +60,6 @@ void PbreaderDiskIOParser::Finish()
     for (auto itor = diskIOData_.begin(); itor != diskIOData_.end(); itor++) {
         DiskIoRow row;
         row.ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, itor->ts);
-        // itor->ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, itor->ts);
         UpdatePluginTimeRange(TS_CLOCK_REALTIME, row.ts, row.ts);
         if (first) {
             lastTs = row.ts;

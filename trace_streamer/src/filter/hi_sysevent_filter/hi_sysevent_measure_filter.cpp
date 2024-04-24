@@ -38,8 +38,9 @@ DataIndex HiSysEventMeasureFilter::AppendNewValue(uint64_t serial,
                                                   DataIndex strValue)
 {
     uint64_t appKeyId = GetOrCreateFilterIdInternal(appNameId, key);
-    traceDataCache_->GetHiSysEventMeasureData()->AppendData(serial, timeStamp, appNameId, appKeyId, type, numericValue,
-                                                            strValue);
+    HiSysEventMeasureDataRow hiSysEventMeasureDataRow = {serial, timeStamp, appNameId, appKeyId, type, numericValue,
+                                                            strValue};
+    traceDataCache_->GetHiSysEventMeasureData()->AppendData(hiSysEventMeasureDataRow);
     return appNameId;
 }
 void HiSysEventMeasureFilter::AppendNewValue(std::string msg, std::string processName)
@@ -68,10 +69,11 @@ void HiSysEventMeasureFilter::AppendNewValue(int32_t brightnessState,
                                              int32_t recording,
                                              int32_t streamAll)
 {
-    traceDataCache_->GetHiSysEventDeviceStateData()->AppendNewData(
+    HiSysEventDeviceStateDataRow hiSysEventDeviceStateDataRow = {
         brightnessState, btState, locationState, wifiState, streamDefault, voiceCall, music, streamRing, media,
         voiceAssistant, system, alarm, notification, bluetoolthSco, enforcedAudible, streamDtmf, streamTts,
-        accessibility, recording, streamAll);
+        accessibility, recording, streamAll};
+    traceDataCache_->GetHiSysEventDeviceStateData()->AppendNewData(hiSysEventDeviceStateDataRow);
     return;
 }
 bool HiSysEventMeasureFilter::FilterAllHiSysEvent(const json &jMessage, uint64_t serial, bool &haveSplitSeg)

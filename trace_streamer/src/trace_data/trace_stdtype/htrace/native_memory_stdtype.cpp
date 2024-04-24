@@ -70,35 +70,26 @@ void NativeHookSampleBase::UpdateLastCallerPathAndSymbolIndexs(
         }
     }
 }
-size_t NativeHook::AppendNewNativeHookData(uint32_t callChainId,
-                                           uint32_t ipid,
-                                           uint32_t itid,
-                                           std::string eventType,
-                                           DataIndex subType,
-                                           uint64_t timeStamp,
-                                           uint64_t endTimeStamp,
-                                           uint64_t duration,
-                                           uint64_t addr,
-                                           int64_t memSize)
+size_t NativeHook::AppendNewNativeHookData(const NativeHookRow &context)
 {
-    AppendNativeHookSampleBase(callChainId, ipid, itid, timeStamp);
-    eventTypes_.emplace_back(eventType);
-    subTypes_.emplace_back(subType);
-    endTimeStamps_.emplace_back(endTimeStamp);
-    durations_.emplace_back(duration);
-    addrs_.emplace_back(addr);
-    memSizes_.emplace_back(memSize);
-    if (eventType == ALLOC_EVET) {
-        countHeapSizes_ += memSize;
+    AppendNativeHookSampleBase(context.callChainId, context.ipid, context.itid, context.timeStamp);
+    eventTypes_.emplace_back(context.eventType);
+    subTypes_.emplace_back(context.subType);
+    endTimeStamps_.emplace_back(context.endTimeStamp);
+    durations_.emplace_back(context.duration);
+    addrs_.emplace_back(context.addr);
+    memSizes_.emplace_back(context.memSize);
+    if (context.eventType == ALLOC_EVET) {
+        countHeapSizes_ += context.memSize;
         allMemSizes_.emplace_back(countHeapSizes_);
-    } else if (eventType == FREE_EVENT) {
-        countHeapSizes_ -= memSize;
+    } else if (context.eventType == FREE_EVENT) {
+        countHeapSizes_ -= context.memSize;
         allMemSizes_.emplace_back(countHeapSizes_);
-    } else if (eventType == MMAP_EVENT) {
-        countMmapSizes_ += memSize;
+    } else if (context.eventType == MMAP_EVENT) {
+        countMmapSizes_ += context.memSize;
         allMemSizes_.emplace_back(countMmapSizes_);
-    } else if (eventType == MUNMAP_EVENT) {
-        countMmapSizes_ -= memSize;
+    } else if (context.eventType == MUNMAP_EVENT) {
+        countMmapSizes_ -= context.memSize;
         allMemSizes_.emplace_back(countMmapSizes_);
     }
     currentSizeDurs_.emplace_back(0);
@@ -161,40 +152,27 @@ const std::deque<uint64_t> &NativeHook::CurrentSizeDurs() const
 {
     return currentSizeDurs_;
 }
-size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
-                                                 uint16_t depth,
-                                                 uint64_t ip,
-                                                 DataIndex symbolName,
-                                                 DataIndex filePath,
-                                                 uint64_t offset,
-                                                 uint64_t symbolOffset,
-                                                 const std::string &vaddr)
+size_t NativeHookFrame::AppendNewNativeHookFrame(const NativeHookFrameVaddrRow &context)
 {
-    callChainIds_.emplace_back(callChainId);
-    ips_.emplace_back(ip);
-    depths_.emplace_back(depth);
-    symbolNames_.emplace_back(symbolName);
-    filePaths_.emplace_back(filePath);
-    offsets_.emplace_back(offset);
-    symbolOffsets_.emplace_back(symbolOffset);
-    vaddrs_.emplace_back(vaddr);
+    callChainIds_.emplace_back(context.callChainId);
+    ips_.emplace_back(context.ip);
+    depths_.emplace_back(context.depth);
+    symbolNames_.emplace_back(context.symbolName);
+    filePaths_.emplace_back(context.filePath);
+    offsets_.emplace_back(context.offset);
+    symbolOffsets_.emplace_back(context.symbolOffset);
+    vaddrs_.emplace_back(context.vaddr);
     return Size() - 1;
 }
-size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
-                                                 uint16_t depth,
-                                                 uint64_t ip,
-                                                 DataIndex symbolName,
-                                                 DataIndex filePath,
-                                                 uint64_t offset,
-                                                 uint64_t symbolOffset)
+size_t NativeHookFrame::AppendNewNativeHookFrame(const NativeHookFrameRow &context)
 {
-    callChainIds_.emplace_back(callChainId);
-    ips_.emplace_back(ip);
-    depths_.emplace_back(depth);
-    symbolNames_.emplace_back(symbolName);
-    filePaths_.emplace_back(filePath);
-    offsets_.emplace_back(offset);
-    symbolOffsets_.emplace_back(symbolOffset);
+    callChainIds_.emplace_back(context.callChainId);
+    ips_.emplace_back(context.ip);
+    depths_.emplace_back(context.depth);
+    symbolNames_.emplace_back(context.symbolName);
+    filePaths_.emplace_back(context.filePath);
+    offsets_.emplace_back(context.offset);
+    symbolOffsets_.emplace_back(context.symbolOffset);
     return Size() - 1;
 }
 void NativeHookFrame::UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId)

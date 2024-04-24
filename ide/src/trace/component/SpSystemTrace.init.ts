@@ -610,10 +610,10 @@ function intersectionObserverHandler(sp: SpSystemTrace): void {
         // 判断目标元素是否可见 isIntersecting为true是可见
         if (!it.isIntersecting) {
           tr.sleeping = true;
-          sp.invisibleRows.indexOf(tr) == -1 && sp.invisibleRows.push(tr);
+          sp.invisibleRows.indexOf(tr) === -1 && sp.invisibleRows.push(tr);
         } else {
           tr.sleeping = false;
-          sp.visibleRows.indexOf(tr) == -1 && sp.visibleRows.push(tr);
+          sp.visibleRows.indexOf(tr) === -1 && sp.visibleRows.push(tr);
         }
       });
       //更新可见泳道及不可见泳道值

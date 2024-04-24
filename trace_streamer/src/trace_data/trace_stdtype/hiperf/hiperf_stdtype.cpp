@@ -16,20 +16,15 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
-size_t PerfCallChain::AppendNewPerfCallChain(uint32_t callChainId,
-                                             uint32_t depth,
-                                             uint64_t ip,
-                                             uint64_t vaddrInFile,
-                                             uint64_t fileId,
-                                             uint64_t symbolId)
+size_t PerfCallChain::AppendNewPerfCallChain(const PerfCallChainRow &context)
 {
     ids_.emplace_back(Size());
-    callChainIds_.emplace_back(callChainId);
-    depths_.emplace_back(depth);
-    ips_.emplace_back(ip);
-    vaddrInFiles_.emplace_back(vaddrInFile);
-    fileIds_.emplace_back(fileId);
-    symbolIds_.emplace_back(symbolId);
+    callChainIds_.emplace_back(context.callChainId);
+    depths_.emplace_back(context.depth);
+    ips_.emplace_back(context.ip);
+    vaddrInFiles_.emplace_back(context.vaddrInFile);
+    fileIds_.emplace_back(context.fileId);
+    symbolIds_.emplace_back(context.symbolId);
     names_.emplace_back(INVALID_UINT64);
     return Size() - 1;
 }
