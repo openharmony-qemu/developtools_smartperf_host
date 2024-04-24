@@ -54,7 +54,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
   private spSystemTrace: SpSystemTrace | undefined | null;
   private lineCycleNum: number = -1;
   private cycleIsClick: Boolean = false;
-  static isStateTabHover:boolean = false;
+  static isStateTabHover: boolean = false;
 
 
   // tab页入口函数
@@ -147,7 +147,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         stateItemArr.map(stateItem => {
           for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
             // @ts-ignore
-            if (stateItem.ts> this.funcNameCycleArr[i].cycleStartTime && stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime
+            if (stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime
               && (stateItem.state === 'S' || stateItem.state === 'R' || stateItem.state === 'D' || stateItem.state === 'Running')) {
               this.filterState!.push(stateItem);
             };
@@ -201,7 +201,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         stateItemArr.map(stateItem => {
           for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
             // @ts-ignore
-            if (stateItem.ts > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime
+            if (stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime
               && (stateItem.state === 'S' || stateItem.state === 'R' || stateItem.state === 'D' || stateItem.state === 'Running')) {
               this.filterState!.push(stateItem);
             };
@@ -303,7 +303,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         cycleItem.cycle = i;
         threadData.map(v => {
           // @ts-ignore
-          if (v.ts> this.funcNameCycleArr[i].cycleStartTime && v.dur + v.ts < this.funcNameCycleArr[i].endTime) {
+          if (v.ts + v.dur > this.funcNameCycleArr[i].cycleStartTime && v.dur + v.ts < this.funcNameCycleArr[i].endTime) {
             cycleItem.totalCount! += 1;
             v.state === 'R'
               ? (cycleItem.RunnableCount += 1, cycleItem.RunnableDur += v.dur!)
@@ -398,6 +398,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       this.cycleIsClick = false;
       this.lineCycleNum = -1;
       this.traceSheetEl!.systemLogFlag = undefined;
+      SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
       TabPaneFreqStatesDataCut.isStateTabHover = false;
       this.spSystemTrace?.refreshCanvas(false);
     })
@@ -430,9 +431,11 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         this.threadBindersTbl!.setCurrentSelection(currentData);
         if (currentData.cycle === this.lineCycleNum && this.cycleIsClick === true) {
           this.traceSheetEl!.systemLogFlag = undefined;
+          SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
           TabPaneFreqStatesDataCut.isStateTabHover = false;
           this.cycleIsClick = false;
         } else {
+          SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
           let pointX: number = ns2x(
             this.funcNameCycleArr![currentData.cycle].cycleStartTime || 0,
             TraceRow.range!.startNS,
@@ -440,6 +443,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             TraceRow.range!.totalNS,
             new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
           );
+          SpSegmentationChart.tabHoverObj.key = 'STATES'
           SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = new Flag(
             Math.floor(pointX),
             0,
@@ -496,7 +500,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
   // 筛选出点击的线程数据
   filCycleData(pid: number, tid: number): Array<StateGroup> {
     return this.filterState?.filter((v: StateGroup) => {
-      return v.pid === pid && v.tid === tid && v.ts > this.cycleStartTime! && v.ts + v.dur! < this.cycleEndTime!;
+      return v.pid === pid && v.tid === tid && v.ts + v.dur! > this.cycleStartTime! && v.ts + v.dur! < this.cycleEndTime!;
     })
   };
 
@@ -664,6 +668,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         }
         .chart_area{
             margin-top:40px;
+            height:0;
         }
         .chart_title{
             line-height: 40px;
@@ -704,12 +709,12 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
                         </lit-table-column>
                         <lit-table-column width="120px" title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
                         </lit-table-column>
-                        <lit-table-column width="120px"  title="total" data-index="totalCount" key="totalCount" align="center">
+                        <lit-table-column width="120px"  title="Total" data-index="totalCount" key="totalCount" align="center">
                         </lit-table-column>
                     </lit-table>
                 </div>
                 <lit-slicer-track ></lit-slicer-track>
-                <div style="width:35%;padding: 16px;height:500px;overflow:auto;" class="query-cycle-area">
+                <div style="width:35%;padding: 16px;height:auto;overflow:auto;" class="query-cycle-area">
                     <div >
                         <div id="cycle-a">
                             <span>Cycle A: </span>
