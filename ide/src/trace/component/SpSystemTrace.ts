@@ -2003,7 +2003,7 @@ export class SpSystemTrace extends BaseElement {
         funcStract.flag = 'Did not end';
       }
     }
-    let funcRowID = !funcStract.cookie ? `${funcStract.tid}` : funcStract.row_id;
+    let funcRowID = funcStract.cookie == null ? `${funcStract.tid}` : funcStract.row_id;
     let targetRow = this.favoriteChartListEL?.getCollectRow((row) => {
       return row.rowId === funcRowID && row.rowType === 'func';
     });
