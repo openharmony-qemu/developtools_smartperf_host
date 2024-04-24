@@ -88,7 +88,7 @@ export class TabPaneSlices extends BaseElement {
     let data;
     this.slicesTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
-      data = evt.detail.data;  
+      data = evt.detail.data;
     });
     this.slicesTbl!.addEventListener('click', () => {
       FuncStruct.funcSelect = false;
@@ -156,6 +156,11 @@ export class TabPaneSlices extends BaseElement {
     // search 到的内容与框选泳道的内容取并集
     for (const searchItem of search.list) {
       for (const traceRow of sliceRowList) {
+        if (traceRow.asyncFuncName && Array.isArray(traceRow.asyncFuncName)) {
+          if (`${searchItem.pid}` === `${traceRow.asyncFuncNamePID}` && traceRow.asyncFuncName.indexOf(searchItem.funName) !== -1) {
+            searchItem.row_id = traceRow.rowId;
+          }
+        }
         if (Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
           Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
           !rangeSelectList.includes(searchItem)) {

@@ -126,6 +126,7 @@ select tid,
     c.callid as track_id,
     c.ts-D.start_ts as startTs,
     c.dur,
+    c.cat,
     c.name as funName,
     c.parent_id,
     c.id,
@@ -133,7 +134,7 @@ select tid,
     c.depth,
     c.argsetid
 from thread A,trace_range D
-left join callstack C on A.id = C.callid
+left join callstack C on A.id = C.parent_id
 left join process P on P.id = A.ipid
 where startTs not null and cookie not null ${_funName ? 'funName=$funName' : ''};`,
     {

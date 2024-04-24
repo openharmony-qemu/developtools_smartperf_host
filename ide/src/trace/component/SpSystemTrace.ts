@@ -1057,7 +1057,7 @@ export class SpSystemTrace extends BaseElement {
     SnapshotStruct.hoverSnapshotStruct = undefined;
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
     SampleStruct.hoverSampleStruct = undefined;
-    this.tipEL!.style.display = 'none';
+        this.tipEL!.style.display = 'none';
     return this;
   }
 
@@ -1087,7 +1087,7 @@ export class SpSystemTrace extends BaseElement {
     LtpoStruct.selectLtpoStruct = undefined;
     HitchTimeStruct.selectHitchTimeStruct = undefined;
     SampleStruct.selectSampleStruct = undefined;
-    return this;
+        return this;
   }
 
   isWASDKeyPress(): boolean | undefined {
@@ -1963,7 +1963,7 @@ export class SpSystemTrace extends BaseElement {
         funcStract.flag = 'Did not end';
       }
     }
-    let funcRowID = !funcStract.cookie ? `${funcStract.tid}` : `${funcStract.funName}-${funcStract.pid}`;
+    let funcRowID = !funcStract.cookie ? `${funcStract.tid}` : funcStract.row_id;
     let targetRow = this.favoriteChartListEL?.getCollectRow((row) => {
       return row.rowId === funcRowID && row.rowType === 'func';
     });
