@@ -457,6 +457,9 @@ function SpSystemTraceDocumentOnMouseMoveMouseUp(sp: SpSystemTrace, rows: Array<
       }
     })
     .forEach((tr) => {
+      if(tr.rowType !== TraceRow.ROW_TYPE_CPU) {
+        CpuStruct.hoverCpuStruct = undefined;
+      }
       if (sp.currentRowType != tr.rowType) {
         sp.currentRowType = tr.rowType || '';
       }
@@ -470,6 +473,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   if (!sp.loadTraceCompleted) {
     return;
   }
+  CpuStruct.hoverCpuStruct = undefined;
   TraceRow.isUserInteraction = false;
   SpSystemTrace.isMouseLeftDown = false
   if (sp.isMouseInSheet(ev)) {
