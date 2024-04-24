@@ -43,6 +43,7 @@ import { CpuStateStructOnClick } from "../database/ui-worker/cpu/ProcedureWorker
 import { CpuFreqLimitsStructOnClick } from "../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits";
 import { FlagsConfig } from "./SpFlags";
 import { LitMainMenu } from "../../base-ui/menu/LitMainMenu";
+import { gpuCounterStructOnClick } from "../database/ui-worker/ProcedureWorkerGpuCounter";
 
 function timeoutJudge(sp: SpSystemTrace) {
   let timeoutJudge = setTimeout(() => {
@@ -319,6 +320,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
     .then(() => sampleStructOnClick(clickRowType, sp))
+    .then(() => gpuCounterStructOnClick(clickRowType, sp))
     .then(() => {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
         sp.removeLinkLinesByBusinessType('janks');
@@ -776,7 +778,10 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
     if (rows && rows[0] && rows[0].getHoverStruct(strict, offset)) {
       sp.onClickHandler(rows[0]!.rowType!, rows[0]);
       sp.documentOnMouseMove(ev);
-    } else {
+    } else if (rows && rows[0] && rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false)) {
+      sp.onClickHandler(rows[0]!.rowType!, rows[0]);
+      sp.documentOnMouseMove(ev);
+    }  else {
       sp.clickEmptyArea();
     }
   }

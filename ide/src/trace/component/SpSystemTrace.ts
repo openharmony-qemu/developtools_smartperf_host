@@ -121,6 +121,7 @@ import spSystemTraceOnClickHandler, {
 } from './SpSystemTrace.event';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { readTraceFileBuffer } from '../SpApplicationPublicFunc';
+import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -774,6 +775,12 @@ export class SpSystemTrace extends BaseElement {
           SampleStruct.selectSampleStruct.begin - SampleStruct.selectSampleStruct.startTs!;
         this.currentSlicesTime.endTime = SampleStruct.selectSampleStruct.end - SampleStruct.selectSampleStruct.startTs!;
       }
+    } else if (GpuCounterStruct.selectGpuCounterStruct) {
+      if (GpuCounterStruct.selectGpuCounterStruct.startNS && GpuCounterStruct.selectGpuCounterStruct.dur) {
+        this.currentSlicesTime.startTime =
+        GpuCounterStruct.selectGpuCounterStruct.startNS - GpuCounterStruct.selectGpuCounterStruct.startTime!;
+        this.currentSlicesTime.endTime = (GpuCounterStruct.selectGpuCounterStruct.startNS + GpuCounterStruct.selectGpuCounterStruct.dur) - GpuCounterStruct.selectGpuCounterStruct.startTime!;
+      }
     } else {
       this.currentSlicesTime.startTime = 0;
       this.currentSlicesTime.endTime = 0;
@@ -791,6 +798,7 @@ export class SpSystemTrace extends BaseElement {
       AppStartupStruct.selectStartupStruct ||
       SoStruct.selectSoStruct ||
       SampleStruct.selectSampleStruct ||
+      GpuCounterStruct.selectGpuCounterStruct ||
       AllAppStartupStruct.selectStartupStruct ||
       FrameAnimationStruct.selectFrameAnimationStruct ||
       JsCpuProfilerStruct.selectJsCpuProfilerStruct;
@@ -806,9 +814,13 @@ export class SpSystemTrace extends BaseElement {
         startTs = selectedStruct.begin - selectedStruct.startTs;
         let end = selectedStruct.end - selectedStruct.startTs;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
+      } if (selectedStruct.startNS && selectedStruct.dur) {
+        startTs = selectedStruct.startNS - selectedStruct.startTime;
+        let end = (selectedStruct.startNS + selectedStruct.dur) - selectedStruct.startTime;
+        this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
       } else {
         startTs =
-          selectedStruct.startTs || selectedStruct.startTime || selectedStruct.startNS || selectedStruct.ts || 0;
+        selectedStruct.startTs || selectedStruct.startTime || selectedStruct.startNS || selectedStruct.ts || 0;
         let dur = selectedStruct.dur || selectedStruct.totalTime || selectedStruct.endNS - selectedStruct.startNS || 0;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, startTs + dur, shiftKey);
       }
@@ -1057,7 +1069,8 @@ export class SpSystemTrace extends BaseElement {
     SnapshotStruct.hoverSnapshotStruct = undefined;
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
     SampleStruct.hoverSampleStruct = undefined;
-        this.tipEL!.style.display = 'none';
+    GpuCounterStruct.hoverGpuCounterStruct = undefined;
+    this.tipEL!.style.display = 'none';
     return this;
   }
 
@@ -1087,7 +1100,8 @@ export class SpSystemTrace extends BaseElement {
     LtpoStruct.selectLtpoStruct = undefined;
     HitchTimeStruct.selectHitchTimeStruct = undefined;
     SampleStruct.selectSampleStruct = undefined;
-        return this;
+    GpuCounterStruct.selectGpuCounterStruct = undefined;
+    return this;
   }
 
   isWASDKeyPress(): boolean | undefined {
@@ -1133,6 +1147,10 @@ export class SpSystemTrace extends BaseElement {
     [
       TraceRow.ROW_TYPE_SAMPLE,
       (): boolean => SampleStruct.hoverSampleStruct !== null && SampleStruct.hoverSampleStruct !== undefined,
+    ],
+    [
+      TraceRow.ROW_TYPE_GPU_COUNTER,
+      (): boolean => GpuCounterStruct.hoverGpuCounterStruct !== null && GpuCounterStruct.hoverGpuCounterStruct !== undefined,
     ],
     [
       TraceRow.ROW_TYPE_CPU_FREQ,
@@ -1826,6 +1844,28 @@ export class SpSystemTrace extends BaseElement {
       });
     });
   };
+
+  loadGpuCounter = async (ev: File) => {
+    this.observerScrollHeightEnable = false;
+    await this.initGpuCounter(ev);
+    this.rowsEL?.querySelectorAll('trace-row').forEach((it: any) => this.observer.observe(it));
+    window.publish(window.SmartEvent.UI.MouseEventEnable, {
+      mouseEnable: true,
+    });
+  }
+
+  initGpuCounter = async (ev: File) => {
+    this.rowsPaneEL!.scroll({
+      top: 0,
+      left: 0,
+    });
+    this.chartManager?.initGpuCounter(ev).then(() => {
+      this.loadTraceCompleted = true;
+      this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
+        this.intersectionObserver?.observe(it);
+      })
+    })
+  }
 
   queryAllTraceRow<T>(selectors?: string, filter?: (row: TraceRow<any>) => boolean): TraceRow<any>[] {
     return [

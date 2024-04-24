@@ -34,6 +34,7 @@ import { LitTabs } from '../../base-ui/tabs/lit-tabs';
 import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
+import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 export class SelectionParam {
   recordStartNs: number = 0;
@@ -131,6 +132,7 @@ export class SelectionParam {
   sysAlllogsData: Array<LogStruct> = [];
   hiSysEvents: Array<string> = [];
   sampleData: Array<any> = [];
+  gpuCounter: Array<any> = [];
 
   pushSampleData(it: TraceRow<any>) {
     if (it.rowType == TraceRow.ROW_TYPE_SAMPLE) {
@@ -146,6 +148,19 @@ export class SelectionParam {
         if (dataList[0].property!.length !== 0) {
           this.sampleData.push(...dataList);
         }
+      }
+    }
+  }
+
+  pushGpuCounter(it: TraceRow<any>) {
+    if (it.rowType == TraceRow.ROW_TYPE_GPU_COUNTER) {
+      let dataList: GpuCounterStruct[] = it.dataListCache;
+      if (dataList.length > 0) {
+        let rangeList = dataList.filter((i: GpuCounterStruct) => 
+          ((i.startNS! - i.startTime!) >= TraceRow.rangeSelectObject!.startNS!) &&
+          ((i.startNS! + i.dur! - i.startTime!) <= TraceRow.rangeSelectObject!.endNS!)
+        )
+        this.gpuCounter.push(...rangeList);
       }
     }
   }
@@ -1071,6 +1086,7 @@ export class SelectionParam {
     this.pushLogs(it, sp);
     this.pushHiSysEvent(it, sp);
     this.pushSampleData(it);
+    this.pushGpuCounter(it);
   }
 }
 
@@ -1127,4 +1143,13 @@ export class Fps {
   startNS: number = 0;
   timeStr: string = '';
   fps: number = 0;
+}
+
+export class GpuCounter {
+  startNS: number = 0;
+  height: number = 0;
+  dur: number = 0;
+  type: string = '';
+  startTime: number = 0;
+  frame: object = {};
 }

@@ -339,6 +339,7 @@ export const queryDiskIoMaxData = (): Promise<Array<any>> =>
     from diskio`
   );
 export const queryStartTime = (): Promise<Array<any>> => query('queryStartTime', `SELECT start_ts FROM trace_range`);
+export const queryRangeTime = (): Promise<Array<any>> => query('queryRangeTime', `SELECT start_ts, end_ts FROM trace_range`);
 export const queryBinderBySliceId = (id: number): Promise<Array<any>> =>
   query(
     'queryBinderBySliceId',
