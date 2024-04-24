@@ -31,6 +31,7 @@ export class TabPaneSlices extends BaseElement {
   private slicesRange: HTMLLabelElement | null | undefined;
   private slicesSource: Array<SelectionData> = [];
   private currentSelectionParam: SelectionParam | undefined;
+  private sliceSearchCount: Element | undefined | null;
 
   set data(slicesParam: SelectionParam | any) {
     if (this.currentSelectionParam === slicesParam) {
@@ -68,9 +69,11 @@ export class TabPaneSlices extends BaseElement {
             processSlicesResult.splice(0, 0, count);
             this.slicesSource = processSlicesResult;
             this.slicesTbl!.recycleDataSource = processSlicesResult;
+            this.sliceSearchCount!.textContent = this.slicesSource.length - 1 + '';
           } else {
             this.slicesSource = [];
             this.slicesTbl!.recycleDataSource = this.slicesSource;
+            this.sliceSearchCount!.textContent = '0';
           }
         }
       );
@@ -78,6 +81,7 @@ export class TabPaneSlices extends BaseElement {
   }
 
   initElements(): void {
+    this.sliceSearchCount = this.shadowRoot?.querySelector<LitTable>('#search-count');
     this.slicesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-slices');
     this.slicesRange = this.shadowRoot?.querySelector('#time-range');
     this.slicesTbl!.addEventListener('column-click', (evt) => {
@@ -210,9 +214,12 @@ export class TabPaneSlices extends BaseElement {
           outline: none;
         }
         </style>
-        <div style="display:flex">
-        <input id="filterName" type="text" style="width:25%;height:18px;border:1px solid #c3c3c3;border-radius:9px" placeholder="Search" value="" />
-        <label id="time-range" class="slice-label" style="width: 75%;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <div style="display:flex; justify-content:space-between;">
+        <div style="width: 40%;">
+          <input id="filterName" type="text" style="width:60%;height:18px;border:1px solid #c3c3c3;border-radius:9px" placeholder="Search" value="" />
+          &nbsp;&nbsp;<span style="font-size: 10pt;margin-bottom: 5px">Count:&nbsp;<span id="search-count">0<span></span>
+        </div>
+        <label id="time-range" class="slice-label" style="text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         </div>
         <lit-table id="tb-slices" style="height: auto">
             <lit-table-column class="slices-column" title="Name" width="500px" data-index="name" 
@@ -266,6 +273,7 @@ export class TabPaneSlices extends BaseElement {
     } else {
       this.slicesSource.sort(compare(slicesDetail.key, slicesDetail.sort, 'number'));
     }
+    this.sliceSearchCount!.textContent = this.slicesSource.length === 0 ? '0' : this.slicesSource.length - 1 + '';
     this.slicesTbl!.recycleDataSource = this.slicesSource;
   }
 
@@ -276,6 +284,7 @@ export class TabPaneSlices extends BaseElement {
     let sumOccurrences: number = 0;
     if(str === ''){
       this.slicesTbl!.recycleDataSource = this.slicesSource;
+      this.sliceSearchCount!.textContent = this.slicesSource.length === 0 ? '0' : this.slicesSource.length - 1 + '';
     } else {
       this.slicesSource.forEach(item => {
         if (item.name.toLowerCase().indexOf(str.toLowerCase()) !== -1) {
@@ -291,6 +300,7 @@ export class TabPaneSlices extends BaseElement {
       count.occurrences = sumOccurrences;
       searchData.unshift(count);
       this.slicesTbl!.recycleDataSource = searchData;
+      this.sliceSearchCount!.textContent = searchData.length === 0 ? '0' : searchData.length - 1 + ''; 
     }
   }
 }
