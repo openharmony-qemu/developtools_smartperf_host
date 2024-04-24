@@ -655,8 +655,9 @@ void PerfDataParser::UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<
         threadStatIndex = suspendStatIndex_;
     }
     auto configIndex = report_->GetConfigIndex(sample->data_.id);
-    perfSampleData->AppendNewPerfSample(callChainId, sample->data_.time, sample->data_.tid, sample->data_.period,
-                                        configIndex, newTimeStamp, sample->data_.cpu, threadStatIndex);
+    PerfSampleRow perfSampleRow = {callChainId, sample->data_.time, sample->data_.tid, sample->data_.period,
+                                   configIndex, newTimeStamp, sample->data_.cpu, threadStatIndex};
+    perfSampleData->AppendNewPerfSample(perfSampleRow);
 }
 
 void PerfDataParser::Finish()

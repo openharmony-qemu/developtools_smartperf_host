@@ -16,32 +16,37 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
-size_t CallStack::AppendInternalAsyncSlice(uint64_t startT,
-                                           uint64_t durationNs,
-                                           InternalTid internalTid,
-                                           DataIndex cat,
-                                           DataIndex name,
-                                           uint8_t depth,
+struct CallStackInternalRow {
+     uint64_t startT = INVALID_UINT64;
+     uint64_t durationNs = INVALID_UINT64;
+     InternalTid internalTid = INVALID_UINT32;
+     DataIndex cat = INVALID_UINT64;
+     DataIndex name = INVALID_UINT64;
+     uint8_t depth = INVALID_UINT8;
+};
+struct CallStackDistributeInfoRow {
+    std::string chainId;
+    std::string spanId;
+    std::string parentSpanId;
+    std::string flag;
+    std::string args;
+};
+size_t CallStack::AppendInternalAsyncSlice(const CallStackInternalRow &callStackInternalRow,
                                            int64_t cookid,
                                            const std::optional<uint64_t> &parentId)
 {
-    AppendCommonInfo(startT, durationNs, internalTid);
-    AppendCallStack(cat, name, depth, parentId);
+    AppendCommonInfo(callStackInternalRow.startT, callStackInternalRow.durationNs,callStackInternalRow.internalTid);
+    AppendCallStack(callStackInternalRow.cat, callStackInternalRow.name,callStackInternalRow.depth, parentId);
     AppendDistributeInfo();
     cookies_.emplace_back(cookid);
     ids_.emplace_back(id_++);
     return Size() - 1;
 }
-size_t CallStack::AppendInternalSlice(uint64_t startT,
-                                      uint64_t durationNs,
-                                      InternalTid internalTid,
-                                      DataIndex cat,
-                                      DataIndex name,
-                                      uint8_t depth,
+size_t CallStack::AppendInternalSlice(const CallStackInternalRow &callStackInternalRow,
                                       const std::optional<uint64_t> &parentId)
 {
-    AppendCommonInfo(startT, durationNs, internalTid);
-    AppendCallStack(cat, name, depth, parentId);
+    AppendCommonInfo(callStackInternalRow.startT,callStackInternalRow.durationNs, callStackInternalRow.internalTid);
+    AppendCallStack(callStackInternalRow.cat, callStackInternalRow.name, callStackInternalRow.depth, parentId);
     ids_.emplace_back(id_++);
     cookies_.emplace_back(INVALID_INT64);
     AppendDistributeInfo();
@@ -61,16 +66,13 @@ void CallStack::AppendCallStack(DataIndex cat, DataIndex name, uint8_t depth, st
     names_.emplace_back(name);
     depths_.emplace_back(depth);
 }
-void CallStack::SetDistributeInfo(size_t index,
-                                  const std::string &chainId,
-                                  const std::string &spanId,
-                                  const std::string &parentSpanId,
-                                  const std::string &flag)
+void CallStack::SetDistributeInfo(size_t index,const CallStackDistributeInfoRow &callStackDistributeInfoRow)
 {
-    chainIds_[index] = chainId;
-    spanIds_[index] = spanId;
-    parentSpanIds_[index] = parentSpanId;
-    flags_[index] = flag;
+    chainIds_[index] = callStackDistributeInfoRow.chainId;
+    spanIds_[index] = callStackDistributeInfoRow.spanId;
+    parentSpanIds_[index] = callStackDistributeInfoRow.parentSpanId;
+    flags_[index] = callStackDistributeInfoRow.flag;
+    args_[index] = callStackDistributeInfoRow.args;
     argSet_[index] = INVALID_UINT32;
 }
 void CallStack::AppendDistributeInfo()

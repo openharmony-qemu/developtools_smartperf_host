@@ -262,23 +262,15 @@ const std::deque<std::string> &NativeHookFrame::Vaddrs() const
     return vaddrs_;
 }
 
-size_t NativeHookStatistic::AppendNewNativeHookStatistic(uint32_t ipid,
-                                                         uint64_t timeStamp,
-                                                         uint32_t callChainId,
-                                                         uint32_t memoryType,
-                                                         DataIndex subMemType,
-                                                         uint64_t applyCount,
-                                                         uint64_t releaseCount,
-                                                         uint64_t applySize,
-                                                         uint64_t releaseSize)
+size_t NativeHookStatistic::AppendNewNativeHookStatistic(const NativeHookStatisticRow &nativeHookStatisticRow)
 {
-    AppendNativeHookSampleBase(callChainId, ipid, timeStamp);
-    memoryTypes_.emplace_back(memoryType);
-    applyCounts_.emplace_back(applyCount);
-    memSubTypes_.emplace_back(subMemType);
-    releaseCounts_.emplace_back(releaseCount);
-    applySizes_.emplace_back(applySize);
-    releaseSizes_.emplace_back(releaseSize);
+    AppendNativeHookSampleBase(nativeHookStatisticRow.callChainId, nativeHookStatisticRow.ipid, nativeHookStatisticRow.timeStamp);
+    memoryTypes_.emplace_back(nativeHookStatisticRow.memoryType);
+    applyCounts_.emplace_back(nativeHookStatisticRow.applyCount);
+    memSubTypes_.emplace_back(nativeHookStatisticRow.subMemType);
+    releaseCounts_.emplace_back(nativeHookStatisticRow.releaseCount);
+    applySizes_.emplace_back(nativeHookStatisticRow.applySize);
+    releaseSizes_.emplace_back(nativeHookStatisticRow.releaseSize);
     return Size() - 1;
 }
 

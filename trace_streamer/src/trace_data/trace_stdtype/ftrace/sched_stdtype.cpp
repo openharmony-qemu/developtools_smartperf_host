@@ -118,21 +118,16 @@ TableRowId ThreadStateData::UpdateDuration(TableRowId index, InternalTime ts, In
     return itids_[index];
 }
 
-size_t SchedSlice::AppendSchedSlice(uint64_t ts,
-                                    uint64_t dur,
-                                    uint64_t cpu,
-                                    uint32_t internalTid,
-                                    uint64_t endState,
-                                    int32_t priority)
+size_t SchedSlice::AppendSchedSlice(const SchedSliceRow &schedSliceRow)
 {
     ids_.emplace_back(id_++);
-    timeStamps_.emplace_back(ts);
-    durs_.emplace_back(dur);
-    cpus_.emplace_back(cpu);
+    timeStamps_.emplace_back(schedSliceRow.ts);
+    durs_.emplace_back(schedSliceRow.dur);
+    cpus_.emplace_back(schedSliceRow.cpu);
     tsEnds_.emplace_back(0);
-    internalTids_.emplace_back(internalTid);
-    endStates_.emplace_back(endState);
-    priority_.emplace_back(priority);
+    internalTids_.emplace_back(schedSliceRow.internalTid);
+    endStates_.emplace_back(schedSliceRow.endState);
+    priority_.emplace_back(schedSliceRow.priority);
     argSets_.emplace_back(INVALID_UINT32);
     internalPids_.emplace_back(INVALID_UINT32);
     return Size() - 1;

@@ -150,10 +150,11 @@ bool HiSysEventMeasureFilter::SaveAllHiSysEvent(json jMessage, bool &haveSplitSe
 }
 void HiSysEventMeasureFilter::UpdataAllHiSysEvent(const JsonMessage &jsMessage, uint64_t newTimeStamp)
 {
-    traceDataCache_->GetHiSysEventAllEventData()->AppendHiSysEventData(
-        jsMessage.domainId, jsMessage.eventNameId, newTimeStamp, jsMessage.type, jsMessage.timeZone, jsMessage.pid,
-        jsMessage.tid, jsMessage.uid, jsMessage.level, jsMessage.tag, jsMessage.eventId, jsMessage.seq, jsMessage.info,
-        jsMessage.content.dump());
+    HiSysEventAllEventDataRow hiSysEventAllEventDataRow = {jsMessage.domainId, jsMessage.eventNameId, newTimeStamp,
+                                                           jsMessage.type, jsMessage.timeZone, jsMessage.pid,
+                                                           jsMessage.tid, jsMessage.uid, jsMessage.level, jsMessage.tag, 
+                                                           jsMessage.eventId, jsMessage.seq, jsMessage.info,jsMessage.content.dump()};
+    traceDataCache_->GetHiSysEventAllEventData()->AppendHiSysEventData(hiSysEventAllEventDataRow);
 }
 bool HiSysEventMeasureFilter::JGetData(const json &jMessage,
                                        JsonData &jData,

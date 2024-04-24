@@ -19,16 +19,19 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
+    struct LogInfoRow {
+    uint64_t seq = INVALID_UINT64;
+    uint64_t timeStamp = INVALID_UINT64;
+    uint32_t pid = INVALID_UINT32;
+    uint32_t tid = INVALID_UINT32;
+    DataIndex level = INVALID_UINT64;
+    DataIndex tag = INVALID_UINT64;
+    DataIndex context = INVALID_UINT64;
+    uint64_t originTs = INVALID_UINT64;
+};
 class LogInfo : public CacheBase {
 public:
-    size_t AppendNewLogInfo(uint64_t seq,
-                            uint64_t timeStamp,
-                            uint32_t pid,
-                            uint32_t tid,
-                            DataIndex level,
-                            DataIndex tag,
-                            DataIndex context,
-                            uint64_t originTs);
+    size_t AppendNewLogInfo(const LogInfoRow &logInfoRow);
     const std::deque<uint64_t> &HilogLineSeqs() const;
     const std::deque<uint32_t> &Pids() const;
     const std::deque<uint32_t> &Tids() const;

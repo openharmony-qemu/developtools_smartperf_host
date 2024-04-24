@@ -225,9 +225,9 @@ void NativeHookFilter::ParseStatisticEvent(uint64_t timeStamp, const ProtoReader
     if (reader.has_tag_name()) {
         memSubType = traceDataCache_->GetDataIndex(reader.tag_name().ToStdString());
     }
-    traceDataCache_->GetNativeHookStatisticsData()->AppendNewNativeHookStatistic(
-        ipid, timeStamp, callChainId, reader.type(), memSubType, reader.apply_count(), reader.release_count(),
-        reader.apply_size(), reader.release_size());
+    NativeHookStatisticRow nativeHookStatisticRow = {ipid, timeStamp, callChainId, static_cast<uint32_t>(reader.type()), memSubType, reader.apply_count(), 
+                                                     reader.release_count(),reader.apply_size(), reader.release_size()};
+    traceDataCache_->GetNativeHookStatisticsData()->AppendNewNativeHookStatistic(nativeHookStatisticRow);
 }
 void NativeHookFilter::ParseAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView)
 {

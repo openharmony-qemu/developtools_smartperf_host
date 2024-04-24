@@ -178,35 +178,22 @@ const std::deque<int32_t> &HiSysEventDeviceStateData::StreamAll() const
     return streamAlls_;
 }
 
-uint32_t HiSysEventAllEventData::AppendHiSysEventData(DataIndex domainId,
-                                                      DataIndex eventNameId,
-                                                      uint64_t timeStamp,
-                                                      uint32_t type,
-                                                      const std::string &timeZone,
-                                                      uint32_t pid,
-                                                      uint32_t tid,
-                                                      uint32_t uid,
-                                                      const std::string &level,
-                                                      const std::string &tag,
-                                                      const std::string &eventId,
-                                                      uint64_t seq,
-                                                      const std::string &info,
-                                                      const std::string &content)
+uint32_t HiSysEventAllEventData::AppendHiSysEventData(const HiSysEventAllEventDataRow &hiSysEventAllEventDataRow)
 {
-    domainIds_.emplace_back(domainId);
-    eventNameIds_.emplace_back(eventNameId);
-    timeStamps_.emplace_back(timeStamp);
-    types_.emplace_back(type);
-    timeZones_.emplace_back(timeZone);
-    pids_.emplace_back(pid);
-    tids_.emplace_back(tid);
-    uids_.emplace_back(uid);
-    levels_.emplace_back(level);
-    tags_.emplace_back(tag);
-    eventIds_.emplace_back(eventId);
-    seqs_.emplace_back(seq);
-    infos_.emplace_back(info);
-    contents_.emplace_back(content);
+    domainIds_.emplace_back(hiSysEventAllEventDataRow.domainId);
+    eventNameIds_.emplace_back(hiSysEventAllEventDataRow.eventNameId);
+    timeStamps_.emplace_back(hiSysEventAllEventDataRow.timeStamp);
+    types_.emplace_back(hiSysEventAllEventDataRow.type);
+    timeZones_.emplace_back(hiSysEventAllEventDataRow.timeZone);
+    pids_.emplace_back(hiSysEventAllEventDataRow.pid);
+    tids_.emplace_back(hiSysEventAllEventDataRow.tid);
+    uids_.emplace_back(hiSysEventAllEventDataRow.uid);
+    levels_.emplace_back(hiSysEventAllEventDataRow.level);
+    tags_.emplace_back(hiSysEventAllEventDataRow.tag);
+    eventIds_.emplace_back(hiSysEventAllEventDataRow.eventId);
+    seqs_.emplace_back(hiSysEventAllEventDataRow.seq);
+    infos_.emplace_back(hiSysEventAllEventDataRow.info);
+    contents_.emplace_back(hiSysEventAllEventDataRow.content);
     ids_.emplace_back(Size());
     return Size() - 1;
 }

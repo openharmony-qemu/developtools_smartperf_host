@@ -70,17 +70,19 @@ private:
     std::deque<DataIndex> symbols_ = {};
     std::deque<DataIndex> filePaths_ = {};
 };
-
+struct PerfSampleRow {
+    uint32_t sampleId = INVALID_UINT32;
+    uint64_t timeStamp = INVALID_UINT64;
+    uint32_t tid = INVALID_UINT32;
+    uint64_t eventCount = INVALID_UINT64;
+    uint64_t eventTypeId = INVALID_UINT64;
+    uint64_t timestampTrace = INVALID_UINT64;
+    uint64_t cpuId = INVALID_UINT64;
+    uint64_t threadState = INVALID_UINT64;
+};
 class PerfSample : public CacheBase {
 public:
-    size_t AppendNewPerfSample(uint32_t sampleId,
-                               uint64_t timeStamp,
-                               uint32_t tid,
-                               uint64_t eventCount,
-                               uint64_t eventTypeId,
-                               uint64_t timestampTrace,
-                               uint64_t cpuId,
-                               uint64_t threadState);
+    size_t AppendNewPerfSample(const PerfSampleRow &perfSampleRow);
     const std::deque<uint32_t> &SampleIds() const;
     const std::deque<uint32_t> &Tids() const;
     const std::deque<uint64_t> &EventCounts() const;

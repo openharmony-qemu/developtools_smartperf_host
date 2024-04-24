@@ -199,18 +199,20 @@ private:
     std::deque<std::string> vaddrs_ = {};
     std::map<uint32_t, uint64_t> symbolIdToSymbolName_ = {};
 };
-
+struct NativeHookStatisticRow {
+    uint32_t ipid = INVALID_UINT32;
+    uint64_t timeStamp = INVALID_UINT64;
+    uint32_t callChainId = INVALID_UINT32;
+    uint32_t memoryType = INVALID_UINT32;
+    DataIndex subMemType = INVALID_UINT64;
+    uint64_t applyCount = INVALID_UINT64;
+    uint64_t releaseCount = INVALID_UINT64;
+    uint64_t applySize = INVALID_UINT64;
+    uint64_t releaseSize = INVALID_UINT64;
+};
 class NativeHookStatistic : public NativeHookSampleBase {
 public:
-    size_t AppendNewNativeHookStatistic(uint32_t ipid,
-                                        uint64_t timeStamp,
-                                        uint32_t callChainId,
-                                        uint32_t memoryType,
-                                        DataIndex subMemType,
-                                        uint64_t applyCount,
-                                        uint64_t releaseCount,
-                                        uint64_t applySize,
-                                        uint64_t releaseSize);
+    size_t AppendNewNativeHookStatistic(const NativeHookStatisticRow &nativeHookStatisticRow);
     const std::deque<uint32_t> &MemoryTypes() const;
     const std::deque<DataIndex> &MemorySubTypes() const;
     const std::deque<uint64_t> &ApplyCounts() const;

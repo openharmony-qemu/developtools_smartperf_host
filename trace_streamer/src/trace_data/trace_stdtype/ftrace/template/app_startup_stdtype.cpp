@@ -16,21 +16,15 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
-size_t AppStartup::AppendNewData(uint32_t ipid,
-                                 uint32_t tid,
-                                 uint32_t callId,
-                                 uint64_t startTime,
-                                 uint64_t endTime,
-                                 uint32_t startName,
-                                 DataIndex packedName)
+size_t AppStartup::AppendNewData(const AppStartupRow &appStartupRow)
 {
-    ipids_.emplace_back(ipid);
-    tids_.emplace_back(tid);
-    callIds_.emplace_back(callId);
-    startTimes_.emplace_back(startTime);
-    endTimes_.emplace_back(endTime);
-    startNames_.emplace_back(startName);
-    packedNames_.emplace_back(packedName);
+    ipids_.emplace_back(appStartupRow.ipid);
+    tids_.emplace_back(appStartupRow.tid);
+    callIds_.emplace_back(appStartupRow.callId);
+    startTimes_.emplace_back(appStartupRow.startTime);
+    endTimes_.emplace_back(appStartupRow.endTime);
+    startNames_.emplace_back(appStartupRow.startName);
+    packedNames_.emplace_back(appStartupRow.packedName);
     ids_.emplace_back(Size());
     return Size() - 1;
 }
@@ -63,21 +57,15 @@ const std::deque<DataIndex> &AppStartup::PackedNames() const
     return packedNames_;
 }
 
-size_t SoStaticInitalization::AppendNewData(uint32_t ipid,
-                                            uint32_t tid,
-                                            uint32_t callId,
-                                            uint64_t startTime,
-                                            uint64_t endTime,
-                                            DataIndex soName,
-                                            uint32_t depth)
+size_t SoStaticInitalization::AppendNewData(const SoStaticInitalizationRow &soStaticInitalizationRow)
 {
-    ipids_.emplace_back(ipid);
-    tids_.emplace_back(tid);
-    callIds_.emplace_back(callId);
-    startTimes_.emplace_back(startTime);
-    endTimes_.emplace_back(endTime);
-    soNames_.emplace_back(soName);
-    depths_.emplace_back(depth);
+    ipids_.emplace_back(soStaticInitalizationRow.ipid);
+    tids_.emplace_back(soStaticInitalizationRow.tid);
+    callIds_.emplace_back(soStaticInitalizationRow.callId);
+    startTimes_.emplace_back(soStaticInitalizationRow.startTime);
+    endTimes_.emplace_back(soStaticInitalizationRow.endTime);
+    soNames_.emplace_back(soStaticInitalizationRow.soName);
+    depths_.emplace_back(soStaticInitalizationRow.depth);
     ids_.emplace_back(Size());
     return Size() - 1;
 }

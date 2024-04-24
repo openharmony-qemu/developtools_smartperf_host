@@ -114,24 +114,17 @@ void PerfFiles::Clear()
     filePaths_.clear();
 }
 
-size_t PerfSample::AppendNewPerfSample(uint32_t sampleId,
-                                       uint64_t timeStamp,
-                                       uint32_t tid,
-                                       uint64_t eventCount,
-                                       uint64_t eventTypeId,
-                                       uint64_t timestampTrace,
-                                       uint64_t cpuId,
-                                       uint64_t threadState)
+size_t PerfSample::AppendNewPerfSample(const PerfSampleRow &perfSampleRow)
 {
     ids_.emplace_back(Size());
-    sampleIds_.emplace_back(sampleId);
-    timeStamps_.emplace_back(timeStamp);
-    tids_.emplace_back(tid);
-    eventCounts_.emplace_back(eventCount);
-    eventTypeIds_.emplace_back(eventTypeId);
-    timestampTraces_.emplace_back(timestampTrace);
-    cpuIds_.emplace_back(cpuId);
-    threadStates_.emplace_back(threadState);
+    sampleIds_.emplace_back(perfSampleRow.sampleId);
+    timeStamps_.emplace_back(perfSampleRow.timeStamp);
+    tids_.emplace_back(perfSampleRow.tid);
+    eventCounts_.emplace_back(perfSampleRow.eventCount);
+    eventTypeIds_.emplace_back(perfSampleRow.eventTypeId);
+    timestampTraces_.emplace_back(perfSampleRow.timestampTrace);
+    cpuIds_.emplace_back(perfSampleRow.cpuId);
+    threadStates_.emplace_back(perfSampleRow.threadState);
     return Size() - 1;
 }
 const std::deque<uint32_t> &PerfSample::SampleIds() const

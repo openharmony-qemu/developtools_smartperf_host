@@ -178,23 +178,25 @@ private:
     std::deque<int32_t> streamAlls_ = {};
     uint32_t rowCounts_ = 0;
 };
-
+struct HiSysEventAllEventDataRow {
+    DataIndex domainId = INVALID_UINT64;
+    DataIndex eventNameId = INVALID_UINT64;
+    uint64_t timeStamp = INVALID_UINT64;
+    uint32_t type = INVALID_UINT32;
+    std::string timeZone;
+    uint32_t pid = INVALID_UINT32;
+    uint32_t tid = INVALID_UINT32;
+    uint32_t uid = INVALID_UINT32;
+    std::string level;
+    std::string tag;
+    std::string eventId;
+    uint64_t seq = INVALID_UINT64;
+    std::string info;
+    std::string content;
+};
 class HiSysEventAllEventData : public CacheBase {
 public:
-    uint32_t AppendHiSysEventData(DataIndex domainId,
-                                  DataIndex eventNameId,
-                                  uint64_t timeStamp,
-                                  uint32_t type,
-                                  const std::string &timeZone,
-                                  uint32_t pid,
-                                  uint32_t tid,
-                                  uint32_t uid,
-                                  const std::string &level,
-                                  const std::string &tag,
-                                  const std::string &eventId,
-                                  uint64_t seq,
-                                  const std::string &info,
-                                  const std::string &content);
+    uint32_t AppendHiSysEventData(const HiSysEventAllEventDataRow &hiSysEventAllEventDataRow);
     const std::deque<DataIndex> &DomainIds() const;
     const std::deque<DataIndex> &EventNameIds() const;
     const std::deque<uint32_t> &Types() const;
