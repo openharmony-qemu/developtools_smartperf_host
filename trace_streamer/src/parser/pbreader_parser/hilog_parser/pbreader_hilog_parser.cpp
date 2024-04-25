@@ -69,7 +69,7 @@ void PbreaderHiLogParser::Parse(ProtoReader::BytesView tracePacket, bool &haveSp
         DataIndex levelData = traceDataCache_->dataDict_.GetStringIndex(iter->second.c_str());
         DataIndex logTag = traceDataCache_->dataDict_.GetStringIndex(logDetails.tag().ToStdString());
         LogInfoRow logInfoRow = {curLineSeq, newTimeStamp, logDetails.pid(), logDetails.tid(),
-                                 levelData, logTag, logData, timeStamp};
+                                 levelData,  logTag,       logData,          timeStamp};
         traceDataCache_->GetHilogData()->AppendNewLogInfo(logInfoRow);
     }
 }

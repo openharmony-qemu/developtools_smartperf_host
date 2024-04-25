@@ -92,8 +92,8 @@ HWTEST_F(AnimationFilterTest, InvalidCallStack, TestSize.Level1)
     // invalid parentId
     for (size_t i = 0, depth = 0; i < callStackNames.size(); i++) {
         std::optional<uint64_t> parentId = 0;
-        CallStackInternalRow callStackInternalRow = {INVALID_TIME, INVALID_TIME, INVALID_UINT32, INVALID_UINT64,
-                                                     callStackNames[i], ++depth};
+        CallStackInternalRow callStackInternalRow = {INVALID_TIME,   INVALID_TIME,      INVALID_UINT32,
+                                                     INVALID_UINT64, callStackNames[i], ++depth};
         callStackSlice->AppendInternalSlice(callStackInternalRow, parentId);
         point.funcPrefix_ = funcPrefixs[1];
         auto res = stream_.streamFilters_->animationFilter_->BeginDynamicFrameEvent(point, CALLSTACK_SLICE_ID);
@@ -107,8 +107,8 @@ HWTEST_F(AnimationFilterTest, InvalidCallStack, TestSize.Level1)
             parentId = index;
         }
         depth = i + 1;
-        CallStackInternalRow callStackInternalRow1 = {INVALID_TIME, INVALID_TIME, INVALID_UINT32, INVALID_UINT64,
-                                                      callStackNames[i], depth};
+        CallStackInternalRow callStackInternalRow1 = {INVALID_TIME,   INVALID_TIME,      INVALID_UINT32,
+                                                      INVALID_UINT64, callStackNames[i], depth};
         index = callStackSlice->AppendInternalSlice(callStackInternalRow1, parentId);
     }
     point.funcPrefix_ = funcPrefixs[1];
@@ -239,7 +239,8 @@ HWTEST_F(AnimationFilterTest, UpdateDynamicFrameInfo, TestSize.Level1)
             parentId = index;
         }
         depth = i + 1;
-        CallStackInternalRow callStackInternalRow2 = {startTime, dur, INVALID_UINT32, INVALID_UINT64, callStackNames[i],depth};
+        CallStackInternalRow callStackInternalRow2 = {startTime,         dur,  INVALID_UINT32, INVALID_UINT64,
+                                                      callStackNames[i], depth};
         index = callStackSlice->AppendInternalSlice(callStackInternalRow2, parentId);
     }
     point.funcPrefix_ = funcPrefix;
@@ -269,8 +270,7 @@ HWTEST_F(AnimationFilterTest, AnimationStartAndEnd, TestSize.Level1)
     std::optional<uint64_t> parentId;
     DataIndex callStackName = stream_.traceDataCache_->GetDataIndex(
         "H:RSUniRender::Process:[WindowScene_xxx] (0, 0, 1344, 2772) Alpha: 1.00");
-
-    CallStackInternalRow callStackInternalRow3 = {line.ts, dur, INVALID_UINT32, INVALID_UINT64, callStackName,depth};
+    CallStackInternalRow callStackInternalRow3 = {line.ts, dur, INVALID_UINT32, INVALID_UINT64, callStackName, depth};
     auto callStackRow = callStackSlice->AppendInternalSlice(callStackInternalRow3, parentId);
 
     TracePoint point;

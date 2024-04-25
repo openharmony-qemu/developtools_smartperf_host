@@ -114,9 +114,13 @@ void APPStartupFilter::AppendAssociatedData(DataIndex packedNameIndex,
         } else {
             endTime = itorSecond->second->endTime_;
         }
-        AppStartupRow appStartupRow = {itorSecond->second->ipid_, itorSecond->second->tid_,
-                                       itorSecond->second->callid_, itorSecond->second->startTime_,
-                                       endTime, itorSecond->first, packedNameIndex};
+        AppStartupRow appStartupRow = {itorSecond->second->ipid_,
+                                       itorSecond->second->tid_,
+                                       itorSecond->second->callid_,
+                                       itorSecond->second->startTime_,
+                                       endTime,
+                                       itorSecond->first,
+                                       packedNameIndex};
         traceDataCache_->GetAppStartupData()->AppendNewData(appStartupRow);
     }
 }

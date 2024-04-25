@@ -46,8 +46,7 @@ public:
     std::deque<DataIndex> lastSymbolIndexs_ = {};
 };
 
-
-struct NativeHookRow{
+struct NativeHookRow {
     uint32_t callChainId = INVALID_UINT32;
     uint32_t ipid = INVALID_UINT32;
     uint32_t itid = INVALID_UINT32;
@@ -124,8 +123,7 @@ private:
     uint64_t lastMmapEventRaw_ = INVALID_UINT64;
 };
 
-struct NativeHookFrameRow
-{
+struct NativeHookFrameRow {
     /* data */
     uint32_t callChainId = INVALID_UINT32;
     uint16_t depth = INVALID_UINT16;
@@ -136,8 +134,7 @@ struct NativeHookFrameRow
     uint64_t symbolOffset = INVALID_UINT64;
 };
 
-struct NativeHookFrameVaddrRow
-{
+struct NativeHookFrameVaddrRow {
     /* data */
     uint32_t callChainId = INVALID_UINT32;
     uint16_t depth = INVALID_UINT16;

@@ -87,8 +87,7 @@ private:
     std::deque<InternalCpu> cpus_;
     std::deque<uint32_t> argSetIds_;
 };
-struct SchedSliceRow
-{
+struct SchedSliceRow {
     uint64_t ts = INVALID_UINT64;
     uint64_t dur = INVALID_UINT64;
     uint64_t cpu = INVALID_UINT64;

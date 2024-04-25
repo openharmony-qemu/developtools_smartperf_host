@@ -297,12 +297,11 @@ void TraceStreamerSelector::InitializeParser()
 #ifdef ENABLE_BYTRACE
         ptreaderParser_->EnableBytrace(fileType_ == TRACE_FILETYPE_BY_TRACE);
 #endif
-    }
 #ifdef ENABLE_RAWTRACE
-    else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
+    } else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
         rawTraceParser_ = std::make_unique<RawTraceParser>(traceDataCache_.get(), streamFilters_.get());
-    }
 #endif
+    }
 }
 
 void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish)
@@ -313,17 +312,16 @@ void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data, si
                fileType_ == TRACE_FILETYPE_HILOG) {
         ptreaderParser_->ParseTraceDataSegment(std::move(data), size, isFinish);
         return;
-    }
+    } else if (fileType_ == TRACE_FILETYPE_PERF) {
 #ifdef ENABLE_HIPERF
-    else if (fileType_ == TRACE_FILETYPE_PERF) {
         pbreaderParser_->StoreTraceDataSegment(std::move(data), size, isFinish);
-    }
 #endif
+    } else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
 #ifdef ENABLE_RAWTRACE
-    else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
         rawTraceParser_->ParseTraceDataSegment(std::move(data), size, isFinish);
-    }
 #endif
+    }
+
     SetAnalysisResult(TRACE_PARSER_NORMAL);
 }
 

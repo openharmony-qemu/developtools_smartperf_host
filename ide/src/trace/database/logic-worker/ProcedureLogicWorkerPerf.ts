@@ -806,7 +806,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         if (item.funcName && item.funcArgs) {
           //@ts-ignore
           let result = this.handleDataByFuncName(item.funcName, item.funcArgs);
-          if (result) {
+          if (result.length > 0) {
             //@ts-ignore
             return result;
           }
@@ -838,7 +838,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       this.getCurrentDataFromDb(funcArgs[0]);
     }
   }
-  private handleDataByFuncName(funcName: string, funcArgs: unknown[]): unknown {
+  private handleDataByFuncName(funcName: string, funcArgs: unknown[]): unknown[] {
     switch (funcName) {
       case 'getCallChainsBySampleIds':
         this.freshPerfCallchains(this.samplesData, funcArgs[0] as boolean);
@@ -887,10 +887,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         return this.combineCallChainForAnalysis();
       case 'getBottomUp':
         return this.getBottomUp();
-      default:
-        return;
     }
-    return;
+    return [];
   }
 
   combineCallChainForAnalysis(obj?: unknown): PerfAnalysisSample[] {

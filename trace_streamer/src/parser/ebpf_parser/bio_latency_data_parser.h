@@ -32,7 +32,7 @@ protected:
     std::unique_ptr<HtracePluginTimeParser> timeParser_;
 
 private:
-    uint64_t currentCallId_ = 0;
+    uint32_t currentCallId_ = 0;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -38,8 +38,9 @@ DataIndex HiSysEventMeasureFilter::AppendNewValue(uint64_t serial,
                                                   DataIndex strValue)
 {
     uint64_t appKeyId = GetOrCreateFilterIdInternal(appNameId, key);
-    HiSysEventMeasureDataRow hiSysEventMeasureDataRow = {serial, timeStamp, appNameId, appKeyId, type, numericValue,
-                                                            strValue};
+    HiSysEventMeasureDataRow hiSysEventMeasureDataRow = {
+        serial,       timeStamp, static_cast<uint32_t>(appNameId), static_cast<uint32_t>(appKeyId), type,
+        numericValue, strValue};
     traceDataCache_->GetHiSysEventMeasureData()->AppendData(hiSysEventMeasureDataRow);
     return appNameId;
 }
@@ -70,9 +71,9 @@ void HiSysEventMeasureFilter::AppendNewValue(int32_t brightnessState,
                                              int32_t streamAll)
 {
     HiSysEventDeviceStateDataRow hiSysEventDeviceStateDataRow = {
-        brightnessState, btState, locationState, wifiState, streamDefault, voiceCall, music, streamRing, media,
-        voiceAssistant, system, alarm, notification, bluetoolthSco, enforcedAudible, streamDtmf, streamTts,
-        accessibility, recording, streamAll};
+        brightnessState, btState,    locationState,  wifiState,     streamDefault, voiceCall,    music,
+        streamRing,      media,      voiceAssistant, system,        alarm,         notification, bluetoolthSco,
+        enforcedAudible, streamDtmf, streamTts,      accessibility, recording,     streamAll};
     traceDataCache_->GetHiSysEventDeviceStateData()->AppendNewData(hiSysEventDeviceStateDataRow);
     return;
 }
@@ -150,10 +151,10 @@ bool HiSysEventMeasureFilter::SaveAllHiSysEvent(json jMessage, bool &haveSplitSe
 }
 void HiSysEventMeasureFilter::UpdataAllHiSysEvent(const JsonMessage &jsMessage, uint64_t newTimeStamp)
 {
-    HiSysEventAllEventDataRow hiSysEventAllEventDataRow = {jsMessage.domainId, jsMessage.eventNameId, newTimeStamp,
-                                                           jsMessage.type, jsMessage.timeZone, jsMessage.pid,
-                                                           jsMessage.tid, jsMessage.uid, jsMessage.level, jsMessage.tag, 
-                                                           jsMessage.eventId, jsMessage.seq, jsMessage.info,jsMessage.content.dump()};
+    HiSysEventAllEventDataRow hiSysEventAllEventDataRow = {
+        jsMessage.domainId, jsMessage.eventNameId, newTimeStamp,   jsMessage.type,          jsMessage.timeZone,
+        jsMessage.pid,      jsMessage.tid,         jsMessage.uid,  jsMessage.level,         jsMessage.tag,
+        jsMessage.eventId,  jsMessage.seq,         jsMessage.info, jsMessage.content.dump()};
     traceDataCache_->GetHiSysEventAllEventData()->AppendHiSysEventData(hiSysEventAllEventDataRow);
 }
 bool HiSysEventMeasureFilter::JGetData(const json &jMessage,

@@ -108,7 +108,7 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
                                   DataIndex nextInfo)
 {
     BinderTransactionInfo btInfo = {prevPid, nextPid, INVALID_UINT64, INVALID_UINT64};
-    SchedSliceRow schedSliceRow = {ts,INVALID_UINT64,cpu,nextPid,0,nextPrio};
+    SchedSliceRow schedSliceRow = {ts, INVALID_UINT64, cpu, nextPid, 0, nextPrio};
     auto index = traceDataCache_->GetSchedSliceData()->AppendSchedSlice(schedSliceRow);
     auto prevTidOnCpu = cpuToRowSched_.find(cpu);
     if (prevTidOnCpu != cpuToRowSched_.end()) {

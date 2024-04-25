@@ -97,7 +97,7 @@ private:
 #ifdef ENABLE_HIPERF
     void ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
 #endif
-    void ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack);
+    void ProcPbreaderSplitResult(SplitFileCallBack splitFileCallBack);
     bool SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish);
 
 private:

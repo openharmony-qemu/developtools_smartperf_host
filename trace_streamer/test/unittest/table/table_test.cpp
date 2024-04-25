@@ -140,10 +140,11 @@ HWTEST_F(TableTest, CallstackTableTest, TestSize.Level1)
     const std::optional<uint64_t> &parentId1 = 1;
 
     stream_.traceDataCache_->InitDB();
-    CallStackInternalRow callStackInternalRow = {startT, durationNs, internalTid, cat,name, depth};
-    CallStackInternalRow callStackInternalRow1 = {startT1, durationNs1, internalTid1, cat1,name1, depth1};
+    CallStackInternalRow callStackInternalRow = {startT, durationNs, internalTid, cat, name, depth};
+    CallStackInternalRow callStackInternalRow1 = {startT1, durationNs1, internalTid1, cat1, name1, depth1};
     stream_.traceDataCache_->GetInternalSlicesData()->AppendInternalAsyncSlice(callStackInternalRow, cookid, parentId);
-    stream_.traceDataCache_->GetInternalSlicesData()->AppendInternalAsyncSlice(callStackInternalRow1, cookid1, parentId1);
+    stream_.traceDataCache_->GetInternalSlicesData()->AppendInternalAsyncSlice(callStackInternalRow1, cookid1,
+                                                                               parentId1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 0);
@@ -438,11 +439,13 @@ HWTEST_F(TableTest, FileSystemSampleTableTest, TestSize.Level1)
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 0);
 
-    FileSystemSampleRow fileSystemSampleRow = {CALLCHAIN_ID, TYPE, IPID, ITID, START_TS, END_TS, DUR, returnValue, errorCode, SIZE, FD, fileId, firstArgument,
-        secondArgument, thirdArgument, fourthArgument};
+    FileSystemSampleRow fileSystemSampleRow = {
+        CALLCHAIN_ID, TYPE, IPID, ITID,   START_TS,      END_TS,         DUR,           returnValue,
+        errorCode,    SIZE, FD,   fileId, firstArgument, secondArgument, thirdArgument, fourthArgument};
     stream_.traceDataCache_->GetFileSystemSample()->AppendNewData(fileSystemSampleRow);
-    fileSystemSampleRow = {CALLCHAIN_ID1, TYPE1, IPID1, ITID1, START_TS1, END_TS1, DUR1, returnValue1, errorCode1, SIZE1, FD1, fileId1,
-        firstArgument1, secondArgument1, thirdArgument1, fourthArgument1};
+    fileSystemSampleRow = {CALLCHAIN_ID1,  TYPE1,           IPID1,          ITID1,          START_TS1, END_TS1,
+                           DUR1,           returnValue1,    errorCode1,     SIZE1,          FD1,       fileId1,
+                           firstArgument1, secondArgument1, thirdArgument1, fourthArgument1};
     stream_.traceDataCache_->GetFileSystemSample()->AppendNewData(fileSystemSampleRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
@@ -479,8 +482,7 @@ HWTEST_F(TableTest, HisysEventMeasureTableTest, TestSize.Level1)
     int32_t type = 1;
     double numericValue = 0;
     DataIndex stringValue = stream_.traceDataCache_->GetDataIndex("stringValue");
-    HiSysEventMeasureDataRow hiSysEventMeasureDataRow = {ts, nameId, keyId, type, numericValue, stringValue,
-                                                                    serial};
+    HiSysEventMeasureDataRow hiSysEventMeasureDataRow = {ts, nameId, keyId, type, numericValue, stringValue, serial};
     stream_.traceDataCache_->GetHiSysEventMeasureData()->AppendData(hiSysEventMeasureDataRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
@@ -573,9 +575,11 @@ HWTEST_F(TableTest, IoLatencySampleTableTest, TestSize.Level1)
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timestamp1, fps1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
 
-    GetBioLatencySampleDataRow bioLatencySampleDataRow = {CALLCHAIN_ID, TYPE, IPID, ITID, startTs, endTs, latencyDur, tier, size, blockNumber, filePathId, durPer4k};
+    GetBioLatencySampleDataRow bioLatencySampleDataRow = {CALLCHAIN_ID, TYPE, IPID, ITID,        startTs,    endTs,
+                                                          latencyDur,   tier, size, blockNumber, filePathId, durPer4k};
     stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(bioLatencySampleDataRow);
-    bioLatencySampleDataRow = {callChainId1, type1, ipid1, itid1, startTs1, endTs1, latencyDur1, tier1, size1, blockNumber1, filePathId1, durPer4k1};
+    bioLatencySampleDataRow = {callChainId1, type1, ipid1, itid1,        startTs1,    endTs1,
+                               latencyDur1,  tier1, size1, blockNumber1, filePathId1, durPer4k1};
     stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(bioLatencySampleDataRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
@@ -608,8 +612,8 @@ HWTEST_F(TableTest, IrqTableTest, TestSize.Level1)
 
     CallStackInternalRow callStackInternalRow = {startT, durationNs, internalTid, cat, name, depth};
     CallStackInternalRow callStackInternalRow1 = {startT1, durationNs1, internalTid1, cat1, name1, depth1};
-    stream_.traceDataCache_->GetIrqData()->AppendInternalSlice(callStackInternalRow,parentId);
-    stream_.traceDataCache_->GetIrqData()->AppendInternalSlice(callStackInternalRow1,parentId1);
+    stream_.traceDataCache_->GetIrqData()->AppendInternalSlice(callStackInternalRow, parentId);
+    stream_.traceDataCache_->GetIrqData()->AppendInternalSlice(callStackInternalRow1, parentId1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
 }
@@ -754,9 +758,11 @@ HWTEST_F(TableTest, NativeHookTableTest, TestSize.Level1)
     int64_t memSize1 = 2;
     int64_t curMemSize1 = 2;
 
-    NativeHookRow nativeHookRow = {CALLCHAIN_ID, IPID, ITID, eventType, subType, timeStamp, endTimestamp, duration, addr, memSize};
+    NativeHookRow nativeHookRow = {CALLCHAIN_ID, IPID,         ITID,     eventType, subType,
+                                   timeStamp,    endTimestamp, duration, addr,      memSize};
     stream_.traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
-    nativeHookRow = {callChainId1, ipid1, itid1, eventType1, subType1, timestamp1, endTimestamp1, duration1, addr1, memSize1};
+    nativeHookRow = {callChainId1, ipid1,         itid1,     eventType1, subType1,
+                     timestamp1,   endTimestamp1, duration1, addr1,      memSize1};
     stream_.traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
@@ -792,8 +798,8 @@ HWTEST_F(TableTest, NativeHookFrameTableTest, TestSize.Level1)
     uint64_t offset1 = 2;
     uint64_t symbolOffset1 = 2;
     const std::string vaddr1 = "addr1";
-    NativeHookFrameVaddrRow nativeHookFrameVaddrRow = {CALLCHAIN_ID, depth, ip, symbolName,
-                                                                                filePath, offset, symbolOffset, vaddr};
+    NativeHookFrameVaddrRow nativeHookFrameVaddrRow = {CALLCHAIN_ID, depth,  ip,           symbolName,
+                                                       filePath,     offset, symbolOffset, vaddr};
     stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow);
     nativeHookFrameVaddrRow = {CALLCHAIN_ID1, depth1, ip1, symbolName1, filePath1, offset1, symbolOffset1, vaddr1};
     stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow);
@@ -941,8 +947,10 @@ HWTEST_F(TableTest, PerfSampleTableTest, TestSize.Level1)
     uint64_t cpuId1 = 2;
     uint64_t threadState1 = stream_.traceDataCache_->GetDataIndex("threadState1");
 
-    PerfSampleRow perfSampleRow = {sampleId, timestamp, tid, eventCount, eventTypeId, timestampTrace, cpuId, threadState};
-    PerfSampleRow perfSampleRow1 = {sampleId1, timestamp1, tid1, eventCount1, eventTypeId1, timestampTrace1, cpuId1, threadState1};
+    PerfSampleRow perfSampleRow = {sampleId,    timestamp,      tid,   eventCount,
+                                   eventTypeId, timestampTrace, cpuId, threadState};
+    PerfSampleRow perfSampleRow1 = {sampleId1,    timestamp1,      tid1,   eventCount1,
+                                    eventTypeId1, timestampTrace1, cpuId1, threadState1};
     stream_.traceDataCache_->GetPerfSampleData()->AppendNewPerfSample(perfSampleRow);
     stream_.traceDataCache_->GetPerfSampleData()->AppendNewPerfSample(perfSampleRow1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
@@ -1097,8 +1105,8 @@ HWTEST_F(TableTest, SchedSliceTest, TestSize.Level1)
     uint64_t endState1 = 2;
     uint64_t priority1 = 2;
 
-    SchedSliceRow schedSliceRow = {ts,dur,cpu,internalTid,endState,priority};
-    SchedSliceRow schedSliceRow1 = {ts1,dur1,cpu1,internalTid1,endState1,priority1};
+    SchedSliceRow schedSliceRow = {ts, dur, cpu, internalTid, endState, priority};
+    SchedSliceRow schedSliceRow1 = {ts1, dur1, cpu1, internalTid1, endState1, priority1};
     stream_.traceDataCache_->GetSchedSliceData()->AppendSchedSlice(schedSliceRow);
     stream_.traceDataCache_->GetSchedSliceData()->AppendSchedSlice(schedSliceRow1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);

@@ -36,8 +36,7 @@ private:
     std::deque<DataIndex> subkeyNameIds_ = {};
 };
 
-struct HiSysEventMeasureDataRow
-{
+struct HiSysEventMeasureDataRow {
     /* data */
     uint64_t serial = INVALID_UINT64;
     uint64_t ts = INVALID_UINT64;
@@ -81,8 +80,7 @@ private:
     uint32_t rowCount_ = 0;
 };
 
-struct HiSysEventDeviceStateDataRow
-{
+struct HiSysEventDeviceStateDataRow {
     /* data */
     int32_t brightness = INVALID_UINT32;
     int32_t btState = INVALID_UINT32;

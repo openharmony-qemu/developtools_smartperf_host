@@ -61,13 +61,13 @@ private:
     std::deque<DataIndex> packedNames_ = {};
 };
 struct SoStaticInitalizationRow {
-     uint32_t ipid = INVALID_UINT32;
-     uint32_t tid = INVALID_UINT32;
-     uint32_t callId = INVALID_UINT32;
-     uint64_t startTime = INVALID_UINT64;
-     uint64_t endTime = INVALID_UINT64;
-     DataIndex soName = INVALID_UINT64;
-     uint32_t depth = INVALID_UINT32;
+    uint32_t ipid = INVALID_UINT32;
+    uint32_t tid = INVALID_UINT32;
+    uint32_t callId = INVALID_UINT32;
+    uint64_t startTime = INVALID_UINT64;
+    uint64_t endTime = INVALID_UINT64;
+    DataIndex soName = INVALID_UINT64;
+    uint32_t depth = INVALID_UINT32;
 };
 class SoStaticInitalization : public CacheBase {
 public:

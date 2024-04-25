@@ -129,7 +129,7 @@ class MerageBeanDataSplit {
     this.resetAllNode(data, currentTreeList, searchValue);
   }
 
-  splitPush(splitMapData: SplitMap, name: string, node: MerageBean) {
+  splitPush(splitMapData: SplitMap, name: string, node: MerageBean): void {
     if (!splitMapData.has(name)) {
       splitMapData.set(name, []);
     }
