@@ -107,7 +107,7 @@ export class TabPaneDataCut extends BaseElement {
         },
       ]);
     }
-    if (this.currentSelection!.clockMapData.size === 1 && this.currentSelection!.clockMapData.has('gpufreq Frequency') === true) {
+    if (this.currentSelection!.clockMapData.size > 0 && this.currentSelection!.clockMapData.has('gpufreq Frequency') === true) {
       options.push({
         name: 'Gpu Freq'
       });
