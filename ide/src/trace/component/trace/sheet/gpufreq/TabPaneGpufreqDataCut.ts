@@ -61,6 +61,8 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     });
     this._threadId!.style.border = '1px solid rgb(151, 151, 151)';
     this._threadFunc!.style.border = '1px solid rgb(151, 151, 151)';
+    this.isChangeSingleBtn(false);
+    this.isChangeLoopBtn(false);
   };
 
   initElements(): void {
@@ -73,10 +75,14 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     this.threadFuncName = this._threadFunc!.value.trim();
     //点击single
     this._single?.addEventListener('click', (e) => {
+      this.isChangeSingleBtn(true);
+      this.isChangeLoopBtn(false);
       this.clickFun(this._single!.innerHTML);
     });
     //点击loop
     this._loop?.addEventListener('click', (e) => {
+      this.isChangeSingleBtn(false);
+      this.isChangeLoopBtn(true);
       this.clickFun(this._loop!.innerHTML);
     });
     //点击周期，算力泳道对应周期实现高亮效果
@@ -99,6 +105,22 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     let result: Array<SearchGpuFuncBean> = await getGpufreqDataCut(tIds, funcName, leftNS, rightNS, single, loop);
     return result;
   };
+   //是否改变single按钮颜色
+   private isChangeSingleBtn(flag: boolean): void {
+    if (flag) {
+      this.setAttribute('single', '');
+    } else {
+      this.removeAttribute('single');
+    };
+  }
+  //是否改变loop按钮颜色
+  private isChangeLoopBtn(flag: boolean): void {
+    if (flag) {
+      this.setAttribute('loop', '');
+    } else {
+      this.removeAttribute('loop');
+    };
+  }
   private clickFun(fun: string): void {
     this.threadIdValue = this._threadId!.value.trim();
     this.threadFuncName = this._threadFunc!.value.trim();
@@ -442,6 +464,14 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         button:hover{
             background-color:#666666;
             color:white;
+        }
+        :host([single]) #single {
+          background-color: #666666;
+          color: white
+        }
+        :host([loop]) #loop {
+          background-color: #666666;
+          color: white
         }
         </style>
         <div id='dataCut'>
