@@ -768,6 +768,7 @@ export class TabPaneFreqDataCut extends BaseElement {
           Number(threadArr[i].tid) === Number(totalData[j].tid)
         ) {
           totalData[j].thread = 'TotalData';
+          totalData[j].flag = 't_cycle';
           // @ts-ignore
           threadArr[i].children.unshift(totalData[j]);
         }

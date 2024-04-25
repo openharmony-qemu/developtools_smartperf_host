@@ -695,12 +695,14 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
         })
       );
     } else {
-      sp.dispatchEvent(
-        new CustomEvent('trace-next-data', {
-          detail: {},
-          composed: false,
-        })
-      );
+      if (sp.focusTarget === '') {
+        sp.dispatchEvent(
+          new CustomEvent('trace-next-data', {
+            detail: {},
+            composed: false,
+          })
+        );
+      }
     }
     document.addEventListener('keydown', sp.documentOnKeyDown);
   }

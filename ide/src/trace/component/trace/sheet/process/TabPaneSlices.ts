@@ -84,6 +84,11 @@ export class TabPaneSlices extends BaseElement {
     this.sliceSearchCount = this.shadowRoot?.querySelector<LitTable>('#search-count');
     this.slicesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-slices');
     this.slicesRange = this.shadowRoot?.querySelector('#time-range');
+    let slicesInput = this.shadowRoot?.querySelector('#filterName');
+    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spSystemTrace = spApplication?.shadowRoot?.querySelector(
+      'div > div.content > sp-system-trace'
+    ) as SpSystemTrace;
     this.slicesTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
@@ -97,16 +102,22 @@ export class TabPaneSlices extends BaseElement {
     this.slicesTbl!.addEventListener('click', () => {
       FuncStruct.funcSelect = false;
       // @ts-ignore
-      this.orgnazitionData(data);
+      data && this.orgnazitionData(data);
     });
     this.slicesTbl!.addEventListener('contextmenu', () => {
       FuncStruct.funcSelect = true;
       // @ts-ignore
-      this.orgnazitionData(data);
+      data && this.orgnazitionData(data);
     });
-    this.shadowRoot?.querySelector('#filterName')?.addEventListener('input', (e) => {
+    slicesInput?.addEventListener('input', (e) => {
       // @ts-ignore
       this.findName(e.target.value);
+    });
+    slicesInput?.addEventListener('focus', (e) => {
+      spSystemTrace.focusTarget = 'slicesInput';
+    });
+    slicesInput?.addEventListener('blur', (e) => {
+      spSystemTrace.focusTarget = '';
     });
   }
   async orgnazitionData(data: Object): Promise<void> {
