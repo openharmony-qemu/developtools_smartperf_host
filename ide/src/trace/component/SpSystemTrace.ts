@@ -211,6 +211,7 @@ export class SpSystemTrace extends BaseElement {
   _flagList: Array<any> = [];
   static currentStartTime: number = 0;
   static retargetIndex: number = 0;
+  focusTarget: string = '';
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
