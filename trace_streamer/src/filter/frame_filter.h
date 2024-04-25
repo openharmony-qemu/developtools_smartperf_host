@@ -16,6 +16,7 @@
 #ifndef FRAME_FILTER_H
 #define FRAME_FILTER_H
 #include <vector>
+#include "common_types.h"
 #include "double_map.h"
 #include "filter_base.h"
 #include "trace_data_cache.h"
@@ -26,9 +27,7 @@ class FrameFilter : private FilterBase {
 public:
     FrameFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
     ~FrameFilter() override;
-    void BeginVsyncEvent(uint64_t ts,
-                         uint32_t ipid,
-                         uint32_t itid,
+    void BeginVsyncEvent(const BytraceLine &line,
                          uint64_t expectStart,
                          uint64_t expectEnd,
                          uint32_t vsyncId,

@@ -153,7 +153,7 @@ void PtreaderHilogParser::BeginFilterHilogData(HilogLine *hilogData)
     auto logTag = traceDataCache_->dataDict_.GetStringIndex(hilogData->tag);
     auto logData = traceDataCache_->dataDict_.GetStringIndex(hilogData->context);
     LogInfoRow logInfoRow = {curLineSeq, newTimeStamp, hilogData->pid, hilogData->tid,
-                             levelData, logTag, logData, hilogData->timeStamp};
+                             levelData,  logTag,       logData,        hilogData->timeStamp};
     traceDataCache_->GetHilogData()->AppendNewLogInfo(logInfoRow);
     return;
 }

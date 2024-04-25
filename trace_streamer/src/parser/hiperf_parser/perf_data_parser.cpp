@@ -622,15 +622,15 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
     }
     callChainId = ++callChainId_;
     pidAndStackHashToCallChainId_.Insert(pid, stackHash, callChainId);
-    uint64_t depth = 0;
+    uint32_t depth = 0;
     for (auto frame = sample->callFrames_.rbegin(); frame != sample->callFrames_.rend(); ++frame) {
         uint64_t fileId = INVALID_UINT64;
         auto fileDataIndex = traceDataCache_->dataDict_.GetStringIndex(frame->mapName);
         if (fileDataDictIdToFileId_.count(fileDataIndex) != 0) {
             fileId = fileDataDictIdToFileId_.at(fileDataIndex);
         }
-        traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(callChainId, depth++, frame->pc,
-                                                                        frame->funcOffset, fileId, frame->index);
+        PerfCallChainRow perfCallChainRow = {callChainId, depth++, frame->pc, frame->funcOffset, fileId, frame->index};
+        traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(perfCallChainRow);
     }
     return callChainId;
 }
@@ -656,7 +656,7 @@ void PerfDataParser::UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<
     }
     auto configIndex = report_->GetConfigIndex(sample->data_.id);
     PerfSampleRow perfSampleRow = {callChainId, sample->data_.time, sample->data_.tid, sample->data_.period,
-                                   configIndex, newTimeStamp, sample->data_.cpu, threadStatIndex};
+                                   configIndex, newTimeStamp,       sample->data_.cpu, threadStatIndex};
     perfSampleData->AppendNewPerfSample(perfSampleRow);
 }
 

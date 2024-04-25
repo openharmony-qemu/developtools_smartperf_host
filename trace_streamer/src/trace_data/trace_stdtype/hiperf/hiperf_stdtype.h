@@ -20,8 +20,7 @@
 namespace SysTuning {
 namespace TraceStdtype {
 
-struct PerfCallChainRow
-{
+struct PerfCallChainRow {
     /* data */
     uint32_t callChainId = INVALID_UINT32;
     uint32_t depth = INVALID_UINT32;

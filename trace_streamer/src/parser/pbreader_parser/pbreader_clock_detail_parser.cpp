@@ -76,15 +76,15 @@ void PbreaderClockDetailParser::Parse(const ProfilerTraceFileHeader *profilerTra
         TS_LOGW("Profiler header has no clock snapshot!!!");
         return;
     }
-
     std::vector<SnapShot> snapShot;
     TS_LOGI("got clock snapshot");
-
     TS_LOGI("clockid: TS_CLOCK_BOOTTIME, ts:%" PRIu64 "", profilerTraceFileHeader->data.boottime);
     if (profilerTraceFileHeader->data.boottime) {
         snapShot.push_back(SnapShot{TS_CLOCK_BOOTTIME, profilerTraceFileHeader->data.boottime});
     }
-
+    if (traceDataCache_->traceStartTime_ == std::numeric_limits<uint64_t>::max()) {
+        traceDataCache_->traceStartTime_ = profilerTraceFileHeader->data.boottime;
+    }
     TS_LOGI("clockid: TS_CLOCK_REALTIME, ts:%" PRIu64 "", profilerTraceFileHeader->data.realtime);
     if (profilerTraceFileHeader->data.realtime) {
         snapShot.push_back(SnapShot{TS_CLOCK_REALTIME, profilerTraceFileHeader->data.realtime});

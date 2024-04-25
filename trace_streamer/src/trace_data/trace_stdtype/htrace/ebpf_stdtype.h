@@ -20,8 +20,7 @@
 namespace SysTuning {
 namespace TraceStdtype {
 
-struct FileSystemSampleRow
-{
+struct FileSystemSampleRow {
     /* data */
     uint32_t callChainId = INVALID_UINT32;
     uint16_t type = INVALID_UINT16;
@@ -99,8 +98,7 @@ private:
     std::deque<DataIndex> fourthArguments_ = {};
 };
 
-struct PagedMemorySampleDataRow
-{
+struct PagedMemorySampleDataRow {
     /* data */
     uint32_t callChainId = INVALID_UINT32;
     uint16_t type = INVALID_UINT16;
@@ -151,8 +149,7 @@ private:
     std::deque<uint32_t> itids_ = {};
 };
 
-struct BioLatencySampleDataRow
-{
+struct BioLatencySampleDataRow {
     /* data */
     uint32_t callChainId = INVALID_UINT32;
     uint64_t type = INVALID_UINT64;
@@ -216,15 +213,14 @@ private:
     uint32_t rowCount_ = 0;
 };
 
-struct EbpfCallStackDataRow
-{
+struct EbpfCallStackDataRow {
     /* data */
     uint32_t callChainId = INVALID_UINT32;
     uint32_t depth = INVALID_UINT32;
     DataIndex ip = INVALID_DATAINDEX;
     DataIndex symbolId = INVALID_DATAINDEX;
     DataIndex filePathId = INVALID_DATAINDEX;
-    uint64_t vaddr  = INVALID_UINT64;
+    uint64_t vaddr = INVALID_UINT64;
 };
 
 class EbpfCallStackData : public CacheBase {

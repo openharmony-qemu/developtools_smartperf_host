@@ -679,19 +679,16 @@ export class SelectionParam {
         // @ts-ignore
         return isIntersect(frameSelectData, TraceRow.rangeSelectObject!);
       });
-      let copyFrameSelectData = JSON.parse(JSON.stringify(frameSelectData));
+      let copyFrameSelectData = JSON.parse(JSON.stringify(frameSelectData)) as Array<JsCpuProfilerChartFrame>;
       let frameSelectDataIdArr: Array<number> = [];
       for (let data of copyFrameSelectData) {
         frameSelectDataIdArr.push(data.id);
       }
-      let jsCpuProfilerData = copyFrameSelectData.filter((item: unknown): unknown => {
-        // @ts-ignore
+      let jsCpuProfilerData = copyFrameSelectData.filter((item: JsCpuProfilerChartFrame): unknown => {
         if (item.depth !== 0) {
           return;
         }
-        // @ts-ignore
         setSelectState(item, frameSelectDataIdArr);
-        // @ts-ignore
         item.isSelect = true;
         return item;
       });

@@ -314,6 +314,7 @@ export const applicationHtml: string = `
           width: -webkit-fill-available;
           margin-right: 5.2em;
           align-items: center;
+          width: auto;
         }
         .page-number-list {
             display: flex;

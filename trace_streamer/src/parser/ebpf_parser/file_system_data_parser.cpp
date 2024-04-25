@@ -39,7 +39,7 @@ void FileSystemDataParser::IpAndCallidFind(const FsFixedHeader *fsFixedHeadrAddr
         std::string ipsToStr(reinterpret_cast<const char *>(userIpsAddr), fsFixedHeadrAddr->nrUserIPs * SINGLE_IP_SIZE);
         auto ipsHashValue = hashFun_(ipsToStr);
         auto value = pidAndipsToCallId_.Find(fsFixedHeadrAddr->pid, ipsHashValue);
-        if (value != INVALID_UINT64) {
+        if (value != INVALID_UINT32) {
             callIdExistFlag = true;
             currentCallId_ = value;
         } else {
@@ -144,8 +144,9 @@ void FileSystemDataParser::ParseFileSystemEvent()
         uint64_t filePathId = INVALID_UINT64;
         auto fd = GetFileDescriptor(fsFixedHeadrAddr, type);
         size_t size = FileWriteOperation(tracerEventToStrIndexMap, fsFixedHeadrAddr, itid, filePathId, type);
-        FileSystemSampleRow fileSystemSampleRow = {currentCallId_, type, ipid, itid, newStartTs, newEndTs, duration, returnValue, errorCode, size, fd,
-            filePathId, firstArgument, secondArgument, thirdArgument, fourthArgument};
+        FileSystemSampleRow fileSystemSampleRow = {
+            currentCallId_, type, ipid, itid,       newStartTs,    newEndTs,       duration,      returnValue,
+            errorCode,      size, fd,   filePathId, firstArgument, secondArgument, thirdArgument, fourthArgument};
         traceDataCache_->GetFileSystemSample()->AppendNewData(fileSystemSampleRow);
         if (!callIdExistFlag) {
             ParseCallStackData(userIpsAddr, fsFixedHeadrAddr->nrUserIPs, fsFixedHeadrAddr->pid, currentCallId_);

@@ -559,7 +559,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   };
 
   //@ts-ignore
-  getHoverStruct(strict: boolean = true, offset: boolean = false, maxKey?: string): T {
+  getHoverStruct(strict: boolean = true, offset: boolean = false, maxKey?: string): T | undefined {
     if (this.isHover) {
       if (maxKey) {
         let arr = this.dataListCache
@@ -569,7 +569,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       } else {
         return this.dataListCache.find(
           (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
-        ) as T;
+        );
       }
     }
   }

@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set -e
-TARGET_PATH=""
-PROJ_PATH=""
 echo $SCRIPT_PATH
-function help {
+function help() {
     echo "Usage: $1 [-p <target_path>]"
     echo "      -p <target_path>, set the sync target path."
     echo "      -h Show the help info."
     exit
 }
-function parser_param {
+function parser_param() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -p)
@@ -35,13 +33,13 @@ function parser_param {
         esac
     done
 }
-function check_target_path {
+function check_target_path() {
     if [ -z "$TARGET_PATH" ]; then
         echo "target path is empty!"
         help $0
         exit
     fi
 }
-function set_cur_proj_path {
+function set_cur_proj_path() {
     PROJ_PATH=$(dirname "$(readlink -f "$0")")
 }

@@ -212,6 +212,7 @@ export class HdcDeviceManager {
               dataArray.length
             );
           }
+          return;
         } else if (keyboardEvent.altKey) {
           return;
         } else {
@@ -229,6 +230,7 @@ export class HdcDeviceManager {
               hdcShellStream.DoCommand(cmd);
             }
           }
+          return;
         }
       } else {
         hdcShellStream.DoCommand(HdcDeviceManager.processCommand(keyboardEvent));

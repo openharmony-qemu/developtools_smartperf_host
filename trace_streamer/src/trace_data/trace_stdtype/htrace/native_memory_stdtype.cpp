@@ -264,7 +264,8 @@ const std::deque<std::string> &NativeHookFrame::Vaddrs() const
 
 size_t NativeHookStatistic::AppendNewNativeHookStatistic(const NativeHookStatisticRow &nativeHookStatisticRow)
 {
-    AppendNativeHookSampleBase(nativeHookStatisticRow.callChainId, nativeHookStatisticRow.ipid, nativeHookStatisticRow.timeStamp);
+    AppendNativeHookSampleBase(nativeHookStatisticRow.callChainId, nativeHookStatisticRow.ipid,
+                               nativeHookStatisticRow.timeStamp);
     memoryTypes_.emplace_back(nativeHookStatisticRow.memoryType);
     applyCounts_.emplace_back(nativeHookStatisticRow.applyCount);
     memSubTypes_.emplace_back(nativeHookStatisticRow.subMemType);

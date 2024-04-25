@@ -17,7 +17,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 size_t g_loadSize = 0;
 size_t g_fileSize = 0;
-const std::string TRACE_STREAMER_VERSION = "4.1.1";              // version
-const std::string TRACE_STREAMER_PUBLISH_VERSION = "2024/04/22"; // publish datetime
+const std::string TRACE_STREAMER_VERSION = "4.1.2";              // version
+const std::string TRACE_STREAMER_PUBLISH_VERSION = "2024/04/24"; // publish datetime
 } // namespace TraceStreamer
 } // namespace SysTuning

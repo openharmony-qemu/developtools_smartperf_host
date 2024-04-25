@@ -47,7 +47,7 @@ private:
                           uint64_t newEndTs,
                           DataIndex &returnValue,
                           DataIndex &errorCode);
-    uint64_t currentCallId_ = 0;
+    uint32_t currentCallId_ = 0;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

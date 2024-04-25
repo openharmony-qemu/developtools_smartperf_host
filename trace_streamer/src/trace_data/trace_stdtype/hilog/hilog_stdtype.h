@@ -19,7 +19,7 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
-    struct LogInfoRow {
+struct LogInfoRow {
     uint64_t seq = INVALID_UINT64;
     uint64_t timeStamp = INVALID_UINT64;
     uint32_t pid = INVALID_UINT32;

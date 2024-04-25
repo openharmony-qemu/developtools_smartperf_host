@@ -356,7 +356,7 @@ bool RpcServer::ParseSplitFileData(const uint8_t *data,
     }
 #endif
     if (ts_->GetFileType() == TRACE_FILETYPE_H_TRACE) {
-        ProcHtraceSplitResult(splitFileCallBack);
+        ProcPbreaderSplitResult(splitFileCallBack);
     }
 #ifdef ENABLE_HIPERF
     if (ts_->GetFileType() == TRACE_FILETYPE_PERF) {
@@ -371,15 +371,18 @@ bool RpcServer::ParseSplitFileData(const uint8_t *data,
     ts_->GetTraceDataCache()->isSplitFile_ = false;
     return true;
 }
-void RpcServer::ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack)
+void RpcServer::ProcPbreaderSplitResult(SplitFileCallBack splitFileCallBack)
 {
     uint64_t dataSize = 0;
     std::string result = VALUE_STR;
 #ifdef ENABLE_NATIVE_HOOK
     ts_->GetPbreaderParser()->ClearNativehookData();
 #endif
-    for (const auto &itemHtrace : ts_->GetPbreaderParser()->GetPbreaderSplitData()) {
-        result += SIZE + std::to_string(itemHtrace.second);
+    for (const auto &itemPbreader : ts_->GetPbreaderParser()->GetPbreaderSplitData()) {
+        dataSize += itemPbreader.second;
+        result += OFFSET + std::to_string(itemPbreader.first);
+        result += SIZE + std::to_string(itemPbreader.second);
+        result += "},";
     }
     auto dataSourceType = ts_->GetPbreaderParser()->GetDataSourceType();
     auto profilerHeader = ts_->GetPbreaderParser()->GetProfilerHeader();

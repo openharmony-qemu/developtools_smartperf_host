@@ -373,7 +373,7 @@ export class SportRuler extends Graph {
     return inRange;
   }
 
-  drawTriangle(time: number, type: string): unknown {
+  drawTriangle(time: number, type: string): number {
     if (time !== null && typeof time !== undefined) {
       let i = this.flagList.findIndex((it) => it.time === time);
       if (type === 'triangle') {
@@ -418,6 +418,7 @@ export class SportRuler extends Graph {
           this.flagList.find((it) => it.selected) || null
         );
     }
+    return 0;
   }
 
   removeTriangle(type: string): void {

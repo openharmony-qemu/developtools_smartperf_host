@@ -354,7 +354,6 @@ void FfrtConverter::ConvertFfrtThreadToFfrtTask()
             threadInfo.pid = pid;
             threadInfo.tid = tid;
             threadInfo.name = ffrtContent.name;
-            // auto &threadName = ffrtContent.name;
             auto switchInFakeLog = false;
             auto switchOutFakeLog = false;
             auto ffbkMarkRemove = false;

@@ -92,9 +92,8 @@ void PrintEventParser::ParseBeginEvent(const std::string &comm,
                                                               traceDataCache_->GetDataIndex(point.name_));
     if (index != INVALID_UINT32) {
         // add distributed data
-         CallStackDistributeInfoRow callStackDistributeInfoRow = {point.chainId_, point.spanId_,
-                                                                 point.parentSpanId_, point.flag_, point.args_};
-        traceDataCache_->GetInternalSlicesData()->SetDistributeInfo(index,callStackDistributeInfoRow);
+        traceDataCache_->GetInternalSlicesData()->SetDistributeInfo(index, point.chainId_, point.spanId_,
+                                                                    point.parentSpanId_, point.flag_);
         if (pid == point.tgid_) {
             if (HandleFrameSliceBeginEvent(point.funcPrefixId_, index, point.funcArgs_, line)) {
                 return;
@@ -308,9 +307,7 @@ bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string &args, const
             expectEnd = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_MONOTONIC, expectEnd);
         }
     }
-    auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
-    auto iPid = streamFilters_->processFilter_->GetInternalPid(line.tgid);
-    streamFilters_->frameFilter_->BeginVsyncEvent(line.ts, iPid, iTid, now, expectEnd, vsyncId, callStackRow);
+    streamFilters_->frameFilter_->BeginVsyncEvent(line, now, expectEnd, vsyncId, callStackRow);
     vsyncSliceIds_.push_back(callStackRow);
     return true;
 }
