@@ -20,7 +20,7 @@ import { drawString, Rect, ns2x } from './ProcedureWorkerCommon';
 import { SpSegmentationChart } from '../../component/chart/SpSegmentationChart';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
 import { CpuFreqExtendStruct } from './ProcedureWorkerFreqExtend';
-import { ThreadStruct } from './ProcedureWorkerThread';
+import { AllstatesStruct } from './ProcedureWorkerAllStates'
 export class BinderRender extends Render {
   renderMainThread(
     freqReq: {
@@ -56,6 +56,32 @@ export class BinderRender extends Render {
           }
           BinderStruct.draw(freqReq.context, re);
         }
+        // dur太小，从datalist里面找
+        if (!find) {
+          let hoverData = binderList.filter(v => {
+            return v.cycle === SpSegmentationChart.tabHoverObj.cycle
+          })[0];
+          if (hoverData) {
+            let pointX: number = ns2x(
+              hoverData.startNS || 0,
+              TraceRow.range!.startNS,
+              TraceRow.range!.endNS,
+              TraceRow.range!.totalNS,
+              new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
+            );
+            SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = new Flag(
+              Math.floor(pointX),
+              0,
+              0,
+              0,
+              hoverData.startNS,
+              '#666666',
+              '',
+              true,
+              ''
+            );
+          }
+        }
       } else {
         for (let re of binderFilter) {
           BinderStruct.draw(freqReq.context, re);
@@ -70,7 +96,9 @@ export class BinderRender extends Render {
         BinderStruct.draw(freqReq.context, re);
       }
     }
-    if (!find && SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key === '' && CpuFreqExtendStruct.hoverStruct === undefined && !ThreadStruct.hoverThreadStruct) {
+    if (!find &&
+      SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key === '' &&
+      CpuFreqExtendStruct.hoverStruct === undefined && !AllstatesStruct.hoverThreadStruct) {
       BinderStruct.hoverCpuFreqStruct = undefined;
       SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined
       find = false;

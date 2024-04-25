@@ -65,6 +65,7 @@ import { LtpoRender } from './ProcedureWorkerLTPO';
 import { BinderRender } from './procedureWorkerBinder';
 import { SampleRender } from './ProcedureWorkerBpftrace';
 import { GpuCounterRender } from './ProcedureWorkerGpuCounter';
+import { AllStatesRender } from './ProcedureWorkerAllStates'
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -127,6 +128,7 @@ export let renders: any = {
   binder: new BinderRender(),
   sample: new SampleRender(),
   gpuCounter: new GpuCounterRender(),
+  'stateCut': new AllStatesRender()
 };
 
 function match(type: string, req: RequestMessage): void {
