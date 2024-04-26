@@ -64,7 +64,7 @@ private:
     void ClassifySchedSwitchData(const size_t index, std::unordered_map<int, std::vector<int>> &traceMap);
     int FindIntNumberAfterStr(const size_t index, const string &str);
     std::string FindSubStrAfterStr(const size_t index, const string &str);
-    std::string GetLabel(const std::string &mark);
+    std::string GetLabel(const std::string &line);
     void ConvertFfrtThreadToFfrtTask();
     void ProcessMarkWithSchedSwitch(const int tid, int &prio, const size_t index);
     bool ProcessMarkWithFFRT(const int index, int &prio, int32_t &gid, const ThreadInfo &threadInfo);

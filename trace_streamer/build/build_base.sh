@@ -13,8 +13,8 @@
 # limitations under the License.
 set -e
 . build/build_base_func.sh
-function prepare_windows {
-    if [ $target_os == "windows" ];then
+function prepare_windows() {
+    if [ "$target_os" == "windows" ];then
         cp .gn_win .gn
     else
         cp .gn_unix .gn
@@ -28,9 +28,9 @@ function prepare_windows {
         exit
     fi
 }
-function prepare_proto {
+function prepare_proto() {
     TARGET_DIR=$1
-    if [[ $PARAMS == *"debug"* ]]; then
+    if [[ "$PARAMS" == *"debug"* ]]; then
         TARGET_DIR=$1"_debug"
     fi
     if [ ! -f "out/$TARGET_DIR/protoc" ];then
@@ -44,8 +44,8 @@ function prepare_proto {
         cp out/$target_os/protoreader_plugin out/"$TARGET_DIR"/protoreader_plugin
     fi
 }
-function check_params {
-    if [[ $1 == "" || $1 == -* ]]; then
+function check_params() {
+    if [[ "$1" == "" || "$1" == -* ]]; then
         echo "Option '$1' is not reasonable." >&2
         exit 1
     fi
