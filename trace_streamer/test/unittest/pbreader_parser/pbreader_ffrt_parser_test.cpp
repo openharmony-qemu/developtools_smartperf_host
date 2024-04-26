@@ -17,6 +17,7 @@
 #include <hwext/gtest-tag.h>
 #include "export_test.h"
 #include "ffrt_profiler_config.pb.h"
+#include "ffrt_profiler_result.pb.h"
 #include "pbreader_parser.h"
 #include "trace_streamer_selector.h"
 
@@ -59,7 +60,7 @@ public:
 };
 /**
  * @tc.name: SetFfrtSrcClockid
- * @tc.desc: Set Ffrt Src Clockid
+ * @tc.desc: Set ffrt src clockid
  * @tc.type: FUNC
  */
 HWTEST_F(PbreaderFfrtParserTest, SetFfrtSrcClockid, TestSize.Level1)
@@ -74,7 +75,7 @@ HWTEST_F(PbreaderFfrtParserTest, SetFfrtSrcClockid, TestSize.Level1)
 }
 /**
  * @tc.name: ParserAll
- * @tc.desc: Parser All
+ * @tc.desc: Parser ffrt all data
  * @tc.type: FUNC
  */
 HWTEST_F(PbreaderFfrtParserTest, ParserAll, TestSize.Level1)
@@ -83,5 +84,54 @@ HWTEST_F(PbreaderFfrtParserTest, ParserAll, TestSize.Level1)
     const std::string ffrtBinPath = "../../test/resource/pbreader_ffrt.htrace";
     EXPECT_TRUE(ParseTraceFile(selector_, ffrtBinPath));
 }
+/**
+ * @tc.name: Parser
+ * @tc.desc: Parser ffrt comm and trace data
+ * @tc.type: FUNC
+ */
+HWTEST_F(PbreaderFfrtParserTest, Parser, TestSize.Level1)
+{
+    TS_LOGI("test45-3");
+    std::string buf;
+    bool haveSplitSeg = false;
+    PbreaderDataSegment dataSeg;
+    auto tid = gettid();
+    auto pid = getpid();
+    // case 1: for ffrt comm result
+    FfrtProfilerResult ffrtCommResult;
+    auto commResultEvent = ffrtCommResult.add_ffrt_event();
+    commResultEvent->set_pid(pid);
+    commResultEvent->set_tid(tid);
+    commResultEvent->set_process_name("PbreaderFfrtParserTest");
+    commResultEvent->set_thread_name("PbreaderFfrtParserTest");
+    ffrtCommResult.SerializeToString(&buf);
+    dataSeg.seg = std::make_shared<std::string>(buf);
+    dataSeg.protoData =
+        ProtoReader::BytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()), dataSeg.seg->size());
+    EXPECT_TRUE(ffrtDetailParser_->taskNameIndexMap_.Empty());
+    ffrtDetailParser_->Parser(dataSeg, haveSplitSeg);
+    EXPECT_TRUE(!ffrtDetailParser_->taskNameIndexMap_.Empty());
+    // case 2: for ffrt trace result
+    struct timespec currentTime;
+    clock_gettime(CLOCK_BOOTTIME, &currentTime);
+    auto cpu = 0;
+    FfrtProfilerResult ffrtTraceResult;
+    auto ffrtTraceEvent = ffrtTraceResult.add_ffrt_event();
+    ffrtTraceEvent->set_pid(pid);
+    ffrtTraceEvent->set_tid(tid);
+    ffrtTraceEvent->set_tv_sec(currentTime.tv_sec);
+    ffrtTraceEvent->set_tv_nsec(currentTime.tv_nsec);
+    ffrtTraceEvent->mutable_trace()->set_cpu(cpu);
+    ffrtTraceEvent->mutable_trace()->set_trace_type("B");
+    ffrtTraceEvent->mutable_trace()->set_label("onSubmit");
+    ffrtTraceResult.SerializeToString(&buf);
+    dataSeg.seg = std::make_shared<std::string>(buf);
+    dataSeg.protoData =
+        ProtoReader::BytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()), dataSeg.seg->size());
+    EXPECT_TRUE(ffrtDetailParser_->eventParser_->htraceEventList_.empty());
+    ffrtDetailParser_->Parser(dataSeg, haveSplitSeg);
+    EXPECT_TRUE(!ffrtDetailParser_->eventParser_->htraceEventList_.empty());
+}
+
 } // namespace TraceStreamer
 } // namespace SysTuning

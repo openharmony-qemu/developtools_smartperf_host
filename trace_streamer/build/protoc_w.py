@@ -27,8 +27,7 @@ if "developtools" in sys.argv[3]:
     PROJECT_TOP = os.path.realpath(os.path.join(THIS_DIR, ".."))
 
 OHOS_X64_OUT = os.path.join(PROJECT_TOP, sys.argv[2])
-LIBCXX_X64_OUT = os.path.join(
-    PROJECT_TOP, sys.argv[1], "ndk/libcxx/linux_x86_64")
+LIBCXX_X64_OUT = os.path.join(PROJECT_TOP, sys.argv[1], "ndk/libcxx/linux_x86_64")
 SUBSYS_X64_OUT = os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR)
 PROTOC_NAME = "protoc"
 PROTOCREADER_PLUGIN = "protoreader_plugin"
@@ -37,10 +36,8 @@ if current_os == "Windows":
     PROTOC_NAME = "protoc.exe"
     PROTOCREADER_PLUGIN = "protoreader_plugin.exe"
 PROTOC = os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOC_NAME)
-OPT_PLUGIN_PROTOREADER_PATH = os.path.join(
-    PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOCREADER_PLUGIN)
-OPT_PLUGIN_PROTOREADER = "--plugin=protoc-gen-plugin=" + \
-    os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOCREADER_PLUGIN)
+OPT_PLUGIN_PROTOREADER_PATH = os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOCREADER_PLUGIN)
+OPT_PLUGIN_PROTOREADER = "--plugin=protoc-gen-plugin=" + os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOCREADER_PLUGIN)
 PLUGINOUT = "--plugin_out=wrapper_namespace=ProtoReader"
 
 PARAMS = sys.argv[1:]
@@ -52,8 +49,7 @@ PARAMS_ALL = f"{PARAMS_SRC}"
 
 if not sys.argv[4].startswith("--plugin"):
     if os.path.isfile(OPT_PLUGIN_PROTOREADER_PATH):
-        cmd = [PROTOC, OPT_PLUGIN_PROTOREADER,
-               f"{PLUGINOUT}:{sys.argv[5]}", *PARAMS_ALL.split()]
+        cmd=[PROTOC, OPT_PLUGIN_PROTOREADER, f"{PLUGINOUT}:{sys.argv[5]}", *PARAMS_ALL.split()]
         print("执行参数：--------------- ", cmd, " --------------------------")
         subprocess.run(cmd)
 subprocess.run([PROTOC, *PARAMS_ALL.split()])
