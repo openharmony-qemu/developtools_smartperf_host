@@ -249,6 +249,11 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'Lost Frame and HitchTime templates',
     },
+    {
+      title: 'Start&Finish Trace Category',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'Asynchronous trace aggregation',
+    },
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {
