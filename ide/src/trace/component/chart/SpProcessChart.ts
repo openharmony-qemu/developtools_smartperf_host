@@ -983,10 +983,42 @@ export class SpProcessChart {
 
   //Async Function
   addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
+    let isCategoryAsyncfunc: boolean = FlagsConfig.getFlagsConfigEnableStatus('Start&Finish Trace Category');
     let asyncFuncList = this.processAsyncFuncMap[it.pid] || [];
     if (!asyncFuncList.length) { return };
-    let asyncRemoveCatList: Array<any> = this.hanldCategoryAsyncFunc(it, processRow, asyncFuncList)
-    this.hanldAsyncFunc(it, processRow, asyncRemoveCatList);
+    //打开异步trace聚合的开关
+    if (isCategoryAsyncfunc) {
+      let asyncRemoveCatList: Array<any> = this.hanldCategoryAsyncFunc(it, processRow, asyncFuncList)
+      this.hanldAsyncFunc(it, processRow, asyncRemoveCatList);
+    } else {
+      //不聚合异步trace
+      let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');
+      Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+        let asyncFunctions: Array<any> = asyncFuncGroup[key];
+        if (asyncFunctions.length > 0) {
+          let isIntersect = (a: any, b: any): boolean =>
+            Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
+          let depthArray: any = [];
+          asyncFunctions.forEach((it, i) => {
+            if (it.dur === -1 || it.dur === null || it.dur === undefined) {
+              it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+              it.flag = 'Did not end';
+            }
+            let currentDepth = 0;
+            let index = i;
+            while (
+              depthArray[currentDepth] !== undefined &&
+              isIntersect(depthArray[currentDepth], asyncFunctions[index])
+            ) {
+              currentDepth++;
+            }
+            asyncFunctions[index].depth = currentDepth;
+            depthArray[currentDepth] = asyncFunctions[index];
+          })
+        }
+        this.lanesConfig(asyncFunctions, it, processRow);
+      })
+    }
   }
   //处理CategoryAsyncFunc
   hanldCategoryAsyncFunc(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>, asyncFuncList: Array<any>): any[] {
@@ -1035,56 +1067,56 @@ export class SpProcessChart {
     }
   }
   makeAddAsyncFunction(asyncFunctions: any[], it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>, name?: string) {
-      let maxDepth: number = -1;
-      let normalIndex = 0;
-      let mapDepth = new Map();
-      let noEndData = asyncFunctions.filter((item) => item.dur === null);
-      let normalData = asyncFunctions.filter((item) => item.dur !== null);
-      if (normalData.length) {
-        while (normalIndex < normalData.length) {
-          let itemEndTime = normalData[normalIndex].startTs + normalData[normalIndex].dur;
-          let itemi = -1;
-          for (let val of mapDepth.values()) {
-            if (val.item < normalData[normalIndex].startTs) {
-              itemi = val.depth;
-              break;
-            }
+    let maxDepth: number = -1;
+    let normalIndex = 0;
+    let mapDepth = new Map();
+    let noEndData = asyncFunctions.filter((item) => item.dur === null);
+    let normalData = asyncFunctions.filter((item) => item.dur !== null);
+    if (normalData.length) {
+      while (normalIndex < normalData.length) {
+        let itemEndTime = normalData[normalIndex].startTs + normalData[normalIndex].dur;
+        let itemi = -1;
+        for (let val of mapDepth.values()) {
+          if (val.item < normalData[normalIndex].startTs) {
+            itemi = val.depth;
+            break;
           }
-          if (itemi !== -1) {
-            if (mapDepth.has(`${itemi}`)) {
-              let obj = mapDepth.get(`${itemi}`)
-              obj.item = itemEndTime
-              normalData[normalIndex].depth = obj.depth;
-              normalIndex++;
-            }
-          } else {
-            maxDepth = maxDepth + 1;
-            mapDepth.set(`${maxDepth}`, {
-              item: itemEndTime,
-              depth: maxDepth
-            })
-            normalData[normalIndex].depth = maxDepth;
+        }
+        if (itemi !== -1) {
+          if (mapDepth.has(`${itemi}`)) {
+            let obj = mapDepth.get(`${itemi}`)
+            obj.item = itemEndTime
+            normalData[normalIndex].depth = obj.depth;
             normalIndex++;
           }
+        } else {
+          maxDepth = maxDepth + 1;
+          mapDepth.set(`${maxDepth}`, {
+            item: itemEndTime,
+            depth: maxDepth
+          })
+          normalData[normalIndex].depth = maxDepth;
+          normalIndex++;
         }
-        if (noEndData.length) {
-          noEndData.forEach((it, i) => {
-            if (it.dur === -1 || it.dur === null || it.dur === undefined) {
-              it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
-              it.flag = 'Did not end';
-            }
-            let index = i;
-            maxDepth++;
-            noEndData[index].depth = maxDepth;
-          });
-        }
-        this.lanesConfig([...normalData, ...noEndData], it, processRow, name);
       }
+      if (noEndData.length) {
+        noEndData.forEach((it, i) => {
+          if (it.dur === -1 || it.dur === null || it.dur === undefined) {
+            it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+            it.flag = 'Did not end';
+          }
+          let index = i;
+          maxDepth++;
+          noEndData[index].depth = maxDepth;
+        });
+      }
+      this.lanesConfig([...normalData, ...noEndData], it, processRow, name);
+    }
   }
   lanesConfig(asyncFunctions: any[], it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>, name?: string) {
     const maxHeight = this.calMaxHeight(asyncFunctions);
     const namesSet = new Set(asyncFunctions.map(item => item.funName));
-    const asyncFuncName = Array.from(namesSet); 
+    const asyncFuncName = Array.from(namesSet);
     let funcRow = TraceRow.skeleton<FuncStruct>();
     funcRow.rowId = name ? name : `${asyncFunctions[0].funName}-${it.pid}`;
     funcRow.asyncFuncName = asyncFuncName;
@@ -1108,7 +1140,7 @@ export class SpProcessChart {
       'func',
       'context',
       {
-        type: `func-${asyncFunctions[0].funName}-${it.pid}`,
+        type: `func-${funcRow.rowId}`,
       },
       funcRow,
       this.trace
