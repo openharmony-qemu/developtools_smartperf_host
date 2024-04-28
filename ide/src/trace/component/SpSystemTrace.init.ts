@@ -946,6 +946,25 @@ export async function spSystemTraceInit(
     }
     sp.intersectionObserver?.observe(it);
   });
+   // trace文件加载完毕,将动效json文件读取并存入缓存
+   let funDetailUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/doc/funDetail.json`;
+   var xhr = new XMLHttpRequest();
+   // 创建XMLHttpRequest对象
+   xhr.open('GET', funDetailUrl);
+   xhr.onreadystatechange = function () {
+     if (xhr.readyState === 4 && xhr.status === 200) {
+       var content = xhr.responseText;
+       caches.open('/funDetail').then((cache) => {
+         let headers = new Headers();
+         headers.append('Content-Type', 'application/json');
+         return cache.put('/funDetail', new Response(content, {
+           status: 200,
+           headers
+         })).then();
+       });
+     }
+   }
+   xhr.send(); // 发送请求
   return { status: true, msg: 'success' };
 }
 function expansionChangeHandler(sp: SpSystemTrace, offsetYTimeOut: any): (event: any) => void {
