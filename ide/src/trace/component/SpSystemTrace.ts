@@ -42,6 +42,8 @@ import {
   ns2xByTimeShaft,
   PairPoint,
   Rect,
+  prioClickHandlerFun,
+  drawThreadCurve
 } from '../database/ui-worker/ProcedureWorkerCommon';
 import { SpChartManager } from './chart/SpChartManager';
 import { CpuStruct, WakeupBean } from '../database/ui-worker/cpu/ProcedureWorkerCPU';
@@ -687,6 +689,58 @@ export class SpSystemTrace extends BaseElement {
         true,
         this.favoriteChartListEL!.clientHeight
       );
+    }
+    // draw prio curve
+    if (
+      ThreadStruct.isClickPrio &&
+      this.currentRow!.parentRowEl!.expansion &&
+      ThreadStruct.selectThreadStruct &&
+      ThreadStruct.contrast(ThreadStruct.selectThreadStruct, this.currentRow!.rowParentId, this.currentRow!.rowId)
+    ) {
+      let context: CanvasRenderingContext2D;
+      if (this.currentRow!.currentContext) {
+        context = this.currentRow!.currentContext;
+      } else {
+        context = this.currentRow!.collect ? this.canvasFavoritePanelCtx! : this.canvasPanelCtx!;
+      }
+      this.drawPrioCurve(context, this.currentRow!)
+    }
+  }
+
+   // draw prio curve
+   drawPrioCurve(context: any, row: TraceRow<any>) {
+    let curveDrawList: any = [];
+    let oldVal: number = -1;
+    let threadFilter = row.dataListCache.filter((it: any) => it.state === 'Running');//筛选状态是Running的数据
+    //计算每个点的坐标
+    prioClickHandlerFun(ThreadStruct.prioCount, row, threadFilter, curveDrawList, oldVal);
+    //绘制曲线透明度设置1，根据计算的曲线坐标开始画图
+    context.globalAlpha = 1;
+    context.beginPath();
+    let x0, y0;
+    if (curveDrawList[0] && curveDrawList[0].frame) {
+      x0 = curveDrawList[0].frame.x;
+      y0 = curveDrawList[0].curveFloatY;
+    }
+    context!.moveTo(x0!, y0!);
+    if (SpSystemTrace.isKeyUp || curveDrawList.length < 90) {
+      for (let i = 0; i < curveDrawList.length - 1; i++) {
+        let re = curveDrawList[i];
+        let nextRe = curveDrawList[i + 1];
+        drawThreadCurve(context, re, nextRe);
+      }
+      context.closePath();
+    } else if (!SpSystemTrace.isKeyUp && curveDrawList.length >= 90) {
+      let x, y;
+      if (curveDrawList[curveDrawList.length - 1] && curveDrawList[curveDrawList.length - 1].frame) {
+        x = curveDrawList[curveDrawList.length - 1].frame.x;
+        y = curveDrawList[curveDrawList.length - 1].curveFloatY;
+      }
+      context.lineWidth = 1;
+      context.strokeStyle = '#ffc90e';
+      context.lineCap = 'round';
+      context.lineTo(x, y);
+      context.stroke();
     }
   }
 

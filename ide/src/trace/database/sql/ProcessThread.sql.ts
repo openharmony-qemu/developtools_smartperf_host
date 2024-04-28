@@ -1276,3 +1276,19 @@ export const queryBySelectExecute = (
     `;
   return query('queryBySelectExecute', sqlStr, { $executeId: executeId, $itid: itid });
 };
+export const sqlPrioCount = (args: any): Promise<any> =>
+  query(
+    'prioCount',
+    `select
+      S.priority AS prio,
+      COUNT(S.priority) as count
+      from 
+      sched_slice AS S
+      left join
+      process P on S.ipid = P.ipid
+      left join
+      thread T on S.itid = T.itid
+      where T.tid = ${args.tid}
+      and P.pid = ${args.pid}
+      GROUP BY S.priority;`
+  );

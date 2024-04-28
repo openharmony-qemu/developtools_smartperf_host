@@ -137,6 +137,15 @@ function threadClickHandlerFunc(sp: SpSystemTrace) {
   return threadClickHandler;
 }
 
+//点击prio箭头刷新canvas
+function prioClickHandlerFunc(sp: SpSystemTrace) {
+  return function (d: any) {
+      ThreadStruct.prioCount = d;
+      ThreadStruct.isClickPrio = true;
+      sp.refreshCanvas(true);
+    }
+};
+
 function scrollToFuncHandlerFunc(sp: SpSystemTrace) {
   return function (funcStruct: any) {
     sp.observerScrollHeightEnable = true;
@@ -244,6 +253,7 @@ function cpuClickHandlerTask(threadRow: TraceRow<any>, sp: SpSystemTrace, d: Cpu
       ThreadStruct.selectThreadStruct!,
       threadClickHandlerFunc(sp),
       cpuClickHandlerFunc(sp),
+      prioClickHandlerFunc(sp),
       (datas, str) => {
         sp.removeLinkLinesByBusinessType('thread');
         if (str == 'wakeup tid') {
@@ -301,7 +311,7 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
 
 function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<any>, entry?: any) {
   CpuStructOnClick(clickRowType, sp, cpuClickHandlerFunc(sp))
-    .then(() => ThreadStructOnClick(clickRowType, sp, threadClickHandlerFunc(sp), cpuClickHandlerFunc(sp)))
+    .then(() => ThreadStructOnClick(clickRowType, sp, threadClickHandlerFunc(sp), cpuClickHandlerFunc(sp), prioClickHandlerFunc(sp)))
     .then(() => FuncStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp), entry))
     .then(() => CpuFreqStructOnClick(clickRowType, sp))
     .then(() => CpuStateStructOnClick(clickRowType, sp))

@@ -45,6 +45,8 @@ export class ThreadStruct extends BaseStruct {
   start_ts: number | undefined;
   state: string | undefined;
   type: string | undefined;
+  prio: number | undefined;
+  curveFloatY: number | undefined;
 
   static draw(threadBeanCanvasCtx: CanvasRenderingContext2D, threadBeanStructData: ThreadStruct) {
     if (threadBeanStructData.frame) {
@@ -131,5 +133,8 @@ export class ThreadStruct extends BaseStruct {
       d1.startTime == d2.startTime &&
       d1.dur == d2.dur
     );
+  }
+  static contrast(d1: ThreadStruct, d2: string | undefined | null, d3: string | undefined | null): boolean {
+    return d1.pid === Number(d2) && d1.tid === Number(d3)
   }
 }
