@@ -153,6 +153,8 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             };
           };
         });
+
+        this.filterState = Array.from(new Set(this.filterState));
         // 周期内有数据
         if (this.filterState.length !== 0) {
           for (let i = 0; i < processIds.length; i++) {
@@ -207,6 +209,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             };
           };
         });
+        this.filterState = Array.from(new Set(this.filterState));
         if (this.filterState.length > 0) {
           for (let i = 0; i < processIds.length; i++) {
             this.setProcessData(this.filterState, processIds[i], stateCutArr);

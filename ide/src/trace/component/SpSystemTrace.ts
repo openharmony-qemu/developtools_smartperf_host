@@ -2222,7 +2222,7 @@ export class SpSystemTrace extends BaseElement {
         this.tipEL.style.display = 'block';
         y = y + struct.depth * 20;
         if (row.rowType === TraceRow.ROW_TYPE_BINDER_COUNT) {
-          this.tipEL.style.height = '40px';
+          this.tipEL.style.height = 'auto';
           y = row.hoverY + row.getBoundingClientRect().top - this.getBoundingClientRect().top;
         }
       } else {
