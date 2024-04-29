@@ -59,19 +59,19 @@ import {
 import { queryGpuDur } from '../../../database/sql/Gpu.sql';
 import { queryWakeupListPriority } from '../../../database/sql/Cpu.sql';
 import { TabPaneCurrentSelectionHtml } from './TabPaneCurrentSelection.html';
-import {queryRealTime} from "../../../database/sql/Clock.sql";
+import { queryRealTime } from "../../../database/sql/Clock.sql";
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
 
 const CLOCK_STARTTIME_ABSALUTED_ID: string = "clockStartTimeAbsaluteId";
-const CLOCK_TRANSF_BTN_ID:string = "clockTransfBtnId";
+const CLOCK_TRANSF_BTN_ID: string = "clockTransfBtnId";
 const CPU_STARTTIME_ABSALUTED_ID: string = "cpuStartTimeAbsaluteId";
-const CPU_TRANSF_BTN_ID:string = "cpuTransfBtnId";
+const CPU_TRANSF_BTN_ID: string = "cpuTransfBtnId";
 const THREAD_STARTTIME_ABSALUTED_ID: string = "threadStartTimeAbsaluteId";
-const THREAD_TRANSF_BTN_ID:string = "threadTransfBtnId";
+const THREAD_TRANSF_BTN_ID: string = "threadTransfBtnId";
 const FUN_STARTTIME_ABSALUTED_ID: string = "funStartTimeAbsaluteId";
-const FUN_TRANSF_BTN_ID:string = "funTransfBtnId"; 
+const FUN_TRANSF_BTN_ID: string = "funTransfBtnId";
 
 export function getTimeString(ns: number): string {
 
@@ -113,7 +113,7 @@ export function getTimeString(ns: number): string {
 }
 
 @element('tabpane-current-selection')
-export class TabPaneCurrentSelection extends BaseElement {  
+export class TabPaneCurrentSelection extends BaseElement {
   weakUpBean: WakeupBean | null | undefined;
   selectWakeupBean: any;
   private currentSelectionTbl: LitTable | null | undefined;
@@ -174,28 +174,28 @@ export class TabPaneCurrentSelection extends BaseElement {
    * @param transfBtnId 转换按钮id
    * @param startTimeAbsaluteId 开始时间ID
    */
-  addClickToTransfBtn(startTimeAbsolute: number, transfBtnId: string, startTimeAbsaluteId: string):void {
+  addClickToTransfBtn(startTimeAbsolute: number, transfBtnId: string, startTimeAbsaluteId: string): void {
     let transfBtn = this.currentSelectionTbl?.shadowRoot?.querySelector(`#${transfBtnId}`);
-      transfBtn?.addEventListener('click', () => {
-        let startTimeAbsalute = this.currentSelectionTbl?.shadowRoot?.querySelector(`#${startTimeAbsaluteId}`);
-        if (startTimeAbsalute) {
-          if (Utils.isTransformed) {
-            startTimeAbsalute!.innerHTML = startTimeAbsolute / 1000000000 + 's';
-            Utils.isTransformed = false;
-          } else {
-            startTimeAbsalute!.innerHTML = this.getRealTimeStr(startTimeAbsolute);
-            Utils.isTransformed = true;
-          }
+    transfBtn?.addEventListener('click', () => {
+      let startTimeAbsalute = this.currentSelectionTbl?.shadowRoot?.querySelector(`#${startTimeAbsaluteId}`);
+      if (startTimeAbsalute) {
+        if (Utils.isTransformed) {
+          startTimeAbsalute!.innerHTML = startTimeAbsolute / 1000000000 + 's';
+          Utils.isTransformed = false;
+        } else {
+          startTimeAbsalute!.innerHTML = this.getRealTimeStr(startTimeAbsolute);
+          Utils.isTransformed = true;
         }
-      });
+      }
+    });
   }
 
   async setCpuData(
     data: CpuStruct,
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
     scrollCallback?: (data: CpuStruct) => void
-  ): Promise<void> { 
-    await this.setRealTime(); 
+  ): Promise<void> {
+    await this.setRealTime();
     this.setTableHeight('650px');
     let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
     if (leftTitle) {
@@ -216,8 +216,8 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
       this.currentSelectionTbl!.dataSource = list;
       let startTimeAbsolute = (data.startTime || 0) + (window as any).recordStartNS;
-      this.addClickToTransfBtn( startTimeAbsolute , CPU_TRANSF_BTN_ID, CPU_STARTTIME_ABSALUTED_ID );
-      
+      this.addClickToTransfBtn(startTimeAbsolute, CPU_TRANSF_BTN_ID, CPU_STARTTIME_ABSALUTED_ID);
+
       let rightArea: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#table-right');
       let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
       let rightButton: HTMLElement | null | undefined = this?.shadowRoot
@@ -314,9 +314,9 @@ export class TabPaneCurrentSelection extends BaseElement {
 </div>`,
       });
     }
- 
+
     list.push({ name: 'StartTime(Relative)', value: getTimeString(data.startTime || 0), });
-    this.createStartTimeNode(list, data.startTime || 0 , CPU_TRANSF_BTN_ID, CPU_STARTTIME_ABSALUTED_ID);        
+    this.createStartTimeNode(list, data.startTime || 0, CPU_TRANSF_BTN_ID, CPU_STARTTIME_ABSALUTED_ID);
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     list.push({ name: 'Prio', value: data.priority || 0 });
     list.push({ name: 'End State', value: state });
@@ -338,66 +338,84 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   async setFunctionData(data: FuncStruct, scrollCallback: Function): Promise<void> {
     //方法信息     
-    await this.setRealTime(); 
+    await this.setRealTime();
     this.tabCurrentSelectionInit('Slice Details');
     let list: any[] = [];
     let name = this.transferString(data.funName ?? '');
+    // 从缓存中拿到详细信息的表
+    let information: string = '';
+    let funDetailList: Array<funDetail> = new Array();
+    await caches.match('/funDetail').then(
+      res => {
+        return res!.text()
+      }).then(
+        res => {
+          funDetailList = JSON.parse(res)
+        });
+    if (Array.isArray(funDetailList)) {
+      // 筛选当前函数块的信息项
+      let informationList: Array<funDetail> = funDetailList.filter((v: funDetail) => {
+        return v.slice.indexOf(name) > -1 || name.indexOf(v.slice) > -1
+      });
+      information = (informationList && informationList.length > 0) ? informationList[0].CN : `没有找到相关${name}的描述`
+    }
     let isBinder = FuncStruct.isBinder(data);
     let isAsyncBinder = isBinder && FuncStruct.isBinderAsync(data);
     if (data.argsetid !== undefined && data.argsetid !== null && data.argsetid >= 0) {
       this.setTableHeight('700px');
       if (isAsyncBinder) {
-        this.handleAsyncBinder(data, list, name, scrollCallback);
+        this.handleAsyncBinder(data, list, name, scrollCallback, information);
       } else if (isBinder) {
-        this.handleBinder(data, list, name, scrollCallback);
+        this.handleBinder(data, list, name, scrollCallback, information);
       } else {
-        this.handleNonBinder(data, list, name);
+        this.handleNonBinder(data, list, name, information);
       }
     } else {
       this.setTableHeight('auto');
-      list.push({ name: 'Name', value: name }); 
+      list.push({ name: 'Name', value: name });
       list.push({
         name: 'StartTime(Relative)',
         value: getTimeString(data.startTs || 0),
       });
-      this.createStartTimeNode(list, data.startTs || 0 , FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);
+      this.createStartTimeNode(list, data.startTs || 0, FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);
       list.push({
         name: 'Duration',
         value: getTimeString(data.dur || 0),
       });
       list.push({ name: 'depth', value: data.depth });
+      list.push({ name: 'information:', value: information });
       this.currentSelectionTbl!.dataSource = list;
       let startTimeAbsolute = (data.startTs || 0) + (window as any).recordStartNS;
-      this.addClickToTransfBtn(startTimeAbsolute, FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);     
+      this.addClickToTransfBtn(startTimeAbsolute, FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);
     }
   }
 
   // 计算真实时间
-  private getRealTimeStr(startTs: number): string { 
-    let time = (startTs || 0) + (window as any).recordStartNS - this.bootTime + this.realTime;    
-    const formateDateStr = this.getDate(parseInt(time.toString().substring(0, 13))) + "." + time.toString().substring(10);    
+  private getRealTimeStr(startTs: number): string {
+    let time = (startTs || 0) + (window as any).recordStartNS - this.bootTime + this.realTime;
+    const formateDateStr = this.getDate(parseInt(time.toString().substring(0, 13))) + "." + time.toString().substring(10);
     return formateDateStr;
   }
 
   // 格式化时间戳为字符串格式 yyyy/mm/dd hh:mi:ss
-  private getDate(timestamp: number): string { 
-    let date = new Date(timestamp);   
+  private getDate(timestamp: number): string {
+    let date = new Date(timestamp);
     let gmt = date.toLocaleString();
     return gmt;
   }
 
-  private handleNonBinder(data: FuncStruct, list: any[], name: string): void {
+  private handleNonBinder(data: FuncStruct, list: any[], name: string, information: string): void {
     queryBinderArgsByArgset(data.argsetid!).then((argset) => {
       list.push({ name: 'Name', value: name });
       argset.forEach((item) => {
         list.push({ name: item.keyName, value: item.strValue });
       });
-      this.addTabPanelContent(list, data);
+      this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
     });
   }
 
-  private handleBinder(data: FuncStruct, list: any[], name: string, scrollCallback: Function): void {
+  private handleBinder(data: FuncStruct, list: any[], name: string, scrollCallback: Function, information: string): void {
     queryBinderArgsByArgset(data.argsetid!).then((argset) => {
       let binderSliceId = -1;
       argset.forEach((item) => {
@@ -416,7 +434,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       if (binderSliceId === -1) {
         list.unshift({ name: 'Name', value: name });
       }
-      this.addTabPanelContent(list, data);
+      this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
       let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
       funcClick?.addEventListener('click', () => {
@@ -432,7 +450,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
   }
 
-  private handleAsyncBinder(data: FuncStruct, list: any[], name: string, scrollCallback: Function): void {
+  private handleAsyncBinder(data: FuncStruct, list: any[], name: string, scrollCallback: Function, information: string): void {
     Promise.all([
       queryBinderByArgsId(data.argsetid!, data.startTs!, !data.funName!.endsWith('rcv')),
       queryBinderArgsByArgset(data.argsetid!),
@@ -463,7 +481,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       } else {
         list.unshift({ name: 'Name', value: name });
       }
-      this.addTabPanelContent(list, data);
+      this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
       let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
       funcClick?.addEventListener('click', () => {
@@ -472,7 +490,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
   }
 
-  private addTabPanelContent(contentList: any[], data: FuncStruct): void {
+  private addTabPanelContent(contentList: any[], data: FuncStruct, information: string): void {
     contentList.push({
       name: 'StartTime(Relative)',
       value: getTimeString(data.startTs || 0),
@@ -489,6 +507,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     if (data.argsetid && data.argsetid > -1) {
       contentList.push({ name: 'arg_set_id', value: data.argsetid });
     }
+    contentList.push({ name: 'information', value: information })
   }
 
   private tabCurrentSelectionInit(leftTitleStr: string): void {
@@ -514,7 +533,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   async setClockData(data: ClockStruct): Promise<void> {
-    await this.setRealTime(); 
+    await this.setRealTime();
     this.setTableHeight('auto');
     //时钟信息
     this.tabCurrentSelectionInit('Counter Details');
@@ -522,8 +541,8 @@ export class TabPaneCurrentSelection extends BaseElement {
     list.push({
       name: 'StartTime(Relative)',
       value: getTimeString(data.startNS || 0),
-    }); 
-    this.createStartTimeNode(list, data.startNS || 0 , CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    });
+    this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
     list.push({
       name: 'Value',
       value: ColorUtils.formatNumberComma(data.value || 0),
@@ -695,7 +714,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
       this.currentSelectionTbl!.dataSource = list;
       let startTimeAbsolute = (data.startTime || 0) + (window as any).recordStartNS;
-      this.addClickToTransfBtn(startTimeAbsolute, THREAD_TRANSF_BTN_ID, THREAD_STARTTIME_ABSALUTED_ID);     
+      this.addClickToTransfBtn(startTimeAbsolute, THREAD_TRANSF_BTN_ID, THREAD_STARTTIME_ABSALUTED_ID);
       let timeLineNode = new ThreadTreeNode(data.tid!, data.pid!, data.startTime!);
       jankJumperList.push(timeLineNode);
       if (callback) {
@@ -846,7 +865,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         } else if (it.startTime > startTime! && endTime! > it.startTime && it.endTime > endTime!) {
           it.stateDur = endTime! - it.startTime;
         }
-        str += '[' + it.value + ': ' + (it.stateDur || 0)/1000 + ']' + ','
+        str += '[' + it.value + ': ' + (it.stateDur || 0) / 1000 + ']' + ','
       })
       list.push({ name: 'Freq [KHz,μs]', value: str.substring(0, str.length - 1) });
     }
@@ -1725,4 +1744,10 @@ export class ThreadTreeNode {
     this.pid = pid;
     this.startTime = startTime;
   }
+}
+
+class funDetail {
+  slice: string = '';
+  CN: string = '';
+  EN: string = ''
 }
