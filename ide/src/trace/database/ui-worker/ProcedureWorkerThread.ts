@@ -72,13 +72,13 @@ export class ThreadRender extends Render {
   render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>) { }
 }
 
-export function ThreadStructOnClick(clickRowType: string, sp: SpSystemTrace, threadClickHandler: any, cpuClickHandler: any) {
+export function ThreadStructOnClick(clickRowType: string, sp: SpSystemTrace, threadClickHandler: any, cpuClickHandler: any,  prioClickHandlerFunc: any) {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_THREAD && ThreadStruct.hoverThreadStruct) {
       sp.removeLinkLinesByBusinessType('thread');
       ThreadStruct.selectThreadStruct = ThreadStruct.hoverThreadStruct;
       sp.timerShaftEL?.drawTriangle(ThreadStruct.selectThreadStruct!.startTime || 0, 'inverted');
-      sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct, threadClickHandler, cpuClickHandler);
+      sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct, threadClickHandler, cpuClickHandler, prioClickHandlerFunc);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {
@@ -96,6 +96,8 @@ export class ThreadStruct extends BaseThreadStruct {
   static selectThreadStruct: ThreadStruct | undefined;
   static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
   static firstselectThreadStruct: ThreadStruct | undefined;
+  static isClickPrio: boolean = false;
+  static prioCount: Array<any> = [];
   argSetID: number | undefined;
   translateY: number | undefined;
   textMetricsWidth: number | undefined;
@@ -129,6 +131,9 @@ export class ThreadStruct extends BaseThreadStruct {
           data.frame.width - 2,
           data.frame.height
         );
+      }
+      if (!ThreadStruct.selectThreadStruct) {
+        ThreadStruct.isClickPrio = false;
       }
     }
   }
