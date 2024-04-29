@@ -97,7 +97,7 @@ export class ThreadStruct extends BaseThreadStruct {
   static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
   static firstselectThreadStruct: ThreadStruct | undefined;
   static isClickPrio: boolean = false;
-  static prioCount: Array<any>;
+  static prioCount: Array<any> = [];
   argSetID: number | undefined;
   translateY: number | undefined;
   textMetricsWidth: number | undefined;

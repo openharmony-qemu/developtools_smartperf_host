@@ -1134,6 +1134,8 @@ export class SpSystemTrace extends BaseElement {
     CpuStruct.wakeupBean = null;
     CpuFreqStruct.selectCpuFreqStruct = undefined;
     ThreadStruct.selectThreadStruct = undefined;
+    ThreadStruct.isClickPrio = false;
+    ThreadStruct.prioCount = [];
     FuncStruct.selectFuncStruct = undefined;
     SpHiPerf.selectCpuStruct = undefined;
     CpuStateStruct.selectStateStruct = undefined;
