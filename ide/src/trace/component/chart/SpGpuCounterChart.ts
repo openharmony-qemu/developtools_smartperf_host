@@ -130,7 +130,6 @@ export class SpGpuCounterChart {
     let tip = '';
     if (struct) {
       tip = `
-      <span> ${struct.startNS}</span>
       <span> ${struct.height}</span>
       `;
     }
