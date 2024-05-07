@@ -21,7 +21,7 @@ import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 import '../../../../base-ui/popover/LitPopoverV';
 import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
-import {queryTransferList} from "../../../database/sql/Perf.sql";
+import { queryTransferList } from "../../../database/sql/Perf.sql";
 import { TabPaneFilterHtml } from './TabPaneFilter.html';
 
 export interface FilterData {
@@ -38,6 +38,12 @@ export interface MiningData {
   type: string;
   item: any | null | undefined;
   remove?: Array<any> | null | undefined;
+}
+export class CpuStatus {
+  cpu: number = 0;
+  small: boolean = false;
+  medium: boolean = false;
+  large: boolean = false;
 }
 
 @element('tab-pane-filter')
@@ -411,7 +417,7 @@ export class TabPaneFilter extends BaseElement {
     return html;
   }
 
-  private initSelectElListener(): void{
+  private initSelectElListener(): void {
     this.firstSelectEL!.onchange = (e): void => {
       if (this.getFilter) {
         this.getFilter(this.filterData('firstSelect'));
@@ -439,7 +445,120 @@ export class TabPaneFilter extends BaseElement {
     }
   }
 
-  private treeCheckClickSwitch(idx: number, check: boolean, row: NodeListOf<Element>): void{
+
+  //添加cpu列表
+  setCoreConfigList(count: number, small: Array<number>, mid: Array<number>, large: Array<number>) {
+    let divEl = this.shadowRoot!.querySelector('#data-core-popover > div > #tb_core_setting');
+    divEl!.innerHTML = '';
+    this.createCoreHeaderDiv(divEl);
+    for (let i = 0; i < count; i++) {
+      let obj = {
+        cpu: i,
+        // @ts-ignore
+        small: small.includes(i),
+        // @ts-ignore
+        medium: mid.includes(i),
+        // @ts-ignore
+        large: large.includes(i),
+      };
+      this.createCheckBoxLine(divEl, obj, small, mid, large);
+    }
+  }
+
+  createCoreHeaderDiv(tab: any) {
+    let cpuIdLine = document.createElement('div');
+    cpuIdLine.className = 'core_line';
+    cpuIdLine.style.fontWeight = 'bold';
+    cpuIdLine.style.fontSize = '12px'
+    cpuIdLine.textContent = 'Cpu';
+    cpuIdLine.style.textAlign = 'center';
+    let smallLine = document.createElement('div');
+    smallLine.className = 'core_line';
+    smallLine.style.fontWeight = 'bold';
+    smallLine.textContent = 'S';
+    smallLine.style.fontSize = '12px';
+    smallLine.style.textAlign = 'center';
+    let mediumLine = document.createElement('div');
+    mediumLine.className = 'core_line';
+    mediumLine.style.fontWeight = 'bold';
+    mediumLine.textContent = 'M';
+    mediumLine.style.fontSize = '12px';
+    mediumLine.style.textAlign = 'center';
+    let largeLine = document.createElement('div');
+    largeLine.className = 'core_line';
+    largeLine.style.fontWeight = 'bold';
+    largeLine.textContent = 'L';
+    largeLine.style.fontSize = '12px';
+    largeLine.style.textAlign = 'center';
+    tab?.append(...[cpuIdLine, smallLine, mediumLine, largeLine]);
+  }
+
+  //添加对应的cpu checkbox,并添加对应的监听事件
+  createCheckBoxLine(divEl: any, cpuStatus: CpuStatus, small: Array<number>, mid: Array<number>, large: Array<number>): void {
+    let div = document.createElement('div');
+    div.textContent = cpuStatus.cpu + '';
+    div.style.textAlign = 'center';
+    div.style.fontWeight = 'normal';
+    let smallCheckBox: LitCheckBox = new LitCheckBox();
+    smallCheckBox.checked = cpuStatus.small;
+    smallCheckBox.setAttribute('not-close', '');
+    smallCheckBox.style.textAlign = 'center';
+    smallCheckBox.style.marginLeft = 'auto';
+    smallCheckBox.style.marginRight = 'auto';
+    let midCheckBox: LitCheckBox = new LitCheckBox();
+    midCheckBox.checked = cpuStatus.medium;
+    midCheckBox.setAttribute('not-close', '');
+    midCheckBox.style.textAlign = 'center';
+    midCheckBox.style.marginLeft = 'auto';
+    midCheckBox.style.marginRight = 'auto';
+    let largeCheckBox: LitCheckBox = new LitCheckBox();
+    largeCheckBox.checked = cpuStatus.large;
+    largeCheckBox.setAttribute('not-close', '');
+    largeCheckBox.style.marginLeft = 'auto';
+    largeCheckBox.style.marginRight = 'auto';
+    smallCheckBox.addEventListener('change', (e: any) => {
+      midCheckBox.checked = false;
+      largeCheckBox.checked = false;
+      cpuStatus.small = e.detail.checked;
+      this.canUpdateCheckList(e.detail.checked, small, cpuStatus.cpu);
+      mid = mid.filter((it) => it !== cpuStatus.cpu);
+      large = large.filter((it) => it !== cpuStatus.cpu);
+    });
+    midCheckBox.addEventListener('change', (e: any) => {
+      largeCheckBox.checked = false;
+      smallCheckBox.checked = false;
+      cpuStatus.medium = e.detail.checked;
+      this.canUpdateCheckList(e.detail.checked, mid, cpuStatus.cpu);
+      large = large.filter((it) => it !== cpuStatus.cpu);
+      small = small.filter((it) => it !== cpuStatus.cpu);
+    });
+    largeCheckBox.addEventListener('change', (e: any) => {
+      midCheckBox.checked = false;
+      smallCheckBox.checked = false;
+      cpuStatus.large = e.detail.checked;
+      this.canUpdateCheckList(e.detail.checked, large, cpuStatus.cpu);
+      mid = mid.filter((it) => it !== cpuStatus.cpu);
+      small = small.filter((it) => it !== cpuStatus.cpu);
+    });
+    divEl!.append(...[div, smallCheckBox, midCheckBox, largeCheckBox]);
+  }
+
+  //判断checkList数组是否需要push数据或删除数据
+  canUpdateCheckList(check: boolean, coreArr: Array<number>, cpu: number): void {
+    if (check) {
+      const isFalse = coreArr.includes(cpu);
+      if (!isFalse) {
+        coreArr.push(cpu)
+      }
+    } else {
+      const index = coreArr.indexOf(cpu);
+      if (index !== -1) {
+        coreArr.splice(index, 1);
+      }
+    }
+  }
+
+  private treeCheckClickSwitch(idx: number, check: boolean, row: NodeListOf<Element>): void {
     let checkList = [];
     for (let index = 0; index < 5; index++) {
       if (idx === index) {
@@ -566,7 +685,7 @@ export class TabPaneFilter extends BaseElement {
       html += `<div style="display: flex;padding: 4px 7px;" class="mining-checked" ${a.highlight ? 'highlight' : ''}>
                         <lit-check-box class="lit-check-box" not-close ${
                           a.checked ? 'checked' : ''
-                        } style="display: flex"></lit-check-box>
+        } style="display: flex"></lit-check-box>
                         <div id="title" title="${a.name}">${a.name}</div></div>`;
     });
 
@@ -600,7 +719,7 @@ export class TabPaneFilter extends BaseElement {
       html += `<div style="display: flex;padding: 4px 7px;" class="library-checked" ${a.highlight ? 'highlight' : ''}>
                         <lit-check-box class="lit-check-box" not-close ${
                           a.checked ? 'checked' : ''
-                        } style="display: flex"></lit-check-box>
+        } style="display: flex"></lit-check-box>
                         <div id="title" title="${a.name}">${a.name}</div></div>`;
     });
 
