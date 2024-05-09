@@ -489,7 +489,7 @@ function jankPoint(endRowStruct: any, selectThreadStruct: ThreadStruct, startRow
   let ts: number = 0;
   if (findJankEntry) {
     ts = selectThreadStruct.startTime! + selectThreadStruct.dur! / 2;
-    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectThreadStruct);
+    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow);
     const [endY, endRowEl, endOffSetY] = sp.calculateEndY(endParentRow, endRowStruct);
     sp.addPointPair(
       sp.makePoint(
@@ -509,6 +509,38 @@ function jankPoint(endRowStruct: any, selectThreadStruct: ThreadStruct, startRow
         endRowEl,
         endOffSetY,
         'thread',
+        LineType.straightLine,
+        true
+      )
+    );
+  }
+}
+
+function junkBinder(endRowStruct: any, selectFuncStruct: FuncStruct, startRow: any, endParentRow: any, sp: SpSystemTrace, data:any) {
+  let findJankEntry = endRowStruct!.fixedList[0];
+  let ts: number = 0;
+  if (findJankEntry) {
+    ts = selectFuncStruct.startTs! + selectFuncStruct.dur! / 2;
+    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow,selectFuncStruct);
+    const [endY, endRowEl, endOffSetY] = sp.calculateEndY(endParentRow, endRowStruct, data);
+    sp.addPointPair(
+      sp.makePoint(
+        ns2xByTimeShaft(ts, sp.timerShaftEL!),
+        ts,
+        startY,
+        startRowEl!,
+        startOffSetY,
+        'func',
+        LineType.straightLine,
+        selectFuncStruct.startTs == ts
+      ),
+      sp.makePoint(
+        ns2xByTimeShaft(findJankEntry.startTs!, sp.timerShaftEL!),
+        findJankEntry.startTs!,
+        endY,
+        endRowEl,
+        endOffSetY,
+        'func',
         LineType.straightLine,
         true
       )
@@ -547,4 +579,40 @@ export function spSystemTraceDrawThreadLine(
   }
 }
 
-
+export function spSystemTraceDrawFuncLine(
+  sp: SpSystemTrace,
+  endParentRow: any,
+  selectFuncStruct: FuncStruct | undefined,
+  data: any,
+  binderTid:Number
+): void {
+  let collectList = sp.favoriteChartListEL!.getCollectRows();
+  if(selectFuncStruct === undefined || selectFuncStruct === null){
+    return;
+  }
+  let selectRowId = selectFuncStruct?.tid?selectFuncStruct?.tid:binderTid.toString();
+  let startRow =  sp.shadowRoot?.querySelector<TraceRow<FuncStruct>>(`trace-row[row-id='${selectRowId}'][row-type='func']`)
+  // let startRow = sp.getStartRow(selectRowId, collectList);
+  if (!startRow) {
+    for (let collectChart of collectList) {
+      if (collectChart.rowId === selectRowId.toString() && collectChart.rowType === 'func') {
+        startRow = collectChart;
+        break;
+      }
+    }
+  }
+  if (endParentRow) {
+    endParentRow.expansion = true;
+    let endRowStruct: any = sp.shadowRoot?.querySelector<TraceRow<FuncStruct>>(
+      `trace-row[row-id='${data.tid}'][row-type='func']`
+    );
+    if (!endRowStruct) {
+      endRowStruct = endParentRow.childrenList.find((item: TraceRow<FuncStruct>) => {
+        return item.rowId === `${data.tid}` && item.rowType === 'func';
+      });
+    }
+    if (endRowStruct) {
+        junkBinder(endRowStruct, selectFuncStruct, startRow, endParentRow, sp, data);
+    }
+  }
+}
