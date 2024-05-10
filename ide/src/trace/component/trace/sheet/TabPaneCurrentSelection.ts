@@ -336,7 +336,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
   }
 
-  async setFunctionData(data: FuncStruct, scrollCallback: Function): Promise<void> {
+  async setFunctionData(data: FuncStruct, scrollCallback: Function,callback?: ((data: Array<any>, str: string) => void)): Promise<void> {
     //方法信息     
     await this.setRealTime();
     this.tabCurrentSelectionInit('Slice Details');
@@ -360,13 +360,14 @@ export class TabPaneCurrentSelection extends BaseElement {
       information = (informationList && informationList.length > 0) ? informationList[0].CN : `没有找到相关${name}的描述`
     }
     let isBinder = FuncStruct.isBinder(data);
+    let jankJumperList = new Array<ThreadTreeNode>();
     let isAsyncBinder = isBinder && FuncStruct.isBinderAsync(data);
     if (data.argsetid !== undefined && data.argsetid !== null && data.argsetid >= 0) {
       this.setTableHeight('700px');
       if (isAsyncBinder) {
         this.handleAsyncBinder(data, list, name, scrollCallback, information);
       } else if (isBinder) {
-        this.handleBinder(data, list, name, scrollCallback, information);
+        this.handleBinder(data, list, jankJumperList, name, scrollCallback, information,callback);
       } else {
         this.handleNonBinder(data, list, name, information);
       }
@@ -415,10 +416,15 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
   }
 
-  private handleBinder(data: FuncStruct, list: any[], name: string, scrollCallback: Function, information: string): void {
+  private handleBinder(data: FuncStruct, list: any[],jankJumperList: ThreadTreeNode[], name: string, scrollCallback: Function, information: string,callback?: ((data: Array<any>, str: string,binderTid:Number
+    ) => void)): void {
     queryBinderArgsByArgset(data.argsetid!).then((argset) => {
       let binderSliceId = -1;
+      let binderTid = -1;
       argset.forEach((item) => {
+        if(item.keyName === 'calling tid') {
+          binderTid = Number(item.strValue);
+        }
         if (item.keyName === 'destination slice id') {
           binderSliceId = Number(item.strValue);
           list.unshift({
@@ -443,6 +449,13 @@ export class TabPaneCurrentSelection extends BaseElement {
             if (result.length > 0) {
               result[0].type = TraceRow.ROW_TYPE_FUNC;
               scrollCallback(result[0]);
+              let timeLineNode = new ThreadTreeNode(result[0]?.tid,result[0]?.pid,result[0].startTs,result[0]?.depth);
+              jankJumperList.push(timeLineNode);
+              if(callback) {
+                let linkTo = 'binder-to';
+                callback(jankJumperList,linkTo,binderTid);
+                linkTo = '';
+              }
             }
           });
         }
@@ -1738,11 +1751,14 @@ export class ThreadTreeNode {
   tid: number = 0;
   pid: number = -1;
   startTime: number = 1;
+  depth: number = 0;
 
-  constructor(tid: number, pid: number, startTime: number) {
+  constructor(tid: number, pid: number, startTime: number, depth?: number) {
     this.tid = tid;
     this.pid = pid;
     this.startTime = startTime;
+    //@ts-ignore
+    this.depth = depth;
   }
 }
 

@@ -107,6 +107,7 @@ import {
   spSystemTraceShowStruct,
 } from './SpSystemTrace.init';
 import {
+  spSystemTraceDrawFuncLine,
   spSystemTraceDrawJankLine,
   spSystemTraceDrawTaskPollLine,
   spSystemTraceDrawThreadLine,
@@ -1185,7 +1186,7 @@ export class SpSystemTrace extends BaseElement {
     if (!SportRuler.isMouseInSportRuler) {
       this.traceSheetEL?.setMode('hidden');
     }
-    this.removeLinkLinesByBusinessType('task', 'thread');
+    this.removeLinkLinesByBusinessType('task', 'thread','func');
     this.refreshCanvas(true);
     JankStruct.delJankLineFlag = true;
   }
@@ -1367,6 +1368,10 @@ export class SpSystemTrace extends BaseElement {
     spSystemTraceDrawThreadLine(this, endParentRow, selectThreadStruct, data);
   }
 
+  drawFuncLine(endParentRow: any, selectFuncStruct: FuncStruct | undefined, data: any,binderTid:Number): void {
+    spSystemTraceDrawFuncLine(this, endParentRow, selectFuncStruct, data,binderTid)
+  }
+
   getStartRow(selectRowId: number | undefined, collectList: any[]): any {
     let startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
       `trace-row[row-id='${selectRowId}'][row-type='thread']`
@@ -1382,10 +1387,10 @@ export class SpSystemTrace extends BaseElement {
     return startRow;
   }
 
-  calculateStartY(startRow: any, selectThreadStruct: ThreadStruct): [number, any, number] {
+  calculateStartY(startRow: any,selectFuncStruct?: FuncStruct): [number, any, number] {
     let startY = startRow!.translateY!;
     let startRowEl = startRow;
-    let startOffSetY = 20 * 0.5;
+    let startOffSetY = selectFuncStruct? 20 * (0.5 + Number(selectFuncStruct.depth)) : (20 * 0.5);
     const startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
       `trace-row[row-id='${startRow.rowParentId}'][folder]`
     );
@@ -1393,20 +1398,20 @@ export class SpSystemTrace extends BaseElement {
     if (startParentRow && !startParentRow.expansion && expansionFlag) {
       startY = startParentRow.translateY!;
       startRowEl = startParentRow;
-      startOffSetY = 10 * 0.5;
+      startOffSetY = selectFuncStruct? 10 * (0.5 + Number(selectFuncStruct.depth)) : (10 * 0.5);
     }
     return [startY, startRowEl, startOffSetY];
   }
 
-  calculateEndY(endParentRow: any, endRowStruct: any): [number, any, number] {
+  calculateEndY(endParentRow: any, endRowStruct: any,data?: any): [number, any, number] {
     let endY = endRowStruct.translateY!;
     let endRowEl = endRowStruct;
-    let endOffSetY = 20 * 0.5;
+    let endOffSetY = data? 20 * (0.5 + Number(data.depth)) : (20 * 0.5);
     const expansionFlag = this.collectionHasThread(endRowStruct);
     if (!endParentRow.expansion && expansionFlag) {
       endY = endParentRow.translateY!;
       endRowEl = endParentRow;
-      endOffSetY = 10 * 0.5;
+      endOffSetY = data? 10 * (0.5 + Number(data.depth)) : (10 * 0.5);
     }
     return [endY, endRowEl, endOffSetY];
   }
