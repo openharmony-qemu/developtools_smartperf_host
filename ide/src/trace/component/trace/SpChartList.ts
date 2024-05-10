@@ -93,7 +93,7 @@ export class SpChartList extends BaseElement {
   }
 
   private initChartListListener(): void {
-    this.icon1?.addEventListener('click', () => {
+    const foldCollect1 = () => {
       this.collect1Expand = !this.collect1Expand;
       if (this.collect1Expand) {
         this.icon1!.style.transform = 'rotateZ(0deg)';
@@ -103,8 +103,9 @@ export class SpChartList extends BaseElement {
         this.collectRowList1.forEach((row) => this.fragmentGroup1.appendChild(row));
       }
       this.resizeHeight();
-    });
-    this.icon2?.addEventListener('click', () => {
+    }
+    this.icon1?.addEventListener('click', () => foldCollect1());
+    const foldCollect2 = () => {
       this.collect2Expand = !this.collect2Expand;
       if (this.collect2Expand) {
         this.icon2!.style.transform = 'rotateZ(0deg)';
@@ -117,7 +118,26 @@ export class SpChartList extends BaseElement {
         this.resizeHeight();
         this.scrollTop = 0;
       }
-    });
+    }
+    this.icon2?.addEventListener('click', () => foldCollect2());
+    document.addEventListener('keyup', e => {
+      if (e.key.toLowerCase() === 'b' && e.ctrlKey === false) {
+        const flag = this.collect1Expand === this.collect2Expand
+        if (flag) {
+          foldCollect1()
+          foldCollect2()
+        } else {
+          if (this.collect1Expand) {
+            foldCollect1()
+          }
+          else {
+            foldCollect2()
+          }
+        }
+        return 
+      }
+    })
+
     this.removeCollectIcon1?.addEventListener('click', () => {
       for (let i = 0; i < this.collectRowList1.length; i++) {
         this.collectRowList1[i].collectEL?.click();
