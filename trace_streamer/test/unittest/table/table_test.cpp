@@ -125,27 +125,25 @@ HWTEST_F(TableTest, CallstackTableTest, TestSize.Level1)
     uint64_t durationNs = 1;
     InternalTid internalTid = 1;
     DataIndex cat = stream_.traceDataCache_->GetDataIndex("callstack");
-    uint16_t nameIdentify = 1;
     DataIndex name = stream_.traceDataCache_->GetDataIndex("name");
     uint8_t depth = 1;
     uint64_t cookid = stream_.traceDataCache_->GetDataIndex("cook");
-    const std::optional<uint64_t>& parentId = 1;
+    const std::optional<uint64_t> &parentId = 1;
 
     uint64_t startT1 = 1;
     uint64_t durationNs1 = 1;
     InternalTid internalTid1 = 1;
     DataIndex cat1 = stream_.traceDataCache_->GetDataIndex("callstack1");
-    uint16_t nameIdentify1 = 1;
     DataIndex name1 = stream_.traceDataCache_->GetDataIndex("name1");
     uint8_t depth1 = 1;
     uint64_t cookid1 = stream_.traceDataCache_->GetDataIndex("cook1");
-    const std::optional<uint64_t>& parentId1 = 1;
+    const std::optional<uint64_t> &parentId1 = 1;
 
     stream_.traceDataCache_->InitDB();
-    stream_.traceDataCache_->GetInternalSlicesData()->AppendInternalAsyncSlice(
-        startT, durationNs, internalTid, cat, nameIdentify, name, depth, cookid, parentId);
-    stream_.traceDataCache_->GetInternalSlicesData()->AppendInternalAsyncSlice(
-        startT1, durationNs1, internalTid1, cat1, nameIdentify1, name1, depth1, cookid1, parentId1);
+    stream_.traceDataCache_->GetInternalSlicesData()->AppendInternalAsyncSlice(startT, durationNs, internalTid, cat,
+                                                                               name, depth, cookid, parentId);
+    stream_.traceDataCache_->GetInternalSlicesData()->AppendInternalAsyncSlice(startT1, durationNs1, internalTid1, cat1,
+                                                                               name1, depth1, cookid1, parentId1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 0);
@@ -590,24 +588,22 @@ HWTEST_F(TableTest, IrqTableTest, TestSize.Level1)
     uint64_t durationNs = 200;
     InternalTid internalTid = 1;
     DataIndex cat = stream_.traceDataCache_->GetDataIndex("cat");
-    uint16_t nameIdentify = 1;
     DataIndex name = stream_.traceDataCache_->GetDataIndex("name");
     uint8_t depth = 1;
-    const std::optional<uint64_t>& parentId = 1;
+    const std::optional<uint64_t> &parentId = 1;
 
     uint64_t startT1 = 1663869224160;
     uint64_t durationNs1 = 200;
     InternalTid internalTid1 = 2;
     DataIndex cat1 = stream_.traceDataCache_->GetDataIndex("cat1");
-    uint16_t nameIdentify1 = 2;
     DataIndex name1 = stream_.traceDataCache_->GetDataIndex("name1");
     uint8_t depth1 = 2;
-    const std::optional<uint64_t>& parentId1 = 2;
+    const std::optional<uint64_t> &parentId1 = 2;
 
-    stream_.traceDataCache_->GetIrqData()->AppendInternalSlice(startT, durationNs, internalTid, cat, nameIdentify, name,
-                                                               depth, parentId);
-    stream_.traceDataCache_->GetIrqData()->AppendInternalSlice(startT1, durationNs1, internalTid1, cat1, nameIdentify1,
-                                                               name1, depth1, parentId1);
+    stream_.traceDataCache_->GetIrqData()->AppendInternalSlice(startT, durationNs, internalTid, cat, name, depth,
+                                                               parentId);
+    stream_.traceDataCache_->GetIrqData()->AppendInternalSlice(startT1, durationNs1, internalTid1, cat1, name1, depth1,
+                                                               parentId1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
 }
@@ -816,7 +812,7 @@ HWTEST_F(TableTest, NetworkTableTest, TestSize.Level1)
     double packetInSec = 1;
     uint64_t packetOut = 1;
     double packetOutSec = 1;
-    const std::string& netType = "nettype";
+    const std::string &netType = "nettype";
 
     stream_.traceDataCache_->GetNetworkData()->AppendNewNetData(newTimeStamp, tx, rx, dur, rxSpeed, txSpeed, packetIn,
                                                                 packetInSec, packetOut, packetOutSec, netType);
@@ -1144,7 +1140,7 @@ HWTEST_F(TableTest, StatTableTest, TestSize.Level1)
     TS_LOGI("test31-37");
     std::string sqlSelect = "select * from stat";
     stream_.traceDataCache_->GetStatAndInfo();
-    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 455);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 460);
 }
 /**
  * @tc.name: SymbolsTableTest
@@ -1157,11 +1153,11 @@ HWTEST_F(TableTest, SymbolsTableTest, TestSize.Level1)
     std::string sqlSelect = "select * from symbols";
     std::string sqlSelect1 = "select * from symbols where id = 1";
     std::string sqlSelect2 = "select * from symbols where id < 1";
-    const DataIndex& name = stream_.traceDataCache_->GetDataIndex("name");
-    const uint64_t& addr = 1;
+    const DataIndex &name = stream_.traceDataCache_->GetDataIndex("name");
+    const uint64_t &addr = 1;
 
-    const DataIndex& name1 = stream_.traceDataCache_->GetDataIndex("name1");
-    const uint64_t& addr1 = 2;
+    const DataIndex &name1 = stream_.traceDataCache_->GetDataIndex("name1");
+    const uint64_t &addr1 = 2;
 
     stream_.traceDataCache_->GetSymbolsData()->UpdateSymbol(addr, name);
     stream_.traceDataCache_->GetSymbolsData()->UpdateSymbol(addr1, name1);

@@ -14,18 +14,7 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {
-  BaseStruct,
-  drawLines,
-  drawLoading,
-  Render,
-  RequestMessage,
-  mem,
-  drawFlagLine,
-  drawSelection,
-  isFrameContainPoint,
-  drawLoadingFrame,
-} from './ProcedureWorkerCommon';
+import { BaseStruct, Render, mem, isFrameContainPoint, drawLoadingFrame } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class VirtualMemoryRender extends Render {
@@ -36,7 +25,7 @@ export class VirtualMemoryRender extends Render {
       type: string;
     },
     row: TraceRow<VirtualMemoryStruct>
-  ) {
+  ): void {
     mem(
       row.dataList,
       row.dataListCache,
@@ -56,7 +45,9 @@ export class VirtualMemoryRender extends Render {
       }
       VirtualMemoryStruct.draw(req.context, re);
     }
-    if (!find && row.isHover) VirtualMemoryStruct.hoverStruct = undefined;
+    if (!find && row.isHover) {
+      VirtualMemoryStruct.hoverStruct = undefined;
+    }
     req.context.closePath();
   }
 }
@@ -70,7 +61,7 @@ export class VirtualMemoryStruct extends BaseStruct {
   maxValue: number | undefined;
   delta: number | undefined;
 
-  static draw(virtualMemoryContext: CanvasRenderingContext2D, data: VirtualMemoryStruct) {
+  static draw(virtualMemoryContext: CanvasRenderingContext2D, data: VirtualMemoryStruct): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       virtualMemoryContext.fillStyle = ColorUtils.colorForTid(data.maxValue || 0);

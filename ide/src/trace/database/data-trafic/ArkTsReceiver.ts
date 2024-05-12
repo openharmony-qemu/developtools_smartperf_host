@@ -17,11 +17,12 @@ import { DataCache, JsProfilerSymbol, convertJSON } from '../../database/logic-w
 import { JsCpuProfilerChartFrame, type JsCpuProfilerUIStruct } from '../../bean/JsStruct';
 import { JsCpuProfilerSample, SampleType } from '../logic-worker/ProcedureLogicWorkerJsCpuProfiler';
 import { TraficEnum } from './utils/QueryEnum';
+import { Args } from './CommonArgs';
 
 const dataCache = DataCache.getInstance();
 const ROOT_ID = 1;
 let samples = Array<JsCpuProfilerSample>(); // Array index equals id;
-const jsCallChain: Array<any> = [];
+const jsCallChain: Array<JsCpuProfilerChartFrame> = [];
 let chartId: number = 0;
 const jsDataCache: {
   childrenIds: Array<Array<number>>;
@@ -55,7 +56,7 @@ const jsDataCache: {
   maxDepth: 1,
 };
 
-export const initCallChainDataSql = (args: any) => {
+export const initCallChainDataSql = (args: unknown) => {
   const sql = `SELECT function_id AS id,
               0 As functionId,
             0 AS startTime,
@@ -72,7 +73,7 @@ export const initCallChainDataSql = (args: any) => {
   return sql;
 };
 
-export const queryChartDataSqlMem = (args: any) => {
+export const queryChartDataSqlMem = (args: Args) => {
   const sql = `SELECT id,
             function_id AS functionId,
             start_time - ${args.recordStartNS} AS startTime,
@@ -82,17 +83,21 @@ export const queryChartDataSqlMem = (args: any) => {
   return sql;
 };
 
-export function cpuProfilerDataReceiver(data: any, proc: Function): void {
+export function cpuProfilerDataReceiver(data: unknown, proc: Function): void {
+  //@ts-ignore
   let sql = initCallChainDataSql(data.params);
   let res = proc(sql);
   if (res.length > 0) {
     if (!dataCache.jsCallChain || dataCache.jsCallChain.length === 0) {
       dataCache.jsCallChain = res;
+      //@ts-ignore
       createCallChain(data.params.trafic);
     }
+    //@ts-ignore
     let sql = queryChartDataSqlMem(data.params);
     let chartData = proc(sql);
     if (chartData.length > 0) {
+      //@ts-ignore
       samples = convertJSON(chartData);
       arrayBufferHandler(data, samples, true);
     }
@@ -275,10 +280,11 @@ function combineCallChain(lastCallTree: JsCpuProfilerChartFrame, sample: JsCpuPr
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function arrayBufferHandler(data: unknown, res: JsCpuProfilerSample[], transfer: boolean): void {
+  //@ts-ignore
   let result = combineChartData(res, data.params.trafic);
   clearJsCacheData();
-  const getArrayData = (combineData: Array<any>): void => {
+  const getArrayData = (combineData: Array<JsCpuProfilerChartFrame>): void => {
     for (let item of combineData) {
       if (item.depth > -1) {
         jsDataCache.id.push(item.id);
@@ -308,7 +314,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
     arrayBufferCallback(data, transfer);
   }, 150);
 }
-function arrayBufferCallback(data: any, transfer: boolean): void {
+function arrayBufferCallback(data: unknown, transfer: boolean): void {
   let dataFilter = jsDataCache;
   let len = dataFilter!.startTime!.length;
   const arkTs = new ArkTS(len);
@@ -334,10 +340,12 @@ function arrayBufferCallback(data: any, transfer: boolean): void {
   }
   dataCache.jsSymbolMap!.clear();
 }
-function postMessage(data: any, transfer: boolean, arkTs: ArkTS, len: number): void {
+function postMessage(data: unknown, transfer: boolean, arkTs: ArkTS, len: number): void {
   (self as unknown as Worker).postMessage(
     {
+      //@ts-ignore
       id: data.id,
+      //@ts-ignore
       action: data.action,
       results: transfer
         ? {
@@ -375,7 +383,7 @@ function postMessage(data: any, transfer: boolean, arkTs: ArkTS, len: number): v
   );
 }
 
-function ns2x(ns: number, startNS: number, endNS: number, duration: number, width: any): number {
+function ns2x(ns: number, startNS: number, endNS: number, duration: number, width: number): number {
   if (endNS === 0) {
     endNS = duration;
   }
@@ -402,86 +410,6 @@ function clearJsCacheData(): void {
   jsDataCache.maxDepth = 1;
 }
 
-// eslint-disable-next-line max-lines-per-function
-function filterCpuProfilerChartData(startNS: number, endNS: number, totalNS: number, width: number): any {
-  let dataSource: any;
-  if (jsDataCache) {
-    let outArr: Array<any> = [];
-    let column = new Int32Array(jsDataCache.column);
-    let depth = new Int32Array(jsDataCache.depth);
-    let endTime = new Float64Array(jsDataCache.endTime);
-    let id = new Int32Array(jsDataCache.id);
-    let line = new Int32Array(jsDataCache.line);
-    let nameId = new Int32Array(jsDataCache.nameId);
-    let parentId = new Int32Array(jsDataCache.parentId);
-    let samplesIds = jsDataCache.samplesIds;
-    let selfTime = new Float64Array(jsDataCache.selfTime);
-    let startTime = new Float64Array(jsDataCache.startTime);
-    let totalTime = new Float64Array(jsDataCache.totalTime);
-    let urlId = new Int32Array(jsDataCache.urlId);
-    let childrenIds = jsDataCache.childrenIds;
-    for (let i = 0; i < jsDataCache.startTime.length; i++) {
-      outArr.push({
-        column: column[i],
-        depth: depth[i],
-        endTime: endTime[i],
-        id: id[i],
-        line: line[i],
-        nameId: nameId[i],
-        parentId: parentId[i],
-        samplesIds: samplesIds[i],
-        selfTime: selfTime[i],
-        startTime: startTime[i],
-        totalTime: totalTime[i],
-        urlId: urlId[i],
-        childrenIds: childrenIds[i],
-      } as any);
-    }
-    let groups: any = {};
-    filterDataByStartTime(startNS, endNS, totalNS, width, groups);
-    setDataSource(dataSource, groups);
-  }
-  return dataSource;
-}
-function filterDataByStartTime(startNS: number, endNS: number, totalNS: number, width: number, groups: any) {
-  jsDataCache.startTime.reduce((pre, current, index) => {
-    if (jsDataCache.totalTime[index] > 0 && current + jsDataCache.totalTime[index] >= startNS && current <= endNS) {
-      let x = 0;
-      if (current > startNS && current < endNS) {
-        x = Math.trunc(ns2x(current, startNS, endNS, totalNS, width));
-      } else {
-        x = 0;
-      }
-      let key = `${x}-${jsDataCache.depth[index]}`;
-      let preIndex = pre[key];
-      if (preIndex !== undefined) {
-        pre[key] = jsDataCache.totalTime[preIndex] > jsDataCache.totalTime[index] ? preIndex : index;
-      } else {
-        pre[key] = index;
-      }
-    }
-    return pre;
-  }, groups);
-}
-function setDataSource(dataSource: any, groups: any): void {
-  Reflect.ownKeys(groups).map(kv => {
-    let index = groups[kv as string];
-    dataSource.column.push(jsDataCache.column[index]);
-    dataSource.depth.push(jsDataCache.depth[index]);
-    dataSource.endTime.push(jsDataCache.endTime[index]);
-    dataSource.id.push(jsDataCache.id[index]);
-    dataSource.line.push(jsDataCache.line[index]);
-    dataSource.nameId.push(jsDataCache.nameId[index]);
-    dataSource.parentId.push(jsDataCache.parentId[index]);
-    dataSource.samplesIds.push(jsDataCache.samplesIds[index]);
-    dataSource.selfTime.push(jsDataCache.selfTime[index]);
-    dataSource.startTime.push(jsDataCache.startTime[index]);
-    dataSource.totalTime.push(jsDataCache.totalTime[index]);
-    dataSource.urlId.push(jsDataCache.urlId[index]);
-    dataSource.childrenIds.push(jsDataCache.childrenIds[index]);
-  });
-}
-
 class ArkTS {
   column: Int32Array;
   depth: Int32Array;
@@ -490,12 +418,12 @@ class ArkTS {
   line: Int32Array;
   nameId: Int32Array;
   parentId: Int32Array;
-  samplesIds: Array<any>;
+  samplesIds: Array<unknown>;
   selfTime: Float64Array;
   startTime: Float64Array;
   totalTime: Float64Array;
   urlId: Int32Array;
-  childrenIds: Array<any>;
+  childrenIds: Array<unknown>;
 
   constructor(len: number) {
     this.column = new Int32Array(len);

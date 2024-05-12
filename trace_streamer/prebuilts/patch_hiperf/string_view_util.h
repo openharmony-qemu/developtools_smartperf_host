@@ -29,7 +29,8 @@ class SpinLock {
 public:
     void lock()
     {
-        while (locked_.test_and_set(std::memory_order_acquire));
+        while (locked_.test_and_set(std::memory_order_acquire))
+            ;
     }
     void unlock()
     {
@@ -48,12 +49,12 @@ public:
         return instance;
     }
 
-    const char* Hold(STRING_VIEW view)
+    const char *Hold(STRING_VIEW view)
     {
 #ifndef is_mac
         pthread_spin_lock(&spin_lock_);
 #else
-    std::lock_guard<SpinLock> lockGurand(spinlock_);
+        std::lock_guard<SpinLock> lockGurand(spinlock_);
 #endif
         if (view.size() == 0) {
 #ifndef is_mac
@@ -89,7 +90,7 @@ public:
 #ifndef is_mac
         pthread_spin_lock(&spin_lock_);
 #else
-    std::lock_guard<SpinLock> lockGurand(spinlock_);
+        std::lock_guard<SpinLock> lockGurand(spinlock_);
 #endif
         for (auto &p : views_) {
             delete[] p;
@@ -99,6 +100,7 @@ public:
         pthread_spin_unlock(&spin_lock_);
 #endif
     }
+
 private:
 #ifndef is_mac
     StringViewHold()

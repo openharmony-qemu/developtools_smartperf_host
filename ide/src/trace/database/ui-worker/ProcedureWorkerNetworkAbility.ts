@@ -74,7 +74,7 @@ export class NetworkAbilityRender extends Render {
     req.context.fillText(req.maxNetworkRateName, 4, 5 + 9);
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {}
+  render(req: RequestMessage, list: Array<unknown>, filter: Array<unknown>): void {}
 }
 
 export class NetworkAbilityMonitorStruct extends BaseStruct {

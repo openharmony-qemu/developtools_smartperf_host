@@ -16,28 +16,24 @@
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import {
-  BaseStruct,
   isFrameContainPoint,
   ns2x,
-  Rect,
   Render,
   RequestMessage,
-  drawString,
   drawFunString,
   drawLoadingFrame,
+  Rect,
 } from './ProcedureWorkerCommon';
 import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
 import { FlagsConfig } from '../../component/SpFlags';
-import {TabPaneTaskFrames} from "../../component/trace/sheet/task/TabPaneTaskFrames";
-export class FuncRender extends Render {
+import { TabPaneTaskFrames } from '../../component/trace/sheet/task/TabPaneTaskFrames';
+import { SpSystemTrace } from '../../component/SpSystemTrace';
+
+export class FuncRender {
   renderMainThread(
-    req: {
-      useCache: boolean;
-      context: CanvasRenderingContext2D;
-      type: string;
-    },
+    req: { useCache: boolean; context: CanvasRenderingContext2D; type: string },
     row: TraceRow<FuncStruct>
-  ) {
+  ): void {
     let funcList = row.dataList;
     let funcFilter = row.dataListCache;
     func(
@@ -56,7 +52,7 @@ export class FuncRender extends Render {
     for (let re of funcFilter) {
       FuncStruct.draw(req.context, re);
       if (row.isHover) {
-        if (re.dur == 0 || re.dur == null || re.dur == undefined) {
+        if (re.dur === 0 || re.dur === null || re.dur === undefined) {
           if (
             re.frame &&
             re.itid &&
@@ -76,29 +72,31 @@ export class FuncRender extends Render {
         }
       }
     }
-    if (!funcFind && row.isHover) FuncStruct.hoverFuncStruct = undefined;
+    if (!funcFind && row.isHover) {
+      FuncStruct.hoverFuncStruct = undefined;
+    }
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {}
+  render(req: RequestMessage, list: Array<FuncStruct>, filter: Array<FuncStruct>): void {}
 }
 
 export function func(
-  funcList: Array<any>,
-  funcFilter: Array<any>,
+  funcList: Array<FuncStruct>,
+  funcFilter: Array<FuncStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean,
   expand: boolean
-) {
+): void {
   if (use && funcFilter.length > 0) {
     for (let i = 0, len = funcFilter.length; i < len; i++) {
       if ((funcFilter[i].startTs || 0) + (funcFilter[i].dur || 0) >= startNS && (funcFilter[i].startTs || 0) <= endNS) {
         FuncStruct.setFuncFrame(funcFilter[i], 0, startNS, endNS, totalNS, frame);
       } else {
-        funcFilter[i].frame = null;
+        funcFilter[i].frame = undefined;
       }
     }
     return;
@@ -117,16 +115,24 @@ export function func(
         return it;
       })
       .reduce((pre, current, index, arr) => {
+        //@ts-ignore
         (pre[`${current.frame.x}-${current.depth}`] = pre[`${current.frame.x}-${current.depth}`] || []).push(current);
         return pre;
       }, {});
     Reflect.ownKeys(groups).map((kv) => {
-      let arr = groups[kv].sort((a: any, b: any) => b.dur - a.dur);
+      //@ts-ignore
+      let arr = groups[kv].sort((a: FuncStruct, b: FuncStruct) => b.dur - a.dur);
       funcFilter.push(arr[0]);
     });
   }
 }
-export function FuncStructOnClick(clickRowType: string, sp:any, row:TraceRow<any>|undefined, scrollToFuncHandler: any, entry?: any) {
+export function funcStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  row: TraceRow<FuncStruct> | undefined,
+  scrollToFuncHandler: Function,
+  entry?: FuncStruct
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FUNC && (FuncStruct.hoverFuncStruct || entry)) {
       if (FuncStruct.funcSelect) {
@@ -146,20 +152,24 @@ export function FuncStructOnClick(clickRowType: string, sp:any, row:TraceRow<any
             }
           }
         }
-        sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct, scrollToFuncHandler,
-          (datas: any, str: string, binderTid:Number) => {
+        sp.timerShaftEL?.drawTriangle(hoverFuncStruct!.ts || 0, 'inverted');
+        sp.traceSheetEL?.displayFuncData(
+          showTabArray,
+          FuncStruct.selectFuncStruct!,
+          scrollToFuncHandler,
+          (datas: any, str: string, binderTid: number) => {
             sp.removeLinkLinesByBusinessType('func');
-            if(str === 'binder-to') {
-              datas.forEach((data: {
-                tid: any; pid: any; }) => {
+            if (str === 'binder-to') {
+              datas.forEach((data: { tid: any; pid: any }) => {
                 //@ts-ignore
-                let endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(
+                let endParentRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>(
                   `trace-row[row-id='${data.pid}'][folder]`
                 );
-                sp.drawFuncLine(endParentRow,hoverFuncStruct,data,binderTid)
-              })
+                sp.drawFuncLine(endParentRow, hoverFuncStruct, data, binderTid);
+              });
             }
-        });
+          }
+        );
         sp.refreshCanvas(true);
         sp.timerShaftEL?.modifyFlagList(undefined);
       }
@@ -172,13 +182,22 @@ export function FuncStructOnClick(clickRowType: string, sp:any, row:TraceRow<any
 export class FuncStruct extends BaseFuncStruct {
   static hoverFuncStruct: FuncStruct | undefined;
   static selectFuncStruct: FuncStruct | undefined;
+  static selectLineFuncStruct: Array<FuncStruct> = [];
   static firstSelectFuncStruct: FuncStruct | undefined;
   flag: string | undefined; // 570000
   textMetricsWidth: number | undefined;
   static funcSelect: boolean = true;
-  pid: any;
-  static setFuncFrame(funcNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-    let x1: number, x2: number;
+  pid: number = 0;
+  static setFuncFrame(
+    funcNode: FuncStruct,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: Rect
+  ): void {
+    let x1: number;
+    let x2: number;
     if ((funcNode.startTs || 0) > startNS && (funcNode.startTs || 0) <= endNS) {
       x1 = ns2x(funcNode.startTs || 0, startNS, endNS, totalNS, frame);
     } else {
@@ -193,24 +212,24 @@ export class FuncStruct extends BaseFuncStruct {
       x2 = frame.width;
     }
     if (!funcNode.frame) {
-      funcNode.frame = {};
+      funcNode.frame = new Rect(0, 0, 0, 0);
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
     funcNode.frame.x = Math.floor(x1);
-    funcNode.frame.y = funcNode.depth * 18 + 3;
+    funcNode.frame.y = funcNode.depth! * 18 + 3;
     funcNode.frame.width = Math.ceil(getV);
     funcNode.frame.height = 18;
   }
 
-  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct) {
+  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct): void {
     if (data.frame) {
       let isBinder = FuncStruct.isBinder(data);
-      if (data.dur == undefined || data.dur == null) {
+      if (data.dur === undefined || data.dur === null) {
       } else {
         ctx.globalAlpha = 1;
         ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
         let textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
-        if (FuncStruct.hoverFuncStruct && data.funName == FuncStruct.hoverFuncStruct.funName) {
+        if (FuncStruct.hoverFuncStruct && data.funName === FuncStruct.hoverFuncStruct.funName) {
           ctx.globalAlpha = 0.7;
         }
         ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
@@ -219,9 +238,11 @@ export class FuncStruct extends BaseFuncStruct {
           ctx.textBaseline = 'middle';
           drawFunString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }
-        if (data.callid == FuncStruct.selectFuncStruct?.callid&&
-          data.startTs == FuncStruct.selectFuncStruct?.startTs&&
-          data.depth == FuncStruct.selectFuncStruct?.depth) {
+        if (
+          data.callid === FuncStruct.selectFuncStruct?.callid &&
+          data.startTs === FuncStruct.selectFuncStruct?.startTs &&
+          data.depth === FuncStruct.selectFuncStruct?.depth
+        ) {
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 2;
           ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, data.frame.height - 2);
@@ -243,7 +264,7 @@ export class FuncStruct extends BaseFuncStruct {
         }
         // 如果该函数没有结束时间，则绘制锯齿。
         if (data.nofinish && data.frame!.width > 4) {
-          FuncStruct.drawRupture(ctx, data.frame.x, data.frame.y , data.frame.width, data.frame.height );
+          FuncStruct.drawRupture(ctx, data.frame.x, data.frame.y, data.frame.width, data.frame.height);
         }
       }
     }
@@ -257,17 +278,14 @@ export class FuncStruct extends BaseFuncStruct {
    * @param width 函数矩形框的宽度
    * @param height 函数矩形框的高度
    */
-  static drawRupture(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
+  static drawRupture(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number): void {
     ctx.fillStyle = '#fff'; // 白色: '#fff' , 红色: '#FF0000';
     let ruptureWidth = 5;
     let ruptureNode = height / ruptureWidth;
     let len = height / ruptureNode;
     ctx.moveTo(x + width - 1, y);
     for (let i = 1; i <= ruptureNode; i++) {
-      ctx.lineTo(
-        x + width - 1 - (i % 2 == 0 ? 0 : ruptureWidth),
-        y + len * i - 2
-      );
+      ctx.lineTo(x + width - 1 - (i % 2 === 0 ? 0 : ruptureWidth), y + len * i - 2);
     }
     ctx.closePath();
     ctx.fill();
@@ -313,9 +331,9 @@ export class FuncStruct extends BaseFuncStruct {
 
   static isSelected(data: FuncStruct): boolean {
     return (
-      FuncStruct.selectFuncStruct != undefined &&
-      FuncStruct.selectFuncStruct.startTs == data.startTs &&
-      FuncStruct.selectFuncStruct.depth == data.depth
+      FuncStruct.selectFuncStruct !== undefined &&
+      FuncStruct.selectFuncStruct.startTs === data.startTs &&
+      FuncStruct.selectFuncStruct.depth === data.depth
     );
   }
 }

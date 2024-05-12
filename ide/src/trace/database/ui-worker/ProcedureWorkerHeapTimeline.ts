@@ -25,9 +25,9 @@ export class HeapTimelineRender {
       samples: Array<HeapSample>;
     },
     row: TraceRow<HeapTimelineStruct>
-  ) {
+  ): void {
     let list = row.dataListCache;
-    let filter: Array<any> = [];
+    let filter: Array<HeapTimelineStruct> = [];
     if (list.length === 0) {
       return;
     }
@@ -51,7 +51,7 @@ export class HeapTimelineRender {
       HeapTimelineStruct.hoverHeapTimelineStruct = undefined;
     }
   }
-  setHoverStruct(row: TraceRow<HeapTimelineStruct>, re: HeapTimelineStruct, heapTimelineFind: boolean) {
+  setHoverStruct(row: TraceRow<HeapTimelineStruct>, re: HeapTimelineStruct, heapTimelineFind: boolean): void {
     if (row.isHover) {
       if (re.size === 0) {
         if (
@@ -74,14 +74,14 @@ export class HeapTimelineRender {
   }
 }
 export function HeapTimeline(
-  list: Array<any>,
-  filter: Array<any>,
+  list: Array<HeapTimelineStruct>,
+  filter: Array<HeapTimelineStruct>,
   samples: Array<HeapSample>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any
-) {
+  frame: Rect
+): void {
   let maxSize = 0;
   let index = [];
   for (let i = 1; i < samples.length; i++) {
@@ -118,14 +118,15 @@ export class HeapTimelineStruct extends BaseStruct {
     timestamp: number,
     size: number,
     maxSize: number,
-    node: any,
+    node: HeapTimelineStruct,
     startNS: number,
     endNS: number,
     totalNS: number,
     frame: Rect
-  ) {
-    node.frame = null;
+  ): void {
+    node.frame = undefined;
     // us * 1000 = ns
+    //@ts-ignore
     if (node.timestamp * 1000 > startNS && node.timestamp * 1000 < endNS && node.timestamp === timestamp) {
       let rectangle: Rect = new Rect(
         Math.floor(((timestamp * 1000 - startNS) / totalNS) * frame.width),

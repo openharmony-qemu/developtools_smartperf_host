@@ -111,8 +111,8 @@ export class HeapNode {
     this.detachedness = detachedness;
     this.firstEdgeIndex = firstEdgeIndex;
     this.edges = new Set<HeapEdge>();
-    this.retainsEdgeIdx = new Array<number>();
-    this.retainsNodeIdx = new Array<number>();
+    this.retainsEdgeIdx = [];
+    this.retainsNodeIdx = [];
     this.flag = 0;
   }
 
@@ -126,8 +126,7 @@ export class HeapNode {
       case NodeType.CODE:
         return '(compiled code)';
       default:
-        let typeName = '(' + getNodeTypeName(this.type) + ')';
-        return typeName.toLowerCase();
+        return `(${getNodeTypeName(this.type)})`.toLowerCase();
     }
   }
 
@@ -135,12 +134,12 @@ export class HeapNode {
     return this.displayName || this.name;
   }
 
-  addEdge(edge: HeapEdge) {
+  addEdge(edge: HeapEdge): void {
     this.edges.add(edge);
   }
 
   idHidden(): boolean {
-    return this.type == NodeType.HIDDEN;
+    return this.type === NodeType.HIDDEN;
   }
 
   isArray(): boolean {
@@ -148,11 +147,11 @@ export class HeapNode {
   }
 
   isUserRoot(): boolean {
-    return this.type != NodeType.SYNTHETIC;
+    return this.type !== NodeType.SYNTHETIC;
   }
 
   isDocumentDOMTreesRoot(): boolean {
-    return this.type != NodeType.SYNTHETIC && this.name === '(Document DOM trees)';
+    return this.type !== NodeType.SYNTHETIC && this.name === '(Document DOM trees)';
   }
 }
 
@@ -182,8 +181,8 @@ export class HeapEdge {
     this.nodeId = nodeId;
     this.fromNodeId = fromNodeId;
     this.toNodeId = toNodeId;
-    this.retainsNode = new Array<HeapNode>();
-    this.retainEdge = new Array<HeapEdge>();
+    this.retainsNode = [];
+    this.retainEdge = [];
   }
 }
 
@@ -243,26 +242,24 @@ export class HeapSnapshotStruct {
   nodeCount!: number;
   edgeCount!: number;
   functionCount!: number;
-
   nodeMap: Map<number, HeapNode>;
   edges: Array<HeapEdge>;
   functionInfos: Array<HeapTraceFunctionInfo>;
   traceNodes: Array<AllocationFunction>;
   samples: Array<HeapSample>;
   strings: Array<string>;
-
   rootNodeId: number = -1;
 
   constructor() {
     this.nodeMap = new Map<number, HeapNode>();
-    this.edges = new Array<HeapEdge>();
-    this.functionInfos = new Array<HeapTraceFunctionInfo>();
-    this.traceNodes = new Array<AllocationFunction>();
-    this.samples = new Array<HeapSample>();
-    this.strings = new Array<string>();
+    this.edges = [];
+    this.functionInfos = [];
+    this.traceNodes = [];
+    this.samples = [];
+    this.strings = [];
   }
 
-  public clear() {
+  public clear(): void {
     this.nodeMap.clear();
     this.edges.length = 0;
     this.functionInfos.length = 0;

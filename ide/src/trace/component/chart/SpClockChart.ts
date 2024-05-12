@@ -57,17 +57,23 @@ export class SpClockChart {
         promiseData = clockDataSender('', 'screenState', traceRow);
       }
       if (promiseData === null) {
-        return new Promise<Array<any>>((resolve) => resolve([]));
+        // @ts-ignore
+        return new Promise<Array<unknown>>((resolve) => resolve([]));
       } else {
-        return promiseData.then((resultClock: Array<any>) => {
+        // @ts-ignore
+        return promiseData.then((resultClock: Array<unknown>) => {
           for (let j = 0; j < resultClock.length; j++) {
-            resultClock[j].type = 'measure';
+            // @ts-ignore
+            resultClock[j].type = 'measure'; // @ts-ignore
             if ((resultClock[j].value || 0) > it.maxValue!) {
+              // @ts-ignore
               it.maxValue = resultClock[j].value || 0;
             }
             if (j > 0) {
+              // @ts-ignore
               resultClock[j].delta = (resultClock[j].value || 0) - (resultClock[j - 1].value || 0);
             } else {
+              // @ts-ignore
               resultClock[j].delta = 0;
             }
           }
@@ -114,8 +120,8 @@ export class SpClockChart {
       traceRow.canvasRestore(context, this.trace);
     };
   }
-
-  async initData(folder: TraceRow<any>): Promise<void> {
+  // @ts-ignore
+  async initData(folder: TraceRow<unknown>): Promise<void> {
     let clockStartTime = new Date().getTime();
     let clockList = await queryClockData();
     if (clockList.length === 0) {
@@ -140,7 +146,7 @@ export class SpClockChart {
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
       this.clockSupplierFrame(traceRow, it, isState, isScreenState);
-      traceRow.getCacheData = (args: any): Promise<Array<any>> | undefined => {
+      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> | undefined => {
         if (it.name.endsWith(' Frequency')) {
           return clockDataSender(it.srcname, 'clockFrequency', traceRow, args);
         } else if (isState) {
@@ -165,8 +171,8 @@ export class SpClockChart {
     let durTime = new Date().getTime() - clockStartTime;
     info('The time to load the ClockData is: ', durTime);
   }
-
-  async initFolder(): Promise<TraceRow<any>> {
+  // @ts-ignore
+  async initFolder(): Promise<TraceRow<unknown>> {
     let clockFolder = TraceRow.skeleton();
     clockFolder.rowId = 'Clocks';
     clockFolder.index = 0;
@@ -176,11 +182,12 @@ export class SpClockChart {
     clockFolder.folder = true;
     clockFolder.name = 'Clocks';
     clockFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    clockFolder.selectChangeHandler = this.trace.selectChangeHandler;
-    clockFolder.supplier = (): Promise<any[]> => new Promise<Array<any>>((resolve) => resolve([]));
+    clockFolder.selectChangeHandler = this.trace.selectChangeHandler; // @ts-ignore
+    clockFolder.supplier = (): Promise<unknown[]> => new Promise<Array<unknown>>((resolve) => resolve([]));
     clockFolder.onThreadHandler = (useCache): void => {
       clockFolder.canvasSave(this.trace.canvasPanelCtx!);
       if (clockFolder.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, clockFolder.frame.width, clockFolder.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(

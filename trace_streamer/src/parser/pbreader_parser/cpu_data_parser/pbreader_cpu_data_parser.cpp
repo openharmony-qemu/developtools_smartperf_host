@@ -18,7 +18,7 @@
 #include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderCpuDataParser::PbreaderCpuDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderCpuDataParser::PbreaderCpuDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
 }
@@ -49,7 +49,7 @@ void PbreaderCpuDataParser::Parse(ProtoReader::BytesView tracePacket, uint64_t t
 }
 void PbreaderCpuDataParser::Finish()
 {
-    auto cmp = [](const std::unique_ptr<TsCpuData>& a, const std::unique_ptr<TsCpuData>& b) { return a->ts_ < b->ts_; };
+    auto cmp = [](const std::unique_ptr<TsCpuData> &a, const std::unique_ptr<TsCpuData> &b) { return a->ts_ < b->ts_; };
     std::stable_sort(cpuData_.begin(), cpuData_.end(), cmp);
     bool firstTime = true;
     uint64_t lastTs = 0;

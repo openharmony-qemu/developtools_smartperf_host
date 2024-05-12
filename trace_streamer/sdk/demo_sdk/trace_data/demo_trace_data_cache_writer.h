@@ -24,17 +24,17 @@ using namespace TraceStdtype;
 class DemoTraceDataCacheWriter : virtual public TraceDataCacheBase {
 public:
     DemoTraceDataCacheWriter() = default;
-    DemoTraceDataCacheWriter(const DemoTraceDataCacheWriter&) = delete;
-    DemoTraceDataCacheWriter& operator=(const DemoTraceDataCacheWriter&) = delete;
+    DemoTraceDataCacheWriter(const DemoTraceDataCacheWriter &) = delete;
+    DemoTraceDataCacheWriter &operator=(const DemoTraceDataCacheWriter &) = delete;
     ~DemoTraceDataCacheWriter() override;
     void Clear();
 
 public:
-    GpuCounter* GetGpuCounterData();
-    GpuCounterObject* GetGpuCounterObjectData();
-    SliceObject* GetSliceObjectData();
-    SliceData* GetSliceTableData();
-    MetaData* GetMetaData();
+    GpuCounter *GetGpuCounterData();
+    GpuCounterObject *GetGpuCounterObjectData();
+    SliceObject *GetSliceObjectData();
+    SliceData *GetSliceTableData();
+    MetaData *GetMetaData();
     void MixTraceTime(uint64_t timestampMin, uint64_t timestampMax);
 };
 } // namespace TraceStreamer

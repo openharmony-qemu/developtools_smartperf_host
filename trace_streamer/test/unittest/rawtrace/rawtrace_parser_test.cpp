@@ -33,7 +33,7 @@ using namespace SysTuning::base;
 
 namespace SysTuning {
 namespace TraceStreamer {
-bool ParseTraceFile(TraceStreamerSelector& ts, const std::string& tracePath);
+bool ParseTraceFile(TraceStreamerSelector &ts, const std::string &tracePath);
 
 constexpr uint64_t PRINTK_VALID_ADDR = 0xffffffc011bdd3ea;
 class RawTraceParserTest : public ::testing::Test {
@@ -53,7 +53,7 @@ public:
         dataFs_.close();
     }
 
-    std::string ChunkToString(std::ifstream& fs)
+    std::string ChunkToString(std::ifstream &fs)
     {
         std::string line_;
         std::stringstream ss;
@@ -107,10 +107,10 @@ HWTEST_F(RawTraceParserTest, ParseFileHeader, TestSize.Level1)
     while (std::getline(dataFs_, line_)) {
         if (StartWith(line_, fileHeaderCmd_)) {
             chunckStr_ = ChunkToString(dataFs_);
-            auto& packagesBuffer = parser_->packagesBuffer_;
+            auto &packagesBuffer = parser_->packagesBuffer_;
             auto packagesCurIter = packagesBuffer.begin();
             EXPECT_FALSE(parser_->InitRawTraceFileHeader(packagesCurIter));
-            const uint8_t* data = reinterpret_cast<const uint8_t*>(chunckStr_.c_str());
+            const uint8_t *data = reinterpret_cast<const uint8_t *>(chunckStr_.c_str());
             packagesBuffer.insert(packagesBuffer.end(), data, data + chunckStr_.size());
             EXPECT_TRUE(parser_->InitRawTraceFileHeader(packagesCurIter));
             break;

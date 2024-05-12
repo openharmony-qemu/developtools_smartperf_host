@@ -15,18 +15,18 @@
 #include "string_help.h"
 namespace SysTuning {
 namespace base {
-char* GetDemangleSymbolIndex(const char* mangled)
+char *GetDemangleSymbolIndex(const char *mangled)
 {
     int status = 0;
     auto demangle = abi::__cxa_demangle(mangled, nullptr, nullptr, &status);
     if (status) { // status != 0 failed
-        return const_cast<char*>(mangled);
+        return const_cast<char *>(mangled);
     } else {
         return demangle;
     }
 }
 
-bool StartWith(const std::string& str, const std::string& res)
+bool StartWith(const std::string &str, const std::string &res)
 {
     if (res.size() > str.size()) {
         return false;
@@ -34,7 +34,7 @@ bool StartWith(const std::string& str, const std::string& res)
     return str.compare(0, res.length(), res) == 0;
 }
 
-bool EndWith(const std::string& str, const std::string& res)
+bool EndWith(const std::string &str, const std::string &res)
 {
     if (res.size() > str.size()) {
         return false;
@@ -42,7 +42,7 @@ bool EndWith(const std::string& str, const std::string& res)
     return str.compare(str.size() - res.size(), res.size(), res) == 0;
 }
 
-std::vector<std::string> SplitStringToVec(const std::string& str, const std::string& pat)
+std::vector<std::string> SplitStringToVec(const std::string &str, const std::string &pat)
 {
     std::vector<std::string> result;
     size_t curPos = 0;
@@ -62,7 +62,7 @@ std::vector<std::string> SplitStringToVec(const std::string& str, const std::str
 
     return result;
 }
-std::string TrimInvisibleCharacters(const std::string& str)
+std::string TrimInvisibleCharacters(const std::string &str)
 {
     size_t start = 0;
     size_t end = str.length() - 1;
@@ -75,10 +75,10 @@ std::string TrimInvisibleCharacters(const std::string& str)
     return str.substr(start, end - start + 1);
 }
 
-std::string FormatString(const char* p)
+std::string FormatString(const char *p)
 {
     std::string str = "\"";
-    for (const char* c = p; *c != 0; c++) {
+    for (const char *c = p; *c != 0; c++) {
         if (*c == '\\' || *c == '\"') {
             str += "\\";
         }
@@ -88,7 +88,7 @@ std::string FormatString(const char* p)
     return str;
 }
 
-std::string Strip(const std::string& str)
+std::string Strip(const std::string &str)
 {
     std::string blanks = " \f\v\t\r\n";
 
@@ -102,6 +102,15 @@ std::string Strip(const std::string& str)
         return "";
     }
     return str.substr(first, last - first + 1);
+}
+
+void RemoveNullTerminator(std::string &str)
+{
+    size_t pos = str.rfind('\0');
+    while (pos != std::string::npos) {
+        str.erase(pos, 1);
+        pos = str.rfind('\0');
+    }
 }
 } // namespace base
 } // namespace SysTuning

@@ -19,41 +19,41 @@ import { resetAbility } from '../VmTrackerDataReceiver';
 import { resetDynamicEffect } from '../FrameDynamicEffectReceiver';
 import { resetEnergyEvent } from '../EnergySysEventReceiver';
 // thread_state 表缓存
-export const sliceList: Map<number, Array<any>> = new Map();
+export const sliceList: Map<number, Array<unknown>> = new Map();
 //cpu 泳道 memory 缓存
-export const cpuList: Map<number, Array<any>> = new Map();
+export const cpuList: Map<number, Array<unknown>> = new Map();
 //clock 泳道 memory 模式缓存
-export const clockList: Map<string, Array<any>> = new Map();
+export const clockList: Map<string, Array<unknown>> = new Map();
 //cpu freq 泳道 memory模式缓存
-export const cpuFreqList: Map<number, Array<any>> = new Map();
+export const cpuFreqList: Map<number, Array<unknown>> = new Map();
 //cpu freq limit 泳道 memory模式缓存
-export const cpuFreqLimitList: Map<number, Array<any>> = new Map();
+export const cpuFreqLimitList: Map<number, Array<unknown>> = new Map();
 //cpu state 泳道 memory模式缓存
-export const cpuStateList: Map<number, Array<any>> = new Map();
+export const cpuStateList: Map<number, Array<unknown>> = new Map();
 //thread call stack 泳道图 memory 模式缓存
-export const threadCallStackList: Map<string, Array<any>> = new Map();
+export const threadCallStackList: Map<string, Array<unknown>> = new Map();
 //irq 泳道图 memory 模式缓存
-export const lrqList: Map<string, Array<any>> = new Map();
+export const lrqList: Map<string, Array<unknown>> = new Map();
 //Lost Frame 泳道图 memory 模式缓存
-export const lostFrameList: Map<number, Array<any>> = new Map();
+export const lostFrameList: Map<number, Array<unknown>> = new Map();
 //Hitch Time 泳道图 memory 模式缓存
-export const hitchTimeList: Map<number, Array<any>> = new Map();
+export const hitchTimeList: Map<number, Array<unknown>> = new Map();
 //进程 泳道图 memory 模式缓存
-export const processList: Map<number, Array<any>> = new Map();
+export const processList: Map<number, Array<unknown>> = new Map();
 //进程内存 泳道图 memory 模式缓存数据
-export const memList: Map<number, Array<any>> = new Map();
+export const memList: Map<number, Array<unknown>> = new Map();
 //线程状态 泳道图 memory 模式缓存
-export const threadStateList: Map<string, Array<any>> = new Map();
+export const threadStateList: Map<string, Array<unknown>> = new Map();
 //进程下卡顿丢帧 泳道图 memory 模式缓存
-export const processFrameList: Map<string, Array<any>> = new Map();
+export const processFrameList: Map<string, Array<unknown>> = new Map();
 //hiSysEvent 泳道图 memory 模式缓存
-export const hiSysEventList: Map<string, Array<any>> = new Map();
+export const hiSysEventList: Map<string, Array<unknown>> = new Map();
 //hiLog 泳道图 memory 模式缓存
-export const hiLogList: Map<string, Array<any>> = new Map();
+export const hiLogList: Map<string, Array<unknown>> = new Map();
 
 //energy 泳道图 memory 模式缓存
-export const energyList: Map<string, Array<any>> = new Map();
-export function clearMemoryCache(data: any, proc: Function) {
+export const energyList: Map<string, Array<unknown>> = new Map();
+export function clearMemoryCache(data: unknown, proc: Function) {
   sliceList.clear();
   cpuList.clear();
   clockList.clear();
@@ -81,7 +81,8 @@ export function clearMemoryCache(data: any, proc: Function) {
   resetEnergyEvent();
   (self as unknown as Worker).postMessage(
     {
-      id: data.id,
+      //@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
       results: 'ok',
       len: 0,

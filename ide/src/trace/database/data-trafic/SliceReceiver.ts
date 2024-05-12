@@ -11,14 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  cpuList,
-  processList,
-  sliceList,
-  threadStateList
-} from './utils/AllMemoryCache';
+import { Args } from './CommonArgs';
+import { cpuList, processList, sliceList, threadStateList } from './utils/AllMemoryCache';
 
-export const sliceSqlMem = (args: any): string => {
+export const sliceSqlMem = (args: Args): string => {
   return `
       SELECT B.pid,                        
              B.cpu,
@@ -32,38 +28,47 @@ export const sliceSqlMem = (args: any): string => {
       where B.itid is not null and B.ts + ifnull(B.dur, 0) < ${args.recordEndNS}`;
 };
 
-export function sliceReceiver(data: any, proc: Function): void {
+export function sliceReceiver(data: unknown, proc: Function): void {
   let count = {
     cpu: new Map<number, number>(),
   };
   sliceList.clear();
   cpuList.clear();
   processList.clear();
-  threadStateList.clear();
-  let list: any[] = proc(sliceSqlMem(data.params));
+  threadStateList.clear(); //@ts-ignore
+  let list: unknown[] = proc(sliceSqlMem(data.params));
   sliceList.set(0, list);
   for (let i = 0; i < list.length; i++) {
-    let slice = list[i];
+    let slice = list[i]; //@ts-ignore
     if (slice.cpu !== null && slice.cpu !== undefined) {
+      //@ts-ignore
       if (cpuList.has(slice.cpu)) {
+        //@ts-ignore
         let arr = cpuList.get(slice.cpu) || [];
         let last = arr[arr.length - 1];
+        //@ts-ignore
         if (last && (last.dur === -1 || last.dur === null || last.dur === undefined)) {
+          //@ts-ignore
           last.dur = slice.startTime - last.startTime;
-        }
+        } //@ts-ignore
         cpuList.get(slice.cpu)!.push(slice);
       } else {
-        cpuList.set(slice.cpu,[slice]);
+        //@ts-ignore
+        cpuList.set(slice.cpu, [slice]);
       }
-    }
+    } //@ts-ignore
     if (slice.pid >= 0 && slice.cpu !== null && slice.cpu !== undefined) {
+      //@ts-ignore
       if (processList.has(slice.pid)) {
+        //@ts-ignore
         processList.get(slice.pid)!.push(slice);
       } else {
+        //@ts-ignore
         processList.set(slice.pid, [slice]);
       }
-    }
+    } //@ts-ignore
     if (slice.pid >= 0 && slice.tid >= 0) {
+      //@ts-ignore
       let key = `${slice.pid}-${slice.tid}`;
       if (threadStateList.has(key)) {
         threadStateList.get(key)!.push(slice);
@@ -74,9 +79,10 @@ export function sliceReceiver(data: any, proc: Function): void {
   }
   for (let key of cpuList.keys()) {
     let arr = cpuList.get(key) || [];
-    let last = arr[arr.length - 1];
+    let last = arr[arr.length - 1]; //@ts-ignore
     if (last && (last.dur === -1 || last.dur === null || last.dur === undefined)) {
-      let totalNs = data.params.recordEndNS - data.params.recordStartNS;
+      //@ts-ignore
+      let totalNs = data.params.recordEndNS - data.params.recordStartNS; //@ts-ignore
       last.dur = totalNs - last.startTime;
     }
     count.cpu.set(key, arr.length);
@@ -84,8 +90,10 @@ export function sliceReceiver(data: any, proc: Function): void {
   postMsg(data, count);
 }
 
-export function sliceSPTReceiver(data: any) {
+export function sliceSPTReceiver(data: unknown) {
+  //@ts-ignore
   if (data && data.params.func) {
+    //@ts-ignore
     switch (data.params.func) {
       case 'spt-getPTS':
         getPTS(data);
@@ -100,98 +108,109 @@ export function sliceSPTReceiver(data: any) {
   }
 }
 
-function postMsg(data: any, res: any): void {
+function postMsg(data: unknown, res: unknown): void {
   (self as unknown as Worker).postMessage(
     {
-      id: data.id,
+      //@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
-      results: res,
+      results: res, //@ts-ignore
       len: res.length,
       transfer: false,
-    }, []
+    },
+    []
   );
 }
 
-function getSPT(data: any): void {
+function getSPT(data: unknown): void {
   let threadSlice = sliceList.get(0) || [];
   let sptFilter = threadSlice.filter(
     (it) =>
+      //@ts-ignore
       Math.max(data.params.leftNs, it.startTime!) < Math.min(data.params.rightNs, it.startTime! + it.dur!) &&
+      //@ts-ignore
       (it.cpu === null || it.cpu === undefined || data.params.cpus.includes(it.cpu))
   );
-  let group: any = {};
+  let group: unknown = {};
   sptFilter.forEach((slice) => {
     let item = {
+      //@ts-ignore
       title: `T-${slice.tid}`,
-      count: 1,
-      state: slice.state,
-      pid: slice.pid,
-      tid: slice.tid,
-      minDuration: slice.dur || 0,
-      maxDuration: slice.dur || 0,
-      wallDuration: slice.dur || 0,
+      count: 1, //@ts-ignore
+      state: slice.state, //@ts-ignore
+      pid: slice.pid, //@ts-ignore
+      tid: slice.tid, //@ts-ignore
+      minDuration: slice.dur || 0, //@ts-ignore
+      maxDuration: slice.dur || 0, //@ts-ignore
+      wallDuration: slice.dur || 0, //@ts-ignore
       avgDuration: `${slice.dur}`,
-    };
+    }; //@ts-ignore
     if (group[`${slice.state}`]) {
       setSPTData(group, slice, item);
     } else {
+      //@ts-ignore
       group[`${slice.state}`] = {
+        //@ts-ignore
         title: `S-${slice.state}`,
-        count: 1,
-        state: slice.state,
-        minDuration: slice.dur || 0,
-        maxDuration: slice.dur || 0,
-        wallDuration: slice.dur || 0,
+        count: 1, //@ts-ignore
+        state: slice.state, //@ts-ignore
+        minDuration: slice.dur || 0, //@ts-ignore
+        maxDuration: slice.dur || 0, //@ts-ignore
+        wallDuration: slice.dur || 0, //@ts-ignore
         avgDuration: `${slice.dur}`,
         children: [
           {
+            //@ts-ignore
             title: `P-${slice.pid}`,
-            count: 1,
-            state: slice.state,
-            pid: slice.pid,
-            minDuration: slice.dur || 0,
-            maxDuration: slice.dur || 0,
-            wallDuration: slice.dur || 0,
+            count: 1, //@ts-ignore
+            state: slice.state, //@ts-ignore
+            pid: slice.pid, //@ts-ignore
+            minDuration: slice.dur || 0, //@ts-ignore
+            maxDuration: slice.dur || 0, //@ts-ignore
+            wallDuration: slice.dur || 0, //@ts-ignore
             avgDuration: `${slice.dur}`,
             children: [item],
           },
         ],
       };
     }
-  });
+  }); //@ts-ignore
   postMsg(data, Object.values(group));
 }
 
-function getPTS(data: any): void {
+function getPTS(data: unknown): void {
   let threadSlice = sliceList.get(0) || [];
   let ptsFilter = threadSlice.filter(
     (it) =>
-      Math.max(data.params.leftNs, it.startTime!) < Math.min(data.params.rightNs, it.startTime! + it.dur!) &&
+      //@ts-ignore
+      Math.max(data.params.leftNs, it.startTime!) < Math.min(data.params.rightNs, it.startTime! + it.dur!) && //@ts-ignore
       (it.cpu === null || it.cpu === undefined || data.params.cpus.includes(it.cpu))
   );
-  let group: any = {};
+  let group: unknown = {};
   ptsFilter.forEach((slice) => {
+    //@ts-ignore
     let title = `S-${slice.state}`;
-    let item = setStateData(slice, title);
+    let item = setStateData(slice, title); //@ts-ignore
     if (group[`${slice.pid}`]) {
+      //@ts-ignore
       let process = group[`${slice.pid}`];
-      process.count += 1;
-      process.wallDuration += slice.dur;
-      process.minDuration = Math.min(process.minDuration, slice.dur!);
+      process.count += 1; //@ts-ignore
+      process.wallDuration += slice.dur; //@ts-ignore
+      process.minDuration = Math.min(process.minDuration, slice.dur!); //@ts-ignore
       process.maxDuration = Math.max(process.maxDuration, slice.dur!);
-      process.avgDuration = (process.wallDuration / process.count).toFixed(2);
-      let thread = process.children.find((child: any) => child.title === `T-${slice.tid}`);
+      process.avgDuration = (process.wallDuration / process.count).toFixed(2); //@ts-ignore
+      let thread = process.children.find((child: unknown) => child.title === `T-${slice.tid}`);
       if (thread) {
-        thread.count += 1;
-        thread.wallDuration += slice.dur;
-        thread.minDuration = Math.min(thread.minDuration, slice.dur!);
+        thread.count += 1; //@ts-ignore
+        thread.wallDuration += slice.dur; //@ts-ignore
+        thread.minDuration = Math.min(thread.minDuration, slice.dur!); //@ts-ignore
         thread.maxDuration = Math.max(thread.maxDuration, slice.dur!);
-        thread.avgDuration = (thread.wallDuration / thread.count).toFixed(2);
-        let state = thread.children.find((child: any) => child.title === `S-${slice.state}`);
+        thread.avgDuration = (thread.wallDuration / thread.count).toFixed(2); //@ts-ignore
+        let state = thread.children.find((child: unknown) => child.title === `S-${slice.state}`);
         if (state) {
-          state.count += 1;
-          state.wallDuration += slice.dur;
-          state.minDuration = Math.min(state.minDuration, slice.dur!);
+          state.count += 1; //@ts-ignore
+          state.wallDuration += slice.dur; //@ts-ignore
+          state.minDuration = Math.min(state.minDuration, slice.dur!); //@ts-ignore
           state.maxDuration = Math.max(state.maxDuration, slice.dur!);
           state.avgDuration = (state.wallDuration / state.count).toFixed(2);
         } else {
@@ -202,66 +221,71 @@ function getPTS(data: any): void {
         process.children.push(processChild);
       }
     } else {
+      //@ts-ignore
       group[`${slice.pid}`] = setProcessData(slice, item);
     }
-  });
+  }); //@ts-ignore
   postMsg(data, Object.values(group));
 }
 
-function sptGetCpuPriorityByTime(data: any): void {
+function sptGetCpuPriorityByTime(data: unknown): void {
   let threadSlice = sliceList.get(0) || [];
-  const result = threadSlice.filter((item: any) => {
+  const result = threadSlice.filter((item: unknown) => {
+    //@ts-ignore
     return !(item.startTime + item.dur < data.params.leftNs || item.startTime! > data.params.rightNs);
   });
   postMsg(data, result);
 }
 
-function setStateData(slice: any, title: string): any {
+function setStateData(slice: unknown, title: string): unknown {
   return {
     title: title,
-    count: 1,
-    state: slice.state,
-    tid: slice.tid,
-    pid: slice.pid,
-    minDuration: slice.dur || 0,
-    maxDuration: slice.dur || 0,
-    wallDuration: slice.dur || 0,
+    count: 1, //@ts-ignore
+    state: slice.state, //@ts-ignore
+    tid: slice.tid, //@ts-ignore
+    pid: slice.pid, //@ts-ignore
+    minDuration: slice.dur || 0, //@ts-ignore
+    maxDuration: slice.dur || 0, //@ts-ignore
+    wallDuration: slice.dur || 0, //@ts-ignore
     avgDuration: `${slice.dur}`,
   };
 }
 
-function setThreadData(slice: any, item: any): any {
+function setThreadData(slice: unknown, item: unknown): unknown {
   return {
+    //@ts-ignore
     title: `T-${slice.tid}`,
-    count: 1,
-    tid: slice.tid,
-    pid: slice.pid,
-    minDuration: slice.dur || 0,
-    maxDuration: slice.dur || 0,
-    wallDuration: slice.dur || 0,
+    count: 1, //@ts-ignore
+    tid: slice.tid, //@ts-ignore
+    pid: slice.pid, //@ts-ignore
+    minDuration: slice.dur || 0, //@ts-ignore
+    maxDuration: slice.dur || 0, //@ts-ignore
+    wallDuration: slice.dur || 0, //@ts-ignore
     avgDuration: `${slice.dur}`,
     children: [item],
   };
 }
 
-function setProcessData(slice: any, item: any): any {
+function setProcessData(slice: unknown, item: unknown): unknown {
   return {
+    //@ts-ignore
     title: `P-${slice.pid}`,
-    count: 1,
-    pid: slice.pid,
-    minDuration: slice.dur || 0,
-    maxDuration: slice.dur || 0,
-    wallDuration: slice.dur || 0,
+    count: 1, //@ts-ignore
+    pid: slice.pid, //@ts-ignore
+    minDuration: slice.dur || 0, //@ts-ignore
+    maxDuration: slice.dur || 0, //@ts-ignore
+    wallDuration: slice.dur || 0, //@ts-ignore
     avgDuration: `${slice.dur}`,
     children: [
       {
+        //@ts-ignore
         title: `T-${slice.tid}`,
-        count: 1,
-        pid: slice.pid,
-        tid: slice.tid,
-        minDuration: slice.dur || 0,
-        maxDuration: slice.dur || 0,
-        wallDuration: slice.dur || 0,
+        count: 1, //@ts-ignore
+        pid: slice.pid, //@ts-ignore
+        tid: slice.tid, //@ts-ignore
+        minDuration: slice.dur || 0, //@ts-ignore
+        maxDuration: slice.dur || 0, //@ts-ignore
+        wallDuration: slice.dur || 0, //@ts-ignore
         avgDuration: `${slice.dur}`,
         children: [item],
       },
@@ -269,25 +293,26 @@ function setProcessData(slice: any, item: any): any {
   };
 }
 
-function setSPTData(group: any, slice: any, item: any): void {
+function setSPTData(group: unknown, slice: unknown, item: unknown): void {
+  //@ts-ignore
   let state = group[`${slice.state}`];
-  state.count += 1;
-  state.wallDuration += slice.dur;
-  state.minDuration = Math.min(state.minDuration, slice.dur!);
+  state.count += 1; //@ts-ignore
+  state.wallDuration += slice.dur; //@ts-ignore
+  state.minDuration = Math.min(state.minDuration, slice.dur!); //@ts-ignore
   state.maxDuration = Math.max(state.maxDuration, slice.dur!);
-  state.avgDuration = (state.wallDuration / state.count).toFixed(2);
-  let process = state.children.find((child: any) => child.title === `P-${slice.pid}`);
+  state.avgDuration = (state.wallDuration / state.count).toFixed(2); //@ts-ignore
+  let process = state.children.find((child: unknown) => child.title === `P-${slice.pid}`);
   if (process) {
-    process.count += 1;
-    process.wallDuration += slice.dur;
-    process.minDuration = Math.min(process.minDuration, slice.dur!);
+    process.count += 1; //@ts-ignore
+    process.wallDuration += slice.dur; //@ts-ignore
+    process.minDuration = Math.min(process.minDuration, slice.dur!); //@ts-ignore
     process.maxDuration = Math.max(process.maxDuration, slice.dur!);
-    process.avgDuration = (process.wallDuration / process.count).toFixed(2);
-    let thread = process.children.find((child: any) => child.title === `T-${slice.tid}`);
+    process.avgDuration = (process.wallDuration / process.count).toFixed(2); //@ts-ignore
+    let thread = process.children.find((child: unknown) => child.title === `T-${slice.tid}`);
     if (thread) {
-      thread.count += 1;
-      thread.wallDuration += slice.dur;
-      thread.minDuration = Math.min(thread.minDuration, slice.dur!);
+      thread.count += 1; //@ts-ignore
+      thread.wallDuration += slice.dur; //@ts-ignore
+      thread.minDuration = Math.min(thread.minDuration, slice.dur!); //@ts-ignore
       thread.maxDuration = Math.max(thread.maxDuration, slice.dur!);
       thread.avgDuration = (thread.wallDuration / thread.count).toFixed(2);
     } else {
@@ -295,16 +320,16 @@ function setSPTData(group: any, slice: any, item: any): void {
     }
   } else {
     state.children.push({
+      //@ts-ignore
       title: `P-${slice.pid}`,
-      count: 1,
-      state: slice.state,
-      pid: slice.pid,
-      minDuration: slice.dur || 0,
-      maxDuration: slice.dur || 0,
-      wallDuration: slice.dur || 0,
+      count: 1, //@ts-ignore
+      state: slice.state, //@ts-ignore
+      pid: slice.pid, //@ts-ignore
+      minDuration: slice.dur || 0, //@ts-ignore
+      maxDuration: slice.dur || 0, //@ts-ignore
+      wallDuration: slice.dur || 0, //@ts-ignore
       avgDuration: `${slice.dur}`,
       children: [item],
     });
   }
 }
-

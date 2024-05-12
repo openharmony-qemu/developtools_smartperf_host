@@ -18,8 +18,8 @@ import { query } from './SqlLite';
 class ProcedureThread {
   busy: boolean = false;
   isCancelled: boolean = false;
-  id: number = -1;
-  taskMap: any = {};
+  id: number = -1; //@ts-ignore
+  taskMap: unknown = {};
   name: string | undefined;
   worker?: Worker;
   constructor(worker: Worker) {
@@ -31,10 +31,10 @@ class ProcedureThread {
       (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
     );
   }
-
-  queryFunc(type: string, args: any, transfer: any, handler: Function) {
+  //@ts-ignore
+  queryFunc(type: string, args: unknown, transfer: unknown, handler: Function): void {
     this.busy = true;
-    let id = this.uuid();
+    let id = this.uuid(); // @ts-ignore
     this.taskMap[id] = handler;
     let pam = {
       id: id,
@@ -50,15 +50,19 @@ class ProcedureThread {
             this.worker!.postMessage(pam);
           }
         } else {
+          // @ts-ignore
           this.worker!.postMessage(pam, [transfer]);
         }
-      } catch (e: any) {}
+      } catch (
+        //@ts-ignore
+        e: unknown
+      ) {}
     } else {
       this.worker!.postMessage(pam);
     }
   }
 
-  cancel() {
+  cancel(): void {
     this.isCancelled = true;
     this.worker!.terminate();
   }
@@ -68,7 +72,13 @@ class ProcedurePool {
   static cpuCount = Math.floor((window.navigator.hardwareConcurrency || 4) / 2);
   maxThreadNumber: number = 1;
   works: Array<ProcedureThread> = [];
-  timelineChange: ((a: any) => void) | undefined | null = null;
+  timelineChange:
+    | ((
+        //@ts-ignore
+        a: unknown
+      ) => void)
+    | undefined
+    | null = null;
   cpusLen = ProcedurePool.build('cpu', 0);
   freqLen = ProcedurePool.build('freq', 0);
   processLen = ProcedurePool.build('process', 0);
@@ -82,11 +92,11 @@ class ProcedurePool {
     this.init(threadBuild);
   }
 
-  static build(name: string, len: number) {
+  static build(name: string, len: number): string[] {
     return [...Array(len).keys()].map((it) => `${name}${it}`);
   }
 
-  init(threadBuild: (() => ProcedureThread) | undefined = undefined) {
+  init(threadBuild: (() => ProcedureThread) | undefined = undefined): void {
     this.maxThreadNumber = this.names.length;
     for (let i = 0; i < this.maxThreadNumber; i++) {
       this.newThread();
@@ -96,7 +106,7 @@ class ProcedurePool {
     }
   }
 
-  newThread() {
+  newThread(): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -107,19 +117,20 @@ class ProcedurePool {
       })
     );
     newThread.name = this.names[this.works.length];
-    newThread.worker!.onmessage = (event: MessageEvent) => {
+    newThread.worker!.onmessage = (event: MessageEvent): void => {
       newThread.busy = false;
-      if ((event.data.type as string) == 'timeline-range-changed') {
+      if ((event.data.type as string) === 'timeline-range-changed') {
         this.timelineChange?.(event.data.results);
         newThread.busy = false;
         return;
-      }
+      } // @ts-ignore
       if (Reflect.has(newThread.taskMap, event.data.id)) {
         if (event.data) {
+          // @ts-ignore
           let fun = newThread.taskMap[event.data.id];
           if (fun) {
             fun(event.data.results, event.data.hover);
-          }
+          } // @ts-ignore
           Reflect.deleteProperty(newThread.taskMap, event.data.id);
         }
       }
@@ -127,15 +138,14 @@ class ProcedurePool {
         this.onComplete();
       }
     };
-    newThread.worker!.onmessageerror = (e) => {};
-    newThread.worker!.onerror = (e) => {};
+    newThread.worker!.onmessageerror = (e): void => {};
+    newThread.worker!.onerror = (e): void => {};
     newThread.id = this.works.length;
     newThread.busy = false;
     this.works?.push(newThread);
-    return newThread;
   }
 
-  private logicDataThread(): ProcedureThread | undefined {
+  private logicDataThread(): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -147,32 +157,43 @@ class ProcedurePool {
     );
     thread.name = this.logicDataHandles[this.works.length - this.names.length];
     this.sendMessage(thread);
-    thread.worker!.onmessageerror = (e) => {};
-    thread.worker!.onerror = (e) => {};
+    thread.worker!.onmessageerror = (e): void => {};
+    thread.worker!.onerror = (e): void => {};
     thread.id = this.works.length;
     thread.busy = false;
     this.works?.push(thread);
-    return thread;
   }
 
   private sendMessage(thread: ProcedureThread): void {
-    thread.worker!.onmessage = (event: MessageEvent) => {
+    thread.worker!.onmessage = (event: MessageEvent): void => {
       thread.busy = false;
       if (event.data.isQuery) {
-        query(event.data.type, event.data.sql, event.data.args, 'exec-buf').then((res: any) => {
-          thread.worker!.postMessage({
-            type: event.data.type,
-            params: {
-              list: res,
-            },
-            id: event.data.id,
-          });
-        });
+        query(event.data.type, event.data.sql, event.data.args, { action : 'exec-buf' }).then(
+          (
+            // @ts-ignore
+            res: unknown
+          ) => {
+            thread.worker!.postMessage({
+              type: event.data.type,
+              params: {
+                list: res,
+              },
+              id: event.data.id,
+            });
+          }
+        );
         return;
       }
       if (event.data.isSending) {
-        if (Reflect.has(thread.taskMap, event.data.id)) {
+        if (
+          Reflect.has(
+            // @ts-ignore
+            thread.taskMap,
+            event.data.id
+          )
+        ) {
           if (event.data) {
+            // @ts-ignore
             let fun = thread.taskMap[event.data.id];
             if (fun) {
               fun(event.data.results, event.data.hover);
@@ -180,13 +201,14 @@ class ProcedurePool {
             return;
           }
         }
-      }
+      } // @ts-ignore
       if (Reflect.has(thread.taskMap, event.data.id)) {
         if (event.data) {
+          // @ts-ignore
           let fun = thread.taskMap[event.data.id];
           if (fun) {
             fun(event.data.results, event.data.hover);
-          }
+          } // @ts-ignore
           Reflect.deleteProperty(thread.taskMap, event.data.id);
         }
       }
@@ -196,20 +218,20 @@ class ProcedurePool {
     };
   }
 
-  close = () => {
+  close = (): void => {
     for (let thread of this.works) {
       thread.worker!.terminate();
     }
     this.works.length = 0;
   };
 
-  clearCache = () => {
+  clearCache = (): void => {
     for (let thread of this.works) {
       thread.queryFunc('clear', {}, undefined, () => {});
     }
   };
 
-  submitWithName(name: string, type: string, args: any, transfer: any, handler: Function): ProcedureThread | undefined {
+  submitWithName(name: string, type: string, args: unknown, transfer: unknown, handler: Function): unknown {
     let noBusyThreads = this.works.filter((it) => it.name === name);
     let thread: ProcedureThread | undefined;
     if (noBusyThreads.length > 0) {
@@ -219,15 +241,15 @@ class ProcedurePool {
     }
     return thread;
   }
-
-  submitWithNamePromise(name: string, type: string, args: any, transfer: any): Promise<any> {
+  // @ts-ignore
+  submitWithNamePromise(name: string, type: string, args: unknown, transfer: unknown): Promise<unknown> {
     return new Promise((resolve, reject) => {
       let noBusyThreads = this.works.filter((it) => it.name === name);
       let thread: ProcedureThread | undefined;
       if (noBusyThreads.length > 0) {
         //取第一个空闲的线程进行任务
-        thread = noBusyThreads[0];
-        thread!.queryFunc(type, args, transfer, (res: any, hover: any) => {
+        thread = noBusyThreads[0]; // @ts-ignore
+        thread!.queryFunc(type, args, transfer, (res: unknown, hover: unknown) => {
           resolve({
             res: res,
             hover: hover,
@@ -237,7 +259,7 @@ class ProcedurePool {
     });
   }
 
-  isIdle() {
+  isIdle(): boolean {
     return this.works.every((it) => !it.busy);
   }
 }

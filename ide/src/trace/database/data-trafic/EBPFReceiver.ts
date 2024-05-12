@@ -11,9 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from './CommonArgs';
 import { TraficEnum } from './utils/QueryEnum';
 
-export const fileSystemDataGroupBy10MSProtoSql = (args: any): string => {
+export const fileSystemDataGroupBy10MSProtoSql = (args: Args): string => {
   return `SELECT
         startNs, endNs, max( count ) AS size,
         ( startNS / ( ( ${args.endNS} - ${args.startNS} ) / ${args.width} ) ) AS px
@@ -36,7 +37,7 @@ export const fileSystemDataGroupBy10MSProtoSql = (args: any): string => {
         GROUP BY px
             `;
 };
-export const fileSystemDataProtoSql = (args: any): string => {
+export const fileSystemDataProtoSql = (args: Args): string => {
   return `select
           (A.start_ts - ${args.recordStartNS}) as startNs,
           (A.end_ts - ${args.recordStartNS}) as endNs,
@@ -48,7 +49,7 @@ export const fileSystemDataProtoSql = (args: any): string => {
           and startNs < ${args.endNS}
     `;
 };
-export const diskIoDataGroupBy10MSProtoSql = (args: any): string => {
+export const diskIoDataGroupBy10MSProtoSql = (args: Args): string => {
   return `SELECT
         startNs,
         endNs,
@@ -70,7 +71,7 @@ export const diskIoDataGroupBy10MSProtoSql = (args: any): string => {
         )
         GROUP BY px`;
 };
-export const diskIoDataProtoSql = (args: any): string => {
+export const diskIoDataProtoSql = (args: Args): string => {
   return `select
         (A.start_ts - ${args.recordStartNS}) as startNs,
         (A.start_ts - ${args.recordStartNS} + A.latency_dur) as endNs,
@@ -82,36 +83,75 @@ export const diskIoDataProtoSql = (args: any): string => {
         and startNs < ${args.endNS}
         order by A.start_ts;`;
 };
-export const eBPFVmDataGroupBy10MSProtoSql = (args: any): string => {
+export const eBPFVmDataGroupBy10MSProtoSql = (args: unknown): string => {
   return `SELECT startNs, endNs, max( count ) AS size,
-        ( startNS / ( ( ${args.endNS} - ${args.startNS} ) / ${args.width} ) ) AS px
+        ( startNS / ( ( ${
+          // @ts-ignore
+          args.endNS
+        } - ${
+    // @ts-ignore
+    args.startNS
+  } ) / ${
+    // @ts-ignore
+    args.width
+  } ) ) AS px
         FROM
         (
         SELECT
-            ( A.start_ts - ${args.recordStartNS} ) / 10000000 * 10000000 AS startNs,
-            ( A.start_ts - ${args.recordStartNS} + 10000000 ) / 10000000 * 10000000 AS endNs,
+            ( A.start_ts - ${
+              // @ts-ignore
+              args.recordStartNS
+            } ) / 10000000 * 10000000 AS startNs,
+            ( A.start_ts - ${
+              // @ts-ignore
+              args.recordStartNS
+            } + 10000000 ) / 10000000 * 10000000 AS endNs,
             count( dur ) AS count
         FROM
         paged_memory_sample A
-        where startNs + dur > ${args.startNS}
+        where startNs + dur > ${
+          // @ts-ignore
+          args.startNS
+        }
         and startNs > 0
-        and startNs < ${args.endNS}
-        and endNs > ${args.startNS}
+        and startNs < ${
+          // @ts-ignore
+          args.endNS
+        }
+        and endNs > ${
+          // @ts-ignore
+          args.startNS
+        }
         GROUP BY startNs
         order by startNs
         )
         GROUP BY px`;
 };
-export const eBPFVmDataProtoSql = (args: any): string => {
+export const eBPFVmDataProtoSql = (args: unknown): string => {
   return `select
-        (A.start_ts - ${args.recordStartNS}) as startNs,
-        (A.end_ts - ${args.recordStartNS}) as endNs,
+        (A.start_ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        }) as startNs,
+        (A.end_ts - ${
+          // @ts-ignore
+          args.recordStartNS
+        }) as endNs,
         dur as dur
         from paged_memory_sample A
-        where startNs + dur > ${args.startNS}
+        where startNs + dur > ${
+          // @ts-ignore
+          args.startNS
+        }
         and startNs > 0
-        and startNs < ${args.endNS}
-        and endNs > ${args.startNS}
+        and startNs < ${
+          // @ts-ignore
+          args.endNS
+        }
+        and endNs > ${
+          // @ts-ignore
+          args.startNS
+        }
         order by A.start_ts;`;
 };
 
@@ -119,54 +159,79 @@ export const eBPFVmDataProtoSql = (args: any): string => {
  * @param data
  * @param proc
  */
-export function fileSystemDataReceiver(data: any, proc: Function): void {
+export function fileSystemDataReceiver(data: unknown, proc: Function): void {
   let sql: string;
+  // @ts-ignore
   if (data.params.scale > 40_000_000) {
+    // @ts-ignore
     sql = fileSystemDataGroupBy10MSProtoSql(data.params);
   } else {
+    // @ts-ignore
     sql = fileSystemDataProtoSql(data.params);
   }
   let res = proc(sql);
+  // @ts-ignore
   arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
-export function diskIoReceiver(data: any, proc: Function): void {
+export function diskIoReceiver(data: unknown, proc: Function): void {
   let sql: string;
+  // @ts-ignore
   if (data.params.scale > 40_000_000) {
+    // @ts-ignore
     sql = diskIoDataGroupBy10MSProtoSql(data.params);
   } else {
+    // @ts-ignore
     sql = diskIoDataProtoSql(data.params);
   }
   let res = proc(sql);
+  // @ts-ignore
   arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
-export function eBPFVmReceiver(data: any, proc: Function): void {
+export function eBPFVmReceiver(data: unknown, proc: Function): void {
   let sql: string;
+  // @ts-ignore
   if (data.params.scale > 40_000_000) {
+    // @ts-ignore
     sql = eBPFVmDataGroupBy10MSProtoSql(data.params);
   } else {
+    // @ts-ignore
     sql = eBPFVmDataProtoSql(data.params);
   }
   let res = proc(sql);
+  // @ts-ignore
   arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
+  // @ts-ignore
   let endNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.endNS);
+  // @ts-ignore
   let size = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.size);
+  // @ts-ignore
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
+  // @ts-ignore
   let height = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.height);
+  // @ts-ignore
   let maxSize = Math.max(...res.map((it) => it.size));
   res.forEach((it, i) => {
+    // @ts-ignore
     startNS[i] = it.startNs;
+    // @ts-ignore
     endNS[i] = it.endNs;
+    // @ts-ignore
     size[i] = it.size;
+    // @ts-ignore
     dur[i] = it.dur;
-    height[i] = Math.ceil(it.size / maxSize * 36);
+    // @ts-ignore
+    height[i] = Math.ceil((it.size / maxSize) * 36);
   });
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {

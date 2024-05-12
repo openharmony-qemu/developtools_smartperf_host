@@ -142,26 +142,29 @@ export class TabPaneCpuAbility extends BaseElement {
         `;
   }
 
-  getPropertyByType = (property: string, type: string) => (data: SystemCpuSummary): number | string => {
-    switch (type) {
-      case 'number':
-        // @ts-ignore
-        return parseFloat(data[property]);
-      case 'durationStr':
-        return data.duration;
-      case 'totalLoadStr':
-        return data.totalLoad;
-      case 'userLoadStr':
-        return data.userLoad;
-      case 'systemLoadStr':
-        return data.systemLoad;
-      default:
-        // @ts-ignore
-        return data[property];
-    }
-  };
+  getPropertyByType =
+    (property: string, type: string) =>
+    (data: SystemCpuSummary): number | string => {
+      switch (type) {
+        case 'number':
+          // @ts-ignore
+          return parseFloat(data[property]);
+        case 'durationStr':
+          return data.duration;
+        case 'totalLoadStr':
+          return data.totalLoad;
+        case 'userLoadStr':
+          return data.userLoad;
+        case 'systemLoadStr':
+          return data.systemLoad;
+        default:
+          // @ts-ignore
+          return data[property];
+      }
+    };
 
-  compareFunction = (sort: number, getProperty: (data: SystemCpuSummary) => number | string) =>
+  compareFunction =
+    (sort: number, getProperty: (data: SystemCpuSummary) => number | string) =>
     (cpuAbilityLeftData: SystemCpuSummary, cpuAbilityRightData: SystemCpuSummary): number => {
       let leftValue = getProperty(cpuAbilityLeftData);
       let rightValue = getProperty(cpuAbilityRightData);
@@ -174,21 +177,24 @@ export class TabPaneCpuAbility extends BaseElement {
       return result;
     };
 
-  compare = (property: string, sort: number, type: string):
-    (cpuAbilityLeftData: SystemCpuSummary, cpuAbilityRightData: SystemCpuSummary) => number => {
+  compare = (
+    property: string,
+    sort: number,
+    type: string
+  ): ((cpuAbilityLeftData: SystemCpuSummary, cpuAbilityRightData: SystemCpuSummary) => number) => {
     let getProperty = this.getPropertyByType(property, type);
     return this.compareFunction(sort, getProperty);
   };
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     let typeMaping: { [key: string]: string } = {
       startTime: 'string',
       durationStr: 'durationStr',
       totalLoadStr: 'totalLoadStr',
       userLoadStr: 'userLoadStr',
       systemLoadStr: 'systemLoadStr',
-    };
-    let type = typeMaping[detail.key] || 'number';
+    }; // @ts-ignore
+    let type = typeMaping[detail.key] || 'number'; // @ts-ignore
     this.cpuAbilitySource.sort(this.compare(detail.key, detail.sort, type));
     this.cpuAbilityTbl!.recycleDataSource = this.cpuAbilitySource;
   }

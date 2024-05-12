@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, isFrameContainPoint, ns2x, Render } from './ProcedureWorkerCommon';
+import { BaseStruct, isFrameContainPoint, ns2x, Rect, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class SdkCounterRender extends Render {
@@ -64,20 +64,22 @@ export class SdkCounterRender extends Render {
   }
 
   counter(
-    sdkCounterList: Array<any>,
-    sdkCounterFilters: Array<any>,
+    sdkCounterList: Array<unknown>,
+    sdkCounterFilters: Array<unknown>,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any,
+    frame: Rect,
     use: boolean
-  ) {
+  ): void {
     if (use && sdkCounterFilters.length > 0) {
       for (let index = 0; index < sdkCounterFilters.length; index++) {
         let item = sdkCounterFilters[index];
+        //@ts-ignore
         if ((item.ts || 0) + (item.dur || 0) > startNS && (item.ts || 0) < endNS) {
           CounterStruct.setCounterFrame(sdkCounterFilters[index], 5, startNS, endNS, totalNS, frame);
         } else {
+          //@ts-ignore
           sdkCounterFilters[index].frame = null;
         }
       }
@@ -88,27 +90,28 @@ export class SdkCounterRender extends Render {
   }
 }
 function setSdkCounterFilter(
-  sdkCounterList: Array<any>,
-  sdkCounterFilters: Array<any>,
+  list: Array<unknown>,
+  sdkCounterFilters: Array<unknown>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any
-) {
-  if (sdkCounterList) {
-    for (let index = 0; index < sdkCounterList.length; index++) {
-      let item = sdkCounterList[index];
-      item.dur =
-        index === sdkCounterList.length - 1
-          ? endNS - (item.ts || 0)
-          : (sdkCounterList[index + 1].ts || 0) - (item.ts || 0);
+  frame: Rect
+): void {
+  if (list) {
+    for (let index = 0; index < list.length; index++) {
+      let item = list[index];
+      //@ts-ignore
+      item.dur = index === list.length - 1 ? endNS - (item.ts || 0) : (list[index + 1].ts || 0) - (item.ts || 0);
+      //@ts-ignore
       if ((item.ts || 0) + (item.dur || 0) > startNS && (item.ts || 0) < endNS) {
-        CounterStruct.setCounterFrame(sdkCounterList[index], 5, startNS, endNS, totalNS, frame);
+        CounterStruct.setCounterFrame(list[index], 5, startNS, endNS, totalNS, frame);
         if (
           !(
             index > 0 &&
-            (sdkCounterList[index - 1].frame?.x || 0) === (sdkCounterList[index].frame?.x || 0) &&
-            (sdkCounterList[index - 1].frame?.width || 0) === (sdkCounterList[index].frame?.width || 0)
+            //@ts-ignore
+            (list[index - 1].frame?.x || 0) === (list[index].frame?.x || 0) &&
+            //@ts-ignore
+            (list[index - 1].frame?.width || 0) === (list[index].frame?.width || 0)
           )
         ) {
           sdkCounterFilters.push(item);
@@ -128,7 +131,7 @@ export class CounterStruct extends BaseStruct {
   ts: number | undefined;
   counter_id: number | undefined;
 
-  static draw(sdkCounterContext: CanvasRenderingContext2D, data: CounterStruct, maxCounter: number) {
+  static draw(sdkCounterContext: CanvasRenderingContext2D, data: CounterStruct, maxCounter: number): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       sdkCounterContext.fillStyle = '#67B0FC';
@@ -158,33 +161,43 @@ export class CounterStruct extends BaseStruct {
   }
 
   static setCounterFrame(
-    counterNode: any,
+    counterNode: unknown,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
-  ) {
-    let sdkCounterStartPointX: number, sdkCountEndPointX: number;
-
+    frame: Rect
+  ): void {
+    let sdkCounterStartPointX: number;
+    let sdkCountEndPointX: number;
+    //@ts-ignore
     if ((counterNode.ts || 0) < startNS) {
       sdkCounterStartPointX = 0;
     } else {
+      //@ts-ignore
       sdkCounterStartPointX = ns2x(counterNode.ts || 0, startNS, endNS, totalNS, frame);
     }
+    //@ts-ignore
     if ((counterNode.ts || 0) + (counterNode.dur || 0) > endNS) {
       sdkCountEndPointX = frame.width;
     } else {
+      //@ts-ignore
       sdkCountEndPointX = ns2x((counterNode.ts || 0) + (counterNode.dur || 0), startNS, endNS, totalNS, frame);
     }
     let frameWidth: number =
       sdkCountEndPointX - sdkCounterStartPointX <= 1 ? 1 : sdkCountEndPointX - sdkCounterStartPointX;
+    //@ts-ignore
     if (!counterNode.frame) {
+      //@ts-ignore
       counterNode.frame = {};
     }
+    //@ts-ignore
     counterNode.frame.x = Math.floor(sdkCounterStartPointX);
+    //@ts-ignore
     counterNode.frame.y = frame.y + padding;
+    //@ts-ignore
     counterNode.frame.width = Math.ceil(frameWidth);
+    //@ts-ignore
     counterNode.frame.height = Math.floor(frame.height - padding * 2);
   }
 }

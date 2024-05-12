@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +23,7 @@ import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { LitChartScatter } from '../../../../../base-ui/chart/scatter/LitChartScatter';
 import { SpSegmentationChart } from '../../../chart/SpSegmentationChart';
-import { TabPaneFreqUsageConfig, type TabPaneRunningConfig, TabPaneCpuFreqConfig} from './TabPaneFreqUsageConfig';
+import { TabPaneFreqUsageConfig, type TabPaneRunningConfig, TabPaneCpuFreqConfig } from './TabPaneFreqUsageConfig';
 @element('tabpane-freqdatacut')
 export class TabPaneFreqDataCut extends BaseElement {
   private threadStatesTbl: LitTable | null | undefined;
@@ -54,8 +53,22 @@ export class TabPaneFreqDataCut extends BaseElement {
     for (let i of processArr) {
       pidArr.push(
         new TabPaneFreqUsageConfig(
-          Utils.PROCESS_MAP.get(i) === null ? 'Process ' + i : Utils.PROCESS_MAP.get(i) + ' ' + i,
-          '', i, '', 0, '', '', 0, '', 0, 'process', -1, [])
+          Utils.getInstance().getProcessMap().get(i) === null
+            ? 'Process ' + i
+            : Utils.getInstance().getProcessMap().get(i) + ' ' + i,
+          '',
+          i,
+          '',
+          0,
+          '',
+          '',
+          0,
+          '',
+          0,
+          'process',
+          -1,
+          []
+        )
       );
     }
     // 拷贝给私有属性，以便后续进行数据切割时免除整理进程层级数据
@@ -65,14 +78,14 @@ export class TabPaneFreqDataCut extends BaseElement {
    * 初始化数据
    */
   async init(threadStatesParam: SelectionParam): Promise<void> {
-    let {runningMap, sum}: {
-      runningMap: Map<string, Array<TabPaneRunningConfig>>,
-      sum: number
-    }
-      = await this.queryRunningData(threadStatesParam);
-    let cpuFreqData: Array<TabPaneCpuFreqConfig> = await this.queryCpuFreqData(
-      threadStatesParam
-    );
+    let {
+      runningMap,
+      sum,
+    }: {
+      runningMap: Map<string, Array<TabPaneRunningConfig>>;
+      sum: number;
+    } = await this.queryRunningData(threadStatesParam);
+    let cpuFreqData: Array<TabPaneCpuFreqConfig> = await this.queryCpuFreqData(threadStatesParam);
     if (runningMap.size > 0) {
       // 将cpu频点数据与running状态数据整合，保证其上该段时长内有对应的cpu频点数据
       this.mergeFreqData(runningMap, cpuFreqData, sum);
@@ -111,14 +124,6 @@ export class TabPaneFreqDataCut extends BaseElement {
     // @ts-ignore
     this.shadowRoot?.querySelector('#cycleQuery')!.style.display = 'none';
     // @ts-ignore
-    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[0].style.backgroundColor = '#fff';
-    // @ts-ignore
-    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[0].style.color = '#000';
-    // @ts-ignore
-    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[1].style.backgroundColor = '#fff';
-    // @ts-ignore
-    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[1].style.color = '#000';
-    // @ts-ignore
     this.statisticsScatter!.config = undefined;
     this.parentElement!.style.overflow = 'hidden';
   }
@@ -141,42 +146,59 @@ export class TabPaneFreqDataCut extends BaseElement {
       startNS: number;
       filter_id: number;
       value: number;
-      dur: number}
-    > = await queryCpuFreqUsageData(queryId);
+      dur: number;
+    }> = await queryCpuFreqUsageData(queryId);
     for (let i of res) {
       dealArr.push(
-        new TabPaneCpuFreqConfig(
-          i.startNS + threadStatesParam.recordStartNs,
-          idMap.get(i.filter_id)!,
-          i.value,
-          i.dur
-        ));
+        new TabPaneCpuFreqConfig(i.startNS + threadStatesParam.recordStartNs, idMap.get(i.filter_id)!, i.value, i.dur)
+      );
     }
     return dealArr;
   }
   /**
    * 查询框选区域内的所有running状态数据
    */
-  async queryRunningData(threadStatesParam: SelectionParam):
-    Promise<{runningMap: Map<string, Array<TabPaneRunningConfig>>; sum: number}> {
-    let result: Array<TabPaneRunningConfig>
-      = await getTabRunningPercent(threadStatesParam.threadIds, threadStatesParam.leftNs, threadStatesParam.rightNs);
+  async queryRunningData(
+    threadStatesParam: SelectionParam
+  ): Promise<{ runningMap: Map<string, Array<TabPaneRunningConfig>>; sum: number }> {
+    let result: Array<TabPaneRunningConfig> = await getTabRunningPercent(
+      threadStatesParam.threadIds,
+      threadStatesParam.leftNs,
+      threadStatesParam.rightNs
+    );
     let needDeal: Map<string, Array<TabPaneRunningConfig>> = new Map();
     let sum: number = 0;
     if (result !== null && result.length > 0) {
-      let processArr: Array<number> = threadStatesParam.processIds.length > 1
-        ? [...new Set(threadStatesParam.processIds)] : threadStatesParam.processIds;
+      let processArr: Array<number> =
+        threadStatesParam.processIds.length > 1
+          ? [...new Set(threadStatesParam.processIds)]
+          : threadStatesParam.processIds;
       for (let e of result) {
         if (processArr.includes(e.pid)) {
           if (needDeal.get(e.pid + '_' + e.tid) === undefined) {
             this.threadArr.push(
-              new TabPaneFreqUsageConfig(Utils.THREAD_MAP.get(e.tid) + ' ' + e.tid,
-                '', e.pid, e.tid, 0, '', '', 0, '', 0, 'thread', -1, [])
+              new TabPaneFreqUsageConfig(
+                Utils.getInstance().getThreadMap().get(e.tid) + ' ' + e.tid,
+                '',
+                e.pid,
+                e.tid,
+                0,
+                '',
+                '',
+                0,
+                '',
+                0,
+                'thread',
+                -1,
+                []
+              )
             );
             needDeal.set(e.pid + '_' + e.tid, new Array());
           }
-          if (e.ts < threadStatesParam.leftNs + threadStatesParam.recordStartNs &&
-            e.ts + e.dur > threadStatesParam.leftNs + threadStatesParam.recordStartNs) {
+          if (
+            e.ts < threadStatesParam.leftNs + threadStatesParam.recordStartNs &&
+            e.ts + e.dur > threadStatesParam.leftNs + threadStatesParam.recordStartNs
+          ) {
             const ts = e.ts;
             e.ts = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
             e.dur = ts + e.dur - (threadStatesParam.leftNs + threadStatesParam.recordStartNs);
@@ -184,15 +206,21 @@ export class TabPaneFreqDataCut extends BaseElement {
           if (e.ts + e.dur > threadStatesParam.rightNs + threadStatesParam.recordStartNs) {
             e.dur = threadStatesParam.rightNs + threadStatesParam.recordStartNs - e.ts;
           }
-          e.process = Utils.PROCESS_MAP.get(e.pid) === null ? '[NULL]' : Utils.PROCESS_MAP.get(e.pid)!;
-          e.thread = Utils.THREAD_MAP.get(e.tid) === null ? '[NULL]' : Utils.THREAD_MAP.get(e.tid)!;
+          e.process =
+            Utils.getInstance().getProcessMap().get(e.pid) === null
+              ? '[NULL]'
+              : Utils.getInstance().getProcessMap().get(e.pid)!;
+          e.thread =
+            Utils.getInstance().getThreadMap().get(e.tid) === null
+              ? '[NULL]'
+              : Utils.getInstance().getThreadMap().get(e.tid)!;
           let arr: Array<TabPaneRunningConfig> | undefined = needDeal.get(e.pid + '_' + e.tid);
           sum += e.dur;
           arr?.push(e);
         }
       }
     }
-    return {'runningMap': needDeal, 'sum': sum};
+    return { runningMap: needDeal, sum: sum };
   }
   /**
    * 将cpu频点数据与running状态数据整合，保证其上该段时长内有对应的cpu频点数据
@@ -209,42 +237,122 @@ export class TabPaneFreqDataCut extends BaseElement {
           // 只需要判断running状态数据与频点数据cpu相同的情况
           if (value[i].cpu === dealArr[j].cpu) {
             // running状态数据的开始时间大于频点数据开始时间，小于频点结束时间。且running状态数据的持续时间小于频点结束时间减去running状态数据开始时间的情况
-            if (value[i].ts > dealArr[j].startNS &&
+            if (
+              value[i].ts > dealArr[j].startNS &&
               value[i].ts < dealArr[j].startNS + dealArr[j].dur &&
-              value[i].dur < dealArr[j].startNS + dealArr[j].dur - value[i].ts) {
-              resultList.push(new TabPaneFreqUsageConfig(value[i].thread, value[i].ts, value[i].pid,
-                value[i].tid, 0, value[i].cpu,dealArr[j].value, value[i].dur, '', (value[i].dur / sum) * 100,
-                'freqdata', -1, undefined));
+              value[i].dur < dealArr[j].startNS + dealArr[j].dur - value[i].ts
+            ) {
+              resultList.push(
+                new TabPaneFreqUsageConfig(
+                  value[i].thread,
+                  value[i].ts,
+                  value[i].pid,
+                  value[i].tid,
+                  0,
+                  value[i].cpu,
+                  dealArr[j].value,
+                  value[i].dur,
+                  '',
+                  (value[i].dur / sum) * 100,
+                  'freqdata',
+                  -1,
+                  undefined
+                )
+              );
               break;
             }
             // running状态数据的开始时间大于频点数据开始时间，小于频点结束时间。且running状态数据的持续时间大于频点结束时间减去running状态数据开始时间的情况
-            if (value[i].ts > dealArr[j].startNS &&
+            if (
+              value[i].ts > dealArr[j].startNS &&
               value[i].ts < dealArr[j].startNS + dealArr[j].dur &&
-              value[i].dur > dealArr[j].startNS + dealArr[j].dur - value[i].ts) {
-              resultList.push(new TabPaneFreqUsageConfig(value[i].thread, value[i].ts, value[i].pid,
-                value[i].tid, 0, value[i].cpu, dealArr[j].value, dealArr[j].startNS + dealArr[j].dur - value[i].ts, '',
-                ((dealArr[j].startNS + dealArr[j].dur - value[i].ts) / sum) * 100, 'freqdata', -1, undefined));
+              value[i].dur > dealArr[j].startNS + dealArr[j].dur - value[i].ts
+            ) {
+              resultList.push(
+                new TabPaneFreqUsageConfig(
+                  value[i].thread,
+                  value[i].ts,
+                  value[i].pid,
+                  value[i].tid,
+                  0,
+                  value[i].cpu,
+                  dealArr[j].value,
+                  dealArr[j].startNS + dealArr[j].dur - value[i].ts,
+                  '',
+                  ((dealArr[j].startNS + dealArr[j].dur - value[i].ts) / sum) * 100,
+                  'freqdata',
+                  -1,
+                  undefined
+                )
+              );
             }
             // running状态数据的开始时间小于频点数据开始时间，running状态数据的结束时间大于频点数据开始时间。且running状态数据在频点数据开始时间后的持续时间小于频点数据持续时间的情况
-            if (value[i].ts < dealArr[j].startNS &&
+            if (
+              value[i].ts < dealArr[j].startNS &&
               value[i].ts + value[i].dur > dealArr[j].startNS &&
-              value[i].dur + value[i].ts - dealArr[j].startNS < dealArr[j].dur) {
-              resultList.push(new TabPaneFreqUsageConfig(value[i].thread, dealArr[j].startNS, value[i].pid,
-                value[i].tid, 0, value[i].cpu, dealArr[j].value, value[i].dur + value[i].ts - dealArr[j].startNS, '',
-                ((value[i].dur + value[i].ts - dealArr[j].startNS) / sum) * 100, 'freqdata', -1, undefined ));
+              value[i].dur + value[i].ts - dealArr[j].startNS < dealArr[j].dur
+            ) {
+              resultList.push(
+                new TabPaneFreqUsageConfig(
+                  value[i].thread,
+                  dealArr[j].startNS,
+                  value[i].pid,
+                  value[i].tid,
+                  0,
+                  value[i].cpu,
+                  dealArr[j].value,
+                  value[i].dur + value[i].ts - dealArr[j].startNS,
+                  '',
+                  ((value[i].dur + value[i].ts - dealArr[j].startNS) / sum) * 100,
+                  'freqdata',
+                  -1,
+                  undefined
+                )
+              );
               break;
             }
             // running状态数据的开始时间小于频点数据开始时间，running状态数据的结束时间大于频点数据开始时间。且running状态数据在频点数据开始时间后的持续时间大于频点数据持续时间的情况
-            if (value[i].ts < dealArr[j].startNS &&
+            if (
+              value[i].ts < dealArr[j].startNS &&
               value[i].ts + value[i].dur > dealArr[j].startNS &&
-              value[i].dur + value[i].ts - dealArr[j].startNS > dealArr[j].dur) {
-              resultList.push(new TabPaneFreqUsageConfig( value[i].thread, dealArr[j].startNS, value[i].pid, value[i].tid,
-                0, value[i].cpu, dealArr[j].value, dealArr[j].dur, '', (dealArr[j].dur / sum) * 100, 'freqdata', -1, undefined));
+              value[i].dur + value[i].ts - dealArr[j].startNS > dealArr[j].dur
+            ) {
+              resultList.push(
+                new TabPaneFreqUsageConfig(
+                  value[i].thread,
+                  dealArr[j].startNS,
+                  value[i].pid,
+                  value[i].tid,
+                  0,
+                  value[i].cpu,
+                  dealArr[j].value,
+                  dealArr[j].dur,
+                  '',
+                  (dealArr[j].dur / sum) * 100,
+                  'freqdata',
+                  -1,
+                  undefined
+                )
+              );
             }
             // running状态数据的开始时间小于频点数据开始时间，running状态数据的持续时间小于频点数据开始时间的情况
             if (value[i].ts < dealArr[j].startNS && value[i].ts + value[i].dur < dealArr[j].startNS) {
-              resultList.push(new TabPaneFreqUsageConfig(value[i].thread, value[i].ts, value[i].pid, value[i].tid,
-                0, value[i].cpu, 'unknown', value[i].dur, '', (value[i].dur / sum) * 100, 'freqdata', -1, undefined));
+              resultList.push(
+                new TabPaneFreqUsageConfig(
+                  value[i].thread,
+                  value[i].ts,
+                  value[i].pid,
+                  value[i].tid,
+                  0,
+                  value[i].cpu,
+                  'unknown',
+                  value[i].dur,
+                  '',
+                  (value[i].dur / sum) * 100,
+                  'freqdata',
+                  -1,
+                  undefined
+                )
+              );
               break;
             }
           }
@@ -269,44 +377,46 @@ export class TabPaneFreqDataCut extends BaseElement {
     this.threadStatesTbl.value = [];
     if (threadIdValue !== '' && threadFuncName !== '') {
       // 根据用户输入的线程ID，方法名去查询数据库，得到对应的方法起始时间，持续时间等数据，以便作为依据进行后续数据切割
-      querySearchFuncData(threadFuncName, Number(threadIdValue), this.currentSelectionParam.leftNs, rightNS).then((result) => {
-        if (result !== null && result.length > 0) {
-          // targetMap为全局initData的拷贝对象，dealArr数组用来存放周期切割依据数据
-          let targetMap: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
-          let dealArr: Array<{ts: number, dur: number}> = [];
-          // 新创建map对象接收传过来的实参map
-          resultList.forEach((item: Array<TabPaneFreqUsageConfig>, key: string) => {
-            targetMap.set(key, JSON.parse(JSON.stringify(item)));
-          });
-          // 整理周期切割依据的数据
-          for (let i of result) {
-            if (i.startTime! + recordStartNs + i.dur! < rightNS + recordStartNs) {
-              dealArr.push({ts: i.startTime! + recordStartNs, dur: i.dur!});
+      querySearchFuncData(threadFuncName, Number(threadIdValue), this.currentSelectionParam.leftNs, rightNS).then(
+        (result) => {
+          if (result !== null && result.length > 0) {
+            // targetMap为全局initData的拷贝对象，dealArr数组用来存放周期切割依据数据
+            let targetMap: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
+            let dealArr: Array<{ ts: number; dur: number }> = [];
+            // 新创建map对象接收传过来的实参map
+            resultList.forEach((item: Array<TabPaneFreqUsageConfig>, key: string) => {
+              targetMap.set(key, JSON.parse(JSON.stringify(item)));
+            });
+            // 整理周期切割依据的数据
+            for (let i of result) {
+              if (i.startTime! + recordStartNs + i.dur! < rightNS + recordStartNs) {
+                dealArr.push({ ts: i.startTime! + recordStartNs, dur: i.dur! });
+              }
             }
+            let cycleMap: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
+            let totalList: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
+            this.mergeSingleData(dealArr, targetMap, cycleMap, totalList);
+            // 拷贝线程数组，防止数据污染
+            let threadArr: Array<TabPaneFreqUsageConfig> = JSON.parse(JSON.stringify(this.threadArr));
+            // 拷贝进程数组，防止数据污染
+            let processArr: Array<TabPaneFreqUsageConfig> = JSON.parse(JSON.stringify(this.processArr));
+            // 将周期层级防止到线程层级下
+            this.mergeThreadData(threadArr, cycleMap);
+            // 将原始数据放置到对应的线程层级下，周期数据前
+            this.mergeTotalData(threadArr, this.merge(totalList));
+            // 合并数据到进程层级下
+            this.mergePidData(processArr, threadArr);
+            this.fixedDeal(processArr);
+            this.threadStatesTblSource = processArr;
+            this.threadStatesTbl!.recycleDataSource = processArr;
+            this.threadClick(processArr);
+          } else {
+            this.threadStatesTblSource = [];
+            this.threadStatesTbl!.recycleDataSource = [];
           }
-          let cycleMap: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
-          let totalList: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
-          this.mergeSingleData(dealArr, targetMap, cycleMap, totalList);
-          // 拷贝线程数组，防止数据污染
-          let threadArr: Array<TabPaneFreqUsageConfig> = JSON.parse(JSON.stringify(this.threadArr));
-          // 拷贝进程数组，防止数据污染
-          let processArr: Array<TabPaneFreqUsageConfig> = JSON.parse(JSON.stringify(this.processArr));
-          // 将周期层级防止到线程层级下
-          this.mergeThreadData(threadArr, cycleMap);
-          // 将原始数据放置到对应的线程层级下，周期数据前
-          this.mergeTotalData(threadArr, this.merge(totalList));
-          // 合并数据到进程层级下
-          this.mergePidData(processArr, threadArr);
-          this.fixedDeal(processArr);
-          this.threadStatesTblSource = processArr;
-          this.threadStatesTbl!.recycleDataSource = processArr;
-          this.threadClick(processArr);
-        } else {
-          this.threadStatesTblSource = [];
-          this.threadStatesTbl!.recycleDataSource = [];
+          this.threadStatesTbl!.loading = false;
         }
-        this.threadStatesTbl!.loading = false;
-      });
+      );
     } else {
       this.threadStatesTbl!.loading = false;
       if (threadIdValue === '') {
@@ -321,7 +431,7 @@ export class TabPaneFreqDataCut extends BaseElement {
    * 整合Single切割方式中的频点数据与方法周期数据
    */
   mergeSingleData(
-    dealArr: Array<{ts: number, dur: number}>,
+    dealArr: Array<{ ts: number; dur: number }>,
     targetMap: Map<string, Array<TabPaneFreqUsageConfig>>,
     cycleMap: Map<string, Array<TabPaneFreqUsageConfig>>,
     totalList: Map<string, Array<TabPaneFreqUsageConfig>>
@@ -338,10 +448,25 @@ export class TabPaneFreqDataCut extends BaseElement {
         const countMutiple: number = 1000000;
         const MIN_NUM: number = 3;
         cpuMap.set(key, new Array());
-        cycleMap.get(key)?.push(
-          new TabPaneFreqUsageConfig('cycle' + (i + 1) + '—' + value[0].thread,
-            ((dealArr[i].ts - timeDur) / countMutiple).toFixed(MIN_NUM), key.split('_')[0], key.split('_')[1],
-            0, '', '', 0, (dealArr[i].dur / countMutiple).toFixed(MIN_NUM), 0, 'cycle', i + 1, [] ));
+        cycleMap
+          .get(key)
+          ?.push(
+            new TabPaneFreqUsageConfig(
+              'cycle' + (i + 1) + '—' + value[0].thread,
+              ((dealArr[i].ts - timeDur) / countMutiple).toFixed(MIN_NUM),
+              key.split('_')[0],
+              key.split('_')[1],
+              0,
+              '',
+              '',
+              0,
+              (dealArr[i].dur / countMutiple).toFixed(MIN_NUM),
+              0,
+              'cycle',
+              i + 1,
+              []
+            )
+          );
         this.dismantlingSingle(
           value,
           dealArr[i],
@@ -350,7 +475,7 @@ export class TabPaneFreqDataCut extends BaseElement {
             key: key,
             countMutiple: countMutiple,
             cpuArr,
-            cpuMap
+            cpuMap,
           },
           resList,
           totalList
@@ -372,11 +497,18 @@ export class TabPaneFreqDataCut extends BaseElement {
    * @param totalList total数组
    */
   dismantlingSingle(
-    value: Array<TabPaneFreqUsageConfig>, funData: {ts: number, dur: number},
-    constant: {i: number, key: string, countMutiple: number, cpuArr: Array<number>, cpuMap: Map<string, Array<TabPaneFreqUsageConfig>>},
+    value: Array<TabPaneFreqUsageConfig>,
+    funData: { ts: number; dur: number },
+    constant: {
+      i: number;
+      key: string;
+      countMutiple: number;
+      cpuArr: Array<number>;
+      cpuMap: Map<string, Array<TabPaneFreqUsageConfig>>;
+    },
     resList: Array<TabPaneFreqUsageConfig>,
     totalList: Map<string, Array<TabPaneFreqUsageConfig>>
-  ): void{
+  ): void {
     // 判断若用户导入json文件，则替换为对应cpu下的对应频点的算力值进行算力消耗计算
     for (let j = 0; j < value.length; j++) {
       let startTime = Number(value[j].ts);
@@ -385,48 +517,145 @@ export class TabPaneFreqDataCut extends BaseElement {
       let consumptionMap: Map<number, number> =
         SpSegmentationChart.freqInfoMapData.size > 0 && SpSegmentationChart.freqInfoMapData.get(Number(value[j].cpu));
       // 若存在算力值，则直接取值做计算。若不存在算力值，且频点值不为unknown的情况，则取频点值做计算，若为unknown，则取0做兼容
-      const consumption: number = Number(consumptionMap && consumptionMap.get(Number(value[j].freq))
-        ? consumptionMap.get(Number(value[j].freq)) : (value[j].freq === 'unknown' ? 0 : value[j].freq));
+      const consumption: number = Number(
+        consumptionMap && consumptionMap.get(Number(value[j].freq))
+          ? consumptionMap.get(Number(value[j].freq))
+          : value[j].freq === 'unknown'
+          ? 0
+          : value[j].freq
+      );
       if (!constant.cpuArr.includes(Number(value[j].cpu))) {
         constant.cpuArr.push(Number(value[j].cpu));
-        constant.cpuMap.get(constant.key)?.push(
-          new TabPaneFreqUsageConfig('cycle' + (constant.i + 1) + '—' + value[j].thread, '',
-            value[j].pid, value[j].tid, 0, value[j].cpu, '', 0, '', 0, 'cpu', -1, []));
+        constant.cpuMap
+          .get(constant.key)
+          ?.push(
+            new TabPaneFreqUsageConfig(
+              'cycle' + (constant.i + 1) + '—' + value[j].thread,
+              '',
+              value[j].pid,
+              value[j].tid,
+              0,
+              value[j].cpu,
+              '',
+              0,
+              '',
+              0,
+              'cpu',
+              -1,
+              []
+            )
+          );
       }
       // 以下为频点数据按Single周期切割数据如何取舍的判断条件，dealArr为周期切割依据，value为某一线程下的频点汇总数据
       // 如果频点数据开始时间大于某一周期起始时间，小于该周期的结束时间。且频点数据结束时间小于周期结束时间的情况
-      if (funData.ts < startTime && funData.ts + funData.dur > startTime &&
-        funData.ts + funData.dur > startTime + value[j].dur) {
-        resList.push(this.returnSingleObj('cycle' + (constant.i + 1) + '—' + value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], funData, 1)!);
-        totalList.get(constant.key)?.push(this.returnSingleObj(value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], funData, 1)!);
+      if (
+        funData.ts < startTime &&
+        funData.ts + funData.dur > startTime &&
+        funData.ts + funData.dur > startTime + value[j].dur
+      ) {
+        resList.push(
+          this.returnSingleObj(
+            'cycle' + (constant.i + 1) + '—' + value[j].thread,
+            { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+            value[j],
+            funData,
+            1
+          )!
+        );
+        totalList
+          .get(constant.key)
+          ?.push(
+            this.returnSingleObj(
+              value[j].thread,
+              { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+              value[j],
+              funData,
+              1
+            )!
+          );
       }
       // 如果频点数据开始时间大于某一周期起始时间，小于该周期的结束时间。且频点数据结束时间大于等于周期结束时间的情况
-      if (funData.ts < startTime && funData.ts + funData.dur > startTime &&
-        funData.ts + funData.dur <= startTime + value[j].dur) {
-        resList.push(this.returnSingleObj('cycle' + (constant.i + 1) + '—' + value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], funData, 2)!);
-        totalList.get(constant.key)?.push(this.returnSingleObj(value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], funData, 2)!);
+      if (
+        funData.ts < startTime &&
+        funData.ts + funData.dur > startTime &&
+        funData.ts + funData.dur <= startTime + value[j].dur
+      ) {
+        resList.push(
+          this.returnSingleObj(
+            'cycle' + (constant.i + 1) + '—' + value[j].thread,
+            { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+            value[j],
+            funData,
+            2
+          )!
+        );
+        totalList
+          .get(constant.key)
+          ?.push(
+            this.returnSingleObj(
+              value[j].thread,
+              { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+              value[j],
+              funData,
+              2
+            )!
+          );
         break;
       }
       // 如果频点数据开始时间小于某一周期起始时间，结束时间大于该周期的开始时间。且频点数据结束时间大于周期结束时间的情况
-      if (funData.ts > startTime && startTime + value[j].dur > funData.ts &&
-        startTime + value[j].dur > funData.ts + funData.dur) {
-        resList.push(this.returnSingleObj('cycle' + (constant.i + 1) + '—' + value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], funData, 3)!);
-        totalList.get(constant.key)?.push(this.returnSingleObj(value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], funData, 3)!);
+      if (
+        funData.ts > startTime &&
+        startTime + value[j].dur > funData.ts &&
+        startTime + value[j].dur > funData.ts + funData.dur
+      ) {
+        resList.push(
+          this.returnSingleObj(
+            'cycle' + (constant.i + 1) + '—' + value[j].thread,
+            { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+            value[j],
+            funData,
+            3
+          )!
+        );
+        totalList
+          .get(constant.key)
+          ?.push(
+            this.returnSingleObj(
+              value[j].thread,
+              { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+              value[j],
+              funData,
+              3
+            )!
+          );
         break;
       }
       // 如果频点数据开始时间小于某一周期起始时间，结束时间大于该周期的开始时间。且频点数据结束时间小于等于周期结束时间的情况
-      if (funData.ts > startTime && startTime + value[j].dur > funData.ts &&
-        startTime + value[j].dur <= funData.ts + funData.dur) {
-        resList.push(this.returnSingleObj('cycle' + (constant.i + 1) + '—' + value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], funData, 4)!);
-        totalList.get(constant.key)?.push(this.returnSingleObj(value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], funData, 4)!);
+      if (
+        funData.ts > startTime &&
+        startTime + value[j].dur > funData.ts &&
+        startTime + value[j].dur <= funData.ts + funData.dur
+      ) {
+        resList.push(
+          this.returnSingleObj(
+            'cycle' + (constant.i + 1) + '—' + value[j].thread,
+            { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+            value[j],
+            funData,
+            4
+          )!
+        );
+        totalList
+          .get(constant.key)
+          ?.push(
+            this.returnSingleObj(
+              value[j].thread,
+              { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+              value[j],
+              funData,
+              4
+            )!
+          );
       }
     }
   }
@@ -441,28 +670,76 @@ export class TabPaneFreqDataCut extends BaseElement {
    */
   returnSingleObj(
     str: string,
-    arg: {i: number, percent: number, startTime: number, consumption: number, countMutiple: number},
+    arg: { i: number; percent: number; startTime: number; consumption: number; countMutiple: number },
     value: TabPaneFreqUsageConfig,
-    funData: {ts: number, dur: number},
+    funData: { ts: number; dur: number },
     flag: number
-  ): TabPaneFreqUsageConfig | undefined{
+  ): TabPaneFreqUsageConfig | undefined {
     switch (flag) {
       case 1:
-        return new TabPaneFreqUsageConfig(str, '', value.pid, value.tid,  (arg.consumption * value.dur) / arg.countMutiple,
-          value.cpu, value.freq, value.dur, '', arg.percent, 'freqdata', arg.i, undefined);
+        return new TabPaneFreqUsageConfig(
+          str,
+          '',
+          value.pid,
+          value.tid,
+          (arg.consumption * value.dur) / arg.countMutiple,
+          value.cpu,
+          value.freq,
+          value.dur,
+          '',
+          arg.percent,
+          'freqdata',
+          arg.i,
+          undefined
+        );
       case 2:
-        return new TabPaneFreqUsageConfig(str,'', value.pid, value.tid, ((funData.ts + funData.dur - arg.startTime)
-          * arg.consumption) / arg.countMutiple, value.cpu, value.freq, funData.ts + funData.dur - arg.startTime, '',
-          ((funData.ts + funData.dur - arg.startTime) / value.dur) * arg.percent, 'freqdata', arg.i, undefined);
+        return new TabPaneFreqUsageConfig(
+          str,
+          '',
+          value.pid,
+          value.tid,
+          ((funData.ts + funData.dur - arg.startTime) * arg.consumption) / arg.countMutiple,
+          value.cpu,
+          value.freq,
+          funData.ts + funData.dur - arg.startTime,
+          '',
+          ((funData.ts + funData.dur - arg.startTime) / value.dur) * arg.percent,
+          'freqdata',
+          arg.i,
+          undefined
+        );
       case 3:
-        return new TabPaneFreqUsageConfig(str, '', value.pid, value.tid, (funData.dur * arg.consumption) / arg.countMutiple, value.cpu,
-          value.freq, funData.dur, '', (funData.dur / value.dur) * arg.percent, 'freqdata', arg.i, undefined);
+        return new TabPaneFreqUsageConfig(
+          str,
+          '',
+          value.pid,
+          value.tid,
+          (funData.dur * arg.consumption) / arg.countMutiple,
+          value.cpu,
+          value.freq,
+          funData.dur,
+          '',
+          (funData.dur / value.dur) * arg.percent,
+          'freqdata',
+          arg.i,
+          undefined
+        );
       case 4:
-        return new TabPaneFreqUsageConfig(str, '', value.pid, value.tid,
+        return new TabPaneFreqUsageConfig(
+          str,
+          '',
+          value.pid,
+          value.tid,
           ((arg.startTime + value.dur - funData.ts) * arg.consumption) / arg.countMutiple,
-          value.cpu, value.freq, arg.startTime + value.dur - funData.ts, '',
+          value.cpu,
+          value.freq,
+          arg.startTime + value.dur - funData.ts,
+          '',
           ((arg.startTime + value.dur - funData.ts) / value.dur) * arg.percent,
-          'freqdata', arg.i, undefined);
+          'freqdata',
+          arg.i,
+          undefined
+        );
       default:
         break;
     }
@@ -482,38 +759,42 @@ export class TabPaneFreqDataCut extends BaseElement {
     // @ts-ignore
     this.threadStatesTbl.value = [];
     if (threadIdValue !== '' && threadFuncName !== '') {
-      querySearchFuncData(threadFuncName, Number(threadIdValue), this.currentSelectionParam.leftNs, rightNS).then((res) => {
-        if (res !== null && res.length > 0) {
-          // targetMap为全局initData的拷贝对象，cutArr数组用来存放周期切割依据数据
-          let targetMap: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
-          let cutArr: Array<{ts: number, dur?: number}> = [];
-          // 新创建map对象接收传过来的实参map
-          resultList.forEach((item: Array<TabPaneFreqUsageConfig>, key: string) => {
-            targetMap.set(key, JSON.parse(JSON.stringify(item)));
-          });
-          // 根据线程id及方法名获取的数据，处理后用作切割时间依据，时间跨度为整个方法开始时间到末个方法开始时间
-          for (let i of res) {
-            cutArr[cutArr.length - 1] && (cutArr[cutArr.length - 1].dur = i.startTime ? i.startTime +
-              recordStartNs - cutArr[cutArr.length - 1].ts : 0);
-            cutArr.push({ts: i.startTime! + recordStartNs});
+      querySearchFuncData(threadFuncName, Number(threadIdValue), this.currentSelectionParam.leftNs, rightNS).then(
+        (res) => {
+          if (res !== null && res.length > 0) {
+            // targetMap为全局initData的拷贝对象，cutArr数组用来存放周期切割依据数据
+            let targetMap: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
+            let cutArr: Array<{ ts: number; dur?: number }> = [];
+            // 新创建map对象接收传过来的实参map
+            resultList.forEach((item: Array<TabPaneFreqUsageConfig>, key: string) => {
+              targetMap.set(key, JSON.parse(JSON.stringify(item)));
+            });
+            // 根据线程id及方法名获取的数据，处理后用作切割时间依据，时间跨度为整个方法开始时间到末个方法开始时间
+            for (let i of res) {
+              cutArr[cutArr.length - 1] &&
+                (cutArr[cutArr.length - 1].dur = i.startTime
+                  ? i.startTime + recordStartNs - cutArr[cutArr.length - 1].ts
+                  : 0);
+              cutArr.push({ ts: i.startTime! + recordStartNs });
+            }
+            let cycleMap: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
+            let totalList: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
+            this.mergeLoopData(cutArr, targetMap, cycleMap, totalList);
+            let threadArr: Array<TabPaneFreqUsageConfig> = JSON.parse(JSON.stringify(this.threadArr));
+            let processArr: Array<TabPaneFreqUsageConfig> = JSON.parse(JSON.stringify(this.processArr));
+            this.mergeThreadData(threadArr, cycleMap);
+            this.mergeTotalData(threadArr, this.merge(totalList));
+            this.mergePidData(processArr, threadArr);
+            this.fixedDeal(processArr);
+            this.threadStatesTblSource = processArr;
+            this.threadStatesTbl!.recycleDataSource = processArr;
+            this.threadClick(processArr);
+          } else {
+            this.threadStatesTblSource = [];
+            this.threadStatesTbl!.recycleDataSource = [];
           }
-          let cycleMap: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
-          let totalList: Map<string, Array<TabPaneFreqUsageConfig>> = new Map();
-          this.mergeLoopData(cutArr, targetMap, cycleMap, totalList);
-          let threadArr: Array<TabPaneFreqUsageConfig> = JSON.parse(JSON.stringify(this.threadArr));
-          let processArr: Array<TabPaneFreqUsageConfig> = JSON.parse(JSON.stringify(this.processArr));
-          this.mergeThreadData(threadArr, cycleMap);
-          this.mergeTotalData(threadArr, this.merge(totalList));
-          this.mergePidData(processArr, threadArr);
-          this.fixedDeal(processArr);
-          this.threadStatesTblSource = processArr;
-          this.threadStatesTbl!.recycleDataSource = processArr;
-          this.threadClick(processArr);
-        } else {
-          this.threadStatesTblSource = [];
-          this.threadStatesTbl!.recycleDataSource = [];
         }
-      });
+      );
       this.threadStatesTbl!.loading = false;
     } else {
       this.threadStatesTbl!.loading = false;
@@ -529,7 +810,7 @@ export class TabPaneFreqDataCut extends BaseElement {
    * 整合Loop切割方式中的频点数据与方法周期数据
    */
   mergeLoopData(
-    cutArr: Array<{ts: number, dur?: number}>,
+    cutArr: Array<{ ts: number; dur?: number }>,
     targetMap: Map<string, Array<TabPaneFreqUsageConfig>>,
     cycleMap: Map<string, Array<TabPaneFreqUsageConfig>>,
     totalList: Map<string, Array<TabPaneFreqUsageConfig>>
@@ -547,9 +828,25 @@ export class TabPaneFreqDataCut extends BaseElement {
         const MIN_NUM: number = 3;
         cpuMap.set(key, new Array());
         // 创建周期层级数据
-        cycleMap.get(key)?.push(new TabPaneFreqUsageConfig('cycle' + (i + 1) + '—' + value[0].thread,
-          ((cutArr[i].ts - timeDur) / countMutiple).toFixed(MIN_NUM), key.split('_')[0], key.split('_')[1], 0, '',
-          '', 0, (cutArr[i].dur! / countMutiple).toFixed(MIN_NUM), 0, 'cycle', i + 1, []));
+        cycleMap
+          .get(key)
+          ?.push(
+            new TabPaneFreqUsageConfig(
+              'cycle' + (i + 1) + '—' + value[0].thread,
+              ((cutArr[i].ts - timeDur) / countMutiple).toFixed(MIN_NUM),
+              key.split('_')[0],
+              key.split('_')[1],
+              0,
+              '',
+              '',
+              0,
+              (cutArr[i].dur! / countMutiple).toFixed(MIN_NUM),
+              0,
+              'cycle',
+              i + 1,
+              []
+            )
+          );
         this.dismantlingLoop(
           value,
           cutArr,
@@ -558,7 +855,7 @@ export class TabPaneFreqDataCut extends BaseElement {
             key: key,
             countMutiple: countMutiple,
             cpuArr,
-            cpuMap
+            cpuMap,
           },
           resList,
           totalList
@@ -581,10 +878,18 @@ export class TabPaneFreqDataCut extends BaseElement {
    * @param totalList total数组
    */
   dismantlingLoop(
-    value: Array<TabPaneFreqUsageConfig>, cutArr:Array<{ts: number, dur?: number}>,
-    constant: {i: number, key: string, countMutiple: number, cpuArr: Array<number>, cpuMap: Map<string, Array<TabPaneFreqUsageConfig>>},
+    value: Array<TabPaneFreqUsageConfig>,
+    cutArr: Array<{ ts: number; dur?: number }>,
+    constant: {
+      i: number;
+      key: string;
+      countMutiple: number;
+      cpuArr: Array<number>;
+      cpuMap: Map<string, Array<TabPaneFreqUsageConfig>>;
+    },
     resList: Array<TabPaneFreqUsageConfig>,
-    totalList: Map<string, Array<TabPaneFreqUsageConfig>>): void {
+    totalList: Map<string, Array<TabPaneFreqUsageConfig>>
+  ): void {
     for (let j = 0; j < value.length; j++) {
       // 判断若用户导入json文件，则替换为对应cpu下的对应频点的算力值进行算力消耗计算
       let startTime = Number(value[j].ts);
@@ -593,46 +898,135 @@ export class TabPaneFreqDataCut extends BaseElement {
       let consumptionMap: Map<number, number> =
         SpSegmentationChart.freqInfoMapData.size > 0 && SpSegmentationChart.freqInfoMapData.get(Number(value[j].cpu));
       // 若存在算力值，则直接取值做计算。若不存在算力值，且频点值不为unknown的情况，则取频点值做计算，若为unknown，则取0做兼容
-      const consumption: number = Number(consumptionMap && consumptionMap.get(Number(value[j].freq))
-        ? consumptionMap.get(Number(value[j].freq)) : (value[j].freq === 'unknown' ? 0 : value[j].freq));
+      const consumption: number = Number(
+        consumptionMap && consumptionMap.get(Number(value[j].freq))
+          ? consumptionMap.get(Number(value[j].freq))
+          : value[j].freq === 'unknown'
+          ? 0
+          : value[j].freq
+      );
       if (!constant.cpuArr.includes(Number(value[j].cpu))) {
         constant.cpuArr.push(Number(value[j].cpu));
         // 创建cpu层级数据，以便后续生成树结构
-        constant.cpuMap.get(constant.key)?.push(new TabPaneFreqUsageConfig('cycle' + (constant.i + 1) + '—' + value[j].thread,
-          '', value[j].pid, value[j].tid, 0, value[j].cpu, '', 0, '', 0, 'cpu', -1, []));
+        constant.cpuMap
+          .get(constant.key)
+          ?.push(
+            new TabPaneFreqUsageConfig(
+              'cycle' + (constant.i + 1) + '—' + value[j].thread,
+              '',
+              value[j].pid,
+              value[j].tid,
+              0,
+              value[j].cpu,
+              '',
+              0,
+              '',
+              0,
+              'cpu',
+              -1,
+              []
+            )
+          );
       }
       // 以下为频点数据按Loop周期切割数据如何取舍的判断条件，cutArr为周期切割依据，value为某一线程下的频点汇总数据
       // 如果频点数据开始时间大于某一周期起始时间，且结束时间小于等于下一同名方法开始时间的情况
       if (startTime >= cutArr[constant.i].ts && startTime + value[j].dur <= cutArr[constant.i + 1].ts) {
-        resList.push(this.returnLoopObj('cycle' + (constant.i + 1) + '—' + value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], cutArr, 1)!);
-        totalList.get(constant.key)?.push(this.returnLoopObj(value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], cutArr, 1)!);
+        resList.push(
+          this.returnLoopObj(
+            'cycle' + (constant.i + 1) + '—' + value[j].thread,
+            { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+            value[j],
+            cutArr,
+            1
+          )!
+        );
+        totalList
+          .get(constant.key)
+          ?.push(
+            this.returnLoopObj(
+              value[j].thread,
+              { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+              value[j],
+              cutArr,
+              1
+            )!
+          );
       }
       // 如果频点数据开始时间大于某一周期起始时间，且结束时间大于下一同名方法开始时间的情况
       if (startTime >= cutArr[constant.i].ts && startTime + value[j].dur > cutArr[constant.i + 1].ts) {
         if (cutArr[constant.i + 1].ts - startTime > 0) {
-          resList.push(this.returnLoopObj('cycle' + (constant.i + 1) + '—' + value[j].thread,
-            {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], cutArr, 2)!);
-          totalList.get(constant.key)?.push(this.returnLoopObj(value[j].thread,
-            {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], cutArr, 2)!);
+          resList.push(
+            this.returnLoopObj(
+              'cycle' + (constant.i + 1) + '—' + value[j].thread,
+              { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+              value[j],
+              cutArr,
+              2
+            )!
+          );
+          totalList
+            .get(constant.key)
+            ?.push(
+              this.returnLoopObj(
+                value[j].thread,
+                { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+                value[j],
+                cutArr,
+                2
+              )!
+            );
           break;
         }
       }
       // 如果频点数据开始时间小于某一周期起始时间，且结束时间大于下一同名方法开始时间的情况
       if (startTime < cutArr[constant.i].ts && startTime + value[j].dur > cutArr[constant.i + 1].ts) {
-        resList.push(this.returnLoopObj('cycle' + (constant.i + 1) + '—' + value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], cutArr, 3)!);
-        totalList.get(constant.key)?.push(this.returnLoopObj(value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], cutArr, 3)!);
+        resList.push(
+          this.returnLoopObj(
+            'cycle' + (constant.i + 1) + '—' + value[j].thread,
+            { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+            value[j],
+            cutArr,
+            3
+          )!
+        );
+        totalList
+          .get(constant.key)
+          ?.push(
+            this.returnLoopObj(
+              value[j].thread,
+              { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+              value[j],
+              cutArr,
+              3
+            )!
+          );
       }
       // 如果频点数据开始时间小于某一周期起始时间，结束时间大于该方法开始时间。且频点数据结束时间小于下一同名方法开始时间
-      if (startTime < cutArr[constant.i].ts &&
-        startTime + value[j].dur > cutArr[constant.i].ts && startTime + value[j].dur < cutArr[constant.i + 1].ts) {
-        resList.push(this.returnLoopObj('cycle' + (constant.i + 1) + '—' + value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], cutArr, 4)!);
-        totalList.get(constant.key)?.push(this.returnLoopObj(value[j].thread,
-          {i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple} ,value[j], cutArr, 4)!);
+      if (
+        startTime < cutArr[constant.i].ts &&
+        startTime + value[j].dur > cutArr[constant.i].ts &&
+        startTime + value[j].dur < cutArr[constant.i + 1].ts
+      ) {
+        resList.push(
+          this.returnLoopObj(
+            'cycle' + (constant.i + 1) + '—' + value[j].thread,
+            { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+            value[j],
+            cutArr,
+            4
+          )!
+        );
+        totalList
+          .get(constant.key)
+          ?.push(
+            this.returnLoopObj(
+              value[j].thread,
+              { i: constant.i, percent, startTime, consumption, countMutiple: constant.countMutiple },
+              value[j],
+              cutArr,
+              4
+            )!
+          );
       }
     }
   }
@@ -647,30 +1041,76 @@ export class TabPaneFreqDataCut extends BaseElement {
    */
   returnLoopObj(
     str: string,
-    arg: {i: number, percent: number, startTime: number, consumption: number, countMutiple: number},
+    arg: { i: number; percent: number; startTime: number; consumption: number; countMutiple: number },
     value: TabPaneFreqUsageConfig,
-    cutArr: Array<{ts: number, dur?: number}>,
+    cutArr: Array<{ ts: number; dur?: number }>,
     flag: number
-  ): TabPaneFreqUsageConfig | undefined{
+  ): TabPaneFreqUsageConfig | undefined {
     switch (flag) {
       case 1:
-        return new TabPaneFreqUsageConfig(str, '', value.pid,
-          value.tid, (arg.consumption * value.dur) / arg.countMutiple, value.cpu, value.freq,
-          value.dur, '', value.percent, 'freqdata', arg.i, undefined);
+        return new TabPaneFreqUsageConfig(
+          str,
+          '',
+          value.pid,
+          value.tid,
+          (arg.consumption * value.dur) / arg.countMutiple,
+          value.cpu,
+          value.freq,
+          value.dur,
+          '',
+          value.percent,
+          'freqdata',
+          arg.i,
+          undefined
+        );
       case 2:
-        return new TabPaneFreqUsageConfig(str, '', value.pid, value.tid,
-          (arg.consumption * (cutArr[arg.i + 1].ts - arg.startTime)) / arg.countMutiple, value.cpu, value.freq,
-          cutArr[arg.i + 1].ts - arg.startTime, '', arg.percent * ((cutArr[arg.i + 1].ts - arg.startTime) / value.dur),
-          'freqdata', arg.i, undefined);
+        return new TabPaneFreqUsageConfig(
+          str,
+          '',
+          value.pid,
+          value.tid,
+          (arg.consumption * (cutArr[arg.i + 1].ts - arg.startTime)) / arg.countMutiple,
+          value.cpu,
+          value.freq,
+          cutArr[arg.i + 1].ts - arg.startTime,
+          '',
+          arg.percent * ((cutArr[arg.i + 1].ts - arg.startTime) / value.dur),
+          'freqdata',
+          arg.i,
+          undefined
+        );
       case 3:
-        return new TabPaneFreqUsageConfig(str, '', value.pid, value.tid,
-          (arg.consumption * (cutArr[arg.i + 1].ts - cutArr[arg.i].ts)) / arg.countMutiple, value.cpu, value.freq,
-          cutArr[arg.i + 1].ts - cutArr[arg.i].ts, '', arg.percent * ((cutArr[arg.i + 1].ts - cutArr[arg.i].ts) / value.dur),
-          'freqdata', arg.i, undefined);
+        return new TabPaneFreqUsageConfig(
+          str,
+          '',
+          value.pid,
+          value.tid,
+          (arg.consumption * (cutArr[arg.i + 1].ts - cutArr[arg.i].ts)) / arg.countMutiple,
+          value.cpu,
+          value.freq,
+          cutArr[arg.i + 1].ts - cutArr[arg.i].ts,
+          '',
+          arg.percent * ((cutArr[arg.i + 1].ts - cutArr[arg.i].ts) / value.dur),
+          'freqdata',
+          arg.i,
+          undefined
+        );
       case 4:
-        return new TabPaneFreqUsageConfig(str, '', value.pid, value.tid, (arg.consumption * (value.dur + arg.startTime - cutArr[arg.i].ts))
-          / arg.countMutiple, value.cpu, value.freq, value.dur + arg.startTime - cutArr[arg.i].ts, '', arg.percent
-          * ((value.dur + arg.startTime - cutArr[arg.i].ts) / value.dur), 'freqdata', arg.i, undefined);
+        return new TabPaneFreqUsageConfig(
+          str,
+          '',
+          value.pid,
+          value.tid,
+          (arg.consumption * (value.dur + arg.startTime - cutArr[arg.i].ts)) / arg.countMutiple,
+          value.cpu,
+          value.freq,
+          value.dur + arg.startTime - cutArr[arg.i].ts,
+          '',
+          arg.percent * ((value.dur + arg.startTime - cutArr[arg.i].ts) / value.dur),
+          'freqdata',
+          arg.i,
+          undefined
+        );
       default:
         break;
     }
@@ -683,9 +1123,7 @@ export class TabPaneFreqDataCut extends BaseElement {
     cycleMap: Map<string, Array<TabPaneFreqUsageConfig>>
   ): void {
     for (let i = 0; i < threadArr.length; i++) {
-      let cycleMapData: Array<TabPaneFreqUsageConfig> = cycleMap.get(
-        threadArr[i].pid + '_' + threadArr[i].tid
-      )!;
+      let cycleMapData: Array<TabPaneFreqUsageConfig> = cycleMap.get(threadArr[i].pid + '_' + threadArr[i].tid)!;
       for (let j = 0; j < cycleMapData!.length; j++) {
         threadArr[i].children?.push(cycleMapData![j]);
         threadArr[i].count += cycleMapData![j].count;
@@ -698,10 +1136,7 @@ export class TabPaneFreqDataCut extends BaseElement {
   /**
    * 切割后整合好的线程级频点数据放置到对应的进程
    */
-  mergePidData(
-    pidArr: Array<TabPaneFreqUsageConfig>,
-    threadArr: Array<TabPaneFreqUsageConfig>
-  ): void {
+  mergePidData(pidArr: Array<TabPaneFreqUsageConfig>, threadArr: Array<TabPaneFreqUsageConfig>): void {
     for (let i = 0; i < pidArr.length; i++) {
       for (let j = 0; j < threadArr.length; j++) {
         if (pidArr[i].pid === threadArr[j].pid) {
@@ -739,10 +1174,7 @@ export class TabPaneFreqDataCut extends BaseElement {
   /**
    * 将cpu层级数据放到对应的周期层级下
    */
-  mergeCycleData(
-    obj: TabPaneFreqUsageConfig,
-    arr: Array<TabPaneFreqUsageConfig>
-  ): void {
+  mergeCycleData(obj: TabPaneFreqUsageConfig, arr: Array<TabPaneFreqUsageConfig>): void {
     for (let i = 0; i < arr!.length; i++) {
       if (arr![i].count === 0 && arr![i].dur === 0) {
         continue;
@@ -757,10 +1189,7 @@ export class TabPaneFreqDataCut extends BaseElement {
   /**
    * 将切割好的不区分周期的数据作为total数据放到对应的线程层级下，周期数据前
    */
-  mergeTotalData(
-    threadArr: Array<TabPaneFreqUsageConfig>,
-    totalData: Array<TabPaneFreqUsageConfig>
-  ): void {
+  mergeTotalData(threadArr: Array<TabPaneFreqUsageConfig>, totalData: Array<TabPaneFreqUsageConfig>): void {
     for (let i = 0; i < threadArr.length; i++) {
       for (let j = 0; j < totalData.length; j++) {
         if (
@@ -778,17 +1207,11 @@ export class TabPaneFreqDataCut extends BaseElement {
   /**
    * 整理排序相同周期下的数据
    */
-  mergeCpuData(
-    cpuArray: Array<TabPaneFreqUsageConfig>,
-    resList: Array<TabPaneFreqUsageConfig>
-  ): void {
+  mergeCpuData(cpuArray: Array<TabPaneFreqUsageConfig>, resList: Array<TabPaneFreqUsageConfig>): void {
     // 以算力消耗降序排列
     resList.sort((a, b) => b.count - a.count);
     // 以cpu升序排列
-    cpuArray.sort((
-      a: TabPaneFreqUsageConfig,
-      b: TabPaneFreqUsageConfig
-    ) => Number(a.cpu) - Number(b.cpu));
+    cpuArray.sort((a: TabPaneFreqUsageConfig, b: TabPaneFreqUsageConfig) => Number(a.cpu) - Number(b.cpu));
     cpuArray.forEach((item: TabPaneFreqUsageConfig) => {
       for (let s = 0; s < resList.length; s++) {
         if (item.cpu === resList[s].cpu) {
@@ -804,15 +1227,11 @@ export class TabPaneFreqDataCut extends BaseElement {
   /**
    * 切割好的不区分周期的数据，以相同cpu相同频点的进行整合
    */
-  merge(
-    totalList: Map<string, Array<TabPaneFreqUsageConfig>>
-  ): Array<TabPaneFreqUsageConfig> {
+  merge(totalList: Map<string, Array<TabPaneFreqUsageConfig>>): Array<TabPaneFreqUsageConfig> {
     let result: Array<TabPaneFreqUsageConfig> = new Array();
     totalList.forEach((value: Array<TabPaneFreqUsageConfig>, key: string) => {
       let countNum = result.push(
-        new TabPaneFreqUsageConfig('', '', key.split('_')[0], key.split('_')[1],
-          0, '', '', 0, '', 0, 'cycle', 0, []
-        )
+        new TabPaneFreqUsageConfig('', '', key.split('_')[0], key.split('_')[1], 0, '', '', 0, '', 0, 'cycle', 0, [])
       );
       let cpuArr: Array<TabPaneFreqUsageConfig> = [];
       let flagArr: Array<number | string> = [];
@@ -820,8 +1239,20 @@ export class TabPaneFreqDataCut extends BaseElement {
         if (!flagArr.includes(value[i].cpu)) {
           flagArr.push(value[i].cpu);
           let flag = cpuArr.push(
-            new TabPaneFreqUsageConfig(value[i].thread, '', value[i].pid, value[i].tid,
-              0, value[i].cpu, '', 0, '', 0, 'cpu', -1, []
+            new TabPaneFreqUsageConfig(
+              value[i].thread,
+              '',
+              value[i].pid,
+              value[i].tid,
+              0,
+              value[i].cpu,
+              '',
+              0,
+              '',
+              0,
+              'cpu',
+              -1,
+              []
             )
           );
           result[countNum - 1].children?.push(cpuArr[flag - 1]);
@@ -837,7 +1268,9 @@ export class TabPaneFreqDataCut extends BaseElement {
           }
         }
       }
-      result[countNum - 1].children?.sort((a: TabPaneFreqUsageConfig, b: TabPaneFreqUsageConfig) => Number(a.cpu) - Number(b.cpu));
+      result[countNum - 1].children?.sort(
+        (a: TabPaneFreqUsageConfig, b: TabPaneFreqUsageConfig) => Number(a.cpu) - Number(b.cpu)
+      );
       for (let i = 0; i < cpuArr.length; i++) {
         for (let j = 0; j < value.length; j++) {
           if (cpuArr[i].cpu === value[j].cpu) {
@@ -910,7 +1343,7 @@ export class TabPaneFreqDataCut extends BaseElement {
                 this.threadStatesTbl!.setStatus(item.children, false);
               }
             }
-            this.threadStatesTbl!.recycleDs = this.threadStatesTbl!.meauseTreeRowElement( data, RedrawTreeForm.Retract);
+            this.threadStatesTbl!.recycleDs = this.threadStatesTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Cycle') && i === 2) {
             for (let item of data) {
               // @ts-ignore
@@ -972,11 +1405,12 @@ export class TabPaneFreqDataCut extends BaseElement {
     // @ts-ignore
     this.shadowRoot?.querySelector('#cycleQuery')!.style.display = 'block';
     // @ts-ignore
-    let freq: Map<number, number> = SpSegmentationChart.freqInfoMapData.size > 0 &&
+    let freq: Map<number, number> =
+      SpSegmentationChart.freqInfoMapData.size > 0 &&
       SpSegmentationChart.freqInfoMapData.get(SpSegmentationChart.freqInfoMapData.size - 1);
     // @ts-ignore
-    let yAxis: number = freq && freq.get(Number(maxFreqValue) * 1000)
-      ? freq.get(Number(maxFreqValue) * 1000) : Number(maxFreqValue);
+    let yAxis: number =
+      freq && freq.get(Number(maxFreqValue) * 1000) ? freq.get(Number(maxFreqValue) * 1000) : Number(maxFreqValue);
     let xAxis: number = (yAxis * 1000) / Number(maxHzValue);
     // 需要做筛选时，会利用下面的cycleA、cycleB数组
     let scatterArr: Array<Array<number>> = [];
@@ -1016,8 +1450,14 @@ export class TabPaneFreqDataCut extends BaseElement {
   /**
    * 配置散点图
    */
-  setConfig(maxHz: number, str: string, scatterArr: Array<Array<number>>,
-            yAxis: number, xAxis: number, cycleA: Array<Array<number>>, cycleB: Array<Array<number>>
+  setConfig(
+    maxHz: number,
+    str: string,
+    scatterArr: Array<Array<number>>,
+    yAxis: number,
+    xAxis: number,
+    cycleA: Array<Array<number>>,
+    cycleB: Array<Array<number>>
   ): void {
     const DELTA: number = 5;
     this.statisticsScatter!.config = {
@@ -1060,7 +1500,7 @@ export class TabPaneFreqDataCut extends BaseElement {
       // 散点图title
       title: str,
       colorPoolText: (): Array<string> => ['Total', 'CycleA', 'CycleB'],
-      tip: (data: {c: Array<number>}): string => {
+      tip: (data: { c: Array<number> }): string => {
         return `
                 <div>
                     <span>Cycle: ${data.c[2]};</span></br>
@@ -1089,10 +1529,17 @@ export class TabPaneFreqDataCut extends BaseElement {
         str = evt.detail.thread;
         this.render(scatterData, str, []);
       }
-      // @ts-ignore
-      if (evt.detail.flag === 'cycle' && evt.detail.pid === scatterData[evt.detail.id - 1].pid
+
+      if (
         // @ts-ignore
-        && evt.detail.tid === scatterData[evt.detail.id - 1].tid && evt.detail.id > 0) {
+        evt.detail.flag === 'cycle' &&
+        // @ts-ignore
+        evt.detail.pid === scatterData[evt.detail.id - 1].pid &&
+        // @ts-ignore
+        evt.detail.tid === scatterData[evt.detail.id - 1].tid &&
+        // @ts-ignore
+        evt.detail.id > 0
+      ) {
         // @ts-ignore
         SpSegmentationChart.tabHover('CPU-FREQ', true, evt.detail.id - 1);
       }
@@ -1107,7 +1554,12 @@ export class TabPaneFreqDataCut extends BaseElement {
       let cycleBStartValue = this.shadowRoot?.querySelector('#cycle-b-start-range')!.value;
       // @ts-ignore
       let cycleBEndValue = this.shadowRoot?.querySelector('#cycle-b-end-range')!.value;
-      let queryCycleScatter = [Number(cycleAStartValue), Number(cycleAEndValue), Number(cycleBStartValue), Number(cycleBEndValue)];
+      let queryCycleScatter = [
+        Number(cycleAStartValue),
+        Number(cycleAEndValue),
+        Number(cycleBStartValue),
+        Number(cycleBEndValue),
+      ];
       this.render(scatterData, str, queryCycleScatter);
     });
   }
@@ -1118,43 +1570,23 @@ export class TabPaneFreqDataCut extends BaseElement {
     // 绑定single、loop按钮点击事件
     this.threadStatesDIV = this.shadowRoot?.querySelector('#dataCut');
     this.threadStatesDIV?.children[2].children[0].addEventListener('click', (e) => {
-        this.threadStatesTbl!.loading = true;
-        // @ts-ignore
-        this.threadStatesDIV?.children[2].children[0].style.backgroundColor = '#666666';
-        // @ts-ignore
-        this.threadStatesDIV?.children[2].children[0].style.color = '#fff';
-        // @ts-ignore
-        this.threadStatesDIV?.children[2].children[1].style.backgroundColor = '#fff';
-        // @ts-ignore
-        this.threadStatesDIV?.children[2].children[1].style.color = '#000';
-        // @ts-ignore
-        this.dataSingleCut(this.threadStatesDIV?.children[0]!, this.threadStatesDIV?.children[1]!, this.initData);
-      }
-    );
+      this.threadStatesTbl!.loading = true;
+      // @ts-ignore
+      this.dataSingleCut(this.threadStatesDIV?.children[0]!, this.threadStatesDIV?.children[1]!, this.initData);
+    });
     this.threadStatesDIV?.children[2].children[1].addEventListener('click', (e) => {
-        this.threadStatesTbl!.loading = true;
-        // @ts-ignore
-        this.threadStatesDIV?.children[2].children[1].style.backgroundColor = '#666666';
-        // @ts-ignore
-        this.threadStatesDIV?.children[2].children[1].style.color = '#fff';
-        // @ts-ignore
-        this.threadStatesDIV?.children[2].children[0].style.backgroundColor = '#fff';
-        // @ts-ignore
-        this.threadStatesDIV?.children[2].children[0].style.color = '#000';
-        // @ts-ignore
-        this.dataLoopCut(this.threadStatesDIV?.children[0]!, this.threadStatesDIV?.children[1]!, this.initData);
-      }
-    );
+      this.threadStatesTbl!.loading = true;
+      // @ts-ignore
+      this.dataLoopCut(this.threadStatesDIV?.children[0]!, this.threadStatesDIV?.children[1]!, this.initData);
+    });
     this.threadStatesDIV?.children[0].addEventListener('focus', (e) => {
-        // @ts-ignore
-        this.threadStatesDIV?.children[0]!.style.border = '1px solid rgb(151,151,151)';
-      }
-    );
+      // @ts-ignore
+      this.threadStatesDIV?.children[0]!.style.border = '1px solid rgb(151,151,151)';
+    });
     this.threadStatesDIV?.children[1].addEventListener('focus', (e) => {
-        // @ts-ignore
-        this.threadStatesDIV?.children[1]!.style.border = '1px solid rgb(151,151,151)';
-      }
-    );
+      // @ts-ignore
+      this.threadStatesDIV?.children[1]!.style.border = '1px solid rgb(151,151,151)';
+    });
     this.shadowRoot?.querySelector('#maxFreq')?.addEventListener('focus', (e) => {
       // @ts-ignore
       this.shadowRoot?.querySelector('#maxFreq')!.style.border = '1px solid rgb(151,151,151)';
@@ -1169,7 +1601,8 @@ export class TabPaneFreqDataCut extends BaseElement {
     resizeObserver(this.parentElement!, this.threadStatesTbl!);
   }
   initHtml(): string {
-    return `
+    return (
+      `
     <style>
     :host{
         padding: 10px 10px;
@@ -1215,7 +1648,10 @@ export class TabPaneFreqDataCut extends BaseElement {
         width:90px;
     }
     </style>
-    ` + this.htmlUp() + this.htmlDown();
+    ` +
+      this.htmlUp() +
+      this.htmlDown()
+    );
   }
   htmlUp(): string {
     return `

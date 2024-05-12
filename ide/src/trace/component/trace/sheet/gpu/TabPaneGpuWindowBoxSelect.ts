@@ -46,16 +46,19 @@ export class TabPaneGpuWindowBoxSelect extends BaseElement {
   private gpuBoxSource: Array<Gpu> = [];
   private currentSelectionParam: SelectionParam | undefined;
 
-  set data(gpuBoxParam: SelectionParam | any) {
+  set data(gpuBoxParam: SelectionParam | unknown) {
     if (this.currentSelectionParam === gpuBoxParam) {
       return;
     }
+    // @ts-ignore
     this.currentSelectionParam = gpuBoxParam;
     //@ts-ignore
     this.gpuBoxTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
     this.range!.textContent =
+      // @ts-ignore
       'Selected range: ' + ((gpuBoxParam.rightNs - gpuBoxParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.gpuBoxTbl!.loading = true;
+    // @ts-ignore
     queryGpuDataByRange(gpuBoxParam.leftNs, gpuBoxParam.rightNs, MemoryConfig.getInstance().snapshotDur).then(
       (result) => {
         this.gpuBoxTbl!.loading = false;
@@ -85,7 +88,8 @@ export class TabPaneGpuWindowBoxSelect extends BaseElement {
   initElements(): void {
     this.gpuBoxTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gpu-box');
     this.range = this.shadowRoot?.querySelector('#gpu-box-time-range');
-    this.gpuBoxTbl!.addEventListener('column-click', (evt: any) => {
+    this.gpuBoxTbl!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
@@ -134,8 +138,10 @@ export class TabPaneGpuWindowBoxSelect extends BaseElement {
         return gpuA.startTs - gpuB.startTs;
       } else {
         let key = detail.key.replace('Str', '');
-        let valueA = (gpuA as any)[key];
-        let valueB = (gpuB as any)[key];
+        // @ts-ignore
+        let valueA = (gpuA as unknown)[key];
+        // @ts-ignore
+        let valueB = (gpuB as unknown)[key];
         return detail.sort === 1 ? valueA - valueB : valueB - valueA;
       }
     });

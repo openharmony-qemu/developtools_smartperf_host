@@ -36,26 +36,26 @@ public:
     void EnableMetaTable(bool enabled);
     void EnableFileSave(bool enabled);
     static void SetCleanMode(bool cleanMode);
-    int32_t ExportDatabase(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    int32_t ExportPerfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    int32_t ExportHookReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    int32_t ExportEbpfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    bool ReloadSymbolFiles(std::string& directory, std::vector<std::string>& symbolsPaths);
+    int32_t ExportDatabase(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    int32_t ExportPerfReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    int32_t ExportHookReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    int32_t ExportEbpfReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    bool ReloadSymbolFiles(std::string &directory, std::vector<std::string> &symbolsPaths);
     std::vector<std::string> SearchData();
-    int32_t OperateDatabase(const std::string& sql);
-    int32_t SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack);
-    int32_t SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
-    int32_t SearchDatabase(std::string& sql, bool printf);
-    int32_t SearchDatabaseToProto(const std::string& data, SqllitePreparCacheData::TLVResultCallBack resultCallBack);
-    std::string SearchDatabase(const std::string& sql);
-    int32_t UpdateTraceRangeTime(uint8_t* data, int32_t len);
+    int32_t OperateDatabase(const std::string &sql);
+    int32_t SearchDatabase(const std::string &sql, TraceDataDB::ResultCallBack resultCallBack);
+    int32_t SearchDatabase(const std::string &sql, uint8_t *out, int32_t outLen);
+    int32_t SearchDatabase(std::string &sql, bool printf);
+    int32_t SearchDatabaseToProto(const std::string &data, SqllitePreparCacheData::TLVResultCallBack resultCallBack);
+    std::string SearchDatabase(const std::string &sql);
+    int32_t UpdateTraceRangeTime(uint8_t *data, int32_t len);
     void WaitForParserEnd();
     void Clear();
-    MetaData* GetMetaData();
+    MetaData *GetMetaData();
     void SetDataType(TraceFileType type);
     void SetCancel(bool cancel);
-    bool ParserAndPrintMetrics(const std::string& metrics);
-    bool ReadSqlFileAndPrintResult(const std::string& sqlOperator);
+    bool ParserAndPrintMetrics(const std::string &metrics);
+    bool ReadSqlFileAndPrintResult(const std::string &sqlOperator);
     TraceFileType DataType() const
     {
         return fileType_;
@@ -65,9 +65,9 @@ public:
     void UpdateAppStartTraceStatus(bool status);
     void UpdateBinderRunnableTraceStatus(bool status);
     void UpdateHMKernelTraceStatus(bool status);
-    void InitMetricsMap(std::map<std::string, std::string>& metricsMap);
-    const std::string MetricsSqlQuery(const std::string& metrics);
-    auto GetBytraceData()
+    void InitMetricsMap(std::map<std::string, std::string> &metricsMap);
+    const std::string MetricsSqlQuery(const std::string &metrics);
+    auto GetPtreaderParser()
     {
         return ptreaderParser_.get();
     }
@@ -77,7 +77,7 @@ public:
         return rawTraceParser_.get();
     }
 #endif
-    auto GetHtraceData()
+    auto GetPbreaderParser()
     {
         return pbreaderParser_.get();
     }
@@ -102,18 +102,18 @@ public:
         hasGotMarkFinish_ = false;
         markHeard_ = false;
     };
-    void GetMarkPositionData(std::unique_ptr<uint8_t[]>& data, size_t& size);
+    void GetMarkPositionData(std::unique_ptr<uint8_t[]> &data, size_t &size);
 
     int32_t CreatEmptyBatchDB(const std::string dbPath);
-    int32_t BatchExportDatabase(const std::string& outputName);
+    int32_t BatchExportDatabase(const std::string &outputName);
     bool BatchParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size);
-    void RevertTableName(const std::string& outputName);
+    void RevertTableName(const std::string &outputName);
     uint64_t minTs_ = INVALID_UINT64;
     uint64_t maxTs_ = INVALID_UINT64;
 
 private:
     void InitFilter();
-    bool LoadQueryFile(const std::string& sqlOperator, std::vector<std::string>& sqlStrings);
+    bool LoadQueryFile(const std::string &sqlOperator, std::vector<std::string> &sqlStrings);
     TraceFileType fileType_;
     std::unique_ptr<TraceStreamerFilters> streamFilters_ = {};
     std::unique_ptr<TraceDataCache> traceDataCache_ = {};

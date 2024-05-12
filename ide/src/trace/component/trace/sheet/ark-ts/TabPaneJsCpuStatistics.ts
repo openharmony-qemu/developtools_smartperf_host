@@ -106,8 +106,17 @@ export class TabPaneJsCpuStatistics extends BaseElement {
       },
       tip: (obj): string => {
         return `<div>
-                    <div>type: ${obj.obj.type}</div>
-                    <div>total: ${ns2s(obj.obj.time)} (${obj.obj.percentage}%)</div>
+                    <div>type: ${
+                      // @ts-ignore
+                      obj.obj.type
+                    }</div>
+                    <div>total: ${
+                      // @ts-ignore
+                      ns2s(obj.obj.time)
+                    } (${
+          // @ts-ignore
+          obj.obj.percentage
+        }%)</div>
                 </div> `;
       },
       hoverHandler: (data): void => {
@@ -123,12 +132,15 @@ export class TabPaneJsCpuStatistics extends BaseElement {
         },
       ],
     };
-    this.statisticsTable!.addEventListener('row-hover', (statisticsRowHover: any) => {
+    this.statisticsTable!.addEventListener('row-hover', (statisticsRowHover: unknown) => {
+      // @ts-ignore
       if (statisticsRowHover.detail.data) {
-        let data = statisticsRowHover.detail.data;
-        data.isHover = true;
-        if ((statisticsRowHover.detail as any).callBack) {
-          (statisticsRowHover.detail as any).callBack(true);
+        // @ts-ignore
+        let data = statisticsRowHover.detail.data; // @ts-ignore
+        data.isHover = true; // @ts-ignore
+        if ((statisticsRowHover.detail as unknown).callBack) {
+          // @ts-ignore
+          (statisticsRowHover.detail as unknown).callBack(true);
         }
       }
       this.statisticsPie?.showHover();
@@ -176,18 +188,13 @@ export class TabPaneJsCpuStatistics extends BaseElement {
     time: number,
     percentage: number
   ): JsCpuProfilerStatisticsStruct {
-    return new JsCpuProfilerStatisticsStruct(
-      type,
-      time,
-      ns2s(time),
-      ((time / percentage || 0) * 100).toFixed(1)
-    );
+    return new JsCpuProfilerStatisticsStruct(type, time, ns2s(time), ((time / percentage || 0) * 100).toFixed(1));
   }
 
-  private sortByColumn(detail: any): void {
+  private sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(key, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         // 不管哪一列的排序方式是0（默认排序），都按照time列从大到小排序
         if (sort === 0) {
           sort = 2;
@@ -199,16 +206,20 @@ export class TabPaneJsCpuStatistics extends BaseElement {
           return sort === 2 ? parseFloat(b[key]) - parseFloat(a[key]) : parseFloat(a[key]) - parseFloat(b[key]);
         } else {
           if (sort === 2) {
+            // @ts-ignore
             return b[key].toString().localeCompare(a[key].toString());
           } else {
+            // @ts-ignore
             return a[key].toString().localeCompare(b[key].toString());
           }
         }
       };
-    }
+    } // @ts-ignore
     if (detail.key === 'timeStr' || detail.key === 'percentage') {
-      this.statisticsSource.sort(compare('time', detail.sort, 'number'));
+      // @ts-ignore
+      this.statisticsSource.sort(compare('time', detail.sort, 'number')); // @ts-ignore
     } else if (detail.key === 'type') {
+      // @ts-ignore
       this.statisticsSource.sort(compare(detail.key, detail.sort, 'string'));
     }
     if (this.statisticsSource.length > 0) {
@@ -230,8 +241,9 @@ export class TabPaneJsCpuStatistics extends BaseElement {
     this.statisticsPie = this.shadowRoot?.querySelector('#chart-pie') as LitChartPie;
     this.tabTitle = this.statisticsTable!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
 
-    this.statisticsTable!.addEventListener('column-click', (evt: any) => {
-      this.sortKey = evt.detail.key;
+    this.statisticsTable!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
+      this.sortKey = evt.detail.key; // @ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);

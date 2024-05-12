@@ -13,13 +13,14 @@
 
 import { CpuStruct } from '../ui-worker/cpu/ProcedureWorkerCPU';
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
-import { threadPool } from '../SqlLite';
+import { getThreadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
+import { Utils } from '../../component/trace/base/Utils';
 
-export function cpuDataSender(cpu: number, row: TraceRow<CpuStruct>): Promise<CpuStruct[]> {
+export function cpuDataSender(cpu: number, row: TraceRow<CpuStruct>, traceId?: string): Promise<CpuStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       processId: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
       id: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -32,43 +33,60 @@ export function cpuDataSender(cpu: number, row: TraceRow<CpuStruct>): Promise<Cp
     };
   }
   return new Promise((resolve): void => {
-    threadPool.submitProto(QueryEnum.CpuData, {
-      cpu: cpu,
-      startNS: TraceRow.range?.startNS || 0,
-      endNS: TraceRow.range?.endNS || 0,
-      recordStartNS: window.recordStartNS,
-      recordEndNS: window.recordEndNS,
-      width: width,
-      t: new Date().getTime(),
-      trafic: trafic,
-      sharedArrayBuffers: row.sharedArrayBuffers,
-    }, (res: any, len: number, transfer: boolean): void => {
-      resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
-    });
+    getThreadPool(traceId).submitProto(
+      QueryEnum.CpuData,
+      {
+        cpu: cpu,
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
+        recordStartNS: Utils.getInstance().getRecordStartNS(traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(traceId),
+        width: width,
+        t: new Date().getTime(),
+        trafic: trafic,
+        sharedArrayBuffers: row.sharedArrayBuffers,
+      },
+      (res: unknown, len: number, transfer: boolean): void => {
+        resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
+      }
+    );
   });
 }
 
-export function searchCpuDataSender(pidArr: Array<number>, tidArr: Array<number>): Promise<any[]> {
+export function searchCpuDataSender(pidArr: Array<number>, tidArr: Array<number>,
+  traceId?: string | null): Promise<unknown[]> {
   return new Promise((resolve): void => {
-    threadPool.submitProto(QueryEnum.SearchCpuData, {
-      tidArr: tidArr,
-      pidArr: pidArr,
-      trafic: TraficEnum.SharedArrayBuffer,
-    }, (res: any, len: number, transfer: boolean): void => {
-      resolve(searchArrayBufferHandler(res, len));
-    });
+    getThreadPool(traceId).submitProto(
+      QueryEnum.SearchCpuData,
+      {
+        tidArr: tidArr,
+        pidArr: pidArr,
+        trafic: TraficEnum.SharedArrayBuffer,
+      },
+      (res: unknown, len: number, transfer: boolean): void => {
+        resolve(searchArrayBufferHandler(res, len));
+      }
+    );
   });
 }
 
-function arrayBufferHandler(res: any, len: number): CpuStruct[] {
+function arrayBufferHandler(res: unknown, len: number): CpuStruct[] {
   let outArr: CpuStruct[] = [];
+  // @ts-ignore
   let startTime = new Float64Array(res.startTime);
+  // @ts-ignore
   let dur = new Float64Array(res.dur);
+  // @ts-ignore
   let id = new Uint16Array(res.id);
+  // @ts-ignore
   let processId = new Uint16Array(res.processId);
+  // @ts-ignore
   let tid = new Uint16Array(res.tid);
+  // @ts-ignore
   let cpu = new Uint8Array(res.cpu);
+  // @ts-ignore
   let argSetID = new Int8Array(res.argSetID);
+  // @ts-ignore
   let nofinish = new Uint8Array(res.nofinish);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -79,21 +97,29 @@ function arrayBufferHandler(res: any, len: number): CpuStruct[] {
       dur: dur[i],
       startTime: startTime[i],
       argSetID: argSetID[i],
-      nofinish: nofinish[i] === 1 ? true : false
+      nofinish: nofinish[i] === 1 ? true : false,
     } as CpuStruct);
   }
   return outArr;
 }
 
-function searchArrayBufferHandler(res: any, len: number): CpuStruct[] {
+function searchArrayBufferHandler(res: unknown, len: number): CpuStruct[] {
   let outArr: CpuStruct[] = [];
+  // @ts-ignore
   let startTime = new Float64Array(res.startTime);
+  // @ts-ignore
   let dur = new Float64Array(res.dur);
+  // @ts-ignore
   let id = new Uint16Array(res.id);
+  // @ts-ignore
   let processId = new Uint16Array(res.processId);
+  // @ts-ignore
   let tid = new Uint16Array(res.tid);
+  // @ts-ignore
   let cpu = new Uint8Array(res.cpu);
+  // @ts-ignore
   let argSetID = new Int8Array(res.argSetID);
+  // @ts-ignore
   let nofinish = new Uint8Array(res.nofinish);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -105,7 +131,7 @@ function searchArrayBufferHandler(res: any, len: number): CpuStruct[] {
       startTime: startTime[i],
       type: 'cpu',
       argSetID: -1,
-      nofinish: nofinish[i] === 1 ? true : false
+      nofinish: nofinish[i] === 1 ? true : false,
     } as CpuStruct);
   }
   return outArr;

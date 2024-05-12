@@ -15,10 +15,7 @@
 
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
-import {
-  VirtualMemoryRender,
-  VirtualMemoryStruct
-} from '../../database/ui-worker/ProcedureWorkerVirtualMemory';
+import { VirtualMemoryRender, VirtualMemoryStruct } from '../../database/ui-worker/ProcedureWorkerVirtualMemory';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { virtualMemoryDataSender } from '../../database/data-trafic/VirtualMemoryDataSender';
@@ -52,6 +49,7 @@ export class SpVirtualMemChart {
     vmFolder.onThreadHandler = (useCache): void => {
       vmFolder.canvasSave(this.trace.canvasPanelCtx!);
       if (vmFolder.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, vmFolder.frame.width, vmFolder.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -66,6 +64,7 @@ export class SpVirtualMemChart {
       vmFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
     this.trace.rowsEL?.appendChild(vmFolder);
+    //@ts-ignore
     array.forEach((it) => this.initVirtualMemoryRow(vmFolder, it.id, it.name));
   }
 

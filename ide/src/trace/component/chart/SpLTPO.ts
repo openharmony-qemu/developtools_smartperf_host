@@ -24,13 +24,11 @@ import {
   queryRealFpsList,
   queryRSNowTimeList,
   querySignaledList,
-  querySkipDataList
+  querySkipDataList,
 } from '../../database/sql/Ltpo.sql';
-import { LtpoRender, LtpoStruct } from '../../database/ui-worker/ProcedureWorkerLTPO'
+import { LtpoRender, LtpoStruct } from '../../database/ui-worker/ProcedureWorkerLTPO';
 import { HitchTimeStruct, hitchTimeRender } from '../../database/ui-worker/ProcedureWorkerHitchTime';
 import { lostFrameSender } from '../../database/data-trafic/LostFrameSender';
-import { fps } from '../../database/ui-worker/ProcedureWorkerFPS';
-import { timeStamp } from 'console';
 
 export class SpLtpoChart {
   private readonly trace: SpSystemTrace | undefined;
@@ -71,7 +69,7 @@ export class SpLtpoChart {
     this.initFpsName();
     if (SpLtpoChart.realFpsList.length > 0) {
       this.initRealFps();
-    };
+    }
     this.initRsNowTime();
     //特殊情况：当前trace的RSHardwareThrea泳道最前面多一个单独的fence
     if (SpLtpoChart.fpsnameList.length > 0 && SpLtpoChart.fanceNameList.length - SpLtpoChart.fpsnameList.length === 1) {
@@ -84,21 +82,27 @@ export class SpLtpoChart {
       let fanceIndex = 0;
       while (fpsIndex < SpLtpoChart.fpsnameList!.length) {
         if (SpLtpoChart.fanceNameList[fanceIndex] && SpLtpoChart.fpsnameList[fpsIndex]) {
-          if (SpLtpoChart.fanceNameList[fanceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! &&
-            SpLtpoChart.fanceNameList[fanceIndex].ts! < SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!) {
+          if (
+            SpLtpoChart.fanceNameList[fanceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! &&
+            SpLtpoChart.fanceNameList[fanceIndex].ts! <
+              SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!
+          ) {
             fpsIndex++;
             fanceIndex++;
           } else if (SpLtpoChart.fanceNameList[fanceIndex].ts! < SpLtpoChart.fpsnameList[fpsIndex].ts!) {
             SpLtpoChart.fanceNameList.splice(fanceIndex, 1);
-          } else if (SpLtpoChart.fanceNameList[fanceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!) {
+          } else if (
+            SpLtpoChart.fanceNameList[fanceIndex].ts! >
+            SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!
+          ) {
             SpLtpoChart.fpsnameList.splice(fpsIndex, 1);
           }
         } else if (SpLtpoChart.fanceNameList[fanceIndex] && !SpLtpoChart.fpsnameList[fpsIndex]) {
           SpLtpoChart.fanceNameList.splice(fanceIndex);
         } else if (!SpLtpoChart.fanceNameList[fanceIndex] && SpLtpoChart.fpsnameList[fpsIndex]) {
-          SpLtpoChart.fpsnameList.splice(fpsIndex)
+          SpLtpoChart.fpsnameList.splice(fpsIndex);
         } else {
-          return
+          return;
         }
       }
     }
@@ -109,14 +113,23 @@ export class SpLtpoChart {
         let startTime = Number(SpLtpoChart.fanceNameList[i]!.ts);
         let durtaion = Number(SpLtpoChart.fanceNameList[i]!.dur);
         if (SpLtpoChart.fanceNameList[i]!.signaled) {
-          this.pushLtpoData(SpLtpoChart.ltpoDataArr, SpLtpoChart.fanceNameList[i]!.fanceId!, tmpFps, signaled, startTime, durtaion, 0, 0);
+          this.pushLtpoData(
+            SpLtpoChart.ltpoDataArr,
+            SpLtpoChart.fanceNameList[i]!.fanceId!,
+            tmpFps,
+            signaled,
+            startTime,
+            durtaion,
+            0,
+            0
+          );
         } else {
           this.pushLtpoData(SpLtpoChart.ltpoDataArr, SpLtpoChart.fanceNameList[i]!.fanceId!, tmpFps, 0, 0, 0, 0, 0);
         }
       }
     } else {
       return;
-    };
+    }
     this.fenceToFps();
     this.fpsToRenderService();
     this.filterNowTime();
@@ -128,7 +141,7 @@ export class SpLtpoChart {
   //提取FenceId
   initFenceName(): void {
     SpLtpoChart.fanceNameList.map((item) => {
-      let cutFanceNameArr = item.name!.split(" ");
+      let cutFanceNameArr = item.name!.split(' ');
       if (cutFanceNameArr[cutFanceNameArr.length - 1] === 'signaled') {
         item.fanceId = Number(cutFanceNameArr[2]);
         item.signaled = 1;
@@ -136,8 +149,8 @@ export class SpLtpoChart {
       } else {
         item.fanceId = Number(cutFanceNameArr[cutFanceNameArr.length - 1]);
       }
-    })
-  };
+    });
+  }
   //从数据库中查询的name中提取fps
   initFpsName(): void {
     SpLtpoChart.fpsnameList.map((item) => {
@@ -150,8 +163,8 @@ export class SpLtpoChart {
         let cutFpsNameArr = item.name!.split('=');
         item.fps = Number(cutFpsNameArr[cutFpsNameArr.length - 1]);
       }
-    })
-  };
+    });
+  }
   //如果存在切帧，提取fps
   initRealFps(): void {
     SpLtpoChart.realFpsList.map((item) => {
@@ -159,33 +172,38 @@ export class SpLtpoChart {
       item.fps = Number(cutRealFpsArr[cutRealFpsArr.length - 1]);
     });
     this.setRealFps();
-  };
+  }
   //从render_service中获取nowTime
   initRsNowTime(): void {
     SpLtpoChart.rsNowTimeList.map((item) => {
       let cutRsNameArr = item.name!.split(' ')[2].split(':');
       item.nowTime = Number(cutRsNameArr[cutRsNameArr.length - 1]);
-    })
-  };
+    });
+  }
   //处理fps
   setRealFps(): void {
     let moreIndex = 0;
     let reallIndex = 0;
     while (moreIndex < SpLtpoChart.fpsnameList.length) {
-      let itemMoreEndTs = Number(SpLtpoChart.fpsnameList[moreIndex].ts) + Number(SpLtpoChart.fpsnameList[moreIndex].dur);
-      if (Number(SpLtpoChart.realFpsList[reallIndex].ts) < itemMoreEndTs) {//此时这一帧包含了两个fps，将真实的fps赋给SpLtpoChart.fpsnameList
+      let itemMoreEndTs =
+        Number(SpLtpoChart.fpsnameList[moreIndex].ts) + Number(SpLtpoChart.fpsnameList[moreIndex].dur);
+      if (Number(SpLtpoChart.realFpsList[reallIndex].ts) < itemMoreEndTs) {
+        //此时这一帧包含了两个fps，将真实的fps赋给SpLtpoChart.fpsnameList
         SpLtpoChart.fpsnameList[moreIndex].fps = SpLtpoChart.realFpsList[reallIndex].fps;
         moreIndex++;
-        if (reallIndex < SpLtpoChart.realFpsList.length - 1) {//判断SpLtpoChart.realFpsList有没有遍历完，没有就继续
+        if (reallIndex < SpLtpoChart.realFpsList.length - 1) {
+          //判断SpLtpoChart.realFpsList有没有遍历完，没有就继续
           reallIndex++;
-        } else {//否则跳出
+        } else {
+          //否则跳出
           return;
         }
-      } else {//如果不满足的话，SpLtpoChart.fpsnameList数组往下走，而reallIndex不变
+      } else {
+        //如果不满足的话，SpLtpoChart.fpsnameList数组往下走，而reallIndex不变
         moreIndex++;
       }
     }
-  };
+  }
   //RSHardwareThread泳道的fps数组集成FenceId数组中的FenceId和signaled
   fenceToFps() {
     if (SpLtpoChart.fanceNameList.length === SpLtpoChart.fpsnameList.length) {
@@ -193,17 +211,23 @@ export class SpLtpoChart {
       let fpsIndex = 0;
       while (fpsIndex < SpLtpoChart.fpsnameList.length) {
         if (SpLtpoChart.fpsnameList[fpsIndex] && SpLtpoChart.fanceNameList[fenceIndex]) {
-          if (SpLtpoChart.fanceNameList[fenceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! &&
-            SpLtpoChart.fanceNameList[fenceIndex].ts! < (SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!)) {
+          if (
+            SpLtpoChart.fanceNameList[fenceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! &&
+            SpLtpoChart.fanceNameList[fenceIndex].ts! <
+              SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!
+          ) {
             SpLtpoChart.fpsnameList[fpsIndex].fanceId = SpLtpoChart.fanceNameList[fenceIndex].fanceId;
             if (SpLtpoChart.fanceNameList[fenceIndex].signaled) {
               SpLtpoChart.fpsnameList[fpsIndex].signaled = SpLtpoChart.fanceNameList[fenceIndex].signaled;
-            };
+            }
             fenceIndex++;
             fpsIndex++;
           } else if (SpLtpoChart.fanceNameList[fenceIndex].ts! < SpLtpoChart.fpsnameList[fpsIndex].ts!) {
             fenceIndex++;
-          } else if (SpLtpoChart.fanceNameList[fenceIndex].ts! > (SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!)) {
+          } else if (
+            SpLtpoChart.fanceNameList[fenceIndex].ts! >
+            SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!
+          ) {
             fpsIndex++;
           }
         } else {
@@ -211,37 +235,38 @@ export class SpLtpoChart {
         }
       }
     }
-  };
+  }
   //render_service的nowTime 集成RSHardThread泳道Fps数组的FenceId和Signaled
   fpsToRenderService(): void {
-      let rsIndex = 0;
-      let hardIndex = 0;
-      while (rsIndex < SpLtpoChart.rsNowTimeList.length) {
-        if (SpLtpoChart.fpsnameList[hardIndex] && SpLtpoChart.rsNowTimeList[rsIndex]) {
-          if (SpLtpoChart.rsNowTimeList[rsIndex].nowTime! > SpLtpoChart.fpsnameList[hardIndex].nowTime!) { //处理nowTime不一致的情况
-            hardIndex++;
-          } else if (SpLtpoChart.rsNowTimeList[rsIndex].nowTime! < SpLtpoChart.fpsnameList[hardIndex].nowTime!) {
-            rsIndex++;
-          } else {
-            SpLtpoChart.rsNowTimeList[rsIndex].fanceId = SpLtpoChart.fpsnameList[hardIndex].fanceId;
-            SpLtpoChart.rsNowTimeList[rsIndex].fps = SpLtpoChart.fpsnameList[hardIndex].fps;
-            if (SpLtpoChart.fpsnameList[hardIndex].signaled) {
-              SpLtpoChart.rsNowTimeList[rsIndex].signaled = SpLtpoChart.fpsnameList[hardIndex].signaled;
-            };
-            hardIndex++;
-            rsIndex++;
-          }
+    let rsIndex = 0;
+    let hardIndex = 0;
+    while (rsIndex < SpLtpoChart.rsNowTimeList.length) {
+      if (SpLtpoChart.fpsnameList[hardIndex] && SpLtpoChart.rsNowTimeList[rsIndex]) {
+        if (SpLtpoChart.rsNowTimeList[rsIndex].nowTime! > SpLtpoChart.fpsnameList[hardIndex].nowTime!) {
+          //处理nowTime不一致的情况
+          hardIndex++;
+        } else if (SpLtpoChart.rsNowTimeList[rsIndex].nowTime! < SpLtpoChart.fpsnameList[hardIndex].nowTime!) {
+          rsIndex++;
         } else {
-          return;
+          SpLtpoChart.rsNowTimeList[rsIndex].fanceId = SpLtpoChart.fpsnameList[hardIndex].fanceId;
+          SpLtpoChart.rsNowTimeList[rsIndex].fps = SpLtpoChart.fpsnameList[hardIndex].fps;
+          if (SpLtpoChart.fpsnameList[hardIndex].signaled) {
+            SpLtpoChart.rsNowTimeList[rsIndex].signaled = SpLtpoChart.fpsnameList[hardIndex].signaled;
+          }
+          hardIndex++;
+          rsIndex++;
         }
+      } else {
+        return;
       }
-  };
+    }
+  }
   //render_service中找出skip和signaled，将需要从上平时间减去的时间计算出来存在对应的nowTime的item中
   filterNowTime(): void {
     let skipIndex = 0;
     let nowTimeIndex = 0;
     let cutTimeSum = 0;
-    let tempFps = 0;//如果中间出现signaled，记录一下fps；
+    let tempFps = 0; //如果中间出现signaled，记录一下fps；
     //将render_service中的nowTime数组中的skip去除掉
     SpLtpoChart.tempRsNowTimeList = SpLtpoChart.rsNowTimeList.filter((item) => item.fps);
     while (skipIndex < SpLtpoChart.skipDataList.length) {
@@ -252,8 +277,9 @@ export class SpLtpoChart {
             if (!SpLtpoChart.tempRsNowTimeList[nowTimeIndex].signaled) {
               cutTimeSum = 0;
             }
-          };
-          if (SpLtpoChart.tempRsNowTimeList[nowTimeIndex].signaled && nowTimeIndex > 0) {//两帧之间初心signaled
+          }
+          if (SpLtpoChart.tempRsNowTimeList[nowTimeIndex].signaled && nowTimeIndex > 0) {
+            //两帧之间初心signaled
             tempFps = SpLtpoChart.tempRsNowTimeList[nowTimeIndex].fps!;
             cutTimeSum += 1000 / tempFps;
             SpLtpoChart.tempRsNowTimeList[nowTimeIndex - 1].cutTime = cutTimeSum;
@@ -265,7 +291,7 @@ export class SpLtpoChart {
           }
         } else if (SpLtpoChart.skipDataList[skipIndex].ts! <= SpLtpoChart.tempRsNowTimeList[nowTimeIndex].ts!) {
           if (nowTimeIndex > 0) {
-            cutTimeSum += tempFps ? (1000 / tempFps) : (1000 / SpLtpoChart.tempRsNowTimeList[nowTimeIndex - 1].fps!);
+            cutTimeSum += tempFps ? 1000 / tempFps : 1000 / SpLtpoChart.tempRsNowTimeList[nowTimeIndex - 1].fps!;
           }
           skipIndex++;
         }
@@ -273,7 +299,7 @@ export class SpLtpoChart {
         return;
       }
     }
-  };
+  }
   pushLtpoData(
     lptoArr: any[] | undefined,
     fanceId: Number,
@@ -284,17 +310,15 @@ export class SpLtpoChart {
     nextStartTs: Number,
     nextDur: number
   ): void {
-    lptoArr?.push(
-      {
-        fanceId: fanceId,
-        fps: fps,
-        signaled: signaled,
-        startTs: startTs,
-        dur: dur,
-        nextStartTs: nextStartTs,
-        nextDur: nextDur
-      }
-    );
+    lptoArr?.push({
+      fanceId: fanceId,
+      fps: fps,
+      signaled: signaled,
+      startTs: startTs,
+      dur: dur,
+      nextStartTs: nextStartTs,
+      nextDur: nextDur,
+    });
   }
   sendDataHandle(presentArr: LtpoStruct[], ltpoDataArr: LtpoStruct[]): Array<LtpoStruct> {
     let sendDataArr: LtpoStruct[] = [];
@@ -306,13 +330,18 @@ export class SpLtpoChart {
     this.deleteUselessFence(presentArr, ltpoDataArr);
     while (presentIndex < presentArr.length) {
       if (presentArr[presentIndex] && ltpoDataArr[ltpoIndex]) {
-        if ((presentArr[presentIndex].startTime! + presentArr[presentIndex].dur! - (window as any).recordStartNS) === TraceRow.range!.totalNS) {
-          presentArr.splice(presentIndex, 1)
+        if (
+          presentArr[presentIndex].startTime! + presentArr[presentIndex].dur! - (window as any).recordStartNS ===
+          TraceRow.range!.totalNS
+        ) {
+          presentArr.splice(presentIndex, 1);
         }
         if (presentArr[presentIndex].presentId === ltpoDataArr[ltpoIndex].fanceId) {
           ltpoDataArr[ltpoIndex].startTs = Number(presentArr[presentIndex].startTime) - (window as any).recordStartNS;
           ltpoDataArr[ltpoIndex].dur = presentArr[presentIndex].dur;
-          ltpoDataArr[ltpoIndex].nextStartTs = presentArr[presentIndex + 1] ? Number(presentArr[presentIndex + 1].startTime) - (window as any).recordStartNS : '';
+          ltpoDataArr[ltpoIndex].nextStartTs = presentArr[presentIndex + 1]
+            ? Number(presentArr[presentIndex + 1].startTime) - (window as any).recordStartNS
+            : '';
           ltpoDataArr[ltpoIndex].nextDur = presentArr[presentIndex + 1] ? presentArr[presentIndex + 1].dur : 0;
           presentIndex++;
           ltpoIndex++;
@@ -333,73 +362,71 @@ export class SpLtpoChart {
         if (ltpoDataArr[ltpoDataIndex].fanceId! < SpLtpoChart.tempRsNowTimeList[tempRsNowTimeIndex].fanceId!) {
           if (ltpoDataArr[ltpoDataIndex].fanceId !== -1 && ltpoDataArr[ltpoDataIndex].nextDur) {
             sendStartTs = Number(ltpoDataArr[ltpoDataIndex].startTs) + Number(ltpoDataArr[ltpoDataIndex].dur);
-            sendDur = Number(ltpoDataArr[ltpoDataIndex].nextStartTs) + Number(ltpoDataArr[ltpoDataIndex].nextDur) - sendStartTs;
-          };
-          let tmpDur = cutSendDur ? ((Math.ceil(cutSendDur / 100000)) / 10) : (Math.ceil(sendDur / 100000)) / 10;
+            sendDur =
+              Number(ltpoDataArr[ltpoDataIndex].nextStartTs) + Number(ltpoDataArr[ltpoDataIndex].nextDur) - sendStartTs;
+          }
+          let tmpDur = cutSendDur ? Math.ceil(cutSendDur / 100000) / 10 : Math.ceil(sendDur / 100000) / 10;
           if (tmpDur < 170) {
-            sendDataArr.push(
-              {
-                dur: sendDur,
-                cutSendDur: cutSendDur,
-                value: 0,
-                startTs: sendStartTs,
-                pid: ltpoDataArr[ltpoDataIndex].fanceId,
-                itid: ltpoDataArr[ltpoDataIndex].fanceId,
-                name: undefined,
-                presentId: ltpoDataArr[ltpoDataIndex].fanceId,
-                ts: undefined,
-                fanceId: ltpoDataArr[ltpoDataIndex].fanceId,
-                fps: ltpoDataArr[ltpoDataIndex].fps,
-                nextStartTs: ltpoDataArr[ltpoDataIndex].nextStartTs,
-                nextDur: ltpoDataArr[ltpoDataIndex].nextDur,
-                translateY: undefined,
-                isHover: false,
-                startTime: undefined,
-                signaled: undefined,
-                nowTime: undefined,
-                cutTime: undefined,
-                frame: undefined,
-              }
-            )
+            sendDataArr.push({
+              dur: sendDur,
+              cutSendDur: cutSendDur,
+              value: 0,
+              startTs: sendStartTs,
+              pid: ltpoDataArr[ltpoDataIndex].fanceId,
+              itid: ltpoDataArr[ltpoDataIndex].fanceId,
+              name: undefined,
+              presentId: ltpoDataArr[ltpoDataIndex].fanceId,
+              ts: undefined,
+              fanceId: ltpoDataArr[ltpoDataIndex].fanceId,
+              fps: ltpoDataArr[ltpoDataIndex].fps,
+              nextStartTs: ltpoDataArr[ltpoDataIndex].nextStartTs,
+              nextDur: ltpoDataArr[ltpoDataIndex].nextDur,
+              translateY: undefined,
+              isHover: false,
+              startTime: undefined,
+              signaled: undefined,
+              nowTime: undefined,
+              cutTime: undefined,
+              frame: undefined,
+            });
           }
           ltpoDataIndex++;
         } else if (ltpoDataArr[ltpoDataIndex].fanceId! > SpLtpoChart.tempRsNowTimeList[tempRsNowTimeIndex].fanceId!) {
           tempRsNowTimeIndex++;
         } else {
           if (SpLtpoChart.tempRsNowTimeList[tempRsNowTimeIndex].cutTime) {
-            cutSendDur = sendDur - (SpLtpoChart.tempRsNowTimeList[tempRsNowTimeIndex].cutTime! * 1000000);
+            cutSendDur = sendDur - SpLtpoChart.tempRsNowTimeList[tempRsNowTimeIndex].cutTime! * 1000000;
             cutSendDur = cutSendDur < 0 ? 0 : cutSendDur;
           }
           if (ltpoDataArr[ltpoDataIndex].fanceId !== -1 && ltpoDataArr[ltpoDataIndex].nextDur) {
             sendStartTs = Number(ltpoDataArr[ltpoDataIndex].startTs) + Number(ltpoDataArr[ltpoDataIndex].dur);
-            sendDur = Number(ltpoDataArr[ltpoDataIndex].nextStartTs) + Number(ltpoDataArr[ltpoDataIndex].nextDur) - sendStartTs;
+            sendDur =
+              Number(ltpoDataArr[ltpoDataIndex].nextStartTs) + Number(ltpoDataArr[ltpoDataIndex].nextDur) - sendStartTs;
           }
-          let tmpDur = cutSendDur ? ((Math.ceil(cutSendDur / 100000)) / 10) : (Math.ceil(sendDur / 100000)) / 10;
+          let tmpDur = cutSendDur ? Math.ceil(cutSendDur / 100000) / 10 : Math.ceil(sendDur / 100000) / 10;
           if (tmpDur < 170) {
-            sendDataArr.push(
-              {
-                dur: sendDur,
-                cutSendDur: cutSendDur,
-                value: 0,
-                startTs: sendStartTs,
-                pid: ltpoDataArr[ltpoDataIndex].fanceId,
-                itid: ltpoDataArr[ltpoDataIndex].fanceId,
-                name: undefined,
-                presentId: ltpoDataArr[ltpoDataIndex].fanceId,
-                ts: undefined,
-                fanceId: ltpoDataArr[ltpoDataIndex].fanceId,
-                fps: ltpoDataArr[ltpoDataIndex].fps,
-                nextStartTs: ltpoDataArr[ltpoDataIndex].nextStartTs,
-                nextDur: ltpoDataArr[ltpoDataIndex].nextDur,
-                translateY: undefined,
-                isHover: false,
-                startTime: undefined,
-                signaled: undefined,
-                nowTime: undefined,
-                cutTime: undefined,
-                frame: undefined,
-              }
-            )
+            sendDataArr.push({
+              dur: sendDur,
+              cutSendDur: cutSendDur,
+              value: 0,
+              startTs: sendStartTs,
+              pid: ltpoDataArr[ltpoDataIndex].fanceId,
+              itid: ltpoDataArr[ltpoDataIndex].fanceId,
+              name: undefined,
+              presentId: ltpoDataArr[ltpoDataIndex].fanceId,
+              ts: undefined,
+              fanceId: ltpoDataArr[ltpoDataIndex].fanceId,
+              fps: ltpoDataArr[ltpoDataIndex].fps,
+              nextStartTs: ltpoDataArr[ltpoDataIndex].nextStartTs,
+              nextDur: ltpoDataArr[ltpoDataIndex].nextDur,
+              translateY: undefined,
+              isHover: false,
+              startTime: undefined,
+              signaled: undefined,
+              nowTime: undefined,
+              cutTime: undefined,
+              frame: undefined,
+            });
           }
           ltpoDataIndex++;
           tempRsNowTimeIndex++;
@@ -412,14 +439,16 @@ export class SpLtpoChart {
     //当有present缺失时：
     let presentIndex = 0;
     let fpsIndex = 0;
-    while (fpsIndex < ltpoDataArr.length) {//遍历present，把ltpoDataArr中不包含present中presentFance的item舍弃掉
+    while (fpsIndex < ltpoDataArr.length) {
+      //遍历present，把ltpoDataArr中不包含present中presentFance的item舍弃掉
       if (presentArr[presentIndex] && ltpoDataArr[fpsIndex]) {
         if (Number(presentArr[presentIndex].presentId) < Number(ltpoDataArr[fpsIndex].fanceId)) {
           presentArr.splice(presentIndex, 1);
         } else if (Number(presentArr[presentIndex].presentId) > Number(ltpoDataArr[fpsIndex].fanceId)) {
           ltpoDataArr.splice(fpsIndex, 1);
         } else {
-          if (presentIndex === presentArr.length - 1 && fpsIndex < ltpoDataArr.length - 1) {//此时present已经遍历到最后一项，如果ltpoDataArr还没有遍历到最后一项，就把后面的舍弃掉
+          if (presentIndex === presentArr.length - 1 && fpsIndex < ltpoDataArr.length - 1) {
+            //此时present已经遍历到最后一项，如果ltpoDataArr还没有遍历到最后一项，就把后面的舍弃掉
             ltpoDataArr.splice(fpsIndex);
           }
           presentIndex++;
@@ -428,7 +457,7 @@ export class SpLtpoChart {
       } else {
         return;
       }
-    };
+    }
   }
   //六舍七入
   specialValue(num: number) {
@@ -445,11 +474,8 @@ export class SpLtpoChart {
           return Math.floor(num);
         }
       }
-
     }
-
   }
-
 
   async initFolder() {
     SpLtpoChart.presentArr = [];
@@ -467,19 +493,25 @@ export class SpLtpoChart {
         SpLtpoChart.presentArr = res;
         SpLtpoChart.sendLTPODataArr = this.sendDataHandle(SpLtpoChart.presentArr, SpLtpoChart.ltpoDataArr);
         for (let i = 0; i < SpLtpoChart.sendLTPODataArr.length; i++) {
-          let tmpDur = SpLtpoChart.sendLTPODataArr[i].cutSendDur ? (SpLtpoChart.sendLTPODataArr[i].cutSendDur! / 1000000) : (SpLtpoChart.sendLTPODataArr[i].dur! / 1000000);
-          let mathValue = tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps) / 1000 - 1;
+          let tmpDur = SpLtpoChart.sendLTPODataArr[i].cutSendDur
+            ? SpLtpoChart.sendLTPODataArr[i].cutSendDur! / 1000000
+            : SpLtpoChart.sendLTPODataArr[i].dur! / 1000000;
+          let mathValue = (tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps)) / 1000 - 1;
           SpLtpoChart.sendLTPODataArr[i].value = this.specialValue(mathValue);
         }
         return SpLtpoChart.sendLTPODataArr;
-      })
-    }
+      });
+    };
     row.focusHandler = () => {
-      SpLtpoChart.trace?.displayTip(row!, LtpoStruct.hoverLtpoStruct, `<span>${(LtpoStruct.hoverLtpoStruct?.value!)}</span>`)
+      SpLtpoChart.trace?.displayTip(
+        row!,
+        LtpoStruct.hoverLtpoStruct,
+        `<span>${LtpoStruct.hoverLtpoStruct?.value!}</span>`
+      );
     };
     row.findHoverStruct = (): void => {
-      LtpoStruct.hoverLtpoStruct = row.getHoverStruct(true,false,'value');
-    }
+      LtpoStruct.hoverLtpoStruct = row.getHoverStruct(true, false, 'value');
+    };
     row.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (row.currentContext) {
@@ -493,7 +525,9 @@ export class SpLtpoChart {
           ltpoContext: context,
           useCache: useCache,
           type: `ltpo-present ${row.rowId}`,
-        }, row);
+        },
+        row
+      );
       row.canvasRestore(context);
     };
     SpLtpoChart.trace.rowsEL?.appendChild(row);
@@ -510,27 +544,32 @@ export class SpLtpoChart {
           let tmpVale = 0;
           let tmpDur = 0;
           if (SpLtpoChart.sendHitchDataArr[i].cutSendDur) {
-            tmpVale = (SpLtpoChart.sendHitchDataArr[i].cutSendDur! / 1000000) - (1000 / SpLtpoChart.sendHitchDataArr[i].fps!);
+            tmpVale =
+              SpLtpoChart.sendHitchDataArr[i].cutSendDur! / 1000000 - 1000 / SpLtpoChart.sendHitchDataArr[i].fps!;
             tmpDur = SpLtpoChart.sendHitchDataArr[i].cutSendDur! / 1000000;
           } else {
-            tmpVale = (SpLtpoChart.sendHitchDataArr[i].dur! / 1000000) - (1000 / SpLtpoChart.sendHitchDataArr[i].fps!);
+            tmpVale = SpLtpoChart.sendHitchDataArr[i].dur! / 1000000 - 1000 / SpLtpoChart.sendHitchDataArr[i].fps!;
             tmpDur = SpLtpoChart.sendHitchDataArr[i].dur! / 1000000;
           }
 
-          let mathValue = tmpDur * Number(SpLtpoChart.sendHitchDataArr[i].fps) / 1000 - 1;
+          let mathValue = (tmpDur * Number(SpLtpoChart.sendHitchDataArr[i].fps)) / 1000 - 1;
           let finalValue = tmpVale! < 0 ? 0 : tmpVale;
-          SpLtpoChart.sendHitchDataArr[i].value = this.specialValue(finalValue)
+          SpLtpoChart.sendHitchDataArr[i].value = this.specialValue(finalValue);
           SpLtpoChart.sendHitchDataArr[i].name = this.specialValue(mathValue)!.toString();
         }
         return SpLtpoChart.sendHitchDataArr;
-      })
-    }
+      });
+    };
     row.focusHandler = () => {
-      SpLtpoChart.trace?.displayTip(row!, HitchTimeStruct.hoverHitchTimeStruct, `<span>${(HitchTimeStruct.hoverHitchTimeStruct?.value!)}</span>`)
+      SpLtpoChart.trace?.displayTip(
+        row!,
+        HitchTimeStruct.hoverHitchTimeStruct,
+        `<span>${HitchTimeStruct.hoverHitchTimeStruct?.value!}</span>`
+      );
     };
     row.findHoverStruct = (): void => {
-      HitchTimeStruct.hoverHitchTimeStruct = row.getHoverStruct(true,false,'value');
-    }
+      HitchTimeStruct.hoverHitchTimeStruct = row.getHoverStruct(true, false, 'value');
+    };
     row.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (row.currentContext) {
@@ -544,7 +583,9 @@ export class SpLtpoChart {
           hitchTimeContext: context,
           useCache: useCache,
           type: `hitch ${row.rowId}`,
-        }, row);
+        },
+        row
+      );
       row.canvasRestore(context);
     };
     SpLtpoChart.trace.rowsEL?.appendChild(row);

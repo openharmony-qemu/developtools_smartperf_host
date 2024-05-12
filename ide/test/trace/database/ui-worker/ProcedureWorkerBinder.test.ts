@@ -16,7 +16,17 @@
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
 import { BinderRender, BinderStruct } from '../../../../src/trace/database/ui-worker/procedureWorkerBinder';
+import { SpSegmentationChart } from '../../../../src/trace/component/chart/SpSegmentationChart';
 
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 jest.mock('../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
   return {};
 });
@@ -27,6 +37,13 @@ describe('Binder Test', () => {
   const canvas = document.createElement('canvas');
   canvas.width = 10;
   canvas.height = 10;
+  TraceRow.range = jest.fn(() => {
+    return {
+      startNS: 0
+    }
+  });
+  SpSegmentationChart.trace = jest.fn();
+  SpSegmentationChart.trace.traceSheetEL = jest.fn();
   const ctx = canvas.getContext('2d');
   it('BinderTest01 ', function () {
     const data = {
@@ -39,7 +56,8 @@ describe('Binder Test', () => {
       name: 'binder transaction',
       cycle: -1,
       value: 0,
-      depth: 0
+      depth: 0,
+      startNS: 0
     };
     expect(BinderStruct.draw(ctx, data)).toBeUndefined();
   });

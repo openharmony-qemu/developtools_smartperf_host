@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler,drawLoadingFrame,isFrameContainPoint } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler, drawLoadingFrame, isFrameContainPoint } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class LtpoRender {
@@ -42,7 +42,7 @@ export class LtpoRender {
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
     req.ltpoContext.globalAlpha = 0.6;
-    drawLoadingFrame(req.ltpoContext,filter,ltpoRow);
+    drawLoadingFrame(req.ltpoContext, filter, ltpoRow);
     req.ltpoContext.beginPath();
     let find = false;
     for (let re of filter) {
@@ -57,7 +57,6 @@ export class LtpoRender {
   }
 }
 
-
 export class LtpoStruct extends BaseStruct {
   static hoverLtpoStruct: LtpoStruct | undefined;
   static selectLtpoStruct: LtpoStruct | undefined;
@@ -71,7 +70,7 @@ export class LtpoStruct extends BaseStruct {
   startTs: number | undefined;
   nextStartTs: string | number | undefined;
   nextDur: number | undefined;
-  value: number | undefined ;
+  value: number | undefined;
   pid: number | undefined;
   itid: number | undefined;
   startTime: number | undefined;
@@ -84,26 +83,25 @@ export class LtpoStruct extends BaseStruct {
     if (data.frame) {
       ctx.fillStyle = '#9933FA';
       if (data === LtpoStruct.hoverLtpoStruct || data === LtpoStruct.selectLtpoStruct) {
-        let drawHeight: number = LtpoStruct.maxVal !== 0 ? Math.floor(
-          ((Number(data.value) || 0) * (data.frame.height || 0) * 1.0) / LtpoStruct.maxVal!
-        ): 0;
-        drawHeight = drawHeight < 1 ? 1 : drawHeight
+        let drawHeight: number =
+          LtpoStruct.maxVal !== 0
+            ? Math.floor(((Number(data.value) || 0) * (data.frame.height || 0) * 1.0) / LtpoStruct.maxVal!)
+            : 0;
+        drawHeight = drawHeight < 1 ? 1 : drawHeight;
         ctx.globalAlpha = 1.0;
         ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight);
         ctx.lineWidth = 1;
         ctx.strokeStyle = '	#0000FF';
-        ctx.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight)
+        ctx.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight);
       } else {
         ctx.globalAlpha = 0.6;
         let drawHeight: number = 0;
-        if(LtpoStruct.maxVal !== 0){
+        if (LtpoStruct.maxVal !== 0) {
           drawHeight = Math.floor(((Number(data.value) || 0) * (data.frame.height || 0)) / LtpoStruct.maxVal!);
         }
-        drawHeight = drawHeight < 1 ? 1 : drawHeight
-        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight)
+        drawHeight = drawHeight < 1 ? 1 : drawHeight;
+        ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight);
       }
-
     }
   }
-
 }

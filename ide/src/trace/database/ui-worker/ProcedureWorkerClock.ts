@@ -16,7 +16,7 @@
 import { BaseStruct, dataFilterHandler, drawLoadingFrame, isFrameContainPoint, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class ClockRender extends Render {
   renderMainThread(
@@ -29,7 +29,7 @@ export class ClockRender extends Render {
       maxName: string;
     },
     row: TraceRow<ClockStruct>
-  ) {
+  ): void {
     ClockStruct.index = clockReq.index;
     let clockList = row.dataList;
     let clockFilter = row.dataListCache;
@@ -53,7 +53,9 @@ export class ClockRender extends Render {
         find = true;
       }
     }
-    if (!find && row.isHover) ClockStruct.hoverClockStruct = undefined;
+    if (!find && row.isHover) {
+      ClockStruct.hoverClockStruct = undefined;
+    }
     clockReq.context.closePath();
     let s = clockReq.maxName;
     let textMetrics = clockReq.context.measureText(s);
@@ -66,18 +68,17 @@ export class ClockRender extends Render {
     clockReq.context.fillText(s, 4, 5 + 9);
   }
 }
-export function ClockStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+export function ClockStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_CLOCK && ClockStruct.hoverClockStruct) {
       ClockStruct.selectClockStruct = ClockStruct.hoverClockStruct;
       sp.traceSheetEL?.displayClockData(ClockStruct.selectClockStruct);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    }else{
+    } else {
       resolve(null);
     }
   });
-
 }
 export class ClockStruct extends BaseStruct {
   static maxValue: number = 0;
@@ -91,7 +92,7 @@ export class ClockStruct extends BaseStruct {
   dur: number | undefined; //自补充，数据库没有返回
   delta: number | undefined; //自补充，数据库没有返回
 
-  static draw(clockContext: CanvasRenderingContext2D, data: ClockStruct, maxValue: number) {
+  static draw(clockContext: CanvasRenderingContext2D, data: ClockStruct, maxValue: number): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       clockContext.fillStyle = ColorUtils.colorForTid(ClockStruct.index);
@@ -126,7 +127,7 @@ export class ClockStruct extends BaseStruct {
     clockContext.lineWidth = 1;
   }
 
-  static isHover(clock: ClockStruct) {
+  static isHover(clock: ClockStruct): boolean {
     return clock === ClockStruct.hoverClockStruct || clock === ClockStruct.selectClockStruct;
   }
 }

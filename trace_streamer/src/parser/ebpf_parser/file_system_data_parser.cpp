@@ -20,7 +20,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-FileSystemDataParser::FileSystemDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+FileSystemDataParser::FileSystemDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx), EbpfBase(dataCache, ctx), timeParser_(std::make_unique<HtracePluginTimeParser>())
 {
 }
@@ -31,12 +31,12 @@ FileSystemDataParser::~FileSystemDataParser()
             static_cast<unsigned long long>(timeParser_->GetPluginEndTime()));
 }
 
-void FileSystemDataParser::IpAndCallidFind(const FsFixedHeader* fsFixedHeadrAddr,
-                                           bool& callIdExistFlag,
-                                           const uint64_t* userIpsAddr)
+void FileSystemDataParser::IpAndCallidFind(const FsFixedHeader *fsFixedHeadrAddr,
+                                           bool &callIdExistFlag,
+                                           const uint64_t *userIpsAddr)
 {
     if (fsFixedHeadrAddr->nrUserIPs) {
-        std::string ipsToStr(reinterpret_cast<const char*>(userIpsAddr), fsFixedHeadrAddr->nrUserIPs * SINGLE_IP_SIZE);
+        std::string ipsToStr(reinterpret_cast<const char *>(userIpsAddr), fsFixedHeadrAddr->nrUserIPs * SINGLE_IP_SIZE);
         auto ipsHashValue = hashFun_(ipsToStr);
         auto value = pidAndipsToCallId_.Find(fsFixedHeadrAddr->pid, ipsHashValue);
         if (value != INVALID_UINT64) {
@@ -51,11 +51,11 @@ void FileSystemDataParser::IpAndCallidFind(const FsFixedHeader* fsFixedHeadrAddr
     }
 }
 
-uint64_t FileSystemDataParser::StartEndTime(const FsFixedHeader* fsFixedHeadrAddr,
+uint64_t FileSystemDataParser::StartEndTime(const FsFixedHeader *fsFixedHeadrAddr,
                                             uint64_t newStartTs,
                                             uint64_t newEndTs,
-                                            DataIndex& returnValue,
-                                            DataIndex& errorCode)
+                                            DataIndex &returnValue,
+                                            DataIndex &errorCode)
 {
     // When the data is invalid, calling the sub function under condition (newStartTs > newEndTs) ends the judgment
     timeParser_->UpdatePluginTimeRange(clockId_, fsFixedHeadrAddr->startTime, newStartTs);
@@ -78,10 +78,10 @@ uint64_t FileSystemDataParser::StartEndTime(const FsFixedHeader* fsFixedHeadrAdd
 }
 
 template <typename TracerEventToStrIndexMap>
-size_t FileSystemDataParser::FileWriteOperation(TracerEventToStrIndexMap& tracerEventToStrIndexMap,
-                                                const FsFixedHeader* fsFixedHeadrAddr,
+size_t FileSystemDataParser::FileWriteOperation(TracerEventToStrIndexMap &tracerEventToStrIndexMap,
+                                                const FsFixedHeader *fsFixedHeadrAddr,
                                                 uint32_t itid,
-                                                uint64_t& filePathId,
+                                                uint64_t &filePathId,
                                                 uint16_t type)
 {
     filePathId =
@@ -103,13 +103,13 @@ void FileSystemDataParser::ParseFileSystemEvent()
     if (!reader_->GetFileSystemEventMap().size()) {
         return;
     }
-    auto& tracerEventToStrIndexMap = reader_->GetTracerEventToStrIndexMap();
+    auto &tracerEventToStrIndexMap = reader_->GetTracerEventToStrIndexMap();
     for (auto mapItor = reader_->GetFileSystemEventMap().begin(); mapItor != reader_->GetFileSystemEventMap().end();
          mapItor++) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF_FILE_SYSTEM, STAT_EVENT_RECEIVED);
         auto fsFixedHeadrAddr = mapItor->second;
         bool callIdExistFlag = false;
-        auto userIpsAddr = reinterpret_cast<const uint64_t*>(fsFixedHeadrAddr + 1);
+        auto userIpsAddr = reinterpret_cast<const uint64_t *>(fsFixedHeadrAddr + 1);
         // Find the corresponding callId for the number of user IP addresses
         IpAndCallidFind(fsFixedHeadrAddr, callIdExistFlag, userIpsAddr);
         uint16_t type = INVALID_UINT16;
@@ -119,7 +119,7 @@ void FileSystemDataParser::ParseFileSystemEvent()
         }
         type = fucSubToSummaryType.at(fsFixedHeadrAddr->type);
         // Init process name data
-        auto processName = const_cast<char*>(fsFixedHeadrAddr->processName);
+        auto processName = const_cast<char *>(fsFixedHeadrAddr->processName);
         processName[MAX_PROCESS_NAME_SZIE - 1] = '\0';
         uint32_t ipid =
             streamFilters_->processFilter_->UpdateOrCreateProcessWithName(fsFixedHeadrAddr->pid, processName);
@@ -153,7 +153,7 @@ void FileSystemDataParser::ParseFileSystemEvent()
     }
 }
 
-int32_t FileSystemDataParser::GetFileDescriptor(const FsFixedHeader* fsFixedHeader, uint32_t fucType)
+int32_t FileSystemDataParser::GetFileDescriptor(const FsFixedHeader *fsFixedHeader, uint32_t fucType)
 {
     auto returnValue = fsFixedHeader->ret;
     int32_t fd = INVALID_INT32;

@@ -21,20 +21,21 @@ import { Utils } from '../../base/Utils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { TabUtil } from './TabUtil';
 import { resizeObserver } from '../SheetUtils';
-import { getTabSdkCounterData, getTabSdkCounterLeftData } from "../../../../database/sql/Sdk.sql";
-import { queryStartTime } from "../../../../database/sql/SqlLite.sql";
+import { getTabSdkCounterData, getTabSdkCounterLeftData } from '../../../../database/sql/Sdk.sql';
+import { queryStartTime } from '../../../../database/sql/SqlLite.sql';
 
 @element('tabpane-sdk-counter')
 export class TabPaneSdkCounter extends BaseElement {
   private tblSdkCounter: LitTable | null | undefined;
   private sdkRange: HTMLLabelElement | null | undefined;
   private keyList: Array<string> | undefined;
-  private statDataArray: any = [];
-  private columnMap: any = {};
-  private sqlMap: Map<number, any> = new Map<number, any>();
+  private statDataArray: unknown = [];
+  private columnMap: unknown = {};
+  private sqlMap: Map<number, unknown> = new Map<number, unknown>();
 
-  set data(valSdkCounter: SelectionParam | any) {
+  set data(valSdkCounter: SelectionParam | unknown) {
     this.sdkRange!.textContent =
+      // @ts-ignore
       'Selected range: ' + ((valSdkCounter.rightNs - valSdkCounter.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.queryDataByDB(valSdkCounter);
   }
@@ -48,17 +49,20 @@ export class TabPaneSdkCounter extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.tblSdkCounter!);
   }
 
-  getStatDataArray(counterItem: any) {
+  getStatDataArray(counterItem: unknown): void {
     this.keyList = [];
     this.tblSdkCounter!.innerHTML = '';
     this.statDataArray = [];
-    if (counterItem.length != null && counterItem.length > 0) {
+    // @ts-ignore
+    if (counterItem.length !== null && counterItem.length > 0) {
+      // @ts-ignore
       for (let counterItemIndex = 0; counterItemIndex < counterItem.length; counterItemIndex++) {
+        // @ts-ignore
         const dataResult = counterItem[counterItemIndex];
         let keys = Object.keys(dataResult);
         // @ts-ignore
@@ -70,60 +74,78 @@ export class TabPaneSdkCounter extends BaseElement {
             this.keyList.push(counterKey);
           }
           let counterValue = values[counterKeyIndex];
-          if (this.columnMap[counterKey] == 'TimeStamp') {
+          // @ts-ignore
+          if (this.columnMap[counterKey] === 'TimeStamp') {
             counterValue = Utils.getTimeString(Number(counterValue));
-          } else if (this.columnMap[counterKey] == 'ClockTime') {
+            // @ts-ignore
+          } else if (this.columnMap[counterKey] === 'ClockTime') {
             counterValue = Utils.getTimeStampHMS(Number(counterValue));
-          } else if (this.columnMap[counterKey] == 'RangTime') {
+            // @ts-ignore
+          } else if (this.columnMap[counterKey] === 'RangTime') {
+            // @ts-ignore
             counterValue = Utils.getDurString(Number(counterValue));
-          } else if (this.columnMap[counterKey] == 'PercentType') {
+            // @ts-ignore
+          } else if (this.columnMap[counterKey] === 'PercentType') {
             counterValue = counterValue + '%';
-          } else if (this.columnMap[counterKey] == 'CurrencyType') {
+            // @ts-ignore
+          } else if (this.columnMap[counterKey] === 'CurrencyType') {
             // @ts-ignore
             counterValue = counterValue.toString().replace(/\B(?=(\d{3})+$)/g, ',');
           }
-          if (typeof counterValue == 'string') {
+          if (typeof counterValue === 'string') {
             counterValue = counterValue.replace(/</gi, '&lt;').replace(/>/gi, '&gt;');
           }
           counterJsonText += '"' + counterKey + '"' + ': ' + '"' + counterValue + '"';
-          if (counterKeyIndex != keys.length - 1) {
+          if (counterKeyIndex !== keys.length - 1) {
             counterJsonText += ',';
           } else {
             counterJsonText += '}';
           }
         }
+        // @ts-ignore
         this.statDataArray.push(JSON.parse(counterJsonText));
       }
+      // @ts-ignore
       this.tblSdkCounter!.recycleDataSource = this.statDataArray;
     } else {
       this.tblSdkCounter!.recycleDataSource = [];
     }
   }
 
-  queryDataByDB(sdkVal: SelectionParam | any) {
+  queryDataByDB(sdkVal: SelectionParam | unknown): void {
     queryStartTime().then((res) => {
+      //@ts-ignore
       let startTime = res[0].start_ts;
+      // @ts-ignore
       this.parseJson(SpSystemTrace.SDK_CONFIG_MAP);
       let counters: Array<string> = [];
       let componentId: number = -1;
+      // @ts-ignore
       for (let index = 0; index < sdkVal.sdkCounterIds.length; index++) {
+        // @ts-ignore
         let values = sdkVal.sdkCounterIds[index].split('-');
         let value = values[0];
         componentId = Number(values[1]);
         counters.push(value);
       }
       let sqlObj = this.sqlMap.get(componentId);
+      // @ts-ignore
       let sql = sqlObj.TabCounterLeftData;
+      // @ts-ignore
       getTabSdkCounterLeftData(sql, sdkVal.leftNs + startTime, counters, componentId).then((res) => {
+        //@ts-ignore
         let leftTime = res[res.length - 1].max_value - startTime;
+        // @ts-ignore
         let sql = sqlObj.TabCounterData;
+        // @ts-ignore
         getTabSdkCounterData(sql, startTime, leftTime, sdkVal.rightNs, counters, componentId).then((counterItem) => {
           this.getStatDataArray(counterItem);
           this.initDataElement();
           setTimeout(() => {
+            // @ts-ignore
             this.tblSdkCounter!.recycleDataSource = this.statDataArray;
             new ResizeObserver(() => {
-              if (this.parentElement?.clientHeight != 0) {
+              if (this.parentElement?.clientHeight !== 0) {
                 this.tblSdkCounter!.style.height = '100%';
                 this.tblSdkCounter!.reMeauseHeight();
               }
@@ -137,19 +159,21 @@ export class TabPaneSdkCounter extends BaseElement {
   parseJson(configMap: Map<number, string>): string {
     let keys = configMap.keys();
     for (let key of keys) {
-      let counterConfigObject: any = configMap.get(key);
-      if (counterConfigObject != undefined) {
+      let counterConfigObject: unknown = configMap.get(key);
+      if (counterConfigObject !== undefined) {
+        // @ts-ignore
         let configStr = counterConfigObject.jsonConfig;
         let configJson = JSON.parse(configStr);
         let counterTableConfig = configJson.tableConfig;
-        if (counterTableConfig != null) {
+        if (counterTableConfig !== null) {
           let showTypes = counterTableConfig.showType;
           for (let counterTypesIndex = 0; counterTypesIndex < showTypes.length; counterTypesIndex++) {
             let showType = showTypes[counterTypesIndex];
             let type = TabUtil.getTableType(showType);
-            if (type == 'counter') {
+            if (type === 'counter') {
               let selectSql = 'select ';
               for (let counterColumnsIndex = 0; counterColumnsIndex < showType.columns.length; counterColumnsIndex++) {
+                // @ts-ignore
                 this.columnMap[showType.columns[counterColumnsIndex].column] =
                   showType.columns[counterColumnsIndex].displayName;
                 if (showType.columns[counterColumnsIndex].showType.indexOf(3) > -1) {
@@ -178,7 +202,7 @@ export class TabPaneSdkCounter extends BaseElement {
     return '';
   }
 
-  initDataElement() {
+  initDataElement(): void {
     if (this.keyList) {
       this.keyList.forEach((sdkCounterItemKey) => {
         let sdkCounterEl = document.createElement('lit-table-column') as LitTableColumn;
@@ -215,26 +239,26 @@ export class TabPaneSdkCounter extends BaseElement {
         `;
   }
 
-  sortByColumn(counterDetail: any) {
+  sortByColumn(counterDetail: unknown): void {
     // @ts-ignore
     function compare(property, countreSort, type) {
-      return function (aSdkCounter: SelectionData, bSdkCounter: SelectionData) {
-        if (aSdkCounter.process == ' ' || bSdkCounter.process == ' ') {
+      return function (aSdkCounter: SelectionData, bSdkCounter: SelectionData): number {
+        if (aSdkCounter.process === ' ' || bSdkCounter.process === ' ') {
           return 0;
         }
         if (type === 'number') {
           return countreSort === 2
             ? // @ts-ignore
-            parseFloat(bSdkCounter[property]) - parseFloat(aSdkCounter[property])
+              parseFloat(bSdkCounter[property]) - parseFloat(aSdkCounter[property])
             : // @ts-ignore
-            parseFloat(aSdkCounter[property]) - parseFloat(bSdkCounter[property]);
+              parseFloat(aSdkCounter[property]) - parseFloat(bSdkCounter[property]);
         }
         // @ts-ignore
         if (bSdkCounter[property] > aSdkCounter[property]) {
           return countreSort === 2 ? 1 : -1;
         } else {
           // @ts-ignore
-          if (bSdkCounter[property] == aSdkCounter[property]) {
+          if (bSdkCounter[property] === aSdkCounter[property]) {
             return 0;
           } else {
             return countreSort === 2 ? -1 : 1;
@@ -243,11 +267,15 @@ export class TabPaneSdkCounter extends BaseElement {
       };
     }
 
-    if (counterDetail.key.indexOf('name') != -1) {
+    // @ts-ignore
+    if (counterDetail.key.indexOf('name') !== -1) {
+      // @ts-ignore
       this.statDataArray.sort(compare(counterDetail.key, counterDetail.sort, 'string'));
     } else {
+      // @ts-ignore
       this.statDataArray.sort(compare(counterDetail.key, counterDetail.sort, 'number'));
     }
+    // @ts-ignore
     this.tblSdkCounter!.recycleDataSource = this.statDataArray;
   }
 }

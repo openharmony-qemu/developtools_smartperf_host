@@ -34,16 +34,83 @@ TraceStreamer可以WebAssembly方式在浏览器中运行，相关接口在wasm�
 extern "C" {
 /* 初始化wasm，在JS中注册回调函数，并返回一段可复用的内存空间，由JS调用
  * 
- * @ replyFunction: 回调函数
-*  @ reqBufferSize: 返回的内存长度
-* return: 返回一段内存地址给JS
+ * @ replyFunction: 回调函数，返回json格式的数据。
+ * @ reqBufferSize: js在wasm中申请的内存大小。
+ * @ replyTLVFunction: 回调函数，返回proto格式的sql查询结果。
+ * @ ffrtConvertedReply: 回调函数，返回ffrt转换后生成的新trace文件。
+ * return: 返回一段内存地址给JS
 */
-EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(ReplyFunction replyFunction, uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t *Initialize(uint32_t reqBufferSize,
+                                         ReplyFunction replyFunction,
+                                         TLVReplyFunction replyTLVFunction,
+                                         ReplyFunction ffrtConvertedReply)
+
+extern "C" {
+/* 初始化wasm，在JS中注册大文件切割或按时间切割文件的回调函数，并返回一段可复用的内存空间，由JS调用
+ * 
+ * @ splitFileFunction: 回调函数, 返回大文件切割，或者按时间切割后生成的数据。 
+ * @ reqBufferSize: js在wasm中申请的内存大小。
+ * return: 返回一段内存地址给JS
+*/
+EMSCRIPTEN_KEEPALIVE uint8_t *InitializeSplitFile(SplitFileFunction splitFileFunction, uint32_t reqBufferSize)
+
+/* 通知wasm,按时间切割文件的时间信息已发送，并且通知时间信息大小为dataLen字节
+ * 
+ * @ dataLen 切割文件的时间信息长度。 时间数据保存在InitializeSplitFile接口申请的内存中。数据格式:"startTS;endTS;"。
+ * return: bool类型。解析切割时间信息成功返回true,否则返回false。
+*/
+EMSCRIPTEN_KEEPALIVE int TraceStreamerSplitFileEx(int dataLen)
+
+/* 通知wasm,按时间切割的文件信息已发送，并且通知发送的文件信息大小为dataLen字节
+ * 
+ * @ dataLen 已经发送的被切割的文件数据长度，数据内容保存在InitializeSplitFile接口申请的内存中。 
+ * @ isFinish bool类型， 被切割的文件数据发送完成为true, 否则为false。
+ * return: 切割成功返回0,否则返回-1。
+*/
+EMSCRIPTEN_KEEPALIVE int TraceStreamerReciveFileEx(int32_t dataLen, int32_t isFinish)
+
+/* JS在wasm中申请一段内存，用于传输config配置信息。如： ffrt convert开关，animation开关，taskpool开关等
+ * 
+ * @ reqBufferSize JS准备申请的内存大小。 
+ * return: 返回一段内存地址给JS。
+*/
+EMSCRIPTEN_KEEPALIVE uint8_t *InitializeParseConfig(uint32_t reqBufferSize)
+
+/* JS通知wasm已经发送了config信息，并通知发送的数据大小。 wasm解析config信息。
+ * 
+ * @ dataLen JS发送config信息大小， 数据内容保存在InitializeParseConfig接口申请的内存中。
+ * return: wasm解析config信息成功返回0，否则返回-1。
+*/
+EMSCRIPTEN_KEEPALIVE int TraceStreamerParserConfigEx(int dataLen)
+
+/* JS通知wasm已经发送大文件切割的时间信息，并通知发送的数据大小。 wasm解析大文件切割的时间信息。
+ * 
+ * @ dataLen JS发送大文件切割时间信息长度。时间信息格式为proto数据的1024头，保存在InitializeSplitFile接口申请的内存中。
+ * return: wasm解析大文件切割时间信息成功返回0，否则返回-1。
+*/
+EMSCRIPTEN_KEEPALIVE int TraceStreamerGetLongTraceTimeSnapEx(int dataLen)
+
+/* JS通知wasm已经发送大文件切割的文件数据，并通知发送的数据大小。
+ * 
+ * @ dataLen JS发送大文件切割文件数据大小。
+ * @ isFinish JS发送数据是否结束。
+ * @ pageNum  准备按照第pageNum个文件的时间范围，切割大文件。
+ * return: wasm解析大文件切割时间信息成功返回0，否则返回-1。
+*/
+EMSCRIPTEN_KEEPALIVE int TraceStreamerLongTraceSplitFileEx(int dataLen, int32_t isFinish, uint32_t pageNum)
+
+/* 导入so重新符号化业务，JS通知wasm申请内存保存导入so的文件名称，并设置导入so重新符号化的回调函数。
+ * 
+ * @ parseELFCallback 回调函数
+ * @ reqBufferSize 申请的文件大小
+ * return: 返回一段内存给JS。
+*/
+EMSCRIPTEN_KEEPALIVE uint8_t *InitFileName(ParseELFFunction parseELFCallback, uint32_t reqBufferSize)
 
 /* 更新起始结束时间,由JS调用
  * 
  * @ len: 起始和结束时间组成的字符串长度
-* return: 成功返回0。
+ * return: 成功返回0。
 */
 EMSCRIPTEN_KEEPALIVE int UpdateTraceTime(int len)
 
@@ -53,7 +120,13 @@ EMSCRIPTEN_KEEPALIVE int UpdateTraceTime(int len)
 * @ reqBufferSize: 返回的内存长度
 * return: 成功返回0
 */
-EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamer_Set_ThirdParty_DataDealer(SendDataCallBack sendDataCallBack, uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamerSetThirdPartyDataDealer(SendDataCallBack sendDataCallBack, uint32_t reqBufferSize)
+
+/* 设置TraceStreamer可以打印的日志级别，由JS调用
+ * 
+ * @ level: 允许打印日志的最低级别。
+*/
+EMSCRIPTEN_KEEPALIVE void TraceStreamerSetLogLevel(uint32_t level)
 
 /* TraceStreamer的数据解析接口，由JS调用
  * 
@@ -62,13 +135,26 @@ EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamer_Set_ThirdParty_DataDealer(SendDataCa
 */
 EMSCRIPTEN_KEEPALIVE int TraceStreamerParseDataEx(int dataLen, bool isFinish)
 
+/* 导入so重新符号化业务的下载so文件接口，由JS调用
+ * 
+ * @ totalLen: 传输的文件总长度。
+ * @ fileNameLen: 传输的文件名长度。
+ * @ dataLen: 当前调用传输的文件数据长度。 
+ * @ finish: 当前文件是否传输结束。
+ * return: wasm下载并保存该文件成功返回0，失败返回-1
+*/
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerDownloadELFEx(int32_t totalLen,
+                                                        int32_t fileNameLen,
+                                                        int32_t dataLen,
+                                                        int32_t finish)
+
 /* TraceStreamer停止解析数据，由JS调用
  * 
 * return: 成功返回0，失败返回-1
 */
 EMSCRIPTEN_KEEPALIVE int TraceStreamerParseDataOver()
 
-/* 数据库操作接口，由JS调用
+/* 数据库操作接口，由JS调用，返回json格式的sql查询结果。
  * 
 * @ sqlLen: 需要执行的操作类sql语句长度
 * return: 成功返回0，失败返回-1
@@ -94,6 +180,19 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerSqlQueryEx(int sqlLen)
 */
 EMSCRIPTEN_KEEPALIVE int TraceStreamerCancel()
 
+/*执行查询类sql语句，由JS调用。返回proto格式的sql查询结果。
+ * 
+* @ sqlLen: 需要执行的查询类sql语句长度
+* return: 成功返回0，失败返回-1
+*/
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQueryToProtoCallback(int32_t sqlLen)
+/*执行metrics数据查询
+ * 
+* @ sqlLen: 需要执行的查询类sql语句长度
+* return: 成功返回0，失败返回-1
+*/
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlMetricsQuery(int32_t sqlLen)
+
 /*发送数据给第三方wasm解析，由TraceStreamer调用
  * 
 * @ pluginData: 第三方插件的数据源
@@ -101,14 +200,21 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerCancel()
 * @ componentName: 第三方插件名称
 * return: 成功返回0
 */
-int TraceStreamer_Plugin_Out_SendData(const char* pluginData, int len, const std::string componentName)
+int TraceStreamerPluginOutSendData(const char* pluginData, int len, const std::string componentName)
+
+/*返回解析数据库
+ * 
+ * @ fun: 回调函数，负责返回解析生成的数据库。
+ * return: 成功返回0
+*/
+EMSCRIPTEN_KEEPALIVE int32_t WasmExportDatabase(ExportDBCallback fun)
 
 /* 初始化配置接口，由JS调用
  * 
 * @ dataLen: 配置字符串的长度
 * return: 成功返回0
 */
-EMSCRIPTEN_KEEPALIVE int TraceStreamer_Init_ThirdParty_Config(int dataLen)
+EMSCRIPTEN_KEEPALIVE int TraceStreamerInitThirdPartyConfig(int dataLen)
 
 } // extern "C"
 ```

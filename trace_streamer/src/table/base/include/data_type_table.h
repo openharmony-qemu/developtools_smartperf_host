@@ -23,20 +23,20 @@ namespace SysTuning {
 namespace TraceStreamer {
 class DataTypeTable : public TableBase {
 public:
-    explicit DataTypeTable(const TraceDataCache*);
+    explicit DataTypeTable(const TraceDataCache *);
     ~DataTypeTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t col) const override;
 
     private:
-        const DataType& dataTypeObj_;
+        const DataType &dataTypeObj_;
     };
 };
 } // namespace TraceStreamer

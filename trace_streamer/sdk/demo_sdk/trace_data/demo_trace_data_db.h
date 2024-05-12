@@ -28,29 +28,29 @@ const int32_t SEND_FINISH = 1;
 class DemoTraceDataDB {
 public:
     DemoTraceDataDB();
-    DemoTraceDataDB(const DemoTraceDataDB&) = delete;
-    DemoTraceDataDB& operator=(const DemoTraceDataDB&) = delete;
+    DemoTraceDataDB(const DemoTraceDataDB &) = delete;
+    DemoTraceDataDB &operator=(const DemoTraceDataDB &) = delete;
     virtual ~DemoTraceDataDB();
     virtual void DemoInitDB() = 0;
     void DemoPrepare();
 
 public:
-    int32_t DemoExportDatabase(const std::string& outputName);
+    int32_t DemoExportDatabase(const std::string &outputName);
     int32_t DemoSearchData();
-    int32_t DemoOperateDatabase(const std::string& sql);
+    int32_t DemoOperateDatabase(const std::string &sql);
     using ResultCallBack = std::function<void(const std::string /* json result */, int32_t, int32_t)>;
-    bool AddColumnsToJsonArray(sqlite3_stmt* stmtSql,
-                               char* resValue,
+    bool AddColumnsToJsonArray(sqlite3_stmt *stmtSql,
+                               char *resValue,
                                const int32_t outLen,
-                               int32_t& pos,
+                               int32_t &pos,
                                const int32_t colCount);
-    bool AddRowsToJsonArray(sqlite3_stmt* stmtSql,
-                            char* resValue,
+    bool AddRowsToJsonArray(sqlite3_stmt *stmtSql,
+                            char *resValue,
                             const int32_t outLen,
-                            int32_t& pos,
+                            int32_t &pos,
                             const int32_t colCount);
-    int32_t DemoSearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
-    int32_t DemoSearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
+    int32_t DemoSearchDatabase(const std::string &sql, ResultCallBack resultCallBack);
+    int32_t DemoSearchDatabase(const std::string &sql, uint8_t *out, int32_t outLen);
     void DemoSetCancel(bool cancel);
     void DemoAppendNewTable(std::string tableName);
     void DemoEnableMetaTable(bool enabled);
@@ -60,12 +60,12 @@ public:
     }
 
 public:
-    sqlite3* demoDb_;
+    sqlite3 *demoDb_;
 
 private:
-    void DemoExecuteSql(const std::string_view& sql);
-    static void DemoGetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowStr);
-    int32_t DemoSearchDatabase(const std::string& sql, bool print);
+    void DemoExecuteSql(const std::string_view &sql);
+    static void DemoGetRowString(sqlite3_stmt *stmt, int32_t colCount, std::string &rowStr);
+    int32_t DemoSearchDatabase(const std::string &sql, bool print);
     std::list<std::string> demoInternalTables_ = {};
     bool demoExportMetaTable_ = true;
     bool demoPared_ = false;

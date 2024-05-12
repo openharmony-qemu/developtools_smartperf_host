@@ -25,7 +25,7 @@ namespace TraceStreamer {
 namespace {
 const uint32_t INVALID_ID = std::numeric_limits<uint32_t>::max();
 }
-ProcessFilter::ProcessFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+ProcessFilter::ProcessFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : FilterBase(dataCache, filter)
 {
     tidMappingSet_.insert(CustomPair(0, 0));
@@ -80,7 +80,7 @@ uint32_t ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_
 
 uint32_t ProcessFilter::GetOrCreateThreadWithPid(uint32_t tid, uint32_t pid)
 {
-    TraceStdtype::Thread* thread = nullptr;
+    TraceStdtype::Thread *thread = nullptr;
     uint32_t internalTid;
     if (pid == 0) {
         internalTid = GetInternalTid(tid);
@@ -103,7 +103,7 @@ uint32_t ProcessFilter::GetOrCreateThreadWithPid(uint32_t tid, uint32_t pid)
 uint32_t ProcessFilter::UpdateOrCreateProcessWithName(uint32_t pid, std::string_view name)
 {
     uint32_t internalPid = 0;
-    TraceStdtype::Process* process = nullptr;
+    TraceStdtype::Process *process = nullptr;
     std::tie(internalPid, process) = CreateProcessMaybe(pid, 0);
     if (process && name != "" && process->cmdLine_ != name) {
         process->cmdLine_ = std::string(name);
@@ -119,8 +119,8 @@ uint32_t ProcessFilter::UpdateOrCreateProcessWithName(uint32_t pid, std::string_
 
 uint32_t ProcessFilter::UpdateOrCreateThreadWithNameIndex(uint64_t timeStamp, uint32_t tid, DataIndex threadNameIndex)
 {
-    TraceStdtype::Thread* thread = nullptr;
-    auto& internalTids = GetInternalTids(tid);
+    TraceStdtype::Thread *thread = nullptr;
+    auto &internalTids = GetInternalTids(tid);
     if (internalTids.size()) {
         if (!threadNameIndex) {
             return internalTids.back();
@@ -159,7 +159,7 @@ uint32_t ProcessFilter::GetInternalTid(uint32_t tid, uint32_t pid) const
             continue;
         }
 
-        const auto& iterProcess = traceDataCache_->GetConstProcessData(iterThread->internalPid_);
+        const auto &iterProcess = traceDataCache_->GetConstProcessData(iterThread->internalPid_);
         if (iterProcess.pid_ == pid) {
             internalTid = iterItid;
             break;
@@ -179,7 +179,7 @@ uint32_t ProcessFilter::GetInternalTid(uint32_t tid) const
     return INVALID_ID;
 }
 
-std::vector<InternalTid>& ProcessFilter::GetInternalTids(uint32_t tid)
+std::vector<InternalTid> &ProcessFilter::GetInternalTids(uint32_t tid)
 {
     tmpTids_.clear();
     auto itRange = tidMappingSet_.equal_range(tid);
@@ -220,11 +220,11 @@ InternalPid ProcessFilter::GetOrCreateInternalPid(uint64_t timeStamp, uint32_t p
     }
 
     uint32_t internalPid = 0;
-    TraceStdtype::Process* process = nullptr;
+    TraceStdtype::Process *process = nullptr;
     std::tie(internalPid, process) = CreateProcessMaybe(pid, timeStamp);
     return internalPid;
 }
-std::tuple<uint32_t, TraceStdtype::Thread*> ProcessFilter::NewThread(uint32_t tid)
+std::tuple<uint32_t, TraceStdtype::Thread *> ProcessFilter::NewThread(uint32_t tid)
 {
     uint32_t internalTid = traceDataCache_->NewInternalThread(tid);
     tidMappingSet_.emplace(tid, internalTid);
@@ -233,7 +233,7 @@ std::tuple<uint32_t, TraceStdtype::Thread*> ProcessFilter::NewThread(uint32_t ti
     return std::make_tuple(internalTid, thread);
 }
 
-std::tuple<uint32_t, TraceStdtype::Process*> ProcessFilter::NewProcess(uint32_t pid)
+std::tuple<uint32_t, TraceStdtype::Process *> ProcessFilter::NewProcess(uint32_t pid)
 {
     uint32_t internalPid = traceDataCache_->GetProcessInternalPid(pid);
     pidToInternalPidMap_.emplace(pid, internalPid);
@@ -242,10 +242,10 @@ std::tuple<uint32_t, TraceStdtype::Process*> ProcessFilter::NewProcess(uint32_t 
     return std::make_tuple(internalPid, process);
 }
 
-std::tuple<uint32_t, TraceStdtype::Process*> ProcessFilter::CreateProcessMaybe(uint32_t pid, uint64_t startT)
+std::tuple<uint32_t, TraceStdtype::Process *> ProcessFilter::CreateProcessMaybe(uint32_t pid, uint64_t startT)
 {
     uint32_t internalPid = INVALID_ID;
-    TraceStdtype::Process* process = nullptr;
+    TraceStdtype::Process *process = nullptr;
     auto it = pidToInternalPidMap_.find(pid);
     if (it != pidToInternalPidMap_.end()) {
         internalPid = it->second;

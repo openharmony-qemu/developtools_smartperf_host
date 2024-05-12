@@ -23,19 +23,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class JsHeapTraceFunctionInfoTable : public TableBase {
 public:
-    explicit JsHeapTraceFunctionInfoTable(const TraceDataCache* dataCache);
+    explicit JsHeapTraceFunctionInfoTable(const TraceDataCache *dataCache);
     ~JsHeapTraceFunctionInfoTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t col) const override;
 
     private:
-        const JsHeapTraceFuncInfo& jsHeapTraceFuncInfo_;
+        const JsHeapTraceFuncInfo &jsHeapTraceFuncInfo_;
     };
 };
 } // namespace TraceStreamer

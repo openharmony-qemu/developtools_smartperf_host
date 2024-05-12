@@ -22,7 +22,7 @@ import { ProcedureLogicWorkerSchedulingAnalysis } from './ProcedureLogicWorkerSc
 import { DataCache } from './ProcedureLogicWorkerCommon';
 import { ProcedureLogicWorkerJsCpuProfiler } from './ProcedureLogicWorkerJsCpuProfiler';
 
-let logicWorker: any = {
+let logicWorker = {
   perf: new ProcedureLogicWorkerPerf(),
   'native-memory': new ProcedureLogicWorkerNativeMemory(),
   fileSystem: new ProcedureLogicWorkerFileSystem(),
@@ -32,8 +32,9 @@ let logicWorker: any = {
   jsCpuProfile: new ProcedureLogicWorkerJsCpuProfiler(),
 };
 
-function match(req: any) {
+function match(req: { id: string; type: string; params: { dataDict: Map<number, string> } }): void {
   if (req.type === 'clear') {
+    //@ts-ignore
     Reflect.ownKeys(logicWorker).forEach((key) => logicWorker[key].clearAll());
     DataCache.getInstance().clearAll();
     return;
@@ -49,11 +50,13 @@ function match(req: any) {
   }
   Reflect.ownKeys(logicWorker).filter((it) => {
     if (req.type && req.type.startsWith(it as string)) {
+      //@ts-ignore
       logicWorker[it].handle(req);
     }
   });
 }
 
-self.onmessage = function (e: any) {
+self.onmessage = function (e: unknown): void {
+  //@ts-ignore
   match(e.data);
 };

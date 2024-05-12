@@ -19,7 +19,7 @@ import { IrqStruct } from '../ui-worker/ProcedureWorkerIrq';
 export function irqDataSender(cpu: number, name: string, row: TraceRow<IrqStruct>): Promise<IrqStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       argSetId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       depth: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -43,18 +43,23 @@ export function irqDataSender(cpu: number, name: string, row: TraceRow<IrqStruct
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean) =>
+      (res: unknown, len: number, transfer: boolean) =>
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len))
     );
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): IrqStruct[] {
+function arrayBufferHandler(buffers: unknown, len: number): IrqStruct[] {
   let outArr: IrqStruct[] = [];
+  // @ts-ignore
   let argSetId = new Int32Array(buffers.argSetId);
+  // @ts-ignore
   let depth = new Uint32Array(buffers.depth);
+  // @ts-ignore
   let startNS = new Float64Array(buffers.startNS);
+  // @ts-ignore
   let dur = new Float64Array(buffers.dur);
+  // @ts-ignore
   let id = new Uint32Array(buffers.id);
   for (let i = 0; i < len; i++) {
     outArr.push({

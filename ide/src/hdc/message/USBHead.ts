@@ -28,27 +28,27 @@ export class USBHead extends Object implements BaseBean {
     this._sessionId = sessionId;
     this._dataSize = dataSize;
   }
-  static getFlag0Length() {
+  static getFlag0Length(): number {
     return 1;
   }
 
-  static getFlag1Length() {
+  static getFlag1Length(): number {
     return 1;
   }
 
-  static getOptionLength() {
+  static getOptionLength(): number {
     return 1;
   }
 
-  static getSessionIdLength() {
+  static getSessionIdLength(): number {
     return 4;
   }
 
-  static getDataSizeLength() {
+  static getDataSizeLength(): number {
     return 4;
   }
 
-  static getUSBHeadLength() {
+  static getUSBHeadLength(): number {
     return 11;
   }
 
@@ -104,15 +104,6 @@ export class USBHead extends Object implements BaseBean {
   }
 
   toString(): string {
-    return (
-      'flag: ' +
-      this._flag +
-      ' option: ' +
-      this._option +
-      ' sessionId: ' +
-      this._sessionId +
-      ' dataSize: ' +
-      this._dataSize
-    );
+    return `flag: ${this._flag} option: ${this._option} sessionId: ${this._sessionId} dataSize: ${this._dataSize}`;
   }
 }

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +26,7 @@ import { SliceGroup } from '../../../../bean/StateProcessThread';
 export class TabPaneBinders extends BaseElement {
   private threadBindersTbl: LitTable | null | undefined;
   private threadBindersTblSource: Array<SelectionData> = [];
-  private currentSelectionParam: Selection | undefined;
+  private currentSelectionParam: SelectionParam | undefined;
 
   set data(threadStatesParam: SelectionParam | any) {
     if (this.currentSelectionParam === threadStatesParam) {
@@ -48,14 +47,14 @@ export class TabPaneBinders extends BaseElement {
         binderList = result;
       }
       if (binderList.length > 0) {
-        this.threadBindersTbl!.recycleDataSource = this.transferToTreeData(binderList);
+        this.threadBindersTbl!.recycleDataSource = this.transferToTreeData(binderList); // @ts-ignore
         this.threadBindersTblSource = this.threadBindersTbl!.recycleDataSource;
-        this.threadBindersTbl!.loading = false;
+        this.threadBindersTbl!.loading = false; // @ts-ignore
         this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
       } else if (binderList.length === 0) {
         this.threadBindersTbl!.recycleDataSource = [];
         this.threadBindersTblSource = [];
-        this.threadBindersTbl!.loading = false;
+        this.threadBindersTbl!.loading = false; // @ts-ignore
         this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
       }
     });
@@ -141,7 +140,8 @@ export class TabPaneBinders extends BaseElement {
 
   initElements(): void {
     this.threadBindersTbl = this.shadowRoot?.querySelector<LitTable>('#tb-binder-count');
-    this.threadBindersTbl!.itemTextHandleMap.set('title', Utils.transferBinderTitle);
+    this.threadBindersTbl!.itemTextHandleMap.set('title', (value) =>
+      Utils.transferBinderTitle(value, this.currentSelectionParam?.traceId));
   }
 
   connectedCallback(): void {

@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
-import { DbPool } from './SqlLite';
+import { DbPool, getThreadPoolTraceBufferCacheKey, setThreadPoolTraceBuffer } from './SqlLite';
+
 class ConvertThread {
   isCancelled: boolean = false;
   id: number = -1;
-  taskMap: any = {};
+  taskMap: unknown = {};
   name: string | undefined;
   worker?: Worker;
   busy: boolean = false;
@@ -31,14 +32,17 @@ class ConvertThread {
     );
   }
 
-  getConvertData(handler: (status: boolean, msg: string, results: Blob) => void) {
+  getConvertData(handler: (status: boolean, msg: string, results: Blob) => void): void {
     this.busy = true;
     let id = this.uuid();
-    this.taskMap[id] = (res: any) => {
-      DbPool.sharedBuffer = res.buffer;
+    // @ts-ignore
+    this.taskMap[id] = (res: unknown): void => {
+      // @ts-ignore
+      setThreadPoolTraceBuffer('1', res.buffer);
+      // @ts-ignore
       handler(res.status, res.msg, res.results);
     };
-    caches.match(DbPool.fileCacheKey).then((resData) => {
+    caches.match(getThreadPoolTraceBufferCacheKey('1')).then((resData) => {
       if (resData) {
         resData.arrayBuffer().then((buffer) => {
           this.worker!.postMessage(
@@ -61,7 +65,7 @@ class ConvertPool {
   progress: Function | undefined | null;
   static data: Array<string> = [];
   num = Math.floor(Math.random() * 10 + 1) + 20;
-  init = async (type: string) => {
+  init = async (type: string): Promise<void> => {
     // server
     await this.close();
     if (type === 'convert') {
@@ -72,41 +76,46 @@ class ConvertPool {
       if (type === 'convert') {
         thread = new ConvertThread(new Worker(new URL('./ConvertTraceWorker', import.meta.url)));
       }
-      thread!.worker!.onmessage = (event: MessageEvent) => {
+      thread!.worker!.onmessage = (event: MessageEvent): void => {
         thread.busy = false;
         ConvertPool.data = event.data.results;
+        // @ts-ignore
         if (Reflect.has(thread.taskMap, event.data.id)) {
           if (event.data.results) {
+            // @ts-ignore
             let fun = thread.taskMap[event.data.id];
             if (fun) {
               fun(event.data);
             }
+            // @ts-ignore
             Reflect.deleteProperty(thread.taskMap, event.data.id);
           } else {
+            // @ts-ignore
             let fun = thread.taskMap[event.data.id];
             if (fun) {
               fun([]);
             }
+            // @ts-ignore
             Reflect.deleteProperty(thread.taskMap, event.data.id);
           }
         }
       };
-      thread!.worker!.onmessageerror = (e) => {};
-      thread!.worker!.onerror = (e) => {};
+      thread!.worker!.onmessageerror = (e): void => {};
+      thread!.worker!.onerror = (e): void => {};
       thread!.id = i;
       thread!.busy = false;
       this.works?.push(thread!);
     }
   };
 
-  clearCache = () => {
+  clearCache = (): void => {
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
       thread.getConvertData(() => {});
     }
   };
 
-  close = () => {
+  close = async (): Promise<void> => {
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
       thread.worker!.terminate();
@@ -129,7 +138,7 @@ class ConvertPool {
     return thread;
   }
 
-  isIdle() {
+  isIdle(): boolean {
     return this.works.every((it) => !it.busy);
   }
 }

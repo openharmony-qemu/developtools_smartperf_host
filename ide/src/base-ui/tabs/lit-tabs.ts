@@ -16,11 +16,11 @@
 import { element } from '../BaseElement';
 import { LitTabpane } from './lit-tabpane';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
-import {LitTabsHtml} from "./lit-tabs.html";
+import { LitTabsHtml } from './lit-tabs.html';
 
 @element('lit-tabs')
 export class LitTabs extends HTMLElement {
-  private tabPos: any;
+  private tabPos: unknown;
   private nav: HTMLDivElement | undefined | null;
   private line: HTMLDivElement | undefined | null;
   private slots: HTMLSlotElement | undefined | null;
@@ -31,11 +31,11 @@ export class LitTabs extends HTMLElement {
     shadowRoot.innerHTML = LitTabsHtml;
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['activekey', 'mode', 'position'];
   }
 
-  get position() {
+  get position(): string {
     return this.getAttribute('position') || 'top';
   }
 
@@ -43,7 +43,7 @@ export class LitTabs extends HTMLElement {
     this.setAttribute('position', value);
   }
 
-  get mode() {
+  get mode(): string {
     return this.getAttribute('mode') || 'flat';
   }
 
@@ -51,7 +51,7 @@ export class LitTabs extends HTMLElement {
     this.setAttribute('mode', value);
   }
 
-  get activekey() {
+  get activekey(): string {
     return this.getAttribute('activekey') || '';
   }
 
@@ -59,11 +59,12 @@ export class LitTabs extends HTMLElement {
     this.setAttribute('activekey', value);
   }
 
-  set onTabClick(fn: any) {
+  set onTabClick(fn: unknown) {
+    //@ts-ignore
     this.addEventListener('onTabClick', fn);
   }
 
-  updateLabel(key: string, value: string) {
+  updateLabel(key: string, value: string): void {
     if (this.nav) {
       let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
       if (item) {
@@ -73,7 +74,7 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  updateDisabled(key: string, value: string) {
+  updateDisabled(key: string, value: string): void {
     if (this.nav) {
       let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
       if (item) {
@@ -87,7 +88,7 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  updateCloseable(key: string, value: string) {
+  updateCloseable(key: string, value: string): void {
     if (this.nav) {
       let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
       if (item) {
@@ -101,7 +102,7 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  updateHidden(key: string, value: string) {
+  updateHidden(key: string, value: string): void {
     if (this.nav) {
       let item = this.nav.querySelector(`.nav-item[data-key='${key}']`);
       if (item) {
@@ -115,7 +116,7 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  initTabPos() {
+  initTabPos(): void {
     const items = this.nav!.querySelectorAll<HTMLDivElement>('.nav-item');
     Array.from(items).forEach((a, index) => {
       // @ts-ignore
@@ -131,37 +132,41 @@ export class LitTabs extends HTMLElement {
     if (this.activekey) {
       if (this.position.startsWith('left')) {
         this.line?.setAttribute(
-          'style',
+          'style', //@ts-ignore
           `height:${this.tabPos[this.activekey].height}px;transform:translate(100%,${
+            //@ts-ignore
             this.tabPos[this.activekey].top
           }px)`
         );
       } else if (this.position.startsWith('top')) {
+        //@ts-ignore
         if (this.tabPos[this.activekey]) {
           this.line?.setAttribute(
-            'style',
+            'style', //@ts-ignore
             `width:${this.tabPos[this.activekey].width}px;transform:translate(${
+              //@ts-ignore
               this.tabPos[this.activekey].left
             }px,100%)`
           );
         }
       } else if (this.position.startsWith('right')) {
         this.line?.setAttribute(
-          'style',
+          'style', //@ts-ignore
           `height:${this.tabPos[this.activekey].height}px;transform:translate(-100%,${
+            //@ts-ignore
             this.tabPos[this.activekey].top
           }px)`
         );
       } else if (this.position.startsWith('bottom')) {
         this.line?.setAttribute(
-          'style',
+          'style', //@ts-ignore
           `width:${this.tabPos[this.activekey].width}px;transform:translate(${this.tabPos[this.activekey].left}px,100%)`
         );
       }
     }
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     let that = this;
     this.tabPos = {};
     this.nav = this.shadowRoot?.querySelector('#nav');
@@ -190,8 +195,10 @@ export class LitTabs extends HTMLElement {
       }
       this.setItemNode(elements);
     });
-    this.nav!.onclick = (e) => {
-      if ((e.target! as HTMLElement).closest('div')!.hasAttribute('data-disabled')) return;
+    this.nav!.onclick = (e): void => {
+      if ((e.target! as HTMLElement).closest('div')!.hasAttribute('data-disabled')) {
+        return;
+      }
       let key = (e.target! as HTMLElement).closest('div')!.dataset.key;
       if (key) {
         this.activeByKey(key);
@@ -211,35 +218,33 @@ export class LitTabs extends HTMLElement {
     }).observe(this.shadowRoot!.querySelector('#tab-filling')!);
   }
 
-  setItemNode(elements: Element[] | undefined ):void{
-    let navHtml:string = '';
+  setItemNode(elements: Element[] | undefined): void {
+    let navHtml: string = '';
     elements
       ?.map((it) => it as LitTabpane)
       .forEach((a) => {
         if (a.disabled) {
           navHtml += `<div class="nav-item" data-key="${a.key}" data-disabled ${a.closeable ? 'data-closeable' : ''}> 
-                    ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``} 
+                    ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ''} 
                     <span>${a.tab}</span>
                     <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                     </div>`;
         } else if (a.hidden) {
           navHtml += `<div class="nav-item" data-key="${a.key}" data-hidden ${a.closeable ? 'data-closeable' : ''}> 
-                    ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``} 
+                    ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ''} 
                     <span>${a.tab}</span>
                     <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                     </div>`;
         } else {
           if (a.key === this.activekey) {
-            navHtml += `<div class="nav-item" data-key="${a.key}" data-selected ${
-              a.closeable ? 'data-closeable' : ''
-            }>
-                        ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``}
+            navHtml += `<div class="nav-item" data-key="${a.key}" data-selected ${a.closeable ? 'data-closeable' : ''}>
+                        ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ''}
                         <span>${a.tab}</span>
                         <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                         </div>`;
           } else {
             navHtml += `<div class="nav-item" data-key="${a.key}" ${a.closeable ? 'data-closeable' : ''}>
-                            ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ``}
+                            ${a.icon ? `<lit-icon name='${a.icon}'></lit-icon>` : ''}
                             <span>${a.tab}</span>
                             <lit-icon class="close-icon" name='close' size="16"></lit-icon><div class="no-close-icon" style="margin-right: 12px"></div>
                             </div>`;
@@ -249,7 +254,7 @@ export class LitTabs extends HTMLElement {
     this.nav!.innerHTML = navHtml;
     this.initTabPos();
     this.nav!.querySelectorAll<HTMLElement>('.close-icon').forEach((a) => {
-      a.onclick = (e) => {
+      a.onclick = (e): void => {
         e.stopPropagation();
         const closeKey = (e.target! as HTMLElement).parentElement!.dataset.key;
         this.dispatchEvent(
@@ -262,15 +267,17 @@ export class LitTabs extends HTMLElement {
     });
   }
 
-  activeByKey(key: string, isValid: boolean = true) {
-    if (key === null || key === undefined) return; //如果没有key 不做相应
+  activeByKey(key: string, isValid: boolean = true): void {
+    if (key === null || key === undefined) {
+      return;
+    } //如果没有key 不做相应
     this.nav!.querySelectorAll('.nav-item').forEach((a) => {
       if (a.querySelector('span')?.innerText === 'Comparison') {
         a.setAttribute('id', 'nav-comparison');
       }
       if (a.getAttribute('data-key') === key) {
         a.setAttribute('data-selected', 'true');
-        this.byKeyIsValid(isValid,a)
+        this.byKeyIsValid(isValid, a);
       } else {
         a.removeAttribute('data-selected');
       }
@@ -288,7 +295,7 @@ export class LitTabs extends HTMLElement {
     });
   }
 
-  byKeyIsValid(isValid:boolean,a:Element):void{
+  byKeyIsValid(isValid: boolean, a: Element): void {
     if (isValid) {
       let span = a.querySelector('span') as HTMLSpanElement;
       let title = span.innerText;
@@ -334,8 +341,10 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  activePane(key: string) {
-    if (key === null || key === undefined) return false;
+  activePane(key: string): boolean {
+    if (key === null || key === undefined) {
+      return false;
+    }
     let tbp = this.querySelector(`lit-tabpane[key='${key}']`);
     if (tbp) {
       this.activeByKey(key);
@@ -345,12 +354,12 @@ export class LitTabs extends HTMLElement {
     }
   }
 
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name === 'activekey' && this.nav && oldValue !== newValue && newValue != '') {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+    if (name === 'activekey' && this.nav && oldValue !== newValue && newValue !== '') {
       this.activeByKey(newValue, false);
     }
   }

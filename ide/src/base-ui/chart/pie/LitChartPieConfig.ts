@@ -15,10 +15,10 @@
 
 export interface LitChartPieConfig {
   appendPadding: number;
-  data: any[];
+  data: unknown[];
   angleField: string;
   colorField: string;
-  colorFieldTransferHandler?: (value: any) => any;
+  colorFieldTransferHandler?: (value: unknown) => unknown;
   radius: number;
   angleClick?: (it: object) => void;
   label: {
@@ -31,9 +31,9 @@ export interface LitChartPieConfig {
       textAlign: string;
     };
   };
-  hoverHandler?: (data: any) => void;
+  hoverHandler?: (data: unknown) => void;
   showChartLine?: boolean;
-  tip: ((a: any) => string) | undefined;
+  tip: ((a: unknown) => string) | undefined;
   interactions: {
     type: string; //element-active | element-selected
   }[];

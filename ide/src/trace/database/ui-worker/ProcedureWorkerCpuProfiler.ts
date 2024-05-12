@@ -15,7 +15,7 @@
 
 import {
   BaseStruct,
-  type Rect,
+  Rect,
   Render,
   drawString,
   isFrameContainPoint,
@@ -41,7 +41,7 @@ export class JsCpuProfilerRender extends Render {
       filter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
+      TraceRow.range!.totalNS, // @ts-ignore
       jsCpuProfilerRow.frame,
       req.useCache || !TraceRow.range!.refresh
     );
@@ -62,11 +62,11 @@ function setHoveStruct(
   jsCpuProfilerRow: TraceRow<JsCpuProfilerStruct>,
   re: JsCpuProfilerStruct,
   jsCpuProfilerFind: boolean
-) {
+): void {
   if (jsCpuProfilerRow.isHover) {
     if (
       re.endTime - re.startTime === 0 ||
-      re.endTime - re.startTime == null ||
+      re.endTime - re.startTime === null ||
       re.endTime - re.startTime === undefined
     ) {
       if (
@@ -88,7 +88,7 @@ function setHoveStruct(
   }
 }
 export function jsCpuProfiler(
-  filter: Array<any>,
+  filter: Array<JsCpuProfilerStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
@@ -100,20 +100,25 @@ export function jsCpuProfiler(
       if ((filter[i].startTime || 0) + (filter[i].totalTime || 0) >= startNS && (filter[i].startTime || 0) <= endNS) {
         JsCpuProfilerStruct.setJsCpuProfilerFrame(filter[i], startNS, endNS, totalNS, frame);
       } else {
-        filter[i].frame = null;
+        filter[i].frame = undefined;
       }
     }
   }
 }
 
 const padding = 1;
-export function JsCpuProfilerStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>) {
+export function JsCpuProfilerStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  row: TraceRow<JsCpuProfilerStruct>
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
       if (row.findHoverStruct) {
         row.findHoverStruct();
-      }else {
-        JsCpuProfilerStruct.hoverJsCpuProfilerStruct = JsCpuProfilerStruct.hoverJsCpuProfilerStruct || row.getHoverStruct();
+      } else {
+        JsCpuProfilerStruct.hoverJsCpuProfilerStruct =
+          JsCpuProfilerStruct.hoverJsCpuProfilerStruct || row.getHoverStruct();
       }
     }
     if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER && JsCpuProfilerStruct.hoverJsCpuProfilerStruct) {
@@ -137,7 +142,7 @@ function getTopJsCpuProfilerStruct(
   that: SpSystemTrace,
   dataArr: Array<JsCpuProfilerChartFrame> = [],
   parentIdArr: Array<number> = []
-) {
+): void {
   if (parentId === -1 && selectStruct.parentId === -1) {
     // 点击的函数是第一层，直接设置其children的isSelect为true，不用重新算totalTime
     let data = that.chartManager!.arkTsChart.chartFrameMap.get(selectStruct!.id);
@@ -167,7 +172,11 @@ function getTopJsCpuProfilerStruct(
   }
 }
 
-function getSelectStruct(data: JsCpuProfilerChartFrame, selectStruct: JsCpuProfilerStruct, parentIdArr: number[]) {
+function getSelectStruct(
+  data: JsCpuProfilerChartFrame,
+  selectStruct: JsCpuProfilerStruct,
+  parentIdArr: number[]
+): void {
   for (let child of data.children) {
     if (child === null) {
       continue;
@@ -186,7 +195,7 @@ function getSelectStruct(data: JsCpuProfilerChartFrame, selectStruct: JsCpuProfi
   }
 }
 
-function setSelectChildrenState(data: JsCpuProfilerChartFrame) {
+function setSelectChildrenState(data: JsCpuProfilerChartFrame): void {
   data.isSelect = true;
   if (data.children.length > 0) {
     for (let child of data.children) {
@@ -215,13 +224,14 @@ export class JsCpuProfilerStruct extends BaseStruct {
   isSelect: boolean = false;
 
   static setJsCpuProfilerFrame(
-    jsCpuProfilerNode: any,
+    jsCpuProfilerNode: JsCpuProfilerStruct,
     startNS: number,
     endNS: number,
     totalNS: number,
     frame: Rect
   ): void {
-    let x1: number, x2: number;
+    let x1: number;
+    let x2: number;
     if ((jsCpuProfilerNode.startTime || 0) > startNS && (jsCpuProfilerNode.startTime || 0) < endNS) {
       x1 = ns2x(jsCpuProfilerNode.startTime || 0, startNS, endNS, totalNS, frame);
     } else {
@@ -242,7 +252,7 @@ export class JsCpuProfilerStruct extends BaseStruct {
       x2 = frame.width;
     }
     if (!jsCpuProfilerNode.frame) {
-      jsCpuProfilerNode.frame = {};
+      jsCpuProfilerNode.frame = new Rect(0, 0, 0, 0);
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
     jsCpuProfilerNode.frame.x = Math.floor(x1);

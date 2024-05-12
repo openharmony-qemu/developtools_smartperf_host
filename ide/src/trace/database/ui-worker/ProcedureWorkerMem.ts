@@ -15,24 +15,9 @@
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import {
-  BaseStruct,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawSelection,
-  drawWakeUp,
-  isFrameContainPoint,
-  ns2x,
-  PerfRender,
-  Render,
-  RequestMessage,
-  mem,
-  drawLoadingFrame,
-} from './ProcedureWorkerCommon';
-import { CpuStruct } from './cpu/ProcedureWorkerCPU';
+import { isFrameContainPoint, Render, mem, drawLoadingFrame } from './ProcedureWorkerCommon';
 import { ProcessMemStruct as BaseProcessMemStruct } from '../../bean/ProcessMemStruct';
-export class MemRender extends Render {
+export class MemRender {
   renderMainThread(
     req: {
       useCache: boolean;
@@ -72,7 +57,7 @@ export class MemRender extends Render {
 }
 
 export class ProcessMemStruct extends BaseProcessMemStruct {
-  static draw(memContext: CanvasRenderingContext2D, data: ProcessMemStruct) {
+  static draw(memContext: CanvasRenderingContext2D, data: ProcessMemStruct): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       memContext.fillStyle = ColorUtils.colorForTid(data.maxValue || 0);

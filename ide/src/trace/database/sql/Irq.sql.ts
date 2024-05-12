@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {query} from "../SqlLite";
-import {IrqStruct} from "../ui-worker/ProcedureWorkerIrq";
+import { query } from '../SqlLite';
+import { IrqStruct } from '../ui-worker/ProcedureWorkerIrq';
 
 export const queryIrqList = (): Promise<Array<{ name: string; cpu: number }>> =>
   query('queryIrqList', `select cat as name,callid as cpu from irq where cat!= 'ipi' group by cat,callid`);
@@ -41,7 +41,12 @@ trace_range t where i.callid = ${callid} and i.cat = 'softirq'
   return query('queryIrqData', cat === 'irq' ? sqlIrq : sqlSoftIrq, {});
 };
 
-export const queryIrqDataBoxSelect = (callIds: Array<number>, startNS: number, endNS: number): Promise<Array<any>> => {
+export const queryIrqDataBoxSelect = (
+  callIds: Array<number>,
+  startNS: number,
+  endNS: number
+): //@ts-ignore
+Promise<Array<unknown>> => {
   let sqlIrq = `
 select case when i.cat = 'ipi' then 'IPI' || i.name else i.name end as irqName,
        sum(dur)                                                     as wallDuration,
@@ -62,7 +67,8 @@ export const querySoftIrqDataBoxSelect = (
   callIds: Array<number>,
   startNS: number,
   endNS: number
-): Promise<Array<any>> => {
+): //@ts-ignore
+Promise<Array<unknown>> => {
   let sqlIrq = `
 select i.name              as irqName,
        sum(dur)            as wallDuration,

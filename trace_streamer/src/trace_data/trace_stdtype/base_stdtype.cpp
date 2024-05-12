@@ -20,24 +20,24 @@ size_t CacheBase::Size() const
 {
     return std::max(timeStamps_.size(), ids_.size());
 }
-const std::deque<uint64_t>& CacheBase::IdsData() const
+const std::deque<uint64_t> &CacheBase::IdsData() const
 {
     return ids_;
 }
-const std::deque<uint64_t>& CacheBase::TimeStampData() const
+const std::deque<uint64_t> &CacheBase::TimeStampData() const
 {
     return timeStamps_;
 }
-const std::deque<InternalTid>& CacheBase::InternalTidsData() const
+const std::deque<InternalTid> &CacheBase::InternalTidsData() const
 {
     return internalTids_;
 }
 
-const std::deque<uint64_t>& CpuCacheBase::DursData() const
+const std::deque<uint64_t> &CpuCacheBase::DursData() const
 {
     return durs_;
 }
-const std::deque<uint32_t>& CpuCacheBase::CpusData() const
+const std::deque<uint32_t> &CpuCacheBase::CpusData() const
 {
     return cpus_;
 }

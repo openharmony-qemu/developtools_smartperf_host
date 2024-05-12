@@ -31,23 +31,23 @@ MetaData::MetaData()
     columnNames_[METADATA_ITEM_SOURCE_DATETYPE] = METADATA_ITEM_SOURCE_DATETYPE_COLNAME;
     values_[METADATA_ITEM_PARSETOOL_NAME] = "trace_streamer";
 }
-void MetaData::SetTraceType(const std::string& traceType)
+void MetaData::SetTraceType(const std::string &traceType)
 {
     values_[METADATA_ITEM_SOURCE_DATETYPE] = traceType;
 }
-void MetaData::SetSourceFileName(const std::string& fileName)
+void MetaData::SetSourceFileName(const std::string &fileName)
 {
     MetaData::values_[METADATA_ITEM_SOURCE_FILENAME] = fileName;
 }
-void MetaData::SetOutputFileName(const std::string& fileName)
+void MetaData::SetOutputFileName(const std::string &fileName)
 {
     MetaData::values_[METADATA_ITEM_OUTPUT_FILENAME] = fileName;
 }
-void MetaData::SetParserToolVersion(const std::string& version)
+void MetaData::SetParserToolVersion(const std::string &version)
 {
     values_[METADATA_ITEM_PARSERTOOL_VERSION] = version;
 }
-void MetaData::SetParserToolPublishDateTime(const std::string& datetime)
+void MetaData::SetParserToolPublishDateTime(const std::string &datetime)
 {
     values_[METADATA_ITEM_PARSERTOOL_PUBLISH_DATETIME] = datetime;
 }
@@ -58,7 +58,7 @@ void MetaData::SetTraceDataSize(uint64_t dataSize)
     values_[METADATA_ITEM_DATASIZE] = ss.str();
     // 	Function 'time' may return error. It is not allowed to do anything that might fail inside the constructor.
     time_t rawtime;
-    tm* timeinfo = nullptr;
+    tm *timeinfo = nullptr;
     (void)time(&rawtime);
     timeinfo = localtime(&rawtime);
     char buffer[MAX_SIZE_LEN];
@@ -71,11 +71,11 @@ void MetaData::SetTraceDuration(uint64_t dur)
 {
     values_[METADATA_ITEM_TRACE_DURATION] = std::to_string(dur) + " s";
 }
-const std::string& MetaData::Value(uint64_t row) const
+const std::string &MetaData::Value(uint64_t row) const
 {
     return values_[row];
 }
-const std::string& MetaData::Name(uint64_t row) const
+const std::string &MetaData::Name(uint64_t row) const
 {
     return columnNames_[row];
 }
@@ -117,6 +117,7 @@ void DataDict::Finish()
 
 DataSourceClockIdData::DataSourceClockIdData()
     : dataSource2ClockIdMap_({{DATA_SOURCE_TYPE_TRACE, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_FFRT, TS_CLOCK_UNKNOW},
                               {DATA_SOURCE_TYPE_MEM, TS_CLOCK_UNKNOW},
                               {DATA_SOURCE_TYPE_HILOG, TS_CLOCK_UNKNOW},
                               {DATA_SOURCE_TYPE_NATIVEHOOK, TS_CLOCK_UNKNOW},
@@ -129,6 +130,7 @@ DataSourceClockIdData::DataSourceClockIdData()
                               {DATA_SOURCE_TYPE_JSMEMORY, TS_CLOCK_UNKNOW}}),
       dataSource2PluginNameMap_({
           {DATA_SOURCE_TYPE_TRACE, "ftrace-plugin"},
+          {DATA_SOURCE_TYPE_FFRT, "ffrt-profiler"},
           {DATA_SOURCE_TYPE_MEM, "memory-plugin"},
           {DATA_SOURCE_TYPE_HILOG, "hilog-plugin"},
           {DATA_SOURCE_TYPE_NATIVEHOOK, "nativehook"},
@@ -198,23 +200,23 @@ void StatAndInfo::IncreaseStat(SupportedTraceEventType eventType, StatType type)
 #endif
     statCount_[eventType][type]++;
 }
-const uint32_t& StatAndInfo::GetValue(SupportedTraceEventType eventType, StatType type) const
+const uint32_t &StatAndInfo::GetValue(SupportedTraceEventType eventType, StatType type) const
 {
     return statCount_[eventType][type];
 }
-const std::string& StatAndInfo::GetEvent(SupportedTraceEventType eventType) const
+const std::string &StatAndInfo::GetEvent(SupportedTraceEventType eventType) const
 {
     return event_[eventType];
 }
-const std::string& StatAndInfo::GetStat(StatType type) const
+const std::string &StatAndInfo::GetStat(StatType type) const
 {
     return stat_[type];
 }
-const std::string& StatAndInfo::GetSeverityDesc(SupportedTraceEventType eventType, StatType type) const
+const std::string &StatAndInfo::GetSeverityDesc(SupportedTraceEventType eventType, StatType type) const
 {
     return statSeverityDesc_[eventType][type];
 }
-const StatSeverityLevel& StatAndInfo::GetSeverity(SupportedTraceEventType eventType, StatType type) const
+const StatSeverityLevel &StatAndInfo::GetSeverity(SupportedTraceEventType eventType, StatType type) const
 {
     return statSeverity_[eventType][type];
 }
@@ -233,7 +235,7 @@ void SymbolsData::UpdateSymbol(uint64_t addr, DataIndex funcNameDictIndex)
         symbolsMap_.at(addr) = funcNameDictIndex;
     }
 }
-const DataIndex& SymbolsData::GetFunc(uint64_t addr) const
+const DataIndex &SymbolsData::GetFunc(uint64_t addr) const
 {
     if (symbolsMap_.find(addr) == symbolsMap_.end()) {
         auto lastAddr = symbolsMap_.lower_bound(addr);
@@ -245,11 +247,11 @@ const DataIndex& SymbolsData::GetFunc(uint64_t addr) const
         return symbolsMap_.at(addr);
     }
 }
-const std::deque<DataIndex>& SymbolsData::GetConstFuncNames() const
+const std::deque<DataIndex> &SymbolsData::GetConstFuncNames() const
 {
     return funcName_;
 }
-const std::deque<uint64_t>& SymbolsData::GetConstAddrs() const
+const std::deque<uint64_t> &SymbolsData::GetConstAddrs() const
 {
     return addrs_;
 }
@@ -262,11 +264,11 @@ void DataType::UpdateNewDataType(BaseDataType dataType, DataIndex dataDescIndex)
         typeToDesc_.insert({dataType, dataDescIndex});
     }
 }
-const std::deque<BaseDataType>& DataType::DataTypes() const
+const std::deque<BaseDataType> &DataType::DataTypes() const
 {
     return dataTypes_;
 }
-const std::deque<DataIndex>& DataType::DataDesc() const
+const std::deque<DataIndex> &DataType::DataDesc() const
 {
     return descs_;
 }
@@ -280,19 +282,19 @@ size_t ArgSet::AppendNewArg(DataIndex nameId, BaseDataType dataType, int64_t val
     names_.emplace_back(nameId);
     return Size() - 1;
 }
-const std::deque<BaseDataType>& ArgSet::DataTypes() const
+const std::deque<BaseDataType> &ArgSet::DataTypes() const
 {
     return dataTypes_;
 }
-const std::deque<int64_t>& ArgSet::ValuesData() const
+const std::deque<int64_t> &ArgSet::ValuesData() const
 {
     return values_;
 }
-const std::deque<uint64_t>& ArgSet::ArgsData() const
+const std::deque<uint64_t> &ArgSet::ArgsData() const
 {
     return argset_;
 }
-const std::deque<DataIndex>& ArgSet::NamesData() const
+const std::deque<DataIndex> &ArgSet::NamesData() const
 {
     return names_;
 }
@@ -305,15 +307,15 @@ void TraceConfig::AppendNewData(std::string traceSource, std::string key, std::s
     ids_.emplace_back(rowCounts_);
     rowCounts_++;
 }
-const std::deque<std::string>& TraceConfig::TraceSource() const
+const std::deque<std::string> &TraceConfig::TraceSource() const
 {
     return traceSource_;
 }
-const std::deque<std::string>& TraceConfig::Key() const
+const std::deque<std::string> &TraceConfig::Key() const
 {
     return key_;
 }
-const std::deque<std::string>& TraceConfig::Value() const
+const std::deque<std::string> &TraceConfig::Value() const
 {
     return value_;
 }

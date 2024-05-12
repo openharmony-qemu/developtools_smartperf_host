@@ -14,19 +14,20 @@
  */
 
 export class PageNation {
-  element: any;
-  pageInfo: any;
-  first: any;
-  prev: any;
-  next: any;
-  last: any;
-  inputBox: any;
-  btn: any;
-  list: any;
+  element: unknown;
+  pageInfo: unknown;
+  first: unknown;
+  prev: unknown;
+  next: unknown;
+  last: unknown;
+  inputBox: unknown;
+  btn: unknown;
+  list: unknown;
   origin: HTMLElement | undefined;
   static BtnBackColor = '#6C9BFA';
   static BtnColor = '#fff';
-  constructor(selector: any, options = {}) {
+  constructor(selector: unknown, options = {}) {
+    // @ts-ignore
     selector!.innerHTML = '';
     //最大容器
     this.element = selector;
@@ -54,35 +55,44 @@ export class PageNation {
     this.bindPageEvent();
   }
 
-  setPageOptions(options: any) {
+  setPageOptions(options: unknown): void {
     // 当前页
+    // @ts-ignore
     this.pageInfo.current = options.current || 1;
     // 一页显示多少条
-    this.pageInfo.pageSize = options.pageSize || 15;
+    // @ts-ignore
+    this.pageInfo.pageSize = options.pageSize || 15; // @ts-ignore
     if (options.totalpage) {
       //用户传递了多少页
+      // @ts-ignore
       this.pageInfo.totalpage = options.totalpage;
     } else {
       //没有传递多少页
+      // @ts-ignore
       if (options.total) {
         // 如果传递了总条数
+        // @ts-ignore
         this.pageInfo.totalpage = Math.ceil(options.total / this.pageInfo.pageSize);
       } else {
         // 如果没有传递总条数
+        // @ts-ignore
         this.pageInfo.totalpage = 9;
       }
-    }
+    } // @ts-ignore
     this.pageInfo.first = options.first || '<<';
-    this.pageInfo.change = options.change || function () {};
+    // @ts-ignore
+    this.pageInfo.change = options.change || function (): void {};
   }
 
-  setElementStyles(ele: any, styles: any) {
+  setElementStyles(ele: unknown, styles: unknown): void {
+    // @ts-ignore
     for (let key in styles) {
+      // @ts-ignore
       ele.style[key] = styles[key];
     }
   }
 
-  setItemStyles() {
+  setItemStyles(): void {
     this.setElementStyles(this.element, {
       margin: '18px auto',
       display: 'flex',
@@ -91,9 +101,9 @@ export class PageNation {
     });
   }
 
-  createElement(jumpDiv:HTMLElement):void{
+  createElement(jumpDiv: HTMLElement): void {
     // Create input field
-    this.inputBox = document.createElement('input');
+    this.inputBox = document.createElement('input'); // @ts-ignore
     this.inputBox.value = this.pageInfo.current;
     this.setElementStyles(this.inputBox, {
       width: '35px',
@@ -103,7 +113,7 @@ export class PageNation {
       padding: '0',
       border: '0',
       'border-radius': '5px',
-    });
+    }); // @ts-ignore
     jumpDiv.appendChild(this.inputBox);
     let span = document.createElement('span');
     span.style.width = '1px';
@@ -112,8 +122,8 @@ export class PageNation {
     span.style.backgroundColor = '#999999';
     jumpDiv.appendChild(span);
     // Create button
-    this.btn = document.createElement('button');
-    this.btn.innerText = '';
+    this.btn = document.createElement('button'); // @ts-ignore
+    this.btn.innerText = ''; // @ts-ignore
     this.btn.name = 'goto';
     this.setElementStyles(this.btn, {
       height: '32px',
@@ -122,15 +132,15 @@ export class PageNation {
       backgroundColor: '#FFF',
       border: '0',
       'border-radius': '5px',
-    });
-    this.btn.style.background = `url('img/arrowright.png') no-repeat 98% center var(--dark-background3,#FFFFFF)`;
-    this.btn.style.backgroundPosition = 'center';
-    jumpDiv.appendChild(this.btn);
+    }); // @ts-ignore
+    this.btn.style.background = 'url("img/arrowright.png") no-repeat 98% center var(--dark-background3,#FFFFFF)'; // @ts-ignore
+    this.btn.style.backgroundPosition = 'center'; // @ts-ignore
+    jumpDiv.appendChild(this.btn); // @ts-ignore
     this.element.appendChild(jumpDiv);
   }
 
   // 创建元素 首页 上一页 按钮组  下一页 尾页 输入框 按钮
-  createPageElement() {
+  createPageElement(): void {
     //首页
     this.origin = document.createElement('p');
     this.setElementStyles(this.origin, {
@@ -140,33 +150,33 @@ export class PageNation {
       cursor: 'pointer',
       margin: '0 5px',
     });
-    this.first = this.origin.cloneNode(true);
-    this.first.innerText = this.pageInfo.first;
-    this.first.name = 'first';
+    this.first = this.origin.cloneNode(true); // @ts-ignore
+    this.first.innerText = this.pageInfo.first; // @ts-ignore
+    this.first.name = 'first'; // @ts-ignore
     this.element.appendChild(this.first);
-    this.prev = this.origin.cloneNode(true);
-    this.prev.innerText = '<';
-    this.prev.name = 'prev';
-    this.prev.style.padding = '5px 10px';
+    this.prev = this.origin.cloneNode(true); // @ts-ignore
+    this.prev.innerText = '<'; // @ts-ignore
+    this.prev.name = 'prev'; // @ts-ignore
+    this.prev.style.padding = '5px 10px'; // @ts-ignore
     this.element.appendChild(this.prev);
     // 创建ul
     this.list = document.createElement('ul');
     this.setElementStyles(this.list, {
       display: 'flex',
       padding: '0',
-    });
+    }); // @ts-ignore
     this.element.appendChild(this.list);
-    this.next = this.origin.cloneNode(true);
-    this.next.innerText = '>';
-    this.next.name = 'next';
-    this.next.style.padding = '5px 10px';
-    this.next.style.margin = '0px 5px';
+    this.next = this.origin.cloneNode(true); // @ts-ignore
+    this.next.innerText = '>'; // @ts-ignore
+    this.next.name = 'next'; // @ts-ignore
+    this.next.style.padding = '5px 10px'; // @ts-ignore
+    this.next.style.margin = '0px 5px'; // @ts-ignore
     this.element.appendChild(this.next);
-    this.last = this.origin.cloneNode(true);
-    this.last.innerText = '>>';
-    this.last.name = 'last';
-    this.last.style.padding = '5px';
-    this.last.style.margin = '0px 5px';
+    this.last = this.origin.cloneNode(true); // @ts-ignore
+    this.last.innerText = '>>'; // @ts-ignore
+    this.last.name = 'last'; // @ts-ignore
+    this.last.style.padding = '5px'; // @ts-ignore
+    this.last.style.margin = '0px 5px'; // @ts-ignore
     this.element.appendChild(this.last);
     let jumpDiv = document.createElement('div');
     jumpDiv.style.display = 'flex';
@@ -180,7 +190,8 @@ export class PageNation {
   }
 
   // 判断首页 上一页 下一页 尾页 是否可以点击
-  bindPageHtml() {
+  bindPageHtml(): void {
+    // @ts-ignore
     const { current, totalpage } = this.pageInfo;
     const disable = { color: '#999999', cursor: 'not-allowed' };
     const enable = {
@@ -202,16 +213,18 @@ export class PageNation {
     } else {
       this.setElementStyles(this.next, enable);
       this.setElementStyles(this.last, enable);
-    }
+    } // @ts-ignore
     this.inputBox.value = current;
     //渲染的时候判断ul列表的显示情况
-    this.bindPageList();
+    this.bindPageList(); // @ts-ignore
     this.pageInfo.change(this.pageInfo.current);
   }
 
-  bindPageList() {
-    this.list.innerHTML = '';// clear ul its contents
-    const { pageSize, current, totalpage } = this.pageInfo;//Clean the ul before each load
+  bindPageList(): void {
+    // @ts-ignore
+    this.list.innerHTML = ''; // clear ul its contents
+    // @ts-ignore
+    const { pageSize, current, totalpage } = this.pageInfo; //Clean the ul before each load
     const origin = document.createElement('li');
     origin.dataset.name = 'item';
     this.setElementStyles(origin, {
@@ -237,20 +250,20 @@ export class PageNation {
       this.buildLi(origin, index, current);
     }
     let span = document.createElement('span');
-    span.innerText = '...';
+    span.innerText = '...'; // @ts-ignore
     this.list.appendChild(span);
     for (let i = current - 3; i < current + 2; i++) {
       this.buildLi(origin, i, current);
     }
     span = document.createElement('span');
-    span.innerText = '...';
+    span.innerText = '...'; // @ts-ignore
     this.list.appendChild(span);
     for (let i = totalpage - 2; i < totalpage; i++) {
       this.buildLi(origin, i, current);
     }
   }
 
-  private buildLi(origin: HTMLElement, i: number, current: number) {
+  private buildLi(origin: HTMLElement, i: number, current: number): void {
     const li = origin.cloneNode(true);
     // @ts-ignore
     li.innerText = i + 1;
@@ -259,7 +272,7 @@ export class PageNation {
         backgroundColor: PageNation.BtnBackColor,
         color: PageNation.BtnColor,
       });
-    }
+    } // @ts-ignore
     this.list.appendChild(li);
   }
 
@@ -271,20 +284,20 @@ export class PageNation {
         this.buildLi(origin, index, current);
       }
       span = document.createElement('span');
-      span.innerText = '...';
+      span.innerText = '...'; // @ts-ignore
       this.list.appendChild(span);
       for (let index = totalpage - 2; index < totalpage; index++) {
         this.buildLi(origin, index, current);
       }
       return true;
     }
-    if (current == 5) {
+    if (current === 5) {
       // 左边5个 中间 ... 右边2个
       for (let i = 0; i < 7; i++) {
         this.buildLi(origin, i, current);
       }
       span = document.createElement('span');
-      span.innerText = '...';
+      span.innerText = '...'; // @ts-ignore
       this.list.appendChild(span);
 
       for (let index = totalpage - 2; index < totalpage; index++) {
@@ -299,34 +312,35 @@ export class PageNation {
         this.buildLi(origin, index, current);
       }
       span = document.createElement('span');
-      span.innerText = '...';
+      span.innerText = '...'; // @ts-ignore
       this.list.appendChild(span);
       for (let i = totalpage - 5; i < totalpage; i++) {
         this.buildLi(origin, i, current);
       }
       return true;
     }
-    if (current == totalpage - 4) {
+    if (current === totalpage - 4) {
       // 左边5个 中间 ... 右边2个
-      this.nodeAppendChild(origin,current,span,totalpage);
+      this.nodeAppendChild(origin, current, span, totalpage);
       return true;
     }
     return false;
   }
 
-  nodeAppendChild(origin: HTMLElement,current: number,span: any,totalpage: number):void{
+  nodeAppendChild(origin: HTMLElement, current: number, span: unknown, totalpage: number): void {
     for (let i = 0; i < 2; i++) {
       this.buildLi(origin, i, current);
     }
-    span = document.createElement('span');
-    span.innerText = '...';
+    span = document.createElement('span'); // @ts-ignore
+    span.innerText = '...'; // @ts-ignore
     this.list.appendChild(span);
     for (let i = totalpage - 7; i < totalpage; i++) {
       this.buildLi(origin, i, current);
     }
   }
 
-  bindPageEvent() {
+  bindPageEvent(): void {
+    // @ts-ignore
     this.element.addEventListener(
       'click',
       (event: {
@@ -339,20 +353,23 @@ export class PageNation {
         this.targetName(event);
         if (event.target.name === 'goto') {
           // 拿到你文本的内容
+          // @ts-ignore
           let page = this.inputBox.value - 0;
           if (isNaN(page)) {
             page = 1;
           }
           if (page <= 1) {
             page = 1;
-          }
+          } // @ts-ignore
           if (page >= this.pageInfo.totalpage) {
+            // @ts-ignore
             page = this.pageInfo.totalpage;
-          }
+          } // @ts-ignore
           this.pageInfo.current = page;
           this.bindPageHtml();
         }
         if (event.target.dataset.name === 'item') {
+          // @ts-ignore
           this.pageInfo.current = event.target.innerText - 0;
           this.bindPageHtml();
         }
@@ -360,30 +377,42 @@ export class PageNation {
     );
   }
 
-  targetName(event:{
+  targetName(event: {
     target: {
       name: string;
       dataset: { name: string };
       innerText: number;
     };
-  }):void{
+  }): void {
     if (event.target.name === 'first') {
-      if (this.pageInfo.current === 1) return;
+      // @ts-ignore
+      if (this.pageInfo.current === 1) {
+        return;
+      } // @ts-ignore
       this.pageInfo.current = 1;
       this.bindPageHtml();
     }
     if (event.target.name === 'prev') {
-      if (this.pageInfo.current === 1) return;
+      // @ts-ignore
+      if (this.pageInfo.current === 1) {
+        return;
+      } // @ts-ignore
       this.pageInfo.current--;
       this.bindPageHtml();
     }
     if (event.target.name === 'next') {
-      if (this.pageInfo.current === this.pageInfo.totalpage) return;
+      // @ts-ignore
+      if (this.pageInfo.current === this.pageInfo.totalpage) {
+        return;
+      } // @ts-ignore
       this.pageInfo.current++;
       this.bindPageHtml();
     }
     if (event.target.name === 'last') {
-      if (this.pageInfo.current === this.pageInfo.totalpage) return;
+      // @ts-ignore
+      if (this.pageInfo.current === this.pageInfo.totalpage) {
+        return;
+      } // @ts-ignore
       this.pageInfo.current = this.pageInfo.totalpage;
       this.bindPageHtml();
     }

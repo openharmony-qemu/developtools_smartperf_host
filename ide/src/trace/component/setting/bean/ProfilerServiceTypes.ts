@@ -74,7 +74,7 @@ export interface TracePluginConfig {
 export interface CreateSessionRequest {
   requestId: number;
   sessionConfig: ProfilerSessionConfig | undefined;
-  pluginConfigs: ProfilerPluginConfig<any>[];
+  pluginConfigs: ProfilerPluginConfig<unknown>[];
 }
 
 export interface ProfilerPluginConfig<T> {
@@ -124,7 +124,7 @@ export interface MemoryConfig {
   reportGpuDumpInfo?: boolean;
 }
 
-const switchCase = (object: any): SysVMeminfoType => {
+const switchCase = (object: unknown): SysVMeminfoType => {
   if (typeof object === 'number') {
     let sysVMemInfos = Object.keys(SysVMeminfoType);
     if (object < 0) {
@@ -145,7 +145,7 @@ const switchCase = (object: any): SysVMeminfoType => {
   }
 };
 
-export function sysVMeminfoTypeFromJSON(object: any): SysVMeminfoType {
+export function sysVMeminfoTypeFromJSON(object: unknown): SysVMeminfoType {
   return switchCase(object);
 }
 
@@ -363,10 +363,10 @@ const sysMemInfo = [
   SysMeminfoType.PMEM_ACTIVE_PURG,
   SysMeminfoType.PMEM_INACTIVE_PURG,
   SysMeminfoType.PMEM_PINED_PURG,
-  SysMeminfoType.UNRECOGNIZED
+  SysMeminfoType.UNRECOGNIZED,
 ];
 
-const sysMeminfoCase = (object: any): SysMeminfoType => {
+const sysMeminfoCase = (object: unknown): SysMeminfoType => {
   if (typeof object === 'number') {
     if (object >= 0) {
       let sysMemType = sysMemInfo[object];
@@ -374,7 +374,7 @@ const sysMeminfoCase = (object: any): SysMeminfoType => {
         return sysMemType;
       }
     }
-    return SysMeminfoType.UNRECOGNIZED
+    return SysMeminfoType.UNRECOGNIZED;
   } else {
     // @ts-ignore
     let sysMemType = SysMeminfoType[object];
@@ -385,7 +385,7 @@ const sysMeminfoCase = (object: any): SysMeminfoType => {
   }
 };
 
-export function sysMeminfoTypeFromJSON(object: any): SysMeminfoType {
+export function sysMeminfoTypeFromJSON(object: unknown): SysMeminfoType {
   return sysMeminfoCase(object);
 }
 
@@ -402,7 +402,7 @@ export interface HilogConfig {
   needClear: boolean;
 }
 
-export function levelFromJSON(object: any): Level {
+export function levelFromJSON(object: unknown): Level {
   switch (object) {
     case 0:
     case 'LEVEL_UNSPECIFIED':
@@ -455,10 +455,11 @@ export interface NativeHookConfig {
   callframeCompress?: boolean;
   startupMode?: boolean;
   statisticsInterval?: number;
+  mallocFreeMatchingInterval?: number;
   sampleInterval?: number;
   expandPids?: number[];
   responseLibraryMode?: boolean;
-  jsStackReport?: boolean;
+  jsStackReport?: number;
   maxJsStackDepth?: number;
   filterNapiName?: string;
 }
@@ -489,8 +490,7 @@ export interface DiskioConfig {
   reportIoStats: string;
 }
 
-export interface NetworkConfig {
-}
+export interface NetworkConfig {}
 
 export interface HiperfPluginConfig {
   isRoot: boolean;
@@ -514,4 +514,14 @@ export interface ArkTSConfig {
   enable_cpu_profiler: boolean;
   cpu_profiler_interval: number;
   splitOutfileName?: string;
+}
+
+export interface FFRTConfig {
+  pid?: number[];
+  startupProcessName?: string[];
+  restartProcessName?: string[];
+  smbPages?: number;
+  flushInterval?: number;
+  block?: boolean;
+  clockId?: string;
 }

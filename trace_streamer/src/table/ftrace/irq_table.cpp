@@ -17,24 +17,8 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t {
-    ID = 0,
-    TS,
-    DURS,
-    CALL_IDS,
-    CAT,
-    NAME,
-    DEPTH,
-    COOKIE_ID,
-    PARENT_ID,
-    ARGSET,
-    CHAIN_IDS,
-    SPAN_IDS,
-    PARENT_SPAN_IDS,
-    FLAG,
-    ARGS
-};
-IrqTable::IrqTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+enum class Index : int32_t { ID = 0, TS, DURS, CALL_IDS, CAT, NAME, DEPTH, COOKIE_ID, PARENT_ID, ARGSET, FLAG };
+IrqTable::IrqTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.emplace_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -46,11 +30,7 @@ IrqTable::IrqTable(const TraceDataCache* dataCache) : TableBase(dataCache)
     tableColumn_.emplace_back(TableBase::ColumnInfo("cookie", "INTEGER"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("parent_id", "INTEGER"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("argsetid", "INTEGER"));
-    tableColumn_.emplace_back(TableBase::ColumnInfo("chainId", "TEXT"));
-    tableColumn_.emplace_back(TableBase::ColumnInfo("spanId", "TEXT"));
-    tableColumn_.emplace_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("flag", "TEXT"));
-    tableColumn_.emplace_back(TableBase::ColumnInfo("args", "TEXT"));
     tablePriKey_.emplace_back("callid");
     tablePriKey_.emplace_back("ts");
     tablePriKey_.emplace_back("depth");
@@ -58,14 +38,14 @@ IrqTable::IrqTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 
 IrqTable::~IrqTable() {}
 
-void IrqTable::FilterByConstraint(FilterConstraints& irqfc,
-                                  double& irqfilterCost,
+void IrqTable::FilterByConstraint(FilterConstraints &irqfc,
+                                  double &irqfilterCost,
                                   size_t irqrowCount,
                                   uint32_t irqcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& irqc = irqfc.GetConstraints()[irqcurrenti];
+    const auto &irqc = irqfc.GetConstraints()[irqcurrenti];
     switch (static_cast<Index>(irqc.col)) {
         case Index::ID: {
             if (CanFilterId(irqc.op, irqrowCount)) {
@@ -87,7 +67,7 @@ std::unique_ptr<TableBase::Cursor> IrqTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-IrqTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+IrqTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstIrqData().Size())),
       slicesObj_(dataCache->GetConstIrqData())
 {
@@ -95,7 +75,7 @@ IrqTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 IrqTable::Cursor::~Cursor() {}
 
-int32_t IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t IrqTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -104,9 +84,9 @@ int32_t IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         return SQLITE_OK;
     }
 
-    auto& irqCs = fc.GetConstraints();
+    auto &irqCs = fc.GetConstraints();
     for (size_t i = 0; i < irqCs.size(); i++) {
-        const auto& c = irqCs[i];
+        const auto &c = irqCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -177,27 +157,15 @@ void IrqTable::Cursor::HandleTypeColumns(int32_t column) const
         case Index::ARGSET:
             SetTypeColumnInt64(slicesObj_.ArgSetIdsData()[CurrentRow()], INVALID_UINT32);
             break;
-        case Index::CHAIN_IDS:
-            sqlite3_result_text(context_, slicesObj_.ChainIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            break;
-        case Index::SPAN_IDS:
-            sqlite3_result_text(context_, slicesObj_.SpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            break;
-        case Index::PARENT_SPAN_IDS:
-            sqlite3_result_text(context_, slicesObj_.ParentSpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            break;
         case Index::FLAG:
             sqlite3_result_text(context_, slicesObj_.Flags()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            break;
-        case Index::ARGS:
-            sqlite3_result_text(context_, slicesObj_.ArgsData()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);
             break;
     }
 }
-void IrqTable::GetOrbyes(FilterConstraints& irqfc, EstimatedIndexInfo& irqei)
+void IrqTable::GetOrbyes(FilterConstraints &irqfc, EstimatedIndexInfo &irqei)
 {
     auto irqorderbys = irqfc.GetOrderBys();
     for (auto i = 0; i < irqorderbys.size(); i++) {

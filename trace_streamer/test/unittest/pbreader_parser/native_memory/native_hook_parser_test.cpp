@@ -32,7 +32,7 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
-bool ParseTraceFile(TraceStreamerSelector& ts_, const std::string& tracePath);
+bool ParseTraceFile(TraceStreamerSelector &ts_, const std::string &tracePath);
 const uint32_t INDEX_SIZE_02 = 2;
 const uint32_t INDEX_SIZE_03 = 3;
 const uint32_t INDEX_SIZE_04 = 4;
@@ -111,7 +111,7 @@ public:
 
     void TearDown() {}
 
-    void SetFrameInfo(Frame* frame, FrameStruct frameStruct)
+    void SetFrameInfo(Frame *frame, FrameStruct frameStruct)
     {
         frame->set_ip(frameStruct.ip);
         frame->set_sp(frameStruct.sp);
@@ -121,17 +121,17 @@ public:
         frame->set_symbol_offset(frameStruct.symbolOffset);
     }
 
-    void SetOfflineFrameEvent(BatchNativeHookData& hookData)
+    void SetOfflineFrameEvent(BatchNativeHookData &hookData)
     {
         // construct FrameEvent
         auto frameMapData = hookData.add_events();
-        FrameMap* frameMap = new FrameMap();
+        FrameMap *frameMap = new FrameMap();
         frameMap->set_id(STACK_MAP_JS_IP_01 & (~JS_IP_MASK));
         frameMap->set_pid(PID);
         frameMapData->set_allocated_frame_map(frameMap);
 
         // construct Frame
-        Frame* frame = new Frame();
+        Frame *frame = new Frame();
         frame->set_ip(IP_03);
         frame->set_sp(0);
         frame->set_symbol_name_id(1);
@@ -142,7 +142,7 @@ public:
 
         // construct SymbolMap
         auto symbolMapData = hookData.add_events();
-        SymbolMap* symbolMap = new SymbolMap();
+        SymbolMap *symbolMap = new SymbolMap();
         symbolMap->set_id(1);
         symbolMap->set_name(SYMBOL_NAME_03);
         symbolMap->set_pid(PID);
@@ -150,21 +150,21 @@ public:
 
         // construct FilePathMap
         auto filePathMapData = hookData.add_events();
-        FilePathMap* filePathMap = new FilePathMap();
+        FilePathMap *filePathMap = new FilePathMap();
         filePathMap->set_id(1);
         filePathMap->set_name(FILE_PATH_03);
         filePathMap->set_pid(PID);
         filePathMapData->set_allocated_file_path(filePathMap);
     }
 
-    void SetOfflineAllocEvent(BatchNativeHookData& hookData,
+    void SetOfflineAllocEvent(BatchNativeHookData &hookData,
                               HookDataStruct dataStruct,
                               bool isJsMixedStack = false,
                               bool isJsStackAbnormal = false)
     {
         auto stackMapData = hookData.add_events();
         // Construct JavaScript stack data
-        StackMap* stackMap = new StackMap();
+        StackMap *stackMap = new StackMap();
         stackMap->set_id(1);
 
         if (isJsMixedStack) {
@@ -185,7 +185,7 @@ public:
 
         // construct AllocEvent
         auto nativeHookData = hookData.add_events();
-        AllocEvent* allocEvent = new AllocEvent();
+        AllocEvent *allocEvent = new AllocEvent();
         allocEvent->set_stack_id(1);
         allocEvent->set_pid(PID);
         allocEvent->set_tid(dataStruct.tid);
@@ -196,14 +196,14 @@ public:
         nativeHookData->set_tv_nsec(dataStruct.nsec);
         nativeHookData->set_allocated_alloc_event(allocEvent);
     }
-    void SetAllocEvent(BatchNativeHookData& hookData,
+    void SetAllocEvent(BatchNativeHookData &hookData,
                        HookDataStruct dataStruct,
                        bool isRepeated = false,
                        bool isAddFrame = true,
                        bool isSecond = false)
     {
         // construct AllocEvent
-        AllocEvent* allocEvent = new AllocEvent();
+        AllocEvent *allocEvent = new AllocEvent();
         allocEvent->set_pid(PID);
         allocEvent->set_tid(dataStruct.tid);
         allocEvent->set_addr(dataStruct.addr);
@@ -230,14 +230,14 @@ public:
         nativeHookData->set_allocated_alloc_event(allocEvent);
     }
 
-    void SetFreeEvent(BatchNativeHookData& hookData,
+    void SetFreeEvent(BatchNativeHookData &hookData,
                       HookDataStruct dataStruct,
                       bool isRepeated = false,
                       bool isSecond = false,
                       bool isAddFrame = true)
     {
         // construct FreeEvent
-        FreeEvent* freeEvent = new FreeEvent();
+        FreeEvent *freeEvent = new FreeEvent();
         freeEvent->set_pid(PID);
         freeEvent->set_tid(dataStruct.tid);
         freeEvent->set_addr(dataStruct.addr);
@@ -264,14 +264,14 @@ public:
         nativeHookData->set_allocated_free_event(freeEvent);
     }
 
-    void SetMmapEvent(BatchNativeHookData& hookData,
+    void SetMmapEvent(BatchNativeHookData &hookData,
                       HookDataStruct dataStruct,
                       bool isRepeated = false,
                       bool isSecond = false,
                       bool isAddFrame = true)
     {
         // construct MmapEvent
-        MmapEvent* mmapEvent = new MmapEvent();
+        MmapEvent *mmapEvent = new MmapEvent();
         mmapEvent->set_pid(PID);
         mmapEvent->set_tid(dataStruct.tid);
         mmapEvent->set_addr(dataStruct.addr);
@@ -299,10 +299,10 @@ public:
         nativeHookData->set_allocated_mmap_event(mmapEvent);
     }
 
-    void SetMunmapEvent(BatchNativeHookData& hookData, HookDataStruct dataStruct, bool isSecond, bool isAddFrame)
+    void SetMunmapEvent(BatchNativeHookData &hookData, HookDataStruct dataStruct, bool isSecond, bool isAddFrame)
     {
         // construct MunmapEvent
-        MunmapEvent* munmapEvent = new MunmapEvent();
+        MunmapEvent *munmapEvent = new MunmapEvent();
         munmapEvent->set_pid(PID);
         munmapEvent->set_tid(dataStruct.tid);
         munmapEvent->set_addr(dataStruct.addr);
@@ -324,7 +324,7 @@ public:
         nativeHookData->set_allocated_munmap_event(munmapEvent);
     }
 
-    BatchNativeHookData CreateBatchNativeHookData(PbreaderDataSegment& dataSeg)
+    BatchNativeHookData CreateBatchNativeHookData(PbreaderDataSegment &dataSeg)
     {
         std::string hookStrMsg = "";
         BatchNativeHookData batchNativeHookData;
@@ -332,7 +332,7 @@ public:
         SetAllocEvent(batchNativeHookData, {TID_02, ADDR_02, SIZE_02, "", SEC_02, NSEC_02}, true);
         batchNativeHookData.SerializeToString(&hookStrMsg);
         dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-        ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+        ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(dataSeg.seg->data()),
                                              dataSeg.seg->size());
         dataSeg.protoData = hookBytesView;
         return batchNativeHookData;
@@ -381,7 +381,7 @@ public:
     {
     }
 
-    NativeHookCache(const NativeHook& nativeHook, uint64_t index)
+    NativeHookCache(const NativeHook &nativeHook, uint64_t index)
     {
         if (nativeHook.Size() <= index) {
             TS_LOGE("index out of deque bounds! nativeHook.Size() = %lu, index = %lu", nativeHook.Size(), index);
@@ -401,9 +401,9 @@ public:
         currentSizeDurations_ = nativeHook.CurrentSizeDurs()[index];
     }
     ~NativeHookCache() = default;
-    NativeHookCache(const NativeHookCache&) = delete;
-    NativeHookCache& operator=(const NativeHookCache&) = delete;
-    bool operator==(const NativeHookCache& nativeHookCache) const
+    NativeHookCache(const NativeHookCache &) = delete;
+    NativeHookCache &operator=(const NativeHookCache &) = delete;
+    bool operator==(const NativeHookCache &nativeHookCache) const
     {
         bool ret = true;
         ret &= IsEqual(nativeHookCache.GetCallChainId(), callChainId_, "CallChainId");
@@ -503,7 +503,7 @@ public:
     {
     }
 
-    NativeHookFrameCache(const NativeHookFrame& nativeHookFrame, const uint64_t index)
+    NativeHookFrameCache(const NativeHookFrame &nativeHookFrame, const uint64_t index)
     {
         if (nativeHookFrame.Size() <= index) {
             TS_LOGE("index out of deque bounds! nativeHookFrame.Size() = %lu, index = %lu", nativeHookFrame.Size(),
@@ -520,9 +520,9 @@ public:
     }
 
     ~NativeHookFrameCache() = default;
-    NativeHookFrameCache(const NativeHookFrameCache&) = delete;
-    NativeHookFrameCache& operator=(const NativeHookFrameCache&) = delete;
-    bool operator==(const NativeHookFrameCache& frameCache) const
+    NativeHookFrameCache(const NativeHookFrameCache &) = delete;
+    NativeHookFrameCache &operator=(const NativeHookFrameCache &) = delete;
+    bool operator==(const NativeHookFrameCache &frameCache) const
     {
         bool ret = true;
         ret &= IsEqual(frameCache.GetCallChainId(), callChainId_, "CallChainId");
@@ -587,7 +587,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOutNativeHookData, TestSi
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
@@ -612,7 +612,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMalloc, TestSize.Level
 
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
 
     // start parse
@@ -626,13 +626,13 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMalloc, TestSize.Level
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     NativeHookCache expectNativeHookCache(1, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64, TIMESTAMP_01,
                                           0, 0, ADDR_01, SIZE_01, SIZE_01, 0);
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     NativeHookCache resultNativeHookCache(nativeHook, 0);
     EXPECT_TRUE(expectNativeHookCache == resultNativeHookCache);
     EXPECT_EQ(1, nativeHook.Size());
 
     // Verification parse NativeHook Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
     auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
     NativeHookFrameCache expectFrameCache(1, 0, IP_01, expectSymbolData, expectFilePathData, OFFSET_01,
@@ -659,8 +659,8 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMalloc, TestSize.
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     EXPECT_TRUE(SIZE_01 == nativeHook.AllMemSizes()[0]);
@@ -717,7 +717,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneFree, TestSize.Level1)
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
@@ -753,7 +753,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleFree, TestSize.Le
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
@@ -761,8 +761,8 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleFree, TestSize.Le
 
     // Verification parse NativeHook results
     // Calculate partial expectations
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     EXPECT_TRUE(0 == nativeHook.Size());
     EXPECT_TRUE(0 == nativeHookFrame.Size());
 
@@ -792,7 +792,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOnePairsMallocAndFree, Te
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
@@ -804,12 +804,12 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOnePairsMallocAndFree, Te
     NativeHookCache firstExpectNativeHookCache(1, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
                                                TIMESTAMP_01, TIMESTAMP_02, TIMESTAMP_02 - TIMESTAMP_01, ADDR_01,
                                                SIZE_01, SIZE_01, TIMESTAMP_02 - TIMESTAMP_01);
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     NativeHookCache firstResultNativeHookCache(nativeHook, 0);
     EXPECT_TRUE(firstExpectNativeHookCache == firstResultNativeHookCache);
 
     // Verification parse Malloc Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
     auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
     NativeHookFrameCache secondExpectFrameCache(1, 0, IP_01, expectSymbolData, expectFilePathData, OFFSET_01,
@@ -835,7 +835,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOnePairsMallocAndFree, Te
     auto size = nativeHookFrame.Size();
     EXPECT_EQ(INDEX_SIZE_02, size);
 
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED));
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
 }
@@ -861,7 +861,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithNotMatchMallocAndFree, Te
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
@@ -872,12 +872,12 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithNotMatchMallocAndFree, Te
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     NativeHookCache firstExpectNativeHookCache(1, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
                                                TIMESTAMP_01, 0, 0, ADDR_01, SIZE_01, SIZE_01, 0);
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     NativeHookCache firstResultNativeHookCache(nativeHook, 0);
     EXPECT_TRUE(firstExpectNativeHookCache == firstResultNativeHookCache);
 
     // Verification parse Malloc Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
     auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
     NativeHookFrameCache firstExpectFrameCache(1, 0, IP_01, expectSymbolData, expectFilePathData, OFFSET_01,
@@ -888,7 +888,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithNotMatchMallocAndFree, Te
     auto size = nativeHookFrame.Size();
     EXPECT_EQ(1, size);
 
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED));
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
 }
@@ -916,14 +916,14 @@ HWTEST_F(NativeHookParserTest, ParseTwoMallocAndFreeEventMatched, TestSize.Level
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse first Malloc event results
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     NativeHookCache firstExpectMallocCache(INVALID_UINT32, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
@@ -951,7 +951,7 @@ HWTEST_F(NativeHookParserTest, ParseTwoMallocAndFreeEventMatched, TestSize.Level
     NativeHookCache secondResultFreeCache(nativeHook, INDEX_SIZE_03);
     EXPECT_TRUE(secondExpectFreeCache == secondResultFreeCache);
 
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED));
     EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
 }
@@ -979,14 +979,14 @@ HWTEST_F(NativeHookParserTest, ParseTwoMallocAndFreeEventPartialMatched, TestSiz
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse first Malloc event results
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     NativeHookCache firstExpectMallocCache(INVALID_UINT32, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
@@ -1008,7 +1008,7 @@ HWTEST_F(NativeHookParserTest, ParseTwoMallocAndFreeEventPartialMatched, TestSiz
     NativeHookCache secondResultMallocCache(nativeHook, INDEX_SIZE_02);
     EXPECT_TRUE(secondExpectMallocCache == secondResultMallocCache);
 
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED));
     EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
 }
@@ -1032,7 +1032,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMmap, TestSize.Level1)
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
@@ -1044,7 +1044,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMmap, TestSize.Level1)
     auto mmapSubType = stream_.traceDataCache_->dataDict_.GetStringIndex(TYPE_01);
     NativeHookCache expectNativeHookCache(1, expect_ipid, expect_itid, MMAPEVENT.c_str(), mmapSubType, TIMESTAMP_01, 0,
                                           0, ADDR_01, SIZE_01, SIZE_01, 0);
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     NativeHookCache resultNativeHookCache(nativeHook, 0);
     EXPECT_TRUE(expectNativeHookCache == resultNativeHookCache);
 
@@ -1052,7 +1052,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMmap, TestSize.Level1)
     EXPECT_EQ(1, size);
 
     // Verification parse NativeHook Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
     auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
     NativeHookFrameCache expectFrameCache(1, 0, IP_01, expectSymbolData, expectFilePathData, OFFSET_01,
@@ -1087,7 +1087,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMunmap, TestSize.Level
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
@@ -1097,7 +1097,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMunmap, TestSize.Level
     EXPECT_EQ(0, size);
 
     // Verification parse NativeHook Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
 
     size = nativeHookFrame.Size();
     EXPECT_EQ(0, size);
@@ -1123,12 +1123,12 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMmap, TestSize.Le
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     auto mmapSubType = stream_.traceDataCache_->dataDict_.GetStringIndex(TYPE_01);
@@ -1144,7 +1144,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMmap, TestSize.Le
                                                 TIMESTAMP_02, 0, 0, ADDR_02, SIZE_02, SIZE_01 + SIZE_02, 0);
     EXPECT_TRUE(secondExpectNativeHookCache == NativeHookCache(nativeHook, 1));
     EXPECT_EQ(INDEX_SIZE_02, stream_.traceDataCache_->GetConstNativeHookData().Size());
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
     auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
     NativeHookFrameCache firstExpectFrameCache(1, 0, IP_01, expectSymbolData, expectFilePathData, OFFSET_01,
@@ -1181,7 +1181,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMunmap, TestSize.
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
@@ -1191,7 +1191,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMunmap, TestSize.
     EXPECT_EQ(0, size);
 
     // Verification parse NativeHook Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
 
     size = nativeHookFrame.Size();
     EXPECT_EQ(0, size);
@@ -1221,14 +1221,14 @@ HWTEST_F(NativeHookParserTest, ParseOnePairsMmapAndMunmapEvent, TestSize.Level1)
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     auto mmapSubType = stream_.traceDataCache_->dataDict_.GetStringIndex(TYPE_01);
@@ -1245,7 +1245,7 @@ HWTEST_F(NativeHookParserTest, ParseOnePairsMmapAndMunmapEvent, TestSize.Level1)
     EXPECT_EQ(INDEX_SIZE_02, stream_.traceDataCache_->GetConstNativeHookData().Size());
 
     // Verification parse NativeHook Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_02);
     auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_02);
     NativeHookFrameCache firstExpectFrameCache(1, 0, IP_02, expectSymbolData, expectFilePathData, OFFSET_02,
@@ -1261,7 +1261,7 @@ HWTEST_F(NativeHookParserTest, ParseOnePairsMmapAndMunmapEvent, TestSize.Level1)
     EXPECT_TRUE(secondExpectFrameCache == secondResultFrameCache);
     EXPECT_EQ(INDEX_SIZE_02, nativeHookFrame.Size());
 
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED));
 }
@@ -1286,14 +1286,14 @@ HWTEST_F(NativeHookParserTest, ParseNotMatchMmapAndMunmapEvent, TestSize.Level1)
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     auto mmapSubType = stream_.traceDataCache_->dataDict_.GetStringIndex(TYPE_01);
@@ -1306,7 +1306,7 @@ HWTEST_F(NativeHookParserTest, ParseNotMatchMmapAndMunmapEvent, TestSize.Level1)
     EXPECT_EQ(1, size);
 
     // Verification parse NativeHook Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_02);
     auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_02);
     NativeHookFrameCache firstExpectFrameCache(1, 0, IP_02, expectSymbolData, expectFilePathData, OFFSET_02,
@@ -1324,7 +1324,7 @@ HWTEST_F(NativeHookParserTest, ParseNotMatchMmapAndMunmapEvent, TestSize.Level1)
     size = nativeHookFrame.Size();
     EXPECT_EQ(INDEX_SIZE_02, size);
 
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED));
 }
@@ -1351,14 +1351,14 @@ HWTEST_F(NativeHookParserTest, ParseTwoPairsMatchedMmapAndMunmapEvent, TestSize.
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     auto mmapSubType = stream_.traceDataCache_->dataDict_.GetStringIndex(TYPE_01);
@@ -1390,7 +1390,7 @@ HWTEST_F(NativeHookParserTest, ParseTwoPairsMatchedMmapAndMunmapEvent, TestSize.
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
     EXPECT_EQ(INDEX_SIZE_04, size);
 
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
     EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED));
 }
@@ -1417,14 +1417,14 @@ HWTEST_F(NativeHookParserTest, ParsePartialMatchedMmapAndMunmapEvent, TestSize.L
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     auto mmapSubType = stream_.traceDataCache_->dataDict_.GetStringIndex(TYPE_01);
@@ -1455,7 +1455,7 @@ HWTEST_F(NativeHookParserTest, ParsePartialMatchedMmapAndMunmapEvent, TestSize.L
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
     EXPECT_EQ(INDEX_SIZE_03, size);
 
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
     EXPECT_TRUE(INDEX_SIZE_02 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED));
 }
@@ -1482,14 +1482,14 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithAllTypesEvents, TestSize.
     batchNativeHookData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
 
     // Verification parse NativeHook results
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     auto mmapSubType = stream_.traceDataCache_->dataDict_.GetStringIndex(TYPE_01);
@@ -1519,7 +1519,7 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithAllTypesEvents, TestSize.
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
     EXPECT_EQ(INDEX_SIZE_04, size);
 
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED));
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
@@ -1564,7 +1564,7 @@ HWTEST_F(NativeHookParserTest, ParseOfflineSymJsAbnormal, TestSize.Level1)
     nativeHookJsAbnormalData.SerializeToString(&hookJsAbnormalStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookJsAbnormalStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookJsAbnormalStrMsg.data()),
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookJsAbnormalStrMsg.data()),
                                          hookJsAbnormalStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasJsAbnormalSplit = false;
@@ -1575,15 +1575,15 @@ HWTEST_F(NativeHookParserTest, ParseOfflineSymJsAbnormal, TestSize.Level1)
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     NativeHookCache expectNativeHookEventCache(1, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
                                                TIMESTAMP_01, 0, 0, ADDR_01, SIZE_01, SIZE_01, 0);
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     NativeHookCache resultNativeHookEventCache(nativeHook, 0);
     EXPECT_TRUE(expectNativeHookEventCache == resultNativeHookEventCache);
 
     // Verification parse Malloc Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto size = nativeHookFrame.Size();
     EXPECT_EQ(0, size);
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
 }
 /**
@@ -1603,7 +1603,7 @@ HWTEST_F(NativeHookParserTest, ParseOfflineSymMixedStack, TestSize.Level1)
     nativeHookMixedStackData.SerializeToString(&hookStrMsg);
     PbreaderDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
     bool hasMixedStackSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasMixedStackSplit);
@@ -1613,11 +1613,11 @@ HWTEST_F(NativeHookParserTest, ParseOfflineSymMixedStack, TestSize.Level1)
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     NativeHookCache expectNativeHookEventCache(1, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
                                                TIMESTAMP_01, 0, 0, ADDR_01, SIZE_01, SIZE_01, 0);
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     NativeHookCache resultNativeHookEventCache(nativeHook, 0);
     EXPECT_TRUE(expectNativeHookEventCache == resultNativeHookEventCache);
     // Verification parse Malloc Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
+    const NativeHookFrame &nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_03);
     auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_03);
     NativeHookFrameCache jsExpectFrameCache(1, 0, IP_03, expectSymbolData, expectFilePathData, OFFSET_03,
@@ -1636,7 +1636,7 @@ HWTEST_F(NativeHookParserTest, ParseOfflineSymMixedStack, TestSize.Level1)
     EXPECT_TRUE(allocExpectFrameCache == allocResultFrameCache);
     auto size = nativeHookFrame.Size();
     EXPECT_EQ(INDEX_SIZE_03, size);
-    auto& statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
+    auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
 }
 } // namespace TraceStreamer

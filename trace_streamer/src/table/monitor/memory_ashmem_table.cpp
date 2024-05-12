@@ -32,7 +32,7 @@ enum class Index : int32_t {
     PURGED,
     FLAG,
 };
-MemoryAshMemTable::MemoryAshMemTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+MemoryAshMemTable::MemoryAshMemTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -57,7 +57,7 @@ std::unique_ptr<TableBase::Cursor> MemoryAshMemTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-MemoryAshMemTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+MemoryAshMemTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstAshMemData().Size())),
       AshMemDataObj_(dataCache->GetConstAshMemData())
 {

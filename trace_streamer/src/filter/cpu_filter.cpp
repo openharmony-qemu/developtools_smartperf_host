@@ -20,7 +20,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-CpuFilter::CpuFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter) {}
+CpuFilter::CpuFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter) : FilterBase(dataCache, filter) {}
 CpuFilter::~CpuFilter() = default;
 void CpuFilter::ProcNextPidSwitchEvent(uint64_t ts,
                                        uint64_t cpu,
@@ -60,7 +60,7 @@ void CpuFilter::ProcPrevPidSwitchEvent(uint64_t ts,
                                        uint64_t cpu,
                                        uint32_t prevPid,
                                        uint64_t prevState,
-                                       BinderTransactionInfo& btInfo)
+                                       BinderTransactionInfo &btInfo)
 {
     bool isChangeCpu = false;
     auto lastRow = RowOfInternalTidInStateTable(prevPid);
@@ -357,7 +357,7 @@ bool CpuFilter::UpdateSchedSliceReadySize(uint64_t minSchedSliceRowToBeUpdated)
             i, traceDataCache_->GetThreadData(schedSlice->InternalTidsData()[i])->internalPid_);
     }
     schedSlice->UpdateReadySize(schedSlice->Size());
-    for (const auto& [_, schedSliceInfo] : cpuToRowSched_) {
+    for (const auto &[_, schedSliceInfo] : cpuToRowSched_) {
         if (minSchedSliceRowToBeUpdated > schedSliceInfo.row) {
             minSchedSliceRowToBeUpdated = schedSliceInfo.row;
         }
@@ -367,10 +367,10 @@ bool CpuFilter::UpdateSchedSliceReadySize(uint64_t minSchedSliceRowToBeUpdated)
     schedSlice->UpdateReadySize(minSchedSliceRowToBeUpdated);
     TS_LOGI("minSchedSliceRowToBeUpdated=%" PRIu64 ", size=%zu, ready.size=%zu\n", minSchedSliceRowToBeUpdated,
             schedSlice->Size(), schedSlice->readySize_);
-    for (auto& [_, schedSliceInfo] : cpuToRowSched_) {
+    for (auto &[_, schedSliceInfo] : cpuToRowSched_) {
         schedSliceInfo.row -= schedSlice->readySize_;
     }
-    for (auto& [_, binderTransactionInfo] : transactionIdToInfo_) {
+    for (auto &[_, binderTransactionInfo] : transactionIdToInfo_) {
         binderTransactionInfo.schedSliceRow -= schedSlice->readySize_;
     }
     return true;

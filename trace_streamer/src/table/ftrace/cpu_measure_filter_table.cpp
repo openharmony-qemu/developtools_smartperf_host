@@ -20,7 +20,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, NAME, CPU };
-CpuMeasureFilterTable::CpuMeasureFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+CpuMeasureFilterTable::CpuMeasureFilterTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
@@ -30,14 +30,14 @@ CpuMeasureFilterTable::CpuMeasureFilterTable(const TraceDataCache* dataCache) : 
 
 CpuMeasureFilterTable::~CpuMeasureFilterTable() {}
 
-void CpuMeasureFilterTable::FilterByConstraint(FilterConstraints& cpufc,
-                                               double& cpufilterCost,
+void CpuMeasureFilterTable::FilterByConstraint(FilterConstraints &cpufc,
+                                               double &cpufilterCost,
                                                size_t cpurowCount,
                                                uint32_t cpucurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& cpuc = cpufc.GetConstraints()[cpucurrenti];
+    const auto &cpuc = cpufc.GetConstraints()[cpucurrenti];
     switch (static_cast<Index>(cpuc.col)) {
         case Index::ID: {
             auto cpuoldRowCount = cpurowCount;
@@ -60,7 +60,7 @@ std::unique_ptr<TableBase::Cursor> CpuMeasureFilterTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-CpuMeasureFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+CpuMeasureFilterTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstCpuMeasuresData().Size())),
       cpuMeasureObj_(dataCache->GetConstCpuMeasuresData())
 {
@@ -68,7 +68,7 @@ CpuMeasureFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase
 
 CpuMeasureFilterTable::Cursor::~Cursor() {}
 
-int32_t CpuMeasureFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t CpuMeasureFilterTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -77,9 +77,9 @@ int32_t CpuMeasureFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         return SQLITE_OK;
     }
 
-    auto& cpuMeasureFilterCs = fc.GetConstraints();
+    auto &cpuMeasureFilterCs = fc.GetConstraints();
     for (size_t i = 0; i < cpuMeasureFilterCs.size(); i++) {
-        const auto& c = cpuMeasureFilterCs[i];
+        const auto &c = cpuMeasureFilterCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterSorted(c.col, c.op, argv[i]);
@@ -114,7 +114,7 @@ int32_t CpuMeasureFilterTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(cpuMeasureObj_.IdsData()[CurrentRow()]));
             break;
         case Index::NAME: {
-            const std::string& str =
+            const std::string &str =
                 dataCache_->GetDataFromDict(static_cast<size_t>(cpuMeasureObj_.NameData()[CurrentRow()]));
             sqlite3_result_text(context_, str.c_str(), STR_DEFAULT_LEN, nullptr);
             break;
@@ -129,7 +129,7 @@ int32_t CpuMeasureFilterTable::Cursor::Column(int32_t column) const
     return SQLITE_OK;
 }
 
-void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t columns, unsigned char option, sqlite3_value* argv)
+void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t columns, unsigned char option, sqlite3_value *argv)
 {
     auto valType = sqlite3_value_type(argv);
     if (valType != SQLITE_INTEGER) {
@@ -141,7 +141,7 @@ void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t columns, unsigned char 
     switch (static_cast<Index>(columns)) {
         case Index::ID: {
             auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-            auto getValue = [](const uint32_t& row) { return row; };
+            auto getValue = [](const uint32_t &row) { return row; };
             switch (option) {
                 case SQLITE_INDEX_CONSTRAINT_EQ:
                     indexMap_->IntersectabcEqual(cpuMeasureObj_.IdsData(), v, getValue);
@@ -167,7 +167,7 @@ void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t columns, unsigned char 
             break;
     }
 }
-void CpuMeasureFilterTable::GetOrbyes(FilterConstraints& cpufc, EstimatedIndexInfo& cpuei)
+void CpuMeasureFilterTable::GetOrbyes(FilterConstraints &cpufc, EstimatedIndexInfo &cpuei)
 {
     auto cpuorderbys = cpufc.GetOrderBys();
     for (auto i = 0; i < cpuorderbys.size(); i++) {

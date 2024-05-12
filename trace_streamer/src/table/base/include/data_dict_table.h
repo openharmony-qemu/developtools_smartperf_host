@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class DataDictTable : public TableBase {
 public:
-    explicit DataDictTable(const TraceDataCache* dataCache);
+    explicit DataDictTable(const TraceDataCache *dataCache);
     ~DataDictTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,16 +32,16 @@ private:
     {
         return dataCache_->DataDictSize();
     }
-    void GetOrbyes(FilterConstraints& dictfc, EstimatedIndexInfo& dictei) override;
-    void FilterByConstraint(FilterConstraints& dictfc,
-                            double& dictfilterCost,
+    void GetOrbyes(FilterConstraints &dictfc, EstimatedIndexInfo &dictei) override;
+    void FilterByConstraint(FilterConstraints &dictfc,
+                            double &dictfilterCost,
                             size_t dictrowCount,
                             uint32_t dictcurrenti) override;
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t dataDictTabCol) const override;
     };
 };

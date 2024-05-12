@@ -55,7 +55,9 @@ export class TraceRowObject<T extends BaseStruct> {
           | WebGL2RenderingContext
           | null
           | undefined
-      ) => void) | undefined | null;
+      ) => void)
+    | undefined
+    | null;
   public top: number = 0;
   public rowIndex: number = 0;
   public preObject: TraceRowObject<T> | undefined | null;

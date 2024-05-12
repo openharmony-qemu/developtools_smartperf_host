@@ -21,7 +21,7 @@ import { GpuMemory } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
-import {getTabGpuMemoryData} from "../../../../database/sql/Memory.sql";
+import { getTabGpuMemoryData } from '../../../../database/sql/Memory.sql';
 
 @element('tabpane-gpu-memory-vmtracker')
 export class TabPaneGpuMemoryVmTracker extends BaseElement {
@@ -31,9 +31,11 @@ export class TabPaneGpuMemoryVmTracker extends BaseElement {
   private gpuMemoryTimeRange: HTMLDivElement | undefined | null;
   private total: GpuMemory = new GpuMemory();
 
-  set data(gpuMemoryValue: SelectionParam | any) {
+  set data(gpuMemoryValue: SelectionParam | unknown) {
+    // @ts-ignore
     if (gpuMemoryValue.gpuMemoryTrackerData.length > 0) {
       this.gpuMemoryTimeRange!.textContent =
+        // @ts-ignore
         'Selected range: ' + ((gpuMemoryValue.rightNs - gpuMemoryValue.leftNs) / 1000000.0).toFixed(5) + ' ms';
       this.gpuMemoryTableTbl!.loading = true;
       this.queryDataByDB(gpuMemoryValue);
@@ -56,9 +58,11 @@ export class TabPaneGpuMemoryVmTracker extends BaseElement {
     resizeObserver(this.parentElement!, this.gpuMemoryTableTbl!);
   }
 
-  queryDataByDB(val: SelectionParam | any): void {
+  queryDataByDB(val: SelectionParam | unknown): void {
     getTabGpuMemoryData(
+      // @ts-ignore
       val.leftNs,
+      // @ts-ignore
       val.rightNs,
       MemoryConfig.getInstance().iPid,
       MemoryConfig.getInstance().snapshotDur

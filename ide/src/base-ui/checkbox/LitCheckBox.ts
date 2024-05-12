@@ -95,7 +95,7 @@ const initHtmlStyle = `
 export class LitCheckBox extends BaseElement {
   private checkbox: HTMLInputElement | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['checked', 'value', 'disabled'];
   }
 
@@ -107,7 +107,7 @@ export class LitCheckBox extends BaseElement {
     }
   }
 
-  get indeterminate() {
+  get indeterminate(): boolean {
     return this.checkbox!.indeterminate;
   }
 
@@ -119,11 +119,11 @@ export class LitCheckBox extends BaseElement {
     }
   }
 
-  get disabled() {
+  get disabled(): boolean {
     return this.getAttribute('disabled') !== null;
   }
 
-  get checked() {
+  get checked(): boolean {
     return this.getAttribute('checked') !== null;
   }
 
@@ -135,7 +135,7 @@ export class LitCheckBox extends BaseElement {
     }
   }
 
-  get value() {
+  get value(): string {
     return this.getAttribute('value') || '';
   }
 
@@ -161,7 +161,7 @@ export class LitCheckBox extends BaseElement {
     this.checkbox = this.shadowRoot?.getElementById('checkbox') as HTMLInputElement;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     this.checkbox!.addEventListener('change', () => {
       this.checked = this.checkbox!.checked;
       let changeEvent: CustomEventInit<LitCheckBoxChangeEvent> = {
@@ -173,11 +173,11 @@ export class LitCheckBox extends BaseElement {
     });
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name == 'checked' && this.checkbox) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+    if (name === 'checked' && this.checkbox) {
       this.checkbox.checked = newValue !== null;
     }
-    if (name == 'value') {
+    if (name === 'value') {
       let slot = this.shadowRoot?.getElementById('slot');
       slot!.textContent = newValue;
     }

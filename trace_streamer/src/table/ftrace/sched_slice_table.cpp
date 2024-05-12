@@ -20,7 +20,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, TS, DUR, TS_END, CPU, INTERNAL_TID, INTERNAL_PID, END_STATE, PRIORITY, ARGSETID };
-SchedSliceTable::SchedSliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+SchedSliceTable::SchedSliceTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -37,14 +37,14 @@ SchedSliceTable::SchedSliceTable(const TraceDataCache* dataCache) : TableBase(da
 
 SchedSliceTable::~SchedSliceTable() {}
 
-void SchedSliceTable::FilterByConstraint(FilterConstraints& schedfc,
-                                         double& schedfilterCost,
+void SchedSliceTable::FilterByConstraint(FilterConstraints &schedfc,
+                                         double &schedfilterCost,
                                          size_t schedrowCount,
                                          uint32_t schedcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& schedc = schedfc.GetConstraints()[schedcurrenti];
+    const auto &schedc = schedfc.GetConstraints()[schedcurrenti];
     switch (static_cast<Index>(schedc.col)) {
         case Index::ID: {
             if (CanFilterId(schedc.op, schedrowCount)) {
@@ -76,7 +76,7 @@ std::unique_ptr<TableBase::Cursor> SchedSliceTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-SchedSliceTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+SchedSliceTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSchedSliceData().Size())),
       schedSliceObj_(dataCache->GetConstSchedSliceData())
 {
@@ -84,7 +84,7 @@ SchedSliceTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tabl
 
 SchedSliceTable::Cursor::~Cursor() {}
 
-int32_t SchedSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t SchedSliceTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -97,7 +97,7 @@ int32_t SchedSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
     SwapIndexFront(schedSliceTabCs, sId);
     for (size_t i = 0; i < schedSliceTabCs.size(); i++) {
-        const auto& c = schedSliceTabCs[i];
+        const auto &c = schedSliceTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -167,7 +167,7 @@ int32_t SchedSliceTable::Cursor::Column(int32_t col) const
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.InternalPidsData()[CurrentRow()]));
             break;
         case Index::END_STATE: {
-            const std::string& str = dataCache_->GetConstSchedStateData(schedSliceObj_.EndStatesData()[CurrentRow()]);
+            const std::string &str = dataCache_->GetConstSchedStateData(schedSliceObj_.EndStatesData()[CurrentRow()]);
             sqlite3_result_text(context_, str.c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         }
@@ -175,7 +175,7 @@ int32_t SchedSliceTable::Cursor::Column(int32_t col) const
             sqlite3_result_int(context_, schedSliceObj_.PriorityData()[CurrentRow()]);
             break;
         case Index::ARGSETID: {
-            const uint32_t& argSetId = schedSliceObj_.ArgSetData()[CurrentRow()];
+            const uint32_t &argSetId = schedSliceObj_.ArgSetData()[CurrentRow()];
             if (argSetId != INVALID_UINT32) {
                 sqlite3_result_int(context_, argSetId);
             }
@@ -188,7 +188,7 @@ int32_t SchedSliceTable::Cursor::Column(int32_t col) const
     return SQLITE_OK;
 }
 
-void SchedSliceTable::GetOrbyes(FilterConstraints& schedfc, EstimatedIndexInfo& schedei)
+void SchedSliceTable::GetOrbyes(FilterConstraints &schedfc, EstimatedIndexInfo &schedei)
 {
     auto schedorderbys = schedfc.GetOrderBys();
     for (auto i = 0; i < schedorderbys.size(); i++) {

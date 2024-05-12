@@ -27,9 +27,9 @@ namespace TraceStreamer {
 constexpr int FLAG_SHIFT_LEFT = 63;
 class PerfDataFilter : private FilterBase {
 public:
-    PerfDataFilter(TraceDataCache*, const TraceStreamerFilters*);
-    PerfDataFilter(const PerfDataFilter&) = delete;
-    PerfDataFilter& operator=(const PerfDataFilter&) = delete;
+    PerfDataFilter(TraceDataCache *, const TraceStreamerFilters *);
+    PerfDataFilter(const PerfDataFilter &) = delete;
+    PerfDataFilter &operator=(const PerfDataFilter &) = delete;
     ~PerfDataFilter() override;
 
 public:

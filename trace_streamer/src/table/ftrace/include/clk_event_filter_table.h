@@ -23,14 +23,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 class ClkEventFilterTable : public TableBase {
 public:
-    explicit ClkEventFilterTable(const TraceDataCache*);
+    explicit ClkEventFilterTable(const TraceDataCache *);
     ~ClkEventFilterTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t clkEventFilterCol) const override;
     };

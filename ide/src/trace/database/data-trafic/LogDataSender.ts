@@ -43,20 +43,27 @@ export function LogDataSender(row: TraceRow<LogStruct>): Promise<LogStruct[]> {
         sharedArrayBuffers: row.sharedArrayBuffers,
         oneDayTime: window.recordEndNS - ONE_DAY_NS,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
+        // @ts-ignore
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(res: any, len: number) {
+function arrayBufferHandler(res: unknown, len: number): unknown[] {
   let outArr: LogStruct[] = [];
+  // @ts-ignore
   let id = new Uint16Array(res.id);
+  // @ts-ignore
   let startTs = new Float64Array(res.startTs);
+  // @ts-ignore
   let pid = new Uint16Array(res.pid);
+  // @ts-ignore
   let tid = new Uint16Array(res.tid);
+  // @ts-ignore
   let dur = new Uint16Array(res.dur);
+  // @ts-ignore
   let depth = new Uint16Array(res.depth);
   for (let index = 0; index < len; index++) {
     outArr.push({

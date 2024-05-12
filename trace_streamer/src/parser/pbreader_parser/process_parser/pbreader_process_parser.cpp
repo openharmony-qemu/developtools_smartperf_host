@@ -20,7 +20,7 @@
 #include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderProcessParser::PbreaderProcessParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderProcessParser::PbreaderProcessParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
 }
@@ -62,7 +62,7 @@ void PbreaderProcessParser::Finish()
         TS_LOGW("process no data");
         return;
     }
-    auto cmp = [](const std::unique_ptr<TsLiveProcessData>& a, const std::unique_ptr<TsLiveProcessData>& b) {
+    auto cmp = [](const std::unique_ptr<TsLiveProcessData> &a, const std::unique_ptr<TsLiveProcessData> &b) {
         return a->ts_ < b->ts_;
     };
     std::stable_sort(liveProcessData_.begin(), liveProcessData_.end(), cmp);

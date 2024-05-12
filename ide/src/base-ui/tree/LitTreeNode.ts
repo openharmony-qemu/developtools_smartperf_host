@@ -17,7 +17,7 @@ import '../icon/LitIcon';
 import { BaseElement, element } from '../BaseElement';
 import { type LitIcon } from '../icon/LitIcon';
 import { type TreeItemData } from './LitTree';
-import {LitTreeNodeHtmlStyle} from "./LitTreeNode.html";
+import { LitTreeNodeHtmlStyle } from './LitTreeNode.html';
 
 @element('lit-tree-node')
 export class LitTreeNode extends BaseElement {
@@ -194,35 +194,44 @@ export class LitTreeNode extends BaseElement {
     if (this.hasAttribute('multiple')) {
       if (this.nextElementSibling) {
         if (this.checked) {
-          this.nextElementSibling.querySelectorAll('lit-tree-node').forEach((a: any) => {
-            a.checked = true;
+          this.nextElementSibling.querySelectorAll('lit-tree-node').forEach((a: unknown) => {
+            //@ts-ignore
+            a.checked = true; //@ts-ignore
             a.removeAttribute('missing');
           });
         } else {
-          this.nextElementSibling.querySelectorAll('lit-tree-node').forEach((a: any) => (a.checked = false));
+          //@ts-ignore
+          this.nextElementSibling.querySelectorAll('lit-tree-node').forEach((a: unknown) => (a.checked = false));
         }
       }
-      let setCheckStatus = (element: any): void => {
+      let setCheckStatus = (element: unknown): void => {
         if (
-          element.parentElement.parentElement.previousElementSibling &&
+          //@ts-ignore
+          element.parentElement.parentElement.previousElementSibling && //@ts-ignore
           element.parentElement.parentElement.previousElementSibling.tagName === 'LIT-TREE-NODE'
         ) {
+          //@ts-ignore
           let allChecked = Array.from(element.parentElement.parentElement.querySelectorAll('lit-tree-node')).every(
-            (item: any) => item.checked
-          );
+            //@ts-ignore
+            (item: unknown) => item.checked
+          ); //@ts-ignore
           let someChecked = Array.from(element.parentElement.parentElement.querySelectorAll('lit-tree-node')).some(
-            (item: any, index, array) => item.checked
+            //@ts-ignore
+            (item: unknown, index, array) => item.checked
           );
           if (allChecked === true) {
-            element.parentElement.parentElement.previousElementSibling.checked = true;
+            //@ts-ignore
+            element.parentElement.parentElement.previousElementSibling.checked = true; //@ts-ignore
             element.parentElement.parentElement.previousElementSibling.removeAttribute('missing');
           } else if (someChecked) {
-            element.parentElement.parentElement.previousElementSibling.setAttribute('missing', '');
+            //@ts-ignore
+            element.parentElement.parentElement.previousElementSibling.setAttribute('missing', ''); //@ts-ignore
             element.parentElement.parentElement.previousElementSibling.removeAttribute('checked');
           } else {
-            element.parentElement.parentElement.previousElementSibling.removeAttribute('missing');
+            //@ts-ignore
+            element.parentElement.parentElement.previousElementSibling.removeAttribute('missing'); //@ts-ignore
             element.parentElement.parentElement.previousElementSibling.removeAttribute('checked');
-          }
+          } //@ts-ignore
           setCheckStatus(element.parentElement.parentElement.previousElementSibling);
         }
       };
@@ -260,17 +269,19 @@ export class LitTreeNode extends BaseElement {
   }
 
   //收起
-  collapseSection(element: any): void {
+  collapseSection(element: unknown): void {
     if (!element) {
       return;
-    }
-    let sectionHeight = element.scrollHeight;
-    let elementTransition = element.style.transition;
+    } //@ts-ignore
+    let sectionHeight = element.scrollHeight; //@ts-ignore
+    let elementTransition = element.style.transition; //@ts-ignore
     element.style.transition = '';
     requestAnimationFrame(function () {
-      element.style.height = sectionHeight + 'px';
+      //@ts-ignore
+      element.style.height = sectionHeight + 'px'; //@ts-ignore
       element.style.transition = elementTransition;
       requestAnimationFrame(function () {
+        //@ts-ignore
         element.style.height = 0 + 'px';
       });
     });
@@ -278,14 +289,15 @@ export class LitTreeNode extends BaseElement {
   }
 
   //展开
-  expandSection(element: any): void {
+  expandSection(element: unknown): void {
     if (!element) {
       return;
-    }
-    let sectionHeight = element.scrollHeight;
-    element.style.height = sectionHeight + 'px';
-    element.ontransitionend = (e: any): void => {
-      element.ontransitionend = null;
+    } //@ts-ignore
+    let sectionHeight = element.scrollHeight; //@ts-ignore
+    element.style.height = sectionHeight + 'px'; //@ts-ignore
+    element.ontransitionend = (e: unknown): void => {
+      //@ts-ignore
+      element.ontransitionend = null; //@ts-ignore
       element.style.height = null;
       this.open = 'true';
     };
@@ -298,12 +310,14 @@ export class LitTreeNode extends BaseElement {
   adoptedCallback(): void {}
 
   //当 custom element增加、删除、修改自身属性时，被调用。
-  attributeChangedCallback(name: string, oldValue: any, newValue: any): void {
+  attributeChangedCallback(name: string, oldValue: unknown, newValue: unknown): void {
     if (name === 'title') {
+      //@ts-ignore
       this.shadowRoot!.querySelector('#title')!.textContent = newValue;
     } else if (name === 'icon-name') {
       if (this.iconElement) {
         if (newValue !== null && newValue !== '' && newValue !== 'null') {
+          //@ts-ignore
           this.iconElement!.setAttribute('name', newValue);
           this.iconElement!.style.display = 'flex';
         } else {
@@ -322,6 +336,9 @@ export class LitTreeNode extends BaseElement {
       if (this.checkboxElement) {
         this.checkboxElement.checked = this.hasAttribute('checked');
       }
+    }
+    if (this.arrow) {
+      this.checkboxElement!.style.display = 'none';
     }
   }
 

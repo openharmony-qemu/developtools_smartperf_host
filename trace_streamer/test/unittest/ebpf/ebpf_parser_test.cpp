@@ -55,8 +55,8 @@ HWTEST_F(EbpfParserTest, EbpfDataOnlyEbpfHeadWithErrorMagic, TestSize.Level1)
     EbpfDataHeader ebpfHeader;
     ebpfHeader.header.magic = EPBF_ERROR_MAGIC;
     std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t *>(&ebpfHeader),
+                       reinterpret_cast<uint8_t *>(&ebpfHeader + 1));
     std::unique_ptr<EbpfDataParser> parser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     EXPECT_FALSE(parser->Init(dequeBuffer, dequeBuffer.size()));
@@ -73,8 +73,8 @@ HWTEST_F(EbpfParserTest, EbpfDataOnlyEbpfHeadWithErrorSize, TestSize.Level1)
     EbpfDataHeader ebpfHeader;
     ebpfHeader.header.headSize = EPBF_ERROR_HEAD_SIZE;
     std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t *>(&ebpfHeader),
+                       reinterpret_cast<uint8_t *>(&ebpfHeader + 1));
     std::unique_ptr<EbpfDataParser> parser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     EXPECT_FALSE(parser->Init(dequeBuffer, dequeBuffer.size()));
@@ -94,8 +94,8 @@ HWTEST_F(EbpfParserTest, EbpfDataEbpfHeadWithNormalData, TestSize.Level1)
     ebpfHeader.header.headSize = EbpfDataHeader::EBPF_DATA_HEADER_SIZE;
 
     std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t *>(&ebpfHeader),
+                       reinterpret_cast<uint8_t *>(&ebpfHeader + 1));
     std::unique_ptr<EbpfDataParser> parser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     EXPECT_TRUE(parser->Init(dequeBuffer, dequeBuffer.size()));
@@ -118,8 +118,8 @@ HWTEST_F(EbpfParserTest, EbpfDataWithOnlyEbpfHeadNoCommandLine, TestSize.Level1)
     ebpfHeader.header.cmdLineLen = 0;
 
     std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t *>(&ebpfHeader),
+                       reinterpret_cast<uint8_t *>(&ebpfHeader + 1));
     std::unique_ptr<EbpfDataParser> parser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
@@ -143,8 +143,8 @@ HWTEST_F(EbpfParserTest, EbpfDataEbpfHeadHasProcessName, TestSize.Level1)
               EbpfDataHeader::EBPF_COMMAND_MAX_SIZE);
 
     std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t *>(&ebpfHeader),
+                       reinterpret_cast<uint8_t *>(&ebpfHeader + 1));
     std::unique_ptr<EbpfDataParser> parser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 

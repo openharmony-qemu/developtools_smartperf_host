@@ -24,12 +24,12 @@ class NativeHookSampleBase : public CacheBase {
 public:
     void AppendNativeHookSampleBase(uint32_t callChainId, uint32_t ipid, uint32_t itid, uint64_t timeStamp);
     void AppendNativeHookSampleBase(uint32_t callChainId, uint32_t ipid, uint64_t timeStamp);
-    const std::deque<uint32_t>& CallChainIds() const;
-    const std::deque<uint32_t>& Ipids() const;
-    const std::deque<uint64_t>& LastCallerPathIndexs() const;
-    const std::deque<uint64_t>& LastSymbolIndexs() const;
+    const std::deque<uint32_t> &CallChainIds() const;
+    const std::deque<uint32_t> &Ipids() const;
+    const std::deque<uint64_t> &LastCallerPathIndexs() const;
+    const std::deque<uint64_t> &LastSymbolIndexs() const;
     void UpdateLastCallerPathAndSymbolIndexs(
-        std::unordered_map<uint32_t, std::tuple<DataIndex, DataIndex>>& callIdToLasLibId);
+        std::unordered_map<uint32_t, std::tuple<DataIndex, DataIndex>> &callIdToLasLibId);
     void Clear() override
     {
         CacheBase::Clear();
@@ -61,14 +61,14 @@ public:
     void UpdateEndTimeStampAndDuration(size_t row, uint64_t endTimeStamp);
     void UpdateCurrentSizeDur(size_t row, uint64_t timeStamp);
     void UpdateMemMapSubType(uint64_t row, uint64_t tagId);
-    const std::deque<std::string>& EventTypes() const;
-    const std::deque<DataIndex>& SubTypes() const;
-    const std::deque<uint64_t>& EndTimeStamps() const;
-    const std::deque<uint64_t>& Durations() const;
-    const std::deque<uint64_t>& Addrs() const;
-    const std::deque<int64_t>& MemSizes() const;
-    const std::deque<int64_t>& AllMemSizes() const;
-    const std::deque<uint64_t>& CurrentSizeDurs() const;
+    const std::deque<std::string> &EventTypes() const;
+    const std::deque<DataIndex> &SubTypes() const;
+    const std::deque<uint64_t> &EndTimeStamps() const;
+    const std::deque<uint64_t> &Durations() const;
+    const std::deque<uint64_t> &Addrs() const;
+    const std::deque<int64_t> &MemSizes() const;
+    const std::deque<int64_t> &AllMemSizes() const;
+    const std::deque<uint64_t> &CurrentSizeDurs() const;
     void Clear() override
     {
         NativeHookSampleBase::Clear();
@@ -81,19 +81,19 @@ public:
         allMemSizes_.clear();
         currentSizeDurs_.clear();
     }
-    std::unordered_map<uint64_t, uint64_t>* GetAddrToAllocEventRow()
+    std::unordered_map<uint64_t, uint64_t> *GetAddrToAllocEventRow()
     {
         return &addrToAllocEventRow_;
     }
-    std::unordered_map<uint64_t, uint64_t>* GetAddrToMmapEventRow()
+    std::unordered_map<uint64_t, uint64_t> *GetAddrToMmapEventRow()
     {
         return &addrToMmapEventRow_;
     }
-    uint64_t& GetLastMallocEventRaw()
+    uint64_t &GetLastMallocEventRaw()
     {
         return lastMallocEventRaw_;
     }
-    uint64_t& GetLastMmapEventRaw()
+    uint64_t &GetLastMmapEventRaw()
     {
         return lastMmapEventRaw_;
     }
@@ -135,7 +135,7 @@ public:
                                     DataIndex filePath,
                                     uint64_t offset,
                                     uint64_t symbolOffset,
-                                    const std::string& vaddr);
+                                    const std::string &vaddr);
     void UpdateFrameInfo(size_t row,
                          DataIndex symbolIndex,
                          DataIndex filePathIndex,
@@ -144,17 +144,17 @@ public:
     void UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId);
     void UpdateSymbolId();
     void UpdateSymbolId(size_t index, DataIndex symbolId);
-    void UpdateFileId(std::map<uint32_t, uint64_t>& filePathIdToFilePathName);
-    void UpdateVaddrs(std::deque<std::string>& vaddrs);
-    const std::deque<uint32_t>& CallChainIds() const;
-    const std::deque<uint16_t>& Depths() const;
-    const std::deque<uint64_t>& Ips() const;
-    const std::deque<DataIndex>& SymbolNames() const;
-    const std::deque<DataIndex>& FilePaths() const;
-    const std::deque<uint64_t>& Offsets() const;
-    const std::deque<uint64_t>& SymbolOffsets() const;
-    const std::deque<std::string>& Vaddrs() const;
-    const std::deque<uint32_t>& realStack() const;
+    void UpdateFileId(std::map<uint32_t, uint64_t> &filePathIdToFilePathName);
+    void UpdateVaddrs(std::deque<std::string> &vaddrs);
+    const std::deque<uint32_t> &CallChainIds() const;
+    const std::deque<uint16_t> &Depths() const;
+    const std::deque<uint64_t> &Ips() const;
+    const std::deque<DataIndex> &SymbolNames() const;
+    const std::deque<DataIndex> &FilePaths() const;
+    const std::deque<uint64_t> &Offsets() const;
+    const std::deque<uint64_t> &SymbolOffsets() const;
+    const std::deque<std::string> &Vaddrs() const;
+    const std::deque<uint32_t> &realStack() const;
     size_t Size() const
     {
         return callChainIds_.size();
@@ -194,12 +194,12 @@ public:
                                         uint64_t releaseCount,
                                         uint64_t applySize,
                                         uint64_t releaseSize);
-    const std::deque<uint32_t>& MemoryTypes() const;
-    const std::deque<DataIndex>& MemorySubTypes() const;
-    const std::deque<uint64_t>& ApplyCounts() const;
-    const std::deque<uint64_t>& ReleaseCounts() const;
-    const std::deque<uint64_t>& ApplySizes() const;
-    const std::deque<uint64_t>& ReleaseSizes() const;
+    const std::deque<uint32_t> &MemoryTypes() const;
+    const std::deque<DataIndex> &MemorySubTypes() const;
+    const std::deque<uint64_t> &ApplyCounts() const;
+    const std::deque<uint64_t> &ReleaseCounts() const;
+    const std::deque<uint64_t> &ApplySizes() const;
+    const std::deque<uint64_t> &ReleaseSizes() const;
     void Clear() override
     {
         NativeHookSampleBase::Clear();

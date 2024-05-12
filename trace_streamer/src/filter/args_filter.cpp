@@ -19,7 +19,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-ArgsFilter::ArgsFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter)
+ArgsFilter::ArgsFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter) : FilterBase(dataCache, filter)
 {
     (void)traceDataCache_->GetDataTypeData()->UpdateNewDataType(BASE_DATA_TYPE_INT,
                                                                 traceDataCache_->GetDataIndex("int32_t"));
@@ -33,7 +33,7 @@ ArgsFilter::ArgsFilter(TraceDataCache* dataCache, const TraceStreamerFilters* fi
 
 ArgsFilter::~ArgsFilter() {}
 
-uint32_t ArgsFilter::NewArgs(const ArgsSet& args)
+uint32_t ArgsFilter::NewArgs(const ArgsSet &args)
 {
     auto argSet = traceDataCache_->GetArgSetData();
     for (auto it = args.valuesMap_.begin(); it != args.valuesMap_.end(); it++) {
@@ -42,7 +42,7 @@ uint32_t ArgsFilter::NewArgs(const ArgsSet& args)
     count_++;
     return count_ - 1;
 }
-uint32_t ArgsFilter::AppendArgs(const ArgsSet& args, const size_t argSetId)
+uint32_t ArgsFilter::AppendArgs(const ArgsSet &args, const size_t argSetId)
 {
     auto argSet = traceDataCache_->GetArgSetData();
     for (auto it = args.valuesMap_.begin(); it != args.valuesMap_.end(); it++) {

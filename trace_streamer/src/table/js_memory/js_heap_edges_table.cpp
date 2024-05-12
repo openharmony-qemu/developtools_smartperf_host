@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { FILE_ID = 0, EDGE_INDEX, TYPE, NAME_OR_INDEX, TO_NODE, FROM_NODE_ID, TO_NODE_ID };
-JsHeapEdgesTable::JsHeapEdgesTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+JsHeapEdgesTable::JsHeapEdgesTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("edge_index", "INTEGER"));
@@ -37,7 +37,7 @@ std::unique_ptr<TableBase::Cursor> JsHeapEdgesTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-JsHeapEdgesTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+JsHeapEdgesTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstJsHeapEdgesData().Size())),
       jsHeapEdges_(dataCache->GetConstJsHeapEdgesData())
 {

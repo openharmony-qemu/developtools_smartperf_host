@@ -17,7 +17,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-EbpfDataParser::EbpfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+EbpfDataParser::EbpfDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx),
       EbpfBase(dataCache, ctx),
       FileSystemDataParser(dataCache, ctx),
@@ -32,7 +32,7 @@ EbpfDataParser::~EbpfDataParser()
             static_cast<unsigned long long>(ebpfAllEventEndTime_));
 }
 
-bool EbpfDataParser::Init(const std::deque<uint8_t>& dequeBuffer, uint64_t size)
+bool EbpfDataParser::Init(const std::deque<uint8_t> &dequeBuffer, uint64_t size)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF, STAT_EVENT_RECEIVED);
     if (!ebpfDataReader_->InitEbpfData(dequeBuffer, size)) {
@@ -47,7 +47,7 @@ bool EbpfDataParser::Init(const std::deque<uint8_t>& dequeBuffer, uint64_t size)
     return true;
 }
 
-void EbpfDataParser::InitAndParseEbpfData(const std::deque<uint8_t>& dequeBuffer, uint64_t size)
+void EbpfDataParser::InitAndParseEbpfData(const std::deque<uint8_t> &dequeBuffer, uint64_t size)
 {
     if (!Init(dequeBuffer, size)) {
         return;
@@ -86,7 +86,7 @@ void EbpfDataParser::SetSpliteTimeRange(uint64_t splitFileMinTs, uint64_t splitF
 {
     ebpfSplitter.SetSpliteTimeRange(splitFileMinTs, splitFileMaxTs);
 }
-bool EbpfDataParser::AddAndSplitEbpfData(std::deque<uint8_t>& dequeBuffer)
+bool EbpfDataParser::AddAndSplitEbpfData(std::deque<uint8_t> &dequeBuffer)
 {
     return ebpfSplitter.AddAndSplitEbpfData(dequeBuffer);
 }

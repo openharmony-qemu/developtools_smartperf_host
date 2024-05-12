@@ -12,15 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {query} from "../SqlLite";
-import {ClockStruct} from "../ui-worker/ProcedureWorkerClock";
+import { query } from '../SqlLite';
+import { ClockStruct } from '../ui-worker/ProcedureWorkerClock';
 
 export const queryClockData = (): Promise<
   Array<{
     name: string;
     num: number;
     srcname: string;
-    maxValue?: number
+    maxValue?: number;
   }>
 > =>
   query(
@@ -63,7 +63,8 @@ order by measure.ts))
 select s.filter_id as filterId,s.ts-r.start_ts as startNS,s.type,s.value,s.dur from state s,trace_range r`,
     { $clockName: clockName }
   );
-export const queryBootTime = (): Promise<Array<any>> =>
+export const queryBootTime = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryBootTime',
     `select CS.ts -TR.start_ts as ts ,clock_name from clock_snapshot as CS ,trace_range as TR
@@ -79,9 +80,12 @@ export const queryScreenState = (): Promise<Array<ClockStruct>> =>
 export const queryRealTime = (): Promise<
   Array<{
     ts: number;
-    name: string
+    name: string;
   }>
-> => query('queryRealTime', `SELECT
+> =>
+  query(
+    'queryRealTime',
+    `SELECT
   ( CASE WHEN CS.clock_name = 'realtime' THEN CS.ts ELSE CS.ts - TR.start_ts END ) AS ts,
   CS.clock_name AS name 
   FROM
@@ -89,4 +93,5 @@ export const queryRealTime = (): Promise<
   trace_range AS TR 
   WHERE
   CS.clock_name = 'realtime' 
-  OR CS.clock_name = 'boottime';`);
+  OR CS.clock_name = 'boottime';`
+  );

@@ -34,7 +34,7 @@ enum class Index : int32_t {
     LAST_LIB_ID,
     LAST_SYMBOL_ID
 };
-NativeHookTable::NativeHookTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+NativeHookTable::NativeHookTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
@@ -56,14 +56,14 @@ NativeHookTable::NativeHookTable(const TraceDataCache* dataCache) : TableBase(da
 
 NativeHookTable::~NativeHookTable() {}
 
-void NativeHookTable::FilterByConstraint(FilterConstraints& hookfc,
-                                         double& hookfilterCost,
+void NativeHookTable::FilterByConstraint(FilterConstraints &hookfc,
+                                         double &hookfilterCost,
                                          size_t hookrowCount,
                                          uint32_t hookcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& hookc = hookfc.GetConstraints()[hookcurrenti];
+    const auto &hookc = hookfc.GetConstraints()[hookcurrenti];
     switch (static_cast<Index>(hookc.col)) {
         case Index::ID: {
             if (CanFilterId(hookc.op, hookrowCount)) {
@@ -85,7 +85,7 @@ std::unique_ptr<TableBase::Cursor> NativeHookTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-NativeHookTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+NativeHookTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstNativeHookData().Size())),
       nativeHookObj_(dataCache->GetConstNativeHookData())
 {
@@ -93,7 +93,7 @@ NativeHookTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tabl
 
 NativeHookTable::Cursor::~Cursor() {}
 
-int32_t NativeHookTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t NativeHookTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -106,7 +106,7 @@ int32_t NativeHookTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(nativeHookCs, sId);
     for (size_t i = 0; i < nativeHookCs.size(); i++) {
-        const auto& c = nativeHookCs[i];
+        const auto &c = nativeHookCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -218,7 +218,7 @@ void NativeHookTable::Cursor::HandleTypeColumns(int32_t column) const
             break;
     }
 }
-void NativeHookTable::GetOrbyes(FilterConstraints& hookfc, EstimatedIndexInfo& hookei)
+void NativeHookTable::GetOrbyes(FilterConstraints &hookfc, EstimatedIndexInfo &hookei)
 {
     auto hookorderbys = hookfc.GetOrderBys();
     for (auto i = 0; i < hookorderbys.size(); i++) {

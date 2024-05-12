@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, CALLCHAIN_ID, DEPTH, IP, SYMBOL_ID, FILE_ID, OFFSET, SYMBOL_OFFSET, VADDR };
-NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
@@ -34,12 +34,12 @@ NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache* dataCache) : Ta
 
 NativeHookFrameTable::~NativeHookFrameTable() {}
 
-void NativeHookFrameTable::FilterByConstraint(FilterConstraints& framefc,
-                                              double& framefilterCost,
+void NativeHookFrameTable::FilterByConstraint(FilterConstraints &framefc,
+                                              double &framefilterCost,
                                               size_t framerowCount,
                                               uint32_t framecurrenti)
 {
-    const auto& framec = framefc.GetConstraints()[framecurrenti];
+    const auto &framec = framefc.GetConstraints()[framecurrenti];
     switch (static_cast<Index>(framec.col)) {
         case Index::ID: {
             if (CanFilterId(framec.op, framerowCount)) {
@@ -61,7 +61,7 @@ std::unique_ptr<TableBase::Cursor> NativeHookFrameTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-NativeHookFrameTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+NativeHookFrameTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstNativeHookFrameData().Size())),
       nativeHookFrameInfoObj_(dataCache->GetConstNativeHookFrameData())
 {
@@ -69,7 +69,7 @@ NativeHookFrameTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase*
 
 NativeHookFrameTable::Cursor::~Cursor() {}
 
-int32_t NativeHookFrameTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t NativeHookFrameTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -82,7 +82,7 @@ int32_t NativeHookFrameTable::Cursor::Filter(const FilterConstraints& fc, sqlite
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(nativeHookFrameCs, sId);
     for (size_t i = 0; i < nativeHookFrameCs.size(); i++) {
-        const auto& c = nativeHookFrameCs[i];
+        const auto &c = nativeHookFrameCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -161,7 +161,7 @@ int32_t NativeHookFrameTable::Cursor::Column(int32_t nativeHookFrameCol) const
     return SQLITE_OK;
 }
 
-void NativeHookFrameTable::GetOrbyes(FilterConstraints& framefc, EstimatedIndexInfo& frameei)
+void NativeHookFrameTable::GetOrbyes(FilterConstraints &framefc, EstimatedIndexInfo &frameei)
 {
     auto frameorderbys = framefc.GetOrderBys();
     for (auto i = 0; i < frameorderbys.size(); i++) {

@@ -73,7 +73,7 @@ export class TabPaneComparison extends BaseElement {
     this.baseFileId = data.id;
     this.targetFileId = fileArr[0].id;
     that.updateComparisonData(data.id, fileArr[0].id);
-    new ResizeObserver(() => {
+    new ResizeObserver((): void => {
       this.comparisonTableEl!.style.height = '100%';
       this.comparisonTableEl!.reMeauseHeight();
     }).observe(this.parentElement!);
@@ -81,7 +81,7 @@ export class TabPaneComparison extends BaseElement {
 
   updateComparisonData(baseFileId: number, targetFileId: number): void {
     this.comparisonsData = HeapDataInterface.getInstance().getClassListForComparison(baseFileId, targetFileId);
-    this.comparisonsData.forEach((dataList) => {
+    this.comparisonsData.forEach((dataList): void => {
       dataList.objectName = dataList.nodeName;
     });
     if (this.comparisonsData.length > 0) {
@@ -107,8 +107,8 @@ export class TabPaneComparison extends BaseElement {
     if (comFileArr[0].name) {
       option.setAttribute('value', comFileArr[0].name);
     }
-    this.selectEl!.querySelectorAll('lit-select-option').forEach((a) => {
-      a.addEventListener('onSelected', (e) => {
+    this.selectEl!.querySelectorAll('lit-select-option').forEach((a): void => {
+      a.addEventListener('onSelected', (e): void => {
         this.comparisonTable!.scrollTop = 0;
         this.retainerTableEl!.snapshotDataSource = [];
         for (let f of comFileArr) {
@@ -144,39 +144,39 @@ export class TabPaneComparison extends BaseElement {
   private sortComprisonByColumnExtend(column: string, sort: number): void {
     switch (column) {
       case 'addedCount':
-        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b): number => {
           return sort === 1 ? a.addedCount - b.addedCount : b.addedCount - a.addedCount;
         });
         break;
       case 'removedCount':
-        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b): number => {
           return sort === 1 ? a.removedCount - b.removedCount : b.removedCount - a.removedCount;
         });
         break;
       case 'deltaCount':
-        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b): number => {
           return sort === 1 ? a.deltaCount - b.deltaCount : b.deltaCount - a.deltaCount;
         });
         break;
       case 'objectName':
-        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b): number => {
           return sort === 1
             ? `${a.objectName}`.localeCompare(`${b.objectName}`)
             : `${b.objectName}`.localeCompare(`${a.objectName}`);
         });
         break;
       case 'addedSize':
-        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b): number => {
           return sort === 1 ? a.addedSize - b.addedSize : b.addedSize - a.addedSize;
         });
         break;
       case 'removedSize':
-        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b): number => {
           return sort === 1 ? a.removedSize - b.removedSize : b.removedSize - a.removedSize;
         });
         break;
       case 'deltaSize':
-        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b): number => {
           return sort === 1 ? a.deltaSize - b.deltaSize : b.deltaSize - a.deltaSize;
         });
         break;
@@ -209,20 +209,20 @@ export class TabPaneComparison extends BaseElement {
   }
 
   private sortRetainerByObjectNameType(sort: number): void {
-    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB) => {
+    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB): number => {
       return sort === 1
         ? `${rightArrA.objectName}`.localeCompare(`${rightArrB.objectName}`)
         : `${rightArrB.objectName}`.localeCompare(`${rightArrA.objectName}`);
     });
-    this.rightArray.forEach((list) => {
+    this.rightArray.forEach((list): void => {
       let retainsTable = (): void => {
         const getList = (listArr: Array<ConstructorItem>): void => {
-          listArr.sort((listArrA, listArrB) => {
+          listArr.sort((listArrA, listArrB): number => {
             return sort === 1
               ? `${listArrA.objectName}`.localeCompare(`${listArrB.objectName}`)
               : `${listArrB.objectName}`.localeCompare(`${listArrA.objectName}`);
           });
-          listArr.forEach(function (currentRow) {
+          listArr.forEach(function (currentRow): void {
             if (currentRow.children.length > 0) {
               getList(currentRow.children);
             }
@@ -236,20 +236,20 @@ export class TabPaneComparison extends BaseElement {
   }
 
   private sortRetainerByRetainedSizeType(sort: number): void {
-    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB) => {
+    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB): number => {
       return sort === 1
         ? rightArrA.retainedSize - rightArrB.retainedSize
         : rightArrB.retainedSize - rightArrA.retainedSize;
     });
-    this.rightArray.forEach((list) => {
+    this.rightArray.forEach((list): void => {
       let retainsTable = (): void => {
         const getList = (listArr: Array<ConstructorItem>): void => {
-          listArr.sort((listArrA, listArrB) => {
+          listArr.sort((listArrA, listArrB): number => {
             return sort === 1
               ? listArrA.retainedSize - listArrB.retainedSize
               : listArrB.retainedSize - listArrA.retainedSize;
           });
-          listArr.forEach(function (row) {
+          listArr.forEach(function (row): void {
             if (row.children.length > 0) {
               getList(row.children);
             }
@@ -263,18 +263,18 @@ export class TabPaneComparison extends BaseElement {
   }
 
   private sortRetainerByShallowSizeType(sort: number): void {
-    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB) => {
+    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB): number => {
       return sort === 1 ? rightArrA.shallowSize - rightArrB.shallowSize : rightArrB.shallowSize - rightArrA.shallowSize;
     });
-    this.rightArray.forEach((list) => {
+    this.rightArray.forEach((list): void => {
       let retainsTable = (): void => {
         const getList = (listArr: Array<ConstructorItem>): void => {
-          listArr.sort((listArrA, listArrB) => {
+          listArr.sort((listArrA, listArrB): number => {
             return sort === 1
               ? listArrA.shallowSize - listArrB.shallowSize
               : listArrB.shallowSize - listArrA.shallowSize;
           });
-          listArr.forEach(function (rowEl) {
+          listArr.forEach(function (rowEl): void {
             if (rowEl.children.length > 0) {
               getList(rowEl.children);
             }
@@ -288,16 +288,16 @@ export class TabPaneComparison extends BaseElement {
   }
 
   private sortRetainerByDistanceType(sort: number): void {
-    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((a, b) => {
+    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((a, b): number => {
       return sort === 1 ? a.distance - b.distance : b.distance - a.distance;
     });
-    this.rightArray.forEach((list) => {
+    this.rightArray.forEach((list): void => {
       let retainsTable = (): void => {
         const getList = (currentList: Array<ConstructorItem>): void => {
-          currentList.sort((a, b) => {
+          currentList.sort((a, b): number => {
             return sort === 1 ? a.distance - b.distance : b.distance - a.distance;
           });
-          currentList.forEach(function (currentRow) {
+          currentList.forEach(function (currentRow): void {
             if (currentRow.children.length > 0) {
               getList(currentRow.children);
             }
@@ -311,10 +311,12 @@ export class TabPaneComparison extends BaseElement {
   }
 
   classFilter(): void {
-    this.search!.addEventListener('keyup', () => {
+    this.search!.addEventListener('keyup', (): void => {
       this.comparisonFilter = [];
-      this.comparisonData.forEach((a: any) => {
+      this.comparisonData.forEach((a: unknown) => {
+        // @ts-ignore
         if (a.objectName.toLowerCase().includes(this.search!.value.toLowerCase())) {
+          // @ts-ignore
           this.comparisonFilter.push(a);
         } else {
         }
@@ -336,7 +338,7 @@ export class TabPaneComparison extends BaseElement {
   connectedCallback(): void {
     super.connectedCallback();
     let filterHeight = 0;
-    new ResizeObserver(() => {
+    new ResizeObserver((): void => {
       let comparisonPanelFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
       if (comparisonPanelFilter.clientHeight > 0) {
         filterHeight = comparisonPanelFilter.clientHeight;
@@ -368,8 +370,8 @@ export class TabPaneComparison extends BaseElement {
   private comparisonTblRowClickHandler = (e: Event): void => {
     this.rightTheadTable!.removeAttribute('sort');
     // @ts-ignore
-    let item = e.detail.data as ConstructorItem;
-    (item as any).isSelected = true;
+    let item = e.detail.data as ConstructorItem; // @ts-ignore
+    (item as unknown).isSelected = true;
     this.retainsData = HeapDataInterface.getInstance().getRetains(item);
     if (this.retainsData && this.retainsData.length > 0) {
       this.retainsDataInit();
@@ -381,7 +383,7 @@ export class TabPaneComparison extends BaseElement {
       }
       let retainsTable = (): void => {
         const getList = (list: Array<ConstructorItem>): void => {
-          list.forEach((structRow) => {
+          list.forEach((structRow): void => {
             let shallow = `${Math.round((structRow.shallowSize / this.fileSize) * 100)}%`;
             let retained = `${Math.round((structRow.retainedSize / this.fileSize) * 100)}%`;
             structRow.shallowPercent = shallow;
@@ -414,21 +416,21 @@ export class TabPaneComparison extends BaseElement {
     }
     this.resizeObserverObserve();
     // @ts-ignore
-    if ((e.detail as any).callBack) {
+    if ((e.detail as unknown).callBack) {
       // @ts-ignore
-      (e.detail as any).callBack(true);
+      (e.detail as unknown).callBack(true);
     }
   };
 
-  private resizeObserverObserve() {
-    new ResizeObserver(() => {
+  private resizeObserverObserve(): void {
+    new ResizeObserver((): void => {
       this.retainerTableEl!.style.height = 'calc(100% - 21px)';
       this.retainerTableEl!.reMeauseHeight();
     }).observe(this.parentElement!);
   }
 
   private retainsDataInit(): void {
-    this.retainsData.forEach((comparisonRetainEl) => {
+    this.retainsData.forEach((comparisonRetainEl): void => {
       let shallow = `${Math.round((comparisonRetainEl.shallowSize / this.fileSize) * 100)}%`;
       let retained = `${Math.round((comparisonRetainEl.retainedSize / this.fileSize) * 100)}%`;
       comparisonRetainEl.shallowPercent = shallow;
@@ -444,12 +446,12 @@ export class TabPaneComparison extends BaseElement {
 
   private retainerTblRowClickHandler = (evt: Event): void => {
     // @ts-ignore
-    let data = evt.detail.data as ConstructorItem;
-    (data as any).isSelected = true;
+    let data = evt.detail.data as ConstructorItem; // @ts-ignore
+    (data as unknown).isSelected = true;
     // @ts-ignore
-    if ((evt.detail as any).callBack) {
+    if ((evt.detail as unknown).callBack) {
       // @ts-ignore
-      (evt.detail as any).callBack(true);
+      (evt.detail as unknown).callBack(true);
     }
   };
 
@@ -476,7 +478,7 @@ export class TabPaneComparison extends BaseElement {
           let that = this;
           let retainsTable = (): void => {
             const getList = (comList: Array<ConstructorItem>): void => {
-              comList.forEach((row) => {
+              comList.forEach((row): void => {
                 let shallow = `${Math.round((row.shallowSize / this.fileSize) * 100)}%`;
                 let retained = `${Math.round((row.retainedSize / this.fileSize) * 100)}%`;
                 row.shallowPercent = shallow;
@@ -580,7 +582,7 @@ export class TabPaneComparison extends BaseElement {
         this.comparisonTableEl!.snapshotDataSource = this.comparisonsData;
       }
     }
-    new ResizeObserver(() => {
+    new ResizeObserver((): void => {
       this.comparisonTableEl!.style.height = '100%';
       this.comparisonTableEl!.reMeauseHeight();
     }).observe(this.parentElement!);

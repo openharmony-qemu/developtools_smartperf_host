@@ -60,8 +60,8 @@ public:
     }
     uint64_t ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) const;
     uint64_t Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const;
-    void AddClockSnapshot(const std::vector<SnapShot>& snapShot);
-    int32_t InitSnapShotTimeRange(const uint8_t* data, int32_t len);
+    void AddClockSnapshot(const std::vector<SnapShot> &snapShot);
+    int32_t InitSnapShotTimeRange(const uint8_t *data, int32_t len);
     bool HasInitSnapShot() const
     {
         return hasInitSnapShot_;
@@ -76,7 +76,7 @@ private:
 
 private:
     std::unordered_map<std::string, ConvertClockMap> clockMaps_ = {};
-    ProfilerTraceFileHeader* profilerSDKTraceFileHeader_ = nullptr;
+    ProfilerTraceFileHeader *profilerSDKTraceFileHeader_ = nullptr;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

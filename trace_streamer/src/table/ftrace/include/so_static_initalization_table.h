@@ -23,19 +23,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class SoStaticInitalizationTable : public TableBase {
 public:
-    explicit SoStaticInitalizationTable(const TraceDataCache* dataCache);
+    explicit SoStaticInitalizationTable(const TraceDataCache *dataCache);
     ~SoStaticInitalizationTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const SoStaticInitalization& staticInitalizationObj_;
+        const SoStaticInitalization &staticInitalizationObj_;
     };
 };
 } // namespace TraceStreamer

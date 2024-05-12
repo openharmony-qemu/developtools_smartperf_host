@@ -18,20 +18,29 @@ import { convertJSON, LogicHandler } from './ProcedureLogicWorkerCommon';
 export class ProcedureLogicWorkerCpuState extends LogicHandler {
   currentEventId: string = '';
 
-  handle(data: any): void {
+  handle(data: unknown): void {
+    //@ts-ignore
     this.currentEventId = data.id;
+    //@ts-ignore
     if (data && data.type) {
+      //@ts-ignore
       switch (data.type) {
         case 'CpuState-getCpuState':
+          //@ts-ignore
           if (data.params.list) {
+            //@ts-ignore
             let arr = convertJSON(data.params.list) || [];
             self.postMessage({
+              //@ts-ignore
               id: data.id,
+              //@ts-ignore
               action: data.action,
+              //@ts-ignore
               results: this.supplementCpuState(arr),
             });
             arr = [];
           } else {
+            //@ts-ignore
             this.getCpuState(data.params.cpu);
           }
           break;
@@ -39,9 +48,9 @@ export class ProcedureLogicWorkerCpuState extends LogicHandler {
     }
   }
 
-  clearAll() {}
+  clearAll(): void {}
 
-  getCpuState(cpu: number) {
+  getCpuState(cpu: number): void {
     this.queryData(
       this.currentEventId,
       'CpuState-getCpuState',

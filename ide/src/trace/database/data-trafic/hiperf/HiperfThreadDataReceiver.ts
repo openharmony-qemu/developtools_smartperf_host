@@ -11,9 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from '../CommonArgs';
 import { TraficEnum } from '../utils/QueryEnum';
 
-export const chartHiperfThreadData10MSProtoSql = (args: any): string => {
+export const chartHiperfThreadData10MSProtoSql = (args: Args): string => {
   return `select startNS as startNS,
                  max(event_count)                                                         eventCount,
                  sample_count as sampleCount,
@@ -33,8 +34,9 @@ export const chartHiperfThreadData10MSProtoSql = (args: any): string => {
             and startNS <= ${Math.floor(args.endNS)}
           group by px;`;
 };
-export const chartHiperfThreadDataProtoSql = (args: any): string => {
-  return `SELECT (sp.timestamp_trace - ${args.recordStartNS})          startNS,
+export const chartHiperfThreadDataProtoSql = (args: Args): string => {
+  return `SELECT (sp.timestamp_trace - ${args.recordStartNS}
+    )          startNS,
                  event_count as eventCount,
                  1 as sampleCount,
                  event_type_id as eventTypeId,
@@ -50,49 +52,70 @@ export const chartHiperfThreadDataProtoSql = (args: any): string => {
           group by px;`;
 };
 
-export function hiperfThreadDataReceiver(data: any, proc: Function): void {
+export function hiperfThreadDataReceiver(data: unknown, proc: Function): void {
   let sql: string;
+  // @ts-ignore
   if (data.params.scale > 30_000_000) {
+    // @ts-ignore
     sql = chartHiperfThreadData10MSProtoSql(data.params);
   } else {
+    // @ts-ignore
     sql = chartHiperfThreadDataProtoSql(data.params);
   }
   let res = proc(sql);
+  // @ts-ignore
   arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
   let maxCpuCount = data.params.maxCpuCount;
+  // @ts-ignore
   let intervalPerf = data.params.intervalPerf;
+  // @ts-ignore
   let usage = data.params.drawType === -2;
   let perfThread = new PerfThread(data, transfer, res.length);
   let maxEventCount = Math.max(
     ...res.map((it) => {
+      // @ts-ignore
       data.params.trafic === TraficEnum.ProtoBuffer && (it = it.hiperfData);
+      // @ts-ignore
       return it.eventCount;
     })
   );
   res.forEach((it, i) => {
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.hiperfData);
+    // @ts-ignore
     perfThread.startNS[i] = it.startNS || it.startNs;
+    // @ts-ignore
     perfThread.eventCount[i] = it.eventCount;
+    // @ts-ignore
     perfThread.sampleCount[i] = it.sampleCount;
+    // @ts-ignore
     perfThread.eventTypeId[i] = it.eventTypeId;
+    // @ts-ignore
     perfThread.callChainId[i] = it.callchainId;
     if (usage) {
-      perfThread.height[i] = maxCpuCount === -1
-        ? Math.floor((it.sampleCount / (10 / intervalPerf)) * 40)
-        : Math.floor((it.sampleCount / (10 / intervalPerf) / maxCpuCount) * 40);
+      perfThread.height[i] =
+        maxCpuCount === -1
+          ? // @ts-ignore
+            Math.floor((it.sampleCount / (10 / intervalPerf)) * 40)
+          : // @ts-ignore
+            Math.floor((it.sampleCount / (10 / intervalPerf) / maxCpuCount) * 40);
     } else {
+      // @ts-ignore
       perfThread.height[i] = Math.floor((it.eventCount / maxEventCount) * 40);
     }
   });
   postPerfThreadMessage(data, transfer, perfThread, res.length);
 }
-function postPerfThreadMessage(data: any, transfer: boolean, perfThread: PerfThread, len: number) {
+function postPerfThreadMessage(data: unknown, transfer: boolean, perfThread: PerfThread, len: number): void {
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {
@@ -126,12 +149,18 @@ class PerfThread {
   eventTypeId: Int32Array;
   callChainId: Int32Array;
   height: Int32Array;
-  constructor(data: any, transfer: boolean, len: number) {
+  constructor(data: unknown, transfer: boolean, len: number) {
+    // @ts-ignore
     this.startNS = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.startNS);
+    // @ts-ignore
     this.eventCount = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.eventCount);
+    // @ts-ignore
     this.sampleCount = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.sampleCount);
+    // @ts-ignore
     this.eventTypeId = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.eventTypeId);
+    // @ts-ignore
     this.callChainId = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.callChainId);
+    // @ts-ignore
     this.height = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.height);
   }
 }

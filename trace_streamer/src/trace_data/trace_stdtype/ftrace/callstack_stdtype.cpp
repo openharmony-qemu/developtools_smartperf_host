@@ -20,32 +20,28 @@ size_t CallStack::AppendInternalAsyncSlice(uint64_t startT,
                                            uint64_t durationNs,
                                            InternalTid internalTid,
                                            DataIndex cat,
-                                           uint16_t nameIdentify,
                                            DataIndex name,
                                            uint8_t depth,
                                            int64_t cookid,
-                                           const std::optional<uint64_t>& parentId)
+                                           const std::optional<uint64_t> &parentId)
 {
     AppendCommonInfo(startT, durationNs, internalTid);
     AppendCallStack(cat, name, depth, parentId);
     AppendDistributeInfo();
     cookies_.emplace_back(cookid);
     ids_.emplace_back(id_++);
-    identifys_.emplace_back(nameIdentify + depth);
     return Size() - 1;
 }
 size_t CallStack::AppendInternalSlice(uint64_t startT,
                                       uint64_t durationNs,
                                       InternalTid internalTid,
                                       DataIndex cat,
-                                      uint16_t nameIdentify,
                                       DataIndex name,
                                       uint8_t depth,
-                                      const std::optional<uint64_t>& parentId)
+                                      const std::optional<uint64_t> &parentId)
 {
     AppendCommonInfo(startT, durationNs, internalTid);
     AppendCallStack(cat, name, depth, parentId);
-    identifys_.emplace_back(nameIdentify + depth);
     ids_.emplace_back(id_++);
     cookies_.emplace_back(INVALID_INT64);
     AppendDistributeInfo();
@@ -66,30 +62,26 @@ void CallStack::AppendCallStack(DataIndex cat, DataIndex name, uint8_t depth, st
     depths_.emplace_back(depth);
 }
 void CallStack::SetDistributeInfo(size_t index,
-                                  const std::string& chainId,
-                                  const std::string& spanId,
-                                  const std::string& parentSpanId,
-                                  const std::string& flag,
-                                  const std::string& args)
+                                  const std::string &chainId,
+                                  const std::string &spanId,
+                                  const std::string &parentSpanId,
+                                  const std::string &flag)
 {
     chainIds_[index] = chainId;
     spanIds_[index] = spanId;
     parentSpanIds_[index] = parentSpanId;
     flags_[index] = flag;
-    args_[index] = args;
     argSet_[index] = INVALID_UINT32;
 }
-void CallStack::AppendDistributeInfo(const std::string& chainId,
-                                     const std::string& spanId,
-                                     const std::string& parentSpanId,
-                                     const std::string& flag,
-                                     const std::string& args)
+void CallStack::AppendDistributeInfo(const std::string &chainId,
+                                     const std::string &spanId,
+                                     const std::string &parentSpanId,
+                                     const std::string &flag)
 {
     chainIds_.emplace_back(chainId);
     spanIds_.emplace_back(spanId);
     parentSpanIds_.emplace_back(parentSpanId);
     flags_.emplace_back(flag);
-    args_.emplace_back(args);
     argSet_.emplace_back(INVALID_UINT32);
 }
 void CallStack::AppendDistributeInfo()
@@ -98,7 +90,6 @@ void CallStack::AppendDistributeInfo()
     spanIds_.emplace_back("");
     parentSpanIds_.emplace_back("");
     flags_.emplace_back("");
-    args_.emplace_back("");
     argSet_.emplace_back(INVALID_UINT32);
 }
 void CallStack::SetDuration(size_t index, uint64_t timeStamp)
@@ -138,55 +129,47 @@ void CallStack::SetArgSetId(size_t index, uint32_t argSetId)
 {
     argSet_[index] = argSetId;
 }
-const std::deque<std::optional<uint64_t>>& CallStack::ParentIdData() const
+const std::deque<std::optional<uint64_t>> &CallStack::ParentIdData() const
 {
     return parentIds_;
 }
-const std::deque<DataIndex>& CallStack::CatsData() const
+const std::deque<DataIndex> &CallStack::CatsData() const
 {
     return cats_;
 }
-const std::deque<uint16_t>& CallStack::IdentifysData() const
-{
-    return identifys_;
-}
-const std::deque<DataIndex>& CallStack::NamesData() const
+const std::deque<DataIndex> &CallStack::NamesData() const
 {
     return names_;
 }
-const std::deque<uint8_t>& CallStack::Depths() const
+const std::deque<uint8_t> &CallStack::Depths() const
 {
     return depths_;
 }
-const std::deque<int64_t>& CallStack::Cookies() const
+const std::deque<int64_t> &CallStack::Cookies() const
 {
     return cookies_;
 }
-const std::deque<uint32_t>& CallStack::CallIds() const
+const std::deque<uint32_t> &CallStack::CallIds() const
 {
     return callIds_;
 }
-const std::deque<std::string>& CallStack::ChainIds() const
+const std::deque<std::string> &CallStack::ChainIds() const
 {
     return chainIds_;
 }
-const std::deque<std::string>& CallStack::SpanIds() const
+const std::deque<std::string> &CallStack::SpanIds() const
 {
     return spanIds_;
 }
-const std::deque<std::string>& CallStack::ParentSpanIds() const
+const std::deque<std::string> &CallStack::ParentSpanIds() const
 {
     return parentSpanIds_;
 }
-const std::deque<std::string>& CallStack::Flags() const
+const std::deque<std::string> &CallStack::Flags() const
 {
     return flags_;
 }
-const std::deque<std::string>& CallStack::ArgsData() const
-{
-    return args_;
-}
-const std::deque<uint32_t>& CallStack::ArgSetIdsData() const
+const std::deque<uint32_t> &CallStack::ArgSetIdsData() const
 {
     return argSet_;
 }

@@ -33,7 +33,7 @@ export class TabCpuDetailsIrq extends BaseElement {
   private cpuDetailsLrqProgress: LitProgressBar | null | undefined;
   traceChange: boolean = false;
   private cpuDetailsLrqPie: LitChartPie | null | undefined;
-  private cpuDetailsLrqData: Array<any> = [];
+  private cpuDetailsLrqData: Array<unknown> = [];
   private cpuDetailsLrqSortColumn: string = '';
   private sortType: number = 0;
 
@@ -43,53 +43,57 @@ export class TabCpuDetailsIrq extends BaseElement {
     this.cpuDetailsLrqPie = this.shadowRoot!.querySelector<LitChartPie>('#chart-pie');
     this.cpuDetailsLrqUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-cpu-irq');
 
-    this.cpuDetailsLrqUsageTbl!.addEventListener('row-click', (evt: any) => {
+    this.cpuDetailsLrqUsageTbl!.addEventListener('row-click', (evt: unknown) => {
       // @ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
-      if ((evt.detail as any).callBack) {
+      if ((evt.detail as unknown).callBack) {
         // @ts-ignore
-        (evt.detail as any).callBack(true);
+        (evt.detail as unknown).callBack(true);
       }
     });
 
-    this.cpuDetailsLrqUsageTbl!.addEventListener('column-click', (evt: any) => {
-      this.cpuDetailsLrqSortColumn = evt.detail.key;
+    this.cpuDetailsLrqUsageTbl!.addEventListener('column-click', (evt: unknown) => {
+      //@ts-ignore
+      this.cpuDetailsLrqSortColumn = evt.detail.key; //@ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.cpuDetailsLrqUsageTbl!.addEventListener('row-hover', (evt: any) => {
+    this.cpuDetailsLrqUsageTbl!.addEventListener('row-hover', (evt: unknown) => {
+      //@ts-ignore
       if (evt.detail.data) {
+        //@ts-ignore
         let data = evt.detail.data;
-        data.isHover = true;
-        if ((evt.detail as any).callBack) {
-          (evt.detail as any).callBack(true);
+        data.isHover = true; //@ts-ignore
+        if ((evt.detail as unknown).callBack) {
+          //@ts-ignore
+          (evt.detail as unknown).callBack(true);
         }
       }
       this.cpuDetailsLrqPie?.showHover();
     });
   }
 
-  init(cpu: number) {
+  init(cpu: number): void {
     this.queryPieChartDataByType('CPU Irq', cpu);
   }
 
-  queryPieChartDataByType(type: string, cpu: number) {
+  queryPieChartDataByType(type: string, cpu: number): void {
     if (this.traceChange) {
       return;
     }
     this.cpuDetailsLrqProgress!.loading = true;
     this.queryLoginWorker(`scheduling-${type}`, 'query Cpu Frequency Analysis Time:', (res) => {
       this.traceChange = true;
-      this.cpuDetailsLrqProgress!.loading = false;
+      this.cpuDetailsLrqProgress!.loading = false; //@ts-ignore
       this.cpuDetailsLrqData = res.get(cpu) || [];
       this.cpuDetailsLrqData = getDataNo(this.cpuDetailsLrqData);
-      this.tableNoData!.noData = this.cpuDetailsLrqData.length == 0;
-      this.noData(this.cpuDetailsLrqData.length == 0);
+      this.tableNoData!.noData = this.cpuDetailsLrqData.length === 0;
+      this.noData(this.cpuDetailsLrqData.length === 0);
       this.setLrqPieConfig();
-      if (this.cpuDetailsLrqSortColumn != '') {
+      if (this.cpuDetailsLrqSortColumn !== '') {
         this.sortByColumn({
           key: this.cpuDetailsLrqSortColumn,
           sort: this.sortType,
@@ -111,19 +115,40 @@ export class TabCpuDetailsIrq extends BaseElement {
       label: {
         type: 'outer',
       },
-      tip: (irqObj) => {
+      tip: (irqObj): string => {
         return `<div>
-                                <div>block:${irqObj.obj.block}</div> 
-                                <div>name:${irqObj.obj.value}</div>
-                                <div>min:${irqObj.obj.min}</div>
-                                <div>max:${irqObj.obj.max}</div>
-                                <div>average:${irqObj.obj.avg}</div>
-                                <div>duration:${irqObj.obj.sumTimeStr}</div>
-                                <div>ratio:${irqObj.obj.ratio}%</div>
+                                <div>block:${
+                                  // @ts-ignore
+                                  irqObj.obj.block
+                                }</div> 
+                                <div>name:${
+                                  // @ts-ignore
+                                  irqObj.obj.value
+                                }</div>
+                                <div>min:${
+                                  // @ts-ignore
+                                  irqObj.obj.min
+                                }</div>
+                                <div>max:${
+                                  // @ts-ignore
+                                  irqObj.obj.max
+                                }</div>
+                                <div>average:${
+                                  // @ts-ignore
+                                  irqObj.obj.avg
+                                }</div>
+                                <div>duration:${
+                                  // @ts-ignore
+                                  irqObj.obj.sumTimeStr
+                                }</div>
+                                <div>ratio:${
+                                  // @ts-ignore
+                                  irqObj.obj.ratio
+                                }%</div>
                             </div>
                                 `;
       },
-      hoverHandler: (data) => {
+      hoverHandler: (data): void => {
         if (data) {
           this.cpuDetailsLrqUsageTbl!.setCurrentHover(data);
         } else {
@@ -138,19 +163,19 @@ export class TabCpuDetailsIrq extends BaseElement {
     };
   }
 
-  noData(value: boolean) {
+  noData(value: boolean): void {
     this.shadowRoot!.querySelector<HTMLDivElement>('.irq-chart-box')!.style.display = value ? 'none' : 'block';
     this.shadowRoot!.querySelector<HTMLDivElement>('.table-box')!.style.width = value ? '100%' : '60%';
   }
 
-  clearData() {
+  clearData(): void {
     this.traceChange = false;
     this.cpuDetailsLrqPie!.dataSource = [];
     this.cpuDetailsLrqUsageTbl!.recycleDataSource = [];
     this.noData(false);
   }
 
-  queryLoginWorker(irqType: string, log: string, handler: (res: any) => void) {
+  queryLoginWorker(irqType: string, log: string, handler: (res: unknown) => void): void {
     let cpuDetailsLrqTime = new Date().getTime();
     procedurePool.submitWithName(
       'logic0',
@@ -166,40 +191,49 @@ export class TabCpuDetailsIrq extends BaseElement {
     info(log, durTime);
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(cpuDetailsLrqProperty, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         if (type === 'number') {
-          // @ts-ignore
           return sort === 2
-            ? parseFloat(b[cpuDetailsLrqProperty]) - parseFloat(a[cpuDetailsLrqProperty])
+            ? // @ts-ignore
+              parseFloat(b[cpuDetailsLrqProperty]) - parseFloat(a[cpuDetailsLrqProperty]) //@ts-ignore
             : parseFloat(a[cpuDetailsLrqProperty]) - parseFloat(b[cpuDetailsLrqProperty]);
         } else {
           if (sort === 2) {
+            //@ts-ignore
             return b[cpuDetailsLrqProperty].toString().localeCompare(a[cpuDetailsLrqProperty].toString());
           } else {
+            //@ts-ignore
             return a[cpuDetailsLrqProperty].toString().localeCompare(b[cpuDetailsLrqProperty].toString());
           }
         }
       };
     }
 
+    //@ts-ignore
     if (detail.key === 'min') {
-      detail.key = 'minValue';
-      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number'));
+      //@ts-ignore
+      detail.key = 'minValue'; //@ts-ignore
+      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number')); //@ts-ignore
     } else if (detail.key === 'max') {
-      detail.key = 'maxValue';
-      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number'));
+      //@ts-ignore
+      detail.key = 'maxValue'; //@ts-ignore
+      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number')); //@ts-ignore
     } else if (detail.key === 'avg') {
-      detail.key = 'avgValue';
-      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number'));
+      //@ts-ignore
+      detail.key = 'avgValue'; //@ts-ignore
+      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number')); //@ts-ignore
     } else if (detail.key === 'sumTimeStr') {
-      detail.key = 'sum';
-      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number'));
+      //@ts-ignore
+      detail.key = 'sum'; //@ts-ignore
+      this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number')); //@ts-ignore
     } else if (detail.key === 'ratio' || detail.key === 'index') {
+      //@ts-ignore
       this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'number'));
     } else {
+      //@ts-ignore
       this.cpuDetailsLrqData.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.cpuDetailsLrqUsageTbl!.recycleDataSource = this.cpuDetailsLrqData;

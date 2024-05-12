@@ -12,11 +12,13 @@
 // limitations under the License.
 
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from '../utils/QueryEnum';
-import { threadPool } from '../../SqlLite';
+import { getThreadPool } from '../../SqlLite';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { ProcessStruct } from '../../ui-worker/ProcedureWorkerProcess';
+import { Utils } from '../../../component/trace/base/Utils';
 
-export function processDataSender(pid: number, row: TraceRow<ProcessStruct>): Promise<ProcessStruct[]> {
+export function processDataSender(pid: number, row: TraceRow<ProcessStruct>, traceId?: string):
+  Promise<ProcessStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
@@ -28,30 +30,30 @@ export function processDataSender(pid: number, row: TraceRow<ProcessStruct>): Pr
     };
   }
   return new Promise((resolve): void => {
-    threadPool.submitProto(
+    getThreadPool(traceId).submitProto(
       QueryEnum.ProcessData,
       {
         pid: pid,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
+        recordStartNS: Utils.getInstance().getRecordStartNS(traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(traceId),
         width: width,
         t: new Date().getTime(),
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): ProcessStruct[] {
-  let outArr: ProcessStruct[] = [];
-  let cpu = new Uint8Array(buffers.cpu);
-  let startTime = new Float64Array(buffers.startTime);
+function arrayBufferHandler(buffers: unknown, len: number): ProcessStruct[] {
+  let outArr: ProcessStruct[] = []; //@ts-ignore
+  let cpu = new Uint8Array(buffers.cpu); //@ts-ignore
+  let startTime = new Float64Array(buffers.startTime); //@ts-ignore
   let dur = new Float64Array(buffers.dur);
   for (let i = 0; i < len; i++) {
     outArr.push({

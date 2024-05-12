@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, CALLCHAIN_ID, DEPTH, IP, VADDR_IN_FILE, FILE_ID, SYMBOL_ID, NAME };
-PerfCallChainTable::PerfCallChainTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+PerfCallChainTable::PerfCallChainTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
@@ -33,14 +33,14 @@ PerfCallChainTable::PerfCallChainTable(const TraceDataCache* dataCache) : TableB
 
 PerfCallChainTable::~PerfCallChainTable() {}
 
-void PerfCallChainTable::FilterByConstraint(FilterConstraints& chainfc,
-                                            double& chainfilterCost,
+void PerfCallChainTable::FilterByConstraint(FilterConstraints &chainfc,
+                                            double &chainfilterCost,
                                             size_t chainrowCount,
                                             uint32_t chaincurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& chainc = chainfc.GetConstraints()[chaincurrenti];
+    const auto &chainc = chainfc.GetConstraints()[chaincurrenti];
     switch (static_cast<Index>(chainc.col)) {
         case Index::ID: {
             if (CanFilterId(chainc.op, chainrowCount)) {
@@ -62,7 +62,7 @@ std::unique_ptr<TableBase::Cursor> PerfCallChainTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-PerfCallChainTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+PerfCallChainTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstPerfCallChainData().Size())),
       perfCallChainObj_(dataCache->GetConstPerfCallChainData())
 {
@@ -70,7 +70,7 @@ PerfCallChainTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* t
 
 PerfCallChainTable::Cursor::~Cursor() {}
 
-int32_t PerfCallChainTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t PerfCallChainTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -83,7 +83,7 @@ int32_t PerfCallChainTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(perfCallChainCs, sId);
     for (size_t i = 0; i < perfCallChainCs.size(); i++) {
-        const auto& c = perfCallChainCs[i];
+        const auto &c = perfCallChainCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -154,7 +154,7 @@ int32_t PerfCallChainTable::Cursor::Column(int32_t column) const
     return SQLITE_OK;
 }
 
-void PerfCallChainTable::GetOrbyes(FilterConstraints& chainfc, EstimatedIndexInfo& chainei)
+void PerfCallChainTable::GetOrbyes(FilterConstraints &chainfc, EstimatedIndexInfo &chainei)
 {
     auto chainorderbys = chainfc.GetOrderBys();
     for (auto i = 0; i < chainorderbys.size(); i++) {

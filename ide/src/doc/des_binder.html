@@ -782,9 +782,12 @@
       <h1 class="mume-header fontColor">binder事件上下文如何关联</h1>
 
       <p class="fontColor">
-        binder事件相对复杂，这里是从ftrace事件中抽离出来的binder相关消息，用来作为开发者或用户追踪binder事件的参考<br />
-        a binder event is identified by the sender and receive device, and a reply message only end<br />
-        the last binder msg which reply the calling one.<br />
+        binder事件相对复杂，这里是从ftrace事件中抽离出来的binder相关消息，用来作为开发者或用户追踪binder事件的参考
+        <br />
+        a binder event is identified by the sender and receive device, and a reply message only end
+        <br />
+        the last binder msg which reply the calling one.
+        <br />
         the alloc_buf msg can always flow the binder_transaction, so we no need to identify the alloc msg with
         transactionID
       </p>
@@ -860,10 +863,10 @@ Binder:506_2-537   (  506) [003] ...1 168766.128413: binder_transaction_alloc_bu
     <script type="text/javascript">
       window.onload = () => {
         let isDark = window.location.search;
-        if (isDark.indexOf('?') != -1) {
+        if (isDark.indexOf('?') !== -1) {
           isDark = isDark.substr(1, isDark.length - 1);
         }
-        if (isDark == 'true') {
+        if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
           for (let i = 0; i < header.length; i++) {

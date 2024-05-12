@@ -20,7 +20,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-BioLatencyDataParser::BioLatencyDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+BioLatencyDataParser::BioLatencyDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx), EbpfBase(dataCache, ctx), timeParser_(std::make_unique<HtracePluginTimeParser>())
 {
 }
@@ -30,13 +30,13 @@ BioLatencyDataParser::~BioLatencyDataParser()
             static_cast<unsigned long long>(timeParser_->GetPluginEndTime()));
 }
 
-const uint64_t* BioLatencyDataParser::IPAndCallIdProcessing(const BIOFixedHeader* bioFixedHeadrAddr,
-                                                            bool& callIdExistFlag)
+const uint64_t *BioLatencyDataParser::IPAndCallIdProcessing(const BIOFixedHeader *bioFixedHeadrAddr,
+                                                            bool &callIdExistFlag)
 {
     // Process user state IP addresses and establish mapping relationships with their corresponding callId values
-    auto userIpsAddr = reinterpret_cast<const uint64_t*>(bioFixedHeadrAddr + 1);
+    auto userIpsAddr = reinterpret_cast<const uint64_t *>(bioFixedHeadrAddr + 1);
     if (bioFixedHeadrAddr->nips) {
-        std::string ipsToStr(reinterpret_cast<const char*>(userIpsAddr), bioFixedHeadrAddr->nips * SINGLE_IP_SIZE);
+        std::string ipsToStr(reinterpret_cast<const char *>(userIpsAddr), bioFixedHeadrAddr->nips * SINGLE_IP_SIZE);
         auto ipsHashValue = hashFun_(ipsToStr);
         auto value = pidAndipsToCallId_.Find(bioFixedHeadrAddr->pid, ipsHashValue);
         if (value != INVALID_UINT64) {
@@ -66,7 +66,7 @@ void BioLatencyDataParser::ParseBioLatencyEvent()
 
         uint32_t type = bioFixedHeadrAddr->type;
         // Init process name data
-        const char* processName = reinterpret_cast<const char*>(bioFixedHeadrAddr->processName);
+        const char *processName = reinterpret_cast<const char *>(bioFixedHeadrAddr->processName);
         uint32_t ipid =
             streamFilters_->processFilter_->UpdateOrCreateProcessWithName(bioFixedHeadrAddr->pid, processName);
         uint32_t itid =

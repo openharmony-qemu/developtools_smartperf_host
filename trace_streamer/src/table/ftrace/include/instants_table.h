@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class InstantsTable : public TableBase {
 public:
-    explicit InstantsTable(const TraceDataCache* dataCache);
+    explicit InstantsTable(const TraceDataCache *dataCache);
     ~InstantsTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,22 +32,22 @@ private:
     {
         return dataCache_->GetConstInstantsData().Size();
     }
-    void GetOrbyes(FilterConstraints& instantsfc, EstimatedIndexInfo& instantsei) override;
-    void FilterByConstraint(FilterConstraints& instantsfc,
-                            double& instantsfilterCost,
+    void GetOrbyes(FilterConstraints &instantsfc, EstimatedIndexInfo &instantsei) override;
+    void FilterByConstraint(FilterConstraints &instantsfc,
+                            double &instantsfilterCost,
                             size_t instantsrowCount,
                             uint32_t instantscurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
 
     private:
-        void SortOfIndexMap(const FilterConstraints& fc);
-        const Instants& InstantsObj_;
+        void SortOfIndexMap(const FilterConstraints &fc);
+        const Instants &InstantsObj_;
     };
 };
 } // namespace TraceStreamer

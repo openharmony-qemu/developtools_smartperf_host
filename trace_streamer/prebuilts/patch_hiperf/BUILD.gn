@@ -71,12 +71,7 @@ ohos_source_set("hiperf_src") {
     "include/nonlinux/linux",
     "${THIRD_PARTY}/bounds_checking_function/include",
   ]
-  include_dirs += [
-    "${THIRD_PARTY}/perf_include/libbpf",
-    "${THIRD_PARTY}/libunwind/include",
-    "${THIRD_PARTY}/libunwind/src",
-    "${THIRD_PARTY}/libunwind/include/tdep-x86_64",
-  ]
+  include_dirs += [ "${THIRD_PARTY}/perf_include/libbpf" ]
   include_dirs += [
     "${THIRD_PARTY}/perf_include/hiviewdfx/hilog/include",
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/cutil",
@@ -87,9 +82,20 @@ ohos_source_set("hiperf_src") {
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
   ]
+  if (!use_wasm && !is_win && !is_mingw && !is_mac && !is_test) {
+    if (!is_independent_compile) {
+      if (target_cpu == "arm64") {
+        public_deps = [ "//third_party/libunwind:unwind_source_arm64_opt" ]
+      } else {
+        public_deps = [ "//third_party/libunwind:unwind_source_${target_cpu}" ]
+      }
+    } else {
+      public_deps = [ "${THIRD_PARTY}/libunwind:libunwind" ]
+    }
+  }
 }
 group("hiperf_platform_common") {
-  deps = [
+  public_deps = [
     ":elf",
     ":hiperf_src",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",

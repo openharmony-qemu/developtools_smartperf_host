@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +54,7 @@ export class TabPaneBinderDataCut extends BaseElement {
   private threadArr: Array<ThreadBinderItem> = [];
   private threadBinderMap: Map<string, Array<BinderItem>> = new Map();
   private processIds: Array<number> = [];
-  private funcCycleArr: Array<any> = [];
+  private funcCycleArr: Array<FunctionItem> = [];
 
   set data(threadStatesParam: SelectionParam) {
     if (this.currentSelectionParam === threadStatesParam) {
@@ -72,6 +71,7 @@ export class TabPaneBinderDataCut extends BaseElement {
     this.clickLoop(false);
     this.clickSingle(false);
     this.threadBindersTbl!.recycleDataSource = [];
+    // @ts-ignore
     this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
     this.parentElement!.style.overflow = 'hidden';
     new ResizeObserver(() => {
@@ -118,19 +118,16 @@ export class TabPaneBinderDataCut extends BaseElement {
     if (binderArr.length > 0) {
       this.structureThreadBinderMap(binderArr);
     }
-    if(type === 'loop') {
+    if (type === 'loop') {
+      //@ts-ignore
       this.funcCycleArr = await queryLoopFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
-    }else {
+    } else {
       this.funcCycleArr = await queryFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
     }
   }
 
   //点击single loop 切割按钮方法
-  async dataCutFunc(
-    threadId: HTMLInputElement,
-    threadFunc: HTMLInputElement,
-    type: string,
-  ): Promise<void> {
+  async dataCutFunc(threadId: HTMLInputElement, threadFunc: HTMLInputElement, type: string): Promise<void> {
     this.currentThreadId = '';
     let threadIdValue = threadId.value.trim();
     let threadFuncName = threadFunc.value.trim();
@@ -151,14 +148,15 @@ export class TabPaneBinderDataCut extends BaseElement {
       this.threadBinderMap.clear();
       await this.queryDataFromDb(threadIdValue, threadFuncName, threadIds, leftNS, rightNS, type);
       if (this.funcCycleArr.length !== 0) {
-        let cycleMap: Map<string, Array<CycleBinderItem>> = type === 'loop' ?
-          this.loopDataCutCycleMap(this.funcCycleArr) : this.singleDataCutCycleMap(this.funcCycleArr);
+        let cycleMap: Map<string, Array<CycleBinderItem>> = type === 'loop'
+          ? this.loopDataCutCycleMap(this.funcCycleArr)
+          : this.singleDataCutCycleMap(this.funcCycleArr);
         this.threadBindersTbl!.recycleDataSource = this.mergeData(cycleMap);
-        this.threadBindersTbl!.loading = false;
+        this.threadBindersTbl!.loading = false; // @ts-ignore
         this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
       } else {
         this.threadBindersTbl!.recycleDataSource = [];
-        this.threadBindersTbl!.loading = false;
+        this.threadBindersTbl!.loading = false; // @ts-ignore
         this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
       }
     } else {
@@ -176,7 +174,7 @@ export class TabPaneBinderDataCut extends BaseElement {
       threadId.style.border = '1px solid rgb(255,0,0)';
       threadId.setAttribute('placeholder', 'Please input thread id');
       this.threadBindersTbl!.recycleDataSource = [];
-      this.threadBindersTbl!.loading = false;
+      this.threadBindersTbl!.loading = false; // @ts-ignore
       this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
     } else {
       threadId.style.border = '1px solid rgb(151,151,151)';
@@ -185,7 +183,7 @@ export class TabPaneBinderDataCut extends BaseElement {
       threadFunc.style.border = '1px solid rgb(255,0,0)';
       threadFunc.setAttribute('placeholder', 'Please input function name');
       this.threadBindersTbl!.recycleDataSource = [];
-      this.threadBindersTbl!.loading = false;
+      this.threadBindersTbl!.loading = false; // @ts-ignore
       this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
     } else {
       threadFunc.style.border = '1px solid rgb(151,151,151)';
@@ -197,7 +195,10 @@ export class TabPaneBinderDataCut extends BaseElement {
     for (let b of binderArr) {
       if (!this.threadBinderMap.has(b.pid + '_' + b.tid)) {
         this.threadArr.push({
-          title: Utils.THREAD_MAP.get(b.tid) === null ? 'Thread' + ' ' + '[' + b.tid + ']' : Utils.THREAD_MAP.get(b.tid) + ' ' + '[' + b.tid + ']',
+          title:
+            Utils.getInstance().getThreadMap().get(b.tid) === null
+              ? 'Thread' + ' ' + '[' + b.tid + ']'
+              : Utils.getInstance().getThreadMap().get(b.tid) + ' ' + '[' + b.tid + ']',
           totalCount: 0,
           tid: b.tid,
           pid: b.pid,
@@ -217,8 +218,8 @@ export class TabPaneBinderDataCut extends BaseElement {
       threadBinderMap.forEach((val, key) => {
         const k = key;
         const v = JSON.parse(JSON.stringify(val));
-        cloneThreadBinderMap.set(k, v)
-      })
+        cloneThreadBinderMap.set(k, v);
+      });
     }
     return cloneThreadBinderMap;
   }
@@ -237,7 +238,7 @@ export class TabPaneBinderDataCut extends BaseElement {
             cycleMap.set(tBinder[j].tid + '_' + cid, new Array());
           }
           cycleArr = cycleMap.get(tBinder[j].tid + '_' + cid);
-          let thread: string = Utils.THREAD_MAP.get(tBinder[j].tid) || 'Thread';
+          let thread: string = Utils.getInstance().getThreadMap().get(tBinder[j].tid) || 'Thread';
           countBinder.title = 'cycle ' + (idx + 1) + '_' + thread;
           countBinder.tid = tBinder[j].tid;
           countBinder.pid = tBinder[j].pid;
@@ -245,7 +246,10 @@ export class TabPaneBinderDataCut extends BaseElement {
           countBinder.tsNs = func.cycleStartTime;
           countBinder.cycleDur = Number((func.dur / MILLIONS).toFixed(THREE));
           countBinder.cycleStartTime = Number((func.cycleStartTime / MILLIONS).toFixed(THREE));
-          if (tBinder[j].ts + tBinder[j].dur > func.cycleStartTime && tBinder[j].ts + tBinder[j].dur < func.cycleStartTime + func!.dur) {
+          if (
+            tBinder[j].ts + tBinder[j].dur > func.cycleStartTime &&
+            tBinder[j].ts + tBinder[j].dur < func.cycleStartTime + func!.dur
+          ) {
             countBinder.totalCount += 1;
             countBinder.binderTransactionCount += tBinder[j].name === 'binder transaction' ? 1 : 0;
             countBinder.binderAsyncRcvCount += tBinder[j].name === 'binder async rcv' ? 1 : 0;
@@ -276,15 +280,20 @@ export class TabPaneBinderDataCut extends BaseElement {
             cycleMap.set(tBinder[j].tid + '_' + cid, new Array());
           }
           cycleArr = cycleMap.get(tBinder[j].tid + '_' + cid);
-          let thread: string = Utils.THREAD_MAP.get(tBinder[j].tid) || 'Thread';
+          let thread: string = Utils.getInstance().getThreadMap().get(tBinder[j].tid) || 'Thread';
           countBinder.title = 'cycle ' + (i + 1) + '_' + thread;
           countBinder.tid = tBinder[j].tid;
           countBinder.pid = tBinder[j].pid;
           countBinder.durNs = funcNameArr[i + 1].cycleStartTime - funcNameArr[i].cycleStartTime;
           countBinder.tsNs = funcNameArr[i].cycleStartTime;
-          countBinder.cycleDur = Number(((funcNameArr[i + 1].cycleStartTime - funcNameArr[i].cycleStartTime) / MILLIONS).toFixed(THREE));
+          countBinder.cycleDur = Number(
+            ((funcNameArr[i + 1].cycleStartTime - funcNameArr[i].cycleStartTime) / MILLIONS).toFixed(THREE)
+          );
           countBinder.cycleStartTime = Number((funcNameArr[i].cycleStartTime / MILLIONS).toFixed(THREE));
-          if (tBinder[j].ts + tBinder[j].dur > funcNameArr[i].cycleStartTime && tBinder[j].ts + tBinder[j].dur < funcNameArr[i + 1].cycleStartTime) {
+          if (
+            tBinder[j].ts + tBinder[j].dur > funcNameArr[i].cycleStartTime &&
+            tBinder[j].ts + tBinder[j].dur < funcNameArr[i + 1].cycleStartTime
+          ) {
             countBinder.totalCount += 1;
             countBinder!.binderTransactionCount += tBinder[j].name === 'binder transaction' ? 1 : 0;
             countBinder!.binderAsyncRcvCount += tBinder[j].name === 'binder async rcv' ? 1 : 0;
@@ -321,17 +330,18 @@ export class TabPaneBinderDataCut extends BaseElement {
       }
     }
     // process级的数组数据，也就是树结构的根数据层
-    processIds.forEach(pid => {
-      processArr.push(
-        {
-          pid: pid,
-          title: Utils.PROCESS_MAP.get(pid) === null ? 'Process' + ' ' + '[' + pid + ']' : Utils.PROCESS_MAP.get(pid) + ' ' + '[' + pid + ']',
-          totalCount: 0,
-          type: 'Process',
-          children: [],
-        }
-      );
-    })
+    processIds.forEach((pid) => {
+      processArr.push({
+        pid: pid,
+        title:
+          Utils.getInstance().getProcessMap().get(pid) === null
+            ? 'Process' + ' ' + '[' + pid + ']'
+            : Utils.getInstance().getProcessMap().get(pid) + ' ' + '[' + pid + ']',
+        totalCount: 0,
+        type: 'Process',
+        children: [],
+      });
+    });
     // 将process级下的thread数据放入对应的process下
     for (let process of processArr) {
       for (let thread of this.threadArr) {
@@ -410,10 +420,11 @@ export class TabPaneBinderDataCut extends BaseElement {
       removeUnit: true,
       notSort: true,
       color: (a) => {
+        //@ts-ignore
         if (a.xName === 'Total') {
-          return '#2f72f8';
+          return '#2f72f8'; //@ts-ignore
         } else if (a.xName === 'cycleA') {
-          return '#ffab67';
+          return '#ffab67'; //@ts-ignore
         } else if (a.xName === 'cycleB') {
           return '#a285d2';
         } else {
@@ -421,10 +432,14 @@ export class TabPaneBinderDataCut extends BaseElement {
         }
       },
       tip: (a) => {
+        //@ts-ignore
         if (a && a[0]) {
           let tip: string = '';
           tip = `<div>
-                    <div>Average count: ${a[0].obj.yAverage}</div>
+                    <div>Average count: ${
+                      //@ts-ignore
+                      a[0].obj.yAverage
+                    }</div>
                 </div>`;
           return tip;
         } else {
@@ -515,10 +530,14 @@ export class TabPaneBinderDataCut extends BaseElement {
   queryBtnClick(): void {
     this.shadowRoot?.querySelector('#query-btn')?.addEventListener('click', () => {
       this.cycleARangeArr = this.rowCycleData?.filter((it: CycleBinderItem) => {
-        return (it.cycleDur >= Number(this.cycleAStartRangeDIV!.value) && it.cycleDur < Number(this.cycleAEndRangeDIV!.value));
+        return (
+          it.cycleDur >= Number(this.cycleAStartRangeDIV!.value) && it.cycleDur < Number(this.cycleAEndRangeDIV!.value)
+        );
       });
       this.cycleBRangeArr = this.rowCycleData?.filter((it: CycleBinderItem) => {
-        return (it.cycleDur >= Number(this.cycleBStartRangeDIV!.value) && it.cycleDur < Number(this.cycleBEndRangeDIV!.value));
+        return (
+          it.cycleDur >= Number(this.cycleBStartRangeDIV!.value) && it.cycleDur < Number(this.cycleBEndRangeDIV!.value)
+        );
       });
       let cycleACount: number = 0;
       this.cycleARangeArr?.forEach((it: CycleBinderItem) => {

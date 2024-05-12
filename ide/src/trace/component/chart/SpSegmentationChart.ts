@@ -350,7 +350,7 @@ export class SpSegmentationChart {
     SpSegmentationChart.statesRow.name = `All States`;
     SpSegmentationChart.statesRow.favoriteChangeHandler = SpSegmentationChart.trace.favoriteChangeHandler;
     SpSegmentationChart.statesRow.selectChangeHandler = SpSegmentationChart.trace.selectChangeHandler;
-    // @ts-ignore
+  // @ts-ignore
     SpSegmentationChart.statesRow.supplier = (): Promise<Array<freqChartDataStruct>> =>
       new Promise<Array<FreqChartDataStruct>>((resolve) => resolve([]));
     SpSegmentationChart.statesRow.onThreadHandler = (useCache) => {

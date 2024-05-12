@@ -34,9 +34,9 @@ void SetAnalysisResult(TraceParserStatus stat);
 
 TraceParserStatus GetAnalysisResult();
 
-ssize_t Read(int32_t fd, uint8_t* dst, size_t dstSize);
+ssize_t Read(int32_t fd, uint8_t *dst, size_t dstSize);
 
-int32_t OpenFile(const std::string& path, int32_t flags, uint32_t mode = K_FILE_MODE_INVALID);
+int32_t OpenFile(const std::string &path, int32_t flags, uint32_t mode = K_FILE_MODE_INVALID);
 
 std::string GetExecutionDirectoryPath();
 } // namespace base

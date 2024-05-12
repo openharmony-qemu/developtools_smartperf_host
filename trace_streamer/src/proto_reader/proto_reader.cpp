@@ -25,7 +25,7 @@ std::map<ProtoWireType, ProtoReaderBase::ParseDataAreaValueByType> ProtoReaderBa
     {ProtoWireType::kFixed32, ProtoReaderBase::ParseFixed32Value},
     {ProtoWireType::kFixed64, ProtoReaderBase::ParseFixed64Value},
 };
-ProtoReaderBase::ProtoReaderBase(DataArea* storage, uint32_t dataAreasCount, const uint8_t* buffer, size_t length)
+ProtoReaderBase::ProtoReaderBase(DataArea *storage, uint32_t dataAreasCount, const uint8_t *buffer, size_t length)
     : startAddr_(buffer),
       endAddr_(startAddr_ + length),
       currentReadAddr_(startAddr_),
@@ -39,13 +39,13 @@ ProtoReaderBase::ProtoReaderBase(DataArea* storage, uint32_t dataAreasCount, con
 }
 
 // return next parse addr and dataAreaTag. if failed returns nullptr
-const uint8_t* ProtoReaderBase::GetNextProtoTag(const uint8_t* const startAddr,
-                                                const uint8_t* const endAddr,
-                                                uint64_t* dataAreaTag)
+const uint8_t *ProtoReaderBase::GetNextProtoTag(const uint8_t *const startAddr,
+                                                const uint8_t *const endAddr,
+                                                uint64_t *dataAreaTag)
 {
-    const uint8_t* cursor = startAddr;
+    const uint8_t *cursor = startAddr;
     if (*cursor & BYTE_HIGHEST_BIT_MARK) {
-        const uint8_t* nextAddr = VarIntDecode(cursor, endAddr, dataAreaTag);
+        const uint8_t *nextAddr = VarIntDecode(cursor, endAddr, dataAreaTag);
         if (cursor == nextAddr) {
             return nullptr;
         }
@@ -59,9 +59,9 @@ const uint8_t* ProtoReaderBase::GetNextProtoTag(const uint8_t* const startAddr,
     return cursor;
 }
 
-bool ProtoReaderBase::ParseVarIntValue(ParseDataAreaResult& result,
-                                       const uint8_t* startAddr,
-                                       const uint8_t* const endAddr)
+bool ProtoReaderBase::ParseVarIntValue(ParseDataAreaResult &result,
+                                       const uint8_t *startAddr,
+                                       const uint8_t *const endAddr)
 {
     uint64_t intValue = 0;
     auto cursor = VarIntDecode(startAddr, endAddr, &intValue);
@@ -74,9 +74,9 @@ bool ProtoReaderBase::ParseVarIntValue(ParseDataAreaResult& result,
     return true;
 }
 
-bool ProtoReaderBase::ParseLengthDelimitedValue(ParseDataAreaResult& result,
-                                                const uint8_t* startAddr,
-                                                const uint8_t* const endAddr)
+bool ProtoReaderBase::ParseLengthDelimitedValue(ParseDataAreaResult &result,
+                                                const uint8_t *startAddr,
+                                                const uint8_t *const endAddr)
 {
     uint64_t length = 0;
     auto cursor = VarIntDecode(startAddr, endAddr, &length);
@@ -96,9 +96,9 @@ bool ProtoReaderBase::ParseLengthDelimitedValue(ParseDataAreaResult& result,
     return true;
 }
 
-bool ProtoReaderBase::ParseFixed64Value(ParseDataAreaResult& result,
-                                        const uint8_t* startAddr,
-                                        const uint8_t* const endAddr)
+bool ProtoReaderBase::ParseFixed64Value(ParseDataAreaResult &result,
+                                        const uint8_t *startAddr,
+                                        const uint8_t *const endAddr)
 {
     uint64_t intValue = 0;
     auto cursor = startAddr + sizeof(uint64_t);
@@ -113,9 +113,9 @@ bool ProtoReaderBase::ParseFixed64Value(ParseDataAreaResult& result,
     return true;
 }
 
-bool ProtoReaderBase::ParseFixed32Value(ParseDataAreaResult& result,
-                                        const uint8_t* startAddr,
-                                        const uint8_t* const endAddr)
+bool ProtoReaderBase::ParseFixed32Value(ParseDataAreaResult &result,
+                                        const uint8_t *startAddr,
+                                        const uint8_t *const endAddr)
 {
     uint64_t intValue = 0;
     auto cursor = startAddr + sizeof(uint32_t);
@@ -129,7 +129,7 @@ bool ProtoReaderBase::ParseFixed32Value(ParseDataAreaResult& result,
     return true;
 }
 
-ParseDataAreaResult ProtoReaderBase::ParseOneDataArea(const uint8_t* const startAddr, const uint8_t* const endAddr)
+ParseDataAreaResult ProtoReaderBase::ParseOneDataArea(const uint8_t *const startAddr, const uint8_t *const endAddr)
 {
     ParseDataAreaResult result = {ABORT, startAddr, DataArea{}};
     if (!startAddr || startAddr >= endAddr) {
@@ -190,7 +190,7 @@ DataArea ProtoReaderBase::ReadNextDataArea()
 
 void ProtoReaderBase::ParseAllDataAreas()
 {
-    const uint8_t* cur = startAddr_;
+    const uint8_t *cur = startAddr_;
     ParseDataAreaResult result = {ABORT, startAddr_, DataArea{}};
     while (true) {
         result = ParseOneDataArea(cur, endAddr_);
@@ -205,7 +205,7 @@ void ProtoReaderBase::ParseAllDataAreas()
             continue;
         }
 
-        DataArea* dataArea = &dataAreas_[dataAreaId];
+        DataArea *dataArea = &dataAreas_[dataAreaId];
         if (!dataArea->DataAreaValid()) {
             *dataArea = std::move(result.dataArea);
         } else {

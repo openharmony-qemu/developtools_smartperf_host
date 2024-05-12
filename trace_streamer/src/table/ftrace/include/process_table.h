@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class ProcessTable : public TableBase {
 public:
-    explicit ProcessTable(const TraceDataCache* dataCache);
+    explicit ProcessTable(const TraceDataCache *dataCache);
     ~ProcessTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,22 +32,22 @@ private:
     {
         return dataCache_->ProcessSize();
     }
-    void GetOrbyes(FilterConstraints& processfc, EstimatedIndexInfo& processei) override;
-    void FilterByConstraint(FilterConstraints& processfc,
-                            double& processfilterCost,
+    void GetOrbyes(FilterConstraints &processfc, EstimatedIndexInfo &processei) override;
+    void FilterByConstraint(FilterConstraints &processfc,
+                            double &processfilterCost,
                             size_t processrowCount,
                             uint32_t processcurrenti) override;
-    int32_t Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid) override;
+    int32_t Update(int32_t argc, sqlite3_value **argv, sqlite3_int64 *pRowid) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t col) const override;
         void FilterPid(unsigned char op, uint64_t value);
-        void FilterIndex(int32_t col, unsigned char op, sqlite3_value* argv);
-        void FilterId(unsigned char op, sqlite3_value* argv) override;
+        void FilterIndex(int32_t col, unsigned char op, sqlite3_value *argv);
+        void FilterId(unsigned char op, sqlite3_value *argv) override;
         void HandleIndexConstraintEQ(bool remove, uint64_t value);
         void HandleIndexConstraintNQ(bool remove, uint64_t value);
     };

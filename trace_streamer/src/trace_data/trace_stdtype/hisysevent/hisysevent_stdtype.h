@@ -22,8 +22,8 @@ namespace TraceStdtype {
 class HiSysEventSubkeys : public CacheBase {
 public:
     uint32_t AppendSysEventSubkey(DataIndex eventSource, DataIndex appName);
-    const std::deque<DataIndex>& SysEventNameId() const;
-    const std::deque<DataIndex>& SysEventSubkeyId() const;
+    const std::deque<DataIndex> &SysEventNameId() const;
+    const std::deque<DataIndex> &SysEventSubkeyId() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -44,13 +44,13 @@ public:
                     int32_t type,
                     double numericValue,
                     DataIndex stringValue);
-    const std::deque<uint64_t>& Serial() const;
-    const std::deque<uint64_t>& Ts() const;
-    const std::deque<uint32_t>& NameFilterId() const;
-    const std::deque<uint32_t>& AppKeyFilterId() const;
-    const std::deque<int32_t>& Type() const;
-    const std::deque<double>& NumValue() const;
-    const std::deque<DataIndex>& StringValue() const;
+    const std::deque<uint64_t> &Serial() const;
+    const std::deque<uint64_t> &Ts() const;
+    const std::deque<uint32_t> &NameFilterId() const;
+    const std::deque<uint32_t> &AppKeyFilterId() const;
+    const std::deque<int32_t> &Type() const;
+    const std::deque<double> &NumValue() const;
+    const std::deque<DataIndex> &StringValue() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -96,26 +96,26 @@ public:
                        int32_t accessibility,
                        int32_t recording,
                        int32_t streamAll);
-    const std::deque<int32_t>& Brightness() const;
-    const std::deque<int32_t>& BtState() const;
-    const std::deque<int32_t>& Location() const;
-    const std::deque<int32_t>& Wifi() const;
-    const std::deque<int32_t>& StreamDefault() const;
-    const std::deque<int32_t>& VoiceCall() const;
-    const std::deque<int32_t>& Music() const;
-    const std::deque<int32_t>& StreamRing() const;
-    const std::deque<int32_t>& Media() const;
-    const std::deque<int32_t>& VoiceAssistant() const;
-    const std::deque<int32_t>& System() const;
-    const std::deque<int32_t>& Alarm() const;
-    const std::deque<int32_t>& Notification() const;
-    const std::deque<int32_t>& BtSco() const;
-    const std::deque<int32_t>& EnforcedAudible() const;
-    const std::deque<int32_t>& StreamDtmf() const;
-    const std::deque<int32_t>& StreamTts() const;
-    const std::deque<int32_t>& Accessibility() const;
-    const std::deque<int32_t>& Recordings() const;
-    const std::deque<int32_t>& StreamAll() const;
+    const std::deque<int32_t> &Brightness() const;
+    const std::deque<int32_t> &BtState() const;
+    const std::deque<int32_t> &Location() const;
+    const std::deque<int32_t> &Wifi() const;
+    const std::deque<int32_t> &StreamDefault() const;
+    const std::deque<int32_t> &VoiceCall() const;
+    const std::deque<int32_t> &Music() const;
+    const std::deque<int32_t> &StreamRing() const;
+    const std::deque<int32_t> &Media() const;
+    const std::deque<int32_t> &VoiceAssistant() const;
+    const std::deque<int32_t> &System() const;
+    const std::deque<int32_t> &Alarm() const;
+    const std::deque<int32_t> &Notification() const;
+    const std::deque<int32_t> &BtSco() const;
+    const std::deque<int32_t> &EnforcedAudible() const;
+    const std::deque<int32_t> &StreamDtmf() const;
+    const std::deque<int32_t> &StreamTts() const;
+    const std::deque<int32_t> &Accessibility() const;
+    const std::deque<int32_t> &Recordings() const;
+    const std::deque<int32_t> &StreamAll() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -172,29 +172,29 @@ public:
                                   DataIndex eventNameId,
                                   uint64_t timeStamp,
                                   uint32_t type,
-                                  const std::string& timeZone,
+                                  const std::string &timeZone,
                                   uint32_t pid,
                                   uint32_t tid,
                                   uint32_t uid,
-                                  const std::string& level,
-                                  const std::string& tag,
-                                  const std::string& eventId,
+                                  const std::string &level,
+                                  const std::string &tag,
+                                  const std::string &eventId,
                                   uint64_t seq,
-                                  const std::string& info,
-                                  const std::string& content);
-    const std::deque<DataIndex>& DomainIds() const;
-    const std::deque<DataIndex>& EventNameIds() const;
-    const std::deque<uint32_t>& Types() const;
-    const std::deque<std::string>& TimeZones() const;
-    const std::deque<uint32_t>& Pids() const;
-    const std::deque<uint32_t>& Tids() const;
-    const std::deque<uint32_t>& Uids() const;
-    const std::deque<std::string>& Levels() const;
-    const std::deque<std::string>& Tags() const;
-    const std::deque<std::string>& EventIds() const;
-    const std::deque<uint64_t>& Seqs() const;
-    const std::deque<std::string>& Infos() const;
-    const std::deque<std::string>& Contents() const;
+                                  const std::string &info,
+                                  const std::string &content);
+    const std::deque<DataIndex> &DomainIds() const;
+    const std::deque<DataIndex> &EventNameIds() const;
+    const std::deque<uint32_t> &Types() const;
+    const std::deque<std::string> &TimeZones() const;
+    const std::deque<uint32_t> &Pids() const;
+    const std::deque<uint32_t> &Tids() const;
+    const std::deque<uint32_t> &Uids() const;
+    const std::deque<std::string> &Levels() const;
+    const std::deque<std::string> &Tags() const;
+    const std::deque<std::string> &EventIds() const;
+    const std::deque<uint64_t> &Seqs() const;
+    const std::deque<std::string> &Infos() const;
+    const std::deque<std::string> &Contents() const;
     void Clear() override
     {
         CacheBase::Clear();

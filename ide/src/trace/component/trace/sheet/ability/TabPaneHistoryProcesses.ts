@@ -29,33 +29,34 @@ export class TabPaneHistoryProcesses extends BaseElement {
   private queryHistoryResult: Array<ProcessHistory> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(historyProcessValue: SelectionParam | any) {
+  set data(historyProcessValue: SelectionParam | unknown) {
     if (this.historyProcessTbl) {
       // @ts-ignore
-      this.historyProcessTbl.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 45 + 'px';
+      this.historyProcessTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 45
+      }px`;
     }
     this.queryDataByDB(historyProcessValue);
   }
 
   initElements(): void {
     this.historyProcessTbl = this.shadowRoot?.querySelector<LitTable>('#tb-history-processes');
-    this.historyProcessTbl!.addEventListener('column-click', (evt) => {
+    this.historyProcessTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.historyProcessTbl!);
   }
 
-  filterData() {
+  filterData(): void {
     if (this.queryHistoryResult.length > 0) {
-      let filterHistory = this.queryHistoryResult.filter((item) => {
-        let array = this.toProcessHistoryArray(item);
-        let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
+      let filterHistory = this.queryHistoryResult.filter((item): boolean => {
+        let array = this.toProcessHistoryArray(item); //@ts-ignore
+        let isInclude = array.filter((value): boolean => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
       if (filterHistory.length > 0) {
@@ -68,7 +69,7 @@ export class TabPaneHistoryProcesses extends BaseElement {
     }
   }
 
-  toProcessHistoryArray(process: ProcessHistory): any[] {
+  toProcessHistoryArray(process: ProcessHistory): unknown[] {
     let array: Array<string> = [];
     array.push(process.processId.toString());
     array.push(process.processName);
@@ -81,12 +82,13 @@ export class TabPaneHistoryProcesses extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    getTabProcessHistoryData(val.leftNs, val.rightNs, val.processId, val.threadId).then((item) => {
-      if (item.length != null && item.length > 0) {
-        log('getTabProcessHistoryData result size : ' + item.length);
+  queryDataByDB(val: SelectionParam | unknown): void {
+    //@ts-ignore
+    getTabProcessHistoryData(val.leftNs, val.rightNs, val.processId, val.threadId).then((item): void => {
+      if (item.length !== null && item.length > 0) {
+        log(`getTabProcessHistoryData result size : ${item.length}`);
         for (const processHistory of item) {
-          processHistory.alive = processHistory.alive == '0' ? 'No' : 'Yes';
+          processHistory.alive = processHistory.alive === '0' ? 'No' : 'Yes';
           if (Number(processHistory.firstSeen) <= 0) {
             processHistory.firstSeen = '0:000.000.000';
             processHistory.firstSeenNumber = 0;
@@ -96,7 +98,7 @@ export class TabPaneHistoryProcesses extends BaseElement {
           }
           processHistory.lastSeenNumber = Number(processHistory.lastSeen);
           processHistory.lastSeen = Utils.getTimeStampHMS(Number(processHistory.lastSeenNumber));
-          processHistory.processName = processHistory.processName + '(' + processHistory.processId + ')';
+          processHistory.processName = `${processHistory.processName}(${processHistory.processId})`;
           processHistory.cpuTimeNumber = Number(processHistory.cpuTime);
           processHistory.cpuTime = this.timeFormat(processHistory.cpuTimeNumber);
         }
@@ -118,19 +120,19 @@ export class TabPaneHistoryProcesses extends BaseElement {
     let second1 = 1000;
     let res = '';
     if (currentTimeMs >= hours) {
-      res += Math.floor(currentTimeMs / hours) + ' h ';
+      res += `${Math.floor(currentTimeMs / hours)} h `;
       currentTimeMs = currentTimeMs - Math.floor(currentTimeMs / hours) * hours;
     }
     if (currentTimeMs >= minute1) {
-      res += Math.floor(currentTimeMs / minute1) + ' min ';
+      res += `${Math.floor(currentTimeMs / minute1)} min `;
       currentTimeMs = currentTimeMs - Math.floor(currentTimeMs / minute1) * minute1;
     }
     if (currentTimeMs >= second1) {
-      res += Math.floor(currentTimeMs / second1) + ' s ';
+      res += `${Math.floor(currentTimeMs / second1)} s `;
       currentTimeMs = currentTimeMs - Math.floor(currentTimeMs / second1) * second1;
     }
     if (currentTimeMs > 0) {
-      res += currentTimeMs + ' ms ';
+      res += `${currentTimeMs} ms `;
     } else {
       res += '0 ms ';
     }
@@ -162,8 +164,8 @@ export class TabPaneHistoryProcesses extends BaseElement {
         `;
   }
 
-  compare(property: string, sort: number, type: string) {
-    let compareValues = (left: number, right: number) => {
+  compare(property: string, sort: number, type: string): unknown {
+    let compareValues = (left: number, right: number): number => {
       if (sort === 2) {
         return right - left;
       } else {
@@ -171,13 +173,17 @@ export class TabPaneHistoryProcesses extends BaseElement {
       }
     };
 
-    return function (historyProcessLeftData: ProcessHistory, historyProcessRightData: ProcessHistory) {
+    return function (historyProcessLeftData: ProcessHistory, historyProcessRightData: ProcessHistory): number {
       if (type === 'number') {
-        // @ts-ignore
-        return compareValues(parseFloat(historyProcessLeftData[property]), parseFloat(historyProcessRightData[property]));
+        return compareValues(
+          // @ts-ignore
+          parseFloat(historyProcessLeftData[property]),
+          // @ts-ignore
+          parseFloat(historyProcessRightData[property])
+        );
       } else if (type === 'cpuTime' || type === 'lastSeen' || type === 'firstSeen') {
         // @ts-ignore
-        return compareValues(historyProcessLeftData[type + 'Number'], historyProcessRightData[type + 'Number']);
+        return compareValues(historyProcessLeftData[`${type}Number`], historyProcessRightData[`${type}Number`]);
       } else if (type === 'alive') {
         // @ts-ignore
         let leftValue = historyProcessLeftData[property] === 'Yes' ? 1 : 0;
@@ -191,18 +197,18 @@ export class TabPaneHistoryProcesses extends BaseElement {
     };
   }
 
-  sortByColumn(detail: any) {
-    let type;
+  sortByColumn(detail: unknown): void {
+    let type; //@ts-ignore
     if (detail.key === 'startTime' || detail.key === 'processName') {
-      type = 'string';
-    } else if (detail.key == 'cpuTime') {
-      type = 'cpuTime';
+      type = 'string'; //@ts-ignore
+    } else if (detail.key === 'cpuTime') {
+      type = 'cpuTime'; //@ts-ignore
     } else if (detail.key === 'alive') {
       type = 'alive';
     } else {
       type = 'number';
-    }
-    let compareFunction = this.compare(detail.key, detail.sort, type);
+    } //@ts-ignore
+    let compareFunction = this.compare(detail.key, detail.sort, type); //@ts-ignore
     this.historyProcessSource.sort(compareFunction);
     this.historyProcessTbl!.recycleDataSource = this.historyProcessSource;
   }

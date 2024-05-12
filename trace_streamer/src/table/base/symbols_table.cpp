@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, STR, ADDR };
-SymbolsTable::SymbolsTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+SymbolsTable::SymbolsTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("funcname", "TEXT"));
@@ -29,14 +29,14 @@ SymbolsTable::SymbolsTable(const TraceDataCache* dataCache) : TableBase(dataCach
 
 SymbolsTable::~SymbolsTable() {}
 
-void SymbolsTable::FilterByConstraint(FilterConstraints& symfc,
-                                      double& symfilterCost,
+void SymbolsTable::FilterByConstraint(FilterConstraints &symfc,
+                                      double &symfilterCost,
                                       size_t symrowCount,
                                       uint32_t symcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& symc = symfc.GetConstraints()[symcurrenti];
+    const auto &symc = symfc.GetConstraints()[symcurrenti];
     switch (static_cast<Index>(symc.col)) {
         case Index::ID: {
             if (CanFilterId(symc.op, symrowCount)) {
@@ -58,14 +58,14 @@ std::unique_ptr<TableBase::Cursor> SymbolsTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-SymbolsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+SymbolsTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSymbolsData().Size()))
 {
 }
 
 SymbolsTable::Cursor::~Cursor() {}
 
-int32_t SymbolsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t SymbolsTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -74,9 +74,9 @@ int32_t SymbolsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
         return SQLITE_OK;
     }
 
-    auto& symTabCs = fc.GetConstraints();
+    auto &symTabCs = fc.GetConstraints();
     for (size_t i = 0; i < symTabCs.size(); i++) {
-        const auto& c = symTabCs[i];
+        const auto &c = symTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -125,7 +125,7 @@ int32_t SymbolsTable::Cursor::Column(int32_t col) const
     return SQLITE_OK;
 }
 
-void SymbolsTable::GetOrbyes(FilterConstraints& symfc, EstimatedIndexInfo& symei)
+void SymbolsTable::GetOrbyes(FilterConstraints &symfc, EstimatedIndexInfo &symei)
 {
     auto symorderbys = symfc.GetOrderBys();
     for (auto i = 0; i < symorderbys.size(); i++) {

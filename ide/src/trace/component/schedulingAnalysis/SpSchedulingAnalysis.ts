@@ -22,6 +22,7 @@ import { LitTabs } from '../../../base-ui/tabs/lit-tabs';
 import { CheckCpuSetting } from './CheckCpuSetting';
 import { Top20FrequencyThread } from './Top20FrequencyThread';
 import { procedurePool } from '../../database/Procedure';
+import { Utils } from '../trace/base/Utils';
 
 @element('sp-scheduling-analysis')
 export class SpSchedulingAnalysis extends BaseElement {
@@ -40,21 +41,21 @@ export class SpSchedulingAnalysis extends BaseElement {
     this.tabThreadAnalysis = this.shadowRoot?.querySelector<TabThreadAnalysis>('#thread-analysis');
   }
 
-  static resetCpu() {
+  static resetCpu(): void {
     SpSchedulingAnalysis.traceChange = true;
     CheckCpuSetting.resetCpuSettings();
     Top20FrequencyThread.threads = undefined;
-    procedurePool.submitWithName('logic0', 'scheduling-clearData', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'scheduling-clearData', {}, undefined, (res: unknown): void => {});
   }
 
-  init() {
+  init(): void {
     if (SpSchedulingAnalysis.traceChange) {
       SpSchedulingAnalysis.traceChange = false;
-      this.tabs!.activekey = '1';
-      SpSchedulingAnalysis.startTs = (window as any).recordStartNS;
-      SpSchedulingAnalysis.endTs = (window as any).recordEndNS;
-      SpSchedulingAnalysis.totalDur = SpSchedulingAnalysis.endTs - SpSchedulingAnalysis.startTs;
-      SpSchedulingAnalysis.cpuCount = (window as any).cpuCount;
+      this.tabs!.activekey = '1'; //@ts-ignore
+      SpSchedulingAnalysis.startTs = (window as unknown).recordStartNS; //@ts-ignore
+      SpSchedulingAnalysis.endTs = (window as unknown).recordEndNS;
+      SpSchedulingAnalysis.totalDur = SpSchedulingAnalysis.endTs - SpSchedulingAnalysis.startTs; //@ts-ignore
+      SpSchedulingAnalysis.cpuCount = Utils.getInstance().getWinCpuCount();
       this.tabCpuAnalysis?.init();
       this.tabThreadAnalysis?.init();
     }

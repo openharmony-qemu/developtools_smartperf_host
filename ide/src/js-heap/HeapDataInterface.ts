@@ -35,7 +35,7 @@ export class HeapDataInterface {
   private fileStructs!: Array<FileStruct>;
   private baseFileStruct!: FileStruct | null;
 
-  public static getInstance() {
+  public static getInstance(): HeapDataInterface {
     if (!this.instance) {
       this.instance = new HeapDataInterface();
     }
@@ -44,7 +44,7 @@ export class HeapDataInterface {
 
   private getFileStructById(id: number): FileStruct | null {
     for (let fileStruct of this.fileStructs) {
-      if (fileStruct.id == id) {
+      if (fileStruct.id === id) {
         return fileStruct;
       }
     }
@@ -55,7 +55,7 @@ export class HeapDataInterface {
    * tell interface current file to provider file interface
    * @param fileId file id
    */
-  public setFileId(fileId: number) {
+  public setFileId(fileId: number): void {
     this.baseFileStruct = this.getFileStructById(fileId);
   }
 
@@ -63,7 +63,7 @@ export class HeapDataInterface {
    * set ParseListener to callback when node_files table in database is parse done
    * @param listener callback
    */
-  public setPraseListener(listener: ParseListener) {
+  public setPraseListener(listener: ParseListener): void {
     this.parseListener = listener;
   }
 
@@ -73,7 +73,7 @@ export class HeapDataInterface {
    */
   public getClassesListForSummary(fileId: number, minNodeId?: number, maxNodeId?: number): Array<ConstructorItem> {
     let constructorMap;
-    let constructorList = new Array<ConstructorItem>();
+    let constructorList: ConstructorItem[] = [];
     let filStruct = this.baseFileStruct ? this.baseFileStruct : this.getFileStructById(fileId);
     if (this.isParseDone && filStruct) {
       constructorMap = filStruct.heapLoader.getClassesForSummary(minNodeId, maxNodeId);
@@ -93,13 +93,13 @@ export class HeapDataInterface {
    * @param targetFileId select id which file is to compare
    * @returns diff class list
    */
-  public getClassListForComparison(baseFileId: number, targetFileId: number) {
+  public getClassListForComparison(baseFileId: number, targetFileId: number): Array<ConstructorComparison> {
     let baseFileStruct = this.baseFileStruct ? this.baseFileStruct : this.getFileStructById(baseFileId);
     let targetFileStruct = this.getFileStructById(targetFileId);
     if (!baseFileStruct || !targetFileStruct) {
       return [];
     }
-    let diffClassList = new Array<ConstructorComparison>();
+    let diffClassList: ConstructorComparison[] = [];
     let diffClassMap = baseFileStruct.heapLoader.getClassesForComparison(
       targetFileId,
       targetFileStruct.heapLoader.getClassesForSummary()
@@ -134,7 +134,7 @@ export class HeapDataInterface {
    * @param node current select node
    * @returns node.parent
    */
-  public getParentFunction(node: AllocationFunction) {
+  public getParentFunction(node: AllocationFunction): void {
     let filStruct = this.baseFileStruct ? this.baseFileStruct : this.getFileStructById(node.fileId);
     if (!filStruct) {
       return;
@@ -149,7 +149,7 @@ export class HeapDataInterface {
    */
   public getNextForConstructor(node: ConstructorItem): Array<ConstructorItem> {
     let filStruct = this.baseFileStruct ? this.baseFileStruct : this.getFileStructById(node.fileId);
-    let children = new Array<ConstructorItem>();
+    let children: ConstructorItem[] = [];
     switch (node.type) {
       case ConstructorType.ClassType:
         children = node.classChildren;
@@ -168,7 +168,7 @@ export class HeapDataInterface {
     if (!baseFileStruct || !targetFileStruct) {
       return [];
     }
-    let children = new Array<ConstructorItem>();
+    let children: ConstructorItem[] = [];
     if (comparisonNode.type === ConstructorType.ComparisonType) {
       for (let idx of comparisonNode.addedIndx) {
         let node = baseFileStruct.heapLoader.getNodes()[idx];
@@ -200,7 +200,7 @@ export class HeapDataInterface {
    * @param constructor current node
    * @returns reference nodes
    */
-  public getRetains(constructor: ConstructorItem) {
+  public getRetains(constructor: ConstructorItem): ConstructorItem[] {
     let filStruct = this.baseFileStruct ? this.baseFileStruct : this.getFileStructById(constructor.fileId);
     if (!filStruct) {
       return [];
@@ -214,9 +214,9 @@ export class HeapDataInterface {
    * @returns AllocationStackFrame[]
    */
   public getAllocationStackData(node: ConstructorItem): Array<HeapTraceFunctionInfo> {
-    let functions = new Array<HeapTraceFunctionInfo>();
+    let functions: Array<HeapTraceFunctionInfo> = [];
     let filStruct = this.baseFileStruct ? this.baseFileStruct : this.getFileStructById(node.fileId);
-    if (!filStruct && (node.type == ConstructorType.ClassType || node.type == ConstructorType.RetainersType)) {
+    if (!filStruct && (node.type === ConstructorType.ClassType || node.type === ConstructorType.RetainersType)) {
       return functions;
     } else {
       functions = filStruct!.heapLoader.getAllocationStack(node.traceNodeId);
@@ -250,7 +250,7 @@ export class HeapDataInterface {
     return filStruct!.heapLoader.getMinAndMaxNodeId().maxNodeId;
   }
 
-  async parseData(fileModule: Array<FileStruct>) {
+  async parseData(fileModule: Array<FileStruct>): Promise<void> {
     this.fileStructs = fileModule;
     this.isParseDone = false;
     let percent: number;
@@ -276,7 +276,7 @@ export class HeapDataInterface {
   /**
    * clear Cache
    */
-  public clearData() {
+  public clearData(): void {
     if (!this.fileStructs) {
       return;
     }

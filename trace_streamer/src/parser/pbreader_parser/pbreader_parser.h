@@ -33,6 +33,9 @@
 #include "htrace_cpu_detail_parser.h"
 #include "htrace_symbols_detail_parser.h"
 #endif
+#ifdef ENABLE_FFRT
+#include "pbreader_ffrt_parser.h"
+#endif
 #include "htrace_plugin_time_parser.h"
 #ifdef ENABLE_CPUDATA
 #include "pbreader_cpu_data_parser.h"
@@ -85,22 +88,22 @@ using namespace SysTuning::base;
 using namespace OHOS::Developtools::HiPerf;
 class PbreaderParser : public ParserBase, public HtracePluginTimeParser {
 public:
-    PbreaderParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
+    PbreaderParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters);
     ~PbreaderParser();
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish = false) override;
-    bool ReparseSymbolFilesAndResymbolization(std::string& symbolsPath, std::vector<std::string>& symbolsPaths);
+    bool ReparseSymbolFilesAndResymbolization(std::string &symbolsPath, std::vector<std::string> &symbolsPaths);
     void WaitForParserEnd();
 #ifdef ENABLE_ARKTS
     void EnableFileSeparate(bool enabled);
 #endif
 #if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
-    void ParserFileSO(std::string& directory, const std::vector<std::string>& relativeFilePaths);
+    void ParserFileSO(std::string &directory, const std::vector<std::string> &relativeFilePaths);
 #endif
 #ifdef ENABLE_HIPERF
     void TraceDataSegmentEnd(bool isSplitFile);
     void StoreTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, int32_t isFinish);
 #endif
-    const auto& GetPbreaderSplitData()
+    const auto &GetPbreaderSplitData()
     {
         return mPbreaderSplitData_;
     }
@@ -145,13 +148,13 @@ public:
         return mPbreaderSplitData_.clear();
     }
 #ifdef ENABLE_HIPERF
-    const auto& GetPerfSplitResult()
+    const auto &GetPerfSplitResult()
     {
         return perfDataParser_->GetPerfSplitResult();
     }
 #endif
 #ifdef ENABLE_EBPF
-    const auto& GetEbpfDataParser()
+    const auto &GetEbpfDataParser()
     {
         return ebpfDataParser_;
     }
@@ -164,13 +167,13 @@ public:
 #endif
 
 private:
-    bool ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
+    bool ParseDataRecursively(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength);
 #ifdef ENABLE_HIPERF
-    bool ParseHiperfData(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
+    bool ParseHiperfData(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength);
 #endif
-    void ParseTraceDataItem(const std::string& buffer) override;
-    void FilterData(PbreaderDataSegment& seg, bool isSplitFile);
-    void ParserData(PbreaderDataSegment& dataSeg, bool isSplitFile);
+    void ParseTraceDataItem(const std::string &buffer) override;
+    void FilterData(PbreaderDataSegment &seg, bool isSplitFile);
+    void ParserData(PbreaderDataSegment &dataSeg, bool isSplitFile);
 
 private:
 #if IS_WASM
@@ -182,63 +185,67 @@ private:
     void InitHiPluginNameIndex();
     void WaitForHPluginParserEnd();
     void WaitForOtherPluginParserEnd();
-    bool GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
-    bool ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
+    bool GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength);
+    bool ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength);
 #ifdef ENABLE_MEMORY
-    void ParseMemory(const ProtoReader::ProfilerPluginData_Reader& pluginDataZero, PbreaderDataSegment& dataSeg);
-    void ParseMemoryConfig(PbreaderDataSegment& dataSeg, const ProtoReader::ProfilerPluginData_Reader& pluginDataZero);
+    void ParseMemory(const ProtoReader::ProfilerPluginData_Reader &pluginDataZero, PbreaderDataSegment &dataSeg);
+    void ParseMemoryConfig(PbreaderDataSegment &dataSeg, const ProtoReader::ProfilerPluginData_Reader &pluginDataZero);
 #endif
 #ifdef ENABLE_HILOG
-    void ParseHilog(PbreaderDataSegment& dataSeg);
+    void ParseHilog(PbreaderDataSegment &dataSeg);
 #endif
 #ifdef ENABLE_HTRACE
-    void ParseFtrace(PbreaderDataSegment& dataSeg);
+    void ParseFtrace(PbreaderDataSegment &dataSeg);
+#endif
+#ifdef ENABLE_FFRT
+    void ParseFfrtConfig(PbreaderDataSegment &dataSeg);
+    void ParseFfrt(PbreaderDataSegment &dataSeg);
 #endif
 #ifdef ENABLE_HTDUMP
-    void ParseFPS(PbreaderDataSegment& dataSeg);
+    void ParseFPS(PbreaderDataSegment &dataSeg);
 #endif
 #ifdef ENABLE_CPUDATA
-    void ParseCpuUsage(PbreaderDataSegment& dataSeg);
+    void ParseCpuUsage(PbreaderDataSegment &dataSeg);
 #endif
 #ifdef ENABLE_NETWORK
-    void ParseNetwork(PbreaderDataSegment& dataSeg);
+    void ParseNetwork(PbreaderDataSegment &dataSeg);
 #endif
 #ifdef ENABLE_DISKIO
-    void ParseDiskIO(PbreaderDataSegment& dataSeg);
+    void ParseDiskIO(PbreaderDataSegment &dataSeg);
 #endif
 #ifdef ENABLE_PROCESS
-    void ParseProcess(PbreaderDataSegment& dataSeg);
+    void ParseProcess(PbreaderDataSegment &dataSeg);
 #endif
 #ifdef ENABLE_HISYSEVENT
-    void ParseHisysevent(PbreaderDataSegment& dataSeg);
-    void ParseHisyseventConfig(PbreaderDataSegment& dataSeg);
+    void ParseHisysevent(PbreaderDataSegment &dataSeg);
+    void ParseHisyseventConfig(PbreaderDataSegment &dataSeg);
 #endif
 #ifdef ENABLE_NATIVE_HOOK
-    void ParseNativeHookConfig(PbreaderDataSegment& dataSeg);
-    void ParseNativeHook(PbreaderDataSegment& dataSeg, bool isSplitFile);
+    void ParseNativeHookConfig(PbreaderDataSegment &dataSeg);
+    void ParseNativeHook(PbreaderDataSegment &dataSeg, bool isSplitFile);
 #endif
 #ifdef ENABLE_ARKTS
-    void ParseJSMemory(const ProtoReader::ProfilerPluginData_Reader& pluginDataZero,
-                       PbreaderDataSegment& dataSeg,
+    void ParseJSMemory(const ProtoReader::ProfilerPluginData_Reader &pluginDataZero,
+                       PbreaderDataSegment &dataSeg,
                        bool isSplitFile);
-    void ParseJSMemoryConfig(PbreaderDataSegment& dataSeg);
+    void ParseJSMemoryConfig(PbreaderDataSegment &dataSeg);
 #endif
 #ifdef ENABLE_STREAM_EXTEND
-    void ParseStream(PbreaderDataSegment& dataSeg);
+    void ParseStream(PbreaderDataSegment &dataSeg);
 #endif
     void ParseThread();
     int32_t GetNextSegment();
     void FilterThread();
 #ifdef ENABLE_EBPF
-    bool CalcEbpfCutOffset(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
+    bool CalcEbpfCutOffset(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength);
 #endif
-    bool SpliteConfigData(const std::string& pluginName, const PbreaderDataSegment& dataSeg);
+    bool SpliteConfigData(const std::string &pluginName, const PbreaderDataSegment &dataSeg);
     bool InitProfilerTraceFileHeader();
-    void ParseDataByPluginName(PbreaderDataSegment& dataSeg,
+    void ParseDataByPluginName(PbreaderDataSegment &dataSeg,
                                DataIndex pulginNameIndex,
-                               const ProtoReader::ProfilerPluginData_Reader& pluginDataZero,
+                               const ProtoReader::ProfilerPluginData_Reader &pluginDataZero,
                                bool isSplitFile);
-    bool SpliteDataBySegment(DataIndex pluginNameIndex, PbreaderDataSegment& dataSeg);
+    bool SpliteDataBySegment(DataIndex pluginNameIndex, PbreaderDataSegment &dataSeg);
     ProfilerTraceFileHeader profilerTraceFileHeader_;
     uint32_t profilerDataType_ = ProfilerTraceFileHeader::UNKNOW_TYPE;
     uint64_t profilerDataLength_ = 0;
@@ -250,7 +257,7 @@ private:
     uint32_t nextLength_ = 0;
     const size_t packetSegLength_ = 4;
     const size_t packetHeaderLength_ = 1024;
-    TraceDataCache* traceDataCache_;
+    TraceDataCache *traceDataCache_;
     std::unique_ptr<PbreaderClockDetailParser> pbreaderClockDetailParser_;
 #ifdef ENABLE_HTRACE
     std::unique_ptr<HtraceCpuDetailParser> htraceCpuDetailParser_;
@@ -259,6 +266,11 @@ private:
     bool onlyParseFtrace_ = false;
 #endif
     std::set<DataIndex> ftracePluginIndex_ = {};
+#ifdef ENABLE_FFRT
+    DataIndex ffrtPluginIndex_ = {};
+    DataIndex ffrtPluginConfigIndex_ = {};
+    std::unique_ptr<PbreaderFfrtDetailParser> pbreaderFfrtParser_;
+#endif
 #ifdef ENABLE_MEMORY
     std::unique_ptr<PbreaderMemParser> pbreaderMemParser_;
     ClockId dataSourceTypeMemClockid_ = TS_CLOCK_UNKNOW;

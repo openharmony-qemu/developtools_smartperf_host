@@ -70,46 +70,47 @@ export class TabPaneDmaAbility extends BaseElement {
   }
 
   queryDataByDB(val: SelectionParam): void {
-    getTabDmaAbilityData(val.leftNs, val.rightNs,
-      (MemoryConfig.getInstance().interval * NUM_MILLON) / NUM_5).then((data) => {
-      this.dmaSource = data;
-      this.dmaTbl!.loading = false;
-      if (data.length !== null && data.length > 0) {
-        this.total = new Dma();
-        this.total.process = '*All*';
-        data.forEach((dmaItem) => {
-          if (dmaItem.processName !== null) {
-            dmaItem.process = `${dmaItem.processName}(${dmaItem.processId})`;
-          } else {
-            dmaItem.process = `Process(${dmaItem.processId})`;
-          }
+    getTabDmaAbilityData(val.leftNs, val.rightNs, (MemoryConfig.getInstance().interval * NUM_MILLON) / NUM_5).then(
+      (data) => {
+        this.dmaSource = data;
+        this.dmaTbl!.loading = false;
+        if (data.length !== null && data.length > 0) {
+          this.total = new Dma();
+          this.total.process = '*All*';
+          data.forEach((dmaItem) => {
+            if (dmaItem.processName !== null) {
+              dmaItem.process = `${dmaItem.processName}(${dmaItem.processId})`;
+            } else {
+              dmaItem.process = `Process(${dmaItem.processId})`;
+            }
 
-          this.total.avgSize += dmaItem.avgSize;
-          if (this.total.minSize < 0) {
-            this.total.minSize = dmaItem.minSize;
-          }
-          if (this.total.maxSize < 0) {
-            this.total.maxSize = dmaItem.maxSize;
-          }
-          this.total.minSize = Math.min(this.total.minSize, dmaItem.minSize);
-          this.total.maxSize = Math.max(this.total.maxSize, dmaItem.maxSize);
+            this.total.avgSize += dmaItem.avgSize;
+            if (this.total.minSize < 0) {
+              this.total.minSize = dmaItem.minSize;
+            }
+            if (this.total.maxSize < 0) {
+              this.total.maxSize = dmaItem.maxSize;
+            }
+            this.total.minSize = Math.min(this.total.minSize, dmaItem.minSize);
+            this.total.maxSize = Math.max(this.total.maxSize, dmaItem.maxSize);
 
-          dmaItem.avgSizes = Utils.getBinaryByteWithUnit(Math.round(dmaItem.avgSize));
-          dmaItem.minSizes = Utils.getBinaryByteWithUnit(dmaItem.minSize);
-          dmaItem.maxSizes = Utils.getBinaryByteWithUnit(dmaItem.maxSize);
-        });
-        this.total.avgSizes = Utils.getBinaryByteWithUnit(Math.round(this.total.avgSize / data.length));
-        this.total.minSizes = Utils.getBinaryByteWithUnit(this.total.minSize);
-        this.total.maxSizes = Utils.getBinaryByteWithUnit(this.total.maxSize);
-        this.dmaSource.sort(function (dmaAbilityLeftData: Dma, dmaAbilityRightData: Dma) {
-          return dmaAbilityRightData.avgSize - dmaAbilityLeftData.avgSize;
-        });
-        this.dmaTbl!.recycleDataSource = [this.total, ...this.dmaSource];
-      } else {
-        this.dmaTbl!.recycleDataSource = [];
-        this.dmaSource = [];
+            dmaItem.avgSizes = Utils.getBinaryByteWithUnit(Math.round(dmaItem.avgSize));
+            dmaItem.minSizes = Utils.getBinaryByteWithUnit(dmaItem.minSize);
+            dmaItem.maxSizes = Utils.getBinaryByteWithUnit(dmaItem.maxSize);
+          });
+          this.total.avgSizes = Utils.getBinaryByteWithUnit(Math.round(this.total.avgSize / data.length));
+          this.total.minSizes = Utils.getBinaryByteWithUnit(this.total.minSize);
+          this.total.maxSizes = Utils.getBinaryByteWithUnit(this.total.maxSize);
+          this.dmaSource.sort(function (dmaAbilityLeftData: Dma, dmaAbilityRightData: Dma) {
+            return dmaAbilityRightData.avgSize - dmaAbilityLeftData.avgSize;
+          });
+          this.dmaTbl!.recycleDataSource = [this.total, ...this.dmaSource];
+        } else {
+          this.dmaTbl!.recycleDataSource = [];
+          this.dmaSource = [];
+        }
       }
-    });
+    );
   }
 
   initHtml(): string {

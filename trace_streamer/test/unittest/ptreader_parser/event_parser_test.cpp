@@ -557,9 +557,8 @@ HWTEST_F(EventParserTest, ParsDistribute, TestSize.Level1)
 {
     TS_LOGI("test5-21");
     const uint8_t str[] =
-        "system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|[8b00e96b2,2,1]:C$#decodeFrame$#"
-        "{\"Process\":\"DecodeVideoFrame\",\"frameTimestamp\":37313484466}\n \
-            system - 1298(1298)[001]... 1 174330.287622 : tracing_mark_write : E | 1298 \n";
+        "system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|H:[8b00e96b2,2,1]#C##decodeFrame\n"
+        "system - 1298(1298)[001]... 1 174330.287622 : tracing_mark_write : E | 1298 \n";
     auto buf = std::make_unique<uint8_t[]>(G_BUF_SIZE);
     if (memcpy_s(buf.get(), G_BUF_SIZE, str, sizeof(str))) {
         EXPECT_TRUE(false);
@@ -586,12 +585,8 @@ HWTEST_F(EventParserTest, ParsPairsOfDistributeEvent, TestSize.Level1)
 {
     TS_LOGI("test5-22");
     const uint8_t str[] =
-        "system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|[8b00e96b2,2,1]:C$#decodeFrame$#"
-        "{\"Process\":\"DecodeVideoFrame\",\"frameTimestamp\":37313484466} \
-            system - 1298(1298)[001]... 1 174330.287622 : tracing_mark_write : E | 1298 \n"
-        "startVC-7601 ( 7601) [002] ...1 174330.387420: tracing_mark_write: B|7601|[8b00e96b2,2,1]:S$#startVCFrame$#"
-        "{\"Process\":\"DecodeVideoFrame\",\"frameTimestamp\":37313484466} \
-            startVC-7601 (7601)[002]... 1 174330.487622 : tracing_mark_write : E | 7601 \n";
+        "system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|H:[8b00e96b2,2,1]#C##decodeFrame\n"
+        "startVC-7601 ( 7601) [002] ...1 174330.387420: tracing_mark_write: B|7601|H:[8b00e96b2,2,1]#S##startVCFrame\n";
     auto buf = std::make_unique<uint8_t[]>(G_BUF_SIZE);
     if (memcpy_s(buf.get(), G_BUF_SIZE, str, sizeof(str))) {
         EXPECT_TRUE(false);
@@ -622,9 +617,8 @@ HWTEST_F(EventParserTest, ParsDistributeWithNoFlag, TestSize.Level1)
 {
     TS_LOGI("test5-23");
     const uint8_t str[] =
-        "system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|[8b00e96b2,2,1]$#decodeFrame$#"
-        "{\"Process\":\"DecodeVideoFrame\",\"frameTimestamp\":37313484466} \
-            system - 1298(1298)[001]... 1 174330.287622 : tracing_mark_write : E | 1298 \n";
+        "system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|H:[8b00e96b2,2,1]###decodeFrame\n"
+        "system - 1298(1298)[001]... 1 174330.287622 : tracing_mark_write : E | 1298 \n";
     auto buf = std::make_unique<uint8_t[]>(G_BUF_SIZE);
     if (memcpy_s(buf.get(), G_BUF_SIZE, str, sizeof(str))) {
         EXPECT_TRUE(false);

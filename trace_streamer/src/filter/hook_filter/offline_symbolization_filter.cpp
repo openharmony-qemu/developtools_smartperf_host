@@ -18,7 +18,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-OfflineSymbolizationFilter::OfflineSymbolizationFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+OfflineSymbolizationFilter::OfflineSymbolizationFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : FilterBase(dataCache, filter),
       filePathIdAndStValueToSymAddr_(nullptr),
       symbolTablePtrAndStValueToSymAddr_(nullptr),
@@ -29,11 +29,11 @@ OfflineSymbolizationFilter::OfflineSymbolizationFilter(TraceDataCache* dataCache
 }
 
 template <class T>
-void OfflineSymbolizationFilter::GetSymbolStartMaybeUpdateFrameInfo(T* elfSym,
-                                                                    uint32_t& symbolStart,
+void OfflineSymbolizationFilter::GetSymbolStartMaybeUpdateFrameInfo(T *elfSym,
+                                                                    uint32_t &symbolStart,
                                                                     uint64_t symVaddr,
                                                                     uint64_t ip,
-                                                                    FrameInfo* frameInfo)
+                                                                    FrameInfo *frameInfo)
 {
     if (elfSym->st_value + elfSym->st_size >= symVaddr) {
         symbolStart = elfSym->st_name;
@@ -44,7 +44,7 @@ void OfflineSymbolizationFilter::GetSymbolStartMaybeUpdateFrameInfo(T* elfSym,
     }
 }
 
-bool OfflineSymbolizationFilter::FillFrameInfo(const std::shared_ptr<FrameInfo>& frameInfo, uint64_t ip, uint64_t ipid)
+bool OfflineSymbolizationFilter::FillFrameInfo(const std::shared_ptr<FrameInfo> &frameInfo, uint64_t ip, uint64_t ipid)
 {
     frameInfo->ip_ = ip;
     auto startAddrToMapsInfoItor = ipidToStartAddrToMapsInfoMap_.Find(ipid);
@@ -70,9 +70,9 @@ bool OfflineSymbolizationFilter::FillFrameInfo(const std::shared_ptr<FrameInfo>&
 }
 bool OfflineSymbolizationFilter::CalcSymInfo(uint64_t ipid,
                                              uint64_t ip,
-                                             uint32_t& symbolStart,
-                                             std::shared_ptr<FrameInfo>& frameInfo,
-                                             std::shared_ptr<ProtoReader::SymbolTable_Reader>& symbolTable)
+                                             uint32_t &symbolStart,
+                                             std::shared_ptr<FrameInfo> &frameInfo,
+                                             std::shared_ptr<ProtoReader::SymbolTable_Reader> &symbolTable)
 {
     // calculate symVaddr = ip - vmStart + vmOffset + phdrVaddr - phdrOffset
     uint64_t symVaddr =
@@ -94,10 +94,10 @@ bool OfflineSymbolizationFilter::CalcSymInfo(uint64_t ipid,
     if (length > 0) {
         end--;
         if (symEntLen == ELF32_SYM) {
-            GetSymbolStartMaybeUpdateFrameInfo(reinterpret_cast<const Elf32_Sym*>(end->second), symbolStart, symVaddr,
+            GetSymbolStartMaybeUpdateFrameInfo(reinterpret_cast<const Elf32_Sym *>(end->second), symbolStart, symVaddr,
                                                ip, frameInfo.get());
         } else {
-            GetSymbolStartMaybeUpdateFrameInfo(reinterpret_cast<const Elf64_Sym*>(end->second), symbolStart, symVaddr,
+            GetSymbolStartMaybeUpdateFrameInfo(reinterpret_cast<const Elf64_Sym *>(end->second), symbolStart, symVaddr,
                                                ip, frameInfo.get());
         }
     }
@@ -143,7 +143,7 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolizationByIp(
     if (!CalcSymInfo(ipid, ip, symbolStart, frameInfo, symbolTable)) {
         return frameInfo;
     }
-    auto mangle = reinterpret_cast<const char*>(symbolTable->str_table().Data() + symbolStart);
+    auto mangle = reinterpret_cast<const char *>(symbolTable->str_table().Data() + symbolStart);
     auto demangle = base::GetDemangleSymbolIndex(mangle);
     frameInfo->symbolIndex_ = traceDataCache_->GetDataIndex(demangle);
     if (demangle != mangle) {
@@ -154,7 +154,7 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolizationByIp(
 }
 DataIndex OfflineSymbolizationFilter::OfflineSymbolizationByVaddr(uint64_t symVaddr, DataIndex filePathIndex)
 {
-    auto& symbolTable = filePathIdToImportSymbolTableMap_.at(filePathIndex);
+    auto &symbolTable = filePathIdToImportSymbolTableMap_.at(filePathIndex);
     // pase sym_table to Elf32_Sym or Elf64_Sym array decided by sym_entry_size.
     auto symEntLen = symbolTable->symEntSize;
     auto startValueToSymAddrMap = filePathIdAndStValueToSymAddr_.Find(filePathIndex);
@@ -168,10 +168,10 @@ DataIndex OfflineSymbolizationFilter::OfflineSymbolizationByVaddr(uint64_t symVa
     if (length > 0) {
         end--;
         if (symEntLen == ELF32_SYM) {
-            GetSymbolStartMaybeUpdateFrameInfo(reinterpret_cast<const Elf32_Sym*>(end->second), symbolStart, symVaddr,
+            GetSymbolStartMaybeUpdateFrameInfo(reinterpret_cast<const Elf32_Sym *>(end->second), symbolStart, symVaddr,
                                                0, nullptr);
         } else {
-            GetSymbolStartMaybeUpdateFrameInfo(reinterpret_cast<const Elf64_Sym*>(end->second), symbolStart, symVaddr,
+            GetSymbolStartMaybeUpdateFrameInfo(reinterpret_cast<const Elf64_Sym *>(end->second), symbolStart, symVaddr,
                                                0, nullptr);
         }
     }

@@ -29,9 +29,9 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
   cpuIdle0Map: Map<number, Array<CpuMeasure>> = new Map<number, Array<CpuMeasure>>();
   threadMap: Map<number, string> = new Map<number, string>();
   processMap: Map<number, string> = new Map<number, string>();
-  cpuAnalysisMap: Map<string, any> = new Map<string, any>();
+  cpuAnalysisMap: Map<string, unknown> = new Map<string, unknown>();
 
-  clearAll() {
+  clearAll(): void {
     this.bigCores.length = 0;
     this.midCores.length = 0;
     this.smallCores.length = 0;
@@ -42,18 +42,25 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
     this.cpuIdle0Map.clear();
   }
 
-  handle(data: any): void {
+  handle(data: unknown): void {
+    //@ts-ignore
     this.currentEventId = data.id;
+    //@ts-ignore
     if (data.params.endTs) {
+      //@ts-ignore
       this.endTs = data.params.endTs;
+      //@ts-ignore
       this.totalDur = data.params.total;
       this.startTs = this.endTs - this.totalDur;
     }
+    //@ts-ignore
     if (data && data.type) {
+      //@ts-ignore
       this.handleDataByType(data);
     }
   }
-  private handleDataByType(data: any): void {
+  private handleDataByType(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     switch (data.type) {
       case 'scheduling-clearData':
         this.schedulingClearData(data);
@@ -99,7 +106,7 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
         break;
     }
   }
-  private schedulingClearData(data: any): void {
+  private schedulingClearData(data: { id: string; action: string; params: unknown }): void {
     this.clearAll();
     self.postMessage({
       id: data.id,
@@ -107,8 +114,10 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       results: [],
     });
   }
-  private schedulingInitFreqData(data: any): void {
+  private schedulingInitFreqData(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     if (data.params.list) {
+      //@ts-ignore
       this.groupFreqByCpu(convertJSON(data.params.list) || []);
       self.postMessage({
         id: data.id,
@@ -119,9 +128,12 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       this.getCpuFrequency('scheduling-initFreqData');
     }
   }
-  private schedulinGetProcessAndThread(data: any): void {
+  private schedulinGetProcessAndThread(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     if (data.params.list) {
+      //@ts-ignore
       let arr = convertJSON(data.params.list) || [];
+      //@ts-ignore
       this.handleProcessThread(arr);
       self.postMessage({
         id: data.id,
@@ -132,9 +144,12 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       this.getProcessAndThread();
     }
   }
-  private schedulingGetCpuIdle0(data: any): void {
+  private schedulingGetCpuIdle0(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     if (data.params.list) {
+      //@ts-ignore
       let arr = convertJSON(data.params.list) || [];
+      //@ts-ignore
       this.handleCPUIdle0Map(arr);
       self.postMessage({
         id: data.id,
@@ -145,8 +160,10 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       this.getCpuIdle0();
     }
   }
-  private schedulingGetCpuUsage(data: any): void {
+  private schedulingGetCpuUsage(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     if (data.params.list) {
+      //@ts-ignore
       let arr = convertJSON(data.params.list) || [];
       self.postMessage({
         id: data.id,
@@ -158,7 +175,7 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       this.getCpuUsage();
     }
   }
-  private schedulingCPUFrequency(data: any): void {
+  private schedulingCPUFrequency(data: { id: string; action: string; params: unknown }): void {
     if (this.cpuAnalysisMap.has('freq')) {
       self.postMessage({
         id: data.id,
@@ -166,7 +183,9 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
         results: this.cpuAnalysisMap.get('freq') || [],
       });
     } else {
+      //@ts-ignore
       if (data.params.list) {
+        //@ts-ignore
         let res = this.computeCpuMeasureDur(convertJSON(data.params.list) || [], 'freq');
         this.cpuAnalysisMap.set('freq', res);
         self.postMessage({
@@ -179,20 +198,25 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       }
     }
   }
-  private schedulingCPUFrequencyThread(data: any): void {
+  private schedulingCPUFrequencyThread(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     if (data.params.list) {
       self.postMessage({
         id: data.id,
         action: data.action,
+        //@ts-ignore
         results: this.handlerFreqThreadData(convertJSON(data.params.list) || []),
       });
     } else {
+      //@ts-ignore
       this.cpu = data.params.cpu;
+      //@ts-ignore
       this.freq = data.params.freq;
+      //@ts-ignore
       this.getThreadStateByCpu(data.params.cpu);
     }
   }
-  private schedulingCPUIdle(data: any): void {
+  private schedulingCPUIdle(data: { id: string; action: string; params: unknown }): void {
     if (this.cpuAnalysisMap.has('idle')) {
       self.postMessage({
         id: data.id,
@@ -200,7 +224,9 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
         results: this.cpuAnalysisMap.get('idle') || [],
       });
     } else {
+      //@ts-ignore
       if (data.params.list) {
+        //@ts-ignore
         let res = this.computeCpuMeasureDur(convertJSON(data.params.list) || []);
         this.cpuAnalysisMap.set('idle', res);
         self.postMessage({
@@ -213,7 +239,7 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       }
     }
   }
-  private schedulingCPUIrq(data: any): void {
+  private schedulingCPUIrq(data: { id: string; action: string; params: unknown }): void {
     if (this.cpuAnalysisMap.has('irq')) {
       self.postMessage({
         id: data.id,
@@ -221,7 +247,9 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
         results: this.cpuAnalysisMap.get('irq') || [],
       });
     } else {
+      //@ts-ignore
       if (data.params.list) {
+        //@ts-ignore
         let res = this.groupIrgDataByCpu(convertJSON(data.params.list) || []);
         this.cpuAnalysisMap.set('irq', res);
         self.postMessage({
@@ -234,56 +262,74 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       }
     }
   }
-  private schedulingThreadCpuUsage(data: any): void {
+  private schedulingThreadCpuUsage(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     if (data.params.list) {
       self.postMessage({
         id: data.id,
         action: data.action,
+        //@ts-ignore
         results: this.handlerThreadCpuUsageData(convertJSON(data.params.list) || []),
       });
     } else {
+      //@ts-ignore
       this.bigCores = data.params.bigCores || [];
+      //@ts-ignore
       this.midCores = data.params.midCores || [];
+      //@ts-ignore
       this.smallCores = data.params.smallCores || [];
+      //@ts-ignore
       this.queryThreadCpuUsage(data.params.bigCores || [], data.params.midCores || [], data.params.smallCores || []);
     }
   }
-  private schedulingThreadRunTime(data: any): void {
+  private schedulingThreadRunTime(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     if (data.params.list) {
+      //@ts-ignore
       let arr = convertJSON(data.params.list) || [];
       self.postMessage({
         id: data.id,
         action: data.action,
         results: arr.map((it) => {
+          //@ts-ignore
           it.maxDurationStr = getProbablyTime(it.maxDuration);
+          //@ts-ignore
           it.pName = this.processMap.get(it.pid) || 'null';
+          //@ts-ignore
           it.tName = this.threadMap.get(it.tid) || 'null';
           return it;
         }),
       });
     } else {
+      //@ts-ignore
       this.queryThreadRunTime(data.params.cpuMax);
     }
   }
-  private schedulingProcessThreadCount(data: any): void {
+  private schedulingProcessThreadCount(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     if (data.params.list) {
       self.postMessage({
         id: data.id,
         action: data.action,
+        //@ts-ignore
         results: convertJSON(data.params.list) || [],
       });
     } else {
       this.queryProcessThreadCount();
     }
   }
-  private schedulingProcessSwitchCount(data: any): void {
+  private schedulingProcessSwitchCount(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     if (data.params.list) {
+      //@ts-ignore
       let arr = convertJSON(data.params.list) || [];
       self.postMessage({
         id: data.id,
         action: data.action,
         results: arr.map((it) => {
+          //@ts-ignore
           it.pName = this.processMap.get(it.pid) || 'null';
+          //@ts-ignore
           it.tName = this.threadMap.get(it.tid) || 'null';
           return it;
         }),
@@ -292,18 +338,21 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       this.queryProcessSwitchCount();
     }
   }
-  private schedulingThreadFreq(data: any): void {
+  private schedulingThreadFreq(data: { id: string; action: string; params: unknown }): void {
+    //@ts-ignore
     if (data.params.list) {
       self.postMessage({
         id: data.id,
         action: data.action,
+        //@ts-ignore
         results: this.handlerThreadFreqData(convertJSON(data.params.list) || []),
       });
     } else {
+      //@ts-ignore
       this.queryThreadStateByTid(data.params.tid);
     }
   }
-  getProcessAndThread() {
+  getProcessAndThread(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-getProcessAndThread',
@@ -316,7 +365,7 @@ select pid id,ifnull(name,'null') name,'p' type from process;
     );
   }
 
-  getCpuUsage() {
+  getCpuUsage(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-getCpuUsage',
@@ -344,7 +393,7 @@ order by cpu;
     );
   }
 
-  getCpuFrequency(name: string) {
+  getCpuFrequency(name: string): void {
     this.queryData(
       this.currentEventId,
       name,
@@ -358,7 +407,7 @@ order by cpu,ts;
     );
   }
 
-  getThreadStateByCpu(cpu: number) {
+  getThreadStateByCpu(cpu: number): void {
     let sql = `
 select st.tid,
        st.pid,
@@ -373,7 +422,7 @@ order by ts;`;
     this.queryData(this.currentEventId, 'scheduling-CPU Frequency Thread', sql, {});
   }
 
-  getCpuIdle0() {
+  getCpuIdle0(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-getCpuIdle0',
@@ -386,7 +435,7 @@ where cmf.name = 'cpu_idle' and value = 0
     );
   }
 
-  getCpuIdle() {
+  getCpuIdle(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-CPU Idle',
@@ -399,7 +448,7 @@ where cmf.name = 'cpu_idle' and value != 0
     );
   }
 
-  getCpuIrq() {
+  getCpuIrq(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-CPU Irq',
@@ -425,7 +474,7 @@ where cmf.name = 'cpu_idle' and value != 0
     );
   }
 
-  queryThreadCpuUsage(bigCores: number[], midCores: number[], smallCores: number[]) {
+  queryThreadCpuUsage(bigCores: number[], midCores: number[], smallCores: number[]): void {
     let sql = `
         select A.pid,A.tid,A.cpu,
        sum(A.dur) as total
@@ -435,7 +484,7 @@ group by A.pid, A.tid,A.cpu`;
     this.queryData(this.currentEventId, 'scheduling-Thread CpuUsage', sql, {});
   }
 
-  queryThreadRunTime(cpuMax: number) {
+  queryThreadRunTime(cpuMax: number): void {
     let sql = `
         select (row_number() over (order by max(A.dur) desc)) no,A.tid, A.cpu,A.ts as timestamp,A.pid, max(A.dur) maxDuration
     from thread_state A, trace_range B
@@ -446,7 +495,7 @@ group by A.pid, A.tid,A.cpu`;
     this.queryData(this.currentEventId, 'scheduling-Thread RunTime', sql, {});
   }
 
-  queryProcessThreadCount() {
+  queryProcessThreadCount(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-Process ThreadCount',
@@ -460,7 +509,7 @@ order by threadNumber desc limit 20;`,
     );
   }
 
-  queryProcessSwitchCount() {
+  queryProcessSwitchCount(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-Process SwitchCount',
@@ -476,7 +525,7 @@ group by a.pid,a.tid limit 20;`,
     );
   }
 
-  queryThreadStateByTid(tid: number) {
+  queryThreadStateByTid(tid: number): void {
     let sql = `
 select cpu,dur,ts - tr.start_ts as ts
 from thread_state st,trace_range tr
@@ -489,7 +538,7 @@ where cpu not null
     this.queryData(this.currentEventId, 'scheduling-Thread Freq', sql, {});
   }
 
-  groupIrgDataByCpu(arr: Irq[]) {
+  groupIrgDataByCpu(arr: Irq[]): Map<number, CpuAnalysis[]> {
     //首先计算 每个频点的持续时间，并根据Cpu来分组
     let map: Map<number, Array<Irq>> = new Map<number, Array<Irq>>();
     let sumMap: Map<number, number> = new Map<number, number>();
@@ -511,7 +560,7 @@ where cpu not null
       target.set(
         key,
         cpuArr.map((irqBean) => {
-          return {
+          let item = {
             cpu: irqBean.cpu,
             value: irqBean.value,
             sum: irqBean.sum,
@@ -524,14 +573,16 @@ where cpu not null
             avgValue: irqBean.avg,
             ratio: ((irqBean.sum / (sumMap.get(key) || 1)) * 100).toFixed(2),
             block: irqBean.block,
-          } as any;
+          };
+          //@ts-ignore
+          return item as CpuAnalysis;
         })
       );
     }
     return target;
   }
 
-  handleProcessThread(arr: { id: number; name: string; type: string }[]) {
+  handleProcessThread(arr: { id: number; name: string; type: string }[]): void {
     this.processMap.clear();
     this.threadMap.clear();
     for (let pt of arr) {
@@ -543,7 +594,7 @@ where cpu not null
     }
   }
 
-  handleCPUIdle0Map(arr: CpuMeasure[]) {
+  handleCPUIdle0Map(arr: CpuMeasure[]): void {
     this.cpuIdle0Map.clear();
     for (let i = 0, len = arr.length; i < len; i++) {
       let ca = arr[i];
@@ -559,7 +610,7 @@ where cpu not null
     }
   }
 
-  getEffectiveFrequencyDur(m: CpuMeasure) {
+  getEffectiveFrequencyDur(m: CpuMeasure): void {
     let arr = this.cpuIdle0Map.get(m.cpu) || [];
     let filterArr: CpuMeasure[] = [];
     for (let it of arr) {
@@ -577,7 +628,7 @@ where cpu not null
     m.dur = dur;
   }
 
-  groupFreqByCpu(arr: CpuMeasure[]) {
+  groupFreqByCpu(arr: CpuMeasure[]): void {
     let map: Map<number, Array<CpuMeasure>> = new Map<number, Array<CpuMeasure>>();
     for (let i = 0, len = arr.length; i < len; i++) {
       let ca = arr[i];
@@ -609,15 +660,19 @@ where cpu not null
   }
 
   private filterMap(map: Map<number, Array<CpuMeasure>>, key: number): Map<number, CpuAnalysis[]> {
-    return map.get(key)!.reduce((group: any, ca) => {
+    //@ts-ignore
+    return map.get(key)!.reduce((group: unknown, ca) => {
       const { value } = ca;
-      if (group[value]) {
-        group[value].sum = group[value].sum + ca.dur;
-        group[value].min = group[value].min < ca.dur ? group[value].min : ca.dur;
-        group[value].max = group[value].max > ca.dur ? group[value].max : ca.dur;
-        group[value].count = group[value].count + 1;
-        group[value].avg = (group[value].sum / group[value].count).toFixed(2);
+      //@ts-ignore
+      const groupItem = group[value];
+      if (groupItem) {
+        groupItem.sum = groupItem.sum + ca.dur;
+        groupItem.min = groupItem.min < ca.dur ? groupItem.min : ca.dur;
+        groupItem.max = groupItem.max > ca.dur ? groupItem.max : ca.dur;
+        groupItem.count = groupItem.count + 1;
+        groupItem.avg = (groupItem.sum / groupItem.count).toFixed(2);
       } else {
+        //@ts-ignore
         group[value] = {
           cpu: ca.cpu,
           value: ca.value,
@@ -633,7 +688,7 @@ where cpu not null
       return group;
     }, {});
   }
-  private setTargetMapValue(cpuArr: Array<CpuAnalysis>, sumMap: Map<number, number>, key: number) {
+  private setTargetMapValue(cpuArr: Array<CpuAnalysis>, sumMap: Map<number, number>, key: number): unknown[] {
     return cpuArr.map((cpuAnalysisBean) => {
       return {
         cpu: cpuAnalysisBean.cpu,
@@ -649,7 +704,7 @@ where cpu not null
         count: cpuAnalysisBean.count,
         ratio: ((cpuAnalysisBean.sum / (sumMap.get(key) || 1)) * 100).toFixed(2),
         block: cpuAnalysisBean.block,
-      } as any;
+      };
     });
   }
   //根据查询的数据，加工出CPU调度分析所需要展示的相关数据
@@ -675,8 +730,8 @@ where cpu not null
         sumMap.set(ca.cpu, (sumMap.get(ca.cpu) || 0) + ca.dur);
       }
     }
-    //再根据频点值进行分组求和
     let target: Map<number, CpuAnalysis[]> = new Map<number, CpuAnalysis[]>();
+    //再根据频点值进行分组求和
     for (let key of map.keys()) {
       let obj = this.filterMap(map, key);
       let cpuArr = (Object.values(obj) as CpuAnalysis[])
@@ -689,12 +744,12 @@ where cpu not null
         })
         .slice(0, 20);
       let value = this.setTargetMapValue(cpuArr, sumMap, key);
-      target.set(key, value);
+      target.set(key, value as CpuAnalysis[]);
     }
     return target;
   }
 
-  private handlerFreqThreadData(arr: FreqThread[]) {
+  private handlerFreqThreadData(arr: FreqThread[]): unknown {
     let cpuFreqArr: CpuMeasure[] = (this.cpuFreqMap.get(this.cpu) || []).filter((it) => it.value === this.freq);
     let map: Map<
       number,
@@ -732,10 +787,12 @@ where cpu not null
       })
       .slice(0, 20);
   }
-  private filterThreadCpuUsageArr(arr: any, sumBig: number, sumMid: number, sumSmall: number) {
-    return arr.reduce((group: any, item: any) => {
+  private filterThreadCpuUsageArr(arr: unknown, sumBig: number, sumMid: number, sumSmall: number): void {
+    //@ts-ignore
+    return arr.reduce((group: unknown, item: { total: number; pid: number; tid: number; cpu: number }) => {
       const { tid } = item;
-      let tidObj: any = group[`${tid}`];
+      //@ts-ignore
+      let tidObj: unknown = group[`${tid}`];
       let cpuType: string = 'mid';
       if (this.bigCores.includes(item.cpu)) {
         cpuType = 'big';
@@ -750,12 +807,18 @@ where cpu not null
         sumSmall += item.total;
       }
       if (tidObj) {
+        //@ts-ignore
         tidObj.big += cpuType === 'big' ? item.total : 0;
+        //@ts-ignore
         tidObj.mid += cpuType === 'mid' ? item.total : 0;
+        //@ts-ignore
         tidObj.small += cpuType === 'small' ? item.total : 0;
+        //@ts-ignore
         tidObj.total += item.total;
+        //@ts-ignore
         tidObj[`cpu${item.cpu}`] = item.total;
       } else {
+        //@ts-ignore
         group[`${tid}`] = {
           pid: item.pid,
           pName: this.processMap.get(item.pid) || 'null',
@@ -766,43 +829,63 @@ where cpu not null
           mid: cpuType === 'mid' ? item.total : 0,
           small: cpuType === 'small' ? item.total : 0,
         };
+        //@ts-ignore
         group[`${tid}`][`cpu${item.cpu}`] = item.total;
       }
       return group;
     }, {});
   }
   //加工Top20线程大中小核占用率数据
-  private handlerThreadCpuUsageData(arr: Array<ThreadCpuUsage>) {
+  private handlerThreadCpuUsageData(arr: Array<ThreadCpuUsage>): Map<string, ThreadCpuUsage[]> {
     let sumBig = 0;
     let sumMid = 0;
     let sumSmall = 0;
     let reduceObj = this.filterThreadCpuUsageArr(arr, sumBig, sumMid, sumSmall);
     // @ts-ignore
-    let source: any[] = Object.values(reduceObj) as any[];
+    let source: unknown[] = Object.values(reduceObj);
     for (let obj of source) {
-      obj['bigPercent'] = sumBig === 0 ? '0' : ((obj.big / sumBig) * 100).toFixed(2);
-      obj['midPercent'] = sumMid === 0 ? '0' : ((obj.mid / sumMid) * 100).toFixed(2);
-      obj['smallPercent'] = sumSmall === 0 ? '0' : ((obj.small / sumSmall) * 100).toFixed(2);
-      obj['bigTimeStr'] = getProbablyTime(obj.big);
-      obj['midTimeStr'] = getProbablyTime(obj.mid);
-      obj['smallTimeStr'] = getProbablyTime(obj.small);
+      // @ts-ignore
+      obj.bigPercent = sumBig === 0 ? '0' : ((obj.big / sumBig) * 100).toFixed(2);
+      // @ts-ignore
+      obj.midPercent = sumMid === 0 ? '0' : ((obj.mid / sumMid) * 100).toFixed(2);
+      // @ts-ignore
+      obj.smallPercent = sumSmall === 0 ? '0' : ((obj.small / sumSmall) * 100).toFixed(2);
+      // @ts-ignore
+      obj.bigTimeStr = getProbablyTime(obj.big);
+      // @ts-ignore
+      obj.midTimeStr = getProbablyTime(obj.mid);
+      // @ts-ignore
+      obj.smallTimeStr = getProbablyTime(obj.small);
     }
     let map: Map<string, Array<ThreadCpuUsage>> = new Map<string, Array<ThreadCpuUsage>>();
+    // @ts-ignore
     map.set('total', source.sort((a, b) => b.total - a.total).slice(0, 20));
+    // @ts-ignore
     map.set('big', source.sort((a, b) => b.big - a.big).slice(0, 20));
+    // @ts-ignore
     map.set('mid', source.sort((a, b) => b.mid - a.mid).slice(0, 20));
+    // @ts-ignore
     map.set('small', source.sort((a, b) => b.small - a.small).slice(0, 20));
+    // @ts-ignore
     return map;
   }
-  private filterThreadFreqData(arr: any, sumDur: number): any {
-    return arr.reduce((group: any, tf: { freqArr: any }) => {
+  private filterThreadFreqData(arr: unknown, sumDur: number): unknown {
+    //@ts-ignore
+    return arr.reduce((group: unknown, tf: { freqArr: unknown }) => {
+      //@ts-ignore
       for (let fa of tf.freqArr) {
         const { cpu, freq } = fa;
+        //@ts-ignore
         if (group[`${cpu}-${freq}`]) {
+          //@ts-ignore
           group[`${cpu}-${freq}`].time = group[`${cpu}-${freq}`].time + fa.dur;
+          //@ts-ignore
+          //@ts-ignore
           group[`${cpu}-${freq}`].timeStr = getProbablyTime(group[`${cpu}-${freq}`].time);
+          //@ts-ignore
           group[`${cpu}-${freq}`].ratio = ((group[`${cpu}-${freq}`].time / sumDur) * 100).toFixed(2);
         } else {
+          //@ts-ignore
           group[`${cpu}-${freq}`] = {
             freq: freq,
             cpu: cpu,
@@ -824,7 +907,7 @@ where cpu not null
       ts: number;
       freqArr: { cpu: number; freq: number; dur: number }[];
     }[]
-  ): Array<any> {
+  ): Array<unknown> {
     let sumDur: number = 0;
     arr.map((it) => {
       it.freqArr = [];
@@ -847,14 +930,10 @@ where cpu not null
       sumDur += it.dur;
       return it;
     });
-    let obj: any = this.filterThreadFreqData(arr, sumDur);
-    let target: {
-      cpu: number;
-      freq: number;
-      time: number;
-      ratio: string;
-      totalDur: number;
-    }[] = Object.values(obj);
+    let obj: unknown = this.filterThreadFreqData(arr, sumDur);
+    //@ts-ignore
+    let target = Object.values(obj);
+    //@ts-ignore
     return target.sort((a, b) => b.time - a.time);
   }
 }

@@ -133,8 +133,7 @@ import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
 import { TabPaneTimeParallel } from '../sheet/parallel/TabPaneTimeParallel';
 import { TabPaneMtParallel } from '../sheet/parallel/TabPaneMtParallel';
 
-
-export let tabConfig: any = {
+export let tabConfig: unknown = {
   'current-selection': {
     title: 'Current Selection',
     type: TabPaneCurrentSelection,
@@ -664,28 +663,28 @@ export let tabConfig: any = {
   'tabpane-gpufreq': {
     title: 'Gpufreq Usage',
     type: TabPaneGpufreq,
-    require: (param: SelectionParam) => param.clockMapData.size > 0 && param.clockMapData.has('gpufreq Frequency') === true,
+    require: (param: SelectionParam) => param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true,
   },
   'tabpane-datacut': {
     title: 'Data Cut',
     type: TabPaneDataCut,
     require: (param: SelectionParam) => param.threadIds.length > 0 ||
-      (param.clockMapData.size > 0 && param.clockMapData.has('gpufreq Frequency') === true),
+      (param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true),
   },
   'box-sample-instruction-selection': {
     title: 'Data Selection',
     type: TabPaneSampleInstructionSelection,
-    require: (param: SelectionParam) => param.sampleData.length > 0
+    require: (param: SelectionParam) => param.sampleData.length > 0,
   },
   'box-sample-instruction-distribution-selection': {
     title: 'Data Distribution',
     type: TabPaneSampleInstructionDistributions,
-    require: (param: SelectionParam) => param.sampleData.length > 0
+    require: (param: SelectionParam) => param.sampleData.length > 0,
   },
   'box-sample-instruction-totaltime-selection': {
     title: 'Total Duration',
     type: TabPaneSampleInstructionTotalTime,
-    require: (param: SelectionParam) => param.sampleData.length > 0
+    require: (param: SelectionParam) => param.sampleData.length > 0,
   },
   'box-sample-instruction': {
     title: 'Data Flow',
@@ -694,7 +693,7 @@ export let tabConfig: any = {
   'box-gpu-counter-selection': {
     title: 'Gpu Counter',
     type: TabPaneGpuCounterSelection,
-    require: (param: SelectionParam) => param.gpuCounter.length > 0
+    require: (param: SelectionParam) => param.gpuCounter.length > 0,
   },
   'box-gpu-counter': {
     title: 'Gpu Counter',

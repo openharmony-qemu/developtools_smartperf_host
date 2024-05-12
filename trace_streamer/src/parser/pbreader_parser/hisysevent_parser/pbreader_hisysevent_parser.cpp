@@ -18,7 +18,7 @@
 #include "process_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderHisyseventParser::PbreaderHisyseventParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderHisyseventParser::PbreaderHisyseventParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
 }
@@ -41,7 +41,7 @@ void PbreaderHisyseventParser::Finish()
 }
 
 static std::stringstream ss;
-void PbreaderHisyseventParser::Parse(ProtoReader::HisyseventInfo_Reader* tracePacket, uint64_t ts, bool& haveSplitSeg)
+void PbreaderHisyseventParser::Parse(ProtoReader::HisyseventInfo_Reader *tracePacket, uint64_t ts, bool &haveSplitSeg)
 {
     // parse hisysevent device state
     if (tracePacket->has_device_state()) {
@@ -71,7 +71,7 @@ void PbreaderHisyseventParser::Parse(ProtoReader::HisyseventInfo_Reader* tracePa
         }
     }
 }
-void PbreaderHisyseventParser::Parse(ProtoReader::HisyseventConfig_Reader* tracePacket, uint64_t ts)
+void PbreaderHisyseventParser::Parse(ProtoReader::HisyseventConfig_Reader *tracePacket, uint64_t ts)
 {
     streamFilters_->hiSysEventMeasureFilter_->AppendNewValue("message", tracePacket->msg().ToStdString());
     streamFilters_->hiSysEventMeasureFilter_->AppendNewValue("process_name", tracePacket->process_name().ToStdString());

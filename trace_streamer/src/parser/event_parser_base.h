@@ -21,12 +21,12 @@ namespace SysTuning {
 namespace TraceStreamer {
 class EventParserBase {
 public:
-    EventParserBase(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
+    EventParserBase(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
     virtual ~EventParserBase() = default;
 
 public:
-    const TraceStreamerFilters* streamFilters_;
-    TraceDataCache* traceDataCache_;
+    const TraceStreamerFilters *streamFilters_;
+    TraceDataCache *traceDataCache_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -35,7 +35,7 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
     this.selectEl = this.filterEl?.shadowRoot?.querySelector<LitSelect>('lit-select');
   }
 
-  public totalData(purgeTotalComParam: SelectionParam | any, dataList: any): void {
+  public totalData(purgeTotalComParam: SelectionParam | unknown, dataList: unknown): void {
     if (this.purgeableTotalTable) {
       //@ts-ignore
       this.purgeableTotalTable.shadowRoot?.querySelector('.table').style.height = `${
@@ -43,36 +43,42 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
       }px`;
     }
     this.purgeableTotalSource = [];
-    let fileArr: any[] = [];
+    let fileArr: unknown[] = []; // @ts-ignore
     for (let file of dataList) {
+      // @ts-ignore
       if (file.startNs !== purgeTotalComParam.startNs) {
         fileArr.push(file);
       }
     }
-    fileArr = fileArr.sort();
-    this.initSelect(purgeTotalComParam.startNs, fileArr);
+    fileArr = fileArr.sort(); // @ts-ignore
+    this.initSelect(purgeTotalComParam.startNs, fileArr); // @ts-ignore
     this.updateComparisonData(purgeTotalComParam.startNs, fileArr[0].startNs);
   }
 
-  private initSelect(fileStartNs: number, purgeTotalComFileArr: Array<any>): void {
+  private initSelect(fileStartNs: number, purgeTotalComFileArr: Array<unknown>): void {
     let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
     this.selectEl!.innerHTML = '';
     let option = new LitSelectOption();
     option.innerHTML = 'File Name';
     option.setAttribute('disabled', 'disabled');
-    this.selectEl?.appendChild(option);
-    if (purgeTotalComFileArr[0].name) option.setAttribute('value', purgeTotalComFileArr[0].name);
-    this.selectEl!.defaultValue = purgeTotalComFileArr[0].name;
+    this.selectEl?.appendChild(option); // @ts-ignore
+    if (purgeTotalComFileArr[0].name) {
+      // @ts-ignore
+      option.setAttribute('value', purgeTotalComFileArr[0].name);
+    } // @ts-ignore
+    this.selectEl!.defaultValue = purgeTotalComFileArr[0].name; // @ts-ignore
     this.selectEl!.placeholder = purgeTotalComFileArr[0].name;
     this.selectEl!.dataSource = purgeTotalComFileArr;
-    this.selectEl!.querySelectorAll('lit-select-option').forEach((a) => {
-      a.addEventListener('onSelected', (e: any) => {
+    this.selectEl!.querySelectorAll('lit-select-option').forEach((a): void => {
+      a.addEventListener('onSelected', (e: unknown): void => {
         for (let f of purgeTotalComFileArr) {
+          // @ts-ignore
           if (input.value === f.name) {
+            // @ts-ignore
             that.updateComparisonData(fileStartNs, f.startNs);
           }
-        }
+        } // @ts-ignore
         e.stopPropagation();
       });
     });
@@ -89,7 +95,7 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
     }
   }
 
-  private async queryTableData(baseTime: number, targetTime: number): Promise<any> {
+  private async queryTableData(baseTime: number, targetTime: number): Promise<unknown> {
     let delta = {
       purgActiveDelta: '0Bytes',
       purgInActiveDelta: '0Bytes',
@@ -98,13 +104,15 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
     const baseArr: CompareStruct[] = [];
     const targetArr: CompareStruct[] = [];
     // 点击的
-    await querySysPurgeableSelectionTab(baseTime).then(async (results) => {
+    await querySysPurgeableSelectionTab(baseTime).then(async (results): Promise<void> => {
       for (let i = 0; i < results.length; i++) {
+        //@ts-ignore
         baseArr.push(new CompareStruct(results[i].name, results[i].value));
       }
       // 被比较的
-      await querySysPurgeableSelectionTab(targetTime).then((results) => {
+      await querySysPurgeableSelectionTab(targetTime).then((results): void => {
         for (let i = 0; i < results.length; i++) {
+          //@ts-ignore
           targetArr.push(new CompareStruct(results[i].name, results[i].value));
         }
         let compareData = compare(baseArr, targetArr);

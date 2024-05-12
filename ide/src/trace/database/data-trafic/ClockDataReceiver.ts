@@ -12,10 +12,11 @@
 // limitations under the License.
 
 import { TraficEnum } from './utils/QueryEnum';
-import { filterDataByGroup } from "./utils/DataFilter";
-import {clockList} from "./utils/AllMemoryCache";
+import { filterDataByGroup } from './utils/DataFilter';
+import { clockList } from './utils/AllMemoryCache';
+import { Args } from './CommonArgs';
 
-export const chartClockDataSql = (args: any): string => {
+export const chartClockDataSql = (args: Args): string => {
   if (args.sqlType === 'clockFrequency') {
     return `
     with freq as (
@@ -59,7 +60,7 @@ export const chartClockDataSql = (args: any): string => {
   }
 };
 
-export const chartClockDataSqlMem = (args: any): string => {
+export const chartClockDataSqlMem = (args: Args): string => {
   if (args.sqlType === 'clockFrequency') {
     return `
         with freq as (  select measure.filter_id, measure.ts, measure.type, measure.value from clock_event_filter
@@ -77,57 +78,95 @@ export const chartClockDataSqlMem = (args: any): string => {
              order by measure.ts))
             select s.filter_id as filterId,s.ts-r.start_ts as startNs,s.type,s.value,s.dur from state s,trace_range r`;
   } else if (args.sqlType === 'screenState') {
-    return `select m.type, m.ts-r.start_ts as startNs, value, filter_id  as filterId from measure m,trace_range r where filter_id in (select id from process_measure_filter where name = 'ScreenState')  order by startNs;`;
+    return `select m.type, m.ts-r.start_ts as startNs, value, filter_id  as filterId 
+    from measure m,trace_range r 
+    where filter_id in (select id from process_measure_filter where name = 'ScreenState')  order by startNs;`;
   } else {
     return '';
   }
 };
 
-export function clockDataReceiver(data: any, proc: Function): void {
+export function clockDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: any[], list: any[];
+    let res: unknown[];
+    let list: unknown[];
+    // @ts-ignore
     if (!clockList.has(data.params.sqlType + data.params.clockName)) {
+      // @ts-ignore
       list = proc(chartClockDataSqlMem(data.params));
       for (let j = 0; j < list.length; j++) {
-        if (j == list.length - 1) {
+        if (j === list.length - 1) {
+          // @ts-ignore
           list[j].dur = (data.params.totalNS || 0) - (list[j].startNs || 0);
         } else {
+          // @ts-ignore
           list[j].dur = (list[j + 1].startNs || 0) - (list[j].startNs || 0);
         }
       }
+      // @ts-ignore
       clockList.set(data.params.sqlType + data.params.clockName, list);
     } else {
+      // @ts-ignore
       list = clockList.get(data.params.sqlType + data.params.clockName) || [];
     }
+    // @ts-ignore
     if (data.params.queryAll) {
       //框选时候取数据，只需要根据时间过滤数据
-      res = (list || []).filter(it => it.startNs + it.dur >= data.params.selectStartNS && it.startNs <= data.params.selectEndNS);
+      res = (list || []).filter(
+        // @ts-ignore
+        (it) => it.startNs + it.dur >= data.params.selectStartNS && it.startNs <= data.params.selectEndNS
+      );
     } else {
-      res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width, "value");
+      res = filterDataByGroup(
+        list || [],
+        'startNs',
+        'dur',
+        // @ts-ignore
+        data.params.startNS,
+        // @ts-ignore
+        data.params.endNS,
+        // @ts-ignore
+        data.params.width,
+        'value'
+      );
     }
-    arrayBufferHandler(data, res,true);
+    arrayBufferHandler(data, res, true);
   } else {
+    // @ts-ignore
     let sql = chartClockDataSql(data.params);
     let res = proc(sql);
-    arrayBufferHandler(data, res,data.params.trafic !== TraficEnum.SharedArrayBuffer);
+    // @ts-ignore
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
+  // @ts-ignore
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
+  // @ts-ignore
   let value = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.value);
+  // @ts-ignore
   let filterId = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.filterId);
   res.forEach((it, i) => {
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.clockData);
+    // @ts-ignore
     dur[i] = it.dur;
+    // @ts-ignore
     startNS[i] = it.startNs;
+    // @ts-ignore
     filterId[i] = it.filterId;
+    // @ts-ignore
     value[i] = it.value;
   });
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {

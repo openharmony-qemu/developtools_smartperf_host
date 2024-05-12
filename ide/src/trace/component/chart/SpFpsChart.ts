@@ -18,7 +18,7 @@ import { TraceRow } from '../trace/base/TraceRow';
 import { info } from '../../../log/Log';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { FpsRender, FpsStruct } from '../../database/ui-worker/ProcedureWorkerFPS';
-import {getFps} from "../../database/sql/SqlLite.sql";
+import { getFps } from '../../database/sql/SqlLite.sql';
 
 export class SpFpsChart {
   private trace: SpSystemTrace;
@@ -27,33 +27,33 @@ export class SpFpsChart {
     this.trace = trace;
   }
 
-  async init() {
+  async init(): Promise<void> {
     let res = await getFps();
-    if (res.length == 0) {
+    if (res.length === 0) {
       return;
     }
     let startTime = new Date().getTime();
     let fpsRow = TraceRow.skeleton<FpsStruct>();
-    fpsRow.rowId = `fps`;
+    fpsRow.rowId = 'fps';
     fpsRow.rowType = TraceRow.ROW_TYPE_FPS;
     fpsRow.rowParentId = '';
     FpsStruct.maxFps = 0;
     fpsRow.style.height = '40px';
-    fpsRow.name = 'FPS';
-    fpsRow.supplier = () => new Promise<Array<any>>((resolve, reject) => resolve(res));
+    fpsRow.name = 'FPS'; //@ts-ignore
+    fpsRow.supplier = (): Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve, reject) => resolve(res));
     fpsRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     fpsRow.selectChangeHandler = this.trace.selectChangeHandler;
-    fpsRow.focusHandler = (ev) => {
+    fpsRow.focusHandler = (ev): void => {
       let tip = '';
       if (FpsStruct.hoverFpsStruct) {
         tip = `<span>${FpsStruct.hoverFpsStruct.fps || 0}</span> `;
       }
       this.trace?.displayTip(fpsRow, FpsStruct.hoverFpsStruct, tip);
     };
-    fpsRow.findHoverStruct = () => {
+    fpsRow.findHoverStruct = (): void => {
       FpsStruct.hoverFpsStruct = fpsRow.getHoverStruct();
     };
-    fpsRow.onThreadHandler = (useCache) => {
+    fpsRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (fpsRow.currentContext) {
         context = fpsRow.currentContext;
@@ -65,7 +65,7 @@ export class SpFpsChart {
         {
           context: context,
           useCache: useCache,
-          type: `fps0`,
+          type: 'fps0',
         },
         fpsRow
       );

@@ -22,7 +22,7 @@ import { resizeObserver } from '../SheetUtils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
-import {queryGpuDataByRange} from "../../../../database/sql/Gpu.sql";
+import { queryGpuDataByRange } from '../../../../database/sql/Gpu.sql';
 
 interface GpuTotal {
   startTs: number;
@@ -46,16 +46,19 @@ export class TabPaneGpuTotalBoxSelect extends BaseElement {
   private gpuBoxSource: Array<GpuTotal> = [];
   private currentSelectionParam: SelectionParam | undefined;
 
-  set data(gpuTotalBoxParam: SelectionParam | any) {
+  set data(gpuTotalBoxParam: SelectionParam | unknown) {
     if (this.currentSelectionParam === gpuTotalBoxParam) {
       return;
     }
+    // @ts-ignore
     this.currentSelectionParam = gpuTotalBoxParam;
     //@ts-ignore
     this.gpuBoxTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
     this.range!.textContent =
+      // @ts-ignore
       'Selected range: ' + ((gpuTotalBoxParam.rightNs - gpuTotalBoxParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.gpuBoxTbl!.loading = true;
+    // @ts-ignore
     queryGpuDataByRange(gpuTotalBoxParam.leftNs, gpuTotalBoxParam.rightNs, MemoryConfig.getInstance().snapshotDur).then(
       (result) => {
         this.gpuBoxTbl!.loading = false;
@@ -84,7 +87,8 @@ export class TabPaneGpuTotalBoxSelect extends BaseElement {
   initElements(): void {
     this.gpuBoxTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gpu-box');
     this.range = this.shadowRoot?.querySelector('#gpu-box-time-range');
-    this.gpuBoxTbl!.addEventListener('column-click', (evt: any) => {
+    this.gpuBoxTbl!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
@@ -133,8 +137,10 @@ export class TabPaneGpuTotalBoxSelect extends BaseElement {
         return gpuA.startTs - gpuB.startTs;
       } else {
         let key = gpuTotalBoxDetail.key.replace('Str', '');
-        let valueA = (gpuA as any)[key];
-        let valueB = (gpuB as any)[key];
+        // @ts-ignore
+        let valueA = (gpuA as unknown)[key];
+        // @ts-ignore
+        let valueB = (gpuB as unknown)[key];
         return gpuTotalBoxDetail.sort === 1 ? valueA - valueB : valueB - valueA;
       }
     });

@@ -43,11 +43,21 @@ export class LongTraceDBUtils {
     ]);
   }
 
-  getByRange(range: IDBKeyRange): Promise<any> {
+  getByRange(range: IDBKeyRange): // @ts-ignore
+  Promise<unknown> {
     return this.indexedDBHelp.get(this.tableName, range, 'QueryFileByPage');
   }
 
-  addLongTableData(data: ArrayBuffer, fileType: string, timStamp: number, pageNumber: number, index: number, offset: number, sliceLen: number): Promise<any> {
+  addLongTableData(
+    data: ArrayBuffer,
+    fileType: string,
+    timStamp: number,
+    pageNumber: number,
+    index: number,
+    offset: number,
+    sliceLen: number
+  ): // @ts-ignore
+  Promise<unknown> {
     return this.indexedDBHelp.add(this.tableName, {
       buf: data,
       id: `${fileType}_${timStamp}_${pageNumber}_${index}`,
@@ -57,6 +67,6 @@ export class LongTraceDBUtils {
       endOffset: offset + sliceLen,
       index: index,
       timStamp: timStamp,
-    })
+    });
   }
 }

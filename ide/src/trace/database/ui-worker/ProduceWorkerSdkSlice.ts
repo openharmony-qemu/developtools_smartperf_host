@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Render, BaseStruct, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon';
+import { Render, BaseStruct, isFrameContainPoint, ns2x, Rect } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class SdkSliceRender extends Render {
@@ -36,7 +36,7 @@ export class SdkSliceRender extends Render {
       sdkFilter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
-      TraceRow.range?.totalNS ?? 0,
+      TraceRow.range?.totalNS ?? 0, // @ts-ignore
       row.frame,
       req.useCache || (TraceRow.range?.refresh ?? false)
     );
@@ -56,20 +56,22 @@ export class SdkSliceRender extends Render {
   }
 
   sdkSlice(
-    sdkList: Array<any>,
-    sdkSliceFilters: Array<any>,
+    sdkList: Array<unknown>,
+    sdkSliceFilters: Array<unknown>,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any,
+    frame: Rect,
     use: boolean
   ): void {
     if (use && sdkSliceFilters.length > 0) {
       for (let index = 0; index < sdkSliceFilters.length; index++) {
         let item = sdkSliceFilters[index];
+        //@ts-ignore
         if ((item.end_ts || 0) > startNS && (item.start_ts || 0) < endNS) {
           SdkSliceStruct.setSdkSliceFrame(sdkSliceFilters[index], 5, startNS, endNS, totalNS, frame);
         } else {
+          //@ts-ignore
           sdkSliceFilters[index].frame = null;
         }
       }
@@ -82,24 +84,29 @@ export class SdkSliceRender extends Render {
   }
 }
 function setSdkSliceFilter(
-  sdkList: Array<any>,
-  sdkSliceFilters: Array<any>,
+  sdkList: Array<unknown>,
+  sdkSliceFilters: Array<unknown>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any
-) {
+  frame: Rect
+): void {
   for (let index = 0; index < sdkList.length; index++) {
     let item = sdkList[index];
+    //@ts-ignore
     if (item.start_ts >= startNS && item.end_ts === 0) {
+      //@ts-ignore
       item.end_ts = endNS;
     }
+    //@ts-ignore
     if ((item.end_ts || 0) > startNS && (item.start_ts || 0) < endNS) {
       SdkSliceStruct.setSdkSliceFrame(sdkList[index], 5, startNS, endNS, totalNS, frame);
       if (
         !(
           index > 0 &&
+          //@ts-ignore
           (sdkList[index - 1].frame?.x || 0) === (sdkList[index].frame?.x || 0) &&
+          //@ts-ignore
           (sdkList[index - 1].frame?.width || 0) === (sdkList[index].frame?.width || 0)
         )
       ) {
@@ -115,19 +122,18 @@ export class SdkSliceStruct extends BaseStruct {
   static hoverSdkSliceStruct: SdkSliceStruct | undefined;
   static selectSdkSliceStruct: SdkSliceStruct | undefined;
 
-  start_ts: number | undefined;
-  end_ts: number | undefined;
+  startTs: number | undefined;
+  endTs: number | undefined;
 
   value: number | undefined;
   slice_message: string | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, data: SdkSliceStruct) {
+  static draw(ctx: CanvasRenderingContext2D, data: SdkSliceStruct): void {
     if (data.frame) {
       let width = data.frame.width || 0;
-      let index = 4;
       ctx.fillStyle = '#6DC0DC';
       ctx.strokeStyle = '#6DC0DC';
-      if (data.start_ts === SdkSliceStruct.hoverSdkSliceStruct?.start_ts) {
+      if (data.startTs === SdkSliceStruct.hoverSdkSliceStruct?.startTs) {
         ctx.lineWidth = 1;
         ctx.fillRect(data.frame.x, data.frame.y + 4, width, data.frame.height - 10);
         ctx.beginPath();
@@ -148,32 +154,42 @@ export class SdkSliceStruct extends BaseStruct {
   }
 
   static setSdkSliceFrame(
-    SdkSliceNode: any,
+    SdkSliceNode: unknown,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
-    let sdkSliceStartPointX: number, sdkSliceEndPointX: number;
-
+    let sdkSliceStartPointX: number;
+    let sdkSliceEndPointX: number;
+    //@ts-ignore
     if ((SdkSliceNode.start_ts || 0) < startNS) {
       sdkSliceStartPointX = 0;
     } else {
+      //@ts-ignore
       sdkSliceStartPointX = ns2x(SdkSliceNode.start_ts || 0, startNS, endNS, totalNS, frame);
     }
+    //@ts-ignore
     if ((SdkSliceNode.end_ts || 0) > endNS) {
       sdkSliceEndPointX = frame.width;
     } else {
+      //@ts-ignore
       sdkSliceEndPointX = ns2x(SdkSliceNode.end_ts || 0, startNS, endNS, totalNS, frame);
     }
     let frameWidth: number = sdkSliceEndPointX - sdkSliceStartPointX <= 1 ? 1 : sdkSliceEndPointX - sdkSliceStartPointX;
+    //@ts-ignore
     if (!SdkSliceNode.frame) {
+      //@ts-ignore
       SdkSliceNode.frame = {};
     }
+    //@ts-ignore
     SdkSliceNode.frame.x = Math.floor(sdkSliceStartPointX);
+    //@ts-ignore
     SdkSliceNode.frame.y = frame.y + padding;
+    //@ts-ignore
     SdkSliceNode.frame.width = Math.ceil(frameWidth);
+    //@ts-ignore
     SdkSliceNode.frame.height = Math.floor(frame.height - padding * 2);
   }
 }

@@ -40,30 +40,37 @@ export class TabPaneGpuCounterSelection extends BaseElement {
   async getCounterData(gpuCounterValue: SelectionParam) {
     let collect = gpuCounterValue.gpuCounter;
     let dataSource: Array<GpuCounter> = [];
-    collect.forEach(it => {
+    collect.forEach((it) => {
       let selectData = new GpuCounter();
+      //@ts-ignore
       selectData.startNS = it.startNS;
+      //@ts-ignore
       selectData.height = it.height;
+      //@ts-ignore
       selectData.dur = it.dur;
+      //@ts-ignore
       selectData.type = it.type;
+      //@ts-ignore
       selectData.frame = it.frame;
+      //@ts-ignore
       selectData.startTime = it.startTime;
       dataSource.push(selectData);
-    })
+    });
     this.clockCounterSource = dataSource;
     this.gpuCounterCounterTbl!.recycleDataSource = dataSource;
   }
 
   initElements(): void {
     this.gpuCounterCounterTbl = this.shadowRoot?.querySelector<LitTable>('#tb-counter');
-    this.spSystemTrace = document.querySelector('body > sp-application')
+    this.spSystemTrace = document
+      .querySelector('body > sp-application')
       ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
     this.traceSheetEl = this.spSystemTrace?.shadowRoot?.querySelector('.trace-sheet');
     this.gpuCounterCounterTbl!.addEventListener('column-click', (event) => {
       // @ts-ignore
       this.sortByColumn(event.detail.key, event.detail.sort);
     });
-    this.addRowClickEventListener(this.gpuCounterCounterTbl!)
+    this.addRowClickEventListener(this.gpuCounterCounterTbl!);
     this.gpuCounterCounterTbl?.addEventListener('mouseout', () => {
       this.refreshTable();
     });
@@ -76,14 +83,13 @@ export class TabPaneGpuCounterSelection extends BaseElement {
     }
   }
 
-
   addRowClickEventListener(table: LitTable): void {
     table.addEventListener('row-hover', (evt) => {
       // @ts-ignore
       const data = evt.detail.data;
       if (data) {
         let pointX: number = ns2x(
-          (data.startNS - data.startTime) || 0,
+          data.startNS - data.startTime || 0,
           TraceRow.range!.startNS,
           TraceRow.range!.endNS,
           TraceRow.range!.totalNS,
@@ -94,7 +100,7 @@ export class TabPaneGpuCounterSelection extends BaseElement {
           0,
           0,
           0,
-          (data.startNS - data.startTime),
+          data.startNS - data.startTime,
           '#666666',
           '',
           true,

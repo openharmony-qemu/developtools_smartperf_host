@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-const initHtmlStyle:string = `
+const initHtmlStyle: string = `
     <style>
         :host(:not([collapsed])){ 
             width: 248px;
@@ -71,7 +71,7 @@ const initHtmlStyle:string = `
         :host([describe]) .group-describe{
           padding: 4px 24px 0 24px;
           color: #999 !important;
-          font-size: 1rem;
+          font-size: 12px;
         }
         :host([describe]) .group-name{
           margin-top: 10px;
@@ -100,11 +100,11 @@ export class LitMainMenuGroup extends BaseElement {
   private group: HTMLElement | null | undefined;
   private iconEl: HTMLElement | null | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['title', 'describe', 'collapsed', 'nocollapse', 'radius', 'second', 'icon'];
   }
 
-  get second() {
+  get second(): boolean {
     return this.hasAttribute('second');
   }
 
@@ -128,7 +128,7 @@ export class LitMainMenuGroup extends BaseElement {
     }
   }
 
-  get nocollapsed() {
+  get nocollapsed(): boolean {
     return this.hasAttribute('nocollapsed');
   }
 
@@ -140,7 +140,7 @@ export class LitMainMenuGroup extends BaseElement {
     }
   }
 
-  get radius() {
+  get radius(): boolean {
     return this.hasAttribute('radius');
   }
 
@@ -171,16 +171,22 @@ export class LitMainMenuGroup extends BaseElement {
         `;
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     switch (name) {
       case 'title':
-        if (this.groupNameEl) this.groupNameEl.textContent = newValue;
+        if (this.groupNameEl) {
+          this.groupNameEl.textContent = newValue;
+        }
         break;
       case 'describe':
-        if (this.groupDescEl) this.groupDescEl.textContent = newValue;
+        if (this.groupDescEl) {
+          this.groupDescEl.textContent = newValue;
+        }
         break;
       case 'icon':
-        if (this.iconEl) this.iconEl.setAttribute('name', newValue);
+        if (this.iconEl) {
+          this.iconEl.setAttribute('name', newValue);
+        }
         break;
     }
   }

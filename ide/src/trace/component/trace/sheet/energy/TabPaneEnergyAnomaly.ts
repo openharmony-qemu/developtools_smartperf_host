@@ -32,36 +32,38 @@ export class TabPaneEnergyAnomaly extends BaseElement {
     let div: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#anomaly-details');
     let htmlText = '';
     if (selectionAnomaly) {
-      this.queryAnomalyTableData(selectionAnomaly.leftNs, selectionAnomaly.rightNs).then((bean) => {
+      this.queryAnomalyTableData(selectionAnomaly.leftNs, selectionAnomaly.rightNs).then((bean): void => {
         let filterAppMap = this.setFilterAppMapByAnomalyData(bean);
         let tempSet = new Set();
         for (let index = 0; index < bean.length; index++) {
           // @ts-ignore
           let values = Object.values(bean[index]);
           let findAppNameIndex = -1;
-          if (filterAppMap.get(values[0] + values[1]) == -1) {
+          if (filterAppMap.get(values[0] + values[1]) === -1) {
             continue;
           } else {
+            // @ts-ignore
             findAppNameIndex = filterAppMap.get(values[0] + values[1]);
           }
           if (!tempSet.has(values[0])) {
             tempSet.add(values[0]);
-            htmlText += '<div><table' +
+            htmlText +=
+              '<div><table' +
               ' style=\'border:none;table-layout:fixed;word-break:break-all\' cellspacing="5"; cellpadding="5"><tbody>' +
-              '<tr><td colspan="5" style=\'font-weight: 700;font-size: 14px\'>' +
-              values[1] + '</td></tr>';
+              `<tr><td colspan="5" style='font-weight: 700;font-size: 14px'>${values[1]}</td></tr>`;
           }
           // @ts-ignore
           if (tempSet.has(Object.values(bean[index])[0])) {
             let appValues = values[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
-            htmlText +=
-              '<tr><td style=\'font-weight: 400;font-size: 14px;opacity:0.9;width:150px;\'>' +
-              values[TabPaneEnergyAnomaly.KEY_INDEX] +
-              '</td><td style=\'font-weight: 400;font-size: 14px;opacity:0.6;width:250px;\'>' +
-              (findAppNameIndex >= 0 ? appValues.length > 1 ? appValues[findAppNameIndex] :
-                values[TabPaneEnergyAnomaly.VALUE_INDEX] : values[TabPaneEnergyAnomaly.VALUE_INDEX]) +
-              TabPaneEnergyAnomaly.getUnit(values[TabPaneEnergyAnomaly.KEY_INDEX]) +
-              '</td><td style=\'width:100px\'></td>';
+            htmlText += `<tr><td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>${
+              values[TabPaneEnergyAnomaly.KEY_INDEX]
+            }</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>${
+              findAppNameIndex >= 0
+                ? appValues.length > 1
+                  ? appValues[findAppNameIndex]
+                  : values[TabPaneEnergyAnomaly.VALUE_INDEX]
+                : values[TabPaneEnergyAnomaly.VALUE_INDEX]
+            }${TabPaneEnergyAnomaly.getUnit(values[TabPaneEnergyAnomaly.KEY_INDEX])}</td><td style='width:100px'></td>`;
           }
           if (index + 1 < bean.length) {
             // @ts-ignore
@@ -78,29 +80,33 @@ export class TabPaneEnergyAnomaly extends BaseElement {
     }
   }
 
-  private spliceHtmlText(findAppNameIndex: number, nextValues: any[], htmlText: string, tempSet: Set<any>): string{
+  private spliceHtmlText(
+    findAppNameIndex: number,
+    nextValues: unknown[],
+    htmlText: string,
+    tempSet: Set<unknown>
+  ): string {
+    // @ts-ignore
     let appValues = nextValues[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
     if (tempSet.has(nextValues[0])) {
-      htmlText +=
-        '<td style=\'font-weight: 400;font-size: 14px;opacity:0.9;width:150px;\'>' +
-        nextValues[TabPaneEnergyAnomaly.KEY_INDEX] +
-        '</td><td style=\'font-weight: 400;font-size: 14px;opacity:0.6;width:250px;\'>' +
-        (findAppNameIndex >= 0
+      htmlText += `<td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>${
+        nextValues[TabPaneEnergyAnomaly.KEY_INDEX]
+      }</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>${
+        findAppNameIndex >= 0
           ? appValues.length > 1
             ? appValues[findAppNameIndex]
             : nextValues[TabPaneEnergyAnomaly.VALUE_INDEX]
-          : nextValues[TabPaneEnergyAnomaly.VALUE_INDEX]) +
-        TabPaneEnergyAnomaly.getUnit(nextValues[TabPaneEnergyAnomaly.KEY_INDEX]) +
-        '</td></tr>';
+          : nextValues[TabPaneEnergyAnomaly.VALUE_INDEX]
+      }${TabPaneEnergyAnomaly.getUnit(nextValues[TabPaneEnergyAnomaly.KEY_INDEX])}</td></tr>`;
     } else {
       htmlText += '</tr>';
       htmlText += '</tbody></table></div>';
-      return htmlText
+      return htmlText;
     }
-    return htmlText
+    return htmlText;
   }
 
-  private setFilterAppMapByAnomalyData(bean: EnergyAnomalyStruct[]): Map<string, any> {
+  private setFilterAppMapByAnomalyData(bean: EnergyAnomalyStruct[]): Map<string, unknown> {
     let filterAppMap = new Map();
     for (let index = 0; index < bean.length; index++) {
       let findAppNameIndex = -1;
@@ -115,8 +121,8 @@ export class TabPaneEnergyAnomaly extends BaseElement {
             break;
           }
         }
-        if (values[TabPaneEnergyAnomaly.KEY_INDEX] == 'APPNAME') {
-          //ts+eventName : appNameIndex
+        if (values[TabPaneEnergyAnomaly.KEY_INDEX] === 'APPNAME') {
+          // ts+eventName : appNameIndex
           filterAppMap.set(values[0] + values[1], findAppNameIndex);
         }
       }
@@ -124,12 +130,12 @@ export class TabPaneEnergyAnomaly extends BaseElement {
     return filterAppMap;
   }
 
-  static getUnit(value: any) {
-    if (value == 'DURATION') {
+  static getUnit(value: unknown): string {
+    if (value === 'DURATION') {
       return ' ms';
-    } else if (value == 'ENERGY' || value == 'BGENERGY' || value == 'BATTERY_GAS_GUAGE') {
+    } else if (value === 'ENERGY' || value === 'BGENERGY' || value === 'BATTERY_GAS_GUAGE') {
       return ' mAh';
-    } else if (value == 'BGUSAGE') {
+    } else if (value === 'BGUSAGE') {
       return ' s';
     }
     return '';
@@ -137,20 +143,19 @@ export class TabPaneEnergyAnomaly extends BaseElement {
 
   /**
    * 查询出 异常详细信息
-   * @param data
+   *
+   * @param startTime
+   * @param endTime
    */
   async queryAnomalyTableData(startTime: number, endTime: number): Promise<Array<EnergyAnomalyStruct>> {
-    let anomalyTableData = await queryAnomalyDetailedData(startTime, endTime);
-    return anomalyTableData;
+    return await queryAnomalyDetailedData(startTime, endTime);
   }
 
   initElements(): void {
     this.tblAnomaly = this.shadowRoot?.querySelector<LitTable>('#anomalyselectionTbl');
-    this.tblAnomaly?.addEventListener('column-click', (ev: any) => {
-    });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.tblAnomaly!);
   }

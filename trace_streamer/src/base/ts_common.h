@@ -190,6 +190,8 @@ enum SchedWakeType {
 };
 enum DataSourceType {
     DATA_SOURCE_TYPE_TRACE,
+    DATA_SOURCE_TYPE_FFRT,
+    DATA_SOURCE_TYPE_FFRT_CONFIG,
     DATA_SOURCE_TYPE_MEM,
     DATA_SOURCE_TYPE_HILOG,
     DATA_SOURCE_TYPE_NATIVEHOOK,
@@ -243,7 +245,7 @@ private:
     std::atomic_flag valueCAS_{0};
 };
 template <typename T>
-void Unused(const T& expr)
+void Unused(const T &expr)
 {
     static_cast<void>(expr);
 }

@@ -23,14 +23,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 class DemoMetaTable : public DemoTableBase {
 public:
-    explicit DemoMetaTable(const TraceDataCache* dataCache);
+    explicit DemoMetaTable(const TraceDataCache *dataCache);
     ~DemoMetaTable() override;
     std::unique_ptr<DemoTableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public DemoTableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, DemoTableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, DemoTableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t column) const override;
     };

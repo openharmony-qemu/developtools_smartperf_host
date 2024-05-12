@@ -22,7 +22,7 @@ export class LitCheckBoxWithText extends BaseElement {
   private _lowerLimit: HTMLInputElement | undefined;
   private _upLimit: HTMLInputElement | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['text', 'lowerLimit', 'upLimit', 'checked'];
   }
 
@@ -50,8 +50,8 @@ export class LitCheckBoxWithText extends BaseElement {
     this.setAttribute('upLimit', upLimit);
   }
 
-  get checked() {
-    return this.getAttribute('checked') != null;
+  get checked(): boolean {
+    return this.getAttribute('checked') !== null;
   }
 
   set checked(checked: boolean) {
@@ -92,17 +92,17 @@ export class LitCheckBoxWithText extends BaseElement {
         `;
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name == 'checked') {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+    if (name === 'checked') {
       this._checkBox!.checked = newValue !== null;
     }
-    if (name == 'text') {
+    if (name === 'text') {
       this._checkBox?.setAttribute('value', newValue);
     }
-    if (name == 'lowerLimit') {
+    if (name === 'lowerLimit') {
       this._lowerLimit!.textContent = newValue;
     }
-    if (name == 'upLimit') {
+    if (name === 'upLimit') {
       this._upLimit!.textContent = newValue;
     }
   }

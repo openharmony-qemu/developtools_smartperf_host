@@ -21,7 +21,7 @@ import { resizeObserverFromMemory } from '../SheetUtils';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
 import { TabPaneSmapsStatistics } from './TabPaneSmapsStatistics';
 import { type SmapsType } from '../../../../bean/SmapsStruct';
-import {getTabSmapsStatisticData} from "../../../../database/sql/Smaps.sql";
+import { getTabSmapsStatisticData } from '../../../../database/sql/Smaps.sql';
 
 @element('tabpane-smaps-comparison')
 export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {
@@ -40,10 +40,10 @@ export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {
       this.sortByColumn(evt.detail.key, evt.detail.sort, this.smapsCompariosnTable);
     });
   }
-  public setData(data: SelectionParam | any, dataList: any): void {
+  public setData(data: SelectionParam | unknown, dataList: unknown): void {
     if (data == this.selectionParam) {
       return;
-    }
+    } // @ts-ignore
     this.selectionParam = data;
     //@ts-ignore
     this.smapsCompariosnTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
@@ -51,37 +51,41 @@ export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {
     }px`;
     this.smapsCompariosnTable!.loading = true;
     this.init(this.tabTitle!);
-    let fileArr: any[] = [];
+    let fileArr: unknown[] = []; // @ts-ignore
     for (let file of dataList) {
+      // @ts-ignore
       if (file.startNs !== data.leftNs) {
         fileArr.push(file);
       }
     }
-    fileArr = fileArr.sort();
-    this.initSelect(data.leftNs, fileArr);
+    fileArr = fileArr.sort(); // @ts-ignore
+    this.initSelect(data.leftNs, fileArr); // @ts-ignore
     this.querySmapsData(data.leftNs, fileArr[0].startNs);
   }
-  private initSelect(fileStartNs: number, smapsComFileArr: Array<any>): void {
+  private initSelect(fileStartNs: number, smapsComFileArr: Array<unknown>): void {
     let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
     this.selectEl!.innerHTML = '';
     let option = new LitSelectOption();
     option.innerHTML = 'File Name';
     option.setAttribute('disabled', 'disabled');
-    this.selectEl?.appendChild(option);
+    this.selectEl?.appendChild(option); // @ts-ignore
     if (smapsComFileArr[0].name) {
+      // @ts-ignore
       option.setAttribute('value', smapsComFileArr[0].name);
-    }
-    this.selectEl!.defaultValue = smapsComFileArr[0].name;
+    } // @ts-ignore
+    this.selectEl!.defaultValue = smapsComFileArr[0].name; // @ts-ignore
     this.selectEl!.placeholder = smapsComFileArr[0].name;
     this.selectEl!.dataSource = smapsComFileArr;
     this.selectEl!.querySelectorAll('lit-select-option').forEach((a) => {
-      a.addEventListener('onSelected', (e: any) => {
+      a.addEventListener('onSelected', (e: unknown) => {
         for (let f of smapsComFileArr) {
+          // @ts-ignore
           if (input.value === f.name) {
+            // @ts-ignore
             that.querySmapsData(fileStartNs, f.startNs);
           }
-        }
+        } // @ts-ignore
         e.stopPropagation();
       });
     });

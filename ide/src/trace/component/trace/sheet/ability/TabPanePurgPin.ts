@@ -70,14 +70,15 @@ export class TabPanePurgPin extends BaseElement {
     }
   }
 
-  getDataSource(res: any): void {
+  getDataSource(res: unknown): void {
+    // @ts-ignore
     if (res.length > 0) {
+      // @ts-ignore
       for (let i = 0; i < res.length; i++) {
-        this.purgeablePinSource.push(
-          this.toTabStruct(res[i].name, res[i].maxSize, res[i].minSize, res[i].avgSize)
-        );
+        // @ts-ignore
+        this.purgeablePinSource.push(this.toTabStruct(res[i].name, res[i].maxSize, res[i].minSize, res[i].avgSize));
       }
-      this.sortByColumn({key: this.sortKey, sort: this.sortType});
+      this.sortByColumn({ key: this.sortKey, sort: this.sortType });
       let total = this.totalData(this.purgeablePinSource);
       this.purgeablePinSource.unshift(total);
       this.purgeablePinTable!.recycleDataSource = this.purgeablePinSource;
@@ -135,10 +136,10 @@ export class TabPanePurgPin extends BaseElement {
     return pinData;
   }
 
-  private sortByColumn(detail: any): void {
+  private sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(key, sort, type) {
-      return function (purgePinLeftData: any, purgePinRightData: any) {
+      return function (purgePinLeftData: unknown, purgePinRightData: unknown) {
         // 不管哪一列的排序方式是0（默认排序），都按照avgSize列从大到小排序
         if (sort === 0) {
           sort = 2;
@@ -147,22 +148,26 @@ export class TabPanePurgPin extends BaseElement {
         }
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2
-            ? parseFloat(purgePinRightData[key]) - parseFloat(purgePinLeftData[key])
+          return sort === 2 // @ts-ignore
+            ? parseFloat(purgePinRightData[key]) - parseFloat(purgePinLeftData[key]) // @ts-ignore
             : parseFloat(purgePinLeftData[key]) - parseFloat(purgePinRightData[key]);
         } else {
           if (sort === 2) {
+            // @ts-ignore
             return purgePinRightData[key].toString().localeCompare(purgePinLeftData[key].toString());
           } else {
+            // @ts-ignore
             return purgePinLeftData[key].toString().localeCompare(purgePinRightData[key].toString());
           }
         }
       };
     }
-
+    // @ts-ignore
     if (detail.key === 'type') {
+      // @ts-ignore
       this.purgeablePinSource.sort(compare(detail.key, detail.sort, 'string'));
     } else {
+      // @ts-ignore
       this.purgeablePinSource.sort(compare(detail.key, detail.sort, 'number'));
     }
     let pin = this.totalData(this.purgeablePinSource);
@@ -175,8 +180,9 @@ export class TabPanePurgPin extends BaseElement {
     this.purgeablePinTable = this.shadowRoot?.querySelector<LitTable>('#tb-purgeable-pin');
     this.tabTitle = this.purgeablePinTable!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.purgPinTimeRange = this.shadowRoot?.querySelector<HTMLLabelElement>('#purg-pin-time-range');
-    this.purgeablePinTable!.addEventListener('column-click', (evt: any) => {
-      this.sortKey = evt.detail.key;
+    this.purgeablePinTable!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
+      this.sortKey = evt.detail.key; // @ts-ignore
       this.sortType = evt.detail.sort;
       // @ts-ignore
       this.sortByColumn(evt.detail);

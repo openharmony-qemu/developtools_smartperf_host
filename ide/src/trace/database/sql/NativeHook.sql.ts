@@ -12,15 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {query} from "../SqlLite";
-import {NativeHookMalloc, NativeHookProcess, NativeHookSampleQueryInfo} from "../../bean/NativeHook";
+import { query } from '../SqlLite';
+import { NativeHookMalloc, NativeHookProcess, NativeHookSampleQueryInfo } from '../../bean/NativeHook';
 
 export const queryNativeHookResponseTypes = (
   leftNs: number,
   rightNs: number,
   types: Array<string | number>,
   isStatistic: boolean
-): Promise<Array<any>> => {
+): //@ts-ignore
+Promise<Array<unknown>> => {
   const table = isStatistic ? 'native_hook_statistic' : 'native_hook';
   const tsKey = isStatistic ? 'ts' : 'start_ts';
   const type = isStatistic ? 'type' : 'event_type';
@@ -130,7 +131,12 @@ export const queryNativeHookStatisticsSubType = (
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookSubType = (leftNs: number, rightNs: number, ipid: number): Promise<Array<any>> =>
+export const queryNativeHookSubType = (
+  leftNs: number,
+  rightNs: number,
+  ipid: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryNativeHookSubType',
     `select distinct(
@@ -148,7 +154,12 @@ where event_type = 'MmapEvent' and
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookStatisticSubType = (leftNs: number, rightNs: number, ipid: number): Promise<Array<any>> =>
+export const queryNativeHookStatisticSubType = (
+  leftNs: number,
+  rightNs: number,
+  ipid: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryNativeHookStatisticSubType',
     `SELECT DISTINCT

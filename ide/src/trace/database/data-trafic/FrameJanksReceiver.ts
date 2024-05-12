@@ -14,35 +14,44 @@
 import { TraficEnum } from './utils/QueryEnum';
 import { JanksStruct } from '../../bean/JanksStruct';
 import { processFrameList } from './utils/AllMemoryCache';
+import { Args } from './CommonArgs';
 
-export const frameJankDataSql = (args: any, configure: any): string => {
+export const frameJankDataSql = (args: Args, configure: unknown): string => {
   let timeLimit: string = '';
   let flag: string = '';
   let fsType: number = -1;
   let fsFlag: string = '';
+  //@ts-ignore
+  const endNS = args.endNS;
+  //@ts-ignore
+  const startNS = args.startNS;
+  //@ts-ignore
+  const recordStartNS = args.recordStartNS;
   switch (configure) {
     case 'ExepectMemory':
       fsType = 1;
-      flag = `fs.flag as jankTag,`;
+      flag = 'fs.flag as jankTag,';
       break;
     case 'ExpectedData':
       fsType = 1;
-      flag = `fs.flag as jankTag,`;
+      flag = 'fs.flag as jankTag,';
       timeLimit = `
-       AND (fs.ts - ${args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)}
-       AND (fs.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}`;
+       AND (fs.ts - ${recordStartNS} + fs.dur) >= ${Math.floor(startNS)}
+       AND (fs.ts - ${recordStartNS}) <= ${Math.floor(endNS)}`;
       break;
     case 'ActualMemoryData':
       fsType = 0;
-      flag = `(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,`;
+      flag =
+        '(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,';
       fsFlag = 'AND fs.flag <> 2';
       break;
     case 'ActualData':
       fsType = 0;
-      flag = `(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,`;
+      flag =
+        '(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,';
       fsFlag = 'AND fs.flag <> 2';
-      timeLimit = `AND (fs.ts - ${args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)}
-       AND (fs.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}`;
+      timeLimit = `AND (fs.ts - ${recordStartNS} + fs.dur) >= ${Math.floor(startNS)}
+       AND (fs.ts - ${recordStartNS}) <= ${Math.floor(endNS)}`;
       break;
     default:
       break;
@@ -50,19 +59,21 @@ export const frameJankDataSql = (args: any, configure: any): string => {
   let sql = setFrameJanksSql(args, timeLimit, flag, fsType, fsFlag);
   return sql;
 };
-function setFrameJanksSql(args: any, timeLimit: string, flag: string, fsType: number, fsFlag: string): string {
+function setFrameJanksSql(args: Args, timeLimit: string, flag: string, fsType: number, fsFlag: string): string {
+  //@ts-ignore
+  const recordStartNS = args.recordStartNS;
   return `SELECT sf.id,
             'frameTime' as frameType,
             fs.ipid,
             fs.vsync as name,
             fs.dur as appDur,
             (sf.ts + sf.dur - fs.ts) as dur,
-            (fs.ts - ${args.recordStartNS}) AS ts,
+            (fs.ts - ${recordStartNS}) AS ts,
             fs.type,
             ${flag}
             pro.pid,
             pro.name as cmdline,
-            (sf.ts - ${args.recordStartNS}) AS rsTs,
+            (sf.ts - ${recordStartNS}) AS rsTs,
             sf.vsync AS rsVsync,
             sf.dur AS rsDur,
             sf.ipid AS rsIpid,
@@ -82,7 +93,7 @@ function setFrameJanksSql(args: any, timeLimit: string, flag: string, fsType: nu
             fs.vsync  as name,
             fs.dur as appDur,
             fs.dur,
-            (fs.ts - ${args.recordStartNS}) AS ts,
+            (fs.ts - ${recordStartNS}) AS ts,
             fs.type,
             fs.flag as jankTag,
             pro.pid,
@@ -96,60 +107,74 @@ function setFrameJanksSql(args: any, timeLimit: string, flag: string, fsType: nu
         ORDER by ts`;
 }
 
-export function frameExpectedReceiver(data: any, proc: Function): void {
+export function frameExpectedReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
-    if (!processFrameList.has(`FrameTimeLine_expected`)) {
+    if (!processFrameList.has('FrameTimeLine_expected')) {
+      // @ts-ignore
       let sql = frameJankDataSql(data.params, 'ExepectMemory');
-      processFrameList.set(`FrameTimeLine_expected`, proc(sql));
+      processFrameList.set('FrameTimeLine_expected', proc(sql));
     }
-    frameJanksReceiver(data, processFrameList.get(`FrameTimeLine_expected`)!, 'expected', true);
+    frameJanksReceiver(data, processFrameList.get('FrameTimeLine_expected')!, 'expected', true);
   } else {
+    // @ts-ignore
     let sql = frameJankDataSql(data.params, 'ExpectedData');
     let res = proc(sql);
+    // @ts-ignore
     frameJanksReceiver(data, res, 'expect', data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-export function frameActualReceiver(data: any, proc: Function): void {
+export function frameActualReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
-    if (!processFrameList.has(`FrameTimeLine_actual`)) {
+    if (!processFrameList.has('FrameTimeLine_actual')) {
+      // @ts-ignore
       let sql = frameJankDataSql(data.params, 'ActualMemoryData');
-      processFrameList.set(`FrameTimeLine_actual`, proc(sql));
+      processFrameList.set('FrameTimeLine_actual', proc(sql));
     }
-    frameJanksReceiver(data, processFrameList.get(`FrameTimeLine_actual`)!, 'actual', true);
+    frameJanksReceiver(data, processFrameList.get('FrameTimeLine_actual')!, 'actual', true);
   } else {
+    // @ts-ignore
     let sql = frameJankDataSql(data.params, 'ActualData');
     let res = proc(sql);
+    // @ts-ignore
     frameJanksReceiver(data, res, 'actual', data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 let isIntersect = (leftData: JanksStruct, rightData: JanksStruct): boolean =>
   Math.max(leftData.ts! + leftData.dur!, rightData.ts! + rightData.dur!) - Math.min(leftData.ts!, rightData.ts!) <
   leftData.dur! + rightData.dur!;
-function frameJanksReceiver(data: any, res: any[], type: string, transfer: boolean): void {
+function frameJanksReceiver(data: unknown, res: unknown[], type: string, transfer: boolean): void {
   let frameJanks = new FrameJanks(data, transfer, res.length);
   let unitIndex: number = 1;
-  let depths: any[] = [];
+  let depths: unknown[] = [];
   for (let index = 0; index < res.length; index++) {
     let item = res[index];
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (item = item.frameData);
+    // @ts-ignore
     if (!item.dur || item.dur < 0) {
       continue;
     }
     if (depths.length === 0) {
+      // @ts-ignore
       item.depth = 0;
       depths[0] = item;
     } else {
       let depthIndex: number = 0;
       let isContinue: boolean = true;
       while (isContinue) {
+        // @ts-ignore
         if (isIntersect(depths[depthIndex], item)) {
           if (depths[depthIndex + unitIndex] === undefined || !depths[depthIndex + unitIndex]) {
+            // @ts-ignore
             item.depth = depthIndex + unitIndex;
             depths[depthIndex + unitIndex] = item;
             isContinue = false;
           }
         } else {
+          // @ts-ignore
           item.depth = depthIndex;
           depths[depthIndex] = item;
           isContinue = false;
@@ -161,24 +186,39 @@ function frameJanksReceiver(data: any, res: any[], type: string, transfer: boole
   }
   postFrameJanksMessage(data, transfer, frameJanks, res.length);
 }
-function setFrameJanks(frameJanks: FrameJanks, itemData: any, index: number) {
+function setFrameJanks(frameJanks: FrameJanks, itemData: unknown, index: number): void {
+  // @ts-ignore
   frameJanks.id[index] = itemData.id;
+  // @ts-ignore
   frameJanks.ipId[index] = itemData.ipid;
+  // @ts-ignore
   frameJanks.name[index] = itemData.name;
+  // @ts-ignore
   frameJanks.appDur[index] = itemData.appDur;
+  // @ts-ignore
   frameJanks.dur[index] = itemData.dur;
+  // @ts-ignore
   frameJanks.ts[index] = itemData.ts;
+  // @ts-ignore
   frameJanks.jankTag[index] = itemData.jankTag ? itemData.jankTag : 0;
+  // @ts-ignore
   frameJanks.pid[index] = itemData.pid;
+  // @ts-ignore
   frameJanks.rsTs[index] = itemData.rsTs;
+  // @ts-ignore
   frameJanks.rsVsync[index] = itemData.rsVsync;
+  // @ts-ignore
   frameJanks.rsDur[index] = itemData.rsDur;
+  // @ts-ignore
   frameJanks.rsIpId[index] = itemData.rsIpid;
+  // @ts-ignore
   frameJanks.rsPid[index] = itemData.rsPid;
+  // @ts-ignore
   frameJanks.rsName[index] = itemData.rsName;
+  // @ts-ignore
   frameJanks.depth[index] = itemData.depth;
 }
-function setResults(transfer: boolean, frameJanks: FrameJanks): any {
+function setResults(transfer: boolean, frameJanks: FrameJanks): unknown {
   return transfer
     ? {
         id: frameJanks.id.buffer,
@@ -199,11 +239,13 @@ function setResults(transfer: boolean, frameJanks: FrameJanks): any {
       }
     : {};
 }
-function postFrameJanksMessage(data: any, transfer: boolean, frameJanks: FrameJanks, len: number) {
+function postFrameJanksMessage(data: unknown, transfer: boolean, frameJanks: FrameJanks, len: number): void {
   let results = setResults(transfer, frameJanks);
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: results,
       len: len,
@@ -246,21 +288,36 @@ class FrameJanks {
   rsPid: Uint16Array;
   rsName: Int32Array;
   depth: Uint16Array;
-  constructor(data: any, transfer: boolean, len: number) {
+  constructor(data: unknown, transfer: boolean, len: number) {
+    // @ts-ignore
     this.id = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.id);
+    // @ts-ignore
     this.ipId = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.ipid);
+    // @ts-ignore
     this.name = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.name);
+    // @ts-ignore
     this.appDur = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.app_dur);
+    // @ts-ignore
     this.dur = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.dur);
+    // @ts-ignore
     this.ts = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.ts);
+    // @ts-ignore
     this.jankTag = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.jank_tag);
+    // @ts-ignore
     this.pid = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.pid);
+    // @ts-ignore
     this.rsTs = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.rs_ts);
+    // @ts-ignore
     this.rsVsync = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.rs_vsync);
+    // @ts-ignore
     this.rsDur = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.rs_dur);
+    // @ts-ignore
     this.rsIpId = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.rs_ipid);
+    // @ts-ignore
     this.rsPid = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.rs_pid);
+    // @ts-ignore
     this.rsName = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.rs_name);
+    // @ts-ignore
     this.depth = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.depth);
   }
 }

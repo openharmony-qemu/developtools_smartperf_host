@@ -52,67 +52,67 @@ size_t FileSystemSample::AppendNewData(uint32_t callChainId,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& FileSystemSample::CallChainIds() const
+const std::deque<uint32_t> &FileSystemSample::CallChainIds() const
 {
     return callChainIds_;
 }
-const std::deque<uint16_t>& FileSystemSample::Types() const
+const std::deque<uint16_t> &FileSystemSample::Types() const
 {
     return types_;
 }
-const std::deque<uint32_t>& FileSystemSample::Ipids() const
+const std::deque<uint32_t> &FileSystemSample::Ipids() const
 {
     return ipids_;
 }
-const std::deque<uint32_t>& FileSystemSample::Itids() const
+const std::deque<uint32_t> &FileSystemSample::Itids() const
 {
     return itids_;
 }
-const std::deque<uint64_t>& FileSystemSample::StartTs() const
+const std::deque<uint64_t> &FileSystemSample::StartTs() const
 {
     return startTs_;
 }
-const std::deque<uint64_t>& FileSystemSample::EndTs() const
+const std::deque<uint64_t> &FileSystemSample::EndTs() const
 {
     return endTs_;
 }
-const std::deque<uint64_t>& FileSystemSample::Durs() const
+const std::deque<uint64_t> &FileSystemSample::Durs() const
 {
     return durs_;
 }
-const std::deque<DataIndex>& FileSystemSample::ReturnValues() const
+const std::deque<DataIndex> &FileSystemSample::ReturnValues() const
 {
     return returnValues_;
 }
-const std::deque<DataIndex>& FileSystemSample::ErrorCodes() const
+const std::deque<DataIndex> &FileSystemSample::ErrorCodes() const
 {
     return errorCodes_;
 }
-const std::deque<int32_t>& FileSystemSample::Fds() const
+const std::deque<int32_t> &FileSystemSample::Fds() const
 {
     return fds_;
 }
-const std::deque<DataIndex>& FileSystemSample::FileIds() const
+const std::deque<DataIndex> &FileSystemSample::FileIds() const
 {
     return fileIds_;
 }
-const std::deque<size_t>& FileSystemSample::Sizes() const
+const std::deque<size_t> &FileSystemSample::Sizes() const
 {
     return Sizes_;
 }
-const std::deque<DataIndex>& FileSystemSample::FirstArguments() const
+const std::deque<DataIndex> &FileSystemSample::FirstArguments() const
 {
     return firstArguments_;
 }
-const std::deque<DataIndex>& FileSystemSample::SecondArguments() const
+const std::deque<DataIndex> &FileSystemSample::SecondArguments() const
 {
     return secondArguments_;
 }
-const std::deque<DataIndex>& FileSystemSample::ThirdArguments() const
+const std::deque<DataIndex> &FileSystemSample::ThirdArguments() const
 {
     return thirdArguments_;
 }
-const std::deque<DataIndex>& FileSystemSample::FourthArguments() const
+const std::deque<DataIndex> &FileSystemSample::FourthArguments() const
 {
     return fourthArguments_;
 }
@@ -139,39 +139,39 @@ size_t PagedMemorySampleData::AppendNewData(uint32_t callChainId,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& PagedMemorySampleData::CallChainIds() const
+const std::deque<uint32_t> &PagedMemorySampleData::CallChainIds() const
 {
     return callChainIds_;
 }
-const std::deque<uint16_t>& PagedMemorySampleData::Types() const
+const std::deque<uint16_t> &PagedMemorySampleData::Types() const
 {
     return types_;
 }
-const std::deque<uint32_t>& PagedMemorySampleData::Ipids() const
+const std::deque<uint32_t> &PagedMemorySampleData::Ipids() const
 {
     return ipids_;
 }
-const std::deque<uint32_t>& PagedMemorySampleData::Itids() const
+const std::deque<uint32_t> &PagedMemorySampleData::Itids() const
 {
     return itids_;
 }
-const std::deque<uint64_t>& PagedMemorySampleData::StartTs() const
+const std::deque<uint64_t> &PagedMemorySampleData::StartTs() const
 {
     return startTs_;
 }
-const std::deque<uint64_t>& PagedMemorySampleData::EndTs() const
+const std::deque<uint64_t> &PagedMemorySampleData::EndTs() const
 {
     return endTs_;
 }
-const std::deque<uint64_t>& PagedMemorySampleData::Durs() const
+const std::deque<uint64_t> &PagedMemorySampleData::Durs() const
 {
     return durs_;
 }
-const std::deque<size_t>& PagedMemorySampleData::Sizes() const
+const std::deque<size_t> &PagedMemorySampleData::Sizes() const
 {
     return Sizes_;
 }
-const std::deque<DataIndex>& PagedMemorySampleData::Addr() const
+const std::deque<DataIndex> &PagedMemorySampleData::Addr() const
 {
     return addrs_;
 }
@@ -204,51 +204,51 @@ void BioLatencySampleData::AppendNewData(uint32_t callChainId,
     ids_.emplace_back(rowCount_);
     rowCount_++;
 }
-const std::deque<uint32_t>& BioLatencySampleData::CallChainIds() const
+const std::deque<uint32_t> &BioLatencySampleData::CallChainIds() const
 {
     return callChainIds_;
 }
-const std::deque<uint64_t>& BioLatencySampleData::Types() const
+const std::deque<uint64_t> &BioLatencySampleData::Types() const
 {
     return types_;
 }
-const std::deque<uint32_t>& BioLatencySampleData::Ipids() const
+const std::deque<uint32_t> &BioLatencySampleData::Ipids() const
 {
     return ipids_;
 }
-const std::deque<uint32_t>& BioLatencySampleData::Itids() const
+const std::deque<uint32_t> &BioLatencySampleData::Itids() const
 {
     return itids_;
 }
-const std::deque<uint64_t>& BioLatencySampleData::StartTs() const
+const std::deque<uint64_t> &BioLatencySampleData::StartTs() const
 {
     return startTs_;
 }
-const std::deque<uint64_t>& BioLatencySampleData::EndTs() const
+const std::deque<uint64_t> &BioLatencySampleData::EndTs() const
 {
     return endTs_;
 }
-const std::deque<uint64_t>& BioLatencySampleData::LatencyDurs() const
+const std::deque<uint64_t> &BioLatencySampleData::LatencyDurs() const
 {
     return latencyDurs_;
 }
-const std::deque<uint32_t>& BioLatencySampleData::Tiers() const
+const std::deque<uint32_t> &BioLatencySampleData::Tiers() const
 {
     return tiers_;
 }
-const std::deque<uint64_t>& BioLatencySampleData::Sizes() const
+const std::deque<uint64_t> &BioLatencySampleData::Sizes() const
 {
     return sizes_;
 }
-const std::deque<uint64_t>& BioLatencySampleData::BlockNumbers() const
+const std::deque<uint64_t> &BioLatencySampleData::BlockNumbers() const
 {
     return blockNumbers_;
 }
-const std::deque<uint64_t>& BioLatencySampleData::FilePathIds() const
+const std::deque<uint64_t> &BioLatencySampleData::FilePathIds() const
 {
     return filePathIds_;
 }
-const std::deque<uint64_t>& BioLatencySampleData::DurPer4k() const
+const std::deque<uint64_t> &BioLatencySampleData::DurPer4k() const
 {
     return durPer4ks_;
 }
@@ -277,27 +277,27 @@ void EbpfCallStackData::UpdateEbpfSymbolInfo(size_t row, DataIndex symbolId)
     }
     symbolIds_[row] = symbolId;
 }
-const std::deque<uint32_t>& EbpfCallStackData::CallChainIds() const
+const std::deque<uint32_t> &EbpfCallStackData::CallChainIds() const
 {
     return callChainIds_;
 }
-const std::deque<uint32_t>& EbpfCallStackData::Depths() const
+const std::deque<uint32_t> &EbpfCallStackData::Depths() const
 {
     return depths_;
 }
-const std::deque<DataIndex>& EbpfCallStackData::Ips() const
+const std::deque<DataIndex> &EbpfCallStackData::Ips() const
 {
     return ips_;
 }
-const std::deque<DataIndex>& EbpfCallStackData::SymbolIds() const
+const std::deque<DataIndex> &EbpfCallStackData::SymbolIds() const
 {
     return symbolIds_;
 }
-const std::deque<DataIndex>& EbpfCallStackData::FilePathIds() const
+const std::deque<DataIndex> &EbpfCallStackData::FilePathIds() const
 {
     return filePathIds_;
 }
-const std::deque<uint64_t>& EbpfCallStackData::Vaddrs() const
+const std::deque<uint64_t> &EbpfCallStackData::Vaddrs() const
 {
     return vaddrs_;
 }

@@ -39,7 +39,7 @@ declare global {
   }
 
   interface Window {
-    postMessage(message: any, transfer?: Transferable[]): void;
+    postMessage(message: unknown, transfer?: Transferable[]): void;
     // queryFromWasm: boolean;//use cache or query from db
     isLastFrame: boolean; //last frame mast be draw
     recordStartNS: number;
@@ -74,30 +74,19 @@ declare global {
       };
     };
 
-    subscribe(evt: string, fn: (b: any) => void): void;
+    subscribe(evt: string, fn: (b: unknown) => void): void;
 
-    subscribeOnce(evt: string, fn: (b: any) => void): void;
+    subscribeOnce(evt: string, fn: (b: unknown) => void): void;
 
-    unsubscribe(evt: string, fn: (b: any) => void): void;
+    unsubscribe(evt: string, fn: (b: unknown) => void): void;
 
-    publish(evt: string, data: any): void;
+    publish(evt: string, data: unknown): void;
 
     clearTraceRowComplete(): void;
   }
 }
 
-Number.prototype.n2x = function (): number {
-  return Number(this);
-};
-
-Array.prototype.isEmpty = function <T>(): boolean {
-  return this == null || this == undefined || this.length == 0;
-};
-Array.prototype.isNotEmpty = function <T>(): boolean {
-  return this != null && this != undefined && this.length > 0;
-};
-
-HTMLElement.prototype.containPoint = function (ev, cut) {
+HTMLElement.prototype.containPoint = function (ev, cut): boolean {
   let rect = this.getBoundingClientRect();
   return (
     ev.pageX >= rect.left + (cut?.left ?? 0) &&
@@ -128,20 +117,27 @@ window.SmartEvent = {
     DeviceDisConnect: 'SmartEvent-DEVICE_DISCONNECT',
     HoverNull: 'SmartEvent-Hover-NULL',
     KeyPath: 'SmartEvent-UI-UploadKeyPath',
-    LoadFinish: 'SmartEvent-UI-LoadFinish',//所有泳道刷新完成触发
-    LoadFinishFrame: 'SmartEvent-UI-LoadFinishFrame',//单个泳道刷新完成触发
-    ShowBottomTab: 'SmartEvent-UI-ShowBottomTab',// 显示底部 tab
+    LoadFinish: 'SmartEvent-UI-LoadFinish', //所有泳道刷新完成触发
+    LoadFinishFrame: 'SmartEvent-UI-LoadFinishFrame', //单个泳道刷新完成触发
+    ShowBottomTab: 'SmartEvent-UI-ShowBottomTab', // 显示底部 tab
     ImportRecord: 'SmartEvent-UI-ImportRecord',
-    ExportRecord: 'SmartEvent-UI-ExportRecord'
+    ExportRecord: 'SmartEvent-UI-ExportRecord',
   },
 };
-Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn);
-Window.prototype.unsubscribe = (ev, fn) => EventCenter.unsubscribe(ev, fn);
-Window.prototype.publish = (ev, data) => EventCenter.publish(ev, data);
-Window.prototype.subscribeOnce = (ev, data) => EventCenter.subscribeOnce(ev, data);
-Window.prototype.clearTraceRowComplete = () => EventCenter.clearTraceRowComplete();
+Window.prototype.subscribe = (ev, fn): void => EventCenter.subscribe(ev, fn);
+Window.prototype.unsubscribe = (ev, fn): void => EventCenter.unsubscribe(ev, fn);
+Window.prototype.publish = (ev, data): void => EventCenter.publish(ev, data);
+Window.prototype.subscribeOnce = (ev, data): void => EventCenter.subscribeOnce(ev, data);
+Window.prototype.clearTraceRowComplete = (): void => EventCenter.clearTraceRowComplete();
 export {};
 
-export function dpr() {
+export function dpr(): number {
   return window.devicePixelRatio || 1;
 }
+
+export const isEmpty = function <T>(list: Array<T> | undefined): boolean {
+  return list === null || list === undefined || list.length === 0;
+};
+export const isNotEmpty = function <T>(list: Array<T> | undefined): boolean {
+  return list !== null && list !== undefined && list.length > 0;
+};

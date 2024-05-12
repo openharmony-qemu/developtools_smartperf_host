@@ -24,9 +24,9 @@ namespace base {
 /*
 ** Return a stdev value
 */
-static void sqliteExtStdevFinalize(sqlite3_context* context)
+static void sqliteExtStdevFinalize(sqlite3_context *context)
 {
-    StdevCtx* ptr = static_cast<StdevCtx*>(sqlite3_aggregate_context(context, 0));
+    StdevCtx *ptr = static_cast<StdevCtx *>(sqlite3_aggregate_context(context, 0));
     if (ptr && ptr->cntValue > 1) {
         sqlite3_result_double(context, sqrt(ptr->rSValue / (ptr->cntValue - 1)));
     } else {
@@ -36,10 +36,10 @@ static void sqliteExtStdevFinalize(sqlite3_context* context)
 /*
 ** called each value received during a calculation of stdev or variance
 */
-static void sqliteExtStdevNextStep(sqlite3_context* context, int32_t argc, sqlite3_value** argv)
+static void sqliteExtStdevNextStep(sqlite3_context *context, int32_t argc, sqlite3_value **argv)
 {
     TS_ASSERT(argc == 1);
-    StdevCtx* ptr = static_cast<StdevCtx*>(sqlite3_aggregate_context(context, sizeof(StdevCtx)));
+    StdevCtx *ptr = static_cast<StdevCtx *>(sqlite3_aggregate_context(context, sizeof(StdevCtx)));
     if (SQLITE_NULL != sqlite3_value_numeric_type(argv[0])) {
         ptr->cntValue++;
         double x = sqlite3_value_double(argv[0]);
@@ -76,7 +76,7 @@ struct TSSqlValue {
         return value;
     }
 
-    static TSSqlValue String(const char* v)
+    static TSSqlValue String(const char *v)
     {
         TSSqlValue value;
         value.stringValue = v;
@@ -84,7 +84,7 @@ struct TSSqlValue {
         return value;
     }
 
-    static TSSqlValue Bytes(const char* v, size_t size)
+    static TSSqlValue Bytes(const char *v, size_t size)
     {
         TSSqlValue value;
         value.bytesValue = v;
@@ -101,11 +101,11 @@ struct TSSqlValue {
     {
         return longValue;
     }
-    const char* GetString() const
+    const char *GetString() const
     {
         return stringValue;
     }
-    const void* GetBytes() const
+    const void *GetBytes() const
     {
         return bytesValue;
     }
@@ -116,16 +116,16 @@ struct TSSqlValue {
     }
 
     union {
-        const char* stringValue;
+        const char *stringValue;
         int64_t longValue;
         double doubleValue;
-        const void* bytesValue;
+        const void *bytesValue;
     };
     size_t bytesCount = 0;
     Type type = TS_NULL;
 };
 
-TSSqlValue SqliteValueToTSSqlValue(sqlite3_value* value)
+TSSqlValue SqliteValueToTSSqlValue(sqlite3_value *value)
 {
     TSSqlValue sqlValue;
     switch (sqlite3_value_type(value)) {
@@ -139,7 +139,7 @@ TSSqlValue SqliteValueToTSSqlValue(sqlite3_value* value)
             break;
         case SQLITE_TEXT:
             sqlValue.type = Type::TS_STRING;
-            sqlValue.stringValue = reinterpret_cast<const char*>(sqlite3_value_text(value));
+            sqlValue.stringValue = reinterpret_cast<const char *>(sqlite3_value_text(value));
             break;
         case SQLITE_BLOB:
             sqlValue.type = Type::TS_BYTES;
@@ -165,12 +165,12 @@ struct JsonBuild {
     {
         body += ",";
     }
-    bool AppendSqlValue(const std::string& field_name, const TSSqlValue& value)
+    bool AppendSqlValue(const std::string &field_name, const TSSqlValue &value)
     {
         body += "\"" + field_name + "\":";
         return AppendSqlValue(value);
     }
-    bool AppendSqlValue(const TSSqlValue& value)
+    bool AppendSqlValue(const TSSqlValue &value)
     {
         switch (value.type) {
             case TS_LONG:
@@ -183,7 +183,7 @@ struct JsonBuild {
                 body += "\"" + std::string(value.stringValue) + "\"" + ",";
                 break;
             case TS_BYTES:
-                body += "\"" + std::string(static_cast<const char*>(value.bytesValue), value.bytesCount) + "\"" + ",";
+                body += "\"" + std::string(static_cast<const char *>(value.bytesValue), value.bytesCount) + "\"" + ",";
                 break;
             case TS_NULL:
                 body += std::to_string(0) + ",";
@@ -197,13 +197,13 @@ struct JsonBuild {
     {
         body.pop_back();
     }
-    const std::string& Body() const
+    const std::string &Body() const
     {
         return body;
     }
 };
 
-void BuildJson(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
+void BuildJson(sqlite3_context *ctx, int32_t argc, sqlite3_value **argv)
 {
     const int32_t PAIR_ARGS_SIZE = 2;
     if (argc % PAIR_ARGS_SIZE != 0) {
@@ -221,7 +221,7 @@ void BuildJson(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
             return;
         }
 
-        auto* key = reinterpret_cast<const char*>(sqlite3_value_text(argv[i]));
+        auto *key = reinterpret_cast<const char *>(sqlite3_value_text(argv[i]));
         auto value = SqliteValueToTSSqlValue(argv[i + 1]);
         auto status = builder.AppendSqlValue(key, value);
         if (!status) {
@@ -242,15 +242,15 @@ void BuildJson(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
     sqlite3_result_blob(ctx, data.release(), static_cast<int32_t>(raw.size()), free);
 }
 
-void RepeatedJsonStep(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
+void RepeatedJsonStep(sqlite3_context *ctx, int32_t argc, sqlite3_value **argv)
 {
     const int32_t PAIR_ARGS_SIZE = 2;
-    auto** jsonBuild = static_cast<JsonBuild**>(sqlite3_aggregate_context(ctx, sizeof(JsonBuild*)));
+    auto **jsonBuild = static_cast<JsonBuild **>(sqlite3_aggregate_context(ctx, sizeof(JsonBuild *)));
 
     if (*jsonBuild == nullptr) {
         *jsonBuild = new JsonBuild();
     }
-    JsonBuild* builder = *jsonBuild;
+    JsonBuild *builder = *jsonBuild;
     builder->AppendHead();
     for (int32_t i = 0; i < argc; i += PAIR_ARGS_SIZE) {
         if (sqlite3_value_type(argv[i]) != SQLITE_TEXT) {
@@ -259,7 +259,7 @@ void RepeatedJsonStep(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
             return;
         }
 
-        auto* key = reinterpret_cast<const char*>(sqlite3_value_text(argv[i]));
+        auto *key = reinterpret_cast<const char *>(sqlite3_value_text(argv[i]));
         auto value = SqliteValueToTSSqlValue(argv[i + 1]);
         auto status = builder->AppendSqlValue(key, value);
         if (!status) {
@@ -272,19 +272,19 @@ void RepeatedJsonStep(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
     builder->AppendTail();
     builder->AppendCommon();
 }
-void RepeatedFieldStep(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
+void RepeatedFieldStep(sqlite3_context *ctx, int32_t argc, sqlite3_value **argv)
 {
     if (argc != 1) {
         TS_LOGE(
             "RepeatedField only support one arg, you can use BuildJson or BuildRepeatedJson function for multi args");
         return;
     }
-    auto** jsonBuild = static_cast<JsonBuild**>(sqlite3_aggregate_context(ctx, sizeof(JsonBuild*)));
+    auto **jsonBuild = static_cast<JsonBuild **>(sqlite3_aggregate_context(ctx, sizeof(JsonBuild *)));
 
     if (*jsonBuild == nullptr) {
         *jsonBuild = new JsonBuild();
     }
-    JsonBuild* builder = *jsonBuild;
+    JsonBuild *builder = *jsonBuild;
     for (int32_t i = 0; i < argc; i++) {
         auto value = SqliteValueToTSSqlValue(argv[i]);
         auto status = builder->AppendSqlValue(value);
@@ -294,9 +294,9 @@ void RepeatedFieldStep(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
     }
 }
 
-void RepeatedFieldFinal(sqlite3_context* ctx)
+void RepeatedFieldFinal(sqlite3_context *ctx)
 {
-    auto** jsonBuilder = static_cast<JsonBuild**>(sqlite3_aggregate_context(ctx, 0));
+    auto **jsonBuilder = static_cast<JsonBuild **>(sqlite3_aggregate_context(ctx, 0));
 
     if (jsonBuilder == nullptr) {
         sqlite3_result_null(ctx);
@@ -316,9 +316,9 @@ void RepeatedFieldFinal(sqlite3_context* ctx)
     sqlite3_result_blob(ctx, data.release(), static_cast<int32_t>(raw.size()), free);
 }
 
-void RepeatedJsonFinal(sqlite3_context* ctx)
+void RepeatedJsonFinal(sqlite3_context *ctx)
 {
-    auto** jsonBuilder = static_cast<JsonBuild**>(sqlite3_aggregate_context(ctx, 0));
+    auto **jsonBuilder = static_cast<JsonBuild **>(sqlite3_aggregate_context(ctx, 0));
 
     if (jsonBuilder == nullptr) {
         sqlite3_result_null(ctx);
@@ -337,7 +337,7 @@ void RepeatedJsonFinal(sqlite3_context* ctx)
     (void)memcpy_s(data.get(), raw.size(), raw.data(), raw.size());
     sqlite3_result_blob(ctx, data.release(), static_cast<int32_t>(raw.size()), free);
 }
-void ts_create_extend_function(sqlite3* db)
+void ts_create_extend_function(sqlite3 *db)
 {
     sqlite3_create_function(db, "stdev", -1, SQLITE_UTF8, nullptr, 0, sqliteExtStdevNextStep, sqliteExtStdevFinalize);
     auto ret = sqlite3_create_function_v2(db, "RepeatedField", 1, SQLITE_UTF8, nullptr, nullptr, RepeatedFieldStep,
@@ -352,7 +352,7 @@ void ts_create_extend_function(sqlite3* db)
     }
     std::unique_ptr<JsonBuild> ctx = std::make_unique<JsonBuild>();
     ret = sqlite3_create_function_v2(db, "BuildJson", -1, SQLITE_UTF8, ctx.release(), BuildJson, nullptr, nullptr,
-                                     [](void* ptr) { delete static_cast<JsonBuild*>(ptr); });
+                                     [](void *ptr) { delete static_cast<JsonBuild *>(ptr); });
     if (ret != SQLITE_OK) {
         TS_LOGF("Error while initializing BuildJson");
     }

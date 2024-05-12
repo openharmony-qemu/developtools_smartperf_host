@@ -181,7 +181,7 @@ export class TabPaneHiLogSummary extends BaseElement {
 
   private changeNode(currentNode: number): void {
     if (this.expandedNodeList.has(currentNode)) {
-      this.expandedNodeList['delete'](currentNode);
+      this.expandedNodeList.delete(currentNode);
     } else {
       this.expandedNodeList.add(currentNode);
     }
@@ -222,7 +222,7 @@ export class TabPaneHiLogSummary extends BaseElement {
 
   private buildTreeTblNodes(logTreeNodes: LogStruct[]): LogTreeNode[] {
     let id = 0;
-    let root: LogTreeNode = {id: id, depth: 0, children: [], logName: 'All', count: 0};
+    let root: LogTreeNode = { id: id, depth: 0, children: [], logName: 'All', count: 0 };
     logTreeNodes.forEach((item) => {
       id++;
       let levelNode = root.children.find((node) => node.logName === item.level);
@@ -230,7 +230,7 @@ export class TabPaneHiLogSummary extends BaseElement {
         levelNode.count++;
       } else {
         id++;
-        levelNode = {id: id, depth: 0, children: [], logName: item.level, count: 1};
+        levelNode = { id: id, depth: 0, children: [], logName: item.level, count: 1 };
         root.children.push(levelNode);
       }
       let processNode = levelNode.children.find((node) => node.logName === item.processName);
@@ -238,7 +238,7 @@ export class TabPaneHiLogSummary extends BaseElement {
         processNode.count++;
       } else {
         id++;
-        processNode = {id: id, depth: 1, children: [], logName: item.processName, count: 1};
+        processNode = { id: id, depth: 1, children: [], logName: item.processName, count: 1 };
         levelNode.children.push(processNode);
       }
       let tagNode = processNode.children.find((node) => node.logName === item.tag);
@@ -246,7 +246,7 @@ export class TabPaneHiLogSummary extends BaseElement {
         tagNode.count++;
       } else {
         id++;
-        tagNode = {id: id, depth: 2, children: [], logName: item.tag, count: 1};
+        tagNode = { id: id, depth: 2, children: [], logName: item.tag, count: 1 };
         processNode.children.push(tagNode);
       }
       let messageNode = tagNode.children.find((node) => node.logName === item.context);
@@ -254,7 +254,7 @@ export class TabPaneHiLogSummary extends BaseElement {
         messageNode.count++;
       } else {
         id++;
-        tagNode.children.push({id: id, depth: 3, children: [], logName: item.context, count: 1});
+        tagNode.children.push({ id: id, depth: 3, children: [], logName: item.context, count: 1 });
       }
       root.count++;
     });

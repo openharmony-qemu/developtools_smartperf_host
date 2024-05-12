@@ -31,15 +31,16 @@ export class SpIrqChart {
     this.trace = trace;
   }
 
-  async init() {
+  async init(): Promise<void> {
     let folder = await this.initFolder();
     await this.initData(folder);
   }
 
-  async initData(folder: TraceRow<any>) {
+  //@ts-ignore
+  async initData(folder: TraceRow<unknown>): Promise<void> {
     let irqStartTime = new Date().getTime();
     let irqList = await queryIrqList();
-    if (irqList.length == 0) {
+    if (irqList.length === 0) {
       return;
     }
     //加载irq table所有id和name数据
@@ -57,63 +58,79 @@ export class SpIrqChart {
     info('The time to load the ClockData is: ', durTime);
   }
 
-  addIrqRow(it: any, index: number, folder: TraceRow<any>) {
+  //@ts-ignore
+  addIrqRow(it: unknown, index: number, folder: TraceRow<unknown>): void {
     let traceRow = TraceRow.skeleton<IrqStruct>();
+    //@ts-ignore
     traceRow.rowId = it.name + it.cpu;
     traceRow.rowType = TraceRow.ROW_TYPE_IRQ;
     traceRow.rowParentId = folder.rowId;
-    traceRow.style.height = '40px';
+    traceRow.style.height = '40px'; //@ts-ignore
     traceRow.name = `${it.name} Cpu ${it.cpu}`;
     traceRow.rowHidden = !folder.expansion;
-    traceRow.setAttribute('children', '');
-    traceRow.setAttribute('callId', `${it.cpu}`);
+    traceRow.setAttribute('children', ''); //@ts-ignore
+    traceRow.setAttribute('callId', `${it.cpu}`); //@ts-ignore
     traceRow.setAttribute('cat', `${it.name}`);
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    traceRow.supplierFrame = () => {
+    traceRow.supplierFrame = (): Promise<IrqStruct[]> => {
+      //@ts-ignore
       return irqDataSender(it.cpu, it.name, traceRow).then((irqs) => {
-        irqs.forEach((irq) => {
-          let irqData = this.irqNameMap.get(irq.id!);
+        irqs.forEach((irq): void => {
+          let irqData = this.irqNameMap.get(irq.id!); //@ts-ignore
           irq.name = (it.name === 'irq' ? irqData?.ipiName : irqData?.name) || '';
         });
         return irqs;
       });
     };
-    traceRow.focusHandler = (ev) => {
-      this.trace?.displayTip(traceRow, IrqStruct.hoverIrqStruct, `<span>${IrqStruct.hoverIrqStruct?.name || ''}</span>`);
+    traceRow.focusHandler = (): void => {
+      this.trace?.displayTip(
+        traceRow,
+        IrqStruct.hoverIrqStruct,
+        `<span>${IrqStruct.hoverIrqStruct?.name || ''}</span>`
+      );
     };
-    traceRow.findHoverStruct = () => {
+    traceRow.findHoverStruct = (): void => {
       IrqStruct.hoverIrqStruct = traceRow.getHoverStruct();
     };
-    traceRow.onThreadHandler = rowThreadHandler<IrqRender>('irq', 'context', {
-      type: it.name,
-      index: index,
-    }, traceRow, this.trace);
+    traceRow.onThreadHandler = rowThreadHandler<IrqRender>(
+      'irq',
+      'context',
+      {
+        //@ts-ignore
+        type: it.name,
+        index: index,
+      },
+      traceRow,
+      this.trace
+    );
     folder.addChildTraceRow(traceRow);
   }
 
-  async initFolder(): Promise<TraceRow<any>> {
+  //@ts-ignore
+  async initFolder(): Promise<TraceRow<unknown>> {
     let irqFolder = TraceRow.skeleton();
-    irqFolder.rowId = `Irqs`;
+    irqFolder.rowId = 'Irqs';
     irqFolder.index = 0;
     irqFolder.rowType = TraceRow.ROW_TYPE_IRQ_GROUP;
     irqFolder.rowParentId = '';
     irqFolder.style.height = '40px';
     irqFolder.folder = true;
-    irqFolder.name = `Irqs`; /* & I/O Latency */
+    irqFolder.name = 'Irqs'; /* & I/O Latency */
     irqFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    irqFolder.selectChangeHandler = this.trace.selectChangeHandler;
-    irqFolder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
-    irqFolder.onThreadHandler = (useCache) => {
+    irqFolder.selectChangeHandler = this.trace.selectChangeHandler; //@ts-ignore
+    irqFolder.supplier = (): Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve) => resolve([]));
+    irqFolder.onThreadHandler = (useCache): void => {
       irqFolder.canvasSave(this.trace.canvasPanelCtx!);
       if (irqFolder.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, irqFolder.frame.width, irqFolder.frame.height);
       } else {
-        (renders['empty'] as EmptyRender).renderMainThread(
+        (renders.empty as EmptyRender).renderMainThread(
           {
             context: this.trace.canvasPanelCtx,
             useCache: useCache,
-            type: ``,
+            type: '',
           },
           irqFolder
         );

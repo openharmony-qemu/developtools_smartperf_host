@@ -79,7 +79,7 @@ export class SpWebHdcShell extends BaseElement {
           this.sendCallBack(keyboardEvent);
         }
       }
-    });
+    }); //@ts-ignore
     window.subscribe(window.SmartEvent.UI.DeviceConnect, (deviceName: string) => {
       if (deviceName) {
         this.hdcShellFocus();
@@ -164,36 +164,20 @@ export class SpWebHdcShell extends BaseElement {
     let startY = this.points!.startY!;
     let endX = this.points!.endX!;
     let endY = this.points!.endY!;
-    let depth = Math.ceil((endY - startY) / 16);
-    let index = 0;
-    for (let i = 0; i < textLines.length; i++) {
-      let line = textLines[i];
-      let x = SpWebHdcShell.LEFT_OFFSET;
-      let textFirstRowY = 16 * i + SpWebHdcShell.FIRST_ROW_OFFSET;
-      let textLastRowY = 16 * i + SpWebHdcShell.LAST_ROW_OFFSET;
-      let textEndY = 16 * i + SpWebHdcShell.TOP_OFFSET;
-      let w = this.shellCanvasCtx!.measureText(line).width;
-      if (
-        (startY < textEndY && endY >= textEndY) ||
-        (startY > textFirstRowY && startY < textEndY) ||
-        (endY > textLastRowY && endY < textEndY)
-      ) {
-        index++;
-        if (index === 1) {
-          if (depth > 1) {
-            selectedText +=
-              line.slice(this.getCurrentLineBackSize(line, startX - x, true)) + (endX < x + w ? '\n' : '');
-          } else {
-            selectedText += `${line.slice(
-              this.getCurrentLineBackSize(line, startX - x, true),
-              this.getCurrentLineBackSize(line, endX - x, false)
-            )}\n`;
-          }
-        } else if (index === depth) {
-          selectedText += `${line.slice(0, this.getCurrentLineBackSize(line, endX - x, false))}\n`;
-        } else {
-          selectedText += `${line}\n`;
-        }
+    let endTop = Math.ceil((endY - SpWebHdcShell.TOP_OFFSET) / 16);
+    let startTop = Math.floor((startY - SpWebHdcShell.TOP_OFFSET) / 16);
+    let selectRangeList = textLines.slice(startTop + 1, endTop);
+    let charWidth = this.shellCanvasCtx!.measureText(selectRangeList[0].split('')[0]).width;
+    for (let index = 0; index < selectRangeList.length; index++) {
+      let currentIndexLine = selectRangeList[index];
+      if (index === 0) {
+        let startNum = Math.floor((startX - SpWebHdcShell.LEFT_OFFSET) / charWidth);
+        selectedText = currentIndexLine.slice(startNum);
+      } else if (index === selectRangeList.length - 1) {
+        let endNum = Math.ceil((endX - SpWebHdcShell.LEFT_OFFSET) / charWidth);
+        selectedText += currentIndexLine.slice(0, endNum);
+      } else {
+        selectedText += `${currentIndexLine}\n`;
       }
     }
     return selectedText.trim();
@@ -241,7 +225,7 @@ export class SpWebHdcShell extends BaseElement {
         }
       }
     }
-    this.points = { startX: startPointX, startY: startPointY, endX: endPointX, endY: endPointY };
+    this.points = { startX: startPointX, startY: startPointY, endX: endPointX, endY: endPointY};
   }
 
   getCurrentLineBackSize(currentLine: string, maxBackSize: number, isStart: boolean): number {
@@ -506,8 +490,7 @@ export class SpWebHdcShell extends BaseElement {
     const index = this.resultStr.lastIndexOf('\n');
     const resultStrLength = this.resultStr.length;
     if (index > -1 && resultStrLength > index) {
-      this.resultStr =
-        this.resultStr.substring(0, index + 1) + this.textDecoder.decode(arrayA.slice(1, arrayA.length));
+      this.resultStr = this.resultStr.substring(0, index + 1) + this.textDecoder.decode(arrayA.slice(1, arrayA.length));
     } else {
       if (this.resultStr.split('\n').length === 1) {
         const index = this.cursorRow.lastIndexOf('\n');

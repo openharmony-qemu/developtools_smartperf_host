@@ -18,7 +18,7 @@ import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { LogRender, LogStruct } from '../../database/ui-worker/ProcedureWorkerLog';
 import { LogDataSender } from '../../database/data-trafic/LogDataSender';
-import {queryLogData} from "../../database/sql/SqlLite.sql";
+import { queryLogData } from '../../database/sql/SqlLite.sql';
 
 export class SpLogChart {
   private trace: SpSystemTrace;
@@ -27,7 +27,7 @@ export class SpLogChart {
     this.trace = trace;
   }
 
-  async init() {
+  async init(): Promise<void> {
     let dataArray = await queryLogData();
     if (dataArray.length === 0) {
       return;
@@ -47,12 +47,12 @@ export class SpLogChart {
     logsRow.name = 'Logs';
     logsRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     logsRow.selectChangeHandler = this.trace.selectChangeHandler;
-    logsRow.supplierFrame = () => {
+    logsRow.supplierFrame = (): Promise<LogStruct[]> => {
       return LogDataSender(logsRow).then((res) => {
         return res;
       });
     };
-    logsRow.onThreadHandler = (useCache) => {
+    logsRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (logsRow.currentContext) {
         context = logsRow.currentContext;

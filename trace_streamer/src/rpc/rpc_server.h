@@ -27,31 +27,31 @@ public:
     using ResultCallBack = std::function<void(const std::string /* result */, int32_t)>;
     using ExportDatabaseCallback = std::function<void(const std::string /* result */, int32_t)>;
     using ParseELFFileCallBack = std::function<void(const std::string, int32_t)>;
-    using SendDataCallBack = std::function<void(const char*, int32_t, int32_t)>;
+    using SendDataCallBack = std::function<void(const char *, int32_t, int32_t)>;
     using SplitFileCallBack = std::function<void(const std::string /* result */, int32_t, int32_t)>;
     // In order to bind HTTP, maintain a unified interface, even if some parameters are useless
-    bool ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack, bool isFinish);
-    bool ParseSplitFileData(const uint8_t* data,
+    bool ParseData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish);
+    bool ParseSplitFileData(const uint8_t *data,
                             size_t len,
                             int32_t isFinish,
                             SplitFileCallBack splitFileCallBack,
                             bool isSplitFile);
-    bool ParseDataOver(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
-    bool SqlOperate(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
-    bool SqlQuery(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
-    bool Reset(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
+    bool ParseDataOver(const uint8_t *data, size_t len, ResultCallBack resultCallBack);
+    bool SqlOperate(const uint8_t *data, size_t len, ResultCallBack resultCallBack);
+    bool SqlQuery(const uint8_t *data, size_t len, ResultCallBack resultCallBack);
+    bool Reset(const uint8_t *data, size_t len, ResultCallBack resultCallBack);
     void CancelSqlQuery();
-    bool ParseDataWithoutCallback(const uint8_t* data, size_t len, int32_t isFinish, bool isSplitFile);
+    bool ParseDataWithoutCallback(const uint8_t *data, size_t len, int32_t isFinish, bool isSplitFile);
 
     // only for wasm, no callback
-    int32_t WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int32_t outLen);
-    bool SqlMetricsQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
-    int32_t WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
-    int32_t WasmSqlQueryToProtoCallback(const uint8_t* data,
+    int32_t WasmSqlQuery(const uint8_t *data, size_t len, uint8_t *out, int32_t outLen);
+    bool SqlMetricsQueryWithCallback(const uint8_t *data, size_t len, ResultCallBack callback) const;
+    int32_t WasmSqlQueryWithCallback(const uint8_t *data, size_t len, ResultCallBack callback) const;
+    int32_t WasmSqlQueryToProtoCallback(const uint8_t *data,
                                         size_t len,
                                         SqllitePreparCacheData::TLVResultCallBack callback) const;
-    int32_t UpdateTraceTime(const uint8_t* data, int32_t len);
-    int32_t TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int32_t len);
+    int32_t UpdateTraceTime(const uint8_t *data, int32_t len);
+    int32_t TraceStreamer_Init_ThirdParty_Config(const uint8_t *data, int32_t len);
     int32_t WasmExportDatabase(ResultCallBack resultCallBack);
     bool ParserConfig(std::string parserConfigJson);
     bool SplitFile(std::string timeSnaps);
@@ -62,7 +62,7 @@ public:
     void ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
 #endif
     bool GetLongTraceTimeSnap(std::string dataString);
-    bool LongTraceSplitFile(const uint8_t* data,
+    bool LongTraceSplitFile(const uint8_t *data,
                             size_t len,
                             int32_t isFinish,
                             uint32_t pageNum,
@@ -72,21 +72,21 @@ public:
     {
         return ffrtConvertEnabled_;
     };
-    bool DetermineSystrace(const uint8_t* data, size_t len);
+    bool DetermineSystrace(const uint8_t *data, size_t len);
 
 #ifdef ENABLE_RAWTRACE
     bool SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish);
 #endif
 #ifdef IS_WASM
-    bool SaveAndParseFfrtData(const uint8_t* data, size_t len, ResultCallBack resultCallBack, bool isFinish);
-    bool ReadAndParseData(const std::string& filePath);
-    bool SendConvertedFfrtFile(const std::string& fileName, ResultCallBack resultCallBack);
-    void CreateFilePath(const std::string& filePath);
-    bool WriteToFile(const std::string& fileName, const uint8_t* data, size_t len);
-    bool ClearPathFile(string& symbolsPath, int32_t finish, ParseELFFileCallBack& parseELFFile);
-    bool DownloadELFCallback(const std::string& fileName,
+    bool SaveAndParseFfrtData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish);
+    bool ReadAndParseData(const std::string &filePath);
+    bool SendConvertedFfrtFile(const std::string &fileName, ResultCallBack resultCallBack);
+    void CreateFilePath(const std::string &filePath);
+    bool WriteToFile(const std::string &fileName, const uint8_t *data, size_t len);
+    bool ClearPathFile(string &symbolsPath, int32_t finish, ParseELFFileCallBack &parseELFFile);
+    bool DownloadELFCallback(const std::string &fileName,
                              size_t totalLen,
-                             const uint8_t* data,
+                             const uint8_t *data,
                              size_t len,
                              int32_t finish,
                              ParseELFFileCallBack parseELFFile);
@@ -97,7 +97,7 @@ private:
 #ifdef ENABLE_HIPERF
     void ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
 #endif
-    void ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack);
+    void ProcPbreaderSplitResult(SplitFileCallBack splitFileCallBack);
     bool SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish);
 
 private:

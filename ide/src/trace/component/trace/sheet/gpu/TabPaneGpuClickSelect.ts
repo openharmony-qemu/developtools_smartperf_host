@@ -27,11 +27,12 @@ interface GpuTreeItem {
   sizeStr: string;
   children?: GpuTreeItem[] | undefined;
 }
+
 @element('tabpane-gpu-click-select')
 export class TabPaneGpuClickSelect extends BaseElement {
   private gpuTbl: LitTable | null | undefined;
   private gpuSource: Array<GpuTreeItem> = [];
-  gpuClickData(gpu: { type: string; startTs: number }) {
+  gpuClickData(gpu: { type: string; startTs: number }): void {
     let td = this.gpuTbl!.shadowRoot!.querySelector('.thead')?.firstChild?.firstChild as HTMLDivElement;
     let title = gpu.type === 'total' ? 'Module / Category' : 'Window / Module / Category';
     let titleArr = title.split('/');
@@ -45,7 +46,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
       for (let i = 0; i < titleArr.length; i++) {
         let label = document.createElement('label');
         label.style.cursor = 'pointer';
-        i == 0 ? (label.innerHTML = titleArr[i]) : (label.innerHTML = '/' + titleArr[i]);
+        i === 0 ? (label.innerHTML = titleArr[i]) : (label.innerHTML = '/' + titleArr[i]);
         td.appendChild(label);
       }
     }
@@ -56,9 +57,10 @@ export class TabPaneGpuClickSelect extends BaseElement {
     let module = gpu.type === 'total' ? VmTrackerChart.gpuTotalModule : VmTrackerChart.gpuWindowModule;
     queryGpuDataByTs(gpu.startTs, window || 0, module).then((result) => {
       this.gpuTbl!.loading = false;
-      if (result != null && result.length > 0) {
+      if (result !== null && result.length > 0) {
         log('queryGpuDataByTs result size : ' + result.length);
         let items = this.createTreeData(result);
+        // @ts-ignore
         this.gpuSource = (gpu.type === 'total' ? items[0].children : items) || [];
         this.gpuTbl!.recycleDataSource = this.gpuSource;
         this.theadClick(this.gpuTbl!, this.gpuSource);
@@ -68,14 +70,17 @@ export class TabPaneGpuClickSelect extends BaseElement {
       }
     });
   }
-  protected createTreeData(result: any): Array<any> {
+  protected createTreeData(result: unknown): Array<unknown> {
+    // @ts-ignore
     let gpuDataObj = result.reduce(
       (
-        group: any,
-        item: { categoryId: number; size: number; windowNameId: number; moduleId: number; windowId: any }
+        group: unknown,
+        item: { categoryId: number; size: number; windowNameId: number; moduleId: number; windowId: unknown }
       ) => {
         let categoryItem: GpuTreeItem = this.setGpuTreeItem(item);
+        // @ts-ignore
         if (group[`${item.windowNameId}(${item.windowId})`]) {
+          // @ts-ignore
           let windowGroup = group[`${item.windowNameId}(${item.windowId})`] as GpuTreeItem;
           windowGroup.size += item.size;
           windowGroup.sizeStr = Utils.getBinaryByteWithUnit(windowGroup.size);
@@ -94,6 +99,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
             });
           }
         } else {
+          // @ts-ignore
           group[`${item.windowNameId}(${item.windowId})`] = {
             name: SpSystemTrace.DATA_DICT.get(item.windowNameId) + `(${item.windowId})`,
             id: item.windowNameId,
@@ -117,17 +123,22 @@ export class TabPaneGpuClickSelect extends BaseElement {
     return Object.values(gpuDataObj) as GpuTreeItem[];
   }
 
-  private setGpuTreeItem(item: any): GpuTreeItem {
+  private setGpuTreeItem(item: unknown): GpuTreeItem {
     return {
+      // @ts-ignore
       name: SpSystemTrace.DATA_DICT.get(item.categoryId) || 'null',
+      // @ts-ignore
       id: item.categoryId,
+      // @ts-ignore
       size: item.size,
+      // @ts-ignore
       sizeStr: Utils.getBinaryByteWithUnit(item.size),
     };
   }
   initElements(): void {
     this.gpuTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gpu');
-    this.gpuTbl!.addEventListener('column-click', (evt: any) => {
+    this.gpuTbl!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
@@ -136,7 +147,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
     this.parentElement!.style.overflow = 'hidden';
     resizeObserver(this.parentElement!, this.gpuTbl!, 18);
   }
-  public theadClick(table: LitTable, data: Array<any>) {
+  public theadClick(table: LitTable, data: Array<unknown>): void {
     let labels = table?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
@@ -174,10 +185,12 @@ export class TabPaneGpuClickSelect extends BaseElement {
         </lit-table>
         `;
   }
-  sortByColumn(gpuDetail: any): void {
+  sortByColumn(gpuDetail: unknown): void {
     let compare = (gpuA: GpuTreeItem, gpuB: GpuTreeItem): number => {
+      // @ts-ignore
       if (gpuDetail.sort === 0) {
         return gpuA.size - gpuB.size;
+        // @ts-ignore
       } else if (gpuDetail.sort === 1) {
         return gpuA.size - gpuB.size;
       } else {

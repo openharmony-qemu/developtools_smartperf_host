@@ -44,7 +44,7 @@ inline uint64_t TimestampIncrements(uint64_t ext)
     return ext << TS_EXT_SHIFT;
 }
 
-bool ReadInfo(uint8_t* startPtr[], uint8_t* endPtr, void* outData, size_t outSize)
+bool ReadInfo(uint8_t *startPtr[], uint8_t *endPtr, void *outData, size_t outSize)
 {
     if ((endPtr - *startPtr) < static_cast<ptrdiff_t>(outSize)) {
         return false;
@@ -60,7 +60,7 @@ bool ReadInfo(uint8_t* startPtr[], uint8_t* endPtr, void* outData, size_t outSiz
 
 namespace SysTuning {
 namespace TraceStreamer {
-FtraceProcessor::FtraceProcessor(TraceDataCache* traceDataCache)
+FtraceProcessor::FtraceProcessor(TraceDataCache *traceDataCache)
     : fixedCharArrayRegex_(std::regex(R"(char \w+\[\d+\])")),
       flexDataLocArrayRegex_(std::regex(R"(__data_loc [a-zA-Z_0-9 ]+\[\] \w+)")),
       traceDataCache_(traceDataCache)
@@ -72,7 +72,7 @@ FtraceProcessor::~FtraceProcessor()
     TS_LOGI("FtraceProcessor destroy!");
 }
 
-bool FtraceProcessor::SetupEvent(const std::string& desc)
+bool FtraceProcessor::SetupEvent(const std::string &desc)
 {
     EventFormat format;
     TS_CHECK_TRUE(HandleEventFormat(desc.data(), format), false, "HandleEventFormat failed!");
@@ -82,7 +82,7 @@ bool FtraceProcessor::SetupEvent(const std::string& desc)
     return true;
 }
 
-bool FtraceProcessor::GetEventFormatById(uint32_t id, EventFormat& format)
+bool FtraceProcessor::GetEventFormatById(uint32_t id, EventFormat &format)
 {
     auto iter = eventFormatDict_.find(id);
     if (iter != eventFormatDict_.end()) {
@@ -92,13 +92,13 @@ bool FtraceProcessor::GetEventFormatById(uint32_t id, EventFormat& format)
     return false;
 }
 
-bool FtraceProcessor::HandleHeaderPageFormat(const std::string& formatInfo)
+bool FtraceProcessor::HandleHeaderPageFormat(const std::string &formatInfo)
 {
     EventFormat format = {};
     TS_CHECK_TRUE(HandleEventFormat(formatInfo, format), false, "handle events/header_page failed!");
 
     bool commitExist = false;
-    for (const auto& curField : format.fields) {
+    for (const auto &curField : format.fields) {
         if (curField.name == "timestamp") {
             pageHeaderFormat_.timestamp = curField;
         } else if (curField.name == "commit") {
@@ -128,7 +128,7 @@ int FtraceProcessor::HeaderPageCommitSize(void)
     return pageHeaderFormat_.commit.size;
 }
 
-bool FtraceProcessor::HandleEventFormat(const std::string& formatInfo, EventFormat& format)
+bool FtraceProcessor::HandleEventFormat(const std::string &formatInfo, EventFormat &format)
 {
     std::string curLine;
     std::stringstream formatStream(formatInfo);
@@ -152,10 +152,10 @@ bool FtraceProcessor::HandleEventFormat(const std::string& formatInfo, EventForm
     auto lastFiledIndex = format.fields.size() - 1;
     format.eventSize = format.fields[lastFiledIndex].offset + format.fields[lastFiledIndex].size;
     if (format.eventId >= HM_EVENT_ID_OFFSET) {
-        for (auto& fmt : format.commonFields) {
+        for (auto &fmt : format.commonFields) {
             fmt.offset += offsetof(struct HmTraceHeader, commonType);
         }
-        for (auto& fmt : format.fields) {
+        for (auto &fmt : format.fields) {
             fmt.offset += offsetof(struct HmTraceHeader, commonType);
         }
         format.eventSize += offsetof(struct HmTraceHeader, commonType);
@@ -163,7 +163,7 @@ bool FtraceProcessor::HandleEventFormat(const std::string& formatInfo, EventForm
     return true;
 }
 
-static std::string GetName(const std::map<int, std::string>& nameMap, int type)
+static std::string GetName(const std::map<int, std::string> &nameMap, int type)
 {
     auto it = nameMap.find(type);
     if (it != nameMap.end()) {
@@ -205,7 +205,7 @@ static std::string GetProtoTypeName(ProtoFieldType type)
     return GetName(toNames, type);
 }
 
-void FtraceProcessor::PrintedFieldDetails(const FieldFormat& info)
+void FtraceProcessor::PrintedFieldDetails(const FieldFormat &info)
 {
     TS_LOGI(
         "FieldFormat { offset: %u, size:%u, sign: %u fieldType: %s, "
@@ -214,7 +214,7 @@ void FtraceProcessor::PrintedFieldDetails(const FieldFormat& info)
         GetProtoTypeName(info.protoType).c_str(), info.typeName.c_str(), info.name.c_str());
 }
 
-static std::string GetNameFromTypeName(const std::string& typeName)
+static std::string GetNameFromTypeName(const std::string &typeName)
 {
     if (typeName.empty()) {
         return "";
@@ -232,7 +232,7 @@ static std::string GetNameFromTypeName(const std::string& typeName)
     return curName;
 }
 
-static std::string GetTypeFromTypeName(const std::string& typeName, const std::string& name)
+static std::string GetTypeFromTypeName(const std::string &typeName, const std::string &name)
 {
     std::string curType;
     if (!name.empty()) {
@@ -244,7 +244,7 @@ static std::string GetTypeFromTypeName(const std::string& typeName, const std::s
     return curType;
 }
 
-static void ParseCommonFiledIndex(CommonFiledIndex& commonIndex, const std::string& name, int index)
+static void ParseCommonFiledIndex(CommonFiledIndex &commonIndex, const std::string &name, int index)
 {
     if (name == "common_type") {
         commonIndex.type = index;
@@ -257,18 +257,18 @@ static void ParseCommonFiledIndex(CommonFiledIndex& commonIndex, const std::stri
     }
 }
 
-bool FtraceProcessor::HandleFieldFormat(const std::string& fieldLine, EventFormat& format)
+bool FtraceProcessor::HandleFieldFormat(const std::string &fieldLine, EventFormat &format)
 {
     std::string typeName;
     std::string offsetInfo;
     std::string sizeInfo;
     std::string signedInfo;
-    for (auto& partInfo : SplitStringToVec(fieldLine, ";")) {
+    for (auto &partInfo : SplitStringToVec(fieldLine, ";")) {
         auto fieldMap = SplitStringToVec(Strip(partInfo), ":");
         if (fieldMap.size() < COL_IDX_VALUE) {
             continue;
         }
-        const auto& fieldName = fieldMap[COL_IDX_NAME];
+        const auto &fieldName = fieldMap[COL_IDX_NAME];
         if (fieldName == "field") {
             typeName = fieldMap[COL_IDX_VALUE];
         } else if (fieldName == "offset") {
@@ -300,7 +300,7 @@ bool FtraceProcessor::HandleFieldFormat(const std::string& fieldLine, EventForma
     return true;
 }
 
-static bool ParseSepcialIntType(FieldFormat& field, const std::string& type, const std::string& typeName)
+static bool ParseSepcialIntType(FieldFormat &field, const std::string &type, const std::string &typeName)
 {
     if (type == "bool") {
         field.filedType = FIELD_TYPE_BOOL;
@@ -340,7 +340,7 @@ static bool ParseSepcialIntType(FieldFormat& field, const std::string& type, con
     return false;
 }
 
-static bool ParseCommonIntType(FieldFormat& field, bool sign)
+static bool ParseCommonIntType(FieldFormat &field, bool sign)
 {
     switch (field.size) {
         case sizeof(int8_t):
@@ -361,7 +361,7 @@ static bool ParseCommonIntType(FieldFormat& field, bool sign)
     return false;
 }
 
-bool ParseKernelAddrField(FieldFormat& field, const std::string& type)
+bool ParseKernelAddrField(FieldFormat &field, const std::string &type)
 {
     if (type == "void*" || type == "void *") {
         if (field.size == sizeof(uint64_t)) { // 64-bit kernel addresses
@@ -375,9 +375,9 @@ bool ParseKernelAddrField(FieldFormat& field, const std::string& type)
     return false;
 }
 
-bool FtraceProcessor::HandleFieldType(const std::string& type, FieldFormat& field)
+bool FtraceProcessor::HandleFieldType(const std::string &type, FieldFormat &field)
 {
-    const std::string& curTypeName = field.typeName;
+    const std::string &curTypeName = field.typeName;
     // for fixed size C char arrary, likes "char a[LEN]"
     if (std::regex_match(curTypeName, fixedCharArrayRegex_)) {
         field.filedType = FIELD_TYPE_FIXEDCSTRING;
@@ -413,7 +413,7 @@ bool FtraceProcessor::HandleFieldType(const std::string& type, FieldFormat& fiel
     return false;
 }
 
-void FtraceProcessor::HandleProtoType(FieldFormat& fieldFormat)
+void FtraceProcessor::HandleProtoType(FieldFormat &fieldFormat)
 {
     switch (fieldFormat.filedType) {
         case FIELD_TYPE_INT8:
@@ -477,7 +477,7 @@ bool FtraceProcessor::HandlePageHeader()
     return true;
 }
 
-bool FtraceProcessor::HandleTgids(const std::string& tgids)
+bool FtraceProcessor::HandleTgids(const std::string &tgids)
 {
     int32_t pid = 0;
     int32_t tgid = 0;
@@ -493,7 +493,7 @@ bool FtraceProcessor::HandleTgids(const std::string& tgids)
     return state;
 }
 
-bool FtraceProcessor::HandleCmdlines(const std::string& cmdlines)
+bool FtraceProcessor::HandleCmdlines(const std::string &cmdlines)
 {
     bool state = false;
     int32_t pid;
@@ -515,7 +515,7 @@ bool FtraceProcessor::HandleCmdlines(const std::string& cmdlines)
     return state;
 }
 
-bool FtraceProcessor::HandlePaddingData(const FtraceEventHeader& eventHeader)
+bool FtraceProcessor::HandlePaddingData(const FtraceEventHeader &eventHeader)
 {
     TS_CHECK_TRUE_RET(eventHeader.timeDelta != 0, false);
     uint32_t paddingLength;
@@ -526,7 +526,7 @@ bool FtraceProcessor::HandlePaddingData(const FtraceEventHeader& eventHeader)
     return true;
 }
 
-bool FtraceProcessor::HandleTimeExtend(const FtraceEventHeader& eventHeader)
+bool FtraceProcessor::HandleTimeExtend(const FtraceEventHeader &eventHeader)
 {
     uint32_t deltaExt = 0;
     TS_CHECK_TRUE(ReadInfo(&curPos_, endPosOfData_, &deltaExt, sizeof(deltaExt)), false, "read time delta failed!");
@@ -535,7 +535,7 @@ bool FtraceProcessor::HandleTimeExtend(const FtraceEventHeader& eventHeader)
     return true;
 }
 
-bool FtraceProcessor::HandleTimeStamp(const FtraceEventHeader& eventHeader)
+bool FtraceProcessor::HandleTimeStamp(const FtraceEventHeader &eventHeader)
 {
     uint32_t deltaExt = 0;
     TS_CHECK_TRUE(ReadInfo(&curPos_, endPosOfData_, &deltaExt, sizeof(deltaExt)), false, "read time delta failed!");
@@ -546,9 +546,9 @@ bool FtraceProcessor::HandleTimeStamp(const FtraceEventHeader& eventHeader)
     return true;
 }
 
-bool FtraceProcessor::HandleDataRecord(const FtraceEventHeader& eventHeader,
-                                       FtraceCpuDetailMsg& cpuMsg,
-                                       CpuDetailParser& cpuDetailParser)
+bool FtraceProcessor::HandleDataRecord(const FtraceEventHeader &eventHeader,
+                                       FtraceCpuDetailMsg &cpuMsg,
+                                       CpuDetailParser &cpuDetailParser)
 {
     uint32_t eventSize = 0;
     // refers comments of kernel function rb_event_data_length:
@@ -564,8 +564,8 @@ bool FtraceProcessor::HandleDataRecord(const FtraceEventHeader& eventHeader,
     }
     TS_LOGD("HandleDataRecord: parse %u bytes of event data...", eventSize);
 
-    uint8_t* eventStart = curPos_;
-    uint8_t* eventEnd = curPos_ + eventSize;
+    uint8_t *eventStart = curPos_;
+    uint8_t *eventEnd = curPos_ + eventSize;
     uint16_t eventId = 0;
     TS_CHECK_TRUE(ReadInfo(&curPos_, eventEnd, &eventId, sizeof(eventId)), false, "read event ID failed!");
 
@@ -597,10 +597,10 @@ bool FtraceProcessor::HandleDataRecord(const FtraceEventHeader& eventHeader,
     return true;
 }
 
-bool FtraceProcessor::HandlePage(FtraceCpuDetailMsg& cpuMsg,
-                                 CpuDetailParser& cpuDetailParser,
+bool FtraceProcessor::HandlePage(FtraceCpuDetailMsg &cpuMsg,
+                                 CpuDetailParser &cpuDetailParser,
                                  uint8_t page[],
-                                 bool& haveSplitSeg,
+                                 bool &haveSplitSeg,
                                  size_t size)
 {
     curPos_ = page;
@@ -648,24 +648,24 @@ static inline int RmqEntryTotalSize(unsigned int size)
     return sizeof(struct RmqEntry) + ((size + RMQ_ENTRY_ALIGN_MASK) & (~RMQ_ENTRY_ALIGN_MASK));
 }
 
-void FtraceProcessor::HmProcessPageTraceDataEvents(RmqConsumerData* rmqData,
+void FtraceProcessor::HmProcessPageTraceDataEvents(RmqConsumerData *rmqData,
                                                    uint64_t timeStampBase,
-                                                   FtraceCpuDetailMsg& cpuMsg,
-                                                   CpuDetailParser& cpuDetailParser,
-                                                   bool& haveSplitSeg)
+                                                   FtraceCpuDetailMsg &cpuMsg,
+                                                   CpuDetailParser &cpuDetailParser,
+                                                   bool &haveSplitSeg)
 {
-    RmqEntry* event;
-    HmTraceHeader* header;
+    RmqEntry *event;
+    HmTraceHeader *header;
     EventFormat format = {};
     auto curPtr = rmqData->data;
     auto endPtr = rmqData->data + rmqData->length;
     while (curPtr < endPtr) {
-        event = (struct RmqEntry*)curPtr;
+        event = (struct RmqEntry *)curPtr;
         auto evtSize = event->size;
         if (evtSize == 0U) {
             break;
         }
-        header = reinterpret_cast<struct HmTraceHeader*>(event->data);
+        header = reinterpret_cast<struct HmTraceHeader *>(event->data);
         auto eventId = header->commonType;
         curPtr += RmqEntryTotalSize(evtSize);
         if (!GetEventFormatById(eventId, format)) {
@@ -681,7 +681,7 @@ void FtraceProcessor::HmProcessPageTraceDataEvents(RmqConsumerData* rmqData,
         if (FtraceEventProcessor::GetInstance().IsSupported(format.eventId)) {
             std::unique_ptr<FtraceEvent> ftraceEvent = std::make_unique<FtraceEvent>();
             ftraceEvent->set_timestamp(event->timeStampOffset + timeStampBase);
-            HandleFtraceEvent(*ftraceEvent, reinterpret_cast<uint8_t*>(header), evtSize, format);
+            HandleFtraceEvent(*ftraceEvent, reinterpret_cast<uint8_t *>(header), evtSize, format);
             std::shared_ptr<RawTraceEventInfo> eventInfo = std::make_shared<RawTraceEventInfo>();
             eventInfo->cpuId = cpuMsg.cpu();
             eventInfo->eventId = eventId;
@@ -695,12 +695,12 @@ void FtraceProcessor::HmProcessPageTraceDataEvents(RmqConsumerData* rmqData,
         }
     }
 }
-bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg,
-                                      CpuDetailParser& cpuDetailParser,
-                                      uint8_t*& data,
-                                      bool& haveSplitSeg)
+bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg &cpuMsg,
+                                      CpuDetailParser &cpuDetailParser,
+                                      uint8_t *&data,
+                                      bool &haveSplitSeg)
 {
-    RmqConsumerData* rmqData = reinterpret_cast<struct RmqConsumerData*>(data);
+    RmqConsumerData *rmqData = reinterpret_cast<struct RmqConsumerData *>(data);
     uint64_t timeStampBase = rmqData->timeStamp;
     cpuMsg.set_cpu(rmqData->coreId);
     cpuMsg.set_overwrite(0);
@@ -713,10 +713,10 @@ static bool IsValidIndex(int index)
     return index != CommonFiledIndex::INVALID_IDX;
 }
 
-bool FtraceProcessor::HandleFtraceCommonFields(FtraceEvent& ftraceEvent,
+bool FtraceProcessor::HandleFtraceCommonFields(FtraceEvent &ftraceEvent,
                                                uint8_t data[],
                                                size_t dataSize,
-                                               const EventFormat& format)
+                                               const EventFormat &format)
 {
     auto curIndex = format.commonIndex;
 
@@ -736,10 +736,10 @@ bool FtraceProcessor::HandleFtraceCommonFields(FtraceEvent& ftraceEvent,
     return true;
 }
 
-bool FtraceProcessor::HandleFtraceEvent(FtraceEvent& ftraceEvent,
+bool FtraceProcessor::HandleFtraceEvent(FtraceEvent &ftraceEvent,
                                         uint8_t data[],
                                         size_t dataSize,
-                                        const EventFormat& format)
+                                        const EventFormat &format)
 {
     TS_CHECK_TRUE(dataSize >= format.eventSize, false, "dataSize not enough!");
     TS_CHECK_TRUE(HandleFtraceCommonFields(ftraceEvent, data, dataSize, format), false, "parse common fields failed!");

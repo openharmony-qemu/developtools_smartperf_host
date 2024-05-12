@@ -360,18 +360,18 @@ let css = `
         display: none;
     }
     </style>
-`
-const initHtmlStyle = (wid: string) => {
-  return replacePlaceholders(css,wid);
+`;
+const initHtmlStyle = (wid: string): string => {
+  return replacePlaceholders(css, wid);
 };
 
 @element('lit-popover')
 export class LitPopover extends BaseElement {
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['title', 'trigger', 'width', 'placement', 'visible'];
   }
 
-  get visible() {
+  get visible(): string {
     return this.getAttribute('visible') || 'false';
   }
 
@@ -387,11 +387,11 @@ export class LitPopover extends BaseElement {
     this.setAttribute('placement', value || 'bottomLeft');
   }
 
-  get placement() {
+  get placement(): string | null {
     return this.getAttribute('placement');
   }
 
-  get trigger() {
+  get trigger(): string {
     return this.getAttribute('trigger') || 'hover';
   }
 
@@ -399,15 +399,15 @@ export class LitPopover extends BaseElement {
     this.setAttribute('trigger', value);
   }
 
-  get title() {
-    return this.getAttribute('title');
+  get title(): string {
+    return this.getAttribute('title') || '';
   }
 
-  set title(value: any) {
+  set title(value: string) {
     this.setAttribute('title', value);
   }
 
-  get width() {
+  get width(): string {
     return this.getAttribute('width') || 'max-content';
   }
 
@@ -415,13 +415,13 @@ export class LitPopover extends BaseElement {
     this.setAttribute('width', value);
   }
 
-  get haveRadio() {
+  get haveRadio(): string | null {
     return this.getAttribute('haveRadio');
   }
 
   initElements(): void {}
 
-  initHtml() {
+  initHtml(): string {
     return `
         ${initHtmlStyle(this.width)}
         <input class="trigger-click" type="checkbox">
@@ -433,30 +433,36 @@ export class LitPopover extends BaseElement {
         `;
   }
 
-  connectedCallback() {
-    let popover: any = this.shadowRoot!.querySelector('.popover');
-    let checkbox: any = this.shadowRoot!.querySelector('.trigger-click');
-    this.setAttribute('tabindex', '1');
-    popover.onclick = (e: any) => {
+  connectedCallback(): void {
+    let popover: unknown = this.shadowRoot!.querySelector('.popover');
+    let checkbox: unknown = this.shadowRoot!.querySelector('.trigger-click');
+    this.setAttribute('tabindex', '1'); // @ts-ignore
+    popover.onclick = (e: unknown): void => {
+      // @ts-ignore
       e.stopPropagation();
-    };
-    popover.addEventListener('mousemove', (e: any) => {
+    }; // @ts-ignore
+    popover.addEventListener('mousemove', (e: unknown) => {
+      // @ts-ignore
       e.stopPropagation();
     });
-    this.onclick = (e: any) => {
-      e.stopPropagation();
+    this.onclick = (e: unknown): void => {
+      // @ts-ignore
+      e.stopPropagation(); // @ts-ignore
       if (e.relatedTarget?.hasAttribute('not-close')) {
         this.focus();
-      }
-      checkbox.checked = !checkbox.checked;
+      } // @ts-ignore
+      checkbox.checked = !checkbox.checked; // @ts-ignore
       this.visible = checkbox.checked;
-    };
-    popover.onmouseleave = () => {
+    }; // @ts-ignore
+    popover.onmouseleave = (): void => {
       this.focus();
     };
-    this.onblur = (ev: any) => {
+    this.onblur = (ev: unknown): void => {
+      // @ts-ignore
       if (ev.relatedTarget && this.haveRadio) {
+        // @ts-ignore
         if (ev.relatedTarget.hasAttribute('not-close')) {
+          // @ts-ignore
         } else if (ev.relatedTarget.type === 'radio') {
           this.focus();
         } else {
@@ -470,11 +476,11 @@ export class LitPopover extends BaseElement {
     };
   }
 
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
-  attributeChangedCallback(name: any, oldValue: any, newValue: any) {
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {
     if (name === 'visible') {
       if (newValue === 'false') {
         // @ts-ignore

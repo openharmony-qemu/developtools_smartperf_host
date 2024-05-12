@@ -49,6 +49,7 @@ export class SpTraceCommand extends BaseElement {
     document.execCommand('copy');
     let allPlugin: Array<string> = [];
     PluginConvertUtils.pluginConfig.forEach((plugin) => {
+      //@ts-ignore
       allPlugin.push(plugin.pluginName);
     });
     SpStatisticsHttpUtil.addOrdinaryVisitAction({

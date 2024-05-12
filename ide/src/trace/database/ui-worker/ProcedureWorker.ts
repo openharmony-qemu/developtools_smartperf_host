@@ -64,15 +64,16 @@ import { hitchTimeRender } from './ProcedureWorkerHitchTime';
 import { LtpoRender } from './ProcedureWorkerLTPO';
 import { BinderRender } from './procedureWorkerBinder';
 import { SampleRender } from './ProcedureWorkerBpftrace';
+import { PerfToolRender } from './ProcedureWorkerPerfTool';
 import { GpuCounterRender } from './ProcedureWorkerGpuCounter';
-import { AllStatesRender } from './ProcedureWorkerAllStates'
+import { AllStatesRender } from './ProcedureWorkerAllStates';
 
-let dataList: any = {};
-let dataList2: any = {};
-let dataFilter: any = {};
-let canvasList: any = {};
-let contextList: any = {};
-export let renders: any = {
+let dataList: unknown = {};
+let dataList2: unknown = {};
+let dataFilter: unknown = {};
+let canvasList: unknown = {};
+let contextList: unknown = {};
+export let renders = {
   'cpu-data': new CpuRender(),
   'cpu-state': new CpuStateRender(),
   'cpu-limit-freq': new CpuFreqLimitRender(),
@@ -87,7 +88,7 @@ export let renders: any = {
   'app-start-up': new AppStartupRender(),
   'all-app-start-up': new AllAppStartupRender(),
   'ltpo-present': new LtpoRender(),
-  'hitch': new hitchTimeRender(),
+  hitch: new hitchTimeRender(),
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
   'heap-timeline': new HeapTimelineRender(),
@@ -127,23 +128,27 @@ export let renders: any = {
   'freq-extend': new FreqExtendRender(),
   binder: new BinderRender(),
   sample: new SampleRender(),
+  perfTool: new PerfToolRender(),
   gpuCounter: new GpuCounterRender(),
-  'stateCut': new AllStatesRender()
+  stateCut: new AllStatesRender(),
 };
 
 function match(type: string, req: RequestMessage): void {
   Reflect.ownKeys(renders).filter((it) => {
     if (type && type.startsWith(it as string)) {
+      //@ts-ignore
       if (dataList[type]) {
+        //@ts-ignore
         req.lazyRefresh = dataList[type].length > 20000;
       }
+      //@ts-ignore
       renders[it].render(req, dataList[type], dataFilter[type], dataList2);
     }
   });
 }
 
 let dec = new TextDecoder();
-let convertJSON = (arr: any): any => {
+let convertJSON = (arr: unknown): unknown => {
   if (arr instanceof ArrayBuffer) {
     let jsonArr = [];
     let str = dec.decode(new Uint8Array(arr));
@@ -154,8 +159,9 @@ let convertJSON = (arr: any): any => {
       let columns = parsed.columns;
       let values = parsed.values;
       for (let i = 0; i < values.length; i++) {
-        let obj: any = {};
+        let obj: unknown = {};
         for (let j = 0; j < columns.length; j++) {
+          //@ts-ignore
           obj[columns[j]] = values[i][j];
         }
         jsonArr.push(obj);
@@ -167,17 +173,25 @@ let convertJSON = (arr: any): any => {
   }
 };
 
-self.onmessage = (e: any): void => {
+self.onmessage = (e: unknown): void => {
   clear(e);
+  //@ts-ignore
   if (e.data.params && e.data.params.list) {
+    //@ts-ignore
     dataList[e.data.type] = convertJSON(e.data.params.list);
+    //@ts-ignore
     if (e.data.params.offscreen) {
+      //@ts-ignore
       canvasList[e.data.type] = e.data.params.offscreen;
+      //@ts-ignore
       contextList[e.data.type] = e.data.params.offscreen!.getContext('2d');
+      //@ts-ignore
       contextList[e.data.type].scale(e.data.params.dpr, e.data.params.dpr);
     }
   }
+  //@ts-ignore
   if (!dataFilter[e.data.type]) {
+    //@ts-ignore
     dataFilter[e.data.type] = [];
   }
   let req = new RequestMessage();
@@ -186,7 +200,8 @@ self.onmessage = (e: any): void => {
   match(req.type!, req);
 };
 
-function clear(e: any) {
+function clear(e: unknown): void {
+  //@ts-ignore
   if (e.data.type && (e.data.type as string).startsWith('clear')) {
     dataList = {};
     dataList2 = {};
@@ -195,7 +210,9 @@ function clear(e: any) {
     contextList = {};
     // @ts-ignore
     self.postMessage({
+      //@ts-ignore
       id: e.data.id,
+      //@ts-ignore
       type: e.data.type,
       results: null,
     });
@@ -203,49 +220,81 @@ function clear(e: any) {
   }
 }
 
-function setReq(req: RequestMessage, e: any) {
+function setReq(req: RequestMessage, e: unknown): void {
+  //@ts-ignore
   req.canvas = canvasList[e.data.type];
+  //@ts-ignore
   req.context = contextList[e.data.type];
+  //@ts-ignore
   req.type = e.data.type as string;
+  //@ts-ignore
   req.params = e.data.params;
+  //@ts-ignore
   if (e.data.params) {
+    //@ts-ignore
     req.online = e.data.params.online;
+    //@ts-ignore
     req.buf = e.data.params.buf;
+    //@ts-ignore
     req.isRangeSelect = e.data.params.isRangeSelect;
+    //@ts-ignore
     req.isHover = e.data.params.isHover;
+    //@ts-ignore
     req.xs = e.data.params.xs;
+    //@ts-ignore
     req.frame = e.data.params.frame;
+    //@ts-ignore
     req.flagMoveInfo = e.data.params.flagMoveInfo;
+    //@ts-ignore
     req.flagSelectedInfo = e.data.params.flagSelectedInfo;
+    //@ts-ignore
     req.hoverX = e.data.params.hoverX;
+    //@ts-ignore
     req.hoverY = e.data.params.hoverY;
+    //@ts-ignore
     req.startNS = e.data.params.startNS;
+    //@ts-ignore
     req.endNS = e.data.params.endNS;
+    //@ts-ignore
     req.totalNS = e.data.params.totalNS;
+    //@ts-ignore
     req.slicesTime = e.data.params.slicesTime;
+    //@ts-ignore
     req.range = e.data.params.range;
+    //@ts-ignore
     req.scale = e.data.params.scale;
+    //@ts-ignore
     req.canvasWidth = e.data.params.canvasWidth;
+    //@ts-ignore
     req.canvasHeight = e.data.params.canvasHeight;
+    //@ts-ignore
     req.useCache = e.data.params.useCache;
+    //@ts-ignore
     req.lineColor = e.data.params.lineColor;
+    //@ts-ignore
     req.chartColor = e.data.params.chartColor;
+    //@ts-ignore
     req.wakeupBean = e.data.params.wakeupBean;
+    //@ts-ignore
     req.intervalPerf = e.data.params.intervalPerf;
   }
+  //@ts-ignore
   req.id = e.data.id;
   if (!req.frame) {
     info(req.frame);
     return;
   }
   if (req.canvas) {
+    //@ts-ignore
     if (req.canvas.width !== req.canvasWidth || req.canvas.height !== req.canvasHeight) {
+      //@ts-ignore
       req.canvas.width = req.canvasWidth;
+      //@ts-ignore
       req.canvas.height = req.canvasHeight;
+      //@ts-ignore
       req.context.scale(e.data.params.dpr, e.data.params.dpr);
     }
   }
 }
 
-self.onmessageerror = function (e: any): void {
-};
+self.onmessageerror = function (e: unknown): void {};

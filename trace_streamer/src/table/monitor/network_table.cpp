@@ -30,7 +30,7 @@ enum class Index : int32_t {
     PACKET_OUT_SEC,
     NET_TYPE,
 };
-NetworkTable::NetworkTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+NetworkTable::NetworkTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
@@ -53,7 +53,7 @@ std::unique_ptr<TableBase::Cursor> NetworkTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-NetworkTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+NetworkTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstNetworkData().Size())),
       networkDataObj_(dataCache->GetConstNetworkData())
 {

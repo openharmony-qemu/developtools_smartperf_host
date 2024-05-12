@@ -27,10 +27,10 @@ import {
   nativeMemoryChartDataCacheSender,
   nativeMemoryChartDataSender,
 } from '../../database/data-trafic/NativeMemoryDataSender';
-import {queryNativeHookProcess, queryNativeHookStatisticsCount} from "../../database/sql/NativeHook.sql";
-import {queryHeapGroupByEvent} from "../../database/sql/SqlLite.sql";
-import {queryNativeMemoryRealTime} from "../../database/sql/Memory.sql";
-import {queryBootTime} from "../../database/sql/Clock.sql";
+import { queryNativeHookProcess, queryNativeHookStatisticsCount } from '../../database/sql/NativeHook.sql';
+import { queryHeapGroupByEvent } from '../../database/sql/SqlLite.sql';
+import { queryNativeMemoryRealTime } from '../../database/sql/Memory.sql';
+import { queryBootTime } from '../../database/sql/Clock.sql';
 
 export class SpNativeMemoryChart {
   static EVENT_HEAP: Array<NativeEventHeap> = [];
@@ -45,6 +45,7 @@ export class SpNativeMemoryChart {
     row.onThreadHandler = (useCache): void => {
       row.canvasSave(this.trace.canvasPanelCtx!);
       if (row.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -155,8 +156,8 @@ export class SpNativeMemoryChart {
       };
       allHeapRow.findHoverStruct = (): void => {
         HeapStruct.hoverHeapStruct = allHeapRow.getHoverStruct();
-      };
-      allHeapRow.supplierFrame = (): Promise<any> =>
+      }; //@ts-ignore
+      allHeapRow.supplierFrame = (): Promise<unknown> =>
         nativeMemoryChartDataSender(allHeapRow, {
           eventType: i,
           ipid: process.ipid,
@@ -202,19 +203,21 @@ export class SpNativeMemoryChart {
     let queryTime = await queryNativeMemoryRealTime();
     let bootTime = await queryBootTime();
     if (queryTime.length > 0) {
+      //@ts-ignore
       isRealtime = queryTime[0].clock_name === 'realtime';
     }
     if (bootTime.length > 0 && isRealtime) {
+      //@ts-ignore
       realTimeDif = queryTime[0].ts - bootTime[0].ts;
       SpNativeMemoryChart.REAL_TIME_DIF = realTimeDif;
     }
-    await new Promise<any>((resolve) => {
+    await new Promise<unknown>((resolve) => {
       procedurePool.submitWithName(
         'logic0',
         'native-memory-init',
         { isRealtime, realTimeDif },
         undefined,
-        (res: any) => {
+        (res: unknown) => {
           resolve(res);
         }
       );

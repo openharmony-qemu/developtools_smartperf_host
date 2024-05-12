@@ -90,15 +90,15 @@ class SizeObj {
 
 @element('tabpane-nm-statistic-analysis')
 export class TabPaneNMStatisticAnalysis extends BaseElement {
-  private currentSelection: SelectionParam | any;
+  private currentSelection: SelectionParam | unknown;
   private nmPieChart: LitChartPie | null | undefined;
   private nmTableBox: HTMLDivElement | undefined | null;
-  private processData!: Array<any>;
+  private processData!: Array<unknown>;
   private eventTypeData!: Array<AnalysisObj>;
   private threadData!: Array<AnalysisObj>;
   private soData!: Array<AnalysisObj>;
   private functionData!: Array<AnalysisObj>;
-  private tableType: LitTable | null | undefined;
+  private typeUsageTbl: LitTable | null | undefined;
   private threadUsageTbl: LitTable | null | undefined;
   private soUsageTbl: LitTable | null | undefined;
   private functionUsageTbl: LitTable | null | undefined;
@@ -109,7 +109,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   private progressEL: LitProgressBar | null | undefined;
   private type: string = '';
   private isStatistic = false;
-  private typeMap!: Map<number, Array<any>>;
+  private typeMap!: Map<number, Array<unknown>>;
   private currentLevel = -1;
   private currentLevelApplySize = 0;
   private currentLevelReleaseSize = 0;
@@ -117,7 +117,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   private currentLevelApplyCount = 0;
   private currentLevelReleaseCount = 0;
   private currentLevelExistCount = 0;
-  private currentLevelData!: Array<any>;
+  private currentLevelData!: Array<unknown>;
   private typeStatisticsData!: {};
   private threadStatisticsData!: {};
   private libStatisticsData!: {};
@@ -137,7 +137,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     if (statisticAnalysisParam === this.currentSelection) {
       // @ts-ignore
       this.eventTypeData.unshift(this.typeStatisticsData);
-      this.tableType!.recycleDataSource = this.eventTypeData;
+      this.typeUsageTbl!.recycleDataSource = this.eventTypeData;
       // @ts-ignore
       this.eventTypeData.shift(this.typeStatisticsData);
       return;
@@ -152,21 +152,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       Utils.getInstance().setCurrentSelectIPid(statisticAnalysisParam.nativeMemoryCurrentIPid);
       Utils.getInstance().initResponseTypeList(statisticAnalysisParam);
     }
-    if (this.tableType) {
-      // @ts-ignore
-      this.tableType.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 30 + 'px';
-    }
-    if (this.soUsageTbl) {
-      // @ts-ignore
-      this.soUsageTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 30 + 'px';
-    }
-    if (this.functionUsageTbl) {
-      // @ts-ignore
-      this.functionUsageTbl.shadowRoot.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - 30
-      }px`;
-    }
-    this.reset(this.tableType!, false);
+    this.resizeTable();
+    this.reset(this.typeUsageTbl!, false);
     this.currentSelection = statisticAnalysisParam;
     this.titleEl!.textContent = '';
     this.tabName!.textContent = '';
@@ -178,7 +165,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       this.threadName = '';
     }
     this.getNMEventTypeSize(statisticAnalysisParam);
-    this.showAssignLevel(this.tableType!, this.functionUsageTbl!, 0, this.eventTypeData);
+    this.showAssignLevel(this.typeUsageTbl!, this.functionUsageTbl!, 0, this.eventTypeData);
   }
 
   initNmTableArray(): void {
@@ -225,7 +212,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   }
 
   initTable(): void {
-    this.tableType!.addEventListener('row-click', (evt) => {
+    this.typeUsageTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
       let button = evt.detail.button;
       // @ts-ignore
@@ -259,7 +246,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.range = this.shadowRoot?.querySelector('#time-range');
     this.nmPieChart = this.shadowRoot!.querySelector<LitChartPie>('#nm-chart-pie');
     this.nmTableBox = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-table-box');
-    this.tableType = this.shadowRoot!.querySelector<LitTable>('#tb-eventtype-usage');
+    this.typeUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-eventtype-usage');
     this.threadUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-thread-usage');
     this.soUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-so-usage');
     this.functionUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-function-usage');
@@ -273,8 +260,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     let popover = this.filterEl!.shadowRoot!.querySelector('#check-popover');
     this.hideThreadCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideThread');
     this.hideThreadCheckBox?.addEventListener('change', () => {
-      this.reset(this.tableType!, false);
-      this.showAssignLevel(this.tableType!, this.functionUsageTbl!, 0, this.eventTypeData);
+      this.reset(this.typeUsageTbl!, false);
+      this.showAssignLevel(this.typeUsageTbl!, this.functionUsageTbl!, 0, this.eventTypeData); // @ts-ignore
       this.getNMTypeSize(this.currentSelection, this.processData);
     });
     this.initNmTableArray();
@@ -284,28 +271,32 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       let title = `${this.titleEl!.textContent}/${evt.detail.data.symbolName}`;
       this.clickRight(evt, title);
     });
-    let exportHandlerMap = new Map<string, (value: any) => string>();
+    let exportHandlerMap = new Map<string, (value: unknown) => string>();
     exportHandlerMap.set('existSizeFormat', (value) => {
-      return `${value['existSize']}`;
+      // @ts-ignore
+      return `${value.existSize}`;
     });
     exportHandlerMap.set('applySizeFormat', (value) => {
-      return `${value['applySize']}`;
+      // @ts-ignore
+      return `${value.applySize}`;
     });
     exportHandlerMap.set('releaseSizeFormat', (value) => {
-      return `${value['releaseSize']}`;
+      // @ts-ignore
+      return `${value.releaseSize}`;
     });
-    this.tableType!.exportTextHandleMap = exportHandlerMap;
+    this.typeUsageTbl!.exportTextHandleMap = exportHandlerMap;
     this.threadUsageTbl!.exportTextHandleMap = exportHandlerMap;
     this.soUsageTbl!.exportTextHandleMap = exportHandlerMap;
     this.functionUsageTbl!.exportTextHandleMap = exportHandlerMap;
   }
 
-  private clickRight(evt: any, title: string): void {
+  private clickRight(evt: unknown, title: string): void {
+    // @ts-ignore
     if (evt.detail.button === 2) {
       let treeTab = this.parentElement?.parentElement?.querySelector<TabpaneNMCalltree>(
         '#box-native-calltree > tabpane-nm-calltree'
       );
-      treeTab!.analysisTabWidth = this.clientWidth;
+      treeTab!.analysisTabWidth = this.clientWidth; // @ts-ignore
       const data = evt.detail.data as AnalysisObj;
       treeTab!.filterData = new FilterByAnalysis(
         data.typeId,
@@ -322,7 +313,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         treeTab?.initUI();
         treeTab?.filterByAnalysis();
       } else {
-        treeTab!.initFromAnalysis = true;
+        treeTab!.initFromAnalysis = true; // @ts-ignore
         treeTab!.data = this.currentSelection;
         InitAnalysis.getInstance().isInitAnalysis = false;
       }
@@ -341,16 +332,16 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         types: typeFilter,
         isStatistic: this.isStatistic,
       },
-      (results: any) => {
+      (results: unknown) => {
         this.processData = JSON.parse(JSON.stringify(results));
         this.getNMTypeSize(val, this.processData);
       }
     );
   }
 
-  private getDataByWorkerQuery(args: any, handler: Function): void {
+  private getDataByWorkerQuery(args: unknown, handler: Function): void {
     this.progressEL!.loading = true;
-    procedurePool.submitWithName('logic0', 'native-memory-queryAnalysis', args, undefined, (results: any) => {
+    procedurePool.submitWithName('logic0', 'native-memory-queryAnalysis', args, undefined, (results: unknown) => {
       handler(results);
       this.progressEL!.loading = false;
     });
@@ -379,7 +370,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
 
   private clearData(): void {
     this.nmPieChart!.dataSource = [];
-    this.tableType!.recycleDataSource = [];
+    this.typeUsageTbl!.recycleDataSource = [];
     this.threadUsageTbl!.recycleDataSource = [];
     this.soUsageTbl!.recycleDataSource = [];
     this.functionUsageTbl!.recycleDataSource = [];
@@ -389,7 +380,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     showNMTable: LitTable,
     hideNMTable: LitTable,
     currentLevel: number,
-    currentLevelData: Array<any>
+    currentLevelData: Array<unknown>
   ): void {
     showNMTable!.style.display = 'grid';
     hideNMTable!.style.display = 'none';
@@ -402,12 +393,12 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   private getBack(): void {
     this.nmBack!.addEventListener('click', () => {
       if (this.tabName!.textContent === 'Statistic By Thread Existing') {
-        this.showAssignLevel(this.tableType!, this.threadUsageTbl!, 0, this.eventTypeData);
+        this.showAssignLevel(this.typeUsageTbl!, this.threadUsageTbl!, 0, this.eventTypeData);
         this.nmBack!.style.visibility = 'hidden';
         this.typePieChart();
       } else if (this.tabName!.textContent === 'Statistic By Library Existing') {
         if (this.hideThreadCheckBox?.checked || this.isStatistic) {
-          this.showAssignLevel(this.tableType!, this.soUsageTbl!, 0, this.eventTypeData);
+          this.showAssignLevel(this.typeUsageTbl!, this.soUsageTbl!, 0, this.eventTypeData);
           this.nmBack!.style.visibility = 'hidden';
           this.typePieChart();
         } else {
@@ -432,27 +423,29 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         type: 'outer',
       },
       tip: (typeTipValue): string => {
+        // @ts-ignore
+        const obj = typeTipValue.obj as AnalysisObj;
         return `<div>   
-                    <div>Memory Type:${typeTipValue.obj.tableName}</div>
-                    <div>Existing:${typeTipValue.obj.existSizeFormat} (${typeTipValue.obj.existSizePercent}%)</div>
-                    <div># Existing:${typeTipValue.obj.existCount} (${typeTipValue.obj.existCountPercent}%)</div>
-                    <div>Total Bytes:${typeTipValue.obj.applySizeFormat} (${typeTipValue.obj.applySizePercent}%)</div>
-                    <div># Total:${typeTipValue.obj.applyCount} (${typeTipValue.obj.applyCountPercent}%)</div>
-                    <div>Transient:${typeTipValue.obj.releaseSizeFormat} (${typeTipValue.obj.releaseSizePercent}%)</div>
-                    <div># Transient:${typeTipValue.obj.releaseCount} (${typeTipValue.obj.releaseCountPercent}%)</div>
+                    <div>Memory Type:${obj.tableName}</div>
+                    <div>Existing:${obj.existSizeFormat} (${obj.existSizePercent}%)</div>
+                    <div># Existing:${obj.existCount} (${obj.existCountPercent}%)</div>
+                    <div>Total Bytes:${obj.applySizeFormat} (${obj.applySizePercent}%)</div>
+                    <div># Total:${obj.applyCount} (${obj.applyCountPercent}%)</div>
+                    <div>Transient:${obj.releaseSizeFormat} (${obj.releaseSizePercent}%)</div>
+                    <div># Transient:${obj.releaseCount} (${obj.releaseCountPercent}%)</div>
                 </div>`;
       },
       angleClick: (it): void => {
         // @ts-ignore
-        if (it.tableName != 'other') {
+        if (it.tableName !== 'other') {
           this.nativeProcessLevelClickEvent(it);
         }
       },
       hoverHandler: (nmData): void => {
         if (nmData) {
-          this.tableType!.setCurrentHover(nmData);
+          this.typeUsageTbl!.setCurrentHover(nmData);
         } else {
-          this.tableType!.mouseOut();
+          this.typeUsageTbl!.mouseOut();
         }
       },
       interactions: [
@@ -466,10 +459,10 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.tabName!.textContent = 'Statistic By Event Type Existing';
     // @ts-ignore
     this.eventTypeData.unshift(this.typeStatisticsData);
-    this.tableType!.recycleDataSource = this.eventTypeData;
+    this.typeUsageTbl!.recycleDataSource = this.eventTypeData;
     // @ts-ignore
     this.eventTypeData.shift(this.typeStatisticsData);
-    this.tableType?.reMeauseHeight();
+    this.typeUsageTbl?.reMeauseHeight();
     this.currentLevelData = this.eventTypeData;
   }
 
@@ -484,19 +477,22 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         type: 'outer',
       },
       tip: (threadTipValue): string => {
+        // @ts-ignore
+        const obj = threadTipValue.obj as AnalysisObj;
         return `<div>
-                    <div>Thread:${threadTipValue.obj.tableName}</div>
-                    <div>Existing:${threadTipValue.obj.existSizeFormat} (${threadTipValue.obj.existSizePercent}%)</div>
-                    <div># Existing:${threadTipValue.obj.existCount} (${threadTipValue.obj.existCountPercent}%)</div>
-                    <div>Total Bytes:${threadTipValue.obj.applySizeFormat} (${threadTipValue.obj.applySizePercent}%)</div>
-                    <div># Total:${threadTipValue.obj.applyCount} (${threadTipValue.obj.applyCountPercent}%)</div>
-                    <div>Transient:${threadTipValue.obj.releaseSizeFormat} (${threadTipValue.obj.releaseSizePercent}%)</div>
-                    <div># Transient:${threadTipValue.obj.releaseCount} (${threadTipValue.obj.releaseCountPercent}%)</div>
+                    <div>Thread:${obj.tableName}</div>
+                    <div>Existing:${obj.existSizeFormat} (${obj.existSizePercent}%)</div>
+                    <div># Existing:${obj.existCount} (${obj.existCountPercent}%)</div>
+                    <div>Total Bytes:${obj.applySizeFormat} (${obj.applySizePercent}%)</div>
+                    <div># Total:${obj.applyCount} (${obj.applyCountPercent}%)</div>
+                    <div>Transient:${obj.releaseSizeFormat} (${obj.releaseSizePercent}%)</div>
+                    <div># Transient:${obj.releaseCount} (${obj.releaseCountPercent}%)</div>
                 </div>`;
       },
-      angleClick: (it: any): void => {
+      angleClick: (it: unknown): void => {
         // @ts-ignore
-        if (it.tid != 'other') {
+        if (it.tid !== 'other') {
+          // @ts-ignore
           this.nativeThreadLevelClickEvent(it);
         }
       },
@@ -525,25 +521,27 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.threadUsageTbl?.reMeauseHeight();
   }
 
-  private getLibraryTipValue(libraryTipValue: any): string {
+  private getLibraryTipValue(libraryTipValue: unknown): string {
+    // @ts-ignore
+    const obj = libraryTipValue.obj as AnalysisObj;
     return `<div>
-                    <div>Library:${libraryTipValue.obj.libName}</div>
-                    <div>Existing:${libraryTipValue.obj.existSizeFormat} 
-                    (${libraryTipValue.obj.existSizePercent}%)</div>
-                    <div># Existing:${libraryTipValue.obj.existCount} 
-                    (${libraryTipValue.obj.existCountPercent}%)</div>
-                    <div>Total Bytes:${libraryTipValue.obj.applySizeFormat} 
-                    (${libraryTipValue.obj.applySizePercent}%)</div>
-                    <div># Total:${libraryTipValue.obj.applyCount} 
-                    (${libraryTipValue.obj.applyCountPercent}%)</div>
-                    <div>Transient:${libraryTipValue.obj.releaseSizeFormat} 
-                    (${libraryTipValue.obj.releaseSizePercent}%)</div>
-                    <div># Transient:${libraryTipValue.obj.releaseCount} 
-                    (${libraryTipValue.obj.releaseCountPercent}%)</div>
+                    <div>Library:${obj.libName}</div>
+                    <div>Existing:${obj.existSizeFormat} 
+                    (${obj.existSizePercent}%)</div>
+                    <div># Existing:${obj.existCount} 
+                    (${obj.existCountPercent}%)</div>
+                    <div>Total Bytes:${obj.applySizeFormat} 
+                    (${obj.applySizePercent}%)</div>
+                    <div># Total:${obj.applyCount} 
+                    (${obj.applyCountPercent}%)</div>
+                    <div>Transient:${obj.releaseSizeFormat} 
+                    (${obj.releaseSizePercent}%)</div>
+                    <div># Transient:${obj.releaseCount} 
+                    (${obj.releaseCountPercent}%)</div>
                 </div>`;
   }
 
-  private libraryPieChart(item?: any): void {
+  private libraryPieChart(item?: unknown): void {
     this.nmPieChart!.config = {
       appendPadding: 0,
       data: this.getPieChartData(this.soData),
@@ -558,7 +556,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       },
       angleClick: (it): void => {
         // @ts-ignore
-        if (it.tableName != 'other') {
+        if (it.tableName !== 'other') {
           this.nativeSoLevelClickEvent(it);
         }
       },
@@ -602,20 +600,22 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         type: 'outer',
       },
       tip: (functionTipValue): string => {
+        // @ts-ignore
+        const obj = functionTipValue.obj as AnalysisObj;
         return `<div>
-                    <div>Function:${functionTipValue.obj.symbolName}</div>
-                    <div>Existing:${functionTipValue.obj.existSizeFormat} 
-                    (${functionTipValue.obj.existSizePercent}%)</div>
-                    <div># Existing:${functionTipValue.obj.existCount} 
-                    (${functionTipValue.obj.existCountPercent}%)</div>
-                    <div>Total Bytes:${functionTipValue.obj.applySizeFormat} 
-                    (${functionTipValue.obj.applySizePercent}%)</div>
-                    <div># Total:${functionTipValue.obj.applyCount} 
-                    (${functionTipValue.obj.applyCountPercent}%)</div>
-                    <div>Transient:${functionTipValue.obj.releaseSizeFormat} 
-                    (${functionTipValue.obj.releaseSizePercent}%)</div>
-                    <div># Transient:${functionTipValue.obj.releaseCount} 
-                    (${functionTipValue.obj.releaseCountPercent}%)</div>
+                    <div>Function:${obj.symbolName}</div>
+                    <div>Existing:${obj.existSizeFormat} 
+                    (${obj.existSizePercent}%)</div>
+                    <div># Existing:${obj.existCount} 
+                    (${obj.existCountPercent}%)</div>
+                    <div>Total Bytes:${obj.applySizeFormat} 
+                    (${obj.applySizePercent}%)</div>
+                    <div># Total:${obj.applyCount} 
+                    (${obj.applyCountPercent}%)</div>
+                    <div>Transient:${obj.releaseSizeFormat} 
+                    (${obj.releaseSizePercent}%)</div>
+                    <div># Transient:${obj.releaseCount} 
+                    (${obj.releaseCountPercent}%)</div>
                 </div>`;
       },
       hoverHandler: (data): void => {
@@ -640,16 +640,16 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.functionUsageTbl?.reMeauseHeight();
   }
 
-  private nativeProcessLevelClickEvent(it: any): void {
+  private nativeProcessLevelClickEvent(it: unknown): void {
     if (this.hideThreadCheckBox?.checked || this.isStatistic) {
       this.reset(this.soUsageTbl!, true);
-      this.showAssignLevel(this.soUsageTbl!, this.tableType!, 1, this.eventTypeData);
+      this.showAssignLevel(this.soUsageTbl!, this.typeUsageTbl!, 1, this.eventTypeData);
       this.getNMLibSize(it);
     } else {
       this.reset(this.threadUsageTbl!, true);
-      this.showAssignLevel(this.threadUsageTbl!, this.tableType!, 1, this.eventTypeData);
+      this.showAssignLevel(this.threadUsageTbl!, this.typeUsageTbl!, 1, this.eventTypeData);
       this.getNMThreadSize(it);
-    }
+    } // @ts-ignore
     const typeName = it.typeName === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : it.typeName;
     this.titleEl!.textContent = typeName;
     // @ts-ignore
@@ -673,7 +673,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.nmPieChart?.hideTip();
   }
 
-  private nativeSoLevelClickEvent(it: any): void {
+  private nativeSoLevelClickEvent(it: unknown): void {
     this.reset(this.functionUsageTbl!, true);
     this.showAssignLevel(this.functionUsageTbl!, this.soUsageTbl!, 3, this.eventTypeData);
     this.getNMFunctionSize(it);
@@ -682,8 +682,9 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     let title = typeName || '';
     if (!this.hideThreadCheckBox?.checked && this.threadName.length > 0) {
       title += ` / ${this.threadName}`;
-    }
+    } // @ts-ignore
     if (it.libName.length > 0) {
+      // @ts-ignore
       title += ` / ${it.libName}`;
     }
     this.titleEl!.textContent = title;
@@ -721,8 +722,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     }
   }
 
-  private getNMTypeSize(val: SelectionParam, result: any): void {
-    this.resetCurrentLevelData();
+  private getNMTypeSize(val: SelectionParam, result: unknown): void {
+    this.resetCurrentLevelData(); // @ts-ignore
     this.typeMap = this.typeSizeGroup(this.processData);
     this.currentLevelExistSize = this.currentLevelApplySize - this.currentLevelReleaseSize;
     this.currentLevelExistCount = this.currentLevelApplyCount - this.currentLevelReleaseCount;
@@ -737,19 +738,23 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     if (this.typeMap.has(TYPE_MAP)) {
       let subTypeMap = new Map<string, Array<number | string>>();
       for (let item of this.typeMap.get(TYPE_MAP)!) {
+        // @ts-ignore
         if (item.subType) {
+          // @ts-ignore
           if (subTypeMap.has(item.subType)) {
+            // @ts-ignore
             subTypeMap.get(item.subType)?.push(item);
           } else {
-            let dataArray = new Array<number | string>();
-            dataArray.push(item);
+            let dataArray: Array<number | string> = []; // @ts-ignore
+            dataArray.push(item); // @ts-ignore
             subTypeMap.set(item.subType, dataArray);
           }
         } else {
           if (subTypeMap.has(TYPE_MAP_STRING)) {
+            // @ts-ignore
             subTypeMap.get(TYPE_MAP_STRING)?.push(item);
           } else {
-            let dataArray = new Array<number | string>();
+            let dataArray: Array<number | string> = []; // @ts-ignore
             dataArray.push(item);
             subTypeMap.set(TYPE_MAP_STRING, dataArray);
           }
@@ -770,34 +775,36 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.typePieChart();
   }
 
-  private getNMThreadSize(item: any): void {
+  private getNMThreadSize(item: unknown): void {
     this.progressEL!.loading = true;
-    let threadMap = new Map<number, Array<number | string>>();
-    let types = this.getTypes(item);
+    let threadMap = new Map<number, Array<number | string>>(); // @ts-ignore
+    let types = this.getTypes(item); // @ts-ignore
     let typeName = item.typeName;
     this.resetCurrentLevelData(item);
     for (let itemData of this.processData) {
       // @ts-ignore
       if (this.shouldSkipItem(typeName, types, itemData)) {
         continue;
-      }
+      } // @ts-ignore
       if (threadMap.has(itemData.tid)) {
+        // @ts-ignore
         threadMap.get(itemData.tid)?.push(itemData);
       } else {
-        let itemArray = new Array<number | string>();
-        itemArray.push(itemData);
+        let itemArray: Array<number | string> = []; // @ts-ignore
+        itemArray.push(itemData); // @ts-ignore
         threadMap.set(itemData.tid, itemArray);
       }
     }
     this.threadData = [];
-    threadMap.forEach((dbData: Array<any>, tid: number) => {
+    threadMap.forEach((dbData: Array<unknown>, tid: number) => {
       const sizeObj = this.calSizeObj(dbData);
       let analysis = new AnalysisObj(sizeObj.applySize, sizeObj.applyCount, sizeObj.releaseSize, sizeObj.releaseCount);
-      this.calPercent(analysis);
-      analysis.typeId = item.typeId;
+      this.calPercent(analysis); // @ts-ignore
+      analysis.typeId = item.typeId; // @ts-ignore
       analysis.typeName = item.typeName;
-      analysis.tid = tid;
+      analysis.tid = tid; // @ts-ignore
       if (dbData[0].threadName && dbData[0].threadName.length > 0) {
+        // @ts-ignore
         analysis.tName = `${dbData[0].threadName}(${tid})`;
       } else {
         analysis.tName = `Thread ${tid}`;
@@ -813,12 +820,13 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.threadPieChart();
   }
 
-  private shouldSkipItem(typeName: string, types: Array<number | string>, itemData: any): boolean {
+  private shouldSkipItem(typeName: string, types: Array<number | string>, itemData: unknown): boolean {
     if (typeName === TYPE_ALLOC_STRING) {
       // @ts-ignore
       return !types.includes(itemData.type);
     } else if (typeName === TYPE_MAP_STRING) {
       if (this.isStatistic) {
+        // @ts-ignore
         if (itemData.subType) {
           // @ts-ignore
           return !types.includes(itemData.subType) || !types.includes(itemData.type);
@@ -826,6 +834,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           return true;
         }
       } else {
+        // @ts-ignore
         if (!itemData.subType) {
           // @ts-ignore
           return !types.includes(itemData.type);
@@ -834,6 +843,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         }
       }
     } else {
+      // @ts-ignore
       if (itemData.subType) {
         // @ts-ignore
         return !types.includes(itemData.subType) || !types.includes(itemData.type);
@@ -843,28 +853,31 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     }
   }
 
-  private getNMLibSize(item: any): void {
-    this.progressEL!.loading = true;
-    let typeId = item.typeId;
-    let typeName = item.typeName;
+  private getNMLibSize(item: unknown): void {
+    this.progressEL!.loading = true; // @ts-ignore
+    let typeId = item.typeId; // @ts-ignore
+    let typeName = item.typeName; // @ts-ignore
     let tid = item.tid;
     let libMap = new Map<number, Array<number | string>>();
-    this.resetCurrentLevelData(item);
+    this.resetCurrentLevelData(item); // @ts-ignore
     let types = this.getTypes(item);
     this.soData = [];
-    if (!this.processData) return;
+    if (!this.processData) {
+      return;
+    }
     for (let itemData of this.processData) {
       if (this.shouldSkipItem(typeName, types, itemData)) {
         continue;
-      }
+      } // @ts-ignore
       if (tid !== undefined && tid !== itemData.tid) {
         continue;
-      }
+      } // @ts-ignore
       let libId = itemData.libId;
       if (libMap.has(libId)) {
+        // @ts-ignore
         libMap.get(libId)?.push(itemData);
       } else {
-        let dataArray = new Array<number | string>();
+        let dataArray: Array<number | string> = []; // @ts-ignore
         dataArray.push(itemData);
         libMap.set(libId, dataArray);
       }
@@ -892,15 +905,16 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.libraryPieChart(item);
   }
 
-  private getNMFunctionSize(item: any): void {
+  private getNMFunctionSize(item: unknown): void {
     this.progressEL!.loading = true;
     this.shadowRoot!.querySelector<HTMLDivElement>('.nm-subheading')!.textContent = 'Statistic By Function Existing';
-    let typeId = item.typeId;
-    let typeName = item.typeName;
-    let tid = item.tid;
-    let libId = item.libId;
+    // @ts-ignore
+    let typeId = item.typeId; // @ts-ignore
+    let typeName = item.typeName; // @ts-ignore
+    let tid = item.tid; // @ts-ignore
+    let libId = item.libId; // @ts-ignore
     let symbolMap = new Map<number, Array<number | string>>();
-    this.resetCurrentLevelData(item);
+    this.resetCurrentLevelData(item); // @ts-ignore
     let types = this.getTypes(item);
     if (!this.processData) {
       return;
@@ -908,15 +922,16 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     for (let data of this.processData) {
       if (this.skipItemByType(typeName, types, data, libId)) {
         continue;
-      }
+      } // @ts-ignore
       if (tid !== undefined && tid !== data.tid) {
         continue;
-      }
+      } // @ts-ignore
       if (symbolMap.has(data.symbolId)) {
+        // @ts-ignore
         symbolMap.get(data.symbolId)?.push(data);
       } else {
-        let dataArray = new Array<number | string>();
-        dataArray.push(data);
+        let dataArray: Array<number | string> = []; // @ts-ignore
+        dataArray.push(data); // @ts-ignore
         symbolMap.set(data.symbolId, dataArray);
       }
     }
@@ -931,7 +946,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       analysis.typeName = typeName;
       analysis.tid = tid;
       analysis.tName = 'Thread ' + tid;
-      analysis.libId = libId;
+      analysis.libId = libId; // @ts-ignore
       analysis.libName = item.libName;
       analysis.symbolId = symbolId;
       analysis.symbolName = symbolName;
@@ -942,7 +957,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.functionPieChart();
   }
 
-  private skipItemByType(typeName: string, types: Array<string | number>, data: any, libId: number) {
+  private skipItemByType(typeName: string, types: Array<string | number>, data: unknown, libId: number): boolean {
     if (typeName === TYPE_ALLOC_STRING) {
       // @ts-ignore
       if (!types.includes(data.type) || data.libId !== libId) {
@@ -950,6 +965,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       }
     } else if (typeName === TYPE_MAP_STRING) {
       if (this.isStatistic) {
+        // @ts-ignore
         if (data.subType) {
           // @ts-ignore
           if (!types.includes(data.subType) || !types.includes(data.type) || data.libId !== libId) {
@@ -959,6 +975,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           return true;
         }
       } else {
+        // @ts-ignore
         if (!data.subType) {
           // @ts-ignore
           if (!types.includes(data.type) || data.libId !== libId) {
@@ -969,6 +986,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         }
       }
     } else {
+      // @ts-ignore
       if (data.subType) {
         // @ts-ignore
         if (!types.includes(data.subType) || !types.includes(data.type) || data.libId !== libId) {
@@ -978,6 +996,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         return true;
       }
     }
+    return false;
   }
   private baseSort(data: Array<AnalysisObj>): void {
     if (data === this.functionData) {
@@ -995,10 +1014,10 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     }
   }
 
-  private getPieChartData(res: any[]): unknown[] {
+  private getPieChartData(res: unknown[]): unknown[] {
     if (res.length > PIE_CHART_LIMIT) {
       let pieChartArr: string[] = [];
-      let other: any = {
+      let other: unknown = {
         tableName: 'other',
         tName: 'other',
         libName: 'other',
@@ -1021,32 +1040,34 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       };
       for (let i = 0; i < res.length; i++) {
         if (i < PIE_CHART_LIMIT - 1) {
+          // @ts-ignore
           pieChartArr.push(res[i]);
         } else {
-          other.existCount += res[i].existCount;
-          other.existSize += res[i].existSize;
-          other.applySize += res[i].applySize;
-          other.applyCount += res[i].applyCount;
-          other.releaseSize += res[i].releaseSize;
-          other.releaseCount += res[i].releaseCount;
-          other.existSizeFormat = Utils.getBinaryByteWithUnit(other.existSize);
-          other.applySizeFormat = Utils.getBinaryByteWithUnit(other.applySize);
-          other.releaseSizeFormat = Utils.getBinaryByteWithUnit(other.releaseSize);
-          other.existSizePercent = ((other.existSize / this.currentLevelExistSize) * 100).toFixed(2);
-          other.existCountPercent = ((other.existCount / this.currentLevelExistCount) * 100).toFixed(2);
-          other.applySizePercent = ((other.applySize / this.currentLevelApplySize) * 100).toFixed(2);
-          other.applyCountPercent = ((other.applyCount / this.currentLevelApplyCount) * 100).toFixed(2);
-          other.releaseSizePercent = ((other.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2);
+          // @ts-ignore
+          other.existCount += res[i].existCount; // @ts-ignore
+          other.existSize += res[i].existSize; // @ts-ignore
+          other.applySize += res[i].applySize; // @ts-ignore
+          other.applyCount += res[i].applyCount; // @ts-ignore
+          other.releaseSize += res[i].releaseSize; // @ts-ignore
+          other.releaseCount += res[i].releaseCount; // @ts-ignore
+          other.existSizeFormat = Utils.getBinaryByteWithUnit(other.existSize); // @ts-ignore
+          other.applySizeFormat = Utils.getBinaryByteWithUnit(other.applySize); // @ts-ignore
+          other.releaseSizeFormat = Utils.getBinaryByteWithUnit(other.releaseSize); // @ts-ignore
+          other.existSizePercent = ((other.existSize / this.currentLevelExistSize) * 100).toFixed(2); // @ts-ignore
+          other.existCountPercent = ((other.existCount / this.currentLevelExistCount) * 100).toFixed(2); // @ts-ignore
+          other.applySizePercent = ((other.applySize / this.currentLevelApplySize) * 100).toFixed(2); // @ts-ignore
+          other.applyCountPercent = ((other.applyCount / this.currentLevelApplyCount) * 100).toFixed(2); // @ts-ignore
+          other.releaseSizePercent = ((other.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2); // @ts-ignore
           other.releaseCountPercent = ((other.releaseCount / this.currentLevelReleaseCount) * 100).toFixed(2);
         }
-      }
+      } // @ts-ignore
       pieChartArr.push(other);
       return pieChartArr;
     }
     return res;
   }
 
-  private setTypeMap(typeMap: Map<number, any>, tyeId: number, typeName: string): AnalysisObj | null {
+  private setTypeMap(typeMap: Map<number, unknown>, tyeId: number, typeName: string): AnalysisObj | null {
     let applySize = 0;
     let releaseSize = 0;
     let applyCount = 0;
@@ -1056,6 +1077,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       return null;
     }
 
+    // @ts-ignore
     for (let applySample of typeMap.get(tyeId)!) {
       if (
         tyeId === TYPE_ALLOC ||
@@ -1091,13 +1113,14 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     item.existCountPercent = ((item.existCount / this.currentLevelExistCount) * 100).toFixed(2);
   }
 
-  private resetCurrentLevelData(parent?: any): void {
+  private resetCurrentLevelData(parent?: unknown): void {
     if (parent) {
-      this.currentLevelApplySize = parent.applySize;
-      this.currentLevelApplyCount = parent.applyCount;
-      this.currentLevelExistSize = parent.existSize;
-      this.currentLevelExistCount = parent.existCount;
-      this.currentLevelReleaseSize = parent.releaseSize;
+      // @ts-ignore
+      this.currentLevelApplySize = parent.applySize; // @ts-ignore
+      this.currentLevelApplyCount = parent.applyCount; // @ts-ignore
+      this.currentLevelExistSize = parent.existSize; // @ts-ignore
+      this.currentLevelExistCount = parent.existCount; // @ts-ignore
+      this.currentLevelReleaseSize = parent.releaseSize; // @ts-ignore
       this.currentLevelReleaseCount = parent.releaseCount;
     } else {
       this.currentLevelApplySize = 0;
@@ -1117,15 +1140,19 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
 
     let that = this;
 
-    function setSize(item: any): void {
-      that.currentLevelApplySize += item.size;
+    function setSize(item: unknown): void {
+      // @ts-ignore
+      that.currentLevelApplySize += item.size; // @ts-ignore
       that.currentLevelApplyCount += item.count;
       if (that.isStatistic) {
-        that.currentLevelReleaseSize += item.releaseSize;
+        // @ts-ignore
+        that.currentLevelReleaseSize += item.releaseSize; // @ts-ignore
         that.currentLevelReleaseCount += item.releaseCount;
       } else {
+        // @ts-ignore
         if (item.isRelease) {
-          that.currentLevelReleaseSize += item.size;
+          // @ts-ignore
+          that.currentLevelReleaseSize += item.size; // @ts-ignore
           that.currentLevelReleaseCount += item.count;
         }
       }
@@ -1139,7 +1166,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           if (typeMap.has(TYPE_ALLOC)) {
             typeMap.get(TYPE_ALLOC)?.push(itemData);
           } else {
-            let itemArray = new Array<number | string>();
+            let itemArray: Array<number | string> = [];
             itemArray.push(itemData);
             typeMap.set(TYPE_ALLOC, itemArray);
           }
@@ -1149,7 +1176,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           if (typeMap.has(TYPE_MAP)) {
             typeMap.get(TYPE_MAP)?.push(itemData);
           } else {
-            let itemArray = new Array<number | string>();
+            let itemArray: Array<number | string> = [];
             itemArray.push(itemData);
             typeMap.set(TYPE_MAP, itemArray);
           }
@@ -1159,20 +1186,22 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     return typeMap;
   }
 
-  private calSizeObj(dbData: Array<any>): SizeObj {
+  private calSizeObj(dbData: Array<unknown>): SizeObj {
     let sizeObj = new SizeObj();
     for (let item of dbData) {
       if (this.isStatistic) {
-        sizeObj.applyCount += item.count;
-        sizeObj.applySize += item.size;
-        sizeObj.releaseCount += item.releaseCount;
+        // @ts-ignore
+        sizeObj.applyCount += item.count; // @ts-ignore
+        sizeObj.applySize += item.size; // @ts-ignore
+        sizeObj.releaseCount += item.releaseCount; // @ts-ignore
         sizeObj.releaseSize += item.releaseSize;
       } else {
         // @ts-ignore
-        sizeObj.applyCount += item.count;
-        sizeObj.applySize += item.size;
+        sizeObj.applyCount += item.count; // @ts-ignore
+        sizeObj.applySize += item.size; // @ts-ignore
         if (item.isRelease) {
-          sizeObj.releaseCount += item.count;
+          // @ts-ignore
+          sizeObj.releaseCount += item.count; // @ts-ignore
           sizeObj.releaseSize += item.size;
         }
       }
@@ -1181,7 +1210,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   }
 
   private getTypes(parent: AnalysisObj): Array<number | string> {
-    let types = new Array<number | string>();
+    let types: Array<number | string> = [];
     types.push(parent.typeId!);
     types.push(parent.typeName!);
     if (!this.isStatistic) {
@@ -1223,7 +1252,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     let nmCurrentTable: LitTable | null | undefined;
     switch (this.currentLevel) {
       case 0:
-        nmCurrentTable = this.tableType;
+        nmCurrentTable = this.typeUsageTbl;
         break;
       case 1:
         nmCurrentTable = this.threadUsageTbl;
@@ -1238,7 +1267,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     return nmCurrentTable;
   }
 
-  private getSortedColumnZeroArr(data: any[]): any[] {
+  private getSortedColumnZeroArr(data: unknown[]): unknown[] {
     let sortColumnZeroArr = [...data];
     switch (this.currentLevel) {
       case 0:
@@ -1257,7 +1286,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     return sortColumnZeroArr;
   }
 
-  private updateSortColumnArr(sortColumnArr: any[]): any[] {
+  private updateSortColumnArr(sortColumnArr: unknown[]): unknown[] {
     switch (this.currentLevel) {
       case 0:
         sortColumnArr.unshift(this.typeStatisticsData);
@@ -1298,50 +1327,50 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     }
   }
 
-  private sortDataByExistSize(sortType: number, sortColumnArr: Array<any>): any[] {
+  private sortDataByExistSize(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1
-        ? statisticAnalysisLeftData.existSize - statisticAnalysisRightData.existSize
+      return sortType === 1 // @ts-ignore
+        ? statisticAnalysisLeftData.existSize - statisticAnalysisRightData.existSize // @ts-ignore
         : statisticAnalysisRightData.existSize - statisticAnalysisLeftData.existSize;
     });
   }
 
-  private sortDataByExistCount(sortType: number, sortColumnArr: Array<any>): any[] {
+  private sortDataByExistCount(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1
-        ? statisticAnalysisLeftData.existCount - statisticAnalysisRightData.existCount
+      return sortType === 1 // @ts-ignore
+        ? statisticAnalysisLeftData.existCount - statisticAnalysisRightData.existCount // @ts-ignore
         : statisticAnalysisRightData.existCount - statisticAnalysisLeftData.existCount;
     });
   }
 
-  private sortDataByReleaseSize(sortType: number, sortColumnArr: Array<any>): any[] {
+  private sortDataByReleaseSize(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1
-        ? statisticAnalysisLeftData.releaseSize - statisticAnalysisRightData.releaseSize
+      return sortType === 1 // @ts-ignore
+        ? statisticAnalysisLeftData.releaseSize - statisticAnalysisRightData.releaseSize // @ts-ignore
         : statisticAnalysisRightData.releaseSize - statisticAnalysisLeftData.releaseSize;
     });
   }
 
-  private sortDataByReleaseCount(sortType: number, sortColumnArr: Array<any>): any[] {
+  private sortDataByReleaseCount(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1
-        ? statisticAnalysisLeftData.releaseCount - statisticAnalysisRightData.releaseCount
+      return sortType === 1 // @ts-ignore
+        ? statisticAnalysisLeftData.releaseCount - statisticAnalysisRightData.releaseCount // @ts-ignore
         : statisticAnalysisRightData.releaseCount - statisticAnalysisLeftData.releaseCount;
     });
   }
 
-  private sortDataByApplySize(sortType: number, sortColumnArr: Array<any>): any[] {
+  private sortDataByApplySize(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1
-        ? statisticAnalysisLeftData.applySize - statisticAnalysisRightData.applySize
+      return sortType === 1 // @ts-ignore
+        ? statisticAnalysisLeftData.applySize - statisticAnalysisRightData.applySize // @ts-ignore
         : statisticAnalysisRightData.applySize - statisticAnalysisLeftData.applySize;
     });
   }
 
-  private sortDataByApplyCount(sortType: number, sortColumnArr: Array<any>): any[] {
+  private sortDataByApplyCount(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1
-        ? statisticAnalysisLeftData.applyCount - statisticAnalysisRightData.applyCount
+      return sortType === 1 // @ts-ignore
+        ? statisticAnalysisLeftData.applyCount - statisticAnalysisRightData.applyCount // @ts-ignore
         : statisticAnalysisRightData.applyCount - statisticAnalysisLeftData.applyCount;
     });
   }
@@ -1357,6 +1386,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       let sortColumnArr = [...this.currentLevelData];
       switch (this.nmSortColumn) {
         case 'tableName':
+          // @ts-ignore
           nmCurrentTable!.recycleDataSource = sortColumnArr.sort(this.caseTableName);
           break;
         case 'existSizeFormat':
@@ -1389,26 +1419,26 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     }
   }
 
+  resizeTable(): void {
+    this.resize(this.typeUsageTbl);
+    this.resize(this.threadUsageTbl);
+    this.resize(this.soUsageTbl);
+    this.resize(this.functionUsageTbl);
+  }
+
+  resize(table?: LitTable | null): void {
+    if (table) {
+      // @ts-ignore
+      table.shadowRoot.querySelector('.table').style.height = `${this.parentElement.clientHeight - 65}px`;
+      table.reMeauseHeight();
+    }
+  }
+
   public connectedCallback(): void {
     new ResizeObserver(() => {
+      this.resizeTable();
       // @ts-ignore
-      if (this.parentElement?.clientHeight != 0) {
-        if (this.tableType) {
-          // @ts-ignore
-          this.tableType.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 40 + 'px';
-        }
-        this.tableType?.reMeauseHeight();
-        if (this.soUsageTbl) {
-          // @ts-ignore
-          this.soUsageTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 40 + 'px';
-        }
-        if (this.functionUsageTbl) {
-          // @ts-ignore
-          this.functionUsageTbl.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 40 + 'px';
-        }
-        this.soUsageTbl?.reMeauseHeight();
-        this.functionUsageTbl?.reMeauseHeight();
+      if (this.parentElement?.clientHeight !== 0) {
         if ((this.parentElement!.clientHeight >= 0 && this.parentElement!.clientHeight <= 31) || this.isStatistic) {
           this.filterEl!.style.display = 'none';
           this.nmPieChart!.style.marginBottom = '0px';

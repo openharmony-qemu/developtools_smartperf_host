@@ -12,10 +12,11 @@
 // limitations under the License.
 
 import { TraficEnum } from './utils/QueryEnum';
-import {filterDataByGroup} from "./utils/DataFilter";
-import {lrqList} from "./utils/AllMemoryCache";
+import { filterDataByGroup } from './utils/DataFilter';
+import { lrqList } from './utils/AllMemoryCache';
+import { Args } from './CommonArgs';
 
-export const chartIrqDataSql = (args: any): string => {
+export const chartIrqDataSql = (args: Args): string => {
   if (args.name === 'irq') {
     return `
         select i.ts - ${
@@ -53,7 +54,7 @@ export const chartIrqDataSql = (args: any): string => {
   }
 };
 
-export const chartIrqDataSqlMem = (args: any): string => {
+export const chartIrqDataSqlMem = (args: Args): string => {
   if (args.name === 'irq') {
     return `
         select i.ts - t.start_ts as startNs,i.dur,
@@ -72,41 +73,63 @@ trace_range t where i.callid = ${args.cpu} and i.cat = 'softirq'
   }
 };
 
-export function irqDataReceiver(data: any, proc: Function): void {
+export function irqDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: any[], list: any[];
+    let res: unknown[];
+    let list: unknown[];
+    // @ts-ignore
     if (!lrqList.has(data.params.cpu + data.params.name)) {
+      // @ts-ignore
       list = proc(chartIrqDataSqlMem(data.params));
+      // @ts-ignore
       lrqList.set(data.params.cpu + data.params.name, list);
     } else {
+      // @ts-ignore
       list = lrqList.get(data.params.cpu + data.params.name) || [];
     }
+    // @ts-ignore
     res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width);
-    arrayBufferHandler(data, res,true);
+    arrayBufferHandler(data, res, true);
   } else {
+    // @ts-ignore
     let sql = chartIrqDataSql(data.params);
     let res = proc(sql);
-    arrayBufferHandler(data, res,data.params.trafic !== TraficEnum.SharedArrayBuffer);
+    // @ts-ignore
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
+  // @ts-ignore
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
+  // @ts-ignore
   let depth = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
+  // @ts-ignore
   let argSetId = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.argSetId);
+  // @ts-ignore
   let id = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   res.forEach((it, i) => {
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.irqData);
+    // @ts-ignore
     startNS[i] = it.startNs;
+    // @ts-ignore
     dur[i] = it.dur;
+    // @ts-ignore
     depth[i] = it.depth;
+    // @ts-ignore
     argSetId[i] = it.argSetId;
+    // @ts-ignore
     id[i] = it.id;
   });
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {

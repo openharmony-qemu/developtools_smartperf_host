@@ -45,9 +45,8 @@ export class SpProbesConfig extends BaseElement {
     return this.hasAttribute('startSamp');
   }
 
-  get traceConfig() {
-    let selectedTrace = this._traceConfig?.
-      querySelectorAll<SpCheckDesBox>('check-des-box[checked]') || [];
+  get traceConfig(): string[] {
+    let selectedTrace = this._traceConfig?.querySelectorAll<SpCheckDesBox>('check-des-box[checked]') || [];
     let values = [];
     for (const litCheckBoxElement of selectedTrace) {
       values.push(litCheckBoxElement.value);
@@ -66,7 +65,7 @@ export class SpProbesConfig extends BaseElement {
     return 20480;
   }
 
-  get memoryConfig() {
+  get memoryConfig(): string[] {
     let values = [];
     let selectedMemory = this._memoryConfig?.querySelectorAll<SpCheckDesBox>(
       'check-des-box[checked]'
@@ -85,7 +84,7 @@ export class SpProbesConfig extends BaseElement {
     return selectedMemory.length > 0;
   }
 
-  get traceEvents() {
+  get traceEvents(): string[] {
     let values = [];
     if (this.hitrace && this.hitrace.checked) {
       let parent = this.shadowRoot?.querySelector('.user-events') as Element;
@@ -98,7 +97,7 @@ export class SpProbesConfig extends BaseElement {
     return values;
   }
 
-  get hilogConfig() {
+  get hilogConfig(): string[] {
     let logLevel = this.shadowRoot?.getElementById('logLevel') as LitCheckBox;
     if (logLevel.checked) {
       let logRadio = this.shadowRoot?.getElementById('log-radio') as LitRadioGroup;
@@ -153,10 +152,12 @@ export class SpProbesConfig extends BaseElement {
   private initHiTraceConfigList(): void {
     this.hitrace = this.shadowRoot?.getElementById('hitrace') as SpCheckDesBox;
     let parent = this.shadowRoot?.querySelector('.user-events') as Element;
-    hiTraceConfigList.forEach((hitraceConfig: any) => {
+    hiTraceConfigList.forEach((hitraceConfig: unknown) => {
       let litCheckBox = new LitCheckBox();
       litCheckBox.setAttribute('name', 'userEvents');
+      //@ts-ignore
       litCheckBox.value = hitraceConfig.value;
+      //@ts-ignore
       litCheckBox.checked = hitraceConfig.isSelect;
       litCheckBox.addEventListener('change', (ev: CustomEventInit<LitCheckBoxChangeEvent>) => {
         let detail = ev.detail;
@@ -183,8 +184,10 @@ export class SpProbesConfig extends BaseElement {
 
   initElements(): void {
     this.ftraceBuffSizeResultInput = this.shadowRoot?.querySelector('.ftrace-buff-size-result') as HTMLInputElement;
-    this.ftraceBuffSizeResultInput!.addEventListener('keydown', (ev: any) => {
+    this.ftraceBuffSizeResultInput!.addEventListener('keydown', (ev: unknown) => {
+      //@ts-ignore
       if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
+        //@ts-ignore
         ev.preventDefault();
       }
     });
@@ -195,7 +198,8 @@ export class SpProbesConfig extends BaseElement {
     this.bufferSizeSliderInit();
     let litSwitch = this.shadowRoot?.querySelector('lit-switch') as LitSwitch;
     this.ftraceSlider = this.shadowRoot?.querySelector<LitSlider>('#ftrace-buff-size-slider');
-    litSwitch.addEventListener('change', (event: any) => {
+    litSwitch.addEventListener('change', (event: unknown) => {
+      //@ts-ignore
       let detail = event.detail;
       if (detail!.checked) {
         this.unDisable();
@@ -291,14 +295,10 @@ export class SpProbesConfig extends BaseElement {
     this.startSamp = true;
     let checkDesBoxDis = this.shadowRoot?.querySelectorAll<SpCheckDesBox>('check-des-box');
     let litCheckBoxDis = this.shadowRoot?.querySelectorAll<LitCheckBox>('lit-check-box');
-    let defaultSelected: any = [];
-    defaultSelected = defaultSelected.concat(
-      traceConfigList,
-      memoryConfigList,
-      abilityConfigList,
-      hiTraceConfigList
-    );
-    this.shadowRoot?.querySelector<SpCheckDesBox>('[value=\'Hitrace categories\']')?.setAttribute('checked', 'true');
+    let defaultSelected: unknown = [];
+    //@ts-ignore
+    defaultSelected = defaultSelected.concat(traceConfigList, memoryConfigList, abilityConfigList, hiTraceConfigList);
+    this.shadowRoot?.querySelector<SpCheckDesBox>("[value='Hitrace categories']")?.setAttribute('checked', 'true');
     this.ftraceSlider!.removeAttribute('disabled');
     checkDesBoxDis?.forEach((item: SpCheckDesBox) => {
       item.removeAttribute('disabled');
@@ -306,10 +306,12 @@ export class SpProbesConfig extends BaseElement {
     litCheckBoxDis?.forEach((item: LitCheckBox) => {
       item.removeAttribute('disabled');
     });
-    defaultSelected.filter((item: any) => {
+    //@ts-ignore
+    defaultSelected.filter((item: unknown) => {
+      //@ts-ignore
       if (item.isSelect) {
-        this.shadowRoot?.querySelector<SpCheckDesBox>(`[value='${item.value}']`)?.
-          setAttribute('checked', 'true');
+        //@ts-ignore
+        this.shadowRoot?.querySelector<SpCheckDesBox>(`[value='${item.value}']`)?.setAttribute('checked', 'true');
       }
     });
   }
@@ -351,73 +353,73 @@ export class SpProbesConfig extends BaseElement {
 }
 
 const hiTraceConfigList = [
-  {value: 'ability', isSelect: true},
-  {value: 'accesscontrol', isSelect: false},
-  {value: 'accessibility', isSelect: false},
-  {value: 'account', isSelect: false},
-  {value: 'ace', isSelect: true},
-  {value: 'app', isSelect: true},
-  {value: 'ark', isSelect: true},
-  {value: 'binder', isSelect: true},
-  {value: 'bluetooth', isSelect: false},
-  {value: 'cloud', isSelect: false},
-  {value: 'commonlibrary', isSelect: false},
-  {value: 'daudio', isSelect: false},
-  {value: 'dcamera', isSelect: false},
-  {value: 'deviceauth', isSelect: false},
-  {value: 'devicemanager', isSelect: false},
-  {value: 'deviceprofile', isSelect: false},
-  {value: 'dhfwk', isSelect: false},
-  {value: 'dinput', isSelect: false},
-  {value: 'disk', isSelect: true},
-  {value: 'distributeddatamgr', isSelect: false},
-  {value: 'dlpcre', isSelect: false},
-  {value: 'dsched', isSelect: false},
-  {value: 'dscreen', isSelect: false},
-  {value: 'dslm', isSelect: false},
-  {value: 'dsoftbus', isSelect: false},
-  {value: 'ffrt', isSelect: false},
-  {value: 'filemanagement', isSelect: false},
-  {value: 'freq', isSelect: true},
-  {value: 'graphic', isSelect: true},
-  {value: 'gresource', isSelect: false},
-  {value: 'hdcd', isSelect: false},
-  {value: 'hdf', isSelect: false},
-  {value: 'huks', isSelect: false},
-  {value: 'i2c', isSelect: false},
-  {value: 'idle', isSelect: true},
-  {value: 'interconn', isSelect: false},
-  {value: 'irq', isSelect: true},
-  {value: 'mdfs', isSelect: false},
-  {value: 'memory', isSelect: false},
-  {value: 'memreclaim', isSelect: true},
-  {value: 'misc', isSelect: false},
-  {value: 'mmc', isSelect: true},
-  {value: 'msdp', isSelect: false},
-  {value: 'multimodalinput', isSelect: true},
-  {value: 'musl', isSelect: false},
-  {value: 'net', isSelect: false},
-  {value: 'notification', isSelect: false},
-  {value: 'nweb', isSelect: false},
-  {value: 'ohos', isSelect: true},
-  {value: 'pagecache', isSelect: true},
-  {value: 'power', isSelect: false},
-  {value: 'regulators', isSelect: false},
-  {value: 'rpc', isSelect: true},
-  {value: 'samgr', isSelect: false},
-  {value: 'sched', isSelect: true},
-  {value: 'sensors', isSelect: false},
-  {value: 'sync', isSelect: true},
-  {value: 'usb', isSelect: false},
-  {value: 'ufs', isSelect: false},
-  {value: 'useriam', isSelect: false},
-  {value: 'virse', isSelect: false},
-  {value: 'window', isSelect: true},
-  {value: 'workq', isSelect: true},
-  {value: 'zaudio', isSelect: true},
-  {value: 'zcamera', isSelect: true},
-  {value: 'zimage', isSelect: true},
-  {value: 'zmedia', isSelect: true},
+  { value: 'ability', isSelect: true },
+  { value: 'accesscontrol', isSelect: false },
+  { value: 'accessibility', isSelect: false },
+  { value: 'account', isSelect: false },
+  { value: 'ace', isSelect: true },
+  { value: 'app', isSelect: true },
+  { value: 'ark', isSelect: true },
+  { value: 'binder', isSelect: true },
+  { value: 'bluetooth', isSelect: false },
+  { value: 'cloud', isSelect: false },
+  { value: 'commonlibrary', isSelect: false },
+  { value: 'daudio', isSelect: false },
+  { value: 'dcamera', isSelect: false },
+  { value: 'deviceauth', isSelect: false },
+  { value: 'devicemanager', isSelect: false },
+  { value: 'deviceprofile', isSelect: false },
+  { value: 'dhfwk', isSelect: false },
+  { value: 'dinput', isSelect: false },
+  { value: 'disk', isSelect: true },
+  { value: 'distributeddatamgr', isSelect: false },
+  { value: 'dlpcre', isSelect: false },
+  { value: 'dsched', isSelect: false },
+  { value: 'dscreen', isSelect: false },
+  { value: 'dslm', isSelect: false },
+  { value: 'dsoftbus', isSelect: false },
+  { value: 'ffrt', isSelect: false },
+  { value: 'filemanagement', isSelect: false },
+  { value: 'freq', isSelect: true },
+  { value: 'graphic', isSelect: true },
+  { value: 'gresource', isSelect: false },
+  { value: 'hdcd', isSelect: false },
+  { value: 'hdf', isSelect: false },
+  { value: 'huks', isSelect: false },
+  { value: 'i2c', isSelect: false },
+  { value: 'idle', isSelect: true },
+  { value: 'interconn', isSelect: false },
+  { value: 'irq', isSelect: true },
+  { value: 'mdfs', isSelect: false },
+  { value: 'memory', isSelect: false },
+  { value: 'memreclaim', isSelect: true },
+  { value: 'misc', isSelect: false },
+  { value: 'mmc', isSelect: true },
+  { value: 'msdp', isSelect: false },
+  { value: 'multimodalinput', isSelect: true },
+  { value: 'musl', isSelect: false },
+  { value: 'net', isSelect: false },
+  { value: 'notification', isSelect: false },
+  { value: 'nweb', isSelect: false },
+  { value: 'ohos', isSelect: true },
+  { value: 'pagecache', isSelect: true },
+  { value: 'power', isSelect: false },
+  { value: 'regulators', isSelect: false },
+  { value: 'rpc', isSelect: true },
+  { value: 'samgr', isSelect: false },
+  { value: 'sched', isSelect: true },
+  { value: 'sensors', isSelect: false },
+  { value: 'sync', isSelect: true },
+  { value: 'usb', isSelect: false },
+  { value: 'ufs', isSelect: false },
+  { value: 'useriam', isSelect: false },
+  { value: 'virse', isSelect: false },
+  { value: 'window', isSelect: true },
+  { value: 'workq', isSelect: true },
+  { value: 'zaudio', isSelect: true },
+  { value: 'zcamera', isSelect: true },
+  { value: 'zimage', isSelect: true },
+  { value: 'zmedia', isSelect: true },
 ];
 
 const traceConfigList = [

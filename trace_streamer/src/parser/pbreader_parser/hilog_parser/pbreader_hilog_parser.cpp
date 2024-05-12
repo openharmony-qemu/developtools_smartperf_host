@@ -20,7 +20,7 @@
 #include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderHiLogParser::PbreaderHiLogParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderHiLogParser::PbreaderHiLogParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
 }
@@ -30,7 +30,7 @@ PbreaderHiLogParser::~PbreaderHiLogParser()
     TS_LOGI("hilog ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
             static_cast<unsigned long long>(GetPluginEndTime()));
 }
-void PbreaderHiLogParser::Parse(ProtoReader::BytesView tracePacket, bool& haveSplitSeg)
+void PbreaderHiLogParser::Parse(ProtoReader::BytesView tracePacket, bool &haveSplitSeg)
 {
     ProtoReader::HilogInfo_Reader hilogInfo(tracePacket.data_, tracePacket.size_);
     if (!hilogInfo.has_info()) {

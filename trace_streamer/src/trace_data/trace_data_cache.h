@@ -27,8 +27,8 @@ using namespace TraceStdtype;
 class TraceDataCache : public TraceDataCacheReader, public TraceDataCacheWriter, public TraceDataDB {
 public:
     TraceDataCache();
-    TraceDataCache(const TraceDataCache* dataCache) = delete;
-    TraceDataCache* operator=(const TraceDataCache* dataCache) = delete;
+    TraceDataCache(const TraceDataCache *dataCache) = delete;
+    TraceDataCache *operator=(const TraceDataCache *dataCache) = delete;
     ~TraceDataCache() override;
 
     bool AnimationTraceEnabled() const;
@@ -45,27 +45,27 @@ public:
     uint64_t SplitFileMinTime();
     void SetSplitFileMaxTime(uint64_t maxTs);
     void SetSplitFileMinTime(uint64_t minTs);
-    std::deque<std::unique_ptr<std::string>>& HookCommProtos();
+    std::deque<std::unique_ptr<std::string>> &HookCommProtos();
     void ClearHookCommProtos();
-    int32_t ExportPerfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    int32_t ExportHookReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    int32_t ExportEbpfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    int32_t ExportPerfReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    int32_t ExportHookReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    int32_t ExportEbpfReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     void ClearAllExportedCacheData();
     void UpdateAllReadySize();
 
 private:
     void InitDB();
-    void ExportPerfCallChaninText(uint32_t callChainId, std::string& bufferLine);
-    void ExportHookCallChaninText(uint32_t callChainId, std::string& bufferLine);
-    bool ExportHookDataReadableText(int32_t fd, std::string& bufferLine);
-    bool ExportHookStatisticReadableText(int32_t fd, std::string& bufferLine);
+    void ExportPerfCallChaninText(uint32_t callChainId, std::string &bufferLine);
+    void ExportHookCallChaninText(uint32_t callChainId, std::string &bufferLine);
+    bool ExportHookDataReadableText(int32_t fd, std::string &bufferLine);
+    bool ExportHookStatisticReadableText(int32_t fd, std::string &bufferLine);
     using EbpfEventTypeMap = std::map<uint32_t /* type */, std::string_view /* name */>;
     bool ExportEbpfFileSystemReadableText(int32_t fd,
-                                          std::string& bufferLine,
-                                          const EbpfEventTypeMap& ebpfEventTypeMap);
-    bool ExportEbpfPagedMemReadableText(int32_t fd, std::string& bufferLine, const EbpfEventTypeMap& ebpfEventTypeMap);
-    bool ExportEbpfBIOReadableText(int32_t fd, std::string& bufferLine, const EbpfEventTypeMap& ebpfEventTypeMap);
-    void ExportEbpfCallChaninText(uint32_t callChainId, std::string& bufferLine);
+                                          std::string &bufferLine,
+                                          const EbpfEventTypeMap &ebpfEventTypeMap);
+    bool ExportEbpfPagedMemReadableText(int32_t fd, std::string &bufferLine, const EbpfEventTypeMap &ebpfEventTypeMap);
+    bool ExportEbpfBIOReadableText(int32_t fd, std::string &bufferLine, const EbpfEventTypeMap &ebpfEventTypeMap);
+    void ExportEbpfCallChaninText(uint32_t callChainId, std::string &bufferLine);
     void InitBaseDB();
     void InitEbpfDB();
     void InitNativeMemoryDB();
@@ -76,9 +76,9 @@ private:
     void InitRenderServiceDB();
     void InitMemoryDB();
     void InitHisysEventDB();
-    void ExportPerfSampleToFile(std::string& perfBufferLine,
+    void ExportPerfSampleToFile(std::string &perfBufferLine,
                                 int32_t perfFd,
-                                const std::string& outputName,
+                                const std::string &outputName,
                                 uint64_t row);
 
 private:

@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, APP_NAME, APP_KEY };
-SysEventSubkeyTable::SysEventSubkeyTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+SysEventSubkeyTable::SysEventSubkeyTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("app_name", "INTEGER"));
@@ -33,7 +33,7 @@ std::unique_ptr<TableBase::Cursor> SysEventSubkeyTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-SysEventSubkeyTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+SysEventSubkeyTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstHiSysEventSubkeysData().Size())),
       sysEventSubkeys_(dataCache->GetConstHiSysEventSubkeysData())
 {

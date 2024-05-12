@@ -18,7 +18,7 @@ import { threadPool } from '../SqlLite';
 import { JsCpuProfilerStruct } from '../ui-worker/ProcedureWorkerCpuProfiler';
 import { CHART_OFFSET_LEFT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 
-export function cpuProfilerDataSender(row: TraceRow<JsCpuProfilerStruct>) {
+export function cpuProfilerDataSender(row: TraceRow<JsCpuProfilerStruct>): Promise<unknown> {
   let trafic: number = TraficEnum.ProtoBuffer;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   return new Promise((resolve, reject) => {
@@ -32,25 +32,42 @@ export function cpuProfilerDataSender(row: TraceRow<JsCpuProfilerStruct>) {
         width: width,
         trafic: trafic,
       },
-      (res: any, len: number): void => {
+      (res: unknown, len: number): void => {
         resolve(arrayBufferHandler(res, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(res: any, len: number) {
-  let outArr: any[] = [];
+function arrayBufferHandler(
+  res: unknown,
+  len: number
+): {
+  maxDepth: unknown;
+  dataList: unknown[];
+} {
+  let outArr: unknown[] = [];
+  // @ts-ignore
   let column = new Int32Array(res.column);
+  // @ts-ignore
   let depth = new Int32Array(res.depth);
+  // @ts-ignore
   let endTime = new Float64Array(res.endTime);
+  // @ts-ignore
   let id = new Int32Array(res.id);
+  // @ts-ignore
   let line = new Int32Array(res.line);
+  // @ts-ignore
   let nameId = new Int32Array(res.nameId);
+  // @ts-ignore
   let parentId = new Int32Array(res.parentId);
+  // @ts-ignore
   let selfTime = new Float64Array(res.selfTime);
+  // @ts-ignore
   let startTime = new Float64Array(res.startTime);
+  // @ts-ignore
   let totalTime = new Float64Array(res.totalTime);
+  // @ts-ignore
   let urlId = new Int32Array(res.urlId);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -61,15 +78,18 @@ function arrayBufferHandler(res: any, len: number) {
       line: line[i],
       nameId: nameId[i],
       parentId: parentId[i],
+      // @ts-ignore
       samplesIds: res.samplesIds[i],
       selfTime: selfTime[i],
       startTime: startTime[i],
       totalTime: totalTime[i],
       urlId: urlId[i],
+      // @ts-ignore
       childrenIds: res.childrenIds[i],
-    } as any);
+    } as unknown);
   }
   return {
+    // @ts-ignore
     maxDepth: res.maxDepth,
     dataList: outArr,
   };

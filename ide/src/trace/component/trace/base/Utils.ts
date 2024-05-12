@@ -15,15 +15,43 @@
 
 import { SelectionParam } from '../../../bean/BoxSelection';
 import { procedurePool } from '../../../database/Procedure';
-import {queryNativeHookResponseTypes} from "../../../database/sql/NativeHook.sql";
+import { queryNativeHookResponseTypes } from '../../../database/sql/NativeHook.sql';
+import { TraceMode } from '../../../SpApplicationPublicFunc';
 
 export class Utils {
-  static isTransformed : boolean = false;
+  static isTransformed: boolean = false;
+  static currentSelectTrace: string | null | undefined;
+  static currentTraceMode: TraceMode = TraceMode.NORMAL;
+  static distributedTrace: string[] = [];
   private static statusMap: Map<string, string> = new Map<string, string>();
   private static instance: Utils | null = null;
-  static THREAD_MAP: Map<number, string> = new Map<number, string>();
-  static PROCESS_MAP: Map<number, string> = new Map<number, string>();
-  static SCHED_SLICE_MAP: Map<
+  private trace1CpuCount: number = 1;
+  private trace1WinCpuCount: number = 1;
+  private trace2CpuCount: number = 1;
+  private trace2WinCpuCount: number = 1;
+  trace1RecordStartNS: number = 1;
+  trace2RecordStartNS: number = 1;
+  trace1RecordEndNS: number = 1;
+  trace2RecordEndNS: number = 1;
+  totalNS: number = 1;
+  private trace1ThreadMap: Map<number, string> = new Map<number, string>();
+  private trace1ProcessMap: Map<number, string> = new Map<number, string>();
+  private trace1SchedSliceMap: Map<
+    string,
+    {
+      endState: string;
+      priority: number;
+    }
+  > = new Map<
+    string,
+    {
+      endState: string;
+      priority: number;
+    }
+  >();
+  private trace2ThreadMap: Map<number, string> = new Map<number, string>();
+  private trace2ProcessMap: Map<number, string> = new Map<number, string>();
+  private trace2SchedSliceMap: Map<
     string,
     {
       endState: string;
@@ -58,6 +86,105 @@ export class Utils {
     Utils.statusMap.set('N', 'No Load');
   }
 
+  public getProcessMap(traceId? : string | null): Map<number, string> {
+    if (traceId) {
+      return (traceId === '2' ? this.trace2ProcessMap : this.trace1ProcessMap);
+    } else {
+      return (Utils.currentSelectTrace === '2' ? this.trace2ProcessMap : this.trace1ProcessMap);
+    }
+  }
+
+  public getThreadMap(traceId? : string | null): Map<number, string> {
+    if (traceId) {
+      return (traceId === '2' ? this.trace2ThreadMap : this.trace1ThreadMap);
+    } else {
+      return (Utils.currentSelectTrace === '2' ? this.trace2ThreadMap : this.trace1ThreadMap);
+    }
+  }
+
+  public getSchedSliceMap(traceId? : string | null): Map<string, {
+    endState: string;
+    priority: number;
+  }> {
+    if (traceId) {
+      return (traceId === '2' ? this.trace2SchedSliceMap : this.trace1SchedSliceMap);
+    } else {
+      return (Utils.currentSelectTrace === '2' ? this.trace2SchedSliceMap : this.trace1SchedSliceMap);
+    }
+  }
+
+  public getCpuCount(traceId?: string | null): number {
+    if (traceId) {
+      return (traceId === '2' ? this.trace2CpuCount : this.trace1CpuCount);
+    } else {
+      return (Utils.currentSelectTrace === '2' ? this.trace2CpuCount : this.trace1CpuCount);
+    }
+  }
+
+  public setCpuCount(count: number, traceId?: string | null): void {
+    if (traceId) {
+      if (traceId === '2') {
+        this.trace2CpuCount = count;
+      } else {
+        this.trace1CpuCount = count;
+      }
+    } else {
+      if (Utils.currentSelectTrace === '2') {
+        this.trace2CpuCount = count;
+      } else {
+        this.trace1CpuCount = count;
+      }
+    }
+  }
+
+  public getWinCpuCount(traceId?: string | null): number {
+    if (traceId) {
+      return (traceId === '2' ? this.trace2WinCpuCount : this.trace1WinCpuCount);
+    } else {
+      return (Utils.currentSelectTrace === '2' ? this.trace2WinCpuCount : this.trace1WinCpuCount);
+    }
+  }
+
+  public setWinCpuCount(count: number, traceId?: string | null): void {
+    if (traceId) {
+      if (traceId === '2') {
+        this.trace2WinCpuCount = count;
+      } else {
+        this.trace1WinCpuCount = count;
+      }
+    } else {
+      if (Utils.currentSelectTrace === '2') {
+        this.trace2WinCpuCount = count;
+      } else {
+        this.trace1WinCpuCount = count;
+      }
+    }
+  }
+
+  public getRecordStartNS(traceId?: string | null): number {
+    if (traceId) {
+      return (traceId === '2' ? this.trace2RecordStartNS : this.trace1RecordStartNS);
+    } else {
+      return (Utils.currentSelectTrace === '2' ? this.trace2RecordStartNS : this.trace1RecordStartNS);
+    }
+  }
+
+  public getRecordEndNS(traceId?: string | null): number {
+    if (traceId) {
+      return (traceId === '2' ? this.trace2RecordEndNS : this.trace1RecordEndNS);
+    } else {
+      return (Utils.currentSelectTrace === '2' ? this.trace2RecordEndNS : this.trace1RecordEndNS);
+    }
+  }
+
+  public getTotalNS(traceId?: string | null): number {
+    return this.totalNS;
+  }
+
+  public static isDistributedMode() : boolean {
+    return Utils.currentTraceMode === TraceMode.DISTRIBUTED;
+  }
+
   public static getInstance(): Utils {
     if (Utils.instance === null) {
       Utils.instance = new Utils();
@@ -65,10 +192,26 @@ export class Utils {
     return Utils.instance;
   }
 
-  public static clearData() {
-    Utils.THREAD_MAP.clear();
-    Utils.PROCESS_MAP.clear();
-    Utils.SCHED_SLICE_MAP.clear();
+  public clearCache(): void {
+    this.trace1ProcessMap.clear();
+    this.trace2ProcessMap.clear();
+    this.trace1ThreadMap.clear();
+    this.trace2ThreadMap.clear();
+    this.trace1SchedSliceMap.clear();
+    this.trace2SchedSliceMap.clear();
+    Utils.distributedTrace = [];
+  }
+
+  public static clearData(): void {
+    Utils.getInstance().clearCache();
+  }
+
+  public static getDistributedRowId(id: unknown) : string {
+    let rowId = id;
+    if (rowId === null || rowId === undefined) {
+      rowId = '';
+    }
+    return this.currentSelectTrace ? `${rowId}-${this.currentSelectTrace}` : `${rowId}`;
   }
 
   public static getEndState(state: string): string {
@@ -82,39 +225,48 @@ export class Utils {
     }
   }
 
-  public static isBinder(data: any): boolean {
+  public static isBinder(data: unknown): boolean {
     return (
-      data.funName != null &&
+      // @ts-ignore
+      data.funName !== null && // @ts-ignore
       (data.funName.toLowerCase().startsWith('binder transaction async') || //binder transaction
-        data.funName.toLowerCase().startsWith('binder async') ||
+        // @ts-ignore
+        data.funName.toLowerCase().startsWith('binder async') || // @ts-ignore
         data.funName.toLowerCase().startsWith('binder reply'))
     );
   }
 
-  public static transferPTSTitle(ptsValue: any) {
+  public static transferPTSTitle(ptsValue: unknown): string {
+    // @ts-ignore
     if (ptsValue.startsWith('S-')) {
-      return Utils.getEndState(ptsValue.replace('S-', ''));
+      // @ts-ignore
+      return Utils.getEndState(ptsValue.replace('S-', '')); // @ts-ignore
     } else if (ptsValue.startsWith('P-')) {
+      // @ts-ignore
       let pid = ptsValue.replace('P-', '');
-      let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
-      return `${process} [${pid}]`;
+      let process = Utils.getInstance().getProcessMap(Utils.currentSelectTrace).get(parseInt(pid)) || 'Process';
+      return `${process} [${pid}]`; // @ts-ignore
     } else if (ptsValue.startsWith('T-')) {
+      // @ts-ignore
       let tid = ptsValue.replace('T-', '');
-      let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
+      let thread = Utils.getInstance().getThreadMap(Utils.currentSelectTrace).get(parseInt(tid)) || 'Thread';
       return `${thread} [${tid}]`;
     } else {
       return '';
     }
   }
 
-  public static transferBinderTitle(value: any) {
+  public static transferBinderTitle(value: unknown, traceId?: string | null): string {
+    // @ts-ignore
     if (value.startsWith('P-')) {
+      // @ts-ignore
       let pid = value.replace('P-', '');
-      let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
-      return `${process} [${pid}]`;
+      let process = Utils.getInstance().getProcessMap(traceId).get(parseInt(pid)) || 'Process';
+      return `${process} [${pid}]`; // @ts-ignore
     } else if (value.startsWith('T-')) {
+      // @ts-ignore
       let tid = value.replace('T-', '');
-      let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
+      let thread = Utils.getInstance().getThreadMap(traceId).get(parseInt(tid)) || 'Thread';
       return `${thread} [${tid}]`;
     } else {
       return '';
@@ -150,30 +302,30 @@ export class Utils {
     let microsecond1 = 1_000;
     let res = '';
     if (currentTime >= hour1) {
-      res += Math.floor(currentTime / hour1) + 'h ';
+      res += `${Math.floor(currentTime / hour1)}h `;
       currentTime = currentTime - Math.floor(currentTime / hour1) * hour1;
     }
     if (currentTime >= minute1) {
-      res += Math.floor(currentTime / minute1) + 'm ';
+      res += `${Math.floor(currentTime / minute1)}m `;
       currentTime = currentTime - Math.floor(ns / minute1) * minute1;
     }
     if (currentTime >= second1) {
-      res += Math.floor(currentTime / second1) + 's ';
+      res += `${Math.floor(currentTime / second1)}s `;
       currentTime = currentTime - Math.floor(currentTime / second1) * second1;
     }
     if (currentTime >= millisecond1) {
-      res += Math.floor(currentTime / millisecond1) + 'ms ';
+      res += `${Math.floor(currentTime / millisecond1)}ms `;
       currentTime = currentTime - Math.floor(currentTime / millisecond1) * millisecond1;
     }
     if (currentTime >= microsecond1) {
-      res += Math.floor(currentTime / microsecond1) + 'μs ';
+      res += `${Math.floor(currentTime / microsecond1)}μs `;
       currentTime = currentTime - Math.floor(currentTime / microsecond1) * microsecond1;
     }
     if (currentTime > 0) {
-      res += currentTime + 'ns ';
+      res += `${currentTime}ns `;
     }
     if (res === '') {
-      res = ns + '';
+      res = `${ns}`;
     }
     return res;
   }
@@ -187,19 +339,19 @@ export class Utils {
     let probablyMicrosecond1 = 1_000;
     let res = '';
     if (currentNs >= probablyHour) {
-      res += (currentNs / probablyHour).toFixed(2) + 'h ';
+      res += `${(currentNs / probablyHour).toFixed(2)}h `;
     } else if (currentNs >= probablyMinute1) {
-      res += (currentNs / probablyMinute1).toFixed(2) + 'm ';
+      res += `${(currentNs / probablyMinute1).toFixed(2)}m `;
     } else if (currentNs >= probablySecond1) {
-      res += (currentNs / probablySecond1).toFixed(2) + 's ';
+      res += `${(currentNs / probablySecond1).toFixed(2)}s `;
     } else if (currentNs >= probablyMillisecond1) {
-      res += (currentNs / probablyMillisecond1).toFixed(2) + 'ms ';
+      res += `${(currentNs / probablyMillisecond1).toFixed(2)}ms `;
     } else if (currentNs >= probablyMicrosecond1) {
-      res += (currentNs / probablyMicrosecond1).toFixed(2) + 'μs ';
+      res += `${(currentNs / probablyMicrosecond1).toFixed(2)}μs `;
     } else if (currentNs > 0) {
-      res += currentNs + 'ns ';
+      res += `${currentNs}ns `;
     } else if (res === '') {
-      res = timeNs + '';
+      res = `${timeNs}`;
     }
     return res;
   }
@@ -213,37 +365,37 @@ export class Utils {
     let microsecond1 = 1_000; // 1 microsecond
     let res = '';
     if (currentNs >= hour1) {
-      res += Math.floor(currentNs / hour1) + ':';
+      res += `${Math.floor(currentNs / hour1)}:`;
       currentNs = currentNs - Math.floor(currentNs / hour1) * hour1;
     }
     if (currentNs >= minute1) {
-      res += Math.floor(currentNs / minute1) + ':';
+      res += `${Math.floor(currentNs / minute1)}:`;
       currentNs = currentNs - Math.floor(ns / minute1) * minute1;
     }
     if (currentNs >= second1) {
-      res += Math.floor(currentNs / second1) + ':';
+      res += `${Math.floor(currentNs / second1)}:`;
       currentNs = currentNs - Math.floor(currentNs / second1) * second1;
     }
     if (currentNs >= millisecond1) {
-      res += Math.floor(currentNs / millisecond1) + '.';
+      res += `${Math.floor(currentNs / millisecond1)}.`;
       currentNs = currentNs - Math.floor(currentNs / millisecond1) * millisecond1;
     }
     if (currentNs >= microsecond1) {
-      res += Math.floor(currentNs / microsecond1) + '.';
+      res += `${Math.floor(currentNs / microsecond1)}.`;
       currentNs = currentNs - Math.floor(currentNs / microsecond1) * microsecond1;
     }
     if (currentNs > 0) {
-      res += currentNs + '';
+      res += `${currentNs}`;
     }
     if (res === '') {
-      res = ns + '';
+      res = `${ns}`;
     }
     return res;
   }
 
   public static getByteWithUnit(bytes: number): string {
     if (bytes < 0) {
-      return '-' + this.getByteWithUnit(Math.abs(bytes));
+      return `-${this.getByteWithUnit(Math.abs(bytes))}`;
     }
     let currentByte = bytes;
     let kb1 = 1 << 10;
@@ -251,20 +403,21 @@ export class Utils {
     let gb1 = ((1 << 10) << 10) << 10; // 1 gb
     let res = '';
     if (currentByte > gb1) {
-      res += (currentByte / gb1).toFixed(2) + ' GB';
+      res += `${(currentByte / gb1).toFixed(2)} GB`;
     } else if (currentByte > mb1) {
-      res += (currentByte / mb1).toFixed(2) + ' MB';
+      res += `${(currentByte / mb1).toFixed(2)} MB`;
     } else if (currentByte > kb1) {
-      res += (currentByte / kb1).toFixed(2) + ' KB';
+      res += `${(currentByte / kb1).toFixed(2)} KB`;
     } else {
-      res += Math.round(currentByte) + ' byte';
+      res += `${Math.round(currentByte)} byte`;
     }
     return res;
   }
 
-  public static groupByMap(array: Array<any>, key: string) {
+  public static groupByMap(array: Array<unknown>, key: string): Map<unknown, unknown> {
     let result = new Map();
     array.forEach((item) => {
+      // @ts-ignore
       let value = item[key];
       if (!result.has(value)) {
         result.set(value, []);
@@ -274,33 +427,34 @@ export class Utils {
     return result;
   }
 
-  public static groupBy(array: Array<any>, key: string) {
+  public static groupBy(array: Array<unknown>, key: string): unknown {
     return array.reduce((pre, current, index, arr) => {
+      // @ts-ignore
       (pre[current[key]] = pre[current[key]] || []).push(current);
       return pre;
     }, {});
   }
 
-  public static timeMsFormat2p(ms: number) {
+  public static timeMsFormat2p(ms: number): string {
     let currentNs = ms;
     let hour1 = 3600_000;
     let minute1 = 60_000;
     let second1 = 1_000; // 1 second
     let result = '';
     if (currentNs >= hour1) {
-      result += Math.round(currentNs / hour1).toFixed(2) + 'h';
+      result += `${Math.round(currentNs / hour1).toFixed(2)}h`;
       return result;
     }
     if (currentNs >= minute1) {
-      result += Math.round(currentNs / minute1).toFixed(2) + 'min';
+      result += `${Math.round(currentNs / minute1).toFixed(2)}min`;
       return result;
     }
     if (currentNs >= second1) {
-      result += Math.round(currentNs / second1).toFixed(2) + 's';
+      result += `${Math.round(currentNs / second1).toFixed(2)}s`;
       return result;
     }
     if (currentNs > 0) {
-      result += currentNs.toFixed(2) + 'ms';
+      result += `${currentNs.toFixed(2)}ms`;
       return result;
     }
     if (result === '') {
@@ -325,11 +479,11 @@ export class Utils {
     let gib1 = 1024 * 1024;
     let res = '';
     if (currentBytes >= gib1) {
-      res += (currentBytes / gib1).toFixed(2) + 'GB';
+      res += `${(currentBytes / gib1).toFixed(2)}GB`;
     } else if (currentBytes >= mib1) {
-      res += (currentBytes / mib1).toFixed(2) + 'MB';
+      res += `${(currentBytes / mib1).toFixed(2)}MB`;
     } else {
-      res += currentBytes.toFixed(2) + 'KB';
+      res += `${currentBytes.toFixed(2)}KB`;
     }
     return res;
   }
@@ -348,13 +502,13 @@ export class Utils {
       currentBytes = Math.abs(currentBytes);
     }
     if (currentBytes >= gib1) {
-      res += (currentBytes / gib1).toFixed(2) + 'GB';
+      res += `${(currentBytes / gib1).toFixed(2)}GB`;
     } else if (currentBytes >= mib1) {
-      res += (currentBytes / mib1).toFixed(2) + 'MB';
+      res += `${(currentBytes / mib1).toFixed(2)}MB`;
     } else if (currentBytes >= kib1) {
-      res += (currentBytes / kib1).toFixed(2) + 'KB';
+      res += `${(currentBytes / kib1).toFixed(2)}KB`;
     } else {
-      res += currentBytes.toFixed(2) + 'Bytes';
+      res += `${currentBytes.toFixed(2)}Bytes`;
     }
     return res;
   }
@@ -368,27 +522,27 @@ export class Utils {
     let microsecond1 = 1_000; // 1 microsecond
     let res = '';
     if (currentNs >= hour1) {
-      res += this.getCompletionTime(Math.floor(currentNs / hour1), 2) + ':';
+      res += `${this.getCompletionTime(Math.floor(currentNs / hour1), 2)}:`;
       currentNs = currentNs - Math.floor(currentNs / hour1) * hour1;
     }
     if (currentNs >= minute1) {
-      res += this.getCompletionTime(Math.floor(currentNs / minute1), 2) + ':';
+      res += `${this.getCompletionTime(Math.floor(currentNs / minute1), 2)}:`;
       currentNs = currentNs - Math.floor(ns / minute1) * minute1;
     }
     if (currentNs >= second1) {
-      res += this.getCompletionTime(Math.floor(currentNs / second1), 2) + ':';
+      res += `${this.getCompletionTime(Math.floor(currentNs / second1), 2)}:`;
       currentNs = currentNs - Math.floor(currentNs / second1) * second1;
     } else {
       res += '00:';
     }
     if (currentNs >= millisecond1) {
-      res += this.getCompletionTime(Math.floor(currentNs / millisecond1), 3) + '.';
+      res += `${this.getCompletionTime(Math.floor(currentNs / millisecond1), 3)}.`;
       currentNs = currentNs - Math.floor(currentNs / millisecond1) * millisecond1;
     } else {
       res += '000.';
     }
     if (currentNs >= microsecond1) {
-      res += this.getCompletionTime(Math.floor(currentNs / microsecond1), 3) + '.';
+      res += `${this.getCompletionTime(Math.floor(currentNs / microsecond1), 3)}.`;
       currentNs = currentNs - Math.floor(currentNs / microsecond1) * microsecond1;
     } else {
       res += '000';
@@ -397,7 +551,7 @@ export class Utils {
       res += this.getCompletionTime(currentNs, 3);
     }
     if (res === '') {
-      res = ns + '';
+      res = `${ns}`;
     }
     return res;
   }
@@ -409,15 +563,15 @@ export class Utils {
     let res = '';
     if (currentNs >= second1) {
       let cu = currentNs / second1;
-      res += cu.toFixed(3) + ' s ';
+      res += `${cu.toFixed(3)} s `;
       return res;
     }
     if (currentNs >= millisecond1) {
-      res += Math.floor(currentNs / millisecond1) + ' ms ';
+      res += `${Math.floor(currentNs / millisecond1)} ms `;
       return res;
     }
     if (res === '') {
-      res = ns + '';
+      res = `${ns}`;
     }
     return res;
   }
@@ -425,17 +579,17 @@ export class Utils {
   private static getCompletionTime(time: number, maxLength: number): string {
     if (maxLength === 2) {
       if (time.toString().length === 2) {
-        return '' + time;
+        return `${time}`;
       } else {
-        return '0' + time;
+        return `0${time}`;
       }
     } else if (maxLength === 3) {
       if (time.toString().length === 3) {
         return time.toString();
       } else if (time.toString().length === 2) {
-        return '0' + time;
+        return `0${time}`;
       } else {
-        return '00' + time;
+        return `00${time}`;
       }
     } else {
       return '0';
@@ -446,18 +600,25 @@ export class Utils {
     return Utils.statusMap;
   }
 
-  public static removeDuplicates(array1: any[], array2: any[], key: string) {
-    let obj: any = {};
+  public static removeDuplicates(array1: unknown[], array2: unknown[], key: string): unknown {
+    let obj: unknown = {};
     return array1.concat(array2).reduce(function (total, item) {
-      if (!obj[`${item[key]}-${item['pid']}`]) {
-        obj[`${item[key]}-${item['pid']}`] = true;
+      // @ts-ignore
+      if (!obj[`${item[key]}-${item.pid}`]) {
+        // @ts-ignore
+        obj[`${item[key]}-${item.pid}`] = true; // @ts-ignore
         total.push(item);
       }
       return total;
     }, []);
   }
 
-  static getFrequencyWithUnit = (maxFreq: number) => {
+  static getFrequencyWithUnit = (
+    maxFreq: number
+  ): {
+    maxFreqName: string;
+    maxFreq: number;
+  } => {
     let maxFreqObj = {
       maxFreqName: ' ',
       maxFreq: 0,
@@ -476,7 +637,7 @@ export class Utils {
     return maxFreqObj;
   };
 
-  public static getTimeIsCross(startTime: number, endTime: number, startTime1: number, endTime1: number) {
+  public static getTimeIsCross(startTime: number, endTime: number, startTime1: number, endTime1: number): boolean {
     return Math.max(startTime, startTime1) <= Math.min(endTime, endTime1);
   }
 
@@ -484,21 +645,21 @@ export class Utils {
     const isStatistic = val.nativeMemoryStatistic.length > 0;
     const selection = isStatistic ? val.nativeMemoryStatistic : val.nativeMemory;
     let types: Array<string | number> = [];
-    if (selection.indexOf('All Heap & Anonymous VM') != -1) {
+    if (selection.indexOf('All Heap & Anonymous VM') !== -1) {
       if (isStatistic) {
         types.push(0, 1);
       } else {
         types.push("'AllocEvent'", "'MmapEvent'");
       }
     } else {
-      if (selection.indexOf('All Heap') != -1) {
+      if (selection.indexOf('All Heap') !== -1) {
         if (isStatistic) {
           types.push(0);
         } else {
           types.push("'AllocEvent'");
         }
       }
-      if (selection.indexOf('All Anonymous VM') != -1) {
+      if (selection.indexOf('All Anonymous VM') !== -1) {
         if (isStatistic) {
           types.push(1);
         } else {
@@ -506,12 +667,12 @@ export class Utils {
         }
       }
     }
-    queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, isStatistic).then((res) => {
-      procedurePool.submitWithName('logic0', 'native-memory-init-responseType', res, undefined, () => {});
+    queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, isStatistic).then((res): void => {
+      procedurePool.submitWithName('logic0', 'native-memory-init-responseType', res, undefined, (): void => {});
     });
   }
 
   setCurrentSelectIPid(ipid: number): void {
-    procedurePool.submitWithName('logic0', 'native-memory-set-current_ipid', ipid, undefined, () => {});
+    procedurePool.submitWithName('logic0', 'native-memory-set-current_ipid', ipid, undefined, (): void => {});
   }
 }

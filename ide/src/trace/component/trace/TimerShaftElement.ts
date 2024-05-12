@@ -26,8 +26,10 @@ import { SelectionParam } from '../../bean/BoxSelection';
 import { type SpSystemTrace, CurrentSlicesTime } from '../SpSystemTrace';
 import './timer-shaft/CollapseButton';
 import { TimerShaftElementHtml } from './TimerShaftElement.html';
+import { SpChartList } from './SpChartList';
 //随机生成十六位进制颜色
-export function randomRgbColor() {
+//@ts-ignore
+export function randomRgbColor(): string {
   let r = Math.floor(Math.random() * 255);
   let g = Math.floor(Math.random() * 255);
   let b = Math.floor(Math.random() * 255);
@@ -43,16 +45,16 @@ export function randomRgbColor() {
 }
 
 export function ns2s(ns: number): string {
-  let one_second = 1_000_000_000; // 1 second
-  let one_millisecond = 1_000_000; // 1 millisecond
-  let one_microsecond = 1_000; // 1 microsecond
+  let oneSecond = 1_000_000_000; // 1 second
+  let oneMillisecond = 1_000_000; // 1 millisecond
+  let oneMicrosecond = 1_000; // 1 microsecond
   let nanosecond1 = 1000.0;
   let result;
-  if (ns >= one_second) {
+  if (ns >= oneSecond) {
     result = (ns / 1000 / 1000 / 1000).toFixed(1) + ' s';
-  } else if (ns >= one_millisecond) {
+  } else if (ns >= oneMillisecond) {
     result = (ns / 1000 / 1000).toFixed(1) + ' ms';
-  } else if (ns >= one_microsecond) {
+  } else if (ns >= oneMicrosecond) {
     result = (ns / 1000).toFixed(1) + ' μs';
   } else if (ns > 0) {
     result = ns.toFixed(1) + ' ns';
@@ -63,28 +65,28 @@ export function ns2s(ns: number): string {
 }
 
 export function ns2UnitS(ns: number, scale: number): string {
-  let one_second = 1_000_000_000; // 1 second
+  let oneSecond = 1_000_000_000; // 1 second
   let result;
   if (scale >= 10_000_000_000) {
-    result = (ns / one_second).toFixed(0) + ' s';
+    result = (ns / oneSecond).toFixed(0) + ' s';
   } else if (scale >= 1_000_000_000) {
-    result = (ns / one_second).toFixed(1) + ' s';
+    result = (ns / oneSecond).toFixed(1) + ' s';
   } else if (scale >= 100_000_000) {
-    result = (ns / one_second).toFixed(2) + ' s';
+    result = (ns / oneSecond).toFixed(2) + ' s';
   } else if (scale >= 10_000_000) {
-    result = (ns / one_second).toFixed(3) + ' s';
+    result = (ns / oneSecond).toFixed(3) + ' s';
   } else if (scale >= 1_000_000) {
-    result = (ns / one_second).toFixed(4) + ' s';
+    result = (ns / oneSecond).toFixed(4) + ' s';
   } else if (scale >= 100_000) {
-    result = (ns / one_second).toFixed(5) + ' s';
+    result = (ns / oneSecond).toFixed(5) + ' s';
   } else {
-    result = (ns / one_second).toFixed(6) + ' s';
+    result = (ns / oneSecond).toFixed(6) + ' s';
   }
   return result;
 }
 
 export function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: Rect): number {
-  if (endNS == 0) {
+  if (endNS === 0) {
     endNS = duration;
   }
   let xSize: number = ((ns - startNS) * rect.width) / (endNS - startNS);
@@ -141,6 +143,7 @@ export class TimerShaftElement extends BaseElement {
   public usageEL: HTMLDivElement | null | undefined;
   public timerShaftEL: TimerShaftElement | null | undefined;
   public rowsPaneEL: HTMLDivElement | null | undefined;
+  public favoriteChartListEL: SpChartList | undefined | null;
   _checkExpand: boolean = false; //是否展开
   _usageFoldHeight: number = 56.25; //初始化时折叠的负载区高度
   usageExpandHeight: number = 75; //给定的展开的负载区高度
@@ -190,9 +193,15 @@ export class TimerShaftElement extends BaseElement {
   set totalNS(value: number) {
     info('set totalNS values :', value);
     this._totalNS = value;
-    if (this.timeRuler) this.timeRuler.totalNS = value;
-    if (this._rangeRuler) this._rangeRuler.range.totalNS = value;
-    if (this.timeTotalEL) this.timeTotalEL.textContent = `${ns2s(value)}`;
+    if (this.timeRuler) {
+      this.timeRuler.totalNS = value;
+    }
+    if (this._rangeRuler) {
+      this._rangeRuler.range.totalNS = value;
+    }
+    if (this.timeTotalEL) {
+      this.timeTotalEL.textContent = `${ns2s(value)}`;
+    }
     requestAnimationFrame(() => this.render());
   }
 
@@ -210,10 +219,6 @@ export class TimerShaftElement extends BaseElement {
 
   set endNS(value: number) {
     this._endNS = value;
-  }
-
-  isScaling(): boolean {
-    return this._rangeRuler?.isPress || false;
   }
 
   reset(): void {
@@ -252,7 +257,7 @@ export class TimerShaftElement extends BaseElement {
       this.timerShaftEL!.style.height = `${146 - 56.25 + 2}px`;
       this.canvas!.style.height = `${146 - 56.25}px`;
       this.canvas!.height = 146 - 56.25;
-      this.rowsPaneEL!.style.maxHeight = `100%`;
+      this.rowsPaneEL!.style.maxHeight = '100%';
       this._sportRuler.frame.y = 43.75;
 
       this.render();
@@ -277,12 +282,15 @@ export class TimerShaftElement extends BaseElement {
         window.publish(window.SmartEvent.UI.CollectGroupChange, e.target.value);
       }
     });
-    procedurePool.timelineChange = (a: any) => this.rangeChangeHandler?.(a);
+    // @ts-ignore
+    procedurePool.timelineChange = (a: unknown): void => this.rangeChangeHandler?.(a);
+    // @ts-ignore
     window.subscribe(window.SmartEvent.UI.TimeRange, (b) => this.setRangeNS(b.startNS, b.endNS));
     // -----------------------------点击负载区展开折叠---------------------------------
     this.usageEL = this.shadowRoot?.querySelector('.cpu-usage');
     this.timerShaftEL = this.shadowRoot!.host.parentNode?.querySelector('.timer-shaft');
     this.rowsPaneEL = this.shadowRoot!.host.parentNode?.querySelector('.rows-pane');
+    this.favoriteChartListEL = this.shadowRoot!.host.parentNode?.querySelector('#favorite-chart-list');
     const height = this.canvas?.clientHeight || 0;
     // 点击cpu usage部分，切换折叠展开
     this.usageEL?.addEventListener('click', (e) => {
@@ -302,6 +310,7 @@ export class TimerShaftElement extends BaseElement {
           this.sportRuler.frame.y = 100;
           this.render();
           this._checkExpand = false;
+          this.favoriteChartListEL?.refreshFavoriteCanvas(); //刷新收藏泳道画布高度
         } else {
           sessionStorage.setItem('expand', String(this._checkExpand));
           sessionStorage.setItem('foldHeight', String(this._usageFoldHeight));
@@ -314,12 +323,13 @@ export class TimerShaftElement extends BaseElement {
           this.sportRuler.frame.y = 100 - this._usageFoldHeight;
           this.render();
           this._checkExpand = true;
+          this.favoriteChartListEL?.refreshFavoriteCanvas(); //刷新收藏泳道画布高度
         }
       }
     });
   }
 
-  getRangeRuler() {
+  getRangeRuler(): RangeRuler | undefined {
     return this._rangeRuler;
   }
 
@@ -333,9 +343,12 @@ export class TimerShaftElement extends BaseElement {
         this.ctx = this.canvas?.getContext('2d', { alpha: true });
       }
     }
-    if (this.timeTotalEL) this.timeTotalEL.textContent = ns2s(this._totalNS);
-    if (this.timeOffsetEL && this._rangeRuler)
+    if (this.timeTotalEL) {
+      this.timeTotalEL.textContent = ns2s(this._totalNS);
+    }
+    if (this.timeOffsetEL && this._rangeRuler) {
       this.timeOffsetEL.textContent = ns2UnitS(this._startNS, this._rangeRuler.getScale());
+    }
     const width = this.canvas?.clientWidth || 0;
     const height = this.canvas?.clientHeight || 0;
     this.setTimeRuler(width);
@@ -437,12 +450,18 @@ export class TimerShaftElement extends BaseElement {
   }
 
   documentOnMouseDown = (ev: MouseEvent): void => {
-    if ((window as any).isSheetMove) return;
+    // @ts-ignore
+    if ((window as unknown).isSheetMove) {
+      return;
+    }
     this._rangeRuler?.mouseDown(ev);
   };
 
   documentOnMouseUp = (ev: MouseEvent): void => {
-    if ((window as any).isSheetMove) return;
+    // @ts-ignore
+    if ((window as unknown).isSheetMove) {
+      return;
+    }
     this._rangeRuler?.mouseUp(ev);
     this.sportRuler?.mouseUp(ev);
   };
@@ -473,13 +492,19 @@ export class TimerShaftElement extends BaseElement {
   };
 
   documentOnKeyPress = (ev: KeyboardEvent, currentSlicesTime?: CurrentSlicesTime): void => {
-    if ((window as any).flagInputFocus) return;
+    // @ts-ignore
+    if ((window as unknown).flagInputFocus) {
+      return;
+    }
     this._rangeRuler?.keyPress(ev, currentSlicesTime);
     this.sportRuler?.clearHoverFlag();
   };
 
   documentOnKeyUp = (ev: KeyboardEvent): void => {
-    if ((window as any).flagInputFocus) return;
+    // @ts-ignore
+    if ((window as unknown).flagInputFocus) {
+      return;
+    }
     this._rangeRuler?.keyUp(ev);
   };
 
@@ -501,8 +526,8 @@ export class TimerShaftElement extends BaseElement {
       this._sportRuler?.draw();
     } else {
       procedurePool.submitWithName(
-        `timeline`,
-        `timeline`,
+        'timeline',
+        'timeline',
         {
           offscreen: this.must ? this.offscreen : undefined, //是否离屏
           dpr: this.dpr, //屏幕dpr值
@@ -519,7 +544,7 @@ export class TimerShaftElement extends BaseElement {
           frame: this.frame,
         },
         this.must ? this.offscreen : undefined,
-        (res: any) => {
+        (res: unknown) => {
           this.must = false;
         }
       );
@@ -541,11 +566,12 @@ export class TimerShaftElement extends BaseElement {
     this._rangeRuler?.cancelUpFrame();
   }
 
-  stopWASD(ev: any): void {
+  stopWASD(ev: unknown): void {
+    // @ts-ignore
     this._rangeRuler?.keyUp(ev);
   }
 
-  drawTriangle(time: number, type: string): number | undefined {
+  drawTriangle(time: number, type: string): unknown {
     return this._sportRuler?.drawTriangle(time, type);
   }
 
@@ -559,7 +585,7 @@ export class TimerShaftElement extends BaseElement {
     shiftKey: null | boolean = false
   ): SlicesTime | null | undefined {
     let sliceTime = this._sportRuler?.setSlicesMark(startTime, endTime, shiftKey);
-    if (sliceTime && sliceTime != undefined) {
+    if (sliceTime && sliceTime !== undefined) {
       this.traceSheetEL?.displayCurrent(sliceTime); // 给当前pane准备数据
 
       // 取最新创建的那个selection对象

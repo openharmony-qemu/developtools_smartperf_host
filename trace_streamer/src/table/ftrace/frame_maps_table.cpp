@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, SRC_ROW, DST_ROW };
-FrameMapsTable::FrameMapsTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+FrameMapsTable::FrameMapsTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("src_row", "INTEGER"));
@@ -28,14 +28,14 @@ FrameMapsTable::FrameMapsTable(const TraceDataCache* dataCache) : TableBase(data
 
 FrameMapsTable::~FrameMapsTable() {}
 
-void FrameMapsTable::FilterByConstraint(FilterConstraints& mapfc,
-                                        double& mapfilterCost,
+void FrameMapsTable::FilterByConstraint(FilterConstraints &mapfc,
+                                        double &mapfilterCost,
                                         size_t maprowCount,
                                         uint32_t mapcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& mapc = mapfc.GetConstraints()[mapcurrenti];
+    const auto &mapc = mapfc.GetConstraints()[mapcurrenti];
     switch (static_cast<Index>(mapc.col)) {
         case Index::ID: {
             if (CanFilterId(mapc.op, maprowCount)) {
@@ -57,7 +57,7 @@ std::unique_ptr<TableBase::Cursor> FrameMapsTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-FrameMapsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+FrameMapsTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstFrameMapsData().Size())),
       frameMapsObj_(dataCache->GetConstFrameMapsData())
 {
@@ -65,7 +65,7 @@ FrameMapsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table
 
 FrameMapsTable::Cursor::~Cursor() {}
 
-int32_t FrameMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t FrameMapsTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -78,7 +78,7 @@ int32_t FrameMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(frameMapsTabCs, sId);
     for (size_t i = 0; i < frameMapsTabCs.size(); i++) {
-        const auto& c = frameMapsTabCs[i];
+        const auto &c = frameMapsTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -129,7 +129,7 @@ int32_t FrameMapsTable::Cursor::Column(int32_t column) const
     }
     return SQLITE_OK;
 }
-void FrameMapsTable::GetOrbyes(FilterConstraints& mapfc, EstimatedIndexInfo& mapei)
+void FrameMapsTable::GetOrbyes(FilterConstraints &mapfc, EstimatedIndexInfo &mapei)
 {
     auto maporderbys = mapfc.GetOrderBys();
     for (auto i = 0; i < maporderbys.size(); i++) {

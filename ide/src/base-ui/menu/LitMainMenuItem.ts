@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-const initHtmlStyle:string = `
+const initHtmlStyle: string = `
     <style>
             :host{
                 user-select: none;
@@ -90,8 +90,8 @@ export class LitMainMenuItem extends BaseElement {
   private iconEl: HTMLElement | null | undefined;
   private fileEL: HTMLInputElement | undefined | null;
 
-  static get observedAttributes() {
-    return ['title', 'icon', 'file', 'disabled'];
+  static get observedAttributes(): string[] {
+    return ['title', 'icon', 'file', 'multi', 'disabled'];
   }
 
   get title(): string {
@@ -100,6 +100,18 @@ export class LitMainMenuItem extends BaseElement {
 
   set title(val: string) {
     this.setAttribute('title', val);
+  }
+
+  get multi(): boolean {
+    return this.hasAttribute('multi');
+  }
+
+  set multi(val: boolean) {
+    if (val) {
+      this.setAttribute('multi', '');
+    } else {
+      this.removeAttribute('multi');
+    }
   }
 
   get disabled(): boolean {
@@ -144,13 +156,13 @@ export class LitMainMenuItem extends BaseElement {
     return false;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     if (this.hasAttribute('file')) {
       if (this.fileEL) {
         this.fileEL!.addEventListener('change', (event) => {
           let files = this.fileEL!.files;
           if (files && files.length > 0) {
-            if (this.titleEl!.textContent!.includes('long trace')) {
+            if (this.titleEl!.textContent!.includes('long trace') || this.multi) {
               this.dispatchEvent(
                 new CustomEvent('file-change', {
                   // @ts-ignore
@@ -168,7 +180,9 @@ export class LitMainMenuItem extends BaseElement {
                 })
               );
             }
-            if (this.fileEL) this.fileEL.value = '';
+            if (this.fileEL) {
+              this.fileEL.value = '';
+            }
             if (this.fileEL) {
               this.fileEL.value = '';
             }
@@ -192,7 +206,7 @@ export class LitMainMenuItem extends BaseElement {
         `;
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     switch (name) {
       case 'title':
         if (this.titleEl) {
@@ -210,8 +224,21 @@ export class LitMainMenuItem extends BaseElement {
           }
         }
         break;
+      case 'multi':
+        if (this.hasAttribute('multi')) {
+          this.fileEL!.setAttribute('multiple', '');
+          this.fileEL!.setAttribute('webkitdirectory', '');
+          this.fileEL!.setAttribute('directory', '');
+        } else {
+          this.fileEL!.removeAttribute('multiple');
+          this.fileEL!.removeAttribute('webkitdirectory');
+          this.fileEL!.removeAttribute('directory');
+        }
+        break;
       case 'icon':
-        if (this.iconEl) this.iconEl.setAttribute('name', newValue);
+        if (this.iconEl) {
+          this.iconEl.setAttribute('name', newValue);
+        }
         break;
     }
   }

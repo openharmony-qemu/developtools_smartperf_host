@@ -304,7 +304,7 @@ void TraceDataCache::SetSplitFileMinTime(uint64_t minTs)
 {
     splitFileMinTs_ = minTs;
 }
-std::deque<std::unique_ptr<std::string>>& TraceDataCache::HookCommProtos()
+std::deque<std::unique_ptr<std::string>> &TraceDataCache::HookCommProtos()
 {
     return hookCommProtos_;
 }
@@ -312,12 +312,12 @@ void TraceDataCache::ClearHookCommProtos()
 {
     hookCommProtos_.clear();
 }
-int32_t TraceDataCache::ExportPerfReadableText(const std::string& outputName,
+int32_t TraceDataCache::ExportPerfReadableText(const std::string &outputName,
                                                TraceDataDB::ResultCallBack resultCallBack)
 {
     int32_t perfFd = base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW);
     TS_CHECK_TRUE(perfFd != -1, 1, "Failed to create file: %s, err:%s", outputName.c_str(), strerror(errno));
-    std::unique_ptr<int32_t, std::function<void(int32_t*)>> fp(&perfFd, [](int32_t* fp) { close(*fp); });
+    std::unique_ptr<int32_t, std::function<void(int32_t *)>> fp(&perfFd, [](int32_t *fp) { close(*fp); });
     TS_CHECK_TRUE(ftruncate(perfFd, 0) != -1, 1, "Failed to ftruncate file: %s, err:%s", outputName.c_str(),
                   strerror(errno));
     TS_LOGI("ExportPerfReadableText begin...");
@@ -335,9 +335,9 @@ int32_t TraceDataCache::ExportPerfReadableText(const std::string& outputName,
     TS_LOGI("ExportPerfReadableText end...");
     return 0;
 }
-void TraceDataCache::ExportPerfSampleToFile(std::string& perfBufferLine,
+void TraceDataCache::ExportPerfSampleToFile(std::string &perfBufferLine,
                                             int32_t perfFd,
-                                            const std::string& outputName,
+                                            const std::string &outputName,
                                             uint64_t row)
 {
     std::string perfTaskName;
@@ -373,7 +373,7 @@ void TraceDataCache::ExportPerfSampleToFile(std::string& perfBufferLine,
     perfBufferLine.append(" ").append(eventTypeName).append(" \r\n");
     ExportPerfCallChaninText(perfSample_.SampleIds()[row], perfBufferLine);
 }
-void TraceDataCache::ExportPerfCallChaninText(uint32_t callChainId, std::string& bufferLine)
+void TraceDataCache::ExportPerfCallChaninText(uint32_t callChainId, std::string &bufferLine)
 {
     std::stack<uint64_t> callChainStackRows;
     auto perfCallChainItor =
@@ -402,12 +402,12 @@ void TraceDataCache::ExportPerfCallChaninText(uint32_t callChainId, std::string&
     }
     bufferLine.append("\r\n");
 }
-int32_t TraceDataCache::ExportHookReadableText(const std::string& outputName,
+int32_t TraceDataCache::ExportHookReadableText(const std::string &outputName,
                                                TraceDataDB::ResultCallBack resultCallBack)
 {
     int32_t hookFd = base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW);
     TS_CHECK_TRUE(hookFd != -1, 1, "Failed to create file: %s, err:%s", outputName.c_str(), strerror(errno));
-    std::unique_ptr<int32_t, std::function<void(int32_t*)>> fp(&hookFd, [](int32_t* fp) { close(*fp); });
+    std::unique_ptr<int32_t, std::function<void(int32_t *)>> fp(&hookFd, [](int32_t *fp) { close(*fp); });
     TS_CHECK_TRUE(ftruncate(hookFd, 0) != -1, 1, "Failed to ftruncate file: %s, err:%s", outputName.c_str(),
                   strerror(errno));
     TS_LOGI("ExportHookReadableText begin...");
@@ -418,7 +418,7 @@ int32_t TraceDataCache::ExportHookReadableText(const std::string& outputName,
     TS_LOGI("ExportHookReadableText end...");
     return 0;
 }
-bool TraceDataCache::ExportHookDataReadableText(int32_t fd, std::string& bufferLine)
+bool TraceDataCache::ExportHookDataReadableText(int32_t fd, std::string &bufferLine)
 {
     for (uint64_t row = 0; row < nativeHookData_.Size();) {
         auto itid = nativeHookData_.InternalTidsData()[row];
@@ -442,7 +442,7 @@ bool TraceDataCache::ExportHookDataReadableText(int32_t fd, std::string& bufferL
     }
     return true;
 }
-bool TraceDataCache::ExportHookStatisticReadableText(int32_t fd, std::string& bufferLine)
+bool TraceDataCache::ExportHookStatisticReadableText(int32_t fd, std::string &bufferLine)
 {
     std::map<uint32_t, std::string_view> statisticEventTypeMap = {
         {static_cast<uint32_t>(HookMemoryType::MALLOC), "AllocEvent"},
@@ -476,7 +476,7 @@ bool TraceDataCache::ExportHookStatisticReadableText(int32_t fd, std::string& bu
     }
     return true;
 }
-void TraceDataCache::ExportHookCallChaninText(uint32_t callChainId, std::string& bufferLine)
+void TraceDataCache::ExportHookCallChaninText(uint32_t callChainId, std::string &bufferLine)
 {
     auto hookFrameCallChainItor = std::lower_bound(nativeHookFrameData_.CallChainIds().begin(),
                                                    nativeHookFrameData_.CallChainIds().end(), callChainId);
@@ -500,12 +500,12 @@ void TraceDataCache::ExportHookCallChaninText(uint32_t callChainId, std::string&
     }
     bufferLine.append("\r\n");
 }
-int32_t TraceDataCache::ExportEbpfReadableText(const std::string& outputName,
+int32_t TraceDataCache::ExportEbpfReadableText(const std::string &outputName,
                                                TraceDataDB::ResultCallBack resultCallBack)
 {
     int32_t ebpfFd = base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW);
     TS_CHECK_TRUE(ebpfFd != -1, 1, "Failed to create file: %s, err:%s", outputName.c_str(), strerror(errno));
-    std::unique_ptr<int32_t, std::function<void(int32_t*)>> fp(&ebpfFd, [](int32_t* fp) { close(*fp); });
+    std::unique_ptr<int32_t, std::function<void(int32_t *)>> fp(&ebpfFd, [](int32_t *fp) { close(*fp); });
     TS_CHECK_TRUE(ftruncate(ebpfFd, 0) != -1, 1, "Failed to ftruncate file: %s, err:%s", outputName.c_str(),
                   strerror(errno));
     TS_LOGI("ExportEbpfReadableText begin...");
@@ -526,8 +526,8 @@ int32_t TraceDataCache::ExportEbpfReadableText(const std::string& outputName,
     return 0;
 }
 bool TraceDataCache::ExportEbpfFileSystemReadableText(int32_t fd,
-                                                      std::string& bufferLine,
-                                                      const EbpfEventTypeMap& ebpfEventTypeMap)
+                                                      std::string &bufferLine,
+                                                      const EbpfEventTypeMap &ebpfEventTypeMap)
 {
     for (uint64_t row = 0; row < fileSamplingTableData_.Size();) {
         auto fileSysTaskId = internalThreadsData_[fileSamplingTableData_.Itids()[row]].tid_;
@@ -556,8 +556,8 @@ bool TraceDataCache::ExportEbpfFileSystemReadableText(int32_t fd,
     return true;
 }
 bool TraceDataCache::ExportEbpfPagedMemReadableText(int32_t fd,
-                                                    std::string& bufferLine,
-                                                    const EbpfEventTypeMap& ebpfEventTypeMap)
+                                                    std::string &bufferLine,
+                                                    const EbpfEventTypeMap &ebpfEventTypeMap)
 {
     for (uint64_t row = 0; row < pagedMemorySampleData_.Size();) {
         auto pagedMemTaskId = internalThreadsData_[pagedMemorySampleData_.Itids()[row]].tid_;
@@ -586,8 +586,8 @@ bool TraceDataCache::ExportEbpfPagedMemReadableText(int32_t fd,
     return true;
 }
 bool TraceDataCache::ExportEbpfBIOReadableText(int32_t fd,
-                                               std::string& bufferLine,
-                                               const EbpfEventTypeMap& ebpfEventTypeMap)
+                                               std::string &bufferLine,
+                                               const EbpfEventTypeMap &ebpfEventTypeMap)
 {
     for (uint64_t row = 0; row < bioLatencySampleData_.Size();) {
         auto bioTaskId = internalThreadsData_[bioLatencySampleData_.Itids()[row]].tid_;
@@ -615,7 +615,7 @@ bool TraceDataCache::ExportEbpfBIOReadableText(int32_t fd,
     }
     return true;
 }
-void TraceDataCache::ExportEbpfCallChaninText(uint32_t callChainId, std::string& bufferLine)
+void TraceDataCache::ExportEbpfCallChaninText(uint32_t callChainId, std::string &bufferLine)
 {
     auto ebpfCallChainItor = std::lower_bound(ebpfCallStackData_.CallChainIds().begin(),
                                               ebpfCallStackData_.CallChainIds().end(), callChainId);

@@ -12,17 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { Args } from './CommonArgs';
 import { TraficEnum } from './utils/QueryEnum';
 
-export const chartSMapsDataSqlMem = (args: any): string => {
+export const chartSMapsDataSqlMem = (args: Args): string => {
   return `SELECT (A.timestamp - ${args.recordStartNS}) as startNs,
         sum(${args.name}) * 1024 as value
         FROM smaps A
         WHERE A.timestamp < ${args.recordEndNS}
         GROUP by A.timestamp`;
 };
-export const chartDmaDataSqlMem = (args: any): string => {
+export const chartDmaDataSqlMem = (args: Args): string => {
   return `SELECT (A.ts - ${args.recordStartNS}) as startNs,
         sum(A.size) as value
         FROM memory_dma A
@@ -31,7 +31,7 @@ export const chartDmaDataSqlMem = (args: any): string => {
         AND A.ts < ${args.recordEndNS}
         GROUP by A.ts`;
 };
-export const chartGpuMemoryDataSqlMem = (args: any): string => {
+export const chartGpuMemoryDataSqlMem = (args: Args): string => {
   return ` SELECT (A.ts - ${args.recordStartNS}) as startNs,
         sum(A.used_gpu_size) as value
         FROM memory_process_gpu A
@@ -39,7 +39,7 @@ export const chartGpuMemoryDataSqlMem = (args: any): string => {
         AND A.ts < ${args.recordEndNS}
         GROUP by A.ts`;
 };
-export const chartGpuResourceDataSqlMem = (args: any): string => {
+export const chartGpuResourceDataSqlMem = (args: Args): string => {
   return `SELECT subquery1.startNs,
         (IFNULL(subquery1.totalSize, 0) - IFNULL(subquery2.size, 0)) AS value
         FROM
@@ -55,7 +55,7 @@ export const chartGpuResourceDataSqlMem = (args: any): string => {
             GROUP BY ts) AS subquery2
         ON subquery1.startNs = subquery2.startNs`;
 };
-export const chartGpuDataSqlMem = (args: any): string => {
+export const chartGpuDataSqlMem = (args: Args): string => {
   return `select (ts - ${args.recordStartNS}) startNs,
         sum(value) * 1024 value
         from process_measure
@@ -67,7 +67,7 @@ export const chartGpuDataSqlMem = (args: any): string => {
         and ts between ${args.recordStartNS} AND ${args.recordEndNS}
         group by ts;`;
 };
-export const chartGpuTotalDataSqlMem = (args: any): string => {
+export const chartGpuTotalDataSqlMem = (args: Args): string => {
   let moduleCondition = args.moduleId === null ? '' : `and module_name_id = ${args.moduleId}`;
   return `select (ts - ${args.recordStartNS}) startNs,
         sum(size) value
@@ -76,7 +76,7 @@ export const chartGpuTotalDataSqlMem = (args: any): string => {
         and ts < ${args.recordEndNS}
         group by ts;`;
 };
-export const chartGpuWindowDataSqlMem = (args: any): string => {
+export const chartGpuWindowDataSqlMem = (args: Args): string => {
   let moduleCondition = args.moduleId === null ? '' : `and module_name_id = ${args.moduleId}`;
   return `select (ts - ${args.recordStartNS}) startNs,
         sum(size) value
@@ -85,7 +85,7 @@ export const chartGpuWindowDataSqlMem = (args: any): string => {
         and ts < ${args.recordEndNS}
         group by ts`;
 };
-export const chartShmDataSqlMem = (args: any): string => {
+export const chartShmDataSqlMem = (args: Args): string => {
   return `SELECT (A.ts - ${args.recordStartNS}) as startNs,
         sum(A.size) as value
         FROM memory_ashmem A
@@ -94,7 +94,7 @@ export const chartShmDataSqlMem = (args: any): string => {
         AND flag = 0
         GROUP by A.ts`;
 };
-export const chartPurgeableDataSqlMem = (args: any): string => {
+export const chartPurgeableDataSqlMem = (args: Args): string => {
   const pinSql = args.isPin ? ' AND a.ref_count > 0' : '';
   const names = args.isPin ? " ('mem.purg_pin')" : "('mem.purg_sum')";
   return `SELECT startNs,
@@ -118,7 +118,7 @@ export const chartPurgeableDataSqlMem = (args: any): string => {
             GROUP BY a.ts)
          GROUP BY startNs`;
 };
-export const abilityPurgeablelDataSqlMem = (args: any): string => {
+export const abilityPurgeablelDataSqlMem = (args: Args): string => {
   const pinCondition = args.isPin ? ' AND a.ref_count > 0' : '';
   const names = args.isPin ? " ('sys.mem.pined.purg')" : "('sys.mem.active.purg','sys.mem.inactive.purg')";
   return `SELECT startNs,
@@ -140,7 +140,7 @@ export const abilityPurgeablelDataSqlMem = (args: any): string => {
             GROUP BY a.ts ) 
         GROUP BY startNs`;
 };
-export const abilityDmaDataSqlMem = (args: any): string => {
+export const abilityDmaDataSqlMem = (args: Args): string => {
   return `SELECT (A.ts - ${args.recordStartNS}) as startNs,
         sum(A.size) as value,
         E.data as expTaskComm,
@@ -151,7 +151,7 @@ export const abilityDmaDataSqlMem = (args: any): string => {
         AND A.ts < ${args.recordEndNS}
         GROUP by A.ts;`;
 };
-export const abilityGpuMemoryDataSqlMem = (args: any): string => {
+export const abilityGpuMemoryDataSqlMem = (args: Args): string => {
   return `SELECT 
         (A.ts - ${args.recordStartNS}) as startNs,
         sum(A.used_gpu_size) as value
@@ -159,23 +159,23 @@ export const abilityGpuMemoryDataSqlMem = (args: any): string => {
         WHERE A.ts < ${args.recordEndNS}
         GROUP by A.ts;`;
 };
-
-let sMapsList: Array<any> = [];
-let dmaList: Array<any> = [];
-let gpuMemoryList: Array<any> = [];
-let gpuList: Array<any> = [];
-let gpuResourceList: Array<any> = [];
-let gpuTotalList: Array<any> = [];
-let gpuWindowList: Array<any> = [];
-let shmList: Array<any> = [];
-let purgeableList: Array<any> = [];
-let sMapsMap = new Map<string, Array<any>>();
-let purgeableMap = new Map<string, Array<any>>();
-let gpuMap = new Map<string, Array<any>>();
-let abilityPurgeableMap: Map<string, Array<any>> = new Map();
-let abilityPurgeableList: Array<any> = [];
-let abilityDmaList: Array<any> = [];
-let abilityGpuMemoryList: Array<any> = [];
+// @ts-ignore
+let sMapsList: Array<unknown> = []; // @ts-ignore
+let dmaList: Array<unknown> = []; // @ts-ignore
+let gpuMemoryList: Array<unknown> = []; // @ts-ignore
+let gpuList: Array<unknown> = []; // @ts-ignore
+let gpuResourceList: Array<unknown> = []; // @ts-ignore
+let gpuTotalList: Array<unknown> = []; // @ts-ignore
+let gpuWindowList: Array<unknown> = []; // @ts-ignore
+let shmList: Array<unknown> = []; // @ts-ignore
+let purgeableList: Array<unknown> = []; // @ts-ignore
+let sMapsMap = new Map<string, Array<unknown>>(); // @ts-ignore
+let purgeableMap = new Map<string, Array<unknown>>(); // @ts-ignore
+let gpuMap = new Map<string, Array<unknown>>(); // @ts-ignore
+let abilityPurgeableMap: Map<string, Array<unknown>> = new Map(); // @ts-ignore
+let abilityPurgeableList: Array<unknown> = []; // @ts-ignore
+let abilityDmaList: Array<unknown> = []; // @ts-ignore
+let abilityGpuMemoryList: Array<unknown> = [];
 
 export function resetVmTracker(): void {
   sMapsList = [];
@@ -199,121 +199,159 @@ export function resetAbility(): void {
   abilityPurgeableMap.clear();
 }
 
-export function sMapsDataReceiver(data: any, proc: Function): void {
+export function sMapsDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (!sMapsMap.has(data.params.name)) {
-    sMapsList = proc(chartSMapsDataSqlMem(data.params));
+    // @ts-ignore
+    sMapsList = proc(chartSMapsDataSqlMem(data.params)); // @ts-ignore
     sMapsMap.set(data.params.name, sMapsList);
-  }
+  } // @ts-ignore
   let list = sMapsMap.get(data.params.name) || [];
   arrayBufferHandler(data, list, true);
 }
 
-export function dmaDataReceiver(data: any, proc: Function): void {
+export function dmaDataReceiver(data: unknown, proc: Function): void {
   if (dmaList.length === 0) {
+    // @ts-ignore
     dmaList = proc(chartDmaDataSqlMem(data.params));
   }
   arrayBufferHandler(data, dmaList, true);
 }
 
-export function gpuMemoryDataReceiver(data: any, proc: Function): void {
+export function gpuMemoryDataReceiver(data: unknown, proc: Function): void {
   if (gpuMemoryList.length === 0) {
+    // @ts-ignore
     gpuMemoryList = proc(chartGpuMemoryDataSqlMem(data.params));
   }
   arrayBufferHandler(data, gpuMemoryList, true);
 }
 
-export function gpuDataReceiver(data: any, proc: Function): void {
+export function gpuDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (!gpuMap.has(data.params.name)) {
-    gpuList = proc(chartGpuDataSqlMem(data.params));
+    // @ts-ignore
+    gpuList = proc(chartGpuDataSqlMem(data.params)); // @ts-ignore
     gpuMap.set(data.params.name, gpuList);
-  }
+  } // @ts-ignore
   let list = gpuMap.get(data.params.name) || [];
   arrayBufferHandler(data, list, true);
 }
 
-export function gpuResourceDataReceiver(data: any, proc: Function): void {
+export function gpuResourceDataReceiver(data: unknown, proc: Function): void {
   if (gpuResourceList.length === 0) {
+    // @ts-ignore
     gpuResourceList = proc(chartGpuResourceDataSqlMem(data.params));
   }
   arrayBufferHandler(data, gpuResourceList, true);
 }
 
-export function gpuTotalDataReceiver(data: any, proc: Function): void {
+export function gpuTotalDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (gpuTotalList.length === 0 || data.params.moduleId) {
+    // @ts-ignore
     gpuTotalList = proc(chartGpuTotalDataSqlMem(data.params));
   }
   arrayBufferHandler(data, gpuTotalList, true);
 }
 
-export function gpuWindowDataReceiver(data: any, proc: Function): void {
+export function gpuWindowDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (gpuWindowList.length === 0 || data.params.moduleId) {
+    // @ts-ignore
     gpuWindowList = proc(chartGpuWindowDataSqlMem(data.params));
   }
   arrayBufferHandler(data, gpuWindowList, true);
 }
 
-export function shmDataReceiver(data: any, proc: Function): void {
+export function shmDataReceiver(data: unknown, proc: Function): void {
   if (shmList.length === 0) {
+    // @ts-ignore
     shmList = proc(chartShmDataSqlMem(data.params));
   }
   arrayBufferHandler(data, shmList, true);
 }
 
-export function purgeableDataReceiver(data: any, proc: Function): void {
+export function purgeableDataReceiver(data: unknown, proc: Function): void {
   let key: string = '';
-  if (data.params.isPin) {
+  if (
+    // @ts-ignore
+    data.params.isPin
+  ) {
     key = 'pin';
   } else {
     key = 'total';
   }
-  if (!purgeableMap.has(data.params.isPin)) {
-    purgeableList = proc(chartPurgeableDataSqlMem(data.params));
+  if (
+    !purgeableMap.has(
+      // @ts-ignore
+      data.params.isPin
+    )
+  ) {
+    purgeableList = proc(
+      chartPurgeableDataSqlMem(
+        // @ts-ignore
+        data.params
+      )
+    );
     purgeableMap.set(key, purgeableList);
   }
   let list = purgeableMap.get(key) || [];
   arrayBufferHandler(data, list, true);
 }
 
-export function abilityPurgeableDataReceiver(data: any, proc: Function): void {
+export function abilityPurgeableDataReceiver(data: unknown, proc: Function): void {
   let key = '';
-  if (data.params.isPin) {
+  if (
+    // @ts-ignore
+    data.params.isPin
+  ) {
     key = 'pin';
   } else {
     key = 'total';
   }
   if (!abilityPurgeableMap.has(key)) {
-    abilityPurgeableList = proc(abilityPurgeablelDataSqlMem(data.params));
+    abilityPurgeableList = proc(
+      abilityPurgeablelDataSqlMem(
+        // @ts-ignore
+        data.params
+      )
+    );
     abilityPurgeableMap.set(key, abilityPurgeableList);
   }
   let abilityList = abilityPurgeableMap.get(key) || [];
   arrayBufferHandler(data, abilityList, true);
 }
 
-export function abilityDmaDataReceiver(data: any, proc: Function): void {
+export function abilityDmaDataReceiver(data: unknown, proc: Function): void {
   if (abilityDmaList.length === 0) {
+    // @ts-ignore
     abilityDmaList = proc(abilityDmaDataSqlMem(data.params));
   }
   arrayBufferHandler(data, abilityDmaList, true);
 }
 
-export function abilityGpuMemoryDataReceiver(data: any, proc: Function): void {
+export function abilityGpuMemoryDataReceiver(data: unknown, proc: Function): void {
   if (abilityGpuMemoryList.length === 0) {
+    // @ts-ignore
     abilityGpuMemoryList = proc(abilityGpuMemoryDataSqlMem(data.params));
   }
   arrayBufferHandler(data, abilityGpuMemoryList, true);
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
-  let startNs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNs);
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
+  let startNs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNs); // @ts-ignore
   let value = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.value);
   res.forEach((it, i) => {
-    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.trackerData);
-    startNs[i] = it.startNs;
+    // @ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.trackerData); // @ts-ignore
+    startNs[i] = it.startNs; // @ts-ignore
     value[i] = it.value;
   });
   (self as unknown as Worker).postMessage(
     {
-      id: data.id,
+      // @ts-ignore
+      id: data.id, // @ts-ignore
       action: data.action,
       results: transfer
         ? {

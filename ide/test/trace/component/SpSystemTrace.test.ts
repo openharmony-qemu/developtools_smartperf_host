@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 jest.mock('../../../src/trace/component/trace/TimerShaftElement', () => {
   return {
     sportRuler: {
@@ -52,6 +53,7 @@ jest.mock('../../../src/js-heap/model/DatabaseStruct', () => {
   return {};
 });
 jest.mock('../../../src/trace/database/SqlLite');
+
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
@@ -79,6 +81,7 @@ describe('SpSystemTrace Test', () => {
   const rowParentId = '';
   const rowType = '';
   let smooth = true;
+  spSystemTrace.searchCPU = jest.fn();
   spSystemTrace.initElements = jest.fn(() => true);
 
   it('SpSystemTraceTest01', function () {
@@ -95,7 +98,11 @@ describe('SpSystemTrace Test', () => {
   });
 
   it('SpSystemTraceTest04', function () {
-    expect(spSystemTrace.rowsElOnScroll('Scroll')).toBeUndefined();
+    expect(spSystemTrace.rowsElOnScroll({
+      target: {
+        scrollTop: {}
+      }
+    })).toBeUndefined();
   });
 
   it('SpSystemTraceTest05', function () {
@@ -140,7 +147,8 @@ describe('SpSystemTrace Test', () => {
       dur: 152,
       totalNS: 4252,
       startTs: 522,
-      flag: ''
+      flag: '',
+      funName: 'binder async'
     }
     expect(spSystemTrace.scrollToActFunc(funcStract, true)).toBeUndefined();
   });
@@ -151,10 +159,6 @@ describe('SpSystemTrace Test', () => {
 
   it('SpSystemTraceTest17', function () {
     expect(spSystemTrace.search()).toBeUndefined();
-  });
-
-  it('SpSystemTraceTest18', function () {
-    expect(spSystemTrace.searchCPU()).not.toBeUndefined();
   });
 
   it('SpSystemTraceTest22', function () {

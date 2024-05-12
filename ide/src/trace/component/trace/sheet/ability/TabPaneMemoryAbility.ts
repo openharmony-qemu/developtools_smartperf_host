@@ -30,33 +30,34 @@ export class TabPaneMemoryAbility extends BaseElement {
   private queryMemoryResult: Array<SystemMemorySummary> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(memoryAbilityValue: SelectionParam | any) {
+  set data(memoryAbilityValue: SelectionParam | unknown) {
     if (this.memoryAbilityTbl) {
       // @ts-ignore
-      this.memoryAbilityTbl.shadowRoot?.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 45 + 'px';
+      this.memoryAbilityTbl.shadowRoot?.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 45
+      }px`;
     }
     this.queryDataByDB(memoryAbilityValue);
   }
 
   initElements(): void {
     this.memoryAbilityTbl = this.shadowRoot?.querySelector<LitTable>('#tb-memory-ability');
-    this.memoryAbilityTbl!.addEventListener('column-click', (evt) => {
+    this.memoryAbilityTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.memoryAbilityTbl!);
   }
 
-  filterData() {
+  filterData(): void {
     if (this.queryMemoryResult.length > 0) {
-      let filterMemory = this.queryMemoryResult.filter((item) => {
-        let array = this.toMemoryAbilityArray(item);
-        let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
+      let filterMemory = this.queryMemoryResult.filter((item): boolean => {
+        let array = this.toMemoryAbilityArray(item); // @ts-ignore
+        let isInclude = array.filter((value): boolean => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
       if (filterMemory.length > 0) {
@@ -69,7 +70,7 @@ export class TabPaneMemoryAbility extends BaseElement {
     }
   }
 
-  toMemoryAbilityArray(systemMemorySummary: SystemMemorySummary): any[] {
+  toMemoryAbilityArray(systemMemorySummary: SystemMemorySummary): unknown[] {
     let array: Array<string> = [];
     array.push(systemMemorySummary.startTimeStr);
     array.push(systemMemorySummary.durationStr);
@@ -79,7 +80,7 @@ export class TabPaneMemoryAbility extends BaseElement {
     return array;
   }
 
-  getMemoryKeys() {
+  getMemoryKeys(): unknown {
     return {
       'sys.mem.total': 'memoryTotal',
       'sys.mem.free': 'memFree',
@@ -101,31 +102,34 @@ export class TabPaneMemoryAbility extends BaseElement {
       'sys.mem.cma.total': 'cmaTotal',
       'sys.mem.cma.free': 'cmaFree',
       'sys.mem.kernel.reclaimable': 'kReclaimable',
-      'sys.mem.zram': 'zram'
+      'sys.mem.zram': 'zram',
     };
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    queryStartTime().then((res) => {
+  queryDataByDB(val: SelectionParam | unknown): void {
+    queryStartTime().then((res): void => {
+      //@ts-ignore
       let startTime = res[0].start_ts;
-      getTabMemoryAbilityData(val.leftNs + startTime, val.rightNs + startTime).then((items) => {
-        log('getTabMemoryAbilityData result size : ' + items.length);
+      // @ts-ignore
+      getTabMemoryAbilityData(val.leftNs + startTime, val.rightNs + startTime).then((items): void => {
+        log(`getTabMemoryAbilityData result size : ${items.length}`);
         this.memoryAbilitySource = [];
         this.queryMemoryResult = [];
-        if (items.length != null && items.length > 0) {
+        if (items.length !== null && items.length > 0) {
           let lastTime = 0;
           for (const item of items) {
             let systemMemorySummary = new SystemMemorySummary();
-            systemMemorySummary.startTimeStr = (item.startTime - startTime <= 0) ? '0:000.000.000'
-              : Utils.getTimeStampHMS(item.startTime - startTime);
-            systemMemorySummary.durationNumber = (lastTime !== 0) ? item.startTime - lastTime : 0;
-            systemMemorySummary.durationStr = (lastTime !== 0) ? Utils.getDurString(systemMemorySummary.durationNumber) : '-';
+            systemMemorySummary.startTimeStr =
+              item.startTime - startTime <= 0 ? '0:000.000.000' : Utils.getTimeStampHMS(item.startTime - startTime);
+            systemMemorySummary.durationNumber = lastTime !== 0 ? item.startTime - lastTime : 0;
+            systemMemorySummary.durationStr =
+              lastTime !== 0 ? Utils.getDurString(systemMemorySummary.durationNumber) : '-';
             lastTime = item.startTime;
             let memorys = item.value.split(',');
             let names = item.name.split(',');
-            if (memorys.length != names.length) {
+            if (memorys.length !== names.length) {
               continue;
-            }
+            } // @ts-ignore
             let memoryKeys: { [key: string]: string } = this.getMemoryKeys();
             for (let i = 0; i < names.length; i++) {
               let key = memoryKeys[names[i]];
@@ -134,7 +138,6 @@ export class TabPaneMemoryAbility extends BaseElement {
                 systemMemorySummary[key] = Utils.getBinaryKBWithUnit(Number(memorys[i]));
               }
             }
-            ;
             this.memoryAbilitySource.push(systemMemorySummary);
           }
           this.memoryAbilityTbl!.recycleDataSource = this.memoryAbilitySource;
@@ -192,16 +195,17 @@ export class TabPaneMemoryAbility extends BaseElement {
         `;
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (memoryAbilityLeftData: SystemMemorySummary, memoryAbilityRightData: SystemMemorySummary) {
+      return function (
+        memoryAbilityLeftData: SystemMemorySummary,
+        memoryAbilityRightData: SystemMemorySummary
+      ): number {
         if (type === 'number') {
-          return sort === 2
-            ? // @ts-ignore
-            parseFloat(memoryAbilityRightData[property]) - parseFloat(memoryAbilityLeftData[property])
-            : // @ts-ignore
-            parseFloat(memoryAbilityLeftData[property]) - parseFloat(memoryAbilityRightData[property]);
+          return sort === 2 // @ts-ignore
+            ? parseFloat(memoryAbilityRightData[property]) - parseFloat(memoryAbilityLeftData[property]) // @ts-ignore
+            : parseFloat(memoryAbilityLeftData[property]) - parseFloat(memoryAbilityRightData[property]);
         } else if (type === 'durationStr') {
           return sort === 2
             ? memoryAbilityRightData.durationNumber - memoryAbilityLeftData.durationNumber
@@ -212,7 +216,7 @@ export class TabPaneMemoryAbility extends BaseElement {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (memoryAbilityRightData[property] == memoryAbilityLeftData[property]) {
+            if (memoryAbilityRightData[property] === memoryAbilityLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -221,12 +225,15 @@ export class TabPaneMemoryAbility extends BaseElement {
         }
       };
     }
-
+    // @ts-ignore
     if (detail.key === 'startTime') {
-      this.memoryAbilitySource.sort(compare(detail.key, detail.sort, 'string'));
+      // @ts-ignore
+      this.memoryAbilitySource.sort(compare(detail.key, detail.sort, 'string')); // @ts-ignore
     } else if (detail.key === 'durationStr') {
+      // @ts-ignore
       this.memoryAbilitySource.sort(compare(detail.key, detail.sort, 'durationStr'));
     } else {
+      // @ts-ignore
       this.memoryAbilitySource.sort(compare(detail.key, detail.sort, 'number'));
     }
     this.memoryAbilityTbl!.recycleDataSource = this.memoryAbilitySource;

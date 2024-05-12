@@ -12,36 +12,45 @@
 // limitations under the License.
 
 import { QueryEnum, TraficEnum } from './utils/QueryEnum';
-import { threadPool } from '../SqlLite';
+import { getThreadPool  } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
+import { Utils } from '../../component/trace/base/Utils';
 
-export function sliceSender(): Promise<any> {
+export function sliceSender(traceId?: string): Promise<unknown> {
   let trafic: number = TraficEnum.Memory;
   return new Promise((resolve): void => {
-    threadPool.submitProto(QueryEnum.SliceData, {
-      trafic: trafic,
-      startNS: TraceRow.range?.startNS || 0,
-      endNS: TraceRow.range?.endNS || 0,
-      recordStartNS: window.recordStartNS,
-      recordEndNS: window.recordEndNS,
-    }, (res: any): void => {
-      resolve(res);
-    });
+    getThreadPool(traceId).submitProto(
+      QueryEnum.SliceData,
+      {
+        trafic: trafic,
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
+        recordStartNS: Utils.getInstance().getRecordStartNS(traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(traceId),
+      },
+      (res: unknown): void => {
+        resolve(res);
+      }
+    );
   });
 }
 
-export function sliceSPTSender(leftNs: number, rightNs: number, cpus: Array<number>, func: string): Promise<any[]> {
+export function sliceSPTSender(leftNs: number, rightNs: number, cpus: Array<number>,
+  func: string, traceId?: string): Promise<unknown[]> {
   return new Promise((resolve): void => {
-    threadPool.submitProto(QueryEnum.SliceSPTData, {
-      leftNs: leftNs,
-      rightNs: rightNs,
-      cpus: cpus,
-      func: func,
-      trafic: TraficEnum.Memory,
-    }, (res: any, len: number, transfer: boolean): void => {
-      resolve(res);
-    });
+    getThreadPool(traceId).submitProto(
+      QueryEnum.SliceSPTData,
+      {
+        leftNs: leftNs,
+        rightNs: rightNs,
+        cpus: cpus,
+        func: func,
+        trafic: TraficEnum.Memory,
+      },
+      (res: unknown, len: number, transfer: boolean): void => {
+        //@ts-ignore
+        resolve(res);
+      }
+    );
   });
 }
-
-

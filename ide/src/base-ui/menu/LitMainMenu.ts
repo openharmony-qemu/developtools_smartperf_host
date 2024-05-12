@@ -19,7 +19,7 @@ import './LitMainMenuGroup';
 import { LitMainMenuGroup } from './LitMainMenuGroup';
 import { LitMainMenuItem } from './LitMainMenuItem';
 
-const initHtmlStyle:string = `
+const initHtmlStyle: string = `
     <style>
         :host{
             width: 248px;
@@ -94,7 +94,7 @@ export class LitMainMenu extends BaseElement {
   private slotElements: Element[] | undefined;
   private _menus: Array<MenuGroup> | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return [];
   }
 
@@ -106,7 +106,7 @@ export class LitMainMenu extends BaseElement {
     this._menus = value;
     this.shadowRoot?.querySelectorAll('lit-main-menu-group').forEach((a) => a.remove());
     let menuBody = this.shadowRoot?.querySelector('.menu-body');
-    if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') == 'dark') {
+    if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') === 'dark') {
       this.style.backgroundColor = '#262f3c';
     } else {
       this.style.backgroundColor = '#fff';
@@ -127,43 +127,52 @@ export class LitMainMenu extends BaseElement {
       }
       let groupName: LitMainMenuGroup = group!.shadowRoot!.querySelector('.group-name') as LitMainMenuGroup;
       let groupDescribe: LitMainMenuGroup = group!.shadowRoot!.querySelector('.group-describe') as LitMainMenuGroup;
-      menuBody?.appendChild(group);
-      it.children?.forEach((item: any) => {
+      menuBody?.appendChild(group); // @ts-ignore
+      it.children?.forEach((item: unknown) => {
+        // @ts-ignore
         if (item.fileModel !== undefined && item.fileModel === 'db') {
           return;
-        }
+        } // @ts-ignore
         if (item.children && item.children.length > 0) {
-          let secondGroup: LitMainMenuGroup = new LitMainMenuGroup();
-          secondGroup.setAttribute('title', item.title || '');
+          let secondGroup: LitMainMenuGroup = new LitMainMenuGroup(); // @ts-ignore
+          secondGroup.setAttribute('title', item.title || ''); // @ts-ignore
           if (item.describe !== '') {
+            // @ts-ignore
             secondGroup.setAttribute('describe', item.describe || '');
           } else {
             secondGroup.removeAttribute('describe');
           }
-          this.setChildren(item,group,groupName,groupDescribe,secondGroup);
+          this.setChildren(item, group, groupName, groupDescribe, secondGroup);
         } else {
-          this.notChildren(item,group,groupName,groupDescribe);
+          this.notChildren(item, group, groupName, groupDescribe);
         }
       });
     });
   }
 
-  setChildren(item:any,group: LitMainMenuGroup,groupName: LitMainMenuGroup,groupDescribe: LitMainMenuGroup,secondGroup: LitMainMenuGroup):void{
-    secondGroup.setAttribute('icon', item.icon || '');
+  setChildren(
+    item: unknown,
+    group: LitMainMenuGroup,
+    groupName: LitMainMenuGroup,
+    groupDescribe: LitMainMenuGroup,
+    secondGroup: LitMainMenuGroup
+  ): void {
+    // @ts-ignore
+    secondGroup.setAttribute('icon', item.icon || ''); // @ts-ignore
     if (item.second) {
       secondGroup.setAttribute('second', '');
     } else {
       secondGroup.removeAttribute('second');
-    }
+    } // @ts-ignore
     if (item.collapsed) {
       secondGroup.setAttribute('collapsed', '');
     } else {
       secondGroup.removeAttribute('collapsed');
     }
-    group?.appendChild(secondGroup);
-    item.children?.forEach((v: any) => {
-      let th = new LitMainMenuItem();
-      th.setAttribute('icon', v.icon || '');
+    group?.appendChild(secondGroup); // @ts-ignore
+    item.children?.forEach((v: unknown) => {
+      let th = new LitMainMenuItem(); // @ts-ignore
+      th.setAttribute('icon', v.icon || ''); // @ts-ignore
       th.setAttribute('title', v.title || '');
       if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') === 'dark') {
         groupName.style.color = 'white';
@@ -173,32 +182,39 @@ export class LitMainMenu extends BaseElement {
         groupName.style.color = 'black';
         groupDescribe.style.color = 'black';
         th!.style.color = 'black';
-      }
+      } // @ts-ignore
       if (v.fileChoose) {
         th.setAttribute('file', '');
-        th.addEventListener('file-change', (e) => {
-          if (v.fileHandler && !th.disabled) {
+        th.addEventListener('file-change', (e): void => {
+          // @ts-ignore
+          if (v.fileHandler && !th.disabled) { // @ts-ignore
             v.fileHandler(e);
           }
         });
       } else {
         th.removeAttribute('file');
-        th.addEventListener('click', (e) => {
-          if (v.clickHandler && !th.disabled) {
+        th.addEventListener('click', (e): void => {
+          // @ts-ignore
+          if (v.clickHandler && !th.disabled) { // @ts-ignore
             v.clickHandler(v);
           }
         });
-      }
-      if (v.disabled != undefined) {
+      } // @ts-ignore
+      if (v.disabled !== undefined) { // @ts-ignore
         th.disabled = v.disabled;
       }
       secondGroup.appendChild(th);
     });
   }
 
-  notChildren(item:any,group: LitMainMenuGroup,groupName: LitMainMenuGroup,groupDescribe: LitMainMenuGroup):void{
-    let th = new LitMainMenuItem();
-    th.setAttribute('icon', item.icon || '');
+  notChildren(
+    item: unknown,
+    group: LitMainMenuGroup,
+    groupName: LitMainMenuGroup,
+    groupDescribe: LitMainMenuGroup
+  ): void {
+    let th = new LitMainMenuItem(); // @ts-ignore
+    th.setAttribute('icon', item.icon || ''); // @ts-ignore
     th.setAttribute('title', item.title || '');
     if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') === 'dark') {
       groupName.style.color = 'white';
@@ -208,23 +224,33 @@ export class LitMainMenu extends BaseElement {
       groupName.style.color = 'black';
       groupDescribe.style.color = 'black';
       th!.style.color = 'black';
-    }
+    } // @ts-ignore
     if (item.fileChoose) {
       th.setAttribute('file', '');
       th.addEventListener('file-change', (e) => {
+        // @ts-ignore
         if (item.fileHandler && !th.disabled) {
+          // @ts-ignore
           item.fileHandler(e);
         }
       });
     } else {
       th.removeAttribute('file');
       th.addEventListener('click', (e) => {
+        // @ts-ignore
         if (item.clickHandler && !th.disabled) {
+          // @ts-ignore
           item.clickHandler(item);
         }
       });
     }
-    if (item.disabled != undefined) {
+    // @ts-ignore
+    if (item.multi) {
+      th.multi = true;
+    }
+    // @ts-ignore
+    if (item.disabled !== undefined) {
+      // @ts-ignore
       th.disabled = item.disabled;
     }
     group?.appendChild(th);
@@ -239,7 +265,8 @@ export class LitMainMenu extends BaseElement {
       });
     });
     let versionDiv: HTMLElement | null | undefined = this.shadowRoot?.querySelector<HTMLElement>('.version');
-    versionDiv!.innerText = (window as any).version || '';
+    //@ts-ignore
+    versionDiv!.innerText = window.version || '';
   }
 
   initHtml(): string {
@@ -269,7 +296,7 @@ export interface MenuGroup {
   describe: string;
   second: boolean;
   collapsed: boolean;
-  children: any;
+  children: MenuItem[];
   icon: string;
 }
 
@@ -277,6 +304,7 @@ export interface MenuItem {
   icon: string;
   title: string;
   fileModel?: string;
+  multi?: boolean;
   disabled?: boolean;
   fileChoose?: boolean;
   clickHandler?: Function;

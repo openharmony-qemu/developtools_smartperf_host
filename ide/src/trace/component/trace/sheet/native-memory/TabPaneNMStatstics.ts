@@ -23,11 +23,10 @@ import '../TabProgressBar';
 import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
 import { resizeObserver } from '../SheetUtils';
 import { TabPaneNMSampleList } from './TabPaneNMSampleList';
-import { env } from 'process';
 import {
   queryNativeHookStatistics,
   queryNativeHookStatisticsMalloc,
-  queryNativeHookStatisticsSubType
+  queryNativeHookStatisticsSubType,
 } from '../../../../database/sql/NativeHook.sql';
 
 @element('tabpane-native-statistics')
@@ -58,7 +57,9 @@ export class TabPaneNMStatstics extends BaseElement {
     }
     if (this.nativeStatisticsTbl) {
       // @ts-ignore
-      this.nativeStatisticsTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 25}px`;
+      this.nativeStatisticsTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 25
+      }px`;
       // @ts-ignore
       this.nativeStatisticsTbl.recycleDataSource = [];
     }
@@ -197,12 +198,17 @@ export class TabPaneNMStatstics extends BaseElement {
     }
   }
 
-  private processHookData(hook: any, data: NativeHookStatisticsTableData): void {
+  private processHookData(hook: unknown, data: NativeHookStatisticsTableData): void {
+    // @ts-ignore
     data.totalBytes += hook.allocByte;
+    // @ts-ignore
     data.totalCount += hook.allocCount;
+    // @ts-ignore
     data.freeByte += hook.freeByte;
-    data.freeCount += hook.freeCount;
+    // @ts-ignore
+    data.freeCount += hook.freeCount; // @ts-ignore
     if (hook.max > data.max) {
+      // @ts-ignore
       data.max = hook.max;
       data.maxStr = Utils.getByteWithUnit(data.max);
     }
@@ -225,16 +231,20 @@ export class TabPaneNMStatstics extends BaseElement {
       this.sortByColumn(evt.detail.key, evt.detail.sort);
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('existingString', (value) => {
-      return `${value['existing']}`;
+      // @ts-ignore
+      return `${value.existing}`;
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('freeByteString', (value) => {
-      return `${value['totalBytes'] - value['existing']}`;
+      // @ts-ignore
+      return `${value.totalBytes - value.existing}`;
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('totalBytesString', (value) => {
-      return `${value['totalBytes']}`;
+      // @ts-ignore
+      return `${value.totalBytes}`;
     });
     this.nativeStatisticsTbl!.exportTextHandleMap.set('maxStr', (value) => {
-      return `${value['max']}`;
+      // @ts-ignore
+      return `${value.max}`;
     });
   }
 
@@ -250,10 +260,17 @@ export class TabPaneNMStatstics extends BaseElement {
       this.nativeStatisticsTbl!.recycleDataSource = this.nativeStatisticsSource;
     } else {
       let arr = [...this.nativeStatisticsSource];
-      let compareFunction = (nativeStatisticsLeftData: any, nativeStatisticsRightData: any, column: string, sortType: number) => {
+      let compareFunction = (
+        nativeStatisticsLeftData: unknown,
+        nativeStatisticsRightData: unknown,
+        column: string,
+        sortType: number
+      ): number => {
         if (sortType === 1) {
+          // @ts-ignore
           return nativeStatisticsLeftData[column] - nativeStatisticsRightData[column];
         } else {
+          // @ts-ignore
           return nativeStatisticsRightData[column] - nativeStatisticsLeftData[column];
         }
       };
@@ -265,7 +282,7 @@ export class TabPaneNMStatstics extends BaseElement {
         freeCount: 'freeCount',
         totalBytesString: 'totalBytes',
         maxStr: 'max',
-        totalCount: 'totalCount'
+        totalCount: 'totalCount',
       };
       let sortColumnKey = columnMap[nmStatColumn];
       this.nativeStatisticsTbl!.recycleDataSource = arr.sort((leftData, rightData) =>

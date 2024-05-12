@@ -99,7 +99,7 @@ void IndexMap::Next()
         }
     }
 }
-void IndexMap::FilterId(unsigned char op, sqlite3_value* argv)
+void IndexMap::FilterId(unsigned char op, sqlite3_value *argv)
 {
     auto type = sqlite3_value_type(argv);
     if (type != SQLITE_INTEGER) {
@@ -136,10 +136,10 @@ void IndexMap::FilterId(unsigned char op, sqlite3_value* argv)
     }
 }
 
-void IndexMap::FilterTS(unsigned char op, sqlite3_value* argv, const std::deque<InternalTime>& times)
+void IndexMap::FilterTS(unsigned char op, sqlite3_value *argv, const std::deque<InternalTime> &times)
 {
     auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-    auto getValue = [](const uint64_t& row) { return row; };
+    auto getValue = [](const uint64_t &row) { return row; };
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
             IntersectabcEqual(times, v, getValue);
@@ -165,7 +165,7 @@ void IndexMap::FilterTS(unsigned char op, sqlite3_value* argv, const std::deque<
             break;
     } // end of switch (op)
 }
-bool IndexMap::MergeIndexTypeId(IndexMap* other)
+bool IndexMap::MergeIndexTypeId(IndexMap *other)
 {
     if (indexType_ != INDEX_TYPE_ID && other->indexType_ != INDEX_TYPE_ID) {
         return false;
@@ -198,13 +198,13 @@ bool IndexMap::MergeIndexTypeId(IndexMap* other)
     }
     return true;
 }
-bool IndexMap::Merge(IndexMap* other)
+bool IndexMap::Merge(IndexMap *other)
 {
     TS_CHECK_TRUE_RET(MergeIndexTypeId(other) == false, true);
     this->CovertToIndexMap();
     other->CovertToIndexMap();
     const std::vector<TableRowId> b = other->rowIndex_;
-    const std::vector<TableRowId>& a = rowIndex_;
+    const std::vector<TableRowId> &a = rowIndex_;
     std::vector<TableRowId> c;
     uint32_t aIndex = 0;
     uint32_t aSize = a.size();

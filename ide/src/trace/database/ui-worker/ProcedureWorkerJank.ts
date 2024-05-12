@@ -13,20 +13,21 @@
  * limitations under the License.
  */
 
-import {JanksStruct} from '../../bean/JanksStruct';
-import {ColorUtils} from '../../component/trace/base/ColorUtils';
-import {TraceRow} from '../../component/trace/base/TraceRow';
+import { JanksStruct } from '../../bean/JanksStruct';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 import {
   drawLoadingFrame,
   drawString,
   isFrameContainPoint,
   ns2x,
+  Rect,
   Render,
   RequestMessage,
 } from './ProcedureWorkerCommon';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
-export class JankRender extends Render {
+export class JankRender {
   renderMainThread(
     req: {
       useCache: boolean;
@@ -53,7 +54,7 @@ export class JankRender extends Render {
     for (let re of jankFilter) {
       JankStruct.draw(req.context, re, nsScale);
       if (row.isHover) {
-        if (re.dur == 0 || re.dur == null || re.dur == undefined) {
+        if (re.dur === 0 || re.dur === null || re.dur === undefined) {
           if (
             re.frame &&
             row.hoverX >= re.frame.x - 5 &&
@@ -72,21 +73,22 @@ export class JankRender extends Render {
         }
       }
     }
-    if (!find && row.isHover) JankStruct.hoverJankStruct = undefined;
+    if (!find && row.isHover) {
+      JankStruct.hoverJankStruct = undefined;
+    }
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {
-  }
+  render(req: RequestMessage, list: Array<JankStruct>, filter: Array<JankStruct>): void {}
 }
 
 export function jank(
-  jankList: Array<any>,
-  jankFilter: Array<any>,
+  jankList: Array<JankStruct>,
+  jankFilter: Array<JankStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
 ): void {
   if (use && jankFilter.length > 0) {
@@ -94,7 +96,7 @@ export function jank(
       if ((jankFilter[i].ts || 0) + (jankFilter[i].dur || 0) >= startNS && (jankFilter[i].ts || 0) <= endNS) {
         JankStruct.setJankFrame(jankFilter[i], 0, startNS, endNS, totalNS, frame);
       } else {
-        jankFilter[i].frame = null;
+        jankFilter[i].frame = undefined;
       }
     }
     return;
@@ -108,17 +110,24 @@ export function jank(
         return it;
       })
       .reduce((pre, current, index, arr) => {
+        // @ts-ignore
         (pre[`${current.frame.x}-${current.depth}`] = pre[`${current.frame.x}-${current.depth}`] || []).push(current);
         return pre;
       }, {});
     Reflect.ownKeys(groups).map((kv) => {
-      let arr = groups[kv].sort((a: any, b: any) => b.dur - a.dur);
+      // @ts-ignore
+      let arr = groups[kv].sort((a: JankStruct, b: JankStruct) => b.dur - a.dur);
       jankFilter.push(arr[0]);
     });
   }
 }
 
-export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>,jankClickHandler: any) {
+export function JankStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  row: TraceRow<JankStruct>,
+  jankClickHandler: unknown
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     JankStruct.hoverJankStruct = JankStruct.hoverJankStruct || row.getHoverStruct();
     if (clickRowType === TraceRow.ROW_TYPE_JANK && JankStruct.hoverJankStruct) {
@@ -130,17 +139,20 @@ export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, row: 
         JankStruct.selectJankStruct,
         (datas) => {
           datas.forEach((data) => {
-            let endParentRow;
-            if (data.frame_type == 'frameTime') {
+            let endParentRow; // @ts-ignore
+            if (data.frameType === 'frameTime') {
               endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
-                `trace-row[row-id='frameTime'][row-type='janks']`
+                'trace-row[row-id=\'frameTime\'][row-type=\'janks\']'
               );
             } else {
-              endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-type='process'][row-id='${data.pid}'][folder]`);
+              endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>( // @ts-ignore
+                `trace-row[row-type='process'][row-id='${data.pid}'][folder]`
+              );
             }
             sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data);
           });
         },
+        // @ts-ignore
         jankClickHandler
       );
       reject(new Error());
@@ -148,23 +160,23 @@ export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, row: 
       resolve(null);
     }
   });
-
 }
 
 export class JankStruct extends JanksStruct {
   static hoverJankStruct: JankStruct | undefined;
   static selectJankStruct: JankStruct | undefined;
-  static selectJankStructList: Array<JankStruct> = new Array<JankStruct>();
+  static selectJankStructList: Array<JankStruct> = [];
 
   static setJankFrame(
-    jankNode: any,
+    jankNode: JankStruct,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
+    frame: Rect
   ): void {
-    let x1: number, x2: number;
+    let x1: number;
+    let x2: number;
     if ((jankNode.ts || 0) > startNS && (jankNode.ts || 0) < endNS) {
       x1 = ns2x(jankNode.ts || 0, startNS, endNS, totalNS, frame);
     } else {
@@ -176,18 +188,18 @@ export class JankStruct extends JanksStruct {
       x2 = frame.width;
     }
     if (!jankNode.frame) {
-      jankNode.frame = {};
+      jankNode.frame = new Rect(0, 0, 0, 0);
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
     jankNode.frame.x = Math.floor(x1);
-    jankNode.frame.y = jankNode.depth * 20;
+    jankNode.frame.y = jankNode.depth! * 20;
     jankNode.frame.width = Math.ceil(getV);
     jankNode.frame.height = 20;
   }
 
   static draw(ctx: CanvasRenderingContext2D, data: JankStruct, nsScale: number): void {
     if (data.frame) {
-      if (data.dur == undefined || data.dur == null || data.dur == 0) {
+      if (data.dur === undefined || data.dur === null || data.dur === 0) {
       } else {
         ctx.globalAlpha = 1;
         ctx.fillStyle = ColorUtils.JANK_COLOR[0];
@@ -199,14 +211,14 @@ export class JankStruct extends JanksStruct {
         let miniHeight = 20;
         if (
           JankStruct.hoverJankStruct &&
-          data.name == JankStruct.hoverJankStruct.name &&
-          JankStruct.hoverJankStruct.type == data.type &&
-          JankStruct.hoverJankStruct.pid == data.pid &&
-          JankStruct.hoverJankStruct.frame_type == data.frame_type
+          data.name === JankStruct.hoverJankStruct.name &&
+          JankStruct.hoverJankStruct.type === data.type &&
+          JankStruct.hoverJankStruct.pid === data.pid &&
+          JankStruct.hoverJankStruct.frameType === data.frameType
         ) {
           ctx.globalAlpha = 0.7;
         }
-        if (data.type == '0') {
+        if (`${data.type}` === '0') {
           this.drawActualFrame(ctx, data, miniHeight);
         } else {
           this.drawExpectedFrame(data, nsScale, ctx, miniHeight);
@@ -269,11 +281,11 @@ export class JankStruct extends JanksStruct {
 
   static isSelected(data: JankStruct): boolean {
     return (
-      JankStruct.selectJankStruct != undefined &&
-      JankStruct.selectJankStruct.ts == data.ts &&
-      JankStruct.selectJankStruct.type == data.type &&
-      JankStruct.selectJankStruct.pid == data.pid &&
-      JankStruct.selectJankStruct.frame_type == data.frame_type
+      JankStruct.selectJankStruct !== undefined &&
+      JankStruct.selectJankStruct.ts === data.ts &&
+      JankStruct.selectJankStruct.type === data.type &&
+      JankStruct.selectJankStruct.pid === data.pid &&
+      JankStruct.selectJankStruct.frameType === data.frameType
     );
   }
 }

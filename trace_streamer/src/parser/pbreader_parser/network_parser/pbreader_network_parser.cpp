@@ -19,7 +19,7 @@
 #include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderNetworkParser::PbreaderNetworkParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderNetworkParser::PbreaderNetworkParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
 }
@@ -47,7 +47,7 @@ void PbreaderNetworkParser::Parse(ProtoReader::BytesView tracePacket, uint64_t t
 }
 void PbreaderNetworkParser::Finish()
 {
-    auto cmp = [](const TsNetworkData& a, const TsNetworkData& b) { return a.ts < b.ts; };
+    auto cmp = [](const TsNetworkData &a, const TsNetworkData &b) { return a.ts < b.ts; };
     std::stable_sort(networkData_.begin(), networkData_.end(), cmp);
     bool firstTime = true;
     uint64_t lastTs = 0;

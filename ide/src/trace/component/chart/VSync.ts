@@ -24,9 +24,11 @@ interface VSyncData {
 let vSyncDataList: VSyncData[] = [];
 let vSyncEnable = false;
 let isSingle = false;
+let isQuery = false;
 
 export function resetVSync(): void {
   vSyncEnable = false;
+  isQuery = false;
 }
 
 export const querySfVSyncData = (): Promise<Array<VSyncData>> =>
@@ -48,28 +50,27 @@ export const querySfVSyncData = (): Promise<Array<VSyncData>> =>
                              })`
   );
 
-  export const querySingleVSyncData = (): Promise<Array<VSyncData>> => {
-    let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
-    let flagsItemJson = JSON.parse(flagsItem!);
-    let vsyncValue = flagsItemJson.vsyncValue;  
-    let vsyncCondition = '';
-    if (vsyncValue === 'H:VsyncGenerator' || vsyncValue === '') {
-      vsyncCondition = ` AND (callstack.name like 'H:GenerateVsyncCount%'))`;
-    } else {
-      vsyncCondition = ` AND callstack.name like '${vsyncValue}%' )`;
-    }
-  
-    let sql =
-      `SELECT c.ts - tb.start_ts startTime
+export const querySingleVSyncData = (): Promise<Array<VSyncData>> => {
+  let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
+  let flagsItemJson = JSON.parse(flagsItem!);
+  let vsyncValue = flagsItemJson.vsyncValue;
+  let vsyncCondition = '';
+  if (vsyncValue === 'H:VsyncGenerator' || vsyncValue === '') {
+    vsyncCondition = ` AND (callstack.name like 'H:GenerateVsyncCount%'))`;
+  } else {
+    vsyncCondition = ` AND callstack.name like '${vsyncValue}%' )`;
+  }
+
+  let sql =
+    `SELECT c.ts - tb.start_ts startTime
      FROM callstack c,
           trace_range tb
      WHERE c.id IN (SELECT callstack.id AS trackId
                     FROM callstack
                              JOIN process
-                    WHERE process.name = 'render_service'`
-      + vsyncCondition;
-    return query('querySingleVSyncData', sql);
-  }
+                    WHERE process.name = 'render_service'` + vsyncCondition;
+  return query('querySingleVSyncData', sql);
+};
 
 /**
  * load single vsync data
@@ -88,6 +89,7 @@ export async function setVSyncData(): Promise<void> {
     }
   });
   vSyncDataList = sfvSyncData;
+  isQuery = true;
 }
 
 /**
@@ -131,12 +133,14 @@ export function drawVSync(ctx: CanvasRenderingContext2D, width: number, height: 
  * enable/disable SingleVSync
  */
 export function enableVSync(press: boolean, ev: KeyboardEvent, handler?: Function): void {
-  if (ev.key.toLocaleLowerCase() === 'v' && !ev.ctrlKey) {
+  if (!isQuery) {
     window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Query VSync' });
     setVSyncData();
     window.publish(window.SmartEvent.UI.Loading, { loading: false, text: 'Query VSync' });
-    vSyncEnable = !vSyncEnable;
-    handler?.();
+    if (ev.key.toLocaleLowerCase() === 'v' && !ev.ctrlKey) {
+      vSyncEnable = !vSyncEnable;
+      handler?.();
+    }
   }
 }
 
@@ -147,7 +151,8 @@ function ns2x(ns: number, width: number): number {
   let startNS = TraceRow.range?.startNS || 0;
   let endNS = TraceRow.range?.endNS || 0;
   if (endNS === 0) {
-    endNS = (window as any).totalNS;
+    //@ts-ignore
+    endNS = (window as unknown).totalNS;
   }
   let xWidth: number = ((ns - startNS) * width) / (endNS - startNS);
   if (xWidth < 0) {

@@ -14,7 +14,6 @@
  */
 
 import {
-  BaseStruct,
   dataFilterHandler,
   isFrameContainPoint,
   Rect,
@@ -26,7 +25,7 @@ import {
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
 import { ThreadStruct as BaseThreadStruct } from '../../bean/ThreadStruct';
-import { SpSystemTrace } from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 import { SpSegmentationChart } from '../../component/chart/SpSegmentationChart';
 import { ns2x } from './ProcedureWorkerCommon';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
@@ -42,7 +41,7 @@ export class ThreadRender extends Render {
       translateY: number;
     },
     row: TraceRow<ThreadStruct>
-  ) {
+  ): void {
     let threadList = row.dataList;
     let threadFilter = row.dataListCache;
     dataFilterHandler(threadList, threadFilter, {
@@ -63,13 +62,13 @@ export class ThreadRender extends Render {
       ThreadStruct.drawThread(threadReq.context, re);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame!, row.hoverX, row.hoverY)) {
         ThreadStruct.hoverThreadStruct = re;
-        find = true
+        find = true;
       }
     }
     threadReq.context.closePath();
   }
 
-  render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>) { }
+  render(threadReq: RequestMessage, threadList: Array<unknown>, threadFilter: Array<unknown>): void {}
 }
 
 export function ThreadStructOnClick(clickRowType: string, sp: SpSystemTrace, threadClickHandler: any, cpuClickHandler: any,  prioClickHandlerFunc: any) {
@@ -94,7 +93,7 @@ export class ThreadStruct extends BaseThreadStruct {
   static sColor = '#FBFBFB';
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
-  static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
+  static selectThreadStructList: Array<ThreadStruct> = [];
   static firstselectThreadStruct: ThreadStruct | undefined;
   static isClickPrio: boolean = false;
   static prioCount: Array<any> = [];

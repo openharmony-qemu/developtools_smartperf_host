@@ -115,8 +115,8 @@ export class SpRecordSetting extends BaseElement {
     if (durationInput.style.color !== 'var(--dark-color1,#000000)' && this.lastDurationValue) {
       durationInput.style.color = 'var(--dark-color1,#000000)';
       let durationList = this.lastDurationValue.split(':');
-      let resultDuration = Number(durationList[0]) * NUM_3600 +
-        Number(durationList[1]) * NUM_60 + Number(durationList[2]);
+      let resultDuration =
+        Number(durationList[0]) * NUM_3600 + Number(durationList[1]) * NUM_60 + Number(durationList[2]);
       durationInput.value = this.lastDurationValue;
       this.maxDurationSliders!.sliderStyle = {
         minRange: 10,
@@ -334,8 +334,8 @@ export class SpRecordSetting extends BaseElement {
     let regExpMatch = durationInput.value.trim().match('^\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}$');
     if (regExpMatch) {
       let durationList = regExpMatchArray.split(':');
-      let resultDuration = Number(durationList[0]) *
-        NUM_3600 + Number(durationList[1]) * NUM_60 + Number(durationList[2]);
+      let resultDuration =
+        Number(durationList[0]) * NUM_3600 + Number(durationList[1]) * NUM_60 + Number(durationList[2]);
       if (
         Number(durationList[0]) > NUM_60 ||
         Number(durationList[1]) > NUM_60 ||

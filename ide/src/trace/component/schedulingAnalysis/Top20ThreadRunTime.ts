@@ -29,30 +29,31 @@ export class Top20ThreadRunTime extends BaseElement {
   private threadRunTimeTbl: LitTable | null | undefined;
   private threadRunTimeProgress: LitProgressBar | null | undefined;
   private nodata: TableNoData | null | undefined;
-  private threadRunTimeData: Array<any> = [];
+  private threadRunTimeData: Array<unknown> = [];
 
   initElements(): void {
     this.threadRunTimeProgress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
     this.threadRunTimeTbl = this.shadowRoot!.querySelector<LitTable>('#tb-thread-run-time');
     this.nodata = this.shadowRoot!.querySelector<TableNoData>('#nodata');
 
-    this.threadRunTimeTbl!.addEventListener('row-click', (evt: any) => {
+    this.threadRunTimeTbl!.addEventListener('row-click', (evt: unknown): void => {
+      //@ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
-      if ((evt.detail as any).callBack) {
+      if ((evt.detail as unknown).callBack) {
         // @ts-ignore
-        (evt.detail as any).callBack(true);
+        (evt.detail as unknown).callBack(true);
       }
     });
 
-    this.threadRunTimeTbl!.addEventListener('column-click', (evt) => {
+    this.threadRunTimeTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
 
-  init() {
+  init(): void {
     if (!this.traceChange) {
       if (this.threadRunTimeTbl!.recycleDataSource.length > 0) {
         this.threadRunTimeTbl?.reMeauseHeight();
@@ -61,59 +62,63 @@ export class Top20ThreadRunTime extends BaseElement {
     }
     this.threadRunTimeProgress!.loading = true;
     this.traceChange = false;
-    this.queryLogicWorker(`scheduling-Thread RunTime`, `query Thread Cpu Run Time Analysis Time:`, (res) => {
+    this.queryLogicWorker('scheduling-Thread RunTime', 'query Thread Cpu Run Time Analysis Time:', (res): void => {
+      //@ts-ignore
       this.nodata!.noData = res === undefined || res.length === 0;
+      //@ts-ignore
       this.threadRunTimeTbl!.recycleDataSource = res;
       this.threadRunTimeTbl?.reMeauseHeight();
       this.threadRunTimeProgress!.loading = false;
+      //@ts-ignore
       this.threadRunTimeData = res;
     });
   }
 
-  clearData() {
+  clearData(): void {
     this.traceChange = true;
     this.threadRunTimeTbl!.recycleDataSource = [];
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
+  queryLogicWorker(option: string, log: string, handler: (res: unknown) => void): void {
     let threadRunTime = new Date().getTime();
     procedurePool.submitWithName('logic0', option, { cpuMax: SpSchedulingAnalysis.cpuCount - 1 }, undefined, handler);
     let durTime = new Date().getTime() - threadRunTime;
     info(log, durTime);
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(threadRunTimeProperty, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         if (type === 'number') {
-          // @ts-ignore
           return sort === 2
-            ? parseFloat(b[threadRunTimeProperty]) - parseFloat(a[threadRunTimeProperty])
-            : parseFloat(a[threadRunTimeProperty]) - parseFloat(b[threadRunTimeProperty]);
+            ? // @ts-ignore
+              parseFloat(b[threadRunTimeProperty]) - parseFloat(a[threadRunTimeProperty])
+            : //@ts-ignore
+              parseFloat(a[threadRunTimeProperty]) - parseFloat(b[threadRunTimeProperty]);
         } else {
           if (sort === 2) {
+            //@ts-ignore
             return b[threadRunTimeProperty].toString().localeCompare(a[threadRunTimeProperty].toString());
           } else {
+            //@ts-ignore
             return a[threadRunTimeProperty].toString().localeCompare(b[threadRunTimeProperty].toString());
           }
         }
       };
     }
-
-    if (detail.key === 'maxDurationStr') {
-      detail.key = 'maxDuration';
-      this.threadRunTimeData.sort(compare(detail.key, detail.sort, 'number'));
-    } else if (
-      detail.key === 'cpu' ||
-      detail.key === 'no' ||
-      detail.key === 'pid' ||
-      detail.key === 'tid' ||
-      detail.key === 'timestamp'
-    ) {
-      this.threadRunTimeData.sort(compare(detail.key, detail.sort, 'number'));
+    //@ts-ignore
+    let key = detail.key;
+    if (key === 'maxDurationStr') {
+      key = 'maxDuration';
+      //@ts-ignore
+      this.threadRunTimeData.sort(compare(key, detail.sort, 'number'));
+    } else if (key === 'cpu' || key === 'no' || key === 'pid' || key === 'tid' || key === 'timestamp') {
+      //@ts-ignore
+      this.threadRunTimeData.sort(compare(key, detail.sort, 'number'));
     } else {
-      this.threadRunTimeData.sort(compare(detail.key, detail.sort, 'string'));
+      //@ts-ignore
+      this.threadRunTimeData.sort(compare(key, detail.sort, 'string'));
     }
     this.threadRunTimeTbl!.recycleDataSource = this.threadRunTimeData;
   }

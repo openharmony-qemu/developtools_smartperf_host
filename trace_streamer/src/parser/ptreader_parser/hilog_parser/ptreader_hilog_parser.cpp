@@ -19,14 +19,14 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-PtreaderHilogParser::PtreaderHilogParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
+PtreaderHilogParser::PtreaderHilogParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters)
     : EventParserBase(dataCache, filters)
 {
 }
 
 PtreaderHilogParser::~PtreaderHilogParser() = default;
 
-bool PtreaderHilogParser::HilogTimeStrToTimestamp(std::string& timeStr, uint64_t& timeStamp) const
+bool PtreaderHilogParser::HilogTimeStrToTimestamp(std::string &timeStr, uint64_t &timeStamp) const
 {
     uint64_t sec;
     uint64_t nsec;
@@ -52,7 +52,7 @@ bool PtreaderHilogParser::HilogTimeStrToTimestamp(std::string& timeStr, uint64_t
             timeInfo.tm_year = optionalYear.value() - TM_YEAR_FROM;
         } else {
             auto tmNow = time(nullptr);
-            tm* ptmNow = localtime(&tmNow);
+            tm *ptmNow = localtime(&tmNow);
             timeInfo.tm_year = ptmNow->tm_year;
         }
         timeInfo.tm_mon = base::StrToInt<uint32_t>(monthStr).value() - 1;
@@ -76,7 +76,7 @@ bool PtreaderHilogParser::HilogTimeStrToTimestamp(std::string& timeStr, uint64_t
     return true;
 }
 
-void PtreaderHilogParser::ParseHilogDataItem(const std::string& buffer, const uint64_t lineSeq, bool& haveSplitSeg)
+void PtreaderHilogParser::ParseHilogDataItem(const std::string &buffer, const uint64_t lineSeq, bool &haveSplitSeg)
 {
     std::smatch matcheLine;
     if (!std::regex_search(buffer, matcheLine, hilogMatcher_)) {
@@ -131,19 +131,19 @@ void PtreaderHilogParser::FilterHilogData(std::unique_ptr<HilogLine> bufLine)
 
 void PtreaderHilogParser::FilterAllHilogData()
 {
-    auto cmp = [](const std::unique_ptr<HilogLine>& a, const std::unique_ptr<HilogLine>& b) {
+    auto cmp = [](const std::unique_ptr<HilogLine> &a, const std::unique_ptr<HilogLine> &b) {
         return a->timeStamp < b->timeStamp;
     };
     std::sort(hilogList_.begin(), hilogList_.end(), cmp);
-    for (auto& item : hilogList_) {
-        HilogLine* hilogData = item.get();
+    for (auto &item : hilogList_) {
+        HilogLine *hilogData = item.get();
         BeginFilterHilogData(hilogData);
     }
 
     hilogList_.clear();
 }
 
-void PtreaderHilogParser::BeginFilterHilogData(HilogLine* hilogData)
+void PtreaderHilogParser::BeginFilterHilogData(HilogLine *hilogData)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_HILOG, STAT_EVENT_RECEIVED);
     traceDataCache_->UpdateTraceTime(hilogData->timeStamp);

@@ -34,11 +34,11 @@ export class LitTableColumn extends HTMLElement {
         `;
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['name', 'order'];
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     this.template = null;
     this.st = this.shadowRoot?.querySelector('#slot');
     this.st?.addEventListener('slotchange', () => {
@@ -49,9 +49,9 @@ export class LitTableColumn extends HTMLElement {
     });
   }
 
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {}
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {}
 }

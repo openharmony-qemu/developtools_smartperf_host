@@ -19,7 +19,7 @@ import { SelectionParam } from '../../../../bean/BoxSelection';
 import { resizeObserver } from '../SheetUtils';
 import { Utils } from '../../base/Utils';
 import { SliceGroup } from '../../../../bean/StateProcessThread';
-import {sliceSPTSender} from "../../../../database/data-trafic/SliceSender";
+import { sliceSPTSender } from '../../../../database/data-trafic/SliceSender';
 
 @element('tabpane-pts')
 export class TabPanePTS extends BaseElement {
@@ -27,14 +27,15 @@ export class TabPanePTS extends BaseElement {
   private ptsRange: HTMLLabelElement | null | undefined;
   private selectionParam: SelectionParam | null | undefined;
 
-  set data(ptsValue: SelectionParam | any) {
-    if (ptsValue == this.selectionParam) {
+  set data(ptsValue: SelectionParam | unknown) {
+    if (ptsValue === this.selectionParam) {
       return;
-    }
+    } // @ts-ignore
     this.selectionParam = ptsValue;
     this.ptsRange!.textContent =
-      'Selected range: ' + parseFloat(((ptsValue.rightNs - ptsValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
-    this.getDataByPTS(ptsValue.leftNs, ptsValue.rightNs, ptsValue.cpus);
+      // @ts-ignore
+      `Selected range: ${parseFloat(((ptsValue.rightNs - ptsValue.leftNs) / 1000000.0).toFixed(5))} ms`; // @ts-ignore
+    this.getDataByPTS(ptsValue.leftNs, ptsValue.rightNs, ptsValue.cpus, ptsValue.traceId);
   }
 
   initElements(): void {
@@ -43,20 +44,21 @@ export class TabPanePTS extends BaseElement {
     this.ptsTbl!.itemTextHandleMap.set('title', Utils.transferPTSTitle);
   }
 
-  getDataByPTS(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>) {
+  getDataByPTS(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>, traceId?: string): void {
     this.ptsTbl!.loading = true;
-    sliceSPTSender(ptsLeftNs, ptsRightNs, cpus, 'spt-getPTS').then(res => {
+    sliceSPTSender(ptsLeftNs, ptsRightNs, cpus, 'spt-getPTS', traceId).then((res): void => {
       this.ptsTbl!.loading = false;
       this.ptsTbl!.recycleDataSource = res;
+      //@ts-ignore
       this.theadClick(res);
     });
   }
-  private theadClick(data: Array<SliceGroup>) {
+  private theadClick(data: Array<SliceGroup>): void {
     let labels = this.ptsTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
-        labels[i].addEventListener('click', (e) => {
+        labels[i].addEventListener('click', (): void => {
           if (label.includes('Process') && i === 0) {
             this.ptsTbl!.setStatus(data, false);
             this.ptsTbl!.recycleDs = this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
@@ -72,7 +74,7 @@ export class TabPanePTS extends BaseElement {
     }
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.ptsTbl!);
   }
@@ -86,7 +88,7 @@ export class TabPanePTS extends BaseElement {
         </style>
         <label id="pts-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="pts-tbl" style="height: auto" tree>
-            <lit-table-column class="pts-column" title="Process/Thread/State" data-index="title" key="title" align="flex-start" width="27%"retract>
+            <lit-table-column class="pts-column" title="Process/Thread/State" data-index="title" key="title" align="flex-start" width="27%" retract>
             </lit-table-column>
             <lit-table-column class="pts-column" title="Count" data-index="count" key="count" align="flex-start" width="1fr">
             </lit-table-column>

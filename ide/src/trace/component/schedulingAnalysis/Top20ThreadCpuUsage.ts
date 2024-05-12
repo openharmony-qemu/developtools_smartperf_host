@@ -46,11 +46,11 @@ export class Top20ThreadCpuUsage extends BaseElement {
   private progress: LitProgressBar | null | undefined;
   private nodata: TableNoData | null | undefined;
   private map: Map<string, { chart: LitChartColumn; table: LitTable }> | undefined;
-  private data: Array<any> = [];
-  private dataBig: Array<any> = [];
-  private dataMid: Array<any> = [];
-  private dataSmall: Array<any> = [];
-  private sort: any = {
+  private data: Array<unknown> = [];
+  private dataBig: Array<unknown> = [];
+  private dataMid: Array<unknown> = [];
+  private dataSmall: Array<unknown> = [];
+  private sort: unknown = {
     total: { key: '', sort: 0 },
     small: { key: '', sort: 0 },
     mid: { key: '', sort: 0 },
@@ -105,20 +105,25 @@ export class Top20ThreadCpuUsage extends BaseElement {
     this.map.set('big', { chart: this.chart4!, table: this.tableBig! });
     this.setting = this.shadowRoot!.querySelector<HTMLDivElement>('#setting');
     this.cpuSetting = this.shadowRoot!.querySelector<CheckCpuSetting>('#cpu_setting');
-    this.cpuSetting!.cpuSetListener = () => {
+    this.cpuSetting!.cpuSetListener = (): void => {
       this.cpuSetting!.style.display = 'none';
-      (this.shadowRoot!.querySelector('#total')! as any).style.display = 'grid';
-      (this.shadowRoot!.querySelector('#small')! as any).style.display =
+      //@ts-ignore
+      (this.shadowRoot!.querySelector('#total')! as unknown).style.display = 'grid';
+      //@ts-ignore
+      (this.shadowRoot!.querySelector('#small')! as unknown).style.display =
         CheckCpuSetting.small_cores.length > 0 ? 'grid' : 'none';
-      (this.shadowRoot!.querySelector('#mid')! as any).style.display =
+      //@ts-ignore
+      (this.shadowRoot!.querySelector('#mid')! as unknown).style.display =
         CheckCpuSetting.mid_cores.length > 0 ? 'grid' : 'none';
-      (this.shadowRoot!.querySelector('#big')! as any).style.display =
+      //@ts-ignore
+      (this.shadowRoot!.querySelector('#big')! as unknown).style.display =
         CheckCpuSetting.big_cores.length > 0 ? 'grid' : 'none';
       this.queryData();
     };
-    this.setting?.addEventListener('click', (event) => {
+    this.setting?.addEventListener('click', (): void => {
       for (let node of this.shadowRoot!.querySelectorAll('.content_grid')) {
-        (node as any).style.display = 'none';
+        //@ts-ignore
+        (node as unknown).style.display = 'none';
       }
       this.cpuSetting!.style.display = 'inline';
       this.cpuSetting?.init();
@@ -130,34 +135,45 @@ export class Top20ThreadCpuUsage extends BaseElement {
     for (let key of this.map!.keys()) {
       let tab = this.map!.get(key)!.table;
       let chart = this.map!.get(key)!.chart;
-      tab!.addEventListener('row-click', (evt: any) => {
+      tab!.addEventListener('row-click', (evt: unknown): void => {
+        //@ts-ignore
         let data = evt.detail.data;
         data.isSelected = true;
         // @ts-ignore
-        if ((evt.detail as any).callBack) {
+        if ((evt.detail as unknown).callBack) {
           // @ts-ignore
-          (evt.detail as any).callBack(true);
+          (evt.detail as unknown).callBack(true);
         }
       });
-      tab!.addEventListener('column-click', (evt: any) => {
+      tab!.addEventListener('column-click', (evt: unknown): void => {
+        //@ts-ignore
         this.sort[key].key = evt.detail.key;
+        //@ts-ignore
         this.sort[key].sort = evt.detail.sort;
-        if (key == 'total') {
+        if (key === 'total') {
+          //@ts-ignore
           this.sortByColumn(evt.detail, tab, this.data);
-        } else if (key == 'small') {
+        } else if (key === 'small') {
+          //@ts-ignore
           this.sortByColumn(evt.detail, tab, this.dataSmall);
-        } else if (key == 'mid') {
+        } else if (key === 'mid') {
+          //@ts-ignore
           this.sortByColumn(evt.detail, tab, this.dataMid);
-        } else if (key == 'big') {
+        } else if (key === 'big') {
+          //@ts-ignore
           this.sortByColumn(evt.detail, tab, this.dataBig);
         }
       });
-      tab!.addEventListener('row-hover', (evt: any) => {
+      tab!.addEventListener('row-hover', (evt: unknown): void => {
+        //@ts-ignore
         if (evt.detail.data) {
+          //@ts-ignore
           let data = evt.detail.data;
           data.isHover = true;
-          if ((evt.detail as any).callBack) {
-            (evt.detail as any).callBack(true);
+          //@ts-ignore
+          if ((evt.detail as unknown).callBack) {
+            //@ts-ignore
+            (evt.detail as unknown).callBack(true);
           }
           chart.showHoverColumn(data.no);
         }
@@ -165,19 +181,22 @@ export class Top20ThreadCpuUsage extends BaseElement {
     }
   }
 
-  sortByColumn(detail: any, table: LitTable | null | undefined, data: Array<any>) {
+  sortByColumn(detail: unknown, table: LitTable | null | undefined, data: Array<unknown>): void {
     // @ts-ignore
     function compare(threadCpuUsageProperty, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         if (type === 'number') {
-          // @ts-ignore
           return sort === 2
-            ? parseFloat(b[threadCpuUsageProperty]) - parseFloat(a[threadCpuUsageProperty])
-            : parseFloat(a[threadCpuUsageProperty]) - parseFloat(b[threadCpuUsageProperty]);
+            ? // @ts-ignore
+              parseFloat(b[threadCpuUsageProperty]) - parseFloat(a[threadCpuUsageProperty])
+            : //@ts-ignore
+              parseFloat(a[threadCpuUsageProperty]) - parseFloat(b[threadCpuUsageProperty]);
         } else {
           if (sort === 2) {
+            //@ts-ignore
             return b[threadCpuUsageProperty].toString().localeCompare(a[threadCpuUsageProperty].toString());
           } else {
+            //@ts-ignore
             return a[threadCpuUsageProperty].toString().localeCompare(b[threadCpuUsageProperty].toString());
           }
         }
@@ -185,29 +204,32 @@ export class Top20ThreadCpuUsage extends BaseElement {
     }
 
     let type = 'number';
+    //@ts-ignore
+    let key = detail.key;
 
-    if (detail.key === 'bigTimeStr') {
-      detail.key = 'big';
-    } else if (detail.key === 'midTimeStr') {
-      detail.key = 'mid';
-    } else if (detail.key === 'smallTimeStr') {
-      detail.key = 'small';
+    if (key === 'bigTimeStr') {
+      key = 'big';
+    } else if (key === 'midTimeStr') {
+      key = 'mid';
+    } else if (key === 'smallTimeStr') {
+      key = 'small';
     } else if (
-      detail.key === 'bigPercent' ||
-      detail.key === 'ratio' ||
-      detail.key === 'tid' ||
-      detail.key === 'pid' ||
-      detail.key === 'midPercent' ||
-      detail.key.includes('cpu')
+      key === 'bigPercent' ||
+      key === 'ratio' ||
+      key === 'tid' ||
+      key === 'pid' ||
+      key === 'midPercent' ||
+      key.includes('cpu')
     ) {
     } else {
       type = 'string';
     }
-    data.sort(compare(detail.key, detail.sort, type));
+    //@ts-ignore
+    data.sort(compare(key, detail.sort, type));
     table!.recycleDataSource = data;
   }
 
-  init() {
+  init(): void {
     if (!this.traceChange) {
       for (let key of this.map!.keys()) {
         this.map!.get(key)!.table.reMeauseHeight();
@@ -230,7 +252,8 @@ export class Top20ThreadCpuUsage extends BaseElement {
 
     if (!CheckCpuSetting.init_setting) {
       for (let node of this.shadowRoot!.querySelectorAll('.content_grid')) {
-        (node as any).style.display = 'none';
+        //@ts-ignore
+        (node as unknown).style.display = 'none';
       }
       this.cpuSetting!.style.display = 'inline';
       this.cpuSetting?.init();
@@ -239,7 +262,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     }
   }
 
-  clearData() {
+  clearData(): void {
     this.traceChange = true;
     for (let key of this.map!.keys()) {
       this.map!.get(key)!.chart.dataSource = [];
@@ -249,35 +272,53 @@ export class Top20ThreadCpuUsage extends BaseElement {
 
   queryData(): void {
     this.progress!.loading = true;
-    this.queryLogicWorker(`scheduling-Thread CpuUsage`, `query Thread Cpu Usage Analysis Time:`, (res) => {
+    this.queryLogicWorker('scheduling-Thread CpuUsage', 'query Thread Cpu Usage Analysis Time:', (res): void => {
+      //@ts-ignore
       this.nodata!.noData = res.keys().length === 0;
       for (let key of this.map!.keys()) {
         let obj = this.map!.get(key)!;
-        let source: any[] = res.get(key) || [];
-        source = source.map((it: any, index: number) => {
-          let data: any = {
+        //@ts-ignore
+        let source: unknown[] = res.get(key) || [];
+        source = source.map((it: unknown, index: number) => {
+          let data: unknown = {
+            //@ts-ignore
             pid: it.pid,
+            //@ts-ignore
             pName: it.pName,
+            //@ts-ignore
             tid: it.tid,
+            //@ts-ignore
             tName: it.tName,
+            //@ts-ignore
             total: it.total,
+            //@ts-ignore
             big: it.big,
+            //@ts-ignore
             mid: it.mid,
+            //@ts-ignore
             small: it.small,
             no: index + 1,
             visible: 1,
+            //@ts-ignore
             bigPercent: it.bigPercent,
+            //@ts-ignore
             midPercent: it.midPercent,
+            //@ts-ignore
             smallPercent: it.smallPercent,
+            //@ts-ignore
             bigTimeStr: it.bigTimeStr,
+            //@ts-ignore
             midTimeStr: it.midTimeStr,
+            //@ts-ignore
             smallTimeStr: it.smallTimeStr,
-            hideHandler: () => {
+            hideHandler: (): void => {
+              //@ts-ignore
               let arr = source.filter((o) => o.visible === 1);
               obj.chart.dataSource = this.getArrayDataBySize(key, arr);
             },
           };
           for (let i = 0; i < SpSchedulingAnalysis.cpuCount; i++) {
+            //@ts-ignore
             data[`cpu${i}`] = (it[`cpu${i}`] || 0) / 1000;
           }
           return data;
@@ -289,63 +330,72 @@ export class Top20ThreadCpuUsage extends BaseElement {
     });
   }
 
-  private assignmentData(key: string, source: any[], obj: { chart: LitChartColumn; table: LitTable }): void {
-    if (key == 'total') {
+  private assignmentData(key: string, source: unknown[], obj: { chart: LitChartColumn; table: LitTable }): void {
+    if (key === 'total') {
       this.data = source;
-    } else if (key == 'small') {
+    } else if (key === 'small') {
       this.dataSmall = source;
-    } else if (key == 'mid') {
+    } else if (key === 'mid') {
       this.dataMid = source;
-    } else if (key == 'big') {
+    } else if (key === 'big') {
       this.dataBig = source;
     }
-    if (this.sort[key].key != '') {
+    //@ts-ignore
+    if (this.sort[key].key !== '') {
+      //@ts-ignore
       this.sortByColumn(this.sort[key], obj.table, source);
     } else {
       obj.table.recycleDataSource = source;
     }
   }
 
-  private setChartConfig(obj: { chart: LitChartColumn; table: LitTable }, key: string, source: any[]): void {
+  private setChartConfig(obj: { chart: LitChartColumn; table: LitTable }, key: string, source: unknown[]): void {
     obj.chart.config = {
       data: this.getArrayDataBySize(key, source),
       appendPadding: 10,
       xField: 'tid',
       yField: 'total',
       seriesField: key === 'total' ? 'size' : '',
-      color: (a) => {
+      color: (a): string => {
+        //@ts-ignore
         if (a.size === 'big core') {
-          return '#2f72f8';
+          return '#2f72f8'; //@ts-ignore
         } else if (a.size === 'middle core') {
-          return '#ffab67';
+          return '#ffab67'; //@ts-ignore
         } else if (a.size === 'small core') {
           return '#a285d2';
         } else {
           return '#0a59f7';
         }
       },
-      hoverHandler: (no) => {
+      hoverHandler: (no): void => {
         this.setHover(source, no, obj);
       },
-      tip: (a) => {
+      tip: (a): string => {
+        //@ts-ignore
         if (a && a[0]) {
           let tip = '';
-          let total = 0;
+          let total = 0; //@ts-ignore
           for (let obj of a) {
             total += obj.obj.total;
             tip = `${tip}
                                 <div style="display:flex;flex-direction: row;align-items: center;">
-                                    <div style="width: 10px;height: 5px;background-color: ${
-                                      obj.color
-                                    };margin-right: 5px"></div>
+                                    <div style="width: 10px;height: 5px;background-color: ${obj.color};
+                                    margin-right: 5px"></div>
                                     <div>${obj.type || key}:${obj.obj.timeStr}</div>
                                 </div>
                             `;
           }
           tip = `<div>
-                                        <div>tid:${a[0].obj.tid}</div>
+                                        <div>tid:${
+                                          //@ts-ignore
+                                          a[0].obj.tid
+                                        }</div>
                                         ${tip}
-                                        ${a.length > 1 ? `<div>total:${getProbablyTime(total)}</div>` : ''}
+                                        ${
+                                          //@ts-ignore
+                                          a.length > 1 ? `<div>total:${getProbablyTime(total)}</div>` : ''
+                                        }
                                     </div>`;
           return tip;
         } else {
@@ -356,9 +406,11 @@ export class Top20ThreadCpuUsage extends BaseElement {
     };
   }
 
-  private setHover(source: any[], no: number, obj: { chart: LitChartColumn; table: LitTable }): void {
+  private setHover(source: unknown[], no: number, obj: { chart: LitChartColumn; table: LitTable }): void {
+    //@ts-ignore
     let data = source.find((it) => it.no === no);
     if (data) {
+      //@ts-ignore
       data.isHover = true;
       obj.table!.setCurrentHover(data);
     } else {
@@ -366,48 +418,52 @@ export class Top20ThreadCpuUsage extends BaseElement {
     }
   }
 
-  getArrayDataBySize(type: string, arr: Array<any>) {
-    let data: any[] = [];
+  getArrayDataBySize(type: string, arr: Array<unknown>): unknown[] {
+    let data: unknown[] = [];
     for (let obj of arr) {
       if (type === 'total') {
         data.push({
-          pid: obj.pid,
-          pName: obj.pName,
-          tid: obj.tid,
-          tName: obj.tName,
+          //@ts-ignore
+          pid: obj.pid, //@ts-ignore
+          pName: obj.pName, //@ts-ignore
+          tid: obj.tid, //@ts-ignore
+          tName: obj.tName, //@ts-ignore
           total: obj.big,
-          size: 'big core',
-          no: obj.no,
+          size: 'big core', //@ts-ignore
+          no: obj.no, //@ts-ignore
           timeStr: obj.bigTimeStr,
         });
         data.push({
-          pid: obj.pid,
-          pName: obj.pName,
-          tid: obj.tid,
-          tName: obj.tName,
+          //@ts-ignore
+          pid: obj.pid, //@ts-ignore
+          pName: obj.pName, //@ts-ignore
+          tid: obj.tid, //@ts-ignore
+          tName: obj.tName, //@ts-ignore
           total: obj.mid,
-          size: 'middle core',
-          no: obj.no,
+          size: 'middle core', //@ts-ignore
+          no: obj.no, //@ts-ignore
           timeStr: obj.midTimeStr,
         });
         data.push({
-          pid: obj.pid,
-          pName: obj.pName,
-          tid: obj.tid,
-          tName: obj.tName,
+          //@ts-ignore
+          pid: obj.pid, //@ts-ignore
+          pName: obj.pName, //@ts-ignore
+          tid: obj.tid, //@ts-ignore
+          tName: obj.tName, //@ts-ignore
           total: obj.small,
-          size: 'small core',
-          no: obj.no,
+          size: 'small core', //@ts-ignore
+          no: obj.no, //@ts-ignore
           timeStr: obj.smallTimeStr,
         });
       } else {
         data.push({
-          pid: obj.pid,
-          pName: obj.pName,
-          tid: obj.tid,
-          tName: obj.tName,
-          total: obj[type],
-          no: obj.no,
+          //@ts-ignore
+          pid: obj.pid, //@ts-ignore
+          pName: obj.pName, //@ts-ignore
+          tid: obj.tid, //@ts-ignore
+          tName: obj.tName, //@ts-ignore
+          total: obj[type], //@ts-ignore
+          no: obj.no, //@ts-ignore
           timeStr: obj[`${type}TimeStr`],
         });
       }
@@ -415,7 +471,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     return data;
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
+  queryLogicWorker(option: string, log: string, handler: (res: unknown) => void): void {
     let time = new Date().getTime();
     procedurePool.submitWithName(
       'logic0',
@@ -432,7 +488,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     info(log, durTime);
   }
 
-  getTableColumns(type: string) {
+  getTableColumns(type: string): string {
     if (type === 'total') {
       return `${this.publicColumns}${this.bigColumn}${this.midColumn}${this.smallColumn}`;
     } else if (type === 'big') {

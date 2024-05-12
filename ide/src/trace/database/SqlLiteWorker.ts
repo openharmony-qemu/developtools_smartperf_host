@@ -18,126 +18,76 @@ import { temp_init_sql_list } from './TempSql';
 import { execProtoForWorker } from './data-trafic/utils/ExecProtoForWorker';
 import { TraficEnum } from './data-trafic/utils/QueryEnum';
 
-let conn: any = null;
-let encoder = new TextEncoder();
-function initIndexedDB() {
-  return new Promise((resolve, reject) => {
-    let request = indexedDB.open('systrace');
-    request.onerror = function (event) {};
-    request.onsuccess = function (event) {
-      let db = request.result;
-      resolve(db);
-    };
-    request.onupgradeneeded = function (event) {
-      // @ts-ignore
-      let db = event!.target!.result;
-      if (!db.objectStoreNames.contains('connection')) {
-        db.createObjectStore('connection', { autoIncrement: true });
-      }
-    };
-  });
-}
+let conn: unknown = null;
 
-function readConnection(store: IDBObjectStore) {
-  return new Promise((resolve, reject) => {
-    let readRequest = store.get(1);
-    readRequest.onsuccess = function (event): void {
-      // @ts-ignore
-      resolve(event.target.result);
-    };
-    readRequest.onerror = function (event): void {
-      // @ts-ignore
-      reject(event.target.result);
-    };
-  });
-}
+self.onerror = function (error): void {};
 
-function deleteConnection(store: IDBObjectStore, id: number): Promise<unknown> {
-  return new Promise((resolve, reject) => {
-    let deleteRequest = store.delete(id);
-    deleteRequest.onsuccess = function (event): void {
-      // @ts-ignore
-      resolve(event.target.result);
-    };
-    deleteRequest.onerror = function (event): void {
-      // @ts-ignore
-      reject(event.target.result);
-    };
-  });
-}
-
-let mergedUnitArray = (bufferSliceUint8: Array<Uint8Array>) => {
-  let length = 0;
-  bufferSliceUint8.forEach((item) => {
-    length += item.length;
-  });
-  let mergedArray = new Uint8Array(length);
-  let offset = 0;
-  bufferSliceUint8.forEach((item) => {
-    mergedArray.set(item, offset);
-    offset += item.length;
-  });
-  return mergedArray;
-};
-
-self.onerror = function (error) {};
-
-self.onmessage = async (e: any) => {
-  if (e.data.action === 'open') {
+self.onmessage = async (e: unknown): Promise<void> => {
+  //@ts-ignore
+  const action = e.data.action;
+  //@ts-ignore
+  const id = e.data.id;
+  if (action === 'open') {
+    //@ts-ignore
     let array = new Uint8Array(e.data.buffer);
     // @ts-ignore
-    initSqlJs({ locateFile: (filename) => `${filename}` }).then((SQL: any) => {
-      conn = new SQL.Database(array);
+    initSqlJs({ locateFile: (filename) => `${filename}` }).then((SQL: unknown) => {
       // @ts-ignore
-      self.postMessage({ id: e.data.id, ready: true, index: 0 });
+      conn = new SQL.Database(array);
+      self.postMessage({ id: id, ready: true, index: 0 });
       temp_init_sql_list.forEach((item, index) => {
-        let r = conn.exec(item);
         // @ts-ignore
+        let r = conn.exec(item);
         self.postMessage({
-          id: e.data.id,
+          id: id,
           ready: true,
           index: index + 1,
         });
       });
-      // @ts-ignore
-      self.postMessage({ id: e.data.id, init: true });
+      self.postMessage({ id: id, init: true });
     });
-  } else if (e.data.action === 'close') {
-  } else if (e.data.action === 'exec' || e.data.action === 'exec-buf' || e.data.action === 'exec-metric') {
+  } else if (action === 'close') {
+  } else if (action === 'exec' || action === 'exec-buf' || action === 'exec-metric') {
     try {
-      let action = e.data.action; //: "exec"
+      //@ts-ignore
       let sql = e.data.sql;
+      //@ts-ignore
       let params = e.data.params;
+      // @ts-ignore
       const stmt = conn.prepare(sql);
       stmt.bind(params);
       let res = [];
       while (stmt.step()) {
-        //
+        //@ts-ignore
         res.push(stmt.getAsObject());
       }
       stmt.free();
       // @ts-ignore
-      self.postMessage({ id: e.data.id, results: res });
-    } catch (err: any) {
-      // @ts-ignore
+      self.postMessage({ id: id, results: res });
+    } catch (err) {
       self.postMessage({
-        id: e.data.id,
+        id: id,
         results: [],
+        //@ts-ignore
         error: err.message,
       });
     }
-  } else if (e.data.action === 'exec-proto') {
+  } else if (action === 'exec-proto') {
+    //@ts-ignore
     e.data.params.trafic = TraficEnum.Memory;
+    //@ts-ignore
     execProtoForWorker(e.data, (sql: string) => {
       try {
+        // @ts-ignore
         const stmt = conn.prepare(sql);
         let res = [];
         while (stmt.step()) {
+          //@ts-ignore
           res.push(stmt.getAsObject());
         }
         stmt.free();
         return res;
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.log(err);
         return [];
       }

@@ -33,6 +33,10 @@ export const LitTreeNodeHtmlStyle = `
             margin-left: 15px;
          }
          
+         :host([arrow])  #checkbox{
+            display: none;
+         }
+         
          :host([top-depth])  #item{
             margin-left: 0;
          }

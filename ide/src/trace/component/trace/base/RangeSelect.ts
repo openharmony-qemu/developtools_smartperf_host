@@ -21,13 +21,14 @@ import './Extension';
 import { SpSystemTrace } from '../../SpSystemTrace';
 import { fuzzyQueryFuncRowData, queryFuncRowData } from '../../../database/sql/Func.sql';
 import { SpLtpoChart } from '../../chart/SpLTPO';
+import { isEmpty, isNotEmpty } from './Extension';
 
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;
   private rowsPaneEL: HTMLDivElement | undefined | null;
-  isMouseDown: boolean = false;
-  public rangeTraceRow: Array<TraceRow<any>> | undefined;
-  public selectHandler: ((ds: Array<TraceRow<any>>, refreshCheckBox: boolean) => void) | undefined;
+  isMouseDown: boolean = false; // @ts-ignore
+  public rangeTraceRow: Array<TraceRow<unknown>> | undefined; // @ts-ignore
+  public selectHandler: ((ds: Array<TraceRow<unknown>>, refreshCheckBox: boolean) => void) | undefined;
   private startPageX: number = 0;
   private startPageY: number = 0;
   private endPageX: number = 0;
@@ -74,18 +75,19 @@ export class RangeSelect {
     this.trace?.visibleRows.forEach((row) => {
       if (row.getAttribute('name')?.startsWith('render_service')) {
         if (row.getAttribute('row-type') === 'process') {
-          this.queryRowsData(row.childrenList)
+          this.queryRowsData(row.childrenList);
         } else {
-          this.queryRowsData(row.parentRowEl!.childrenList)
+          this.queryRowsData(row.parentRowEl!.childrenList);
         }
         return;
       }
-    })
+    });
   }
 
   // 对应查询方法行所有的数据
-  queryRowsData(rowList: Array<TraceRow<any>>) {
-    rowList.forEach((row) => {
+  // @ts-ignore
+  queryRowsData(rowList: Array<TraceRow<unknown>>): void {
+    rowList.forEach((row): void => {
       if (row.getAttribute('row-type') === 'func') {
         if (row.getAttribute('name')?.startsWith('render_service')) {
           this.saveFrameRateData(row, 'H:RSMainThread::DoComposition');
@@ -95,39 +97,39 @@ export class RangeSelect {
           this.savePresentData(row, 'H:Waiting for Present Fence');
         }
       }
-    })
+    });
   }
 
   // 查到所有的数据存储起来
-  saveFrameRateData(row: TraceRow<any>, funcName: string): void {
-    let dataList: any = []
-    queryFuncRowData(
-      funcName,
-      Number(row?.getAttribute('row-id')),
-    ).then((res) => {
+  // @ts-ignore
+  saveFrameRateData(row: TraceRow<unknown>, funcName: string): void {
+    let dataList: unknown = [];
+    queryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void => {
       if (res.length) {
-        res.forEach((item) => {
+        res.forEach((item): void => {
+          // @ts-ignore
           dataList?.push({ startTime: item.startTime!, tid: item.tid });
         });
         if (funcName === 'H:RSMainThread::DoComposition') {
+          // @ts-ignore
           this.docomList = dataList;
         } else {
+          // @ts-ignore
           this.repaintList = dataList;
         }
       }
     });
   }
   // 查到present泳道所有的数据存储起来
-  savePresentData(row: TraceRow<any>, funcName: string): void {
-    let dataList: any = []
-    fuzzyQueryFuncRowData(
-      funcName,
-      Number(row?.getAttribute('row-id')),
-    ).then((res) => {
+  // @ts-ignore
+  savePresentData(row: TraceRow<unknown>, funcName: string): void {
+    let dataList: unknown = [];
+    fuzzyQueryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void => {
       if (res.length) {
-        res.forEach((item) => {
+        res.forEach((item): void => {
+          // @ts-ignore
           dataList?.push({ endTime: item.endTime!, tid: item.tid });
-        });
+        }); // @ts-ignore
         this.presentList = dataList;
       }
     });
@@ -144,16 +146,19 @@ export class RangeSelect {
       }
       //查询render_service数据
       if (this.rangeTraceRow?.length) {
-        this.checkRowsName(this.rangeTraceRow)
+        this.checkRowsName(this.rangeTraceRow);
       }
     }
     this.isMouseDown = false;
   }
-
-
-  checkRowsName(rowList: Array<TraceRow<any>>) {
-    rowList.forEach((row) => {
-      if (row.getAttribute('row-type') === 'func' && row.parentRowEl?.getAttribute('name')?.startsWith('render_service')) {
+  // @ts-ignore
+  checkRowsName(rowList: Array<TraceRow<unknown>>): void {
+    rowList.forEach((row): void => {
+      if (
+        row.getAttribute('row-type') === 'func' &&
+        row.parentRowEl?.getAttribute('name')?.startsWith('render_service')
+      ) {
+        row.frameRateList = [];
         if (row.getAttribute('name')?.startsWith('render_service')) {
           this.filterRateData(row, this.docomList);
         } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
@@ -162,65 +167,74 @@ export class RangeSelect {
           this.filterPresentData(row, this.presentList);
         }
       }
-    })
+    });
   }
 
   // 过滤处理数据
-  filterRateData(row: TraceRow<any>, data: any) {
-    data.forEach((it: any) => {
+  // @ts-ignore
+  filterRateData(row: TraceRow<unknown>, data: unknown): void {
+    // @ts-ignore
+    data.forEach((it: unknown): void => {
       if (
-        it.startTime >= TraceRow.rangeSelectObject!.startNS! &&
-        it.startTime <= TraceRow.rangeSelectObject!.endNS! &&
+        // @ts-ignore
+        it.startTime >= TraceRow.rangeSelectObject!.startNS! && // @ts-ignore
+        it.startTime <= TraceRow.rangeSelectObject!.endNS! && // @ts-ignore
         Number(row.rowId) === Number(it.tid)
       ) {
+        // @ts-ignore
         row.frameRateList?.push(it.startTime);
       }
-    })
+    });
     if (row.frameRateList?.length) {
-      row.frameRateList = [...new Set(row.frameRateList)];
-      row.frameRateList.sort((a, b) => a - b);
-      if (row.frameRateList?.length >= 2) {
+      if (row.frameRateList.length < 2) {
+        row.frameRateList = [];
+      } else {
         const CONVERT_SECONDS = 1000000000;
-        let cutres: number = (row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0]);
-        row.avgRateTxt = ((row.frameRateList.length - 1) / cutres * CONVERT_SECONDS).toFixed(1) + 'fps';
+        let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
+        row.avgRateTxt = `${(((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1)}fps`;
       }
     }
   }
 
   // 过滤并处理present数据
-  filterPresentData(row: TraceRow<any>, data: any) {
-    data.forEach((it: any) => {
+  // @ts-ignore
+  filterPresentData(row: TraceRow<unknown>, data: unknown): void {
+    // @ts-ignore
+    data.forEach((it: unknown): void => {
       if (
-        it.endTime >= TraceRow.rangeSelectObject!.startNS! &&
-        it.endTime <= TraceRow.rangeSelectObject!.endNS! &&
+        // @ts-ignore
+        it.endTime >= TraceRow.rangeSelectObject!.startNS! && // @ts-ignore
+        it.endTime <= TraceRow.rangeSelectObject!.endNS! && // @ts-ignore
         Number(row.rowId) === Number(it.tid)
       ) {
-        row.frameRateList?.push(it.endTime)
+        // @ts-ignore
+        row.frameRateList?.push(it.endTime);
       }
-    })
+    });
     if (row.frameRateList?.length) {
-      row.frameRateList = [...new Set(row.frameRateList)];//去重
-      row.frameRateList.sort((a, b) => a - b); //排序
-      if (row.frameRateList?.length >= 2) {
+      if (row.frameRateList?.length < 2) {
+        row.frameRateList = [];
+      } else {
         let hitchTimeList: Array<number> = [];
         for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
-          if (SpLtpoChart.sendHitchDataArr[i].startTs! >= row.frameRateList[0]!
-            &&
-            SpLtpoChart.sendHitchDataArr[i].startTs! < row.frameRateList[row.frameRateList.length - 1]!) {
-            hitchTimeList.push(SpLtpoChart.sendHitchDataArr[i].value!);
-          } else if (
-            SpLtpoChart.sendHitchDataArr[i].startTs! >= row.frameRateList[row.frameRateList.length - 1]!
+          if (
+            SpLtpoChart.sendHitchDataArr[i].startTs! >= row.frameRateList[0]! &&
+            SpLtpoChart.sendHitchDataArr[i].startTs! < row.frameRateList[row.frameRateList.length - 1]!
           ) {
+            hitchTimeList.push(SpLtpoChart.sendHitchDataArr[i].value!);
+          } else if (SpLtpoChart.sendHitchDataArr[i].startTs! >= row.frameRateList[row.frameRateList.length - 1]!) {
             break;
           }
         }
         const CONVERT_SECONDS = 1000000000;
-        let cutres: number = (row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0]);
-        let avgRate: string = ((row.frameRateList.length - 1) / cutres * CONVERT_SECONDS).toFixed(1) + 'fps';
+        let cutres: number = row.frameRateList[row.frameRateList.length - 1] - row.frameRateList[0];
+        let avgRate: string = `${(((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1)}fps`;
         let sum: number = hitchTimeList.reduce((accumulator, currentValue) => accumulator + currentValue, 0); // ∑hitchTimeData
-        let hitchRate: number = (sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000));
-        let perHitchRate: string = (Number(hitchRate) * 100).toFixed(2) + '%';
-        row.avgRateTxt = avgRate + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1) + 'ms' + ' ' + ',' + ' ' + perHitchRate;
+        let hitchRate: number =
+          sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000);
+        let perHitchRate: string = `${(Number(hitchRate) * 100).toFixed(2)}%`;
+        row.avgRateTxt =
+          `${avgRate} ` + ',' + ' ' + 'HitchTime:' + ` ${sum.toFixed(1)}ms` + ' ' + ',' + ` ${perHitchRate}`;
       }
     }
   }
@@ -237,10 +251,10 @@ export class RangeSelect {
     if (!notTimeHeight) {
       return false;
     }
-    if ((this.rangeTraceRow?.isEmpty() ?? false) && !this.isMouseDown) {
+    if ((isEmpty(this.rangeTraceRow) ?? false) && !this.isMouseDown) {
       this.isHover = false;
     }
-    return notTimeHeight && (this.rangeTraceRow?.isNotEmpty() ?? false) && !this.isMouseDown;
+    return notTimeHeight && (isNotEmpty(this.rangeTraceRow) ?? false) && !this.isMouseDown;
   }
 
   mouseOut(mouseEventOut: MouseEvent): void {
@@ -254,8 +268,8 @@ export class RangeSelect {
     document.getSelection()?.removeAllRanges();
     this.isMouseDown = false;
   }
-
-  mouseMove(rows: Array<TraceRow<any>>, ev: MouseEvent): void {
+  // @ts-ignore
+  mouseMove(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
     this.endPageX = ev.pageX;
     this.endPageY = ev.pageY;
     if (this.isTouchMark(ev) && TraceRow.rangeSelectObject) {
@@ -275,12 +289,12 @@ export class RangeSelect {
     this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow!.length > 0;
     this.timerShaftEL!.sportRuler!.draw();
   }
-
-  private handleRangeSelect(rows: Array<TraceRow<any>>): void {
+  // @ts-ignore
+  private handleRangeSelect(rows: Array<TraceRow<unknown>>): void {
     let rangeSelect: RangeSelectStruct | undefined;
     let favoriteRect = this.trace?.favoriteChartListEL?.getBoundingClientRect();
     let favoriteLimit = favoriteRect!.top + favoriteRect!.height;
-    this.rangeTraceRow = rows.filter((it) => {
+    this.rangeTraceRow = rows.filter((it): boolean => {
       let domRect = it.getBoundingClientRect();
       let itRect = { x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height };
       if (itRect.y < favoriteLimit && !it.collect) {
@@ -293,20 +307,27 @@ export class RangeSelect {
         itRect.height = 0;
       }
       if (
-        Rect.intersect(itRect as Rect, {
-          x: Math.min(this.startPageX, this.endPageX),
-          y: Math.min(this.startPageY, this.endPageY),
-          width: Math.abs(this.startPageX - this.endPageX),
-          height: Math.abs(this.startPageY - this.endPageY),
-        } as Rect)
+        Rect.intersect(
+          itRect as Rect,
+          {
+            x: Math.min(this.startPageX, this.endPageX),
+            y: Math.min(this.startPageY, this.endPageY),
+            width: Math.abs(this.startPageX - this.endPageX),
+            height: Math.abs(this.startPageY - this.endPageY),
+          } as Rect
+        )
       ) {
         if (!rangeSelect) {
           it.setTipLeft(0, null);
           rangeSelect = new RangeSelectStruct();
           let startX = Math.min(this.startPageX, this.endPageX) - it.describeEl!.getBoundingClientRect().right;
           let endX = Math.max(this.startPageX, this.endPageX) - it.describeEl!.getBoundingClientRect().right;
-          if (startX <= 0) startX = 0;
-          if (endX > it.frame.width) endX = it.frame.width;
+          if (startX <= 0) {
+            startX = 0;
+          }
+          if (endX > it.frame.width) {
+            endX = it.frame.width;
+          }
           rangeSelect.startX = startX;
           rangeSelect.endX = endX;
           rangeSelect.startNS = RangeSelect.SetNS(it, startX);
@@ -331,11 +352,11 @@ export class RangeSelect {
   }
 
   private handleDrawForNotMouseDown(): void {
-    this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow?.isNotEmpty() ?? false;
+    this.timerShaftEL!.sportRuler!.isRangeSelect = isNotEmpty(this.rangeTraceRow) ?? false;
     this.timerShaftEL!.sportRuler!.draw();
   }
-
-  private handleRangeSelectAndDraw(rows: Array<TraceRow<any>>, ev: MouseEvent): void {
+  // @ts-ignore
+  private handleRangeSelectAndDraw(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
     let rangeSelect: RangeSelectStruct | undefined;
     this.rangeTraceRow = rows.filter((it) => {
       if (it.rangeSelect) {
@@ -343,8 +364,8 @@ export class RangeSelect {
           rangeSelect = new RangeSelectStruct();
           let mouseX = ev.pageX - this.rowsEL!.getBoundingClientRect().left - 248;
           mouseX = mouseX < 0 ? 0 : mouseX;
-          let markA = this.movingMark == 'markA' ? mouseX : this.mark.startMark;
-          let markB = this.movingMark == 'markB' ? mouseX : this.mark.endMark;
+          let markA = this.movingMark === 'markA' ? mouseX : this.mark.startMark;
+          let markB = this.movingMark === 'markB' ? mouseX : this.mark.endMark;
           let startX = markA < markB ? markA : markB;
           let endX = markB < markA ? markA : markB;
           rangeSelect.startX = startX;
@@ -359,7 +380,7 @@ export class RangeSelect {
           }
           if (startX < 0) {
             rangeSelect.startNS = TraceRow.rangeSelectObject!.startNS!;
-          }
+          } // @ts-ignore
           if (endX > it.frame.width) {
             rangeSelect.endNS = TraceRow.rangeSelectObject!.endNS!;
           }
@@ -379,8 +400,7 @@ export class RangeSelect {
         (this.timerShaftEL?.canvas?.clientWidth || 0)) /
       (TraceRow.range!.endNS - TraceRow.range!.startNS);
     let x2 =
-      ((TraceRow.rangeSelectObject!.endNS! - TraceRow.range!.startNS) *
-        (this.timerShaftEL?.canvas?.clientWidth || 0)) /
+      ((TraceRow.rangeSelectObject!.endNS! - TraceRow.range!.startNS) * (this.timerShaftEL?.canvas?.clientWidth || 0)) /
       (TraceRow.range!.endNS - TraceRow.range!.startNS);
     this.mark = { startMark: x1, endMark: x2 };
     let mouseX = ev.pageX - this.rowsPaneEL!.getBoundingClientRect().left - 248;
@@ -397,9 +417,10 @@ export class RangeSelect {
       document.body.style.cursor = 'default';
     }
   }
-
-  static SetNS(row: TraceRow<any>, num: number): number {
+  // @ts-ignore
+  static SetNS(row: TraceRow<unknown>, num: number): number {
     return Math.floor(
+      // @ts-ignore
       ((TraceRow.range!.endNS - TraceRow.range!.startNS) * num) / row.frame.width + TraceRow.range!.startNS!
     );
   }

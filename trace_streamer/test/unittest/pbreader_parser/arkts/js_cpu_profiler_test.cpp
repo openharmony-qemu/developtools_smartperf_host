@@ -35,8 +35,8 @@ using namespace SysTuning;
 using namespace SysTuning::TraceStreamer;
 namespace SysTuning {
 namespace TraceStreamer {
-const char* RESULT1 = "{\"id\":3,\"result\":{}}";
-const char* RESULT2 =
+const char *RESULT1 = "{\"id\":3,\"result\":{}}";
+const char *RESULT2 =
     "{\"id\":3,\"result\":{\"profile\":{\"tid\":1394,\"startTime\":8013755173,\"endTime\":8034596087,\"gcTime\":0,"
     "\"cInterpreterTime\":0,\"asmInterpreterTime\":0,\"aotTime\":0,\"builtinTime\":0,\"napiTime\":0,"
     "\"arkuiEngineTime\":0,\"runtimeTime\":0,\"otherTime\":20840914,\"nodes\":[{\"id\":1,\"callFrame\":{"
@@ -49,7 +49,7 @@ const char* RESULT2 =
     "pages/"
     "index_.js\",\"lineNumber\":2922,\"columnNumber\":36},\"hitCount\":1,\"children\":[]}],\"samples\":[2,3,4,2,2,"
     "2,2,3,3,3,3,4,4,4],\"timeDeltas\":[99,72,215,637,96,288,36,89,94,54,26,598,784,522]}}}";
-const char* RESULT3 =
+const char *RESULT3 =
     "{\"id\":3,\"result\":{\"data\":{\"tid\":1394,\"startTime\":8013755173,\"endTime\":8034596087,\"gcTime\":0,"
     "\"cInterpreterTime\":0,\"asmInterpreterTime\":0,\"aotTime\":0,\"builtinTime\":0,\"napiTime\":0,"
     "\"arkuiEngineTime\":0,\"runtimeTime\":0,\"otherTime\":20840914,\"nodes\":[{\"id\":1,\"callFrame\":{"
@@ -99,14 +99,14 @@ HWTEST_F(JsCpuProfilerTest, cpuProfilerParserNodesbyArkTs, TestSize.Level1)
     TS_LOGI("test39-1");
     std::string strConfig = SetArkTSConfig();
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t*>(strConfig.data()), strConfig.size());
+    ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig.data()), strConfig.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
 
     ArkTSResult jsHeapResult1;
     jsHeapResult1.set_result(RESULT1);
     std::string strResult1 = "";
     jsHeapResult1.SerializeToString(&strResult1);
-    ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t*>(strResult1.data()), strResult1.size());
+    ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
     htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
 
@@ -114,7 +114,7 @@ HWTEST_F(JsCpuProfilerTest, cpuProfilerParserNodesbyArkTs, TestSize.Level1)
     jsHeapResult2.set_result(RESULT2);
     std::string strResult2 = "";
     jsHeapResult2.SerializeToString(&strResult2);
-    ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t*>(strResult2.data()), strResult2.size());
+    ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
     htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
     htraceJSMemoryParser.Finish();
 
@@ -144,14 +144,14 @@ HWTEST_F(JsCpuProfilerTest, cpuProfilerParserSamplesbyArkTs, TestSize.Level1)
     TS_LOGI("test39-2");
     std::string strConfig = SetArkTSConfig();
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t*>(strConfig.data()), strConfig.size());
+    ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig.data()), strConfig.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
 
     ArkTSResult jsHeapResult1;
     jsHeapResult1.set_result(RESULT1);
     std::string strResult1 = "";
     jsHeapResult1.SerializeToString(&strResult1);
-    ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t*>(strResult1.data()), strResult1.size());
+    ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
     htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
 
@@ -159,7 +159,7 @@ HWTEST_F(JsCpuProfilerTest, cpuProfilerParserSamplesbyArkTs, TestSize.Level1)
     jsHeapResult2.set_result(RESULT2);
     std::string strResult2 = "";
     jsHeapResult2.SerializeToString(&strResult2);
-    ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t*>(strResult2.data()), strResult2.size());
+    ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
     htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
     htraceJSMemoryParser.Finish();
 
@@ -192,14 +192,14 @@ HWTEST_F(JsCpuProfilerTest, cpuProfilerParserNoProfilebyArkTs, TestSize.Level1)
     TS_LOGI("test39-3");
     std::string strConfig = SetArkTSConfig();
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t*>(strConfig.data()), strConfig.size());
+    ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig.data()), strConfig.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
 
     ArkTSResult jsHeapResult1;
     jsHeapResult1.set_result(RESULT1);
     std::string strResult1 = "";
     jsHeapResult1.SerializeToString(&strResult1);
-    ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t*>(strResult1.data()), strResult1.size());
+    ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
     htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
 
@@ -207,7 +207,7 @@ HWTEST_F(JsCpuProfilerTest, cpuProfilerParserNoProfilebyArkTs, TestSize.Level1)
     jsHeapResult2.set_result(RESULT3);
     std::string strResult2 = "";
     jsHeapResult2.SerializeToString(&strResult2);
-    ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t*>(strResult2.data()), strResult2.size());
+    ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
     htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
     htraceJSMemoryParser.Finish();
 

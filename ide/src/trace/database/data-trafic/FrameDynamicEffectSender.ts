@@ -33,32 +33,40 @@ export function frameAnimationSender(row: TraceRow<FrameAnimationStruct>): Promi
   }
   return new Promise((resolve): void => {
     threadPool.submitProto(
-        QueryEnum.FrameAnimationData,
-        {
-          startNS: TraceRow.range?.startNS || 0,
-          endNS: TraceRow.range?.endNS || 0,
-          recordStartNS: window.recordStartNS,
-          recordEndNS: window.recordEndNS,
-          width: width,
-          t: new Date().getTime(),
-          trafic: transferAnimationDataType,
-          sharedArrayBuffers: row.sharedArrayBuffers,
-        },
-        (res: any, len: number, transfer: boolean): void => {
-          resolve(animationBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
-        }
+      QueryEnum.FrameAnimationData,
+      {
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
+        recordStartNS: window.recordStartNS,
+        recordEndNS: window.recordEndNS,
+        width: width,
+        t: new Date().getTime(),
+        trafic: transferAnimationDataType,
+        sharedArrayBuffers: row.sharedArrayBuffers,
+      },
+      (res: unknown, len: number, transfer: boolean): void => {
+        // @ts-ignore
+        resolve(animationBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
+      }
     );
   });
 }
 
-function animationBufferHandler(res: any, len: number): any[] {
-  let recordNs: number = (window as any).recordStartNS;
+function animationBufferHandler(res: unknown, len: number): unknown[] {
+  // @ts-ignore
+  let recordNs: number = (window as unknown).recordStartNS;
   let outArr = [];
+  // @ts-ignore
   let animationId = new Uint16Array(res.animationId);
+  // @ts-ignore
   let status = new Uint16Array(res.status);
+  // @ts-ignore
   let startTs = new Float64Array(res.startTs);
+  // @ts-ignore
   let endTs = new Float64Array(res.endTs);
+  // @ts-ignore
   let dur = new Float64Array(res.dur);
+  // @ts-ignore
   let depth = new Uint16Array(res.depth);
   for (let index = 0; index < len; index++) {
     outArr.push({
@@ -91,32 +99,40 @@ export function frameDynamicSender(row: TraceRow<FrameDynamicStruct>): Promise<F
   }
   return new Promise((resolve): void => {
     threadPool.submitProto(
-        QueryEnum.FrameDynamicData,
-        {
-          startNS: TraceRow.range?.startNS || 0,
-          endNS: TraceRow.range?.endNS || 0,
-          recordStartNS: window.recordStartNS,
-          recordEndNS: window.recordEndNS,
-          width: width,
-          t: new Date().getTime(),
-          trafic: transferDynamicDataType,
-          sharedArrayBuffers: row.sharedArrayBuffers,
-        },
-        (res: any, len: number, transfer: boolean): void => {
-          resolve(dynamicBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
-        }
+      QueryEnum.FrameDynamicData,
+      {
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
+        recordStartNS: window.recordStartNS,
+        recordEndNS: window.recordEndNS,
+        width: width,
+        t: new Date().getTime(),
+        trafic: transferDynamicDataType,
+        sharedArrayBuffers: row.sharedArrayBuffers,
+      },
+      (res: unknown, len: number, transfer: boolean): void => {
+        // @ts-ignore
+        resolve(dynamicBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
+      }
     );
   });
 }
 
-function dynamicBufferHandler(res: any, len: number): any[] {
+function dynamicBufferHandler(res: unknown, len: number): unknown[] {
   let outArr = [];
+  // @ts-ignore
   let id = new Uint16Array(res.id);
+  // @ts-ignore
   let x = new Float32Array(res.x);
+  // @ts-ignore
   let y = new Float32Array(res.y);
+  // @ts-ignore
   let width = new Float32Array(res.width);
+  // @ts-ignore
   let height = new Float32Array(res.height);
+  // @ts-ignore
   let alpha = new Float32Array(res.alpha);
+  // @ts-ignore
   let ts = new Float64Array(res.ts);
   for (let index = 0; index < len; index++) {
     outArr.push({
@@ -133,9 +149,9 @@ function dynamicBufferHandler(res: any, len: number): any[] {
 }
 
 export function frameSpacingSender(
-    physicalWidth: number,
-    physicalHeight: number,
-    row: TraceRow<FrameSpacingStruct>
+  physicalWidth: number,
+  physicalHeight: number,
+  row: TraceRow<FrameSpacingStruct>
 ): Promise<FrameSpacingStruct[]> {
   let transferSpacingDataType: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
@@ -157,39 +173,52 @@ export function frameSpacingSender(
   }
   return new Promise((resolve): void => {
     threadPool.submitProto(
-        QueryEnum.FrameSpacingData,
-        {
-          physicalWidth: physicalWidth,
-          physicalHeight: physicalHeight,
-          startNS: TraceRow.range?.startNS || 0,
-          endNS: TraceRow.range?.endNS || 0,
-          recordStartNS: window.recordStartNS,
-          recordEndNS: window.recordEndNS,
-          width: width,
-          t: new Date().getTime(),
-          trafic: transferSpacingDataType,
-          sharedArrayBuffers: row.sharedArrayBuffers,
-        },
-        (res: any, len: number, transfer: boolean): void => {
-          resolve(spacingBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
-        }
+      QueryEnum.FrameSpacingData,
+      {
+        physicalWidth: physicalWidth,
+        physicalHeight: physicalHeight,
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
+        recordStartNS: window.recordStartNS,
+        recordEndNS: window.recordEndNS,
+        width: width,
+        t: new Date().getTime(),
+        trafic: transferSpacingDataType,
+        sharedArrayBuffers: row.sharedArrayBuffers,
+      },
+      (res: unknown, len: number, transfer: boolean): void => {
+        // @ts-ignore
+        resolve(spacingBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
+      }
     );
   });
 }
 
-function spacingBufferHandler(res: any, len: number): any[] {
+function spacingBufferHandler(res: unknown, len: number): unknown[] {
   let outArr = [];
+  // @ts-ignore
   let id = new Uint16Array(res.id);
+  // @ts-ignore
   let x = new Float32Array(res.x);
+  // @ts-ignore
   let y = new Float32Array(res.y);
+  // @ts-ignore
   let currentFrameWidth = new Float32Array(res.currentFrameWidth);
+  // @ts-ignore
   let currentFrameHeight = new Float32Array(res.currentFrameHeight);
+  // @ts-ignore
   let currentTs = new Float64Array(res.currentTs);
+  // @ts-ignore
   let frameSpacingResult = new Float32Array(res.frameSpacingResult);
+  // @ts-ignore
   let preTs = new Float64Array(res.preTs);
+  // @ts-ignore
   let preFrameWidth = new Float32Array(res.preFrameWidth);
+  // @ts-ignore
   let preFrameHeight = new Float32Array(res.preFrameHeight);
+  // @ts-ignore
   let preX = new Float32Array(res.preX);
+  // @ts-ignore
   let preY = new Float32Array(res.preY);
   for (let index = 0; index < len; index++) {
     outArr.push({

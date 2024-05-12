@@ -60,7 +60,7 @@ export class HeapLoader {
     this.edges = fileStruct.snapshotStruct.edges;
     this.allocationLogic = new AllocationLogic(this.fileStruct);
     this.nodes = new Array<HeapNode>(this.nodeCount);
-    this.nodeMap.forEach((value) => {
+    this.nodeMap.forEach((value): void => {
       this.nodes[value.nodeIndex] = value;
     });
     this.nodes.sort((a, b) => a.nodeIndex - b.nodeIndex);
@@ -75,11 +75,11 @@ export class HeapLoader {
     this.preprocess();
   }
 
-  get allocation() {
+  get allocation(): AllocationLogic {
     return this.allocationLogic;
   }
 
-  private preprocess() {
+  private preprocess(): void {
     if (!this.rootNode) {
       return;
     }
@@ -99,7 +99,7 @@ export class HeapLoader {
    * node has multi parent because bottom up combine multi node
    * @param node selected node
    */
-  loadAllocationParent(node: AllocationFunction) {
+  loadAllocationParent(node: AllocationFunction): void {
     this.allocationLogic.getParent(node);
   }
 
@@ -120,11 +120,11 @@ export class HeapLoader {
     return this.allocationLogic.getNodeStack(traceNodeId);
   }
 
-  getFunctionNodeIds(id: number) {
+  getFunctionNodeIds(id: number): number[] {
     return this.allocationLogic.getFunctionNodeIds(id);
   }
 
-  getAllocation() {
+  getAllocation(): AllocationLogic {
     return this.allocationLogic;
   }
 
@@ -251,7 +251,13 @@ export class HeapLoader {
     return stack;
   }
 
-  private buildOrderIdxInit() {
+  private buildOrderIdxInit(): {
+    stackNodes: Uint32Array;
+    stackCurrentEdge: Uint32Array;
+    orderIdx2NodeIdx: Uint32Array;
+    nodeIdx2OrderIdx: Uint32Array;
+    visited: Uint8Array;
+  } {
     const state = {
       stackNodes: new Uint32Array(this.nodeCount),
       stackCurrentEdge: new Uint32Array(this.nodeCount),
@@ -290,7 +296,7 @@ export class HeapLoader {
           }
           //Skip the edges from non-page-object nodes to page-object nodes
           let childNodeFlag = childNode.flag & PAGE_PROJECT;
-          if (node.id != this.rootNode!.id && childNodeFlag && !node.flag) {
+          if (node.id !== this.rootNode!.id && childNodeFlag && !node.flag) {
             continue;
           }
           ++stack;
@@ -303,7 +309,7 @@ export class HeapLoader {
           --stack;
         }
       }
-      if (postOrderIdx == this.nodeCount || iteration > 1) {
+      if (postOrderIdx === this.nodeCount || iteration > 1) {
         break;
       }
 
@@ -404,7 +410,7 @@ export class HeapLoader {
       changed = false;
       for (let orderIdx = rootOrderedIdx - 1; orderIdx >= 0; --orderIdx) {
         // If dominator of the entry has already been set to root,
-        // then it can't propagate any further.
+        // then it can't propagate unknown further.
         if (affected[orderIdx] === 0) {
           continue;
         }
@@ -437,7 +443,9 @@ export class HeapLoader {
   }
 
   private calDistances(): void {
-    if (!this.rootNode) return;
+    if (!this.rootNode) {
+      return;
+    }
     let nodesToVisit = new Uint32Array(this.nodeCount);
     let nodesToVisitLen = 0;
     // root node's edges distance is 1
@@ -471,7 +479,7 @@ export class HeapLoader {
     }
   }
 
-  private buildDominatedNode() {
+  private buildDominatedNode(): void {
     //赋值两个数组:
     //-dominatedNodes是一个连续数组，其中每个节点拥有一个与相应的被支配节点的间隔(可以为空)。
     //—indexArray 是dominatedNodes中与_nodeIndex位置相同的索引数组。
@@ -480,7 +488,7 @@ export class HeapLoader {
 
     if (this.rootNode?.nodeIndex === 0) {
       fromNodeIdx = 1;
-    } else if (this.rootNode?.nodeIndex == toNodeIdx - 1) {
+    } else if (this.rootNode?.nodeIndex === toNodeIdx - 1) {
       toNodeIdx -= 1;
     } else {
       throw new Error('Root node is expected to be either first or last');
@@ -507,7 +515,7 @@ export class HeapLoader {
     }
   }
 
-  private buildSamples() {
+  private buildSamples(): void {
     let samples = this.fileStruct.snapshotStruct.samples;
     if (!samples.length) {
       return;
@@ -524,7 +532,7 @@ export class HeapLoader {
     }
   }
 
-  getMinAndMaxNodeId() {
+  getMinAndMaxNodeId(): { minNodeId: number; maxNodeId: number } {
     return {
       minNodeId: this.nodes[0].id,
       maxNodeId: this.nodes[this.nodeCount - 1].id,
@@ -568,7 +576,7 @@ export class HeapLoader {
    * @param nodesToVisit 能被访问到的node id 数组
    * @param nodesToVisitLen 有效的node数量
    */
-  private bfs(nodesToVisit: Uint32Array, nodesToVisitLen: number) {
+  private bfs(nodesToVisit: Uint32Array, nodesToVisitLen: number): void {
     let index = 0;
     while (index < nodesToVisitLen) {
       let nodeId = nodesToVisit[index++];
@@ -584,7 +592,7 @@ export class HeapLoader {
         }
         let childNode = this.nodeMap.get(edge.toNodeId);
         // if distance is set,not set again
-        if (!childNode || childNode.distance != -5 || !this.filterForBpf(node, edge)) {
+        if (!childNode || childNode.distance !== -5 || !this.filterForBpf(node, edge)) {
           continue;
         }
         childNode.distance = distance;
@@ -592,11 +600,11 @@ export class HeapLoader {
       }
     }
     if (nodesToVisitLen > this.nodeCount) {
-      throw new Error('BFS failed. Nodes to visit ' + nodesToVisitLen + ' is more than nodes count ' + this.nodeCount);
+      throw new Error(`BFS failed. Nodes to visit ${nodesToVisitLen} is more than nodes count ${this.nodeCount}`);
     }
   }
 
-  private processNode(domState: DOMState, node: HeapNode, newState: number) {
+  private processNode(domState: DOMState, node: HeapNode, newState: number): void {
     if (domState.visited[node.nodeIndex]) {
       return;
     }
@@ -610,7 +618,7 @@ export class HeapLoader {
     if (newState === DetachedNessState.ATTACHED) {
       domState.attached.push(node.id);
     } else if (newState === DetachedNessState.DETACHED) {
-      node.displayName = 'Detached ' + node.name;
+      node.displayName = `Detached ${node.name}`;
       // mark detached dom
       node.flag |= DETACHED_DOM_NODE;
       domState.detached.push(node.id);
@@ -637,7 +645,7 @@ export class HeapLoader {
    * mark the node can reachable from root node
    */
   private markQueryableNodes(): void {
-    let list = new Array<HeapNode>();
+    let list: HeapNode[] = [];
     let flag = CAN_BE_QUERIED;
     for (let edge of this.rootNode!.edges) {
       let childNode = this.nodeMap.get(edge.toNodeId);
@@ -734,7 +742,7 @@ export class HeapLoader {
     return diff;
   }
 
-  private calClassDiff(targetClass: ConstructorItem, baseClass?: ConstructorItem) {
+  private calClassDiff(targetClass: ConstructorItem, baseClass?: ConstructorItem): ConstructorComparison | null {
     let i = 0;
     let j = 0;
     let baseLen = baseClass ? baseClass.childCount : 0;
@@ -777,7 +785,7 @@ export class HeapLoader {
     }
     diff.deltaCount = diff.addedCount - diff.removedCount;
     diff.deltaSize = diff.addedSize - diff.removedSize;
-    if (diff.addedCount == 0 && diff.removedCount == 0) {
+    if (diff.addedCount === 0 && diff.removedCount === 0) {
       return null;
     }
     diff.childCount = diff.addedCount + diff.removedCount;
@@ -785,7 +793,7 @@ export class HeapLoader {
     return diff;
   }
 
-  private calClassRetainedSize(hasFiler: boolean, classes: Map<string, ConstructorItem>, filter: Function) {
+  private calClassRetainedSize(hasFiler: boolean, classes: Map<string, ConstructorItem>, filter: Function): void {
     // cal class retained size
     let list = [this.rootNode];
     const sizes = [-1];
@@ -831,7 +839,7 @@ export class HeapLoader {
     }
   }
 
-  private combineNodeWithClassName(classes: Map<string, ConstructorItem>, filter: Function) {
+  private combineNodeWithClassName(classes: Map<string, ConstructorItem>, filter: Function): void {
     for (let node of this.nodes) {
       if (!filter(node.id) || (node.selfSize === 0 && node.type !== NodeType.NATIVE)) {
         continue;
@@ -906,7 +914,10 @@ export class HeapLoader {
    * @param targetFileId to compare file's id
    * @param targetFileClasses to compare file's constructor
    */
-  public getClassesForComparison(targetFileId: number, targetFileClasses: Map<string, ConstructorItem>) {
+  public getClassesForComparison(
+    targetFileId: number,
+    targetFileClasses: Map<string, ConstructorItem>
+  ): Map<string, ConstructorComparison> | undefined {
     // Return the result if it has been obtained before
     if (this.diffToOtherFile.has(targetFileId)) {
       return this.diffToOtherFile.get(targetFileId);
@@ -951,7 +962,7 @@ export class HeapLoader {
     }
     // get children from edge
     let node = this.nodes[item.index];
-    let childNodes = new Array<ConstructorItem>();
+    let childNodes: ConstructorItem[] = [];
     for (let edge of node.edges) {
       let childNode = this.nodeMap.get(edge.toNodeId);
       if (!childNode) {
@@ -969,10 +980,10 @@ export class HeapLoader {
 
     let clickNode = childNodes[0].parent;
     // If there are duplicate IDs in the third layer and beyond, they will not be expanded again
-    if (clickNode!.type == ConstructorType.FiledType) {
+    if (clickNode!.type === ConstructorType.FiledType) {
       this.findParentsFunc(childNodes, clickNode);
     }
-    let filterChildNodes = new Array<ConstructorItem>();
+    let filterChildNodes: ConstructorItem[] = [];
     for (let item of childNodes) {
       if (item.id !== this.rootNode!.id) {
         filterChildNodes.push(item);
@@ -982,31 +993,34 @@ export class HeapLoader {
     return filterChildNodes;
   }
 
-  private findParentsFunc(childNodes: ConstructorItem[], clickNode: ConstructorItem) {
-    function findParents(clickNode: any, parents: any): any {
+  private findParentsFunc(childNodes: ConstructorItem[], clickNode: ConstructorItem): void {
+    function findParents(clickNode: unknown, parents: unknown): unknown {
+      //@ts-ignore
       if (!clickNode.parent) {
         return parents;
       }
       // add the parent of the current node to the result array
+      //@ts-ignore
       parents.push(clickNode);
       for (let childNode of childNodes) {
+        //@ts-ignore
         for (let heapParent of parents) {
           if (heapParent.id === childNode!.id) {
             childNode.hasNext = false;
           }
         }
-      }
+      } //@ts-ignore
       return findParents(clickNode.parent, parents);
     }
     findParents(clickNode, []);
   }
 
-  private combineRetains(node: HeapNode, item: ConstructorItem, retains: Array<ConstructorItem>) {
+  private combineRetains(node: HeapNode, item: ConstructorItem, retains: Array<ConstructorItem>): void {
     for (let i = 0; i < node.retainsNodeIdx.length; i++) {
       let retainsNode = this.nodes[node.retainsNodeIdx[i]];
       let retainEdge = this.edges[node.retainsEdgeIdx[i]];
 
-      if (retainEdge.type == EdgeType.WEAK) {
+      if (retainEdge.type === EdgeType.WEAK) {
         continue;
       }
       let retainsItem = HeapNodeToConstructorItem(retainsNode);
@@ -1015,7 +1029,7 @@ export class HeapLoader {
       retainsItem.type = ConstructorType.RetainersType;
       retainsItem.childCount = retainsNode.retainsNodeIdx.length;
       retainsItem.hasNext = retainsNode.retainsNodeIdx.length > 0;
-      if (item!.type == ConstructorType.RetainersType) {
+      if (item!.type === ConstructorType.RetainersType) {
         retainsItem.parent = item;
       }
       retains.push(retainsItem);
@@ -1035,7 +1049,7 @@ export class HeapLoader {
       return [];
     }
     let node = this.nodes[item.index];
-    let retains = new Array<ConstructorItem>();
+    let retains: ConstructorItem[] = [];
     if (node && node.retainsEdgeIdx.length === node.retainsNodeIdx.length) {
       this.combineRetains(node, item, retains);
     }
@@ -1046,7 +1060,7 @@ export class HeapLoader {
       if (node && node.retainsEdgeIdx.length === node.retainsNodeIdx.length) {
         for (let i = 0; i < node.retainsNodeIdx.length; i++) {
           let retainsNode = this.nodes[node.retainsNodeIdx[i]];
-          if (node.retainsNodeIdx.length == 1 && retainsNode.id == this.rootNode!.id) {
+          if (node.retainsNodeIdx.length === 1 && retainsNode.id === this.rootNode!.id) {
             childNode.hasNext = false;
           }
         }
@@ -1056,16 +1070,17 @@ export class HeapLoader {
     if (retains.length > 0 && retains[0].parent) {
       let clickNode = retains[0].parent;
       // If there are duplicate IDs in the third layer and beyond, they will not be expanded again
-      if (clickNode!.type == ConstructorType.RetainersType) {
+      if (clickNode!.type === ConstructorType.RetainersType) {
         this.findParentsFunc(retains, clickNode);
       }
     }
 
-    retains.sort(function (a: any, b: any) {
+    retains.sort(function (a: unknown, b: unknown) {
+      //@ts-ignore
       return a.distance - b.distance;
     });
 
-    let filterRetains = new Array<ConstructorItem>();
+    let filterRetains: ConstructorItem[] = [];
     for (let item of retains) {
       if (item.id !== this.rootNode!.id) {
         filterRetains.push(item);
@@ -1078,7 +1093,7 @@ export class HeapLoader {
     return this.nodes;
   }
 
-  public clear() {
+  public clear(): void {
     this.allClasses?.clear();
     this.diffToOtherFile.clear();
     this.nodeMap.clear();
@@ -1094,7 +1109,7 @@ class DOMState {
 
   constructor(nodeSize: number) {
     this.visited = new Uint8Array(nodeSize);
-    this.attached = new Array<number>();
-    this.detached = new Array<number>();
+    this.attached = [];
+    this.detached = [];
   }
 }

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { type LtpoStruct } from '../../database/ui-worker/ProcedureWorkerLTPO'
+import { type LtpoStruct } from '../../database/ui-worker/ProcedureWorkerLTPO';
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
@@ -27,19 +27,23 @@ export function lostFrameSender(tName: String, fName: String, row: TraceRow<Ltpo
     };
   }
   return new Promise((resolve): void => {
-    threadPool.submitProto(QueryEnum.LostFrameData, {
-      threadName: tName,
-      funcName: fName,
-      startNS: TraceRow.range?.startNS || 0,
-      endNS: TraceRow.range?.endNS || 0,
-      recordStartNS: window.recordStartNS,
-      recordEndNS: window.recordEndNS,
-      width: width,
-      trafic: trafic,
-      sharedArrayBuffers: row.sharedArrayBuffers,
-    }, (res: any, len: number, transfer: boolean): void => {
-      resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
-    });
+    threadPool.submitProto(
+      QueryEnum.LostFrameData,
+      {
+        threadName: tName,
+        funcName: fName,
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
+        recordStartNS: window.recordStartNS,
+        recordEndNS: window.recordEndNS,
+        width: width,
+        trafic: trafic,
+        sharedArrayBuffers: row.sharedArrayBuffers,
+      },
+      (res: unknown, len: number, transfer: boolean): void => {
+        resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
+      }
+    );
   });
 }
 

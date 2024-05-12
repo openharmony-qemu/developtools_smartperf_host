@@ -16,6 +16,10 @@
 import { BaseElement, element } from '../../../../base-ui/BaseElement';
 import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 import { SearchHtml } from './Search.html';
+import '../../../../base-ui/select/LitSelect';
+import '../../../../base-ui/select/LitSelectOption';
+import { LitSelect } from '../../../../base-ui/select/LitSelect';
+import { Utils } from '../base/Utils';
 
 const LOCAL_STORAGE_SEARCH_KEY = 'search_key';
 
@@ -25,7 +29,7 @@ export class LitSearch extends BaseElement {
   private search: HTMLInputElement | undefined | null;
   private _total: number = 0;
   private _index: number = 0;
-  private _list: Array<any> = [];
+  private _list: Array<unknown> = [];
   private _value: boolean = false;
   private totalEL: HTMLSpanElement | null | undefined;
   private indexEL: HTMLSpanElement | null | undefined;
@@ -37,12 +41,13 @@ export class LitSearch extends BaseElement {
   //定义翻页index
   private retarget_index: number = 0;
   private _retarge_index: HTMLInputElement | null | undefined;
+  private traceSelector: LitSelect | null | undefined;
 
-  get list(): Array<any> {
+  get list(): Array<unknown> {
     return this._list;
   }
 
-  set list(value: Array<any>) {
+  set list(value: Array<unknown>) {
     this._list = value;
     this.total = value.length;
   }
@@ -56,8 +61,8 @@ export class LitSearch extends BaseElement {
     this.indexEL!.textContent = `${value + 1}`;
   }
 
-  get searchValue() {
-    return this.search?.value;
+  get searchValue(): string {
+    return this.search?.value || '';
   }
 
   get total(): number {
@@ -94,7 +99,7 @@ export class LitSearch extends BaseElement {
   get isClearValue(): boolean {
     return this._value;
   }
-  setPercent(name: string = '', value: number) {
+  setPercent(name: string = '', value: number): void {
     let searchHide = this.shadowRoot!.querySelector<HTMLElement>('.root');
     let searchIcon = this.shadowRoot!.querySelector<HTMLElement>('#search-icon');
     if (this.hasAttribute('textRoll')) {
@@ -113,24 +118,24 @@ export class LitSearch extends BaseElement {
       searchHide!.style.display = 'flex';
       searchHide!.style.backgroundColor = 'var(--dark-background5,#fff)';
       searchIcon?.setAttribute('name', 'search');
-      this.search?.setAttribute('placeholder', `search`);
+      this.search?.setAttribute('placeholder', 'search');
       this.search?.removeAttribute('readonly');
       this.search!.className = 'write';
-    } else if (value == -1) {
+    } else if (value === -1) {
       searchHide!.style.display = 'flex';
       searchHide!.style.backgroundColor = 'var(--dark-background5,#e3e3e3)';
       searchIcon?.setAttribute('name', 'cloud-sync');
       this.search!.setAttribute('placeholder', `${name}`);
       this.search!.setAttribute('readonly', '');
       this.search!.className = 'readonly';
-    } else if (value == -2) {
+    } else if (value === -2) {
       searchHide!.style.display = 'flex';
       searchHide!.style.backgroundColor = 'var(--dark-background5,#e3e3e3)';
       searchIcon?.setAttribute('name', 'cloud-sync');
       this.search!.setAttribute('placeholder', `${name}`);
       this.search!.setAttribute('readonly', '');
       this.search!.className = 'text-Roll';
-      setTimeout(() => {
+      setTimeout((): void => {
         this.setAttribute('textRoll', '');
       }, 200);
     } else {
@@ -138,22 +143,25 @@ export class LitSearch extends BaseElement {
     }
   }
 
-  clear() {
+  clear(): void {
     this.search = this.shadowRoot!.querySelector<HTMLInputElement>('input');
     this.search!.value = '';
+    if (!Utils.isDistributedMode()) {
+      this.removeAttribute('distributed');
+    }
     this.list = [];
   }
 
-  blur() {
+  blur(): void {
     this.search?.blur();
   }
 
-  updateSearchList(searchStr: string | null) {
+  updateSearchList(searchStr: string | null): void {
     if (searchStr === null || searchStr.length === 0 || searchStr.trim().length === 0) {
       return;
     }
-    let searchInfo = this.searchList.find((searchInfo) => searchInfo.searchContent === searchStr);
-    if (searchInfo != undefined) {
+    let searchInfo = this.searchList.find((searchInfo): boolean => searchInfo.searchContent === searchStr);
+    if (searchInfo !== undefined) {
       let index = this.searchList.indexOf(searchInfo);
       this.searchList.splice(index, 1);
       this.searchList.unshift({ searchContent: searchStr, useCount: 1 });
@@ -174,20 +182,13 @@ export class LitSearch extends BaseElement {
     return [];
   }
 
-  private searchFocusListener() {
+  private searchFocusListener(): void {
     if (!this.search?.hasAttribute('readonly')) {
       this.showSearchHistoryList();
     }
-    this.dispatchEvent(
-      new CustomEvent('focus', {
-        detail: {
-          value: this.search!.value,
-        },
-      })
-    );
   }
 
-  private searchBlurListener() {
+  private searchBlurListener(): void {
     this.dispatchEvent(
       new CustomEvent('blur', {
         detail: {
@@ -195,12 +196,12 @@ export class LitSearch extends BaseElement {
         },
       })
     );
-    setTimeout(() => {
+    setTimeout((): void => {
       this.hideSearchHistoryList();
     }, 200);
   }
 
-  private searchKeyupListener(e: KeyboardEvent) {
+  private searchKeyupListener(e: KeyboardEvent): void {
     if (e.code === 'Enter' || e.code === 'NumpadEnter') {
       this.updateSearchList(this.search!.value);
       if (e.shiftKey) {
@@ -234,27 +235,28 @@ export class LitSearch extends BaseElement {
   }
 
   initElements(): void {
+    this.initTraceSelectHandler();
     this.search = this.shadowRoot!.querySelector<HTMLInputElement>('input');
     this.totalEL = this.shadowRoot!.querySelector<HTMLSpanElement>('#total');
     this.indexEL = this.shadowRoot!.querySelector<HTMLSpanElement>('#index');
     this.searchHistoryListEL = this.shadowRoot!.querySelector<HTMLUListElement>('.search-history-list');
     this._retarge_index = this.shadowRoot!.querySelector<HTMLInputElement>("input[name='retarge_index']");
-    this.search!.addEventListener('focus', () => {
+    this.search!.addEventListener('focus', (): void => {
       this.searchFocusListener();
     });
-    this.search!.addEventListener('blur', (e) => {
+    this.search!.addEventListener('blur', (): void => {
       this.searchBlurListener();
     });
-    this.search!.addEventListener('change', (event) => {
+    this.search!.addEventListener('change', (): void => {
       this.index = -1;
       this._retarge_index!.value = '';
     });
-    this.search!.addEventListener('keyup', (e: KeyboardEvent) => {
+    this.search!.addEventListener('keyup', (e: KeyboardEvent): void => {
       this._retarge_index!.value = '';
       this.index = -1;
       this.searchKeyupListener(e);
     });
-    this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (e) => {
+    this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (): void => {
       this.dispatchEvent(
         new CustomEvent('previous-data', {
           detail: {
@@ -263,7 +265,7 @@ export class LitSearch extends BaseElement {
         })
       );
     });
-    this.shadowRoot?.querySelector('#arrow-right')?.addEventListener('click', (e) => {
+    this.shadowRoot?.querySelector('#arrow-right')?.addEventListener('click', (): void => {
       this.dispatchEvent(
         new CustomEvent('next-data', {
           detail: {
@@ -273,21 +275,61 @@ export class LitSearch extends BaseElement {
       );
     });
     this.keyUpListener();
-    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: any) => {
-      if (e.keyCode == 13) {
+    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: unknown): void => {
+      // @ts-ignore
+      if (e.keyCode === 13) {
+        // @ts-ignore
         e.stopPropagation();
       }
     });
+  }
+
+  private initTraceSelectHandler(): void {
+    this.traceSelector = this.shadowRoot!.querySelector<LitSelect>('#trace_selector');
+    let selectorBody = this.traceSelector?.shadowRoot!.querySelector<HTMLDivElement>('.body');
+    if (selectorBody) {
+      selectorBody.style.width = '200px';
+      selectorBody.style.overflow= 'hidden';
+    }
+    this.traceSelector?.addEventListener('change', (): void => {
+      if (Utils.currentSelectTrace !== this.traceSelector!.value) {
+        Utils.currentSelectTrace = this.traceSelector!.value;
+        this.clear();
+        this.dispatchEvent(new CustomEvent('trace-change', {
+          detail: {
+            value: this.traceSelector?.value,
+          },
+        }));
+      }
+    });
+    this.traceSelector?.addEventListener('focus', (e): void => {
+      e.stopPropagation();
+    });
+  }
+
+  setTraceSelectOptions(): void {
+    this.traceSelector!.dataSource = Utils.distributedTrace.map((trace, index) => ({
+      value: `${index + 1}`,
+      name: trace
+    }));
+  }
+
+  getSearchTraceId(): string | null | undefined {
+    if (this.hasAttribute('distributed')) {
+      return this.traceSelector?.value;
+    }
+    return undefined;
   }
 
   private keyUpListener(): void {
     let _root = this.shadowRoot!.querySelector<HTMLInputElement>('.root');
     let _prompt = this.shadowRoot!.querySelector<HTMLInputElement>('#prompt');
     // 添加翻页监听事件
-    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keyup', (e: any) => {
-      if (e.keyCode == 13) {
+    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keyup', (e: unknown): void => {
+      // @ts-ignore
+      if (e.keyCode === 13) {
         this.retarget_index = Number(this._retarge_index!.value);
-        if (this.retarget_index <= this._list.length && this.retarget_index != 0) {
+        if (this.retarget_index <= this._list.length && this.retarget_index !== 0) {
           this.dispatchEvent(
             new CustomEvent('retarget-data', {
               detail: {
@@ -295,7 +337,7 @@ export class LitSearch extends BaseElement {
               },
             })
           );
-        } else if (this.retarget_index == 0) {
+        } else if (this.retarget_index === 0) {
           return;
         } else {
           _prompt!.style.display = 'block';
@@ -307,8 +349,10 @@ export class LitSearch extends BaseElement {
             this._retarge_index!.value = '';
           }, 2000);
         }
+        // @ts-ignore
         e.target.blur();
       }
+      // @ts-ignore
       e.stopPropagation();
     });
   }
@@ -317,7 +361,7 @@ export class LitSearch extends BaseElement {
     return SearchHtml;
   }
 
-  showSearchHistoryList() {
+  showSearchHistoryList(): void {
     this.searchHistoryListEL!.innerHTML = '';
     let historyInfos = this.getSearchHistory();
     let fragment = document.createElement('div');
@@ -331,12 +375,12 @@ export class LitSearch extends BaseElement {
       closeOption.setAttribute('size', '20');
       searchInfoOption.className = 'search-history-list-item';
       searchInfoOption.textContent = historyInfo.searchContent;
-      searchInfoOption.addEventListener('click', () => {
+      searchInfoOption.addEventListener('click', (): void => {
         if (searchInfoOption.textContent) {
           let flag = this.search!.value;
           this.search!.value = searchInfoOption.textContent;
           this.valueChangeHandler?.(this.search!.value);
-          if (flag != searchInfoOption.textContent) {
+          if (flag !== searchInfoOption.textContent) {
             this._retarge_index!.value = '';
             this.index = -1;
           }
@@ -353,10 +397,10 @@ export class LitSearch extends BaseElement {
       this.searchHistoryListEL!.style.display = 'block';
     }
     let closeOptionList = this.searchHistoryListEL!.querySelectorAll<LitIcon>('.close-option');
-    closeOptionList.forEach((item) => {
-      item.addEventListener('click', () => {
+    closeOptionList.forEach((item): void => {
+      item.addEventListener('click', (): void => {
         let currentHistory = item.previousSibling!.textContent;
-        let index = this.searchList.findIndex((element) => element.searchContent === currentHistory);
+        let index = this.searchList.findIndex((element): boolean => element.searchContent === currentHistory);
         if (index !== -1) {
           this.searchList.splice(index, 1);
         }
@@ -366,7 +410,7 @@ export class LitSearch extends BaseElement {
     });
   }
 
-  hideSearchHistoryList() {
+  hideSearchHistoryList(): void {
     this.searchHistoryListEL!.style.display = 'none';
     if (this.searchList.length > this.historyMaxCount) {
       this.searchList = this.searchList.slice(0, this.historyMaxCount);
@@ -380,7 +424,7 @@ export class LitSearch extends BaseElement {
     this.searchELList = [];
   }
 
-  updateSearchHistoryList(searchValue: string) {
+  updateSearchHistoryList(searchValue: string): void {
     const keyword = searchValue.toLowerCase();
     this.searchELList.forEach((item) => {
       if (item.textContent!.toLowerCase().includes(keyword)) {

@@ -38,24 +38,24 @@ void NativeHookSampleBase::AppendNativeHookSampleBase(uint32_t callChainId, uint
     lastCallerPathIndexs_.emplace_back(INVALID_DATAINDEX);
     lastSymbolIndexs_.emplace_back(INVALID_DATAINDEX);
 }
-const std::deque<uint32_t>& NativeHookSampleBase::CallChainIds() const
+const std::deque<uint32_t> &NativeHookSampleBase::CallChainIds() const
 {
     return callChainIds_;
 }
-const std::deque<uint32_t>& NativeHookSampleBase::Ipids() const
+const std::deque<uint32_t> &NativeHookSampleBase::Ipids() const
 {
     return ipids_;
 }
-const std::deque<uint64_t>& NativeHookSampleBase::LastCallerPathIndexs() const
+const std::deque<uint64_t> &NativeHookSampleBase::LastCallerPathIndexs() const
 {
     return lastCallerPathIndexs_;
 }
-const std::deque<uint64_t>& NativeHookSampleBase::LastSymbolIndexs() const
+const std::deque<uint64_t> &NativeHookSampleBase::LastSymbolIndexs() const
 {
     return lastSymbolIndexs_;
 }
 void NativeHookSampleBase::UpdateLastCallerPathAndSymbolIndexs(
-    std::unordered_map<uint32_t, std::tuple<DataIndex, DataIndex>>& callIdToLasLibId)
+    std::unordered_map<uint32_t, std::tuple<DataIndex, DataIndex>> &callIdToLasLibId)
 {
     if (callIdToLasLibId.empty()) {
         return;
@@ -129,35 +129,35 @@ void NativeHook::UpdateMemMapSubType(uint64_t row, uint64_t tagId)
         TS_LOGE("subTypes_ row is invalid!");
     }
 }
-const std::deque<std::string>& NativeHook::EventTypes() const
+const std::deque<std::string> &NativeHook::EventTypes() const
 {
     return eventTypes_;
 }
-const std::deque<DataIndex>& NativeHook::SubTypes() const
+const std::deque<DataIndex> &NativeHook::SubTypes() const
 {
     return subTypes_;
 }
-const std::deque<uint64_t>& NativeHook::EndTimeStamps() const
+const std::deque<uint64_t> &NativeHook::EndTimeStamps() const
 {
     return endTimeStamps_;
 }
-const std::deque<uint64_t>& NativeHook::Durations() const
+const std::deque<uint64_t> &NativeHook::Durations() const
 {
     return durations_;
 }
-const std::deque<uint64_t>& NativeHook::Addrs() const
+const std::deque<uint64_t> &NativeHook::Addrs() const
 {
     return addrs_;
 }
-const std::deque<int64_t>& NativeHook::MemSizes() const
+const std::deque<int64_t> &NativeHook::MemSizes() const
 {
     return memSizes_;
 }
-const std::deque<int64_t>& NativeHook::AllMemSizes() const
+const std::deque<int64_t> &NativeHook::AllMemSizes() const
 {
     return allMemSizes_;
 }
-const std::deque<uint64_t>& NativeHook::CurrentSizeDurs() const
+const std::deque<uint64_t> &NativeHook::CurrentSizeDurs() const
 {
     return currentSizeDurs_;
 }
@@ -168,7 +168,7 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
                                                  DataIndex filePath,
                                                  uint64_t offset,
                                                  uint64_t symbolOffset,
-                                                 const std::string& vaddr)
+                                                 const std::string &vaddr)
 {
     callChainIds_.emplace_back(callChainId);
     ips_.emplace_back(ip);
@@ -235,7 +235,7 @@ void NativeHookFrame::UpdateSymbolId(size_t index, DataIndex symbolId)
         symbolNames_[index] = symbolId;
     }
 }
-void NativeHookFrame::UpdateFileId(std::map<uint32_t, uint64_t>& filePathIdToFilePathName)
+void NativeHookFrame::UpdateFileId(std::map<uint32_t, uint64_t> &filePathIdToFilePathName)
 {
     if (filePathIdToFilePathName.empty()) {
         return;
@@ -247,39 +247,39 @@ void NativeHookFrame::UpdateFileId(std::map<uint32_t, uint64_t>& filePathIdToFil
         }
     }
 }
-void NativeHookFrame::UpdateVaddrs(std::deque<std::string>& vaddrs)
+void NativeHookFrame::UpdateVaddrs(std::deque<std::string> &vaddrs)
 {
     vaddrs_.assign(vaddrs.begin(), vaddrs.end());
 }
-const std::deque<uint32_t>& NativeHookFrame::CallChainIds() const
+const std::deque<uint32_t> &NativeHookFrame::CallChainIds() const
 {
     return callChainIds_;
 }
-const std::deque<uint16_t>& NativeHookFrame::Depths() const
+const std::deque<uint16_t> &NativeHookFrame::Depths() const
 {
     return depths_;
 }
-const std::deque<uint64_t>& NativeHookFrame::Ips() const
+const std::deque<uint64_t> &NativeHookFrame::Ips() const
 {
     return ips_;
 }
-const std::deque<DataIndex>& NativeHookFrame::SymbolNames() const
+const std::deque<DataIndex> &NativeHookFrame::SymbolNames() const
 {
     return symbolNames_;
 }
-const std::deque<DataIndex>& NativeHookFrame::FilePaths() const
+const std::deque<DataIndex> &NativeHookFrame::FilePaths() const
 {
     return filePaths_;
 }
-const std::deque<uint64_t>& NativeHookFrame::Offsets() const
+const std::deque<uint64_t> &NativeHookFrame::Offsets() const
 {
     return offsets_;
 }
-const std::deque<uint64_t>& NativeHookFrame::SymbolOffsets() const
+const std::deque<uint64_t> &NativeHookFrame::SymbolOffsets() const
 {
     return symbolOffsets_;
 }
-const std::deque<std::string>& NativeHookFrame::Vaddrs() const
+const std::deque<std::string> &NativeHookFrame::Vaddrs() const
 {
     return vaddrs_;
 }
@@ -304,27 +304,27 @@ size_t NativeHookStatistic::AppendNewNativeHookStatistic(uint32_t ipid,
     return Size() - 1;
 }
 
-const std::deque<uint32_t>& NativeHookStatistic::MemoryTypes() const
+const std::deque<uint32_t> &NativeHookStatistic::MemoryTypes() const
 {
     return memoryTypes_;
 }
-const std::deque<DataIndex>& NativeHookStatistic::MemorySubTypes() const
+const std::deque<DataIndex> &NativeHookStatistic::MemorySubTypes() const
 {
     return memSubTypes_;
 }
-const std::deque<uint64_t>& NativeHookStatistic::ApplyCounts() const
+const std::deque<uint64_t> &NativeHookStatistic::ApplyCounts() const
 {
     return applyCounts_;
 }
-const std::deque<uint64_t>& NativeHookStatistic::ReleaseCounts() const
+const std::deque<uint64_t> &NativeHookStatistic::ReleaseCounts() const
 {
     return releaseCounts_;
 }
-const std::deque<uint64_t>& NativeHookStatistic::ApplySizes() const
+const std::deque<uint64_t> &NativeHookStatistic::ApplySizes() const
 {
     return applySizes_;
 }
-const std::deque<uint64_t>& NativeHookStatistic::ReleaseSizes() const
+const std::deque<uint64_t> &NativeHookStatistic::ReleaseSizes() const
 {
     return releaseSizes_;
 }

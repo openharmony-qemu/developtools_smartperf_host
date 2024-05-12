@@ -159,20 +159,19 @@ export class LitRadioBox extends BaseElement {
   private parent: LitRadioGroup | undefined | null;
   private radio: HTMLInputElement | undefined | null;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['checked', 'value', 'disabled'];
   }
 
-  get disabled() {
+  get disabled(): boolean {
     return this.getAttribute('disabled') !== null;
   }
 
-
-  get checked() {
+  get checked(): boolean {
     return this.getAttribute('checked') !== null;
   }
 
-  get name() {
+  get name(): string | null {
     return this.getAttribute('name');
   }
 
@@ -184,7 +183,7 @@ export class LitRadioBox extends BaseElement {
     }
   }
 
-  get value() {
+  get value(): string {
     let slot = this.shadowRoot?.getElementById('slot');
     return slot!.textContent || this.textContent || '';
   }
@@ -223,13 +222,13 @@ export class LitRadioBox extends BaseElement {
     this.radio = this.shadowRoot?.getElementById('radio') as HTMLInputElement;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     this.group = this.closest('lit-radio-group') as LitRadioGroup;
     this.parent = this.group || this.getRootNode();
     this.radio = this.shadowRoot?.getElementById('radio') as HTMLInputElement;
     this.checked = this.checked;
     this.radio.addEventListener('change', () => {
-      const selector = this.group ? `lit-radio[checked]` : `lit-radio[name="${this.name}"][checked]`;
+      const selector = this.group ? 'lit-radio[checked]' : `lit-radio[name='${this.name}'][checked]`;
       const siblingNode = this.parent?.querySelector(selector) as LitRadioBox;
       if (siblingNode) {
         siblingNode.checked = false;
@@ -238,11 +237,11 @@ export class LitRadioBox extends BaseElement {
     });
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name == 'checked' && this.radio) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+    if (name === 'checked' && this.radio) {
       this.radio.checked = newValue !== null;
     }
-    if (name == 'value') {
+    if (name === 'value') {
       let slot = this.shadowRoot?.getElementById('slot');
       slot!.textContent = newValue;
     }

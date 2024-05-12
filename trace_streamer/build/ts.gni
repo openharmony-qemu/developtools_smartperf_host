@@ -22,6 +22,7 @@ declare_args() {
   enable_bytrace = true
   enable_rawtrace = true
   enable_htrace = true
+  enable_ffrt = true
   enable_memory = true
   enable_hidump = true
   enable_cpudata = true

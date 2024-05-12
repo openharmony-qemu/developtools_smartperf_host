@@ -27,29 +27,37 @@ export class TabPaneIrqCounter extends BaseElement {
   private sortColumn: string = 'wallDurationFormat';
   private sortType: number = 2;
 
-  set data(irqParam: SelectionParam | any) {
+  set data(irqParam: SelectionParam | unknown) {
     if (this.irqCounterTbl) {
       //@ts-ignore
-      this.irqCounterTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45
-      }px`;
+      this.irqCounterTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45}px`;
     }
     this.irqRange!.textContent = `Selected range: ${parseFloat(
+      // @ts-ignore
       ((irqParam.rightNs - irqParam.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
     let dataSource: Array<SelectionData> = [];
     Promise.all([
-      queryIrqDataBoxSelect(irqParam.irqCallIds, irqParam.leftNs, irqParam.rightNs),
+      // @ts-ignore
+      queryIrqDataBoxSelect(irqParam.irqCallIds, irqParam.leftNs, irqParam.rightNs), // @ts-ignore
       querySoftIrqDataBoxSelect(irqParam.softIrqCallIds, irqParam.leftNs, irqParam.rightNs),
     ]).then((resArr) => {
       resArr.forEach((res) => {
         res.forEach((item) => {
           let selectData = new SelectionData();
+          //@ts-ignore
           selectData.name = item.irqName;
+          //@ts-ignore
           selectData.count = item.count;
+          //@ts-ignore
           selectData.wallDuration = item.wallDuration;
+          //@ts-ignore
           selectData.wallDurationFormat = (item.wallDuration / 1000).toFixed(2);
+          //@ts-ignore
           selectData.maxDuration = item.wallDuration;
+          //@ts-ignore
           selectData.maxDurationFormat = (item.maxDuration / 1000).toFixed(2);
+          //@ts-ignore
           selectData.avgDuration = (item.avgDuration / 1000).toFixed(2);
           dataSource.push(selectData);
         });
@@ -111,8 +119,7 @@ export class TabPaneIrqCounter extends BaseElement {
       if (key === 'wallDurationFormat' || type === 0) {
         return (type === 1 ? 1 : -1) * (irqCounterLeftData.wallDuration - irqCounterRightData.wallDuration);
       } else if (key === 'count') {
-        return (type === 1 ? 1 : -1) *
-          (parseInt(irqCounterLeftData.count) - parseInt(irqCounterRightData.count));
+        return (type === 1 ? 1 : -1) * (parseInt(irqCounterLeftData.count) - parseInt(irqCounterRightData.count));
       } else if (key === 'maxDurationFormat') {
         return (type === 1 ? 1 : -1) * (irqCounterLeftData.maxDuration - irqCounterRightData.maxDuration);
       } else if (key === 'avgDuration') {

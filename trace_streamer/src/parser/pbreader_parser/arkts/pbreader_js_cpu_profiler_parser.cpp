@@ -33,7 +33,7 @@ struct Node {
     uint32_t hitCount;
     std::string children;
 };
-void from_json(const json& j, CallFrame& callFrame)
+void from_json(const json &j, CallFrame &callFrame)
 {
     j.at("functionName").get_to(callFrame.functionName);
     j.at("scriptId").get_to(callFrame.scriptId);
@@ -43,7 +43,7 @@ void from_json(const json& j, CallFrame& callFrame)
     return;
 }
 std::map<int, int> nodes_;
-void from_json(const json& j, Node& node)
+void from_json(const json &j, Node &node)
 {
     j.at("id").get_to(node.id);
     j.at("callFrame").get_to(node.callFrame);
@@ -58,12 +58,12 @@ void from_json(const json& j, Node& node)
 }
 } // namespace jsonns
 
-HtraceJsCpuProfilerParser::HtraceJsCpuProfilerParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+HtraceJsCpuProfilerParser::HtraceJsCpuProfilerParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
 }
 
-void HtraceJsCpuProfilerParser::ParseNodeData(const json& jMessage)
+void HtraceJsCpuProfilerParser::ParseNodeData(const json &jMessage)
 {
     int nodeCount = jMessage.at("nodes").size();
     for (int i = 0; i < nodeCount; i++) {
@@ -88,11 +88,11 @@ void HtraceJsCpuProfilerParser::ParseNodeData(const json& jMessage)
     }
 }
 
-void HtraceJsCpuProfilerParser::DataProcessing(const json& jMessage,
-                                               uint64_t& sampleEndTime,
-                                               uint64_t& startTime,
-                                               uint64_t& dur,
-                                               uint32_t& sample)
+void HtraceJsCpuProfilerParser::DataProcessing(const json &jMessage,
+                                               uint64_t &sampleEndTime,
+                                               uint64_t &startTime,
+                                               uint64_t &dur,
+                                               uint32_t &sample)
 {
     dur = (sampleEndTime * TIME_SECOND_COVER) - (startTime * TIME_SECOND_COVER);
     auto startNewTime = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_MONOTONIC, startTime * TIME_SECOND_COVER);
@@ -105,9 +105,9 @@ void HtraceJsCpuProfilerParser::DataProcessing(const json& jMessage,
     startTime = sampleEndTime;
 }
 
-uint32_t HtraceJsCpuProfilerParser::ParseSampleData(const json& jMessage,
-                                                    uint64_t& sampleEndTime,
-                                                    uint64_t& startTime,
+uint32_t HtraceJsCpuProfilerParser::ParseSampleData(const json &jMessage,
+                                                    uint64_t &sampleEndTime,
+                                                    uint64_t &startTime,
                                                     uint64_t startTimeSnap,
                                                     uint64_t endTimeSnap)
 {

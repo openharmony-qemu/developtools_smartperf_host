@@ -20,16 +20,16 @@ namespace ProtoReader {
 const std::string SYS_NAMESPACE = "SysTuning";
 const int32_t MIN_OPTIONS_SIZE = 2;
 
-bool ProtoReaderPlugin::Generate(const FileDescriptor* file,
-                                 const std::string& options,
-                                 GeneratorContext* context,
-                                 std::string* error) const
+bool ProtoReaderPlugin::Generate(const FileDescriptor *file,
+                                 const std::string &options,
+                                 GeneratorContext *context,
+                                 std::string *error) const
 {
     std::string newFileName = file->name().substr(0, file->name().find("proto")) + "pbreader";
     const std::unique_ptr<ZeroCopyOutputStream> generateFile(context->Open(newFileName + ".h"));
     Printer generatePrinterHead(generateFile.get(), '$');
     ProtoReaderGenerator protoReaderGenerator(file, &generatePrinterHead);
-    std::vector<std::string> option = base::SplitStringToVec(const_cast<std::string&>(options), "=");
+    std::vector<std::string> option = base::SplitStringToVec(const_cast<std::string &>(options), "=");
     if (option.size() < MIN_OPTIONS_SIZE) {
         return false;
     }
@@ -47,11 +47,11 @@ bool ProtoReaderGenerator::WriteProtoReader()
 {
     GetPBReaderInfo();
     WriteBegin();
-    for (const EnumDescriptor* enumDescriptor : vEnumDescriptor_) {
+    for (const EnumDescriptor *enumDescriptor : vEnumDescriptor_) {
         WriteEnumDescriptor(enumDescriptor);
     }
 
-    for (const Descriptor* descriptor : vDescriptor_) {
+    for (const Descriptor *descriptor : vDescriptor_) {
         WriteDecoder(descriptor);
     }
     WriteEnd();
@@ -59,14 +59,14 @@ bool ProtoReaderGenerator::WriteProtoReader()
 }
 void ProtoReaderGenerator::ParserDescriptors()
 {
-    std::vector<const Descriptor*> vDescriptor;
+    std::vector<const Descriptor *> vDescriptor;
     vDescriptor.reserve(static_cast<size_t>(fileDescriptor_->message_type_count()));
     for (int32_t i = 0; i < fileDescriptor_->message_type_count(); ++i) {
         vDescriptor.push_back(fileDescriptor_->message_type(i));
     }
 
     while (!vDescriptor.empty()) {
-        const Descriptor* descriptor = vDescriptor.back();
+        const Descriptor *descriptor = vDescriptor.back();
         vDescriptor.pop_back();
         vDescriptor_.push_back(descriptor);
         for (int32_t i = 0; i < descriptor->nested_type_count(); ++i) {
@@ -78,7 +78,7 @@ void ProtoReaderGenerator::ParserDescriptors()
         vEnumDescriptor_.push_back(fileDescriptor_->enum_type(i));
     }
 
-    for (const Descriptor* descriptor : vDescriptor_) {
+    for (const Descriptor *descriptor : vDescriptor_) {
         for (int32_t i = 0; i < descriptor->enum_type_count(); ++i) {
             vEnumDescriptor_.push_back(descriptor->enum_type(i));
         }
@@ -91,19 +91,19 @@ void ProtoReaderGenerator::ParserDependencies()
         publicImports_.insert(fileDescriptor_->public_dependency(i));
     }
 
-    std::vector<const FileDescriptor*> vFileDescriptor;
+    std::vector<const FileDescriptor *> vFileDescriptor;
     for (int32_t i = 0; i < fileDescriptor_->dependency_count(); ++i) {
-        const FileDescriptor* fileDescriptor = fileDescriptor_->dependency(i);
+        const FileDescriptor *fileDescriptor = fileDescriptor_->dependency(i);
         vFileDescriptor.push_back(fileDescriptor);
     }
 
-    for (const FileDescriptor* fileDescriptor : vFileDescriptor) {
+    for (const FileDescriptor *fileDescriptor : vFileDescriptor) {
         for (int32_t i = 0; i < fileDescriptor->public_dependency_count(); ++i) {
             vFileDescriptor.push_back(fileDescriptor->public_dependency(i));
         }
     }
 
-    for (const Descriptor* descriptor : vDescriptor_) {
+    for (const Descriptor *descriptor : vDescriptor_) {
         for (int32_t i = 0; i < descriptor->field_count(); ++i) {
             if (descriptor->field(i)->type() == FieldDescriptor::TYPE_MESSAGE) {
                 if (!publicImports_.count(descriptor->field(i)->message_type()->file())) {
@@ -126,7 +126,7 @@ void ProtoReaderGenerator::ParserNamespace()
     }
 
     fullNamespacePrefix_ = "::";
-    for (const std::string& namespaces : vNamespaces_)
+    for (const std::string &namespaces : vNamespaces_)
         fullNamespacePrefix_ += namespaces + "::";
 }
 
@@ -155,21 +155,21 @@ void ProtoReaderGenerator::WriteBegin()
         "notify", notify, "fileDefinded", fileDefinded_);
     codePrinter_->Print("\n");
 
-    for (const std::string& tsNamespace : vNamespaces_) {
+    for (const std::string &tsNamespace : vNamespaces_) {
         codePrinter_->Print("namespace $namespace$ {\n", "namespace", tsNamespace);
     }
     codePrinter_->Print("\n");
 
-    for (const Descriptor* descriptor : referencedMessages_) {
+    for (const Descriptor *descriptor : referencedMessages_) {
         codePrinter_->Print("class $class$;\n", "class", GetDescriptorClass(descriptor));
     }
-    for (const EnumDescriptor* enumDescriptor : referencedEnums_) {
+    for (const EnumDescriptor *enumDescriptor : referencedEnums_) {
         codePrinter_->Print("enum $class$ : int32_t;\n", "class", GetDescriptorClass(enumDescriptor));
     }
     codePrinter_->Print("\n");
 }
 
-void ProtoReaderGenerator::WriteEnumDescriptor(const EnumDescriptor* enumDescriptor)
+void ProtoReaderGenerator::WriteEnumDescriptor(const EnumDescriptor *enumDescriptor)
 {
     codePrinter_->Print("enum $class$ : int32_t {\n", "class", GetDescriptorClass(enumDescriptor));
     codePrinter_->Indent();
@@ -205,11 +205,11 @@ void ProtoReaderGenerator::WriteEnumDescriptor(const EnumDescriptor* enumDescrip
     codePrinter_->Print("\n");
 }
 
-void ProtoReaderGenerator::WriteDecoder(const Descriptor* descriptor)
+void ProtoReaderGenerator::WriteDecoder(const Descriptor *descriptor)
 {
     int32_t maxFieldID = 0;
     for (int32_t i = 0; i < descriptor->field_count(); ++i) {
-        const FieldDescriptor* field = descriptor->field(i);
+        const FieldDescriptor *field = descriptor->field(i);
         maxFieldID = std::max(maxFieldID, field->number());
     }
     std::string className = GetDescriptorClass(descriptor) + "_Reader";
@@ -239,14 +239,14 @@ void ProtoReaderGenerator::WriteDecoder(const Descriptor* descriptor)
     codePrinter_->Print("};\n\n");
 }
 
-void ProtoReaderGenerator::WriteEnum(const Descriptor* descriptor)
+void ProtoReaderGenerator::WriteEnum(const Descriptor *descriptor)
 {
     if (descriptor->field_count()) {
         codePrinter_->Print("enum : int32_t {\n");
         codePrinter_->Indent();
 
         for (int32_t i = 0; i < descriptor->field_count(); ++i) {
-            const FieldDescriptor* field = descriptor->field(i);
+            const FieldDescriptor *field = descriptor->field(i);
             codePrinter_->Print("$name$ = $id$,\n", "name", GetFieldNumberConstant(field), "id",
                                 std::to_string(field->number()));
         }
@@ -255,10 +255,10 @@ void ProtoReaderGenerator::WriteEnum(const Descriptor* descriptor)
     }
 }
 
-void ProtoReaderGenerator::WriteFunc(const Descriptor* descriptor, const int32_t maxFieldID)
+void ProtoReaderGenerator::WriteFunc(const Descriptor *descriptor, const int32_t maxFieldID)
 {
     for (int32_t i = 0; i < descriptor->field_count(); ++i) {
-        const FieldDescriptor* field = descriptor->field(i);
+        const FieldDescriptor *field = descriptor->field(i);
         if (field->number() > maxFieldID) {
             codePrinter_->Print("// dataArea $name$ exceeded the maximum\n", "name", field->name());
             continue;
@@ -278,7 +278,7 @@ void ProtoReaderGenerator::WriteFunc(const Descriptor* descriptor, const int32_t
             if (fieldType != fieldTypeDesc_.end()) {
                 fieldTypeDesc = fieldType->second;
             }
-            const char* protoReaderWireType = fieldTypeDesc.packedBufferType.c_str();
+            const char *protoReaderWireType = fieldTypeDesc.packedBufferType.c_str();
             codePrinter_->Print(
                 "PackedRepeatedDataAreaIterator<ProtoWireType::$protoReaderWireType$, $type$> "
                 "$name$(bool* parseErrorInfo) const { return "
@@ -308,7 +308,7 @@ void ProtoReaderGenerator::WriteEnd()
     codePrinter_->Print("#endif // $fileDefinded$\n", "fileDefinded", fileDefinded_);
 }
 
-std::string ProtoReaderGenerator::GetFieldNumberConstant(const FieldDescriptor* field)
+std::string ProtoReaderGenerator::GetFieldNumberConstant(const FieldDescriptor *field)
 {
     std::string name = field->camelcase_name();
     if (!name.empty()) {
@@ -321,7 +321,7 @@ std::string ProtoReaderGenerator::GetFieldNumberConstant(const FieldDescriptor* 
 } // namespace ProtoReader
 } // namespace SysTuning
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     SysTuning::ProtoReader::ProtoReaderPlugin protoReaderGenerate;
     return google::protobuf::compiler::PluginMain(argc, argv, &protoReaderGenerate);

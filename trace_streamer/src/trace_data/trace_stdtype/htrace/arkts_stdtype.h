@@ -21,13 +21,16 @@ namespace SysTuning {
 namespace TraceStdtype {
 class JsHeapFiles : public CacheBase {
 public:
-    size_t
-        AppendNewData(uint32_t id, std::string filePath, uint64_t startTime, uint64_t endTime, uint64_t selfSizeCount);
-    const std::deque<uint32_t>& IDs() const;
-    const std::deque<std::string>& FilePaths() const;
-    const std::deque<uint64_t>& StartTimes() const;
-    const std::deque<uint64_t>& EndTimes() const;
-    const std::deque<uint64_t>& SelfSizeCount() const;
+    size_t AppendNewData(uint32_t id,
+                         std::string filePath,
+                         uint64_t startTime,
+                         uint64_t endTime,
+                         uint64_t selfSizeCount);
+    const std::deque<uint32_t> &IDs() const;
+    const std::deque<std::string> &FilePaths() const;
+    const std::deque<uint64_t> &StartTimes() const;
+    const std::deque<uint64_t> &EndTimes() const;
+    const std::deque<uint64_t> &SelfSizeCount() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -55,13 +58,13 @@ public:
                          uint32_t toNode,
                          uint32_t fromNodeId,
                          uint32_t toNodeId);
-    const std::deque<uint32_t>& FileIds() const;
-    const std::deque<uint32_t>& EdgeIndexs() const;
-    const std::deque<uint32_t>& Types() const;
-    const std::deque<uint32_t>& NameOrIndexs() const;
-    const std::deque<uint32_t>& ToNodes() const;
-    const std::deque<uint32_t>& FromNodeIds() const;
-    const std::deque<uint32_t>& ToNodeIds() const;
+    const std::deque<uint32_t> &FileIds() const;
+    const std::deque<uint32_t> &EdgeIndexs() const;
+    const std::deque<uint32_t> &Types() const;
+    const std::deque<uint32_t> &NameOrIndexs() const;
+    const std::deque<uint32_t> &ToNodes() const;
+    const std::deque<uint32_t> &FromNodeIds() const;
+    const std::deque<uint32_t> &ToNodeIds() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -87,11 +90,11 @@ private:
 class JsHeapInfo : public CacheBase {
 public:
     size_t AppendNewData(uint32_t fileId, std::string key, uint32_t type, int32_t intValue, std::string strValue);
-    const std::deque<uint32_t>& FileIds() const;
-    const std::deque<std::string>& Keys() const;
-    const std::deque<uint32_t>& Types() const;
-    const std::deque<int32_t>& IntValues() const;
-    const std::deque<std::string>& StrValues() const;
+    const std::deque<uint32_t> &FileIds() const;
+    const std::deque<std::string> &Keys() const;
+    const std::deque<uint32_t> &Types() const;
+    const std::deque<int32_t> &IntValues() const;
+    const std::deque<std::string> &StrValues() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -113,11 +116,11 @@ private:
 class JsHeapLocation : public CacheBase {
 public:
     size_t AppendNewData(uint32_t fileId, uint32_t objectIndex, uint32_t scriptId, uint32_t line, uint32_t column);
-    const std::deque<uint32_t>& FileIds() const;
-    const std::deque<uint32_t>& ObjectIndexs() const;
-    const std::deque<uint32_t>& ScriptIds() const;
-    const std::deque<uint32_t>& Lines() const;
-    const std::deque<uint32_t>& Columns() const;
+    const std::deque<uint32_t> &FileIds() const;
+    const std::deque<uint32_t> &ObjectIndexs() const;
+    const std::deque<uint32_t> &ScriptIds() const;
+    const std::deque<uint32_t> &Lines() const;
+    const std::deque<uint32_t> &Columns() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -147,15 +150,15 @@ public:
                          uint32_t edgeCount,
                          uint32_t traceNodeId,
                          uint32_t detachedNess);
-    const std::deque<uint32_t>& FileIds() const;
-    const std::deque<uint32_t>& NodeIndexs() const;
-    const std::deque<uint32_t>& Types() const;
-    const std::deque<uint32_t>& Names() const;
-    const std::deque<uint32_t>& NodeIds() const;
-    const std::deque<uint32_t>& SelfSizes() const;
-    const std::deque<uint32_t>& EdgeCounts() const;
-    const std::deque<uint32_t>& TraceNodeIds() const;
-    const std::deque<uint32_t>& DetachedNess() const;
+    const std::deque<uint32_t> &FileIds() const;
+    const std::deque<uint32_t> &NodeIndexs() const;
+    const std::deque<uint32_t> &Types() const;
+    const std::deque<uint32_t> &Names() const;
+    const std::deque<uint32_t> &NodeIds() const;
+    const std::deque<uint32_t> &SelfSizes() const;
+    const std::deque<uint32_t> &EdgeCounts() const;
+    const std::deque<uint32_t> &TraceNodeIds() const;
+    const std::deque<uint32_t> &DetachedNess() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -185,9 +188,9 @@ private:
 class JsHeapSample : public CacheBase {
 public:
     size_t AppendNewData(uint32_t fileId, uint64_t timeStampUs, uint32_t lastAssignedId);
-    const std::deque<uint32_t>& FileIds() const;
-    const std::deque<uint64_t>& TimeStampUs() const;
-    const std::deque<uint32_t>& LastAssignedIds() const;
+    const std::deque<uint32_t> &FileIds() const;
+    const std::deque<uint64_t> &TimeStampUs() const;
+    const std::deque<uint32_t> &LastAssignedIds() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -205,9 +208,9 @@ private:
 class JsHeapString : public CacheBase {
 public:
     size_t AppendNewData(uint32_t fileId, uint32_t fileIndex, std::string string);
-    const std::deque<uint32_t>& FileIds() const;
-    const std::deque<uint64_t>& FileIndexs() const;
-    const std::deque<std::string>& Strings() const;
+    const std::deque<uint32_t> &FileIds() const;
+    const std::deque<uint64_t> &FileIndexs() const;
+    const std::deque<std::string> &Strings() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -232,14 +235,14 @@ public:
                          uint32_t scriptId,
                          uint32_t line,
                          uint32_t column);
-    const std::deque<uint32_t>& FileIds() const;
-    const std::deque<uint32_t>& FunctionIndexs() const;
-    const std::deque<uint32_t>& FunctionIds() const;
-    const std::deque<uint32_t>& Names() const;
-    const std::deque<uint32_t>& ScriptNames() const;
-    const std::deque<uint32_t>& ScriptIds() const;
-    const std::deque<uint32_t>& Lines() const;
-    const std::deque<uint32_t>& Columns() const;
+    const std::deque<uint32_t> &FileIds() const;
+    const std::deque<uint32_t> &FunctionIndexs() const;
+    const std::deque<uint32_t> &FunctionIds() const;
+    const std::deque<uint32_t> &Names() const;
+    const std::deque<uint32_t> &ScriptNames() const;
+    const std::deque<uint32_t> &ScriptIds() const;
+    const std::deque<uint32_t> &Lines() const;
+    const std::deque<uint32_t> &Columns() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -272,12 +275,12 @@ public:
                          uint32_t count,
                          uint32_t size,
                          int32_t parentId);
-    const std::deque<uint32_t>& FileIds() const;
-    const std::deque<uint32_t>& TraceNodeIDs() const;
-    const std::deque<uint32_t>& FunctionInfoIndexs() const;
-    const std::deque<uint32_t>& Counts() const;
-    const std::deque<uint32_t>& NodeSizes() const;
-    const std::deque<int32_t>& ParentIds() const;
+    const std::deque<uint32_t> &FileIds() const;
+    const std::deque<uint32_t> &TraceNodeIDs() const;
+    const std::deque<uint32_t> &FunctionInfoIndexs() const;
+    const std::deque<uint32_t> &Counts() const;
+    const std::deque<uint32_t> &NodeSizes() const;
+    const std::deque<int32_t> &ParentIds() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -307,13 +310,13 @@ public:
                          uint32_t trackAllocation,
                          uint32_t cpuProfiler,
                          uint32_t cpuProfilerInterval);
-    const std::deque<uint32_t>& Pids() const;
-    const std::deque<uint64_t>& Types() const;
-    const std::deque<uint32_t>& Intervals() const;
-    const std::deque<uint32_t>& CaptureNumericValue() const;
-    const std::deque<uint32_t>& TrackAllocations() const;
-    const std::deque<uint32_t>& CpuProfiler() const;
-    const std::deque<uint32_t>& CpuProfilerInterval() const;
+    const std::deque<uint32_t> &Pids() const;
+    const std::deque<uint64_t> &Types() const;
+    const std::deque<uint32_t> &Intervals() const;
+    const std::deque<uint32_t> &CaptureNumericValue() const;
+    const std::deque<uint32_t> &TrackAllocations() const;
+    const std::deque<uint32_t> &CpuProfiler() const;
+    const std::deque<uint32_t> &CpuProfilerInterval() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -347,15 +350,15 @@ public:
                          uint32_t hitCount,
                          std::string children,
                          uint32_t parent);
-    const std::deque<uint32_t>& FunctionIds() const;
-    const std::deque<uint32_t>& FunctionNames() const;
-    const std::deque<std::string>& ScriptIds() const;
-    const std::deque<uint32_t>& Urls() const;
-    const std::deque<uint32_t>& LineNumbers() const;
-    const std::deque<int32_t>& ColumnNumbers() const;
-    const std::deque<int32_t>& HitCounts() const;
-    const std::deque<std::string>& Children() const;
-    const std::deque<uint32_t>& Parents() const;
+    const std::deque<uint32_t> &FunctionIds() const;
+    const std::deque<uint32_t> &FunctionNames() const;
+    const std::deque<std::string> &ScriptIds() const;
+    const std::deque<uint32_t> &Urls() const;
+    const std::deque<uint32_t> &LineNumbers() const;
+    const std::deque<int32_t> &ColumnNumbers() const;
+    const std::deque<int32_t> &HitCounts() const;
+    const std::deque<std::string> &Children() const;
+    const std::deque<uint32_t> &Parents() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -385,10 +388,10 @@ private:
 class JsCpuProfilerSample : public CacheBase {
 public:
     size_t AppendNewData(uint32_t functionId, uint64_t startTime, uint64_t endTime, uint64_t dur);
-    const std::deque<uint32_t>& FunctionIds() const;
-    const std::deque<uint64_t>& StartTimes() const;
-    const std::deque<uint64_t>& EndTimes() const;
-    const std::deque<uint64_t>& Durs() const;
+    const std::deque<uint32_t> &FunctionIds() const;
+    const std::deque<uint64_t> &StartTimes() const;
+    const std::deque<uint64_t> &EndTimes() const;
+    const std::deque<uint64_t> &Durs() const;
     void Clear() override
     {
         CacheBase::Clear();

@@ -11,9 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from '../CommonArgs';
 import { TraficEnum } from '../utils/QueryEnum';
 
-export const chartProcessStartupDataSql = (args: any): string => {
+export const chartProcessStartupDataSql = (args: Args): string => {
   return `
       select P.pid,
              A.tid,
@@ -30,31 +31,35 @@ export const chartProcessStartupDataSql = (args: any): string => {
       order by start_name;`;
 };
 
-export function processStartupDataReceiver(data: any, proc: Function): void {
+export function processStartupDataReceiver(data: unknown, proc: Function): void {
+  //@ts-ignore
   let sql = chartProcessStartupDataSql(data.params);
-  let res = proc(sql);
+  let res = proc(sql); //@ts-ignore
   arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
-  let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime);
-  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
-  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);
-  let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid);
-  let itid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.itid);
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  //@ts-ignore
+  let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime); //@ts-ignore
+  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur); //@ts-ignore
+  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid); //@ts-ignore
+  let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid); //@ts-ignore
+  let itid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.itid); //@ts-ignore
   let startName = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.startName);
   res.forEach((it, i) => {
-    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processStartupData);
-    dur[i] = it.dur || 0;
-    startTs[i] = it.startTime || 0;
-    pid[i] = it.pid || 0;
-    tid[i] = it.tid || 0;
-    itid[i] = it.itid || 0;
+    //@ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processStartupData); //@ts-ignore
+    dur[i] = it.dur || 0; //@ts-ignore
+    startTs[i] = it.startTime || 0; //@ts-ignore
+    pid[i] = it.pid || 0; //@ts-ignore
+    tid[i] = it.tid || 0; //@ts-ignore
+    itid[i] = it.itid || 0; //@ts-ignore
     startName[i] = it.startName || 0;
   });
   (self as unknown as Worker).postMessage(
     {
-      id: data.id,
+      //@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
       results: transfer
         ? {

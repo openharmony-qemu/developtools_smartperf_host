@@ -78,7 +78,7 @@ template("wasm_lib") {
       "-s",
       "SAFE_HEAP=1",
       "-g4",
-      "-O0",
+      "-O3",
     ]
   } else {
     _target_ldflags += [

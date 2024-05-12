@@ -16,7 +16,7 @@
 import { ColorUtils } from '../../../component/trace/base/ColorUtils';
 import {
   BaseStruct,
-  type Rect,
+  Rect,
   ns2x,
   drawString,
   Render,
@@ -27,7 +27,9 @@ import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { HiPerfChartFrame } from '../../../bean/PerfStruct';
 
 export class HiPerfCallChartRender extends Render {
-  renderMainThread(req: any, row: TraceRow<HiPerfCallChartStruct>): void {
+  renderMainThread(req: unknown, row: TraceRow<HiPerfCallChartStruct>): void {
+    //@ts-ignore
+    const ctx = req.context as CanvasRenderingContext2D;
     let list = row.dataList;
     let filter = row.dataListCache;
     hiperf(
@@ -36,16 +38,18 @@ export class HiPerfCallChartRender extends Render {
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
       TraceRow.range!.totalNS,
+      //@ts-ignore
       row.frame,
+      //@ts-ignore
       req.useCache || !TraceRow.range!.refresh,
       row.funcExpand
     );
-    drawLoadingFrame(req.context, filter, row);
-    req.context.beginPath();
+    drawLoadingFrame(ctx, filter, row);
+    ctx.beginPath();
     let find = false;
     let offset = 5;
     for (let re of filter) {
-      HiPerfCallChartStruct.draw(req.context, re);
+      HiPerfCallChartStruct.draw(ctx, re);
       if (row.isHover) {
         if (
           re.endTime - re.startTime === 0 ||
@@ -73,7 +77,7 @@ export class HiPerfCallChartRender extends Render {
         HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
       }
     }
-    req.context.closePath();
+    ctx.closePath();
   }
 }
 
@@ -96,7 +100,13 @@ export class HiPerfCallChartStruct extends BaseStruct {
   callchain_id: number = 0;
   selfDur: number = 0;
 
-  static setPerfFrame(hiPerfNode: any, startNS: number, endNS: number, totalNS: number, frame: Rect): void {
+  static setPerfFrame(
+    hiPerfNode: HiPerfCallChartStruct,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: Rect
+  ): void {
     let x1: number, x2: number;
     if ((hiPerfNode.startTime || 0) > startNS && (hiPerfNode.startTime || 0) < endNS) {
       x1 = ns2x(hiPerfNode.startTime || 0, startNS, endNS, totalNS, frame);
@@ -112,7 +122,7 @@ export class HiPerfCallChartStruct extends BaseStruct {
       x2 = frame.width;
     }
     if (!hiPerfNode.frame) {
-      hiPerfNode.frame = {};
+      hiPerfNode.frame = new Rect(0, 0, 0, 0);
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
     hiPerfNode.frame.x = Math.floor(x1);
@@ -155,8 +165,8 @@ export class HiPerfCallChartStruct extends BaseStruct {
 }
 
 export function hiperf(
-  list: Array<any>,
-  filter: Array<any>,
+  list: Array<HiPerfCallChartStruct>,
+  filter: Array<HiPerfCallChartStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
@@ -173,7 +183,7 @@ export function hiperf(
       ) {
         HiPerfCallChartStruct.setPerfFrame(filter[i], startNS, endNS, totalNS, frame);
       } else {
-        filter[i].frame = null;
+        filter[i].frame = undefined;
       }
     }
     return;
@@ -193,11 +203,13 @@ export function hiperf(
         return it;
       })
       .reduce((pre, current) => {
+        //@ts-ignore
         (pre[`${current.frame.x}-${current.depth}`] = pre[`${current.frame.x}-${current.depth}`] || []).push(current);
         return pre;
       }, {});
     Reflect.ownKeys(groups).map((kv) => {
       // 从小到大排序
+      //@ts-ignore
       let arr = groups[kv].sort((a: HiPerfChartFrame, b: HiPerfChartFrame) => b.totalTime - a.totalTime);
       filter.push(arr[0]);
     });

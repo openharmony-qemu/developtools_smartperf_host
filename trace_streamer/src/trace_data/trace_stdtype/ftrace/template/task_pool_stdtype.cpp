@@ -71,47 +71,47 @@ size_t TaskPoolInfo::AppendReturnTaskData(uint32_t returnTaskRow,
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-const std::deque<uint32_t>& TaskPoolInfo::AllocationTaskRows() const
+const std::deque<uint32_t> &TaskPoolInfo::AllocationTaskRows() const
 {
     return allocationTaskRows_;
 }
-const std::deque<uint32_t>& TaskPoolInfo::ExecuteTaskRows() const
+const std::deque<uint32_t> &TaskPoolInfo::ExecuteTaskRows() const
 {
     return executeTaskRows_;
 }
-const std::deque<uint32_t>& TaskPoolInfo::ReturnTaskRows() const
+const std::deque<uint32_t> &TaskPoolInfo::ReturnTaskRows() const
 {
     return returnTaskRows_;
 }
-const std::deque<uint32_t>& TaskPoolInfo::AllocationItids() const
+const std::deque<uint32_t> &TaskPoolInfo::AllocationItids() const
 {
     return allocationItids_;
 }
-const std::deque<uint32_t>& TaskPoolInfo::ExecuteItids() const
+const std::deque<uint32_t> &TaskPoolInfo::ExecuteItids() const
 {
     return executeItids_;
 }
-const std::deque<uint32_t>& TaskPoolInfo::ReturnItids() const
+const std::deque<uint32_t> &TaskPoolInfo::ReturnItids() const
 {
     return returnItids_;
 }
-const std::deque<uint64_t>& TaskPoolInfo::TaskIds() const
+const std::deque<uint64_t> &TaskPoolInfo::TaskIds() const
 {
     return taskIds_;
 }
-const std::deque<uint32_t>& TaskPoolInfo::Prioritys() const
+const std::deque<uint32_t> &TaskPoolInfo::Prioritys() const
 {
     return prioritys_;
 }
-const std::deque<uint32_t>& TaskPoolInfo::ExecuteStates() const
+const std::deque<uint32_t> &TaskPoolInfo::ExecuteStates() const
 {
     return executeStates_;
 }
-const std::deque<uint32_t>& TaskPoolInfo::ReturnStates() const
+const std::deque<uint32_t> &TaskPoolInfo::ReturnStates() const
 {
     return returnStates_;
 }
-const std::deque<uint32_t>& TaskPoolInfo::TimeoutRows() const
+const std::deque<uint32_t> &TaskPoolInfo::TimeoutRows() const
 {
     return timeoutRows_;
 }

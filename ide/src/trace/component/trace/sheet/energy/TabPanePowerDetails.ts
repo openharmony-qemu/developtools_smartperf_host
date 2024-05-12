@@ -27,8 +27,8 @@ import { NUM_100, NUM_3 } from '../../../../bean/NumBean';
 @element('tabpane-power-details')
 export class TabPanePowerDetails extends BaseElement {
   private tblPowerDetails: LitTable | null | undefined;
-  private sourcePowerDetails: Array<any> = [];
-  private itemType: any;
+  private sourcePowerDetails: Array<unknown> = [];
+  private itemType: unknown;
 
   set data(valPowerDetails: SelectionParam) {
     this.queryDataByDB(valPowerDetails);
@@ -119,7 +119,7 @@ export class TabPanePowerDetails extends BaseElement {
 
   initElements(): void {
     this.tblPowerDetails = this.shadowRoot?.querySelector<LitTable>('#tb-power-details-energy');
-    this.tblPowerDetails!.addEventListener('column-click', (evt) => {
+    this.tblPowerDetails!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -128,15 +128,19 @@ export class TabPanePowerDetails extends BaseElement {
       time_type: [],
       duration_type: [],
       energy_type: [],
-      count_type: []
+      count_type: [],
     };
+    // @ts-ignore
     this.itemType.time_type = this.getTimeTypeValue();
+    // @ts-ignore
     this.itemType.duration_type = this.getDurationTypeValue();
+    // @ts-ignore
     this.itemType.energy_type = this.getEnergyTypeValue();
+    // @ts-ignore
     this.itemType.count_type = this.getCountTypeValue();
   }
 
-  getPowerData() {
+  getPowerData(): unknown {
     return {
       POWER_IDE_CPU: new PowerDetailsEnergy('CPU'),
       POWER_IDE_LOCATION: new PowerDetailsEnergy('LOCATION'),
@@ -150,41 +154,64 @@ export class TabPanePowerDetails extends BaseElement {
     };
   }
 
-  getTotalEnergy(powerData: any) {
-    return powerData.POWER_IDE_CPU.getTotalEnergy(false) +
+  getTotalEnergy(powerData: unknown): number {
+    return (
+      // @ts-ignore
+      powerData.POWER_IDE_CPU.getTotalEnergy(false) +
+      // @ts-ignore
       powerData.POWER_IDE_LOCATION.getTotalEnergy(false) +
+      // @ts-ignore
       powerData.POWER_IDE_GPU.getTotalEnergy(true) +
+      // @ts-ignore
       powerData.POWER_IDE_DISPLAY.getTotalEnergy(true) +
+      // @ts-ignore
       powerData.POWER_IDE_CAMERA.getTotalEnergy(false) +
+      // @ts-ignore
       powerData.POWER_IDE_BLUETOOTH.getTotalEnergy(false) +
+      // @ts-ignore
       powerData.POWER_IDE_FLASHLIGHT.getTotalEnergy(false) +
+      // @ts-ignore
       powerData.POWER_IDE_AUDIO.getTotalEnergy(false) +
-      powerData.POWER_IDE_WIFISCAN.getTotalEnergy(false);
+      // @ts-ignore
+      powerData.POWER_IDE_WIFISCAN.getTotalEnergy(false)
+    );
   }
 
-  queryDataByDB(val: SelectionParam | any): void {
-    getTabPowerDetailsData(val.leftNs - val.leftNs, val.rightNs).then((items) => {
-      log('getTabPowerDetailsData size :' + items.length);
-      let detailsData: Array<any> = [];
+  queryDataByDB(val: SelectionParam | unknown): void {
+    // @ts-ignore
+    getTabPowerDetailsData(val.leftNs - val.leftNs, val.rightNs).then((items): void => {
+      log(`getTabPowerDetailsData size :${items.length}`);
+      let detailsData: Array<unknown> = [];
       let set = new Set();
       set.add('COUNT');
       set.add('LOAD');
       set.add('CHARGE');
       set.add('CAMERA_ID');
-      let powerData: any = this.getPowerData();
+      let powerData: unknown = this.getPowerData();
       let tsMax = 0;
       let currentAppIndex = -1;
-      items.forEach((item) => {
-        let powerDatum: any = powerData[item.eventName];
+      items.forEach((item): void => {
+        // @ts-ignore
+        let powerDatum: unknown = powerData[item.eventName];
         if (item.appKey.toLocaleLowerCase() === 'appname') {
+          // @ts-ignore
           powerDatum.appName = SpHiSysEnergyChart.app_name;
           currentAppIndex = item.eventValue.split(',').indexOf(SpHiSysEnergyChart.app_name!);
           tsMax = 0;
         } else if (currentAppIndex > -1 && (set.has(item.appKey) ? item.startNS >= tsMax : true)) {
           if (set.has(item.appKey)) {
-            powerDatum[item.appKey.toLocaleLowerCase()] = item.startNS >= tsMax ? (tsMax = item.startNS , item.eventValue) : powerDatum[item.appKey.toLocaleLowerCase()];
+            // @ts-ignore
+            powerDatum[item.appKey.toLocaleLowerCase()] =
+              item.startNS >= tsMax
+                ? ((tsMax = item.startNS), item.eventValue)
+                : // @ts-ignore
+                  powerDatum[item.appKey.toLocaleLowerCase()];
           } else {
-            powerDatum[item.appKey.toLocaleLowerCase()] = (powerDatum[item.appKey.toLocaleLowerCase()] || 0) + parseInt(item.eventValue.split(',')[currentAppIndex]);
+            // @ts-ignore
+            powerDatum[item.appKey.toLocaleLowerCase()] =
+              // @ts-ignore
+              (powerDatum[item.appKey.toLocaleLowerCase()] || 0) +
+              parseInt(item.eventValue.split(',')[currentAppIndex]);
           }
         }
       });
@@ -213,8 +240,8 @@ export class TabPanePowerDetails extends BaseElement {
     }
   }
 
-  updateTableStyles() {
-    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+  updateTableStyles(): void {
+    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td): void => {
       td.style.fontSize = '14px';
       td.style.fontWeight = '400';
       td.style.opacity = '0.9';
@@ -222,31 +249,46 @@ export class TabPanePowerDetails extends BaseElement {
     });
   }
 
-  setEnergyItems(powerData: any, totalEnergy: number, energyName: string, isSimpleEnergy: boolean, type: any): any {
+  setEnergyItems(
+    powerData: unknown,
+    totalEnergy: number,
+    energyName: string,
+    isSimpleEnergy: boolean,
+    type: unknown
+  ): unknown {
+    // @ts-ignore
     let ratio = (powerData[energyName].getTotalEnergy(isSimpleEnergy) * NUM_100) / totalEnergy;
     if (totalEnergy === 0) {
+      // @ts-ignore
       powerData[energyName].energyConsumptionRatio = '0.000 %';
     } else {
-      powerData[energyName].energyConsumptionRatio = ratio.toFixed(NUM_3) + ' %';
+      // @ts-ignore
+      powerData[energyName].energyConsumptionRatio = `${ratio.toFixed(NUM_3)} %`;
     }
     return this.getEnergyStyle(powerData, energyName, type);
   }
 
-  getEnergyStyle(powerData: any, energyName: string, type: any) {
-    this.itemType[type].forEach((item: any) => {
+  getEnergyStyle(powerData: unknown, energyName: string, type: unknown): unknown {
+    // @ts-ignore
+    this.itemType[type].forEach((item: unknown): void => {
+      // @ts-ignore
       powerData[energyName][item] = '-';
     });
     if (type === 'energy_type') {
       if (energyName === 'POWER_IDE_GPU') {
-        powerData[energyName]['duration'] = '-';
+        // @ts-ignore
+        powerData[energyName].duration = '-';
       } else {
-        powerData[energyName]['usage'] = '-';
+        // @ts-ignore
+        powerData[energyName].usage = '-';
       }
     } else if (type === 'duration_type') {
       if (energyName !== 'POWER_IDE_CAMERA') {
-        powerData[energyName]['camera_id'] = '-';
+        // @ts-ignore
+        powerData[energyName].camera_id = '-';
       }
     }
+    // @ts-ignore
     return powerData[energyName];
   }
 
@@ -254,20 +296,16 @@ export class TabPanePowerDetails extends BaseElement {
     return TabPanePowerDetailsHTML;
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(property, sort, type) {
       return function (aPowerDetails: PowerDetailsEnergy, bPowerDetails: PowerDetailsEnergy) {
         if (type === 'number') {
-          return sort === 2
-            ? // @ts-ignore
-            parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]) -
-            // @ts-ignore
-            parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property])
-            : // @ts-ignore
-            parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) -
-            // @ts-ignore
-            parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]);
+          return sort === 2 // @ts-ignore
+            ? parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]) - // @ts-ignore
+                parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) // @ts-ignore
+            : parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) - // @ts-ignore
+                parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]);
         } else {
           // @ts-ignore
           if (bPowerDetails[property] > aPowerDetails[property]) {
@@ -283,15 +321,17 @@ export class TabPanePowerDetails extends BaseElement {
         }
       };
     }
-
+    // @ts-ignore
     if (detail.key === 'appName') {
+      // @ts-ignore
       this.sourcePowerDetails.sort(compare(detail.key, detail.sort, 'string'));
     } else {
+      // @ts-ignore
       this.sourcePowerDetails.sort(compare(detail.key, detail.sort, 'number'));
     }
     this.tblPowerDetails!.recycleDataSource = this.sourcePowerDetails;
 
-    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td): void => {
       td.style.fontSize = '14px';
       td.style.fontWeight = '400';
       td.style.opacity = '0.9';

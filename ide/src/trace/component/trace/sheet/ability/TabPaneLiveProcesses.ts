@@ -20,7 +20,7 @@ import { LiveProcess } from '../../../../bean/AbilityMonitor';
 import { Utils } from '../../base/Utils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
-import {getTabLiveProcessData} from "../../../../database/sql/ProcessThread.sql";
+import { getTabLiveProcessData } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-live-processes')
 export class TabPaneLiveProcesses extends BaseElement {
@@ -29,30 +29,30 @@ export class TabPaneLiveProcesses extends BaseElement {
   private queryLiveResult: Array<LiveProcess> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(liveProcessValue: SelectionParam | any) {
+  set data(liveProcessValue: SelectionParam | unknown) {
     if (this.liveProcessTbl) {
       // @ts-ignore
-      this.liveProcessTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+      this.liveProcessTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement.clientHeight - 45}px`;
     }
     this.queryDataByDB(liveProcessValue);
   }
   initElements(): void {
     this.liveProcessTbl = this.shadowRoot?.querySelector<LitTable>('#tb-live-processes');
-    this.liveProcessTbl!.addEventListener('column-click', (evt) => {
+    this.liveProcessTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.liveProcessTbl!);
   }
 
-  filterData() {
+  filterData(): void {
     if (this.queryLiveResult.length > 0) {
-      let filterLive = this.queryLiveResult.filter((item) => {
-        let array = this.toLiveProcessArray(item);
+      let filterLive = this.queryLiveResult.filter((item): boolean => {
+        let array = this.toLiveProcessArray(item); // @ts-ignore
         let isInclude = array.filter((value) => value.indexOf(this.search!.value) > -1);
         return isInclude.length > 0;
       });
@@ -66,7 +66,7 @@ export class TabPaneLiveProcesses extends BaseElement {
     }
   }
 
-  toLiveProcessArray(liveProcess: LiveProcess): any[] {
+  toLiveProcessArray(liveProcess: LiveProcess): unknown[] {
     let array: Array<string> = [];
     array.push(liveProcess.processId.toString());
     array.push(liveProcess.processName);
@@ -80,16 +80,17 @@ export class TabPaneLiveProcesses extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    getTabLiveProcessData(val.leftNs, val.rightNs).then((item) => {
-      if (item.length != null && item.length > 0) {
-        log('getTabLiveProcessData result size : ' + item.length);
+  queryDataByDB(val: SelectionParam | unknown): void {
+    // @ts-ignore
+    getTabLiveProcessData(val.leftNs, val.rightNs).then((item): void => {
+      if (item.length !== null && item.length > 0) {
+        log(`getTabLiveProcessData result size : ${item.length}`);
         for (const liveProcess of item) {
-          liveProcess.processName = liveProcess.processName + '(' + liveProcess.processId + ')';
+          liveProcess.processName = `${liveProcess.processName}(${liveProcess.processId})`;
           liveProcess.memoryNumber = Number(liveProcess.memory);
           liveProcess.memory = Utils.getBinaryByteWithUnit(liveProcess.memoryNumber);
           if (Number(liveProcess.cpu) > 0) {
-            liveProcess.cpu = Number(Number(liveProcess.cpu).toFixed(3)) + '%';
+            liveProcess.cpu = `${Number(Number(liveProcess.cpu).toFixed(3))}%`;
           } else {
             liveProcess.cpu = '0%';
           }
@@ -114,19 +115,19 @@ export class TabPaneLiveProcesses extends BaseElement {
     let second1 = 1000;
     let res = '';
     if (currentMsTime >= hours) {
-      res += Math.floor(currentMsTime / hours) + ' h ';
+      res += `${Math.floor(currentMsTime / hours)} h `;
       currentMsTime = currentMsTime - Math.floor(currentMsTime / hours) * hours;
     }
     if (currentMsTime >= minute1) {
-      res += Math.floor(currentMsTime / minute1) + ' min ';
+      res += `${Math.floor(currentMsTime / minute1)} min `;
       currentMsTime = currentMsTime - Math.floor(currentMsTime / minute1) * minute1;
     }
     if (currentMsTime >= second1) {
-      res += Math.floor(currentMsTime / second1) + ' s ';
+      res += `${Math.floor(currentMsTime / second1)} s `;
       currentMsTime = currentMsTime - Math.floor(currentMsTime / second1) * second1;
     }
     if (currentMsTime > 0) {
-      res += currentMsTime + ' ms ';
+      res += `${currentMsTime} ms `;
     } else {
       res += '0 ms ';
     }
@@ -160,16 +161,14 @@ export class TabPaneLiveProcesses extends BaseElement {
         `;
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (liveProcessLeftData: LiveProcess, liveProcessRightData: LiveProcess) {
+      return function (liveProcessLeftData: LiveProcess, liveProcessRightData: LiveProcess): number {
         if (type === 'number') {
-          return sort === 2
-            ? // @ts-ignore
-              parseFloat(liveProcessRightData[property]) - parseFloat(liveProcessLeftData[property])
-            : // @ts-ignore
-              parseFloat(liveProcessLeftData[property]) - parseFloat(liveProcessRightData[property]);
+          return sort === 2 // @ts-ignore
+            ? parseFloat(liveProcessRightData[property]) - parseFloat(liveProcessLeftData[property]) // @ts-ignore
+            : parseFloat(liveProcessLeftData[property]) - parseFloat(liveProcessRightData[property]);
         } else if (type === 'cpuTime') {
           return sort === 2
             ? liveProcessRightData.cpuTimeNumber - liveProcessLeftData.cpuTimeNumber
@@ -184,7 +183,7 @@ export class TabPaneLiveProcesses extends BaseElement {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (liveProcessRightData[property] == liveProcessLeftData[property]) {
+            if (liveProcessRightData[property] === liveProcessLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -193,14 +192,18 @@ export class TabPaneLiveProcesses extends BaseElement {
         }
       };
     }
-
-    if (detail.key == 'startTime' || detail.key == 'processName') {
-      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'string'));
-    } else if (detail.key == 'cpuTime') {
-      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'cpuTime'));
-    } else if (detail.key == 'memory') {
-      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'memory'));
+    // @ts-ignore
+    if (detail.key === 'startTime' || detail.key === 'processName') {
+      // @ts-ignore
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'string')); // @ts-ignore
+    } else if (detail.key === 'cpuTime') {
+      // @ts-ignore
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'cpuTime')); // @ts-ignore
+    } else if (detail.key === 'memory') {
+      // @ts-ignore
+      this.liveProcessSource.sort(compare(detail.key, detail.sort, 'memory')); // @ts-ignore
     } else {
+      // @ts-ignore
       this.liveProcessSource.sort(compare(detail.key, detail.sort, 'number'));
     }
     this.liveProcessTbl!.recycleDataSource = this.liveProcessSource;

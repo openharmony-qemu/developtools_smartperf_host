@@ -69,7 +69,7 @@ std::map<std::string, uint32_t> g_checkMemContain = {
     {"[anon:native_heap:musl]", (uint32_t)PbreaderMemParser::SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP},
     {"/dev/ashmem/", (uint32_t)PbreaderMemParser::SmapsMemType::SMAPS_MEM_TYPE_ASHMEM},
 };
-PbreaderMemParser::PbreaderMemParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderMemParser::PbreaderMemParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
     for (auto i = 0; i < MEM_MAX; i++) {
@@ -91,7 +91,7 @@ PbreaderMemParser::~PbreaderMemParser()
     TS_LOGI("mem ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
             static_cast<unsigned long long>(GetPluginEndTime()));
 }
-void PbreaderMemParser::Parse(PbreaderDataSegment& seg, uint64_t timeStamp, BuiltinClocks clock)
+void PbreaderMemParser::Parse(PbreaderDataSegment &seg, uint64_t timeStamp, BuiltinClocks clock)
 {
     ProtoReader::MemoryData_Reader memData(seg.protoData.data_, seg.protoData.size_);
     auto newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(clock, timeStamp);
@@ -134,7 +134,7 @@ void PbreaderMemParser::Parse(PbreaderDataSegment& seg, uint64_t timeStamp, Buil
     }
 }
 
-void PbreaderMemParser::SpecialDataAddition(ProtoReader::ProcessMemoryInfo_Reader& processMemoryInfo,
+void PbreaderMemParser::SpecialDataAddition(ProtoReader::ProcessMemoryInfo_Reader &processMemoryInfo,
                                             uint64_t timeStamp,
                                             uint32_t ipid,
                                             uint32_t hasValue) const
@@ -164,7 +164,7 @@ void PbreaderMemParser::SpecialDataAddition(ProtoReader::ProcessMemoryInfo_Reade
     }
 }
 
-void PbreaderMemParser::ParseProcessInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+void PbreaderMemParser::ParseProcessInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const
 {
     if (tracePacket->has_processesinfo()) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_MEMORY, STAT_EVENT_RECEIVED);
@@ -196,7 +196,7 @@ void PbreaderMemParser::ParseProcessInfo(const ProtoReader::MemoryData_Reader* t
         SpecialDataAddition(processMemoryInfo, timeStamp, ipid, hasValue);
     }
 }
-uint32_t PbreaderMemParser::ParseSmapsPathTypeByPrefix(bool hasX, const std::string& path, const bool hasAppName) const
+uint32_t PbreaderMemParser::ParseSmapsPathTypeByPrefix(bool hasX, const std::string &path, const bool hasAppName) const
 {
     if (EndWith(path, ".so")) {
         if (hasX) {
@@ -215,7 +215,7 @@ uint32_t PbreaderMemParser::ParseSmapsPathTypeByPrefix(bool hasX, const std::str
     }
     return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_INVALID);
 }
-uint32_t PbreaderMemParser::ParseSmapsPathTypeBySuffix(bool hasX, const std::string& path, const bool hasAppName) const
+uint32_t PbreaderMemParser::ParseSmapsPathTypeBySuffix(bool hasX, const std::string &path, const bool hasAppName) const
 {
     if ((EndWith(path, ".jar")) || (EndWith(path, ".apk")) || (EndWith(path, ".vdex")) || (EndWith(path, ".odex")) ||
         (EndWith(path, ".oat")) || (path.find("dex") != std::string::npos)) {
@@ -227,8 +227,8 @@ uint32_t PbreaderMemParser::ParseSmapsPathTypeBySuffix(bool hasX, const std::str
     return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_INVALID);
 }
 
-uint32_t PbreaderMemParser::ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader& smapsInfo,
-                                                  const std::string& path,
+uint32_t PbreaderMemParser::ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader &smapsInfo,
+                                                  const std::string &path,
                                                   const bool hasAppName) const
 {
     bool hasX = smapsInfo.permission().ToStdString().find("x") != std::string::npos;
@@ -259,7 +259,7 @@ uint32_t PbreaderMemParser::ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader&
     return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_INVALID);
 }
 
-uint32_t PbreaderMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& smapsInfo) const
+uint32_t PbreaderMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader &smapsInfo) const
 {
     std::string path(smapsInfo.path().ToStdString());
     path.erase(0, path.find_first_not_of(" "));
@@ -267,17 +267,17 @@ uint32_t PbreaderMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& s
     if (path.empty()) {
         path = "[anon]";
     }
-    for (const auto& iter : g_checkMemStart) {
+    for (const auto &iter : g_checkMemStart) {
         if (StartWith(path, iter.first)) {
             return iter.second;
         }
     }
-    for (const auto& iter : g_checkMemEnd) {
+    for (const auto &iter : g_checkMemEnd) {
         if (EndWith(path, iter.first)) {
             return iter.second;
         }
     }
-    for (const auto& iter : g_checkMemContain) {
+    for (const auto &iter : g_checkMemContain) {
         if (path.find(iter.first) != std::string::npos) {
             return iter.second;
         }
@@ -291,7 +291,7 @@ uint32_t PbreaderMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& s
                       : static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_OTHER_SYS);
 }
 
-void PbreaderMemParser::ParseSmapsInfoEasy(const ProtoReader::ProcessMemoryInfo_Reader* memInfo,
+void PbreaderMemParser::ParseSmapsInfoEasy(const ProtoReader::ProcessMemoryInfo_Reader *memInfo,
                                            uint64_t timeStamp,
                                            uint64_t ipid) const
 {
@@ -321,7 +321,7 @@ void PbreaderMemParser::ParseSmapsInfoEasy(const ProtoReader::ProcessMemoryInfo_
     }
 }
 
-void PbreaderMemParser::ParseMemInfoEasy(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+void PbreaderMemParser::ParseMemInfoEasy(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const
 {
     if (tracePacket->has_meminfo()) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_MEMORY, STAT_EVENT_RECEIVED);
@@ -337,7 +337,7 @@ void PbreaderMemParser::ParseMemInfoEasy(const ProtoReader::MemoryData_Reader* t
     }
 }
 
-void PbreaderMemParser::ParseVMemInfoEasy(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+void PbreaderMemParser::ParseVMemInfoEasy(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const
 {
     traceDataCache_->UpdateTraceTime(timeStamp);
     if (tracePacket->has_vmeminfo()) {
@@ -354,7 +354,7 @@ void PbreaderMemParser::ParseVMemInfoEasy(const ProtoReader::MemoryData_Reader* 
     }
 }
 
-void PbreaderMemParser::ParseMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+void PbreaderMemParser::ParseMemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_MEMORY, STAT_EVENT_RECEIVED);
     for (auto i = tracePacket->meminfo(); i; ++i) {
@@ -371,7 +371,7 @@ void PbreaderMemParser::ParseMemInfo(const ProtoReader::MemoryData_Reader* trace
     streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(gpuUsedSizeIndex_, timeStamp, gpuUsed_);
 }
 
-void PbreaderMemParser::ParseVMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+void PbreaderMemParser::ParseVMemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_VIRTUAL_MEMORY, STAT_EVENT_RECEIVED);
     for (auto i = tracePacket->vmeminfo(); i; ++i) {
@@ -386,7 +386,7 @@ void PbreaderMemParser::ParseVMemInfo(const ProtoReader::MemoryData_Reader* trac
         }
     }
 }
-void PbreaderMemParser::ParseAshmemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+void PbreaderMemParser::ParseAshmemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const
 {
     if (tracePacket->has_ashmeminfo()) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_ASHMEM, STAT_EVENT_RECEIVED);
@@ -439,7 +439,7 @@ void PbreaderMemParser::AshMemDeduplicate() const
     }
     dataByTs.emplace_back(std::make_pair(start, ashMemCount - 1));
 
-    for (const auto& iterator : dataByTs) {
+    for (const auto &iterator : dataByTs) {
         /* L1 map (key = id+time, value = L2 map)
            L2 map (key = ipid, value = index) */
         std::map<std::pair<uint32_t, uint64_t>, std::map<uint64_t, uint64_t>> AshMemMap;
@@ -448,7 +448,7 @@ void PbreaderMemParser::AshMemDeduplicate() const
             auto time = ashMemData->Times()[i];
             auto key = std::make_pair(ashmemId, time);
             auto ipid = ashMemData->Ipids()[i];
-            auto& pidMap = AshMemMap[key];
+            auto &pidMap = AshMemMap[key];
             if (pidMap.find(ipid) == pidMap.end()) {
                 pidMap.emplace(ipid, i);
             } else {
@@ -456,8 +456,8 @@ void PbreaderMemParser::AshMemDeduplicate() const
             }
         }
 
-        for (const auto& item : AshMemMap) {
-            auto& pidMap = item.second;
+        for (const auto &item : AshMemMap) {
+            auto &pidMap = item.second;
             auto iter = pidMap.begin();
             if (iter == pidMap.end()) {
                 continue;
@@ -470,7 +470,7 @@ void PbreaderMemParser::AshMemDeduplicate() const
 }
 PbreaderMemParser::MemProcessType PbreaderMemParser::GetMemProcessType(uint64_t ipid) const
 {
-    const auto& iterProcess = traceDataCache_->GetConstProcessData(ipid);
+    const auto &iterProcess = traceDataCache_->GetConstProcessData(ipid);
     if (iterProcess.cmdLine_ == "composer_host") {
         return MemProcessType::PID_TYPE_COMPOSER;
     } else if (iterProcess.cmdLine_ == "render_service") {
@@ -480,7 +480,7 @@ PbreaderMemParser::MemProcessType PbreaderMemParser::GetMemProcessType(uint64_t 
     }
 }
 
-void PbreaderMemParser::ParseDmaMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+void PbreaderMemParser::ParseDmaMemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const
 {
     if (tracePacket->has_dmainfo()) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_DMAMEM, STAT_EVENT_RECEIVED);
@@ -523,7 +523,7 @@ void PbreaderMemParser::DmaMemDeduplicate() const
     }
     dataByTs.emplace_back(std::make_pair(start, dmaCount - 1));
 
-    for (const auto& iterator : dataByTs) {
+    for (const auto &iterator : dataByTs) {
         /* L1 map (key = ino, value = L2 map)
            L2 map (key = ipid, value = pair(index, MemProcessType)) */
         std::map<uint32_t, std::map<uint64_t, std::pair<uint64_t, MemProcessType>>> inoMap;
@@ -531,7 +531,7 @@ void PbreaderMemParser::DmaMemDeduplicate() const
         for (auto i = iterator.first; i <= iterator.second; ++i) {
             auto ino = dmaMemData->Inos()[i];
             auto ipid = dmaMemData->Ipids()[i];
-            auto& pidMap = inoMap[ino];
+            auto &pidMap = inoMap[ino];
             if (pidMap.find(ipid) != pidMap.end()) {
                 dmaMemData->SetFlag(i, (uint32_t)MemDeduplicateFlag::MEM_DEDUPLICATE_FLAG_DUP_SAME_PROCESS);
             } else {
@@ -543,10 +543,10 @@ void PbreaderMemParser::DmaMemDeduplicate() const
             }
         }
 
-        for (const auto& item : inoMap) {
+        for (const auto &item : inoMap) {
             auto maxPidType = processTypeMap[item.first];
-            const auto& pidMap = item.second;
-            for (const auto& pidItem : pidMap) {
+            const auto &pidMap = item.second;
+            for (const auto &pidItem : pidMap) {
                 if (pidItem.second.second < maxPidType) {
                     dmaMemData->SetFlag(pidItem.second.first,
                                         (uint32_t)MemDeduplicateFlag::MEM_DEDUPLICATE_FLAG_DUP_DIFF_PROCESS);
@@ -556,7 +556,7 @@ void PbreaderMemParser::DmaMemDeduplicate() const
     }
 }
 
-void PbreaderMemParser::ParseGpuProcessMemInfo(const ProtoReader::MemoryData_Reader* tracePacket,
+void PbreaderMemParser::ParseGpuProcessMemInfo(const ProtoReader::MemoryData_Reader *tracePacket,
                                                uint64_t timeStamp) const
 {
     if (tracePacket->has_gpumemoryinfo()) {
@@ -582,7 +582,7 @@ void PbreaderMemParser::ParseGpuProcessMemInfo(const ProtoReader::MemoryData_Rea
         }
     }
 }
-void PbreaderMemParser::FillGpuWindowMemInfo(const ProtoReader::GpuDumpInfo_Reader& gpuDumpInfo,
+void PbreaderMemParser::FillGpuWindowMemInfo(const ProtoReader::GpuDumpInfo_Reader &gpuDumpInfo,
                                              uint64_t timeStamp) const
 {
     DataIndex windowNameId = traceDataCache_->GetDataIndex(gpuDumpInfo.window_name().ToStdString());
@@ -604,7 +604,7 @@ void PbreaderMemParser::FillGpuWindowMemInfo(const ProtoReader::GpuDumpInfo_Read
         }
     }
 }
-void PbreaderMemParser::ParseGpuWindowMemInfo(const ProtoReader::MemoryData_Reader* tracePacket,
+void PbreaderMemParser::ParseGpuWindowMemInfo(const ProtoReader::MemoryData_Reader *tracePacket,
                                               uint64_t timeStamp) const
 {
     if (tracePacket->has_gpudumpinfo()) {
@@ -618,7 +618,7 @@ void PbreaderMemParser::ParseGpuWindowMemInfo(const ProtoReader::MemoryData_Read
         FillGpuWindowMemInfo(GpuDumpInfo, timeStamp);
     }
 }
-void PbreaderMemParser::ParseWindowManagerServiceInfo(const ProtoReader::MemoryData_Reader* tracePacket,
+void PbreaderMemParser::ParseWindowManagerServiceInfo(const ProtoReader::MemoryData_Reader *tracePacket,
                                                       uint64_t timeStamp)
 {
     if (tracePacket->has_windowinfo()) {
@@ -635,7 +635,7 @@ void PbreaderMemParser::ParseWindowManagerServiceInfo(const ProtoReader::MemoryD
         windowIdToipidMap_.insert({windowNameId, ipid});
     }
 }
-void PbreaderMemParser::ParseCpuDumpInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+void PbreaderMemParser::ParseCpuDumpInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const
 {
     for (auto i = tracePacket->cpudumpinfo(); i; ++i) {
         ProtoReader::CpuDumpInfo_Reader cpuDumpInfo(i->ToBytes().data_, i->ToBytes().size_);
@@ -643,7 +643,7 @@ void PbreaderMemParser::ParseCpuDumpInfo(const ProtoReader::MemoryData_Reader* t
         traceDataCache_->GetCpuDumpInfo()->AppendNewData(timeStamp, totalSize);
     }
 }
-void PbreaderMemParser::ParseProfileMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+void PbreaderMemParser::ParseProfileMemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const
 {
     for (auto i = tracePacket->profilememinfo(); i; ++i) {
         ProtoReader::ProfileMemInfo_Reader profileMemInfo(i->ToBytes().data_, i->ToBytes().size_);
@@ -653,7 +653,7 @@ void PbreaderMemParser::ParseProfileMemInfo(const ProtoReader::MemoryData_Reader
     }
 }
 
-void PbreaderMemParser::ParseRSImageDumpInfo(const ProtoReader::MemoryData_Reader* tracePacket,
+void PbreaderMemParser::ParseRSImageDumpInfo(const ProtoReader::MemoryData_Reader *tracePacket,
                                              uint64_t timeStamp) const
 {
     for (auto i = tracePacket->rsdumpinfo(); i; ++i) {
@@ -669,7 +669,7 @@ void PbreaderMemParser::ParseRSImageDumpInfo(const ProtoReader::MemoryData_Reade
         traceDataCache_->GetRSImageDumpInfo()->AppendNewData(timeStamp, size, typeIndex, ipid, surfaceNameIndex);
     }
 }
-void PbreaderMemParser::ParseMemoryConfig(PbreaderDataSegment& seg)
+void PbreaderMemParser::ParseMemoryConfig(PbreaderDataSegment &seg)
 {
     ProtoReader::MemoryConfig_Reader memConfigData(seg.protoData.data_, seg.protoData.size_);
     if (memConfigData.has_pid()) {

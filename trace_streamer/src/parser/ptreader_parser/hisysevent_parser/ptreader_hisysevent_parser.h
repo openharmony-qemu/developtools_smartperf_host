@@ -27,9 +27,9 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PtreaderHiSysEventParser : public EventParserBase {
 public:
-    PtreaderHiSysEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
+    PtreaderHiSysEventParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters);
     ~PtreaderHiSysEventParser();
-    void ParseHiSysEventDataItem(const std::string& buffer, const uint64_t lineSeq, bool& haveSplitSeg);
+    void ParseHiSysEventDataItem(const std::string &buffer, const uint64_t lineSeq, bool &haveSplitSeg);
     void Finish();
 };
 } // namespace TraceStreamer

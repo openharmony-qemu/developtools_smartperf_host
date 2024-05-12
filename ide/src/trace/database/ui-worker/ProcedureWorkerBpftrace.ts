@@ -21,10 +21,10 @@ import {
   Rect,
   drawString,
   isFrameContainPoint,
-  drawLoadingFrame
+  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { SpSystemTrace } from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 const SAMPLE_STRUCT_HEIGHT = 20;
 const Y_PADDING = 2;
@@ -32,15 +32,15 @@ const Y_PADDING = 2;
 export class SampleRender extends Render {
   renderMainThread(
     req: {
-      context: CanvasRenderingContext2D,
-      useCache: boolean,
-      type: string,
-      start_ts: number,
-      uniqueProperty: Array<any>,
-      flattenTreeArray: Array<any>
+      context: CanvasRenderingContext2D;
+      useCache: boolean;
+      type: string;
+      start_ts: number;
+      uniqueProperty: Array<unknown>;
+      flattenTreeArray: Array<SampleStruct>;
     },
     row: TraceRow<SampleStruct>
-  ) {
+  ): void {
     let startTs = req.start_ts;
     let sampleList = row.dataList;
     let sampleFilter = row.dataListCache;
@@ -65,24 +65,27 @@ export class SampleRender extends Render {
         find = true;
       }
     }
-    if (!find && row.isHover) SampleStruct.hoverSampleStruct = undefined;
+    if (!find && row.isHover) {
+      SampleStruct.hoverSampleStruct = undefined;
+    }
     req.context.closePath();
   }
 }
 
-export function func (
-   sampleList: Array<any>,
-   sampleFilter: Array<any>,
-   startNS: number,
-   endNS: number,
-   totalNS: number,
-   startTS: number,
-   frame: any,
-   use: boolean
-) {
+export function func(
+  sampleList: Array<SampleStruct>,
+  sampleFilter: Array<SampleStruct>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  startTS: number,
+  frame: Rect,
+  use: boolean
+): void {
   if (use && sampleFilter.length > 0) {
     for (let i = 0, len = sampleFilter.length; i < len; i++) {
-      if (((sampleFilter[i].end - startTS) || 0) >= startNS && ((sampleFilter[i].begin - startTS) || 0) <= endNS) {
+      //@ts-ignore
+      if ((sampleFilter[i].end - startTS || 0) >= startNS && (sampleFilter[i].begin - startTS || 0) <= endNS) {
         SampleStruct.setSampleFrame(sampleFilter[i], 0, startNS, endNS, totalNS, startTS, frame);
       } else {
         sampleFilter[i].frame = undefined;
@@ -101,49 +104,54 @@ function setSampleFilter(
   startTS: number,
   endNS: number,
   totalNS: number,
-  frame: any
-) {
+  frame: Rect
+): void {
   if (sampleList) {
-    sampleList.forEach(func => {
-      let funcProperty: Array<any> = func.property!;
+    sampleList.forEach((func) => {
+      let funcProperty: Array<unknown> = func.property!;
       let groups = funcProperty
-      .filter(it => (( it.end - startTS) ?? 0) >= startNS && (( it.begin - startTS) ?? 0 ) <= endNS)
-      .map(it => {
-        SampleStruct.setSampleFrame(it, 0, startNS, endNS, totalNS, startTS, frame);
-        return it;
-      })
-      .reduce((pre, current) => {
-        ( pre[`${current.frame.x}-${current.depth}`] = pre[`${current.frame.x}-${current.depth}`] || []).push(current);
-        return pre;
-      }, {});
+        //@ts-ignore
+        .filter((it) => (it.end - startTS ?? 0) >= startNS && (it.begin - startTS ?? 0) <= endNS)
+        .map((it) => {
+          //@ts-ignore
+          SampleStruct.setSampleFrame(it, 0, startNS, endNS, totalNS, startTS, frame);
+          return it;
+        })
+        .reduce((pre, current) => {
+          //@ts-ignore
+          (pre[`${current.frame.x}-${current.depth}`] = pre[`${current.frame.x}-${current.depth}`] || []).push(current);
+          return pre;
+        }, {});
+      //@ts-ignore
       Reflect.ownKeys(groups).map((kv) => {
-        let arr = groups[kv].sort(( a: any, b: any) => (b.end - b.start) - (a.end - a.start));
+        //@ts-ignore
+        let arr = groups[kv].sort((a: unknown, b: unknown) => b.end - b.start - (a.end - a.start));
         sampleFilter.push(arr[0]);
-      })
-    })
+      });
+    });
   }
 }
 
-export function sampleStructOnClick(clickRowType: string, sp: SpSystemTrace) {
-    return new Promise((resolve, reject) => {
-      if (clickRowType === TraceRow.ROW_TYPE_SAMPLE && SampleStruct.hoverSampleStruct) { 
-        SampleStruct.selectSampleStruct = SampleStruct.hoverSampleStruct;
-        sp.traceSheetEL?.displaySampleData(SampleStruct.selectSampleStruct, SampleStruct.reqProperty);
-        sp.timerShaftEL?.modifyFlagList(undefined);
-        reject(new Error());
-      }else{
-        resolve(null);
-      }
-    });
+export function sampleStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_SAMPLE && SampleStruct.hoverSampleStruct) {
+      SampleStruct.selectSampleStruct = SampleStruct.hoverSampleStruct;
+      sp.traceSheetEL?.displaySampleData(SampleStruct.selectSampleStruct, SampleStruct.reqProperty);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject(new Error());
+    } else {
+      resolve(null);
+    }
+  });
 }
 
 export class SampleStruct extends BaseStruct {
   static hoverSampleStruct: SampleStruct | undefined;
   static selectSampleStruct: SampleStruct | undefined;
-  static reqProperty: any | undefined;
+  static reqProperty: unknown | undefined;
   name: string | undefined;
   detail: string | undefined;
-  property: Array<any> | undefined;
+  property: Array<unknown> | undefined;
   begin: number | undefined;
   end: number | undefined;
   depth: number | undefined;
@@ -157,16 +165,16 @@ export class SampleStruct extends BaseStruct {
     endNS: number,
     totalNS: number,
     startTS: number,
-    frame: any
+    frame: Rect
   ): void {
     let x1: number, x2: number;
-    if (((sampleNode.begin! - startTS) || 0) > startNS && ((sampleNode.begin! - startTS) || 0) < endNS) {
-      x1 = ns2x((sampleNode.begin! - startTS) || 0, startNS, endNS, totalNS, frame);
+    if ((sampleNode.begin! - startTS || 0) > startNS && (sampleNode.begin! - startTS || 0) < endNS) {
+      x1 = ns2x(sampleNode.begin! - startTS || 0, startNS, endNS, totalNS, frame);
     } else {
       x1 = 0;
     }
-    if (((sampleNode.end! - startTS) || 0) > startNS && ((sampleNode.end! - startTS) || 0) < endNS) {
-      x2 = ns2x((sampleNode.end! - startTS) || 0, startNS, endNS, totalNS, frame)
+    if ((sampleNode.end! - startTS || 0) > startNS && (sampleNode.end! - startTS || 0) < endNS) {
+      x2 = ns2x(sampleNode.end! - startTS || 0, startNS, endNS, totalNS, frame);
     } else {
       x2 = frame.width;
     }
@@ -186,8 +194,10 @@ export class SampleStruct extends BaseStruct {
     }
     if (data.frame) {
       ctx.globalAlpha = 1;
-      ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', data.depth, ColorUtils.FUNC_COLOR.length)];
-      const textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', data.depth, ColorUtils.FUNC_COLOR.length)];
+      ctx.fillStyle =
+        ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', data.depth, ColorUtils.FUNC_COLOR.length)];
+      const textColor =
+        ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', data.depth, ColorUtils.FUNC_COLOR.length)];
       if (SampleStruct.hoverSampleStruct && data.name === SampleStruct.hoverSampleStruct.name) {
         ctx.globalAlpha = 0.7;
       }
@@ -204,11 +214,6 @@ export class SampleStruct extends BaseStruct {
     }
   }
   static equals(d1: SampleStruct, d2: SampleStruct): boolean {
-    return (
-      d1 &&
-      d2 &&
-      d1.name == d2.name &&
-      d1.begin == d2.begin
-    );
+    return d1 && d2 && d1.name === d2.name && d1.begin === d2.begin;
   }
 }

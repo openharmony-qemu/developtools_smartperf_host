@@ -67,6 +67,7 @@ export class SlicesTime {
     return this._id;
   }
 }
+
 const TRIWIDTH: number = 10; // 定义三角形的边长
 const TEXT_FONT: string = '12px Microsoft YaHei'; // 文本字体格式
 export class SportRuler extends Graph {
@@ -89,14 +90,15 @@ export class SportRuler extends Graph {
     endTime: number | null | undefined;
     color: string | null;
   } | null = {
-      startTime: null,
-      endTime: null,
-      color: null,
-    };
+    startTime: null,
+    endTime: null,
+    color: null,
+  };
   private timerShaftEL: TimerShaftElement | undefined | null;
   private timeArray: Array<number> = [];
   private countArray: Array<number> = [];
   private durArray: Array<number> = [];
+  private mouseIn: boolean = false;
   constructor(
     timerShaftEL: TimerShaftElement,
     frame: Rect,
@@ -132,13 +134,13 @@ export class SportRuler extends Graph {
     this.durArray = durArray;
   }
 
-  modifyFlagList(flag: Flag | null | undefined) {
+  modifyFlagList(flag: Flag | null | undefined): void {
     if (flag) {
       if (flag.hidden) {
-        let i = this.flagList.findIndex((it) => it.time == flag.time);
+        let i = this.flagList.findIndex((it) => it.time === flag.time);
         this.flagList.splice(i, 1);
       } else {
-        let i = this.flagList.findIndex((it) => it.time == flag.time);
+        let i = this.flagList.findIndex((it) => it.time === flag.time);
         this.flagList[i] = flag;
       }
     } else {
@@ -149,7 +151,7 @@ export class SportRuler extends Graph {
 
   modifySicesTimeList(slicestime: SlicesTime | null | undefined): void {
     if (slicestime) {
-      let i = this.slicesTimeList.findIndex((it) => it.id == slicestime.id);
+      let i = this.slicesTimeList.findIndex((it) => it.id === slicestime.id);
       if (slicestime.hidden) {
         this.slicesTimeList.splice(i, 1);
         let selectionParam = this.timerShaftEL?.selectionMap.get(slicestime.id);
@@ -182,9 +184,9 @@ export class SportRuler extends Graph {
     if (this.isRangeSelect) {
       this.drawRangeSelect();
     }
-    if (this.invertedTriangleTime != null && typeof this.invertedTriangleTime != undefined) {
+    if (this.invertedTriangleTime !== null && typeof this.invertedTriangleTime !== undefined) {
       this.drawInvertedTriangle(
-        this.invertedTriangleTime,
+        this.invertedTriangleTime!,
         document.querySelector<SpApplication>('sp-application')!.dark ? '#FFFFFF' : '#000000'
       );
     }
@@ -225,7 +227,7 @@ export class SportRuler extends Graph {
     this.context2D.closePath();
   }
 
-  private initRangeSelect() {
+  private initRangeSelect(): void {
     let range = TraceRow.rangeSelectObject;
     this.context2D.beginPath();
     if (document.querySelector<SpApplication>('sp-application')!.dark) {
@@ -235,22 +237,22 @@ export class SportRuler extends Graph {
       this.context2D.strokeStyle = '#000';
       this.context2D.fillStyle = '#000';
     }
-    let start_X = ns2x(range?.startNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
+    let startX = ns2x(range?.startNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
     let endX = ns2x(range?.endNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
-    let lineWidth = endX - start_X;
+    let lineWidth = endX - startX;
     let txt = ns2s((range?.endNS || 0) - (range?.startNS || 0));
-    this.context2D.moveTo(start_X, this.frame.y + 22);
+    this.context2D.moveTo(startX, this.frame.y + 22);
     this.context2D.lineTo(endX, this.frame.y + 22);
-    this.context2D.moveTo(start_X, this.frame.y + 22 - 5);
-    this.context2D.lineTo(start_X, this.frame.y + 22 + 5);
+    this.context2D.moveTo(startX, this.frame.y + 22 - 5);
+    this.context2D.lineTo(startX, this.frame.y + 22 + 5);
     this.context2D.moveTo(endX, this.frame.y + 22 - 5);
     this.context2D.lineTo(endX, this.frame.y + 22 + 5);
     let textWidth = this.context2D.measureText(txt).width;
     if (lineWidth > textWidth) {
-      this.context2D.fillText(`${txt}`, start_X + (lineWidth - textWidth) / 2, this.frame.y + 20);
+      this.context2D.fillText(`${txt}`, startX + (lineWidth - textWidth) / 2, this.frame.y + 20);
     } else {
       if (endX + textWidth >= this.frame.width) {
-        this.context2D.fillText(`${txt}`, start_X - 5 - textWidth, this.frame.y + 20);
+        this.context2D.fillText(`${txt}`, startX - 5 - textWidth, this.frame.y + 20);
       } else {
         this.context2D.fillText(`${txt}`, endX + 5, this.frame.y + 20);
       }
@@ -317,7 +319,7 @@ export class SportRuler extends Graph {
     this.context2D.closePath();
   }
 
-  private drawRangeSelectFillText(rangeSelectWidth: number, section: number, i: number, countArr: Uint32Array) {
+  private drawRangeSelectFillText(rangeSelectWidth: number, section: number, i: number, countArr: Uint32Array): void {
     let x = TraceRow.rangeSelectObject!.startX! + (rangeSelectWidth / section) * i;
     if (i !== section) {
       this.context2D.moveTo(x, this.frame.y + 22);
@@ -372,17 +374,17 @@ export class SportRuler extends Graph {
     return inRange;
   }
 
-  drawTriangle(time: number, type: string) {
-    if (time != null && typeof time != undefined) {
-      let i = this.flagList.findIndex((it) => it.time == time);
-      if (type == 'triangle') {
-        let triangle = this.flagList.findIndex((it) => it.type == type);
+  drawTriangle(time: number, type: string): unknown {
+    if (time !== null && typeof time !== undefined) {
+      let i = this.flagList.findIndex((it) => it.time === time);
+      if (type === 'triangle') {
+        let triangle = this.flagList.findIndex((it) => it.type === type);
         if (i !== -1) {
           if (triangle !== -1) {
-            this.flagList[i].type == '' ? this.flagList.splice(triangle, 1) : '';
+            this.flagList[i].type === '' ? this.flagList.splice(triangle, 1) : '';
           }
         } else {
-          if (triangle == -1) {
+          if (triangle === -1) {
             this.flagList.forEach((it) => (it.selected = false));
             this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), '', true, 'triangle'));
           } else {
@@ -391,54 +393,56 @@ export class SportRuler extends Graph {
             this.flagList[triangle].selected = true;
           }
         }
-      } else if (type == 'square') {
-        if (i != -1) {
+      } else if (type === 'square') {
+        if (i !== -1) {
           this.flagList[i].type = '';
         } else {
-          let triangle = this.flagList.findIndex((it) => it.type == 'triangle');
+          let triangle = this.flagList.findIndex((it) => it.type === 'triangle');
           if (triangle !== -1) {
             this.flagList[triangle].type = '';
             this.draw();
-            this.notifyHandler &&
-              this.notifyHandler(
-                !this.hoverFlag.hidden ? this.hoverFlag : null,
-                this.flagList.find((it) => it.selected) || null
-              );
+            this.flagChangeHandler('1');
             return this.flagList[triangle].time;
           }
         }
-      } else if (type == 'inverted') {
+      } else if (type === 'inverted') {
         this.invertedTriangleTime = time;
       }
       this.draw();
-      this.notifyHandler &&
-        this.notifyHandler(
-          !this.hoverFlag.hidden ? this.hoverFlag : null,
-          this.flagList.find((it) => it.selected) || null
-        );
+      this.flagChangeHandler('2');
+      return;
     }
   }
 
-  removeTriangle(type: string) {
-    if (type == 'inverted') {
+  flagChangeHandler(from?: string): void {
+    this.notifyHandler &&
+    this.notifyHandler(
+      !this.hoverFlag.hidden ? this.hoverFlag : null,
+      this.flagList.find((it) => it.selected) || null
+    );
+  }
+
+  removeTriangle(type: string): void {
+    if (type === 'inverted') {
+      if (this.invertedTriangleTime !== null) {
+        this.flagChangeHandler('3');
+      }
       this.invertedTriangleTime = null;
+    } else {
+      this.flagChangeHandler('3');
     }
     this.draw();
-    this.notifyHandler &&
-      this.notifyHandler(
-        !this.hoverFlag.hidden ? this.hoverFlag : null,
-        this.flagList.find((it) => it.selected) || null
-      );
   }
 
-  drawInvertedTriangle(time: number, color: string = '#000000') {
-    if (time != null && typeof time != undefined) {
+  drawInvertedTriangle(time: number, color: string = '#000000'): void {
+    if (time !== null && typeof time !== undefined) {
       let x = Math.round((this.rulerW * (time - this.range.startNS)) / (this.range.endNS - this.range.startNS));
       this.context2D.beginPath();
       this.context2D.fillStyle = color;
       this.context2D.strokeStyle = color;
       // ----------------修改小倒三角位置的绘制---------------------
-      if (sessionStorage.getItem('expand') === 'true') {//展开
+      if (sessionStorage.getItem('expand') === 'true') {
+        //展开
         this.context2D.moveTo(x - 3, 141);
         this.context2D.lineTo(x + 3, 141);
         this.context2D.lineTo(x, 145);
@@ -463,7 +467,7 @@ export class SportRuler extends Graph {
       return null;
     } else {
       let newSlicestime: SlicesTime | null = null;
-      if (startTime != null && typeof startTime != undefined && endTime != null && typeof endTime != undefined) {
+      if (startTime !== null && typeof startTime !== undefined && endTime !== null && typeof endTime !== undefined) {
         this.slicesTime = {
           startTime: startTime <= endTime ? startTime : endTime,
           endTime: startTime <= endTime ? endTime : startTime,
@@ -506,14 +510,14 @@ export class SportRuler extends Graph {
   }
 
   // 清除临时对象
-  clearTempSlicesTime() {
+  clearTempSlicesTime(): void {
     // 清除以前放入的临时对象
     this.slicesTimeList.forEach((slicestime, index) => {
       slicestime.selected = false;
-      if (slicestime.type == StType.TEMP) {
+      if (slicestime.type === StType.TEMP) {
         this.slicesTimeList.splice(index, 1);
         let selectionParam = this.timerShaftEL?.selectionMap.get(slicestime.id);
-        if (selectionParam && selectionParam != undefined) {
+        if (selectionParam && selectionParam !== undefined) {
           this.timerShaftEL?.selectionList.splice(this.timerShaftEL?.selectionList.indexOf(selectionParam), 1);
           this.timerShaftEL?.selectionMap.delete(slicestime.id);
         }
@@ -521,11 +525,11 @@ export class SportRuler extends Graph {
     });
   }
 
-  clearHoverFlag() {
+  clearHoverFlag(): void {
     this.hoverFlag.hidden = true;
   }
 
-  showHoverFlag() {
+  showHoverFlag(): void {
     this.hoverFlag.hidden = false;
   }
 
@@ -535,7 +539,8 @@ export class SportRuler extends Graph {
     this.context2D.fillStyle = slicesTime.color;
     this.range.slicesTime.color = slicesTime.color; //紫色
     // ---------------------------------------修改标记绘制位置-------------------------
-    if (sessionStorage.getItem('expand') === 'true') {//展开
+    if (sessionStorage.getItem('expand') === 'true') {
+      //展开
       this.context2D.moveTo(startX + TRIWIDTH, 132);
       this.context2D.lineTo(startX, 142);
       this.context2D.lineTo(startX, 132);
@@ -593,12 +598,12 @@ export class SportRuler extends Graph {
     return [lineWidth, txtWidth];
   }
 
-  drawSlicesMarks(slicesTime: SlicesTime) {
+  drawSlicesMarks(slicesTime: SlicesTime): void {
     if (
-      slicesTime.startTime != null &&
-      typeof slicesTime.startTime != undefined &&
-      slicesTime.endTime != null &&
-      typeof slicesTime.endTime != undefined
+      slicesTime.startTime !== null &&
+      typeof slicesTime.startTime !== undefined &&
+      slicesTime.endTime !== null &&
+      typeof slicesTime.endTime !== undefined
     ) {
       let startX = Math.round(
         (this.rulerW * (slicesTime.startTime - this.range.startNS)) / (this.range.endNS - this.range.startNS)
@@ -644,15 +649,23 @@ export class SportRuler extends Graph {
   }
 
   //绘制旗子
-  drawFlag(x: number, color: string = '#999999', isFill: boolean = false, textStr: string = '', type: string = '') {
-    if (x < 0) return;
+  drawFlag(
+    x: number,
+    color: string = '#999999',
+    isFill: boolean = false,
+    textStr: string = '',
+    type: string = ''
+  ): void {
+    if (x < 0) {
+      return;
+    }
     this.context2D.beginPath();
     this.context2D.fillStyle = color;
     this.context2D.strokeStyle = color;
     // ------------------修改旗子位置----------------------------
     if (sessionStorage.getItem('expand') === 'true') {
       this.context2D.moveTo(x, 125);
-      if (type == 'triangle') {
+      if (type === 'triangle') {
         this.context2D.lineTo(x + 15, 131);
       } else {
         this.context2D.lineTo(x + 10, 125);
@@ -667,7 +680,7 @@ export class SportRuler extends Graph {
       this.context2D.lineTo(x, 142);
     } else {
       this.context2D.moveTo(x, 125 - Number(sessionStorage.getItem('foldHeight')));
-      if (type == 'triangle') {
+      if (type === 'triangle') {
         this.context2D.lineTo(x + 15, 131 - Number(sessionStorage.getItem('foldHeight')));
       } else {
         this.context2D.lineTo(x + 10, 125 - Number(sessionStorage.getItem('foldHeight')));
@@ -710,7 +723,8 @@ export class SportRuler extends Graph {
   findSlicesTime(x: number, y: number): SlicesTime | null {
     // --------------------------修改旗子和标记的小三角重叠时的情况-------------------
     let slicestime;
-    if (sessionStorage.getItem('expand') === 'false') {//折叠
+    if (sessionStorage.getItem('expand') === 'false') {
+      //折叠
       slicestime = this.slicesTimeList.find((slicesTime) => {
         return (
           ((x >= slicesTime.startX - 1 && x <= slicesTime.startX + TRIWIDTH + 1) || // 选中了帽子的左边三角形区域
@@ -735,7 +749,7 @@ export class SportRuler extends Graph {
     return slicestime;
   }
 
-  mouseUp(ev: MouseEvent) {
+  mouseUp(ev: MouseEvent): void {
     if (this.edgeDetection(ev)) {
       let x = ev.offsetX - (this.canvas?.offsetLeft || 0); // 鼠标点击的x轴坐标
       let y = ev.offsetY; // 鼠标点击的y轴坐标
@@ -764,8 +778,9 @@ export class SportRuler extends Graph {
     }
   }
 
-  mouseMove(ev: MouseEvent) {
+  mouseMove(ev: MouseEvent): void {
     if (this.edgeDetection(ev)) {
+      this.mouseIn = true;
       let x = ev.offsetX - (this.canvas?.offsetLeft || 0);
       let flg = this.flagList.find((it) => x >= it.x && x <= it.x + 18);
       if (flg) {
@@ -775,27 +790,25 @@ export class SportRuler extends Graph {
         this.hoverFlag.x = x;
         this.hoverFlag.color = '#999999';
       }
+      this.flagChangeHandler('4');
+      this.draw();
     } else {
       this.hoverFlag.hidden = true;
     }
-    this.draw();
-    this.notifyHandler &&
-      this.notifyHandler(
-        !this.hoverFlag.hidden ? this.hoverFlag : null,
-        this.flagList.find((it) => it.selected) || null
-      );
+
   }
 
-  mouseOut(ev: MouseEvent) {
+  mouseOut(ev: MouseEvent): void {
     if (!this.hoverFlag.hidden) {
       this.hoverFlag.hidden = true;
-      this.notifyHandler &&
-        this.notifyHandler(
-          !this.hoverFlag.hidden ? this.hoverFlag : null,
-          this.flagList.find((it) => it.selected) || null
-        );
+      if (this.mouseIn) {
+        this.flagChangeHandler('5');
+      }
     }
-    this.draw();
+    if (this.mouseIn) {
+      this.mouseIn = false;
+      this.draw();
+    }
   }
 
   edgeDetection(ev: MouseEvent): boolean {

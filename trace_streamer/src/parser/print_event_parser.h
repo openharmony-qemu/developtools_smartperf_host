@@ -29,48 +29,51 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PrintEventParser : private EventParserBase {
 public:
-    PrintEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    bool ParsePrintEvent(const std::string& comm,
+    PrintEventParser(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
+    bool ParsePrintEvent(const std::string &comm,
                          uint64_t ts,
                          uint32_t pid,
                          std::string_view event,
-                         const BytraceLine& line);
-    void
-        ParseBeginEvent(const std::string& comm, uint64_t ts, uint32_t pid, TracePoint& point, const BytraceLine& line);
-    void ParseEndEvent(uint64_t ts, uint32_t pid, const TracePoint& point);
-    void ParseStartEvent(const std::string& comm,
+                         const BytraceLine &line);
+    void ParseBeginEvent(const std::string &comm,
                          uint64_t ts,
                          uint32_t pid,
-                         const TracePoint& point,
-                         const BytraceLine& line);
-    void ParseFinishEvent(uint64_t ts, uint32_t pid, const TracePoint& point, const BytraceLine& line);
-    void ParseCreateEvent(uint64_t ts, const TracePoint& point);
+                         TracePoint &point,
+                         const BytraceLine &line);
+    void ParseEndEvent(uint64_t ts, uint32_t pid, const TracePoint &point);
+    void ParseStartEvent(const std::string &comm,
+                         uint64_t ts,
+                         uint32_t pid,
+                         const TracePoint &point,
+                         const BytraceLine &line);
+    void ParseFinishEvent(uint64_t ts, uint32_t pid, const TracePoint &point, const BytraceLine &line);
+    void ParseCreateEvent(uint64_t ts, const TracePoint &point);
     void Finish();
     void SetTraceType(TraceFileType traceType);
     void SetTraceClockId(BuiltinClocks clock);
 
 private:
-    using FrameFuncCall = std::function<bool(const size_t callStackRow, std::string& args, const BytraceLine& line)>;
-    ParseResult GetTracePoint(std::string_view pointStr, TracePoint& outPoint) const;
+    using FrameFuncCall = std::function<bool(const size_t callStackRow, std::string &args, const BytraceLine &line)>;
+    ParseResult GetTracePoint(std::string_view pointStr, TracePoint &outPoint) const;
     ParseResult CheckTracePoint(std::string_view pointStr) const;
-    uint32_t GetThreadGroupId(std::string_view pointStr, size_t& length) const;
+    uint32_t GetThreadGroupId(std::string_view pointStr, size_t &length) const;
     std::string_view GetPointNameForBegin(std::string_view pointStr, size_t tGidlength) const;
-    ParseResult HandlerB(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const;
+    ParseResult HandlerB(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const;
     bool HandleFrameSliceBeginEvent(DataIndex eventName,
                                     size_t callStackRow,
-                                    std::string& args,
-                                    const BytraceLine& line);
+                                    std::string &args,
+                                    const BytraceLine &line);
     void HandleFrameSliceEndEvent(uint64_t ts, uint64_t pid, uint64_t tid, size_t callStackRow);
     void HandleFrameQueueEndEvent(uint64_t ts, uint64_t pid, uint64_t tid, size_t callStackRow);
-    bool HandleAnimationBeginEvent(const TracePoint& point, size_t callStackRow, const BytraceLine& line);
+    bool HandleAnimationBeginEvent(const TracePoint &point, size_t callStackRow, const BytraceLine &line);
     static ParseResult HandlerE(void);
-    ParseResult HandlerCSF(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const;
+    ParseResult HandlerCSF(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const;
     static size_t GetNameLength(std::string_view pointStr, size_t nameIndex);
     size_t GetValueLength(std::string_view pointStr, size_t valueIndex) const;
-    bool ReciveVsync(size_t callStackRow, std::string& args, const BytraceLine& line);
-    bool RSReciveOnDoComposition(size_t callStackRow, std::string& args, const BytraceLine& line);
-    bool OnRwTransaction(size_t callStackRow, std::string& args, const BytraceLine& line);
-    bool OnMainThreadProcessCmd(size_t callStackRow, std::string& args, const BytraceLine& line);
+    bool ReciveVsync(size_t callStackRow, std::string &args, const BytraceLine &line);
+    bool RSReciveOnDoComposition(size_t callStackRow, std::string &args, const BytraceLine &line);
+    bool OnRwTransaction(size_t callStackRow, std::string &args, const BytraceLine &line);
+    bool OnMainThreadProcessCmd(size_t callStackRow, std::string &args, const BytraceLine &line);
     bool OnFrameQueueStart(uint64_t ts, size_t callStackRow, uint64_t pid);
 
 private:

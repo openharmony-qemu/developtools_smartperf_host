@@ -32,10 +32,11 @@ export class TabPaneGpuMemoryAbility extends BaseElement {
   private gpuMemoryTimeRange: HTMLLabelElement | undefined | null;
   private total: GpuMemory = new GpuMemory();
 
-  set data(gpuMemoryAbilityValue: SelectionParam | any) {
+  set data(gpuMemoryAbilityValue: SelectionParam | unknown) {
+    //@ts-ignore
     if (gpuMemoryAbilityValue.gpuMemoryAbilityData.length > 0) {
       this.gpuMemoryTimeRange!.textContent =
-        'Selected range: ' +
+        'Selected range: ' + //@ts-ignore
         ((gpuMemoryAbilityValue.rightNs - gpuMemoryAbilityValue.leftNs) / 1000000.0).toFixed(5) +
         ' ms';
       this.gpuMemoryTableTbl!.loading = true;
@@ -72,7 +73,8 @@ export class TabPaneGpuMemoryAbility extends BaseElement {
     }
   }
 
-  queryDataByDB(val: SelectionParam | any): void {
+  queryDataByDB(val: SelectionParam | unknown): void {
+    //@ts-ignore
     getTabGpuMemoryAbilityData(val.leftNs, val.rightNs, (MemoryConfig.getInstance().interval * 1000000) / 5).then(
       (data) => {
         this.gpuMemoryTableTbl!.loading = false;

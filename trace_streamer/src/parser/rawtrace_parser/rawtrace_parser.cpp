@@ -21,7 +21,7 @@
 #include "string_help.h"
 namespace SysTuning {
 namespace TraceStreamer {
-RawTraceParser::RawTraceParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
+RawTraceParser::RawTraceParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters)
     : ParserBase(filters),
       cpuDetail_(std::make_unique<FtraceCpuDetailMsg>()),
       cpuDetailParser_(std::make_unique<CpuDetailParser>(dataCache, filters)),
@@ -32,7 +32,7 @@ RawTraceParser::RawTraceParser(TraceDataCache* dataCache, const TraceStreamerFil
 }
 
 RawTraceParser::~RawTraceParser() {}
-void RawTraceParser::ParseTraceDataItem(const std::string& buffer) {}
+void RawTraceParser::ParseTraceDataItem(const std::string &buffer) {}
 void RawTraceParser::WaitForParserEnd()
 {
     cpuDetailParser_->FilterAllEvents(*cpuDetail_.get(), true);
@@ -62,13 +62,13 @@ void RawTraceParser::UpdateTraceMinRange()
         traceDataCache_->UpdateTraceMinTime(cpuRunningStatMinTime);
     }
 }
-bool RawTraceParser::InitRawTraceFileHeader(std::deque<uint8_t>::iterator& packagesCurIter)
+bool RawTraceParser::InitRawTraceFileHeader(std::deque<uint8_t>::iterator &packagesCurIter)
 {
     TS_CHECK_TRUE(packagesBuffer_.size() >= sizeof(RawTraceFileHeader), false,
                   "buffer size less than rawtrace file header");
     RawTraceFileHeader header;
     std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + sizeof(RawTraceFileHeader),
-              reinterpret_cast<uint8_t*>(&header));
+              reinterpret_cast<uint8_t *>(&header));
     TS_LOGI("magicNumber=%d fileType=%d", header.magicNumber, header.fileType);
 
     fileType_ = header.fileType;
@@ -83,7 +83,7 @@ bool RawTraceParser::InitRawTraceFileHeader(std::deque<uint8_t>::iterator& packa
     hasGotHeader_ = true;
     return true;
 }
-bool RawTraceParser::InitEventFormats(const std::string& buffer)
+bool RawTraceParser::InitEventFormats(const std::string &buffer)
 {
 #ifdef IS_WASM
     restCommDataCnt_ = INVALID_UINT8; // ensure that the restCommData is parsed only once
@@ -113,7 +113,7 @@ bool RawTraceParser::UpdateCpuCoreMax(uint32_t cpuId)
     return true;
 }
 
-bool RawTraceParser::ParseCpuRawData(uint32_t cpuId, const std::string& buffer, uint32_t curType)
+bool RawTraceParser::ParseCpuRawData(uint32_t cpuId, const std::string &buffer, uint32_t curType)
 {
     UpdateCpuCoreMax(cpuId);
     // splice the data curType adn size of each cup that matches the timestamp
@@ -128,10 +128,10 @@ bool RawTraceParser::ParseCpuRawData(uint32_t cpuId, const std::string& buffer, 
         rawTraceSplitCpuData_.emplace_back(SpliteDataInfo(curFileOffset, 0, curType));
     }
     TS_CHECK_TRUE(buffer.size() > 0, true, "cur cpu(%u) raw data is null!", cpuId);
-    auto startPtr = reinterpret_cast<const uint8_t*>(buffer.c_str());
+    auto startPtr = reinterpret_cast<const uint8_t *>(buffer.c_str());
     auto endPtr = startPtr + buffer.size();
     cpuDetail_->set_cpu(cpuId);
-    for (uint8_t* page = const_cast<uint8_t*>(startPtr); page < endPtr; page += FTRACE_PAGE_SIZE) {
+    for (uint8_t *page = const_cast<uint8_t *>(startPtr); page < endPtr; page += FTRACE_PAGE_SIZE) {
         bool haveSplitSeg = false;
         TS_CHECK_TRUE(ftraceProcessor_->HandlePage(*cpuDetail_.get(), *cpuDetailParser_.get(), page, haveSplitSeg),
                       false, "handle page failed!");
@@ -163,17 +163,17 @@ bool RawTraceParser::ParseCpuRawData(uint32_t cpuId, const std::string& buffer, 
     return true;
 }
 
-bool RawTraceParser::HmParseCpuRawData(const std::string& buffer, uint32_t curType)
+bool RawTraceParser::HmParseCpuRawData(const std::string &buffer, uint32_t curType)
 {
     TS_CHECK_TRUE(buffer.size() > 0, true, "hm raw data is null!");
-    auto startPtr = reinterpret_cast<const uint8_t*>(buffer.c_str());
+    auto startPtr = reinterpret_cast<const uint8_t *>(buffer.c_str());
     auto endPtr = startPtr + buffer.size();
     // splice the data curType adn size of each cup that matches the timestamp
     uint32_t curFileOffset = curFileOffset_ + sizeof(curType) + sizeof(uint32_t);
     uint32_t splitOffset = 0;
     uint32_t splitSize = 0;
     bool isSplitPosition = false;
-    for (uint8_t* data = const_cast<uint8_t*>(startPtr); data < endPtr; data += FTRACE_PAGE_SIZE) {
+    for (uint8_t *data = const_cast<uint8_t *>(startPtr); data < endPtr; data += FTRACE_PAGE_SIZE) {
         bool haveSplitSeg = false;
         TS_CHECK_TRUE(ftraceProcessor_->HmParsePageData(*cpuDetail_.get(), *cpuDetailParser_.get(), data, haveSplitSeg),
                       false, "hm parse page failed!");
@@ -201,7 +201,7 @@ bool RawTraceParser::HmParseCpuRawData(const std::string& buffer, uint32_t curTy
     return true;
 }
 
-bool RawTraceParser::ParseLastCommData(uint8_t type, const std::string& buffer)
+bool RawTraceParser::ParseLastCommData(uint8_t type, const std::string &buffer)
 {
     TS_CHECK_TRUE_RET(restCommDataCnt_ != INVALID_UINT8, false);
     switch (type) {
@@ -247,7 +247,7 @@ void RawTraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr,
     return;
 }
 
-bool RawTraceParser::ProcessRawTraceContent(std::string& bufferLine, uint8_t curType)
+bool RawTraceParser::ProcessRawTraceContent(std::string &bufferLine, uint8_t curType)
 {
     if (curType >= static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_CPU_RAW) &&
         curType < static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_HEADER_PAGE)) {
@@ -268,7 +268,7 @@ bool RawTraceParser::ProcessRawTraceContent(std::string& bufferLine, uint8_t cur
     }
     return true;
 }
-bool RawTraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesCurIter)
+bool RawTraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator &packagesCurIter)
 {
     uint32_t type = 0;
     uint32_t len = 0;
@@ -276,9 +276,9 @@ bool RawTraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& package
         TS_CHECK_TRUE(InitRawTraceFileHeader(packagesCurIter), false, "get rawtrace file header failed");
     }
     while (true) {
-        std::copy(packagesCurIter, packagesCurIter + sizeof(type), reinterpret_cast<uint8_t*>(&type));
+        std::copy(packagesCurIter, packagesCurIter + sizeof(type), reinterpret_cast<uint8_t *>(&type));
         packagesCurIter += sizeof(type);
-        std::copy(packagesCurIter, packagesCurIter + sizeof(len), reinterpret_cast<uint8_t*>(&len));
+        std::copy(packagesCurIter, packagesCurIter + sizeof(len), reinterpret_cast<uint8_t *>(&len));
         packagesCurIter += sizeof(len);
         uint32_t restDataLen = std::distance(packagesCurIter, packagesBuffer_.end());
         TS_CHECK_TRUE_RET(len <= restDataLen && packagesBuffer_.size() > 0, false);

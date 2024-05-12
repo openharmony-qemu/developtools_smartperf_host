@@ -28,13 +28,13 @@ namespace SysTuning {
 namespace TraceStreamer {
 class HtraceSymbolsDetailParser {
 public:
-    HtraceSymbolsDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    HtraceSymbolsDetailParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~HtraceSymbolsDetailParser();
     void Parse(ProtoReader::BytesView tracePacket);
 
 private:
-    const TraceStreamerFilters* streamFilters_;
-    TraceDataCache* traceDataCache_;
+    const TraceStreamerFilters *streamFilters_;
+    TraceDataCache *traceDataCache_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

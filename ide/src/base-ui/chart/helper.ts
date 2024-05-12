@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export const resizeCanvas = (c: HTMLCanvasElement) => {
+export const resizeCanvas = (c: HTMLCanvasElement): void => {
   let el: Element = (c.getRootNode({ composed: false }) as ShadowRoot).host;
   let dpr = window.devicePixelRatio || 1;
   c.width = Math.ceil(el.clientWidth * dpr);

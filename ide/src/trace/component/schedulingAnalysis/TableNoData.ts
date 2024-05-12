@@ -17,7 +17,7 @@ import { BaseElement, element } from '../../../base-ui/BaseElement';
 
 @element('table-no-data')
 export class TableNoData extends BaseElement {
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['noData', 'contentWidth', 'height'];
   }
 
@@ -29,7 +29,7 @@ export class TableNoData extends BaseElement {
     this.noDataIcon = this.shadowRoot!.querySelector<HTMLDivElement>('.d-box');
   }
 
-  get noData() {
+  get noData(): boolean {
     return this.hasAttribute('noData');
   }
 
@@ -41,14 +41,14 @@ export class TableNoData extends BaseElement {
     }
   }
 
-  get contentWidth() {
+  get contentWidth(): string {
     return this.getAttribute('contentWidth') || '100%';
   }
   set contentWidth(value) {
     this.shadowRoot!.querySelector<HTMLDivElement>('.d-box')!.style.width = value;
     this.setAttribute('contentWidth', value);
   }
-  get contentHeight() {
+  get contentHeight(): string {
     return this.getAttribute('contentHeight') || '80%';
   }
   set contentHeight(value) {

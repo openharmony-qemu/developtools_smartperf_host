@@ -11,9 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from '../CommonArgs';
 import { TraficEnum } from '../utils/QueryEnum';
 
-export const chartProcessSoInitDataSql = (args: any): string => {
+export const chartProcessSoInitDataSql = (args: Args): string => {
   return `
   select
     A.depth,
@@ -30,34 +31,37 @@ left join thread T on A.call_id = T.itid
 where P.pid = ${args.pid};`;
 };
 
-export function processSoInitDataReceiver(data: any, proc: Function): void {
+export function processSoInitDataReceiver(data: unknown, proc: Function): void {
+  //@ts-ignore
   let sql = chartProcessSoInitDataSql(data.params);
-  let res = proc(sql);
+  let res = proc(sql); //@ts-ignore
   arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
-  let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs);
-  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
-  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);
-  let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid);
-  let itid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.itid);
-  let depth = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  //@ts-ignore
+  let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs); //@ts-ignore
+  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur); //@ts-ignore
+  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid); //@ts-ignore
+  let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid); //@ts-ignore
+  let itid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.itid); //@ts-ignore
+  let depth = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.depth); //@ts-ignore
   let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   res.forEach((it, i) => {
-    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processSoInitData);
-    dur[i] = it.dur || 0;
-    startTs[i] = it.startTime || 0;
-    pid[i] = it.pid || 0;
-    tid[i] = it.tid || 0;
-    itid[i] = it.itid || 0;
-    depth[i] = it.depth || 0;
+    //@ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processSoInitData); //@ts-ignore
+    dur[i] = it.dur || 0; //@ts-ignore
+    startTs[i] = it.startTime || 0; //@ts-ignore
+    pid[i] = it.pid || 0; //@ts-ignore
+    tid[i] = it.tid || 0; //@ts-ignore
+    itid[i] = it.itid || 0; //@ts-ignore
+    depth[i] = it.depth || 0; //@ts-ignore
     id[i] = it.id || 0;
   });
   (self as unknown as Worker).postMessage(
     {
-      transfer: transfer,
-      id: data.id,
+      transfer: transfer, //@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
       results: transfer
         ? {

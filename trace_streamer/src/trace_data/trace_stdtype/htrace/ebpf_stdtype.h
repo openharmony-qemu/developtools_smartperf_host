@@ -37,22 +37,22 @@ public:
                          DataIndex secondArgument,
                          DataIndex thirdArgument,
                          DataIndex fourthArgument);
-    const std::deque<uint32_t>& CallChainIds() const;
-    const std::deque<uint16_t>& Types() const;
-    const std::deque<uint32_t>& Ipids() const;
-    const std::deque<uint32_t>& Itids() const;
-    const std::deque<uint64_t>& StartTs() const;
-    const std::deque<uint64_t>& EndTs() const;
-    const std::deque<uint64_t>& Durs() const;
-    const std::deque<DataIndex>& ReturnValues() const;
-    const std::deque<DataIndex>& ErrorCodes() const;
-    const std::deque<int32_t>& Fds() const;
-    const std::deque<DataIndex>& FileIds() const;
-    const std::deque<size_t>& Sizes() const;
-    const std::deque<DataIndex>& FirstArguments() const;
-    const std::deque<DataIndex>& SecondArguments() const;
-    const std::deque<DataIndex>& ThirdArguments() const;
-    const std::deque<DataIndex>& FourthArguments() const;
+    const std::deque<uint32_t> &CallChainIds() const;
+    const std::deque<uint16_t> &Types() const;
+    const std::deque<uint32_t> &Ipids() const;
+    const std::deque<uint32_t> &Itids() const;
+    const std::deque<uint64_t> &StartTs() const;
+    const std::deque<uint64_t> &EndTs() const;
+    const std::deque<uint64_t> &Durs() const;
+    const std::deque<DataIndex> &ReturnValues() const;
+    const std::deque<DataIndex> &ErrorCodes() const;
+    const std::deque<int32_t> &Fds() const;
+    const std::deque<DataIndex> &FileIds() const;
+    const std::deque<size_t> &Sizes() const;
+    const std::deque<DataIndex> &FirstArguments() const;
+    const std::deque<DataIndex> &SecondArguments() const;
+    const std::deque<DataIndex> &ThirdArguments() const;
+    const std::deque<DataIndex> &FourthArguments() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -103,15 +103,15 @@ public:
                          size_t size,
                          DataIndex addr,
                          uint32_t itid);
-    const std::deque<uint32_t>& CallChainIds() const;
-    const std::deque<uint16_t>& Types() const;
-    const std::deque<uint32_t>& Ipids() const;
-    const std::deque<uint64_t>& StartTs() const;
-    const std::deque<uint64_t>& EndTs() const;
-    const std::deque<uint64_t>& Durs() const;
-    const std::deque<size_t>& Sizes() const;
-    const std::deque<DataIndex>& Addr() const;
-    const std::deque<uint32_t>& Itids() const;
+    const std::deque<uint32_t> &CallChainIds() const;
+    const std::deque<uint16_t> &Types() const;
+    const std::deque<uint32_t> &Ipids() const;
+    const std::deque<uint64_t> &StartTs() const;
+    const std::deque<uint64_t> &EndTs() const;
+    const std::deque<uint64_t> &Durs() const;
+    const std::deque<size_t> &Sizes() const;
+    const std::deque<DataIndex> &Addr() const;
+    const std::deque<uint32_t> &Itids() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -151,18 +151,18 @@ public:
                        uint64_t blockNumber,
                        uint64_t filePathId,
                        uint64_t durPer4k);
-    const std::deque<uint32_t>& CallChainIds() const;
-    const std::deque<uint64_t>& Types() const;
-    const std::deque<uint32_t>& Ipids() const;
-    const std::deque<uint32_t>& Itids() const;
-    const std::deque<uint64_t>& StartTs() const;
-    const std::deque<uint64_t>& EndTs() const;
-    const std::deque<uint64_t>& LatencyDurs() const;
-    const std::deque<uint32_t>& Tiers() const;
-    const std::deque<uint64_t>& Sizes() const;
-    const std::deque<uint64_t>& BlockNumbers() const;
-    const std::deque<uint64_t>& FilePathIds() const;
-    const std::deque<uint64_t>& DurPer4k() const;
+    const std::deque<uint32_t> &CallChainIds() const;
+    const std::deque<uint64_t> &Types() const;
+    const std::deque<uint32_t> &Ipids() const;
+    const std::deque<uint32_t> &Itids() const;
+    const std::deque<uint64_t> &StartTs() const;
+    const std::deque<uint64_t> &EndTs() const;
+    const std::deque<uint64_t> &LatencyDurs() const;
+    const std::deque<uint32_t> &Tiers() const;
+    const std::deque<uint64_t> &Sizes() const;
+    const std::deque<uint64_t> &BlockNumbers() const;
+    const std::deque<uint64_t> &FilePathIds() const;
+    const std::deque<uint64_t> &DurPer4k() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -204,12 +204,12 @@ public:
                          DataIndex filePathId,
                          uint64_t vaddr);
     void UpdateEbpfSymbolInfo(size_t row, DataIndex symbolId);
-    const std::deque<uint32_t>& CallChainIds() const;
-    const std::deque<uint32_t>& Depths() const;
-    const std::deque<DataIndex>& Ips() const;
-    const std::deque<DataIndex>& SymbolIds() const;
-    const std::deque<DataIndex>& FilePathIds() const;
-    const std::deque<uint64_t>& Vaddrs() const;
+    const std::deque<uint32_t> &CallChainIds() const;
+    const std::deque<uint32_t> &Depths() const;
+    const std::deque<DataIndex> &Ips() const;
+    const std::deque<DataIndex> &SymbolIds() const;
+    const std::deque<DataIndex> &FilePathIds() const;
+    const std::deque<uint64_t> &Vaddrs() const;
     void Clear() override
     {
         CacheBase::Clear();

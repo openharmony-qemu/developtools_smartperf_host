@@ -25,7 +25,7 @@ enum class Index : int32_t {
     SYMBOLS_ID,
     FILE_PATH_ID,
 };
-EbpfCallStackTable::EbpfCallStackTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+EbpfCallStackTable::EbpfCallStackTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
@@ -38,14 +38,14 @@ EbpfCallStackTable::EbpfCallStackTable(const TraceDataCache* dataCache) : TableB
 
 EbpfCallStackTable::~EbpfCallStackTable() {}
 
-void EbpfCallStackTable::FilterByConstraint(FilterConstraints& callfc,
-                                            double& callfilterCost,
+void EbpfCallStackTable::FilterByConstraint(FilterConstraints &callfc,
+                                            double &callfilterCost,
                                             size_t callRowCnt,
                                             uint32_t callcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& callc = callfc.GetConstraints()[callcurrenti];
+    const auto &callc = callfc.GetConstraints()[callcurrenti];
     switch (static_cast<Index>(callc.col)) {
         case Index::ID: {
             if (CanFilterId(callc.op, callRowCnt)) {
@@ -67,7 +67,7 @@ std::unique_ptr<TableBase::Cursor> EbpfCallStackTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-EbpfCallStackTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+EbpfCallStackTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstEbpfCallStackData().Size())),
       ebpfCallStackObj_(dataCache->GetConstEbpfCallStackData())
 {
@@ -75,7 +75,7 @@ EbpfCallStackTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* t
 
 EbpfCallStackTable::Cursor::~Cursor() {}
 
-int32_t EbpfCallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t EbpfCallStackTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -84,9 +84,9 @@ int32_t EbpfCallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_
         return SQLITE_OK;
     }
 
-    auto& ebpfCallStackCs = fc.GetConstraints();
+    auto &ebpfCallStackCs = fc.GetConstraints();
     for (size_t i = 0; i < ebpfCallStackCs.size(); i++) {
-        const auto& c = ebpfCallStackCs[i];
+        const auto &c = ebpfCallStackCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -149,7 +149,7 @@ int32_t EbpfCallStackTable::Cursor::Column(int32_t column) const
     }
     return SQLITE_OK;
 }
-void EbpfCallStackTable::GetOrbyes(FilterConstraints& ebpfCallfc, EstimatedIndexInfo& ebpfCalleInfo)
+void EbpfCallStackTable::GetOrbyes(FilterConstraints &ebpfCallfc, EstimatedIndexInfo &ebpfCalleInfo)
 {
     auto ebpfCallOrderbys = ebpfCallfc.GetOrderBys();
     for (auto i = 0; i < ebpfCallOrderbys.size(); i++) {

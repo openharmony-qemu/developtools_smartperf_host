@@ -40,11 +40,11 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   private fsCallTreeTbr: LitTable | null | undefined;
   private fsCallTreeProgressEL: LitProgressBar | null | undefined;
   private fsCallTreeRightSource: Array<FileMerageBean> = [];
-  private fsCallTreeFilter: any;
-  private fsCallTreeDataSource: any[] = [];
+  private fsCallTreeFilter: unknown;
+  private fsCallTreeDataSource: unknown[] = [];
   private fsCallTreeSortKey = 'weight';
   private fsCallTreeSortType: number = 0;
-  private fsCallTreeCurrentSelectedData: any = undefined;
+  private fsCallTreeCurrentSelectedData: unknown = undefined;
   private frameChart: FrameChart | null | undefined;
   private isChartShow: boolean = false;
   private systmeRuleName: string = '/system/';
@@ -52,16 +52,16 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   private needShowMenu: boolean = true;
   private searchValue: string = '';
   private loadingList: number[] = [];
-  private loadingPage: any;
+  private loadingPage: unknown;
   private currentSelection: SelectionParam | undefined;
   private currentFsCallTreeDataSource: Array<FileMerageBean> = [];
 
-  private currentRowClickData: any;
+  private currentRowClickData: unknown;
   private initWidth: number = 0;
   private _pieTitle: string = '';
   private _cWidth: number = 0;
   private _currentFsCallTreeLevel: number = 0;
-  private _fsRowClickData: any = undefined;
+  private _fsRowClickData: unknown = undefined;
   private FsCallTreeLevel: CallTreeLevelStruct | undefined | null;
   private fileSystemHeadLine: LitHeadLine | null | undefined;
 
@@ -70,7 +70,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     if (this._pieTitle.length > 0) {
       this.fileSystemHeadLine!.isShow = true;
       this.fileSystemHeadLine!.titleTxt = this._pieTitle;
-      this.fileSystemHeadLine!.closeCallback = () => {
+      this.fileSystemHeadLine!.closeCallback = (): void => {
         this.restore();
       };
     }
@@ -84,31 +84,33 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     this._currentFsCallTreeLevel = value;
   }
 
-  set fsRowClickData(value: any) {
+  set fsRowClickData(value: unknown) {
     this._fsRowClickData = value;
   }
 
-  set data(fsCallTreeSelection: SelectionParam | any) {
+  set data(fsCallTreeSelection: SelectionParam | unknown) {
     if (fsCallTreeSelection !== this.currentSelection && this._fsRowClickData === this.currentRowClickData) {
       this._fsRowClickData = undefined;
     }
     if (fsCallTreeSelection === this.currentSelection && !this.currentSelection?.isRowClick) {
       return;
     }
-    this.searchValue = '';
+    this.searchValue = ''; // @ts-ignore
     this.currentSelection = fsCallTreeSelection;
     this.currentRowClickData = this._fsRowClickData;
-    this.fsCallTreeTbl!.style.visibility = 'visible';
+    this.fsCallTreeTbl!.style.visibility = 'visible'; // @ts-ignore
     if (this.parentElement!.clientHeight > this.fsCallTreeFilter!.clientHeight) {
+      // @ts-ignore
       this.fsCallTreeFilter!.style.display = 'flex';
     } else {
+      // @ts-ignore
       this.fsCallTreeFilter!.style.display = 'none';
     }
-    procedurePool.submitWithName('logic0', 'fileSystem-reset', [], undefined, () => {});
-    this.fsCallTreeFilter!.initializeFilterTree(true, true, true);
+    procedurePool.submitWithName('logic0', 'fileSystem-reset', [], undefined, (): void => {}); // @ts-ignore
+    this.fsCallTreeFilter!.initializeFilterTree(true, true, true); // @ts-ignore
     this.fsCallTreeFilter!.filterValue = '';
-    this.fsCallTreeProgressEL!.loading = true;
-    this.loadingPage.style.visibility = 'visible';
+    this.fsCallTreeProgressEL!.loading = true; // @ts-ignore
+    this.loadingPage.style.visibility = 'visible'; // @ts-ignore
     this.getDataByWorkAndUpDateCanvas(fsCallTreeSelection);
   }
 
@@ -126,7 +128,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     }
   }
 
-  private getFsCallTreeData(fsCallTreeSelection: SelectionParam | any, initWidth: number): void {
+  private getFsCallTreeData(fsCallTreeSelection: SelectionParam | unknown, initWidth: number): void {
     this.getDataByWorker(
       [
         {
@@ -134,18 +136,18 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           funcArgs: [''],
         },
         {
-          funcName: 'getCurrentDataFromDb',
+          funcName: 'getCurrentDataFromDb', // @ts-ignore
           funcArgs: [{ queryFuncName: 'fileSystem', ...fsCallTreeSelection }],
         },
       ],
-      (fsCallTreeResults: any[]) => {
+      (fsCallTreeResults: unknown[]): void => {
         this.setLTableData(fsCallTreeResults);
         this.fsCallTreeTbr!.recycleDataSource = [];
         this.frameChart!.mode = ChartMode.Duration;
-        this.frameChart?.updateCanvas(true, initWidth);
-        this.frameChart!.data = this.fsCallTreeDataSource;
+        this.frameChart?.updateCanvas(true, initWidth); // @ts-ignore
+        this.frameChart!.data = this.fsCallTreeDataSource; // @ts-ignore
         this.currentFsCallTreeDataSource = this.fsCallTreeDataSource;
-        this.switchFlameChart();
+        this.switchFlameChart(); // @ts-ignore
         this.fsCallTreeFilter.icon = 'block';
       }
     );
@@ -157,10 +159,11 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   private getFsCallTreeDataByPieLevel(): void {
     this.FsCallTreeLevel = new CallTreeLevelStruct();
     this.FsCallTreeLevel = {
-      processId: this._fsRowClickData.pid,
-      threadId: this._fsRowClickData.tid,
-      typeId: this._fsRowClickData.type,
-      libId: this._fsRowClickData.libId,
+      // @ts-ignore
+      processId: this._fsRowClickData.pid, // @ts-ignore
+      threadId: this._fsRowClickData.tid, // @ts-ignore
+      typeId: this._fsRowClickData.type, // @ts-ignore
+      libId: this._fsRowClickData.libId, // @ts-ignore
       symbolId: this._fsRowClickData.symbolId,
     };
     let args = [];
@@ -168,18 +171,20 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       funcName: 'getCurrentDataFromDb',
       funcArgs: [this.currentSelection, this.FsCallTreeLevel],
     });
-
+    // @ts-ignore
     if (this._fsRowClickData && this._fsRowClickData.libId !== undefined && this._currentFsCallTreeLevel === 3) {
+      // @ts-ignore
       this.FsCallTreeLevel.libName = this._fsRowClickData.tableName;
       args.push({
         funcName: 'showLibLevelData',
         funcArgs: [this.FsCallTreeLevel.libId, this.FsCallTreeLevel.libName],
       });
     } else if (
-      this._fsRowClickData &&
+      this._fsRowClickData && // @ts-ignore
       this._fsRowClickData.symbolId !== undefined &&
       this._currentFsCallTreeLevel === 4
     ) {
+      // @ts-ignore
       this.FsCallTreeLevel.symbolName = this._fsRowClickData.tableName;
       args.push({
         funcName: 'showFunLevelData',
@@ -187,20 +192,20 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       });
     }
 
-    this.getDataByWorker(args, (fsCallTreeResults: any[]) => {
+    this.getDataByWorker(args, (fsCallTreeResults: unknown[]) => {
       this.setLTableData(fsCallTreeResults);
       this.fsCallTreeTbr!.recycleDataSource = [];
       this.frameChart!.mode = ChartMode.Duration;
-      this.frameChart?.updateCanvas(true, this.initWidth);
-      this.frameChart!.data = this.fsCallTreeDataSource;
+      this.frameChart?.updateCanvas(true, this.initWidth); // @ts-ignore
+      this.frameChart!.data = this.fsCallTreeDataSource; // @ts-ignore
       this.currentFsCallTreeDataSource = this.fsCallTreeDataSource;
-      this.switchFlameChart();
+      this.switchFlameChart(); // @ts-ignore
       this.fsCallTreeFilter.icon = 'block';
     });
   }
 
   private restore(): void {
-    this.searchValue = '';
+    this.searchValue = ''; // @ts-ignore
     this.fsCallTreeFilter.filterValue = '';
     this.fileSystemHeadLine!.isShow = false;
     this._fsRowClickData = undefined;
@@ -243,7 +248,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
 
   setRightTableData(merageBean: FileMerageBean): void {
     let parents: Array<FileMerageBean> = [];
-    let children: Array<FileMerageBean> = [];
+    let children: Array<FileMerageBean> = []; // @ts-ignore
     this.getParentTree(this.fsCallTreeDataSource, merageBean, parents);
     let maxId: string = merageBean.id;
     let maxDur: number = 0;
@@ -255,7 +260,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           maxId = fsMerageBean.id;
         }
       } else {
-        fsMerageBean.children.map((callChild: any): void => {
+        fsMerageBean.children.map((callChild: unknown): void => {
           findMaxStack(<FileMerageBean>callChild);
         });
       }
@@ -265,8 +270,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     this.getChildTree(merageBean.children as Array<FileMerageBean>, maxId, children);
     let fsMerageParentsList = parents.reverse().concat(children.reverse());
     for (let data of fsMerageParentsList) {
-      data.type =
-        data.libName.endsWith('.so.1') || data.libName.endsWith('.dll') || data.libName.endsWith('.so') ? 0 : 1;
+      data.type = data.lib.endsWith('.so.1') || data.lib.endsWith('.dll') || data.lib.endsWith('.so') ? 0 : 1;
     }
     let len = fsMerageParentsList.length;
     this.fsCallTreeRightSource = fsMerageParentsList;
@@ -288,13 +292,13 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       this.needShowMenu = needShowMenu;
     });
     this.fsCallTreeTbl!.rememberScrollTop = true;
-    this.fsCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
+    this.fsCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter'); // @ts-ignore
     this.fsCallTreeFilter!.disabledTransfer(true);
     this.tblRowClickEvent();
     this.fsCallTreeTbr = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-list');
     this.tbrRowClickEvent();
-    let boundFilterFunc = this.filterFunc.bind(this);
-    this.fsCallTreeFilter!.getDataLibrary(boundFilterFunc);
+    let boundFilterFunc = this.filterFunc.bind(this); // @ts-ignore
+    this.fsCallTreeFilter!.getDataLibrary(boundFilterFunc); // @ts-ignore
     this.fsCallTreeFilter!.getDataMining(boundFilterFunc);
     this.handleCallTreeData();
     this.handleConstraintsData();
@@ -302,14 +306,16 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     this.callTreeColumnClick();
   }
 
-  private filterFunc(data: any): void {
-    let fsCallTreeFuncArgs: any[] = [];
+  private filterFunc(data: unknown): void {
+    let fsCallTreeFuncArgs: unknown[] = []; // @ts-ignore
     if (data.type === 'check') {
-      this.handleCheckType(data, fsCallTreeFuncArgs);
+      this.handleCheckType(data, fsCallTreeFuncArgs); // @ts-ignore
     } else if (data.type === 'select') {
-      this.handleSelectType(fsCallTreeFuncArgs, data);
+      this.handleSelectType(fsCallTreeFuncArgs, data); // @ts-ignore
     } else if (data.type === 'button') {
-      if (data.item == 'symbol') {
+      // @ts-ignore
+      if (data.item === 'symbol') {
+        // @ts-ignore
         if (this.fsCallTreeCurrentSelectedData && !this.fsCallTreeCurrentSelectedData.canCharge) {
           return;
         }
@@ -317,16 +323,17 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           this.handleSymbolCase(data, fsCallTreeFuncArgs);
         } else {
           return;
-        }
+        } // @ts-ignore
       } else if (data.item === 'library') {
+        // @ts-ignore
         if (this.fsCallTreeCurrentSelectedData && !this.fsCallTreeCurrentSelectedData.canCharge) {
           return;
-        }
+        } // @ts-ignore
         if (this.fsCallTreeCurrentSelectedData !== undefined && this.fsCallTreeCurrentSelectedData.libName !== '') {
           this.handleLibraryCase(data, fsCallTreeFuncArgs);
         } else {
           return;
-        }
+        } // @ts-ignore
       } else if (data.item === 'restore') {
         this.handleRestoreCase(data, fsCallTreeFuncArgs);
       }
@@ -334,18 +341,20 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     this.performDataProcessing(fsCallTreeFuncArgs);
   }
 
-  private handleSymbolCase(data: any, fsCallTreeFuncArgs: any[]): void {
-    this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.symbolName }, data.item);
+  private handleSymbolCase(data: unknown, fsCallTreeFuncArgs: unknown[]): void {
+    // @ts-ignore
+    this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.symbol }, data.item);
     fsCallTreeFuncArgs.push({
-      funcName: 'splitTree',
-      funcArgs: [this.fsCallTreeCurrentSelectedData.symbolName, false, true],
+      funcName: 'splitTree', // @ts-ignore
+      funcArgs: [this.fsCallTreeCurrentSelectedData.symbol, false, true],
     });
   }
 
-  private handleLibraryCase(data: any, fsCallTreeFuncArgs: any[]): void {
+  private handleLibraryCase(data: unknown, fsCallTreeFuncArgs: unknown[]): void {
+    // @ts-ignore
     this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.libName }, data.item);
     fsCallTreeFuncArgs.push({
-      funcName: 'splitTree',
+      funcName: 'splitTree', // @ts-ignore
       funcArgs: [this.fsCallTreeCurrentSelectedData.libName, false, false],
     });
   }
@@ -357,16 +366,18 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       // @ts-ignore
       this.fsCallTreeSortType = evt.detail.sort;
       // @ts-ignore
-      this.setLTableData(this.fsCallTreeDataSource);
+      this.setLTableData(this.fsCallTreeDataSource); // @ts-ignore
       this.frameChart!.data = this.fsCallTreeDataSource;
     });
   }
 
   private handleFilterData(): void {
+    // @ts-ignore
     this.fsCallTreeFilter!.getFilterData((data: FilterData): void => {
       if ((this.isChartShow && data.icon === 'tree') || (!this.isChartShow && data.icon === 'block')) {
-        this.switchFlameChart(data);
-      } else if (this.searchValue != this.fsCallTreeFilter!.filterValue) {
+        this.switchFlameChart(data); // @ts-ignore
+      } else if (this.searchValue !== this.fsCallTreeFilter!.filterValue) {
+        // @ts-ignore
         this.searchValue = this.fsCallTreeFilter!.filterValue;
         let fileArgs = [
           {
@@ -378,10 +389,10 @@ export class TabpaneFilesystemCalltree extends BaseElement {
             funcArgs: [],
           },
         ];
-        this.getDataByWorker(fileArgs, (result: any[]): void => {
+        this.getDataByWorker(fileArgs, (result: unknown[]): void => {
           this.fsCallTreeTbl!.isSearch = true;
           this.fsCallTreeTbl!.setStatus(result, true);
-          this.setLTableData(result);
+          this.setLTableData(result); // @ts-ignore
           this.frameChart!.data = this.fsCallTreeDataSource;
           this.switchFlameChart(data);
         });
@@ -394,8 +405,9 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   }
 
   private handleConstraintsData(): void {
-    this.fsCallTreeFilter!.getCallTreeConstraintsData((data: any) => {
-      let fsCallTreeConstraintsArgs: any[] = [
+    // @ts-ignore
+    this.fsCallTreeFilter!.getCallTreeConstraintsData((data: unknown): void => {
+      let fsCallTreeConstraintsArgs: unknown[] = [
         {
           funcName: 'resotreAllNode',
           funcArgs: [[this.fsCallTreeNumRuleName]],
@@ -404,10 +416,10 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           funcName: 'clearSplitMapData',
           funcArgs: [this.fsCallTreeNumRuleName],
         },
-      ];
+      ]; // @ts-ignore
       if (data.checked) {
         fsCallTreeConstraintsArgs.push({
-          funcName: 'hideNumMaxAndMin',
+          funcName: 'hideNumMaxAndMin', // @ts-ignore
           funcArgs: [parseInt(data.min), data.max],
         });
       }
@@ -415,23 +427,28 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         funcName: 'resetAllNode',
         funcArgs: [],
       });
-      this.getDataByWorker(fsCallTreeConstraintsArgs, (result: any[]): void => {
-        this.setLTableData(result);
+      this.getDataByWorker(fsCallTreeConstraintsArgs, (result: unknown[]): void => {
+        this.setLTableData(result); // @ts-ignore
         this.frameChart!.data = this.fsCallTreeDataSource;
-        if (this.isChartShow) this.frameChart?.calculateChartData();
+        if (this.isChartShow) {
+          this.frameChart?.calculateChartData();
+        }
       });
     });
   }
 
   private handleCallTreeData(): void {
-    this.fsCallTreeFilter!.getCallTreeData((data: any): void => {
+    // @ts-ignore
+    this.fsCallTreeFilter!.getCallTreeData((data: unknown): void => {
+      // @ts-ignore
       if ([InvertOptionIndex, hideThreadOptionIndex, hideEventOptionIndex].includes(data.value)) {
         this.refreshAllNode({
-          ...this.fsCallTreeFilter!.getFilterTreeData(),
+          // @ts-ignore
+          ...this.fsCallTreeFilter!.getFilterTreeData(), // @ts-ignore
           callTree: data.checks,
         });
       } else {
-        let fileSysCallTreeArgs: any[] = [];
+        let fileSysCallTreeArgs: unknown[] = []; // @ts-ignore
         if (data.checks[1]) {
           fileSysCallTreeArgs.push({
             funcName: 'hideSystemLibrary',
@@ -455,22 +472,27 @@ export class TabpaneFilesystemCalltree extends BaseElement {
             funcArgs: [this.systmeRuleName],
           });
         }
-        this.getDataByWorker(fileSysCallTreeArgs, (result: any[]) => {
-          this.setLTableData(result);
+        this.getDataByWorker(fileSysCallTreeArgs, (result: unknown[]): void => {
+          this.setLTableData(result); // @ts-ignore
           this.frameChart!.data = this.fsCallTreeDataSource;
-          if (this.isChartShow) this.frameChart?.calculateChartData();
+          if (this.isChartShow) {
+            this.frameChart?.calculateChartData();
+          }
         });
       }
     });
   }
 
-  private performDataProcessing(fsCallTreeFuncArgs: any[]): void {
-    this.getDataByWorker(fsCallTreeFuncArgs, (result: any[]): void => {
-      this.setLTableData(result);
+  private performDataProcessing(fsCallTreeFuncArgs: unknown[]): void {
+    this.getDataByWorker(fsCallTreeFuncArgs, (result: unknown[]): void => {
+      this.setLTableData(result); // @ts-ignore
       this.frameChart!.data = this.fsCallTreeDataSource;
-      if (this.isChartShow) this.frameChart?.calculateChartData();
+      if (this.isChartShow) {
+        this.frameChart?.calculateChartData();
+      }
       this.fsCallTreeTbl!.move1px();
       if (this.fsCallTreeCurrentSelectedData) {
+        // @ts-ignore
         this.fsCallTreeCurrentSelectedData.isSelected = false;
         this.fsCallTreeTbl?.clearAllSelection(this.fsCallTreeCurrentSelectedData);
         this.fsCallTreeTbr!.recycleDataSource = [];
@@ -479,9 +501,12 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     });
   }
 
-  private handleRestoreCase(data: any, fsCallTreeFuncArgs: any[]): void {
+  private handleRestoreCase(data: unknown, fsCallTreeFuncArgs: unknown[]): void {
+    // @ts-ignore
     if (data.remove !== undefined && data.remove.length > 0) {
-      let list = data.remove.map((item: any) => {
+      // @ts-ignore
+      let list = data.remove.map((item: unknown) => {
+        // @ts-ignore
         return item.name;
       });
       fsCallTreeFuncArgs.push({
@@ -492,39 +517,40 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         funcName: 'resetAllNode',
         funcArgs: [],
       });
-      list.forEach((symbolName: string) => {
+      list.forEach((symbol: string): void => {
         fsCallTreeFuncArgs.push({
           funcName: 'clearSplitMapData',
-          funcArgs: [symbolName],
+          funcArgs: [symbol],
         });
       });
     }
   }
 
-  private handleSelectType(fsCallTreeFuncArgs: any[], data: any): void {
+  private handleSelectType(fsCallTreeFuncArgs: unknown[], data: unknown): void {
     fsCallTreeFuncArgs.push({
-      funcName: 'resotreAllNode',
+      funcName: 'resotreAllNode', // @ts-ignore
       funcArgs: [[data.item.name]],
     });
     fsCallTreeFuncArgs.push({
-      funcName: 'clearSplitMapData',
+      funcName: 'clearSplitMapData', // @ts-ignore
       funcArgs: [data.item.name],
     });
     fsCallTreeFuncArgs.push({
-      funcName: 'splitTree',
-      funcArgs: [data.item.name, data.item.select == '0', data.item.type == 'symbol'],
+      funcName: 'splitTree', // @ts-ignore
+      funcArgs: [data.item.name, data.item.select === '0', data.item.type === 'symbol'],
     });
   }
 
-  private handleCheckType(data: any, fsCallTreeFuncArgs: any[]): void {
+  private handleCheckType(data: unknown, fsCallTreeFuncArgs: unknown[]): void {
+    // @ts-ignore
     if (data.item.checked) {
       fsCallTreeFuncArgs.push({
-        funcName: 'splitTree',
+        funcName: 'splitTree', // @ts-ignore
         funcArgs: [data.item.name, data.item.select === '0', data.item.type === 'symbol'],
       });
     } else {
       fsCallTreeFuncArgs.push({
-        funcName: 'resotreAllNode',
+        funcName: 'resotreAllNode', // @ts-ignore
         funcArgs: [[data.item.name]],
       });
       fsCallTreeFuncArgs.push({
@@ -532,29 +558,29 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         funcArgs: [],
       });
       fsCallTreeFuncArgs.push({
-        funcName: 'clearSplitMapData',
+        funcName: 'clearSplitMapData', // @ts-ignore
         funcArgs: [data.item.name],
       });
     }
   }
 
   private tbrRowClickEvent(): void {
-    this.fsCallTreeTbr!.addEventListener('row-click', (evt: any): void => {
+    this.fsCallTreeTbr!.addEventListener('row-click', (evt: unknown): void => {
       // @ts-ignore
       let data = evt.detail.data as FileMerageBean;
-      this.fsCallTreeTbl?.clearAllSelection(data);
-      (data as any).isSelected = true;
+      this.fsCallTreeTbl?.clearAllSelection(data); // @ts-ignore
+      (data as unknown).isSelected = true;
       this.fsCallTreeTbl!.scrollToData(data);
       // @ts-ignore
-      if ((evt.detail as any).callBack) {
+      if ((evt.detail as unknown).callBack) {
         // @ts-ignore
-        (evt.detail as any).callBack(true);
+        (evt.detail as unknown).callBack(true);
       }
     });
   }
 
   private tblRowClickEvent(): void {
-    this.fsCallTreeTbl!.addEventListener('row-click', (evt: any) => {
+    this.fsCallTreeTbl!.addEventListener('row-click', (evt: unknown): void => {
       // @ts-ignore
       let data = evt.detail.data as FileMerageBean;
       document.dispatchEvent(
@@ -568,9 +594,9 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       this.fsCallTreeTbr?.clearAllSelection(data);
       this.fsCallTreeTbr?.setCurrentSelection(data);
       // @ts-ignore
-      if ((evt.detail as any).callBack) {
+      if ((evt.detail as unknown).callBack) {
         // @ts-ignore
-        (evt.detail as any).callBack(true);
+        (evt.detail as unknown).callBack(true);
       }
     });
   }
@@ -580,7 +606,9 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     let filterHeight = 0;
     new ResizeObserver((entries: ResizeObserverEntry[]): void => {
       let fsCallTreeTabFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
-      if (fsCallTreeTabFilter.clientHeight > 0) filterHeight = fsCallTreeTabFilter.clientHeight;
+      if (fsCallTreeTabFilter.clientHeight > 0) {
+        filterHeight = fsCallTreeTabFilter.clientHeight;
+      }
       if (this.parentElement!.clientHeight > filterHeight) {
         fsCallTreeTabFilter.style.display = 'flex';
       } else {
@@ -600,17 +628,19 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         }
         if (this.fsCallTreeTbl) {
           // @ts-ignore
-          this.fsCallTreeTbl.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 10 - 35 - headLineHeight + 'px';
+          this.fsCallTreeTbl.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 35 - headLineHeight
+          }px`;
           this.fsCallTreeTbl.reMeauseHeight();
         }
         if (this.fsCallTreeTbr) {
           // @ts-ignore
-          this.fsCallTreeTbr.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 45 - 21 - headLineHeight + 'px';
+          this.fsCallTreeTbr.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 45 - 21 - headLineHeight
+          }px`;
           this.fsCallTreeTbr.reMeauseHeight();
-        }
-        this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
+        } // @ts-ignore
+        this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
     this.parentElement!.onscroll = (): void => {
@@ -618,33 +648,33 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     };
   }
 
-  switchFlameChart(data?: any): void {
+  switchFlameChart(data?: unknown): void {
     let fsCallTreePageTab = this.shadowRoot?.querySelector('#show_table');
-    let fsCallTreePageChart = this.shadowRoot?.querySelector('#show_chart');
+    let fsCallTreePageChart = this.shadowRoot?.querySelector('#show_chart'); // @ts-ignore
     if (!data || data.icon === 'block') {
       fsCallTreePageChart?.setAttribute('class', 'show');
       fsCallTreePageTab?.setAttribute('class', '');
-      this.isChartShow = true;
+      this.isChartShow = true; // @ts-ignore
       this.fsCallTreeFilter!.disabledMining = true;
       showButtonMenu(this.fsCallTreeFilter, this.needShowMenu);
-      this.frameChart?.calculateChartData();
+      this.frameChart?.calculateChartData(); // @ts-ignore
     } else if (data.icon === 'tree') {
       fsCallTreePageChart?.setAttribute('class', '');
       fsCallTreePageTab?.setAttribute('class', 'show');
       showButtonMenu(this.fsCallTreeFilter, true);
-      this.isChartShow = false;
+      this.isChartShow = false; // @ts-ignore
       this.fsCallTreeFilter!.disabledMining = false;
       this.frameChart!.clearCanvas();
       this.fsCallTreeTbl!.reMeauseHeight();
     }
   }
 
-  refreshAllNode(filterData: any): void {
-    let fileSysCallTreeArgs: any[] = [];
-    let isTopDown: boolean = !filterData.callTree[0];
-    let isHideSystemLibrary = filterData.callTree[1];
-    let isHideEvent: boolean = filterData.callTree[2];
-    let isHideThread: boolean = filterData.callTree[3];
+  refreshAllNode(filterData: unknown): void {
+    let fileSysCallTreeArgs: unknown[] = []; // @ts-ignore
+    let isTopDown: boolean = !filterData.callTree[0]; // @ts-ignore
+    let isHideSystemLibrary = filterData.callTree[1]; // @ts-ignore
+    let isHideEvent: boolean = filterData.callTree[2]; // @ts-ignore
+    let isHideThread: boolean = filterData.callTree[3]; // @ts-ignore
     let list = filterData.dataMining.concat(filterData.dataLibrary);
     fileSysCallTreeArgs.push({ funcName: 'hideThread', funcArgs: [isHideThread] });
     fileSysCallTreeArgs.push({ funcName: 'hideEvent', funcArgs: [isHideEvent] });
@@ -652,22 +682,22 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     this.fsCallTreeTbr!.recycleDataSource = [];
     if (isHideSystemLibrary) {
       fileSysCallTreeArgs.push({ funcName: 'hideSystemLibrary', funcArgs: [] });
-    }
+    } // @ts-ignore
     if (filterData.callTreeConstraints.checked) {
       fileSysCallTreeArgs.push({
-        funcName: 'hideNumMaxAndMin',
+        funcName: 'hideNumMaxAndMin', // @ts-ignore
         funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]],
       });
     }
     fileSysCallTreeArgs.push({ funcName: 'splitAllProcess', funcArgs: [list] });
-    fileSysCallTreeArgs.push({ funcName: 'resetAllNode', funcArgs: [] });
+    fileSysCallTreeArgs.push({ funcName: 'resetAllNode', funcArgs: [] }); // @ts-ignore
     if (this._fsRowClickData && this._fsRowClickData.libId !== undefined && this._currentFsCallTreeLevel === 3) {
       fileSysCallTreeArgs.push({
         funcName: 'showLibLevelData',
         funcArgs: [this.FsCallTreeLevel!.libId, this.FsCallTreeLevel!.libName],
       });
     } else if (
-      this._fsRowClickData &&
+      this._fsRowClickData && // @ts-ignore
       this._fsRowClickData.symbolId !== undefined &&
       this._currentFsCallTreeLevel === 4
     ) {
@@ -676,58 +706,67 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         funcArgs: [this.FsCallTreeLevel!.symbolId, this.FsCallTreeLevel!.symbolName],
       });
     }
-    this.getDataByWorker(fileSysCallTreeArgs, (result: any[]): void => {
-      this.setLTableData(result);
+    this.getDataByWorker(fileSysCallTreeArgs, (result: unknown[]): void => {
+      this.setLTableData(result); // @ts-ignore
       this.frameChart!.data = this.fsCallTreeDataSource;
-      if (this.isChartShow) this.frameChart?.calculateChartData();
+      if (this.isChartShow) {
+        this.frameChart?.calculateChartData();
+      }
     });
   }
 
-  setLTableData(resultData: any[]): void {
+  setLTableData(resultData: unknown[]): void {
     this.fsCallTreeDataSource = this.sortTree(resultData);
     this.fsCallTreeTbl!.recycleDataSource = this.fsCallTreeDataSource;
   }
 
-  sortTree(arr: Array<any>): Array<any> {
+  sortTree(arr: Array<unknown>): Array<unknown> {
     let fsCallTreeSortArr = arr.sort((fsCallTreeA, fsCallTreeB) => {
       if (this.fsCallTreeSortKey === 'self') {
         if (this.fsCallTreeSortType === 0) {
+          // @ts-ignore
           return fsCallTreeB.dur - fsCallTreeA.dur;
         } else if (this.fsCallTreeSortType === 1) {
+          // @ts-ignore
           return fsCallTreeA.selfDur - fsCallTreeB.selfDur;
         } else {
+          // @ts-ignore
           return fsCallTreeB.selfDur - fsCallTreeA.selfDur;
         }
       } else {
         if (this.fsCallTreeSortType === 0) {
+          // @ts-ignore
           return fsCallTreeB.dur - fsCallTreeA.dur;
         } else if (this.fsCallTreeSortType === 1) {
+          // @ts-ignore
           return fsCallTreeA.dur - fsCallTreeB.dur;
         } else {
+          // @ts-ignore
           return fsCallTreeB.dur - fsCallTreeA.dur;
         }
       }
     });
-    fsCallTreeSortArr.map((call) => {
+    fsCallTreeSortArr.map((call): void => {
+      // @ts-ignore
       call.children = this.sortTree(call.children);
     });
     return fsCallTreeSortArr;
   }
 
-  getDataByWorker(args: any[], handler: Function): void {
+  getDataByWorker(args: unknown[], handler: Function): void {
     this.loadingList.push(1);
-    this.fsCallTreeProgressEL!.loading = true;
+    this.fsCallTreeProgressEL!.loading = true; // @ts-ignore
     this.loadingPage.style.visibility = 'visible';
     procedurePool.submitWithName(
       'logic0',
       'fileSystem-action',
       { args, callType: 'fileSystem' },
       undefined,
-      (fsCallTreeResults: any) => {
+      (fsCallTreeResults: unknown): void => {
         handler(fsCallTreeResults);
         this.loadingList.splice(0, 1);
         if (this.loadingList.length === 0) {
-          this.fsCallTreeProgressEL!.loading = false;
+          this.fsCallTreeProgressEL!.loading = false; // @ts-ignore
           this.loadingPage.style.visibility = 'hidden';
         }
       }

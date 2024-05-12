@@ -29,7 +29,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class HtraceJsCpuProfilerParser : public EventParserBase, public HtracePluginTimeParser {
 public:
-    HtraceJsCpuProfilerParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    HtraceJsCpuProfilerParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~HtraceJsCpuProfilerParser(){};
     void ParseJsCpuProfiler(std::string result, uint64_t startTimeSnap, uint64_t endTimeSnap);
     auto GetUpdateJson()
@@ -38,15 +38,15 @@ public:
     }
 
 private:
-    void ParseNodeData(const json& jMessage);
-    void DataProcessing(const json& jMessage,
-                        uint64_t& sampleEndTime,
-                        uint64_t& startTime,
-                        uint64_t& dur,
-                        uint32_t& sample);
-    uint32_t ParseSampleData(const json& jMessage,
-                             uint64_t& sampleEndTime,
-                             uint64_t& startTime,
+    void ParseNodeData(const json &jMessage);
+    void DataProcessing(const json &jMessage,
+                        uint64_t &sampleEndTime,
+                        uint64_t &startTime,
+                        uint64_t &dur,
+                        uint32_t &sample);
+    uint32_t ParseSampleData(const json &jMessage,
+                             uint64_t &sampleEndTime,
+                             uint64_t &startTime,
                              uint64_t startTimeSnap,
                              uint64_t endTimeSnap);
 

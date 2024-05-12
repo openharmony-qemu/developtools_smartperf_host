@@ -17,14 +17,14 @@ import {
   GpuMemoryComparison,
   SystemCpuSummary,
   SystemDiskIOSummary,
-  SystemNetworkSummary
-} from "../../bean/AbilityMonitor";
-import {query} from "../SqlLite";
-import {CpuAbilityMonitorStruct} from "../ui-worker/ProcedureWorkerCpuAbility";
-import {MemoryAbilityMonitorStruct} from "../ui-worker/ProcedureWorkerMemoryAbility";
-import {DiskAbilityMonitorStruct} from "../ui-worker/ProcedureWorkerDiskIoAbility";
-import {NetworkAbilityMonitorStruct} from "../ui-worker/ProcedureWorkerNetworkAbility";
-import type {SnapshotStruct} from "../ui-worker/ProcedureWorkerSnapshot";
+  SystemNetworkSummary,
+} from '../../bean/AbilityMonitor';
+import { query } from '../SqlLite';
+import { CpuAbilityMonitorStruct } from '../ui-worker/ProcedureWorkerCpuAbility';
+import { MemoryAbilityMonitorStruct } from '../ui-worker/ProcedureWorkerMemoryAbility';
+import { DiskAbilityMonitorStruct } from '../ui-worker/ProcedureWorkerDiskIoAbility';
+import { NetworkAbilityMonitorStruct } from '../ui-worker/ProcedureWorkerNetworkAbility';
+import type { SnapshotStruct } from '../ui-worker/ProcedureWorkerSnapshot';
 
 export const getTabCpuAbilityData = (leftNs: number, rightNs: number): Promise<Array<SystemCpuSummary>> =>
   query<SystemCpuSummary>(
@@ -254,7 +254,6 @@ export const queryCachedFilesAbilityData = (id: string): Promise<Array<MemoryAbi
     { $id: id }
   );
 
-
 export const queryCompressedAbilityData = (id: string): Promise<Array<MemoryAbilityMonitorStruct>> =>
   query(
     'queryCompressedAbilityData',
@@ -346,7 +345,8 @@ export const queryPacketsOutAbilityData = (): Promise<Array<NetworkAbilityMonito
         (t.ts - TR.start_ts) as startNS
         from network t, trace_range AS TR;`
   );
-export const queryAbilityExits = (): Promise<Array<any>> =>
+export const queryAbilityExits = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryAbilityExits',
     `select 
@@ -355,7 +355,8 @@ export const queryAbilityExits = (): Promise<Array<any>> =>
       where s.event_name in ('trace_diskio','trace_network', 'trace_cpu_usage','sys_memory') 
       and s.stat_type ='received' and s.count > 0`
   );
-export const queryCPuAbilityMaxData = (): Promise<Array<any>> =>
+export const queryCPuAbilityMaxData = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryCPuAbilityMaxData',
     `select ifnull(max(total_load),0) as totalLoad, 
@@ -394,7 +395,10 @@ export const queryDmaAbilityData = (): Promise<Array<SnapshotStruct>> =>
     LIMIT 1;`
   );
 // Ability Monitor Purgeable泳道图
-export const queryPurgeableSysData = (isPin?: boolean): Promise<Array<any>> => {
+export const queryPurgeableSysData = (
+  isPin?: boolean
+): //@ts-ignore
+Promise<Array<unknown>> => {
   const pinCondition = isPin ? ' AND a.ref_count > 0' : '';
   const names = isPin ? " ('sys.mem.pined.purg')" : "('sys.mem.active.purg','sys.mem.inactive.purg')";
   return query(
@@ -440,7 +444,8 @@ export const querySysPurgeableTab = (
   rightNs: number,
   dur: number,
   isPin?: boolean
-): Promise<Array<any>> => {
+): //@ts-ignore
+Promise<Array<unknown>> => {
   let pinsql = isPin ? ' AND ref_count > 0' : '';
   const names = isPin ? " ('sys.mem.pined.purg')" : "('sys.mem.active.purg','sys.mem.inactive.purg')";
   return query(
@@ -481,7 +486,11 @@ export const querySysPurgeableTab = (
 };
 
 //Ability Monitor Purgeable 点选 tab页
-export const querySysPurgeableSelectionTab = (startNs: number, isPin?: boolean): Promise<Array<any>> => {
+export const querySysPurgeableSelectionTab = (
+  startNs: number,
+  isPin?: boolean
+): //@ts-ignore
+Promise<Array<unknown>> => {
   const pinSql = isPin ? ' AND ref_count > 0' : '';
   const names = isPin ? " ('sys.mem.pined.purg')" : "('sys.mem.active.purg','sys.mem.inactive.purg')";
   return query(
@@ -569,5 +578,3 @@ export const getTabGpuMemoryComparisonData = (startNs: number): Promise<Array<Gp
                 `,
     { $startNs: startNs }
   );
-
-

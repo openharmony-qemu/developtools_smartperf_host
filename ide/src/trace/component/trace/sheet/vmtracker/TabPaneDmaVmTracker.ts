@@ -20,7 +20,7 @@ import { resizeObserver } from '../SheetUtils';
 import { type Dma } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
-import {getTabDmaVmTrackerData} from "../../../../database/sql/Dma.sql";
+import { getTabDmaVmTrackerData } from '../../../../database/sql/Dma.sql';
 
 @element('tabpane-dma-vmtracker')
 export class TabPaneDmaVmTracker extends BaseElement {
@@ -29,9 +29,11 @@ export class TabPaneDmaVmTracker extends BaseElement {
   private tableThead: HTMLDivElement | undefined | null;
   private dmaTimeRange: HTMLDivElement | undefined | null;
 
-  set data(dmaValue: SelectionParam | any) {
+  set data(dmaValue: SelectionParam | unknown) {
+    // @ts-ignore
     if (dmaValue.dmaVmTrackerData.length > 0) {
       this.dmaTimeRange!.textContent =
+        // @ts-ignore
         'Selected range: ' + ((dmaValue.rightNs - dmaValue.leftNs) / 1000000.0).toFixed(5) + ' ms';
       this.dmaTbl!.loading = true;
       this.queryDataByDB(dmaValue);
@@ -67,9 +69,11 @@ export class TabPaneDmaVmTracker extends BaseElement {
     }
   }
 
-  queryDataByDB(val: SelectionParam | any): void {
+  queryDataByDB(val: SelectionParam | unknown): void {
     getTabDmaVmTrackerData(
+      // @ts-ignore
       val.leftNs,
+      // @ts-ignore
       val.rightNs,
       MemoryConfig.getInstance().iPid,
       (MemoryConfig.getInstance().interval * 1000000) / 5

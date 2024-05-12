@@ -14,16 +14,17 @@
  */
 
 export class TabUtil {
-  static getTableType(showType: any) {
+  static getTableType(showType: unknown): string {
+    // @ts-ignore
     let columns = showType.columns;
     for (let i = 0; i < columns.length; i++) {
       let column = columns[i];
       let showType = column.showType;
-      if (showType != null) {
-        if (showType.indexOf(1) != -1) {
+      if (showType !== null) {
+        if (showType.indexOf(1) !== -1) {
           return 'counter';
         }
-        if (showType.indexOf(2) != -1) {
+        if (showType.indexOf(2) !== -1) {
           return 'slice';
         }
       }

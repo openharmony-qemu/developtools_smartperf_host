@@ -33,10 +33,10 @@ namespace TraceStreamer {
 using namespace SysTuning::base;
 class PbreaderMemParser : public EventParserBase, public HtracePluginTimeParser {
 public:
-    PbreaderMemParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    PbreaderMemParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~PbreaderMemParser();
-    void Parse(PbreaderDataSegment& seg, uint64_t, BuiltinClocks clock);
-    void ParseMemoryConfig(PbreaderDataSegment& seg);
+    void Parse(PbreaderDataSegment &seg, uint64_t, BuiltinClocks clock);
+    void ParseMemoryConfig(PbreaderDataSegment &seg);
     void Finish();
     enum class SmapsMemType {
         SMAPS_MEM_TYPE_CODE_SYS = 0,     // 系统代码段
@@ -66,34 +66,34 @@ public:
     };
 
 private:
-    uint32_t ParseSmapsPathTypeBySuffix(bool hasX, const std::string& path, const bool hasAppName) const;
-    uint32_t ParseSmapsPathTypeByPrefix(bool hasX, const std::string& path, const bool hasAppName) const;
-    void ParseProcessInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
-    void ParseMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
-    void ParseMemInfoEasy(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
-    void ParseVMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
-    void ParseVMemInfoEasy(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
-    void ParseSmapsInfoEasy(const ProtoReader::ProcessMemoryInfo_Reader* memInfo,
+    uint32_t ParseSmapsPathTypeBySuffix(bool hasX, const std::string &path, const bool hasAppName) const;
+    uint32_t ParseSmapsPathTypeByPrefix(bool hasX, const std::string &path, const bool hasAppName) const;
+    void ParseProcessInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
+    void ParseMemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
+    void ParseMemInfoEasy(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
+    void ParseVMemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
+    void ParseVMemInfoEasy(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
+    void ParseSmapsInfoEasy(const ProtoReader::ProcessMemoryInfo_Reader *memInfo,
                             uint64_t timeStamp,
                             uint64_t ipid) const;
-    uint32_t ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& smapsInfo) const;
-    uint32_t ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader& smapsInfo,
-                                   const std::string& path,
+    uint32_t ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader &smapsInfo) const;
+    uint32_t ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader &smapsInfo,
+                                   const std::string &path,
                                    const bool hasAppName) const;
-    void ParseAshmemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
-    void ParseDmaMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
-    void ParseGpuProcessMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
-    void ParseGpuWindowMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
+    void ParseAshmemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
+    void ParseDmaMemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
+    void ParseGpuProcessMemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
+    void ParseGpuWindowMemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
     void AshMemDeduplicate() const;
     void DmaMemDeduplicate() const;
     MemProcessType GetMemProcessType(uint64_t ipid) const;
-    void FillGpuWindowMemInfo(const ProtoReader::GpuDumpInfo_Reader& gpuDumpInfo, uint64_t timeStamp) const;
-    void ParseWindowManagerServiceInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp);
-    void ParseCpuDumpInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
-    void ParseProfileMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
-    void ParseRSImageDumpInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
+    void FillGpuWindowMemInfo(const ProtoReader::GpuDumpInfo_Reader &gpuDumpInfo, uint64_t timeStamp) const;
+    void ParseWindowManagerServiceInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp);
+    void ParseCpuDumpInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
+    void ParseProfileMemInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
+    void ParseRSImageDumpInfo(const ProtoReader::MemoryData_Reader *tracePacket, uint64_t timeStamp) const;
 
-    void SpecialDataAddition(ProtoReader::ProcessMemoryInfo_Reader& processMemoryInfo,
+    void SpecialDataAddition(ProtoReader::ProcessMemoryInfo_Reader &processMemoryInfo,
                              uint64_t timeStamp,
                              uint32_t ipid,
                              uint32_t hasValue) const;

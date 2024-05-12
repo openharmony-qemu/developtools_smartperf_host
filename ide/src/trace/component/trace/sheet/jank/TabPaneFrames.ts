@@ -19,29 +19,29 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { JankFramesStruct } from '../../../../bean/JankFramesStruct';
 import { JanksStruct } from '../../../../bean/JanksStruct';
 import { resizeObserver } from '../SheetUtils';
-import {querySelectRangeData} from "../../../../database/sql/Janks.sql";
+import { querySelectRangeData } from '../../../../database/sql/Janks.sql';
 
 @element('tabpane-frames')
 export class TabPaneFrames extends BaseElement {
   private framesTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
-  private framesSource: Array<any> = [];
-  set data(framesParam: SelectionParam | any) {
-    this.range!.textContent =
+  private framesSource: Array<unknown> = [];
+  set data(framesParam: SelectionParam | unknown) {
+    this.range!.textContent = // @ts-ignore
       'Selected range: ' + parseFloat(((framesParam.rightNs - framesParam.leftNs) / 1000000.0).toFixed(5)) + '  ms';
     this.queryDataByDB(framesParam);
   }
 
-  queryDataByDB(framesParam: SelectionParam | any): void {
+  queryDataByDB(framesParam: SelectionParam | unknown): void {
     let tablelist = new Array<JankFramesStruct>();
     let sumRes: JankFramesStruct = new JankFramesStruct();
     let appJank: JankFramesStruct = new JankFramesStruct();
     let rsJank: JankFramesStruct = new JankFramesStruct();
-    let noJank: JankFramesStruct = new JankFramesStruct();
+    let noJank: JankFramesStruct = new JankFramesStruct(); // @ts-ignore
     if (framesParam.jankFramesData.length > 0) {
       let allPid: Array<number> = [];
-      let allData: Array<any> = [];
-      framesParam.jankFramesData.forEach((data: any) => {
+      let allData: Array<unknown> = []; // @ts-ignore
+      framesParam.jankFramesData.forEach((data: unknown) => {
         if (typeof data === 'string') {
           if (Number(data) && allPid.indexOf(Number(data)) < 0) {
             allPid.push(Number(data));
@@ -49,17 +49,19 @@ export class TabPaneFrames extends BaseElement {
         } else {
           allData.push(data);
         }
-      });
-      querySelectRangeData(allPid, framesParam.leftNs, framesParam.rightNs).then((result: any)=> {
+      }); // @ts-ignore
+      querySelectRangeData(allPid, framesParam.leftNs, framesParam.rightNs).then((result: unknown) => {
+        // @ts-ignore
         sumRes.occurrences = allData.length + result.length;
-        allData.forEach(item => {
+        allData.forEach((item) => {
           // frameTime
+          // @ts-ignore
           this.frameTimelineJankDataHandle(item, appJank, noJank);
-        });
+        }); // @ts-ignore
         result.forEach((structValue: JanksStruct) => {
-          if (structValue.frame_type === 'app') {
+          if (structValue.frameType === 'app') {
             this.appJankDataHandle(structValue, appJank, noJank);
-          } else if (structValue.frame_type === 'render_service') {
+          } else if (structValue.frameType === 'render_service') {
             this.rsJankDataHandle(structValue, rsJank, noJank);
           }
         });
@@ -245,7 +247,7 @@ export class TabPaneFrames extends BaseElement {
         `;
   }
 
-  sortByColumn(framesDetail: any): void {
+  sortByColumn(framesDetail: unknown): void {
     // @ts-ignore
     function compare(property, sort, type) {
       return function (framesLeftData: SelectionData, framesRightData: SelectionData) {
@@ -274,9 +276,12 @@ export class TabPaneFrames extends BaseElement {
       };
     }
 
+    // @ts-ignore
     if (framesDetail.key === 'jankType') {
+      // @ts-ignore
       this.framesSource.sort(compare(framesDetail.key, framesDetail.sort, 'string'));
     } else {
+      // @ts-ignore
       this.framesSource.sort(compare(framesDetail.key, framesDetail.sort, 'number'));
     }
     this.framesTbl!.recycleDataSource = this.framesSource;

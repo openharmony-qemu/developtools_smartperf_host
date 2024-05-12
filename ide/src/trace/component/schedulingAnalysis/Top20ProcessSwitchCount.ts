@@ -30,7 +30,7 @@ export class Top20ProcessSwitchCount extends BaseElement {
   private processSwitchCountPie: LitChartPie | null | undefined;
   private processSwitchCountProgress: LitProgressBar | null | undefined;
   private nodata: TableNoData | null | undefined;
-  private processSwitchCountData: Array<any> = [];
+  private processSwitchCountData: Array<unknown> = [];
 
   initElements(): void {
     this.nodata = this.shadowRoot!.querySelector<TableNoData>('#nodata');
@@ -38,33 +38,37 @@ export class Top20ProcessSwitchCount extends BaseElement {
     this.processSwitchCountTbl = this.shadowRoot!.querySelector<LitTable>('#tb-process-switch-count');
     this.processSwitchCountPie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
 
-    this.processSwitchCountTbl!.addEventListener('row-click', (evt: any) => {
+    this.processSwitchCountTbl!.addEventListener('row-click', (evt: unknown): void => {
+      //@ts-ignore
       let data = evt.detail.data;
       data.isSelected = true;
       // @ts-ignore
-      if ((evt.detail as any).callBack) {
+      if ((evt.detail as unknown).callBack) {
         // @ts-ignore
-        (evt.detail as any).callBack(true);
+        (evt.detail as unknown).callBack(true);
       }
     });
 
-    this.processSwitchCountTbl!.addEventListener('column-click', (evt) => {
+    this.processSwitchCountTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.processSwitchCountTbl!.addEventListener('row-hover', (evt: any) => {
+    this.processSwitchCountTbl!.addEventListener('row-hover', (evt: unknown): void => {
+      //@ts-ignore
       if (evt.detail.data) {
+        //@ts-ignore
         let data = evt.detail.data;
-        data.isHover = true;
-        if ((evt.detail as any).callBack) {
-          (evt.detail as any).callBack(true);
+        data.isHover = true; //@ts-ignore
+        if ((evt.detail as unknown).callBack) {
+          //@ts-ignore
+          (evt.detail as unknown).callBack(true);
         }
       }
       this.processSwitchCountPie?.showHover();
     });
   }
 
-  init() {
+  init(): void {
     if (!this.traceChange) {
       if (this.processSwitchCountTbl!.recycleDataSource.length > 0) {
         this.processSwitchCountTbl?.reMeauseHeight();
@@ -73,80 +77,100 @@ export class Top20ProcessSwitchCount extends BaseElement {
     }
     this.traceChange = false;
     this.processSwitchCountProgress!.loading = true;
-    this.queryLogicWorker('scheduling-Process SwitchCount', 'query Process Switch Count Analysis Time:', (res) => {
-      this.nodata!.noData = res === undefined || res.length === 0;
-      this.processSwitchCountTbl!.recycleDataSource = res;
-      this.processSwitchCountData = res;
-      this.processSwitchCountTbl?.reMeauseHeight();
-      this.processSwitchCountPie!.config = {
-        appendPadding: 10,
-        data: res,
-        angleField: 'switchCount',
-        colorField: 'pid',
-        radius: 0.8,
-        tip: (obj) => {
-          return `<div>
-                             <div>pid:${obj.obj.tid}</div> 
-                             <div>p_name:${obj.obj.tName}</div> 
-                             <div>sched_switch count:${obj.obj.switchCount}</div> 
+    this.queryLogicWorker(
+      'scheduling-Process SwitchCount',
+      'query Process Switch Count Analysis Time:',
+      (res): void => {
+        //@ts-ignore
+        this.nodata!.noData = res === undefined || res.length === 0; //@ts-ignore
+        this.processSwitchCountTbl!.recycleDataSource = res; //@ts-ignore
+        this.processSwitchCountData = res;
+        this.processSwitchCountTbl?.reMeauseHeight();
+        this.processSwitchCountPie!.config = {
+          appendPadding: 10, //@ts-ignore
+          data: res,
+          angleField: 'switchCount',
+          colorField: 'pid',
+          radius: 0.8,
+          tip: (obj): string => {
+            return `<div>
+                             <div>pid:${
+                               // @ts-ignore
+                               obj.obj.tid
+                             }</div> 
+                             <div>p_name:${
+                               // @ts-ignore
+                               obj.obj.tName
+                             }</div> 
+                             <div>sched_switch count:${
+                               // @ts-ignore
+                               obj.obj.switchCount
+                             }</div> 
                         </div>
                 `;
-        },
-        label: {
-          type: 'outer',
-        },
-        hoverHandler: (data) => {
-          if (data) {
-            this.processSwitchCountTbl!.setCurrentHover(data);
-          } else {
-            this.processSwitchCountTbl!.mouseOut();
-          }
-        },
-        interactions: [
-          {
-            type: 'element-active',
           },
-        ],
-      };
-      this.processSwitchCountProgress!.loading = false;
-    });
+          label: {
+            type: 'outer',
+          },
+          hoverHandler: (data): void => {
+            if (data) {
+              this.processSwitchCountTbl!.setCurrentHover(data);
+            } else {
+              this.processSwitchCountTbl!.mouseOut();
+            }
+          },
+          interactions: [
+            {
+              type: 'element-active',
+            },
+          ],
+        };
+        this.processSwitchCountProgress!.loading = false;
+      }
+    );
   }
 
-  clearData() {
+  clearData(): void {
     this.traceChange = true;
     this.processSwitchCountPie!.dataSource = [];
     this.processSwitchCountTbl!.recycleDataSource = [];
   }
 
-  queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
+  queryLogicWorker(option: string, log: string, handler: (res: unknown) => void): void {
     let processSwitchCountTime = new Date().getTime();
     procedurePool.submitWithName('logic0', option, {}, undefined, handler);
     let durTime = new Date().getTime() - processSwitchCountTime;
     info(log, durTime);
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(processSwitchCountProperty, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         if (type === 'number') {
-          // @ts-ignore
           return sort === 2
-            ? parseFloat(b[processSwitchCountProperty]) - parseFloat(a[processSwitchCountProperty])
-            : parseFloat(a[processSwitchCountProperty]) - parseFloat(b[processSwitchCountProperty]);
+            ? // @ts-ignore
+              parseFloat(b[processSwitchCountProperty]) - parseFloat(a[processSwitchCountProperty])
+            : //@ts-ignore
+              parseFloat(a[processSwitchCountProperty]) - parseFloat(b[processSwitchCountProperty]);
         } else {
           if (sort === 2) {
+            //@ts-ignore
             return b[processSwitchCountProperty].toString().localeCompare(a[processSwitchCountProperty].toString());
           } else {
+            //@ts-ignore
             return a[processSwitchCountProperty].toString().localeCompare(b[processSwitchCountProperty].toString());
           }
         }
       };
     }
 
+    //@ts-ignore
     if (detail.key === 'NO' || detail.key === 'pid' || detail.key === 'switchCount' || detail.key === 'tid') {
+      //@ts-ignore
       this.processSwitchCountData.sort(compare(detail.key, detail.sort, 'number'));
     } else {
+      //@ts-ignore
       this.processSwitchCountData.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.processSwitchCountTbl!.recycleDataSource = this.processSwitchCountData;

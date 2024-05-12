@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {JanksStruct} from "../../bean/JanksStruct";
-import {query} from "../SqlLite";
+import { JanksStruct } from '../../bean/JanksStruct';
+import { query } from '../SqlLite';
 
 export const queryExpectedFrameDate = (): Promise<Array<JanksStruct>> =>
   query(
@@ -21,7 +21,7 @@ export const queryExpectedFrameDate = (): Promise<Array<JanksStruct>> =>
     `
     SELECT
         sf.id,
-        'frameTime' as frame_type,
+        'frameTime' as frameType,
         fs.ipid,
         fs.vsync as name,
         fs.dur as app_dur,
@@ -47,7 +47,7 @@ export const queryExpectedFrameDate = (): Promise<Array<JanksStruct>> =>
     UNION
     SELECT
         -1 as id,
-        'frameTime' as frame_type,
+        'frameTime' as frameType,
         fs.ipid,
         fs.vsync  as name,
         fs.dur as app_dur,
@@ -71,7 +71,11 @@ export const queryExpectedFrameDate = (): Promise<Array<JanksStruct>> =>
     AND fs.type = 1
     ORDER BY ts;`
   );
-export const queryJumpJanksData = (processId: number, vsync: number): Promise<Array<any>> =>
+export const queryJumpJanksData = (
+  processId: number,
+  vsync: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryJumpJanksData',
     `
@@ -82,7 +86,7 @@ export const queryJumpJanksData = (processId: number, vsync: number): Promise<Ar
             fs.type,
             fs.dur,
             0 as depth,
-            'app' as frame_type,
+            'app' as frameType,
             fs.src as src_slice,
             fs.flag as jank_tag,
             fs.dst as dst_slice,
@@ -90,7 +94,8 @@ export const queryJumpJanksData = (processId: number, vsync: number): Promise<Ar
             p.name AS cmdline
         FROM frame_slice AS fs, trace_range as TR
         LEFT JOIN process AS p ON fs.ipid = p.ipid
-        WHERE fs.type = 0 and p.pid = $processId and fs.vsync = $vsync;`,{ $processId: processId, $vsync: vsync }
+        WHERE fs.type = 0 and p.pid = $processId and fs.vsync = $vsync;`,
+    { $processId: processId, $vsync: vsync }
   );
 export const queryAllJankProcess = (): Promise<
   Array<{
@@ -105,7 +110,8 @@ export const queryAllJankProcess = (): Promise<
         LEFT JOIN process AS p ON a.ipid = p.ipid
         `
   );
-export const queryAllActualData = (): Promise<Array<any>> =>
+export const queryAllActualData = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryAllActualData',
     `
@@ -120,19 +126,20 @@ export const queryAllActualData = (): Promise<Array<any>> =>
                a.dst AS dst_slice,
                p.pid,
                p.name AS cmdline,
-               (case when p.name like '%render_service' then 'render_service' else 'app' end) as frame_type
+               (case when p.name like '%render_service' then 'render_service' else 'app' end) as frameType
         FROM frame_slice AS a, trace_range AS TR
                  LEFT JOIN process AS p ON a.ipid = p.ipid
         WHERE a.type = 0
           AND a.flag <> 2
         ORDER BY a.ipid, ts;`
   );
-export const queryActualFrameDate = (): Promise<Array<any>> =>
+export const queryActualFrameDate = (): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryActualFrameDate',
     `SELECT
          sf.id,
-         'frameTime' as frame_type,
+         'frameTime' as frameType,
          fs.ipid,
          fs.vsync as name,
          fs.dur as app_dur,
@@ -159,7 +166,7 @@ export const queryActualFrameDate = (): Promise<Array<any>> =>
      UNION
      SELECT
          -1 as id,
-         'frameTime' as frame_type,
+         'frameTime' as frameType,
          fs.ipid,
          fs.vsync  as name,
          fs.dur as app_dur,
@@ -177,7 +184,7 @@ export const queryActualFrameDate = (): Promise<Array<any>> =>
          NULL AS rs_name
      FROM frame_slice AS fs
               LEFT JOIN process AS pro ON pro.id = fs.ipid
-              LEFT JOIN trace_range TR
+              LEFT JOIN trace_range TRs
      WHERE fs.dst IS NULL
        AND pro.name NOT LIKE '%render_service%'
        AND fs.type = 0
@@ -187,7 +194,9 @@ export const queryActualFrameDate = (): Promise<Array<any>> =>
 export const querySelectRangeData = (
   allPid: Array<number>,
   leftNs: number,
-  rightNs: number): Promise<Array<any>> =>
+  rightNs: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'querySelectRangeData',
     `
@@ -202,7 +211,7 @@ export const querySelectRangeData = (
                a.dst AS dst_slice,
                p.pid,
                p.name AS cmdline,
-               (case when p.name like '%render_service' then 'render_service' else 'app' end) as frame_type
+               (case when p.name like '%render_service' then 'render_service' else 'app' end) as frameType
         FROM frame_slice AS a, trace_range AS TR
                  LEFT JOIN process AS p ON a.ipid = p.ipid
         WHERE a.type = 0

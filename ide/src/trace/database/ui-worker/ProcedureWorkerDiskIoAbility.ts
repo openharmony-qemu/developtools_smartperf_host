@@ -21,6 +21,7 @@ import {
   Render,
   dataFilterHandler,
   drawLoadingFrame,
+  Rect,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
@@ -77,14 +78,14 @@ export class DiskIoAbilityRender extends Render {
 }
 
 export function diskIoAbility(
-  diskIoAbilityList: Array<any>,
-  res: Array<any>,
+  diskIoAbilityList: Array<DiskAbilityMonitorStruct>,
+  res: Array<DiskAbilityMonitorStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
-) {
+): void {
   if (use && res.length > 0) {
     for (let i = 0; i < res.length; i++) {
       let diskIoAbilityItem = res[i];
@@ -94,7 +95,7 @@ export function diskIoAbility(
       ) {
         DiskAbilityMonitorStruct.setDiskIOFrame(diskIoAbilityItem, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
       } else {
-        diskIoAbilityItem.frame = null;
+        diskIoAbilityItem.frame = undefined;
       }
     }
     return;
@@ -103,13 +104,13 @@ export function diskIoAbility(
   setDiskIoAbilityFilter(diskIoAbilityList, res, startNS || 0, endNS || 0, totalNS || 0, frame);
 }
 function setDiskIoAbilityFilter(
-  diskIoAbilityList: Array<any>,
-  res: Array<any>,
+  diskIoAbilityList: Array<DiskAbilityMonitorStruct>,
+  res: Array<DiskAbilityMonitorStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any
-) {
+  frame: Rect
+): void {
   if (diskIoAbilityList) {
     for (let index = 0; index < diskIoAbilityList.length; index++) {
       let item = diskIoAbilityList[index];
@@ -122,8 +123,8 @@ function setDiskIoAbilityFilter(
         if (
           !(
             index > 0 &&
-            (diskIoAbilityList[index - 1].frame.x || 0) === (diskIoAbilityList[index].frame.x || 0) &&
-            (diskIoAbilityList[index - 1].frame.width || 0) === (diskIoAbilityList[index].frame.width || 0)
+            (diskIoAbilityList[index - 1].frame!.x || 0) === (diskIoAbilityList[index].frame!.x || 0) &&
+            (diskIoAbilityList[index - 1].frame!.width || 0) === (diskIoAbilityList[index].frame!.width || 0)
           )
         ) {
           res.push(item);
@@ -146,7 +147,7 @@ export class DiskAbilityMonitorStruct extends BaseStruct {
     diskIoAbilityData: DiskAbilityMonitorStruct,
     maxDiskRate: number,
     isHover: boolean
-  ) {
+  ): void {
     if (diskIoAbilityData.frame) {
       let width = diskIoAbilityData.frame.width || 0;
       let index = 2;
@@ -184,7 +185,14 @@ export class DiskAbilityMonitorStruct extends BaseStruct {
     diskIoAbilityContext.lineWidth = 1;
   }
 
-  static setDiskIOFrame(diskIONode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
+  static setDiskIOFrame(
+    diskIONode: DiskAbilityMonitorStruct,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: Rect
+  ): void {
     let diskIOStartPointX: number, diskIOEndPointX: number;
 
     if ((diskIONode.startNS || 0) < startNS) {
@@ -199,7 +207,7 @@ export class DiskAbilityMonitorStruct extends BaseStruct {
     }
     let frameWidth: number = diskIOEndPointX - diskIOStartPointX <= 1 ? 1 : diskIOEndPointX - diskIOStartPointX;
     if (!diskIONode.frame) {
-      diskIONode.frame = {};
+      diskIONode.frame = new Rect(0, 0, 0, 0);
     }
     diskIONode.frame.x = Math.floor(diskIOStartPointX);
     diskIONode.frame.y = frame.y + padding;

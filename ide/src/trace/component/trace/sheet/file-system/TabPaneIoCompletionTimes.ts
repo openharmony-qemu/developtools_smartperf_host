@@ -37,50 +37,54 @@ export class TabPaneIoCompletionTimes extends BaseElement {
   private ioCompletionTimesTblData: LitTable | null | undefined;
   private ioCompletionTimesProgressEL: LitProgressBar | null | undefined;
   private ioCompletionTimesLoadingList: number[] = [];
-  private ioCompletionTimesLoadingPage: any;
+  private ioCompletionTimesLoadingPage: unknown;
   private currentSelection: SelectionParam | undefined | null;
   private ioCompletionTimesSource: Array<IoCompletionTimes> = [];
   private ioCompletionTimesQueryDataSource: Array<IoCompletionTimes> = [];
-  private ioCompletionTimesSelection: Array<any> = [];
+  private ioCompletionTimesSelection: Array<unknown> = [];
 
   set data(ioCompletionTimesSelection: SelectionParam | null | undefined) {
-    if (ioCompletionTimesSelection == this.currentSelection) {
+    if (ioCompletionTimesSelection === this.currentSelection) {
       return;
     }
     this.currentSelection = ioCompletionTimesSelection;
-    this.initFilterTypes(ioCompletionTimesSelection!).then(() => {
+    this.initFilterTypes(ioCompletionTimesSelection!).then((): void => {
       this.queryData(ioCompletionTimesSelection!);
     });
     if (this.ioCompletionTimesTbl) {
       // @ts-ignore
-      this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 20 - 31  }px`;
+      this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 20 - 31
+      }px`;
       this.ioCompletionTimesTbl.recycleDataSource = [];
     }
-   if (this.ioCompletionTimesTblData) {
-     // @ts-ignore
-     this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height =
-       `${this.parentElement!.clientHeight - 20 - 31  }px`;
-     this.ioCompletionTimesTblData.recycleDataSource = [];
-   }
+    if (this.ioCompletionTimesTblData) {
+      // @ts-ignore
+      this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 20 - 31
+      }px`;
+      this.ioCompletionTimesTblData.recycleDataSource = [];
+    }
   }
 
-  connectedCallback() {
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
+  connectedCallback(): void {
+    new ResizeObserver((): void => {
+      if (this.parentElement?.clientHeight !== 0) {
         if (this.ioCompletionTimesTbl) {
           // @ts-ignore
-          this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height =
-            `${this.parentElement!.clientHeight - 10 - 33  }px`;
+          this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 33
+          }px`;
           this.ioCompletionTimesTbl.reMeauseHeight();
         }
         if (this.ioCompletionTimesTblData) {
           // @ts-ignore
-          this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height =
-            `${this.parentElement!.clientHeight - 10 - 33  }px`;
+          this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 33
+          }px`;
           this.ioCompletionTimesTblData.reMeauseHeight();
-        }
-        this.ioCompletionTimesLoadingPage.style.height = `${this.parentElement!.clientHeight - 24  }px`;
+        } // @ts-ignore
+        this.ioCompletionTimesLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
   }
@@ -98,12 +102,13 @@ export class TabPaneIoCompletionTimes extends BaseElement {
         'fileSystem-queryStack',
         { callchainId: ioCompletionTimeData.callchainId },
         undefined,
-        (res: any) => {
+        (res: unknown) => {
+          // @ts-ignore
           this.ioCompletionTimesTblData!.recycleDataSource = res;
         }
       );
     });
-    this.ioCompletionTimesTbl!.addEventListener('column-click', (evt) => {
+    this.ioCompletionTimesTbl!.addEventListener('column-click', (evt: Event): void => {
       // @ts-ignore
       this.ioCompletionTimesSortKey = evt.detail.key;
       // @ts-ignore
@@ -111,7 +116,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
       // @ts-ignore
       this.sortioCompletionTimesTable(evt.detail.key, evt.detail.sort);
     });
-    this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter')!.getFilterData((data: FilterData) => {
+    this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter')!.getFilterData((data: FilterData): void => {
       let index = parseInt(data.firstSelect || '0');
       if (index > this.defaultNativeTypes.length - 1) {
         this.filterTypeData(this.ioCompletionTimesSelection[index - this.defaultNativeTypes.length]);
@@ -122,56 +127,60 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     });
   }
 
-  async initFilterTypes(ioCompletionTimeParam: SelectionParam) {
+  async initFilterTypes(ioCompletionTimeParam: SelectionParam): Promise<void> {
     let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter');
     let typeKeys = await getTabIoCompletionTimesType(ioCompletionTimeParam.leftNs, ioCompletionTimeParam.rightNs);
     this.defaultNativeTypes = ['All'];
     this.ioCompletionTimesSelection = [];
-    typeKeys.forEach((item) => {
+    typeKeys.forEach((item: string): void => {
       // @ts-ignore
-      this.defaultNativeTypes.push(item.tier + '');
+      this.defaultNativeTypes.push(`${item.tier}`);
     });
     this.native_type = [...this.defaultNativeTypes];
     filter!.setSelectList([...this.defaultNativeTypes], null, 'Tier');
     filter!.firstSelect = '0';
   }
 
-  async fromStastics(ioCompletionTimeParam: SelectionParam | any) {
-    if (ioCompletionTimeParam.fileSystemIoData == undefined) {
+  async fromStastics(ioCompletionTimeParam: SelectionParam | unknown): Promise<void> {
+    // @ts-ignore
+    if (ioCompletionTimeParam.fileSystemIoData === undefined) {
       return;
     }
     this.ioCompletionTimesTblData!.recycleDataSource = [];
     this.ioCompletionTimesTblData?.clearAllSelection(undefined);
     let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter');
-    if (this.currentSelection != ioCompletionTimeParam) {
+    if (this.currentSelection !== ioCompletionTimeParam) {
+      // @ts-ignore
       await this.initFilterTypes(ioCompletionTimeParam);
-    }
+    } // @ts-ignore
     let typeIndexOf = this.native_type.indexOf(ioCompletionTimeParam.fileSystemIoData.path.value);
-    if (typeIndexOf == -1) {
-      this.ioCompletionTimesSelection.push(ioCompletionTimeParam.fileSystemIoData.path);
+    if (typeIndexOf === -1) {
+      // @ts-ignore
+      this.ioCompletionTimesSelection.push(ioCompletionTimeParam.fileSystemIoData.path); // @ts-ignore
       this.native_type.push(ioCompletionTimeParam.fileSystemIoData.path.value);
       typeIndexOf = this.native_type.length - 1;
     }
-    if (this.currentSelection != ioCompletionTimeParam) {
+    if (this.currentSelection !== ioCompletionTimeParam) {
+      // @ts-ignore
       this.currentSelection = ioCompletionTimeParam;
       filter!.setSelectList(this.native_type, null, 'Tier');
-      filter!.firstSelect = `${typeIndexOf  }`;
+      filter!.firstSelect = `${typeIndexOf}`; // @ts-ignore
       this.queryData(ioCompletionTimeParam);
     } else {
-      if (typeIndexOf == parseInt(filter!.firstSelect)) {
+      if (typeIndexOf === parseInt(filter!.firstSelect)) {
         return;
       }
       filter!.setSelectList(this.native_type, null, 'Tier');
-      filter!.firstSelect = `${typeIndexOf  }`;
-      this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);
+      filter!.firstSelect = `${typeIndexOf}`; // @ts-ignore
+      this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined); // @ts-ignore
       ioCompletionTimeParam.fileSystemIoData = undefined;
       this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
     }
   }
 
-  queryData(ioCompletionTimeParam: SelectionParam) {
+  queryData(ioCompletionTimeParam: SelectionParam): void {
     this.ioCompletionTimesLoadingList.push(1);
-    this.ioCompletionTimesProgressEL!.loading = true;
+    this.ioCompletionTimesProgressEL!.loading = true; // @ts-ignore
     this.ioCompletionTimesLoadingPage.style.visibility = 'visible';
     this.ioCompletionTimesSource = [];
     this.ioCompletionTimesQueryDataSource = [];
@@ -184,17 +193,19 @@ export class TabPaneIoCompletionTimes extends BaseElement {
         diskIOipids: ioCompletionTimeParam.diskIOipids,
       },
       undefined,
-      (res: any) => {
-        this.ioCompletionTimesSource = this.ioCompletionTimesSource.concat(res.data);
+      (res: unknown): void => {
+        // @ts-ignore
+        this.ioCompletionTimesSource = this.ioCompletionTimesSource.concat(res.data); // @ts-ignore
         this.ioCompletionTimesQueryDataSource = this.ioCompletionTimesQueryDataSource.concat(res.data);
+        // @ts-ignore
         this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);
-        ioCompletionTimeParam.fileSystemIoData = undefined;
-        res.data = null;
+        ioCompletionTimeParam.fileSystemIoData = undefined; // @ts-ignore
+        res.data = null; // @ts-ignore
         if (!res.isSending) {
           this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
           this.ioCompletionTimesLoadingList.splice(0, 1);
-          if (this.ioCompletionTimesLoadingList.length == 0) {
-            this.ioCompletionTimesProgressEL!.loading = false;
+          if (this.ioCompletionTimesLoadingList.length === 0) {
+            this.ioCompletionTimesProgressEL!.loading = false; // @ts-ignore
             this.ioCompletionTimesLoadingPage.style.visibility = 'hidden';
           }
         }
@@ -202,7 +213,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     );
   }
 
-  filterTypeData(pathTypeData: any) {
+  filterTypeData(pathTypeData: unknown): void {
     let filter = this.shadowRoot?.querySelector<TabPaneFilter>('#io-completion-filter');
     let firstSelect = filter!.firstSelect;
     let tier = -1;
@@ -210,35 +221,36 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     let pid = -1;
     if (parseInt(firstSelect) <= this.defaultNativeTypes.length - 1) {
       let index = parseInt(firstSelect);
-      tier = index == 0 ? -1 : parseInt(this.defaultNativeTypes[index]);
-    } else if (pathTypeData != undefined) {
-      tier = parseInt(pathTypeData.tier);
-      path = pathTypeData.path || '';
+      tier = index === 0 ? -1 : parseInt(this.defaultNativeTypes[index]);
+    } else if (pathTypeData !== undefined) {
+      // @ts-ignore
+      tier = parseInt(pathTypeData.tier); // @ts-ignore
+      path = pathTypeData.path || ''; // @ts-ignore
       pid = pathTypeData.pid || -1;
-    } else if (pathTypeData == undefined) {
+    } else {
       return;
     }
     let isTierFilter = false;
     let isPidFilter = false;
     let isPathFilter = false;
     this.ioCompletionTimesSource = this.ioCompletionTimesQueryDataSource.filter((ioCompletionTimesQueryData) => {
-      if (tier == -1) {
+      if (tier === -1) {
         isTierFilter = true;
       } else {
-        isTierFilter = ioCompletionTimesQueryData.tier == tier;
+        isTierFilter = ioCompletionTimesQueryData.tier === tier;
       }
-      if (pid == -1) {
+      if (pid === -1) {
         isPidFilter = true;
       } else {
-        isPidFilter = ioCompletionTimesQueryData.pid == pid;
+        isPidFilter = ioCompletionTimesQueryData.pid === pid;
       }
-      isPathFilter = path == '' || ioCompletionTimesQueryData.path == path;
+      isPathFilter = path === '' || ioCompletionTimesQueryData.path === path;
       return isTierFilter && isPidFilter && isPathFilter;
     });
   }
 
   sortioCompletionTimesTable(ioCompletionTimesKey: string, type: number): void {
-    if (type == 0) {
+    if (type === 0) {
       this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
     } else {
       let arr = Array.from(this.ioCompletionTimesSource);
@@ -247,31 +259,31 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     }
   }
 
-  private sortHandle(arr: IoCompletionTimes[], ioCompletionTimesKey: string, type: number) {
+  private sortHandle(arr: IoCompletionTimes[], ioCompletionTimesKey: string, type: number): void {
     arr.sort((ioCompletionTimesA, ioCompletionTimesB): number => {
-      if (ioCompletionTimesKey == 'startTsStr') {
+      if (ioCompletionTimesKey === 'startTsStr') {
         return type === 1
           ? ioCompletionTimesA.startTs - ioCompletionTimesB.startTs
           : ioCompletionTimesB.startTs - ioCompletionTimesA.startTs;
-      } else if (ioCompletionTimesKey == 'durStr') {
+      } else if (ioCompletionTimesKey === 'durStr') {
         return type === 1
           ? ioCompletionTimesA.dur - ioCompletionTimesB.dur
           : ioCompletionTimesB.dur - ioCompletionTimesA.dur;
-      } else if (ioCompletionTimesKey == 'process') {
+      } else if (ioCompletionTimesKey === 'process') {
         return this.sortProcessCase(ioCompletionTimesA, ioCompletionTimesB, type);
-      } else if (ioCompletionTimesKey == 'durPer4kStr') {
+      } else if (ioCompletionTimesKey === 'durPer4kStr') {
         return type === 1
           ? ioCompletionTimesA.durPer4k - ioCompletionTimesB.durPer4k
           : ioCompletionTimesB.durPer4k - ioCompletionTimesA.durPer4k;
-      } else if (ioCompletionTimesKey == 'thread') {
+      } else if (ioCompletionTimesKey === 'thread') {
         return this.sortThreadCase(ioCompletionTimesA, ioCompletionTimesB, type);
-      } else if (ioCompletionTimesKey == 'operation') {
+      } else if (ioCompletionTimesKey === 'operation') {
         return this.sortOperationCase(ioCompletionTimesA, ioCompletionTimesB, type);
-      } else if (ioCompletionTimesKey == 'sizeStr') {
+      } else if (ioCompletionTimesKey === 'sizeStr') {
         return type === 1
           ? ioCompletionTimesA.size - ioCompletionTimesB.size
           : ioCompletionTimesB.size - ioCompletionTimesA.size;
-      } else if (ioCompletionTimesKey == 'tier') {
+      } else if (ioCompletionTimesKey === 'tier') {
         return type === 1
           ? ioCompletionTimesA.tier - ioCompletionTimesB.tier
           : ioCompletionTimesB.tier - ioCompletionTimesA.tier;
@@ -281,33 +293,42 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     });
   }
 
-  private sortOperationCase(ioCompletionTimesA: IoCompletionTimes,
-    ioCompletionTimesB: IoCompletionTimes, type: number): number {
+  private sortOperationCase(
+    ioCompletionTimesA: IoCompletionTimes,
+    ioCompletionTimesB: IoCompletionTimes,
+    type: number
+  ): number {
     if (ioCompletionTimesA.operation > ioCompletionTimesB.operation) {
       return type === 2 ? 1 : -1;
-    } else if (ioCompletionTimesA.operation == ioCompletionTimesB.operation) {
+    } else if (ioCompletionTimesA.operation === ioCompletionTimesB.operation) {
       return 0;
     } else {
       return type === 2 ? -1 : 1;
     }
   }
 
-  private sortThreadCase(ioCompletionTimesA: IoCompletionTimes,
-    ioCompletionTimesB: IoCompletionTimes, type: number): number {
+  private sortThreadCase(
+    ioCompletionTimesA: IoCompletionTimes,
+    ioCompletionTimesB: IoCompletionTimes,
+    type: number
+  ): number {
     if (ioCompletionTimesA.thread > ioCompletionTimesB.thread) {
       return type === 2 ? 1 : -1;
-    } else if (ioCompletionTimesA.thread == ioCompletionTimesB.thread) {
+    } else if (ioCompletionTimesA.thread === ioCompletionTimesB.thread) {
       return 0;
     } else {
       return type === 2 ? -1 : 1;
     }
   }
 
-  private sortProcessCase(ioCompletionTimesA: IoCompletionTimes,
-    ioCompletionTimesB: IoCompletionTimes, type: number): number {
+  private sortProcessCase(
+    ioCompletionTimesA: IoCompletionTimes,
+    ioCompletionTimesB: IoCompletionTimes,
+    type: number
+  ): number {
     if (ioCompletionTimesA.process > ioCompletionTimesB.process) {
       return type === 2 ? 1 : -1;
-    } else if (ioCompletionTimesA.process == ioCompletionTimesB.process) {
+    } else if (ioCompletionTimesA.process === ioCompletionTimesB.process) {
       return 0;
     } else {
       return type === 2 ? -1 : 1;

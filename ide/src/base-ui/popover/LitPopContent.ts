@@ -17,11 +17,11 @@ import { BaseElement, element } from '../BaseElement';
 
 @element('lit-pop-content')
 export class LitPopContent extends BaseElement {
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['open'];
   }
 
-  get open() {
+  get open(): boolean {
     return this.hasAttribute('open');
   }
 
@@ -73,7 +73,7 @@ export class LitPopContent extends BaseElement {
         `;
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     switch (name) {
       case 'open':
         if (newValue === null || newValue === 'false') {

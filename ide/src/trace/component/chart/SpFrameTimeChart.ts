@@ -61,7 +61,8 @@ export class SpFrameTimeChart {
     if (frameTimeData.length > 0) {
       let processNamesArray = await queryAllProcessNames();
       processNamesArray.forEach((it) => {
-        this.pidToProcessNameMap.set(it.pid, it.name);
+        //@ts-ignore
+        this.pidToProcessNameMap.set(it.pid, it.name); //@ts-ignore
         this.idToProcessNameMap.set(it.id, it.name);
       });
       let frameTimeLineRow: TraceRow<JanksStruct> = await this.initFrameTimeLine();
@@ -118,7 +119,7 @@ export class SpFrameTimeChart {
         if (item.depth! >= maxDepth) {
           maxDepth = item.depth! + 1;
         }
-        item.frame_type = 'frameTime';
+        item.frameType = 'frameTime';
         item.cmdline = this.pidToProcessNameMap.get(item.pid!);
         item.rs_name = this.idToProcessNameMap.get(Number(item.rs_name)!);
       });
@@ -174,7 +175,7 @@ export class SpFrameTimeChart {
         if (item.depth! >= maxDepth) {
           maxDepth = item.depth! + 1;
         }
-        item.frame_type = 'frameTime';
+        item.frameType = 'frameTime';
         item.cmdline = this.pidToProcessNameMap.get(item.pid!);
         item.rs_name = this.idToProcessNameMap.get(Number(item.rs_name)!);
         item.type = '0';
@@ -256,6 +257,7 @@ export class SpFrameTimeChart {
           } else if (secondRow !== null) {
             processRow.addChildTraceRowBefore(frameChart, secondRow);
           } else {
+            // @ts-ignore
             processRow.addChildTraceRowBefore(frameChart, targetRowList[0]);
           }
           let appNameList = await queryDynamicIdAndNameData();
@@ -360,9 +362,7 @@ export class SpFrameTimeChart {
     };
   }
 
-  async initAnimationChart(
-    processRow: TraceRow<BaseStruct>
-  ): Promise<AnimationRanges[]> {
+  async initAnimationChart(processRow: TraceRow<BaseStruct>): Promise<AnimationRanges[]> {
     let animationRanges: AnimationRanges[] = [];
     let frameAnimationRow = TraceRow.skeleton<FrameAnimationStruct>();
 
@@ -555,7 +555,7 @@ export class SpFrameTimeChart {
     };
   }
 
-  private frameNoExpandTimeOut(event: CustomEventInit<any>, frameTimeLineRow: TraceRow<JanksStruct>): number {
+  private frameNoExpandTimeOut(event: CustomEventInit<unknown>, frameTimeLineRow: TraceRow<JanksStruct>): number {
     if (JankStruct!.selectJankStruct) {
       JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
     }
@@ -576,19 +576,19 @@ export class SpFrameTimeChart {
         } else {
           linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
         }
-        linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
+        linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY; //@ts-ignore
         if (linkNode[0].rowEL.rowParentId === event.detail?.rowId) {
           if (!linkNode[0].rowEL.collect) {
             linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
             linkNode[0].y = frameTimeLineRow!.translateY! + linkNode[0].offsetY / halfNumber;
-            linkNode[0].offsetY = linkNode[0].offsetY / halfNumber;
+            linkNode[0].offsetY = linkNode[0].offsetY / halfNumber; //@ts-ignore
             linkNode[0].rowEL = frameTimeLineRow;
-          }
+          } //@ts-ignore
         } else if (linkNode[1].rowEL.rowParentId === event.detail?.rowId) {
           if (!linkNode[1].rowEL.collect) {
             linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
             linkNode[1].y = frameTimeLineRow!.translateY! + linkNode[1].offsetY / halfNumber;
-            linkNode[1].offsetY = linkNode[1].offsetY / halfNumber;
+            linkNode[1].offsetY = linkNode[1].offsetY / halfNumber; //@ts-ignore
             linkNode[1].rowEL = frameTimeLineRow!;
           }
         }
@@ -633,11 +633,13 @@ export class SpFrameTimeChart {
           linkFrameNode[0].x = ns2xByTimeShaft(linkFrameNode[0].ns, this.trace.timerShaftEL!);
           linkFrameNode[0].y = actualTimeLineRow!.translateY! + linkFrameNode[0].offsetY * halfNumber;
           linkFrameNode[0].offsetY = linkFrameNode[0].offsetY * halfNumber;
+          //@ts-ignore
           linkFrameNode[0].rowEL = actualTimeLineRow;
         } else if (linkFrameNode[1].rowEL.rowId === event.detail?.rowId) {
           linkFrameNode[1].x = ns2xByTimeShaft(linkFrameNode[1].ns, this.trace.timerShaftEL!);
           linkFrameNode[1].y = actualTimeLineRow!.translateY! + linkFrameNode[1].offsetY * halfNumber;
           linkFrameNode[1].offsetY = linkFrameNode[1].offsetY * halfNumber;
+          //@ts-ignore
           linkFrameNode[1].rowEL = actualTimeLineRow!;
         }
       });

@@ -20,69 +20,90 @@ const LAMBDA_FUNCTION_NAME = '(anonymous)';
 export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
   private currentEventId!: string;
   private dataCache = DataCache.getInstance();
-  private samples = Array<JsCpuProfilerSample>(); // Array index equals id;
-  private chartId = 0;
+  private samples: Array<JsCpuProfilerSample> = []; // Array index equals id;
   private tabDataId = 0;
   private chartData: Array<JsCpuProfilerChartFrame> = [];
   private leftNs: number = 0;
   private rightNs: number = 0;
+  private type: string = '';
+  private params: unknown;
+  private action: string = '';
 
-  public handle(msg: any): void {
+  public handle(msg: unknown): void {
+    if (!msg){
+      return
+    }
+    //@ts-ignore
     this.currentEventId = msg.id;
-    if (msg && msg.type) {
-      switch (msg.type) {
+    //@ts-ignore
+    this.type = msg.type;
+    //@ts-ignore
+    this.action = msg.action;
+    //@ts-ignore
+    this.params = msg.params
+    if (this.type) {
+      switch (this.type) {
         case 'jsCpuProfiler-call-chain':
-          this.jsCpuProfilerCallChain(msg);
+          this.jsCpuProfilerCallChain();
           break;
         case 'jsCpuProfiler-call-tree':
-          this.jsCpuProfilerCallTree(msg);
+          this.jsCpuProfilerCallTree();
           break;
         case 'jsCpuProfiler-bottom-up':
-          this.jsCpuProfilerBottomUp(msg);
+          this.jsCpuProfilerBottomUp();
           break;
         case 'jsCpuProfiler-statistics':
-          this.jsCpuProfilerStatistics(msg);
+          this.jsCpuProfilerStatistics();
           break;
       }
     }
   }
-  private jsCpuProfilerCallChain(msg: any): void {
+  private jsCpuProfilerCallChain(): void {
     if (!this.dataCache.jsCallChain || this.dataCache.jsCallChain.length === 0) {
-      this.dataCache.jsCallChain = convertJSON(msg.params.list) || [];
+      //@ts-ignore
+      this.dataCache.jsCallChain = convertJSON(this.params.list) || [];
       this.createCallChain();
     }
   }
-  private jsCpuProfilerCallTree(msg: any): void {
+  private jsCpuProfilerCallTree(): void {
     this.tabDataId = 0;
     self.postMessage({
-      id: msg.id,
-      action: msg.action,
-      results: this.combineTopDownData(msg.params, null),
+      id: this.currentEventId,
+      action: this.action,
+      //@ts-ignore
+      results: this.combineTopDownData(this.params, null),
     });
   }
-  private jsCpuProfilerBottomUp(msg: any): void {
+  private jsCpuProfilerBottomUp(): void {
     this.tabDataId = 0;
     self.postMessage({
-      id: msg.id,
-      action: msg.action,
-      results: this.combineBottomUpData(msg.params),
+      id: this.currentEventId,
+      action: this.action,
+      //@ts-ignore
+      results: this.combineBottomUpData(this.params),
     });
   }
-  private jsCpuProfilerStatistics(msg: any): void {
+  private jsCpuProfilerStatistics(): void {
     if (!this.dataCache.jsCallChain || this.dataCache.jsCallChain.length === 0) {
       this.initCallChain();
     }
-    if (msg.params.data) {
-      this.chartData = msg.params.data;
-      this.leftNs = msg.params.leftNs;
-      this.rightNs = msg.params.rightNs;
+    //@ts-ignore
+    if (this.params.data) {
+      //@ts-ignore
+      this.chartData = this.params.data;
+      //@ts-ignore
+      this.leftNs = this.params.leftNs;
+      //@ts-ignore
+      this.rightNs = this.params.rightNs;
     }
-    if (msg.params.list) {
-      this.samples = convertJSON(msg.params.list) || [];
+    //@ts-ignore
+    if (this.params.list) {
+      //@ts-ignore
+      this.samples = convertJSON(this.params.list) || [];
       this.setChartDataType();
       self.postMessage({
-        id: msg.id,
-        action: msg.action,
+        id: this.currentEventId,
+        action: this.action,
         results: this.calStatistic(this.chartData, this.leftNs, this.rightNs),
       });
     } else {
@@ -101,7 +122,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
     rightNs: number | undefined
   ): Map<SampleType, number> {
     const typeMap = new Map<SampleType, number>();
-    const samplesIdsArr: Array<any> = [];
+    const samplesIdsArr: Array<unknown> = [];
     const samplesIds = this.findSamplesIds(chartData, [], []);
     for (const id of samplesIds) {
       const sample = this.samples[id];
@@ -219,7 +240,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
     parent: JsCpuProfilerTabStruct | null
   ): Array<JsCpuProfilerTabStruct> {
     const sameSymbolMap = new Map<string, JsCpuProfilerTabStruct>();
-    const currentLevelData = new Array<JsCpuProfilerTabStruct>();
+    const currentLevelData: Array<JsCpuProfilerTabStruct> = [];
     const chartArray = combineSample || parent?.chartFrameChildren;
     if (!chartArray) {
       return [];
@@ -285,7 +306,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
    * @returns 合并的Array<JsCpuProfilerChartFrame>树结构
    */
   private combineBottomUpData(chartTreeArray: Array<JsCpuProfilerChartFrame>): Array<JsCpuProfilerTabStruct> {
-    const reverseTreeArray = new Array<JsCpuProfilerChartFrame>();
+    const reverseTreeArray: Array<JsCpuProfilerChartFrame> = [];
     // 将树结构逆序，parent变成children
     this.reverseChartFrameTree(chartTreeArray, reverseTreeArray);
     // 将逆序的树结构合并返回
@@ -302,7 +323,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
     reverseTreeArray: Array<JsCpuProfilerChartFrame>
   ): void {
     const that = this;
-    function recursionTree(chartFrame: JsCpuProfilerChartFrame) {
+    function recursionTree(chartFrame: JsCpuProfilerChartFrame): void {
       // isSelect为框选/点选范围内的函数，其他都不需要处理
       if (!chartFrame.isSelect) {
         return;

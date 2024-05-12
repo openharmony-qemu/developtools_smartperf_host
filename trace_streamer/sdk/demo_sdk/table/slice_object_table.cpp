@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { SLICE_ID = 0, SLICE_NAME = 1 };
-SliceObjectTable::SliceObjectTable(const TraceDataCache* dataCache) : DemoTableBase(dataCache)
+SliceObjectTable::SliceObjectTable(const TraceDataCache *dataCache) : DemoTableBase(dataCache)
 {
     demoTableColumn_.push_back(DemoTableBase::ColumnInfo("slice_id", "INTEGER"));
     demoTableColumn_.push_back(DemoTableBase::ColumnInfo("slice_name", "REAL"));
@@ -33,7 +33,7 @@ std::unique_ptr<DemoTableBase::Cursor> SliceObjectTable::CreateCursor()
     return std::make_unique<Cursor>(demoTraceDataCache_, this);
 }
 
-SliceObjectTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTableBase* table)
+SliceObjectTable::Cursor::Cursor(const TraceDataCache *dataCache, DemoTableBase *table)
     : DemoTableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSliceObjectData().Size())),
       sliceObjectDataObj_(dataCache->GetConstSliceObjectData())
 {

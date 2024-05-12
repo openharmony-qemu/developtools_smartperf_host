@@ -16,6 +16,6 @@
 #include "parser_base.h"
 namespace SysTuning {
 namespace TraceStreamer {
-ParserBase::ParserBase(const TraceStreamerFilters* filter) : streamFilters_(filter), clock_(TS_CLOCK_UNKNOW) {}
+ParserBase::ParserBase(const TraceStreamerFilters *filter) : streamFilters_(filter), clock_(TS_CLOCK_UNKNOW) {}
 } // namespace TraceStreamer
 } // namespace SysTuning

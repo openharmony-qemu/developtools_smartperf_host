@@ -27,26 +27,26 @@ namespace TraceStreamer {
 DemoRpcServer g_demoWasmTraceStreamer;
 
 extern "C" {
-using QueryResultCallbackFunction = void (*)(const char* data, uint32_t len, int32_t finish, int32_t isConfig);
-using TraceRangeCallbackFunction = void (*)(const char* data, uint32_t len);
+using QueryResultCallbackFunction = void (*)(const char *data, uint32_t len, int32_t finish, int32_t isConfig);
+using TraceRangeCallbackFunction = void (*)(const char *data, uint32_t len);
 QueryResultCallbackFunction g_reply;
 TraceRangeCallbackFunction g_traceRange;
-uint8_t* g_reqBuf;
+uint8_t *g_reqBuf;
 uint32_t g_reqBufferSize;
-uint8_t* g_traceRangeBuf;
+uint8_t *g_traceRangeBuf;
 uint32_t g_traceRangeSize;
-uint8_t* g_PluginNameBuf;
+uint8_t *g_PluginNameBuf;
 uint32_t g_PluginNameSize;
 
-void QueryResultCallback(const std::string& jsonResult, int32_t finish, int32_t isConfig)
+void QueryResultCallback(const std::string &jsonResult, int32_t finish, int32_t isConfig)
 {
     g_reply(jsonResult.data(), jsonResult.size(), finish, isConfig);
 }
-void TraceRangeCallback(const std::string& jsonResult)
+void TraceRangeCallback(const std::string &jsonResult)
 {
     g_traceRange(jsonResult.data(), jsonResult.size());
 }
-EMSCRIPTEN_KEEPALIVE uint8_t* Init(QueryResultCallbackFunction queryResultCallbackFunction, uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t *Init(QueryResultCallbackFunction queryResultCallbackFunction, uint32_t reqBufferSize)
 {
     SetRpcServer(&g_demoWasmTraceStreamer);
     sdk_plugin_init_table_name();
@@ -58,7 +58,7 @@ EMSCRIPTEN_KEEPALIVE uint8_t* Init(QueryResultCallbackFunction queryResultCallba
 }
 
 // Get PluginName
-EMSCRIPTEN_KEEPALIVE uint8_t* InitPluginName(uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t *InitPluginName(uint32_t reqBufferSize)
 {
     g_PluginNameBuf = new uint8_t[reqBufferSize];
     g_PluginNameSize = reqBufferSize;
@@ -66,9 +66,9 @@ EMSCRIPTEN_KEEPALIVE uint8_t* InitPluginName(uint32_t reqBufferSize)
 }
 
 // @deprecated recommand to use TraceStreamerGetPluginNameEx api
-EMSCRIPTEN_KEEPALIVE int32_t TraceStreamer_In_PluginName(const uint8_t* pluginName, int32_t len)
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamer_In_PluginName(const uint8_t *pluginName, int32_t len)
 {
-    std::string pluginNameStr(reinterpret_cast<const char*>(pluginName), len);
+    std::string pluginNameStr(reinterpret_cast<const char *>(pluginName), len);
     g_demoWasmTraceStreamer.demoTs_->sdkDataParser_->GetPluginName(pluginNameStr);
     return 0;
 }
@@ -78,7 +78,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerGetPluginNameEx(int32_t pluginLen)
     return g_demoWasmTraceStreamer.DemoWasmGetPluginNameWithCallback(g_PluginNameBuf, pluginLen);
 }
 
-EMSCRIPTEN_KEEPALIVE uint8_t* InitTraceRange(TraceRangeCallbackFunction traceRangeCallbackFunction,
+EMSCRIPTEN_KEEPALIVE uint8_t *InitTraceRange(TraceRangeCallbackFunction traceRangeCallbackFunction,
                                              uint32_t reqBufferSize)
 {
     g_traceRange = traceRangeCallbackFunction;
@@ -90,7 +90,7 @@ EMSCRIPTEN_KEEPALIVE uint8_t* InitTraceRange(TraceRangeCallbackFunction traceRan
 // The whole file is parsed, and the third party is notified by JS
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamer_In_ParseDataOver()
 {
-    MetaData* metaData = g_demoWasmTraceStreamer.demoTs_->GetMetaData();
+    MetaData *metaData = g_demoWasmTraceStreamer.demoTs_->GetMetaData();
     metaData->InitMetaData();
     metaData->SetParserToolVersion(SDK_VERSION);
     metaData->SetParserToolPublishDateTime(SDK_PUBLISHVERSION);
@@ -105,7 +105,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamer_In_JsonConfig()
     return 0;
 }
 
-EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlOperate(const uint8_t* sql, int32_t sqlLen)
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlOperate(const uint8_t *sql, int32_t sqlLen)
 {
     if (g_demoWasmTraceStreamer.DemoSqlOperate(sql, sqlLen, nullptr)) {
         return 0;
@@ -128,7 +128,7 @@ EMSCRIPTEN_KEEPALIVE int32_t ParserData(int32_t len, int32_t componentId)
 }
 
 // return the length of result, -1 while failed
-EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQuery(const uint8_t* sql, int32_t sqlLen, uint8_t* out, int32_t outLen)
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQuery(const uint8_t *sql, int32_t sqlLen, uint8_t *out, int32_t outLen)
 {
     return g_demoWasmTraceStreamer.DemoWasmSqlQuery(sql, sqlLen, out, outLen);
 }

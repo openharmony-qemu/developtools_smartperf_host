@@ -21,7 +21,7 @@ import { Utils } from './trace/base/Utils';
 export class StackBar extends BaseElement {
   private vessel: HTMLDivElement | undefined | null;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['mode']; // max min hidden show 三种状态
   }
 
@@ -31,11 +31,11 @@ export class StackBar extends BaseElement {
       if (map.has(v.state)) {
         let sv = map.get(v.state);
         sv!.value = sv!.value + v.wallDuration;
-        sv!.state = v.state + ' : ' + sv!.value.toFixed(5) + 'ms';
+        sv!.state = `${v.state} : ${sv!.value.toFixed(5)}ms`;
       } else {
         let sv = new StackValue();
         sv.value = v.wallDuration;
-        sv.state = v.state + ' : ' + sv.value.toFixed(5) + 'ms';
+        sv.state = `${v.state} : ${sv.value.toFixed(5)}ms`;
         sv.color = Utils.getStateColor(v.stateJX);
         map.set(v.state, sv);
       }
@@ -43,7 +43,7 @@ export class StackBar extends BaseElement {
     let totalDuration = 0;
     let arr: Array<StackValue> = [];
     for (let key of map.keys()) {
-      if (key == ' ') {
+      if (key === ' ') {
         totalDuration = map.get(key)!.value;
       } else {
         arr.push(map.get(key)!);
@@ -90,7 +90,7 @@ export class StackBar extends BaseElement {
   createBarElement(sv: StackValue, total: number): HTMLDivElement {
     let bar = document.createElement('div');
     bar.setAttribute('class', 'state-text');
-    bar.setAttribute('need-width', this.getStateWidth(sv.state) + '');
+    bar.setAttribute('need-width', `${this.getStateWidth(sv.state)}`);
     bar.style.backgroundColor = sv.color;
     bar.textContent = sv.state;
     if (sv.state.startsWith('Sleeping')) {
@@ -102,20 +102,20 @@ export class StackBar extends BaseElement {
     if (weight < 1) {
       weight = 1;
     }
-    bar.style.width = weight + '%';
-    bar.addEventListener('mouseover', (event) => {
+    bar.style.width = `${weight}%`;
+    bar.addEventListener('mouseover', (): void => {
       let needWidth = parseFloat(bar.getAttribute('need-width')!);
       let trueWidth = parseFloat(window.getComputedStyle(bar).width);
       if (trueWidth < needWidth) {
-        bar.style.width = needWidth + 100 + 'px';
+        bar.style.width = `${needWidth + 100}px`;
       }
     });
-    bar.addEventListener('mouseleave', (event) => {
+    bar.addEventListener('mouseleave', (): void => {
       let weight = ((sv.value * 1.0) / total) * 100.0;
       if (weight < 1) {
         weight = 1;
       }
-      bar.style.width = weight + '%';
+      bar.style.width = `${weight}%`;
     });
     return bar;
   }

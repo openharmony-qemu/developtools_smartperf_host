@@ -15,7 +15,7 @@
 
 import { ColorUtils } from '../component/trace/base/ColorUtils';
 import { BaseStruct } from './BaseStruct';
-import { CpuStruct } from '../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { Utils } from '../component/trace/base/Utils';
 
 const padding = 1;
 
@@ -33,10 +33,10 @@ export class ProcessStruct extends BaseStruct {
   ts: number | undefined;
   type: string | undefined;
 
-  static draw(processBeanCanvasCtx: CanvasRenderingContext2D, processBeanStruct: ProcessStruct) {
+  static draw(processBeanCanvasCtx: CanvasRenderingContext2D, processBeanStruct: ProcessStruct): void {
     if (processBeanStruct.frame) {
       processBeanCanvasCtx.fillStyle = ColorUtils.colorForTid(processBeanStruct.pid || 0);
-      let miniHeight = Math.round(processBeanStruct.frame.height / CpuStruct.cpuCount);
+      let miniHeight = Math.round(processBeanStruct.frame.height / Utils.getInstance().getCpuCount());
       processBeanCanvasCtx.fillRect(
         processBeanStruct.frame.x,
         processBeanStruct.frame.y + (processBeanStruct.cpu || 0) * miniHeight + padding,

@@ -44,7 +44,7 @@ uint64_t ClockFilter::ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) con
 
 uint64_t ClockFilter::Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const
 {
-    std::string&& clockKey = GenClockKey(srcClockId, desClockId);
+    std::string &&clockKey = GenClockKey(srcClockId, desClockId);
     auto keyIt = clockMaps_.find(clockKey);
     if (keyIt == clockMaps_.end()) {
         return srcTs;
@@ -64,7 +64,7 @@ uint64_t ClockFilter::Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClo
 
 void ClockFilter::AddConvertClockMap(ClockId srcClockId, ClockId dstClockId, uint64_t srcTs, uint64_t dstTs)
 {
-    std::string&& clockKey = GenClockKey(srcClockId, dstClockId);
+    std::string &&clockKey = GenClockKey(srcClockId, dstClockId);
     auto keyIt = clockMaps_.find(clockKey);
     if (keyIt == clockMaps_.end()) {
         ConvertClockMap newConvertMap = {{srcTs, dstTs - srcTs}};
@@ -73,7 +73,7 @@ void ClockFilter::AddConvertClockMap(ClockId srcClockId, ClockId dstClockId, uin
         clockMaps_[clockKey].insert(std::make_pair(srcTs, dstTs - srcTs));
     }
 }
-void ClockFilter::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
+void ClockFilter::AddClockSnapshot(const std::vector<SnapShot> &snapShot)
 {
     ClockId srcId;
     ClockId desId;
@@ -90,7 +90,7 @@ void ClockFilter::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
     hasInitSnapShot_ = true;
 }
 
-int32_t ClockFilter::InitSnapShotTimeRange(const uint8_t* data, int32_t len)
+int32_t ClockFilter::InitSnapShotTimeRange(const uint8_t *data, int32_t len)
 {
     if (HasInitSnapShot()) {
         TS_LOGE("SDK already has clock snapshot!!!");
@@ -98,7 +98,7 @@ int32_t ClockFilter::InitSnapShotTimeRange(const uint8_t* data, int32_t len)
     }
     std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(len);
     std::copy(data, data + len, buf.get());
-    profilerSDKTraceFileHeader_ = reinterpret_cast<ProfilerTraceFileHeader*>(buf.get());
+    profilerSDKTraceFileHeader_ = reinterpret_cast<ProfilerTraceFileHeader *>(buf.get());
     if (!profilerSDKTraceFileHeader_->data.boottime) {
         TS_LOGE("SDK Profiler header has no clock snapshot!!!");
         return -1;

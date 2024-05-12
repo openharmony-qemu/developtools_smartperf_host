@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 const uint8_t POINT_LENGTH = 1;
 const uint8_t MAX_POINT_LENGTH = 2;
-PrintEventParser::PrintEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
+PrintEventParser::PrintEventParser(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : EventParserBase(dataCache, filter)
 {
     rsOnDoCompositionEvent_ = traceDataCache_->GetDataIndex(rsOnDoCompositionStr_);
@@ -38,11 +38,11 @@ PrintEventParser::PrintEventParser(TraceDataCache* dataCache, const TraceStreame
                                        std::placeholders::_2, std::placeholders::_3)}};
 }
 
-bool PrintEventParser::ParsePrintEvent(const std::string& comm,
+bool PrintEventParser::ParsePrintEvent(const std::string &comm,
                                        uint64_t ts,
                                        uint32_t pid,
                                        std::string_view event,
-                                       const BytraceLine& line)
+                                       const BytraceLine &line)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TRACING_MARK_WRITE, STAT_EVENT_RECEIVED);
     TracePoint point;
@@ -52,7 +52,7 @@ bool PrintEventParser::ParsePrintEvent(const std::string& comm,
     }
     if (point.tgid_) {
         // tgid use 'B|' after with 'TGID', the '(TGID)' maybe wrong, eg: xxx-21675 ( 1264) ...: print: B|21675|...
-        const_cast<BytraceLine&>(line).tgid = point.tgid_;
+        const_cast<BytraceLine &>(line).tgid = point.tgid_;
         streamFilters_->processFilter_->GetOrCreateInternalPid(ts, point.tgid_);
     }
     switch (point.phase_) {
@@ -82,18 +82,18 @@ bool PrintEventParser::ParsePrintEvent(const std::string& comm,
     }
     return true;
 }
-void PrintEventParser::ParseBeginEvent(const std::string& comm,
+void PrintEventParser::ParseBeginEvent(const std::string &comm,
                                        uint64_t ts,
                                        uint32_t pid,
-                                       TracePoint& point,
-                                       const BytraceLine& line)
+                                       TracePoint &point,
+                                       const BytraceLine &line)
 {
     uint32_t index = streamFilters_->sliceFilter_->BeginSlice(comm, ts, pid, point.tgid_, INVALID_DATAINDEX,
                                                               traceDataCache_->GetDataIndex(point.name_));
     if (index != INVALID_UINT32) {
         // add distributed data
         traceDataCache_->GetInternalSlicesData()->SetDistributeInfo(index, point.chainId_, point.spanId_,
-                                                                    point.parentSpanId_, point.flag_, point.args_);
+                                                                    point.parentSpanId_, point.flag_);
         if (pid == point.tgid_) {
             if (HandleFrameSliceBeginEvent(point.funcPrefixId_, index, point.funcArgs_, line)) {
                 return;
@@ -110,7 +110,7 @@ void PrintEventParser::ParseBeginEvent(const std::string& comm,
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TRACING_MARK_WRITE, STAT_EVENT_DATA_LOST);
     }
 }
-void PrintEventParser::ParseEndEvent(uint64_t ts, uint32_t pid, const TracePoint& point)
+void PrintEventParser::ParseEndEvent(uint64_t ts, uint32_t pid, const TracePoint &point)
 {
     uint32_t index = streamFilters_->sliceFilter_->EndSlice(ts, pid, point.tgid_);
     if (pid == point.tgid_) {
@@ -120,11 +120,11 @@ void PrintEventParser::ParseEndEvent(uint64_t ts, uint32_t pid, const TracePoint
         streamFilters_->animationFilter_->EndDynamicFrameEvent(ts, index);
     }
 }
-void PrintEventParser::ParseStartEvent(const std::string& comm,
+void PrintEventParser::ParseStartEvent(const std::string &comm,
                                        uint64_t ts,
                                        uint32_t pid,
-                                       const TracePoint& point,
-                                       const BytraceLine& line)
+                                       const TracePoint &point,
+                                       const BytraceLine &line)
 {
     auto cookie = static_cast<int64_t>(point.value_);
     auto index = streamFilters_->sliceFilter_->StartAsyncSlice(ts, pid, point.tgid_, cookie,
@@ -136,7 +136,7 @@ void PrintEventParser::ParseStartEvent(const std::string& comm,
         streamFilters_->animationFilter_->StartAnimationEvent(line, point, index);
     }
 }
-void PrintEventParser::ParseFinishEvent(uint64_t ts, uint32_t pid, const TracePoint& point, const BytraceLine& line)
+void PrintEventParser::ParseFinishEvent(uint64_t ts, uint32_t pid, const TracePoint &point, const BytraceLine &line)
 {
     auto cookie = static_cast<int64_t>(point.value_);
     auto index = streamFilters_->sliceFilter_->FinishAsyncSlice(ts, pid, point.tgid_, cookie,
@@ -146,7 +146,7 @@ void PrintEventParser::ParseFinishEvent(uint64_t ts, uint32_t pid, const TracePo
         streamFilters_->animationFilter_->FinishAnimationEvent(line, index);
     }
 }
-void PrintEventParser::ParseCreateEvent(uint64_t ts, const TracePoint& point)
+void PrintEventParser::ParseCreateEvent(uint64_t ts, const TracePoint &point)
 {
     DataIndex nameIndex = traceDataCache_->GetDataIndex(point.name_);
     uint32_t internalPid = streamFilters_->processFilter_->GetInternalPid(point.tgid_);
@@ -157,7 +157,7 @@ void PrintEventParser::ParseCreateEvent(uint64_t ts, const TracePoint& point)
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TRACING_MARK_WRITE, STAT_EVENT_DATA_INVALID);
     }
 }
-bool PrintEventParser::HandleAnimationBeginEvent(const TracePoint& point, size_t callStackRow, const BytraceLine& line)
+bool PrintEventParser::HandleAnimationBeginEvent(const TracePoint &point, size_t callStackRow, const BytraceLine &line)
 {
     if (!streamFilters_->animationFilter_->UpdateDeviceInfoEvent(point, line)) {
         return streamFilters_->animationFilter_->BeginDynamicFrameEvent(point, callStackRow);
@@ -227,15 +227,15 @@ std::string_view PrintEventParser::GetPointNameForBegin(std::string_view pointSt
     return name;
 }
 
-ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const
+ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const
 {
     outPoint.name_ = GetPointNameForBegin(pointStr, tGidlength);
     if (outPoint.name_.empty()) {
         TS_LOGD("point name is empty!");
         return PARSE_ERROR;
     }
-    // Use $# to differentiate distributed data
-    if (outPoint.name_.find("$#") == std::string::npos) {
+    // Use ## to differentiate distributed data
+    if (outPoint.name_.find("##") == std::string::npos) {
         auto space = outPoint.name_.find(' ');
         if (space != std::string::npos) {
             outPoint.funcPrefix_ = outPoint.name_.substr(0, space);
@@ -248,10 +248,8 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint& ou
     }
     // Resolve distributed calls
     // the normal data mybe like:
-    // system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|[8b00e96b2,2,1]:C$#decodeFrame$#"
-    //    "{\"Process\":\"DecodeVideoFrame\",\"frameTimestamp\":37313484466} \
-    //        system - 1298(1298)[001]... 1 174330.287622 : tracing_mark_write : E | 1298 \n
-    const std::regex distributeMatcher = std::regex(R"((?:^\[([a-z0-9]+),(\d+),(\d+)\]:?([CS]?)\$#)?(.*)\$#(.*)$)");
+    // system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|H:[8b00e96b2,2,1]#C##decodeFrame"
+    const std::regex distributeMatcher = std::regex(R"(H:\[([a-z0-9]+),([a-z0-9]+),([a-z0-9]+)\]#([CS]?)##(.*))");
     std::smatch matcheLine;
     bool matched = std::regex_match(outPoint.name_, matcheLine, distributeMatcher);
     if (matched) {
@@ -260,16 +258,14 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint& ou
         outPoint.spanId_ = matcheLine[++index].str();
         outPoint.parentSpanId_ = matcheLine[++index].str();
         outPoint.flag_ = matcheLine[++index].str();
-        outPoint.name_ = matcheLine[++index].str();
-        outPoint.args_ = matcheLine[++index].str();
     }
     return PARSE_SUCCESS;
 }
 
 bool PrintEventParser::HandleFrameSliceBeginEvent(DataIndex eventName,
                                                   size_t callStackRow,
-                                                  std::string& args,
-                                                  const BytraceLine& line)
+                                                  std::string &args,
+                                                  const BytraceLine &line)
 {
     auto it = eventToFrameFunctionMap_.find(eventName);
     if (it != eventToFrameFunctionMap_.end()) {
@@ -281,7 +277,7 @@ bool PrintEventParser::HandleFrameSliceBeginEvent(DataIndex eventName,
     }
     return false;
 }
-bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string& args, const BytraceLine& line)
+bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string &args, const BytraceLine &line)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_VSYNC, STAT_EVENT_RECEIVED);
     // args is like "dataCount:24bytes now:211306766162 expectedEnd:211323423844 vsyncId:3179"
@@ -317,14 +313,14 @@ bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string& args, const
     vsyncSliceIds_.push_back(callStackRow);
     return true;
 }
-bool PrintEventParser::RSReciveOnDoComposition(size_t callStackRow, std::string& args, const BytraceLine& line)
+bool PrintEventParser::RSReciveOnDoComposition(size_t callStackRow, std::string &args, const BytraceLine &line)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_ON_DO_COMPOSITION, STAT_EVENT_RECEIVED);
     auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
     (void)streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(line.ts, iTid);
     return true;
 }
-bool PrintEventParser::OnRwTransaction(size_t callStackRow, std::string& args, const BytraceLine& line)
+bool PrintEventParser::OnRwTransaction(size_t callStackRow, std::string &args, const BytraceLine &line)
 {
     // H:MarshRSTransactionData cmdCount:20 transactionFlag:[3799,8] isUni:1
     std::smatch match;
@@ -336,7 +332,7 @@ bool PrintEventParser::OnRwTransaction(size_t callStackRow, std::string& args, c
     }
     return true;
 }
-bool PrintEventParser::OnMainThreadProcessCmd(size_t callStackRow, std::string& args, const BytraceLine& line)
+bool PrintEventParser::OnMainThreadProcessCmd(size_t callStackRow, std::string &args, const BytraceLine &line)
 {
     std::sregex_iterator it(args.begin(), args.end(), mainProcessCmdPattern);
     std::sregex_iterator end;
@@ -429,7 +425,7 @@ size_t PrintEventParser::GetValueLength(std::string_view pointStr, size_t valueI
     return valueLen;
 }
 
-ParseResult PrintEventParser::HandlerCSF(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const
+ParseResult PrintEventParser::HandlerCSF(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const
 {
     // point name
     size_t nameIndex = MAX_POINT_LENGTH + tGidlength + POINT_LENGTH;
@@ -472,7 +468,7 @@ ParseResult PrintEventParser::HandlerCSF(std::string_view pointStr, TracePoint& 
     return PARSE_SUCCESS;
 }
 
-ParseResult PrintEventParser::GetTracePoint(std::string_view pointStr, TracePoint& outPoint) const
+ParseResult PrintEventParser::GetTracePoint(std::string_view pointStr, TracePoint &outPoint) const
 {
     if (CheckTracePoint(pointStr) != PARSE_SUCCESS) {
         return PARSE_ERROR;
@@ -507,7 +503,7 @@ ParseResult PrintEventParser::GetTracePoint(std::string_view pointStr, TracePoin
     return ret;
 }
 
-uint32_t PrintEventParser::GetThreadGroupId(std::string_view pointStr, size_t& length) const
+uint32_t PrintEventParser::GetThreadGroupId(std::string_view pointStr, size_t &length) const
 {
     for (size_t i = MAX_POINT_LENGTH; i < pointStr.size(); i++) {
         if (pointStr[i] == '|' || pointStr[i] == '\n') {

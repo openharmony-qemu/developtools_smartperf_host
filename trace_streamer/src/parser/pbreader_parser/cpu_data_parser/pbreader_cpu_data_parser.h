@@ -28,7 +28,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PbreaderCpuDataParser : public EventParserBase, public HtracePluginTimeParser {
 public:
-    PbreaderCpuDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    PbreaderCpuDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~PbreaderCpuDataParser();
     void Parse(ProtoReader::BytesView tracePacket, uint64_t ts);
     void Finish();

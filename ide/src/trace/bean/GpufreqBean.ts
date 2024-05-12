@@ -73,7 +73,7 @@ export class CycleDataBean {
   startNS: number = 0;
   cycle: number = 0;
   name: string = '';
-  depth: number = 1
+  depth: number = 1;
   constructor(
     colorIndex: number,
     dur: number,
@@ -81,14 +81,15 @@ export class CycleDataBean {
     startNS: number,
     cycle: number,
     name: string,
-    depth: number) {
+    depth: number
+  ) {
     this.colorIndex = colorIndex;
     this.dur = dur;
     this.value = value;
     this.startNS = startNS;
     this.cycle = cycle;
     this.name = name;
-    this.depth = this.depth
+    this.depth = this.depth;
   }
 }
 
@@ -124,6 +125,6 @@ export class TreeDataStringBean {
     this.cycle = cycle;
     this.children = children;
     this.startNS = startNS;
-    this.status = status
+    this.status = status;
   }
 }

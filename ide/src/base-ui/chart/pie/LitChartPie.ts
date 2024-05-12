@@ -27,10 +27,10 @@ interface Rectangle {
 }
 
 class Sector {
-  id?: any;
-  obj?: any;
-  key: any;
-  value: any;
+  id?: unknown;
+  obj?: unknown;
+  key: unknown;
+  value: unknown;
   startAngle?: number;
   endAngle?: number;
   startDegree?: number;
@@ -134,7 +134,7 @@ const initHtmlStyle = `
             margin-right: 5px;
         }
         </style>
-    `
+    `;
 
 @element('lit-chart-pie')
 export class LitChartPie extends BaseElement {
@@ -151,7 +151,9 @@ export class LitChartPie extends BaseElement {
   private textRects: Rectangle[] = [];
 
   set config(litChartPieCfg: LitChartPieConfig | null | undefined) {
-    if (!litChartPieCfg) return;
+    if (!litChartPieCfg) {
+      return;
+    }
     this.litChartPieConfig = litChartPieCfg;
     (this.shadowRoot!.querySelector('#root') as HTMLDivElement).className =
       litChartPieCfg && litChartPieCfg.data.length > 0 ? 'bg_hasdata' : 'bg_nodata';
@@ -159,7 +161,7 @@ export class LitChartPie extends BaseElement {
     this.render();
   }
 
-  set dataSource(litChartPieArr: any[]) {
+  set dataSource(litChartPieArr: unknown[]) {
     if (this.litChartPieConfig) {
       this.litChartPieConfig.data = litChartPieArr;
       this.measure();
@@ -167,9 +169,10 @@ export class LitChartPie extends BaseElement {
     }
   }
 
-  showHover() {
+  showHover(): void {
     let hasHover = false;
     this.data.forEach((it) => {
+      // @ts-ignore
       it.hover = it.obj.isHover;
       if (it.hover) {
         hasHover = true;
@@ -189,14 +192,16 @@ export class LitChartPie extends BaseElement {
     this.render();
   }
 
-  measureInitialize():void{
+  measureInitialize(): void {
     this.data = [];
     this.radius = (Math.min(this.clientHeight, this.clientWidth) * 0.65) / 2 - 10;
     this.labelsEL!.textContent = '';
   }
 
-  measure() {
-    if (!this.litChartPieConfig) return;
+  measure(): void {
+    if (!this.litChartPieConfig) {
+      return;
+    }
     this.measureInitialize();
     let pieCfg = this.litChartPieConfig!;
     let startAngle = 0;
@@ -204,6 +209,7 @@ export class LitChartPie extends BaseElement {
     let full = Math.PI / 180; //每度
     let fullDegree = 0; //每度
     let sum = this.litChartPieConfig.data.reduce(
+      // @ts-ignore
       (previousValue, currentValue) => currentValue[pieCfg.angleField] + previousValue,
       0
     );
@@ -212,24 +218,25 @@ export class LitChartPie extends BaseElement {
       let item: Sector = {
         id: `id-${Utils.uuid()}`,
         color: this.litChartPieConfig!.label.color
-          ? this.litChartPieConfig!.label.color(pieItem)
+          ? // @ts-ignore
+            this.litChartPieConfig!.label.color(pieItem)
           : pieChartColors[index % pieChartColors.length],
-        obj: pieItem,
-        key: pieItem[pieCfg.colorField],
+        obj: pieItem, // @ts-ignore
+        key: pieItem[pieCfg.colorField], // @ts-ignore
         value: pieItem[pieCfg.angleField],
-        startAngle: startAngle,
+        startAngle: startAngle, // @ts-ignore
         endAngle: startAngle + full * ((pieItem[pieCfg.angleField] / sum) * 360),
-        startDegree: startDegree,
+        startDegree: startDegree, // @ts-ignore
         endDegree: startDegree + fullDegree + (pieItem[pieCfg.angleField] / sum) * 360,
         ease: {
-          initVal: 0,
+          initVal: 0, // @ts-ignore
           step: (startAngle + full * ((pieItem[pieCfg.angleField] / sum) * 360)) / startDegree,
           process: true,
         },
       };
-      this.data.push(item);
-      startAngle += full * ((pieItem[pieCfg.angleField] / sum) * 360);
-      startDegree += fullDegree + (pieItem[pieCfg.angleField] / sum) * 360;
+      this.data.push(item); // @ts-ignore
+      startAngle += full * ((pieItem[pieCfg.angleField] / sum) * 360); // @ts-ignore
+      startDegree += fullDegree + (pieItem[pieCfg.angleField] / sum) * 360; // @ts-ignore
       let colorFieldValue = item.obj[pieCfg.colorField];
       if (this.config?.colorFieldTransferHandler) {
         colorFieldValue = this.config.colorFieldTransferHandler(colorFieldValue);
@@ -249,8 +256,8 @@ export class LitChartPie extends BaseElement {
     return this.litChartPieConfig;
   }
 
-  addCanvasOnmousemoveEvent():void{
-    this.canvas!.onmousemove = (ev) => {
+  addCanvasOnmousemoveEvent(): void {
+    this.canvas!.onmousemove = (ev): void => {
       let rect = this.getBoundingClientRect();
       let x = ev.pageX - rect.left - this.centerX!;
       let y = ev.pageY - rect.top - this.centerY!;
@@ -258,7 +265,7 @@ export class LitChartPie extends BaseElement {
         let degree = this.computeDegree(x, y);
         this.data.forEach((it) => {
           it.hover = degree >= it.startDegree! && degree <= it.endDegree!;
-          this.updateHoverItemStatus(it);
+          this.updateHoverItemStatus(it); // @ts-ignore
           it.obj.isHover = it.hover;
           if (it.hover && this.litChartPieConfig) {
             this.litChartPieConfig.hoverHandler?.(it.obj);
@@ -272,7 +279,7 @@ export class LitChartPie extends BaseElement {
       } else {
         this.hideTip();
         this.data.forEach((it) => {
-          it.hover = false;
+          it.hover = false; // @ts-ignore
           it.obj.isHover = false;
           this.updateHoverItemStatus(it);
         });
@@ -281,7 +288,7 @@ export class LitChartPie extends BaseElement {
       this.render();
     };
   }
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this.eleShape = this.shadowRoot!.querySelector<Element>('#shape');
     this.pieTipEL = this.shadowRoot!.querySelector<HTMLDivElement>('#tip');
@@ -293,7 +300,7 @@ export class LitChartPie extends BaseElement {
     this.centerX = this.clientWidth / 2;
     this.centerY = this.clientHeight / 2 - 40;
     this.ctx?.translate(this.centerX, this.centerY);
-    this.canvas!.onmouseout = (e) => {
+    this.canvas!.onmouseout = (e): void => {
       this.hideTip();
       this.data.forEach((it) => {
         it.hover = false;
@@ -302,7 +309,7 @@ export class LitChartPie extends BaseElement {
       this.render();
     };
     //增加点击事件
-    this.canvas!.onclick = (ev) => {
+    this.canvas!.onclick = (ev): void => {
       let rect = this.getBoundingClientRect();
       let x = ev.pageX - rect.left - this.centerX!;
       let y = ev.pageY - rect.top - this.centerY!;
@@ -310,6 +317,7 @@ export class LitChartPie extends BaseElement {
         let degree = this.computeDegree(x, y);
         this.data.forEach((it) => {
           if (degree >= it.startDegree! && degree <= it.endDegree!) {
+            // @ts-ignore
             this.config?.angleClick?.(it.obj);
           }
         });
@@ -319,14 +327,16 @@ export class LitChartPie extends BaseElement {
     this.render();
   }
 
-  updateHoverItemStatus(item: any) {
+  updateHoverItemStatus(item: unknown): void {
+    // @ts-ignore
     let label = this.shadowRoot!.querySelector(`#${item.id}`);
     if (label) {
+      // @ts-ignore
       (label as HTMLLabelElement).style.boxShadow = item.hover ? '0 0 5px #22ffffff' : '';
     }
   }
 
-  computeDegree(x: number, y: number) {
+  computeDegree(x: number, y: number): number {
     let degree = (360 * Math.atan(y / x)) / (2 * Math.PI);
     if (x >= 0 && y >= 0) {
       degree = degree;
@@ -353,7 +363,7 @@ export class LitChartPie extends BaseElement {
     }).observe(this);
   }
 
-  handleData():void{
+  handleData(): void {
     this.textRects = [];
     if (this.litChartPieConfig!.showChartLine) {
       this.data.forEach((dataItem) => {
@@ -387,9 +397,13 @@ export class LitChartPie extends BaseElement {
     }
   }
 
-  render(ease: boolean = true) {
-    if (!this.canvas || !this.litChartPieConfig) return;
-    if (this.radius! <= 0) return;
+  render(ease: boolean = true): void {
+    if (!this.canvas || !this.litChartPieConfig) {
+      return;
+    }
+    if (this.radius! <= 0) {
+      return;
+    }
     this.ctx?.clearRect(0 - this.centerX!, 0 - this.centerY!, this.clientWidth, this.clientHeight);
     this.data.forEach((it) => {
       this.ctx!.beginPath();
@@ -422,7 +436,7 @@ export class LitChartPie extends BaseElement {
     this.setData(ease);
   }
 
-  setData(ease: boolean):void{
+  setData(ease: boolean): void {
     this.data
       .filter((it) => it.hover)
       .forEach((it) => {
@@ -443,32 +457,32 @@ export class LitChartPie extends BaseElement {
   }
 
   correctRect(pieRect: Rectangle): Rectangle {
-    if (this.textRects.length == 0) {
+    if (this.textRects.length === 0) {
       this.textRects.push(pieRect);
       return pieRect;
     } else {
       let rectangles = this.textRects.filter((it) => this.intersect(it, pieRect).cross);
-      if (rectangles.length == 0) {
+      if (rectangles.length === 0) {
         this.textRects.push(pieRect);
         return pieRect;
       } else {
         let it = rectangles[0];
         let inter = this.intersect(it, pieRect);
-        if (inter.direction == 'Right') {
+        if (inter.direction === 'Right') {
           pieRect.x += inter.crossW;
-        } else if (inter.direction == 'Bottom') {
+        } else if (inter.direction === 'Bottom') {
           pieRect.y += inter.crossH;
-        } else if (inter.direction == 'Left') {
+        } else if (inter.direction === 'Left') {
           pieRect.x -= inter.crossW;
-        } else if (inter.direction == 'Top') {
+        } else if (inter.direction === 'Top') {
           pieRect.y -= inter.crossH;
-        } else if (inter.direction == 'Right-Top') {
+        } else if (inter.direction === 'Right-Top') {
           pieRect.y -= inter.crossH;
-        } else if (inter.direction == 'Right-Bottom') {
+        } else if (inter.direction === 'Right-Bottom') {
           pieRect.y += inter.crossH;
-        } else if (inter.direction == 'Left-Top') {
+        } else if (inter.direction === 'Left-Top') {
           pieRect.y -= inter.crossH;
-        } else if (inter.direction == 'Left-Bottom') {
+        } else if (inter.direction === 'Left-Bottom') {
           pieRect.y += inter.crossH;
         }
         this.textRects.push(pieRect);
@@ -500,7 +514,7 @@ export class LitChartPie extends BaseElement {
     if (rect.x > r1.x) {
       if (rect.y > r1.y) {
         direction = 'Right-Bottom';
-      } else if (rect.y == r1.y) {
+      } else if (rect.y === r1.y) {
         direction = 'Right';
       } else {
         direction = 'Right-Top';
@@ -508,13 +522,13 @@ export class LitChartPie extends BaseElement {
     } else if (rect.x < r1.x) {
       if (rect.y > r1.y) {
         direction = 'Left-Bottom';
-      } else if (rect.y == r1.y) {
+      } else if (rect.y === r1.y) {
         direction = 'Left';
       } else {
         direction = 'Left-Top';
       }
     } else {
-      direction = this.rectSuperposition(rect,r1);
+      direction = this.rectSuperposition(rect, r1);
     }
     return {
       cross,
@@ -524,24 +538,24 @@ export class LitChartPie extends BaseElement {
     };
   }
 
-  rectSuperposition(rect: Rectangle,r1: Rectangle):string{
+  rectSuperposition(rect: Rectangle, r1: Rectangle): string {
     if (rect.y > r1.y) {
       return 'Bottom';
-    } else if (rect.y == r1.y) {
+    } else if (rect.y === r1.y) {
       return 'Right'; //superposition default right
     } else {
       return 'Top';
     }
   }
 
-  showTip(x: number, y: number, msg: string) {
+  showTip(x: number, y: number, msg: string): void {
     this.pieTipEL!.style.display = 'flex';
     this.pieTipEL!.style.top = `${y}px`;
     this.pieTipEL!.style.left = `${x}px`;
     this.pieTipEL!.innerHTML = msg;
   }
 
-  hideTip() {
+  hideTip(): void {
     this.pieTipEL!.style.display = 'none';
   }
 

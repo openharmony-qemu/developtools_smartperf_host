@@ -110,7 +110,7 @@ export class HdcDeviceManager {
     // @ts-ignore
     const devices = await navigator.usb.getDevices();
     // @ts-ignore
-    return devices.find((dev) => dev.serialNumber === serialNumber);
+    return devices.find((dev): boolean => dev.serialNumber === serialNumber);
   }
 
   /**
@@ -122,7 +122,7 @@ export class HdcDeviceManager {
     const hdcClient = this.clientList.get(serialNumber);
     if (hdcClient) {
       await hdcClient.disconnect();
-      this.clientList['delete'](serialNumber);
+      this.clientList.delete(serialNumber);
       return true;
     } else {
       return true;
@@ -133,8 +133,11 @@ export class HdcDeviceManager {
    * Execute shell on the currently connected device and return the result as a string
    *
    * @param cmd cmd
+   * @param isSkipResult isSkipResult
+   * @param shellResultHandleFun shellResultHandleFun
    */
-  public static async shellResultAsString(cmd: string, isSkipResult: boolean): Promise<string> {
+  public static async shellResultAsString(cmd: string, isSkipResult: boolean, shellResultHandleFun?: Function):
+    Promise<string> {
     if (this.currentHdcClient) {
       const hdcStream = new HdcStream(this.currentHdcClient, false);
       await hdcStream.DoCommand(cmd);
@@ -151,7 +154,11 @@ export class HdcDeviceManager {
           await hdcStream.closeStream();
           return Promise.resolve('The device is abnormal');
         }
-        result += dataMessage.getDataToString();
+        let dataResult = dataMessage.getDataToString();
+        result += dataResult;
+        if (shellResultHandleFun && cmd.endsWith('CONFIG')) {
+          shellResultHandleFun(dataResult);
+        }
       }
       await hdcStream.closeStream();
       await hdcStream.DoCommandRemote(new FormatCommand(HdcCommand.CMD_KERNEL_CHANNEL_CLOSE, '0', false));

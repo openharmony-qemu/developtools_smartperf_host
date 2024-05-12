@@ -11,11 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from '../CommonArgs';
 import { TraficEnum } from '../utils/QueryEnum';
 
-export const chartProcessDeliverInputEventDataSql = (args: any): string => {
-  return `
-  select 
+export const chartProcessDeliverInputEventDataSql = (args: Args): string => {
+  return `select  
       c.ts-${args.recordStartNS} as startTs,
       c.dur,
       c.argsetid,
@@ -31,8 +31,8 @@ export const chartProcessDeliverInputEventDataSql = (args: any): string => {
       c.name as funName,
       A.name as threadName
   from thread A
-  left join callstack C on A.id = C.callid
   left join process P on P.id = A.ipid
+  left join callstack C on A.id = C.callid
   where startTs not null and cookie not null
   and c.name ='deliverInputEvent'
   and tid = ${args.tid}
@@ -42,35 +42,43 @@ export const chartProcessDeliverInputEventDataSql = (args: any): string => {
   `;
 };
 
-export function processDeliverInputEventDataReceiver(data: any, proc: Function): void {
+export function processDeliverInputEventDataReceiver(data: unknown, proc: Function): void {
+  //@ts-ignore
   let sql = chartProcessDeliverInputEventDataSql(data.params);
-  let res = proc(sql);
+  let res = proc(sql); //@ts-ignore
   arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
   let processDeliverInputEvent = new ProcessDeliverInputEvent(data, transfer, res.length);
   res.forEach((it, i) => {
-    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processInputEventData);
-    processDeliverInputEvent.tid[i] = it.tid;
-    processDeliverInputEvent.dur[i] = it.dur;
-    processDeliverInputEvent.is_main_thread[i] = it.isMainThread;
-    processDeliverInputEvent.track_id[i] = it.trackId;
-    processDeliverInputEvent.startTs[i] = it.startTs;
-    processDeliverInputEvent.pid[i] = it.pid;
-    processDeliverInputEvent.parent_id[i] = it.parentId;
-    processDeliverInputEvent.id[i] = it.id;
-    processDeliverInputEvent.cookie[i] = it.cookie;
-    processDeliverInputEvent.depth[i] = it.depth;
+    //@ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processInputEventData); //@ts-ignore
+    processDeliverInputEvent.tid[i] = it.tid; //@ts-ignore
+    processDeliverInputEvent.dur[i] = it.dur; //@ts-ignore
+    processDeliverInputEvent.is_main_thread[i] = it.isMainThread; //@ts-ignore
+    processDeliverInputEvent.track_id[i] = it.trackId; //@ts-ignore
+    processDeliverInputEvent.startTs[i] = it.startTs; //@ts-ignore
+    processDeliverInputEvent.pid[i] = it.pid; //@ts-ignore
+    processDeliverInputEvent.parent_id[i] = it.parentId; //@ts-ignore
+    processDeliverInputEvent.id[i] = it.id; //@ts-ignore
+    processDeliverInputEvent.cookie[i] = it.cookie; //@ts-ignore
+    processDeliverInputEvent.depth[i] = it.depth; //@ts-ignore
     processDeliverInputEvent.argsetid[i] = it.argsetid;
   });
   postMessage(data, transfer, processDeliverInputEvent, res.length);
 }
-function postMessage(data: any, transfer: boolean, processDeliverInputEvent: ProcessDeliverInputEvent, len: number) {
+
+function postMessage(
+  data: unknown,
+  transfer: boolean,
+  processDeliverInputEvent: ProcessDeliverInputEvent,
+  len: number
+): void {
   (self as unknown as Worker).postMessage(
     {
-      transfer: transfer,
-      id: data.id,
+      transfer: transfer, //@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
       results: transfer
         ? {
@@ -118,17 +126,18 @@ class ProcessDeliverInputEvent {
   cookie: Int32Array;
   depth: Int32Array;
   argsetid: Int32Array;
-  constructor(data: any, transfer: boolean, len: number) {
-    this.tid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.tid);
-    this.pid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.pid);
-    this.is_main_thread = new Int8Array(transfer ? len : data.params.sharedArrayBuffers.is_main_thread);
-    this.track_id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.track_id);
-    this.startTs = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.startTs);
-    this.dur = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.dur);
-    this.parent_id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.parent_id);
-    this.id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.id);
-    this.cookie = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.cookie);
-    this.depth = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.depth);
+  constructor(data: unknown, transfer: boolean, len: number) {
+    //@ts-ignore
+    this.tid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.tid); //@ts-ignore
+    this.pid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.pid); //@ts-ignore
+    this.is_main_thread = new Int8Array(transfer ? len : data.params.sharedArrayBuffers.is_main_thread); //@ts-ignore
+    this.track_id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.track_id); //@ts-ignore
+    this.startTs = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.startTs); //@ts-ignore
+    this.dur = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.dur); //@ts-ignore
+    this.parent_id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.parent_id); //@ts-ignore
+    this.id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.id); //@ts-ignore
+    this.cookie = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.cookie); //@ts-ignore
+    this.depth = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.depth); //@ts-ignore
     this.argsetid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.argsetid);
   }
 }

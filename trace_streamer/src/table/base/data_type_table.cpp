@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, TYPEID, DESC };
-DataTypeTable::DataTypeTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+DataTypeTable::DataTypeTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("typeId", "INTEGER"));
@@ -34,7 +34,7 @@ std::unique_ptr<TableBase::Cursor> DataTypeTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-DataTypeTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+DataTypeTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstDataTypeData().Size())),
       dataTypeObj_(dataCache->GetConstDataTypeData())
 {
@@ -42,7 +42,7 @@ DataTypeTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 DataTypeTable::Cursor::~Cursor() {}
 
-int32_t DataTypeTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t DataTypeTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -51,9 +51,9 @@ int32_t DataTypeTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         return SQLITE_OK;
     }
 
-    auto& dataTypeTabCs = fc.GetConstraints();
+    auto &dataTypeTabCs = fc.GetConstraints();
     for (size_t i = 0; i < dataTypeTabCs.size(); i++) {
-        const auto& c = dataTypeTabCs[i];
+        const auto &c = dataTypeTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);

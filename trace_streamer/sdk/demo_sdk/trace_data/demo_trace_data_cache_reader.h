@@ -26,16 +26,16 @@ using namespace TraceStdtype;
 class DemoTraceDataCacheReader : virtual public TraceDataCacheBase {
 public:
     DemoTraceDataCacheReader() = default;
-    DemoTraceDataCacheReader(const DemoTraceDataCacheReader&) = delete;
-    DemoTraceDataCacheReader& operator=(const DemoTraceDataCacheReader&) = delete;
+    DemoTraceDataCacheReader(const DemoTraceDataCacheReader &) = delete;
+    DemoTraceDataCacheReader &operator=(const DemoTraceDataCacheReader &) = delete;
     ~DemoTraceDataCacheReader() override;
 
 public:
-    const GpuCounter& GetConstGpuCounterData() const;
-    const GpuCounterObject& GetConstGpuCounterObjectData() const;
-    const SliceObject& GetConstSliceObjectData() const;
-    const SliceData& GetConstSliceData() const;
-    const MetaData& GetConstMetaData() const;
+    const GpuCounter &GetConstGpuCounterData() const;
+    const GpuCounterObject &GetConstGpuCounterObjectData() const;
+    const SliceObject &GetConstSliceObjectData() const;
+    const SliceData &GetConstSliceData() const;
+    const MetaData &GetConstMetaData() const;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

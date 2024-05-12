@@ -14,15 +14,15 @@ import { QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
-export function nativeMemoryChartDataSender(
-  row: TraceRow<any>,
+export function nativeMemoryChartDataSender( //@ts-ignore
+  row: TraceRow<unknown>,
   setting: {
     eventType: number;
     ipid: number;
     model: string;
     drawType: number;
   }
-): Promise<any> {
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     threadPool.submitProto(
       QueryEnum.NativeMemoryChartData,
@@ -37,14 +37,14 @@ export function nativeMemoryChartDataSender(
         ipid: setting.ipid,
         trafic: TraficEnum.SharedArrayBuffer,
       },
-      (res: any, len: number): void => {
+      (res: unknown, len: number): void => {
         resolve(arrayBufferHandler(res, len));
       }
     );
   });
 }
 
-export function nativeMemoryChartDataCacheSender(processes: Array<number>, model: string): Promise<any> {
+export function nativeMemoryChartDataCacheSender(processes: Array<number>, model: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
     threadPool.submitProto(
       model === 'native_hook' ? QueryEnum.NativeMemoryChartCacheNormal : QueryEnum.NativeMemoryChartCacheStatistic,
@@ -57,30 +57,30 @@ export function nativeMemoryChartDataCacheSender(processes: Array<number>, model
         trafic: TraficEnum.SharedArrayBuffer,
         isCache: true,
       },
-      (res: any, len: number): void => {
+      (res: unknown, len: number): void => {
         resolve('ok');
       }
     );
   });
 }
 
-function arrayBufferHandler(res: any, len: number) {
-  let outArr: any[] = [];
-  let startTime = new Float64Array(res.startTime);
-  let dur = new Float64Array(res.dur);
-  let density = new Int32Array(res.density);
+function arrayBufferHandler(res: unknown, len: number): unknown[] {
+  let outArr: unknown[] = []; //@ts-ignore
+  let startTime = new Float64Array(res.startTime); //@ts-ignore
+  let dur = new Float64Array(res.dur); //@ts-ignore
+  let density = new Int32Array(res.density); //@ts-ignore
   let heapSize = new Int32Array(res.heapSize);
   for (let i = 0; i < len; i++) {
     outArr.push({
       startTime: startTime[i],
       dur: dur[i],
       heapsize: heapSize[i],
-      density: density[i],
-      maxHeapSize: res.maxSize,
-      maxDensity: res.maxDensity,
-      minHeapSize: res.minSize,
+      density: density[i], //@ts-ignore
+      maxHeapSize: res.maxSize, //@ts-ignore
+      maxDensity: res.maxDensity, //@ts-ignore
+      minHeapSize: res.minSize, //@ts-ignore
       minDensity: res.minDensity,
-    } as any);
+    } as unknown);
   }
   return outArr;
 }

@@ -67,11 +67,11 @@ const initHtmlStyle: string = `
     `;
 
 export class LitSelectOption extends BaseElement {
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['selected', 'disabled', 'check'];
   }
 
-  initHtml() {
+  initHtml(): string {
     return `
         ${initHtmlStyle}
         <div class="selected-box">
@@ -85,9 +85,9 @@ export class LitSelectOption extends BaseElement {
   initElements(): void {}
 
   //当 custom element首次被插入文档DOM时，被调用。
-  connectedCallback() {
+  connectedCallback(): void {
     if (!this.hasAttribute('disabled')) {
-      this.onclick = (ev) => {
+      this.onclick = (ev): void => {
         this.dispatchEvent(
           new CustomEvent('onSelected', {
             detail: {
@@ -103,13 +103,13 @@ export class LitSelectOption extends BaseElement {
   }
 
   //当 custom element从文档DOM中删除时，被调用。
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
   //当 custom element被移动到新的文档时，被调用。
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
   //当 custom element增加、删除、修改自身属性时，被调用。
-  attributeChangedCallback(name: any, oldValue: any, newValue: any) {}
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {}
 }
 
 if (!customElements.get('lit-select-option')) {

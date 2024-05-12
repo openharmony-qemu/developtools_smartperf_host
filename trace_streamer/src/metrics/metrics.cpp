@@ -46,7 +46,7 @@ Metrics ::Metrics()
     };
 }
 
-void Metrics::ParserJson(const std::string& metrics, std::string& result)
+void Metrics::ParserJson(const std::string &metrics, std::string &result)
 {
     result = result.substr(EXTRA_CHAR, result.size());
     auto it = metricsFunction_.find(metrics);
@@ -57,7 +57,7 @@ void Metrics::ParserJson(const std::string& metrics, std::string& result)
     it->second(result);
 }
 
-void Metrics::InitMemoryStrategy(const std::string& result)
+void Metrics::InitMemoryStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
     const uint32_t TYPE_INFO_ITEM_MAX = 0;
@@ -76,7 +76,7 @@ void Metrics::InitMemoryStrategy(const std::string& result)
     }
     return;
 }
-void Metrics::InitMemoryUnAggStrategy(const std::string& result)
+void Metrics::InitMemoryUnAggStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
     const uint32_t PROCESS_VALUES_ITEM_NAME = 0;
@@ -116,7 +116,7 @@ void Metrics::InitMemoryUnAggStrategy(const std::string& result)
     }
     return;
 }
-void Metrics::InitMemoryTaskNameStrategy(const std::string& result)
+void Metrics::InitMemoryTaskNameStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
     const uint32_t JMESSAGE_VALUE_SIZE_ONE = 1;
@@ -138,7 +138,7 @@ void Metrics::InitMemoryTaskNameStrategy(const std::string& result)
     }
     return;
 }
-void Metrics::InitTraceStatsStrategy(const std::string& result)
+void Metrics::InitTraceStatsStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
     const uint32_t STAT_ITEM_NAME = 0;
@@ -155,7 +155,7 @@ void Metrics::InitTraceStatsStrategy(const std::string& result)
     }
     return;
 }
-void Metrics::InitTraceMetaDataStrategy(const std::string& result)
+void Metrics::InitTraceMetaDataStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
     const uint32_t TRACE_METADATA_ITEM_NAME = 0;
@@ -168,7 +168,7 @@ void Metrics::InitTraceMetaDataStrategy(const std::string& result)
     }
     return;
 }
-void Metrics::InitSysCallStrategy(const std::string& result)
+void Metrics::InitSysCallStrategy(const std::string &result)
 {
     json jMessage = json::parse(result);
     for (int i = 0; i < jMessage.at("values").size(); i++) {
@@ -231,7 +231,7 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex, ResultCallBack callback)
 #endif
     return;
 }
-void Metrics::UpdataRepeateValueByTraceMem(std::string& repeateValue, std::string& metricsName)
+void Metrics::UpdataRepeateValueByTraceMem(std::string &repeateValue, std::string &metricsName)
 {
     metricsName = TRACE_MEM;
     for (auto item : memStrategy_) {
@@ -241,7 +241,7 @@ void Metrics::UpdataRepeateValueByTraceMem(std::string& repeateValue, std::strin
                         std::to_string(item.overallCounters.avg) + "}}},";
     }
 }
-void Metrics::UpdataRepeateValueByTopTen(std::string& repeateValue, std::string& metricsName)
+void Metrics::UpdataRepeateValueByTopTen(std::string &repeateValue, std::string &metricsName)
 {
     metricsName = TRACE_MEM_TOP_TEN;
     for (auto item : memStrategy_) {
@@ -251,7 +251,7 @@ void Metrics::UpdataRepeateValueByTopTen(std::string& repeateValue, std::string&
                         std::to_string(item.overallCounters.avg) + "}}},";
     }
 }
-void Metrics::UpdataRepeateValueByMemUnagg(std::string& repeateValue, std::string& metricsName)
+void Metrics::UpdataRepeateValueByMemUnagg(std::string &repeateValue, std::string &metricsName)
 {
     metricsName = TRACE_MEM_UNAGG;
     for (auto item : memAggStrategy_) {
@@ -264,7 +264,7 @@ void Metrics::UpdataRepeateValueByMemUnagg(std::string& repeateValue, std::strin
                         VALUE + std::to_string(item.swap.value) + "}},";
     }
 }
-void Metrics::UpdataRepeateValueByTaskNames(std::string& repeateValue, std::string& metricsName)
+void Metrics::UpdataRepeateValueByTaskNames(std::string &repeateValue, std::string &metricsName)
 {
     metricsName = TRACE_TASK_NAMES;
     for (auto item : taskNameStrategy_) {
@@ -276,7 +276,7 @@ void Metrics::UpdataRepeateValueByTaskNames(std::string& repeateValue, std::stri
         repeateValue += "},";
     }
 }
-void Metrics::UpdataRepeateValueByStats(std::string& repeateValue, std::string& metricsName)
+void Metrics::UpdataRepeateValueByStats(std::string &repeateValue, std::string &metricsName)
 {
     metricsName = TRACE_STATS;
     for (auto item : statStrategy_) {
@@ -284,7 +284,7 @@ void Metrics::UpdataRepeateValueByStats(std::string& repeateValue, std::string& 
                         "\"" + item.source + "\"," + SEVERITY + "\"" + item.severity + "\"" + "},";
     }
 }
-void Metrics::UpdataRepeateValueByMetadata(std::string& repeateValue, std::string& metricsName)
+void Metrics::UpdataRepeateValueByMetadata(std::string &repeateValue, std::string &metricsName)
 {
     metricsName = TRACE_METADATA;
     for (auto item : metaDataStrategy_) {
@@ -292,7 +292,7 @@ void Metrics::UpdataRepeateValueByMetadata(std::string& repeateValue, std::strin
             TRACE_METADATA + ":{" + NAME + "\"" + item.name + "\"," + VALUE + "\"" + item.value + "\"" + "},";
     }
 }
-void Metrics::UpdataRepeateValueBySysCalls(std::string& repeateValue, std::string& metricsName)
+void Metrics::UpdataRepeateValueBySysCalls(std::string &repeateValue, std::string &metricsName)
 {
     metricsName = SYS_CALLS;
     for (auto item : sysCallStrategy_) {

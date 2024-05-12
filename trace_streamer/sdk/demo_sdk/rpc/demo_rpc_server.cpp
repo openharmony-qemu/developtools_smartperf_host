@@ -28,10 +28,10 @@
 namespace SysTuning {
 namespace TraceStreamer {
 
-bool DemoRpcServer::DemoSqlOperate(const uint8_t* data, size_t len, ResultCallBack retCallBack)
+bool DemoRpcServer::DemoSqlOperate(const uint8_t *data, size_t len, ResultCallBack retCallBack)
 {
     demoTs_->SetCancel(false);
-    std::string demoSql(reinterpret_cast<const char*>(data), len);
+    std::string demoSql(reinterpret_cast<const char *>(data), len);
     TS_LOGI("RPC DemoSqlOperate(%s, %zu)", demoSql.c_str(), len);
 
     int32_t ret = demoTs_->OperateDatabase(demoSql);
@@ -45,10 +45,10 @@ bool DemoRpcServer::DemoSqlOperate(const uint8_t* data, size_t len, ResultCallBa
     return (ret == 0);
 }
 
-bool DemoRpcServer::DemoSqlQuery(const uint8_t* data, size_t len, ResultCallBack retCallBack)
+bool DemoRpcServer::DemoSqlQuery(const uint8_t *data, size_t len, ResultCallBack retCallBack)
 {
     demoTs_->SetCancel(false);
-    std::string demoSql(reinterpret_cast<const char*>(data), len);
+    std::string demoSql(reinterpret_cast<const char *>(data), len);
     TS_LOGI("RPC DemoSqlQuery %zu:%s", len, demoSql.c_str());
 
     int32_t ret = demoTs_->SearchDatabase(demoSql, retCallBack);
@@ -64,7 +64,7 @@ void DemoRpcServer::DemoCancelSqlQuery()
     demoTs_->SetCancel(true);
 }
 
-bool DemoRpcServer::DemoReset(const uint8_t* data, size_t len, ResultCallBack retCallBack)
+bool DemoRpcServer::DemoReset(const uint8_t *data, size_t len, ResultCallBack retCallBack)
 {
     UNUSED(data);
     UNUSED(len);
@@ -77,28 +77,28 @@ bool DemoRpcServer::DemoReset(const uint8_t* data, size_t len, ResultCallBack re
     return true;
 }
 
-int32_t DemoRpcServer::DemoWasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int32_t outLen)
+int32_t DemoRpcServer::DemoWasmSqlQuery(const uint8_t *data, size_t len, uint8_t *out, int32_t outLen)
 {
     demoTs_->SetCancel(false);
-    std::string demoSql(reinterpret_cast<const char*>(data), len);
+    std::string demoSql(reinterpret_cast<const char *>(data), len);
     TS_LOGI("WASM RPC DemoSqlQuery outlen(%d) demoSql(%zu:%s)", outLen, len, demoSql.c_str());
     int32_t ret = demoTs_->SearchDatabase(demoSql, out, outLen);
     return ret;
 }
 
-int32_t DemoRpcServer::DemoWasmGetPluginNameWithCallback(const uint8_t* data, size_t len) const
+int32_t DemoRpcServer::DemoWasmGetPluginNameWithCallback(const uint8_t *data, size_t len) const
 {
-    std::string pluginName(reinterpret_cast<const char*>(data), len);
+    std::string pluginName(reinterpret_cast<const char *>(data), len);
     TS_LOGI("WASM pluginName(%zu:%s)", len, pluginName.c_str());
 
     int32_t ret = demoTs_->sdkDataParser_->GetPluginName(pluginName);
     return ret;
 }
 
-int32_t DemoRpcServer::DemoWasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const
+int32_t DemoRpcServer::DemoWasmSqlQueryWithCallback(const uint8_t *data, size_t len, ResultCallBack callback) const
 {
     demoTs_->SetCancel(false);
-    std::string demoSql(reinterpret_cast<const char*>(data), len);
+    std::string demoSql(reinterpret_cast<const char *>(data), len);
     TS_LOGI("WASM RPC DemoSqlQuery demoSql(%zu:%s)", len, demoSql.c_str());
 
     int32_t ret = demoTs_->SearchDatabase(demoSql, callback);

@@ -11,11 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Args } from '../CommonArgs';
 import { threadStateList } from '../utils/AllMemoryCache';
 import { filterDataByGroup } from '../utils/DataFilter';
 import { TraficEnum, threadStateToNumber } from '../utils/QueryEnum';
 
-export const chartThreadDataSql = (args: any) => {
+export const chartThreadDataSql = (args: Args) => {
   return `select B.cpu, max(B.dur) AS dur, B.itid AS id, B.tid AS tid, B.state, B.pid, 
                  B.ts - ${args.recordStartNS} AS startTime, ifnull(B.arg_setid, -1) AS argSetId, 
                  ((B.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
@@ -40,7 +41,7 @@ export const chartThreadDataSql = (args: any) => {
     ;`;
 };
 
-export const sqlMem = (args: any): string => {
+export const sqlMem = (args: Args): string => {
   return `select B.cpu, B.dur AS dur, B.itid AS id, B.tid AS tid, B.state, B.pid, B.ts - ${args.recordStartNS} AS startTime, 
                  ifnull(B.arg_setid, -1) AS argSetId
             from thread_state AS B
@@ -48,55 +49,64 @@ export const sqlMem = (args: any): string => {
             and B.pid = ${args.pid};`;
 };
 
-export function threadDataReceiver(data: any, proc: Function): void {
+export function threadDataReceiver(data: unknown, proc: Function): void {
+  //@ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
+    //@ts-ignore
     let key = `${data.params.pid}-${data.params.tid}`;
     if (!threadStateList.has(key)) {
+      //@ts-ignore
       threadStateList.set(key, proc(sqlMem(data.params)));
     }
     let array = threadStateList.get(key) || [];
     let res = filterDataByGroup(
       array,
       'startTime',
-      'dur',
-      data.params.startNS,
-      data.params.endNS,
+      'dur', //@ts-ignore
+      data.params.startNS, //@ts-ignore
+      data.params.endNS, //@ts-ignore
       data.params.width,
       undefined,
-      (a) => a.state === 'Running'
+      //@ts-ignore
+      (a) => a.state === 'Running',
+      false
     );
     arrayBufferHandler(data, res, true, array.length === 0);
     return;
   } else {
+    //@ts-ignore
     let sql = chartThreadDataSql(data.params);
-    let res = proc(sql);
+    let res = proc(sql); //@ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer, false);
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean, isEmpty: boolean): void {
-  let startTime = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime);
-  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
-  let cpu = new Int8Array(transfer ? res.length : data.params.sharedArrayBuffers.cpu);
-  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
-  let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid);
-  let state = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.state);
-  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean, isEmpty: boolean): void {
+  //@ts-ignore
+  let startTime = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime); //@ts-ignore
+  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur); //@ts-ignore
+  let cpu = new Int8Array(transfer ? res.length : data.params.sharedArrayBuffers.cpu); //@ts-ignore
+  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id); //@ts-ignore
+  let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid); //@ts-ignore
+  let state = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.state); //@ts-ignore
+  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid); //@ts-ignore
   let argSetID = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.argSetID);
   res.forEach((it, i) => {
-    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processThreadData);
-    startTime[i] = it.startTime;
-    dur[i] = it.dur;
-    cpu[i] = it.cpu;
-    id[i] = it.id;
-    tid[i] = it.tid;
-    state[i] = threadStateToNumber(it.state);
-    pid[i] = it.pid;
+    //@ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processThreadData); //@ts-ignore
+    startTime[i] = it.startTime; //@ts-ignore
+    dur[i] = it.dur; //@ts-ignore
+    cpu[i] = it.cpu; //@ts-ignore
+    id[i] = it.id; //@ts-ignore
+    tid[i] = it.tid; //@ts-ignore
+    state[i] = threadStateToNumber(it.state); //@ts-ignore
+    pid[i] = it.pid; //@ts-ignore
     argSetID[i] = it.argSetId;
   });
   (self as unknown as Worker).postMessage(
     {
-      id: data.id,
+      //@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
       results: transfer
         ? {

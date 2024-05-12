@@ -22,19 +22,19 @@ namespace TraceStdtype {
 class SysCall : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendSysCallData(int64_t sysCallNum, DataIndex type, uint32_t ipid, uint64_t timeStamp, int64_t ret);
-    const std::deque<int64_t>& SysCallsData() const
+    const std::deque<int64_t> &SysCallsData() const
     {
         return sysCallNums_;
     }
-    const std::deque<DataIndex>& TypesData() const
+    const std::deque<DataIndex> &TypesData() const
     {
         return types_;
     }
-    const std::deque<uint32_t>& IpidsData() const
+    const std::deque<uint32_t> &IpidsData() const
     {
         return ipids_;
     }
-    const std::deque<uint64_t>& RetsData() const
+    const std::deque<uint64_t> &RetsData() const
     {
         return rets_;
     }

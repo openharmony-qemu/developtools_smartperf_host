@@ -18,7 +18,7 @@ import { LitRadioBox } from './LitRadioBox';
 
 @element('lit-radio-group')
 export class LitRadioGroup extends BaseElement {
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['direction'];
   }
 
@@ -26,7 +26,7 @@ export class LitRadioGroup extends BaseElement {
     this.setAttribute('layout', vale);
   }
 
-  get direction() {
+  get direction(): string | null {
     return this.getAttribute('direction');
   }
 

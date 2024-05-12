@@ -31,15 +31,15 @@ namespace SysTuning {
 namespace TraceStreamer {
 class HtraceCpuDetailParser {
 public:
-    HtraceCpuDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    HtraceCpuDetailParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~HtraceCpuDetailParser();
-    void Parse(PbreaderDataSegment& tracePacket,
-               ProtoReader::TracePluginResult_Reader& tracePluginResult,
-               bool& haveSplitSeg);
+    void Parse(PbreaderDataSegment &tracePacket,
+               ProtoReader::TracePluginResult_Reader &tracePluginResult,
+               bool &haveSplitSeg);
     void FilterAllEventsReader();
     void FilterAllEvents();
 
-private:
+public:
     std::unique_ptr<HtraceEventParser> eventParser_;
 };
 } // namespace TraceStreamer

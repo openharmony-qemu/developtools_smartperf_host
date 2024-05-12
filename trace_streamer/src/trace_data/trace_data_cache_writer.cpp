@@ -23,16 +23,16 @@ InternalPid TraceDataCacheWriter::GetProcessInternalPid(uint32_t pid)
     internalProcessesData_.emplace_back(pid);
     return static_cast<InternalPid>(internalProcessesData_.size() - 1);
 }
-Process* TraceDataCacheWriter::GetProcessData(InternalPid internalPid)
+Process *TraceDataCacheWriter::GetProcessData(InternalPid internalPid)
 {
     TS_ASSERT(internalPid < internalProcessesData_.size());
     return &internalProcessesData_[internalPid];
 }
 
-uint32_t TraceDataCacheWriter::AppendNewProcessData(uint32_t pid, const std::string& name, uint64_t startTs)
+uint32_t TraceDataCacheWriter::AppendNewProcessData(uint32_t pid, const std::string &name, uint64_t startTs)
 {
     internalProcessesData_.emplace_back(pid);
-    auto& process = internalProcessesData_.back();
+    auto &process = internalProcessesData_.back();
     process.cmdLine_ = name;
     process.startT_ = startTs;
     return internalProcessesData_.size() - 1;
@@ -43,7 +43,7 @@ InternalTid TraceDataCacheWriter::NewInternalThread(uint32_t tid)
     internalThreadsData_.emplace_back(tid);
     return static_cast<InternalTid>(internalThreadsData_.size() - 1);
 }
-Thread* TraceDataCacheWriter::GetThreadData(InternalTid internalTid)
+Thread *TraceDataCacheWriter::GetThreadData(InternalTid internalTid)
 {
     if (internalTid >= internalThreadsData_.size()) {
         return nullptr;
@@ -95,328 +95,328 @@ void TraceDataCacheWriter::MixTraceTime(uint64_t timestampMin, uint64_t timestam
         traceEndTime_ = timestampMax;
     }
 }
-CallStack* TraceDataCacheWriter::GetInternalSlicesData()
+CallStack *TraceDataCacheWriter::GetInternalSlicesData()
 {
     return &callstackData_;
 }
-CallStack* TraceDataCacheWriter::GetIrqData()
+CallStack *TraceDataCacheWriter::GetIrqData()
 {
     return &irqData_;
 }
 
-Filter* TraceDataCacheWriter::GetFilterData()
+Filter *TraceDataCacheWriter::GetFilterData()
 {
     return &filterData_;
 }
 
-Raw* TraceDataCacheWriter::GetRawData()
+Raw *TraceDataCacheWriter::GetRawData()
 {
     return &rawData_;
 }
 
-Measure* TraceDataCacheWriter::GetMeasureData()
+Measure *TraceDataCacheWriter::GetMeasureData()
 {
     return &measureData_;
 }
 
-Measure* TraceDataCacheWriter::GetSysMemMeasureData()
+Measure *TraceDataCacheWriter::GetSysMemMeasureData()
 {
     return &sysMemMeasureData_;
 }
-Measure* TraceDataCacheWriter::GetProcessMeasureData()
+Measure *TraceDataCacheWriter::GetProcessMeasureData()
 {
     return &processMeasureData_;
 }
 
-ThreadStateData* TraceDataCacheWriter::GetThreadStateData()
+ThreadStateData *TraceDataCacheWriter::GetThreadStateData()
 {
     return &threadStateData_;
 }
 
-SchedSlice* TraceDataCacheWriter::GetSchedSliceData()
+SchedSlice *TraceDataCacheWriter::GetSchedSliceData()
 {
     return &schedSliceData_;
 }
 
-CpuMeasureFilter* TraceDataCacheWriter::GetCpuMeasuresData()
+CpuMeasureFilter *TraceDataCacheWriter::GetCpuMeasuresData()
 {
     return &cpuMeasureData_;
 }
 
-Instants* TraceDataCacheWriter::GetInstantsData()
+Instants *TraceDataCacheWriter::GetInstantsData()
 {
     return &instantsData_;
 }
 
-ProcessMeasureFilter* TraceDataCacheWriter::GetProcessMeasureFilterData()
+ProcessMeasureFilter *TraceDataCacheWriter::GetProcessMeasureFilterData()
 {
     return &processMeasureFilterData_;
 }
 
-ClockEventData* TraceDataCacheWriter::GetClockEventFilterData()
+ClockEventData *TraceDataCacheWriter::GetClockEventFilterData()
 {
     return &clockEventFilterData_;
 }
 
-ClkEventData* TraceDataCacheWriter::GetClkEventFilterData()
+ClkEventData *TraceDataCacheWriter::GetClkEventFilterData()
 {
     return &clkEventFilterData_;
 }
-StatAndInfo* TraceDataCacheWriter::GetStatAndInfo()
+StatAndInfo *TraceDataCacheWriter::GetStatAndInfo()
 {
     return &stat_;
 }
 
-MetaData* TraceDataCacheWriter::GetMetaData()
+MetaData *TraceDataCacheWriter::GetMetaData()
 {
     return &metaData_;
 }
 
-SymbolsData* TraceDataCacheWriter::GetSymbolsData()
+SymbolsData *TraceDataCacheWriter::GetSymbolsData()
 {
     return &symbolsData_;
 }
-SysCall* TraceDataCacheWriter::GetSysCallData()
+SysCall *TraceDataCacheWriter::GetSysCallData()
 {
     return &sysCallData_;
 }
-LogInfo* TraceDataCacheWriter::GetHilogData()
+LogInfo *TraceDataCacheWriter::GetHilogData()
 {
     return &hilogData_;
 }
 
-NativeHook* TraceDataCacheWriter::GetNativeHookData()
+NativeHook *TraceDataCacheWriter::GetNativeHookData()
 {
     return &nativeHookData_;
 }
 
-NativeHookFrame* TraceDataCacheWriter::GetNativeHookFrameData()
+NativeHookFrame *TraceDataCacheWriter::GetNativeHookFrameData()
 {
     return &nativeHookFrameData_;
 }
 
-NativeHookStatistic* TraceDataCacheWriter::GetNativeHookStatisticsData()
+NativeHookStatistic *TraceDataCacheWriter::GetNativeHookStatisticsData()
 {
     return &nativeHookStatisticData_;
 }
-Hidump* TraceDataCacheWriter::GetHidumpData()
+Hidump *TraceDataCacheWriter::GetHidumpData()
 {
     return &hidumpData_;
 }
-PerfCallChain* TraceDataCacheWriter::GetPerfCallChainData()
+PerfCallChain *TraceDataCacheWriter::GetPerfCallChainData()
 {
     return &perfCallChain_;
 }
-PerfFiles* TraceDataCacheWriter::GetPerfFilesData()
+PerfFiles *TraceDataCacheWriter::GetPerfFilesData()
 {
     return &perfFiles_;
 }
-PerfSample* TraceDataCacheWriter::GetPerfSampleData()
+PerfSample *TraceDataCacheWriter::GetPerfSampleData()
 {
     return &perfSample_;
 }
-PerfThread* TraceDataCacheWriter::GetPerfThreadData()
+PerfThread *TraceDataCacheWriter::GetPerfThreadData()
 {
     return &perfThread_;
 }
-PerfReport* TraceDataCacheWriter::GetPerfReportData()
+PerfReport *TraceDataCacheWriter::GetPerfReportData()
 {
     return &perfReport_;
 }
-ArgSet* TraceDataCacheWriter::GetArgSetData()
+ArgSet *TraceDataCacheWriter::GetArgSetData()
 {
     return &argSet_;
 }
 
-DataType* TraceDataCacheWriter::GetDataTypeData()
+DataType *TraceDataCacheWriter::GetDataTypeData()
 {
     return &dataType_;
 }
 
-SysMeasureFilter* TraceDataCacheWriter::GetSysMeasureFilterData()
+SysMeasureFilter *TraceDataCacheWriter::GetSysMeasureFilterData()
 {
     return &sysEvent_;
 }
-NetDetailData* TraceDataCacheWriter::GetNetworkData()
+NetDetailData *TraceDataCacheWriter::GetNetworkData()
 {
     return &networkData_;
 }
-NetDetailData* TraceDataCacheWriter::GetNetworkDetailData()
+NetDetailData *TraceDataCacheWriter::GetNetworkDetailData()
 {
     return &networkDetailData_;
 }
-DiskIOData* TraceDataCacheWriter::GetDiskIOData()
+DiskIOData *TraceDataCacheWriter::GetDiskIOData()
 {
     return &diskIOData_;
 }
 
-CpuUsageDetailData* TraceDataCacheWriter::GetCpuUsageInfoData()
+CpuUsageDetailData *TraceDataCacheWriter::GetCpuUsageInfoData()
 {
     return &cpuUsageData_;
 }
-LiveProcessDetailData* TraceDataCacheWriter::GetLiveProcessData()
+LiveProcessDetailData *TraceDataCacheWriter::GetLiveProcessData()
 {
     return &liveProcessDetailData_;
 }
-FileSystemSample* TraceDataCacheWriter::GetFileSystemSample()
+FileSystemSample *TraceDataCacheWriter::GetFileSystemSample()
 {
     return &fileSamplingTableData_;
 }
-EbpfCallStackData* TraceDataCacheWriter::GetEbpfCallStack()
+EbpfCallStackData *TraceDataCacheWriter::GetEbpfCallStack()
 {
     return &ebpfCallStackData_;
 }
-PagedMemorySampleData* TraceDataCacheWriter::GetPagedMemorySampleData()
+PagedMemorySampleData *TraceDataCacheWriter::GetPagedMemorySampleData()
 {
     return &pagedMemorySampleData_;
 }
-HiSysEventSubkeys* TraceDataCacheWriter::GetHiSysEventSubkeysData()
+HiSysEventSubkeys *TraceDataCacheWriter::GetHiSysEventSubkeysData()
 {
     return &sysEventNameIds_;
 }
-HiSysEventMeasureData* TraceDataCacheWriter::GetHiSysEventMeasureData()
+HiSysEventMeasureData *TraceDataCacheWriter::GetHiSysEventMeasureData()
 {
     return &sysEventMeasureData_;
 }
-HiSysEventDeviceStateData* TraceDataCacheWriter::GetHiSysEventDeviceStateData()
+HiSysEventDeviceStateData *TraceDataCacheWriter::GetHiSysEventDeviceStateData()
 {
     return &deviceStateData_;
 }
-TraceConfig* TraceDataCacheWriter::GetTraceConfigData()
+TraceConfig *TraceDataCacheWriter::GetTraceConfigData()
 {
     return &traceConfigData_;
 }
-HiSysEventAllEventData* TraceDataCacheWriter::GetHiSysEventAllEventData()
+HiSysEventAllEventData *TraceDataCacheWriter::GetHiSysEventAllEventData()
 {
     return &hiSysEventAllEventData_;
 }
-SmapsData* TraceDataCacheWriter::GetSmapsData()
+SmapsData *TraceDataCacheWriter::GetSmapsData()
 {
     return &smapsData_;
 }
-BioLatencySampleData* TraceDataCacheWriter::GetBioLatencySampleData()
+BioLatencySampleData *TraceDataCacheWriter::GetBioLatencySampleData()
 {
     return &bioLatencySampleData_;
 }
 
-ClockSnapshotData* TraceDataCacheWriter::GetClockSnapshotData()
+ClockSnapshotData *TraceDataCacheWriter::GetClockSnapshotData()
 {
     return &clockSnapshotData_;
 }
-DataSourceClockIdData* TraceDataCacheWriter::GetDataSourceClockIdData()
+DataSourceClockIdData *TraceDataCacheWriter::GetDataSourceClockIdData()
 {
     return &dataSourceClockIdData_;
 }
-FrameSlice* TraceDataCacheWriter::GetFrameSliceData()
+FrameSlice *TraceDataCacheWriter::GetFrameSliceData()
 {
     return &frameSliceData_;
 }
-FrameMaps* TraceDataCacheWriter::GetFrameMapsData()
+FrameMaps *TraceDataCacheWriter::GetFrameMapsData()
 {
     return &frameMapsData_;
 }
 
-GPUSlice* TraceDataCacheWriter::GetGPUSliceData()
+GPUSlice *TraceDataCacheWriter::GetGPUSliceData()
 {
     return &gpuSliceData_;
 }
-TaskPoolInfo* TraceDataCacheWriter::GetTaskPoolData()
+TaskPoolInfo *TraceDataCacheWriter::GetTaskPoolData()
 {
     return &taskPoolInfo_;
 }
-JsHeapFiles* TraceDataCacheWriter::GetJsHeapFilesData()
+JsHeapFiles *TraceDataCacheWriter::GetJsHeapFilesData()
 {
     return &jsHeapFilesData_;
 }
-JsHeapEdges* TraceDataCacheWriter::GetJsHeapEdgesData()
+JsHeapEdges *TraceDataCacheWriter::GetJsHeapEdgesData()
 {
     return &jsHeapEdgesData_;
 }
-JsHeapInfo* TraceDataCacheWriter::GetJsHeapInfoData()
+JsHeapInfo *TraceDataCacheWriter::GetJsHeapInfoData()
 {
     return &jsHeapInfoData_;
 }
-JsHeapLocation* TraceDataCacheWriter::GetJsHeapLocationData()
+JsHeapLocation *TraceDataCacheWriter::GetJsHeapLocationData()
 {
     return &jsHeapLocationData_;
 }
-JsHeapNodes* TraceDataCacheWriter::GetJsHeapNodesData()
+JsHeapNodes *TraceDataCacheWriter::GetJsHeapNodesData()
 {
     return &jsHeapNodesData_;
 }
-JsHeapSample* TraceDataCacheWriter::GetJsHeapSampleData()
+JsHeapSample *TraceDataCacheWriter::GetJsHeapSampleData()
 {
     return &jsHeapSampleData_;
 }
-JsHeapString* TraceDataCacheWriter::GetJsHeapStringData()
+JsHeapString *TraceDataCacheWriter::GetJsHeapStringData()
 {
     return &jsHeapStringData_;
 }
-JsHeapTraceFuncInfo* TraceDataCacheWriter::GetJsHeapTraceFuncInfoData()
+JsHeapTraceFuncInfo *TraceDataCacheWriter::GetJsHeapTraceFuncInfoData()
 {
     return &jsHeapTraceFuncInfoData_;
 }
-JsHeapTraceNode* TraceDataCacheWriter::GetJsHeapTraceNodeData()
+JsHeapTraceNode *TraceDataCacheWriter::GetJsHeapTraceNodeData()
 {
     return &jsHeapTraceNodeData_;
 }
-JsCpuProfilerNode* TraceDataCacheWriter::GetJsCpuProfilerNodeData()
+JsCpuProfilerNode *TraceDataCacheWriter::GetJsCpuProfilerNodeData()
 {
     return &jsCpuProfilerNodeData_;
 }
-JsCpuProfilerSample* TraceDataCacheWriter::GetJsCpuProfilerSampleData()
+JsCpuProfilerSample *TraceDataCacheWriter::GetJsCpuProfilerSampleData()
 {
     return &jsCpuProfilerSampleData_;
 }
-JsConfig* TraceDataCacheWriter::GetJsConfigData()
+JsConfig *TraceDataCacheWriter::GetJsConfigData()
 {
     return &jsConfigData_;
 }
-AppStartup* TraceDataCacheWriter::GetAppStartupData()
+AppStartup *TraceDataCacheWriter::GetAppStartupData()
 {
     return &appStartupData_;
 }
-SoStaticInitalization* TraceDataCacheWriter::GetSoStaticInitalizationData()
+SoStaticInitalization *TraceDataCacheWriter::GetSoStaticInitalizationData()
 {
     return &soStaticInitalizationData_;
 }
-Animation* TraceDataCacheWriter::GetAnimation()
+Animation *TraceDataCacheWriter::GetAnimation()
 {
     return &animation_;
 }
-DeviceInfo* TraceDataCacheWriter::GetDeviceInfo()
+DeviceInfo *TraceDataCacheWriter::GetDeviceInfo()
 {
     return &deviceInfo_;
 }
-DynamicFrame* TraceDataCacheWriter::GetDynamicFrame()
+DynamicFrame *TraceDataCacheWriter::GetDynamicFrame()
 {
     return &dynamicFrame_;
 }
-AshMemData* TraceDataCacheWriter::GetAshMemData()
+AshMemData *TraceDataCacheWriter::GetAshMemData()
 {
     return &ashMemData_;
 }
-DmaMemData* TraceDataCacheWriter::GetDmaMemData()
+DmaMemData *TraceDataCacheWriter::GetDmaMemData()
 {
     return &dmaMemData_;
 }
-GpuProcessMemData* TraceDataCacheWriter::GetGpuProcessMemData()
+GpuProcessMemData *TraceDataCacheWriter::GetGpuProcessMemData()
 {
     return &gpuProcessMemData_;
 }
-GpuWindowMemData* TraceDataCacheWriter::GetGpuWindowMemData()
+GpuWindowMemData *TraceDataCacheWriter::GetGpuWindowMemData()
 {
     return &gpuWindowMemData_;
 }
-CpuDumpInfo* TraceDataCacheWriter::GetCpuDumpInfo()
+CpuDumpInfo *TraceDataCacheWriter::GetCpuDumpInfo()
 {
     return &cpuDumpInfo_;
 }
-ProfileMemInfo* TraceDataCacheWriter::GetProfileMemInfo()
+ProfileMemInfo *TraceDataCacheWriter::GetProfileMemInfo()
 {
     return &profileMemInfo_;
 }
-RSImageDumpInfo* TraceDataCacheWriter::GetRSImageDumpInfo()
+RSImageDumpInfo *TraceDataCacheWriter::GetRSImageDumpInfo()
 {
     return &rsImageDumpInfo_;
 }

@@ -25,11 +25,11 @@ export class SpStatisticsHttpUtil {
   static pauseRetry: boolean = false;
   static retryRestTimeOut: boolean = false;
 
-  static initStatisticsServerConfig() {
+  static initStatisticsServerConfig(): void {
     if (SpStatisticsHttpUtil.requestServerInfo === '') {
       SpStatisticsHttpUtil.requestServerInfo = SpStatisticsHttpUtil.getRequestServerInfo();
     }
-    if (SpStatisticsHttpUtil.serverTime == 0) {
+    if (SpStatisticsHttpUtil.serverTime === 0) {
       SpStatisticsHttpUtil.getServerTime();
     }
   }
@@ -37,14 +37,14 @@ export class SpStatisticsHttpUtil {
   static getRequestServerInfo(): string {
     try {
       let req = new XMLHttpRequest();
-      req.onreadystatechange = () => {
-        if (req.readyState === 4 &&  req.status === 200) {
+      req.onreadystatechange = (): void => {
+        if (req.readyState === 4 && req.status === 200) {
           let requestInfo = req.getResponseHeader('request_info');
           if (requestInfo && requestInfo.length > 0) {
             SpStatisticsHttpUtil.requestServerInfo = requestInfo;
           }
         }
-      }
+      };
       req.open(
         'GET',
         `${window.location.protocol}//${window.location.host.split(':')[0]}:${
@@ -54,12 +54,12 @@ export class SpStatisticsHttpUtil {
       );
       req.send(null);
     } catch {
-      warn('Connect Server Failed')
+      warn('Connect Server Failed');
     }
     return '';
   }
 
-  static getServerTime() {
+  static getServerTime(): void {
     if (SpStatisticsHttpUtil.requestServerInfo === '') {
       SpStatisticsHttpUtil.requestServerInfo = SpStatisticsHttpUtil.getRequestServerInfo();
     }
@@ -80,7 +80,7 @@ export class SpStatisticsHttpUtil {
       });
   }
 
-  private static handleRequestException() {
+  private static handleRequestException(): void {
     if (SpStatisticsHttpUtil.retryCount >= SpStatisticsHttpUtil.retryMaxCount) {
       SpStatisticsHttpUtil.pauseRetry = true;
       if (SpStatisticsHttpUtil.retryRestTimeOut) {
@@ -96,7 +96,7 @@ export class SpStatisticsHttpUtil {
     ++SpStatisticsHttpUtil.retryCount;
   }
 
-  static addUserVisitAction(requestUrl: string) {
+  static addUserVisitAction(requestUrl: string): void {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -139,7 +139,7 @@ export class SpStatisticsHttpUtil {
     }, 1800000);
   }
 
-  static addOrdinaryVisitAction(requestBody: BurialPointRequestBody) {
+  static addOrdinaryVisitAction(requestBody: BurialPointRequestBody): void {
     // @ts-ignore
     if (window.useWb) {
       return;

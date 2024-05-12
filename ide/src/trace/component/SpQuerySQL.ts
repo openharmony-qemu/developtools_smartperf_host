@@ -24,7 +24,7 @@ import { PaginationBox } from '../../base-ui/chart/pagenation/PaginationBox';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 import { getAllSql } from './trace/base/CommonSql';
 import { LitIcon } from '../../base-ui/icon/LitIcon';
-import {queryCustomizeSelect} from "../database/sql/SqlLite.sql";
+import { queryCustomizeSelect } from '../database/sql/SqlLite.sql';
 import { SpQuerySQLHtml } from './SpQuerySQL.html';
 
 @element('sp-query-sql')
@@ -171,6 +171,7 @@ export class SpQuerySQL extends BaseElement {
     queryCustomizeSelect(sql).then((resultList): void => {
       if (resultList && resultList.length > 0) {
         this.statDataArray = resultList;
+        //@ts-ignore
         this.keyList = Object.keys(resultList[0]);
         this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.` + `(${sql})`;
         this.initDataElement();

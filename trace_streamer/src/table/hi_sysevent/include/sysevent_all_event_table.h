@@ -23,20 +23,20 @@ namespace SysTuning {
 namespace TraceStreamer {
 class SysEventAllEventTable : public TableBase {
 public:
-    explicit SysEventAllEventTable(const TraceDataCache*);
+    explicit SysEventAllEventTable(const TraceDataCache *);
     ~SysEventAllEventTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
         int32_t Column(int32_t column) const override;
 
     private:
         void HandleTypeColumns(int32_t column) const;
-        const HiSysEventAllEventData& hiSysEventAllEventObj_;
+        const HiSysEventAllEventData &hiSysEventAllEventObj_;
     };
 };
 } // namespace TraceStreamer

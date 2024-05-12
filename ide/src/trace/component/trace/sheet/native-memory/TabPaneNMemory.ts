@@ -33,6 +33,8 @@ import {
 import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
 import { Utils } from '../../base/Utils';
 import { TabPaneNMemoryHtml } from './TabPaneNMemory.html';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { TabPaneFlag } from '../../timer-shaft/TabPaneFlag';
 
 @element('tabpane-native-memory')
 export class TabPaneNMemory extends BaseElement {
@@ -42,42 +44,44 @@ export class TabPaneNMemory extends BaseElement {
   private tblData: LitTable | null | undefined;
   private progressEL: LitProgressBar | null | undefined;
   private nmMemoryLoadingList: number[] = [];
-  private loadingPage: any;
-  private memorySource: Array<any> = [];
+  private loadingPage: unknown;
+  private memorySource: Array<unknown> = [];
   private nativeType: Array<string> = [...this.defaultNativeTypes];
-  private statsticsSelection: Array<any> = [];
+  private statsticsSelection: Array<unknown> = [];
   private filterAllocationType: string = '0';
   private filterNativeType: string = '0';
   private filterResponseType: number = -1;
   private filterResponseSelect: string = '0';
   private currentSelection: SelectionParam | undefined;
-  private rowSelectData: any = undefined;
+  private rowSelectData: unknown = undefined;
   private sortColumn: string = '';
   private sortType: number = 0;
-  private responseTypes: any[] = [];
+  private responseTypes: unknown[] = [];
   private eventTypes: string[] = [];
+  private systemTrace: SpSystemTrace | undefined | null;
 
-  set data(memoryParam: SelectionParam | any) {
+  set data(memoryParam: SelectionParam | unknown) {
     if (memoryParam === this.currentSelection) {
       return;
-    }
+    } //@ts-ignore
     this.currentSelection = memoryParam;
     this.queryData(memoryParam);
   }
 
-  queryData(memoryParam: SelectionParam | any, resetFilter: boolean = true): void {
-    this.eventTypes = [];
+  queryData(memoryParam: SelectionParam | unknown, resetFilter: boolean = true): void {
+    this.eventTypes = []; //@ts-ignore
     if (memoryParam.nativeMemory.indexOf(this.defaultNativeTypes[0]) !== -1) {
       this.eventTypes.push("'AllocEvent'");
       this.eventTypes.push("'MmapEvent'");
     } else {
+      //@ts-ignore
       if (memoryParam.nativeMemory.indexOf(this.defaultNativeTypes[1]) !== -1) {
         this.eventTypes.push("'AllocEvent'");
-      }
+      } //@ts-ignore
       if (memoryParam.nativeMemory.indexOf(this.defaultNativeTypes[2]) !== -1) {
         this.eventTypes.push("'MmapEvent'");
       }
-    }
+    } //@ts-ignore
     TabPaneNMSampleList.serSelection(memoryParam);
     if (this.memoryTbl) {
       // @ts-ignore
@@ -95,26 +99,27 @@ export class TabPaneNMemory extends BaseElement {
       this.initFilterTypes(() => {
         this.filterSetSelectList(this.filter!, 0);
         this.getDataByNativeMemoryWorker(memoryParam, resetFilter);
-      })
+      });
     } else {
       this.getDataByNativeMemoryWorker(memoryParam, resetFilter);
     }
   }
 
-  getDataByNativeMemoryWorker(val: SelectionParam | any, refresh = false): void {
-    let args = new Map<string, any>();
+  getDataByNativeMemoryWorker(val: SelectionParam | unknown, refresh = false): void {
+    let args = new Map<string, unknown>();
     args.set('filterAllocType', this.filterAllocationType);
     args.set('filterEventType', this.filterNativeType);
-    args.set('filterResponseType', this.filterResponseType);
-    args.set('leftNs', val.leftNs);
+    args.set('filterResponseType', this.filterResponseType); //@ts-ignore
+    args.set('leftNs', val.leftNs); //@ts-ignore
     args.set('rightNs', val.rightNs);
     args.set('types', this.eventTypes);
     args.set('refresh', refresh);
-    let selections: Array<any> = [];
+    let selections: Array<unknown> = [];
     if (this.statsticsSelection.length > 0) {
       this.statsticsSelection.map((memory) => {
         selections.push({
-          memoryTap: memory.memoryTap,
+          //@ts-ignore
+          memoryTap: memory.memoryTap, //@ts-ignore
           max: memory.max,
         });
       });
@@ -126,9 +131,9 @@ export class TabPaneNMemory extends BaseElement {
     if (this.memoryTbl!.recycleDs.length > 1_0000) {
       this.memoryTbl!.recycleDataSource = [];
     }
-    this.startNmMemoryWorker('native-memory-queryNativeHookEvent', args, (results: any[]) => {
+    this.startNmMemoryWorker('native-memory-queryNativeHookEvent', args, (results: unknown[]) => {
       this.tblData!.recycleDataSource = [];
-      this.setNmMemoryLoading(false)
+      this.setNmMemoryLoading(false);
       if (results.length > 0) {
         this.memorySource = results;
         this.memoryTbl!.recycleDataSource = this.memorySource;
@@ -139,14 +144,17 @@ export class TabPaneNMemory extends BaseElement {
     });
   }
 
-  startNmMemoryWorker(type: string, args: any, handler: Function): void {
+  startNmMemoryWorker(type: string, args: unknown, handler: Function): void {
     this.setNmMemoryLoading(true);
-    procedurePool.submitWithName('logic0', type, args, undefined, (res: any) => {
+    procedurePool.submitWithName('logic0', type, args, undefined, (res: unknown) => {
+      //@ts-ignore
       if (Array.isArray(res) || (res.tag === 'end' && res.index === 0)) {
+        //@ts-ignore
         handler(res.data ? res.data : res);
         this.setNmMemoryLoading(false);
       } else {
-        this.memorySource.push(res.data);
+        //@ts-ignore
+        this.memorySource.push(res.data); //@ts-ignore
         if (res.tag === 'end') {
           handler(this.memorySource);
           this.setNmMemoryLoading(false);
@@ -158,22 +166,23 @@ export class TabPaneNMemory extends BaseElement {
   setNmMemoryLoading(loading: boolean): void {
     if (loading) {
       this.nmMemoryLoadingList.push(1);
-      this.progressEL!.loading = true;
+      this.progressEL!.loading = true; //@ts-ignore
       this.loadingPage.style.visibility = 'visible';
     } else {
       this.nmMemoryLoadingList.splice(0, 1);
       if (this.nmMemoryLoadingList.length === 0) {
-        this.progressEL!.loading = false;
+        this.progressEL!.loading = false; //@ts-ignore
         this.loadingPage.style.visibility = 'hidden';
       }
     }
   }
 
-  fromStastics(val: SelectionParam | any): void {
+  fromStastics(val: SelectionParam | unknown): void {
     let nmFilterEl = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     if (this.currentSelection !== val) {
       this.resetFilter();
       this.initFilterTypes(() => {
+        //@ts-ignore
         this.currentSelection = val;
         let typeIndexOf = this.setFilterNativeTypeSelection(this.currentSelection!);
         this.filterSetSelectList(nmFilterEl!, typeIndexOf);
@@ -182,6 +191,7 @@ export class TabPaneNMemory extends BaseElement {
         this.queryData(val, false);
       });
     } else {
+      //@ts-ignore
       let typeIndexOf = this.setFilterNativeTypeSelection(val);
       this.tblData!.recycleDataSource = [];
       this.rowSelectData = undefined;
@@ -195,12 +205,15 @@ export class TabPaneNMemory extends BaseElement {
   private setFilterNativeTypeSelection(val: SelectionParam): number {
     let typeIndexOf = -1;
     if (val.statisticsSelectData) {
+      // @ts-ignore
       typeIndexOf = this.nativeType.indexOf(val.statisticsSelectData.memoryTap);
       if (this.statsticsSelection.indexOf(val.statisticsSelectData) === -1 && typeIndexOf === -1) {
         this.statsticsSelection.push(val.statisticsSelectData);
+        // @ts-ignore
         this.nativeType.push(val.statisticsSelectData.memoryTap);
         typeIndexOf = this.nativeType.length - 1;
       } else {
+        // @ts-ignore
         let index = this.statsticsSelection.findIndex((mt) => mt.memoryTap === val.statisticsSelectData.memoryTap);
         if (index !== -1) {
           this.statsticsSelection[index] = val.statisticsSelectData;
@@ -216,7 +229,8 @@ export class TabPaneNMemory extends BaseElement {
       this.nativeType,
       'Allocation Lifespan',
       'Allocation Type',
-      this.responseTypes.map((item: any) => {
+      this.responseTypes.map((item: unknown) => {
+        //@ts-ignore
         return item.value;
       })
     );
@@ -230,19 +244,20 @@ export class TabPaneNMemory extends BaseElement {
     if (this.currentSelection) {
       this.setFilterNativeTypeSelection(this.currentSelection);
     }
-    procedurePool.submitWithName('logic0', 'native-memory-get-responseType', {}, undefined, (res: any) => {
+    procedurePool.submitWithName('logic0', 'native-memory-get-responseType', {}, undefined, (res: unknown) => {
       this.filter!.setSelectList(
         null,
         this.nativeType,
         'Allocation Lifespan',
-        'Allocation Type',
-        res.map((item: any) => {
+        'Allocation Type', //@ts-ignore
+        res.map((item: unknown) => {
+          //@ts-ignore
           return item.value;
         })
       );
       this.filter!.setFilterModuleSelect('#first-select', 'width', '150px');
       this.filter!.setFilterModuleSelect('#second-select', 'width', '150px');
-      this.filter!.setFilterModuleSelect('#third-select', 'width', '150px');
+      this.filter!.setFilterModuleSelect('#third-select', 'width', '150px'); //@ts-ignore
       this.responseTypes = res;
       this.rowSelectData = undefined;
       if (initCallback) {
@@ -262,6 +277,9 @@ export class TabPaneNMemory extends BaseElement {
   }
 
   initElements(): void {
+    this.systemTrace = document
+      .querySelector('body > sp-application')
+      ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.loadingPage = this.shadowRoot?.querySelector('.loading');
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
     this.memoryTbl = this.shadowRoot?.querySelector<LitPageTable>('#tb-native-memory');
@@ -270,21 +288,45 @@ export class TabPaneNMemory extends BaseElement {
     this.memoryTbl!.addEventListener('row-click', (e) => {
       // @ts-ignore
       let data = e.detail.data as NativeMemory;
+      data.isSelected = true;
       this.rowSelectData = data;
       this.setRightTableData(data);
+      // @ts-ignore
+      if ((e.detail as unknown).callBack) {
+        // @ts-ignore
+        (e.detail as unknown).callBack(true);
+      }
+      let flagList = this.systemTrace?.timerShaftEL!.sportRuler?.flagList || [];
+      flagList.forEach((it, i) => {
+        if (it.type === 'triangle') {
+          flagList.splice(i, 1);
+        }
+      });
+
+      for (let i = 0; i < flagList!.length; i++) {
+        if (flagList[i].time === data.startTs) {
+          flagList[i].type = 'triangle';
+          flagList[i].selected = true;
+        } else {
+          flagList[i].type = '';
+          flagList[i].selected = false;
+        }
+      }
       document.dispatchEvent(
         new CustomEvent('triangle-flag', {
-          detail: { time: [data.startTs], type: 'triangle' },
+          detail: { time: data.startTs, type: 'triangle' },
         })
       );
     });
-    this.memoryTbl!.addEventListener('column-click', (evt: any) => {
-      this.sortColumn = evt.detail.key;
+    this.memoryTbl!.addEventListener('column-click', (evt: unknown) => {
+      //@ts-ignore
+      this.sortColumn = evt.detail.key; //@ts-ignore
       this.sortType = evt.detail.sort;
       this.getDataByNativeMemoryWorker(this.currentSelection);
     });
     this.setItemTextHandleMapByMemoryTbl();
     this.memoryTbl!.exportTextHandleMap.set('heapSize', (value) => {
+      // @ts-ignore
       return `${value['heapSize']}`;
     });
     this.shadowRoot?.querySelector<TabPaneFilter>('#filter')!.getFilterData((data: FilterData) => {
@@ -296,7 +338,7 @@ export class TabPaneNMemory extends BaseElement {
         this.filterResponseSelect = data.thirdSelect || '0';
         let thirdIndex = parseInt(data.thirdSelect || '0');
         if (this.responseTypes.length > thirdIndex) {
-          this.filterResponseType =
+          this.filterResponseType = //@ts-ignore
             this.responseTypes[thirdIndex].key === undefined ? -1 : this.responseTypes[thirdIndex].key;
         }
         this.getDataByNativeMemoryWorker(this.currentSelection);
@@ -307,62 +349,61 @@ export class TabPaneNMemory extends BaseElement {
 
   private setItemTextHandleMapByMemoryTbl(): void {
     this.memoryTbl!.itemTextHandleMap.set('startTs', (startTs) => {
-      return SpNativeMemoryChart.REAL_TIME_DIF === 0
-        ? getTimeString(startTs)
+      return SpNativeMemoryChart.REAL_TIME_DIF === 0 // @ts-ignore
+        ? getTimeString(startTs) // @ts-ignore
         : formatRealDateMs(startTs + SpNativeMemoryChart.REAL_TIME_DIF);
     });
     this.memoryTbl!.itemTextHandleMap.set('endTs', (endTs) => {
-      return endTs > this.currentSelection!.leftNs &&
-      endTs <= this.currentSelection!.rightNs &&
-      endTs !== 0 &&
-      endTs !== null
+      // @ts-ignore
+      return endTs > this.currentSelection!.leftNs && // @ts-ignore
+        endTs <= this.currentSelection!.rightNs &&
+        endTs !== 0 &&
+        endTs !== null
         ? 'Freed'
         : 'Existing';
     });
     this.memoryTbl!.itemTextHandleMap.set('heapSize', (heapSize) => {
+      // @ts-ignore
       return getByteWithUnit(heapSize);
     });
   }
 
-  private getFilterDataByMark(): void{
+  private getFilterDataByMark(): void {
     document.dispatchEvent(
       new CustomEvent('triangle-flag', {
         detail: {
           time: '',
           type: 'square',
-          timeCallback: (timeArr: number[]) => {
+          timeCallback: (timeArr: number[]): void => {
             if (timeArr && timeArr.length > 0) {
               let checkTs = timeArr[0];
               let minTs = 0;
-              let minItem: any = undefined;
+              let minItem: unknown = undefined;
               let filterTemp = this.memorySource.filter((tempItem) => {
-                if (
-                  minTs === 0 ||
-                  (tempItem.startTs - checkTs != 0 && Math.abs(tempItem.startTs - checkTs) < minTs)
-                ) {
+                //@ts-ignore
+                if (minTs === 0 || (tempItem.startTs - checkTs !== 0 && Math.abs(tempItem.startTs - checkTs) < minTs)) {
+                  //@ts-ignore
                   minTs = Math.abs(tempItem.startTs - checkTs);
                   minItem = tempItem;
-                }
+                } //@ts-ignore
                 return tempItem.startTs === checkTs;
               });
               if (filterTemp.length > 0) {
+                //@ts-ignore
                 filterTemp[0].isSelected = true;
               } else {
                 if (minItem) {
-                  filterTemp.push(minItem);
+                  filterTemp.push(minItem); //@ts-ignore
                   minItem.isSelected = true;
                 }
               }
               if (filterTemp.length > 0) {
                 this.rowSelectData = filterTemp[0];
-                let args = new Map<string, any>();
+                let args = new Map<string, unknown>(); //@ts-ignore
                 args.set('startTs', this.rowSelectData.startTs);
                 args.set('actionType', 'native-memory-state-change');
-                this.startNmMemoryWorker('native-memory-action', args, (results: any[]) => {});
-                TabPaneNMSampleList.addSampleData(
-                  this.rowSelectData,
-                  this.currentSelection!.nativeMemoryCurrentIPid
-                );
+                this.startNmMemoryWorker('native-memory-action', args, (results: unknown[]) => {});
+                TabPaneNMSampleList.addSampleData(this.rowSelectData, this.currentSelection!.nativeMemoryCurrentIPid);
                 this.memoryTbl!.scrollToData(this.rowSelectData);
               }
             }
@@ -372,7 +413,7 @@ export class TabPaneNMemory extends BaseElement {
     );
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight !== 0) {
@@ -389,21 +430,21 @@ export class TabPaneNMemory extends BaseElement {
             this.parentElement!.clientHeight - 10 - 31
           }px`;
         }
-        this.tblData?.reMeauseHeight();
+        this.tblData?.reMeauseHeight(); //@ts-ignore
         this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
   }
 
   setRightTableData(nativeMemoryHook: NativeMemory): void {
-    let args = new Map<string, any>();
+    let args = new Map<string, unknown>();
     args.set('eventId', nativeMemoryHook.eventId);
     args.set('actionType', 'memory-stack');
-    this.startNmMemoryWorker('native-memory-action', args, (results: any[]) => {
+    this.startNmMemoryWorker('native-memory-action', args, (results: unknown[]) => {
       let thread = new NativeHookCallInfo();
       thread.threadId = nativeMemoryHook.threadId;
-      thread.threadName = Utils.THREAD_MAP.get(thread.threadId) || 'Thread';
-      thread.title = `${nativeMemoryHook.threadName ?? ''}【${nativeMemoryHook.threadId}】`;
+      thread.threadName = Utils.getInstance().getThreadMap().get(thread.threadId) || 'Thread';
+      thread.symbol = `${nativeMemoryHook.threadName ?? ''}【${nativeMemoryHook.threadId}】`;
       thread.type = -1;
       let currentSource = [];
       currentSource.push(thread);

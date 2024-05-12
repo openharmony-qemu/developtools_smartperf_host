@@ -21,7 +21,7 @@ import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogi
 import { resizeObserver } from '../SheetUtils';
 import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
-import {queryGpuDataTab} from "../../../../database/sql/Gpu.sql";
+import { queryGpuDataTab } from '../../../../database/sql/Gpu.sql';
 
 interface Graph {
   startTs: number;
@@ -37,19 +37,23 @@ export class TabPaneGpuGraph extends BaseElement {
   private graphSource: Array<Graph> = [];
   private currentSelectionParam: SelectionParam | undefined;
 
-  set data(graphParam: SelectionParam | any) {
+  set data(graphParam: SelectionParam | unknown) {
     if (this.currentSelectionParam === graphParam) {
       return;
     }
+    // @ts-ignore
     this.currentSelectionParam = graphParam;
     //@ts-ignore
     this.graphTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
     this.range!.textContent =
+      // @ts-ignore
       'Selected range: ' + ((graphParam.rightNs - graphParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.graphTbl!.loading = true;
     queryGpuDataTab(
       MemoryConfig.getInstance().iPid,
+      // @ts-ignore
       graphParam.leftNs,
+      // @ts-ignore
       graphParam.rightNs,
       MemoryConfig.getInstance().snapshotDur,
       "'mem.graph_pss'"

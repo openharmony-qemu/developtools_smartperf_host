@@ -109,19 +109,19 @@ void TraceDataDB::SendDatabase(ResultCallBack resultCallBack)
         uint8_t data[DATABASE_BASE];
         auto size = base::Read(fd, data, DATABASE_BASE);
         if (size == 0) {
-            resultCallBack(std::string((char*)data, size), SEND_FINISH);
+            resultCallBack(std::string((char *)data, size), SEND_FINISH);
             break;
         } else if (size < 0) {
             TS_LOGD("Reading trace file failed (errno: %d, %s)", errno, strerror(errno));
             break;
         }
-        resultCallBack(std::string((char*)data, DATABASE_BASE), SEND_CONTINUE);
+        resultCallBack(std::string((char *)data, DATABASE_BASE), SEND_CONTINUE);
     }
     close(fd);
     (void)remove(wasmDBName_.c_str());
     wasmDBName_.clear();
 }
-int32_t TraceDataDB::CreatEmptyBatchDB(const std::string& outputName)
+int32_t TraceDataDB::CreatEmptyBatchDB(const std::string &outputName)
 {
     {
         int32_t fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
@@ -135,7 +135,7 @@ int32_t TraceDataDB::CreatEmptyBatchDB(const std::string& outputName)
     }
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
 #ifdef _WIN32
-    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+    if (!base::GetCoding(reinterpret_cast<const uint8_t *>(attachSql.c_str()), attachSql.length())) {
         attachSql = base::GbkToUtf8(attachSql.c_str());
     }
 #endif
@@ -157,14 +157,14 @@ void TraceDataDB::CloseBatchDB()
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
 }
-int32_t TraceDataDB::BatchExportDatabase(const std::string& outputName)
+int32_t TraceDataDB::BatchExportDatabase(const std::string &outputName)
 {
     // for update mem db
     ExecuteSql(UPDATE_MEM_PROC_NAME);
     // for drop mem db to disk db
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
 #ifdef _WIN32
-    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+    if (!base::GetCoding(reinterpret_cast<const uint8_t *>(attachSql.c_str()), attachSql.length())) {
         attachSql = base::GbkToUtf8(attachSql.c_str());
     }
 #endif
@@ -192,11 +192,11 @@ int32_t TraceDataDB::BatchExportDatabase(const std::string& outputName)
     ExecuteSql(detachSql);
     return 0;
 }
-void TraceDataDB::RevertTableName(const std::string& outputName)
+void TraceDataDB::RevertTableName(const std::string &outputName)
 {
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
 #ifdef _WIN32
-    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+    if (!base::GetCoding(reinterpret_cast<const uint8_t *>(attachSql.c_str()), attachSql.length())) {
         attachSql = base::GbkToUtf8(attachSql.c_str());
     }
 #endif
@@ -212,7 +212,7 @@ void TraceDataDB::RevertTableName(const std::string& outputName)
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
 }
-int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack)
+int32_t TraceDataDB::ExportDatabase(const std::string &outputName, ResultCallBack resultCallBack)
 {
     {
         int32_t fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
@@ -228,7 +228,7 @@ int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBac
     ExecuteSql(UPDATE_MEM_PROC_NAME);
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
 #ifdef _WIN32
-    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+    if (!base::GetCoding(reinterpret_cast<const uint8_t *>(attachSql.c_str()), attachSql.length())) {
         attachSql = base::GbkToUtf8(attachSql.c_str());
     }
 #endif
@@ -265,9 +265,9 @@ void TraceDataDB::Prepare()
     ExecuteSql(CREATE_MEM_ARGS_VIEW);
     ExecuteSql(UPDATE_MEM_PROC_NAME);
 }
-void TraceDataDB::ExecuteSql(const std::string_view& sql)
+void TraceDataDB::ExecuteSql(const std::string_view &sql)
 {
-    sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt *stmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(db_, sql.data(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
 
     while (!ret) {
@@ -332,7 +332,7 @@ std::vector<std::string> TraceDataDB::SearchData()
     }
     return values;
 }
-void TraceDataDB::ParseCommandLine(std::string& option, std::string line, std::vector<std::string>& values)
+void TraceDataDB::ParseCommandLine(std::string &option, std::string line, std::vector<std::string> &values)
 {
     size_t pos = std::string::npos;
     if ((pos = line.find(" ")) != std::string::npos) {
@@ -354,11 +354,11 @@ void TraceDataDB::PrintSearchResult(std::string line, bool printResult)
     std::chrono::nanoseconds searchDur = duration_cast<nanoseconds>(steady_clock::now() - start);
     printf("\"%s\"\n\tused %.3fms row: %d\n", line.c_str(), searchDur.count() / 1E6, rowCount);
 }
-int32_t TraceDataDB::SearchDatabase(std::string& sql, bool print)
+int32_t TraceDataDB::SearchDatabase(std::string &sql, bool print)
 {
     Prepare();
     int32_t rowCount = 0;
-    sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt *stmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
     printf("Executing sql: %s\n", sql.c_str());
     if (ret != SQLITE_OK) {
@@ -377,7 +377,7 @@ int32_t TraceDataDB::SearchDatabase(std::string& sql, bool print)
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         rowCount++;
         for (int32_t i = 0; i < colCount; i++) {
-            const char* p = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
+            const char *p = reinterpret_cast<const char *>(sqlite3_column_text(stmt, i));
             int32_t type = sqlite3_column_type(stmt, i);
             if (!print) {
                 continue;
@@ -399,10 +399,10 @@ int32_t TraceDataDB::SearchDatabase(std::string& sql, bool print)
     sqlite3_finalize(stmt);
     return rowCount;
 }
-int32_t TraceDataDB::OperateDatabase(const std::string& sql)
+int32_t TraceDataDB::OperateDatabase(const std::string &sql)
 {
     Prepare();
-    char* errmsg = nullptr;
+    char *errmsg = nullptr;
     int32_t ret = sqlite3_exec(db_, sql.c_str(), NULL, NULL, &errmsg);
     if (ret != SQLITE_OK && errmsg) {
         TS_LOGE("sqlite3_exec(%s) failed: %d:%s", sql.c_str(), ret, errmsg);
@@ -411,19 +411,19 @@ int32_t TraceDataDB::OperateDatabase(const std::string& sql)
     return ret;
 }
 
-int32_t TraceDataDB::SearchDatabaseToProto(const std::string& data,
+int32_t TraceDataDB::SearchDatabaseToProto(const std::string &data,
                                            SqllitePreparCacheData::TLVResultCallBack resultCallBack)
 {
     TS_CHECK_TRUE(data.size() > SqllitePreparCacheData::TYPE_SIZE && resultCallBack != nullptr, 1,
                   "data.size(%zu) <= sizeof(uint32_t) or resultCallBack is nullptr", data.size());
     uint32_t type = INVALID_UINT32;
     auto sqlItor = data.begin() + SqllitePreparCacheData::TYPE_SIZE;
-    std::copy(data.begin(), sqlItor, reinterpret_cast<uint8_t*>(&type));
+    std::copy(data.begin(), sqlItor, reinterpret_cast<uint8_t *>(&type));
     std::string sql(sqlItor, data.end());
     TS_LOGI("type(%u), sql(%s)", type, sql.data());
     Prepare();
-    sqlite3_stmt* stmt = nullptr;
-    std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtScope(stmt, SqliteFinalize);
+    sqlite3_stmt *stmt = nullptr;
+    std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt *)> stmtScope(stmt, SqliteFinalize);
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
     TS_CHECK_TRUE(ret == SQLITE_OK, ret, "sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
     auto queryFuncItor = sqlPreparCacheData_.sphQueryFuncMap_.find(type);
@@ -436,10 +436,10 @@ int32_t TraceDataDB::SearchDatabaseToProto(const std::string& data,
     return ret;
 }
 
-std::string TraceDataDB::SearchDatabase(const std::string& sql)
+std::string TraceDataDB::SearchDatabase(const std::string &sql)
 {
     Prepare();
-    sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt *stmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
     if (ret != SQLITE_OK) {
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
@@ -476,10 +476,10 @@ std::string TraceDataDB::SearchDatabase(const std::string& sql)
     return res;
 }
 
-int32_t TraceDataDB::SearchDatabase(const std::string& sql, ResultCallBack resultCallBack)
+int32_t TraceDataDB::SearchDatabase(const std::string &sql, ResultCallBack resultCallBack)
 {
     Prepare();
-    sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt *stmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
     if (ret != SQLITE_OK) {
         resultCallBack("false\r\n", SEND_FINISH);
@@ -525,11 +525,11 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, ResultCallBack resul
     sqlite3_finalize(stmt);
     return ret;
 }
-int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
+int32_t TraceDataDB::SearchDatabase(const std::string &sql, uint8_t *out, int32_t outLen)
 {
     Prepare();
-    sqlite3_stmt* stmt = nullptr;
-    std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtLocal(stmt, SqliteFinalize);
+    sqlite3_stmt *stmt = nullptr;
+    std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt *)> stmtLocal(stmt, SqliteFinalize);
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
     if (ret != SQLITE_OK) {
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
@@ -537,7 +537,7 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
     }
     stmtLocal.reset(stmt);
     std::string snprintfInfo("ok");
-    char* res = reinterpret_cast<char*>(out);
+    char *res = reinterpret_cast<char *>(out);
     int32_t retSnprintf = snprintf_s(res, outLen, snprintfInfo.size(), snprintfInfo.data());
     if (retSnprintf < 0) {
         return -1;
@@ -554,7 +554,7 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
     pos = returnvalue;
     return HandleRowData(stmt, res, outLen, pos, colCount);
 }
-int32_t TraceDataDB::HandleColumnNames(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount)
+int32_t TraceDataDB::HandleColumnNames(sqlite3_stmt *stmt, char *res, int32_t outLen, int32_t pos, int32_t colCount)
 {
     std::string snprintfInfo = "{\"columns\":[";
     int32_t retSnprintf = snprintf_s(res + pos, outLen - pos, snprintfInfo.size(), "%s", snprintfInfo.c_str());
@@ -579,7 +579,7 @@ int32_t TraceDataDB::HandleColumnNames(sqlite3_stmt* stmt, char* res, int32_t ou
     pos += retSnprintf;
     return pos;
 }
-int32_t TraceDataDB::HandleRowData(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount)
+int32_t TraceDataDB::HandleRowData(sqlite3_stmt *stmt, char *res, int32_t outLen, int32_t pos, int32_t colCount)
 {
     std::string snprintfInfo;
     int32_t retSnprintf;
@@ -620,12 +620,12 @@ void TraceDataDB::SetCancel(bool cancel)
 {
     cancelQuery_ = cancel;
 }
-void TraceDataDB::GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowStr)
+void TraceDataDB::GetRowString(sqlite3_stmt *stmt, int32_t colCount, std::string &rowStr)
 {
     rowStr.clear();
     rowStr = "[";
     for (int32_t i = 0; i < colCount; i++) {
-        const char* p = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
+        const char *p = reinterpret_cast<const char *>(sqlite3_column_text(stmt, i));
         if (p == nullptr) {
             rowStr += "null,";
             continue;
@@ -644,7 +644,7 @@ void TraceDataDB::GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string
     rowStr.pop_back(); // remove the last ','
     rowStr += "]";
 }
-void TraceDataDB::SqliteFinalize(sqlite3_stmt* ptr)
+void TraceDataDB::SqliteFinalize(sqlite3_stmt *ptr)
 {
     if (ptr != nullptr) {
         sqlite3_finalize(ptr);

@@ -20,7 +20,7 @@ import { Utils } from '../../base/Utils';
 import { ColorUtils } from '../../base/ColorUtils';
 import { CpuFreqLimitsStruct } from '../../../../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { resizeObserver } from '../SheetUtils';
-import { getCpuLimitFreqBoxSelect } from "../../../../database/sql/Cpu.sql";
+import { getCpuLimitFreqBoxSelect } from '../../../../database/sql/Cpu.sql';
 
 @element('tabpane-cpu-freq-limits')
 export class TabPaneCpuFreqLimits extends BaseElement {
@@ -30,21 +30,26 @@ export class TabPaneCpuFreqLimits extends BaseElement {
   private cpuFreqLimitSortKey: string = 'cpu';
   private cpuFreqLimitSortType: number = 0;
 
-  set data(cpuFreqLimitSelection: SelectionParam | any) {
-    if (cpuFreqLimitSelection == this.selectionParam) {
+  set data(cpuFreqLimitSelection: SelectionParam | unknown) {
+    if (cpuFreqLimitSelection === this.selectionParam) {
       return;
     }
+    // @ts-ignore
     this.selectionParam = cpuFreqLimitSelection;
     // @ts-ignore
     this.cpuFreqLimitsTbl!.shadowRoot!.querySelector('.table').style.height =
       this.parentElement!.clientHeight - 25 + 'px';
-    let list: any[] = [];
+    let list: unknown[] = [];
+    // @ts-ignore
     getCpuLimitFreqBoxSelect(cpuFreqLimitSelection.cpuFreqLimit, cpuFreqLimitSelection.rightNs).then((res) => {
       for (let it of res) {
+        //@ts-ignore
         if (!it.dur || it.startNs + it.dur > cpuFreqLimitSelection.rightNs) {
+          //@ts-ignore
           it.dur = (cpuFreqLimitSelection.rightNs || 0) - (it.startNs || 0);
         }
       }
+      //@ts-ignore
       this.formatData(res, cpuFreqLimitSelection.leftNs, cpuFreqLimitSelection.rightNs);
     });
   }
@@ -61,14 +66,14 @@ export class TabPaneCpuFreqLimits extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.cpuFreqLimitsTbl!, 25);
   }
 
-  formatData(list: CpuFreqLimitsStruct[], start: number, end: number) {
+  formatData(list: CpuFreqLimitsStruct[], start: number, end: number): void {
     let limitsMap = new Map<string, CpuFreqLimit>();
-    let groupMapData = (time: number, id: string, item: CpuFreqLimitsStruct) => {
+    let groupMapData = (time: number, id: string, item: CpuFreqLimitsStruct): void => {
       if (limitsMap.has(id)) {
         limitsMap.get(id)!.time += time;
       } else {
@@ -103,18 +108,18 @@ export class TabPaneCpuFreqLimits extends BaseElement {
   }
 
   sortCpuFreqLimitTable(key: string, type: number): void {
-    if (type == 0) {
+    if (type === 0) {
       this.cpuFreqLimitsTbl!.recycleDataSource = this.cpuFreqLimitSource;
     } else {
       let cpuFreqLimitsArr = Array.from(this.cpuFreqLimitSource);
       cpuFreqLimitsArr.sort((cpuFreqLimitA, cpuFreqLimitB): number => {
-        if (key == 'timeStr') {
+        if (key === 'timeStr') {
           return this.compareTime(cpuFreqLimitA, cpuFreqLimitB, type);
-        } else if (key == 'valueStr') {
+        } else if (key === 'valueStr') {
           return this.compareValue(cpuFreqLimitA, cpuFreqLimitB, type);
-        } else if (key == 'cpu') {
+        } else if (key === 'cpu') {
           return this.compareCpu(cpuFreqLimitA, cpuFreqLimitB, type);
-        } else if (key == 'type') {
+        } else if (key === 'type') {
           return this.compareType(cpuFreqLimitA, cpuFreqLimitB, type);
         } else {
           return 0;
@@ -124,36 +129,42 @@ export class TabPaneCpuFreqLimits extends BaseElement {
     }
   }
 
-  compareTime(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
-    if (type == 1) {
+  compareTime(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
+    if (type === 1) {
+      // @ts-ignore
       return cpuFreqLimitA.time - cpuFreqLimitB.time;
     } else {
+      // @ts-ignore
       return cpuFreqLimitB.time - cpuFreqLimitA.time;
     }
   }
 
-  compareValue(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
-    if (type == 1) {
+  compareValue(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
+    if (type === 1) {
+      // @ts-ignore
       return cpuFreqLimitA.value - cpuFreqLimitB.value;
     } else {
+      // @ts-ignore
       return cpuFreqLimitB.value - cpuFreqLimitA.value;
     }
   }
 
-  compareCpu(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
+  compareCpu(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
+    // @ts-ignore
     if (cpuFreqLimitA.cpu > cpuFreqLimitB.cpu) {
-      return type === 2 ? -1 : 1;
-    } else if (cpuFreqLimitA.cpu == cpuFreqLimitB.cpu) {
+      return type === 2 ? -1 : 1; // @ts-ignore
+    } else if (cpuFreqLimitA.cpu === cpuFreqLimitB.cpu) {
       return 0;
     } else {
       return type === 2 ? 1 : -1;
     }
   }
 
-  compareType(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
+  compareType(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
+    // @ts-ignore
     if (cpuFreqLimitA.type > cpuFreqLimitB.type) {
-      return type === 2 ? 1 : -1;
-    } else if (cpuFreqLimitA.type == cpuFreqLimitB.type) {
+      return type === 2 ? 1 : -1; // @ts-ignore
+    } else if (cpuFreqLimitA.type === cpuFreqLimitB.type) {
       return 0;
     } else {
       return type === 2 ? -1 : 1;

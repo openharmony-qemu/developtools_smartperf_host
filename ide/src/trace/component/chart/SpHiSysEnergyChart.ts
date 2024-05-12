@@ -17,35 +17,26 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { info } from '../../../log/Log';
 import { TraceRow } from '../trace/base/TraceRow';
 import { BaseStruct } from '../../bean/BaseStruct';
-import {
-  EnergyAnomalyRender,
-  EnergyAnomalyStruct
-} from '../../database/ui-worker/ProcedureWorkerEnergyAnomaly';
-import {
-  EnergySystemStruct,
-  EnergySystemRender
-} from '../../database/ui-worker/ProcedureWorkerEnergySystem';
-import {
-  EnergyPowerStruct,
-  EnergyPowerRender
-} from '../../database/ui-worker/ProcedureWorkerEnergyPower';
-import {
-  EnergyStateStruct,
-  EnergyStateRender
-} from '../../database/ui-worker/ProcedureWorkerEnergyState';
+import { EnergyAnomalyRender, EnergyAnomalyStruct } from '../../database/ui-worker/ProcedureWorkerEnergyAnomaly';
+import { EnergySystemStruct, EnergySystemRender } from '../../database/ui-worker/ProcedureWorkerEnergySystem';
+import { EnergyPowerStruct, EnergyPowerRender } from '../../database/ui-worker/ProcedureWorkerEnergyPower';
+import { EnergyStateStruct, EnergyStateRender } from '../../database/ui-worker/ProcedureWorkerEnergyState';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { TreeItemData } from '../../../base-ui/tree/LitTree';
 import {
   energySysEventSender,
-  hiSysEnergyAnomalyDataSender, hiSysEnergyPowerSender,
-  hiSysEnergyStateSender
+  hiSysEnergyAnomalyDataSender,
+  hiSysEnergyPowerSender,
+  hiSysEnergyStateSender,
 } from '../../database/data-trafic/EnergySysEventSender';
 import {
   queryAnomalyData,
   queryConfigEnergyAppName,
   queryEnergyAppName,
-  queryEnergyEventExits, queryMaxStateValue, queryStateInitValue
+  queryEnergyEventExits,
+  queryMaxStateValue,
+  queryStateInitValue,
 } from '../../database/sql/SqlLite.sql';
 import { queryPowerData } from '../../database/sql/ProcessThread.sql';
 import { NUM_200, NUM_3 } from '../../bean/NumBean';
@@ -104,7 +95,9 @@ export class SpHiSysEnergyChart {
 
   async init(): Promise<void> {
     let result = await queryEnergyEventExits();
-    if (result.length <= 0) {return}
+    if (result.length <= 0) {
+      return;
+    }
     let anomalyData = await queryAnomalyData();
     let powerData = await queryPowerData();
     for (let index = 0; index < anomalyData.length; index++) {
@@ -130,11 +123,12 @@ export class SpHiSysEnergyChart {
     await this.initEnergyChartRow();
     this.energyTraceRow!.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     this.energyTraceRow!.selectChangeHandler = this.trace.selectChangeHandler;
-    this.energyTraceRow!.supplier = (): Promise<BaseStruct[]> => new Promise<Array<BaseStruct>>(
-      (resolve) => resolve([]));
+    this.energyTraceRow!.supplier = (): Promise<BaseStruct[]> =>
+      new Promise<Array<BaseStruct>>((resolve) => resolve([]));
     this.energyTraceRow!.onThreadHandler = (useCache: boolean): void => {
       this.energyTraceRow?.canvasSave(this.trace.canvasPanelCtx!);
       if (this.energyTraceRow!.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, this.energyTraceRow!.frame.width, this.energyTraceRow!.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -159,7 +153,7 @@ export class SpHiSysEnergyChart {
       }, NUM_200);
     });
     this.trace.rowsEL?.appendChild(this.energyTraceRow!);
-  };
+  }
 
   private initAnomaly = (): void => {
     let time = new Date().getTime();
@@ -308,9 +302,9 @@ export class SpHiSysEnergyChart {
             useCache: useCache,
             type: `energyState${index}`,
             maxState: maxStateData[0].maxValue,
-            maxStateName: maxStateData[0].type.toLocaleLowerCase().endsWith('br_switch_state') ?
-              '-1' :
-              maxStateTotal.toString(),
+            maxStateName: maxStateData[0].type.toLocaleLowerCase().endsWith('br_switch_state')
+              ? '-1'
+              : maxStateTotal.toString(),
           },
           stateTraceRow
         );
@@ -322,10 +316,12 @@ export class SpHiSysEnergyChart {
     }
   };
 
-  private getMaxStateTotal(maxStateData: Array<{
-    type: string;
-    maxValue: number;
-  }>): string {
+  private getMaxStateTotal(
+    maxStateData: Array<{
+      type: string;
+      maxValue: number;
+    }>
+  ): string {
     let maxStateTotal = maxStateData[0].maxValue.toString();
     let statType = maxStateData[0].type.toLocaleLowerCase();
     if (statType.includes('state') && !statType.endsWith('br_switch_state')) {
@@ -363,9 +359,7 @@ export class SpHiSysEnergyChart {
           EnergyStateStruct.hoverEnergyStateStruct?.value === 1 ? 'disable' : 'enable'
         }</span>`;
         if (EnergyStateStruct.hoverEnergyStateStruct?.type!.toLocaleLowerCase().endsWith('br_switch_state')) {
-          tip = `<span>${SpHiSysEnergyChart.getBlueToothState(
-            EnergyStateStruct.hoverEnergyStateStruct?.value
-          )}</span>`;
+          tip = `<span>${SpHiSysEnergyChart.getBlueToothState(EnergyStateStruct.hoverEnergyStateStruct?.value)}</span>`;
         }
       } else {
         tip = `<span>value: ${EnergyStateStruct.hoverEnergyStateStruct?.value?.toFixed(2) || 0}</span>`;
@@ -459,11 +453,7 @@ export class SpHiSysEnergyChart {
     systemTraceRow.setAttribute('children', '');
     systemTraceRow.name = 'System Event';
     systemTraceRow.focusHandler = (): void => {
-      this.trace?.displayTip(
-        systemTraceRow,
-        EnergySystemStruct.hoverEnergySystemStruct,
-        this.getSystemFocusHtml()
-      );
+      this.trace?.displayTip(systemTraceRow, EnergySystemStruct.hoverEnergySystemStruct, this.getSystemFocusHtml());
     };
     return systemTraceRow;
   }
@@ -543,64 +533,60 @@ export class SpHiSysEnergyChart {
     powerTraceRow.setAttribute('children', '');
     powerTraceRow.name = 'Power';
     powerTraceRow.focusHandler = (): void => {
-      this.trace?.displayTip(
-        powerTraceRow,
-        EnergyPowerStruct.hoverEnergyPowerStruct,
-        this.getPowerFocusHtml()
-      );
+      this.trace?.displayTip(powerTraceRow, EnergyPowerStruct.hoverEnergyPowerStruct, this.getPowerFocusHtml());
     };
     return powerTraceRow;
   }
 
-  private getPowerData(items: any): EnergyPowerStruct[] {
-    let powerDataMap: any = {};
-    let appNameList: string[] = [];
-    items.forEach((item: {
-      id: number,
-      startNS: number,
-      eventName: string,
-      appKey: string,
-      eventValue: string
-    }): void => {
-      let dataItem = powerDataMap[item.startNS];
-      if (dataItem === undefined) {
-        if (item.appKey === 'APPNAME') {
-          let appMap: any = {};
-          let appNames = item.eventValue.split(',');
-          appNameList = appNames;
-          if (appNames.length > 0) {
-            for (let appNamesKey of appNames) {
-              appMap[appNamesKey] = new EnergyPowerStruct();
-              appMap[appNamesKey].name = appNamesKey;
-              appMap[appNamesKey].ts = item.startNS;
+  private getPowerData(items: unknown): EnergyPowerStruct[] {
+    let powerDataMap: unknown = {};
+    let appNameList: string[] = []; //@ts-ignore
+    items.forEach(
+      (item: { id: number; startNS: number; eventName: string; appKey: string; eventValue: string }): void => {
+        //@ts-ignore
+        let dataItem = powerDataMap[item.startNS];
+        if (dataItem === undefined) {
+          if (item.appKey === 'APPNAME') {
+            let appMap: unknown = {};
+            let appNames = item.eventValue.split(',');
+            appNameList = appNames;
+            if (appNames.length > 0) {
+              for (let appNamesKey of appNames) {
+                //@ts-ignore
+                appMap[appNamesKey] = new EnergyPowerStruct(); //@ts-ignore
+                appMap[appNamesKey].name = appNamesKey; //@ts-ignore
+                appMap[appNamesKey].ts = item.startNS;
+              } //@ts-ignore
+              powerDataMap[item.startNS] = appMap;
             }
-            powerDataMap[item.startNS] = appMap;
           }
-        }
-      } else {
-        if (item.appKey !== 'APPNAME') {
-          this.powerDataMap(item.eventName, item.eventValue, appNameList, dataItem);
         } else {
-          let dataMap = powerDataMap[item.startNS];
-          let appNames = item.eventValue.split(',');
-          appNameList = appNames;
-          if (appNames.length > 0) {
-            for (let appNamesKey of appNames) {
-              dataMap[appNamesKey] = new EnergyPowerStruct();
-              dataMap[appNamesKey].name = appNamesKey;
-              dataMap[appNamesKey].ts = item.startNS;
+          if (item.appKey !== 'APPNAME') {
+            this.powerDataMap(item.eventName, item.eventValue, appNameList, dataItem);
+          } else {
+            //@ts-ignore
+            let dataMap = powerDataMap[item.startNS];
+            let appNames = item.eventValue.split(',');
+            appNameList = appNames;
+            if (appNames.length > 0) {
+              for (let appNamesKey of appNames) {
+                dataMap[appNamesKey] = new EnergyPowerStruct();
+                dataMap[appNamesKey].name = appNamesKey;
+                dataMap[appNamesKey].ts = item.startNS;
+              }
             }
           }
         }
       }
-    });
+    );
+    //@ts-ignore
     return Object.values(powerDataMap);
   }
 
-  private powerDataMap(name: string, eventValue: string, appNameList: string[], dataItem: any): void {
+  private powerDataMap(name: string, eventValue: string, appNameList: string[], dataItem: unknown): void {
     let values = eventValue.split(',');
     for (let i = 0; i < values.length; i++) {
-      let appName = appNameList[i];
+      let appName = appNameList[i]; //@ts-ignore
       let obj = dataItem[appName];
       if (obj !== undefined) {
         let eventName = name.split('_');

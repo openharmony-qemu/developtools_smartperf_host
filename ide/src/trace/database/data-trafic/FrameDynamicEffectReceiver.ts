@@ -14,8 +14,9 @@
 import { TraficEnum } from './utils/QueryEnum';
 import { FrameAnimationStruct } from '../ui-worker/ProcedureWorkerFrameAnimation';
 import { FrameSpacingStruct } from '../ui-worker/ProcedureWorkerFrameSpacing';
+import { Args } from './CommonArgs';
 
-export const chartFrameAnimationDataProtoSql = (args: any): string => {
+export const chartFrameAnimationDataProtoSql = (args: Args): string => {
   return `
       SELECT
           a.id AS animationId,
@@ -46,7 +47,7 @@ export const chartFrameAnimationDataProtoSql = (args: any): string => {
           animation AS a;`;
 };
 
-export const chartFrameDynamicDataMemSql = (args: any): string => {
+export const chartFrameDynamicDataMemSql = (args: Args): string => {
   return `
         SELECT
            dy.id,
@@ -63,7 +64,7 @@ export const chartFrameDynamicDataMemSql = (args: any): string => {
           and ts <= ${Math.floor(args.endNS)}`;
 };
 
-export const chartFrameSpacingDataMemSql = (args: any): string => {
+export const chartFrameSpacingDataMemSql = (args: Args): string => {
   return `
       SELECT
           d.id,
@@ -79,16 +80,19 @@ export const chartFrameSpacingDataMemSql = (args: any): string => {
           and currentTs <= ${Math.floor(args.endNS)};`;
 };
 
-export function frameAnimationReceiver(data: any, proc: Function): void {
+export function frameAnimationReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   let res = proc(chartFrameAnimationDataProtoSql(data.params));
+  // @ts-ignore
   let transfer = data.params.trafic !== TraficEnum.SharedArrayBuffer;
   let frameAnimation = new FrameAnimation(data, res, transfer);
   let unitIndex: number = 1;
   let isIntersect = (a: FrameAnimationStruct, b: FrameAnimationStruct): boolean =>
     Math.max(a.startTs! + a.dur!, b.startTs! + b.dur!) - Math.min(a.startTs!, b.startTs!) < a.dur! + b.dur!;
-  let depths: any[] = [];
+  let depths: unknown[] = [];
   for (let index: number = 0; index < res.length; index++) {
     let itemData = res[index];
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.frameAnimationData);
     itemData.dur = itemData.endTs - itemData.startTs;
     if (!itemData.dur || itemData.dur < 0) {
@@ -101,6 +105,7 @@ export function frameAnimationReceiver(data: any, proc: Function): void {
       let depthIndex: number = 0;
       let isContinue: boolean = true;
       while (isContinue) {
+        // @ts-ignore
         if (isIntersect(depths[depthIndex], itemData)) {
           if (depths[depthIndex + unitIndex] === undefined || !depths[depthIndex + unitIndex]) {
             itemData.depth = depthIndex + unitIndex;
@@ -124,10 +129,17 @@ export function frameAnimationReceiver(data: any, proc: Function): void {
   }
   postFrameAnimationMessage(data, transfer, frameAnimation, res.length);
 }
-function postFrameAnimationMessage(data: any, transfer: boolean, frameAnimation: FrameAnimation, len: number) {
+function postFrameAnimationMessage(
+  data: unknown,
+  transfer: boolean,
+  frameAnimation: FrameAnimation,
+  len: number
+): void {
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {
@@ -162,48 +174,73 @@ class FrameAnimation {
   dur: Float64Array;
   depth: Uint16Array;
 
-  constructor(data: any, res: any[], transfer: boolean) {
+  constructor(data: unknown, res: unknown[], transfer: boolean) {
+    // @ts-ignore
     this.animationId = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.status = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.status);
+    // @ts-ignore
     this.startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs);
+    // @ts-ignore
     this.endTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.endTs);
+    // @ts-ignore
     this.dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
+    // @ts-ignore
     this.depth = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
   }
 }
 
-let frameSpacingList: Array<any> = [];
-let frameDynamic: Array<any> = [];
+let frameSpacingList: Array<unknown> = [];
+let frameDynamic: Array<unknown> = [];
 export function resetDynamicEffect(): void {
   frameSpacingList = [];
   frameDynamic = [];
 }
-export function frameDynamicReceiver(data: any, proc: Function): void {
+export function frameDynamicReceiver(data: unknown, proc: Function): void {
   if (frameDynamic.length === 0) {
+    // @ts-ignore
     frameDynamic = proc(chartFrameDynamicDataMemSql(data.params));
   }
+  // @ts-ignore
   let transfer = data.params.trafic !== TraficEnum.SharedArrayBuffer;
+  // @ts-ignore
   let id = new Uint16Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.id);
+  // @ts-ignore
   let x = new Float32Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.x);
+  // @ts-ignore
   let y = new Float32Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.y);
+  // @ts-ignore
   let width = new Float32Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.width);
+  // @ts-ignore
   let height = new Float32Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.height);
+  // @ts-ignore
   let alpha = new Float32Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.alpha);
+  // @ts-ignore
   let ts = new Float64Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.ts);
   for (let index: number = 0; index < frameDynamic.length; index++) {
     let itemData = frameDynamic[index];
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.frameDynamicData);
+    // @ts-ignore
     id[index] = itemData.id;
+    // @ts-ignore
     x[index] = Number(itemData.x);
+    // @ts-ignore
     y[index] = Number(itemData.y);
+    // @ts-ignore
     width[index] = Number(itemData.width);
+    // @ts-ignore
     height[index] = Number(itemData.height);
+    // @ts-ignore
     alpha[index] = Number(itemData.alpha);
+    // @ts-ignore
     ts[index] = itemData.ts;
   }
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {
@@ -222,40 +259,60 @@ export function frameDynamicReceiver(data: any, proc: Function): void {
     transfer ? [id.buffer, x.buffer, y.buffer, width.buffer, height.buffer, alpha.buffer, ts.buffer] : []
   );
 }
-export function frameSpacingReceiver(data: any, proc: Function): void {
+export function frameSpacingReceiver(data: unknown, proc: Function): void {
   if (frameSpacingList.length === 0) {
+    // @ts-ignore
     frameSpacingList = proc(chartFrameSpacingDataMemSql(data.params));
   }
+  // @ts-ignore
   let transfer = data.params.trafic !== TraficEnum.SharedArrayBuffer;
   let frameSpacing = new FrameSpacing(data, frameSpacingList, transfer);
   let nameDataMap: Map<string, Array<FrameSpacingStruct>> = new Map();
   for (let index: number = 0; index < frameSpacingList.length; index++) {
     let itemData = frameSpacingList[index];
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.frameSpacingData);
+    // @ts-ignore
     if (nameDataMap.has(itemData.nameId)) {
+      // @ts-ignore
       setSpacingStructs(nameDataMap, itemData, data);
     } else {
+      // @ts-ignore
       setNameDataMap(nameDataMap, itemData);
     }
+    // @ts-ignore
     frameSpacing.id[index] = itemData.id;
+    // @ts-ignore
     frameSpacing.x[index] = Number(itemData.x);
+    // @ts-ignore
     frameSpacing.y[index] = Number(itemData.y);
+    // @ts-ignore
     frameSpacing.currentFrameWidth[index] = Number(itemData.currentFrameWidth);
+    // @ts-ignore
     frameSpacing.currentFrameHeight[index] = Number(itemData.currentFrameHeight);
+    // @ts-ignore
     frameSpacing.currentTs[index] = itemData.currentTs;
+    // @ts-ignore
     frameSpacing.frameSpacingResult[index] = Number(itemData.frameSpacingResult);
+    // @ts-ignore
     frameSpacing.preTs[index] = itemData.preTs;
+    // @ts-ignore
     frameSpacing.preFrameWidth[index] = Number(itemData.preFrameWidth);
+    // @ts-ignore
     frameSpacing.preFrameHeight[index] = Number(itemData.preFrameHeight);
+    // @ts-ignore
     frameSpacing.preX[index] = Number(itemData.preX);
+    // @ts-ignore
     frameSpacing.preY[index] = Number(itemData.preY);
   }
   postFrameSpacingMessage(data, transfer, frameSpacing, frameSpacingList.length);
 }
-function postFrameSpacingMessage(data: any, transfer: boolean, frameSpacing: FrameSpacing, len: number) {
+function postFrameSpacingMessage(data: unknown, transfer: boolean, frameSpacing: FrameSpacing, len: number): void {
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {
@@ -297,8 +354,8 @@ function postFrameSpacingMessage(data: any, transfer: boolean, frameSpacing: Fra
 function setSpacingStructs(
   nameDataMap: Map<string, Array<FrameSpacingStruct>>,
   itemData: FrameSpacingStruct,
-  data: any
-) {
+  data: unknown
+): void {
   let unitIndex: number = 1;
   let secondToNanosecond: number = 1000_000_000;
   let spacingStructs = nameDataMap.get(itemData.nameId!);
@@ -309,9 +366,13 @@ function setSpacingStructs(
     let heightDifference = Number(itemData.currentFrameHeight!) - Number(lastIndexData.currentFrameHeight!);
     let xDifference = Number(itemData.x!) - Number(lastIndexData.x!);
     let yDifference = Number(itemData.y!) - Number(lastIndexData.y!);
+    // @ts-ignore
     let frameWidth = Math.abs(widthDifference / data.params.physicalWidth / intervalTime);
+    // @ts-ignore
     let frameHeight = Math.abs(heightDifference / data.params.physicalHeight / intervalTime);
+    // @ts-ignore
     let frameX = Math.abs(xDifference / data.params.physicalWidth / intervalTime);
+    // @ts-ignore
     let frameY = Math.abs(yDifference / data.params.physicalHeight / intervalTime);
     let result = Math.max(frameWidth, frameHeight, frameX, frameY);
     itemData.frameSpacingResult = Number(result.toFixed(unitIndex));
@@ -323,7 +384,7 @@ function setSpacingStructs(
     spacingStructs.push(itemData);
   }
 }
-function setNameDataMap(nameDataMap: Map<string, Array<FrameSpacingStruct>>, itemData: FrameSpacingStruct) {
+function setNameDataMap(nameDataMap: Map<string, Array<FrameSpacingStruct>>, itemData: FrameSpacingStruct): void {
   itemData.frameSpacingResult = 0;
   itemData.preTs = 0;
   itemData.preFrameWidth = 0;
@@ -346,18 +407,30 @@ class FrameSpacing {
   preX: Float32Array;
   preY: Float32Array;
 
-  constructor(data: any, len: any[], transfer: boolean) {
+  constructor(data: unknown, len: unknown[], transfer: boolean) {
+    // @ts-ignore
     this.id = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.x = new Float32Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.y = new Float32Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.currentFrameWidth = new Float32Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.currentFrameHeight = new Float32Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.currentTs = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.frameSpacingResult = new Float32Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.preTs = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.preFrameWidth = new Float32Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.preFrameHeight = new Float32Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.preX = new Float32Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
+    // @ts-ignore
     this.preY = new Float32Array(transfer ? len : data.params.sharedArrayBuffers.animationId);
   }
 }

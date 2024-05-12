@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-import { CpuFreqLimitsStruct } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
-import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock';
-import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq';
 import { FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
 import { FrameDynamicStruct } from '../database/ui-worker/ProcedureWorkerFrameDynamic';
 import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrameAnimation';
@@ -37,14 +34,15 @@ import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 export class SelectionParam {
+  traceId: string | undefined | null;
   recordStartNs: number = 0;
   leftNs: number = 0;
   rightNs: number = 0;
   hasFps: boolean = false;
-  statisticsSelectData: any = undefined;
-  fileSystemVMData: any = undefined;
-  fileSystemIoData: any = undefined;
-  fileSystemFsData: any = undefined;
+  statisticsSelectData: unknown = undefined;
+  fileSystemVMData: unknown = undefined;
+  fileSystemIoData: unknown = undefined;
+  fileSystemFsData: unknown = undefined;
   perfAll: boolean = false;
   fileSysVirtualMemory: boolean = false;
   diskIOLatency: boolean = false;
@@ -65,10 +63,10 @@ export class SelectionParam {
   processIds: Array<number> = [];
   processTrackIds: Array<number> = [];
   virtualTrackIds: Array<number> = [];
-  cpuFreqLimit: Array<any> = [];
-  clockMapData: Map<string, ((arg: any) => Promise<Array<any>> | undefined) | undefined> = new Map<
+  cpuFreqLimit: Array<unknown> = [];
+  clockMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
     string,
-    ((arg: any) => Promise<Array<any>> | undefined) | undefined
+    ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
   >();
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
@@ -98,9 +96,9 @@ export class SelectionParam {
   anomalyEnergy: Array<string> = [];
   smapsType: Array<string> = [];
   vmtrackershm: Array<string> = [];
-  promiseList: Array<Promise<any>> = [];
-  jankFramesData: Array<any> = [];
-  jsMemory: Array<any> = [];
+  promiseList: Array<Promise<unknown>> = [];
+  jankFramesData: Array<unknown> = [];
+  jsMemory: Array<unknown> = [];
   taskFramesData: Array<FuncStruct> = [];
   frameDynamic: Array<FrameDynamicStruct> = [];
   frameAnimation: Array<FrameAnimationStruct> = [];
@@ -112,39 +110,42 @@ export class SelectionParam {
     gpuTotal: boolean;
     gpuWindow: boolean;
   } = {
-      gl: false,
-      graph: false,
-      gpuWindow: false,
-      gpuTotal: false,
-    };
-  purgeableTotalAbility: Array<any> = [];
-  purgeableTotalVM: Array<any> = [];
-  purgeablePinAbility: Array<any> = [];
-  purgeablePinVM: Array<any> = [];
-  purgeableTotalSelection: Array<any> = [];
-  purgeablePinSelection: Array<any> = [];
-  dmaAbilityData: Array<any> = [];
-  gpuMemoryAbilityData: Array<any> = [];
-  dmaVmTrackerData: Array<any> = [];
-  gpuMemoryTrackerData: Array<any> = [];
+    gl: false,
+    graph: false,
+    gpuWindow: false,
+    gpuTotal: false,
+  };
+  purgeableTotalAbility: Array<unknown> = [];
+  purgeableTotalVM: Array<unknown> = [];
+  purgeablePinAbility: Array<unknown> = [];
+  purgeablePinVM: Array<unknown> = [];
+  purgeableTotalSelection: Array<unknown> = [];
+  purgeablePinSelection: Array<unknown> = [];
+  dmaAbilityData: Array<unknown> = [];
+  gpuMemoryAbilityData: Array<unknown> = [];
+  dmaVmTrackerData: Array<unknown> = [];
+  gpuMemoryTrackerData: Array<unknown> = [];
   hiLogs: Array<string> = [];
   sysAllEventsData: Array<HiSysEventStruct> = [];
   sysAlllogsData: Array<LogStruct> = [];
   hiSysEvents: Array<string> = [];
-  sampleData: Array<any> = [];
-  gpuCounter: Array<any> = [];
+  sampleData: Array<unknown> = [];
+  gpuCounter: Array<unknown> = [];
 
-  pushSampleData(it: TraceRow<any>) {
-    if (it.rowType == TraceRow.ROW_TYPE_SAMPLE) {
+  // @ts-ignore
+  pushSampleData(it: TraceRow<unknown>): void {
+    if (it.rowType === TraceRow.ROW_TYPE_SAMPLE) {
       let dataList: SampleStruct[] = JSON.parse(JSON.stringify(it.dataList));
       if (dataList.length > 0) {
-        dataList.forEach(
-          SampleStruct => {
-            SampleStruct.property = SampleStruct.property!.filter((i : any) =>
-              ((i.begin! - i.startTs!) ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
-              ((i.end! - i.startTs!) ?? 0) <= TraceRow.rangeSelectObject!.endNS!)
-          }
-        )
+        dataList.forEach((SampleStruct) => {
+          SampleStruct.property = SampleStruct.property!.filter(
+            (i: unknown) =>
+              // @ts-ignore
+              (i.begin! - i.startTs! ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
+              // @ts-ignore
+              (i.end! - i.startTs! ?? 0) <= TraceRow.rangeSelectObject!.endNS!
+          );
+        });
         if (dataList[0].property!.length !== 0) {
           this.sampleData.push(...dataList);
         }
@@ -152,35 +153,24 @@ export class SelectionParam {
     }
   }
 
-  pushGpuCounter(it: TraceRow<any>) {
-    if (it.rowType == TraceRow.ROW_TYPE_GPU_COUNTER) {
-      let dataList: GpuCounterStruct[] = it.dataListCache;
-      if (dataList.length > 0) {
-        let rangeList = dataList.filter((i: GpuCounterStruct) => 
-          ((i.startNS! - i.startTime!) >= TraceRow.rangeSelectObject!.startNS!) &&
-          ((i.startNS! + i.dur! - i.startTime!) <= TraceRow.rangeSelectObject!.endNS!)
-        )
-        this.gpuCounter.push(...rangeList);
-      }
-    }
-  }
-
-  pushCpus(it: TraceRow<any>) {
-    if (it.rowType == TraceRow.ROW_TYPE_CPU) {
+  // @ts-ignore
+  pushCpus(it: TraceRow<unknown>): void {
+    if (it.rowType === TraceRow.ROW_TYPE_CPU) {
       this.cpus.push(parseInt(it.rowId!));
       info('load CPU traceRow id is : ', it.rowId);
     }
   }
 
-  pushCpuStateFilterIds(it: TraceRow<any>) {
+  // @ts-ignore
+  pushCpuStateFilterIds(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_STATE_ALL) {
-      it.childrenList.forEach(child => {
+      it.childrenList.forEach((child) => {
         child.rangeSelect = true;
         child.checkType = '2';
         this.pushCpuStateFilterIds(child);
       });
     }
-    if (it.rowType == TraceRow.ROW_TYPE_CPU_STATE) {
+    if (it.rowType === TraceRow.ROW_TYPE_CPU_STATE) {
       let filterId = parseInt(it.rowId!);
       if (this.cpuStateFilterIds.indexOf(filterId) === -1) {
         this.cpuStateFilterIds.push(filterId);
@@ -188,36 +178,39 @@ export class SelectionParam {
     }
   }
 
-  pushCpuFreqFilter(it: TraceRow<any>) {
+  // @ts-ignore
+  pushCpuFreqFilter(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_FREQ_ALL) {
-      it.childrenList.forEach(child => {
+      it.childrenList.forEach((child) => {
         child.rangeSelect = true;
         child.checkType = '2';
         this.pushCpuFreqFilter(child);
       });
     }
-    if (it.rowType == TraceRow.ROW_TYPE_CPU_FREQ) {
+    if (it.rowType === TraceRow.ROW_TYPE_CPU_FREQ) {
       let filterId = parseInt(it.rowId!);
       let filterName = it.name!;
-      if (this.cpuFreqFilterIds.indexOf(filterId) == -1) {
+      if (this.cpuFreqFilterIds.indexOf(filterId) === -1) {
         this.cpuFreqFilterIds.push(filterId);
       }
-      if (this.cpuFreqFilterNames.indexOf(filterName) == -1) {
+      if (this.cpuFreqFilterNames.indexOf(filterName) === -1) {
         this.cpuFreqFilterNames.push(filterName);
       }
     }
   }
 
-  pushCpuFreqLimit(it: TraceRow<any>) {
+  // @ts-ignore
+  pushCpuFreqLimit(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMITALL) {
-      it.childrenList.forEach(child => {
+      it.childrenList.forEach((child) => {
         child.rangeSelect = true;
         child.checkType = '2';
         this.pushCpuFreqLimit(child);
       });
     }
-    if (it.rowType == TraceRow.ROW_TYPE_CPU_FREQ_LIMIT) {
-      if (!this.cpuFreqLimit.includes((item: any) => item.cpu === it.getAttribute('cpu'))) {
+    if (it.rowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMIT) {
+      // @ts-ignore
+      if (!this.cpuFreqLimit.includes((item: unknown) => item.cpu === it.getAttribute('cpu'))) {
         this.cpuFreqLimit.push({
           maxFilterId: it.getAttribute('maxFilterId'),
           minFilterId: it.getAttribute('minFilterId'),
@@ -227,8 +220,9 @@ export class SelectionParam {
     }
   }
 
-  pushProcess(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_PROCESS) {
+  // @ts-ignore
+  pushProcess(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_PROCESS) {
       sp.pushPidToSelection(this, it.rowId!);
       if (it.getAttribute('hasStartup') === 'true') {
         this.startup = true;
@@ -236,8 +230,10 @@ export class SelectionParam {
       if (it.getAttribute('hasStaticInit') === 'true') {
         this.staticInit = true;
       }
-      let processChildRows: Array<TraceRow<any>> = [
-        ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+      // @ts-ignore
+      let processChildRows: Array<TraceRow<unknown>> = [
+        // @ts-ignore
+        ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
       ];
       if (!it.expansion) {
         processChildRows = [...it.childrenList];
@@ -245,9 +241,9 @@ export class SelectionParam {
       processChildRows.forEach((th) => {
         th.rangeSelect = true;
         th.checkType = '2';
-        if (th.rowType == TraceRow.ROW_TYPE_THREAD) {
+        if (th.rowType === TraceRow.ROW_TYPE_THREAD) {
           this.threadIds.push(parseInt(th.rowId!));
-        } else if (th.rowType == TraceRow.ROW_TYPE_FUNC) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_FUNC) {
           if (th.asyncFuncName) {
             if (typeof th.asyncFuncName === 'string') {
               this.funAsync.push({
@@ -266,7 +262,7 @@ export class SelectionParam {
           } else {
             this.funTids.push(parseInt(th.rowId!));
           }
-        } else if (th.rowType == TraceRow.ROW_TYPE_MEM) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_MEM) {
           this.processTrackIds.push(parseInt(th.rowId!));
         }
       });
@@ -274,10 +270,13 @@ export class SelectionParam {
     }
   }
 
-  pushNativeMemory(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_NATIVE_MEMORY) {
-      let memoryRows: Array<TraceRow<any>> = [
-        ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+  // @ts-ignore
+  pushNativeMemory(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_NATIVE_MEMORY) {
+      // @ts-ignore
+      let memoryRows: Array<TraceRow<unknown>> = [
+        // @ts-ignore
+        ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
       ];
       if (!it.expansion) {
         memoryRows = [...it.childrenList];
@@ -306,8 +305,9 @@ export class SelectionParam {
     }
   }
 
-  pushFunc(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_FUNC) {
+  // @ts-ignore
+  pushFunc(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_FUNC) {
       TabPaneTaskFrames.TaskArray = [];
       sp.pushPidToSelection(this, it.rowParentId!);
       if (it.asyncFuncName) {
@@ -317,6 +317,7 @@ export class SelectionParam {
             pid: it.asyncFuncNamePID || 0,
           });
         } else {
+          //@ts-ignore
           for (let i = 0; i < it.asyncFuncName.length; i++) {
             const el = it.asyncFuncName[i];
             this.funAsync.push({
@@ -329,24 +330,27 @@ export class SelectionParam {
         this.funTids.push(parseInt(it.rowId!));
       }
 
-      let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct) =>
+      let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct): boolean =>
         Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
-        Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
-        filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
+          Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
+          filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
         filterFunc.funName!.indexOf('H:Task ') >= 0;
+      // @ts-ignore
       let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
         taskData!.tid = parseInt(it.rowId!);
         return isIntersect(taskData, TraceRow.rangeSelectObject!);
       });
       if (taskData.length > 0) {
+        // @ts-ignore
         this.taskFramesData.push(...taskData);
       }
       info('load func traceRow id is : ', it.rowId);
     }
   }
 
-  pushHeap(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_HEAP) {
+  // @ts-ignore
+  pushHeap(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_HEAP) {
       const key = it.rowParentId!.split(' ');
       const process = {
         ipid: Number(key[key.length - 1]),
@@ -359,20 +363,24 @@ export class SelectionParam {
       if (this.nativeMemoryCurrentIPid === -1) {
         this.nativeMemoryCurrentIPid = process.ipid;
       }
-      if (this.nativeMemoryAllProcess)
+      if (this.nativeMemoryAllProcess) {
         if (it.getAttribute('heap-type') === 'native_hook_statistic') {
           this.nativeMemoryStatistic.push(it.rowId!);
         } else {
           this.nativeMemory.push(it.rowId!);
         }
+      }
       info('load nativeMemory traceRow id is : ', it.rowId);
     }
   }
 
-  pushMonitor(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_MONITOR) {
-      let abilityChildRows: Array<TraceRow<any>> = [
-        ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+  // @ts-ignore
+  pushMonitor(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_MONITOR) {
+      // @ts-ignore
+      let abilityChildRows: Array<TraceRow<unknown>> = [
+        // @ts-ignore
+        ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
       ];
       if (!it.expansion) {
         abilityChildRows = [...it.childrenList];
@@ -380,17 +388,17 @@ export class SelectionParam {
       abilityChildRows.forEach((th) => {
         th.rangeSelect = true;
         th.checkType = '2';
-        if (th.rowType == TraceRow.ROW_TYPE_CPU_ABILITY) {
+        if (th.rowType === TraceRow.ROW_TYPE_CPU_ABILITY) {
           this.cpuAbilityIds.push(th.rowId!);
-        } else if (th.rowType == TraceRow.ROW_TYPE_MEMORY_ABILITY) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_MEMORY_ABILITY) {
           this.memoryAbilityIds.push(th.rowId!);
-        } else if (th.rowType == TraceRow.ROW_TYPE_DISK_ABILITY) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_DISK_ABILITY) {
           this.diskAbilityIds.push(th.rowId!);
-        } else if (th.rowType == TraceRow.ROW_TYPE_NETWORK_ABILITY) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_NETWORK_ABILITY) {
           this.networkAbilityIds.push(th.rowId!);
-        } else if (th.rowType == TraceRow.ROW_TYPE_DMA_ABILITY) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_DMA_ABILITY) {
           this.dmaAbilityData.push(...intersectData(th)!);
-        } else if (th.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY) {
           this.gpuMemoryAbilityData.push(...intersectData(th)!);
         } else if (th.rowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY) {
           this.purgeableTotalAbility.push(...intersectData(th));
@@ -401,9 +409,10 @@ export class SelectionParam {
     }
   }
 
-  pushHiperf(it: TraceRow<any>, sp: SpSystemTrace) {
+  // @ts-ignore
+  pushHiperf(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType?.startsWith('hiperf')) {
-      if (it.rowType == TraceRow.ROW_TYPE_HIPERF_EVENT || it.rowType == TraceRow.ROW_TYPE_HIPERF_REPORT) {
+      if (it.rowType === TraceRow.ROW_TYPE_HIPERF_EVENT || it.rowType === TraceRow.ROW_TYPE_HIPERF_REPORT) {
         return;
       }
       this.perfEventTypeId = it.drawType === -2 ? undefined : it.drawType;
@@ -423,9 +432,11 @@ export class SelectionParam {
           }
         }
       }
-      if (it.rowType == TraceRow.ROW_TYPE_HIPERF_PROCESS) {
-        let hiperfProcessRows: Array<TraceRow<any>> = [
-          ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+      if (it.rowType === TraceRow.ROW_TYPE_HIPERF_PROCESS) {
+        // @ts-ignore
+        let hiperfProcessRows: Array<TraceRow<unknown>> = [
+          // @ts-ignore
+          ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
         ];
         if (!it.expansion) {
           hiperfProcessRows = [...it.childrenList];
@@ -435,97 +446,111 @@ export class SelectionParam {
           th.checkType = '2';
         });
       }
-      if (it.rowType == TraceRow.ROW_TYPE_HIPERF || it.rowId == 'HiPerf-cpu-merge') {
+      if (it.rowType === TraceRow.ROW_TYPE_HIPERF || it.rowId === 'HiPerf-cpu-merge') {
         this.perfAll = true;
       }
-      if (it.rowType == TraceRow.ROW_TYPE_HIPERF_CPU) {
+      if (it.rowType === TraceRow.ROW_TYPE_HIPERF_CPU) {
         this.perfCpus.push(it.index);
       }
-      if (it.rowType == TraceRow.ROW_TYPE_HIPERF_PROCESS) {
+      if (it.rowType === TraceRow.ROW_TYPE_HIPERF_PROCESS) {
         this.perfProcess.push(parseInt(it.rowId!.split('-')[0]));
       }
-      if (it.rowType == TraceRow.ROW_TYPE_HIPERF_THREAD) {
+      if (it.rowType === TraceRow.ROW_TYPE_HIPERF_THREAD) {
         this.perfThread.push(parseInt(it.rowId!.split('-')[0]));
       }
     }
   }
 
-  pushFileSystem(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_FILE_SYSTEM) {
-      if (it.rowId == 'FileSystemLogicalWrite') {
-        if (this.fileSystemType.length == 0) {
+  // @ts-ignore
+  pushFileSystem(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM) {
+      if (it.rowId === 'FileSystemLogicalWrite') {
+        if (this.fileSystemType.length === 0) {
           this.fileSystemType = [0, 1, 3];
         } else {
-          if (this.fileSystemType.indexOf(3) == -1) {
+          if (this.fileSystemType.indexOf(3) === -1) {
             this.fileSystemType.push(3);
           }
         }
-      } else if (it.rowId == 'FileSystemLogicalRead') {
-        if (this.fileSystemType.length == 0) {
+      } else if (it.rowId === 'FileSystemLogicalRead') {
+        if (this.fileSystemType.length === 0) {
           this.fileSystemType = [0, 1, 2];
         } else {
-          if (this.fileSystemType.indexOf(2) == -1) {
+          if (this.fileSystemType.indexOf(2) === -1) {
             this.fileSystemType.push(2);
           }
         }
-      } else if (it.rowId == 'FileSystemVirtualMemory') {
+      } else if (it.rowId === 'FileSystemVirtualMemory') {
         this.fileSysVirtualMemory = true;
-      } else if (it.rowId == 'FileSystemDiskIOLatency') {
+      } else if (it.rowId === 'FileSystemDiskIOLatency') {
         this.diskIOLatency = true;
       } else {
         if (!this.diskIOLatency) {
           let arr = it.rowId!.split('-').reverse();
           let ipid = parseInt(arr[0]);
-          if (this.diskIOipids.indexOf(ipid) == -1) {
+          if (this.diskIOipids.indexOf(ipid) === -1) {
             this.diskIOipids.push(ipid);
           }
-          if (arr[1] == 'read') {
-            this.diskIOReadIds.indexOf(ipid) == -1 ? this.diskIOReadIds.push(ipid) : '';
-          } else if (arr[1] == 'write') {
-            this.diskIOWriteIds.indexOf(ipid) == -1 ? this.diskIOWriteIds.push(ipid) : '';
+          if (arr[1] === 'read') {
+            this.diskIOReadIds.indexOf(ipid) === -1 ? this.diskIOReadIds.push(ipid) : '';
+          } else if (arr[1] === 'write') {
+            this.diskIOWriteIds.indexOf(ipid) === -1 ? this.diskIOWriteIds.push(ipid) : '';
           }
         }
       }
     }
   }
-  vMTrackerGpuChildRowsEvery(item: TraceRow<any>) {
+  // @ts-ignore
+  vMTrackerGpuChildRowsEvery(item: TraceRow<unknown>): void {
     item.rangeSelect = true;
-    if (item.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
+    if (item.rowType === TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
       this.gpuMemoryTrackerData.push(...intersectData(item)!);
-    } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
+    } else if (item.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
       this.gpu.gl =
         item.dataListCache.filter(
           (it) =>
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
         ).length > 0;
-    } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
+    } else if (item.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
       this.gpu.graph =
         item.dataListCache.filter(
+          // @ts-ignore
           (it) =>
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
         ).length > 0;
-    } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
+    } else if (item.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
       this.gpu.gpuTotal =
         item.dataListCache.filter(
           (it) =>
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
         ).length > 0;
-    } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
+    } else if (item.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
       this.gpu.gpuWindow =
         item.dataListCache.filter(
           (it) =>
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
         ).length > 0;
     }
   }
-  pushVmTracker(it: TraceRow<any>, sp: SpSystemTrace) {
+  // @ts-ignore
+  pushVmTracker(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_VM_TRACKER) {
-      let vMTrackerChildRows: Array<TraceRow<any>> = [
-        ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+      // @ts-ignore
+      let vMTrackerChildRows: Array<TraceRow<unknown>> = [
+        // @ts-ignore
+        ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
       ];
       if (!it.expansion) {
         vMTrackerChildRows = [...it.childrenList];
@@ -535,8 +560,10 @@ export class SelectionParam {
         if (th.rowType === TraceRow.ROW_TYPE_DMA_VMTRACKER) {
           this.dmaVmTrackerData.push(...intersectData(th)!);
         } else if (th.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU) {
-          let vMTrackerGpuChildRows: Array<TraceRow<any>> = [
-            ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${th.rowId}']`),
+          // @ts-ignore
+          let vMTrackerGpuChildRows: Array<TraceRow<unknown>> = [
+            // @ts-ignore
+            ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${th.rowId}']`),
           ];
           if (!th.expansion) {
             vMTrackerGpuChildRows = [...th.childrenList];
@@ -549,34 +576,38 @@ export class SelectionParam {
         } else if (th.rowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_VM) {
           this.purgeablePinVM.push(...intersectData(th));
         } else if (th.rowType === TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
-          let sMapsChildRows: Array<TraceRow<any>> = [
-            ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${th.rowId}']`),
+          // @ts-ignore
+          let sMapsChildRows: Array<TraceRow<unknown>> = [
+            // @ts-ignore
+            ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${th.rowId}']`),
           ];
           if (!th.expansion) {
             sMapsChildRows = [...th.childrenList];
           }
           sMapsChildRows.forEach((item) => {
             item.rangeSelect = true;
-            if (item.rowType == TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
+            if (item.rowType === TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
               this.smapsType.push(...intersectData(item)!);
             }
           });
-        } else if (th.rowType == TraceRow.ROW_TYPE_VMTRACKER_SHM) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_VMTRACKER_SHM) {
           this.vmtrackershm.push(...intersectData(th)!);
         }
       });
     }
   }
 
-  pushJank(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_JANK) {
-      let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct) =>
+  // @ts-ignore
+  pushJank(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_JANK) {
+      let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct): boolean =>
         Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
-        Math.min(filterJank.ts!, rangeData!.startNS || 0) <
+          Math.min(filterJank.ts!, rangeData!.startNS || 0) <
         filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
-      if (it.name == 'Actual Timeline') {
+      if (it.name === 'Actual Timeline') {
         if (it.rowParentId === 'frameTime') {
-          it.dataListCache.forEach((jankData: any) => {
+          it.dataListCache.forEach((jankData: unknown) => {
+            // @ts-ignore
             if (isIntersect(jankData, TraceRow.rangeSelectObject!)) {
               this.jankFramesData.push(jankData);
             }
@@ -587,9 +618,10 @@ export class SelectionParam {
       } else if (it.folder) {
         this.jankFramesData = [];
         it.childrenList.forEach((child) => {
-          if (child.rowType == TraceRow.ROW_TYPE_JANK && child.name == 'Actual Timeline') {
+          if (child.rowType === TraceRow.ROW_TYPE_JANK && child.name === 'Actual Timeline') {
             if (child.rowParentId === 'frameTime') {
-              child.dataListCache.forEach((jankData: any) => {
+              child.dataListCache.forEach((jankData: unknown) => {
+                // @ts-ignore
                 if (isIntersect(jankData, TraceRow.rangeSelectObject!)) {
                   this.jankFramesData.push(jankData);
                 }
@@ -603,8 +635,9 @@ export class SelectionParam {
     }
   }
 
-  pushHeapTimeline(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_HEAP_TIMELINE) {
+  // @ts-ignore
+  pushHeapTimeline(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_HEAP_TIMELINE) {
       const [rangeStart, rangeEnd] = [TraceRow.range?.startNS, TraceRow.range?.endNS];
       const startNS = TraceRow.rangeSelectObject?.startNS || rangeStart;
       const endNS = TraceRow.rangeSelectObject?.endNS || rangeEnd;
@@ -613,23 +646,30 @@ export class SelectionParam {
         return;
       }
       for (let sample of it.dataListCache) {
+        // @ts-ignore
         if (sample.timestamp * 1000 <= startNS!) {
+          // @ts-ignore
           minNodeId = sample.lastAssignedId;
         }
         // 个别文件的sample的最大timestamp小于时间的框选结束时间，不能给maxNodeId赋值
         // 所以加上此条件：sample.timestamp === it.dataListCache[it.dataListCache.length -1].timestamp
         if (
+          // @ts-ignore
           sample.timestamp * 1000 >= endNS! ||
+          // @ts-ignore
           sample.timestamp === it.dataListCache[it.dataListCache.length - 1].timestamp
         ) {
           if (maxNodeId === undefined) {
+            // @ts-ignore
             maxNodeId = sample.lastAssignedId;
           }
         }
       }
 
       // If the start time range of the selected box is greater than the end time of the sampled data
+      // @ts-ignore
       if (startNS! >= it.dataListCache[it.dataListCache.length - 1].timestamp * 1000) {
+        // @ts-ignore
         minNodeId = it.dataListCache[it.dataListCache.length - 1].lastAssignedId;
       }
       // If you select the box from the beginning
@@ -637,6 +677,7 @@ export class SelectionParam {
         minNodeId = HeapDataInterface.getInstance().getMinNodeId(sp.snapshotFiles!.id);
       }
       //If you select the box from the ending
+      // @ts-ignore
       if (endNS! >= rangeEnd! || endNS! >= it.dataListCache[it.dataListCache.length - 1].timestampUs * 1000) {
         maxNodeId = HeapDataInterface.getInstance().getMaxNodeId(sp.snapshotFiles!.id);
       }
@@ -648,12 +689,14 @@ export class SelectionParam {
     }
   }
 
-  pushJsCpuProfiler(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
-      let isIntersect = (a: JsCpuProfilerStruct, b: RangeSelectStruct) =>
+  // @ts-ignore
+  pushJsCpuProfiler(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
+      let isIntersect = (a: JsCpuProfilerStruct, b: RangeSelectStruct): boolean =>
         Math.max(a.startTime! + a.totalTime!, b!.endNS || 0) - Math.min(a.startTime!, b!.startNS || 0) <
         a.totalTime! + (b!.endNS || 0) - (b!.startNS || 0);
-      let frameSelectData = it.dataListCache.filter((frameSelectData: any) => {
+      let frameSelectData = it.dataListCache.filter((frameSelectData: unknown) => {
+        // @ts-ignore
         return isIntersect(frameSelectData, TraceRow.rangeSelectObject!);
       });
       let copyFrameSelectData = JSON.parse(JSON.stringify(frameSelectData));
@@ -661,9 +704,12 @@ export class SelectionParam {
       for (let data of copyFrameSelectData) {
         frameSelectDataIdArr.push(data.id);
       }
-      let jsCpuProfilerData = copyFrameSelectData.filter((item: any) => {
+      let jsCpuProfilerData = copyFrameSelectData.filter((item: unknown) => {
+        // @ts-ignore
         if (item.depth === 0) {
+          // @ts-ignore
           setSelectState(item, frameSelectDataIdArr);
+          // @ts-ignore
           item.isSelect = true;
           return item;
         }
@@ -672,44 +718,56 @@ export class SelectionParam {
     }
   }
 
-  pushSysMemoryGpu(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU) {
-      let vMTrackerGpuChildRows: Array<TraceRow<any>> = [
-        ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+  // @ts-ignore
+  pushSysMemoryGpu(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    // @ts-ignore
+    if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU) {
+      // @ts-ignore
+      let vMTrackerGpuChildRows: Array<TraceRow<unknown>> = [
+        // @ts-ignore
+        ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
       ];
       if (!it.expansion) {
         vMTrackerGpuChildRows = [...it.childrenList];
       }
       vMTrackerGpuChildRows.forEach((th) => {
         th.rangeSelect = true;
-        if (th.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
+        if (th.rowType === TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
           this.gpuMemoryTrackerData.push(...intersectData(th)!);
-        } else if (th.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
           this.gpu.gl =
             th.dataListCache.filter(
               (it) =>
+                // @ts-ignore
                 (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+                // @ts-ignore
                 (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
             ).length > 0;
-        } else if (th.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
           this.gpu.graph =
             th.dataListCache.filter(
               (it) =>
+                // @ts-ignore
                 (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+                // @ts-ignore
                 (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
             ).length > 0;
-        } else if (th.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
           this.gpu.gpuTotal =
             th.dataListCache.filter(
               (it) =>
+                // @ts-ignore
                 (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+                // @ts-ignore
                 (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
             ).length > 0;
-        } else if (th.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
+        } else if (th.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
           this.gpu.gpuWindow =
             th.dataListCache.filter(
               (it) =>
+                // @ts-ignore
                 (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+                // @ts-ignore
                 (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
             ).length > 0;
         }
@@ -717,11 +775,14 @@ export class SelectionParam {
     }
   }
 
-  pushSDK(it: TraceRow<any>, sp: SpSystemTrace) {
+  // @ts-ignore
+  pushSDK(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType?.startsWith(TraceRow.ROW_TYPE_SDK)) {
-      if (it.rowType == TraceRow.ROW_TYPE_SDK) {
-        let sdkRows: Array<TraceRow<any>> = [
-          ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+      if (it.rowType === TraceRow.ROW_TYPE_SDK) {
+        // @ts-ignore
+        let sdkRows: Array<TraceRow<unknown>> = [
+          // @ts-ignore
+          ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
         ];
         if (!it.expansion) {
           sdkRows = [...it.childrenList];
@@ -731,42 +792,46 @@ export class SelectionParam {
           th.checkType = '2';
         });
       }
-      if (it.rowType == TraceRow.ROW_TYPE_SDK_COUNTER) {
+      if (it.rowType === TraceRow.ROW_TYPE_SDK_COUNTER) {
         this.sdkCounterIds.push(it.rowId!);
       }
-      if (it.rowType == TraceRow.ROW_TYPE_SDK_SLICE) {
+      if (it.rowType === TraceRow.ROW_TYPE_SDK_SLICE) {
         this.sdkSliceIds.push(it.rowId!);
       }
     }
   }
 
-  pushVmTrackerSmaps(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
+  // @ts-ignore
+  pushVmTrackerSmaps(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
       this.smapsType.push(...intersectData(it)!);
-      let sMapsChildRows: Array<TraceRow<any>> = [
-        ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+      // @ts-ignore
+      let sMapsChildRows: Array<TraceRow<unknown>> = [
+        // @ts-ignore
+        ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
       ];
       if (!it.expansion) {
         sMapsChildRows = [...it.childrenList];
       }
       sMapsChildRows.forEach((item) => {
         item.rangeSelect = true;
-        if (item.rowType == TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
+        if (item.rowType === TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
           this.smapsType.push(...intersectData(item)!);
         }
       });
     }
   }
 
-  pushIrq(it: TraceRow<any>) {
+  // @ts-ignore
+  pushIrq(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_IRQ_GROUP) {
-      it.childrenList.forEach(child => {
+      it.childrenList.forEach((child) => {
         child.rangeSelect = true;
         child.checkType = '2';
         this.pushIrq(child);
       });
     }
-    if (it.rowType == TraceRow.ROW_TYPE_IRQ) {
+    if (it.rowType === TraceRow.ROW_TYPE_IRQ) {
       let filterId = parseInt(it.getAttribute('callId') || '-1');
       if (it.getAttribute('cat') === 'irq') {
         if (this.irqCallIds.indexOf(filterId) === -1) {
@@ -780,37 +845,45 @@ export class SelectionParam {
     }
   }
 
-  pushSysMemoryGpuGl(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
+  // @ts-ignore
+  pushSysMemoryGpuGl(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
       this.gpu.gl =
         it.dataListCache.filter(
           (it) =>
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
         ).length > 0;
     }
   }
 
-  pushFrameDynamic(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_FRAME_DYNAMIC) {
+  // @ts-ignore
+  pushFrameDynamic(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC) {
       let appName = it.getAttribute('model-name');
-      let isSelect = (dynamicStruct: FrameDynamicStruct, b: RangeSelectStruct) =>
+      let isSelect = (dynamicStruct: FrameDynamicStruct, b: RangeSelectStruct): boolean =>
         dynamicStruct.ts >= b.startNS! && dynamicStruct.ts <= b.endNS!;
       let frameDynamicList = it.dataListCache.filter(
+        // @ts-ignore
         (frameAnimationBean: FrameDynamicStruct) =>
           isSelect(frameAnimationBean, TraceRow.rangeSelectObject!) &&
           frameAnimationBean.groupId !== -1 &&
           frameAnimationBean.appName === appName
       );
+      // @ts-ignore
       this.frameDynamic.push(...frameDynamicList);
     }
   }
 
-  pushFrameSpacing(it: TraceRow<any>) {
-    if (it.rowType == TraceRow.ROW_TYPE_FRAME_SPACING) {
+  // @ts-ignore
+  pushFrameSpacing(it: TraceRow<unknown>): void {
+    if (it.rowType === TraceRow.ROW_TYPE_FRAME_SPACING) {
       let appName = it.getAttribute('model-name');
-      let isSelect = (a: FrameSpacingStruct, b: RangeSelectStruct) =>
+      let isSelect = (a: FrameSpacingStruct, b: RangeSelectStruct): boolean =>
         a.currentTs >= b.startNS! && a.currentTs <= b.endNS!;
+      // @ts-ignore
       let frameDatas = it.dataListCache.filter((frameData: FrameSpacingStruct) => {
         return (
           isSelect(frameData, TraceRow.rangeSelectObject!) &&
@@ -819,83 +892,100 @@ export class SelectionParam {
           frameData.nameId === appName
         );
       });
+      // @ts-ignore
       this.frameSpacing.push(...frameDatas);
     }
   }
 
-  pushFrameAnimation(it: TraceRow<any>) {
-    if (it.rowType == TraceRow.ROW_TYPE_FRAME_ANIMATION) {
-      let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct) =>
+  // @ts-ignore
+  pushFrameAnimation(it: TraceRow<unknown>): void {
+    if (it.rowType === TraceRow.ROW_TYPE_FRAME_ANIMATION) {
+      let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct): boolean =>
         Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
-        Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
+          Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
         animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
+      // @ts-ignore
       let frameAnimationList = it.dataListCache.filter((frameAnimationBean: FrameAnimationStruct) => {
         return isIntersect(frameAnimationBean, TraceRow.rangeSelectObject!);
       });
+      // @ts-ignore
       this.frameAnimation.push(...frameAnimationList);
     }
   }
 
-  pushSysMemoryGpuWindow(it: TraceRow<any>) {
-    if (it.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
+  // @ts-ignore
+  pushSysMemoryGpuWindow(it: TraceRow<unknown>): void {
+    if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
       this.gpu.gpuWindow =
         it.dataListCache.filter(
           (it) =>
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
         ).length > 0;
     }
   }
 
-  pushSysMemoryGpuTotal(it: TraceRow<any>) {
-    if (it.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
+  // @ts-ignore
+  pushSysMemoryGpuTotal(it: TraceRow<unknown>): void {
+    if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
       this.gpu.gpuTotal =
         it.dataListCache.filter(
           (it) =>
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
         ).length > 0;
     }
   }
 
-  pushSysMemoryGpuGraph(it: TraceRow<any>) {
+  // @ts-ignore
+  pushSysMemoryGpuGraph(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
       this.gpu.graph =
         it.dataListCache.filter(
           (it) =>
+            // @ts-ignore
             (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            // @ts-ignore
             (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
         ).length > 0;
     }
   }
 
-  pushStaticInit(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_STATIC_INIT) {
+  // @ts-ignore
+  pushStaticInit(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_STATIC_INIT) {
       this.staticInit = true;
       sp.pushPidToSelection(this, it.rowParentId!);
       info('load thread traceRow id is : ', it.rowId);
     }
   }
 
-  pushAppStartUp(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_APP_STARTUP) {
+  // @ts-ignore
+  pushAppStartUp(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_APP_STARTUP) {
       this.startup = true;
       sp.pushPidToSelection(this, it.rowParentId!);
       info('load thread traceRow id is : ', it.rowId);
     }
   }
 
-  pushThread(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_THREAD) {
+  // @ts-ignore
+  pushThread(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_THREAD) {
       sp.pushPidToSelection(this, it.rowParentId!);
       this.threadIds.push(parseInt(it.rowId!));
       info('load thread traceRow id is : ', it.rowId);
     }
   }
 
-  pushVirtualMemory(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_MEM || it.rowType == TraceRow.ROW_TYPE_VIRTUAL_MEMORY) {
-      if (it.rowType == TraceRow.ROW_TYPE_MEM) {
+  // @ts-ignore
+  pushVirtualMemory(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_MEM || it.rowType === TraceRow.ROW_TYPE_VIRTUAL_MEMORY) {
+      if (it.rowType === TraceRow.ROW_TYPE_MEM) {
         this.processTrackIds.push(parseInt(it.rowId!));
       } else {
         this.virtualTrackIds.push(parseInt(it.rowId!));
@@ -904,148 +994,169 @@ export class SelectionParam {
     }
   }
 
-  pushFps(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_FPS) {
+  // @ts-ignore
+  pushFps(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_FPS) {
       this.hasFps = true;
       info('load FPS traceRow id is : ', it.rowId);
     }
   }
 
-  pushCpuAbility(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_CPU_ABILITY) {
+  // @ts-ignore
+  pushCpuAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_CPU_ABILITY) {
       this.cpuAbilityIds.push(it.rowId!);
       info('load CPU Ability traceRow id is : ', it.rowId);
     }
   }
 
-  pushMemoryAbility(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_MEMORY_ABILITY) {
+  // @ts-ignore
+  pushMemoryAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_MEMORY_ABILITY) {
       this.memoryAbilityIds.push(it.rowId!);
       info('load Memory Ability traceRow id is : ', it.rowId);
     }
   }
 
-  pushDiskAbility(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_DISK_ABILITY) {
+  // @ts-ignore
+  pushDiskAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_DISK_ABILITY) {
       this.diskAbilityIds.push(it.rowId!);
       info('load DiskIo Ability traceRow id is : ', it.rowId);
     }
   }
 
-  pushNetworkAbility(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_NETWORK_ABILITY) {
+  // @ts-ignore
+  pushNetworkAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_NETWORK_ABILITY) {
       this.networkAbilityIds.push(it.rowId!);
       info('load Network Ability traceRow id is : ', it.rowId);
     }
   }
 
-  pushDmaAbility(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_DMA_ABILITY) {
+  // @ts-ignore
+  pushDmaAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_DMA_ABILITY) {
       this.dmaAbilityData.push(...intersectData(it)!);
     }
   }
 
-  pushGpuMemoryAbility(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY) {
+  // @ts-ignore
+  pushGpuMemoryAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY) {
       this.gpuMemoryAbilityData.push(...intersectData(it)!);
     }
   }
 
-  pushPowerEnergy(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_POWER_ENERGY) {
+  // @ts-ignore
+  pushPowerEnergy(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_POWER_ENERGY) {
       this.powerEnergy.push(it.rowId!);
     }
   }
 
-  pushSystemEnergy(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_SYSTEM_ENERGY) {
+  // @ts-ignore
+  pushSystemEnergy(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_SYSTEM_ENERGY) {
       this.systemEnergy.push(it.rowId!);
     }
   }
 
-  pushAnomalyEnergy(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_ANOMALY_ENERGY) {
+  // @ts-ignore
+  pushAnomalyEnergy(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_ANOMALY_ENERGY) {
       this.anomalyEnergy.push(it.rowId!);
     }
   }
 
-  pushVmTrackerShm(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_VMTRACKER_SHM) {
+  // @ts-ignore
+  pushVmTrackerShm(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_VMTRACKER_SHM) {
       this.vmtrackershm.push(...intersectData(it)!);
     }
   }
 
-  pushClock(it: TraceRow<any>, sp: SpSystemTrace) {
+  // @ts-ignore
+  pushClock(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_CLOCK_GROUP) {
-      it.childrenList.forEach(it => {
+      it.childrenList.forEach((it) => {
         it.rangeSelect = true;
         it.checkType = '2';
         this.clockMapData.set(it.rowId || '', it.getCacheData);
       });
     }
-    if (it.rowType == TraceRow.ROW_TYPE_CLOCK) {
+    if (it.rowType === TraceRow.ROW_TYPE_CLOCK) {
       this.clockMapData.set(it.rowId || '', it.getCacheData);
     }
   }
 
-  pushGpuMemoryVmTracker(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
+  // @ts-ignore
+  pushGpuMemoryVmTracker(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
       this.gpuMemoryTrackerData.push(...intersectData(it)!);
     }
   }
 
-  pushDmaVmTracker(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_DMA_VMTRACKER) {
+  // @ts-ignore
+  pushDmaVmTracker(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_DMA_VMTRACKER) {
       this.dmaVmTrackerData.push(...intersectData(it)!);
     }
   }
 
-  pushPugreable(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY) {
+  // @ts-ignore
+  pushPugreable(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY) {
       this.purgeableTotalAbility.push(...intersectData(it));
     }
-    if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY) {
+    if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY) {
       this.purgeablePinAbility.push(...intersectData(it));
     }
-    if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM) {
+    if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM) {
       this.purgeableTotalVM.push(...intersectData(it));
     }
-    if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_PIN_VM) {
+    if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_VM) {
       this.purgeablePinVM.push(...intersectData(it));
     }
   }
 
-  pushPugreablePinAbility(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY) {
+  // @ts-ignore
+  pushPugreablePinAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY) {
       this.purgeablePinAbility.push(...intersectData(it));
     }
   }
 
-  pushPugreableTotalVm(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM) {
+  // @ts-ignore
+  pushPugreableTotalVm(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM) {
       this.purgeableTotalVM.push(...intersectData(it));
     }
   }
 
-  pushPugreablePinVm(it: TraceRow<any>, sp: SpSystemTrace) {
-    if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_PIN_VM) {
+  // @ts-ignore
+  pushPugreablePinVm(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_VM) {
       this.purgeablePinVM.push(...intersectData(it));
     }
   }
 
-  pushLogs(it: TraceRow<any>, sp: SpSystemTrace) {
+  // @ts-ignore
+  pushLogs(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_LOGS) {
       this.hiLogs.push(it.rowId!);
     }
   }
 
-  pushHiSysEvent(it: TraceRow<any>, sp: SpSystemTrace) {
+  // @ts-ignore
+  pushHiSysEvent(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_HI_SYSEVENT) {
       this.hiSysEvents.push(it.rowId!);
     }
   }
 
-  pushSelection(it: TraceRow<any>, sp: SpSystemTrace) {
+  // @ts-ignore
+  pushSelection(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     this.pushCpus(it);
     this.pushCpuStateFilterIds(it);
     this.pushCpuFreqFilter(it);
@@ -1094,11 +1205,11 @@ export class SelectionParam {
     this.pushLogs(it, sp);
     this.pushHiSysEvent(it, sp);
     this.pushSampleData(it);
-    this.pushGpuCounter(it);
   }
 }
 
 export class BoxJumpParam {
+  traceId: string | undefined | null;
   leftNs: number = 0;
   rightNs: number = 0;
   cpus: Array<number> = [];

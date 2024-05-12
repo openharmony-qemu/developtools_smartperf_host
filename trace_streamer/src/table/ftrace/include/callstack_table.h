@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class CallStackTable : public TableBase {
 public:
-    explicit CallStackTable(const TraceDataCache* dataCache);
+    explicit CallStackTable(const TraceDataCache *dataCache);
     ~CallStackTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,22 +32,22 @@ private:
     {
         return dataCache_->GetConstInternalSlicesData().Size();
     }
-    void GetOrbyes(FilterConstraints& callfc, EstimatedIndexInfo& callei) override;
-    void FilterByConstraint(FilterConstraints& callfc,
-                            double& callfilterCost,
+    void GetOrbyes(FilterConstraints &callfc, EstimatedIndexInfo &callei) override;
+    void FilterByConstraint(FilterConstraints &callfc,
+                            double &callfilterCost,
                             size_t callrowCount,
                             uint32_t callcurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t col) const override;
         void HandleTypeColumns(int32_t col) const;
 
     private:
-        const CallStack& slicesObj_;
+        const CallStack &slicesObj_;
     };
 };
 } // namespace TraceStreamer

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 //   VM Tracker Dma泳道图
-import {Dma, DmaComparison} from "../../bean/AbilityMonitor";
-import {query} from "../SqlLite";
-import {SnapshotStruct} from "../ui-worker/ProcedureWorkerSnapshot";
+import { Dma, DmaComparison } from '../../bean/AbilityMonitor';
+import { query } from '../SqlLite';
+import { SnapshotStruct } from '../ui-worker/ProcedureWorkerSnapshot';
 
 export const queryDmaSampsData = (process: number): Promise<Array<SnapshotStruct>> =>
   query(

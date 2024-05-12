@@ -31,15 +31,15 @@ constexpr uint32_t MS_FORMAT_LEN = 3;
 constexpr uint32_t US_FORMAT_LEN = 6;
 class PtreaderHilogParser : public EventParserBase {
 public:
-    PtreaderHilogParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
+    PtreaderHilogParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters);
     ~PtreaderHilogParser();
-    void ParseHilogDataItem(const std::string& buffer, const uint64_t lineSeq, bool& haveSplitSeg);
+    void ParseHilogDataItem(const std::string &buffer, const uint64_t lineSeq, bool &haveSplitSeg);
     void FilterAllHilogData();
 
 private:
-    bool HilogTimeStrToTimestamp(std::string& timeStr, uint64_t& timeStamp) const;
+    bool HilogTimeStrToTimestamp(std::string &timeStr, uint64_t &timeStamp) const;
     void FilterHilogData(std::unique_ptr<HilogLine> bufLine);
-    void BeginFilterHilogData(HilogLine* hilogData);
+    void BeginFilterHilogData(HilogLine *hilogData);
 
     const std::regex hilogMatcher_ = std::regex(R"( *(\w+ )?([\-\d: ]+\.\d+) +(\d+) +(\d+) +([FEWID]) +(.+?): +(.+))");
     enum HILOG_MATCH_SEQ {

@@ -22,12 +22,7 @@ import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { SdkSliceRender, SdkSliceStruct } from '../../database/ui-worker/ProduceWorkerSdkSlice';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { TabUtil } from '../trace/sheet/sdk/TabUtil';
-import {
-  queryCounterMax,
-  querySdkCount,
-  querySdkCounterData,
-  querySdkSliceData
-} from '../../database/sql/Sdk.sql';
+import { queryCounterMax, querySdkCount, querySdkCounterData, querySdkSliceData } from '../../database/sql/Sdk.sql';
 import { queryStartTime } from '../../database/sql/SqlLite.sql';
 import { NUM_7 } from '../../bean/NumBean';
 
@@ -39,52 +34,47 @@ export class SpSdkChart {
     this.trace = trace;
   }
 
-  private parseJsonByCounterType(startTime: number, showType: any, configObj: any, table: any): void {
+  private parseJsonByCounterType(startTime: number, showType: unknown, configObj: unknown, table: unknown): void {
     let chartSql = this.createSql(
-      startTime,
-      showType.tableName,
+      startTime, //@ts-ignore
+      showType.tableName, //@ts-ignore
       showType.columns,
       'where counter_id' + ' = $counter_id'
-    );
-    let maxValue = this.createMaxValueSql(showType.tableName, 'where counter_id = $counter_id');
+    ); //@ts-ignore
+    let maxValue = this.createMaxValueSql(showType.tableName, 'where counter_id = $counter_id'); //@ts-ignore
     let innerTable = showType.inner;
-    let countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns);
+    let countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns); //@ts-ignore
     table.push({
       countSql: countSql,
       chartSql: chartSql,
       maxSql: maxValue,
-      type: 'counter',
-      name: configObj.disPlayName,
+      type: 'counter', //@ts-ignore
+      name: configObj.disPlayName, //@ts-ignore
       pluginName: configObj.pluginName,
     });
   }
 
-  private parseJsonBySliceType(startTime: number, showType: any, configObj: any, table: any[]): void {
+  private parseJsonBySliceType(startTime: number, showType: unknown, configObj: unknown, table: unknown[]): void {
     let chartSql = this.createSliceSql(
-      startTime,
-      showType.tableName,
+      startTime, //@ts-ignore
+      showType.tableName, //@ts-ignore
       showType.columns,
-      'where' + ` slice_id = $column_id and (start_ts - ${  startTime  }) between $startNS and $endNS;`
-    );
+      'where' + ` slice_id = $column_id and (start_ts - ${startTime}) between $startNS and $endNS;`
+    ); //@ts-ignore
     let innerTable = showType.inner;
     let countSql;
-    let countOtherSql = '';
+    let countOtherSql = ''; //@ts-ignore
     if (configObj.pluginName === this.pluginName) {
-      countSql = this.createSql(
-        startTime,
-        innerTable.tableName,
-        innerTable.columns,
-        'where slice_name like $suffix'
-      );
+      countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns, 'where slice_name like $suffix');
       countOtherSql = this.createSql(
         startTime,
         innerTable.tableName,
         innerTable.columns,
         '' +
-        'where slice_name not like \'%_cpu\' and slice_name not like \'%_display\' and ' +
-        'slice_name not like \'%_gpu\' and slice_name not like \'%_System_idle\' and ' +
-        'slice_name not like \'%_wifi_data\' and slice_name not like \'%_sensor\' and ' +
-        'slice_name not like \'%_audio\' '
+          "where slice_name not like '%_cpu' and slice_name not like '%_display' and " +
+          "slice_name not like '%_gpu' and slice_name not like '%_System_idle' and " +
+          "slice_name not like '%_wifi_data' and slice_name not like '%_sensor' and " +
+          "slice_name not like '%_audio' "
       );
     } else {
       countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns);
@@ -92,20 +82,21 @@ export class SpSdkChart {
     table.push({
       countSql: countSql,
       chartSql: chartSql,
-      type: 'slice',
-      name: configObj.disPlayName,
+      type: 'slice', //@ts-ignore
+      name: configObj.disPlayName, //@ts-ignore
       pluginName: configObj.pluginName,
       countOtherSql: countOtherSql,
     });
   }
 
-  parseJson(startTime: number, map: Map<number, string>): Map<number, any>{
+  parseJson(startTime: number, map: Map<number, string>): Map<number, unknown> {
     let tablesMap = new Map();
     let keys = map.keys();
     for (let key of keys) {
-      let table: any[] = [];
-      let configObj: any = map.get(key);
+      let table: unknown[] = [];
+      let configObj: unknown = map.get(key);
       if (configObj !== undefined) {
+        //@ts-ignore
         let configStr = configObj.jsonConfig;
         let json = JSON.parse(configStr);
         let tableConfig = json.tableConfig;
@@ -127,69 +118,82 @@ export class SpSdkChart {
     return tablesMap;
   }
 
-  private createSliceSql(startTime: number, tableName: string, columns: Array<any>, where?: string): string {
+  private createSliceSql(startTime: number, tableName: string, columns: Array<unknown>, where?: string): string {
     let sliceSelectSql = 'select ';
     for (let i = 0; i < columns.length; i++) {
-      let column = columns[i];
+      let column = columns[i]; //@ts-ignore
       if (column.column === 'start_ts') {
-        column.column = `(start_ts - ${  startTime  }) AS start_ts`;
-      }
+        //@ts-ignore
+        column.column = `(start_ts - ${startTime}) AS start_ts`;
+      } //@ts-ignore
       if (column.column === 'end_ts') {
-        column.column = `(end_ts - ${  startTime  }) AS end_ts`;
+        //@ts-ignore
+        column.column = `(end_ts - ${startTime}) AS end_ts`;
       }
       if (i === columns.length - 1) {
-        sliceSelectSql = `${sliceSelectSql + column.column  } `;
+        //@ts-ignore
+        sliceSelectSql = `${sliceSelectSql + column.column} `;
       } else {
-        sliceSelectSql = `${sliceSelectSql + column.column  }, `;
+        //@ts-ignore
+        sliceSelectSql = `${sliceSelectSql + column.column}, `;
       }
     }
-    sliceSelectSql = `${sliceSelectSql  }from ${  tableName}`;
+    sliceSelectSql = `${sliceSelectSql}from ${tableName}`;
     if (where !== undefined) {
-      sliceSelectSql = `${sliceSelectSql  } ${  where}`;
+      sliceSelectSql = `${sliceSelectSql} ${where}`;
     }
     return sliceSelectSql;
   }
 
   private createMaxValueSql(tableName: string, where?: string): string {
-    let selectSql = `select max(value) as max_value from ${  tableName}`;
+    let selectSql = `select max(value) as max_value from ${tableName}`;
     if (where !== undefined) {
-      selectSql = `${selectSql  } ${  where}`;
+      selectSql = `${selectSql} ${where}`;
     }
     return selectSql;
   }
 
-  private createSql(startTime: number, tableName: string, columns: Array<any>, where?: string): string {
+  private createSql(startTime: number, tableName: string, columns: Array<unknown>, where?: string): string {
     let selectSql = 'select ';
     for (let i = 0; i < columns.length; i++) {
-      let column = columns[i];
+      let column = columns[i]; //@ts-ignore
       if (column.column === 'ts') {
-        column.column = `ts - ${  startTime  } AS ts`;
+        //@ts-ignore
+        column.column = `ts - ${startTime} AS ts`;
       }
       if (i === columns.length - 1) {
-        selectSql = `${selectSql + column.column  } `;
+        //@ts-ignore
+        selectSql = `${selectSql + column.column} `;
       } else {
-        selectSql = `${selectSql + column.column  }, `;
+        //@ts-ignore
+        selectSql = `${selectSql + column.column}, `;
       }
     }
-    selectSql = `${selectSql  }from ${  tableName}`;
+    selectSql = `${selectSql}from ${tableName}`;
     if (where !== undefined) {
-      selectSql = `${selectSql  } ${  where}`;
+      selectSql = `${selectSql} ${where}`;
     }
     return selectSql;
   }
 
   async init(): Promise<void> {
     let configMap = SpSystemTrace.SDK_CONFIG_MAP;
-    if (configMap === undefined) {return}
+    if (configMap === undefined) {
+      return;
+    }
     let res = await queryStartTime();
+    //@ts-ignore
     let startTime = res[0].start_ts;
+    // @ts-ignore
     let tablesMap = this.parseJson(startTime, configMap);
     let tableKeys = tablesMap.keys();
     for (let componentId of tableKeys) {
       let table = tablesMap.get(componentId);
       if (table !== null) {
-        let nodeRow = this.initNodeRow(componentId, table[0].name);
+        //@ts-ignore
+        let nodeRow = this.initNodeRow(componentId, table[0].name); //@ts-ignore
         for (let index = 0; index < table.length; index++) {
+          //@ts-ignore
           let sqlMap = table[index];
           if (sqlMap.type === 'counter') {
             let result = await querySdkCount(sqlMap.countSql, componentId);
@@ -199,7 +203,7 @@ export class SpSdkChart {
           } else if (sqlMap.type === 'slice' && sqlMap.pluginName === this.pluginName) {
             let suffixList = ['cpu', 'display', 'gpu', 'System_idle', 'wifi_data', 'sensor', 'audio'];
             for (let i = 0; i < suffixList.length; i++) {
-              let result = await querySdkCount(sqlMap.countSql, componentId, {$suffix: `%${  suffixList[i]}`});
+              let result = await querySdkCount(sqlMap.countSql, componentId, { $suffix: `%${suffixList[i]}` });
               if (result.length > 0) {
                 let groupNodeRow = await this.initSecondaryRow(nodeRow, i, suffixList[i]);
                 for (let i = 0; i < result.length; i++) {
@@ -224,7 +228,7 @@ export class SpSdkChart {
       }
     }
   }
-  
+
   private initCounterChartRow(
     componentId: number,
     expansion: boolean,
@@ -234,7 +238,7 @@ export class SpSdkChart {
     let traceRow = TraceRow.skeleton<CounterStruct>();
     traceRow.rowParentId = `Sdk-${componentId}`;
     traceRow.rowHidden = !expansion;
-    traceRow.rowId = `${counterId  }-${  componentId}`;
+    traceRow.rowId = `${counterId}-${componentId}`;
     traceRow.rowType = TraceRow.ROW_TYPE_SDK_COUNTER;
     traceRow.folderPaddingLeft = 30;
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -249,12 +253,13 @@ export class SpSdkChart {
   private initCounter = async (
     nodeRow: TraceRow<BaseStruct>,
     index: number,
-    result: any,
-    sqlMap: any,
+    result: unknown,
+    sqlMap: unknown,
     componentId: number
   ): Promise<void> => {
+    //@ts-ignore
     let traceRow = this.initCounterChartRow(componentId, nodeRow.expansion, result.counter_id, result.counter_name);
-    traceRow.supplier = async (): Promise<CounterStruct[]> =>
+    traceRow.supplier = async (): Promise<CounterStruct[]> => //@ts-ignore
       querySdkCounterData(sqlMap.chartSql, result.counter_id, componentId);
     traceRow.focusHandler = (): void => {
       this.trace?.displayTip(
@@ -265,8 +270,9 @@ export class SpSdkChart {
     };
     traceRow.findHoverStruct = (): void => {
       CounterStruct.hoverCounterStruct = traceRow.getHoverStruct();
-    };
+    }; //@ts-ignore
     let maxList = await queryCounterMax(sqlMap.maxSql, result.counter_id, componentId);
+    //@ts-ignore
     let maxCounter = maxList[0].max_value;
     traceRow.onThreadHandler = (useCache: boolean): void => {
       let context: CanvasRenderingContext2D;
@@ -276,6 +282,7 @@ export class SpSdkChart {
         context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       traceRow.canvasSave(context);
+      //@ts-ignore
       (renders[TraceRow.ROW_TYPE_SDK_COUNTER] as SdkCounterRender).renderMainThread(
         {
           context: context,
@@ -306,6 +313,7 @@ export class SpSdkChart {
     sdkFolder.onThreadHandler = (useCache: boolean): void => {
       sdkFolder.canvasSave(this.trace.canvasPanelCtx!);
       if (sdkFolder.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, sdkFolder.frame.width, sdkFolder.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -314,6 +322,7 @@ export class SpSdkChart {
             useCache: useCache,
             type: '',
           },
+          // @ts-ignore
           sdkFolder
         );
       }
@@ -344,6 +353,7 @@ export class SpSdkChart {
     sdkSecondFolder.onThreadHandler = (useCache: boolean): void => {
       sdkSecondFolder.canvasSave(this.trace.canvasPanelCtx!);
       if (sdkSecondFolder.expansion) {
+        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, sdkSecondFolder.frame.width, sdkSecondFolder.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -352,6 +362,7 @@ export class SpSdkChart {
             useCache: useCache,
             type: '',
           },
+          // @ts-ignore
           sdkSecondFolder
         );
       }
@@ -360,7 +371,7 @@ export class SpSdkChart {
     this.trace.rowsEL?.appendChild(sdkSecondFolder);
     return sdkSecondFolder;
   };
-  
+
   private initSliceChartRow(
     expansion: boolean,
     rowId: string,
@@ -379,22 +390,28 @@ export class SpSdkChart {
     traceRow.setAttribute('children', '');
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    traceRow.rowId = `${sliceId  }-${  componentId}`;
+    traceRow.rowId = `${sliceId}-${componentId}`;
     return traceRow;
   }
 
   private initSlice = async (
     nodeRow: TraceRow<BaseStruct>,
     index: number,
-    result: any,
-    sqlMap: any,
+    result: unknown,
+    sqlMap: unknown,
     componentId: number
   ): Promise<void> => {
-    let traceRow = this.initSliceChartRow(nodeRow.expansion, nodeRow.rowId!,
-      result.slice_id, result.slice_name, componentId);
-    traceRow.supplier = async () : Promise<SdkSliceStruct[]>=>
+    let traceRow = this.initSliceChartRow(
+      nodeRow.expansion,
+      nodeRow.rowId!, //@ts-ignore
+      result.slice_id, //@ts-ignore
+      result.slice_name,
+      componentId
+    );
+    traceRow.supplier = async (): Promise<SdkSliceStruct[]> =>
       querySdkSliceData(
-        sqlMap.chartSql,
+        //@ts-ignore
+        sqlMap.chartSql, //@ts-ignore
         result.slice_id,
         TraceRow.range?.startNS || 0,
         TraceRow.range?.endNS || 0,
@@ -418,6 +435,7 @@ export class SpSdkChart {
         context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       traceRow.canvasSave(context);
+      //@ts-ignore
       (renders[TraceRow.ROW_TYPE_SDK_SLICE] as SdkSliceRender).renderMainThread(
         {
           context: context,

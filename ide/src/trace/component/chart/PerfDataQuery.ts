@@ -18,49 +18,54 @@ import { info } from '../../../log/Log';
 import { SpHiPerf } from './SpHiPerf';
 import { procedurePool } from '../../database/Procedure';
 import { SpSystemTrace } from '../SpSystemTrace';
-import {queryPerfFiles} from "../../database/sql/Perf.sql";
+import { queryPerfFiles } from '../../database/sql/Perf.sql';
 
 export class PerfDataQuery {
-  filesData: any = {};
+  filesData: unknown = {};
   callChainMap: Map<number, PerfCall> = new Map<number, PerfCall>();
 
-  async initPerfCache() {
+  async initPerfCache(): Promise<void> {
     await this.initPerfCallChainMap();
     await this.initPerfFiles();
   }
 
-  async initPerfCallChainMap() {
+  async initPerfCallChainMap(): Promise<void> {
     this.callChainMap.clear();
   }
 
-  async initPerfFiles() {
+  async initPerfFiles(): Promise<void> {
     let files = await queryPerfFiles();
     info('PerfFiles Data size is: ', files!.length);
     files.forEach((file) => {
+      // @ts-ignore
       this.filesData[file.fileId] = this.filesData[file.fileId] || [];
-      PerfFile.setFileName(file);
+      PerfFile.setFileName(file); // @ts-ignore
       this.filesData[file.fileId].push(file);
     });
     const data = {
       fValue: SpHiPerf.stringResult?.fValue,
     };
-    let results = await new Promise<any>((resolve, reject) => {
-      procedurePool.submitWithName('logic0', 'perf-init', data, undefined, (res: any) => {
+    let results = await new Promise<unknown>((resolve, reject) => {
+      procedurePool.submitWithName('logic0', 'perf-init', data, undefined, (res: unknown) => {
         resolve(res);
       });
-    });
-    this.callChainMap = results as any;
+    }); // @ts-ignore
+    this.callChainMap = results as unknown;
     info('Perf Files Data initialized');
   }
 
-  getLibName(fileId: number, symbolId: number) {
+  getLibName(fileId: number, symbolId: number): string {
     let name = 'unknown';
-    if (symbolId == -1) {
+    if (symbolId === -1) {
+      // @ts-ignore
       if (this.filesData[fileId] && this.filesData[fileId].length > 0) {
+        // @ts-ignore
         name = this.filesData[fileId][0].fileName;
       }
     } else {
+      // @ts-ignore
       if (this.filesData[fileId] && this.filesData[fileId].length > symbolId) {
+        // @ts-ignore
         name = this.filesData[fileId][symbolId].fileName;
       }
     }

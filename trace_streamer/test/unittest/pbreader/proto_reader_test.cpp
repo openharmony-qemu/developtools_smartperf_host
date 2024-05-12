@@ -63,7 +63,7 @@ protected:
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
 
-    void AddCoreTest(::CpuInfoTest* cores, const CoreTest coreTest)
+    void AddCoreTest(::CpuInfoTest *cores, const CoreTest coreTest)
     {
         auto test = cores->add_test();
         test->set_number(coreTest.number);
@@ -88,7 +88,7 @@ HWTEST_F(ProtoReaderTest, ParserDataByPBReader, TestSize.Level1)
     TS_LOGI("test33-1");
     TestParser testParser;
     testParser.set_count(COUNT_01);
-    ::CpuInfoTest* cores = new ::CpuInfoTest();
+    ::CpuInfoTest *cores = new ::CpuInfoTest();
     AddCoreTest(cores, {NUMBER_01, TV_NSEC_01, NAME_01, true, ::Test_State(0), ALLOC_EVENT_01, ""});
     testParser.set_allocated_cores(cores);
     std::string str = "";
@@ -120,7 +120,7 @@ HWTEST_F(ProtoReaderTest, ParserRepeatedDataByPBReader, TestSize.Level1)
     TestParser testParser;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::CpuInfoTest* cores = new ::CpuInfoTest();
+    ::CpuInfoTest *cores = new ::CpuInfoTest();
     AddCoreTest(cores, {NUMBER_01, TV_NSEC_01, NAME_01, true, ::Test_State(0), ALLOC_EVENT_01, ""});
     AddCoreTest(cores, {NUMBER_02, TV_NSEC_02, NAME_02, false, ::Test_State(1), ALLOC_EVENT_02, ""});
     AddCoreTest(cores, {NUMBER_03, TV_NSEC_03, NAME_03, true, ::Test_State(0), ALLOC_EVENT_03, ""});
@@ -195,7 +195,7 @@ HWTEST_F(ProtoReaderTest, ParserOneofForMutiDataByPBReader, TestSize.Level1)
     TestParser testParser;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::CpuInfoTest* cores = new ::CpuInfoTest();
+    ::CpuInfoTest *cores = new ::CpuInfoTest();
     AddCoreTest(cores, {NUMBER_01, TV_NSEC_01, NAME_01, true, ::Test_State(0), ALLOC_EVENT_01, ""});
     AddCoreTest(cores, {NUMBER_02, TV_NSEC_02, NAME_02, false, ::Test_State(1), 0, FREE_EVENT_02});
     AddCoreTest(cores, {NUMBER_03, TV_NSEC_03, NAME_03, true, ::Test_State(0), ALLOC_EVENT_03, ""});
@@ -243,7 +243,7 @@ HWTEST_F(ProtoReaderTest, ParserOneofDataForAllocEventByPBReader, TestSize.Level
     TestParser testParser;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::CpuInfoTest* cores = new ::CpuInfoTest();
+    ::CpuInfoTest *cores = new ::CpuInfoTest();
     AddCoreTest(cores, {NUMBER_01, TV_NSEC_01, NAME_01, true, ::Test_State(0), ALLOC_EVENT_01, ""});
     testParser.set_allocated_cores(cores);
     testParser.SerializeToString(&str);
@@ -273,7 +273,7 @@ HWTEST_F(ProtoReaderTest, ParserOneofDataForFreeEventByPBReader, TestSize.Level1
     TestParser testParser;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::CpuInfoTest* cores = new ::CpuInfoTest();
+    ::CpuInfoTest *cores = new ::CpuInfoTest();
     AddCoreTest(cores, {NUMBER_01, TV_NSEC_01, NAME_01, true, ::Test_State(0), ALLOC_EVENT_01, ""});
     testParser.set_allocated_cores(cores);
     testParser.SerializeToString(&str);
@@ -308,8 +308,8 @@ HWTEST_F(ProtoReaderTest, ParserNoDataByVarInt, TestSize.Level1)
     uint64_t count = 0;
     auto tsTag = CreateTagVarInt(kCountFieldNumber);
     if (str.size() > 10 && str.data()[0] == tsTag) {
-        const uint8_t* nextData = VarIntDecode(reinterpret_cast<const uint8_t*>(str.data() + 1),
-                                               reinterpret_cast<const uint8_t*>(str.data() + 11), &count);
+        const uint8_t *nextData = VarIntDecode(reinterpret_cast<const uint8_t *>(str.data() + 1),
+                                               reinterpret_cast<const uint8_t *>(str.data() + 11), &count);
     }
     EXPECT_EQ(0, count);
 }
@@ -324,7 +324,7 @@ HWTEST_F(ProtoReaderTest, ParserDataByVarInt, TestSize.Level1)
     TS_LOGI("test33-8");
     TestParser testParser;
     testParser.set_count(COUNT_01);
-    ::CpuInfoTest* cores = new ::CpuInfoTest();
+    ::CpuInfoTest *cores = new ::CpuInfoTest();
     AddCoreTest(cores, {NUMBER_01, TV_NSEC_01, NAME_01, true, ::Test_State(0), ALLOC_EVENT_01, ""});
     testParser.set_allocated_cores(cores);
     std::string str = "";
@@ -334,8 +334,8 @@ HWTEST_F(ProtoReaderTest, ParserDataByVarInt, TestSize.Level1)
     uint64_t count2 = 0;
     auto tsTag = CreateTagVarInt(kCountFieldNumber);
     if (str.size() > 10 && str.data()[0] == tsTag) {
-        const uint8_t* nextData = VarIntDecode(reinterpret_cast<const uint8_t*>(str.data() + 1),
-                                               reinterpret_cast<const uint8_t*>(str.data() + 11), &count2);
+        const uint8_t *nextData = VarIntDecode(reinterpret_cast<const uint8_t *>(str.data() + 1),
+                                               reinterpret_cast<const uint8_t *>(str.data() + 11), &count2);
     }
     EXPECT_EQ(COUNT_01, count2);
 }
@@ -350,18 +350,18 @@ HWTEST_F(ProtoReaderTest, ParserDataByPBReaderBase, TestSize.Level1)
     TS_LOGI("test33-9");
     TestParser testParser;
     testParser.set_count(COUNT_01);
-    ::CpuInfoTest* cores = new ::CpuInfoTest();
+    ::CpuInfoTest *cores = new ::CpuInfoTest();
     AddCoreTest(cores, {NUMBER_01, TV_NSEC_01, NAME_01, true, ::Test_State(0), ALLOC_EVENT_01, ""});
     testParser.set_allocated_cores(cores);
     std::string str = "";
     testParser.SerializeToString(&str);
 
-    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(typedProtoTest.FindDataArea(TestParser_Reader::kCountDataAreaNumber).ToInt32(), COUNT_01);
     auto core = typedProtoTest.FindDataArea(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(core.data_), core.size_);
     auto typtest = typedProtoCpuInfoTest.FindDataArea(CpuInfoTest_Reader::kTestDataAreaNumber).ToBytes();
-    TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t*>(typtest.data_), typtest.size_);
+    TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t *>(typtest.data_), typtest.size_);
     EXPECT_EQ(typedProtoTestReader.FindDataArea(Test_Reader::kNumberDataAreaNumber).ToInt32(), NUMBER_01);
     EXPECT_EQ(typedProtoTestReader.FindDataArea(Test_Reader::kTvNsecDataAreaNumber).ToUint64(), TV_NSEC_01);
     EXPECT_EQ(typedProtoTestReader.FindDataArea(Test_Reader::kNameDataAreaNumber).ToStdString(), NAME_01);
@@ -381,17 +381,17 @@ HWTEST_F(ProtoReaderTest, ParserMutiDataByPBReaderBase, TestSize.Level1)
     TestParser testParser;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::CpuInfoTest* cores = new ::CpuInfoTest();
+    ::CpuInfoTest *cores = new ::CpuInfoTest();
     AddCoreTest(cores, {NUMBER_01, TV_NSEC_01, NAME_01, true, ::Test_State(0), ALLOC_EVENT_01, ""});
     AddCoreTest(cores, {NUMBER_02, TV_NSEC_02, NAME_02, false, ::Test_State(1), ALLOC_EVENT_02, ""});
     AddCoreTest(cores, {NUMBER_03, TV_NSEC_03, NAME_03, true, ::Test_State(0), ALLOC_EVENT_03, ""});
     testParser.set_allocated_cores(cores);
     testParser.SerializeToString(&str);
 
-    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(typedProtoTest.FindDataArea(TestParser_Reader::kCountDataAreaNumber).ToInt32(), COUNT_01);
     auto core = typedProtoTest.FindDataArea(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(core.data_), core.size_);
     auto repeate = typedProtoCpuInfoTest.GetRepeated<BytesView>(CpuInfoTest_Reader::kTestDataAreaNumber);
 
     TypedProtoReader<7> typedProtoTestReader1(repeate->ToBytes().data_, repeate->ToBytes().size_);
@@ -433,12 +433,12 @@ HWTEST_F(ProtoReaderTest, ParserNoDataByPBReaderBase, TestSize.Level1)
     std::string str = "";
     testParser.SerializeToString(&str);
 
-    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(0, typedProtoTest.FindDataArea(TestParser_Reader::kCountDataAreaNumber).ToInt32());
     auto core = typedProtoTest.FindDataArea(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(core.data_), core.size_);
     auto typtest = typedProtoCpuInfoTest.FindDataArea(CpuInfoTest_Reader::kTestDataAreaNumber).ToBytes();
-    TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t*>(typtest.data_), typtest.size_);
+    TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t *>(typtest.data_), typtest.size_);
     EXPECT_EQ(0, typedProtoTestReader.FindDataArea(Test_Reader::kNumberDataAreaNumber).ToInt32());
     EXPECT_EQ(0, typedProtoTestReader.FindDataArea(Test_Reader::kTvNsecDataAreaNumber).ToUint64());
     EXPECT_EQ("", typedProtoTestReader.FindDataArea(Test_Reader::kNameDataAreaNumber).ToStdString());
@@ -457,18 +457,18 @@ HWTEST_F(ProtoReaderTest, ParserDataByGet, TestSize.Level1)
     TS_LOGI("test33-12");
     TestParser testParser;
     testParser.set_count(COUNT_01);
-    ::CpuInfoTest* cores = new ::CpuInfoTest();
+    ::CpuInfoTest *cores = new ::CpuInfoTest();
     AddCoreTest(cores, {NUMBER_01, TV_NSEC_01, NAME_01, true, ::Test_State(0), ALLOC_EVENT_01, ""});
     testParser.set_allocated_cores(cores);
     std::string str = "";
     testParser.SerializeToString(&str);
 
-    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(COUNT_01, typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32());
     auto core = typedProtoTest.Get(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(core.data_), core.size_);
     auto typtest = typedProtoCpuInfoTest.Get(CpuInfoTest_Reader::kTestDataAreaNumber).ToBytes();
-    TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t*>(typtest.data_), typtest.size_);
+    TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t *>(typtest.data_), typtest.size_);
     EXPECT_EQ(NUMBER_01, typedProtoTestReader.Get(Test_Reader::kNumberDataAreaNumber).ToInt32());
     EXPECT_EQ(TV_NSEC_01, typedProtoTestReader.Get(Test_Reader::kTvNsecDataAreaNumber).ToUint64());
     EXPECT_EQ(NAME_01, typedProtoTestReader.Get(Test_Reader::kNameDataAreaNumber).ToStdString());
@@ -488,17 +488,17 @@ HWTEST_F(ProtoReaderTest, ParserMutiDataByGet, TestSize.Level1)
     TestParser testParser;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::CpuInfoTest* cores = new ::CpuInfoTest();
+    ::CpuInfoTest *cores = new ::CpuInfoTest();
     AddCoreTest(cores, {NUMBER_01, TV_NSEC_01, NAME_01, true, ::Test_State(0), ALLOC_EVENT_01, ""});
     AddCoreTest(cores, {NUMBER_02, TV_NSEC_02, NAME_02, false, ::Test_State(1), ALLOC_EVENT_02, ""});
     AddCoreTest(cores, {NUMBER_03, TV_NSEC_03, NAME_03, true, ::Test_State(0), ALLOC_EVENT_03, ""});
     testParser.set_allocated_cores(cores);
     testParser.SerializeToString(&str);
 
-    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(COUNT_01, typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32());
     auto core = typedProtoTest.Get(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(core.data_), core.size_);
     auto repeate = typedProtoCpuInfoTest.GetRepeated<BytesView>(CpuInfoTest_Reader::kTestDataAreaNumber);
 
     TypedProtoReader<7> typedProtoTestReader1(repeate->ToBytes().data_, repeate->ToBytes().size_);
@@ -540,12 +540,12 @@ HWTEST_F(ProtoReaderTest, ParserNoDataByGet, TestSize.Level1)
     std::string str = "";
     testParser.SerializeToString(&str);
 
-    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<2> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(0, typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32());
     auto core = typedProtoTest.Get(TestParser_Reader::kCoresDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(core.data_), core.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(core.data_), core.size_);
     auto typtest = typedProtoCpuInfoTest.Get(CpuInfoTest_Reader::kTestDataAreaNumber).ToBytes();
-    TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t*>(typtest.data_), typtest.size_);
+    TypedProtoReader<7> typedProtoTestReader(reinterpret_cast<const uint8_t *>(typtest.data_), typtest.size_);
     EXPECT_EQ(0, typedProtoTestReader.Get(Test_Reader::kNumberDataAreaNumber).ToInt32());
     EXPECT_EQ(0, typedProtoTestReader.Get(Test_Reader::kTvNsecDataAreaNumber).ToUint64());
     EXPECT_EQ("", typedProtoTestReader.Get(Test_Reader::kNameDataAreaNumber).ToStdString());
@@ -569,7 +569,7 @@ HWTEST_F(ProtoReaderTest, ParserPackedRepeatedInt32DataByPBReader, TestSize.Leve
     const int32_t number3 = 1003;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::NumberTest* numberTest = new ::NumberTest();
+    ::NumberTest *numberTest = new ::NumberTest();
     numberTest->add_numbertext(number);
     numberTest->add_numbertext(number1);
     numberTest->add_numbertext(nameber2);
@@ -578,10 +578,10 @@ HWTEST_F(ProtoReaderTest, ParserPackedRepeatedInt32DataByPBReader, TestSize.Leve
     testParser.SerializeToString(&str);
     bool parserError = true;
 
-    TypedProtoReader<3> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<3> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32(), COUNT_01);
     auto numberType = typedProtoTest.Get(TestParser_Reader::kNumberTestDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(numberType.data_), numberType.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(numberType.data_), numberType.size_);
     auto packedRepeate = typedProtoCpuInfoTest.GetPackedRepeated<ProtoWireType::kVarInt, int32_t>(
         NumberTest_Reader::kNumberTextDataAreaNumber, &parserError);
     EXPECT_EQ(number, *packedRepeate++);
@@ -605,7 +605,7 @@ HWTEST_F(ProtoReaderTest, ParserPackedRepeatedFixed64DataByPBReader, TestSize.Le
     const double number3 = 1003.01;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::Fixed64Test* fixed64Test = new ::Fixed64Test();
+    ::Fixed64Test *fixed64Test = new ::Fixed64Test();
     fixed64Test->add_fixed64numbertext(number);
     fixed64Test->add_fixed64numbertext(number1);
     fixed64Test->add_fixed64numbertext(nameber2);
@@ -614,10 +614,10 @@ HWTEST_F(ProtoReaderTest, ParserPackedRepeatedFixed64DataByPBReader, TestSize.Le
     testParser.SerializeToString(&str);
     bool parserError = true;
 
-    TypedProtoReader<5> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<5> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(COUNT_01, typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32());
     auto fix64Type = typedProtoTest.Get(TestParser_Reader::kFixed64TestDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(fix64Type.data_), fix64Type.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(fix64Type.data_), fix64Type.size_);
     auto packedRepeate = typedProtoCpuInfoTest.GetPackedRepeated<ProtoWireType::kFixed64, double>(
         Fixed64Test_Reader::kFixed64NumberTextDataAreaNumber, &parserError);
     EXPECT_EQ(number, *packedRepeate++);
@@ -641,7 +641,7 @@ HWTEST_F(ProtoReaderTest, ParserPackedRepeatedFixed32DataByPBReader, TestSize.Le
     const float number3 = 1003.01;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::Fixed32Test* fixed32Test = new ::Fixed32Test();
+    ::Fixed32Test *fixed32Test = new ::Fixed32Test();
     fixed32Test->add_fixed32numbertext(number);
     fixed32Test->add_fixed32numbertext(number1);
     fixed32Test->add_fixed32numbertext(nameber2);
@@ -650,10 +650,10 @@ HWTEST_F(ProtoReaderTest, ParserPackedRepeatedFixed32DataByPBReader, TestSize.Le
     testParser.SerializeToString(&str);
     bool parserError = true;
 
-    TypedProtoReader<5> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<5> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32(), COUNT_01);
     auto fix32Type = typedProtoTest.Get(TestParser_Reader::kFixed32TestDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(fix32Type.data_), fix32Type.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(fix32Type.data_), fix32Type.size_);
     auto packedRepeate = typedProtoCpuInfoTest.GetPackedRepeated<ProtoWireType::kFixed32, float>(
         Fixed32Test_Reader::kFixed32NumberTextDataAreaNumber, &parserError);
     EXPECT_EQ(number, *packedRepeate++);
@@ -674,16 +674,16 @@ HWTEST_F(ProtoReaderTest, ParserPackedRepeatedInt32OneDataByPBReader, TestSize.L
     const int32_t number = 1000;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::NumberTest* numberTest = new ::NumberTest();
+    ::NumberTest *numberTest = new ::NumberTest();
     numberTest->add_numbertext(number);
     testParser.set_allocated_numbertest(numberTest);
     testParser.SerializeToString(&str);
     bool parserError = true;
 
-    TypedProtoReader<3> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<3> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32(), COUNT_01);
     auto numberType = typedProtoTest.Get(TestParser_Reader::kNumberTestDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(numberType.data_), numberType.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(numberType.data_), numberType.size_);
     auto packedRepeate = typedProtoCpuInfoTest.GetPackedRepeated<ProtoWireType::kVarInt, int32_t>(
         NumberTest_Reader::kNumberTextDataAreaNumber, &parserError);
     EXPECT_EQ(number, *packedRepeate);
@@ -701,16 +701,16 @@ HWTEST_F(ProtoReaderTest, ParserPackedRepeatedFixed64OneDataByPBReader, TestSize
     const double number = 1000.01;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::Fixed64Test* fixed64Test = new ::Fixed64Test();
+    ::Fixed64Test *fixed64Test = new ::Fixed64Test();
     fixed64Test->add_fixed64numbertext(number);
     testParser.set_allocated_fixed64test(fixed64Test);
     testParser.SerializeToString(&str);
     bool parserError = true;
 
-    TypedProtoReader<5> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<5> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32(), COUNT_01);
     auto fix64Type = typedProtoTest.Get(TestParser_Reader::kFixed64TestDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(fix64Type.data_), fix64Type.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(fix64Type.data_), fix64Type.size_);
     auto packedRepeate = typedProtoCpuInfoTest.GetPackedRepeated<ProtoWireType::kFixed64, double>(
         Fixed64Test_Reader::kFixed64NumberTextDataAreaNumber, &parserError);
     EXPECT_EQ(number, *packedRepeate);
@@ -728,16 +728,16 @@ HWTEST_F(ProtoReaderTest, ParserPackedRepeatedFixed32OneDataByPBReader, TestSize
     const float number = 1000.01;
     std::string str = "";
     testParser.set_count(COUNT_01);
-    ::Fixed32Test* fixed32Test = new ::Fixed32Test();
+    ::Fixed32Test *fixed32Test = new ::Fixed32Test();
     fixed32Test->add_fixed32numbertext(number);
     testParser.set_allocated_fixed32test(fixed32Test);
     testParser.SerializeToString(&str);
     bool parserError = true;
 
-    TypedProtoReader<5> typedProtoTest(reinterpret_cast<const uint8_t*>(str.data()), str.size());
+    TypedProtoReader<5> typedProtoTest(reinterpret_cast<const uint8_t *>(str.data()), str.size());
     EXPECT_EQ(typedProtoTest.Get(TestParser_Reader::kCountDataAreaNumber).ToInt32(), COUNT_01);
     auto fix32Type = typedProtoTest.Get(TestParser_Reader::kFixed32TestDataAreaNumber).ToBytes();
-    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t*>(fix32Type.data_), fix32Type.size_);
+    TypedProtoReader<1> typedProtoCpuInfoTest(reinterpret_cast<const uint8_t *>(fix32Type.data_), fix32Type.size_);
     auto packedRepeate = typedProtoCpuInfoTest.GetPackedRepeated<ProtoWireType::kFixed32, float>(
         Fixed32Test_Reader::kFixed32NumberTextDataAreaNumber, &parserError);
     EXPECT_EQ(number, *packedRepeate);

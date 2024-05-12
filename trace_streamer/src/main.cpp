@@ -42,7 +42,7 @@ constexpr uint8_t RAW_TRACE_PARSE_MAX = 2;
 constexpr uint8_t PARSER_THREAD_MAX = 16;
 constexpr uint8_t PARSER_THREAD_MIN = 1;
 // set version info in meta.cpp please
-void ExportStatusToLog(const std::string& dbPath, TraceParserStatus status)
+void ExportStatusToLog(const std::string &dbPath, TraceParserStatus status)
 {
     std::string path = dbPath + ".ohos.ts";
     std::ofstream out(path, std::ios_base::trunc);
@@ -58,7 +58,7 @@ void ExportStatusToLog(const std::string& dbPath, TraceParserStatus status)
     out << "last running status is: " << status;
     out.close();
 }
-void ShowHelpInfo(const char* argv)
+void ShowHelpInfo(const char *argv)
 {
     std::string dumpReadableTextPluginName;
 #ifdef ENABLE_NATIVE_HOOK
@@ -107,7 +107,7 @@ void PrintVersion()
 {
     (void)fprintf(stderr, "version %s\n", g_traceStreamerVersion.c_str());
 }
-void SetFtracePluginsAbilityInfo(std::string& disableInfo, std::string& enableInfo)
+void SetFtracePluginsAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 {
 #ifndef ENABLE_BYTRACE
     disableInfo.append("\n\tbytrace");
@@ -124,8 +124,13 @@ void SetFtracePluginsAbilityInfo(std::string& disableInfo, std::string& enableIn
 #else
     enableInfo.append("\n\thtrace");
 #endif
+#ifndef ENABLE_FFRT
+    disableInfo.append("\n\tffrt");
+#else
+    enableInfo.append("\n\tffrt");
+#endif
 }
-void PrintDefaultAbilityInfo(std::string& disableInfo, std::string& enableInfo)
+void PrintDefaultAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 {
     SetFtracePluginsAbilityInfo(disableInfo, enableInfo);
 #ifndef ENABLE_MEMORY
@@ -160,9 +165,9 @@ void PrintDefaultAbilityInfo(std::string& disableInfo, std::string& enableInfo)
 #endif
     printf(
         "the default support ability list:\n\thiperf,ebpf,native_hook,hilog,hisysevent,arkts\n\t"
-        "bytrace,rawtrace,htrace,memory,hidump,cpudata,network,diskio,process\n");
+        "bytrace,rawtrace,htrace,ffrt,memory,hidump,cpudata,network,diskio,process\n");
 }
-void PrintExtendAbilityInfo(std::string& disableInfo, std::string& enableInfo)
+void PrintExtendAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 {
 #ifndef ENABLE_STREAM_EXTEND
     disableInfo.append("\n\tstream_extend");
@@ -210,7 +215,7 @@ void PrintAbilityInfo()
     printf("the enable ability list:%s\n", enableInfo.empty() ? "\n\tnull" : enableInfo.c_str());
     printf("the disable ability list:%s\n", disableInfo.empty() ? "\n\tnull" : disableInfo.c_str());
 }
-bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
+bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector &ta, int fd)
 {
     auto startTime =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
@@ -253,7 +258,7 @@ bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
     (void)fprintf(stdout, "ParserSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime) / 1E3));
     return true;
 }
-bool SetFileSize(const std::string& traceFilePath)
+bool SetFileSize(const std::string &traceFilePath)
 {
     if (traceFilePath.empty()) {
         g_fileSize = 0;
@@ -264,7 +269,7 @@ bool SetFileSize(const std::string& traceFilePath)
     g_fileSize = statBuff.st_size;
     return true;
 }
-int OpenAndParserFile(TraceStreamerSelector& ts, const std::string& traceFilePath)
+int OpenAndParserFile(TraceStreamerSelector &ts, const std::string &traceFilePath)
 {
     if (!SetFileSize(traceFilePath)) {
         return 0;
@@ -280,11 +285,11 @@ int OpenAndParserFile(TraceStreamerSelector& ts, const std::string& traceFilePat
         SetAnalysisResult(TRACE_PARSER_ABNORMAL);
         return 1;
     }
-    MetaData* metaData = ts.GetMetaData();
+    MetaData *metaData = ts.GetMetaData();
 
     std::string fileNameTmp = traceFilePath;
 #ifdef _WIN32
-    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(fileNameTmp.c_str()), fileNameTmp.length())) {
+    if (!base::GetCoding(reinterpret_cast<const uint8_t *>(fileNameTmp.c_str()), fileNameTmp.length())) {
         fileNameTmp = base::GbkToUtf8(fileNameTmp.c_str());
     }
 #endif
@@ -294,16 +299,16 @@ int OpenAndParserFile(TraceStreamerSelector& ts, const std::string& traceFilePat
     close(fd);
     return 0;
 }
-int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
+int ExportDatabase(TraceStreamerSelector &ts, const std::string &sqliteFilePath)
 {
     auto startTime =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
     if (!sqliteFilePath.empty()) {
-        MetaData* metaData = ts.GetMetaData();
+        MetaData *metaData = ts.GetMetaData();
         std::string fileNameTmp = sqliteFilePath;
 #ifdef _WIN32
-        if (!base::GetCoding(reinterpret_cast<const uint8_t*>(fileNameTmp.c_str()), fileNameTmp.length())) {
+        if (!base::GetCoding(reinterpret_cast<const uint8_t *>(fileNameTmp.c_str()), fileNameTmp.length())) {
             fileNameTmp = base::GbkToUtf8(fileNameTmp.c_str());
         }
 #endif
@@ -325,12 +330,12 @@ int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
     (void)fprintf(stdout, "ExportSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime)) / 1E3);
     return 0;
 }
-bool LongTraceExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
+bool LongTraceExportDatabase(TraceStreamerSelector &ts, const std::string &sqliteFilePath)
 {
     if (!sqliteFilePath.empty()) {
         std::string fileNameTmp = sqliteFilePath;
 #ifdef _WIN32
-        if (!base::GetCoding(reinterpret_cast<const uint8_t*>(fileNameTmp.c_str()), fileNameTmp.length())) {
+        if (!base::GetCoding(reinterpret_cast<const uint8_t *>(fileNameTmp.c_str()), fileNameTmp.length())) {
             fileNameTmp = base::GbkToUtf8(fileNameTmp.c_str());
         }
 #endif
@@ -358,7 +363,7 @@ struct TraceExportOption {
     uint8_t parserThreadNum = INVALID_UINT8;
     bool needClearLongTraceCache = true;
 };
-bool CheckFinal(char** argv, TraceExportOption& traceExportOption)
+bool CheckFinal(char **argv, TraceExportOption &traceExportOption)
 {
     if (((traceExportOption.traceFilePath.empty() && traceExportOption.longTraceDir.empty()) ||
          (!traceExportOption.interactiveState && traceExportOption.sqliteFilePath.empty())) &&
@@ -371,7 +376,7 @@ bool CheckFinal(char** argv, TraceExportOption& traceExportOption)
     return true;
 }
 
-bool CheckArgc(int argc, char** argv, int curArgNum)
+bool CheckArgc(int argc, char **argv, int curArgNum)
 {
     if (curArgNum == argc) {
         ShowHelpInfo(argv[0]);
@@ -379,7 +384,7 @@ bool CheckArgc(int argc, char** argv, int curArgNum)
     }
     return true;
 }
-bool CheckAndSetLogLevel(int argc, char** argv, int& index)
+bool CheckAndSetLogLevel(int argc, char **argv, int &index)
 {
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     if (SetLogLevel(std::string(argv[index]))) {
@@ -388,38 +393,38 @@ bool CheckAndSetLogLevel(int argc, char** argv, int& index)
     ShowHelpInfo(argv[0]);
     return false;
 }
-bool CheckAndSetMetrics(TraceExportOption& traceExportOption, int argc, char** argv, int& index)
+bool CheckAndSetMetrics(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
 {
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     traceExportOption.metricsIndex = std::string(argv[index]);
     return true;
 }
-bool CheckAndSetThreadNum(TraceExportOption& traceExportOption, int argc, char** argv, int& index)
+bool CheckAndSetThreadNum(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
 {
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     traceExportOption.parserThreadNum = std::stoi(argv[index]);
     return true;
 }
 
-bool CheckAndSetSqlitePath(TraceExportOption& traceExportOption, int argc, char** argv, int& index)
+bool CheckAndSetSqlitePath(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
 {
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     traceExportOption.sqliteFilePath = std::string(argv[index]);
     return true;
 }
-bool CheckAndSetOutputFilePath(TraceExportOption& traceExportOption, int argc, char** argv, int& index)
+bool CheckAndSetOutputFilePath(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
 {
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     traceExportOption.outputFilePath = std::string(argv[index]);
     return true;
 }
-bool CheckAndSetSqlQueryFilePath(TraceExportOption& traceExportOption, int argc, char** argv, int& index)
+bool CheckAndSetSqlQueryFilePath(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
 {
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     traceExportOption.sqlOperatorFilePath = std::string(argv[index]);
     return true;
 }
-bool CheckAndSetDumpFileType(TraceExportOption& traceExportOption, int argc, char** argv, int& index)
+bool CheckAndSetDumpFileType(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
 {
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     auto dumpFileType = std::string(argv[index]);
@@ -446,13 +451,13 @@ bool CheckAndSetDumpFileType(TraceExportOption& traceExportOption, int argc, cha
     }
     return true;
 }
-bool CheckAndSetLongTraceDir(TraceExportOption& traceExportOption, int argc, char** argv, int& index)
+bool CheckAndSetLongTraceDir(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
 {
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     traceExportOption.longTraceDir = std::string(argv[index]);
     return true;
 }
-bool ParseOtherArgs(int argc, char** argv, TraceExportOption& traceExportOption, int& i)
+bool ParseOtherArgs(int argc, char **argv, TraceExportOption &traceExportOption, int &i)
 {
     if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
         PrintInformation();
@@ -487,7 +492,7 @@ bool ParseOtherArgs(int argc, char** argv, TraceExportOption& traceExportOption,
     traceExportOption.traceFilePath = std::string(argv[i]);
     return true;
 }
-bool ParseArgs(int argc, char** argv, TraceExportOption& traceExportOption)
+bool ParseArgs(int argc, char **argv, TraceExportOption &traceExportOption)
 {
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-e")) {
@@ -515,16 +520,16 @@ bool ParseArgs(int argc, char** argv, TraceExportOption& traceExportOption)
     return CheckFinal(argv, traceExportOption);
 }
 
-bool GetLongTraceFilePaths(const TraceExportOption& traceExportOption, std::map<int, std::string>& seqToFilePathMap)
+bool GetLongTraceFilePaths(const TraceExportOption &traceExportOption, std::map<int, std::string> &seqToFilePathMap)
 {
     std::regex traceInvalidStr("\\\\");
     auto strEscape = std::regex_replace(traceExportOption.longTraceDir, traceInvalidStr, "\\\\\\\\");
-    DIR* dir = opendir(strEscape.c_str());
+    DIR *dir = opendir(strEscape.c_str());
     if (dir == nullptr) {
         TS_LOGE("long trace dir is not exist or not dir");
         return false;
     }
-    dirent* entry;
+    dirent *entry;
     while ((entry = readdir(dir)) != nullptr) {
         std::regex pattern("^hiprofiler_data_(\\d{8})_(\\d{6})_(\\d+)\\.htrace$");
         std::smatch matches;
@@ -551,9 +556,9 @@ bool GetLongTraceFilePaths(const TraceExportOption& traceExportOption, std::map<
     return true;
 }
 
-bool ReadAndParserLongTrace(SysTuning::TraceStreamer::TraceStreamerSelector& ta,
+bool ReadAndParserLongTrace(SysTuning::TraceStreamer::TraceStreamerSelector &ta,
                             int fd,
-                            const std::string& traceFilePath)
+                            const std::string &traceFilePath)
 {
     printf("Start Parse %s ...\n", traceFilePath.c_str());
     g_loadSize = 0;
@@ -575,7 +580,7 @@ bool ReadAndParserLongTrace(SysTuning::TraceStreamer::TraceStreamerSelector& ta,
     }
     return true;
 }
-bool OpenAndParserLongTraceFile(TraceStreamerSelector& ts, const std::string& traceFilePath)
+bool OpenAndParserLongTraceFile(TraceStreamerSelector &ts, const std::string &traceFilePath)
 {
     if (!SetFileSize(traceFilePath)) {
         return false;
@@ -594,7 +599,7 @@ bool OpenAndParserLongTraceFile(TraceStreamerSelector& ts, const std::string& tr
     close(fd);
     return true;
 }
-bool ParseLongTrace(TraceStreamerSelector& ts, const TraceExportOption& traceExportOption)
+bool ParseLongTrace(TraceStreamerSelector &ts, const TraceExportOption &traceExportOption)
 {
     std::map<int, std::string> seqToFilePathMap;
     TS_CHECK_TRUE(!traceExportOption.sqliteFilePath.empty(), false, "sqliteFilePath is empty");
@@ -630,7 +635,7 @@ bool ParseLongTrace(TraceStreamerSelector& ts, const TraceExportOption& traceExp
     }
     return true;
 }
-void ExportReadableText(TraceStreamerSelector& ts, const TraceExportOption& traceExportOption)
+void ExportReadableText(TraceStreamerSelector &ts, const TraceExportOption &traceExportOption)
 {
     if (traceExportOption.dumpFileType == DumpFileType::PERF_TYPE) {
         ts.ExportPerfReadableText(traceExportOption.outputFilePath);
@@ -640,7 +645,7 @@ void ExportReadableText(TraceStreamerSelector& ts, const TraceExportOption& trac
         ts.ExportEbpfReadableText(traceExportOption.outputFilePath);
     }
 }
-bool CheckAndParseArgs(int argc, char** argv, TraceExportOption& traceExportOption)
+bool CheckAndParseArgs(int argc, char **argv, TraceExportOption &traceExportOption)
 {
     if (argc < G_MIN_PARAM_NUM) {
         ShowHelpInfo(argv[0]);
@@ -655,9 +660,9 @@ bool CheckAndParseArgs(int argc, char** argv, TraceExportOption& traceExportOpti
     }
     return false;
 }
-bool EnterInteractiveState(TraceStreamerSelector& ts)
+bool EnterInteractiveState(TraceStreamerSelector &ts)
 {
-    MetaData* metaData = ts.GetMetaData();
+    MetaData *metaData = ts.GetMetaData();
     metaData->SetOutputFileName("command line mode");
     metaData->SetParserToolVersion(g_traceStreamerVersion.c_str());
     metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion.c_str());
@@ -672,7 +677,7 @@ bool EnterInteractiveState(TraceStreamerSelector& ts)
         }
     }
 }
-void Init(TraceStreamerSelector& ts, const TraceExportOption& traceExportOption)
+void Init(TraceStreamerSelector &ts, const TraceExportOption &traceExportOption)
 {
     ts.EnableMetaTable(traceExportOption.exportMetaTable);
     ts.EnableFileSave(traceExportOption.separateFile);
@@ -687,7 +692,7 @@ void Init(TraceStreamerSelector& ts, const TraceExportOption& traceExportOption)
 
 } // namespace TraceStreamer
 } // namespace SysTuning
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     TraceExportOption traceExportOption;
     TS_CHECK_TRUE_RET(CheckAndParseArgs(argc, argv, traceExportOption), 1);
@@ -723,7 +728,7 @@ int main(int argc, char** argv)
         }
     }
     if (!traceExportOption.metricsIndex.empty()) {
-        MetaData* metaData = ts.GetMetaData();
+        MetaData *metaData = ts.GetMetaData();
         metaData->SetOutputFileName("command line mode");
         metaData->SetParserToolVersion(g_traceStreamerVersion.c_str());
         metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion.c_str());

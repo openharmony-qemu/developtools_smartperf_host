@@ -27,12 +27,12 @@ constexpr uint32_t LOCDATA_LENGTH_SHIFT = 16;
 constexpr uint32_t LOCDATA_OFFSET_MASK = 0xffff;
 constexpr uint32_t LOCDATA_LENGTH_MASK = 0xffff;
 
-std::string HandleString(const uint8_t* startPos, const uint8_t* endPos, int size)
+std::string HandleString(const uint8_t *startPos, const uint8_t *endPos, int size)
 {
     TS_CHECK_TRUE_RET(endPos - startPos >= static_cast<ptrdiff_t>(size), "");
     std::string curStr;
-    const uint8_t* curCursor = startPos;
-    const uint8_t* sectionEnd = startPos + size;
+    const uint8_t *curCursor = startPos;
+    const uint8_t *sectionEnd = startPos + size;
     while (*curCursor && curCursor < sectionEnd) {
         curCursor++;
     }
@@ -43,7 +43,7 @@ std::string HandleString(const uint8_t* startPos, const uint8_t* endPos, int siz
 
 namespace SysTuning {
 namespace TraceStreamer {
-bool FtraceFieldProcessor::HandleTypeData(const uint8_t* startPos, const uint8_t* endPos, void* out, size_t size)
+bool FtraceFieldProcessor::HandleTypeData(const uint8_t *startPos, const uint8_t *endPos, void *out, size_t size)
 {
     ptrdiff_t memSize = endPos - startPos;
     TS_CHECK_TRUE_RET(memSize >= static_cast<ptrdiff_t>(size), false);
@@ -52,12 +52,12 @@ bool FtraceFieldProcessor::HandleTypeData(const uint8_t* startPos, const uint8_t
     return true;
 }
 
-std::string FtraceFieldProcessor::HandleStrField(const FieldFormat& format, uint8_t data[], size_t size)
+std::string FtraceFieldProcessor::HandleStrField(const FieldFormat &format, uint8_t data[], size_t size)
 {
     TS_CHECK_TRUE_RET((format.offset + format.size) <= size, "");
     std::string curStr;
-    uint8_t* startPos = data + format.offset;
-    uint8_t* endPos = data + size;
+    uint8_t *startPos = data + format.offset;
+    uint8_t *endPos = data + size;
     size_t curStrSize = 0;
     uint64_t curStrPtr = 0;
     uint32_t curLocData = 0;

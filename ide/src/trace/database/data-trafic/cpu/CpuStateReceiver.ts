@@ -14,8 +14,9 @@
 import { TraficEnum } from '../utils/QueryEnum';
 import { filterDataByGroup } from '../utils/DataFilter';
 import { cpuStateList } from '../utils/AllMemoryCache';
+import { Args } from '../CommonArgs';
 
-export const chartCpuStateDataSql = (args: any): string => {
+export const chartCpuStateDataSql = (args: Args): string => {
   return `
       select  (value) as value,
               max(ifnull(dur, ${args.recordEndNS} - A.ts))                                                 as dur,
@@ -39,7 +40,7 @@ export const chartCpuStateDataSql = (args: any): string => {
       ;`;
 };
 
-export const chartCpuStateDataSqlMem = (args: any): string => {
+export const chartCpuStateDataSqlMem = (args: Args): string => {
   return `
    select (A.ts - ${args.recordStartNS}) as startTs,ifnull(dur,${args.recordEndNS} - A.ts) dur,
             value
@@ -48,54 +49,78 @@ export const chartCpuStateDataSqlMem = (args: any): string => {
       `;
 };
 
-export function cpuStateReceiver(data: any, proc: Function): void {
+export function cpuStateReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: any[], list: any[];
+    let res: unknown[];
+    let list: unknown[];
+    // @ts-ignore
     if (!cpuStateList.has(data.params.filterId)) {
+      // @ts-ignore
       list = proc(chartCpuStateDataSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {
+        // @ts-ignore
         if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined) {
+          // @ts-ignore
           list[i].dur = data.params.recordEndNS - data.params.recordStartNS - list[i].startTs;
         }
       }
+      // @ts-ignore
       cpuStateList.set(data.params.filterId, list);
     } else {
+      // @ts-ignore
       list = cpuStateList.get(data.params.filterId) || [];
     }
     res = filterDataByGroup(
       list || [],
       'startTs',
       'dur',
+      // @ts-ignore
       data.params.startNS,
+      // @ts-ignore
       data.params.endNS,
+      // @ts-ignore
       data.params.width,
       'value'
     );
     arrayBufferHandler(data, res, true);
   } else {
+    // @ts-ignore
     let sql = chartCpuStateDataSql(data.params);
     let res = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
 let heights = [4, 8, 12, 16, 20, 24, 28, 32];
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  // @ts-ignore
   let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs);
+  // @ts-ignore
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
+  // @ts-ignore
   let value = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.value);
+  // @ts-ignore
   let height = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.height);
   res.forEach((it, i) => {
+    // @ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.cpuStateData);
+    // @ts-ignore
     startTs[i] = it.startTs;
+    // @ts-ignore
     dur[i] = it.dur;
+    // @ts-ignore
     value[i] = it.value;
+    // @ts-ignore
     height[i] = heights[it.value];
   });
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {

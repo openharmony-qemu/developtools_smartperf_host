@@ -16,14 +16,16 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { type Smaps, SmapsTreeObj, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct';
+
 import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import {
-  getTabSmapsMaxSize, getTabSmapsStatisticData,
+  getTabSmapsMaxSize,
+  getTabSmapsStatisticData,
   getTabSmapsStatisticMaxSize,
-  getTabSmapsStatisticSelectData
-} from "../../../../database/sql/Smaps.sql";
+  getTabSmapsStatisticSelectData,
+} from '../../../../database/sql/Smaps.sql';
 @element('tabpane-smaps-statistics')
 export class TabPaneSmapsStatistics extends BaseElement {
   private tblSmapsStatistics: LitTable | null | undefined;
@@ -45,7 +47,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
   }
 
   set data(valSmapsStatistics: SelectionParam) {
-    if (!this.tblSmapsStatistics || valSmapsStatistics == this.currentSelection) {
+    if (!this.tblSmapsStatistics || valSmapsStatistics === this.currentSelection) {
       return;
     }
     this.parentElement!.style.overflow = 'unset';
@@ -65,7 +67,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
   connectedCallback(): void {
     super.connectedCallback();
     new ResizeObserver(() => {
-      if (this.parentElement?.clientHeight != 0) {
+      if (this.parentElement?.clientHeight !== 0) {
         // @ts-ignore
         this.tblSmapsStatistics?.shadowRoot?.querySelector('.table').style.height =
           this.parentElement!.clientHeight - 15 + 'px';
@@ -221,10 +223,10 @@ export class TabPaneSmapsStatistics extends BaseElement {
       this.filteredData(result, this.tblSmapsStatistics!, this.sumSize);
     });
   }
-  
+
   private initTreeObj(): Map<SmapsType, SmapsTreeObj> {
     let allTreeObjs: Map<SmapsType, SmapsTreeObj> = new Map<SmapsType, SmapsTreeObj>();
-    allTreeObjs.set(SmapsType.TYPE_CODE_SYS, new SmapsTreeObj('CODE_SYS', '', 'CODE_SYS'))
+    allTreeObjs.set(SmapsType.TYPE_CODE_SYS, new SmapsTreeObj('CODE_SYS', '', 'CODE_SYS'));
     allTreeObjs.set(SmapsType.TYPE_CODE_APP, new SmapsTreeObj('CODE_APP', '', 'CODE_APP'));
     allTreeObjs.set(SmapsType.TYPE_DATA_SYS, new SmapsTreeObj('DATA_SYS', '', 'DATA_SYS'));
     allTreeObjs.set(SmapsType.TYPE_DATA_APP, new SmapsTreeObj('DATA_APP', '', 'DATA_APP'));
@@ -267,17 +269,22 @@ export class TabPaneSmapsStatistics extends BaseElement {
     this.handleSmapsTreeObj(this.allTree!, sumSize);
   }
 
-  public filteredData(result: Array<any>, table: LitTable, sumSize?: number): void {
+  public filteredData(result: Array<unknown>, table: LitTable, sumSize?: number): void {
     this.allTree = new SmapsTreeObj('All', '', '*All*');
     let allTreeObjs = this.initTreeObj();
     if (result.length !== null && result.length > 0) {
       for (let id = 0; id < result.length; id++) {
         let smaps = result[id];
+        // @ts-ignore
         smaps.typeName = TYPE_STRING[smaps.type];
+        // @ts-ignore
         if (allTreeObjs.has(smaps.type)) {
+          // @ts-ignore
           let newVar = allTreeObjs.get(smaps.type);
+          // @ts-ignore
           this.handleTree(smaps, id, smaps.typeName, newVar!, sumSize);
         }
+        // @ts-ignore
         this.handleAllDataTree(smaps, id, 'All', this.allTree, sumSize!);
         if (id === result.length - 1) {
           this.handleAllSMapsTreeObj(sumSize!, allTreeObjs);
@@ -331,7 +338,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
     this.sortArray.shift();
   }
 
-  private sortByKey(column: string, sort: number, table: LitTable): void{
+  private sortByKey(column: string, sort: number, table: LitTable): void {
     switch (sort) {
       case 0:
         this.sortArray.sort((previous, next) => {

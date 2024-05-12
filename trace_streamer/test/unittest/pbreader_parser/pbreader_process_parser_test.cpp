@@ -57,9 +57,9 @@ public:
 
     void TearDown() {}
 
-    void SetProcessesinfo(ProcessData* processData, uint32_t pid, std::string name, uint32_t ppid, uint32_t uid)
+    void SetProcessesinfo(ProcessData *processData, uint32_t pid, std::string name, uint32_t ppid, uint32_t uid)
     {
-        ProcessInfo* processInfo = processData->add_processesinfo();
+        ProcessInfo *processInfo = processData->add_processesinfo();
         processInfo->set_pid(pid);
         processInfo->set_name(name);
         processInfo->set_ppid(ppid);
@@ -81,7 +81,7 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithoutProcessData, TestSize
     auto processData = std::make_unique<ProcessData>();
     std::string processStrMsg = "";
     processData->SerializeToString(&processStrMsg);
-    ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t*>(processStrMsg.data()),
+    ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t *>(processStrMsg.data()),
                                             processStrMsg.size());
     PbreaderProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceProcessParser.Parse(processBytesView, TS);
@@ -105,7 +105,7 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithProcessData, TestSize.Le
     SetProcessesinfo(processData.get(), pid, name, ppid, uid);
     std::string processStrMsg = "";
     processData->SerializeToString(&processStrMsg);
-    ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t*>(processStrMsg.data()),
+    ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t *>(processStrMsg.data()),
                                             processStrMsg.size());
     PbreaderProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceProcessParser.Parse(processBytesView, TS);
@@ -128,7 +128,7 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithTwoProcessData, TestSize
     SetProcessesinfo(processData.get(), PID_02, NAME_02, PPID_02, UID_02);
     std::string processStrMsg = "";
     processData->SerializeToString(&processStrMsg);
-    ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t*>(processStrMsg.data()),
+    ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t *>(processStrMsg.data()),
                                             processStrMsg.size());
     PbreaderProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceProcessParser.Parse(processBytesView, TS);
@@ -158,7 +158,7 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithThreeProcessData, TestSi
     SetProcessesinfo(processData.get(), PID_03, NAME_03, PPID_03, UID_03);
     std::string processStrMsg = "";
     processData->SerializeToString(&processStrMsg);
-    ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t*>(processStrMsg.data()),
+    ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t *>(processStrMsg.data()),
                                             processStrMsg.size());
     PbreaderProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceProcessParser.Parse(processBytesView, TS);
@@ -193,7 +193,7 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithMultipleProcessData, Tes
     SetProcessesinfo(processData.get(), PID_04, NAME_04, PPID_04, UID_04);
     std::string processStrMsg = "";
     processData->SerializeToString(&processStrMsg);
-    ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t*>(processStrMsg.data()),
+    ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t *>(processStrMsg.data()),
                                             processStrMsg.size());
     PbreaderProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceProcessParser.Parse(processBytesView, TS);

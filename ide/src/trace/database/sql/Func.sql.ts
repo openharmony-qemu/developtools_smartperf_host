@@ -20,6 +20,7 @@ import { HeapTraceFunctionInfo } from '../../../js-heap/model/DatabaseStruct';
 import { FunctionItem } from '../../bean/BinderProcessThread';
 import { StateGroup } from '../../bean/StateModle';
 import { FuncNameCycle } from '../../bean/BinderProcessThread';
+import { Utils } from '../../component/trace/base/Utils';
 
 export const queryFuncNameCycle = (
   funcName: string,
@@ -60,7 +61,8 @@ export const queryFuncNameCycle = (
       $tIds: tIds,
       $leftNS: leftNS,
       $rightNS: rightNS,
-    }
+    },
+    { traceId: Utils.currentSelectTrace }
   );
 
 export const querySingleFuncNameCycle = (
@@ -107,72 +109,71 @@ export const querySingleFuncNameCycle = (
     }
   );
 
-export const queryAllFuncNames = (): Promise<Array<any>> => {
+export const queryAllFuncNames = (
+  traceId?: string
+): //@ts-ignore
+Promise<Array<unknown>> => {
   return query(
     'queryAllFuncNames',
     `
-        select id,name from callstack;`
+        select id,name from callstack;`,
+    {},
+    { traceId: traceId }
   );
 };
 
-export const queryProcessAsyncFunc = (_funName?: string): Promise<Array<any>> =>
+export const queryProcessAsyncFunc = (
+  traceRange: {
+    startTs: number;
+    endTs: number;
+  },
+  traceId?: string
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryProcessAsyncFunc',
-    `
-select tid,
-    P.pid,
-    A.name as threadName,
-    is_main_thread,
-    c.callid as track_id,
-    c.ts-D.start_ts as startTs,
-    c.dur,
-    c.cat,
-    c.name as funName,
-    c.parent_id,
-    c.id,
-    c.cookie,
-    c.depth,
-    c.argsetid
-from thread A,trace_range D
-left join callstack C on A.id = C.parent_id
-left join process P on P.id = A.ipid
-where startTs not null and cookie not null ${_funName ? 'funName=$funName' : ''};`,
-    {
-      funName: _funName,
-    }
+    `select tid,
+        P.pid,
+        c.ts-${traceRange.startTs} as startTs,
+        c.dur,
+        c.id,
+        c.depth
+    from thread A
+    left join process P on P.id = A.ipid
+    left join callstack C on A.id = C.callid
+    where startTs not null and cookie not null;`,
+    {},
+    { traceId: traceId }
   );
 
-export const getFunDataByTid = (tid: number, ipid: number): Promise<Array<FuncStruct>> =>
-  query(
-    'getFunDataByTid',
-    `
-    select 
-    c.ts-D.start_ts as startTs,
-    c.dur,
-    c.name as funName,
-    c.argsetid,
-    c.depth,
-    c.id as id,
-    A.itid as itid,
-    A.ipid as ipid
-from thread A,trace_range D
-left join callstack C on A.id = C.callid
-where startTs not null and c.cookie is null and tid = $tid and A.ipid = $ipid`,
-    { $tid: tid, $ipid: ipid }
-  );
-
-export const getMaxDepthByTid = (): Promise<Array<any>> =>
+export const getMaxDepthByTid = (
+  traceId?: string
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'getMaxDepthByTid',
-    `
-    select
-tid,
-ipid,
-    MAX(c.depth + 1) as maxDepth
-from thread A
-left join callstack C on A.id = C.callid
-where c.ts not null and c.cookie is null group by tid,ipid`,
-    {}
+    `SELECT 
+      tid,
+      ipid,
+      maxDepth 
+    FROM
+      thread T
+      LEFT JOIN (
+      SELECT
+        callid,
+        MAX( c.depth + 1 ) AS maxDepth 
+      FROM
+        callstack C 
+      WHERE
+        c.ts IS NOT NULL 
+        AND c.cookie IS NULL 
+      GROUP BY
+        callid 
+      ) C ON T.id = C.callid 
+    WHERE
+      maxDepth NOT NULL`,
+    {},
+    { traceId: traceId }
   );
 
 export const querySearchFuncData = (
@@ -234,13 +235,10 @@ export const queryFuncRowData = (funcName: string, tIds: number): Promise<Array<
     { $search: funcName }
   );
 
-  export const fuzzyQueryFuncRowData = (
-    funcName: string,
-    tIds: number
-  ): Promise<Array<SearchFuncBean>> =>
-    query(
-      'fuzzyQueryFuncRowData',
-      `select 
+export const fuzzyQueryFuncRowData = (funcName: string, tIds: number): Promise<Array<SearchFuncBean>> =>
+  query(
+    'fuzzyQueryFuncRowData',
+    `select 
         c.name as funName,
         c.ts - r.start_ts as startTime,
         c.ts - r.start_ts + c.dur as endTime,
@@ -262,44 +260,42 @@ export const queryFuncRowData = (funcName: string, tIds: number): Promise<Array<
       and 
         t.tid = ${tIds} 
               `,
-      { $search: funcName }
-    );
+    { $search: funcName }
+  );
 
 export const getTabSlicesAsyncFunc = (
   asyncNames: Array<string>,
   asyncPid: Array<number>,
   leftNS: number,
   rightNS: number
-): Promise<Array<any>> =>
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabSlicesAsyncFunc',
-    `
-    select
-      c.name as name,
-      sum(c.dur) as wallDuration,
-      avg(c.dur) as avgDuration,
-      count(c.name) as occurrences
-    from
-      thread A, trace_range D
-      left join process P on P.id = A.ipid
-    left join
-      callstack C
-    on
-      A.id = C.callid
+    `SELECT 
+      c.name AS name,
+      sum( c.dur ) AS wallDuration,
+      avg( c.dur ) AS avgDuration,
+      count( c.name ) AS occurrences 
+    FROM
+      thread A,
+      trace_range D
+      LEFT JOIN process P ON P.id = A.ipid
+      LEFT JOIN callstack C ON A.id = C.callid
     where
-      C.ts > 0
-    and
-      c.dur >= -1
-    and 
-      c.cookie not null
-    and
-      P.pid in (${asyncPid.join(',')})
-    and
-      c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})
-    and
-      not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
-    group by
-      c.name
+        C.ts > 0
+      and
+        c.dur >= -1
+      and 
+        c.cookie not null
+      and
+        P.pid in (${asyncPid.join(',')})
+      and
+        c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})
+      and
+        not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
+      group by
+        c.name
     order by
       wallDuration desc;`,
     { $leftNS: leftNS, $rightNS: rightNS }
@@ -308,30 +304,33 @@ export const getTabSlicesAsyncFunc = (
 export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> =>
   query(
     'querySearchFunc',
-    `
-   select c.cookie,
-          c.id,
-          c.name as funName,
-          c.ts - r.start_ts as startTime,
-          c.dur,
-          c.depth,
-          t.tid,
-          t.name as threadName,
-          p.pid,
-          c.argsetid,
-          'func' as type 
-   from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
-   left join trace_range r 
-   where c.name like '%${search}%' and startTime > 0;
-    `,
-    { $search: search }
+    `SELECT 
+      c.cookie,
+      c.id,
+      c.name AS funName,
+      c.ts - r.start_ts AS startTime,
+      c.dur,
+      c.depth,
+      t.tid,
+      t.name AS threadName,
+      p.pid,
+      c.argsetid,
+      'func' AS type 
+    FROM
+      thread t, trace_range r 
+      LEFT JOIN process p ON t.ipid = p.id
+      LEFT JOIN callstack c ON c.callid = t.id
+    WHERE
+      c.name LIKE '%${search}%' 
+      AND startTime > 0 ;`,
+    { $search: search },
+    { traceId: Utils.currentSelectTrace }
   );
 
 export const querySceneSearchFunc = (search: string, processList: Array<string>): Promise<Array<SearchFuncBean>> =>
   query(
     'querySearchFunc',
-    `
-   select c.cookie,
+    `select c.cookie,
           c.id,
           c.name as funName,
           c.ts - r.start_ts as startTime,
@@ -342,21 +341,34 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
           p.pid,
           c.argsetid,
           'func' as type 
-   from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
-   left join trace_range r
+        FROM
+        thread t, trace_range r 
+        LEFT JOIN process p ON t.ipid = p.id
+        LEFT JOIN callstack c ON c.callid = t.id
    where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
     `,
-    { $search: search }
+    { $search: search },
+    { traceId: Utils.currentSelectTrace }
   );
 
 export const queryHeapFunction = (fileId: number): Promise<Array<HeapTraceFunctionInfo>> =>
   query(
     'queryHeapFunction',
-    `SELECT function_index as index ,function_id as id ,name,script_name as scriptName,script_id as scriptId,line,column
-      FROM js_heap_trace_function_info WHERE file_id = ${fileId}`
+    `SELECT 
+      function_index as index ,
+      function_id as id ,
+      name,
+      script_name as scriptName,
+      script_id as scriptId,
+      line,
+      column
+    FROM js_heap_trace_function_info WHERE file_id = ${fileId}`
   );
 
-export const queryHeapTraceNode = (fileId: number): Promise<Array<any>> =>
+export const queryHeapTraceNode = (
+  fileId: number
+): //@ts-ignore
+Promise<Array<unknown>> =>
   query(
     'queryHeapTraceNode',
     `SELECT F.name,
@@ -395,7 +407,7 @@ export const queryHeapTraceNode = (fileId: number): Promise<Array<any>> =>
   );
 
 export const queryTaskPoolOtherRelationData = (ids: Array<number>, tid: number): Promise<Array<FuncStruct>> => {
-  let sqlStr = `select
+  let sqlStr = `select 
                     c.ts-D.start_ts as startTs,
                     c.dur,
                     c.name as funName,
@@ -405,26 +417,24 @@ export const queryTaskPoolOtherRelationData = (ids: Array<number>, tid: number):
                     A.itid as itid,
                     A.ipid as ipid
                 from thread A,trace_range D
-                                  left join callstack C on A.id = C.callid
+                left join callstack C on A.id = C.callid
                 where startTs not null and c.cookie is null and tid = $tid and c.id in (${ids.join(',')})`;
   return query('queryTaskPoolOtherRelationData', sqlStr, { $ids: ids, $tid: tid });
 };
 
 export const queryTaskPoolRelationData = (ids: Array<number>, tids: Array<number>): Promise<Array<FuncStruct>> => {
-  let sqlStr = `select
-                    c.ts-D.start_ts as startTs,
-                    c.dur,
-                    c.name as funName,
-                    c.argsetid,
-                    c.depth,
-                    c.id as id,
-                    A.itid as itid,
-                    A.ipid as ipid
-                from thread A,trace_range D
-                                  left join callstack C on A.id = C.callid
-                where startTs not null and c.cookie is null and c.id in (${ids.join(',')}) and tid in (${tids.join(
-    ','
-  )})`;
+  let sqlStr = `select 
+        c.ts-D.start_ts as startTs,
+        c.dur,
+        c.name as funName,
+        c.argsetid,
+        c.depth,
+        c.id as id,
+        A.itid as itid,
+        A.ipid as ipid
+    from thread A,trace_range D
+    left join callstack C on A.id = C.callid
+    where startTs not null and c.cookie is null and c.id in (${ids.join(',')}) and tid in (${tids.join(',')})`;
   return query('queryTaskPoolRelationData', sqlStr, { $ids: ids, $tids: tids });
 };
 
@@ -446,7 +456,8 @@ export const queryStatesCut = (tIds: Array<number>, leftNS: number, rightNS: num
   where
     B.tid in (${tIds.join(',')})
   and
-    not ((B.ts + + ifnull(B.dur,0) < ($leftStartNs + C.start_ts)) or (B.ts + B.dur > ($rightEndNs + C.start_ts)))
+    not ((B.ts + + ifnull(B.dur,0) < ($leftStartNs + C.start_ts)) 
+    or (B.ts + B.dur > ($rightEndNs + C.start_ts)))
   order by
     B.pid;
         `,

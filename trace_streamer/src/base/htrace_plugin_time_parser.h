@@ -20,8 +20,8 @@ namespace TraceStreamer {
 class HtracePluginTimeParser {
 public:
     HtracePluginTimeParser();
-    HtracePluginTimeParser(const HtracePluginTimeParser&) = delete;
-    HtracePluginTimeParser& operator=(const HtracePluginTimeParser&) = delete;
+    HtracePluginTimeParser(const HtracePluginTimeParser &) = delete;
+    HtracePluginTimeParser &operator=(const HtracePluginTimeParser &) = delete;
     ~HtracePluginTimeParser() = default;
     void UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp);
     uint64_t GetPluginStartTime() const;

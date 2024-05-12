@@ -22,7 +22,7 @@ size_t Hidump::AppendNewHidumpInfo(uint64_t timeStamp, uint32_t fps)
     fpss_.emplace_back(fps);
     return Size() - 1;
 }
-const std::deque<uint32_t>& Hidump::Fpss() const
+const std::deque<uint32_t> &Hidump::Fpss() const
 {
     return fpss_;
 }
@@ -54,40 +54,40 @@ void DiskIOData::AppendNewData(uint64_t ts,
     rdCountDatas_.emplace_back(rdCount);
     wrCountDatas_.emplace_back(wrCount);
 }
-const std::deque<uint64_t>& DiskIOData::Durs() const
+const std::deque<uint64_t> &DiskIOData::Durs() const
 {
     return durs_;
 }
-const std::deque<uint64_t>& DiskIOData::RdDatas() const
+const std::deque<uint64_t> &DiskIOData::RdDatas() const
 {
     return rdDatas_;
 }
-const std::deque<uint64_t>& DiskIOData::WrDatas() const
+const std::deque<uint64_t> &DiskIOData::WrDatas() const
 {
     return wrDatas_;
 }
-const std::deque<double>& DiskIOData::RdSpeedDatas() const
+const std::deque<double> &DiskIOData::RdSpeedDatas() const
 {
     return rdPerSec_;
 }
-const std::deque<double>& DiskIOData::WrSpeedDatas() const
+const std::deque<double> &DiskIOData::WrSpeedDatas() const
 {
     return wrPerSec_;
 }
 
-const std::deque<double>& DiskIOData::RdCountPerSecDatas() const
+const std::deque<double> &DiskIOData::RdCountPerSecDatas() const
 {
     return rdCountPerSec_;
 }
-const std::deque<double>& DiskIOData::WrCountPerSecDatas() const
+const std::deque<double> &DiskIOData::WrCountPerSecDatas() const
 {
     return wrCountPerSec_;
 }
-const std::deque<uint64_t>& DiskIOData::RdCountDatas() const
+const std::deque<uint64_t> &DiskIOData::RdCountDatas() const
 {
     return rdCountDatas_;
 }
-const std::deque<uint64_t>& DiskIOData::WrCountDatas() const
+const std::deque<uint64_t> &DiskIOData::WrCountDatas() const
 {
     return wrCountDatas_;
 }
@@ -134,52 +134,52 @@ size_t LiveProcessDetailData::AppendNewData(uint64_t newTimeStamp,
     cpuTimes_.emplace_back(cpuTime);
     return Size() - 1;
 }
-const std::deque<uint64_t>& LiveProcessDetailData::Durs() const
+const std::deque<uint64_t> &LiveProcessDetailData::Durs() const
 {
     return durs_;
 }
-const std::deque<int32_t>& LiveProcessDetailData::ProcessID() const
+const std::deque<int32_t> &LiveProcessDetailData::ProcessID() const
 {
     return processID_;
 }
-const std::deque<std::string>& LiveProcessDetailData::ProcessName() const
+const std::deque<std::string> &LiveProcessDetailData::ProcessName() const
 {
     return processName_;
 }
-const std::deque<int32_t>& LiveProcessDetailData::ParentProcessID() const
+const std::deque<int32_t> &LiveProcessDetailData::ParentProcessID() const
 {
     return parentProcessID_;
 }
-const std::deque<int32_t>& LiveProcessDetailData::Uid() const
+const std::deque<int32_t> &LiveProcessDetailData::Uid() const
 {
     return uid_;
 }
-const std::deque<std::string>& LiveProcessDetailData::UserName() const
+const std::deque<std::string> &LiveProcessDetailData::UserName() const
 {
     return userName_;
 }
-const std::deque<double>& LiveProcessDetailData::CpuUsage() const
+const std::deque<double> &LiveProcessDetailData::CpuUsage() const
 {
     return cpuUsage_;
 }
-const std::deque<int32_t>& LiveProcessDetailData::PssInfo() const
+const std::deque<int32_t> &LiveProcessDetailData::PssInfo() const
 {
     return pssInfo_;
 }
-const std::deque<int32_t>& LiveProcessDetailData::Threads() const
+const std::deque<int32_t> &LiveProcessDetailData::Threads() const
 {
     return threads_;
 }
-const std::deque<int64_t>& LiveProcessDetailData::DiskWrites() const
+const std::deque<int64_t> &LiveProcessDetailData::DiskWrites() const
 {
     return diskWrites_;
 }
-const std::deque<int64_t>& LiveProcessDetailData::DiskReads() const
+const std::deque<int64_t> &LiveProcessDetailData::DiskReads() const
 {
     return diskReads_;
 }
 
-const std::deque<uint64_t>& LiveProcessDetailData::CpuTimes() const
+const std::deque<uint64_t> &LiveProcessDetailData::CpuTimes() const
 {
     return cpuTimes_;
 }
@@ -214,23 +214,23 @@ size_t CpuUsageDetailData::AppendNewData(uint64_t newTimeStamp,
     threads_.emplace_back(threads);
     return Size() - 1;
 }
-const std::deque<uint64_t>& CpuUsageDetailData::Durs() const
+const std::deque<uint64_t> &CpuUsageDetailData::Durs() const
 {
     return durs_;
 }
-const std::deque<double>& CpuUsageDetailData::TotalLoad() const
+const std::deque<double> &CpuUsageDetailData::TotalLoad() const
 {
     return totalLoad_;
 }
-const std::deque<double>& CpuUsageDetailData::UserLoad() const
+const std::deque<double> &CpuUsageDetailData::UserLoad() const
 {
     return userLoad_;
 }
-const std::deque<double>& CpuUsageDetailData::SystemLoad() const
+const std::deque<double> &CpuUsageDetailData::SystemLoad() const
 {
     return systemLoad_;
 }
-const std::deque<int64_t>& CpuUsageDetailData::Threads() const
+const std::deque<int64_t> &CpuUsageDetailData::Threads() const
 {
     return threads_;
 }
@@ -254,7 +254,7 @@ size_t NetDetailData::AppendNewNetData(uint64_t newTimeStamp,
                                        double packetInSec,
                                        uint64_t packetOut,
                                        double packetOutSec,
-                                       const std::string& netType)
+                                       const std::string &netType)
 {
     timeStamps_.emplace_back(newTimeStamp);
     txs_.emplace_back(tx);
@@ -270,43 +270,43 @@ size_t NetDetailData::AppendNewNetData(uint64_t newTimeStamp,
 
     return Size() - 1;
 }
-const std::deque<uint64_t>& NetDetailData::Durs() const
+const std::deque<uint64_t> &NetDetailData::Durs() const
 {
     return durs_;
 }
-const std::deque<double>& NetDetailData::RxSpeed() const
+const std::deque<double> &NetDetailData::RxSpeed() const
 {
     return rxSpeeds_;
 }
-const std::deque<double>& NetDetailData::TxSpeed() const
+const std::deque<double> &NetDetailData::TxSpeed() const
 {
     return txSpeeds_;
 }
-const std::deque<std::string>& NetDetailData::NetTypes() const
+const std::deque<std::string> &NetDetailData::NetTypes() const
 {
     return netTypes_;
 }
-const std::deque<uint64_t>& NetDetailData::RxDatas() const
+const std::deque<uint64_t> &NetDetailData::RxDatas() const
 {
     return rxs_;
 }
-const std::deque<uint64_t>& NetDetailData::TxDatas() const
+const std::deque<uint64_t> &NetDetailData::TxDatas() const
 {
     return txs_;
 }
-const std::deque<uint64_t>& NetDetailData::PacketIn() const
+const std::deque<uint64_t> &NetDetailData::PacketIn() const
 {
     return packetIn_;
 }
-const std::deque<double>& NetDetailData::PacketInSec() const
+const std::deque<double> &NetDetailData::PacketInSec() const
 {
     return packetInSec_;
 }
-const std::deque<uint64_t>& NetDetailData::PacketOut() const
+const std::deque<uint64_t> &NetDetailData::PacketOut() const
 {
     return packetOut_;
 }
-const std::deque<double>& NetDetailData::PacketOutSec() const
+const std::deque<double> &NetDetailData::PacketOutSec() const
 {
     return packetOutSec_;
 }
@@ -365,79 +365,79 @@ void SmapsData::AppendNewData(uint64_t timeStamp,
     ids_.emplace_back(rowCount_);
     rowCount_++;
 }
-const std::deque<uint64_t>& SmapsData::TimeStamps() const
+const std::deque<uint64_t> &SmapsData::TimeStamps() const
 {
     return timeStamps_;
 }
-const std::deque<uint64_t>& SmapsData::Ipids() const
+const std::deque<uint64_t> &SmapsData::Ipids() const
 {
     return ipids_;
 }
-const std::deque<std::string>& SmapsData::StartAddrs() const
+const std::deque<std::string> &SmapsData::StartAddrs() const
 {
     return startAddrs_;
 }
-const std::deque<std::string>& SmapsData::EndAddrs() const
+const std::deque<std::string> &SmapsData::EndAddrs() const
 {
     return endAddrs_;
 }
-const std::deque<uint64_t>& SmapsData::Dirtys() const
+const std::deque<uint64_t> &SmapsData::Dirtys() const
 {
     return dirtys_;
 }
-const std::deque<uint64_t>& SmapsData::Swappers() const
+const std::deque<uint64_t> &SmapsData::Swappers() const
 {
     return swappers_;
 }
-const std::deque<uint64_t>& SmapsData::Rss() const
+const std::deque<uint64_t> &SmapsData::Rss() const
 {
     return rss_;
 }
-const std::deque<uint64_t>& SmapsData::Pss() const
+const std::deque<uint64_t> &SmapsData::Pss() const
 {
     return pss_;
 }
-const std::deque<uint64_t>& SmapsData::Sizes() const
+const std::deque<uint64_t> &SmapsData::Sizes() const
 {
     return sizes_;
 }
-const std::deque<double>& SmapsData::Resides() const
+const std::deque<double> &SmapsData::Resides() const
 {
     return resides_;
 }
-const std::deque<DataIndex>& SmapsData::ProtectionIds() const
+const std::deque<DataIndex> &SmapsData::ProtectionIds() const
 {
     return protectionIds_;
 }
-const std::deque<DataIndex>& SmapsData::PathIds() const
+const std::deque<DataIndex> &SmapsData::PathIds() const
 {
     return pathIds_;
 }
-const std::deque<uint64_t>& SmapsData::SharedClean() const
+const std::deque<uint64_t> &SmapsData::SharedClean() const
 {
     return sharedClean_;
 }
-const std::deque<uint64_t>& SmapsData::SharedDirty() const
+const std::deque<uint64_t> &SmapsData::SharedDirty() const
 {
     return sharedDirty_;
 }
-const std::deque<uint64_t>& SmapsData::PrivateClean() const
+const std::deque<uint64_t> &SmapsData::PrivateClean() const
 {
     return privateClean_;
 }
-const std::deque<uint64_t>& SmapsData::PrivateDirty() const
+const std::deque<uint64_t> &SmapsData::PrivateDirty() const
 {
     return privateDirty_;
 }
-const std::deque<uint64_t>& SmapsData::Swap() const
+const std::deque<uint64_t> &SmapsData::Swap() const
 {
     return swap_;
 }
-const std::deque<uint64_t>& SmapsData::SwapPss() const
+const std::deque<uint64_t> &SmapsData::SwapPss() const
 {
     return swapPss_;
 }
-const std::deque<uint32_t>& SmapsData::Type() const
+const std::deque<uint32_t> &SmapsData::Type() const
 {
     return type_;
 }
@@ -496,47 +496,47 @@ void AshMemData::SetFlag(uint64_t rowId, uint32_t flag)
 {
     flags_[rowId] = flag;
 }
-const std::deque<InternalPid>& AshMemData::Ipids() const
+const std::deque<InternalPid> &AshMemData::Ipids() const
 {
     return ipids_;
 }
-const std::deque<uint32_t>& AshMemData::Adjs() const
+const std::deque<uint32_t> &AshMemData::Adjs() const
 {
     return adjs_;
 }
-const std::deque<uint32_t>& AshMemData::Fds() const
+const std::deque<uint32_t> &AshMemData::Fds() const
 {
     return fds_;
 }
-const std::deque<DataIndex>& AshMemData::AshmemNameIds() const
+const std::deque<DataIndex> &AshMemData::AshmemNameIds() const
 {
     return ashmemNameIds_;
 }
-const std::deque<uint64_t>& AshMemData::Sizes() const
+const std::deque<uint64_t> &AshMemData::Sizes() const
 {
     return sizes_;
 }
-const std::deque<uint64_t>& AshMemData::Psss() const
+const std::deque<uint64_t> &AshMemData::Psss() const
 {
     return psss_;
 }
-const std::deque<uint32_t>& AshMemData::AshmemIds() const
+const std::deque<uint32_t> &AshMemData::AshmemIds() const
 {
     return ashmemIds_;
 }
-const std::deque<uint64_t>& AshMemData::Times() const
+const std::deque<uint64_t> &AshMemData::Times() const
 {
     return times_;
 }
-const std::deque<uint64_t>& AshMemData::RefCounts() const
+const std::deque<uint64_t> &AshMemData::RefCounts() const
 {
     return refCounts_;
 }
-const std::deque<uint64_t>& AshMemData::Purgeds() const
+const std::deque<uint64_t> &AshMemData::Purgeds() const
 {
     return purgeds_;
 }
-const std::deque<uint32_t>& AshMemData::Flags() const
+const std::deque<uint32_t> &AshMemData::Flags() const
 {
     return flags_;
 }
@@ -584,39 +584,39 @@ void DmaMemData::SetFlag(uint64_t rowId, uint32_t flag)
 {
     flags_[rowId] = flag;
 }
-const std::deque<InternalPid>& DmaMemData::Ipids() const
+const std::deque<InternalPid> &DmaMemData::Ipids() const
 {
     return ipids_;
 }
-const std::deque<uint32_t>& DmaMemData::Fds() const
+const std::deque<uint32_t> &DmaMemData::Fds() const
 {
     return fds_;
 }
-const std::deque<uint64_t>& DmaMemData::Sizes() const
+const std::deque<uint64_t> &DmaMemData::Sizes() const
 {
     return sizes_;
 }
-const std::deque<uint32_t>& DmaMemData::Inos() const
+const std::deque<uint32_t> &DmaMemData::Inos() const
 {
     return inos_;
 }
-const std::deque<uint32_t>& DmaMemData::ExpPids() const
+const std::deque<uint32_t> &DmaMemData::ExpPids() const
 {
     return expPids_;
 }
-const std::deque<DataIndex>& DmaMemData::ExpTaskCommIds() const
+const std::deque<DataIndex> &DmaMemData::ExpTaskCommIds() const
 {
     return expTaskCommIds_;
 }
-const std::deque<DataIndex>& DmaMemData::BufNameIds() const
+const std::deque<DataIndex> &DmaMemData::BufNameIds() const
 {
     return bufNameIds_;
 }
-const std::deque<DataIndex>& DmaMemData::ExpNameIds() const
+const std::deque<DataIndex> &DmaMemData::ExpNameIds() const
 {
     return expNameIds_;
 }
-const std::deque<uint32_t>& DmaMemData::Flags() const
+const std::deque<uint32_t> &DmaMemData::Flags() const
 {
     return flags_;
 }
@@ -652,27 +652,27 @@ void GpuProcessMemData::AppendNewData(uint64_t ts,
     ids_.emplace_back(rowCount_);
     rowCount_++;
 }
-const std::deque<DataIndex>& GpuProcessMemData::GpuNameIds() const
+const std::deque<DataIndex> &GpuProcessMemData::GpuNameIds() const
 {
     return gpuNameIds_;
 }
-const std::deque<uint64_t>& GpuProcessMemData::AllGpuSizes() const
+const std::deque<uint64_t> &GpuProcessMemData::AllGpuSizes() const
 {
     return allGpuSizes_;
 }
-const std::deque<std::string>& GpuProcessMemData::Addrs() const
+const std::deque<std::string> &GpuProcessMemData::Addrs() const
 {
     return addrs_;
 }
-const std::deque<InternalPid>& GpuProcessMemData::Ipids() const
+const std::deque<InternalPid> &GpuProcessMemData::Ipids() const
 {
     return ipids_;
 }
-const std::deque<InternalPid>& GpuProcessMemData::Itids() const
+const std::deque<InternalPid> &GpuProcessMemData::Itids() const
 {
     return itids_;
 }
-const std::deque<uint64_t>& GpuProcessMemData::UsedGpuSizes() const
+const std::deque<uint64_t> &GpuProcessMemData::UsedGpuSizes() const
 {
     return usedGpuSizes_;
 }
@@ -707,35 +707,35 @@ void GpuWindowMemData::AppendNewData(uint64_t ts,
     ids_.emplace_back(rowCount_);
     rowCount_++;
 }
-const std::deque<DataIndex>& GpuWindowMemData::WindowNameIds() const
+const std::deque<DataIndex> &GpuWindowMemData::WindowNameIds() const
 {
     return windowNameIds_;
 }
-const std::deque<uint64_t>& GpuWindowMemData::WindowIds() const
+const std::deque<uint64_t> &GpuWindowMemData::WindowIds() const
 {
     return windowIds_;
 }
-const std::deque<DataIndex>& GpuWindowMemData::ModuleNameIds() const
+const std::deque<DataIndex> &GpuWindowMemData::ModuleNameIds() const
 {
     return moduleNameIds_;
 }
-const std::deque<DataIndex>& GpuWindowMemData::CategoryNameIds() const
+const std::deque<DataIndex> &GpuWindowMemData::CategoryNameIds() const
 {
     return categoryNameIds_;
 }
-const std::deque<uint64_t>& GpuWindowMemData::Sizes() const
+const std::deque<uint64_t> &GpuWindowMemData::Sizes() const
 {
     return sizes_;
 }
-const std::deque<uint32_t>& GpuWindowMemData::Counts() const
+const std::deque<uint32_t> &GpuWindowMemData::Counts() const
 {
     return counts_;
 }
-const std::deque<uint64_t>& GpuWindowMemData::PurgeableSizes() const
+const std::deque<uint64_t> &GpuWindowMemData::PurgeableSizes() const
 {
     return purgeableSizes_;
 }
-const std::deque<InternalPid>& GpuWindowMemData::Ipids() const
+const std::deque<InternalPid> &GpuWindowMemData::Ipids() const
 {
     return ipids_;
 }
@@ -751,7 +751,7 @@ void GpuWindowMemData::Clear()
     purgeableSizes_.clear();
     ipids_.clear();
 }
-void GpuWindowMemData::RevicesIpid(const std::map<DataIndex, InternalPid>& windowIdToIpidMap)
+void GpuWindowMemData::RevicesIpid(const std::map<DataIndex, InternalPid> &windowIdToIpidMap)
 {
     for (auto i = 0; i < Size(); i++) {
         if (windowIdToIpidMap.count(windowNameIds_[i])) {
@@ -766,7 +766,7 @@ void CpuDumpInfo::AppendNewData(uint64_t timestamp, uint64_t size)
     totalSizes_.emplace_back(size);
     ids_.emplace_back(Size());
 }
-const std::deque<uint64_t>& CpuDumpInfo::TotalSizes() const
+const std::deque<uint64_t> &CpuDumpInfo::TotalSizes() const
 {
     return totalSizes_;
 }
@@ -783,11 +783,11 @@ void ProfileMemInfo::AppendNewData(uint64_t timestamp, DataIndex channelIndex, u
     channelIndexs_.emplace_back(channelIndex);
     ids_.emplace_back(Size());
 }
-const std::deque<uint64_t>& ProfileMemInfo::ChannelIndexs() const
+const std::deque<uint64_t> &ProfileMemInfo::ChannelIndexs() const
 {
     return channelIndexs_;
 }
-const std::deque<uint64_t>& ProfileMemInfo::TotalSizes() const
+const std::deque<uint64_t> &ProfileMemInfo::TotalSizes() const
 {
     return totalSizes_;
 }
@@ -811,19 +811,19 @@ void RSImageDumpInfo::AppendNewData(uint64_t timestamp,
     surfaceNameIndexs_.emplace_back(name);
     ids_.emplace_back(Size());
 }
-const std::deque<uint64_t>& RSImageDumpInfo::MemSizes() const
+const std::deque<uint64_t> &RSImageDumpInfo::MemSizes() const
 {
     return memSizes_;
 }
-const std::deque<DataIndex>& RSImageDumpInfo::TypeIndexs() const
+const std::deque<DataIndex> &RSImageDumpInfo::TypeIndexs() const
 {
     return typeIndexs_;
 }
-const std::deque<InternalPid>& RSImageDumpInfo::Ipids() const
+const std::deque<InternalPid> &RSImageDumpInfo::Ipids() const
 {
     return ipids_;
 }
-const std::deque<DataIndex>& RSImageDumpInfo::SurfaceNameIndexs() const
+const std::deque<DataIndex> &RSImageDumpInfo::SurfaceNameIndexs() const
 {
     return surfaceNameIndexs_;
 }

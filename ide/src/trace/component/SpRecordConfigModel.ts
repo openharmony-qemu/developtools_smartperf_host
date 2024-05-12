@@ -15,24 +15,26 @@
 
 import {
   ArkTSConfig,
-  CreateSessionRequest,
-  FpsConfig, HiebpfConfig, HilogConfig,
-  HiperfPluginConfig, HiSystemEventConfig, levelFromJSON,
+  CreateSessionRequest, FFRTConfig,
+  FpsConfig,
+  HiebpfConfig,
+  HilogConfig,
+  HiperfPluginConfig,
+  levelFromJSON,
   MemoryConfig,
   NativeHookConfig,
-  ProfilerPluginConfig,
   ProfilerSessionConfig,
   ProfilerSessionConfigBufferConfig,
   ProfilerSessionConfigBufferConfigPolicy,
   ProfilerSessionConfigMode,
   sysMeminfoTypeFromJSON,
   sysVMeminfoTypeFromJSON,
-  TracePluginConfig
+  TracePluginConfig,
 } from './setting/bean/ProfilerServiceTypes';
-import {SpRecordSetting} from './setting/SpRecordSetting';
-import {SpVmTracker} from './setting/SpVmTracker';
-import {SpProbesConfig} from './setting/SpProbesConfig';
-import {info} from '../../log/Log';
+import { SpRecordSetting } from './setting/SpRecordSetting';
+import { SpVmTracker } from './setting/SpVmTracker';
+import { SpProbesConfig } from './setting/SpProbesConfig';
+import { info } from '../../log/Log';
 import { SpAllocations } from './setting/SpAllocations';
 import { SpApplication } from '../SpApplication';
 import { PerfConfig, SpRecordPerf } from './setting/SpRecordPerf';
@@ -41,6 +43,7 @@ import { SpSdkConfig } from './setting/SpSdkConfig';
 import { SpHisysEvent } from './setting/SpHisysEvent';
 import { SpArkTs } from './setting/SpArkTs';
 import { SpHilogRecord } from './setting/SpHilogRecord';
+import { SpFFRTConfig } from './setting/SpFFRTConfig';
 
 export const MEM_INFO = [
   'MEMINFO_ACTIVE',
@@ -341,7 +344,7 @@ export function createMemoryPluginConfig(
   spVmTracker: SpVmTracker,
   probesConfig: SpProbesConfig,
   request: CreateSessionRequest
-):void {
+): void {
   let hasSamp = spVmTracker!.startSamp && spVmTracker!.process !== '';
   if (probesConfig!.memoryConfig.length > 0 || hasMonitorMemory || hasSamp) {
     let memoryConfig = initMemoryPluginConfig(hasSamp, spVmTracker, probesConfig);
@@ -382,7 +385,7 @@ export function createMemoryPluginConfig(
 function initMemoryPluginConfig(
   hasSamp: boolean,
   spVmTracker: SpVmTracker,
-  probesConfig: SpProbesConfig,
+  probesConfig: SpProbesConfig
 ): MemoryConfig {
   let memoryConfig: MemoryConfig = {
     reportProcessTree: false,
@@ -418,14 +421,8 @@ function initMemoryPluginConfig(
   return memoryConfig;
 }
 
-export function createHTracePluginConfig(
-  probesConfig: SpProbesConfig,
-  request: CreateSessionRequest
-): void {
-  if (
-      probesConfig!.traceConfig.length > 0 &&
-      probesConfig!.traceConfig.find((value) => value !== 'FPS'))
-  {
+export function createHTracePluginConfig(probesConfig: SpProbesConfig, request: CreateSessionRequest): void {
+  if (probesConfig!.traceConfig.length > 0 && probesConfig!.traceConfig.find((value) => value !== 'FPS')) {
     let tracePluginConfig: TracePluginConfig = {
       ftraceEvents: createTraceEvents(probesConfig!.traceConfig),
       hitraceCategories: [],
@@ -451,10 +448,7 @@ export function createHTracePluginConfig(
   }
 }
 
-export function createFpsPluginConfig(
-  probesConfig: SpProbesConfig,
-  request: CreateSessionRequest
-): void {
+export function createFpsPluginConfig(probesConfig: SpProbesConfig, request: CreateSessionRequest): void {
   let fpsConfig: FpsConfig = {
     reportFps: true,
   };
@@ -467,10 +461,7 @@ export function createFpsPluginConfig(
   }
 }
 
-export function createMonitorPlugin(
-  probesConfig: SpProbesConfig,
-  request: CreateSessionRequest
-): void {
+export function createMonitorPlugin(probesConfig: SpProbesConfig, request: CreateSessionRequest): void {
   hasMonitorMemory = probesConfig.recordAbility;
   if (!probesConfig.recordAbility) {
     return;
@@ -532,10 +523,14 @@ export function createNativePluginConfig(
         nativeConfig.responseLibraryMode = spAllocations!.response_lib_mode;
         maxProcessSize = 8;
       }
-      if (spAllocations!.sample_interval) {
-        nativeConfig.sampleInterval = spAllocations!.sample_interval;
+      if (spAllocations && spAllocations.sample_interval) {
+        if (spAllocations.record_statistics) {
+          nativeConfig.sampleInterval = spAllocations.sample_interval;
+        } else {
+          nativeConfig.mallocFreeMatchingInterval = spAllocations.sample_interval;
+        }
       }
-      nativeConfig.jsStackReport = spAllocations!.recordJsStack;
+      nativeConfig.jsStackReport = spAllocations!.recordJsStack ? 1 : 0;
       if (spAllocations!.recordJsStack) {
         nativeConfig.maxJsStackDepth = spAllocations!.max_js_stack_depth;
         nativeConfig.filterNapiName = spAllocations!.filter_napi_name;
@@ -552,10 +547,7 @@ export function createNativePluginConfig(
   }
 }
 
-function initNativePluginConfig(
-  spAllocations: SpAllocations,
-  selectVersion: string | null,
-): NativeHookConfig {
+function initNativePluginConfig(spAllocations: SpAllocations, selectVersion: string | null): NativeHookConfig {
   let appProcess = spAllocations!.appProcess;
   let processName = '';
   let processId = '';
@@ -603,11 +595,8 @@ function initNativePluginConfig(
   return nativeConfig;
 }
 
-function initHiPerfConfig(
-  perfConfig: PerfConfig | undefined,
-  recordArgs: string
-): string{
-  if (!perfConfig){
+function initHiPerfConfig(perfConfig: PerfConfig | undefined, recordArgs: string): string {
+  if (!perfConfig) {
     return '';
   }
   if (perfConfig.cpu && !perfConfig.cpu.includes('ALL') && perfConfig.cpu.length > 0) {
@@ -741,10 +730,7 @@ export function createSystemConfig(
   });
 }
 
-export function createSdkConfig(
-  spSdkConfig: SpSdkConfig,
-  request: CreateSessionRequest
-): void {
+export function createSdkConfig(spSdkConfig: SpSdkConfig, request: CreateSessionRequest): void {
   if (spSdkConfig.startSamp && spSdkConfig.getPlugName() !== '') {
     let gpuConfig = spSdkConfig!.getGpuConfig();
     request.pluginConfigs.push({
@@ -756,10 +742,7 @@ export function createSdkConfig(
   return;
 }
 
-export function createHiSystemEventPluginConfig(
-  spHiSysEvent: SpHisysEvent,
-  request: CreateSessionRequest
-): void {
+export function createHiSystemEventPluginConfig(spHiSysEvent: SpHisysEvent, request: CreateSessionRequest): void {
   if (!spHiSysEvent.startSamp) {
     return;
   }
@@ -842,6 +825,39 @@ export function createHiLogConfig(
     sampleInterval: reportingFrequency * 1000,
     configData: hiLogConfig,
   });
+}
+
+export function createFFRTPluginConfig(
+  currentConfigPage: SpFFRTConfig,
+  selectVersion: string | null,
+  request: CreateSessionRequest
+): void {
+  if (currentConfigPage &&
+    (
+      currentConfigPage.processIds.length > 0 ||
+      currentConfigPage.restartProcessNames.length > 0 ||
+      currentConfigPage.startupProcessNames.length > 0
+    ) &&
+    currentConfigPage.startSamp) {
+    let config: FFRTConfig = {};
+    if (currentConfigPage.processIds.length > 0) {
+      config.pid = currentConfigPage.processIds;
+    }
+    if (currentConfigPage.startupProcessNames.length > 0) {
+      config.startupProcessName = currentConfigPage!.startupProcessNames;
+    }
+    if (currentConfigPage.restartProcessNames.length > 0) {
+      config.restartProcessName = currentConfigPage.restartProcessNames;
+    }
+    config.smbPages = currentConfigPage.smbPages;
+    config.flushInterval = currentConfigPage.flushInterval;
+    config.block = currentConfigPage.useBlock;
+    config.clockId = currentConfigPage!.clockType;
+    request.pluginConfigs.push({
+      pluginName: 'ffrt-profiler',
+      configData: config,
+    });
+  }
 }
 
 export function createTraceEvents(traceConfig: Array<string>): Array<string> {

@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { TYPE = 0, TS, DUR, VALUE, FILTER_ID };
-MeasureTable::MeasureTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+MeasureTable::MeasureTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -37,7 +37,7 @@ std::unique_ptr<TableBase::Cursor> MeasureTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-MeasureTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+MeasureTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache,
                         table,
                         static_cast<uint32_t>(table->name_ == "measure"
@@ -54,14 +54,14 @@ MeasureTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 MeasureTable::Cursor::~Cursor() {}
 
-void MeasureTable::FilterByConstraint(FilterConstraints& measurefc,
-                                      double& measurefilterCost,
+void MeasureTable::FilterByConstraint(FilterConstraints &measurefc,
+                                      double &measurefilterCost,
                                       size_t measurerowCount,
                                       uint32_t measurecurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& measurec = measurefc.GetConstraints()[measurecurrenti];
+    const auto &measurec = measurefc.GetConstraints()[measurecurrenti];
     switch (static_cast<Index>(measurec.col)) {
         case Index::TS: {
             auto measureoldRowCount = measurerowCount;
@@ -79,7 +79,7 @@ void MeasureTable::FilterByConstraint(FilterConstraints& measurefc,
     }
 }
 
-int32_t MeasureTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t MeasureTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -91,7 +91,7 @@ int32_t MeasureTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
     SwapIndexFront(measureTabCs, sId);
     for (size_t i = 0; i < measureTabCs.size(); i++) {
-        const auto& c = measureTabCs[i];
+        const auto &c = measureTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::TS:
                 FilterTS(c.op, argv[c.idxInaConstraint], measureObj.TimeStampData());
@@ -150,7 +150,7 @@ int32_t MeasureTable::Cursor::Column(int32_t column) const
     return SQLITE_OK;
 }
 
-void MeasureTable::GetOrbyes(FilterConstraints& measurefc, EstimatedIndexInfo& measureei)
+void MeasureTable::GetOrbyes(FilterConstraints &measurefc, EstimatedIndexInfo &measureei)
 {
     auto measureorderbys = measurefc.GetOrderBys();
     for (auto i = 0; i < measureorderbys.size(); i++) {

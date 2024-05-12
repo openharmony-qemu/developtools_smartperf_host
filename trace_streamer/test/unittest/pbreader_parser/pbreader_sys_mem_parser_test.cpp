@@ -57,9 +57,9 @@ public:
 HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseInputEmpty, TestSize.Level1)
 {
     TS_LOGI("test19-1");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     MemoryData tracePacket;
-    SysMeminfo* mem = tracePacket.add_meminfo();
+    SysMeminfo *mem = tracePacket.add_meminfo();
     EXPECT_TRUE(mem != nullptr);
     int32_t size = tracePacket.meminfo_size();
     EXPECT_TRUE(size == 1);
@@ -77,7 +77,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseInputEmpty, TestSize.Level1)
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg.protoData = memBytesView;
 
     memParser->Parse(dataSeg, dataSeg.timeStamp, dataSeg.clockId);
@@ -101,10 +101,10 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseInputEmpty, TestSize.Level1)
 HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseNormal, TestSize.Level1)
 {
     TS_LOGI("test19-2");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    SysMeminfo* mem = tracePacket.add_meminfo();
+    SysMeminfo *mem = tracePacket.add_meminfo();
     EXPECT_TRUE(mem != nullptr);
     int32_t size = tracePacket.meminfo_size();
     EXPECT_TRUE(size == 1);
@@ -130,7 +130,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseNormal, TestSize.Level1)
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg.protoData = memBytesView;
 
     memParser->Parse(dataSeg, dataSeg.timeStamp, dataSeg.clockId);
@@ -155,10 +155,10 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseNormal, TestSize.Level1)
 HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseAbnomal, TestSize.Level1)
 {
     TS_LOGI("test19-3");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    SysMeminfo* mem = tracePacket.add_meminfo();
+    SysMeminfo *mem = tracePacket.add_meminfo();
     EXPECT_TRUE(mem != nullptr);
     int32_t size = tracePacket.meminfo_size();
     EXPECT_TRUE(size == 1);
@@ -184,7 +184,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseAbnomal, TestSize.Level1)
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg.protoData = memBytesView;
 
     memParser->Parse(dataSeg, dataSeg.timeStamp, dataSeg.clockId);
@@ -210,10 +210,10 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseAbnomal, TestSize.Level1)
 HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseMutiNomal, TestSize.Level1)
 {
     TS_LOGI("test19-4");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
-    SysMeminfo* mem = tracePacket.add_meminfo();
+    SysMeminfo *mem = tracePacket.add_meminfo();
     EXPECT_TRUE(mem != nullptr);
     int32_t size = tracePacket.meminfo_size();
     EXPECT_TRUE(size == 1);
@@ -247,7 +247,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseMutiNomal, TestSize.Level1)
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg.protoData = memBytesView;
 
     memParser->Parse(dataSeg, dataSeg.timeStamp, dataSeg.clockId);
@@ -273,7 +273,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseMutiNomal, TestSize.Level1)
 HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseWithRandomValue, TestSize.Level1)
 {
     TS_LOGI("test19-5");
-    PbreaderMemParser* memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
 
@@ -281,7 +281,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseWithRandomValue, TestSize.Level
     for (auto i = 0; i < SysMeminfoType::PMEM_KERNEL_RECLAIMABLE + 1; i++) {
         uint64_t value = random();
         sysMemValueMap_.insert(std::make_pair(static_cast<SysMeminfoType>(i), value));
-        SysMeminfo* mem = tracePacket.add_meminfo();
+        SysMeminfo *mem = tracePacket.add_meminfo();
         EXPECT_TRUE(mem != nullptr);
         mem->set_key(static_cast<SysMeminfoType>(i));
         mem->set_value(value);
@@ -297,7 +297,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseWithRandomValue, TestSize.Level
 
     std::string memStrMsg = "";
     tracePacket.SerializeToString(&memStrMsg);
-    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t *>(memStrMsg.data()), memStrMsg.size());
     dataSeg.protoData = memBytesView;
 
     memParser->Parse(dataSeg, dataSeg.timeStamp, dataSeg.clockId);

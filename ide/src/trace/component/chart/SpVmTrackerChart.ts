@@ -36,19 +36,19 @@ import {
   shmDataSender,
 } from '../../database/data-trafic/VmTrackerDataSender';
 import { resetVmTracker } from '../../database/data-trafic/VmTrackerDataReceiver';
-import {querySmapsExits} from "../../database/sql/Smaps.sql";
+import { querySmapsExits } from '../../database/sql/Smaps.sql';
 import {
   queryisExistsGpuMemoryData,
   queryisExistsPurgeableData,
-  queryisExistsShmData
-} from "../../database/sql/Memory.sql";
-import {queryisExistsDmaData} from "../../database/sql/Dma.sql";
+  queryisExistsShmData,
+} from '../../database/sql/Memory.sql';
+import { queryisExistsDmaData } from '../../database/sql/Dma.sql';
 import {
   queryGpuTotalType,
   queryGpuWindowType,
   queryisExistsGpuData,
-  queryisExistsGpuResourceData
-} from "../../database/sql/Gpu.sql";
+  queryisExistsGpuResourceData,
+} from '../../database/sql/Gpu.sql';
 
 export class VmTrackerChart {
   private trace: SpSystemTrace;
@@ -69,7 +69,7 @@ export class VmTrackerChart {
     this.smapsRecordTab = this.trace
       .shadowRoot!.querySelector('div > trace-sheet')!
       .shadowRoot!.querySelector<TabPaneSmapsRecord>('#box-smaps-record > tabpane-smaps-record');
-    if (this.scratchId == -1) {
+    if (this.scratchId === -1) {
       for (let [key, value] of SpSystemTrace.DATA_DICT) {
         if (value === 'Scratch') {
           this.scratchId = key;
@@ -89,6 +89,7 @@ export class VmTrackerChart {
     }
     const isExistsShm = await queryisExistsShmData(this.memoryConfig.iPid);
     const isExistsDma = await queryisExistsDmaData(this.memoryConfig.iPid);
+    //@ts-ignore
     if (isExistsShm[0].data_exists) {
       await this.initShmRows();
     }
@@ -100,7 +101,7 @@ export class VmTrackerChart {
     await this.initGpuData();
   }
 
-  private async initGpuData() {
+  private async initGpuData(): Promise<void> {
     const isExistsGpuMemory = await queryisExistsGpuMemoryData(this.memoryConfig.iPid);
     const isExistsGpuResource = await queryisExistsGpuResourceData(this.scratchId);
     const isExistsGraph = await queryisExistsGpuData(MemoryConfig.getInstance().iPid, "'mem.graph_pss'");
@@ -163,6 +164,7 @@ export class VmTrackerChart {
       }
       VmTrackerRow.canvasSave(context);
       if (VmTrackerRow.expansion) {
+        // @ts-ignore
         context?.clearRect(0, 0, VmTrackerRow.frame.width, VmTrackerRow.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -204,6 +206,7 @@ export class VmTrackerChart {
       }
       sMapsRow.canvasSave(context);
       if (sMapsRow.expansion) {
+        // @ts-ignore
         context?.clearRect(0, 0, sMapsRow.frame.width, sMapsRow.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -244,6 +247,7 @@ export class VmTrackerChart {
       }
       gpuTraceRow.canvasSave(context);
       if (gpuTraceRow.expansion) {
+        // @ts-ignore
         context?.clearRect(0, 0, gpuTraceRow.frame.width, gpuTraceRow.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
@@ -286,7 +290,8 @@ export class VmTrackerChart {
     sMapsTraceRow.rowHidden = !this.sMapsFolder.expansion;
     sMapsTraceRow.folderTextLeft = 40;
     sMapsTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
-      return sMapsDataSender(this.getSmapsKeyName(rowName), sMapsTraceRow).then((sMaps: any[]) => {
+      //@ts-ignore
+      return sMapsDataSender(this.getSmapsKeyName(rowName), sMapsTraceRow).then((sMaps: unknown[]) => {
         this.setName(sMaps);
         return sMaps;
       });
@@ -297,7 +302,8 @@ export class VmTrackerChart {
   private initShmRows = async (): Promise<void> => {
     let shmTraceRow = this.initTraceRow('SHM', TraceRow.ROW_TYPE_VMTRACKER_SHM, 'VmTrackerRow');
     shmTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
-      return shmDataSender(this.memoryConfig.iPid, shmTraceRow).then((shmData: any[]) => {
+      //@ts-ignore
+      return shmDataSender(this.memoryConfig.iPid, shmTraceRow).then((shmData: unknown[]) => {
         this.setName(shmData);
         return shmData;
       });
@@ -308,7 +314,8 @@ export class VmTrackerChart {
   private async initPurgeableTotal(): Promise<void> {
     let totalTraceRow = this.initTraceRow('Purgeable Total', TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM, 'VmTrackerRow');
     totalTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
-      return purgeableDataSender(this.memoryConfig.iPid, totalTraceRow, false).then((purgeableTotalData: any[]) => {
+      //@ts-ignore
+      return purgeableDataSender(this.memoryConfig.iPid, totalTraceRow, false).then((purgeableTotalData: unknown[]) => {
         this.setName(purgeableTotalData);
         return purgeableTotalData;
       });
@@ -319,7 +326,8 @@ export class VmTrackerChart {
   private async initPurgeablePin(): Promise<void> {
     let pinTraceRow = this.initTraceRow('Purgeable Pin', TraceRow.ROW_TYPE_PURGEABLE_PIN_VM, 'VmTrackerRow');
     pinTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
-      return purgeableDataSender(this.memoryConfig.iPid, pinTraceRow, true).then((purgeablePinData: any[]) => {
+      //@ts-ignore
+      return purgeableDataSender(this.memoryConfig.iPid, pinTraceRow, true).then((purgeablePinData: unknown[]) => {
         this.setName(purgeablePinData);
         return purgeablePinData;
       });
@@ -330,10 +338,10 @@ export class VmTrackerChart {
   private initPurgeableVM = async (): Promise<void> => {
     let time = new Date().getTime();
     const isExistsPurgeableTotal = await queryisExistsPurgeableData(this.memoryConfig.iPid, false);
-    const isExistsPurgeablePin = await queryisExistsPurgeableData(this.memoryConfig.iPid, true);
+    const isExistsPurgeablePin = await queryisExistsPurgeableData(this.memoryConfig.iPid, true); //@ts-ignore
     if (isExistsPurgeableTotal[0].data_exists) {
       await this.initPurgeableTotal();
-    }
+    } //@ts-ignore
     if (isExistsPurgeablePin[0].data_exists) {
       await this.initPurgeablePin();
     }
@@ -344,7 +352,8 @@ export class VmTrackerChart {
   private initDmaRow = async (): Promise<void> => {
     let dmaTraceRow = this.initTraceRow('DMA', TraceRow.ROW_TYPE_DMA_VMTRACKER, 'VmTrackerRow');
     dmaTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
-      return dmaDataSender(this.memoryConfig.iPid, dmaTraceRow).then((dmaData: any[]) => {
+      //@ts-ignore
+      return dmaDataSender(this.memoryConfig.iPid, dmaTraceRow).then((dmaData: unknown[]) => {
         this.setName(dmaData);
         return dmaData;
       });
@@ -361,7 +370,8 @@ export class VmTrackerChart {
     gpuMemoryTraceRow.rowHidden = !this.gpuFolder.expansion;
     gpuMemoryTraceRow.folderTextLeft = 40;
     gpuMemoryTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
-      return gpuMemoryDataSender(this.memoryConfig.iPid, gpuMemoryTraceRow).then((gpuMemoryData: any[]) => {
+      //@ts-ignore
+      return gpuMemoryDataSender(this.memoryConfig.iPid, gpuMemoryTraceRow).then((gpuMemoryData: unknown[]) => {
         this.setName(gpuMemoryData);
         return gpuMemoryData;
       });
@@ -378,9 +388,11 @@ export class VmTrackerChart {
     gpuMemoryTraceRow.rowHidden = !this.gpuFolder.expansion;
     gpuMemoryTraceRow.folderTextLeft = 40;
     gpuMemoryTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
-      return gpuResourceDataSender(scratchId, gpuMemoryTraceRow).then((gpuResourceData: any[]) => {
+      //@ts-ignore
+      return gpuResourceDataSender(scratchId, gpuMemoryTraceRow).then((gpuResourceData: unknown[]) => {
         this.setName(gpuResourceData);
         // 将泳道图数据传递给Native Heap Tab页
+        //@ts-ignore
         this.smapsRecordTab!.GLESHostCache = gpuResourceData;
         return gpuResourceData;
       });
@@ -393,7 +405,8 @@ export class VmTrackerChart {
     graphRow.addTemplateTypes('sys-memory');
     graphRow.folderTextLeft = 40;
     graphRow.supplierFrame = (): Promise<SnapshotStruct[]> => {
-      return gpuGpuDataSender(this.memoryConfig.iPid, "'mem.graph_pss'", graphRow).then((graphData: any[]) => {
+      //@ts-ignore
+      return gpuGpuDataSender(this.memoryConfig.iPid, "'mem.graph_pss'", graphRow).then((graphData: unknown[]) => {
         this.setName(graphData);
         return graphData;
       });
@@ -406,7 +419,8 @@ export class VmTrackerChart {
     glRow.addTemplateTypes('sys-memory');
     glRow.folderTextLeft = 40;
     glRow.supplierFrame = (): Promise<SnapshotStruct[]> => {
-      return gpuGpuDataSender(this.memoryConfig.iPid, "'mem.gl_pss'", glRow).then((glData: any[]) => {
+      //@ts-ignore
+      return gpuGpuDataSender(this.memoryConfig.iPid, "'mem.gl_pss'", glRow).then((glData: unknown[]) => {
         this.setName(glData);
         return glData;
       });
@@ -464,7 +478,8 @@ export class VmTrackerChart {
       }
     };
     gpuTotalRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
-      return gpuTotalDataSender(VmTrackerChart.gpuTotalModule, gpuTotalRow).then((gpuTotalData: any[]) => {
+      //@ts-ignore
+      return gpuTotalDataSender(VmTrackerChart.gpuTotalModule, gpuTotalRow).then((gpuTotalData: unknown[]) => {
         this.setName(gpuTotalData);
         return gpuTotalData;
       });
@@ -513,7 +528,7 @@ export class VmTrackerChart {
   }
 
   private addHandleEventByGpuWindowRow(gpuWindowRow: TraceRow<SnapshotStruct>): void {
-    gpuWindowRow.onRowSettingChangeHandler = (setting) => {
+    gpuWindowRow.onRowSettingChangeHandler = (setting): void => {
       if (setting && setting.length > 0) {
         let split = setting[0].split('-');
         VmTrackerChart.gpuWindow = parseInt(split[0]);
@@ -525,9 +540,10 @@ export class VmTrackerChart {
         gpuWindowRow.drawFrame();
       }
     };
-    gpuWindowRow.supplierFrame = () => {
+    gpuWindowRow.supplierFrame = (): Promise<SnapshotStruct[]> => {
+      //@ts-ignore
       return gpuWindowDataSender(VmTrackerChart.gpuWindow!, VmTrackerChart.gpuWindowModule, gpuWindowRow).then(
-        (gpuWindowData: any[]) => {
+        (gpuWindowData: unknown[]) => {
           this.setName(gpuWindowData);
           return gpuWindowData;
         }
@@ -550,7 +566,7 @@ export class VmTrackerChart {
     vmTrackerTraceRow.focusHandler = (): void => {
       this.showTip(vmTrackerTraceRow);
     };
-    vmTrackerTraceRow.findHoverStruct = () => {
+    vmTrackerTraceRow.findHoverStruct = (): void => {
       SnapshotStruct.hoverSnapshotStruct = vmTrackerTraceRow.getHoverStruct();
     };
     vmTrackerTraceRow.onThreadHandler = (useCache): void => {
@@ -583,9 +599,10 @@ export class VmTrackerChart {
     );
   }
 
-  private setName(data: Array<any>): void {
+  private setName(data: Array<unknown>): void {
     if (data.length > 0) {
       data.forEach((item, index) => {
+        //@ts-ignore
         item.name = `SnapShot ${index}`;
       });
     }

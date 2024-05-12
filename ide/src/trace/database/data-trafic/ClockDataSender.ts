@@ -20,11 +20,11 @@ export function clockDataSender(
   clockName: string = '',
   sqlType: string,
   row: TraceRow<ClockStruct>,
-  args?: any
+  args?: unknown
 ): Promise<ClockStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       filterId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       value: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -38,32 +38,40 @@ export function clockDataSender(
       {
         clockName: clockName,
         sqlType: sqlType,
-        startNS: (TraceRow.range?.startNS || 0),
-        endNS: (TraceRow.range?.endNS || 0),
-        totalNS: (TraceRow.range?.totalNS || 0),
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
+        totalNS: TraceRow.range?.totalNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
+        // @ts-ignore
         queryAll: args && args.queryAll,
+        // @ts-ignore
         selectStartNS: args ? args.startNS : 0,
+        // @ts-ignore
         selectEndNS: args ? args.endNS : 0,
-        selectTotalNS: args ? (args.endNS - args.startNS) : 0,
+        // @ts-ignore
+        selectTotalNS: args ? args.endNS - args.startNS : 0,
         t: Date.now(),
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean): void => {
+      (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): ClockStruct[] {
+function arrayBufferHandler(buffers: unknown, len: number): ClockStruct[] {
   let outArr: ClockStruct[] = [];
+  // @ts-ignore
   let filterId = new Int32Array(buffers.filterId);
+  // @ts-ignore
   let value = new Int32Array(buffers.value);
+  // @ts-ignore
   let startNS = new Float64Array(buffers.startNS);
+  // @ts-ignore
   let dur = new Float64Array(buffers.dur);
   for (let i = 0; i < len; i++) {
     outArr.push({

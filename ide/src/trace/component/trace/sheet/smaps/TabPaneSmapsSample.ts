@@ -17,10 +17,10 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { log } from '../../../../../log/Log';
-import { Smaps, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct';
+import { Smaps, TYPE_STRING } from '../../../../bean/SmapsStruct';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { SpSystemTrace } from '../../../SpSystemTrace';
-import {getTabSmapsData, getTabSmapsSampleData} from "../../../../database/sql/Smaps.sql";
+import { getTabSmapsData, getTabSmapsSampleData } from '../../../../database/sql/Smaps.sql';
 @element('tabpane-smaps-sample')
 export class TabPaneSmapsSample extends BaseElement {
   private tblSmapsSample: LitTable | null | undefined;
@@ -49,10 +49,10 @@ export class TabPaneSmapsSample extends BaseElement {
       this.sortByColumn(evt.detail);
     });
   }
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     new ResizeObserver(() => {
-      if (this.parentElement?.clientHeight != 0) {
+      if (this.parentElement?.clientHeight !== 0) {
         // @ts-ignore
         this.tblSmapsSample?.shadowRoot?.querySelector('.table').style.height =
           this.parentElement!.clientHeight - 15 + 'px';
@@ -60,7 +60,8 @@ export class TabPaneSmapsSample extends BaseElement {
       }
     }).observe(this.parentElement!);
   }
-  queryDataByDB(srVal: SelectionParam | any): void {
+  queryDataByDB(srVal: SelectionParam | unknown): void {
+    // @ts-ignore
     getTabSmapsData(srVal.leftNs, srVal.rightNs, (MemoryConfig.getInstance().interval * 1000_000) / 5).then(
       (result) => {
         log('getTabSmapsData size :' + result.length);
@@ -87,8 +88,10 @@ export class TabPaneSmapsSample extends BaseElement {
       });
     }
   }
-  filteredData(result: any): void {
+  filteredData(result: unknown): void {
+    // @ts-ignore
     if (result.length !== null && result.length > 0) {
+      // @ts-ignore
       for (const smaps of result) {
         smaps.typeName = TYPE_STRING[smaps.type];
         smaps.address = smaps.startAddr + ' - ' + smaps.endAddr;
@@ -111,7 +114,9 @@ export class TabPaneSmapsSample extends BaseElement {
           smaps.resideStr = resideS + '%';
         }
       }
+      // @ts-ignore
       this.sourceSmapsSample = result;
+      // @ts-ignore
       this.querySmapsSampleResult = result;
       this.tblSmapsSample!.recycleDataSource = this.sourceSmapsSample;
     } else {
@@ -164,17 +169,17 @@ export class TabPaneSmapsSample extends BaseElement {
         </lit-table>
         `;
   }
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(property, sort, type) {
       return function (aSmapsSample: Smaps, bSmapsSample: Smaps) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
-            // @ts-ignore
-            ? parseFloat(bSmapsSample[property]) - parseFloat(aSmapsSample[property])
-            // @ts-ignore
-            : parseFloat(aSmapsSample[property]) - parseFloat(bSmapsSample[property]);
+            ? // @ts-ignore
+              parseFloat(bSmapsSample[property]) - parseFloat(aSmapsSample[property])
+            : // @ts-ignore
+              parseFloat(aSmapsSample[property]) - parseFloat(bSmapsSample[property]);
         } else {
           // @ts-ignore
           if (bSmapsSample[property] > aSmapsSample[property]) {
@@ -190,10 +195,14 @@ export class TabPaneSmapsSample extends BaseElement {
         }
       };
     }
+    // @ts-ignore
     if (detail.key === 'rssStr' || detail.key === 'sizeStr' || detail.key === 'resideStr') {
+      // @ts-ignore
       let key = detail.key.substring(0, detail.key.indexOf('Str'));
+      // @ts-ignore
       this.sourceSmapsSample.sort(compare(key, detail.sort, 'number'));
     } else {
+      // @ts-ignore
       this.sourceSmapsSample.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.tblSmapsSample!.recycleDataSource = this.sourceSmapsSample;

@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { SEQ = 0, TS, PID, TID, LEVEL, TAG, CONTEXT, ORIGINTS };
-LogTable::LogTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+LogTable::LogTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("seq", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
@@ -38,7 +38,7 @@ std::unique_ptr<TableBase::Cursor> LogTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-LogTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+LogTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstHilogData().Size())),
       logInfoObj_(dataCache->GetConstHilogData())
 {

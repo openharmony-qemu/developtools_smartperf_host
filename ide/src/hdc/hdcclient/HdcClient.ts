@@ -119,12 +119,12 @@ export class HdcClient implements DataListener {
   }
 
   public unbindStream(channel: number): boolean {
-    this.cmdStreams['delete'](channel);
+    this.cmdStreams.delete(channel);
     return true;
   }
 
   public unbindStopStream(channel: number): boolean {
-    this.cmdStreams['delete'](channel);
+    this.cmdStreams.delete(channel);
     return true;
   }
 

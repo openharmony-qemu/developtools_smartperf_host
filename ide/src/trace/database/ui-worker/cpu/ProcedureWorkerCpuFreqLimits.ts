@@ -16,19 +16,15 @@
 import {
   BaseStruct,
   dataFilterHandler,
-  drawLoading,
   isFrameContainPoint,
   ns2x,
-  drawLines,
   Render,
-  drawFlagLine,
-  RequestMessage,
-  drawSelection, drawLoadingFrame,
+  drawLoadingFrame,
+  Rect,
 } from '../ProcedureWorkerCommon';
 import { ColorUtils } from '../../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
-import { convertJSON } from '../../logic-worker/ProcedureLogicWorkerCommon';
-import {SpSystemTrace} from "../../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../../component/SpSystemTrace';
 
 export class CpuFreqLimitRender extends Render {
   renderMainThread(
@@ -41,7 +37,7 @@ export class CpuFreqLimitRender extends Render {
       maxFreqName: string;
     },
     row: TraceRow<CpuFreqLimitsStruct>
-  ) {
+  ): void {
     let list = row.dataList;
     let filter = row.dataListCache;
     dataFilterHandler(list, filter, {
@@ -81,17 +77,17 @@ export class CpuFreqLimitRender extends Render {
     cpuFreqLimitReq.context.fillText(s, 4, 5 + 9);
   }
 }
-export function CpuFreqLimitsStructOnClick(clickRowType: string, sp: SpSystemTrace) {
-    return new Promise((resolve, reject) => {
-      if (clickRowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMIT && CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct) {
-        CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct;
-        sp.traceSheetEL?.displayFreqLimitData();
-        sp.timerShaftEL?.modifyFlagList(undefined);
-        reject(new Error());
-      }else{
-        resolve(null);
-      }
-    });
+export function CpuFreqLimitsStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMIT && CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct) {
+      CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct;
+      sp.traceSheetEL?.displayFreqLimitData();
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject(new Error());
+    } else {
+      resolve(null);
+    }
+  });
 }
 export class CpuFreqLimitsStruct extends BaseStruct {
   static hoverCpuFreqLimitsStruct: CpuFreqLimitsStruct | undefined;
@@ -104,7 +100,7 @@ export class CpuFreqLimitsStruct extends BaseStruct {
   min: number | undefined;
   cpu: number = 0;
 
-  static draw(ctx: CanvasRenderingContext2D, data: CpuFreqLimitsStruct, maxFreq: number) {
+  static draw(ctx: CanvasRenderingContext2D, data: CpuFreqLimitsStruct, maxFreq: number): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       let drawMaxHeight: number = Math.floor(((data.max || 0) * (data.frame.height || 0)) / maxFreq);
@@ -144,7 +140,7 @@ export class CpuFreqLimitsStruct extends BaseStruct {
     data: CpuFreqLimitsStruct,
     yStartHeight: number,
     drawHeight: number
-  ) {
+  ): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - yStartHeight, width, drawHeight);
@@ -162,14 +158,15 @@ export class CpuFreqLimitsStruct extends BaseStruct {
   }
 
   static setFreqLimitFrame(
-    freqLimitNode: any,
+    freqLimitNode: CpuFreqLimitsStruct,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
-  ) {
-    let x1: number, x2: number;
+    frame: Rect
+  ): void {
+    let x1: number;
+    let x2: number;
     if ((freqLimitNode.startNs || 0) < startNS) {
       x1 = 0;
     } else {
@@ -182,7 +179,7 @@ export class CpuFreqLimitsStruct extends BaseStruct {
     }
     let cpuFreqLimitsGetV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
     if (!freqLimitNode.frame) {
-      freqLimitNode.frame = {};
+      freqLimitNode.frame = new Rect(0, 0, 0, 0);
     }
     freqLimitNode.frame.x = Math.floor(x1);
     freqLimitNode.frame.y = frame.y + padding;

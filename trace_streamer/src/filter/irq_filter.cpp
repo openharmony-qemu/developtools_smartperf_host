@@ -19,7 +19,7 @@
 #include "string_to_numerical.h"
 namespace SysTuning {
 namespace TraceStreamer {
-IrqFilter::IrqFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter)
+IrqFilter::IrqFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter) : FilterBase(dataCache, filter)
 {
     for (size_t i = 0; i < irqActionNames_.size(); i++) {
         irqActionNameIds_.push_back(traceDataCache_->GetDataIndex(irqActionNames_[i]));

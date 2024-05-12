@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { ID = 0, TRACE_SOURCE, KEY, VALUE };
-TraceConfigTable::TraceConfigTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+TraceConfigTable::TraceConfigTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("trace_source", "TEXT"));
@@ -34,7 +34,7 @@ std::unique_ptr<TableBase::Cursor> TraceConfigTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-TraceConfigTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+TraceConfigTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstTraceConfigData().Size())),
       TraceConfigData_(dataCache->GetConstTraceConfigData())
 {

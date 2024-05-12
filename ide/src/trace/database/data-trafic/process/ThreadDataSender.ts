@@ -12,14 +12,20 @@
 // limitations under the License.
 
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, threadStateToString, TraficEnum } from '../utils/QueryEnum';
-import { threadPool } from '../../SqlLite';
+import { getThreadPool } from '../../SqlLite';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { ThreadStruct } from '../../ui-worker/ProcedureWorkerThread';
+import { Utils } from '../../../component/trace/base/Utils';
 
-export function threadDataSender(tid: number, pid: number, row: TraceRow<ThreadStruct>): Promise<ThreadStruct[]|boolean> {
+export function threadDataSender(
+  tid: number,
+  pid: number,
+  row: TraceRow<ThreadStruct>,
+  traceId?: string
+): Promise<ThreadStruct[] | boolean> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startTime: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       dur: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -32,23 +38,23 @@ export function threadDataSender(tid: number, pid: number, row: TraceRow<ThreadS
     };
   }
   return new Promise((resolve): void => {
-    threadPool.submitProto(
+    getThreadPool(traceId).submitProto(
       QueryEnum.ThreadData,
       {
         pid: pid,
         tid: tid,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
+        recordStartNS: Utils.getInstance().getRecordStartNS(traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(traceId),
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean,isEmpty:boolean): void => {
+      (res: unknown, len: number, transfer: boolean, isEmpty: boolean): void => {
         if (isEmpty) {
           resolve(true);
-        }else{
+        } else {
           resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
         }
       }
@@ -56,15 +62,15 @@ export function threadDataSender(tid: number, pid: number, row: TraceRow<ThreadS
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): ThreadStruct[] {
-  let outArr: ThreadStruct[] = [];
-  let startTime = new Float64Array(buffers.startTime);
-  let dur = new Float64Array(buffers.dur);
-  let cpu = new Int8Array(buffers.cpu);
-  let id = new Int32Array(buffers.id);
-  let tid = new Int32Array(buffers.tid);
-  let state = new Int32Array(buffers.state);
-  let pid = new Int32Array(buffers.pid);
+function arrayBufferHandler(buffers: unknown, len: number): ThreadStruct[] {
+  let outArr: ThreadStruct[] = []; //@ts-ignore
+  let startTime = new Float64Array(buffers.startTime); //@ts-ignore
+  let dur = new Float64Array(buffers.dur); //@ts-ignore
+  let cpu = new Int8Array(buffers.cpu); //@ts-ignore
+  let id = new Int32Array(buffers.id); //@ts-ignore
+  let tid = new Int32Array(buffers.tid); //@ts-ignore
+  let state = new Int32Array(buffers.state); //@ts-ignore
+  let pid = new Int32Array(buffers.pid); //@ts-ignore
   let argSetID = new Int32Array(buffers.argSetID);
   for (let i = 0; i < len; i++) {
     outArr.push({

@@ -25,7 +25,7 @@ import {
 } from './ProcedureWorkerCommon';
 import { type AnimationRanges } from '../../bean/FrameComponentBean';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class FrameSpacingRender extends Render {
   renderMainThread(
@@ -118,7 +118,7 @@ export class FrameSpacingRender extends Render {
       let currentStruct = frameSpacingFilter[index];
       selectUnitWidth = computeUnitWidth(
         preFrameSpacing.currentTs,
-        currentStruct.currentTs,
+        currentStruct.currentTs, // @ts-ignore
         row.frame.width,
         selectUnitWidth
       );
@@ -167,9 +167,10 @@ export class FrameSpacingRender extends Render {
     minValue: number,
     maxValue: number
   ): void {
-    let currentPointY =
+    let currentPointY = // @ts-ignore
       row.frame.height -
       Math.floor(
+        // @ts-ignore
         ((currentStruct.frameSpacingResult! - minValue) * (row.frame.height - padding * multiple)) /
           (maxValue - minValue)
       ) -
@@ -193,6 +194,7 @@ export class FrameSpacingRender extends Render {
     maxValue: number
   ): void {
     for (let i = 0; i < dashedLines.length; i++) {
+      // @ts-ignore
       FrameSpacingStruct.drawParallelLine(req.context, row.frame, dashedLines, i, minVale, maxValue);
     }
   }
@@ -207,6 +209,7 @@ export class FrameSpacingRender extends Render {
     animationRanges: AnimationRanges[],
     use: boolean
   ): void {
+    // @ts-ignore
     let frame: Rect = row.frame;
     let modelName: string | undefined | null = row.getAttribute('model-name');
     if ((use || !TraceRow.range!.refresh) && frameSpacingFilter.length > 0) {
@@ -299,15 +302,16 @@ export class FrameSpacingRender extends Render {
   }
 }
 export function FrameSpacingStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>) {
-  return new Promise((resolve,reject) => {
+  return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FRAME_SPACING) {
-      FrameSpacingStruct.selectFrameSpacingStruct = FrameSpacingStruct.hoverFrameSpacingStruct || row.getHoverStruct(false, true);
+      FrameSpacingStruct.selectFrameSpacingStruct =
+        FrameSpacingStruct.hoverFrameSpacingStruct || row.getHoverStruct(false, true);
       if (FrameSpacingStruct.selectFrameSpacingStruct) {
         sp.traceSheetEL?.displayFrameSpacingData(FrameSpacingStruct.selectFrameSpacingStruct);
         sp.timerShaftEL?.modifyFlagList(undefined);
       }
       reject(new Error());
-    }else{
+    } else {
       resolve(null);
     }
   });
@@ -364,9 +368,10 @@ export class FrameSpacingStruct extends BaseStruct {
     maxValue: number
   ): void {
     if (frameSpacing.frame) {
-      frameSpacing.frame.y =
+      frameSpacing.frame.y = // @ts-ignore
         row.frame.height -
         Math.floor(
+          // @ts-ignore
           ((frameSpacing.frameSpacingResult! - minValue) * (row.frame.height - padding * multiple)) /
             (maxValue - minValue)
         ) -
@@ -470,16 +475,18 @@ export class FrameSpacingStruct extends BaseStruct {
     maxValue: number
   ): void {
     ctx.beginPath();
-    let prePointY =
+    let prePointY = // @ts-ignore
       rowFrame.frame.height -
       Math.floor(
+        // @ts-ignore
         ((preFrameSpacing.frameSpacingResult! - minValue) * (rowFrame.frame.height - padding * multiple)) /
           (maxValue - minValue)
       ) -
       padding;
-    let currentPointY =
+    let currentPointY = // @ts-ignore
       rowFrame.frame.height -
       Math.floor(
+        // @ts-ignore
         ((currentStruct.frameSpacingResult! - minValue) * (rowFrame.frame.height - padding * multiple)) /
           (maxValue - minValue)
       ) -

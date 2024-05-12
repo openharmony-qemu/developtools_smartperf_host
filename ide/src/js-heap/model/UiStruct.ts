@@ -45,7 +45,6 @@ export class ConstructorItem {
   isSelected: boolean = false;
   objectName = '';
   expanded: boolean = true;
-
   edgeCount = 0;
   edgeType!: EdgeType;
   type!: ConstructorType;
@@ -60,7 +59,9 @@ export class ConstructorItem {
   classChildren: Array<ConstructorItem> = [];
 
   getChildren(): ConstructorItem[] {
-    if (!this.hasNext) return [];
+    if (!this.hasNext) {
+      return [];
+    }
     let data = HeapDataInterface.getInstance();
     switch (this.type) {
       case ConstructorType.ClassType:
@@ -85,7 +86,7 @@ export class ConstructorItem {
     return copyItem;
   }
 
-  protected cloneContent(copyItem: ConstructorItem) {
+  protected cloneContent(copyItem: ConstructorItem): void {
     copyItem.fileId = this.fileId;
     copyItem.distance = this.distance;
     copyItem.shallowSize = this.shallowSize;
@@ -102,23 +103,22 @@ export class ConstructorComparison extends ConstructorItem {
   addedCount = 0;
   removedCount = 0;
   deltaCount = 0;
-
   addedSize = 0;
   removedSize = 0;
   deltaSize = 0;
-
   deletedIdx: Array<number> = [];
   addedIndx: Array<number> = [];
-
   isAdd = false;
 
   getChildren(): ConstructorItem[] {
     if (this.type !== ConstructorType.ComparisonType) {
       return super.getChildren();
     }
-    if (!this.hasNext) return [];
+    if (!this.hasNext) {
+      return [];
+    }
     let data = HeapDataInterface.getInstance();
-    if (this.type == ConstructorType.ComparisonType) {
+    if (this.type === ConstructorType.ComparisonType) {
       this.children = data.getNextForComparison(this);
     }
     return this.children;
@@ -137,7 +137,6 @@ export class AllocationFunction {
   parents: Array<AllocationFunction>;
   combineId: Set<number>;
   status = true;
-
   id: number;
   name: string;
   scriptName: string;
@@ -164,8 +163,8 @@ export class AllocationFunction {
     hasParent: boolean
   ) {
     this.combineId = new Set<number>();
-    this.parentsId = new Array<number>();
-    this.parents = new Array<AllocationFunction>();
+    this.parentsId = [];
+    this.parents = [];
     this.id = nodeId;
     this.name = functionName;
     this.scriptName = scriptName;
@@ -184,7 +183,9 @@ export class AllocationFunction {
    * return Parents
    */
   getChildren(): AllocationFunction[] {
-    if (!this.hasParent) return [];
+    if (!this.hasParent) {
+      return [];
+    }
     let data = HeapDataInterface.getInstance();
     //bottom up next level is parent
     data.getParentFunction(this);

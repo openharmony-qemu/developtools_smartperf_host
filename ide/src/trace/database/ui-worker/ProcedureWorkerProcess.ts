@@ -14,12 +14,12 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import { BaseStruct, drawLoadingFrame, ns2x, Render } from './ProcedureWorkerCommon';
-import { CpuStruct } from './cpu/ProcedureWorkerCPU';
+import { BaseStruct, drawLoadingFrame, ns2x, Rect, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
+import { Utils } from '../../component/trace/base/Utils';
 
 export class ProcessRender extends Render {
-  renderMainThread(req: any, row: TraceRow<ProcessStruct>) {
+  renderMainThread(req: unknown, row: TraceRow<ProcessStruct>): void {
     if (row.expansion) {
       return;
     }
@@ -32,48 +32,60 @@ export class ProcessRender extends Render {
       TraceRow.range!.endNS || 0,
       TraceRow.range!.totalNS || 0,
       row.frame,
+      //@ts-ignore
       req.useCache || !TraceRow.range!.refresh
     );
+    //@ts-ignore
     drawLoadingFrame(req.context, filter, row, true);
+    //@ts-ignore
     req.context.beginPath();
     let path = new Path2D();
-    let miniHeight: number = 0;
-    miniHeight = Math.round((row.frame.height - CpuStruct.cpuCount * 2) / CpuStruct.cpuCount);
+    let miniHeight = Math.round((row.frame.height - Utils.getInstance().getCpuCount() * 2) /
+      Utils.getInstance().getCpuCount());
+    //@ts-ignore
     req.context.fillStyle = ColorUtils.colorForTid(req.pid || 0);
     for (let re of filter) {
+      //@ts-ignore
       ProcessStruct.draw(req.context, path, re, miniHeight);
     }
+    //@ts-ignore
     req.context.fill(path);
+    //@ts-ignore
     req.context.closePath();
   }
 }
 export function proc(
-  processList: Array<any>,
-  res: Array<any>,
+  list: Array<unknown>,
+  res: Array<unknown>,
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: Rect,
   use: boolean
-) {
+): void {
   if (use && res.length > 0) {
+    //@ts-ignore
     res.forEach((it) => ProcessStruct.setProcessFrame(it, 5, startNS, endNS, totalNS, frame));
     return;
   }
   res.length = 0;
-  if (processList) {
-    for (let i = 0, len = processList.length; i < len; i++) {
-      let it = processList[i];
+  if (list) {
+    for (let i = 0, len = list.length; i < len; i++) {
+      let it = list[i];
+      //@ts-ignore
       if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
-        ProcessStruct.setProcessFrame(processList[i], 5, startNS, endNS, totalNS, frame);
+        //@ts-ignore
+        ProcessStruct.setProcessFrame(list[i], 5, startNS, endNS, totalNS, frame);
         if (
           !(
             i > 0 &&
-            (processList[i - 1].frame.x || 0) == (processList[i].frame.x || 0) &&
-            (processList[i - 1].frame.width || 0) == (processList[i].frame.width || 0)
+            //@ts-ignore
+            (list[i - 1].frame.x || 0) === (list[i].frame.x || 0) &&
+            //@ts-ignore
+            (list[i - 1].frame.width || 0) === (list[i].frame.width || 0)
           )
         ) {
-          res.push(processList[i]);
+          res.push(list[i]);
         }
       }
     }
@@ -96,38 +108,38 @@ export class ProcessStruct extends BaseStruct {
   type: string | undefined;
   utid: number | undefined;
 
-  static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: ProcessStruct, miniHeight: number) {
+  static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: ProcessStruct, miniHeight: number): void {
     if (data.frame) {
       path.rect(data.frame.x, data.frame.y + (data.cpu || 0) * miniHeight + padding, data.frame.width, miniHeight);
     }
   }
 
-  static setFrame(processNode: any, pns: number, startNS: number, endNS: number, frame: any) {
+  static setFrame(processNode: ProcessStruct, pns: number, startNS: number, endNS: number, frame: Rect): void {
     if ((processNode.startTime || 0) < startNS) {
-      processNode.frame.x = 0;
+      processNode.frame!.x = 0;
     } else {
-      processNode.frame.x = Math.floor(((processNode.startTime || 0) - startNS) / pns);
+      processNode.frame!.x = Math.floor(((processNode.startTime || 0) - startNS) / pns);
     }
     if ((processNode.startTime || 0) + (processNode.dur || 0) > endNS) {
-      processNode.frame.width = frame.width - processNode.frame.x;
+      processNode.frame!.width = frame.width - processNode.frame!.x;
     } else {
-      processNode.frame.width = Math.ceil(
-        ((processNode.startTime || 0) + (processNode.dur || 0) - startNS) / pns - processNode.frame.x
+      processNode.frame!.width = Math.ceil(
+        ((processNode.startTime || 0) + (processNode.dur || 0) - startNS) / pns - processNode.frame!.x
       );
     }
-    if (processNode.frame.width < 1) {
-      processNode.frame.width = 1;
+    if (processNode.frame!.width < 1) {
+      processNode.frame!.width = 1;
     }
   }
 
   static setProcessFrame(
-    processNode: any,
+    processNode: ProcessStruct,
     padding: number,
     startNS: number,
     endNS: number,
     totalNS: number,
-    frame: any
-  ) {
+    frame: Rect
+  ): void {
     let x1: number;
     let x2: number;
     if ((processNode.startTime || 0) < startNS) {
@@ -142,7 +154,7 @@ export class ProcessStruct extends BaseStruct {
     }
     let processGetV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
     if (!processNode.frame) {
-      processNode.frame = {};
+      processNode.frame = new Rect(0, 0, 0, 0);
     }
     processNode.frame.x = Math.floor(x1);
     processNode.frame.y = Math.floor(frame.y + 2);

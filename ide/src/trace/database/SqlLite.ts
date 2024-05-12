@@ -12,52 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class DataWorkerThread {
-  taskMap: any = {};
-  worker?: Worker;
-  constructor(worker: Worker) {
-    this.worker = worker;
-  }
-  uuid(): string {
-    // @ts-ignore
-    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: any) =>
-      (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
-    );
-  }
-
-  //发送方法名 参数 回调
-  queryFunc(action: string, args: any, handler: Function) {
-    let id = this.uuid();
-    this.taskMap[id] = handler;
-    let msg = {
-      id: id,
-      action: action,
-      args: args,
-    };
-    this.worker!.postMessage(msg);
-  }
-}
 
 class DbThread {
   busy: boolean = false;
-  isCancelled: boolean = false;
   id: number = -1;
-  taskMap: any = {};
-  cacheArray: Array<any> = [];
+  //@ts-ignore
+  taskMap: unknow = {};
   worker?: Worker;
+  traceId: string;
 
-  constructor(worker: Worker) {
+  constructor(worker: Worker, traceId: string) {
     this.worker = worker;
+    this.traceId = traceId;
   }
 
   uuid(): string {
     // @ts-ignore
-    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: any) =>
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: unknow) =>
       (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
     );
   }
 
-  queryFunc(name: string, sql: string, args: any, handler: Function, action: string | null) {
+  //@ts-ignore
+  queryFunc(name: string, sql: string, args: unknow, handler: Function, action: string | null): void {
     this.busy = true;
     let id = this.uuid();
     this.taskMap[id] = handler;
@@ -71,7 +48,8 @@ class DbThread {
     this.worker?.postMessage(msg);
   }
 
-  queryProto(name: number, args: any, handler: Function) {
+  //@ts-ignore
+  queryProto(name: number, args: unknow, handler: Function): void {
     this.busy = true;
     let id = this.uuid();
     this.taskMap[id] = handler;
@@ -88,18 +66,19 @@ class DbThread {
     leftTs: number,
     rightTs: number,
     handler: (status: boolean, msg: string, splitBuffer?: ArrayBuffer) => void
-  ) {
+  ): void {
     this.busy = true;
     let id = this.uuid();
-    this.taskMap[id] = (res: any) => {
-      DbPool.sharedBuffer = res.buffer;
+    //@ts-ignore
+    this.taskMap[id] = (res: unknow): void => {
+      setThreadPoolTraceBuffer(this.traceId, res.buffer);
       if (res.cutStatus) {
         handler(res.cutStatus, res.msg, res.cutBuffer);
       } else {
         handler(res.cutStatus, res.msg);
       }
     };
-    caches.match(DbPool.fileCacheKey).then((resData) => {
+    caches.match(getThreadPoolTraceBufferCacheKey(this.traceId)).then((resData) => {
       if (resData) {
         resData.arrayBuffer().then((buffer) => {
           this.worker!.postMessage(
@@ -125,12 +104,15 @@ class DbThread {
     status: boolean;
     msg: string;
     buffer: ArrayBuffer;
-    sdkConfigMap: any;
+    //@ts-ignore
+    sdkConfigMap: unknow;
     fileKey: string;
   }> => {
-    return new Promise<any>((resolve, reject) => {
+    //@ts-ignore
+    return new Promise<unknow>((resolve, reject) => {
       let id = this.uuid();
-      this.taskMap[id] = (res: any) => {
+      //@ts-ignore
+      this.taskMap[id] = (res: unknow): unknow => {
         if (res.init) {
           resolve({
             status: res.init,
@@ -156,7 +138,7 @@ class DbThread {
     });
   };
 
-  resetWASM() {
+  resetWASM(): void {
     this.worker?.postMessage({
       id: this.uuid(),
       action: 'reset',
@@ -165,17 +147,21 @@ class DbThread {
 }
 
 export class DbPool {
-  static sharedBuffer: ArrayBuffer | null = null;
-  static fileCacheKey: string = 'null';
+  sharedBuffer: ArrayBuffer | null = null;
+  fileCacheKey: string = 'null';
+  traceId: string;
   maxThreadNumber: number = 0;
   works: Array<DbThread> = [];
   progress: Function | undefined | null;
   num = Math.floor(Math.random() * 10 + 1) + 20;
-  cutDownTimer: any | undefined;
-  dataWorker: DataWorkerThread | undefined | null;
+  cutDownTimer: unknown | undefined;
   currentWasmThread: DbThread | undefined = undefined;
 
-  init = async (type: string, threadBuild: (() => DbThread) | undefined = undefined) => {
+  constructor(traceId: string) {
+    this.traceId = traceId;
+  }
+
+  init = async (type: string, threadBuild: (() => DbThread) | undefined = undefined): Promise<void> => {
     // wasm | server | sqlite
     if (this.currentWasmThread) {
       this.currentWasmThread.resetWASM();
@@ -189,19 +175,19 @@ export class DbPool {
         thread = threadBuild();
       } else {
         if (type === 'wasm') {
-          thread = new DbThread(new Worker(new URL('./TraceWorker', import.meta.url)));
+          thread = new DbThread(new Worker(new URL('./TraceWorker', import.meta.url)), this.traceId);
         } else if (type === 'server') {
-          thread = new DbThread(new Worker(new URL('./SqlLiteWorker', import.meta.url)));
+          thread = new DbThread(new Worker(new URL('./SqlLiteWorker', import.meta.url)), this.traceId);
         } else if (type === 'sqlite') {
-          thread = new DbThread(new Worker(new URL('./SqlLiteWorker', import.meta.url)));
+          thread = new DbThread(new Worker(new URL('./SqlLiteWorker', import.meta.url)), this.traceId);
         }
       }
       if (thread) {
         this.currentWasmThread = thread;
-        thread!.worker!.onerror = (err) => {
+        thread!.worker!.onerror = (err): void => {
           console.warn(err);
         };
-        thread!.worker!.onmessageerror = (err) => {
+        thread!.worker!.onmessageerror = (err): void => {
           console.warn(err);
         };
         this.threadPostMessage(thread);
@@ -211,8 +197,8 @@ export class DbPool {
       }
     }
   };
-  threadPostMessage(thread: DbThread) {
-    thread!.worker!.onmessage = (event: MessageEvent) => {
+  threadPostMessage(thread: DbThread): void {
+    thread!.worker!.onmessage = (event: MessageEvent): void => {
       thread!.busy = false;
       if (Reflect.has(thread!.taskMap, event.data.id)) {
         if (event.data.results) {
@@ -229,9 +215,10 @@ export class DbPool {
         } else if (Reflect.has(event.data, 'ready')) {
           this.progress!('database opened', this.num + event.data.index);
           this.progressTimer(this.num + event.data.index, this.progress!);
-          DbPool.sharedBuffer = null;
+          this.sharedBuffer = null;
         } else if (Reflect.has(event.data, 'init')) {
-          if (this.cutDownTimer != undefined) {
+          if (this.cutDownTimer !== undefined) {
+            //@ts-ignore
             clearInterval(this.cutDownTimer);
           }
           let fun = thread!.taskMap[event.data.id];
@@ -260,36 +247,53 @@ export class DbPool {
   initServer = async (url: string, progress: Function): Promise<{ status: boolean; msg: string }> => {
     this.progress = progress;
     progress('database loaded', 15);
-    DbPool.sharedBuffer = await fetch(url).then((res) => res.arrayBuffer());
+    this.sharedBuffer = await fetch(url).then((res) => res.arrayBuffer());
     progress('open database', 20);
     for (let thread of this.works) {
       let { status, msg } = await thread.dbOpen('');
       if (!status) {
-        DbPool.sharedBuffer = null;
+        this.sharedBuffer = null;
         return { status, msg };
       }
     }
     return { status: true, msg: 'ok' };
   };
-  initSqlite = async (buf: ArrayBuffer, parseConfig: string, sdkWasmConfig: string, progress: Function) => {
+  initSqlite = async (
+    buf: ArrayBuffer,
+    parseConfig: string,
+    sdkWasmConfig: string,
+    progress: Function
+  ): Promise<
+    | {
+        status: false;
+        msg: string;
+        sdkConfigMap?: undefined;
+      }
+    | {
+        status: boolean;
+        msg: string;
+        //@ts-ignore
+        sdkConfigMap: unknow;
+      }
+  > => {
     this.progress = progress;
     progress('database loaded', 15);
-    DbPool.sharedBuffer = buf;
+    this.sharedBuffer = buf;
     progress('parse database', 20);
     let configMap;
     for (let thread of this.works) {
       let { status, msg, buffer, sdkConfigMap, fileKey } = await thread.dbOpen(parseConfig, sdkWasmConfig, buf);
       if (!status) {
-        DbPool.sharedBuffer = null;
+        this.sharedBuffer = null;
         return { status, msg };
       } else {
         configMap = sdkConfigMap;
-        DbPool.sharedBuffer = buffer;
+        this.sharedBuffer = buffer;
         if (fileKey !== '-1') {
-          DbPool.fileCacheKey = fileKey;
+          this.fileCacheKey = fileKey;
         } else {
-          DbPool.fileCacheKey = `trace/${new Date().getTime()}-${buffer.byteLength}`;
-          this.saveTraceFileBuffer(DbPool.fileCacheKey, buffer).then();
+          this.fileCacheKey = `trace/${new Date().getTime()}-${buffer.byteLength}`;
+          this.saveTraceFileBuffer(this.fileCacheKey, buffer).then();
         }
       }
     }
@@ -347,7 +351,8 @@ export class DbPool {
     }
   }
 
-  close = async () => {
+  close = async (): Promise<void> => {
+    //@ts-ignore
     clearInterval(this.cutDownTimer);
     for (let thread of this.works) {
       thread.worker?.terminate();
@@ -355,7 +360,16 @@ export class DbPool {
     this.works.length = 0;
   };
 
-  submit(name: string, sql: string, args: any, handler: Function, action: string | null) {
+  async reset(): Promise<void> {
+    if (this.currentWasmThread) {
+      this.currentWasmThread.resetWASM();
+      this.currentWasmThread = undefined;
+    }
+    await this.close();
+  }
+
+  //@ts-ignore
+  submit(name: string, sql: string, args: unknow, handler: Function, action: string | null): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
     let thread: DbThread;
     if (noBusyThreads.length > 0) {
@@ -369,7 +383,8 @@ export class DbPool {
     }
   }
 
-  submitProto(name: number, args: any, handler: Function) {
+  //@ts-ignore
+  submitProto(name: number, args: unknow, handler: Function): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
     let thread: DbThread;
     if (noBusyThreads.length > 0) {
@@ -385,12 +400,11 @@ export class DbPool {
     }
   }
 
-  //new method replace submit() method
-  submitTask(action: string, args: any, handler: Function) {
-    this.dataWorker?.queryFunc(action, args, handler);
-  }
-
-  cutFile(leftTs: number, rightTs: number, handler: (status: boolean, msg: string, splitBuffer?: ArrayBuffer) => void) {
+  cutFile(
+    leftTs: number,
+    rightTs: number,
+    handler: (status: boolean, msg: string, splitBuffer?: ArrayBuffer) => void
+  ): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
     let thread: DbThread;
     if (noBusyThreads.length > 0) {
@@ -402,13 +416,15 @@ export class DbPool {
     }
   }
 
-  progressTimer(num: number, progress: Function) {
+  progressTimer(num: number, progress: Function): void {
     let currentNum = num;
+    //@ts-ignore
     clearInterval(this.cutDownTimer);
     this.cutDownTimer = setInterval(() => {
       currentNum += Math.floor(Math.random() * 3);
       if (currentNum >= 50) {
         progress('database opened', 40);
+        //@ts-ignore
         clearInterval(this.cutDownTimer);
       } else {
         progress('database opened', currentNum);
@@ -417,15 +433,30 @@ export class DbPool {
   }
 }
 
-export const threadPool = new DbPool();
+export const threadPool = new DbPool('1');
+export const threadPool2 = new DbPool('2');
 
-export function query<T>(name: string, sql: string, args: any = null, action: string | null = null): Promise<Array<T>> {
-  return new Promise<Array<T>>((resolve, reject) => {
-    threadPool.submit(
+export interface ThreadPoolConfig{
+  action?: string | null,
+  traceId?: string | null | undefined
+}
+
+export function getThreadPool(traceId?: string | null): DbPool {
+  return traceId === '2' ? threadPool2 : threadPool;
+}
+
+export function query<T>(
+  name: string,
+  sql: string,
+  args: unknown = null,
+  config?: ThreadPoolConfig
+): Promise<Array<T>> {
+  return new Promise<Array<T>>((resolve, reject): void => {
+    getThreadPool(config?.traceId).submit(
       name,
       sql,
       args,
-      (res: any) => {
+      (res: Array<T>) => {
         if (res[0] && res[0] === 'error') {
           window.publish(window.SmartEvent.UI.Error, res[1]);
           reject(res);
@@ -433,7 +464,31 @@ export function query<T>(name: string, sql: string, args: any = null, action: st
           resolve(res);
         }
       },
-      action
+      config ? (config.action || null) : null
     );
   });
+}
+
+export function setThreadPoolTraceBuffer(traceId: string, buf: ArrayBuffer | null): void {
+  if (traceId === threadPool2.traceId) {
+    threadPool2.sharedBuffer = buf;
+  } else {
+    threadPool.sharedBuffer = buf;
+  }
+}
+
+export function getThreadPoolTraceBuffer(traceId: string): ArrayBuffer | null {
+  return traceId === threadPool2.traceId ? threadPool2.sharedBuffer : threadPool.sharedBuffer;
+}
+
+export function setThreadPoolTraceBufferCacheKey(traceId: string, key: string): void {
+  if (traceId === threadPool2.traceId) {
+    threadPool2.fileCacheKey = key;
+  } else {
+    threadPool.fileCacheKey = key;
+  }
+}
+
+export function getThreadPoolTraceBufferCacheKey(traceId: string): string {
+  return traceId === threadPool2.traceId ? threadPool2.fileCacheKey : threadPool.fileCacheKey;
 }

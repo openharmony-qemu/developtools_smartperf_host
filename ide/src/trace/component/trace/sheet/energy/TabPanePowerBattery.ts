@@ -19,17 +19,17 @@ import { SelectionParam } from '../../../../bean/BoxSelection';
 import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart';
 import '../../../../../base-ui/table/lit-table';
 import { resizeObserver } from '../SheetUtils';
-import {getTabPowerBatteryData} from "../../../../database/sql/ProcessThread.sql";
+import { getTabPowerBatteryData } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-power-battery')
 export class TabPanePowerBattery extends BaseElement {
   private tblPower: LitTable | null | undefined;
 
-  set data(valPower: SelectionParam | any) {
+  set data(valPower: SelectionParam | unknown) {
     this.queryDataByDB(valPower);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.tblPower!);
   }
@@ -38,9 +38,10 @@ export class TabPanePowerBattery extends BaseElement {
     this.tblPower = this.shadowRoot?.querySelector<LitTable>('#tb-power-battery-energy');
   }
 
-  queryDataByDB(val: SelectionParam | any) {
-    getTabPowerBatteryData(val.rightNs).then((result) => {
-      let powerData: any = {
+  queryDataByDB(val: SelectionParam | unknown): void {
+    // @ts-ignore
+    getTabPowerBatteryData(val.rightNs).then((result): void => {
+      let powerData: unknown = {
         POWER_IDE_BATTERY: {
           gas_gauge: [],
           charge: [],
@@ -52,29 +53,34 @@ export class TabPanePowerBattery extends BaseElement {
           uid: [],
         },
       };
-      result.forEach((item) => {
-        let powerDatum: any = powerData[item.eventName];
+      result.forEach((item): void => {
+        // @ts-ignore
+        let powerDatum: unknown = powerData[item.eventName];
         if (item.appKey.toLocaleLowerCase() === 'appname') {
+          // @ts-ignore
           powerDatum.appName = SpHiSysEnergyChart.app_name;
         } else {
           let eventData: Array<string> = item.eventValue.split(',');
-          let eventValue = eventData[eventData.length - 1] || '';
-          powerDatum[item.appKey.toLocaleLowerCase()] = eventValue;
+          // @ts-ignore
+          powerDatum[item.appKey.toLocaleLowerCase()] = eventData[eventData.length - 1] || '';
         }
       });
-      let list = [
-        { name: 'Gas Gauge', value: powerData.POWER_IDE_BATTERY.gas_gauge + ' mAh' },
+      this.tblPower!.recycleDataSource = [
+        // @ts-ignore
+        { name: 'Gas Gauge', value: `${powerData.POWER_IDE_BATTERY.gas_gauge} mAh` },
+        // @ts-ignore
         { name: 'Charge', value: powerData.POWER_IDE_BATTERY.charge },
+        // @ts-ignore
         { name: 'Screen', value: powerData.POWER_IDE_BATTERY.screen },
-        { name: 'Level', value: powerData.POWER_IDE_BATTERY.level + ' %' },
-        { name: 'Current', value: powerData.POWER_IDE_BATTERY.current + ' mA' },
-        { name: 'Capacity', value: powerData.POWER_IDE_BATTERY.capacity + ' mAh' },
+        // @ts-ignore
+        { name: 'Level', value: `${powerData.POWER_IDE_BATTERY.level} %` },
+        // @ts-ignore
+        { name: 'Current', value: `${powerData.POWER_IDE_BATTERY.current} mA` },
+        // @ts-ignore
+        { name: 'Capacity', value: `${powerData.POWER_IDE_BATTERY.capacity} mAh` },
         { name: 'APP Name', value: SpHiSysEnergyChart.app_name! },
       ];
-
-      this.tblPower!.recycleDataSource = list;
-
-      this.tblPower?.shadowRoot?.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
+      this.tblPower?.shadowRoot?.querySelectorAll<HTMLDivElement>('.tr').forEach((tr): void => {
         const td = tr.querySelectorAll<HTMLDivElement>('.td');
         this.setTableStyle(td[0], '0.9', '16px');
         this.setTableStyle(td[1], '0.6', '20px');
@@ -82,7 +88,7 @@ export class TabPanePowerBattery extends BaseElement {
     });
   }
 
-  setTableStyle(td: HTMLDivElement, opacity: string, lineHeight: string) {
+  setTableStyle(td: HTMLDivElement, opacity: string, lineHeight: string): void {
     td.style.fontWeight = '400';
     td.style.fontSize = '14px';
     td.style.opacity = opacity;

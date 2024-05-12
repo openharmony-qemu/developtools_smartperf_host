@@ -13,14 +13,17 @@
 
 import { TraficEnum } from '../utils/QueryEnum';
 import { processFrameList } from '../utils/AllMemoryCache';
-import { filterDataByGroup } from '../utils/DataFilter';
+import { BaseStruct } from '../../ui-worker/ProcedureWorkerCommon';
+import { Args } from '../CommonArgs';
 
-export const chartProcessExpectedDataSql = (args: any): string => {
+export const chartProcessExpectedDataSql = (args: Args): string => {
+  const recordStartNS = args.recordStartNS;
+  const pid = args.pid;
   return `
   SELECT 
-         (a.ts - ${args.recordStartNS}) AS ts,
+         (a.ts - ${recordStartNS}) AS ts,
          a.dur,
-         ${args.pid} as pid,
+         ${pid} as pid,
          a.id,
          a.vsync              as name,
          a.type,
@@ -28,67 +31,78 @@ export const chartProcessExpectedDataSql = (args: any): string => {
   FROM frame_slice AS a
   WHERE a.type = 1
     and (a.flag <> 2 or a.flag is null)
-    and a.ipid in (select p.ipid from process AS p where p.pid = ${args.pid})
+    and a.ipid in (select p.ipid from process AS p where p.pid = ${pid})
   ORDER BY a.ipid`;
 };
 
-export const chartProcessExpectedProtoDataSql = (args: any): string => {
+export const chartProcessExpectedProtoDataSql = (args: Args): string => {
+  const endNS = args.endNS;
+  const startNS = args.startNS;
+  const recordStartNS = args.recordStartNS;
+  const pid = args.pid;
+  const width = args.width;
   return `
   SELECT 
-         (a.ts - ${args.recordStartNS}) AS ts,
+         (a.ts - ${startNS}) AS ts,
          a.dur,
-         ${args.pid} as pid,
+         ${pid} as pid,
          a.id,
          a.vsync              as name,
          a.type,
          a.depth,
-         (a.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)}) + (a.depth * ${ args.width })  AS px
+         (a.ts - ${recordStartNS}) / (${Math.floor((endNS - startNS) / width)}) + (a.depth * ${width})  AS px
   FROM frame_slice AS a
   WHERE a.type = 1
     and (a.flag <> 2 or a.flag is null)
-    and a.ipid in (select p.ipid from process AS p where p.pid = ${args.pid})
-    and (a.ts - ${args.recordStartNS} + a.dur) >= ${Math.floor(args.startNS)}
-    and (a.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}
+    and a.ipid in (select p.ipid from process AS p where p.pid = ${pid})
+    and (a.ts - ${recordStartNS} + a.dur) >= ${Math.floor(startNS)}
+    and (a.ts - ${recordStartNS}) <= ${Math.floor(endNS)}
   group by px
   ORDER BY a.ipid;`;
 };
 
-export function processExpectedDataReceiver(data: any, proc: Function): void {
+export function processExpectedDataReceiver(data: unknown, proc: Function): void {
+  //@ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
+    //@ts-ignore
     if (!processFrameList.has(`${data.params.pid}_expected`)) {
-      let sql = chartProcessExpectedDataSql(data.params);
+      //@ts-ignore
+      let sql = chartProcessExpectedDataSql(data.params); //@ts-ignore
       processFrameList.set(`${data.params.pid}_expected`, proc(sql));
-    }
+    } //@ts-ignore
     arrayBufferHandler(data, processFrameList.get(`${data.params.pid}_expected`)!, true);
   } else {
-    let sql = chartProcessExpectedProtoDataSql(data.params);
-    let res = proc(sql);
+    //@ts-ignore
+    let sql = chartProcessExpectedProtoDataSql(data.params as BaseStruct);
+    let res = proc(sql); //@ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
-  let ts = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.ts);
-  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
-  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);
-  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
-  let name = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.name);
-  let type = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.type);
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+  //@ts-ignore
+  let ts = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.ts); //@ts-ignore
+  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur); //@ts-ignore
+  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid); //@ts-ignore
+  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id); //@ts-ignore
+  let name = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.name); //@ts-ignore
+  let type = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.type); //@ts-ignore
   let depth = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
   for (let index = 0; index < res.length; index++) {
-    let itemData = res[index];
-    data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.processJanksFramesData);
-    dur[index] = itemData.dur;
-    ts[index] = itemData.ts;
-    pid[index] = itemData.pid;
-    id[index] = itemData.id;
-    name[index] = itemData.name;
-    type[index] = itemData.type;
+    let itemData = res[index]; //@ts-ignore
+    data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.processJanksFramesData); //@ts-ignore
+    dur[index] = itemData.dur; //@ts-ignore
+    ts[index] = itemData.ts; //@ts-ignore
+    pid[index] = itemData.pid; //@ts-ignore
+    id[index] = itemData.id; //@ts-ignore
+    name[index] = itemData.name; //@ts-ignore
+    type[index] = itemData.type; //@ts-ignore
     depth[index] = itemData.depth;
   }
   (self as unknown as Worker).postMessage(
     {
-      id: data.id,
+      //@ts-ignore
+      id: data.id, //@ts-ignore
       action: data.action,
       results: transfer
         ? {

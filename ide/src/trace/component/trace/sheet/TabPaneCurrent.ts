@@ -26,20 +26,23 @@ export class TabPaneCurrent extends BaseElement {
   private slicesTimeList: Array<SlicesTime> = [];
   private slicesTime: SlicesTime | null = null;
   private systemTrace: SpSystemTrace | undefined | null;
-  private tableDataSource: Array<MarkStruct | any> = [];
+  private tableDataSource: Array<MarkStruct | unknown> = [];
   private panelTable: LitTable | undefined | null;
 
   initElements(): void {
     this.systemTrace = document
       .querySelector('body > sp-application')
       ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
-    this.shadowRoot?.querySelector('#text')?.addEventListener('keyup', (event: any) => {
+    this.shadowRoot?.querySelector('#text')?.addEventListener('keyup', (event: unknown) => {
+      // @ts-ignore
       event.stopPropagation();
-      if (event.keyCode == '13') {
+      // @ts-ignore
+      if (event.keyCode === '13') {
         if (this.slicesTime) {
           window.publish(window.SmartEvent.UI.KeyboardEnable, {
             enable: true,
           });
+          // @ts-ignore
           this.slicesTime.text = event?.target.value;
           document.dispatchEvent(
             new CustomEvent('slices-change', {
@@ -49,14 +52,16 @@ export class TabPaneCurrent extends BaseElement {
         }
       }
     });
-    this.shadowRoot?.querySelector('#text')?.addEventListener('blur', (event: any) => {
-      (window as any).flagInputFocus = false;
+    this.shadowRoot?.querySelector('#text')?.addEventListener('blur', (event: unknown) => {
+      // @ts-ignore
+      (window as unknown).flagInputFocus = false;
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: true,
       });
     });
-    this.shadowRoot?.querySelector('#text')?.addEventListener('focus', (event: any) => {
-      (window as any).flagInputFocus = true;
+    this.shadowRoot?.querySelector('#text')?.addEventListener('focus', (event: unknown) => {
+      // @ts-ignore
+      (window as unknown).flagInputFocus = true;
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: false,
       });
@@ -67,7 +72,8 @@ export class TabPaneCurrent extends BaseElement {
   }
 
   private rowClickListener(): void {
-    this.panelTable!.addEventListener('row-click', (evt: any) => {
+    this.panelTable!.addEventListener('row-click', (evt: unknown) => {
+      // @ts-ignore
       if (evt.detail.data.startTime === undefined) {
         return;
       }
@@ -92,7 +98,7 @@ export class TabPaneCurrent extends BaseElement {
     // 当鼠标移出panel时重新加载备注信息
     this.systemTrace?.shadowRoot?.querySelector('trace-sheet')?.addEventListener(
       'mouseout',
-      (event: any) => {
+      (event: unknown) => {
         if (this.slicesTimeList.length === 0) {
           return;
         }
@@ -101,6 +107,7 @@ export class TabPaneCurrent extends BaseElement {
         for (let i = 1; i < tr.length; i++) {
           tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.slicesTimeList[i - 1].text;
         }
+        // @ts-ignore
         event.stopPropagation();
       },
       { capture: true }
@@ -170,6 +177,7 @@ export class TabPaneCurrent extends BaseElement {
 
     // 当前点击了哪个卡尺，就将对应的表格中的那行的背景变色
     this.tableDataSource.forEach((data, index) => {
+      // @ts-ignore
       if (data.startTime === this.slicesTime?.startTime && data.endTime === this.slicesTime?.endTime) {
         this.setTableSelection(index);
       }
@@ -196,13 +204,17 @@ export class TabPaneCurrent extends BaseElement {
       // 修改备注
       tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.slicesTimeList[i - 1].text;
       // //  点击色块修改颜色
-      tr[i].querySelector('#text-input')?.addEventListener('keyup', (event: any) => {
+      tr[i].querySelector('#text-input')?.addEventListener('keyup', (event: unknown) => {
         if (
+          // @ts-ignore
           this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
+          // @ts-ignore
           this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime &&
-          event.keyCode == '13'
+          // @ts-ignore
+          event.keyCode === '13'
         ) {
           this.systemTrace!.slicesList = this.slicesTimeList || [];
+          // @ts-ignore
           this.slicesTimeList[i - 1].text = event?.target.value;
           window.publish(window.SmartEvent.UI.KeyboardEnable, {
             enable: true,
@@ -211,23 +223,29 @@ export class TabPaneCurrent extends BaseElement {
 
           this.systemTrace?.refreshCanvas(true);
         }
+        // @ts-ignore
         event.stopPropagation();
       });
 
-      tr[i].querySelector('#text-input')?.addEventListener('blur', (event: any) => {
-        (window as any).flagInputFocus = false;
+      tr[i].querySelector('#text-input')?.addEventListener('blur', (event: unknown) => {
+        // @ts-ignore
+        (window as unknown).flagInputFocus = false;
         window.publish(window.SmartEvent.UI.KeyboardEnable, {
           enable: true,
         });
         if (
+          // @ts-ignore
           this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
+          // @ts-ignore
           this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime
         ) {
+          // @ts-ignore
           this.slicesTimeList[i - 1].text = event?.target.value;
           document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
 
           this.systemTrace?.refreshCanvas(true);
         }
+        // @ts-ignore
         event.stopPropagation();
       });
       this.trFocusEvent(tr, i);
@@ -236,24 +254,29 @@ export class TabPaneCurrent extends BaseElement {
   }
 
   private trChangeEvent(tr: NodeListOf<HTMLDivElement>, i: number): void {
-    tr[i].querySelector<HTMLInputElement>('#color-input')?.addEventListener('change', (event: any) => {
+    tr[i].querySelector<HTMLInputElement>('#color-input')?.addEventListener('change', (event: unknown) => {
       if (
+        // @ts-ignore
         this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
+        // @ts-ignore
         this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime
       ) {
         this.systemTrace!.slicesList = this.slicesTimeList || [];
+        // @ts-ignore
         this.slicesTimeList[i - 1].color = event?.target.value;
         document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
         //   卡尺颜色改变时，重绘泳道图
         this.systemTrace?.refreshCanvas(true);
       }
+      // @ts-ignore
       event.stopPropagation();
     });
   }
 
   private trFocusEvent(tr: NodeListOf<HTMLDivElement>, i: number): void {
-    tr[i].querySelector('#text-input')?.addEventListener('focus', (event: any) => {
-      (window as any).flagInputFocus = true;
+    tr[i].querySelector('#text-input')?.addEventListener('focus', (event: unknown) => {
+      // @ts-ignore
+      (window as unknown).flagInputFocus = true;
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: false,
       });
@@ -266,7 +289,7 @@ export class TabPaneCurrent extends BaseElement {
   }
 
   private trClickEvent(tr: NodeListOf<HTMLDivElement>): void {
-    tr[0].querySelector('.removeAll')!.addEventListener('click', (evt: any) => {
+    tr[0].querySelector('.removeAll')!.addEventListener('click', (evt: unknown) => {
       this.systemTrace!.slicesList = [];
       let slicesTimeList = [...this.slicesTimeList];
       for (let i = 0; i < slicesTimeList.length; i++) {
@@ -280,9 +303,11 @@ export class TabPaneCurrent extends BaseElement {
 
   private removeButtonClickEvent(tr: NodeListOf<HTMLDivElement>, i: number): void {
     // 点击remove按钮移除
-    tr[i]!.querySelector('.remove')?.addEventListener('click', (event: any) => {
+    tr[i]!.querySelector('.remove')?.addEventListener('click', (event: unknown) => {
       if (
+        // @ts-ignore
         this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
+        // @ts-ignore
         this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime
       ) {
         this.slicesTimeList[i - 1].hidden = true;
@@ -291,6 +316,7 @@ export class TabPaneCurrent extends BaseElement {
         //   移除时更新表格内容
         this.setTableData();
       }
+      // @ts-ignore
       event.stopPropagation();
     });
   }
@@ -299,9 +325,12 @@ export class TabPaneCurrent extends BaseElement {
    * 修改表格指定行数的背景颜色
    * @param line 要改变的表格行数
    */
-  public setTableSelection(line: any): void {
+  public setTableSelection(line: unknown): void {
+    // @ts-ignore
     this.tableDataSource[line].isSelected = true;
+    // @ts-ignore
     this.panelTable?.clearAllSelection(this.tableDataSource[line]);
+    // @ts-ignore
     this.panelTable?.setCurrentSelection(this.tableDataSource[line]);
   }
 

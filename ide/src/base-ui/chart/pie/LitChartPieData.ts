@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export function randomRgbColor() {
+export function randomRgbColor(): string {
   const letters = '0123456789ABCDEF';
   let color = '#';
   for (let i = 0; i < 6; i++) {

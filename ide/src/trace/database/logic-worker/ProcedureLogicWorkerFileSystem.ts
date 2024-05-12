@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+import { SelectionParam } from '../../bean/BoxSelection';
 import {
+  ChartStruct,
   convertJSON,
   DataCache,
   FileCallChain,
@@ -57,9 +59,13 @@ const FS_TYPE = 0;
 const PF_TYPE = 1;
 const BIO_TYPE = 2;
 
+export type MerageMap = {
+  [pid: string]: FileMerageBean;
+};
+
 export class ProcedureLogicWorkerFileSystem extends LogicHandler {
   private dataCache: DataCache = DataCache.getInstance();
-  handlerMap: Map<string, any> = new Map<string, any>();
+  handlerMap: Map<string, FileSystemCallTreeHandler> = new Map<string, FileSystemCallTreeHandler>();
   currentEventId: string = '';
   tab: string = '';
   isAnalysis: boolean = false;
@@ -67,14 +73,18 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
   private symbol: object | undefined;
   private isTopDown: boolean = true;
 
-  handle(data: any): void {
+  handle(data: unknown): void {
+    //@ts-ignore
     if (data.id) {
+      //@ts-ignore
       this.currentEventId = data.id;
       for (let handle of this.handlerMap.values()) {
         handle.setEventId(this.currentEventId);
       }
     }
+    //@ts-ignore
     if (data && data.type) {
+      //@ts-ignore
       switch (data.type) {
         case 'fileSystem-init':
           this.initCallchains();
@@ -113,40 +123,45 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     }
   }
 
-  private fileSystemQueryCallchains(data: any): void {
+  private fileSystemQueryCallchains(data: unknown): void {
+    //@ts-ignore
     let callChains = convertJSON(data.params.list) || [];
     this.dataCache.clearEBpf();
+    //@ts-ignore
     this.initCallChainTopDown(callChains);
-    // @ts-ignore
     self.postMessage({
+      // @ts-ignore
       id: data.id,
       action: 'fileSystem-init',
       results: [],
     });
   }
-  private fileSystemQueryFileSamples(data: any): void {
+  private fileSystemQueryFileSamples(data: unknown): void {
+    const fsHandler = this.handlerMap.get('fileSystem') as FileSystemCallTreeHandler;
+    //@ts-ignore
     this.handlerMap.get('fileSystem').samplesList = convertJSON(data.params.list) || [];
     let fsResults;
     if (this.isAnalysis) {
       this.isAnalysis = false;
       self.postMessage({
         id: this.currentEventId,
+        //@ts-ignore
         action: data.action,
-        results: this.fileSystemAnalysis(FS_TYPE, this.handlerMap.get('fileSystem').samplesList),
+        results: this.fileSystemAnalysis(FS_TYPE, fsHandler.samplesList),
       });
     } else {
       if (this.lib) {
-        let samplesList = this.fileSystemAnalysis(FS_TYPE, this.handlerMap.get('fileSystem').samplesList, this.lib);
-        this.handlerMap.get('fileSystem').freshCurrentCallChains(samplesList, this.isTopDown);
-        fsResults = this.handlerMap.get('fileSystem').allProcess;
+        let samplesList = this.fileSystemAnalysis(FS_TYPE, fsHandler.samplesList, this.lib);
+        fsHandler.freshCurrentCallChains(samplesList, this.isTopDown);
+        fsResults = fsHandler.allProcess;
         this.lib = undefined;
       } else if (this.symbol) {
-        let samplesList = this.fileSystemAnalysis(FS_TYPE, this.handlerMap.get('fileSystem').samplesList, this.symbol);
-        this.handlerMap.get('fileSystem').freshCurrentCallChains(samplesList, this.isTopDown);
-        fsResults = this.handlerMap.get('fileSystem').allProcess;
+        let samplesList = this.fileSystemAnalysis(FS_TYPE, fsHandler.samplesList, this.symbol);
+        fsHandler.freshCurrentCallChains(samplesList, this.isTopDown);
+        fsResults = fsHandler.allProcess;
         this.symbol = undefined;
       } else {
-        fsResults = this.handlerMap.get('fileSystem').resolvingAction([
+        fsResults = fsHandler.resolvingAction([
           {
             funcName: 'getCallChainsBySampleIds',
             funcArgs: [this.isTopDown],
@@ -155,34 +170,38 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
       }
       self.postMessage({
         id: this.currentEventId,
+        //@ts-ignore
         action: data.action,
         results: fsResults,
       });
     }
   }
-  private fileSystemQueryIoSamples(data: any): void {
-    this.handlerMap.get('io').samplesList = convertJSON(data.params.list) || [];
+  private fileSystemQueryIoSamples(data: unknown): void {
+    const ioHandler = this.handlerMap.get('io') as FileSystemCallTreeHandler;
+    //@ts-ignore
+    ioHandler.samplesList = convertJSON(data.params.list) || [];
     let ioResults;
     if (this.isAnalysis) {
       this.isAnalysis = false;
       self.postMessage({
         id: this.currentEventId,
+        //@ts-ignore
         action: data.action,
-        results: this.fileSystemAnalysis(BIO_TYPE, this.handlerMap.get('io').samplesList),
+        results: this.fileSystemAnalysis(BIO_TYPE, ioHandler.samplesList),
       });
     } else {
       if (this.lib) {
-        let samplesList = this.fileSystemAnalysis(BIO_TYPE, this.handlerMap.get('io').samplesList, this.lib);
-        this.handlerMap.get('io').freshCurrentCallChains(samplesList, this.isTopDown);
-        ioResults = this.handlerMap.get('io').allProcess;
+        let samplesList = this.fileSystemAnalysis(BIO_TYPE, ioHandler.samplesList, this.lib);
+        ioHandler.freshCurrentCallChains(samplesList, this.isTopDown);
+        ioResults = ioHandler.allProcess;
         this.lib = undefined;
       } else if (this.symbol) {
-        let samplesList = this.fileSystemAnalysis(BIO_TYPE, this.handlerMap.get('io').samplesList, this.symbol);
-        this.handlerMap.get('io').freshCurrentCallChains(samplesList, this.isTopDown);
-        ioResults = this.handlerMap.get('io').allProcess;
+        let samplesList = this.fileSystemAnalysis(BIO_TYPE, ioHandler.samplesList, this.symbol);
+        ioHandler.freshCurrentCallChains(samplesList, this.isTopDown);
+        ioResults = ioHandler.allProcess;
         this.symbol = undefined;
       } else {
-        ioResults = this.handlerMap.get('io').resolvingAction([
+        ioResults = ioHandler.resolvingAction([
           {
             funcName: 'getCallChainsBySampleIds',
             funcArgs: [this.isTopDown],
@@ -191,38 +210,38 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
       }
       self.postMessage({
         id: this.currentEventId,
+        //@ts-ignore
         action: data.action,
         results: ioResults,
       });
     }
   }
-  private fileSystemQueryVirtualMemorySamples(data: any): void {
-    this.handlerMap.get('virtualMemory').samplesList = convertJSON(data.params.list) || [];
+  private fileSystemQueryVirtualMemorySamples(data: unknown): void {
+    const vmHandler = this.handlerMap.get('virtualMemory') as FileSystemCallTreeHandler;
+    //@ts-ignore
+    vmHandler.samplesList = convertJSON(data.params.list) || [];
     let vmResults;
     if (this.isAnalysis) {
       this.isAnalysis = false;
       self.postMessage({
         id: this.currentEventId,
+        //@ts-ignore
         action: data.action,
-        results: this.fileSystemAnalysis(PF_TYPE, this.handlerMap.get('virtualMemory').samplesList),
+        results: this.fileSystemAnalysis(PF_TYPE, vmHandler.samplesList),
       });
     } else {
       if (this.lib) {
-        let samplesList = this.fileSystemAnalysis(PF_TYPE, this.handlerMap.get('virtualMemory').samplesList, this.lib);
-        this.handlerMap.get('virtualMemory').freshCurrentCallChains(samplesList, this.isTopDown);
-        vmResults = this.handlerMap.get('virtualMemory').allProcess;
+        let samplesList = this.fileSystemAnalysis(PF_TYPE, vmHandler.samplesList, this.lib);
+        vmHandler.freshCurrentCallChains(samplesList, this.isTopDown);
+        vmResults = vmHandler.allProcess;
         this.lib = undefined;
       } else if (this.symbol) {
-        let samplesList = this.fileSystemAnalysis(
-          PF_TYPE,
-          this.handlerMap.get('virtualMemory').samplesList,
-          this.symbol
-        );
-        this.handlerMap.get('virtualMemory').freshCurrentCallChains(samplesList, this.isTopDown);
-        vmResults = this.handlerMap.get('virtualMemory').allProcess;
+        let samplesList = this.fileSystemAnalysis(PF_TYPE, vmHandler.samplesList, this.symbol);
+        vmHandler.freshCurrentCallChains(samplesList, this.isTopDown);
+        vmResults = vmHandler.allProcess;
         this.symbol = undefined;
       } else {
-        vmResults = this.handlerMap.get('virtualMemory').resolvingAction([
+        vmResults = vmHandler.resolvingAction([
           {
             funcName: 'getCallChainsBySampleIds',
             funcArgs: [this.isTopDown],
@@ -231,23 +250,32 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
       }
       self.postMessage({
         id: this.currentEventId,
+        //@ts-ignore
         action: data.action,
         results: vmResults,
       });
     }
   }
-  private fileSystemAction(data: any): void {
+  private fileSystemAction(data: unknown): void {
+    //@ts-ignore
     if (data.params) {
       this.isTopDown = false;
-      this.handlerMap.get(data.params.callType).isHideEvent = false;
-      this.handlerMap.get(data.params.callType).isHideThread = false;
-      let filter = data.params.args.filter((item: any) => item.funcName == 'getCurrentDataFromDb');
+      //@ts-ignore
+      this.handlerMap.get(data.params.callType)!.isHideEvent = false;
+      //@ts-ignore
+      this.handlerMap.get(data.params.callType)!.isHideThread = false;
+      //@ts-ignore
+      let filter = data.params.args.filter((item: unknown) => item.funcName === 'getCurrentDataFromDb');
       // 从lib层跳转
-      let libFilter = data.params.args.filter((item: any): boolean => item.funcName === 'showLibLevelData');
+      //@ts-ignore
+      let libFilter = data.params.args.filter((item: unknown): boolean => item.funcName === 'showLibLevelData');
       // 从fun层跳转
-      let funFilter = data.params.args.filter((item: any): boolean => item.funcName === 'showFunLevelData');
+      //@ts-ignore
+      let funFilter = data.params.args.filter((item: unknown): boolean => item.funcName === 'showFunLevelData');
+      //@ts-ignore
       let callChainsFilter = data.params.args.filter(
-        (item: any): boolean => item.funcName === 'getCallChainsBySampleIds'
+        //@ts-ignore
+        (item: unknown): boolean => item.funcName === 'getCallChainsBySampleIds'
       );
       callChainsFilter.length > 0 ? (this.isTopDown = callChainsFilter[0].funcArgs[0]) : (this.isTopDown = true);
       if (libFilter.length !== 0) {
@@ -261,64 +289,83 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
           symbolName: funFilter[0].funcArgs[1],
         };
       }
-      if (filter.length == 0) {
+      if (filter.length === 0) {
         // @ts-ignore
         self.postMessage({
+          //@ts-ignore
           id: data.id,
+          //@ts-ignore
           action: data.action,
-          results: this.handlerMap.get(data.params.callType).resolvingAction(data.params.args),
+          //@ts-ignore
+          results: this.handlerMap.get(data.params.callType)!.resolvingAction(data.params.args),
         });
       } else {
+        //@ts-ignore
         if (data.params.isAnalysis) {
           this.isAnalysis = true;
         }
-        this.handlerMap.get(data.params.callType).resolvingAction(data.params.args);
+        //@ts-ignore
+        this.handlerMap.get(data.params.callType)!.resolvingAction(data.params.args);
       }
     }
   }
-  private fileSystemQueryStack(data: any): void {
+  private fileSystemQueryStack(data: unknown): void {
+    //@ts-ignore
     let res = this.getStacksByCallchainId(data.params.callchainId);
     self.postMessage({
+      //@ts-ignore
       id: data.id,
+      //@ts-ignore
       action: data.action,
       results: res,
     });
   }
-  private fileSystemQueryFileSysEvents(data: any): void {
+  private fileSystemQueryFileSysEvents(data: unknown): void {
+    //@ts-ignore
     if (data.params.list) {
+      //@ts-ignore
       let res = convertJSON(data.params.list) || [];
-      postMessage(data.id, data.action, this.supplementFileSysEvents(res, this.tab));
+      //@ts-ignore
+      postMessage(data.id, data.action, this.supplementFileSysEvents(res as Array<FileSysEvent>, this.tab));
     } else {
+      //@ts-ignore
       this.tab = data.params.tab;
+      //@ts-ignore
       this.queryFileSysEvents(data.params.leftNs, data.params.rightNs, data.params.typeArr, data.params.tab);
     }
   }
-  private fileSystemQueryVMEvents(data: any): void {
+  private fileSystemQueryVMEvents(data: unknown): void {
+    //@ts-ignore
     if (data.params.list) {
+      //@ts-ignore
       let res = convertJSON(data.params.list) || [];
-      postMessage(data.id, data.action, this.supplementVMEvents(res));
+      //@ts-ignore
+      postMessage(data.id, data.action, this.supplementVMEvents(res as Array<VirtualMemoryEvent>));
     } else {
+      //@ts-ignore
       this.queryVMEvents(data.params.leftNs, data.params.rightNs, data.params.typeArr);
     }
   }
-  private fileSystemQueryIOEvents(data: any): void {
+  private fileSystemQueryIOEvents(data: unknown): void {
+    //@ts-ignore
     if (data.params.list) {
+      //@ts-ignore
       let res = convertJSON(data.params.list) || [];
-      postMessage(data.id, data.action, this.supplementIoEvents(res));
+      //@ts-ignore
+      postMessage(data.id, data.action, this.supplementIoEvents(res as Array<IoCompletionTimes>));
     } else {
+      //@ts-ignore
       this.queryIOEvents(data.params.leftNs, data.params.rightNs, data.params.diskIOipids);
     }
   }
   private fileSystemReset(): void {
-    this.handlerMap.get('fileSystem').isHideEvent = false;
-    this.handlerMap.get('fileSystem').isHideThread = false;
+    this.handlerMap.get('fileSystem')!.isHideEvent = false;
+    this.handlerMap.get('fileSystem')!.isHideThread = false;
   }
   public clearAll(): void {
     this.dataCache.clearEBpf();
     for (let key of this.handlerMap.keys()) {
-      if (this.handlerMap.get(key).clear) {
-        this.handlerMap.get(key).clear();
-      }
+      this.handlerMap.get(key)!.clear();
     }
     this.handlerMap.clear();
   }
@@ -461,7 +508,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     for (let s of stacks) {
       let st: Stack = new Stack();
       st.path = (this.dataCache.dataDict?.get(s.pathId) ?? 'Unknown Path').split('/').reverse()[0];
-      st.symbol = `${s.symbolsId == null ? s.ip : this.dataCache.dataDict?.get(s.symbolsId) ?? ''} (${st.path})`;
+      st.symbol = `${s.symbolsId === null ? s.ip : this.dataCache.dataDict?.get(s.symbolsId) ?? ''} (${st.path})`;
       st.type = st.path.endsWith('.so.1') || st.path.endsWith('.dll') || st.path.endsWith('.so') ? 0 : 1;
       arr.push(st);
     }
@@ -541,7 +588,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
 
   initCallchains(): void {
     if (this.handlerMap.size > 0) {
-      this.handlerMap.forEach((value: any): void => {
+      this.handlerMap.forEach((value: FileSystemCallTreeHandler): void => {
         value.clearAll();
       });
       this.handlerMap.clear();
@@ -552,12 +599,12 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     this.queryData(
       this.currentEventId,
       'fileSystem-queryCallchains',
-      `select callchain_id as callChainId,depth,symbols_id as symbolsId,file_path_id as pathId,ip from ebpf_callstack`,
+      'select callchain_id as callChainId,depth,symbols_id as symbolsId,file_path_id as pathId,ip from ebpf_callstack',
       {}
     );
   }
 
-  initCallChainTopDown(list: any[]): void {
+  initCallChainTopDown(list: FileCallChain[]): void {
     const callChainsMap = this.dataCache.eBpfCallChainsMap;
     list.forEach((callchain: FileCallChain): void => {
       if (callChainsMap.has(callchain.callChainId)) {
@@ -568,8 +615,8 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     });
   }
 
-  fileSystemAnalysis(type: number, samplesList: Array<FileSample>, obj?: any): Array<FileAnalysisSample> {
-    let analysisSampleList = new Array<FileAnalysisSample>();
+  fileSystemAnalysis(type: number, samplesList: Array<FileSample>, obj?: unknown): Array<FileAnalysisSample> {
+    let analysisSampleList: Array<FileAnalysisSample> = [];
     for (let sample of samplesList) {
       let analysisSample = new FileAnalysisSample(sample);
       let callChainList = this.dataCache.eBpfCallChainsMap.get(sample.callChainId) || [];
@@ -597,6 +644,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
         }
       }
       this.setAnalysisSample(analysisSample, lastCallChain, callChainList);
+      //@ts-ignore
       if ((obj && (obj.libId === analysisSample.libId || obj.symbolId === analysisSample.symbolId)) || !obj) {
         analysisSampleList.push(analysisSample);
       }
@@ -625,21 +673,22 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
 }
 
 class FileSystemCallTreeHandler {
-  currentTreeMapData: any = {};
+  currentTreeMapData: MerageMap = {};
   allProcess: FileMerageBean[] = [];
   dataSource: FileMerageBean[] = [];
   currentDataType: string = '';
-  currentTreeList: any[] = [];
+  currentTreeList: FileMerageBean[] = [];
   samplesList: FileSample[] = [];
-  splitMapData: any = {};
+  splitMapData: MerageMap = {};
   searchValue: string = '';
   currentEventId: string = '';
   isHideThread: boolean = false;
   isHideEvent: boolean = false;
-  queryData = (eventId: string, action: string, sql: string, args: any) => {};
+  queryData = (eventId: string, action: string, sql: string, args: unknown): void => {};
 
-  constructor(type: string, queryData: any) {
+  constructor(type: string, queryData: unknown) {
     this.currentDataType = type;
+    //@ts-ignore
     this.queryData = queryData;
   }
 
@@ -654,7 +703,7 @@ class FileSystemCallTreeHandler {
   setEventId(eventId: string): void {
     this.currentEventId = eventId;
   }
-  queryCallChainsSamples(selectionParam: any, sql?: string): void {
+  queryCallChainsSamples(selectionParam: SelectionParam, sql?: string): void {
     switch (this.currentDataType) {
       case 'fileSystem':
         this.queryFileSamples(selectionParam, sql);
@@ -668,7 +717,7 @@ class FileSystemCallTreeHandler {
     }
   }
 
-  queryFileSamples(selectionParam: any, sql?: string): void {
+  queryFileSamples(selectionParam: SelectionParam, sql?: string): void {
     let sqlFilter = '';
     if (selectionParam.fileSystemType !== undefined && selectionParam.fileSystemType.length > 0) {
       sqlFilter += ' and s.type in (';
@@ -702,7 +751,7 @@ ${sqlFilter} and callchain_id != -1;`,
     );
   }
 
-  queryIOSamples(selectionParam: any, sql?: string): void {
+  queryIOSamples(selectionParam: SelectionParam, sql?: string): void {
     let sqlFilter = '';
     const types: number[] = [];
     if (selectionParam.diskIOReadIds.length > 0) {
@@ -739,7 +788,7 @@ and callchain_id != -1;`,
     );
   }
 
-  queryPageFaultSamples(selectionParam: any, sql?: string): void {
+  queryPageFaultSamples(selectionParam: SelectionParam, sql?: string): void {
     let sqlFilter = '';
     if (sql) {
       sqlFilter = sql;
@@ -767,7 +816,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
     );
   }
 
-  private freshCurrentCallChains(samples: FileSample[], isTopDown: boolean): void {
+  freshCurrentCallChains(samples: FileSample[], isTopDown: boolean): void {
     this.currentTreeMapData = {};
     this.currentTreeList = [];
     this.allProcess = [];
@@ -777,10 +826,10 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
       totalCount += sample.dur;
       let callChains = this.createThreadAndType(sample);
       let minDepth = 2;
-      if (this.isHideEvent){
+      if (this.isHideEvent) {
         minDepth--;
       }
-      if (this.isHideThread){
+      if (this.isHideThread) {
         minDepth--;
       }
       if (callChains.length === minDepth) {
@@ -797,24 +846,25 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
           this.currentTreeList.push(root);
         }
         FileMerageBean.merageCallChainSample(root, callChains[topIndex], sample, false);
-        if (callChains.length > 1){
+        if (callChains.length > 1) {
           this.merageChildrenByIndex(root, callChains, topIndex, sample, isTopDown);
         }
       }
     });
     let rootMerageMap = this.mergeNodeData(totalCount);
     this.handleCurrentTreeList(totalCount);
+    //@ts-ignore
     this.allProcess = Object.values(rootMerageMap);
   }
-  private mergeNodeData(totalCount: number): Map<any, any> {
-    let rootMerageMap: any = {};
-    Object.values(this.currentTreeMapData).forEach((mergeData: any): void => {
+
+  private mergeNodeData(totalCount: number): MerageMap {
+    let rootMerageMap: MerageMap = {};
+    Object.values(this.currentTreeMapData).forEach((mergeData: FileMerageBean): void => {
       if (rootMerageMap[mergeData.pid] === undefined) {
         let fileMerageBean = new FileMerageBean(); //新增进程的节点数据
         fileMerageBean.canCharge = false;
         fileMerageBean.isProcess = true;
-        fileMerageBean.symbolName = mergeData.processName;
-        fileMerageBean.symbol = fileMerageBean.symbolName;
+        fileMerageBean.symbol = mergeData.processName;
         fileMerageBean.children.push(mergeData);
         fileMerageBean.initChildren.push(mergeData);
         fileMerageBean.dur = mergeData.dur;
@@ -840,9 +890,9 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
     });
     return rootMerageMap;
   }
-  private handleCurrentTreeList(totalCount: number) {
+  private handleCurrentTreeList(totalCount: number): void {
     let id = 0;
-    this.currentTreeList.forEach((currentNode: any): void => {
+    this.currentTreeList.forEach((currentNode: FileMerageBean): void => {
       currentNode.total = totalCount;
       this.setMerageName(currentNode);
       if (currentNode.id === '') {
@@ -861,7 +911,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
   createThreadAndType(sample: FileSample): FileCallChain[] {
     let typeCallChain = new FileCallChain();
     typeCallChain.callChainId = sample.callChainId;
-    let map: any = {};
+    let map = {};
     if (this.currentDataType === 'fileSystem') {
       map = FILE_TYPE_MAP;
     } else if (this.currentDataType === 'io') {
@@ -893,7 +943,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
 
   merageChildrenByIndex(
     currentNode: FileMerageBean,
-    callChainDataList: any[],
+    callChainDataList: FileCallChain[],
     index: number,
     sample: FileSample,
     isTopDown: boolean
@@ -902,7 +952,8 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
     let isEnd = isTopDown ? callChainDataList.length === index + 1 : index === 0;
     let node: FileMerageBean;
     if (
-      currentNode.initChildren.filter((child: any) => {
+      //@ts-ignore
+      currentNode.initChildren.filter((child: FileMerageBean) => {
         if (
           child.ip === callChainDataList[index]?.ip ||
           (child.symbolsId !== null &&
@@ -923,30 +974,34 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    if (node! && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    if (node! && !isEnd) {
+      this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    }
   }
 
   setMerageName(currentNode: FileMerageBean): void {
     if (currentNode.pathId === -1) {
       currentNode.canCharge = false;
       currentNode.symbol = currentNode.ip;
-      currentNode.symbolName = currentNode.symbol;
-      currentNode.libName = '';
-      currentNode.path = '';
+      currentNode.symbol = currentNode.symbol;
+      currentNode.lib = '';
+      currentNode.lib = '';
     } else {
       const dataCache = DataCache.getInstance();
       currentNode.symbol = dataCache.dataDict?.get(currentNode.symbolsId) || currentNode.ip || 'unknown';
-      currentNode.path = dataCache.dataDict?.get(currentNode.pathId) || 'unknown';
-      currentNode.libName = setFileName(currentNode.path);
-      currentNode.lib = currentNode.libName;
+      currentNode.lib = dataCache.dataDict?.get(currentNode.pathId) || 'unknown';
+      currentNode.lib = setFileName(currentNode.lib);
+      currentNode.lib = currentNode.lib;
       currentNode.addr = currentNode.ip;
-      currentNode.symbolName = `${currentNode.symbol} (${currentNode.libName})`;
+      currentNode.symbol = `${currentNode.symbol} (${currentNode.lib})`;
     }
   }
-  public resolvingAction(params: any[]): FileMerageBean[] {
+  public resolvingAction(params: unknown[]): FileMerageBean[] {
     if (params.length > 0) {
-      params.forEach((paramItem: any): void => {
+      params.forEach((paramItem: unknown): void => {
+        //@ts-ignore
         if (paramItem.funcName && paramItem.funcArgs) {
+          //@ts-ignore
           this.handleDataByFuncName(paramItem.funcName, paramItem.funcArgs);
         }
       });
@@ -956,10 +1011,10 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
     }
     return this.dataSource;
   }
-  private handleDataByFuncName(funcName: any, args: any): void {
+  private handleDataByFuncName(funcName: string, args: Array<unknown>): void {
     switch (funcName) {
       case 'getCallChainsBySampleIds':
-        this.freshCurrentCallChains(this.samplesList, args[0]);
+        this.freshCurrentCallChains(this.samplesList, args[0] as boolean);
         break;
       case 'getCurrentDataFromDb':
         this.getCurrentDataFromDb(args);
@@ -968,13 +1023,13 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
         merageBeanDataSplit.hideSystemLibrary(this.allProcess, this.splitMapData);
         break;
       case 'hideNumMaxAndMin':
-        merageBeanDataSplit.hideNumMaxAndMin(this.allProcess, this.splitMapData, args[0], args[1]);
+        merageBeanDataSplit.hideNumMaxAndMin(this.allProcess, this.splitMapData, args[0] as number, args[1] as string);
         break;
       case 'hideThread':
-        this.isHideThread = args[0];
+        this.isHideThread = args[0] as boolean;
         break;
       case 'hideEvent':
-        this.isHideEvent = args[0];
+        this.isHideEvent = args[0] as boolean;
         break;
       case 'splitAllProcess':
         merageBeanDataSplit.splitAllProcess(this.allProcess, this.splitMapData, args[0]);
@@ -983,43 +1038,59 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
         merageBeanDataSplit.resetAllNode(this.allProcess, this.currentTreeList, this.searchValue);
         break;
       case 'resotreAllNode':
-        merageBeanDataSplit.resotreAllNode(this.splitMapData, args[0]);
+        merageBeanDataSplit.resotreAllNode(this.splitMapData, args[0] as string[]);
         break;
       case 'clearSplitMapData':
-        this.clearSplitMapData(args[0]);
+        this.clearSplitMapData(args[0] as string);
         break;
       case 'splitTree':
         let map = this.splitMapData;
         let list = this.currentTreeList;
-        merageBeanDataSplit.splitTree(map, this.allProcess, args[0], args[1], args[2], list, this.searchValue);
+        merageBeanDataSplit.splitTree(
+          map,
+          this.allProcess,
+          args[0] as string,
+          args[1] as boolean,
+          args[2] as boolean,
+          list,
+          this.searchValue
+        );
         break;
       case 'setSearchValue':
-        this.searchValue = args[0];
+        this.searchValue = args[0] as string;
         break;
     }
   }
-  private getCurrentDataFromDb(args: Array<any>): void {
+  private getCurrentDataFromDb(args: Array<unknown>): void {
     if (args[1]) {
       let sql = this.setSQLCondition(args[1]);
+      //@ts-ignore
       this.queryCallChainsSamples(args[0], sql);
     } else {
+      //@ts-ignore
       this.queryCallChainsSamples(args[0]);
     }
   }
-  private setSQLCondition(funcArgs: any): string {
+  private setSQLCondition(funcArgs: unknown): string {
     let sql = '';
+    //@ts-ignore
     if (funcArgs.processId !== undefined) {
+      //@ts-ignore
       sql += `and p.pid = ${funcArgs.processId}`;
     }
+    //@ts-ignore
     if (funcArgs.typeId !== undefined) {
+      //@ts-ignore
       sql += ` and s.type = ${funcArgs.typeId}`;
     }
+    //@ts-ignore
     if (funcArgs.threadId !== undefined) {
+      //@ts-ignore
       sql += ` and h.tid = ${funcArgs.threadId}`;
     }
     return sql;
   }
-  clearAll() {
+  clearAll(): void {
     this.samplesList = [];
     this.splitMapData = {};
     this.currentTreeMapData = {};
@@ -1032,7 +1103,9 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
   }
 
   clearSplitMapData(symbolName: string): void {
-    delete this.splitMapData[symbolName];
+    if (symbolName in this.splitMapData){
+      delete this.splitMapData[symbolName];
+    }
   }
 }
 
@@ -1076,7 +1149,7 @@ export class FileMerageBean extends MerageBean {
     callChain: FileCallChain,
     sample: FileSample,
     isEnd: boolean
-  ) {
+  ): void {
     if (currentNode.processName === '') {
       currentNode.ip = callChain.ip;
       currentNode.pid = sample.pid;

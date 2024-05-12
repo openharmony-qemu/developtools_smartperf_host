@@ -20,7 +20,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 constexpr static uint32_t MAX_PROTO_BUFFER_SIZE = 4 * 1024 * 1024;
 
-PbreaderNativeHookParser::PbreaderNativeHookParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderNativeHookParser::PbreaderNativeHookParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx), nativeHookFilter_(std::make_unique<NativeHookFilter>(dataCache, ctx))
 {
 }
@@ -33,11 +33,11 @@ PbreaderNativeHookParser::~PbreaderNativeHookParser()
             static_cast<unsigned long long>(MaxTs()));
 }
 
-bool PbreaderNativeHookParser::ParseStackMap(const ProtoReader::BytesView& bytesView)
+bool PbreaderNativeHookParser::ParseStackMap(const ProtoReader::BytesView &bytesView)
 {
     if (traceDataCache_->isSplitFile_) {
         auto hookData = nativeHookFilter_->GetCommHookData().datas->add_events();
-        StackMap* stackMap = hookData->mutable_stack_map();
+        StackMap *stackMap = hookData->mutable_stack_map();
         stackMap->ParseFromArray(bytesView.Data(), bytesView.Size());
         nativeHookFilter_->GetCommHookData().size += bytesView.Size();
         return false;
@@ -67,13 +67,13 @@ bool PbreaderNativeHookParser::ParseStackMap(const ProtoReader::BytesView& bytes
     return true;
 }
 
-void PbreaderNativeHookParser::ParseFrameMap(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData)
+void PbreaderNativeHookParser::ParseFrameMap(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData)
 {
     segs_.emplace_back(nativeHookMetaData->seg_);
-    const ProtoReader::BytesView& frameMapByteView = nativeHookMetaData->reader_->frame_map();
+    const ProtoReader::BytesView &frameMapByteView = nativeHookMetaData->reader_->frame_map();
     if (traceDataCache_->isSplitFile_) {
         auto hookData = nativeHookFilter_->GetCommHookData().datas->add_events();
-        FrameMap* frameMap = hookData->mutable_frame_map();
+        FrameMap *frameMap = hookData->mutable_frame_map();
         frameMap->ParseFromArray(frameMapByteView.Data(), frameMapByteView.Size());
         nativeHookFilter_->GetCommHookData().size += frameMapByteView.Size();
         return;
@@ -83,11 +83,11 @@ void PbreaderNativeHookParser::ParseFrameMap(std::unique_ptr<NativeHookMetaData>
     // when callstack is compressed, Frame message only has ip data area.
     nativeHookFilter_->AppendFrameMaps(ipid, frameMapReader.id(), frameMapReader.frame());
 }
-void PbreaderNativeHookParser::ParseFileEvent(const ProtoReader::BytesView& bytesView)
+void PbreaderNativeHookParser::ParseFileEvent(const ProtoReader::BytesView &bytesView)
 {
     if (traceDataCache_->isSplitFile_) {
         auto hookData = nativeHookFilter_->GetCommHookData().datas->add_events();
-        FilePathMap* filePathMap = hookData->mutable_file_path();
+        FilePathMap *filePathMap = hookData->mutable_file_path();
         filePathMap->ParseFromArray(bytesView.Data(), bytesView.Size());
         nativeHookFilter_->GetCommHookData().size += bytesView.Size();
         return;
@@ -97,11 +97,11 @@ void PbreaderNativeHookParser::ParseFileEvent(const ProtoReader::BytesView& byte
     auto nameIndex = traceDataCache_->dataDict_.GetStringIndex(filePathMapReader.name().ToStdString());
     nativeHookFilter_->AppendFilePathMaps(ipid, filePathMapReader.id(), nameIndex);
 }
-void PbreaderNativeHookParser::ParseSymbolEvent(const ProtoReader::BytesView& bytesView)
+void PbreaderNativeHookParser::ParseSymbolEvent(const ProtoReader::BytesView &bytesView)
 {
     if (traceDataCache_->isSplitFile_) {
         auto hookData = nativeHookFilter_->GetCommHookData().datas->add_events();
-        SymbolMap* symbolMap = hookData->mutable_symbol_name();
+        SymbolMap *symbolMap = hookData->mutable_symbol_name();
         symbolMap->ParseFromArray(bytesView.Data(), bytesView.Size());
         nativeHookFilter_->GetCommHookData().size += bytesView.Size();
         return;
@@ -111,11 +111,11 @@ void PbreaderNativeHookParser::ParseSymbolEvent(const ProtoReader::BytesView& by
     auto nameIndex = traceDataCache_->dataDict_.GetStringIndex(symbolMapReader.name().ToStdString());
     nativeHookFilter_->AppendSymbolMap(ipid, symbolMapReader.id(), nameIndex);
 }
-void PbreaderNativeHookParser::ParseThreadEvent(const ProtoReader::BytesView& bytesView)
+void PbreaderNativeHookParser::ParseThreadEvent(const ProtoReader::BytesView &bytesView)
 {
     if (traceDataCache_->isSplitFile_) {
         auto hookData = nativeHookFilter_->GetCommHookData().datas->add_events();
-        ThreadNameMap* threadNameMap = hookData->mutable_thread_name_map();
+        ThreadNameMap *threadNameMap = hookData->mutable_thread_name_map();
         threadNameMap->ParseFromArray(bytesView.Data(), bytesView.Size());
         nativeHookFilter_->GetCommHookData().size += bytesView.Size();
         return;
@@ -126,9 +126,9 @@ void PbreaderNativeHookParser::ParseThreadEvent(const ProtoReader::BytesView& by
     nativeHookFilter_->AppendThreadNameMap(ipid, threadNameMapReader.id(), nameIndex);
 }
 
-void PbreaderNativeHookParser::ParseNativeHookAuxiliaryEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData)
+void PbreaderNativeHookParser::ParseNativeHookAuxiliaryEvent(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData)
 {
-    auto& reader = nativeHookMetaData->reader_;
+    auto &reader = nativeHookMetaData->reader_;
     if (reader->has_stack_map()) {
         ParseStackMap(reader->stack_map());
     } else if (reader->has_frame_map()) {
@@ -149,8 +149,8 @@ void PbreaderNativeHookParser::ParseNativeHookAuxiliaryEvent(std::unique_ptr<Nat
         TS_LOGE("unsupported native_hook data!");
     }
 }
-void PbreaderNativeHookParser::SplitHookData(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData,
-                                             bool& haveSplitSeg)
+void PbreaderNativeHookParser::SplitHookData(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData,
+                                             bool &haveSplitSeg)
 {
     if (isCommData_ && hookBootTime_ <= traceDataCache_->SplitFileMinTime()) {
         ParseNativeHookAuxiliaryEvent(nativeHookMetaData);
@@ -161,7 +161,7 @@ void PbreaderNativeHookParser::SplitHookData(std::unique_ptr<NativeHookMetaData>
 }
 // In order to improve the accuracy of data, it is necessary to sort the original data.
 // Data sorting will be reduced by 5% to 10% Speed of parsing data.
-void PbreaderNativeHookParser::Parse(PbreaderDataSegment& dataSeg, bool& haveSplitSeg)
+void PbreaderNativeHookParser::Parse(PbreaderDataSegment &dataSeg, bool &haveSplitSeg)
 {
     auto batchNativeHookDataReader = ProtoReader::BatchNativeHookData_Reader(dataSeg.protoData);
     for (auto itor = batchNativeHookDataReader.events(); itor; itor++) {
@@ -194,7 +194,7 @@ void PbreaderNativeHookParser::Parse(PbreaderDataSegment& dataSeg, bool& haveSpl
     }
     nativeHookFilter_->SerializeHookCommDataToString();
 }
-void PbreaderNativeHookParser::ParseConfigInfo(PbreaderDataSegment& dataSeg)
+void PbreaderNativeHookParser::ParseConfigInfo(PbreaderDataSegment &dataSeg)
 {
     nativeHookFilter_->ParseConfigInfo(dataSeg.protoData);
 }

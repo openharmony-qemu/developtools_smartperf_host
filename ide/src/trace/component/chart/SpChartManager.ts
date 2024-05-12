@@ -43,17 +43,19 @@ import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
 import { procedurePool } from '../../database/Procedure';
 import { SpSegmentationChart } from './SpSegmentationChart';
+import { SpPerfOutputDataChart } from './SpPerfOutputDataChart';
 import {
   queryAppStartupProcessIds,
   queryDataDICT,
   queryThreadAndProcessName,
 } from '../../database/sql/ProcessThread.sql';
-import { queryTaskPoolCallStack, queryTotalTime } from '../../database/sql/SqlLite.sql';
+import { queryTaskPoolCallStack, queryTotalTime, queryTraceRange } from '../../database/sql/SqlLite.sql';
 import { getCpuUtilizationRate } from '../../database/sql/Cpu.sql';
 import { queryMemoryConfig } from '../../database/sql/Memory.sql';
 import { SpLtpoChart } from './SpLTPO';
 import { SpBpftraceChart } from './SpBpftraceChart';
 import { sliceSender } from '../../database/data-trafic/SliceSender';
+import { BaseStruct } from '../../bean/BaseStruct';
 import { SpGpuCounterChart } from './SpGpuCounterChart';
 
 export class SpChartManager {
@@ -68,6 +70,7 @@ export class SpChartManager {
   private nativeMemory: SpNativeMemoryChart;
   private abilityMonitor: SpAbilityMonitorChart;
   private process: SpProcessChart;
+  private process2?: SpProcessChart;
   private fileSystem: SpEBPFChart;
   private sdkChart: SpSdkChart;
   private hiSyseventChart: SpHiSysEnergyChart;
@@ -82,6 +85,7 @@ export class SpChartManager {
   private spHiSysEvent: SpHiSysEventChart;
   private spSegmentationChart: SpSegmentationChart;
   private spBpftraceChart: SpBpftraceChart;
+  private spPerfOutputDataChart: SpPerfOutputDataChart;
   private spGpuCounterChart: SpGpuCounterChart;
 
   constructor(trace: SpSystemTrace) {
@@ -108,10 +112,12 @@ export class SpChartManager {
     this.SpLtpoChart = new SpLtpoChart(trace);
     this.spSegmentationChart = new SpSegmentationChart(trace);
     this.spBpftraceChart = new SpBpftraceChart(trace);
+    this.spPerfOutputDataChart = new SpPerfOutputDataChart(trace);
     this.spGpuCounterChart = new SpGpuCounterChart(trace);
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
+    this.process2 = undefined;
     SpSystemTrace.DATA_DICT.clear();
     SpChartManager.APP_STARTUP_PID_ARR = [];
     let dict = await queryDataDICT();
@@ -119,7 +125,7 @@ export class SpChartManager {
       let appStartUpPids = await queryAppStartupProcessIds();
       appStartUpPids.forEach((it) => SpChartManager.APP_STARTUP_PID_ARR.push(it.pid));
     }
-    await this.initTraceConfig();
+    await this.initTraceConfig(); //@ts-ignore
     dict.map((d) => SpSystemTrace.DATA_DICT.set(d['id'], d['data']));
     await this.cacheDataDictToWorker();
     SpSystemTrace.DATA_TASK_POOL_CALLSTACK.clear();
@@ -127,14 +133,14 @@ export class SpChartManager {
     taskPoolCallStack.map((d) => SpSystemTrace.DATA_TASK_POOL_CALLSTACK.set(d.id, d));
     progress('time range', 65);
     await this.initTotalTime();
-    let ptArr = await queryThreadAndProcessName();
+    let ptArr = await queryThreadAndProcessName(); //@ts-ignore
     this.handleProcessThread(ptArr);
     info('initData timerShaftEL Data initialized');
   }
 
   async initCpu(progress: Function): Promise<void> {
     progress('cpu', 70);
-    let count = await sliceSender();
+    let count = await sliceSender(); //@ts-ignore
     await this.cpu.init(count.cpu);
     info('initData cpu Data initialized');
     if (FlagsConfig.getFlagsConfigEnableStatus('Bpftrace')) {
@@ -192,27 +198,88 @@ export class SpChartManager {
     await this.spAllAppStartupsChart.init();
     await this.SpLtpoChart.init();
     await this.frameTimeChart.init();
+    await this.spPerfOutputDataChart.init();
     progress('process', 92);
-    await this.process.initAsyncFuncData();
+    this.process.clearCache();
+    this.process2?.clearCache();
+    this.process2 = undefined;
+    await this.process.initAsyncFuncData({
+      startTs: Utils.getInstance().getRecordStartNS(),
+      endTs: Utils.getInstance().getRecordEndNS(),
+    });
     await this.process.initDeliverInputEvent();
     await this.process.initTouchEventDispatch();
-    await this.process.init();
+    await this.process.init(false);
     progress('display', 95);
   }
 
+  async initDistributedChart(progress: Function, file1: string, file2: string): Promise<void> {
+    progress('load data dict', 50);
+    SpSystemTrace.DATA_DICT.clear();
+    SpChartManager.APP_STARTUP_PID_ARR = [];
+    SpSystemTrace.DATA_TASK_POOL_CALLSTACK.clear();
+    this.process.clearCache();
+    this.process2?.clearCache();
+    let trace1Folder = this.createFolderRow('trace-1', 'trace-1', file1);
+    let trace2Folder = this.createFolderRow('trace-2', 'trace-2', file2);
+    this.trace.rowsEL!.appendChild(trace1Folder);
+    this.trace.rowsEL!.appendChild(trace2Folder);
+    await this.initTotalTime(true);
+    await this.initDistributedTraceRow('1', trace1Folder, progress);
+    info(`trace 1 load completed`);
+    await this.initDistributedTraceRow('2', trace2Folder, progress);
+    info(`trace 2 load completed`);
+  }
+
+  async initDistributedTraceRow(traceId: string, traceFolder: TraceRow<any>, progress: Function): Promise<void> {
+    let ptArr = await queryThreadAndProcessName(traceId);
+    // @ts-ignore
+    this.handleProcessThread(ptArr, traceId);
+    info(`initData trace ${traceId} timerShaftEL Data initialized`);
+    progress(`trace ${traceId} cpu`, 70);
+    let count = await sliceSender(traceId);
+    // @ts-ignore
+    await this.cpu.init(count.cpu, traceFolder, traceId);
+    info(`initData trace ${traceId} cpu Data initialized`);
+    progress(`trace ${traceId} process`, 92);
+    if (traceId === '2') {
+      if (!this.process2) {
+        this.process2 = new SpProcessChart(this.trace);
+      }
+      await this.process2.initAsyncFuncData(
+        {
+          startTs: Utils.getInstance().getRecordStartNS('2'),
+          endTs: Utils.getInstance().getRecordEndNS('2'),
+        },
+        traceId
+      );
+      await this.process2.init(true, traceFolder, traceId);
+    } else {
+      await this.process.initAsyncFuncData(
+        {
+          startTs: Utils.getInstance().getRecordStartNS('1'),
+          endTs: Utils.getInstance().getRecordEndNS('1'),
+        },
+        traceId
+      );
+      await this.process.init(true, traceFolder, traceId);
+    }
+  }
+
   async initSample(ev: File) {
-    await this.initSampleTime(ev, "bpftrace");
+    await this.initSampleTime(ev, 'bpftrace');
     await this.spBpftraceChart.init(ev);
   }
 
   async initGpuCounter(ev: File) {
-    const res = await this.initSampleTime(ev, "gpucounter");
+    const res = await this.initSampleTime(ev, 'gpucounter');
+    //@ts-ignore
     await this.spGpuCounterChart.init(res);
   }
 
   async importSoFileUpdate(): Promise<void> {
     SpSystemTrace.DATA_DICT.clear();
-    let dict = await queryDataDICT();
+    let dict = await queryDataDICT(); //@ts-ignore
     dict.map((d) => SpSystemTrace.DATA_DICT.set(d['id'], d['data']));
     await this.cacheDataDictToWorker();
     await perfDataQuery.initPerfCache();
@@ -221,46 +288,52 @@ export class SpChartManager {
     this.perf.resetAllChartData();
   }
 
-  handleProcessThread(arr: { id: number; name: string; type: string }[]): void {
-    Utils.PROCESS_MAP.clear();
-    Utils.THREAD_MAP.clear();
+  handleProcessThread(arr: { id: number; name: string; type: string }[], traceId?: string): void {
+    Utils.getInstance().getProcessMap(traceId).clear();
+    Utils.getInstance().getThreadMap(traceId).clear();
     for (let pt of arr) {
       if (pt.type === 'p') {
-        Utils.PROCESS_MAP.set(pt.id, pt.name);
+        Utils.getInstance().getProcessMap(traceId).set(pt.id, pt.name);
       } else {
-        Utils.THREAD_MAP.set(pt.id, pt.name);
+        Utils.getInstance().getThreadMap(traceId).set(pt.id, pt.name);
       }
     }
   }
 
-  initTotalTime = async (): Promise<void> => {
-    let res = await queryTotalTime();
+  initTotalTime = async (isDistributed: boolean = false): Promise<void> => {
+    let res1 = await queryTotalTime('1');
+    let total = res1[0].total;
+    Utils.getInstance().trace1RecordStartNS = res1[0].recordStartNS;
+    Utils.getInstance().trace1RecordEndNS = Math.max(res1[0].recordEndNS, res1[0].recordStartNS + 1);
+    if (isDistributed) {
+      let res2 = await queryTotalTime('2');
+      total = Math.max(total, res2[0].total);
+      Utils.getInstance().trace2RecordStartNS = res2[0].recordStartNS;
+      Utils.getInstance().trace2RecordEndNS = Math.max(res2[0].recordEndNS, res2[0].recordStartNS + 1);
+    }
     if (this.trace.timerShaftEL) {
-      let total = res[0].total;
-      let startNS = res[0].recordStartNS;
-      let endNS = res[0].recordEndNS;
-      if (total === 0 && startNS === endNS) {
+      if (total === 0) {
         total = 1;
-        endNS = startNS + 1;
       }
+      Utils.getInstance().totalNS = total;
       this.trace.timerShaftEL.totalNS = total;
       this.trace.timerShaftEL.getRangeRuler()!.drawMark = true;
       this.trace.timerShaftEL.setRangeNS(0, total);
-      window.recordStartNS = startNS;
-      window.recordEndNS = endNS;
+      window.recordStartNS = Utils.getInstance().trace1RecordStartNS;
+      window.recordEndNS = Utils.getInstance().trace1RecordEndNS;
       window.totalNS = total;
       this.trace.timerShaftEL.loadComplete = true;
     }
   };
 
-  initSampleTime = async (ev: File, type: string) => {
+  initSampleTime = async (ev: File, type: string): Promise<unknown> => {
     let res;
     let endNS = 30_000_000_000;
     if (type === 'gpucounter') {
       res = await this.spGpuCounterChart.getCsvData(ev);
-      const endTime = Number(res[res.length - 1].split(",")[0]);
+      const endTime = Number(res[res.length - 1].split(',')[0]);
       const minIndex = this.spGpuCounterChart.getMinData(res) + 1;
-      const startTime = Number(res[minIndex].split(",")[0]);
+      const startTime = Number(res[minIndex].split(',')[0]);
       endNS = Number((endTime - startTime).toString().slice(0, 11));
     }
     if (this.trace.timerShaftEL) {
@@ -268,10 +341,10 @@ export class SpChartManager {
       let startNS = 0;
       this.trace.timerShaftEL.totalNS = total;
       this.trace.timerShaftEL.getRangeRuler()!.drawMark = true;
-      this.trace.timerShaftEL.setRangeNS(0, total);
-      (window as any).recordStartNS = startNS;
-      (window as any).recordEndNS = endNS;
-      (window as any).totalNS = total;
+      this.trace.timerShaftEL.setRangeNS(0, total); // @ts-ignore
+      (window as unknown).recordStartNS = startNS; // @ts-ignore
+      (window as unknown).recordEndNS = endNS; // @ts-ignore
+      (window as unknown).totalNS = total;
       this.trace.timerShaftEL.loadComplete = true;
     }
     return res;
@@ -301,21 +374,42 @@ export class SpChartManager {
         'cache-data-dict',
         { dataDict: SpSystemTrace.DATA_DICT },
         undefined,
-        (res: any): void => {
+        (res: unknown): void => {
           resolve();
         }
       );
     });
   }
+
+  createFolderRow(rowId: string, rowType: string, rowName: string, traceId?: string): TraceRow<any> {
+    let row = TraceRow.skeleton<BaseStruct>(traceId);
+    row.setAttribute('disabled-check', '');
+    row.rowId = rowId;
+    row.rowType = rowType;
+    row.rowParentId = '';
+    row.folder = true;
+    row.style.height = '40px';
+    row.name = rowName;
+    // @ts-ignore
+    row.supplier = folderSupplier();
+    row.onThreadHandler = folderThreadHandler(row, this.trace);
+    row.addEventListener('expansion-change', (evt) => {
+      if (!row.expansion) {
+        this.trace.clickEmptyArea();
+      }
+    });
+    return row;
+  }
 }
 
-export const folderSupplier = (): any => {
-  return () => new Promise<Array<any>>((resolve) => resolve([]));
-};
-export const folderThreadHandler = (row: TraceRow<any>, trace: SpSystemTrace) => {
+export const folderSupplier = (): unknown => {
+  return () => new Promise<Array<unknown>>((resolve) => resolve([]));
+}; // @ts-ignore
+export const folderThreadHandler = (row: TraceRow<unknown>, trace: SpSystemTrace) => {
   return (useCache: boolean): void => {
     row.canvasSave(trace.canvasPanelCtx!);
     if (row.expansion) {
+      // @ts-ignore
       trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
     } else {
       (renders['empty'] as EmptyRender).renderMainThread(
@@ -334,23 +428,24 @@ export const folderThreadHandler = (row: TraceRow<any>, trace: SpSystemTrace) =>
 export function rowThreadHandler<T>(
   tag: string,
   contextField: string,
-  arg: any,
-  row: TraceRow<any>,
+  arg: unknown, // @ts-ignore
+  row: TraceRow<unknown>,
   trace: SpSystemTrace
 ) {
-  return (useCache: boolean) => {
+  return (useCache: boolean): void => {
     let context: CanvasRenderingContext2D = getRowContext(row, trace);
-    row.canvasSave(context);
+    row.canvasSave(context); // @ts-ignore
     arg.useCache = useCache;
     if (contextField) {
+      // @ts-ignore
       arg[contextField] = context;
-    }
-    (renders[tag] as any).renderMainThread(arg, row);
+    } // @ts-ignore
+    (renders[tag] as unknown).renderMainThread(arg, row);
     row.canvasRestore(context, trace);
   };
 }
-
-export const getRowContext = (row: TraceRow<any>, trace: SpSystemTrace): CanvasRenderingContext2D => {
+// @ts-ignore
+export const getRowContext = (row: TraceRow<unknown>, trace: SpSystemTrace): CanvasRenderingContext2D => {
   if (row.currentContext) {
     return row.currentContext;
   } else {

@@ -20,7 +20,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-PrintkFormatsProcessor& PrintkFormatsProcessor::GetInstance()
+PrintkFormatsProcessor &PrintkFormatsProcessor::GetInstance()
 {
     static PrintkFormatsProcessor instance;
     return instance;
@@ -41,7 +41,7 @@ std::string PrintkFormatsProcessor::GetSymbol(uint64_t addr)
     return addrStr;
 }
 
-bool PrintkFormatsProcessor::HandlePrintkSyms(const std::string& printkFormats)
+bool PrintkFormatsProcessor::HandlePrintkSyms(const std::string &printkFormats)
 {
     std::stringstream prinktkFormatStream(printkFormats);
     std::string curLine;

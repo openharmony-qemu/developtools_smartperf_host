@@ -43,16 +43,17 @@ export function virtualMemoryDataSender(
         filterId: filterId,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number) {
-  let filterID = new Uint8Array(buffers.filterID);
-  let value = new Int32Array(buffers.value);
+function arrayBufferHandler(buffers: unknown, len: number): VirtualMemoryStruct[] {
+  // @ts-ignore
+  let filterID = new Uint8Array(buffers.filterID); // @ts-ignore
+  let value = new Int32Array(buffers.value); // @ts-ignore
   let startTime = new Float64Array(buffers.startTime);
   let outArr: VirtualMemoryStruct[] = [];
   for (let i = 0; i < len; i++) {

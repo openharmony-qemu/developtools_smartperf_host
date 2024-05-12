@@ -22,7 +22,7 @@ namespace TraceStdtype {
 class Hidump : public CacheBase {
 public:
     size_t AppendNewHidumpInfo(uint64_t timeStamp, uint32_t fps);
-    const std::deque<uint32_t>& Fpss() const;
+    const std::deque<uint32_t> &Fpss() const;
     void Clear() override;
 
 private:
@@ -43,15 +43,15 @@ public:
                        double wrCountPerSec,
                        uint64_t rdCount,
                        uint64_t wrCount);
-    const std::deque<uint64_t>& Durs() const;
-    const std::deque<uint64_t>& RdDatas() const;
-    const std::deque<uint64_t>& WrDatas() const;
-    const std::deque<double>& RdSpeedDatas() const;
-    const std::deque<double>& WrSpeedDatas() const;
-    const std::deque<double>& RdCountPerSecDatas() const;
-    const std::deque<double>& WrCountPerSecDatas() const;
-    const std::deque<uint64_t>& RdCountDatas() const;
-    const std::deque<uint64_t>& WrCountDatas() const;
+    const std::deque<uint64_t> &Durs() const;
+    const std::deque<uint64_t> &RdDatas() const;
+    const std::deque<uint64_t> &WrDatas() const;
+    const std::deque<double> &RdSpeedDatas() const;
+    const std::deque<double> &WrSpeedDatas() const;
+    const std::deque<double> &RdCountPerSecDatas() const;
+    const std::deque<double> &WrCountPerSecDatas() const;
+    const std::deque<uint64_t> &RdCountDatas() const;
+    const std::deque<uint64_t> &WrCountDatas() const;
     void Clear() override;
 
 private:
@@ -81,18 +81,18 @@ public:
                          int32_t threads,
                          int64_t diskWrites,
                          int64_t diskReads);
-    const std::deque<uint64_t>& Durs() const;
-    const std::deque<int32_t>& ProcessID() const;
-    const std::deque<std::string>& ProcessName() const;
-    const std::deque<int32_t>& ParentProcessID() const;
-    const std::deque<int32_t>& Uid() const;
-    const std::deque<std::string>& UserName() const;
-    const std::deque<double>& CpuUsage() const;
-    const std::deque<int32_t>& PssInfo() const;
-    const std::deque<int32_t>& Threads() const;
-    const std::deque<int64_t>& DiskWrites() const;
-    const std::deque<int64_t>& DiskReads() const;
-    const std::deque<uint64_t>& CpuTimes() const;
+    const std::deque<uint64_t> &Durs() const;
+    const std::deque<int32_t> &ProcessID() const;
+    const std::deque<std::string> &ProcessName() const;
+    const std::deque<int32_t> &ParentProcessID() const;
+    const std::deque<int32_t> &Uid() const;
+    const std::deque<std::string> &UserName() const;
+    const std::deque<double> &CpuUsage() const;
+    const std::deque<int32_t> &PssInfo() const;
+    const std::deque<int32_t> &Threads() const;
+    const std::deque<int64_t> &DiskWrites() const;
+    const std::deque<int64_t> &DiskReads() const;
+    const std::deque<uint64_t> &CpuTimes() const;
     void Clear() override;
 
 private:
@@ -118,11 +118,11 @@ public:
                          double userLoad,
                          double systemLoad,
                          int64_t threads);
-    const std::deque<uint64_t>& Durs() const;
-    const std::deque<double>& TotalLoad() const;
-    const std::deque<double>& UserLoad() const;
-    const std::deque<double>& SystemLoad() const;
-    const std::deque<int64_t>& Threads() const;
+    const std::deque<uint64_t> &Durs() const;
+    const std::deque<double> &TotalLoad() const;
+    const std::deque<double> &UserLoad() const;
+    const std::deque<double> &SystemLoad() const;
+    const std::deque<int64_t> &Threads() const;
     void Clear() override;
 
 private:
@@ -145,17 +145,17 @@ public:
                             double packetInSec,
                             uint64_t packetOut,
                             double packetOutSec,
-                            const std::string& netType);
-    const std::deque<uint64_t>& Durs() const;
-    const std::deque<double>& RxSpeed() const;
-    const std::deque<double>& TxSpeed() const;
-    const std::deque<std::string>& NetTypes() const;
-    const std::deque<uint64_t>& RxDatas() const;
-    const std::deque<uint64_t>& TxDatas() const;
-    const std::deque<uint64_t>& PacketIn() const;
-    const std::deque<double>& PacketInSec() const;
-    const std::deque<uint64_t>& PacketOut() const;
-    const std::deque<double>& PacketOutSec() const;
+                            const std::string &netType);
+    const std::deque<uint64_t> &Durs() const;
+    const std::deque<double> &RxSpeed() const;
+    const std::deque<double> &TxSpeed() const;
+    const std::deque<std::string> &NetTypes() const;
+    const std::deque<uint64_t> &RxDatas() const;
+    const std::deque<uint64_t> &TxDatas() const;
+    const std::deque<uint64_t> &PacketIn() const;
+    const std::deque<double> &PacketInSec() const;
+    const std::deque<uint64_t> &PacketOut() const;
+    const std::deque<double> &PacketOutSec() const;
     void Clear() override;
 
 private:
@@ -192,26 +192,26 @@ public:
                        uint64_t swap,
                        uint64_t swapPss,
                        uint32_t type);
-    const std::deque<uint64_t>& Id() const;
-    const std::deque<uint64_t>& TimeStamps() const;
-    const std::deque<uint64_t>& Ipids() const;
-    const std::deque<std::string>& StartAddrs() const;
-    const std::deque<std::string>& EndAddrs() const;
-    const std::deque<uint64_t>& Dirtys() const;
-    const std::deque<uint64_t>& Swappers() const;
-    const std::deque<uint64_t>& Rss() const;
-    const std::deque<uint64_t>& Pss() const;
-    const std::deque<uint64_t>& Sizes() const;
-    const std::deque<double>& Resides() const;
-    const std::deque<DataIndex>& ProtectionIds() const;
-    const std::deque<DataIndex>& PathIds() const;
-    const std::deque<uint64_t>& SharedClean() const;
-    const std::deque<uint64_t>& SharedDirty() const;
-    const std::deque<uint64_t>& PrivateClean() const;
-    const std::deque<uint64_t>& PrivateDirty() const;
-    const std::deque<uint64_t>& Swap() const;
-    const std::deque<uint64_t>& SwapPss() const;
-    const std::deque<uint32_t>& Type() const;
+    const std::deque<uint64_t> &Id() const;
+    const std::deque<uint64_t> &TimeStamps() const;
+    const std::deque<uint64_t> &Ipids() const;
+    const std::deque<std::string> &StartAddrs() const;
+    const std::deque<std::string> &EndAddrs() const;
+    const std::deque<uint64_t> &Dirtys() const;
+    const std::deque<uint64_t> &Swappers() const;
+    const std::deque<uint64_t> &Rss() const;
+    const std::deque<uint64_t> &Pss() const;
+    const std::deque<uint64_t> &Sizes() const;
+    const std::deque<double> &Resides() const;
+    const std::deque<DataIndex> &ProtectionIds() const;
+    const std::deque<DataIndex> &PathIds() const;
+    const std::deque<uint64_t> &SharedClean() const;
+    const std::deque<uint64_t> &SharedDirty() const;
+    const std::deque<uint64_t> &PrivateClean() const;
+    const std::deque<uint64_t> &PrivateDirty() const;
+    const std::deque<uint64_t> &Swap() const;
+    const std::deque<uint64_t> &SwapPss() const;
+    const std::deque<uint32_t> &Type() const;
     void Clear() override;
 
 private:
@@ -250,17 +250,17 @@ public:
                        uint64_t refCount,
                        uint64_t purged,
                        uint32_t flag);
-    const std::deque<InternalPid>& Ipids() const;
-    const std::deque<uint32_t>& Adjs() const;
-    const std::deque<uint32_t>& Fds() const;
-    const std::deque<DataIndex>& AshmemNameIds() const;
-    const std::deque<uint64_t>& Sizes() const;
-    const std::deque<uint64_t>& Psss() const;
-    const std::deque<uint32_t>& AshmemIds() const;
-    const std::deque<uint64_t>& Times() const;
-    const std::deque<uint64_t>& RefCounts() const;
-    const std::deque<uint64_t>& Purgeds() const;
-    const std::deque<uint32_t>& Flags() const;
+    const std::deque<InternalPid> &Ipids() const;
+    const std::deque<uint32_t> &Adjs() const;
+    const std::deque<uint32_t> &Fds() const;
+    const std::deque<DataIndex> &AshmemNameIds() const;
+    const std::deque<uint64_t> &Sizes() const;
+    const std::deque<uint64_t> &Psss() const;
+    const std::deque<uint32_t> &AshmemIds() const;
+    const std::deque<uint64_t> &Times() const;
+    const std::deque<uint64_t> &RefCounts() const;
+    const std::deque<uint64_t> &Purgeds() const;
+    const std::deque<uint32_t> &Flags() const;
     void SetFlag(uint64_t rowId, uint32_t flag);
     void Clear() override;
 
@@ -291,15 +291,15 @@ public:
                        DataIndex bufNameId,
                        DataIndex expNameId,
                        uint32_t flag);
-    const std::deque<InternalPid>& Ipids() const;
-    const std::deque<uint32_t>& Fds() const;
-    const std::deque<uint64_t>& Sizes() const;
-    const std::deque<uint32_t>& Inos() const;
-    const std::deque<uint32_t>& ExpPids() const;
-    const std::deque<DataIndex>& ExpTaskCommIds() const;
-    const std::deque<DataIndex>& BufNameIds() const;
-    const std::deque<DataIndex>& ExpNameIds() const;
-    const std::deque<uint32_t>& Flags() const;
+    const std::deque<InternalPid> &Ipids() const;
+    const std::deque<uint32_t> &Fds() const;
+    const std::deque<uint64_t> &Sizes() const;
+    const std::deque<uint32_t> &Inos() const;
+    const std::deque<uint32_t> &ExpPids() const;
+    const std::deque<DataIndex> &ExpTaskCommIds() const;
+    const std::deque<DataIndex> &BufNameIds() const;
+    const std::deque<DataIndex> &ExpNameIds() const;
+    const std::deque<uint32_t> &Flags() const;
     void SetFlag(uint64_t rowId, uint32_t flag);
     void Clear() override;
 
@@ -325,12 +325,12 @@ public:
                        InternalPid ipid,
                        InternalPid itid,
                        uint64_t usedGpuSize);
-    const std::deque<DataIndex>& GpuNameIds() const;
-    const std::deque<uint64_t>& AllGpuSizes() const;
-    const std::deque<std::string>& Addrs() const;
-    const std::deque<InternalPid>& Ipids() const;
-    const std::deque<InternalPid>& Itids() const;
-    const std::deque<uint64_t>& UsedGpuSizes() const;
+    const std::deque<DataIndex> &GpuNameIds() const;
+    const std::deque<uint64_t> &AllGpuSizes() const;
+    const std::deque<std::string> &Addrs() const;
+    const std::deque<InternalPid> &Ipids() const;
+    const std::deque<InternalPid> &Itids() const;
+    const std::deque<uint64_t> &UsedGpuSizes() const;
     void Clear() override;
 
 private:
@@ -352,15 +352,15 @@ public:
                        uint64_t size,
                        uint32_t count,
                        uint64_t purgeableSize);
-    void RevicesIpid(const std::map<DataIndex, InternalPid>& windowIdToIpidMap);
-    const std::deque<DataIndex>& WindowNameIds() const;
-    const std::deque<uint64_t>& WindowIds() const;
-    const std::deque<DataIndex>& ModuleNameIds() const;
-    const std::deque<DataIndex>& CategoryNameIds() const;
-    const std::deque<uint64_t>& Sizes() const;
-    const std::deque<uint32_t>& Counts() const;
-    const std::deque<uint64_t>& PurgeableSizes() const;
-    const std::deque<InternalPid>& Ipids() const;
+    void RevicesIpid(const std::map<DataIndex, InternalPid> &windowIdToIpidMap);
+    const std::deque<DataIndex> &WindowNameIds() const;
+    const std::deque<uint64_t> &WindowIds() const;
+    const std::deque<DataIndex> &ModuleNameIds() const;
+    const std::deque<DataIndex> &CategoryNameIds() const;
+    const std::deque<uint64_t> &Sizes() const;
+    const std::deque<uint32_t> &Counts() const;
+    const std::deque<uint64_t> &PurgeableSizes() const;
+    const std::deque<InternalPid> &Ipids() const;
     void Clear() override;
 
 private:
@@ -377,7 +377,7 @@ private:
 class CpuDumpInfo : public CacheBase {
 public:
     void AppendNewData(uint64_t timestamp, uint64_t size);
-    const std::deque<uint64_t>& TotalSizes() const;
+    const std::deque<uint64_t> &TotalSizes() const;
     void Clear() override;
 
 private:
@@ -387,8 +387,8 @@ private:
 class ProfileMemInfo : public CacheBase {
 public:
     void AppendNewData(uint64_t timestamp, DataIndex channelIndex, uint64_t size);
-    const std::deque<uint64_t>& ChannelIndexs() const;
-    const std::deque<uint64_t>& TotalSizes() const;
+    const std::deque<uint64_t> &ChannelIndexs() const;
+    const std::deque<uint64_t> &TotalSizes() const;
     void Clear() override;
 
 private:
@@ -398,10 +398,10 @@ private:
 class RSImageDumpInfo : public CacheBase {
 public:
     void AppendNewData(uint64_t timestamp, uint64_t memSize, DataIndex typeIndex, InternalPid ipid, DataIndex name);
-    const std::deque<uint64_t>& MemSizes() const;
-    const std::deque<DataIndex>& TypeIndexs() const;
-    const std::deque<InternalPid>& Ipids() const;
-    const std::deque<DataIndex>& SurfaceNameIndexs() const;
+    const std::deque<uint64_t> &MemSizes() const;
+    const std::deque<DataIndex> &TypeIndexs() const;
+    const std::deque<InternalPid> &Ipids() const;
+    const std::deque<DataIndex> &SurfaceNameIndexs() const;
     void Clear() override;
 
 private:

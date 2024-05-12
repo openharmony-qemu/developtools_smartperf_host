@@ -39,23 +39,23 @@ public:
     void AddOrderBy(int32_t col, unsigned char desc);
     void Clear();
 
-    const std::vector<OrderBy>& GetOrderBys() const
+    const std::vector<OrderBy> &GetOrderBys() const
     {
         return orderBys_;
     }
 
-    const std::vector<Constraint>& GetConstraints() const
+    const std::vector<Constraint> &GetConstraints() const
     {
         return constraints_;
     }
 
     // idxStr format: C<N> col1 op1 ... colN opN O<M> col1 desc1 ... colM descM
     // like as "C2 0 2 1 4 O1 0 1"
-    void ToString(std::string& idxStr) const;
-    void FromString(const std::string& idxStr);
+    void ToString(std::string &idxStr) const;
+    void FromString(const std::string &idxStr);
 
 private:
-    void GetColAndOp(const char** p, char** pNext, int32_t& col, unsigned char& op);
+    void GetColAndOp(const char **p, char **pNext, int32_t &col, unsigned char &op);
 
 private:
     std::vector<Constraint> constraints_;

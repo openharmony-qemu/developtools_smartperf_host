@@ -24,7 +24,7 @@ namespace TraceStreamer {
 class FilterTable : public TableBase {
 public:
     enum Column { ID = 0, TYPE = 1, NAME = 2, ARG_ID = 3 };
-    explicit FilterTable(const TraceDataCache* dataCache);
+    explicit FilterTable(const TraceDataCache *dataCache);
     ~FilterTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -33,21 +33,21 @@ private:
     {
         return dataCache_->GetConstFilterData().Size();
     }
-    void GetOrbyes(FilterConstraints& filterfc, EstimatedIndexInfo& filterei) override;
-    void FilterByConstraint(FilterConstraints& filterfc,
-                            double& filterfilterCost,
+    void GetOrbyes(FilterConstraints &filterfc, EstimatedIndexInfo &filterei) override;
+    void FilterByConstraint(FilterConstraints &filterfc,
+                            double &filterfilterCost,
                             size_t filterrowCount,
                             uint32_t filtercurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t col) const override;
 
     private:
-        const TraceStreamer::Filter& filterObj_;
+        const TraceStreamer::Filter &filterObj_;
     };
 };
 } // namespace TraceStreamer

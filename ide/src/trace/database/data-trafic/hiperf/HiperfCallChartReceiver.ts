@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ConstructorComparison } from '../../../../js-heap/model/UiStruct';
 import { TraficEnum } from '../utils/QueryEnum';
 
 interface HiPerfSampleType {
@@ -33,11 +32,11 @@ const dataCache: {
   callchainId: Array<number>;
   selfDur: Array<number>;
   name: Array<number>;
-  callstack: Map<string, any>;
+  callstack: Map<string, unknown>;
   sampleList: Array<HiPerfSampleType>;
   maxDepth: number;
 } = {
-  callstack: new Map<string, any>(),
+  callstack: new Map<string, unknown>(),
   sampleList: [],
   maxDepth: 1,
   startTs: [],
@@ -51,10 +50,13 @@ const dataCache: {
   name: [],
 };
 
-export const chartHiperfCallChartDataSql = (args: any): string => {
+export const chartHiperfCallChartDataSql = (args: unknown): string => {
   const sql = `
     select callchain_id                             as callchainId,
-           timestamp_trace - ${args.recordStartNS}  as startTs,
+           timestamp_trace - ${
+             // @ts-ignore
+             args.recordStartNS
+           }  as startTs,
            event_count                              as eventCount,
            A.thread_id                              as threadId,
            cpu_id                                   as cpuId,
@@ -65,78 +67,110 @@ export const chartHiperfCallChartDataSql = (args: any): string => {
   return sql;
 };
 
-export function hiPerfCallChartDataHandler(data: any, proc: Function): void {
+export function hiPerfCallChartDataHandler(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.isCache) {
-    let res: Array<any> = proc(chartHiperfCallChartDataSql(data.params));
+    // @ts-ignore
+    let res: Array<unknown> = proc(chartHiperfCallChartDataSql(data.params));
     for (let i = 0; i < res.length; i++) {
       if (i > 0) {
+        // @ts-ignore
         if (res[i].cpuId === res[i - 1].cpuId) {
+          // @ts-ignore
           res[i - 1].dur = res[i].startTs - res[i - 1].startTs;
         } else {
+          // @ts-ignore
           res[i - 1].dur = data.params.recordEndNS - data.params.recordStartNS - res[i - 1].startTs;
         }
       }
       if (i === res.length - 1) {
+        // @ts-ignore
         res[i].dur = data.params.recordEndNS - data.params.recordStartNS - res[i].startTs;
       }
     }
+    // @ts-ignore
     dataCache.sampleList = res;
     (self as unknown as Worker).postMessage(
       {
         len: 0,
+        // @ts-ignore
         id: data.id,
+        // @ts-ignore
         action: data.action,
         results: 'ok',
       },
       []
     );
   } else {
-    let res: Array<any> = [];
+    let res: Array<unknown> = [];
+    // @ts-ignore
     if (!data.params.isComplete) {
       res = dataCache.sampleList.filter((it) => {
+        // @ts-ignore
         let cpuThreadFilter = data.params.type === 0 ? it.cpuId === data.params.id : it.threadId === data.params.id;
+        // @ts-ignore
         let eventTypeFilter = data.params.eventTypeId === -2 ? true : it.eventTypeId === data.params.eventTypeId;
         return cpuThreadFilter && eventTypeFilter;
       });
     }
+    // @ts-ignore
     arrayBufferHandler(data, res, true, !data.params.isComplete);
   }
 }
 
-export function hiPerfCallStackCacheHandler(data: any, proc: Function): void {
+export function hiPerfCallStackCacheHandler(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.isCache) {
     hiPerfCallChartClearCache(true);
     arrayBufferCallStackHandler(data, proc(hiPerfCallStackDataCacheSql()));
   }
 }
 
-function arrayBufferHandler(data: any, res: any[], transfer: boolean, loadData: boolean): void {
+function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean, loadData: boolean): void {
   if (loadData) {
+    // @ts-ignore
     let result = combinePerfSampleByCallChainId(res, data.params);
     hiPerfCallChartClearCache(false);
-    const getArrayData = (combineData: Array<any>): void => {
+    const getArrayData = (combineData: Array<unknown>): void => {
       for (let item of combineData) {
+        // @ts-ignore
         if (item.depth > -1) {
+          // @ts-ignore
           dataCache.startTs.push(item.startTime);
+          // @ts-ignore
           dataCache.dur.push(item.totalTime);
+          // @ts-ignore
           dataCache.depth.push(item.depth);
+          // @ts-ignore
           dataCache.eventCount.push(item.eventCount);
+          // @ts-ignore
           dataCache.symbolId.push(item.symbolId);
+          // @ts-ignore
           dataCache.fileId.push(item.fileId);
+          // @ts-ignore
           dataCache.callchainId.push(item.callchainId);
+          // @ts-ignore
           dataCache.name.push(item.name);
+          // @ts-ignore
           let self = item.totalTime || 0;
+          // @ts-ignore
           if (item.children) {
-            (item.children as Array<any>).forEach((child) => {
+            // @ts-ignore
+            (item.children as Array<unknown>).forEach((child) => {
+              // @ts-ignore
               self -= child.totalTime;
             });
           }
           dataCache.selfDur.push(self);
         }
+        // @ts-ignore
         if (item.depth + 1 > dataCache.maxDepth) {
+          // @ts-ignore
           dataCache.maxDepth = item.depth + 1;
         }
+        // @ts-ignore
         if (item.children && item.children.length > 0) {
+          // @ts-ignore
           getArrayData(item.children);
         }
       }
@@ -148,7 +182,8 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean, loadData: 
   }, 150);
 }
 
-function arrayBufferCallback(data: any, transfer: boolean): void {
+function arrayBufferCallback(data: unknown, transfer: boolean): void {
+  // @ts-ignore
   let params = data.params;
   let dataFilter = filterPerfCallChartData(params.startNS, params.endNS, params.totalNS, params.frame, params.expand);
   let len = dataFilter.startTs.length;
@@ -166,10 +201,12 @@ function arrayBufferCallback(data: any, transfer: boolean): void {
   }
   postPerfCallChartMessage(data, transfer, perfCallChart, len);
 }
-function postPerfCallChartMessage(data: any, transfer: boolean, perfCallChart: PerfCallChart, len: number) {
+function postPerfCallChartMessage(data: unknown, transfer: boolean, perfCallChart: PerfCallChart, len: number): void {
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: transfer
         ? {
@@ -207,11 +244,11 @@ export function filterPerfCallChartData(
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame: any,
+  frame: unknown,
   expand: boolean
 ): DataSource {
   let dataSource = new DataSource();
-  let data: any = {};
+  let data: unknown = {};
   dataCache.startTs.reduce((pre, current, index) => {
     if (
       dataCache.dur[index] > 0 &&
@@ -226,10 +263,13 @@ export function filterPerfCallChartData(
         x = 0;
       }
       let key = `${x}-${dataCache.depth[index]}`;
+      // @ts-ignore
       let preIndex = pre[key];
       if (preIndex !== undefined) {
+        // @ts-ignore
         pre[key] = dataCache.dur[preIndex] > dataCache.dur[index] ? preIndex : index;
       } else {
+        // @ts-ignore
         pre[key] = index;
       }
     }
@@ -238,9 +278,12 @@ export function filterPerfCallChartData(
   setDataSource(data, dataSource);
   return dataSource;
 }
-function setDataSource(data: any, dataSource: DataSource) {
+function setDataSource(data: unknown, dataSource: DataSource): void {
+  // @ts-ignore
   Reflect.ownKeys(data).map((kv: string | symbol): void => {
+    // @ts-ignore
     let index = data[kv as string] as number;
+    // @ts-ignore
     dataSource.startTs.push(dataCache.startTs[index]);
     dataSource.dur.push(dataCache.dur[index]);
     dataSource.depth.push(dataCache.depth[index]);
@@ -253,20 +296,31 @@ function setDataSource(data: any, dataSource: DataSource) {
   });
 }
 // 将perf_sample表的数据根据callchain_id分组并赋值startTime,endTime等等
-function combinePerfSampleByCallChainId(sampleList: Array<any>, params: any): any[] {
+function combinePerfSampleByCallChainId(sampleList: Array<unknown>, params: unknown): unknown[] {
   return combineChartData(
     sampleList.map((sample) => {
-      let perfSample: any = {};
-      perfSample.children = new Array<any>();
+      let perfSample: unknown = {};
+      // @ts-ignore
+      perfSample.children = [];
+      // @ts-ignore
       perfSample.children[0] = {};
+      // @ts-ignore
       perfSample.depth = -1;
+      // @ts-ignore
       perfSample.callchainId = sample.callchainId;
+      // @ts-ignore
       perfSample.threadId = sample.threadId;
+      // @ts-ignore
       perfSample.id = sample.id;
+      // @ts-ignore
       perfSample.cpuId = sample.cpuId;
+      // @ts-ignore
       perfSample.startTime = sample.startTs;
+      // @ts-ignore
       perfSample.endTime = sample.startTs + sample.dur;
+      // @ts-ignore
       perfSample.totalTime = sample.dur;
+      // @ts-ignore
       perfSample.eventCount = sample.eventCount;
       return perfSample;
     }),
@@ -274,9 +328,10 @@ function combinePerfSampleByCallChainId(sampleList: Array<any>, params: any): an
   );
 }
 
-function combineChartData(samples: any, params: any): Array<any> {
-  let combineSample: any = [];
+function combineChartData(samples: unknown, params: unknown): Array<unknown> {
+  let combineSample: unknown = [];
   // 遍历sample表查到的数据，并且为其匹配相应的callchain数据
+  // @ts-ignore
   for (let sample of samples) {
     let stackTop = dataCache.callstack.get(`${sample.callchainId}-0`);
     if (stackTop) {
@@ -288,41 +343,58 @@ function combineChartData(samples: any, params: any): Array<any> {
       stackTopSymbol.cpuId = sample.cpuId;
       stackTopSymbol.eventCount = sample.eventCount;
       setDur(stackTopSymbol);
-      sample.children = new Array<any>();
+      sample.children = [];
       sample.children.push(stackTopSymbol);
       // 每一项都和combineSample对比
+      // @ts-ignore
       if (combineSample.length === 0) {
+        // @ts-ignore
         combineSample.push(sample);
       } else {
+        // @ts-ignore
         let pre = combineSample[combineSample.length - 1];
+        // @ts-ignore
         if (params.type === 0) {
           if (pre.threadId === sample.threadId && pre.endTime === sample.startTime) {
+            // @ts-ignore
             combinePerfCallData(combineSample[combineSample.length - 1], sample);
           } else {
+            // @ts-ignore
             combineSample.push(sample);
           }
         } else {
           if (pre.cpuId === sample.cpuId && pre.endTime === sample.startTime) {
+            // @ts-ignore
             combinePerfCallData(combineSample[combineSample.length - 1], sample);
           } else {
+            // @ts-ignore
             combineSample.push(sample);
           }
         }
       }
     }
   }
+  // @ts-ignore
   return combineSample;
 }
 
 // 递归设置dur,startTime,endTime
-function setDur(data: any): void {
+function setDur(data: unknown): void {
+  // @ts-ignore
   if (data.children && data.children.length > 0) {
+    // @ts-ignore
     data.children[0].totalTime = data.totalTime;
+    // @ts-ignore
     data.children[0].startTime = data.startTime;
+    // @ts-ignore
     data.children[0].endTime = data.endTime;
+    // @ts-ignore
     data.children[0].threadId = data.threadId;
+    // @ts-ignore
     data.children[0].cpuId = data.cpuId;
+    // @ts-ignore
     data.children[0].eventCount = data.eventCount;
+    // @ts-ignore
     setDur(data.children[0]);
   } else {
     return;
@@ -330,23 +402,36 @@ function setDur(data: any): void {
 }
 
 // hiperf火焰图合并逻辑
-function combinePerfCallData(data1: any, data2: any): void {
+function combinePerfCallData(data1: unknown, data2: unknown): void {
   if (fixMergeRuler(data1, data2)) {
+    // @ts-ignore
     data1.endTime = data2.endTime;
+    // @ts-ignore
     data1.totalTime = data1.endTime - data1.startTime;
+    // @ts-ignore
     data1.eventCount += data2.eventCount;
+    // @ts-ignore
     if (data1.children && data1.children.length > 0 && data2.children && data2.children.length > 0) {
+      // @ts-ignore
       if (fixMergeRuler(data1.children[data1.children.length - 1], data2.children[0])) {
+        // @ts-ignore
         combinePerfCallData(data1.children[data1.children.length - 1], data2.children[0]);
       } else {
+        // @ts-ignore
         if (data1.children[data1.children.length - 1].depth === data2.children[0].depth) {
+          // @ts-ignore
           data1.children.push(data2.children[0]);
         }
       }
+      // @ts-ignore
     } else if (data2.children && data2.children.length > 0 && (!data1.children || data1.children.length === 0)) {
+      // @ts-ignore
       data1.endTime = data2.endTime;
+      // @ts-ignore
       data1.totalTime = data1.endTime - data1.startTime;
-      data1.children = new Array<any>();
+      // @ts-ignore
+      data1.children = [];
+      // @ts-ignore
       data1.children.push(data2.children[0]);
     } else {
     }
@@ -359,7 +444,8 @@ function combinePerfCallData(data1: any, data2: any): void {
  * @param data1
  * @param data2
  */
-function fixMergeRuler(data1: any, data2: any): boolean {
+function fixMergeRuler(data1: unknown, data2: unknown): boolean {
+  // @ts-ignore
   return data1.depth === data2.depth && data1.name === data2.name;
 }
 
@@ -390,22 +476,33 @@ export function hiPerfCallChartClearCache(clearStack: boolean): void {
   dataCache.maxDepth = 1;
 }
 
-function arrayBufferCallStackHandler(data: any, res: any[]): void {
+function arrayBufferCallStackHandler(data: unknown, res: unknown[]): void {
   for (const stack of res) {
     let item = stack;
+    // @ts-ignore
     if (data.params.trafic === TraficEnum.ProtoBuffer) {
       item = {
+        // @ts-ignore
         callchainId: stack.hiperfCallStackData.callchainId || 0,
+        // @ts-ignore
         fileId: stack.hiperfCallStackData.fileId || 0,
+        // @ts-ignore
         depth: stack.hiperfCallStackData.depth || 0,
+        // @ts-ignore
         symbolId: stack.hiperfCallStackData.symbolId || 0,
+        // @ts-ignore
         name: stack.hiperfCallStackData.name || 0,
       };
     }
+    // @ts-ignore
     dataCache.callstack.set(`${item.callchainId}-${item.depth}`, item);
+    // @ts-ignore
     let parentSymbol = dataCache.callstack.get(`${item.callchainId}-${item.depth - 1}`);
+    // @ts-ignore
     if (parentSymbol && parentSymbol.callchainId === item.callchainId && parentSymbol.depth === item.depth - 1) {
-      parentSymbol.children = new Array<any>();
+      // @ts-ignore
+      parentSymbol.children = [];
+      // @ts-ignore
       parentSymbol.children.push(item);
     }
   }
@@ -416,7 +513,9 @@ function arrayBufferCallStackHandler(data: any, res: any[]): void {
   }
   (self as unknown as Worker).postMessage(
     {
+      // @ts-ignore
       id: data.id,
+      // @ts-ignore
       action: data.action,
       results: 'ok',
       len: res.length,
@@ -425,14 +524,17 @@ function arrayBufferCallStackHandler(data: any, res: any[]): void {
   );
 }
 
-function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: any): number {
+function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: unknown): number {
   if (endNS === 0) {
     endNS = duration;
   }
+  // @ts-ignore
   let xSizeHiperf: number = ((ns - startNS) * rect.width) / (endNS - startNS);
   if (xSizeHiperf < 0) {
     xSizeHiperf = 0;
+    // @ts-ignore
   } else if (xSizeHiperf > rect.width) {
+    // @ts-ignore
     xSizeHiperf = rect.width;
   }
   return xSizeHiperf;

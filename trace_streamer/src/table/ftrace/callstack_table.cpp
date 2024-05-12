@@ -23,7 +23,6 @@ enum class Index : int32_t {
     DURS,
     CALL_IDS,
     CATS,
-    IDENTIFY,
     NAME,
     DEPTHS,
     COOKIES_ID,
@@ -32,17 +31,15 @@ enum class Index : int32_t {
     CHAIN_IDS,
     SPAN_IDS,
     PARENT_SPAN_IDS,
-    FLAGS,
-    ARGS
+    FLAGS
 };
-CallStackTable::CallStackTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+CallStackTable::CallStackTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("callid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("cat", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("identify", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("cookie", "INTEGER"));
@@ -52,7 +49,6 @@ CallStackTable::CallStackTable(const TraceDataCache* dataCache) : TableBase(data
     tableColumn_.push_back(TableBase::ColumnInfo("spanId", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("flag", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("args", "TEXT"));
     tablePriKey_.push_back("callid");
     tablePriKey_.push_back("ts");
     tablePriKey_.push_back("depth");
@@ -60,14 +56,14 @@ CallStackTable::CallStackTable(const TraceDataCache* dataCache) : TableBase(data
 
 CallStackTable::~CallStackTable() {}
 
-void CallStackTable::FilterByConstraint(FilterConstraints& callfc,
-                                        double& callfilterCost,
+void CallStackTable::FilterByConstraint(FilterConstraints &callfc,
+                                        double &callfilterCost,
                                         size_t callrowCount,
                                         uint32_t callCurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& callc = callfc.GetConstraints()[callCurrenti];
+    const auto &callc = callfc.GetConstraints()[callCurrenti];
     switch (static_cast<Index>(callc.col)) {
         case Index::ID: {
             if (CanFilterId(callc.op, callrowCount)) {
@@ -89,7 +85,7 @@ std::unique_ptr<TableBase::Cursor> CallStackTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-CallStackTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+CallStackTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstInternalSlicesData().Size())),
       slicesObj_(dataCache->GetConstInternalSlicesData())
 {
@@ -97,7 +93,7 @@ CallStackTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table
 
 CallStackTable::Cursor::~Cursor() {}
 
-int32_t CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t CallStackTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -110,7 +106,7 @@ int32_t CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
     SwapIndexFront(callStackTabCs, sId);
     for (size_t i = 0; i < callStackTabCs.size(); i++) {
-        const auto& c = callStackTabCs[i];
+        const auto &c = callStackTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -165,9 +161,6 @@ int32_t CallStackTable::Cursor::Column(int32_t col) const
             SetTypeColumnText(slicesObj_.CatsData()[CurrentRow()], INVALID_UINT64);
             break;
         }
-        case Index::IDENTIFY:
-            sqlite3_result_int(context_, slicesObj_.IdentifysData()[CurrentRow()]);
-            break;
         case Index::NAME: {
             SetTypeColumnText(slicesObj_.NamesData()[CurrentRow()], INVALID_UINT64);
             break;
@@ -211,16 +204,12 @@ void CallStackTable::Cursor::HandleTypeColumns(int32_t col) const
             SetTypeColumnTextNotEmpty(slicesObj_.Flags()[CurrentRow()].empty(),
                                       slicesObj_.Flags()[CurrentRow()].c_str());
             break;
-        case Index::ARGS:
-            SetTypeColumnTextNotEmpty(slicesObj_.ArgsData()[CurrentRow()].empty(),
-                                      slicesObj_.ArgsData()[CurrentRow()].c_str());
-            break;
         default:
             TS_LOGF("Unregistered column : %d", col);
             break;
     }
 }
-void CallStackTable::GetOrbyes(FilterConstraints& callfc, EstimatedIndexInfo& callei)
+void CallStackTable::GetOrbyes(FilterConstraints &callfc, EstimatedIndexInfo &callei)
 {
     auto orderbys = callfc.GetOrderBys();
     for (auto i = 0; i < orderbys.size(); i++) {

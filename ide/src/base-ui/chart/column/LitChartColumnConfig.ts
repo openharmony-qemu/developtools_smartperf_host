@@ -14,20 +14,20 @@
  */
 
 export interface LitChartColumnConfig {
-  data: any[];
+  data: unknown[];
   appendPadding: number;
   xField: string;
   yField: string;
   seriesField: string;
   notSort?: boolean;
   removeUnit?: boolean;
-  color: (a: any) => string;
-  tip: ((a: any) => string) | undefined;
+  color: (a: unknown) => string;
+  tip: ((a: unknown) => string) | undefined;
   hoverHandler?: (no: number) => void;
   label:
     | {
         offset: number;
-        content: (it: any) => string;
+        content: (it: unknown) => string;
       }
     | undefined
     | null;

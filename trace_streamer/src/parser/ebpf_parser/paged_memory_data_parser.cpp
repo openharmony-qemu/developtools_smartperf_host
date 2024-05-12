@@ -20,7 +20,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-PagedMemoryDataParser::PagedMemoryDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PagedMemoryDataParser::PagedMemoryDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx), EbpfBase(dataCache, ctx), timeParser_(std::make_unique<HtracePluginTimeParser>())
 {
 }
@@ -31,12 +31,12 @@ PagedMemoryDataParser::~PagedMemoryDataParser()
             static_cast<unsigned long long>(timeParser_->GetPluginEndTime()));
 }
 
-int32_t PagedMemoryDataParser::PagingData(const PagedMemoryFixedHeader* pagedMemoryFixedHeadrAddr)
+int32_t PagedMemoryDataParser::PagingData(const PagedMemoryFixedHeader *pagedMemoryFixedHeadrAddr)
 {
     // Parsing paging memory data
     auto type = pagedMemoryFixedHeadrAddr->type;
     // Init process name data
-    const char* processName = reinterpret_cast<const char*>(pagedMemoryFixedHeadrAddr->comm);
+    const char *processName = reinterpret_cast<const char *>(pagedMemoryFixedHeadrAddr->comm);
     uint32_t ipid =
         streamFilters_->processFilter_->UpdateOrCreateProcessWithName(pagedMemoryFixedHeadrAddr->pid, processName);
     uint32_t itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(pagedMemoryFixedHeadrAddr->tid,
@@ -74,9 +74,9 @@ void PagedMemoryDataParser::ParsePagedMemoryEvent()
         auto pagedMemoryFixedHeadrAddr = mapItor->second;
         bool callIdExistFlag = false;
 
-        auto userIpsAddr = reinterpret_cast<const uint64_t*>(pagedMemoryFixedHeadrAddr + 1);
+        auto userIpsAddr = reinterpret_cast<const uint64_t *>(pagedMemoryFixedHeadrAddr + 1);
         if (pagedMemoryFixedHeadrAddr->nips) {
-            std::string ipsToStr(reinterpret_cast<const char*>(userIpsAddr),
+            std::string ipsToStr(reinterpret_cast<const char *>(userIpsAddr),
                                  pagedMemoryFixedHeadrAddr->nips * SINGLE_IP_SIZE);
             auto ipsHashValue = hashFun_(ipsToStr);
             auto value = pidAndipsToCallId_.Find(pagedMemoryFixedHeadrAddr->pid, ipsHashValue);

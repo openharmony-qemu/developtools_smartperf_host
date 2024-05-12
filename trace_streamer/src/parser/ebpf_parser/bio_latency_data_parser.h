@@ -23,9 +23,9 @@ namespace TraceStreamer {
 using namespace SysTuning::EbpfStdtype;
 class BioLatencyDataParser : virtual public EbpfBase {
 public:
-    BioLatencyDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    BioLatencyDataParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~BioLatencyDataParser();
-    const uint64_t* IPAndCallIdProcessing(const BIOFixedHeader* bioFixedHeadrAddr, bool& callIdExistFlag);
+    const uint64_t *IPAndCallIdProcessing(const BIOFixedHeader *bioFixedHeadrAddr, bool &callIdExistFlag);
     void ParseBioLatencyEvent();
 
 protected:

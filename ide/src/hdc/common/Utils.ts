@@ -24,7 +24,7 @@ export class Utils {
   }
 
   public static getLocalId(): number {
-    if (this.localId == 4294967295) {
+    if (this.localId === 4294967295) {
       this.localId = 1;
     }
     return this.localId++;
@@ -40,19 +40,19 @@ export class Utils {
     let formatCommand = FormatCommand.string2FormatCommand(command);
     // formatCommand Success
     if (formatCommand.cmdFlag <= -1) {
-      warn('command : ' + command + ' is not Support');
+      warn(`command : ${command} is not Support`);
     }
     return formatCommand;
   }
 
   public static numToHexString(num: number): string {
-    if (num == undefined || num == null || isNaN(num)) {
+    if (num === undefined || num === null || isNaN(num)) {
       return '0x0';
     }
     if (num < 0) {
-      return '0x' + (num >>> 0).toString(16);
+      return `0x${(num >>> 0).toString(16)}`;
     } else {
-      return '0x' + num.toString(16);
+      return `0x${num.toString(16)}`;
     }
   }
 }

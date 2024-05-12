@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class FileSystemSampleTable : public TableBase {
 public:
-    explicit FileSystemSampleTable(const TraceDataCache* dataCache);
+    explicit FileSystemSampleTable(const TraceDataCache *dataCache);
     ~FileSystemSampleTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,22 +32,22 @@ private:
     {
         return dataCache_->GetConstFileSystemSample().Size();
     }
-    void GetOrbyes(FilterConstraints& sysfc, EstimatedIndexInfo& sysei) override;
-    void FilterByConstraint(FilterConstraints& sysfc,
-                            double& sysfilterCost,
+    void GetOrbyes(FilterConstraints &sysfc, EstimatedIndexInfo &sysei) override;
+    void FilterByConstraint(FilterConstraints &sysfc,
+                            double &sysfilterCost,
                             size_t sysrowCount,
                             uint32_t syscurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
         void HandleTypeColumns(int32_t column) const;
 
     private:
-        const FileSystemSample& fileSystemSampleTableObj_;
+        const FileSystemSample &fileSystemSampleTableObj_;
     };
 };
 } // namespace TraceStreamer

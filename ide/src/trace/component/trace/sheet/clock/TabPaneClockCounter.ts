@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
-import { Counter, SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-clock-counter')
@@ -26,23 +26,27 @@ export class TabPaneClockCounter extends BaseElement {
 
   set data(clockCounterValue: SelectionParam) {
     //@ts-ignore
-    this.clockCounterTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      this.parentElement!.clientHeight - 45 + 'px';
-    this.clockCounterRange!.textContent =
-      'Selected range: ' +
-      parseFloat(((clockCounterValue.rightNs - clockCounterValue.leftNs) / 1000000.0).toFixed(5)) +
-      ' ms';
+    this.clockCounterTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
+    this.clockCounterRange!.textContent = `Selected range: ${parseFloat(
+      ((clockCounterValue.rightNs - clockCounterValue.leftNs) / 1000000.0).toFixed(5)
+    )} ms`;
     this.getCounterData(clockCounterValue).then();
   }
 
-  async getCounterData(clockCounterValue: SelectionParam) {
+  async getCounterData(clockCounterValue: SelectionParam): Promise<void> {
     let dataSource: Array<SelectionData> = [];
     let collect = clockCounterValue.clockMapData;
     let sumCount = 0;
     this.clockCounterTbl!.loading = true;
     for (let key of collect.keys()) {
       let counters = collect.get(key);
-      let res = await counters?.({ startNS: clockCounterValue.leftNs, endNS: clockCounterValue.rightNs, queryAll: true });
+      let res = await counters?.({
+        startNS: clockCounterValue.leftNs,
+        endNS: clockCounterValue.rightNs,
+        queryAll: true,
+      });
       let sd = this.createSelectCounterData(key, res || [], clockCounterValue.leftNs, clockCounterValue.rightNs);
       sumCount += Number.parseInt(sd.count || '0');
       dataSource.push(sd);
@@ -59,13 +63,13 @@ export class TabPaneClockCounter extends BaseElement {
   initElements(): void {
     this.clockCounterTbl = this.shadowRoot?.querySelector<LitTable>('#tb-counter');
     this.clockCounterRange = this.shadowRoot?.querySelector('#time-range');
-    this.clockCounterTbl!.addEventListener('column-click', (evt) => {
+    this.clockCounterTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.clockCounterTbl!);
   }
@@ -106,31 +110,42 @@ export class TabPaneClockCounter extends BaseElement {
         `;
   }
 
-  createSelectCounterData(name: string, list: Array<any>, leftNs: number, rightNs: number): SelectionData {
+  createSelectCounterData(name: string, list: Array<unknown>, leftNs: number, rightNs: number): SelectionData {
     let selectCounterData = new SelectionData();
     if (list.length > 0) {
       let range = rightNs - leftNs;
       let first = list[0];
+      // @ts-ignore
       selectCounterData.trackId = first.filterId;
       selectCounterData.name = name;
-      selectCounterData.first = first.value + '';
-      selectCounterData.count = list.length + '';
-      selectCounterData.last = list[list.length - 1].value + '';
-      selectCounterData.delta = parseInt(selectCounterData.last) - parseInt(selectCounterData.first) + '';
+      // @ts-ignore
+      selectCounterData.first = `${first.value}`;
+      selectCounterData.count = `${list.length}`;
+      // @ts-ignore
+      selectCounterData.last = `${list[list.length - 1].value}`;
+      selectCounterData.delta = `${parseInt(selectCounterData.last) - parseInt(selectCounterData.first)}`;
       selectCounterData.rate = (parseInt(selectCounterData.delta) / ((range * 1.0) / 1000000000)).toFixed(4);
-      selectCounterData.min = first.value + '';
+      // @ts-ignore
+      selectCounterData.min = `${first.value}`;
       selectCounterData.max = '0';
       let weightAvg = 0.0;
       for (let i = 0; i < list.length; i++) {
         let counter = list[i];
+        // @ts-ignore
         if (counter.value < parseInt(selectCounterData.min)) {
+          // @ts-ignore
           selectCounterData.min = counter.value.toString();
         }
+        // @ts-ignore
         if (counter.value > parseInt(selectCounterData.max)) {
+          // @ts-ignore
           selectCounterData.max = counter.value.toString();
         }
-        let start = i == 0 ? leftNs : counter.startNS;
-        let end = i == list.length - 1 ? rightNs : list[i + 1].startNS;
+        // @ts-ignore
+        let start = i === 0 ? leftNs : counter.startNS;
+        // @ts-ignore
+        let end = i === list.length - 1 ? rightNs : list[i + 1].startNS;
+        // @ts-ignore
         weightAvg += counter.value * (((end - start) * 1.0) / range);
       }
       selectCounterData.avgWeight = weightAvg.toFixed(2);
@@ -138,26 +153,24 @@ export class TabPaneClockCounter extends BaseElement {
     return selectCounterData;
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(property, sort, type) {
-      return function (clockCounterLeftData: SelectionData, clockCounterRightData: SelectionData) {
-        if (clockCounterLeftData.process == ' ' || clockCounterRightData.process == ' ') {
+      return function (clockCounterLeftData: SelectionData, clockCounterRightData: SelectionData): number {
+        if (clockCounterLeftData.process === ' ' || clockCounterRightData.process === ' ') {
           return 0;
         }
         if (type === 'number') {
-          return sort === 2
-            ? // @ts-ignore
-              parseFloat(clockCounterRightData[property]) - parseFloat(clockCounterLeftData[property])
-            : // @ts-ignore
-              parseFloat(clockCounterLeftData[property]) - parseFloat(clockCounterRightData[property]);
+          return sort === 2 // @ts-ignore
+            ? parseFloat(clockCounterRightData[property]) - parseFloat(clockCounterLeftData[property]) // @ts-ignore
+            : parseFloat(clockCounterLeftData[property]) - parseFloat(clockCounterRightData[property]);
         } else {
           // @ts-ignore
           if (clockCounterRightData[property] > clockCounterLeftData[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (clockCounterRightData[property] == clockCounterLeftData[property]) {
+            if (clockCounterRightData[property] === clockCounterLeftData[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;
@@ -166,10 +179,12 @@ export class TabPaneClockCounter extends BaseElement {
         }
       };
     }
-
+    // @ts-ignore
     if (detail.key === 'name') {
+      // @ts-ignore
       this.clockCounterSource.sort(compare(detail.key, detail.sort, 'string'));
     } else {
+      // @ts-ignore
       this.clockCounterSource.sort(compare(detail.key, detail.sort, 'number'));
     }
     this.clockCounterTbl!.recycleDataSource = this.clockCounterSource;

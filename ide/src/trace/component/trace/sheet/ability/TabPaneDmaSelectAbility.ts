@@ -78,7 +78,8 @@ export class TabPaneDmaSelectAbility extends BaseElement {
           }
           item.sizes = Utils.getBinaryByteWithUnit(item.size);
           item.timeStamp = ns2s(item.startNs);
-          this.damClickTable!.getItemTextColor = (dmaItem: Dma): any => {
+          // @ts-ignore
+          this.damClickTable!.getItemTextColor = (dmaItem: Dma): unknown => {
             if (dmaItem.flag === 1) {
               return '#d4b550';
             } else if (dmaItem.flag === 2) {
@@ -140,14 +141,16 @@ export class TabPaneDmaSelectAbility extends BaseElement {
   }
 
   sortDmaByColumn(column: string, sort: number): void {
-    const sortFunction = function (leftData: any, rightData: any, sortType: number, property: string): number {
+    const sortFunction = function (leftData: unknown, rightData: unknown, sortType: number, property: string): number {
       if (sortType === 1) {
-        return typeof leftData[property] === 'string'
-          ? `${leftData[property]}`.localeCompare(`${rightData[property]}`)
+        // @ts-ignore
+        return typeof leftData[property] === 'string' // @ts-ignore
+          ? `${leftData[property]}`.localeCompare(`${rightData[property]}`) // @ts-ignore
           : leftData[property] - rightData[property];
       } else {
-        return typeof rightData[property] === 'string'
-          ? `${rightData[property]}`.localeCompare(`${leftData[property]}`)
+        // @ts-ignore
+        return typeof rightData[property] === 'string' // @ts-ignore
+          ? `${rightData[property]}`.localeCompare(`${leftData[property]}`) // @ts-ignore
           : rightData[property] - leftData[property];
       }
     };
@@ -169,7 +172,9 @@ export class TabPaneDmaSelectAbility extends BaseElement {
       case 'expTaskComm':
       case 'bufName':
       case 'expName':
-        this.damClickTable!.recycleDataSource = array.sort((leftData, rightData) => sortFunction(leftData, rightData, sort, column));
+        this.damClickTable!.recycleDataSource = array.sort((leftData, rightData) =>
+          sortFunction(leftData, rightData, sort, column)
+        );
         break;
       case 'startNs':
       case 'fd':
@@ -177,7 +182,9 @@ export class TabPaneDmaSelectAbility extends BaseElement {
       case 'ino':
       case 'expPid':
       case 'flag':
-        this.damClickTable!.recycleDataSource = array.sort((leftData, rightData) => sortFunction(leftData, rightData, sort, column));
+        this.damClickTable!.recycleDataSource = array.sort((leftData, rightData) =>
+          sortFunction(leftData, rightData, sort, column)
+        );
         break;
     }
   }

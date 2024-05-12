@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class PerfCallChainTable : public TableBase {
 public:
-    explicit PerfCallChainTable(const TraceDataCache* dataCache);
+    explicit PerfCallChainTable(const TraceDataCache *dataCache);
     ~PerfCallChainTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
@@ -32,21 +32,21 @@ private:
     {
         return dataCache_->GetConstPerfCallChainData().Size();
     }
-    void GetOrbyes(FilterConstraints& chainfc, EstimatedIndexInfo& chainei) override;
-    void FilterByConstraint(FilterConstraints& chainfc,
-                            double& chainfilterCost,
+    void GetOrbyes(FilterConstraints &chainfc, EstimatedIndexInfo &chainei) override;
+    void FilterByConstraint(FilterConstraints &chainfc,
+                            double &chainfilterCost,
                             size_t chainrowCount,
                             uint32_t chaincurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t column) const override;
 
     private:
-        const PerfCallChain& perfCallChainObj_;
+        const PerfCallChain &perfCallChainObj_;
     };
 };
 } // namespace TraceStreamer

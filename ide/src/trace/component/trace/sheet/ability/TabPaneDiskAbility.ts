@@ -160,25 +160,28 @@ export class TabPaneDiskAbility extends BaseElement {
         `;
   }
 
-  getPropertyByType = (property: string, type: string) => (data: SystemDiskIOSummary): number | string => {
-    let typeMap = {
+  getPropertyByType =
+    (property: string, type: string) =>
+    (data: SystemDiskIOSummary): number | string => {
+      let typeMap = {
+        // @ts-ignore
+        number: parseFloat(data[property]),
+        durationStr: data.duration,
+        dataReadStr: data.dataRead,
+        dataReadSecStr: data.dataReadSec,
+        dataWriteStr: data.dataWrite,
+        dataWriteSecStr: data.dataWriteSec,
+        readsInStr: data.readsIn,
+        readsInSecStr: data.readsInSec,
+        writeOutStr: data.writeOut,
+        writeOutSecStr: data.writeOutSec,
+      };
       // @ts-ignore
-      number: parseFloat(data[property]),
-      durationStr: data.duration,
-      dataReadStr: data.dataRead,
-      dataReadSecStr: data.dataReadSec,
-      dataWriteStr: data.dataWrite,
-      dataWriteSecStr: data.dataWriteSec,
-      readsInStr: data.readsIn,
-      readsInSecStr: data.readsInSec,
-      writeOutStr: data.writeOut,
-      writeOutSecStr: data.writeOutSec
+      return typeMap[type] || data[property];
     };
-    // @ts-ignore
-    return typeMap[type] || data[property];
-  };
 
-  compareFunction = (sort: number, getProperty: (data: SystemDiskIOSummary) => number | string) =>
+  compareFunction =
+    (sort: number, getProperty: (data: SystemDiskIOSummary) => number | string) =>
     (diskAbilityLeftData: SystemDiskIOSummary, diskAbilityRightData: SystemDiskIOSummary): number => {
       let leftValue = getProperty(diskAbilityLeftData);
       let rightValue = getProperty(diskAbilityRightData);
@@ -191,13 +194,16 @@ export class TabPaneDiskAbility extends BaseElement {
       return result;
     };
 
-  compareDisk(property: string, sort: number, type: string):
-    (diskAbilityLeftData: SystemDiskIOSummary, diskAbilityRightData: SystemDiskIOSummary) => number {
+  compareDisk(
+    property: string,
+    sort: number,
+    type: string
+  ): (diskAbilityLeftData: SystemDiskIOSummary, diskAbilityRightData: SystemDiskIOSummary) => number {
     let getProperty = this.getPropertyByType(property, type);
     return this.compareFunction(sort, getProperty);
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     let typeMapping = {
       startTime: 'string',
       durationStr: 'durationStr',
@@ -208,10 +214,10 @@ export class TabPaneDiskAbility extends BaseElement {
       readsInStr: 'readsInStr',
       readsInSecStr: 'readsInSecStr',
       writeOutStr: 'writeOutStr',
-      writeOutSecStr: 'writeOutSecStr'
+      writeOutSecStr: 'writeOutSecStr',
     };
     // @ts-ignore
-    let type = typeMapping[detail.key] || 'number';
+    let type = typeMapping[detail.key] || 'number'; // @ts-ignore
     this.diskAbilitySource.sort(this.compareDisk(detail.key, detail.sort, type));
     this.diskAbilityTbl!.recycleDataSource = this.diskAbilitySource;
   }

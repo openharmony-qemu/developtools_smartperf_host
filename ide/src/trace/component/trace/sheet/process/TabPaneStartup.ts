@@ -38,18 +38,19 @@ export class TabPaneStartup extends BaseElement {
   private startupSource: Array<StartupTreeItem> = [];
   private currentSelectionParam: SelectionParam | undefined;
 
-  set data(startupParam: SelectionParam | any) {
+  set data(startupParam: SelectionParam | unknown) {
     if (this.currentSelectionParam === startupParam) {
       return;
-    }
+    } // @ts-ignore
     this.currentSelectionParam = startupParam;
     //@ts-ignore
-    this.startupTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45}px`;
+    this.startupTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45}px`; // @ts-ignore
     this.range!.textContent = `Selected range: ${((startupParam.rightNs - startupParam.leftNs) / 1000000.0).toFixed(
       5
     )} ms`;
-    this.startupTbl!.loading = true;
+    this.startupTbl!.loading = true; // @ts-ignore
     getTabStartups(startupParam.processIds, startupParam.leftNs, startupParam.rightNs).then(
+      //@ts-ignore
       (result: AppStartupStruct[]) => {
         this.processTabStartups(result);
       }
@@ -116,7 +117,8 @@ export class TabPaneStartup extends BaseElement {
   initElements(): void {
     this.startupTbl = this.shadowRoot?.querySelector<LitTable>('#tb-startup');
     this.range = this.shadowRoot?.querySelector('#startup-time-range');
-    this.startupTbl!.addEventListener('column-click', (evt: any) => {
+    this.startupTbl!.addEventListener('column-click', (evt: unknown) => {
+      // @ts-ignore
       this.sortByColumn(evt.detail);
     });
   }
@@ -161,10 +163,11 @@ export class TabPaneStartup extends BaseElement {
         `;
   }
 
-  sortByColumn(startupDetail: any): void {
+  sortByColumn(startupDetail: unknown): void {
     let compare = (startupA: StartupTreeItem, startupB: StartupTreeItem): number => {
+      // @ts-ignore
       if (startupDetail.sort === 0) {
-        return startupA.step - startupB.step;
+        return startupA.step - startupB.step; // @ts-ignore
       } else if (startupDetail.sort === 1) {
         return startupA.dur - startupB.dur;
       } else {

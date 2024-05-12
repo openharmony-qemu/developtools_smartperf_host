@@ -19,7 +19,7 @@
 #include "stat_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
-PbreaderDiskIOParser::PbreaderDiskIOParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+PbreaderDiskIOParser::PbreaderDiskIOParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx)
 {
 }
@@ -53,7 +53,7 @@ void PbreaderDiskIOParser::Parse(ProtoReader::BytesView tracePacket, uint64_t ts
 }
 void PbreaderDiskIOParser::Finish()
 {
-    auto cmp = [](const TsDiskIOData& a, const TsDiskIOData& b) { return a.ts < b.ts; };
+    auto cmp = [](const TsDiskIOData &a, const TsDiskIOData &b) { return a.ts < b.ts; };
     std::stable_sort(diskIOData_.begin(), diskIOData_.end(), cmp);
     bool first = true;
     uint64_t lastTs = 0;

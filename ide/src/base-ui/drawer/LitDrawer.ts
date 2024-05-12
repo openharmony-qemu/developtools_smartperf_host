@@ -209,14 +209,23 @@ let css = `
       </style>
 `;
 
-const initHtmlStyle = (padding: string, width: string) => {
+const initHtmlStyle = (padding: string, width: string): string => {
   return replacePlaceholders(css, padding, width);
 };
 
 @element('lit-drawer')
 export class LitDrawer extends BaseElement {
-  static get observedAttributes() {
-    return ['drawer-title', 'visible', 'placement', 'mask', 'mask-closable', 'closeable', 'content-padding', 'content-width'];
+  static get observedAttributes(): string[] {
+    return [
+      'drawer-title',
+      'visible',
+      'placement',
+      'mask',
+      'mask-closable',
+      'closeable',
+      'content-padding',
+      'content-width',
+    ];
   }
 
   initHtml(): string {
@@ -234,44 +243,46 @@ export class LitDrawer extends BaseElement {
         </div>
         `;
   }
-  get contentWidth() {
+  get contentWidth(): string {
     return this.getAttribute('content-width') || '400px';
   }
   set contentWidth(value) {
     this.shadowRoot!.querySelector<HTMLDivElement>('.drawer')!.style.width = value;
     this.setAttribute('content-width', value);
   }
-  get contentPadding() {
+  get contentPadding(): string {
     return this.getAttribute('content-padding') || '20px';
   }
   set contentPadding(value) {
     this.shadowRoot!.querySelector('slot')!.style.padding = value;
     this.setAttribute('content-padding', value);
   }
-  get placement() {
+  get placement(): string | null {
     return this.getAttribute('placement');
   }
-  set placement(value: any) {
+  set placement(value: unknown) {
+    // @ts-ignore
     this.setAttribute('placement', value);
   }
-  get drawerTitle() {
+  get drawerTitle(): string {
     return this.getAttribute('drawer-title') || '';
   }
   set drawerTitle(value) {
     this.shadowRoot!.querySelector('#drawer-tittle-text')!.textContent = value;
     this.setAttribute('drawer-title', value);
   }
-  get visible() {
+  get visible(): boolean {
     return this.getAttribute('visible') !== null;
   }
-  set visible(value: any) {
+  set visible(value: unknown) {
     if (value) {
+      // @ts-ignore
       this.setAttribute('visible', value);
     } else {
       this.removeAttribute('visible');
     }
   }
-  get mask() {
+  get mask(): boolean {
     return this.getAttribute('mask') !== null;
   }
   set mask(value) {
@@ -281,7 +292,7 @@ export class LitDrawer extends BaseElement {
       this.removeAttribute('mask');
     }
   }
-  get maskCloseable() {
+  get maskCloseable(): boolean {
     return this.getAttribute('mask-closeable') !== null;
   }
   set maskCloseable(value) {
@@ -291,7 +302,7 @@ export class LitDrawer extends BaseElement {
       this.removeAttribute('mask-closeable');
     }
   }
-  get closeable() {
+  get closeable(): boolean {
     return this.getAttribute('closeable') !== null;
   }
 
@@ -307,30 +318,33 @@ export class LitDrawer extends BaseElement {
   initElements(): void {
     let bg: HTMLDivElement | null = this.shadowRoot!.querySelector('.bg');
     if (this.maskCloseable) {
-      bg!.onclick = (e: any) => {
+      bg!.onclick = (e: unknown): void => {
+        // @ts-ignore
         e.stopPropagation();
-        this.visible = false;
+        this.visible = false; // @ts-ignore
         this.dispatchEvent(new CustomEvent('onClose', e));
       };
     }
     if (this.closeable) {
-      (this.shadowRoot!.querySelector('.close-icon') as any).onclick = (e: any) => {
-        this.visible = false;
+      // @ts-ignore
+      (this.shadowRoot!.querySelector('.close-icon') as unknown).onclick = (e: unknown): void => {
+        this.visible = false; // @ts-ignore
         this.dispatchEvent(new CustomEvent('onClose', e));
       };
     }
   }
-  set onClose(fn: any) {
+  set onClose(fn: unknown) {
+    // @ts-ignore
     this.addEventListener('onClose', fn);
   }
   //当 custom element从文档DOM中删除时，被调用。
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
   //当 custom element被移动到新的文档时，被调用。
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
   //当 custom element增加、删除、修改自身属性时，被调用。
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (this.mask) {
       if (name === 'visible') {
         if (newValue !== null) {

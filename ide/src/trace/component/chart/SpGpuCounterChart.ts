@@ -16,11 +16,14 @@
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { GpuCounterStruct, maleoon_counter_obj, gpu_counter_type, GpuCounterRender } from '../../database/ui-worker/ProcedureWorkerGpuCounter';
+import {
+  GpuCounterStruct,
+  maleoon_counter_obj,
+  gpu_counter_type,
+  GpuCounterRender,
+} from '../../database/ui-worker/ProcedureWorkerGpuCounter';
 import { folderSupplier, folderThreadHandler } from './SpChartManager';
 import { queryRangeTime } from '../../database/sql/SqlLite.sql';
-
-
 
 export class SpGpuCounterChart {
   trace: SpSystemTrace;
@@ -33,6 +36,7 @@ export class SpGpuCounterChart {
     if (res.length === 0) {
       let startTime = await queryRangeTime();
       this.initFolder(res, false);
+      //@ts-ignore
       this.addTraceRowEventListener(startTime[0].start_ts, startTime[0].end_ts);
     } else {
       const { gpuCounterType, start_time } = this.handleCsvData(res);
@@ -52,6 +56,7 @@ export class SpGpuCounterChart {
     this.folderRow.setAttribute('children', '');
     this.folderRow.folder = res.length > 0 ? true : false;
     this.folderRow.name = 'Gpu counter';
+    //@ts-ignore
     this.folderRow.supplier = folderSupplier();
     this.folderRow.onThreadHandler = folderThreadHandler(this.folderRow, this.trace);
     if (!isSimpleUpload) this.folderRow.addRowSampleUpload('.csv');
@@ -71,6 +76,7 @@ export class SpGpuCounterChart {
       typeRows.style.height = '40px';
       typeRows.name = `${key}`;
       typeRows.selectChangeHandler = this.trace.selectChangeHandler;
+      //@ts-ignore
       typeRows.supplier = folderSupplier();
       typeRows.onThreadHandler = folderThreadHandler(typeRows, this.trace);
       this.folderRow!.addChildTraceRow(typeRows);
@@ -100,8 +106,8 @@ export class SpGpuCounterChart {
       };
       typeRow.supplierFrame = () =>
         new Promise((resolve): void => {
-          resolve(rowList[i])
-        })
+          resolve(rowList[i]);
+        });
       typeRow.onThreadHandler = (useCache) => {
         let context: CanvasRenderingContext2D;
         if (typeRow.currentContext) {
@@ -116,13 +122,13 @@ export class SpGpuCounterChart {
             useCache: useCache,
             type: `${typeName[i]}`,
             startTime: start_time,
-            maxValue: maxValue
+            maxValue: maxValue,
           },
           typeRow
         );
-        typeRow.canvasRestore(context)
+        typeRow.canvasRestore(context);
       };
-      parentRow.addChildTraceRow(typeRow)
+      parentRow.addChildTraceRow(typeRow);
     }
   }
 
@@ -138,12 +144,26 @@ export class SpGpuCounterChart {
 
   getKeyTypeName(key: string) {
     const typeName: { [key: string]: Array<string> } = {
-      'cycle': ['gpu clocks', 'tiler utilization', 'binning utilization', 'rendering utilization', 'compute utilization'],
-      'drawcall': ['drawcall count', 'vertex count', 'primitives count', 'visible primitives count', 'compute invocations count'],
-      'shader_cycle': ['shader utilization', 'eu utilization', 'eu stall utilization', 'eu idle utilization', 'control flow instr utilization', 'half float instr utilization', 'tu utilization'],
-      'local_count': ['concurrent warps', 'instruction count', 'quads count', 'texels count'],
-      'local_wr': ['memory read', 'memory write', 'memory traffic']
-    }
+      cycle: ['gpu clocks', 'tiler utilization', 'binning utilization', 'rendering utilization', 'compute utilization'],
+      drawcall: [
+        'drawcall count',
+        'vertex count',
+        'primitives count',
+        'visible primitives count',
+        'compute invocations count',
+      ],
+      shader_cycle: [
+        'shader utilization',
+        'eu utilization',
+        'eu stall utilization',
+        'eu idle utilization',
+        'control flow instr utilization',
+        'half float instr utilization',
+        'tu utilization',
+      ],
+      local_count: ['concurrent warps', 'instruction count', 'quads count', 'texels count'],
+      local_wr: ['memory read', 'memory write', 'memory traffic'],
+    };
     return typeName[key];
   }
 
@@ -155,53 +175,75 @@ export class SpGpuCounterChart {
     let start_time = Number(start_time_data[gpuCounterMap.timestamp]);
     let last_record_time = 0;
     let maleoonCounter = new maleoon_counter_obj();
-    let read_line_num = res.length - 1
-    let utilization_array =
-      ['tiler_utilization', 'binning_utilization', 'rendering_utilization', 'compute_utilization',
-        'shader_utilization', 'eu_utilization', 'eu_stall_utilization', 'eu_idle_utilization',
-        'control_flow_instr_utilization', 'half_float_instr_utilization', 'tu_utilization',
-        'concurrent_warps'];
+    let read_line_num = res.length - 1;
+    let utilization_array = [
+      'tiler_utilization',
+      'binning_utilization',
+      'rendering_utilization',
+      'compute_utilization',
+      'shader_utilization',
+      'eu_utilization',
+      'eu_stall_utilization',
+      'eu_idle_utilization',
+      'control_flow_instr_utilization',
+      'half_float_instr_utilization',
+      'tu_utilization',
+      'concurrent_warps',
+    ];
 
-    let count_array =
-      ['gpu_clocks', 'drawcall_count', 'vertex_count', 'primitives_count', 'visible_primitives_count',
-        'instruction_count', 'quads_count', 'texels_count', 'compute_invocations_count',
-        'memory_read', 'memory_write', 'memory_traffic'];
-
+    let count_array = [
+      'gpu_clocks',
+      'drawcall_count',
+      'vertex_count',
+      'primitives_count',
+      'visible_primitives_count',
+      'instruction_count',
+      'quads_count',
+      'texels_count',
+      'compute_invocations_count',
+      'memory_read',
+      'memory_write',
+      'memory_traffic',
+    ];
 
     for (let i = minIndex; i < read_line_num; i++) {
       let datas = res[i].split(',');
       if (datas.length != 25) continue;
-      if (start_ts > 0 && Number(datas[gpuCounterMap.timestamp]) < start_ts || end_ts > 0 && Number(datas[gpuCounterMap.timestamp]) > end_ts) continue;
+      if (
+        (start_ts > 0 && Number(datas[gpuCounterMap.timestamp]) < start_ts) ||
+        (end_ts > 0 && Number(datas[gpuCounterMap.timestamp]) > end_ts)
+      )
+        continue;
       let time_passed = Number(datas[gpuCounterMap.timestamp]) - start_time;
       //去重
       if (time_passed <= last_record_time) continue;
       time_passed -= last_record_time;
       last_record_time += time_passed;
-      utilization_array.forEach(item => {
+      utilization_array.forEach((item) => {
         maleoonCounter[item].push({
           startNS: Number(datas[gpuCounterMap.timestamp]),
-          height: (gpuCounterMap[item] === -1) ? 0 : Math.floor(Number(datas[gpuCounterMap[item]]))
+          height: gpuCounterMap[item] === -1 ? 0 : Math.floor(Number(datas[gpuCounterMap[item]])),
         });
       });
-      count_array.forEach(item => {
+      count_array.forEach((item) => {
         maleoonCounter[item].push({
           startNS: Number(datas[gpuCounterMap.timestamp]),
-          height: (gpuCounterMap[item] === -1) ? 0 : Math.floor(Number(datas[gpuCounterMap[item]]))
+          height: gpuCounterMap[item] === -1 ? 0 : Math.floor(Number(datas[gpuCounterMap[item]])),
         });
       });
     }
-    utilization_array.forEach(item => {
+    utilization_array.forEach((item) => {
       for (let i = 0; i < maleoonCounter[item].length; i++) {
-        maleoonCounter[item][i].dur = maleoonCounter[item][i + 1]?.startNS - maleoonCounter[item][i].startNS || 0
+        maleoonCounter[item][i].dur = maleoonCounter[item][i + 1]?.startNS - maleoonCounter[item][i].startNS || 0;
       }
     });
-    count_array.forEach(item => {
+    count_array.forEach((item) => {
       for (let i = 0; i < maleoonCounter[item].length; i++) {
-        maleoonCounter[item][i].dur = maleoonCounter[item][i + 1]?.startNS - maleoonCounter[item][i].startNS || 0
+        maleoonCounter[item][i].dur = maleoonCounter[item][i + 1]?.startNS - maleoonCounter[item][i].startNS || 0;
       }
     });
     const gpuCounterType = this.groupByGpuCounterType(maleoonCounter);
-    return { gpuCounterType, start_time }
+    return { gpuCounterType, start_time };
   }
 
   initGpuCounterMap(): any {
@@ -274,66 +316,41 @@ export class SpGpuCounterChart {
 
     let paras = head_line.split(',');
     for (let i = 0; i < paras.length; i++) {
-      if (paras[i] === 'TIMESTAMP')
-        gpu_counter_map.timestamp = i;
+      if (paras[i] === 'TIMESTAMP') gpu_counter_map.timestamp = i;
 
-      if (paras[i] === 'GPU Clocks')
-        gpu_counter_map.gpu_clocks = i;
-      if (paras[i] === 'Tiler Utilization')
-        gpu_counter_map.tiler_utilization = i;
-      if (paras[i] === 'Binning Queue Utilization')
-        gpu_counter_map.binning_utilization = i;
-      if (paras[i] === 'Rendering Queue Utilization')
-        gpu_counter_map.rendering_utilization = i;
-      if (paras[i] === 'Compute Queue Utilization')
-        gpu_counter_map.compute_utilization = i;
+      if (paras[i] === 'GPU Clocks') gpu_counter_map.gpu_clocks = i;
+      if (paras[i] === 'Tiler Utilization') gpu_counter_map.tiler_utilization = i;
+      if (paras[i] === 'Binning Queue Utilization') gpu_counter_map.binning_utilization = i;
+      if (paras[i] === 'Rendering Queue Utilization') gpu_counter_map.rendering_utilization = i;
+      if (paras[i] === 'Compute Queue Utilization') gpu_counter_map.compute_utilization = i;
 
-      if (paras[i] === 'Drawcalls Count')
-        gpu_counter_map.drawcall_count = i;
-      if (paras[i] === 'Vertex Count')
-        gpu_counter_map.vertex_count = i;
-      if (paras[i] === 'Primitive Count')
-        gpu_counter_map.primitives_count = i;
-      if (paras[i] === 'Visible Primitive Count')
-        gpu_counter_map.visible_primitives_count = i;
-      if (paras[i] === 'Compute Shader Invocations')
-        gpu_counter_map.compute_invocations_count = i;
+      if (paras[i] === 'Drawcalls Count') gpu_counter_map.drawcall_count = i;
+      if (paras[i] === 'Vertex Count') gpu_counter_map.vertex_count = i;
+      if (paras[i] === 'Primitive Count') gpu_counter_map.primitives_count = i;
+      if (paras[i] === 'Visible Primitive Count') gpu_counter_map.visible_primitives_count = i;
+      if (paras[i] === 'Compute Shader Invocations') gpu_counter_map.compute_invocations_count = i;
 
-      if (paras[i] === 'Shader Core Utilization')
-        gpu_counter_map.shader_utilization = i;
-      if (paras[i] === 'EU Utilization')
-        gpu_counter_map.eu_utilization = i;
-      if (paras[i] === 'EU Stall')
-        gpu_counter_map.eu_stall_utilization = i;
-      if (paras[i] === 'EU Idle')
-        gpu_counter_map.eu_idle_utilization = i;
-      if (paras[i] === 'Instructions Diverged')
-        gpu_counter_map.control_flow_instr_utilization = i;
-      if (paras[i] === 'Half-float Instructions')
-        gpu_counter_map.half_float_instr_utilization = i;
-      if (paras[i] === 'TU Utilization')
-        gpu_counter_map.tu_utilization = i;
+      if (paras[i] === 'Shader Core Utilization') gpu_counter_map.shader_utilization = i;
+      if (paras[i] === 'EU Utilization') gpu_counter_map.eu_utilization = i;
+      if (paras[i] === 'EU Stall') gpu_counter_map.eu_stall_utilization = i;
+      if (paras[i] === 'EU Idle') gpu_counter_map.eu_idle_utilization = i;
+      if (paras[i] === 'Instructions Diverged') gpu_counter_map.control_flow_instr_utilization = i;
+      if (paras[i] === 'Half-float Instructions') gpu_counter_map.half_float_instr_utilization = i;
+      if (paras[i] === 'TU Utilization') gpu_counter_map.tu_utilization = i;
 
-      if (paras[i] === 'Concurrent Warps')
-        gpu_counter_map.concurrent_warps = i;
-      if (paras[i] === 'Instructions Executed')
-        gpu_counter_map.instruction_count = i;
-      if (paras[i] === 'Quads Shaded')
-        gpu_counter_map.quads_count = i;
-      if (paras[i] === 'Texels Sampled')
-        gpu_counter_map.texels_count = i;
+      if (paras[i] === 'Concurrent Warps') gpu_counter_map.concurrent_warps = i;
+      if (paras[i] === 'Instructions Executed') gpu_counter_map.instruction_count = i;
+      if (paras[i] === 'Quads Shaded') gpu_counter_map.quads_count = i;
+      if (paras[i] === 'Texels Sampled') gpu_counter_map.texels_count = i;
 
-      if (paras[i] === 'External Memory Read')
-        gpu_counter_map.memory_read = i;
-      if (paras[i] === 'External Memory Write')
-        gpu_counter_map.memory_write = i;
-      if (paras[i] === 'External Memory Traffic')
-        gpu_counter_map.memory_traffic = i;
+      if (paras[i] === 'External Memory Read') gpu_counter_map.memory_read = i;
+      if (paras[i] === 'External Memory Write') gpu_counter_map.memory_write = i;
+      if (paras[i] === 'External Memory Traffic') gpu_counter_map.memory_traffic = i;
     }
   }
 
   groupByGpuCounterType(maleoonCounter: maleoon_counter_obj) {
-    const gpuCounterType = new gpu_counter_type;
+    const gpuCounterType = new gpu_counter_type();
     let index = 0;
     for (const key in maleoonCounter) {
       if (index < 5) {
@@ -358,23 +375,23 @@ export class SpGpuCounterChart {
 
   /**
    * 监听文件上传事件
-   * @param row 
-   * @param start_ts 
+   * @param row
+   * @param start_ts
    */
   addTraceRowEventListener(startTime: number, endTime: number) {
     this.folderRow?.uploadEl?.addEventListener('sample-file-change', (e: any) => {
       this.getCsvData(e).then((res: any) => {
         this.resetChartData(this.folderRow!);
-        const { gpuCounterType, } = this.handleCsvData(res, startTime, endTime);
+        const { gpuCounterType } = this.handleCsvData(res, startTime, endTime);
         this.initGpuCounters(gpuCounterType, startTime);
         if (!this.folderRow!.folder) this.folderRow!.folder = true;
-      })
-    })
+      });
+    });
   }
 
   /**
    * 清空缓存
-   * @param row 
+   * @param row
    */
   resetChartData(row: TraceRow<any>) {
     if (row.expansion) row.describeEl?.click();
@@ -382,16 +399,16 @@ export class SpGpuCounterChart {
   }
 
   getMinData(list: Array<any>) {
-    const sliceList = list.slice(1, 11).map(item => Number(item.split(",")[0]));
-    const nonZeroList = sliceList.filter(item => item !== 0).sort((a, b) => a - b);
-    const minIndex = sliceList.findIndex(item => item === nonZeroList[0]);
-    return minIndex
+    const sliceList = list.slice(1, 11).map((item) => Number(item.split(',')[0]));
+    const nonZeroList = sliceList.filter((item) => item !== 0).sort((a, b) => a - b);
+    const minIndex = sliceList.findIndex((item) => item === nonZeroList[0]);
+    return minIndex;
   }
 
   /**
    * 获取上传的文件内容 转为json格式
-   * @param file 
-   * @returns 
+   * @param file
+   * @returns
    */
   getCsvData(file: any): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -401,16 +418,11 @@ export class SpGpuCounterChart {
         const fileContent = e.target?.result.split(/[\r\n]/).filter(Boolean);
         try {
           resolve(fileContent);
-          document.dispatchEvent(
-            new CustomEvent('file-correct')
-          )
+          document.dispatchEvent(new CustomEvent('file-correct'));
         } catch (error) {
-          document.dispatchEvent(
-            new CustomEvent('file-error')
-          )
+          document.dispatchEvent(new CustomEvent('file-error'));
         }
-      }
-    })
+      };
+    });
   }
 }
-

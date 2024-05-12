@@ -22,12 +22,12 @@ export class IndexedDBHelp {
     this.dbName = dbName;
     this.dbVersion = dbVersion;
     return new Promise((resolve, reject) => {
-      if (this.db && this.db.name === dbName && this.db.version == dbVersion) {
+      if (this.db && this.db.name === dbName && this.db.version === dbVersion) {
         resolve(this.db);
         return;
       }
       const idbOpenDBRequest = indexedDB.open(dbName, dbVersion);
-      idbOpenDBRequest.onupgradeneeded = () => {
+      idbOpenDBRequest.onupgradeneeded = (): void => {
         const database: IDBDatabase = idbOpenDBRequest.result;
         this.db = database;
         storeOptions?.forEach((option) => {
@@ -56,19 +56,19 @@ export class IndexedDBHelp {
         });
         resolve(database);
       };
-      idbOpenDBRequest.onsuccess = (event) => {
+      idbOpenDBRequest.onsuccess = (event): void => {
         const database: IDBDatabase = idbOpenDBRequest.result;
         this.db = database;
         resolve(database);
       };
-      idbOpenDBRequest.onerror = (event) => {
+      idbOpenDBRequest.onerror = (event): void => {
         reject(event);
       };
     });
   }
 
   private async transaction(storeName: string): Promise<IDBTransaction> {
-    if (this.db == undefined) {
+    if (this.db === undefined) {
       this.db = await this.open(this.dbName, this.dbVersion);
     }
     return this.db.transaction([storeName], 'readwrite');
@@ -79,66 +79,69 @@ export class IndexedDBHelp {
     return transaction.objectStore(storeName);
   }
 
-  public get(storeName: string, query: IDBValidKey | IDBKeyRange, queryIndex?: string) {
+  public get(storeName: string, query: IDBValidKey | IDBKeyRange, queryIndex?: string): Promise<unknown> {
     return new Promise((resolve, reject) => {
       this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {
-        let request: IDBRequest<any>;
+        // @ts-ignore
+        let request: IDBRequest<unknown>;
         if (queryIndex) {
           const index = objectStore.index(queryIndex);
+          //@ts-ignore
           request = index.getAll(query);
         } else {
+          //@ts-ignore
           request = objectStore.getAll(query);
         }
-        request.onsuccess = function (event) {
+        request.onsuccess = function (event): void {
           // @ts-ignore
           resolve(event.target.result);
         };
-        request.onerror = (event) => {
+        request.onerror = (event): void => {
           reject(event);
         };
       });
     });
   }
-
-  public add(storeName: string, value: any, key?: IDBValidKey) {
+  // @ts-ignore
+  public add(storeName: string, value: unknown, key?: IDBValidKey): Promise<unknown> {
     return new Promise((resolve, reject) => {
       this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {
         const request = objectStore.add(value, key);
-        request.onsuccess = function (event) {
+        request.onsuccess = function (event): void {
           // @ts-ignore
           resolve(event.target.result);
         };
-        request.onerror = (event) => {
+        request.onerror = (event): void => {
           reject(event);
         };
       });
     });
   }
 
-  public delete(storeName: string, query: IDBValidKey | IDBKeyRange) {
+  public delete(storeName: string, query: IDBValidKey | IDBKeyRange): Promise<unknown> {
     return new Promise((resolve, reject) => {
       this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {
-        const request = objectStore['delete'](query);
-        request.onsuccess = function (event) {
+        const request = objectStore.delete(query);
+        request.onsuccess = function (event): void {
           // @ts-ignore
           resolve(event.target.result);
         };
-        request.onerror = (event) => {
+        request.onerror = (event): void => {
           reject(event);
         };
       });
     });
   }
-
-  public put(storeName: string, value: any, key?: IDBValidKey) {
+  // @ts-ignore
+  public put(storeName: string, value: unknown, key?: IDBValidKey): Promise<unknown> {
     return new Promise((resolve, reject) => {
       this.getObjectStore(storeName).then((objectStore: IDBObjectStore) => {
         const request = objectStore.put(value, key);
-        request.onsuccess = function (event) {
+        request.onsuccess = function (event): void {
           // @ts-ignore
           resolve(event.target.result);
         };
-        request.onerror = (event) => {
+        request.onerror = (event): void => {
           reject(event);
         };
       });

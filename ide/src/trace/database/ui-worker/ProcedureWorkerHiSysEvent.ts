@@ -26,7 +26,6 @@ export class HiSysEventRender extends Render {
     },
     row: TraceRow<HiSysEventStruct>
   ): void {
-    let hiSysEventList = row.dataList;
     let hiSysEventFilter = row.dataListCache;
     let minorFilter: HiSysEventStruct[] = [];
     let criticalFilter: HiSysEventStruct[] = [];
@@ -83,6 +82,7 @@ export function hiSysEvent(
     for (let i = 0, len = hiSysEventFilter.length; i < len; i++) {
       let item = hiSysEventFilter[i];
       if ((item.startTs || 0) + (item.dur || 0) >= startNS && (item.startTs || 0) <= endNS) {
+        // @ts-ignore
         HiSysEventStruct.setSysEventFrame(item, startNS, endNS, totalNS, row.frame);
       } else {
         item.frame = undefined;
@@ -95,6 +95,7 @@ export function hiSysEvent(
     for (let index = 0; index < hiSysEventList.length; index++) {
       let item = hiSysEventList[index];
       if ((item.startTs || 0) + (item.dur || 0) >= startNS && (item.startTs || 0) <= endNS) {
+        // @ts-ignore
         HiSysEventStruct.setSysEventFrame(item, startNS, endNS, totalNS, row.frame);
         hiSysEventFilter.push(item);
       }
@@ -128,7 +129,8 @@ export class HiSysEventStruct extends BaseStruct {
     totalNS: number,
     frame: Rect
   ): void {
-    let x1: number, x2: number;
+    let x1: number;
+    let x2: number;
     if ((sysEventNode.startTs || 0) >= startNS && (sysEventNode.startTs || 0) <= endNS) {
       x1 = ns2x(sysEventNode.startTs || 0, startNS, endNS, totalNS, frame);
     } else {
