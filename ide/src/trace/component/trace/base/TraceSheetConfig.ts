@@ -130,7 +130,8 @@ import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSamp
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { TabPaneGpuCounterSelection } from '../sheet/gpu-counter/TabPaneGpuCounterSelection';
 import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
-import { Utils } from './Utils';
+import { TabPaneTimeParallel } from '../sheet/parallel/TabPaneTimeParallel';
+import { TabPaneMtParallel } from '../sheet/parallel/TabPaneMtParallel';
 
 export let tabConfig: unknown = {
   'current-selection': {
@@ -697,5 +698,15 @@ export let tabConfig: unknown = {
   'box-gpu-counter': {
     title: 'Gpu Counter',
     type: TabPaneGpuCounter,
+  },
+  'tabpane-time-parallel': {
+    title: 'Time Parallel',
+    type: TabPaneTimeParallel,
+    require: (param: SelectionParam) => param.threadIds.length > 0,
+  },
+  'tabpane-mt-parallel': {
+    title: 'MT Parallel',
+    type: TabPaneMtParallel,
+    require: (param: SelectionParam) => param.threadIds.length > 0,
   },
 };

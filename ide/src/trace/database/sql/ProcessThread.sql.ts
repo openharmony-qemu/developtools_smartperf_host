@@ -1492,3 +1492,73 @@ export const sqlPrioCount = (args: any): Promise<any> =>
       and P.pid = ${args.pid}
       GROUP BY S.priority;`
   );
+  export const queryRunningThread = (
+    pIds: Array<number>,
+    tIds: Array<number>,
+    leftStartNs: number,
+    rightEndNs: number
+  ): Promise<Array<any>> =>
+    query(
+      'getTabThread',
+      `
+        select
+          P.pid,
+          T.tid,
+          S.itid,
+          S.ts,
+          P.name AS pName,
+          S.dur + S.ts as endTs
+        from
+          sched_slice AS S
+        left join
+          process P on S.ipid = P.ipid
+        left join
+          thread T on S.itid = T.itid
+        where
+          T.tid in (${tIds.join(',')})
+        and 
+          P.pid in (${pIds.join(',')})
+        and
+          not ((S.ts + ifnull(S.dur,0) < $leftStartNs) or (S.ts > $rightEndNs))
+        order by
+          S.ts;
+        `,
+      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+  );
+  export const queryCoreRunningThread = (
+      pIds: Array<number>,
+      tIds: Array<number>,
+      cpu: Array<number>,
+      leftStartNs: number,
+      rightEndNs: number
+  ): Promise<Array<any>> =>
+    query(
+      'getTabThread',
+      `
+          select
+            P.pid,
+            T.tid,
+            S.cpu,
+            S.itid,
+            S.ts,
+            P.name AS pName,
+            S.dur + S.ts as endTs
+          from
+            sched_slice AS S
+          left join
+            process P on S.ipid = P.ipid
+          left join
+            thread T on S.itid = T.itid
+          where
+            T.tid in (${tIds.join(',')})
+          and 
+            P.pid in (${pIds.join(',')})
+          and
+            S.cpu in (${cpu.join(',')})
+          and
+            not ((S.ts + ifnull(S.dur,0) < $leftStartNs) or (S.ts > $rightEndNs))
+          order by
+            S.ts;
+          `,
+      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+  );
