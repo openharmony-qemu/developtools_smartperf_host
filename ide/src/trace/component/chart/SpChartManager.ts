@@ -202,6 +202,7 @@ export class SpChartManager {
       endTs: Utils.getInstance().getRecordEndNS()
     });
     await this.process.initDeliverInputEvent();
+    await this.process.initTouchEventDispatch();
     await this.process.init(false);
     progress('display', 95);
   }

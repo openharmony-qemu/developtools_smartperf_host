@@ -380,6 +380,11 @@ export class SpSystemTrace extends BaseElement {
         if (it.rowParentId === TraceRow.ROW_TYPE_DELIVER_INPUT_EVENT) {
           event = 'DeliverInputEvent Func';
         }
+      } else if (it.rowType === TraceRow.ROW_TYPE_TOUCH_EVENT_DISPATCH) {
+        event = 'TouchEventDispatch';
+        if (it.rowParentId === TraceRow.ROW_TYPE_TOUCH_EVENT_DISPATCH) {
+          event = 'TouchEventDispatch Func';
+        }
       } else {
         event = it.name;
       }
@@ -801,19 +806,21 @@ export class SpSystemTrace extends BaseElement {
     return this.slicestime;
   };
 
-  private calculateSlicesTime(selectedStruct: unknown, shiftKey: boolean): void {
-    if (selectedStruct) {
-      let startTs = 0; // @ts-ignore
-      if (selectedStruct.begin && selectedStruct.end) {
+  private calculateSlicesTime(selected: unknown, shiftKey: boolean): void {
+    if (selected) {
+      let startTs = 0;
+      // @ts-ignore
+      if (selected.begin && selected.end) {
         // @ts-ignore
-        startTs = selectedStruct.begin - selectedStruct.startTs; // @ts-ignore
-        let end = selectedStruct.end - selectedStruct.startTs;
+        startTs = selected.begin - selected.startTs;
+        // @ts-ignore
+        let end = selected.end - selected.startTs;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
-      } else { // @ts-ignore
-        startTs = selectedStruct.startTs || selectedStruct.startTime || selectedStruct.startNS || // @ts-ignore
-          selectedStruct.ts || 0; // @ts-ignore
-        let dur = selectedStruct.dur || selectedStruct.totalTime || // @ts-ignore
-          selectedStruct.endNS - selectedStruct.startNS || 0;
+      } else {
+        // @ts-ignore
+        startTs = selected.startTs || selected.startTime || selected.startNS || selected.ts || 0;
+        // @ts-ignore
+        let dur = selected.dur || selected.totalTime || selected.endNS - selected.startNS || 0;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, startTs + dur, shiftKey);
       }
     } else {
@@ -1867,7 +1874,7 @@ export class SpSystemTrace extends BaseElement {
     complete?: ((res: { status: boolean; msg: string }) => void) | undefined,
     buf2?: ArrayBuffer,
     fileName1?: string,
-    fileName2?: string,
+    fileName2?: string
   ): void {
     this.observerScrollHeightEnable = false;
     if (isDistributed) {
@@ -2081,8 +2088,10 @@ export class SpSystemTrace extends BaseElement {
         funcStract.flag = 'Did not end';
       }
     }
-    let funcRowID = Utils.getDistributedRowId( // @ts-ignore
-      funcStract.cookie ? `${funcStract.funName}-${funcStract.pid}` : funcStract.tid);
+    let funcRowID = Utils.getDistributedRowId(
+      // @ts-ignore
+      funcStract.cookie ? `${funcStract.funName}-${funcStract.pid}` : funcStract.tid
+    );
     let targetRow = this.favoriteChartListEL?.getCollectRow((row) => {
       return row.rowId === funcRowID && row.rowType === 'func';
     });
@@ -2093,8 +2102,10 @@ export class SpSystemTrace extends BaseElement {
       this.toTargetDepth(funcStract, funcRowID, funcStract);
       return;
     }
-    let parentRow = // @ts-ignore
-      this.rowsEL!.querySelector<TraceRow<BaseStruct>>(`trace-row[row-id='${Utils.getDistributedRowId(funcStract.pid)}'][folder]`);
+    let parentRow = this.rowsEL!.querySelector<TraceRow<BaseStruct>>(
+      // @ts-ignore
+      `trace-row[row-id='${Utils.getDistributedRowId(funcStract.pid)}'][folder]`
+    );
     if (!parentRow) {
       return;
     }
@@ -2110,8 +2121,9 @@ export class SpSystemTrace extends BaseElement {
     }
     filterRow.fixedList = [funcStract];
     filterRow!.highlight = highlight;
-    let row = this.rowsEL!.querySelector<TraceRow<BaseStruct>>(  // @ts-ignore
-      `trace-row[row-id='${Utils.getDistributedRowId(funcStract.pid)}'][folder]`);
+    let row = this.rowsEL!.querySelector<TraceRow<BaseStruct>>( // @ts-ignore
+      `trace-row[row-id='${Utils.getDistributedRowId(funcStract.pid)}'][folder]`
+    );
     this.currentRow = row;
     if (row && !row.expansion) {
       row.expansion = true;
@@ -2236,7 +2248,7 @@ export class SpSystemTrace extends BaseElement {
       threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: unknown, len: number): void => {});
     }
     if (threadPool2) {
-      threadPool2.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => { });
+      threadPool2.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => {});
     }
     this.times.clear();
     resetVSync();
@@ -2245,7 +2257,7 @@ export class SpSystemTrace extends BaseElement {
   }
 
   init = async (
-    param: { buf?: ArrayBuffer; url?: string; buf2?: ArrayBuffer, fileName1?: string, fileName2?: string },
+    param: { buf?: ArrayBuffer; url?: string; buf2?: ArrayBuffer; fileName1?: string; fileName2?: string },
     wasmConfigUri: string,
     progress: Function,
     isDistributed: boolean

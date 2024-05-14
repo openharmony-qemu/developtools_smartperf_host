@@ -36,6 +36,7 @@ import { processSoInitDataSender } from '../../database/data-trafic/process/Proc
 import { processExpectedDataSender } from '../../database/data-trafic/process/ProcessExpectedDataSender';
 import { processActualDataSender } from '../../database/data-trafic/process/ProcessActualDataSender';
 import { processDeliverInputEventDataSender } from '../../database/data-trafic/process/ProcessDeliverInputEventDataSender';
+import { processTouchEventDispatchDataSender } from '../../database/data-trafic/process/ProcessTouchEventDispatchDataSender';
 import { getMaxDepthByTid, queryAllFuncNames, queryProcessAsyncFunc } from '../../database/sql/Func.sql';
 import { queryMemFilterIdMaxValue } from '../../database/sql/Memory.sql';
 import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap } from '../../database/sql/SqlLite.sql';
@@ -243,6 +244,110 @@ export class SpProcessChart {
     });
     if (funcRow && !funcRow.isComplete) {
       //@ts-ignore
+      let max = Math.max(...asyncFuncGroups.map((it) => it.depth || 0)) + 1;
+      let maxHeight = max * 18 + 6;
+      funcRow.style.height = `${maxHeight}px`;
+      funcRow.setAttribute('height', `${maxHeight}`);
+    }
+  }
+
+  initTouchEventDispatch = async (): Promise<void> => {
+    let row = TraceRow.skeleton() as TraceRow<ProcessStruct>;
+    row.setAttribute('disabled-check', '');
+    row.rowId = 'TouchEventDispatch';
+    row.index = 0;
+    row.rowType = TraceRow.ROW_TYPE_TOUCH_EVENT_DISPATCH;
+    row.rowParentId = '';
+    row.folder = true;
+    row.style.height = '40px';
+    row.name = 'TouchEventDispatch';
+    //@ts-ignore
+    row.supplier = folderSupplier();
+    row.onThreadHandler = folderThreadHandler(row, this.trace);
+
+    let asyncFuncGroup = Utils.groupBy(
+      //@ts-ignore
+      this.processAsyncFuncArray.filter((it) => it.funName === 'H:touchEventDispatch'),
+      'tid'
+    );
+    //@ts-ignore
+    if (Reflect.ownKeys(asyncFuncGroup).length > 0) {
+      this.trace.rowsEL?.appendChild(row);
+    }
+    //@ts-ignore
+    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+      //@ts-ignore
+      let asyncFuncGroups: Array<any> = asyncFuncGroup[key];
+      if (asyncFuncGroups.length > 0) {
+        row.addChildTraceRow(this.createTouchEventDispatchRow(row, key, asyncFuncGroups));
+      }
+    });
+  };
+
+  private createTouchEventDispatchRow(
+    parentRow: TraceRow<ProcessStruct>,
+    key: number,
+    asyncFuncGroups: Array<any>
+  ): TraceRow<FuncStruct> {
+    let funcRow = TraceRow.skeleton<FuncStruct>();
+    funcRow.rowId = `${asyncFuncGroups[0].funName}-${key}`;
+    funcRow.asyncFuncName = asyncFuncGroups[0].funName;
+    funcRow.asyncFuncNamePID = key;
+    funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
+    funcRow.enableCollapseChart(); //允许折叠泳道图
+    funcRow.rowParentId = `${parentRow.rowId}`;
+    funcRow.rowHidden = !parentRow.expansion;
+    funcRow.style.width = '100%';
+    funcRow.style.height = '24px';
+    funcRow.name = `${asyncFuncGroups[0].funName} ${key}`;
+    funcRow.setAttribute('children', '');
+    funcRow.supplierFrame = () => {
+      return processTouchEventDispatchDataSender(key, funcRow!).then((res: Array<any>) => {
+        this.touchEventDispatchSendCallback(res, funcRow, asyncFuncGroups);
+        return res;
+      });
+    };
+
+    funcRow.findHoverStruct = (): void => {
+      FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
+    };
+    funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    funcRow.selectChangeHandler = this.trace.selectChangeHandler;
+    funcRow.onThreadHandler = rowThreadHandler<FuncRender>(
+      'func',
+      'context',
+      {
+        type: `func-${asyncFuncGroups[0].funName}-${key}`,
+      },
+      funcRow,
+      this.trace
+    );
+    return funcRow;
+  }
+
+  private touchEventDispatchSendCallback(res: Array<any>, funcRow: TraceRow<any>, asyncFuncGroups: Array<any>): void {
+    let isIntersect = (left: any, right: any): boolean =>
+      Math.max(left.startTs + left.dur, right.startTs + right.dur) - Math.min(left.startTs, right.startTs) <
+      left.dur + right.dur;
+    let depths: any = [];
+    let createDepth = (currentDepth: number, index: number): void => {
+      if (depths[currentDepth] == undefined || !isIntersect(depths[currentDepth], res[index])) {
+        res[index].depth = currentDepth;
+        depths[currentDepth] = res[index];
+      } else {
+        createDepth(++currentDepth, index);
+      }
+    };
+    res.forEach((it, i) => {
+      res[i].funName = this.funcNameMap.get(res[i].id!);
+      res[i].threadName = Utils.getInstance().getThreadMap().get(res[i].tid!);
+      if (it.dur == -1 || it.dur === null || it.dur === undefined) {
+        it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+        it.flag = 'Did not end';
+      }
+      createDepth(0, i);
+    });
+    if (funcRow && !funcRow.isComplete) {
       let max = Math.max(...asyncFuncGroups.map((it) => it.depth || 0)) + 1;
       let maxHeight = max * 18 + 6;
       funcRow.style.height = `${maxHeight}px`;
