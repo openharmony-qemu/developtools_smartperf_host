@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +19,6 @@ import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { type FreqExtendRender, CpuFreqExtendStruct } from '../../database/ui-worker/ProcedureWorkerFreqExtend';
 import { type BinderRender, BinderStruct } from '../../database/ui-worker/procedureWorkerBinder';
-import { queryIrqList } from '../../database/sql/Irq.sql';
 import { type BaseStruct } from '../../bean/BaseStruct';
 import { type ThreadRender, ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread';
 import { StateGroup } from '../../bean/StateModle';
@@ -33,11 +33,15 @@ export class SpSegmentationChart {
   static binderRow: TraceRow<BinderStruct> | undefined;
   static schedRow: TraceRow<CpuFreqExtendStruct> | undefined;
   static freqInfoMapData = new Map<number, Map<number, number>>();
+  static hoverLine: Array<heightLine> = [];
+  static tabHoverObj: { key: string, cycle: number };
   private rowFolder!: TraceRow<BaseStruct>;
   static chartData: Array<Object> = [];
   static statesRow: TraceRow<ThreadStruct> | undefined;
   // 数据切割联动
   static setChartData(type: string, data: Array<FreqChartDataStruct>): void {
+    SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
+    SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
     if (type === 'CPU-FREQ') {
       setCpuData(data);
     } else if (type === 'GPU-FREQ') {
@@ -50,8 +54,10 @@ export class SpSegmentationChart {
 
   // state泳道联动
   static setStateChartData(data: Array<StateGroup>) {
+    SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
+    SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
     let stateChartData = new Array();
-    stateChartData = data.map((v) => {
+    stateChartData = data.map(v => {
       return {
         dur: v.dur,
         pid: v.pid,
@@ -63,7 +69,6 @@ export class SpSegmentationChart {
         start_ts: v.ts,
         state: v.state,
         type: v.type,
-        cpu: v.cpu,
         cycle: v.cycle,
       };
     });
@@ -74,10 +79,12 @@ export class SpSegmentationChart {
     SpSegmentationChart.statesRow!.supplier = (): Promise<Array<ThreadStruct>> =>
       new Promise<Array<ThreadStruct>>((resolve) => resolve(stateChartData));
     SpSegmentationChart.trace.refreshCanvas(false);
-  }
+  };
 
   // binder联动调用
   static setBinderChartData(data: Array<Array<FreqChartDataStruct>>): void {
+    SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
+    SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
     BinderStruct.maxHeight = 0;
     SpSegmentationChart.binderRow!.dataList = [];
     SpSegmentationChart.binderRow!.dataListCache = [];
@@ -97,10 +104,10 @@ export class SpSegmentationChart {
             v.name === 'binder transaction'
               ? 0
               : v.name === 'binder transaction async'
-              ? 1
-              : v.name === 'binder reply'
-              ? MS_TO_US
-              : 3,
+                ? 1
+                : v.name === 'binder reply'
+                  ? MS_TO_US
+                  : 3,
           startNS: v.startNS,
           dur: v.dur,
           name: `${v.name}`,
@@ -109,9 +116,7 @@ export class SpSegmentationChart {
           cycle: v.cycle,
         };
       });
-      SpSegmentationChart.binderRow!.style.height = `${
-        BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40
-      }px`;
+      SpSegmentationChart.binderRow!.style.height = `${BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40}px`;
       // @ts-ignore
       SpSegmentationChart.binderRow!.supplier = (): Promise<Array<FreqChartDataStruct>> =>
         new Promise<Array<FreqChartDataStruct>>((resolve) => resolve(chartData));
@@ -121,54 +126,16 @@ export class SpSegmentationChart {
   }
   // 悬浮联动
   static tabHover(type: string, tableIsHover: boolean = false, cycle: number = -1): void {
-    CpuFreqExtendStruct.isTabHover = tableIsHover;
-    if (type === 'CPU-FREQ' || type === 'GPU-FREQ' || type === 'SCHED-SWITCH') {
-      // 竖线显示处理
-      if (type === 'SCHED-SWITCH') {
-        CpuFreqExtendStruct.cpuCycle = -1;
-        CpuFreqExtendStruct.gpuCycle = -1;
-        if (cycle === CpuFreqExtendStruct.schedCycle) {
-          CpuFreqExtendStruct.isTabHover = false;
-          CpuFreqExtendStruct.schedCycle = -1;
-        } else {
-          CpuFreqExtendStruct.isTabHover = true;
-          CpuFreqExtendStruct.schedCycle = cycle;
-          BinderStruct.isTabHover = false;
-        }
-      } else if (type === 'CPU-FREQ') {
-        CpuFreqExtendStruct.gpuCycle = -1;
-        CpuFreqExtendStruct.schedCycle = -1;
-        if (cycle === CpuFreqExtendStruct.cpuCycle) {
-          CpuFreqExtendStruct.isTabHover = false;
-          CpuFreqExtendStruct.cpuCycle = -1;
-        } else {
-          CpuFreqExtendStruct.isTabHover = true;
-          CpuFreqExtendStruct.cpuCycle = cycle;
-          BinderStruct.isTabHover = false;
-        }
-      } else if (type === 'GPU-FREQ') {
-        CpuFreqExtendStruct.cpuCycle = -1;
-        CpuFreqExtendStruct.schedCycle = -1;
-        if (cycle === CpuFreqExtendStruct.gpuCycle) {
-          CpuFreqExtendStruct.gpuCycle = -1;
-          CpuFreqExtendStruct.isTabHover = false;
-        } else {
-          CpuFreqExtendStruct.gpuCycle = cycle;
-          CpuFreqExtendStruct.isTabHover = true;
-          BinderStruct.isTabHover = false;
-        }
-      }
-      CpuFreqExtendStruct.hoverType = type;
-    } else if (type === 'BINDER') {
-      if (cycle === BinderStruct.hoverCycle) {
-        BinderStruct.hoverCycle = -1;
-        BinderStruct.isTabHover = false;
-        CpuFreqExtendStruct.isTabHover = false;
+    if (tableIsHover) {
+      if (SpSegmentationChart.tabHoverObj.cycle === cycle && SpSegmentationChart.tabHoverObj.key === type) {
+        SpSegmentationChart.tabHoverObj = { cycle: -1, key: '' }
       } else {
-        BinderStruct.hoverCycle = cycle;
-        BinderStruct.isTabHover = true;
+        SpSegmentationChart.tabHoverObj = { cycle, key: type }
       }
+    } else {
+      SpSegmentationChart.tabHoverObj = { cycle: -1, key: '' }
     }
+
     SpSegmentationChart.trace.refreshCanvas(false);
   }
   constructor(trace: SpSystemTrace) {
@@ -184,7 +151,7 @@ export class SpSegmentationChart {
       await this.initBinderTrace();
       await this.initAllStates();
     } else {
-      return;
+      return
     }
   }
   async initFolder() {
@@ -201,7 +168,6 @@ export class SpSegmentationChart {
     row.onThreadHandler = (useCache): void => {
       row.canvasSave(SpSegmentationChart.trace.canvasPanelCtx!);
       if (row.expansion) {
-        // @ts-ignore
         SpSegmentationChart.trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
       } else {
         (renders['empty'] as EmptyRender).renderMainThread(
@@ -249,14 +215,13 @@ export class SpSegmentationChart {
     SpSegmentationChart.cpuRow.focusHandler = (ev): void => {
       SpSegmentationChart.trace?.displayTip(
         SpSegmentationChart.cpuRow!,
-        CpuFreqExtendStruct.hoverCpuFreqStruct,
-        `<span>${
-          CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!
+        CpuFreqExtendStruct.hoverStruct,
+        `<span>${CpuFreqExtendStruct.hoverStruct === undefined ? 0 : CpuFreqExtendStruct.hoverStruct.value!
         }</span>`
       );
     };
     SpSegmentationChart.cpuRow.findHoverStruct = (): void => {
-      CpuFreqExtendStruct.hoverCpuFreqStruct = SpSegmentationChart.cpuRow!.getHoverStruct();
+      CpuFreqExtendStruct.hoverStruct = SpSegmentationChart.cpuRow!.getHoverStruct();
     };
     // @ts-ignore
     SpSegmentationChart.cpuRow.supplier = (): Promise<Array<freqChartDataStruct>> =>
@@ -299,14 +264,13 @@ export class SpSegmentationChart {
     SpSegmentationChart.GpuRow.focusHandler = (ev): void => {
       SpSegmentationChart.trace?.displayTip(
         SpSegmentationChart.GpuRow!,
-        CpuFreqExtendStruct.hoverCpuFreqStruct,
-        `<span>${
-          CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!
+        CpuFreqExtendStruct.hoverStruct,
+        `<span>${CpuFreqExtendStruct.hoverStruct === undefined ? 0 : CpuFreqExtendStruct.hoverStruct.value!
         }</span>`
       );
     };
     SpSegmentationChart.GpuRow.findHoverStruct = (): void => {
-      CpuFreqExtendStruct.hoverCpuFreqStruct = SpSegmentationChart.GpuRow!.getHoverStruct();
+      CpuFreqExtendStruct.hoverStruct = SpSegmentationChart.GpuRow!.getHoverStruct();
     };
     SpSegmentationChart.GpuRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
@@ -343,12 +307,12 @@ export class SpSegmentationChart {
     SpSegmentationChart.schedRow.focusHandler = (ev): void => {
       SpSegmentationChart.trace?.displayTip(
         SpSegmentationChart.schedRow!,
-        CpuFreqExtendStruct.hoverCpuFreqStruct,
-        `<span>${CpuFreqExtendStruct.hoverCpuFreqStruct?.value!}</span>`
+        CpuFreqExtendStruct.hoverStruct,
+        `<span>${CpuFreqExtendStruct.hoverStruct?.value!}</span>`
       );
     };
     SpSegmentationChart.schedRow.findHoverStruct = (): void => {
-      CpuFreqExtendStruct.hoverCpuFreqStruct = SpSegmentationChart.schedRow!.getHoverStruct();
+      CpuFreqExtendStruct.hoverStruct = SpSegmentationChart.schedRow!.getHoverStruct();
     };
     // @ts-ignore
     SpSegmentationChart.schedRow.supplier = (): Promise<Array<freqChartDataStruct>> =>
@@ -394,9 +358,7 @@ export class SpSegmentationChart {
       if (SpSegmentationChart.statesRow!.currentContext) {
         context = SpSegmentationChart.statesRow!.currentContext;
       } else {
-        context = SpSegmentationChart.statesRow!.collect
-          ? SpSegmentationChart.trace.canvasFavoritePanelCtx!
-          : SpSegmentationChart.trace.canvasPanelCtx!;
+        context = SpSegmentationChart.statesRow!.collect ? SpSegmentationChart.trace.canvasFavoritePanelCtx! : SpSegmentationChart.trace.canvasPanelCtx!;
       }
       SpSegmentationChart.statesRow!.canvasSave(context);
       (renders['thread'] as ThreadRender).renderMainThread(
@@ -426,16 +388,14 @@ export class SpSegmentationChart {
     SpSegmentationChart.binderRow.findHoverStruct = () => {
       BinderStruct.hoverCpuFreqStruct = SpSegmentationChart.binderRow!.dataListCache.find((v: BinderStruct) => {
         if (SpSegmentationChart.binderRow!.isHover) {
-          if (
-            v.frame!.x < SpSegmentationChart.binderRow!.hoverX &&
-            v.frame!.x + v.frame!.width > SpSegmentationChart.binderRow!.hoverX &&
-            BinderStruct.maxHeight * 20 - v.depth * 20 + 20 < SpSegmentationChart.binderRow!.hoverY &&
-            BinderStruct.maxHeight * 20 - v.depth * 20 + v.value * 20 + 20 > SpSegmentationChart.binderRow!.hoverY
-          ) {
+          if (v.frame!.x < SpSegmentationChart.binderRow!.hoverX
+            && v.frame!.x + v.frame!.width > SpSegmentationChart.binderRow!.hoverX
+            && (BinderStruct.maxHeight * 20 - v.depth * 20 + 20) < SpSegmentationChart.binderRow!.hoverY
+            && BinderStruct.maxHeight * 20 - v.depth * 20 + v.value * 20 + 20 > SpSegmentationChart.binderRow!.hoverY) {
             return v;
           }
         }
-      });
+      })
     };
     SpSegmentationChart.binderRow.supplier = (): Promise<Array<BinderStruct>> =>
       new Promise<Array<BinderStruct>>((resolve) => resolve([]));
@@ -453,7 +413,7 @@ export class SpSegmentationChart {
         {
           context: context,
           useCache: useCache,
-          type: 'binder',
+          type: 'BINDER',
         },
         SpSegmentationChart.binderRow!
       );
@@ -463,15 +423,12 @@ export class SpSegmentationChart {
       SpSegmentationChart.trace!.displayTip(
         SpSegmentationChart.binderRow!,
         BinderStruct.hoverCpuFreqStruct,
-        `<span style='font-weight: bold;'>Cycle: ${
-          BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.cycle : 0
+        `<span style='font-weight: bold;'>Cycle: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.cycle : 0
         }</span><br>
-                <span style='font-weight: bold;'>Name: ${
-                  BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.name : ''
-                }</span><br>
-                <span style='font-weight: bold;'>Count: ${
-                  BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.value : 0
-                }</span>`
+                <span style='font-weight: bold;'>Name: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.name : ''
+        }</span><br>
+                <span style='font-weight: bold;'>Count: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.value : 0
+        }</span>`
       );
     };
     SpSegmentationChart.trace.rowsEL?.appendChild(SpSegmentationChart.binderRow);
@@ -552,8 +509,8 @@ function setBinderData(data: Array<Array<FreqChartDataStruct>>, binderList: Arra
             return i.name === 'binder transaction';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder transaction';
-              })[0].value
+              return i.name === 'binder transaction';
+            })[0].value
             : 0);
       }
       if (t.name === 'binder reply') {
@@ -563,15 +520,15 @@ function setBinderData(data: Array<Array<FreqChartDataStruct>>, binderList: Arra
             return i.name === 'binder transaction';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder transaction';
-              })[0].value
+              return i.name === 'binder transaction';
+            })[0].value
             : 0) +
           (v.filter((i: FreqChartDataStruct) => {
             return i.name === 'binder transaction async';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder transaction async';
-              })[0].value
+              return i.name === 'binder transaction async';
+            })[0].value
             : 0);
       }
       if (t.name === 'binder async rcv') {
@@ -581,22 +538,22 @@ function setBinderData(data: Array<Array<FreqChartDataStruct>>, binderList: Arra
             return i.name === 'binder transaction';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder transaction';
-              })[0].value
+              return i.name === 'binder transaction';
+            })[0].value
             : 0) +
           (v.filter((i: FreqChartDataStruct) => {
             return i.name === 'binder transaction async';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder transaction async';
-              })[0].value
+              return i.name === 'binder transaction async';
+            })[0].value
             : 0) +
           (v.filter((i: FreqChartDataStruct) => {
             return i.name === 'binder reply';
           }).length > 0
             ? v.filter((i: FreqChartDataStruct) => {
-                return i.name === 'binder reply';
-              })[0].value
+              return i.name === 'binder reply';
+            })[0].value
             : 0);
       }
       binderList.push(t);
@@ -605,4 +562,9 @@ function setBinderData(data: Array<Array<FreqChartDataStruct>>, binderList: Arra
       BinderStruct.maxHeight > listCount ? BinderStruct.maxHeight : JSON.parse(JSON.stringify(listCount));
     listCount = 0;
   });
+}
+
+class heightLine {
+  key: string = '';
+  cycle: number = -1
 }

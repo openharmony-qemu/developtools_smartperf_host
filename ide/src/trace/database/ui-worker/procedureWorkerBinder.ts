@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +21,6 @@ import { SpSegmentationChart } from '../../component/chart/SpSegmentationChart';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
 import { CpuFreqExtendStruct } from './ProcedureWorkerFreqExtend';
 import { ThreadStruct } from './ProcedureWorkerThread';
-import { TabPaneFreqStatesDataCut } from '../../component/trace/sheet/states/TabPaneFreqStatesDataCut';
 export class BinderRender extends Render {
   renderMainThread(
     freqReq: {
@@ -29,7 +29,7 @@ export class BinderRender extends Render {
       type: string;
     },
     row: TraceRow<BinderStruct>
-  ): void {
+  ) {
     let binderList = row.dataList;
     let binderFilter = row.dataListCache;
     dataFilterHandler(binderList, binderFilter, {
@@ -42,33 +42,40 @@ export class BinderRender extends Render {
       paddingTop: 5,
       useCache: freqReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    freqReq.context.beginPath();
-    for (let re of binderList) {
-      if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
-        BinderStruct.hoverCpuFreqStruct = re;
+    let find = false
+    BinderStruct.hoverCpuFreqStruct = undefined;
+    if (SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key !== '') {
+      if (!SpSegmentationChart.trace.isMousePointInSheet) {
+        SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 }
       }
-      if (!row.isHover) {
-        BinderStruct.hoverCpuFreqStruct = undefined;
+      if (SpSegmentationChart.tabHoverObj.key === freqReq.type) {
+        for (let re of binderFilter) {
+          if (!row.isHover && re.cycle === SpSegmentationChart.tabHoverObj.cycle) {
+            BinderStruct.hoverCpuFreqStruct = re;
+            find = true
+          }
+          BinderStruct.draw(freqReq.context, re);
+        }
+      } else {
+        for (let re of binderFilter) {
+          BinderStruct.draw(freqReq.context, re);
+        }
       }
-      BinderStruct.draw(freqReq.context, re);
+    } else {
+      for (let re of binderFilter) {
+        if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+          BinderStruct.hoverCpuFreqStruct = re;
+          find = true;
+        }
+        BinderStruct.draw(freqReq.context, re);
+      }
+    }
+    if (!find && SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key === '' && CpuFreqExtendStruct.hoverStruct === undefined && !ThreadStruct.hoverThreadStruct) {
+      BinderStruct.hoverCpuFreqStruct = undefined;
+      SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined
+      find = false;
     }
     freqReq.context.closePath();
-    if (
-      !BinderStruct.isTabHover &&
-      !BinderStruct.hoverCpuFreqStruct &&
-      !BinderStruct.selectCpuFreqStruct &&
-      !CpuFreqExtendStruct.isTabHover &&
-      !CpuFreqExtendStruct.hoverCpuFreqStruct &&
-      !CpuFreqExtendStruct.selectCpuFreqStruct &&
-      !ThreadStruct.hoverThreadStruct &&
-      !TabPaneFreqStatesDataCut.isStateTabHover
-    ) {
-      SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
-    }
-    if (!SpSegmentationChart.trace.isMousePointInSheet) {
-      BinderStruct.hoverCycle = -1;
-      BinderStruct.isTabHover = false;
-    }
   }
 }
 export class BinderStruct extends BaseStruct {
@@ -83,7 +90,7 @@ export class BinderStruct extends BaseStruct {
   dur: number | undefined; //自补充，数据库没有返回
   name: string | undefined;
   depth: number = 0;
-  static draw(freqContext: CanvasRenderingContext2D, data: BinderStruct): void {
+  static draw(freqContext: CanvasRenderingContext2D, data: BinderStruct) {
     if (data.frame) {
       let color = '';
       if (data.name === 'binder transaction') {
@@ -101,8 +108,7 @@ export class BinderStruct extends BaseStruct {
       freqContext.fillStyle = color;
       if (
         data === BinderStruct.hoverCpuFreqStruct ||
-        data === BinderStruct.selectCpuFreqStruct ||
-        data.cycle === BinderStruct.hoverCycle
+        data === BinderStruct.selectCpuFreqStruct
       ) {
         let pointX: number = ns2x(
           data.startNS || 0,
@@ -118,7 +124,7 @@ export class BinderStruct extends BaseStruct {
             0,
             0,
             data.startNS,
-            '#999999',
+            '#666',
             '',
             true,
             ''

@@ -298,7 +298,7 @@ export const dataFilterHandler = (
   if (fillCacheData(filterData, condition)) {
     return;
   }
-  if (fullData) {
+  if (fullData && fullData.length > 0) {
     filterData.length = 0;
     let pns = (condition.endNS - condition.startNS) / condition.frame.width; //每个像素多少ns
     let y = condition.frame.y + condition.paddingTop;

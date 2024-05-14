@@ -77,15 +77,15 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
     this.clickSingle(false);
     this.currentSelectionParam = threadStatesParam;
     // 清空表格数据
-    this.threadBindersTbl!.recycleDataSource = []; // @ts-ignore
-    this.theadClick(this.threadBindersTbl!.recycleDataSource);
+    this.threadBindersTbl!.recycleDataSource = [];
+    this.theadClick(this.threadBindersTbl!.recycleDataSource as Array<BinderGroup>);
   }
 
   initTabSheetEl(traceSheet: TraceSheet): void {
     this.traceSheetEl = traceSheet;
   }
 
-  dispalyQueryArea(b: boolean): void {
+  dispalyQueryArea(b: boolean) {
     if (b) {
       this.setAttribute('dispalyQueryArea', '');
     } else {
@@ -93,7 +93,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
     }
   }
 
-  clickSingle(b: boolean): void {
+  clickSingle(b: boolean) {
     if (b) {
       this.setAttribute('clickSingle', '');
     } else {
@@ -101,7 +101,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
     }
   }
 
-  clickLoop(b: boolean): void {
+  clickLoop(b: boolean) {
     if (b) {
       this.setAttribute('clickLoop', '');
     } else {
@@ -154,7 +154,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
           for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
             if (
               // @ts-ignore
-              stateItem.ts > this.funcNameCycleArr[i].cycleStartTime &&
+              stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime &&
               // @ts-ignore
               stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime &&
               (stateItem.state === 'S' ||
@@ -175,12 +175,11 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         this.threadBindersTbl!.recycleDataSource = stateCutArr;
         this.threadBindersTbl!.loading = false;
         // 表格添加点击事件
-        // @ts-ignore
-        this.theadClick(this.threadBindersTbl!.recycleDataSource);
+        this.theadClick(this.threadBindersTbl!.recycleDataSource as Array<BinderGroup>);
       } else {
         this.threadBindersTbl!.recycleDataSource = [];
-        this.threadBindersTbl!.loading = false; // @ts-ignore
-        this.theadClick(this.threadBindersTbl!.recycleDataSource);
+        this.threadBindersTbl!.loading = false;
+        this.theadClick(this.threadBindersTbl!.recycleDataSource as Array<BinderGroup>);
       }
     } else {
       this.verifyInputIsEmpty(threadIdValue, threadFuncName, threadId, threadFunc);
@@ -205,20 +204,21 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       this.funcNameCycleArr = await querySingleFuncNameCycleStates(threadFuncName, threadIdValue, leftNS, rightNS);
       this.cycleStartTime = this.funcNameCycleArr!.length > 0 ? this.funcNameCycleArr![0].cycleStartTime : undefined;
       this.cycleEndTime =
-        this.funcNameCycleArr!.length > 0 ?
-          this.funcNameCycleArr![this.funcNameCycleArr!.length - 1].endTime : undefined;
+        this.funcNameCycleArr!.length > 0
+          ? this.funcNameCycleArr![this.funcNameCycleArr!.length - 1].endTime
+          : undefined;
       let stateItemArr = await queryStatesCut(threadIds, leftNS, rightNS);
       if (this.funcNameCycleArr!.length !== 0) {
         let stateCutArr: StateGroup[] = [];
         // pid数组去重
         processIds = Array.from(new Set(processIds));
         // 去除切割范围以外的数据
-        this.filterState = [];
+        this.filterState = new Array<StateGroup>();
         stateItemArr.map((stateItem) => {
           for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
             if (
               // @ts-ignore
-              stateItem.ts > this.funcNameCycleArr[i].cycleStartTime &&
+              stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime &&
               // @ts-ignore
               stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime &&
               (stateItem.state === 'S' ||
@@ -236,12 +236,12 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
           }
         }
         this.threadBindersTbl!.recycleDataSource = stateCutArr;
-        this.threadBindersTbl!.loading = false; // @ts-ignore
-        this.theadClick(this.threadBindersTbl!.recycleDataSource);
+        this.threadBindersTbl!.loading = false;
+        this.theadClick(this.threadBindersTbl!.recycleDataSource as BinderGroup[]);
       } else {
         this.threadBindersTbl!.recycleDataSource = [];
-        this.threadBindersTbl!.loading = false; // @ts-ignore
-        this.theadClick(this.threadBindersTbl!.recycleDataSource);
+        this.threadBindersTbl!.loading = false;
+        this.theadClick(this.threadBindersTbl!.recycleDataSource as BinderGroup[]);
       }
     } else {
       this.verifyInputIsEmpty(threadIdValue, threadFuncName, threadId, threadFunc);
@@ -253,14 +253,18 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
     // 当前进程级别的数据
     let filterObj = new StateGroup();
     // 筛选出当前进程下的所有数据
-    let processArr: StateGroup[] = [];
+    let processArr = new Array<StateGroup>();
     filterState.map((filterItem) => {
       if (filterItem.pid === processId) {
         processArr.push(filterItem);
         filterObj.totalCount! += 1;
-        filterItem.state === 'R' ? (filterObj.RunnableCount += 1) : filterItem.state === 'Running' ?
-          (filterObj.RunningCount += 1) : filterItem.state === 'D' ? (filterObj.DCount += 1) :
-            (filterObj.SleepingCount += 1);
+        filterItem.state === 'R'
+          ? (filterObj.RunnableCount += 1)
+          : filterItem.state === 'Running'
+          ? (filterObj.RunningCount += 1)
+          : filterItem.state === 'D'
+          ? (filterObj.DCount += 1)
+          : (filterObj.SleepingCount += 1);
         filterObj.title = (Utils.getInstance().getProcessMap().get(processId) || 'Process') + processId;
         filterObj.pid = processId;
         filterObj.type = 'process';
@@ -273,7 +277,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
   }
 
   // 处理线程数据
-  setThreadData(threadData: Array<StateGroup>): StateGroup[] {
+  setThreadData(threadData: Array<StateGroup>) {
     // 进程下面的线程,相当于process的children
     let threadArr = new Array<StateGroup>();
     let threads = this.currentSelectionParam.threadIds;
@@ -284,7 +288,8 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       threadObj.pid = threadData[0].pid;
       threadObj.children = new Array<StateGroup>();
       threadObj.type = 'thread';
-      (threadObj.title = (Utils.getInstance().getThreadMap().get(threads[i]) || 'Process') + threads[i]), threadArr.push(threadObj);
+      (threadObj.title = (Utils.getInstance().getProcessMap().get(threads[i]) || 'Process') + threads[i]),
+        threadArr.push(threadObj);
     }
     for (let i = 0; i < threadArr.length; i++) {
       let threadList = new Array<StateGroup>();
@@ -324,13 +329,20 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         cycleItem.title = `cycle-${i + 1}`;
         cycleItem.cycle = i;
         threadData.map((v) => {
-          // @ts-ignore
-          if (v.ts > this.funcNameCycleArr[i].cycleStartTime && v.dur + v.ts < this.funcNameCycleArr[i].endTime) {
+          if (
+            // @ts-ignore
+            v.ts + v.dur > this.funcNameCycleArr[i].cycleStartTime &&
+            // @ts-ignore
+            v.dur + v.ts < this.funcNameCycleArr[i].endTime
+          ) {
             cycleItem.totalCount! += 1;
-            v.state === 'R' ? ((cycleItem.RunnableCount += 1), (cycleItem.RunnableDur += v.dur!)) :
-              v.state === 'Running' ? ((cycleItem.RunningCount += 1), (cycleItem.RunningDur += v.dur!))
-              : v.state === 'S' ? ((cycleItem.SleepingCount += 1), (cycleItem.SleepingDur += v.dur!)) :
-                  ((cycleItem.DCount += 1), (cycleItem.DDur += v.dur!));
+            v.state === 'R'
+              ? ((cycleItem.RunnableCount += 1), (cycleItem.RunnableDur += v.dur!))
+              : v.state === 'Running'
+              ? ((cycleItem.RunningCount += 1), (cycleItem.RunningDur += v.dur!))
+              : v.state === 'S'
+              ? ((cycleItem.SleepingCount += 1), (cycleItem.SleepingDur += v.dur!))
+              : ((cycleItem.DCount += 1), (cycleItem.DDur += v.dur!));
           }
         });
         cycleItem.SleepingDur = Number((cycleItem.SleepingDur / 1000000).toFixed(3));
@@ -386,7 +398,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
           } else if (label.includes('Thread') && i === 1) {
             for (let item of data) {
               item.status = true;
-              if (item.children && item.children.length > 0) {
+              if (item.children != undefined && item.children.length > 0) {
                 this.threadBindersTbl!.setStatus(item.children, false);
               }
             }
@@ -429,6 +441,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       this.cycleIsClick = false;
       this.lineCycleNum = -1;
       this.traceSheetEl!.systemLogFlag = undefined;
+      SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
       TabPaneFreqStatesDataCut.isStateTabHover = false;
       this.spSystemTrace?.refreshCanvas(false);
     });
@@ -436,7 +449,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
     this.threadBindersTbl!.addEventListener('row-click', (evt: any) => {
       let currentData: StateGroup = evt.detail.data;
       if (currentData.type === 'thread') {
-        this.currentThreadId = `${currentData.tid}${currentData.pid}`;
+        this.currentThreadId = currentData.tid + '' + currentData.pid;
         this.clearCycleRange();
         currentData.isSelected = true;
         this.threadBindersTbl!.clearAllSelection(currentData);
@@ -462,9 +475,11 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         this.threadBindersTbl!.setCurrentSelection(currentData);
         if (currentData.cycle === this.lineCycleNum && this.cycleIsClick === true) {
           this.traceSheetEl!.systemLogFlag = undefined;
+          SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
           TabPaneFreqStatesDataCut.isStateTabHover = false;
           this.cycleIsClick = false;
         } else {
+          SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
           let pointX: number = ns2x(
             this.funcNameCycleArr![currentData.cycle].cycleStartTime || 0,
             TraceRow.range!.startNS,
@@ -472,6 +487,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             TraceRow.range!.totalNS,
             new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
           );
+          SpSegmentationChart.tabHoverObj.key = 'STATES';
           SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = new Flag(
             Math.floor(pointX),
             0,
@@ -531,7 +547,9 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
   // 筛选出点击的线程数据
   filCycleData(pid: number, tid: number): Array<StateGroup> {
     return this.filterState?.filter((v: StateGroup) => {
-      return v.pid === pid && v.tid === tid && v.ts > this.cycleStartTime! && v.ts + v.dur! < this.cycleEndTime!;
+      return (
+        v.pid === pid && v.tid === tid && v.ts + v.dur! > this.cycleStartTime! && v.ts + v.dur! < this.cycleEndTime!
+      );
     });
   }
 
@@ -554,24 +572,28 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       seriesField: '',
       removeUnit: true,
       notSort: true,
-      color: (a): string => {
+      color: (a) => {
         //@ts-ignore
-        if (a.xName === 'Total') {
-          return '#2f72f8'; //@ts-ignore
-        } else if (a.xName === 'cycleA') {
-          return '#ffab67'; //@ts-ignore
-        } else if (a.xName === 'cycleB') {
+        const xName = a.xName;
+        if (xName === 'Total') {
+          return '#2f72f8';
+        } else if (xName === 'cycleA') {
+          return '#ffab67';
+        } else if (xName === 'cycleB') {
           return '#a285d2';
         } else {
           return '#0a59f7';
         }
       },
-      tip: (a): string => {
+      tip: (a) => {
         //@ts-ignore
         if (a && a[0]) {
-          let tip: string = '';
           //@ts-ignore
-          tip = `<div><div>Average count: ${ a[0].obj.yAverage }</div></div>`;
+          const obj = a[0];
+          let tip: string = '';
+          tip = `<div>
+                    <div>Average count: ${obj.obj.yAverage}</div>
+                </div>`;
           return tip;
         } else {
           return '';
@@ -700,6 +722,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         }
         .chart_area{
             margin-top:40px;
+            height:0;
         }
         .chart_title{
             line-height: 40px;
@@ -709,11 +732,8 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         }
         </style>
         <div id='dataCut'>
-            <input id="dataCutThreadId" type="text" class="thread-id-input" 
-            placeholder="Please input thread id" value='' 
-            onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
-            <input id="dataCutThreadFunc" type="text" class="cycle-name-input" 
-            placeholder="Please input function name" value='' />
+            <input id="dataCutThreadId" type="text" class="thread-id-input" placeholder="Please input thread id" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
+            <input id="dataCutThreadFunc" type="text" class="cycle-name-input" placeholder="Please input function name" value='' />
             <div class="data-cut-area">
                 <button id="single-btn" class="click_single">Single</button>
                 <button id="loop-btn" class="click_loop">Loop</button>
@@ -723,64 +743,45 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             <lit-slicer style="width:100%">
                 <div style="width:65%;">
                     <lit-table id="tb-binder-count" style="height: auto; overflow-x:auto;width:100%;" tree>
-                        <lit-table-column width="250px" title="Process/Thread/Cycle" data-index="title" 
-                        key="title"  align="flex-start" retract>
+                        <lit-table-column width="250px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
                         </lit-table-column>
-                        <lit-table-column width="120px" title="Running count" data-index="RunningCount" 
-                        key="RunningCoung" align="center">
+                        <lit-table-column width="120px" title="Running count" data-index="RunningCount" key="RunningCoung" align="center">
                         </lit-table-column>
-                        <lit-table-column width="120px" title="Running dur" data-index="RunningDur" 
-                        key="RunningDur" align="center">
+                        <lit-table-column width="120px" title="Running dur" data-index="RunningDur" key="RunningDur" align="center">
                         </lit-table-column>
-                        <lit-table-column width="120px" title="Runnable count" data-index="RunnableCount" 
-                        key="RunnableCount" align="center">
+                        <lit-table-column width="120px" title="Runnable count" data-index="RunnableCount" key="RunnableCount" align="center">
                         </lit-table-column>
-                        <lit-table-column width="120px" title="Runnable dur" data-index="RunnableDur" 
-                        key="RunnableDur" align="center">
+                        <lit-table-column width="120px" title="Runnable dur" data-index="RunnableDur" key="RunnableDur" align="center">
                         </lit-table-column>
-                        <lit-table-column width="120px" title="Sleeping count" data-index="SleepingCount" 
-                        key="SleepingCount" align="center">
+                        <lit-table-column width="120px" title="Sleeping count" data-index="SleepingCount" key="SleepingCount" align="center">
                         </lit-table-column>
-                        <lit-table-column width="120px" title="Sleeping dur" data-index="SleepingDur" 
-                        key="SleepingDur" align="center">
+                        <lit-table-column width="120px" title="Sleeping dur" data-index="SleepingDur" key="SleepingDur" align="center">
                         </lit-table-column>
-                        <lit-table-column width="120px" title="D count" data-index="DCount" 
-                        key="DCount" align="center">
+                        <lit-table-column width="120px" title="D count" data-index="DCount" key="DCount" align="center">
                         </lit-table-column>
-                        <lit-table-column width="120px" title="D dur" data-index="DDur" key="DDUR" 
-                        align="center">
+                        <lit-table-column width="120px" title="D dur" data-index="DDur" key="DDUR" align="center">
                         </lit-table-column>
-                        <lit-table-column width="120px" title="Duration(ms)" data-index="cycleDur" 
-                        key="cycleDur" align="flex-start">
+                        <lit-table-column width="120px" title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
                         </lit-table-column>
-                        <lit-table-column width="120px"  title="total" data-index="totalCount" 
-                        key="totalCount" align="center">
+                        <lit-table-column width="120px"  title="Total" data-index="totalCount" key="totalCount" align="center">
                         </lit-table-column>
                     </lit-table>
                 </div>
                 <lit-slicer-track ></lit-slicer-track>
-                <div style="width:35%;padding: 16px;height:500px;overflow:auto;" class="query-cycle-area">
+                <div style="width:35%;padding: 16px;height:auto;overflow:auto;" class="query-cycle-area">
                     <div >
                         <div id="cycle-a">
                             <span>Cycle A: </span>
-                            <input id="cycle-a-start-range" type="text" class="cycle-range-input" 
-                            placeholder="Duration(ms)" value='' 
-                            onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
+                            <input id="cycle-a-start-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
                             <span>~</span>
-                            <input id="cycle-a-end-range" type="text" class="cycle-range-input" 
-                            placeholder="Duration(ms)" value=''
-                             onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
+                            <input id="cycle-a-end-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
                         </div>
                         <div style="margin-top: 10px; display:flex; flex-derection:row; justify-content:space-between">
                             <div id="cycle-b">
                                 <span>Cycle B: </span>
-                                <input id="cycle-b-start-range" type="text" class="cycle-range-input" 
-                                placeholder="Duration(ms)" value='' 
-                                onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
+                                <input id="cycle-b-start-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
                                 <span>~</span>
-                                <input id="cycle-b-end-range" type="text" class="cycle-range-input" 
-                                placeholder="Duration(ms)" value='' 
-                                onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
+                                <input id="cycle-b-end-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
                             </div>
                             <div>
                                 <button id="query-btn">Query</button>
@@ -792,10 +793,8 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
                         <lit-chart-column id="chart_cycle"></lit-chart-column>
                         <div class="chart_labels">
                             <div class="labels"><div class="labels_item"></div>Total</div>
-                            <div class="labels"><div class="labels_item" 
-                            style="background-color: #ffab67;"></div>CycleA</div>
-                            <div class="labels"><div class="labels_item" 
-                            style="background-color: #a285d2;"></div>CycleB</div>
+                            <div class="labels"><div class="labels_item" style="background-color: #ffab67;"></div>CycleA</div>
+                            <div class="labels"><div class="labels_item" style="background-color: #a285d2;"></div>CycleB</div>
                         </div>
                     </div>
                 </div>
