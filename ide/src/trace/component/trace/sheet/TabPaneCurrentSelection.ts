@@ -46,13 +46,14 @@ import {
   queryStateFreqList,
 } from '../../../database/sql/SqlLite.sql';
 import {
-  queryBinderArgsByArgset, queryDistributedRelationAllData,
+  queryBinderArgsByArgset,
+  queryDistributedRelationAllData,
   queryRunnableTimeByRunning,
   queryThreadNearData,
   queryThreadStateArgs,
   queryThreadWakeUp,
   queryThreadWakeUpFrom,
-  sqlPrioCount
+  sqlPrioCount,
 } from '../../../database/sql/ProcessThread.sql';
 import { queryGpuDur } from '../../../database/sql/Gpu.sql';
 import { queryWakeupListPriority } from '../../../database/sql/Cpu.sql';
@@ -347,16 +348,34 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.tabCurrentSelectionInit('Slice Details');
     let list: unknown[] = [];
     let name = this.transferString(data.funName ?? '');
+    // 从缓存中拿到详细信息的表
+    let information: string = '';
+    let funDetailList: Array<FunDetail> = new Array();
+    await caches
+      .match('/funDetail')
+      .then((res) => {
+        return res!.text();
+      })
+      .then((res) => {
+        funDetailList = JSON.parse(res);
+      });
+    if (Array.isArray(funDetailList)) {
+      // 筛选当前函数块的信息项
+      let informationList: Array<FunDetail> = funDetailList.filter((v: FunDetail) => {
+        return v.slice.indexOf(name) > -1 || name.indexOf(v.slice) > -1;
+      });
+      information = informationList && informationList.length > 0 ? informationList[0].CN : `没有找到相关${name}的描述`;
+    }
     let isBinder = FuncStruct.isBinder(data);
     let isAsyncBinder = isBinder && FuncStruct.isBinderAsync(data);
     if (data.argsetid !== undefined && data.argsetid !== null && data.argsetid >= 0) {
       this.setTableHeight('700px');
       if (isAsyncBinder) {
-        this.handleAsyncBinder(data, list, name, scrollCallback);
+        this.handleAsyncBinder(data, list, name, scrollCallback, information);
       } else if (isBinder) {
-        this.handleBinder(data, list, name, scrollCallback);
+        this.handleBinder(data, list, name, scrollCallback, information);
       } else {
-        this.handleNonBinder(data, list, name);
+        this.handleNonBinder(data, list, name, information);
       }
     } else {
       this.setTableHeight('auto');
@@ -371,6 +390,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         value: getTimeString(data.dur || 0),
       });
       list.push({ name: 'Depth', value: data.depth });
+      list.push({ name: 'Information:', value: information });
       if (data.chainId) {
         list.push({ name: 'ChainId', value: data.chainId });
         list.push({ name: 'SpanId', value: data.spanId });
@@ -399,46 +419,47 @@ export class TabPaneCurrentSelection extends BaseElement {
     return gmt;
   }
 
-  private async chainSpanListCallBackHandle(
-    data: FuncStruct,
-    callBack: Function
-  ): Promise<void> {
+  private async chainSpanListCallBackHandle(data: FuncStruct, callBack: Function): Promise<void> {
     let allMainChainList: FuncStruct[];
     if (Utils.currentTraceMode === TraceMode.DISTRIBUTED) {
-      let chainAllData = await Promise.all(
-        [queryDistributedRelationAllData(data.chainId!, threadPool.traceId),
-          queryDistributedRelationAllData(data.chainId!, threadPool2.traceId)]);
+      let chainAllData = await Promise.all([
+        queryDistributedRelationAllData(data.chainId!, threadPool.traceId),
+        queryDistributedRelationAllData(data.chainId!, threadPool2.traceId),
+      ]);
       allMainChainList = [...chainAllData[0], ...chainAllData[1]];
     } else {
       allMainChainList = await queryDistributedRelationAllData(data.chainId!);
     }
-    let finalChainSpanList: FuncStruct[] = allMainChainList.filter(
-      spanNode => spanNode.spanId === data.spanId);
+    let finalChainSpanList: FuncStruct[] = allMainChainList.filter((spanNode) => spanNode.spanId === data.spanId);
     let setParentChainList = (currentData: FuncStruct): void => {
-      let currentParentSpanList = allMainChainList.filter(
-        spanNode => spanNode.spanId === currentData.parentSpanId);
+      let currentParentSpanList = allMainChainList.filter((spanNode) => spanNode.spanId === currentData.parentSpanId);
       for (let index = currentParentSpanList.length - 1; index >= 0; index--) {
         let spanStruct = currentParentSpanList[index];
         if (finalChainSpanList.indexOf(spanStruct) < 0) {
           finalChainSpanList.unshift(spanStruct);
         }
       }
-      if (currentParentSpanList.length > 0 && currentParentSpanList[0].parentSpanId !== '' &&
-        currentParentSpanList[0].parentSpanId !== '0') {
+      if (
+        currentParentSpanList.length > 0 &&
+        currentParentSpanList[0].parentSpanId !== '' &&
+        currentParentSpanList[0].parentSpanId !== '0'
+      ) {
         setParentChainList(currentParentSpanList[0]);
       }
     };
     setParentChainList(data);
     let setChildChainList = (currentData: FuncStruct): void => {
-      let currentChildSpanList = allMainChainList.filter(
-        spanNode => spanNode.parentSpanId === currentData.spanId);
-      currentChildSpanList.forEach(childSpan => {
+      let currentChildSpanList = allMainChainList.filter((spanNode) => spanNode.parentSpanId === currentData.spanId);
+      currentChildSpanList.forEach((childSpan) => {
         if (finalChainSpanList.indexOf(childSpan) < 0) {
           finalChainSpanList.push(childSpan);
         }
       });
-      if (currentChildSpanList.length > 0 && currentChildSpanList[0].spanId !== '' &&
-        currentChildSpanList[0].spanId !== '0') {
+      if (
+        currentChildSpanList.length > 0 &&
+        currentChildSpanList[0].spanId !== '' &&
+        currentChildSpanList[0].spanId !== '0'
+      ) {
         setChildChainList(currentChildSpanList[0]);
       }
     };
@@ -448,18 +469,24 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
   }
 
-  private handleNonBinder(data: FuncStruct, list: unknown[], name: string): void {
+  private handleNonBinder(data: FuncStruct, list: any[], name: string, information: string): void {
     queryBinderArgsByArgset(data.argsetid!).then((argset) => {
       list.push({ name: 'Name', value: name });
       argset.forEach((item) => {
         list.push({ name: item.keyName, value: item.strValue });
       });
-      this.addTabPanelContent(list, data);
+      this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
     });
   }
 
-  private handleBinder(data: FuncStruct, list: unknown[], name: string, scrollCallback: Function): void {
+  private handleBinder(
+    data: FuncStruct,
+    list: any[],
+    name: string,
+    scrollCallback: Function,
+    information: string
+  ): void {
     queryBinderArgsByArgset(data.argsetid!).then((argset) => {
       let binderSliceId = -1;
       argset.forEach((item) => {
@@ -478,14 +505,13 @@ export class TabPaneCurrentSelection extends BaseElement {
       if (binderSliceId === -1) {
         list.unshift({ name: 'Name', value: name });
       }
-      this.addTabPanelContent(list, data);
+      this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
       let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
       funcClick?.addEventListener('click', () => {
         if (!Number.isNaN(binderSliceId) && binderSliceId !== -1) {
-          queryBinderBySliceId(binderSliceId).then((result: unknown[]) => {
+          queryBinderBySliceId(binderSliceId).then((result: any[]) => {
             if (result.length > 0) {
-              // @ts-ignore
               result[0].type = TraceRow.ROW_TYPE_FUNC;
               scrollCallback(result[0]);
             }
@@ -495,14 +521,20 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
   }
 
-  private handleAsyncBinder(data: FuncStruct, list: unknown[], name: string, scrollCallback: Function): void {
+  private handleAsyncBinder(
+    data: FuncStruct,
+    list: any[],
+    name: string,
+    scrollCallback: Function,
+    information: string
+  ): void {
     Promise.all([
       queryBinderByArgsId(data.argsetid!, data.startTs!, !data.funName!.endsWith('rcv')),
       queryBinderArgsByArgset(data.argsetid!),
     ]).then((result) => {
       let asyncBinderRes = result[0];
       let argsBinderRes = result[1];
-      let asyncBinderStract: unknown;
+      let asyncBinderStract: any;
       if (asyncBinderRes.length > 0) {
         //@ts-ignore
         asyncBinderRes[0].type = TraceRow.ROW_TYPE_FUNC;
@@ -527,7 +559,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       } else {
         list.unshift({ name: 'Name', value: name });
       }
-      this.addTabPanelContent(list, data);
+      this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
       let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
       funcClick?.addEventListener('click', () => {
@@ -536,14 +568,14 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
   }
 
-  private addTabPanelContent(contentList: unknown[], data: FuncStruct): void {
+  private addTabPanelContent(contentList: any[], data: FuncStruct, information: string): void {
     contentList.push({
       name: 'StartTime(Relative)',
       value: getTimeString(data.startTs || 0),
     });
     contentList.push({
       name: 'StartTime(Absolute)',
-      value: ((data.startTs || 0) + Utils.getInstance().getRecordStartNS()) / 1000000000 + 's',
+      value: ((data.startTs || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
     contentList.push({
       name: 'Duration',
@@ -553,6 +585,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     if (data.argsetid && data.argsetid > -1) {
       contentList.push({ name: 'arg_set_id', value: data.argsetid });
     }
+    contentList.push({ name: 'information', value: information });
   }
 
   private tabCurrentSelectionInit(leftTitleStr: string): void {
@@ -857,7 +890,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     data: ThreadStruct,
     scrollWakeUp: (d: unknown) => void | undefined,
     scrollCallback: ((d: unknown) => void) | undefined,
-    scrollPrio: (d: any) => void | undefined,
+    scrollPrio: (d: any) => void | undefined
   ): void {
     this.currentSelectionTbl?.shadowRoot?.querySelector('#next-state-click')?.addEventListener('click', () => {
       if (nextData && scrollWakeUp !== undefined) {
@@ -915,7 +948,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       if (scrollPrio) {
         sqlPrioCount(data).then((res: any) => {
           scrollPrio(res);
-        })
+        });
       }
     });
   }
@@ -978,15 +1011,13 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
     let slice = Utils.getInstance().getSchedSliceMap().get(`${data.id}-${data.startTime}`);
     if (slice) {
-      list.push(
-        {
+      list.push({
         name: 'Prio',
         value: `<div style="white-space: nowrap;display: flex;align-item: center">
         <div style="white-space: pre-wrap">${slice.priority}</div>
         <lit-icon style="cursor:pointer;transform: scalex(-1);margin-left: 5px" id="prio-click" name="select" color="#7fa1e7" size="20"></lit-icon>
-        </div>` 
-        }
-      );
+        </div>`,
+      });
     }
     let processName = Utils.getInstance().getProcessMap().get(data.pid!);
     if (
@@ -1915,4 +1946,10 @@ export class ThreadTreeNode {
     this.pid = pid;
     this.startTime = startTime;
   }
+}
+
+class FunDetail {
+  slice: string = '';
+  CN: string = '';
+  EN: string = ''
 }
