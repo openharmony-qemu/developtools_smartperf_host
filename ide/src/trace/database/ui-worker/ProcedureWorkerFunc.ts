@@ -31,7 +31,7 @@ import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class FuncRender {
   renderMainThread(
-    req: { useCache: boolean; context: CanvasRenderingContext2D; type: string;},
+    req: { useCache: boolean; context: CanvasRenderingContext2D; type: string },
     row: TraceRow<FuncStruct>
   ): void {
     let funcList = row.dataList;
@@ -138,6 +138,7 @@ export function funcStructOnClick(
       if (FuncStruct.funcSelect) {
         TabPaneTaskFrames.TaskArray = [];
         sp.removeLinkLinesByBusinessType('task');
+        FuncStruct.firstSelectFuncStruct = FuncStruct.selectFuncStruct;
         let hoverFuncStruct = entry || FuncStruct.hoverFuncStruct;
         FuncStruct.selectFuncStruct = hoverFuncStruct;
         sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
@@ -152,11 +153,24 @@ export function funcStructOnClick(
           }
         }
         sp.timerShaftEL?.drawTriangle(hoverFuncStruct!.ts || 0, 'inverted');
-        sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct!, (dataList: FuncStruct[]): void => {
-          dataList.sort((leftData: FuncStruct, rightData: FuncStruct) => leftData.ts! - rightData.ts!);
-          FuncStruct.selectLineFuncStruct = dataList;
-          sp.resetDistributedLine();
-        }, scrollToFuncHandler);
+        sp.traceSheetEL?.displayFuncData(
+          showTabArray,
+          FuncStruct.selectFuncStruct!,
+          scrollToFuncHandler,
+          (datas: any, str: string, binderTid: number) => {
+            sp.removeLinkLinesByBusinessType('func');
+            if (str === 'binder-to') {
+              datas.forEach((data: { tid: any; pid: any }) => {
+                //@ts-ignore
+                let endParentRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>(
+                  `trace-row[row-id='${data.pid}'][folder]`
+                );
+                sp.drawFuncLine(endParentRow, hoverFuncStruct, data, binderTid);
+              });
+            }
+          }
+        );
+        sp.refreshCanvas(true);
         sp.timerShaftEL?.modifyFlagList(undefined);
       }
       reject(new Error());
@@ -169,9 +183,11 @@ export class FuncStruct extends BaseFuncStruct {
   static hoverFuncStruct: FuncStruct | undefined;
   static selectFuncStruct: FuncStruct | undefined;
   static selectLineFuncStruct: Array<FuncStruct> = [];
+  static firstSelectFuncStruct: FuncStruct | undefined;
   flag: string | undefined; // 570000
   textMetricsWidth: number | undefined;
   static funcSelect: boolean = true;
+  pid: number = 0;
   static setFuncFrame(
     funcNode: FuncStruct,
     padding: number,
@@ -211,10 +227,8 @@ export class FuncStruct extends BaseFuncStruct {
       if (data.dur === undefined || data.dur === null) {
       } else {
         ctx.globalAlpha = 1;
-        ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0,
-          ColorUtils.FUNC_COLOR.length)];
-        let textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0,
-          ColorUtils.FUNC_COLOR.length)];
+        ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+        let textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
         if (FuncStruct.hoverFuncStruct && data.funName === FuncStruct.hoverFuncStruct.funName) {
           ctx.globalAlpha = 0.7;
         }

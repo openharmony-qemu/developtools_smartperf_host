@@ -43,7 +43,7 @@ import {
   PairPoint,
   Rect,
   prioClickHandlerFun,
-  drawThreadCurve
+  drawThreadCurve,
 } from '../database/ui-worker/ProcedureWorkerCommon';
 import { SpChartManager } from './chart/SpChartManager';
 import { CpuStruct, WakeupBean } from '../database/ui-worker/cpu/ProcedureWorkerCPU';
@@ -109,6 +109,7 @@ import {
 } from './SpSystemTrace.init';
 import {
   spSystemTraceDrawDistributedLine,
+  spSystemTraceDrawFuncLine,
   spSystemTraceDrawJankLine,
   spSystemTraceDrawTaskPollLine,
   spSystemTraceDrawThreadLine,
@@ -710,15 +711,15 @@ export class SpSystemTrace extends BaseElement {
       } else {
         context = this.currentRow!.collect ? this.canvasFavoritePanelCtx! : this.canvasPanelCtx!;
       }
-      this.drawPrioCurve(context, this.currentRow!)
+      this.drawPrioCurve(context, this.currentRow!);
     }
   }
 
-   // draw prio curve
-   drawPrioCurve(context: any, row: TraceRow<any>) {
+  // draw prio curve
+  drawPrioCurve(context: any, row: TraceRow<any>) {
     let curveDrawList: any = [];
     let oldVal: number = -1;
-    let threadFilter = row.dataListCache.filter((it: any) => it.state === 'Running');//筛选状态是Running的数据
+    let threadFilter = row.dataListCache.filter((it: any) => it.state === 'Running'); //筛选状态是Running的数据
     //计算每个点的坐标
     prioClickHandlerFun(ThreadStruct.prioCount, row, threadFilter, curveDrawList, oldVal);
     //绘制曲线透明度设置1，根据计算的曲线坐标开始画图
@@ -887,7 +888,7 @@ export class SpSystemTrace extends BaseElement {
         // @ts-ignore
         startTs = selectedStruct.startNS - selectedStruct.startTime;
         // @ts-ignore
-        let end = (selectedStruct.startNS + selectedStruct.dur) - selectedStruct.startTime;
+        let end = selectedStruct.startNS + selectedStruct.dur - selectedStruct.startTime;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
       } else {
         // @ts-ignore
@@ -1215,6 +1216,7 @@ export class SpSystemTrace extends BaseElement {
     if (!SportRuler.isMouseInSportRuler) {
       this.traceSheetEL?.setMode('hidden');
     }
+    this.removeLinkLinesByBusinessType('task', 'thread', 'func');
     this.removeLinkLinesByBusinessType('task', 'thread', 'distributed');
     this.refreshCanvas(true, 'click empty');
     JankStruct.delJankLineFlag = true;
@@ -1237,7 +1239,8 @@ export class SpSystemTrace extends BaseElement {
     ],
     [
       TraceRow.ROW_TYPE_GPU_COUNTER,
-      (): boolean => GpuCounterStruct.hoverGpuCounterStruct !== null && GpuCounterStruct.hoverGpuCounterStruct !== undefined,
+      (): boolean =>
+        GpuCounterStruct.hoverGpuCounterStruct !== null && GpuCounterStruct.hoverGpuCounterStruct !== undefined,
     ],
     [
       TraceRow.ROW_TYPE_CPU_FREQ,
@@ -1411,6 +1414,10 @@ export class SpSystemTrace extends BaseElement {
     spSystemTraceDrawThreadLine(this, endParentRow, selectThreadStruct, data);
   }
 
+  drawFuncLine(endParentRow: any, selectFuncStruct: FuncStruct | undefined, data: any, binderTid: Number): void {
+    spSystemTraceDrawFuncLine(this, endParentRow, selectFuncStruct, data, binderTid);
+  }
+
   getStartRow(selectRowId: number | undefined, collectList: unknown[]): unknown {
     let startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
       `trace-row[row-id='${selectRowId}'][row-type='thread']`
@@ -1428,34 +1435,31 @@ export class SpSystemTrace extends BaseElement {
     return startRow;
   }
 
-  calculateStartY(startRow: unknown, selectThreadStruct: ThreadStruct): [number, unknown, number] {
-    // @ts-ignore
+  calculateStartY(startRow: any, selectFuncStruct?: FuncStruct): [number, any, number] {
     let startY = startRow!.translateY!;
     let startRowEl = startRow;
-    let startOffSetY = 20 * 0.5;
-    const startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>( // @ts-ignore
+    let startOffSetY = selectFuncStruct ? 20 * (0.5 + Number(selectFuncStruct.depth)) : 20 * 0.5;
+    const startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
       `trace-row[row-id='${startRow.rowParentId}'][folder]`
     );
     const expansionFlag = this.collectionHasThread(startRow);
     if (startParentRow && !startParentRow.expansion && expansionFlag) {
       startY = startParentRow.translateY!;
       startRowEl = startParentRow;
-      startOffSetY = 10 * 0.5;
+      startOffSetY = selectFuncStruct ? 10 * (0.5 + Number(selectFuncStruct.depth)) : 10 * 0.5;
     }
     return [startY, startRowEl, startOffSetY];
   }
 
-  calculateEndY(endParentRow: unknown, endRowStruct: unknown): [number, unknown, number] {
-    // @ts-ignore
+  calculateEndY(endParentRow: any, endRowStruct: any, data?: any): [number, any, number] {
     let endY = endRowStruct.translateY!;
     let endRowEl = endRowStruct;
-    let endOffSetY = 20 * 0.5;
-    const expansionFlag = this.collectionHasThread(endRowStruct); // @ts-ignore
+    let endOffSetY = data ? 20 * (0.5 + Number(data.depth)) : 20 * 0.5;
+    const expansionFlag = this.collectionHasThread(endRowStruct);
     if (!endParentRow.expansion && expansionFlag) {
-      // @ts-ignore
       endY = endParentRow.translateY!;
       endRowEl = endParentRow;
-      endOffSetY = 10 * 0.5;
+      endOffSetY = data ? 10 * (0.5 + Number(data.depth)) : 10 * 0.5;
     }
     return [endY, endRowEl, endOffSetY];
   }
@@ -2003,7 +2007,7 @@ export class SpSystemTrace extends BaseElement {
     window.publish(window.SmartEvent.UI.MouseEventEnable, {
       mouseEnable: true,
     });
-  }
+  };
 
   initGpuCounter = async (ev: File) => {
     this.rowsPaneEL!.scroll({
@@ -2014,9 +2018,9 @@ export class SpSystemTrace extends BaseElement {
       this.loadTraceCompleted = true;
       this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
         this.intersectionObserver?.observe(it);
-      })
-    })
-  }
+      });
+    });
+  };
 
   // @ts-ignore
   queryAllTraceRow<T>(selectors?: string, filter?: (row: TraceRow<unknown>) => boolean): TraceRow<unknown>[] {

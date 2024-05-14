@@ -317,7 +317,6 @@ export class SelectionParam {
             pid: it.asyncFuncNamePID || 0,
           });
         } else {
-          //批注 哪来的数组?
           //@ts-ignore
           for (let i = 0; i < it.asyncFuncName.length; i++) {
             const el = it.asyncFuncName[i];

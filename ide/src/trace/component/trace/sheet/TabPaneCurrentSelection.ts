@@ -342,38 +342,43 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
   }
 
-  async setFunctionData(data: FuncStruct, callBack: Function, scrollCallback: Function): Promise<void> {
+  async setFunctionData(
+    data: FuncStruct,
+    scrollCallback: Function,
+    callback?: (data: Array<any>, str: string, binderTid: number) => void
+  ): Promise<void> {
     //方法信息
     await this.setRealTime();
     this.tabCurrentSelectionInit('Slice Details');
-    let list: unknown[] = [];
+    let list: any[] = [];
     let name = this.transferString(data.funName ?? '');
     // 从缓存中拿到详细信息的表
     let information: string = '';
-    let funDetailList: Array<FunDetail> = new Array();
+    let FunDetailList: Array<FunDetail> = new Array();
     await caches
-      .match('/funDetail')
+      .match('/FunDetail')
       .then((res) => {
         return res!.text();
       })
       .then((res) => {
-        funDetailList = JSON.parse(res);
+        FunDetailList = JSON.parse(res);
       });
-    if (Array.isArray(funDetailList)) {
+    if (Array.isArray(FunDetailList)) {
       // 筛选当前函数块的信息项
-      let informationList: Array<FunDetail> = funDetailList.filter((v: FunDetail) => {
+      let informationList: Array<FunDetail> = FunDetailList.filter((v: FunDetail) => {
         return v.slice.indexOf(name) > -1 || name.indexOf(v.slice) > -1;
       });
       information = informationList && informationList.length > 0 ? informationList[0].CN : `没有找到相关${name}的描述`;
     }
     let isBinder = FuncStruct.isBinder(data);
+    let jankJumperList = new Array<ThreadTreeNode>();
     let isAsyncBinder = isBinder && FuncStruct.isBinderAsync(data);
     if (data.argsetid !== undefined && data.argsetid !== null && data.argsetid >= 0) {
       this.setTableHeight('700px');
       if (isAsyncBinder) {
         this.handleAsyncBinder(data, list, name, scrollCallback, information);
       } else if (isBinder) {
-        this.handleBinder(data, list, name, scrollCallback, information);
+        this.handleBinder(data, list, jankJumperList, name, scrollCallback, information, callback);
       } else {
         this.handleNonBinder(data, list, name, information);
       }
@@ -389,24 +394,17 @@ export class TabPaneCurrentSelection extends BaseElement {
         name: 'Duration',
         value: getTimeString(data.dur || 0),
       });
-      list.push({ name: 'Depth', value: data.depth });
-      list.push({ name: 'Information:', value: information });
-      if (data.chainId) {
-        list.push({ name: 'ChainId', value: data.chainId });
-        list.push({ name: 'SpanId', value: data.spanId });
-        list.push({ name: 'ParentSpanId', value: data.parentSpanId });
-        list.push({ name: 'ChainFlag', value: data.chainFlag });
-        await this.chainSpanListCallBackHandle(data, callBack);
-      }
+      list.push({ name: 'depth', value: data.depth });
+      list.push({ name: 'information:', value: information });
       this.currentSelectionTbl!.dataSource = list;
-      let startTimeAbsolute = (data.startTs || 0) + Utils.getInstance().getRecordStartNS();
+      let startTimeAbsolute = (data.startTs || 0) + (window as any).recordStartNS;
       this.addClickToTransfBtn(startTimeAbsolute, FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);
     }
   }
 
   // 计算真实时间
   private getRealTimeStr(startTs: number): string {
-    let time = (startTs || 0) + Utils.getInstance().getRecordStartNS() - this.bootTime + this.realTime;
+    let time = (startTs || 0) - Utils.getInstance().getRecordStartNS() - this.bootTime + this.realTime;
     const formateDateStr =
       this.getDate(parseInt(time.toString().substring(0, 13))) + '.' + time.toString().substring(10);
     return formateDateStr;
@@ -483,13 +481,19 @@ export class TabPaneCurrentSelection extends BaseElement {
   private handleBinder(
     data: FuncStruct,
     list: any[],
+    jankJumperList: ThreadTreeNode[],
     name: string,
     scrollCallback: Function,
-    information: string
+    information: string,
+    callback?: (data: Array<any>, str: string, binderTid: number) => void
   ): void {
     queryBinderArgsByArgset(data.argsetid!).then((argset) => {
       let binderSliceId = -1;
+      let binderTid = -1;
       argset.forEach((item) => {
+        if (item.keyName === 'calling tid') {
+          binderTid = Number(item.strValue);
+        }
         if (item.keyName === 'destination slice id') {
           binderSliceId = Number(item.strValue);
           list.unshift({
@@ -514,6 +518,18 @@ export class TabPaneCurrentSelection extends BaseElement {
             if (result.length > 0) {
               result[0].type = TraceRow.ROW_TYPE_FUNC;
               scrollCallback(result[0]);
+              let timeLineNode = new ThreadTreeNode(
+                result[0]?.tid,
+                result[0]?.pid,
+                result[0].startTs,
+                result[0]?.depth
+              );
+              jankJumperList.push(timeLineNode);
+              if (callback) {
+                let linkTo = 'binder-to';
+                callback(jankJumperList, linkTo, binderTid);
+                linkTo = '';
+              }
             }
           });
         }
@@ -1940,16 +1956,18 @@ export class ThreadTreeNode {
   tid: number = 0;
   pid: number = -1;
   startTime: number = 1;
+  depth: number = 0;
 
-  constructor(tid: number, pid: number, startTime: number) {
+  constructor(tid: number, pid: number, startTime: number, depth: number = 0) {
     this.tid = tid;
     this.pid = pid;
     this.startTime = startTime;
+    this.depth = depth;
   }
 }
 
 class FunDetail {
   slice: string = '';
   CN: string = '';
-  EN: string = ''
+  EN: string = '';
 }
