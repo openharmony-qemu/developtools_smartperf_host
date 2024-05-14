@@ -18,7 +18,13 @@ import { SelectionParam } from '../../../../bean/BoxSelection';
 import { getGpufreqData, getGpufreqDataCut } from '../../../../database/sql/Perf.sql';
 import { resizeObserver } from '../SheetUtils';
 import { SpSegmentationChart } from '../../../chart/SpSegmentationChart';
-import { GpuCountBean, TreeDataBean, type SearchGpuFuncBean, CycleDataBean, TreeDataStringBean } from '../../../../bean/GpufreqBean';
+import {
+  GpuCountBean,
+  TreeDataBean,
+  type SearchGpuFuncBean,
+  CycleDataBean,
+  TreeDataStringBean,
+} from '../../../../bean/GpufreqBean';
 
 @element('tabpane-gpufreqdatacut')
 export class TabPaneGpufreqDataCut extends BaseElement {
@@ -41,29 +47,35 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       return;
     } else {
       SpSegmentationChart.setChartData('GPU-FREQ', []);
-    };
+    }
     this.currentSelectionParam = threadStatesParam;
     this.threadStatesTbl!.recycleDataSource = [];
     this.threadStatesTbl!.loading = true;
     this.getGpufreqData(threadStatesParam.leftNs, threadStatesParam.rightNs, false).then((result) => {
       if (result !== null && result.length > 0) {
         let resultList: Array<GpuCountBean> = JSON.parse(JSON.stringify(result));
-        resultList[0].dur = resultList[1] ? resultList[1].startNS - threadStatesParam.leftNs : threadStatesParam.rightNs - threadStatesParam.leftNs;
+        resultList[0].dur = resultList[1]
+          ? resultList[1].startNS - threadStatesParam.leftNs
+          : threadStatesParam.rightNs - threadStatesParam.leftNs;
         resultList[0].value = resultList[0].dur * resultList[0].val;
-        resultList[resultList.length - 1].dur = resultList.length - 1 !== 0 ? threadStatesParam.rightNs - resultList[resultList.length - 1].startNS : resultList[0].dur;
-        resultList[resultList.length - 1].value = resultList.length - 1 !== 0 ? resultList[resultList.length - 1].dur * resultList[resultList.length - 1].val : resultList[0].value;
+        resultList[resultList.length - 1].dur =
+          resultList.length - 1 !== 0
+            ? threadStatesParam.rightNs - resultList[resultList.length - 1].startNS
+            : resultList[0].dur;
+        resultList[resultList.length - 1].value =
+          resultList.length - 1 !== 0
+            ? resultList[resultList.length - 1].dur * resultList[resultList.length - 1].val
+            : resultList[0].value;
         this.initData = resultList;
         this.threadStatesTbl!.loading = false;
       } else {
         this.threadStatesTbl!.recycleDataSource = [];
         this.threadStatesTbl!.loading = false;
-      };
+      }
     });
     this._threadId!.style.border = '1px solid rgb(151, 151, 151)';
     this._threadFunc!.style.border = '1px solid rgb(151, 151, 151)';
-    this.isChangeSingleBtn(false);
-    this.isChangeLoopBtn(false);
-  };
+  }
 
   initElements(): void {
     this.threadStatesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gpufreq-percent');
@@ -75,14 +87,10 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     this.threadFuncName = this._threadFunc!.value.trim();
     //点击single
     this._single?.addEventListener('click', (e) => {
-      this.isChangeSingleBtn(true);
-      this.isChangeLoopBtn(false);
       this.clickFun(this._single!.innerHTML);
     });
     //点击loop
     this._loop?.addEventListener('click', (e) => {
-      this.isChangeSingleBtn(false);
-      this.isChangeLoopBtn(true);
       this.clickFun(this._loop!.innerHTML);
     });
     //点击周期，算力泳道对应周期实现高亮效果
@@ -92,34 +100,25 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       if (event.detail.level === EVENT_LEVEL && event.detail.thread.includes('cycle')) {
         // @ts-ignore
         SpSegmentationChart.tabHover('GPU-FREQ', true, event.detail.data.cycle);
-      };
+      }
     });
     this.addInputBorderEvent(this._threadId!);
     this.addInputBorderEvent(this._threadFunc!);
-  };
+  }
   async getGpufreqData(leftNs: number, rightNs: number, isTrue: boolean): Promise<Array<GpuCountBean>> {
     let result: Array<GpuCountBean> = await getGpufreqData(leftNs, rightNs, isTrue);
     return result;
-  };
-  async getGpufreqDataCut(tIds: string, funcName: string, leftNS: number, rightNS: number, single: boolean, loop: boolean): Promise<Array<SearchGpuFuncBean>> {
+  }
+  async getGpufreqDataCut(
+    tIds: string,
+    funcName: string,
+    leftNS: number,
+    rightNS: number,
+    single: boolean,
+    loop: boolean
+  ): Promise<Array<SearchGpuFuncBean>> {
     let result: Array<SearchGpuFuncBean> = await getGpufreqDataCut(tIds, funcName, leftNS, rightNS, single, loop);
     return result;
-  };
-   //是否改变single按钮颜色
-   private isChangeSingleBtn(flag: boolean): void {
-    if (flag) {
-      this.setAttribute('single', '');
-    } else {
-      this.removeAttribute('single');
-    };
-  }
-  //是否改变loop按钮颜色
-  private isChangeLoopBtn(flag: boolean): void {
-    if (flag) {
-      this.setAttribute('loop', '');
-    } else {
-      this.removeAttribute('loop');
-    };
   }
   private clickFun(fun: string): void {
     this.threadIdValue = this._threadId!.value.trim();
@@ -127,7 +126,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     this.threadStatesTbl!.loading = true;
     SpSegmentationChart.tabHover('GPU-FREQ', false, -1);
     this.validationFun(this.threadIdValue, this.threadFuncName, fun);
-  };
+  }
   private addInputBorderEvent(inputElement: HTMLInputElement): void {
     if (inputElement) {
       inputElement.addEventListener('change', function () {
@@ -136,7 +135,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         }
       });
     }
-  };
+  }
   private validationFun(threadIdValue: string, threadFuncName: string, fun: string): void {
     if (threadIdValue === '') {
       this.handleEmptyInput(this._threadId!);
@@ -147,27 +146,30 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       this._threadFunc!.style.border = '1px solid rgb(151, 151, 151)';
       if (fun === 'Single') {
         this.isTrue(threadIdValue, threadFuncName, true, false);
-      };
+      }
       if (fun === 'Loop') {
         this.isTrue(threadIdValue, threadFuncName, false, true);
-      };
-    };
-  };
+      }
+    }
+  }
   private handleEmptyInput(input: HTMLInputElement): void {
     this.threadStatesTbl!.loading = false;
     input!.style.border = '1px solid rgb(255,0,0)';
     this.threadStatesTbl!.recycleDataSource = [];
-  };
+  }
   private isTrue(threadIdValue: string, threadFuncName: string, single: boolean, loop: boolean): void {
-    this.getGpufreqDataCut(threadIdValue, threadFuncName,
+    this.getGpufreqDataCut(
+      threadIdValue,
+      threadFuncName,
       this.currentSelectionParam!.leftNs,
       this.currentSelectionParam!.rightNs,
-      single, loop
+      single,
+      loop
     ).then((result: Array<SearchGpuFuncBean>) => {
       let _initData = JSON.parse(JSON.stringify(this.initData));
       this.handleDataCut(_initData, result);
     });
-  };
+  }
   private handleDataCut(initData: Array<GpuCountBean>, dataCut: Array<SearchGpuFuncBean>): void {
     if (initData.length > 0 && dataCut.length > 0) {
       let finalGpufreqData: Array<TreeDataStringBean> = new Array();
@@ -182,25 +184,24 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         let initItem: GpuCountBean = initData[j];
         _lastList.push(...this.segmentationData(initItem, dataItem, i));
         j++;
-        currentIndex++; 
+        currentIndex++;
         if (currentIndex === initData.length) {
           i++;
           j = 0;
-          currentIndex = 0; 
-        };
-      };
+          currentIndex = 0;
+        }
+      }
       let tree: TreeDataStringBean = this.createTree(_lastList);
       finalGpufreqData.push(tree);
       this.threadStatesTbl!.recycleDataSource = finalGpufreqData;
       this.threadStatesTbl!.loading = false;
       this.clickTableHeader(finalGpufreqData);
-
     } else {
       this.threadStatesTbl!.recycleDataSource = [];
       this.threadStatesTbl!.loading = false;
       SpSegmentationChart.setChartData('GPU-FREQ', []);
-    };
-  };
+    }
+  }
   private segmentationData(j: GpuCountBean, e: SearchGpuFuncBean, i: number): Array<GpuCountBean> {
     let lastList: Array<GpuCountBean> = [];
     if (j.startNS <= e.startTime && j.endTime >= e.startTime) {
@@ -230,7 +231,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
             i
           )
         );
-      };
+      }
     } else if (j.startNS >= e.startTime && j.endTime <= e.endTime) {
       lastList.push(
         new GpuCountBean(
@@ -257,10 +258,10 @@ export class TabPaneGpufreqDataCut extends BaseElement {
           i
         )
       );
-    };
+    }
     return lastList;
-  };
-  // 创建树形结构 
+  }
+  // 创建树形结构
   private createTree(data: Array<GpuCountBean>): TreeDataStringBean {
     if (data.length > 0) {
       const root: {
@@ -269,9 +270,9 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         dur: number;
         percent: number;
         level: number;
-        children: TreeDataBean[];  
+        children: TreeDataBean[];
       } = {
-        thread: 'gpufreq Frequency', 
+        thread: 'gpufreq Frequency',
         value: 0,
         dur: 0,
         percent: 100,
@@ -286,43 +287,48 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         item.level = 4;
         this.updateValueMap(item, parentIndex, freq, valueMap);
       });
-      Object.values(valueMap).forEach((node: TreeDataBean) => { 
-        const parentNode: TreeDataBean = valueMap[node.freq! - 1]; 
+      Object.values(valueMap).forEach((node: TreeDataBean) => {
+        const parentNode: TreeDataBean = valueMap[node.freq! - 1];
         if (parentNode) {
           parentNode.children.push(node);
           parentNode.dur += node.dur;
           parentNode.value += node.value;
         } else {
-          root.children.push(node);  
-          root.dur += node.dur; 
+          root.children.push(node);
+          root.dur += node.dur;
           root.value += node.value;
         }
       });
       this.flattenAndCalculate(root, root);
       const firstLevelChildren = this.getFirstLevelChildren(root);
       SpSegmentationChart.setChartData('GPU-FREQ', firstLevelChildren);
-      let _root = this.RetainDecimals(root)
+      let _root = this.RetainDecimals(root);
       return _root;
     } else {
       return new TreeDataStringBean('', '', '', '', '', '');
-    };
-  };
-  private updateValueMap(item: GpuCountBean, parentIndex: number, freq: number, valueMap: { [parentIndex: string]: TreeDataBean }): void {
+    }
+  }
+  private updateValueMap(
+    item: GpuCountBean,
+    parentIndex: number,
+    freq: number,
+    valueMap: { [parentIndex: string]: TreeDataBean }
+  ): void {
     if (!valueMap[parentIndex]) {
       valueMap[parentIndex] = {
         thread: `cycle ${parentIndex + 1} ${item.thread}`,
         value: item.value,
         dur: item.dur,
         startNS: item.startNS,
-        percent: 100, 
+        percent: 100,
         level: 2,
         cycle: parentIndex + 1,
         children: [],
       };
-    } else { 
+    } else {
       valueMap[parentIndex].dur += item.dur;
       valueMap[parentIndex].value += item.value;
-    };
+    }
     if (!valueMap[parentIndex].children[freq]) {
       valueMap[parentIndex].children[freq] = {
         thread: item.thread,
@@ -335,41 +341,67 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     } else {
       valueMap[parentIndex].children[freq].dur += item.dur;
       valueMap[parentIndex].children[freq].value += item.value;
-    };
+    }
     valueMap[parentIndex].children[freq].children.push(item as unknown as TreeDataBean);
-  };
+  }
   private getFirstLevelChildren(obj: TreeDataBean): Array<CycleDataBean> {
     const result: Array<CycleDataBean> = [];
     if (Array.isArray(obj.children)) {
-      obj.children.forEach((child) => { 
-        if (child.cycle !== undefined && child.dur !== undefined && child.value !== undefined && child.startNS !== undefined) {
-          result.push(new CycleDataBean(7,child.dur, Number((child.value / this.KUNIT).toFixed(3)), child.startNS, child.cycle,'',1));
-        };
+      obj.children.forEach((child) => {
+        if (
+          child.cycle !== undefined &&
+          child.dur !== undefined &&
+          child.value !== undefined &&
+          child.startNS !== undefined
+        ) {
+          result.push(
+            new CycleDataBean(
+              7,
+              child.dur,
+              Number((child.value / this.KUNIT).toFixed(3)),
+              child.startNS,
+              child.cycle,
+              '',
+              1
+            )
+          );
+        }
       });
-    };
+    }
     return result;
-  };
+  }
   private flattenAndCalculate(node: TreeDataBean, root: TreeDataBean): void {
-    node.percent = node.value / root.value * 100;
+    node.percent = (node.value / root.value) * 100;
     if (node.children) {
       node.children = node.children.flat();
       node.children.forEach((childNode) => this.flattenAndCalculate(childNode, root));
-    };
-  };
+    }
+  }
   private RetainDecimals(root: TreeDataBean): TreeDataStringBean {
-    const treeDataString: TreeDataStringBean = new TreeDataStringBean(root.thread!, (root.value / this.KUNIT).toFixed(this.SUB_LENGTH), (root.dur / this.UNIT).toFixed(this.SUB_LENGTH), root.percent!.toFixed(this.PERCENT_SUB_LENGTH), String(root.level), '', 0, [], '', false);
+    const treeDataString: TreeDataStringBean = new TreeDataStringBean(
+      root.thread!,
+      (root.value / this.KUNIT).toFixed(this.SUB_LENGTH),
+      (root.dur / this.UNIT).toFixed(this.SUB_LENGTH),
+      root.percent!.toFixed(this.PERCENT_SUB_LENGTH),
+      String(root.level),
+      '',
+      0,
+      [],
+      '',
+      false
+    );
     if (root.children) {
       for (const child of root.children) {
         treeDataString.children!.push(this.convertChildToString(child) as TreeDataStringBean);
-      };
-    }; 
+      }
+    }
     return treeDataString;
-  };
+  }
   private convertChildToString(child: TreeDataBean | TreeDataBean[]): TreeDataStringBean | TreeDataStringBean[] {
-    if (Array.isArray(child)) { 
-      if (child.length > 0) { 
-        return child.map(c => this.convertChildToString(c) as TreeDataStringBean);
-      } else {  
+    if (Array.isArray(child)) {
+      if (child.length > 0) {
+        return child.map((c) => this.convertChildToString(c) as TreeDataStringBean);
+      } else {
         return [];
       }
     } else if (child && child.children) {
@@ -391,12 +423,11 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         freq: child.freq ? child.freq!.toFixed(this.SUB_LENGTH) : '',
         dur: (child.dur / this.UNIT).toFixed(this.SUB_LENGTH),
         percent: child.percent ? child.percent.toFixed(this.PERCENT_SUB_LENGTH) : '',
-        level: String(child.level)
+        level: String(child.level),
       };
     }
-
-  };
-  // 表头点击事件 
+  }
+  // 表头点击事件
   private clickTableHeader(data: Array<TreeDataStringBean>): void {
     let labels = this.threadStatesTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
     const THREAD_INDEX: number = 0;
@@ -414,8 +445,8 @@ export class TabPaneGpufreqDataCut extends BaseElement {
               item.status = true;
               if (item.children !== undefined && item.children.length > 0) {
                 this.threadStatesTbl!.setStatus(item.children, false);
-              };
-            };
+              }
+            }
             this.threadStatesTbl!.recycleDs = this.threadStatesTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Freq') && i === FREQ_INDEX) {
             for (let item of data) {
@@ -424,20 +455,20 @@ export class TabPaneGpufreqDataCut extends BaseElement {
                 e.status = true;
                 if (e.children !== undefined && e.children.length > 0) {
                   this.threadStatesTbl!.setStatus(e.children, true);
-                };
-              };
-            };
+                }
+              }
+            }
 
             this.threadStatesTbl!.recycleDs = this.threadStatesTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
-          };
+          }
         });
-      };
-    };
-  };
+      }
+    }
+  }
   connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.threadStatesTbl!);
-  };
+  }
 
   initHtml(): string {
     return `<style>
@@ -465,14 +496,6 @@ export class TabPaneGpufreqDataCut extends BaseElement {
             background-color:#666666;
             color:white;
         }
-        :host([single]) #single {
-          background-color: #666666;
-          color: white
-        }
-        :host([loop]) #loop {
-          background-color: #666666;
-          color: white
-        }
         </style>
         <div id='dataCut'>
             <input id="dataCutThreadId" type="text" style="width: 15%;height:90%;border-radius:10px;border:solid 1px #979797;font-size:15px;text-indent:3%" placeholder="Please input thread id" onkeyup="this.value=this.value.replace(/\\D/g,'')"/>
@@ -496,5 +519,5 @@ export class TabPaneGpufreqDataCut extends BaseElement {
             <lit-table-column class="running-percent-column" width="1fr" title="Percent(%)" data-index="percent" key="percent" align="flex-start">
             </lit-table-column>
         </lit-table>`;
-  };
+  }
 }

@@ -42,8 +42,6 @@ import {
   ns2xByTimeShaft,
   PairPoint,
   Rect,
-  prioClickHandlerFun,
-  drawThreadCurve,
 } from '../database/ui-worker/ProcedureWorkerCommon';
 import { SpChartManager } from './chart/SpChartManager';
 import { CpuStruct, WakeupBean } from '../database/ui-worker/cpu/ProcedureWorkerCPU';
@@ -109,7 +107,6 @@ import {
 } from './SpSystemTrace.init';
 import {
   spSystemTraceDrawDistributedLine,
-  spSystemTraceDrawFuncLine,
   spSystemTraceDrawJankLine,
   spSystemTraceDrawTaskPollLine,
   spSystemTraceDrawThreadLine,
@@ -128,7 +125,6 @@ import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { readTraceFileBuffer } from '../SpApplicationPublicFunc';
 import { PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { BaseStruct } from '../bean/BaseStruct';
-import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -219,7 +215,6 @@ export class SpSystemTrace extends BaseElement {
   static currentStartTime: number = 0;
   static retargetIndex: number = 0;
   private prevScrollY: number = 0;
-  focusTarget: string = '';
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -384,11 +379,6 @@ export class SpSystemTrace extends BaseElement {
         event = 'DeliverInputEvent';
         if (it.rowParentId === TraceRow.ROW_TYPE_DELIVER_INPUT_EVENT) {
           event = 'DeliverInputEvent Func';
-        }
-      } else if (it.rowType === TraceRow.ROW_TYPE_TOUCH_EVENT_DISPATCH) {
-        event = 'TouchEventDispatch';
-        if (it.rowParentId === TraceRow.ROW_TYPE_TOUCH_EVENT_DISPATCH) {
-          event = 'TouchEventDispatch Func';
         }
       } else {
         event = it.name;
@@ -698,58 +688,6 @@ export class SpSystemTrace extends BaseElement {
         this.favoriteChartListEL!.clientHeight
       );
     }
-    // draw prio curve
-    if (
-      ThreadStruct.isClickPrio &&
-      this.currentRow!.parentRowEl!.expansion &&
-      ThreadStruct.selectThreadStruct &&
-      ThreadStruct.contrast(ThreadStruct.selectThreadStruct, this.currentRow!.rowParentId, this.currentRow!.rowId)
-    ) {
-      let context: CanvasRenderingContext2D;
-      if (this.currentRow!.currentContext) {
-        context = this.currentRow!.currentContext;
-      } else {
-        context = this.currentRow!.collect ? this.canvasFavoritePanelCtx! : this.canvasPanelCtx!;
-      }
-      this.drawPrioCurve(context, this.currentRow!);
-    }
-  }
-
-  // draw prio curve
-  drawPrioCurve(context: any, row: TraceRow<any>) {
-    let curveDrawList: any = [];
-    let oldVal: number = -1;
-    let threadFilter = row.dataListCache.filter((it: any) => it.state === 'Running'); //筛选状态是Running的数据
-    //计算每个点的坐标
-    prioClickHandlerFun(ThreadStruct.prioCount, row, threadFilter, curveDrawList, oldVal);
-    //绘制曲线透明度设置1，根据计算的曲线坐标开始画图
-    context.globalAlpha = 1;
-    context.beginPath();
-    let x0, y0;
-    if (curveDrawList[0] && curveDrawList[0].frame) {
-      x0 = curveDrawList[0].frame.x;
-      y0 = curveDrawList[0].curveFloatY;
-    }
-    context!.moveTo(x0!, y0!);
-    if (SpSystemTrace.isKeyUp || curveDrawList.length < 90) {
-      for (let i = 0; i < curveDrawList.length - 1; i++) {
-        let re = curveDrawList[i];
-        let nextRe = curveDrawList[i + 1];
-        drawThreadCurve(context, re, nextRe);
-      }
-      context.closePath();
-    } else if (!SpSystemTrace.isKeyUp && curveDrawList.length >= 90) {
-      let x, y;
-      if (curveDrawList[curveDrawList.length - 1] && curveDrawList[curveDrawList.length - 1].frame) {
-        x = curveDrawList[curveDrawList.length - 1].frame.x;
-        y = curveDrawList[curveDrawList.length - 1].curveFloatY;
-      }
-      context.lineWidth = 1;
-      context.strokeStyle = '#ffc90e';
-      context.lineCap = 'round';
-      context.lineTo(x, y);
-      context.stroke();
-    }
   }
 
   documentOnMouseDown = (ev: MouseEvent): void => spSystemTraceDocumentOnMouseDown(this, ev);
@@ -838,15 +776,6 @@ export class SpSystemTrace extends BaseElement {
           SampleStruct.selectSampleStruct.begin - SampleStruct.selectSampleStruct.startTs!;
         this.currentSlicesTime.endTime = SampleStruct.selectSampleStruct.end - SampleStruct.selectSampleStruct.startTs!;
       }
-    } else if (GpuCounterStruct.selectGpuCounterStruct) {
-      if (GpuCounterStruct.selectGpuCounterStruct.startNS && GpuCounterStruct.selectGpuCounterStruct.dur) {
-        this.currentSlicesTime.startTime =
-          GpuCounterStruct.selectGpuCounterStruct.startNS - GpuCounterStruct.selectGpuCounterStruct.startTime!;
-        this.currentSlicesTime.endTime =
-          GpuCounterStruct.selectGpuCounterStruct.startNS +
-          GpuCounterStruct.selectGpuCounterStruct.dur -
-          GpuCounterStruct.selectGpuCounterStruct.startTime!;
-      }
     } else {
       this.currentSlicesTime.startTime = 0;
       this.currentSlicesTime.endTime = 0;
@@ -864,7 +793,6 @@ export class SpSystemTrace extends BaseElement {
       AppStartupStruct.selectStartupStruct ||
       SoStruct.selectSoStruct ||
       SampleStruct.selectSampleStruct ||
-      GpuCounterStruct.selectGpuCounterStruct ||
       AllAppStartupStruct.selectStartupStruct ||
       FrameAnimationStruct.selectFrameAnimationStruct ||
       JsCpuProfilerStruct.selectJsCpuProfilerStruct;
@@ -873,28 +801,19 @@ export class SpSystemTrace extends BaseElement {
     return this.slicestime;
   };
 
-  private calculateSlicesTime(selected: unknown, shiftKey: boolean): void {
-    if (selected) {
-      let startTs = 0;
-      // @ts-ignore
-      if (selected.begin && selected.end) {
+  private calculateSlicesTime(selectedStruct: unknown, shiftKey: boolean): void {
+    if (selectedStruct) {
+      let startTs = 0; // @ts-ignore
+      if (selectedStruct.begin && selectedStruct.end) {
         // @ts-ignore
-        startTs = selected.begin - selected.startTs;
-        // @ts-ignore
-        let end = selected.end - selected.startTs;
+        startTs = selectedStruct.begin - selectedStruct.startTs; // @ts-ignore
+        let end = selectedStruct.end - selectedStruct.startTs;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
-        // @ts-ignore
-      } else if (selectedStruct.startNS && selectedStruct.dur) {
-        // @ts-ignore
-        startTs = selectedStruct.startNS - selectedStruct.startTime;
-        // @ts-ignore
-        let end = selectedStruct.startNS + selectedStruct.dur - selectedStruct.startTime;
-        this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
-      } else {
-        // @ts-ignore
-        startTs = selected.startTs || selected.startTime || selected.startNS || selected.ts || 0;
-        // @ts-ignore
-        let dur = selected.dur || selected.totalTime || selected.endNS - selected.startNS || 0;
+      } else { // @ts-ignore
+        startTs = selectedStruct.startTs || selectedStruct.startTime || selectedStruct.startNS || // @ts-ignore
+          selectedStruct.ts || 0; // @ts-ignore
+        let dur = selectedStruct.dur || selectedStruct.totalTime || // @ts-ignore
+          selectedStruct.endNS - selectedStruct.startNS || 0;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, startTs + dur, shiftKey);
       }
     } else {
@@ -1156,7 +1075,6 @@ export class SpSystemTrace extends BaseElement {
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
     SampleStruct.hoverSampleStruct = undefined;
     PerfToolStruct.hoverPerfToolStruct = undefined;
-    GpuCounterStruct.hoverGpuCounterStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1188,7 +1106,6 @@ export class SpSystemTrace extends BaseElement {
     HitchTimeStruct.selectHitchTimeStruct = undefined;
     SampleStruct.selectSampleStruct = undefined;
     PerfToolStruct.selectPerfToolStruct = undefined;
-    GpuCounterStruct.selectGpuCounterStruct = undefined;
     return this;
   }
 
@@ -1216,7 +1133,6 @@ export class SpSystemTrace extends BaseElement {
     if (!SportRuler.isMouseInSportRuler) {
       this.traceSheetEL?.setMode('hidden');
     }
-    this.removeLinkLinesByBusinessType('task', 'thread', 'func');
     this.removeLinkLinesByBusinessType('task', 'thread', 'distributed');
     this.refreshCanvas(true, 'click empty');
     JankStruct.delJankLineFlag = true;
@@ -1236,11 +1152,6 @@ export class SpSystemTrace extends BaseElement {
     [
       TraceRow.ROW_TYPE_SAMPLE,
       (): boolean => SampleStruct.hoverSampleStruct !== null && SampleStruct.hoverSampleStruct !== undefined,
-    ],
-    [
-      TraceRow.ROW_TYPE_GPU_COUNTER,
-      (): boolean =>
-        GpuCounterStruct.hoverGpuCounterStruct !== null && GpuCounterStruct.hoverGpuCounterStruct !== undefined,
     ],
     [
       TraceRow.ROW_TYPE_CPU_FREQ,
@@ -1414,10 +1325,6 @@ export class SpSystemTrace extends BaseElement {
     spSystemTraceDrawThreadLine(this, endParentRow, selectThreadStruct, data);
   }
 
-  drawFuncLine(endParentRow: any, selectFuncStruct: FuncStruct | undefined, data: any, binderTid: Number): void {
-    spSystemTraceDrawFuncLine(this, endParentRow, selectFuncStruct, data, binderTid);
-  }
-
   getStartRow(selectRowId: number | undefined, collectList: unknown[]): unknown {
     let startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
       `trace-row[row-id='${selectRowId}'][row-type='thread']`
@@ -1435,31 +1342,34 @@ export class SpSystemTrace extends BaseElement {
     return startRow;
   }
 
-  calculateStartY(startRow: any, selectFuncStruct?: FuncStruct): [number, any, number] {
+  calculateStartY(startRow: unknown, selectThreadStruct: ThreadStruct): [number, unknown, number] {
+    // @ts-ignore
     let startY = startRow!.translateY!;
     let startRowEl = startRow;
-    let startOffSetY = selectFuncStruct ? 20 * (0.5 + Number(selectFuncStruct.depth)) : 20 * 0.5;
-    const startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+    let startOffSetY = 20 * 0.5;
+    const startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>( // @ts-ignore
       `trace-row[row-id='${startRow.rowParentId}'][folder]`
     );
     const expansionFlag = this.collectionHasThread(startRow);
     if (startParentRow && !startParentRow.expansion && expansionFlag) {
       startY = startParentRow.translateY!;
       startRowEl = startParentRow;
-      startOffSetY = selectFuncStruct ? 10 * (0.5 + Number(selectFuncStruct.depth)) : 10 * 0.5;
+      startOffSetY = 10 * 0.5;
     }
     return [startY, startRowEl, startOffSetY];
   }
 
-  calculateEndY(endParentRow: any, endRowStruct: any, data?: any): [number, any, number] {
+  calculateEndY(endParentRow: unknown, endRowStruct: unknown): [number, unknown, number] {
+    // @ts-ignore
     let endY = endRowStruct.translateY!;
     let endRowEl = endRowStruct;
-    let endOffSetY = data ? 20 * (0.5 + Number(data.depth)) : 20 * 0.5;
-    const expansionFlag = this.collectionHasThread(endRowStruct);
+    let endOffSetY = 20 * 0.5;
+    const expansionFlag = this.collectionHasThread(endRowStruct); // @ts-ignore
     if (!endParentRow.expansion && expansionFlag) {
+      // @ts-ignore
       endY = endParentRow.translateY!;
       endRowEl = endParentRow;
-      endOffSetY = data ? 10 * (0.5 + Number(data.depth)) : 10 * 0.5;
+      endOffSetY = 10 * 0.5;
     }
     return [endY, endRowEl, endOffSetY];
   }
@@ -1957,7 +1867,7 @@ export class SpSystemTrace extends BaseElement {
     complete?: ((res: { status: boolean; msg: string }) => void) | undefined,
     buf2?: ArrayBuffer,
     fileName1?: string,
-    fileName2?: string
+    fileName2?: string,
   ): void {
     this.observerScrollHeightEnable = false;
     if (isDistributed) {
@@ -1999,29 +1909,6 @@ export class SpSystemTrace extends BaseElement {
       });
     });
   };
-
-  loadGpuCounter = async (ev: File) => {
-    this.observerScrollHeightEnable = false;
-    await this.initGpuCounter(ev);
-    this.rowsEL?.querySelectorAll('trace-row').forEach((it: any) => this.observer.observe(it));
-    window.publish(window.SmartEvent.UI.MouseEventEnable, {
-      mouseEnable: true,
-    });
-  };
-
-  initGpuCounter = async (ev: File) => {
-    this.rowsPaneEL!.scroll({
-      top: 0,
-      left: 0,
-    });
-    this.chartManager?.initGpuCounter(ev).then(() => {
-      this.loadTraceCompleted = true;
-      this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
-        this.intersectionObserver?.observe(it);
-      });
-    });
-  };
-
   // @ts-ignore
   queryAllTraceRow<T>(selectors?: string, filter?: (row: TraceRow<unknown>) => boolean): TraceRow<unknown>[] {
     return [
@@ -2194,8 +2081,8 @@ export class SpSystemTrace extends BaseElement {
         funcStract.flag = 'Did not end';
       }
     }
-    //@ts-ignore
-    let funcRowID = funcStract.cookie === null ? `${funcStract.tid}` : funcStract.row_id;
+    let funcRowID = Utils.getDistributedRowId( // @ts-ignore
+      funcStract.cookie ? `${funcStract.funName}-${funcStract.pid}` : funcStract.tid);
     let targetRow = this.favoriteChartListEL?.getCollectRow((row) => {
       return row.rowId === funcRowID && row.rowType === 'func';
     });
@@ -2206,10 +2093,8 @@ export class SpSystemTrace extends BaseElement {
       this.toTargetDepth(funcStract, funcRowID, funcStract);
       return;
     }
-    let parentRow = this.rowsEL!.querySelector<TraceRow<BaseStruct>>(
-      // @ts-ignore
-      `trace-row[row-id='${Utils.getDistributedRowId(funcStract.pid)}'][folder]`
-    );
+    let parentRow = // @ts-ignore
+      this.rowsEL!.querySelector<TraceRow<BaseStruct>>(`trace-row[row-id='${Utils.getDistributedRowId(funcStract.pid)}'][folder]`);
     if (!parentRow) {
       return;
     }
@@ -2225,9 +2110,8 @@ export class SpSystemTrace extends BaseElement {
     }
     filterRow.fixedList = [funcStract];
     filterRow!.highlight = highlight;
-    let row = this.rowsEL!.querySelector<TraceRow<BaseStruct>>( // @ts-ignore
-      `trace-row[row-id='${Utils.getDistributedRowId(funcStract.pid)}'][folder]`
-    );
+    let row = this.rowsEL!.querySelector<TraceRow<BaseStruct>>(  // @ts-ignore
+      `trace-row[row-id='${Utils.getDistributedRowId(funcStract.pid)}'][folder]`);
     this.currentRow = row;
     if (row && !row.expansion) {
       row.expansion = true;
@@ -2352,7 +2236,7 @@ export class SpSystemTrace extends BaseElement {
       threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: unknown, len: number): void => {});
     }
     if (threadPool2) {
-      threadPool2.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => {});
+      threadPool2.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => { });
     }
     this.times.clear();
     resetVSync();
@@ -2361,7 +2245,7 @@ export class SpSystemTrace extends BaseElement {
   }
 
   init = async (
-    param: { buf?: ArrayBuffer; url?: string; buf2?: ArrayBuffer; fileName1?: string; fileName2?: string },
+    param: { buf?: ArrayBuffer; url?: string; buf2?: ArrayBuffer, fileName1?: string, fileName2?: string },
     wasmConfigUri: string,
     progress: Function,
     isDistributed: boolean
@@ -2443,7 +2327,7 @@ export class SpSystemTrace extends BaseElement {
         this.tipEL.style.display = 'block'; // @ts-ignore
         y = y + struct.depth * 20;
         if (row.rowType === TraceRow.ROW_TYPE_BINDER_COUNT) {
-          this.tipEL.style.height = 'auto';
+          this.tipEL.style.height = '40px';
           y = row.hoverY + row.getBoundingClientRect().top - this.getBoundingClientRect().top;
         }
       } else {

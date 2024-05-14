@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, drawLoadingFrame, isFrameContainPoint } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler, drawLoadingFrame } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class LtpoRender {
@@ -42,16 +42,26 @@ export class LtpoRender {
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
     req.ltpoContext.globalAlpha = 0.6;
-    drawLoadingFrame(req.ltpoContext, filter, ltpoRow);
-    req.ltpoContext.beginPath();
     let find = false;
+    let offset = 3;
+    drawLoadingFrame(req.ltpoContext, filter, ltpoRow);
     for (let re of filter) {
-      if (ltpoRow.isHover && re.frame && isFrameContainPoint(re.frame, ltpoRow.hoverX, ltpoRow.hoverY)) {
-        LtpoStruct.hoverLtpoStruct = re;
-        find = true;
+      if (ltpoRow.isHover) {
+        if (
+          re.frame &&
+          ltpoRow.hoverX >= re.frame.x - offset &&
+          ltpoRow.hoverX <= re.frame.x + re.frame.width + offset
+        ) {
+          LtpoStruct.hoverLtpoStruct = re;
+          find = true;
+        }
       }
+      if (!ltpoRow.isHover) LtpoStruct.hoverLtpoStruct = undefined;
+      if (!find && ltpoRow.isHover) {
+        LtpoStruct.hoverLtpoStruct = undefined;
+      }
+      req.ltpoContext.beginPath();
       LtpoStruct.draw(req.ltpoContext, re);
-      if (!find && ltpoRow.isHover) LtpoStruct.hoverLtpoStruct = undefined;
       req.ltpoContext.closePath();
     }
   }
@@ -91,7 +101,7 @@ export class LtpoStruct extends BaseStruct {
         ctx.globalAlpha = 1.0;
         ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight);
         ctx.lineWidth = 1;
-        ctx.strokeStyle = '	#0000FF';
+        ctx.strokeStyle = '#0000FF';
         ctx.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight);
       } else {
         ctx.globalAlpha = 0.6;

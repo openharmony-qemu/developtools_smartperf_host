@@ -612,7 +612,7 @@ export class LitTable extends HTMLElement {
           totalWidth += parseInt(it);
         });
         totalWidth = Math.max(totalWidth, this.shadowRoot!.querySelector<HTMLDivElement>('.table')!.scrollWidth);
-        this.gridTemplateColumns[this.gridTemplateColumns.length - 1] = `${totalWidth - lastNode.offsetLeft}px`;
+        this.gridTemplateColumns[this.gridTemplateColumns.length - 1] = `${totalWidth - lastNode.offsetLeft - 1}px`;
         header.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
         let preNode = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
         preNode.style.width = `${preWidth}px`;

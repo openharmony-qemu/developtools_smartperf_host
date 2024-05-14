@@ -1059,25 +1059,17 @@ export class SpApplication extends BaseElement {
   }
 
   private handleWasmMode(ev: unknown, showFileName: string, fileSize: number, fileName: string): void {
+    const self = this;
     this.litSearch!.setPercent('', 1);
     if (fileName.endsWith('.json')) {
-      this.progressEL!.loading = true;
+      self.progressEL!.loading = true;
       //@ts-ignore
       self.spSystemTrace!.loadSample(ev).then(() => {
-        this.showContent(this.spSystemTrace!);
-        this.litSearch!.setPercent('', 101);
-        this.freshMenuDisable(false);
-        this.chartFilter!.setAttribute('mode', '');
-        this.progressEL!.loading = false;
-      });
-    } else if (fileName.endsWith('.csv')) {
-      this.progressEL!.loading = true;
-      this.spSystemTrace!.loadGpuCounter(ev as File).then(() => {
-        this.showContent(this.spSystemTrace!);
-        this.litSearch!.setPercent('', 101);
-        this.freshMenuDisable(false);
-        this.chartFilter!.setAttribute('mode', '');
-        this.progressEL!.loading = false;
+        self.showContent(self.spSystemTrace!);
+        self.litSearch!.setPercent('', 101);
+        self.freshMenuDisable(false);
+        self.chartFilter!.setAttribute('mode', '');
+        self.progressEL!.loading = false;
       });
     } else {
       let fileSizeStr = (fileSize / 1048576).toFixed(1);
@@ -1091,21 +1083,21 @@ export class SpApplication extends BaseElement {
         }
       };
       threadPool.init('wasm').then((res) => {
-        let reader: FileReader = new FileReader();
+        let reader: FileReader | null = new FileReader();
         //@ts-ignore
         reader.readAsArrayBuffer(ev);
-        reader.onloadend =  (ev): void =>{
+        reader.onloadend = function (ev): void {
           info('read file onloadend');
-          this.litSearch!.setPercent('ArrayBuffer loaded  ', 2);
+          self.litSearch!.setPercent('ArrayBuffer loaded  ', 2);
           let wasmUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`;
           SpApplication.loadingProgress = 0;
           SpApplication.progressStep = 3;
-          let data = this.markPositionHandler(reader.result as ArrayBuffer);
+          let data = self.markPositionHandler(this.result as ArrayBuffer);
           info('initData start Parse Data');
-          this.spSystemTrace!.loadDatabaseArrayBuffer(
+          self.spSystemTrace!.loadDatabaseArrayBuffer(
             data,
             wasmUrl,
-            (command: string, _: number) => this.setProgress(command),
+            (command: string, _: number) => self.setProgress(command),
             false,
             completeHandler
           );
@@ -1338,10 +1330,11 @@ export class SpApplication extends BaseElement {
     let pageInput = this.shadowRoot?.querySelector<HTMLInputElement>('.page-input');
     let previewButton: HTMLDivElement | null | undefined =
       this.shadowRoot?.querySelector<HTMLDivElement>('#preview-button');
-    let nextButton: HTMLDivElement | null | undefined = this.shadowRoot?.querySelector<HTMLDivElement>('#next-button');
+    let nextButton: HTMLDivElement | null | undefined = this.shadowRoot?.
+      querySelector<HTMLDivElement>('#next-button');
     let pageConfirmEl = this.shadowRoot?.querySelector<HTMLDivElement>('.confirm-button');
     pageInput!.style.pointerEvents = 'auto';
-    pageNodeList.forEach((pageItem) => {
+    pageNodeList.forEach(pageItem => {
       pageItem.style.pointerEvents = 'auto';
     });
     nextButton!.style.pointerEvents = 'auto';

@@ -147,14 +147,6 @@ margin-left: 15px;
 :host(:not([options])) #check-popover{
     display: none;
 }
-
-:host(:not([cpu_config])) #data-core-popover{
-    display: none;
-}
-
-:host(:not([group_config])) #group-mining-popover{
-    display: none;
-}
 #icon[name="statistics"]{
     margin-left: 12px;
 }
@@ -182,61 +174,6 @@ margin-left: 15px;
     border-radius: 16px;
     padding: 2px 18px;
 }
-#tb_core_setting, #tb_cpu, #tb_add_group{
-    height: 135px;
-    width: 250px;
-    background: var(--dark-background4,#F2F2F2);
-    overflow-y: auto ;
-    border-radius: 5px;
-    border: solid 1px var(--dark-border1,#e0e0e0);
-}
-#tb_core_setting {
-    display: grid;
-    grid-template-columns: auto auto auto auto;
-}
-
-.button{
-    opacity: 0.9;
-    font-size: 13px;
-    color: #0A59F7;
-    text-align: center;
-    line-height: 16px;
-    background: var(--dark-background3,#F4F3F4);
-    border: 1px solid var(--dark-background8,#F4F3F4);
-    border-radius: 16px;
-    padding: 2px 18px;
-}
-
-.core_line{
-    position: fixed;
-    bottom: 0;
-    height: 35px;
-    line-height: 35px;
-    position: sticky;
-    top: 0;
-    background: var(--dark-background4,#F2F2F2);
-    z-index: 1;
-    width: 100%;
-    font-Weight:bold;
-    font-style:12px;
-    text-align:center;
-}
-.tb_setting_content {
-    display: flex;
-    justify-content: space-between;
-}
-#move {
-    display: flex;
-    flex-direction: column;
-    width: 50px;
-    justify-content: space-evenly;
-    height: 135px;
-}
-.check-content{
-    display: flex;
-    align-content: center;
-    justify-content: center;
-} 
 
 #call-tree-popover[visible="true"] #call-tree{
     color: #0A59F7;
@@ -248,12 +185,6 @@ margin-left: 15px;
     color: #0A59F7;
 }
 #data-mining-popover[visible="true"] #data-mining{
-    color: #0A59F7;
-}
-#data-core-popover[visible="true"] #core-mining{
-    color: #0A59F7;
-}
-#group-mining-popover[visible="true"] #group-mining{
     color: #0A59F7;
 }
 
@@ -386,41 +317,11 @@ margin-left: 15px;
     </div>
     <span class="describe tree max-spacing" id="data-library">Library Filter</span>
 </lit-popover>
-<lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="data-core-popover">
-    <div slot="content">
-        <div class="core_setting_div" id="tb_core_setting" ></div>
-        <div style="display: flex;justify-content: space-around; margin-top: 8px">
-            <div class="button reset-button">Reset</div>
-            <div class="button confirm-button">Confirm</div>
-        </div>
-    </div>
-    <span class="describe max-spacing" id="core-mining">CPU Setting</span>
-</lit-popover>
-<lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="group-mining-popover">
-    <div slot="content">
-        <div class='tb_setting_content'>
-            <div id="tb_cpu" style="width: 140px;"></div>
-            <div id="move">
-                <div class="button add_group_button"> > </div>
-                <div class="button cut_group_button"> < </div>
-            </div>
-            <div id="tb_add_group" style="width: 140px;">
-                <div class="core_line">Group</div>
-                <div class="add_content" style="text-align: center"></div>
-            </div>
-        </div>
-        <div style="display: flex;justify-content: space-around; margin-top: 8px">
-            <div class="button reset-group-button">Reset</div>
-            <div class="button confirm-group-button">Confirm</div>
-        </div>
-    </div>
-    <span class="describe max-spacing" id="group-mining">Group Setting</span>
-</lit-popover>
 <div class="sort">
     <lit-icon name="swap" class="spacing" size="16"></lit-icon>
     <div style="margin-left: 5px" class="describe statistics-name">Statistics by Thread</div>
 </div>
-`
+`;
 export const TabPaneFilterHtml = (input: string): string => {
   return replacePlaceholders(html, input);
-}
+};

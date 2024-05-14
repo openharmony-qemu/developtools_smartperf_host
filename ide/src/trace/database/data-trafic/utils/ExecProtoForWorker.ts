@@ -33,7 +33,6 @@ import { processMemDataReceiver } from '../process//ProcessMemDataReceiver';
 import { processStartupDataReceiver } from '../process//ProcessStartupDataReceiver';
 import { processSoInitDataReceiver } from '../process//ProcessSoInitDataReceiver';
 import { processDeliverInputEventDataReceiver } from '../process//ProcessDeliverInputEventDataReceiver';
-import { processTouchEventDispatchDataReceiver } from '../process//ProcessTouchEventDispatchDataReceiver';
 
 import {
   dmaDataReceiver,
@@ -111,7 +110,6 @@ traficHandlers.set(QueryEnum.ProcessSoInitData, processSoInitDataReceiver);
 traficHandlers.set(QueryEnum.processExpectedData, processExpectedDataReceiver);
 traficHandlers.set(QueryEnum.processActualData, processActualDataReceiver);
 traficHandlers.set(QueryEnum.processDeliverInputEventData, processDeliverInputEventDataReceiver);
-traficHandlers.set(QueryEnum.processTouchEventDispatchData, processTouchEventDispatchDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerSmapsData, sMapsDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerDmaData, dmaDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerGpuMemoryData, gpuMemoryDataReceiver);

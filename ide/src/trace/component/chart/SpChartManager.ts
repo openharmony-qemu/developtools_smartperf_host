@@ -56,7 +56,6 @@ import { SpLtpoChart } from './SpLTPO';
 import { SpBpftraceChart } from './SpBpftraceChart';
 import { sliceSender } from '../../database/data-trafic/SliceSender';
 import { BaseStruct } from '../../bean/BaseStruct';
-import { SpGpuCounterChart } from './SpGpuCounterChart';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -86,7 +85,6 @@ export class SpChartManager {
   private spSegmentationChart: SpSegmentationChart;
   private spBpftraceChart: SpBpftraceChart;
   private spPerfOutputDataChart: SpPerfOutputDataChart;
-  private spGpuCounterChart: SpGpuCounterChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -113,7 +111,6 @@ export class SpChartManager {
     this.spSegmentationChart = new SpSegmentationChart(trace);
     this.spBpftraceChart = new SpBpftraceChart(trace);
     this.spPerfOutputDataChart = new SpPerfOutputDataChart(trace);
-    this.spGpuCounterChart = new SpGpuCounterChart(trace);
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
@@ -145,9 +142,6 @@ export class SpChartManager {
     info('initData cpu Data initialized');
     if (FlagsConfig.getFlagsConfigEnableStatus('Bpftrace')) {
       await this.spBpftraceChart.init(null);
-    }
-    if (FlagsConfig.getFlagsConfigEnableStatus('GpuCounter')) {
-      await this.spGpuCounterChart.init([]);
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
       await this.cpu.initCpuIdle0Data(progress);
@@ -205,10 +199,9 @@ export class SpChartManager {
     this.process2 = undefined;
     await this.process.initAsyncFuncData({
       startTs: Utils.getInstance().getRecordStartNS(),
-      endTs: Utils.getInstance().getRecordEndNS(),
+      endTs: Utils.getInstance().getRecordEndNS()
     });
     await this.process.initDeliverInputEvent();
-    await this.process.initTouchEventDispatch();
     await this.process.init(false);
     progress('display', 95);
   }
@@ -246,35 +239,23 @@ export class SpChartManager {
       if (!this.process2) {
         this.process2 = new SpProcessChart(this.trace);
       }
-      await this.process2.initAsyncFuncData(
-        {
-          startTs: Utils.getInstance().getRecordStartNS('2'),
-          endTs: Utils.getInstance().getRecordEndNS('2'),
-        },
-        traceId
-      );
+      await this.process2.initAsyncFuncData({
+        startTs: Utils.getInstance().getRecordStartNS('2'),
+        endTs: Utils.getInstance().getRecordEndNS('2')
+      }, traceId);
       await this.process2.init(true, traceFolder, traceId);
     } else {
-      await this.process.initAsyncFuncData(
-        {
-          startTs: Utils.getInstance().getRecordStartNS('1'),
-          endTs: Utils.getInstance().getRecordEndNS('1'),
-        },
-        traceId
-      );
+      await this.process.initAsyncFuncData({
+        startTs: Utils.getInstance().getRecordStartNS('1'),
+        endTs: Utils.getInstance().getRecordEndNS('1')
+      }, traceId);
       await this.process.init(true, traceFolder, traceId);
     }
   }
 
-  async initSample(ev: File) {
-    await this.initSampleTime(ev, 'bpftrace');
+  async initSample(ev: File): Promise<void> {
+    await this.initSampleTime();
     await this.spBpftraceChart.init(ev);
-  }
-
-  async initGpuCounter(ev: File) {
-    const res = await this.initSampleTime(ev, 'gpucounter');
-    //@ts-ignore
-    await this.spGpuCounterChart.init(res);
   }
 
   async importSoFileUpdate(): Promise<void> {
@@ -326,19 +307,11 @@ export class SpChartManager {
     }
   };
 
-  initSampleTime = async (ev: File, type: string): Promise<unknown> => {
-    let res;
-    let endNS = 30_000_000_000;
-    if (type === 'gpucounter') {
-      res = await this.spGpuCounterChart.getCsvData(ev);
-      const endTime = Number(res[res.length - 1].split(',')[0]);
-      const minIndex = this.spGpuCounterChart.getMinData(res) + 1;
-      const startTime = Number(res[minIndex].split(',')[0]);
-      endNS = Number((endTime - startTime).toString().slice(0, 11));
-    }
+  initSampleTime = async (): Promise<void> => {
     if (this.trace.timerShaftEL) {
-      let total = endNS;
+      let total = 30_000_000_000;
       let startNS = 0;
+      let endNS = 30_000_000_000;
       this.trace.timerShaftEL.totalNS = total;
       this.trace.timerShaftEL.getRangeRuler()!.drawMark = true;
       this.trace.timerShaftEL.setRangeNS(0, total); // @ts-ignore
@@ -347,7 +320,6 @@ export class SpChartManager {
       (window as unknown).totalNS = total;
       this.trace.timerShaftEL.loadComplete = true;
     }
-    return res;
   };
 
   initCpuRate = async (): Promise<void> => {

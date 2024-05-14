@@ -46,7 +46,6 @@ import { LitMainMenu } from '../../base-ui/menu/LitMainMenu';
 import { PerfToolsStructOnClick } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { Utils } from './trace/base/Utils';
 import { BaseStruct } from '../bean/BaseStruct';
-import { gpuCounterStructOnClick } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -99,6 +98,7 @@ function threadClickHandlerFunc(sp: SpSystemTrace): (e: ThreadStruct) => void {
     let cpuRow = sp.queryAllTraceRow<TraceRow<CpuStruct>>(
       `trace-row[row-id='${Utils.getDistributedRowId(d.cpu)}'][row-type='cpu-data']`,
       (row) => row.rowId === `${Utils.getDistributedRowId(d.cpu)}` && row.rowType === 'cpu-data'
+
     )[0];
     if (cpuRow) {
       sp.currentRow = cpuRow;
@@ -148,15 +148,6 @@ function threadClickHandlerFunc(sp: SpSystemTrace): (e: ThreadStruct) => void {
   return threadClickHandler;
 }
 
-//点击prio箭头刷新canvas
-function prioClickHandlerFunc(sp: SpSystemTrace) {
-  return function (d: any) {
-    ThreadStruct.prioCount = d;
-    ThreadStruct.isClickPrio = true;
-    sp.refreshCanvas(true);
-  };
-}
-
 function scrollToFuncHandlerFunc(sp: SpSystemTrace): Function {
   let funClickHandle = (funcStruct: unknown): void => {
     // @ts-ignore
@@ -176,7 +167,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace): Function {
     let jankRowParent: unknown;
     //@ts-ignore
     if (d.rowId === 'actual frameTime') {
-      jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>("trace-row[row-id='frameTime']");
+      jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>('trace-row[row-id=\'frameTime\']');
     } else {
       jankRowParent = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
         //@ts-ignore
@@ -198,10 +189,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace): Function {
     if (jankRow) {
       JankStruct.selectJankStructList.length = 0;
       //@ts-ignore
-      let findJankEntry = jankRow!.dataListCache!.find(
-        //@ts-ignore
-        (dat: unknown) => `${dat.name}` == `${d.name}` && `${dat.pid}` == `${d.pid}`
-      );
+      let findJankEntry = jankRow!.dataListCache!.find((dat: unknown) => `${dat.name}` == `${d.name}` && `${dat.pid}` == `${d.pid}`);
       if (findJankEntry) {
         if (
           findJankEntry!.ts! + findJankEntry!.dur! < TraceRow.range!.startNS ||
@@ -293,7 +281,6 @@ function cpuClickHandlerTask(threadRow: TraceRow<unknown>, sp: SpSystemTrace, d:
       ThreadStruct.selectThreadStruct!,
       threadClickHandlerFunc(sp), // @ts-ignore
       cpuClickHandlerFunc(sp),
-      prioClickHandlerFunc(sp),
       (datas, str): void => {
         sp.removeLinkLinesByBusinessType('thread');
         if (str === 'wakeup tid') {
@@ -354,15 +341,7 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
 //@ts-ignore
 function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<unknown>, entry?: unknown): void {
   CpuStructOnClick(clickRowType, sp, cpuClickHandlerFunc(sp))
-    .then(() =>
-      ThreadStructOnClick(
-        clickRowType,
-        sp,
-        threadClickHandlerFunc(sp),
-        cpuClickHandlerFunc(sp),
-        prioClickHandlerFunc(sp)
-      )
-    )
+    .then(() => ThreadStructOnClick(clickRowType, sp, threadClickHandlerFunc(sp), cpuClickHandlerFunc(sp)))
     //@ts-ignore
     .then(() => funcStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp), entry))
     .then(() => CpuFreqStructOnClick(clickRowType, sp))
@@ -387,7 +366,6 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
     .then(() => sampleStructOnClick(clickRowType, sp))
-    .then(() => gpuCounterStructOnClick(clickRowType, sp))
     .then(() => PerfToolsStructOnClick(clickRowType, sp))
 
     .then(() => {
@@ -446,7 +424,7 @@ export default function spSystemTraceOnClickHandler(
 //@ts-ignore
 function handleActions(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
   if (sp.rangeSelect.isMouseDown && sp.rangeSelect.drag) {
-    let downRow = sp.visibleRows.find((row) => row.containPoint(ev));
+    let downRow = sp.visibleRows.find(row => row.containPoint(ev));
     if (downRow && downRow.traceId !== Utils.currentSelectTrace) {
       spSystemTraceDocumentOnMouseMoveMouseUp(sp, rows, ev);
       return;
@@ -552,9 +530,6 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
       }
     })
     .forEach((tr): void => {
-      if (tr.rowType !== TraceRow.ROW_TYPE_CPU) {
-        CpuStruct.hoverCpuStruct = undefined;
-      }
       if (sp.currentRowType !== tr.rowType) {
         sp.currentRowType = tr.rowType || '';
       }
@@ -568,7 +543,6 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   if (!sp.loadTraceCompleted) {
     return;
   }
-  CpuStruct.hoverCpuStruct = undefined;
   TraceRow.isUserInteraction = false;
   SpSystemTrace.isMouseLeftDown = false;
   if (sp.isMouseInSheet(ev)) {
@@ -678,7 +652,7 @@ export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEve
     if (y > sp.timerShaftEL!.offsetHeight) {
       sp.rangeSelect.mouseDown(ev);
       sp.rangeSelect.drag = true;
-      let downRow = sp.visibleRows.find((row) => row.containPoint(ev));
+      let downRow = sp.visibleRows.find(row => row.containPoint(ev));
       Utils.currentSelectTrace = downRow?.traceId;
     }
     //  如果鼠标摁下事件发生在traceRow范围或时间轴(sportRuler除外)范围内,清除上次点击调用栈产生的所有的三角旗子
@@ -802,14 +776,12 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
         })
       );
     } else {
-      if (sp.focusTarget === '') {
-        sp.dispatchEvent(
-          new CustomEvent('trace-next-data', {
-            detail: {},
-            composed: false,
-          })
-        );
-      }
+      sp.dispatchEvent(
+        new CustomEvent('trace-next-data', {
+          detail: {},
+          composed: false,
+        })
+      );
     }
     document.addEventListener('keydown', sp.documentOnKeyDown);
   }
@@ -900,9 +872,6 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
       offset = true;
     }
     if (rows && rows[0] && rows[0].getHoverStruct(strict, offset)) {
-      sp.onClickHandler(rows[0]!.rowType!, rows[0]);
-      sp.documentOnMouseMove(ev);
-    } else if (rows && rows[0] && rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false)) {
       sp.onClickHandler(rows[0]!.rowType!, rows[0]);
       sp.documentOnMouseMove(ev);
     } else {

@@ -36,7 +36,6 @@ import { processSoInitDataSender } from '../../database/data-trafic/process/Proc
 import { processExpectedDataSender } from '../../database/data-trafic/process/ProcessExpectedDataSender';
 import { processActualDataSender } from '../../database/data-trafic/process/ProcessActualDataSender';
 import { processDeliverInputEventDataSender } from '../../database/data-trafic/process/ProcessDeliverInputEventDataSender';
-import { processTouchEventDispatchDataSender } from '../../database/data-trafic/process/ProcessTouchEventDispatchDataSender';
 import { getMaxDepthByTid, queryAllFuncNames, queryProcessAsyncFunc } from '../../database/sql/Func.sql';
 import { queryMemFilterIdMaxValue } from '../../database/sql/Memory.sql';
 import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap } from '../../database/sql/SqlLite.sql';
@@ -244,110 +243,6 @@ export class SpProcessChart {
     });
     if (funcRow && !funcRow.isComplete) {
       //@ts-ignore
-      let max = Math.max(...asyncFuncGroups.map((it) => it.depth || 0)) + 1;
-      let maxHeight = max * 18 + 6;
-      funcRow.style.height = `${maxHeight}px`;
-      funcRow.setAttribute('height', `${maxHeight}`);
-    }
-  }
-
-  initTouchEventDispatch = async (): Promise<void> => {
-    let row = TraceRow.skeleton() as TraceRow<ProcessStruct>;
-    row.setAttribute('disabled-check', '');
-    row.rowId = 'TouchEventDispatch';
-    row.index = 0;
-    row.rowType = TraceRow.ROW_TYPE_TOUCH_EVENT_DISPATCH;
-    row.rowParentId = '';
-    row.folder = true;
-    row.style.height = '40px';
-    row.name = 'TouchEventDispatch';
-    //@ts-ignore
-    row.supplier = folderSupplier();
-    row.onThreadHandler = folderThreadHandler(row, this.trace);
-
-    let asyncFuncGroup = Utils.groupBy(
-      //@ts-ignore
-      this.processAsyncFuncArray.filter((it) => it.funName === 'H:touchEventDispatch'),
-      'tid'
-    );
-    //@ts-ignore
-    if (Reflect.ownKeys(asyncFuncGroup).length > 0) {
-      this.trace.rowsEL?.appendChild(row);
-    }
-    //@ts-ignore
-    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
-      //@ts-ignore
-      let asyncFuncGroups: Array<any> = asyncFuncGroup[key];
-      if (asyncFuncGroups.length > 0) {
-        row.addChildTraceRow(this.createTouchEventDispatchRow(row, key, asyncFuncGroups));
-      }
-    });
-  };
-
-  private createTouchEventDispatchRow(
-    parentRow: TraceRow<ProcessStruct>,
-    key: number,
-    asyncFuncGroups: Array<any>
-  ): TraceRow<FuncStruct> {
-    let funcRow = TraceRow.skeleton<FuncStruct>();
-    funcRow.rowId = `${asyncFuncGroups[0].funName}-${key}`;
-    funcRow.asyncFuncName = asyncFuncGroups[0].funName;
-    funcRow.asyncFuncNamePID = key;
-    funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-    funcRow.enableCollapseChart(); //允许折叠泳道图
-    funcRow.rowParentId = `${parentRow.rowId}`;
-    funcRow.rowHidden = !parentRow.expansion;
-    funcRow.style.width = '100%';
-    funcRow.style.height = '24px';
-    funcRow.name = `${asyncFuncGroups[0].funName} ${key}`;
-    funcRow.setAttribute('children', '');
-    funcRow.supplierFrame = () => {
-      return processTouchEventDispatchDataSender(key, funcRow!).then((res: Array<any>) => {
-        this.touchEventDispatchSendCallback(res, funcRow, asyncFuncGroups);
-        return res;
-      });
-    };
-
-    funcRow.findHoverStruct = (): void => {
-      FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
-    };
-    funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-    funcRow.onThreadHandler = rowThreadHandler<FuncRender>(
-      'func',
-      'context',
-      {
-        type: `func-${asyncFuncGroups[0].funName}-${key}`,
-      },
-      funcRow,
-      this.trace
-    );
-    return funcRow;
-  }
-
-  private touchEventDispatchSendCallback(res: Array<any>, funcRow: TraceRow<any>, asyncFuncGroups: Array<any>): void {
-    let isIntersect = (left: any, right: any): boolean =>
-      Math.max(left.startTs + left.dur, right.startTs + right.dur) - Math.min(left.startTs, right.startTs) <
-      left.dur + right.dur;
-    let depths: any = [];
-    let createDepth = (currentDepth: number, index: number): void => {
-      if (depths[currentDepth] == undefined || !isIntersect(depths[currentDepth], res[index])) {
-        res[index].depth = currentDepth;
-        depths[currentDepth] = res[index];
-      } else {
-        createDepth(++currentDepth, index);
-      }
-    };
-    res.forEach((it, i) => {
-      res[i].funName = this.funcNameMap.get(res[i].id!);
-      res[i].threadName = Utils.getInstance().getThreadMap().get(res[i].tid!);
-      if (it.dur == -1 || it.dur === null || it.dur === undefined) {
-        it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
-        it.flag = 'Did not end';
-      }
-      createDepth(0, i);
-    });
-    if (funcRow && !funcRow.isComplete) {
       let max = Math.max(...asyncFuncGroups.map((it) => it.depth || 0)) + 1;
       let maxHeight = max * 18 + 6;
       funcRow.style.height = `${maxHeight}px`;
@@ -1217,197 +1112,71 @@ export class SpProcessChart {
     max += 1;
     return max * 18 + 6;
   }
+
   //Async Function
   addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
-    let isCategoryAsyncfunc: boolean = FlagsConfig.getFlagsConfigEnableStatus('Start&Finish Trace Category');
     //@ts-ignore
     let asyncFuncList = this.processAsyncFuncMap[it.pid] || [];
-    if (!asyncFuncList.length) {
-      return;
-    }
-    //打开异步trace聚合的开关
-    if (isCategoryAsyncfunc) {
-      let asyncRemoveCatList: Array<any> = this.hanldCategoryAsyncFunc(it, processRow, asyncFuncList);
-      this.hanldAsyncFunc(it, processRow, asyncRemoveCatList);
-    } else {
-      //不聚合异步trace
-      let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');
-      //@ts-ignore
-      Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
-        //@ts-ignore
-        let asyncFunctions: Array<any> = asyncFuncGroup[key];
-        if (asyncFunctions.length > 0) {
-          let isIntersect = (a: any, b: any): boolean =>
-            Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
-          let depthArray: any = [];
-          asyncFunctions.forEach((it, i) => {
-            if (it.dur === -1 || it.dur === null || it.dur === undefined) {
-              it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
-              it.flag = 'Did not end';
-            }
-            let currentDepth = 0;
-            let index = i;
-            while (
-              depthArray[currentDepth] !== undefined &&
-              isIntersect(depthArray[currentDepth], asyncFunctions[index])
-            ) {
-              currentDepth++;
-            }
-            asyncFunctions[index].depth = currentDepth;
-            depthArray[currentDepth] = asyncFunctions[index];
-          });
-        }
-        this.lanesConfig(asyncFunctions, it, processRow);
-      });
-    }
-  }
-  //处理CategoryAsyncFunc
-  hanldCategoryAsyncFunc(
-    it: { pid: number; processName: string | null },
-    processRow: TraceRow<ProcessStruct>,
-    asyncFuncList: Array<any>
-  ): any[] {
-    let asyncCatMap: Map<string, any> = new Map<string, any>();
-    let asyncRemoveCatArr: any = [];
-    //取出cat字段（category）不为null的数据
-    for (let i = 0; i < asyncFuncList.length; i++) {
-      const ele = asyncFuncList[i];
-      if (ele.cat !== null) {
-        if (asyncCatMap.has(`${ele.cat}:${ele.threadName} ${ele.tid}`)) {
-          let item = asyncCatMap.get(`${ele.cat}:${ele.threadName} ${ele.tid}`);
-          item.push(ele);
-        } else {
-          asyncCatMap.set(`${ele.cat}:${ele.threadName} ${ele.tid}`, [ele]);
-        }
-      } else {
-        //取cat字段为null的数据
-        asyncRemoveCatArr.push(ele);
-      }
-    }
-    for (const [key, asyncCatFunc] of asyncCatMap.entries()) {
-      this.makeAddAsyncFunction(asyncCatFunc, it, processRow, key);
-    }
-    return asyncRemoveCatArr;
-  }
-  //处理cat字段为null的数据，按funname分类，分别按len>1和=1去处理
-  hanldAsyncFunc(
-    it: { pid: number; processName: string | null },
-    processRow: TraceRow<ProcessStruct>,
-    asyncRemoveCatList: Array<any>
-  ) {
-    let asyncFuncGroup = Utils.groupBy(asyncRemoveCatList, 'funName');
-    let asyncFuncArr: any[] = [];
-    //@ts-ignore
+    let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName'); // @ts-ignore
     Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
-      //@ts-ignore
+      // @ts-ignore
       let asyncFunctions: Array<any> = asyncFuncGroup[key];
-      if (asyncFunctions.length > 1) {
-        this.makeAddAsyncFunction(asyncFunctions, it, processRow);
-      } else if (asyncFunctions.length === 1) {
-        asyncFuncArr.push(...asyncFunctions);
-      }
-    });
-    //len=1的数据继续按tid分类
-    if (asyncFuncArr.length) {
-      let asyncFuncTidGroup = Utils.groupBy(asyncFuncArr, 'tid');
-      //@ts-ignore
-      Reflect.ownKeys(asyncFuncTidGroup).map((key: any) => {
-        //@ts-ignore
-        let asyncTidFunc: Array<any> = asyncFuncTidGroup[key];
-        let rowName = `H:${asyncTidFunc[0].threadName} ${asyncTidFunc[0].tid}`;
-        this.makeAddAsyncFunction(asyncTidFunc, it, processRow, rowName);
-      });
-    }
-  }
-  makeAddAsyncFunction(
-    asyncFunctions: any[],
-    it: { pid: number; processName: string | null },
-    processRow: TraceRow<ProcessStruct>,
-    name?: string
-  ) {
-    let maxDepth: number = -1;
-    let normalIndex = 0;
-    let mapDepth = new Map();
-    let noEndData = asyncFunctions.filter((item) => item.dur === null);
-    let normalData = asyncFunctions.filter((item) => item.dur !== null);
-    if (normalData.length) {
-      while (normalIndex < normalData.length) {
-        let itemEndTime = normalData[normalIndex].startTs + normalData[normalIndex].dur;
-        let itemi = -1;
-        for (let val of mapDepth.values()) {
-          if (val.item < normalData[normalIndex].startTs) {
-            itemi = val.depth;
-            break;
-          }
-        }
-        if (itemi !== -1) {
-          if (mapDepth.has(`${itemi}`)) {
-            let obj = mapDepth.get(`${itemi}`);
-            obj.item = itemEndTime;
-            normalData[normalIndex].depth = obj.depth;
-            normalIndex++;
-          }
-        } else {
-          maxDepth = maxDepth + 1;
-          mapDepth.set(`${maxDepth}`, {
-            item: itemEndTime,
-            depth: maxDepth,
-          });
-          normalData[normalIndex].depth = maxDepth;
-          normalIndex++;
-        }
-      }
-      if (noEndData.length) {
-        noEndData.forEach((it, i) => {
+      if (asyncFunctions.length > 0) {
+        let isIntersect = (a: unknown, b: unknown): boolean =>
+          //@ts-ignore
+          Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
+        let depthArray: unknown = [];
+        asyncFunctions.forEach((it, i) => {
+          //@ts-ignore
           if (it.dur === -1 || it.dur === null || it.dur === undefined) {
-            it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+            //@ts-ignore
+            it.dur = (TraceRow.range?.endNS || 0) - it.startTs; //@ts-ignore
             it.flag = 'Did not end';
           }
+          let currentDepth = 0;
           let index = i;
-          maxDepth++;
-          noEndData[index].depth = maxDepth;
+          while (
+            //@ts-ignore
+            depthArray[currentDepth] !== undefined && //@ts-ignore
+            isIntersect(depthArray[currentDepth], asyncFunctions[index])
+          ) {
+            currentDepth++;
+          } //@ts-ignore
+          asyncFunctions[index].depth = currentDepth; //@ts-ignore
+          depthArray[currentDepth] = asyncFunctions[index];
         });
+        const maxHeight = this.calMaxHeight(asyncFunctions);
+        let funcRow = TraceRow.skeleton<FuncStruct>(this.traceId); //@ts-ignore
+        funcRow.rowId = `${asyncFunctions[0].funName}-${it.pid}`; //@ts-ignore
+        funcRow.asyncFuncName = asyncFunctions[0].funName;
+        funcRow.asyncFuncNamePID = it.pid;
+        funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
+        funcRow.enableCollapseChart(); //允许折叠泳道图
+        funcRow.rowParentId = `${it.pid}`;
+        funcRow.rowHidden = !processRow.expansion;
+        funcRow.style.width = '100%';
+        funcRow.style.height = `${maxHeight}px`;
+        funcRow.setAttribute('height', `${maxHeight}`); //@ts-ignore
+        funcRow.name = `${asyncFunctions[0].funName}`;
+        funcRow.setAttribute('children', '');
+        funcRow.findHoverStruct = (): void => {
+          FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
+        }; //@ts-ignore
+        funcRow.supplier = (): Promise<unknown> => new Promise((resolve) => resolve(asyncFunctions));
+        funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+        funcRow.selectChangeHandler = this.trace.selectChangeHandler;
+        funcRow.onThreadHandler = rowThreadHandler<FuncRender>(
+          'func',
+          'context',
+          {
+            //@ts-ignore
+            type: `func-${asyncFunctions[0].funName}-${it.pid}`,
+          },
+          funcRow,
+          this.trace
+        );
+        processRow.addChildTraceRow(funcRow);
       }
-      this.lanesConfig([...normalData, ...noEndData], it, processRow, name);
-    }
-  }
-  lanesConfig(
-    asyncFunctions: any[],
-    it: { pid: number; processName: string | null },
-    processRow: TraceRow<ProcessStruct>,
-    name?: string
-  ) {
-    const maxHeight = this.calMaxHeight(asyncFunctions);
-    const namesSet = new Set(asyncFunctions.map((item) => item.funName));
-    const asyncFuncName = Array.from(namesSet);
-    let funcRow = TraceRow.skeleton<FuncStruct>();
-    funcRow.rowId = name ? name : `${asyncFunctions[0].funName}-${it.pid}`;
-    funcRow.asyncFuncName = asyncFuncName;
-    funcRow.asyncFuncNamePID = it.pid;
-    funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-    funcRow.enableCollapseChart('24px'); //允许折叠泳道图
-    funcRow.rowParentId = `${it.pid}`;
-    funcRow.rowHidden = !processRow.expansion;
-    funcRow.style.width = '100%';
-    funcRow.style.height = `${maxHeight}px`;
-    funcRow.setAttribute('height', `${maxHeight}`);
-    funcRow.name = name ? name : `${asyncFunctions[0].funName}`;
-    funcRow.setAttribute('children', '');
-    funcRow.findHoverStruct = (): void => {
-      FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
-    };
-    funcRow.supplier = (): Promise<any> => new Promise((resolve) => resolve(asyncFunctions));
-    funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-    funcRow.onThreadHandler = rowThreadHandler<FuncRender>(
-      'func',
-      'context',
-      {
-        type: `func-${funcRow.rowId}`,
-      },
-      funcRow,
-      this.trace
-    );
-    processRow.addChildTraceRow(funcRow);
+    });
   }
 }

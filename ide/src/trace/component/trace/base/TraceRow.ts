@@ -65,7 +65,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_NATIVE_MEMORY = 'native-memory';
   static ROW_TYPE_HIPERF = 'hiperf';
   static ROW_TYPE_DELIVER_INPUT_EVENT = 'DeliverInputEvent';
-  static ROW_TYPE_TOUCH_EVENT_DISPATCH = 'TouchEventDispatch';
   static ROW_TYPE_HIPERF_CPU = 'hiperf-cpu';
   static ROW_TYPE_PERF_CALLCHART = 'hiperf-callchart';
   static ROW_TYPE_HIPERF_PROCESS = 'hiperf-process';
@@ -132,8 +131,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups';
   static ROW_TYPE_PERF_TOOL_GROUP = 'perf-tool-group';
   static ROW_TYPE_PERF_TOOL = 'perf-tool';
-  static ROW_TYPE_GPU_COUNTER_GROUP = 'gpu-counter-group';
-  static ROW_TYPE_GPU_COUNTER = 'gpu-counter';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
@@ -186,7 +183,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   private _enableCollapseChart: boolean = false;
   online: boolean = false;
   static isUserInteraction: boolean;
-  asyncFuncName: string | Array<string> | undefined | null;
+  asyncFuncName: string | undefined | null;
   asyncFuncNamePID: number | undefined | null;
   translateY: number = 0; //single canvas offsetY;
   // @ts-ignore
@@ -236,16 +233,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   static skeleton<T extends BaseStruct>(traceId?: string): TraceRow<T> {
-    let tr = new TraceRow<T>(
-      {
-        alpha: false,
-        canvasNumber: 0,
-        contextId: '',
-        isOffScreen: false,
-        skeleton: true,
-      },
-      traceId
-    );
+    let tr = new TraceRow<T>({
+      alpha: false,
+      canvasNumber: 0,
+      contextId: '',
+      isOffScreen: false,
+      skeleton: true,
+    }, traceId);
     tr.isTransferCanvas = true;
     return tr;
   }
@@ -645,14 +639,15 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  addRowSampleUpload(type: string = 'application/json'): void {
+  addRowSampleUpload(): void {
     this.sampleUploadEl = document.createElement('div');
     this.sampleUploadEl!.className = 'upload';
     this.sampleUploadEl!.innerHTML = `
-    <input id="file" class="file" accept="${type}"  type="file" style="display:none;pointer-events:none"/>
-    <label for="file" style="cursor:pointer">
-      <lit-icon class="folder" name="copy-csv" size="19"></lit-icon>
-    </label>`;
+      <input id="file" class="file" accept="application/json"  type="file" style="display:none;pointer-events:none"/>
+      <label for="file" style="cursor:pointer">
+        <lit-icon class="folder" name="copy-csv" size="19"></lit-icon>
+      </label>
+    `;
     this.jsonFileEl = this.sampleUploadEl!.querySelector('.file') as HTMLInputElement;
     this.sampleUploadEl!.addEventListener('change', () => {
       let files = this.jsonFileEl!.files;
@@ -1027,13 +1022,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  enableCollapseChart(H?: string): void {
+  enableCollapseChart(): void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = (): void => {
       if (this.funcMaxHeight > 20 || this.clientHeight > 20) {
         if (this.funcExpand) {
           this.funcMaxHeight = this.clientHeight;
-          this.style.height = H ? H : '20px';
+          this.style.height = '20px';
           this.funcExpand = false;
         } else {
           this.style.height = `${this.funcMaxHeight}px`;
@@ -1314,7 +1309,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.removeAttribute('check-type');
       return true;
     }
-    return false;
+    return false
   }
 
   draw(useCache: boolean = false): void {

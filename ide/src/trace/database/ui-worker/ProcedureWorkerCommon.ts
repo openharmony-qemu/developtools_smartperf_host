@@ -20,8 +20,6 @@ import { Flag } from '../../component/trace/timer-shaft/Flag';
 import { drawVSync } from '../../component/chart/VSync';
 import { FuncStruct } from './ProcedureWorkerFunc';
 import { ProcessMemStruct } from './ProcedureWorkerMem';
-import { ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread';
-import { Utils } from '../../component/trace/base/Utils';
 
 export abstract class Render {
   abstract renderMainThread(req: unknown, row: unknown): void;
@@ -300,7 +298,7 @@ export const dataFilterHandler = (
   if (fillCacheData(filterData, condition)) {
     return;
   }
-  if (fullData && fullData.length > 0) {
+  if (fullData) {
     filterData.length = 0;
     let pns = (condition.endNS - condition.startNS) / condition.frame.width; //每个像素多少ns
     let y = condition.frame.y + condition.paddingTop;
@@ -2006,67 +2004,4 @@ export function findSearchNode(data: unknown[], search: string, parentSearch: bo
       findSearchNode(node.children, search, node.searchShow);
     }
   });
-}
-
-// draw prio curve
-export function prioClickHandlerFun(param: any, row: TraceRow<any>, threadFilter: Array<ThreadStruct>, arr: any, oldVal: number) {
-  let maxCount = Math.max(...param.map((obj: any) => obj.count));
-  let maxCountPrio = param.find((obj: any) => obj.count === maxCount).prio;//找出出现次数最多的优先级，为中位值
-  let maxPrioDiff = Math.max(...param.map((obj: any) => Math.abs(obj.prio - Number(maxCountPrio))));//找出与中位值的最大diff
-  let maxPointInterval = Math.ceil(maxPrioDiff / 4);//diff分成4份,每一份占多少px
-
-  for (let i = 0; i < threadFilter.length; i++) {
-    const item = threadFilter[i];
-    const preItem = threadFilter[i - 1];
-    //给原始数据添加prio值
-    let slice = Utils.getInstance().getSchedSliceMap().get(`${item.id}-${item.startTime}`);
-    if (slice) {
-      item.prio = slice!.priority;
-    }
-    //合并prio值相同的项提高画图速度
-    if (
-      item.prio &&
-      (oldVal !== item.prio || i === threadFilter.length - 2 || i === threadFilter.length - 1)
-    ) {
-      configCurveY(row, item, maxCountPrio, maxPointInterval);
-      //处理prio值变化前的
-      if (i !== 0) {
-        configCurveY(row, preItem, maxCountPrio, maxPointInterval);
-        arr.push(preItem);
-      }
-      arr.push(item);
-      oldVal = item.prio;
-    }
-  }
-}
-
-//确定曲线波动时的y轴
-function configCurveY(row: TraceRow<any>, item: ThreadStruct, maxCountPrio: number, maxPointInterval: number) {
-  if (item.prio == Number(maxCountPrio)) {
-    item.curveFloatY = 3 + 12 / 2 + row.translateY;
-  } else if (item.prio! > Number(maxCountPrio)) {
-    let prioHeight = Math.floor((item.prio! - Number(maxCountPrio)) / maxPointInterval) * 2;
-    item.curveFloatY = 3 + 12 / 2 - prioHeight + row.translateY;
-  } else if (item.prio! < Number(maxCountPrio)) {
-    let prioHeight = Math.floor((Number(maxCountPrio) - item.prio!) / maxPointInterval) * 2;
-    item.curveFloatY = 3 + 12 / 2 + prioHeight + row.translateY;
-  }
-}
-
-export function drawThreadCurve(context: CanvasRenderingContext2D, threadFilter: ThreadStruct, nextFilter: ThreadStruct) {
-  // 绘制曲线
-  if (threadFilter.frame && nextFilter.frame) {
-    let p1 = threadFilter;
-    let p2 = nextFilter;
-    let diff = p2.curveFloatY! >= p1.curveFloatY! ? p2.curveFloatY! - p1.curveFloatY! : p1.curveFloatY! - p2.curveFloatY!;
-    let cp1x = p1.frame!.x + (p2.frame!.x - p1.frame!.x) / 5;
-    let cp1y = p2.curveFloatY! >= p1.curveFloatY! ? p1.curveFloatY! - diff / 5 : p1.curveFloatY! + diff / 5;
-    let cp2x = p2.frame!.x - (p2.frame!.x - p1.frame!.x) / 5;
-    let cp2y = p2.curveFloatY! >= p1.curveFloatY! ? p2.curveFloatY! + diff / 5 : p2.curveFloatY! - diff / 5;
-    context.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.frame!.x, p2.curveFloatY!);
-    context.lineWidth = 1;
-    context.strokeStyle = '#ffc90e';
-    context.lineCap = 'round';
-  }
-  context.stroke()
 }

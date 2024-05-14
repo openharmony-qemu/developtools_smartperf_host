@@ -352,13 +352,8 @@ Promise<Array<unknown>> =>
     ifnull(max(wr_count_speed),0)  as writeOps
     from diskio`
   );
-//@ts-ignore
-export const queryStartTime = (): Promise<Array<unknown>> =>
-  query('queryStartTime', 'SELECT start_ts FROM trace_range');
-//@ts-ignore
-export const queryRangeTime = (): Promise<Array<unknown>> =>
-  query('queryRangeTime', `SELECT start_ts, end_ts FROM trace_range`);
-
+export const queryStartTime = (): //@ts-ignore
+Promise<Array<unknown>> => query('queryStartTime', 'SELECT start_ts FROM trace_range');
 export const queryBinderBySliceId = (
   id: number
 ): //@ts-ignore

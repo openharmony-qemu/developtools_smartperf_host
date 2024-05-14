@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+import { CpuFreqLimitsStruct } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
+import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock';
+import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq';
 import { FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
 import { FrameDynamicStruct } from '../database/ui-worker/ProcedureWorkerFrameDynamic';
 import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrameAnimation';
@@ -31,7 +34,6 @@ import { LitTabs } from '../../base-ui/tabs/lit-tabs';
 import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
-import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 export class SelectionParam {
   traceId: string | undefined | null;
@@ -130,7 +132,6 @@ export class SelectionParam {
   sysAlllogsData: Array<LogStruct> = [];
   hiSysEvents: Array<string> = [];
   sampleData: Array<unknown> = [];
-  gpuCounter: Array<unknown> = [];
 
   // @ts-ignore
   pushSampleData(it: TraceRow<unknown>): void {
@@ -245,20 +246,10 @@ export class SelectionParam {
           this.threadIds.push(parseInt(th.rowId!));
         } else if (th.rowType === TraceRow.ROW_TYPE_FUNC) {
           if (th.asyncFuncName) {
-            if (typeof th.asyncFuncName === 'string') {
-              this.funAsync.push({
-                name: th.asyncFuncName,
-                pid: th.asyncFuncNamePID || 0,
-              });
-            } else {
-              for (let i = 0; i < th.asyncFuncName.length; i++) {
-                const el = th.asyncFuncName[i];
-                this.funAsync.push({
-                  name: el,
-                  pid: th.asyncFuncNamePID || 0,
-                });
-              }
-            }
+            this.funAsync.push({
+              name: th.asyncFuncName,
+              pid: th.asyncFuncNamePID || 0,
+            });
           } else {
             this.funTids.push(parseInt(th.rowId!));
           }
@@ -311,21 +302,10 @@ export class SelectionParam {
       TabPaneTaskFrames.TaskArray = [];
       sp.pushPidToSelection(this, it.rowParentId!);
       if (it.asyncFuncName) {
-        if (typeof it.asyncFuncName === 'string') {
-          this.funAsync.push({
-            name: it.asyncFuncName,
-            pid: it.asyncFuncNamePID || 0,
-          });
-        } else {
-          //@ts-ignore
-          for (let i = 0; i < it.asyncFuncName.length; i++) {
-            const el = it.asyncFuncName[i];
-            this.funAsync.push({
-              name: el,
-              pid: it.asyncFuncNamePID || 0,
-            });
-          }
-        }
+        this.funAsync.push({
+          name: it.asyncFuncName,
+          pid: it.asyncFuncNamePID || 0,
+        });
       } else {
         this.funTids.push(parseInt(it.rowId!));
       }
@@ -1262,13 +1242,4 @@ export class Fps {
   startNS: number = 0;
   timeStr: string = '';
   fps: number = 0;
-}
-
-export class GpuCounter {
-  startNS: number = 0;
-  height: number = 0;
-  dur: number = 0;
-  type: string = '';
-  startTime: number = 0;
-  frame: object = {};
 }
