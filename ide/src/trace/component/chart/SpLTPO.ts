@@ -29,7 +29,6 @@ import {
 import { LtpoRender, LtpoStruct } from '../../database/ui-worker/ProcedureWorkerLTPO';
 import { HitchTimeStruct, hitchTimeRender } from '../../database/ui-worker/ProcedureWorkerHitchTime';
 import { lostFrameSender } from '../../database/data-trafic/LostFrameSender';
-import { fps } from '../../database/ui-worker/ProcedureWorkerFPS';
 
 export class SpLtpoChart {
   private readonly trace: SpSystemTrace | undefined;
@@ -239,28 +238,26 @@ export class SpLtpoChart {
   }
   //render_service的nowTime 集成RSHardThread泳道Fps数组的FenceId和Signaled
   fpsToRenderService(): void {
-    if (SpLtpoChart.signaledList.length || SpLtpoChart.skipDataList.length) {
-      let rsIndex = 0;
-      let hardIndex = 0;
-      while (rsIndex < SpLtpoChart.rsNowTimeList.length) {
-        if (SpLtpoChart.fpsnameList[hardIndex] && SpLtpoChart.rsNowTimeList[rsIndex]) {
-          if (SpLtpoChart.rsNowTimeList[rsIndex].nowTime! > SpLtpoChart.fpsnameList[hardIndex].nowTime!) {
-            //处理nowTime不一致的情况
-            hardIndex++;
-          } else if (SpLtpoChart.rsNowTimeList[rsIndex].nowTime! < SpLtpoChart.fpsnameList[hardIndex].nowTime!) {
-            rsIndex++;
-          } else {
-            SpLtpoChart.rsNowTimeList[rsIndex].fanceId = SpLtpoChart.fpsnameList[hardIndex].fanceId;
-            SpLtpoChart.rsNowTimeList[rsIndex].fps = SpLtpoChart.fpsnameList[hardIndex].fps;
-            if (SpLtpoChart.fpsnameList[hardIndex].signaled) {
-              SpLtpoChart.rsNowTimeList[rsIndex].signaled = SpLtpoChart.fpsnameList[hardIndex].signaled;
-            }
-            hardIndex++;
-            rsIndex++;
-          }
+    let rsIndex = 0;
+    let hardIndex = 0;
+    while (rsIndex < SpLtpoChart.rsNowTimeList.length) {
+      if (SpLtpoChart.fpsnameList[hardIndex] && SpLtpoChart.rsNowTimeList[rsIndex]) {
+        if (SpLtpoChart.rsNowTimeList[rsIndex].nowTime! > SpLtpoChart.fpsnameList[hardIndex].nowTime!) {
+          //处理nowTime不一致的情况
+          hardIndex++;
+        } else if (SpLtpoChart.rsNowTimeList[rsIndex].nowTime! < SpLtpoChart.fpsnameList[hardIndex].nowTime!) {
+          rsIndex++;
         } else {
-          return;
+          SpLtpoChart.rsNowTimeList[rsIndex].fanceId = SpLtpoChart.fpsnameList[hardIndex].fanceId;
+          SpLtpoChart.rsNowTimeList[rsIndex].fps = SpLtpoChart.fpsnameList[hardIndex].fps;
+          if (SpLtpoChart.fpsnameList[hardIndex].signaled) {
+            SpLtpoChart.rsNowTimeList[rsIndex].signaled = SpLtpoChart.fpsnameList[hardIndex].signaled;
+          }
+          hardIndex++;
+          rsIndex++;
         }
+      } else {
+        return;
       }
     }
   }
@@ -304,7 +301,7 @@ export class SpLtpoChart {
     }
   }
   pushLtpoData(
-    lptoArr: unknown[] | undefined,
+    lptoArr: any[] | undefined,
     fanceId: Number,
     fps: Number,
     signaled: Number,
@@ -334,19 +331,16 @@ export class SpLtpoChart {
     while (presentIndex < presentArr.length) {
       if (presentArr[presentIndex] && ltpoDataArr[ltpoIndex]) {
         if (
-          //@ts-ignore
-          presentArr[presentIndex].startTime! + presentArr[presentIndex].dur! - (window as unknown).recordStartNS ===
+          presentArr[presentIndex].startTime! + presentArr[presentIndex].dur! - (window as any).recordStartNS ===
           TraceRow.range!.totalNS
         ) {
           presentArr.splice(presentIndex, 1);
         }
         if (presentArr[presentIndex].presentId === ltpoDataArr[ltpoIndex].fanceId) {
-          ltpoDataArr[ltpoIndex].startTs =
-            //@ts-ignore
-            Number(presentArr[presentIndex].startTime) - (window as unknown).recordStartNS;
+          ltpoDataArr[ltpoIndex].startTs = Number(presentArr[presentIndex].startTime) - (window as any).recordStartNS;
           ltpoDataArr[ltpoIndex].dur = presentArr[presentIndex].dur;
-          ltpoDataArr[ltpoIndex].nextStartTs = presentArr[presentIndex + 1] //@ts-ignore
-            ? Number(presentArr[presentIndex + 1].startTime) - (window as unknown).recordStartNS
+          ltpoDataArr[ltpoIndex].nextStartTs = presentArr[presentIndex + 1]
+            ? Number(presentArr[presentIndex + 1].startTime) - (window as any).recordStartNS
             : '';
           ltpoDataArr[ltpoIndex].nextDur = presentArr[presentIndex + 1] ? presentArr[presentIndex + 1].dur : 0;
           presentIndex++;
@@ -364,13 +358,38 @@ export class SpLtpoChart {
       let sendStartTs: number | undefined = 0;
       let sendDur: number | undefined = 0;
       let cutSendDur: number | undefined = 0;
-      if (ltpoDataArr[ltpoDataIndex].fanceId !== -1 && ltpoDataArr[ltpoDataIndex].nextDur) {
-        sendStartTs = Number(ltpoDataArr[ltpoDataIndex].startTs) + Number(ltpoDataArr[ltpoDataIndex].dur);
-        sendDur =
-          Number(ltpoDataArr[ltpoDataIndex].nextStartTs) + Number(ltpoDataArr[ltpoDataIndex].nextDur) - sendStartTs;
-      }
       if (ltpoDataArr[ltpoDataIndex] && SpLtpoChart.tempRsNowTimeList[tempRsNowTimeIndex]) {
         if (ltpoDataArr[ltpoDataIndex].fanceId! < SpLtpoChart.tempRsNowTimeList[tempRsNowTimeIndex].fanceId!) {
+          if (ltpoDataArr[ltpoDataIndex].fanceId !== -1 && ltpoDataArr[ltpoDataIndex].nextDur) {
+            sendStartTs = Number(ltpoDataArr[ltpoDataIndex].startTs) + Number(ltpoDataArr[ltpoDataIndex].dur);
+            sendDur =
+              Number(ltpoDataArr[ltpoDataIndex].nextStartTs) + Number(ltpoDataArr[ltpoDataIndex].nextDur) - sendStartTs;
+          }
+          let tmpDur = cutSendDur ? Math.ceil(cutSendDur / 100000) / 10 : Math.ceil(sendDur / 100000) / 10;
+          if (tmpDur < 170) {
+            sendDataArr.push({
+              dur: sendDur,
+              cutSendDur: cutSendDur,
+              value: 0,
+              startTs: sendStartTs,
+              pid: ltpoDataArr[ltpoDataIndex].fanceId,
+              itid: ltpoDataArr[ltpoDataIndex].fanceId,
+              name: undefined,
+              presentId: ltpoDataArr[ltpoDataIndex].fanceId,
+              ts: undefined,
+              fanceId: ltpoDataArr[ltpoDataIndex].fanceId,
+              fps: ltpoDataArr[ltpoDataIndex].fps,
+              nextStartTs: ltpoDataArr[ltpoDataIndex].nextStartTs,
+              nextDur: ltpoDataArr[ltpoDataIndex].nextDur,
+              translateY: undefined,
+              isHover: false,
+              startTime: undefined,
+              signaled: undefined,
+              nowTime: undefined,
+              cutTime: undefined,
+              frame: undefined,
+            });
+          }
           ltpoDataIndex++;
         } else if (ltpoDataArr[ltpoDataIndex].fanceId! > SpLtpoChart.tempRsNowTimeList[tempRsNowTimeIndex].fanceId!) {
           tempRsNowTimeIndex++;
@@ -379,35 +398,40 @@ export class SpLtpoChart {
             cutSendDur = sendDur - SpLtpoChart.tempRsNowTimeList[tempRsNowTimeIndex].cutTime! * 1000000;
             cutSendDur = cutSendDur < 0 ? 0 : cutSendDur;
           }
+          if (ltpoDataArr[ltpoDataIndex].fanceId !== -1 && ltpoDataArr[ltpoDataIndex].nextDur) {
+            sendStartTs = Number(ltpoDataArr[ltpoDataIndex].startTs) + Number(ltpoDataArr[ltpoDataIndex].dur);
+            sendDur =
+              Number(ltpoDataArr[ltpoDataIndex].nextStartTs) + Number(ltpoDataArr[ltpoDataIndex].nextDur) - sendStartTs;
+          }
+          let tmpDur = cutSendDur ? Math.ceil(cutSendDur / 100000) / 10 : Math.ceil(sendDur / 100000) / 10;
+          if (tmpDur < 170) {
+            sendDataArr.push({
+              dur: sendDur,
+              cutSendDur: cutSendDur,
+              value: 0,
+              startTs: sendStartTs,
+              pid: ltpoDataArr[ltpoDataIndex].fanceId,
+              itid: ltpoDataArr[ltpoDataIndex].fanceId,
+              name: undefined,
+              presentId: ltpoDataArr[ltpoDataIndex].fanceId,
+              ts: undefined,
+              fanceId: ltpoDataArr[ltpoDataIndex].fanceId,
+              fps: ltpoDataArr[ltpoDataIndex].fps,
+              nextStartTs: ltpoDataArr[ltpoDataIndex].nextStartTs,
+              nextDur: ltpoDataArr[ltpoDataIndex].nextDur,
+              translateY: undefined,
+              isHover: false,
+              startTime: undefined,
+              signaled: undefined,
+              nowTime: undefined,
+              cutTime: undefined,
+              frame: undefined,
+            });
+          }
+          ltpoDataIndex++;
+          tempRsNowTimeIndex++;
         }
       }
-      let tmpDur = cutSendDur ? Math.ceil(cutSendDur / 100000) / 10 : Math.ceil(sendDur / 100000) / 10;
-      if (tmpDur < 170) {
-        sendDataArr.push({
-          dur: sendDur,
-          cutSendDur: cutSendDur,
-          value: 0,
-          startTs: sendStartTs,
-          pid: ltpoDataArr[ltpoDataIndex].fanceId,
-          itid: ltpoDataArr[ltpoDataIndex].fanceId,
-          name: undefined,
-          presentId: ltpoDataArr[ltpoDataIndex].fanceId,
-          ts: undefined,
-          fanceId: ltpoDataArr[ltpoDataIndex].fanceId,
-          fps: ltpoDataArr[ltpoDataIndex].fps,
-          nextStartTs: ltpoDataArr[ltpoDataIndex].nextStartTs,
-          nextDur: ltpoDataArr[ltpoDataIndex].nextDur,
-          translateY: undefined,
-          frame: undefined,
-          isHover: false,
-          startTime: undefined,
-          signaled: undefined,
-          nowTime: undefined,
-          cutTime: undefined,
-        });
-      }
-      ltpoDataIndex++;
-      tempRsNowTimeIndex++;
     }
     return sendDataArr;
   }
@@ -485,6 +509,9 @@ export class SpLtpoChart {
         `<span>${LtpoStruct.hoverLtpoStruct?.value!}</span>`
       );
     };
+    row.findHoverStruct = (): void => {
+      LtpoStruct.hoverLtpoStruct = row.getHoverStruct(true, false, 'value');
+    };
     row.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (row.currentContext) {
@@ -539,6 +566,9 @@ export class SpLtpoChart {
         HitchTimeStruct.hoverHitchTimeStruct,
         `<span>${HitchTimeStruct.hoverHitchTimeStruct?.value!}</span>`
       );
+    };
+    row.findHoverStruct = (): void => {
+      HitchTimeStruct.hoverHitchTimeStruct = row.getHoverStruct(true, false, 'value');
     };
     row.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
