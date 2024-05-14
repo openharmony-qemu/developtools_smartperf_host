@@ -662,15 +662,13 @@ export let tabConfig: unknown = {
   'tabpane-gpufreq': {
     title: 'Gpufreq Usage',
     type: TabPaneGpufreq,
-    require: (param: SelectionParam) =>
-      param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true,
+    require: (param: SelectionParam) => param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true,
   },
   'tabpane-datacut': {
     title: 'Data Cut',
     type: TabPaneDataCut,
-    require: (param: SelectionParam) =>
-      !Utils.isDistributedMode() &&
-      (param.threadIds.length > 0 || (param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency'))),
+    require: (param: SelectionParam) => param.threadIds.length > 0 ||
+      (param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true),
   },
   'box-sample-instruction-selection': {
     title: 'Data Selection',
