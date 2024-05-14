@@ -53,7 +53,9 @@ export class TabPaneFreqDataCut extends BaseElement {
     for (let i of processArr) {
       pidArr.push(
         new TabPaneFreqUsageConfig(
-          Utils.getInstance().getProcessMap().get(i) === null ? 'Process ' + i : Utils.getInstance().getProcessMap().get(i) + ' ' + i,
+          Utils.getInstance().getProcessMap().get(i) === null
+            ? 'Process ' + i
+            : Utils.getInstance().getProcessMap().get(i) + ' ' + i,
           '',
           i,
           '',
@@ -204,8 +206,14 @@ export class TabPaneFreqDataCut extends BaseElement {
           if (e.ts + e.dur > threadStatesParam.rightNs + threadStatesParam.recordStartNs) {
             e.dur = threadStatesParam.rightNs + threadStatesParam.recordStartNs - e.ts;
           }
-          e.process = Utils.getInstance().getProcessMap().get(e.pid) === null ? '[NULL]' : Utils.getInstance().getProcessMap().get(e.pid)!;
-          e.thread = Utils.getInstance().getThreadMap().get(e.tid) === null ? '[NULL]' : Utils.getInstance().getThreadMap().get(e.tid)!;
+          e.process =
+            Utils.getInstance().getProcessMap().get(e.pid) === null
+              ? '[NULL]'
+              : Utils.getInstance().getProcessMap().get(e.pid)!;
+          e.thread =
+            Utils.getInstance().getThreadMap().get(e.tid) === null
+              ? '[NULL]'
+              : Utils.getInstance().getThreadMap().get(e.tid)!;
           let arr: Array<TabPaneRunningConfig> | undefined = needDeal.get(e.pid + '_' + e.tid);
           sum += e.dur;
           arr?.push(e);
@@ -1189,6 +1197,7 @@ export class TabPaneFreqDataCut extends BaseElement {
           Number(threadArr[i].tid) === Number(totalData[j].tid)
         ) {
           totalData[j].thread = 'TotalData';
+          totalData[j].flag = 't_cycle';
           // @ts-ignore
           threadArr[i].children.unshift(totalData[j]);
         }

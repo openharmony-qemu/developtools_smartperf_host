@@ -272,32 +272,30 @@ export const getTabSlicesAsyncFunc = (
 Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabSlicesAsyncFunc',
-    `select
-      c.name as name,
-      sum(c.dur) as wallDuration,
-      avg(c.dur) as avgDuration,
-      count(c.name) as occurrences
-    from
-      thread A, trace_range D
-    left join
-      callstack C
-    on
-      A.id = C.callid
-    left join process P on P.id = A.ipid
+    `SELECT 
+      c.name AS name,
+      sum( c.dur ) AS wallDuration,
+      avg( c.dur ) AS avgDuration,
+      count( c.name ) AS occurrences 
+    FROM
+      thread A,
+      trace_range D
+      LEFT JOIN process P ON P.id = A.ipid
+      LEFT JOIN callstack C ON A.id = C.callid
     where
-      C.ts > 0
-    and
-      c.dur >= -1
-    and 
-      c.cookie not null
-    and
-      P.pid in (${asyncPid.join(',')})
-    and
-      c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})
-    and
-      not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
-    group by
-      c.name
+        C.ts > 0
+      and
+        c.dur >= -1
+      and 
+        c.cookie not null
+      and
+        P.pid in (${asyncPid.join(',')})
+      and
+        c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})
+      and
+        not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
+      group by
+        c.name
     order by
       wallDuration desc;`,
     { $leftNS: leftNS, $rightNS: rightNS }

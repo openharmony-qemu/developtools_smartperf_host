@@ -128,7 +128,10 @@ import { TabPaneSampleInstructionDistributions } from '../sheet/bpftrace/TabPane
 import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSampleInstructionSelectionTotalTime';
 import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
-import { Utils } from './Utils';
+import { TabPaneGpuCounterSelection } from '../sheet/gpu-counter/TabPaneGpuCounterSelection';
+import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
+import { TabPaneTimeParallel } from '../sheet/parallel/TabPaneTimeParallel';
+import { TabPaneMtParallel } from '../sheet/parallel/TabPaneMtParallel';
 
 export let tabConfig: unknown = {
   'current-selection': {
@@ -660,14 +663,13 @@ export let tabConfig: unknown = {
   'tabpane-gpufreq': {
     title: 'Gpufreq Usage',
     type: TabPaneGpufreq,
-    require: (param: SelectionParam) =>
-      param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true,
+    require: (param: SelectionParam) => param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true,
   },
   'tabpane-datacut': {
     title: 'Data Cut',
     type: TabPaneDataCut,
-    require: (param: SelectionParam) => !Utils.isDistributedMode() && (param.threadIds.length > 0 ||
-      (param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency'))),
+    require: (param: SelectionParam) => param.threadIds.length > 0 ||
+      (param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true),
   },
   'box-sample-instruction-selection': {
     title: 'Data Selection',
@@ -687,5 +689,24 @@ export let tabConfig: unknown = {
   'box-sample-instruction': {
     title: 'Data Flow',
     type: TabPaneSampleInstruction,
+  },
+  'box-gpu-counter-selection': {
+    title: 'Gpu Counter',
+    type: TabPaneGpuCounterSelection,
+    require: (param: SelectionParam) => param.gpuCounter.length > 0,
+  },
+  'box-gpu-counter': {
+    title: 'Gpu Counter',
+    type: TabPaneGpuCounter,
+  },
+  'tabpane-time-parallel': {
+    title: 'Time Parallel',
+    type: TabPaneTimeParallel,
+    require: (param: SelectionParam) => param.threadIds.length > 0,
+  },
+  'tabpane-mt-parallel': {
+    title: 'MT Parallel',
+    type: TabPaneMtParallel,
+    require: (param: SelectionParam) => param.threadIds.length > 0,
   },
 };

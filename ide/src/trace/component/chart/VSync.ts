@@ -56,7 +56,7 @@ export const querySingleVSyncData = (): Promise<Array<VSyncData>> => {
   let vsyncValue = flagsItemJson.vsyncValue;
   let vsyncCondition = '';
   if (vsyncValue === 'H:VsyncGenerator' || vsyncValue === '') {
-    vsyncCondition = ` AND (callstack.name like 'H:GenerateVsyncCount%' or callstack.name like 'H:VSyncGenerator::ThreadLoop::Continue%'))`;
+    vsyncCondition = ` AND (callstack.name like 'H:GenerateVsyncCount%'))`;
   } else {
     vsyncCondition = ` AND callstack.name like '${vsyncValue}%' )`;
   }

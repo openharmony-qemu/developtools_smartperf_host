@@ -230,6 +230,11 @@ export class FlagsConfig {
       describeContent: '',
     },
     {
+      title: 'GpuCounter',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: '',
+    },
+    {
       title: 'HMKernel',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: '',
@@ -243,6 +248,11 @@ export class FlagsConfig {
       title: 'LTPO',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'Lost Frame and HitchTime templates',
+    },
+    {
+      title: 'Start&Finish Trace Category',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'Asynchronous trace aggregation',
     },
   ];
 

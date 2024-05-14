@@ -32,6 +32,7 @@ export class TabPaneSlices extends BaseElement {
   private slicesRange: HTMLLabelElement | null | undefined;
   private slicesSource: Array<SelectionData> = [];
   private currentSelectionParam: SelectionParam | undefined;
+  private sliceSearchCount: Element | undefined | null;
 
   set data(slicesParam: SelectionParam | unknown) {
     if (this.currentSelectionParam === slicesParam) {
@@ -80,12 +81,14 @@ export class TabPaneSlices extends BaseElement {
             processSlicesResult.splice(0, 0, count); //@ts-ignore
             this.slicesSource = processSlicesResult;
             this.slicesTbl!.recycleDataSource = processSlicesResult;
+            this.sliceSearchCount!.textContent = this.slicesSource.length - 1 + '';
             if (filterNameEL && filterNameEL.value.trim() !== '') {
               this.findName(filterNameEL.value);
             }
           } else {
             this.slicesSource = [];
             this.slicesTbl!.recycleDataSource = this.slicesSource;
+            this.sliceSearchCount!.textContent = '0';
           }
         }
       );
@@ -93,8 +96,14 @@ export class TabPaneSlices extends BaseElement {
   }
 
   initElements(): void {
+    this.sliceSearchCount = this.shadowRoot?.querySelector<LitTable>('#search-count');
     this.slicesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-slices');
     this.slicesRange = this.shadowRoot?.querySelector('#time-range');
+    let slicesInput = this.shadowRoot?.querySelector('#filterName');
+    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spSystemTrace = spApplication?.shadowRoot?.querySelector(
+      'div > div.content > sp-system-trace'
+    ) as SpSystemTrace;
     this.slicesTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
@@ -108,16 +117,22 @@ export class TabPaneSlices extends BaseElement {
     this.slicesTbl!.addEventListener('click', () => {
       FuncStruct.funcSelect = false;
       // @ts-ignore
-      this.orgnazitionData(data);
+      data && this.orgnazitionData(data);
     });
     this.slicesTbl!.addEventListener('contextmenu', () => {
       FuncStruct.funcSelect = true;
       // @ts-ignore
-      this.orgnazitionData(data);
+      data && this.orgnazitionData(data);
     });
-    this.shadowRoot?.querySelector('#filterName')?.addEventListener('input', (e) => {
+    slicesInput?.addEventListener('input', (e) => {
       // @ts-ignore
       this.findName(e.target.value);
+    });
+    slicesInput?.addEventListener('focus', (e) => {
+      spSystemTrace.focusTarget = 'slicesInput';
+    });
+    slicesInput?.addEventListener('blur', (e) => {
+      spSystemTrace.focusTarget = '';
     });
   }
   async orgnazitionData(data: Object): Promise<void> {
@@ -171,6 +186,23 @@ export class TabPaneSlices extends BaseElement {
     // search 到的内容与框选泳道的内容取并集
     for (const searchItem of search.list) {
       for (const traceRow of sliceRowList) {
+        if (traceRow.asyncFuncName && Array.isArray(traceRow.asyncFuncName)) {
+          if (
+            //@ts-ignore
+            `${searchItem.pid}` === `${traceRow.asyncFuncNamePID}` &&
+            //@ts-ignore
+            traceRow.asyncFuncName.indexOf(searchItem.funName) !== -1
+          ) {
+            let item = traceRow.dataList.find(
+              //@ts-ignore
+              (element) => element.funName === searchItem.funName && element.id === searchItem.id
+            );
+            //@ts-ignore
+            searchItem.depth = item.depth;
+            //@ts-ignore
+            searchItem.row_id = traceRow.rowId;
+          }
+        }
         if (
           // @ts-ignore
           Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
@@ -180,15 +212,17 @@ export class TabPaneSlices extends BaseElement {
         ) {
           // 异步调用栈
           if (traceRow.asyncFuncName) {
-            // @ts-ignore
-            if (`${searchItem.pid}` === `${traceRow.asyncFuncNamePID}` &&
-              traceRow.traceId === Utils.currentSelectTrace) {
+            if (
+              // @ts-ignore
+              `${searchItem.pid}` === `${traceRow.asyncFuncNamePID}` &&
+              traceRow.traceId === Utils.currentSelectTrace
+            ) {
               rangeSelectList.push(searchItem);
             }
           } else {
             // 线程调用栈
             // @ts-ignore
-            if ( Utils.getDistributedRowId(searchItem.tid) === traceRow.rowId) {
+            if (Utils.getDistributedRowId(searchItem.tid) === traceRow.rowId) {
               rangeSelectList.push(searchItem);
             }
           }
@@ -227,9 +261,12 @@ export class TabPaneSlices extends BaseElement {
           outline: none;
         }
         </style>
-        <div style="display:flex">
-        <input id="filterName" type="text" style="width:25%;height:18px;border:1px solid #c3c3c3;border-radius:9px" placeholder="Search" value="" />
-        <label id="time-range" class="slice-label" style="width: 75%;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <div style="display:flex; justify-content:space-between;">
+        <div style="width: 40%;">
+          <input id="filterName" type="text" style="width:60%;height:18px;border:1px solid #c3c3c3;border-radius:9px" placeholder="Search" value="" />
+          &nbsp;&nbsp;<span style="font-size: 10pt;margin-bottom: 5px">Count:&nbsp;<span id="search-count">0<span></span>
+        </div>
+        <label id="time-range" class="slice-label" style="text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         </div>
         <lit-table id="tb-slices" style="height: auto">
             <lit-table-column class="slices-column" title="Name" width="500px" data-index="name" 

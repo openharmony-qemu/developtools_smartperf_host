@@ -420,10 +420,10 @@ function selectHandler(sp: SpSystemTrace): void {
 function selectHandlerRefreshCheckBox(sp: SpSystemTrace, rows: Array<TraceRow<any>>, refreshCheckBox: boolean): void {
   if (refreshCheckBox) {
     if (rows.length > 0) {
-      sp.queryAllTraceRow().forEach((row) => row.checkType = '0');
+      sp.queryAllTraceRow().forEach((row) => (row.checkType = '0'));
       rows.forEach((it) => (it.checkType = '2'));
     } else {
-      sp.queryAllTraceRow().forEach((row) => row.checkType = '-1');
+      sp.queryAllTraceRow().forEach((row) => (row.checkType = '-1'));
       return;
     }
   }
@@ -802,6 +802,7 @@ function findEntryTypeFunc(sp: SpSystemTrace, findEntry: any): void {
       argsetid: findEntry.argsetid,
       funName: findEntry.funName,
       cookie: findEntry.cookie,
+      row_id: findEntry.row_id ? findEntry.row_id : null,
     },
     true
   );
@@ -809,8 +810,9 @@ function findEntryTypeFunc(sp: SpSystemTrace, findEntry: any): void {
 function findEntryTypeThreadProcess(sp: SpSystemTrace, findEntry: any): void {
   let threadProcessRow = sp.rowsEL?.querySelectorAll<TraceRow<ThreadStruct>>('trace-row')[0];
   if (threadProcessRow) {
-    let filterRow = threadProcessRow.childrenList.filter( (row) => row.rowId ===
-      Utils.getDistributedRowId(findEntry.rowId) && row.rowId === findEntry.rowType)[0];
+    let filterRow = threadProcessRow.childrenList.filter(
+      (row) => row.rowId === Utils.getDistributedRowId(findEntry.rowId) && row.rowId === findEntry.rowType
+    )[0];
     filterRow!.highlight = true;
     sp.closeAllExpandRows(Utils.getDistributedRowId(findEntry.rowParentId));
     sp.scrollToProcess(`${findEntry.rowId}`, `${findEntry.rowParentId}`, findEntry.rowType, true);
@@ -897,7 +899,7 @@ async function spSystemTraceInitUrl(
 }
 export async function spSystemTraceInit(
   sp: SpSystemTrace,
-  param: { buf?: ArrayBuffer; url?: string; buf2?: ArrayBuffer, fileName1?: string, fileName2?: string },
+  param: { buf?: ArrayBuffer; url?: string; buf2?: ArrayBuffer; fileName1?: string; fileName2?: string },
   wasmConfigUri: string,
   progress: Function,
   isDistributed: boolean
@@ -913,8 +915,7 @@ export async function spSystemTraceInit(
     return rsUrl;
   }
   if (isDistributed) {
-    await sp.chartManager?.initDistributedChart(progress, param.fileName1 || 'Trace 1',
-      param.fileName2 || 'Trace 2');
+    await sp.chartManager?.initDistributedChart(progress, param.fileName1 || 'Trace 1', param.fileName2 || 'Trace 2');
   } else {
     await sp.chartManager?.init(progress);
   }
@@ -947,6 +948,32 @@ export async function spSystemTraceInit(
     }
     sp.intersectionObserver?.observe(it);
   });
+  // trace文件加载完毕,将动效json文件读取并存入缓存
+  let funDetailUrl = `https://${window.location.host.split(':')[0]}:${
+    window.location.port
+  }/application/doc/funDetail.json`;
+  var xhr = new XMLHttpRequest();
+  // 创建XMLHttpRequest对象
+  xhr.open('GET', funDetailUrl);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      var content = xhr.responseText;
+      caches.open('/funDetail').then((cache) => {
+        let headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        return cache
+          .put(
+            '/funDetail',
+            new Response(content, {
+              status: 200,
+              headers,
+            })
+          )
+          .then();
+      });
+    }
+  };
+  xhr.send(); // 发送请求
   return { status: true, msg: 'success' };
 }
 function expansionChangeHandler(sp: SpSystemTrace, offsetYTimeOut: any): (event: any) => void {

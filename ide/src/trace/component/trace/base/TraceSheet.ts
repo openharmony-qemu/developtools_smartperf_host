@@ -88,6 +88,8 @@ import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataC
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { SpSystemTrace } from '../../SpSystemTrace';
 import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfTool';
+import { GpuCounterStruct } from '../../../database/ui-worker/ProcedureWorkerGpuCounter';
+import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -625,6 +627,7 @@ export class TraceSheet extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: unknown) => void | undefined,
+    scrollPrio: (d: any) => void | undefined,
     callback?: (data: Array<unknown>, str: string) => void
   ): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
@@ -632,6 +635,7 @@ export class TraceSheet extends BaseElement {
       // @ts-ignore
       scrollCallback,
       scrollWakeUp,
+      scrollPrio,
       callback
     );
   displayMemData = (data: ProcessMemStruct): void =>
@@ -672,8 +676,13 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneGpuClickSelect>('gpu-click-select', 'gpu-click-select-comparison').gpuClickData(dataObject);
   };
 
-  displayFuncData = (names: string[], data: FuncStruct, callBack: Function, scrollCallback: Function): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, callBack, scrollCallback);
+  displayFuncData = (
+    names: string[],
+    data: FuncStruct,
+    scrollCallback: Function,
+    callback?: (data: Array<any>, str: string, binderTid: number) => void
+  ): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, scrollCallback, callback);
   displayCpuData = (
     data: CpuStruct,
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
@@ -862,6 +871,10 @@ export class TraceSheet extends BaseElement {
       { key: '0', title: 'instruction', checked: select[0] === '0' },
       { key: '1', title: 'cycles', checked: select[0] === '1' },
     ];
+  };
+
+  displayGpuCounterData = (data: GpuCounterStruct): void => {
+    this.displayTab<TabPaneGpuCounter>('box-gpu-counter').data = data;
   };
 
   displaySystemStatesData = (): void => {
