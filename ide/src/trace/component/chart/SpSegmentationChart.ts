@@ -20,7 +20,7 @@ import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCP
 import { type FreqExtendRender, CpuFreqExtendStruct } from '../../database/ui-worker/ProcedureWorkerFreqExtend';
 import { type BinderRender, BinderStruct } from '../../database/ui-worker/procedureWorkerBinder';
 import { type BaseStruct } from '../../bean/BaseStruct';
-import { type ThreadRender, ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread';
+import { type AllStatesRender,AllstatesStruct } from '../../database/ui-worker/ProcedureWorkerAllStates';
 import { StateGroup } from '../../bean/StateModle';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
 const UNIT_HEIGHT: number = 20;
@@ -37,7 +37,7 @@ export class SpSegmentationChart {
   static tabHoverObj: { key: string, cycle: number };
   private rowFolder!: TraceRow<BaseStruct>;
   static chartData: Array<Object> = [];
-  static statesRow: TraceRow<ThreadStruct> | undefined;
+  static statesRow: TraceRow<AllstatesStruct> | undefined;
   // 数据切割联动
   static setChartData(type: string, data: Array<FreqChartDataStruct>): void {
     SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
@@ -77,7 +77,7 @@ export class SpSegmentationChart {
     SpSegmentationChart.statesRow!.isComplete = false;
     // @ts-ignore
     SpSegmentationChart.statesRow!.supplier = (): Promise<Array<ThreadStruct>> =>
-      new Promise<Array<ThreadStruct>>((resolve) => resolve(stateChartData));
+      new Promise<Array<AllstatesStruct>>((resolve) => resolve(stateChartData));
     SpSegmentationChart.trace.refreshCanvas(false);
   };
 
@@ -342,7 +342,7 @@ export class SpSegmentationChart {
   }
 
   async initAllStates() {
-    SpSegmentationChart.statesRow = TraceRow.skeleton<ThreadStruct>();
+    SpSegmentationChart.statesRow = TraceRow.skeleton<AllstatesStruct>();
     SpSegmentationChart.statesRow.rowId = `statesrow`;
     SpSegmentationChart.statesRow.rowType = TraceRow.ROW_TYPE_THREAD;
     SpSegmentationChart.statesRow.rowParentId = '';
@@ -350,7 +350,7 @@ export class SpSegmentationChart {
     SpSegmentationChart.statesRow.name = `All States`;
     SpSegmentationChart.statesRow.favoriteChangeHandler = SpSegmentationChart.trace.favoriteChangeHandler;
     SpSegmentationChart.statesRow.selectChangeHandler = SpSegmentationChart.trace.selectChangeHandler;
-    // @ts-ignore
+  // @ts-ignore
     SpSegmentationChart.statesRow.supplier = (): Promise<Array<freqChartDataStruct>> =>
       new Promise<Array<FreqChartDataStruct>>((resolve) => resolve([]));
     SpSegmentationChart.statesRow.onThreadHandler = (useCache) => {
@@ -361,7 +361,7 @@ export class SpSegmentationChart {
         context = SpSegmentationChart.statesRow!.collect ? SpSegmentationChart.trace.canvasFavoritePanelCtx! : SpSegmentationChart.trace.canvasPanelCtx!;
       }
       SpSegmentationChart.statesRow!.canvasSave(context);
-      (renders['thread'] as ThreadRender).renderMainThread(
+      (renders.stateCut as AllStatesRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -388,8 +388,8 @@ export class SpSegmentationChart {
     SpSegmentationChart.binderRow.findHoverStruct = () => {
       BinderStruct.hoverCpuFreqStruct = SpSegmentationChart.binderRow!.dataListCache.find((v: BinderStruct) => {
         if (SpSegmentationChart.binderRow!.isHover) {
-          if (v.frame!.x < SpSegmentationChart.binderRow!.hoverX
-            && v.frame!.x + v.frame!.width > SpSegmentationChart.binderRow!.hoverX
+          if (v.frame!.x < SpSegmentationChart.binderRow!.hoverX + 1
+            && v.frame!.x + v.frame!.width > SpSegmentationChart.binderRow!.hoverX - 1
             && (BinderStruct.maxHeight * 20 - v.depth * 20 + 20) < SpSegmentationChart.binderRow!.hoverY
             && BinderStruct.maxHeight * 20 - v.depth * 20 + v.value * 20 + 20 > SpSegmentationChart.binderRow!.hoverY) {
             return v;
@@ -397,6 +397,19 @@ export class SpSegmentationChart {
         }
       })
     };
+    SpSegmentationChart.binderRow.focusHandler = (ev): void => {
+      SpSegmentationChart.trace!.displayTip(
+        SpSegmentationChart.binderRow!,
+        BinderStruct.hoverCpuFreqStruct,
+        `<span style='font-weight: bold;'>Cycle: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.cycle : 0
+        }</span><br>
+                <span style='font-weight: bold;'>Name: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.name : ''
+        }</span><br>
+                <span style='font-weight: bold;'>Count: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.value : 0
+        }</span>`
+      );
+    };
+
     SpSegmentationChart.binderRow.supplier = (): Promise<Array<BinderStruct>> =>
       new Promise<Array<BinderStruct>>((resolve) => resolve([]));
     SpSegmentationChart.binderRow.onThreadHandler = (useCache): void => {
@@ -418,18 +431,6 @@ export class SpSegmentationChart {
         SpSegmentationChart.binderRow!
       );
       SpSegmentationChart.binderRow!.canvasRestore(context);
-    };
-    SpSegmentationChart.binderRow.focusHandler = (ev): void => {
-      SpSegmentationChart.trace!.displayTip(
-        SpSegmentationChart.binderRow!,
-        BinderStruct.hoverCpuFreqStruct,
-        `<span style='font-weight: bold;'>Cycle: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.cycle : 0
-        }</span><br>
-                <span style='font-weight: bold;'>Name: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.name : ''
-        }</span><br>
-                <span style='font-weight: bold;'>Count: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.value : 0
-        }</span>`
-      );
     };
     SpSegmentationChart.trace.rowsEL?.appendChild(SpSegmentationChart.binderRow);
     this.rowFolder!.addChildTraceRow(SpSegmentationChart.binderRow);

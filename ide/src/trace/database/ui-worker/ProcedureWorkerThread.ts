@@ -65,20 +65,6 @@ export class ThreadRender extends Render {
         find = true;
       }
     }
-    if (
-      row.rowId === 'statesrow' &&
-      (!row.isHover || !find) &&
-      CpuFreqExtendStruct.hoverStruct === undefined &&
-      CpuFreqExtendStruct.selectCpuFreqStruct === undefined &&
-      !BinderStruct.selectCpuFreqStruct &&
-      !TabPaneFreqStatesDataCut.isStateTabHover &&
-      SpSegmentationChart.tabHoverObj &&
-      SpSegmentationChart.tabHoverObj.key === ''
-    ) {
-      ThreadStruct.hoverThreadStruct = undefined;
-      SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
-      find = false;
-    }
     threadReq.context.closePath();
   }
 
@@ -121,66 +107,32 @@ export class ThreadStruct extends BaseThreadStruct {
   static startCycleTime: number = 0;
   static endTime: number = 0;
 
-  static drawThread(threadContext: CanvasRenderingContext2D, data: ThreadStruct): void {
+  static drawThread(threadContext: CanvasRenderingContext2D, data: ThreadStruct) {
     if (data.frame) {
-      if (data.name === 'all-state') {
-        threadContext.globalAlpha = 0.8;
-      } else {
-        threadContext.globalAlpha = 1;
-      }
-      if (
-        !ThreadStruct.selectThreadStruct &&
-        data.start_ts! + data.dur! > ThreadStruct.startCycleTime &&
-        data.start_ts! + data.dur! < ThreadStruct.endTime
-      ) {
-        threadContext.globalAlpha = 1;
-      }
-      let stateText = ThreadStruct.getEndState(
-        data.state === 'S' && data.name === 'Sleeping' ? data.name : data.state || ''
-      );
-      if (data.name === 'all-state' && data.state === 'S') {
-        stateText = 'Sleeping';
-      }
-      threadContext.fillStyle = Utils.getStateColor(
-        data.state === 'S' && data.name === 'all-state' ? 'Sleeping' : data.state || ''
-      );
-      if ('S' === data.state && data.name !== 'all-state') {
+
+      threadContext.globalAlpha = 1;
+      let stateText = ThreadStruct.getEndState(data.state || '');
+      threadContext.fillStyle = Utils.getStateColor(data.state || '');
+      if ('S' === data.state) {
         threadContext.globalAlpha = 0.2;
-      }
+      };
       threadContext.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
       threadContext.fillStyle = '#fff';
       threadContext.textBaseline = 'middle';
       threadContext.font = '8px sans-serif';
-      if ('S' !== data.state || (data.name === 'all-state' && data.state === 'S')) {
-        data.frame.width > 7 && drawString(threadContext, stateText, 2, data.frame, data);
-      }
+      data.frame.width > 7 && drawString(threadContext, stateText, 2, data.frame, data);
       if (
         ThreadStruct.selectThreadStruct &&
         ThreadStruct.equals(ThreadStruct.selectThreadStruct, data) &&
-        (ThreadStruct.selectThreadStruct.state !== 'S' || data.name === 'all-state')
+        data.state !== 'S'
       ) {
         threadContext.strokeStyle = '#232c5d';
         threadContext.lineWidth = 2;
-        threadContext.strokeRect(data.frame.x, data.frame.y, data.frame.width - 2, data.frame.height);
-      }
-      if (ThreadStruct.hoverThreadStruct === data && data.name === 'all-state') {
-        let pointX: number = ns2x(
-          data.startTime || 0,
-          TraceRow.range!.startNS,
-          TraceRow.range!.endNS,
-          TraceRow.range!.totalNS,
-          new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
-        );
-        SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = new Flag(
-          Math.floor(pointX),
-          0,
-          0,
-          0,
-          data.startTime || 0,
-          '#000000',
-          '',
-          true,
-          ''
+        threadContext.strokeRect(
+          data.frame.x,
+          data.frame.y,
+          data.frame.width - 2,
+          data.frame.height
         );
       }
     }
