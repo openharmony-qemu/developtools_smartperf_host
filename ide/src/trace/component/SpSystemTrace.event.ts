@@ -148,6 +148,15 @@ function threadClickHandlerFunc(sp: SpSystemTrace): (e: ThreadStruct) => void {
   return threadClickHandler;
 }
 
+//点击prio箭头刷新canvas
+function prioClickHandlerFunc(sp: SpSystemTrace) {
+  return function (d: any) {
+    ThreadStruct.prioCount = d;
+    ThreadStruct.isClickPrio = true;
+    sp.refreshCanvas(true);
+  };
+}
+
 function scrollToFuncHandlerFunc(sp: SpSystemTrace): Function {
   let funClickHandle = (funcStruct: unknown): void => {
     // @ts-ignore
@@ -284,6 +293,7 @@ function cpuClickHandlerTask(threadRow: TraceRow<unknown>, sp: SpSystemTrace, d:
       ThreadStruct.selectThreadStruct!,
       threadClickHandlerFunc(sp), // @ts-ignore
       cpuClickHandlerFunc(sp),
+      prioClickHandlerFunc(sp),
       (datas, str): void => {
         sp.removeLinkLinesByBusinessType('thread');
         if (str === 'wakeup tid') {
@@ -344,7 +354,15 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
 //@ts-ignore
 function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<unknown>, entry?: unknown): void {
   CpuStructOnClick(clickRowType, sp, cpuClickHandlerFunc(sp))
-    .then(() => ThreadStructOnClick(clickRowType, sp, threadClickHandlerFunc(sp), cpuClickHandlerFunc(sp)))
+    .then(() =>
+      ThreadStructOnClick(
+        clickRowType,
+        sp,
+        threadClickHandlerFunc(sp),
+        cpuClickHandlerFunc(sp),
+        prioClickHandlerFunc(sp)
+      )
+    )
     //@ts-ignore
     .then(() => funcStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp), entry))
     .then(() => CpuFreqStructOnClick(clickRowType, sp))

@@ -627,6 +627,7 @@ export class TraceSheet extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: unknown) => void | undefined,
+    scrollPrio: (d: any) => void | undefined,
     callback?: (data: Array<unknown>, str: string) => void
   ): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
@@ -634,6 +635,7 @@ export class TraceSheet extends BaseElement {
       // @ts-ignore
       scrollCallback,
       scrollWakeUp,
+      scrollPrio,
       callback
     );
   displayMemData = (data: ProcessMemStruct): void =>

@@ -52,6 +52,7 @@ import {
   queryThreadStateArgs,
   queryThreadWakeUp,
   queryThreadWakeUpFrom,
+  sqlPrioCount
 } from '../../../database/sql/ProcessThread.sql';
 import { queryGpuDur } from '../../../database/sql/Gpu.sql';
 import { queryWakeupListPriority } from '../../../database/sql/Cpu.sql';
@@ -681,6 +682,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((d: unknown) => void) | undefined,
     scrollWakeUp: (d: unknown) => void | undefined,
+    scrollPrio: (d: any) => void | undefined,
     callback?: (data: Array<unknown>, str: string) => void
   ): Promise<void> {
     //线程信息
@@ -698,7 +700,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let cpu = new CpuStruct();
     cpu.id = data.id;
     cpu.startTime = data.startTime;
-    this.queryThreadDetails(data, list, jankJumperList, callback, scrollWakeUp, scrollCallback);
+    this.queryThreadDetails(data, list, jankJumperList, callback, scrollWakeUp, scrollPrio, scrollCallback);
   }
 
   private sortByNearData(nearData: unknown[], data: ThreadStruct, list: unknown[]): unknown[] {
@@ -773,6 +775,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     jankJumperList: ThreadTreeNode[],
     callback: ((data: Array<unknown>, str: string) => void) | undefined,
     scrollWakeUp: (d: unknown) => void | undefined,
+    scrollPrio: (d: any) => void | undefined,
     scrollCallback: ((d: unknown) => void) | undefined
   ): void {
     Promise.all([
@@ -800,7 +803,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         callback(jankJumperList, this.wakeUp);
         this.wakeUp = '';
       }
-      this.stateClickHandler(preData, nextData, data, scrollWakeUp, scrollCallback);
+      this.stateClickHandler(preData, nextData, data, scrollWakeUp, scrollCallback, scrollPrio);
       this.wakeupClickHandler(wakeUps, fromBean, scrollWakeUp);
     });
   }
@@ -853,7 +856,8 @@ export class TabPaneCurrentSelection extends BaseElement {
     nextData: unknown,
     data: ThreadStruct,
     scrollWakeUp: (d: unknown) => void | undefined,
-    scrollCallback: ((d: unknown) => void) | undefined
+    scrollCallback: ((d: unknown) => void) | undefined,
+    scrollPrio: (d: any) => void | undefined,
   ): void {
     this.currentSelectionTbl?.shadowRoot?.querySelector('#next-state-click')?.addEventListener('click', () => {
       if (nextData && scrollWakeUp !== undefined) {
@@ -905,6 +909,13 @@ export class TabPaneCurrentSelection extends BaseElement {
       //线程点击
       if (scrollCallback) {
         scrollCallback(data);
+      }
+    });
+    this.currentSelectionTbl?.shadowRoot?.querySelector('#prio-click')?.addEventListener('click', (ev) => {
+      if (scrollPrio) {
+        sqlPrioCount(data).then((res: any) => {
+          scrollPrio(res);
+        })
       }
     });
   }
@@ -967,7 +978,15 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
     let slice = Utils.getInstance().getSchedSliceMap().get(`${data.id}-${data.startTime}`);
     if (slice) {
-      list.push({ name: 'Prio', value: `${slice.priority}` });
+      list.push(
+        {
+        name: 'Prio',
+        value: `<div style="white-space: nowrap;display: flex;align-item: center">
+        <div style="white-space: pre-wrap">${slice.priority}</div>
+        <lit-icon style="cursor:pointer;transform: scalex(-1);margin-left: 5px" id="prio-click" name="select" color="#7fa1e7" size="20"></lit-icon>
+        </div>` 
+        }
+      );
     }
     let processName = Utils.getInstance().getProcessMap().get(data.pid!);
     if (
