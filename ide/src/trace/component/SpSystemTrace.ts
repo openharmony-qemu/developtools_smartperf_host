@@ -125,6 +125,7 @@ import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { readTraceFileBuffer } from '../SpApplicationPublicFunc';
 import { PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { BaseStruct } from '../bean/BaseStruct';
+import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -781,6 +782,15 @@ export class SpSystemTrace extends BaseElement {
           SampleStruct.selectSampleStruct.begin - SampleStruct.selectSampleStruct.startTs!;
         this.currentSlicesTime.endTime = SampleStruct.selectSampleStruct.end - SampleStruct.selectSampleStruct.startTs!;
       }
+    } else if (GpuCounterStruct.selectGpuCounterStruct) {
+      if (GpuCounterStruct.selectGpuCounterStruct.startNS && GpuCounterStruct.selectGpuCounterStruct.dur) {
+        this.currentSlicesTime.startTime =
+          GpuCounterStruct.selectGpuCounterStruct.startNS - GpuCounterStruct.selectGpuCounterStruct.startTime!;
+        this.currentSlicesTime.endTime =
+          GpuCounterStruct.selectGpuCounterStruct.startNS +
+          GpuCounterStruct.selectGpuCounterStruct.dur -
+          GpuCounterStruct.selectGpuCounterStruct.startTime!;
+      }
     } else {
       this.currentSlicesTime.startTime = 0;
       this.currentSlicesTime.endTime = 0;
@@ -798,6 +808,7 @@ export class SpSystemTrace extends BaseElement {
       AppStartupStruct.selectStartupStruct ||
       SoStruct.selectSoStruct ||
       SampleStruct.selectSampleStruct ||
+      GpuCounterStruct.selectGpuCounterStruct ||
       AllAppStartupStruct.selectStartupStruct ||
       FrameAnimationStruct.selectFrameAnimationStruct ||
       JsCpuProfilerStruct.selectJsCpuProfilerStruct;
@@ -815,6 +826,13 @@ export class SpSystemTrace extends BaseElement {
         startTs = selected.begin - selected.startTs;
         // @ts-ignore
         let end = selected.end - selected.startTs;
+        this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
+        // @ts-ignore
+      } else if (selectedStruct.startNS && selectedStruct.dur) {
+        // @ts-ignore
+        startTs = selectedStruct.startNS - selectedStruct.startTime;
+        // @ts-ignore
+        let end = (selectedStruct.startNS + selectedStruct.dur) - selectedStruct.startTime;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
       } else {
         // @ts-ignore
@@ -1082,6 +1100,7 @@ export class SpSystemTrace extends BaseElement {
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
     SampleStruct.hoverSampleStruct = undefined;
     PerfToolStruct.hoverPerfToolStruct = undefined;
+    GpuCounterStruct.hoverGpuCounterStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1113,6 +1132,7 @@ export class SpSystemTrace extends BaseElement {
     HitchTimeStruct.selectHitchTimeStruct = undefined;
     SampleStruct.selectSampleStruct = undefined;
     PerfToolStruct.selectPerfToolStruct = undefined;
+    GpuCounterStruct.selectGpuCounterStruct = undefined;
     return this;
   }
 
@@ -1159,6 +1179,10 @@ export class SpSystemTrace extends BaseElement {
     [
       TraceRow.ROW_TYPE_SAMPLE,
       (): boolean => SampleStruct.hoverSampleStruct !== null && SampleStruct.hoverSampleStruct !== undefined,
+    ],
+    [
+      TraceRow.ROW_TYPE_GPU_COUNTER,
+      (): boolean => GpuCounterStruct.hoverGpuCounterStruct !== null && GpuCounterStruct.hoverGpuCounterStruct !== undefined,
     ],
     [
       TraceRow.ROW_TYPE_CPU_FREQ,
@@ -1916,6 +1940,29 @@ export class SpSystemTrace extends BaseElement {
       });
     });
   };
+
+  loadGpuCounter = async (ev: File) => {
+    this.observerScrollHeightEnable = false;
+    await this.initGpuCounter(ev);
+    this.rowsEL?.querySelectorAll('trace-row').forEach((it: any) => this.observer.observe(it));
+    window.publish(window.SmartEvent.UI.MouseEventEnable, {
+      mouseEnable: true,
+    });
+  }
+
+  initGpuCounter = async (ev: File) => {
+    this.rowsPaneEL!.scroll({
+      top: 0,
+      left: 0,
+    });
+    this.chartManager?.initGpuCounter(ev).then(() => {
+      this.loadTraceCompleted = true;
+      this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
+        this.intersectionObserver?.observe(it);
+      })
+    })
+  }
+
   // @ts-ignore
   queryAllTraceRow<T>(selectors?: string, filter?: (row: TraceRow<unknown>) => boolean): TraceRow<unknown>[] {
     return [

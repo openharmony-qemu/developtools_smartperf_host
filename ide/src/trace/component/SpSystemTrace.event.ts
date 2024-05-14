@@ -46,6 +46,7 @@ import { LitMainMenu } from '../../base-ui/menu/LitMainMenu';
 import { PerfToolsStructOnClick } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { Utils } from './trace/base/Utils';
 import { BaseStruct } from '../bean/BaseStruct';
+import { gpuCounterStructOnClick } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -368,6 +369,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
     .then(() => sampleStructOnClick(clickRowType, sp))
+    .then(() => gpuCounterStructOnClick(clickRowType, sp))
     .then(() => PerfToolsStructOnClick(clickRowType, sp))
 
     .then(() => {
@@ -878,6 +880,9 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
       offset = true;
     }
     if (rows && rows[0] && rows[0].getHoverStruct(strict, offset)) {
+      sp.onClickHandler(rows[0]!.rowType!, rows[0]);
+      sp.documentOnMouseMove(ev);
+    } else if (rows && rows[0] && rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false)) {
       sp.onClickHandler(rows[0]!.rowType!, rows[0]);
       sp.documentOnMouseMove(ev);
     } else {

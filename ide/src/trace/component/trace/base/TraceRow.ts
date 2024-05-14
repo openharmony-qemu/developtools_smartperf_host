@@ -132,6 +132,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups';
   static ROW_TYPE_PERF_TOOL_GROUP = 'perf-tool-group';
   static ROW_TYPE_PERF_TOOL = 'perf-tool';
+  static ROW_TYPE_GPU_COUNTER_GROUP = 'gpu-counter-group';
+  static ROW_TYPE_GPU_COUNTER = 'gpu-counter';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
@@ -643,15 +645,14 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  addRowSampleUpload(): void {
+  addRowSampleUpload(type: string = 'application/json'): void {
     this.sampleUploadEl = document.createElement('div');
     this.sampleUploadEl!.className = 'upload';
     this.sampleUploadEl!.innerHTML = `
-      <input id="file" class="file" accept="application/json"  type="file" style="display:none;pointer-events:none"/>
-      <label for="file" style="cursor:pointer">
-        <lit-icon class="folder" name="copy-csv" size="19"></lit-icon>
-      </label>
-    `;
+    <input id="file" class="file" accept="${type}"  type="file" style="display:none;pointer-events:none"/>
+    <label for="file" style="cursor:pointer">
+      <lit-icon class="folder" name="copy-csv" size="19"></lit-icon>
+    </label>`;
     this.jsonFileEl = this.sampleUploadEl!.querySelector('.file') as HTMLInputElement;
     this.sampleUploadEl!.addEventListener('change', () => {
       let files = this.jsonFileEl!.files;

@@ -31,6 +31,7 @@ import { LitTabs } from '../../base-ui/tabs/lit-tabs';
 import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
+import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 export class SelectionParam {
   traceId: string | undefined | null;
@@ -129,6 +130,7 @@ export class SelectionParam {
   sysAlllogsData: Array<LogStruct> = [];
   hiSysEvents: Array<string> = [];
   sampleData: Array<unknown> = [];
+  gpuCounter: Array<unknown> = [];
 
   // @ts-ignore
   pushSampleData(it: TraceRow<unknown>): void {
@@ -1253,4 +1255,13 @@ export class Fps {
   startNS: number = 0;
   timeStr: string = '';
   fps: number = 0;
+}
+
+export class GpuCounter {
+  startNS: number = 0;
+  height: number = 0;
+  dur: number = 0;
+  type: string = '';
+  startTime: number = 0;
+  frame: object = {};
 }
