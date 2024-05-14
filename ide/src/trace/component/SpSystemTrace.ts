@@ -2088,10 +2088,8 @@ export class SpSystemTrace extends BaseElement {
         funcStract.flag = 'Did not end';
       }
     }
-    let funcRowID = Utils.getDistributedRowId(
-      // @ts-ignore
-      funcStract.cookie ? `${funcStract.funName}-${funcStract.pid}` : funcStract.tid
-    );
+    //@ts-ignore
+    let funcRowID = !funcStract.cookie ? `${funcStract.tid}` : funcStract.row_id;
     let targetRow = this.favoriteChartListEL?.getCollectRow((row) => {
       return row.rowId === funcRowID && row.rowType === 'func';
     });

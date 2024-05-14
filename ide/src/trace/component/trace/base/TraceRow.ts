@@ -184,7 +184,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   private _enableCollapseChart: boolean = false;
   online: boolean = false;
   static isUserInteraction: boolean;
-  asyncFuncName: string | undefined | null;
+  asyncFuncName: string | Array<string> | undefined | null;
   asyncFuncNamePID: number | undefined | null;
   translateY: number = 0; //single canvas offsetY;
   // @ts-ignore
@@ -234,13 +234,16 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   static skeleton<T extends BaseStruct>(traceId?: string): TraceRow<T> {
-    let tr = new TraceRow<T>({
-      alpha: false,
-      canvasNumber: 0,
-      contextId: '',
-      isOffScreen: false,
-      skeleton: true,
-    }, traceId);
+    let tr = new TraceRow<T>(
+      {
+        alpha: false,
+        canvasNumber: 0,
+        contextId: '',
+        isOffScreen: false,
+        skeleton: true,
+      },
+      traceId
+    );
     tr.isTransferCanvas = true;
     return tr;
   }
@@ -1023,13 +1026,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  enableCollapseChart(): void {
+  enableCollapseChart(H?: string): void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = (): void => {
       if (this.funcMaxHeight > 20 || this.clientHeight > 20) {
         if (this.funcExpand) {
           this.funcMaxHeight = this.clientHeight;
-          this.style.height = '20px';
+          this.style.height = H ? H : '20px';
           this.funcExpand = false;
         } else {
           this.style.height = `${this.funcMaxHeight}px`;
@@ -1310,7 +1313,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.removeAttribute('check-type');
       return true;
     }
-    return false
+    return false;
   }
 
   draw(useCache: boolean = false): void {

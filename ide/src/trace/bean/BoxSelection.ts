@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-import { CpuFreqLimitsStruct } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
-import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock';
-import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq';
 import { FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
 import { FrameDynamicStruct } from '../database/ui-worker/ProcedureWorkerFrameDynamic';
 import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrameAnimation';
@@ -246,10 +243,12 @@ export class SelectionParam {
           this.threadIds.push(parseInt(th.rowId!));
         } else if (th.rowType === TraceRow.ROW_TYPE_FUNC) {
           if (th.asyncFuncName) {
-            this.funAsync.push({
-              name: th.asyncFuncName,
-              pid: th.asyncFuncNamePID || 0,
-            });
+            if (typeof th.asyncFuncName === 'string') {
+              this.funAsync.push({
+                name: th.asyncFuncName,
+                pid: th.asyncFuncNamePID || 0,
+              });
+            }
           } else {
             this.funTids.push(parseInt(th.rowId!));
           }
@@ -302,10 +301,22 @@ export class SelectionParam {
       TabPaneTaskFrames.TaskArray = [];
       sp.pushPidToSelection(this, it.rowParentId!);
       if (it.asyncFuncName) {
-        this.funAsync.push({
-          name: it.asyncFuncName,
-          pid: it.asyncFuncNamePID || 0,
-        });
+        if (typeof it.asyncFuncName === 'string') {
+          this.funAsync.push({
+            name: it.asyncFuncName,
+            pid: it.asyncFuncNamePID || 0,
+          });
+        } else {
+          //批注 哪来的数组?
+          //@ts-ignore
+          for (let i = 0; i < it.asyncFuncName.length; i++) {
+            const el = it.asyncFuncName[i];
+            this.funAsync.push({
+              name: el,
+              pid: it.asyncFuncNamePID || 0,
+            });
+          }
+        }
       } else {
         this.funTids.push(parseInt(it.rowId!));
       }

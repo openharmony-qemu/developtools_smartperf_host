@@ -171,6 +171,17 @@ export class TabPaneSlices extends BaseElement {
     // search 到的内容与框选泳道的内容取并集
     for (const searchItem of search.list) {
       for (const traceRow of sliceRowList) {
+        if (traceRow.asyncFuncName && Array.isArray(traceRow.asyncFuncName)) {
+          if (
+            //@ts-ignore
+            `${searchItem.pid}` === `${traceRow.asyncFuncNamePID}` &&
+            //@ts-ignore
+            traceRow.asyncFuncName.indexOf(searchItem.funName) !== -1
+          ) {
+            //@ts-ignore
+            searchItem.row_id = traceRow.rowId;
+          }
+        }
         if (
           // @ts-ignore
           Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
@@ -180,15 +191,17 @@ export class TabPaneSlices extends BaseElement {
         ) {
           // 异步调用栈
           if (traceRow.asyncFuncName) {
-            // @ts-ignore
-            if (`${searchItem.pid}` === `${traceRow.asyncFuncNamePID}` &&
-              traceRow.traceId === Utils.currentSelectTrace) {
+            if (
+              // @ts-ignore
+              `${searchItem.pid}` === `${traceRow.asyncFuncNamePID}` &&
+              traceRow.traceId === Utils.currentSelectTrace
+            ) {
               rangeSelectList.push(searchItem);
             }
           } else {
             // 线程调用栈
             // @ts-ignore
-            if ( Utils.getDistributedRowId(searchItem.tid) === traceRow.rowId) {
+            if (Utils.getDistributedRowId(searchItem.tid) === traceRow.rowId) {
               rangeSelectList.push(searchItem);
             }
           }
