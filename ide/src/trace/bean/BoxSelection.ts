@@ -250,6 +250,14 @@ export class SelectionParam {
                 name: th.asyncFuncName,
                 pid: th.asyncFuncNamePID || 0,
               });
+            } else {
+              for (let i = 0; i < th.asyncFuncName.length; i++) {
+                const el = th.asyncFuncName[i];
+                this.funAsync.push({
+                  name: el,
+                  pid: th.asyncFuncNamePID || 0,
+                });
+              }
             }
           } else {
             this.funTids.push(parseInt(th.rowId!));

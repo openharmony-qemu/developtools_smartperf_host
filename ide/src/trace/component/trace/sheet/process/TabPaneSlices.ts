@@ -182,6 +182,12 @@ export class TabPaneSlices extends BaseElement {
             //@ts-ignore
             traceRow.asyncFuncName.indexOf(searchItem.funName) !== -1
           ) {
+            let item = traceRow.dataList.find(
+              //@ts-ignore
+              (element) => element.funName === searchItem.funName && element.id === searchItem.id
+            );
+            //@ts-ignore
+            searchItem.depth = item.depth;
             //@ts-ignore
             searchItem.row_id = traceRow.rowId;
           }
