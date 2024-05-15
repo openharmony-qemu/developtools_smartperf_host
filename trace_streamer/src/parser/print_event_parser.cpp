@@ -508,7 +508,7 @@ ParseResult PrintEventParser::HandlerGH(std::string_view pointStr, TracePoint &o
         return PARSE_ERROR;
     }
     outPoint.name_ = std::string_view(pointStr.data() + nameIndex, nameLength);
-    size_t valueIndex = nameIndex + POINT_LENGTH;
+    size_t valueIndex = nameIndex + nameLength + POINT_LENGTH;
     size_t valueLen = GetValueLength(pointStr, valueIndex);
     if (valueLen == 0) {
         TS_LOGD("point value length is error!");
