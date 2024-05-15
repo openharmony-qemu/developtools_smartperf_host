@@ -27,10 +27,10 @@ export const chartProcessTouchEventDispatchDataSql = (args: any): string => {
       c.name as funName,
       A.name as threadName
   from thread A
-  left join callstack C on A.id = C.callid
   left join process P on P.id = A.ipid
+  left join callstack C on A.id = C.callid
   where startTs not null and cookie not null
-  and c.name ='H:touchEventDispatch'
+  and (c.name = 'H:touchEventDispatch' OR c.name = 'H:TouchEventDispatch')  
   and tid = ${args.tid}
   and startTs + dur >= ${Math.floor(args.startNS)}
   and startTs <= ${Math.floor(args.endNS)}
