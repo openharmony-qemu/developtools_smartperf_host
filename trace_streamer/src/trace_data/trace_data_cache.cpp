@@ -83,6 +83,7 @@
 #include "perf_report_table.h"
 #include "perf_sample_table.h"
 #include "perf_thread_table.h"
+#include "perf_napi_async_table.h"
 #include "process_measure_filter_table.h"
 #include "process_table.h"
 #include "range_table.h"

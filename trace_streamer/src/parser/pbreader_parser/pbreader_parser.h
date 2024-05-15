@@ -18,9 +18,12 @@
 #include <cstdint>
 #include <limits>
 #include <map>
+#include <queue>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <unordered_map>
+#include <unordered_set>
 #include "common_types.h"
 #include "common_types.pbreader.h"
 #include "clock_filter_ex.h"
@@ -86,6 +89,17 @@ namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
 using namespace OHOS::Developtools::HiPerf;
+#if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)
+struct NodeAsyncFunc {
+    uint64_t tsEnd = INVALID_UINT64;
+    uint64_t itid = INVALID_UINT64;
+    NodeAsyncFunc(uint64_t ts, uint64_t itid) : tsEnd(ts), itid(itid){};
+    bool operator<(const NodeAsyncFunc &other) const
+    {
+        return tsEnd < other.tsEnd;
+    }
+};
+#endif
 class PbreaderParser : public ParserBase, public HtracePluginTimeParser {
 public:
     PbreaderParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters);
@@ -246,6 +260,17 @@ private:
                                const ProtoReader::ProfilerPluginData_Reader &pluginDataZero,
                                bool isSplitFile);
     bool SpliteDataBySegment(DataIndex pluginNameIndex, PbreaderDataSegment &dataSeg);
+#if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)    
+    void ParseNapiAsync();
+    void GetTraceidInfoFromCallstack(std::queue<std::pair<uint64_t, uint64_t>> &traceidIndexs,
+                                     std::unordered_set<uint64_t> &traceidIndexSet);
+    void GetTraceidInfoFromNativeHook(const std::unordered_set<uint64_t> &traceidIndexSet,
+                                      std::unordered_map<uint64_t, uint32_t> &traceidToCallchainidMap);
+    void GetCallchainIdSetFromHiperf(std::unordered_set<uint32_t> &callchainIdSet);
+    void DumpDataFromHiperf(const std::unordered_map<uint64_t, uint32_t> &traceidToCallchainidMap,
+                            const std::unordered_set<uint32_t> &callchainIdSet,
+                            std::queue<std::pair<uint64_t, uint64_t>> &traceidIndexs);
+#endif
     ProfilerTraceFileHeader profilerTraceFileHeader_;
     uint32_t profilerDataType_ = ProfilerTraceFileHeader::UNKNOW_TYPE;
     uint64_t profilerDataLength_ = 0;

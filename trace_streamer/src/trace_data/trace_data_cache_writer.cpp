@@ -223,6 +223,10 @@ PerfReport *TraceDataCacheWriter::GetPerfReportData()
 {
     return &perfReport_;
 }
+PerfNapiAsync *TraceDataCacheWriter::GetPerfNapiAsyncData()
+{
+    return &perfNapiAsync_;
+}
 ArgSet *TraceDataCacheWriter::GetArgSetData()
 {
     return &argSet_;

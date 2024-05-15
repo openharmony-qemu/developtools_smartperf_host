@@ -20,6 +20,7 @@ ohos_source_set("hiperf_tables") {
   sources = [
     "perf_call_chain_table.cpp",
     "perf_files_table.cpp",
+    "perf_napi_async_table.cpp",
     "perf_report_table.cpp",
     "perf_sample_table.cpp",
     "perf_thread_table.cpp",
