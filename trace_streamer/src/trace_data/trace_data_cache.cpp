@@ -152,6 +152,7 @@ void TraceDataCache::InitHiperfDB()
     TableBase::TableDeclare<PerfCallChainTable>(*db_, this, "perf_callchain");
     TableBase::TableDeclare<PerfThreadTable>(*db_, this, "perf_thread");
     TableBase::TableDeclare<PerfFilesTable>(*db_, this, "perf_files");
+    TableBase::TableDeclare<PerfNapiAsyncTable>(*db_, this, "perf_napi_async");
 }
 void TraceDataCache::InitMeasureDB()
 {
