@@ -411,6 +411,9 @@ export class LitChartScatter extends BaseElement {
     } else if (canvasHeight - data.y < miniHeight && canvasWidth - data.x > minWidth) {
       this.scatterTipEL!.style.top = `${data.y - miniHeight}px`;
       this.scatterTipEL!.style.left = `${data.x}px`;
+    } else if (canvasWidth - data.x < minWidth && canvasHeight - data.y < miniHeight) {
+      this.scatterTipEL!.style.top = `${data.y - miniHeight}px`;
+      this.scatterTipEL!.style.left = `${data.x - minWidth}px`;
     } else {
       this.scatterTipEL!.style.top = `${data.y}px`;
       this.scatterTipEL!.style.left = `${data.x}px`;
