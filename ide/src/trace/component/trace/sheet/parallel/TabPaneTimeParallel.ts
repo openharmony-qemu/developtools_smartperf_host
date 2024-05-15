@@ -23,6 +23,7 @@ import { queryRunningThread, queryCoreRunningThread } from '../../../../database
 import { ClassifyCoreSettingHtml } from '../TabPaneTime.html';
 import { HanldParalLogic, MeterHeaderClick } from './ParallelUtil';
 import { TabPaneFilter } from '../TabPaneFilter';
+import { Utils } from '../../base/Utils';
 
 
 const UNIT: number = 1000000.0;
@@ -69,7 +70,7 @@ export class TabPaneTimeParallel extends BaseElement {
             if (this.initStatus) { 
                 this.initDefaultConfig();
                 this.initStatus = false;
-                this.bottomFilterEl!.setCoreConfigList((window as any).cpuCount, this.smallCores, this.midCores, this.largeCores);
+                this.bottomFilterEl!.setCoreConfigList(Utils.getInstance().getWinCpuCount(), this.smallCores, this.midCores, this.largeCores);
             }
         }
         this.litPopoverEl!.querySelector<HTMLDivElement>('.confirm-button')!.addEventListener('click', (e: any) => {
@@ -94,7 +95,7 @@ export class TabPaneTimeParallel extends BaseElement {
     reset() {
         // @ts-ignore
         this.litPopoverEl!.visible = false;
-        if ((window as any).cpuCount === CORE_NUM) {
+        if (Utils.getInstance().getWinCpuCount() === CORE_NUM) {
             this.coreParallelTable!.style.display = 'grid'
             this.parallelTable!.style.display = 'none';
             this.coreParallelTable!.loading = true;
@@ -135,7 +136,7 @@ export class TabPaneTimeParallel extends BaseElement {
 
     initDefaultConfig(): void {
         if (this.initStatus) {
-            if ((window as any).cpuCount === CORE_NUM) {
+            if (Utils.getInstance().getWinCpuCount() === CORE_NUM) {
                 this.smallCores = [...SMALL_CPU_NUM];
                 this.midCores = [...MID_CPU_NUM12];
                 this.largeCores = [...LARGE_CPU_NUM12];
@@ -278,7 +279,7 @@ export class TabPaneTimeParallel extends BaseElement {
             let pMap: Map<string, any> = new Map<string, any>();
             HanldParalLogic(this.hanldMapLogic, value, pMap);
             value.tCount = value.tidArr.length;
-            value.load = (value.dur / ((100 * UNIT) * (window as any).cpuCount)).toFixed(NUM_DIGITS);
+            value.load = (value.dur / ((100 * UNIT) * Utils.getInstance().getWinCpuCount())).toFixed(NUM_DIGITS);
             value.dur = (value.dur / UNIT).toFixed(NUM_DIGITS);
             if (pMap.size === 0) {
                 value.allParallel = 0.000.toFixed(NUM_DIGITS);
@@ -297,7 +298,7 @@ export class TabPaneTimeParallel extends BaseElement {
         for (let [key, value] of param) {
             let pMap: Map<string, any> = new Map<string, any>();
             pMap = HanldParalLogic(this.hanldMapLogic, value, pMap);
-            value.load = (value.dur / ((100 * UNIT) * (window as any).cpuCount));
+            value.load = (value.dur / ((100 * UNIT) * Utils.getInstance().getWinCpuCount()));
             if (pMap.size === 0) {
                 value.allParallel = 0.000;
                 value.parallelNum = '-';
