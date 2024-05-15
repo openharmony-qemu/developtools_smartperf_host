@@ -669,7 +669,7 @@ export let tabConfig: unknown = {
     title: 'Data Cut',
     type: TabPaneDataCut,
     require: (param: SelectionParam) => param.threadIds.length > 0 ||
-      (param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true),
+      (param.clockMapData.size > 0 && param.clockMapData.has('gpufreq Frequency') === true),
   },
   'box-sample-instruction-selection': {
     title: 'Data Selection',
