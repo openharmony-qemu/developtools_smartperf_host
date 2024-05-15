@@ -29,7 +29,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
 SliceFilter::SliceFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
-    : FilterBase(dataCache, filter), asyncEventMap_(INVALID_UINT64)
+    : FilterBase(dataCache, filter), asyncEventMap_(INVALID_UINT64), GEventMap_(std::vector<uint64_t>(0))
 {
 }
 
@@ -481,6 +481,62 @@ uint64_t SliceFilter::FinishAsyncSlice(uint64_t timeStamp,
     return lastRow;
 }
 
+void SliceFilter::StartGEvent(uint64_t timeStamp,
+                              uint32_t pid,
+                              uint32_t threadGroupId,
+                              int64_t cookie,
+                              DataIndex nameIndex)
+{
+    InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
+    auto gEventRes = gEventMap_.Find(internalTid, cookie, nameIndex);
+    auto slices = traceDataCache_->GetInternalSlicesData();
+    gEventSize_++;
+    if (!gEventRes.empty()) {
+        gEventRes.push_back(GEventSize_);
+        gEventMap_.Insert(internalTid, cookie, nameIndex, gEventRes);
+    } else {
+        GEventMap_.Insert(internalTid, cookie, nameIndex, {gEventSize_});
+    }
+    uint8_t depth = 0;
+    std::string nameStr = traceDataCache_->GetDataFromDict(nameIndex);
+    size_t pos = nameStr.find('|');
+    auto cat = traceDataCache_->GetDataIndex(nameStr.substr(0, pos));
+    nameIndex = traceDataCache_->GetDataIndex(nameStr.substr(pos + 1));
+    size_t index =
+        slices->AppendInternalAsyncSlice(timeStamp, -1, internalTid, cat, nameIndex, depth, cookie, std::nullopt);
+    gEventFilterMap_.insert(std::make_pair(gEventSize_, AsyncEvent{timeStamp, index}));
+}
+
+uint64_t SliceFilter::FinishHEvent(uint64_t timeStamp, uint32_t threadGroupId, int64_t cookie, DataIndex nameIndex)
+{
+    Unused(pid);
+    InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
+    auto gEventRes = gEventMap_.Find(internalTid, cookie, nameIndex);
+    auto slices = traceDataCache_->GetInternalSlicesData();
+    if (gEventRes.empty()) { // if failed
+        asyncEventDisMatchCount_++;
+        return INVALID_UINT64;
+    }
+    auto finalGEventIndex = gEventRes.back();
+    if (gEventFilterMap_.find(finalGEventIndex) == gEventFilterMap_.end()) {
+        asyncEventDisMatchCount_++;
+        return INVALID_UINT64;
+    }
+    // update timeStamp
+    gEventFilterMap_.at(finalGEventIndex).timeStamp = timeStamp;
+    auto lastRow = gEventFilterMap_.at(finalGEventIndex).row;
+    slices->SetDuration(lastRow, timeStamp);
+    gEventFilterMap_.erase(finalGEventIndex);
+    if (gEventRes.size() == 1) {
+        gEventMap_.Erase(internalTid, cookie, nameIndex);
+    } else {
+        gEventRes.pop_back();
+        gEventMap_.Insert(internalTid, cookie, nameIndex, gEventRes);
+    }
+    streamFilters_->processFilter_->AddThreadSliceNum(internalTid);
+    return lastRow;
+}
+
 size_t SliceFilter::EndSlice(uint64_t timeStamp,
                              uint32_t pid,
                              uint32_t threadGroupId,
@@ -538,6 +594,8 @@ void SliceFilter::Clear()
     depthHolder_.clear();
     sliceRowToArgsSetId_.clear();
     argsSet_.clear();
+    gEventMap_.Clear();
+    gEventFilterMap_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning
