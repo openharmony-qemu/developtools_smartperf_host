@@ -39,7 +39,7 @@ export class PerfToolRender extends Render {
     let perfToolList = row.dataList;
     let perfToolFilter = row.dataListCache;
     dataFilterHandler(perfToolList, perfToolFilter, {
-      startKey: 'startNS',
+      startKey: 'startTs',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
       endNS: TraceRow.range?.endNS ?? 0,
@@ -81,7 +81,7 @@ export class PerfToolStruct extends BaseStruct {
   static selectPerfToolStruct: PerfToolStruct | undefined;
   static index = 0;
   count: string | undefined;
-  startNS: number | undefined;
+  startTs: number | undefined;
   dur: number | undefined;
   id: number | undefined;
   name: string | undefined;
