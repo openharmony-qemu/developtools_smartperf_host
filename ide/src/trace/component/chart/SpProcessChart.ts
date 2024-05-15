@@ -1271,17 +1271,17 @@ export class SpProcessChart {
     let asyncRemoveCatArr: any = [];
     //取出cat字段（category）不为null的数据
     for (let i = 0; i < asyncFuncList.length; i++) {
-      const ele = asyncFuncList[i];
-      if (ele.cat !== null) {
-        if (asyncCatMap.has(`${ele.cat}:${ele.threadName} ${ele.tid}`)) {
-          let item = asyncCatMap.get(`${ele.cat}:${ele.threadName} ${ele.tid}`);
-          item.push(ele);
+      const el = asyncFuncList[i];
+      if (el.cat !== null) {
+        if (asyncCatMap.has(`${el.cat}:${el.threadName} ${el.tid}`)) {
+          let item = asyncCatMap.get(`${el.cat}:${el.threadName} ${el.tid}`);
+          item.push(el);
         } else {
-          asyncCatMap.set(`${ele.cat}:${ele.threadName} ${ele.tid}`, [ele]);
+          asyncCatMap.set(`${el.cat}:${el.threadName} ${el.tid}`, [el]);
         }
       } else {
         //取cat字段为null的数据
-        asyncRemoveCatArr.push(ele);
+        asyncRemoveCatArr.push(el);
       }
     }
     for (const [key, asyncCatFunc] of asyncCatMap.entries()) {
@@ -1326,39 +1326,40 @@ export class SpProcessChart {
     name?: string
   ) {
     let maxDepth: number = -1;
-    let normalIndex = 0;
+    let i = 0;
     let mapDepth = new Map();
-    let noEndData = asyncFunctions.filter((item) => item.dur === null);
-    let normalData = asyncFunctions.filter((item) => item.dur !== null);
-    if (normalData.length) {
-      while (normalIndex < normalData.length) {
-        let itemEndTime = normalData[normalIndex].startTs + normalData[normalIndex].dur;
-        let itemi = -1;
-        for (let val of mapDepth.values()) {
-          if (val.item < normalData[normalIndex].startTs) {
-            itemi = val.depth;
-            break;
+    let noEndData = new Array();
+    let normalData = new Array();
+    if (asyncFunctions.length) {
+      while (i < asyncFunctions.length) {
+        let param = asyncFunctions[i];
+        if (param.dur !== null) {
+          let itemEndTime = param.startTs + param.dur;
+          let itemi = -1;
+          for (let val of mapDepth.values()) {
+            if (val.time < param.startTs) {
+              itemi = val.depth;
+              val.time = itemEndTime;//更新endts
+              param.depth = val.depth;
+              break;
+            }
           }
-        }
-        if (itemi !== -1) {
-          if (mapDepth.has(`${itemi}`)) {
-            let obj = mapDepth.get(`${itemi}`);
-            obj.item = itemEndTime;
-            normalData[normalIndex].depth = obj.depth;
-            normalIndex++;
+          if (itemi === -1) {
+            maxDepth = maxDepth + 1;
+            mapDepth.set(`${maxDepth}`, {
+              time: itemEndTime,
+              depth: maxDepth,
+            });
+            param.depth = maxDepth;
           }
+          normalData.push(param);
         } else {
-          maxDepth = maxDepth + 1;
-          mapDepth.set(`${maxDepth}`, {
-            item: itemEndTime,
-            depth: maxDepth,
-          });
-          normalData[normalIndex].depth = maxDepth;
-          normalIndex++;
+          noEndData.push(param);
         }
+        i++;
       }
       if (noEndData.length) {
-        noEndData.forEach((it, i) => {
+        noEndData.forEach((it: any, i: any) => {
           if (it.dur === -1 || it.dur === null || it.dur === undefined) {
             it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
             it.flag = 'Did not end';
