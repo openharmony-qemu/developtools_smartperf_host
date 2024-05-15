@@ -234,6 +234,8 @@ export class TabPaneSlices extends BaseElement {
       return;
     } //@ts-ignore
     input.value = data.name;
+    //@ts-ignore
+    search.currenSearchValue = data.name;
     search.list = rangeSelectList;
     search.total = search.list.length;
     search.index = spSystemTrace!.showStruct(true, 1, search.list);

@@ -1946,6 +1946,10 @@ export class SpApplication extends BaseElement {
     let timer: NodeJS.Timeout;
     this.litSearch!.valueChangeHandler = (value: string): void => {
       Utils.currentSelectTrace = this.litSearch?.getSearchTraceId();
+      this.litSearch!.currenSearchValue = value;
+      if(value.length > 0) {
+        this.progressEL!.loading = true;
+      }
       this.litSearch!.list = [];
       if (timer) {
         clearTimeout(timer);
@@ -1954,7 +1958,6 @@ export class SpApplication extends BaseElement {
         this.litSearch!.isClearValue = false;
         if (value.length > 0) {
           let list = [];
-          this.progressEL!.loading = true;
           this.spSystemTrace!.searchCPU(value).then((cpus) => {
             list = cpus;
             this.spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
@@ -1996,15 +1999,24 @@ export class SpApplication extends BaseElement {
       });
     });
     this.litSearch!.addEventListener('previous-data', (ev) => {
+      if(this.progressEL!.loading) {
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(true, this.litSearch!.index, this.litSearch!.list);
       this.litSearch!.blur();
     });
     this.litSearch!.addEventListener('next-data', (ev) => {
+      if(this.progressEL!.loading) {
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(false, this.litSearch!.index, this.litSearch!.list);
       this.litSearch!.blur();
     });
     // 翻页事件
     this.litSearch!.addEventListener('retarget-data', (ev) => {
+      if(this.progressEL!.loading) {
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(
         true,
         //@ts-ignore
@@ -2024,9 +2036,23 @@ export class SpApplication extends BaseElement {
 
   private initSystemTraceEvents(): void {
     this.spSystemTrace?.addEventListener('trace-previous-data', (ev) => {
+      if(this.progressEL!.loading) {
+        return;
+      }
+      if(this.litSearch!.isSearchInputFocus) {
+        this.litSearch!.isSearchInputFocus = !this.litSearch!.isSearchInputFocus;
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(true, this.litSearch!.index, this.litSearch!.list);
     });
     this.spSystemTrace?.addEventListener('trace-next-data', (ev) => {
+      if(this.progressEL!.loading) {
+        return;
+      }
+      if(this.litSearch!.isSearchInputFocus) {
+        this.litSearch!.isSearchInputFocus = !this.litSearch!.isSearchInputFocus;
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(false, this.litSearch!.index, this.litSearch!.list);
     });
   }

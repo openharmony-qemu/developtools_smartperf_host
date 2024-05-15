@@ -110,7 +110,7 @@ export class SpPerfOutputDataChart {
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
       traceRow.supplierFrame = (): Promise<PerfToolStruct[]> => {
         let data = new PerfToolStruct();
-        data.startNS = this.startTime;
+        data.startTs = this.startTime;
         data.dur = this.dur;
         data.count = this.perfOutputArr![it.idx];
         data.id = i + 1;

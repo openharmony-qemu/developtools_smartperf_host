@@ -310,8 +310,10 @@ export class TabPaneCurrent extends BaseElement {
         // @ts-ignore
         this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime
       ) {
+        let slicesTimeList = [...this.slicesTimeList];
         this.slicesTimeList[i - 1].hidden = true;
-        this.systemTrace!.slicesList = this.slicesTimeList || [];
+        slicesTimeList.splice(i - 1, 1);
+        this.systemTrace!.slicesList = slicesTimeList || [];
         document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
         //   移除时更新表格内容
         this.setTableData();
