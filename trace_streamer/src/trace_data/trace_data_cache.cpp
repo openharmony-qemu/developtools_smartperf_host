@@ -83,6 +83,7 @@
 #include "perf_report_table.h"
 #include "perf_sample_table.h"
 #include "perf_thread_table.h"
+#include "perf_napi_async_table.h"
 #include "process_measure_filter_table.h"
 #include "process_table.h"
 #include "range_table.h"
@@ -151,6 +152,7 @@ void TraceDataCache::InitHiperfDB()
     TableBase::TableDeclare<PerfCallChainTable>(*db_, this, "perf_callchain");
     TableBase::TableDeclare<PerfThreadTable>(*db_, this, "perf_thread");
     TableBase::TableDeclare<PerfFilesTable>(*db_, this, "perf_files");
+    TableBase::TableDeclare<PerfNapiAsyncTable>(*db_, this, "perf_napi_async");
 }
 void TraceDataCache::InitMeasureDB()
 {

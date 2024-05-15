@@ -82,6 +82,7 @@ public:
     const PerfSample &GetConstPerfSampleData() const;
     const PerfThread &GetConstPerfThreadData() const;
     const PerfReport &GetConstPerfReportData() const;
+    const PerfNapiAsync &GetConstPerfNapiAsyncData() const;
     const ArgSet &GetConstArgSetData() const;
     const DataType &GetConstDataTypeData() const;
     const SysMeasureFilter &GetConstSysMeasureFilterData() const;
