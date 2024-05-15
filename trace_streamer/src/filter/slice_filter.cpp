@@ -29,7 +29,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
 SliceFilter::SliceFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
-    : FilterBase(dataCache, filter), asyncEventMap_(INVALID_UINT64), GEventMap_(std::vector<uint64_t>(0))
+    : FilterBase(dataCache, filter), asyncEventMap_(INVALID_UINT64), gEventMap_(std::vector<uint64_t>(0))
 {
 }
 
@@ -492,10 +492,10 @@ void SliceFilter::StartGEvent(uint64_t timeStamp,
     auto slices = traceDataCache_->GetInternalSlicesData();
     gEventSize_++;
     if (!gEventRes.empty()) {
-        gEventRes.push_back(GEventSize_);
+        gEventRes.push_back(gEventSize_);
         gEventMap_.Insert(internalTid, cookie, nameIndex, gEventRes);
     } else {
-        GEventMap_.Insert(internalTid, cookie, nameIndex, {gEventSize_});
+        gEventMap_.Insert(internalTid, cookie, nameIndex, {gEventSize_});
     }
     uint8_t depth = 0;
     std::string nameStr = traceDataCache_->GetDataFromDict(nameIndex);
@@ -509,7 +509,6 @@ void SliceFilter::StartGEvent(uint64_t timeStamp,
 
 uint64_t SliceFilter::FinishHEvent(uint64_t timeStamp, uint32_t threadGroupId, int64_t cookie, DataIndex nameIndex)
 {
-    Unused(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
     auto gEventRes = gEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();
