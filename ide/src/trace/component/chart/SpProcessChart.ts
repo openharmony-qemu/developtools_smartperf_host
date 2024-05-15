@@ -267,8 +267,8 @@ export class SpProcessChart {
 
     let asyncFuncGroup = Utils.groupBy(
       //@ts-ignore
-      this.processAsyncFuncArray.filter((it) => it.funName === 'H:touchEventDispatch'),
-      'tid'
+      this.processAsyncFuncArray.filter((it) => it.funName === 'H:touchEventDispatch' || it.funName === 'H:TouchEventDispatch'),
+      'pid'
     );
     //@ts-ignore
     if (Reflect.ownKeys(asyncFuncGroup).length > 0) {
