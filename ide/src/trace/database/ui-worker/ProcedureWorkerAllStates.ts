@@ -46,7 +46,7 @@ export class AllStatesRender extends Render {
         let threadFilter = row.dataListCache;
         dataFilterHandler(threadList, threadFilter, {
             startKey: 'startTime',
-            durKey: 'dur',
+            durKey: 'chartDur',
             startNS: TraceRow.range?.startNS ?? 0,
             endNS: TraceRow.range?.endNS ?? 0,
             totalNS: TraceRow.range?.totalNS ?? 0,
