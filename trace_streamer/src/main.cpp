@@ -722,10 +722,12 @@ int main(int argc, char **argv)
         }
         return 1;
     }
+#ifdef is_linux
     if (!traceExportOption.soFilesDir.empty()) {
         auto values = GetFilesNameFromDir(traceExportOption.soFilesDir);
         ts.ReloadSymbolFiles(traceExportOption.soFilesDir, values);
     }
+#endif
     if (traceExportOption.interactiveState) {
         TS_CHECK_TRUE_RET(EnterInteractiveState(ts), 1);
     }

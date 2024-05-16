@@ -76,6 +76,7 @@ std::string GetExecutionDirectoryPath()
     return str.substr(0, str.find_last_of('/'));
 }
 
+#ifdef is_linux
 std::vector<std::string> GetFilesNameFromDir(const std::string& path)
 {
     std::vector<std::string> soFiles;
@@ -92,5 +93,6 @@ std::vector<std::string> GetFilesNameFromDir(const std::string& path)
     }
     return soFiles;
 }
+#endif
 } // namespace base
 } // namespace SysTuning
