@@ -112,7 +112,7 @@ export const querySingleFuncNameCycle = (
 export const queryAllFuncNames = (
   traceId?: string
 ): //@ts-ignore
-Promise<Array<unknown>> => {
+  Promise<Array<unknown>> => {
   return query(
     'queryAllFuncNames',
     `
@@ -129,7 +129,7 @@ export const queryProcessAsyncFunc = (
   },
   traceId?: string
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryProcessAsyncFunc',
     `select tid,
@@ -147,10 +147,44 @@ Promise<Array<unknown>> =>
     { traceId: traceId }
   );
 
+export const queryProcessAsyncFuncCat = (_funName?: string): Promise<Array<any>> =>
+  query(
+    'queryProcessAsyncFunc',
+    `
+    select 
+      A.tid,
+      P.pid,
+      c.callid,
+      c.cat as threadName,
+      c.name as funName,
+      c.ts-D.start_ts as startTs,
+      c.dur,
+      c.depth,
+      c.cookie
+    from 
+      thread A,trace_range D
+    left join 
+      process P on P.id = A.ipid
+    left join 
+      callstack C on A.id = C.callid     
+    where 
+      startTs not null 
+    and 
+      cookie not null 
+    and 
+      cat not null 
+      ${_funName ? 'funName=$funName' : ''}
+    order by cat;
+  `,
+    {
+      funName: _funName,
+    }
+  );
+
 export const getMaxDepthByTid = (
   traceId?: string
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'getMaxDepthByTid',
     `SELECT 
@@ -270,7 +304,7 @@ export const getTabSlicesAsyncFunc = (
   leftNS: number,
   rightNS: number
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabSlicesAsyncFunc',
     `SELECT 
@@ -302,6 +336,45 @@ Promise<Array<unknown>> =>
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
+export const getTabSlicesAsyncCatFunc = (
+  asyncCatNames: Array<string>,
+  asyncCatPid: Array<number>,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<any>> =>
+  query<SelectionData>(
+    'getTabSlicesAsyncCatFunc',
+    `
+          select
+            c.name as name,
+            sum(c.dur) as wallDuration,
+            avg(c.dur) as avgDuration,
+            count(c.name) as occurrences
+          from
+            thread A, trace_range D
+          left join process P on P.id = A.ipid
+          left join callstack C on A.id = C.callid
+          where
+            C.ts > 0
+          and
+            c.dur >= -1
+          and 
+            c.cookie not null
+          and
+            c.cat not null
+          and
+            P.pid in (${asyncCatPid.join(',')})
+          and
+            c.cat in (${asyncCatNames.map((it) => "'" + it + "'").join(',')})
+          and
+            not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
+          group by
+            c.name
+          order by
+            wallDuration desc;`,
+    { $leftNS: leftNS, $rightNS: rightNS }
+  );
+
 export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> =>
   query(
     'querySearchFunc',
@@ -324,7 +397,7 @@ export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> 
       left join trace_range r 
       where c.name like '%${search}%' and startTime > 0;
        `,
-       { $search: search }
+    { $search: search }
   );
 
 export const querySceneSearchFunc = (search: string, processList: Array<string>): Promise<Array<SearchFuncBean>> =>
@@ -347,7 +420,7 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
           left join trace_range r
           where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
            `,
-           { $search: search }
+    { $search: search }
   );
 
 export const queryHeapFunction = (fileId: number): Promise<Array<HeapTraceFunctionInfo>> =>
@@ -367,7 +440,7 @@ export const queryHeapFunction = (fileId: number): Promise<Array<HeapTraceFuncti
 export const queryHeapTraceNode = (
   fileId: number
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryHeapTraceNode',
     `SELECT F.name,

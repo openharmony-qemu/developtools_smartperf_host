@@ -72,6 +72,7 @@ export class SelectionParam {
   softIrqCallIds: Array<number> = [];
   funTids: Array<number> = [];
   funAsync: Array<{ name: string; pid: number }> = [];
+  funCatAsync: Array<{ pid: number; threadName: string }> = [];
   nativeMemory: Array<String> = [];
   nativeMemoryStatistic: Array<String> = [];
   nativeMemoryAllProcess: Array<{ pid: number; ipid: number }> = [];
@@ -110,11 +111,11 @@ export class SelectionParam {
     gpuTotal: boolean;
     gpuWindow: boolean;
   } = {
-    gl: false,
-    graph: false,
-    gpuWindow: false,
-    gpuTotal: false,
-  };
+      gl: false,
+      graph: false,
+      gpuWindow: false,
+      gpuTotal: false,
+    };
   purgeableTotalAbility: Array<unknown> = [];
   purgeableTotalVM: Array<unknown> = [];
   purgeablePinAbility: Array<unknown> = [];
@@ -259,6 +260,13 @@ export class SelectionParam {
                 });
               }
             }
+          } else if (th.asyncFuncThreadName) {
+            if (typeof th.asyncFuncThreadName === 'string') {
+              this.funCatAsync.push({
+                pid: th.asyncFuncNamePID || 0,
+                threadName: th.asyncFuncThreadName,
+              });
+            }
           } else {
             this.funTids.push(parseInt(th.rowId!));
           }
@@ -326,14 +334,29 @@ export class SelectionParam {
             });
           }
         }
+      } else if (it.asyncFuncThreadName) {
+        if (typeof it.asyncFuncThreadName === 'string') {
+          this.funCatAsync.push({
+            pid: it.asyncFuncNamePID || 0,
+            threadName: it.asyncFuncThreadName
+          });
+        } else {
+          for (let i = 0; i < it.asyncFuncThreadName.length; i++) {
+            const tn = it.asyncFuncThreadName[i];
+            this.funCatAsync.push({
+              pid: it.asyncFuncNamePID || 0,
+              threadName: tn
+            });
+          }
+        }
       } else {
         this.funTids.push(parseInt(it.rowId!));
       }
 
       let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct): boolean =>
         Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
-          Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
-          filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
+        Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
+        filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
         filterFunc.funName!.indexOf('H:Task ') >= 0;
       // @ts-ignore
       let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
@@ -602,7 +625,7 @@ export class SelectionParam {
     if (it.rowType === TraceRow.ROW_TYPE_JANK) {
       let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct): boolean =>
         Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
-          Math.min(filterJank.ts!, rangeData!.startNS || 0) <
+        Math.min(filterJank.ts!, rangeData!.startNS || 0) <
         filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
       if (it.name === 'Actual Timeline') {
         if (it.rowParentId === 'frameTime') {
@@ -902,7 +925,7 @@ export class SelectionParam {
     if (it.rowType === TraceRow.ROW_TYPE_FRAME_ANIMATION) {
       let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct): boolean =>
         Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
-          Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
+        Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
         animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
       // @ts-ignore
       let frameAnimationList = it.dataListCache.filter((frameAnimationBean: FrameAnimationStruct) => {

@@ -78,7 +78,7 @@ export class FuncRender {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<FuncStruct>, filter: Array<FuncStruct>): void {}
+  render(req: RequestMessage, list: Array<FuncStruct>, filter: Array<FuncStruct>): void { }
 }
 
 export function func(
@@ -227,7 +227,13 @@ export class FuncStruct extends BaseFuncStruct {
       if (data.dur === undefined || data.dur === null) {
       } else {
         ctx.globalAlpha = 1;
-        ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+        if (data.funName!.startsWith('XStream')) {
+          ctx.fillStyle = '#7a8c22';
+        } else if (data.funName!.startsWith('WU-')) {
+          ctx.fillStyle = '#349199';
+        } else {
+          ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+        }
         let textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
         if (FuncStruct.hoverFuncStruct && data.funName === FuncStruct.hoverFuncStruct.funName) {
           ctx.globalAlpha = 0.7;
