@@ -132,6 +132,7 @@ import { TabPaneGpuCounterSelection } from '../sheet/gpu-counter/TabPaneGpuCount
 import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
 import { TabPaneTimeParallel } from '../sheet/parallel/TabPaneTimeParallel';
 import { TabPaneMtParallel } from '../sheet/parallel/TabPaneMtParallel';
+import { TabPanePerfAsync } from '../sheet/hiperf/TabPerfAsyncList';
 
 export let tabConfig: unknown = {
   'current-selection': {
@@ -272,6 +273,11 @@ export let tabConfig: unknown = {
   'box-perf-sample': {
     title: 'Sample List',
     type: TabPanePerfSample,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
+  'box-perf-async': {
+    title: 'Async Call Profile',
+    type: TabPanePerfAsync,
     require: (param: SelectionParam) => param.perfSampleIds.length > 0,
   },
 

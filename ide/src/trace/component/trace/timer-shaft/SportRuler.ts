@@ -332,6 +332,8 @@ export class SportRuler extends Graph {
       TraceRow.rangeSelectObject!.startX! +
       (rangeSelectWidth / section) * (i - 1) +
       (rangeSelectWidth / section - countTextWidth) / 2;
+      this.context2D.fillStyle = `#f00`;
+      this.context2D.font = `12px sans-serif`;
     this.context2D.fillText(String(countArr[i - 1]), textY, this.frame.y + 22 + 12);
   }
 
