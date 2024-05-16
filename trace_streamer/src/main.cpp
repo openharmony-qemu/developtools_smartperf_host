@@ -362,6 +362,7 @@ struct TraceExportOption {
     bool closeMutiThread = false;
     uint8_t parserThreadNum = INVALID_UINT8;
     bool needClearLongTraceCache = true;
+    std::string soFilesDir;
 };
 bool CheckFinal(char **argv, TraceExportOption &traceExportOption)
 {
@@ -416,6 +417,12 @@ bool CheckAndSetOutputFilePath(TraceExportOption &traceExportOption, int argc, c
 {
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     traceExportOption.outputFilePath = std::string(argv[index]);
+    return true;
+}
+bool CheckAndSetSoFilesPath(TraceExportOption& traceExportOption, int argc, char** argv, int& index)
+{
+    TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
+    traceExportOption.soFilesDir = std::string(argv[index]);
     return true;
 }
 bool CheckAndSetSqlQueryFilePath(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
@@ -512,6 +519,9 @@ bool ParseArgs(int argc, char **argv, TraceExportOption &traceExportOption)
             continue;
         } else if (!strcmp(argv[i], "-o") || !strcmp(argv[i], "--out")) {
             TS_CHECK_TRUE_RET(CheckAndSetOutputFilePath(traceExportOption, argc, argv, i), false);
+            continue;
+        } else if (!strcmp(argv[i], "--So_dir")) {
+            TS_CHECK_TRUE_RET(CheckAndSetSoFilesPath(traceExportOption, argc, argv, i), false);
             continue;
         } else if (!ParseOtherArgs(argc, argv, traceExportOption, i)) {
             return false;
@@ -711,6 +721,10 @@ int main(int argc, char **argv)
             ExportStatusToLog(traceExportOption.sqliteFilePath, GetAnalysisResult());
         }
         return 1;
+    }
+    if (!traceExportOption.soFilesDir.empty()) {
+        auto values = GetFilesNameFromDir(traceExportOption.soFilesDir);
+        ts.ReloadSymbolFiles(traceExportOption.soFilesDir, values);
     }
     if (traceExportOption.interactiveState) {
         TS_CHECK_TRUE_RET(EnterInteractiveState(ts), 1);
