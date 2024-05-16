@@ -23,6 +23,7 @@ import {
 } from './ProcedureLogicWorkerCommon';
 import { PerfBottomUpStruct } from '../../bean/PerfBottomUpStruct';
 import { SelectionParam } from '../../bean/BoxSelection';
+import { dealAsyncData } from './ProcedureLogicWorkerCommon';
 
 const systemRuleName: string = '/system/';
 const numRuleName: string = '/max/min/';
@@ -102,6 +103,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           break;
         case 'perf-reset':
           this.perfReset();
+          break;
+        case 'perf-async':
+          this.perfAsync(data);
+          break;
       }
     }
   }
@@ -226,6 +231,27 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.isHideThread = false;
     this.isHideThreadState = false;
   }
+
+  private perfAsync(data: any): void {
+    if (data.params.list) {
+      // 若前端存储过调用栈信息与被调用栈信息，可考虑从此处一起返回给主线程
+      let arr = convertJSON(data.params.list) || [];
+      //@ts-ignore
+      let result = dealAsyncData(arr, this.callChainData, this.dataCache.nmHeapFrameMap, this.dataCache.dataDict, this.searchValue);
+      this.searchValue = '';
+      self.postMessage({
+        id: data.id,
+        action: data.action,
+        results: result,
+      });
+      arr = [];
+      result = [];
+    } else {
+      this.searchValue = data.params.searchValue;
+      this.queryPerfAsync(data.params);
+    }
+  }
+
   private setLib(libFilter: unknown): void {
     this.lib = {
       //@ts-ignore
@@ -346,6 +372,48 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       {}
     );
   }
+
+  queryPerfAsync(args: any): void {
+    let str: string = ``;
+    if (args.cpu.length > 0) {
+      str += `or cpu_id in (${args.cpu.join(',')})`;
+    }
+    if (args.tid.length > 0) {
+      str += `or tid in (${args.tid.join(',')})`;
+    }
+    if (args.pid.length > 0) {
+      str += `or process_id in (${args.pid.join(',')})`;
+    }
+    str = str.slice(3);
+    let eventStr: string = ``;
+    if (args.eventId) {
+      eventStr = `AND eventTypeId = ${args.eventId}`;
+    }
+    this.queryData(this.currentEventId, 'perf-async', `
+    select 
+      ts - R.start_ts as time,
+      traceid,
+      thread_id as tid,
+      process_id as pid,
+      caller_callchainid as callerCallchainid,
+      callee_callchainid as calleeCallchainid,
+      perf_sample_id as perfSampleId,
+      event_count as eventCount,
+      event_type_id as eventTypeId,
+			report_value as eventType
+    from 
+      perf_napi_async A, trace_range R
+		LEFT JOIN
+			perf_report C
+		ON 
+			eventTypeId = C.id
+    WHERE 
+      (` + str +`)` + eventStr +`
+    AND
+      time between ${args.leftNs} and ${args.rightNs} 
+    `, {});
+  }
+
   /**
    *
    * @param selectionParam

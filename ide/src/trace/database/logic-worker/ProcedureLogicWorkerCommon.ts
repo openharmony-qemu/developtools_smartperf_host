@@ -704,3 +704,96 @@ export class InitAnalysis {
     return this.instance;
   }
 }
+
+interface perfAsyncList {
+  tid?: number;
+  thread?: string;
+  time?: number | string;
+  traceid?: number;
+  eventCount?: number;
+  sampleCount?: number;
+  jsFuncName?: string;
+  callerCallchainid?: number;
+  calleeCallchainid?: number;
+  asyncFuncName?: string;
+  eventType?: string;
+  children?: Array<perfAsyncList>;
+  eventTypeId?: number;
+  symbolName?: string;
+  callerCallStack?: Array<callStackInfo>
+  calleeCallStack?: Array<callStackInfo>,
+  isSearch?: boolean;
+}
+
+interface callStackInfo {
+  callerCallchainid?: number, 
+  calleeCallchainid?: number, 
+  depth?: number, 
+  symbolName?: string, 
+  eventTypeId?: number,
+  lib?: string,
+  addr?: string
+}
+
+export function dealAsyncData(
+  arr: Array<perfAsyncList>, 
+  perfCallChain: object, 
+  nmCallChain: Map<number, Array<{addr: string, depth: number, eventId: number, fileId: number, symbolId: number}>>, 
+  dataDict: Map<number, string>,
+  searchValue: string
+): Array<perfAsyncList> {
+  // 转换为小写字符
+  searchValue = searchValue.toLocaleLowerCase();
+  // 循环遍历每一条数据
+  for (let i = 0; i < arr.length; i++) {
+    let flag: boolean = false;
+    // 定义每条数据的调用栈与被调用栈数组
+    arr[i].calleeCallStack! = [];
+    arr[i].callerCallStack! = [];
+    // 从前端缓存的perfcallchain表与native_hook_frame表中拿到calleeId与callerId对应的数据
+    // @ts-ignore
+    let calleeCallChain = perfCallChain[arr[i].calleeCallchainid];
+    let callerCallChain = nmCallChain.get(arr[i].callerCallchainid!)!;
+    // 循环被调用栈数组，拿到该条采样数据对应的所有被调用栈信息
+    for (let j = 0; j < calleeCallChain.length; j++) {
+      let calleeStack: callStackInfo = {};
+      // 拿到每一层被调用栈栈名
+      calleeStack.symbolName = dataDict.get(calleeCallChain[j].name)!;
+      // 判断该条采样数据的被调用栈链中是否包含用户筛选字段
+      if (calleeStack.symbolName.toLocaleLowerCase().indexOf(searchValue) !== -1) {
+        flag = true;
+      }
+      // 获取calleeCallchainid、depth、eventTypeId、lib、addr
+      calleeStack.calleeCallchainid = arr[i].calleeCallchainid!;
+      calleeStack.depth = calleeCallChain[j].depth;
+      calleeStack.eventTypeId = arr[i].eventTypeId!;
+      calleeStack.lib = calleeCallChain[j].fileName;
+      calleeStack.addr = `${'0x'}${calleeCallChain[j].vaddrInFile.toString(16)}`;
+      // 填充到该条数据的被调用栈数组中
+      arr[i].calleeCallStack!.push(calleeStack);
+    }
+    for (let z = 0; z < callerCallChain.length; z++) {
+      let callerStack: callStackInfo = {};
+      // 拿到每一层被调用栈栈名
+      callerStack.symbolName = dataDict.get(callerCallChain[z].symbolId)!;
+      // 判断该条采样数据的调用栈链中是否包含用户筛选字段
+      if (callerStack.symbolName.toLocaleLowerCase().indexOf(searchValue) !== -1) {
+        flag = true;
+      }
+      // 获取callerCallchainid、depth、eventTypeId、lib、addr
+      callerStack.callerCallchainid = arr[i].callerCallchainid!;
+      callerStack.depth = callerCallChain[z].depth;
+      callerStack.eventTypeId = arr[i].eventTypeId!;
+      callerStack.addr = callerCallChain[z].addr;
+      callerStack.lib = setFileName(dataDict.get(callerCallChain[z].fileId)!);
+      // 填充到该条数据的调用栈数组中
+      arr[i].callerCallStack!.push(callerStack);
+    }
+    // 若存在用户筛选字段内容，数据进行保留。若不存在，则在返回给前端的数据中删除此条数据，减少前端处理的数据量
+    if(!flag) {
+      arr.splice(i, 1);
+      i--;
+    }
+  }
+  return arr;
+}
