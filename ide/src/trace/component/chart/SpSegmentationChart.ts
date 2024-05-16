@@ -20,7 +20,7 @@ import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCP
 import { type FreqExtendRender, CpuFreqExtendStruct } from '../../database/ui-worker/ProcedureWorkerFreqExtend';
 import { type BinderRender, BinderStruct } from '../../database/ui-worker/procedureWorkerBinder';
 import { type BaseStruct } from '../../bean/BaseStruct';
-import { type AllStatesRender,AllstatesStruct } from '../../database/ui-worker/ProcedureWorkerAllStates';
+import { type AllStatesRender, AllstatesStruct } from '../../database/ui-worker/ProcedureWorkerAllStates';
 import { StateGroup } from '../../bean/StateModle';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
 const UNIT_HEIGHT: number = 20;
@@ -60,13 +60,14 @@ export class SpSegmentationChart {
     stateChartData = data.map(v => {
       return {
         dur: v.dur,
+        chartDur: v.chartDur,
         pid: v.pid,
         tid: v.tid,
-        end_ts: v.ts + v.dur!,
+        end_ts: v.startTs! + v.chartDur!,
         id: v.id,
         name: 'all-state',
-        startTime: v.ts,
-        start_ts: v.ts,
+        startTime: v.startTs,
+        start_ts: v.startTs,
         state: v.state,
         type: v.type,
         cycle: v.cycle,
@@ -91,6 +92,7 @@ export class SpSegmentationChart {
     SpSegmentationChart.binderRow!.isComplete = false;
     if (data.length === 0) {
       SpSegmentationChart.binderRow!.style.height = `40px`;
+      SpSegmentationChart.binderRow!.funcMaxHeight = 40;
       // @ts-ignore
       SpSegmentationChart.binderRow!.supplier = (): Promise<Array<FreqChartDataStruct>> =>
         new Promise<Array<FreqChartDataStruct>>((resolve) => resolve([]));
@@ -116,12 +118,22 @@ export class SpSegmentationChart {
           cycle: v.cycle,
         };
       });
-      SpSegmentationChart.binderRow!.style.height = `${BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40}px`;
       // @ts-ignore
       SpSegmentationChart.binderRow!.supplier = (): Promise<Array<FreqChartDataStruct>> =>
         new Promise<Array<FreqChartDataStruct>>((resolve) => resolve(chartData));
+      SpSegmentationChart.binderRow!.style.height =  `${BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40}px`;
+      SpSegmentationChart.binderRow!.funcMaxHeight = BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40;
     }
-
+    TraceRow.range!.refresh = true;
+    SpSegmentationChart.binderRow!.needRefresh = true;
+    SpSegmentationChart.binderRow!.draw(false);
+        if (SpSegmentationChart.binderRow!.collect) {
+          window.publish(window.SmartEvent.UI.RowHeightChange, {
+            expand: SpSegmentationChart.binderRow!.funcExpand,
+            value: SpSegmentationChart.binderRow!.funcMaxHeight - 40,
+          });
+        }
+    SpSegmentationChart.trace.favoriteChartListEL?.scrollTo(0,0);
     SpSegmentationChart.trace.refreshCanvas(false);
   }
   // 悬浮联动
@@ -350,7 +362,7 @@ export class SpSegmentationChart {
     SpSegmentationChart.statesRow.name = `All States`;
     SpSegmentationChart.statesRow.favoriteChangeHandler = SpSegmentationChart.trace.favoriteChangeHandler;
     SpSegmentationChart.statesRow.selectChangeHandler = SpSegmentationChart.trace.selectChangeHandler;
-  // @ts-ignore
+    // @ts-ignore
     SpSegmentationChart.statesRow.supplier = (): Promise<Array<freqChartDataStruct>> =>
       new Promise<Array<FreqChartDataStruct>>((resolve) => resolve([]));
     SpSegmentationChart.statesRow.onThreadHandler = (useCache) => {
@@ -380,6 +392,7 @@ export class SpSegmentationChart {
     SpSegmentationChart.binderRow = TraceRow.skeleton<BinderStruct>();
     SpSegmentationChart.binderRow.rowId = 'binderrow';
     SpSegmentationChart.binderRow.rowType = TraceRow.ROW_TYPE_BINDER_COUNT;
+    SpSegmentationChart.binderRow.enableCollapseChart('40px');
     SpSegmentationChart.binderRow.rowParentId = '';
     SpSegmentationChart.binderRow.name = 'Binder Count';
     SpSegmentationChart.binderRow.style.height = '40px';

@@ -356,7 +356,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let information: string = '';
     let FunDetailList: Array<FunDetail> = new Array();
     await caches
-      .match('/FunDetail')
+      .match('/funDetail')
       .then((res) => {
         return res!.text();
       })

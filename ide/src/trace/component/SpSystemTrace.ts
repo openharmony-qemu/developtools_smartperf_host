@@ -884,11 +884,11 @@ export class SpSystemTrace extends BaseElement {
         let end = selected.end - selected.startTs;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
         // @ts-ignore
-      } else if (selectedStruct.startNS && selectedStruct.dur) {
+      } else if (selectedStruct.startNS && selected.dur) {
         // @ts-ignore
-        startTs = selectedStruct.startNS - selectedStruct.startTime;
+        startTs = selected.startNS - selected.startTime;
         // @ts-ignore
-        let end = selectedStruct.startNS + selectedStruct.dur - selectedStruct.startTime;
+        let end = selected.startNS + selected.dur - selected.startTime;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
       } else {
         // @ts-ignore
