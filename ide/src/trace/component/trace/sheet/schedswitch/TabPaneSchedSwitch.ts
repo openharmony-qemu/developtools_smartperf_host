@@ -91,7 +91,7 @@ export class TabPaneSchedSwitch extends BaseElement {
       let lastHeight = this.schedSwitchTbl!.tableElement!.offsetHeight;
       //控制右侧区域高度实时变化与左侧区域Div保持一致，避免滚动滚动条时出现空白的情况
       this.rightDIV!.style.height = String(lastHeight) + 'px';
-    }).observe(tabpaneSwitch);
+    }).observe(this.schedSwitchTbl!);
   }
   initElements(): void {
     this.schedSwitchTbl = this.shadowRoot!.querySelector<LitTable>('#tb-running');
@@ -217,6 +217,10 @@ export class TabPaneSchedSwitch extends BaseElement {
     //@ts-ignore
     let data = evt.detail.data;
     if (data.level === 'process') {
+      //点击树节点时节点高亮
+      data.isSelected = true;
+      this.schedSwitchTbl!.clearAllSelection(data);
+      this.schedSwitchTbl!.setCurrentSelection(data);
       //点击进程canvans相关内容隐藏
       this.isCanvansHidden(true);
       SpSegmentationChart.setChartData('SCHED-SWITCH', []);
@@ -246,12 +250,13 @@ export class TabPaneSchedSwitch extends BaseElement {
           color: '#2f72f8',
         };
         this.histogramSource.push(this.rangeTotal);
-        //点击树节点时高亮
-        data.isSelected = true;
+        //清空高亮的树节点
         this.schedSwitchTbl!.clearAllSelection(data);
-        this.schedSwitchTbl!.setCurrentSelection(data);
         this.drawHistogramChart();
       }
+      //点击树节点时高亮
+      data.isSelected = true;
+      this.schedSwitchTbl!.setCurrentSelection(data);
       //点击线程绘制对应泳道图
       SpSegmentationChart.setChartData('SCHED-SWITCH', data.children);
     } else if (data.level === 'cycle') {
@@ -585,10 +590,7 @@ export class TabPaneSchedSwitch extends BaseElement {
           let tip = ''; //@ts-ignore
           for (let obj of a) {
             tip = `${tip}
-              <div style="display:flex;flex-direction: row;align-items: center;">
-                  <div style="width: 10px;height: 5px;background-color: ${obj.obj.color};margin-right: 5px"></div>
-                  <div>${obj.xLabel}:${obj.obj.average}</div>
-              </div>
+              <div>Average count:${obj.obj.average}</div>
             `;
           }
           return tip;
