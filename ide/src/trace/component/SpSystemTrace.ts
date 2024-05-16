@@ -801,26 +801,18 @@ export class SpSystemTrace extends BaseElement {
 
   setCurrentSlicesTime(): void {
     if (CpuStruct.selectCpuStruct) {
-      if (CpuStruct.selectCpuStruct.startTime && CpuStruct.selectCpuStruct.dur) {
-        this.currentSlicesTime.startTime = CpuStruct.selectCpuStruct.startTime;
-        this.currentSlicesTime.endTime = CpuStruct.selectCpuStruct.startTime + CpuStruct.selectCpuStruct.dur;
-      }
+      this.currentSlicesTime.startTime = CpuStruct.selectCpuStruct.startTime;
+      this.currentSlicesTime.endTime = CpuStruct.selectCpuStruct.startTime! + CpuStruct.selectCpuStruct.dur!;
     } else if (ThreadStruct.selectThreadStruct) {
-      if (ThreadStruct.selectThreadStruct.startTime && ThreadStruct.selectThreadStruct.dur) {
-        this.currentSlicesTime.startTime = ThreadStruct.selectThreadStruct.startTime;
-        this.currentSlicesTime.endTime =
-          ThreadStruct.selectThreadStruct.startTime + ThreadStruct.selectThreadStruct.dur;
-      }
+      this.currentSlicesTime.startTime = ThreadStruct.selectThreadStruct.startTime;
+      this.currentSlicesTime.endTime =
+        ThreadStruct.selectThreadStruct.startTime! + ThreadStruct.selectThreadStruct.dur!;
     } else if (FuncStruct.selectFuncStruct) {
-      if (FuncStruct.selectFuncStruct.startTs && FuncStruct.selectFuncStruct.dur) {
-        this.currentSlicesTime.startTime = FuncStruct.selectFuncStruct.startTs;
-        this.currentSlicesTime.endTime = FuncStruct.selectFuncStruct.startTs + FuncStruct.selectFuncStruct.dur;
-      }
+      this.currentSlicesTime.startTime = FuncStruct.selectFuncStruct.startTs;
+      this.currentSlicesTime.endTime = FuncStruct.selectFuncStruct.startTs! + FuncStruct.selectFuncStruct.dur!;
     } else if (IrqStruct.selectIrqStruct) {
-      if (IrqStruct.selectIrqStruct.startNS && IrqStruct.selectIrqStruct.dur) {
-        this.currentSlicesTime.startTime = IrqStruct.selectIrqStruct.startNS;
-        this.currentSlicesTime.endTime = IrqStruct.selectIrqStruct.startNS + IrqStruct.selectIrqStruct.dur;
-      }
+      this.currentSlicesTime.startTime = IrqStruct.selectIrqStruct.startNS;
+      this.currentSlicesTime.endTime = IrqStruct.selectIrqStruct.startNS! + IrqStruct.selectIrqStruct.dur!;
     } else if (TraceRow.rangeSelectObject) {
       this.currentRow = undefined;
       if (TraceRow.rangeSelectObject.startNS && TraceRow.rangeSelectObject.endNS) {
@@ -828,10 +820,8 @@ export class SpSystemTrace extends BaseElement {
         this.currentSlicesTime.endTime = TraceRow.rangeSelectObject.endNS;
       }
     } else if (JankStruct.selectJankStruct) {
-      if (JankStruct.selectJankStruct.ts && JankStruct.selectJankStruct.dur) {
-        this.currentSlicesTime.startTime = JankStruct.selectJankStruct.ts;
-        this.currentSlicesTime.endTime = JankStruct.selectJankStruct.ts + JankStruct.selectJankStruct.dur;
-      }
+      this.currentSlicesTime.startTime = JankStruct.selectJankStruct.ts;
+      this.currentSlicesTime.endTime = JankStruct.selectJankStruct.ts! + JankStruct.selectJankStruct.dur!;
     } else if (SampleStruct.selectSampleStruct) {
       if (SampleStruct.selectSampleStruct.begin && SampleStruct.selectSampleStruct.end) {
         this.currentSlicesTime.startTime =
@@ -839,14 +829,18 @@ export class SpSystemTrace extends BaseElement {
         this.currentSlicesTime.endTime = SampleStruct.selectSampleStruct.end - SampleStruct.selectSampleStruct.startTs!;
       }
     } else if (GpuCounterStruct.selectGpuCounterStruct) {
-      if (GpuCounterStruct.selectGpuCounterStruct.startNS && GpuCounterStruct.selectGpuCounterStruct.dur) {
-        this.currentSlicesTime.startTime =
-          GpuCounterStruct.selectGpuCounterStruct.startNS - GpuCounterStruct.selectGpuCounterStruct.startTime!;
-        this.currentSlicesTime.endTime =
-          GpuCounterStruct.selectGpuCounterStruct.startNS +
-          GpuCounterStruct.selectGpuCounterStruct.dur -
-          GpuCounterStruct.selectGpuCounterStruct.startTime!;
-      }
+      this.currentSlicesTime.startTime =
+        GpuCounterStruct.selectGpuCounterStruct.startNS! - GpuCounterStruct.selectGpuCounterStruct.startTime!;
+      this.currentSlicesTime.endTime =
+        GpuCounterStruct.selectGpuCounterStruct.startNS! +
+        GpuCounterStruct.selectGpuCounterStruct.dur! -
+        GpuCounterStruct.selectGpuCounterStruct.startTime!;
+    } else if (AppStartupStruct.selectStartupStruct) {
+      this.currentSlicesTime.startTime = AppStartupStruct.selectStartupStruct.startTs;
+      this.currentSlicesTime.endTime = AppStartupStruct.selectStartupStruct.startTs! + AppStartupStruct.selectStartupStruct.dur!;
+    } else if (PerfToolStruct.selectPerfToolStruct) {
+      this.currentSlicesTime.startTime = PerfToolStruct.selectPerfToolStruct.startTs;
+      this.currentSlicesTime.endTime = PerfToolStruct.selectPerfToolStruct.startTs! + PerfToolStruct.selectPerfToolStruct.dur!;
     } else {
       this.currentSlicesTime.startTime = 0;
       this.currentSlicesTime.endTime = 0;
@@ -867,7 +861,8 @@ export class SpSystemTrace extends BaseElement {
       GpuCounterStruct.selectGpuCounterStruct ||
       AllAppStartupStruct.selectStartupStruct ||
       FrameAnimationStruct.selectFrameAnimationStruct ||
-      JsCpuProfilerStruct.selectJsCpuProfilerStruct;
+      JsCpuProfilerStruct.selectJsCpuProfilerStruct ||
+      PerfToolStruct.selectPerfToolStruct;
     this.calculateSlicesTime(selectedStruct, shiftKey);
 
     return this.slicestime;
@@ -884,7 +879,7 @@ export class SpSystemTrace extends BaseElement {
         let end = selected.end - selected.startTs;
         this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
         // @ts-ignore
-      } else if (selectedStruct.startNS && selected.dur) {
+      } else if (selected.startNS && selected.dur) {
         // @ts-ignore
         startTs = selected.startNS - selected.startTime;
         // @ts-ignore
@@ -1166,6 +1161,7 @@ export class SpSystemTrace extends BaseElement {
     CpuStruct.wakeupBean = null;
     CpuFreqStruct.selectCpuFreqStruct = undefined;
     ThreadStruct.selectThreadStruct = undefined;
+    ThreadStruct.isClickPrio = false;
     FuncStruct.selectFuncStruct = undefined;
     SpHiPerf.selectCpuStruct = undefined;
     CpuStateStruct.selectStateStruct = undefined;
@@ -1542,7 +1538,7 @@ export class SpSystemTrace extends BaseElement {
           scrollTop: this.rowsEL!.scrollTop,
           favoriteScrollTop: this.favoriteChartListEL!.scrollTop,
         });
-        this.downloadRecordFile(data).then(() => {});
+        this.downloadRecordFile(data).then(() => { });
       }
     });
   }
@@ -2295,7 +2291,7 @@ export class SpSystemTrace extends BaseElement {
     it.processName = p;
     it.processCmdLine = p;
     it.name = t;
-    it.type = 'thread';
+    it.type = 'cpu';
     if (next) {
       if (it.startTime! + it.dur! > next!.startTime! || it.dur === -1 || it.dur === null || it.dur === undefined) {
         it.dur = next!.startTime! - it.startTime!;
@@ -2347,12 +2343,12 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
-    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: unknown) => {});
+    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: unknown) => { });
     if (threadPool) {
-      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: unknown, len: number): void => {});
+      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: unknown, len: number): void => { });
     }
     if (threadPool2) {
-      threadPool2.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => {});
+      threadPool2.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => { });
     }
     this.times.clear();
     resetVSync();

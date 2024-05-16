@@ -133,6 +133,7 @@ public:
     PerfThread perfThread_;
     PerfFiles perfFiles_;
     PerfReport perfReport_;
+    PerfNapiAsync perfNapiAsync_;
 
     std::deque<Process> internalProcessesData_ = {};
     std::deque<Thread> internalThreadsData_ = {};

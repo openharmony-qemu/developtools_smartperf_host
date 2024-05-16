@@ -20,6 +20,7 @@ import '../../../../base-ui/select/LitSelect';
 import '../../../../base-ui/select/LitSelectOption';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
 import { Utils } from '../base/Utils';
+import { SpSystemTrace } from '../../SpSystemTrace';
 
 const LOCAL_STORAGE_SEARCH_KEY = 'search_key';
 
@@ -42,6 +43,8 @@ export class LitSearch extends BaseElement {
   private retarget_index: number = 0;
   private _retarge_index: HTMLInputElement | null | undefined;
   private traceSelector: LitSelect | null | undefined;
+  public currenSearchValue: string | undefined | null;
+  private _isSearchInputFocus: boolean = false;
 
   get list(): Array<unknown> {
     return this._list;
@@ -99,6 +102,15 @@ export class LitSearch extends BaseElement {
   get isClearValue(): boolean {
     return this._value;
   }
+
+  set isSearchInputFocus(value: boolean) {
+    this._isSearchInputFocus = value;
+  }
+
+  get isSearchInputFocus(): boolean {
+    return this._isSearchInputFocus;
+  }
+
   setPercent(name: string = '', value: number): void {
     let searchHide = this.shadowRoot!.querySelector<HTMLElement>('.root');
     let searchIcon = this.shadowRoot!.querySelector<HTMLElement>('#search-icon');
@@ -203,6 +215,7 @@ export class LitSearch extends BaseElement {
 
   private searchKeyupListener(e: KeyboardEvent): void {
     if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+      this.isSearchInputFocus = true;
       this.updateSearchList(this.search!.value);
       if (e.shiftKey) {
         this.dispatchEvent(
@@ -248,12 +261,16 @@ export class LitSearch extends BaseElement {
       this.searchBlurListener();
     });
     this.search!.addEventListener('change', (): void => {
-      this.index = -1;
+      this.currenSearchValue = this.search?.value!;
+      this.index = 0;
       this._retarge_index!.value = '';
     });
     this.search!.addEventListener('keyup', (e: KeyboardEvent): void => {
+      SpSystemTrace.isKeyUp = true;
       this._retarge_index!.value = '';
-      this.index = -1;
+      if(this.search?.value !== this.currenSearchValue) {
+        this.index = 0;
+      }
       this.searchKeyupListener(e);
     });
     this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (): void => {
@@ -382,7 +399,7 @@ export class LitSearch extends BaseElement {
           this.valueChangeHandler?.(this.search!.value);
           if (flag !== searchInfoOption.textContent) {
             this._retarge_index!.value = '';
-            this.index = -1;
+            this.index = 0;
           }
         }
       });

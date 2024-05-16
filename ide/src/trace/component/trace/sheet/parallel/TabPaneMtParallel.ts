@@ -25,6 +25,7 @@ import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
 import '../../../../../base-ui/checkbox/LitCheckBox';
 import { MeterHeaderClick, HanldParalLogic } from './ParallelUtil';
 import { TabPaneFilter } from '../TabPaneFilter';
+import { Utils } from '../../base/Utils';
 
 const UNIT: number = 1000000.0;
 const NUM_DIGITS: number = 3;
@@ -92,7 +93,7 @@ export class TabPaneMtParallel extends BaseElement {
             if (this.isCreateCpu) {
                 this.initDefaultConfig();
                 this.isCreateCpu = false;
-                this.bottomFilterEl!.setCoreConfigList((window as any).cpuCount, this.smallCores, this.midCores, this.largeCores);
+                this.bottomFilterEl!.setCoreConfigList(Utils.getInstance().getWinCpuCount(), this.smallCores, this.midCores, this.largeCores);
             };
         }
         this.litSettingPopoverEl!.querySelector<HTMLDivElement>('.confirm-button')!.addEventListener('click', (e: any) => {
@@ -112,7 +113,7 @@ export class TabPaneMtParallel extends BaseElement {
                 this.groupContentDiv!.innerHTML = '';
                 this.getGroupTableLine();
                 //如果核数为12，默认配置分组
-                if ((window as any).cpuCount == CORE_NUM && this.isReset) {
+                if (Utils.getInstance().getWinCpuCount() == CORE_NUM && this.isReset) {
                     this.isReset = false;
                     const myMap = new Map(Object.entries(CORE_JSON));
                     for (const val of myMap.values()) {
@@ -166,7 +167,7 @@ export class TabPaneMtParallel extends BaseElement {
     }
     //更新treeData
     updateDataSource(flag: boolean): void {
-        let param = flag ? this.bufferGroupMap.size !== 0 : (window as any).cpuCount === CORE_NUM;
+        let param = flag ? this.bufferGroupMap.size !== 0 : Utils.getInstance().getWinCpuCount() === CORE_NUM;
         let value = flag ? this.bufferGroupMap : new Map(Object.entries(CORE_JSON));
         if ((this.midCores.length || this.largeCores.length || this.smallCores.length) && param) {
             this.coreTypeMap.clear();
@@ -285,7 +286,7 @@ export class TabPaneMtParallel extends BaseElement {
             let pDur: number = 0;
             pDur = HanldParalLogic(this.hanldMapLogic, value, pDur);
             let paral = (pDur * gourp.length / value.gourpDur) * 100;
-            let load = value.gourpDur / ((100 * UNIT) * (window as any).cpuCount);
+            let load = value.gourpDur / ((100 * UNIT) * Utils.getInstance().getWinCpuCount());
             let groupObj = {
                 pid: value.pid,
                 tid: value.tid,
@@ -333,7 +334,7 @@ export class TabPaneMtParallel extends BaseElement {
     //初始化cpu check状态
     initDefaultConfig(): void {
         if (this.isCreateCpu) {
-            if ((window as any).cpuCount === CORE_NUM) {
+            if (Utils.getInstance().getWinCpuCount() === CORE_NUM) {
                 this.smallCores = [...SMALL_CPU_NUM];
                 this.midCores = [...MID_CPU_NUM12];
                 this.largeCores = [...LARGE_CPU_NUM12];
@@ -363,12 +364,12 @@ export class TabPaneMtParallel extends BaseElement {
         this.creatCpuHeaderDiv();
         let bufferInfo = [...this.bufferGroupMap.values()].reduce((acc, val) => acc.concat(val), []);
         let switchArr = Object.values(CORE_JSON).flat();
-        for (let i = 0; i < (window as any).cpuCount; i++) {
+        for (let i = 0; i < Utils.getInstance().getWinCpuCount(); i++) {
             let obj = {
                 cpu: i,
-                isCheck: (window as any).cpuCount == CORE_NUM && str !== 'cut' && this.isReset ? switchArr.includes(i) : bufferInfo.includes(i),
+                isCheck: Utils.getInstance().getWinCpuCount() == CORE_NUM && str !== 'cut' && this.isReset ? switchArr.includes(i) : bufferInfo.includes(i),
                 disabled:
-                    (window as any).cpuCount == CORE_NUM && str !== 'cut' && this.isReset ?
+                    Utils.getInstance().getWinCpuCount() == CORE_NUM && str !== 'cut' && this.isReset ?
                         !(switchArr.includes(i)) :
                         !([...this.smallCores, ...this.midCores, ...this.largeCores].includes(i))
             };

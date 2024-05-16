@@ -658,11 +658,11 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     list.push({
       name: 'StartTime(Relative)',
-      value: getTimeString(data.startNS || 0),
+      value: getTimeString(data.startTs || 0),
     });
     list.push({
       name: 'StartTime(Absolute)',
-      value: ((data.startNS || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+      value: ((data.startTs || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
     list.push({
       name: 'Value',

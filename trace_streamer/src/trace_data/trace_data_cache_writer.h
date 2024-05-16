@@ -66,6 +66,7 @@ public:
     PerfSample *GetPerfSampleData();
     PerfThread *GetPerfThreadData();
     PerfReport *GetPerfReportData();
+    PerfNapiAsync *GetPerfNapiAsyncData();
     ArgSet *GetArgSetData();
     DataType *GetDataTypeData();
     SysMeasureFilter *GetSysMeasureFilterData();

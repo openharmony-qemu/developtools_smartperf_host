@@ -136,11 +136,12 @@ Promise<Array<unknown>> =>
         P.pid,
         c.ts-${traceRange.startTs} as startTs,
         c.dur,
+        c.cat,
         c.id,
         c.depth
     from thread A
     left join process P on P.id = A.ipid
-    left join callstack C on A.id = C.callid
+    left join callstack C on A.id = C.parent_id
     where startTs not null and cookie not null;`,
     {},
     { traceId: traceId }
@@ -316,15 +317,14 @@ export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> 
       p.pid,
       c.argsetid,
       'func' AS type 
-    FROM
-      thread t, trace_range r 
-      LEFT JOIN process p ON t.ipid = p.id
-      LEFT JOIN callstack c ON c.callid = t.id
-    WHERE
-      c.name LIKE '%${search}%' 
-      AND startTime > 0 ;`,
-    { $search: search },
-    { traceId: Utils.currentSelectTrace }
+      from 
+      callstack c 
+      left join thread t on c.callid = t.id 
+      left join process p on t.ipid = p.id
+      left join trace_range r 
+      where c.name like '%${search}%' and startTime > 0;
+       `,
+       { $search: search }
   );
 
 export const querySceneSearchFunc = (search: string, processList: Array<string>): Promise<Array<SearchFuncBean>> =>
@@ -341,14 +341,13 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
           p.pid,
           c.argsetid,
           'func' as type 
-        FROM
-        thread t, trace_range r 
-        LEFT JOIN process p ON t.ipid = p.id
-        LEFT JOIN callstack c ON c.callid = t.id
-   where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
-    `,
-    { $search: search },
-    { traceId: Utils.currentSelectTrace }
+          from callstack c 
+          left join thread t on c.callid = t.id 
+          left join process p on t.ipid = p.id
+          left join trace_range r
+          where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
+           `,
+           { $search: search }
   );
 
 export const queryHeapFunction = (fileId: number): Promise<Array<HeapTraceFunctionInfo>> =>

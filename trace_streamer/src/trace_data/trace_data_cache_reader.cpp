@@ -171,6 +171,10 @@ const PerfReport &TraceDataCacheReader::GetConstPerfReportData() const
 {
     return perfReport_;
 }
+const PerfNapiAsync &TraceDataCacheReader::GetConstPerfNapiAsyncData() const
+{
+    return perfNapiAsync_;
+}
 const SysCall &TraceDataCacheReader::GetConstSysCallData() const
 {
     return sysCallData_;
