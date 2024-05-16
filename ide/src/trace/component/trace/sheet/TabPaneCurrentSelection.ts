@@ -666,7 +666,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     list.push({
       name: 'Value',
-      value: Number(data.count),
+      value: data.count,
     });
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     this.currentSelectionTbl!.dataSource = list;
