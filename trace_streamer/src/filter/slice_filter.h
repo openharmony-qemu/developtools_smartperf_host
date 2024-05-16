@@ -86,6 +86,8 @@ public:
                               uint32_t threadGroupId,
                               int64_t cookie,
                               DataIndex nameIndex);
+    void StartGEvent(uint64_t timeStamp, uint32_t pid, uint32_t threadGroupId, int64_t cookie, DataIndex nameIndex);
+    uint64_t FinishHEvent(uint64_t timeStamp, uint32_t threadGroupId, int64_t cookie, DataIndex nameIndex);
     void IrqHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     std::tuple<uint64_t, uint32_t> AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet &args);
     void IrqHandlerExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args);
@@ -124,6 +126,7 @@ private:
 private:
     // The parameter list is tid, cookid, functionName, asyncCallId.
     TripleMap<uint32_t, int64_t, DataIndex, uint64_t> asyncEventMap_;
+    TripleMap<uint32_t, int64_t, DataIndex, std::vector<uint64_t>> gEventMap_;
     // this is only used to calc the layer of the async event in same time range
     std::map<uint32_t, int8_t> asyncNoEndingEventMap_ = {};
     //  irq map, key1 is cpu, key2
@@ -136,11 +139,13 @@ private:
     //  irq map, key1 is cpu, key2
     std::unordered_map<uint32_t, IrqRecords> softIrqEventMap_ = {};
     std::map<uint64_t, AsyncEvent> asyncEventFilterMap_ = {};
+    std::map<uint64_t, AsyncEvent> gEventFilterMap_ = {};
     std::unordered_map<InternalTid, StackOfSlices> sliceStackMap_ = {};
     std::unordered_map<InternalTid, StackOfSlices> &binderStackMap_ = sliceStackMap_;
     std::unordered_map<InternalTid, StackOnDepth> depthHolder_ = {};
     std::unordered_map<uint32_t, uint32_t> pidTothreadGroupId_ = {};
     uint64_t asyncEventSize_ = 0;
+    uint64_t gEventSize_ = 0;
     uint64_t asyncEventDisMatchCount_ = 0;
     uint64_t callEventDisMatchCount_ = 0;
     std::unordered_map<uint32_t, uint32_t> sliceRowToArgsSetId_ = {};
