@@ -1344,16 +1344,16 @@ export class SpProcessChart {
         let param = asyncFunctions[i];
         if (param.dur !== null) {
           let itemEndTime = param.startTs + param.dur;
-          let itemi = -1;
+          let itemi = false;
           for (let val of mapDepth.values()) {
             if (val.time < param.startTs) {
-              itemi = val.depth;
+              itemi = true;
               val.time = itemEndTime;//更新endts
               param.depth = val.depth;
               break;
             }
           }
-          if (itemi === -1) {
+          if (!itemi) {
             maxDepth = maxDepth + 1;
             mapDepth.set(`${maxDepth}`, {
               time: itemEndTime,
