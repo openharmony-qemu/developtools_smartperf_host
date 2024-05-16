@@ -102,7 +102,7 @@ export class SpPerfOutputDataChart {
       traceRow.rowId = i + '';
       traceRow.rowType = TraceRow.ROW_TYPE_PERF_TOOL;
       traceRow.rowParentId = folder.rowId;
-      traceRow.style.height = '40px';
+      traceRow.style.height = '24px';
       traceRow.name = it.name;
       traceRow.rowHidden = !folder.expansion;
       traceRow.setAttribute('children', '');

@@ -333,6 +333,7 @@ export class TabPaneSlices extends BaseElement {
       this.slicesSource.sort(compare(slicesDetail.key, slicesDetail.sort, 'number'));
     }
     this.slicesTbl!.recycleDataSource = this.slicesSource;
+    this.sliceSearchCount!.textContent = this.slicesSource.length - 1 + '';
   }
 
   findName(str: string): void {
@@ -342,6 +343,7 @@ export class TabPaneSlices extends BaseElement {
     let sumOccurrences: number = 0;
     if (str === '') {
       this.slicesTbl!.recycleDataSource = this.slicesSource;
+      this.sliceSearchCount!.textContent = this.slicesSource.length - 1 + '';
     } else {
       this.slicesSource.forEach((item) => {
         if (item.name.toLowerCase().indexOf(str.toLowerCase()) !== -1) {
@@ -357,6 +359,7 @@ export class TabPaneSlices extends BaseElement {
       count.occurrences = sumOccurrences;
       searchData.unshift(count);
       this.slicesTbl!.recycleDataSource = searchData;
+      this.sliceSearchCount!.textContent = searchData.length - 1 + '';
     }
   }
 }

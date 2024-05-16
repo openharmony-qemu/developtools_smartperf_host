@@ -45,7 +45,7 @@ export class PerfToolRender extends Render {
       endNS: TraceRow.range?.endNS ?? 0,
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: row.frame,
-      paddingTop: 5,
+      paddingTop: 3,
       useCache: perfReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
     drawLoadingFrame(perfReq.context, perfToolFilter, row);
