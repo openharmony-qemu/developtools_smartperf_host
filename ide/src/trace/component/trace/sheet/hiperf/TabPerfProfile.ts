@@ -34,7 +34,8 @@ import { TabPerfProfileHtml } from './TabPerfProfile.html';
 const InvertOptionIndex: number = 0;
 const hideThreadOptionIndex: number = 3;
 const hideThreadStateOptionIndex: number = 4;
-const callTreeValueNoSample: number[] = [InvertOptionIndex, hideThreadOptionIndex, hideThreadStateOptionIndex];
+const isOnlyKernelOptionIndex: number = 5;
+const callTreeValueNoSample: number[] = [InvertOptionIndex, hideThreadOptionIndex, hideThreadStateOptionIndex, isOnlyKernelOptionIndex];
 
 @element('tabpane-perf-profile')
 export class TabpanePerfProfile extends BaseElement {
@@ -650,6 +651,7 @@ export class TabpanePerfProfile extends BaseElement {
     let isHideSystemLibrary: boolean = filterData.callTree[1]; // @ts-ignore
     let isHideThread: boolean = filterData.callTree[3]; // @ts-ignore
     let isHideThreadState: boolean = filterData.callTree[4]; // @ts-ignore
+    let isOnlyKernel: boolean = filterData.callTree[5]; // @ts-ignore
     let list = filterData.dataMining.concat(filterData.dataLibrary);
     perfProfileArgs.push({
       funcName: 'hideThread',
@@ -668,6 +670,12 @@ export class TabpanePerfProfile extends BaseElement {
     if (isHideSystemLibrary) {
       perfProfileArgs.push({
         funcName: 'hideSystemLibrary',
+        funcArgs: [],
+      });
+    } // @ts-ignore
+    if (isOnlyKernel) {
+      perfProfileArgs.push({
+        funcName: 'onlyKernel',
         funcArgs: [],
       });
     } // @ts-ignore

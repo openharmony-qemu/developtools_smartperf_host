@@ -25,6 +25,7 @@ import { PerfBottomUpStruct } from '../../bean/PerfBottomUpStruct';
 import { SelectionParam } from '../../bean/BoxSelection';
 
 const systemRuleName: string = '/system/';
+const kernelRuleName: string = '/kernel/';
 const numRuleName: string = '/max/min/';
 const maxDepth: number = 256;
 
@@ -693,6 +694,15 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     });
   }
 
+  onlyKernel(): void {
+    this.allProcess.forEach((item: PerfCallChainMerageData): void => {
+      item.children = [];
+      this.recursionChargeByRule(item, kernelRuleName, (node: PerfCallChainMerageData): boolean => {
+        return node.libName !== '[kernel.kallsyms]'
+      })
+    })
+  }
+
   hideNumMaxAndMin(startNum: number, endNum: string): void {
     let max = endNum === '∞' ? Number.POSITIVE_INFINITY : parseInt(endNum);
     this.allProcess.forEach((item: PerfCallChainMerageData): void => {
@@ -854,6 +864,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         break;
       case 'hideThreadState':
         this.isHideThreadState = funcArgs[0] as boolean;
+        break;
+      case 'onlyKernel':
+        this.onlyKernel();
         break;
       case 'hideNumMaxAndMin':
         this.hideNumMaxAndMin(funcArgs[0] as number, funcArgs[1] as string);
