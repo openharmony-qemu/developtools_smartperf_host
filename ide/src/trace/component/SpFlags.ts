@@ -244,6 +244,11 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'Lost Frame and HitchTime templates',
     },
+    {
+      title: 'UserPluginsRow',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'User Upload Plugin To Draw',
+    }
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {

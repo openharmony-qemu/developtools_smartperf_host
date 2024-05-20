@@ -55,6 +55,7 @@ import { queryMemoryConfig } from '../../database/sql/Memory.sql';
 import { SpLtpoChart } from './SpLTPO';
 import { SpBpftraceChart } from './SpBpftraceChart';
 import { sliceSender } from '../../database/data-trafic/SliceSender';
+import { SpUserFileChart } from './SpUserPluginChart'
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -84,6 +85,7 @@ export class SpChartManager {
   private spBpftraceChart: SpBpftraceChart;
   private tranceRange = { startTs: 0, endTs: 0 };
   private spPerfOutputDataChart: SpPerfOutputDataChart;
+  private spUserFileChart: SpUserFileChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -110,6 +112,7 @@ export class SpChartManager {
     this.spSegmentationChart = new SpSegmentationChart(trace);
     this.spBpftraceChart = new SpBpftraceChart(trace);
     this.spPerfOutputDataChart = new SpPerfOutputDataChart(trace);
+    this.spUserFileChart = new SpUserFileChart(trace)
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
@@ -143,6 +146,9 @@ export class SpChartManager {
     info('initData cpu Data initialized');
     if (FlagsConfig.getFlagsConfigEnableStatus('Bpftrace')) {
       await this.spBpftraceChart.init(null);
+    }
+    if (FlagsConfig.getFlagsConfigEnableStatus('UserPluginsRow')){
+      await this.spUserFileChart.init(null)
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
       await this.cpu.initCpuIdle0Data(progress);

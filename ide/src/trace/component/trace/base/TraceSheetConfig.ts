@@ -128,6 +128,7 @@ import { TabPaneSampleInstructionDistributions } from '../sheet/bpftrace/TabPane
 import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSampleInstructionSelectionTotalTime';
 import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
+import { TabPaneUserPlugin } from '../sheet/userPlugin/TabPaneUserPlugin';
 
 export let tabConfig: unknown = {
   'current-selection': {
@@ -687,5 +688,9 @@ export let tabConfig: unknown = {
   'box-sample-instruction': {
     title: 'Data Flow',
     type: TabPaneSampleInstruction,
+  },
+  'tab-pane-userplugin': {
+    title: 'User Plugin',
+    type: TabPaneUserPlugin,
   },
 };
