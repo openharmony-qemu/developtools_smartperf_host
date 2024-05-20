@@ -432,7 +432,7 @@ export default function spSystemTraceOnClickHandler(
     sp.removeLinkLinesByBusinessType('thread');
   }
   if (!FuncStruct.selectFuncStruct) {
-    sp.removeLinkLinesByBusinessType('distributed');
+    sp.removeLinkLinesByBusinessType('distributed','func');
   }
   if (row) {
     let pointEvent = sp.createPointEvent(row);
