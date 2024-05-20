@@ -358,7 +358,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => FrameAnimationStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp), row!))
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
-    .then(() => sampleStructOnClick(clickRowType, sp))
+    .then(() => sampleStructOnClick(clickRowType, sp, row))
     .then(() => PerfToolsStructOnClick(clickRowType, sp))
 
     .then(() => {

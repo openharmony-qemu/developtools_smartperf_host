@@ -84,6 +84,7 @@ import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
 import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerBpftrace';
 import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
+import { TabPaneUserPlugin } from '../sheet/userPlugin/TabPaneUserPlugin';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { SpSystemTrace } from '../../SpSystemTrace';
@@ -340,19 +341,17 @@ export class TraceSheet extends BaseElement {
     this.initNavElements(tabsPackUp!, borderTop, initialHeight);
     this.exportBt = this.shadowRoot?.querySelector<LitIcon>('#export-btn');
     tabsOpenUp!.onclick = (): void => {
-      this.tabs!.style.height = `${
-        window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop
-      }px`;
+      this.tabs!.style.height = `${window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop
+        }px`;
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
       litTabpane!.forEach((node: HTMLDivElement): void => {
-        node!.style.height = `${
-          window.innerHeight -
+        node!.style.height = `${window.innerHeight -
           this.search!.offsetHeight -
           this.timerShaft!.offsetHeight -
           this.navRoot!.offsetHeight -
           borderTop
-        }px`;
+          }px`;
         initialHeight.node = node!.style.height;
       });
       initialHeight.tabs = this.tabs!.style.height;
@@ -449,7 +448,7 @@ export class TraceSheet extends BaseElement {
         // 只要没有移动到边界区域都会进入该条件
         that.navRoot!.offsetHeight <= newHeight &&
         that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight <=
-          window.innerHeight - newHeight
+        window.innerHeight - newHeight
       ) {
         that.tabs!.style.height = `${newHeight}px`;
         litTabpane!.style.height = `${newHeight - that.navRoot!.offsetHeight}px`;
@@ -464,21 +463,19 @@ export class TraceSheet extends BaseElement {
         window.innerHeight - newHeight
       ) {
         // 该条件在面板高度置顶时触发
-        that.tabs!.style.height = `${
-          window.innerHeight -
+        that.tabs!.style.height = `${window.innerHeight -
           that.search!.offsetHeight -
           that.timerShaft!.offsetHeight -
           borderTop -
           that.spacer!.offsetHeight
-        }px`;
-        litTabpane!.style.height = `${
-          window.innerHeight -
+          }px`;
+        litTabpane!.style.height = `${window.innerHeight -
           that.search!.offsetHeight -
           that.timerShaft!.offsetHeight -
           that.navRoot!.offsetHeight -
           borderTop -
           that.spacer!.offsetHeight
-        }px`;
+          }px`;
         tabsPackUp!.name = 'down';
       }
       that.tabPaneHeight = litTabpane!.style.height;
@@ -862,6 +859,11 @@ export class TraceSheet extends BaseElement {
       { key: '0', title: 'instruction', checked: select[0] === '0' },
       { key: '1', title: 'cycles', checked: select[0] === '1' },
     ];
+  };
+
+
+  displayUserPlugin = (selectData: any): void => {
+    this.displayTab<TabPaneUserPlugin>("tab-pane-userplugin").data = selectData;
   };
 
   displaySystemStatesData = (): void => {
