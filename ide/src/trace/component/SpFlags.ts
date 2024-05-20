@@ -254,6 +254,11 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'Asynchronous trace aggregation',
     },
+    {
+      title: 'UserPluginsRow',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'User Upload Plugin To Draw',
+    }
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {

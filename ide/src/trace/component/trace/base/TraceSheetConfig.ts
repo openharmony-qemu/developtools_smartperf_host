@@ -133,6 +133,7 @@ import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
 import { TabPaneTimeParallel } from '../sheet/parallel/TabPaneTimeParallel';
 import { TabPaneMtParallel } from '../sheet/parallel/TabPaneMtParallel';
 import { TabPanePerfAsync } from '../sheet/hiperf/TabPerfAsyncList';
+import { TabPaneUserPlugin } from '../sheet/userPlugin/TabPaneUserPlugin';
 
 export let tabConfig: unknown = {
   'current-selection': {
@@ -714,5 +715,9 @@ export let tabConfig: unknown = {
     title: 'MT Parallel',
     type: TabPaneMtParallel,
     require: (param: SelectionParam) => param.threadIds.length > 0,
+  },
+  'tab-pane-userplugin': {
+    title: 'User Plugin',
+    type: TabPaneUserPlugin,
   },
 };

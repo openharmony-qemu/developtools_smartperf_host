@@ -57,6 +57,7 @@ import { SpBpftraceChart } from './SpBpftraceChart';
 import { sliceSender } from '../../database/data-trafic/SliceSender';
 import { BaseStruct } from '../../bean/BaseStruct';
 import { SpGpuCounterChart } from './SpGpuCounterChart';
+import { SpUserFileChart } from './SpUserPluginChart'
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -87,6 +88,7 @@ export class SpChartManager {
   private spBpftraceChart: SpBpftraceChart;
   private spPerfOutputDataChart: SpPerfOutputDataChart;
   private spGpuCounterChart: SpGpuCounterChart;
+  private spUserFileChart: SpUserFileChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -114,6 +116,7 @@ export class SpChartManager {
     this.spBpftraceChart = new SpBpftraceChart(trace);
     this.spPerfOutputDataChart = new SpPerfOutputDataChart(trace);
     this.spGpuCounterChart = new SpGpuCounterChart(trace);
+    this.spUserFileChart = new SpUserFileChart(trace)
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
@@ -145,6 +148,9 @@ export class SpChartManager {
     info('initData cpu Data initialized');
     if (FlagsConfig.getFlagsConfigEnableStatus('Bpftrace')) {
       await this.spBpftraceChart.init(null);
+    }
+    if (FlagsConfig.getFlagsConfigEnableStatus('UserPluginsRow')){
+      await this.spUserFileChart.init(null)
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('GpuCounter')) {
       await this.spGpuCounterChart.init([]);

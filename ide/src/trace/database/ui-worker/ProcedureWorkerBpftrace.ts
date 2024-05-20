@@ -25,6 +25,7 @@ import {
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
+import { SpUserFileChart } from '../../component/chart/SpUserPluginChart';
 
 const SAMPLE_STRUCT_HEIGHT = 20;
 const Y_PADDING = 2;
@@ -132,12 +133,24 @@ function setSampleFilter(
   }
 }
 
-export function sampleStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+// @ts-ignore
+export function sampleStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<unknown> | undefined) {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_SAMPLE && SampleStruct.hoverSampleStruct) {
-      SampleStruct.selectSampleStruct = SampleStruct.hoverSampleStruct;
-      sp.traceSheetEL?.displaySampleData(SampleStruct.selectSampleStruct, SampleStruct.reqProperty);
-      sp.timerShaftEL?.modifyFlagList(undefined);
+    SampleStruct.selectSampleStruct = SampleStruct.hoverSampleStruct;
+    if (clickRowType === TraceRow.ROW_TYPE_SAMPLE && SampleStruct.hoverSampleStruct && SampleStruct.selectSampleStruct !== undefined) {
+      if (row?.rowId === 'userPlugin') {
+        SpUserFileChart.userPluginData!.map((v: unknown) => {
+          //@ts-ignore
+          if (v.func_name === SampleStruct.selectSampleStruct!.name &&
+            //@ts-ignore
+            v.begin === SampleStruct.selectSampleStruct?.begin) {
+            sp.traceSheetEL?.displayUserPlugin(v)
+          }
+        })
+      } else {
+        sp.traceSheetEL?.displaySampleData(SampleStruct.selectSampleStruct, SampleStruct.reqProperty);
+        sp.timerShaftEL?.modifyFlagList(undefined);
+      }
       reject(new Error());
     } else {
       resolve(null);
