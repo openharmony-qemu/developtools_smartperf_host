@@ -61,7 +61,6 @@ export class SpProcessChart {
   private processAsyncFuncMap: unknown = {};
   private processAsyncFuncArray: unknown[] = [];
   private processAsyncFuncCatMap: any = {};
-  private processAsyncFuncCatArray: any[] = [];
   private eventCountMap: unknown;
   private processThreads: Array<ThreadStruct> = [];
   private processMem: Array<unknown> = [];
@@ -99,6 +98,7 @@ export class SpProcessChart {
     this.funcNameMap.clear();
     this.processAsyncFuncArray = [];
     this.processAsyncFuncMap = {};
+    this.processAsyncFuncCatMap = {};
     this.eventCountMap = {};
     this.processThreads = [];
     this.processMem = [];
@@ -140,7 +140,6 @@ export class SpProcessChart {
 
     let asyncFuncCatList: any[] = await queryProcessAsyncFuncCat();
     info('AsyncFuncCatData Count is: ', asyncFuncCatList!.length);
-    this.processAsyncFuncCatArray = asyncFuncCatList;
     this.processAsyncFuncCatMap = Utils.groupBy(asyncFuncCatList, 'pid');
   };
 
@@ -161,7 +160,7 @@ export class SpProcessChart {
     let asyncFuncGroup = Utils.groupBy(
       //@ts-ignore
       this.processAsyncFuncArray.filter((it) => it.funName === 'deliverInputEvent'),
-      'tid'
+      'pid'
     ); // @ts-ignore
     if (Reflect.ownKeys(asyncFuncGroup).length > 0) {
       this.trace.rowsEL?.appendChild(row);

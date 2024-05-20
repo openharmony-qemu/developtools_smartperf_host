@@ -147,9 +147,9 @@ export const queryProcessAsyncFunc = (
     { traceId: traceId }
   );
 
-export const queryProcessAsyncFuncCat = (_funName?: string): Promise<Array<any>> =>
+export const queryProcessAsyncFuncCat = (): Promise<Array<any>> =>
   query(
-    'queryProcessAsyncFunc',
+    'queryProcessAsyncFuncCat',
     `
     select 
       A.tid,
@@ -173,12 +173,10 @@ export const queryProcessAsyncFuncCat = (_funName?: string): Promise<Array<any>>
       cookie not null 
     and 
       cat not null 
-      ${_funName ? 'funName=$funName' : ''}
+    and 
+      parent_id is null
     order by cat;
-  `,
-    {
-      funName: _funName,
-    }
+  `
   );
 
 export const getMaxDepthByTid = (

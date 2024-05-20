@@ -227,10 +227,15 @@ export class FuncStruct extends BaseFuncStruct {
       if (data.dur === undefined || data.dur === null) {
       } else {
         ctx.globalAlpha = 1;
-        if (data.funName!.startsWith('XStream')) {
-          ctx.fillStyle = '#7a8c22';
-        } else if (data.funName!.startsWith('WU-')) {
-          ctx.fillStyle = '#349199';
+        //h、g异步方法颜色
+        if (data.callid && data.threadName) {
+          if (data.funName!.startsWith('XStream')) {
+            ctx.fillStyle = '#7a8c22';
+          } else if (data.funName!.startsWith('WU-')) {
+            ctx.fillStyle = '#349199';
+          } else {
+            ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+          }
         } else {
           ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
         }
@@ -240,7 +245,16 @@ export class FuncStruct extends BaseFuncStruct {
         }
         ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
         if (data.frame.width > 10) {
-          ctx.fillStyle = ColorUtils.funcTextColor(textColor);
+          //h、g异步方法字体颜色 
+          if (data.callid && data.threadName) {
+            if (data.funName!.startsWith('XStream') || data.funName!.startsWith('WU-')) {
+              ctx.fillStyle = '#fff';
+            } else {
+              ctx.fillStyle = ColorUtils.funcTextColor(textColor);
+            }
+          } else {
+            ctx.fillStyle = ColorUtils.funcTextColor(textColor);
+          }
           ctx.textBaseline = 'middle';
           drawFunString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }
