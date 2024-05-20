@@ -386,7 +386,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => FrameAnimationStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp), row!))
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
-    .then(() => sampleStructOnClick(clickRowType, sp))
+    .then(() => sampleStructOnClick(clickRowType, sp, row))
     .then(() => gpuCounterStructOnClick(clickRowType, sp))
     .then(() => PerfToolsStructOnClick(clickRowType, sp))
 
@@ -402,7 +402,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
         sp.refreshCanvas(true, 'click');
       }
     })
-    .catch((e): void => {});
+    .catch((e): void => { });
 }
 export default function spSystemTraceOnClickHandler(
   sp: SpSystemTrace,
@@ -708,7 +708,7 @@ function handleTimerShaftActions(ev: MouseEvent, sp: SpSystemTrace): void {
         // 如果没有找到帽子，则绘制一个旗子
         let time = Math.round(
           (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) / sp.timerShaftEL!.canvas!.offsetWidth +
-            TraceRow.range?.startNS!
+          TraceRow.range?.startNS!
         );
         sp.timerShaftEL!.sportRuler!.drawTriangle(time, 'squre');
       }

@@ -83,6 +83,7 @@ import '../../../../base-ui/popover/LitPopoverV';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
 import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerBpftrace';
+import { TabPaneUserPlugin } from '../sheet/userPlugin/TabPaneUserPlugin';
 import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
@@ -872,6 +873,10 @@ export class TraceSheet extends BaseElement {
       { key: '1', title: 'cycles', checked: select[0] === '1' },
     ];
   };
+  displayUserPlugin = (selectData:any): void => {
+    this.displayTab<TabPaneUserPlugin>("tab-pane-userplugin").data = selectData;
+  };
+
 
   displayGpuCounterData = (data: GpuCounterStruct): void => {
     this.displayTab<TabPaneGpuCounter>('box-gpu-counter').data = data;
