@@ -2237,7 +2237,8 @@ export class SpSystemTrace extends BaseElement {
       // @ts-ignore
       this.scrollToProcess(`${funcStract.tid}`, `${funcStract.pid}`, 'thread', false); // @ts-ignore
       this.scrollToFunction(`${funcStract.tid}`, `${funcStract.pid}`, 'func', true);
-      filterRow!.onComplete = completeEntry;
+      // filterRow!.onComplete = completeEntry;
+      completeEntry();
     }
   }
 
