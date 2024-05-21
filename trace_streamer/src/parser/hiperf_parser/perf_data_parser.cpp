@@ -407,25 +407,79 @@ PerfDataParser::~PerfDataParser()
             static_cast<unsigned long long>(GetPluginEndTime()));
 }
 
-bool PerfDataParser::PerfReloadSymbolFiles(std::vector<std::string> &symbolsPaths)
+std::tuple<uint64_t, DataIndex> PerfDataParser::GetFileIdWithLikelyFilePath(const std::string &inputFilePath)
 {
-    if (access(tmpPerfData_.c_str(), F_OK) != 0) {
-        TS_LOGE("perf file:%s not exist", tmpPerfData_.c_str());
+    auto perfFilesData = traceDataCache_->GetConstPerfFilesData();
+    for (auto row = 0; row < perfFilesData.Size(); row++) {
+        auto filePath = traceDataCache_->GetDataFromDict(perfFilesData.FilePaths()[row]);
+        if (EndsWith(filePath, inputFilePath)) {
+            return std::make_tuple(perfFilesData.FileIds()[row], perfFilesData.FilePaths()[row]);
+        }
+    }
+    return std::make_tuple(INVALID_UINT64, INVALID_DATAINDEX);
+}
+
+bool PerfDataParser::ReloadPerfFile(const std::unique_ptr<SymbolsFile> &symbolsFile,
+                                    uint64_t &fileId,
+                                    DataIndex &filePathIndex)
+{
+    std::tie(fileId, filePathIndex) = GetFileIdWithLikelyFilePath(symbolsFile->filePath_);
+    if (fileId == INVALID_UINT64) {
         return false;
     }
-    recordDataReader_ = PerfFileReader::Instance(tmpPerfData_);
-    report_ = std::make_unique<Report>();
-    report_->virtualRuntime_.SetSymbolsPaths(symbolsPaths);
-    if (recordDataReader_ == nullptr) {
+    // clean perf file same fileId data
+    if (!traceDataCache_->GetPerfFilesData()->EraseFileIdSameData(fileId)) {
         return false;
     }
-    if (Reload()) {
-        Finish();
-        return true;
-    } else {
-        return false;
+    // add new symbol Data to PerfFile table
+    for (auto dfxSymbol : symbolsFile->GetSymbols()) {
+        auto symbolNameIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
+        traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileId, dfxSymbol.index_, symbolNameIndex,
+                                                                filePathIndex);
+    }
+    return true;
+}
+
+void PerfDataParser::ReloadPerfCallChain(const std::unique_ptr<SymbolsFile> &symbolsFile,
+                                         uint64_t fileId,
+                                         DataIndex filePathIndex)
+{
+    // Associate perf_callchain with perf_file
+    auto perfCallChainData = traceDataCache_->GetPerfCallChainData();
+
+    for (auto row = 0; row < perfCallChainData->Size(); row++) {
+        if (perfCallChainData->FileIds()[row] == fileId) {
+            // Get the current call stack's pid and tid
+            if (!callChainIdToThreadInfo_.count(perfCallChainData->CallChainIds()[row])) {
+                continue;
+            }
+            pid_t pid;
+            pid_t tid;
+            std::tie(pid, tid) = callChainIdToThreadInfo_.at(perfCallChainData->CallChainIds()[row]);
+            // Get VirtualThread object
+            auto &virtualThread = report_->virtualRuntime_.GetThread(pid, tid);
+            // Get dfxMap object
+            auto dfxMap = virtualThread.FindMapByAddr(perfCallChainData->Ips()[row]);
+            auto vaddr = symbolsFile->GetVaddrInSymbols(perfCallChainData->Ips()[row], dfxMap->begin, dfxMap->offset);
+            auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(vaddr);
+            auto nameIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
+            perfCallChainData->UpdateSymbolRelatedData(row, dfxSymbol.funcVaddr_, dfxSymbol.index_, nameIndex);
+        }
     }
 }
+
+void PerfDataParser::PerfReloadSymbolFiles(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
+{
+    for (const auto &symbolsFile : symbolsFiles) {
+        uint64_t fileId;
+        DataIndex filePathIndex;
+        if (!ReloadPerfFile(symbolsFile, fileId, filePathIndex)) {
+            continue;
+        }
+        ReloadPerfCallChain(symbolsFile, fileId, filePathIndex);
+    }
+}
+
 bool PerfDataParser::LoadPerfData()
 {
     // try load the perf data
@@ -622,6 +676,7 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
     }
     callChainId = ++callChainId_;
     pidAndStackHashToCallChainId_.Insert(pid, stackHash, callChainId);
+    callChainIdToThreadInfo_.insert({callChainId, std::make_tuple(pid, sample->data_.tid)});
     uint64_t depth = 0;
     for (auto frame = sample->callFrames_.rbegin(); frame != sample->callFrames_.rend(); ++frame) {
         uint64_t fileId = INVALID_UINT64;

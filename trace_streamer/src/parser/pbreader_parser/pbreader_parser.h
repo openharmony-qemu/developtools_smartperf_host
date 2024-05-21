@@ -260,7 +260,7 @@ private:
                                const ProtoReader::ProfilerPluginData_Reader &pluginDataZero,
                                bool isSplitFile);
     bool SpliteDataBySegment(DataIndex pluginNameIndex, PbreaderDataSegment &dataSeg);
-#if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)    
+#if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)
     void ParseNapiAsync();
     void GetTraceidInfoFromCallstack(std::queue<std::pair<uint64_t, uint64_t>> &traceidIndexs,
                                      std::unordered_set<uint64_t> &traceidIndexSet);

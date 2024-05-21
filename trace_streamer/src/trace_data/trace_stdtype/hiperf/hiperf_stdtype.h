@@ -37,6 +37,7 @@ public:
     void SetName(uint64_t index, DataIndex name);
     void UpdateSymbolId(size_t index, DataIndex symbolId);
     void Clear() override;
+    void UpdateSymbolRelatedData(size_t index, uint64_t vaddrInFile, uint64_t symbolId, DataIndex nameIndex);
 
 private:
     std::deque<uint32_t> callChainIds_ = {};
@@ -56,6 +57,7 @@ public:
     const std::deque<DataIndex> &FilePaths() const;
     const std::deque<uint32_t> &Serials() const;
     void Clear() override;
+    bool EraseFileIdSameData(uint64_t fileId);
 
 private:
     std::deque<uint64_t> fileIds_ = {};
@@ -118,7 +120,6 @@ private:
     std::deque<DataIndex> values_ = {};
 };
 
-
 struct PerfNapiAsyncRow {
     uint64_t timeStamp = INVALID_UINT64;
     DataIndex traceid = INVALID_UINT64;
@@ -134,15 +135,15 @@ struct PerfNapiAsyncRow {
 
 class PerfNapiAsync : public CacheBase {
 public:
-    size_t AppendNewPerfNapiAsync(const PerfNapiAsyncRow& perfNapiAsyncRow);
-    const std::deque<DataIndex>& Traceids() const;
-    const std::deque<uint8_t>& CpuIds() const;
-    const std::deque<uint32_t>& ProcessIds() const;
-    const std::deque<uint32_t>& CallerCallchainids() const;
-    const std::deque<uint32_t>& CalleeCallchainids() const;
-    const std::deque<uint64_t>& PerfSampleIds() const;
-    const std::deque<uint64_t>& EventCounts() const;
-    const std::deque<uint64_t>& EventTypeIds() const;
+    size_t AppendNewPerfNapiAsync(const PerfNapiAsyncRow &perfNapiAsyncRow);
+    const std::deque<DataIndex> &Traceids() const;
+    const std::deque<uint8_t> &CpuIds() const;
+    const std::deque<uint32_t> &ProcessIds() const;
+    const std::deque<uint32_t> &CallerCallchainids() const;
+    const std::deque<uint32_t> &CalleeCallchainids() const;
+    const std::deque<uint64_t> &PerfSampleIds() const;
+    const std::deque<uint64_t> &EventCounts() const;
+    const std::deque<uint64_t> &EventTypeIds() const;
     void Clear() override;
 
 private:

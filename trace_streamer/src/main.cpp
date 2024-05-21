@@ -376,13 +376,18 @@ bool CheckFinal(char **argv, TraceExportOption &traceExportOption)
     }
     return true;
 }
-
 bool CheckArgc(int argc, char **argv, int curArgNum)
 {
     if (curArgNum == argc) {
         ShowHelpInfo(argv[0]);
         return false;
     }
+    return true;
+}
+bool CheckAndSetSoFilesPath(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
+{
+    TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
+    traceExportOption.soFilesDir = std::string(argv[index]);
     return true;
 }
 bool CheckAndSetLogLevel(int argc, char **argv, int &index)
@@ -417,12 +422,6 @@ bool CheckAndSetOutputFilePath(TraceExportOption &traceExportOption, int argc, c
 {
     TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
     traceExportOption.outputFilePath = std::string(argv[index]);
-    return true;
-}
-bool CheckAndSetSoFilesPath(TraceExportOption& traceExportOption, int argc, char** argv, int& index)
-{
-    TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
-    traceExportOption.soFilesDir = std::string(argv[index]);
     return true;
 }
 bool CheckAndSetSqlQueryFilePath(TraceExportOption &traceExportOption, int argc, char **argv, int &index)

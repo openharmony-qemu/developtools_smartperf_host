@@ -21,7 +21,6 @@
 #endif
 #include <string>
 #include <vector>
-
 namespace SysTuning {
 namespace base {
 #define TS_PERMISSION_RW 0600
@@ -43,9 +42,8 @@ ssize_t Read(int32_t fd, uint8_t *dst, size_t dstSize);
 int32_t OpenFile(const std::string &path, int32_t flags, uint32_t mode = K_FILE_MODE_INVALID);
 
 std::string GetExecutionDirectoryPath();
-
 #ifdef is_linux
-std::vector<std::string> GetFilesNameFromDir(const std::string& fileDir);
+std::vector<std::string> GetFilesNameFromDir(const std::string &fileDir);
 #endif
 } // namespace base
 } // namespace SysTuning

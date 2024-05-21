@@ -196,17 +196,15 @@ PbreaderParser::~PbreaderParser()
 bool PbreaderParser::ReparseSymbolFilesAndResymbolization(std::string &symbolsPath,
                                                           std::vector<std::string> &symbolsPaths)
 {
-    std::vector<std::string> dirs;
     auto parseStatus = false;
-    for (auto file : symbolsPaths) {
-        auto dir = file.substr(0, file.find_last_of("/\\"));
-        dirs.emplace_back(dir);
-    }
-#ifdef ENABLE_HIPERF
-    parseStatus = perfDataParser_->PerfReloadSymbolFiles(dirs);
-#endif
 #if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
     ParserFileSO(symbolsPath, symbolsPaths);
+#endif
+#ifdef ENABLE_HIPERF
+    if (traceDataCache_->GetPerfFilesData()->Size() > 0) {
+        perfDataParser_->PerfReloadSymbolFiles(symbolsFiles_);
+        parseStatus = true;
+    }
 #endif
 #ifdef ENABLE_NATIVE_HOOK
     if (traceDataCache_->GetNativeHookFrameData()->Size() > 0) {

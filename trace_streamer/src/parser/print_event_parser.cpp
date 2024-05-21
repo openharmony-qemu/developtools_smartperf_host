@@ -253,8 +253,18 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint &ou
         TS_LOGD("point name is empty!");
         return PARSE_ERROR;
     }
-    // Use ## to differentiate distributed data
-    if (outPoint.name_.find("##") == std::string::npos) {
+    // Distributed data:
+    // <...>-357 (-------) .... 174330.287420: tracing_mark_write:
+    // B|1298|H:[8b00e96b2,2,1]#C##napi::NativeAsyncWork::QueueWithQos
+    std::smatch matcheLine;
+    bool matched = std::regex_match(outPoint.name_, matcheLine, distributeMatcher_);
+    if (matched) {
+        size_t index = 0;
+        outPoint.chainId_ = matcheLine[++index].str();
+        outPoint.spanId_ = matcheLine[++index].str();
+        outPoint.parentSpanId_ = matcheLine[++index].str();
+        outPoint.flag_ = matcheLine[++index].str();
+    } else {
         auto space = outPoint.name_.find(' ');
         if (space != std::string::npos) {
             outPoint.funcPrefix_ = outPoint.name_.substr(0, space);
@@ -263,20 +273,6 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint &ou
         } else {
             outPoint.funcPrefixId_ = traceDataCache_->GetDataIndex(outPoint.name_);
         }
-        return PARSE_SUCCESS;
-    }
-    // Resolve distributed calls
-    // the normal data mybe like:
-    // system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|H:[8b00e96b2,2,1]#C##decodeFrame"
-    const std::regex distributeMatcher = std::regex(R"(H:\[([a-z0-9]+),([a-z0-9]+),([a-z0-9]+)\]#([CS]?)##(.*))");
-    std::smatch matcheLine;
-    bool matched = std::regex_match(outPoint.name_, matcheLine, distributeMatcher);
-    if (matched) {
-        size_t index = 0;
-        outPoint.chainId_ = matcheLine[++index].str();
-        outPoint.spanId_ = matcheLine[++index].str();
-        outPoint.parentSpanId_ = matcheLine[++index].str();
-        outPoint.flag_ = matcheLine[++index].str();
     }
     return PARSE_SUCCESS;
 }
@@ -353,7 +349,7 @@ bool PrintEventParser::OnRwTransaction(size_t callStackRow, std::string &args, c
 }
 bool PrintEventParser::OnMainThreadProcessCmd(size_t callStackRow, std::string &args, const BytraceLine &line)
 {
-    std::sregex_iterator it(args.begin(), args.end(), mainProcessCmdPattern);
+    std::sregex_iterator it(args.begin(), args.end(), mainProcessCmdPattern_);
     std::sregex_iterator end;
     std::vector<FrameFilter::FrameMap> frames;
     while (it != end) {
