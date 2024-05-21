@@ -33,13 +33,17 @@ export class SpClockChart {
   }
 
   async init(parentRow?: TraceRow<BaseStruct>, traceId?: string): Promise<void> {
+    let clockList = await queryClockData(traceId);
+    if (clockList.length === 0) {
+      return;
+    }
     let folder = await this.initFolder(traceId);
     if (parentRow) {
       parentRow.addChildTraceRow(folder);
     } else {
       this.trace.rowsEL?.appendChild(folder);
     }
-    await this.initData(folder, traceId);
+    await this.initData(folder, clockList, traceId);
   }
 
   private clockSupplierFrame(
@@ -127,12 +131,13 @@ export class SpClockChart {
     };
   }
 
-  async initData(folder: TraceRow<BaseStruct>, traceId?: string): Promise<void> {
+  async initData(folder: TraceRow<BaseStruct>, clockList: Array<{
+    name: string;
+    num: number;
+    srcname: string;
+    maxValue?: number;
+  }>, traceId?: string): Promise<void> {
     let clockStartTime = new Date().getTime();
-    let clockList = await queryClockData(traceId);
-    if (clockList.length === 0) {
-      return;
-    }
     info('clockList data size is: ', clockList!.length);
     if (!traceId) {
       this.trace.rowsEL?.appendChild(folder);
