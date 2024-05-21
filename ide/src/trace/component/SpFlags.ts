@@ -248,7 +248,12 @@ export class FlagsConfig {
       title: 'UserPluginsRow',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'User Upload Plugin To Draw',
-    }
+    },
+    {
+      title: 'CPU by Irq',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'The real CPU after being split by irq and softirq',
+    },
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {

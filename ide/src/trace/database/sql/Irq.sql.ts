@@ -14,6 +14,7 @@
  */
 import { query } from '../SqlLite';
 import { IrqStruct } from '../ui-worker/ProcedureWorkerIrq';
+import {IrqAndSoftirqBean} from '../../component/trace/sheet/irq/irqAndSoftirqBean'
 
 export const queryIrqList = (): Promise<Array<{ name: string; cpu: number }>> =>
   query('queryIrqList', `select cat as name,callid as cpu from irq where cat!= 'ipi' group by cat,callid`);
@@ -49,7 +50,10 @@ export const queryIrqDataBoxSelect = (
 Promise<Array<unknown>> => {
   let sqlIrq = `
 select case when i.cat = 'ipi' then 'IPI' || i.name else i.name end as irqName,
-       sum(dur)                                                     as wallDuration,
+       'irq'                                                        as cat,
+       sum(
+        min(${endNS},(i.ts - t.start_ts + iif(i.dur = -1 OR i.dur is null, 0, i.dur))) - min(${startNS},i.ts - t.start_ts)
+        )                                                           as wallDuration,
        max(dur)                                                     as maxDuration,
        count(1)                                                     as count,
        avg(ifnull(dur, 0))                                          as avgDuration
@@ -71,7 +75,10 @@ export const querySoftIrqDataBoxSelect = (
 Promise<Array<unknown>> => {
   let sqlIrq = `
 select i.name              as irqName,
-       sum(dur)            as wallDuration,
+       i.cat,
+       sum(
+         min(${endNS},(i.ts - t.start_ts + iif(i.dur = -1 OR i.dur is null, 0, i.dur))) - min(${startNS},i.ts - t.start_ts)
+         )                 as wallDuration,
        max(dur)            as maxDuration,
        count(1)            as count,
        avg(ifnull(dur, 0)) as avgDuration
@@ -84,3 +91,58 @@ group by irqName;
     `;
   return query('querySoftIrqDataBoxSelect', callIds.length > 0 ? sqlIrq : '', {});
 };
+
+export const queryIrqSelectData = (callIds: Array<number>, startNS: number, endNS: number): Promise<Array<IrqAndSoftirqBean>> =>
+  query(
+    'getIrqSelectData',
+    `
+    SELECT
+        'irq' AS cat,
+        i.callid,
+        CASE
+          WHEN i.cat = 'ipi'
+          THEN 'IPI' || i.name
+          ELSE i.name
+          END AS name,
+        1 As count,
+        true As isFirstObject,
+        2 AS priority, 
+        MAX(${startNS},i.ts - TR.start_ts) AS startTime,
+        MIN(${endNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) AS endTime,
+        MIN(${endNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) - MAX(${startNS},i.ts - TR.start_ts) AS wallDuration 
+    FROM
+      irq i 
+    LEFT JOIN
+      trace_range AS TR
+      WHERE
+      i.callid IN (${callIds.join(',')})
+    AND
+      NOT ((i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur) < ${startNS}) OR (i.ts - TR.start_ts > ${endNS}))
+    AND ( ( i.cat = 'irq' AND i.flag = '1' ) OR i.cat = 'ipi' )`
+  );
+
+  export const querySoftirqSelectData = (callIds: Array<number>, startNS: number, endNS: number): Promise<Array<IrqAndSoftirqBean>> =>
+    query(
+      'getSoftirqSelectData',
+      `
+      SELECT
+          'softirq' AS cat,
+          i.callid,
+          i.name,
+          1 As count,
+          true As isFirstObject,
+          1 AS priority, 
+          MAX(${startNS},i.ts - TR.start_ts) AS startTime,
+          MIN(${endNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) AS endTime,
+          MIN(${endNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) - MAX(${startNS},i.ts - TR.start_ts) AS wallDuration 
+      FROM
+        irq i 
+      LEFT JOIN
+        trace_range AS TR
+      WHERE
+        i.callid IN (${callIds.join(',')})
+      AND
+        NOT ((i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur) < ${startNS}) OR (i.ts - TR.start_ts > ${endNS}))
+      AND 
+        i.cat = 'softirq' `
+    );
