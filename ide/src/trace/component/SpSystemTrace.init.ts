@@ -802,7 +802,7 @@ function findEntryTypeFunc(sp: SpSystemTrace, findEntry: any): void {
       argsetid: findEntry.argsetid,
       funName: findEntry.funName,
       cookie: findEntry.cookie,
-      row_id: findEntry.row_id ? findEntry.row_id : null,
+      row_id: findEntry.rowId ? findEntry.rowId : null,
     },
     true
   );
