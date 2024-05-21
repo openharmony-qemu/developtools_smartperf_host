@@ -268,7 +268,8 @@ export const queryFuncRowData = (funcName: string, tIds: number): Promise<Array<
     { $search: funcName }
   );
 
-export const fuzzyQueryFuncRowData = (funcName: string, tIds: number): Promise<Array<SearchFuncBean>> =>
+export const fuzzyQueryFuncRowData = (funcName: string, tIds: number):
+  Promise<Array<SearchFuncBean>> =>
   query(
     'fuzzyQueryFuncRowData',
     `select 
@@ -476,8 +477,9 @@ export const queryHeapTraceNode = (
         N.id`
   );
 
-export const queryTaskPoolOtherRelationData = (ids: Array<number>, tid: number): Promise<Array<FuncStruct>> => {
-  let sqlStr = `select 
+export const queryTaskPoolOtherRelationData = (ids: Array<number>, tid: number):
+  Promise<Array<FuncStruct>> => {
+  let sqlStr = `select
                     c.ts-D.start_ts as startTs,
                     c.dur,
                     c.name as funName,
@@ -487,13 +489,14 @@ export const queryTaskPoolOtherRelationData = (ids: Array<number>, tid: number):
                     A.itid as itid,
                     A.ipid as ipid
                 from thread A,trace_range D
-                left join callstack C on A.id = C.callid
+                                  left join callstack C on A.id = C.callid
                 where startTs not null and c.cookie is null and tid = $tid and c.id in (${ids.join(',')})`;
   return query('queryTaskPoolOtherRelationData', sqlStr, { $ids: ids, $tid: tid });
 };
 
-export const queryTaskPoolRelationData = (ids: Array<number>, tids: Array<number>): Promise<Array<FuncStruct>> => {
-  let sqlStr = `select 
+export const queryTaskPoolRelationData = (ids: Array<number>, tids: Array<number>):
+  Promise<Array<FuncStruct>> => {
+  let sqlStr = `select
         c.ts-D.start_ts as startTs,
         c.dur,
         c.name as funName,
@@ -503,12 +506,15 @@ export const queryTaskPoolRelationData = (ids: Array<number>, tids: Array<number
         A.itid as itid,
         A.ipid as ipid
     from thread A,trace_range D
-    left join callstack C on A.id = C.callid
-    where startTs not null and c.cookie is null and c.id in (${ids.join(',')}) and tid in (${tids.join(',')})`;
+                      left join callstack C on A.id = C.callid
+    where startTs not null and c.cookie is null and c.id in (${ids.join(',')}) and tid in (${tids.join(
+  ','
+)})`;
   return query('queryTaskPoolRelationData', sqlStr, { $ids: ids, $tids: tids });
 };
 
-export const queryStatesCut = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<StateGroup>> =>
+export const queryStatesCut = (tIds: Array<number>, leftNS: number, rightNS: number):
+  Promise<Array<StateGroup>> =>
   query<StateGroup>(
     'queryBinderByThreadId',
     `

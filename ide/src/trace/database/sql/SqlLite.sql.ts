@@ -411,26 +411,26 @@ export const queryBinderByArgsId = (
   isNext: boolean
 ): //@ts-ignore
 Promise<Array<unknown>> => {
-  let sql = `select 
-    c.ts - D.start_ts as startTs,
+  let sql = `select c.ts - D.start_ts as startTs,
     c.dur,
     t.tid,
     p.pid,
     c.depth,
     c.argsetid,
-    c.name as funName,
-    c.cookie
-  FROM
-     process p, trace_range D
-  LEFT JOIN thread t ON p.id = t.ipid
-  LEFT JOIN callstack c ON c.callid = t.id 
+      c.name as funName,
+      c.cookie
+    from callstack c,trace_range D
+    left join thread t on c.callid = t.id
+    left join process p on p.id = t.ipid
 where cat = 'binder' and  c.argsetid = $id`;
   if (isNext) {
     sql += ' and c.ts > $startTime +  D.start_ts';
   } else {
     sql += ' and c.ts < $startTime +  D.start_ts';
   }
-  return query('queryBinderByArgsId', sql, { $id: id, $startTime: startTime }, { traceId: Utils.currentSelectTrace });
+  return query('queryBinderByArgsId', sql, { $id: id, $startTime: startTime},
+    { traceId : Utils.currentSelectTrace }
+  );
 };
 
 export const getTabPaneFilesystemStatisticsFather = (

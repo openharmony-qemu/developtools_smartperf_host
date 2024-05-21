@@ -673,10 +673,9 @@ export class LitTable extends HTMLElement {
       tableRowObject.top = totalHeight;
       tableRowObject.data = rowData;
       tableRowObject.rowIndex = index;
-      let tableClientHeight = (list.length + 1) * height;
       if (
         Math.max(totalHeight, this.tableElement!.scrollTop + headHeight) <=
-        Math.min(totalHeight + height, this.tableElement!.scrollTop + tableClientHeight + headHeight)
+        Math.min(totalHeight + height, this.tableElement!.scrollTop + this.tableElement!.clientHeight + headHeight)
       ) {
         let newTableElement = this.addTableElement(tableRowObject, false, false, true, totalHeight);
         let td = newTableElement?.querySelectorAll('.td'); //@ts-ignore
