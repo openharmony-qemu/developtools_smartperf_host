@@ -23,6 +23,22 @@ export class Utils {
   static currentSelectTrace: string | null | undefined;
   static currentTraceMode: TraceMode = TraceMode.NORMAL;
   static distributedTrace: string[] = [];
+  static DMAFENCECAT_MAP: Map<
+  number,
+   { 
+    id: number; 
+    cat: string; 
+    seqno: number;
+    driver:string;
+    context:string }> = new Map<
+    number, 
+    { 
+      id: number; 
+      cat: string; 
+      seqno: number;
+      driver:string;
+      context:string }
+      >();
   private static statusMap: Map<string, string> = new Map<string, string>();
   private static instance: Utils | null = null;
   private trace1CpuCount: number = 1;
@@ -204,6 +220,7 @@ export class Utils {
 
   public static clearData(): void {
     Utils.getInstance().clearCache();
+    Utils.DMAFENCECAT_MAP.clear();
   }
 
   public static getDistributedRowId(id: unknown) : string {

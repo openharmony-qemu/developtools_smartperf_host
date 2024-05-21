@@ -26,6 +26,7 @@ import { ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerThread'
 import { FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc';
 import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
 import { ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock';
+import { DmaFenceStruct } from '../../../database/ui-worker/ProcedureWorkerDmaFence';
 import { ColorUtils } from '../base/ColorUtils';
 import { IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq';
 import { BinderArgBean } from '../../../bean/BinderArgBean';
@@ -645,6 +646,39 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl!.dataSource = list;
     let startTimeAbsolute = (data.startNS || 0) + Utils.getInstance().getRecordStartNS();
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
+  setDmaFenceData(data: DmaFenceStruct, rowData: any[]): void {
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('Slice Details');
+    let list: any[] = [];
+    list.push({
+      name: 'Title',
+      value: data.sliceName,
+    });
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startTime || 0),
+    });
+    list.push({
+      name: 'StartTime(Absolute)',
+      value: ((data.startTime || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+    });
+    if (data.dur !== 0) {
+      list.push({ 
+        name: 'Wall Duration', 
+        value: getTimeString(data.dur || 0) 
+      });
+    }
+    list.push({
+      name: 'driver',
+      value: data.driver,
+    });
+    list.push({
+      name: 'context',
+      value: data.context,
+    });
+    this.currentSelectionTbl!.dataSource = list;
   }
 
   setPerfToolsData(data: PerfToolStruct): void {

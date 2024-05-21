@@ -92,6 +92,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_DISK_ABILITY = 'disk-ability';
   static ROW_TYPE_NETWORK_ABILITY = 'network-ability';
   static ROW_TYPE_DMA_ABILITY = 'dma-ability';
+  static ROW_TYPE_DMA_FENCE = 'dma-fence';
   static ROW_TYPE_GPU_MEMORY_ABILITY = 'gpu-memory-ability';
   static ROW_TYPE_SDK = 'sdk';
   static ROW_TYPE_SDK_COUNTER = 'sdk-counter';

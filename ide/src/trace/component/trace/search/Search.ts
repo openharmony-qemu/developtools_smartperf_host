@@ -292,6 +292,11 @@ export class LitSearch extends BaseElement {
       );
     });
     this.keyUpListener();
+    this._retarge_index!.addEventListener('focus', () => {
+      this.dispatchEvent(
+        new CustomEvent('focus', {})
+      );
+    });
     this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: unknown): void => {
       // @ts-ignore
       if (e.keyCode === 13) {
