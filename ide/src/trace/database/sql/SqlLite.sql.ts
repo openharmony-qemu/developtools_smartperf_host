@@ -588,7 +588,7 @@ Promise<Array<unknown>> => {
     where
     ts <= $rightNs${str} order by ts asc;
 `,
-    { $leftNs: leftNs, $rightNs: rightNs }
+    { $leftNs: leftNs, $rightNs: rightNs }, {traceId: Utils.currentSelectTrace}
   );
 };
 

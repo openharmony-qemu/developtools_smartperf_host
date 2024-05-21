@@ -47,8 +47,13 @@ export class TabPaneHiLogs extends BaseElement {
   private ONE_DAY_NS = 86400000000000;
   private progressEL: LitProgressBar | null | undefined;
   private timeOutId: number | undefined;
+  private currentSelection: SelectionParam | undefined;
 
   set data(systemLogParam: SelectionParam) {
+    if (systemLogParam === this.currentSelection) {
+      return;
+    }
+    this.currentSelection = systemLogParam;
     if (this.hiLogsTbl) {
       this.hiLogsTbl.recycleDataSource = [];
       this.filterData = [];

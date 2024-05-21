@@ -247,6 +247,15 @@ export class SpChartManager {
     // @ts-ignore
     await this.cpu.init(count.cpu, traceFolder, traceId);
     info(`initData trace ${traceId} cpu Data initialized`);
+    progress(`trace ${traceId} cpu freq`, 75);
+    await this.freq.init(traceFolder, traceId);
+    info(`initData trace ${traceId} cpu freq Data initialized`);
+    progress(`trace ${traceId} clock`, 80);
+    await this.clockChart.init(traceFolder, traceId);
+    info(`initData trace ${traceId} clock Data initialized`);
+    progress(`trace ${traceId} Irq`, 85);
+    await this.irqChart.init(traceFolder, traceId);
+    info(`initData trace ${traceId} irq Data initialized`);
     progress(`trace ${traceId} process`, 92);
     if (traceId === '2') {
       if (!this.process2) {
@@ -408,10 +417,11 @@ export class SpChartManager {
   }
 }
 
-export const folderSupplier = (): unknown => {
-  return () => new Promise<Array<unknown>>((resolve) => resolve([]));
-}; // @ts-ignore
-export const folderThreadHandler = (row: TraceRow<unknown>, trace: SpSystemTrace) => {
+export const folderSupplier = (): () => Promise<BaseStruct[]> => {
+  return () => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
+};
+
+export const folderThreadHandler = (row: TraceRow<BaseStruct>, trace: SpSystemTrace) => {
   return (useCache: boolean): void => {
     row.canvasSave(trace.canvasPanelCtx!);
     if (row.expansion) {

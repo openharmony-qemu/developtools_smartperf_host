@@ -21,6 +21,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { LitIcon } from '../../../../../base-ui/icon/LitIcon';
 import { TabPaneHiLogSummaryHtml } from './TabPaneHiLogSummary.html';
 import { NUM_30, NUM_40 } from '../../../../bean/NumBean';
+import { queryLogAllData } from '../../../../database/sql/SqlLite.sql';
 
 @element('tab-hi-log-summary')
 export class TabPaneHiLogSummary extends BaseElement {
@@ -47,9 +48,15 @@ export class TabPaneHiLogSummary extends BaseElement {
     this.expansionDownIcon!.name = 'down';
     this.logSummaryTable!.innerHTML = '';
     this.summaryDownLoadTbl!.recycleDataSource = [];
-    this.systemLogSource = systemLogDetailParam.sysAlllogsData;
-    if (this.systemLogSource?.length !== 0 && systemLogDetailParam) {
-      this.refreshRowNodeTable();
+    // @ts-ignore
+    let oneDayTime = (window as unknown).recordEndNS - 86400000000000;
+    if (systemLogDetailParam.hiLogs.length > 0) {
+      queryLogAllData(oneDayTime, systemLogDetailParam.leftNs, systemLogDetailParam.rightNs).then((res) => {
+        this.systemLogSource = res;
+        if (this.systemLogSource?.length !== 0 && systemLogDetailParam) {
+          this.refreshRowNodeTable();
+        }
+      });
     }
   }
 

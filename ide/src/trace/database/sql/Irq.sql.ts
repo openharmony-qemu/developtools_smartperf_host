@@ -12,18 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { query } from '../SqlLite';
 import { IrqStruct } from '../ui-worker/ProcedureWorkerIrq';
+import { Utils } from '../../component/trace/base/Utils';
 
-export const queryIrqList = (): Promise<Array<{ name: string; cpu: number }>> =>
-  query('queryIrqList', `select cat as name,callid as cpu from irq where cat!= 'ipi' group by cat,callid`);
+export const queryIrqList = (traceId?: string): Promise<Array<{ name: string; cpu: number }>> =>
+  query('queryIrqList', `select cat as name,callid as cpu from irq where cat!= 'ipi' group by cat,callid`
+    , {}, {traceId: traceId});
 
-export const queryAllIrqNames = (): Promise<Array<{ ipiName: string; name: string; id: number }>> => {
+export const queryAllIrqNames = (traceId?: string): Promise<Array<{ ipiName: string; name: string; id: number }>> => {
   return query(
     'queryAllIrqNames',
     `select id,case when cat = 'ipi' then 'IPI' || name else name end as ipiName, name from irq;`
-  );
+    , {}, {traceId: traceId});
 };
+
 export const queryIrqData = (callid: number, cat: string): Promise<Array<IrqStruct>> => {
   let sqlSoftIrq = `
     select i.ts - t.start_ts as startNS,i.dur,i.name,i.depth,argsetid as argSetId,i.id from irq i,
@@ -45,8 +49,7 @@ export const queryIrqDataBoxSelect = (
   callIds: Array<number>,
   startNS: number,
   endNS: number
-): //@ts-ignore
-Promise<Array<unknown>> => {
+): Promise<Array<unknown>> => {
   let sqlIrq = `
 select case when i.cat = 'ipi' then 'IPI' || i.name else i.name end as irqName,
        sum(dur)                                                     as wallDuration,
@@ -60,15 +63,14 @@ where ((i.cat = 'irq' and i.flag = '1') or i.cat = 'ipi')
   and max(i.ts - t.start_ts, ${startNS}) <= min(i.ts - t.start_ts + dur, ${endNS})
 group by irqName;
     `;
-  return query('queryIrqDataBoxSelect', callIds.length > 0 ? sqlIrq : '', {});
+  return query('queryIrqDataBoxSelect', callIds.length > 0 ? sqlIrq : '', {}, {traceId: Utils.currentSelectTrace});
 };
 
 export const querySoftIrqDataBoxSelect = (
   callIds: Array<number>,
   startNS: number,
   endNS: number
-): //@ts-ignore
-Promise<Array<unknown>> => {
+): Promise<Array<unknown>> => {
   let sqlIrq = `
 select i.name              as irqName,
        sum(dur)            as wallDuration,
@@ -82,5 +84,5 @@ where callid in (${callIds.join(',')})
   and max(i.ts - t.start_ts, ${startNS}) <= min(i.ts - t.start_ts + dur, ${endNS})
 group by irqName;
     `;
-  return query('querySoftIrqDataBoxSelect', callIds.length > 0 ? sqlIrq : '', {});
+  return query('querySoftIrqDataBoxSelect', callIds.length > 0 ? sqlIrq : '', {}, {traceId: Utils.currentSelectTrace});
 };

@@ -12,9 +12,10 @@
 // limitations under the License.
 
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
-import { threadPool } from '../SqlLite';
+import { getThreadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { IrqStruct } from '../ui-worker/ProcedureWorkerIrq';
+import { Utils } from '../../component/trace/base/Utils';
 
 export function irqDataSender(cpu: number, name: string, row: TraceRow<IrqStruct>): Promise<IrqStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
@@ -29,15 +30,15 @@ export function irqDataSender(cpu: number, name: string, row: TraceRow<IrqStruct
     };
   }
   return new Promise((resolve): void => {
-    threadPool.submitProto(
+    getThreadPool(row.traceId).submitProto(
       QueryEnum.IrqData,
       {
         cpu: cpu,
         name: name,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
+        recordStartNS: Utils.getInstance().getRecordStartNS(row.traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(row.traceId),
         t: Date.now(),
         width: width,
         trafic: trafic,
