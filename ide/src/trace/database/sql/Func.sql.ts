@@ -140,8 +140,7 @@ export const queryProcessAsyncFunc = (
         c.id,
         c.depth,
         c.cookie,
-        c.argsetid,
-        'func' AS type
+        c.argsetid
     from thread A
     left join process P on P.id = A.ipid
     left join callstack C on A.id = C.parent_id

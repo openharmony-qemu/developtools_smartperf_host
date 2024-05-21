@@ -1233,6 +1233,7 @@ export class SpProcessChart {
     delete modifiedObject['startTs']; 
     modifiedObject['startTime'] = object['startTs'];
     modifiedObject.rowId = name;
+    modifiedObject.type = 'func';
     SpProcessChart.asyncFuncCache.push({...modifiedObject});
   }
   //Async Function
