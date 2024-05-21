@@ -196,13 +196,16 @@ export const queryLoopCutData = (
 Promise<Array<unknown>> =>
   query(
     'queryLoopCutData',
-    `select 
+    `
+    select 
       c.ts as cycleStartTime,
       t.tid,
       p.pid
-    from process p
-    LEFT JOIN thread t ON t.ipid = p.id 
-    LEFT JOIN callstack c ON c.callid = t.itid 
+    from callstack c 
+    left join
+      thread t on c.callid = t.id 
+    left join
+      process p on t.ipid = p.id
     where 
       c.name like '${funcName}%' 
     and
@@ -265,17 +268,12 @@ where cpu notnull
     and not ((B.ts - TR.start_ts + iif(B.dur = -1 or B.dur is null, 0, B.dur) < ${leftNS}) 
     or (B.ts - TR.start_ts > ${rightNS}))
 group by B.tid, B.pid, B.cpu;`;
-  return query<SelectionData>(
-    'getTabThreadStatesCpu',
-    sql,
-    {
-      $leftNS: leftNS,
-      $rightNS: rightNS,
-    },
-    {
-      traceId: Utils.currentSelectTrace,
-    }
-  );
+  return query<SelectionData>('getTabThreadStatesCpu', sql, {
+    $leftNS: leftNS,
+    $rightNS: rightNS,
+  },{
+    traceId: Utils.currentSelectTrace
+  });
 };
 
 // 框选区域内running的时间
@@ -349,7 +347,7 @@ where itid = ${itid}
 and (A.ts - B.start_ts) > ${startTime} and A.ts < B.end_ts;
     `,
     {},
-    { traceId: Utils.currentSelectTrace }
+    { traceId : Utils.currentSelectTrace }
   );
 
 export const queryThreadWakeUpFrom = (itid: number, startTime: number): Promise<Array<WakeupBean>> => {
@@ -377,9 +375,7 @@ select ts from thread_state,trace_range where ts + dur -start_ts = ${startTime} 
   return query('queryRunnableTimeByRunning', sql, {}, { traceId: Utils.currentSelectTrace });
 };
 
-export const queryProcess = (
-  traceId?: string
-): Promise<
+export const queryProcess = (traceId?: string): Promise<
   Array<{
     pid: number | null;
     processName: string | null;
@@ -396,9 +392,8 @@ export const queryProcess = (
     { traceId: traceId }
   );
 
-export const queryProcessByTable = (
-  traceId?: string
-): Promise<
+
+export const queryProcessByTable = (traceId?: string): Promise<
   Array<{
     pid: number | null;
     processName: string | null;
@@ -576,14 +571,14 @@ export const queryProcessFuncDataCount = (): //@ts-ignore
 Promise<Array<unknown>> =>
   query(
     'queryProcessFuncDataCount',
-    `select 
+    `select
         P.pid,
         count(tid) as count
-      from  process p
-      LEFT JOIN thread t ON t.ipid = p.id 
-      LEFT JOIN callstack c ON c.callid = t.itid 
-      where  C.ts between ${window.recordStartNS} and ${window.recordEndNS} 
-      group by pid;`,
+    from callstack C
+    left join thread A on A.id = C.callid
+    left join process AS P on P.id = A.ipid
+    where  C.ts between ${window.recordStartNS} and ${window.recordEndNS} 
+    group by pid;`,
     {}
   );
 
@@ -625,7 +620,8 @@ Promise<Array<unknown>> =>
   query('queryThreads', `select id,tid,(ifnull(name,'Thread') || '(' || tid || ')') name from thread where id != 0;`);
 
 export const queryDataDICT = (): //@ts-ignore
-Promise<Array<unknown>> => query('queryDataDICT', 'select * from data_dict;');
+Promise<Array<unknown>> => query('queryDataDICT',
+  'select * from data_dict;');
 
 export const queryAppStartupProcessIds = (): Promise<Array<{ pid: number }>> =>
   query(
@@ -834,9 +830,7 @@ where P.pid = $pid;`,
     { $pid: pid }
   );
 
-export const queryThreadAndProcessName = (
-  traceId?: string
-): //@ts-ignore
+export const queryThreadAndProcessName = (traceId?: string): //@ts-ignore
 Promise<Array<unknown>> =>
   query(
     'queryThreadAndProcessName',
@@ -849,19 +843,13 @@ select pid id,name,'p' type from process;`,
   );
 
 export const queryThreadStateArgs = (argset: number): Promise<Array<BinderArgBean>> =>
-  query(
-    'queryThreadStateArgs',
-    `select args_view.* from args_view where argset = ${argset}`,
-    {},
-    {
-      traceId: Utils.currentSelectTrace,
-    }
-  );
+  query('queryThreadStateArgs',
+    `select args_view.* from args_view where argset = ${argset}`, {}, {
+    traceId: Utils.currentSelectTrace
+  });
 
-export const queryThreadStateArgsByName = (
-  key: string,
-  traceId?: string
-): Promise<Array<{ argset: number; strValue: string }>> =>
+export const queryThreadStateArgsByName = (key: string, traceId?: string):
+  Promise<Array<{ argset: number; strValue: string }>> =>
   query(
     'queryThreadStateArgsByName',
     `select 
@@ -872,7 +860,8 @@ export const queryThreadStateArgsByName = (
     { traceId: traceId }
   );
 
-export const queryThreadWakeUp = (itid: number, startTime: number, dur: number): Promise<Array<WakeupBean>> =>
+export const queryThreadWakeUp = (itid: number, startTime: number, dur: number):
+  Promise<Array<WakeupBean>> =>
   query(
     'queryThreadWakeUp',
     `
@@ -1355,7 +1344,7 @@ Promise<Array<unknown>> =>
         not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))     
       order by ts;`,
     { $leftNS: leftNS, $rightNS: rightNS },
-    { traceId: Utils.currentSelectTrace }
+    { traceId: Utils.currentSelectTrace}
   );
 
 export const queryAnomalyDetailedData = (leftNs: number, rightNs: number): Promise<Array<EnergyAnomalyStruct>> =>
@@ -1422,9 +1411,7 @@ export const queryBySelectExecute = (
   return query('queryBySelectExecute', sqlStr, { $executeId: executeId, $itid: itid });
 };
 
-export const queryDistributedRelationData = (
-  traceId?: string
-): Promise<
+export const queryDistributedRelationData = (traceId?: string): Promise<
   Array<{
     id: number;
     chainId: string;
@@ -1448,10 +1435,15 @@ export const queryDistributedRelationData = (
   return query('queryDistributedRelationData', sqlStr, {}, { traceId: traceId });
 };
 
-export const queryDistributedRelationAllData = (chainId: string, traceId: string = ''): Promise<Array<FuncStruct>> => {
-  let sqlStr = `SELECT 
+export const queryDistributedRelationAllData = (
+  chainId: string,
+  traceId: string = ''
+): Promise<
+  Array<FuncStruct>
+> => {
+  let sqlStr = `SELECT
                       P.pid,
-                      T.tid,
+                      A.tid,
                       C.name as chainName,
                       C.chainId,
                       C.spanId,
