@@ -12,9 +12,10 @@
 // limitations under the License.
 
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from '../utils/QueryEnum';
-import { threadPool } from '../../SqlLite';
+import { getThreadPool } from '../../SqlLite';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { CpuStateStruct } from '../../ui-worker/cpu/ProcedureWorkerCpuState';
+import { Utils } from '../../../component/trace/base/Utils';
 
 export function cpuStateSender(filterId: number, row: TraceRow<CpuStateStruct>): Promise<CpuStateStruct[]> {
   let trafic: number = TraficEnum.Memory;
@@ -28,13 +29,13 @@ export function cpuStateSender(filterId: number, row: TraceRow<CpuStateStruct>):
     };
   }
   return new Promise((resolve, reject): void => {
-    threadPool.submitProto(
+    getThreadPool(row.traceId).submitProto(
       QueryEnum.CpuStateData,
       {
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
+        recordStartNS: Utils.getInstance().getRecordStartNS(row.traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(row.traceId),
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
