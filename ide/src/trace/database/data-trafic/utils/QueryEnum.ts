@@ -85,6 +85,7 @@ export enum QueryEnum {
   SearchCpuData = 163,
   LostFrameData = 164,
   HitchTime = 165,
+  dmaFenceData = 166,
   SliceData = 300,
   SliceSPTData = 301,
 }
