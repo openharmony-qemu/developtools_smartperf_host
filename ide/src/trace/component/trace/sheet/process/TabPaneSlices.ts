@@ -155,7 +155,9 @@ export class TabPaneSlices extends BaseElement {
     });
     spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
     // @ts-ignore
-    await spSystemTrace!.searchFunction([], data.name).then((mixedResults) => {
+    let asyncFuncArr = spSystemTrace!.seachAsyncFunc(data.name);
+    // @ts-ignore
+    await spSystemTrace!.searchFunction([], asyncFuncArr, data.name).then((mixedResults) => {
       if (mixedResults && mixedResults.length === 0) {
         return;
       }
@@ -194,23 +196,6 @@ export class TabPaneSlices extends BaseElement {
     // search 到的内容与框选泳道的内容取并集
     for (const searchItem of search.list) {
       for (const traceRow of sliceRowList) {
-        if (traceRow.asyncFuncName && Array.isArray(traceRow.asyncFuncName)) {
-          if (
-            //@ts-ignore
-            `${searchItem.pid}` === `${traceRow.asyncFuncNamePID}` &&
-            //@ts-ignore
-            traceRow.asyncFuncName.indexOf(searchItem.funName) !== -1
-          ) {
-            let item = traceRow.dataList.find(
-              //@ts-ignore
-              (element) => element.funName === searchItem.funName && element.id === searchItem.id
-            );
-            //@ts-ignore
-            searchItem.depth = item.depth;
-            //@ts-ignore
-            searchItem.row_id = traceRow.rowId;
-          }
-        }
         if (
           // @ts-ignore
           Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=

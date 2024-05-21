@@ -130,6 +130,7 @@ import { readTraceFileBuffer } from '../SpApplicationPublicFunc';
 import { PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
+import { SpProcessChart } from './chart/SpProcessChart';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -2079,8 +2080,38 @@ export class SpSystemTrace extends BaseElement {
     }
     return await searchCpuDataSender(pidArr, tidArr, Utils.currentSelectTrace);
   }
+  //根据seach的内容匹配异步缓存数据中那些符合条件
+  seachAsyncFunc(query: string) {
+    let asyncFuncArr: Array<any> = [];
+    let strNew = (str: any) => {
+        const specialChars = {  
+          "^": '\\^',
+          "$": '\\$',  
+          ".": '\\.', 
+          "*": '\\*',   
+          "+": '\\+',
+          "?": '\\?',
+          "-": '\\-',
+          "|": '\\|',
+          "(": '\\(',
+          ")": '\\)',
+          "[": '\\[',
+          "]": '\\]',
+          "{": '\\{',
+          "}": '\\}',
+      };    
+      return str.replace(/[$\^.*+?|()\[\]{}-]/g, (match: string) => specialChars[match as keyof typeof specialChars]); // 类型断言
+    }
+    let regex = new RegExp(strNew(query), 'i')
+    SpProcessChart.asyncFuncCache.forEach((item: any) => {
+      if (regex.test(item.funName)) {
+        asyncFuncArr.push(item)
+      }
+    })
+    return asyncFuncArr
+  }
 
-  async searchFunction(cpuList: Array<unknown>, query: string): Promise<Array<unknown>> {
+  async searchFunction(cpuList: Array<unknown>, asynList: Array<unknown>, query: string): Promise<Array<unknown>> {
     let processList: Array<string> = [];
     let traceRow = // @ts-ignore
       this.shadowRoot!.querySelector<TraceRow<unknown>>('trace-row[scene]') ||
@@ -2099,11 +2130,13 @@ export class SpSystemTrace extends BaseElement {
         query = query.replace(/%/g, '\\%');
       }
       let list = await querySceneSearchFunc(query, processList);
+      cpuList = cpuList.concat(asynList);
       cpuList = cpuList.concat(list); // @ts-ignore
       cpuList.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
       return cpuList;
     } else {
       let list = await querySearchFunc(query);
+      cpuList = cpuList.concat(asynList);
       cpuList = cpuList.concat(list); // @ts-ignore
       cpuList.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
       return cpuList;
