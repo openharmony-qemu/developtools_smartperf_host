@@ -32,6 +32,7 @@ import { type FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc
 import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
 import { CpuStateStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCpuState';
 import { type ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock';
+import { type DmaFenceStruct } from '../../../database/ui-worker/ProcedureWorkerDmaFence';
 import { type IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq';
 import { type JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank';
 import { type HeapStruct } from '../../../database/ui-worker/ProcedureWorkerHeap';
@@ -643,6 +644,8 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
+  displayDmaFenceData = (data: DmaFenceStruct,rowData:any): void =>//展示tab页内容
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data,rowData);
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
   displayIrqData = (data: IrqStruct): void =>

@@ -72,8 +72,8 @@ private:
     ParseResult HandlerCSF(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const;
     static size_t GetNameLength(std::string_view pointStr, size_t nameIndex);
     static size_t GetGHNameLength(std::string_view pointStr, size_t nameIndex);
-    size_t GetValueLength(std::string_view pointStr, size_t valueIndex) const;
     ParseResult HandlerGH(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const;
+    size_t GetValueLength(std::string_view pointStr, size_t valueIndex) const;
     bool ReciveVsync(size_t callStackRow, std::string &args, const BytraceLine &line);
     bool RSReciveOnDoComposition(size_t callStackRow, std::string &args, const BytraceLine &line);
     bool OnRwTransaction(size_t callStackRow, std::string &args, const BytraceLine &line);
@@ -92,7 +92,8 @@ private:
     const DataIndex rsMainThreadProcessCmd_ = traceDataCache_->GetDataIndex("H:RSMainThread::ProcessCommandUni");
     const std::regex recvVsyncPattern_ = std::regex("(\\w+):(\\w+)");
     const std::regex transFlagPattern_ = std::regex("transactionFlag:\\[(\\d+),(\\d+)\\]");
-    const std::regex mainProcessCmdPattern = std::regex("\\[(\\d+),(\\d+)\\]");
+    const std::regex mainProcessCmdPattern_ = std::regex("\\[(\\d+),(\\d+)\\]");
+    const std::regex distributeMatcher_ = std::regex(R"(H:\[([a-z0-9]+),([a-z0-9]+),([a-z0-9]+)\]#([CS]?)##(.*))");
     std::vector<uint64_t> frameCallIds_ = {};
     std::vector<uint64_t> vsyncSliceIds_ = {};
     TraceFileType traceType_ = TRACE_FILETYPE_H_TRACE;

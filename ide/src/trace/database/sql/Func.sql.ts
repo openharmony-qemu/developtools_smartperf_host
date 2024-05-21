@@ -138,7 +138,9 @@ export const queryProcessAsyncFunc = (
         c.dur,
         c.cat,
         c.id,
-        c.depth
+        c.depth,
+        c.cookie,
+        c.argsetid
     from thread A
     left join process P on P.id = A.ipid
     left join callstack C on A.id = C.parent_id
@@ -160,6 +162,7 @@ export const queryProcessAsyncFuncCat = (): Promise<Array<any>> =>
       c.ts-D.start_ts as startTs,
       c.dur,
       c.depth,
+      c.argsetid,
       c.cookie
     from 
       thread A,trace_range D
@@ -394,7 +397,7 @@ export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> 
       left join thread t on c.callid = t.id 
       left join process p on t.ipid = p.id
       left join trace_range r 
-      where c.name like '%${search}%' and startTime > 0;
+      where c.name like '%${search}%' and startTime > 0 and cookie IS NULL;
        `,
     { $search: search }
   );
@@ -417,7 +420,7 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
           left join thread t on c.callid = t.id 
           left join process p on t.ipid = p.id
           left join trace_range r
-          where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
+          where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')}) and cookie IS NULL;
            `,
     { $search: search }
   );

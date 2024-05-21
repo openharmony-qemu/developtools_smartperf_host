@@ -58,6 +58,7 @@ import { sliceSender } from '../../database/data-trafic/SliceSender';
 import { BaseStruct } from '../../bean/BaseStruct';
 import { SpGpuCounterChart } from './SpGpuCounterChart';
 import { SpUserFileChart } from './SpUserPluginChart'
+import {queryDmaFenceIdAndCat} from '../../database/sql/dmaFence.sql'
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -175,6 +176,8 @@ export class SpChartManager {
     await this.initCpu(progress);
     await this.logChart.init();
     await this.spHiSysEvent.init();
+    let idAndNameArr= await queryDmaFenceIdAndCat(); 
+    this.handleDmaFenceName(idAndNameArr as { id: number; cat: string; seqno: number;driver:string;context:string }[]);
     progress('Clock init', 82);
     await this.clockChart.init();
     progress('Irq init', 84);
@@ -414,6 +417,14 @@ export class SpChartManager {
       }
     });
     return row;
+  }
+
+  //存名字
+  handleDmaFenceName<T extends { id: number; cat: string; seqno: number;driver:string;context:string }>(arr: T[]){
+    Utils.DMAFENCECAT_MAP.clear();
+    for (let item of arr) {
+        Utils.DMAFENCECAT_MAP.set(item.id, item);
+    }
   }
 }
 

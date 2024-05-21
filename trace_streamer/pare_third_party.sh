@@ -132,8 +132,6 @@ if [ ! -f "hiperf/BUILD.gn" ];then
     if [ -d "developtools_hiperf" ];then
         mv developtools_hiperf hiperf
         $cp ../prebuilts/patch_hiperf/BUILD.gn ../third_party/hiperf/BUILD.gn
-        $cp ../prebuilts/patch_hiperf/file_ex.h hiperf/include/nonlinux/linux
-        $cp ../prebuilts/patch_hiperf/unique_fd.h hiperf/include/nonlinux/linux
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/virtual_thread.h
         $sed -i "s/HIPERF_DEBUG/ALWAYSTRUE/g" hiperf/include/virtual_thread.h
         $sed -i "/#include \"report_json_file.h\"/s/^\(.*\)$/\/\/\1/g" hiperf/include/report.h
@@ -168,12 +166,11 @@ if [ ! -f "bounds_checking_function/BUILD.gn" ];then
     $cp ../prebuilts/patch_bounds_checking_function/bounds_checking_functionbuild.gn bounds_checking_function/BUILD.gn
 fi
 
-if [ ! -f "commonlibrary/c_utils/base/include/nocopyable.h" ];then
+if [ ! -d "commonlibrary" ];then
     rm -rf commonlibrary
     git clone --depth=1 git@gitee.com:openharmony/commonlibrary_c_utils.git
     if [ -d "commonlibrary_c_utils" ];then
-        mkdir -p commonlibrary/c_utils/base/include
-        $cp commonlibrary_c_utils/base/include/nocopyable.h commonlibrary/c_utils/base/include
+        mv commonlibrary_c_utils commonlibrary
         rm -rf commonlibrary_c_utils
     fi
 fi

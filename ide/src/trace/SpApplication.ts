@@ -1960,7 +1960,8 @@ export class SpApplication extends BaseElement {
           let list = [];
           this.spSystemTrace!.searchCPU(value).then((cpus) => {
             list = cpus;
-            this.spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
+            let asyncFuncArr = this.spSystemTrace!.seachAsyncFunc(value);
+            this.spSystemTrace!.searchFunction(list, asyncFuncArr, value).then((mixedResults) => {
               if (this.litSearch!.searchValue !== '') {
                 if (!Utils.isDistributedMode()) {
                   this.litSearch!.list = this.spSystemTrace!.searchSdk(mixedResults, value);

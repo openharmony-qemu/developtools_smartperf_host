@@ -37,6 +37,7 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 | frame_slice | 记录RS(RenderService)和应用的帧渲染|
 | gpu_slice | 记录RS的帧对应的gpu渲染时长|
 | hidump | 记录FPS（Frame Per Second）数据|
+| hisys_all_event | 记录了所有HiSysEvent事件相关的原始数据 |
 | hisys_event_measure | 记录了HiSysEvent事件相关数据，目前HiSysEvent事件包括了异常事件，IDE事件，器件状态事件 |
 | instant |  记录Sched_waking, sched_wakeup事件， 用作ThreadState表的上下文使用 |
 | irq | 记录中断相关事件|
@@ -79,6 +80,9 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 | smaps | 记录进程的内存消耗的相关信息采样|
 | stat | 此结果用来统计数据解析中各类数据的数据条数，数据和合法性，数据的匹配程度（begin-end），数据的损失等，查看此结构对应的表，可对数据源有基本的了解|
 | static_initalize | 记录了so初始化相关数据|
+| memory_cpu       | 记录了cpu内存数据     |
+| memory_profile   | 记录了sys/kernel/debug/mali0/ctx/$(pidof xxx)/mem_profile节点相关数据|
+| memory_rs_image  | 记录了hidumper抓取的界面的内存大小相关数据|
 | symbols | 记录系统调用名称和其函数指针的对应关系，trace中用addr来映射function_name来节省存储空间|
 | syscall | 记录用户空间函数与内核空间函数相互调用记录|
 | sys_event_filter | 记录所有的filter|
@@ -110,6 +114,7 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |frame_slice           |    -         |ftrace-plugin      |帧渲染数据             |
 |gpu_slice             |    -         |ftrace-plugin      |gpu渲染时长            |
 |hidump                |    -         |hidump-plugin      |FPS数据                |
+|hisys_all_event   |    -             |hisysevent-plugin  |JSON数据源             |
 |hisys_event_measure   |    -         |hisysevent-plugin  |JSON数据源             |
 |instant               |    -         |ftrace-plugin      |waking和wakeup事件     |
 |irq                   |    -         |ftrace-plugin      |记录中断事件           |
@@ -127,6 +132,9 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |js_heap_trace_node   |    -         |arkts-plugin          | js内存数据            |
 |app_startup           |    -         |ftrace-plugin      | 应用启动数据           |
 |static_initalize      |    -         |ftrace-plugin      | so初始化数据           |
+|memory_cpu            |    -         |hidumper-plugin    | cpu内存数据           |
+|memory_profile        |    -         |hidumper-plugin    |/sys/kernel/debug/mali0/ctx/$(pidof xxx)/mem_profile节点相关数据|
+| memory_rs_image      |    -         |hidumper-plugin    |hidumper抓取的界面内存大小数据|
 |live_process          |    -         |process-plugin     |Monitor数据            |
 |network               |    -         |network-plugin     |Monitor数据            |
 |diskio                |    -         |diskio-plugin      |Monitor数据            |
@@ -271,7 +279,6 @@ js_heap_sample:记录timeline的时间轴信息
 | Columns Name | SQL TYPE |
 |----          |----      |
 |id            |INT       |
-|flag          |INT       |
 |app_name      |INT       |
 |app_key       |INT       |
 #### 表描述
@@ -293,6 +300,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录方法的参数集合。
 #### 字段详细描述
+- id: 唯一标识 
 - key：键  
 - datatype：数据类型  
 - value：取值  
@@ -319,6 +327,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录IO操作相关方法调用，及调用栈数据。
 #### 字段详细描述
+- id: 唯一标识 
 - callchain_id：调用栈的唯一标识。与ebpf_callstack表中Callchain_id字段关联  
 - type：事件类型其取值为枚举类型（DATA_READ，DATA_WRITE，METADATA_READ，- METADATA_WRITE，PAGE_IN，PAGE_OUT）  
 - ipid：TS内部进程号  
@@ -350,18 +359,23 @@ js_heap_sample:记录timeline的时间轴信息
 |spanId        |TEXT      |
 |parentSpanId  |TEXT      |
 |flag          |TEXT      |
-|args          |TEXT      |
 #### 表描述
 记录调用堆栈和异步调用信息，其中depth,stack_id和parent_stack_id仅在非异步的调用中有效。当cookid不为空时，为异步调用，此时callid为进程唯一号，否则为线程唯一号。
 #### 字段详细描述
+- id: 唯一标识
+- ts: 数据事件上报时间戳
 - dur：调用时长  
 - callid：调用者的ID，比如针对线程表里面的id  
+- cat: 表示当前栈帧属于哪个业务(binder/workqueue/null)
 - name：调用名称  
-- depth：调用深度  
+- depth：调用深度
+- cookie: 异步调用的cookie值
 - parent_id：父调用的id  
-- spanId：分布式调用关联关系  
+- argsetid: 调用的参数列表，关联args表的id字段
+- chainId:分布式数据中的chainId,id相同则表示为同一个分布式的调用栈
+- spanId：分布式调用关联关系，当前帧的id
+- parentSpanId: 分布式调用关联关系，当前帧的parent的SpanId，对应当前表的spandId
 - flag：C表示分布式调用发送方，S表示接受方  
-- args：分布式调用函数参数
 
 ### clk_event_filter表
 #### 表结构
@@ -374,8 +388,10 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录时钟信息。
 #### 字段详细描述
-- Type：时钟事件类型  
-- Name：时钟事件名称
+- id: 与measure表的filterId字段关联 
+- type：时钟事件类型  
+- name：时钟事件名称
+- cpu: cpu编号
 
 ### clock_event_filter表
 #### 表结构
@@ -384,25 +400,28 @@ js_heap_sample:记录timeline的时间轴信息
 |id            |INT       |
 |type          |TEXT      |
 |name          |TEXT      |
-|cpu           |INT       |
+|cpu          |INT       |
 #### 表描述
 此结构用来维护时钟事件，cpu与唯一的ID做关联。
 #### 主要字段描述
+- id: 与measure表的filterId字段关联 
 - Type：时钟事件类型  
 - Name：时钟事件名称
+- cpu: cpu编号
 
 ### cpu_measure_filter表
 #### 表结构
 | Columns Name | SQL TYPE |
 |----          |----      |
 |id            |INT       |
-|type          |TEXT      |
 |name          |TEXT      |
 |cpu           |INT       |
 #### 表描述
 将cpu号作为key1，cpu的频率，空闲等状态作为key2，唯一确定一个filter_id。
 #### 主要字段描述
-- Id(filterid), cpu：事件名称，cpu号
+- id: 与measure表的filterId字段关联
+- name: 事件名(cpu_idle/cpu_frequency/cpu_frequency_limits_max/cpu_frequency_limits_min)
+- cpu：cpu号
 
 ### cpu_usage表
 #### 表结构
@@ -415,8 +434,10 @@ js_heap_sample:记录timeline的时间轴信息
 |system_load   |REAL      |
 |process_num   |INT       |
 #### 表描述
-记录了与CPU使用率相关的数据。
+记录了/proc/pid/stat与CPU使用率相关的数据。
 #### 主要字段描述
+- ts: 数据上报时间
+- dur: 持续时间
 - total_load：总负荷  
 - user_load：用户负载  
 - system_load：系统负载  
@@ -444,6 +465,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 此表记录了一个数据类型ID和数据描述的映射。
 #### 主要字段描述
+- id: 唯一标识 
 - typeId:：数据类型id  
 - Desc：数据类型描述
 
@@ -464,9 +486,16 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录了与磁盘读写相关的数据。
 #### 主要字段描述
-- rd_sectors_kb：读数据的速度  
-- wr_sectors_kb：写入数据的速度  
 - ts：时间戳
+- dur: 持续时间
+- rd: 当前时间段的读取量
+- wr: 当前时间段的写入量
+- rd_speed:当前时间段的读取速度 
+- wr_speed:当前时间段的写入速度
+- rd_count:读取的数据总量
+- wr_count:写入的数据总量
+- rd_sectors_kb：读数据的平均速度  
+- wr_sectors_kb：写入数据的平均速度  
 
 ### ebpf_callstack表
 #### 表结构
@@ -481,6 +510,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录了与磁盘读写相关的数据。
 #### 主要字段描述
+- id: 唯一标识 
 - callchain_id：调用栈的唯一标识  
 - depth：调用栈深度。取值为零时表示栈顶  
 - ip：调用栈ip
@@ -512,7 +542,8 @@ js_heap_sample:记录timeline的时间轴信息
 #### 主要字段描述
 - callchain_id：调用栈信息ID与file_system_callstack表中call_chain_id字段相关联  
 - type：对应文件操作open，close，read，write  
-- ipid：线程所属的进程ID  
+- ipid：样本所属的内部进程ID，关联process表id
+- itid: 样本所属的内部线程ID，关联thread表id
 - start_ts：开始时间  
 - end_ts：结束时间  
 - dur：耗时  
@@ -536,6 +567,8 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 此表记录了设备的帧率信息，fps。
 #### 相关字段描述
+- id: 唯一标识 
+- ts: 数据上报时间戳
 - fps：帧率值
 
 ### hisys_event_measure表
@@ -552,7 +585,8 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录所有的system event事件的相关数据，及其相关表的映射信息。
 #### 相关字段描述
-- serial：每条数据过来携带唯一一条id作为标识  
+- serial：每条数据过来携带唯一一条id作为标识
+- ts: 数据上报时间戳
 - name_id：存放事件对应的ID，与data_dict表相关联可以取出对应的字段  
 - key_id：存放事件包含的字段的ID，与表app_name的id字段相关联，找到app_name表的 id字段对应行的app_key字段与表data_dict表相关联取出对应的字段  
 - type：存放事件所包含的字段的值所属的类型为int型还是string（0为int，1为string）  
@@ -593,21 +627,21 @@ js_heap_sample:记录timeline的时间轴信息
 |cookie        |INT       |
 |parent_id     |INT       |
 |argsetid      |INT       |
-|chainId       |TEXT      |
-|spanId        |TEXT      |
-|parentSpanId  |TEXT      |
 |flag          |TEXT      |
-|args          |TEXT      |
 #### 表描述
 记录中断相关事件。
 #### 相关字段描述
+- id: 唯一标识 
+- ts: 数据上报时间戳
 - dur：调用中断时长  
 - callid：调用中断者的ID，比如针对线程表里面的id  
-- cat：调用栈数据类型（取值范围：irq，softirq...）  
+- cat：调用栈数据类型（取值范围：irq，softirq, ipi）  
 - name：调用中断的名称  
 - depth：中断调用的深度  
+- cookie: 异步调用的cookie值
 - parent_id：父调用中断的id  
-- spanId：分布式调用中断关联关系
+- argsetid: 跟arg_view中的argset关联，保存irq的名字以及值（irq=5 name=IPI）
+- flag: 1表示硬中断
 
 
 ### js_config表
@@ -706,7 +740,7 @@ js_heap_sample:记录timeline的时间轴信息
 | file_name    | TEXT     |
 | start_time   | INT      |
 | end_time     | INT      |
-| pid          | INT      |
+| self_size    | INT      |
 #### 表描述
 记录了js内存数据的文件名称和时间。
 #### 相关字段描述
@@ -714,7 +748,7 @@ js_heap_sample:记录timeline的时间轴信息
 - file_name：文件名称
 - start_time：数据抓取的起始时间
 - end_time：数据抓取的终止时间
-- pid：进程号
+- self_size: 当前snapshot中所有node的size之和
 
 ### js_heap_info表
 #### 表结构
@@ -912,8 +946,11 @@ js_heap_sample:记录timeline的时间轴信息
 |disk_writes   |INT       |
 |disk_reads    |INT       |
 #### 表描述
-记录了一些实时的进程中执行的一些数据（Monitor）。
+记录了一些实时的进程中（/proc/$PID/status、/proc/$PID/stat、/proc/stat）执行的一些数据（Monitor）。
 #### 主要字段描述
+- ts: 数据上报时间戳
+- dur: 事件持续时间
+- cpu_time: /proc/$PID/stat 中的cpu时间
 - process_id：进程id  
 - process_name：进程名  
 - parent_process_id：父进程的id  
@@ -940,13 +977,14 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录日志信息。
 #### 关键字段描述
-- Seq：日志序号，保证日志解析的准确性  
-- Ts：打印日志时间  
-- Pid：日志的进程号  
-- Tid：日志的线程号  
-- Level：日志级别  
-- Tag：日志标签  
-- Context：日志内容
+- seq：日志序号，保证日志解析的准确性  
+- ts：打印日志时间  
+- pid：日志的进程号  
+- tid：日志的线程号  
+- level：日志级别  
+- tag：日志标签  
+- context：日志内容
+- origints：log中自带的时间
 
 ### measure表
 #### 表结构
@@ -978,7 +1016,10 @@ js_heap_sample:记录timeline的时间轴信息
 记录一个递增的filterid队列，所有其他的filter类型在获取过程中，均从此数据列表中获取下一个可用的filter_id并做记录。
 #### 字段详细描述  
 过滤分类（type），过滤名称（key2），数据ID(key1)。  
-数据ID在process_measure_filter, sys_event_filter中作为id。
+id: 唯一的filterId,与process_measure_filter, sys_event_filter中的id关联。
+type：各种类型（cpu_measure_filter，clk_rate_filter，process_measure_filter...）
+name: type的子类型。
+source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得是itid或者cpu编号。
 
 ### meta表
 #### 表结构
@@ -1013,17 +1054,21 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录native_hook抓取的某个进程的堆内存，内存映射相关数据。
 #### 关键字段描述
+- id: 唯一标识 
 - callChainId：唯一标识一条native_hook数据  
+- ipid：所属的进程内部id, 关联process表中的id  
+- itid：所属的线程内部id, 关联thread表中的id  
 - event_type：事件类型取值范围（AllocEvent,FreeEvent,MmapEvent, MunmapEvent）  
 - sub_type_id：子事件类型(只有sub_type字段为MmapEvent时，该字段才会有值)  
 - start_ts：申请内存开始时间  
 - end_ts：释放内存时间  
-- Dur：申请内存活跃时间  
-- Addr：申请内存地址  
-- mem_size：申请或释放内存大小  
-- all_mem_size：从采集数据开始到当前时刻，申请并活跃的内存总量。 event_type为AllocEvent或者FreeEvent时，表示活跃的堆内存总量。当event_type为MmapEvent或者MunmapEvent时，表示活跃的映射内存总量  
+- dur：申请内存活跃时间  
+- addr：申请内存地址  
+- heap_size: 申请的内存大小
+- all_heap_size：从采集数据开始到当前时刻，申请并活跃的内存总量。 event_type为AllocEvent或者FreeEvent时，表示活跃的堆内存总量。当event_type为MmapEvent或者MunmapEvent时，表示活跃的映射内存总量  
 - current_size_dur：表示当前活跃内存总量的持续时间  
-- last_lib_id：函数调用栈他最后一个函数所属的文件路径，除了文件名中带musl和libc++
+- last_lib_id：函数调用栈最后一个函数所属的文件路径，除了文件名中带musl和libc++
+- last_symbol_id: 函数调用栈最后一个函数名，lib除了文件名中带musl和libc++
 
 ### native_hook_frame表
 #### 表结构
@@ -1032,17 +1077,23 @@ js_heap_sample:记录timeline的时间轴信息
 |id            |INT       |
 |callchain_id  |INT       |
 |depth         |INT       |
+|ip            |INT       |
 |symbol_id     |INT       |
 |file_id       |INT       |
 |offset        |INT       |
 |symbol_offset |INT       |
+|addr |INT       |
 #### 表描述
 记录了内存的申请和释放的堆栈。
 #### 相关字段描述
+- id: 唯一标识 
 - callchain_id：标识一组调用堆栈  
 - depth：调用栈深度  
-- symbol_id：函数名  
-- file_id：函数所属文件
+- ip: 函数ip
+- symbol_id：函数名id,对应data_dict中id  
+- file_id：函数所属文件id，对应data_dict中id  
+- offset: 取自Frame message的offset字段
+- symbol_offset: 取自Frame message的symbol_offset字段
 
 ### native_hook_statistic表
 #### 表结构
@@ -1053,6 +1104,7 @@ js_heap_sample:记录timeline的时间轴信息
 |ipid      |INT       |
 |ts      |INT       |
 |type      |INT       |
+|sube_type_id      |INT       |
 |apply_count      |INT       |
 |release_count      |INT       |
 |apply_size      |INT       |
@@ -1060,15 +1112,19 @@ js_heap_sample:记录timeline的时间轴信息
 
 #### 表描述
 该表记录了内存申请/释放的统计信息。
-#### 关键字段描述
+#### 关键字段描述 
+- id: 唯一标识 
 - callchain_id：内存分配的回调链id
 - ipid：进程id
 - ts：统计数据上报时间
 - type：事件类型，0代表malloc事件，1代表mmap事件
+- sub_type_id：事件子类型，关联data_dict表id
 - apply_count：当前调用栈内存分配总次数
 - release_count：当前调用栈内存释放总次数
 - apply_size：当前调用栈累计分配总大小
 - release_size：当前调用栈累计释放总大小
+- last_lib_id：函数调用栈最后一个函数所属的文件路径，除了文件名中带musl和libc++
+- last_symbol_id: 函数调用栈最后一个函数名，lib除了文件名中带musl和libc++
 
 ### network表
 #### 表结构
@@ -1088,10 +1144,17 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录了网络数据传输相关的信息。
 #### 主要字段描述
-- tv_sec：时间，秒为单位  
-- tv_nsec：时间，纳秒为单位  
-- tx_bytes：网络数据的写入量  
-- rx_bytes：网络数据的读取量
+- ts:事件上报时间
+- dur: 持续时间
+- tx: 网络数据的写入次数
+- rx: 网络数据的读取次数
+- tx_speed: 网络数据的写入次数/s
+- rx_speed: 网络数据的读取次数/s
+- packet_in：网络数据申请的数据包个数
+- packet_in_sec： 网络数据申请的数据包个数/s
+- packet_out: 网络数据发送的数据包个数
+- packet_out_sec：网络数据发送的数据包个数/s
+- net_type:网络类型，wifi/蜂窝
 
 ### paged_memory_sample表
 #### 表结构
@@ -1110,14 +1173,16 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录了网络数据传输相关的信息。
 #### 主要字段描述
+- id: 唯一标识 
 - callchain_id： 取值相同的一组数据，表示一个完整的调用栈  
 - type：事件类型  
 - ipid：TS内部进程号  
 - start_ts：开始时间  
 - end_ts：结束时间  
 - dur：持续时间  
-- size：操作页数  
-- itid：TS内部线程号
+- size：操作页数，1页=4kb
+- addr: 内存地址
+- itid：内部线程号
 
 ### perf_callchain表
 #### 表结构
@@ -1126,6 +1191,7 @@ js_heap_sample:记录timeline的时间轴信息
 |id            |INT       |
 |callchain_id  |INT       |
 |depth         |INT       |
+|ip            |INT       |
 |vaddr_in_file |INT       |
 |file_id       |INT       |
 |symbol_id     |INT       |
@@ -1133,8 +1199,10 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录了Hiperf采样数据的调用栈信息。
 #### 主要字段描述
+- id: 唯一标识 
 - callchain_id：标识一组调用堆栈   
 - depth：调用栈深度  
+- ip: 函数ip
 - vaddr_in_file：函数在文件中的虚拟地址  
 - file_id：与PerfFiles中的file_id字段相关联  
 - symbol_id：与PerfFiles中的symbol_id相关联  
@@ -1152,6 +1220,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录Hiperf工具采集到的函数符号表和文件名。
 #### 主要字段描述
+- id: 唯一标识 
 - file_id：文件编号  
 - serial_id：一个文件中可能有多个函数，serial_id表示函数的编号  
 - symbol：函数名  
@@ -1167,6 +1236,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录Hiperf工具采集数据时的配置信息。包括：抓取的事件类型，抓取数据的命令， 抓数据时指定的进程名称。
 #### 主要字段描述
+- id: 唯一标识
 - report_type：数据类型。取值只有三种类型：config_name（事件类型）, workload（抓取的进程名）, cmdline（抓取命令）  
 - report_value：对应类型的取值
 
@@ -1186,6 +1256,8 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录Hiperf工具的采样信息。
 #### 主要字段描述
+- id: 唯一标识 
+- callchain_id：关联perf_callchain表callchain_id
 - timestamp：未进行时钟源同步的时间戳  
 - thread_id：线程号  
 - event_count：采样统计  
@@ -1205,6 +1277,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录Hiperf工具采集到的进程和线程数据。
 #### 主要字段描述
+- id: 唯一标识 
 - thread_id：线程号  
 - process_id：进程号  
 - thread_name：线程名
@@ -1215,20 +1288,18 @@ js_heap_sample:记录timeline的时间轴信息
 |----          |----      |
 |id            |INT       |
 |ipid          |INT       |
-|type          |TEXT      |
 |pid           |INT       |
 |name          |TEXT      |
 |start_ts      |INT       |
 |switch_count  |INT       |
 |thread_count  |INT       |
 |slice_count   |INT       |
-|mem_count      |INT       |
+|mem_count     |INT      |
 #### 表描述
 记录了进程相关数据。
 #### 关键字段描述
 - id：进程在数据库重新重新定义的id，从0开始序列增长  
 - ipid：TS内部进程id  
-- type：固定取值：process  
 - pid：进程的真实id  
 - name：进程名字  
 - start_ts：开始时间  
@@ -1237,21 +1308,6 @@ js_heap_sample:记录timeline的时间轴信息
 - slice_count：进程内有多个线程有slice数据  
 - mem_count：进程是否有内存数据
 
-### process_filter表
-#### 表结构
-| Columns Name | SQL TYPE |
-|----          |----      |
-|id            |INT       |
-|type          |TEXT      |
-|name          |TEXT      |
-|ipid          |INT       |
-#### 表描述
-将进程ID作为key1，进程的内存，界面刷新，屏幕亮度等信息作为key2，唯一确定一个filter_id, filter_id同时被记录在filter表中。
-#### 主要字段描述
-- id：进程id  
-- type：固定取值：process_filter  
-- name：进程名  
-- ipid：该进程表中的id与process表中的id相关联
 
 ### process_measure表
 #### 表结构
@@ -1264,23 +1320,24 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 保存进程的内存，堆栈值等所有计量值信息。
 #### 字段详细描述
+- type: 固定为measure
 - ts：事件时间  
+- dur: 持续时间
 - value：数值  
-- filter_id：对应process_measure_filter表中的ID
+- filter_id：对应process_measure_filter表中的id
 
 ### process_measure_filter表
 #### 表结构
 | Columns Name | SQL TYPE |
 |----          |----      |
 |id            |INT       |
-|type          |TEXT      |
 |name          |TEXT      |
 |ipid          |INT       |
 #### 表描述
 将进程ID作为key1，进程的内存，界面刷新，屏幕亮度等信息作为key2，唯一确定一个filter_id, filter_id同时被记录在measure_filter表中。
 #### 字段详细描述
-- type：固定取值：process_measure_filter  
-- name：cpu状态名  
+- id: 与measure表的filterId字段相关联 
+- name：key名  
 - ipid：进程内部编号
 
 ### raw表
@@ -1288,7 +1345,6 @@ js_heap_sample:记录timeline的时间轴信息
 | Columns Name | SQL TYPE |
 |----          |----      |
 |id            |INT       |
-|type          |TEXT      |
 |ts            |INT       |
 |name          |TEXT      |
 |cpu           |INT       |
@@ -1296,34 +1352,39 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录了系统中的waking、wakup、cpu_idel、cpu_frequency数据。
 #### 相关字段描述
-- type：固定字段（raw）  
+- id: 唯一标识 
+- ts：事件时间  
 - name：调度名称（取值：cpu_idle，sched_wakeup，sched_waking）  
 - cpu：事件发生在哪个CPU  
-- itid：时间对应哪个utid
+- itid：时间对应哪个itid,对应thread表中id
 
 ### sched_slice表
 #### 表结构
 | Columns Name | SQL TYPE |
 |----          |----      |
 |id            |INT       |
-|type          |TEXT      |
 |ts            |INT       |
 |dur           |INT       |
 |ts_end        |INT       |
 |cpu           |INT       |
 |itid          |INT       |
+|ipid          |INT       |
 |end_state     |TEXT      |
 |priority      |INT       |
+|argset_id     |INT       |
 #### 表描述
 此数据结构主要作为ThreadState的上下文使用，这张表是sched_switch事件的原始记录。
 #### 主要字段描述
+- id: 唯一标识 
 - ts：事件发生事件  
-- type：固定字段（sched_slice）  
 - dur：状态持续时长  
 - ts_end：状态结束时长  
 - cpu：事件发生在哪个cpu  
-- itid：事件对应哪个utid  
+- itid：进程内部编号
+- ipid：进程内部编号
 - end_state：线程的终结状态
+- priority: 线程优先级
+- argset_id：线程状态参数，对应arg_view中arg_set
 
 ### smaps表
 #### 表结构
@@ -1340,11 +1401,17 @@ js_heap_sample:记录timeline的时间轴信息
 |virtaul_size  |INT       |
 |reside        |REAL      |
 |protection_id |INT       |
-|path_id       |INT       |
+|shared_clean       |INT       |
+|shared_dirty       |INT       |
+|private_clean      |INT       |
+|private_dirty      |INT       |
+|swap       |INT       |
+|swap_pss       |INT       |
+|type       |INT       |
 #### 表描述
-记录进程的内存消耗的相关信息采样。
+记录进程的内存消耗的相关信息采样,读取/proc/${pid}/smaps节点。
 #### 主要字段描述
-- id：状态持续时长  
+- id: 唯一标识 
 - timestamp：事件发生事件  
 - start_addr：内存段地址的起始位置  
 - end_addr：内存段地址的结束位置  
@@ -1356,6 +1423,14 @@ js_heap_sample:记录timeline的时间轴信息
 - reside：实际分配的内存大小与虚拟内存空间的大小的比  
 - protection_id：内存段的权限id与表data_dict的id字段相关联  
 - path_id：如果区域是从文件映射的，则这是文件的名称对应的id序号与表data_dict的id字段相关联
+- shared_clean:smaps节点中Shared_clean
+- shared_dirty:smaps节点中Shared_dirty
+- private_clean:smaps节点中Private_clean
+- private_dirty:samps节点中Private_dirty
+- swap： smap节点中Swap
+- swap_pss:smap节点中SwapPss
+- type : 根据type分类信息
+
 
 ### stat表
 #### 表结构
@@ -1385,8 +1460,9 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 此表记录了被调用函数与其地址的映射关系。
 #### 相关字段描述
+- id: 唯一标识
 - funcname：系统调用名称  
-- adr：系统调用地址
+- addr：系统调用地址
 
 ### syscall表
 #### 表结构
@@ -1416,6 +1492,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录所有的filter。
 #### 相关字段描述
+- id:  与measure表的filterid字段关联
 - type：文件类型  
 - name：文件名
 
@@ -1430,7 +1507,9 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 记录系统内存与系统虚拟内存。
 #### 相关字段描述
+- type: 固定为measure
 - ts：事件时间  
+- dur: 持续时间
 - value：数值  
 - filter_id：对应filter表中的ID
 
@@ -1451,7 +1530,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述  
 记录了线程相关数据。
 #### 字段详细描述
-- id：线程在数据库重新重新定义的id，从0开始序列增长  
+- id: 唯一标识 
 - itid：TS内部线程id  
 - type：固定字段（thread）  
 - tid：线程号  
@@ -1491,10 +1570,11 @@ js_heap_sample:记录timeline的时间轴信息
 |tid           |INT       |
 |pid           |INT       |
 |state         |TEXT      |
+|argset_id     |INT       |
 #### 表描述
 记录了线程状态相关的数据。
-#### 字段详细描述
-- id：线程状态在数据库中的id，从0开始序列增长  
+#### 字段详细描述  
+- id: 唯一标识 
 - ts：该线程状态的起始时间  
 - dur：该线程状态的持续时间  
 - cpu：该线程在哪个cpu上执行（针对running状态的线程）  
@@ -1502,6 +1582,8 @@ js_heap_sample:记录timeline的时间轴信息
 - tid：线程号  
 - pid：进程号  
 - state：线程实际的的状态值  
+- argset_id：线程状态参数，对应arg_view中arg_set
+
 ```  
 'R', Runnable状态  
 "S", interruptible sleep  
@@ -1567,17 +1649,23 @@ js_heap_sample:记录timeline的时间轴信息
 |src      |TEXT       |
 |dst      |INT       |
 |type      |INT       |
+|type_desc  |TEXT      |
 |flag      |INT       |
 |depth      |INT       |
 |frame_no   |INT|
 #### 表描述
 应用的实际渲染帧和期望渲染帧的开始时间，持续时长，以及RenderService和App之间的关联关系。
 #### 关键字段描述
+- ts: 数据上报时间戳
+- vsync: 一个id值，用于标识一组渲染帧的期望和实际数据。
+- ipid：所属的进程内部id, 关联process表中的id  
+- itid：所属的线程id, 关联thread表中的id  
 - callstack_id：该帧数据对应着callstack表的调用栈所在的行数 
 - dur：该帧渲染时长（当数据不完整时，改行数据为空）  
 - src：该帧是被哪一帧（该表中对应的行数）触发的，有多个值时，用逗号分割  
 - dst：该帧对应的渲染帧是哪一行  
 - type: 0 说明该行数据是实际渲染帧， 1 说明该行数据是期望渲染帧  
+- type_desc: 当type值为0时，该字段为actural; 当type值为1时，该字段为expect; 
 - flag: 空时，为不完整的数据；0 表示实际渲染帧不卡帧， 1 表示实际渲染帧卡帧(expectEndTime < actualEndTime为异常)， 2 表示数据不需要绘制（没有frameNum信息），3 表示rs进程与app进程起止异常(|expRsStartTime - expUiEndTime| < 1ms 正常，否则异常。这里使用期待帧的时间差做判断，给实际帧打标签)
 - depth：预留
 - frame_no：预留
@@ -1630,7 +1718,7 @@ js_heap_sample:记录timeline的时间轴信息
 |allocation_itid   |INT       |
 |execute_itid      |INT       |
 |return_itid       |INT       |
-|execute_id           |INT       |
+|task_id           |INT       |
 |priority             |INT       |
 |execute_state        |INT       |
 |return_state         |INT       |
@@ -1638,13 +1726,14 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 该表记录了任务池相关数据，与callstack表关联。
 #### 关键字段描述
+- id: 唯一标识 
 - allocation_task_row：与callstack表id号相关联
 - execute_task_row：与callstack表id号相关联
 - return_task_row：与callstack表id号相关联
 - allocation_itid：任务分发的itid
 - execute_itid：任务执行的itid
 - return_itid：任务返回的itid
-- execute_id：任务执行id
+- task_id：任务执行id
 - priority：任务分发独有的，优先级{HIGH : 0，MEDIUM : 1，LOW : 2}
 - execute_state：任务执行独有的执行状态{NOT_FOUND : 0，WAITING : 1，RUNNING : 2，CANCELED : 3}
 - return_state：任务返回独有的任务返回状态[IsCanceled DeserializeFailed Successful Unsuccessful]
@@ -1663,11 +1752,12 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 该表记录动效的响应时延和完成时延等信息。
 #### 关键字段描述
+- id: 唯一标识
 - input_time：输入时间点
 - start_point：开始时间点
 - end_point：结束时间点
-- frame_info：动效帧信息，格式：`实际帧个数:实际帧帧率`
-- name: 当前动效名，eg：`H:APP_LIST_FLING, com.taobao.taobao`
+- frame_info：动效帧信息，格式：`实际帧个数:实际帧帧率` 
+- name: 当前动效名，eg：`H:APP_LIST_FLING, com.taobao.taobao` 
 
 ### dynamic_frame表
 #### 表结构
@@ -1684,6 +1774,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 该表记录动效帧的坐标、分辨率、结束时间等信息。
 #### 关键字段描述
+- id: 唯一标识 
 - x：坐标x
 - y：坐标y
 - width：宽
@@ -1703,6 +1794,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 该表记录设备分辨率和帧率等信息。
 #### 关键字段描述
+- id: 唯一标识
 - physical_width：设备宽
 - physical_height：设备高
 - physical_frame_rate：设备帧率
@@ -1733,22 +1825,29 @@ js_heap_sample:记录timeline的时间轴信息
 |recording         |INT       | 
 |stream_all        |INT       |
 #### 表描述
-该表记录设备屏幕亮度，蓝牙，位置，wifi，音乐，媒体等信息。
+该表记录设备屏幕亮度，蓝牙，位置，wifi，音乐，媒体等信息。该表目前暂未被使用。
 #### 关键字段描述
+- id: 唯一标识
 - brightness：屏幕亮度
 - bt_state：蓝牙状态
 - location：位置信息
 - wifi：无线网络状态
+- stream_default: 取自AudioVolumeInfo message的stream_default字段。
 - voice_call：语音通话
 - music：音乐播放
+- stream_ring: 取自AudioVolumeInfo message的stream_ring字段。
 - media：多媒体
 - voice_assistant：语音助手
 - system：系统
 - alarm：闹钟
 - notification：消息通知
 - bt_sco：蓝牙语音
+- enforced_audible: 取自AudioVolumeInfo message的enforced_audible字段
+- stream_dtmf: 取自AudioVolumeInfo message的stream_dtmf字段
+- stream_tts: 取自AudioVolumeInfo message的stream_tts字段
 - accessibility：访问权限
 - recording：录音
+- stream_all: 取自AudioVolumeInfo message的stream_all字段
 
 ### trace_config表
 #### 表结构
@@ -1761,6 +1860,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 该表记录trace数据源，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。
 #### 关键字段描述
+- id: 唯一标识 
 - trace_source：事件源
 - key：事件需要关注的信息名
 - value：事件需要关注的信息名对应的信息值
@@ -1783,16 +1883,20 @@ js_heap_sample:记录timeline的时间轴信息
 |purged        |INT       |
 |flag          |INT       |
 #### 表描述
-该表记录trace数据源，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。
+该表记录trace数据源/proc/purgeable_ashmem_trigger，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。
 #### 关键字段描述
+- id: 唯一标识 
 - ts：时间戳
 - ipid：内部进程号
+- adj: purgeable_ashmem_trigger中adj
 - fd：共享内存文件描述符
 - ashmem_name_id：共享内存名
 - size：共享内存大小
 - pss：PSS内存大小
 - ashmem_id：共享内存ID
+- time： purgeable_ashmem_trigger中time
 - ref_count：引用计数
+- purged: purgeable_ashmem_trigger中purged
 - flag：去重标记，0表示正常，1表示进程内部重复数据，2表示进程间重复数据
 
 ### memory_dma表
@@ -1811,13 +1915,16 @@ js_heap_sample:记录timeline的时间轴信息
 |exp_name_id   |INT       |
 |flag          |INT       |
 #### 表描述
-该表记录trace数据源，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。
+该表记录trace数据源取/proc/process_dmabuf_info节点，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。
 #### 关键字段描述
+- id: 唯一标识 
 - ts：时间戳
 - ipid：内部进程号
 - fd：dma内存文件描述符
 - size：dma内存大小
+- ino: process_dmabuf_info中ino列
 - exp_pid：申请者的进程号
+- exp_task_comm_id：申请者的的线程名，对应data_dict的id
 - buf_name_id：dma内存名
 - exp_name_id：申请者进程名
 - flag：去重标记，0表示正常，1表示进程内部重复数据，2表示进程间重复数据
@@ -1835,8 +1942,9 @@ js_heap_sample:记录timeline的时间轴信息
 |itid          |INT       |
 |used_gpu_size |INT       |
 #### 表描述
-该表记录trace数据源，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。
+该表记录trace数据源读取/proc/gpu_memory节点
 #### 关键字段描述
+- id: 唯一标识 
 - ts：时间戳
 - gpu_name_id：gpu内存名称
 - all_gpu_size：进程占用gpu总大小
@@ -1859,15 +1967,17 @@ js_heap_sample:记录timeline的时间轴信息
 |count         |INT       |
 |purgeable_size|INT       |
 #### 表描述
-该表记录trace数据源，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。
+该表记录trace数据源/sys/kernel/debug/mali0/ctx/$(pidof xxx)_0/mem_profile
 #### 关键字段描述
+- id: 唯一标识 
 - ts：时间戳
 - window_name_id：窗口名
 - window_id：窗口id
 - module_name_id：模块名
 - category_name_id：目录名
-- size：内存大小
+- size：内存大小 bytes
 - count：内存申请个数
+- purgeable_size： 取Total memory对应的字节大小
 
 ### static_initalize表
 #### 表结构
@@ -1884,6 +1994,7 @@ js_heap_sample:记录timeline的时间轴信息
 #### 表描述
 该表记录了so初始化相关数据。
 #### 关键字段描述
+- id: 唯一标识 
 - ipid：内部进程号
 - tid：内部线程号
 - call_id：调用者的ID，对应线程表里面的itid
@@ -1891,3 +2002,91 @@ js_heap_sample:记录timeline的时间轴信息
 - end_time：阶段结束时间
 - so_name：so文件名称
 - depth：泳道图的深度
+### memory_cpu表
+#### 表结构
+| Columns Name | SQL TYPE |
+|----          |----      |
+|id            |INT       |
+|ts            |INT       |
+|total_size    |INT       |
+#### 表描述
+该表记录了hidumper抓取的cpu的内存大小的相关数据。
+#### 关键字段描述 
+- id: 唯一标识 
+- ts：数据上报时间戳
+- total_size：hidumper取到的cpu内存大小
+
+###  memory_profile表
+#### 表结构
+| Columns Name | SQL TYPE |
+|----          |----      |
+|id            |INT       |
+|ts            |INT       |
+|channel_id    |INT       |
+|total_size    |INT       |
+#### 表描述
+该表记录了读取/sys/kernel/debug/mali0/ctx/$(pidof xxx)_0/mem_profile节点相关数据。
+#### 关键字段描述
+- id: 唯一标识 
+- ts：数据上报时间戳
+- channel_id: 取Channel对应的名称,对应data_dict的id
+- total_size：取Total memory对应的字节大小
+
+###  memory_rs_image表
+#### 表结构
+| Columns Name  | SQL TYPE |
+|----           |----      |
+|id             |INT       |
+|ts             |INT       |
+|ipid           |INT       |
+|mem_size       |INT       |
+|type_id        |INT       |
+|surface_name_id|INT       |
+
+#### 表描述
+该表记录了hidumper抓取的界面的内存大小的相关数据。
+#### 关键字段描述
+- id: 唯一标识
+- ts：数据上报时间戳
+- ipid：内部进程号
+- mem_size: 取hidumper的size列
+- type_id：取hidumper的type列,对于data_dict表中的id
+- surface_name_id: 取hidumper的surfaceName列
+### hisys_all_event表
+#### 表结构
+| Columns Name | SQL TYPE |
+|----          |----      |
+|id            |INT       |
+|domain_id     |INT       |
+|event_name_id |INT       |
+|ts            |INT       |
+|type          |INT       |
+|time_zone     |TEXT      |
+|pid           |INT       |
+|tid           |INT       |
+|uid           |INT       |
+|level         |TEXT      |
+|tag           |TEXT      |
+|event_id      |INT       |
+|seq           |INT       |
+|info          |TEXT      |
+|contents      |TEXT      |
+
+#### 表描述
+该表记录所有hisysevent采集到的原始数据。  
+#### 关键字段描述
+- id: 唯一标识一条该表数据 
+- domain_id: 对应原始数据中的domain_字段在data_dict表中的索引。 
+- event_name_id: 对应原始数据中name_字段在data_dict表中的索引。 
+- ts: 对应原始数据中time_(ms)字段转化成ns 
+- type: 对应原始数据中type_字段 
+- time_zone: 对应原始数据中tz_字段 
+- pid: 进程号，对应原始数据中的pid_ 
+- tid: 线程号, 对应原始数据中tid_ 
+- uid: 对应原始数据中uid_
+- level: 对应原始数据中level_
+- tag: 对应原始数据中tag_
+- event_id: 对应原始数据id_ 
+- seq: 对应原始数据中seq_
+- info: 对应原数据中info_字段
+- contents: 取源数据中除了以上字段外的其他字段，组成新的json数据。

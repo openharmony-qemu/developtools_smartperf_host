@@ -89,6 +89,7 @@ export class SpProcessChart {
   private isDistributed: boolean = false;
   private traceId?: string | undefined;
   private parentRow: TraceRow<BaseStruct> | undefined;
+  static asyncFuncCache: unknown[] = [];
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -115,6 +116,7 @@ export class SpProcessChart {
     this.processSrcSliceMap.clear();
     this.distributedDataMap.clear();
     this.renderRow = null;
+    SpProcessChart.asyncFuncCache = [];
     if (this.parentRow) {
       this.parentRow.clearMemory();
       this.parentRow = undefined;
@@ -1225,6 +1227,15 @@ export class SpProcessChart {
     max += 1;
     return max * 18 + 6;
   }
+  //处理缓存数据的'startTs'字段统一成'startTime'
+  private toAsyncFuncCache(object: any, name: string): void {
+    let modifiedObject = {...object};
+    delete modifiedObject['startTs']; 
+    modifiedObject['startTime'] = object['startTs'];
+    modifiedObject.rowId = name;
+    modifiedObject.type = 'func';
+    SpProcessChart.asyncFuncCache.push({...modifiedObject});
+  }
   //Async Function
   addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
     let isCategoryAsyncfunc: boolean = FlagsConfig.getFlagsConfigEnableStatus('Start&Finish Trace Category');
@@ -1360,6 +1371,7 @@ export class SpProcessChart {
             });
             param.depth = maxDepth;
           }
+          this.toAsyncFuncCache(param, name ? name : `${asyncFunctions[i].funName}-${it.pid}`);
           normalData.push(param);
         } else {
           noEndData.push(param);
@@ -1376,6 +1388,7 @@ export class SpProcessChart {
           let index = i;
           maxDepth++;
           noEndData[index].depth = maxDepth;
+          this.toAsyncFuncCache(noEndData[index], name ? name : `${asyncFunctions[i].funName}-${it.pid}`);
         });
       }
       this.lanesConfig([...normalData, ...noEndData], it, processRow, name);
@@ -1443,6 +1456,7 @@ export class SpProcessChart {
           }
           asyncFunctions[index].depth = currentDepth;
           depthArray[currentDepth] = asyncFunctions[index];
+          this.toAsyncFuncCache(asyncFunctions[index], `${asyncFunctions[0].threadName}`);
         });
         const maxHeight = this.calMaxHeight(asyncFunctions);
         let funcRow = TraceRow.skeleton<FuncStruct>();

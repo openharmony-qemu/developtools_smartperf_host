@@ -64,6 +64,7 @@ import { DiskAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerD
 import { MemoryAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerMemoryAbility';
 import { NetworkAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerNetworkAbility';
 import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock';
+import { DmaFenceStruct } from '../database/ui-worker/ProcedureWorkerDmaFence';
 import { Utils } from './trace/base/Utils';
 import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq';
 import { JankStruct } from '../database/ui-worker/ProcedureWorkerJank';
@@ -129,6 +130,7 @@ import { readTraceFileBuffer } from '../SpApplicationPublicFunc';
 import { PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
+import { SpProcessChart } from './chart/SpProcessChart';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -841,6 +843,11 @@ export class SpSystemTrace extends BaseElement {
     } else if (PerfToolStruct.selectPerfToolStruct) {
       this.currentSlicesTime.startTime = PerfToolStruct.selectPerfToolStruct.startTs;
       this.currentSlicesTime.endTime = PerfToolStruct.selectPerfToolStruct.startTs! + PerfToolStruct.selectPerfToolStruct.dur!;
+    } else if(DmaFenceStruct.selectDmaFenceStruct){
+      if (DmaFenceStruct.selectDmaFenceStruct.startTime && DmaFenceStruct.selectDmaFenceStruct.dur) {
+        this.currentSlicesTime.startTime = DmaFenceStruct.selectDmaFenceStruct.startTime;
+        this.currentSlicesTime.endTime = DmaFenceStruct.selectDmaFenceStruct.startTime + DmaFenceStruct.selectDmaFenceStruct.dur;
+      }
     } else {
       this.currentSlicesTime.startTime = 0;
       this.currentSlicesTime.endTime = 0;
@@ -862,7 +869,8 @@ export class SpSystemTrace extends BaseElement {
       AllAppStartupStruct.selectStartupStruct ||
       FrameAnimationStruct.selectFrameAnimationStruct ||
       JsCpuProfilerStruct.selectJsCpuProfilerStruct ||
-      PerfToolStruct.selectPerfToolStruct;
+      PerfToolStruct.selectPerfToolStruct ||
+      DmaFenceStruct.selectDmaFenceStruct;
     this.calculateSlicesTime(selectedStruct, shiftKey);
 
     return this.slicestime;
@@ -1152,6 +1160,7 @@ export class SpSystemTrace extends BaseElement {
     SampleStruct.hoverSampleStruct = undefined;
     PerfToolStruct.hoverPerfToolStruct = undefined;
     GpuCounterStruct.hoverGpuCounterStruct = undefined;
+    DmaFenceStruct.hoverDmaFenceStruct = undefined;//清空hover slice
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1185,6 +1194,7 @@ export class SpSystemTrace extends BaseElement {
     SampleStruct.selectSampleStruct = undefined;
     PerfToolStruct.selectPerfToolStruct = undefined;
     GpuCounterStruct.selectGpuCounterStruct = undefined;
+    DmaFenceStruct.selectDmaFenceStruct = undefined;//清空选中slice
     return this;
   }
 
@@ -2070,8 +2080,38 @@ export class SpSystemTrace extends BaseElement {
     }
     return await searchCpuDataSender(pidArr, tidArr, Utils.currentSelectTrace);
   }
+  //根据seach的内容匹配异步缓存数据中那些符合条件
+  seachAsyncFunc(query: string) {
+    let asyncFuncArr: Array<any> = [];
+    let strNew = (str: any) => {
+        const specialChars = {  
+          "^": '\\^',
+          "$": '\\$',  
+          ".": '\\.', 
+          "*": '\\*',   
+          "+": '\\+',
+          "?": '\\?',
+          "-": '\\-',
+          "|": '\\|',
+          "(": '\\(',
+          ")": '\\)',
+          "[": '\\[',
+          "]": '\\]',
+          "{": '\\{',
+          "}": '\\}',
+      };    
+      return str.replace(/[$\^.*+?|()\[\]{}-]/g, (match: string) => specialChars[match as keyof typeof specialChars]); // 类型断言
+    }
+    let regex = new RegExp(strNew(query), 'i')
+    SpProcessChart.asyncFuncCache.forEach((item: any) => {
+      if (regex.test(item.funName)) {
+        asyncFuncArr.push(item)
+      }
+    })
+    return asyncFuncArr
+  }
 
-  async searchFunction(cpuList: Array<unknown>, query: string): Promise<Array<unknown>> {
+  async searchFunction(cpuList: Array<unknown>, asynList: Array<unknown>, query: string): Promise<Array<unknown>> {
     let processList: Array<string> = [];
     let traceRow = // @ts-ignore
       this.shadowRoot!.querySelector<TraceRow<unknown>>('trace-row[scene]') ||
@@ -2090,11 +2130,13 @@ export class SpSystemTrace extends BaseElement {
         query = query.replace(/%/g, '\\%');
       }
       let list = await querySceneSearchFunc(query, processList);
+      cpuList = cpuList.concat(asynList);
       cpuList = cpuList.concat(list); // @ts-ignore
       cpuList.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
       return cpuList;
     } else {
       let list = await querySearchFunc(query);
+      cpuList = cpuList.concat(asynList);
       cpuList = cpuList.concat(list); // @ts-ignore
       cpuList.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
       return cpuList;

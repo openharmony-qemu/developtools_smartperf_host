@@ -68,6 +68,7 @@ export class SelectionParam {
     string,
     ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
   >();
+  dmaFenceNameData: Array<String> = [];//新增框选dma_fence数据
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
   funTids: Array<number> = [];
@@ -1113,6 +1114,13 @@ export class SelectionParam {
     }
   }
 
+    //匹配id
+    pushDmaFence(it: TraceRow<any>, sp: SpSystemTrace) {
+      if (it.rowType === TraceRow.ROW_TYPE_DMA_FENCE) {
+        this.dmaFenceNameData.push(it.rowId!);
+      }
+    }
+
   // @ts-ignore
   pushGpuMemoryVmTracker(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
@@ -1222,6 +1230,7 @@ export class SelectionParam {
     this.pushVmTracker(it, sp);
     this.pushVmTrackerShm(it, sp);
     this.pushClock(it, sp);
+    this.pushDmaFence(it, sp);
     this.pushGpuMemoryVmTracker(it, sp);
     this.pushDmaVmTracker(it, sp);
     this.pushPugreable(it, sp);

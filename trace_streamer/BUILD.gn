@@ -27,7 +27,7 @@ group("trace_streamer") {
   } else if (is_sdkdemo) {
     deps = [ "sdk/demo_sdk:trace_streamer_sdk_builtin" ]
   } else if (is_sdkdemo_test) {
-    deps = [ "sdk/test:sdkunittest" ]
+    deps = [ "sdk/demo_sdk/test:sdkunittest" ]
   } else if (use_wasm) {
     deps = [ "src:trace_streamer_builtin" ]
   } else {

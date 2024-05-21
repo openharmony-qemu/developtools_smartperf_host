@@ -1144,7 +1144,7 @@ void NativeHookFilter::UpdateFilePathIdAndStValueToSymAddrMap(T *firstSymbolAddr
     }
 }
 
-bool NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
+void NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
 {
     auto nativeHookFrame = traceDataCache_->GetNativeHookFrameData();
     auto size = nativeHookFrame->Size();
@@ -1175,7 +1175,6 @@ bool NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::uni
         }
     }
     UpdateLastCallerPathAndSymbolIndexs();
-    return true;
 }
 void NativeHookFilter::UpdateFilePathIndexToCallStackRowMap(size_t row, DataIndex filePathIndex)
 {

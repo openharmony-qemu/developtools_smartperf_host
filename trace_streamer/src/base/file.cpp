@@ -75,9 +75,8 @@ std::string GetExecutionDirectoryPath()
     std::string str(currPath);
     return str.substr(0, str.find_last_of('/'));
 }
-
 #ifdef is_linux
-std::vector<std::string> GetFilesNameFromDir(const std::string& path)
+std::vector<std::string> GetFilesNameFromDir(const std::string &path)
 {
     std::vector<std::string> soFiles;
 
@@ -88,7 +87,7 @@ std::vector<std::string> GetFilesNameFromDir(const std::string& path)
         return soFiles;
     }
     // 遍历目录
-    for (const auto& entry : std::filesystem::directory_iterator(dirPath)) {
+    for (const auto &entry : std::filesystem::directory_iterator(dirPath)) {
         soFiles.emplace_back(entry.path().string());
     }
     return soFiles;

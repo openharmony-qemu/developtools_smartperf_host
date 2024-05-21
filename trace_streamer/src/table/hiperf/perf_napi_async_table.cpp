@@ -31,7 +31,7 @@ enum class Index : int32_t {
     EVENT_COUNT,
     EVENT_TYPE_ID,
 };
-PerfNapiAsyncTable::PerfNapiAsyncTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+PerfNapiAsyncTable::PerfNapiAsyncTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.emplace_back("id", "INTEGER");
     tableColumn_.emplace_back("ts", "INTEGER");
@@ -49,14 +49,14 @@ PerfNapiAsyncTable::PerfNapiAsyncTable(const TraceDataCache* dataCache) : TableB
 
 PerfNapiAsyncTable::~PerfNapiAsyncTable() {}
 
-void PerfNapiAsyncTable::FilterByConstraint(FilterConstraints& napiAsyncFc,
-                                            double& napiAsyncFilterCost,
+void PerfNapiAsyncTable::FilterByConstraint(FilterConstraints &napiAsyncFc,
+                                            double &napiAsyncFilterCost,
                                             size_t napiAsyncRowCount,
                                             uint32_t napiAsyncCurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& napiAsyncC = napiAsyncFc.GetConstraints()[napiAsyncCurrenti];
+    const auto &napiAsyncC = napiAsyncFc.GetConstraints()[napiAsyncCurrenti];
     switch (static_cast<Index>(napiAsyncC.col)) {
         case Index::ID: {
             if (CanFilterId(napiAsyncC.op, napiAsyncRowCount)) {
@@ -78,7 +78,7 @@ std::unique_ptr<TableBase::Cursor> PerfNapiAsyncTable::CreateCursor()
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-PerfNapiAsyncTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+PerfNapiAsyncTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
     : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstPerfNapiAsyncData().Size())),
       perfNapiAsyncObj_(dataCache->GetConstPerfNapiAsyncData())
 {
@@ -86,7 +86,7 @@ PerfNapiAsyncTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* t
 
 PerfNapiAsyncTable::Cursor::~Cursor() {}
 
-int32_t PerfNapiAsyncTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int32_t PerfNapiAsyncTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_value **argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -99,7 +99,7 @@ int32_t PerfNapiAsyncTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(perfNapiAsyncCs, sId);
     for (size_t i = 0; i < perfNapiAsyncCs.size(); i++) {
-        const auto& c = perfNapiAsyncCs[i];
+        const auto &c = perfNapiAsyncCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[c.idxInaConstraint]);
@@ -183,7 +183,7 @@ int32_t PerfNapiAsyncTable::Cursor::Column(int32_t column) const
     return SQLITE_OK;
 }
 
-void PerfNapiAsyncTable::GetOrbyes(FilterConstraints& napiAsyncFc, EstimatedIndexInfo& napiAsyncEi)
+void PerfNapiAsyncTable::GetOrbyes(FilterConstraints &napiAsyncFc, EstimatedIndexInfo &napiAsyncEi)
 {
     auto napiAsyncOrderbys = napiAsyncFc.GetOrderBys();
     for (auto i = 0; i < napiAsyncOrderbys.size(); i++) {

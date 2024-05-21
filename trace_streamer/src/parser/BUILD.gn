@@ -40,20 +40,6 @@ config("parser_base_cfg") {
     "${THIRD_PARTY}/profiler/device/plugins/ftrace_plugin/include",
   ]
   include_dirs += [
-    "${PERF_DIR}/hiperf/include/nonlinux/linux",
-    "${PERF_DIR}/hiperf/include/nonlinux",
-    "${PERF_DIR}/hiperf/include",
-    "${THIRD_PARTY}/perf_include",
-    "${THIRD_PARTY}/perf_include/libbpf",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/hilog/include",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/cutil",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxlog",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/common",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
-  ]
-  include_dirs += [
     "${SRC}/trace_data/trace_stdtype",
     "${SRC}/trace_data/trace_stdtype/ftrace",
     "${SRC}/trace_data/trace_stdtype/ftrace/template",

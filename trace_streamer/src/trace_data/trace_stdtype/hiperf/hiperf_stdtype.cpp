@@ -83,6 +83,14 @@ void PerfCallChain::UpdateSymbolId(size_t index, DataIndex symbolId)
         symbolIds_[index] = symbolId;
     }
 }
+void PerfCallChain::UpdateSymbolRelatedData(size_t index, uint64_t vaddrInFile, uint64_t symbolId, DataIndex nameIndex)
+{
+    if (index < Size()) {
+        vaddrInFiles_[index] = vaddrInFile;
+        symbolIds_[index] = symbolId;
+        names_[index] = nameIndex;
+    }
+}
 size_t PerfFiles::AppendNewPerfFiles(uint64_t fileIds, uint32_t serial, DataIndex symbols, DataIndex filePath)
 {
     ids_.emplace_back(Size());
@@ -109,7 +117,30 @@ const std::deque<DataIndex> &PerfFiles::FilePaths() const
 {
     return filePaths_;
 }
-
+bool PerfFiles::EraseFileIdSameData(uint64_t fileId)
+{
+    uint64_t start = INVALID_UINT64;
+    uint64_t end = INVALID_UINT64;
+    for (auto row = 0; row < Size(); row++) {
+        if (fileIds_[row] == fileId) {
+            if (start == INVALID_UINT64) {
+                start = row;
+            } else {
+                end = row;
+            }
+        }
+    }
+    end++;
+    if (start <= end && end < Size()) {
+        ids_.erase(ids_.begin() + start, ids_.begin() + end);
+        fileIds_.erase(fileIds_.begin() + start, fileIds_.begin() + end);
+        serials_.erase(serials_.begin() + start, serials_.begin() + end);
+        symbols_.erase(symbols_.begin() + start, symbols_.begin() + end);
+        filePaths_.erase(filePaths_.begin() + start, filePaths_.begin() + end);
+        return true;
+    }
+    return false;
+}
 void PerfFiles::Clear()
 {
     CacheBase::Clear();
@@ -222,7 +253,7 @@ const std::deque<DataIndex> &PerfReport::Values() const
 {
     return values_;
 }
-size_t PerfNapiAsync::AppendNewPerfNapiAsync(const PerfNapiAsyncRow& perfNapiAsyncRow)
+size_t PerfNapiAsync::AppendNewPerfNapiAsync(const PerfNapiAsyncRow &perfNapiAsyncRow)
 {
     ids_.emplace_back(Size());
     timeStamps_.emplace_back(perfNapiAsyncRow.timeStamp);
@@ -237,35 +268,35 @@ size_t PerfNapiAsync::AppendNewPerfNapiAsync(const PerfNapiAsyncRow& perfNapiAsy
     eventTypeIds_.emplace_back(perfNapiAsyncRow.eventTypeId);
     return Size() - 1;
 }
-const std::deque<DataIndex>& PerfNapiAsync::Traceids() const
+const std::deque<DataIndex> &PerfNapiAsync::Traceids() const
 {
     return traceids_;
 }
-const std::deque<uint8_t>& PerfNapiAsync::CpuIds() const
+const std::deque<uint8_t> &PerfNapiAsync::CpuIds() const
 {
     return cpuIds_;
 }
-const std::deque<uint32_t>& PerfNapiAsync::ProcessIds() const
+const std::deque<uint32_t> &PerfNapiAsync::ProcessIds() const
 {
     return processIds_;
 }
-const std::deque<uint32_t>& PerfNapiAsync::CallerCallchainids() const
+const std::deque<uint32_t> &PerfNapiAsync::CallerCallchainids() const
 {
     return callerCallchainids_;
 }
-const std::deque<uint32_t>& PerfNapiAsync::CalleeCallchainids() const
+const std::deque<uint32_t> &PerfNapiAsync::CalleeCallchainids() const
 {
     return calleeCallchainids_;
 }
-const std::deque<uint64_t>& PerfNapiAsync::PerfSampleIds() const
+const std::deque<uint64_t> &PerfNapiAsync::PerfSampleIds() const
 {
     return perfSampleIds_;
 }
-const std::deque<uint64_t>& PerfNapiAsync::EventCounts() const
+const std::deque<uint64_t> &PerfNapiAsync::EventCounts() const
 {
     return eventCounts_;
 }
-const std::deque<uint64_t>& PerfNapiAsync::EventTypeIds() const
+const std::deque<uint64_t> &PerfNapiAsync::EventTypeIds() const
 {
     return eventTypeIds_;
 }

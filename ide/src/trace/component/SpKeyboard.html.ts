@@ -168,7 +168,7 @@ table{
         </tr>
         <tr>
           <td>
-            <div class="keycap">ctr</div> +
+            <div class="keycap">Ctr</div> +
             <div class="keycap">b</div> 
           </td>
           <td class="describe-td">隐藏/显示菜单和搜索框</td>

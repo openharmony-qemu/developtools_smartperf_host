@@ -22,6 +22,7 @@
 #include "measure_filter.h"
 #include "process_filter.h"
 #include "stat_filter.h"
+#include "string_help.h"
 #include "string_to_numerical.h"
 #include "ts_common.h"
 
@@ -431,23 +432,28 @@ uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
                                       int64_t cookie,
                                       DataIndex nameIndex)
 {
-    Unused(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
-
+    uint32_t parentId = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     auto lastFilterId = asyncEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();
+    auto cat = INVALID_UINT64;
     if (lastFilterId != INVALID_UINT64) {
         asyncEventDisMatchCount_++;
         return INVALID_UINT64;
     }
     asyncEventSize_++;
+    std::smatch matchLine;
+    if (std::regex_match(traceDataCache_->GetDataFromDict(nameIndex), matchLine, categoryReg_)) {
+        std::string category = matchLine[categoryMatchedIdx_].str();
+        cat = traceDataCache_->GetDataIndex(Strip(category));
+    }
     // a pid, cookie and function name determain a callstack
     asyncEventMap_.Insert(internalTid, cookie, nameIndex, asyncEventSize_);
     // the IDE need a depth to paint call slice in different position of the canvas, the depth of async call
     // do not mean the parent-to-child relationship, it is different from no-async call
     uint8_t depth = 0;
-    size_t index = slices->AppendInternalAsyncSlice(timeStamp, -1, internalTid, INVALID_UINT64, nameIndex, depth,
-                                                    cookie, std::nullopt);
+    size_t index =
+        slices->AppendInternalAsyncSlice(timeStamp, -1, internalTid, cat, nameIndex, depth, cookie, parentId);
     asyncEventFilterMap_.insert(std::make_pair(asyncEventSize_, AsyncEvent{timeStamp, index}));
     return index;
 }

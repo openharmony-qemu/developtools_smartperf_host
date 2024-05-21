@@ -21,6 +21,7 @@ import { HeapSnapshotStruct, HeapSnapshotStructOnClick } from '../database/ui-wo
 import { FuncStruct, funcStructOnClick } from '../database/ui-worker/ProcedureWorkerFunc';
 import { CpuFreqStructOnClick } from '../database/ui-worker/ProcedureWorkerFreq';
 import { ClockStructOnClick } from '../database/ui-worker/ProcedureWorkerClock';
+import { DmaFenceStructOnClick } from "../database/ui-worker/ProcedureWorkerDmaFence";
 import { SnapshotStructOnClick } from '../database/ui-worker/ProcedureWorkerSnapshot';
 import { IrqStructOnClick } from '../database/ui-worker/ProcedureWorkerIrq';
 import { HeapStructOnClick } from '../database/ui-worker/ProcedureWorkerHeap';
@@ -369,6 +370,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => CpuStateStructOnClick(clickRowType, sp))
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp))
     .then(() => ClockStructOnClick(clickRowType, sp))
+    .then(() => DmaFenceStructOnClick(clickRowType, sp))//点击
     //@ts-ignore
     .then(() => SnapshotStructOnClick(clickRowType, sp, row!))
     .then(() => IrqStructOnClick(clickRowType, sp))

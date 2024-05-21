@@ -23,6 +23,9 @@ import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { Utils } from '../trace/base/Utils';
 import { clockDataSender } from '../../database/data-trafic/ClockDataSender';
 import { queryClockData } from '../../database/sql/Clock.sql';
+import { DmaFenceRender, DmaFenceStruct } from '../../database/ui-worker/ProcedureWorkerDmaFence';
+import { dmaFenceSender } from '../../database/data-trafic/dmaFenceSender';
+import { queryDmaFenceName } from '../../database/sql/dmaFence.sql'
 import { BaseStruct } from '../../bean/BaseStruct';
 
 export class SpClockChart {
@@ -44,6 +47,7 @@ export class SpClockChart {
       this.trace.rowsEL?.appendChild(folder);
     }
     await this.initData(folder, clockList, traceId);
+    await this.initDmaFence(folder);
   }
 
   private clockSupplierFrame(
@@ -184,6 +188,70 @@ export class SpClockChart {
     let durTime = new Date().getTime() - clockStartTime;
     info('The time to load the ClockData is: ', durTime);
   }
+
+  async initDmaFence(folder: TraceRow<any>) {
+    let dmaFenceNameList = await queryDmaFenceName()
+    if (dmaFenceNameList.length) {
+      let dmaFenceList = [];
+      const timelineValues = dmaFenceNameList.map(obj => obj.timeline);
+      for (let i = 0; i < timelineValues.length; i++) {
+        let traceRow: TraceRow<DmaFenceStruct> = TraceRow.skeleton<DmaFenceStruct>();
+        traceRow.rowId = timelineValues[i];
+        traceRow.rowType = TraceRow.ROW_TYPE_DMA_FENCE;
+        traceRow.rowParentId = folder.rowId;
+        traceRow.style.height = 40 + 'px';
+        traceRow.name = `${timelineValues[i]}`;
+        traceRow.folder = false;
+        traceRow.rowHidden = !folder.expansion;
+        traceRow.setAttribute('children', '');
+        traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+        traceRow.selectChangeHandler = this.trace.selectChangeHandler;
+        // @ts-ignore
+        traceRow.supplierFrame = () => {
+          return dmaFenceSender('dma_fence_init', `${timelineValues[i]}`, traceRow).then((res) => {
+            res.forEach((item: any) => {
+              let detail = Utils.DMAFENCECAT_MAP.get(item.id!);
+              if (detail) {
+                let catValue = (detail.cat.match(/^dma_(.*)$/))![1];
+                item.sliceName = catValue.endsWith('ed') ? `${catValue.slice(0, -2)}(${detail.seqno})` : `${catValue}(${detail.seqno})`;
+                item.driver = detail.driver;
+                item.context = detail.context;
+                item.depth = 0;
+              }
+
+            })
+            return dmaFenceList = res;
+          })
+
+        };
+        traceRow.onThreadHandler = (useCache) => {
+          let context: CanvasRenderingContext2D;
+          if (traceRow.currentContext) {
+            context = traceRow.currentContext;
+          } else {
+            context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          }
+          traceRow.canvasSave(context);
+          (renders['dmaFence'] as DmaFenceRender).renderMainThread(
+            {
+              dmaFenceContext: context,
+              useCache: useCache,
+              type: 'dmaFence',
+              maxValue: 20,
+              index: 1,
+              maxName: ''
+            },
+            traceRow
+          );
+          traceRow.canvasRestore(context, this.trace);
+        };
+        folder.addChildTraceRow(traceRow);
+      }
+
+    }
+
+  }
+
 
   async initFolder(traceId?: string): Promise<TraceRow<BaseStruct>> {
     let clockFolder = TraceRow.skeleton(traceId);
