@@ -2200,7 +2200,9 @@ export class SpSystemTrace extends BaseElement {
       }
     }
     //@ts-ignore
-    let funcRowID = funcStract.cookie === null ? `${funcStract.tid}` : funcStract.row_id;
+    let funId = funcStract.row_id === null ? `${funcStract.funName}-${funcStract.pid}` : funcStract.row_id;
+    //@ts-ignore
+    let funcRowID = (funcStract.cookie === null || funcStract.cookie === undefined) ? `${funcStract.tid}` : funId;
     let targetRow = this.favoriteChartListEL?.getCollectRow((row) => {
       return row.rowId === funcRowID && row.rowType === 'func';
     });

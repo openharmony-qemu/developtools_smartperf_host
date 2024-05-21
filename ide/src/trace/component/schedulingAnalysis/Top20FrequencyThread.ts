@@ -54,8 +54,9 @@ export class Top20FrequencyThread extends BaseElement {
 
     this.threadSelect!.onchange = (e): void => {
       //@ts-ignore
-      this.currentThread!.textContent = (e as unknown).detail.text; //@ts-ignore
-      this.currentTid = parseInt((e as unknown).detail.value);
+      this.currentThread!.textContent = (e as unknown).detail.text; 
+      //@ts-ignore
+      this.currentTid = parseInt(e.detail);
       this.frequencyThreadProgress!.loading = true;
       this.queryData();
     };
