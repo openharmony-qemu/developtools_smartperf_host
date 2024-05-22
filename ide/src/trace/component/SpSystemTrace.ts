@@ -840,6 +840,9 @@ export class SpSystemTrace extends BaseElement {
     } else if (AppStartupStruct.selectStartupStruct) {
       this.currentSlicesTime.startTime = AppStartupStruct.selectStartupStruct.startTs;
       this.currentSlicesTime.endTime = AppStartupStruct.selectStartupStruct.startTs! + AppStartupStruct.selectStartupStruct.dur!;
+    } else if (AllAppStartupStruct.selectStartupStruct) {
+      this.currentSlicesTime.startTime = AllAppStartupStruct.selectStartupStruct.startTs;
+      this.currentSlicesTime.endTime = AllAppStartupStruct.selectStartupStruct.startTs! + AllAppStartupStruct.selectStartupStruct.dur!;
     } else if (PerfToolStruct.selectPerfToolStruct) {
       this.currentSlicesTime.startTime = PerfToolStruct.selectPerfToolStruct.startTs;
       this.currentSlicesTime.endTime = PerfToolStruct.selectPerfToolStruct.startTs! + PerfToolStruct.selectPerfToolStruct.dur!;
