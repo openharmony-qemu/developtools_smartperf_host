@@ -668,9 +668,7 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
 
 function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any): void {
   if (findEntry) {
-    if (findEntry.startTime > TraceRow.range!.endNS || findEntry.startTime + findEntry.dur < TraceRow.range!.startNS) {
-      sp.moveRangeToLeft(findEntry.startTime!, findEntry.dur!);
-    }
+    sp.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
     sp.queryAllTraceRow().forEach((item) => {
       item.highlight = false;
     });
@@ -687,6 +685,33 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any): void 
   }
 }
 
+function setToNext(current: number, totalResults: number): number {
+  const index = (current + 1) % totalResults;
+  return index;
+}
+
+function setToPrevious(current: number, totalResults: number): number {
+  let index = current - 1;
+  if (index < 0) {
+    index = totalResults - 1;
+  }
+  return index;
+}
+
+function searchImp(structs: Array<any>, needle: number, i: number, j:number): number {
+  if (i === j) return -1;
+  if (i + 1 === j) {
+    return needle >= structs[i].startTime ? i : -1;
+  }
+  const mid = Math.floor((j - i) / 2) + i;
+  const midValue = structs[mid].startTime;
+  if (needle < midValue) {
+    return searchImp(structs, needle, i, mid);
+  } else {
+    return searchImp(structs, needle, mid, j);
+  }
+}
+
 export function spSystemTraceShowStruct(
   sp: SpSystemTrace,
   previous: boolean,
@@ -699,28 +724,7 @@ export function spSystemTraceShowStruct(
   }
   let findIndex = spSystemTraceShowStructFindIndex(previous, currentIndex, structs, retargetIndex);
   let findEntry: any;
-  if (findIndex >= 0) {
-    findEntry = structs[findIndex];
-  } else {
-    if (previous) {
-      for (let i = structs.length - 1; i >= 0; i--) {
-        let it = structs[i];
-        if (it.startTime! + it.dur! < TraceRow.range!.startNS) {
-          findIndex = i;
-          break;
-        }
-      }
-      if (findIndex === -1) {
-        findIndex = structs.length - 1;
-      }
-    } else {
-      findIndex = structs.findIndex((it) => it.startTime! > TraceRow.range!.endNS);
-      if (findIndex === -1) {
-        findIndex = 0;
-      }
-    }
-    findEntry = structs[findIndex];
-  }
+  findEntry = structs[findIndex];
   moveRangeToCenterAndHighlight(sp, findEntry);
   return findIndex;
 }
@@ -730,44 +734,36 @@ function spSystemTraceShowStructFindIndex(
   structs: Array<any>,
   retargetIndex: number | undefined
 ): number {
+  let findIndex = -1;
+  const totalResults = structs.length;
   const rangeStart = TraceRow.range!.startNS;
   const rangeEnd = TraceRow.range!.endNS;
-  if (rangeStart > SpSystemTrace.currentStartTime && !retargetIndex) {
-    SpSystemTrace.currentStartTime = rangeStart;
+  const currentStart = structs[currentIndex]?.startTime;
+  if (retargetIndex && retargetIndex > 0) {
+    currentIndex = retargetIndex;
   }
-  let findIndex = -1;
-  if (previous) {
-    if (retargetIndex) {
-      findIndex = retargetIndex - 1;
-      SpSystemTrace.retargetIndex = findIndex;
+  //不在时间区域内
+  if (!retargetIndex && (currentIndex === -1 || currentStart < rangeStart || currentStart > rangeEnd)) {
+    const searchIndex = searchImp(structs, rangeStart, 0, totalResults);
+    if (previous) {
+      if (searchIndex === -1) {
+        findIndex = setToPrevious(currentIndex, totalResults);
+      } else {
+        findIndex = searchIndex;
+      }
     } else {
-      for (let i = structs.length - 1; i >= 0; i--) {
-        let it = structs[i];
-        if (i < currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd) {
-          findIndex = i;
-          break;
-        }
+      if (searchIndex === -1) {
+        findIndex = setToNext(currentIndex, totalResults);
+      } else {
+        findIndex = searchIndex;
       }
     }
   } else {
-    if (currentIndex > 0) {
-      if (SpSystemTrace.currentStartTime > rangeStart) {
-        SpSystemTrace.currentStartTime = rangeStart;
-        if (
-          structs[currentIndex].startTime < rangeStart ||
-          structs[currentIndex].startTime! + structs[currentIndex].dur! > rangeEnd
-        ) {
-          currentIndex = -1;
-        }
-      }
-      if (SpSystemTrace.currentStartTime !== 0 && SpSystemTrace.currentStartTime < rangeStart) {
-        SpSystemTrace.currentStartTime = 0;
-        SpSystemTrace.retargetIndex = 0;
-      }
+    if (previous) {
+      findIndex = setToPrevious(currentIndex, totalResults);
+    } else {
+      findIndex = setToNext(currentIndex, totalResults);
     }
-    findIndex = structs.findIndex((it, idx) => {
-      return idx > currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd;
-    });
   }
   return findIndex;
 }
