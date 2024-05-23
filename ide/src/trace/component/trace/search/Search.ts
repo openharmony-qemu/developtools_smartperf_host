@@ -262,12 +262,12 @@ export class LitSearch extends BaseElement {
       this.searchBlurListener();
     });
     this.search!.addEventListener('keyup', (e: KeyboardEvent) => {
+      SpSystemTrace.isKeyUp = true;
       this._retarge_index!.value = '';
-      this.index = -1;
-      if (timerId) return;
-      timerId = setTimeout(() => {
-        this.searchKeyupListener(e);
-      },200)
+      if(this.search?.value !== this.currenSearchValue) {
+        this.index = 0;
+      }
+      this.searchKeyupListener(e);
     });
     this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (): void => {
       this.dispatchEvent(
