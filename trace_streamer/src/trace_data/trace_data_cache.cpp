@@ -36,6 +36,7 @@
 #include "datasource_clockid_table.h"
 #include "device_info_table.h"
 #include "device_state_table.h"
+#include "dma_fence_table.h"
 #include "disk_io_table.h"
 #include "dynamic_frame_table.h"
 #include "ebpf_callstack_table.h"
@@ -247,6 +248,7 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<DiskIOTable>(*db_, this, "diskio");
     TableBase::TableDeclare<CpuUsageInfoTable>(*db_, this, "cpu_usage");
     TableBase::TableDeclare<LiveProcessTable>(*db_, this, "live_process");
+    TableBase::TableDeclare<DmaFenceTable>(*db_, this, "dma_fence");
     dbInited_ = true;
 }
 bool TraceDataCache::AnimationTraceEnabled() const
