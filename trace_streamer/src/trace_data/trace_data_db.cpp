@@ -414,10 +414,10 @@ int32_t TraceDataDB::OperateDatabase(const std::string &sql)
 int32_t TraceDataDB::SearchDatabaseToProto(const std::string &data,
                                            SqllitePreparCacheData::TLVResultCallBack resultCallBack)
 {
-    TS_CHECK_TRUE(data.size() > SqllitePreparCacheData::TYPE_SIZE && resultCallBack != nullptr, 1,
+    TS_CHECK_TRUE(data.size() > SqllitePreparCacheData::typeSize_ && resultCallBack != nullptr, 1,
                   "data.size(%zu) <= sizeof(uint32_t) or resultCallBack is nullptr", data.size());
     uint32_t type = INVALID_UINT32;
-    auto sqlItor = data.begin() + SqllitePreparCacheData::TYPE_SIZE;
+    auto sqlItor = data.begin() + SqllitePreparCacheData::typeSize_;
     std::copy(data.begin(), sqlItor, reinterpret_cast<uint8_t *>(&type));
     std::string sql(sqlItor, data.end());
     TS_LOGI("type(%u), sql(%s)", type, sql.data());

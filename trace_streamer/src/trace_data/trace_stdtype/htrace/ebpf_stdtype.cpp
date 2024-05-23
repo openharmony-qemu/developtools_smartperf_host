@@ -16,39 +16,24 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
-size_t FileSystemSample::AppendNewData(uint32_t callChainId,
-                                       uint16_t type,
-                                       uint32_t iPid,
-                                       uint32_t iTid,
-                                       uint64_t startTs,
-                                       uint64_t endTs,
-                                       uint64_t dur,
-                                       DataIndex retValue,
-                                       DataIndex errCode,
-                                       size_t size,
-                                       int32_t fd,
-                                       DataIndex fileId,
-                                       DataIndex firstArgument,
-                                       DataIndex secondArgument,
-                                       DataIndex thirdArgument,
-                                       DataIndex fourthArgument)
+size_t FileSystemSample::AppendNewData(const FileSystemSampleRow &context)
 {
-    callChainIds_.emplace_back(callChainId);
-    types_.emplace_back(type);
-    ipids_.emplace_back(iPid);
-    itids_.emplace_back(iTid);
-    startTs_.emplace_back(startTs);
-    endTs_.emplace_back(endTs);
-    durs_.emplace_back(dur);
-    returnValues_.emplace_back(retValue);
-    errorCodes_.emplace_back(errCode);
-    fds_.emplace_back(fd);
-    fileIds_.emplace_back(fileId);
-    Sizes_.emplace_back(size);
-    firstArguments_.emplace_back(firstArgument);
-    secondArguments_.emplace_back(secondArgument);
-    thirdArguments_.emplace_back(thirdArgument);
-    fourthArguments_.emplace_back(fourthArgument);
+    callChainIds_.emplace_back(context.callChainId);
+    types_.emplace_back(context.type);
+    ipids_.emplace_back(context.ipid);
+    itids_.emplace_back(context.itid);
+    startTs_.emplace_back(context.startTs);
+    endTs_.emplace_back(context.endTs);
+    durs_.emplace_back(context.dur);
+    returnValues_.emplace_back(context.returnValue);
+    errorCodes_.emplace_back(context.errorCode);
+    fds_.emplace_back(context.fd);
+    fileIds_.emplace_back(context.fileId);
+    Sizes_.emplace_back(context.size);
+    firstArguments_.emplace_back(context.firstArgument);
+    secondArguments_.emplace_back(context.secondArgument);
+    thirdArguments_.emplace_back(context.thirdArgument);
+    fourthArguments_.emplace_back(context.fourthArgument);
     ids_.emplace_back(Size());
     return Size() - 1;
 }
@@ -117,25 +102,17 @@ const std::deque<DataIndex> &FileSystemSample::FourthArguments() const
     return fourthArguments_;
 }
 
-size_t PagedMemorySampleData::AppendNewData(uint32_t callChainId,
-                                            uint16_t type,
-                                            uint32_t ipid,
-                                            uint64_t startTs,
-                                            uint64_t endTs,
-                                            uint64_t dur,
-                                            size_t size,
-                                            DataIndex addr,
-                                            uint32_t itid)
+size_t PagedMemorySampleData::AppendNewData(const PagedMemorySampleDataRow &context)
 {
-    callChainIds_.emplace_back(callChainId);
-    types_.emplace_back(type);
-    ipids_.emplace_back(ipid);
-    startTs_.emplace_back(startTs);
-    endTs_.emplace_back(endTs);
-    durs_.emplace_back(dur);
-    Sizes_.emplace_back(size);
-    addrs_.emplace_back(addr);
-    itids_.emplace_back(itid);
+    callChainIds_.emplace_back(context.callChainId);
+    types_.emplace_back(context.type);
+    ipids_.emplace_back(context.ipid);
+    startTs_.emplace_back(context.startTs);
+    endTs_.emplace_back(context.endTs);
+    durs_.emplace_back(context.dur);
+    Sizes_.emplace_back(context.size);
+    addrs_.emplace_back(context.addr);
+    itids_.emplace_back(context.itid);
     ids_.emplace_back(Size());
     return Size() - 1;
 }
@@ -176,31 +153,20 @@ const std::deque<DataIndex> &PagedMemorySampleData::Addr() const
     return addrs_;
 }
 
-void BioLatencySampleData::AppendNewData(uint32_t callChainId,
-                                         uint64_t type,
-                                         uint32_t ipid,
-                                         uint32_t itid,
-                                         uint64_t startTs,
-                                         uint64_t endTs,
-                                         uint64_t latencyDur,
-                                         uint32_t tier,
-                                         uint64_t size,
-                                         uint64_t blockNumber,
-                                         uint64_t filePathId,
-                                         uint64_t durPer4k)
+void BioLatencySampleData::AppendNewData(const BioLatencySampleDataRow &context)
 {
-    callChainIds_.emplace_back(callChainId);
-    types_.emplace_back(type);
-    ipids_.emplace_back(ipid);
-    itids_.emplace_back(itid);
-    startTs_.emplace_back(startTs);
-    endTs_.emplace_back(endTs);
-    latencyDurs_.emplace_back(latencyDur);
-    tiers_.emplace_back(tier);
-    sizes_.emplace_back(size);
-    blockNumbers_.emplace_back(blockNumber);
-    filePathIds_.emplace_back(filePathId);
-    durPer4ks_.emplace_back(durPer4k);
+    callChainIds_.emplace_back(context.callChainId);
+    types_.emplace_back(context.type);
+    ipids_.emplace_back(context.ipid);
+    itids_.emplace_back(context.itid);
+    startTs_.emplace_back(context.startTs);
+    endTs_.emplace_back(context.endTs);
+    latencyDurs_.emplace_back(context.latencyDur);
+    tiers_.emplace_back(context.tier);
+    sizes_.emplace_back(context.size);
+    blockNumbers_.emplace_back(context.blockNumber);
+    filePathIds_.emplace_back(context.filePathId);
+    durPer4ks_.emplace_back(context.durPer4k);
     ids_.emplace_back(rowCount_);
     rowCount_++;
 }
@@ -253,19 +219,14 @@ const std::deque<uint64_t> &BioLatencySampleData::DurPer4k() const
     return durPer4ks_;
 }
 
-size_t EbpfCallStackData::AppendNewData(uint32_t callChainId,
-                                        uint32_t depth,
-                                        DataIndex ip,
-                                        DataIndex symbolId,
-                                        DataIndex filePathId,
-                                        uint64_t vaddr)
+size_t EbpfCallStackData::AppendNewData(const EbpfCallStackDataRow &context)
 {
-    callChainIds_.emplace_back(callChainId);
-    depths_.emplace_back(depth);
-    ips_.emplace_back(ip);
-    symbolIds_.emplace_back(symbolId);
-    filePathIds_.emplace_back(filePathId);
-    vaddrs_.emplace_back(vaddr);
+    callChainIds_.emplace_back(context.callChainId);
+    depths_.emplace_back(context.depth);
+    ips_.emplace_back(context.ip);
+    symbolIds_.emplace_back(context.symbolId);
+    filePathIds_.emplace_back(context.filePathId);
+    vaddrs_.emplace_back(context.vaddr);
     ids_.emplace_back(Size());
     return Size() - 1;
 }

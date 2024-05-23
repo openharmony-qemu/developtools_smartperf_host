@@ -152,40 +152,5 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolizationByIp(
     ipidToIpToFrameInfo_.Insert(ipid, ip, frameInfo);
     return frameInfo;
 }
-DataIndex OfflineSymbolizationFilter::OfflineSymbolizationByVaddr(uint64_t symVaddr, DataIndex filePathIndex)
-{
-    auto &symbolTable = filePathIdToImportSymbolTableMap_.at(filePathIndex);
-    // pase sym_table to Elf32_Sym or Elf64_Sym array decided by sym_entry_size.
-    auto symEntLen = symbolTable->symEntSize;
-    auto startValueToSymAddrMap = filePathIdAndStValueToSymAddr_.Find(filePathIndex);
-    if (!startValueToSymAddrMap) {
-        return INVALID_DATAINDEX;
-    }
-    // Traverse array, st_value <= symVaddr and symVaddr <= st_value + st_size.  then you can get st_name
-    auto end = startValueToSymAddrMap->upper_bound(symVaddr);
-    auto length = std::distance(startValueToSymAddrMap->begin(), end);
-    uint32_t symbolStart = INVALID_UINT32;
-    if (length > 0) {
-        end--;
-        if (symEntLen == ELF32_SYM) {
-            GetSymbolStartMaybeUpdateFrameInfo(reinterpret_cast<const Elf32_Sym *>(end->second), symbolStart, symVaddr,
-                                               0, nullptr);
-        } else {
-            GetSymbolStartMaybeUpdateFrameInfo(reinterpret_cast<const Elf64_Sym *>(end->second), symbolStart, symVaddr,
-                                               0, nullptr);
-        }
-    }
-    if (symbolStart == INVALID_UINT32 || symbolStart >= symbolTable->strTable.size()) {
-        TS_LOGD("symbolStart is : %u invaliable!!!", symbolStart);
-        return INVALID_DATAINDEX;
-    }
-    auto mangle = symbolTable->strTable.c_str() + symbolStart;
-    auto demangle = base::GetDemangleSymbolIndex(mangle);
-    auto index = traceDataCache_->GetDataIndex(demangle);
-    if (demangle != mangle) {
-        free(demangle);
-    }
-    return index;
-}
 } // namespace TraceStreamer
 } // namespace SysTuning

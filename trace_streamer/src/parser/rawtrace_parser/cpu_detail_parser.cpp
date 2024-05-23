@@ -278,8 +278,10 @@ bool CpuDetailParser::SchedBlockReasonEvent(const RawTraceEventInfo &event)
     auto caller = traceDataCache_->GetDataIndex(
         std::string_view("0x" + SysTuning::base::number(reasonMsg.caller(), SysTuning::base::INTEGER_RADIX_TYPE_HEX)));
     auto itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), reasonMsg.pid());
-    if (!streamFilters_->cpuFilter_->InsertBlockedReasonEvent(event.msgPtr->timestamp(), event.cpuId, itid,
-                                                              reasonMsg.io_wait(), caller, INVALID_UINT32)) {
+    if (streamFilters_->cpuFilter_->InsertBlockedReasonEvent(event.cpuId, itid, reasonMsg.io_wait(), caller,
+                                                             INVALID_UINT32)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_RECEIVED);
+    } else {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_NOTMATCH);
     }
     return true;

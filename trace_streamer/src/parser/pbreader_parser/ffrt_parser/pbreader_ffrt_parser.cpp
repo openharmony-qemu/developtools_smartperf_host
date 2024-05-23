@@ -44,25 +44,25 @@ void PbreaderFfrtDetailParser::ParserFfrtTrace(const PbreaderDataSegment &dataSe
 {
     auto eventInfoPtr = std::make_unique<HtraceEventParser::EventInfo>();
     auto timeStamp = ffrtEventPtr->tv_nsec() + ffrtEventPtr->tv_sec() * SEC_TO_NS;
-    eventInfoPtr->timeStamp_ = streamFilters_->clockFilter_->ToPrimaryTraceTime(ffrtClockid_, timeStamp);
-    traceDataCache_->UpdateTraceTime(eventInfoPtr->timeStamp_);
+    eventInfoPtr->timeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(ffrtClockid_, timeStamp);
+    traceDataCache_->UpdateTraceTime(eventInfoPtr->timeStamp);
     if (traceDataCache_->isSplitFile_) {
-        if (eventInfoPtr->timeStamp_ >= traceDataCache_->SplitFileMinTime() &&
-            eventInfoPtr->timeStamp_ <= traceDataCache_->SplitFileMaxTime()) {
+        if (eventInfoPtr->timeStamp >= traceDataCache_->SplitFileMinTime() &&
+            eventInfoPtr->timeStamp <= traceDataCache_->SplitFileMaxTime()) {
             haveSplitSeg = true;
         }
         return;
     }
-    eventInfoPtr->pid_ = ffrtEventPtr->tid();
-    eventInfoPtr->tgid_ = ffrtEventPtr->pid();
-    eventInfoPtr->eventType_ = TRACE_EVENT_FFRT;
-    auto taskNameIndex = taskNameIndexMap_.Find(eventInfoPtr->pid_, eventInfoPtr->tgid_);
+    eventInfoPtr->pid = ffrtEventPtr->tid();
+    eventInfoPtr->tgid = ffrtEventPtr->pid();
+    eventInfoPtr->eventType = TRACE_EVENT_FFRT;
+    auto taskNameIndex = taskNameIndexMap_.Find(eventInfoPtr->pid, eventInfoPtr->tgid);
     if (taskNameIndex == INVALID_UINT64) {
         taskNameIndex = traceDataCache_->GetDataIndex("");
     }
-    eventInfoPtr->taskNameIndex_ = taskNameIndex;
+    eventInfoPtr->taskNameIndex = taskNameIndex;
     auto pos = (const char *)ffrtEventPtr->trace().Data() - dataSeg.seg->data();
-    eventInfoPtr->detail_ = std::move(dataSeg.seg->substr(pos, ffrtEventPtr->trace().Size()));
+    eventInfoPtr->detail = std::move(dataSeg.seg->substr(pos, ffrtEventPtr->trace().Size()));
     eventParser_->AppendEvent(std::move(eventInfoPtr));
 }
 void PbreaderFfrtDetailParser::Parser(const PbreaderDataSegment &dataSeg, bool &haveSplitSeg)

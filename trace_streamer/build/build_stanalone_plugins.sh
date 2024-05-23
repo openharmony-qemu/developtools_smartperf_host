@@ -13,21 +13,29 @@
 # limitations under the License.
 set -e
 . build/build_base.sh
-function check_plugin_true {
+
+function init_vars() {
+    TARGET_PATH=""
+    PROJ_PATH=""
+    SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
+    flag="false"
+    IFS=','
+}
+
+function check_plugin_true() {
     if [ $1 == "false" ];then
         echo "Current plugins haven't '$2'!Please check!"
         exit
     fi
 }
-function enable_plugin {
+
+function enable_plugin() {
     check_params $1
     set_enable_plugin_array "false"
-    flag="false"
-    IFS=','
     read -ra plugins <<< "$1"
     for plugin in "${plugins[@]}"; do
         for enable_plugin in "${enable_plugin_array[@]}"; do
-            if [[ $enable_plugin == *$plugin ]]; then
+            if [[ "$enable_plugin" == *"$plugin"* ]]; then
                 eval "$enable_plugin=\"true\""
                 echo "$enable_plugin=${!enable_plugin}"
                 flag="true"
@@ -37,15 +45,14 @@ function enable_plugin {
         flag="false"
     done
 }
-function enable_extend_plugin {
-    check_params $1
+
+function enable_extend_plugin() {
+    check_params "$1"
     set_enable_extend_plugin_array "false"
-    flag="false"
-    IFS=','
     read -ra plugins <<< "$1"
     for plugin in "${plugins[@]}"; do
         for enable_extend_plugin in "${enable_extend_plugin_array[@]}"; do
-            if [[ $enable_extend_plugin == *$plugin ]]; then
+            if [[ "$enable_extend_plugin" == *"$plugin"* ]]; then
                 eval "$enable_extend_plugin=\"true\""
                 echo "$enable_extend_plugin=${!enable_extend_plugin}"
                 flag="true"
@@ -55,3 +62,5 @@ function enable_extend_plugin {
         flag="false"
     done
 }
+
+init_vars

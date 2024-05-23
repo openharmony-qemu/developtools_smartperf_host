@@ -33,6 +33,9 @@ const uint64_t PAGEED_MEM_ADDR = 46549876;
 const uint64_t IPS_01 = 548606407208;
 const uint64_t IPS_02 = 548607407208;
 const uint64_t EBPF_COMMAND_MAX_SIZE = 1000;
+const uint64_t PID = 32;
+const uint64_t TID = 32;
+const uint16_t TYPE = 2;
 
 class EbpfPagedMemoryParserTest : public ::testing::Test {
 public:
@@ -55,15 +58,15 @@ public:
         EbpfTypeAndLength ebpfTypeAndLength;
         ebpfTypeAndLength.length = length;
         ebpfTypeAndLength.type = ITEM_EVENT_VM;
-        pagedMemoryFixedHeader_.pid = 32;
-        pagedMemoryFixedHeader_.tid = 32;
+        pagedMemoryFixedHeader_.pid = PID;
+        pagedMemoryFixedHeader_.tid = TID;
         memcpy_s(pagedMemoryFixedHeader_.comm, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
         pagedMemoryFixedHeader_.startTime = ts1;
         pagedMemoryFixedHeader_.endTime = ts2;
         pagedMemoryFixedHeader_.addr = PAGEED_MEM_ADDR;
         pagedMemoryFixedHeader_.size = 1;
         pagedMemoryFixedHeader_.nips = nips;
-        pagedMemoryFixedHeader_.type = 2;
+        pagedMemoryFixedHeader_.type = TYPE;
         dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t *>(&ebpfTypeAndLength))[0],
                             &(reinterpret_cast<uint8_t *>(&ebpfTypeAndLength))[sizeof(EbpfTypeAndLength)]);
         dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t *>(&pagedMemoryFixedHeader_))[0],

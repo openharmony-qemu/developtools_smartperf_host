@@ -28,21 +28,24 @@ public:
 private:
     std::deque<uint32_t> fpss_ = {};
 };
+struct DiskIoRow {
+    uint64_t ts = INVALID_UINT64;
+    uint64_t dur = INVALID_UINT64;
+    uint64_t rd = INVALID_UINT64;
+    uint64_t wr = INVALID_UINT64;
+    uint64_t rdPerSec = INVALID_UINT64;
+    uint64_t wrPerSec = INVALID_UINT64;
+    double rdCountPerSec = 0;
+    double wrCountPerSec = 0;
+    uint64_t rdCount = INVALID_UINT64;
+    uint64_t wrCount = INVALID_UINT64;
+};
 
 class DiskIOData : public CacheBase {
 public:
     DiskIOData() = default;
     ~DiskIOData() = default;
-    void AppendNewData(uint64_t ts,
-                       uint64_t dur,
-                       uint64_t rd,
-                       uint64_t wr,
-                       uint64_t rdPerSec,
-                       uint64_t wrPerSec,
-                       double rdCountPerSec,
-                       double wrCountPerSec,
-                       uint64_t rdCount,
-                       uint64_t wrCount);
+    void AppendNewData(const DiskIoRow &diskioRow);
     const std::deque<uint64_t> &Durs() const;
     const std::deque<uint64_t> &RdDatas() const;
     const std::deque<uint64_t> &WrDatas() const;
@@ -65,22 +68,24 @@ private:
     std::deque<uint64_t> rdCountDatas_ = {};
     std::deque<uint64_t> wrCountDatas_ = {};
 };
-
+struct LiveProcessDetailRow {
+    uint64_t newTimeStamp = INVALID_UINT64;
+    uint64_t dur = INVALID_UINT64;
+    int32_t processID = INVALID_INT32;
+    std::string processName = "";
+    int32_t parentProcessID = INVALID_INT32;
+    int32_t uid = INVALID_INT32;
+    std::string userName = "";
+    double cpuUsage = 0;
+    int32_t pssInfo = INVALID_INT32;
+    uint64_t cpuTime = INVALID_UINT64;
+    int32_t threads = INVALID_INT32;
+    int64_t diskWrites = INVALID_INT64;
+    int64_t diskReads = INVALID_INT64;
+};
 class LiveProcessDetailData : public CacheBase {
 public:
-    size_t AppendNewData(uint64_t newTimeStamp,
-                         uint64_t dur,
-                         int32_t processID,
-                         std::string processName,
-                         int32_t parentProcessID,
-                         int32_t uid,
-                         std::string userName,
-                         double cpuUsage,
-                         int32_t pssInfo,
-                         uint64_t cpuTime,
-                         int32_t threads,
-                         int64_t diskWrites,
-                         int64_t diskReads);
+    size_t AppendNewData(const LiveProcessDetailRow &liveProcessDetailRow);
     const std::deque<uint64_t> &Durs() const;
     const std::deque<int32_t> &ProcessID() const;
     const std::deque<std::string> &ProcessName() const;
@@ -109,15 +114,17 @@ private:
     std::deque<int64_t> diskReads_ = {};
     std::deque<uint64_t> cpuTimes_ = {};
 };
-
+struct CpuUsageDetailRow {
+    uint64_t newTimeStamp = INVALID_UINT64;
+    uint64_t dur = INVALID_UINT64;
+    double totalLoad = 0;
+    double userLoad = 0;
+    double systemLoad = 0;
+    int64_t threads = INVALID_INT64;
+};
 class CpuUsageDetailData : public CacheBase {
 public:
-    size_t AppendNewData(uint64_t newTimeStamp,
-                         uint64_t dur,
-                         double totalLoad,
-                         double userLoad,
-                         double systemLoad,
-                         int64_t threads);
+    size_t AppendNewData(const CpuUsageDetailRow &cpuUsageDetailRow);
     const std::deque<uint64_t> &Durs() const;
     const std::deque<double> &TotalLoad() const;
     const std::deque<double> &UserLoad() const;
@@ -132,20 +139,22 @@ private:
     std::deque<double> systemLoad_ = {};
     std::deque<int64_t> threads_ = {};
 };
-
+struct NetDetailRow {
+    uint64_t newTimeStamp = INVALID_UINT64;
+    uint64_t tx = INVALID_UINT64;
+    uint64_t rx = INVALID_UINT64;
+    uint64_t dur = INVALID_UINT64;
+    double rxSpeed = 0;
+    double txSpeed = 0;
+    uint64_t packetIn = INVALID_UINT64;
+    double packetInSec = 0;
+    uint64_t packetOut = INVALID_UINT64;
+    double packetOutSec = 0;
+    std::string netType = "";
+};
 class NetDetailData : public CacheBase {
 public:
-    size_t AppendNewNetData(uint64_t newTimeStamp,
-                            uint64_t tx,
-                            uint64_t rx,
-                            uint64_t dur,
-                            double rxSpeed,
-                            double txSpeed,
-                            uint64_t packetIn,
-                            double packetInSec,
-                            uint64_t packetOut,
-                            double packetOutSec,
-                            const std::string &netType);
+    size_t AppendNewNetData(const NetDetailRow &NetDetailRow);
     const std::deque<uint64_t> &Durs() const;
     const std::deque<double> &RxSpeed() const;
     const std::deque<double> &TxSpeed() const;
@@ -170,29 +179,31 @@ private:
     std::deque<double> packetOutSec_ = {};
     std::deque<std::string> netTypes_ = {};
 };
+struct SmapsRow {
+    uint64_t timeStamp = INVALID_UINT64;
+    uint64_t ipid = INVALID_UINT64;
+    std::string startAddr = "";
+    std::string endAddr = "";
+    uint64_t dirty = INVALID_UINT64;
+    uint64_t swapper = INVALID_UINT64;
+    uint64_t rss = INVALID_UINT64;
+    uint64_t pss = INVALID_UINT64;
+    uint64_t size = INVALID_UINT64;
+    double reside = 0;
+    DataIndex protectionId = INVALID_UINT64;
+    DataIndex pathId = INVALID_UINT64;
+    uint64_t sharedClean = INVALID_UINT64;
+    uint64_t sharedDirty = INVALID_UINT64;
+    uint64_t privateClean = INVALID_UINT64;
+    uint64_t privateDirty = INVALID_UINT64;
+    uint64_t swap = INVALID_UINT64;
+    uint64_t swapPss = INVALID_UINT64;
+    uint32_t type = INVALID_UINT32;
+};
 
 class SmapsData : public CacheBase {
 public:
-    void AppendNewData(uint64_t timeStamp,
-                       uint64_t ipid,
-                       std::string startAddr,
-                       std::string endAddr,
-                       uint64_t dirty,
-                       uint64_t swapper,
-                       uint64_t rss,
-                       uint64_t pss,
-                       uint64_t size,
-                       double reside,
-                       DataIndex protectionId,
-                       DataIndex pathId,
-                       uint64_t sharedClean,
-                       uint64_t sharedDirty,
-                       uint64_t privateClean,
-                       uint64_t privateDirty,
-                       uint64_t swap,
-                       uint64_t swapPss,
-                       uint32_t type);
-    const std::deque<uint64_t> &Id() const;
+    void AppendNewData(const SmapsRow &smapsRow);
     const std::deque<uint64_t> &TimeStamps() const;
     const std::deque<uint64_t> &Ipids() const;
     const std::deque<std::string> &StartAddrs() const;
@@ -236,20 +247,24 @@ private:
     uint32_t rowCount_ = 0;
 };
 
+struct AshMemRow {
+    InternalPid ipid = INVALID_IPID;
+    uint64_t ts = INVALID_UINT64;
+    uint32_t adj = INVALID_UINT32;
+    uint32_t fd = INVALID_UINT32;
+    DataIndex ashmemNameId = INVALID_UINT64;
+    uint64_t size = INVALID_UINT64;
+    uint64_t pss = INVALID_UINT64;
+    uint32_t ashmemId = INVALID_UINT32;
+    uint64_t time = INVALID_UINT64;
+    uint64_t refCount = INVALID_UINT64;
+    uint64_t purged = INVALID_UINT64;
+    uint32_t flag = INVALID_UINT32;
+};
+
 class AshMemData : public CacheBase {
 public:
-    void AppendNewData(InternalPid ipid,
-                       uint64_t ts,
-                       uint32_t adj,
-                       uint32_t fd,
-                       DataIndex ashmemNameId,
-                       uint64_t size,
-                       uint64_t pss,
-                       uint32_t ashmemId,
-                       uint64_t time,
-                       uint64_t refCount,
-                       uint64_t purged,
-                       uint32_t flag);
+    void AppendNewData(const AshMemRow &ashMemRow);
     const std::deque<InternalPid> &Ipids() const;
     const std::deque<uint32_t> &Adjs() const;
     const std::deque<uint32_t> &Fds() const;
@@ -279,18 +294,22 @@ private:
     uint32_t rowCount_ = 0;
 };
 
+struct DmaMemRow {
+    InternalPid ipid = INVALID_IPID;
+    uint64_t ts = INVALID_UINT64;
+    uint32_t fd = INVALID_UINT32;
+    uint64_t size = INVALID_UINT64;
+    uint32_t ino = INVALID_UINT32;
+    uint32_t expPid = INVALID_UINT32;
+    DataIndex expTaskCommId = INVALID_DATAINDEX;
+    DataIndex bufNameId = INVALID_DATAINDEX;
+    DataIndex expNameId = INVALID_DATAINDEX;
+    uint32_t flag = INVALID_UINT32;
+};
+
 class DmaMemData : public CacheBase {
 public:
-    void AppendNewData(InternalPid ipid,
-                       uint64_t ts,
-                       uint32_t fd,
-                       uint64_t size,
-                       uint32_t ino,
-                       uint32_t expPid,
-                       DataIndex expTaskCommId,
-                       DataIndex bufNameId,
-                       DataIndex expNameId,
-                       uint32_t flag);
+    void AppendNewData(const DmaMemRow &dmaMemRow);
     const std::deque<InternalPid> &Ipids() const;
     const std::deque<uint32_t> &Fds() const;
     const std::deque<uint64_t> &Sizes() const;
@@ -316,15 +335,18 @@ private:
     uint32_t rowCount_ = 0;
 };
 
+struct GpuProcessMemRow {
+    uint64_t ts = INVALID_UINT64;
+    DataIndex gpuNameId = INVALID_DATAINDEX;
+    uint64_t allGpuSize = INVALID_UINT64;
+    std::string addr = "";
+    InternalPid ipid = INVALID_IPID;
+    InternalPid itid = INVALID_ITID;
+    uint64_t usedGpuSize = INVALID_UINT64;
+};
 class GpuProcessMemData : public CacheBase {
 public:
-    void AppendNewData(uint64_t ts,
-                       DataIndex gpuNameId,
-                       uint64_t allGpuSize,
-                       std::string addr,
-                       InternalPid ipid,
-                       InternalPid itid,
-                       uint64_t usedGpuSize);
+    void AppendNewData(const GpuProcessMemRow &gpuProcessMemRow);
     const std::deque<DataIndex> &GpuNameIds() const;
     const std::deque<uint64_t> &AllGpuSizes() const;
     const std::deque<std::string> &Addrs() const;
@@ -342,16 +364,19 @@ private:
     std::deque<uint64_t> usedGpuSizes_ = {};
     uint32_t rowCount_ = 0;
 };
+struct GpuWindowMemRow {
+    uint64_t ts = INVALID_UINT64;
+    DataIndex windowNameId = INVALID_UINT64;
+    uint64_t windowId = INVALID_UINT64;
+    DataIndex moduleNameId = INVALID_UINT64;
+    DataIndex categoryNameId = INVALID_UINT64;
+    uint64_t size = INVALID_UINT64;
+    uint32_t count = INVALID_UINT32;
+    uint64_t purgeableSize = INVALID_UINT64;
+};
 class GpuWindowMemData : public CacheBase {
 public:
-    void AppendNewData(uint64_t ts,
-                       DataIndex windowNameId,
-                       uint64_t windowId,
-                       DataIndex moduleNameId,
-                       DataIndex categoryNameId,
-                       uint64_t size,
-                       uint32_t count,
-                       uint64_t purgeableSize);
+    void AppendNewData(const GpuWindowMemRow &gpuWindowMemRow);
     void RevicesIpid(const std::map<DataIndex, InternalPid> &windowIdToIpidMap);
     const std::deque<DataIndex> &WindowNameIds() const;
     const std::deque<uint64_t> &WindowIds() const;

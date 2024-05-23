@@ -16,32 +16,22 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
-size_t CallStack::AppendInternalAsyncSlice(uint64_t startT,
-                                           uint64_t durationNs,
-                                           InternalTid internalTid,
-                                           DataIndex cat,
-                                           DataIndex name,
-                                           uint8_t depth,
+size_t CallStack::AppendInternalAsyncSlice(const CallStackInternalRow &callStackInternalRow,
                                            int64_t cookid,
                                            const std::optional<uint64_t> &parentId)
 {
-    AppendCommonInfo(startT, durationNs, internalTid);
-    AppendCallStack(cat, name, depth, parentId);
+    AppendCommonInfo(callStackInternalRow.startT, callStackInternalRow.durationNs, callStackInternalRow.internalTid);
+    AppendCallStack(callStackInternalRow.cat, callStackInternalRow.name, callStackInternalRow.depth, parentId);
     AppendDistributeInfo();
     cookies_.emplace_back(cookid);
     ids_.emplace_back(id_++);
     return Size() - 1;
 }
-size_t CallStack::AppendInternalSlice(uint64_t startT,
-                                      uint64_t durationNs,
-                                      InternalTid internalTid,
-                                      DataIndex cat,
-                                      DataIndex name,
-                                      uint8_t depth,
+size_t CallStack::AppendInternalSlice(const CallStackInternalRow &callStackInternalRow,
                                       const std::optional<uint64_t> &parentId)
 {
-    AppendCommonInfo(startT, durationNs, internalTid);
-    AppendCallStack(cat, name, depth, parentId);
+    AppendCommonInfo(callStackInternalRow.startT, callStackInternalRow.durationNs, callStackInternalRow.internalTid);
+    AppendCallStack(callStackInternalRow.cat, callStackInternalRow.name, callStackInternalRow.depth, parentId);
     ids_.emplace_back(id_++);
     cookies_.emplace_back(INVALID_INT64);
     AppendDistributeInfo();
@@ -72,17 +62,6 @@ void CallStack::SetDistributeInfo(size_t index,
     parentSpanIds_[index] = parentSpanId;
     flags_[index] = flag;
     argSet_[index] = INVALID_UINT32;
-}
-void CallStack::AppendDistributeInfo(const std::string &chainId,
-                                     const std::string &spanId,
-                                     const std::string &parentSpanId,
-                                     const std::string &flag)
-{
-    chainIds_.emplace_back(chainId);
-    spanIds_.emplace_back(spanId);
-    parentSpanIds_.emplace_back(parentSpanId);
-    flags_.emplace_back(flag);
-    argSet_.emplace_back(INVALID_UINT32);
 }
 void CallStack::AppendDistributeInfo()
 {

@@ -26,7 +26,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum Third_Party_Wasm_Id {
+enum ThirdPartyWasmId {
     DATA_TYPE_MOCK_PLUGIN = 0,
     DATA_TYPE_CLOCK = 100,
 };

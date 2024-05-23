@@ -20,32 +20,26 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
+struct CallStackInternalRow {
+    uint64_t startT = INVALID_UINT64;
+    uint64_t durationNs = INVALID_UINT64;
+    InternalTid internalTid = INVALID_UINT32;
+    DataIndex cat = INVALID_UINT64;
+    DataIndex name = INVALID_UINT64;
+    uint8_t depth = INVALID_UINT8;
+};
 class CallStack : public CacheBase, public CpuCacheBase, public BatchCacheBase {
 public:
-    size_t AppendInternalAsyncSlice(uint64_t startT,
-                                    uint64_t durationNs,
-                                    InternalTid internalTid,
-                                    DataIndex cat,
-                                    DataIndex name,
-                                    uint8_t depth,
+    size_t AppendInternalAsyncSlice(const CallStackInternalRow &callStackInternalRow,
                                     int64_t cookid,
                                     const std::optional<uint64_t> &parentId);
-    size_t AppendInternalSlice(uint64_t startT,
-                               uint64_t durationNs,
-                               InternalTid internalTid,
-                               DataIndex cat,
-                               DataIndex name,
-                               uint8_t depth,
+    size_t AppendInternalSlice(const CallStackInternalRow &callStackInternalRow,
                                const std::optional<uint64_t> &parentId);
     void SetDistributeInfo(size_t index,
                            const std::string &chainId,
                            const std::string &spanId,
                            const std::string &parentSpanId,
                            const std::string &flag);
-    void AppendDistributeInfo(const std::string &chainId,
-                              const std::string &spanId,
-                              const std::string &parentSpanId,
-                              const std::string &flag);
     void AppendDistributeInfo();
     void SetDuration(size_t index, uint64_t timeStamp);
     void SetDurationWithFlag(size_t index, uint64_t timeStamp);

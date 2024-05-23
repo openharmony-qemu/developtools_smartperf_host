@@ -45,18 +45,22 @@ public:
     std::deque<DataIndex> lastCallerPathIndexs_ = {};
     std::deque<DataIndex> lastSymbolIndexs_ = {};
 };
+
+struct NativeHookRow {
+    uint32_t callChainId = INVALID_UINT32;
+    uint32_t ipid = INVALID_UINT32;
+    uint32_t itid = INVALID_UINT32;
+    std::string eventType;
+    DataIndex subType = INVALID_DATAINDEX;
+    uint64_t timeStamp = INVALID_UINT64;
+    uint64_t endTimeStamp = INVALID_UINT64;
+    uint64_t duration = INVALID_UINT64;
+    uint64_t addr = INVALID_UINT64;
+    int64_t memSize = INVALID_UINT64;
+};
 class NativeHook : public NativeHookSampleBase {
 public:
-    size_t AppendNewNativeHookData(uint32_t callChainId,
-                                   uint32_t ipid,
-                                   uint32_t itid,
-                                   std::string eventType,
-                                   DataIndex subType,
-                                   uint64_t timeStamp,
-                                   uint64_t endTimeStamp,
-                                   uint64_t duration,
-                                   uint64_t addr,
-                                   int64_t memSize);
+    size_t AppendNewNativeHookData(const NativeHookRow &context);
     void UpdateCallChainId(size_t row, uint32_t callChainId);
     void UpdateEndTimeStampAndDuration(size_t row, uint64_t endTimeStamp);
     void UpdateCurrentSizeDur(size_t row, uint64_t timeStamp);
@@ -119,23 +123,33 @@ private:
     uint64_t lastMmapEventRaw_ = INVALID_UINT64;
 };
 
+struct NativeHookFrameRow {
+    /* data */
+    uint32_t callChainId = INVALID_UINT32;
+    uint16_t depth = INVALID_UINT16;
+    uint64_t ip = INVALID_UINT64;
+    DataIndex symbolName = INVALID_DATAINDEX;
+    DataIndex filePath = INVALID_DATAINDEX;
+    uint64_t offset = INVALID_UINT64;
+    uint64_t symbolOffset = INVALID_UINT64;
+};
+
+struct NativeHookFrameVaddrRow {
+    /* data */
+    uint32_t callChainId = INVALID_UINT32;
+    uint16_t depth = INVALID_UINT16;
+    uint64_t ip = INVALID_UINT64;
+    DataIndex symbolName = INVALID_DATAINDEX;
+    DataIndex filePath = INVALID_DATAINDEX;
+    uint64_t offset = INVALID_UINT64;
+    uint64_t symbolOffset = INVALID_UINT64;
+    const std::string &vaddr;
+};
+
 class NativeHookFrame {
 public:
-    size_t AppendNewNativeHookFrame(uint32_t callChainId,
-                                    uint16_t depth,
-                                    uint64_t ip,
-                                    DataIndex symbolName,
-                                    DataIndex filePath,
-                                    uint64_t offset,
-                                    uint64_t symbolOffset);
-    size_t AppendNewNativeHookFrame(uint32_t callChainId,
-                                    uint16_t depth,
-                                    uint64_t ip,
-                                    DataIndex symbolName,
-                                    DataIndex filePath,
-                                    uint64_t offset,
-                                    uint64_t symbolOffset,
-                                    const std::string &vaddr);
+    size_t AppendNewNativeHookFrame(const NativeHookFrameRow &context);
+    size_t AppendNewNativeHookFrame(const NativeHookFrameVaddrRow &context);
     void UpdateFrameInfo(size_t row,
                          DataIndex symbolIndex,
                          DataIndex filePathIndex,
@@ -182,18 +196,20 @@ private:
     std::deque<std::string> vaddrs_ = {};
     std::map<uint32_t, uint64_t> symbolIdToSymbolName_ = {};
 };
-
+struct NativeHookStatisticRow {
+    uint32_t ipid = INVALID_UINT32;
+    uint64_t timeStamp = INVALID_UINT64;
+    uint32_t callChainId = INVALID_UINT32;
+    uint32_t memoryType = INVALID_UINT32;
+    DataIndex subMemType = INVALID_UINT64;
+    uint64_t applyCount = INVALID_UINT64;
+    uint64_t releaseCount = INVALID_UINT64;
+    uint64_t applySize = INVALID_UINT64;
+    uint64_t releaseSize = INVALID_UINT64;
+};
 class NativeHookStatistic : public NativeHookSampleBase {
 public:
-    size_t AppendNewNativeHookStatistic(uint32_t ipid,
-                                        uint64_t timeStamp,
-                                        uint32_t callChainId,
-                                        uint32_t memoryType,
-                                        DataIndex subMemType,
-                                        uint64_t applyCount,
-                                        uint64_t releaseCount,
-                                        uint64_t applySize,
-                                        uint64_t releaseSize);
+    size_t AppendNewNativeHookStatistic(const NativeHookStatisticRow &nativeHookStatisticRow);
     const std::deque<uint32_t> &MemoryTypes() const;
     const std::deque<DataIndex> &MemorySubTypes() const;
     const std::deque<uint64_t> &ApplyCounts() const;

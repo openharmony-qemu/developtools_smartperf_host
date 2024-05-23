@@ -60,7 +60,7 @@ HWTEST_F(SDKApiTest, SetTableName, TestSize.Level1)
 {
     TS_LOGI("test1-1");
     SetRpcServer(rpcServer);
-    auto ret = SDK_SetTableName("first_table", "second_table", "third_table", "fouth_table");
+    auto ret = SDKSetTableName("first_table", "second_table", "third_table", "fouth_table");
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->GetJsonConfig(QueryResultCallback);
     EXPECT_EQ(0, ret);
@@ -125,7 +125,7 @@ HWTEST_F(SDKApiTest, NullTableName, TestSize.Level1)
 {
     TS_LOGI("test1-3");
     SetRpcServer(rpcServer);
-    auto ret = SDK_SetTableName(" ", " ", " ", " ");
+    auto ret = SDKSetTableName(" ", " ", " ", " ");
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->GetJsonConfig(QueryResultCallback);
     EXPECT_EQ(0, ret);
@@ -158,7 +158,7 @@ HWTEST_F(SDKApiTest, NullAndManuallyCounterTableName, TestSize.Level1)
 {
     TS_LOGI("test1-4");
     SetRpcServer(rpcServer);
-    auto ret = SDK_SetTableName("first_table", "second_table", " ", " ");
+    auto ret = SDKSetTableName("first_table", "second_table", " ", " ");
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->GetJsonConfig(QueryResultCallback);
     EXPECT_EQ(0, ret);
@@ -191,7 +191,7 @@ HWTEST_F(SDKApiTest, NullAndManuallySliceTableName, TestSize.Level1)
 {
     TS_LOGI("test1-5");
     SetRpcServer(rpcServer);
-    auto ret = SDK_SetTableName(" ", " ", "first_table", "second_table");
+    auto ret = SDKSetTableName(" ", " ", "first_table", "second_table");
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->GetJsonConfig(QueryResultCallback);
     EXPECT_EQ(0, ret);
@@ -228,7 +228,7 @@ HWTEST_F(SDKApiTest, CurrentDataForCounterObjectWithDefaultTableName, TestSize.L
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendCounterObject(1, "counter_1");
+    ret = SDKAppendCounterObject(1, "counter_1");
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounterObj("select * from gpu_counter_object;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
@@ -250,7 +250,7 @@ HWTEST_F(SDKApiTest, CurrentDataForCounterObjectWithManuallyTableName, TestSize.
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendCounterObject(1, "counter_1");
+    ret = SDKAppendCounterObject(1, "counter_1");
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounterObj("select * from second_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
@@ -271,7 +271,7 @@ HWTEST_F(SDKApiTest, WrongDataForCounterObjectWithDefaultTableName, TestSize.Lev
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendCounterObject(INVALID_INT32, "counter_1");
+    ret = SDKAppendCounterObject(INVALID_INT32, "counter_1");
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounterObj("select * from gpu_counter_object;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
@@ -293,7 +293,7 @@ HWTEST_F(SDKApiTest, WrongDataForCounterObjectWithManuallyTableName, TestSize.Le
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendCounterObject(INVALID_INT32, "counter_1");
+    ret = SDKAppendCounterObject(INVALID_INT32, "counter_1");
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounterObj("select * from second_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
@@ -315,7 +315,7 @@ HWTEST_F(SDKApiTest, WrongDataForCounterObject, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendCounterObject(INVALID_INT32, " ");
+    ret = SDKAppendCounterObject(INVALID_INT32, " ");
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounterObj("select * from gpu_counter_object;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQueryCounterObj.c_str(), sqlQueryCounterObj.length(), res);
@@ -336,7 +336,7 @@ HWTEST_F(SDKApiTest, CurrentDataForCounterWithDefaultTableName, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendCounter(1, 100, 100);
+    ret = SDKAppendCounter(1, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from counter_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
@@ -358,7 +358,7 @@ HWTEST_F(SDKApiTest, CurrentDataForCounterWithManuallyTableName, TestSize.Level1
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendCounter(1, 100, 100);
+    ret = SDKAppendCounter(1, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from first_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
@@ -379,7 +379,7 @@ HWTEST_F(SDKApiTest, WrongDataForCounterWithDefaultTableName, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendCounter(INVALID_INT32, 100, 100);
+    ret = SDKAppendCounter(INVALID_INT32, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from counter_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
@@ -401,7 +401,7 @@ HWTEST_F(SDKApiTest, WrongDataForCounterWithManuallyTableName, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendCounter(INVALID_INT32, 100, 100);
+    ret = SDKAppendCounter(INVALID_INT32, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from first_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
@@ -422,7 +422,7 @@ HWTEST_F(SDKApiTest, CounterWithWrongData, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendCounter(INVALID_INT32, INVALID_UINT64, INVALID_INT32);
+    ret = SDKAppendCounter(INVALID_INT32, INVALID_UINT64, INVALID_INT32);
     EXPECT_EQ(0, ret);
     std::string sqlQueryCounter("select * from counter_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQueryCounter.c_str(), sqlQueryCounter.length(), res);
@@ -443,7 +443,7 @@ HWTEST_F(SDKApiTest, CurrentDataForSliceObjectWithDefaultTableName, TestSize.Lev
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendSliceObject(1, "slice_1");
+    ret = SDKAppendSliceObject(1, "slice_1");
     EXPECT_EQ(0, ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
@@ -465,7 +465,7 @@ HWTEST_F(SDKApiTest, CurrentDataForSliceObjectWithManuallyTableName, TestSize.Le
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendSliceObject(1, "slice_1");
+    ret = SDKAppendSliceObject(1, "slice_1");
     EXPECT_EQ(0, ret);
     std::string sqlQuerySliceObj("select * from fourth_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
@@ -486,7 +486,7 @@ HWTEST_F(SDKApiTest, WrongDataForSliceObjectWithDefaultTableName, TestSize.Level
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendSliceObject(1, "slice_1");
+    ret = SDKAppendSliceObject(1, "slice_1");
     EXPECT_EQ(0, ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
@@ -508,7 +508,7 @@ HWTEST_F(SDKApiTest, WrongDataForSliceObjectWithManuallyTableName, TestSize.Leve
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendSliceObject(INVALID_INT32, "slice_1");
+    ret = SDKAppendSliceObject(INVALID_INT32, "slice_1");
     EXPECT_EQ(0, ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
@@ -530,7 +530,7 @@ HWTEST_F(SDKApiTest, WrongDataForSliceObject, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendSliceObject(INVALID_INT32, " ");
+    ret = SDKAppendSliceObject(INVALID_INT32, " ");
     EXPECT_EQ(0, ret);
     std::string sqlQuerySliceObj("select * from slice_object_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQuerySliceObj.c_str(), sqlQuerySliceObj.length(), res);
@@ -551,7 +551,7 @@ HWTEST_F(SDKApiTest, CurrentDataForSliceWithDefaultTableName, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendSlice(1, 100, 100, 100);
+    ret = SDKAppendSlice(1, 100, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQuerySlice("select * from Slice_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
@@ -573,7 +573,7 @@ HWTEST_F(SDKApiTest, CurrentDataForSliceWithManuallyTableName, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendSlice(1, 100, 100, 100);
+    ret = SDKAppendSlice(1, 100, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQuerySlice("select * from third_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
@@ -594,7 +594,7 @@ HWTEST_F(SDKApiTest, WrongDataForSliceWithDefaultTableName, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendSlice(INVALID_INT32, 100, 100, 100);
+    ret = SDKAppendSlice(INVALID_INT32, 100, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQuerySlice("select * from Slice_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
@@ -616,7 +616,7 @@ HWTEST_F(SDKApiTest, WrongDataForSliceWithManuallyTableName, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendSlice(INVALID_INT32, 100, 100, 100);
+    ret = SDKAppendSlice(INVALID_INT32, 100, 100, 100);
     EXPECT_EQ(0, ret);
     std::string sqlQuerySlice("select * from third_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);
@@ -637,7 +637,7 @@ HWTEST_F(SDKApiTest, SliceWithWrongData, TestSize.Level1)
     EXPECT_EQ(0, ret);
     ret = rpcServer->demoTs_->sdkDataParser_->CreateTableByJson();
     EXPECT_EQ(0, ret);
-    ret = SDK_AppendSlice(INVALID_INT32, INVALID_UINT64, INVALID_UINT64, INVALID_INT32);
+    ret = SDKAppendSlice(INVALID_INT32, INVALID_UINT64, INVALID_UINT64, INVALID_INT32);
     EXPECT_EQ(0, ret);
     std::string sqlQuerySlice("select * from slice_table;");
     ret = rpcServer->DemoSqlQuery((const uint8_t *)sqlQuerySlice.c_str(), sqlQuerySlice.length(), res);

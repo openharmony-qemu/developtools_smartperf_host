@@ -35,8 +35,8 @@ uint8_t *g_reqBuf;
 uint32_t g_reqBufferSize;
 uint8_t *g_traceRangeBuf;
 uint32_t g_traceRangeSize;
-uint8_t *g_PluginNameBuf;
-uint32_t g_PluginNameSize;
+uint8_t *g_pluginNameBuf;
+uint32_t g_pluginNameSize;
 
 void QueryResultCallback(const std::string &jsonResult, int32_t finish, int32_t isConfig)
 {
@@ -49,7 +49,7 @@ void TraceRangeCallback(const std::string &jsonResult)
 EMSCRIPTEN_KEEPALIVE uint8_t *Init(QueryResultCallbackFunction queryResultCallbackFunction, uint32_t reqBufferSize)
 {
     SetRpcServer(&g_demoWasmTraceStreamer);
-    sdk_plugin_init_table_name();
+    SDKPluginIinitTableName();
     g_demoWasmTraceStreamer.demoTs_->sdkDataParser_->CreateTableByJson();
     g_reply = queryResultCallbackFunction;
     g_reqBuf = new uint8_t[reqBufferSize];
@@ -60,13 +60,13 @@ EMSCRIPTEN_KEEPALIVE uint8_t *Init(QueryResultCallbackFunction queryResultCallba
 // Get PluginName
 EMSCRIPTEN_KEEPALIVE uint8_t *InitPluginName(uint32_t reqBufferSize)
 {
-    g_PluginNameBuf = new uint8_t[reqBufferSize];
-    g_PluginNameSize = reqBufferSize;
-    return g_PluginNameBuf;
+    g_pluginNameBuf = new uint8_t[reqBufferSize];
+    g_pluginNameSize = reqBufferSize;
+    return g_pluginNameBuf;
 }
 
 // @deprecated recommand to use TraceStreamerGetPluginNameEx api
-EMSCRIPTEN_KEEPALIVE int32_t TraceStreamer_In_PluginName(const uint8_t *pluginName, int32_t len)
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerInPluginName(const uint8_t *pluginName, int32_t len)
 {
     std::string pluginNameStr(reinterpret_cast<const char *>(pluginName), len);
     g_demoWasmTraceStreamer.demoTs_->sdkDataParser_->GetPluginName(pluginNameStr);
@@ -75,7 +75,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamer_In_PluginName(const uint8_t *pluginNa
 
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerGetPluginNameEx(int32_t pluginLen)
 {
-    return g_demoWasmTraceStreamer.DemoWasmGetPluginNameWithCallback(g_PluginNameBuf, pluginLen);
+    return g_demoWasmTraceStreamer.DemoWasmGetPluginNameWithCallback(g_pluginNameBuf, pluginLen);
 }
 
 EMSCRIPTEN_KEEPALIVE uint8_t *InitTraceRange(TraceRangeCallbackFunction traceRangeCallbackFunction,
@@ -93,7 +93,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamer_In_ParseDataOver()
     MetaData *metaData = g_demoWasmTraceStreamer.demoTs_->GetMetaData();
     metaData->InitMetaData();
     metaData->SetParserToolVersion(SDK_VERSION);
-    metaData->SetParserToolPublishDateTime(SDK_PUBLISHVERSION);
+    metaData->SetParserToolPublishDateTime(SDK_PUBLISH_VERSION);
     g_demoWasmTraceStreamer.demoTs_->sdkDataParser_->ParseDataOver(&TraceRangeCallback);
     return 0;
 }

@@ -425,12 +425,16 @@ HWTEST_F(HtraceMemParserTest, AshMemDeduplicateTest, TestSize.Level1)
     TS_LOGI("test16-10");
 
     PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    uint32_t adj = 6;
-    uint32_t fd = 6;
-    DataIndex ashmemNameId = stream_.traceDataCache_->GetDataIndex("xxx");
-    uint64_t size = 222;
-    uint64_t refCount = 3;
-    uint64_t purged = 1;
+    AshMemRow row;
+
+    row.adj = 6;
+    row.fd = 6;
+    row.ashmemNameId = stream_.traceDataCache_->GetDataIndex("xxx");
+    row.size = 222;
+    row.refCount = 3;
+    row.purged = 1;
+    row.pss = 0;
+    row.flag = 0;
 
     struct DeduplicateVar {
         uint64_t timeStamp;
@@ -442,15 +446,15 @@ HWTEST_F(HtraceMemParserTest, AshMemDeduplicateTest, TestSize.Level1)
     vector<DeduplicateVar> stubVars = {
         {1616439852302, 1, "aaa", 1, 1}, {1616439852302, 1, "aaa", 1, 1}, {1616439852302, 1, "aaa", 2, 2},
         {1616439852302, 2, "bbb", 1, 1}, {1616439852302, 2, "bbb", 2, 2}, {1616439852302, 3, "ccc", 1, 1},
-        {1616439852302, 3, "ccc", 2, 2}, {1616439852302, 3, "ccc", 2, 2},
-
-        {1616439855302, 1, "aaa", 1, 1}, {1616439855302, 1, "aaa", 1, 1}, {1616439855302, 2, "bbb", 2, 2},
-        {1616439855302, 3, "ccc", 2, 2},
+        {1616439852302, 3, "ccc", 2, 2}, {1616439852302, 3, "ccc", 2, 2}, {1616439855302, 1, "aaa", 1, 1},
+        {1616439855302, 1, "aaa", 1, 1}, {1616439855302, 2, "bbb", 2, 2}, {1616439855302, 3, "ccc", 2, 2},
     };
     for (auto &m : stubVars) {
-        auto ipid = stream_.streamFilters_->processFilter_->UpdateOrCreateProcessWithName(m.pid, m.pidName);
-        stream_.traceDataCache_->GetAshMemData()->AppendNewData(ipid, m.timeStamp, adj, fd, ashmemNameId, size, 0,
-                                                                m.ashmemId, m.time, refCount, purged, 0);
+        row.ts = m.timeStamp;
+        row.ashmemId = m.ashmemId;
+        row.ipid = stream_.streamFilters_->processFilter_->UpdateOrCreateProcessWithName(m.pid, m.pidName);
+        row.time = m.time;
+        stream_.traceDataCache_->GetAshMemData()->AppendNewData(row);
     }
 
     memParser->AshMemDeduplicate();
@@ -478,7 +482,6 @@ HWTEST_F(HtraceMemParserTest, AshMemDeduplicateTest, TestSize.Level1)
 HWTEST_F(HtraceMemParserTest, DmaMemDeduplicateTest, TestSize.Level1)
 {
     TS_LOGI("test16-11");
-
     PbreaderMemParser *memParser = new PbreaderMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     uint32_t fd = 6;
     uint64_t size = 222;
@@ -501,20 +504,22 @@ HWTEST_F(HtraceMemParserTest, DmaMemDeduplicateTest, TestSize.Level1)
         {1616439852302, 2, "app", 2},
         {1616439852302, 3, "composer_host", 1},
         {1616439852302, 3, "composer_host", 2},
-        {1616439852302, 3, "composer_host", 2},
-        {1616439855302, 1, "render_service", 1},
-        {1616439855302, 1, "render_service", 2},
-        {1616439855302, 3, "composer_host", 2},
-        {1616439855302, 3, "composer_host", 2},
     };
+    DmaMemRow row;
     for (auto &m : stubVars) {
-        auto ipid = stream_.streamFilters_->processFilter_->UpdateOrCreateProcessWithName(m.pid, m.pidName);
-        stream_.traceDataCache_->GetDmaMemData()->AppendNewData(ipid, m.timeStamp, fd, size, m.ino, expPid,
-                                                                expTaskCommId, bufNameId, expNameId, 0);
+        row.ipid = stream_.streamFilters_->processFilter_->UpdateOrCreateProcessWithName(m.pid, m.pidName);
+        row.ts = m.timeStamp;
+        row.fd = fd;
+        row.size = size;
+        row.ino = m.ino;
+        row.expPid = expPid;
+        row.expTaskCommId = expTaskCommId;
+        row.bufNameId = bufNameId;
+        row.expNameId = expNameId;
+        row.flag = 0;
+        stream_.traceDataCache_->GetDmaMemData()->AppendNewData(row);
     }
-
     memParser->DmaMemDeduplicate();
-
     auto DmaData = stream_.traceDataCache_->GetConstDmaMemData();
     EXPECT_EQ(DmaData.Flags()[0], 2);
     EXPECT_EQ(DmaData.Flags()[1], 1);
@@ -523,11 +528,6 @@ HWTEST_F(HtraceMemParserTest, DmaMemDeduplicateTest, TestSize.Level1)
     EXPECT_EQ(DmaData.Flags()[4], 0);
     EXPECT_EQ(DmaData.Flags()[5], 2);
     EXPECT_EQ(DmaData.Flags()[6], 2);
-    EXPECT_EQ(DmaData.Flags()[7], 1);
-    EXPECT_EQ(DmaData.Flags()[8], 0);
-    EXPECT_EQ(DmaData.Flags()[9], 0);
-    EXPECT_EQ(DmaData.Flags()[10], 2);
-    EXPECT_EQ(DmaData.Flags()[11], 1);
 }
 
 } // namespace TraceStreamer

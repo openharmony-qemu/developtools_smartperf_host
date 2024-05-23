@@ -90,7 +90,7 @@ protected:
                 dataSize += it->originSeg.size;
             }
         }
-        std::unique_ptr<uint8_t[]> combinedBuf(new uint8_t[dataSize + PROFILE_HEADER + headDataSize]);
+        auto combinedBuf = std::make_unique<uint8_t[]>(dataSize + PROFILE_HEADER + headDataSize);
         std::copy(bufferData.begin(), bufferData.end(), combinedBuf.get());
         std::streamsize currentOffset = PROFILE_HEADER;
         for (const auto &itemHtrace : ta->GetPbreaderParser()->GetPbreaderSplitData()) {

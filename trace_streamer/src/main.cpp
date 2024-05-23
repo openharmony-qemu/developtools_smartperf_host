@@ -105,7 +105,7 @@ void PrintInformation()
 }
 void PrintVersion()
 {
-    (void)fprintf(stderr, "version %s\n", g_traceStreamerVersion.c_str());
+    (void)fprintf(stderr, "version %s\n", TRACE_STREAMER_VERSION.c_str());
 }
 void SetFtracePluginsAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 {
@@ -313,8 +313,8 @@ int ExportDatabase(TraceStreamerSelector &ts, const std::string &sqliteFilePath)
         }
 #endif
         metaData->SetOutputFileName(fileNameTmp);
-        metaData->SetParserToolVersion(g_traceStreamerVersion);
-        metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion);
+        metaData->SetParserToolVersion(TRACE_STREAMER_VERSION);
+        metaData->SetParserToolPublishDateTime(TRACE_STREAMER_PUBLISH_VERSION);
         metaData->SetTraceDataSize(g_loadSize);
         if (ts.ExportDatabase(sqliteFilePath)) {
             fprintf(stdout, "ExportDatabase failed\n");
@@ -467,57 +467,74 @@ bool ParseOtherArgs(int argc, char **argv, TraceExportOption &traceExportOption,
 {
     if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
         PrintInformation();
+        i++;
     } else if (!strcmp(argv[i], "-lnc")) {
         traceExportOption.needClearLongTraceCache = false;
+        i++;
         return true;
     } else if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "--level")) {
         TS_CHECK_TRUE_RET(CheckAndSetLogLevel(argc, argv, i), false);
+        i++;
         return true;
     } else if (!strcmp(argv[i], "--list")) {
         PrintAbilityInfo();
+        i++;
         return false;
     } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--s")) {
         traceExportOption.separateFile = true;
         return true;
     } else if (!strcmp(argv[i], "-tn") || !strcmp(argv[i], "--threadnum")) {
         TS_CHECK_TRUE_RET(CheckAndSetThreadNum(traceExportOption, argc, argv, i), false);
+        i++;
         return true;
     } else if (!strcmp(argv[i], "-nt") || !strcmp(argv[i], "--nothreads")) {
         traceExportOption.closeMutiThread = true;
+        i++;
         return true;
     } else if (!strcmp(argv[i], "-nm") || !strcmp(argv[i], "--nometa")) {
         traceExportOption.exportMetaTable = false;
+        i++;
         return true;
     } else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--run-metrics")) {
         TS_CHECK_TRUE_RET(CheckAndSetMetrics(traceExportOption, argc, argv, i), false);
+        i++;
         return true;
     } else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")) {
         PrintVersion();
+        i++;
         return false;
     }
     traceExportOption.traceFilePath = std::string(argv[i]);
+    i++;
     return true;
 }
 bool ParseArgs(int argc, char **argv, TraceExportOption &traceExportOption)
 {
-    for (int i = 1; i < argc; i++) {
+    int i = 1;
+    while (i < argc) {
         if (!strcmp(argv[i], "-e")) {
             TS_CHECK_TRUE_RET(CheckAndSetSqlitePath(traceExportOption, argc, argv, i), false);
+            i++;
             continue;
         } else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--command")) {
             traceExportOption.interactiveState = true;
+            i++;
             continue;
         } else if (!strcmp(argv[i], "-D") || !strcmp(argv[i], "--directory")) {
             TS_CHECK_TRUE_RET(CheckAndSetLongTraceDir(traceExportOption, argc, argv, i), false);
+            i++;
             continue;
         } else if (!strcmp(argv[i], "-d") || !strcmp(argv[i], "--dump")) {
             TS_CHECK_TRUE_RET(CheckAndSetDumpFileType(traceExportOption, argc, argv, i), false);
+            i++;
             continue;
         } else if (!strcmp(argv[i], "-q") || !strcmp(argv[i], "--query-file")) {
             TS_CHECK_TRUE_RET(CheckAndSetSqlQueryFilePath(traceExportOption, argc, argv, i), false);
+            i++;
             continue;
         } else if (!strcmp(argv[i], "-o") || !strcmp(argv[i], "--out")) {
             TS_CHECK_TRUE_RET(CheckAndSetOutputFilePath(traceExportOption, argc, argv, i), false);
+            i++;
             continue;
         } else if (!strcmp(argv[i], "--So_dir")) {
             TS_CHECK_TRUE_RET(CheckAndSetSoFilesPath(traceExportOption, argc, argv, i), false);
@@ -673,8 +690,8 @@ bool EnterInteractiveState(TraceStreamerSelector &ts)
 {
     MetaData *metaData = ts.GetMetaData();
     metaData->SetOutputFileName("command line mode");
-    metaData->SetParserToolVersion(g_traceStreamerVersion.c_str());
-    metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion.c_str());
+    metaData->SetParserToolVersion(TRACE_STREAMER_VERSION.c_str());
+    metaData->SetParserToolPublishDateTime(TRACE_STREAMER_PUBLISH_VERSION.c_str());
     metaData->SetTraceDataSize(g_loadSize);
     while (true) {
         auto values = ts.SearchData();
@@ -745,8 +762,8 @@ int main(int argc, char **argv)
     if (!traceExportOption.metricsIndex.empty()) {
         MetaData *metaData = ts.GetMetaData();
         metaData->SetOutputFileName("command line mode");
-        metaData->SetParserToolVersion(g_traceStreamerVersion.c_str());
-        metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion.c_str());
+        metaData->SetParserToolVersion(TRACE_STREAMER_VERSION.c_str());
+        metaData->SetParserToolPublishDateTime(TRACE_STREAMER_PUBLISH_VERSION.c_str());
         metaData->SetTraceDataSize(g_loadSize);
         ts.ParserAndPrintMetrics(traceExportOption.metricsIndex);
     }

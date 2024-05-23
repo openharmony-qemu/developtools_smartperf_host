@@ -41,9 +41,9 @@ int32_t TraceStreamerParseDataOver();
 int32_t TraceStreamerSqlOperateEx(int32_t sqlLen);
 int32_t TraceStreamerReset();
 int32_t TraceStreamerSqlQuery(const uint8_t *sql, int32_t sqlLen, uint8_t *out, int32_t outLen);
-int32_t TraceStreamer_Plugin_Out_SendData(const char *pluginData, int32_t len, int32_t componentId);
-int32_t TraceStreamer_Plugin_Out_Filter(const char *pluginData, int32_t len, const std::string &componentName);
-void TraceStreamer_Set_Log_Level(uint32_t level);
+int32_t TraceStreamerPluginOutSendData(const char *pluginData, int32_t len, int32_t componentId);
+int32_t TraceStreamerPluginOutFilter(const char *pluginData, int32_t len, const std::string &componentName);
+void TraceStreamerSetLogLevel(uint32_t level);
 
 int32_t TraceStreamerSqlQueryEx(int32_t sqlLen);
 int32_t TraceStreamerSqlQueryToProtoCallback(int32_t sqlLen);

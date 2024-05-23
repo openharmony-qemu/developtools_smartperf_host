@@ -62,6 +62,7 @@ const char *RESULT3 =
     "pages/"
     "index_.js\",\"lineNumber\":2922,\"columnNumber\":36},\"hitCount\":1,\"children\":[]}],\"samples\":[2,3,4,2,2,"
     "2,2,3,3,3,3,4,4,4],\"timeDeltas\":[99,72,215,637,96,288,36,89,94,54,26,598,784,522]}}}";
+const uint32_t PROFILER_INTERVAL = 1000;
 
 class JsCpuProfilerTest : public ::testing::Test {
 public:
@@ -79,7 +80,7 @@ public:
         arkTSConfig.set_pid(pid);
         arkTSConfig.set_type(::ArkTSConfig_HeapType(ArkTSConfig_HeapType_INVALID));
         arkTSConfig.set_enable_cpu_profiler(0);
-        arkTSConfig.set_cpu_profiler_interval(1000);
+        arkTSConfig.set_cpu_profiler_interval(PROFILER_INTERVAL);
 
         std::string strConfig = "";
         arkTSConfig.SerializeToString(&strConfig);
@@ -108,7 +109,7 @@ HWTEST_F(JsCpuProfilerTest, cpuProfilerParserNodesbyArkTs, TestSize.Level1)
     jsHeapResult1.SerializeToString(&strResult1);
     ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
-    htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket1, PROFILER_INTERVAL, 0, 0, profilerPluginData);
 
     ArkTSResult jsHeapResult2;
     jsHeapResult2.set_result(RESULT2);

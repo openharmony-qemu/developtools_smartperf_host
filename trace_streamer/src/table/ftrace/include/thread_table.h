@@ -37,15 +37,11 @@ private:
                             double &threadfilterCost,
                             size_t threadrowCount,
                             uint32_t threadcurrenti) override;
-    int32_t Update(int32_t argc, sqlite3_value **argv, sqlite3_int64 *pRowid) override;
 
     class Cursor : public TableBase::Cursor {
     public:
         explicit Cursor(const TraceDataCache *dataCache, TableBase *table);
         ~Cursor() override;
-        void FilterIpid(unsigned char op, uint64_t value);
-        void FilterTid(unsigned char op, uint64_t value);
-        void FilterSwitchCount(unsigned char op, uint64_t value);
         void FilterIndex(int32_t col, unsigned char op, sqlite3_value *argv);
         int32_t Filter(const FilterConstraints &fc, sqlite3_value **argv) override;
         int32_t Column(int32_t col) const override;
@@ -53,69 +49,6 @@ private:
 
     private:
         void SetNameColumn(const Thread &thread) const;
-        template <typename Value, typename Size>
-        void HandleIpidConstraint(bool remove,
-                                  bool &changed,
-                                  Value value,
-                                  Size size,
-                                  const std::deque<SysTuning::TraceStdtype::Thread> &threadQueue)
-        {
-            if (remove) {
-                for (auto idx = indexMapBack_->rowIndex_.begin(); idx != indexMapBack_->rowIndex_.end();) {
-                    if (threadQueue[*idx].switchCount_ != value) {
-                        idx++;
-                    } else {
-                        changed = true;
-                        rowIndexBak_.push_back(*idx);
-                        idx++;
-                    }
-                }
-                if (changed) {
-                    indexMapBack_->rowIndex_ = rowIndexBak_;
-                }
-            } else {
-                for (auto idx = 0; idx < size; idx++) {
-                    if (threadQueue[idx].switchCount_ == value) {
-                        indexMapBack_->rowIndex_.push_back(idx);
-                    }
-                }
-            }
-            indexMapBack_->FixSize();
-        }
-        template <typename Value, typename Size>
-        void HandleSwitchCount(bool remove,
-                               bool &isChanged,
-                               Value value,
-                               Size size,
-                               const std::deque<SysTuning::TraceStdtype::Thread> &threadQueue)
-        {
-            if (remove) {
-                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
-                    if (threadQueue[*i].internalPid_ != value) {
-                        i++;
-                    } else {
-                        isChanged = true;
-                        rowIndexBak_.push_back(*i);
-                        i++;
-                    }
-                }
-                if (isChanged) {
-                    indexMapBack_->rowIndex_ = rowIndexBak_;
-                }
-            } else {
-                for (auto i = 0; i < size; i++) {
-                    if (threadQueue[i].internalPid_ == value) {
-                        indexMapBack_->rowIndex_.push_back(i);
-                    }
-                }
-            }
-            indexMapBack_->FixSize();
-        }
-        void HandleIpidConstraint(const std::deque<SysTuning::TraceStdtype::Thread> &threadQueue,
-                                  std::size_t size,
-                                  bool remove,
-                                  bool changed);
-        std::vector<TableRowId> rowIndexBak_;
         IndexMap *indexMapBack_ = nullptr;
     };
 };

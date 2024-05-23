@@ -52,24 +52,19 @@ const std::deque<uint64_t> &JsHeapFiles::SelfSizeCount() const
     return selfSizeCount_;
 }
 
-size_t JsHeapEdges::AppendNewData(uint32_t fileId,
-                                  uint32_t edgeIndex,
-                                  uint32_t type,
-                                  uint32_t nameOrIndex,
-                                  uint32_t toNode,
-                                  uint32_t fromNodeId,
-                                  uint32_t toNodeId)
+size_t JsHeapEdges::AppendNewData(const JsHeapEdgesRow &jsHeapEdgesRow)
 {
-    fileIds_.emplace_back(fileId);
-    edgeIndexs_.emplace_back(edgeIndex);
-    types_.emplace_back(type);
-    nameOrIndexs_.emplace_back(nameOrIndex);
-    toNodes_.emplace_back(toNode);
-    fromNodeIds_.emplace_back(fromNodeId);
-    toNodeIds_.emplace_back(toNodeId);
+    fileIds_.emplace_back(jsHeapEdgesRow.fileId);
+    edgeIndexs_.emplace_back(jsHeapEdgesRow.edgeIndex);
+    types_.emplace_back(jsHeapEdgesRow.type);
+    nameOrIndexs_.emplace_back(jsHeapEdgesRow.nameOrIndex);
+    toNodes_.emplace_back(jsHeapEdgesRow.toNode);
+    fromNodeIds_.emplace_back(jsHeapEdgesRow.fromNodeId);
+    toNodeIds_.emplace_back(jsHeapEdgesRow.toNodeId);
     ids_.emplace_back(Size());
     return Size() - 1;
 }
+
 const std::deque<uint32_t> &JsHeapEdges::FileIds() const
 {
     return fileIds_;
@@ -169,25 +164,17 @@ const std::deque<uint32_t> &JsHeapLocation::Columns() const
     return columns_;
 }
 
-size_t JsHeapNodes::AppendNewData(uint32_t fileId,
-                                  uint32_t nodeIndex,
-                                  uint32_t type,
-                                  uint32_t name,
-                                  uint32_t id,
-                                  uint32_t selfSize,
-                                  uint32_t edgeCount,
-                                  uint32_t traceNodeId,
-                                  uint32_t detachedNess)
+size_t JsHeapNodes::AppendNewData(const JsHeapNodesRow &jsHeapNodesRow)
 {
-    fileIds_.emplace_back(fileId);
-    nodeIndexs_.emplace_back(nodeIndex);
-    types_.emplace_back(type);
-    names_.emplace_back(name);
-    nodeIds_.emplace_back(id);
-    selfSizes_.emplace_back(selfSize);
-    edgeCounts_.emplace_back(edgeCount);
-    traceNodeIds_.emplace_back(traceNodeId);
-    detachedNess_.emplace_back(detachedNess);
+    fileIds_.emplace_back(jsHeapNodesRow.fileId);
+    nodeIndexs_.emplace_back(jsHeapNodesRow.nodeIndex);
+    types_.emplace_back(jsHeapNodesRow.type);
+    names_.emplace_back(jsHeapNodesRow.name);
+    nodeIds_.emplace_back(jsHeapNodesRow.id);
+    selfSizes_.emplace_back(jsHeapNodesRow.selfSize);
+    edgeCounts_.emplace_back(jsHeapNodesRow.edgeCount);
+    traceNodeIds_.emplace_back(jsHeapNodesRow.traceNodeId);
+    detachedNess_.emplace_back(jsHeapNodesRow.detachedNess);
     ids_.emplace_back(Size());
     return Size() - 1;
 }
@@ -270,23 +257,16 @@ const std::deque<std::string> &JsHeapString::Strings() const
     return strings_;
 }
 
-size_t JsHeapTraceFuncInfo::AppendNewData(uint32_t fileId,
-                                          uint32_t functionIndex,
-                                          uint32_t functionId,
-                                          uint32_t name,
-                                          uint32_t scriptName,
-                                          uint32_t scriptId,
-                                          uint32_t line,
-                                          uint32_t column)
+size_t JsHeapTraceFuncInfo::AppendNewData(const JsHeapTraceFuncRow &jsHeapTraceFuncRow)
 {
-    fileIds_.emplace_back(fileId);
-    functionIndexs_.emplace_back(functionIndex);
-    functionIds_.emplace_back(functionId);
-    names_.emplace_back(name);
-    scriptNames_.emplace_back(scriptName);
-    scriptIds_.emplace_back(scriptId);
-    lines_.emplace_back(line);
-    columns_.emplace_back(column);
+    fileIds_.emplace_back(jsHeapTraceFuncRow.fileId);
+    functionIndexs_.emplace_back(jsHeapTraceFuncRow.functionIndex);
+    functionIds_.emplace_back(jsHeapTraceFuncRow.functionId);
+    names_.emplace_back(jsHeapTraceFuncRow.name);
+    scriptNames_.emplace_back(jsHeapTraceFuncRow.scriptName);
+    scriptIds_.emplace_back(jsHeapTraceFuncRow.scriptId);
+    lines_.emplace_back(jsHeapTraceFuncRow.line);
+    columns_.emplace_back(jsHeapTraceFuncRow.column);
     ids_.emplace_back(Size());
     return Size() - 1;
 }
@@ -322,20 +302,14 @@ const std::deque<uint32_t> &JsHeapTraceFuncInfo::Columns() const
 {
     return columns_;
 }
-
-size_t JsHeapTraceNode::AppendNewData(uint32_t fileId,
-                                      uint32_t traceNodeId,
-                                      uint32_t functionInfoIndex,
-                                      uint32_t count,
-                                      uint32_t size,
-                                      int32_t parentId)
+size_t JsHeapTraceNode::AppendNewData(const JsHeapTraceNodeRow &jsHeapTraceNodeRow)
 {
-    fileIds_.emplace_back(fileId);
-    traceNodeIds_.emplace_back(traceNodeId);
-    functionInfoIndexs_.emplace_back(functionInfoIndex);
-    counts_.emplace_back(count);
-    sizes_.emplace_back(size);
-    parentIds_.emplace_back(parentId);
+    fileIds_.emplace_back(jsHeapTraceNodeRow.fileId);
+    traceNodeIds_.emplace_back(jsHeapTraceNodeRow.traceNodeId);
+    functionInfoIndexs_.emplace_back(jsHeapTraceNodeRow.functionInfoIndex);
+    counts_.emplace_back(jsHeapTraceNodeRow.count);
+    sizes_.emplace_back(jsHeapTraceNodeRow.size);
+    parentIds_.emplace_back(jsHeapTraceNodeRow.parentId);
     ids_.emplace_back(Size());
     return Size() - 1;
 }
@@ -363,26 +337,17 @@ const std::deque<int32_t> &JsHeapTraceNode::ParentIds() const
 {
     return parentIds_;
 }
-
-size_t JsCpuProfilerNode::AppendNewData(uint32_t functionId,
-                                        uint32_t functionName,
-                                        std::string scriptId,
-                                        uint32_t url,
-                                        uint32_t lineNumber,
-                                        uint32_t columnNumber,
-                                        uint32_t hitCount,
-                                        std::string children,
-                                        uint32_t parent)
+size_t JsCpuProfilerNode::AppendNewData(const JsCpuProfilerNodeRow &jsCpuProfilerNodeRow)
 {
-    functionIds_.emplace_back(functionId);
-    functionNames_.emplace_back(functionName);
-    scriptIds_.emplace_back(scriptId);
-    urls_.emplace_back(url);
-    lineNumbers_.emplace_back(lineNumber);
-    columnNumbers_.emplace_back(columnNumber);
-    hitCounts_.emplace_back(hitCount);
-    children_.emplace_back(children);
-    parents_.emplace_back(parent);
+    functionIds_.emplace_back(jsCpuProfilerNodeRow.functionId);
+    functionNames_.emplace_back(jsCpuProfilerNodeRow.functionName);
+    scriptIds_.emplace_back(jsCpuProfilerNodeRow.scriptId);
+    urls_.emplace_back(jsCpuProfilerNodeRow.url);
+    lineNumbers_.emplace_back(jsCpuProfilerNodeRow.lineNumber);
+    columnNumbers_.emplace_back(jsCpuProfilerNodeRow.columnNumber);
+    hitCounts_.emplace_back(jsCpuProfilerNodeRow.hitCount);
+    children_.emplace_back(jsCpuProfilerNodeRow.children);
+    parents_.emplace_back(jsCpuProfilerNodeRow.parent);
     ids_.emplace_back(Size());
     return Size() - 1;
 }
@@ -449,22 +414,15 @@ const std::deque<uint64_t> &JsCpuProfilerSample::Durs() const
 {
     return durs_;
 }
-
-size_t JsConfig::AppendNewData(uint32_t pid,
-                               uint64_t type,
-                               uint32_t interval,
-                               uint32_t captureNumericValue,
-                               uint32_t trackAllocation,
-                               uint32_t cpuProfiler,
-                               uint32_t cpuProfilerInterval)
+size_t JsConfig::AppendNewData(const JsConfigRow &jsConfigRow)
 {
-    pids_.emplace_back(pid);
-    types_.emplace_back(type);
-    intervals_.emplace_back(interval);
-    captureNumericValues_.emplace_back(captureNumericValue);
-    trackAllocations_.emplace_back(trackAllocation);
-    cpuProfilers_.emplace_back(cpuProfiler);
-    cpuProfilerIntervals_.emplace_back(cpuProfilerInterval);
+    pids_.emplace_back(jsConfigRow.pid);
+    types_.emplace_back(jsConfigRow.type);
+    intervals_.emplace_back(jsConfigRow.interval);
+    captureNumericValues_.emplace_back(jsConfigRow.captureNumericValue);
+    trackAllocations_.emplace_back(jsConfigRow.trackAllocation);
+    cpuProfilers_.emplace_back(jsConfigRow.cpuProfiler);
+    cpuProfilerIntervals_.emplace_back(jsConfigRow.cpuProfilerInterval);
     ids_.emplace_back(Size());
     return Size() - 1;
 }
