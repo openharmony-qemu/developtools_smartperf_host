@@ -190,17 +190,19 @@ export class SpFFRTConfig extends BaseElement {
     if (!startupPNameEl) {
       return;
     }
+    let processInputEl = startupPNameEl.shadowRoot?.querySelector('input') as HTMLInputElement;
     if (this.startSamp) {
       Cmd.getPackage().then((packageList: string[]): void => {
         let finalDataList = packageList.map(str => str.replace(/\t/g, ''));
         if (finalDataList.length > 0) {
+          processInputEl.readOnly = true;
           startupPNameEl.dataSource(finalDataList, 'ALL-Process');
         } else {
           startupPNameEl.dataSource([], '');
         }
       });
+      processInputEl.readOnly = false;
     } else {
-      let processInputEl = startupPNameEl.shadowRoot?.querySelector('input') as HTMLInputElement;
       processInputEl.readOnly = true;
       return;
     }
@@ -254,17 +256,19 @@ export class SpFFRTConfig extends BaseElement {
     if (!selectInputEl) {
       return;
     }
+    let processInputEl = selectInputEl.shadowRoot?.querySelector('input') as HTMLInputElement;
     if (this.startSamp) {
       Cmd.getProcess().then((processList: string[]): void => {
         selectInputEl.dataSource(processList, '');
         if (processList.length > 0) {
+          processInputEl.readOnly = true;
           selectInputEl.dataSource(processList, 'ALL-Process');
         } else {
           selectInputEl.dataSource([], '');
         }
       });
+      processInputEl.readOnly = false;
     } else {
-      let processInputEl = selectInputEl.shadowRoot?.querySelector('input') as HTMLInputElement;
       processInputEl.readOnly = true;
       return;
     }

@@ -1051,10 +1051,9 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private recordTraceCmd(traceCommandStr: string): void {
-    let isShellExec = true;
     const self = this;
     let executeCmdCallBack = (cmdStateResult: string): void => {
-      if (isShellExec && cmdStateResult.startsWith('tracing')) {
+      if (cmdStateResult.includes('tracing ')) {
         self.litSearch!.setPercent('Start to record...', -1);
       }
     };

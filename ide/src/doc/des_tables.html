@@ -790,23 +790,30 @@
     </style>
   </head>
   <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+    <div class="smartperf smartperf-preview  ">
       <h1 class="mume-header fontColor">TraceStreamer数据表概述</h1>
 
       <p class="fontColor">
-        TraceStreamer可以将trace数据源转化为易于理解和使用的数据库。用户可以通过SmartPerf界面直观的研究系统跟踪数据，也可在理解TraceStreamer生成的数据库的基础上，在TraceStreamer的交互模式或者Smartperf的数据库查询模式下，使用SQL查询语句自由组装查看用户关心的数据。下文将对TraceStreamer生成的数据库进行详细描述，给用户使用SQL查询系统跟踪数据提供帮助。
-      </p>
+        TraceStreamer可以将trace数据源转化为易于理解和使用的数据库。用户可以通过SmartPerf界面直观的研究系统跟踪数据，也可在理解TraceStreamer生成的数据库的基础上，在TraceStreamer的交互模式或者Smartperf的数据库查询模式下，使用SQL查询语句自由组装查看用户关心的数据。下文将对TraceStreamer生成的数据库进行详细描述，给用户使用SQL查询系统跟踪数据提供帮助。</p>
       <h2 class="mume-header fontColor">TraceStreamer输出的数据表分类</h2>
 
       <ul class="fontColor">
         <li>常规泳道图数据表<br>
-          <img src="../figures/traceStreamer/db_common.png" alt="GitHub Logo"></li>
+          <img
+            src="../figures/traceStreamer/db_common.png"
+            alt="GitHub Logo"></li>
         <li>native memory数据源相关表<br>
-          <img src="../figures/traceStreamer/db_native_memory.png" alt="GitHub Logo"></li>
+          <img
+            src="../figures/traceStreamer/db_native_memory.png"
+            alt="GitHub Logo"></li>
         <li>perf相关数据表<br>
-          <img src="../figures/traceStreamer/db_hiperf.png" alt="GitHub Logo"></li>
+          <img
+            src="../figures/traceStreamer/db_hiperf.png"
+            alt="GitHub Logo"></li>
         <li>hisysevent相关数据表<br>
-          <img src="../figures/traceStreamer/db_hisys_event.png" alt="GitHub Logo"></li>
+          <img
+            src="../figures/traceStreamer/db_hisys_event.png"
+            alt="GitHub Logo"></li>
       </ul>
       <h2 class="mume-header fontColor">TraceStreamer输出数据库包含以下表格</h2>
 
@@ -840,7 +847,9 @@
         </tr>
         <tr>
           <td>callstack</td>
-          <td>记录调用堆栈和异步调用信息，其中depth,stack_id和parent_stack_id仅在非异步调用中有效。当cookid不为空时，为异步调用，此时callid为进程唯一号，否则为线程唯一号</td>
+          <td>
+            记录调用堆栈和异步调用信息，其中depth,stack_id和parent_stack_id仅在非异步调用中有效。当cookid不为空时，为异步调用，此时callid为进程唯一号，否则为线程唯一号
+          </td>
         </tr>
         <tr>
           <td>clk_event_filter</td>
@@ -992,7 +1001,9 @@
         </tr>
         <tr>
           <td>measure_filter</td>
-          <td>记录一个递增的filterid队列，所有其他的filter类型在获取过程中，均从此数据列表中获取下一个可用的filter_id并做记录</td>
+          <td>
+            记录一个递增的filterid队列，所有其他的filter类型在获取过程中，均从此数据列表中获取下一个可用的filter_id并做记录
+          </td>
         </tr>
         <tr>
           <td>memory_ashmem</td>
@@ -1044,7 +1055,9 @@
         </tr>
         <tr>
           <td>perf_report</td>
-          <td>记录Hiperf工具采集数据时的配置信息。包括</td>
+          <td>记录Hiperf工具采集数据时的配置信息。包括抓取的事件类型，抓取数据的命令，
+            抓数据时指定的进程名称
+          </td>
         </tr>
         <tr>
           <td>perf_sample</td>
@@ -1068,7 +1081,9 @@
         </tr>
         <tr>
           <td>raw</td>
-          <td>此数据结构主要作为ThreadState的上下文使用，这张表是sched_waking,sched_wakup, cpu_idle事件的原始记录</td>
+          <td>此数据结构主要作为ThreadState的上下文使用，这张表是sched_waking,sched_wakup,
+            cpu_idle事件的原始记录
+          </td>
         </tr>
         <tr>
           <td>sched_slice</td>
@@ -1080,7 +1095,9 @@
         </tr>
         <tr>
           <td>stat</td>
-          <td>此结果用来统计数据解析中各类数据的数据条数，数据和合法性，数据的匹配程度（begin-end），数据的损失等，查看此结构对应的表，可对数据源有基本的了解</td>
+          <td>
+            此结果用来统计数据解析中各类数据的数据条数，数据和合法性，数据的匹配程度（begin-end），数据的损失等，查看此结构对应的表，可对数据源有基本的了解
+          </td>
         </tr>
         <tr>
           <td>static_initalize</td>
@@ -1618,9 +1635,7 @@
         </tr>
         </tbody>
       </table>
-      <h2 class="mume-header fontColor">
-        <em><strong>表格关系图</strong></em>
-      </h2>
+      <h2 class="mume-header fontColor"><em><strong>表格关系图</strong></em></h2>
 
       <hr>
       <h3 class="mume-header fontColor">进程表与线程表关系</h3>
@@ -1628,105 +1643,119 @@
       <p class="fontColor">当一个进程或者线程结束后，系统可能再次将该进程号或者线程号分配给其他进程或者线程，造成一个进程号或线程号代表多个进程或线程的情况。<br>
         Process和Thread表中的id字段可以唯一标识进程和线程。process表中的id在其他表中用作ipid字段。thread表中的id在其他表中用作itid字段。<br>
         thread表通过ipid字段关联process表的id字段，可以查询线程归属进程。<br>
-        <img src="../figures/traceStreamer/process_thread.png" alt="GitHub Logo">
-      </p>
+        <img
+          src="../figures/traceStreamer/process_thread.png"
+          alt="GitHub Logo"></p>
       <h3 class="mume-header fontColor">查询举例</h3>
 
       <ul class="fontColor">
         <li>已知pid = 123,查看当前进程下的所有线程信息,可以使用如下SQL语句：<br>
-          <code class="fontColor">select thread.* from thread, process where process.pid = 123 and thread.ipid = process.id</code>
-        </li>
+          <code class="fontColor">select thread.* from thread, process where process.pid = 123 and
+            thread.ipid = process.id</code></li>
       </ul>
       <h3>线程表与线程运行状态表关系图</h3>
-      <p class="fontColor">thread_state表记录所有线程的运行状态信息，包含ts(状态起始时间)，dur(状态持续时间)，cpu, itid, state（线程状态）。 thread表的id字段与thread_state表的itid字段相关联。<br>
-        <img src="../figures/traceStreamer/thread_state.png" alt="GitHub Logo">
-      </p>
+      <p class="fontColor">thread_state表记录所有线程的运行状态信息，包含ts(状态起始时间)，dur(状态持续时间)，cpu,
+        itid, state（线程状态）。 thread表的id字段与thread_state表的itid字段相关联。<br>
+        <img
+          src="../figures/traceStreamer/thread_state.png"
+          alt="GitHub Logo"></p>
       <h3>查询举例</h3>
       <ul class="fontColor">
         <li>已知tid = 123, 查看当前线程的所有运行状态信息，可以使用如下SQL语句：<br>
-          <code class="fontColor">select thread_state.* from thread, thread_state where thread.tid = 123 and thread.id = thread_state.itid</code>
-        </li>
+          <code class="fontColor">select thread_state.* from thread, thread_state where thread.tid = 123
+            and thread.id = thread_state.itid</code></li>
       </ul>
       <h3 class="mume-header fontColor">堆内存数据变化表关系图</h3>
 
-      <p class="fontColor">native_hook表记录堆内存申请(AllocEvent)和释放(FreeEvent)数据。native_hook表通过ipid和itid字段分别与process和thread表的id字段关联，通过callChainId与native_hook_frame表的callChainId字段相关联。<br>
-        native_hook表字段解释如下：
-      </p>
+      <p class="fontColor">
+        native_hook表记录堆内存申请(AllocEvent)和释放(FreeEvent)数据。native_hook表通过ipid和itid字段分别与process和thread表的id字段关联，通过callChainId与native_hook_frame表的callChainId字段相关联。<br>
+        native_hook表字段解释如下：</p>
       <ul class="fontColor">
-        <li>callChainId：唯一标识一次堆内存申请或释放， 通过与native_hook_frame表关联可以拿到当前申请或释放的函数调用堆栈。</li>
+        <li>callChainId：唯一标识一次堆内存申请或释放，
+          通过与native_hook_frame表关联可以拿到当前申请或释放的函数调用堆栈。
+        </li>
         <li>addr：堆内存申请/释放的地址。</li>
         <li>native_hook_size：堆内存申请/释放的大小。</li>
       </ul>
-      <p class="fontColor">native_hook_frame表记录内存申请/释放的调用堆栈。通过callChainId区分一组调用堆栈，depth为堆栈深度，depth为0时，表示当前行为栈顶数据。<br>
-        <img src="../figures/traceStreamer/dump_and_mem.png" alt="GitHub Logo">
-      </p>
-      <p class="fontColor">native_hook_statistic表记录内存申请/释放的统计信息。通过callChainId区分一组调用堆栈。每个统计事件将记录当前事件的callChainId，并统计当前调用栈内存分配/释放的总次数和总大小。<br>
-        <img src="../figures/traceStreamer/db_native_hook_statistic.png" alt="GitHub Logo">
-      </p>
+      <p class="fontColor">
+        native_hook_frame表记录内存申请/释放的调用堆栈。通过callChainId区分一组调用堆栈，depth为堆栈深度，depth为0时，表示当前行为栈顶数据。<br>
+        <img
+          src="../figures/traceStreamer/dump_and_mem.png"
+          alt="GitHub Logo"></p>
+      <p class="fontColor">
+        native_hook_statistic表记录内存申请/释放的统计信息。通过callChainId区分一组调用堆栈。每个统计事件将记录当前事件的callChainId，并统计当前调用栈内存分配/释放的总次数和总大小。<br>
+        <img
+          src="../figures/traceStreamer/db_native_hook_statistic.png"
+          alt="GitHub Logo"></p>
       <h3 class="mume-header fontColor">查询举例</h3>
 
       <ul class="fontColor">
         <li>已知tid = 123，查看当前线程的所有堆内存变化信息，可以使用如下SQL语句：<br>
-          <code class="fontColor">select native_hook.* from thread, native_hook where thread.tid = 123 and thread.id = native_hook.itid</code>
-        </li>
+          <code class="fontColor">select native_hook.* from thread, native_hook where thread.tid = 123
+            and thread.id = native_hook.itid</code></li>
         <li>已知callchainid = 1, 查看当前内存变化调用堆栈<br>
-          <code class="fontColor">select * from native_hook_frame where callchain_id = 1</code>
-        </li>
+          <code class="fontColor">select * from native_hook_frame where callchain_id = 1</code></li>
         <li>已知callchainid = 1, 查看当前内存变化调用堆栈对应的统计信息<br>
-          <code class="fontColor">select * from native_hook_statistic where callchain_id = 1</code>
-        </li>
+          <code class="fontColor">select * from native_hook_statistic where callchain_id = 1</code></li>
       </ul>
       <h3>日志表与进程线程表关系图</h3>
       <p class="fontColor">log表记录日志信息。可以根据seq字段的连续性，来判断是否存在日志丢失的情况。<br>
-        <img src="../figures/traceStreamer/log.png" alt="GitHub Logo"></p>
+        <img
+          src="../figures/traceStreamer/log.png"
+          alt="GitHub Logo"></p>
       <h3>查询举例</h3>
       <ul class="fontColor">
         <li>已知tid = 123，查看当前线程的所有error级别的日志，可以使用如下SQL语句：<br>
-          <code class="fontColor">select * from log where tid = 123 and level = "error"</code>
-        </li>
+          <code class="fontColor">select * from log where tid = 123 and level = "error"</code></li>
       </ul>
       <h3 class="mume-header fontColor">perf表之间关系图</h3>
 
       <ul class="fontColor">
         <li>perf_report：此表记录Hiperf工具采集数据时的配置信息。</li>
         <li>perf_thread：此表记录hiperf采集到的进程和线程数据。</li>
-        <li>perf_sample：此表中记录Hiperf工具的采样信息。sample_id唯一表识一次采样记录，与perf_callchain表中的sample_id字段相关联。thread_id为线程号。与perf_thread表中的thread_id字段相关联。event_type_id为当前采样的事件类型id，与perf_report表中的id字段相关联。</li>
+        <li>
+          perf_sample：此表中记录Hiperf工具的采样信息。sample_id唯一表识一次采样记录，与perf_callchain表中的sample_id字段相关联。thread_id为线程号。与perf_thread表中的thread_id字段相关联。event_type_id为当前采样的事件类型id，与perf_report表中的id字段相关联。
+        </li>
         <li>perf_callchain：此表格记录的是调用栈信息。</li>
-        <li>Perf_files：此表格主要存放着获取到的函数符号表和文件信息。file_id唯一表识一个文件，与perf_callchain表中的file_id字段相关联。</li>
+        <li>
+          Perf_files：此表格主要存放着获取到的函数符号表和文件信息。file_id唯一表识一个文件，与perf_callchain表中的file_id字段相关联。
+        </li>
       </ul>
-      <p class="fontColor"><img src="../figures/traceStreamer/perf.png" alt="GitHub Logo"></p>
+      <p class="fontColor"><img
+        src="../figures/traceStreamer/perf.png"
+        alt="GitHub Logo"></p>
       <h3 class="mume-header fontColor">查询举例</h3>
 
       <ul class="fontColor">
         <li>
           <p class="fontColor">已知同步后的时间戳为28463134340470，查询采样数据<br>
-            <code class="fontColor">select * from perf_sample where timestamp_trace = 28463134340470</code>
-          </p>
+            <code class="fontColor">select * from perf_sample where timestamp_trace =
+              28463134340470</code></p>
         </li>
         <li>
           <p class="fontColor">已知同步后的时间戳为28463134340470，查询采样数据对应的的调用栈信息<br>
-            <code class="fontColor">select A.* from perf_callchain as A, perf_sample as B where B.timestamp_trace = 28463134340470 and A.sample_id = B.sample_id</code>
-          </p>
+            <code class="fontColor">select A.* from perf_callchain as A, perf_sample as B where
+              B.timestamp_trace = 28463134340470 and A.sample_id = B.sample_id</code></p>
         </li>
         <li>
           <p class="fontColor">已知同步后的时间戳为28463134277762，查询采样数据的函数名及文件路径<br>
-            <code class="fontColor">select A.*, B.name, C.path from perf_sample as A, perf_callchain as B, perf_files as C where A.timestamp_trace = 28463134277762 and B.sample_id = A.sample_id and B.callchain_id = 0 and B.file_id = C.file_id and C.serial_id = 0</code>
-          </p>
+            <code class="fontColor">select A.*, B.name, C.path from perf_sample as A, perf_callchain as
+              B, perf_files as C where A.timestamp_trace = 28463134277762 and B.sample_id = A.sample_id
+              and B.callchain_id = 0 and B.file_id = C.file_id and C.serial_id = 0</code></p>
         </li>
         <li>
           <p class="fontColor">已知线程号为6700，查询所有的采样记录<br>
-            <code class="fontColor">select * from perf_sample where thread_id = 6700</code>
-          </p>
+            <code class="fontColor">select * from perf_sample where thread_id = 6700</code></p>
         </li>
         <li>
           <p class="fontColor">已知进程号为7863，查询所有的采样记录<br>
-            <code class="fontColor">select A.* from perf_sample as A, perf_thread as B where B.process_id = 7863 and A.thread_id = B.thread_id</code>
-          </p>
+            <code class="fontColor">select A.* from perf_sample as A, perf_thread as B where
+              B.process_id = 7863 and A.thread_id = B.thread_id</code></p>
         </li>
         <li>
           <p class="fontColor">查询所有采样对应的事件类型<br>
-            <code class="fontColor">select A.*, B.report_value from perf_sample as A, perf_report as B where A.event_type_id = B.id</code>
-          </p>
+            <code class="fontColor">select A.*, B.report_value from perf_sample as A, perf_report as B
+              where A.event_type_id = B.id</code></p>
         </li>
       </ul>
       <h3 class="mume-header fontColor">帧渲染表之间的关系图</h3>
@@ -1734,36 +1763,37 @@
       <p class="fontColor">frame_slice: 记录RS(RenderService)和应用的帧渲染。<br>
         gpu_slice: 记录RS的帧对应的gpu渲染时长。<br>
         frame_maps:记录应用到RS的帧的映射关系。<br>
-        <img src="../figures/traceStreamer/frames.jpg" alt="GitHub Logo">
-      </p>
+        <img
+          src="../figures/traceStreamer/frames.jpg"
+          alt="GitHub Logo"></p>
       <h3 class="mume-header fontColor">查询示例</h3>
 
       <ul class="fontColor">
         <li>
           <p class="fontColor">已知进程，查询进程对应的实际渲染帧<br>
-            <code class="fontColor">select * from frame_slice where ipid = 1</code>
-          </p>
+            <code class="fontColor">select * from frame_slice where ipid = 1</code></p>
         </li>
         <li>
           <p class="fontColor">已知进程的实际渲染帧的dst为12，求其对应的RS进程的渲染帧<br>
-            <code class="fontColor">select * from frame_slice where id = 12</code>
-          </p>
+            <code class="fontColor">select * from frame_slice where id = 12</code></p>
         </li>
         <li>
           <p class="fontColor">已知RS的渲染帧在frame_slice中所在行是14，求其对应的GPU渲染时长<br>
-            <code class="fontColor">select * from gpu_slice where frame_row = 14</code>
-          </p>
+            <code class="fontColor">select * from gpu_slice where frame_row = 14</code></p>
         </li>
       </ul>
       <h3>JS内存数据表关系图</h3>
       <p class="fontColor">js_heap_files：记录js内存数据的文件名和文件索引</p>
-      <p class="fontColor"><img src="../figures/traceStreamer/js_heap_files.png" alt="1683163158954"></p>
+      <p class="fontColor"><img
+        src="../figures/traceStreamer/js_heap_files.png"
+        alt="1683163158954"></p>
       <p class="fontColor">js_heap_nodes:记录js内存类对象数据<br>
         js_heap_edges:记录js内存类对象的成员数据<br>
         js_heap_trace_node:记录timeline的调用栈信息<br>
         js_heap_sample:记录timeline的时间轴信息<br>
-        <img src="../figures/traceStreamer/js_heap_nodes.png" alt="1683163373206">
-      </p>
+        <img
+          src="../figures/traceStreamer/js_heap_nodes.png"
+          alt="1683163373206"></p>
       <h2>TraceStreamer输出数据库表格详细介绍</h2>
       <h3>app_name表</h3>
       <h4>表结构</h4>
@@ -1913,7 +1943,9 @@
       <ul class="fontColor">
         <li>id: 唯一标识</li>
         <li>callchain_id：调用栈的唯一标识。与ebpf_callstack表中Callchain_id字段关联</li>
-        <li>type：事件类型其取值为枚举类型（DATA_READ，DATA_WRITE，METADATA_READ，- METADATA_WRITE，PAGE_IN，PAGE_OUT）</li>
+        <li>type：事件类型其取值为枚举类型（DATA_READ，DATA_WRITE，METADATA_READ，-
+          METADATA_WRITE，PAGE_IN，PAGE_OUT）
+        </li>
         <li>ipid：TS内部进程号</li>
         <li>itid：TS内部线程号</li>
         <li>start_ts：开始时间</li>
@@ -1994,7 +2026,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">记录调用堆栈和异步调用信息，其中depth,stack_id和parent_stack_id仅在非异步的调用中有效。当cookid不为空时，为异步调用，此时callid为进程唯一号，否则为线程唯一号。</p>
+      <p class="fontColor">
+        记录调用堆栈和异步调用信息，其中depth,stack_id和parent_stack_id仅在非异步的调用中有效。当cookid不为空时，为异步调用，此时callid为进程唯一号，否则为线程唯一号。</p>
       <h4>字段详细描述</h4>
       <ul class="fontColor">
         <li>id: 唯一标识</li>
@@ -2288,8 +2321,8 @@
         <li>wr_speed:当前时间段的写入速度</li>
         <li>rd_count:读取的数据总量</li>
         <li>wr_count:写入的数据总量</li>
-        <li>rd_sectors_kb：读数据的平均速度</li>
-        <li>wr_sectors_kb：写入数据的平均速度</li>
+        <li>rd_sectors_speed：读数据的平均速度</li>
+        <li>wr_sectors_speed：写入数据的平均速度</li>
       </ul>
       <h3>ebpf_callstack表</h3>
       <h4>表结构</h4>
@@ -2514,7 +2547,9 @@
         <li>serial：每条数据过来携带唯一一条id作为标识</li>
         <li>ts: 数据上报时间戳</li>
         <li>name_id：存放事件对应的ID，与data_dict表相关联可以取出对应的字段</li>
-        <li>key_id：存放事件包含的字段的ID，与表app_name的id字段相关联，找到app_name表的 id字段对应行的app_key字段与表data_dict表相关联取出对应的字段</li>
+        <li>key_id：存放事件包含的字段的ID，与表app_name的id字段相关联，找到app_name表的
+          id字段对应行的app_key字段与表data_dict表相关联取出对应的字段
+        </li>
         <li>type：存放事件所包含的字段的值所属的类型为int型还是string（0为int，1为string）</li>
         <li>int_value：存放本事件所包含的字段的int型的值</li>
         <li>string_value：存放本事件所包含的字段的string型的值</li>
@@ -2683,7 +2718,9 @@
       <h4>相关字段描述</h4>
       <ul class="fontColor">
         <li>pid:目标进程ID。</li>
-        <li>type:JS数据类型，取值与枚举HeapType对应，0表示JS内存数据为snapshot类型，1表示JS内存数据为timeline类型，-1表示没有JS内存数据。</li>
+        <li>
+          type:JS数据类型，取值与枚举HeapType对应，0表示JS内存数据为snapshot类型，1表示JS内存数据为timeline类型，-1表示没有JS内存数据。
+        </li>
         <li>interval:当type=0时生效，单位是秒，表示一次snapshot事件和下一次snapshot事件之间的间隔。</li>
         <li>capture_numeric_value:当type=0时生效，表示是否同时抓取numeric。</li>
         <li>track_allocation:当type=1时生效，表示是否抓取allocations。</li>
@@ -3371,7 +3408,24 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">记录了一些实时的进程中（/proc/<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mi>I</mi><mi>D</mi><mi mathvariant="normal">/</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>t</mi><mi>u</mi><mi>s</mi><mtext>、</mtext><mi mathvariant="normal">/</mi><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi mathvariant="normal">/</mi></mrow><annotation encoding="application/x-tex">PID/status、/proc/</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mord">/</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span class="mord mathnormal">u</span><span class="mord mathnormal">s</span><span class="mord cjk_fallback">、</span><span class="mord">/</span><span class="mord mathnormal">p</span><span class="mord mathnormal">roc</span><span class="mord">/</span></span></span></span>PID/stat、/proc/stat）执行的一些数据（Monitor）。</p>
+      <p class="fontColor">记录了一些实时的进程中（/proc/<span class="katex"><span class="katex-mathml"><math
+        xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mi>I</mi><mi>D</mi><mi
+        mathvariant="normal">/</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>t</mi><mi>u</mi><mi>s</mi><mtext>、</mtext><mi
+        mathvariant="normal">/</mi><mi>p</mi><mi>r</mi><mi>o</mi><mi>c</mi><mi
+        mathvariant="normal">/</mi></mrow><annotation
+        encoding="application/x-tex">PID/status、/proc/</annotation></semantics></math></span><span
+        class="katex-html" aria-hidden="true"><span class="base"><span class="strut"
+                                                                       style="height:1em;vertical-align:-0.25em;"></span><span
+        class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mord mathnormal"
+                                                                              style="margin-right:0.07847em;">I</span><span
+        class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mord">/</span><span
+        class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span
+        class="mord mathnormal">a</span><span class="mord mathnormal">t</span><span
+        class="mord mathnormal">u</span><span class="mord mathnormal">s</span><span
+        class="mord cjk_fallback">、</span><span class="mord">/</span><span
+        class="mord mathnormal">p</span><span class="mord mathnormal">roc</span><span
+        class="mord">/</span></span></span></span>PID/stat、/proc/stat）执行的一些数据（Monitor）。
+      </p>
       <h4>主要字段描述</h4>
       <ul class="fontColor">
         <li>ts: 数据上报时间戳</li>
@@ -3516,7 +3570,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">记录一个递增的filterid队列，所有其他的filter类型在获取过程中，均从此数据列表中获取下一个可用的filter_id并做记录。</p>
+      <p class="fontColor">
+        记录一个递增的filterid队列，所有其他的filter类型在获取过程中，均从此数据列表中获取下一个可用的filter_id并做记录。</p>
       <h4>字段详细描述</h4>
       <p class="fontColor">过滤分类（type），过滤名称（key2），数据ID(key1)。<br>
         id: 唯一的filterId,与process_measure_filter, sys_event_filter中的id关联。<br>
@@ -3544,7 +3599,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">此表记录了数据解析或导出时的一些现场数据，比如使用的TraceStreamer版本， 工具的发布时间，数据解析的时间，数据的持续时长，以及原始数据的格式。</p>
+      <p class="fontColor">此表记录了数据解析或导出时的一些现场数据，比如使用的TraceStreamer版本，
+        工具的发布时间，数据解析的时间，数据的持续时长，以及原始数据的格式。</p>
       <h4>主要字段描述</h4>
       <ul class="fontColor">
         <li>Name：指定元数据的key</li>
@@ -3633,7 +3689,9 @@
         <li>dur：申请内存活跃时间</li>
         <li>addr：申请内存地址</li>
         <li>heap_size: 申请的内存大小</li>
-        <li>all_heap_size：从采集数据开始到当前时刻，申请并活跃的内存总量。 event_type为AllocEvent或者FreeEvent时，表示活跃的堆内存总量。当event_type为MmapEvent或者MunmapEvent时，表示活跃的映射内存总量</li>
+        <li>all_heap_size：从采集数据开始到当前时刻，申请并活跃的内存总量。
+          event_type为AllocEvent或者FreeEvent时，表示活跃的堆内存总量。当event_type为MmapEvent或者MunmapEvent时，表示活跃的映射内存总量
+        </li>
         <li>current_size_dur：表示当前活跃内存总量的持续时间</li>
         <li>last_lib_id：函数调用栈最后一个函数所属的文件路径，除了文件名中带musl和libc++</li>
         <li>last_symbol_id: 函数调用栈最后一个函数名，lib除了文件名中带musl和libc++</li>
@@ -3681,7 +3739,7 @@
           <td>INT</td>
         </tr>
         <tr>
-          <td>addr</td>
+          <td>vaddr</td>
           <td>INT</td>
         </tr>
         </tbody>
@@ -3698,6 +3756,7 @@
         <li>file_id：函数所属文件id，对应data_dict中id</li>
         <li>offset: 取自Frame message的offset字段</li>
         <li>symbol_offset: 取自Frame message的symbol_offset字段</li>
+        <li>vaddr: 一般取值为offset + symbol_offset</li>
       </ul>
       <h3>native_hook_statistic表</h3>
       <h4>表结构</h4>
@@ -4031,11 +4090,14 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">记录Hiperf工具采集数据时的配置信息。包括：抓取的事件类型，抓取数据的命令， 抓数据时指定的进程名称。</p>
+      <p class="fontColor">记录Hiperf工具采集数据时的配置信息。包括：抓取的事件类型，抓取数据的命令，
+        抓数据时指定的进程名称。</p>
       <h4>主要字段描述</h4>
       <ul class="fontColor">
         <li>id: 唯一标识</li>
-        <li>report_type：数据类型。取值只有三种类型：config_name（事件类型）, workload（抓取的进程名）, cmdline（抓取命令）</li>
+        <li>report_type：数据类型。取值只有三种类型：config_name（事件类型）, workload（抓取的进程名）,
+          cmdline（抓取命令）
+        </li>
         <li>report_value：对应类型的取值</li>
       </ul>
       <h3>perf_sample表</h3>
@@ -4098,7 +4160,9 @@
         <li>event_type_id：事件类型编号。与PerfReport表的id字段相关联</li>
         <li>timestamp_trace：时钟源同步后的时间戳</li>
         <li>cpu_id：cpu核编号</li>
-        <li>thread_state：线程状态。采样对应Sched_Waking事件时，为Runing;对应Sched_Switch事件时，为Suspend。其余事件类型，为“-”</li>
+        <li>
+          thread_state：线程状态。采样对应Sched_Waking事件时，为Runing;对应Sched_Switch事件时，为Suspend。其余事件类型，为“-”
+        </li>
       </ul>
       <h3>perf_thread表</h3>
       <h4>表结构</h4>
@@ -4196,7 +4260,7 @@
         <li>start_ts：开始时间</li>
         <li>switch_count：统计内部有多少个线程有切换</li>
         <li>thread_count：统计其线程个数</li>
-        <li>slice_count：进程内有多个线程有slice数据</li>
+        <li>slice_count：进程内有多少个线程有slice数据</li>
         <li>mem_count：进程是否有内存数据</li>
       </ul>
       <h3>process_measure表</h3>
@@ -4262,7 +4326,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">将进程ID作为key1，进程的内存，界面刷新，屏幕亮度等信息作为key2，唯一确定一个filter_id, filter_id同时被记录在measure_filter表中。</p>
+      <p class="fontColor">将进程ID作为key1，进程的内存，界面刷新，屏幕亮度等信息作为key2，唯一确定一个filter_id,
+        filter_id同时被记录在measure_filter表中。</p>
       <h4>字段详细描述</h4>
       <ul class="fontColor">
         <li>id: 与measure表的filterId字段相关联</li>
@@ -4364,11 +4429,12 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">此数据结构主要作为ThreadState的上下文使用，这张表是sched_switch事件的原始记录。</p>
+      <p class="fontColor">
+        此数据结构主要作为ThreadState的上下文使用，这张表是sched_switch事件的原始记录。</p>
       <h4>主要字段描述</h4>
       <ul class="fontColor">
         <li>id: 唯一标识</li>
-        <li>ts：事件发生事件</li>
+        <li>ts：事件发生时间</li>
         <li>dur：状态持续时长</li>
         <li>ts_end：状态结束时长</li>
         <li>cpu：事件发生在哪个cpu</li>
@@ -4519,7 +4585,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">此结果用来统计数据解析中各类数据的数据条数，数据和合法性，数据的匹配程度（begin-end），数据的损失等，查看此结构对应的表，可对数据源有基本的了解。</p>
+      <p class="fontColor">
+        此结果用来统计数据解析中各类数据的数据条数，数据和合法性，数据的匹配程度（begin-end），数据的损失等，查看此结构对应的表，可对数据源有基本的了解。</p>
       <h4>主要字段描述</h4>
       <ul class="fontColor">
         <li>event_name：数据类型</li>
@@ -4630,7 +4697,7 @@
       <p class="fontColor">记录所有的filter。</p>
       <h4>相关字段描述</h4>
       <ul class="fontColor">
-        <li>id:  与measure表的filterid字段关联</li>
+        <li>id: 与measure表的filterid字段关联</li>
         <li>type：文件类型</li>
         <li>name：文件名</li>
       </ul>
@@ -4768,7 +4835,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">将线程ID作为key1，线程的内存，界面刷新，屏幕亮度等信息作为key2，唯一确定一个filter_id, filter_id同时被记录在filter表中。</p>
+      <p class="fontColor">将线程ID作为key1，线程的内存，界面刷新，屏幕亮度等信息作为key2，唯一确定一个filter_id,
+        filter_id同时被记录在filter表中。</p>
       <h4>主要字段描述</h4>
       <ul class="fontColor">
         <li>id：线程id</li>
@@ -4842,7 +4910,8 @@
         <li>state：线程实际的的状态值</li>
         <li>argset_id：线程状态参数，对应arg_view中arg_set</li>
       </ul>
-      <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">'R', Runnable状态
+      <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code
+        class="fontColor">'R', Runnable状态
   "S", interruptible sleep
   "D", uninterruptible sleep
   "D-IO", uninterruptible io
@@ -4861,7 +4930,8 @@
   "R+", WakeKill
   "R+", TaskNew
   "R-B", Task runnable binder.
-  </code></pre><h3>clock_snapshot表</h3>
+  </code></pre>
+      <h3>clock_snapshot表</h3>
       <h4>表结构</h4>
       <table class="fontColor">
         <thead>
@@ -4894,7 +4964,8 @@
         <li>clock_name：时钟号对应的时钟名字<br>
           时钟快照是用来对齐不同时钟号的时间<br>
           比如，时钟号1的时间100，和时钟号2的时间200对齐<br>
-          则时钟号为2 的250，转换为时钟号1的时间后，为150</li>
+          则时钟号为2 的250，转换为时钟号1的时间后，为150
+        </li>
       </ul>
       <h3>datasource_clockid表</h3>
       <h4>表结构</h4>
@@ -4922,7 +4993,8 @@
       <ul class="fontColor">
         <li>data_source_name：数据源的名称，和数据源的插件名保持一致</li>
         <li>clock_id：时钟号，对应clock_snapshot中的时钟号<br>
-          这个表是用来告诉IDE，不同的事件源的事件，原始时钟号是多少，在数据库中保存的事件，通常是转换为boottime后的时间，但有些情况下，IDE仍然需要知道原始的时钟号是怎样的</li>
+          这个表是用来告诉IDE，不同的事件源的事件，原始时钟号是多少，在数据库中保存的事件，通常是转换为boottime后的时间，但有些情况下，IDE仍然需要知道原始的时钟号是怎样的
+        </li>
       </ul>
       <h3>frame_slice表</h3>
       <h3>表结构</h3>
@@ -4989,7 +5061,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">应用的实际渲染帧和期望渲染帧的开始时间，持续时长，以及RenderService和App之间的关联关系。</p>
+      <p class="fontColor">
+        应用的实际渲染帧和期望渲染帧的开始时间，持续时长，以及RenderService和App之间的关联关系。</p>
       <h4>关键字段描述</h4>
       <ul class="fontColor">
         <li>ts: 数据上报时间戳</li>
@@ -5002,7 +5075,11 @@
         <li>dst：该帧对应的渲染帧是哪一行</li>
         <li>type: 0 说明该行数据是实际渲染帧， 1 说明该行数据是期望渲染帧</li>
         <li>type_desc: 当type值为0时，该字段为actural; 当type值为1时，该字段为expect;</li>
-        <li>flag: 空时，为不完整的数据；0 表示实际渲染帧不卡帧， 1 表示实际渲染帧卡帧(expectEndTime &lt; actualEndTime为异常)， 2 表示数据不需要绘制（没有frameNum信息），3 表示rs进程与app进程起止异常(|expRsStartTime - expUiEndTime| &lt; 1ms 正常，否则异常。这里使用期待帧的时间差做判断，给实际帧打标签)</li>
+        <li>flag: 空时，为不完整的数据；0 表示实际渲染帧不卡帧， 1 表示实际渲染帧卡帧(expectEndTime &lt;
+          actualEndTime为异常)， 2 表示数据不需要绘制（没有frameNum信息），3
+          表示rs进程与app进程起止异常(|expRsStartTime - expUiEndTime| &lt; 1ms
+          正常，否则异常。这里使用期待帧的时间差做判断，给实际帧打标签)
+        </li>
         <li>depth：预留</li>
         <li>frame_no：预留</li>
       </ul>
@@ -5031,7 +5108,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">该表记录了app到RenderService的帧的映射关系，同frame_slice表中的src映射到dst的关系。</p>
+      <p class="fontColor">
+        该表记录了app到RenderService的帧的映射关系，同frame_slice表中的src映射到dst的关系。</p>
       <h4>关键字段描述</h4>
       <ul class="fontColor">
         <li>src_row：frame_slice表中app的帧所在的行</li>
@@ -5164,8 +5242,11 @@
         <li>return_itid：任务返回的itid</li>
         <li>task_id：任务执行id</li>
         <li>priority：任务分发独有的，优先级{HIGH : 0，MEDIUM : 1，LOW : 2}</li>
-        <li>execute_state：任务执行独有的执行状态{NOT_FOUND : 0，WAITING : 1，RUNNING : 2，CANCELED : 3}</li>
-        <li>return_state：任务返回独有的任务返回状态[IsCanceled DeserializeFailed Successful Unsuccessful]</li>
+        <li>execute_state：任务执行独有的执行状态{NOT_FOUND : 0，WAITING : 1，RUNNING : 2，CANCELED : 3}
+        </li>
+        <li>return_state：任务返回独有的任务返回状态[IsCanceled DeserializeFailed Successful
+          Unsuccessful]
+        </li>
         <li>timeout_row：任务执行超时时更新此列，将对应的 callstack 表行号存于对应的任务行</li>
       </ul>
       <h3>animation表</h3>
@@ -5460,7 +5541,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">该表记录trace数据源，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。</p>
+      <p class="fontColor">
+        该表记录trace数据源，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。</p>
       <h4>关键字段描述</h4>
       <ul class="fontColor">
         <li>id: 唯一标识</li>
@@ -5533,7 +5615,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">该表记录trace数据源/proc/purgeable_ashmem_trigger，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。</p>
+      <p class="fontColor">
+        该表记录trace数据源/proc/purgeable_ashmem_trigger，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。</p>
       <h4>关键字段描述</h4>
       <ul class="fontColor">
         <li>id: 唯一标识</li>
@@ -5607,7 +5690,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">该表记录trace数据源取/proc/process_dmabuf_info节点，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。</p>
+      <p class="fontColor">
+        该表记录trace数据源取/proc/process_dmabuf_info节点，proto的事件-plugin与其process_name（目前只有HisysEvent事件在用）。</p>
       <h4>关键字段描述</h4>
       <ul class="fontColor">
         <li>id: 唯一标识</li>
@@ -5859,7 +5943,8 @@
         </tbody>
       </table>
       <h4>表描述</h4>
-      <p class="fontColor">该表记录了读取/sys/kernel/debug/mali0/ctx/$(pidof xxx)_0/mem_profile节点相关数据。</p>
+      <p class="fontColor">该表记录了读取/sys/kernel/debug/mali0/ctx/$(pidof
+        xxx)_0/mem_profile节点相关数据。</p>
       <h4>关键字段描述</h4>
       <ul class="fontColor">
         <li>id: 唯一标识</li>

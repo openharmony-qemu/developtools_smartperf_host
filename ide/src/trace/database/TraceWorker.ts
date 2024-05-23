@@ -296,10 +296,6 @@ function initModuleCallBackAndFun(): void {
       bufferSlice.length = 0;
     }
   };
-  //@ts-ignore
-  let fn = wasmModule.addFunction(callback, 'viii');
-  //@ts-ignore
-  reqBufferAddr = wasmModule._Initialize(fn, REQ_BUF_SIZE);
   let ffrtConvertCallback = (heapPtr: number, size: number, isEnd: number): void => {
     if (isEnd !== 1) {
       //@ts-ignore

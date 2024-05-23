@@ -160,12 +160,12 @@ export class SpWebHdcShell extends BaseElement {
   getSelectedText(): string {
     let selectedText = '';
     let textLines = [...this.finalArr];
-    let startX = this.points!.startX!;
-    let startY = this.points!.startY!;
-    let endX = this.points!.endX!;
-    let endY = this.points!.endY!;
+    let startX = this.points!.startX < SpWebHdcShell.LEFT_OFFSET ? SpWebHdcShell.LEFT_OFFSET : this.points!.startX;
+    let startY = this.points!.startY;
+    let endX = this.points!.endX < SpWebHdcShell.LEFT_OFFSET ? SpWebHdcShell.LEFT_OFFSET : this.points!.endX;
+    let endY = this.points!.endY;
     let endTop = Math.ceil((endY - SpWebHdcShell.TOP_OFFSET) / 16);
-    let startTop = Math.floor((startY - SpWebHdcShell.TOP_OFFSET) / 16);
+    let startTop = Math.floor((startY - SpWebHdcShell.TOP_OFFSET - 2) / 16);
     let selectRangeList = textLines.slice(startTop + 1, endTop);
     let charWidth = this.shellCanvasCtx!.measureText(selectRangeList[0].split('')[0]).width;
     for (let index = 0; index < selectRangeList.length; index++) {
@@ -624,8 +624,8 @@ export class SpWebHdcShell extends BaseElement {
 }
 
 export class Point {
-  startX: number | undefined;
-  startY: number | undefined;
-  endX: number | undefined;
-  endY: number | undefined;
+  startX: number = 0;
+  startY: number = 0;
+  endX: number = 0;
+  endY: number = 0;
 }
