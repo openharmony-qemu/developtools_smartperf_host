@@ -32,27 +32,18 @@ void Hidump::Clear()
     fpss_.clear();
 }
 
-void DiskIOData::AppendNewData(uint64_t ts,
-                               uint64_t dur,
-                               uint64_t rd,
-                               uint64_t wr,
-                               uint64_t rdPerSec,
-                               uint64_t wrPerSec,
-                               double rdCountPerSec,
-                               double wrCountPerSec,
-                               uint64_t rdCount,
-                               uint64_t wrCount)
+void DiskIOData::AppendNewData(const DiskIoRow &diskioRow)
 {
-    timeStamps_.emplace_back(ts);
-    durs_.emplace_back(dur);
-    rdDatas_.emplace_back(rd);
-    wrDatas_.emplace_back(wr);
-    rdPerSec_.emplace_back(rdPerSec);
-    wrPerSec_.emplace_back(wrPerSec);
-    rdCountPerSec_.emplace_back(rdCountPerSec);
-    wrCountPerSec_.emplace_back(wrCountPerSec);
-    rdCountDatas_.emplace_back(rdCount);
-    wrCountDatas_.emplace_back(wrCount);
+    timeStamps_.emplace_back(diskioRow.ts);
+    durs_.emplace_back(diskioRow.dur);
+    rdDatas_.emplace_back(diskioRow.rd);
+    wrDatas_.emplace_back(diskioRow.wr);
+    rdPerSec_.emplace_back(diskioRow.rdPerSec);
+    wrPerSec_.emplace_back(diskioRow.wrPerSec);
+    rdCountPerSec_.emplace_back(diskioRow.rdCountPerSec);
+    wrCountPerSec_.emplace_back(diskioRow.wrCountPerSec);
+    rdCountDatas_.emplace_back(diskioRow.rdCount);
+    wrCountDatas_.emplace_back(diskioRow.wrCount);
 }
 const std::deque<uint64_t> &DiskIOData::Durs() const
 {
@@ -104,34 +95,21 @@ void DiskIOData::Clear()
     rdCountDatas_.clear();
     wrCountDatas_.clear();
 }
-
-size_t LiveProcessDetailData::AppendNewData(uint64_t newTimeStamp,
-                                            uint64_t dur,
-                                            int32_t processID,
-                                            std::string processName,
-                                            int32_t parentProcessID,
-                                            int32_t uid,
-                                            std::string userName,
-                                            double cpuUsage,
-                                            int32_t pssInfo,
-                                            uint64_t cpuTime,
-                                            int32_t threads,
-                                            int64_t diskWrites,
-                                            int64_t diskReads)
+size_t LiveProcessDetailData::AppendNewData(const LiveProcessDetailRow &liveProcessDetailRow)
 {
-    timeStamps_.emplace_back(newTimeStamp);
-    durs_.emplace_back(dur);
-    processID_.emplace_back(processID);
-    processName_.emplace_back(processName);
-    parentProcessID_.emplace_back(parentProcessID);
-    uid_.emplace_back(uid);
-    userName_.emplace_back(userName);
-    cpuUsage_.emplace_back(cpuUsage);
-    pssInfo_.emplace_back(pssInfo);
-    threads_.emplace_back(threads);
-    diskWrites_.emplace_back(diskWrites);
-    diskReads_.emplace_back(diskReads);
-    cpuTimes_.emplace_back(cpuTime);
+    timeStamps_.emplace_back(liveProcessDetailRow.newTimeStamp);
+    durs_.emplace_back(liveProcessDetailRow.dur);
+    processID_.emplace_back(liveProcessDetailRow.processID);
+    processName_.emplace_back(liveProcessDetailRow.processName);
+    parentProcessID_.emplace_back(liveProcessDetailRow.parentProcessID);
+    uid_.emplace_back(liveProcessDetailRow.uid);
+    userName_.emplace_back(liveProcessDetailRow.userName);
+    cpuUsage_.emplace_back(liveProcessDetailRow.cpuUsage);
+    pssInfo_.emplace_back(liveProcessDetailRow.pssInfo);
+    threads_.emplace_back(liveProcessDetailRow.threads);
+    diskWrites_.emplace_back(liveProcessDetailRow.diskWrites);
+    diskReads_.emplace_back(liveProcessDetailRow.diskReads);
+    cpuTimes_.emplace_back(liveProcessDetailRow.cpuTime);
     return Size() - 1;
 }
 const std::deque<uint64_t> &LiveProcessDetailData::Durs() const
@@ -199,19 +177,14 @@ void LiveProcessDetailData::Clear()
     diskReads_.clear();
 }
 
-size_t CpuUsageDetailData::AppendNewData(uint64_t newTimeStamp,
-                                         uint64_t dur,
-                                         double totalLoad,
-                                         double userLoad,
-                                         double systemLoad,
-                                         int64_t threads)
+size_t CpuUsageDetailData::AppendNewData(const CpuUsageDetailRow &cpuUsageDetailRow)
 {
-    timeStamps_.emplace_back(newTimeStamp);
-    durs_.emplace_back(dur);
-    totalLoad_.emplace_back(totalLoad);
-    userLoad_.emplace_back(userLoad);
-    systemLoad_.emplace_back(systemLoad);
-    threads_.emplace_back(threads);
+    timeStamps_.emplace_back(cpuUsageDetailRow.newTimeStamp);
+    durs_.emplace_back(cpuUsageDetailRow.dur);
+    totalLoad_.emplace_back(cpuUsageDetailRow.totalLoad);
+    userLoad_.emplace_back(cpuUsageDetailRow.userLoad);
+    systemLoad_.emplace_back(cpuUsageDetailRow.systemLoad);
+    threads_.emplace_back(cpuUsageDetailRow.threads);
     return Size() - 1;
 }
 const std::deque<uint64_t> &CpuUsageDetailData::Durs() const
@@ -244,30 +217,19 @@ void CpuUsageDetailData::Clear()
     threads_.clear();
 }
 
-size_t NetDetailData::AppendNewNetData(uint64_t newTimeStamp,
-                                       uint64_t tx,
-                                       uint64_t rx,
-                                       uint64_t dur,
-                                       double rxSpeed,
-                                       double txSpeed,
-                                       uint64_t packetIn,
-                                       double packetInSec,
-                                       uint64_t packetOut,
-                                       double packetOutSec,
-                                       const std::string &netType)
+size_t NetDetailData::AppendNewNetData(const NetDetailRow &netDetailRow)
 {
-    timeStamps_.emplace_back(newTimeStamp);
-    txs_.emplace_back(tx);
-    rxs_.emplace_back(rx);
-    durs_.emplace_back(dur);
-    txSpeeds_.emplace_back(txSpeed);
-    rxSpeeds_.emplace_back(rxSpeed);
-    netTypes_.emplace_back(netType);
-    packetIn_.emplace_back(packetIn);
-    packetInSec_.emplace_back(packetInSec);
-    packetOut_.emplace_back(packetOut);
-    packetOutSec_.emplace_back(packetOutSec);
-
+    timeStamps_.emplace_back(netDetailRow.newTimeStamp);
+    txs_.emplace_back(netDetailRow.tx);
+    rxs_.emplace_back(netDetailRow.rx);
+    durs_.emplace_back(netDetailRow.dur);
+    txSpeeds_.emplace_back(netDetailRow.txSpeed);
+    rxSpeeds_.emplace_back(netDetailRow.rxSpeed);
+    netTypes_.emplace_back(netDetailRow.netType);
+    packetIn_.emplace_back(netDetailRow.packetIn);
+    packetInSec_.emplace_back(netDetailRow.packetInSec);
+    packetOut_.emplace_back(netDetailRow.packetOut);
+    packetOutSec_.emplace_back(netDetailRow.packetOutSec);
     return Size() - 1;
 }
 const std::deque<uint64_t> &NetDetailData::Durs() const
@@ -322,46 +284,27 @@ void NetDetailData::Clear()
     packetOut_.clear();
     packetOutSec_.clear();
 }
-
-void SmapsData::AppendNewData(uint64_t timeStamp,
-                              uint64_t ipid,
-                              std::string startAddr,
-                              std::string endAddr,
-                              uint64_t dirty,
-                              uint64_t swapper,
-                              uint64_t rss,
-                              uint64_t pss,
-                              uint64_t size,
-                              double reside,
-                              DataIndex protectionId,
-                              DataIndex pathId,
-                              uint64_t sharedClean,
-                              uint64_t sharedDirty,
-                              uint64_t privateClean,
-                              uint64_t privateDirty,
-                              uint64_t swap,
-                              uint64_t swapPss,
-                              uint32_t type)
+void SmapsData::AppendNewData(const SmapsRow &smapsRow)
 {
-    timeStamps_.emplace_back(timeStamp);
-    ipids_.emplace_back(ipid);
-    startAddrs_.emplace_back(startAddr);
-    endAddrs_.emplace_back(endAddr);
-    dirtys_.emplace_back(dirty);
-    swappers_.emplace_back(swapper);
-    rss_.emplace_back(rss);
-    pss_.emplace_back(pss);
-    sizes_.emplace_back(size);
-    resides_.emplace_back(reside);
-    protectionIds_.emplace_back(protectionId);
-    pathIds_.emplace_back(pathId);
-    sharedClean_.emplace_back(sharedClean);
-    sharedDirty_.emplace_back(sharedDirty);
-    privateClean_.emplace_back(privateClean);
-    privateDirty_.emplace_back(privateDirty);
-    swap_.emplace_back(swap);
-    swapPss_.emplace_back(swapPss);
-    type_.emplace_back(type);
+    timeStamps_.emplace_back(smapsRow.timeStamp);
+    ipids_.emplace_back(smapsRow.ipid);
+    startAddrs_.emplace_back(smapsRow.startAddr);
+    endAddrs_.emplace_back(smapsRow.endAddr);
+    dirtys_.emplace_back(smapsRow.dirty);
+    swappers_.emplace_back(smapsRow.swapper);
+    rss_.emplace_back(smapsRow.rss);
+    pss_.emplace_back(smapsRow.pss);
+    sizes_.emplace_back(smapsRow.size);
+    resides_.emplace_back(smapsRow.reside);
+    protectionIds_.emplace_back(smapsRow.protectionId);
+    pathIds_.emplace_back(smapsRow.pathId);
+    sharedClean_.emplace_back(smapsRow.sharedClean);
+    sharedDirty_.emplace_back(smapsRow.sharedDirty);
+    privateClean_.emplace_back(smapsRow.privateClean);
+    privateDirty_.emplace_back(smapsRow.privateDirty);
+    swap_.emplace_back(smapsRow.swap);
+    swapPss_.emplace_back(smapsRow.swapPss);
+    type_.emplace_back(smapsRow.type);
     ids_.emplace_back(rowCount_);
     rowCount_++;
 }
@@ -463,32 +406,20 @@ void SmapsData::Clear()
     swapPss_.clear();
     type_.clear();
 }
-
-void AshMemData::AppendNewData(InternalPid ipid,
-                               uint64_t ts,
-                               uint32_t adj,
-                               uint32_t fd,
-                               DataIndex ashmemNameId,
-                               uint64_t size,
-                               uint64_t pss,
-                               uint32_t ashmemId,
-                               uint64_t time,
-                               uint64_t refCount,
-                               uint64_t purged,
-                               uint32_t flag)
+void AshMemData::AppendNewData(const AshMemRow &ashMemRow)
 {
-    ipids_.emplace_back(ipid);
-    timeStamps_.emplace_back(ts);
-    adjs_.emplace_back(adj);
-    fds_.emplace_back(fd);
-    ashmemNameIds_.emplace_back(ashmemNameId);
-    sizes_.emplace_back(size);
-    psss_.emplace_back(pss);
-    ashmemIds_.emplace_back(ashmemId);
-    times_.emplace_back(time);
-    refCounts_.emplace_back(refCount);
-    purgeds_.emplace_back(purged);
-    flags_.emplace_back(flag);
+    ipids_.emplace_back(ashMemRow.ipid);
+    timeStamps_.emplace_back(ashMemRow.ts);
+    adjs_.emplace_back(ashMemRow.adj);
+    fds_.emplace_back(ashMemRow.fd);
+    ashmemNameIds_.emplace_back(ashMemRow.ashmemNameId);
+    sizes_.emplace_back(ashMemRow.size);
+    psss_.emplace_back(ashMemRow.pss);
+    ashmemIds_.emplace_back(ashMemRow.ashmemId);
+    times_.emplace_back(ashMemRow.time);
+    refCounts_.emplace_back(ashMemRow.refCount);
+    purgeds_.emplace_back(ashMemRow.purged);
+    flags_.emplace_back(ashMemRow.flag);
     ids_.emplace_back(rowCount_);
     rowCount_++;
 }
@@ -555,28 +486,18 @@ void AshMemData::Clear()
     purgeds_.clear();
     flags_.clear();
 }
-
-void DmaMemData::AppendNewData(InternalPid ipid,
-                               uint64_t ts,
-                               uint32_t fd,
-                               uint64_t size,
-                               uint32_t ino,
-                               uint32_t expPid,
-                               DataIndex expTaskCommId,
-                               DataIndex bufNameId,
-                               DataIndex expNameId,
-                               uint32_t flag)
+void DmaMemData::AppendNewData(const DmaMemRow &dmaMemRow)
 {
-    ipids_.emplace_back(ipid);
-    timeStamps_.emplace_back(ts);
-    fds_.emplace_back(fd);
-    sizes_.emplace_back(size);
-    inos_.emplace_back(ino);
-    expPids_.emplace_back(expPid);
-    expTaskCommIds_.emplace_back(expTaskCommId);
-    bufNameIds_.emplace_back(bufNameId);
-    expNameIds_.emplace_back(expNameId);
-    flags_.emplace_back(flag);
+    ipids_.emplace_back(dmaMemRow.ipid);
+    timeStamps_.emplace_back(dmaMemRow.ts);
+    fds_.emplace_back(dmaMemRow.fd);
+    sizes_.emplace_back(dmaMemRow.size);
+    inos_.emplace_back(dmaMemRow.ino);
+    expPids_.emplace_back(dmaMemRow.expPid);
+    expTaskCommIds_.emplace_back(dmaMemRow.expTaskCommId);
+    bufNameIds_.emplace_back(dmaMemRow.bufNameId);
+    expNameIds_.emplace_back(dmaMemRow.expNameId);
+    flags_.emplace_back(dmaMemRow.flag);
     ids_.emplace_back(rowCount_);
     rowCount_++;
 }
@@ -634,21 +555,15 @@ void DmaMemData::Clear()
     flags_.clear();
 }
 
-void GpuProcessMemData::AppendNewData(uint64_t ts,
-                                      DataIndex gpuNameId,
-                                      uint64_t allGpuSize,
-                                      std::string addr,
-                                      InternalPid ipid,
-                                      InternalPid itid,
-                                      uint64_t usedGpuSize)
+void GpuProcessMemData::AppendNewData(const GpuProcessMemRow &gpuProcessMemRow)
 {
-    timeStamps_.emplace_back(ts);
-    gpuNameIds_.emplace_back(gpuNameId);
-    allGpuSizes_.emplace_back(allGpuSize);
-    addrs_.emplace_back(addr);
-    ipids_.emplace_back(ipid);
-    itids_.emplace_back(itid);
-    usedGpuSizes_.emplace_back(usedGpuSize);
+    timeStamps_.emplace_back(gpuProcessMemRow.ts);
+    gpuNameIds_.emplace_back(gpuProcessMemRow.gpuNameId);
+    allGpuSizes_.emplace_back(gpuProcessMemRow.allGpuSize);
+    addrs_.emplace_back(gpuProcessMemRow.addr);
+    ipids_.emplace_back(gpuProcessMemRow.ipid);
+    itids_.emplace_back(gpuProcessMemRow.itid);
+    usedGpuSizes_.emplace_back(gpuProcessMemRow.usedGpuSize);
     ids_.emplace_back(rowCount_);
     rowCount_++;
 }
@@ -686,23 +601,16 @@ void GpuProcessMemData::Clear()
     itids_.clear();
     usedGpuSizes_.clear();
 }
-void GpuWindowMemData::AppendNewData(uint64_t ts,
-                                     DataIndex windowNameId,
-                                     uint64_t windowId,
-                                     DataIndex moduleNameId,
-                                     DataIndex categoryNameId,
-                                     uint64_t size,
-                                     uint32_t count,
-                                     uint64_t purgeableSize)
+void GpuWindowMemData::AppendNewData(const GpuWindowMemRow &gpuWindowMemRow)
 {
-    timeStamps_.emplace_back(ts);
-    windowNameIds_.emplace_back(windowNameId);
-    windowIds_.emplace_back(windowId);
-    moduleNameIds_.emplace_back(moduleNameId);
-    categoryNameIds_.emplace_back(categoryNameId);
-    sizes_.emplace_back(size);
-    counts_.emplace_back(count);
-    purgeableSizes_.emplace_back(purgeableSize);
+    timeStamps_.emplace_back(gpuWindowMemRow.ts);
+    windowNameIds_.emplace_back(gpuWindowMemRow.windowNameId);
+    windowIds_.emplace_back(gpuWindowMemRow.windowId);
+    moduleNameIds_.emplace_back(gpuWindowMemRow.moduleNameId);
+    categoryNameIds_.emplace_back(gpuWindowMemRow.categoryNameId);
+    sizes_.emplace_back(gpuWindowMemRow.size);
+    counts_.emplace_back(gpuWindowMemRow.count);
+    purgeableSizes_.emplace_back(gpuWindowMemRow.purgeableSize);
     ipids_.emplace_back(INVALID_IPID);
     ids_.emplace_back(rowCount_);
     rowCount_++;

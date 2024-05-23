@@ -69,7 +69,7 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 | paged_memory_sample | 记录内存操作相关方法调用，及调用栈数据|
 | perf_callchain | 记录Hiperf采样数据的调用栈信息|
 | perf_files | 记录Hiperf工具采集到的函数符号表和文件名|
-| perf_report | 记录Hiperf工具采集数据时的配置信息。包括|抓取的事件类型，抓取数据的命令， 抓数据时指定的进程名称|
+| perf_report | 记录Hiperf工具采集数据时的配置信息。包括抓取的事件类型，抓取数据的命令， 抓数据时指定的进程名称|
 | perf_sample | 记录Hiperf工具的采样信息|
 | perf_thread | 记录Hiperf工具采集到的进程和线程数据|
 | process | 记录所有的进程信息|
@@ -494,8 +494,8 @@ js_heap_sample:记录timeline的时间轴信息
 - wr_speed:当前时间段的写入速度
 - rd_count:读取的数据总量
 - wr_count:写入的数据总量
-- rd_sectors_kb：读数据的平均速度  
-- wr_sectors_kb：写入数据的平均速度  
+- rd_sectors_speed：读数据的平均速度  
+- wr_sectors_speed：写入数据的平均速度  
 
 ### ebpf_callstack表
 #### 表结构
@@ -1082,7 +1082,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 |file_id       |INT       |
 |offset        |INT       |
 |symbol_offset |INT       |
-|addr |INT       |
+|vaddr |INT       |
 #### 表描述
 记录了内存的申请和释放的堆栈。
 #### 相关字段描述
@@ -1094,6 +1094,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 - file_id：函数所属文件id，对应data_dict中id  
 - offset: 取自Frame message的offset字段
 - symbol_offset: 取自Frame message的symbol_offset字段
+- vaddr: 一般取值为offset + symbol_offset
 
 ### native_hook_statistic表
 #### 表结构
@@ -1305,7 +1306,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 - start_ts：开始时间  
 - switch_count：统计内部有多少个线程有切换  
 - thread_count：统计其线程个数  
-- slice_count：进程内有多个线程有slice数据  
+- slice_count：进程内有多少个线程有slice数据  
 - mem_count：进程是否有内存数据
 
 
@@ -1376,7 +1377,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 此数据结构主要作为ThreadState的上下文使用，这张表是sched_switch事件的原始记录。
 #### 主要字段描述
 - id: 唯一标识 
-- ts：事件发生事件  
+- ts：事件发生时间  
 - dur：状态持续时长  
 - ts_end：状态结束时长  
 - cpu：事件发生在哪个cpu  

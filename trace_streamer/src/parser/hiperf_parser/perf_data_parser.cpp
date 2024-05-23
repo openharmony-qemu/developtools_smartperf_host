@@ -209,8 +209,8 @@ bool PerfDataParser::SplitPerfParsingAttr(const std::deque<uint8_t> &dequeBuffer
         return false;
     }
 
-    uint64_t LengthRemain = size - processedLen;
-    if (LengthRemain < perfHeader_.attrs.size) {
+    uint64_t lengthRemain = size - processedLen;
+    if (lengthRemain < perfHeader_.attrs.size) {
         return false;
     }
 
@@ -283,8 +283,8 @@ SplitPerfState PerfDataParser::DataLengthProcessing(const std::deque<uint8_t> &d
         return SplitPerfState::PARSING_HEAD;
     }
 
-    uint64_t LengthRemain = size - processedLen;
-    if (LengthRemain < sizeof(perf_event_header)) {
+    uint64_t lengthRemain = size - processedLen;
+    if (lengthRemain < sizeof(perf_event_header)) {
         return SplitPerfState::STARTING;
     }
     std::copy_n(dequeBuffer.begin() + processedLen, sizeof(perf_event_header), reinterpret_cast<char *>(&dataHeader));
@@ -293,7 +293,7 @@ SplitPerfState PerfDataParser::DataLengthProcessing(const std::deque<uint8_t> &d
         invalid = true;
         return SplitPerfState::STARTING;
     }
-    if (LengthRemain < dataHeader.size) {
+    if (lengthRemain < dataHeader.size) {
         return SplitPerfState::STARTING;
     }
     if (totalDataRemain < sizeof(perf_event_header)) {
@@ -366,8 +366,8 @@ bool PerfDataParser::SplitPerfParsingFeatureSection(const std::deque<uint8_t> &d
         return false;
     }
 
-    uint64_t LengthRemain = size - processedLen;
-    if (LengthRemain < featureSectioSize_) {
+    uint64_t lengthRemain = size - processedLen;
+    if (lengthRemain < featureSectioSize_) {
         return false;
     }
 
@@ -677,15 +677,15 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
     callChainId = ++callChainId_;
     pidAndStackHashToCallChainId_.Insert(pid, stackHash, callChainId);
     callChainIdToThreadInfo_.insert({callChainId, std::make_tuple(pid, sample->data_.tid)});
-    uint64_t depth = 0;
+    uint32_t depth = 0;
     for (auto frame = sample->callFrames_.rbegin(); frame != sample->callFrames_.rend(); ++frame) {
         uint64_t fileId = INVALID_UINT64;
         auto fileDataIndex = traceDataCache_->dataDict_.GetStringIndex(frame->mapName);
         if (fileDataDictIdToFileId_.count(fileDataIndex) != 0) {
             fileId = fileDataDictIdToFileId_.at(fileDataIndex);
         }
-        streamFilters_->perfDataFilter_->AppendPerfCallChain(callChainId, depth++, frame->pc, frame->funcOffset, fileId,
-                                                             frame->index);
+        PerfCallChainRow perfCallChainRow = {callChainId, depth++, frame->pc, frame->funcOffset, fileId, frame->index};
+        traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(perfCallChainRow);
     }
     return callChainId;
 }
@@ -710,8 +710,9 @@ void PerfDataParser::UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<
         threadStatIndex = suspendStatIndex_;
     }
     auto configIndex = report_->GetConfigIndex(sample->data_.id);
-    perfSampleData->AppendNewPerfSample(callChainId, sample->data_.time, sample->data_.tid, sample->data_.period,
-                                        configIndex, newTimeStamp, sample->data_.cpu, threadStatIndex);
+    PerfSampleRow perfSampleRow = {callChainId, sample->data_.time, sample->data_.tid, sample->data_.period,
+                                   configIndex, newTimeStamp,       sample->data_.cpu, threadStatIndex};
+    perfSampleData->AppendNewPerfSample(perfSampleRow);
 }
 
 void PerfDataParser::Finish()

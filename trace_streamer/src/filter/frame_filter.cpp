@@ -15,6 +15,7 @@
 #include "frame_filter.h"
 #include <memory>
 #include <cinttypes>
+#include "process_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -23,25 +24,26 @@ FrameFilter::FrameFilter(TraceDataCache *dataCache, const TraceStreamerFilters *
 }
 FrameFilter::~FrameFilter() = default;
 
-void FrameFilter::BeginVsyncEvent(uint64_t ts,
-                                  uint32_t ipid,
-                                  uint32_t itid,
+void FrameFilter::BeginVsyncEvent(const BytraceLine &line,
                                   uint64_t expectStart,
                                   uint64_t expectEnd,
                                   uint32_t vsyncId,
                                   uint32_t callStackSliceId)
 {
     auto frame = std::make_shared<FrameSlice>();
-    frame->startTs_ = ts;
+    frame->startTs_ = line.ts;
     frame->callStackSliceId_ = callStackSliceId;
     frame->expectedStartTs_ = expectStart;
     frame->expectedEndTs_ = expectEnd;
     frame->expectedDur_ = expectEnd - expectStart;
     frame->vsyncId_ = vsyncId;
+    auto itid = streamFilters_->processFilter_->GetInternalTid(line.pid);
+    auto ipid = streamFilters_->processFilter_->GetInternalPid(line.tgid);
     frame->frameSliceRow_ =
-        traceDataCache_->GetFrameSliceData()->AppendFrame(ts, ipid, itid, vsyncId, callStackSliceId);
-    frame->frameExpectedSliceRow_ = traceDataCache_->GetFrameSliceData()->AppendFrame(
-        expectStart, ipid, itid, vsyncId, callStackSliceId, expectEnd, (uint8_t)TraceStdtype::FrameSlice::EXPECT_SLICE);
+        traceDataCache_->GetFrameSliceData()->AppendFrame(line.ts, ipid, itid, vsyncId, callStackSliceId);
+    FrameSliceRow frameSliceRow = {
+        expectStart, ipid, itid, vsyncId, callStackSliceId, expectEnd, (uint8_t)TraceStdtype::FrameSlice::EXPECT_SLICE};
+    frame->frameExpectedSliceRow_ = traceDataCache_->GetFrameSliceData()->AppendFrame(frameSliceRow);
     if (vsyncRenderSlice_.count(itid)) {
         vsyncRenderSlice_[itid].push_back(frame);
     } else {

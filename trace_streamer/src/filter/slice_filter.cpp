@@ -53,7 +53,7 @@ size_t SliceFilter::BeginSlice(const std::string &comm,
     // make a SliceData DataItem, {timeStamp, dur, internalTid, cat, nameIndex}
     SliceData sliceData = {timeStamp, -1, internalTid, cat, nameIndex};
     ArgsSet args;
-    return StartSlice(timeStamp, pid, cat, nameIndex, args, sliceData);
+    return StartSlice(timeStamp, cat, nameIndex, args, sliceData);
 }
 
 void SliceFilter::IrqHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex)
@@ -62,8 +62,10 @@ void SliceFilter::IrqHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex ca
     irqDataLinker_.erase(cpu);
     SliceData sliceData = {timeStamp, 0, cpu, catalog, nameIndex};
     auto slices = traceDataCache_->GetIrqData();
-    size_t index = slices->AppendInternalSlice(sliceData.timeStamp, sliceData.duration, sliceData.internalTid,
-                                               sliceData.cat, sliceData.name, 0, std::nullopt);
+    CallStackInternalRow callStackInternalRow = {sliceData.timeStamp,   static_cast<uint64_t>(sliceData.duration),
+                                                 sliceData.internalTid, sliceData.cat,
+                                                 sliceData.name,        0};
+    size_t index = slices->AppendInternalSlice(callStackInternalRow, std::nullopt);
     if (irqEventMap_.count(cpu)) {
         // not match
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_IRQ_HANDLER_ENTRY, STAT_EVENT_DATA_LOST);
@@ -102,8 +104,10 @@ void SliceFilter::IpiHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex ca
     irqDataLinker_.erase(cpu);
     SliceData sliceData = {timeStamp, 0, cpu, catalog, nameIndex};
     auto slices = traceDataCache_->GetIrqData();
-    size_t index = slices->AppendInternalSlice(sliceData.timeStamp, sliceData.duration, sliceData.internalTid,
-                                               sliceData.cat, sliceData.name, 0, std::nullopt);
+    CallStackInternalRow callStackInternalRow = {sliceData.timeStamp,   static_cast<uint64_t>(sliceData.duration),
+                                                 sliceData.internalTid, sliceData.cat,
+                                                 sliceData.name,        0};
+    size_t index = slices->AppendInternalSlice(callStackInternalRow, std::nullopt);
     if (ipiEventMap_.count(cpu)) {
         // not match
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_IRQ_HANDLER_ENTRY, STAT_EVENT_DATA_LOST);
@@ -129,8 +133,10 @@ void SliceFilter::SoftIrqEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catal
 {
     SliceData sliceData = {timeStamp, 0, cpu, catalog, nameIndex};
     auto slices = traceDataCache_->GetIrqData();
-    size_t index = slices->AppendInternalSlice(sliceData.timeStamp, sliceData.duration, sliceData.internalTid,
-                                               sliceData.cat, sliceData.name, 0, std::nullopt);
+    CallStackInternalRow callStackInternalRow = {sliceData.timeStamp,   static_cast<uint64_t>(sliceData.duration),
+                                                 sliceData.internalTid, sliceData.cat,
+                                                 sliceData.name,        0};
+    size_t index = slices->AppendInternalSlice(callStackInternalRow, std::nullopt);
     if (softIrqEventMap_.count(cpu)) {
         // not match
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SOFTIRQ_ENTRY, STAT_EVENT_DATA_LOST);
@@ -178,7 +184,7 @@ size_t SliceFilter::AsyncBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat,
 {
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     SliceData sliceData = {timeStamp, 0, internalTid, cat, nameIndex};
-    return StartSlice(timeStamp, pid, cat, nameIndex, args, std::move(sliceData));
+    return StartSlice(timeStamp, cat, nameIndex, args, std::move(sliceData));
 }
 uint8_t SliceFilter::CurrentDepth(InternalTid internalTid)
 {
@@ -288,7 +294,6 @@ int32_t SliceFilter::MatchingIncompleteSliceIndex(const SlicesStack &stack, Data
     return -1;
 }
 size_t SliceFilter::StartSlice(uint64_t timeStamp,
-                               uint32_t pid,
                                DataIndex cat,
                                DataIndex nameIndex,
                                ArgsSet &args,
@@ -309,8 +314,10 @@ size_t SliceFilter::StartSlice(uint64_t timeStamp,
     uint32_t depth = stack.size();
     auto slices = traceDataCache_->GetInternalSlicesData();
     uint32_t parentId = depth == 0 ? INVALID_UINT32 : slices->IdsData()[stack.back().index];
-    size_t index = slices->AppendInternalSlice(sliceData.timeStamp, sliceData.duration, internalTid, sliceData.cat,
-                                               sliceData.name, 0, parentId);
+    CallStackInternalRow callStackInternalRow = {sliceData.timeStamp,   static_cast<uint64_t>(sliceData.duration),
+                                                 sliceData.internalTid, sliceData.cat,
+                                                 sliceData.name,        0};
+    size_t index = slices->AppendInternalSlice(callStackInternalRow, parentId);
     if (depth >= std::numeric_limits<uint8_t>::max()) {
         return SIZE_MAX;
     }
@@ -337,22 +344,15 @@ size_t SliceFilter::BeginBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat,
 {
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     SliceData sliceData = {timeStamp, -1, internalTid, cat, nameIndex};
-    return StartSlice(timeStamp, pid, cat, nameIndex, args, std::move(sliceData));
+    return StartSlice(timeStamp, cat, nameIndex, args, std::move(sliceData));
 }
 
 size_t SliceFilter::CompleteSlice(uint64_t timeStamp,
-                                  uint32_t pid,
-                                  uint32_t threadGroupId,
+                                  uint32_t internalTid,
                                   DataIndex category,
                                   DataIndex name,
                                   ArgsSet args)
 {
-    InternalTid internalTid = INVALID_ITID;
-    if (threadGroupId > 0) {
-        internalTid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(pid, threadGroupId);
-    } else {
-        internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
-    }
     TS_CHECK_TRUE_RET(binderStackMap_.find(internalTid) != binderStackMap_.end(), SIZE_MAX);
     auto &stackInfo = binderStackMap_[internalTid];
     SlicesStack &stack = stackInfo.sliceStack;
@@ -403,7 +403,8 @@ void SliceFilter::HandleAsyncEventAndOther(ArgsSet args, CallStack *slices, uint
 }
 size_t SliceFilter::EndBinder(uint64_t timeStamp, uint32_t pid, DataIndex category, DataIndex name, ArgsSet args)
 {
-    return CompleteSlice(timeStamp, pid, 0, category, name, args);
+    auto internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
+    return CompleteSlice(timeStamp, internalTid, category, name, args);
 }
 std::tuple<uint64_t, uint32_t> SliceFilter::AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet &args)
 {
@@ -452,8 +453,9 @@ uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
     // the IDE need a depth to paint call slice in different position of the canvas, the depth of async call
     // do not mean the parent-to-child relationship, it is different from no-async call
     uint8_t depth = 0;
-    size_t index =
-        slices->AppendInternalAsyncSlice(timeStamp, -1, internalTid, cat, nameIndex, depth, cookie, parentId);
+    CallStackInternalRow callStackInternalRow = {timeStamp, static_cast<uint64_t>(-1), internalTid, cat, nameIndex,
+                                                 depth};
+    size_t index = slices->AppendInternalAsyncSlice(callStackInternalRow, cookie, parentId);
     asyncEventFilterMap_.insert(std::make_pair(asyncEventSize_, AsyncEvent{timeStamp, index}));
     return index;
 }
@@ -508,8 +510,9 @@ void SliceFilter::StartGEvent(uint64_t timeStamp,
     size_t pos = nameStr.find('|');
     auto cat = traceDataCache_->GetDataIndex(nameStr.substr(0, pos));
     nameIndex = traceDataCache_->GetDataIndex(nameStr.substr(pos + 1));
-    size_t index =
-        slices->AppendInternalAsyncSlice(timeStamp, -1, internalTid, cat, nameIndex, depth, cookie, std::nullopt);
+    CallStackInternalRow callStackInternalRow = {timeStamp, static_cast<uint64_t>(-1), internalTid, cat, nameIndex,
+                                                 depth};
+    size_t index = slices->AppendInternalAsyncSlice(callStackInternalRow, cookie, std::nullopt);
     gEventFilterMap_.insert(std::make_pair(gEventSize_, AsyncEvent{timeStamp, index}));
 }
 
@@ -548,7 +551,13 @@ size_t SliceFilter::EndSlice(uint64_t timeStamp,
                              DataIndex category,
                              DataIndex name)
 {
-    return CompleteSlice(timeStamp, pid, threadGroupId, category, name);
+    uint32_t internalTid = INVALID_UINT32;
+    if (threadGroupId > 0) {
+        internalTid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(pid, threadGroupId);
+    } else {
+        internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
+    }
+    return CompleteSlice(timeStamp, internalTid, category, name);
 }
 
 bool SliceFilter::UpdateIrqReadySize()

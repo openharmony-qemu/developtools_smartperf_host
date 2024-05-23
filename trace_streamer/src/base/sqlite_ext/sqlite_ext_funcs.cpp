@@ -205,8 +205,8 @@ struct JsonBuild {
 
 void BuildJson(sqlite3_context *ctx, int32_t argc, sqlite3_value **argv)
 {
-    const int32_t PAIR_ARGS_SIZE = 2;
-    if (argc % PAIR_ARGS_SIZE != 0) {
+    const int32_t pairArgsSize = 2;
+    if (argc % pairArgsSize != 0) {
         TS_LOGI("BuildJson arg number error");
         sqlite3_result_error(ctx, "BuildJson arg number error", -1);
         return;
@@ -214,7 +214,7 @@ void BuildJson(sqlite3_context *ctx, int32_t argc, sqlite3_value **argv)
 
     JsonBuild builder;
     builder.AppendHead();
-    for (int32_t i = 0; i < argc; i += PAIR_ARGS_SIZE) {
+    for (int32_t i = 0; i < argc; i += pairArgsSize) {
         if (sqlite3_value_type(argv[i]) != SQLITE_TEXT) {
             TS_LOGI("BuildJson: Invalid args argc:%d, %d", argc, sqlite3_value_type(argv[i]));
             sqlite3_result_error(ctx, "BuildJson: Invalid args", -1);
@@ -244,7 +244,7 @@ void BuildJson(sqlite3_context *ctx, int32_t argc, sqlite3_value **argv)
 
 void RepeatedJsonStep(sqlite3_context *ctx, int32_t argc, sqlite3_value **argv)
 {
-    const int32_t PAIR_ARGS_SIZE = 2;
+    const int32_t pairArgsSize = 2;
     auto **jsonBuild = static_cast<JsonBuild **>(sqlite3_aggregate_context(ctx, sizeof(JsonBuild *)));
 
     if (*jsonBuild == nullptr) {
@@ -252,7 +252,7 @@ void RepeatedJsonStep(sqlite3_context *ctx, int32_t argc, sqlite3_value **argv)
     }
     JsonBuild *builder = *jsonBuild;
     builder->AppendHead();
-    for (int32_t i = 0; i < argc; i += PAIR_ARGS_SIZE) {
+    for (int32_t i = 0; i < argc; i += pairArgsSize) {
         if (sqlite3_value_type(argv[i]) != SQLITE_TEXT) {
             TS_LOGI("BuildJson: Invalid args argc:%d, %d", argc, sqlite3_value_type(argv[i]));
             sqlite3_result_error(ctx, "BuildJson: Invalid args", -1);

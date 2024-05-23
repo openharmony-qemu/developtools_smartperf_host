@@ -71,7 +71,6 @@ public:
     DataType *GetDataTypeData();
     SysMeasureFilter *GetSysMeasureFilterData();
     NetDetailData *GetNetworkData();
-    NetDetailData *GetNetworkDetailData();
     DiskIOData *GetDiskIOData();
     CpuUsageDetailData *GetCpuUsageInfoData();
     LiveProcessDetailData *GetLiveProcessData();

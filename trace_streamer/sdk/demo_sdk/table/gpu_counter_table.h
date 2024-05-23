@@ -32,7 +32,7 @@ private:
     public:
         explicit Cursor(const TraceDataCache *dataCache, DemoTableBase *table);
         ~Cursor() override;
-        int32_t Column(int32_t column) const override;
+        int32_t Column(int32_t gpuCntColumn) const override;
 
     private:
         const GpuCounter &gpuCounterDataObj_;

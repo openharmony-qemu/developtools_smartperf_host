@@ -55,13 +55,13 @@ public:
 
     std::string ChunkToString(std::ifstream &fs)
     {
-        std::string line_;
+        std::string line;
         std::stringstream ss;
-        while (std::getline(fs, line_)) {
-            if (StartWith(line_, chunkEndCmd_)) {
+        while (std::getline(fs, line)) {
+            if (StartWith(line, chunkEndCmd_)) {
                 break;
             }
-            ss << line_ << '\n';
+            ss << line << '\n';
         }
         return ss.str();
     }
@@ -136,8 +136,8 @@ HWTEST_F(RawTraceParserTest, HandleHeadPage, TestSize.Level1)
         }
     }
     std::string noCommitField = R"(field: u64 timestamp; offset:0; size:8; signed:0;
-	field: int overwrite; offset:8; size:1; signed:1;
-	field: char data; offset:16; size:4080; signed:0;)";
+    field: int overwrite; offset:8; size:1; signed:1;
+    field: char data; offset:16; size:4080; signed:0;)";
     EXPECT_FALSE(parser_->ftraceProcessor_->HandleHeaderPageFormat(noCommitField));
 }
 /**

@@ -37,13 +37,13 @@ namespace TraceStreamer {
 class HtraceEventParser : private EventParserBase {
 public:
     struct EventInfo {
-        int32_t pid_ = 0;
-        int32_t tgid_ = 0;
-        uint32_t cpu_ = 0;
-        SupportedTraceEventType eventType_ = TRACE_EVENT_OTHER;
-        uint64_t timeStamp_ = INVALID_UINT64;
-        DataIndex taskNameIndex_;
-        std::string detail_;
+        int32_t pid = 0;
+        int32_t tgid = 0;
+        uint32_t cpu = 0;
+        SupportedTraceEventType eventType = TRACE_EVENT_OTHER;
+        uint64_t timeStamp = INVALID_UINT64;
+        DataIndex taskNameIndex;
+        std::string detail;
     };
 
 public:
@@ -146,8 +146,6 @@ private:
     using FuncCall = std::function<bool(const EventInfo &event)>;
     std::map<uint32_t, FuncCall> eventToFunctionMap_ = {};
     std::deque<std::unique_ptr<EventInfo>> htraceEventList_ = {};
-    std::unordered_set<uint32_t> tids_ = {};
-    std::unordered_set<uint32_t> pids_ = {};
     DataIndex workQueueId_ = 0;
     PrintEventParser printEventParser_;
     std::atomic<uint64_t> lastOverwrite_{0};

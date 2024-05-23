@@ -66,25 +66,25 @@ HtraceJsCpuProfilerParser::HtraceJsCpuProfilerParser(TraceDataCache *dataCache, 
 void HtraceJsCpuProfilerParser::ParseNodeData(const json &jMessage)
 {
     int nodeCount = jMessage.at("nodes").size();
+    JsCpuProfilerNodeRow row;
     for (int i = 0; i < nodeCount; i++) {
         jsonns::Node node = jMessage.at("nodes")[i];
-        auto id = node.id;
+        row.functionId = node.id;
         auto functionName = node.callFrame.functionName;
-        DataIndex functionNameKey = traceDataCache_->GetDataIndex(functionName);
-        auto scriptId = node.callFrame.scriptId;
+        row.functionName = traceDataCache_->GetDataIndex(functionName);
+        row.scriptId = node.callFrame.scriptId;
         auto url = node.callFrame.url;
-        DataIndex urlKey = traceDataCache_->GetDataIndex(url);
-        auto lineNumber = node.callFrame.lineNumber;
-        auto columnNumber = node.callFrame.columnNumber;
-        auto hitCount = node.hitCount;
+        row.url = traceDataCache_->GetDataIndex(url);
+        row.lineNumber = node.callFrame.lineNumber;
+        row.columnNumber = node.callFrame.columnNumber;
+        row.hitCount = node.hitCount;
         auto children = node.children;
-        children = children.substr(0, children.size() - 1);
-        uint32_t parentId = 0;
-        if (jsonns::nodes_.find(id) != jsonns::nodes_.end()) {
-            parentId = jsonns::nodes_.find(id)->second;
+        row.children = children.substr(0, children.size() - 1);
+        row.parent = 0;
+        if (jsonns::nodes_.find(node.id) != jsonns::nodes_.end()) {
+            row.parent = jsonns::nodes_.find(node.id)->second;
         }
-        (void)traceDataCache_->GetJsCpuProfilerNodeData()->AppendNewData(
-            id, functionNameKey, scriptId, urlKey, lineNumber, columnNumber, hitCount, children, parentId);
+        (void)traceDataCache_->GetJsCpuProfilerNodeData()->AppendNewData(row);
     }
 }
 

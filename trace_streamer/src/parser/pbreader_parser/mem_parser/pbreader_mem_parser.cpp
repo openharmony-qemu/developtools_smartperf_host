@@ -297,27 +297,28 @@ void PbreaderMemParser::ParseSmapsInfoEasy(const ProtoReader::ProcessMemoryInfo_
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_SMAPS, STAT_EVENT_RECEIVED);
     for (auto i = memInfo->smapinfo(); i; ++i) {
+        SmapsRow row;
+        row.timeStamp = timeStamp;
+        row.ipid = ipid;
         ProtoReader::SmapsInfo_Reader smapsInfo(i->ToBytes().data_, i->ToBytes().size_);
-        auto startAddr = "0x" + smapsInfo.start_addr().ToStdString();
-        auto endAddr = "0x" + smapsInfo.end_addr().ToStdString();
-        uint64_t dirty = smapsInfo.dirty();
-        uint64_t swapper = smapsInfo.swapper();
-        uint64_t rss = smapsInfo.rss();
-        uint64_t pss = smapsInfo.pss();
-        uint64_t size = smapsInfo.size();
-        double reside = smapsInfo.reside();
-        DataIndex protection = traceDataCache_->GetDataIndex(smapsInfo.permission().ToStdString());
-        DataIndex path = traceDataCache_->GetDataIndex(smapsInfo.path().ToStdString());
-        uint64_t privateClean = smapsInfo.has_private_clean() ? smapsInfo.private_clean() : 0;
-        uint64_t privateDirty = smapsInfo.has_private_dirty() ? smapsInfo.private_dirty() : 0;
-        uint64_t sharedClean = smapsInfo.has_shared_clean() ? smapsInfo.shared_clean() : 0;
-        uint64_t sharedDirty = smapsInfo.has_shared_dirty() ? smapsInfo.shared_dirty() : 0;
-        uint64_t swap = smapsInfo.has_swap() ? smapsInfo.swap() : 0;
-        uint64_t swapPss = smapsInfo.has_swap_pss() ? smapsInfo.swap_pss() : 0;
-        uint32_t type = ParseSmapsBlockType(smapsInfo);
-        traceDataCache_->GetSmapsData()->AppendNewData(timeStamp, ipid, startAddr, endAddr, dirty, swapper, rss, pss,
-                                                       size, reside, protection, path, sharedClean, sharedDirty,
-                                                       privateClean, privateDirty, swap, swapPss, type);
+        row.startAddr = "0x" + smapsInfo.start_addr().ToStdString();
+        row.endAddr = "0x" + smapsInfo.end_addr().ToStdString();
+        row.dirty = smapsInfo.dirty();
+        row.swapper = smapsInfo.swapper();
+        row.rss = smapsInfo.rss();
+        row.pss = smapsInfo.pss();
+        row.size = smapsInfo.size();
+        row.reside = smapsInfo.reside();
+        row.protectionId = traceDataCache_->GetDataIndex(smapsInfo.permission().ToStdString());
+        row.pathId = traceDataCache_->GetDataIndex(smapsInfo.path().ToStdString());
+        row.sharedClean = smapsInfo.has_private_clean() ? smapsInfo.private_clean() : 0;
+        row.sharedDirty = smapsInfo.has_private_dirty() ? smapsInfo.private_dirty() : 0;
+        row.privateClean = smapsInfo.has_shared_clean() ? smapsInfo.shared_clean() : 0;
+        row.privateDirty = smapsInfo.has_shared_dirty() ? smapsInfo.shared_dirty() : 0;
+        row.swap = smapsInfo.has_swap() ? smapsInfo.swap() : 0;
+        row.swapPss = smapsInfo.has_swap_pss() ? smapsInfo.swap_pss() : 0;
+        row.type = ParseSmapsBlockType(smapsInfo);
+        traceDataCache_->GetSmapsData()->AppendNewData(row);
     }
 }
 
@@ -391,30 +392,31 @@ void PbreaderMemParser::ParseAshmemInfo(const ProtoReader::MemoryData_Reader *tr
     if (tracePacket->has_ashmeminfo()) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_ASHMEM, STAT_EVENT_RECEIVED);
     }
+    AshMemRow row;
+    row.ts = timeStamp;
     for (auto i = tracePacket->ashmeminfo(); i; ++i) {
         ProtoReader::AshmemInfo_Reader AshmemInfo(i->ToBytes().data_, i->ToBytes().size_);
-        auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(AshmemInfo.pid(),
-                                                                                  AshmemInfo.name().ToStdString());
-        uint32_t adj = AshmemInfo.adj();
-        uint32_t fd = AshmemInfo.fd();
-        DataIndex ashmemNameId = traceDataCache_->GetDataIndex(AshmemInfo.ashmem_name().ToStdString());
-        uint64_t size = AshmemInfo.size();
-        uint32_t ashmemId = AshmemInfo.id();
-        uint64_t time = AshmemInfo.time();
-        uint64_t refCount = AshmemInfo.ref_count();
-        uint64_t purged = AshmemInfo.purged();
-        uint32_t flag = 0;
-        uint64_t pss = 0;
+        row.ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(AshmemInfo.pid(),
+                                                                                 AshmemInfo.name().ToStdString());
+        row.adj = AshmemInfo.adj();
+        row.fd = AshmemInfo.fd();
+        row.ashmemNameId = traceDataCache_->GetDataIndex(AshmemInfo.ashmem_name().ToStdString());
+        row.size = AshmemInfo.size();
+        row.ashmemId = AshmemInfo.id();
+        row.time = AshmemInfo.time();
+        row.refCount = AshmemInfo.ref_count();
+        row.purged = AshmemInfo.purged();
+        row.flag = 0;
+        row.pss = 0;
         auto smapsData = traceDataCache_->GetConstSmapsData();
         auto smapsCount = smapsData.Size();
         for (auto j = 0; j < smapsCount; j++) {
             auto path = traceDataCache_->GetDataFromDict(smapsData.PathIds()[j]);
-            if ((smapsData.Ipids()[j] == ipid) && (path.find("/dev/ashmem/") != std::string::npos)) {
-                pss += smapsData.Pss()[j] + smapsData.SwapPss()[j];
+            if ((smapsData.Ipids()[j] == row.ipid) && (path.find("/dev/ashmem/") != std::string::npos)) {
+                row.pss += smapsData.Pss()[j] + smapsData.SwapPss()[j];
             }
         }
-        traceDataCache_->GetAshMemData()->AppendNewData(ipid, timeStamp, adj, fd, ashmemNameId, size, pss, ashmemId,
-                                                        time, refCount, purged, flag);
+        traceDataCache_->GetAshMemData()->AppendNewData(row);
     }
     AshMemDeduplicate();
 }
@@ -487,18 +489,19 @@ void PbreaderMemParser::ParseDmaMemInfo(const ProtoReader::MemoryData_Reader *tr
     }
     for (auto i = tracePacket->dmainfo(); i; ++i) {
         ProtoReader::DmaInfo_Reader DmaMemInfo(i->ToBytes().data_, i->ToBytes().size_);
-        auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(DmaMemInfo.pid(),
-                                                                                  DmaMemInfo.name().ToStdString());
-        uint32_t fd = DmaMemInfo.fd();
-        uint64_t size = DmaMemInfo.size();
-        uint32_t ino = DmaMemInfo.ino();
-        uint64_t expPid = DmaMemInfo.exp_pid();
-        DataIndex expTaskCommId = traceDataCache_->GetDataIndex(DmaMemInfo.exp_task_comm().ToStdString());
-        DataIndex bufNameId = traceDataCache_->GetDataIndex(DmaMemInfo.buf_name().ToStdString());
-        DataIndex expNameId = traceDataCache_->GetDataIndex(DmaMemInfo.exp_name().ToStdString());
-        uint32_t flag = 0;
-        traceDataCache_->GetDmaMemData()->AppendNewData(ipid, timeStamp, fd, size, ino, expPid, expTaskCommId,
-                                                        bufNameId, expNameId, flag);
+        DmaMemRow row;
+        row.ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(DmaMemInfo.pid(),
+                                                                                 DmaMemInfo.name().ToStdString());
+        row.ts = timeStamp;
+        row.fd = DmaMemInfo.fd();
+        row.size = DmaMemInfo.size();
+        row.ino = DmaMemInfo.ino();
+        row.expPid = DmaMemInfo.exp_pid();
+        row.expTaskCommId = traceDataCache_->GetDataIndex(DmaMemInfo.exp_task_comm().ToStdString());
+        row.bufNameId = traceDataCache_->GetDataIndex(DmaMemInfo.buf_name().ToStdString());
+        row.expNameId = traceDataCache_->GetDataIndex(DmaMemInfo.exp_name().ToStdString());
+        row.flag = 0;
+        traceDataCache_->GetDmaMemData()->AppendNewData(row);
     }
     DmaMemDeduplicate();
 }
@@ -569,15 +572,17 @@ void PbreaderMemParser::ParseGpuProcessMemInfo(const ProtoReader::MemoryData_Rea
         if (GpuMemoryInfo.has_gpu_process_info()) {
             for (auto j = GpuMemoryInfo.gpu_process_info(); j; ++j) {
                 ProtoReader::GpuProcessInfo_Reader GpuProcessInfo(j->ToBytes().data_, j->ToBytes().size_);
-                std::string addr = GpuProcessInfo.addr().ToStdString();
+                GpuProcessMemRow row;
+                row.ts = timeStamp;
+                row.gpuNameId = gpuNameId;
+                row.allGpuSize = allGpuSize;
+                row.addr = GpuProcessInfo.addr().ToStdString();
                 uint32_t pid = GpuProcessInfo.pid();
                 uint32_t tid = GpuProcessInfo.tid();
-                auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(tid, pid);
-                auto ipid = streamFilters_->processFilter_->GetOrCreateInternalPid(timeStamp, pid);
-                uint64_t usedGpuSize = GpuProcessInfo.used_gpu_size();
-
-                traceDataCache_->GetGpuProcessMemData()->AppendNewData(timeStamp, gpuNameId, allGpuSize, addr, ipid,
-                                                                       itid, usedGpuSize);
+                row.itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(tid, pid);
+                row.ipid = streamFilters_->processFilter_->GetOrCreateInternalPid(timeStamp, pid);
+                row.usedGpuSize = GpuProcessInfo.used_gpu_size();
+                traceDataCache_->GetGpuProcessMemData()->AppendNewData(row);
             }
         }
     }
@@ -586,21 +591,23 @@ void PbreaderMemParser::FillGpuWindowMemInfo(const ProtoReader::GpuDumpInfo_Read
                                              uint64_t timeStamp) const
 {
     DataIndex windowNameId = traceDataCache_->GetDataIndex(gpuDumpInfo.window_name().ToStdString());
-    uint64_t windowId = gpuDumpInfo.id();
-    uint64_t purgeableSize = gpuDumpInfo.gpu_purgeable_size();
+    GpuWindowMemRow row;
+    row.ts = timeStamp;
+    row.windowId = gpuDumpInfo.id();
+    row.purgeableSize = gpuDumpInfo.gpu_purgeable_size();
     for (auto i = gpuDumpInfo.gpu_detail_info(); i; ++i) {
         ProtoReader::GpuDetailInfo_Reader GpuDetailInfo(i->ToBytes().data_, i->ToBytes().size_);
-        DataIndex moduleNameId = traceDataCache_->GetDataIndex(GpuDetailInfo.module_name().ToStdString());
+        row.moduleNameId = traceDataCache_->GetDataIndex(GpuDetailInfo.module_name().ToStdString());
         if (!GpuDetailInfo.has_gpu_sub_info()) {
             continue;
         }
         for (auto j = GpuDetailInfo.gpu_sub_info(); j; ++j) {
             ProtoReader::GpuSubInfo_Reader gpuSubInfo(j->ToBytes().data_, j->ToBytes().size_);
-            DataIndex categoryNameId = traceDataCache_->GetDataIndex(gpuSubInfo.category_name().ToStdString());
-            uint64_t size = gpuSubInfo.size();
-            uint32_t entryNum = gpuSubInfo.entry_num();
-            traceDataCache_->GetGpuWindowMemData()->AppendNewData(timeStamp, windowNameId, windowId, moduleNameId,
-                                                                  categoryNameId, size, entryNum, purgeableSize);
+
+            row.categoryNameId = traceDataCache_->GetDataIndex(gpuSubInfo.category_name().ToStdString());
+            row.size = gpuSubInfo.size();
+            row.count = gpuSubInfo.entry_num();
+            traceDataCache_->GetGpuWindowMemData()->AppendNewData(row);
         }
     }
 }

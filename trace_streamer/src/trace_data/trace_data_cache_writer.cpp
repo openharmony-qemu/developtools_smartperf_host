@@ -245,10 +245,6 @@ NetDetailData *TraceDataCacheWriter::GetNetworkData()
 {
     return &networkData_;
 }
-NetDetailData *TraceDataCacheWriter::GetNetworkDetailData()
-{
-    return &networkDetailData_;
-}
 DiskIOData *TraceDataCacheWriter::GetDiskIOData()
 {
     return &diskIOData_;

@@ -23,7 +23,7 @@ import { Utils } from '../base/Utils';
 import { SpSystemTrace } from '../../SpSystemTrace';
 
 const LOCAL_STORAGE_SEARCH_KEY = 'search_key';
-
+let timerId: any = null;
 @element('lit-search')
 export class LitSearch extends BaseElement {
   valueChangeHandler: ((str: string) => void) | undefined | null;
@@ -214,6 +214,7 @@ export class LitSearch extends BaseElement {
   }
 
   private searchKeyupListener(e: KeyboardEvent): void {
+    timerId = null;
     if (e.code === 'Enter' || e.code === 'NumpadEnter') {
       this.isSearchInputFocus = true;
       this.updateSearchList(this.search!.value);
@@ -260,18 +261,13 @@ export class LitSearch extends BaseElement {
     this.search!.addEventListener('blur', (): void => {
       this.searchBlurListener();
     });
-    this.search!.addEventListener('change', (): void => {
-      this.currenSearchValue = this.search?.value!;
-      this.index = 0;
+    this.search!.addEventListener('keyup', (e: KeyboardEvent) => {
       this._retarge_index!.value = '';
-    });
-    this.search!.addEventListener('keyup', (e: KeyboardEvent): void => {
-      SpSystemTrace.isKeyUp = true;
-      this._retarge_index!.value = '';
-      if(this.search?.value !== this.currenSearchValue) {
-        this.index = 0;
-      }
-      this.searchKeyupListener(e);
+      this.index = -1;
+      if (timerId) return;
+      timerId = setTimeout(() => {
+        this.searchKeyupListener(e);
+      },200)
     });
     this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (): void => {
       this.dispatchEvent(

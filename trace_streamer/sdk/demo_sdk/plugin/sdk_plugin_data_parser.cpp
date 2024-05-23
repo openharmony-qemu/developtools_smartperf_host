@@ -19,11 +19,11 @@
 namespace SysTuning {
 namespace TraceStreamer {
 extern "C" {
-void sdk_plugin_init_table_name()
+void SDKPluginIinitTableName()
 {
-    SDK_SetTableName("counter_table", "gpu_counter_object", "slice_table", "slice_object_table");
+    SDKSetTableName("counter_table", "gpu_counter_object", "slice_table", "slice_object_table");
 }
-int32_t sdk_plugin_data_parser(const uint8_t *data, int32_t len)
+int32_t SDKPluginDataParser(const uint8_t *data, int32_t len)
 {
     std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(len);
     std::copy(data, data + len, buf.get());
@@ -33,37 +33,36 @@ int32_t sdk_plugin_data_parser(const uint8_t *data, int32_t len)
     if (size > 1) {
         for (auto m = 0; m < size; m++) {
             auto mockData = mockDataArr.mockdata().at(m);
-            sdk_plugin_parser(data, len, mockData);
+            SDKPluginParser(data, len, mockData);
         }
     } else {
         MockData mockData;
         mockData.ParseFromArray(buf.get(), len);
-        sdk_plugin_parser(data, len, mockData);
+        SDKPluginParser(data, len, mockData);
     }
     return 0;
 }
 
-int32_t sdk_plugin_parser(const uint8_t *data, int32_t len, MockData mockData)
+int32_t SDKPluginParser(const uint8_t *data, int32_t len, MockData mockData)
 {
     // parser counterObject
     for (auto i = 0; i < mockData.counterobj_size(); i++) {
         int32_t counterId = mockData.counterobj(i).id();
         std::string counterName = mockData.counterobj(i).name();
-        SDK_AppendCounterObject(counterId, counterName.c_str());
+        SDKAppendCounterObject(counterId, counterName.c_str());
     }
 
     // parsercounterInfo
     for (auto i = 0; i < mockData.counterinfo_size(); i++) {
-        CounterInfo counterInfo;
-        counterInfo = mockData.counterinfo(i);
-        SDK_AppendCounter(counterInfo.key(), counterInfo.ts(), counterInfo.value());
+        auto counterInfo = mockData.counterinfo(i);
+        SDKAppendCounter(counterInfo.key(), counterInfo.ts(), counterInfo.value());
     }
 
     // parserSliceObj
     for (auto i = 0; i < mockData.sliceobj_size(); i++) {
         int32_t sliceId = mockData.sliceobj(i).id();
         std::string sliceName = mockData.sliceobj(i).name();
-        SDK_AppendSliceObject(sliceId, sliceName.c_str());
+        SDKAppendSliceObject(sliceId, sliceName.c_str());
     }
 
     // parserSliceInfo
@@ -72,7 +71,7 @@ int32_t sdk_plugin_parser(const uint8_t *data, int32_t len, MockData mockData)
         int32_t sliceValue = mockData.sliceinfo(i).value();
         uint64_t startTime = mockData.sliceinfo(i).start_time();
         uint64_t endTime = mockData.sliceinfo(i).end_time();
-        SDK_AppendSlice(sliceKey, startTime, endTime, sliceValue);
+        SDKAppendSlice(sliceKey, startTime, endTime, sliceValue);
     }
     return 0;
 }

@@ -37,6 +37,9 @@ const uint64_t IPS_01 = 548606407208;
 const uint64_t IPS_02 = 548607407208;
 const uint64_t EBPF_COMMAND_MAX_SIZE = 1000;
 const uint32_t DURPER4K = 4096;
+const uint64_t PID = 32;
+const uint64_t TID = 32;
+const uint16_t TYPE = 2;
 
 class EbpfBioParserTest : public ::testing::Test {
 public:
@@ -57,13 +60,13 @@ public:
         strcpy_s(ebpfHeader_.cmdline, EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str());
         ebpfTypeAndLength_.type = ITEM_EVENT_BIO;
         ebpfTypeAndLength_.length = length;
-        bioFixedHeader_.pid = 32;
-        bioFixedHeader_.tid = 32;
+        bioFixedHeader_.pid = PID;
+        bioFixedHeader_.tid = TID;
         memcpy_s(bioFixedHeader_.processName, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
         bioFixedHeader_.prio = 0;
         bioFixedHeader_.size = DURPER4K;
         bioFixedHeader_.blkcnt = BLKCNT;
-        bioFixedHeader_.type = 2;
+        bioFixedHeader_.type = TYPE;
         bioFixedHeader_.nips = nips;
         bioFixedHeader_.startTime = startTime;
         bioFixedHeader_.endTime = endTime;

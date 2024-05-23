@@ -38,6 +38,8 @@ enum METRICS_INDEX {
     METRICS_SYS_CALLS,
 };
 
+namespace SysTuning {
+namespace TraceStreamer {
 const std::string TRACE_MEM = "trace_mem";
 const std::string TRACE_MEM_TOP_TEN = "trace_mem_top10";
 const std::string TRACE_MEM_UNAGG = "trace_mem_unagg";
@@ -72,9 +74,6 @@ const std::string FUNCTION_NAME = "function_name:";
 const std::string DUR_MAX = "dur_max:";
 const std::string DUR_MIN = "dur_min:";
 const std::string DUR_AVG = "dur_avg:";
-
-namespace SysTuning {
-namespace TraceStreamer {
 using json = nlohmann::json;
 class Metrics {
 public:

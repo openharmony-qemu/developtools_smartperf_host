@@ -134,7 +134,7 @@ std::string DemoTableBase::DemoCreateTableSql() const
 {
     std::string demoStmt = "CREATE TABLE x(";
     for (const auto &col : demoTableColumn_) {
-        demoStmt += " " + col.name_ + " " + col.type_;
+        demoStmt += " " + col.columnName + " " + col.columnType;
         demoStmt += ",";
     }
     demoStmt += " PRIMARY KEY(";
