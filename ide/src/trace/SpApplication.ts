@@ -890,7 +890,7 @@ export class SpApplication extends BaseElement {
           clickHandler: (item: MenuItem): void => this.clickHandleByKeyboardShortcuts(),
         },
         {
-          title: 'Third File',
+          title: 'The Third Files',
           icon: 'file-fill',
           fileModel: this.wasm ? 'wasm' : 'db',
           clickHandler: (item: MenuItem): void => {
