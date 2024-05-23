@@ -32,21 +32,15 @@ const std::deque<DataIndex> &HiSysEventSubkeys::SysEventSubkeyId() const
     return subkeyNameIds_;
 }
 
-void HiSysEventMeasureData::AppendData(uint64_t serial,
-                                       uint64_t ts,
-                                       uint32_t nameId,
-                                       uint32_t keyId,
-                                       int32_t type,
-                                       double numericValue,
-                                       DataIndex stringValue)
+void HiSysEventMeasureData::AppendData(const HiSysEventMeasureDataRow &context)
 {
-    serial_.emplace_back(serial);
-    ts_.emplace_back(ts);
-    nameFilterIds_.emplace_back(nameId);
-    appKeyFilterIds_.emplace_back(keyId);
-    types_.emplace_back(type);
-    numValues_.emplace_back(numericValue);
-    stringValues_.emplace_back(stringValue);
+    serial_.emplace_back(context.serial);
+    ts_.emplace_back(context.ts);
+    nameFilterIds_.emplace_back(context.nameId);
+    appKeyFilterIds_.emplace_back(context.keyId);
+    types_.emplace_back(context.type);
+    numValues_.emplace_back(context.numericValue);
+    stringValues_.emplace_back(context.stringValue);
     ids_.emplace_back(rowCount_);
     rowCount_++;
 }
@@ -78,47 +72,28 @@ const std::deque<DataIndex> &HiSysEventMeasureData::StringValue() const
 {
     return stringValues_;
 }
-void HiSysEventDeviceStateData::AppendNewData(int32_t brightness,
-                                              int32_t btState,
-                                              int32_t location,
-                                              int32_t wifi,
-                                              int32_t streamDefault,
-                                              int32_t voiceCall,
-                                              int32_t music,
-                                              int32_t streamRing,
-                                              int32_t media,
-                                              int32_t voiceAssistant,
-                                              int32_t system,
-                                              int32_t alarm,
-                                              int32_t notification,
-                                              int32_t btSco,
-                                              int32_t enforcedAudible,
-                                              int32_t streamDtmf,
-                                              int32_t streamTts,
-                                              int32_t accessibility,
-                                              int32_t recording,
-                                              int32_t streamAll)
+void HiSysEventDeviceStateData::AppendNewData(const HiSysEventDeviceStateDataRow &context)
 {
-    brightness_.emplace_back(brightness);
-    btStates_.emplace_back(btState);
-    locations_.emplace_back(location);
-    wifis_.emplace_back(wifi);
-    streamDefaults_.emplace_back(streamDefault);
-    voiceCalls_.emplace_back(voiceCall);
-    musics_.emplace_back(music);
-    streamRings_.emplace_back(streamRing);
-    medias_.emplace_back(media);
-    voiceAssistants_.emplace_back(voiceAssistant);
-    systems_.emplace_back(system);
-    alarms_.emplace_back(alarm);
-    notifications_.emplace_back(notification);
-    btScos_.emplace_back(btSco);
-    enforcedAudibles_.emplace_back(enforcedAudible);
-    streamDtmfs_.emplace_back(streamDtmf);
-    streamTts_.emplace_back(streamTts);
-    accessibilitys_.emplace_back(accessibility);
-    recordings_.emplace_back(recording);
-    streamAlls_.emplace_back(streamAll);
+    brightness_.emplace_back(context.brightness);
+    btStates_.emplace_back(context.btState);
+    locations_.emplace_back(context.location);
+    wifis_.emplace_back(context.wifi);
+    streamDefaults_.emplace_back(context.streamDefault);
+    voiceCalls_.emplace_back(context.voiceCall);
+    musics_.emplace_back(context.music);
+    streamRings_.emplace_back(context.streamRing);
+    medias_.emplace_back(context.media);
+    voiceAssistants_.emplace_back(context.voiceAssistant);
+    systems_.emplace_back(context.system);
+    alarms_.emplace_back(context.alarm);
+    notifications_.emplace_back(context.notification);
+    btScos_.emplace_back(context.btSco);
+    enforcedAudibles_.emplace_back(context.enforcedAudible);
+    streamDtmfs_.emplace_back(context.streamDtmf);
+    streamTts_.emplace_back(context.streamTts);
+    accessibilitys_.emplace_back(context.accessibility);
+    recordings_.emplace_back(context.recording);
+    streamAlls_.emplace_back(context.streamAll);
     ids_.emplace_back(rowCounts_);
     rowCounts_++;
 }
@@ -203,35 +178,22 @@ const std::deque<int32_t> &HiSysEventDeviceStateData::StreamAll() const
     return streamAlls_;
 }
 
-uint32_t HiSysEventAllEventData::AppendHiSysEventData(DataIndex domainId,
-                                                      DataIndex eventNameId,
-                                                      uint64_t timeStamp,
-                                                      uint32_t type,
-                                                      const std::string &timeZone,
-                                                      uint32_t pid,
-                                                      uint32_t tid,
-                                                      uint32_t uid,
-                                                      const std::string &level,
-                                                      const std::string &tag,
-                                                      const std::string &eventId,
-                                                      uint64_t seq,
-                                                      const std::string &info,
-                                                      const std::string &content)
+uint32_t HiSysEventAllEventData::AppendHiSysEventData(const HiSysEventAllEventDataRow &hiSysEventAllEventDataRow)
 {
-    domainIds_.emplace_back(domainId);
-    eventNameIds_.emplace_back(eventNameId);
-    timeStamps_.emplace_back(timeStamp);
-    types_.emplace_back(type);
-    timeZones_.emplace_back(timeZone);
-    pids_.emplace_back(pid);
-    tids_.emplace_back(tid);
-    uids_.emplace_back(uid);
-    levels_.emplace_back(level);
-    tags_.emplace_back(tag);
-    eventIds_.emplace_back(eventId);
-    seqs_.emplace_back(seq);
-    infos_.emplace_back(info);
-    contents_.emplace_back(content);
+    domainIds_.emplace_back(hiSysEventAllEventDataRow.domainId);
+    eventNameIds_.emplace_back(hiSysEventAllEventDataRow.eventNameId);
+    timeStamps_.emplace_back(hiSysEventAllEventDataRow.timeStamp);
+    types_.emplace_back(hiSysEventAllEventDataRow.type);
+    timeZones_.emplace_back(hiSysEventAllEventDataRow.timeZone);
+    pids_.emplace_back(hiSysEventAllEventDataRow.pid);
+    tids_.emplace_back(hiSysEventAllEventDataRow.tid);
+    uids_.emplace_back(hiSysEventAllEventDataRow.uid);
+    levels_.emplace_back(hiSysEventAllEventDataRow.level);
+    tags_.emplace_back(hiSysEventAllEventDataRow.tag);
+    eventIds_.emplace_back(hiSysEventAllEventDataRow.eventId);
+    seqs_.emplace_back(hiSysEventAllEventDataRow.seq);
+    infos_.emplace_back(hiSysEventAllEventDataRow.info);
+    contents_.emplace_back(hiSysEventAllEventDataRow.content);
     ids_.emplace_back(Size());
     return Size() - 1;
 }

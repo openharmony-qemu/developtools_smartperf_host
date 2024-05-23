@@ -32,7 +32,7 @@ private:
     public:
         explicit Cursor(const TraceDataCache *dataCache, DemoTableBase *table);
         ~Cursor() override;
-        int32_t Column(int32_t column) const override;
+        int32_t Column(int32_t sliceObjColumn) const override;
 
     private:
         const SliceObject &sliceObjectDataObj_;

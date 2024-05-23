@@ -34,20 +34,15 @@ size_t FrameSlice::AppendFrame(uint64_t ts, uint32_t ipid, uint32_t itid, uint32
     frameNos_.emplace_back(0);
     return Size() - 1;
 }
-size_t FrameSlice::AppendFrame(uint64_t ts,
-                               uint32_t ipid,
-                               uint32_t itid,
-                               uint32_t vsyncId,
-                               uint64_t callStackSliceId,
-                               uint64_t end,
-                               uint8_t type)
+size_t FrameSlice::AppendFrame(const FrameSliceRow &frameSliceRow)
 {
-    auto row = AppendFrame(ts, ipid, itid, vsyncId, callStackSliceId);
-    SetEndTime(row, end);
-    SetType(row, type);
+    auto row = AppendFrame(frameSliceRow.ts, frameSliceRow.ipid, frameSliceRow.itid, frameSliceRow.vsyncId,
+                           frameSliceRow.callStackSliceId);
+    SetEndTime(row, frameSliceRow.end);
+    SetType(row, frameSliceRow.type);
     depths_.emplace_back(0);
     frameNos_.emplace_back(0);
-    durs_[row] = end - ts;
+    durs_[row] = frameSliceRow.end - frameSliceRow.ts;
     return row;
 }
 

@@ -82,11 +82,21 @@ void PbreaderProcessParser::Finish()
         if (!(*itor)->processInfo_->pid) {
             continue;
         }
-        traceDataCache_->GetLiveProcessData()->AppendNewData(
-            (*itor)->ts_, dur, (*itor)->processInfo_->pid, (*itor)->processInfo_->name, (*itor)->processInfo_->ppid,
-            (*itor)->processInfo_->uid, std::to_string((*itor)->processInfo_->uid), (*itor)->cpuUsageData_->cpuUsage,
-            (*itor)->pssInfo_->pssInfo, (*itor)->cpuUsageData_->cpuTimeMs, (*itor)->cpuUsageData_->threadSum,
-            (*itor)->diskio_->wbytes, (*itor)->diskio_->rbytes);
+        LiveProcessDetailRow row;
+        row.newTimeStamp = (*itor)->ts_;
+        row.dur = dur;
+        row.processID = (*itor)->processInfo_->pid;
+        row.processName = (*itor)->processInfo_->name;
+        row.parentProcessID = (*itor)->processInfo_->ppid;
+        row.uid = (*itor)->processInfo_->uid;
+        row.userName = std::to_string((*itor)->processInfo_->uid);
+        row.cpuUsage = (*itor)->cpuUsageData_->cpuUsage;
+        row.pssInfo = (*itor)->pssInfo_->pssInfo;
+        row.cpuTime = (*itor)->cpuUsageData_->cpuTimeMs;
+        row.threads = (*itor)->cpuUsageData_->threadSum;
+        row.diskWrites = (*itor)->diskio_->wbytes;
+        row.diskReads = (*itor)->diskio_->rbytes;
+        traceDataCache_->GetLiveProcessData()->AppendNewData(row);
     }
     liveProcessData_.clear();
     traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());

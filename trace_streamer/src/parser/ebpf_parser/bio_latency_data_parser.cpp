@@ -39,7 +39,7 @@ const uint64_t *BioLatencyDataParser::IPAndCallIdProcessing(const BIOFixedHeader
         std::string ipsToStr(reinterpret_cast<const char *>(userIpsAddr), bioFixedHeadrAddr->nips * SINGLE_IP_SIZE);
         auto ipsHashValue = hashFun_(ipsToStr);
         auto value = pidAndipsToCallId_.Find(bioFixedHeadrAddr->pid, ipsHashValue);
-        if (value != INVALID_UINT64) {
+        if (value != INVALID_UINT32) {
             callIdExistFlag = true;
             currentCallId_ = value;
         } else {
@@ -47,15 +47,12 @@ const uint64_t *BioLatencyDataParser::IPAndCallIdProcessing(const BIOFixedHeader
             currentCallId_ = callChainId_++;
         }
     } else {
-        currentCallId_ = INVALID_UINT64;
+        currentCallId_ = INVALID_UINT32;
     }
     return userIpsAddr;
 }
 void BioLatencyDataParser::ParseBioLatencyEvent()
 {
-    if (!reader_->GetBIOSampleMap().size()) {
-        return;
-    }
     for (auto mapItor = reader_->GetBIOSampleMap().begin(); mapItor != reader_->GetBIOSampleMap().end(); mapItor++) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF_BIO_LATENCY, STAT_EVENT_RECEIVED);
         auto bioFixedHeadrAddr = mapItor->second;
@@ -99,8 +96,9 @@ void BioLatencyDataParser::ParseBioLatencyEvent()
         if (pathId != INVALID_UINT64) {
             tracerEventToStrIndexMap.Erase(ITEM_EVENT_FS, type, itid, startTs);
         }
-        traceDataCache_->GetBioLatencySampleData()->AppendNewData(
-            currentCallId_, type, ipid, itid, newStartTs, newEndTs, duration, prio, size, blkCount, pathId, durPer4K);
+        BioLatencySampleDataRow bioLatencySampleDataRow = {currentCallId_, type, ipid, itid,     newStartTs, newEndTs,
+                                                           duration,       prio, size, blkCount, pathId,     durPer4K};
+        traceDataCache_->GetBioLatencySampleData()->AppendNewData(bioLatencySampleDataRow);
         if (!callIdExistFlag) {
             ParseCallStackData(userIpsAddr, bioFixedHeadrAddr->nips, bioFixedHeadrAddr->pid, currentCallId_);
         }

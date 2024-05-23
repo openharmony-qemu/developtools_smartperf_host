@@ -16,23 +16,16 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
-size_t LogInfo::AppendNewLogInfo(uint64_t seq,
-                                 uint64_t timeStamp,
-                                 uint32_t pid,
-                                 uint32_t tid,
-                                 DataIndex level,
-                                 DataIndex tag,
-                                 DataIndex context,
-                                 uint64_t originTs)
+size_t LogInfo::AppendNewLogInfo(const LogInfoRow &logInfoRow)
 {
-    hilogLineSeqs_.emplace_back(seq);
-    timeStamps_.emplace_back(timeStamp);
-    pids_.emplace_back(pid);
-    tids_.emplace_back(tid);
-    levels_.emplace_back(level);
-    tags_.emplace_back(tag);
-    contexts_.emplace_back(context);
-    originTs_.emplace_back(originTs);
+    hilogLineSeqs_.emplace_back(logInfoRow.seq);
+    timeStamps_.emplace_back(logInfoRow.timeStamp);
+    pids_.emplace_back(logInfoRow.pid);
+    tids_.emplace_back(logInfoRow.tid);
+    levels_.emplace_back(logInfoRow.level);
+    tags_.emplace_back(logInfoRow.tag);
+    contexts_.emplace_back(logInfoRow.context);
+    originTs_.emplace_back(logInfoRow.originTs);
     return Size() - 1;
 }
 const std::deque<uint64_t> &LogInfo::HilogLineSeqs() const

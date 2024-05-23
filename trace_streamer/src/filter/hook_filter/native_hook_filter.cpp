@@ -153,9 +153,6 @@ std::unique_ptr<NativeHookFrameInfo> NativeHookFilter::ParseFrame(uint64_t row, 
     if (reader.has_ip()) {
         frameInfo->ip_ = reader.ip();
     }
-    if (reader.has_sp()) {
-        frameInfo->sp_ = reader.sp();
-    }
     if (reader.has_offset()) {
         frameInfo->offset_ = reader.offset();
     }
@@ -228,9 +225,16 @@ void NativeHookFilter::ParseStatisticEvent(uint64_t timeStamp, const ProtoReader
     if (reader.has_tag_name()) {
         memSubType = traceDataCache_->GetDataIndex(reader.tag_name().ToStdString());
     }
-    traceDataCache_->GetNativeHookStatisticsData()->AppendNewNativeHookStatistic(
-        ipid, timeStamp, callChainId, reader.type(), memSubType, reader.apply_count(), reader.release_count(),
-        reader.apply_size(), reader.release_size());
+    NativeHookStatisticRow nativeHookStatisticRow = {ipid,
+                                                     timeStamp,
+                                                     callChainId,
+                                                     static_cast<uint32_t>(reader.type()),
+                                                     memSubType,
+                                                     reader.apply_count(),
+                                                     reader.release_count(),
+                                                     reader.apply_size(),
+                                                     reader.release_size()};
+    traceDataCache_->GetNativeHookStatisticsData()->AppendNewNativeHookStatistic(nativeHookStatisticRow);
 }
 void NativeHookFilter::ParseAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView)
 {
@@ -267,9 +271,17 @@ void NativeHookFilter::ParseAllocEvent(uint64_t timeStamp, const ProtoReader::By
     if (allocEventReader.has_thread_name_id()) {
         UpdateMap(itidToThreadNameId_, itid, ipidWithThreadNameIdIndex);
     }
-    auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
-        callChainId, ipid, itid, "AllocEvent", INVALID_UINT64, timeStamp, 0, 0, allocEventReader.addr(),
-        allocEventReader.size());
+    NativeHookRow nativeHookRow = {callChainId,
+                                   ipid,
+                                   itid,
+                                   "AllocEvent",
+                                   INVALID_UINT64,
+                                   timeStamp,
+                                   0,
+                                   0,
+                                   allocEventReader.addr(),
+                                   allocEventReader.size()};
+    auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     addrToAllocEventRow_->insert(std::make_pair(allocEventReader.addr(), static_cast<uint64_t>(row)));
     if (allocEventReader.size() != 0) {
         MaybeUpdateCurrentSizeDur(row, timeStamp, true);
@@ -335,8 +347,9 @@ void NativeHookFilter::ParseFreeEvent(uint64_t timeStamp, const ProtoReader::Byt
         streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_DATA_INVALID);
         return;
     }
-    row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
-        callChainId, ipid, itid, "FreeEvent", INVALID_UINT64, timeStamp, 0, 0, freeEventReader.addr(), freeHeapSize);
+    NativeHookRow nativeHookRow = {
+        callChainId, ipid, itid, "FreeEvent", INVALID_UINT64, timeStamp, 0, 0, freeEventReader.addr(), freeHeapSize};
+    row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     if (freeHeapSize != 0) {
         MaybeUpdateCurrentSizeDur(row, timeStamp, true);
     }
@@ -395,8 +408,8 @@ void NativeHookFilter::ParseMmapEvent(uint64_t timeStamp, const ProtoReader::Byt
         // Establish a mapping of addr and size to the mmap tag index.
         addrToMmapTag_[mMapAddr] = subType; // update addr to MemMapSubType
     }
-    auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
-        callChainId, ipid, itid, "MmapEvent", subType, timeStamp, 0, 0, mMapAddr, mMapSize);
+    NativeHookRow nativeHookRow = {callChainId, ipid, itid, "MmapEvent", subType, timeStamp, 0, 0, mMapAddr, mMapSize};
+    auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     if (subType == INVALID_UINT64) {
         UpdateAnonMmapDataDbIndex(mMapAddr, mMapSize, static_cast<uint64_t>(row));
     }
@@ -465,9 +478,17 @@ void NativeHookFilter::ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::B
         streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_DATA_INVALID);
         return;
     }
-    row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
-        callChainId, ipid, itid, "MunmapEvent", GetMemMapSubTypeWithAddr(mUnmapEventReader.addr()), timeStamp, 0, 0,
-        mUnmapEventReader.addr(), mUnmapEventReader.size());
+    NativeHookRow nativeHookRow = {callChainId,
+                                   ipid,
+                                   itid,
+                                   "MunmapEvent",
+                                   GetMemMapSubTypeWithAddr(mUnmapEventReader.addr()),
+                                   timeStamp,
+                                   0,
+                                   0,
+                                   mUnmapEventReader.addr(),
+                                   mUnmapEventReader.size()};
+    row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     addrToMmapTag_.erase(mUnmapEventReader.addr()); // earse MemMapSubType with addr
     if (mUnmapEventReader.size() != 0) {
         MaybeUpdateCurrentSizeDur(row, timeStamp, false);
@@ -687,9 +708,15 @@ void NativeHookFilter::FillOfflineSymbolizationFrames(
         auto frameInfo = itor->get();
         filePathIndex = ipidToFilePathIdToFileIndex_.Find(curCacheIpid, frameInfo->filePathId_);
         std::string vaddr = base::Uint64ToHexText(frameInfo->symVaddr_);
-        auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-            callChainId_, depth++, frameInfo->ip_, frameInfo->symbolIndex_, filePathIndex, frameInfo->offset_,
-            frameInfo->symbolOffset_, vaddr);
+        NativeHookFrameVaddrRow nativeHookFrameVaddrRow = {callChainId_,
+                                                           depth++,
+                                                           frameInfo->ip_,
+                                                           frameInfo->symbolIndex_,
+                                                           filePathIndex,
+                                                           frameInfo->offset_,
+                                                           frameInfo->symbolOffset_,
+                                                           vaddr};
+        auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow);
         UpdateFilePathIndexToCallStackRowMap(row, filePathIndex);
     }
 }
@@ -706,6 +733,19 @@ void NativeHookFilter::ReparseStacksWithDifferentMeans()
     reparseStackIdToFramesMap_.clear();
 }
 
+void NativeHookFilter::UpdateReparseStack(uint64_t stackId, std::shared_ptr<std::vector<uint64_t>> frames)
+{
+    // delete the stack ids whitch should be parsed again
+    if (stackIdToCallChainIdMap_.count(stackId)) {
+        stackIdToCallChainIdMap_.erase(stackId);
+    }
+    /* update reparseStackIdToFramesMap_. The reparseStackIdToFramesMap_ cannot be parsed immediately.
+    Wait until the relevant memmaps and symbolTable updates are completed. After the main event is
+    updated and before the main event is about to be parsed, parse reparseStackIdToFramesMap_ first. */
+    if (!stackIdToFramesMap_.count(stackId)) {
+        reparseStackIdToFramesMap_.emplace(std::make_pair(stackId, frames));
+    }
+}
 inline void NativeHookFilter::ReparseStacksWithAddrRange(uint64_t start, uint64_t end)
 {
     // Get the list of call stack ids that should be parsed again
@@ -713,16 +753,7 @@ inline void NativeHookFilter::ReparseStacksWithAddrRange(uint64_t start, uint64_
         auto ips = itor->second;
         for (auto ipsItor = ips->begin(); ipsItor != ips->end(); ipsItor++) {
             if (*ipsItor >= start && *ipsItor < end) {
-                // delete the stack ids whitch should be parsed again
-                if (stackIdToCallChainIdMap_.count(itor->first)) {
-                    stackIdToCallChainIdMap_.erase(itor->first);
-                }
-                /* update reparseStackIdToFramesMap_. The reparseStackIdToFramesMap_ cannot be parsed immediately.
-                Wait until the relevant memmaps and symbolTable updates are completed. After the main event is
-                updated and before the main event is about to be parsed, parse reparseStackIdToFramesMap_ first. */
-                if (!stackIdToFramesMap_.count(itor->first)) {
-                    reparseStackIdToFramesMap_.emplace(std::make_pair(itor->first, itor->second));
-                }
+                UpdateReparseStack(itor->first, itor->second);
                 break;
             }
         }
@@ -800,6 +831,37 @@ void NativeHookFilter::UpdateSymbolTablePtrAndStValueToSymAddrMap(
         }
     }
 }
+std::tuple<uint64_t, uint64_t> NativeHookFilter::GetIpRangeByIpidAndFilePathId(uint32_t ipid, uint32_t filePathId)
+{
+    uint64_t start = INVALID_UINT32;
+    uint64_t end = 0;
+    auto startAddrToMapsInfoMapPtr = ipidToStartAddrToMapsInfoMap_.Find(ipid);
+    if (startAddrToMapsInfoMapPtr != nullptr) {
+        for (auto itor = startAddrToMapsInfoMapPtr->begin(); itor != startAddrToMapsInfoMapPtr->end(); itor++) {
+            if (itor->second->file_path_id() == filePathId) {
+                start = std::min(itor->first, start);
+                end = std::max(itor->second->end(), end);
+            } else if (start != INVALID_UINT32) {
+                break;
+            }
+        }
+    }
+    return std::make_tuple(start, end);
+}
+void NativeHookFilter::DeleteFrameInfoWhichNeedsReparse(uint32_t ipid, uint32_t filePathId)
+{
+    // Delete symbolic results with the same filePathId
+    auto ipToFrameInfoPtr = const_cast<IpToFrameInfoType *>(ipidToIpToFrameInfo_.Find(ipid));
+    if (ipToFrameInfoPtr != nullptr) {
+        for (auto itor = ipToFrameInfoPtr->begin(); itor != ipToFrameInfoPtr->end();) {
+            if (itor->second->filePathId_ == filePathId) {
+                itor = ipToFrameInfoPtr->erase(itor);
+                continue;
+            }
+            itor++;
+        }
+    }
+}
 void NativeHookFilter::ProcSymbolTable(uint32_t ipid,
                                        uint32_t filePathId,
                                        std::shared_ptr<ProtoReader::SymbolTable_Reader> reader)
@@ -815,30 +877,10 @@ void NativeHookFilter::ProcSymbolTable(uint32_t ipid,
             ReparseStacksWithDifferentMeans();
             FilterNativeHookMainEvent(tsToMainEventsMap_.size());
         }
-        // Delete symbolic results with the same filePathId
-        auto ipToFrameInfoPtr = const_cast<IpToFrameInfoType *>(ipidToIpToFrameInfo_.Find(ipid));
-        if (ipToFrameInfoPtr != nullptr) {
-            for (auto itor = ipToFrameInfoPtr->begin(); itor != ipToFrameInfoPtr->end();) {
-                if (itor->second->filePathId_ == filePathId) {
-                    itor = ipToFrameInfoPtr->erase(itor);
-                    continue;
-                }
-                itor++;
-            }
-        }
+        DeleteFrameInfoWhichNeedsReparse(ipid, filePathId);
         uint64_t start = INVALID_UINT32;
         uint64_t end = 0;
-        auto startAddrToMapsInfoMapPtr = ipidToStartAddrToMapsInfoMap_.Find(ipid);
-        if (startAddrToMapsInfoMapPtr != nullptr) {
-            for (auto itor = startAddrToMapsInfoMapPtr->begin(); itor != startAddrToMapsInfoMapPtr->end(); itor++) {
-                if (itor->second->file_path_id() == filePathId) {
-                    start = std::min(itor->first, start);
-                    end = std::max(itor->second->end(), end);
-                } else if (start != INVALID_UINT32) {
-                    break;
-                }
-            }
-        }
+        std::tie(start, end) = GetIpRangeByIpidAndFilePathId(ipid, filePathId);
         ReparseStacksWithAddrRange(start, end);
         symbolTablePtr = reader;
     } else {
@@ -1003,9 +1045,14 @@ void NativeHookFilter::ParseFramesInCallStackCompressedMode()
             auto frameIp = reader.has_ip() ? reader.ip() : INVALID_UINT64;
             auto frameOffset = reader.has_offset() ? reader.offset() : INVALID_UINT64;
             auto frameSymbolOffset = reader.has_symbol_offset() ? reader.symbol_offset() : INVALID_UINT64;
-            auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-                stackIdToFramesItor->first, depth++, frameIp, symbolIndex, filePathIndex, frameOffset,
-                frameSymbolOffset);
+            NativeHookFrameRow nativeHookFrameRow = {static_cast<uint32_t>(stackIdToFramesItor->first),
+                                                     depth++,
+                                                     frameIp,
+                                                     symbolIndex,
+                                                     filePathIndex,
+                                                     frameOffset,
+                                                     frameSymbolOffset};
+            auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameRow);
             UpdateFilePathIndexToCallStackRowMap(row, filePathIndex);
         }
     }
@@ -1027,9 +1074,14 @@ void NativeHookFilter::ParseFramesWithOutCallStackCompressedMode()
                 return;
             }
             auto &frameInfo = frameHashToFrameInfoMap_.at(*frameHashValueVectorItor);
-            auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-                callChainId, depth++, frameInfo->ip_, frameInfo->symbolIndex_, frameInfo->filePathIndex_,
-                frameInfo->offset_, frameInfo->symbolOffset_);
+            NativeHookFrameRow nativeHookFrameRow = {callChainId,
+                                                     depth++,
+                                                     frameInfo->ip_,
+                                                     frameInfo->symbolIndex_,
+                                                     frameInfo->filePathIndex_,
+                                                     frameInfo->offset_,
+                                                     frameInfo->symbolOffset_};
+            auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameRow);
             UpdateFilePathIndexToCallStackRowMap(row, frameInfo->filePathIndex_);
         }
     }

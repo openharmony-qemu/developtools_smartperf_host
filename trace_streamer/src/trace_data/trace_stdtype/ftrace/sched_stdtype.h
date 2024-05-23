@@ -87,15 +87,17 @@ private:
     std::deque<InternalCpu> cpus_;
     std::deque<uint32_t> argSetIds_;
 };
-
+struct SchedSliceRow {
+    uint64_t ts = INVALID_UINT64;
+    uint64_t dur = INVALID_UINT64;
+    uint64_t cpu = INVALID_UINT64;
+    uint32_t internalTid = INVALID_UINT32;
+    uint64_t endState = INVALID_UINT64;
+    int32_t priority = INVALID_INT32;
+};
 class SchedSlice : public CacheBase, public CpuCacheBase, public BatchCacheBase {
 public:
-    size_t AppendSchedSlice(uint64_t ts,
-                            uint64_t dur,
-                            uint64_t cpu,
-                            uint32_t internalTid,
-                            uint64_t endState,
-                            int32_t priority);
+    size_t AppendSchedSlice(const SchedSliceRow &schedSliceRow);
     void SetDuration(size_t index, uint64_t duration);
     void Update(uint64_t index, uint64_t ts, uint64_t state);
     void UpdateEndState(uint64_t index, uint64_t state);

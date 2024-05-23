@@ -69,36 +69,36 @@ bool EbpfDataReader::InitEbpfHeader()
     return true;
 }
 
-bool EbpfDataReader::EbpfTypeHandle(EbpfTypeAndLength *dataTitle, const uint8_t *startAddr_)
+bool EbpfDataReader::EbpfTypeHandle(EbpfTypeAndLength *dataTitle, const uint8_t *startAddr)
 {
     bool ret = true;
     switch (dataTitle->type) {
         case ITEM_EVENT_MAPS: {
-            ret = ReadItemEventMaps(startAddr_, dataTitle->length);
+            ret = ReadItemEventMaps(startAddr, dataTitle->length);
             break;
         }
         case ITEM_SYMBOL_INFO: {
-            ret = ReadItemSymbolInfo(startAddr_, dataTitle->length);
+            ret = ReadItemSymbolInfo(startAddr, dataTitle->length);
             break;
         }
         case ITEM_EVENT_FS: {
-            ret = ReadItemEventFs(startAddr_, dataTitle->length);
+            ret = ReadItemEventFs(startAddr, dataTitle->length);
             break;
         }
         case ITEM_EVENT_VM: {
-            ret = ReadItemEventPagedMemory(startAddr_, dataTitle->length);
+            ret = ReadItemEventPagedMemory(startAddr, dataTitle->length);
             break;
         }
         case ITEM_EVENT_BIO: {
-            ret = ReadItemEventBIO(startAddr_, dataTitle->length);
+            ret = ReadItemEventBIO(startAddr, dataTitle->length);
             break;
         }
         case ITEM_EVENT_STR: {
-            ret = ReadItemEventStr(startAddr_, dataTitle->length);
+            ret = ReadItemEventStr(startAddr, dataTitle->length);
             break;
         }
         case ITEM_EVENT_KENEL_SYMBOL_INFO: {
-            ret = ReaItemKernelSymbolInfo(startAddr_, dataTitle->length);
+            ret = ReaItemKernelSymbolInfo(startAddr, dataTitle->length);
             break;
         }
         default:
@@ -181,9 +181,9 @@ void EbpfDataReader::ReadKernelSymAddrMap(const KernelSymbolInfoHeader *elfAddr,
     maxKernelAddr_ = elfAddr->vaddrEnd;
     minKernelAddr_ = elfAddr->vaddrStart;
     for (uint32_t i = 0; i < sysItemSize; i++) {
-        (void)memset_s(strSymbolName_, MAX_SYMBOL_LENGTH, 0, MAX_SYMBOL_LENGTH);
+        (void)memset_s(strSymbolName_, maxSymbolLength, 0, maxSymbolLength);
         auto item = start + i;
-        if (strncpy_s(strSymbolName_, MAX_SYMBOL_LENGTH, strTab + item->nameOffset, MAX_SYMBOL_LENGTH) < 0) {
+        if (strncpy_s(strSymbolName_, maxSymbolLength, strTab + item->nameOffset, maxSymbolLength) < 0) {
             TS_LOGE("get kernel symbol name error");
         }
         AddrDesc desc{item->size, traceDataCache_->dataDict_.GetStringIndex(strSymbolName_)};
@@ -317,8 +317,7 @@ const DoubleMap<uint32_t, uint64_t, const MapsFixedHeader *> &EbpfDataReader::Ge
     return pidAndStartAddrToMapsAddr_;
 }
 
-const DoubleMap<const ElfEventFixedHeader *, uint64_t, const uint8_t *>
-    &EbpfDataReader::GetElfAddrAndStartValueToSymAddr() const
+const EbpfDataReader::ElfDoubleMap &EbpfDataReader::GetElfAddrAndStartValueToSymAddr() const
 {
     return elfAddrAndStValueToSymAddr_;
 }

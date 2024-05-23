@@ -36,16 +36,6 @@ size_t PerfDataFilter::AppendPerfFiles(uint64_t fileId, uint32_t serial, DataInd
     return size;
 }
 
-void PerfDataFilter::AppendPerfCallChain(uint32_t callChainId,
-                                         uint32_t depth,
-                                         uint64_t ip,
-                                         uint64_t vaddrInFile,
-                                         uint64_t fileId,
-                                         uint64_t symbolId)
-{
-    traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(callChainId, depth, ip, vaddrInFile, fileId,
-                                                                    symbolId);
-}
 void PerfDataFilter::BeforeReload()
 {
     traceDataCache_->GetPerfCallChainData()->Clear();

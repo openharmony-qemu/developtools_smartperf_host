@@ -108,7 +108,8 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
                                   DataIndex nextInfo)
 {
     BinderTransactionInfo btInfo = {prevPid, nextPid, INVALID_UINT64, INVALID_UINT64};
-    auto index = traceDataCache_->GetSchedSliceData()->AppendSchedSlice(ts, INVALID_UINT64, cpu, nextPid, 0, nextPrio);
+    SchedSliceRow schedSliceRow = {ts, INVALID_UINT64, cpu, nextPid, 0, nextPrio};
+    auto index = traceDataCache_->GetSchedSliceData()->AppendSchedSlice(schedSliceRow);
     auto prevTidOnCpu = cpuToRowSched_.find(cpu);
     if (prevTidOnCpu != cpuToRowSched_.end()) {
         traceDataCache_->GetSchedSliceData()->Update(prevTidOnCpu->second.row, ts, prevState);
@@ -135,41 +136,38 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
     }
 }
 
-bool CpuFilter::InsertBlockedReasonEvent(uint64_t ts,
-                                         uint64_t cpu,
-                                         uint32_t iTid,
-                                         bool iowait,
-                                         DataIndex caller,
-                                         uint32_t delay)
+bool CpuFilter::InsertBlockedReasonEvent(uint64_t cpu, uint32_t iTid, bool iowait, DataIndex caller, uint32_t delay)
 {
-    if (pidToThreadSliceRow_.count(iTid)) {
-        // ArgSet
-        ArgsSet args;
-        args.AppendArg(ioWait_, BASE_DATA_TYPE_INT, iowait);
-        args.AppendArg(caller_, BASE_DATA_TYPE_STRING, caller);
-        if (delay != INVALID_UINT32) {
-            args.AppendArg(delay_, BASE_DATA_TYPE_INT, delay);
-        }
-        auto argSetId = streamFilters_->argsFilter_->NewArgs(args);
-        auto row = pidToThreadSliceRow_.at(iTid);
-        traceDataCache_->GetThreadStateData()->SetArgSetId(row, argSetId);
-        if (iowait) {
-            auto state = traceDataCache_->GetThreadStateData()->StatesData()[row];
-            if (state == TASK_UNINTERRUPTIBLE) {
-                traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_UNINTERRUPTIBLE_IO);
-            } else if (state == TASK_DK) { // state == TASK_DK
-                traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_DK_IO);
-            }
-        } else {
-            auto state = traceDataCache_->GetThreadStateData()->StatesData()[row];
-            if (state == TASK_UNINTERRUPTIBLE) {
-                traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_UNINTERRUPTIBLE_NIO);
-            } else if (state == TASK_DK) { // state == TASK_DK
-                traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_DK_NIO);
-            }
-        }
-        pidToThreadSliceRow_.erase(iTid);
+    if (pidToThreadSliceRow_.count(iTid) == 0) {
+        return false;
     }
+
+    // ArgSet
+    ArgsSet args;
+    args.AppendArg(ioWait_, BASE_DATA_TYPE_INT, iowait);
+    args.AppendArg(caller_, BASE_DATA_TYPE_STRING, caller);
+    if (delay != INVALID_UINT32) {
+        args.AppendArg(delay_, BASE_DATA_TYPE_INT, delay);
+    }
+    auto argSetId = streamFilters_->argsFilter_->NewArgs(args);
+    auto row = pidToThreadSliceRow_.at(iTid);
+    traceDataCache_->GetThreadStateData()->SetArgSetId(row, argSetId);
+    if (iowait) {
+        auto state = traceDataCache_->GetThreadStateData()->StatesData()[row];
+        if (state == TASK_UNINTERRUPTIBLE) {
+            traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_UNINTERRUPTIBLE_IO);
+        } else if (state == TASK_DK) { // state == TASK_DK
+            traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_DK_IO);
+        }
+    } else {
+        auto state = traceDataCache_->GetThreadStateData()->StatesData()[row];
+        if (state == TASK_UNINTERRUPTIBLE) {
+            traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_UNINTERRUPTIBLE_NIO);
+        } else if (state == TASK_DK) { // state == TASK_DK
+            traceDataCache_->GetThreadStateData()->UpdateState(row, TASK_DK_NIO);
+        }
+    }
+    pidToThreadSliceRow_.erase(iTid);
     return true;
 }
 bool CpuFilter::InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint32_t pid)

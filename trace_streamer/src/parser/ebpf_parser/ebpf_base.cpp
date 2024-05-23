@@ -20,7 +20,7 @@ EbpfBase::EbpfBase(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
     : EventParserBase(dataCache, ctx),
       pidAndIpToEbpfSymbolInfo_(EbpfSymbolInfo(false)),
       filePathIndexAndStValueToSymAddr_(nullptr),
-      pidAndipsToCallId_(INVALID_UINT64)
+      pidAndipsToCallId_(INVALID_UINT32)
 {
 }
 EbpfBase::~EbpfBase()
@@ -44,24 +44,26 @@ bool EbpfBase::InitEbpfDataParser(EbpfDataReader *reader)
 
 void EbpfBase::ParseCallStackData(const uint64_t *userIpsAddr, uint16_t count, uint32_t pid, uint32_t callId)
 {
-    uint64_t depth = 0;
+    uint32_t depth = 0;
     for (auto i = count - 1; i >= 0; i--) {
-        if (userIpsAddr[i] > MIN_USER_IP) {
-            auto ebpfSymbolInfo = GetEbpfSymbolInfo(pid, userIpsAddr[i]);
-            auto ipIndex = ConvertToHexTextIndex(userIpsAddr[i]);
-            ipStrIndexToIpMap_.insert(std::make_pair(ipIndex, userIpsAddr[i]));
-            auto row =
-                traceDataCache_->GetEbpfCallStack()->AppendNewData(callId, depth++, ipIndex, ebpfSymbolInfo.symbolIndex,
-                                                                   ebpfSymbolInfo.filePathIndex, ebpfSymbolInfo.vaddr);
-            if (ebpfSymbolInfo.filePathIndex != INVALID_UINT64) {
-                if (filePathIndexToCallStackRowMap_.count(ebpfSymbolInfo.filePathIndex) == 0) {
-                    auto rows = std::make_shared<std::set<size_t>>();
-                    rows->insert(row);
-                    filePathIndexToCallStackRowMap_[ebpfSymbolInfo.filePathIndex] = rows;
-                } else {
-                    filePathIndexToCallStackRowMap_[ebpfSymbolInfo.filePathIndex]->insert(row);
-                }
-            }
+        if (userIpsAddr[i] <= MIN_USER_IP) {
+            continue;
+        }
+        auto ebpfSymbolInfo = GetEbpfSymbolInfo(pid, userIpsAddr[i]);
+        auto ipIndex = ConvertToHexTextIndex(userIpsAddr[i]);
+        ipStrIndexToIpMap_.insert(std::make_pair(ipIndex, userIpsAddr[i]));
+        EbpfCallStackDataRow ebpfCallStackDataRow = {
+            callId, depth++, ipIndex, ebpfSymbolInfo.symbolIndex, ebpfSymbolInfo.filePathIndex, ebpfSymbolInfo.vaddr};
+        auto row = traceDataCache_->GetEbpfCallStack()->AppendNewData(ebpfCallStackDataRow);
+        if (ebpfSymbolInfo.filePathIndex == INVALID_UINT64) {
+            continue;
+        }
+        if (filePathIndexToCallStackRowMap_.count(ebpfSymbolInfo.filePathIndex) == 0) {
+            auto rows = std::make_shared<std::set<size_t>>();
+            rows->insert(row);
+            filePathIndexToCallStackRowMap_[ebpfSymbolInfo.filePathIndex] = rows;
+        } else {
+            filePathIndexToCallStackRowMap_[ebpfSymbolInfo.filePathIndex]->insert(row);
         }
     }
     // Only one successful insertion is required, without considering repeated insertion failures

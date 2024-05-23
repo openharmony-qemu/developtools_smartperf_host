@@ -13,7 +13,7 @@
 # limitations under the License.
 set -e
 . build/build_base_var.sh
-function help {
+function help() {
     echo "Usage: $1 [linux/wasm/windows/macx] [debug] [-e <plugin1...>] [-d <plugin1...>]"
     echo "      -e <plugin1,plugin2,plugin3...>, enable the default plugins."
     echo "      -d <plugin1,plugin2,plugin3...>, enable the extend plugins."
@@ -21,7 +21,7 @@ function help {
     echo "      -h Show the help info."
     exit
 }
-function list_all_plugins {
+function list_all_plugins() {
     echo "the default support plugin list:"
     for var in "${enable_plugin_array[@]}"; do
         echo "  ${var#enable_}"
@@ -50,7 +50,7 @@ function set_enable_extend_plugin_array() {
         eval "$enable_extend_plugin=$1"
     done
 }
-function choose_os_type {
+function choose_os_type() {
     case "$OSTYPE" in
         solaris*) echo "SOLARIS" ;;
         darwin*)  gn_path="macx" target_os="macx" ;;

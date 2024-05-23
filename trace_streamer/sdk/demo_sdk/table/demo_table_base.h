@@ -94,9 +94,9 @@ public:
     };
 
     struct ColumnInfo {
-        ColumnInfo(const std::string &name, const std::string &type) : name_(name), type_(type) {}
-        std::string name_;
-        std::string type_;
+        ColumnInfo(const std::string &name, const std::string &type) : columnName(name), columnType(type) {}
+        std::string columnName;
+        std::string columnType;
     };
 
 protected:
