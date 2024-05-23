@@ -274,11 +274,28 @@ function collectHandlerNo(sp: SpSystemTrace, currentRow: any, event: any): void 
     row = parent;
   }
   for (let index: number = allowExpansionRow.length - 1; index >= 0; index--) {
-    if (allowExpansionRow[index]?.hasAttribute('scene')) {
-      if (allowExpansionRow[index]!.expansion) {
-        allowExpansionRow[index].updateChildRowStatus();
+    let currentItemRow = allowExpansionRow[index];
+    if (currentItemRow.hasAttribute('scene')) {
+      if (currentItemRow.rowParentId !== '') {
+        if (currentItemRow.expansion) {
+          currentItemRow.updateChildRowStatus();
+        } else {
+          currentItemRow.expansion = true;
+        }
       } else {
-        allowExpansionRow[index].expansion = true;
+        currentItemRow.expansion = true;
+        let number = currentItemRow.childrenList.indexOf(currentRow);
+        let childrenEl = currentItemRow.childrenList[number];
+        let childrenNextEl = currentItemRow.childrenList[number + 1];
+        if (childrenEl) {
+          if (childrenNextEl) {
+            currentItemRow.parentNode.insertBefore(childrenEl, childrenNextEl);
+          } else if (childrenEl.nextSibling) {
+            currentItemRow.parentNode.insertBefore(childrenEl, childrenEl.nextSibling);
+          } else {
+            currentItemRow.parentNode.appendChild(childrenEl);
+          }
+        }
       }
     }
   }
