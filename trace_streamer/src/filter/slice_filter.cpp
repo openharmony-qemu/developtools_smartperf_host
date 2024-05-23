@@ -156,6 +156,18 @@ void SliceFilter::SoftIrqExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args)
     return;
 }
 
+void SliceFilter::DmaFence(DmaFenceRow &dmaFenceRow)
+{
+    if (dmaFenceEventMap_.find(dmaFenceRow.timeline) == dmaFenceEventMap_.end()) {
+        dmaFenceEventMap_.emplace(dmaFenceRow.timeline, dmaFenceRow.timeStamp);
+    } else {
+        dmaFenceRow.duration = dmaFenceRow.timeStamp - dmaFenceEventMap_.at(dmaFenceRow.timeline);
+        dmaFenceEventMap_.at(dmaFenceRow.timeline) = dmaFenceRow.timeStamp;
+    }
+    traceDataCache_->GetDmaFenceData()->AppendNew(dmaFenceRow);
+    return;
+}
+
 void SliceFilter::RememberSliceData(InternalTid internalTid,
                                     std::unordered_map<InternalTid, StackOfSlices> &stackMap,
                                     SliceData &slice,

@@ -103,6 +103,44 @@ private:
     std::deque<uint32_t> frameRows_ = {};
     std::deque<uint64_t> durs_ = {};
 };
+struct DmaFenceRow {
+    uint64_t timeStamp = INVALID_UINT64;
+    uint64_t duration = INVALID_UINT64;
+    DataIndex eventName = INVALID_DATAINDEX;
+    DataIndex driver = INVALID_DATAINDEX;
+    DataIndex timeline = INVALID_DATAINDEX;
+    uint32_t context = INVALID_UINT32;
+    uint32_t seqno = INVALID_UINT32;
+};
+
+class DmaFence : public CacheBase {
+public:
+    size_t AppendNew(const DmaFenceRow &dmaFenceRow);
+    const std::deque<uint64_t> &DursData() const;
+    const std::deque<DataIndex> &CatsData() const;
+    const std::deque<DataIndex> &DriversData() const;
+    const std::deque<DataIndex> &TimelinesData() const;
+    const std::deque<uint32_t> &ContextsData() const;
+    const std::deque<uint32_t> &SeqnosData() const;
+    void Clear() override
+    {
+        CacheBase::Clear();
+        durs_.clear();
+        cats_.clear();
+        drivers_.clear();
+        timelines_.clear();
+        contexts_.clear();
+        seqnos_.clear();
+    }
+
+private:
+    std::deque<uint64_t> durs_ = {};
+    std::deque<DataIndex> cats_ = {};
+    std::deque<DataIndex> drivers_ = {};
+    std::deque<DataIndex> timelines_ = {};
+    std::deque<uint32_t> contexts_ = {};
+    std::deque<uint32_t> seqnos_ = {};
+};
 
 class FrameMaps : public CacheBase, public BatchCacheBase {
 public:

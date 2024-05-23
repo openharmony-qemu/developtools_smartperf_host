@@ -98,6 +98,18 @@ void BytraceEventParser::InterruptEventInitialization()
     eventToFunctionMap_.emplace(
         config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
         bind(&BytraceEventParser::SoftIrqExitEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_INIT),
+        bind(&BytraceEventParser::DmaFenceEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_DESTROY),
+        bind(&BytraceEventParser::DmaFenceEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_ENABLE),
+        bind(&BytraceEventParser::DmaFenceEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_SIGNALED),
+        bind(&BytraceEventParser::DmaFenceEvent, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void BytraceEventParser::ClockEventInitialization()
@@ -644,7 +656,28 @@ bool BytraceEventParser::SoftIrqExitEvent(const ArgsMap &args, const BytraceLine
     streamFilters_->irqFilter_->SoftIrqExit(line.ts, line.cpu, vec.value());
     return true;
 }
-
+bool BytraceEventParser::DmaFenceEvent(const ArgsMap &args, const BytraceLine &line) const
+{
+    if (args.empty() || args.size() < MIN_DMA_FENCE_ARGS_COUNT) {
+        TS_LOGD("Failed to dma fence event,no args or args size <4");
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_DMA_FENCE, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE, STAT_EVENT_RECEIVED);
+    auto driverStr = std::string_view(args.at("driver"));
+    auto timelineStr = std::string_view(args.at("timeline"));
+    auto context = base::StrToInt<uint32_t>(args.at("context"));
+    auto seqno = base::StrToInt<uint32_t>(args.at("seqno"));
+    DmaFenceRow dmaFenceRow = {line.ts,
+                               0,
+                               traceDataCache_->GetDataIndex(line.eventName),
+                               traceDataCache_->GetDataIndex(driverStr),
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               context.value(),
+                               seqno.value()};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
 bool BytraceEventParser::BinderTransaction(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_BINDER_TRANSACTION_ARGS_COUNT) {

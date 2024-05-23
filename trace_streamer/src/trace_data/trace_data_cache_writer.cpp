@@ -324,6 +324,10 @@ GPUSlice *TraceDataCacheWriter::GetGPUSliceData()
 {
     return &gpuSliceData_;
 }
+DmaFence *TraceDataCacheWriter::GetDmaFenceData()
+{
+    return &dmaFenceData_;
+}
 TaskPoolInfo *TraceDataCacheWriter::GetTaskPoolData()
 {
     return &taskPoolInfo_;
@@ -523,6 +527,7 @@ void TraceDataCacheWriter::Clear()
     gpuProcessMemData_.Clear();
     gpuWindowMemData_.Clear();
     gpuSliceData_.Clear();
+    dmaFenceData_.Clear();
     frameMapsData_.Clear();
     frameSliceData_.Clear();
 }

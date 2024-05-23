@@ -95,6 +95,7 @@ public:
     void IpiHandlerExit(uint64_t timeStamp, uint32_t cpu);
     void SoftIrqEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     void SoftIrqExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args);
+    void DmaFence(DmaFenceRow &dmaFenceRow);
     void Clear();
     void UpdateReadySize()
     {
@@ -138,6 +139,7 @@ private:
     std::unordered_map<uint32_t /* cpu */, IrqRecords> ipiEventMap_ = {};
     //  irq map, key1 is cpu, key2
     std::unordered_map<uint32_t, IrqRecords> softIrqEventMap_ = {};
+    std::unordered_map<uint64_t, uint64_t> dmaFenceEventMap_ = {};
     std::map<uint64_t, AsyncEvent> asyncEventFilterMap_ = {};
     std::map<uint64_t, AsyncEvent> gEventFilterMap_ = {};
     std::unordered_map<InternalTid, StackOfSlices> sliceStackMap_ = {};

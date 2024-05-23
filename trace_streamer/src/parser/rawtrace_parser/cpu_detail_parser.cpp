@@ -86,6 +86,14 @@ void CpuDetailParser::InterruptEventInitialization()
                                 std::bind(&CpuDetailParser::SoftIrqEntryEvent, this, std::placeholders::_1));
     eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
                                 std::bind(&CpuDetailParser::SoftIrqExitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_INIT),
+                                std::bind(&CpuDetailParser::DmaFenceInitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_DESTROY),
+                                std::bind(&CpuDetailParser::DmaFenceDestroyEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_ENABLE),
+                                std::bind(&CpuDetailParser::DmaFenceEnableEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_SIGNALED),
+                                std::bind(&CpuDetailParser::DmaFenceSignaledEvent, this, std::placeholders::_1));
 }
 void CpuDetailParser::ClockEventInitialization()
 {
@@ -590,6 +598,62 @@ bool CpuDetailParser::SoftIrqExitEvent(const RawTraceEventInfo &event) const
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_SOFTIRQ_EXIT, STAT_EVENT_RECEIVED);
     streamFilters_->irqFilter_->SoftIrqExit(event.msgPtr->timestamp(), event.cpuId,
                                             static_cast<uint32_t>(softIrqExitMsg.vec()));
+    return true;
+}
+bool CpuDetailParser::DmaFenceInitEvent(const RawTraceEventInfo &event) const
+{
+    auto dmaFenceInitMsg = event.msgPtr->dma_fence_init_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_INIT, STAT_EVENT_RECEIVED);
+    DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
+                               0,
+                               dmaFenceInitIndex_,
+                               traceDataCache_->GetDataIndex(dmaFenceInitMsg.driver()),
+                               traceDataCache_->GetDataIndex(dmaFenceInitMsg.timeline()),
+                               static_cast<uint32_t>(dmaFenceInitMsg.context()),
+                               static_cast<uint32_t>(dmaFenceInitMsg.seqno())};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
+bool CpuDetailParser::DmaFenceDestroyEvent(const RawTraceEventInfo &event) const
+{
+    auto dmaFenceDestroyMsg = event.msgPtr->dma_fence_destroy_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_DESTROY, STAT_EVENT_RECEIVED);
+    DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
+                               0,
+                               dmaFenceDestroyIndex_,
+                               traceDataCache_->GetDataIndex(dmaFenceDestroyMsg.driver()),
+                               traceDataCache_->GetDataIndex(dmaFenceDestroyMsg.timeline()),
+                               static_cast<uint32_t>(dmaFenceDestroyMsg.context()),
+                               static_cast<uint32_t>(dmaFenceDestroyMsg.seqno())};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
+bool CpuDetailParser::DmaFenceEnableEvent(const RawTraceEventInfo &event) const
+{
+    auto dmaFenceEnableMsg = event.msgPtr->dma_fence_enable_signal_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_ENABLE, STAT_EVENT_RECEIVED);
+    DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
+                               0,
+                               dmaFenceEnableIndex_,
+                               traceDataCache_->GetDataIndex(dmaFenceEnableMsg.driver()),
+                               traceDataCache_->GetDataIndex(dmaFenceEnableMsg.timeline()),
+                               static_cast<uint32_t>(dmaFenceEnableMsg.context()),
+                               static_cast<uint32_t>(dmaFenceEnableMsg.seqno())};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
+bool CpuDetailParser::DmaFenceSignaledEvent(const RawTraceEventInfo &event) const
+{
+    auto dmaFenceSignaledMsg = event.msgPtr->dma_fence_signaled_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_SIGNALED, STAT_EVENT_RECEIVED);
+    DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
+                               0,
+                               dmaFenceSignaledIndex_,
+                               traceDataCache_->GetDataIndex(dmaFenceSignaledMsg.driver()),
+                               traceDataCache_->GetDataIndex(dmaFenceSignaledMsg.timeline()),
+                               static_cast<uint32_t>(dmaFenceSignaledMsg.context()),
+                               static_cast<uint32_t>(dmaFenceSignaledMsg.seqno())};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
 bool CpuDetailParser::SetRateEvent(const RawTraceEventInfo &event) const

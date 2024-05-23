@@ -71,6 +71,10 @@ private:
     bool SoftIrqEntryEvent(const RawTraceEventInfo &event) const;
     bool SoftIrqRaiseEvent(const RawTraceEventInfo &event) const;
     bool SoftIrqExitEvent(const RawTraceEventInfo &event) const;
+    bool DmaFenceInitEvent(const RawTraceEventInfo &event) const;
+    bool DmaFenceDestroyEvent(const RawTraceEventInfo &event) const;
+    bool DmaFenceEnableEvent(const RawTraceEventInfo &event) const;
+    bool DmaFenceSignaledEvent(const RawTraceEventInfo &event) const;
     bool SetRateEvent(const RawTraceEventInfo &event) const;
     bool ClockEnableEvent(const RawTraceEventInfo &event) const;
     bool ClockDisableEvent(const RawTraceEventInfo &event) const;
@@ -115,6 +119,10 @@ private:
     const DataIndex cpuFrequencyLimitMaxIndex_ = traceDataCache_->GetDataIndex("cpu_frequency_limits_max");
     const DataIndex cpuFrequencyLimitMinIndex_ = traceDataCache_->GetDataIndex("cpu_frequency_limits_min");
     const DataIndex workQueueIndex_ = traceDataCache_->GetDataIndex("workqueue");
+    const DataIndex dmaFenceInitIndex_ = traceDataCache_->GetDataIndex("dma_fence_init");
+    const DataIndex dmaFenceDestroyIndex_ = traceDataCache_->GetDataIndex("dma_fence_destroy");
+    const DataIndex dmaFenceEnableIndex_ = traceDataCache_->GetDataIndex("dma_fence_enable_signal");
+    const DataIndex dmaFenceSignaledIndex_ = traceDataCache_->GetDataIndex("dma_fence_signaled");
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

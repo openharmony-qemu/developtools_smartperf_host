@@ -90,6 +90,7 @@ public:
     FrameSlice *GetFrameSliceData();
     FrameMaps *GetFrameMapsData();
     GPUSlice *GetGPUSliceData();
+    DmaFence *GetDmaFenceData();
     TaskPoolInfo *GetTaskPoolData();
     JsHeapFiles *GetJsHeapFilesData();
     JsHeapEdges *GetJsHeapEdgesData();

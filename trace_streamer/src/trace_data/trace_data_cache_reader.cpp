@@ -324,6 +324,10 @@ const GPUSlice &TraceDataCacheReader::GetConstGPUSliceData() const
 {
     return gpuSliceData_;
 }
+const DmaFence &TraceDataCacheReader::GetConstDmaFenceData() const
+{
+    return dmaFenceData_;
+}
 const AppStartup &TraceDataCacheReader::GetConstAppStartupData() const
 {
     return appStartupData_;

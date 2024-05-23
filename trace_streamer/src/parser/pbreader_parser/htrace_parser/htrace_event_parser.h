@@ -140,6 +140,10 @@ private:
     bool SoftIrqEntryEvent(const EventInfo &event) const;
     bool SoftIrqRaiseEvent(const EventInfo &event) const;
     bool SoftIrqExitEvent(const EventInfo &event) const;
+    bool DmaFenceInitEvent(const EventInfo &event) const;
+    bool DmaFenceDestroyEvent(const EventInfo &event) const;
+    bool DmaFenceEnableEvent(const EventInfo &event) const;
+    bool DmaFenceSignaledEvent(const EventInfo &event) const;
     bool SysEnterEvent(const EventInfo &event) const;
     bool SysExitEvent(const EventInfo &event) const;
     bool OomScoreAdjUpdate(const EventInfo &event) const;
@@ -165,6 +169,10 @@ private:
     const DataIndex sysEnterName_ = traceDataCache_->GetDataIndex("sys_enter");
     const DataIndex sysExitName_ = traceDataCache_->GetDataIndex("sys_exit");
     const DataIndex oomScoreAdjName_ = traceDataCache_->GetDataIndex("oom_score_adj");
+    const DataIndex dmaFenceInitName_ = traceDataCache_->GetDataIndex("dma_fence_init");
+    const DataIndex dmaFenceDestroyName_ = traceDataCache_->GetDataIndex("dma_fence_destroy");
+    const DataIndex dmaFenceEnableName_ = traceDataCache_->GetDataIndex("dma_fence_enable_signal");
+    const DataIndex dmaFenceSignaledName_ = traceDataCache_->GetDataIndex("dma_fence_signaled");
     TraceStreamerConfig config_{};
     std::atomic<BuiltinClocks> clock_{TS_CLOCK_BOOTTIME};
     std::mutex mutex_;

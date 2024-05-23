@@ -96,6 +96,21 @@ void FtraceEventProcessor::InterruptEventInitialization()
     eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
                                   std::bind(&FtraceEventProcessor::SoftirqExit, this, std::placeholders::_1,
                                             std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_INIT),
+                                  std::bind(&FtraceEventProcessor::DmaFenceInit, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_DESTROY),
+                                  std::bind(&FtraceEventProcessor::DmaFenceDestroy, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_ENABLE),
+                                  std::bind(&FtraceEventProcessor::DmaFenceEnable, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_SIGNALED),
+                                  std::bind(&FtraceEventProcessor::DmaFenceSignaled, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 }
 void FtraceEventProcessor::ClockEventInitialization()
 {
@@ -549,6 +564,59 @@ bool FtraceEventProcessor::SoftirqExit(FtraceEvent &ftraceEvent, uint8_t data[],
     uint8_t index = 0;
     auto softirqExitMsg = ftraceEvent.mutable_softirq_exit_format();
     softirqExitMsg->set_vec(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    return true;
+}
+bool FtraceEventProcessor::DmaFenceInit(FtraceEvent &ftraceEvent,
+                                        uint8_t data[],
+                                        size_t size,
+                                        const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto dmaFenceInitMsg = ftraceEvent.mutable_dma_fence_init_format();
+    dmaFenceInitMsg->set_driver(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceInitMsg->set_timeline(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceInitMsg->set_context(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    dmaFenceInitMsg->set_seqno(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    return true;
+}
+bool FtraceEventProcessor::DmaFenceDestroy(FtraceEvent &ftraceEvent,
+                                           uint8_t data[],
+                                           size_t size,
+                                           const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto dmaFenceDestroyMsg = ftraceEvent.mutable_dma_fence_destroy_format();
+    dmaFenceDestroyMsg->set_driver(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceDestroyMsg->set_timeline(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceDestroyMsg->set_context(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    dmaFenceDestroyMsg->set_seqno(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    return true;
+}
+bool FtraceEventProcessor::DmaFenceEnable(FtraceEvent &ftraceEvent,
+                                          uint8_t data[],
+                                          size_t size,
+                                          const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto dmaFenceEnableMsg = ftraceEvent.mutable_dma_fence_enable_signal_format();
+    dmaFenceEnableMsg->set_driver(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceEnableMsg->set_timeline(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceEnableMsg->set_context(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    dmaFenceEnableMsg->set_seqno(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    return true;
+}
+bool FtraceEventProcessor::DmaFenceSignaled(FtraceEvent &ftraceEvent,
+                                            uint8_t data[],
+                                            size_t size,
+                                            const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto dmaFenceSignaledMsg = ftraceEvent.mutable_dma_fence_signaled_format();
+    dmaFenceSignaledMsg->set_driver(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceSignaledMsg->set_timeline(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceSignaledMsg->set_context(
+        FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    dmaFenceSignaledMsg->set_seqno(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
 bool FtraceEventProcessor::ClockSetRate(FtraceEvent &ftraceEvent,
