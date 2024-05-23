@@ -1002,12 +1002,13 @@ export class FrameChart extends BaseElement {
       }
     });
 
-    document.addEventListener('keyup', (e) => {
-      if (!ChartStruct.hoverFuncStruct) {
+    document.addEventListener('keydown', (e) => {
+      if (!ChartStruct.hoverFuncStruct || !this.isFocusing) {
         return;
       }
       if (e.ctrlKey && e.key.toLocaleLowerCase() === 'c') {
-        navigator.clipboard.writeText(ChartStruct.hoverFuncStruct!.symbol);
+        let hoverName: string = ChartStruct.hoverFuncStruct!.symbol.split(' (')[0];
+        navigator.clipboard.writeText(hoverName);
       }
     });
     this.listenerResize();
