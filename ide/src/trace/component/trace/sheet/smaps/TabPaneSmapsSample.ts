@@ -109,7 +109,7 @@ export class TabPaneSmapsSample extends BaseElement {
         smaps.permission = SpSystemTrace.DATA_DICT.get(smaps.pid)?.split('/');
         let resideS = smaps.reside.toFixed(2);
         if (resideS === '0.00') {
-          smaps.resideStr = '0 %';
+          smaps.resideStr = '0%';
         } else {
           smaps.resideStr = resideS + '%';
         }
