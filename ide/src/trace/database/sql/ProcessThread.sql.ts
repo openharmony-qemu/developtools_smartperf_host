@@ -1453,21 +1453,16 @@ export const queryDistributedRelationAllData = (
                       (C.ts - r.start_ts) as ts,
                       c.dur,
                       $traceId as traceId
-                  FROM
-                      process p ,trace_range r
-                  LEFT JOIN thread t ON t.ipid = p.id
-                  LEFT JOIN callstack c ON c.callid = t.itid 
-                  where C.chainId = $chainId;`;
+                  from callstack C, trace_range r
+                      left join thread A on A.id = C.callid
+                      left join process AS P on P.id = A.ipid
+                      where C.chainId = $chainId;`;
   if (traceId === '') {
     return query('queryDistributedRelationAllData', sqlStr, { $chainId: chainId, $traceId: traceId });
   }
-  return query(
-    'queryDistributedRelationAllData',
-    sqlStr,
-    { $chainId: chainId, $traceId: traceId },
-    { traceId: traceId }
-  );
+  return query('queryDistributedRelationAllData', sqlStr, { $chainId: chainId, $traceId: traceId }, {traceId: traceId});
 };
+
 export const sqlPrioCount = (args: any): Promise<any> =>
   query(
     'prioCount',
@@ -1484,15 +1479,16 @@ export const sqlPrioCount = (args: any): Promise<any> =>
       and P.pid = ${args.pid}
       GROUP BY S.priority;`
   );
-  export const queryRunningThread = (
-    pIds: Array<number>,
-    tIds: Array<number>,
-    leftStartNs: number,
-    rightEndNs: number
-  ): Promise<Array<any>> =>
-    query(
-      'getTabThread',
-      `
+
+export const queryRunningThread = (
+  pIds: Array<number>,
+  tIds: Array<number>,
+  leftStartNs: number,
+  rightEndNs: number
+): Promise<Array<any>> =>
+  query(
+    'getTabThread',
+    `
         select
           P.pid,
           T.tid,
@@ -1515,18 +1511,19 @@ export const sqlPrioCount = (args: any): Promise<any> =>
         order by
           S.ts;
         `,
-      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
   );
-  export const queryCoreRunningThread = (
-      pIds: Array<number>,
-      tIds: Array<number>,
-      cpu: Array<number>,
-      leftStartNs: number,
-      rightEndNs: number
-  ): Promise<Array<any>> =>
-    query(
-      'getTabThread',
-      `
+
+export const queryCoreRunningThread = (
+  pIds: Array<number>,
+  tIds: Array<number>,
+  cpu: Array<number>,
+  leftStartNs: number,
+  rightEndNs: number
+): Promise<Array<any>> =>
+  query(
+    'getTabThread',
+    `
           select
             P.pid,
             T.tid,
@@ -1552,5 +1549,5 @@ export const sqlPrioCount = (args: any): Promise<any> =>
           order by
             S.ts;
           `,
-      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
   );

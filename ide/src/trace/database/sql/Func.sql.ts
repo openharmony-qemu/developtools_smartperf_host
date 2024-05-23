@@ -109,9 +109,7 @@ export const querySingleFuncNameCycle = (
     }
   );
 
-export const queryAllFuncNames = (
-  traceId?: string
-): //@ts-ignore
+export const queryAllFuncNames = (traceId?: string): //@ts-ignore
   Promise<Array<unknown>> => {
   return query(
     'queryAllFuncNames',
@@ -122,13 +120,10 @@ export const queryAllFuncNames = (
   );
 };
 
-export const queryProcessAsyncFunc = (
-  traceRange: {
-    startTs: number;
-    endTs: number;
-  },
-  traceId?: string
-): //@ts-ignore
+export const queryProcessAsyncFunc = (traceRange: {
+  startTs: number;
+  endTs: number;
+}, traceId?: string): //@ts-ignore
   Promise<Array<unknown>> =>
   query(
     'queryProcessAsyncFunc',
@@ -182,9 +177,7 @@ export const queryProcessAsyncFuncCat = (): Promise<Array<any>> =>
   `
   );
 
-export const getMaxDepthByTid = (
-  traceId?: string
-): //@ts-ignore
+export const getMaxDepthByTid = (traceId?: string): //@ts-ignore
   Promise<Array<unknown>> =>
   query(
     'getMaxDepthByTid',
@@ -380,31 +373,30 @@ export const getTabSlicesAsyncCatFunc = (
 export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> =>
   query(
     'querySearchFunc',
-    `SELECT 
-      c.cookie,
-      c.id,
-      c.name AS funName,
-      c.ts - r.start_ts AS startTime,
-      c.dur,
-      c.depth,
-      t.tid,
-      t.name AS threadName,
-      p.pid,
-      c.argsetid,
-      'func' AS type 
-      from 
-      callstack c 
-      left join thread t on c.callid = t.id 
-      left join process p on t.ipid = p.id
-      left join trace_range r 
-      where c.name like '%${search}%' and startTime > 0 and cookie IS NULL;
-       `,
-    { $search: search }
+    `
+   select c.cookie,
+          c.id,
+          c.name as funName,
+          c.ts - r.start_ts as startTime,
+          c.dur,
+          c.depth,
+          t.tid,
+          t.name as threadName,
+          p.pid,
+          c.argsetid,
+          'func' as type 
+   from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
+   left join trace_range r 
+   where c.name like '%${search}%' and startTime > 0;
+    `,
+    { $search: search },
+    { traceId: Utils.currentSelectTrace }
   );
 
-export const querySceneSearchFunc = (search: string, processList: Array<string>): Promise<Array<SearchFuncBean>> =>
+export const querySceneSearchFunc = (search: string, processList: Array<string>):
+  Promise<Array<SearchFuncBean>> =>
   query(
-    'querySearchFunc',
+    'querySceneSearchFunc',
     `select c.cookie,
           c.id,
           c.name as funName,
@@ -416,13 +408,12 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
           p.pid,
           c.argsetid,
           'func' as type 
-          from callstack c 
-          left join thread t on c.callid = t.id 
-          left join process p on t.ipid = p.id
-          left join trace_range r
-          where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')}) and cookie IS NULL;
-           `,
-    { $search: search }
+   from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
+   left join trace_range r
+   where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
+    `,
+    { $search: search },
+    { traceId: Utils.currentSelectTrace }
   );
 
 export const queryHeapFunction = (fileId: number): Promise<Array<HeapTraceFunctionInfo>> =>
@@ -511,8 +502,8 @@ export const queryTaskPoolRelationData = (ids: Array<number>, tids: Array<number
     from thread A,trace_range D
                       left join callstack C on A.id = C.callid
     where startTs not null and c.cookie is null and c.id in (${ids.join(',')}) and tid in (${tids.join(
-  ','
-)})`;
+    ','
+  )})`;
   return query('queryTaskPoolRelationData', sqlStr, { $ids: ids, $tids: tids });
 };
 
