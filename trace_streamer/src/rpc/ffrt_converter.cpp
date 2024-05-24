@@ -142,7 +142,8 @@ std::string FfrtConverter::ReplaceSchedSwitchLog(std::string &fakeLog,
     std::smatch match;
     auto taskId = GetTaskId(pid, gid);
     if (mark.find("prev_pid=" + std::to_string(tid)) != std::string::npos) {
-        if (regex_search(fakeLog, match, indexPattern_)) {
+        if (regex_search(fakeLog, match, indexPattern_) && fakeLog.find("prev_comm=") != std::string::npos &&
+            fakeLog.find("prev_prio=") != std::string::npos) {
             auto beginPos = fakeLog.find(match.str());
             (void)sprintf_s(result.get(), MAX_LEN, "  %s-%s ", taskLabels_[pid][gid].c_str(), taskId.c_str());
             fakeLog = result.get() + fakeLog.substr(beginPos);
@@ -158,7 +159,8 @@ std::string FfrtConverter::ReplaceSchedSwitchLog(std::string &fakeLog,
             fakeLog = fakeLog.substr(0, pPidPos) + result.get() + fakeLog.substr(pPrioPos);
             memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
         }
-    } else if (mark.find("next_pid=" + std::to_string(tid)) != std::string::npos) {
+    } else if (mark.find("next_pid=" + std::to_string(tid)) != std::string::npos &&
+               fakeLog.find("next_comm=") != std::string::npos && fakeLog.find("next_prio=") != std::string::npos) {
         (void)sprintf_s(result.get(), MAX_LEN, "next_comm=%s ", taskLabels_[pid][gid].c_str());
         size_t nCommPos = fakeLog.find("next_comm=");
         size_t nPidPos = fakeLog.find("next_pid=");
@@ -182,12 +184,16 @@ std::string FfrtConverter::ReplaceSchedWakeLog(std::string &fakeLog,
     (void)sprintf_s(result.get(), MAX_LEN, "comm=%s ", label.c_str());
     size_t commPos = fakeLog.find("comm=");
     size_t pidPos = fakeLog.find("pid=");
-    fakeLog = fakeLog.substr(0, commPos) + result.get() + fakeLog.substr(pidPos);
-    memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
-    (void)sprintf_s(result.get(), MAX_LEN, "pid=%s ", taskId.c_str());
-    pidPos = fakeLog.find("pid=");
-    size_t prioPos = fakeLog.find("prio=");
-    fakeLog = fakeLog.substr(0, pidPos) + result.get() + fakeLog.substr(prioPos);
+    if (commPos != std::string::npos && pidPos != std::string::npos) {
+        fakeLog = fakeLog.substr(0, commPos) + result.get() + fakeLog.substr(pidPos);
+        memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
+        (void)sprintf_s(result.get(), MAX_LEN, "pid=%s ", taskId.c_str());
+        pidPos = fakeLog.find("pid=");
+        size_t prioPos = fakeLog.find("prio=");
+        if (prioPos != std::string::npos) {
+            fakeLog = fakeLog.substr(0, pidPos) + result.get() + fakeLog.substr(prioPos);
+        }
+    }
     return fakeLog;
 }
 
@@ -198,7 +204,9 @@ std::string FfrtConverter::ReplaceSchedBlockLog(std::string &fakeLog, const int 
     (void)sprintf_s(result.get(), MAX_LEN, "pid=%s ", taskId.c_str());
     size_t pidPos = fakeLog.find("pid");
     size_t ioPos = fakeLog.find("iowait=");
-    fakeLog = fakeLog.substr(0, pidPos) + result.get() + fakeLog.substr(ioPos);
+    if (pidPos != std::string::npos && ioPos != std::string::npos) {
+        fakeLog = fakeLog.substr(0, pidPos) + result.get() + fakeLog.substr(ioPos);
+    }
     return fakeLog;
 }
 std::string FfrtConverter::ReplaceTracingMarkLog(std::string &fakeLog,
@@ -235,9 +243,14 @@ std::string FfrtConverter::ConvertWorkerLogToTask(const std::string &mark,
 }
 int FfrtConverter::FindIntNumberAfterStr(const size_t index, const string &str)
 {
-    auto beginPos = context_[index].find(str) + str.length();
-    auto endPos = context_[index].find_first_of(" ", beginPos);
-    return stoi(context_[index].substr(beginPos, endPos - beginPos));
+
+    auto beginPos = context_[index].find(str);
+    if (beginPos != std::string::npos) {
+        beginPos = beginPos + str.length();
+        auto endPos = context_[index].find_first_of(" ", beginPos);
+        return stoi(context_[index].substr(beginPos, endPos - beginPos));
+    }
+    return -1;
 }
 std::string FfrtConverter::FindSubStrAfterStr(const size_t index, const string &str)
 {
@@ -250,10 +263,10 @@ void FfrtConverter::ClassifySchedSwitchData(const size_t index, std::unordered_m
     auto prevTid = FindIntNumberAfterStr(index, "prev_pid=");
     auto nextTid = FindIntNumberAfterStr(index, "next_pid=");
     // update sched_switch prev_pid and next_pid corresponding line number
-    if (traceMap.count(prevTid) == 0) {
+    if (prevTid != -1 && traceMap.count(prevTid) == 0) {
         traceMap[prevTid] = std::vector<int>();
     }
-    if (traceMap.count(nextTid) == 0) {
+    if (nextTid != -1 && traceMap.count(nextTid) == 0) {
         traceMap[nextTid] = std::vector<int>();
     }
     traceMap[prevTid].push_back(index);
@@ -290,12 +303,14 @@ void FfrtConverter::FindFfrtProcessAndClassify(const size_t index, std::unordere
         std::string res = context_[index].substr(0, endPos);
         std::string begin = "-";
         auto beginPos = res.find_last_of(begin);
-        beginPos = beginPos + begin.length();
-        auto tid = stoi(context_[index].substr(beginPos, endPos - beginPos));
-        if (traceMap.find(tid) == traceMap.end()) {
-            traceMap[tid] = std::vector<int>();
+        if (beginPos != std::string::npos) {
+            beginPos = beginPos + begin.length();
+            auto tid = stoi(context_[index].substr(beginPos, endPos - beginPos));
+            if (traceMap.find(tid) == traceMap.end()) {
+                traceMap[tid] = std::vector<int>();
+            }
+            traceMap[tid].push_back(index);
         }
-        traceMap[tid].push_back(index);
     }
     return;
 }
@@ -394,14 +409,18 @@ void FfrtConverter::ProcessMarkWithSchedSwitch(const int tid, int &prio, const s
         if (context_[index].find("prev_pid=" + std::to_string(tid) + " ") != std::string::npos) {
             static std::string beginPprio = "prev_prio=";
             auto beginPos = context_[index].find(beginPprio);
-            beginPos = beginPos + beginPprio.length();
-            auto endPos = context_[index].find_first_of(" ", beginPos);
-            prio = stoi(context_[index].substr(beginPos, endPos - beginPos));
+            if (beginPos != std::string::npos) {
+                beginPos = beginPos + beginPprio.length();
+                auto endPos = context_[index].find_first_of(" ", beginPos);
+                prio = stoi(context_[index].substr(beginPos, endPos - beginPos));
+            }
         } else if (context_[index].find("next_pid=" + std::to_string(tid)) != std::string::npos) {
             static std::string beginNprio = "next_prio=";
             auto beginPos = context_[index].find(beginNprio);
-            beginPos = beginPos + beginNprio.length();
-            prio = stoi(context_[index].substr(beginPos));
+            if (beginPos != std::string::npos) {
+                beginPos = beginPos + beginNprio.length();
+                prio = stoi(context_[index].substr(beginPos));
+            }
         }
     }
 }
@@ -412,25 +431,33 @@ std::string FfrtConverter::GetLabel(const string &line)
         if (line.find("H:FFRT::") != std::string::npos) {
             auto beginPos = line.rfind("[");
             auto endPos = line.rfind("]");
-            label = line.substr(beginPos + 1, endPos - beginPos - 1);
+            if (beginPos != std::string::npos && endPos != std::string::npos) {
+                label = line.substr(beginPos + 1, endPos - beginPos - 1);
+            }
         } else {
             static std::string indexHFfrt = "|H:FFRT";
             auto beginPos = line.find(indexHFfrt);
             beginPos = beginPos + indexHFfrt.length();
             auto endPos = line.find_first_of("|", beginPos);
-            label = line.substr(beginPos, endPos - beginPos);
+            if (endPos != std::string::npos) {
+                label = line.substr(beginPos, endPos - beginPos);
+            }
         }
     } else {
         if (line.find("|FFRT::") != std::string::npos) {
             auto beginPos = line.rfind("[");
             auto endPos = line.rfind("]");
-            label = line.substr(beginPos + 1, endPos - beginPos - 1);
+            if (beginPos != std::string::npos && endPos != std::string::npos) {
+                label = line.substr(beginPos + 1, endPos - beginPos - 1);
+            }
         } else {
             static std::string indexFfrt = "|FFRT";
             auto beginPos = line.find(indexFfrt);
             beginPos = beginPos + indexFfrt.length();
             auto endPos = line.find_first_of("|", beginPos);
-            label = line.substr(beginPos, endPos - beginPos);
+            if (endPos != std::string::npos) {
+                label = line.substr(beginPos, endPos - beginPos);
+            }
         }
     }
     return label;
