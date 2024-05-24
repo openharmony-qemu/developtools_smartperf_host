@@ -281,7 +281,7 @@ async function onmessageByOpenAction(e: MessageEvent): Promise<void> {
   //@ts-ignore
   wasmModule._TraceStreamerParseDataOver();
   for (let value of thirdWasmMap.values()) {
-    value.model._TraceStreamer_In_ParseDataOver();
+    value.model._TraceStreamerInParseDataOver();
   }
   postMessageByOpenAction(r2, e);
 }
@@ -320,7 +320,7 @@ function initModuleCallBackAndFun(): void {
   //@ts-ignore
   let tlvResultFun = wasmModule.addFunction(tlvResultCallback, 'viiii');
   //@ts-ignore
-  wasmModule._TraceStreamer_Set_Log_Level(currentTSLogLevel);
+  wasmModule._TraceStreamerSetLogLevel(currentTSLogLevel);
   //@ts-ignore
   reqBufferAddr = wasmModule._Initialize(REQ_BUF_SIZE, fn1, tlvResultFun, fn2);
 }
@@ -344,7 +344,7 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
     let thirdWasmStr: string = itemArray.join(';');
     let configUintArray = enc.encode(thirdWasmStr + ';');
     wasmModule.HEAPU8.set(configUintArray, reqBufferAddr);
-    wasmModule._TraceStreamer_Init_ThirdParty_Config(configUintArray.length);
+    wasmModule._TraceStreamerInitThirdPartyConfig(configUintArray.length);
     let first = true;
     let sendDataCallback = (heapPtr: number, size: number, componentID: number): void => {
       if (componentID === 100) {
@@ -373,7 +373,7 @@ function parseThirdWasmByOpenAction(e: MessageEvent): void {
       }
     };
     let fn1 = wasmModule.addFunction(sendDataCallback, 'viii');
-    wasmModule._TraceStreamer_Set_ThirdParty_DataDealer(fn1, REQ_BUF_SIZE);
+    wasmModule._TraceStreamerSetThirdPartyDataDealer(fn1, REQ_BUF_SIZE);
   }
 }
 
@@ -491,7 +491,7 @@ function setThirdWasmMap(config: unknown, heapPtr: number, size: number, compone
   let thirdreqBufferAddr = thirdMode._Init(fn, REQ_BUF_SIZE);
   initTraceRange(thirdMode);
   //@ts-ignore
-  thirdMode._TraceStreamer_In_JsonConfig();
+  thirdMode._TraceStreamerInJsonConfig();
   //@ts-ignore
   thirdMode.HEAPU8.set(headUnitArray, thirdreqBufferAddr);
   //@ts-ignore
