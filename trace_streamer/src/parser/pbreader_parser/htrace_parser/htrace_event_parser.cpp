@@ -921,8 +921,8 @@ bool HtraceEventParser::SoftIrqExitEvent(const EventInfo &event) const
 bool HtraceEventParser::DmaFenceInitEvent(const EventInfo &event) const
 {
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_INIT, STAT_EVENT_RECEIVED);
-    ProtoReader::DmaFenceInitFormat_Reader msg(event.detail_);
-    DmaFenceRow dmaFenceRow = {event.timeStamp_,
+    ProtoReader::DmaFenceInitFormat_Reader msg(event.detail);
+    DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceInitName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
@@ -935,8 +935,8 @@ bool HtraceEventParser::DmaFenceInitEvent(const EventInfo &event) const
 bool HtraceEventParser::DmaFenceDestroyEvent(const EventInfo &event) const
 {
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_DESTROY, STAT_EVENT_RECEIVED);
-    ProtoReader::DmaFenceDestroyFormat_Reader msg(event.detail_);
-    DmaFenceRow dmaFenceRow = {event.timeStamp_,
+    ProtoReader::DmaFenceDestroyFormat_Reader msg(event.detail);
+    DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceDestroyName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
@@ -949,8 +949,8 @@ bool HtraceEventParser::DmaFenceDestroyEvent(const EventInfo &event) const
 bool HtraceEventParser::DmaFenceEnableEvent(const EventInfo &event) const
 {
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_ENABLE, STAT_EVENT_RECEIVED);
-    ProtoReader::DmaFenceEnableSignalFormat_Reader msg(event.detail_);
-    DmaFenceRow dmaFenceRow = {event.timeStamp_,
+    ProtoReader::DmaFenceEnableSignalFormat_Reader msg(event.detail);
+    DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceEnableName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
@@ -963,8 +963,8 @@ bool HtraceEventParser::DmaFenceEnableEvent(const EventInfo &event) const
 bool HtraceEventParser::DmaFenceSignaledEvent(const EventInfo &event) const
 {
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_SIGNALED, STAT_EVENT_RECEIVED);
-    ProtoReader::DmaFenceSignaledFormat_Reader msg(event.detail_);
-    DmaFenceRow dmaFenceRow = {event.timeStamp_,
+    ProtoReader::DmaFenceSignaledFormat_Reader msg(event.detail);
+    DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceSignaledName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
