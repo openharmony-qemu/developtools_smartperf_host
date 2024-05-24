@@ -105,6 +105,7 @@ public:
     const FrameSlice &GetConstFrameSliceData() const;
     const FrameMaps &GetConstFrameMapsData() const;
     const GPUSlice &GetConstGPUSliceData() const;
+    const DmaFence &GetConstDmaFenceData() const;
     const TaskPoolInfo &GetConstTaskPoolData() const;
     const JsHeapFiles &GetConstJsHeapFilesData() const;
     const JsHeapEdges &GetConstJsHeapEdgesData() const;

@@ -116,6 +116,11 @@ enum SupportedTraceEventType {
     TRACE_GPU_PROCESS_MEM,
     TRACE_GPU_WINDOW_MEM,
     TRACE_WINDOW_MANAGER_SERVICE,
+    TRACE_EVENT_DMA_FENCE_INIT,
+    TRACE_EVENT_DMA_FENCE_DESTROY,
+    TRACE_EVENT_DMA_FENCE_ENABLE,
+    TRACE_EVENT_DMA_FENCE_SIGNALED,
+    TRACE_EVENT_DMA_FENCE,
     TRACE_EVENT_OTHER,
     TRACE_EVENT_MAX
 };
@@ -306,6 +311,11 @@ private:
     const std::string TRACE_ACTION_BLOCK_RQ_INSERT = "trace_block_rq_insert";
     const std::string TRACE_ACTION_BLOCK_RQ_REMAP = "trace_block_rq_remap";
     const std::string TRACE_ACTION_BLOCK_RQ_ISSUE = "trace_block_rq_issue";
+    const std::string TRACE_ACTION_DMA_FENCE_INIT = "dma_fence_init";
+    const std::string TRACE_ACTION_DMA_FENCE_DESTROY = "dma_fence_destroy";
+    const std::string TRACE_ACTION_DMA_FENCE_ENABLE = "dma_fence_enable_signal";
+    const std::string TRACE_ACTION_DMA_FENCE_SIGNALED = "dma_fence_signaled";
+    const std::string TRACE_ACTION_DMA_FENCE = "dma_fence";
     const std::string TRACE_ACTION_FFRT = "trace_ffrt";
 
     const std::string TRACE_ACTION_SYS_MEMORY = "sys_memory";
