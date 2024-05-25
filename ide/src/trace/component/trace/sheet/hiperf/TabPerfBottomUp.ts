@@ -25,6 +25,8 @@ import { procedurePool } from '../../../../database/Procedure';
 import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 import { type PerfBottomUpStruct } from '../../../../bean/PerfBottomUpStruct';
 import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { SpAllocations } from '../../../setting/SpAllocations';
+import { SpSystemTrace } from '../../../SpSystemTrace';
 
 @element('tabpane-perf-bottom-up')
 export class TabpanePerfBottomUp extends BaseElement {
@@ -43,6 +45,10 @@ export class TabpanePerfBottomUp extends BaseElement {
     this.stackTable = this.shadowRoot?.querySelector('#stackTable') as LitTable;
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
     this.bottomUpFilter = this.shadowRoot?.querySelector('#filter') as TabPaneFilter;
+    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spSystemTrace = spApplication?.shadowRoot?.querySelector(
+      'div > div.content > sp-system-trace'
+    ) as SpSystemTrace;
     this.bottomUpTable!.addEventListener('row-click', (evt) => this.bottomUpTableRowClickHandler(evt));
     this.stackTable!.addEventListener('row-click', (evt) => this.stackTableRowClick(evt));
     this.bottomUpTable!.addEventListener('column-click', (evt) => this.bottomUpTableColumnClickHandler(evt));
@@ -53,6 +59,12 @@ export class TabpanePerfBottomUp extends BaseElement {
       }
       this.bottomUpTable!.setStatus(this.bottomUpSource, true);
       this.setBottomUpTableData(this.bottomUpSource);
+    });
+    this.bottomUpFilter?.addEventListener('focus', () => {
+      spSystemTrace.focusTarget = 'bottomUpInput';
+    })
+    this.bottomUpFilter?.addEventListener('blur', () => {
+      spSystemTrace.focusTarget = '';
     });
   }
 

@@ -930,12 +930,14 @@ export class SpSystemTrace extends BaseElement {
           })
         );
       } else {
+        if(this.focusTarget === ''){
         this.dispatchEvent(
           new CustomEvent('trace-next-data', {
             detail: { down: true },
             composed: false,
           })
         );
+      }
       }
     }
   };
