@@ -29,6 +29,7 @@ import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 import { TabPaneNMCallTreeHtml } from './TabPaneNMCallTree.html';
 import { queryNativeHookStatisticSubType, queryNativeHookSubType } from '../../../../database/sql/NativeHook.sql';
+import { SpAllocations } from '../../../setting/SpAllocations';
 
 const InvertOpyionIndex: number = 0;
 const HideSystemSoOptionIndex: number = 1;
@@ -421,6 +422,10 @@ export class TabpaneNMCalltree extends BaseElement {
     });
     this.nmCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
     this.filesystemTbr = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-list');
+    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spSystemTrace = spApplication?.shadowRoot?.querySelector(
+      'div > div.content > sp-system-trace'
+    ) as SpSystemTrace;
     let filterFunc = (nmCallTreeFuncData: unknown): void => {
       let nmCallTreeFuncArgs: unknown[] = []; // @ts-ignore
       if (nmCallTreeFuncData.type === 'check') {
@@ -452,6 +457,12 @@ export class TabpaneNMCalltree extends BaseElement {
     this.nmCallTreeFilter!.getCallTreeConstraintsData(this.getCallTreeConByNMCallTreeFilter.bind(this));
     this.nmCallTreeFilter!.getFilterData(this.getFilterDataByNMCallTreeFilter.bind(this));
     this.initCloseCallBackByHeadLine();
+    this.nmCallTreeFilter?.addEventListener('focus', () => {
+      spSystemTrace.focusTarget = 'bottomUpInput';
+    })
+    this.nmCallTreeFilter?.addEventListener('blur', () => {
+      spSystemTrace.focusTarget = '';
+    });
   }
 
   private getFilterDataByNMCallTreeFilter(nmCallTreeData: FilterData): void {
