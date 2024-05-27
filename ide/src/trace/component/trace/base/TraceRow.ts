@@ -719,6 +719,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         'VSync-app',
         'render_service',
         'RSUniRenderThre',
+        'Release Fence',
         'Acquire Fence',
         'RSHardwareThrea',
         'Present Fence',
