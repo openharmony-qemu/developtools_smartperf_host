@@ -120,26 +120,32 @@ export const queryAllFuncNames = (traceId?: string): //@ts-ignore
   );
 };
 
-export const queryProcessAsyncFunc = (traceRange: {
-  startTs: number;
-  endTs: number;
-}, traceId?: string): //@ts-ignore
+export const queryProcessAsyncFunc = (
+  traceRange: {
+    startTs: number;
+    endTs: number;
+  },
+  traceId?: string
+): //@ts-ignore
   Promise<Array<unknown>> =>
   query(
     'queryProcessAsyncFunc',
-    `select tid,
-        P.pid,
-        c.ts-${traceRange.startTs} as startTs,
-        c.dur,
-        c.cat,
-        c.id,
-        c.depth,
-        c.cookie,
-        c.argsetid
-    from thread A
-    left join process P on P.id = A.ipid
-    left join callstack C on A.id = C.parent_id
-    where startTs not null and cookie not null;`,
+    `SELECT
+      A.tid,
+      P.pid,
+      c.ts-${traceRange.startTs} as startTs,
+      c.dur,
+      c.cat,
+      c.id,
+      c.depth,
+      c.argsetid,
+      c.cookie
+    FROM
+      (SELECT id, ts, parent_id, dur, depth, argsetid, cookie, cat from callstack where cookie NOT NULL) c
+    LEFT JOIN thread A ON A.id = c.parent_id
+    LEFT JOIN process P ON P.id = A.ipid
+    WHERE
+      startTs NOT NULL;`,
     {},
     { traceId: traceId }
   );
