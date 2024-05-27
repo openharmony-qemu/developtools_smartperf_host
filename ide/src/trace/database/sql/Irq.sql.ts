@@ -23,11 +23,7 @@ export const queryIrqList = (traceId?: string): Promise<Array<{ name: string; cp
   `SELECT 
   * 
   FROM
-    (SELECT DISTINCT 
-    cat AS name,
-    callid AS cpu
-    FROM irq
-    WHERE cat<>'ipi')
+    (SELECT DISTINCT cat AS name, callid AS cpu FROM irq WHERE cat<>'ipi')
   ORDER By 
     name,
     cpu`

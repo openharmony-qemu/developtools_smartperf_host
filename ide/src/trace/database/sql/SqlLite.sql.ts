@@ -139,23 +139,22 @@ Promise<Array<unknown>> => {
 /*-------------------------------------------------------------------------------------*/
 export const queryHeapGroupByEvent = (type: string): Promise<Array<NativeEventHeap>> => {
   let sql1 = `
-      SELECT
-          event_type AS eventType,
-          sum(heap_size) AS sumHeapSize
-          FROM
-          native_hook
-          WHERE
-          event_type = 'AllocEvent'
-          UNION ALL
-          SELECT
-          event_type AS eventType,
-          sum(heap_size) AS sumHeapSize
-          FROM
-          native_hook
-          WHERE
-          event_type = 'MmapEvent'
-          GROUP BY
-          event_type
+    SELECT
+      event_type AS eventType,
+      sum(heap_size) AS sumHeapSize
+    FROM
+      native_hook
+    WHERE
+      event_type = 'AllocEvent'
+    UNION ALL
+    SELECT
+      event_type AS eventType,
+      sum(heap_size) AS sumHeapSize
+    FROM
+      native_hook
+    WHERE
+      event_type = 'MmapEvent'
+    GROUP BY event_type
     `;
   let sql2 = `
         select (case when type = 0 then 'AllocEvent' else 'MmapEvent' end) eventType,
