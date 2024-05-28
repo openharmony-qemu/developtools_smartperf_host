@@ -538,6 +538,7 @@ bool ParseArgs(int argc, char **argv, TraceExportOption &traceExportOption)
             continue;
         } else if (!strcmp(argv[i], "--So_dir")) {
             TS_CHECK_TRUE_RET(CheckAndSetSoFilesPath(traceExportOption, argc, argv, i), false);
+            i++;
             continue;
         } else if (!ParseOtherArgs(argc, argv, traceExportOption, i)) {
             return false;

@@ -120,6 +120,7 @@ bool PerfFiles::EraseFileIdSameData(uint64_t fileId)
         if (fileIds_[row] == fileId) {
             if (start == INVALID_UINT64) {
                 start = row;
+                end = row;
             } else {
                 end = row;
             }
