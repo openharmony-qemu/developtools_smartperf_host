@@ -91,6 +91,7 @@ public:
     }
 
 private:
+    void SetHM();
     bool Reload();
     bool LoadPerfData();
     void UpdateEventConfigInfo();
