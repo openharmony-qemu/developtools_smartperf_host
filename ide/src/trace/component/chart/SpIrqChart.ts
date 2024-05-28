@@ -45,9 +45,9 @@ export class SpIrqChart {
     }
     //加载irq table所有id和name数据
     let irqNamesArray = await queryAllIrqNames(traceId);
-    let irqNameMap: Map<number, { name: string; ipiName: string }> = new Map();
+    let irqNameMap: Map<number, string> = new Map();
     irqNamesArray.forEach((it) => {
-      irqNameMap.set(it.id, { ipiName: it.ipiName, name: it.name });
+      irqNameMap.set(it.id, it.ipiName);
     });
     info('irqList data size is: ', irqList!.length);
     if (!traceId) {
@@ -65,7 +65,7 @@ export class SpIrqChart {
     it: { name: string; cpu: number },
     index: number,
     folder: TraceRow<BaseStruct>,
-    irqNameMap: Map<number, { name: string; ipiName: string }>,
+    irqNameMap: Map<number, string>,
     traceId?: string,
   ): void {
     let traceRow = TraceRow.skeleton<IrqStruct>(traceId);
@@ -84,7 +84,7 @@ export class SpIrqChart {
       return irqDataSender(it.cpu, it.name, traceRow).then((irqs) => {
         irqs.forEach((irq): void => {
           let irqData = irqNameMap.get(irq.id!);
-          irq.name = (it.name === 'irq' ? irqData?.ipiName : irqData?.name) || '';
+          irq.name = irqData || '';
         });
         return irqs;
       });
