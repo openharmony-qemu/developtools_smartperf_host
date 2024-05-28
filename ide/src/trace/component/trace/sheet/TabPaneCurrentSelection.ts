@@ -346,7 +346,8 @@ export class TabPaneCurrentSelection extends BaseElement {
   async setFunctionData(
     data: FuncStruct,
     scrollCallback: Function,
-    callback?: (data: Array<any>, str: string, binderTid: number) => void
+    callback?: (data: Array<any>, str: string, binderTid: number) => void,
+    distributedCallback?: Function,
   ): Promise<void> {
     //方法信息
     await this.setRealTime();
@@ -356,14 +357,15 @@ export class TabPaneCurrentSelection extends BaseElement {
     // 从缓存中拿到详细信息的表
     let information: string = '';
     let FunDetailList: Array<FunDetail> = new Array();
-    await caches
-      .match('/funDetail')
-      .then((res) => {
+    await caches.match('/funDetail').then((res) => {
+      if (res) {
         return res!.text();
-      })
-      .then((res) => {
+      }
+    }).then((res) => {
+      if (res) {
         FunDetailList = JSON.parse(res);
-      });
+      }
+    });
     if (Array.isArray(FunDetailList)) {
       // 筛选当前函数块的信息项
       let informationList: Array<FunDetail> = FunDetailList.filter((v: FunDetail) => {
@@ -397,6 +399,13 @@ export class TabPaneCurrentSelection extends BaseElement {
       });
       list.push({ name: 'depth', value: data.depth });
       list.push({ name: 'information:', value: information });
+      if (data.chainId) {
+        list.push({ name: 'ChainId', value: data.chainId });
+        list.push({ name: 'SpanId', value: data.spanId });
+        list.push({ name: 'ParentSpanId', value: data.parentSpanId });
+        list.push({ name: 'ChainFlag', value: data.chainFlag });
+        await this.chainSpanListCallBackHandle(data, distributedCallback);
+      }
       this.currentSelectionTbl!.dataSource = list;
       let startTimeAbsolute = (data.startTs || 0) + (window as any).recordStartNS;
       this.addClickToTransfBtn(startTimeAbsolute, FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);
@@ -418,7 +427,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     return gmt;
   }
 
-  private async chainSpanListCallBackHandle(data: FuncStruct, callBack: Function): Promise<void> {
+  private async chainSpanListCallBackHandle(data: FuncStruct, callBack: Function | undefined): Promise<void> {
     let allMainChainList: FuncStruct[];
     if (Utils.currentTraceMode === TraceMode.DISTRIBUTED) {
       let chainAllData = await Promise.all([

@@ -15,7 +15,6 @@
 
 export class JSONToCSV {
   static setCsvData(obj: unknown): void {
-    let that = this;
     // @ts-ignore
     let data = obj.data;
     // @ts-ignore
@@ -49,11 +48,11 @@ export class JSONToCSV {
       csv += row + '\r\n';
     }
     // 具体的数据处理
-    data.map(function (n: unknown) {
+    data.map((n: unknown) => {
       row = '';
       // 如果存在自定义key值
       if (columns.key.length) {
-        row = that.getCsvStr(columns, obj, n, row);
+        row = this.getCsvStr(columns, obj, n, row);
       } else {
         // @ts-ignore
         for (key in n) {
@@ -72,9 +71,8 @@ export class JSONToCSV {
   }
 
   static getCsvStr(columns: unknown, obj: unknown, n: unknown, row: string): string {
-    let that = this;
     // @ts-ignore
-    columns.key.map(function (m: unknown, idx: number) {
+    columns.key.map((m: unknown, idx: number) => {
       let strItem: unknown = '';
       // @ts-ignore
       if (obj.exportFormatter && obj.exportFormatter.has(m)) {
@@ -100,7 +98,7 @@ export class JSONToCSV {
         row +=
           '"' +
           // @ts-ignore
-          that.treeDepth(n.depthCSV) +
+          this.treeDepth(n.depthCSV) +
           // @ts-ignore
           (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) +
           '",';

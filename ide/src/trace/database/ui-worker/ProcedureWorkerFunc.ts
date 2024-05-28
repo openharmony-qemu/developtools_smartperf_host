@@ -168,6 +168,11 @@ export function funcStructOnClick(
                 sp.drawFuncLine(endParentRow, hoverFuncStruct, data, binderTid);
               });
             }
+          },
+          (dataList: FuncStruct[]): void => {
+            dataList.sort((leftData: FuncStruct, rightData: FuncStruct) => leftData.ts! - rightData.ts!);
+            FuncStruct.selectLineFuncStruct = dataList;
+            sp.resetDistributedLine();
           }
         );
         sp.refreshCanvas(true);

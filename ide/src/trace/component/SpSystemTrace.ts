@@ -1416,9 +1416,8 @@ export class SpSystemTrace extends BaseElement {
     sourceData: FuncStruct,
     targetData: FuncStruct,
     selectFuncStruct: FuncStruct,
-    isStartData: boolean
   ): void {
-    spSystemTraceDrawDistributedLine(this, sourceData, targetData, selectFuncStruct, isStartData);
+    spSystemTraceDrawDistributedLine(this, sourceData, targetData, selectFuncStruct);
   }
 
   drawThreadLine(endParentRow: unknown, selectThreadStruct: ThreadStruct | undefined, data: unknown): void {
@@ -2125,7 +2124,11 @@ export class SpSystemTrace extends BaseElement {
       // @ts-ignore
       this.shadowRoot!.querySelectorAll<TraceRow<unknown>>("trace-row[row-type='process'][scene]").forEach(
         (row): void => {
-          processList.push(row.rowId!);
+          let rowId = row.rowId;
+          if (rowId && rowId.includes('-')){
+            rowId = rowId.split('-')[0];
+          }
+          processList.push(rowId as string);
         }
       );
       if (query.includes('_')) {
@@ -2240,7 +2243,7 @@ export class SpSystemTrace extends BaseElement {
     //@ts-ignore
     let funId = funcStract.row_id === null ? `${funcStract.funName}-${funcStract.pid}` : funcStract.row_id;
     //@ts-ignore
-    let funcRowID = (funcStract.cookie === null || funcStract.cookie === undefined) ? `${funcStract.tid}` : funId;
+    let funcRowID = !funcStract.cookie ? `${Utils.getDistributedRowId(funcStract.tid)}` : funId;
     let targetRow = this.favoriteChartListEL?.getCollectRow((row) => {
       return row.rowId === funcRowID && row.rowType === 'func';
     });
@@ -2461,7 +2464,7 @@ export class SpSystemTrace extends BaseElement {
         let sourceData = FuncStruct.selectLineFuncStruct[index];
         if (index !== FuncStruct.selectLineFuncStruct.length - 1) {
           let targetData = FuncStruct.selectLineFuncStruct[index + 1];
-          this.drawDistributedLine(sourceData, targetData, FuncStruct.selectFuncStruct!, index === 0);
+          this.drawDistributedLine(sourceData, targetData, FuncStruct.selectFuncStruct!);
         }
       }
       this.refreshCanvas(true);
