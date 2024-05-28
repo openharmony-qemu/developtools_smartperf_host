@@ -15,11 +15,11 @@
 
 import { query } from '../SqlLite';
 import { IrqStruct } from '../ui-worker/ProcedureWorkerIrq';
-import {IrqAndSoftirqBean} from '../../component/trace/sheet/irq/irqAndSoftirqBean'
+import { IrqAndSoftirqBean } from '../../component/trace/sheet/irq/irqAndSoftirqBean'
 import { Utils } from '../../component/trace/base/Utils';
 
 export const queryIrqList = (traceId?: string): Promise<Array<{ name: string; cpu: number }>> =>
-  query('queryIrqList', 
+  query('queryIrqList',
   `SELECT 
   * 
   FROM
@@ -27,13 +27,13 @@ export const queryIrqList = (traceId?: string): Promise<Array<{ name: string; cp
   ORDER By 
     name,
     cpu`
-    , {}, {traceId: traceId});
+    , {}, { traceId: traceId });
 
 export const queryAllIrqNames = (traceId?: string): Promise<Array<{ ipiName: string; name: string; id: number }>> => {
   return query(
     'queryAllIrqNames',
-    `select id,case when cat = 'ipi' then 'IPI' || name else name end as ipiName, name from irq;`
-    , {}, {traceId: traceId});
+    `select id,case when cat = 'ipi' then 'IPI' || name else name end as ipiName from irq;`
+    , {}, { traceId: traceId });
 };
 
 export const queryIrqData = (callid: number, cat: string): Promise<Array<IrqStruct>> => {
@@ -74,7 +74,7 @@ where ((i.cat = 'irq' and i.flag = '1') or i.cat = 'ipi')
   and max(i.ts - t.start_ts, ${startNS}) <= min(i.ts - t.start_ts + dur, ${endNS})
 group by irqName;
     `;
-  return query('queryIrqDataBoxSelect', callIds.length > 0 ? sqlIrq : '', {}, {traceId: Utils.currentSelectTrace});
+  return query('queryIrqDataBoxSelect', callIds.length > 0 ? sqlIrq : '', {}, { traceId: Utils.currentSelectTrace });
 };
 
 export const querySoftIrqDataBoxSelect = (
@@ -98,7 +98,7 @@ where callid in (${callIds.join(',')})
   and max(i.ts - t.start_ts, ${startNS}) <= min(i.ts - t.start_ts + dur, ${endNS})
 group by irqName;
     `;
-  return query('querySoftIrqDataBoxSelect', callIds.length > 0 ? sqlIrq : '', {}, {traceId: Utils.currentSelectTrace});
+  return query('querySoftIrqDataBoxSelect', callIds.length > 0 ? sqlIrq : '', {}, { traceId: Utils.currentSelectTrace });
 };
 
 export const queryIrqSelectData = (callIds: Array<number>, startNS: number, endNS: number): Promise<Array<IrqAndSoftirqBean>> =>
@@ -130,10 +130,10 @@ export const queryIrqSelectData = (callIds: Array<number>, startNS: number, endN
     AND ( ( i.cat = 'irq' AND i.flag = '1' ) OR i.cat = 'ipi' )`
   );
 
-  export const querySoftirqSelectData = (callIds: Array<number>, startNS: number, endNS: number): Promise<Array<IrqAndSoftirqBean>> =>
-    query(
-      'getSoftirqSelectData',
-      `
+export const querySoftirqSelectData = (callIds: Array<number>, startNS: number, endNS: number): Promise<Array<IrqAndSoftirqBean>> =>
+  query(
+    'getSoftirqSelectData',
+    `
       SELECT
           'softirq' AS cat,
           i.callid,
@@ -154,4 +154,4 @@ export const queryIrqSelectData = (callIds: Array<number>, startNS: number, endN
         NOT ((i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur) < ${startNS}) OR (i.ts - TR.start_ts > ${endNS}))
       AND 
         i.cat = 'softirq' `
-    );
+  );
