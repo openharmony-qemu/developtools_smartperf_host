@@ -602,8 +602,22 @@ export class SpProcessChart {
             this.trace.linkNodes?.forEach((linkProcessItem) => this.handler2(e, linkProcessItem, processRow));
           }, 300);
         }
-      } else if (FuncStruct.selectFuncStruct) {
+      } else if (FuncStruct.selectFuncStruct) { //@ts-ignore
+        if (e.detail.expansion) {
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes.forEach((linkNodeItem) => this.handler3(e, linkNodeItem));
+          }, 300);
+        }else{
+          FuncStruct.selectLineFuncStruct.push(FuncStruct.selectFuncStruct);
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes?.forEach((linkProcessItem) => {
+              this.handler4(e, linkProcessItem, processRow);
+              JankStruct.selectJankStructList = [];
+            });
+          }, 300);
+        }
         this.trace.resetDistributedLine();
+        
       } else {
         //@ts-ignore
         if (e.detail.expansion) {
