@@ -16,7 +16,10 @@
 #include "clock_filter_ex.h"
 #include "file.h"
 #include "perf_data_filter.h"
+#include "perf_file_format.h"
 #include "stat_filter.h"
+#include "utilities.h"
+#include <string>
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -518,6 +521,7 @@ bool PerfDataParser::Reload()
     UpdateEventConfigInfo();
     UpdateReportWorkloadInfo();
     UpdateCmdlineInfo();
+    SetHM();
 
     // update perf Files table
     UpdateSymbolAndFilesData();
@@ -727,6 +731,21 @@ void PerfDataParser::Finish()
         TS_LOGI("perfData time is not updated, maybe this trace file has other data");
     }
     pidAndStackHashToCallChainId_.Clear();
+}
+
+void PerfDataParser::SetHM()
+{
+    std::string os = recordDataReader_->GetFeatureString(FEATURE::OSRELEASE);
+    auto isHM = os.find(HMKERNEL) != std::string::npos;
+    report_->virtualRuntime_.SetHM(isHM);
+    if (isHM) {
+        pid_t devhost = -1;
+        std::string str = recordDataReader_->GetFeatureString(FEATURE::HIPERF_HM_DEVHOST);
+        if (str != EMPTY_STRING) {
+            devhost = std::stoi(str);
+        }
+        report_->virtualRuntime_.SetDevhostPid(devhost);
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning
