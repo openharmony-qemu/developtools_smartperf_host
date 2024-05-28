@@ -493,8 +493,8 @@ js_heap_sample:记录timeline的时间轴信息
 - wr_speed:当前时间段的写入速度
 - rd_count:读取的数据总量
 - wr_count:写入的数据总量
-- rd_sectors_speed：读数据的平均速度  
-- wr_sectors_speed：写入数据的平均速度  
+- rd_count_speed：读数据的平均速度  
+- wr_count_speed：写入数据的平均速度  
 
 ### ebpf_callstack表
 #### 表结构
