@@ -1314,6 +1314,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   refreshCheckType(): boolean {
     if (!this.rangeSelect && this.traceId !== Utils.currentSelectTrace) {
+      this.checkBoxEL!.style.display = 'none';
+      this.rangeSelect = false;
       this.removeAttribute('check-type');
       return true;
     }

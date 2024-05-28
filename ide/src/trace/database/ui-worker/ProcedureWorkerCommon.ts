@@ -1402,14 +1402,7 @@ function drawBrokenLineContext(
     rightEndpointX = x2 + wid;
     rightEndpointY = y2 + wid;
   }
-  if (y0 === y1) {
-    drawString(context, (brokenLineStart.rangeTime || ''), 0,
-      new Rect(x0, y0 - 12, x1 - x0, 12), { textMetricsWidth: undefined });
-  } else {
-    drawString(context, (brokenLineStart.rangeTime || ''), 0,
-      new Rect(x1, y1 - 12, x2 - x1, 12), { textMetricsWidth: undefined });
-    x1 = x1 - 2;
-  }
+  x1 = drawDistributedLineTime(brokenLineStart.business, brokenLineStart.rangeTime!, [x0, y0, x1, y1, x2, y2], context);
   context.moveTo(x0 - 2, y0);
   context.lineTo(x1, y1);
   context.lineTo(x2, y2);
@@ -1432,6 +1425,25 @@ let loadingTextWidth = 0;
 let loadingBackground = '#f1f1f1';
 let loadingFont = 'bold 11pt Arial';
 let loadingFontColor = '#696969';
+
+function drawDistributedLineTime(
+  business: string,
+  rangeTime: string,
+  [x0, y0, x1, y1, x2, y2]: [number, number, number, number, number, number],
+  context: CanvasRenderingContext2D
+): number {
+  if (business === 'distributed') {
+    if (y0 === y1) {
+      drawString(context, rangeTime, 0,
+        new Rect(x0, y0 + 2, x1 - x0, 12), { textMetricsWidth: undefined });
+    } else {
+      drawString(context, rangeTime, 0,
+        new Rect(x1, y1 + 2, x2 - x1, 12), { textMetricsWidth: undefined });
+      x1 = x1 - 2;
+    }
+  }
+  return x1;
+}
 
 export function drawLoadingFrame(
   ctx: CanvasRenderingContext2D,

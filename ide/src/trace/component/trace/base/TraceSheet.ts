@@ -212,7 +212,7 @@ export class TraceSheet extends BaseElement {
     });
     this.getComponentByID<any>('box-io-tier-statistics-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
       // @ts-ignore
-      if (evt.detail.button === 2) {
+      if (evt.detail.button === 2 && evt.detail.tableName) {
         let pane = this.getPaneByID('box-io-calltree');
         this.litTabs!.activeByKey(pane.key);
       }
@@ -221,7 +221,7 @@ export class TraceSheet extends BaseElement {
       'row-click',
       (evt: MouseEvent) => {
         // @ts-ignore
-        if (evt.detail.button === 2) {
+        if (evt.detail.button === 2 && evt.detail.tableName) {
           let pane = this.getPaneByID('box-vm-calltree');
           this.litTabs!.activeByKey(pane.key);
         }
@@ -231,7 +231,7 @@ export class TraceSheet extends BaseElement {
       'row-click',
       (evt: MouseEvent) => {
         // @ts-ignore
-        if (evt.detail.button === 2) {
+        if (evt.detail.button === 2 && evt.detail.tableName) {
           let pane = this.getPaneByID('box-file-system-calltree');
           this.litTabs!.activeByKey(pane.key);
         }
@@ -253,7 +253,7 @@ export class TraceSheet extends BaseElement {
 
   private perfAnalysisListener(evt: MouseEvent): void {
     // @ts-ignore
-    if (evt.detail.button === 2) {
+    if (evt.detail.button === 2 && evt.detail.pid) {
       let pane = this.getPaneByID('box-perf-profile');
       this.litTabs!.activeByKey(pane.key);
     }
@@ -261,7 +261,7 @@ export class TraceSheet extends BaseElement {
 
   private nativeAnalysisListener(e: MouseEvent): void {
     //@ts-ignore
-    if (e.detail.button === 2) {
+    if (e.detail.button === 2 && e.detail.tableName) {
       let pane = this.getPaneByID('box-native-calltree');
       pane.hidden = false;
       this.litTabs!.activeByKey(pane.key);
@@ -684,9 +684,10 @@ export class TraceSheet extends BaseElement {
     names: string[],
     data: FuncStruct,
     scrollCallback: Function,
-    callback?: (data: Array<any>, str: string, binderTid: number) => void
+    callback?: (data: Array<any>, str: string, binderTid: number) => void,
+    distributedCallback?: (dataList: FuncStruct[]) => void,
   ): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, scrollCallback, callback);
+    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, scrollCallback, callback, distributedCallback);
   displayCpuData = (
     data: CpuStruct,
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,

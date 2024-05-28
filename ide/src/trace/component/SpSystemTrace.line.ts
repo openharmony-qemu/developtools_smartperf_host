@@ -16,7 +16,7 @@
 import { JankStruct } from '../database/ui-worker/ProcedureWorkerJank';
 import { SpSystemTrace } from './SpSystemTrace';
 import { TraceRow } from './trace/base/TraceRow';
-import { LineType, ns2Timestamp, ns2xByTimeShaft } from '../database/ui-worker/ProcedureWorkerCommon';
+import { LineType, PairPoint, ns2xByTimeShaft } from '../database/ui-worker/ProcedureWorkerCommon';
 import { TabPaneTaskFrames } from './trace/sheet/task/TabPaneTaskFrames';
 import { FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
 import { queryBySelectExecute } from '../database/sql/ProcessThread.sql';
@@ -47,7 +47,7 @@ function setPoint(
   rowEL: unknown,
   isRight: boolean,
   business: string
-): unknown {
+): PairPoint {
   return {
     x: x,
     y: y,
@@ -56,7 +56,7 @@ function setPoint(
     rowEL: rowEL!,
     isRight: isRight,
     business: business,
-  };
+  } as PairPoint;
 }
 
 function addPointHandle(
@@ -65,7 +65,6 @@ function addPointHandle(
   sourceThreadRow: TraceRow<BaseStruct>,
   targetData: FuncStruct,
   targetThreadRow: TraceRow<BaseStruct>,
-  isStartData: boolean
 ): void {
   let sourceParentRow: TraceRow<BaseStruct> | null | undefined;
   let targetParentRow: TraceRow<BaseStruct> | null | undefined;
@@ -84,22 +83,18 @@ function addPointHandle(
       `trace-row[row-id='${targetData.pid}'][row-type='process'][folder]`
     );
   }
-  let [startY, startOffSetY, startRowEl, isThreadRow] = getPointModel(sp, sourceThreadRow, sourceParentRow, sourceData);
-  let sourceStartPoint =
-    isStartData || !isThreadRow || sourceData.ts! + sourceData.dur! > targetData.ts!
-      ? sourceData.ts || 0
-      : (sourceData.ts || 0) + (sourceData.dur || 0);
-  let [endY, endOffSetY, endRowEl] = getPointModel(sp, targetThreadRow, targetParentRow, targetData);
-  let startX = Math.floor(ns2xByTimeShaft(sourceStartPoint, sp.timerShaftEL!));
+  let [startY, startOffSetY, startRowEl, isThreadRow] =
+    getPointModel(sp, sourceThreadRow, sourceParentRow, sourceData, 0.9);
+  let [endY, endOffSetY, endRowEl] =
+    getPointModel(sp, targetThreadRow, targetParentRow, targetData, 0.1);
+  let startX = Math.floor(ns2xByTimeShaft(sourceData.ts || 0, sp.timerShaftEL!));
   let endX = Math.floor(ns2xByTimeShaft(targetData.ts!, sp.timerShaftEL!));
-  const startPoint = setPoint(startX, startY, startOffSetY, sourceStartPoint, startRowEl, true, 'distributed');
+  const startPoint = setPoint(startX, startY, startOffSetY, sourceData.ts || 0, startRowEl, true, 'distributed');
   const endPoint = setPoint(endX, endY, endOffSetY, targetData.ts!, endRowEl, true, 'distributed');
-  // @ts-ignore
   startPoint.rangeTime = `${getTimeString((targetData.ts || 0) - (sourceData.ts || 0))}`;
   if (startPoint && endPoint) {
-    // @ts-ignore
-    startPoint.lineType = endPoint.lineType = LineType.brokenLine; // @ts-ignore
-    startPoint.lineColor = endPoint.lineColor = '#ff0000'; // @ts-ignorew
+    startPoint.lineType = endPoint.lineType = LineType.brokenLine;
+    startPoint.lineColor = endPoint.lineColor = '#ff0000';
     sp.addPointPair(startPoint, endPoint);
   }
 }
@@ -108,16 +103,17 @@ function getPointModel(
   sp: SpSystemTrace,
   threadRow: TraceRow<BaseStruct> | null | undefined,
   parentRow: TraceRow<BaseStruct> | null | undefined,
-  dataStruct: FuncStruct
+  dataStruct: FuncStruct,
+  pointYHeight: number,
 ): [number, number, TraceRow<BaseStruct>, boolean] {
   let pointY: number = 0;
   let isThreadRow = false;
   let pointRowEl: TraceRow<BaseStruct> | null | undefined;
   let pointOffSetY: number = 0;
   if (threadRow) {
-    pointY = threadRow?.translateY + 20 * (dataStruct.depth! + 0.5);
+    pointY = threadRow?.translateY + 20 * (dataStruct.depth! + pointYHeight);
     pointRowEl = threadRow;
-    pointOffSetY = 20 * (dataStruct.depth! + 0.5);
+    pointOffSetY = 20 * (dataStruct.depth! + pointYHeight);
     isThreadRow = true;
   } else if (parentRow) {
     if (!parentRow.expansion) {
@@ -404,7 +400,6 @@ export function spSystemTraceDrawDistributedLine(
   sourceData: FuncStruct,
   targetData: FuncStruct,
   selectFuncStruct: FuncStruct,
-  isStartData: boolean
 ): void {
   let collectList = sp.favoriteChartListEL!.getAllCollectRows() as TraceRow<BaseStruct>[];
   if (!selectFuncStruct) {
@@ -453,7 +448,7 @@ export function spSystemTraceDrawDistributedLine(
       }
     }
   }
-  addPointHandle(sp, sourceData, sourceThreadRow, targetData, targetThreadRow, isStartData);
+  addPointHandle(sp, sourceData, sourceThreadRow, targetData, targetThreadRow);
 }
 
 function taskPoolOtherRelationData(
