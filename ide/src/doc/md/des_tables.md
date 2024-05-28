@@ -159,7 +159,7 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |process_measure       |    -         |ftrace-plugin      |进程内存               |
 |process_measure_filter|    -         |ftrace-plugin      |process_measure的辅助表|
 |raw                   |    -         |ftrace-plugin      |线程唤醒信息           |
-|sched_slice           |    -         |ftrace-plugin      |配合现场状态表使用，dsched_switch的原始数据|
+|sched_slice           |    -         |ftrace-plugin      |配合线程状态表使用，sched_switch的原始数据|
 |smaps                 |    -         |memory-plugin      |进程的内存消耗         |
 |stat                  |  通用的      |    -              |记录不同种类数据的数据量|
 |symbols               |    -         |ftrace-plugin      |符号表（地址到字符串的映射）|
@@ -1569,7 +1569,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 - tid：线程号  
 - pid：进程号  
 - state：线程实际的的状态值  
-- argset_id：线程状态参数，对应arg_view中arg_set
+- argset_id：线程状态参数，对应args中arg_set
 
 ```  
 'R', Runnable状态  
