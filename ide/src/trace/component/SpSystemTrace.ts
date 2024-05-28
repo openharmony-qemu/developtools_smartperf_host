@@ -1446,12 +1446,12 @@ export class SpSystemTrace extends BaseElement {
     return startRow;
   }
 
-  calculateStartY(startRow: any, selectFuncStruct?: FuncStruct): [number, any, number] {
-    let startY = startRow!.translateY!;
+  calculateStartY(startRow: any, pid: number | undefined, selectFuncStruct?: FuncStruct): [number, any, number] {
+    let startY = startRow ? startRow!.translateY! : 0;
     let startRowEl = startRow;
     let startOffSetY = selectFuncStruct ? 20 * (0.5 + Number(selectFuncStruct.depth)) : 20 * 0.5;
-    const startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
-      `trace-row[row-id='${startRow.rowParentId}'][folder]`
+    const startParentRow = startRow ? this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(`trace-row[row-id='${startRow.rowParentId}'][folder]`) : this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+      `trace-row[row-id='${pid}'][folder]`
     );
     const expansionFlag = this.collectionHasThread(startRow);
     if (startParentRow && !startParentRow.expansion && expansionFlag) {
@@ -1479,7 +1479,7 @@ export class SpSystemTrace extends BaseElement {
     const collectList = this.favoriteChartListEL!.getCollectRows();
     for (let item of collectList!) {
       // @ts-ignore
-      if (item.rowId === threadRow.rowId && item.rowType === threadRow.rowType) {
+      if (threadRow && item.rowId === threadRow.rowId && item.rowType === threadRow.rowType) {
         return false;
       }
     }
