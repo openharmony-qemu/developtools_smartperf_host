@@ -20,7 +20,7 @@ import { Utils } from '../../component/trace/base/Utils';
 
 export const queryIrqList = (traceId?: string): Promise<Array<{ name: string; cpu: number }>> =>
   query('queryIrqList',
-    `SELECT 
+  `SELECT 
   * 
   FROM
     (SELECT DISTINCT cat AS name, callid AS cpu FROM irq WHERE cat<>'ipi')
