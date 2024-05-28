@@ -19,7 +19,14 @@ import {IrqAndSoftirqBean} from '../../component/trace/sheet/irq/irqAndSoftirqBe
 import { Utils } from '../../component/trace/base/Utils';
 
 export const queryIrqList = (traceId?: string): Promise<Array<{ name: string; cpu: number }>> =>
-  query('queryIrqList', `select cat as name,callid as cpu from irq where cat!= 'ipi' group by cat,callid`
+  query('queryIrqList', 
+  `SELECT 
+  * 
+  FROM
+    (SELECT DISTINCT cat AS name, callid AS cpu FROM irq WHERE cat<>'ipi')
+  ORDER By 
+    name,
+    cpu`
     , {}, {traceId: traceId});
 
 export const queryAllIrqNames = (traceId?: string): Promise<Array<{ ipiName: string; name: string; id: number }>> => {
