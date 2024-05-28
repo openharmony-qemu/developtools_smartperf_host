@@ -83,8 +83,8 @@ export class SpIrqChart {
     traceRow.supplierFrame = (): Promise<IrqStruct[]> => {
       return irqDataSender(it.cpu, it.name, traceRow).then((irqs) => {
         irqs.forEach((irq): void => {
-          let irqData = irqNameMap.get(irq.id!);
-          irq.name = irqData || '';
+          let irqName = irqNameMap.get(irq.id!);
+          irq.name = irqName || '';
         });
         return irqs;
       });
