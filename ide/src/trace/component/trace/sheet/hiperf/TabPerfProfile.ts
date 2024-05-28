@@ -32,10 +32,11 @@ import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 import { TabPerfProfileHtml } from './TabPerfProfile.html';
 
 const InvertOptionIndex: number = 0;
+const hideSystemLibraryOptionIndex: number = 1;
 const hideThreadOptionIndex: number = 3;
 const hideThreadStateOptionIndex: number = 4;
 const isOnlyKernelOptionIndex: number = 5;
-const callTreeValueNoSample: number[] = [InvertOptionIndex, hideThreadOptionIndex, hideThreadStateOptionIndex, isOnlyKernelOptionIndex];
+const callTreeValueNoSample: number[] = [InvertOptionIndex, hideSystemLibraryOptionIndex, hideThreadOptionIndex, hideThreadStateOptionIndex, isOnlyKernelOptionIndex];
 
 @element('tabpane-perf-profile')
 export class TabpanePerfProfile extends BaseElement {
@@ -693,6 +694,12 @@ export class TabpanePerfProfile extends BaseElement {
       funcName: 'resetAllNode',
       funcArgs: [],
     });
+    if (isOnlyKernel) {
+      perfProfileArgs.push({
+        funcName: 'kernelCombination',
+        funcArgs: [],
+      });
+    } // @ts-ignore
     this.refreshAllNodeExtend(perfProfileArgs);
   }
 

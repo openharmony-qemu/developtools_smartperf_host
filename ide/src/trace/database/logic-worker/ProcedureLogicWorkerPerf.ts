@@ -25,7 +25,6 @@ import { PerfBottomUpStruct } from '../../bean/PerfBottomUpStruct';
 import { SelectionParam } from '../../bean/BoxSelection';
 
 const systemRuleName: string = '/system/';
-const kernelRuleName: string = '/kernel/';
 const numRuleName: string = '/max/min/';
 const maxDepth: number = 256;
 
@@ -256,12 +255,17 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     let hideThreadStateFilter = params.filter(
       (item: { funcName: string }): boolean => item.funcName === 'hideThreadState'
     );
+    //@ts-ignore
+    let onlyKernelFilter = params.filter(
+      (item: { funcName: string }): boolean => item.funcName === 'onlyKernel'
+    );
     if (this.lib) {
       if (
         callChainsFilter.length > 0 ||
         isHideSystemSoFilter.length > 0 ||
         hideThreadFilter.length > 0 ||
-        hideThreadStateFilter.length > 0
+        hideThreadStateFilter.length > 0 ||
+        onlyKernelFilter.length > 0
       ) {
         this.samplesData = this.combineCallChainForAnalysis(this.lib);
         //@ts-ignore
@@ -277,7 +281,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         callChainsFilter.length > 0 ||
         isHideSystemSoFilter.length > 0 ||
         hideThreadFilter.length > 0 ||
-        hideThreadStateFilter.length > 0
+        hideThreadStateFilter.length > 0 ||
+        onlyKernelFilter.length > 0
       ) {
         this.samplesData = this.combineCallChainForAnalysis(this.symbol);
         //@ts-ignore
@@ -697,7 +702,21 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   onlyKernel(): void {
     this.allProcess.forEach((item: PerfCallChainMerageData): void => {
       item.children = [];
-      this.recursionChargeByRule(item, kernelRuleName, (node: PerfCallChainMerageData): boolean => {
+
+      function recursionHideChildren(
+        sample: PerfCallChainMerageData,
+        rule: (node: PerfCallChainMerageData) => boolean
+      ): void {
+        if (sample.initChildren.length > 0) {
+          sample.initChildren.forEach((child): void => {
+            if (rule(child)) {
+              child.isStore++;
+            }
+            recursionHideChildren(child, rule);
+          });
+        }
+      }
+      recursionHideChildren(item, (node: PerfCallChainMerageData): boolean => {
         return node.libName !== '[kernel.kallsyms]'
       })
     })
@@ -765,6 +784,33 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         }
       }
     });
+  }
+
+  kernelCombination(): void {
+    function mergeChildren(item: PerfCallChainMerageData) {
+      if (item.children.length > 0) {
+        item.children = item.children.reduce((total: PerfCallChainMerageData[], pfcall: PerfCallChainMerageData): PerfCallChainMerageData[] => {
+          for (const prev of total) {
+            if (pfcall.symbol == prev.symbol) {
+              prev.children.push(...pfcall.children)
+              prev.total += pfcall.total
+              prev.count += pfcall.count
+              prev.totalEvent += pfcall.totalEvent
+              prev.eventCount += pfcall.eventCount
+              return total
+            }
+          }
+          total.push(pfcall)
+          return total
+        }, [] as PerfCallChainMerageData[])
+        for (const child of item.children) {
+          mergeChildren(child)
+        }
+      }
+    }
+    this.allProcess.forEach((item: PerfCallChainMerageData): void => {
+      mergeChildren(item)
+    })
   }
 
   findSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
@@ -900,6 +946,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         return this.combineCallChainForAnalysis();
       case 'getBottomUp':
         return this.getBottomUp();
+      case 'kernelCombination':
+        this.kernelCombination();
+        break;
     }
     return [];
   }
