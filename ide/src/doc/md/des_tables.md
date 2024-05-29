@@ -1387,7 +1387,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 - ipid：进程内部编号
 - end_state：线程的终结状态
 - priority: 线程优先级
-- argset_id：线程状态参数，对应arg_view中arg_set
+- argset_id：线程状态参数，对应args中argset
 
 ### smaps表
 #### 表结构
