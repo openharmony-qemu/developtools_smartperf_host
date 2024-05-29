@@ -223,7 +223,7 @@ log表记录日志信息。可以根据seq字段的连续性，来判断是否�
 ### perf表之间关系图
 - perf_report：此表记录Hiperf工具采集数据时的配置信息。  
 - perf_thread：此表记录hiperf采集到的进程和线程数据。  
-- perf_sample：此表中记录Hiperf工具的采样信息。callchain_id唯一表示一次采样记录，与perf_callchain表中的callchain_id字段相关联。thread_id为线程号。与perf_thread表中的thread_id字段相关联。event_type_id为当前采样的事件类型id，与perf_report表中的id字段相关联。  
+- perf_sample：此表中记录Hiperf工具的采样信息。id唯一表示一次采样记录，通过callchain_id与perf_callchain表中的callchain_id字段相关联。thread_id为线程号,与perf_thread表中的thread_id字段相关联。event_type_id为当前采样的事件类型id，与perf_report表中的id字段相关联。  
 - perf_callchain：此表格记录的是调用栈信息。  
 - Perf_files：此表格主要存放着获取到的函数符号表和文件信息。file_id唯一表识一个文件，与perf_callchain表中的file_id字段相关联。  
 
@@ -1536,7 +1536,6 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 #### 字段详细描述
 - id: 唯一标识 
 - itid：TS内部线程id  
-- type：固定字段（thread）  
 - tid：线程号  
 - name：线程名  
 - start_ts：开始时间  
