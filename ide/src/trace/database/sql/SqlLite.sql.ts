@@ -154,7 +154,6 @@ export const queryHeapGroupByEvent = (type: string): Promise<Array<NativeEventHe
       native_hook
     WHERE
       event_type = 'MmapEvent'
-    GROUP BY event_type
     `;
   let sql2 = `
         select (case when type = 0 then 'AllocEvent' else 'MmapEvent' end) eventType,
