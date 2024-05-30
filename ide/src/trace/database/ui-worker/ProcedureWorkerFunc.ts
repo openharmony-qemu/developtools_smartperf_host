@@ -136,6 +136,7 @@ export function funcStructOnClick(
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FUNC && (FuncStruct.hoverFuncStruct || entry)) {
       if (FuncStruct.funcSelect) {
+        sp.observerScrollHeightEnable = false;
         TabPaneTaskFrames.TaskArray = [];
         sp.removeLinkLinesByBusinessType('task');
         FuncStruct.firstSelectFuncStruct = FuncStruct.selectFuncStruct;

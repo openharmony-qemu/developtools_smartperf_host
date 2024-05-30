@@ -32,17 +32,22 @@ export class SpIrqChart {
   }
 
   async init(parentRow?: TraceRow<BaseStruct>, traceId?: string): Promise<void> {
-    let folder = await this.initFolder(traceId);
-    parentRow?.addChildTraceRow(folder);
-    await this.initData(folder, traceId);
-  }
-
-  async initData(folder: TraceRow<BaseStruct>, traceId?: string): Promise<void> {
     let irqStartTime = new Date().getTime();
     let irqList = await queryIrqList(traceId);
     if (irqList.length === 0) {
       return;
     }
+    let folder = await this.initFolder(traceId);
+    parentRow?.addChildTraceRow(folder);
+    await this.initData(folder, irqStartTime, irqList, traceId);
+  }
+
+  async initData(
+    folder: TraceRow<BaseStruct>,
+    irqStartTime: number,
+    irqList: Array<{ name: string; cpu: number }>,
+    traceId?: string,
+  ): Promise<void> {
     //加载irq table所有id和name数据
     let irqNamesArray = await queryAllIrqNames(traceId);
     let irqNameMap: Map<number, string> = new Map();

@@ -1519,11 +1519,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  focusContain(e: MouseEvent, inFavoriteArea: boolean): boolean {
+  focusContain(e: MouseEvent, inFavoriteArea: boolean, prevScrollY: number = 0): boolean {
     let _y = (e.currentTarget as HTMLElement).getBoundingClientRect().y;
     let myRect = this.getBoundingClientRect();
     let x = e.offsetX;
-    let y = e.offsetY + _y;
+    let y = e.offsetY + prevScrollY + _y;
     if (x >= myRect.x && x <= myRect.x + myRect.width && y >= myRect.y && y <= myRect.y + myRect.height) {
       this.hoverX = x - this.describeEl!.clientWidth;
       this.hoverY = y - myRect.y;

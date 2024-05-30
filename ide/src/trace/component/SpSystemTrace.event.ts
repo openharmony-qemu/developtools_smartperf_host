@@ -888,7 +888,8 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
     )
   ) {
     let inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
-    let rows = sp.visibleRows.filter((it) => it.focusContain(ev, inFavoriteArea!) && it.collect === inFavoriteArea);
+    let rows = sp.visibleRows.filter((it) =>
+      it.focusContain(ev, inFavoriteArea!, sp.prevScrollY) && it.collect === inFavoriteArea);
     if (JankStruct.delJankLineFlag) {
       sp.removeLinkLinesByBusinessType('janks');
     }
@@ -902,7 +903,7 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
       offset = true;
     }
     if (rows && rows[0] && rows[0].getHoverStruct(strict, offset)) {
-      sp.onClickHandler(rows[0]!.rowType!, rows[0]);
+      sp.onClickHandler(rows[0]!.rowType!, rows[0], rows[0].getHoverStruct(strict, offset));
       sp.documentOnMouseMove(ev);
     } else if (rows && rows[0] && rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false)) {
       sp.onClickHandler(rows[0]!.rowType!, rows[0]);

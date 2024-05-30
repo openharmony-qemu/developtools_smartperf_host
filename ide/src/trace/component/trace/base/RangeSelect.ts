@@ -64,6 +64,11 @@ export class RangeSelect {
   mouseDown(eventDown: MouseEvent): void {
     this.startPageX = eventDown.pageX;
     this.startPageY = eventDown.pageY;
+    if (TraceRow.rangeSelectObject) {
+      this.handleTouchMark(eventDown);
+    } else {
+      this.isHover = false;
+    }
     if (this.isHover) {
       this.isMouseDown = true;
       return;
@@ -150,6 +155,7 @@ export class RangeSelect {
       }
     }
     this.isMouseDown = false;
+    this.isHover = false;
   }
   // @ts-ignore
   checkRowsName(rowList: Array<TraceRow<unknown>>): void {
@@ -267,6 +273,7 @@ export class RangeSelect {
     }
     document.getSelection()?.removeAllRanges();
     this.isMouseDown = false;
+    this.isHover = false;
   }
   // @ts-ignore
   mouseMove(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
@@ -282,6 +289,7 @@ export class RangeSelect {
       return;
     }
     if (!this.isMouseDown) {
+      this.isHover = false;
       this.handleDrawForNotMouseDown();
       return;
     }

@@ -220,7 +220,7 @@ export class SpSystemTrace extends BaseElement {
   _flagList: Array<unknown> = [];
   static currentStartTime: number = 0;
   static retargetIndex: number = 0;
-  private prevScrollY: number = 0;
+  prevScrollY: number = 0;
   focusTarget: string = '';
 
   set snapshotFile(data: FileInfo) {
