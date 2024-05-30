@@ -806,7 +806,7 @@
 
       <p class="fontColor">
         点击Record setting，在output file path输入文件名hiprofiler_data_abilitymonitor.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。
+        size大小是64MB，抓取时长是50s。
         <br />
         <img src="../figures/AbilityMonitor/abilitysetting.jpg" alt="GitHub Logo" />
         <br />
@@ -883,7 +883,7 @@ Disk Bytes Written/Sec： 每秒从内存写入磁盘的字节数。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Disk Read Ops/Sec：读入的字节数。
+Disk Read Ops/Sec：读取的字节数。
 </pre
           >
         </li>
@@ -978,13 +978,13 @@ Memory：内存值。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Disk Writes(B)：磁盘读入的字节数。
+Disk Writes(B)：磁盘写入的字节数。
 </pre
           >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Disk Reads(B)：磁盘写入的字节数。
+Disk Reads(B)：磁盘读取的字节数。
 </pre
           >
         </li>
@@ -1052,7 +1052,7 @@ CPU Time：CPU运行时间。
       <ul class="fontColor">
         <li>
           <pre class="smartperf-text fontColor light">
-Start Time：采集时间的时间戳。
+StartTime：采集时间的时间戳。
 </pre
           >
         </li>
@@ -1088,14 +1088,14 @@ Process：进程号。
         </li>
       </ul>
       <p class="fontColor">
-        框选MemoryTotal，Cached，SwapTota三个区域的泳道图，会展示System Memory Summary的Tab页。
+        框选MemoryTotal，Cached，SwapTotal三个区域的泳道图，会展示System Memory Summary的Tab页。
         <br />
         <img src="../figures/AbilityMonitor/memorytab.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
         <li>
           <pre class="smartperf-text fontColor light">
-Start Time：采集时间的时间戳。
+StartTime：采集时间的时间戳。
 </pre
           >
         </li>
@@ -1149,7 +1149,7 @@ SUnreclaim：不可回收的Slab大小。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Swap Toal：交换空间的总大小。
+SwapTotal：交换空间的总大小。
 </pre
           >
         </li>
@@ -1219,6 +1219,11 @@ CmaFree：空闲的可用内存。
 </pre
           >
         </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+            Zram：Zram的使用大小。
+  </pre>
+        </li>
       </ul>
       <p class="fontColor">
         框选Disk Bytes Read/Sec，Disk Bytes Written/Sec，Disk Read Ops/Sec，Disk Written
@@ -1229,7 +1234,7 @@ CmaFree：空闲的可用内存。
       <ul class="fontColor">
         <li>
           <pre class="smartperf-text fontColor light">
-Start Time：采集时间的时间戳。
+StartTime：采集时间的时间戳。
 </pre
           >
         </li>
@@ -1271,7 +1276,7 @@ Reads In：读入的字节数。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Reads In/sec：每秒读入的字节数。
+Reads In/sec：每秒读取的字节数。
 </pre
           >
         </li>
@@ -1297,7 +1302,7 @@ Write Out/sec：每秒写入的字节数。
       <ul class="fontColor">
         <li>
           <pre class="smartperf-text fontColor light">
-Start Time：采集时间的时间戳。
+StartTime：采集时间的时间戳。
 </pre
           >
         </li>

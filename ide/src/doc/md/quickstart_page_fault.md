@@ -13,7 +13,7 @@
 -     Process：默认配置的是整个系统的，也可选择单进程抓取。
 -     Max Unwind Level：配置抓取调用栈的最大深度。
 
-再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_ebpf.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 50s。
+再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_ebpf.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 50s。
 ![GitHub Logo](../../figures/EBPF/ebpfrecord.jpg)
 点击 Trace command，就会根据上面的配置生成抓取命令，点击 Record 抓取，抓取过程中会显示抓取时长。
 ![GitHub Logo](../../figures/EBPF/ebpfexcuting.jpg)
@@ -50,11 +50,14 @@ Page Fault Statistics 的 Tab 页如图：
 -     Max Duration：最大时长。
   点击下方的 Statistics by Thread，可以切换到按照 Thread 为基点显示数据。
   ![GitHub Logo](../../figures/EBPF/ebpf_bythread.jpg)
+  Analysis 的 Tab 页如图：
+  ![GitHub Logo](../../figures/EBPF/Analysis.jpg)
   Page Fault CallTree 的 Tab 页如图：
   ![GitHub Logo](../../figures/EBPF/VMCalltree.jpg)
 -     Call Stack：为经过符号解析后的Callstack，并且给出动态链接库或者进程名的信息。
--     Local：为该调用方法自身占用的CPU时间。
--     Weight：调用方法的执行占比。
+-     Local：为该调用方法自身占用的 CPU 时间。
+-     Weight：为该调用方法占用的CPU时间。
+      %：为该调用方法占用的CPU时间占比。
   Page Fault Events 的 Tab 页如图：
   ![GitHub Logo](../../figures/EBPF/VMEvents.jpg)
 -     Start Time：起始时间。
@@ -71,6 +74,8 @@ Page Fault Statistics 的 Tab 页如图：
 
 -     Invert：反向输出调用树。
 -     Hide System so：隐藏系统库文件。
+      Hide Event：隐藏事件。 
+      Hide Thread：隐藏线程。 
 
 ### 页内存支持过滤调用栈调用次数的展示风格
 
@@ -82,7 +87,7 @@ Page Fault Statistics 的 Tab 页如图：
 ![GitHub Logo](../../figures/EBPF/vmdatamining.jpg)
 
 - 裁剪 Callstack，点击 Callstack 上一个节点符号，再点击底部 Symbol Filter 按钮，则该符号自动被裁剪掉，同时将该节点往下所有的 Callstack 内容裁剪掉。
-- 裁剪 Library，点击 Library Filter 按钮，则该库文件符号下所有的子节点也被裁剪。
+- 裁剪 Library，点击 Library 上一个节点符号，再点击底部 Library Filter 按钮，则该符号自动被裁剪掉，同时将该节点往下所有的 Callstack 内容裁剪掉。
 - 点击 Reset 按钮，将恢复选中的裁剪内容。
 
 ### 页内存功能的调用栈 Group 展示支持按条件过滤
@@ -106,5 +111,5 @@ Page Fault Statistics 的 Tab 页如图：
 ![GitHub Logo](../../figures/EBPF/vmflame.jpg)
 进入到火焰图页面，火焰图的展示跟 Callinfo 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和 Duration 时长。
 ![GitHub Logo](../../figures/EBPF/vmflameshow.jpg)
-鼠标左键火焰图，会进入下一级界面，右键回到上一级。
+鼠标左键火焰图，会进入下一级界面，左键上级则返回上一级界面。
 ![GitHub Logo](../../figures/EBPF/vmflamelevel.jpg)

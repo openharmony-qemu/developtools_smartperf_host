@@ -806,7 +806,7 @@
         <img src="../figures/HiSystemEvent/hisyseventsetting.jpg" alt="GitHub Logo" />
         <br />
         再点击Record setting，在output file path输入文件名hiprofiler_data_hisystemevent.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。
+        size大小是64MB，抓取时长是50s。
         <br />
         <img src="../figures/HiSystemEvent/hisystemeventrecord.jpg" alt="GitHub Logo" />
         <br />
@@ -814,7 +814,7 @@
         <br />
         <img src="../figures/HiSystemEvent/hisystemcommand.jpg" alt="GitHub Logo" />
         <br />
-        输入hdc_std shell，进入设备，执行上述生成的命令。
+        输入hdc shell，进入设备，执行上述生成的命令。
         <br />
         <img src="../figures/HiSystemEvent/hisystemeventemexcute.jpg" alt="GitHub Logo" />
         <br />
@@ -842,7 +842,7 @@ Anomaly Event泳道： 显示系统异常和应用异常的ToolTip。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-System Event泳道： 以条状图显示，红色代表后台任务(WORKSCHEDULER)，黄色代表应用锁(POWER)，蓝色代表GPS定位(LOCATION)。
+System Event泳道： 以条状图显示，红色代表后台任务(WORKSCHEDULER)，黄色代表应用锁(POWER_RUNNINGLOCK)，蓝色代表GPS定位(LOCATION)。
 </pre
           >
         </li>
@@ -1117,7 +1117,7 @@ Screen Off Count：应用灭屏扫描次数。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Background Time(ms)：灭屏使用功耗值。
+Background Time(ms)：应用后台使用时长。
 </pre
           >
         </li>

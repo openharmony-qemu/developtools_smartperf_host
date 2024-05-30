@@ -801,7 +801,7 @@
       <p class="fontColor">说明：</p>
       <ul class="fontColor">
         <li>Open trace file：导入离线trace文件入口。</li>
-        <li>Open long trace file：导入大文件入口。</li>
+        <li>Open long trace：导入大文件入口。</li>
         <li>Record new trace：抓取新的trace文件入口。</li>
         <li>Record template：抓取指定模块的trace入口。</li>
       </ul>
@@ -814,7 +814,7 @@
       </p>
       <ul class="fontColor">
         <li>
-          操作说明：在当前页面可以通过键盘上的wasd四个键位操纵当前的时间轴进行缩放，w为放大，s为缩小，a为左移，d为右移。
+          操作说明：在当前页面可以通过键盘上的wasd四个键位操作当前的时间轴进行缩放，w为放大，s为缩小，a为左移，d为右移。
         </li>
       </ul>
       <h2 class="mume-header fontColor">trace功能介绍</h2>
@@ -833,13 +833,13 @@
         <br />
         <img src="../figures/Web/highlit.jpg" alt="GitHub Logo" />
         <br />
-        在白色背景时间轴区域内可以点击后拖拽鼠标，可以对从鼠标按下到拖拽完成鼠标松开的区域内的数据进行筛选，高亮显示的部分为当前所选区域，如上图所示。
+        在白色背景时间轴区域内点击后拖拽鼠标，对从鼠标按下到拖拽完成鼠标松开的区域内的数据进行筛选，高亮显示的部分为当前所选区域，如上图所示。
       </p>
       <h3 class="mume-header fontColor">cpu使用情况</h3>
 
       <p class="fontColor"><img src="../figures/Web/cpu.jpg" alt="GitHub Logo" /></p>
       <p class="fontColor">
-        如上图所示，当前抓取数据有4个cpu工作，前四组数据对应的是当前调用cpu的线程和对应的进程情况，以颜色作为区分。后四组数据则为cpu的使用频率信息。鼠标移动到相应的线程上还会将当前选中的进程信息全部置为高亮，其他的进程会置灰，如下图所示。
+        如上图所示，当前抓取数据有4个cpu工作，前四组数据对应的是当前调用cpu的线程和对应的进程情况，以颜色作为区分。后四组数据则为cpu的使用频率信息。鼠标移动到相应的线程，还会将该线程对应的进程全部置为高亮，同时其他的进程会置灰，如下图所示。
         <br />
         <img src="../figures/Web/gray.jpg" alt="GitHub Logo" />
       </p>
@@ -857,7 +857,7 @@
         <br />
         <img src="../figures/Web/cpubyprocess.jpg" alt="GitHub Logo" />
         <br />
-        CPU Usage的Tab页，主要显示了在框选时间区间内，该频率时间占比前三的信息。
+        CPU Usage的Tab页，主要显示了在框选时间区间内，各个cpu频率时间占比前三的信息。
         <br />
         <img src="../figures/Web/cpusage.jpg" alt="GitHub Logo" />
         <br />
@@ -872,19 +872,19 @@
         <img src="../figures/Web/threadstates.jpg" alt="GitHub Logo" />
         <br />
         Sched
-        Priority的Tab页，按优先级显示调度，显示框选范围内所有Running以及Running之前的Runnable线程的最小，最大，平均耗时。
+        Priority的Tab页，按优先级大小显示调度，显示框选范围内所有Running以及Running之前的Runnable线程的数量，持续时长，最小，最大，平均耗时。
         <br />
         <img src="../figures/Web/schedpritab.jpg" alt="GitHub Logo" />
         <br />
         Thread States、Thread
-        Switches的2个Tab页，点击移动到某一行，鼠标会变成一个小手的标志，并且会高亮，点击一下，就会进入辅助信息界面，会将选中行的辅助信息展示出来，包括开始时间、进程、线程、线程状态、对应的CPU、优先级等信息如下图。
+        Switches的2个Tab页，鼠标移动到某一行，鼠标会变成一个小手的标志，并且会高亮，点击一下，就会进入辅助信息界面，会将选中行的辅助信息展示出来，包括开始时间、进程、线程、线程状态、对应的CPU、优先级等信息如下图。
         <br />
         <img src="../figures/Web/details.jpg" alt="GitHub Logo" />
       </p>
       <h4 class="mume-header fontColor">cpu使用情况的单选功能</h4>
 
       <p class="fontColor">
-        单选CPU使用情况数据会在选中的色块外层加上深色边框，能够突出当前选中色块，弹出层中会展示当前CPU上的进程名，线程名，开始时间的相对时间，开始时间的绝对时间，运行时长，线程结束状态信息。
+        单选CPU使用情况数据会在选中的色块外层加上深色边框，能够突出当前选中色块，弹出层中会展示当前CPU上的进程名，线程名，开始时间的相对时间，开始时间的绝对时间，运行时长，优先级，线程结束状态信息。
         <br />
         <img src="../figures/Web/cpuclick.jpg" alt="GitHub Logo" />
       </p>

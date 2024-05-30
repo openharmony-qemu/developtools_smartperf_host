@@ -796,7 +796,7 @@
       <h3 class="mume-header fontColor">Native Memory 抓取配置参数</h3>
 
       <p class="fontColor"><img
-        src="../figures/NativeMemory/nativememorysetting.jpg"
+        src="../figures/NativeMemory/nativememorysetting.png"
         alt="GitHub Logo"><br>
         配置参数说明：
       </p>
@@ -808,7 +808,7 @@
       </ul>
       <p class="fontColor">点击Advance Options进入高级配置界面<br>
         <img
-          src="../figures/NativeMemory/nativememoryAdvoption.jpg"
+          src="../figures/NativeMemory/nativememoryAdvoption.png"
           alt="GitHub Logo">
       </p>
       <ul class="fontColor">
@@ -824,9 +824,9 @@
         <li>Filter Napi Name：fp模式过滤某个napi调用。</li>
       </ul>
       <p class="fontColor">再点击 Record setting，在 output file path 输入文件名
-        hiprofiler_data_nativememory.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 50s。<br>
+        hiprofiler_data_nativememory.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 50s。<br>
         <img
-          src="../figures/NativeMemory/nativememoryset.jpg"
+          src="../figures/NativeMemory/nativememoryset.png"
           alt="GitHub Logo">
       </p>
       <p class="fontColor">点击 Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。<br>
@@ -837,7 +837,7 @@
       </p>
       <ul class="fontColor">
         <li>save_file：是否将 hook 数据保存成文件，不上报 protobuf 形式数据给 hiprofilerd。</li>
-        <li>filter_size：过滤 malloc 的大小，最小值是 0，默认值是 4096Byte。</li>
+        <li>filter_size：过滤 malloc 的大小，最小值是 0，默认值是 4096byte。</li>
         <li>smb_pages：nativedeamon 与 libnativehook 间的共享内存大小。</li>
         <li>max_stack_depth：最多回栈的层数，也就是抓取的栈的最大深度。</li>
         <li>process_name：抓取的应用进程名。</li>
@@ -849,7 +849,7 @@
         <li>statistics_interval: 统计模式下上报数据的时间间隔。</li>
         <li>startup_mode: 是否需要抓取应用启动阶段内存。</li>
       </ul>
-      <p class="fontColor">输入 hdc_std shell，进入设备，执行命令。<br>
+      <p class="fontColor">输入 hdc shell，进入设备，执行命令。<br>
         <img
           src="../figures/NativeMemory/nativeexcutecommand.jpg"
           alt="GitHub Logo"><br>
@@ -860,13 +860,13 @@
       </p>
       <h2 class="mume-header fontColor">Native Memory 展示说明</h2>
 
-      <p class="fontColor">将抓取的 nativememory 文件导入到 smartperf
+      <p class="fontColor">将抓取的 Native Memory 文件导入到 smartperf
         工具中查看，查看内存的分配和释放等情况。</p>
       <h3 class="mume-header fontColor">Native Memory 泳道图展示类型</h3>
 
       <p class="fontColor">点击齿轮状的图标可以设置内存的展示单位。<br>
         <img
-          src="../figures/NativeMemory/NativeChart.jpg"
+          src="../figures/NativeMemory/NativeChart.png"
           alt="GitHub Logo">
       </p>
       <ul class="fontColor">
@@ -879,7 +879,7 @@
           </pre>
         </li>
         <li>
-          <pre class="smartperf-text fontColor light">All Heap&amp;AnonuymousVM：malloc分配和mmap分配的总量。
+          <pre class="smartperf-text fontColor light">All Heap&amp;Anonymous VM：malloc分配和mmap分配的总量。
           </pre>
         </li>
         <li>
@@ -893,11 +893,11 @@
       </ul>
       <h3 class="mume-header fontColor">Native Memory 泳道图的框选功能</h3>
 
-      <p class="fontColor">可以对内存的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有四个
+      <p class="fontColor">可以对内存的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有五个
         tab 页。<br>
         Statistics 的 Tab 页，主要显示了统计明细类型。<br>
         <img
-          src="../figures/NativeMemory/Statistics.jpg"
+          src="../figures/NativeMemory/Statistics.png"
           alt="GitHub Logo">
       </p>
       <ul class="fontColor">
@@ -938,9 +938,12 @@
           </pre>
         </li>
       </ul>
+      <p class="fontColor">Analysis 的 Tab 页，主要从Memory Type、Thread、Library、Function等维度展示内存统计信息。<br>
+        <img src="../figures/NativeMemory/Analysis.png" alt="GitHub Logo">
+      </p>
       <p class="fontColor">Call Info 的 Tab 页，主要显示了调用树详细类型。<br>
         <img
-          src="../figures/NativeMemory/CallInfo.jpg"
+          src="../figures/NativeMemory/CallInfo.png"
           alt="GitHub Logo">
       </p>
       <ul class="fontColor">
@@ -957,7 +960,7 @@
           </pre>
           Native Memory 的 Tab 页，主要显示了单次分配信息列表。<br>
           <img
-            src="../figures/NativeMemory/NativeMemory.jpg"
+            src="../figures/NativeMemory/NativeMemory.png"
             alt="GitHub Logo"></li>
         <li>
           <pre class="smartperf-text fontColor light">Address：内存块的地址。
@@ -988,7 +991,7 @@
           </pre>
           Snapshot List 的 Tab 页，主要显示了各时刻内存的增长的差值。<br>
           <img
-            src="../figures/NativeMemory/Snapshotlist.jpg"
+            src="../figures/NativeMemory/Snapshotlist.png"
             alt="GitHub Logo"></li>
         <li>
           <pre class="smartperf-text fontColor light">Snapshot：标记的打点说明。
@@ -999,11 +1002,11 @@
           </pre>
         </li>
         <li>
-          <pre class="smartperf-text fontColor light">Net Growth ：自从上次Snapshot的增长量，是计算的分配和释放的。
+          <pre class="smartperf-text fontColor light">Net Growth ：自从上次Snapshot的增长量，是计算分配和释放的。
           </pre>
         </li>
         <li>
-          <pre class="smartperf-text fontColor light">Total Growth ：自从上次Snapshot的增长量，是计算的每一次分配的。
+          <pre class="smartperf-text fontColor light">Total Growth ：自从上次Snapshot的增长量，是计算每一次分配的。
           </pre>
         </li>
         <li>
@@ -1015,13 +1018,13 @@
 
       <p class="fontColor">在 Call Info 和 Native Memory 的 Tab 页，点击选中某一行，右边画红线处会显示出该行调用栈的树结构信息。<br>
         <img
-          src="../figures/NativeMemory/nativecallstack.jpg"
+          src="../figures/NativeMemory/nativecallstack.png"
           alt="GitHub Logo">
       </p>
       <h3 class="mume-header fontColor">Native Memory 详细显示的过滤功能</h3>
 
-      <p class="fontColor">点击下方的 All Allocations 可以对 Allocation 的 lifeSpan 进行过滤，有三个选择：All
-        Allocatios，Create &amp; Existing，Create &amp; Destroyed。<br>
+      <p class="fontColor">点击下方的 All Allocations 可以对 Allocation Lifespan 进行过滤，有三个选择：All
+        Allocatios，Created &amp; Existing，Created &amp; Destroyed。<br>
         <img
           src="../figures/NativeMemory/lifespan.jpg"
           alt="GitHub Logo">
@@ -1043,7 +1046,7 @@
             src="../figures/NativeMemory/AllocationType.jpg"
             alt="GitHub Logo"></li>
         <li>
-          <pre class="smartperf-text fontColor light">All Heap&amp;AnonuymousVM：Heap和AnonuymousVM的总量。
+          <pre class="smartperf-text fontColor light">All Heap&amp;Anonymous VM：Heap和Anonymous VM的总量。
           </pre>
         </li>
         <li>
@@ -1061,15 +1064,15 @@
       </ul>
       <h3 class="mume-header fontColor">Native Memory 的火焰图功能</h3>
 
-      <p class="fontColor">火焰图的展示跟 Callinfo 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，栈的所在库名，地址，size
-        大小，栈的个数。<br>
+      <p class="fontColor">火焰图的展示跟 Call Info 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，栈的所在库名，地址，
+        大小，采集次数。<br>
         <img
           src="../figures/NativeMemory/nativeflameshow.jpg"
           alt="GitHub Logo"></p>
       <h3 class="mume-header fontColor">
         基于函数进行调用栈（单个或多个）选择后可以在时间轴上显示内存操作点</h3>
 
-      <p class="fontColor">点击火焰图函数时，触发火焰图点击中，显示调用栈中该函数出现在时间轴范围的分布情况。<br>
+      <p class="fontColor">点击火焰图函数时，触发火焰图点击，显示调用栈中该函数出现在时间轴范围的分布情况。<br>
         <img
           src="../figures/NativeMemory/memoryframe.jpg"
           alt="GitHub Logo"></p>

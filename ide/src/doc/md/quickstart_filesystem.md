@@ -13,11 +13,11 @@ FileSystem 分析文件系统的信息和活动，比如读和写操作等。
 -     Process：默认配置的是整个系统的，也可选择单进程抓取。
 -     Max Unwind Level：配置抓取调用栈的最大深度。
 
-再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_filesystem.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 50s。
+再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_filesystem.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 50s。
 ![GitHub Logo](../../figures/FileSystem/filesystemrecord.jpg)
 点击 Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
 ![GitHub Logo](../../figures/FileSystem/FileSystemcommand.jpg)
-输入 hdc_std shell，进入设备，执行命令。
+输入 hdc shell，进入设备，执行命令。
 ![GitHub Logo](../../figures/FileSystem/FileSystemexcutecommand.jpg)
 执行完成后，进入指定目录查看，在/data/local/tmp 下就会生成 trace 文件。
 ![GitHub Logo](../../figures/FileSystem/FileSystemfile.jpg)
@@ -58,8 +58,9 @@ FileSystem statistics 的 Tab 页如图：
   FileSystem CallTree 的 Tab 页如图：
   ![GitHub Logo](../../figures/FileSystem/FileSystemCalltree.jpg)
 -     Call Stack：为经过符号解析后的Callstack，并且给出动态链接库或者进程名的信息。
--     Local：为该调用方法自身占用的CPU时间。
--     Weight：调用方法的执行占比。
+-     Local：为该调用方法自身占用的 CPU 时间。
+-     Weight：为该调用方法占用的CPU时间。
+      %：为该调用方法占用的CPU时间占比。
   FileSystem Events 的 Tab 页如图：
   ![GitHub Logo](../../figures/FileSystem/FileSystemevents.jpg)
 -     Start： 起始时间。
@@ -67,7 +68,7 @@ FileSystem statistics 的 Tab 页如图：
 -     Process：进程名。
 -     Thread：线程名。
 -     Type：操作类型。
--     File Descriptor：fd。
+-     File Descriptor：文件描述符。
 -     File Path：文件路径。
 -     First Argument：系统调用的第一个参数。
 -     Second Argument：系统调用的第二个参数。
@@ -82,7 +83,7 @@ FileSystem statistics 的 Tab 页如图：
 -     Duration：时长。
 -     Process：进程名。
 -     Type：操作类型。
--     File Descriptor：fd。
+-     File Descriptor：文件描述符。
 -     Path：文件路径。
 -     Backtrace：调用栈顶部函数，并显示调用栈深度。
   File Descriptor Time Slice 的 Tab 页如图：
@@ -90,7 +91,7 @@ FileSystem statistics 的 Tab 页如图：
 -     Open Time： 打开的起始时间。
 -     Open Duration：打开的时长。
 -     Process：进程名。
--     File Descriptor：fd。
+-     File Descriptor：文件描述符。
 -     Path：文件路径。
 -     Backtrace：调用栈顶部函数，并显示调用栈深度。
 
@@ -115,7 +116,7 @@ FileSystem statistics 的 Tab 页如图：
 
 - 裁剪 Callstack，点击 Callstack 上一个节点符号，再点击底部 Symbol Filter 按钮，则该符号自动被裁剪掉，同时将该节点往下所有的 Callstack 内容裁剪掉。
 
-- 裁剪 Library，点击 Library Filter 按钮，则该库文件符号下所有的子节点也被裁剪。
+- 裁剪 Library，点击 Library 上一个节点符号，再点击底部 Library Filter 按钮，则该符号自动被裁剪掉，同时将该节点往下所有的 Callstack 内容裁剪掉。
 - 点击 Reset 按钮，将恢复选中的裁剪内容。
 
 ### FileSystem 功能的调用栈 Group 展示支持按条件过滤
@@ -139,5 +140,5 @@ FileSystem statistics 的 Tab 页如图：
 ![GitHub Logo](../../figures/FileSystem/FileSystemflame.jpg)
 进入到火焰图页面，火焰图的展示跟 Callinfo 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和 Duration 时长。
 ![GitHub Logo](../../figures/FileSystem/FileSystemflameshow.jpg)
-鼠标左键火焰图，会进入下一级界面，右键回到上一级。
+鼠标左键火焰图，会进入下一级界面，左键上级则返回上一级界面。
 ![GitHub Logo](../../figures/FileSystem/FileSystemflamelevel.jpg)
