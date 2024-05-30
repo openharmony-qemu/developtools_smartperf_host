@@ -431,6 +431,8 @@ export class SpLtpoChart {
           ltpoDataIndex++;
           tempRsNowTimeIndex++;
         }
+      }else{
+        break;
       }
     }
     return sendDataArr;
