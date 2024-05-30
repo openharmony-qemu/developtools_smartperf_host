@@ -136,6 +136,38 @@ Promise<Array<unknown>> =>
     {}
   );
 
+  export const queryProcessAsyncFuncCat = (): Promise<Array<any>> =>
+  query(
+    'queryProcessAsyncFuncCat',
+    `
+    select 
+      P.pid,
+      A.tid,
+      c.callid,
+      c.cat as threadName,
+      c.name as funName,
+      c.ts-D.start_ts as startTs,
+      c.dur,
+      c.depth,
+      c.cookie
+    from 
+      thread A,trace_range D
+    left join 
+      process P on P.id = A.ipid
+    left join 
+      callstack C on A.id = C.callid     
+    where 
+      startTs not null 
+    and 
+      cookie not null 
+    and 
+      cat not null 
+    and 
+      parent_id is null
+    order by cat;
+  `
+  );
+
 export const getMaxDepthByTid = (): //@ts-ignore
 Promise<Array<unknown>> =>
   query(
@@ -291,6 +323,45 @@ Promise<Array<unknown>> =>
       wallDuration desc;`,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
+
+  export const getTabSlicesAsyncCatFunc = (
+    asyncCatNames: Array<string>,
+    asyncCatPid: Array<number>,
+    leftNS: number,
+    rightNS: number
+  ): Promise<Array<any>> =>
+    query<SelectionData>(
+      'getTabSlicesAsyncCatFunc',
+      `
+            select
+              c.name as name,
+              sum(c.dur) as wallDuration,
+              avg(c.dur) as avgDuration,
+              count(c.name) as occurrences
+            from
+              thread A, trace_range D
+            left join process P on P.id = A.ipid
+            left join callstack C on A.id = C.callid
+            where
+              C.ts > 0
+            and
+              c.dur >= -1
+            and 
+              c.cookie not null
+            and
+              c.cat not null
+            and
+              P.pid in (${asyncCatPid.join(',')})
+            and
+              c.cat in (${asyncCatNames.map((it) => "'" + it + "'").join(',')})
+            and
+              not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
+            group by
+              c.name
+            order by
+              wallDuration desc;`,
+      { $leftNS: leftNS, $rightNS: rightNS }
+    );
 
 export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> =>
   query(

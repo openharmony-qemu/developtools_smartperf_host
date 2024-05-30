@@ -21,7 +21,7 @@ import { SpSystemTrace } from '../../../SpSystemTrace';
 import { TraceRow } from '../../base/TraceRow';
 import { LitSearch } from '../../search/Search';
 import { resizeObserver } from '../SheetUtils';
-import { getTabSlicesAsyncFunc } from '../../../../database/sql/Func.sql';
+import { getTabSlicesAsyncFunc, getTabSlicesAsyncCatFunc} from '../../../../database/sql/Func.sql';
 import { getTabSlices } from '../../../../database/sql/ProcessThread.sql';
 import { FuncStruct } from '.././../../../database/ui-worker/ProcedureWorkerFunc';
 
@@ -48,48 +48,57 @@ export class TabPaneSlices extends BaseElement {
       asyncNames.push(it.name); //@ts-ignore
       asyncPid.push(it.pid);
     });
+
+    let asyncCatNames: Array<string> = [];
+    let asyncCatPid: Array<number> = [];//@ts-ignore
+    slicesParam.funCatAsync.forEach((it: any) => {
+      asyncCatNames.push(it.threadName);
+      asyncCatPid.push(it.pid);
+    });
     this.slicesTbl!.loading = true;
     let filterNameEL: HTMLInputElement | undefined | null =
       this.shadowRoot?.querySelector<HTMLInputElement>('#filterName'); //@ts-ignore
-    getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {
-      //@ts-ignore
-      getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs).then(
-        (res2) => {
-          this.slicesTbl!.loading = false;
-          let processSlicesResult = (res || []).concat(res2 || []);
-          if (processSlicesResult !== null && processSlicesResult.length > 0) {
-            let sumWall = 0.0;
-            let sumOcc = 0;
-            for (let processSliceItem of processSlicesResult) {
-              //@ts-ignore
-              processSliceItem.name = processSliceItem.name === null ? '' : processSliceItem.name;
-              //@ts-ignore
-              sumWall += processSliceItem.wallDuration;
-              //@ts-ignore
-              sumOcc += processSliceItem.occurrences;
-              //@ts-ignore
-              processSliceItem.wallDuration = parseFloat((processSliceItem.wallDuration / 1000000.0).toFixed(5));
-              //@ts-ignore
-              processSliceItem.avgDuration = parseFloat((processSliceItem.avgDuration / 1000000.0).toFixed(5));
-            }
-            let count = new SelectionData();
-            count.process = ' ';
-            count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
-            count.occurrences = sumOcc;
-            processSlicesResult.splice(0, 0, count);
-            if (filterNameEL && filterNameEL.value.trim() !== '') {
-              this.findName(filterNameEL.value);
+    getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {//@ts-ignore
+      getTabSlicesAsyncCatFunc(asyncCatNames, asyncCatPid, slicesParam.leftNs, slicesParam.rightNs).then((res1) => {
+        //@ts-ignore
+        getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs).then(
+          (res2) => {
+            this.slicesTbl!.loading = false;
+            let processSlicesResult = (res || []).concat(res1 || []).concat(res2 || []);
+            if (processSlicesResult !== null && processSlicesResult.length > 0) {
+              let sumWall = 0.0;
+              let sumOcc = 0;
+              for (let processSliceItem of processSlicesResult) {
+                //@ts-ignore
+                processSliceItem.name = processSliceItem.name === null ? '' : processSliceItem.name;
+                //@ts-ignore
+                sumWall += processSliceItem.wallDuration;
+                //@ts-ignore
+                sumOcc += processSliceItem.occurrences;
+                //@ts-ignore
+                processSliceItem.wallDuration = parseFloat((processSliceItem.wallDuration / 1000000.0).toFixed(5));
+                //@ts-ignore
+                processSliceItem.avgDuration = parseFloat((processSliceItem.avgDuration / 1000000.0).toFixed(5));
+              }
+              let count = new SelectionData();
+              count.process = ' ';
+              count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
+              count.occurrences = sumOcc;
+              processSlicesResult.splice(0, 0, count);
+              if (filterNameEL && filterNameEL.value.trim() !== '') {
+                this.findName(filterNameEL.value);
+              } else {
+                //@ts-ignore
+                this.slicesSource = processSlicesResult;
+                this.slicesTbl!.recycleDataSource = processSlicesResult;
+              }
             } else {
-              //@ts-ignore
-              this.slicesSource = processSlicesResult;
-              this.slicesTbl!.recycleDataSource = processSlicesResult;
+              this.slicesSource = [];
+              this.slicesTbl!.recycleDataSource = this.slicesSource;
             }
-          } else {
-            this.slicesSource = [];
-            this.slicesTbl!.recycleDataSource = this.slicesSource;
           }
-        }
-      );
+        );
+      });
     });
   }
 
@@ -175,8 +184,8 @@ export class TabPaneSlices extends BaseElement {
         if (
           // @ts-ignore
           Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
-            // @ts-ignore
-            Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
+          // @ts-ignore
+          Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
           !rangeSelectList.includes(searchItem)
         ) {
           // 异步调用栈
@@ -259,9 +268,9 @@ export class TabPaneSlices extends BaseElement {
           // @ts-ignore
           return slicesSort === 2
             ? // @ts-ignore
-              parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
+            parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
             : // @ts-ignore
-              parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
+            parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
         } else {
           // @ts-ignore
           if (slicesRightData[property] > slicesLeftData[property]) {

@@ -200,7 +200,7 @@ export let tabConfig: unknown = {
   'box-slices': {
     title: 'Slices',
     type: TabPaneSlices,
-    require: (param: SelectionParam) => param.funTids.length > 0 || param.funAsync.length > 0,
+    require: (param: SelectionParam) => param.funTids.length > 0 || param.funAsync.length  || param.funCatAsync.length > 0,
   },
   'box-counters': {
     title: 'Counters',

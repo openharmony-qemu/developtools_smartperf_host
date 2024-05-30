@@ -48,6 +48,8 @@ public:
                          const BytraceLine &line);
     void ParseFinishEvent(uint64_t ts, uint32_t pid, const TracePoint &point, const BytraceLine &line);
     void ParseCreateEvent(uint64_t ts, const TracePoint &point);
+    void ParseGEvent(uint64_t ts, uint32_t pid, TracePoint &point);
+    void ParseHEvent(uint64_t ts, const TracePoint &point);
     void Finish();
     void SetTraceType(TraceFileType traceType);
     void SetTraceClockId(BuiltinClocks clock);
@@ -69,6 +71,8 @@ private:
     static ParseResult HandlerE(void);
     ParseResult HandlerCSF(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const;
     static size_t GetNameLength(std::string_view pointStr, size_t nameIndex);
+    static size_t GetGHNameLength(std::string_view pointStr, size_t nameIndex);
+    ParseResult HandlerGH(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const;
     size_t GetValueLength(std::string_view pointStr, size_t valueIndex) const;
     bool ReciveVsync(size_t callStackRow, std::string &args, const BytraceLine &line);
     bool RSReciveOnDoComposition(size_t callStackRow, std::string &args, const BytraceLine &line);
