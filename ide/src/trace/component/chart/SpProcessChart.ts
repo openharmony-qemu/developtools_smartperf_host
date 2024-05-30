@@ -90,6 +90,7 @@ export class SpProcessChart {
   private traceId?: string | undefined;
   private parentRow: TraceRow<BaseStruct> | undefined;
   static asyncFuncCache: unknown[] = [];
+  static threadStateList: Map<string, unknown> = new Map();
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -454,9 +455,16 @@ export class SpProcessChart {
       pre[`${current.eventName}`] = current.count;
       return pre;
     }, {});
-    let queryProcessThreadResult = await queryProcessThreads(traceId);
+    // threadStateList转数组
+    let threadArray = Array.from(SpProcessChart.threadStateList); // [['1235-1235',12312321312],['12-12',4546465]]
+    // @ts-ignore 排序
+    threadArray.sort((a: Array<unknown>, b: Array<unknown>) =>
+      // @ts-ignore
+      b[1] - a[1]);
     let queryProcessThreadsByTableResult = await queryProcessThreadsByTable(traceId); // @ts-ignore
-    this.processThreads = Utils.removeDuplicates(queryProcessThreadResult, queryProcessThreadsByTableResult, 'tid');
+    // 全量threads排序
+    // @ts-ignore
+    this.processThreads = Utils.sortThreadRow(threadArray, queryProcessThreadsByTableResult);
     let distributedDataLists = await queryDistributedRelationData(traceId);
     distributedDataLists.forEach((item) => {
       this.distributedDataMap.set(`${item.id}_${traceId}`, {
@@ -607,7 +615,7 @@ export class SpProcessChart {
           offsetYTimeOut = setTimeout(() => {
             this.trace.linkNodes.forEach((linkNodeItem) => this.handler3(e, linkNodeItem));
           }, 300);
-        }else{
+        } else {
           FuncStruct.selectLineFuncStruct.push(FuncStruct.selectFuncStruct);
           offsetYTimeOut = setTimeout(() => {
             this.trace.linkNodes?.forEach((linkProcessItem) => {
@@ -617,7 +625,7 @@ export class SpProcessChart {
           }, 300);
         }
         this.trace.resetDistributedLine();
-        
+
       } else {
         //@ts-ignore
         if (e.detail.expansion) {
@@ -1243,12 +1251,12 @@ export class SpProcessChart {
   }
   //处理缓存数据的'startTs'字段统一成'startTime'
   private toAsyncFuncCache(object: any, name: string): void {
-    let modifiedObject = {...object};
-    delete modifiedObject['startTs']; 
+    let modifiedObject = { ...object };
+    delete modifiedObject['startTs'];
     modifiedObject['startTime'] = object['startTs'];
     modifiedObject.rowId = name;
     modifiedObject.type = 'func';
-    SpProcessChart.asyncFuncCache.push({...modifiedObject});
+    SpProcessChart.asyncFuncCache.push({ ...modifiedObject });
   }
   //Async Function
   addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
