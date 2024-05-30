@@ -1243,12 +1243,12 @@ export class SpProcessChart {
   }
   //处理缓存数据的'startTs'字段统一成'startTime'
   private toAsyncFuncCache(object: any, name: string): void {
-    let modifiedObject = {...object};
-    delete modifiedObject['startTs']; 
-    modifiedObject['startTime'] = object['startTs'];
+    let modifiedObject = { ...object };
+    modifiedObject['startTime'] = modifiedObject['startTs'];
+    delete modifiedObject['startTs'];
     modifiedObject.rowId = name;
     modifiedObject.type = 'func';
-    SpProcessChart.asyncFuncCache.push({...modifiedObject});
+    SpProcessChart.asyncFuncCache.push({ ...modifiedObject });
   }
   //Async Function
   addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
@@ -1258,10 +1258,20 @@ export class SpProcessChart {
     if (!asyncFuncList.length) {
       return;
     }
-    //打开异步trace聚合的开关
-    if (isCategoryAsyncfunc) {
-      let asyncRemoveCatList: Array<any> = this.hanldCategoryAsyncFunc(it, processRow, asyncFuncList);
-      this.hanldAsyncFunc(it, processRow, asyncRemoveCatList);
+    if (isCategoryAsyncfunc) {//聚合异步trace
+      let { asyncRemoveCatArr, asyncCatMap } = this.hanldCategoryAsyncFunc(asyncFuncList);
+      let { setArrayLenThanOne, setArrayLenOnlyOne } = this.hanldAsyncFunc(it, asyncRemoveCatArr);
+      //处理cat不为null和length等于1的数据
+      let aggregateData = { ...Object.fromEntries(asyncCatMap), ...setArrayLenOnlyOne };
+      Reflect.ownKeys(aggregateData).map((key: any) => {
+        let param: Array<any> = aggregateData[key];
+        this.makeAddAsyncFunction(param, it, processRow, key);
+      })
+      //处理length大于1的数据，不传key值
+      Reflect.ownKeys(setArrayLenThanOne).map((key: any) => {
+        let param: Array<any> = setArrayLenThanOne[key];
+        this.makeAddAsyncFunction(param, it, processRow);
+      })
     } else {
       //不聚合异步trace
       let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');
@@ -1288,6 +1298,7 @@ export class SpProcessChart {
             }
             asyncFunctions[index].depth = currentDepth;
             depthArray[currentDepth] = asyncFunctions[index];
+            this.toAsyncFuncCache(asyncFunctions[index], `${asyncFunctions[i].funName}-${it.pid}`);//处理缓存的异步trace数据缺失的字段
           });
         }
         this.lanesConfig(asyncFunctions, it, processRow);
@@ -1296,18 +1307,16 @@ export class SpProcessChart {
   }
   //处理CategoryAsyncFunc
   hanldCategoryAsyncFunc(
-    it: { pid: number; processName: string | null },
-    processRow: TraceRow<ProcessStruct>,
     asyncFuncList: Array<any>
-  ): any[] {
+  ): { asyncRemoveCatArr: Array<any>, asyncCatMap: Map<string, Array<any>> } {
     let asyncCatMap: Map<string, any> = new Map<string, any>();
-    let asyncRemoveCatArr: any = [];
+    let asyncRemoveCatArr = new Array();
     //取出cat字段（category）不为null的数据
     for (let i = 0; i < asyncFuncList.length; i++) {
       const el = asyncFuncList[i];
       if (el.cat !== null) {
         if (asyncCatMap.has(`${el.cat}:${el.threadName} ${el.tid}`)) {
-          let item = asyncCatMap.get(`${el.cat}:${el.threadName} ${el.tid}`);
+          let item: Array<any> = asyncCatMap.get(`${el.cat}:${el.threadName} ${el.tid}`);
           item.push(el);
         } else {
           asyncCatMap.set(`${el.cat}:${el.threadName} ${el.tid}`, [el]);
@@ -1317,46 +1326,44 @@ export class SpProcessChart {
         asyncRemoveCatArr.push(el);
       }
     }
-    for (const [key, asyncCatFunc] of asyncCatMap.entries()) {
-      this.makeAddAsyncFunction(asyncCatFunc, it, processRow, key);
-    }
-    return asyncRemoveCatArr;
+    return { asyncRemoveCatArr, asyncCatMap };
   }
   //处理cat字段为null的数据，按funname分类，分别按len>1和=1去处理
   hanldAsyncFunc(
     it: { pid: number; processName: string | null },
-    processRow: TraceRow<ProcessStruct>,
     asyncRemoveCatList: Array<any>
-  ) {
+  ): { setArrayLenThanOne: any, setArrayLenOnlyOne: any } {
     let asyncFuncGroup = Utils.groupBy(asyncRemoveCatList, 'funName');
-    let asyncFuncArr: any[] = [];
+    let funcArr: unknown[] = [];
+    let setArrayLenThanOne: unknown = {};
+    let setArrayLenOnlyOne: unknown = {};
     //@ts-ignore
     Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
       //@ts-ignore
       let asyncFunctions: Array<any> = asyncFuncGroup[key];
       if (asyncFunctions.length > 1) {
-        this.makeAddAsyncFunction(asyncFunctions, it, processRow);
+        //@ts-ignore
+        setArrayLenThanOne[`${asyncFunctions[0].funName}-${it.pid}`] = asyncFunctions;
       } else if (asyncFunctions.length === 1) {
-        asyncFuncArr.push(...asyncFunctions);
+        funcArr.push(...asyncFunctions);
       }
     });
     //len=1的数据继续按tid分类
-    if (asyncFuncArr.length) {
-      let asyncFuncTidGroup = Utils.groupBy(asyncFuncArr, 'tid');
+    let asyncFuncTidGroup = Utils.groupBy(funcArr, 'tid');
+    //@ts-ignore
+    Reflect.ownKeys(asyncFuncTidGroup).map((key: any) => {
       //@ts-ignore
-      Reflect.ownKeys(asyncFuncTidGroup).map((key: any) => {
-        //@ts-ignore
-        let asyncTidFunc: Array<any> = asyncFuncTidGroup[key];
-        let rowName = `H:${asyncTidFunc[0].threadName} ${asyncTidFunc[0].tid}`;
-        this.makeAddAsyncFunction(asyncTidFunc, it, processRow, rowName);
-      });
-    }
+      let asyncTidFunc: Array<any> = asyncFuncTidGroup[key];
+      //@ts-ignore
+      setArrayLenOnlyOne[`H:${asyncTidFunc[0].threadName} ${asyncTidFunc[0].tid}`] = asyncTidFunc;
+    });
+    return { setArrayLenThanOne, setArrayLenOnlyOne }
   }
   makeAddAsyncFunction(
     asyncFunctions: any[],
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
-    name?: string
+    key?: string
   ) {
     let maxDepth: number = -1;
     let i = 0;
@@ -1368,24 +1375,21 @@ export class SpProcessChart {
         let param = asyncFunctions[i];
         if (param.dur !== null) {
           let itemEndTime = param.startTs + param.dur;
-          let itemi = false;
-          for (let val of mapDepth.values()) {
-            if (val.time < param.startTs) {
-              itemi = true;
-              val.time = itemEndTime;//更新endts
-              param.depth = val.depth;
+          let flag = false;
+          for (let [key, val] of mapDepth.entries()) {
+            if (val.et < param.startTs) {
+              flag = true;
+              val.et = itemEndTime;//更新endts
+              param.depth = Number(key);
               break;
             }
           }
-          if (!itemi) {
-            maxDepth = maxDepth + 1;
-            mapDepth.set(`${maxDepth}`, {
-              time: itemEndTime,
-              depth: maxDepth,
-            });
+          if (!flag) {//depth增加
+            maxDepth ++;
+            mapDepth.set(`${maxDepth}`, { et: itemEndTime });
             param.depth = maxDepth;
           }
-          this.toAsyncFuncCache(param, name ? name : `${asyncFunctions[i].funName}-${it.pid}`);
+          this.toAsyncFuncCache(param, key ? key : `${asyncFunctions[i].funName}-${it.pid}`);
           normalData.push(param);
         } else {
           noEndData.push(param);
@@ -1402,23 +1406,24 @@ export class SpProcessChart {
           let index = i;
           maxDepth++;
           noEndData[index].depth = maxDepth;
-          this.toAsyncFuncCache(noEndData[index], name ? name : `${asyncFunctions[i].funName}-${it.pid}`);
+          this.toAsyncFuncCache(noEndData[index], key ? key : `${asyncFunctions[i].funName}-${it.pid}`);
         });
       }
-      this.lanesConfig([...normalData, ...noEndData], it, processRow, name);
+      this.lanesConfig([...normalData, ...noEndData], it, processRow, key);
     }
   }
+  //初始化异步泳道信息
   lanesConfig(
     asyncFunctions: any[],
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
-    name?: string
+    key?: string
   ) {
     const maxHeight = this.calMaxHeight(asyncFunctions);
     const namesSet = new Set(asyncFunctions.map((item) => item.funName));
     const asyncFuncName = Array.from(namesSet);
     let funcRow = TraceRow.skeleton<FuncStruct>();
-    funcRow.rowId = name ? name : `${asyncFunctions[0].funName}-${it.pid}`;
+    funcRow.rowId = key ? key : `${asyncFunctions[0].funName}-${it.pid}`;
     funcRow.asyncFuncName = asyncFuncName;
     funcRow.asyncFuncNamePID = it.pid;
     funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
@@ -1428,7 +1433,7 @@ export class SpProcessChart {
     funcRow.style.width = '100%';
     funcRow.style.height = `${maxHeight}px`;
     funcRow.setAttribute('height', `${maxHeight}`);
-    funcRow.name = name ? name : `${asyncFunctions[0].funName}`;
+    funcRow.name = key ? key : `${asyncFunctions[0].funName}`;
     funcRow.setAttribute('children', '');
     funcRow.findHoverStruct = (): void => {
       FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();

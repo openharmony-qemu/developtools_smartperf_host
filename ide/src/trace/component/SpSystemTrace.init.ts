@@ -815,7 +815,7 @@ function findEntryTypeFunc(sp: SpSystemTrace, findEntry: any): void {
       argsetid: findEntry.argsetid,
       funName: findEntry.funName,
       cookie: findEntry.cookie,
-      row_id: findEntry.rowId ? findEntry.rowId : null,
+      row_id: findEntry.rowId ? findEntry.rowId : null,//因异步trace分类出的rowId类型有三种，故新增row_id字段，该字段为异步方法的对应的rowId，支持搜索查询定位到该方法属于那个row，只有缓存的异步trace数据中含该字段
     },
     true
   );
