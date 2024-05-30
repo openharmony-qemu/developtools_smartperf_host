@@ -1328,6 +1328,7 @@ export class SpApplication extends BaseElement {
           this.handleWasmMode(file, file.name, file.size, file.name);
         }
         this.refreshLongTraceButtonStyle();
+        this.longTracePage!.style.display = 'flex';
       });
     });
   }

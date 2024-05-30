@@ -148,6 +148,11 @@ export class TabPaneFilter extends BaseElement {
     this.initializeLibrary();
     this.initBaseElListener();
     this.queryElListener();
+    this.filterInputEL?.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') {
+        ev.stopPropagation();
+      }
+    });
   }
 
   private queryElListener(): void {
