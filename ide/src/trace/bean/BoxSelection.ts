@@ -73,6 +73,7 @@ export class SelectionParam {
   softIrqCallIds: Array<number> = [];
   funTids: Array<number> = [];
   funAsync: Array<{ name: string; pid: number }> = [];
+  funCatAsync: Array<{ pid: number;threadName: string }> = [];
   nativeMemory: Array<String> = [];
   nativeMemoryStatistic: Array<String> = [];
   nativeMemoryAllProcess: Array<{ pid: number; ipid: number }> = [];
@@ -249,6 +250,13 @@ export class SelectionParam {
               name: th.asyncFuncName,
               pid: th.asyncFuncNamePID || 0,
             });
+          } else if (th.asyncFuncThreadName) {
+            if (typeof th.asyncFuncThreadName === 'string') {
+              this.funCatAsync.push({
+                pid: th.asyncFuncNamePID || 0,
+                threadName: th.asyncFuncThreadName,
+              });
+            }
           } else {
             this.funTids.push(parseInt(th.rowId!));
           }
@@ -305,6 +313,21 @@ export class SelectionParam {
           name: it.asyncFuncName,
           pid: it.asyncFuncNamePID || 0,
         });
+      } else if (it.asyncFuncThreadName) {
+        if (typeof it.asyncFuncThreadName === 'string') {
+          this.funCatAsync.push({
+            pid: it.asyncFuncNamePID || 0,
+            threadName: it.asyncFuncThreadName
+          });
+        } else {
+          for (let i = 0; i < it.asyncFuncThreadName.length; i++) {
+            const tn = it.asyncFuncThreadName[i];
+            this.funCatAsync.push({
+              pid: it.asyncFuncNamePID || 0,
+              threadName: tn
+            });
+          }
+        }
       } else {
         this.funTids.push(parseInt(it.rowId!));
       }

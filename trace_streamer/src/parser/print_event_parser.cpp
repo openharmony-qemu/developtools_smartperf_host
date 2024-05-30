@@ -76,6 +76,14 @@ bool PrintEventParser::ParsePrintEvent(const std::string &comm,
             ParseCreateEvent(ts, point);
             break;
         }
+        case 'G': {
+            ParseGEvent(ts, pid, point);
+            break;
+        }
+        case 'H': {
+            ParseHEvent(ts, point);
+            break;
+        }
         default:
             TS_LOGD("point missing!");
             return false;
@@ -157,6 +165,16 @@ void PrintEventParser::ParseCreateEvent(uint64_t ts, const TracePoint &point)
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TRACING_MARK_WRITE, STAT_EVENT_DATA_INVALID);
     }
 }
+void PrintEventParser::ParseGEvent(uint64_t ts, uint32_t pid, TracePoint &point)
+{
+    auto cookie = static_cast<int64_t>(point.value_);
+    streamFilters_->sliceFilter_->StartGEvent(ts, pid, point.tgid_, cookie, traceDataCache_->GetDataIndex(point.name_));
+}
+void PrintEventParser::ParseHEvent(uint64_t ts, const TracePoint &point)
+{
+    auto cookie = static_cast<int64_t>(point.value_);
+    streamFilters_->sliceFilter_->FinishHEvent(ts, point.tgid_, cookie, traceDataCache_->GetDataIndex(point.name_));
+}
 bool PrintEventParser::HandleAnimationBeginEvent(const TracePoint &point, size_t callStackRow, const BytraceLine &line)
 {
     if (!streamFilters_->animationFilter_->UpdateDeviceInfoEvent(point, line)) {
@@ -196,7 +214,8 @@ ParseResult PrintEventParser::CheckTracePoint(std::string_view pointStr) const
     }
 
     if (pointStr.find_first_of('B') != 0 && pointStr.find_first_of('E') != 0 && pointStr.find_first_of('C') != 0 &&
-        pointStr.find_first_of('S') != 0 && pointStr.find_first_of('F') != 0) {
+        pointStr.find_first_of('S') != 0 && pointStr.find_first_of('F') != 0 && pointStr.find_first_of('G') != 0 &&
+        pointStr.find_first_of('H') != 0) {
         TS_LOGD("trace point not supported : [%c] !", pointStr[0]);
         return PARSE_ERROR;
     }
@@ -466,6 +485,41 @@ ParseResult PrintEventParser::HandlerCSF(std::string_view pointStr, TracePoint &
     return PARSE_SUCCESS;
 }
 
+size_t PrintEventParser::GetGHNameLength(std::string_view pointStr, size_t nameIndex)
+{
+    size_t endPos = pointStr.find('|', nameIndex);
+    if (endPos == std::string_view::npos) {
+        return 0;
+    }
+    size_t nextEndPos = pointStr.find('|', endPos + 1);
+    if (nextEndPos == std::string_view::npos) {
+        return 0;
+    }
+    return nextEndPos - nameIndex;
+}
+ParseResult PrintEventParser::HandlerGH(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const
+{
+    size_t nameIndex = MAX_POINT_LENGTH + tGidlength + POINT_LENGTH;
+    size_t nameLength = GetGHNameLength(pointStr, nameIndex);
+    if (nameLength == 0) {
+        TS_LOGD("point name length is error!");
+        return PARSE_ERROR;
+    }
+    outPoint.name_ = std::string_view(pointStr.data() + nameIndex, nameLength);
+    size_t valueIndex = nameIndex + nameLength + POINT_LENGTH;
+    size_t valueLen = GetValueLength(pointStr, valueIndex);
+    if (valueLen == 0) {
+        TS_LOGD("point value length is error!");
+        return PARSE_ERROR;
+    }
+    if (!base::StrToInt<int64_t>(std::string(pointStr.data() + valueIndex, valueLen)).has_value()) {
+        TS_LOGD("point value is error!");
+        return PARSE_ERROR;
+    }
+    outPoint.value_ = base::StrToInt<int64_t>(std::string(pointStr.data() + valueIndex, valueLen)).value();
+    return PARSE_SUCCESS;
+}
+
 ParseResult PrintEventParser::GetTracePoint(std::string_view pointStr, TracePoint &outPoint) const
 {
     if (CheckTracePoint(pointStr) != PARSE_SUCCESS) {
@@ -493,6 +547,11 @@ ParseResult PrintEventParser::GetTracePoint(std::string_view pointStr, TracePoin
         case 'F':
         case 'C': {
             ret = HandlerCSF(pointStr, outPoint, tGidlength);
+            break;
+        }
+        case 'G':
+        case 'H': {
+            ret = HandlerGH(pointStr, outPoint, tGidlength);
             break;
         }
         default:

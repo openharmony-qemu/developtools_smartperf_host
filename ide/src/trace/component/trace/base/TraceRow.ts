@@ -184,6 +184,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static isUserInteraction: boolean;
   asyncFuncName: string | undefined | null;
   asyncFuncNamePID: number | undefined | null;
+  asyncFuncThreadName: Array<any>| string | undefined | null;  
   translateY: number = 0; //single canvas offsetY;
   // @ts-ignore
   childrenList: Array<TraceRow<unknown>> = []; // @ts-ignore
