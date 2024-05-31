@@ -5,7 +5,7 @@
 注意:在linux编译环境安装时以root或者其他 sudo 用户身份运行下面的命令。
 ### node 环境安装
 ##### 下载Node js安装包(windows推荐， linux跳过此步骤)
-从网站下载node js安装包 https://nodejs.org/en/download/current/。
+从网站下载node js安装包 https://nodejs.org/en/download/current/ 。
 ##### 安装nodejs
 - ubuntu 20.04 与Debian 11系统中，直接用apt-get安装，先切换到 root用户下，命令如下(node 版本 >= 16.15.1  npm 版本 >= 8.13.2)
 ```
@@ -109,6 +109,6 @@
 
 ![](./src/figures/deploy/visit_website.png)
 
- 备注：如果未出现如图所示网页.而是显示 无法访问此网站。
+ 备注：如果未出现如图所示网页，而是显示无法访问此网站。
 可以在window cmd 里执行telnet [部署机器ip地址] 9000。
-如果显示端口连接失败 可能是防火墙未对9000 端口放开即可。
+如果显示端口连接失败，可能是防火墙未对9000 端口放开。

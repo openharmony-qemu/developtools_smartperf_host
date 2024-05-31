@@ -825,7 +825,7 @@ Max Unwind Level：配置抓取调用栈的最大深度。
       </ul>
       <p class="fontColor">
         再点击Record setting，在output file path输入文件名hiprofiler_data_filesystem.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。
+        size大小是64MB，抓取时长是50s。
         <br />
         <img src="../figures/FileSystem/filesystemrecord.jpg" alt="GitHub Logo" />
         <br />
@@ -833,7 +833,7 @@ Max Unwind Level：配置抓取调用栈的最大深度。
         <br />
         <img src="../figures/FileSystem/FileSystemcommand.jpg" alt="GitHub Logo" />
         <br />
-        输入hdc_std shell，进入设备，执行命令。
+        输入hdc shell，进入设备，执行命令。
         <br />
         <img src="../figures/FileSystem/FileSystemexcutecommand.jpg" alt="GitHub Logo" />
         <br />
@@ -965,9 +965,13 @@ Local：为该调用方法自身占用的CPU时间。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Weight：调用方法的执行占比。
-</pre
-          >
+            Weight：为该调用方法占用的CPU时间。
+  </pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+            %：为该调用方法占用的CPU时间占比。
+  </pre>
         </li>
       </ul>
       <p class="fontColor">
@@ -1161,6 +1165,16 @@ Hide System so：隐藏系统库文件。
 </pre
           >
         </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+            Hide Event：隐藏事件。 
+  </pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+            Hide Thread：隐藏线程。 
+  </pre>
+        </li>
       </ul>
       <h3 class="mume-header fontColor">FileSystem支持过滤调用栈调用次数的展示风格</h3>
 
@@ -1181,10 +1195,10 @@ Hide System so：隐藏系统库文件。
           </p>
         </li>
         <li>
-          <p class="fontColor">裁剪Library，点击Library Filter按钮，则该库文件符号下所有的子节点也被裁剪。</p>
+          <p class="fontColor">裁剪Library，点击Library上一个节点符号，再点击底部Library Filter按钮，则该符号自动被裁剪掉，同时将该节点往下所有的Callstack内容裁剪掉。</p>
         </li>
         <li>
-          <p class="fontColor">点击Reset按钮，将恢复选中的裁剪内容。</p>
+          <p class="fontColor">先选中要恢复的内容，再点击Reset按钮，将恢复选中的裁剪内容。</p>
         </li>
       </ul>
       <h3 class="mume-header fontColor">FileSystem功能的调用栈Group展示支持按条件过滤</h3>
@@ -1220,7 +1234,7 @@ Hide System so：隐藏系统库文件。
         <br />
         <img src="../figures/FileSystem/FileSystemflameshow.jpg" alt="GitHub Logo" />
         <br />
-        鼠标点击火焰图，会进入下一级界面，点击上级则返回上一级界面。
+        鼠标左键火焰图，会进入下一级界面，左键上级则返回上一级界面。
         <br />
         <img src="../figures/FileSystem/FileSystemflamelevel.jpg" alt="GitHub Logo" />
       </p>

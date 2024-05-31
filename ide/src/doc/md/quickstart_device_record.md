@@ -21,7 +21,7 @@
 
 点击 Probes config，如选择抓取 Scheduling details。
 ![GitHub Logo](../../figures/hiprofilercmd/Scheduling.jpg)
-再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_example.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 50s。
+再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_example.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 50s。
 ![GitHub Logo](../../figures/hiprofilercmd/tracesetting.jpg)
 点击 Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
 ![GitHub Logo](../../figures/hiprofilercmd/command.jpg)
@@ -35,7 +35,7 @@
 - trace_period_ms: ftrace 插件读取内核缓冲区数据的间隔时间（ms）。
 - hitrace_time:hitrace 命令行抓取时间，与 hiprofiler_cmd 下发的-t 配置联动。
 
-输入 hdc_std shell，进入设备，执行命令。
+输入 hdc shell，进入设备，执行命令。
 ![GitHub Logo](../../figures/hiprofilercmd/excutecommand.jpg)
 
 执行完成后，命令行会给出提示。

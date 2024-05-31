@@ -6,7 +6,7 @@ Native Memory 是查看内存的分配和释放等情况。
 
 ### Native Memory 抓取配置参数
 
-![GitHub Logo](../../figures/NativeMemory/nativememorysetting.jpg)
+![GitHub Logo](../../figures/NativeMemory/nativememorysetting.png)
 配置参数说明：
 
 - Process：设置抓取的进程 ID 或者进程名，此处以输入 com.ohos.mms 进程名为例。
@@ -15,7 +15,7 @@ Native Memory 是查看内存的分配和释放等情况。
 - Use Record Js Stack：是否抓js栈。
 
 点击Advance Options进入高级配置界面
-![GitHub Logo](../../figures/NativeMemory/nativememoryAdvoption.jpg)
+![GitHub Logo](../../figures/NativeMemory/nativememoryAdvoption.png)
 - Use Startup Mode: 抓取应用启动阶段的内存(默认是关闭，需要抓取应用启阶段内存可开启)。
 - Use Response Lib Mode：nativememory抓取支持So能力。
 - Use Record Accurately：不过滤数据，上报全量的。
@@ -28,8 +28,8 @@ Native Memory 是查看内存的分配和释放等情况。
 - Filter Napi Name：fp模式过滤某个napi调用。
 
 
-再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_nativememory.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 50s。
-![GitHub Logo](../../figures/NativeMemory/nativememoryset.jpg)
+再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_nativememory.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 50s。
+![GitHub Logo](../../figures/NativeMemory/nativememoryset.png)
 
 点击 Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
 ![GitHub Logo](../../figures/NativeMemory/nativememorycommand.jpg)
@@ -37,7 +37,7 @@ Native Memory 是查看内存的分配和释放等情况。
 命令行参数说明：
 
 - save_file：是否将 hook 数据保存成文件，不上报 protobuf 形式数据给 hiprofilerd。
-- filter_size：过滤 malloc 的大小，最小值是 0，默认值是 4096Byte。
+- filter_size：过滤 malloc 的大小，最小值是 0，默认值是 4096byte。
 - smb_pages：nativedeamon 与 libnativehook 间的共享内存大小。
 - max_stack_depth：最多回栈的层数，也就是抓取的栈的最大深度。
 - process_name：抓取的应用进程名。
@@ -49,31 +49,31 @@ Native Memory 是查看内存的分配和释放等情况。
 - statistics_interval: 统计模式下上报数据的时间间隔。
 - startup_mode: 是否需要抓取应用启动阶段内存。
 
-输入 hdc_std shell，进入设备，执行命令。
+输入 hdc shell，进入设备，执行命令。
 ![GitHub Logo](../../figures/NativeMemory/nativeexcutecommand.jpg)
 执行完成后，进入指定目录查看，在/data/local/tmp 下就会生成 trace 文件。
 ![GitHub Logo](../../figures/NativeMemory/naitvememoryfile.jpg)
 
 ## Native Memory 展示说明
 
-将抓取的 nativememory 文件导入到 smartperf 工具中查看，查看内存的分配和释放等情况。
+将抓取的 Native Memory 文件导入到 smartperf 工具中查看，查看内存的分配和释放等情况。
 
 ### Native Memory 泳道图展示类型
 
 点击齿轮状的图标可以设置内存的展示单位。
-![GitHub Logo](../../figures/NativeMemory/NativeChart.jpg)
+![GitHub Logo](../../figures/NativeMemory/NativeChart.png)
 
 -     Current Bytes：以申请内存的size绘制泳道图。
 -     Native Memory Density：以申请内存的数量绘制泳道图。
--     All Heap&AnonuymousVM：malloc分配和mmap分配的总量。
+-     All Heap&Anonymous VM：malloc分配和mmap分配的总量。
 -     All Heap：malloc分配的内存。
 -     All Anonymous VM：mmap分配的内存。
 
 ### Native Memory 泳道图的框选功能
 
-可以对内存的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有四个 tab 页。
+可以对内存的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有五个 tab 页。
 Statistics 的 Tab 页，主要显示了统计明细类型。
-![GitHub Logo](../../figures/NativeMemory/Statistics.jpg)
+![GitHub Logo](../../figures/NativeMemory/Statistics.png)
 
 -     Memory Type：内存的类型。
 -     Existing：框选区域内申请没有释放的大小。
@@ -85,14 +85,17 @@ Statistics 的 Tab 页，主要显示了统计明细类型。
 -     Peak Value： 框选区间内内存申请的峰值。
 -     Existing/Total：框选区间内剩余的内存比上申请的内存，其中浅紫色是框选区间内申请的大小/整个时间轴（申请+释放的总大小)，深紫色是框选区间内(申请+释放)的大小/整个时间轴（申请+释放的总大小）。
 
+Analysis 的 Tab 页，主要从Memory Type、Thread、Library、Function等维度展示内存统计信息。
+![GitHub Logo](../../figures/NativeMemory/Analysis.png)
+
 Call Info 的 Tab 页，主要显示了调用树详细类型。
-![GitHub Logo](../../figures/NativeMemory/CallInfo.jpg)
+![GitHub Logo](../../figures/NativeMemory/CallInfo.png)
 
 -     Symble Name：每个内存分配的调用栈。
 -     Size：分配的总大小。
 -     Count：相同调用栈出现的次数。
   Native Memory 的 Tab 页，主要显示了单次分配信息列表。
-  ![GitHub Logo](../../figures/NativeMemory/NativeMemory.jpg)
+  ![GitHub Logo](../../figures/NativeMemory/NativeMemory.png)
 -     Address：内存块的地址。
 -     Memory Type：内存分配的类型。
 -     Timestamp：时间戳信息。
@@ -101,21 +104,21 @@ Call Info 的 Tab 页，主要显示了调用树详细类型。
 -     Responsible Library ：调用该函数的库。
 -     Responsible Caller  ：调用该函数的方法。
   Snapshot List 的 Tab 页，主要显示了各时刻内存的增长的差值。
-  ![GitHub Logo](../../figures/NativeMemory/Snapshotlist.jpg)
+  ![GitHub Logo](../../figures/NativeMemory/Snapshotlist.png)
 -     Snapshot：标记的打点说明。
 -     Timestamp ：时间戳信息。
--     Net Growth ：自从上次Snapshot的增长量，是计算的分配和释放的。
--     Total Growth ：自从上次Snapshot的增长量，是计算的每一次分配的。
+-     Net Growth ：自从上次Snapshot的增长量，是计算分配和释放的。
+-     Total Growth ：自从上次Snapshot的增长量，是计算每一次分配的。
 -     #Existing  ：仍然存在的内存数。
 
 ### Native Memory 的辅助信息功能
 
 在 Call Info 和 Native Memory 的 Tab 页，点击选中某一行，右边画红线处会显示出该行调用栈的树结构信息。
-![GitHub Logo](../../figures/NativeMemory/nativecallstack.jpg)
+![GitHub Logo](../../figures/NativeMemory/nativecallstack.png)
 
 ### Native Memory 详细显示的过滤功能
 
-点击下方的 All Allocations 可以对 Allocation 的 lifeSpan 进行过滤，有三个选择：All Allocatios，Create & Existing，Create & Destroyed。
+点击下方的 All Allocations 可以对 Allocation 的 lifespan 进行过滤，有三个选择：All Allocatios，Created & Existing，Created & Destroyed。
 ![GitHub Logo](../../figures/NativeMemory/lifespan.jpg)
 
 -      All Allocations：所有的内存。
@@ -123,7 +126,7 @@ Call Info 的 Tab 页，主要显示了调用树详细类型。
 -      Created & Destroyed： 创建且被销毁的内存。
   点击下方的 All Heap&Anonymous 可以对内存类型进行过滤。
   ![GitHub Logo](../../figures/NativeMemory/AllocationType.jpg)
--     All Heap&AnonuymousVM：Heap和AnonuymousVM的总量。
+-     All Heap&Anonuymous VM：Heap和Anonuymous VM的总量。
 -     All Heap：malloc分配的内存。
 -     All Anonymous VM：mmap的匿名页。
   点击下方的 Mark Snapshot 可以在时间轴上打标签。出现小旗的标志，通过标注多个时间点。点击到 Snapshot List 标签页可以看到各个时间点的内存的增长值。
@@ -131,12 +134,12 @@ Call Info 的 Tab 页，主要显示了调用树详细类型。
 
 ### Native Memory 的火焰图功能
 
-火焰图的展示跟 Callinfo 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，栈的所在库名，地址，size 大小，栈的个数。
+火焰图的展示跟 Call Info 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，栈的所在库名，地址，大小，采集次数。
 ![GitHub Logo](../../figures/NativeMemory/nativeflameshow.jpg)
 
 ### 基于函数进行调用栈（单个或多个）选择后可以在时间轴上显示内存操作点
 
-点击火焰图函数时，触发火焰图点击中，显示调用栈中该函数出现在时间轴范围的分布情况。
+点击火焰图函数时，触发火焰图点击，显示调用栈中该函数出现在时间轴范围的分布情况。
 ![GitHub Logo](../../figures/NativeMemory/memoryframe.jpg)
 
 ### 内存搜索大小写不敏感，上层火焰图的大小和总内存需要根据搜索内容动态调整

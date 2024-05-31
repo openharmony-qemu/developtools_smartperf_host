@@ -825,7 +825,7 @@ Max Unwind Level：配置抓取调用栈的最大深度。
       </ul>
       <p class="fontColor">
         再点击Record setting，在output file path输入文件名hiprofiler_data_ebpf.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。
+        size大小是64MB，抓取时长是50s。
         <br />
         <img src="../figures/EBPF/ebpfrecord.jpg" alt="GitHub Logo" />
         <br />
@@ -924,6 +924,10 @@ Max Duration：最大时长。
         <br />
         <img src="../figures/EBPF/ebpf_bythread.jpg" alt="GitHub Logo" />
         <br />
+        Analysis的Tab页如图：
+        <br />
+        <img src="../figures/EBPF/Analysis.jpg" alt="GitHub Logo" />
+        <br />
         Page Fault Calltree的Tab页如图：
         <br />
         <img src="../figures/EBPF/VMCalltree.jpg" alt="GitHub Logo" />
@@ -943,9 +947,13 @@ Local：为该调用方法自身占用的CPU时间。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Weight：调用方法的执行占比。
-</pre
-          >
+Weight：为该调用方法占用的CPU时间。
+  </pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+%：为该调用方法占用的CPU时间占比。
+  </pre>
         </li>
       </ul>
       <p class="fontColor">
@@ -1011,6 +1019,16 @@ Hide System so：隐藏系统库文件。
 </pre
           >
         </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+            Hide Event：隐藏事件。 
+  </pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+            Hide Thread：隐藏线程。 
+  </pre>
+        </li>
       </ul>
       <h3 class="mume-header fontColor">页内存支持过滤调用栈调用次数的展示风格</h3>
 
@@ -1028,8 +1046,8 @@ Hide System so：隐藏系统库文件。
           裁剪Callstack，点击Callstack上一个节点符号，再点击底部Symbol
           Filter按钮，则该符号自动被裁剪掉，同时将该节点往下所有的Callstack内容裁剪掉。
         </li>
-        <li>裁剪Library，点击Library Filter按钮，则该库文件符号下所有的子节点也被裁剪。</li>
-        <li>点击Reset按钮，将恢复选中的裁剪内容。</li>
+        <li>裁剪Library，点击Library上一个节点符号，再点击底部Library Filter按钮，则该符号自动被裁剪掉，同时将该节点往下所有的Callstack内容裁剪掉。</li>
+        <li>先选中要恢复的内容，再点击Reset按钮，将恢复选中的裁剪内容。</li>
       </ul>
       <h3 class="mume-header fontColor">页内存功能的调用栈Group展示支持按条件过滤</h3>
 
@@ -1063,7 +1081,7 @@ Hide System so：隐藏系统库文件。
         <br />
         <img src="../figures/EBPF/vmflameshow.jpg" alt="GitHub Logo" />
         <br />
-        鼠标左键火焰图，会进入下一级界面，右键回到上一级。
+        鼠标左键火焰图，会进入下一级界面，左键上级则返回上一级界面。
         <br />
         <img src="../figures/EBPF/vmflamelevel.jpg" alt="GitHub Logo" />
       </p>
