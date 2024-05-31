@@ -102,7 +102,7 @@ Perf Profile 的 Tab 页如图：
 
 点击 Perf Profile 左下角的柱状图的图标，会切换到火焰图页面。
 ![GitHub Logo](../../figures/perf/flame.jpg)
-进入到火焰图页面，火焰图的展示跟 Perf Profile的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，Lib，Addr，Count，%in current Thread，%incurrent Process，%in all Process。
+进入到火焰图页面，火焰图的展示跟 Perf Profile的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，Lib，Addr，Count，% in current Thread，% in current Process，% in all Process。
 ![GitHub Logo](../../figures/perf/flameshow.jpg)
 
 ### Hiperf 的 show event count 功能
