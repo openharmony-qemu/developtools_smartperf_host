@@ -24,21 +24,23 @@ export class Utils {
   static currentTraceMode: TraceMode = TraceMode.NORMAL;
   static distributedTrace: string[] = [];
   static DMAFENCECAT_MAP: Map<
-  number,
-   { 
-    id: number; 
-    cat: string; 
-    seqno: number;
-    driver:string;
-    context:string }> = new Map<
-    number, 
-    { 
-      id: number; 
-      cat: string; 
+    number,
+    {
+      id: number;
+      cat: string;
       seqno: number;
-      driver:string;
-      context:string }
-      >();
+      driver: string;
+      context: string
+    }> = new Map<
+      number,
+      {
+        id: number;
+        cat: string;
+        seqno: number;
+        driver: string;
+        context: string
+      }
+    >();
   private static statusMap: Map<string, string> = new Map<string, string>();
   private static instance: Utils | null = null;
   private trace1CpuCount: number = 1;
@@ -102,7 +104,7 @@ export class Utils {
     Utils.statusMap.set('N', 'No Load');
   }
 
-  public getProcessMap(traceId? : string | null): Map<number, string> {
+  public getProcessMap(traceId?: string | null): Map<number, string> {
     if (traceId) {
       return (traceId === '2' ? this.trace2ProcessMap : this.trace1ProcessMap);
     } else {
@@ -110,7 +112,7 @@ export class Utils {
     }
   }
 
-  public getThreadMap(traceId? : string | null): Map<number, string> {
+  public getThreadMap(traceId?: string | null): Map<number, string> {
     if (traceId) {
       return (traceId === '2' ? this.trace2ThreadMap : this.trace1ThreadMap);
     } else {
@@ -118,7 +120,7 @@ export class Utils {
     }
   }
 
-  public getSchedSliceMap(traceId? : string | null): Map<string, {
+  public getSchedSliceMap(traceId?: string | null): Map<string, {
     endState: string;
     priority: number;
   }> {
@@ -197,7 +199,7 @@ export class Utils {
     return this.totalNS;
   }
 
-  public static isDistributedMode() : boolean {
+  public static isDistributedMode(): boolean {
     return Utils.currentTraceMode === TraceMode.DISTRIBUTED;
   }
 
@@ -223,7 +225,7 @@ export class Utils {
     Utils.DMAFENCECAT_MAP.clear();
   }
 
-  public static getDistributedRowId(id: unknown) : string {
+  public static getDistributedRowId(id: unknown): string {
     let rowId = id;
     if (rowId === null || rowId === undefined) {
       rowId = '';
@@ -630,6 +632,29 @@ export class Utils {
     }, []);
   }
 
+  // 线程排序去重
+  public static sortThreadRow(array1: unknown[], array2: unknown[]): unknown {
+    let total = new Array();
+    let arr2Map = new Map();
+    // 将array2转为map
+    for (let i = 0; i < array2.length; i++) {
+      // @ts-ignore
+      arr2Map.set(`${array2[i].pid}-${array2[i].tid}`, array2[i])
+    }
+    for (let i = 0; i < array1.length; i++) {
+      // @ts-ignore
+      total.push(arr2Map.get(`${array1[i][0]}`))
+      // @ts-ignore
+      arr2Map.delete(`${array1[i][0]}`)
+    };
+    // 将map中剩余的循环加在total后
+    // @ts-ignore
+    arr2Map.forEach((v) => {
+      total.push(v)
+    })
+    return total
+  }
+
   static getFrequencyWithUnit = (
     maxFreq: number
   ): {
@@ -685,11 +710,11 @@ export class Utils {
       }
     }
     queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, isStatistic).then((res): void => {
-      procedurePool.submitWithName('logic0', 'native-memory-init-responseType', res, undefined, (): void => {});
+      procedurePool.submitWithName('logic0', 'native-memory-init-responseType', res, undefined, (): void => { });
     });
   }
 
   setCurrentSelectIPid(ipid: number): void {
-    procedurePool.submitWithName('logic0', 'native-memory-set-current_ipid', ipid, undefined, (): void => {});
+    procedurePool.submitWithName('logic0', 'native-memory-set-current_ipid', ipid, undefined, (): void => { });
   }
 }

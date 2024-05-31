@@ -58,7 +58,7 @@ import { sliceSender } from '../../database/data-trafic/SliceSender';
 import { BaseStruct } from '../../bean/BaseStruct';
 import { SpGpuCounterChart } from './SpGpuCounterChart';
 import { SpUserFileChart } from './SpUserPluginChart'
-import {queryDmaFenceIdAndCat} from '../../database/sql/dmaFence.sql'
+import { queryDmaFenceIdAndCat } from '../../database/sql/dmaFence.sql'
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -144,13 +144,16 @@ export class SpChartManager {
 
   async initCpu(progress: Function): Promise<void> {
     progress('cpu', 70);
-    let count = await sliceSender(); //@ts-ignore
-    await this.cpu.init(count.cpu);
+    let result = await sliceSender();
+    // @ts-ignore
+    SpProcessChart.threadStateList = result.threadMap;
+    //@ts-ignore
+    await this.cpu.init(result.cpu);
     info('initData cpu Data initialized');
     if (FlagsConfig.getFlagsConfigEnableStatus('Bpftrace')) {
       await this.spBpftraceChart.init(null);
     }
-    if (FlagsConfig.getFlagsConfigEnableStatus('UserPluginsRow')){
+    if (FlagsConfig.getFlagsConfigEnableStatus('UserPluginsRow')) {
       await this.spUserFileChart.init(null)
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('GpuCounter')) {
@@ -176,8 +179,8 @@ export class SpChartManager {
     await this.initCpu(progress);
     await this.logChart.init();
     await this.spHiSysEvent.init();
-    let idAndNameArr= await queryDmaFenceIdAndCat(); 
-    this.handleDmaFenceName(idAndNameArr as { id: number; cat: string; seqno: number;driver:string;context:string }[]);
+    let idAndNameArr = await queryDmaFenceIdAndCat();
+    this.handleDmaFenceName(idAndNameArr as { id: number; cat: string; seqno: number; driver: string; context: string }[]);
     progress('Clock init', 82);
     await this.clockChart.init();
     progress('Irq init', 84);
@@ -420,10 +423,10 @@ export class SpChartManager {
   }
 
   //存名字
-  handleDmaFenceName<T extends { id: number; cat: string; seqno: number;driver:string;context:string }>(arr: T[]){
+  handleDmaFenceName<T extends { id: number; cat: string; seqno: number; driver: string; context: string }>(arr: T[]) {
     Utils.DMAFENCECAT_MAP.clear();
     for (let item of arr) {
-        Utils.DMAFENCECAT_MAP.set(item.id, item);
+      Utils.DMAFENCECAT_MAP.set(item.id, item);
     }
   }
 }
