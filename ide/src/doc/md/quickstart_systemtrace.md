@@ -5,7 +5,7 @@
 ## 文件加载入口
 
 将抓取的 trace 导入查看。
-![GitHub Logo](../../figures/Web/opentrace.jpg)
+![GitHub Logo](../../figures/Web/opentrace.png)
 
 说明：
 
