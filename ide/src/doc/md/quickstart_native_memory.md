@@ -165,7 +165,7 @@ Call Info 的 Tab 页，主要显示了调用树详细类型。
 | @(\* tryalloc codec bitmapcache skYUV)        | 只显示 Responsible Library 为任意值 且 Responsible Caller 包含 tryalloc 或 codec 或 bitmapcache 或 skYUV 的数据                                                |
 | @(libglobal *，*resourceManager)              | 只显示 Responsible Library 包含 libglobal 且 Responsible Caller 为任意值的数据 或 Responsible Library 为任意值，Responsible Caller 包含 resourceManager 的数据 |
 | @(/data/user \*)                              | 只显示 Responsible Library 路径/data/user 且 symbol 为任意值的数据                                                                                             |
-| @(mali.so _,libGLES_mali.so _)                | 只显示 Responsible Library 包含 mali.so 或者 libGLES_mali.so 的数据                                                                                            |
+| @(mali.so *,libGLES_mali.so *)                | 只显示 Responsible Library 包含 mali.so 或者 libGLES_mali.so 的数据                                                                                            |
 | @(\* PixelMap:ReadImageData)                  | 只显示 Responsible Caller 包含 PixelMap:ReadImageData 的数据                                                                                                   |
 |                                               |                                                                                                                                                                |
 | @-(libark jsvm table)                         | 不显示 Responsible Library 包含 libark 且 Responsible Caller 包含 jsvm 或者 table 的数据                                                                       |

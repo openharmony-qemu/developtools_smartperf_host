@@ -62,8 +62,8 @@ Live Processes 的 Tab 页如图：
 -     CPU Time：CPU运行时间。
 -     #Threads：进程的线程数量。
 -     Memory：内存值。
--     Disk Writes(B)：磁盘写入的字节数。
--     Disk Reads(B)：磁盘读取的字节数。
+-     Disk Writes(Byte)：磁盘写入的字节数。
+-     Disk Reads(Byte)：磁盘读取的字节数。
   Processes History 的 Tab 页如图：
   ![GitHub Logo](../../figures/AbilityMonitor/ProcessesHistory.jpg)
 -     Process ID：进程ID。
