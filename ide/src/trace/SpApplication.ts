@@ -1547,7 +1547,10 @@ export class SpApplication extends BaseElement {
     this.litSearch!.clear();
     Utils.currentSelectTrace = undefined;
     this.markJson = undefined;
+    console.log(multiTrace)
+    if(!multiTrace){
     this.longTracePage!.style.display = 'none';
+    }
     this.litSearch?.removeAttribute('distributed');
     SpStatisticsHttpUtil.addOrdinaryVisitAction({
       event: 'open_trace',
