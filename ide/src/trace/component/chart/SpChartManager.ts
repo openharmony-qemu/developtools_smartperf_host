@@ -148,7 +148,7 @@ export class SpChartManager {
     // @ts-ignore
     SpProcessChart.threadStateList = result.threadMap;
     //@ts-ignore
-    await this.cpu.init(result.cpu);
+    await this.cpu.init(result.count.cpu);
     info('initData cpu Data initialized');
     if (FlagsConfig.getFlagsConfigEnableStatus('Bpftrace')) {
       await this.spBpftraceChart.init(null);
