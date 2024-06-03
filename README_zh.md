@@ -43,7 +43,7 @@ PC端以Smartperf_Host网站的形式进行发布，内部分为Trace Streamer�
 ### Native Memory抓取
 使用Smartperf_Host抓取应用的Native Memory（C和C++部分）的分配和释放情况，详见《[Native Memory抓取和展示说明](./ide/src/doc/md/quickstart_native_memory.md)》。
 ### Hiperf抓取
-使用Smartperf_Host抓取应用的cpu使用量、方法的调用栈等，详见《[HiPerf的抓取和展示说明](./ide/src/doc/md/quickstart_hiperf.md)》。
+使用Smartperf_Host抓取应用的cpu使用量、方法的调用栈等，详见《[Hiperf的抓取和展示说明](./ide/src/doc/md/quickstart_hiperf.md)》。
 ### HiSystemEvent抓取
 使用Smartperf_Host抓取应用的各个子类别功耗占比（CPU、网络、定位等）、应用的资源申请使用记录（WorkScheduler、Runninglock、Alarm、Location Request）、应用功耗异常事件显示、功耗关联系统状态显示（电池电量、屏幕状态），详见《[HiSystemEvent的抓取和展示说明](./ide/src/doc/md/quickstart_hisystemevent.md)》。
 ### FileSystem抓取
