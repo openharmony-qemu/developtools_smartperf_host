@@ -20,9 +20,9 @@
 ## 命令行的生成和 trace 文件的抓取
 
 点击 Probes config，如选择抓取 Scheduling details。
-![GitHub Logo](../../figures/hiprofilercmd/Scheduling.jpg)
+![GitHub Logo](../../figures/hiprofilercmd/Scheduling.png)
 再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_example.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 50s。
-![GitHub Logo](../../figures/hiprofilercmd/tracesetting.jpg)
+![GitHub Logo](../../figures/hiprofilercmd/tracesetting.png)
 点击 Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
 ![GitHub Logo](../../figures/hiprofilercmd/command.jpg)
 命令参数说明：

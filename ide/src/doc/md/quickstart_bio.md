@@ -50,8 +50,8 @@ Disk I/O Tier Statistics 的 Tab 页如图：
   ![GitHub Logo](../../figures/Bio/BioCalltree.jpg)
 -     Call Stack：为经过符号解析后的Callstack，并且给出动态链接库或者进程名的信息。
 -     Local：为该调用方法自身占用的 CPU 时间。
--     Weight：为该调用方法占用的CPU时间。
-      %：为该调用方法占用的CPU时间占比。
+-     Weight：为该调用方法占用的 CPU 时间。
+-     %：为该调用方法占用的 CPU 时间占比。
   Trace Completion Times 的 Tab 页如图：
   ![GitHub Logo](../../figures/Bio/Biotimes.jpg)
 -     Start：事件的开始时间。
@@ -73,8 +73,8 @@ Disk I/O Tier Statistics 的 Tab 页如图：
 
 -     Invert：反向输出调用树。
 -     Hide System so：隐藏系统库文件。
-      Hide Event：隐藏事件。 
-      Hide Thread：隐藏线程。 
+-     Hide Event：隐藏事件。 
+-     Hide Thread：隐藏线程。 
 
 ### Bio 支持过滤调用栈调用次数的展示风格
 
@@ -88,7 +88,7 @@ Disk I/O Tier Statistics 的 Tab 页如图：
 - 裁剪 Callstack，点击 Callstack 上一个节点符号，再点击底部 Symbol Filter 按钮，则该符号自动被裁剪掉，同时将该节点往下所有的 Callstack 内容裁剪掉。
 
 - 裁剪 Library，点击 Library 上一个节点符号，再点击底部 Library Filter 按钮，则该符号自动被裁剪掉，同时将该节点往下所有的 Callstack 内容裁剪掉。
-- 点击 Reset 按钮，将恢复选中的裁剪内容。
+- 先选中要恢复的内容，再点击 Reset 按钮，将恢复选中的裁剪内容。
 
 ### Bio 功能的调用栈 Group 展示支持按条件过滤
 
