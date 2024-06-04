@@ -330,8 +330,8 @@ bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string &args, const
 }
 bool PrintEventParser::OnVsyncEvent(size_t callStackRow, std::string &args, const BytraceLine &line)
 {
-    unused(args);
-    unused(line);
+    Unused(args);
+    Unused(line);
     vsyncSliceIds_.push_back(callStackRow);
     return true;
 }
