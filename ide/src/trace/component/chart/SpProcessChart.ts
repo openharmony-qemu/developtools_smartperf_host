@@ -71,7 +71,6 @@ export class SpProcessChart {
   private threadFuncMaxDepthMap: Map<string, number> = new Map();
   private startupProcessArr: { pid: number }[] = [];
   private processSoMaxDepth: { pid: number; maxDepth: number }[] = [];
-  private funcNameMap: Map<number, string> = new Map();
   private filterIdMaxValue: Map<number, number> = new Map();
   private soInitNameMap: Map<number, string> = new Map();
   private processSrcSliceMap: Map<number, string> = new Map();
@@ -97,7 +96,6 @@ export class SpProcessChart {
   }
 
   clearCache(): void {
-    this.funcNameMap.clear();
     this.processAsyncFuncArray = [];
     this.processAsyncFuncMap = {};
     this.processAsyncFuncCatMap = {};
@@ -111,7 +109,6 @@ export class SpProcessChart {
     this.threadFuncMaxDepthMap.clear();
     this.startupProcessArr = [];
     this.processSoMaxDepth = [];
-    this.funcNameMap.clear();
     this.filterIdMaxValue.clear();
     this.soInitNameMap.clear();
     this.processSrcSliceMap.clear();
@@ -125,16 +122,10 @@ export class SpProcessChart {
   }
 
   initAsyncFuncData = async (traceRange: { startTs: number; endTs: number }, traceId?: string): Promise<void> => {
-    this.funcNameMap.clear();
-    const funcNamesArray = await queryAllFuncNames(traceId);
-    funcNamesArray.forEach((it) => {
-      //@ts-ignore
-      this.funcNameMap.set(it.id, it.name);
-    });
     let asyncFuncList: unknown[] = await queryProcessAsyncFunc(traceRange, traceId);
     for (const func of asyncFuncList) {
       //@ts-ignore
-      func.funName = this.funcNameMap.get(func.id); //@ts-ignore
+      func.funName = Utils.getInstance().getCallStatckMap().get(func.id); //@ts-ignore
       func.threadName = Utils.getInstance().getThreadMap(traceId).get(func.tid);
     }
     info('AsyncFuncData Count is: ', asyncFuncList!.length);
@@ -242,7 +233,7 @@ export class SpProcessChart {
     };
     res.forEach((it, i): void => {
       //@ts-ignore
-      res[i].funName = this.funcNameMap.get(res[i].id!); //@ts-ignore
+      res[i].funName = Utils.getInstance().getCallStatckMap().get(res[i].id!); //@ts-ignore
       res[i].threadName = Utils.getInstance().getThreadMap().get(res[i].tid!); //@ts-ignore
       if (it.dur === -1 || it.dur === null || it.dur === undefined) {
         //@ts-ignore
@@ -348,7 +339,7 @@ export class SpProcessChart {
       }
     };
     res.forEach((it, i) => {
-      res[i].funName = this.funcNameMap.get(res[i].id!);
+      res[i].funName = Utils.getInstance().getCallStatckMap().get(res[i].id!);
       res[i].threadName = Utils.getInstance().getThreadMap().get(res[i].tid!);
       if (it.dur == -1 || it.dur === null || it.dur === undefined) {
         it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
@@ -428,11 +419,6 @@ export class SpProcessChart {
         this.processSoMaxDepth = await queryProcessSoMaxDepth();
       }
     }
-    let funcNamesArray = await queryAllFuncNames(traceId);
-    funcNamesArray.forEach((it) => {
-      // @ts-ignore
-      this.funcNameMap.set(it.id, it.name);
-    });
     let threadFuncMaxDepthArray = await getMaxDepthByTid(traceId);
     info('Gets the maximum tier per thread , tid and maxDepth');
     threadFuncMaxDepthArray.forEach((it) => {
@@ -1153,7 +1139,7 @@ export class SpProcessChart {
         funs.forEach((fun, index) => {
           funs[index].itid = thread.utid;
           funs[index].ipid = thread.upid;
-          funs[index].funName = this.funcNameMap.get(funs[index].id!);
+          funs[index].funName = Utils.getInstance().getCallStatckMap().get(funs[index].id!);
           if (Utils.isBinder(fun)) {
           } else {
             if (fun.nofinish) {
@@ -1393,7 +1379,7 @@ export class SpProcessChart {
             }
           }
           if (!flag) {//depth增加
-            maxDepth ++;
+            maxDepth++;
             mapDepth.set(`${maxDepth}`, { et: itemEndTime });
             param.depth = maxDepth;
           }

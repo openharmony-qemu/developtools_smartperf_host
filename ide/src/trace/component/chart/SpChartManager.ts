@@ -49,7 +49,7 @@ import {
   queryDataDICT,
   queryThreadAndProcessName,
 } from '../../database/sql/ProcessThread.sql';
-import { queryTaskPoolCallStack, queryTotalTime, queryTraceRange } from '../../database/sql/SqlLite.sql';
+import { queryTaskPoolCallStack, queryTotalTime } from '../../database/sql/SqlLite.sql';
 import { getCpuUtilizationRate } from '../../database/sql/Cpu.sql';
 import { queryMemoryConfig } from '../../database/sql/Memory.sql';
 import { SpLtpoChart } from './SpLTPO';
@@ -59,6 +59,7 @@ import { BaseStruct } from '../../bean/BaseStruct';
 import { SpGpuCounterChart } from './SpGpuCounterChart';
 import { SpUserFileChart } from './SpUserPluginChart'
 import { queryDmaFenceIdAndCat } from '../../database/sql/dmaFence.sql'
+import { queryAllFuncNames } from '../../database/sql/Func.sql';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -140,6 +141,8 @@ export class SpChartManager {
     let ptArr = await queryThreadAndProcessName(); //@ts-ignore
     this.handleProcessThread(ptArr);
     info('initData timerShaftEL Data initialized');
+    let funArr = await queryAllFuncNames();
+    this.handleFuncName(funArr);
   }
 
   async initCpu(progress: Function): Promise<void> {
@@ -319,6 +322,14 @@ export class SpChartManager {
         Utils.getInstance().getThreadMap(traceId).set(pt.id, pt.name);
       }
     }
+  }
+
+  // 将callstatck表信息转为map存入utils
+  handleFuncName(funcNameArray: Array<unknown>) {
+    funcNameArray.forEach((it) => {
+      //@ts-ignore
+      Utils.getInstance().getCallStatckMap().set(it.id, it.name);
+    });
   }
 
   initTotalTime = async (isDistributed: boolean = false): Promise<void> => {

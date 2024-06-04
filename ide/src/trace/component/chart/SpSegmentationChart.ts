@@ -23,6 +23,7 @@ import { type BaseStruct } from '../../bean/BaseStruct';
 import { type AllStatesRender, AllstatesStruct } from '../../database/ui-worker/ProcedureWorkerAllStates';
 import { StateGroup } from '../../bean/StateModle';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
+import { Utils } from '../trace/base/Utils';
 const UNIT_HEIGHT: number = 20;
 const MS_TO_US: number = 1000000;
 const MIN_HEIGHT: number = 2;
@@ -154,8 +155,7 @@ export class SpSegmentationChart {
     SpSegmentationChart.trace = trace;
   }
   async init() {
-    let funArr = await queryAllFuncNames();
-    if (funArr.length > 0) {
+    if (Utils.getInstance().getCallStatckMap().size > 0) {
       await this.initFolder();
       await this.initCpuFreq();
       await this.initGpuTrace();
