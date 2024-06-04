@@ -79,11 +79,13 @@ private:
     bool OnRwTransaction(size_t callStackRow, std::string &args, const BytraceLine &line);
     bool OnMainThreadProcessCmd(size_t callStackRow, std::string &args, const BytraceLine &line);
     bool OnFrameQueueStart(uint64_t ts, size_t callStackRow, uint64_t pid);
+    bool OnVsyncEvent(size_t callStackRow, std::string &args, const BytraceLine &line);
 
 private:
     std::map<DataIndex, FrameFuncCall> eventToFrameFunctionMap_ = {};
     TraceStreamerConfig config_{};
     const DataIndex recvievVsync_ = traceDataCache_->GetDataIndex("H:ReceiveVsync");
+    const DataIndex onVsyncEvent_ = traceDataCache_->GetDataIndex("H:OnVsyncEvent");
     const std::string rsOnDoCompositionStr_ = "H:RSMainThread::DoComposition";
     DataIndex rsOnDoCompositionEvent_ = INVALID_DATAINDEX;
     const std::string onFrameQueeuStartEvent_ = "H:M: Frame queued";

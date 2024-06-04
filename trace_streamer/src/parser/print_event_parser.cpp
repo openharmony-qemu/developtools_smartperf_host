@@ -32,6 +32,8 @@ PrintEventParser::PrintEventParser(TraceDataCache *dataCache, const TraceStreame
                              std::placeholders::_3)},
         {rsOnDoCompositionEvent_, bind(&PrintEventParser::RSReciveOnDoComposition, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3)},
+        {onVsyncEvent_, bind(&PrintEventParser::OnVsyncEvent, this, std::placeholders::_1, std::placeholders::_2,
+                             std::placeholders::_3)},
         {marshRwTransactionData_, bind(&PrintEventParser::OnRwTransaction, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3)},
         {rsMainThreadProcessCmd_, bind(&PrintEventParser::OnMainThreadProcessCmd, this, std::placeholders::_1,
@@ -323,6 +325,13 @@ bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string &args, const
         }
     }
     streamFilters_->frameFilter_->BeginVsyncEvent(line, now, expectEnd, vsyncId, callStackRow);
+    vsyncSliceIds_.push_back(callStackRow);
+    return true;
+}
+bool PrintEventParser::OnVsyncEvent(size_t callStackRow, std::string &args, const BytraceLine &line)
+{
+    unused(args);
+    unused(line);
     vsyncSliceIds_.push_back(callStackRow);
     return true;
 }
