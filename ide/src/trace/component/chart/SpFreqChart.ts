@@ -53,6 +53,7 @@ export class SpFreqChart {
       folderRow.rowId = 'Cpu Frequency';
       folderRow.rowType = TraceRow.ROW_TYPE_CPU_FREQ_ALL;
       folderRow.name = 'Cpu Frequency';
+      folderRow.selectChangeHandler = this.trace.selectChangeHandler;
       this.trace.rowsEL?.appendChild(folderRow);
       info('Cpu Freq data size is: ', freqList!.length);
       await this.addFreqRows(freqList, folderRow, traceId);
@@ -67,6 +68,7 @@ export class SpFreqChart {
       folderRowState.rowId = 'Cpu State';
       folderRowState.rowType = TraceRow.ROW_TYPE_CPU_STATE_ALL;
       folderRowState.name = 'Cpu State';
+      folderRowState.selectChangeHandler = this.trace.selectChangeHandler;
       this.trace.rowsEL?.appendChild(folderRowState);
       this.addStateRows(cpuStateFilterIds, folderRowState, traceId);
       if (parentRow) {
@@ -80,6 +82,7 @@ export class SpFreqChart {
       folderRowLimit.rowId = 'Cpu Freq Limit';
       folderRowLimit.rowType = TraceRow.ROW_TYPE_CPU_FREQ_LIMITALL;
       folderRowLimit.name = 'Cpu Freq Limit';
+      folderRowLimit.selectChangeHandler = this.trace.selectChangeHandler;
       this.trace.rowsEL?.appendChild(folderRowLimit);
       this.addFreqLimitRows(cpuFreqLimits, cpuFreqLimitsMax, folderRowLimit, traceId);
       if (parentRow) {
