@@ -198,7 +198,7 @@ void PrintEventParser::Finish()
 {
     eventToFrameFunctionMap_.clear();
     frameCallIds_.clear();
-    vsyncSliceIds_.clear();
+    vsyncSliceMap_.clear();
     streamFilters_->animationFilter_->Clear();
     streamFilters_->frameFilter_->Clear();
 }
@@ -325,14 +325,25 @@ bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string &args, const
         }
     }
     streamFilters_->frameFilter_->BeginVsyncEvent(line, now, expectEnd, vsyncId, callStackRow);
-    vsyncSliceIds_.push_back(callStackRow);
+    auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
+    if (vsyncSliceMap_.count(iTid)) {
+        vsyncSliceMap_[iTid].push_back(callStackRow);
+    } else {
+        vsyncSliceMap_[iTid] = {callStackRow};
+    }
     return true;
 }
 bool PrintEventParser::OnVsyncEvent(size_t callStackRow, std::string &args, const BytraceLine &line)
 {
     Unused(args);
-    Unused(line);
-    vsyncSliceIds_.push_back(callStackRow);
+    auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
+    if (!vsyncSliceMap_.count(iTid)) {
+        return false;
+    }
+    if (vsyncSliceMap_[iTid].size() >= maxVsyncEventSize_) {
+        return false;
+    }
+    vsyncSliceMap_[iTid].push_back(callStackRow);
     return true;
 }
 bool PrintEventParser::RSReciveOnDoComposition(size_t callStackRow, std::string &args, const BytraceLine &line)
@@ -383,12 +394,14 @@ void PrintEventParser::HandleFrameSliceEndEvent(uint64_t ts, uint64_t pid, uint6
 {
     // it can be frame or slice
     auto iTid = streamFilters_->processFilter_->GetInternalTid(tid);
-    auto pos = std::find(vsyncSliceIds_.begin(), vsyncSliceIds_.end(), callStackRow);
-    if (pos != vsyncSliceIds_.end()) {
-        if (!streamFilters_->frameFilter_->EndVsyncEvent(ts, iTid)) {
-            streamFilters_->statFilter_->IncreaseStat(TRACE_VSYNC, STAT_EVENT_NOTMATCH);
+    if (vsyncSliceMap_.count(iTid)) {
+        auto pos = std::find(vsyncSliceMap_[iTid].begin(), vsyncSliceMap_[iTid].end(), callStackRow);
+        if (pos != vsyncSliceMap_[iTid].end()) {
+            if (!streamFilters_->frameFilter_->EndVsyncEvent(ts, iTid)) {
+                streamFilters_->statFilter_->IncreaseStat(TRACE_VSYNC, STAT_EVENT_NOTMATCH);
+            }
+            vsyncSliceMap_[iTid].erase(pos);
         }
-        vsyncSliceIds_.erase(pos);
     }
     return;
 }

@@ -97,9 +97,10 @@ private:
     const std::regex mainProcessCmdPattern_ = std::regex("\\[(\\d+),(\\d+)\\]");
     const std::regex distributeMatcher_ = std::regex(R"(H:\[([a-z0-9]+),([a-z0-9]+),([a-z0-9]+)\]#([CS]?)##(.*))");
     std::vector<uint64_t> frameCallIds_ = {};
-    std::vector<uint64_t> vsyncSliceIds_ = {};
+    std::unordered_map<uint64_t, std::vector<uint64_t>> vsyncSliceMap_ = {};
     TraceFileType traceType_ = TRACE_FILETYPE_H_TRACE;
     BuiltinClocks clock_ = TS_CLOCK_BOOTTIME;
+    const uint32_t maxVsyncEventSize_ = 2;
     // if convert vsync's now and expectEnd
     bool convertVsyncTs_ = true;
 };
