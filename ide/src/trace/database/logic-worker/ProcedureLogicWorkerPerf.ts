@@ -528,6 +528,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     threadCallChain.name = `${this.threadData[countSample.tid].threadName || 'Thread'}(${countSample.tid})`;
     let threadStateCallChain = new PerfCallChain(); //新增的线程状态数据
     threadStateCallChain.tid = countSample.tid;
+    threadStateCallChain.isThreadState = true;
     threadStateCallChain.name = countSample.threadState || 'Unknown State';
     threadStateCallChain.fileName = threadStateCallChain.name === '-' ? 'Unknown Thread State' : '';
     threadStateCallChain.canCharge = false;
@@ -725,7 +726,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   ): void {
     if (sample.initChildren.length > 0) {
       sample.initChildren.forEach((child): void => {
-        if (rule(child)) {
+        if (rule(child) && !child.isThread && !child.isState) {
           (this.splitMapData[ruleName] = this.splitMapData[ruleName] || []).push(child);
           child.isStore++;
         }
@@ -1178,6 +1179,7 @@ export class PerfCallChain {
   nextNode: PerfCallChain | undefined = undefined;
   isThread: boolean = false;
   isProcess: boolean = false;
+  isThreadState : boolean = false;
 
   static setNextNode(currentNode: PerfCallChain, nextNode: PerfCallChain): void {
     currentNode.nextNode = nextNode;
@@ -1229,6 +1231,7 @@ export class PerfCallChainMerageData extends ChartStruct {
   isSelected: boolean = false;
   searchShow: boolean = true;
   isSearch: boolean = false;
+  isState : boolean = false;
   set parentNode(data: PerfCallChainMerageData | undefined) {
     this.parent = data;
     this.#parentNode = data;
@@ -1288,6 +1291,9 @@ export class PerfCallChainMerageData extends ChartStruct {
     }
     if (callChain.isThread && !currentNode.isThread) {
       currentNode.isThread = callChain.isThread;
+    }
+    if (callChain.isThreadState && !currentNode.isState){
+      currentNode.isState = callChain.isThreadState;
     }
     currentNode.dur += sample.count;
     currentNode.count += sample.count;
