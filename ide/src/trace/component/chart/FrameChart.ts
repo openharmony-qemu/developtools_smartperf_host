@@ -632,8 +632,10 @@ export class FrameChart extends BaseElement {
     } else {
       x += scaleHeight;
     }
-    //最下边函数块悬浮框显示在函数上边
-    y -= this.floatHint!.clientHeight - 1;
+    //顶部悬浮框显示在函数下边，下半部分悬浮框显示在函数上边
+    if (y > this.floatHint!.clientHeight) {
+      y -= this.floatHint!.clientHeight - 1;
+    }
 
     this.floatHint!.style.transform = `translate(${x}px,${y}px)`;
   }
