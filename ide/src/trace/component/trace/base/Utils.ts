@@ -82,6 +82,7 @@ export class Utils {
       priority: number;
     }
   >();
+  private callStackMap: Map<number, string> = new Map<number, string>();
 
   constructor() {
     Utils.statusMap.set('D', 'Uninterruptible Sleep');
@@ -118,6 +119,10 @@ export class Utils {
     } else {
       return (Utils.currentSelectTrace === '2' ? this.trace2ThreadMap : this.trace1ThreadMap);
     }
+  }
+
+  public getCallStatckMap(): Map<number, string> {
+    return this.callStackMap;
   }
 
   public getSchedSliceMap(traceId?: string | null): Map<string, {
