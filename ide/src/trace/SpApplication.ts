@@ -585,6 +585,7 @@ export class SpApplication extends BaseElement {
   private openTraceFile(ev: unknown, isClickHandle?: boolean): void {
     this.returnOriginalUrl();
     this.removeAttribute('custom-color');
+    this.chartFilter!.setAttribute('hidden', '');
     this.customColor!.setAttribute('hidden', '');
     this.longTracePage!.style.display = 'none';
     this.litSearch!.style.marginLeft = '0px';
