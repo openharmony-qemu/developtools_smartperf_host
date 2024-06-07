@@ -24,7 +24,6 @@ import { Utils } from '../../base/Utils';
 import { FrameChart } from '../../../chart/FrameChart';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
 import { ChartMode } from '../../../../bean/FrameChartStruct';
-import { SpAllocations } from '../../../setting/SpAllocations';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 
 @element('tabpane-perf-async')
@@ -41,28 +40,34 @@ export class TabPanePerfAsync extends BaseElement {
   private asyncFrameChart: FrameChart | null | undefined;
   private searchValue: string = '';
   private isSearch: boolean = false;
+  private processMap: Map<number, string> = new Map();
+  private threadMap: Map<number, string> = new Map();
 
   /**
    * 标签页点击后的入口
    */
   set data(perfAsyncSelection: SelectionParam | null | undefined) {
     if (perfAsyncSelection === this.currentSelection) {
-      return ;
+      return;
     }
     this.searchValue = '';
     // 保存当前的框选区域
     this.currentSelection = perfAsyncSelection;
+    // 设置筛选框内容为空，切换图标显示成对应火焰图的
     this.asyncFilter!.filterValue = '';
     this.asyncFilter!.icon = 'block';
+    // 私有变量存储进程与线程的Map，后续根据id找对应的名字
+    this.processMap = Utils.getInstance().getProcessMap();
+    this.threadMap = Utils.getInstance().getThreadMap();
     // 设置加载动画
     this.progressEl!.loading = true;
     // 提交子线程进行数据查询
     this.submitQueryData(
       {
-        tid: perfAsyncSelection?.perfThread!, 
-        cpu: perfAsyncSelection?.perfCpus!, 
-        pid: perfAsyncSelection?.perfProcess!, 
-        leftNs: perfAsyncSelection?.leftNs!, 
+        tid: perfAsyncSelection?.perfThread!,
+        cpu: perfAsyncSelection?.perfCpus!,
+        pid: perfAsyncSelection?.perfProcess!,
+        leftNs: perfAsyncSelection?.leftNs!,
         rightNs: perfAsyncSelection?.rightNs!,
         eventId: perfAsyncSelection?.perfEventTypeId,
         searchValue: this.searchValue
@@ -75,14 +80,15 @@ export class TabPanePerfAsync extends BaseElement {
    * @param args 框选的perf泳道线程id等相关数据构成的对象
    */
   submitQueryData(args: {
-    tid?: Array<number>, 
-    cpu?: Array<number>, 
-    pid?: Array<number>, 
-    leftNs: number, 
-    rightNs: number, 
+    tid?: Array<number>,
+    cpu?: Array<number>,
+    pid?: Array<number>,
+    leftNs: number,
+    rightNs: number,
     eventId: number | undefined,
     searchValue: string
   }): void {
+    // 清空数据，保证筛选后没有数据时，相关的表格火焰图不会显示上次的结果
     this.mainTable!.recycleDataSource = [];
     this.showTable!.recycleDataSource = [];
     this.callStackTable!.recycleDataSource = [];
@@ -103,9 +109,7 @@ export class TabPanePerfAsync extends BaseElement {
       return;
     }
     // 用临时变量接收处理完的数据
-    let finalResult = this.organizeData(result);
-    // 保存处理后完整的数据
-    this.currentData = finalResult;
+    this.currentData = this.organizeData(result);
     // 简表使用数据
     this.simpleData = this.generateSimpleData(this.simpleData);
     // 设置表格数据
@@ -116,9 +120,10 @@ export class TabPanePerfAsync extends BaseElement {
       this.isSearch = false;
     }
     this.tHeadClick(this.simpleData);
+    // 设置简表数据
     this.showTable!.recycleDataSource = this.simpleData;
-    // 设置表格数据
-    this.mainTable!.recycleDataSource = finalResult;
+    // 设置详表数据
+    this.mainTable!.recycleDataSource = this.currentData;
     // 更新火焰图canvas
     this.asyncFrameChart?.updateCanvas(true, this.clientWidth);
     // 设置火焰图根据sampleCount还是eventCount分布绘制
@@ -129,7 +134,7 @@ export class TabPanePerfAsync extends BaseElement {
     }
     // 设置火焰图数据
     // @ts-ignore
-    this.asyncFrameChart!.data = finalResult;
+    this.asyncFrameChart!.data = this.currentData;
     // 切换显示火焰图还是表格
     this.switchTableOrChart();
     this.progressEl!.loading = false;
@@ -147,15 +152,17 @@ export class TabPanePerfAsync extends BaseElement {
       // 处理每一条数据，配置基本项，并进行被调用栈切割，只保留asynccallback后的数据
       this.dealEveryData(result[i]);
       // 拷贝临时数组处理，否则会清掉引用类型变量原址的数据
-      let callStack: Array<callStackInfo> = result[i].callerCallStack?.concat(result[i].calleeCallStack!)!;
+      let callStack: Array<perfAsyncList> = result[i].callerCallStack?.concat(result[i].calleeCallStack!)!;
       // 进程数据
-      let processItem: perfAsyncList = {...result[i]};
+      let processItem: perfAsyncList = { ...result[i] };
       processItem.isProcess = true;
-      processItem.symbol = Utils.getInstance().getProcessMap().get(result[i].pid!)! + '[' + result[i].pid! + ']';
+      processItem.symbol = this.processMap.get(result[i].pid!) === null ? 
+        'Process[' + result[i].pid! + ']' : this.processMap.get(result[i].pid!)! + '[' + result[i].pid! + ']';
       // 线程数据
-      let threadItem : perfAsyncList = {...result[i]};
+      let threadItem: perfAsyncList = { ...result[i] };
       threadItem.isThread = true;
-      threadItem.symbol = Utils.getInstance().getThreadMap().get(result[i].tid!)! + '[' + result[i].tid! + ']';
+      threadItem.symbol = this.threadMap.get(result[i].tid!) === null ? 
+        'Thread[' + result[i].tid! + ']' : this.threadMap.get(result[i].tid!)! + '[' + result[i].tid! + ']';
       // @ts-ignore
       callStack.unshift(threadItem);
       // @ts-ignore
@@ -167,7 +174,7 @@ export class TabPanePerfAsync extends BaseElement {
       const index: number = finalResult.findIndex((item) => item.pid === callStackList[0].pid);
       if (index >= 0) {
         finalResult[index].parent = undefined;
-        // 合并栈
+        // 如果两条数据calleechainid相同，则只保留前一条，并让sampleCount+1。如果不同，则找到被调用栈一样的的最后一层，将该条数据及其子数据插入进去
         recusion(callStackList[0], finalResult[index]);
       } else {
         finalResult.push(...callStackList);
@@ -183,12 +190,12 @@ export class TabPanePerfAsync extends BaseElement {
    * 修改每一条数据的对应字段显示值
    * @param data 数据库查询结果中的每一条数据
    */
-  dealEveryData (data: perfAsyncList): void {
+  dealEveryData(data: perfAsyncList): void {
     data.eventType = data.eventType + '[' + data.eventTypeId + ']';
     data.sampleCount = 1;
     data.symbol = Utils.getTimeString(data.time!);
-    let index: number | undefined = data.calleeCallStack?.findIndex((item) => 
-      item.symbolName.indexOf('AsyncWorkCallback') !== -1
+    const index: number | undefined = data.calleeCallStack?.findIndex((item) =>
+      item.symbolName!.indexOf('AsyncWorkCallback') !== -1
     );
     // 若不保留AsyncWorkCallback这一层，则在截取时让index+1
     data.calleeCallStack = data.calleeCallStack?.slice(index!)!;
@@ -222,14 +229,14 @@ export class TabPanePerfAsync extends BaseElement {
    * 用于设置右侧调用栈与被调用栈表格信息
    * @param data 当前主表点击的行数据
    */
-  setRightTableData(data: perfAsyncList): void{
+  setRightTableData(data: perfAsyncList): void {
+    const callStackList: Array<{
+      head: string,
+      eventTypeId: number,
+      symbolName: string,
+      children: Array<perfAsyncList>
+    }> = [];
     if (!(data.isProcess || data.isThread)) {
-      const callStackList: Array<{
-        head: string,
-        eventTypeId: number, 
-        symbolName: string, 
-        children: Array<callStackInfo>
-      }> = [];
       if (data.callerCallchainid) {
         callStackList.push({
           head: '',
@@ -248,8 +255,8 @@ export class TabPanePerfAsync extends BaseElement {
           callStackList[1].children.push(...data.calleeCallStack!);
         }
       }
-      this.callStackTable!.recycleDataSource = callStackList;
     }
+    this.callStackTable!.recycleDataSource = callStackList;
   }
 
   /**
@@ -263,10 +270,10 @@ export class TabPanePerfAsync extends BaseElement {
       this.searchValue = this.asyncFilter!.filterValue;
       this.submitQueryData(
         {
-          tid: this.currentSelection?.perfThread!, 
-          cpu: this.currentSelection?.perfCpus!, 
-          pid: this.currentSelection?.perfProcess!, 
-          leftNs: this.currentSelection?.leftNs!, 
+          tid: this.currentSelection?.perfThread!,
+          cpu: this.currentSelection?.perfCpus!,
+          pid: this.currentSelection?.perfProcess!,
+          leftNs: this.currentSelection?.leftNs!,
           rightNs: this.currentSelection?.rightNs!,
           eventId: this.currentSelection?.perfEventTypeId,
           searchValue: this.searchValue
@@ -274,7 +281,7 @@ export class TabPanePerfAsync extends BaseElement {
       );
       this.isSearch = true;
     } else {
-      this.showTable!.setStatus(this.currentData, true);
+      this.showTable!.setStatus(this.simpleData, true);
       this.switchTableOrChart();
     }
   }
@@ -288,18 +295,18 @@ export class TabPanePerfAsync extends BaseElement {
     let perfProfilerPageChart = this.shadowRoot?.querySelector('#show_chart');
     // 根据过滤工具栏的切换图标，显示火焰图或者表格
     if (this.asyncFilter!.icon === 'block') {
-        perfProfilerPageChart?.setAttribute('class', 'show');
-        perfProfilerPageTab?.setAttribute('class', '');
-        this.isChartShow = true;
-        this.asyncFilter!.disabledMining = false;
-        this.asyncFrameChart?.calculateChartData();
+      perfProfilerPageChart?.setAttribute('class', 'show');
+      perfProfilerPageTab?.setAttribute('class', '');
+      this.isChartShow = true;
+      this.asyncFilter!.disabledMining = false;
+      this.asyncFrameChart?.calculateChartData();
     } else if (this.asyncFilter!.icon === 'tree') {
-        perfProfilerPageChart?.setAttribute('class', '');
-        perfProfilerPageTab?.setAttribute('class', 'show');
-        this.isChartShow = false;
-        this.asyncFilter!.disabledMining = false;
-        this.asyncFrameChart!.clearCanvas();
-        this.showTable!.reMeauseHeight();
+      perfProfilerPageChart?.setAttribute('class', '');
+      perfProfilerPageTab?.setAttribute('class', 'show');
+      this.isChartShow = false;
+      this.asyncFilter!.disabledMining = false;
+      this.asyncFrameChart!.clearCanvas();
+      this.showTable!.reMeauseHeight();
     }
   }
 
@@ -310,42 +317,44 @@ export class TabPanePerfAsync extends BaseElement {
  * @param flag 待传入的每一个节点
  * @returns 返回数组结构，一项套一项，例：原数据为长度12的数组，返回则为嵌套深度为12的单项数组
  */
-  recursionToTree (list: Array<callStackInfo>, data: perfAsyncList, flag: Array<perfAsyncList> | null = null): Array<perfAsyncList> | undefined {
+  recursionToTree(
+    list: Array<perfAsyncList>, 
+    data: perfAsyncList, 
+    flag: Array<perfAsyncList> | null = null
+  ): Array<perfAsyncList> | undefined {
     if (list.length === 0) {
-      return ;
+      return;
     }
     // 最后返回的数组，内容是一个链表
     const tree: Array<perfAsyncList> = flag || [];
     // 链表的每一层数据结构
-    let item: perfAsyncList = {...data};
+    let item: perfAsyncList = { ...data };
     item.children = [];
     // 此处定义tsArray是为了避免引用类型变量在进行数据合并，出现最底层栈却有多条数据的问题
     item.tsArray = [item.time!];
     item.parent = data;
     // 循环一维数组，将每一项填充到其父级数组中
-    for (let i = 0; i < list.length; i++) {
-      // @ts-ignore
-      item.symbol = list[i].symbolName || list[i].symbol;
-      // @ts-ignore
-      item.lib = list[i].lib || list[i].symbol;
-      // @ts-ignore
-      item.addr = list[i].addr || '';
-      // @ts-ignore
-      item.isProcess = list[i].isProcess;
-      // @ts-ignore
-      item.isThread = list[i].isThread;
-      // 符合搜索字符串匹配的火焰图及表格特殊处理
-      if (this.searchValue !== '' && item.symbol!.toLocaleLowerCase().indexOf(this.searchValue.toLocaleLowerCase()) !== -1) {
-        item.isSearch = true;
-      } else {
-        item.isSearch = false;
-      }
-      tree.push(item);
-      // 处理完的数据进行删除，每次循环只会拿到首项，也就是需要处理的子项
-      list.splice(i, 1);
-      // 递归调用
-      this.recursionToTree(list, item, tree[0].children!);
+    // @ts-ignore
+    item.symbol = list[0].symbolName || list[0].symbol;
+    // @ts-ignore
+    item.lib = list[0].lib || list[0].symbol;
+    // @ts-ignore
+    item.addr = list[0].addr || '';
+    // @ts-ignore
+    item.isProcess = list[0].isProcess;
+    // @ts-ignore
+    item.isThread = list[0].isThread;
+    // 符合搜索字符串匹配的火焰图及表格特殊处理
+    if (this.searchValue !== '' && item.symbol!.toLocaleLowerCase().indexOf(this.searchValue.toLocaleLowerCase()) !== -1) {
+      item.isSearch = true;
+    } else {
+      item.isSearch = false;
     }
+    tree.push(item);
+    // 处理完的数据进行删除，每次循环只会拿到首项，也就是需要处理的子项
+    list.splice(0, 1);
+    // 递归调用
+    this.recursionToTree(list, item, tree[0].children!);
     return tree;
   }
 
@@ -355,25 +364,27 @@ export class TabPanePerfAsync extends BaseElement {
    * @returns 简表展示的数据
    */
   generateSimpleData(data: Array<perfAsyncList>): Array<perfAsyncList> {
-    let result = new Array<perfAsyncList>(); 
+    let result = new Array<perfAsyncList>();
     for (let i = 0; i < data.length; i++) {
       let list = new Array<perfAsyncList>();
       // 进程数据
-      let processItem: perfAsyncList = {...data[i]};
+      let processItem: perfAsyncList = { ...data[i] };
       processItem.isProcess = true;
-      processItem.symbol = Utils.getInstance().getProcessMap().get(data[i].pid!)! + '[' + data[i].pid! + ']';
+      processItem.symbol = this.processMap.get(data[i].pid!) === null ? 
+        'Process[' + data[i].pid! + ']' : this.processMap.get(data[i].pid!)! + '[' + data[i].pid! + ']';
       // 线程数据
-      let threadItem : perfAsyncList = {...data[i]};
+      let threadItem: perfAsyncList = { ...data[i] };
       threadItem.isThread = true;
-      threadItem.symbol = Utils.getInstance().getThreadMap().get(data[i].tid!)! + '[' + data[i].tid! + ']';
+      threadItem.symbol = this.threadMap.get(data[i].tid!) === null ? 
+        'Thread[' + data[i].tid! + ']' : this.threadMap.get(data[i].tid!)! + '[' + data[i].tid! + ']';
       // js栈层
-      let jsFuncItem: perfAsyncList = {...data[i]};
+      let jsFuncItem: perfAsyncList = { ...data[i] };
       jsFuncItem.symbol = jsFuncItem.jsFuncName;
       // asyncWorkCallBack下一层
-      let asyncFuncItem: perfAsyncList = {...data[i]};
+      let asyncFuncItem: perfAsyncList = { ...data[i] };
       asyncFuncItem.symbol = asyncFuncItem.asyncFuncName;
       // 被调用栈最底层
-      let bottomItem: perfAsyncList = {...data[i]};
+      let bottomItem: perfAsyncList = { ...data[i] };
       bottomItem.asyncFuncName = bottomItem.calleeCallStack![bottomItem.calleeCallStack!.length - 1].symbolName;
       bottomItem.symbol = bottomItem.asyncFuncName;
       // 填充到数组，整理成链表结构
@@ -430,10 +441,10 @@ export class TabPanePerfAsync extends BaseElement {
     this.mainTable = this.shadowRoot?.querySelector<LitTable>('#tb-perf-async');
     this.showTable = this.shadowRoot?.querySelector<LitTable>('#tb-perf-show');
     this.callStackTable = this.shadowRoot?.querySelector<LitTable>('#call-stack-list');
-    this.progressEl = this.shadowRoot?.querySelector('.perf-async-progress') as LitProgressBar; 
+    this.progressEl = this.shadowRoot?.querySelector('.perf-async-progress') as LitProgressBar;
     this.asyncFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     this.asyncFrameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
-    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spApplication = document.querySelector('body > sp-application');
     let spSystemTrace = spApplication?.shadowRoot?.querySelector(
       'div > div.content > sp-system-trace'
     ) as SpSystemTrace;
@@ -649,9 +660,9 @@ interface perfAsyncList {
   children?: Array<perfAsyncList>;
   eventTypeId?: number;
   symbolName?: string;
-  callerCallStack?: Array<callStackInfo>;
-  calleeCallStack?: Array<callStackInfo>;
-  callStackList?: Array<callStackInfo>;
+  callerCallStack?: Array<perfAsyncList>;
+  calleeCallStack?: Array<perfAsyncList>;
+  callStackList?: Array<perfAsyncList>;
   parent?: perfAsyncList;
   isProcess?: boolean;
   isThread?: boolean;
@@ -675,15 +686,7 @@ interface perfAsyncList {
   dur?: number;
   tsArray?: Array<number>;
   isCharged?: boolean;
-  addr: string;
-}
-
-interface callStackInfo {
-  callerCallchainid?: number, 
-  calleeCallchainid?: number, 
-  depth: number, 
-  symbolName: string, 
-  eventTypeId: number
+  addr?: string;
 }
 
 /**
@@ -699,6 +702,9 @@ export function recusion(data: perfAsyncList, targetData: perfAsyncList, flag?: 
   targetData.dur! += data.dur!;
   targetData.eventCount! += data.eventCount!;
   targetData.tsArray?.push(data.time!);
+  targetData.tsArray = [...new Set(targetData.tsArray)];
+  data.parent = targetData.parent;
+  targetData.children?.sort((a, b) => b.count! - a.count!);
   if (data.callerCallchainid !== targetData.callerCallchainid) {
     targetData.jsFuncName = '';
     // @ts-ignore
@@ -714,9 +720,7 @@ export function recusion(data: perfAsyncList, targetData: perfAsyncList, flag?: 
   if (data.children!.length !== 0 && targetData.children!.length !== 0) {
     // 目标栈可能已经保存了多条数据，需要找到合并栈子级与被合并栈子级相同的分支进行栈合并
     // 筛选出子项最多的那个
-    const num: number = targetData?.children?.findIndex((item) => 
-      item.symbol === data.children![0].symbol
-    )!;
+    const num: number = targetData?.children?.findIndex((item) => item.symbol === data.children![0].symbol)!;
     // 去重
     targetData.tsArray = [...new Set(targetData.tsArray)];
     // 若存在symbol相同的子级，则进入下一层合并。若不存在，则证明是新的分支，将新的子级填充到目标元素子级中
@@ -729,30 +733,14 @@ export function recusion(data: perfAsyncList, targetData: perfAsyncList, flag?: 
         recusion(data.children![0], targetData.children![num], flag);
       }
     } else {
-      targetData.children!.push(data.children![0]);
+      targetData.children?.push(data.children![0]);
       data.children![0].parent = targetData;
+      targetData.children?.sort((a, b) => b.count! - a.count!);
     }
-  } else if (data.children!.length === 0 && targetData.children!.length !== 0) {
-    // 若目标元素存在子级，当前元素没有子级。证明需要将当前层级并列显示到target当前层级后。拆分之前合并的数据
-    targetData.sampleCount! -= data.sampleCount!;
-    targetData.count! -= data.count!;
-    targetData.dur! -= data.dur!;
-    targetData.eventCount! -= data.eventCount!;
-    targetData.tsArray?.splice(targetData.tsArray.length - 1, 1);
-    targetData.parent?.children?.push(data);
-    data.parent = targetData.parent;
   } else if (data.children!.length !== 0 && targetData.children!.length === 0) {
-    // 若目标元素不存在子级，当前元素存在子级。证明目标元素中需要添加一个子级更多的元素，并将其填充到队首，方便查找相同分支时拿到的是子级更多的分支。拆分之前合并的数据
-    targetData.sampleCount! -= data.sampleCount!;
-    targetData.count! -= data.count!;
-    targetData.dur! -= data.dur!;
-    targetData.eventCount! -= data.eventCount!;
-    targetData.tsArray?.splice(targetData.tsArray.length - 1, 1);
-    targetData.parent?.children?.unshift(data);
-    data.parent = targetData.parent;
-  } else {
-    // 递归已经到最下层，则只需要时间数组去重即可
-    targetData.tsArray = [...new Set(targetData.tsArray)];
-    data.parent = targetData.parent;
+    // 若目标元素不存在子级，当前元素存在子级。证明目标元素中需要添加一个子级更多的元素，并将其填充到队首，方便查找相同分支时拿到的是子级更多的分支。
+    const num: number = targetData?.children?.findIndex((item) => item.symbol === data.children![0].symbol)!;
+    targetData.children?.splice(num, 0, data.children![0]);
+    data.children![0].parent = targetData;
   }
 }
