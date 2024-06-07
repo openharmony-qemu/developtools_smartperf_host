@@ -30,7 +30,6 @@ import { showButtonMenu } from '../SheetUtils';
 import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 import { TabPerfProfileHtml } from './TabPerfProfile.html';
-import { SpAllocations } from '../../../setting/SpAllocations';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 
 const InvertOptionIndex: number = 0;
@@ -301,7 +300,7 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfileProgressEL = this.shadowRoot?.querySelector('.perf-profile-progress') as LitProgressBar;
     this.perfProfileFrameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
     this.perfProfileLoadingPage = this.shadowRoot?.querySelector('.perf-profile-loading');
-    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spApplication = document.querySelector('body > sp-application');
     let spSystemTrace = spApplication?.shadowRoot?.querySelector(
       'div > div.content > sp-system-trace'
     ) as SpSystemTrace;

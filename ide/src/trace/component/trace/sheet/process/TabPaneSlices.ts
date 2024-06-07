@@ -16,7 +16,6 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
-import { SpAllocations } from '../../../setting/SpAllocations';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { TraceRow } from '../../base/TraceRow';
 import { LitSearch } from '../../search/Search';
@@ -108,7 +107,7 @@ export class TabPaneSlices extends BaseElement {
     this.slicesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-slices');
     this.slicesRange = this.shadowRoot?.querySelector('#time-range');
     let slicesInput = this.shadowRoot?.querySelector('#filterName');
-    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spApplication = document.querySelector('body > sp-application');
     let spSystemTrace = spApplication?.shadowRoot?.querySelector(
       'div > div.content > sp-system-trace'
     ) as SpSystemTrace;
@@ -144,11 +143,11 @@ export class TabPaneSlices extends BaseElement {
     });
   }
   async orgnazitionData(data: Object): Promise<void> {
-    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spApplication = document.querySelector('body > sp-application');
     let spSystemTrace = spApplication?.shadowRoot?.querySelector(
       'div > div.content > sp-system-trace'
     ) as SpSystemTrace;
-    let search = spApplication.shadowRoot?.querySelector('#lit-search') as LitSearch;
+    let search = spApplication!.shadowRoot?.querySelector('#lit-search') as LitSearch;
     spSystemTrace?.visibleRows.forEach((it) => {
       it.highlight = false;
       it.draw();
