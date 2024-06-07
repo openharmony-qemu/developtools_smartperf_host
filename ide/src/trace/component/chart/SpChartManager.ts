@@ -150,6 +150,8 @@ export class SpChartManager {
     let result = await sliceSender();
     // @ts-ignore
     SpProcessChart.threadStateList = result.threadMap;
+    // @ts-ignore
+    SpProcessChart.processRowSortMap = result.processRowSortMap;
     //@ts-ignore
     await this.cpu.init(result.count.cpu);
     info('initData cpu Data initialized');

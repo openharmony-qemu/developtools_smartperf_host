@@ -90,6 +90,7 @@ export class SpProcessChart {
   private parentRow: TraceRow<BaseStruct> | undefined;
   static asyncFuncCache: unknown[] = [];
   static threadStateList: Map<string, unknown> = new Map();
+  static processRowSortMap: Map<string, unknown> = new Map();
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -369,9 +370,15 @@ export class SpProcessChart {
       return;
     }
     let time = new Date().getTime();
-    let processes = await queryProcess(traceId);
+    let processSortArray = Array.from(SpProcessChart.processRowSortMap);
+    // @ts-ignore
+    processSortArray.sort((a: Array<unknown>, b: Array<unknown>) =>
+      // @ts-ignore
+      b[1] - a[1]
+    );
     let processFromTable = await queryProcessByTable(traceId);
-    let processList = Utils.removeDuplicates(processes, processFromTable, 'pid');
+    let processList = Utils.sortThreadRow(processSortArray, processFromTable, 'process');
+    SpProcessChart.processRowSortMap.clear();
     let allJankProcess: Array<number> = [];
     let allTaskPoolPid: Array<{ pid: number }> = [];
     let renderServiceProcess: unknown[] = [];
@@ -450,7 +457,8 @@ export class SpProcessChart {
     let queryProcessThreadsByTableResult = await queryProcessThreadsByTable(traceId); // @ts-ignore
     // 全量threads排序
     // @ts-ignore
-    this.processThreads = Utils.sortThreadRow(threadArray, queryProcessThreadsByTableResult);
+    this.processThreads = Utils.sortThreadRow(threadArray, queryProcessThreadsByTableResult, 'thread');
+    SpProcessChart.threadStateList.clear();
     let distributedDataLists = await queryDistributedRelationData(traceId);
     distributedDataLists.forEach((item) => {
       this.distributedDataMap.set(`${item.id}_${traceId}`, {
