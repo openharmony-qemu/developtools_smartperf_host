@@ -66,13 +66,14 @@ const padding = 3;
 export function AppStartupStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  scrollToFuncHandler: Function
+  scrollToFuncHandler: Function,
+  entry?: AppStartupStruct,
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_APP_STARTUP && AppStartupStruct.hoverStartupStruct) {
-      AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
+    if (clickRowType === TraceRow.ROW_TYPE_APP_STARTUP && (AppStartupStruct.hoverStartupStruct || entry)) {
+      AppStartupStruct.selectStartupStruct = entry || AppStartupStruct.hoverStartupStruct;
       sp.traceSheetEL?.displayStartupData(
-        AppStartupStruct.selectStartupStruct,
+        AppStartupStruct.selectStartupStruct!,
         scrollToFuncHandler,
         sp.currentRow!.dataListCache
       );

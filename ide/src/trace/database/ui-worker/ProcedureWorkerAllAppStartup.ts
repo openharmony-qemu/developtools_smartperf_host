@@ -65,12 +65,13 @@ export class AllAppStartupRender {
 export function allAppStartupStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  scrollToFuncHandler: Function
+  scrollToFuncHandler: Function,
+  entry?: AllAppStartupStruct,
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct) {
-      AllAppStartupStruct.selectStartupStruct = AllAppStartupStruct.hoverStartupStruct;
-      sp.traceSheetEL?.displayAllStartupData(AllAppStartupStruct.selectStartupStruct, scrollToFuncHandler);
+    if (clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && (AllAppStartupStruct.hoverStartupStruct || entry)) {
+      AllAppStartupStruct.selectStartupStruct = entry || AllAppStartupStruct.hoverStartupStruct;
+      sp.traceSheetEL?.displayAllStartupData(AllAppStartupStruct.selectStartupStruct!, scrollToFuncHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {

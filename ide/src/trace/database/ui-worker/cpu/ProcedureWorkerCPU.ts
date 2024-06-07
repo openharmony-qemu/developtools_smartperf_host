@@ -200,13 +200,18 @@ export class CpuRender {
     cpuRes.push(...slice.filter((it) => it.v));
   }
 }
-export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHandler: unknown): Promise<unknown> {
+export function CpuStructOnClick(
+  rowType: string,
+  sp: SpSystemTrace,
+  cpuClickHandler: unknown,
+  entry?: CpuStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (rowType === TraceRow.ROW_TYPE_CPU && CpuStruct.hoverCpuStruct) {
-      CpuStruct.selectCpuStruct = CpuStruct.hoverCpuStruct;
+    if (rowType === TraceRow.ROW_TYPE_CPU && (CpuStruct.hoverCpuStruct || entry)) {
+      CpuStruct.selectCpuStruct = entry || CpuStruct.hoverCpuStruct;
       sp.timerShaftEL?.drawTriangle(CpuStruct.selectCpuStruct!.startTime || 0, 'inverted');
       sp.traceSheetEL?.displayCpuData(
-        CpuStruct.selectCpuStruct,
+        CpuStruct.selectCpuStruct!,
         (wakeUpBean) => {
           CpuStruct.wakeupBean = wakeUpBean;
           sp.refreshCanvas(false);

@@ -19,20 +19,20 @@ import { TraceRow } from './trace/base/TraceRow';
 import { JankStruct, JankStructOnClick } from '../database/ui-worker/ProcedureWorkerJank';
 import { HeapSnapshotStruct, HeapSnapshotStructOnClick } from '../database/ui-worker/ProcedureWorkerHeapSnapshot';
 import { FuncStruct, funcStructOnClick } from '../database/ui-worker/ProcedureWorkerFunc';
-import { CpuFreqStructOnClick } from '../database/ui-worker/ProcedureWorkerFreq';
-import { ClockStructOnClick } from '../database/ui-worker/ProcedureWorkerClock';
-import { DmaFenceStructOnClick } from "../database/ui-worker/ProcedureWorkerDmaFence";
-import { SnapshotStructOnClick } from '../database/ui-worker/ProcedureWorkerSnapshot';
-import { IrqStructOnClick } from '../database/ui-worker/ProcedureWorkerIrq';
-import { HeapStructOnClick } from '../database/ui-worker/ProcedureWorkerHeap';
-import { JsCpuProfilerStructOnClick } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
-import { AppStartupStructOnClick } from '../database/ui-worker/ProcedureWorkerAppStartup';
-import { allAppStartupStructOnClick } from '../database/ui-worker/ProcedureWorkerAllAppStartup';
-import { SoStructOnClick } from '../database/ui-worker/ProcedureWorkerSoInit';
-import { FrameAnimationStructOnClick } from '../database/ui-worker/ProcedureWorkerFrameAnimation';
-import { FrameDynamicStructOnClick } from '../database/ui-worker/ProcedureWorkerFrameDynamic';
-import { FrameSpacingStructOnClick } from '../database/ui-worker/ProcedureWorkerFrameSpacing';
-import { sampleStructOnClick } from '../database/ui-worker/ProcedureWorkerBpftrace';
+import { CpuFreqStruct, CpuFreqStructOnClick } from '../database/ui-worker/ProcedureWorkerFreq';
+import { ClockStruct, ClockStructOnClick } from '../database/ui-worker/ProcedureWorkerClock';
+import { DmaFenceStruct, DmaFenceStructOnClick } from '../database/ui-worker/ProcedureWorkerDmaFence';
+import { SnapshotStruct, SnapshotStructOnClick } from '../database/ui-worker/ProcedureWorkerSnapshot';
+import { IrqStruct, IrqStructOnClick } from '../database/ui-worker/ProcedureWorkerIrq';
+import { HeapStruct, HeapStructOnClick } from '../database/ui-worker/ProcedureWorkerHeap';
+import { JsCpuProfilerStruct, JsCpuProfilerStructOnClick } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
+import { AppStartupStruct, AppStartupStructOnClick } from '../database/ui-worker/ProcedureWorkerAppStartup';
+import { AllAppStartupStruct, allAppStartupStructOnClick } from '../database/ui-worker/ProcedureWorkerAllAppStartup';
+import { SoStruct, SoStructOnClick } from '../database/ui-worker/ProcedureWorkerSoInit';
+import { FrameAnimationStruct, FrameAnimationStructOnClick } from '../database/ui-worker/ProcedureWorkerFrameAnimation';
+import { FrameDynamicStruct, FrameDynamicStructOnClick } from '../database/ui-worker/ProcedureWorkerFrameDynamic';
+import { FrameSpacingStruct, FrameSpacingStructOnClick } from '../database/ui-worker/ProcedureWorkerFrameSpacing';
+import { SampleStruct, sampleStructOnClick } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { SportRuler } from './trace/timer-shaft/SportRuler';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 import { LitSearch } from './trace/search/Search';
@@ -40,14 +40,17 @@ import { TabPaneCurrent } from './trace/sheet/TabPaneCurrent';
 import type { SpKeyboard } from './SpKeyboard';
 import { enableVSync } from './chart/VSync';
 import { CpuStruct, CpuStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCPU';
-import { CpuStateStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCpuState';
-import { CpuFreqLimitsStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
+import { CpuStateStruct, CpuStateStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCpuState';
+import {
+  CpuFreqLimitsStruct,
+  CpuFreqLimitsStructOnClick
+} from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { FlagsConfig } from './SpFlags';
 import { LitMainMenu } from '../../base-ui/menu/LitMainMenu';
-import { PerfToolsStructOnClick } from '../database/ui-worker/ProcedureWorkerPerfTool';
+import { PerfToolsStructOnClick, PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { Utils } from './trace/base/Utils';
 import { BaseStruct } from '../bean/BaseStruct';
-import { gpuCounterStructOnClick } from '../database/ui-worker/ProcedureWorkerGpuCounter';
+import { GpuCounterStruct, gpuCounterStructOnClick } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -352,46 +355,37 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
   };
 }
 
-//@ts-ignore
-function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<unknown>, entry?: unknown): void {
-  CpuStructOnClick(clickRowType, sp, cpuClickHandlerFunc(sp))
-    .then(() =>
-      ThreadStructOnClick(
-        clickRowType,
-        sp,
-        threadClickHandlerFunc(sp),
-        cpuClickHandlerFunc(sp),
-        prioClickHandlerFunc(sp)
-      )
-    )
-    //@ts-ignore
-    .then(() => funcStructOnClick(clickRowType, sp, row, scrollToFuncHandlerFunc(sp), entry))
-    .then(() => CpuFreqStructOnClick(clickRowType, sp))
-    .then(() => CpuStateStructOnClick(clickRowType, sp))
-    .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp))
-    .then(() => ClockStructOnClick(clickRowType, sp))
-    .then(() => DmaFenceStructOnClick(clickRowType, sp))//点击
-    //@ts-ignore
-    .then(() => SnapshotStructOnClick(clickRowType, sp, row!))
-    .then(() => IrqStructOnClick(clickRowType, sp))
-    //@ts-ignore
-    .then(() => HeapStructOnClick(clickRowType, sp, row))
-    //@ts-ignore
-    .then(() => JankStructOnClick(clickRowType, sp, row!, jankClickHandlerFunc(sp)))
-    //@ts-ignore
-    .then(() => HeapSnapshotStructOnClick(clickRowType, sp, row!, snapshotClickHandlerFunc(sp)))
-    //@ts-ignore
-    .then(() => JsCpuProfilerStructOnClick(clickRowType, sp, row!))
-    .then(() => AppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
-    .then(() => allAppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
-    .then(() => SoStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp))) //@ts-ignore
-    .then(() => FrameAnimationStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp), row!))
-    .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
-    .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
-    .then(() => sampleStructOnClick(clickRowType, sp, row))
-    .then(() => gpuCounterStructOnClick(clickRowType, sp))
-    .then(() => PerfToolsStructOnClick(clickRowType, sp))
 
+function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRow<BaseStruct>, entry?: unknown): void {
+  CpuStructOnClick(clickRowType, sp, cpuClickHandlerFunc(sp), entry as CpuStruct)
+    .then(() => ThreadStructOnClick(clickRowType, sp, threadClickHandlerFunc(sp), cpuClickHandlerFunc(sp),
+      prioClickHandlerFunc(sp), entry as ThreadStruct))
+    .then(() => funcStructOnClick(clickRowType, sp, row as TraceRow<FuncStruct>,
+      scrollToFuncHandlerFunc(sp), entry as FuncStruct))
+    .then(() => CpuFreqStructOnClick(clickRowType, sp, entry as CpuFreqStruct))
+    .then(() => CpuStateStructOnClick(clickRowType, sp, entry as CpuStateStruct))
+    .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp, entry as CpuFreqLimitsStruct))
+    .then(() => ClockStructOnClick(clickRowType, sp, entry as ClockStruct))
+    .then(() => DmaFenceStructOnClick(clickRowType, sp, entry as DmaFenceStruct))
+    .then(() => SnapshotStructOnClick(clickRowType, sp, row as TraceRow<SnapshotStruct>, entry as SnapshotStruct))
+    .then(() => IrqStructOnClick(clickRowType, sp, entry as IrqStruct))
+    .then(() => HeapStructOnClick(clickRowType, sp, row as TraceRow<HeapStruct>, entry as HeapStruct))
+    .then(() => JankStructOnClick(clickRowType, sp, row as TraceRow<JankStruct>,
+      jankClickHandlerFunc(sp), entry as JankStruct))
+    .then(() => HeapSnapshotStructOnClick(clickRowType, sp, row as TraceRow<HeapSnapshotStruct>,
+      snapshotClickHandlerFunc(sp), entry as HeapSnapshotStruct))
+    .then(() => JsCpuProfilerStructOnClick(clickRowType, sp, row as TraceRow<JsCpuProfilerStruct>,
+      entry as JsCpuProfilerStruct))
+    .then(() => AppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp), entry as AppStartupStruct))
+    .then(() => allAppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp), entry as AllAppStartupStruct))
+    .then(() => SoStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp), entry as SoStruct))
+    .then(() => FrameAnimationStructOnClick(clickRowType, sp,
+      scrollToFuncHandlerFunc(sp), row as TraceRow<FrameAnimationStruct>, entry as FrameAnimationStruct))
+    .then(() => FrameDynamicStructOnClick(clickRowType, sp, row, entry as FrameDynamicStruct))
+    .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!, entry as FrameSpacingStruct))
+    .then(() => sampleStructOnClick(clickRowType, sp, row as TraceRow<SampleStruct>, entry as SampleStruct))
+    .then(() => gpuCounterStructOnClick(clickRowType, sp, entry as GpuCounterStruct))
+    .then(() => PerfToolsStructOnClick(clickRowType, sp, entry as PerfToolStruct))
     .then(() => {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
         sp.removeLinkLinesByBusinessType('janks');
@@ -409,8 +403,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
 export default function spSystemTraceOnClickHandler(
   sp: SpSystemTrace,
   clickRowType: string,
-  //@ts-ignore
-  row?: TraceRow<unknown>,
+  row?: TraceRow<BaseStruct>,
   entry?: unknown
 ): void {
   if (row) {
@@ -887,9 +880,11 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
       x < (TraceRow.rangeSelectObject?.endX || 0)
     )
   ) {
+    const transformYMatch = sp.canvasPanel?.style.transform.match(/\((\d+)[^\)]+\)/);
+    const transformY = transformYMatch![1];
     let inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
     let rows = sp.visibleRows.filter((it) =>
-      it.focusContain(ev, inFavoriteArea!, sp.prevScrollY) && it.collect === inFavoriteArea);
+      it.focusContain(ev, inFavoriteArea!, Number(transformY)) && it.collect === inFavoriteArea);
     if (JankStruct.delJankLineFlag) {
       sp.removeLinkLinesByBusinessType('janks');
     }
@@ -902,11 +897,9 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
       strict = false;
       offset = true;
     }
-    if (rows && rows[0] && rows[0].getHoverStruct(strict, offset)) {
+    if (rows && rows[0] && (rows[0].getHoverStruct(strict, offset) ||
+      (rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false)))) {
       sp.onClickHandler(rows[0]!.rowType!, rows[0], rows[0].getHoverStruct(strict, offset));
-      sp.documentOnMouseMove(ev);
-    } else if (rows && rows[0] && rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false)) {
-      sp.onClickHandler(rows[0]!.rowType!, rows[0]);
       sp.documentOnMouseMove(ev);
     } else {
       sp.clickEmptyArea();

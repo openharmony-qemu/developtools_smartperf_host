@@ -68,11 +68,15 @@ export class DmaFenceRender {
   }
 }
 
-export function DmaFenceStructOnClick(rowType: string, sp: SpSystemTrace) {
+export function DmaFenceStructOnClick(
+  rowType: string,
+  sp: SpSystemTrace,
+  entry?: DmaFenceStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (rowType === TraceRow.ROW_TYPE_DMA_FENCE && DmaFenceStruct.hoverDmaFenceStruct !== undefined) {
-      DmaFenceStruct.selectDmaFenceStruct = DmaFenceStruct.hoverDmaFenceStruct;
-      sp.traceSheetEL?.displayDmaFenceData(DmaFenceStruct.selectDmaFenceStruct, sp.currentRow!.dataListCache);
+    if (rowType === TraceRow.ROW_TYPE_DMA_FENCE && (DmaFenceStruct.hoverDmaFenceStruct || entry)) {
+      DmaFenceStruct.selectDmaFenceStruct = entry || DmaFenceStruct.hoverDmaFenceStruct;
+      sp.traceSheetEL?.displayDmaFenceData(DmaFenceStruct.selectDmaFenceStruct!, sp.currentRow!.dataListCache);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {

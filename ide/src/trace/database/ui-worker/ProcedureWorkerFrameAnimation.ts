@@ -110,15 +110,17 @@ export function FrameAnimationStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
   scrollToFuncHandler: Function,
-  row: TraceRow<FrameAnimationStruct>
+  row: TraceRow<FrameAnimationStruct>,
+  entry?: FrameAnimationStruct,
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FRAME_ANIMATION) {
       FrameAnimationStruct.selectFrameAnimationStruct =
         FrameAnimationStruct.hoverFrameAnimationStruct || row.getHoverStruct();
-      if (FrameAnimationStruct.selectFrameAnimationStruct) {
+      if (FrameAnimationStruct.selectFrameAnimationStruct || entry) {
+        let data = entry || FrameAnimationStruct.selectFrameAnimationStruct;
         sp.traceSheetEL?.displayFrameAnimationData(
-          FrameAnimationStruct.selectFrameAnimationStruct,
+          data!,
           scrollToFuncHandler
         );
         sp.timerShaftEL?.modifyFlagList(undefined);

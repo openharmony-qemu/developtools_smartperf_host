@@ -132,22 +132,23 @@ function setHeapFrameIfUse(res: Array<HeapStruct>, startNS: number, endNS: numbe
 export function HeapStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  row: undefined | TraceRow<HeapStruct>
+  row: undefined | TraceRow<HeapStruct>,
+  entry?: HeapStruct,
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (
       clickRowType === TraceRow.ROW_TYPE_HEAP &&
       row &&
       row.getAttribute('heap-type') === 'native_hook_statistic' &&
-      HeapStruct.hoverHeapStruct
+      (HeapStruct.hoverHeapStruct || entry)
     ) {
-      HeapStruct.selectHeapStruct = HeapStruct.hoverHeapStruct;
+      HeapStruct.selectHeapStruct = entry || HeapStruct.hoverHeapStruct;
       const key = row.rowParentId!.split(' ');
       let ipid = 1;
       if (key.length > 0) {
         ipid = Number(key[key.length - 1]);
       }
-      sp.traceSheetEL?.displayNativeHookData(HeapStruct.selectHeapStruct, row.rowId!, ipid);
+      sp.traceSheetEL?.displayNativeHookData(HeapStruct.selectHeapStruct!, row.rowId!, ipid);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {

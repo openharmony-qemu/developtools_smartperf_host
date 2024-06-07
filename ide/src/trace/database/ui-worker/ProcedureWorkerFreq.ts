@@ -64,10 +64,14 @@ export class FreqRender extends Render {
     freqReq.context.fillText(s, 4, 5 + 9);
   }
 }
-export function CpuFreqStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+export function CpuFreqStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  entry?: CpuFreqStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_CPU_FREQ && CpuFreqStruct.hoverCpuFreqStruct) {
-      CpuFreqStruct.selectCpuFreqStruct = CpuFreqStruct.hoverCpuFreqStruct;
+    if (clickRowType === TraceRow.ROW_TYPE_CPU_FREQ && (CpuFreqStruct.hoverCpuFreqStruct || entry)) {
+      CpuFreqStruct.selectCpuFreqStruct = entry || CpuFreqStruct.hoverCpuFreqStruct;
       sp.traceSheetEL?.displayFreqData();
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());

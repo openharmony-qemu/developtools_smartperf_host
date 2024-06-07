@@ -71,13 +71,21 @@ export class ThreadRender extends Render {
   render(threadReq: RequestMessage, threadList: Array<unknown>, threadFilter: Array<unknown>): void {}
 }
 
-export function ThreadStructOnClick(clickRowType: string, sp: SpSystemTrace, threadClickHandler: any, cpuClickHandler: any,  prioClickHandlerFunc: any) {
+export function ThreadStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  threadClickHandler: any,
+  cpuClickHandler: any,
+  prioClickHandlerFunc: any,
+  entry?: ThreadStruct
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_THREAD && ThreadStruct.hoverThreadStruct) {
+    if (clickRowType === TraceRow.ROW_TYPE_THREAD && (ThreadStruct.hoverThreadStruct || entry)) {
       sp.removeLinkLinesByBusinessType('thread');
-      ThreadStruct.selectThreadStruct = ThreadStruct.hoverThreadStruct;
+      ThreadStruct.selectThreadStruct = entry || ThreadStruct.hoverThreadStruct;
       sp.timerShaftEL?.drawTriangle(ThreadStruct.selectThreadStruct!.startTime || 0, 'inverted');
-      sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct, threadClickHandler, cpuClickHandler, prioClickHandlerFunc);
+      sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct!,
+        threadClickHandler, cpuClickHandler, prioClickHandlerFunc);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {

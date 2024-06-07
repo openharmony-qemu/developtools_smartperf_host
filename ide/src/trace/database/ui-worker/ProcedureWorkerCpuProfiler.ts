@@ -110,7 +110,8 @@ const padding = 1;
 export function JsCpuProfilerStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  row: TraceRow<JsCpuProfilerStruct>
+  row: TraceRow<JsCpuProfilerStruct>,
+  entry?: JsCpuProfilerStruct
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
@@ -121,13 +122,13 @@ export function JsCpuProfilerStructOnClick(
           JsCpuProfilerStruct.hoverJsCpuProfilerStruct || row.getHoverStruct();
       }
     }
-    if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER && JsCpuProfilerStruct.hoverJsCpuProfilerStruct) {
-      JsCpuProfilerStruct.selectJsCpuProfilerStruct = JsCpuProfilerStruct.hoverJsCpuProfilerStruct;
+    if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER && (JsCpuProfilerStruct.hoverJsCpuProfilerStruct || entry)) {
+      JsCpuProfilerStruct.selectJsCpuProfilerStruct = entry || JsCpuProfilerStruct.hoverJsCpuProfilerStruct;
       let selectStruct = JsCpuProfilerStruct.selectJsCpuProfilerStruct;
       let dataArr: Array<JsCpuProfilerChartFrame> = [];
       let parentIdArr: Array<number> = [];
       let that = sp;
-      getTopJsCpuProfilerStruct(selectStruct.parentId, selectStruct, that, dataArr, parentIdArr);
+      getTopJsCpuProfilerStruct(selectStruct!.parentId, selectStruct!, that, dataArr, parentIdArr);
       that.traceSheetEL?.displayJsProfilerData(dataArr);
       reject(new Error());
     } else {

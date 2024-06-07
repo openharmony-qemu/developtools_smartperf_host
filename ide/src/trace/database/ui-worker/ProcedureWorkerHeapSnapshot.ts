@@ -68,7 +68,8 @@ export function HeapSnapshotStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
   row: TraceRow<HeapSnapshotStruct>,
-  snapshotClickHandler: unknown
+  snapshotClickHandler: unknown,
+  entry?: HeapSnapshotStruct
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_HEAP_SNAPSHOT) {
@@ -77,8 +78,8 @@ export function HeapSnapshotStructOnClick(
       } else {
         HeapSnapshotStruct.hoverSnapshotStruct = HeapSnapshotStruct.hoverSnapshotStruct || row.getHoverStruct();
       }
-      if (HeapSnapshotStruct.hoverSnapshotStruct) {
-        HeapSnapshotStruct.selectSnapshotStruct = HeapSnapshotStruct.hoverSnapshotStruct;
+      if (HeapSnapshotStruct.hoverSnapshotStruct || entry) {
+        HeapSnapshotStruct.selectSnapshotStruct = entry || HeapSnapshotStruct.hoverSnapshotStruct;
         sp.traceSheetEL?.displaySnapshotData(
           HeapSnapshotStruct.selectSnapshotStruct!,
           row!.dataListCache,
