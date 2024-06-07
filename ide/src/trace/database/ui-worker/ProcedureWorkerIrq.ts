@@ -71,11 +71,15 @@ export class IrqRender extends Render {
 }
 
 const padding = 3;
-export function IrqStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+export function IrqStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  entry?: IrqStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_IRQ && IrqStruct.hoverIrqStruct) {
-      IrqStruct.selectIrqStruct = IrqStruct.hoverIrqStruct;
-      sp.traceSheetEL?.displayIrqData(IrqStruct.selectIrqStruct);
+    if (clickRowType === TraceRow.ROW_TYPE_IRQ && (IrqStruct.hoverIrqStruct || entry)) {
+      IrqStruct.selectIrqStruct = entry || IrqStruct.hoverIrqStruct;
+      sp.traceSheetEL?.displayIrqData(IrqStruct.selectIrqStruct!);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {

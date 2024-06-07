@@ -118,11 +118,15 @@ function setFrameGroup(dataList: Array<any>, startTime: number, type: string, st
   }
 }
 
-export function gpuCounterStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+export function gpuCounterStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  entry?: GpuCounterStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_GPU_COUNTER && GpuCounterStruct.hoverGpuCounterStruct) { 
-      GpuCounterStruct.selectGpuCounterStruct = GpuCounterStruct.hoverGpuCounterStruct;
-      sp.traceSheetEL?.displayGpuCounterData(GpuCounterStruct.selectGpuCounterStruct);
+    if (clickRowType === TraceRow.ROW_TYPE_GPU_COUNTER && (GpuCounterStruct.hoverGpuCounterStruct || entry)) {
+      GpuCounterStruct.selectGpuCounterStruct = entry || GpuCounterStruct.hoverGpuCounterStruct;
+      sp.traceSheetEL?.displayGpuCounterData(GpuCounterStruct.selectGpuCounterStruct!);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     }else{

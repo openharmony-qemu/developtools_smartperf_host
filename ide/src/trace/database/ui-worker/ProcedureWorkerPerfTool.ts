@@ -64,11 +64,16 @@ export class PerfToolRender extends Render {
     perfReq.context.closePath();
   }
 }
-export function PerfToolsStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+export function PerfToolsStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  entry?: PerfToolStruct,
+): Promise<unknown> {
+
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_PERF_TOOL && PerfToolStruct.hoverPerfToolStruct) {
-      PerfToolStruct.selectPerfToolStruct = PerfToolStruct.hoverPerfToolStruct;
-      sp.traceSheetEL?.displayPerfToolsData(PerfToolStruct.selectPerfToolStruct);
+    if (clickRowType === TraceRow.ROW_TYPE_PERF_TOOL && (PerfToolStruct.hoverPerfToolStruct || entry)) {
+      PerfToolStruct.selectPerfToolStruct = entry || PerfToolStruct.hoverPerfToolStruct;
+      sp.traceSheetEL?.displayPerfToolsData(PerfToolStruct.selectPerfToolStruct!);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {

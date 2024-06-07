@@ -77,10 +77,14 @@ export class CpuFreqLimitRender extends Render {
     cpuFreqLimitReq.context.fillText(s, 4, 5 + 9);
   }
 }
-export function CpuFreqLimitsStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+export function CpuFreqLimitsStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  entry?: CpuFreqLimitsStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMIT && CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct) {
-      CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct;
+    if (clickRowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMIT && (CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct || entry)) {
+      CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = entry || CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct;
       sp.traceSheetEL?.displayFreqLimitData();
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());

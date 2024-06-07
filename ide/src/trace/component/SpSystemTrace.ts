@@ -1373,9 +1373,10 @@ export class SpSystemTrace extends BaseElement {
       (): boolean => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
   ]);
+
   // @ts-ignore
   onClickHandler(clickRowType: string, row?: TraceRow<unknown>, entry?: unknown): void {
-    spSystemTraceOnClickHandler(this, clickRowType, row, entry);
+    spSystemTraceOnClickHandler(this, clickRowType, row as TraceRow<BaseStruct>, entry);
   }
 
   makePoint(
