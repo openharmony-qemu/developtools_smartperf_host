@@ -118,7 +118,73 @@ export function sliceReceiver(data: unknown, proc: Function): void {
     }
     count.cpu.set(key, arr.length);
   }
-  postMsg(data, { count, threadMap, processRowSortMap });
+  //处理热点数据
+  //@ts-ignore
+  let cpuUtiliRateArray = getCpuUtiliRate(cpuList, data.params);
+  postMsg(data, { count, threadMap, processRowSortMap, cpuUtiliRateArray });
+}
+
+function getCpuUtiliRate(cpulist: Map<number, Array<unknown>>, args: Args): Array<any> {
+  // cpu进行排序  
+  let cpuListArray = Array.from(cpulist.entries());
+  cpuListArray.sort((a: any, b: any) => parseInt(a[0]) - parseInt(b[0]));
+  let cpuListMap = new Map(cpuListArray);  
+  let cpuUtiliRateArray = new Array();
+  let cell = Math.floor((args.recordEndNS - args.recordStartNS) / 100);//分成100个格子，cell每个格子的持续时间
+  for (const [cpu, list] of cpuListMap.entries()) {
+    let ro = 0;
+    let index = 0;
+    let sumTime = 0;
+    //@ts-ignore
+    let sliceSt = list[0].startTime;//起始时间
+    let cellSt = ro * cell;//每个格子起始时间
+    let cellEt = (ro + 1) * cell;//每个格子的结束时间
+    //@ts-ignore
+    while (index < list.length && ro <= 99) {
+      let isGoNextRo = false;//标志位，当下格子区间内的cpu切片持续时间是否统计结束，如统计结束true可跳转至下一个格子区间，反之false
+      //@ts-ignore
+      let sliceEt = list[index].startTime + list[index].dur;//cpu结束时间
+      if (sliceSt >= cellSt && sliceEt <= cellEt) {//包含在ro内
+        //@ts-ignore
+        sumTime += (sliceEt - sliceSt);//cpu dur累加
+        //@ts-ignore
+        sliceSt = index + 1 >= list.length ? sliceSt : list[index + 1].startTime;//处理最后一条cpu数据
+        index++;
+      } else if (sliceSt >= cellSt && sliceSt < cellEt && sliceEt > cellEt) {//部分包含在ro内
+        sumTime = sumTime + (cellEt - sliceSt);
+        sliceSt = cellEt;
+        isGoNextRo = true;
+      } else if (sliceSt >= cellEt) {//不包含在ro内
+        isGoNextRo = true;
+      } else {//保护逻辑
+        //@ts-ignore
+        sliceSt = index + 1 >= list.length ? sliceSt : list[index + 1].startTime;
+        index++;
+      }
+      if (isGoNextRo) {//格子内cpu dur累加结束 跳转至下一个Ro 处理比率 储存处理后的数据
+        ro++;
+        cellSt = ro * cell;//下一个格子的起始时间
+        //第99个格子结束时间为recordEndNS，确保覆盖整个时间范围
+        if (ro < 99) {
+          cellEt = (ro + 1) * cell;//下一个格子结束时间
+        } else {
+          cellEt = args.recordEndNS - args.recordStartNS;
+        }
+        //处理比率 储存处理后的数据
+        if (sumTime !== 0) {
+          let rate = sumTime / cell;
+          cpuUtiliRateArray.push({ ro: ro - 1, cpu, rate });
+          sumTime = 0;
+        }
+      }
+    }
+    //处理最后一个sumTime不为0区间的数据
+    if (sumTime !== 0) {
+      let rate = sumTime / cell;
+      cpuUtiliRateArray.push({ ro, cpu, rate });
+    }
+  }
+  return cpuUtiliRateArray;
 }
 
 export function sliceSPTReceiver(data: unknown) {

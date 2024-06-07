@@ -45,56 +45,6 @@ export const queryCpuKeyPathData = (threads: Array<KeyPathStruct>): Promise<Arra
     where ${sql}`
   );
 };
-export const getCpuUtilizationRate = (
-  startNS: number,
-  endNS: number
-): Promise<
-  Array<{
-    cpu: number;
-    ro: number;
-    rate: number;
-  }>
-> =>
-  query(
-    'getCpuUtilizationRate',
-    `
-    with cpu as (
-    select
-      cpu,
-      ts,
-      dur,
-      (case when ro < 99 then ro else 99 end) as ro ,
-      (case when ro < 99 then stime+ro*cell else stime + 99 * cell end) as st,
-      (case when ro < 99 then stime + (ro+1)*cell else etime end) as et
-    from (
-        select
-          cpu,
-          ts,
-          A.dur,
-          ((ts+A.dur)-D.start_ts)/((D.end_ts-D.start_ts)/100) as ro,
-          D.start_ts as stime,
-          D.end_ts etime,
-          (D.end_ts-D.start_ts)/100 as cell
-        from
-          sched_slice A
-        left join
-          trace_range D
-        left join
-          thread B on A.itid = B.id
-        where
-          tid != 0
-        and (A.ts)
-          between D.start_ts and D.end_ts))
-    select cpu,ro,
-       sum(case
-               when ts <= st and ts + dur <= et then (ts + dur - st)
-               when ts <= st and ts + dur > et then et-st
-               when ts > st and ts + dur <= et then dur
-               when ts > st and ts + dur > et then et - ts end)/cast(et-st as float) as rate
-    from cpu
-    group by cpu,ro;`,
-    {}
-  );
 
 export const getTabCpuUsage = (cpus: Array<number>, leftNs: number, rightNs: number,
   traceId?: string): Promise<Array<CpuUsage>> =>

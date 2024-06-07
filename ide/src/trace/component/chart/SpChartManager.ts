@@ -50,7 +50,6 @@ import {
   queryThreadAndProcessName,
 } from '../../database/sql/ProcessThread.sql';
 import { queryTaskPoolCallStack, queryTotalTime } from '../../database/sql/SqlLite.sql';
-import { getCpuUtilizationRate } from '../../database/sql/Cpu.sql';
 import { queryMemoryConfig } from '../../database/sql/Memory.sql';
 import { SpLtpoChart } from './SpLTPO';
 import { SpBpftraceChart } from './SpBpftraceChart';
@@ -171,7 +170,8 @@ export class SpChartManager {
     }
     info('initData ProcessThreadState Data initialized');
     progress('cpu rate', 75);
-    await this.initCpuRate();
+    //@ts-ignore
+    await this.initCpuRate(result.cpuUtiliRateArray);
     info('initData Cpu Rate Data initialized');
     progress('cpu freq', 80);
     await this.freq.init();
@@ -384,8 +384,7 @@ export class SpChartManager {
     return res;
   };
 
-  initCpuRate = async (): Promise<void> => {
-    let rates = await getCpuUtilizationRate(0, this.trace.timerShaftEL?.totalNS || 0);
+  initCpuRate = async (rates: Array<{ cpu: number; ro: number; rate: number;}>): Promise<void> => {
     if (this.trace.timerShaftEL) {
       this.trace.timerShaftEL.cpuUsage = rates;
     }
