@@ -314,7 +314,7 @@ export class TabPaneNMemory extends BaseElement {
       }
       document.dispatchEvent(
         new CustomEvent('triangle-flag', {
-          detail: { time: data.startTs, type: 'triangle' },
+          detail: { time: [data.startTs], type: 'triangle' },
         })
       );
     });
