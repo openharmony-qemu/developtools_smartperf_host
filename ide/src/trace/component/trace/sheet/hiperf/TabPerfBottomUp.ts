@@ -25,7 +25,6 @@ import { procedurePool } from '../../../../database/Procedure';
 import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 import { type PerfBottomUpStruct } from '../../../../bean/PerfBottomUpStruct';
 import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCommon';
-import { SpAllocations } from '../../../setting/SpAllocations';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 
 @element('tabpane-perf-bottom-up')
@@ -45,7 +44,7 @@ export class TabpanePerfBottomUp extends BaseElement {
     this.stackTable = this.shadowRoot?.querySelector('#stackTable') as LitTable;
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
     this.bottomUpFilter = this.shadowRoot?.querySelector('#filter') as TabPaneFilter;
-    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spApplication = document.querySelector('body > sp-application');
     let spSystemTrace = spApplication?.shadowRoot?.querySelector(
       'div > div.content > sp-system-trace'
     ) as SpSystemTrace;

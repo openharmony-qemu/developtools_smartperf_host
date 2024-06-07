@@ -29,7 +29,6 @@ import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 import { TabPaneNMCallTreeHtml } from './TabPaneNMCallTree.html';
 import { queryNativeHookStatisticSubType, queryNativeHookSubType } from '../../../../database/sql/NativeHook.sql';
-import { SpAllocations } from '../../../setting/SpAllocations';
 
 const InvertOpyionIndex: number = 0;
 const HideSystemSoOptionIndex: number = 1;
@@ -422,7 +421,7 @@ export class TabpaneNMCalltree extends BaseElement {
     });
     this.nmCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
     this.filesystemTbr = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-list');
-    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spApplication = document.querySelector('body > sp-application');
     let spSystemTrace = spApplication?.shadowRoot?.querySelector(
       'div > div.content > sp-system-trace'
     ) as SpSystemTrace;
