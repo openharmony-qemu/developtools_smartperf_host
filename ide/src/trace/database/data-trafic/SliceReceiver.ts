@@ -34,6 +34,7 @@ export function sliceReceiver(data: unknown, proc: Function): void {
   };
   // 存储线程及其状态耗时总和；用以线程泳道排序
   let threadMap = new Map<string, number>();
+  let processRowSortMap = new Map<string, number>();
   sliceList.clear();
   cpuList.clear();
   processList.clear();
@@ -42,6 +43,19 @@ export function sliceReceiver(data: unknown, proc: Function): void {
   sliceList.set(0, list);
   for (let i = 0; i < list.length; i++) {
     let slice = list[i]; //@ts-ignore
+    // @ts-ignore
+    if (slice.pid > 0 && typeof slice.pid === 'number' && slice.state === 'Running') {
+      // @ts-ignore
+      if (!processRowSortMap.has(slice.pid)) {
+        // @ts-ignore
+        processRowSortMap.set(slice.pid, slice.dur);
+      } else {
+        // @ts-ignore
+        let val = processRowSortMap.get(slice.pid);
+        // @ts-ignore
+        processRowSortMap.set(slice.pid, val + slice.dur)
+      }
+    }// @ts-ignore
     if (slice.cpu !== null && slice.cpu !== undefined) {
       //@ts-ignore
       if (cpuList.has(slice.cpu)) {
@@ -104,7 +118,7 @@ export function sliceReceiver(data: unknown, proc: Function): void {
     }
     count.cpu.set(key, arr.length);
   }
-  postMsg(data, { count, threadMap });
+  postMsg(data, { count, threadMap, processRowSortMap });
 }
 
 export function sliceSPTReceiver(data: unknown) {

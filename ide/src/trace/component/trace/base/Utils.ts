@@ -638,13 +638,13 @@ export class Utils {
   }
 
   // 线程排序去重
-  public static sortThreadRow(array1: unknown[], array2: unknown[]): unknown {
+  public static sortThreadRow(array1: unknown[], array2: unknown[], flag: string): unknown {
     let total = new Array();
     let arr2Map = new Map();
     // 将array2转为map
     for (let i = 0; i < array2.length; i++) {
       // @ts-ignore
-      arr2Map.set(`${array2[i].pid}-${array2[i].tid}`, array2[i])
+      arr2Map.set(flag === 'thread' ? `${array2[i].pid}-${array2[i].tid}` : `${array2[i].pid}`, array2[i])
     }
     for (let i = 0; i < array1.length; i++) {
       // @ts-ignore
