@@ -52,8 +52,8 @@ export class TabPaneSlices extends BaseElement {
     });
     let asyncCatNames: Array<string> = [];
     let asyncCatPid: Array<number> = [];//@ts-ignore
-    slicesParam.funCatAsync.forEach((it: any) => {
-      asyncCatNames.push(it.threadName);
+    slicesParam.funCatAsync.forEach((it: unknown) => { //@ts-ignore  
+      asyncCatNames.push(it.threadName);//@ts-ignore
       asyncCatPid.push(it.pid);
     });
     this.slicesTbl!.loading = true;
