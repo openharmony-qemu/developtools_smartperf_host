@@ -707,9 +707,10 @@ export class InitAnalysis {
 
 interface perfAsyncList {
   tid?: number;
-  thread?: string;
-  time?: number | string;
-  traceid?: number;
+  pid?: number;
+  time?: number;
+  symbol?: string;
+  traceid?: string;
   eventCount?: number;
   sampleCount?: number;
   jsFuncName?: string;
@@ -720,19 +721,33 @@ interface perfAsyncList {
   children?: Array<perfAsyncList>;
   eventTypeId?: number;
   symbolName?: string;
-  callerCallStack?: Array<callStackInfo>
-  calleeCallStack?: Array<callStackInfo>,
+  callerCallStack?: Array<perfAsyncList>;
+  calleeCallStack?: Array<perfAsyncList>;
+  callStackList?: Array<perfAsyncList>;
+  parent?: perfAsyncList;
+  isProcess?: boolean;
+  isThread?: boolean;
+  depth?: number;
   isSearch?: boolean;
-}
-
-interface callStackInfo {
-  callerCallchainid?: number, 
-  calleeCallchainid?: number, 
-  depth?: number, 
-  symbolName?: string, 
-  eventTypeId?: number,
-  lib?: string,
-  addr?: string
+  isJsStack?: boolean;
+  lib?: string;
+  isChartSelectParent?: boolean;
+  isChartSelect?: boolean;
+  isDraw?: boolean;
+  drawDur?: number;
+  drawEventCount?: number;
+  drawCount?: number;
+  drawSize?: number;
+  searchEventCount?: number;
+  searchCount?: number;
+  searchDur?: number;
+  searchSize?: number;
+  size?: number;
+  count?: number;
+  dur?: number;
+  tsArray?: Array<number>;
+  isCharged?: boolean;
+  addr?: string;
 }
 
 export function dealAsyncData(
@@ -756,7 +771,7 @@ export function dealAsyncData(
     let callerCallChain = nmCallChain.get(arr[i].callerCallchainid!)!;
     // 循环被调用栈数组，拿到该条采样数据对应的所有被调用栈信息
     for (let j = 0; j < calleeCallChain.length; j++) {
-      let calleeStack: callStackInfo = {};
+      let calleeStack: perfAsyncList = {};
       // 拿到每一层被调用栈栈名
       calleeStack.symbolName = dataDict.get(calleeCallChain[j].name)!;
       // 判断该条采样数据的被调用栈链中是否包含用户筛选字段
@@ -773,7 +788,7 @@ export function dealAsyncData(
       arr[i].calleeCallStack!.push(calleeStack);
     }
     for (let z = 0; z < callerCallChain.length; z++) {
-      let callerStack: callStackInfo = {};
+      let callerStack: perfAsyncList = {};
       // 拿到每一层被调用栈栈名
       callerStack.symbolName = dataDict.get(callerCallChain[z].symbolId)!;
       // 判断该条采样数据的调用栈链中是否包含用户筛选字段

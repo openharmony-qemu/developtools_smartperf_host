@@ -399,14 +399,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       callee_callchainid as calleeCallchainid,
       perf_sample_id as perfSampleId,
       event_count as eventCount,
-      event_type_id as eventTypeId,
-			report_value as eventType
+      event_type_id as eventTypeId
     from 
       perf_napi_async A, trace_range R
-		LEFT JOIN
-			perf_report C
-		ON 
-			eventTypeId = C.id
     WHERE 
       (` + str +`)` + eventStr +`
     AND
