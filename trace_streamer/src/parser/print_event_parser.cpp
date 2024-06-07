@@ -340,6 +340,7 @@ bool PrintEventParser::OnVsyncEvent(size_t callStackRow, std::string &args, cons
     if (!vsyncSliceMap_.count(iTid)) {
         return false;
     }
+    // when there are mutiple nested OnVsyncEvent,only handle the OnvsyncEvent of the next layer under ReceiveVsync
     if (vsyncSliceMap_[iTid].size() >= maxVsyncEventSize_) {
         return false;
     }
