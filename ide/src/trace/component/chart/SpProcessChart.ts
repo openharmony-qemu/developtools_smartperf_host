@@ -60,7 +60,7 @@ export class SpProcessChart {
   private readonly trace: SpSystemTrace;
   private processAsyncFuncMap: unknown = {};
   private processAsyncFuncArray: unknown[] = [];
-  private processAsyncFuncCatMap: any = {};
+  private processAsyncFuncCatMap: unknown = {}; 
   private eventCountMap: unknown;
   private processThreads: Array<ThreadStruct> = [];
   private processMem: Array<unknown> = [];
@@ -133,7 +133,7 @@ export class SpProcessChart {
     this.processAsyncFuncArray = asyncFuncList;
     this.processAsyncFuncMap = Utils.groupBy(asyncFuncList, 'pid');
 
-    let asyncFuncCatList: any[] = await queryProcessAsyncFuncCat();
+    let asyncFuncCatList: unknown[] = await queryProcessAsyncFuncCat();  
     info('AsyncFuncCatData Count is: ', asyncFuncCatList!.length);
     this.processAsyncFuncCatMap = Utils.groupBy(asyncFuncCatList, 'pid');
   };
@@ -1455,33 +1455,33 @@ export class SpProcessChart {
     processRow.addChildTraceRow(funcRow);
   }
 
-  addAsyncCatFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
+  addAsyncCatFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {//@ts-ignore
     let asyncFuncCatList = this.processAsyncFuncCatMap[it.pid] || [];
-    let asyncFuncGroup: any = Utils.groupBy(asyncFuncCatList, 'threadName');
-    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
-      let asyncFunctions: Array<any> = asyncFuncGroup[key];
+    let asyncFuncGroup: unknown = Utils.groupBy(asyncFuncCatList, 'threadName'); //@ts-ignore  
+    Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => { //@ts-ignore 
+      let asyncFunctions: Array<unknown> = asyncFuncGroup[key]; 
       if (asyncFunctions.length > 0) {
-        let isIntersect = (a: any, b: any): boolean =>
+        let isIntersect = (a: unknown, b: unknown): boolean =>  //@ts-ignore  
           Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
-        let depthArray: any = [];
-        asyncFunctions.forEach((it, i) => {
-          if (it.dur === -1 || it.dur === null || it.dur === undefined) {
-            it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
-            it.flag = 'Did not end';
+        let depthArray: unknown = [];  
+        asyncFunctions.forEach((it, i) => {//@ts-ignore
+          if (it.dur === -1 || it.dur === null || it.dur === undefined) {//@ts-ignore
+            it.dur = (TraceRow.range?.endNS || 0) - it.startTs;//@ts-ignore
+            it.flag = 'Did not end';//@ts-ignore
             it.nofinish = true;
           }
           let currentDepth = 0;
-          let index = i;
+          let index = i;//@ts-ignore
           while (depthArray[currentDepth] !== undefined && isIntersect(depthArray[currentDepth], asyncFunctions[index])) {
             currentDepth++;
-          }
-          asyncFunctions[index].depth = currentDepth;
-          depthArray[currentDepth] = asyncFunctions[index];
+          }//@ts-ignore
+          asyncFunctions[index].depth = currentDepth;//@ts-ignore
+          depthArray[currentDepth] = asyncFunctions[index];//@ts-ignore
           this.toAsyncFuncCache(asyncFunctions[index], `${asyncFunctions[0].threadName}`);
         });
         const maxHeight = this.calMaxHeight(asyncFunctions);
-        let funcRow = TraceRow.skeleton<FuncStruct>();
-        funcRow.rowId = `${asyncFunctions[0].threadName}`;
+        let funcRow = TraceRow.skeleton<FuncStruct>();//@ts-ignore
+        funcRow.rowId = `${asyncFunctions[0].threadName}`;//@ts-ignore
         funcRow.asyncFuncThreadName = asyncFunctions[0].threadName;
         funcRow.asyncFuncNamePID = it.pid;
         funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
@@ -1490,16 +1490,16 @@ export class SpProcessChart {
         funcRow.rowHidden = !processRow.expansion;
         funcRow.style.width = '100%';
         funcRow.style.height = `${maxHeight}px`;
-        funcRow.setAttribute('height', `${maxHeight}`);
+        funcRow.setAttribute('height', `${maxHeight}`);//@ts-ignore
         funcRow.name = `${asyncFunctions[0].threadName}`;
         funcRow.setAttribute('children', '');
         funcRow.findHoverStruct = (): void => {
           FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
-        }
-        funcRow.supplier = (): Promise<any> => new Promise((resolve) => resolve(asyncFunctions));
+        }; //@ts-ignore  
+        funcRow.supplier = (): Promise<unknown> => new Promise((resolve) => resolve(asyncFunctions)); 
         funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-        funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {
+        funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {  //@ts-ignore
           type: `func-${asyncFunctions[0].threadName}-${it.pid}`,
         }, funcRow, this.trace);
         processRow.addChildTraceRow(funcRow);

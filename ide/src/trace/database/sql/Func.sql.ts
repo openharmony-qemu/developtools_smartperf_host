@@ -150,7 +150,7 @@ export const queryProcessAsyncFunc = (
     { traceId: traceId }
   );
 
-export const queryProcessAsyncFuncCat = (): Promise<Array<any>> =>
+export const queryProcessAsyncFuncCat = (): Promise<Array<unknown>> => 
   query(
     'queryProcessAsyncFuncCat',
     `
