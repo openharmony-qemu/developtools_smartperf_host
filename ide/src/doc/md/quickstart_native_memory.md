@@ -126,7 +126,7 @@ Call Info 的 Tab 页，主要显示了调用树详细类型。
 -      Created & Destroyed： 创建且被销毁的内存。
   点击下方的 All Heap&Anonymous 可以对内存类型进行过滤。
   ![GitHub Logo](../../figures/NativeMemory/AllocationType.jpg)
--     All Heap&Anonuymous VM：Heap和Anonuymous VM的总量。
+-     All Heap & Anonymous VM：Heap 和 Anonymous VM 的总量。
 -     All Heap：malloc分配的内存。
 -     All Anonymous VM：mmap的匿名页。
   点击下方的 Mark Snapshot 可以在时间轴上打标签。出现小旗的标志，通过标注多个时间点。点击到 Snapshot List 标签页可以看到各个时间点的内存的增长值。

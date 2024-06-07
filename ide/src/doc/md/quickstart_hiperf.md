@@ -37,11 +37,11 @@ Hiperf 工具是对系统性能数据进行采样记录，并将采样数据保�
 
 ### Hiperf 泳道图展示
 
-Perf 泳道图展示按照 CPU 使用量、进程和线程展示，鼠标移动到泳道图上，悬浮框会显示 CPU 的使用量。
+Hiperf 泳道图展示按照 CPU 使用量、进程和线程展示，鼠标移动到泳道图上，悬浮框会显示 CPU 的使用量。
 ![GitHub Logo](../../figures/perf/chart.jpg)
 按住 w 键放大界面，泳道图会出现 P 的标志，鼠标移动到 P 图标上，悬浮框会显示每个 callstack 和调用的深度如下图。
 ![GitHub Logo](../../figures/perf/callstack.jpg)
-Perf 泳道图上浅色表示无效调用栈的采样点，抓取时由于设备上的对应的 so 无符号信息，函数跟地址都无法获取到，固该采样点在 tab 页中不做显示。
+Hiperf 泳道图上浅色表示无效调用栈的采样点，抓取时由于设备上的对应的 so 无符号信息，函数跟地址都无法获取到，固该采样点在 tab 页中不做显示。
 ![GitHub Logo](../../figures/perf/perf_nocallstack.jpg)
 
 ### Hiperf 泳道图的框选功能
