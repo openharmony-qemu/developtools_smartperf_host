@@ -71,8 +71,34 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       } else {
         this.sortStatus(this.vmStatisticsResultData, 'type', 'ipid');
       }
-      this.vmStatisticsTbl!.shadowRoot!.querySelector('div > div.thead > div > div:nth-child(1) > label')!.textContent =
-        type === 'operation' ? 'Process/Thread/Operation' : 'Operation/Process/Thread';
+      const labels = this.vmStatisticsTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label') as NodeListOf<HTMLLabelElement>;  
+      labels.forEach((label, index) => {   
+        if (type === 'operation') {  
+          switch (index) {  
+            case 0:  
+              label.textContent = 'Process';  
+              break;  
+            case 1:  
+              label.textContent = '/Thread';  
+              break;  
+            case 2:  
+              label.textContent = '/Operation';  
+              break; 
+          }  
+        } else {  
+          switch (index) {  
+            case 0:  
+              label.textContent = 'Operation';  
+              break;  
+            case 1:  
+              label.textContent = '/Process';  
+              break;  
+            case 2:  
+              label.textContent = '/Thread';  
+              break;  
+          }  
+        }  
+      });
     });
   }
 
@@ -167,13 +193,13 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
         labels[i].addEventListener('click', (): void => {
-          if (label.includes('Operation') && i === 0) {
+          if (i === 0) {
             this.vmStatisticsTbl!.setStatus(res, false, 0, 1);
             this.vmStatisticsTbl!.recycleDs = this.vmStatisticsTbl!.meauseTreeRowElement(res, RedrawTreeForm.Retract);
-          } else if (label.includes('Process') && i === 1) {
+          } else if (i === 1) {
             this.vmStatisticsTbl!.setStatus(res, false, 0, 2);
             this.vmStatisticsTbl!.recycleDs = this.vmStatisticsTbl!.meauseTreeRowElement(res, RedrawTreeForm.Retract);
-          } else if (label.includes('Thread') && i === 2) {
+          } else if (i === 2) {
             this.vmStatisticsTbl!.setStatus(res, true);
             this.vmStatisticsTbl!.recycleDs = this.vmStatisticsTbl!.meauseTreeRowElement(res, RedrawTreeForm.Expand);
           }
