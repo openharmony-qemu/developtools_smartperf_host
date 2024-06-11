@@ -397,6 +397,7 @@ let delete_callstack_binder_data = `DELETE
                                     WHERE dur < -1
                                        or name = 'binder transaction async'
                                        or name = 'binder async rcv';`;
-
-let temp_init_sql_list = [temp_query_process];
+// @ts-ignore
+let temp_init_sql_list = [];
+// @ts-ignore
 export { temp_init_sql_list };

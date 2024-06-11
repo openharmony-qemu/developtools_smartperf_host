@@ -375,24 +375,6 @@ select ts from thread_state,trace_range where ts + dur -start_ts = ${startTime} 
   return query('queryRunnableTimeByRunning', sql, {}, { traceId: Utils.currentSelectTrace });
 };
 
-export const queryProcess = (traceId?: string): Promise<
-  Array<{
-    pid: number | null;
-    processName: string | null;
-  }>
-> =>
-  query(
-    'queryProcess',
-    `
-    SELECT
-      pid, processName
-    FROM
-      temp_query_process where pid != 0`,
-    {},
-    { traceId: traceId }
-  );
-
-
 export const queryProcessByTable = (traceId?: string): Promise<
   Array<{
     pid: number | null;
