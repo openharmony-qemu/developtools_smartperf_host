@@ -629,7 +629,7 @@ function initHiPerfConfig(perfConfig: PerfConfig | undefined, recordArgs: string
     recordArgs = `${recordArgs} --offcpu`;
   }
   if (perfConfig?.isKernelChain) {
-    recordArgs = `${recordArgs} --kernel-chain`;
+    recordArgs = `${recordArgs} --kernel-callchain`;
   }
   if (perfConfig.noInherit) {
     recordArgs = `${recordArgs} --no-inherit`;
