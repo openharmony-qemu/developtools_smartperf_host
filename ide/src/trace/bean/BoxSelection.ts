@@ -323,7 +323,7 @@ export class SelectionParam {
           for (let i = 0; i < it.asyncFuncThreadName.length; i++) {
             const tn = it.asyncFuncThreadName[i];
             this.funCatAsync.push({
-              pid: it.asyncFuncNamePID || 0,
+              pid: it.asyncFuncNamePID || 0,//@ts-ignore 
               threadName: tn
             });
           }
