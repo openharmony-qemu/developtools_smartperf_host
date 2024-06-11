@@ -140,13 +140,6 @@ func genRsa() {
 		Bytes: pkixPublicKey,
 	}
 	hdcPublicKey = string(pem.EncodeToMemory(publicKeyBlock))
-	fmt.Println(hdcPublicKey)
-
-	result, err := rsa.SignPKCS1v15(nil, hdcPrivateKey, crypto.Hash(0), []byte("6742E2AB6DDFF6E2BF1E62FFA07E84495CAF3A8B229C6536B4A2F237F6FC32CF"))
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(base64.StdEncoding.EncodeToString(result))
 }
 
 func main() {
