@@ -240,10 +240,10 @@ export class FuncStruct extends BaseFuncStruct {
           } else if (data.funName!.startsWith('WU-')) {
             ctx.fillStyle = '#349199';
           } else {
-            ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+            ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFuncSameName(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
           }
         } else {
-          ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+          ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFuncSameName(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
         }
         let textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
         if (FuncStruct.hoverFuncStruct && data.funName === FuncStruct.hoverFuncStruct.funName) {
