@@ -16,6 +16,7 @@
 importScripts('trace_streamer_builtin.js');
 import { execProtoForWorker } from './data-trafic/utils/ExecProtoForWorker';
 import { QueryEnum, TraficEnum } from './data-trafic/utils/QueryEnum';
+// @ts-ignore
 import { temp_init_sql_list } from './TempSql';
 // @ts-ignore
 import { BatchSphData } from '../proto/SphBaseData';
@@ -130,8 +131,8 @@ function initThirdWASM(wasmFunctionName: string): unknown {
           console.error(line);
         }
       },
-      onRuntimeInitialized: (): void => {},
-      onAbort: (): void => {},
+      onRuntimeInitialized: (): void => { },
+      onAbort: (): void => { },
     });
   }
 
@@ -519,11 +520,16 @@ function postMessageByOpenAction(r2: number, e: MessageEvent): void {
     });
     return;
   }
-  temp_init_sql_list.forEach((item, index) => {
-    createView(item);
+  // @ts-ignore
+  if (temp_init_sql_list && temp_init_sql_list.length > 0) {
     // @ts-ignore
-    self.postMessage({ id: e.data.id, ready: true, index: index + 1 });
-  });
+    temp_init_sql_list.forEach((item, index) => {
+      createView(item);
+      // @ts-ignore
+      self.postMessage({ id: e.data.id, ready: true, index: index + 1 });
+    });
+  }
+
   self.postMessage(
     {
       id: e.data.id,

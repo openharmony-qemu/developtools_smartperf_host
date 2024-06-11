@@ -41,7 +41,6 @@ import { getMaxDepthByTid, queryAllFuncNames, queryProcessAsyncFunc, queryProces
 import { queryMemFilterIdMaxValue } from '../../database/sql/Memory.sql';
 import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap } from '../../database/sql/SqlLite.sql';
 import {
-  queryProcess,
   queryProcessByTable,
   queryProcessContentCount,
   queryProcessMem,
