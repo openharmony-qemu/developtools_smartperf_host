@@ -136,7 +136,7 @@ Promise<Array<unknown>> =>
     {}
   );
 
-  export const queryProcessAsyncFuncCat = (): Promise<Array<any>> =>
+  export const queryProcessAsyncFuncCat = (): Promise<Array<unknown>> => 
   query(
     'queryProcessAsyncFuncCat',
     `
