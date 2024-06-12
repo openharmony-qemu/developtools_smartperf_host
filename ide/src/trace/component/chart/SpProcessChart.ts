@@ -37,7 +37,7 @@ import { processExpectedDataSender } from '../../database/data-trafic/process/Pr
 import { processActualDataSender } from '../../database/data-trafic/process/ProcessActualDataSender';
 import { processDeliverInputEventDataSender } from '../../database/data-trafic/process/ProcessDeliverInputEventDataSender';
 import { processTouchEventDispatchDataSender } from '../../database/data-trafic/process/ProcessTouchEventDispatchDataSender';
-import { getMaxDepthByTid, queryAllFuncNames, queryProcessAsyncFunc, queryProcessAsyncFuncCat } from '../../database/sql/Func.sql';
+import { getMaxDepthByTid, queryProcessAsyncFunc, queryProcessAsyncFuncCat } from '../../database/sql/Func.sql';
 import { queryMemFilterIdMaxValue } from '../../database/sql/Memory.sql';
 import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap } from '../../database/sql/SqlLite.sql';
 import {
@@ -45,7 +45,6 @@ import {
   queryProcessContentCount,
   queryProcessMem,
   queryProcessSoMaxDepth,
-  queryProcessThreads,
   queryProcessThreadsByTable,
   queryStartupPidArray,
   queryRsProcess,

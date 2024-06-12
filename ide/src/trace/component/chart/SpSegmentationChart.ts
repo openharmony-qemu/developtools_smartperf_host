@@ -168,7 +168,6 @@ export class SpSegmentationChart {
   }
   async initFolder() {
     let row = TraceRow.skeleton();
-    row.setAttribute('disabled-check', '');
     row.rowId = 'segmentation';
     row.index = 0;
     row.rowType = TraceRow.ROW_TYPE_SPSEGNENTATION;

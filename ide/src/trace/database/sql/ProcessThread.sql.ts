@@ -667,30 +667,6 @@ export const queryProcessThreadsByTable = (traceId?: string): Promise<Array<Thre
     { traceId: traceId }
   );
 
-export const queryProcessThreads = (traceId?: string): Promise<Array<ThreadStruct>> =>
-  query(
-    'queryProcessThreads',
-    `
-    select
-      the_tracks.ipid as upid,
-      the_tracks.itid as utid,
-      total_dur as hasSched,
-      process.pid as pid,
-      thread.tid as tid,
-      process.name as processName,
-      thread.switch_count as switchCount,
-      thread.name as threadName
-    from (
-      select ipid,itid from sched_slice group by itid
-    ) the_tracks
-    left join (select itid,sum(dur) as total_dur from thread_state where state != 'S' group by itid) using(itid)
-    left join thread using(itid)
-    left join process using(ipid)
-    order by total_dur desc,the_tracks.ipid,the_tracks.itid;`,
-    {},
-    { traceId: traceId }
-  );
-
 export const queryStartupPidArray = (): Promise<Array<{ pid: number }>> =>
   query(
     'queryStartupPidArray',
