@@ -379,7 +379,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     if (data.argsetid !== undefined && data.argsetid !== null && data.argsetid >= 0) {
       this.setTableHeight('700px');
       if (isAsyncBinder) {
-        this.handleAsyncBinder(data, list, name, scrollCallback, information);
+        this.handleAsyncBinder(data, list, jankJumperList, name, scrollCallback, information, callback);
       } else if (isBinder) {
         this.handleBinder(data, list, jankJumperList, name, scrollCallback, information, callback);
       } else {
@@ -550,10 +550,13 @@ export class TabPaneCurrentSelection extends BaseElement {
   private handleAsyncBinder(
     data: FuncStruct,
     list: any[],
+    jankJumperList: ThreadTreeNode[],
     name: string,
     scrollCallback: Function,
-    information: string
+    information: string,
+    callback?: (data: Array<any>, str: string, binderTid: number) => void
   ): void {
+    let binderTid = -1;
     Promise.all([
       queryBinderByArgsId(data.argsetid!, data.startTs!, !data.funName!.endsWith('rcv')),
       queryBinderArgsByArgset(data.argsetid!),
@@ -572,6 +575,9 @@ export class TabPaneCurrentSelection extends BaseElement {
             name: item.keyName,
             value: item.strValue,
           });
+          if (item.keyName === 'calling tid') {
+            binderTid = Number(item.strValue);
+          }
         });
       }
       if (asyncBinderStract !== undefined) {
@@ -590,6 +596,18 @@ export class TabPaneCurrentSelection extends BaseElement {
       let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
       funcClick?.addEventListener('click', () => {
         scrollCallback(asyncBinderStract);
+        let timeLineNode = new ThreadTreeNode(
+          asyncBinderStract.tid,
+          asyncBinderStract.pid,
+          asyncBinderStract.startTs,
+          asyncBinderStract.depth
+        );
+        jankJumperList.push(timeLineNode);
+        if (callback) {
+          let linkTo = 'binder-to';
+          callback(jankJumperList, linkTo, binderTid);
+          linkTo = '';
+        }
       });
     });
   }
