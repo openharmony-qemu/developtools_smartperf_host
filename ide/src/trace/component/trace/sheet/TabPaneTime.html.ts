@@ -20,6 +20,13 @@ export const ClassifyCoreSettingHtml = `
             flex-direction: column;
             height: 100%;
         }
+        tab-pane-filter {
+            border: solid rgb(216,216,216) 1px;
+            float: left;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
     </style>
     <lit-table id="tb-parallel" style="height: auto" tree>
         <lit-table-column class="freq-sample-column" width="20%" title="Process" data-index="title" key="title" align="flex-start" retract>
