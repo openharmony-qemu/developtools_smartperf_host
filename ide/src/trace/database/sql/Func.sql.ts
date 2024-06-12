@@ -150,37 +150,35 @@ export const queryProcessAsyncFunc = (
     { traceId: traceId }
   );
 
-export const queryProcessAsyncFuncCat = (): Promise<Array<unknown>> => 
+export const queryProcessAsyncFuncCat = (
+  traceRange: {
+    startTs: number;
+    endTs: number;
+  }
+): Promise<Array<unknown>> => 
   query(
     'queryProcessAsyncFuncCat',
     `
     select 
       A.tid,
-      P.pid,
-      c.callid,
+      P.pid,   
       c.cat as threadName,
       c.name as funName,
-      c.ts-D.start_ts as startTs,
+      c.ts-${traceRange.startTs} as startTs,
       c.dur,
       c.depth,
-      c.argsetid,
       c.cookie
     from 
-      thread A,trace_range D
+      (select callid, name, ts, dur, cat, depth, cookie, parent_id from callstack where cookie not null and cat not null and parent_id is null) C
+		left join 
+      thread A on A.id = C.callid
     left join 
-      process P on P.id = A.ipid
-    left join 
-      callstack C on A.id = C.callid     
+      process P on P.id = A.ipid      
     where 
       startTs not null 
-    and 
-      cookie not null 
-    and 
-      cat not null 
-    and 
-      parent_id is null
     order by cat;
-  `
+  `,
+  {}
   );
 
 export const getMaxDepthByTid = (traceId?: string): //@ts-ignore
