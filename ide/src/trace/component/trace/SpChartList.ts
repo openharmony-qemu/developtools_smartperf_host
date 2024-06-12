@@ -93,7 +93,7 @@ export class SpChartList extends BaseElement {
   }
 
   private initChartListListener(): void {
-    this.icon1?.addEventListener('click', () => {
+    const foldCollect1 = () => {
       this.collect1Expand = !this.collect1Expand;
       if (this.collect1Expand) {
         this.icon1!.style.transform = 'rotateZ(0deg)';
@@ -103,21 +103,54 @@ export class SpChartList extends BaseElement {
         this.collectRowList1.forEach((row) => this.fragmentGroup1.appendChild(row));
       }
       this.resizeHeight();
-    });
-    this.icon2?.addEventListener('click', () => {
+    }
+    this.icon1?.addEventListener('click', () => foldCollect1());
+    const foldCollect2 = () => {
       this.collect2Expand = !this.collect2Expand;
       if (this.collect2Expand) {
         this.icon2!.style.transform = 'rotateZ(0deg)';
         this.collectEl2?.appendChild(this.fragmentGroup2);
-        this.resizeHeight();
         this.scrollTop = this.scrollHeight;
       } else {
         this.icon2!.style.transform = 'rotateZ(-90deg)';
         this.collectRowList2.forEach((row) => this.fragmentGroup2.appendChild(row));
-        this.resizeHeight();
         this.scrollTop = 0;
       }
-    });
+      this.resizeHeight();
+    }
+    this.icon2?.addEventListener('click', () => foldCollect2());
+    document.addEventListener('keyup', (e) => {
+      if (e.key.toLowerCase() === 'b' && e.ctrlKey === false) {
+        // 收藏夹有泳道时 为true
+        const hasChildNode1 = this.collectEl1?.hasChildNodes() || this.fragmentGroup1.hasChildNodes()
+        const hasChildNode2 = this.collectEl2?.hasChildNodes() || this.fragmentGroup2.hasChildNodes()
+        // 两个收藏夹都有泳道时
+        if (hasChildNode1 && hasChildNode2) {
+          const flag = this.collect1Expand === this.collect2Expand
+          if (flag) {
+            foldCollect1()
+            foldCollect2()
+          } else {
+            // 两收藏夹的折叠状态不一致 优先一起折叠
+            if (this.collect1Expand) {
+              foldCollect1()
+            }
+            else {
+              foldCollect2()
+            }
+          }
+          return
+        }
+        // 只影响有泳道的收藏夹
+        if (hasChildNode1) {
+          foldCollect1()
+        }
+        if (hasChildNode2) {
+          foldCollect2()
+        }
+      }
+    })
+
     this.removeCollectIcon1?.addEventListener('click', () => {
       for (let i = 0; i < this.collectRowList1.length; i++) {
         this.collectRowList1[i].collectEL?.click();
