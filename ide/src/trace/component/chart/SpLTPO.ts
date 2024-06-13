@@ -463,7 +463,7 @@ export class SpLtpoChart {
   }
   //六舍七入
   specialValue(num: number) {
-    if (num < 0) {
+    if (num < 0.7) {
       return 0;
     } else {
       if (!num.toString().split('.')[1]) {
