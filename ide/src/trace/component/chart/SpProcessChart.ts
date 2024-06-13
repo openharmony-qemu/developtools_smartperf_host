@@ -131,7 +131,7 @@ export class SpProcessChart {
     this.processAsyncFuncArray = asyncFuncList;
     this.processAsyncFuncMap = Utils.groupBy(asyncFuncList, 'pid');
 
-    let asyncFuncCatList: unknown[] = await queryProcessAsyncFuncCat();  
+    let asyncFuncCatList: unknown[] = await queryProcessAsyncFuncCat(traceRange);  
     info('AsyncFuncCatData Count is: ', asyncFuncCatList!.length);
     this.processAsyncFuncCatMap = Utils.groupBy(asyncFuncCatList, 'pid');
   };
