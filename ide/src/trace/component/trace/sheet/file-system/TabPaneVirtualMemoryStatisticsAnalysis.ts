@@ -431,6 +431,9 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.vmtypeName = it.tableName;
     this.vmPieChart?.hideTip();
     let title = '';
+    if (this.vmProcessName.length > 0) {
+      title += `${this.vmProcessName} / `;
+    }
     if (this.vmtypeName.length > 0) {
       title += this.vmtypeName;
     }
