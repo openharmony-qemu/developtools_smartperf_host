@@ -32,9 +32,11 @@ import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 import { TabPerfProfileHtml } from './TabPerfProfile.html';
 
 const InvertOptionIndex: number = 0;
+const hideSystemLibraryOptionIndex: number = 1;
 const hideThreadOptionIndex: number = 3;
 const hideThreadStateOptionIndex: number = 4;
-const callTreeValueNoSample: number[] = [InvertOptionIndex, hideThreadOptionIndex, hideThreadStateOptionIndex];
+const isOnlyKernelOptionIndex: number = 5;
+const callTreeValueNoSample: number[] = [InvertOptionIndex, hideSystemLibraryOptionIndex, hideThreadOptionIndex, hideThreadStateOptionIndex, isOnlyKernelOptionIndex];
 
 @element('tabpane-perf-profile')
 export class TabpanePerfProfile extends BaseElement {
@@ -650,6 +652,7 @@ export class TabpanePerfProfile extends BaseElement {
     let isHideSystemLibrary: boolean = filterData.callTree[1]; // @ts-ignore
     let isHideThread: boolean = filterData.callTree[3]; // @ts-ignore
     let isHideThreadState: boolean = filterData.callTree[4]; // @ts-ignore
+    let isOnlyKernel: boolean = filterData.callTree[5]; // @ts-ignore
     let list = filterData.dataMining.concat(filterData.dataLibrary);
     perfProfileArgs.push({
       funcName: 'hideThread',
@@ -671,6 +674,13 @@ export class TabpanePerfProfile extends BaseElement {
         funcArgs: [],
       });
     } // @ts-ignore
+    if (isOnlyKernel) {
+      // 用于筛选内核函数
+      perfProfileArgs.push({
+        funcName: 'onlyKernel',
+        funcArgs: [],
+      });
+    } // @ts-ignore
     if (filterData.callTreeConstraints.checked) {
       perfProfileArgs.push({
         funcName: 'hideNumMaxAndMin', // @ts-ignore
@@ -685,6 +695,14 @@ export class TabpanePerfProfile extends BaseElement {
       funcName: 'resetAllNode',
       funcArgs: [],
     });
+    if (isOnlyKernel) {
+      // 用于二次合并同级同名内核函数
+      // 间隔其他筛选类操作 不可以和上面另一个if合并
+      perfProfileArgs.push({
+        funcName: 'kernelCombination',
+        funcArgs: [],
+      });
+    } // @ts-ignore
     this.refreshAllNodeExtend(perfProfileArgs);
   }
 
