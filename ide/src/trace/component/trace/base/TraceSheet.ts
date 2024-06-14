@@ -344,19 +344,17 @@ export class TraceSheet extends BaseElement {
     this.initNavElements(tabsPackUp!, borderTop, initialHeight);
     this.exportBt = this.shadowRoot?.querySelector<LitIcon>('#export-btn');
     tabsOpenUp!.onclick = (): void => {
-      this.tabs!.style.height = `${
-        window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop
-      }px`;
+      this.tabs!.style.height = `${window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop
+        }px`;
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
       litTabpane!.forEach((node: HTMLDivElement): void => {
-        node!.style.height = `${
-          window.innerHeight -
+        node!.style.height = `${window.innerHeight -
           this.search!.offsetHeight -
           this.timerShaft!.offsetHeight -
           this.navRoot!.offsetHeight -
           borderTop
-        }px`;
+          }px`;
         initialHeight.node = node!.style.height;
       });
       initialHeight.tabs = this.tabs!.style.height;
@@ -453,7 +451,7 @@ export class TraceSheet extends BaseElement {
         // 只要没有移动到边界区域都会进入该条件
         that.navRoot!.offsetHeight <= newHeight &&
         that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight <=
-          window.innerHeight - newHeight
+        window.innerHeight - newHeight
       ) {
         that.tabs!.style.height = `${newHeight}px`;
         litTabpane!.style.height = `${newHeight - that.navRoot!.offsetHeight}px`;
@@ -468,21 +466,19 @@ export class TraceSheet extends BaseElement {
         window.innerHeight - newHeight
       ) {
         // 该条件在面板高度置顶时触发
-        that.tabs!.style.height = `${
-          window.innerHeight -
+        that.tabs!.style.height = `${window.innerHeight -
           that.search!.offsetHeight -
           that.timerShaft!.offsetHeight -
           borderTop -
           that.spacer!.offsetHeight
-        }px`;
-        litTabpane!.style.height = `${
-          window.innerHeight -
+          }px`;
+        litTabpane!.style.height = `${window.innerHeight -
           that.search!.offsetHeight -
           that.timerShaft!.offsetHeight -
           that.navRoot!.offsetHeight -
           borderTop -
           that.spacer!.offsetHeight
-        }px`;
+          }px`;
         tabsPackUp!.name = 'down';
       }
       that.tabPaneHeight = litTabpane!.style.height;
@@ -644,8 +640,8 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
-  displayDmaFenceData = (data: DmaFenceStruct,rowData:any): void =>//展示tab页内容
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data,rowData);
+  displayDmaFenceData = (data: DmaFenceStruct, rowData: any): void =>//展示tab页内容
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data, rowData);
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
   displayIrqData = (data: IrqStruct): void =>
@@ -682,12 +678,13 @@ export class TraceSheet extends BaseElement {
 
   displayFuncData = (
     names: string[],
+    threadName: string,
     data: FuncStruct,
     scrollCallback: Function,
     callback?: (data: Array<any>, str: string, binderTid: number) => void,
     distributedCallback?: (dataList: FuncStruct[]) => void,
   ): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, scrollCallback, callback, distributedCallback);
+    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, threadName, scrollCallback, callback, distributedCallback);
   displayCpuData = (
     data: CpuStruct,
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
@@ -877,7 +874,7 @@ export class TraceSheet extends BaseElement {
       { key: '1', title: 'cycles', checked: select[0] === '1' },
     ];
   };
-  displayUserPlugin = (selectData:any): void => {
+  displayUserPlugin = (selectData: any): void => {
     this.displayTab<TabPaneUserPlugin>("tab-pane-userplugin").data = selectData;
   };
 
