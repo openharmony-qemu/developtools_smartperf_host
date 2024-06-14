@@ -155,10 +155,10 @@ export class LitChartPie extends BaseElement {
       return;
     }
     this.litChartPieConfig = litChartPieCfg;
-    (this.shadowRoot!.querySelector('#root') as HTMLDivElement).className =
-      litChartPieCfg && litChartPieCfg.data.length > 0 ? 'bg_hasdata' : 'bg_nodata';
     this.measure();
     this.render();
+    (this.shadowRoot!.querySelector('#root') as HTMLDivElement).className =
+    this.data.length > 0 ? 'bg_hasdata' : 'bg_nodata';
   }
 
   set dataSource(litChartPieArr: unknown[]) {
@@ -214,7 +214,7 @@ export class LitChartPie extends BaseElement {
       0
     );
     let labelArray: string[] = [];
-    this.litChartPieConfig.data.forEach((pieItem, index) => {
+    sum && this.litChartPieConfig.data.forEach((pieItem, index) => {
       let item: Sector = {
         id: `id-${Utils.uuid()}`,
         color: this.litChartPieConfig!.label.color
