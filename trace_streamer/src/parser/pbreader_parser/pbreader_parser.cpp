@@ -1140,46 +1140,22 @@ bool PbreaderParser::InitProfilerTraceFileHeader()
 #if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)
 void PbreaderParser::ParseNapiAsync()
 {
-    // 从callstack表中获取所有的traceid, 并将其所在行存入traceidIndexs和traceidIndexSet
-    std::queue<std::pair<uint64_t, uint64_t>> traceidIndexs;
-    std::unordered_set<uint64_t> traceidIndexSet;
-    GetTraceidInfoFromCallstack(traceidIndexs, traceidIndexSet);
-
     // 将native memory中存在的traceid取出, 并记录其对应的callstackid
-    std::unordered_map<uint64_t, uint32_t> traceidToCallchainidMap;
-    GetTraceidInfoFromNativeHook(traceidIndexSet, traceidToCallchainidMap);
-    traceidIndexSet.clear();
+    std::unordered_map<std::string, uint32_t> traceidToCallchainidMap;
+    GetTraceidInfoFromNativeHook(traceidToCallchainidMap);
+
+    // 从callstack表中获取所有的traceid, 根据其所属的itid将SliceInfo存入对应queue
+    std::unordered_map<uint64_t, std::queue<SliceInfo>> itidToCallstackIdsMap;
+    GetTraceidInfoFromCallstack(traceidToCallchainidMap, itidToCallstackIdsMap);
 
     // 筛选出包含NativeAsyncWork::AsyncWorkCallback的函数栈的callchainid, 将其存入callchainIdSet
     std::unordered_set<uint32_t> callchainIdSet;
     GetCallchainIdSetFromHiperf(callchainIdSet);
 
-    DumpDataFromHiperf(traceidToCallchainidMap, callchainIdSet, traceidIndexs);
+    DumpDataFromHiperf(traceidToCallchainidMap, callchainIdSet, itidToCallstackIdsMap);
 }
 
-void PbreaderParser::GetTraceidInfoFromCallstack(std::queue<std::pair<uint64_t, uint64_t>> &traceidIndexs,
-                                                 std::unordered_set<uint64_t> &traceidIndexSet)
-{
-    auto callStack = traceDataCache_->GetConstInternalSlicesData();
-    std::string preWord("traceid:");
-    std::string invalidTraceidStr("0x0");
-    for (int i = 0; i < callStack.Size(); i++) {
-        auto name = traceDataCache_->GetDataFromDict(callStack.NamesData()[i]);
-        if (!StartWith(name, "H:Napi execute, name:") || callStack.DursData()[i] == INVALID_UINT64) {
-            continue;
-        }
-        auto traceidStr = name.substr(name.find(preWord) + preWord.size());
-        if (traceidStr == invalidTraceidStr) {
-            continue;
-        }
-        auto traceidIndex = traceDataCache_->GetDataIndex(traceidStr);
-        traceidIndexs.emplace(i, traceidIndex);
-        traceidIndexSet.emplace(traceidIndex);
-    }
-}
-
-void PbreaderParser::GetTraceidInfoFromNativeHook(const std::unordered_set<uint64_t> &traceidIndexSet,
-                                                  std::unordered_map<uint64_t, uint32_t> &traceidToCallchainidMap)
+void PbreaderParser::GetTraceidInfoFromNativeHook(std::unordered_map<std::string, uint32_t> &traceidToCallchainidMap)
 {
     auto nativeHook = traceDataCache_->GetConstNativeHookData();
     std::string preWord("napi:");
@@ -1195,40 +1171,62 @@ void PbreaderParser::GetTraceidInfoFromNativeHook(const std::unordered_set<uint6
         auto pos = subTypeStr.find(preWord) + preWord.size();
         auto traceidStr = subTypeStr.substr(pos, subTypeStr.find_last_of(':') - pos);
         auto traceidIndex = traceDataCache_->GetDataIndex(traceidStr);
-        if (traceidIndexSet.find(traceidIndex) == traceidIndexSet.end()) {
+        traceidToCallchainidMap.emplace(std::move(traceidStr), nativeHook.CallChainIds()[i]);
+    }
+}
+
+void PbreaderParser::GetTraceidInfoFromCallstack(
+    const std::unordered_map<std::string, uint32_t> &traceidToCallchainidMap,
+    std::unordered_map<uint64_t, std::queue<SliceInfo>> &itidToCallstackIdsMap)
+{
+    auto callStack = traceDataCache_->GetConstInternalSlicesData();
+    std::string preWord("traceid:");
+    std::string invalidTraceidStr("0x0");
+    for (int i = 0; i < callStack.Size(); i++) {
+        auto name = traceDataCache_->GetDataFromDict(callStack.NamesData()[i]);
+        if (!StartWith(name, "H:Napi execute, name:") || callStack.DursData()[i] == INVALID_UINT64) {
             continue;
         }
-        traceidToCallchainidMap.emplace(traceidIndex, nativeHook.CallChainIds()[i]);
+        auto traceidStr = name.substr(name.find(preWord) + preWord.size());
+        if (traceidStr == invalidTraceidStr) {
+            continue;
+        }
+        if (traceidToCallchainidMap.find(traceidStr) == traceidToCallchainidMap.end()) {
+            continue;
+        }
+        auto iter = itidToCallstackIdsMap.find(callStack.CallIds()[i]);
+        if (iter == itidToCallstackIdsMap.end()) {
+            itidToCallstackIdsMap.emplace(callStack.CallIds()[i], std::queue<SliceInfo>());
+            iter = itidToCallstackIdsMap.find(callStack.CallIds()[i]);
+        }
+        iter->second.emplace(callStack.TimeStampData()[i], callStack.TimeStampData()[i] + callStack.DursData()[i],
+                             traceidStr);
     }
 }
 
 void PbreaderParser::GetCallchainIdSetFromHiperf(std::unordered_set<uint32_t> &callchainIdSet)
 {
     auto perfCallChain = traceDataCache_->GetConstPerfCallChainData();
-    std::unordered_map<uint64_t, bool> nameIndexsMap;
     std::string asyncWork("NativeAsyncWork::AsyncWorkCallback");
     for (int i = 0; i < perfCallChain.Size(); i++) {
+        auto callchainId = perfCallChain.CallChainIds()[i];
+        if (callchainIdSet.find(callchainId) != callchainIdSet.end()) {
+            continue;
+        }
         auto nameIndex = perfCallChain.Names()[i];
         if (nameIndex == INVALID_UINT64) {
             continue;
         }
-        auto iter = nameIndexsMap.find(nameIndex);
-        if (iter == nameIndexsMap.end()) {
-            auto name = traceDataCache_->GetDataFromDict(nameIndex);
-            auto hasTargetFunc = name.find(asyncWork) != std::string::npos;
-            nameIndexsMap.emplace(nameIndex, hasTargetFunc);
-            iter = nameIndexsMap.find(nameIndex);
+        auto name = traceDataCache_->GetDataFromDict(nameIndex);
+        if (name.find(asyncWork) != std::string::npos) {
+            callchainIdSet.emplace(perfCallChain.CallChainIds()[i]);
         }
-        if (!iter->second) {
-            continue;
-        }
-        callchainIdSet.emplace(perfCallChain.CallChainIds()[i]);
     }
 }
 
-void PbreaderParser::DumpDataFromHiperf(const std::unordered_map<uint64_t, uint32_t> &traceidToCallchainidMap,
+void PbreaderParser::DumpDataFromHiperf(const std::unordered_map<std::string, uint32_t> &traceidToCallchainidMap,
                                         const std::unordered_set<uint32_t> &callchainIdSet,
-                                        std::queue<std::pair<uint64_t, uint64_t>> &traceidIndexs)
+                                        std::unordered_map<uint64_t, std::queue<SliceInfo>> &itidToCallstackIdsMap)
 {
     auto perfThread = traceDataCache_->GetConstPerfThreadData();
     std::unordered_map<uint32_t, uint32_t> tidToPidMap;
@@ -1237,38 +1235,37 @@ void PbreaderParser::DumpDataFromHiperf(const std::unordered_map<uint64_t, uint3
     }
     auto perfSample = traceDataCache_->GetConstPerfSampleData();
     auto callStack = traceDataCache_->GetConstInternalSlicesData();
-    std::unordered_map<uint64_t, uint64_t> itidToTraceidIndexMap;
-    std::priority_queue<NodeAsyncFunc> queue;
     for (size_t i = 0; i < perfSample.Size(); i++) {
-        auto tsPerfSample = perfSample.TimestampTraces()[i];
-        if (!traceidIndexs.empty()) {
-            auto beginTsCallstack = callStack.TimeStampData()[traceidIndexs.front().first];
-            if (beginTsCallstack <= tsPerfSample) {
-                auto endTsCallstack = beginTsCallstack + callStack.DursData()[traceidIndexs.front().first];
-                auto itidCallstack = callStack.CallIds()[traceidIndexs.front().first];
-                queue.emplace(endTsCallstack, itidCallstack);
-                itidToTraceidIndexMap.emplace(itidCallstack, traceidIndexs.front().second);
-                traceidIndexs.pop();
-            }
-        }
-        while (!queue.empty() && queue.top().tsEnd < tsPerfSample) {
-            itidToTraceidIndexMap.erase(queue.top().itid);
-            queue.pop();
-        }
-        auto iterPid = tidToPidMap.find(perfSample.Tids()[i]);
-        auto iter = itidToTraceidIndexMap.find(streamFilters_->processFilter_->GetInternalTid(perfSample.Tids()[i]));
-        // tid查pid未命中 || callchainid未命中 || itid查traceid未命中
-        if (iterPid == tidToPidMap.end() || callchainIdSet.find(perfSample.SampleIds()[i]) == callchainIdSet.end() ||
-            iter == itidToTraceidIndexMap.end()) {
+        // callchainid未命中, 即当前栈不包含NativeAsyncWork::AsyncWorkCallback
+        if (callchainIdSet.find(perfSample.SampleIds()[i]) == callchainIdSet.end()) {
             continue;
         }
-        auto iterNative = traceidToCallchainidMap.find(iter->second);
+        // 根据tid和tsPerfSample查询对应的SliceInfo
+        auto itid = streamFilters_->processFilter_->GetInternalTid(perfSample.Tids()[i]);
+        if (itidToCallstackIdsMap.find(itid) == itidToCallstackIdsMap.end()) {
+            continue;
+        }
+        auto tsPerfSample = perfSample.TimestampTraces()[i];
+        auto queue = itidToCallstackIdsMap.at(itid);
+        while (!queue.empty() && queue.front().tsEnd_ < tsPerfSample) {
+            queue.pop();
+        }
+        if (queue.empty() || tsPerfSample < queue.front().tsBegin_) {
+            continue;
+        }
+        // 根据traceid查询native侧的callchainid
+        auto iterNative = traceidToCallchainidMap.find(queue.front().traceid_);
         if (iterNative == traceidToCallchainidMap.end()) {
+            continue;
+        }
+        // 根据tid查询pid
+        auto iterPid = tidToPidMap.find(perfSample.Tids()[i]);
+        if (iterPid == tidToPidMap.end()) {
             continue;
         }
         PerfNapiAsyncRow perfNapiAsyncRow{
             .timeStamp = tsPerfSample,
-            .traceid = iter->second,
+            .traceid = traceDataCache_->GetDataIndex(queue.front().traceid_),
             .cpuId = static_cast<uint8_t>(perfSample.CpuIds()[i]),
             .threadId = perfSample.Tids()[i],
             .processId = iterPid->second,
