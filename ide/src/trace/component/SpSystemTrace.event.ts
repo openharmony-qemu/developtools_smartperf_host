@@ -534,8 +534,11 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
   if (!sp.rowsPaneEL!.containPoint(ev, { left: 248 })) {
     sp.hoverStructNull();
   }
+  const transformYMatch = sp.canvasPanel?.style.transform.match(/\((\d+)[^\)]+\)/);
+  const transformY = transformYMatch![1];
+  let favoriteHeight = sp.favoriteChartListEL!.getBoundingClientRect().height;
   rows
-    .filter((it) => it.focusContain(ev, sp.inFavoriteArea!) && it.collect === sp.inFavoriteArea)
+    .filter((it) => it.focusContain(ev, sp.inFavoriteArea!,Number(transformY),favoriteHeight) && it.collect === sp.inFavoriteArea)
     .filter((it) => {
       if (it.collect) {
         return true;
@@ -883,8 +886,9 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
     const transformYMatch = sp.canvasPanel?.style.transform.match(/\((\d+)[^\)]+\)/);
     const transformY = transformYMatch![1];
     let inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
+    let favoriteHeight = sp.favoriteChartListEL!.getBoundingClientRect().height;
     let rows = sp.visibleRows.filter((it) =>
-      it.focusContain(ev, inFavoriteArea!, Number(transformY)) && it.collect === inFavoriteArea);
+      it.focusContain(ev, inFavoriteArea!, Number(transformY),favoriteHeight) && it.collect === inFavoriteArea);
     if (JankStruct.delJankLineFlag) {
       sp.removeLinkLinesByBusinessType('janks');
     }
