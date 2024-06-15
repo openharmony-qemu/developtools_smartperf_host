@@ -162,6 +162,7 @@ export class SpApplication extends BaseElement {
   private pageTimStamp: number = 0;
   private currentPageNum: number = 1;
   private currentDataTime: string[] = [];
+  static traceType: String = '';
 
   static get observedAttributes(): Array<string> {
     return ['server', 'sqlite', 'wasm', 'dark', 'vs', 'query-sql', 'subsection'];
@@ -607,6 +608,7 @@ export class SpApplication extends BaseElement {
     reader.readAsText(typeHeader);
     reader.onloadend = (event): void => {
       let headerStr: string = `${reader?.result}`;
+      SpApplication.traceType = headerStr;
       if (headerStr.indexOf('SQLite') === 0) {
         info('Parse trace headerStr sql mode');
         this.wasm = false;

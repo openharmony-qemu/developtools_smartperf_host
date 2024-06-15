@@ -186,6 +186,7 @@ export function funcStructOnClick(
   });
 }
 export class FuncStruct extends BaseFuncStruct {
+  [x: string]: any;
   static hoverFuncStruct: FuncStruct | undefined;
   static selectFuncStruct: FuncStruct | undefined;
   static selectLineFuncStruct: Array<FuncStruct> = [];
