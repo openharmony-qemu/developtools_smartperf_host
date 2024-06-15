@@ -1509,3 +1509,27 @@ export const queryCoreRunningThread = (
           `,
     { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
   );
+  export const queryThreadAndProcess = (
+    itid: number,
+    ipid: number,
+  ): Promise<Array<{
+    tid: number;  
+    threadName: string;  
+    pid: number;  
+    processName: string; }>> =>
+    query(
+      'getThreadAndProcess',
+      `
+      SELECT
+      	t.tid AS tid,
+      	t.name AS threadName,
+      	p.pid AS pid,
+      	p.name AS processName 
+      FROM
+      	thread t
+      	INNER JOIN process p ON t.ipid = p.ipid 
+      WHERE
+      	t.itid = ${itid} 
+      	AND p.ipid = ${ipid};
+      `,
+    );

@@ -90,14 +90,11 @@ namespace TraceStreamer {
 using namespace SysTuning::base;
 using namespace OHOS::Developtools::HiPerf;
 #if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)
-struct NodeAsyncFunc {
-    uint64_t tsEnd = INVALID_UINT64;
-    uint64_t itid = INVALID_UINT64;
-    NodeAsyncFunc(uint64_t ts, uint64_t itid) : tsEnd(ts), itid(itid){};
-    bool operator<(const NodeAsyncFunc &other) const
-    {
-        return tsEnd < other.tsEnd;
-    }
+struct SliceInfo {
+    SliceInfo(uint64_t tsBegin, uint64_t tsEnd, const std::string& traceid) : tsBegin_(tsBegin), tsEnd_(tsEnd), traceid_(traceid){};
+    uint64_t tsBegin_ = INVALID_UINT64;
+    uint64_t tsEnd_ = INVALID_UINT64;
+    std::string traceid_;
 };
 #endif
 class PbreaderParser : public ParserBase, public HtracePluginTimeParser {
@@ -262,14 +259,13 @@ private:
     bool SpliteDataBySegment(DataIndex pluginNameIndex, PbreaderDataSegment &dataSeg);
 #if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)
     void ParseNapiAsync();
-    void GetTraceidInfoFromCallstack(std::queue<std::pair<uint64_t, uint64_t>> &traceidIndexs,
-                                     std::unordered_set<uint64_t> &traceidIndexSet);
-    void GetTraceidInfoFromNativeHook(const std::unordered_set<uint64_t> &traceidIndexSet,
-                                      std::unordered_map<uint64_t, uint32_t> &traceidToCallchainidMap);
+    void GetTraceidInfoFromCallstack(const std::unordered_map<std::string, uint32_t> &traceidToCallchainidMap,
+                                     std::unordered_map<uint64_t, std::queue<SliceInfo>> &itidToCallstackIdsMap);
+    void GetTraceidInfoFromNativeHook(std::unordered_map<std::string, uint32_t> &traceidToCallchainidMap);
     void GetCallchainIdSetFromHiperf(std::unordered_set<uint32_t> &callchainIdSet);
-    void DumpDataFromHiperf(const std::unordered_map<uint64_t, uint32_t> &traceidToCallchainidMap,
+    void DumpDataFromHiperf(const std::unordered_map<std::string, uint32_t> &traceidToCallchainidMap,
                             const std::unordered_set<uint32_t> &callchainIdSet,
-                            std::queue<std::pair<uint64_t, uint64_t>> &traceidIndexs);
+                            std::unordered_map<uint64_t, std::queue<SliceInfo>> &itidToCallstackIdsMap);
 #endif
     ProfilerTraceFileHeader profilerTraceFileHeader_;
     uint32_t profilerDataType_ = ProfilerTraceFileHeader::UNKNOW_TYPE;

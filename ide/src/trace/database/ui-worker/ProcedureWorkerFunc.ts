@@ -156,6 +156,8 @@ export function funcStructOnClick(
         sp.timerShaftEL?.drawTriangle(hoverFuncStruct!.ts || 0, 'inverted');
         sp.traceSheetEL?.displayFuncData(
           showTabArray,
+          // @ts-ignore
+          row?.namePrefix,
           FuncStruct.selectFuncStruct!,
           scrollToFuncHandler,
           (datas: any, str: string, binderTid: number) => {
@@ -235,7 +237,7 @@ export class FuncStruct extends BaseFuncStruct {
       } else {
         ctx.globalAlpha = 1;
         //h、g异步方法颜色
-        if (data.callid && data.threadName) {
+        if (data.threadName) {
           if (data.funName!.startsWith('XStream')) {
             ctx.fillStyle = '#7a8c22';
           } else if (data.funName!.startsWith('WU-')) {
@@ -253,7 +255,7 @@ export class FuncStruct extends BaseFuncStruct {
         ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
         if (data.frame.width > 10) {
           //h、g异步方法字体颜色 
-          if (data.callid && data.threadName) {
+          if (data.threadName) {
             if (data.funName!.startsWith('XStream') || data.funName!.startsWith('WU-')) {
               ctx.fillStyle = '#fff';
             } else {

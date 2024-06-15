@@ -237,10 +237,9 @@ export class RangeSelect {
         let avgRate: string = `${(((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1)}fps`;
         let sum: number = hitchTimeList.reduce((accumulator, currentValue) => accumulator + currentValue, 0); // ∑hitchTimeData
         let hitchRate: number =
-          sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000);
-        let perHitchRate: string = `${(Number(hitchRate) * 100).toFixed(2)}%`;
+          sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000000);
         row.avgRateTxt =
-          `${avgRate} ` + ',' + ' ' + 'HitchTime:' + ` ${sum.toFixed(1)}ms` + ' ' + ',' + ` ${perHitchRate}`;
+          `${avgRate} ` + ',' + ' ' + 'HitchTime:' + ` ${sum.toFixed(1)}ms` + ' ' + ',' + ` ${hitchRate.toFixed(2)}ms/s`;
       }
     }
   }

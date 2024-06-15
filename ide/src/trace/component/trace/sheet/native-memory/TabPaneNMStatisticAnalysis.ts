@@ -61,12 +61,12 @@ class AnalysisObj {
   existSizeFormat: string;
   existCount: number;
 
-  applySizePercent?: string | number;
-  applyCountPercent?: string | number;
-  releaseSizePercent?: string | number;
-  releaseCountPercent?: string | number;
-  existSizePercent?: string | number;
-  existCountPercent?: string | number;
+  applySizePercent?: string;
+  applyCountPercent?: string;
+  releaseSizePercent?: string;
+  releaseCountPercent?: string;
+  existSizePercent?: string;
+  existCountPercent?: string;
 
   constructor(applySize: number, applyCount: number, releaseSize: number, releaseCount: number) {
     this.applySize = applySize;
@@ -1053,12 +1053,12 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           other.existSizeFormat = Utils.getBinaryByteWithUnit(other.existSize); // @ts-ignore
           other.applySizeFormat = Utils.getBinaryByteWithUnit(other.applySize); // @ts-ignore
           other.releaseSizeFormat = Utils.getBinaryByteWithUnit(other.releaseSize); // @ts-ignore
-          other.existSizePercent = (other.existSize / this.currentLevelExistSize) === 'NaN' ? 0 : ((other.existSize / this.currentLevelExistSize) * 100).toFixed(2); // @ts-ignore
-          other.existCountPercent = (other.existCount / this.currentLevelExistCount) === 'NaN' ? 0 : ((other.existCount / this.currentLevelExistCount) * 100).toFixed(2); // @ts-ignore
-          other.applySizePercent = (other.applySize / this.currentLevelApplySize) === 'NaN' ? 0 : ((other.applySize / this.currentLevelApplySize) * 100).toFixed(2); // @ts-ignore
-          other.applyCountPercent = (other.applyCount / this.currentLevelApplyCount) === 'NaN' ? 0 : ((other.applyCount / this.currentLevelApplyCount) * 100).toFixed(2); // @ts-ignore
-          other.releaseSizePercent = (other.releaseSize / this.currentLevelReleaseSize) === 'NaN' ? 0 : ((other.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2); // @ts-ignore
-          other.releaseCountPercent = (other.releaseCount / this.currentLevelReleaseCount) === 'NaN' ? 0 : ((other.releaseCount / this.currentLevelReleaseCount) * 100).toFixed(2);
+          other.existSizePercent = this.currentLevelExistSize === 0 ? 0 : ((other.existSize / this.currentLevelExistSize) * 100).toFixed(2); // @ts-ignore
+          other.existCountPercent = this.currentLevelExistCount === 0 ? 0 : ((other.existCount / this.currentLevelExistCount) * 100).toFixed(2); // @ts-ignore
+          other.applySizePercent = this.currentLevelApplySize === 0 ? 0 : ((other.applySize / this.currentLevelApplySize) * 100).toFixed(2); // @ts-ignore
+          other.applyCountPercent = this.currentLevelApplyCount === 0 ? 0 : ((other.applyCount / this.currentLevelApplyCount) * 100).toFixed(2); // @ts-ignore
+          other.releaseSizePercent = this.currentLevelReleaseSize === 0 ? 0 : ((other.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2); // @ts-ignore
+          other.releaseCountPercent = this.currentLevelReleaseCount === 0 ? 0 : ((other.releaseCount / this.currentLevelReleaseCount) * 100).toFixed(2);
         }
       } // @ts-ignore
       pieChartArr.push(other);
@@ -1105,12 +1105,12 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   }
 
   private calPercent(item: AnalysisObj): void {
-    item.applySizePercent = ((item.applySize / this.currentLevelApplySize) * 100).toFixed(2) === 'NaN' ? 0 : ((item.applySize / this.currentLevelApplySize) * 100).toFixed(2);
-    item.applyCountPercent = ((item.applyCount / this.currentLevelApplyCount) * 100).toFixed(2)=== 'NaN' ? 0 : ((item.applyCount / this.currentLevelApplyCount) * 100).toFixed(2);
-    item.releaseSizePercent = ((item.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2)=== 'NaN' ? 0 : ((item.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2);
-    item.releaseCountPercent = ((item.releaseCount / this.currentLevelReleaseCount) * 100).toFixed(2) === 'NaN' ? 0 : ((item.releaseCount / this.currentLevelReleaseCount) * 100).toFixed(2);
-    item.existSizePercent = ((item.existSize / this.currentLevelExistSize) * 100).toFixed(2) === 'NaN' ? 0 : ((item.existSize / this.currentLevelExistSize) * 100).toFixed(2);
-    item.existCountPercent = ((item.existCount / this.currentLevelExistCount) * 100).toFixed(2) === 'NaN' ? 0 : ((item.existCount / this.currentLevelExistCount) * 100).toFixed(2);
+    item.applySizePercent = this.currentLevelApplySize === 0 ? '0' : ((item.applySize / this.currentLevelApplySize) * 100).toFixed(2);
+    item.applyCountPercent = this.currentLevelApplyCount === 0 ? '0' : ((item.applyCount / this.currentLevelApplyCount) * 100).toFixed(2);
+    item.releaseSizePercent = this.currentLevelReleaseSize === 0 ? '0' : ((item.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2);
+    item.releaseCountPercent = this.currentLevelReleaseCount === 0 ? '0' : ((item.releaseCount / this.currentLevelReleaseCount) * 100).toFixed(2);
+    item.existSizePercent = this.currentLevelExistSize === 0 ? '0' : ((item.existSize / this.currentLevelExistSize) * 100).toFixed(2);
+    item.existCountPercent = this.currentLevelExistCount === 0 ? '0' : ((item.existCount / this.currentLevelExistCount) * 100).toFixed(2);
   }
 
   private resetCurrentLevelData(parent?: unknown): void {
@@ -1228,17 +1228,17 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   private totalData(total: {}): {} {
     total = {
       existSizeFormat: Utils.getBinaryByteWithUnit(this.currentLevelExistSize),
-      existSizePercent: ((this.currentLevelExistSize / this.currentLevelExistSize) * 100).toFixed(2) === 'NaN' ? 0 : ((this.currentLevelExistSize / this.currentLevelExistSize) * 100).toFixed(2),
+      existSizePercent: this.currentLevelExistSize === 0 ? 0 : ((this.currentLevelExistSize / this.currentLevelExistSize) * 100).toFixed(2),
       existCount: this.currentLevelExistCount,
-      existCountPercent: ((this.currentLevelExistCount / this.currentLevelExistCount) * 100).toFixed(2)=== 'NaN' ? 0 : ((this.currentLevelExistCount / this.currentLevelExistCount) * 100).toFixed(2),
+      existCountPercent: this.currentLevelExistCount === 0 ? 0 : ((this.currentLevelExistCount / this.currentLevelExistCount) * 100).toFixed(2),
       releaseSizeFormat: Utils.getBinaryByteWithUnit(this.currentLevelReleaseSize),
-      releaseSizePercent: ((this.currentLevelReleaseSize / this.currentLevelReleaseSize) * 100).toFixed(2)=== 'NaN' ? 0 : ((this.currentLevelReleaseSize / this.currentLevelReleaseSize) * 100).toFixed(2),
+      releaseSizePercent: this.currentLevelReleaseSize === 0 ? 0 : ((this.currentLevelReleaseSize / this.currentLevelReleaseSize) * 100).toFixed(2),
       releaseCount: this.currentLevelReleaseCount,
-      releaseCountPercent: ((this.currentLevelReleaseCount / this.currentLevelReleaseCount) * 100).toFixed(2) === 'NaN' ? 0 : ((this.currentLevelReleaseCount / this.currentLevelReleaseCount) * 100).toFixed(2),
+      releaseCountPercent: this.currentLevelReleaseCount === 0 ? 0 : ((this.currentLevelReleaseCount / this.currentLevelReleaseCount) * 100).toFixed(2),
       applySizeFormat: Utils.getBinaryByteWithUnit(this.currentLevelApplySize),
-      applySizePercent: ((this.currentLevelApplySize / this.currentLevelApplySize) * 100).toFixed(2) === 'NaN' ? 0 : ((this.currentLevelApplySize / this.currentLevelApplySize) * 100).toFixed(2),
+      applySizePercent: this.currentLevelApplySize === 0 ? 0 : ((this.currentLevelApplySize / this.currentLevelApplySize) * 100).toFixed(2),
       applyCount: this.currentLevelApplyCount,
-      applyCountPercent: ((this.currentLevelApplyCount / this.currentLevelApplyCount) * 100).toFixed(2)  === 'NaN' ? 0 : ((this.currentLevelApplyCount / this.currentLevelApplyCount) * 100).toFixed(2),
+      applyCountPercent: this.currentLevelApplyCount === 0 ? 0 : ((this.currentLevelApplyCount / this.currentLevelApplyCount) * 100).toFixed(2),
       existSize: 0,
       tableName: '',
       tName: '',

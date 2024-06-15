@@ -257,6 +257,7 @@ config("unwind_config_public") {
     "-Wno-unused-variable",
     "-Wno-unused-result",
     "-Wno-tautological-constant-out-of-range-compare",
+    "-Wno-bitfield-constant-conversion",
   ]
   if (use_wasm) {
     cflags += [ "-Wno-incompatible-pointer-types" ]

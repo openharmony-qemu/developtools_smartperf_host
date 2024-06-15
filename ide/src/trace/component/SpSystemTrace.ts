@@ -294,6 +294,7 @@ export class SpSystemTrace extends BaseElement {
     startPoint.backrowEL = startPoint.rowEL;
     endPoint.backrowEL = endPoint.rowEL;
     this.linkNodes.push([startPoint, endPoint]);
+    this.refreshCanvas(true);
   }
 
   clearPointPair(): void {
