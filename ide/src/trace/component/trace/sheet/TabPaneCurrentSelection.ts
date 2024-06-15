@@ -55,6 +55,7 @@ import {
   queryThreadWakeUp,
   queryThreadWakeUpFrom,
   sqlPrioCount,
+  queryThreadAndProcess
 } from '../../../database/sql/ProcessThread.sql';
 import { queryGpuDur } from '../../../database/sql/Gpu.sql';
 import { queryWakeupListPriority } from '../../../database/sql/Cpu.sql';
@@ -404,6 +405,27 @@ export class TabPaneCurrentSelection extends BaseElement {
     } else {
       this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });
+      await queryThreadAndProcess(data.itid!,data.ipid!).then((res)=>{
+        const item = res[0]; 
+        list.push({  
+          name: 'Process',  
+          value: (item.processName || 'NULL') + ' [' + item.pid + '] '  
+        }, {  
+          name: 'Thread',  
+          value: (item.threadName || 'NULL') + ' [' + item.tid + '] '  
+        }); 
+      }).catch(()=>{
+        let processName = Utils.getInstance().getProcessMap().get(data.pid!);
+        let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+        list.push({
+          name: 'Process',
+          value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
+        });
+        list.push({
+          name: 'Thread',
+          value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
+        });
+      });
       list.push({
         name: 'StartTime(Relative)',
         value: getTimeString(data.startTs || 0),
@@ -495,12 +517,36 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   private handleNonBinder(data: FuncStruct, list: any[], name: string, information: string): void {
     queryBinderArgsByArgset(data.argsetid!).then((argset) => {
-      list.push({ name: 'Name', value: name });
-      argset.forEach((item) => {
-        list.push({ name: item.keyName, value: item.strValue });
+      queryThreadAndProcess(data.itid!,data.ipid!).then((res)=>{
+        const item = res[0]; 
+        list.push({ name: 'Name', value: name },{  
+          name: 'Process',  
+          value: (item.processName || 'NULL') + ' [' + item.pid + '] '  
+        }, {  
+          name: 'Thread',  
+          value: (item.threadName || 'NULL') + ' [' + item.tid + '] '  
+        });
+        argset.forEach((item) => {
+          list.push({ name: item.keyName, value: item.strValue });
+        });
+        this.addTabPanelContent(list, data, information);
+        this.currentSelectionTbl!.dataSource = list; 
+      }).catch(()=>{
+        let processName = Utils.getInstance().getProcessMap().get(data.pid!);
+        let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+        list.push({ name: 'Name', value: name },{
+          name: 'Process',
+          value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
+        },{
+          name: 'Thread',
+          value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
+        });
+        argset.forEach((item) => {
+          list.push({ name: item.keyName, value: item.strValue });
+        });
+        this.addTabPanelContent(list, data, information);
+        this.currentSelectionTbl!.dataSource = list;
       });
-      this.addTabPanelContent(list, data, information);
-      this.currentSelectionTbl!.dataSource = list;
     });
   }
 
@@ -516,49 +562,126 @@ export class TabPaneCurrentSelection extends BaseElement {
     queryBinderArgsByArgset(data.argsetid!).then((argset) => {
       let binderSliceId = -1;
       let binderTid = -1;
-      argset.forEach((item) => {
-        if (item.keyName === 'calling tid') {
-          binderTid = Number(item.strValue);
-        }
-        if (item.keyName === 'destination slice id') {
-          binderSliceId = Number(item.strValue);
-          list.unshift({
-            name: 'Name',
-            value: `<div style="white-space: nowrap;display: flex;align-items: center">
-<div style="white-space:pre-wrap">${name || 'binder'}</div>
-<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
-</div>`,
-          });
-        }
-        list.push({ name: item.keyName, value: item.strValue });
-      });
-      if (binderSliceId === -1) {
-        list.unshift({ name: 'Name', value: name });
-      }
-      this.addTabPanelContent(list, data, information);
-      this.currentSelectionTbl!.dataSource = list;
-      let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
-      funcClick?.addEventListener('click', () => {
-        if (!Number.isNaN(binderSliceId) && binderSliceId !== -1) {
-          queryBinderBySliceId(binderSliceId).then((result: any[]) => {
-            if (result.length > 0) {
-              result[0].type = TraceRow.ROW_TYPE_FUNC;
-              scrollCallback(result[0]);
-              let timeLineNode = new ThreadTreeNode(
-                result[0]?.tid,
-                result[0]?.pid,
-                result[0].startTs,
-                result[0]?.depth
-              );
-              jankJumperList.push(timeLineNode);
-              if (callback) {
-                let linkTo = 'binder-to';
-                callback(jankJumperList, linkTo, binderTid);
-                linkTo = '';
-              }
+      queryThreadAndProcess(data.itid!,data.ipid!).then((res)=>{
+        const items = res[0]; 
+        argset.forEach((item) => {
+          if (item.keyName === 'calling tid') {
+            binderTid = Number(item.strValue);
+          }
+          if (item.keyName === 'destination slice id') {
+            binderSliceId = Number(item.strValue);
+            list.unshift({
+              name: 'Name',
+              value: `<div style="white-space: nowrap;display: flex;align-items: center">
+  <div style="white-space:pre-wrap">${name || 'binder'}</div>
+  <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+  </div>`,
+            },{
+              name: 'Process',
+              value: (items.processName || 'NULL') + ' [' + items.pid + '] '  
+            },{
+              name: 'Thread',
+              value: (items.threadName || 'NULL') + ' [' + items.tid + '] '  
             }
+          );
+          }
+        });
+        if (binderSliceId === -1) {
+          list.unshift({
+            name: 'Name', value: name
+          },{
+            name: 'Process',
+            value: (items.processName || 'NULL') + ' [' + items.pid + '] '  
+          },{
+            name: 'Thread',
+            value: (items.threadName || 'NULL') + ' [' + items.tid + '] '  
+          }
+        );
+        }
+        this.addTabPanelContent(list, data, information);
+        this.currentSelectionTbl!.dataSource = list;
+        let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
+        funcClick?.addEventListener('click', () => {
+          if (!Number.isNaN(binderSliceId) && binderSliceId !== -1) {
+            queryBinderBySliceId(binderSliceId).then((result: any[]) => {
+              if (result.length > 0) {
+                result[0].type = TraceRow.ROW_TYPE_FUNC;
+                scrollCallback(result[0]);
+                let timeLineNode = new ThreadTreeNode(
+                  result[0]?.tid,
+                  result[0]?.pid,
+                  result[0].startTs,
+                  result[0]?.depth
+                );
+                jankJumperList.push(timeLineNode);
+                if (callback) {
+                  let linkTo = 'binder-to';
+                  callback(jankJumperList, linkTo, binderTid);
+                  linkTo = '';
+                }
+              }
+            });
+          }
+        });
+      }).catch(()=>{
+        let processName = Utils.getInstance().getProcessMap().get(data.pid!);
+          let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+        argset.forEach((item) => {
+          if (item.keyName === 'calling tid') {
+            binderTid = Number(item.strValue);
+          }
+          if (item.keyName === 'destination slice id') {
+            binderSliceId = Number(item.strValue);
+            list.unshift({
+              name: 'Name',
+              value: `<div style="white-space: nowrap;display: flex;align-items: center">
+  <div style="white-space:pre-wrap">${name || 'binder'}</div>
+  <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+  </div>`,
+            },{
+              name: 'Process',
+              value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
+            },{
+              name: 'Thread',
+              value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
+            }
+          );
+          }
+        });
+        if (binderSliceId === -1) {
+          list.unshift({ name: 'Name', value: name },{
+            name: 'Process',
+            value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
+          },{
+            name: 'Thread',
+            value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
           });
         }
+        this.addTabPanelContent(list, data, information);
+        this.currentSelectionTbl!.dataSource = list;
+        let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
+        funcClick?.addEventListener('click', () => {
+          if (!Number.isNaN(binderSliceId) && binderSliceId !== -1) {
+            queryBinderBySliceId(binderSliceId).then((result: any[]) => {
+              if (result.length > 0) {
+                result[0].type = TraceRow.ROW_TYPE_FUNC;
+                scrollCallback(result[0]);
+                let timeLineNode = new ThreadTreeNode(
+                  result[0]?.tid,
+                  result[0]?.pid,
+                  result[0].startTs,
+                  result[0]?.depth
+                );
+                jankJumperList.push(timeLineNode);
+                if (callback) {
+                  let linkTo = 'binder-to';
+                  callback(jankJumperList, linkTo, binderTid);
+                  linkTo = '';
+                }
+              }
+            });
+          }
+        });
       });
     });
   }
@@ -596,35 +719,106 @@ export class TabPaneCurrentSelection extends BaseElement {
           }
         });
       }
-      if (asyncBinderStract !== undefined) {
-        list.unshift({
-          name: 'Name',
-          value: `<div style="white-space: nowrap;display: flex;align-items: center">
-<div style="white-space:pre-wrap">${name || 'binder'}</div>
-<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
-</div>`,
-        });
-      } else {
-        list.unshift({ name: 'Name', value: name });
-      }
-      this.addTabPanelContent(list, data, information);
-      this.currentSelectionTbl!.dataSource = list;
-      let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
-      funcClick?.addEventListener('click', () => {
-        scrollCallback(asyncBinderStract);
-        let timeLineNode = new ThreadTreeNode(
-          asyncBinderStract.tid,
-          asyncBinderStract.pid,
-          asyncBinderStract.startTs,
-          asyncBinderStract.depth
-        );
-        jankJumperList.push(timeLineNode);
-        if (callback) {
-          let linkTo = 'binder-to';
-          callback(jankJumperList, linkTo, binderTid);
-          linkTo = '';
+
+      queryThreadAndProcess(data.itid!,data.ipid!).then((res)=>{
+        const item = res[0]; 
+        if (asyncBinderStract !== undefined) {
+          list.unshift({
+            name: 'Name',
+            value: `<div style="white-space: nowrap;display: flex;align-items: center">
+  <div style="white-space:pre-wrap">${name || 'binder'}</div>
+  <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+  </div>`,
+          },{
+            name: 'Process',
+            value: (item.processName || 'NULL') + ' [' + item.pid + '] ' 
+          },
+          {
+            name: 'Thread',
+            value: (item.threadName || 'NULL') + ' [' + item.tid + '] '  
+          });
+        } else {
+          list.unshift({ 
+            name: 'Name', 
+            value: name 
+          },{
+            name: 'Process',
+            value: (item.processName || 'NULL') + ' [' + item.pid + '] ' 
+          },
+          {
+            name: 'Thread',
+            value: (item.threadName || 'NULL') + ' [' + item.tid + '] '  
+          });
         }
+        this.addTabPanelContent(list, data, information);
+        this.currentSelectionTbl!.dataSource = list;
+        let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
+        funcClick?.addEventListener('click', () => {
+          scrollCallback(asyncBinderStract);
+          let timeLineNode = new ThreadTreeNode(
+            asyncBinderStract.tid,
+            asyncBinderStract.pid,
+            asyncBinderStract.startTs,
+            asyncBinderStract.depth
+          );
+          jankJumperList.push(timeLineNode);
+          if (callback) {
+            let linkTo = 'binder-to';
+            callback(jankJumperList, linkTo, binderTid);
+            linkTo = '';
+          }
+        });
+      }).catch(()=>{
+        let processName = Utils.getInstance().getProcessMap().get(data.pid!);
+        let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+        if(asyncBinderStract !== undefined){
+          list.unshift({
+            name: 'Name',
+            value: `<div style="white-space: nowrap;display: flex;align-items: center">
+  <div style="white-space:pre-wrap">${name || 'binder'}</div>
+  <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+  </div>`,
+          },{
+            name: 'Process',
+            value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
+          },
+          {
+            name: 'Thread',
+            value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
+          });
+        }else{
+          list.unshift({ 
+            name: 'Name', 
+            value: name 
+          },{
+            name: 'Process',
+            value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
+          },
+          {
+            name: 'Thread',
+            value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
+          });
+        }
+        this.addTabPanelContent(list, data, information);
+        this.currentSelectionTbl!.dataSource = list;
+        let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
+        funcClick?.addEventListener('click', () => {
+          scrollCallback(asyncBinderStract);
+          let timeLineNode = new ThreadTreeNode(
+            asyncBinderStract.tid,
+            asyncBinderStract.pid,
+            asyncBinderStract.startTs,
+            asyncBinderStract.depth
+          );
+          jankJumperList.push(timeLineNode);
+          if (callback) {
+            let linkTo = 'binder-to';
+            callback(jankJumperList, linkTo, binderTid);
+            linkTo = '';
+          }
+        });
       });
+     
     });
   }
 
@@ -1047,6 +1241,16 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   private async prepareThreadInfo(list: unknown[], data: ThreadStruct): Promise<void> {
+    let processName = Utils.getInstance().getProcessMap().get(data.pid!);
+    let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+    list.push({
+      name: 'Process',
+      value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
+    });
+    list.push({
+      name: 'Thread',
+      value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
+    });
     list.push({
       name: 'StartTime(Relative)',
       value: getTimeString(data.startTime || 0),
@@ -1112,19 +1316,6 @@ export class TabPaneCurrentSelection extends BaseElement {
         </div>`,
       });
     }
-    let processName = Utils.getInstance().getProcessMap().get(data.pid!);
-    if (
-      processName === null ||
-      processName === undefined ||
-      processName === '' ||
-      processName.toLowerCase() === 'null'
-    ) {
-      processName = Utils.getInstance().getThreadMap().get(data.tid!) || 'null';
-    }
-    list.push({
-      name: 'Process',
-      value: this.transferString(processName ?? '') + ' [' + data.pid + '] ',
-    });
   }
 
   setJankData(

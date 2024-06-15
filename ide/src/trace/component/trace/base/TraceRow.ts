@@ -1519,15 +1519,15 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  focusContain(e: MouseEvent, inFavoriteArea: boolean, prevScrollY: number = 0): boolean {
+  focusContain(e: MouseEvent, inFavoriteArea: boolean, prevScrollY: number = 0,favoriteHeight: number): boolean {
     let _y = (e.currentTarget as HTMLElement).getBoundingClientRect().y;
     let myRect = this.getBoundingClientRect();
     let x = e.offsetX;
     let y = e.offsetY + _y;
     let rectY = myRect.y;
     let rectHeight = myRect.height;
-    if (!inFavoriteArea) {
-      y = e.offsetY + prevScrollY - 90;
+    if (!inFavoriteArea && favoriteHeight !== undefined) {
+      y = e.offsetY + prevScrollY - 90 - favoriteHeight!;
       rectY = this.offsetTop;
       rectHeight = this.clientHeight;
     }
