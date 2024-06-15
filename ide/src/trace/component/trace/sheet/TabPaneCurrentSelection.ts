@@ -127,6 +127,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   private isFpsAvailable: boolean = true;
   private realTime: number = 0;
   private bootTime: number = 0;
+  private funcDetailMap: Map<string, Array<object>> = new Map();
 
   set data(selection: unknown) {
     // @ts-ignore
@@ -345,6 +346,7 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   async setFunctionData(
     data: FuncStruct,
+    threadName: string,
     scrollCallback: Function,
     callback?: (data: Array<any>, str: string, binderTid: number) => void,
     distributedCallback?: Function,
@@ -357,21 +359,35 @@ export class TabPaneCurrentSelection extends BaseElement {
     // 从缓存中拿到详细信息的表
     let information: string = '';
     let FunDetailList: Array<FunDetail> = new Array();
-    await caches.match('/funDetail').then((res) => {
-      if (res) {
-        return res!.text();
-      }
-    }).then((res) => {
-      if (res) {
-        FunDetailList = JSON.parse(res);
-      }
-    });
+    if (this.funcDetailMap.size === 0) {
+      await caches.match('/funDetail').then((res) => {
+        if (res) {
+          return res!.text();
+        }
+      }).then((res) => {
+        if (res) {
+          let funcDetail = JSON.parse(res);
+          for (let key in funcDetail) {
+            this.funcDetailMap.set(key, funcDetail[key])
+          }
+        }
+      });
+    }
+    // @ts-ignore
+    FunDetailList = this.funcDetailMap.has(threadName) ? this.funcDetailMap.get('threadName') : this.funcDetailMap.get('anothers')
     if (Array.isArray(FunDetailList)) {
       // 筛选当前函数块的信息项
       let informationList: Array<FunDetail> = FunDetailList.filter((v: FunDetail) => {
         return v.slice.indexOf(name) > -1 || name.indexOf(v.slice) > -1;
       });
-      information = informationList && informationList.length > 0 ? informationList[0].CN : `没有找到相关${name}的描述`;
+      information = informationList && informationList.length > 0 ? informationList[0].CN :
+        `<div style="white-space: nowrap;display: flex;align-items: center">
+           <div style="white-space:pre-wrap">无相关描述，如您知道具体含义可点击反馈</div>
+           <a href="https://3ms.huawei.com/km/groups/3956611/blogs/details/15389498?|=zh-cn" target = "_blank"  rel="ugc">
+               <lit-icon style="cursor:pointer;margin-left: 5px; margin-top:5px" id="informationJump" name="select" color="#7fa1e7" size="20">
+               </lit-icon>
+           </a>
+       </div>`
     }
     let isBinder = FuncStruct.isBinder(data);
     let jankJumperList = new Array<ThreadTreeNode>();
@@ -692,9 +708,9 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: ((data.startTime || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
     if (data.dur !== 0) {
-      list.push({ 
-        name: 'Wall Duration', 
-        value: getTimeString(data.dur || 0) 
+      list.push({
+        name: 'Wall Duration',
+        value: getTimeString(data.dur || 0)
       });
     }
     list.push({
@@ -832,7 +848,7 @@ export class TabPaneCurrentSelection extends BaseElement {
               <div style="white-space:pre-wrap">${
                 // @ts-ignore
                 Utils.getEndState(near.state)
-              }</div>
+                }</div>
               <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="previous-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
               </div>`,
             });
@@ -844,7 +860,7 @@ export class TabPaneCurrentSelection extends BaseElement {
               <div style="white-space:pre-wrap">${
                 // @ts-ignore
                 Utils.getEndState(near.state)
-              }</div>
+                }</div>
               <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="next-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
               </div>`,
             });
@@ -1454,8 +1470,8 @@ export class TabPaneCurrentSelection extends BaseElement {
             index === 0
               ? 'NULL'
               : `${AppStartupStruct.getStartupName(sortedArray[index - 1].startName)}     ${getTimeString(
-                  sortedArray[index - 1].startTs + sortedArray[index - 1].dur
-                )}`,
+                sortedArray[index - 1].startTs + sortedArray[index - 1].dur
+              )}`,
         });
         list.push({
           name: 'EndSlice',
@@ -1463,8 +1479,8 @@ export class TabPaneCurrentSelection extends BaseElement {
             index === sortedArray.length - 1
               ? 'NULL'
               : `${AppStartupStruct.getStartupName(sortedArray[index + 1].startName)}      ${getTimeString(
-                  sortedArray[index + 1].startTs
-                )}`,
+                sortedArray[index + 1].startTs
+              )}`,
         });
       }
     });
@@ -1915,7 +1931,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
     this.wakeupListTbl = this.shadowRoot?.querySelector<LitTable>('#wakeupListTbl');
     this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
-    this.currentSelectionTbl?.addEventListener('column-click', (ev: any): void => {}); //@ts-ignore
+    this.currentSelectionTbl?.addEventListener('column-click', (ev: any): void => { }); //@ts-ignore
     window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => this.showWakeupListTableData(data));
   }
 
