@@ -69,7 +69,7 @@ uint64_t PerfDataParser::DataProcessingLength(const std::deque<uint8_t> &dequeBu
                                             &PerfDataParser::SplitPerfWaitForFinish};
 
     if (static_cast<size_t>(splitState_) >= splitFunc.size()) {
-        TS_LOGE("Invalid split state %d", splitState_);
+        TS_LOGE("Invalid split state %d", static_cast<int>(splitState_));
         perfSplitError_ = true;
         SplitDataWithdraw();
         return size;
