@@ -239,7 +239,6 @@
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -571,9 +570,11 @@
       }
 
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -655,11 +656,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -670,7 +667,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -777,24 +774,19 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">调用栈可视化和不同库函数调用占比说明</h1>
 
       <p class="fontColor">
         调用栈可视化可以将开发者编译的so符号化结果展示出来，不同库函数的占比通过饼图的方式展示出来。
       </p>
-      <h2 class="mume-header fontColor">Native Memory文件的不同库函数占比</h2>
+      <h2 class="mume-header fontColor" id="header-index-1">Native Memory文件的不同库函数占比</h2>
 
       <p class="fontColor">
         Native
@@ -969,7 +961,7 @@ Transient：框选区间内释放的大小。
           >
         </li>
       </ul>
-      <h2 class="mume-header fontColor">Hiperf文件的不同库函数占比</h2>
+      <h2 class="mume-header fontColor" id="header-index-2">Hiperf文件的不同库函数占比</h2>
 
       <p class="fontColor">
         Hiperf分为四级统计，分别按照进程，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈的栈顶函数及其lib。
@@ -1073,7 +1065,7 @@ Weight：该so的调用方法的执行次数。
           >
         </li>
       </ul>
-      <h2 class="mume-header fontColor">FileSystem文件的不同库函数占比</h2>
+      <h2 class="mume-header fontColor" id="header-index-3">FileSystem文件的不同库函数占比</h2>
 
       <p class="fontColor">
         FileSystem分为五级统计，分别按照进程，系统调用类型，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈，从栈顶往下查找，非musl库与c++库的第一条函数及其lib为每次分配归属的函数及lib库。
@@ -1202,7 +1194,7 @@ Duration：该函数的系统调用的总时长。
           >
         </li>
       </ul>
-      <h2 class="mume-header fontColor">Bio文件的不同库函数占比</h2>
+      <h2 class="mume-header fontColor" id="header-index-4">Bio文件的不同库函数占比</h2>
 
       <p class="fontColor">
         Bio分为五级统计，分别按照进程，系统调用类型，线程，lib库，函数进行统计。其中lib跟函数为每一条调用栈，从栈顶往下查找，非submit_bio第一条函数及其lib为每次分配归属的函数及lib库。
@@ -1331,7 +1323,7 @@ Duration：该函数的系统调用的总时长。
           >
         </li>
       </ul>
-      <h2 class="mume-header fontColor">Page Fault文件的不同库函数占比</h2>
+      <h2 class="mume-header fontColor" id="header-index-5">Page Fault文件的不同库函数占比</h2>
 
       <p class="fontColor">
         Page
@@ -1465,10 +1457,9 @@ Duration：该函数的系统调用的总时长。
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -1479,6 +1470,14 @@ Duration：该函数的系统调用的总时长。
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== 'null' ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

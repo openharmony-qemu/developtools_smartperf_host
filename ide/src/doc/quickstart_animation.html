@@ -239,7 +239,6 @@
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -571,9 +570,11 @@
       }
 
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -655,11 +656,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -670,7 +667,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -777,22 +774,17 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
-</head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  </head>
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">Animation的抓取和展示说明</h1>
     
       <p class="fontColor">通过动效模板的指标项对图形子系统和应用做动效卡顿类问题分析。</p>
-      <h3 class="mume-header fontColor">Animation抓取参数的配置</h3>
+      <h3 class="mume-header fontColor" id="header-index-1">Animation抓取参数的配置</h3>
     
       <p class="fontColor">
         <img src="../figures/animation/animationconfig.jpg" alt="GitHub Logo" /><br />
@@ -805,10 +797,10 @@ AnimationAnalysis：动效配置项的总开关。解析时请打开对应的Fla
 </pre>
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Animation展示说明</h3>
+      <h3 class="mume-header fontColor" id="header-index-2">Animation展示说明</h3>
     
       <p class="fontColor">将抓取的Animation文件导入到smartperf工具中，查看图形子系统和应用动效卡顿类问题。</p>
-      <h3 class="mume-header fontColor">Animation泳道图展示</h3>
+      <h3 class="mume-header fontColor" id="header-index-3">Animation泳道图展示</h3>
     
       <p class="fontColor">
         Animation的响应时延和完成时延泳道图显示，泳道图的Slice会显示响应时延和完成时延，如下图中的Response
@@ -844,7 +836,7 @@ Frame spacing泳道图显示相邻两帧在时间尺度上相对于设备物理�
 </pre>
         </li>
       </ul>
-      <h3 class="mume-header fontColor">动效曲线泳道图点选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-4">动效曲线泳道图点选功能</h3>
     
       <p class="fontColor">
         点选动效曲线泳道图上的属性值会出现一个空心小圆点，Frame Dynamic的Tab页会显示相关信息。<br />
@@ -867,7 +859,7 @@ Value：属性值。
 </pre>
         </li>
       </ul>
-      <h3 class="mume-header fontColor">动效曲线泳道图框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-5">动效曲线泳道图框选功能</h3>
     
       <p class="fontColor">
         框选动效曲线泳道图，Frame Dynamic的Tab页会显示框选范围内每个点的属性值。<br />
@@ -890,7 +882,7 @@ Value：属性值。
 </pre>
         </li>
       </ul>
-      <h3 class="mume-header fontColor">帧间距泳道图点选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-6">帧间距泳道图点选功能</h3>
     
       <p class="fontColor">
         点选帧间距泳道图，Frame
@@ -944,7 +936,7 @@ result：帧间距。
 </pre>
         </li>
       </ul>
-      <h3 class="mume-header fontColor">帧间距泳道图框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-7">帧间距泳道图框选功能</h3>
     
       <p class="fontColor">
         框选帧间距泳道图，Frame spacing的Tab页会显示框选范围内帧间距数据。<br />
@@ -1002,10 +994,9 @@ result：帧间距。
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -1016,6 +1007,14 @@ result：帧间距。
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== 'null' ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

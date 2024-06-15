@@ -240,7 +240,6 @@
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -572,9 +571,11 @@
       }
 
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -656,11 +657,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -671,7 +668,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -778,23 +775,18 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">App startup的抓取和展示说明</h1>
       <p class="fontColor">
         应用启动分析功能主要是提供应用启动分析模板帮助系统调优人员做应用启动慢场景问题分析，快速查找系统侧启动慢阶段和耗时长调用栈信息。
       </p>
-      <h3 class="mume-header fontColor">App startup抓取参数的配置</h3>
+      <h3 class="mume-header fontColor" id="header-index-1">App startup抓取参数的配置</h3>
 
       <p class="fontColor">
         <img src="../figures/appstartup/appstartupconfig.jpg" alt="GitHub Logo" />
@@ -809,10 +801,10 @@ App startup：配置项的总开关。解析时请打开对应的Flags标记(Dis
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">App startup展示说明</h3>
+      <h3 class="mume-header fontColor" id="header-index-2">App startup展示说明</h3>
 
       <p class="fontColor">将抓取的App startup文件导入到smartperf工具中，查看应用启动各阶段耗时的情况。</p>
-      <h3 class="mume-header fontColor">App startup泳道图展示</h3>
+      <h3 class="mume-header fontColor" id="header-index-3">App startup泳道图展示</h3>
 
       <p class="fontColor">
         App startup的泳道图展示：
@@ -824,7 +816,7 @@ App startup：配置项的总开关。解析时请打开对应的Flags标记(Dis
         Phase(首帧渲染提交-应用)、First Frame - Render Phase(首帧渲染提交-Render
         Service)。每个阶段的Slice上都会显示出该阶段的时延。
       </p>
-      <h3 class="mume-header fontColor">App startup泳道图点选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-4">App startup泳道图点选功能</h3>
 
       <p class="fontColor">
         可以对启动各个阶段的Slice进行点选，点选后在最下方的弹出层中会展示点选数据的统计的tab页。
@@ -865,7 +857,7 @@ Duration：应用启动的持续时间。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">App startup泳道图Tab页跳转功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-5">App startup泳道图Tab页跳转功能</h3>
 
       <p class="fontColor">
         点击各阶段的起始或者结束时间后面的跳转图标，跳转至关联Slice，并显示该Slice的详细信息。
@@ -890,7 +882,7 @@ EndTime(Relative)的跳转： 跳转到H:virtual void OHOS::AppExecFwk::AppMgrSe
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">App startup泳道图的框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-6">App startup泳道图的框选功能</h3>
 
       <p class="fontColor">
         应用启动阶段泳道图框选功能主要是框选启动分析泳道图之后，统计应用各个启动阶段的耗费时长信息。
@@ -917,14 +909,14 @@ Duration：应用各阶段启动时长。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">So初始化泳道图展示</h3>
+      <h3 class="mume-header fontColor" id="header-index-7">So初始化泳道图展示</h3>
 
       <p class="fontColor">
         So初始化的泳道图展示：
         <br />
         <img src="../figures/appstartup/staticinitilizationrow.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">So初始化泳道图的点选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-8">So初始化泳道图的点选功能</h3>
 
       <p class="fontColor">
         点选So初始化的Slice，展示该so初始化信息的tab页。
@@ -957,7 +949,7 @@ Duration：So初始化耗时。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">So初始化泳道图Tab页跳转功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-9">So初始化泳道图Tab页跳转功能</h3>
 
       <p class="fontColor">
         点击So初始化开始时间后面的跳转图标，跳转至关联Slice，并显示该Slice的详细信息。
@@ -974,7 +966,7 @@ StartTime(Relative)的跳转： 跳转到dlopen:  system/lib64/extensionability/
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">So初始化泳道图的框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-10">So初始化泳道图的框选功能</h3>
 
       <p class="fontColor">
         So初始化泳道图框选功能主要是框选So初始化泳道图之后，统计各个进程下各个So的初始化耗费时长信息。
@@ -999,10 +991,9 @@ Duration：So的耗费时长。
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -1013,6 +1004,14 @@ Duration：So的耗费时长。
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== 'null' ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

@@ -241,7 +241,6 @@
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -573,9 +572,11 @@
       }
 
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -657,11 +658,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -672,7 +669,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -779,31 +776,26 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">Scheduling analysis抓取和展示说明</h1>
 
       <p class="fontColor">抓取和展示CPU调度分析，线程调度分析相关数据。</p>
       <h2 class="mume-header fontColor">Scheduling analysis的抓取</h2>
 
-      <h3 class="mume-header fontColor">Scheduling analysis抓取界面配置说明</h3>
+      <h3 class="mume-header fontColor" id="header-index-1">Scheduling analysis抓取界面配置说明</h3>
 
       <p class="fontColor">
         打开Scheduling analysis开关抓取调度分析数据。同时请打开对应的Flags标记(Disabled切换为Enabled)。
         <br />
         <img src="../figures/Schedulinganalysis/scheduset.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Scheduling analysis文件的抓取</h3>
+      <h3 class="mume-header fontColor" id="header-index-2">Scheduling analysis文件的抓取</h3>
 
       <p class="fontColor">
         点击Record setting，在output file path输入文件名hiprofiler_dataScheduling.htrace，拖动滚动条设置buffer
@@ -818,7 +810,7 @@
       <h2 class="mume-header fontColor">Scheduling analysis功能介绍</h2>
 
       <p class="fontColor">将抓取的文件导入到smartperf工具查看。</p>
-      <h3 class="mume-header fontColor">CPU频点分析</h3>
+      <h3 class="mume-header fontColor" id="header-index-3">CPU频点分析</h3>
 
       <p class="fontColor">
         点击下拉列表框选择CPU Frequency，可以看到各核CPU的各频点持续时长的占比图，以颜色区分各频点。
@@ -910,7 +902,7 @@ duration：运行总时长。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">CPU Idle分析</h3>
+      <h3 class="mume-header fontColor" id="header-index-4">CPU Idle分析</h3>
 
       <p class="fontColor">
         点击下拉列表框选择CPU Idle，可以看到各CPU的Idle的时长占比饼图，以颜色区分各Idle。
@@ -959,7 +951,7 @@ duration：运行总时长。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">CPU Irq分析</h3>
+      <h3 class="mume-header fontColor" id="header-index-5">CPU Irq分析</h3>
 
       <p class="fontColor">
         点击下拉列表框选择CPU Irq，可以看到各CPU的Irq的时长占比饼图，以颜色区分。
@@ -1014,14 +1006,14 @@ duration：运行总时长。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">CPU占用率显示</h3>
+      <h3 class="mume-header fontColor" id="header-index-6">CPU占用率显示</h3>
 
       <p class="fontColor">
         以表格显示各CPU的占用率。
         <br />
         <img src="../figures/Schedulinganalysis/CPUusagechart.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Top20线程大中小核占用率</h3>
+      <h3 class="mume-header fontColor" id="header-index-7">Top20线程大中小核占用率</h3>
 
       <p class="fontColor">
         选择Thread Analysis标签页，各个CPU通过勾选big或者middle或者small来设置CPU的分类。
@@ -1099,7 +1091,7 @@ cpu..(us)：运行总时长(..代表cpu号)。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">单个线程频点分布</h3>
+      <h3 class="mume-header fontColor" id="header-index-8">单个线程频点分布</h3>
 
       <p class="fontColor">
         点击单个线程频点分布的标签，通过在Thread Search选择线程，来展示单个线程的频点分布情况。
@@ -1138,7 +1130,7 @@ duration：运行时长。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Top20单次运行超长线程</h3>
+      <h3 class="mume-header fontColor" id="header-index-9">Top20单次运行超长线程</h3>
 
       <p class="fontColor">
         通过点击Top20单次运行超长线程标签，显示线程的单次运行时长来统计出单次运行时长最大的20个线程。
@@ -1189,7 +1181,7 @@ timestamp：时间戳信息。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Top20进程线程数</h3>
+      <h3 class="mume-header fontColor" id="header-index-10">Top20进程线程数</h3>
 
       <p class="fontColor">
         通过点击Top20进程线程数标签，显示线程数量最多的20个进程，以饼图和表格方式显示。
@@ -1222,7 +1214,7 @@ thread count：线程数量。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Top20切换次数线程</h3>
+      <h3 class="mume-header fontColor" id="header-index-11">Top20切换次数线程</h3>
 
       <p class="fontColor">
         通过点击Top20切换次数线程标签，显示切换次数最多的20个进程，以饼图和表格方式显示。
@@ -1271,10 +1263,9 @@ sched_switch count：切换次数。
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -1285,6 +1276,14 @@ sched_switch count：切换次数。
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== 'null' ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

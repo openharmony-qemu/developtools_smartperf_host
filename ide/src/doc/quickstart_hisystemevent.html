@@ -241,7 +241,6 @@
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -573,9 +572,11 @@
       }
 
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -657,11 +658,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -672,7 +669,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -779,18 +776,13 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">HiSystemEvent的抓取和展示说明</h1>
 
       <p class="fontColor">
@@ -798,7 +790,7 @@
       </p>
       <h2 class="mume-header fontColor">HiSystemEvent的抓取</h2>
 
-      <h3 class="mume-header fontColor">HiSystemEvent抓取配置参数</h3>
+      <h3 class="mume-header fontColor" id="header-index-1">HiSystemEvent抓取配置参数</h3>
 
       <p class="fontColor">
         打开Start Hisystem Event Tracker Record开关抓取HiSystemEvent数据。
@@ -822,9 +814,9 @@
         <br />
         <img src="../figures/HiSystemEvent/hisystemeventfile.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">HiSystemEvent展示说明</h3>
+      <h3 class="mume-header fontColor" id="header-index-2">HiSystemEvent展示说明</h3>
 
-      <h3 class="mume-header fontColor">HiSystemEvent的Energy泳道图展示</h3>
+      <h3 class="mume-header fontColor" id="header-index-3">HiSystemEvent的Energy泳道图展示</h3>
 
       <p class="fontColor">
         将抓取的trace文件导入smartperf界面查看。
@@ -895,7 +887,7 @@ Location Switch State泳道：鼠标悬浮可以显示GPS开关状态(enable：�
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">HiSystemEvent的Energy泳道图的框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-4">HiSystemEvent的Energy泳道图的框选功能</h3>
 
       <p class="fontColor">
         可以对Energy各泳道图进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格。
@@ -1176,10 +1168,10 @@ Energy Percent(%)：功耗占比。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">HiSystemEvent的Hisysevent泳道图展示</h3>
+      <h3 class="mume-header fontColor" id="header-index-5">HiSystemEvent的Hisysevent泳道图展示</h3>
 
       <p class="fontColor"><img src="../figures/HiSystemEvent/hisystemeventrow.jpg" alt="GitHub Logo" /></p>
-      <h3 class="mume-header fontColor">HiSystemEvent的Hisysevent泳道图框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-6">HiSystemEvent的Hisysevent泳道图框选功能</h3>
 
       <p class="fontColor">
         框选Hisysevent的泳道图，展示Hisysevents的tab页,有Filter by Domain，Filter by eventname，Filter by
@@ -1284,10 +1276,9 @@ Count： 各级别事件个数。
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -1298,6 +1289,14 @@ Count： 各级别事件个数。
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== 'null' ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

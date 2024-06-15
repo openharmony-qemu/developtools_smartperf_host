@@ -242,7 +242,6 @@
       font-size: 16px;
       color: #333333;
       overflow: initial;
-      background-color: #ffffff;
       word-wrap: break-word;
       font-family: Helvetica;
       box-sizing: border-box;
@@ -574,9 +573,11 @@
     }
 
     .smartperf-preview {
-      width: 99%;
+      width: 68vw;
       height: 99%;
       box-sizing: border-box;
+      overflow: hidden;
+      background-color: #fff;
     }
 
     .smartperf-preview .pagebreak,
@@ -658,11 +659,7 @@
     html body[for='html-export']:not([dpm]) {
       position: relative;
       width: 99%;
-      height: 99%;
-      top: 1px;
-      left: 1px;
-      margin: 1px;
-      padding: 1px;
+      height: 99%;;
       overflow: auto;
     }
 
@@ -673,7 +670,7 @@
 
     @media screen and (min-width: 914px) {
       html body[for='html-export']:not([dpm]) .smartperf-preview {
-        padding: 2em calc(50% - 458px + 2em);
+        padding: 2em;
       }
     }
 
@@ -780,25 +777,20 @@
       }
     }
 
-    html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
     html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
       display: none;
     }
   </style>
 </head>
 
-<body for="html-export" id="body">
-  <div class="smartperf smartperf-preview  ">
+<body for="html-export" id="body" style="margin:0">
+  <div class="smartperf smartperf-preview" style="min-height: 99vh;">
     <h1 class="mume-header fontColor">TraceStreamer数据表概述</h1>
 
     <p class="fontColor">
       TraceStreamer可以将trace数据源转化为易于理解和使用的数据库。用户可以通过SmartPerf界面直观的研究系统跟踪数据，也可在理解TraceStreamer生成的数据库的基础上，在TraceStreamer的交互模式或者Smartperf的数据库查询模式下，使用SQL查询语句自由组装查看用户关心的数据。下文将对TraceStreamer生成的数据库进行详细描述，给用户使用SQL查询系统跟踪数据提供帮助。
     </p>
-    <h2 class="mume-header fontColor">TraceStreamer输出的数据表分类</h2>
+    <h2 class="mume-header fontColor" id="header-index-1">TraceStreamer输出的数据表分类</h2>
 
     <ul class="fontColor">
       <li>常规泳道图数据表<br>
@@ -814,7 +806,7 @@
         <img src="../figures/traceStreamer/db_hisys_event.png" alt="GitHub Logo">
       </li>
     </ul>
-    <h2 class="mume-header fontColor">TraceStreamer输出数据库包含以下表格</h2>
+    <h2 class="mume-header fontColor" id="header-index-2">TraceStreamer输出数据库包含以下表格</h2>
 
     <table class="fontColor">
       <thead>
@@ -1152,7 +1144,7 @@
         </tr>
       </tbody>
     </table>
-    <h2 class="mume-header fontColor">表与事件来源</h2>
+    <h2 class="mume-header fontColor" id="header-index-3">表与事件来源</h2>
 
     <table class="fontColor">
       <thead>
@@ -1634,10 +1626,10 @@
         </tr>
       </tbody>
     </table>
-    <h2 class="mume-header fontColor"><em><strong>表格关系图</strong></em></h2>
+    <h2 class="mume-header fontColor" id="header-index-4"><em><strong>表格关系图</strong></em></h2>
 
     <hr>
-    <h3 class="mume-header fontColor">进程表与线程表关系</h3>
+    <h3 class="mume-header fontColor" id="header-index-5">进程表与线程表关系</h3>
 
     <p class="fontColor">当一个进程或者线程结束后，系统可能再次将该进程号或者线程号分配给其他进程或者线程，造成一个进程号或线程号代表多个进程或线程的情况。<br>
       Process和Thread表中的id字段可以唯一标识进程和线程。process表中的id在其他表中用作ipid字段。thread表中的id在其他表中用作itid字段。<br>
@@ -1652,7 +1644,7 @@
             thread.ipid = process.id</code>
       </li>
     </ul>
-    <h3>线程表与线程运行状态表关系图</h3>
+    <h3 id="header-index-6">线程表与线程运行状态表关系图</h3>
     <p class="fontColor">thread_state表记录所有线程的运行状态信息，包含ts(状态起始时间)，dur(状态持续时间)，cpu,
       itid, state（线程状态）。 thread表的id字段与thread_state表的itid字段相关联。<br>
       <img src="../figures/traceStreamer/thread_state.png" alt="GitHub Logo">
@@ -1664,7 +1656,7 @@
             and thread.id = thread_state.itid</code>
       </li>
     </ul>
-    <h3 class="mume-header fontColor">堆内存数据变化表关系图</h3>
+    <h3 class="mume-header fontColor" id="header-index-7">堆内存数据变化表关系图</h3>
 
     <p class="fontColor">
       native_hook表记录堆内存申请(AllocEvent)和释放(FreeEvent)数据。native_hook表通过ipid和itid字段分别与process和thread表的id字段关联，通过callchain_id与native_hook_frame表的callchain_id字段相关联。<br>
@@ -1698,7 +1690,7 @@
         <code class="fontColor">select * from native_hook_statistic where callchain_id = 1</code>
       </li>
     </ul>
-    <h3>日志表与进程线程表关系图</h3>
+    <h3 id="header-index-8">日志表与进程线程表关系图</h3>
     <p class="fontColor">log表记录日志信息。可以根据seq字段的连续性，来判断是否存在日志丢失的情况。<br>
       <img src="../figures/traceStreamer/log.png" alt="GitHub Logo">
     </p>
@@ -1708,7 +1700,7 @@
         <code class="fontColor">select * from log where tid = 123 and level = "error"</code>
       </li>
     </ul>
-    <h3 class="mume-header fontColor">perf表之间关系图</h3>
+    <h3 class="mume-header fontColor" id="header-index-9">perf表之间关系图</h3>
 
     <ul class="fontColor">
       <li>perf_report：此表记录Hiperf工具采集数据时的配置信息。</li>
@@ -1762,7 +1754,7 @@
         </p>
       </li>
     </ul>
-    <h3 class="mume-header fontColor">帧渲染表之间的关系图</h3>
+    <h3 class="mume-header fontColor" id="header-index-10">帧渲染表之间的关系图</h3>
 
     <p class="fontColor">frame_slice: 记录RS(RenderService)和应用的帧渲染。<br>
       gpu_slice: 记录RS的帧对应的gpu渲染时长。<br>
@@ -1788,7 +1780,7 @@
         </p>
       </li>
     </ul>
-    <h3>JS内存数据表关系图</h3>
+    <h3 id="header-index-11">JS内存数据表关系图</h3>
     <p class="fontColor">js_heap_files：记录js内存数据的文件名和文件索引</p>
     <p class="fontColor"><img src="../figures/traceStreamer/js_heap_files.png" alt="1683163158954"></p>
     <p class="fontColor">js_heap_nodes:记录js内存类对象数据<br>
@@ -1797,7 +1789,7 @@
       js_heap_sample:记录timeline的时间轴信息<br>
       <img src="../figures/traceStreamer/js_heap_nodes.png" alt="1683163373206">
     </p>
-    <h2>TraceStreamer输出数据库表格详细介绍</h2>
+    <h2 id="header-index-12">TraceStreamer输出数据库表格详细介绍</h2>
     <h3>app_name表</h3>
     <h4>表结构</h4>
     <table class="fontColor">
@@ -6094,10 +6086,9 @@
 
   <script>
     window.onload = () => {
-      let isDark = window.location.search;
-      if (isDark.indexOf('?') !== -1) {
-        isDark = isDark.substr(1, isDark.length - 1);
-      }
+      let isDark = getURLParameter('dark'); 
+      let targetId = getURLParameter('targetId'); 
+      let isBack = getURLParameter('isBack'); 
       if (isDark === 'true') {
         document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
         let header = document.getElementsByClassName('fontColor');
@@ -6108,6 +6099,14 @@
         for (let i = 0; i < lightBackGround.length; i++) {
           lightBackGround[i].style.backgroundColor = '#32373F';
         }
+      }
+      function getURLParameter(name) {  
+        return (new URL(document.location)).searchParams.get(name);  
+      }  
+
+      if ( targetId !== 'null' ) {
+        let targetElement = document.getElementById(targetId);
+        targetElement.scrollIntoView({ behavior: 'smooth' });
       }
     };
   </script>
