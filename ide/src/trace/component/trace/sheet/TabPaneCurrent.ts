@@ -183,6 +183,7 @@ export class TabPaneCurrent extends BaseElement {
       }
     });
     this.panelTable!.recycleDataSource = this.tableDataSource;
+    this.panelTable!.meauseAllRowHeight(this.tableDataSource);
     this.eventHandler();
     this.systemTrace!.slicesList = this.slicesTimeList || [];
   }

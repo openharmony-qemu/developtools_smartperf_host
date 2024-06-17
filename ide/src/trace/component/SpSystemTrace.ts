@@ -1553,6 +1553,8 @@ export class SpSystemTrace extends BaseElement {
           }),
           scrollTop: this.rowsEL!.scrollTop,
           favoriteScrollTop: this.favoriteChartListEL!.scrollTop,
+          drawFlag: this.timerShaftEL!.sportRuler!.flagList,//下载时存旗帜的信息
+          markFlag: this.timerShaftEL!.sportRuler!.slicesTimeList,//下载时存M和shiftM的信息
         });
         this.downloadRecordFile(data).then(() => { });
       }
@@ -1590,6 +1592,9 @@ export class SpSystemTrace extends BaseElement {
         }
         this.restoreRecordExpandAndTimeRange(record);
         this.currentCollectGroup = currentGroup;
+        this.timerShaftEL!.sportRuler!.flagList = record.drawFlag;//获取下载时存的旗帜信息
+        this.timerShaftEL!.sportRuler!.slicesTimeList = record.markFlag;//获取下载时存的M键信息
+        this.selectFlag = this.timerShaftEL!.sportRuler!.flagList.find((it) => it.selected);//绘制被选中旗帜对应的线
         TraceRow.range!.refresh = true;
         this.refreshCanvas(true);
         this.restoreRecordScrollTop(record.scrollTop, record.favoriteScrollTop);
