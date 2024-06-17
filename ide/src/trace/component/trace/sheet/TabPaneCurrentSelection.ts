@@ -196,7 +196,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
     scrollCallback?: (data: CpuStruct) => void
   ): Promise<void> {
-    await this.setRealTime();
+    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
     this.setTableHeight('650px');
     let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
     if (leftTitle) {
@@ -353,7 +355,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     distributedCallback?: Function,
   ): Promise<void> {
     //方法信息
-    await this.setRealTime();
+    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
     this.tabCurrentSelectionInit('Slice Details');
     let list: any[] = [];
     let name = this.transferString(data.funName ?? '');
@@ -405,6 +409,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     } else {
       this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });
+      if(data.cookie) {
+        list.push({name: 'TaskId',value: data.cookie})
+      }
       await queryThreadAndProcess(data.itid!,data.ipid!).then((res)=>{
         const item = res[0]; 
         list.push({  
@@ -865,7 +872,9 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   async setClockData(data: ClockStruct): Promise<void> {
-    await this.setRealTime();
+    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
     this.setTableHeight('auto');
     //时钟信息
     this.tabCurrentSelectionInit('Counter Details');
@@ -1006,7 +1015,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     callback?: (data: Array<unknown>, str: string) => void
   ): Promise<void> {
     //线程信息
-    await this.setRealTime();
+    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
     this.setTableHeight('550px');
     this.initCanvas();
     let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
