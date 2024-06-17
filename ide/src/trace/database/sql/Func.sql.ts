@@ -109,15 +109,18 @@ export const querySingleFuncNameCycle = (
     }
   );
 
-export const queryAllFuncNames = (traceId?: string): //@ts-ignore
-  Promise<Array<unknown>> => {
-  return query(
+export const queryAllFuncNames = async (traceId?: string): Promise<Array<unknown>> => {
+  let allFuncNamesBuffer = await query(
     'queryAllFuncNames',
-    `
-        select id,name from callstack;`,
+    `select 
+      id,
+      name 
+    from
+      callstack;`,
     {},
-    { traceId: traceId }
+    { traceId: traceId, action: 'exec-buf' }
   );
+  return Utils.convertJSON(allFuncNamesBuffer);
 };
 
 export const queryProcessAsyncFunc = (

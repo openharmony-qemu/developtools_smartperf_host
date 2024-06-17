@@ -601,9 +601,15 @@ export const queryThreads = (): //@ts-ignore
 Promise<Array<unknown>> =>
   query('queryThreads', `select id,tid,(ifnull(name,'Thread') || '(' || tid || ')') name from thread where id != 0;`);
 
-export const queryDataDICT = (): //@ts-ignore
-Promise<Array<unknown>> => query('queryDataDICT',
-  'select * from data_dict;');
+export const queryDataDICT = async (): Promise<Array<unknown>> => {
+  let dataDictBuffer = await query(
+    'queryDataDICT',
+    'select * from data_dict;', 
+    {},
+    { action: 'exec-buf' }
+  );
+  return Utils.convertJSON(dataDictBuffer);
+}
 
 export const queryAppStartupProcessIds = (): Promise<Array<{ pid: number }>> =>
   query(

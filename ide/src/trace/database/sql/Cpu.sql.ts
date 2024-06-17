@@ -322,18 +322,22 @@ Promise<Array<unknown>> =>
     { traceId: traceId }
   );
 
-export const queryCpuSchedSlice = (traceId?: string): Promise<Array<unknown>> =>
-  query(
+export const queryCpuSchedSlice = async (traceId?: string): Promise<Array<unknown>> => {
+  let cpuSchedSliceBuffer = await query(
     'queryCpuSchedSlice',
-    `
-   select (ts - start_ts) as ts,
+    `select 
+      (ts - start_ts) as ts,
        itid,
        end_state as endState,
        priority
-   from sched_slice,trace_range;`,
+    from
+      sched_slice,
+      trace_range;`,
     {},
-    { traceId: traceId }
+    { traceId: traceId, action: 'exec-buf' }
   );
+  return Utils.convertJSON(cpuSchedSliceBuffer);
+}
 
 export const queryCpuStateFilter = (traceId?: string):
 Promise<Array<{ cpu: number; filterId: number }>> =>

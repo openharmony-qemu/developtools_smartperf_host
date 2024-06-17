@@ -29,11 +29,18 @@ export const queryIrqList = (traceId?: string): Promise<Array<{ name: string; cp
     cpu`
     , {}, { traceId: traceId });
 
-export const queryAllIrqNames = (traceId?: string): Promise<Array<{ ipiName: string; name: string; id: number }>> => {
-  return query(
+export const queryAllIrqNames = async (traceId?: string): Promise<Array<{ ipiName: string; name: string; id: number }>> => {
+  let allIrqNamesBuffer = await  query(
     'queryAllIrqNames',
-    `select id,case when cat = 'ipi' then 'IPI' || name else name end as ipiName from irq;`
-    , {}, { traceId: traceId });
+    `select
+      id,
+      case 
+    when 
+      cat = 'ipi' then 'IPI' || name else name end as ipiName from irq;`,
+    {}, 
+    { traceId: traceId, action: 'exec-buf' }
+  );
+  return Utils.convertJSON(allIrqNamesBuffer);
 };
 
 export const queryIrqData = (callid: number, cat: string): Promise<Array<IrqStruct>> => {
