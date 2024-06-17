@@ -571,7 +571,9 @@ export class SpHelp extends BaseElement {
         #navbar-container ul li a {  
           width:100%;
           height:100%;
-          color: #736b68;
+          color: black;
+          font-family: Helvetica;
+          font-size: 14px;
           text-decoration: none;  
           display: block; 
           padding: 0;  
@@ -597,10 +599,13 @@ export class SpHelp extends BaseElement {
           visibility: hidden;  
           width: 100%; 
           background-color: #ecb829;  
-          color: #fff;  
+          color: #fff;
+          font-family: Helvetica;
+          font-size: 14px;  
           text-align: center; 
           border-radius: 6px;  
-          padding: 5px 0;  
+          padding: 5px 5px; 
+          margin-left:5px; 
           position: absolute;  
           z-index: 1;  
           opacity: 0;  
@@ -634,7 +639,7 @@ export class SpHelp extends BaseElement {
             <div id="app-content" class="content">
                <div id="help-file" style="width:100%;overflow-y: hidden;"></div>
                       <nav id="navbar-container" style="position:fixed;top:80px;left:79%;width:18%;"></nav>
-                      <div class="back" style="position:fixed;top:80px;left:97%;width:2%;">
+                      <div class="back" style="position:fixed;top:80px;left:98%;width:2%;">
                           <lit-icon id="back-to-top" name="vertical-align-top" style="font-weight: bold;cursor: pointer;" size="20">
                           </lit-icon>
                       </div>
