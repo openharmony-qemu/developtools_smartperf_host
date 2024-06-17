@@ -241,7 +241,6 @@
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -573,9 +572,11 @@
       }
 
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -657,11 +658,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -672,7 +669,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -779,50 +776,45 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">Sql分析和Metrics说明</h1>
 
       <p class="fontColor">
         Sql功能是方便使用者查询sql语句查看相关业务，Metrics是更高级别的查询接口，无需手动键入任何SQL语句，只需要选择定制好的查询接口，就能获得想要跟踪的结果。
       </p>
-      <h2 class="mume-header fontColor">Sql分析功能介绍</h2>
+      <h2 class="mume-header fontColor" id="header-index-1">Sql分析功能介绍</h2>
 
       <p class="fontColor">
         点击Query(SQL)，输入需要查询的sql语句，如select * from process，可以看到进程表数据。
         <br />
         <img src="../figures/Metrics/Sql.jpg" alt="GitHub Logo" />
       </p>
-      <h2 class="mume-header fontColor">Metrics功能介绍</h2>
+      <h2 class="mume-header fontColor" id="header-index-2">Metrics功能介绍</h2>
 
       <p class="fontColor">
         Metrics是更高级别的查询接口，无需手动键入任何SQL语句，只需要选择定制好的查询接口，就能获得想要跟踪的结果。
       </p>
-      <h3 class="mume-header fontColor">Metrics查询接口展示</h3>
+      <h3 class="mume-header fontColor" id="header-index-3">Metrics查询接口展示</h3>
 
       <p class="fontColor">
         如下图，查询接口在下拉框中，如选择trace_task_names，点击run，就能展示线程和进程相关数据。
         <br />
         <img src="../figures/Metrics/metrics.jpg" alt="GitHub Logo" />
       </p>
-      <h2 class="mume-header fontColor">Info和stats功能</h2>
+      <h2 class="mume-header fontColor" id="header-index-4">Info和stats功能</h2>
 
       <p class="fontColor">
         点击Info and stats，能查看到meta表和stats表信息。
         <br />
         <img src="../figures/Metrics/infoandstats.jpg" alt="GitHub Logo" />
       </p>
-      <h2 class="mume-header fontColor">Download功能</h2>
+      <h2 class="mume-header fontColor" id="header-index-5">Download功能</h2>
 
       <p class="fontColor">
         点击DownLoad按钮，会将在线抓取的文件下载到本地。
@@ -833,10 +825,9 @@
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -847,6 +838,14 @@
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== 'null' ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

@@ -190,6 +190,7 @@
         position: relative;
         padding: 1em 1px 1px 0.9em;
       }
+
       pre[dl] .line-highlight-wrapper {
         position: absolute;
         top: 1px;
@@ -234,12 +235,12 @@
         top: auto;
         bottom: 0.5em;
       }
+
       html body {
         line-height: 1.6;
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -569,10 +570,13 @@
           white-space: pre;
         }
       }
+
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -654,11 +658,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -669,7 +669,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -776,22 +776,17 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">web端加载trace说明</h1>
 
       <p class="fontColor">从web端查看trace文件，进行性能检测的分析。</p>
-      <h2 class="mume-header fontColor">文件加载入口</h2>
+      <h2 class="mume-header fontColor" id="header-index-1">文件加载入口</h2>
 
       <p class="fontColor">
         将抓取的trace导入查看。
@@ -805,7 +800,7 @@
         <li>Record new trace：抓取新的trace文件入口。</li>
         <li>Record template：抓取指定模块的trace入口。</li>
       </ul>
-      <h2 class="mume-header fontColor">导入trace文件后显示页面</h2>
+      <h2 class="mume-header fontColor" id="header-index-2">导入trace文件后显示页面</h2>
 
       <p class="fontColor">
         <img src="../figures/Web/trace.jpg" alt="GitHub Logo" />
@@ -817,12 +812,12 @@
           操作说明：在当前页面可以通过键盘上的wasd四个键位操作当前的时间轴进行缩放，w为放大，s为缩小，a为左移，d为右移。
         </li>
       </ul>
-      <h2 class="mume-header fontColor">trace功能介绍</h2>
+      <h2 class="mume-header fontColor" id="header-index-3">trace功能介绍</h2>
 
       <p class="fontColor">
         trace模块从上往下主要展示时间轴、cpu使用率、cpu使用情况、进程间通讯数据的方法调用情况、进程、线程和方法调用情况。
       </p>
-      <h3 class="mume-header fontColor">时间轴和cpu使用率</h3>
+      <h3 class="mume-header fontColor" id="header-index-4">时间轴和cpu使用率</h3>
 
       <p class="fontColor">
         <img src="../figures/Web/time.jpg" alt="GitHub Logo" />
@@ -835,7 +830,7 @@
         <br />
         在白色背景时间轴区域内点击后拖拽鼠标，对从鼠标按下到拖拽完成鼠标松开的区域内的数据进行筛选，高亮显示的部分为当前所选区域，如上图所示。
       </p>
-      <h3 class="mume-header fontColor">cpu使用情况</h3>
+      <h3 class="mume-header fontColor" id="header-index-5">cpu使用情况</h3>
 
       <p class="fontColor"><img src="../figures/Web/cpu.jpg" alt="GitHub Logo" /></p>
       <p class="fontColor">
@@ -888,14 +883,14 @@
         <br />
         <img src="../figures/Web/cpuclick.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">线程唤醒关系树</h3>
+      <h3 class="mume-header fontColor" id="header-index-6">线程唤醒关系树</h3>
 
       <p class="fontColor">
         线程唤醒关系树功能是点击GetWakeupList会以链式结构和表格分别在泳道图和tab上展示线程的唤醒关系树信息,点击GetWakeupList按钮旁边的星号按钮可以对唤醒树对应的泳道图一键收藏，对优先级最低且运行时长最长或者运行时长最长的线程会以红色字体高亮显示。
         <br />
         <img src="../figures/Web/threadtree.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">进程、线程和方法数据</h3>
+      <h3 class="mume-header fontColor" id="header-index-7">进程、线程和方法数据</h3>
 
       <p class="fontColor">
         下图是进程数据，左边部分展示进程名称和id，右边显示线程切换关系，线程的调用方法，进程间内存信息等。
@@ -965,7 +960,7 @@
         <br />
         <img src="../figures/Web/keyslice.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">trace的其他功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-8">trace的其他功能</h3>
 
       <h4 class="mume-header fontColor">小旗标志的功能</h4>
 
@@ -992,7 +987,7 @@
         <br />
         <img src="../figures/Web/searchcallstack.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Tab页信息和泳道图可跳转(点击和框选场景,框选类似搜索)</h3>
+      <h3 class="mume-header fontColor" id="header-index-9">Tab页信息和泳道图可跳转(点击和框选场景,框选类似搜索)</h3>
 
       <p class="fontColor">
         泳道图高亮场景：框选Cpu Frequency 或者Cpu State泳道图后，弹出Cpu Frequency或Cpu State
@@ -1010,7 +1005,7 @@
         <br />
         <img src="../figures/Web/Tabcallstackskip.jpg" alt="GitHub Logo" />
       </p>
-      <h4 class="mume-header fontColor">M键测量功能</h4>
+      <h4 class="mume-header fontColor" id="header-index-10">M键测量功能</h4>
 
       <p class="fontColor">
         放大trace中的色块，选中色块，键盘按下M，会出现像标尺一样的形状。
@@ -1021,10 +1016,9 @@
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -1035,6 +1029,14 @@
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== 'null' ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

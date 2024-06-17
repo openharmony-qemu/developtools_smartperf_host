@@ -55,6 +55,8 @@ export class DmaFenceRender {
           DmaFenceRow.hoverY <= (depth + 1) * 24 + 8 &&
           DmaFenceRow.hoverY >= depth * 24 + 8
         ) {
+          re.frame!.height = 24;
+          re.frame!.y = re.dur === 0 ? 32 : 8;
           DmaFenceStruct.hoverDmaFenceStruct = re;
           find = true;
         }

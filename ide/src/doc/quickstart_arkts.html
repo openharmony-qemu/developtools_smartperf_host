@@ -239,7 +239,6 @@
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -571,9 +570,11 @@
       }
 
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -655,11 +656,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -670,7 +667,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -777,38 +774,33 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">Cpuprofiler抓取和展示说明</h1>
 
       <p class="fontColor">Cpuprofiler模板帮助ArkTs开发和测试分析虚拟机层执行开销大问题，提供Ts层耗时长函数和阶段。</p>
       <h2 class="mume-header fontColor">Cpuprofiler的抓取</h2>
 
-      <h4 class="mume-header fontColor">Cpuprofiler的抓取配置参数</h4>
+      <h4 class="mume-header fontColor" id="header-index-1">Cpuprofiler的抓取配置参数</h4>
 
       <p class="fontColor">
         打开Start Ark Ts Record总开关下面的Start cpu profiler开关抓取Cpuprofiler数据。
         <br />
         <img src="../figures/arkts/cpuprofilerconfig.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Cpuprofiler展示说明</h3>
+      <h3 class="mume-header fontColor" id="header-index-2">Cpuprofiler展示说明</h3>
 
       <p class="fontColor">
         将抓取的Cpuprofiler文件导入到SmartPerf中，查看Ts层耗时长的函数和阶段。
         <br />
         <img src="../figures/arkts/cpuprofilerrow.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Cpuprofiler的泳道图悬浮显示</h3>
+      <h3 class="mume-header fontColor" id="header-index-3">Cpuprofiler的泳道图悬浮显示</h3>
 
       <p class="fontColor">
         鼠标放到泳道图的Slice上会有悬浮框显示。
@@ -841,7 +833,7 @@ Url : 函数所在的文件名称。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Cpuprofiler泳道图的点选和框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-4">Cpuprofiler泳道图的点选和框选功能</h3>
 
       <p class="fontColor">
         点选或者框选泳道图上函数名的Slice，会显示Js Profiler Statistics，Js Profiler CallTree，Js Profiler
@@ -929,7 +921,7 @@ Total Time : 函数自身及调用者的调用时间总和。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Cpuprofiler的Heaviest Stack功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-5">Cpuprofiler的Heaviest Stack功能</h3>
 
       <p class="fontColor">
         Js Profiler CallTree的Tab页的Heaviest Stack表格显示的是选中的函数的完整的调用栈。
@@ -964,10 +956,9 @@ Total Time : 函数自身及调用者的调用时间总和。
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -978,6 +969,14 @@ Total Time : 函数自身及调用者的调用时间总和。
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== 'null' ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

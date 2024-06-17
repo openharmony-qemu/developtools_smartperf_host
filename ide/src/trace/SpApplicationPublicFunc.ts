@@ -391,7 +391,7 @@ export const applicationHtml: string = `
                 </sp-info-and-stats>
                 <sp-convert-trace style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 107" id="sp-convert-trace">
                 </sp-convert-trace>
-                <sp-help style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 103" id="sp-help">
+                <sp-help style="width:100%;height:100%;overflow:hidden;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 103" id="sp-help">
                 </sp-help>
                 <sp-flags style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 104" id="sp-flags">
                 </sp-flags>

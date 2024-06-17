@@ -190,6 +190,7 @@
         position: relative;
         padding: 1em 1px 1px 0.9em;
       }
+
       pre[dl] .line-highlight-wrapper {
         position: absolute;
         top: 1px;
@@ -234,12 +235,12 @@
         top: auto;
         bottom: 0.5em;
       }
+
       html body {
         line-height: 1.6;
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -569,10 +570,13 @@
           white-space: pre;
         }
       }
+
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -654,11 +658,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -669,7 +669,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -776,24 +776,19 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview  ">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">Native Memory 抓取和展示说明</h1>
 
       <p class="fontColor">Native Memory 是查看内存的分配和释放等情况。</p>
       <h2 class="mume-header fontColor">Native Memory 的抓取</h2>
 
-      <h3 class="mume-header fontColor">Native Memory 抓取配置参数</h3>
+      <h3 class="mume-header fontColor" id="header-index-1">Native Memory 抓取配置参数</h3>
 
       <p class="fontColor"><img
         src="../figures/NativeMemory/nativememorysetting.png"
@@ -862,7 +857,7 @@
 
       <p class="fontColor">将抓取的 Native Memory 文件导入到 smartperf
         工具中查看，查看内存的分配和释放等情况。</p>
-      <h3 class="mume-header fontColor">Native Memory 泳道图展示类型</h3>
+      <h3 class="mume-header fontColor" id="header-index-2">Native Memory 泳道图展示类型</h3>
 
       <p class="fontColor">点击齿轮状的图标可以设置内存的展示单位。<br>
         <img
@@ -891,7 +886,7 @@
           </pre>
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Native Memory 泳道图的框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-3">Native Memory 泳道图的框选功能</h3>
 
       <p class="fontColor">可以对内存的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有五个
         tab 页。<br>
@@ -1014,14 +1009,14 @@
           </pre>
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Native Memory 的辅助信息功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-4">Native Memory 的辅助信息功能</h3>
 
       <p class="fontColor">在 Call Info 和 Native Memory 的 Tab 页，点击选中某一行，右边画红线处会显示出该行调用栈的树结构信息。<br>
         <img
           src="../figures/NativeMemory/nativecallstack.png"
           alt="GitHub Logo">
       </p>
-      <h3 class="mume-header fontColor">Native Memory 详细显示的过滤功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-5">Native Memory 详细显示的过滤功能</h3>
 
       <p class="fontColor">点击下方的 All Allocations 可以对 Allocation Lifespan 进行过滤，有三个选择：All
         Allocatios，Created &amp; Existing，Created &amp; Destroyed。<br>
@@ -1062,33 +1057,33 @@
             src="../figures/NativeMemory/Generation.jpg"
             alt="GitHub Logo"></li>
       </ul>
-      <h3 class="mume-header fontColor">Native Memory 的火焰图功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-6">Native Memory 的火焰图功能</h3>
 
       <p class="fontColor">火焰图的展示跟 Call Info 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称，栈的所在库名，地址，
         大小，采集次数。<br>
         <img
           src="../figures/NativeMemory/nativeflameshow.jpg"
           alt="GitHub Logo"></p>
-      <h3 class="mume-header fontColor">
+      <h3 class="mume-header fontColor" id="header-index-7">
         基于函数进行调用栈（单个或多个）选择后可以在时间轴上显示内存操作点</h3>
 
       <p class="fontColor">点击火焰图函数时，触发火焰图点击，显示调用栈中该函数出现在时间轴范围的分布情况。<br>
         <img
           src="../figures/NativeMemory/memoryframe.jpg"
           alt="GitHub Logo"></p>
-      <h3 class="mume-header fontColor">
+      <h3 class="mume-header fontColor" id="header-index-8">
         内存搜索大小写不敏感，上层火焰图的大小和总内存需要根据搜索内容动态调整</h3>
 
       <p class="fontColor">执行搜索的关键字大小写不区分，搜索的函数的 parent 只显示搜索的 children
         的大小之和，且可以与点选联动。</p>
-      <h3 class="mume-header fontColor">焦点函数火焰图详细展开：选中函数的全部调用栈展示</h3>
+      <h3 class="mume-header fontColor" id="header-index-9">焦点函数火焰图详细展开：选中函数的全部调用栈展示</h3>
 
       <p class="fontColor">点击调用栈某个函数，点击函数调用的函数对应铺满画布，点击函数的
         parent，显示以及绘制的大小变化为点击函数的大小，如下图点击 OHOS::EglCoreInit()函数，会显示该函数的全部调用栈。<br>
         <img
           src="../figures/NativeMemory/eg_callstack.jpg"
           alt="GitHub Logo"></p>
-      <h3 class="mume-header fontColor">搜索框支持表达式输入</h3>
+      <h3 class="mume-header fontColor" id="header-index-10">搜索框支持表达式输入</h3>
 
       <p class="fontColor">调用栈默认会显示火焰图，新增搜索框表达式输入。表达式作用范围为 nativehook
         的统计与非统计模式。其中处理的为 Responsible Library 与 Responsible Caller，其中 Responsible
@@ -1178,7 +1173,7 @@
         </tr>
         </tbody>
       </table>
-      <h3 class="mume-header fontColor">Native Memory 数据统计功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-11">Native Memory 数据统计功能</h3>
 
       <p class="fontColor">选择 Use Record Statistics 和 statistics interval 配置项抓取的数据，只会显示
         Call Info 的 Tab 页，Call Info 相关功能同上。<br>
@@ -1186,7 +1181,7 @@
           src="../figures/NativeMemory/statiscsCallInfo.jpg"
           alt="GitHub Logo">
       </p>
-      <h3 class="mume-header fontColor">Native Memory 多进程数据显示</h3>
+      <h3 class="mume-header fontColor" id="header-index-12">Native Memory 多进程数据显示</h3>
 
       <p class="fontColor">前端可以支持多进程数据的展示，通过在 tab 页切换不同进程，可以显示不同进程的
         hook 数据。<br>
@@ -1198,10 +1193,9 @@
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -1212,6 +1206,14 @@
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== 'null' ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>
