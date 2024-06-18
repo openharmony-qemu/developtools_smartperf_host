@@ -107,12 +107,6 @@ ohos_source_set("trace_streamer_sdk") {
     "${THIRD_PARTY}/json/single_include/nlohmann",
     "${THIRD_PARTY}/bounds_checking_function/include",
   ]
-  if (!use_wasm) {
-    include_dirs += [
-      "${THIRD_PARTY}/libunwind/include",
-      "${THIRD_PARTY}/libunwind/src",
-    ]
-  }
   deps = [
     "${SRC}/base:base",
     "${THIRD_PARTY}/bounds_checking_function:libsec_static",

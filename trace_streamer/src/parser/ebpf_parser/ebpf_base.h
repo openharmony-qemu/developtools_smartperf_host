@@ -36,7 +36,7 @@ public:
     EbpfBase(TraceDataCache *dataCache, const TraceStreamerFilters *ctx);
     ~EbpfBase();
     bool InitEbpfDataParser(EbpfDataReader *reader);
-    bool EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
+    void EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
 
 protected:
     void ParseCallStackData(const uint64_t *userIpsAddr, uint16_t count, uint32_t pid, uint32_t callId);

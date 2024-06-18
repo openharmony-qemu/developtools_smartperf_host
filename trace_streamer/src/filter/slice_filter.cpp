@@ -22,6 +22,7 @@
 #include "measure_filter.h"
 #include "process_filter.h"
 #include "stat_filter.h"
+#include "string_help.h"
 #include "string_to_numerical.h"
 #include "ts_common.h"
 
@@ -159,6 +160,17 @@ void SliceFilter::SoftIrqExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args)
     slices->SetIrqDurAndArg(softIrqEventMap_.at(cpu).row, timeStamp, argSetId);
     softIrqEventMap_.erase(cpu);
     return;
+}
+
+void SliceFilter::DmaFence(DmaFenceRow &dmaFenceRow)
+{
+    if (dmaFenceEventMap_.find(dmaFenceRow.timeline) == dmaFenceEventMap_.end()) {
+        dmaFenceEventMap_.emplace(dmaFenceRow.timeline, dmaFenceRow.timeStamp);
+    } else {
+        dmaFenceRow.duration = dmaFenceRow.timeStamp - dmaFenceEventMap_.at(dmaFenceRow.timeline);
+        dmaFenceEventMap_.at(dmaFenceRow.timeline) = dmaFenceRow.timeStamp;
+    }
+    traceDataCache_->GetDmaFenceData()->AppendNew(dmaFenceRow);
 }
 
 void SliceFilter::RememberSliceData(InternalTid internalTid,
@@ -316,7 +328,7 @@ size_t SliceFilter::StartSlice(uint64_t timeStamp,
     CallStackInternalRow callStackInternalRow = {sliceData.timeStamp,   static_cast<uint64_t>(sliceData.duration),
                                                  sliceData.internalTid, sliceData.cat,
                                                  sliceData.name,        0};
-    size_t index = slices->AppendInternalSlice(callStackInternalRow, std::nullopt);
+    size_t index = slices->AppendInternalSlice(callStackInternalRow, parentId);
     if (depth >= std::numeric_limits<uint8_t>::max()) {
         return SIZE_MAX;
     }
@@ -432,24 +444,29 @@ uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
                                       int64_t cookie,
                                       DataIndex nameIndex)
 {
-    Unused(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
-
+    uint32_t parentId = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     auto lastFilterId = asyncEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();
+    auto cat = INVALID_UINT64;
     if (lastFilterId != INVALID_UINT64) {
         asyncEventDisMatchCount_++;
         return INVALID_UINT64;
     }
     asyncEventSize_++;
+    std::smatch matchLine;
+    if (std::regex_match(traceDataCache_->GetDataFromDict(nameIndex), matchLine, categoryReg_)) {
+        std::string category = matchLine[categoryMatchedIdx_].str();
+        cat = traceDataCache_->GetDataIndex(Strip(category));
+    }
     // a pid, cookie and function name determain a callstack
     asyncEventMap_.Insert(internalTid, cookie, nameIndex, asyncEventSize_);
     // the IDE need a depth to paint call slice in different position of the canvas, the depth of async call
     // do not mean the parent-to-child relationship, it is different from no-async call
     uint8_t depth = 0;
-    CallStackInternalRow callStackInternalRow = {
-        timeStamp, static_cast<uint64_t>(-1), internalTid, INVALID_UINT64, nameIndex, depth};
-    size_t index = slices->AppendInternalAsyncSlice(callStackInternalRow, cookie, std::nullopt);
+    CallStackInternalRow callStackInternalRow = {timeStamp, static_cast<uint64_t>(-1), internalTid, cat, nameIndex,
+                                                 depth};
+    size_t index = slices->AppendInternalAsyncSlice(callStackInternalRow, cookie, parentId);
     asyncEventFilterMap_.insert(std::make_pair(asyncEventSize_, AsyncEvent{timeStamp, index}));
     return index;
 }
@@ -489,7 +506,6 @@ void SliceFilter::StartGEvent(uint64_t timeStamp,
                               int64_t cookie,
                               DataIndex nameIndex)
 {
-    Unused(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
     auto gEventRes = gEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();
@@ -539,6 +555,7 @@ uint64_t SliceFilter::FinishHEvent(uint64_t timeStamp, uint32_t threadGroupId, i
     streamFilters_->processFilter_->AddThreadSliceNum(internalTid);
     return lastRow;
 }
+
 size_t SliceFilter::EndSlice(uint64_t timeStamp,
                              uint32_t pid,
                              uint32_t threadGroupId,
@@ -602,6 +619,8 @@ void SliceFilter::Clear()
     depthHolder_.clear();
     sliceRowToArgsSetId_.clear();
     argsSet_.clear();
+    gEventMap_.Clear();
+    gEventFilterMap_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -43,6 +43,7 @@ public:
     void SetName(uint64_t index, DataIndex name);
     void UpdateSymbolId(size_t index, DataIndex symbolId);
     void Clear() override;
+    void UpdateSymbolRelatedData(size_t index, uint64_t vaddrInFile, uint64_t symbolId, DataIndex nameIndex);
 
 private:
     std::deque<uint32_t> callChainIds_ = {};
@@ -62,6 +63,7 @@ public:
     const std::deque<DataIndex> &FilePaths() const;
     const std::deque<uint32_t> &Serials() const;
     void Clear() override;
+    bool EraseFileIdSameData(uint64_t fileId);
 
 private:
     std::deque<uint64_t> fileIds_ = {};
@@ -124,6 +126,43 @@ public:
 private:
     std::deque<DataIndex> types_ = {};
     std::deque<DataIndex> values_ = {};
+};
+
+struct PerfNapiAsyncRow {
+    uint64_t timeStamp = INVALID_UINT64;
+    DataIndex traceid = INVALID_UINT64;
+    uint8_t cpuId = INVALID_UINT8;
+    InternalTid threadId = INVALID_UINT32;
+    uint32_t processId = INVALID_UINT32;
+    uint32_t callerCallchainid = INVALID_UINT32;
+    uint32_t calleeCallchainid = INVALID_UINT32;
+    uint64_t perfSampleId = INVALID_UINT64;
+    uint64_t eventCount = 0;
+    uint64_t eventTypeId = 0;
+};
+
+class PerfNapiAsync : public CacheBase {
+public:
+    size_t AppendNewPerfNapiAsync(const PerfNapiAsyncRow &perfNapiAsyncRow);
+    const std::deque<DataIndex> &Traceids() const;
+    const std::deque<uint8_t> &CpuIds() const;
+    const std::deque<uint32_t> &ProcessIds() const;
+    const std::deque<uint32_t> &CallerCallchainids() const;
+    const std::deque<uint32_t> &CalleeCallchainids() const;
+    const std::deque<uint64_t> &PerfSampleIds() const;
+    const std::deque<uint64_t> &EventCounts() const;
+    const std::deque<uint64_t> &EventTypeIds() const;
+    void Clear() override;
+
+private:
+    std::deque<DataIndex> traceids_ = {};
+    std::deque<uint8_t> cpuIds_ = {};
+    std::deque<uint32_t> processIds_ = {};
+    std::deque<uint32_t> callerCallchainids_ = {};
+    std::deque<uint32_t> calleeCallchainids_ = {};
+    std::deque<uint64_t> perfSampleIds_ = {};
+    std::deque<uint64_t> eventCounts_ = {};
+    std::deque<uint64_t> eventTypeIds_ = {};
 };
 } // namespace TraceStdtype
 } // namespace SysTuning

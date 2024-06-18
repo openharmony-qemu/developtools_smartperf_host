@@ -15,7 +15,10 @@ import("//build/ohos.gni")
 import("../../../build/ts.gni")
 
 config("native_hook_filter_cfg") {
-  include_dirs = [ "." ]
+  include_dirs = [
+    ".",
+    "${COMMON_LIBRARY}/base/include",
+  ]
 }
 
 ohos_static_library("native_hook_filter") {

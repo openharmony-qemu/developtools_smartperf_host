@@ -69,7 +69,7 @@ public:
     }
     virtual void ClearExportedData() = 0;
     template <typename T, typename... changedata>
-    void EraseElements(T &deq, changedata &... args)
+    void EraseElements(T &deq, changedata &...args)
     {
         deq.erase(deq.begin(), deq.begin() + readySize_);
         EraseElements(args...);

@@ -13,87 +13,66 @@
 
 import("//build/ohos.gni")
 import("../../build/ts.gni")
-ohos_source_set("elf") {
-  subsystem_name = "developtools"
-  part_name = "smartperf_host"
-  configs -= [ trace_cfg_path ]
-  configs += [ "../../gn:hiperf_trace_cfg" ]
-  cflags = [ "-D is_mingw=${is_mingw}" ]
-  sources = [ "src/utilities.cpp" ]
-  include_dirs = [
-    "include",
-    "${SRC}/base",
-    "include/nonlinux/linux",
-    "include/nonlinux",
-    "${THIRD_PARTY}/bounds_checking_function/include",
+config("hiperf_config") {
+  cflags = [
+    "-D ALWAYSTRUE",
+    "-D is_mingw=${is_mingw}",
   ]
-  public_deps = [ "${THIRD_PARTY}/zlib:libz" ]
 }
-ohos_source_set("hiperf_src") {
-  configs -= [ trace_cfg_path ]
-  configs += [ "../../gn:hiperf_trace_cfg" ]
-  subsystem_name = "developtools"
-  part_name = "smartperf_host"
-  cflags = [ "-D ALWAYSTRUE" ]
-  if (is_mingw) {
-    cflags += [ "-includeMingW64Fix.h" ]
-  }
-  sources = [
-    "./src/callstack.cpp",
-    "./src/callstack.h",
-    "./src/dwarf_encoding.cpp",
-    "./src/dwarf_encoding.h",
-    "./src/hashlist.h",
-    "./src/option.cpp",
-    "./src/perf_event_record.cpp",
-    "./src/perf_file_format.cpp",
-    "./src/perf_file_reader.cpp",
-    "./src/register.cpp",
-    "./src/register.h",
-    "./src/report.cpp",
-    "./src/subcommand.cpp",
-    "./src/symbols_file.cpp",
-    "./src/unique_stack_table.cpp",
-    "./src/virtual_runtime.cpp",
-    "./src/virtual_thread.cpp",
-    "include/symbols_file.h",
-  ]
+config("hiperf_public_config") {
   include_dirs = [
     "linux",
-    "../",
-    "./",
-    "../../src/base",
     "include",
-    "../../src/include",
-    "../../src/",
-    "../../src/trace_streamer",
     "include/nonlinux",
     "include/nonlinux/linux",
+    "${SRC}/",
+    "${SRC}/base",
+    "${SRC}/include",
+    "${SRC}/trace_streamer",
     "${THIRD_PARTY}/bounds_checking_function/include",
-  ]
-  include_dirs += [
     "${THIRD_PARTY}/perf_include/libbpf",
-    "${THIRD_PARTY}/libunwind/include",
-    "${THIRD_PARTY}/libunwind/src",
-    "${THIRD_PARTY}/libunwind/include/tdep-x86_64",
+    "${COMMON_LIBRARY}/base/include",
   ]
-  include_dirs += [
-    "${THIRD_PARTY}/perf_include/hiviewdfx/hilog/include",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/cutil",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxlog",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/hilog/include",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/common",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
-  ]
+  if (is_mingw) {
+    cflags = [ "-includeMingW64Fix.h" ]
+  }
 }
-group("hiperf_platform_common") {
-  deps = [
-    ":elf",
-    ":hiperf_src",
-    "${THIRD_PARTY}/protobuf:protobuf_lite_static",
-    "${THIRD_PARTY}/protobuf:protobuf_static",
-    "//third_party/perf_include/hiviewdfx:hiviewdfx",
+ohos_source_set("hiperf_src") {
+  subsystem_name = "thirdparty"
+  part_name = "hiperf"
+  sources = [
+    "src/callstack.cpp",
+    "src/dwarf_encoding.cpp",
+    "src/option.cpp",
+    "src/perf_event_record.cpp",
+    "src/perf_file_format.cpp",
+    "src/perf_file_reader.cpp",
+    "src/register.cpp",
+    "src/report.cpp",
+    "src/subcommand.cpp",
+    "src/symbols_file.cpp",
+    "src/unique_stack_table.cpp",
+    "src/utilities.cpp",
+    "src/virtual_runtime.cpp",
+    "src/virtual_thread.cpp",
   ]
+  configs -= [ trace_cfg_path ]
+  configs += [ "../../gn:hiperf_trace_cfg" ]
+  configs += [ ":hiperf_config" ]
+  public_configs = [ ":hiperf_public_config" ]
+  public_deps = [
+    "${THIRD_PARTY}/zlib:libz",
+    "//third_party/perf_include/hiviewdfx:libfaultloggerd",
+  ]
+  if (!use_wasm && !is_win && !is_mingw && !is_mac && !is_test) {
+    if (!is_independent_compile) {
+      if (target_cpu == "arm64") {
+        public_deps += [ "//third_party/libunwind:unwind_source_arm64_opt" ]
+      } else {
+        public_deps += [ "//third_party/libunwind:unwind_source_${target_cpu}" ]
+      }
+    } else {
+      public_deps += [ "${THIRD_PARTY}/libunwind:libunwind" ]
+    }
+  }
 }

@@ -27,7 +27,7 @@ if (target == "sdkdemotest") {
       "../:trace_streamer_sdk",
     ]
     include_dirs = [
-      "../base",
+      "${SRC}/base",
       "../sdk",
       "..",
       "../trace_streamer",

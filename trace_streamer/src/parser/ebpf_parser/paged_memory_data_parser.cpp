@@ -65,9 +65,6 @@ int32_t PagedMemoryDataParser::PagingData(const PagedMemoryFixedHeader *pagedMem
 
 void PagedMemoryDataParser::ParsePagedMemoryEvent()
 {
-    if (!reader_->GetPagedMemoryMap().size()) {
-        return;
-    }
     for (auto mapItor = reader_->GetPagedMemoryMap().begin(); mapItor != reader_->GetPagedMemoryMap().end();
          mapItor++) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF_PAGED_MEMORY, STAT_EVENT_RECEIVED);
@@ -80,7 +77,7 @@ void PagedMemoryDataParser::ParsePagedMemoryEvent()
                                  pagedMemoryFixedHeadrAddr->nips * SINGLE_IP_SIZE);
             auto ipsHashValue = hashFun_(ipsToStr);
             auto value = pidAndipsToCallId_.Find(pagedMemoryFixedHeadrAddr->pid, ipsHashValue);
-            if (value != INVALID_UINT64) {
+            if (value != INVALID_UINT32) {
                 callIdExistFlag = true;
                 currentCallId_ = value;
             } else {

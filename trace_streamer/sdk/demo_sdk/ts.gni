@@ -11,7 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 OHOS_PROTO_DIR = ""
-
+THIRD_PARTY = "//third_party"
+SRC = "//src"
 if (target_os == "linux" || target_os == "macx" || target_os == "windows") {
   OHOS_FTRACE_PROTO_DIR = "//src/multi_platform"
   OHOS_MEMORY_PROTO_DIR = "//src/multi_platform"

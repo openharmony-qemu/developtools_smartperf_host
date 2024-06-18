@@ -142,6 +142,11 @@ inline void TraceStreamerConfig::InitInterruptEventNameMap()
     eventNameMap_.emplace(TRACE_EVENT_SOFTIRQ_RAISE, TRACE_ACTION_SOFTIRQ_RAISE);
     eventNameMap_.emplace(TRACE_EVENT_SOFTIRQ_ENTRY, TRACE_ACTION_SOFTIRQ_ENTRY);
     eventNameMap_.emplace(TRACE_EVENT_SOFTIRQ_EXIT, TRACE_ACTION_SOFTIRQ_EXIT);
+    eventNameMap_.emplace(TRACE_EVENT_DMA_FENCE_INIT, TRACE_ACTION_DMA_FENCE_INIT);
+    eventNameMap_.emplace(TRACE_EVENT_DMA_FENCE_DESTROY, TRACE_ACTION_DMA_FENCE_DESTROY);
+    eventNameMap_.emplace(TRACE_EVENT_DMA_FENCE_ENABLE, TRACE_ACTION_DMA_FENCE_ENABLE);
+    eventNameMap_.emplace(TRACE_EVENT_DMA_FENCE_SIGNALED, TRACE_ACTION_DMA_FENCE_SIGNALED);
+    eventNameMap_.emplace(TRACE_EVENT_DMA_FENCE, TRACE_ACTION_DMA_FENCE);
 }
 inline void TraceStreamerConfig::InitMemoryEventNameMap()
 {
@@ -534,6 +539,11 @@ inline void TraceStreamerConfig::InitInterruptEventSecurityMap()
     eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SOFTIRQ_RAISE, statSeverityDescMap_);
     eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SOFTIRQ_ENTRY, statSeverityDescMap_);
     eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SOFTIRQ_EXIT, statSeverityDescMap_);
+    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_DMA_FENCE_INIT, statSeverityDescMap_);
+    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_DMA_FENCE_DESTROY, statSeverityDescMap_);
+    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_DMA_FENCE_ENABLE, statSeverityDescMap_);
+    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_DMA_FENCE_SIGNALED, statSeverityDescMap_);
+    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_DMA_FENCE, statSeverityDescMap_);
 }
 inline void TraceStreamerConfig::InitMemoryEventSecurityMap()
 {

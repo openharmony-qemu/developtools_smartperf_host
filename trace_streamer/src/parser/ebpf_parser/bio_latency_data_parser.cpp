@@ -47,15 +47,12 @@ const uint64_t *BioLatencyDataParser::IPAndCallIdProcessing(const BIOFixedHeader
             currentCallId_ = callChainId_++;
         }
     } else {
-        currentCallId_ = INVALID_UINT64;
+        currentCallId_ = INVALID_UINT32;
     }
     return userIpsAddr;
 }
 void BioLatencyDataParser::ParseBioLatencyEvent()
 {
-    if (!reader_->GetBIOSampleMap().size()) {
-        return;
-    }
     for (auto mapItor = reader_->GetBIOSampleMap().begin(); mapItor != reader_->GetBIOSampleMap().end(); mapItor++) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF_BIO_LATENCY, STAT_EVENT_RECEIVED);
         auto bioFixedHeadrAddr = mapItor->second;

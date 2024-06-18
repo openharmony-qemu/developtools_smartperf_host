@@ -362,6 +362,7 @@ struct TraceExportOption {
     bool closeMutiThread = false;
     uint8_t parserThreadNum = INVALID_UINT8;
     bool needClearLongTraceCache = true;
+    std::string soFilesDir;
 };
 bool CheckFinal(char **argv, TraceExportOption &traceExportOption)
 {
@@ -375,13 +376,18 @@ bool CheckFinal(char **argv, TraceExportOption &traceExportOption)
     }
     return true;
 }
-
 bool CheckArgc(int argc, char **argv, int curArgNum)
 {
     if (curArgNum == argc) {
         ShowHelpInfo(argv[0]);
         return false;
     }
+    return true;
+}
+bool CheckAndSetSoFilesPath(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
+{
+    TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
+    traceExportOption.soFilesDir = std::string(argv[index]);
     return true;
 }
 bool CheckAndSetLogLevel(int argc, char **argv, int &index)
@@ -528,6 +534,10 @@ bool ParseArgs(int argc, char **argv, TraceExportOption &traceExportOption)
             continue;
         } else if (!strcmp(argv[i], "-o") || !strcmp(argv[i], "--out")) {
             TS_CHECK_TRUE_RET(CheckAndSetOutputFilePath(traceExportOption, argc, argv, i), false);
+            i++;
+            continue;
+        } else if (!strcmp(argv[i], "--So_dir")) {
+            TS_CHECK_TRUE_RET(CheckAndSetSoFilesPath(traceExportOption, argc, argv, i), false);
             i++;
             continue;
         } else if (!ParseOtherArgs(argc, argv, traceExportOption, i)) {
@@ -729,6 +739,12 @@ int main(int argc, char **argv)
         }
         return 1;
     }
+#ifdef is_linux
+    if (!traceExportOption.soFilesDir.empty()) {
+        auto values = GetFilesNameFromDir(traceExportOption.soFilesDir);
+        ts.ReloadSymbolFiles(traceExportOption.soFilesDir, values);
+    }
+#endif
     if (traceExportOption.interactiveState) {
         TS_CHECK_TRUE_RET(EnterInteractiveState(ts), 1);
     }

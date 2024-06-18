@@ -215,7 +215,7 @@ void EbpfBase::UpdateFilePathIndexAndStValueToSymAddrMap(T *firstSymbolAddr, con
         }
     }
 }
-bool EbpfBase::EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
+void EbpfBase::EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
 {
     auto ebpfCallStackDate = traceDataCache_->GetEbpfCallStack();
     auto size = ebpfCallStackDate->Size();
@@ -241,7 +241,6 @@ bool EbpfBase::EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<Symbol
             }
         }
     }
-    return true;
 }
 
 template <class T>
