@@ -11,6 +11,7 @@ trace_streamer/prebuilts/emsdk
 trace_streamer/prebuilts/linux
 trace_streamer/third_party
 trace_streamer/compile_commands.json
+ts_tmp.perf.data
 trace_streamer/.cache
 tmp_*
 build-*
