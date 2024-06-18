@@ -201,6 +201,12 @@ table{
           </td>
           <td class="describe-td">展示/隐藏Vsync信号</td>
         </tr>
+        <tr>
+          <td>
+            <div class="keycap">b</div>
+          </td>
+          <td class="describe-td">展开/折叠收藏区域</td>
+      </tr>
       </table>
     </div>
   </main>
