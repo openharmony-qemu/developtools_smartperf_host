@@ -1475,7 +1475,7 @@ Duration：该函数的系统调用的总时长。
           return (new URL(document.location)).searchParams.get(name);  
         }  
   
-        if ( targetId !== 'null' ) {
+        if ( targetId !== null ) {
           let targetElement = document.getElementById(targetId);
           targetElement.scrollIntoView({ behavior: 'smooth' });
         }

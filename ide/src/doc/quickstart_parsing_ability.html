@@ -899,7 +899,7 @@ Single file max size： trace文件分割的大小。
           return (new URL(document.location)).searchParams.get(name);  
         }  
   
-        if ( targetId !== 'null' ) {
+        if ( targetId !== null ) {
           let targetElement = document.getElementById(targetId);
           targetElement.scrollIntoView({ behavior: 'smooth' });
         }

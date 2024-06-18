@@ -1579,7 +1579,7 @@ MinSize：对应窗口/模块/目录下size的最小值。
           return (new URL(document.location)).searchParams.get(name);  
         }  
   
-        if ( targetId !== 'null' ) {
+        if ( targetId !== null ) {
           let targetElement = document.getElementById(targetId);
           targetElement.scrollIntoView({ behavior: 'smooth' });
         }

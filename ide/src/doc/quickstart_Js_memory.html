@@ -1047,7 +1047,7 @@ RetainedSize：对象以及其相关的对象一起被删除后所释放的内�
           return (new URL(document.location)).searchParams.get(name);  
         }  
   
-        if ( targetId !== 'null' ) {
+        if ( targetId !== null ) {
           let targetElement = document.getElementById(targetId);
           targetElement.scrollIntoView({ behavior: 'smooth' });
         }

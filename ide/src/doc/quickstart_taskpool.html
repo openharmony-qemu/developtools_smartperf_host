@@ -945,7 +945,7 @@ Return Time(ms)：返回耗时(任务返回的结束时间 – 任务执行的�
           return (new URL(document.location)).searchParams.get(name);  
         }  
   
-        if ( targetId !== 'null' ) {
+        if ( targetId !== null ) {
           let targetElement = document.getElementById(targetId);
           targetElement.scrollIntoView({ behavior: 'smooth' });
         }
