@@ -722,4 +722,39 @@ export class Utils {
   setCurrentSelectIPid(ipid: number): void {
     procedurePool.submitWithName('logic0', 'native-memory-set-current_ipid', ipid, undefined, (): void => { });
   }
+
+  public static convertJSON(arr: any): any {
+    let dec = new TextDecoder();
+    let str = dec.decode(arr);
+    let jsonArray: Array<unknown> = [];
+    str = str.substring(str.indexOf('\n') + 1);
+    if (!str) {
+    } else {
+      let parse;
+      let tansStr: string;
+      try {
+        tansStr = str.replace(/[\t\r\n]/g, '');
+        parse = JSON.parse(tansStr);
+      } catch {
+        try {
+          tansStr = tansStr!.replace(/[^\x20-\x7E]/g, '?'); //匹配乱码字 符，将其转换为？
+          parse = JSON.parse(tansStr);
+        } catch {
+          tansStr = tansStr!.replace(/\\/g, '\\\\');
+          parse = JSON.parse(tansStr);
+        }
+      }
+      let columns = parse.columns;
+      let values = parse.values;
+      for (let i = 0; i < values.length; i++) {
+        let obj: unknown = {};
+        for (let j = 0; j < columns.length; j++) {
+          //@ts-ignore
+          obj[columns[j]] = values[i][j];
+        }
+        jsonArray.push(obj);
+      }
+    }
+    return jsonArray;
+  }
 }
