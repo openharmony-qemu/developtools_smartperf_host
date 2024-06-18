@@ -409,7 +409,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     } else {
       this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });
-      if(data.cookie) {
+      if(data.cookie || data.cookie === 0) {
         list.push({name: 'TaskId',value: data.cookie})
       }
       await queryThreadAndProcess(data.itid!,data.ipid!).then((res)=>{
