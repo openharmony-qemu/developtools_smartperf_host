@@ -311,7 +311,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         callChainsFilter.length > 0 ||
         isHideSystemSoFilter.length > 0 ||
         hideThreadFilter.length > 0 ||
-        hideThreadStateFilter.length > 0
+        hideThreadStateFilter.length > 0 ||
+        onlyKernelFilter.length > 0
       ) {
         this.samplesData = this.combineCallChainForAnalysis(this.symbol);
         //@ts-ignore
