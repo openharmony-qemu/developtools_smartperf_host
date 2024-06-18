@@ -30,7 +30,7 @@ export const queryIrqList = (traceId?: string): Promise<Array<{ name: string; cp
     , {}, { traceId: traceId });
 
 export const queryAllIrqNames = async (traceId?: string): Promise<Array<{ ipiName: string; name: string; id: number }>> => {
-  let allIrqNamesBuffer = await  query(
+  let allIrqNamesBuffer = await query(
     'queryAllIrqNames',
     `select
       id,
