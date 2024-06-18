@@ -337,6 +337,7 @@ margin-left: 15px;
          <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Hide Event</div></div>
          <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Hide Thread</div></div>
          <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Hide Thread State</div></div>
+         <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Only Kernel</div></div>
      </div>
      <span class="describe tree max-spacing" id="call-tree">Options</span>
 </lit-popover>

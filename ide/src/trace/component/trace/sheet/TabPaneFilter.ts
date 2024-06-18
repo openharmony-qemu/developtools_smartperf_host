@@ -600,7 +600,7 @@ export class TabPaneFilter extends BaseElement {
 
   private treeCheckClickSwitch(idx: number, check: boolean, row: NodeListOf<Element>): void {
     let checkList = [];
-    for (let index = 0; index < 5; index++) {
+    for (let index = 0; index < 6; index++) {
       if (idx === index) {
         checkList.push(check);
       } else {
@@ -879,7 +879,7 @@ export class TabPaneFilter extends BaseElement {
     let inputs = this.shadowRoot!.querySelectorAll<HTMLInputElement>('.constraints-input');
     let check = this.shadowRoot!.querySelector<LitCheckBox>('#constraints-check');
     let data = {
-      callTree: [row[0]!.checked, row[1]!.checked, row[2]!.checked, row[3]!.checked, row[4]!.checked],
+      callTree: [row[0]!.checked, row[1]!.checked, row[2]!.checked, row[3]!.checked, row[4]!.checked, row[5]!.checked],
       callTreeConstraints: {
         checked: check!.checked,
         inputs: [inputs[0].value === '' ? '0' : inputs[0].value, inputs[1].value === '' ? '∞' : inputs[1].value],
