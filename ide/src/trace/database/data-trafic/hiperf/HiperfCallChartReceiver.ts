@@ -138,7 +138,7 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean, lo
           res[i].dur = res[i + 1].startTs - res[i].startTs
         } else {
           // @ts-ignore
-          res[i].dur = data.params.recordEndNS - data.params.recordStartNS - res[i].startTs;
+          res[i].dur = data.params.endNS - data.params.startNS - res[i].startTs;
         }
       }
     }
