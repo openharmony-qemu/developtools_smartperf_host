@@ -87,8 +87,6 @@ export class ColorUtils {
   ];
   public static MD_PALETTE: Array<string> = ColorUtils.FUNC_COLOR_B;
   public static FUNC_COLOR: Array<string> = ColorUtils.FUNC_COLOR_B;
-  private static funcSameNameMark: any = new Map();
-  private static markNum: number = 0;
   public static getHilogColor(loglevel: string | number): string {
     let logColor: string = '#00000';
     switch (loglevel) {
@@ -197,24 +195,6 @@ export class ColorUtils {
       hash = (hash * colorC) & colorD;
     }
     return (Math.abs(hash) + depth) % max;
-  }
-
-  public static hashFuncSameName(str: string, depth: number, max: number): number {
-    let colorA: number = 0x811c9dc5;
-    let colorB: number = 0xfffffff;
-    let colorC: number = 16777619;
-    let colorD: number = 0xffffffff;
-    let hash: number = colorA & colorB;
-    let st = str.replace(/[0-9]+/g, '');
-    if(!ColorUtils.funcSameNameMark.has(st)) {
-      ColorUtils.funcSameNameMark.set(st, ColorUtils.markNum);
-      ColorUtils.markNum += 1;
-    }
-    for (let index: number = 0; index < st.length; index++) {
-      hash ^= st.charCodeAt(index);
-      hash = (hash * colorC) & colorD;
-    }
-    return (Math.abs(hash) + ColorUtils.funcSameNameMark.get(st)) % max;
   }
 
   public static funcTextColor(val: string): string {
