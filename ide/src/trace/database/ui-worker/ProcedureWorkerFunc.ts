@@ -196,7 +196,7 @@ export class FuncStruct extends BaseFuncStruct {
   flag: string | undefined; // 570000
   textMetricsWidth: number | undefined;
   static funcSelect: boolean = true;
-  pid: number = 0;
+  pid: number | undefined;
   static setFuncFrame(
     funcNode: FuncStruct,
     padding: number,
