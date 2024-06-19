@@ -308,20 +308,25 @@ export class TabPaneSlices extends BaseElement {
         }
       };
     }
+    // 拷贝当前表格显示的数据
+    let sortData: Array<SelectionData> = JSON.parse(JSON.stringify(this.slicesTbl!.recycleDataSource));
+    // 取出汇总数据，同时将排序数据去掉汇总数据进行后续排序
+    let headData: SelectionData = sortData.splice(0,1)[0];
     //@ts-ignore
     if (slicesDetail.key === 'name') {
       //@ts-ignore
-      this.slicesSource.sort(compare(slicesDetail.key, slicesDetail.sort, 'string'));
+      sortData.sort(compare(slicesDetail.key, slicesDetail.sort, 'string'));
     } else {
       //@ts-ignore
-      this.slicesSource.sort(compare(slicesDetail.key, slicesDetail.sort, 'number'));
+      sortData.sort(compare(slicesDetail.key, slicesDetail.sort, 'number'));
     }
-    this.slicesTbl!.recycleDataSource = this.slicesSource;
-    this.sliceSearchCount!.textContent = this.slicesSource.length - 1 + '';
+    // 排序完成后将汇总数据插入到头部
+    sortData.unshift(headData);
+    this.slicesTbl!.recycleDataSource = sortData;
+    this.sliceSearchCount!.textContent = sortData.length - 1 + '';
   }
 
   findName(str: string): void {
-    // 有一个问题就是，是否要在筛选之后的表格上方显示总数据
     let searchData: Array<SelectionData> = [];
     let sumWallDuration: number = 0;
     let sumOccurrences: number = 0;
