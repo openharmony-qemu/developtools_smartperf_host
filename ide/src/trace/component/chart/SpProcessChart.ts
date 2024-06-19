@@ -1145,6 +1145,8 @@ export class SpProcessChart {
         funs.forEach((fun, index) => {
           funs[index].itid = thread.utid;
           funs[index].ipid = thread.upid;
+          funs[index].tid = thread.tid;
+          funs[index].pid = thread.pid;
           funs[index].funName = Utils.getInstance().getCallStatckMap().get(funs[index].id!);
           if (Utils.isBinder(fun)) {
           } else {
