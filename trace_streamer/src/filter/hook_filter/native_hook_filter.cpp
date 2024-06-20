@@ -403,7 +403,7 @@ void NativeHookFilter::ParseMmapEvent(uint64_t timeStamp, const ProtoReader::Byt
     DataIndex subType = INVALID_UINT64;
     auto mMapAddr = mMapEventReader.addr();
     auto mMapSize = mMapEventReader.size();
-    if (mMapEventReader.has_type()) {
+    if (mMapEventReader.has_type() && !mMapEventReader.type().ToStdString().empty()) {
         subType = traceDataCache_->dataDict_.GetStringIndex(mMapEventReader.type().ToStdString());
         // Establish a mapping of addr and size to the mmap tag index.
         addrToMmapTag_[mMapAddr] = subType; // update addr to MemMapSubType
