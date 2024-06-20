@@ -138,7 +138,6 @@ export class SpProcessChart {
 
   initDeliverInputEvent = async (): Promise<void> => {
     let row = TraceRow.skeleton();
-    row.setAttribute('disabled-check', '');
     row.rowId = 'DeliverInputEvent';
     row.index = 0;
     row.rowType = TraceRow.ROW_TYPE_DELIVER_INPUT_EVENT;
@@ -252,7 +251,6 @@ export class SpProcessChart {
 
   initTouchEventDispatch = async (): Promise<void> => {
     let row = TraceRow.skeleton() as TraceRow<ProcessStruct>;
-    row.setAttribute('disabled-check', '');
     row.rowId = 'TouchEventDispatch';
     row.index = 0;
     row.rowType = TraceRow.ROW_TYPE_TOUCH_EVENT_DISPATCH;
