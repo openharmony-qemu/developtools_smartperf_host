@@ -1017,26 +1017,30 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     return [];
   }
 
-  expandFunc(): void {
+  //@ts-ignore
+  expandFunc(rootRow: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (this._enableCollapseChart && !this.funcExpand) {
+      let foldHeight = Number(this.style.height.substring(0, this.style.height.length - 2));
       this.style.height = `${this.funcMaxHeight}px`;
       this.funcExpand = true;
+      rootRow.needRefresh = true;
+      sp.refreshCanvas(true);
       if (this.collect) {
         window.publish(window.SmartEvent.UI.RowHeightChange, {
           expand: this.funcExpand,
-          value: this.funcMaxHeight - 20,
+          value: this.funcMaxHeight - foldHeight,
         });
       }
     }
   }
 
-  enableCollapseChart(H?: string): void {
+  enableCollapseChart(H: number, trace: unknown): void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = (): void => {
-      if (this.funcMaxHeight > 20 || this.clientHeight > 20) {
+      if (this.funcMaxHeight > H || this.clientHeight > H) {
         if (this.funcExpand) {
           this.funcMaxHeight = this.clientHeight;
-          this.style.height = H ? H : '20px';
+          this.style.height = H + 'px';
           this.funcExpand = false;
         } else {
           this.style.height = `${this.funcMaxHeight}px`;
@@ -1044,11 +1048,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
         TraceRow.range!.refresh = true;
         this.needRefresh = true;
-        this.draw(false);
+        //@ts-ignore
+        trace.refreshCanvas(true);
         if (this.collect) {
           window.publish(window.SmartEvent.UI.RowHeightChange, {
             expand: this.funcExpand,
-            value: this.funcMaxHeight - 20,
+            value: this.funcMaxHeight - H,
           });
         }
       }
