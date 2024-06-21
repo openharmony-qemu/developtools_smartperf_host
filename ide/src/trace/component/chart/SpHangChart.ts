@@ -1,0 +1,196 @@
+/*
+ * Copyright (C) 2024 Shenzhen Kaihong Digital Industry Development Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { info } from '../../../log/Log';
+import { HangRender, HangStruct } from '../../database/ui-worker/ProcedureWorkerHang';
+import { ColorUtils } from '../trace/base/ColorUtils';
+import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { Utils } from '../trace/base/Utils';
+import { queryHangFuncName, queryRealHangData } from '../../database/sql/Hang.sql';
+import { realHangDataSender } from '../../database/data-trafic/HangDataSender';
+import { BaseStruct } from '../../bean/BaseStruct';
+
+export type HangType = "Instant" | "Circumstantial" | "Micro" | "Severe" | ""
+
+export class SpHangChart {
+  private trace: SpSystemTrace;
+  private funcNameMap: Map<number, string> = new Map()
+
+  constructor(trace: SpSystemTrace) {
+    this.trace = trace;
+  }
+
+  static calculateHangType(dur: number): HangType {
+    const durMS = dur / 1000000
+    if (durMS < 33) {
+      return ""
+    }
+    else if (durMS < 100) {
+      return "Instant"
+    }
+    else if (durMS < 250) {
+      return "Circumstantial"
+    }
+    else if (durMS < 500) {
+      return "Micro"
+    }
+    else {
+      return "Severe"
+    }
+  }
+
+  async init(): Promise<void> {
+    for (const funcNameItem of await queryHangFuncName()) {
+      this.funcNameMap.set(funcNameItem.id, funcNameItem.name)
+    }
+    let folder = await this.initFolder();
+    await this.initData(folder);
+  }
+
+  private hangSupplierFrame(
+    traceRow: TraceRow<HangStruct>,
+    it: {
+      id: number;
+      name: string;
+      num: number;
+    }
+  ): void {
+    traceRow.supplierFrame = (): Promise<HangStruct[]> => {
+      let promiseData = realHangDataSender(it.id, traceRow)
+      if (promiseData === null) {
+        // @ts-ignore
+        return new Promise<Array<unknown>>((resolve) => resolve([]));
+      } else {
+        // @ts-ignore
+        return promiseData.then((resultHang: Array<HangStruct>) => {
+          for (const hangItem of resultHang) {
+            hangItem.pname = it.name
+            hangItem.type = SpHangChart.calculateHangType(hangItem.dur!)
+            hangItem.content = this.funcNameMap.get(hangItem.id!)
+          }
+          return resultHang;
+        });
+      }
+    };
+  }
+
+  private hangThreadHandler(
+    traceRow: TraceRow<HangStruct>,
+    it: {
+      id: number;
+      name: string;
+      num: number;
+    },
+    hangId: number
+  ): void {
+    traceRow.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (traceRow.currentContext) {
+        context = traceRow.currentContext;
+      } else {
+        context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      traceRow.canvasSave(context);
+      (renders.hang as HangRender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: it.name,
+          index: hangId,
+          processName: it.name
+        },
+        traceRow
+      );
+      traceRow.canvasRestore(context, this.trace);
+    };
+  }
+
+  async initData(folder: TraceRow<BaseStruct>): Promise<void> {
+    let hangStartTime = new Date().getTime();
+    let realHangList = await queryRealHangData();
+    if (realHangList.length === 0) {
+      return;
+    }
+    this.trace.rowsEL?.appendChild(folder);
+    for (let i = 0; i < realHangList.length; i++) {
+      const it: {
+        id: number,
+        name: string,
+        num: number
+      } = realHangList[i];
+      let traceRow = TraceRow.skeleton<HangStruct>();
+      traceRow.rowId = it.name ?? '' + it.id;
+      traceRow.rowType = TraceRow.ROW_TYPE_HANG;
+      traceRow.rowParentId = folder.rowId;
+      traceRow.style.height = '40px';
+      traceRow.name = it.name ?? '-';
+      traceRow.rowHidden = !folder.expansion;
+      traceRow.setAttribute('children', '');
+      traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+      traceRow.selectChangeHandler = this.trace.selectChangeHandler;
+      this.hangSupplierFrame(traceRow, it);
+      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> => realHangDataSender(it.id, traceRow, args)
+      traceRow.focusHandler = (ev): void => {
+        this.trace?.displayTip(
+          traceRow,
+          HangStruct.hoverHangStruct,
+          `<span>${JSON.stringify(HangStruct.hoverHangStruct?.content ?? "Hatsune Miku")}<span>`
+        );
+      };
+      traceRow.findHoverStruct = (): void => {
+        HangStruct.hoverHangStruct = traceRow.getHoverStruct();
+      };
+      this.hangThreadHandler(traceRow, it, i);
+      folder.addChildTraceRow(traceRow);
+    }
+    let durTime = new Date().getTime() - hangStartTime;
+    info('The time to load the HangData is: ', durTime);
+  }
+
+  async initFolder(): Promise<TraceRow<BaseStruct>> {
+    let hangFolder = TraceRow.skeleton();
+    hangFolder.rowId = 'Hangs';
+    hangFolder.index = 0;
+    hangFolder.rowType = TraceRow.ROW_TYPE_HANG_GROUP;
+    hangFolder.rowParentId = '';
+    hangFolder.style.height = '40px';
+    hangFolder.folder = true;
+    hangFolder.name = 'Hangs';
+    hangFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    hangFolder.selectChangeHandler = this.trace.selectChangeHandler; // @ts-ignore
+    hangFolder.supplier = (): Promise<unknown[]> => new Promise<Array<unknown>>((resolve) => resolve([]));
+    hangFolder.onThreadHandler = (useCache): void => {
+      hangFolder.canvasSave(this.trace.canvasPanelCtx!);
+      if (hangFolder.expansion) {
+        // @ts-ignore
+        this.trace.canvasPanelCtx?.clearRect(0, 0, hangFolder.frame.width, hangFolder.frame.height);
+      } else {
+        (renders.empty as EmptyRender).renderMainThread(
+          {
+            context: this.trace.canvasPanelCtx,
+            useCache: useCache,
+            type: '',
+          },
+          hangFolder
+        );
+      }
+      hangFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
+    };
+    return hangFolder;
+  }
+}

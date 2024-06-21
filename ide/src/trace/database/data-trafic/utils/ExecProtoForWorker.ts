@@ -79,6 +79,7 @@ import { clearMemoryCache } from './AllMemoryCache';
 import { cpuFreqDataReceiver } from '../cpu/CpuFreqDataReceiver';
 import { lostFrameReceiver } from './../LostFrameReceiver';
 import { sliceReceiver, sliceSPTReceiver } from '../SliceReceiver';
+import { hangDataReceiver } from '../HangDataReceiver';
 
 // @ts-ignore
 const traficHandlers: Map<number, unknown> = new Map<number, unknown>([]); // @ts-ignore
@@ -101,6 +102,7 @@ traficHandlers.set(QueryEnum.HiperfThreadData, hiperfThreadDataReceiver);
 traficHandlers.set(QueryEnum.NativeMemoryChartCacheNormal, nativeMemoryDataHandler);
 traficHandlers.set(QueryEnum.NativeMemoryChartCacheStatistic, nativeMemoryDataHandler);
 traficHandlers.set(QueryEnum.NativeMemoryChartData, nativeMemoryDataHandler);
+traficHandlers.set(QueryEnum.HangData, hangDataReceiver);
 traficHandlers.set(QueryEnum.ClockData, clockDataReceiver);
 traficHandlers.set(QueryEnum.IrqData, irqDataReceiver);
 traficHandlers.set(QueryEnum.VirtualMemoryData, virtualMemoryDataReceiver);

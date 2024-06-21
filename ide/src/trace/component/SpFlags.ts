@@ -76,6 +76,23 @@ export class SpFlags extends BaseElement {
 
         vsyncSelect?.setAttribute('disabled', 'disabled');
       }
+
+      let hangsSelect = this.shadowRoot?.querySelector('#hangsSelect');
+      if (title === 'Hangs' && configSelect.selectedOptions[0].value === 'Enabled') {
+        hangsSelect?.removeAttribute('disabled');
+      }
+      if (title === 'Hangs' && configSelect.selectedOptions[0].value === 'Disabled') {
+        hangsSelect?.childNodes.forEach((child: ChildNode) => {
+          let selectEl = child as HTMLOptionElement;
+          if (child.textContent === 'Micro') {
+            selectEl.selected = true;
+            FlagsConfig.updateFlagsConfig('hangValue', selectEl.value);
+          } else {
+            selectEl.selected = false;
+          }
+        });
+        hangsSelect?.setAttribute('disabled', 'disabled');
+      }
     });
     let description = document.createElement('div');
     description.className = 'flag-des-div';
@@ -134,6 +151,11 @@ export class SpFlags extends BaseElement {
         configDiv.appendChild(configFooterDiv);
       }
 
+      if (config.title === 'Hangs') {
+        let configFooterDiv = this.createHangsOption();
+        configDiv.appendChild(configFooterDiv);
+      }
+
       this.bodyEl!.appendChild(configDiv);
     });
   }
@@ -165,9 +187,6 @@ export class SpFlags extends BaseElement {
     FlagsConfig.updateFlagsConfig('vsyncValue', vsyncGenOption.value);
     vsyncTypeEl.addEventListener('change', function () {
       let selectValue = this.selectedOptions[0].value;
-      console.log(this);
-      console.log(this.selectedOptions[0]);
-      console.log(this.selectedOptions[0].value);
       FlagsConfig.updateFlagsConfig('vsyncValue', selectValue);
     });
 
@@ -182,6 +201,51 @@ export class SpFlags extends BaseElement {
     }
     configFooterDiv.appendChild(vsyncLableEl);
     configFooterDiv.appendChild(vsyncTypeEl);
+    return configFooterDiv;
+  }
+
+  private createHangsOption(): HTMLDivElement {
+    console.log("start createHangsOption.")
+    let configFooterDiv = document.createElement('div');
+    configFooterDiv.className = 'config_footer';
+    let hangsLableEl = document.createElement('lable');
+    hangsLableEl.className = 'hangs_lable';
+    let hangsTypeEl = document.createElement('select');
+    hangsTypeEl.setAttribute('id', 'hangsSelect');
+    hangsTypeEl.className = 'flag-select';
+
+    let hangInstantOption = document.createElement('option');
+    hangInstantOption.value = 'Instant;Circumstantial;Micro;Severe';
+    hangInstantOption.textContent = 'Instant';
+    hangInstantOption.selected = true;
+    hangsTypeEl.appendChild(hangInstantOption)
+
+    let hangMicroOption = document.createElement('option');
+    hangMicroOption.value = 'Micro;Severe';
+    hangMicroOption.textContent = 'micro';
+    hangMicroOption.selected = true;
+    hangsTypeEl.appendChild(hangMicroOption)
+
+    FlagsConfig.updateFlagsConfig('hangValue', hangInstantOption.value);
+    hangsTypeEl.addEventListener('change', function () {
+      let selectValue = this.selectedOptions[0].value;
+      console.log(this);
+      console.log(this.selectedOptions[0]);
+      console.log(this.selectedOptions[0].value);
+      FlagsConfig.updateFlagsConfig('hangValue', selectValue);
+    });
+
+    let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
+    let flagsItemJson = JSON.parse(flagsItem!);
+    let hangs = flagsItemJson['Hangs'];
+    if (hangs === 'Enabled') {
+      hangsTypeEl.removeAttribute('disabled');
+    } else {
+      hangsTypeEl.setAttribute('disabled', 'disabled');
+      FlagsConfig.updateFlagsConfig('hangValue', hangInstantOption.value);
+    }
+    configFooterDiv.appendChild(hangsLableEl);
+    configFooterDiv.appendChild(hangsTypeEl);
     return configFooterDiv;
   }
 }
@@ -238,6 +302,11 @@ export class FlagsConfig {
       title: 'VSync',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'VSync Signal drawing',
+    },
+    {
+      title: 'Hangs',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: '',
     },
     {
       title: 'LTPO',

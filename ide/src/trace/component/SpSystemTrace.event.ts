@@ -45,6 +45,7 @@ import { FlagsConfig } from './SpFlags';
 import { LitMainMenu } from '../../base-ui/menu/LitMainMenu';
 import { PerfToolsStructOnClick } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { BaseStruct } from '../bean/BaseStruct';
+import { HangStructOnClick } from '../database/ui-worker/ProcedureWorkerHang';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -341,6 +342,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => CpuStateStructOnClick(clickRowType, sp))
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp))
     .then(() => ClockStructOnClick(clickRowType, sp))
+    .then(() => HangStructOnClick(clickRowType, sp))
     //@ts-ignore
     .then(() => SnapshotStructOnClick(clickRowType, sp, row!))
     .then(() => IrqStructOnClick(clickRowType, sp))

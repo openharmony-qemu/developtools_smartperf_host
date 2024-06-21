@@ -58,6 +58,7 @@ import { queryWakeupListPriority } from '../../../database/sql/Cpu.sql';
 import { TabPaneCurrentSelectionHtml } from './TabPaneCurrentSelection.html';
 import { queryRealTime } from '../../../database/sql/Clock.sql';
 import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfTool';
+import { HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -543,6 +544,31 @@ export class TabPaneCurrentSelection extends BaseElement {
     // @ts-ignore
     let startTimeAbsolute = (data.startNS || 0) + (window as unknown).recordStartNS;
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
+  async setHangData(data: HangStruct): Promise<void> {
+    // TODO:
+    // console.log("setHangData", arguments)
+    // await this.setRealTime();
+    // this.setTableHeight('auto');
+    // //时钟信息
+    // this.tabCurrentSelectionInit('Counter Details');
+    // let list: unknown[] = [];
+    // list.push({
+    //   name: 'StartTime(Relative)',
+    //   value: getTimeString(data.startNS || 0),
+    // });
+    // this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    // list.push({
+    //   name: 'Value',
+    //   value: ColorUtils.formatNumberComma(data.value || 0),
+    // });
+    // list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    // list.push({ name: "Fake Data", value: "Useless Info." })
+    // this.currentSelectionTbl!.dataSource = list;
+    // // @ts-ignore
+    // let startTimeAbsolute = (data.startNS || 0) + (window as unknown).recordStartNS;
+    // this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
   }
 
   setPerfToolsData(data: PerfToolStruct): void {

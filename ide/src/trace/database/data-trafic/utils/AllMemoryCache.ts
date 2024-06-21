@@ -18,12 +18,15 @@ import { resetAbilityMonitor } from '../AbilityMonitorReceiver';
 import { resetAbility } from '../VmTrackerDataReceiver';
 import { resetDynamicEffect } from '../FrameDynamicEffectReceiver';
 import { resetEnergyEvent } from '../EnergySysEventReceiver';
+import { HangSQLStruct } from '../HangDataReceiver';
 // thread_state 表缓存
 export const sliceList: Map<number, Array<unknown>> = new Map();
 //cpu 泳道 memory 缓存
 export const cpuList: Map<number, Array<unknown>> = new Map();
 //clock 泳道 memory 模式缓存
 export const clockList: Map<string, Array<unknown>> = new Map();
+//hang 泳道 memory 模式缓存
+export const hangList: Map<string, Array<HangSQLStruct>> = new Map();
 //cpu freq 泳道 memory模式缓存
 export const cpuFreqList: Map<number, Array<unknown>> = new Map();
 //cpu freq limit 泳道 memory模式缓存

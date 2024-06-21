@@ -39,6 +39,7 @@ import { EnergySystemRender } from './ProcedureWorkerEnergySystem';
 import { EnergyPowerRender } from './ProcedureWorkerEnergyPower';
 import { EnergyStateRender } from './ProcedureWorkerEnergyState';
 import { CpuFreqLimitRender } from './cpu/ProcedureWorkerCpuFreqLimits';
+import { HangRender } from './ProcedureWorkerHang';
 import { ClockRender } from './ProcedureWorkerClock';
 import { IrqRender } from './ProcedureWorkerIrq';
 import { JankRender } from './ProcedureWorkerJank';
@@ -113,6 +114,7 @@ export let renders = {
   energySystem: new EnergySystemRender(),
   energyPower: new EnergyPowerRender(),
   energyState: new EnergyStateRender(),
+  hang: new HangRender(),
   clock: new ClockRender(),
   irq: new IrqRender(),
   jank: new JankRender(),

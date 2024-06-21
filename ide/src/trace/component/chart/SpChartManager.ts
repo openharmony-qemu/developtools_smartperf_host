@@ -43,6 +43,7 @@ import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
 import { procedurePool } from '../../database/Procedure';
 import { SpSegmentationChart } from './SpSegmentationChart';
+import { SpHangChart } from './SpHangChart';
 import { SpPerfOutputDataChart } from './SpPerfOutputDataChart';
 import {
   queryAppStartupProcessIds,
@@ -82,6 +83,7 @@ export class SpChartManager {
   private logChart: SpLogChart;
   private spHiSysEvent: SpHiSysEventChart;
   private spSegmentationChart: SpSegmentationChart;
+  private hangChart: SpHangChart;
   private spBpftraceChart: SpBpftraceChart;
   private tranceRange = { startTs: 0, endTs: 0 };
   private spPerfOutputDataChart: SpPerfOutputDataChart;
@@ -110,6 +112,7 @@ export class SpChartManager {
     this.spAllAppStartupsChart = new SpAllAppStartupsChart(trace);
     this.SpLtpoChart = new SpLtpoChart(trace);
     this.spSegmentationChart = new SpSegmentationChart(trace);
+    this.hangChart = new SpHangChart(trace);
     this.spBpftraceChart = new SpBpftraceChart(trace);
     this.spPerfOutputDataChart = new SpPerfOutputDataChart(trace);
     this.spUserFileChart = new SpUserFileChart(trace)
@@ -170,6 +173,8 @@ export class SpChartManager {
     await this.initCpu(progress);
     await this.logChart.init();
     await this.spHiSysEvent.init();
+    progress('HangChart inin', 80);
+    await this.hangChart.init();
     progress('Clock init', 82);
     await this.clockChart.init();
     progress('Irq init', 84);

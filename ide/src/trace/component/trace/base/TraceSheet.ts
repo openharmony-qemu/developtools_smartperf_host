@@ -31,6 +31,7 @@ import { type ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerTh
 import { type FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc';
 import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
 import { CpuStateStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCpuState';
+import { type HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
 import { type ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock';
 import { type IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq';
 import { type JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank';
@@ -633,6 +634,8 @@ export class TraceSheet extends BaseElement {
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
+  displayHangData = (data: HangStruct): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setHangData(data);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayPerfToolsData = (data: PerfToolStruct): void =>

@@ -94,7 +94,9 @@ export function clockDataReceiver(data: unknown, proc: Function): void {
     // @ts-ignore
     if (!clockList.has(data.params.sqlType + data.params.clockName)) {
       // @ts-ignore
-      list = proc(chartClockDataSqlMem(data.params));
+      let sql = chartClockDataSqlMem(data.params);
+      // @ts-ignore
+      list = proc(sql);
       for (let j = 0; j < list.length; j++) {
         if (j === list.length - 1) {
           // @ts-ignore
@@ -162,23 +164,27 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
     // @ts-ignore
     value[i] = it.value;
   });
+
+  let arg1 = {
+    // @ts-ignore
+    id: data.id,
+    // @ts-ignore
+    action: data.action,
+    results: transfer
+      ? {
+          dur: dur.buffer,
+          startNS: startNS.buffer,
+          value: value.buffer,
+          filterId: filterId.buffer,
+        }
+      : {},
+    len: res.length,
+    transfer: transfer,
+  };
+  let arg2 = transfer ? [dur.buffer, startNS.buffer, value.buffer, filterId.buffer] : [];
+
   (self as unknown as Worker).postMessage(
-    {
-      // @ts-ignore
-      id: data.id,
-      // @ts-ignore
-      action: data.action,
-      results: transfer
-        ? {
-            dur: dur.buffer,
-            startNS: startNS.buffer,
-            value: value.buffer,
-            filterId: filterId.buffer,
-          }
-        : {},
-      len: res.length,
-      transfer: transfer,
-    },
-    transfer ? [dur.buffer, startNS.buffer, value.buffer, filterId.buffer] : []
+    arg1,
+    arg2
   );
 }

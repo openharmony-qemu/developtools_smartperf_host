@@ -110,8 +110,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_GPU_MEMORY_VMTRACKER = 'gpu-memory-vmTracker';
   static ROW_TYPE_GPU_RESOURCE_VMTRACKER = 'sys-memory-gpu-resource';
   static ROW_TYPE_VMTRACKER_SHM = 'VmTracker-shm';
+  static ROW_TYPE_HANG_GROUP = 'hang-group';
   static ROW_TYPE_CLOCK_GROUP = 'clock-group';
   static ROW_TYPE_COLLECT_GROUP = 'collect-group';
+  static ROW_TYPE_HANG = 'hang';
   static ROW_TYPE_CLOCK = 'clock';
   static ROW_TYPE_IRQ_GROUP = 'irq-group';
   static ROW_TYPE_IRQ = 'irq';

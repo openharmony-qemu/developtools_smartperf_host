@@ -18,6 +18,7 @@ export enum QueryEnum {
   CpuStateData = 1,
   CpuFreqData = 2,
   CpuFreqLimitData = 3,
+  HangData = 3.5,
   ClockData = 4,
   IrqData = 5,
   ProcessData = 6,

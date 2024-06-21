@@ -64,6 +64,7 @@ import { TabPaneFreqLimit } from '../sheet/freq/TabPaneFreqLimit';
 import { TabPaneCpuFreqLimits } from '../sheet/freq/TabPaneCpuFreqLimits';
 import { TabpaneNMCalltree } from '../sheet/native-memory/TabPaneNMCallTree';
 import { TabPaneClockCounter } from '../sheet/clock/TabPaneClockCounter';
+import { TabPaneHangCounter } from '../sheet/Hang/TabPaneHangCounter';
 import { TabPaneIrqCounter } from '../sheet/irq/TabPaneIrqCounter';
 import { TabPaneFrames } from '../sheet/jank/TabPaneFrames';
 import { TabPanePerfAnalysis } from '../sheet/hiperf/TabPanePerfAnalysis';
@@ -212,6 +213,11 @@ export let tabConfig: unknown = {
     type: TabPaneClockCounter,
     require: (param: SelectionParam) => param.clockMapData.size > 0,
   },
+  // 'box-hang-counters': {
+  //   title: 'Hang Counters',
+  //   type: TabPaneHangCounter,
+  //   require: (param: SelectionParam) => param.hangMapData.size > 0,
+  // },
   'box-irq-counters': {
     title: 'Irq Counters',
     type: TabPaneIrqCounter,
