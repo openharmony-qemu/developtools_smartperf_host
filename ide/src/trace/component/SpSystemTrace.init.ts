@@ -273,27 +273,42 @@ function collectHandlerNo(sp: SpSystemTrace, currentRow: any, event: any): void 
     allowExpansionRow.push(parent);
     row = parent;
   }
-  for (let index: number = allowExpansionRow.length - 1; index >= 0; index--) {
-    let currentItemRow = allowExpansionRow[index];
-    if (currentItemRow.hasAttribute('scene')) {
-      if (currentItemRow.rowParentId !== '') {
-        if (currentItemRow.expansion) {
-          currentItemRow.updateChildRowStatus();
+  if (allowExpansionRow.length === 1) {
+    for (let index: number = allowExpansionRow.length - 1; index >= 0; index--) {
+      if (allowExpansionRow[index]?.hasAttribute('scene')) {
+        if (allowExpansionRow[index]!.expansion) {
+          allowExpansionRow[index].updateChildRowStatus();
         } else {
-          currentItemRow.expansion = true;
+          allowExpansionRow[index].expansion = true;
         }
-      } else {
-        currentItemRow.expansion = true;
-        let number = currentItemRow.childrenList.indexOf(currentRow);
-        let childrenEl = currentItemRow.childrenList[number];
-        let childrenNextEl = currentItemRow.childrenList[number + 1];
-        if (childrenEl) {
-          if (childrenNextEl) {
-            currentItemRow.parentNode.insertBefore(childrenEl, childrenNextEl);
-          } else if (childrenEl.nextSibling) {
-            currentItemRow.parentNode.insertBefore(childrenEl, childrenEl.nextSibling);
+      }
+    }
+  } else {
+    for (let index: number = allowExpansionRow.length - 1; index >= 0; index--) {
+      let currentItemRow = allowExpansionRow[index];
+      if (currentItemRow.hasAttribute('scene')) {
+        if (currentItemRow.rowParentId !== '') {
+          if (currentItemRow.expansion) {
+            currentItemRow.updateChildRowStatus();
           } else {
-            currentItemRow.parentNode.appendChild(childrenEl);
+            currentItemRow.expansion = true;
+          }
+        }
+        else {
+          currentItemRow.expansion = true;
+          let number = currentItemRow.childrenList.indexOf(currentRow);
+          if (number !== -1) {// 确保 currentRow 在 childrenList 中
+            let childrenEl = currentItemRow.childrenList[number];
+            let childrenNextEl = currentItemRow.childrenList[number + 1];
+            if (childrenEl) {
+              if (childrenNextEl) {
+                currentItemRow.parentNode.insertBefore(childrenEl, currentItemRow.childrenList[number + 1]);
+              } else if (childrenEl.nextSibling) {
+                currentItemRow.parentNode.insertBefore(childrenEl, childrenEl.nextSibling);
+              } else {
+                currentItemRow.parentNode.appendChild(childrenEl);
+              }
+            }
           }
         }
       }
