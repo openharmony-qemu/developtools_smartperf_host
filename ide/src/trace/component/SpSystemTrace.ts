@@ -1839,7 +1839,7 @@ export class SpSystemTrace extends BaseElement {
       this.favoriteChartListEL!.getCollectRow((row) => row.rowId === rowId && row.rowType === rowType);
     if (rootRow && rootRow!.collect) {
       this.favoriteAreaSearchHandler(rootRow);
-      rootRow.expandFunc();
+      rootRow.expandFunc(rootRow, this);
       if (!this.isInViewport(rootRow)) {
         setTimeout(() => {
           rootRow!.scrollIntoView({ behavior: 'smooth' });
@@ -1852,7 +1852,7 @@ export class SpSystemTrace extends BaseElement {
         row.expansion = true;
       }
       if (rootRow) {
-        rootRow.expandFunc();
+        rootRow.expandFunc(rootRow, this);
       }
       setTimeout(() => {
         rootRow!.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2250,7 +2250,7 @@ export class SpSystemTrace extends BaseElement {
     //@ts-ignore
     let funId = funcStract.row_id === null ? `${funcStract.funName}-${funcStract.pid}` : funcStract.row_id;
     //@ts-ignore
-    let funcRowID = !funcStract.cookie ? `${Utils.getDistributedRowId(funcStract.tid)}` : funId;
+    let funcRowID = (funcStract.cookie === null || funcStract.cookie === undefined) ? `${Utils.getDistributedRowId(funcStract.tid)}` : funId;
     let targetRow = this.favoriteChartListEL?.getCollectRow((row) => {
       return row.rowId === funcRowID && row.rowType === 'func';
     });

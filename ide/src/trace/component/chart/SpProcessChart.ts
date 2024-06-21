@@ -54,6 +54,7 @@ import {
 import { queryAllJankProcess } from '../../database/sql/Janks.sql';
 import { BaseStruct } from '../../bean/BaseStruct';
 
+const FOLD_HEIGHT = 24;
 export class SpProcessChart {
   private readonly trace: SpSystemTrace;
   private processAsyncFuncMap: unknown = {};
@@ -178,7 +179,7 @@ export class SpProcessChart {
     funcRow.asyncFuncName = asyncFuncGroups[0].funName;
     funcRow.asyncFuncNamePID = key;
     funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-    funcRow.enableCollapseChart(); //允许折叠泳道图
+    funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
     funcRow.rowParentId = `${parentRow.rowId}`;
     funcRow.rowHidden = !parentRow.expansion;
     funcRow.style.width = '100%'; //@ts-ignore
@@ -291,7 +292,7 @@ export class SpProcessChart {
     funcRow.asyncFuncName = asyncFuncGroups[0].funName;
     funcRow.asyncFuncNamePID = key;
     funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-    funcRow.enableCollapseChart(); //允许折叠泳道图
+    funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
     funcRow.rowParentId = `${parentRow.rowId}`;
     funcRow.rowHidden = !parentRow.expansion;
     funcRow.style.width = '100%';
@@ -1089,7 +1090,7 @@ export class SpProcessChart {
       let funcRow = TraceRow.skeleton<FuncStruct>(this.traceId); //@ts-ignore
       funcRow.rowId = `${thread.tid}`;
       funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-      funcRow.enableCollapseChart(); //允许折叠泳道图
+      funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
       //@ts-ignore
       funcRow.rowParentId = `${process.pid}`;
       funcRow.rowHidden = !processRow.expansion;
@@ -1427,7 +1428,7 @@ export class SpProcessChart {
     funcRow.asyncFuncName = asyncFuncName;
     funcRow.asyncFuncNamePID = it.pid;
     funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-    funcRow.enableCollapseChart('24px'); //允许折叠泳道图
+    funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
     funcRow.rowParentId = `${it.pid}`;
     funcRow.rowHidden = !processRow.expansion;
     funcRow.style.width = '100%';
@@ -1483,7 +1484,7 @@ export class SpProcessChart {
         funcRow.asyncFuncThreadName = asyncFunctions[0].threadName;
         funcRow.asyncFuncNamePID = it.pid;
         funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-        funcRow.enableCollapseChart(); //允许折叠泳道图
+        funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
         funcRow.rowParentId = `${it.pid}`;
         funcRow.rowHidden = !processRow.expansion;
         funcRow.style.width = '100%';

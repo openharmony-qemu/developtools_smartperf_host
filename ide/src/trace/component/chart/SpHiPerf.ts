@@ -53,7 +53,7 @@ export interface ResultData {
   existF: boolean | null | undefined;
   fValue: number;
 }
-
+const FOLD_HEIGHT = 20;
 export class SpHiPerf {
   static selectCpuStruct: HiPerfCpuStruct | undefined;
   static stringResult: ResultData | undefined;
@@ -199,7 +199,7 @@ export class SpHiPerf {
     perfCallCutRow.rowId = 'HiPerf-callchart';
     perfCallCutRow.index = 0;
     perfCallCutRow.rowType = TraceRow.ROW_TYPE_PERF_CALLCHART;
-    perfCallCutRow.enableCollapseChart();
+    perfCallCutRow.enableCollapseChart(FOLD_HEIGHT, this.trace);
     perfCallCutRow.rowParentId = 'HiPerf';
     perfCallCutRow.rowHidden = !this.rowFolder.expansion;
     perfCallCutRow.folder = false;
@@ -222,14 +222,14 @@ export class SpHiPerf {
         id: this.callChartId,
       });
       // @ts-ignore
-      let maxHeight = res.maxDepth * 20;
+      let maxHeight = res.maxDepth * FOLD_HEIGHT;
       perfCallCutRow.funcMaxHeight = maxHeight;
       if (perfCallCutRow.funcExpand) {
         perfCallCutRow!.style.height = `${maxHeight}px`;
         if (perfCallCutRow.collect) {
           window.publish(window.SmartEvent.UI.RowHeightChange, {
             expand: true,
-            value: perfCallCutRow.funcMaxHeight - 20,
+            value: perfCallCutRow.funcMaxHeight - FOLD_HEIGHT,
           });
         }
       }

@@ -391,7 +391,7 @@ export class SpSegmentationChart {
     SpSegmentationChart.binderRow = TraceRow.skeleton<BinderStruct>();
     SpSegmentationChart.binderRow.rowId = 'binderrow';
     SpSegmentationChart.binderRow.rowType = TraceRow.ROW_TYPE_BINDER_COUNT;
-    SpSegmentationChart.binderRow.enableCollapseChart('40px');
+    SpSegmentationChart.binderRow.enableCollapseChart(40, SpSegmentationChart.trace);
     SpSegmentationChart.binderRow.rowParentId = '';
     SpSegmentationChart.binderRow.name = 'Binder Count';
     SpSegmentationChart.binderRow.style.height = '40px';

@@ -43,6 +43,7 @@ export function funcDataSender(tid: number, ipid: number, row: TraceRow<FuncStru
         recordStartNS: Utils.getInstance().getRecordStartNS(traceId),
         recordEndNS: Utils.getInstance().getRecordEndNS(traceId),
         width: width,
+        expand: row.funcExpand,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
