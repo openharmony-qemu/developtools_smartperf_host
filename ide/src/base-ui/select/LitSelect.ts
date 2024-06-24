@@ -579,7 +579,8 @@ export class LitSelect extends BaseElement {
         a.setAttribute('selected', '');
       }
       this.value = this.currentSelectedValue;
-      this.dispatchEvent(new CustomEvent('change', { detail: this.currentSelectedValue })); //向外层派发change事件，返回当前选中项
+      // @ts-ignore
+      this.dispatchEvent(new CustomEvent('change', { detail: { selectValue: this.currentSelectedValue, text: e.detail.text } })); //向外层派发change事件，返回当前选中项
     });
   }
 
