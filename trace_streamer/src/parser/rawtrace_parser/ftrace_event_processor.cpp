@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 #include "ftrace_event_processor.h"
+#include "rawtrace_parser/ftrace_field_processor.h"
+#include <cstdint>
+#include <string>
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -431,7 +434,17 @@ bool FtraceEventProcessor::TracingMarkWriteOrPrintFormat(FtraceEvent &ftraceEven
     if (format.eventId < HM_EVENT_ID_OFFSET) {
         printMsg->set_ip(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     }
-    printMsg->set_buf(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    // size大于60时为适配内核的event，小于则为原始的event
+    if (format.eventSize > 60) {
+        auto pid = FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size);
+        auto name = FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size);
+        auto start = FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size);
+        auto msg = std::string(start == 0 ? "E" : "B") + std::string("|") + std::to_string(pid) + std::string("|") +
+                   std::string(start == 0 ? "" : name);
+        printMsg->set_buf(msg);
+    } else {
+        printMsg->set_buf(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    }
     return true;
 }
 
