@@ -80,9 +80,8 @@ private:
     const DataIndex dataOffsetSizeId_ = traceDataCache_->GetDataIndex("offsets size");
     const DataIndex nullStringId_ = traceDataCache_->GetDataIndex("null");
     std::unordered_map<uint64_t, int64_t> lastEventTs_ = {};
-    std::unordered_map<uint64_t, uint64_t> transReplyDest_ = {};
-    // 记录每一个transaction的src_tid和dest_tid
-    std::unordered_map<uint64_t, std::pair<uint32_t, uint32_t>> transactionInfo_ = {};
+    std::unordered_set<uint64_t> transReplyWaitingReply_ = {};
+    std::unordered_map<uint64_t, FilterId> transNeedReply_ = {};
     std::unordered_map<uint64_t, FilterId> transReplyFilter_ = {};
     std::unordered_map<uint64_t, ArgsSet> asyncBinderEvents_ = {};
     std::unordered_map<int32_t, std::string> binderFlagDescs_ = {};
