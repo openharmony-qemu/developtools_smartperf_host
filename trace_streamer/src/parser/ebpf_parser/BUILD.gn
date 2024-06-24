@@ -59,17 +59,6 @@ config("ebpf_parser_cfg") {
       cflags += [ "-D IS_UT" ]
     }
   }
-  include_dirs += [
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
-    "${THIRD_PARTY}/perf_include/linux",
-    "${THIRD_PARTY}/hiperf/include",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/common",
-    "${THIRD_PARTY}/hiperf/include/nonlinux/linux",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil",
-    "${THIRD_PARTY}/hiperf/include/nonlinux/",
-    "${THIRD_PARTY}/perf_include/libbpf",
-  ]
 }
 
 ohos_static_library("ebpf_parser") {
@@ -87,7 +76,7 @@ ohos_static_library("ebpf_parser") {
   public_configs = [ ":ebpf_parser_cfg" ]
   public_deps = [
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:memory_data_reader",
-    "${PERF_DIR}/hiperf:hiperf_platform_common",
+    "${PERF_DIR}/hiperf:hiperf_src",
   ]
   deps = [
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",

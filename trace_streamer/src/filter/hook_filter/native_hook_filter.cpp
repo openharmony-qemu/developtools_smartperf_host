@@ -403,7 +403,7 @@ void NativeHookFilter::ParseMmapEvent(uint64_t timeStamp, const ProtoReader::Byt
     DataIndex subType = INVALID_UINT64;
     auto mMapAddr = mMapEventReader.addr();
     auto mMapSize = mMapEventReader.size();
-    if (mMapEventReader.has_type()) {
+    if (mMapEventReader.has_type() && !mMapEventReader.type().ToStdString().empty()) {
         subType = traceDataCache_->dataDict_.GetStringIndex(mMapEventReader.type().ToStdString());
         // Establish a mapping of addr and size to the mmap tag index.
         addrToMmapTag_[mMapAddr] = subType; // update addr to MemMapSubType
@@ -1196,7 +1196,7 @@ void NativeHookFilter::UpdateFilePathIdAndStValueToSymAddrMap(T *firstSymbolAddr
     }
 }
 
-bool NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
+void NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
 {
     auto nativeHookFrame = traceDataCache_->GetNativeHookFrameData();
     auto size = nativeHookFrame->Size();
@@ -1227,7 +1227,6 @@ bool NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::uni
         }
     }
     UpdateLastCallerPathAndSymbolIndexs();
-    return true;
 }
 void NativeHookFilter::UpdateFilePathIndexToCallStackRowMap(size_t row, DataIndex filePathIndex)
 {

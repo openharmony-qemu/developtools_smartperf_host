@@ -78,7 +78,7 @@ public:
     void ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData);
     void ParseTagEvent(const ProtoReader::BytesView &bytesView);
     void FinishParseNativeHookData();
-    bool NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
+    void NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
     CommHookData &GetCommHookData();
     ProfilerPluginData *GetHookPluginData();
     void SerializeHookCommDataToString();

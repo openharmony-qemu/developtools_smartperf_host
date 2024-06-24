@@ -25,6 +25,7 @@ ohos_source_set("ftrace_tables") {
     "clock_event_filter_table.cpp",
     "clock_snapshot_table.cpp",
     "cpu_measure_filter_table.cpp",
+    "dma_fence_table.cpp",
     "dynamic_frame_table.cpp",
     "filter_table.cpp",
     "frame_maps_table.cpp",

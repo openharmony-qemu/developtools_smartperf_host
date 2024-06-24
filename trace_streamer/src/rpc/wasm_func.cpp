@@ -255,13 +255,6 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataOver()
     }
     return -1;
 }
-EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlOperate(const uint8_t *sql, int32_t sqlLen)
-{
-    if (g_wasmTraceStreamer.SqlOperate(sql, sqlLen, nullptr)) {
-        return 0;
-    }
-    return -1;
-}
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlOperateEx(int32_t sqlLen)
 {
     if (g_wasmTraceStreamer.SqlOperate(g_reqBuf, sqlLen, nullptr)) {

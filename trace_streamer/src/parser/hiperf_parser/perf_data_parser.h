@@ -58,7 +58,7 @@ public:
                                  bool isSplitFile,
                                  bool isFinish);
     void Finish();
-    bool PerfReloadSymbolFiles(std::vector<std::string> &symbolsPaths);
+    void PerfReloadSymbolFiles(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
     const auto &GetPerfSplitResult()
     {
         return splitResult_;
@@ -91,6 +91,7 @@ public:
     }
 
 private:
+    void SetHM();
     bool Reload();
     bool LoadPerfData();
     void UpdateEventConfigInfo();
@@ -101,13 +102,15 @@ private:
     void UpdateClockType();
     bool RecordCallBack(std::unique_ptr<PerfEventRecord> record);
     void UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample> &sample);
+    std::tuple<uint64_t, DataIndex> GetFileIdWithLikelyFilePath(const std::string &inputFilePath);
+    bool ReloadPerfFile(const std::unique_ptr<SymbolsFile> &symbolsFile, uint64_t &fileId, DataIndex &filePathIndex);
+    void ReloadPerfCallChain(const std::unique_ptr<SymbolsFile> &symbolsFile, uint64_t fileId, DataIndex filePathIndex);
     uint32_t UpdateCallChainUnCompressed(const std::unique_ptr<PerfRecordSample> &sample);
     SplitPerfState DataLengthProcessing(const std::deque<uint8_t> &dequeBuffer,
                                         perf_event_header &dataHeader,
                                         uint64_t size,
                                         uint64_t &processedLen,
                                         bool &invalid);
-    bool PerfSplitCallBack(std::unique_ptr<PerfEventRecord> record);
     uint64_t SplitPerfData(const std::deque<uint8_t> &dequeBuffer, uint64_t size, uint64_t offset, bool isFinish);
 
     uint64_t DataProcessingLength(const std::deque<uint8_t> &dequeBuffer,
@@ -175,6 +178,7 @@ private:
     std::map<uint64_t, uint64_t> fileDataDictIdToFileId_ = {};
     std::hash<std::string_view> hashFun_;
     DoubleMap<uint32_t, uint64_t, uint32_t> pidAndStackHashToCallChainId_;
+    std::unordered_map<uint32_t, std::tuple<pid_t, pid_t>> callChainIdToThreadInfo_ = {};
     const std::string tmpPerfData_ = "ts_tmp.perf.data";
     const std::string cpuOffEventName_ = "sched:sched_switch";
     const std::string wakingEventName_ = "sched:sched_waking";

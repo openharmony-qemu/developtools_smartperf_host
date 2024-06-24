@@ -30,6 +30,7 @@
 #include "ipi.pbreader.h"
 #include "irq_filter.h"
 #include "irq.pbreader.h"
+#include "dma_fence.pbreader.h"
 #include "measure_filter.h"
 #include "oom.pbreader.h"
 #include "power.pbreader.h"
@@ -96,6 +97,14 @@ void HtraceEventParser::InterruptEventInitialization()
                                 std::bind(&HtraceEventParser::SoftIrqEntryEvent, this, std::placeholders::_1));
     eventToFunctionMap_.emplace(TRACE_EVENT_SOFTIRQ_EXIT,
                                 std::bind(&HtraceEventParser::SoftIrqExitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_DMA_FENCE_INIT,
+                                std::bind(&HtraceEventParser::DmaFenceInitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_DMA_FENCE_DESTROY,
+                                std::bind(&HtraceEventParser::DmaFenceDestroyEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_DMA_FENCE_ENABLE,
+                                std::bind(&HtraceEventParser::DmaFenceEnableEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_DMA_FENCE_SIGNALED,
+                                std::bind(&HtraceEventParser::DmaFenceSignaledEvent, this, std::placeholders::_1));
 }
 
 void HtraceEventParser::ClockEventInitialization()
@@ -323,6 +332,17 @@ bool HtraceEventParser::InterruptEventSet(const ProtoReader::FtraceEvent_Reader 
         judgment = BytesViewEventInfo(bytesView, event.softirq_exit_format(), eventInfo, TRACE_EVENT_SOFTIRQ_EXIT);
     } else if (event.has_softirq_entry_format()) {
         judgment = BytesViewEventInfo(bytesView, event.softirq_entry_format(), eventInfo, TRACE_EVENT_SOFTIRQ_ENTRY);
+    } else if (event.has_dma_fence_init_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.dma_fence_init_format(), eventInfo, TRACE_EVENT_DMA_FENCE_INIT);
+    } else if (event.has_dma_fence_destroy_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.dma_fence_destroy_format(), eventInfo, TRACE_EVENT_DMA_FENCE_DESTROY);
+    } else if (event.has_dma_fence_enable_signal_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.dma_fence_enable_signal_format(), eventInfo,
+                                      TRACE_EVENT_DMA_FENCE_ENABLE);
+    } else if (event.has_dma_fence_signaled_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.dma_fence_signaled_format(), eventInfo, TRACE_EVENT_DMA_FENCE_SIGNALED);
     }
 
     return judgment;
@@ -887,6 +907,62 @@ bool HtraceEventParser::SoftIrqExitEvent(const EventInfo &event) const
     streamFilters_->irqFilter_->SoftIrqExit(event.timeStamp, event.cpu, static_cast<uint32_t>(msg.vec()));
     return true;
 }
+bool HtraceEventParser::DmaFenceInitEvent(const EventInfo &event) const
+{
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_INIT, STAT_EVENT_RECEIVED);
+    ProtoReader::DmaFenceInitFormat_Reader msg(event.detail);
+    DmaFenceRow dmaFenceRow = {event.timeStamp,
+                               0,
+                               dmaFenceInitName_,
+                               traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
+                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
+                               static_cast<uint32_t>(msg.context()),
+                               static_cast<uint32_t>(msg.seqno())};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
+bool HtraceEventParser::DmaFenceDestroyEvent(const EventInfo &event) const
+{
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_DESTROY, STAT_EVENT_RECEIVED);
+    ProtoReader::DmaFenceDestroyFormat_Reader msg(event.detail);
+    DmaFenceRow dmaFenceRow = {event.timeStamp,
+                               0,
+                               dmaFenceDestroyName_,
+                               traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
+                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
+                               static_cast<uint32_t>(msg.context()),
+                               static_cast<uint32_t>(msg.seqno())};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
+bool HtraceEventParser::DmaFenceEnableEvent(const EventInfo &event) const
+{
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_ENABLE, STAT_EVENT_RECEIVED);
+    ProtoReader::DmaFenceEnableSignalFormat_Reader msg(event.detail);
+    DmaFenceRow dmaFenceRow = {event.timeStamp,
+                               0,
+                               dmaFenceEnableName_,
+                               traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
+                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
+                               static_cast<uint32_t>(msg.context()),
+                               static_cast<uint32_t>(msg.seqno())};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
+bool HtraceEventParser::DmaFenceSignaledEvent(const EventInfo &event) const
+{
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_SIGNALED, STAT_EVENT_RECEIVED);
+    ProtoReader::DmaFenceSignaledFormat_Reader msg(event.detail);
+    DmaFenceRow dmaFenceRow = {event.timeStamp,
+                               0,
+                               dmaFenceSignaledName_,
+                               traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
+                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
+                               static_cast<uint32_t>(msg.context()),
+                               static_cast<uint32_t>(msg.seqno())};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
 bool HtraceEventParser::SysEnterEvent(const EventInfo &event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
@@ -908,7 +984,8 @@ bool HtraceEventParser::OomScoreAdjUpdate(const EventInfo &event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OOM_SCORE_ADJ_UPDATE, STAT_EVENT_RECEIVED);
     ProtoReader::OomScoreAdjUpdateFormat_Reader msg(event.detail);
-    streamFilters_->processMeasureFilter_->AppendNewMeasureData(msg.pid(), oomScoreAdjName_, event.timeStamp,
+    auto ipid = streamFilters_->processFilter_->GetInternalPid(msg.pid());
+    streamFilters_->processMeasureFilter_->AppendNewMeasureData(ipid, oomScoreAdjName_, event.timeStamp,
                                                                 msg.oom_score_adj());
     return true;
 }

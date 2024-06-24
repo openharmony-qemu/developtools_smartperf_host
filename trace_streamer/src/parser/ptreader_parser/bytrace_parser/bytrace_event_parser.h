@@ -74,6 +74,7 @@ private:
     bool SoftIrqRaiseEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool SoftIrqEntryEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool SoftIrqExitEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool DmaFenceEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransaction(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransactionReceived(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransactionAllocBufEvent(const ArgsMap &args, const BytraceLine &line) const;
@@ -101,6 +102,7 @@ private:
     const uint32_t MIN_IRQ_HANDLER_EXIT_ARGS_COUNT = 2;
     const uint32_t MIN_SOFTIRQ_ENTRY_ARGS_COUNT = 2;
     const uint32_t MIN_SOFTIRQ_EXIT_ARGS_COUNT = 2;
+    const uint32_t MIN_DMA_FENCE_ARGS_COUNT = 4;
     const uint32_t MIN_BINDER_TRANSACTION_ARGS_COUNT = 7;
     const uint32_t MIN_BINDER_TRANSACTION_RECEIVED_ARGS_COUNT = 1;
     const uint32_t MIN_BINDER_TRANSACTION_ALLOC_BUF_ARGS_COUNT = 3;

@@ -80,9 +80,6 @@ config("trace_streamer_cfg") {
       "${THIRD_PARTY}/elfutils/libelf",
     ]
   }
-  if (is_mingw) {
-    cflags = [ "-includeMingW64Fix.h" ]
-  }
 }
 
 ohos_source_set("trace_streamer_source") {
@@ -112,7 +109,7 @@ ohos_source_set("trace_streamer_source") {
     "table:table",
     "trace_data:trace_data",
     "//third_party/bounds_checking_function:libsec_static",
-    "//third_party/perf_include/hiviewdfx:hiviewdfx",
+    "//third_party/perf_include/hiviewdfx:libfaultloggerd",
   ]
   public_configs = [ ":trace_streamer_cfg" ]
   public_deps = []

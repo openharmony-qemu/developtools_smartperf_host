@@ -47,7 +47,7 @@ void FileSystemDataParser::IpAndCallidFind(const FsFixedHeader *fsFixedHeadrAddr
             currentCallId_ = callChainId_++;
         }
     } else {
-        currentCallId_ = INVALID_UINT64;
+        currentCallId_ = INVALID_UINT32;
     }
 }
 
@@ -100,9 +100,6 @@ size_t FileSystemDataParser::FileWriteOperation(TracerEventToStrIndexMap &tracer
 
 void FileSystemDataParser::ParseFileSystemEvent()
 {
-    if (!reader_->GetFileSystemEventMap().size()) {
-        return;
-    }
     auto &tracerEventToStrIndexMap = reader_->GetTracerEventToStrIndexMap();
     for (auto mapItor = reader_->GetFileSystemEventMap().begin(); mapItor != reader_->GetFileSystemEventMap().end();
          mapItor++) {

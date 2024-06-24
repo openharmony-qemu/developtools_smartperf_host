@@ -133,6 +133,7 @@ public:
     PerfThread perfThread_;
     PerfFiles perfFiles_;
     PerfReport perfReport_;
+    PerfNapiAsync perfNapiAsync_;
 
     std::deque<Process> internalProcessesData_ = {};
     std::deque<Thread> internalThreadsData_ = {};
@@ -169,6 +170,7 @@ public:
     FrameSlice frameSliceData_;
     FrameMaps frameMapsData_;
     GPUSlice gpuSliceData_;
+    DmaFence dmaFenceData_;
     TaskPoolInfo taskPoolInfo_;
     JsHeapFiles jsHeapFilesData_;
     JsHeapEdges jsHeapEdgesData_;

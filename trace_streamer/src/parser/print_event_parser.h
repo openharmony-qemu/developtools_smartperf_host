@@ -79,11 +79,13 @@ private:
     bool OnRwTransaction(size_t callStackRow, std::string &args, const BytraceLine &line);
     bool OnMainThreadProcessCmd(size_t callStackRow, std::string &args, const BytraceLine &line);
     bool OnFrameQueueStart(uint64_t ts, size_t callStackRow, uint64_t pid);
+    bool OnVsyncEvent(size_t callStackRow, std::string &args, const BytraceLine &line);
 
 private:
     std::map<DataIndex, FrameFuncCall> eventToFrameFunctionMap_ = {};
     TraceStreamerConfig config_{};
     const DataIndex recvievVsync_ = traceDataCache_->GetDataIndex("H:ReceiveVsync");
+    const DataIndex onVsyncEvent_ = traceDataCache_->GetDataIndex("H:OnVsyncEvent");
     const std::string rsOnDoCompositionStr_ = "H:RSMainThread::DoComposition";
     DataIndex rsOnDoCompositionEvent_ = INVALID_DATAINDEX;
     const std::string onFrameQueeuStartEvent_ = "H:M: Frame queued";
@@ -92,11 +94,13 @@ private:
     const DataIndex rsMainThreadProcessCmd_ = traceDataCache_->GetDataIndex("H:RSMainThread::ProcessCommandUni");
     const std::regex recvVsyncPattern_ = std::regex("(\\w+):(\\w+)");
     const std::regex transFlagPattern_ = std::regex("transactionFlag:\\[(\\d+),(\\d+)\\]");
-    const std::regex mainProcessCmdPattern = std::regex("\\[(\\d+),(\\d+)\\]");
+    const std::regex mainProcessCmdPattern_ = std::regex("\\[(\\d+),(\\d+)\\]");
+    const std::regex distributeMatcher_ = std::regex(R"(H:\[([a-z0-9]+),([a-z0-9]+),([a-z0-9]+)\]#([CS]?)##(.*))");
     std::vector<uint64_t> frameCallIds_ = {};
-    std::vector<uint64_t> vsyncSliceIds_ = {};
+    std::unordered_map<uint64_t, std::vector<uint64_t>> vsyncSliceMap_ = {};
     TraceFileType traceType_ = TRACE_FILETYPE_H_TRACE;
     BuiltinClocks clock_ = TS_CLOCK_BOOTTIME;
+    const uint32_t maxVsyncEventSize_ = 2;
     // if convert vsync's now and expectEnd
     bool convertVsyncTs_ = true;
 };
