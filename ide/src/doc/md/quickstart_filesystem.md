@@ -59,8 +59,8 @@ FileSystem statistics 的 Tab 页如图：
   ![GitHub Logo](../../figures/FileSystem/FileSystemCalltree.jpg)
 -     Call Stack：为经过符号解析后的Callstack，并且给出动态链接库或者进程名的信息。
 -     Local：为该调用方法自身占用的 CPU 时间。
--     Weight：为该调用方法占用的CPU时间。
-      %：为该调用方法占用的CPU时间占比。
+-     Weight：为该调用方法占用的 CPU 时间。
+-     %：为该调用方法占用的 CPU 时间占比。
   FileSystem Events 的 Tab 页如图：
   ![GitHub Logo](../../figures/FileSystem/FileSystemevents.jpg)
 -     Start： 起始时间。
@@ -138,7 +138,7 @@ FileSystem statistics 的 Tab 页如图：
 
 点击 FileSystem CallTree 左下角的柱状图的图标，会切换到火焰图页面。
 ![GitHub Logo](../../figures/FileSystem/FileSystemflame.jpg)
-进入到火焰图页面，火焰图的展示跟 Callinfo 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和 Duration 时长。
+进入到火焰图页面，火焰图的展示跟 Callinfo 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称、所属Lib库、函数地址、耗时及其占比。
 ![GitHub Logo](../../figures/FileSystem/FileSystemflameshow.jpg)
 鼠标左键火焰图，会进入下一级界面，左键上级则返回上一级界面。
 ![GitHub Logo](../../figures/FileSystem/FileSystemflamelevel.jpg)
