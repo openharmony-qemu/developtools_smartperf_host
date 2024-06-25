@@ -737,6 +737,8 @@ void PerfDataParser::SetHM()
 {
     std::string os = recordDataReader_->GetFeatureString(FEATURE::OSRELEASE);
     auto isHM = os.find(HMKERNEL) != std::string::npos;
+    isHM = isHM || os.find("hmkernel") != std::string::npos;
+    isHM = isHM || os.find("HongMeng") != std::string::npos;
     report_->virtualRuntime_.SetHM(isHM);
     if (isHM) {
         pid_t devhost = -1;

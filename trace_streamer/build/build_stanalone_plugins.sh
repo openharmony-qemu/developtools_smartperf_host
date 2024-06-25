@@ -14,16 +14,8 @@
 set -e
 . build/build_base.sh
 
-function init_vars() {
-    TARGET_PATH=""
-    PROJ_PATH=""
-    SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
-    flag="false"
-    IFS=','
-}
-
 function check_plugin_true() {
-    if [ $1 == "false" ];then
+    if [ "$1" == "false" ];then
         echo "Current plugins haven't '$2'!Please check!"
         exit
     fi
@@ -33,6 +25,7 @@ function enable_plugin() {
     check_params $1
     set_enable_plugin_array "false"
     read -ra plugins <<< "$1"
+    local flag='false'
     for plugin in "${plugins[@]}"; do
         for enable_plugin in "${enable_plugin_array[@]}"; do
             if [[ "$enable_plugin" == *"$plugin"* ]]; then
@@ -50,17 +43,17 @@ function enable_extend_plugin() {
     check_params "$1"
     set_enable_extend_plugin_array "false"
     read -ra plugins <<< "$1"
+    local flag_extend='false'
     for plugin in "${plugins[@]}"; do
         for enable_extend_plugin in "${enable_extend_plugin_array[@]}"; do
             if [[ "$enable_extend_plugin" == *"$plugin"* ]]; then
                 eval "$enable_extend_plugin=\"true\""
                 echo "$enable_extend_plugin=${!enable_extend_plugin}"
-                flag="true"
+                flag_extend="true"
             fi
         done
-        check_plugin_true $flag $plugin
-        flag="false"
+        check_plugin_true $flag_extend $plugin
+        flag_extend="false"
     done
 }
 
-init_vars

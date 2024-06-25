@@ -171,7 +171,6 @@ void SliceFilter::DmaFence(DmaFenceRow &dmaFenceRow)
         dmaFenceEventMap_.at(dmaFenceRow.timeline) = dmaFenceRow.timeStamp;
     }
     traceDataCache_->GetDmaFenceData()->AppendNew(dmaFenceRow);
-    return;
 }
 
 void SliceFilter::RememberSliceData(InternalTid internalTid,

@@ -228,19 +228,7 @@ private:
     void InitPgEventSysVmemMap();
     void InitOtherEventSysVmemMap();
 #endif
-
     void InitSecurityMap();
-    void InitBinderEventSecurityMap();
-    void InitSchedEventSecurityMap();
-    void InitClkEventSecurityMap();
-    void InitCpuEventSecurityMap();
-    void InitInterruptEventSecurityMap();
-    void InitMemoryEventSecurityMap();
-    void InitBlockEventSecurityMap();
-    void InitRegulatorEventSecurityMap();
-    void InitOtherEventSecurityMap();
-    void InitEbpfEventSecurityMap();
-    void InitHookEventSecurityMap();
     // all supported events should be defined here, these str can be find in text-based trace
     const std::string TRACE_ACTION_BINDER_TRANSACTION = "binder_transaction";
     const std::string TRACE_ACTION_BINDER_TRANSACTION_RECEIVED = "binder_transaction_received";

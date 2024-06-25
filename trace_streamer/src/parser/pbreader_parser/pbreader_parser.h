@@ -91,7 +91,8 @@ using namespace SysTuning::base;
 using namespace OHOS::Developtools::HiPerf;
 #if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)
 struct SliceInfo {
-    SliceInfo(uint64_t tsBegin, uint64_t tsEnd, const std::string& traceid) : tsBegin_(tsBegin), tsEnd_(tsEnd), traceid_(traceid){};
+    SliceInfo(uint64_t tsBegin, uint64_t tsEnd, const std::string &traceid)
+        : tsBegin_(tsBegin), tsEnd_(tsEnd), traceid_(traceid){};
     uint64_t tsBegin_ = INVALID_UINT64;
     uint64_t tsEnd_ = INVALID_UINT64;
     std::string traceid_;

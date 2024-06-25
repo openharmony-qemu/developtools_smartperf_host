@@ -243,7 +243,6 @@ std::string FfrtConverter::ConvertWorkerLogToTask(const std::string &mark,
 }
 int FfrtConverter::FindIntNumberAfterStr(const size_t index, const string &str)
 {
-
     auto beginPos = context_[index].find(str);
     if (beginPos != std::string::npos) {
         beginPos = beginPos + str.length();
