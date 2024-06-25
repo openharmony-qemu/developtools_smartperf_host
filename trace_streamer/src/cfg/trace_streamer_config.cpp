@@ -99,7 +99,7 @@ void TraceStreamerConfig::PrintInfo() const
     printf("\n");
 }
 
-inline void TraceStreamerConfig::InitBinderEventNameMap()
+void TraceStreamerConfig::InitBinderEventNameMap()
 {
     eventNameMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION, TRACE_ACTION_BINDER_TRANSACTION);
     eventNameMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED, TRACE_ACTION_BINDER_TRANSACTION_RECEIVED);
@@ -108,7 +108,7 @@ inline void TraceStreamerConfig::InitBinderEventNameMap()
     eventNameMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_LOCKED, TRACE_ACTION_BINDER_TRANSACTION_LOCKED);
     eventNameMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK, TRACE_ACTION_BINDER_TRANSACTION_UNLOCK);
 }
-inline void TraceStreamerConfig::InitSchedEventNameMap()
+void TraceStreamerConfig::InitSchedEventNameMap()
 {
     eventNameMap_.emplace(TRACE_EVENT_SCHED_SWITCH, TRACE_ACTION_SCHED_SWITCH);
     eventNameMap_.emplace(TRACE_EVENT_SCHED_BLOCKED_REASON, TRACE_ACTION_SCHED_BLOCKED_REASON);
@@ -116,7 +116,7 @@ inline void TraceStreamerConfig::InitSchedEventNameMap()
     eventNameMap_.emplace(TRACE_EVENT_SCHED_WAKING, TRACE_ACTION_SCHED_WAKING);
     eventNameMap_.emplace(TRACE_EVENT_SCHED_WAKEUP_NEW, TRACE_ACTION_SCHED_WAKEUP_NEW);
 }
-inline void TraceStreamerConfig::InitClkEventNameMap()
+void TraceStreamerConfig::InitClkEventNameMap()
 {
     eventNameMap_.emplace(TRACE_EVENT_CLOCK_SET_RATE, TRACE_ACTION_CLOCK_SET_RATE);
     eventNameMap_.emplace(TRACE_EVENT_CLOCK_ENABLE, TRACE_ACTION_CLOCK_ENABLE);
@@ -126,14 +126,14 @@ inline void TraceStreamerConfig::InitClkEventNameMap()
     eventNameMap_.emplace(TRACE_EVENT_CLK_DISABLE, TRACE_ACTION_CLK_DISABLE);
     eventNameMap_.emplace(TRACE_EVENT_CLOCK_SYNC, TRACE_ACTION_CLOCK_SYNC);
 }
-inline void TraceStreamerConfig::InitCpuEventNameMap()
+void TraceStreamerConfig::InitCpuEventNameMap()
 {
     eventNameMap_.emplace(TRACE_EVENT_CPU_IDLE, TRACE_ACTION_CPU_IDLE);
     eventNameMap_.emplace(TRACE_EVENT_CPU_FREQUENCY, TRACE_ACTION_CPU_FREQUENCY);
     eventNameMap_.emplace(TRACE_EVENT_CPU_FREQUENCY_LIMITS, TRACE_ACTION_CPU_FREQUENCY_LIMITS);
     eventNameMap_.emplace(TRACE_CPU_USAGE, TRACE_ACTION_CPU_USAGE);
 }
-inline void TraceStreamerConfig::InitInterruptEventNameMap()
+void TraceStreamerConfig::InitInterruptEventNameMap()
 {
     eventNameMap_.emplace(TRACE_EVENT_IPI_ENTRY, TRACE_ACTION_IPI_ENTRY);
     eventNameMap_.emplace(TRACE_EVENT_IPI_EXIT, TRACE_ACTION_IPI_EXIT);
@@ -148,7 +148,7 @@ inline void TraceStreamerConfig::InitInterruptEventNameMap()
     eventNameMap_.emplace(TRACE_EVENT_DMA_FENCE_SIGNALED, TRACE_ACTION_DMA_FENCE_SIGNALED);
     eventNameMap_.emplace(TRACE_EVENT_DMA_FENCE, TRACE_ACTION_DMA_FENCE);
 }
-inline void TraceStreamerConfig::InitMemoryEventNameMap()
+void TraceStreamerConfig::InitMemoryEventNameMap()
 {
     eventNameMap_.emplace(TRACE_MEMORY, TRACE_ACTION_MEMORY);
     eventNameMap_.emplace(TRACE_SYS_MEMORY, TRACE_ACTION_SYS_MEMORY);
@@ -159,7 +159,7 @@ inline void TraceStreamerConfig::InitMemoryEventNameMap()
     eventNameMap_.emplace(TRACE_JS_MEMORY, TRACE_ACTION_JS_MEMORY);
     eventNameMap_.emplace(TRACE_SYS_VIRTUAL_MEMORY, TRACE_ACTION_SYS_VIRTUAL_MEMORY);
 }
-inline void TraceStreamerConfig::InitBlockEventNameMap()
+void TraceStreamerConfig::InitBlockEventNameMap()
 {
     eventNameMap_.emplace(TRACE_EVENT_BLOCK_BIO_BACKMERGE, TRACE_ACTION_BLOCK_BIO_BACKMERGE);
     eventNameMap_.emplace(TRACE_EVENT_BLOCK_BIO_BOUNCE, TRACE_ACTION_BLOCK_BIO_BOUNCE);
@@ -175,14 +175,14 @@ inline void TraceStreamerConfig::InitBlockEventNameMap()
     eventNameMap_.emplace(TRACE_EVENT_BLOCK_RQ_REMAP, TRACE_ACTION_BLOCK_RQ_REMAP);
     eventNameMap_.emplace(TRACE_EVENT_BLOCK_RQ_ISSUE, TRACE_ACTION_BLOCK_RQ_ISSUE);
 }
-inline void TraceStreamerConfig::InitRegulatorEventNameMap()
+void TraceStreamerConfig::InitRegulatorEventNameMap()
 {
     eventNameMap_.emplace(TRACE_EVENT_REGULATOR_SET_VOLTAGE, TRACE_ACTION_REGULATOR_SET_VOLTAGE);
     eventNameMap_.emplace(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE, TRACE_ACTION_REGULATOR_SET_VOLTAGE_COMPLETE);
     eventNameMap_.emplace(TRACE_EVENT_REGULATOR_DISABLE, TRACE_ACTION_REGULATOR_DISABLE);
     eventNameMap_.emplace(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE, TRACE_ACTION_REGULATOR_DISABLE_COMPLETE);
 }
-inline void TraceStreamerConfig::InitOtherEventNameMap()
+void TraceStreamerConfig::InitOtherEventNameMap()
 {
     eventNameMap_.emplace(TRACE_EVENT_FFRT, TRACE_ACTION_FFRT);
     eventNameMap_.emplace(TRACE_EVENT_PRINT, TRACE_ACTION_PRINT);
@@ -213,14 +213,14 @@ inline void TraceStreamerConfig::InitOtherEventNameMap()
     eventNameMap_.emplace(TRACE_ON_DO_COMPOSITION, TRACE_ACTION_ON_DO_COMPOSITION);
     eventNameMap_.emplace(TRACE_FRAMEQUEUE, TRACE_ACTION_FRAMEQUEUE);
 }
-inline void TraceStreamerConfig::InitEbpfEventNameMap()
+void TraceStreamerConfig::InitEbpfEventNameMap()
 {
     eventNameMap_.emplace(TRACE_EVENT_EBPF, TRACE_ACTION_EBPF);
     eventNameMap_.emplace(TRACE_EVENT_EBPF_FILE_SYSTEM, TRACE_ACTION_EBPF_FILE_SYSTEM);
     eventNameMap_.emplace(TRACE_EVENT_EBPF_PAGED_MEMORY, TRACE_ACTION_EBPF_PAGED_MEMORY);
     eventNameMap_.emplace(TRACE_EVENT_EBPF_BIO_LATENCY, TRACE_ACTION_EBPF_BIO_LATENCY);
 }
-inline void TraceStreamerConfig::InitHookEventNameMap()
+void TraceStreamerConfig::InitHookEventNameMap()
 {
     eventNameMap_.emplace(TRACE_NATIVE_HOOK_MALLOC, TRACE_ACTION_NATIVE_HOOK_MALLOC);
     eventNameMap_.emplace(TRACE_NATIVE_HOOK_FREE, TRACE_ACTION_NATIVE_HOOK_FREE);
@@ -285,7 +285,7 @@ void TraceStreamerConfig::InitSysMemMap()
                       {SysMeminfoType::PMEM_INACTIVE_PURG, SYS_MEMINFO_INACTIVE_PURG_DESC},
                       {SysMeminfoType::PMEM_PINED_PURG, SYS_MEMINFO_PINED_PURG_DESC}};
 }
-inline void TraceStreamerConfig::InitNrZoneEventSysVmemMap()
+void TraceStreamerConfig::InitNrZoneEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_NR_ZONE_ACTIVE_ANON, SYS_VMEMINFO_NR_ZONE_ACTIVE_ANON_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_NR_ZONE_ACTIVE_FILE, SYS_VMEMINFO_NR_ZONE_ACTIVE_FILE_DESC);
@@ -297,7 +297,7 @@ inline void TraceStreamerConfig::InitNrZoneEventSysVmemMap()
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_NR_ZONE_WRITE_PENDING,
                                   SYS_VMEMINFO_NR_ZONE_WRITE_PENDING_DESC);
 }
-inline void TraceStreamerConfig::InitNrDirtierEventSysVmemMap()
+void TraceStreamerConfig::InitNrDirtierEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_NR_DIRTY, SYS_VMEMINFO_NR_DIRTY_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_NR_DIRTY_THRESHOLD, SYS_VMEMINFO_NR_DIRTY_THRESHOLD_DESC);
@@ -305,7 +305,7 @@ inline void TraceStreamerConfig::InitNrDirtierEventSysVmemMap()
                                   SYS_VMEMINFO_NR_DIRTY_BACKGROUND_THRESHOLD_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_NR_DIRTIED, SYS_VMEMINFO_NR_DIRTIED_DESC);
 }
-inline void TraceStreamerConfig::InitNrOtherEventSysVmemMap()
+void TraceStreamerConfig::InitNrOtherEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_NR_FREE_PAGES, SYS_VMEMINFO_NR_FREE_PAGES_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_NR_ALLOC_BATCH, SYS_VMEMINFO_NR_ALLOC_BATCH_DESC);
@@ -356,7 +356,7 @@ inline void TraceStreamerConfig::InitNrOtherEventSysVmemMap()
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_NR_UNRECLAIMABLE_PAGES,
                                   SYS_VMEMINFO_NR_UNRECLAIMABLE_PAGES_DESC);
 }
-inline void TraceStreamerConfig::InitPgscanEventSysVmemMap()
+void TraceStreamerConfig::InitPgscanEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGSCAN_KSWAPD_DMA, SYS_VMEMINFO_PGSCAN_KSWAPD_DMA_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGSCAN_KSWAPD_NORMAL,
@@ -373,7 +373,7 @@ inline void TraceStreamerConfig::InitPgscanEventSysVmemMap()
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGSCAN_DIRECT, SYS_VMEMINFO_PGSCAN_DIRECT_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGSCAN_KSWAPD, SYS_VMEMINFO_PGSCAN_KSWAPD_DESC);
 }
-inline void TraceStreamerConfig::InitPgstealEventSysVmemMap()
+void TraceStreamerConfig::InitPgstealEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGSTEAL_KSWAPD_DMA, SYS_VMEMINFO_PGSTEAL_KSWAPD_DMA_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGSTEAL_KSWAPD_NORMAL,
@@ -388,7 +388,7 @@ inline void TraceStreamerConfig::InitPgstealEventSysVmemMap()
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGSTEAL_DIRECT, SYS_VMEMINFO_PGSTEAL_DIRECT_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGSTEAL_KSWAPD, SYS_VMEMINFO_PGSTEAL_KSWAPD_DESC);
 }
-inline void TraceStreamerConfig::InitCompactEventSysVmemMap()
+void TraceStreamerConfig::InitCompactEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_COMPACT_MIGRATE_SCANNED,
                                   SYS_VMEMINFO_COMPACT_MIGRATE_SCANNED_DESC);
@@ -404,7 +404,7 @@ inline void TraceStreamerConfig::InitCompactEventSysVmemMap()
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_COMPACT_DAEMON_MIGRATE_SCANNED,
                                   SYS_VMEMINFO_COMPACT_DAEMON_MIGRATE_SCANNED_DESC);
 }
-inline void TraceStreamerConfig::InitUnevictableEventSysVmemMap()
+void TraceStreamerConfig::InitUnevictableEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_UNEVICTABLE_PGS_CULLED,
                                   SYS_VMEMINFO_UNEVICTABLE_PGS_CULLED_DESC);
@@ -421,14 +421,14 @@ inline void TraceStreamerConfig::InitUnevictableEventSysVmemMap()
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_UNEVICTABLE_PGS_STRANDED,
                                   SYS_VMEMINFO_UNEVICTABLE_PGS_STRANDED_DESC);
 }
-inline void TraceStreamerConfig::InitPgreFillEventSysVmemMap()
+void TraceStreamerConfig::InitPgreFillEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGREFILL_DMA, SYS_VMEMINFO_PGREFILL_DMA_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGREFILL_NORMAL, SYS_VMEMINFO_PGREFILL_NORMAL_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGREFILL_MOVABLE, SYS_VMEMINFO_PGREFILL_MOVABLE_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGREFILL, SYS_VMEMINFO_PGREFILL_DESC);
 }
-inline void TraceStreamerConfig::InitWorkingSetEventSysVmemMap()
+void TraceStreamerConfig::InitWorkingSetEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_WORKINGSET_REFAULT, SYS_VMEMINFO_WORKINGSET_REFAULT_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_WORKINGSET_ACTIVATE, SYS_VMEMINFO_WORKINGSET_ACTIVATE_DESC);
@@ -436,7 +436,7 @@ inline void TraceStreamerConfig::InitWorkingSetEventSysVmemMap()
                                   SYS_VMEMINFO_WORKINGSET_NODERECLAIM_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_WORKINGSET_RESTORE, SYS_VMEMINFO_WORKINGSET_RESTORE_DESC);
 }
-inline void TraceStreamerConfig::InitPgEventSysVmemMap()
+void TraceStreamerConfig::InitPgEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGPGIN, SYS_VMEMINFO_PGPGIN_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGPGOUT, SYS_VMEMINFO_PGPGOUT_DESC);
@@ -459,7 +459,7 @@ inline void TraceStreamerConfig::InitPgEventSysVmemMap()
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGSKIP_MOVABLE, SYS_VMEMINFO_PGSKIP_MOVABLE_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PGSKIP_NORMAL, SYS_VMEMINFO_PGSKIP_NORMAL_DESC);
 }
-inline void TraceStreamerConfig::InitOtherEventSysVmemMap()
+void TraceStreamerConfig::InitOtherEventSysVmemMap()
 {
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_UNSPECIFIED, SYS_VMEMINFO_UNSPECIFIED_DESC);
     sysVirtualMemNameMap_.emplace(SysVMeminfoType::VMEMINFO_PSWPIN, SYS_VMEMINFO_PSWPIN_DESC);
@@ -496,136 +496,6 @@ void TraceStreamerConfig::InitSysVmemMap()
     InitOtherEventSysVmemMap();
 }
 #endif
-inline void TraceStreamerConfig::InitBinderEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_LOCK, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_LOCKED, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK, statSeverityDescMap_);
-}
-inline void TraceStreamerConfig::InitSchedEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SCHED_SWITCH, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SCHED_BLOCKED_REASON, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SCHED_WAKEUP, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SCHED_WAKING, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SCHED_WAKEUP_NEW, statSeverityDescMap_);
-}
-inline void TraceStreamerConfig::InitClkEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_CLOCK_SET_RATE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_CLOCK_ENABLE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_CLOCK_DISABLE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_CLK_SET_RATE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_CLK_ENABLE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_CLK_DISABLE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_CLOCK_SYNC, statSeverityDescMap_);
-}
-inline void TraceStreamerConfig::InitCpuEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_CPU_IDLE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_CPU_FREQUENCY, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_CPU_FREQUENCY_LIMITS, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_CPU_USAGE, statSeverityDescMap_);
-}
-inline void TraceStreamerConfig::InitInterruptEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_IPI_ENTRY, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_IPI_EXIT, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_IRQ_HANDLER_ENTRY, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_IRQ_HANDLER_EXIT, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SOFTIRQ_RAISE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SOFTIRQ_ENTRY, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SOFTIRQ_EXIT, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_DMA_FENCE_INIT, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_DMA_FENCE_DESTROY, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_DMA_FENCE_ENABLE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_DMA_FENCE_SIGNALED, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_DMA_FENCE, statSeverityDescMap_);
-}
-inline void TraceStreamerConfig::InitMemoryEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_MEMORY, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_SYS_MEMORY, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_ASHMEM, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_DMAMEM, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_GPU_PROCESS_MEM, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_GPU_WINDOW_MEM, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_JS_MEMORY, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_SYS_VIRTUAL_MEMORY, statSeverityDescMap_);
-}
-inline void TraceStreamerConfig::InitBlockEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_BIO_BACKMERGE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_BIO_BOUNCE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_BIO_COMPLETE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_BIO_FRONTMERGE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_BIO_QUEUE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_BIO_REMAP, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_DIRTY_BUFFER, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_GETRQ, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_PLUG, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_RQ_COMPLETE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_RQ_INSERT, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_RQ_REMAP, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_BLOCK_RQ_ISSUE, statSeverityDescMap_);
-}
-inline void TraceStreamerConfig::InitRegulatorEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_REGULATOR_SET_VOLTAGE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_REGULATOR_DISABLE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE, statSeverityDescMap_);
-}
-inline void TraceStreamerConfig::InitOtherEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_FFRT, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_PRINT, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_TRACING_MARK_WRITE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_TASK_RENAME, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_TASK_NEWTASK, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SUSPEND_RESUME, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_WORKQUEUE_EXECUTE_START, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_WORKQUEUE_EXECUTE_END, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SYS_ENTRY, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SYS_EXIT, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_OOM_SCORE_ADJ_UPDATE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_PROCESS_EXIT, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_PROCESS_FREE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SIGNAL_GENERATE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_SIGNAL_DELIVER, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_OTHER, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_DISKIO, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_PROCESS, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_NETWORK, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_PERF, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_HILOG, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_HIDUMP_FPS, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_HISYSEVENT, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_SMAPS, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_WINDOW_MANAGER_SERVICE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_VSYNC, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_ON_DO_COMPOSITION, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_FRAMEQUEUE, statSeverityDescMap_);
-}
-inline void TraceStreamerConfig::InitEbpfEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_EBPF, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_EBPF_FILE_SYSTEM, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_EBPF_PAGED_MEMORY, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_EVENT_EBPF_BIO_LATENCY, statSeverityDescMap_);
-}
-inline void TraceStreamerConfig::InitHookEventSecurityMap()
-{
-    eventParserStatSeverityDescMap_.emplace(TRACE_NATIVE_HOOK_MALLOC, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_NATIVE_HOOK_FREE, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_NATIVE_HOOK_MMAP, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_NATIVE_HOOK_MUNMAP, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_NATIVE_HOOK_RECORD_STATISTICS, statSeverityDescMap_);
-    eventParserStatSeverityDescMap_.emplace(TRACE_NATIVE_HOOK_MEMTAG, statSeverityDescMap_);
-}
 void TraceStreamerConfig::InitSecurityMap()
 {
     statSeverityDescMap_ = {
@@ -633,17 +503,9 @@ void TraceStreamerConfig::InitSecurityMap()
         {STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO},      {STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN},
         {STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR},
     };
-    InitBinderEventSecurityMap();
-    InitSchedEventSecurityMap();
-    InitClkEventSecurityMap();
-    InitCpuEventSecurityMap();
-    InitInterruptEventSecurityMap();
-    InitMemoryEventSecurityMap();
-    InitBlockEventSecurityMap();
-    InitRegulatorEventSecurityMap();
-    InitOtherEventSecurityMap();
-    InitEbpfEventSecurityMap();
-    InitHookEventSecurityMap();
+    for (int i = 0; i < TRACE_EVENT_MAX; i++) {
+        eventParserStatSeverityDescMap_.emplace(static_cast<SupportedTraceEventType>(i), statSeverityDescMap_);
+    }
 }
 } // namespace TraceCfg
 } // namespace SysTuning

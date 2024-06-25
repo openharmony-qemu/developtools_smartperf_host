@@ -112,6 +112,7 @@ const std::deque<DataIndex> &PerfFiles::FilePaths() const
 {
     return filePaths_;
 }
+
 bool PerfFiles::EraseFileIdSameData(uint64_t fileId)
 {
     uint64_t start = INVALID_UINT64;
