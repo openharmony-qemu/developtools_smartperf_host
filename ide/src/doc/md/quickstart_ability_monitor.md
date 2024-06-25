@@ -76,7 +76,7 @@ Live Processes 的 Tab 页如图：
 -     CPU Time：CPU运行时间。
   框选 CPU Total Load，CPU User Load，CPU System Load 三个区域的泳道图，会展示 System CPU Summary 的 Tab 页。
   ![GitHub Logo](../../figures/AbilityMonitor/cpusummary.jpg)
--     StartTime：采集时间的时间戳。
+-     Start Time：采集时间的时间戳。
 -     Duration：前一次采集到本次采集的时间差。
 -     TotalLoad%：总的CPU使用率。
 -     UserLoad%：CPU在用户态空间运行的使用率。
@@ -105,7 +105,7 @@ Live Processes 的 Tab 页如图：
 -     VmallocTotal：可以vmalloc虚拟内存大小。
 -     CmaTotal：总的连续可用内存。
 -     CmaFree：空闲的可用内存。
-      Zram：Zram的使用大小。
+-     Zram：Zram的使用大小。
   框选 Disk Bytes Read/Sec，Disk Bytes Written/Sec，Disk Read Ops/Sec，Disk Written Ops/Sec 四个区域的泳道图，会展示 System Disk Summary 的 Tab 页。
   ![GitHub Logo](../../figures/AbilityMonitor/disktab.jpg)
 -     StartTime：采集时间的时间戳。

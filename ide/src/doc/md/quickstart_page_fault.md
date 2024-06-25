@@ -109,7 +109,7 @@ Page Fault Statistics 的 Tab 页如图：
 
 点击 Page Fault CallTree 左下角的柱状图的图标，会切换到火焰图页面。
 ![GitHub Logo](../../figures/EBPF/vmflame.jpg)
-进入到火焰图页面，火焰图的展示跟 Callinfo 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和 Duration 时长。
+进入到火焰图页面，火焰图的展示跟 Callinfo 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称、所属Lib库、函数地址、耗时及其占比。
 ![GitHub Logo](../../figures/EBPF/vmflameshow.jpg)
 鼠标左键火焰图，会进入下一级界面，左键上级则返回上一级界面。
 ![GitHub Logo](../../figures/EBPF/vmflamelevel.jpg)

@@ -76,10 +76,10 @@ Statistics 的 Tab 页，主要显示了统计明细类型。
 ![GitHub Logo](../../figures/NativeMemory/Statistics.png)
 
 -     Memory Type：内存的类型。
--     Existing：框选区域内申请没有释放的大小。
--     #Existing：框选区域内申请没有释放的次数。
--     Transient：框选区域内释放的大小。
--     #Transient：框选区域内释放的次数。
+-     Existing：框选区间内申请没有释放的大小。
+-     #Existing：框选区间内申请没有释放的次数。
+-     Transient：框选区间内释放的大小。
+-     #Transient：框选区间内释放的次数。
 -     Total Bytes：框选区间内申请的大小。
 -     #Total： 框选区间内申请的次数。
 -     Peak Value： 框选区间内内存申请的峰值。
@@ -99,7 +99,7 @@ Call Info 的 Tab 页，主要显示了调用树详细类型。
 -     Address：内存块的地址。
 -     Memory Type：内存分配的类型。
 -     Timestamp：时间戳信息。
--     State：内存地址当前状态Existed 表示框选范围内未释放，Freed表示已释放。
+-     State：内存地址当前状态Existed 表示框选区间内未释放，Freed表示已释放。
 -     Size：该次申请分配内存的大小。
 -     Responsible Library ：调用该函数的库。
 -     Responsible Caller  ：调用该函数的方法。
