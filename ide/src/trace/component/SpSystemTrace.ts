@@ -2439,7 +2439,8 @@ export class SpSystemTrace extends BaseElement {
         });
       } else {
         //@ts-ignore
-        let parentRowElHeight = it.hasParentRowEl ? it.parentRowEl.clientHeight : 0;
+        let parentElTopHeight = it.hasParentRowEl ? //@ts-ignore
+          (it.parentRowEl.getBoundingClientRect().top + it.parentRowEl.clientHeight) : this.rowsPaneEL!.getBoundingClientRect().top;
         it.childrenList.forEach((child): void => {
           if (child.hasAttribute('scene') && !child.collect) {
             child.rowHidden = true;
@@ -2452,18 +2453,18 @@ export class SpSystemTrace extends BaseElement {
         if (it.getBoundingClientRect().top < 0) {
           this.rowsPaneEL!.scrollTop =
             this.rowsPaneEL!.scrollTop -
-            (it.getBoundingClientRect().top * -1 + this.rowsPaneEL!.getBoundingClientRect().top + parentRowElHeight);
+            (it.getBoundingClientRect().top * -1 + parentElTopHeight);
         } else if (it.getBoundingClientRect().top > 0) {
           this.rowsPaneEL!.scrollTop =
-            this.rowsPaneEL!.getBoundingClientRect().top <
+            parentElTopHeight <
               it.getBoundingClientRect().top ?
               this.rowsPaneEL!.scrollTop :
               this.rowsPaneEL!.scrollTop -
-              (this.rowsPaneEL!.getBoundingClientRect().top - it.getBoundingClientRect().top + parentRowElHeight);
+              (parentElTopHeight - it.getBoundingClientRect().top);
         } else {
           this.rowsPaneEL!.scrollTop =
             this.rowsPaneEL!.scrollTop -
-            (this.rowsPaneEL!.getBoundingClientRect().top + parentRowElHeight);
+            parentElTopHeight;
         }
         this.linkNodes.map((value): void => {
           if ('task' === value[0].business && value[0].rowEL.parentRowEl?.rowId === it.rowId) {
