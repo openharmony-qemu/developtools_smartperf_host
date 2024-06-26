@@ -80,6 +80,7 @@ export class SpProcessChart {
       spanId: string;
       parentSpanId: string;
       chainFlag: string;
+      traceId:string
     }
   > = new Map();
   private renderRow: TraceRow<BaseStruct> | null = null;
@@ -463,6 +464,7 @@ export class SpProcessChart {
         spanId: item.spanId,
         parentSpanId: item.parentSpanId,
         chainFlag: item.chainFlag,
+        traceId:traceId!,
       });
     });
     info('The amount of initialized process threads data is : ', this.processThreads!.length);
@@ -1146,7 +1148,7 @@ export class SpProcessChart {
           funs[index].ipid = thread.upid;
           funs[index].tid = thread.tid;
           funs[index].pid = thread.pid;
-          funs[index].funName = Utils.getInstance().getCallStatckMap().get(funs[index].id!);
+          funs[index].funName = traceId ? Utils.getInstance().getCallStatckMap().get(`${traceId}_${funs[index].id}`) : Utils.getInstance().getCallStatckMap().get(funs[index].id!);
           if (Utils.isBinder(fun)) {
           } else {
             if (fun.nofinish) {
@@ -1159,6 +1161,7 @@ export class SpProcessChart {
             funs[index].spanId = distributedData!.spanId;
             funs[index].parentSpanId = distributedData!.parentSpanId;
             funs[index].chainFlag = distributedData!.chainFlag;
+            funs[index].traceId = traceId;
           }
         });
       } else {

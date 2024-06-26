@@ -231,6 +231,10 @@ export class SpChartManager {
   }
 
   async initDistributedChart(progress: Function, file1: string, file2: string): Promise<void> {
+    let funArr1 = await queryAllFuncNames('1');
+    let funArr2 = await queryAllFuncNames('2');
+    this.handleFuncName(funArr1,'1');
+    this.handleFuncName(funArr2,'2');
     progress('load data dict', 50);
     SpSystemTrace.DATA_DICT.clear();
     SpChartManager.APP_STARTUP_PID_ARR = [];
@@ -327,11 +331,18 @@ export class SpChartManager {
   }
 
   // 将callstatck表信息转为map存入utils
-  handleFuncName(funcNameArray: Array<unknown>) {
-    funcNameArray.forEach((it) => {
-      //@ts-ignore
-      Utils.getInstance().getCallStatckMap().set(it.id, it.name);
-    });
+  handleFuncName(funcNameArray: Array<unknown>,traceId?:string) {
+    if(traceId){
+      funcNameArray.forEach((it) => {
+        //@ts-ignore
+        Utils.getInstance().getCallStatckMap().set(`${traceId}_${it.id!}`,it.name);
+      });
+    }else {
+      funcNameArray.forEach((it) => {
+        //@ts-ignore
+        Utils.getInstance().getCallStatckMap().set(it.id, it.name);
+      });
+    }
   }
 
   initTotalTime = async (isDistributed: boolean = false): Promise<void> => {

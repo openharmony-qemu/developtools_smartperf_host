@@ -82,7 +82,7 @@ export class Utils {
       priority: number;
     }
   >();
-  private callStackMap: Map<number, string> = new Map<number, string>();
+  private callStackMap: Map<number |string, string> = new Map<number | string, string>();
 
   constructor() {
     Utils.statusMap.set('D', 'Uninterruptible Sleep');
@@ -121,7 +121,7 @@ export class Utils {
     }
   }
 
-  public getCallStatckMap(): Map<number, string> {
+  public getCallStatckMap(): Map<number | string, string> {
     return this.callStackMap;
   }
 
