@@ -2438,6 +2438,9 @@ export class SpSystemTrace extends BaseElement {
           this.intersectionObserver?.observe(child);
         });
       } else {
+        //@ts-ignore
+        let parentElTopHeight = it.hasParentRowEl ? //@ts-ignore
+          (it.parentRowEl.getBoundingClientRect().top + it.parentRowEl.clientHeight) : this.rowsPaneEL!.getBoundingClientRect().top;
         it.childrenList.forEach((child): void => {
           if (child.hasAttribute('scene') && !child.collect) {
             child.rowHidden = true;
@@ -2447,6 +2450,22 @@ export class SpSystemTrace extends BaseElement {
             child.removeEventListener('expansion-change', this.extracted(child));
           }
         });
+        if (it.getBoundingClientRect().top < 0) {
+          this.rowsPaneEL!.scrollTop =
+            this.rowsPaneEL!.scrollTop -
+            (it.getBoundingClientRect().top * -1 + parentElTopHeight);
+        } else if (it.getBoundingClientRect().top > 0) {
+          this.rowsPaneEL!.scrollTop =
+            parentElTopHeight <
+              it.getBoundingClientRect().top ?
+              this.rowsPaneEL!.scrollTop :
+              this.rowsPaneEL!.scrollTop -
+              (parentElTopHeight - it.getBoundingClientRect().top);
+        } else {
+          this.rowsPaneEL!.scrollTop =
+            this.rowsPaneEL!.scrollTop -
+            parentElTopHeight;
+        }
         this.linkNodes.map((value): void => {
           if ('task' === value[0].business && value[0].rowEL.parentRowEl?.rowId === it.rowId) {
             value[0].hidden = true;
