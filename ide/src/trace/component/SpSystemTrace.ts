@@ -274,27 +274,31 @@ export class SpSystemTrace extends BaseElement {
   }
 
   addPointPair(startPoint: PairPoint, endPoint: PairPoint): void {
-    if (startPoint.rowEL.collect) {
-      if (this.timerShaftEL?._checkExpand) {
-        startPoint.rowEL.translateY =
-          startPoint.rowEL.getBoundingClientRect().top - 195 + this.timerShaftEL._usageFoldHeight!;
+    if(startPoint !== null &&  startPoint.rowEL !== null && endPoint !== null && endPoint.rowEL !== null){
+      if (startPoint.rowEL.collect) {
+        if (this.timerShaftEL?._checkExpand) {
+          startPoint.rowEL.translateY =
+            startPoint.rowEL.getBoundingClientRect().top - 195 + this.timerShaftEL._usageFoldHeight!;
+        } else {
+          startPoint.rowEL.translateY = startPoint.rowEL.getBoundingClientRect().top - 195;
+        }
       } else {
-        startPoint.rowEL.translateY = startPoint.rowEL.getBoundingClientRect().top - 195;
+        startPoint.rowEL.translateY = startPoint.rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
       }
-    } else {
-      startPoint.rowEL.translateY = startPoint.rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+      if (endPoint.rowEL.collect) {
+        endPoint.rowEL.translateY = endPoint.rowEL.getBoundingClientRect().top - 195;
+      } else {
+        endPoint.rowEL.translateY = endPoint.rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+      }
+      startPoint.y = startPoint.rowEL!.translateY! + startPoint.offsetY;
+      endPoint.y = endPoint.rowEL!.translateY! + endPoint.offsetY;
+      startPoint.backrowEL = startPoint.rowEL;
+      endPoint.backrowEL = endPoint.rowEL;
+      if(startPoint.rangeTime){
+        this.linkNodes.push([startPoint, endPoint]);
+      }
+      this.refreshCanvas(true);
     }
-    if (endPoint.rowEL.collect) {
-      endPoint.rowEL.translateY = endPoint.rowEL.getBoundingClientRect().top - 195;
-    } else {
-      endPoint.rowEL.translateY = endPoint.rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
-    }
-    startPoint.y = startPoint.rowEL!.translateY! + startPoint.offsetY;
-    endPoint.y = endPoint.rowEL!.translateY! + endPoint.offsetY;
-    startPoint.backrowEL = startPoint.rowEL;
-    endPoint.backrowEL = endPoint.rowEL;
-    this.linkNodes.push([startPoint, endPoint]);
-    this.refreshCanvas(true);
   }
 
   clearPointPair(): void {

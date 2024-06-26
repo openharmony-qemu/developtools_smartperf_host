@@ -87,11 +87,11 @@ function addPointHandle(
     getPointModel(sp, sourceThreadRow, sourceParentRow, sourceData, 0.9);
   let [endY, endOffSetY, endRowEl] =
     getPointModel(sp, targetThreadRow, targetParentRow, targetData, 0.1);
-  let startX = Math.floor(ns2xByTimeShaft(sourceData.ts || 0, sp.timerShaftEL!));
-  let endX = Math.floor(ns2xByTimeShaft(targetData.ts!, sp.timerShaftEL!));
-  const startPoint = setPoint(startX, startY, startOffSetY, sourceData.ts || 0, startRowEl, true, 'distributed');
-  const endPoint = setPoint(endX, endY, endOffSetY, targetData.ts!, endRowEl, true, 'distributed');
-  startPoint.rangeTime = `${getTimeString((targetData.ts || 0) - (sourceData.ts || 0))}`;
+  let startX = Math.floor(ns2xByTimeShaft(sourceData.ts || sourceData.startTs || 0, sp.timerShaftEL!));
+  let endX = Math.floor(ns2xByTimeShaft(targetData.ts! || targetData.startTs!, sp.timerShaftEL!));
+  const startPoint = setPoint(startX, startY, startOffSetY, sourceData.ts || sourceData.startTs || 0, startRowEl, true, 'distributed');
+  const endPoint = setPoint(endX, endY, endOffSetY, targetData.ts! || targetData.startTs!, endRowEl, true, 'distributed');
+  startPoint.rangeTime = `${getTimeString((targetData.ts || targetData.startTs! || 0) - (sourceData.ts || sourceData.startTs || 0))}`;
   if (startPoint && endPoint) {
     startPoint.lineType = endPoint.lineType = LineType.brokenLine;
     startPoint.lineColor = endPoint.lineColor = '#ff0000';
