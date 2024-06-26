@@ -28,16 +28,17 @@ export const SpRecordTraceHtml = `
     }
 
     .header {
-        padding-top: 30px;
-        padding-bottom: 20px;
-        background-color: var(--dark-background3,#FFFFFF);
-        width: 100%;
+      display: flex;
+      background-color: var(--dark-background3,#FFFFFF);
+      width: 100%;
+      height: 90px;
     }
 
     .span-col-2{
-         margin-left: 20px;
-         display: flex;
-         align-items: center
+        margin-right: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     .header-right {
@@ -129,13 +130,13 @@ export const SpRecordTraceHtml = `
       border-radius: 0px 16px 16px 0px;
     }
     :host([show_hint]) #hint {
-        color: #DB5860;
-        position: absolute;
-        left:1%;
-        animation: textRoll 5s ease-in-out 0s backwards;
-        white-space: nowrap;
-        display: block;
-        font-weight: 700;
+      color: #DB5860;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+
     }
     #hint {
        display: none;
@@ -164,7 +165,7 @@ export const SpRecordTraceHtml = `
     </style>
     <div class="vessel">
      <div class="header">
-       <div style="display: flex;margin-bottom: 24px;margin-left:20px;">
+       <div style="display: flex;margin-left:20px;align-items: center; flex: 1;">
          <span class="target">Target Platform:</span>
            <div id="device-prompt">
               <span class="prompt"></span>
@@ -172,7 +173,7 @@ export const SpRecordTraceHtml = `
            </div>
            <select class="device_version" id = "device-version">
            </select>
-          <lit-button style="width: 180px" class="add" height="32px" width="164px" color="#0A59F7" 
+          <lit-button style="width: 180px; height:32px" class="add" height="32px" width="164px" color="#0A59F7" 
           font_size="14px" border="1px solid #0A59F7" 
           padding="0 0 0 12px" justify_content="left" icon="add" margin_icon="0 10px 0 8px">Add HDC Device</lit-button>
           <div class="header-right">

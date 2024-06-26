@@ -66,7 +66,10 @@ import { SpRecordTraceHtml } from './SpRecordTrace.html';
 import { SpFFRTConfig } from './setting/SpFFRTConfig';
 
 const DEVICE_NOT_CONNECT =
-  '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill,然后重新添加设备。若还没有效果，请重新插拔一下手机。';
+'<div>1.请关闭DevEco Studio,DevEco Testing</div>' +
+'<div>2.请使用系统管理员权限打开cmd窗口，并执行hdc kill，确保PC端任务管理器中没有hdc进程</div>' +
+'<div>3.若没有效果，请重新插拔一下手机</div>' +
+'<div>紧急情况可拷贝trace命令，在cmd窗口离线抓取</div>';
 
 @element('sp-record-trace')
 export class SpRecordTrace extends BaseElement {
@@ -171,7 +174,7 @@ export class SpRecordTrace extends BaseElement {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
-          this.hintEl!.textContent = DEVICE_NOT_CONNECT;
+          this.hintEl!.innerHTML = DEVICE_NOT_CONNECT;
           if (!this.showHint) {
             this.showHint = true;
           }
@@ -209,7 +212,7 @@ export class SpRecordTrace extends BaseElement {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
-          this.hintEl!.textContent = DEVICE_NOT_CONNECT;
+          this.hintEl!.innerHTML = DEVICE_NOT_CONNECT;
           if (!this.showHint) {
             this.showHint = true;
           }
