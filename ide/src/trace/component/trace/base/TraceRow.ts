@@ -64,6 +64,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_FPS = 'fps';
   static ROW_TYPE_NATIVE_MEMORY = 'native-memory';
   static ROW_TYPE_HIPERF = 'hiperf';
+  static ROW_TYPE_HIPERF_THREADTYPE: Array<number> = [-2];
   static ROW_TYPE_DELIVER_INPUT_EVENT = 'DeliverInputEvent';
   static ROW_TYPE_TOUCH_EVENT_DISPATCH = 'TouchEventDispatch';
   static ROW_TYPE_HIPERF_CPU = 'hiperf-cpu';
@@ -993,6 +994,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.rowSettingPop.setAttribute('haveRadio', 'true');
     this.rowSettingTree = this.rowSettingPop.querySelector('#rowSettingTree') as LitTree;
     this.rowSettingTree.onChange = (): void => {
+      TraceRow.ROW_TYPE_HIPERF_THREADTYPE = [];
       let isVisible = false;
       // @ts-ignore
       this.rowSettingPop!.visible = isVisible;
@@ -1000,7 +1002,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         isVisible = true;
       }
       // @ts-ignore
-      this.rowSettingPop!.visible = isVisible; //@ts-ignore
+      this.rowSettingPop!.visible = isVisible;
+      TraceRow.ROW_TYPE_HIPERF_THREADTYPE.push(Number(this.rowSettingTree!.getCheckdKeys())) //@ts-ignore
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
     };
     this.rowSettingPop?.addEventListener('mouseenter', (): void => {

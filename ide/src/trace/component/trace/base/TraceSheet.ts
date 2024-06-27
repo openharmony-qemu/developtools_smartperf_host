@@ -986,7 +986,8 @@ export class TraceSheet extends BaseElement {
         selection.fileSysVirtualMemory ||
         selection.vmCount > 0 ||
         selection.diskIOLatency ||
-        selection.diskIOipids.length > 0)
+        selection.diskIOipids.length > 0  ||
+        selection.threadIds.length > 0)
     ) {
       this.importDiv!.style.display = 'flex';
     } else {

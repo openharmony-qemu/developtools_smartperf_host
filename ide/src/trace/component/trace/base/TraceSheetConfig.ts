@@ -257,31 +257,6 @@ export let tabConfig: unknown = {
     type: TabPaneNMSampleList,
     require: (param: SelectionParam) => param.nativeMemory.length > 0,
   },
-  'box-perf-analysis': {
-    title: 'Analysis',
-    type: TabPanePerfAnalysis,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
-  },
-  'box-perf-bottom-up': {
-    title: 'Bottom Up',
-    type: TabpanePerfBottomUp,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
-  },
-  'box-perf-profile': {
-    title: 'Perf Profile',
-    type: TabpanePerfProfile,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
-  },
-  'box-perf-sample': {
-    title: 'Sample List',
-    type: TabPanePerfSample,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
-  },
-  'box-perf-async': {
-    title: 'Async Call Profile',
-    type: TabPanePerfAsync,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
-  },
 
   'box-live-processes-child': {
     title: 'Live Processes',
@@ -716,6 +691,31 @@ export let tabConfig: unknown = {
     title: 'MT Parallel',
     type: TabPaneMtParallel,
     require: (param: SelectionParam) => param.threadIds.length > 0,
+  },
+  'box-perf-analysis': {
+    title: 'Analysis',
+    type: TabPanePerfAnalysis,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
+  'box-perf-bottom-up': {
+    title: 'Bottom Up',
+    type: TabpanePerfBottomUp,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
+  'box-perf-profile': {
+    title: 'Perf Profile',
+    type: TabpanePerfProfile,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0  || param.threadIds.length > 0,
+  },
+  'box-perf-sample': {
+    title: 'Sample List',
+    type: TabPanePerfSample,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
+  'box-perf-async': {
+    title: 'Async Call Profile',
+    type: TabPanePerfAsync,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
   },
   'tab-pane-userplugin': {
     title: 'User Plugin',
