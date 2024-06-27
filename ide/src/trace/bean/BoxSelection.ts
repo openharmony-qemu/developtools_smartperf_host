@@ -999,8 +999,14 @@ export class SelectionParam {
 
   // @ts-ignore
   pushThread(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    this.perfEventTypeId = TraceRow.ROW_TYPE_HIPERF_THREADTYPE[0] === -2 ? undefined : TraceRow.ROW_TYPE_HIPERF_THREADTYPE[0];
     if (it.rowType === TraceRow.ROW_TYPE_THREAD) {
       sp.pushPidToSelection(this, it.rowParentId!);
+      if(it.dataListCache && it.dataListCache.length) {
+        //@ts-ignore
+        let hiTid = it.dataListCache[0]!.tid;
+        this.perfThread.push(parseInt(hiTid))
+      }
       this.threadIds.push(parseInt(it.rowId!));
       info('load thread traceRow id is : ', it.rowId);
     }
