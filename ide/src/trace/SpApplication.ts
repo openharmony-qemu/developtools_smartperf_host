@@ -1955,6 +1955,8 @@ export class SpApplication extends BaseElement {
       this.litSearch!.currenSearchValue = value;
       if(value.length > 0) {
         this.progressEL!.loading = true;
+      } else {
+        this.progressEL!.loading = false;
       }
       this.litSearch!.list = [];
       if (timer) {

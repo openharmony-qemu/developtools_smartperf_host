@@ -21,6 +21,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { ColorUtils } from '../../base/ColorUtils';
 import { TabPaneHiSysEventSummaryHtml } from './TabPaneHiSysEventSummary.html';
 import { NUM_30, NUM_40 } from '../../../../bean/NumBean';
+import { queryHiSysEventTabData } from '../../../../database/sql/Perf.sql';
 
 @element('tab-hi-sysevent-summary')
 export class TabPaneHiSysEventSummary extends BaseElement {
@@ -45,7 +46,13 @@ export class TabPaneHiSysEventSummary extends BaseElement {
     this.expansionDownIcon!.name = 'down';
     this.eventSummaryTable!.innerHTML = '';
     this.summaryTable!.recycleDataSource = [];
-    this.summarySource = systemEventParam.sysAllEventsData;
+    queryHiSysEventTabData(systemEventParam.leftNs, systemEventParam.rightNs).then((res) => {
+      this.currentSelection = systemEventParam;
+      systemEventParam.sysAllEventsData = res;
+      this.summarySource = systemEventParam.sysAllEventsData;
+      this.summaryTable!.recycleDataSource = res;
+      this.refreshRowNodeTable();
+    });
     if (this.summarySource?.length !== 0 && systemEventParam) {
       this.refreshRowNodeTable();
     }
