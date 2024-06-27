@@ -23,6 +23,7 @@ import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
 import { queryTransferList } from '../../../database/sql/Perf.sql';
 import { TabPaneFilterHtml } from './TabPaneFilter.html';
+import { SpSystemTrace } from '../../SpSystemTrace';
 
 export interface FilterData {
   inputValue: string;
@@ -705,6 +706,7 @@ export class TabPaneFilter extends BaseElement {
         this.value = this.value.replace(/\D/g, '');
       };
       e.addEventListener('keyup', (event: unknown): void => {
+        SpSystemTrace.isKeyUp = true;
         // @ts-ignore
         event.stopPropagation();
         // @ts-ignore
