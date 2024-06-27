@@ -1188,6 +1188,9 @@ export class SpProcessChart {
       row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       row.selectChangeHandler = this.trace.selectChangeHandler;
       row.focusHandler = (): void => {
+        if (row.hoverY <= 5 || row.hoverY >= 35) {
+          ProcessMemStruct.hoverProcessMemStruct = undefined;
+        }
         this.trace.displayTip(
           row,
           ProcessMemStruct.hoverProcessMemStruct,
