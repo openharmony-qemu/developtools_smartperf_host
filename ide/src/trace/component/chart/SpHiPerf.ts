@@ -122,7 +122,6 @@ export class SpHiPerf {
 
   async initFolder(): Promise<void> {
     let row = TraceRow.skeleton();
-    // row.setAttribute('disabled-check', '');
     row.rowId = 'HiPerf';
     row.index = 0;
     row.rowType = TraceRow.ROW_TYPE_HIPERF;
