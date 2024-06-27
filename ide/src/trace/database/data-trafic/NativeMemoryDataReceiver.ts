@@ -427,7 +427,7 @@ function arrayBufferCallback(data: SenderParam, transfer: boolean): void {
   let startTime = new Float64Array(len);
   let dur = new Float64Array(len);
   let density = new Int32Array(len);
-  let heapSize = new Int32Array(len);
+  let heapSize = new Float64Array(len);
   for (let i = 0; i < len; i++) {
     startTime[i] = dataFilter.startTime[i];
     dur[i] = dataFilter.dur[i];
