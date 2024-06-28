@@ -68,7 +68,7 @@ Disk I/O Tier Statistics 的 Tab 页如图：
 
 ### Bio 支持多种 Options 展示风格
 
-点击 Disk I/O Latency CallTree 的 Tab 页底部的 Options，会有两个 CheckBox 复选框。
+点击 Disk I/O Latency CallTree 的 Tab 页底部的 Options，会有四个 CheckBox 复选框。
 ![GitHub Logo](../../figures/Bio/BioOptions.jpg)
 
 -     Invert：反向输出调用树。
