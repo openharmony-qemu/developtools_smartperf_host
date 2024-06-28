@@ -49,8 +49,9 @@ export class FuncRender {
     drawLoadingFrame(req.context, funcFilter, row, true);
     req.context.beginPath();
     let funcFind = false;
+    let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
     for (let re of funcFilter) {
-      FuncStruct.draw(req.context, re);
+      FuncStruct.draw(req.context, re, flagConfig);
       if (row.isHover) {
         if (re.dur === 0 || re.dur === null || re.dur === undefined) {
           if (
@@ -230,9 +231,8 @@ export class FuncStruct extends BaseFuncStruct {
     funcNode.frame.height = 18;
   }
 
-  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct): void {
+  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct, flagConfig?: any): void {
     if (data.frame) {
-      let isBinder = FuncStruct.isBinder(data);
       if (data.dur === undefined || data.dur === null) {
       } else {
         ctx.globalAlpha = 1;
@@ -276,20 +276,17 @@ export class FuncStruct extends BaseFuncStruct {
           ctx.lineWidth = 2;
           ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, data.frame.height - 2);
         }
-        let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
-        if (
-          flagConfig!.TaskPool === 'Enabled' &&
-          data.funName!.indexOf('H:Task PerformTask End:') >= 0 &&
-          data.funName!.indexOf('Successful') < 0
-        ) {
-          if (data.frame!.width < 10) {
-            FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 3, data!);
-          } else {
-            FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 6, data!);
+        if (flagConfig!.TaskPool === 'Enabled') {
+          if (data.funName!.indexOf('H:Task PerformTask End:') >= 0 && data.funName!.indexOf('Successful') < 0) {
+            if (data.frame!.width < 10) {
+              FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 3, data!);
+            } else {
+              FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 6, data!);
+            }
           }
-        }
-        if (flagConfig!.TaskPool === 'Enabled' && data.funName!.indexOf('H:Thread Timeout Exit') >= 0) {
-          FuncStruct.drawTaskPoolTimeOutFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 10, data!);
+          if (data.funName!.indexOf('H:Thread Timeout Exit') >= 0) {
+            FuncStruct.drawTaskPoolTimeOutFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 10, data!);
+          }
         }
         // 如果该函数没有结束时间，则绘制锯齿。
         if (data.nofinish && data.frame!.width > 4) {
