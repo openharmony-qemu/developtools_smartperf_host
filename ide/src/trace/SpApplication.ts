@@ -891,17 +891,7 @@ export class SpApplication extends BaseElement {
           title: 'Keyboard Shortcuts',
           icon: 'smart-help',
           clickHandler: (item: MenuItem): void => this.clickHandleByKeyboardShortcuts(),
-        },
-        {
-          title: 'The Third Files',
-          icon: 'file-fill',
-          fileModel: this.wasm ? 'wasm' : 'db',
-          clickHandler: (item: MenuItem): void => {
-            this.returnOriginalUrl();
-            this.search = false;
-            this.showContent(this.spThirdParty!);
-          },
-        },
+        }
       ],
     };
   }
@@ -1252,16 +1242,6 @@ export class SpApplication extends BaseElement {
           title: 'Keyboard Shortcuts',
           icon: 'smart-help',
           clickHandler: (item: MenuItem): void => this.clickHandleByKeyboardShortcuts(),
-        },
-        {
-          title: 'Third File',
-          icon: 'file-fill',
-          fileModel: this.wasm ? 'wasm' : 'db',
-          clickHandler: (item: MenuItem): void => {
-            this.returnOriginalUrl();
-            this.search = false;
-            this.showContent(this.spThirdParty!);
-          },
         },
       ],
     });
