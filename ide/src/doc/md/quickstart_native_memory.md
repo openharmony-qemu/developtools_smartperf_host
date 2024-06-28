@@ -118,7 +118,7 @@ Call Info 的 Tab 页，主要显示了调用树详细类型。
 
 ### Native Memory 详细显示的过滤功能
 
-点击下方的 All Allocations 可以对 Allocation 的 lifespan 进行过滤，有三个选择：All Allocatios，Created & Existing，Created & Destroyed。
+点击下方的 All Allocations 可以对 Allocation 的 lifespan 进行过滤，有三个选择：All Allocations，Created & Existing，Created & Destroyed。
 ![GitHub Logo](../../figures/NativeMemory/lifespan.jpg)
 
 -      All Allocations：所有的内存。
