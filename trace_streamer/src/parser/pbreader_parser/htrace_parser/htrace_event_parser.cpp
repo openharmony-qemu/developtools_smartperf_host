@@ -915,15 +915,13 @@ bool HtraceEventParser::DmaFenceInitEvent(const EventInfo &event) const
     if (timelineStr.empty()) {
         return false;
     }
-    uint32_t contextValue = msg.context();
-    uint32_t seqnoValue = msg.seqno();
     DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceInitName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
                                traceDataCache_->GetDataIndex(timelineStr),
-                               contextValue,
-                               seqnoValue};
+                               msg.context(),
+                               msg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
@@ -935,15 +933,13 @@ bool HtraceEventParser::DmaFenceDestroyEvent(const EventInfo &event) const
     if (timelineStr.empty()) {
         return false;
     }
-    uint32_t contextValue = msg.context();
-    uint32_t seqnoValue = msg.seqno();
     DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceDestroyName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
-                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
-                               contextValue,
-                               seqnoValue};
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               msg.context(),
+                               msg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
@@ -955,15 +951,13 @@ bool HtraceEventParser::DmaFenceEnableEvent(const EventInfo &event) const
     if (timelineStr.empty()) {
         return false;
     }
-    uint32_t contextValue = msg.context();
-    uint32_t seqnoValue = msg.seqno();
     DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceEnableName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
-                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
-                               contextValue,
-                               seqnoValue};
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               msg.context(),
+                               msg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
@@ -975,13 +969,11 @@ bool HtraceEventParser::DmaFenceSignaledEvent(const EventInfo &event) const
     if (timelineStr.empty()) {
         return false;
     }
-    uint32_t contextValue = msg.context();
-    uint32_t seqnoValue = msg.seqno();
     DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceSignaledName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
-                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
+                               traceDataCache_->GetDataIndex(timelineStr),
                                contextValue,
                                seqnoValue};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);

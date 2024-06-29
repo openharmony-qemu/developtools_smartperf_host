@@ -610,15 +610,13 @@ bool CpuDetailParser::DmaFenceInitEvent(const RawTraceEventInfo &event) const
     if (timelineStr.empty()) {
         return false;
     }
-    uint32_t contextValue = dmaFenceInitMsg.context();
-    uint32_t seqnoValue = dmaFenceInitMsg.seqno();
     DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
                                0,
                                dmaFenceInitIndex_,
                                traceDataCache_->GetDataIndex(dmaFenceInitMsg.driver()),
                                traceDataCache_->GetDataIndex(timelineStr),
-                               contextValue,
-                               seqnoValue};
+                               dmaFenceInitMsg.context(),
+                               dmaFenceInitMsg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
@@ -630,15 +628,13 @@ bool CpuDetailParser::DmaFenceDestroyEvent(const RawTraceEventInfo &event) const
     if (timelineStr.empty()) {
         return false;
     }
-    uint32_t contextValue = dmaFenceDestroyMsg.context();
-    uint32_t seqnoValue = dmaFenceDestroyMsg.seqno();
     DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
                                0,
                                dmaFenceDestroyIndex_,
                                traceDataCache_->GetDataIndex(dmaFenceDestroyMsg.driver()),
                                traceDataCache_->GetDataIndex(timelineStr),
-                               contextValue,
-                               seqnoValue};
+                               dmaFenceDestroyMsg.context(),
+                               dmaFenceDestroyMsg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
@@ -650,15 +646,13 @@ bool CpuDetailParser::DmaFenceEnableEvent(const RawTraceEventInfo &event) const
     if (timelineStr.empty()) {
         return false;
     }
-    uint32_t contextValue = dmaFenceEnableMsg.context();
-    uint32_t seqnoValue = dmaFenceEnableMsg.seqno();
     DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
                                0,
                                dmaFenceEnableIndex_,
                                traceDataCache_->GetDataIndex(dmaFenceEnableMsg.driver()),
                                traceDataCache_->GetDataIndex(timelineStr),
-                               contextValue,
-                               seqnoValue};
+                               dmaFenceEnableMsg.context(),
+                               dmaFenceEnableMsg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
@@ -670,15 +664,13 @@ bool CpuDetailParser::DmaFenceSignaledEvent(const RawTraceEventInfo &event) cons
     if (timelineStr.empty()) {
         return false;
     }
-    uint32_t contextValue = dmaFenceSignaledMsg.context();
-    uint32_t seqnoValue = dmaFenceSignaledMsg.seqno();
     DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
                                0,
                                dmaFenceSignaledIndex_,
                                traceDataCache_->GetDataIndex(dmaFenceSignaledMsg.driver()),
                                traceDataCache_->GetDataIndex(timelineStr),
-                               contextValue,
-                               seqnoValue};
+                               dmaFenceSignaledMsg.context(),
+                               dmaFenceSignaledMsg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
