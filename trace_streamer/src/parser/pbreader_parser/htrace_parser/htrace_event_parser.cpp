@@ -974,8 +974,8 @@ bool HtraceEventParser::DmaFenceSignaledEvent(const EventInfo &event) const
                                dmaFenceSignaledName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
                                traceDataCache_->GetDataIndex(timelineStr),
-                               contextValue,
-                               seqnoValue};
+                               msg.context(),
+                               msg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
