@@ -616,7 +616,7 @@ bool CpuDetailParser::DmaFenceInitEvent(const RawTraceEventInfo &event) const
                                0,
                                dmaFenceInitIndex_,
                                traceDataCache_->GetDataIndex(dmaFenceInitMsg.driver()),
-                               traceDataCache_->GetDataIndex(dmaFenceInitMsg.timeline()),
+                               traceDataCache_->GetDataIndex(timelineStr),
                                contextValue,
                                seqnoValue};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
@@ -636,7 +636,7 @@ bool CpuDetailParser::DmaFenceDestroyEvent(const RawTraceEventInfo &event) const
                                0,
                                dmaFenceDestroyIndex_,
                                traceDataCache_->GetDataIndex(dmaFenceDestroyMsg.driver()),
-                               traceDataCache_->GetDataIndex(dmaFenceDestroyMsg.timeline()),
+                               traceDataCache_->GetDataIndex(timelineStr),
                                contextValue,
                                seqnoValue};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
@@ -656,7 +656,7 @@ bool CpuDetailParser::DmaFenceEnableEvent(const RawTraceEventInfo &event) const
                                0,
                                dmaFenceEnableIndex_,
                                traceDataCache_->GetDataIndex(dmaFenceEnableMsg.driver()),
-                               traceDataCache_->GetDataIndex(dmaFenceEnableMsg.timeline()),
+                               traceDataCache_->GetDataIndex(timelineStr),
                                contextValue,
                                seqnoValue};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
@@ -676,7 +676,7 @@ bool CpuDetailParser::DmaFenceSignaledEvent(const RawTraceEventInfo &event) cons
                                0,
                                dmaFenceSignaledIndex_,
                                traceDataCache_->GetDataIndex(dmaFenceSignaledMsg.driver()),
-                               traceDataCache_->GetDataIndex(dmaFenceSignaledMsg.timeline()),
+                               traceDataCache_->GetDataIndex(timelineStr),
                                contextValue,
                                seqnoValue};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
