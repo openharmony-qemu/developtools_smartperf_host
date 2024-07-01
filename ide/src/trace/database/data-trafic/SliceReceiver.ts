@@ -92,7 +92,7 @@ export function sliceReceiver(data: unknown, proc: Function): void {
         threadStateList.set(key, [slice]);
       }
       // @ts-ignore
-      if (slice.state === 'S' || typeof slice.dur !== 'number') {
+      if (slice.state === 'S' || typeof slice.dur !== 'number' || slice.tid === 0) {
         continue;
       } else {
         // @ts-ignore
@@ -128,7 +128,7 @@ function getCpuUtiliRate(cpulist: Map<number, Array<unknown>>, args: Args): Arra
   // cpu进行排序  
   let cpuListArray = Array.from(cpulist.entries());
   cpuListArray.sort((a: any, b: any) => parseInt(a[0]) - parseInt(b[0]));
-  let cpuListMap = new Map(cpuListArray);  
+  let cpuListMap = new Map(cpuListArray);
   let cpuUtiliRateArray = new Array();
   let cell = Math.floor((args.recordEndNS - args.recordStartNS) / 100);//分成100个格子，cell每个格子的持续时间
   for (const [cpu, list] of cpuListMap.entries()) {
