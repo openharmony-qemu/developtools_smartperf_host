@@ -59,7 +59,7 @@ export class SpProcessChart {
   private readonly trace: SpSystemTrace;
   private processAsyncFuncMap: unknown = {};
   private processAsyncFuncArray: unknown[] = [];
-  private processAsyncFuncCatMap: unknown = {}; 
+  private processAsyncFuncCatMap: unknown = {};
   private eventCountMap: unknown;
   private processThreads: Array<ThreadStruct> = [];
   private processMem: Array<unknown> = [];
@@ -80,7 +80,7 @@ export class SpProcessChart {
       spanId: string;
       parentSpanId: string;
       chainFlag: string;
-      traceId:string
+      traceId: string
     }
   > = new Map();
   private renderRow: TraceRow<BaseStruct> | null = null;
@@ -126,14 +126,14 @@ export class SpProcessChart {
     let asyncFuncList: unknown[] = await queryProcessAsyncFunc(traceRange, traceId);
     for (const func of asyncFuncList) {
       //@ts-ignore
-      func.funName = Utils.getInstance().getCallStatckMap().get(func.id); //@ts-ignore
+      func.funName = this.traceId ? Utils.getInstance().getCallStatckMap().get(`${this.traceId}_${func.id}`) : Utils.getInstance().getCallStatckMap().get(func.id); //@ts-ignore
       func.threadName = Utils.getInstance().getThreadMap(traceId).get(func.tid);
     }
     info('AsyncFuncData Count is: ', asyncFuncList!.length);
     this.processAsyncFuncArray = asyncFuncList;
     this.processAsyncFuncMap = Utils.groupBy(asyncFuncList, 'pid');
 
-    let asyncFuncCatList: unknown[] = await queryProcessAsyncFuncCat(traceRange);  
+    let asyncFuncCatList: unknown[] = await queryProcessAsyncFuncCat(traceRange);
     info('AsyncFuncCatData Count is: ', asyncFuncCatList!.length);
     this.processAsyncFuncCatMap = Utils.groupBy(asyncFuncCatList, 'pid');
   };
@@ -233,7 +233,7 @@ export class SpProcessChart {
     };
     res.forEach((it, i): void => {
       //@ts-ignore
-      res[i].funName = Utils.getInstance().getCallStatckMap().get(res[i].id!); //@ts-ignore
+      res[i].funName = this.traceId ? Utils.getInstance().getCallStatckMap().get(`${this.traceId}_${res[i].id!}`) : Utils.getInstance().getCallStatckMap().get(res[i].id!); //@ts-ignore
       res[i].threadName = Utils.getInstance().getThreadMap().get(res[i].tid!); //@ts-ignore
       if (it.dur === -1 || it.dur === null || it.dur === undefined) {
         //@ts-ignore
@@ -338,7 +338,7 @@ export class SpProcessChart {
       }
     };
     res.forEach((it, i) => {
-      res[i].funName = Utils.getInstance().getCallStatckMap().get(res[i].id!);
+      res[i].funName = this.traceId ? Utils.getInstance().getCallStatckMap().get(`${this.traceId}_${res[i].id!}`) : Utils.getInstance().getCallStatckMap().get(res[i].id!);
       res[i].threadName = Utils.getInstance().getThreadMap().get(res[i].tid!);
       if (it.dur == -1 || it.dur === null || it.dur === undefined) {
         it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
@@ -464,7 +464,7 @@ export class SpProcessChart {
         spanId: item.spanId,
         parentSpanId: item.parentSpanId,
         chainFlag: item.chainFlag,
-        traceId:traceId!,
+        traceId: traceId!,
       });
     });
     info('The amount of initialized process threads data is : ', this.processThreads!.length);
@@ -1010,7 +1010,7 @@ export class SpProcessChart {
         this.trace
       );
       this.insertRowToDoc(it, j, thread, pRow, tRow, threads, tRowArr, actualRow, expectedRow, startupRow, soRow);
-      this.addFuncStackRow(it, thread, j, threads, tRowArr, tRow, pRow, traceId);
+      this.addFuncStackRow(it, thread, j, threads, tRowArr, tRow, pRow);
       if ((thread.switchCount || 0) === 0) {
         tRow.rowDiscard = true;
       }
@@ -1082,7 +1082,6 @@ export class SpProcessChart {
     threadRowArr: Array<unknown>,
     threadRow: TraceRow<ThreadStruct>,
     processRow: TraceRow<ProcessStruct>,
-    traceId?: string
   ): void {
     //@ts-ignore
     if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) !== undefined) {
@@ -1105,7 +1104,7 @@ export class SpProcessChart {
       funcRow.supplierFrame = async (): Promise<Array<FuncStruct>> => {
         //@ts-ignore
         const rs = await funcDataSender(thread.tid || 0, thread.upid || 0, funcRow, this.traceId); //@ts-ignore
-        return this.funDataSenderCallback(rs, funcRow, thread, traceId);
+        return this.funDataSenderCallback(rs, funcRow, thread);
       };
       funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       funcRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -1134,8 +1133,7 @@ export class SpProcessChart {
   funDataSenderCallback(
     rs: Array<unknown> | boolean,
     funcRow: TraceRow<FuncStruct>,
-    thread: ThreadStruct,
-    traceId?: string
+    thread: ThreadStruct
   ): FuncStruct[] {
     if (rs === true) {
       funcRow.rowDiscard = true;
@@ -1148,20 +1146,20 @@ export class SpProcessChart {
           funs[index].ipid = thread.upid;
           funs[index].tid = thread.tid;
           funs[index].pid = thread.pid;
-          funs[index].funName = traceId ? Utils.getInstance().getCallStatckMap().get(`${traceId}_${funs[index].id}`) : Utils.getInstance().getCallStatckMap().get(funs[index].id!);
+          funs[index].funName = this.traceId ? Utils.getInstance().getCallStatckMap().get(`${this.traceId}_${funs[index].id}`) : Utils.getInstance().getCallStatckMap().get(funs[index].id!);
           if (Utils.isBinder(fun)) {
           } else {
             if (fun.nofinish) {
               fun.flag = 'Did not end';
             }
           }
-          if (fun.id && this.distributedDataMap.has(`${fun.id}_${traceId}`)) {
-            let distributedData = this.distributedDataMap.get(`${fun.id}_${traceId}`);
+          if (fun.id && this.distributedDataMap.has(`${fun.id}_${this.traceId}`)) {
+            let distributedData = this.distributedDataMap.get(`${fun.id}_${this.traceId}`);
             funs[index].chainId = distributedData!.chainId;
             funs[index].spanId = distributedData!.spanId;
             funs[index].parentSpanId = distributedData!.parentSpanId;
             funs[index].chainFlag = distributedData!.chainFlag;
-            funs[index].traceId = traceId;
+            funs[index].traceId = this.traceId;
           }
         });
       } else {
@@ -1464,11 +1462,11 @@ export class SpProcessChart {
     let asyncFuncCatList = this.processAsyncFuncCatMap[it.pid] || [];
     let asyncFuncGroup: unknown = Utils.groupBy(asyncFuncCatList, 'threadName'); //@ts-ignore  
     Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => { //@ts-ignore 
-      let asyncFunctions: Array<unknown> = asyncFuncGroup[key]; 
+      let asyncFunctions: Array<unknown> = asyncFuncGroup[key];
       if (asyncFunctions.length > 0) {
         let isIntersect = (a: unknown, b: unknown): boolean =>  //@ts-ignore  
           Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
-        let depthArray: unknown = [];  
+        let depthArray: unknown = [];
         asyncFunctions.forEach((it, i) => {//@ts-ignore
           if (it.dur === -1 || it.dur === null || it.dur === undefined) {//@ts-ignore
             it.dur = (TraceRow.range?.endNS || 0) - it.startTs;//@ts-ignore
@@ -1501,7 +1499,7 @@ export class SpProcessChart {
         funcRow.findHoverStruct = (): void => {
           FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
         }; //@ts-ignore  
-        funcRow.supplier = (): Promise<unknown> => new Promise((resolve) => resolve(asyncFunctions)); 
+        funcRow.supplier = (): Promise<unknown> => new Promise((resolve) => resolve(asyncFunctions));
         funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         funcRow.selectChangeHandler = this.trace.selectChangeHandler;
         funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {  //@ts-ignore
