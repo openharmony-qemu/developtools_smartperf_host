@@ -1596,9 +1596,13 @@ export class SpSystemTrace extends BaseElement {
         }
         this.restoreRecordExpandAndTimeRange(record);
         this.currentCollectGroup = currentGroup;
-        this.timerShaftEL!.sportRuler!.flagList = record.drawFlag;//获取下载时存的旗帜信息
-        this.timerShaftEL!.sportRuler!.slicesTimeList = record.markFlag;//获取下载时存的M键信息
-        this.selectFlag = this.timerShaftEL!.sportRuler!.flagList.find((it) => it.selected);//绘制被选中旗帜对应的线
+        if (record.drawFlag !== undefined) {
+          this.timerShaftEL!.sportRuler!.flagList = record.drawFlag;//获取下载时存的旗帜信息
+          this.selectFlag = this.timerShaftEL!.sportRuler!.flagList.find((it) => it.selected);//绘制被选中旗帜对应的线
+        }
+        if (record.markFlag !== undefined) {
+          this.timerShaftEL!.sportRuler!.slicesTimeList = record.markFlag;//获取下载时存的M键信息
+        }
         TraceRow.range!.refresh = true;
         this.refreshCanvas(true);
         this.restoreRecordScrollTop(record.scrollTop, record.favoriteScrollTop);
