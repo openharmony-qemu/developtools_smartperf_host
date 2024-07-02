@@ -666,6 +666,10 @@ bool BytraceEventParser::DmaFenceEvent(const ArgsMap &args, const BytraceLine &l
     auto timelineStr = std::string_view(args.at("timeline"));
     auto context = base::StrToInt<uint32_t>(args.at("context"));
     auto seqno = base::StrToInt<uint32_t>(args.at("seqno"));
+    if (timelineStr.empty() || !(context.has_value()) || !(seqno.has_value())) {
+        TS_LOGD("Failed to dma fence event,timelineStr or context or seqno is empty");
+        return false;
+    }
     DmaFenceRow dmaFenceRow = {line.ts,
                                0,
                                traceDataCache_->GetDataIndex(line.eventName),

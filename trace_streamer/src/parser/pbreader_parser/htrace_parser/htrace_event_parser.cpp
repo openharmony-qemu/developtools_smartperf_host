@@ -911,13 +911,17 @@ bool HtraceEventParser::DmaFenceInitEvent(const EventInfo &event) const
 {
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_INIT, STAT_EVENT_RECEIVED);
     ProtoReader::DmaFenceInitFormat_Reader msg(event.detail);
+    std::string timelineStr = msg.timeline().ToStdString();
+    if (timelineStr.empty()) {
+        return false;
+    }
     DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceInitName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
-                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
-                               static_cast<uint32_t>(msg.context()),
-                               static_cast<uint32_t>(msg.seqno())};
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               msg.context(),
+                               msg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
@@ -925,13 +929,17 @@ bool HtraceEventParser::DmaFenceDestroyEvent(const EventInfo &event) const
 {
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_DESTROY, STAT_EVENT_RECEIVED);
     ProtoReader::DmaFenceDestroyFormat_Reader msg(event.detail);
+    std::string timelineStr = msg.timeline().ToStdString();
+    if (timelineStr.empty()) {
+        return false;
+    }
     DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceDestroyName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
-                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
-                               static_cast<uint32_t>(msg.context()),
-                               static_cast<uint32_t>(msg.seqno())};
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               msg.context(),
+                               msg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
@@ -939,13 +947,17 @@ bool HtraceEventParser::DmaFenceEnableEvent(const EventInfo &event) const
 {
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_ENABLE, STAT_EVENT_RECEIVED);
     ProtoReader::DmaFenceEnableSignalFormat_Reader msg(event.detail);
+    std::string timelineStr = msg.timeline().ToStdString();
+    if (timelineStr.empty()) {
+        return false;
+    }
     DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceEnableName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
-                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
-                               static_cast<uint32_t>(msg.context()),
-                               static_cast<uint32_t>(msg.seqno())};
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               msg.context(),
+                               msg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
@@ -953,13 +965,17 @@ bool HtraceEventParser::DmaFenceSignaledEvent(const EventInfo &event) const
 {
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_SIGNALED, STAT_EVENT_RECEIVED);
     ProtoReader::DmaFenceSignaledFormat_Reader msg(event.detail);
+    std::string timelineStr = msg.timeline().ToStdString();
+    if (timelineStr.empty()) {
+        return false;
+    }
     DmaFenceRow dmaFenceRow = {event.timeStamp,
                                0,
                                dmaFenceSignaledName_,
                                traceDataCache_->GetDataIndex(msg.driver().ToStdString()),
-                               traceDataCache_->GetDataIndex(msg.timeline().ToStdString()),
-                               static_cast<uint32_t>(msg.context()),
-                               static_cast<uint32_t>(msg.seqno())};
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               msg.context(),
+                               msg.seqno()};
     streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
     return true;
 }
