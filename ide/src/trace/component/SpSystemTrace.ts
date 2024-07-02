@@ -273,7 +273,7 @@ export class SpSystemTrace extends BaseElement {
     };
   }
 
-  addPointPair(startPoint: PairPoint, endPoint: PairPoint): void {
+  addPointPair(startPoint: PairPoint, endPoint: PairPoint, lineType?: string): void {
     if(startPoint !== null &&  startPoint.rowEL !== null && endPoint !== null && endPoint.rowEL !== null){
       if (startPoint.rowEL.collect) {
         if (this.timerShaftEL?._checkExpand) {
@@ -294,8 +294,13 @@ export class SpSystemTrace extends BaseElement {
       endPoint.y = endPoint.rowEL!.translateY! + endPoint.offsetY;
       startPoint.backrowEL = startPoint.rowEL;
       endPoint.backrowEL = endPoint.rowEL;
-      if(startPoint.rangeTime){
+      //判断是否是分布式连线，分布式连线需有rangeTime
+      if (!lineType) {
         this.linkNodes.push([startPoint, endPoint]);
+      } else {
+        if (startPoint.rangeTime) {
+          this.linkNodes.push([startPoint, endPoint]);
+        }
       }
       this.refreshCanvas(true);
     }
