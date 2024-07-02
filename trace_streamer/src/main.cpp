@@ -41,6 +41,7 @@ constexpr size_t G_FILE_PERMISSION = 664;
 constexpr uint8_t RAW_TRACE_PARSE_MAX = 2;
 constexpr uint8_t PARSER_THREAD_MAX = 16;
 constexpr uint8_t PARSER_THREAD_MIN = 1;
+std::regex traceInvalidStr("\\\\");
 // set version info in meta.cpp please
 void ExportStatusToLog(const std::string &dbPath, TraceParserStatus status)
 {
@@ -731,7 +732,6 @@ int main(int argc, char **argv)
         return 0;
     }
 #endif
-    std::regex traceInvalidStr("\\\\");
     auto strEscape = std::regex_replace(traceExportOption.traceFilePath, traceInvalidStr, "\\\\\\\\");
     if (OpenAndParserFile(ts, strEscape)) {
         if (!traceExportOption.sqliteFilePath.empty()) {
@@ -756,9 +756,7 @@ int main(int argc, char **argv)
             ExportStatusToLog(traceExportOption.sqliteFilePath, GetAnalysisResult());
             return 1;
         }
-        if (!traceExportOption.sqliteFilePath.empty()) {
-            ExportStatusToLog(traceExportOption.sqliteFilePath, GetAnalysisResult());
-        }
+        ExportStatusToLog(traceExportOption.sqliteFilePath, GetAnalysisResult());
     }
     if (!traceExportOption.metricsIndex.empty()) {
         MetaData *metaData = ts.GetMetaData();

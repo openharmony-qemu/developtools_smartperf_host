@@ -48,7 +48,6 @@ void PbreaderHiLogParser::Parse(ProtoReader::BytesView tracePacket, bool &haveSp
         lastLineSeq_ = curLineSeq;
         auto logData = traceDataCache_->GetDataIndex(hilogLine.context().ToStdString());
         ProtoReader::HilogDetails_Reader logDetails(hilogLine.detail());
-        streamFilters_->processFilter_->GetOrCreateThreadWithPid(logDetails.tid(), logDetails.pid());
         auto iter = logLevelString_.find(logDetails.level());
         if (iter == logLevelString_.end()) {
             streamFilters_->statFilter_->IncreaseStat(TRACE_HILOG, STAT_EVENT_DATA_INVALID);
