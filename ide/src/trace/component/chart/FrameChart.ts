@@ -65,6 +65,8 @@ export class FrameChart extends BaseElement {
   private chartClickListenerList: Array<Function> = [];
   private isUpdateCanvas = false;
   private isClickMode = false; //是否为点选模式
+  _totalRootData: Array<ChartStruct>  = [];//初始化顶部root的数据 
+  private totalRootNode!: ChartStruct;
 
   /**
    * set chart mode
@@ -87,6 +89,14 @@ export class FrameChart extends BaseElement {
   set tabPaneScrollTop(scrollTop: number) {
     this.canvasScrollTop = scrollTop;
     this.hideTip();
+  }
+
+  get totalRootData(): Array<ChartStruct> {
+    return this._totalRootData;
+  }
+
+  set totalRootData(value: Array<ChartStruct>) {
+    this._totalRootData = value;
   }
 
   private get total(): number {
@@ -141,6 +151,19 @@ export class FrameChart extends BaseElement {
       this.rootNode.dur += node.drawDur || node.dur;
       this.rootNode.eventCount += node.drawEventCount || node.eventCount;
       node.parent = this.rootNode;
+    }
+    this.totalRootNode = new ChartStruct();
+    this.totalRootNode.symbol = 'root';
+    this.totalRootNode.depth = 0;
+    this.totalRootNode.percent = 1;
+    this.totalRootNode.frame = new Rect(0, scaleHeight, this.canvas!.width, depthHeight);
+    for (const node of this._totalRootData!) {
+      this.totalRootNode.children.push(node);
+      this.totalRootNode.count += node.drawCount || node.count;
+      this.totalRootNode.size += node.drawSize || node.size;
+      this.totalRootNode.dur += node.drawDur || node.dur;
+      this.totalRootNode.eventCount += node.drawEventCount || node.eventCount;
+      node.parent = this.totalRootNode;
     }
   }
 
@@ -217,7 +240,7 @@ export class FrameChart extends BaseElement {
         break;
       case ChartMode.Count:
         currentValue = `${this.total}`;
-        currentValuePercent = this.total / this.rootNode.count;
+        currentValuePercent = this.total / this.totalRootNode.count;
         break;
       case ChartMode.Duration:
         currentValue = Utils.getProbablyTime(this.total);
@@ -225,7 +248,7 @@ export class FrameChart extends BaseElement {
         break;
       case ChartMode.EventCount:
         currentValue = `${this.total}`;
-        currentValuePercent = this.total / this.rootNode.eventCount;
+        currentValuePercent = this.total / this.totalRootNode.eventCount;
         break;
     }
     let endStr = currentValuePercent ? ` (${(currentValuePercent * 100).toFixed(2)}%)` : '';
