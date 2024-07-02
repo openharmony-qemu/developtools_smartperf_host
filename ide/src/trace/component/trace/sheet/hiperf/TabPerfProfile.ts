@@ -157,6 +157,7 @@ export class TabpanePerfProfile extends BaseElement {
         this.perfProfileFrameChart!.mode = ChartMode.EventCount;
       }
       this.perfProfileFrameChart?.updateCanvas(true, initWidth); // @ts-ignore
+      this.perfProfileFrameChart!.totalRootData = this.perfProfilerDataSource;// @ts-ignore  
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       this.switchFlameChart();
       this.perfProfilerFilter!.icon = 'block';
