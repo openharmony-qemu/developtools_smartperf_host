@@ -65,6 +65,7 @@ function addPointHandle(
   sourceThreadRow: TraceRow<BaseStruct>,
   targetData: FuncStruct,
   targetThreadRow: TraceRow<BaseStruct>,
+  lineType?:string
 ): void {
   let sourceParentRow: TraceRow<BaseStruct> | null | undefined;
   let targetParentRow: TraceRow<BaseStruct> | null | undefined;
@@ -95,7 +96,7 @@ function addPointHandle(
   if (startPoint && endPoint) {
     startPoint.lineType = endPoint.lineType = LineType.brokenLine;
     startPoint.lineColor = endPoint.lineColor = '#ff0000';
-    sp.addPointPair(startPoint, endPoint);
+    sp.addPointPair(startPoint, endPoint,lineType);
   }
 }
 
@@ -448,7 +449,7 @@ export function spSystemTraceDrawDistributedLine(
       }
     }
   }
-  addPointHandle(sp, sourceData, sourceThreadRow, targetData, targetThreadRow);
+  addPointHandle(sp, sourceData, sourceThreadRow, targetData, targetThreadRow,'distributedLine');
 }
 
 function taskPoolOtherRelationData(
