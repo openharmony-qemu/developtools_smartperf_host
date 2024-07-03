@@ -66,7 +66,7 @@ import { SpRecordTraceHtml } from './SpRecordTrace.html';
 import { SpFFRTConfig } from './setting/SpFFRTConfig';
 
 const DEVICE_NOT_CONNECT =
-'<div>1.请关闭DevEco Studio,DevEco Testing</div>' +
+'<div>1.请关闭DevEco Studio,DevEco Testing等会占用hdc端口的应用</div>' +
 '<div>2.请使用系统管理员权限打开cmd窗口，并执行hdc kill，确保PC端任务管理器中没有hdc进程</div>' +
 '<div>3.若没有效果，请重新插拔一下手机</div>' +
 '<div>紧急情况可拷贝trace命令，在cmd窗口离线抓取</div>';
