@@ -487,6 +487,13 @@ export class SelectionParam {
 
   // @ts-ignore
   pushFileSystem(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM_GROUP) {
+      it.childrenList.forEach((child) => {
+        child.rangeSelect = true;
+        child.checkType = '2';
+        this.pushFileSystem(child,sp);
+      });
+    }
     if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM) {
       if (it.rowId === 'FileSystemLogicalWrite') {
         if (this.fileSystemType.length === 0) {
