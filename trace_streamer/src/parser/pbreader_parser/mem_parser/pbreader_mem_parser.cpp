@@ -592,6 +592,7 @@ void PbreaderMemParser::FillGpuWindowMemInfo(const ProtoReader::GpuDumpInfo_Read
 {
     DataIndex windowNameId = traceDataCache_->GetDataIndex(gpuDumpInfo.window_name().ToStdString());
     GpuWindowMemRow row;
+    row.windowNameId = windowNameId;
     row.ts = timeStamp;
     row.windowId = gpuDumpInfo.id();
     row.purgeableSize = gpuDumpInfo.gpu_purgeable_size();
