@@ -94,6 +94,10 @@ void CpuFilter::ProcPrevPidSwitchEvent(uint64_t ts,
             } else {
                 pidToThreadSliceRow_.at(prevPid) = threadStateRow;
             }
+        } else {
+            if (pidToThreadSliceRow_.count(prevPid)) {
+                pidToThreadSliceRow_.erase(prevPid);
+            }
         }
         (void)RemberInternalTidInStateTable(prevPid, threadStateRow, prevState);
     }
