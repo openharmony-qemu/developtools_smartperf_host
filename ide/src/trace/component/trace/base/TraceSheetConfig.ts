@@ -64,7 +64,8 @@ import { TabPaneFreqLimit } from '../sheet/freq/TabPaneFreqLimit';
 import { TabPaneCpuFreqLimits } from '../sheet/freq/TabPaneCpuFreqLimits';
 import { TabpaneNMCalltree } from '../sheet/native-memory/TabPaneNMCallTree';
 import { TabPaneClockCounter } from '../sheet/clock/TabPaneClockCounter';
-import { TabPaneHangCounter } from '../sheet/Hang/TabPaneHangCounter';
+import { TabPaneHang } from '../sheet/Hang/TabPaneHang';
+import { TabPaneHangSummary } from '../sheet/Hang/TabPaneHangSummary';
 import { TabPaneIrqCounter } from '../sheet/irq/TabPaneIrqCounter';
 import { TabPaneFrames } from '../sheet/jank/TabPaneFrames';
 import { TabPanePerfAnalysis } from '../sheet/hiperf/TabPanePerfAnalysis';
@@ -131,7 +132,13 @@ import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSamp
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { TabPaneUserPlugin } from '../sheet/userPlugin/TabPaneUserPlugin';
 
-export let tabConfig: unknown = {
+export let tabConfig: {
+  [key: string]: {
+    title: string
+    type: any
+    require?: (param: SelectionParam) => boolean
+  }
+} = {
   'current-selection': {
     title: 'Current Selection',
     type: TabPaneCurrentSelection,
@@ -201,7 +208,7 @@ export let tabConfig: unknown = {
   'box-slices': {
     title: 'Slices',
     type: TabPaneSlices,
-    require: (param: SelectionParam) => param.funTids.length > 0 || param.funAsync.length || param.funCatAsync.length > 0,
+    require: (param: SelectionParam) => param.funTids.length > 0 || param.funAsync.length > 0 || param.funCatAsync.length > 0,
   },
   'box-counters': {
     title: 'Counters',
@@ -213,11 +220,16 @@ export let tabConfig: unknown = {
     type: TabPaneClockCounter,
     require: (param: SelectionParam) => param.clockMapData.size > 0,
   },
-  // 'box-hang-counters': {
-  //   title: 'Hang Counters',
-  //   type: TabPaneHangCounter,
-  //   require: (param: SelectionParam) => param.hangMapData.size > 0,
-  // },
+  'box-hang': {
+    title: 'Hangs',
+    type: TabPaneHang,
+    require: (param: SelectionParam) => param.hangMapData.size > 0,
+  },
+  'box-hang-summary': {
+    title: 'Hang Summary',
+    type: TabPaneHangSummary,
+    require: (param: SelectionParam) => param.hangMapData.size > 0,
+  },
   'box-irq-counters': {
     title: 'Irq Counters',
     type: TabPaneIrqCounter,

@@ -17,12 +17,10 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { info } from '../../../log/Log';
-import { HangRender, HangStruct } from '../../database/ui-worker/ProcedureWorkerHang';
-import { ColorUtils } from '../trace/base/ColorUtils';
+import { HangStruct } from '../../database/ui-worker/ProcedureWorkerHang';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
-import { Utils } from '../trace/base/Utils';
-import { queryHangFuncName, queryRealHangData } from '../../database/sql/Hang.sql';
-import { realHangDataSender } from '../../database/data-trafic/HangDataSender';
+import { queryHangFuncName, queryHangData } from '../../database/sql/Hang.sql';
+import { hangDataSender } from '../../database/data-trafic/HangDataSender';
 import { BaseStruct } from '../../bean/BaseStruct';
 
 export type HangType = "Instant" | "Circumstantial" | "Micro" | "Severe" | ""
@@ -71,20 +69,18 @@ export class SpHangChart {
     }
   ): void {
     traceRow.supplierFrame = (): Promise<HangStruct[]> => {
-      let promiseData = realHangDataSender(it.id, traceRow)
+      let promiseData = hangDataSender(it.id, traceRow)
       if (promiseData === null) {
-        // @ts-ignore
-        return new Promise<Array<unknown>>((resolve) => resolve([]));
+        return new Promise<Array<HangStruct>>((resolve) => resolve([]));
       } else {
-        // @ts-ignore
-        return promiseData.then((resultHang: Array<HangStruct>) => {
-          for (const hangItem of resultHang) {
-            hangItem.pname = it.name
-            hangItem.type = SpHangChart.calculateHangType(hangItem.dur!)
-            hangItem.content = this.funcNameMap.get(hangItem.id!)
-          }
-          return resultHang;
-        });
+        return promiseData.then((resultHang: Array<HangStruct>) =>
+          resultHang.map(hangItem => ({
+            ...hangItem,
+            pname: it.name,
+            type: SpHangChart.calculateHangType(hangItem.dur!),
+            content: this.funcNameMap.get(hangItem.id!)
+          }))
+        );
       }
     };
   }
@@ -106,13 +102,12 @@ export class SpHangChart {
         context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       traceRow.canvasSave(context);
-      (renders.hang as HangRender).renderMainThread(
+      renders.hang.renderMainThread(
         {
           context: context,
           useCache: useCache,
           type: it.name,
           index: hangId,
-          processName: it.name
         },
         traceRow
       );
@@ -122,44 +117,44 @@ export class SpHangChart {
 
   async initData(folder: TraceRow<BaseStruct>): Promise<void> {
     let hangStartTime = new Date().getTime();
-    let realHangList = await queryRealHangData();
-    if (realHangList.length === 0) {
+    let hangList = await queryHangData();
+    if (hangList.length === 0) {
       return;
     }
     this.trace.rowsEL?.appendChild(folder);
-    for (let i = 0; i < realHangList.length; i++) {
+    for (let i = 0; i < hangList.length; i++) {
       const it: {
         id: number,
         name: string,
         num: number
-      } = realHangList[i];
+      } = hangList[i];
       let traceRow = TraceRow.skeleton<HangStruct>();
-      traceRow.rowId = it.name ?? '' + it.id;
-      traceRow.rowType = TraceRow.ROW_TYPE_HANG;
-      traceRow.rowParentId = folder.rowId;
-      traceRow.style.height = '40px';
-      traceRow.name = it.name ?? '-';
-      traceRow.rowHidden = !folder.expansion;
-      traceRow.setAttribute('children', '');
-      traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-      this.hangSupplierFrame(traceRow, it);
-      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> => realHangDataSender(it.id, traceRow, args)
+      traceRow.rowId = `${it.name ?? 'Process'} ${it.id}`
+      traceRow.rowType = TraceRow.ROW_TYPE_HANG
+      traceRow.rowParentId = folder.rowId
+      traceRow.style.height = '40px'
+      traceRow.name = `${it.name ?? 'Process'} ${it.id}`
+      traceRow.rowHidden = !folder.expansion
+      traceRow.setAttribute('children', '')
+      traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler
+      traceRow.selectChangeHandler = this.trace.selectChangeHandler
+      this.hangSupplierFrame(traceRow, it)
+      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> => hangDataSender(it.id, traceRow, args)
       traceRow.focusHandler = (ev): void => {
+        let hangStruct = HangStruct.hoverHangStruct
         this.trace?.displayTip(
-          traceRow,
-          HangStruct.hoverHangStruct,
-          `<span>${JSON.stringify(HangStruct.hoverHangStruct?.content ?? "Hatsune Miku")}<span>`
-        );
-      };
+          traceRow, hangStruct,
+          `<span>${hangStruct?.type} ${hangStruct?.dur}</span>`
+        )
+      }
       traceRow.findHoverStruct = (): void => {
-        HangStruct.hoverHangStruct = traceRow.getHoverStruct();
-      };
-      this.hangThreadHandler(traceRow, it, i);
-      folder.addChildTraceRow(traceRow);
+        HangStruct.hoverHangStruct = traceRow.getHoverStruct()
+      }
+      this.hangThreadHandler(traceRow, it, i)
+      folder.addChildTraceRow(traceRow)
     }
-    let durTime = new Date().getTime() - hangStartTime;
-    info('The time to load the HangData is: ', durTime);
+    let durTime = new Date().getTime() - hangStartTime
+    info('The time to load the HangData is: ', durTime)
   }
 
   async initFolder(): Promise<TraceRow<BaseStruct>> {

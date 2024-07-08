@@ -17,8 +17,9 @@ import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/Que
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HangStruct } from '../ui-worker/ProcedureWorkerHang';
+import { FlagsConfig } from '../../component/SpFlags';
 
-export function realHangDataSender(
+export function hangDataSender(
   processId: number = 0,
   row: TraceRow<HangStruct>,
   args?: any,
@@ -26,10 +27,13 @@ export function realHangDataSender(
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   return new Promise((resolve, reject): void => {
+    let flagsItemJson = JSON.parse(window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY)!)
+    let minDur = parseInt(flagsItemJson.hangValue)
     threadPool.submitProto(
       QueryEnum.HangData,
       {
         pid: processId,
+        minDur: minDur,
         //
         queryAll: args && args.queryAll,
         selectStartNS: args ? args.startNS : 0,
@@ -37,7 +41,6 @@ export function realHangDataSender(
         selectTotalNS: args ? args.endNS - args.startNS : 0,
         trafic: trafic,
         width: width,
-        
       },
       (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

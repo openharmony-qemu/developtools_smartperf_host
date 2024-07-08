@@ -84,7 +84,7 @@ export class SpFlags extends BaseElement {
       if (title === 'Hangs' && configSelect.selectedOptions[0].value === 'Disabled') {
         hangsSelect?.childNodes.forEach((child: ChildNode) => {
           let selectEl = child as HTMLOptionElement;
-          if (child.textContent === 'Micro') {
+          if (child.textContent === 'Instant') {
             selectEl.selected = true;
             FlagsConfig.updateFlagsConfig('hangValue', selectEl.value);
           } else {
@@ -205,7 +205,6 @@ export class SpFlags extends BaseElement {
   }
 
   private createHangsOption(): HTMLDivElement {
-    console.log("start createHangsOption.")
     let configFooterDiv = document.createElement('div');
     configFooterDiv.className = 'config_footer';
     let hangsLableEl = document.createElement('lable');
@@ -214,24 +213,37 @@ export class SpFlags extends BaseElement {
     hangsTypeEl.setAttribute('id', 'hangsSelect');
     hangsTypeEl.className = 'flag-select';
 
-    let hangInstantOption = document.createElement('option');
-    hangInstantOption.value = 'Instant;Circumstantial;Micro;Severe';
-    hangInstantOption.textContent = 'Instant';
-    hangInstantOption.selected = true;
-    hangsTypeEl.appendChild(hangInstantOption)
+    let hangOptions: Array<HTMLElementTagNameMap["option"]> = []
+    for (const settings of [
+      {
+        value: '33',
+        content: "Instant",
+      },
+      {
+        value: '100',
+        content: 'Circumstantial'
+      },
+      {
+        value: '250',
+        content: 'Micro'
+      },
+      {
+        value: '500',
+        content: 'Severe'
+      }
+    ]) {
+      let hangOption = document.createElement('option')
+      hangOption.value = settings.value + '000000'
+      hangOption.textContent = settings.content
+      hangOption.selected = false
+      hangOptions.push(hangOption)
+      hangsTypeEl.appendChild(hangOption)
+    }
 
-    let hangMicroOption = document.createElement('option');
-    hangMicroOption.value = 'Micro;Severe';
-    hangMicroOption.textContent = 'micro';
-    hangMicroOption.selected = true;
-    hangsTypeEl.appendChild(hangMicroOption)
-
-    FlagsConfig.updateFlagsConfig('hangValue', hangInstantOption.value);
+    FlagsConfig.updateFlagsConfig('hangValue', hangOptions[0].value);
+    hangOptions[0].selected = true
     hangsTypeEl.addEventListener('change', function () {
       let selectValue = this.selectedOptions[0].value;
-      console.log(this);
-      console.log(this.selectedOptions[0]);
-      console.log(this.selectedOptions[0].value);
       FlagsConfig.updateFlagsConfig('hangValue', selectValue);
     });
 
@@ -242,7 +254,6 @@ export class SpFlags extends BaseElement {
       hangsTypeEl.removeAttribute('disabled');
     } else {
       hangsTypeEl.setAttribute('disabled', 'disabled');
-      FlagsConfig.updateFlagsConfig('hangValue', hangInstantOption.value);
     }
     configFooterDiv.appendChild(hangsLableEl);
     configFooterDiv.appendChild(hangsTypeEl);

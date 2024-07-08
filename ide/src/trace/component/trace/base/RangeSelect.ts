@@ -278,7 +278,6 @@ export class RangeSelect {
       document.body.style.cursor = 'default';
     }
     if (this.isHover && this.isMouseDown) {
-      // 似乎调用不到
       this.handleRangeSelectAndDraw(rows, ev);
       return;
     }
@@ -292,7 +291,6 @@ export class RangeSelect {
   }
   // @ts-ignore
   private handleRangeSelect(rows: Array<TraceRow<unknown>>): void {
-    // console.log("handleRangeSelect", arguments)
     let rangeSelect: RangeSelectStruct | undefined;
     let favoriteRect = this.trace?.favoriteChartListEL?.getBoundingClientRect();
     let favoriteLimit = favoriteRect!.top + favoriteRect!.height;
@@ -354,13 +352,11 @@ export class RangeSelect {
   }
 
   private handleDrawForNotMouseDown(): void {
-    // console.log("handleDrawForNotMouseDown", arguments)
     this.timerShaftEL!.sportRuler!.isRangeSelect = isNotEmpty(this.rangeTraceRow) ?? false;
     this.timerShaftEL!.sportRuler!.draw();
   }
   // @ts-ignore
   private handleRangeSelectAndDraw(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
-    // console.log("handleRangeSelectAndDraw", arguments)
     let rangeSelect: RangeSelectStruct | undefined;
     this.rangeTraceRow = rows.filter((it) => {
       if (it.rangeSelect) {

@@ -318,7 +318,7 @@ export class TraceSheet extends BaseElement {
           let element = tabConfig[id];
           let pane = this.shadowRoot!.querySelector<LitTabpane>(`#${id as string}`);
           if (element.require) {
-            pane!.hidden = !element.require(this.selection);
+            pane!.hidden = !element.require(this.selection!);
           } else {
             pane!.hidden = true;
           }
@@ -634,8 +634,8 @@ export class TraceSheet extends BaseElement {
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
-  displayHangData = (data: HangStruct): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setHangData(data);
+  displayHangData = (data: HangStruct, sp: SpSystemTrace): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setHangData(data, sp);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayPerfToolsData = (data: PerfToolStruct): void =>
@@ -853,6 +853,17 @@ export class TraceSheet extends BaseElement {
       }
     }
   };
+
+  displayHangsData = (): void => {
+    let tblHangPanel = this.shadowRoot?.querySelector<LitTabpane>("lit-tabpane[id='box-hang']");
+    if (tblHangPanel) {
+      let tblHang = tblHangPanel.querySelector<TabPaneHiLogs>('tab-hang');
+      if (tblHang) {
+        tblHang.initTabSheetEl(this);
+      }
+    }
+  };
+
   displaySampleData = (data: SampleStruct, reqProperty: any): void => {
     this.displayTab<TabPaneSampleInstruction>('box-sample-instruction').setSampleInstructionData(data, reqProperty);
     this.optionsDiv!.style.display = 'flex';

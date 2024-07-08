@@ -59,6 +59,7 @@ import { TabPaneCurrentSelectionHtml } from './TabPaneCurrentSelection.html';
 import { queryRealTime } from '../../../database/sql/Clock.sql';
 import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfTool';
 import { HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
+import { BaseStruct } from '../../../bean/BaseStruct';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -546,29 +547,54 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
   }
 
-  async setHangData(data: HangStruct): Promise<void> {
-    // TODO:
-    // console.log("setHangData", arguments)
-    // await this.setRealTime();
-    // this.setTableHeight('auto');
-    // //时钟信息
-    // this.tabCurrentSelectionInit('Counter Details');
-    // let list: unknown[] = [];
-    // list.push({
-    //   name: 'StartTime(Relative)',
-    //   value: getTimeString(data.startNS || 0),
-    // });
-    // this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
-    // list.push({
-    //   name: 'Value',
-    //   value: ColorUtils.formatNumberComma(data.value || 0),
-    // });
-    // list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
-    // list.push({ name: "Fake Data", value: "Useless Info." })
-    // this.currentSelectionTbl!.dataSource = list;
-    // // @ts-ignore
-    // let startTimeAbsolute = (data.startNS || 0) + (window as unknown).recordStartNS;
-    // this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  async setHangData(data: HangStruct, sp: SpSystemTrace): Promise<void> {
+    await this.setRealTime();
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('Hang Details');
+    let list: unknown[] = [];
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startNS || 0),
+    });
+    this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    list.push({
+      name: 'HangType',
+      value: `<div style="white-space: nowrap;display: flex;align-items: center">
+<div style="white-space:pre-wrap">${data.type}</div>
+<lit-icon style="cursor:pointer;margin-left: 5px" id="thread-id" name="select" color="#7fa1e7" size="20"></lit-icon>
+</div>`
+    });
+    data.content!.split(',').map((item, index) => ({
+      name: [
+        "Send Event TID",
+        "Send Time",
+        "Expect Handle Time",
+        "Task Name / Task ID",
+        "Caller"
+      ][index],
+      value: item,
+    })).forEach((item, index) => {
+      list.push(item)
+    })
+
+    this.currentSelectionTbl!.dataSource = list;
+    // @ts-ignore
+    let startTimeAbsolute = (data.startNS || 0) + window.recordStartNS;
+    this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+
+    let scrollIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#thread-id');
+    scrollIcon?.addEventListener('click', () => {
+      const rowId = `${data.pname ?? 'Process'} ${data.pid}`
+      const rowParentId = `${data.pid}`
+      const rowType = TraceRow.ROW_TYPE_HANG_INNER
+
+      let row = sp.rowsEL?.querySelector<TraceRow<BaseStruct>>(`trace-row[row-id='${rowParentId}'][folder]`);
+      if (row) {
+        row.expansion = true
+        sp.scrollToProcess(rowId, rowParentId, rowType)
+      }
+    });
   }
 
   setPerfToolsData(data: PerfToolStruct): void {
@@ -697,7 +723,7 @@ export class TabPaneCurrentSelection extends BaseElement {
               <div style="white-space:pre-wrap">${
                 // @ts-ignore
                 Utils.getEndState(near.state)
-              }</div>
+                }</div>
               <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="previous-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
               </div>`,
             });
@@ -709,7 +735,7 @@ export class TabPaneCurrentSelection extends BaseElement {
               <div style="white-space:pre-wrap">${
                 // @ts-ignore
                 Utils.getEndState(near.state)
-              }</div>
+                }</div>
               <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="next-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
               </div>`,
             });
@@ -1311,8 +1337,8 @@ export class TabPaneCurrentSelection extends BaseElement {
             index === 0
               ? 'NULL'
               : `${AppStartupStruct.getStartupName(sortedArray[index - 1].startName)}     ${getTimeString(
-                  sortedArray[index - 1].startTs + sortedArray[index - 1].dur
-                )}`,
+                sortedArray[index - 1].startTs + sortedArray[index - 1].dur
+              )}`,
         });
         list.push({
           name: 'EndSlice',
@@ -1320,8 +1346,8 @@ export class TabPaneCurrentSelection extends BaseElement {
             index === sortedArray.length - 1
               ? 'NULL'
               : `${AppStartupStruct.getStartupName(sortedArray[index + 1].startName)}      ${getTimeString(
-                  sortedArray[index + 1].startTs
-                )}`,
+                sortedArray[index + 1].startTs
+              )}`,
         });
       }
     });
@@ -1783,7 +1809,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
     this.wakeupListTbl = this.shadowRoot?.querySelector<LitTable>('#wakeupListTbl');
     this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
-    this.currentSelectionTbl?.addEventListener('column-click', (ev: unknown): void => {}); //@ts-ignore
+    this.currentSelectionTbl?.addEventListener('column-click', (ev: unknown): void => { }); //@ts-ignore
     window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => this.showWakeupListTableData(data));
   }
 

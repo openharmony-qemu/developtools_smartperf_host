@@ -331,7 +331,9 @@ export class TabPaneCpuByThread extends BaseElement {
       totalWallDuration += obj.wallDuration;
       totalOccurrences += obj.occurrences;
       if (obj.tid !== '[NULL]' && obj.pid !== '[NULL]') {
+        // @ts-ignore
         let process = Utils.getInstance().getProcessMap(cpuByThreadValue.traceId).get(obj.pid);
+        // @ts-ignore
         let thread = Utils.getInstance().getThreadMap(cpuByThreadValue.traceId).get(obj.tid);
         obj.thread = thread == null || thread.length === 0 ? '[NULL]' : thread;
         obj.process = process == null || process.length === 0 ? '[NULL]' : process;

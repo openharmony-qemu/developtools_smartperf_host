@@ -114,6 +114,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_CLOCK_GROUP = 'clock-group';
   static ROW_TYPE_COLLECT_GROUP = 'collect-group';
   static ROW_TYPE_HANG = 'hang';
+  static ROW_TYPE_HANG_INNER = 'hang-inner';
   static ROW_TYPE_CLOCK = 'clock';
   static ROW_TYPE_IRQ_GROUP = 'irq-group';
   static ROW_TYPE_IRQ = 'irq';

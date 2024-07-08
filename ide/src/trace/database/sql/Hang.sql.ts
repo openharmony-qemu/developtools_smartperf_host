@@ -13,16 +13,23 @@
  * limitations under the License.
  */
 
+import { FlagsConfig } from '../../component/SpFlags';
 import { query } from '../SqlLite';
+import { HangStruct } from '../ui-worker/ProcedureWorkerHang';
 
-export const queryRealHangData = (): Promise<Array<{
+function getMinDur(): string {
+  let flagsItemJson = JSON.parse(window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY)!)
+  let minDur = flagsItemJson.hangValue
+  return minDur
+}
+
+export const queryHangData = (): Promise<Array<{
   id: number,
   name: string,
   num: number
-}>> =>
-  query(
-    'queryHangsData',
-    `
+}>> => query(
+  'queryHangData',
+  `
 SELECT
   p.pid as id,
   p.name as name,
@@ -34,26 +41,48 @@ LEFT JOIN thread t ON
 LEFT JOIN process p ON
   p.ipid = t.ipid
 WHERE
-  c.name LIKE 'H:Et%'
-  AND c.dur >= 33000000
+  c.name LIKE 'H:Et:%'
+  AND c.dur >= ${getMinDur()}
 GROUP BY
   p.pid
 `.trim()
-  )
+)
 
 export const queryHangFuncName = (): Promise<Array<{
   id: number,
   name: string
-}>> =>
-  query('queryHangFuncName',
-    `
+}>> => query('queryHangFuncName',
+  `
 SELECT
   c.id as id,
   c.name as name
 FROM
   callstack c
 WHERE
-  c.dur >= 33000000
-  AND c.name LIKE 'H:Et%'
+  c.dur >= ${getMinDur()}
+  AND c.name LIKE 'H:Et:%'
     `.trim()
-  )
+)
+
+export const queryAllHangs = (): Promise<Array<HangStruct>> => query(
+  'queryAllHangs',
+  `
+SELECT
+  c.id as id,
+  c.ts - r.start_ts as startNS,
+  c.dur as dur,
+  t.tid as tid,
+  p.pid as pid,
+  p.name as pname,
+  c.name as content
+FROM
+  callstack c, trace_range r
+LEFT JOIN thread t ON
+  t.itid = c.callid
+LEFT JOIN process p ON
+  p.ipid = t.ipid
+WHERE
+  c.dur >= ${getMinDur()}
+  AND c.name LIKE 'H:Et:%'
+`.trim()
+)

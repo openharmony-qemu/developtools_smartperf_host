@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, drawLoadingFrame, isFrameContainPoint, Render } from './ProcedureWorkerCommon'
+import { BaseStruct, dataFilterHandler, drawLoadingFrame, drawString, isFrameContainPoint, Render } from './ProcedureWorkerCommon'
 import { TraceRow } from '../../component/trace/base/TraceRow'
 import { SpSystemTrace } from '../../component/SpSystemTrace'
 import { HangType } from '../../component/chart/SpHangChart'
@@ -25,7 +25,6 @@ export class HangRender extends Render {
       useCache: boolean
       type: string
       index: number
-      processName: string
     },
     row: TraceRow<HangStruct>
   ): void {
@@ -39,7 +38,7 @@ export class HangRender extends Render {
       endNS: TraceRow.range?.endNS ?? 0,
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: row.frame,
-      paddingTop: 5,
+      paddingTop: 2,
       useCache: hangReq.useCache || !(TraceRow.range?.refresh ?? false),
     }
     dataFilterHandler(hangList, hangFilter, filterConfig)
@@ -57,23 +56,14 @@ export class HangRender extends Render {
       HangStruct.hoverHangStruct = undefined
     }
     hangReq.context.closePath()
-    let s = hangReq.processName
-    let textMetrics = hangReq.context.measureText(s)
-    hangReq.context.globalAlpha = 0.8
-    hangReq.context.fillStyle = '#f0f0f0'
-    hangReq.context.fillRect(0, 5, textMetrics.width + 8, 18)
-    hangReq.context.globalAlpha = 1
-    hangReq.context.fillStyle = '#333'
-    hangReq.context.textBaseline = 'middle'
-    hangReq.context.fillText(s, 4, 5 + 9)
   }
 }
 
 export function HangStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_HANG && HangStruct.hoverHangStruct) {
+    if ((clickRowType === TraceRow.ROW_TYPE_HANG || clickRowType === TraceRow.ROW_TYPE_HANG_INNER) && HangStruct.hoverHangStruct) {
       HangStruct.selectHangStruct = HangStruct.hoverHangStruct
-      sp.traceSheetEL?.displayHangData(HangStruct.selectHangStruct)
+      sp.traceSheetEL?.displayHangData(HangStruct.selectHangStruct, sp)
       sp.timerShaftEL?.modifyFlagList(undefined)
       reject(new Error())
     } else {
@@ -105,20 +95,18 @@ export class HangStruct extends BaseStruct {
     })[data.type!]
   }
 
-  static draw(hangContext: CanvasRenderingContext2D, data: HangStruct): void {
+  static draw(ctx: CanvasRenderingContext2D, data: HangStruct): void {
     if (data.frame) {
-      hangContext.fillStyle = HangStruct.getFrameColor(data)
-      hangContext.strokeStyle = HangStruct.getFrameColor(data)
+      ctx.fillStyle = HangStruct.getFrameColor(data)
+      ctx.strokeStyle = HangStruct.getFrameColor(data)
 
-      hangContext.globalAlpha = 0.6
-      hangContext.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height)
-      if (HangStruct.isHover(data)) {
-        hangContext.lineWidth = 3
-        hangContext.globalAlpha = 1
-        hangContext.strokeRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height)
+      ctx.globalAlpha = 1
+      ctx.lineWidth = 1
+      ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height)
+      if (data.frame.width > 10) {
+        ctx.fillStyle = '#fff';
+        drawString(ctx, `${data.type || ''}`, 1, data.frame, data);
       }
-      hangContext.globalAlpha = 1
-      hangContext.lineWidth = 1
     }
   }
 

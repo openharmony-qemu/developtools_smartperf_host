@@ -150,7 +150,7 @@ export class SpChartManager {
     if (FlagsConfig.getFlagsConfigEnableStatus('Bpftrace')) {
       await this.spBpftraceChart.init(null);
     }
-    if (FlagsConfig.getFlagsConfigEnableStatus('UserPluginsRow')){
+    if (FlagsConfig.getFlagsConfigEnableStatus('UserPluginsRow')) {
       await this.spUserFileChart.init(null)
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
@@ -173,8 +173,10 @@ export class SpChartManager {
     await this.initCpu(progress);
     await this.logChart.init();
     await this.spHiSysEvent.init();
-    progress('HangChart inin', 80);
-    await this.hangChart.init();
+    if (FlagsConfig.getFlagsConfigEnableStatus("Hangs")) {
+      progress('Hang init', 80);
+      await this.hangChart.init();
+    }
     progress('Clock init', 82);
     await this.clockChart.init();
     progress('Irq init', 84);

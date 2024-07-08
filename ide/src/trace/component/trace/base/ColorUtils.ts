@@ -14,6 +14,7 @@
  */
 
 import { CpuStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { HangType } from '../../chart/SpHangChart';
 
 export class ColorUtils {
   public static GREY_COLOR: string = '#f0f0f0';
@@ -119,6 +120,16 @@ export class ColorUtils {
         break;
     }
     return logColor;
+  }
+
+  public static getHangColor(hangType: HangType): string {
+    return ({
+      "Instant": "#559CFF",
+      "Circumstantial": "#FFE44D",
+      "Micro": "#FEB354",
+      "Severe": "#FC7470",
+      "": "#000000",
+    })[hangType]
   }
 
   public static getHisysEventColor(level: string | number): string {

@@ -31,8 +31,8 @@ LEFT JOIN thread t ON
 LEFT JOIN process p ON
   p.ipid = t.ipid
 WHERE
-  c.dur >= 33000000
-  AND c.name LIKE 'H:Et%'
+  c.dur >= ${args.minDur}
+  AND c.name LIKE 'H:Et:%'
   AND p.pid = ${args.pid}
 `.trim();
 

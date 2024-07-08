@@ -1093,18 +1093,18 @@ export class SelectionParam {
   }
 
   // @ts-ignore
-  // pushHang(it: TraceRow<unknown>, sp: SpSystemTrace): void {
-  //   if (it.rowType === TraceRow.ROW_TYPE_HANG_GROUP) {
-  //     it.childrenList.forEach((it) => {
-  //       it.rangeSelect = true;
-  //       it.checkType = '2';
-  //       this.hangMapData.set(it.rowId || '', it.getCacheData);
-  //     });
-  //   }
-  //   if (it.rowType === TraceRow.ROW_TYPE_HANG) {
-  //     this.hangMapData.set(it.rowId || '', it.getCacheData);
-  //   }
-  // }
+  pushHang(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_HANG_GROUP) {
+      it.childrenList.forEach((it) => {
+        it.rangeSelect = true;
+        it.checkType = '2';
+        this.hangMapData.set(it.rowId || '', it.getCacheData);
+      });
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_HANG || it.rowType === TraceRow.ROW_TYPE_HANG_INNER) {
+      this.hangMapData.set(it.rowId || '', it.getCacheData);
+    }
+  }
 
   // @ts-ignore
   pushGpuMemoryVmTracker(it: TraceRow<unknown>, sp: SpSystemTrace): void {
@@ -1215,7 +1215,7 @@ export class SelectionParam {
     this.pushVmTracker(it, sp);
     this.pushVmTrackerShm(it, sp);
     this.pushClock(it, sp);
-    // this.pushHang(it, sp);
+    this.pushHang(it, sp);
     this.pushGpuMemoryVmTracker(it, sp);
     this.pushDmaVmTracker(it, sp);
     this.pushPugreable(it, sp);
