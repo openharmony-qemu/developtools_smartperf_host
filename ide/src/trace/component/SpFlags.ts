@@ -256,7 +256,7 @@ export class FlagsConfig {
     },
     {
       title: 'RawTraceCutStartTs',
-      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      switchOptions: [{ option: 'Enabled', selected: true }, { option: 'Disabled' }],
       describeContent: 'Raw Trace Cut By StartTs, StartTs = Max(Cpu1 StartTs, Cpu2 StartTs, ..., CpuN StartTs)',
     },
   ];
