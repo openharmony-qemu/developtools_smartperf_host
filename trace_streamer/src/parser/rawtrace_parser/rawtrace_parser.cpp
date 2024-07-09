@@ -46,6 +46,9 @@ void RawTraceParser::WaitForParserEnd()
 }
 void RawTraceParser::UpdateTraceMinRange()
 {
+    if (!traceDataCache_->RawTraceCutStartTsEnabled()) {
+        return;
+    }
     auto schedSlice = traceDataCache_->GetConstSchedSliceData();
     std::set<uint32_t> uniqueCpuIdSet;
     uint64_t cpuRunningStatMinTime = INVALID_TIME;
