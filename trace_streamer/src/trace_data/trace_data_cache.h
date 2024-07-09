@@ -90,7 +90,7 @@ private:
     bool appStartTraceEnabled_ = false;
     bool binderRunnableTraceEnabled_ = false;
     bool HMKernelTraceEnabled_ = false;
-    bool rawTraceCutStartTsEnabled_ = false;
+    bool rawTraceCutStartTsEnabled_ = true;
     uint64_t splitFileMinTs_ = INVALID_UINT64;
     uint64_t splitFileMaxTs_ = INVALID_UINT64;
     std::deque<std::unique_ptr<std::string>> hookCommProtos_;
