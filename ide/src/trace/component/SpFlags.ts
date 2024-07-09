@@ -254,6 +254,11 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'The real CPU after being split by irq and softirq',
     },
+    {
+      title: 'RawTraceCutStartTs',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'Raw Trace Cut By StartTs, StartTs = Max(Cpu1 StartTs, Cpu2 StartTs, ..., CpuN StartTs)',
+    },
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {

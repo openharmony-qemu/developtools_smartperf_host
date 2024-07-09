@@ -518,6 +518,10 @@ void TraceStreamerSelector::UpdateHMKernelTraceStatus(bool status)
 {
     traceDataCache_->UpdateHMKernelTraceStatus(status);
 }
+void TraceStreamerSelector::UpdateRawTraceCutStartTsStatus(bool status)
+{
+    traceDataCache_->UpdateRawTraceCutStartTsStatus(status);
+}
 bool TraceStreamerSelector::LoadQueryFile(const std::string &sqlOperator, std::vector<std::string> &sqlStrings)
 {
     std::ifstream file(sqlOperator);
