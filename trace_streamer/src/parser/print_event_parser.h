@@ -92,7 +92,7 @@ private:
     const std::string onAnimationProcEvent_ = "render_service";
     const DataIndex marshRwTransactionData_ = traceDataCache_->GetDataIndex("H:MarshRSTransactionData");
     const DataIndex rsMainThreadProcessCmd_ = traceDataCache_->GetDataIndex("H:RSMainThread::ProcessCommandUni");
-    const std::regex recvVsyncPattern_ = std::regex("(\\w+):(\\w+)");
+    const std::regex recvVsyncPattern_ = std::regex(R"((\w+):\s*(\w+))");
     const std::regex transFlagPattern_ = std::regex("transactionFlag:\\[(\\d+),(\\d+)\\]");
     const std::regex mainProcessCmdPattern_ = std::regex("\\[(\\d+),(\\d+)\\]");
     const std::regex distributeMatcher_ = std::regex(R"(H:\[([a-z0-9]+),([a-z0-9]+),([a-z0-9]+)\]#([CS]?)##(.*))");
