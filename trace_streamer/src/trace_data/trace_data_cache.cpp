@@ -287,10 +287,17 @@ bool TraceDataCache::HMKernelTraceEnabled() const
 {
     return HMKernelTraceEnabled_;
 }
-
 void TraceDataCache::UpdateHMKernelTraceStatus(bool status)
 {
     HMKernelTraceEnabled_ = status;
+}
+bool TraceDataCache::RawTraceCutStartTsEnabled() const
+{
+    return rawTraceCutStartTsEnabled_;
+}
+void TraceDataCache::UpdateRawTraceCutStartTsStatus(bool status)
+{
+    rawTraceCutStartTsEnabled_ = status;
 }
 uint64_t TraceDataCache::SplitFileMaxTime()
 {

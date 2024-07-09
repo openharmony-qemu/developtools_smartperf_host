@@ -49,7 +49,7 @@ PARAMS_ALL = f"{PARAMS_SRC}"
 
 if not sys.argv[4].startswith("--plugin"):
     if os.path.isfile(OPT_PLUGIN_PROTOREADER_PATH):
-        cmd=[PROTOC, OPT_PLUGIN_PROTOREADER, f"{PLUGINOUT}:{sys.argv[5]}", *PARAMS_ALL.split()]
+        cmd = [PROTOC, OPT_PLUGIN_PROTOREADER, f"{PLUGINOUT}:{sys.argv[5]}", *PARAMS_ALL.split()]
         print("执行参数：--------------- ", cmd, " --------------------------")
         subprocess.run(cmd)
 subprocess.run([PROTOC, *PARAMS_ALL.split()])
