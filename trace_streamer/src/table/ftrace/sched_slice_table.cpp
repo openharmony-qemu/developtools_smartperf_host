@@ -127,8 +127,7 @@ int32_t SchedSliceTable::Cursor::Filter(const FilterConstraints &fc, sqlite3_val
     }
 
     auto schedSliceOrderbys = fc.GetOrderBys();
-    for (auto i = schedSliceOrderbys.size(); i > 0;) {
-        i--;
+    for (auto i = static_cast<int32_t>(schedSliceOrderbys.size()) - 1; i >= 0; i--) {
         switch (static_cast<Index>(schedSliceOrderbys[i].iColumn)) {
             case Index::ID:
             case Index::TS:

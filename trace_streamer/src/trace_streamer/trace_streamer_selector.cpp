@@ -79,10 +79,7 @@ TraceFileType GuessFileType(const uint8_t *data, size_t size)
         return TRACE_FILETYPE_UN_KNOW;
     }
     std::string start(reinterpret_cast<const char *>(data), std::min<size_t>(size, 20));
-    if (start.find("# tracer") != std::string::npos) {
-        return TRACE_FILETYPE_BY_TRACE;
-    }
-    if (start.find("# TRACE") != std::string::npos) {
+    if (start.find("# tracer") != std::string::npos || start.find("# TRACE") != std::string::npos) {
         return TRACE_FILETYPE_BY_TRACE;
     }
 #ifdef ENABLE_RAWTRACE
@@ -520,6 +517,10 @@ void TraceStreamerSelector::UpdateAppStartTraceStatus(bool status)
 void TraceStreamerSelector::UpdateHMKernelTraceStatus(bool status)
 {
     traceDataCache_->UpdateHMKernelTraceStatus(status);
+}
+void TraceStreamerSelector::UpdateRawTraceCutStartTsStatus(bool status)
+{
+    traceDataCache_->UpdateRawTraceCutStartTsStatus(status);
 }
 bool TraceStreamerSelector::LoadQueryFile(const std::string &sqlOperator, std::vector<std::string> &sqlStrings)
 {

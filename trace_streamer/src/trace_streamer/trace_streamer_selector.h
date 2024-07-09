@@ -65,6 +65,7 @@ public:
     void UpdateAppStartTraceStatus(bool status);
     void UpdateBinderRunnableTraceStatus(bool status);
     void UpdateHMKernelTraceStatus(bool status);
+    void UpdateRawTraceCutStartTsStatus(bool status);
     void InitMetricsMap(std::map<std::string, std::string> &metricsMap);
     const std::string MetricsSqlQuery(const std::string &metrics);
     auto GetPtreaderParser()
