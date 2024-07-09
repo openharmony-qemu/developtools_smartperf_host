@@ -434,8 +434,8 @@ bool FtraceEventProcessor::TracingMarkWriteOrPrintFormat(FtraceEvent &ftraceEven
     if (format.eventId < HM_EVENT_ID_OFFSET) {
         printMsg->set_ip(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     }
-    // size大于60时为适配内核的event，小于则为原始的event
-    if (format.eventSize > 60) {
+    // size大于20时为适配内核的event，小于则为原始的event
+    if (format.eventSize > 20) {
         auto pid = FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size);
         auto name = FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size);
         auto start = FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size);
