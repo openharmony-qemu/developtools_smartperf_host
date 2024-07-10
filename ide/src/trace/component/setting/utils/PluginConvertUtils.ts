@@ -132,13 +132,9 @@ export class PluginConvertUtils {
     indentation: number
   ): string {
     //@ts-ignore
-    if (LevelConfigEnumList.indexOf(value) >= 0 || value.startsWith('IO_REPORT')) {
-      prefixText = `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: 
-        
-       ${
-         //@ts-ignore
-         value.toString()
-       }${this.crlf}`;
+    if (configEnumList.indexOf(value) >= 0 || value.startsWith('IO_REPORT')) {
+      prefixText = `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) + //@ts-ignore
+      this.humpToSnake(key)}: ${value.toString()}${this.crlf}`;
     } else {
       prefixText = `${prefixText + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: "${
         //@ts-ignore
@@ -186,9 +182,8 @@ export class PluginConvertUtils {
     spacesNumber: number,
     indentation: number,
     key: string,
-    arrValue: unknown
+    arrValue: any
   ): string {
-    // @ts-ignore
     return `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: ${arrValue.toString()}${
       this.crlf
     }`;
@@ -199,9 +194,8 @@ export class PluginConvertUtils {
     spacesNumber: number,
     indentation: number,
     key: string,
-    arrValue: unknown
+    arrValue: any
   ): string {
-    // @ts-ignore
     return `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: ${arrValue.toString()}${
       this.crlf
     }`;
@@ -212,9 +206,8 @@ export class PluginConvertUtils {
     spacesNumber: number,
     indentation: number,
     key: string,
-    arrValue: unknown
+    arrValue: any
   ): string {
-    // @ts-ignore
     return `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: ${arrValue.toString()}${
       this.crlf
     }`;
@@ -225,19 +218,16 @@ export class PluginConvertUtils {
     spacesNumber: number,
     indentation: number,
     key: string,
-    arrValue: unknown
+    arrValue: any
   ): string {
-    // @ts-ignore
     if (arrValue.startsWith('VMEMINFO') || arrValue.startsWith('PMEM')) {
       text = `${
         text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)
-        // @ts-ignore
       }: ${arrValue.toString()}${this.crlf}`;
     } else {
       text = `${
         text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)
-        // @ts-ignore
-      }: "${arrValue.toString()}"${this.crlf}`;
+      }: "${arrValue.trim().toString()}"${this.crlf}`;
     }
     return text;
   }
@@ -247,12 +237,11 @@ export class PluginConvertUtils {
     spacesNumber: number,
     indentation: number,
     key: string,
-    arrValue: unknown,
+    arrValue: any,
     needColon: boolean
   ): string {
     if (needColon) {
       text = `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: ${this.handleObj(
-        // @ts-ignore
         arrValue,
         indentation + 1,
         needColon,
@@ -263,7 +252,6 @@ export class PluginConvertUtils {
         text +
         ' '.repeat(spacesNumber).repeat(indentation + 1) +
         this.humpToSnake(key) +
-        // @ts-ignore
         this.handleObj(arrValue, indentation + 1, needColon, spacesNumber)
       }${this.crlf}`;
     }
@@ -289,3 +277,8 @@ export class PluginConvertUtils {
 }
 
 const LevelConfigEnumList: string[] = ['LEVEL_UNSPECIFIED', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'];
+
+export const ffrtEnumList: string[] = ['BOOTTIME', 'REALTIME', 'REALTIME_COARSE', 'MONOTONIC',
+  'MONOTONIC_COARSE', 'MONOTONIC_RAW'];
+
+const configEnumList: string[] = [...LevelConfigEnumList, ...ffrtEnumList];

@@ -394,7 +394,7 @@ export class TabPaneCallTree extends BaseElement {
         if (this.callTreeSelectedData && !this.callTreeSelectedData.canCharge) {
           return;
         } // @ts-ignore
-        if (this.callTreeSelectedData !== undefined && this.callTreeSelectedData.libName !== '') {
+        if (this.callTreeSelectedData !== undefined && this.callTreeSelectedData.lib !== '') {
           this.handleLibraryCase(data, callTreeFuncArgs);
         } else {
           return;
@@ -408,10 +408,10 @@ export class TabPaneCallTree extends BaseElement {
 
   private handleLibraryCase(data: unknown, callTreeFuncArgs: unknown[]): void {
     // @ts-ignore
-    this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.libName }, data.item);
+    this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.lib }, data.item);
     callTreeFuncArgs.push({
       funcName: 'splitTree', // @ts-ignore
-      funcArgs: [this.callTreeSelectedData.libName, false, false],
+      funcArgs: [this.callTreeSelectedData.lib, false, false],
     });
   }
 

@@ -124,29 +124,29 @@ export class TabCpuDetailsThreads extends BaseElement {
       tip: (obj): string => {
         return `<div>
                                 <div>t_name:${
-          // @ts-ignore
-          obj.obj.tName
-          }</div> 
+                                  // @ts-ignore
+                                  obj.obj.tName
+                                }</div> 
                                 <div>tid:${
-          // @ts-ignore
-          obj.obj.tid
-          }</div>
+                                  // @ts-ignore
+                                  obj.obj.tid
+                                }</div>
                                 <div>p_name:${
-          // @ts-ignore
-          obj.obj.pName
-          }</div>
+                                  // @ts-ignore
+                                  obj.obj.pName
+                                }</div>
                                 <div>p_pid:${
-          // @ts-ignore
-          obj.obj.pid
-          }</div>
+                                  // @ts-ignore
+                                  obj.obj.pid
+                                }</div>
                                 <div>duration:${
-          // @ts-ignore
-          obj.obj.durStr
-          }</div>
+                                  // @ts-ignore
+                                  obj.obj.durStr
+                                }</div>
                                 <div>ratio:${
-          // @ts-ignore
-          obj.obj.ratio
-          }%</div>
+                                  // @ts-ignore
+                                  obj.obj.ratio
+                                }%</div>
                             </div>
                                 `;
       },
@@ -182,51 +182,37 @@ export class TabCpuDetailsThreads extends BaseElement {
     this.noData(false);
   }
 
-  sortByColumn(detail: unknown): void {
+  sortByColumn(detail: any): void {
     // @ts-ignore
     function compare(cpuDetailsThreadProperty, sort, type) {
-      return function (a: unknown, b: unknown) {
+      return function (a: any, b: any) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
-            // @ts-ignore
             ? parseFloat(b[cpuDetailsThreadProperty]) - parseFloat(a[cpuDetailsThreadProperty])
-            // @ts-ignore
             : parseFloat(a[cpuDetailsThreadProperty]) - parseFloat(b[cpuDetailsThreadProperty]);
         } else {
           if (sort === 2) {
-            // @ts-ignore
             return b[cpuDetailsThreadProperty].toString().localeCompare(a[cpuDetailsThreadProperty].toString());
           } else {
-            // @ts-ignore
             return a[cpuDetailsThreadProperty].toString().localeCompare(b[cpuDetailsThreadProperty].toString());
           }
         }
       };
     }
 
-    // @ts-ignore
     if (detail.key === 'durStr') {
-      // @ts-ignore
       detail.key = 'dur';
-      // @ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'number'));
     } else if (
-      // @ts-ignore
       detail.key === 'value' ||
-      // @ts-ignore
       detail.key === 'ratio' ||
-      // @ts-ignore
       detail.key === 'index' ||
-      // @ts-ignore
       detail.key === 'tid' ||
-      // @ts-ignore
       detail.key === 'pid'
     ) {
-      // @ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'number'));
     } else {
-      // @ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.cpuDetailsThreadUsageTbl!.recycleDataSource = this.data;

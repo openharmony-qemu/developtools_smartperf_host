@@ -326,7 +326,7 @@ export class TabPaneSystemDetails extends BaseElement {
         if (i > -1) {
           // @ts-ignore
           fillMap.set(leftMap.get(filterData.pid), filterData);
-          watchIndex.splice(i);
+          delete watchIndex[i];
           // @ts-ignore
           leftMap.delete(filterData.pid);
         }
@@ -366,7 +366,7 @@ export class TabPaneSystemDetails extends BaseElement {
         if (i > -1) {
           // @ts-ignore
           fillMap.set(leftMap.get(filterData.message), filterData);
-          watchIndex.splice(i);
+          delete watchIndex[i];
           // @ts-ignore
           leftMap.delete(filterData.message);
         }

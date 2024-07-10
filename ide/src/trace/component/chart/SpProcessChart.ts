@@ -36,29 +36,30 @@ import { processSoInitDataSender } from '../../database/data-trafic/process/Proc
 import { processExpectedDataSender } from '../../database/data-trafic/process/ProcessExpectedDataSender';
 import { processActualDataSender } from '../../database/data-trafic/process/ProcessActualDataSender';
 import { processDeliverInputEventDataSender } from '../../database/data-trafic/process/ProcessDeliverInputEventDataSender';
-import { getMaxDepthByTid, queryAllFuncNames, queryProcessAsyncFunc, queryProcessAsyncFuncCat } from '../../database/sql/Func.sql';
+import { processTouchEventDispatchDataSender } from '../../database/data-trafic/process/ProcessTouchEventDispatchDataSender';
+import { getMaxDepthByTid, queryProcessAsyncFunc, queryProcessAsyncFuncCat } from '../../database/sql/Func.sql';
 import { queryMemFilterIdMaxValue } from '../../database/sql/Memory.sql';
 import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap } from '../../database/sql/SqlLite.sql';
 import {
-  queryProcess,
   queryProcessByTable,
   queryProcessContentCount,
   queryProcessMem,
   queryProcessSoMaxDepth,
-  queryProcessThreads,
   queryProcessThreadsByTable,
   queryStartupPidArray,
   queryRsProcess,
   queryTaskPoolProcessIds,
+  queryDistributedRelationData,
 } from '../../database/sql/ProcessThread.sql';
 import { queryAllJankProcess } from '../../database/sql/Janks.sql';
 import { BaseStruct } from '../../bean/BaseStruct';
 
+const FOLD_HEIGHT = 24;
 export class SpProcessChart {
   private readonly trace: SpSystemTrace;
   private processAsyncFuncMap: unknown = {};
   private processAsyncFuncArray: unknown[] = [];
-  private processAsyncFuncCatMap: unknown = {}; 
+  private processAsyncFuncCatMap: unknown = {};
   private eventCountMap: unknown;
   private processThreads: Array<ThreadStruct> = [];
   private processMem: Array<unknown> = [];
@@ -69,40 +70,76 @@ export class SpProcessChart {
   private threadFuncMaxDepthMap: Map<string, number> = new Map();
   private startupProcessArr: { pid: number }[] = [];
   private processSoMaxDepth: { pid: number; maxDepth: number }[] = [];
-  private funcNameMap: Map<number, string> = new Map();
   private filterIdMaxValue: Map<number, number> = new Map();
   private soInitNameMap: Map<number, string> = new Map();
   private processSrcSliceMap: Map<number, string> = new Map();
+  private distributedDataMap: Map<
+    string,
+    {
+      chainId: string;
+      spanId: string;
+      parentSpanId: string;
+      chainFlag: string;
+      traceId: string
+    }
+  > = new Map();
   private renderRow: TraceRow<BaseStruct> | null = null;
   private loadAppStartup: boolean = false;
+  private isDistributed: boolean = false;
+  private traceId?: string | undefined;
+  private parentRow: TraceRow<BaseStruct> | undefined;
+  static asyncFuncCache: unknown[] = [];
+  static threadStateList: Map<string, unknown> = new Map();
+  static processRowSortMap: Map<string, unknown> = new Map();
+
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
   }
 
-  initAsyncFuncData = async (traceRange: { startTs: number; endTs: number }): Promise<void> => {
-    const funcNamesArray = await queryAllFuncNames();
-    funcNamesArray.forEach((it) => {
-      //@ts-ignore
-      this.funcNameMap.set(it.id, it.name);
-    });
-    let asyncFuncList: unknown[] = await queryProcessAsyncFunc(traceRange);
+  clearCache(): void {
+    this.processAsyncFuncArray = [];
+    this.processAsyncFuncMap = {};
+    this.processAsyncFuncCatMap = {};
+    this.eventCountMap = {};
+    this.processThreads = [];
+    this.processMem = [];
+    this.processThreadCountMap.clear();
+    this.processThreadDataCountMap.clear();
+    this.processFuncDataCountMap.clear();
+    this.processMemDataCountMap.clear();
+    this.threadFuncMaxDepthMap.clear();
+    this.startupProcessArr = [];
+    this.processSoMaxDepth = [];
+    this.filterIdMaxValue.clear();
+    this.soInitNameMap.clear();
+    this.processSrcSliceMap.clear();
+    this.distributedDataMap.clear();
+    this.renderRow = null;
+    SpProcessChart.asyncFuncCache = [];
+    if (this.parentRow) {
+      this.parentRow.clearMemory();
+      this.parentRow = undefined;
+    }
+  }
+
+  initAsyncFuncData = async (traceRange: { startTs: number; endTs: number }, traceId?: string): Promise<void> => {
+    let asyncFuncList: unknown[] = await queryProcessAsyncFunc(traceRange, traceId);
     for (const func of asyncFuncList) {
       //@ts-ignore
-      func.funName = this.funcNameMap.get(func.id); //@ts-ignore
-      func.threadName = Utils.THREAD_MAP.get(func.tid);
+      func.funName = this.traceId ? Utils.getInstance().getCallStatckMap().get(`${this.traceId}_${func.id}`) : Utils.getInstance().getCallStatckMap().get(func.id); //@ts-ignore
+      func.threadName = Utils.getInstance().getThreadMap(traceId).get(func.tid);
     }
     info('AsyncFuncData Count is: ', asyncFuncList!.length);
     this.processAsyncFuncArray = asyncFuncList;
     this.processAsyncFuncMap = Utils.groupBy(asyncFuncList, 'pid');
 
-    let asyncFuncCatList: unknown[] = await queryProcessAsyncFuncCat(); 
+    let asyncFuncCatList: unknown[] = await queryProcessAsyncFuncCat(traceRange);
     info('AsyncFuncCatData Count is: ', asyncFuncCatList!.length);
-    this.processAsyncFuncCatMap = Utils.groupBy(asyncFuncCatList, 'pid');    
+    this.processAsyncFuncCatMap = Utils.groupBy(asyncFuncCatList, 'pid');
   };
 
   initDeliverInputEvent = async (): Promise<void> => {
     let row = TraceRow.skeleton();
-    row.setAttribute('disabled-check', '');
     row.rowId = 'DeliverInputEvent';
     row.index = 0;
     row.rowType = TraceRow.ROW_TYPE_DELIVER_INPUT_EVENT;
@@ -117,14 +154,14 @@ export class SpProcessChart {
     let asyncFuncGroup = Utils.groupBy(
       //@ts-ignore
       this.processAsyncFuncArray.filter((it) => it.funName === 'deliverInputEvent'),
-      'tid'
+      'pid'
     ); // @ts-ignore
     if (Reflect.ownKeys(asyncFuncGroup).length > 0) {
       this.trace.rowsEL?.appendChild(row);
     } // @ts-ignore
-    Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => {
+    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
       // @ts-ignore
-      let asyncFuncGroups: Array<unknown> = asyncFuncGroup[key];
+      let asyncFuncGroups: Array<any> = asyncFuncGroup[key];
       if (asyncFuncGroups.length > 0) {
         //@ts-ignore
         row.addChildTraceRow(this.createDeliverInputEventRow(row, key, asyncFuncGroups));
@@ -143,7 +180,7 @@ export class SpProcessChart {
     funcRow.asyncFuncName = asyncFuncGroups[0].funName;
     funcRow.asyncFuncNamePID = key;
     funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-    funcRow.enableCollapseChart(); //允许折叠泳道图
+    funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
     funcRow.rowParentId = `${parentRow.rowId}`;
     funcRow.rowHidden = !parentRow.expansion;
     funcRow.style.width = '100%'; //@ts-ignore
@@ -196,8 +233,8 @@ export class SpProcessChart {
     };
     res.forEach((it, i): void => {
       //@ts-ignore
-      res[i].funName = this.funcNameMap.get(res[i].id!); //@ts-ignore
-      res[i].threadName = Utils.THREAD_MAP.get(res[i].tid!); //@ts-ignore
+      res[i].funName = this.traceId ? Utils.getInstance().getCallStatckMap().get(`${this.traceId}_${res[i].id!}`) : Utils.getInstance().getCallStatckMap().get(res[i].id!); //@ts-ignore
+      res[i].threadName = Utils.getInstance().getThreadMap().get(res[i].tid!); //@ts-ignore
       if (it.dur === -1 || it.dur === null || it.dur === undefined) {
         //@ts-ignore
         it.dur = (TraceRow.range?.endNS || 0) - it.startTs; //@ts-ignore
@@ -214,8 +251,114 @@ export class SpProcessChart {
     }
   }
 
-  async init(): Promise<void> {
-    await this.prepareData();
+  initTouchEventDispatch = async (): Promise<void> => {
+    let row = TraceRow.skeleton() as TraceRow<ProcessStruct>;
+    row.rowId = 'TouchEventDispatch';
+    row.index = 0;
+    row.rowType = TraceRow.ROW_TYPE_TOUCH_EVENT_DISPATCH;
+    row.rowParentId = '';
+    row.folder = true;
+    row.style.height = '40px';
+    row.name = 'TouchEventDispatch';
+    //@ts-ignore
+    row.supplier = folderSupplier();
+    row.onThreadHandler = folderThreadHandler(row, this.trace);
+
+    let asyncFuncGroup = Utils.groupBy(
+      //@ts-ignore
+      this.processAsyncFuncArray.filter((it) => it.funName === 'H:touchEventDispatch' || it.funName === 'H:TouchEventDispatch'),
+      'pid'
+    );
+    //@ts-ignore
+    if (Reflect.ownKeys(asyncFuncGroup).length > 0) {
+      this.trace.rowsEL?.appendChild(row);
+    }
+    //@ts-ignore
+    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+      //@ts-ignore
+      let asyncFuncGroups: Array<any> = asyncFuncGroup[key];
+      if (asyncFuncGroups.length > 0) {
+        row.addChildTraceRow(this.createTouchEventDispatchRow(row, key, asyncFuncGroups));
+      }
+    });
+  };
+
+  private createTouchEventDispatchRow(
+    parentRow: TraceRow<ProcessStruct>,
+    key: number,
+    asyncFuncGroups: Array<any>
+  ): TraceRow<FuncStruct> {
+    let funcRow = TraceRow.skeleton<FuncStruct>();
+    funcRow.rowId = `${asyncFuncGroups[0].funName}-${key}`;
+    funcRow.asyncFuncName = asyncFuncGroups[0].funName;
+    funcRow.asyncFuncNamePID = key;
+    funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
+    funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
+    funcRow.rowParentId = `${parentRow.rowId}`;
+    funcRow.rowHidden = !parentRow.expansion;
+    funcRow.style.width = '100%';
+    funcRow.style.height = '24px';
+    funcRow.name = `${asyncFuncGroups[0].funName} ${key}`;
+    funcRow.setAttribute('children', '');
+    funcRow.supplierFrame = () => {
+      return processTouchEventDispatchDataSender(key, funcRow!).then((res: Array<any>) => {
+        this.touchEventDispatchSendCallback(res, funcRow, asyncFuncGroups);
+        return res;
+      });
+    };
+
+    funcRow.findHoverStruct = (): void => {
+      FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
+    };
+    funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    funcRow.selectChangeHandler = this.trace.selectChangeHandler;
+    funcRow.onThreadHandler = rowThreadHandler<FuncRender>(
+      'func',
+      'context',
+      {
+        type: `func-${asyncFuncGroups[0].funName}-${key}`,
+      },
+      funcRow,
+      this.trace
+    );
+    return funcRow;
+  }
+
+  private touchEventDispatchSendCallback(res: Array<any>, funcRow: TraceRow<any>, asyncFuncGroups: Array<any>): void {
+    let isIntersect = (left: any, right: any): boolean =>
+      Math.max(left.startTs + left.dur, right.startTs + right.dur) - Math.min(left.startTs, right.startTs) <
+      left.dur + right.dur;
+    let depths: any = [];
+    let createDepth = (currentDepth: number, index: number): void => {
+      if (depths[currentDepth] == undefined || !isIntersect(depths[currentDepth], res[index])) {
+        res[index].depth = currentDepth;
+        depths[currentDepth] = res[index];
+      } else {
+        createDepth(++currentDepth, index);
+      }
+    };
+    res.forEach((it, i) => {
+      res[i].funName = this.traceId ? Utils.getInstance().getCallStatckMap().get(`${this.traceId}_${res[i].id!}`) : Utils.getInstance().getCallStatckMap().get(res[i].id!);
+      res[i].threadName = Utils.getInstance().getThreadMap().get(res[i].tid!);
+      if (it.dur == -1 || it.dur === null || it.dur === undefined) {
+        it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+        it.flag = 'Did not end';
+      }
+      createDepth(0, i);
+    });
+    if (funcRow && !funcRow.isComplete) {
+      let max = Math.max(...asyncFuncGroups.map((it) => it.depth || 0)) + 1;
+      let maxHeight = max * 18 + 6;
+      funcRow.style.height = `${maxHeight}px`;
+      funcRow.setAttribute('height', `${maxHeight}`);
+    }
+  }
+
+  async init(isDistributed: boolean, parentRow?: TraceRow<any>, traceId?: string): Promise<void> {
+    this.traceId = traceId;
+    this.parentRow = parentRow;
+    this.isDistributed = isDistributed;
+    await this.prepareData(traceId);
     if (
       //@ts-ignore
       this.eventCountMap.print === 0 && //@ts-ignore
@@ -225,51 +368,70 @@ export class SpProcessChart {
       return;
     }
     let time = new Date().getTime();
-    let processes = await queryProcess();
-    let processFromTable = await queryProcessByTable();
-    let processList = Utils.removeDuplicates(processes, processFromTable, 'pid');
-    let allJankProcessData = await queryAllJankProcess();
+    let processSortArray = Array.from(SpProcessChart.processRowSortMap);
+    // @ts-ignore
+    processSortArray.sort((a: Array<unknown>, b: Array<unknown>) =>
+      // @ts-ignore
+      b[1] - a[1]
+    );
+    let processFromTable = await queryProcessByTable(traceId);
+    let processList = Utils.sortThreadRow(processSortArray, processFromTable, 'process');
+    SpProcessChart.processRowSortMap.clear();
     let allJankProcess: Array<number> = [];
-    if (allJankProcessData.length > 0) {
-      allJankProcessData.forEach((name, index) => {
-        allJankProcess.push(name.pid!);
-      });
-    }
     let allTaskPoolPid: Array<{ pid: number }> = [];
-    if (FlagsConfig.getFlagsConfigEnableStatus('TaskPool')) {
-      allTaskPoolPid = await queryTaskPoolProcessIds();
+    let renderServiceProcess: unknown[] = [];
+    if (!this.isDistributed) {
+      let allJankProcessData = await queryAllJankProcess();
+      if (allJankProcessData.length > 0) {
+        allJankProcessData.forEach((name, index) => {
+          allJankProcess.push(name.pid!);
+        });
+      }
+      if (FlagsConfig.getFlagsConfigEnableStatus('TaskPool')) {
+        allTaskPoolPid = await queryTaskPoolProcessIds();
+      }
+      renderServiceProcess = await queryRsProcess();
     }
-    let renderServiceProcess = await queryRsProcess(); // @ts-ignore
+    // @ts-ignore
     info('ProcessList Data size is: ', processList!.length); // @ts-ignore
-    await this.initProcessRow(processList, allTaskPoolPid, allJankProcess, renderServiceProcess);
+    await this.initProcessRow(processList, allTaskPoolPid, allJankProcess, renderServiceProcess, traceId);
     let durTime = new Date().getTime() - time;
     info('The time to load the Process data is: ', durTime);
   }
 
-  private async prepareData(): Promise<void> {
-    let maxValues = await queryMemFilterIdMaxValue();
-    maxValues.forEach((it) => {
-      this.filterIdMaxValue.set(it.filterId, it.maxValue);
-    });
-
-    let soInitNamesArray = await queryAllSoInitNames();
-    soInitNamesArray.forEach((it) => {
-      //@ts-ignore
-      this.soInitNameMap.set(it.id, it.name);
-    });
-    let processSrcSliceArray = await queryAllSrcSlices();
-    processSrcSliceArray.forEach((it) => {
-      //@ts-ignore
-      this.processSrcSliceMap.set(it.id, it.src);
-    });
-    let threadFuncMaxDepthArray = await getMaxDepthByTid();
+  private async prepareData(traceId?: string): Promise<void> {
+    if (!this.isDistributed) {
+      let maxValues = await queryMemFilterIdMaxValue();
+      maxValues.forEach((it) => {
+        this.filterIdMaxValue.set(it.filterId, it.maxValue);
+      });
+      let soInitNamesArray = await queryAllSoInitNames();
+      soInitNamesArray.forEach((it) => {
+        // @ts-ignore
+        this.soInitNameMap.set(it.id, it.name);
+      });
+      let processSrcSliceArray = await queryAllSrcSlices();
+      processSrcSliceArray.forEach((it) => {
+        // @ts-ignore
+        this.processSrcSliceMap.set(it.id, it.src);
+      });
+      this.processMem = await queryProcessMem();
+      info('The amount of initialized process memory data is : ', this.processMem!.length);
+      this.loadAppStartup = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
+      info('Prepare App startup data ');
+      if (this.loadAppStartup) {
+        this.startupProcessArr = await queryStartupPidArray();
+        this.processSoMaxDepth = await queryProcessSoMaxDepth();
+      }
+    }
+    let threadFuncMaxDepthArray = await getMaxDepthByTid(traceId);
     info('Gets the maximum tier per thread , tid and maxDepth');
     threadFuncMaxDepthArray.forEach((it) => {
       //@ts-ignore
       this.threadFuncMaxDepthMap.set(`${it.ipid}-${it.tid}`, it.maxDepth);
     });
     info('convert tid and maxDepth array to map');
-    let pidCountArray = await queryProcessContentCount();
+    let pidCountArray = await queryProcessContentCount(traceId);
     info('fetch per process  pid,switch_count,thread_count,slice_count,mem_count');
     pidCountArray.forEach((it) => {
       //@ts-ignore
@@ -278,23 +440,33 @@ export class SpProcessChart {
       this.processFuncDataCountMap.set(it.pid, it.slice_count); //@ts-ignore
       this.processMemDataCountMap.set(it.pid, it.mem_count);
     });
-    this.processMem = await queryProcessMem();
-    info('The amount of initialized process memory data is : ', this.processMem!.length);
-    this.loadAppStartup = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
-    info('Prepare App startup data ');
-    if (this.loadAppStartup) {
-      this.startupProcessArr = await queryStartupPidArray();
-      this.processSoMaxDepth = await queryProcessSoMaxDepth();
-    }
-    let eventCountList: Array<unknown> = await queryEventCountMap();
+    let eventCountList: Array<unknown> = await queryEventCountMap(traceId);
     this.eventCountMap = eventCountList.reduce((pre, current) => {
       //@ts-ignore
       pre[`${current.eventName}`] = current.count;
       return pre;
     }, {});
-    let queryProcessThreadResult = await queryProcessThreads();
-    let queryProcessThreadsByTableResult = await queryProcessThreadsByTable(); // @ts-ignore
-    this.processThreads = Utils.removeDuplicates(queryProcessThreadResult, queryProcessThreadsByTableResult, 'tid');
+    // threadStateList转数组
+    let threadArray = Array.from(SpProcessChart.threadStateList); // [['1235-1235',12312321312],['12-12',4546465]]
+    // @ts-ignore 排序
+    threadArray.sort((a: Array<unknown>, b: Array<unknown>) =>
+      // @ts-ignore
+      b[1] - a[1]);
+    let queryProcessThreadsByTableResult = await queryProcessThreadsByTable(traceId); // @ts-ignore
+    // 全量threads排序
+    // @ts-ignore
+    this.processThreads = Utils.sortThreadRow(threadArray, queryProcessThreadsByTableResult, 'thread');
+    SpProcessChart.threadStateList.clear();
+    let distributedDataLists = await queryDistributedRelationData(traceId);
+    distributedDataLists.forEach((item) => {
+      this.distributedDataMap.set(`${item.id}_${traceId}`, {
+        chainId: item.chainId,
+        spanId: item.spanId,
+        parentSpanId: item.parentSpanId,
+        chainFlag: item.chainFlag,
+        traceId: traceId!,
+      });
+    });
     info('The amount of initialized process threads data is : ', this.processThreads!.length);
   }
 
@@ -302,7 +474,8 @@ export class SpProcessChart {
     pArr: Array<unknown>,
     allTaskPoolPid: Array<{ pid: number }>,
     jankArr: Array<number>,
-    rsProcess: Array<unknown>
+    rsProcess: Array<unknown>,
+    traceId?: string
   ): Promise<void> {
     for (let i = 0; i < pArr.length; i++) {
       const it = pArr[i];
@@ -316,50 +489,52 @@ export class SpProcessChart {
         continue;
       }
       let processRow = this.createProcessRow(i, it, allTaskPoolPid);
-      this.trace.rowsEL?.appendChild(processRow);
+      if (this.parentRow) {
+        this.parentRow.addChildTraceRow(processRow);
+      } else {
+        this.trace.rowsEL?.appendChild(processRow);
+      }
       /* App Startup row*/
       let startupRow: TraceRow<AppStartupStruct> | undefined = undefined;
       let soRow: TraceRow<SoStruct> | undefined = undefined;
-      if (this.loadAppStartup) {
-        //@ts-ignore
-        if (this.startupProcessArr.find((sp) => sp.pid === it.pid)) {
-          startupRow = this.addStartUpRow(processRow);
-        } //@ts-ignore
-        let maxSoDepth = this.processSoMaxDepth.find((md) => md.pid === it.pid);
-        if (maxSoDepth) {
-          soRow = this.addSoInitRow(processRow, maxSoDepth.maxDepth);
-        }
-      }
-
       let actualRow: TraceRow<JankStruct> | null = null;
       let expectedRow: TraceRow<JankStruct> | null = null;
-      this.renderRow = null; //@ts-ignore
-      if (it.processName === 'render_service') {
-        //@ts-ignore
-        this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow); //@ts-ignore
-        this.addProcessMemInfo(it, processRow); //@ts-ignore
-        if (jankArr.indexOf(it.pid!) > -1) {
+      //@ts-ignore
+      let currentPid = it.pid;
+      if (!this.isDistributed) {
+        if (this.loadAppStartup) {
+          if (this.startupProcessArr.find((sp) => sp.pid === currentPid)) {
+            startupRow = this.addStartUpRow(processRow);
+          }
+          let maxSoDepth = this.processSoMaxDepth.find((md) => md.pid === currentPid);
+          if (maxSoDepth) {
+            soRow = this.addSoInitRow(processRow, maxSoDepth.maxDepth);
+          }
+        }
+        if (jankArr.indexOf(currentPid) > -1) {
           expectedRow = this.addExpectedRow(it, processRow, rsProcess);
           actualRow = this.addActualRow(it, processRow, rsProcess);
         }
-        this.addProcessRowListener(processRow, actualRow); //@ts-ignore
+      }
+      this.renderRow = null; //@ts-ignore
+      if (it.processName === 'render_service') {
+        //@ts-ignore
+        this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow, traceId); //@ts-ignore
+        this.addProcessMemInfo(it, processRow); //@ts-ignore
         this.addAsyncFunction(it, processRow);//@ts-ignore
         this.addAsyncCatFunction(it, processRow);
       } else {
         //@ts-ignore
-        if (jankArr.indexOf(it.pid!) > -1) {
-          expectedRow = this.addExpectedRow(it, processRow, rsProcess);
-          actualRow = this.addActualRow(it, processRow, rsProcess);
-        }
-        this.addProcessRowListener(processRow, actualRow); //@ts-ignore
         this.addAsyncFunction(it, processRow); //@ts-ignore
         this.addProcessMemInfo(it, processRow); //@ts-ignore
-        this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow);//@ts-ignore
+        this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow, traceId);//@ts-ignore
         this.addAsyncCatFunction(it, processRow);
       }
-
-      //@ts-ignore
-      await this.trace.chartManager?.frameTimeChart.initAnimatedScenesChart(processRow, it, expectedRow!, actualRow!);
+      this.addProcessRowListener(processRow, actualRow);
+      if (!this.isDistributed) {
+        //@ts-ignore
+        await this.trace.chartManager?.frameTimeChart.initAnimatedScenesChart(processRow, it, expectedRow!, actualRow!);
+      }
     }
   }
 
@@ -368,7 +543,7 @@ export class SpProcessChart {
     process: unknown,
     allTaskPoolPid: Array<{ pid: number }>
   ): TraceRow<ProcessStruct> {
-    let processRow = TraceRow.skeleton<ProcessStruct>(); //@ts-ignore
+    let processRow = TraceRow.skeleton<ProcessStruct>(this.traceId); //@ts-ignore
     processRow.rowId = `${process.pid}`;
     processRow.index = index;
     processRow.rowType = TraceRow.ROW_TYPE_PROCESS;
@@ -388,7 +563,7 @@ export class SpProcessChart {
     processRow.name = `${process.processName || 'Process'} ${process.pid}`; //@ts-ignore
     processRow.supplierFrame = (): Promise<Array<unknown>> => {
       //@ts-ignore
-      return processDataSender(process.pid || -1, processRow);
+      return processDataSender(process.pid || -1, processRow, this.traceId);
     };
     processRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     processRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -428,6 +603,22 @@ export class SpProcessChart {
             this.trace.linkNodes?.forEach((linkProcessItem) => this.handler2(e, linkProcessItem, processRow));
           }, 300);
         }
+      } else if (FuncStruct.selectFuncStruct) { //@ts-ignore
+        if (e.detail.expansion) {
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes.forEach((linkNodeItem) => this.handler3(e, linkNodeItem));
+          }, 300);
+        } else {
+          FuncStruct.selectLineFuncStruct.push(FuncStruct.selectFuncStruct);
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes?.forEach((linkProcessItem) => {
+              this.handler4(e, linkProcessItem, processRow);
+              JankStruct.selectJankStructList = [];
+            });
+          }, 300);
+        }
+        this.trace.resetDistributedLine();
+
       } else {
         //@ts-ignore
         if (e.detail.expansion) {
@@ -552,6 +743,7 @@ export class SpProcessChart {
       pair.rowEL = processRow!;
     }
   }
+
   /* Janks Frames */
   //@ts-ignore
   addExpectedRow(
@@ -650,12 +842,12 @@ export class SpProcessChart {
       if (type === 'actual') {
         struct.src_slice = this.processSrcSliceMap.get(res[j].id!);
       }
-      struct.cmdline = Utils.PROCESS_MAP.get(res[j].pid!); //@ts-ignore
+      struct.cmdline = Utils.getInstance().getProcessMap().get(res[j].pid!); //@ts-ignore
       if (res[j].pid! === renderServiceProcess[0].pid) {
         struct.cmdline = 'render_service';
-        struct.frame_type = struct.cmdline;
+        struct.frameType = struct.cmdline;
       } else {
-        struct.frame_type = 'app';
+        struct.frameType = 'app';
       }
     }
     if (row && !row.isComplete && res.length > 0) {
@@ -665,7 +857,7 @@ export class SpProcessChart {
       if (res[0]) {
         let timeLineType = res[0].type; //@ts-ignore
         row.rowId = `${timeLineType}-${process.pid}`;
-        row.setAttribute('frame_type', res[0].frame_type || '');
+        row.setAttribute('frame_type', res[0].frameType || '');
         if (type === 'actual') {
           row.dataList = res;
         }
@@ -775,13 +967,14 @@ export class SpProcessChart {
     expectedRow: TraceRow<JankStruct> | null,
     actualRow: TraceRow<JankStruct> | null,
     soRow: TraceRow<SoStruct> | undefined,
-    startupRow: TraceRow<AppStartupStruct> | undefined
+    startupRow: TraceRow<AppStartupStruct> | undefined,
+    traceId?: string
   ): void {
     let threads = this.processThreads.filter((thread) => thread.pid === it.pid && thread.tid !== 0);
     let tRowArr: Array<TraceRow<BaseStruct>> = [];
     for (let j = 0; j < threads.length; j++) {
       let thread = threads[j];
-      let tRow = TraceRow.skeleton<ThreadStruct>();
+      let tRow = TraceRow.skeleton<ThreadStruct>(this.traceId);
       tRow.rowId = `${thread.tid}`;
       tRow.rowType = TraceRow.ROW_TYPE_THREAD;
       tRow.rowParentId = `${it.pid}`;
@@ -796,16 +989,15 @@ export class SpProcessChart {
       tRow.selectChangeHandler = this.trace.selectChangeHandler;
       tRow.findHoverStruct = (): void => this.threadRowFindHoverStruct(tRow);
       tRow.supplierFrame = async (): Promise<Array<ThreadStruct>> => {
-        const res = await threadDataSender(thread.tid || 0, it.pid || 0, tRow);
+        const res = await threadDataSender(thread.tid || 0, it.pid || 0, tRow, this.traceId);
         if (res === true) {
           return [];
-        } else {
-          let rs = res as ThreadStruct[];
-          if (rs.length <= 0 && !tRow.isComplete) {
-            this.trace.refreshCanvas(true);
-          }
-          return rs;
         }
+        let rs = res as ThreadStruct[];
+        if (rs.length <= 0 && !tRow.isComplete) {
+          this.trace.refreshCanvas(true);
+        }
+        return rs;
       };
       tRow.onThreadHandler = rowThreadHandler<ThreadRender>(
         'thread',
@@ -889,17 +1081,17 @@ export class SpProcessChart {
     threads: Array<unknown>,
     threadRowArr: Array<unknown>,
     threadRow: TraceRow<ThreadStruct>,
-    processRow: TraceRow<ProcessStruct>
+    processRow: TraceRow<ProcessStruct>,
   ): void {
     //@ts-ignore
     if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) !== undefined) {
       //@ts-ignore
       let max = this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) || 1;
       let maxHeight = max * 18 + 6;
-      let funcRow = TraceRow.skeleton<FuncStruct>(); //@ts-ignore
+      let funcRow = TraceRow.skeleton<FuncStruct>(this.traceId); //@ts-ignore
       funcRow.rowId = `${thread.tid}`;
       funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-      funcRow.enableCollapseChart(); //允许折叠泳道图
+      funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
       //@ts-ignore
       funcRow.rowParentId = `${process.pid}`;
       funcRow.rowHidden = !processRow.expansion;
@@ -911,7 +1103,7 @@ export class SpProcessChart {
       funcRow.setAttribute('children', '');
       funcRow.supplierFrame = async (): Promise<Array<FuncStruct>> => {
         //@ts-ignore
-        const rs = await funcDataSender(thread.tid || 0, thread.upid || 0, funcRow); //@ts-ignore
+        const rs = await funcDataSender(thread.tid || 0, thread.upid || 0, funcRow, this.traceId); //@ts-ignore
         return this.funDataSenderCallback(rs, funcRow, thread);
       };
       funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -952,12 +1144,22 @@ export class SpProcessChart {
         funs.forEach((fun, index) => {
           funs[index].itid = thread.utid;
           funs[index].ipid = thread.upid;
-          funs[index].funName = this.funcNameMap.get(funs[index].id!);
+          funs[index].tid = thread.tid;
+          funs[index].pid = thread.pid;
+          funs[index].funName = this.traceId ? Utils.getInstance().getCallStatckMap().get(`${this.traceId}_${funs[index].id}`) : Utils.getInstance().getCallStatckMap().get(funs[index].id!);
           if (Utils.isBinder(fun)) {
           } else {
             if (fun.nofinish) {
               fun.flag = 'Did not end';
             }
+          }
+          if (fun.id && this.distributedDataMap.has(`${fun.id}_${this.traceId}`)) {
+            let distributedData = this.distributedDataMap.get(`${fun.id}_${this.traceId}`);
+            funs[index].chainId = distributedData!.chainId;
+            funs[index].spanId = distributedData!.spanId;
+            funs[index].parentSpanId = distributedData!.parentSpanId;
+            funs[index].chainFlag = distributedData!.chainFlag;
+            funs[index].traceId = this.traceId;
           }
         });
       } else {
@@ -984,6 +1186,9 @@ export class SpProcessChart {
       row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       row.selectChangeHandler = this.trace.selectChangeHandler;
       row.focusHandler = (): void => {
+        if (row.hoverY <= 5 || row.hoverY >= 35) {
+          ProcessMemStruct.hoverProcessMemStruct = undefined;
+        }
         this.trace.displayTip(
           row,
           ProcessMemStruct.hoverProcessMemStruct,
@@ -1041,81 +1246,225 @@ export class SpProcessChart {
     max += 1;
     return max * 18 + 6;
   }
-
+  //处理缓存数据的'startTs'字段统一成'startTime'
+  private toAsyncFuncCache(object: any, name: string): void {
+    let modifiedObject = { ...object };
+    modifiedObject['startTime'] = modifiedObject['startTs'];
+    delete modifiedObject['startTs'];
+    modifiedObject.rowId = name;
+    modifiedObject.type = 'func';
+    SpProcessChart.asyncFuncCache.push({ ...modifiedObject });
+  }
   //Async Function
   addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
+    let isCategoryAsyncfunc: boolean = FlagsConfig.getFlagsConfigEnableStatus('Start&Finish Trace Category');
     //@ts-ignore
     let asyncFuncList = this.processAsyncFuncMap[it.pid] || [];
-    let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName'); // @ts-ignore
-    Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => {
-      // @ts-ignore
-      let asyncFunctions: Array<unknown> = asyncFuncGroup[key];
-      if (asyncFunctions.length > 0) {
-        let isIntersect = (a: unknown, b: unknown): boolean =>
-          //@ts-ignore
-          Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
-        let depthArray: unknown = [];
-        asyncFunctions.forEach((it, i) => {
-          //@ts-ignore
-          if (it.dur === -1 || it.dur === null || it.dur === undefined) {
-            //@ts-ignore
-            it.dur = (TraceRow.range?.endNS || 0) - it.startTs; //@ts-ignore
-            it.flag = 'Did not end';
-          }
-          let currentDepth = 0;
-          let index = i;
-          while (
-            //@ts-ignore
-            depthArray[currentDepth] !== undefined && //@ts-ignore
-            isIntersect(depthArray[currentDepth], asyncFunctions[index])
-          ) {
-            currentDepth++;
-          } //@ts-ignore
-          asyncFunctions[index].depth = currentDepth; //@ts-ignore
-          depthArray[currentDepth] = asyncFunctions[index];
-        });
-        const maxHeight = this.calMaxHeight(asyncFunctions);
-        let funcRow = TraceRow.skeleton<FuncStruct>(); //@ts-ignore
-        funcRow.rowId = `${asyncFunctions[0].funName}-${it.pid}`; //@ts-ignore
-        funcRow.asyncFuncName = asyncFunctions[0].funName;
-        funcRow.asyncFuncNamePID = it.pid;
-        funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-        funcRow.enableCollapseChart(); //允许折叠泳道图
-        funcRow.rowParentId = `${it.pid}`;
-        funcRow.rowHidden = !processRow.expansion;
-        funcRow.style.width = '100%';
-        funcRow.style.height = `${maxHeight}px`;
-        funcRow.setAttribute('height', `${maxHeight}`); //@ts-ignore
-        funcRow.name = `${asyncFunctions[0].funName}`;
-        funcRow.setAttribute('children', '');
-        funcRow.findHoverStruct = (): void => {
-          FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
-        }; //@ts-ignore
-        funcRow.supplier = (): Promise<unknown> => new Promise((resolve) => resolve(asyncFunctions));
-        funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-        funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-        funcRow.onThreadHandler = rowThreadHandler<FuncRender>(
-          'func',
-          'context',
-          {
-            //@ts-ignore
-            type: `func-${asyncFunctions[0].funName}-${it.pid}`,
-          },
-          funcRow,
-          this.trace
-        );
-        processRow.addChildTraceRow(funcRow);
+    if (!asyncFuncList.length) {
+      return;
+    }
+    if (isCategoryAsyncfunc) {//聚合异步trace
+      let { asyncRemoveCatArr, asyncCatMap } = this.hanldCategoryAsyncFunc(asyncFuncList);
+      let { setArrayLenThanOne, setArrayLenOnlyOne } = this.hanldAsyncFunc(it, asyncRemoveCatArr);
+      //处理cat不为null和length等于1的数据
+      let aggregateData = { ...Object.fromEntries(asyncCatMap), ...setArrayLenOnlyOne };
+      Reflect.ownKeys(aggregateData).map((key: any) => {
+        let param: Array<any> = aggregateData[key];
+        this.makeAddAsyncFunction(param, it, processRow, key);
+      })
+      //处理length大于1的数据，不传key值
+      Reflect.ownKeys(setArrayLenThanOne).map((key: any) => {
+        let param: Array<any> = setArrayLenThanOne[key];
+        this.makeAddAsyncFunction(param, it, processRow);
+      })
+    } else {
+      //不聚合异步trace
+      let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');
+      //@ts-ignore
+      Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+        //@ts-ignore
+        let asyncFunctions: Array<any> = asyncFuncGroup[key];
+        if (asyncFunctions.length > 0) {
+          let isIntersect = (a: any, b: any): boolean =>
+            Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
+          let depthArray: any = [];
+          asyncFunctions.forEach((it, i) => {
+            if (it.dur === -1 || it.dur === null || it.dur === undefined) {
+              it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+              it.flag = 'Did not end';
+            }
+            let currentDepth = 0;
+            let index = i;
+            while (
+              depthArray[currentDepth] !== undefined &&
+              isIntersect(depthArray[currentDepth], asyncFunctions[index])
+            ) {
+              currentDepth++;
+            }
+            asyncFunctions[index].depth = currentDepth;
+            depthArray[currentDepth] = asyncFunctions[index];
+            this.toAsyncFuncCache(asyncFunctions[index], `${asyncFunctions[i].funName}-${it.pid}`);//处理缓存的异步trace数据缺失的字段
+          });
+        }
+        this.lanesConfig(asyncFunctions, it, processRow);
+      });
+    }
+  }
+  //处理CategoryAsyncFunc
+  hanldCategoryAsyncFunc(
+    asyncFuncList: Array<any>
+  ): { asyncRemoveCatArr: Array<any>, asyncCatMap: Map<string, Array<any>> } {
+    let asyncCatMap: Map<string, any> = new Map<string, any>();
+    let asyncRemoveCatArr = new Array();
+    //取出cat字段（category）不为null的数据
+    for (let i = 0; i < asyncFuncList.length; i++) {
+      const el = asyncFuncList[i];
+      if (el.cat !== null) {
+        if (asyncCatMap.has(`${el.cat}:${el.threadName} ${el.tid}`)) {
+          let item: Array<any> = asyncCatMap.get(`${el.cat}:${el.threadName} ${el.tid}`);
+          item.push(el);
+        } else {
+          asyncCatMap.set(`${el.cat}:${el.threadName} ${el.tid}`, [el]);
+        }
+      } else {
+        //取cat字段为null的数据
+        asyncRemoveCatArr.push(el);
+      }
+    }
+    return { asyncRemoveCatArr, asyncCatMap };
+  }
+  //处理cat字段为null的数据，按funname分类，分别按len>1和=1去处理
+  hanldAsyncFunc(
+    it: { pid: number; processName: string | null },
+    asyncRemoveCatList: Array<any>
+  ): { setArrayLenThanOne: any, setArrayLenOnlyOne: any } {
+    let asyncFuncGroup = Utils.groupBy(asyncRemoveCatList, 'funName');
+    let funcArr: unknown[] = [];
+    let setArrayLenThanOne: unknown = {};
+    let setArrayLenOnlyOne: unknown = {};
+    //@ts-ignore
+    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+      //@ts-ignore
+      let asyncFunctions: Array<any> = asyncFuncGroup[key];
+      if (asyncFunctions.length > 1) {
+        //@ts-ignore
+        setArrayLenThanOne[`${asyncFunctions[0].funName}-${it.pid}`] = asyncFunctions;
+      } else if (asyncFunctions.length === 1) {
+        funcArr.push(...asyncFunctions);
       }
     });
+    //len=1的数据继续按tid分类
+    let asyncFuncTidGroup = Utils.groupBy(funcArr, 'tid');
+    //@ts-ignore
+    Reflect.ownKeys(asyncFuncTidGroup).map((key: any) => {
+      //@ts-ignore
+      let asyncTidFunc: Array<any> = asyncFuncTidGroup[key];
+      //@ts-ignore
+      setArrayLenOnlyOne[`H:${asyncTidFunc[0].threadName} ${asyncTidFunc[0].tid}`] = asyncTidFunc;
+    });
+    return { setArrayLenThanOne, setArrayLenOnlyOne }
+  }
+  makeAddAsyncFunction(
+    asyncFunctions: any[],
+    it: { pid: number; processName: string | null },
+    processRow: TraceRow<ProcessStruct>,
+    key?: string
+  ) {
+    let maxDepth: number = -1;
+    let i = 0;
+    let mapDepth = new Map();
+    let noEndData = new Array();
+    let normalData = new Array();
+    if (asyncFunctions.length) {
+      while (i < asyncFunctions.length) {
+        let param = asyncFunctions[i];
+        if (param.dur !== null) {
+          let itemEndTime = param.startTs + param.dur;
+          let flag = false;
+          for (let [key, val] of mapDepth.entries()) {
+            if (val.et < param.startTs) {
+              flag = true;
+              val.et = itemEndTime;//更新endts
+              param.depth = Number(key);
+              break;
+            }
+          }
+          if (!flag) {//depth增加
+            maxDepth++;
+            mapDepth.set(`${maxDepth}`, { et: itemEndTime });
+            param.depth = maxDepth;
+          }
+          this.toAsyncFuncCache(param, key ? key : `${asyncFunctions[i].funName}-${it.pid}`);
+          normalData.push(param);
+        } else {
+          noEndData.push(param);
+        }
+        i++;
+      }
+      if (noEndData.length) {
+        noEndData.forEach((it: any, i: any) => {
+          if (it.dur === -1 || it.dur === null || it.dur === undefined) {
+            it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+            it.nofinish = true;
+            it.flag = 'Did not end';
+          }
+          let index = i;
+          maxDepth++;
+          noEndData[index].depth = maxDepth;
+          this.toAsyncFuncCache(noEndData[index], key ? key : `${asyncFunctions[i].funName}-${it.pid}`);
+        });
+      }
+      this.lanesConfig([...normalData, ...noEndData], it, processRow, key);
+    }
+  }
+  //初始化异步泳道信息
+  lanesConfig(
+    asyncFunctions: any[],
+    it: { pid: number; processName: string | null },
+    processRow: TraceRow<ProcessStruct>,
+    key?: string
+  ) {
+    const maxHeight = this.calMaxHeight(asyncFunctions);
+    const namesSet = new Set(asyncFunctions.map((item) => item.funName));
+    const asyncFuncName = Array.from(namesSet);
+    let funcRow = TraceRow.skeleton<FuncStruct>();
+    funcRow.rowId = key ? key : `${asyncFunctions[0].funName}-${it.pid}`;
+    funcRow.asyncFuncName = asyncFuncName;
+    funcRow.asyncFuncNamePID = it.pid;
+    funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
+    funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
+    funcRow.rowParentId = `${it.pid}`;
+    funcRow.rowHidden = !processRow.expansion;
+    funcRow.style.width = '100%';
+    funcRow.style.height = `${maxHeight}px`;
+    funcRow.setAttribute('height', `${maxHeight}`);
+    funcRow.name = key ? key : `${asyncFunctions[0].funName}`;
+    funcRow.setAttribute('children', '');
+    funcRow.findHoverStruct = (): void => {
+      FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
+    };
+    funcRow.supplier = (): Promise<any> => new Promise((resolve) => resolve(asyncFunctions));
+    funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    funcRow.selectChangeHandler = this.trace.selectChangeHandler;
+    funcRow.onThreadHandler = rowThreadHandler<FuncRender>(
+      'func',
+      'context',
+      {
+        type: `func-${funcRow.rowId}`,
+      },
+      funcRow,
+      this.trace
+    );
+    processRow.addChildTraceRow(funcRow);
   }
 
   addAsyncCatFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {//@ts-ignore
     let asyncFuncCatList = this.processAsyncFuncCatMap[it.pid] || [];
-    let asyncFuncGroup: unknown = Utils.groupBy(asyncFuncCatList, 'threadName');//@ts-ignore  
-    Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => {//@ts-ignore  
+    let asyncFuncGroup: unknown = Utils.groupBy(asyncFuncCatList, 'threadName'); //@ts-ignore  
+    Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => { //@ts-ignore 
       let asyncFunctions: Array<unknown> = asyncFuncGroup[key];
       if (asyncFunctions.length > 0) {
-        let isIntersect = (a: unknown, b: unknown): boolean =>//@ts-ignore 
+        let isIntersect = (a: unknown, b: unknown): boolean =>  //@ts-ignore  
           Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
         let depthArray: unknown = [];
         asyncFunctions.forEach((it, i) => {//@ts-ignore
@@ -1130,7 +1479,8 @@ export class SpProcessChart {
             currentDepth++;
           }//@ts-ignore
           asyncFunctions[index].depth = currentDepth;//@ts-ignore
-          depthArray[currentDepth] = asyncFunctions[index];
+          depthArray[currentDepth] = asyncFunctions[index];//@ts-ignore
+          this.toAsyncFuncCache(asyncFunctions[index], `${asyncFunctions[0].threadName}`);
         });
         const maxHeight = this.calMaxHeight(asyncFunctions);
         let funcRow = TraceRow.skeleton<FuncStruct>();//@ts-ignore
@@ -1138,7 +1488,7 @@ export class SpProcessChart {
         funcRow.asyncFuncThreadName = asyncFunctions[0].threadName;
         funcRow.asyncFuncNamePID = it.pid;
         funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
-        funcRow.enableCollapseChart(); //允许折叠泳道图
+        funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
         funcRow.rowParentId = `${it.pid}`;
         funcRow.rowHidden = !processRow.expansion;
         funcRow.style.width = '100%';
@@ -1148,11 +1498,11 @@ export class SpProcessChart {
         funcRow.setAttribute('children', '');
         funcRow.findHoverStruct = (): void => {
           FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
-        };  //@ts-ignore  
+        }; //@ts-ignore  
         funcRow.supplier = (): Promise<unknown> => new Promise((resolve) => resolve(asyncFunctions));
         funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-        funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {//@ts-ignore
+        funcRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context', {  //@ts-ignore
           type: `func-${asyncFunctions[0].threadName}-${it.pid}`,
         }, funcRow, this.trace);
         processRow.addChildTraceRow(funcRow);

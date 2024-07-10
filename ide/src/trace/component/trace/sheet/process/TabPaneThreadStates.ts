@@ -202,14 +202,15 @@ export class TabPaneThreadStates extends BaseElement {
       let sumWall = 0.0;
       let sumOcc = 0;
       let targetList = [];
-
+      // @ts-ignore
+      let traceId = threadStatesParam.traceId;
       for (let e of targetListTemp) {
         // @ts-ignore
         if (threadStatesParam.processIds.includes(e.pid)) {
           // @ts-ignore
-          let process = Utils.PROCESS_MAP.get(e.pid);
+          let process = Utils.getInstance().getProcessMap(traceId).get(e.pid);
           // @ts-ignore
-          let thread = Utils.THREAD_MAP.get(e.tid);
+          let thread = Utils.getInstance().getThreadMap(traceId).get(e.tid);
           // @ts-ignore
           e.process = process || '[NULL]';
           // @ts-ignore
@@ -320,7 +321,7 @@ export class TabPaneThreadStates extends BaseElement {
 
   sortByColumn(treadStatesDetail: unknown): void {
     function compare(property: unknown, treadStatesSort: unknown, type: unknown) {
-      return function (threadStatesLeftData: SelectionData | unknown, threadStatesRightData: SelectionData | unknown) {
+      return function (threadStatesLeftData: SelectionData | unknown, threadStatesRightData: SelectionData | unknown): number {
         // @ts-ignore
         if (threadStatesLeftData.process === ' ' || threadStatesRightData.process === ' ') {
           return 0;

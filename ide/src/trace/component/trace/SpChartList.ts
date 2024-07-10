@@ -152,28 +152,24 @@ export class SpChartList extends BaseElement {
     })
 
     this.removeCollectIcon1?.addEventListener('click', () => {
-      for (let i = 0; i < this.collectRowList1.length; i++) {
-        this.collectRowList1[i].collectEL?.click();
-        i--;
-      }
+      Array.from(this.collectRowList1).forEach(row => {
+        row.collectEL?.click();
+      });
     });
     this.removeCollectIcon2?.addEventListener('click', () => {
-      for (let i = 0; i < this.collectRowList2.length; i++) {
-        this.collectRowList2[i].collectEL?.click();
-        i--;
-      }
+      Array.from(this.collectRowList2).forEach(row => {
+        row.collectEL?.click();
+      });
     });
   }
 
   removeAllCollectRow(): void {
-    for (let i = 0; i < this.collectRowList1.length; i++) {
-      this.collectRowList1[i].collectEL?.click();
-      i--;
-    }
-    for (let i = 0; i < this.collectRowList2.length; i++) {
-      this.collectRowList2[i].collectEL?.click();
-      i--;
-    }
+    Array.from(this.collectRowList1).forEach(row => {
+      row.collectEL?.click();
+    });
+    Array.from(this.collectRowList2).forEach(row => {
+      row.collectEL?.click();
+    });
   }
 
   private resizeHeight(): void {
@@ -244,12 +240,7 @@ export class SpChartList extends BaseElement {
     return [...this.collectRowList1, ...this.collectRowList2];
   }
 
-  getCollectRowsInfo(group: string): {
-    type: string | null | undefined;
-    name: string;
-    id: string | null | undefined;
-    parents: never[];
-  }[] {
+  getCollectRowsInfo(group: string) {
     return (group === SpChartList.COLLECT_G1 ? this.collectRowList1 : this.collectRowList2).map((row) => {
       let rowJson = {
         type: row.rowType,
@@ -264,7 +255,7 @@ export class SpChartList extends BaseElement {
   }
 
   // @ts-ignore
-  getRowParent(obj: unknown, row: TraceRow<unknown>): void {
+  getRowParent(obj: unknown, row: TraceRow<unknown>) {
     if (row.parentRowEl) {
       // @ts-ignore
       if (obj.parents) {

@@ -32,6 +32,7 @@ import { type FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc
 import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
 import { CpuStateStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCpuState';
 import { type ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock';
+import { type DmaFenceStruct } from '../../../database/ui-worker/ProcedureWorkerDmaFence';
 import { type IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq';
 import { type JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank';
 import { type HeapStruct } from '../../../database/ui-worker/ProcedureWorkerHeap';
@@ -83,12 +84,14 @@ import '../../../../base-ui/popover/LitPopoverV';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
 import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerBpftrace';
-import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
 import { TabPaneUserPlugin } from '../sheet/userPlugin/TabPaneUserPlugin';
+import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { SpSystemTrace } from '../../SpSystemTrace';
 import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfTool';
+import { GpuCounterStruct } from '../../../database/ui-worker/ProcedureWorkerGpuCounter';
+import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -209,7 +212,7 @@ export class TraceSheet extends BaseElement {
     });
     this.getComponentByID<any>('box-io-tier-statistics-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
       // @ts-ignore
-      if (evt.detail.button === 2) {
+      if (evt.detail.button === 2 && evt.detail.tableName) {
         let pane = this.getPaneByID('box-io-calltree');
         this.litTabs!.activeByKey(pane.key);
       }
@@ -218,7 +221,7 @@ export class TraceSheet extends BaseElement {
       'row-click',
       (evt: MouseEvent) => {
         // @ts-ignore
-        if (evt.detail.button === 2) {
+        if (evt.detail.button === 2 && evt.detail.tableName) {
           let pane = this.getPaneByID('box-vm-calltree');
           this.litTabs!.activeByKey(pane.key);
         }
@@ -228,7 +231,7 @@ export class TraceSheet extends BaseElement {
       'row-click',
       (evt: MouseEvent) => {
         // @ts-ignore
-        if (evt.detail.button === 2) {
+        if (evt.detail.button === 2 && evt.detail.tableName) {
           let pane = this.getPaneByID('box-file-system-calltree');
           this.litTabs!.activeByKey(pane.key);
         }
@@ -250,7 +253,7 @@ export class TraceSheet extends BaseElement {
 
   private perfAnalysisListener(evt: MouseEvent): void {
     // @ts-ignore
-    if (evt.detail.button === 2) {
+    if (evt.detail.button === 2 && evt.detail.pid) {
       let pane = this.getPaneByID('box-perf-profile');
       this.litTabs!.activeByKey(pane.key);
     }
@@ -258,7 +261,7 @@ export class TraceSheet extends BaseElement {
 
   private nativeAnalysisListener(e: MouseEvent): void {
     //@ts-ignore
-    if (e.detail.button === 2) {
+    if (e.detail.button === 2 && e.detail.tableName) {
       let pane = this.getPaneByID('box-native-calltree');
       pane.hidden = false;
       this.litTabs!.activeByKey(pane.key);
@@ -622,6 +625,7 @@ export class TraceSheet extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: unknown) => void | undefined,
+    scrollPrio: (d: any) => void | undefined,
     callback?: (data: Array<unknown>, str: string) => void
   ): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
@@ -629,12 +633,15 @@ export class TraceSheet extends BaseElement {
       // @ts-ignore
       scrollCallback,
       scrollWakeUp,
+      scrollPrio,
       callback
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
+  displayDmaFenceData = (data: DmaFenceStruct, rowData: any): void =>//展示tab页内容
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data, rowData);
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
   displayIrqData = (data: IrqStruct): void =>
@@ -651,8 +658,8 @@ export class TraceSheet extends BaseElement {
     val.nativeMemoryStatistic.push(rowType);
     val.nativeMemoryCurrentIPid = ipid;
     val.nativeMemory = [];
-    val.leftNs = data.startTime!;
-    val.rightNs = data.dur === 0 ? data.startTime! : data.startTime! + data.dur! - 1;
+    val.leftNs = data.startTime! + data.dur!;
+    val.rightNs = data.startTime! + data.dur! + 1;
     this.selection = val;
     this.displayTab<TabPaneNMStatisticAnalysis>('box-native-statistic-analysis', 'box-native-calltree').data = val;
     this.showUploadSoBt(val);
@@ -669,8 +676,15 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneGpuClickSelect>('gpu-click-select', 'gpu-click-select-comparison').gpuClickData(dataObject);
   };
 
-  displayFuncData = (names: string[], data: FuncStruct, scrollCallback: Function): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, scrollCallback);
+  displayFuncData = (
+    names: string[],
+    threadName: string,
+    data: FuncStruct,
+    scrollCallback: Function,
+    callback?: (data: Array<any>, str: string, binderTid: number) => void,
+    distributedCallback?: (dataList: FuncStruct[]) => void,
+  ): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, threadName, scrollCallback, callback, distributedCallback);
   displayCpuData = (
     data: CpuStruct,
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
@@ -860,10 +874,13 @@ export class TraceSheet extends BaseElement {
       { key: '1', title: 'cycles', checked: select[0] === '1' },
     ];
   };
-
-
   displayUserPlugin = (selectData: any): void => {
     this.displayTab<TabPaneUserPlugin>("tab-pane-userplugin").data = selectData;
+  };
+
+
+  displayGpuCounterData = (data: GpuCounterStruct): void => {
+    this.displayTab<TabPaneGpuCounter>('box-gpu-counter').data = data;
   };
 
   displaySystemStatesData = (): void => {
@@ -969,7 +986,8 @@ export class TraceSheet extends BaseElement {
         selection.fileSysVirtualMemory ||
         selection.vmCount > 0 ||
         selection.diskIOLatency ||
-        selection.diskIOipids.length > 0)
+        selection.diskIOipids.length > 0  ||
+        selection.threadIds.length > 0)
     ) {
       this.importDiv!.style.display = 'flex';
     } else {
@@ -1063,6 +1081,7 @@ export class TraceSheet extends BaseElement {
     this.litTabs!.activeByKey(pane.key); // @ts-ignore
     pane.tab = Utils.transferPTSTitle(e.detail.title);
     let param = new BoxJumpParam();
+    param.traceId = this.selection!.traceId;
     param.leftNs = this.selection!.leftNs;
     param.rightNs = this.selection!.rightNs;
     param.cpus = this.selection!.cpus; // @ts-ignore

@@ -63,6 +63,7 @@ export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {
     this.querySmapsData(data.leftNs, fileArr[0].startNs);
   }
   private initSelect(fileStartNs: number, smapsComFileArr: Array<unknown>): void {
+    let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
     this.selectEl!.innerHTML = '';
     let option = new LitSelectOption();
@@ -82,7 +83,7 @@ export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {
           // @ts-ignore
           if (input.value === f.name) {
             // @ts-ignore
-            this.querySmapsData(fileStartNs, f.startNs);
+            that.querySmapsData(fileStartNs, f.startNs);
           }
         } // @ts-ignore
         e.stopPropagation();

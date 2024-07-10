@@ -30,7 +30,7 @@ export class JanksStruct extends BaseStruct {
   jank_type: string | undefined;
   type: string | undefined;
   pid: number | undefined;
-  frame_type: string | undefined; // app、renderService、FrameTime
+  frameType: string | undefined; // app、renderService、FrameTime
   app_dur: number | undefined;
   src_slice: string | undefined;
   dst_slice: string | undefined;

@@ -61,7 +61,7 @@ export class SpFpsChart {
         context = fpsRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       fpsRow.canvasSave(context);
-      (renders.fps as FpsRender).renderMainThread(
+      (renders['fps'] as FpsRender).renderMainThread(
         {
           context: context,
           useCache: useCache,

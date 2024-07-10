@@ -343,9 +343,9 @@ input:disabled {
   <div class="allocation-switchstyle version-controller advance-option-div" id="sample-interval-el" style="flex-wrap: wrap;">
     <span class="allocation-inner-font-style" id="statistics-interval-name">Sample Interval</span>
     <span class="record-mode-available" style="margin-right: auto;">(Available on recent OpenHarmony 4.0)</span>
-    <span class="value-range" style="margin-right: auto;" id="statistics-interval-range">Rang is 0 - 65535, default 10 byte</span>
+    <span class="value-range" style="margin-right: auto;" id="statistics-interval-range">Rang is 0 - 65535, default 0 byte</span>
     <input id= "statistics-interval-input" style="width: auto;" class="allocation-inputstyle inputBoxes" type="text"
-    placeholder="Enter the interval" value="10">
+    placeholder="Enter the interval" value="0">
   </div>
   <!-- Shared Memory Size(advance) -->
   <div class="allocation-application advance-option-div" id="shared-memory-size-el">

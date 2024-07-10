@@ -83,7 +83,7 @@ export class TraceRowConfig extends BaseElement {
     TraceRowConfig.allTraceRowList.push(...this.traceRowList!);
     this.refreshAllConfig(true, true);
     // 鼠标移入该页面,隐藏泳道图tip
-    this.onmouseenter = (): void => {
+    this.onmouseenter = () => {
       this.spSystemTrace!.tipEL!.style.display = 'none';
       this.spSystemTrace!.hoverStructNull();
       this.spSystemTrace!.refreshCanvas(true);
@@ -176,6 +176,8 @@ export class TraceRowConfig extends BaseElement {
       this.spSystemTrace?.removeLinkLinesByBusinessType('janks');
     } else if (type === 'Task Pool') {
       this.spSystemTrace?.removeLinkLinesByBusinessType('task');
+    } else if (type === 'func') {
+      this.spSystemTrace?.removeLinkLinesByBusinessType('distributed');
     }
   }
 
@@ -211,7 +213,7 @@ export class TraceRowConfig extends BaseElement {
               chartRow.rowHidden = false;
               chartRow.setAttribute('scene', '');
             } else {
-              row.expansion = true;
+              row.expansion = false;
               chartRow.removeAttribute('scene');
               chartRow.rowHidden = true;
             }
@@ -567,8 +569,7 @@ export class TraceRowConfig extends BaseElement {
     for (let subIndex = 0; subIndex < subsystemsData.length; subIndex++) {
       let currentSystemData = subsystemsData[subIndex];
       if (
-        !('subsystem' in currentSystemData) ||
-        currentSystemData.subsystem === '' ||
+        !currentSystemData.subsystem || currentSystemData.subsystem === '' ||
         subsystemList.indexOf(currentSystemData.subsystem) > -1 ||
         Array.isArray(currentSystemData.subsystem)
       ) {
@@ -592,7 +593,7 @@ export class TraceRowConfig extends BaseElement {
         }
         for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
           let currentCompDate = currentCompDates[compIndex];
-          if (!('component' in currentCompDate) || currentCompDate.component === '' || !('charts' in currentCompDate)) {
+          if ( !currentCompDate.component || currentCompDate.component === '' || !currentCompDate.charts) {
             continue;
           }
           id = this.setSubsystemComp(currentCompDate, id, subsystemStruct);
@@ -633,8 +634,8 @@ export class TraceRowConfig extends BaseElement {
     for (let chartIndex = 0; chartIndex < currentChartDates.length; chartIndex++) {
       let currentChartDate = currentChartDates[chartIndex];
       if (
-        (!('chartName' in currentChartDate) && !('chartId' in currentChartDate)) ||
-        Object.keys(currentChartDate).includes('chartName')
+        (!currentChartDate.chartName && !currentChartDate.chartId) ||
+        Array.isArray(currentChartDate.chartName)
       ) {
         continue;
       }
@@ -674,7 +675,7 @@ export class TraceRowConfig extends BaseElement {
     currentChartId: string,
     scene: Array<string>,
     findChartNames: Array<string>
-  ): void {
+  ) {
     if (this.traceRowList) {
       for (let index = 0; index < this.traceRowList.length; index++) {
         let item = this.traceRowList[index];

@@ -15,36 +15,23 @@
 
 import { BaseElement, element } from '../../base-ui/BaseElement';
 import { LitMainMenu, MenuItem } from '../../base-ui/menu/LitMainMenu';
-import { SpApplication } from '../SpApplication';
 @element('sp-third-party')
 export class SpThirdParty extends BaseElement {
-  private bodyEl: HTMLElement | undefined | null;
-  private uploadEl: HTMLElement | undefined | null;
-  private inputEl: HTMLInputElement | undefined | null;
-  private sp: SpApplication | undefined;
+  private uploadJsonBtn: HTMLElement | undefined | null;
+  private inputJsonEl: HTMLInputElement | undefined | null;
+  private uploadCsvBtn: HTMLElement | undefined | null;
+  private inputCsvEl: HTMLInputElement | undefined | null;
 
   initElements(): void {
     let parentElement = this.parentNode as HTMLElement;
     parentElement.style.overflow = 'hidden';
-    this.bodyEl = this.shadowRoot?.querySelector('.body');
-    this.uploadEl = this.shadowRoot?.querySelector('.upload-btn')?.shadowRoot?.querySelector('#custom-button');
-    this.inputEl = this.shadowRoot?.querySelector('#file');
-    this.uploadEl?.addEventListener('click', () => {
-      this.inputEl?.click();
-    });
-    this.inputEl!.addEventListener('change', () => {
-      let files = this.inputEl!.files;
-      if (files && files.length > 0) {
-        let main = this.parentNode!.parentNode!.querySelector('lit-main-menu') as LitMainMenu;
-        let children = main.menus!;
-        let child = children[0].children as Array<MenuItem>;
-        let fileHandler = child[0].fileHandler!;
-        fileHandler({
-          detail: files[0],
-        });
-      }
-      if (this.inputEl) this.inputEl.value = '';
-    });
+    this.uploadJsonBtn = this.shadowRoot?.querySelector('.upload-json-btn')?.shadowRoot?.querySelector('#custom-button');
+    this.inputJsonEl = this.shadowRoot?.querySelector('#file');
+    this.addUploadEvent(this.uploadJsonBtn!, this.inputJsonEl!);
+
+    this.uploadCsvBtn = this.shadowRoot?.querySelector('.upload-csv-btn')?.shadowRoot?.querySelector('#custom-button');
+    this.inputCsvEl = this.shadowRoot?.querySelector('#csv-file');
+    this.addUploadEvent(this.uploadCsvBtn!, this.inputCsvEl!);
   }
 
   initHtml(): string {
@@ -52,11 +39,20 @@ export class SpThirdParty extends BaseElement {
         ${this.initHtmlStyle()}
         <div class="sp-third-party-container">
          <div class="body">
-           <input id="file" class="file" accept="application/json" type="file" style="display:none;pointer-events:none;"/>
-           <lit-button class="upload-btn" height="32px" width="180px" color="#0A59F7" font_size="14px" border="1px solid #0A59F7"
-            padding="0 0 0 12px" justify_content="left" icon="folder" margin_icon="0 10px 0 8px">
-              Open bpftrace file
+          <div>
+            <input id="file" class="file" accept="application/json" type="file" style="display:none;pointer-events:none;"/>
+            <lit-button class="upload-json-btn" height="32px" width="180px" color="#0A59F7" font_size="14px" border="1px solid #0A59F7"
+              padding="0 0 0 12px" justify_content="left" icon="folder" margin_icon="0 10px 0 8px">
+             Open bpftrace file
             </lit-button>
+          </div>
+          <div>
+            <input id="csv-file" class="csv-file" accept=".csv" type="file" style="display:none;pointer-events:none;"/>
+            <lit-button class="upload-csv-btn" height="32px" width="180px" color="#0A59F7" font_size="14px" border="1px solid #0A59F7"
+            padding="0 0 0 12px" justify_content="left" icon="folder" margin_icon="0 10px 0 8px">
+              Open gpu counter file
+            </lit-button>
+          </div>
          </div>
         </div>
         `;
@@ -86,11 +82,32 @@ export class SpThirdParty extends BaseElement {
           padding-left: 2%;
           padding-right: 4%;
         }
-        .upload-btn {
+        .upload-json-btn, .upload-csv-btn {
           margin-top: 2%;
           margin-left: 3%;
         }
         </style>
     `;
   }
+
+  addUploadEvent(uploadBtn: HTMLElement, uploadEl: HTMLInputElement) {
+    uploadBtn?.addEventListener('click', () => {
+      uploadEl?.click();
+    })
+    uploadEl!.addEventListener('change', () => {
+      let files = uploadEl!.files;
+      if (files && files.length > 0) {
+        let main = this.parentNode!.parentNode!.querySelector('lit-main-menu') as LitMainMenu;
+        let children = main.menus!;
+        let child = children[0].children as Array<MenuItem>;
+        let fileHandler = child[0].fileHandler!;
+        fileHandler({
+          detail: files[0]
+        })
+      }
+      if (uploadEl) uploadEl.value = '';
+    })
+  }
 }
+
+

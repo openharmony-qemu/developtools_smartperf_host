@@ -71,6 +71,11 @@ export class TabPaneFlag extends BaseElement {
       },
       { capture: true }
     );
+    new ResizeObserver((entries) => {
+      if (this.parentElement!.style.display !== 'none') {
+        this.setTableData();
+      }
+    }).observe(this);
   }
 
   public setCurrentFlag(flag: Flag): void {

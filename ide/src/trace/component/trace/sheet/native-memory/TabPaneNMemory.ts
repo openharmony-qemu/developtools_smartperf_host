@@ -33,6 +33,8 @@ import {
 import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
 import { Utils } from '../../base/Utils';
 import { TabPaneNMemoryHtml } from './TabPaneNMemory.html';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { TabPaneFlag } from '../../timer-shaft/TabPaneFlag';
 
 @element('tabpane-native-memory')
 export class TabPaneNMemory extends BaseElement {
@@ -56,6 +58,7 @@ export class TabPaneNMemory extends BaseElement {
   private sortType: number = 0;
   private responseTypes: unknown[] = [];
   private eventTypes: string[] = [];
+  private systemTrace: SpSystemTrace | undefined | null;
 
   set data(memoryParam: SelectionParam | unknown) {
     if (memoryParam === this.currentSelection) {
@@ -274,6 +277,9 @@ export class TabPaneNMemory extends BaseElement {
   }
 
   initElements(): void {
+    this.systemTrace = document
+      .querySelector('body > sp-application')
+      ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.loadingPage = this.shadowRoot?.querySelector('.loading');
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
     this.memoryTbl = this.shadowRoot?.querySelector<LitPageTable>('#tb-native-memory');
@@ -282,8 +288,30 @@ export class TabPaneNMemory extends BaseElement {
     this.memoryTbl!.addEventListener('row-click', (e) => {
       // @ts-ignore
       let data = e.detail.data as NativeMemory;
+      data.isSelected = true;
       this.rowSelectData = data;
       this.setRightTableData(data);
+      // @ts-ignore
+      if ((e.detail as unknown).callBack) {
+        // @ts-ignore
+        (e.detail as unknown).callBack(true);
+      }
+      let flagList = this.systemTrace?.timerShaftEL!.sportRuler?.flagList || [];
+      flagList.forEach((it, i) => {
+        if (it.type === 'triangle') {
+          flagList.splice(i, 1);
+        }
+      });
+
+      for (let i = 0; i < flagList!.length; i++) {
+        if (flagList[i].time === data.startTs) {
+          flagList[i].type = 'triangle';
+          flagList[i].selected = true;
+        } else {
+          flagList[i].type = '';
+          flagList[i].selected = false;
+        }
+      }
       document.dispatchEvent(
         new CustomEvent('triangle-flag', {
           detail: { time: [data.startTs], type: 'triangle' },
@@ -415,7 +443,7 @@ export class TabPaneNMemory extends BaseElement {
     this.startNmMemoryWorker('native-memory-action', args, (results: unknown[]) => {
       let thread = new NativeHookCallInfo();
       thread.threadId = nativeMemoryHook.threadId;
-      thread.threadName = Utils.THREAD_MAP.get(thread.threadId) || 'Thread';
+      thread.threadName = Utils.getInstance().getThreadMap().get(thread.threadId) || 'Thread';
       thread.symbol = `${nativeMemoryHook.threadName ?? ''}【${nativeMemoryHook.threadId}】`;
       thread.type = -1;
       let currentSource = [];

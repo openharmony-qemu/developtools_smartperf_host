@@ -53,7 +53,9 @@ export class TabPaneFreqDataCut extends BaseElement {
     for (let i of processArr) {
       pidArr.push(
         new TabPaneFreqUsageConfig(
-          Utils.PROCESS_MAP.get(i) === null ? 'Process ' + i : Utils.PROCESS_MAP.get(i) + ' ' + i,
+          Utils.getInstance().getProcessMap().get(i) === null
+            ? 'Process ' + i
+            : Utils.getInstance().getProcessMap().get(i) + ' ' + i,
           '',
           i,
           '',
@@ -122,6 +124,14 @@ export class TabPaneFreqDataCut extends BaseElement {
     // @ts-ignore
     this.shadowRoot?.querySelector('#cycleQuery')!.style.display = 'none';
     // @ts-ignore
+    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[0].style.backgroundColor = '#fff';
+    // @ts-ignore
+    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[0].style.color = '#000';
+    // @ts-ignore
+    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[1].style.backgroundColor = '#fff';
+    // @ts-ignore
+    this.shadowRoot?.querySelector('#dataCut')?.children[2].children[1].style.color = '#000';
+    // @ts-ignore
     this.statisticsScatter!.config = undefined;
     this.parentElement!.style.overflow = 'hidden';
   }
@@ -176,7 +186,7 @@ export class TabPaneFreqDataCut extends BaseElement {
           if (needDeal.get(e.pid + '_' + e.tid) === undefined) {
             this.threadArr.push(
               new TabPaneFreqUsageConfig(
-                Utils.THREAD_MAP.get(e.tid) + ' ' + e.tid,
+                Utils.getInstance().getThreadMap().get(e.tid) + ' ' + e.tid,
                 '',
                 e.pid,
                 e.tid,
@@ -204,8 +214,14 @@ export class TabPaneFreqDataCut extends BaseElement {
           if (e.ts + e.dur > threadStatesParam.rightNs + threadStatesParam.recordStartNs) {
             e.dur = threadStatesParam.rightNs + threadStatesParam.recordStartNs - e.ts;
           }
-          e.process = Utils.PROCESS_MAP.get(e.pid) === null ? '[NULL]' : Utils.PROCESS_MAP.get(e.pid)!;
-          e.thread = Utils.THREAD_MAP.get(e.tid) === null ? '[NULL]' : Utils.THREAD_MAP.get(e.tid)!;
+          e.process =
+            Utils.getInstance().getProcessMap().get(e.pid) === null
+              ? '[NULL]'
+              : Utils.getInstance().getProcessMap().get(e.pid)!;
+          e.thread =
+            Utils.getInstance().getThreadMap().get(e.tid) === null
+              ? '[NULL]'
+              : Utils.getInstance().getThreadMap().get(e.tid)!;
           let arr: Array<TabPaneRunningConfig> | undefined = needDeal.get(e.pid + '_' + e.tid);
           sum += e.dur;
           arr?.push(e);
@@ -1189,6 +1205,7 @@ export class TabPaneFreqDataCut extends BaseElement {
           Number(threadArr[i].tid) === Number(totalData[j].tid)
         ) {
           totalData[j].thread = 'TotalData';
+          totalData[j].flag = 't_cycle';
           // @ts-ignore
           threadArr[i].children.unshift(totalData[j]);
         }
@@ -1563,11 +1580,28 @@ export class TabPaneFreqDataCut extends BaseElement {
     this.threadStatesDIV?.children[2].children[0].addEventListener('click', (e) => {
       this.threadStatesTbl!.loading = true;
       // @ts-ignore
+        this.threadStatesDIV?.children[2].children[0].style.backgroundColor = '#666666';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[0].style.color = '#fff';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[1].style.backgroundColor = '#fff';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[1].style.color = '#000';
+        // @ts-ignore
+
       this.dataSingleCut(this.threadStatesDIV?.children[0]!, this.threadStatesDIV?.children[1]!, this.initData);
     });
     this.threadStatesDIV?.children[2].children[1].addEventListener('click', (e) => {
       this.threadStatesTbl!.loading = true;
       // @ts-ignore
+        this.threadStatesDIV?.children[2].children[1].style.backgroundColor = '#666666';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[1].style.color = '#fff';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[0].style.backgroundColor = '#fff';
+        // @ts-ignore
+        this.threadStatesDIV?.children[2].children[0].style.color = '#000';
+        // @ts-ignore
       this.dataLoopCut(this.threadStatesDIV?.children[0]!, this.threadStatesDIV?.children[1]!, this.initData);
     });
     this.threadStatesDIV?.children[0].addEventListener('focus', (e) => {

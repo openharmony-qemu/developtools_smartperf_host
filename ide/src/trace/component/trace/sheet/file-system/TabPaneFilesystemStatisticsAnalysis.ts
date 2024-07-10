@@ -247,10 +247,10 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         if (fileSystemTable === showTable) {
           initSort(fileSystemTable!, this.fsSortColumn, this.fsSortType);
           fileSystemTable.style.display = 'grid';
-          fileSystemTable.setAttribute('hideDownload', '');
+          fileSystemTable!.removeAttribute('hideDownload');
         } else {
           fileSystemTable!.style.display = 'none';
-          fileSystemTable!.removeAttribute('hideDownload');
+          fileSystemTable.setAttribute('hideDownload', '');
         }
       }
     }

@@ -91,7 +91,7 @@ export class TabPaneSchedPriority extends BaseElement {
     // thread_state表中runnable数据的Map
     const runnableMap = new Map<string, Priority>();
     // @ts-ignore
-    sliceSPTSender(sptParam.leftNs, sptParam.rightNs, [], 'spt-getCpuPriorityByTime').then((res): void => {
+    sliceSPTSender(sptParam.leftNs, sptParam.rightNs, [], 'spt-getCpuPriorityByTime', sptParam.traceId).then(res => {
       for (const item of res) {
         //@ts-ignore
         if (['R', 'R+'].includes(item.state)) {
@@ -119,7 +119,7 @@ export class TabPaneSchedPriority extends BaseElement {
     if (args) {
       strArg = args!.split(',');
     }
-    const slice = Utils.SCHED_SLICE_MAP.get(`${item.id}-${item.startTime}`);
+    const slice = Utils.getInstance().getSchedSliceMap(Utils.currentSelectTrace).get(`${item.id}-${item.startTime}`);
     if (slice) {
       const runningPriority = new Priority();
       runningPriority.priority = slice.priority;
@@ -142,7 +142,8 @@ export class TabPaneSchedPriority extends BaseElement {
 
   private async fetchAndProcessData(): Promise<void> {
     if (this.strValueMap.size === 0) {
-      await queryThreadStateArgsByName('next_info').then((value): void => {
+      await queryThreadStateArgsByName('next_info', this.selectionParam?.traceId || undefined).
+      then((value): void => {
         for (const item of value) {
           this.strValueMap.set(item.argset, item.strValue);
         }

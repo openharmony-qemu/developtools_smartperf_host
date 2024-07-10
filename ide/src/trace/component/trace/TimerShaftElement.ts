@@ -28,6 +28,7 @@ import './timer-shaft/CollapseButton';
 import { TimerShaftElementHtml } from './TimerShaftElement.html';
 import { SpChartList } from './SpChartList';
 //随机生成十六位进制颜色
+//@ts-ignore
 export function randomRgbColor(): string {
   let r = Math.floor(Math.random() * 255);
   let g = Math.floor(Math.random() * 255);
@@ -39,7 +40,7 @@ export function randomRgbColor(): string {
     let color = '#' + r16 + g16 + b16;
     return color;
   } else {
-    return randomRgbColor();
+    randomRgbColor();
   }
 }
 
@@ -570,11 +571,8 @@ export class TimerShaftElement extends BaseElement {
     this._rangeRuler?.keyUp(ev);
   }
 
-  drawTriangle(time: number, type: string): number {
-    if (this._sportRuler) {
-      return this._sportRuler?.drawTriangle(time, type);
-    }
-    return 0;
+  drawTriangle(time: number, type: string): unknown {
+    return this._sportRuler?.drawTriangle(time, type);
   }
 
   removeTriangle(type: string): void {

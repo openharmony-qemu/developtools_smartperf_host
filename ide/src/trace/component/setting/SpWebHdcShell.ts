@@ -67,11 +67,12 @@ export class SpWebHdcShell extends BaseElement {
       event.preventDefault();
       event.stopPropagation();
     });
+    let listenerThis = this;
     this.shellCanvas!.addEventListener('keydown', async (keyboardEvent) => {
       keyboardEvent.preventDefault();
-      if (keyboardEvent.ctrlKey && keyboardEvent.code === 'KeyC' && this.points) {
-        let rowText: string = this.getSelectedText();
-        this.points = undefined;
+      if (keyboardEvent.ctrlKey && keyboardEvent.code === 'KeyC' && listenerThis.points) {
+        let rowText: string = listenerThis.getSelectedText();
+        listenerThis.points = undefined;
         await navigator.clipboard.writeText(rowText);
       } else {
         if (this.sendCallBack) {
@@ -87,11 +88,12 @@ export class SpWebHdcShell extends BaseElement {
     window.subscribe(window.SmartEvent.UI.DeviceDisConnect, () => {
       this.clear();
     });
-    this.shellCanvas!.addEventListener('blur', () => {
-      if (this.intervalId) {
-        window.clearInterval(this.intervalId);
+    let that = this;
+    this.shellCanvas!.addEventListener('blur', function () {
+      if (that.intervalId) {
+        window.clearInterval(that.intervalId);
       }
-      this.shellCanvasCtx!.clearRect(this.shellStrLength, this.textY, 12, 3);
+      that.shellCanvasCtx!.clearRect(that.shellStrLength, that.textY, 12, 3);
     });
     new ResizeObserver(() => {
       this.resizeCanvas();
@@ -158,40 +160,24 @@ export class SpWebHdcShell extends BaseElement {
   getSelectedText(): string {
     let selectedText = '';
     let textLines = [...this.finalArr];
-    let startX = this.points!.startX!;
-    let startY = this.points!.startY!;
-    let endX = this.points!.endX!;
-    let endY = this.points!.endY!;
-    let depth = Math.ceil((endY - startY) / 16);
-    let index = 0;
-    for (let i = 0; i < textLines.length; i++) {
-      let line = textLines[i];
-      let x = SpWebHdcShell.LEFT_OFFSET;
-      let textFirstRowY = 16 * i + SpWebHdcShell.FIRST_ROW_OFFSET;
-      let textLastRowY = 16 * i + SpWebHdcShell.LAST_ROW_OFFSET;
-      let textEndY = 16 * i + SpWebHdcShell.TOP_OFFSET;
-      let w = this.shellCanvasCtx!.measureText(line).width;
-      if (
-        (startY < textEndY && endY >= textEndY) ||
-        (startY > textFirstRowY && startY < textEndY) ||
-        (endY > textLastRowY && endY < textEndY)
-      ) {
-        index++;
-        if (index === 1) {
-          if (depth > 1) {
-            selectedText +=
-              line.slice(this.getCurrentLineBackSize(line, startX - x, true)) + (endX < x + w ? '\n' : '');
-          } else {
-            selectedText += `${line.slice(
-              this.getCurrentLineBackSize(line, startX - x, true),
-              this.getCurrentLineBackSize(line, endX - x, false)
-            )}\n`;
-          }
-        } else if (index === depth) {
-          selectedText += `${line.slice(0, this.getCurrentLineBackSize(line, endX - x, false))}\n`;
-        } else {
-          selectedText += `${line}\n`;
-        }
+    let startX = this.points!.startX < SpWebHdcShell.LEFT_OFFSET ? SpWebHdcShell.LEFT_OFFSET : this.points!.startX;
+    let startY = this.points!.startY;
+    let endX = this.points!.endX < SpWebHdcShell.LEFT_OFFSET ? SpWebHdcShell.LEFT_OFFSET : this.points!.endX;
+    let endY = this.points!.endY;
+    let endTop = Math.ceil((endY - SpWebHdcShell.TOP_OFFSET) / 16);
+    let startTop = Math.floor((startY - SpWebHdcShell.TOP_OFFSET - 2) / 16);
+    let selectRangeList = textLines.slice(startTop + 1, endTop);
+    let charWidth = this.shellCanvasCtx!.measureText(selectRangeList[0].split('')[0]).width;
+    for (let index = 0; index < selectRangeList.length; index++) {
+      let currentIndexLine = selectRangeList[index];
+      if (index === 0) {
+        let startNum = Math.floor((startX - SpWebHdcShell.LEFT_OFFSET) / charWidth);
+        selectedText = currentIndexLine.slice(startNum);
+      } else if (index === selectRangeList.length - 1) {
+        let endNum = Math.ceil((endX - SpWebHdcShell.LEFT_OFFSET) / charWidth);
+        selectedText += currentIndexLine.slice(0, endNum);
+      } else {
+        selectedText += `${currentIndexLine}\n`;
       }
     }
     return selectedText.trim();
@@ -239,7 +225,7 @@ export class SpWebHdcShell extends BaseElement {
         }
       }
     }
-    this.points = { startX: startPointX, startY: startPointY, endX: endPointX, endY: endPointY };
+    this.points = { startX: startPointX, startY: startPointY, endX: endPointX, endY: endPointY};
   }
 
   getCurrentLineBackSize(currentLine: string, maxBackSize: number, isStart: boolean): number {
@@ -580,53 +566,55 @@ export class SpWebHdcShell extends BaseElement {
     let startY: number;
     let endX: number;
     let endY: number;
-    this.shellCanvas!.addEventListener('mousedown', (event) => {
-      if (this.resultStr.length === 0 && this.cursorRow.length === 0) {
+    let that = this;
+    this.shellCanvas!.addEventListener('mousedown', function (event) {
+      if (that.resultStr.length === 0 && that.cursorRow.length === 0) {
         return;
       }
-      this.isDragging = true;
+      that.isDragging = true;
       startX = event.offsetX;
       startY = event.offsetY;
-      this.refreshShellPage(false);
+      that.refreshShellPage(false);
     });
-    this.shellCanvas!.addEventListener('mousemove', (event) => {
-      if (!this.isDragging) {
+    this.shellCanvas!.addEventListener('mousemove', function (event) {
+      if (!that.isDragging) {
         return;
       }
-      if (this.resultStr.length === 0 && this.cursorRow.length === 0) {
+      if (that.resultStr.length === 0 && that.cursorRow.length === 0) {
         return;
       }
       endX = event.offsetX;
       endY = event.offsetY;
-      this.refreshShellPage(false);
-      this.points = undefined;
-      this.shellCanvasCtx!.fillStyle = 'rgba(128, 128, 128, 0.5)';
+      that.refreshShellPage(false);
+      that.points = undefined;
+      that.shellCanvasCtx!.fillStyle = 'rgba(128, 128, 128, 0.5)';
       if (endY > startY) {
-        this.forwardFlag = true;
-        this.forwardSelected(startX, startY, endX, endY);
+        that.forwardFlag = true;
+        that.forwardSelected(startX, startY, endX, endY);
       } else {
-        this.forwardFlag = false;
-        this.reverseSelected(startX, startY, endX, endY);
+        that.forwardFlag = false;
+        that.reverseSelected(startX, startY, endX, endY);
       }
     });
     this.shellCanvasAddMouseUpListener();
   }
 
   private shellCanvasAddMouseUpListener(): void {
-    this.shellCanvas!.addEventListener('mouseup', async (event) => {
-      if (!this.isDragging) {
+    let that = this;
+    this.shellCanvas!.addEventListener('mouseup', async function (event) {
+      if (!that.isDragging) {
         return;
       }
-      if (this.resultStr.length === 0 && this.cursorRow.length === 0) {
+      if (that.resultStr.length === 0 && that.cursorRow.length === 0) {
         return;
       }
-      this.isDragging = false;
+      that.isDragging = false;
       //右键
       if (event.button === 2) {
         let text: string = await navigator.clipboard.readText();
         if (text) {
-          if (this.sendCallBack) {
-            this.sendCallBack(text);
+          if (that.sendCallBack) {
+            that.sendCallBack(text);
           }
           return;
         }
@@ -636,8 +624,8 @@ export class SpWebHdcShell extends BaseElement {
 }
 
 export class Point {
-  startX: number | undefined;
-  startY: number | undefined;
-  endX: number | undefined;
-  endY: number | undefined;
+  startX: number = 0;
+  startY: number = 0;
+  endX: number = 0;
+  endY: number = 0;
 }

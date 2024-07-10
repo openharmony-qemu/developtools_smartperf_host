@@ -22,6 +22,7 @@ import { LitTabs } from '../../../base-ui/tabs/lit-tabs';
 import { CheckCpuSetting } from './CheckCpuSetting';
 import { Top20FrequencyThread } from './Top20FrequencyThread';
 import { procedurePool } from '../../database/Procedure';
+import { Utils } from '../trace/base/Utils';
 
 @element('sp-scheduling-analysis')
 export class SpSchedulingAnalysis extends BaseElement {
@@ -54,7 +55,7 @@ export class SpSchedulingAnalysis extends BaseElement {
       SpSchedulingAnalysis.startTs = (window as unknown).recordStartNS; //@ts-ignore
       SpSchedulingAnalysis.endTs = (window as unknown).recordEndNS;
       SpSchedulingAnalysis.totalDur = SpSchedulingAnalysis.endTs - SpSchedulingAnalysis.startTs; //@ts-ignore
-      SpSchedulingAnalysis.cpuCount = (window as unknown).cpuCount;
+      SpSchedulingAnalysis.cpuCount = Utils.getInstance().getWinCpuCount();
       this.tabCpuAnalysis?.init();
       this.tabThreadAnalysis?.init();
     }

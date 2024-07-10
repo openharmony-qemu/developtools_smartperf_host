@@ -436,9 +436,9 @@ export class TabPaneCpuByThread extends BaseElement {
 
   private createThread(e: unknown, cpuByThreadValue: unknown, map: Map<string, unknown>): void {
     // @ts-ignore
-    let process = Utils.PROCESS_MAP.get(e.pid);
+    let process = Utils.getInstance().getProcessMap(cpuByThreadValue.traceId).get(e.pid);
     // @ts-ignore
-    let thread = Utils.THREAD_MAP.get(e.tid);
+    let thread = Utils.getInstance().getThreadMap(cpuByThreadValue.traceId).get(e.tid);
     let cpuByThreadObject: unknown = {
       // @ts-ignore
       tid: e.tid,

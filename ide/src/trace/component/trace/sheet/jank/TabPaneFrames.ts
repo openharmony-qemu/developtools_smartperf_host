@@ -59,9 +59,9 @@ export class TabPaneFrames extends BaseElement {
           this.frameTimelineJankDataHandle(item, appJank, noJank);
         }); // @ts-ignore
         result.forEach((structValue: JanksStruct) => {
-          if (structValue.frame_type === 'app') {
+          if (structValue.frameType === 'app') {
             this.appJankDataHandle(structValue, appJank, noJank);
-          } else if (structValue.frame_type === 'render_service') {
+          } else if (structValue.frameType === 'render_service') {
             this.rsJankDataHandle(structValue, rsJank, noJank);
           }
         });

@@ -323,15 +323,13 @@ export class TabPaneIOTierStatistics extends BaseElement {
 
   sortTable(allNode: unknown, key: string): void {
     // @ts-ignore
-    allNode.children.sort((ioTierStatNodeA: unknown, ioTierStatNodeB: unknown): number => {
+    allNode.children.sort((ioTierStatNodeA: unknown, ioTierStatNodeB: unknown) => {
       if (this.ioTierStatisticsSortType === 1) {
         // @ts-ignore
         return ioTierStatNodeA.node[key] - ioTierStatNodeB.node[key];
       } else if (this.ioTierStatisticsSortType === 2) {
         // @ts-ignore
         return ioTierStatNodeB.node[key] - ioTierStatNodeA.node[key];
-      } else {
-        return 0;
       }
     }); // @ts-ignore
     allNode.children.forEach((item: unknown): void => {
@@ -343,8 +341,6 @@ export class TabPaneIOTierStatistics extends BaseElement {
         } else if (this.ioTierStatisticsSortType === 2) {
           // @ts-ignore
           return ioTierStatItemB.node[key] - ioTierStatItemA.node[key];
-        } else {
-          return 0;
         }
       }); // @ts-ignore
       item.children.forEach((ioTierStatItem: unknown): void => {
@@ -356,8 +352,6 @@ export class TabPaneIOTierStatistics extends BaseElement {
           } else if (this.ioTierStatisticsSortType === 2) {
             // @ts-ignore
             return ioTierStatItemB.node[key] - ioTierStatItemA.node[key];
-          } else {
-            return 0;
           }
         });
       });

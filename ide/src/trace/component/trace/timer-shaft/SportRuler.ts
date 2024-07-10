@@ -98,6 +98,7 @@ export class SportRuler extends Graph {
   private timeArray: Array<number> = [];
   private countArray: Array<number> = [];
   private durArray: Array<number> = [];
+  private mouseIn: boolean = false;
   constructor(
     timerShaftEL: TimerShaftElement,
     frame: Rect,
@@ -331,6 +332,8 @@ export class SportRuler extends Graph {
       TraceRow.rangeSelectObject!.startX! +
       (rangeSelectWidth / section) * (i - 1) +
       (rangeSelectWidth / section - countTextWidth) / 2;
+      this.context2D.fillStyle = `#f00`;
+      this.context2D.font = `12px sans-serif`;
     this.context2D.fillText(String(countArr[i - 1]), textY, this.frame.y + 22 + 12);
   }
 
@@ -373,7 +376,7 @@ export class SportRuler extends Graph {
     return inRange;
   }
 
-  drawTriangle(time: number, type: string): number {
+  drawTriangle(time: number, type: string): unknown {
     if (time !== null && typeof time !== undefined) {
       let i = this.flagList.findIndex((it) => it.time === time);
       if (type === 'triangle') {
@@ -400,11 +403,7 @@ export class SportRuler extends Graph {
           if (triangle !== -1) {
             this.flagList[triangle].type = '';
             this.draw();
-            this.notifyHandler &&
-              this.notifyHandler(
-                !this.hoverFlag.hidden ? this.hoverFlag : null,
-                this.flagList.find((it) => it.selected) || null
-              );
+            this.flagChangeHandler('1');
             return this.flagList[triangle].time;
           }
         }
@@ -412,25 +411,29 @@ export class SportRuler extends Graph {
         this.invertedTriangleTime = time;
       }
       this.draw();
-      this.notifyHandler &&
-        this.notifyHandler(
-          !this.hoverFlag.hidden ? this.hoverFlag : null,
-          this.flagList.find((it) => it.selected) || null
-        );
+      this.flagChangeHandler('2');
+      return;
     }
-    return 0;
+  }
+
+  flagChangeHandler(from?: string): void {
+    this.notifyHandler &&
+    this.notifyHandler(
+      !this.hoverFlag.hidden ? this.hoverFlag : null,
+      this.flagList.find((it) => it.selected) || null
+    );
   }
 
   removeTriangle(type: string): void {
     if (type === 'inverted') {
+      if (this.invertedTriangleTime !== null) {
+        this.flagChangeHandler('3');
+      }
       this.invertedTriangleTime = null;
+    } else {
+      this.flagChangeHandler('3');
     }
     this.draw();
-    this.notifyHandler &&
-      this.notifyHandler(
-        !this.hoverFlag.hidden ? this.hoverFlag : null,
-        this.flagList.find((it) => it.selected) || null
-      );
   }
 
   drawInvertedTriangle(time: number, color: string = '#000000'): void {
@@ -779,6 +782,7 @@ export class SportRuler extends Graph {
 
   mouseMove(ev: MouseEvent): void {
     if (this.edgeDetection(ev)) {
+      this.mouseIn = true;
       let x = ev.offsetX - (this.canvas?.offsetLeft || 0);
       let flg = this.flagList.find((it) => x >= it.x && x <= it.x + 18);
       if (flg) {
@@ -788,27 +792,25 @@ export class SportRuler extends Graph {
         this.hoverFlag.x = x;
         this.hoverFlag.color = '#999999';
       }
+      this.flagChangeHandler('4');
+      this.draw();
     } else {
       this.hoverFlag.hidden = true;
     }
-    this.draw();
-    this.notifyHandler &&
-      this.notifyHandler(
-        !this.hoverFlag.hidden ? this.hoverFlag : null,
-        this.flagList.find((it) => it.selected) || null
-      );
+
   }
 
   mouseOut(ev: MouseEvent): void {
     if (!this.hoverFlag.hidden) {
       this.hoverFlag.hidden = true;
-      this.notifyHandler &&
-        this.notifyHandler(
-          !this.hoverFlag.hidden ? this.hoverFlag : null,
-          this.flagList.find((it) => it.selected) || null
-        );
+      if (this.mouseIn) {
+        this.flagChangeHandler('5');
+      }
     }
-    this.draw();
+    if (this.mouseIn) {
+      this.mouseIn = false;
+      this.draw();
+    }
   }
 
   edgeDetection(ev: MouseEvent): boolean {

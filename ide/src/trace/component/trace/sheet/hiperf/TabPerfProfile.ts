@@ -30,13 +30,15 @@ import { showButtonMenu } from '../SheetUtils';
 import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 import { TabPerfProfileHtml } from './TabPerfProfile.html';
+import { SpSystemTrace } from '../../../SpSystemTrace';
 
 const InvertOptionIndex: number = 0;
 const hideSystemLibraryOptionIndex: number = 1;
 const hideThreadOptionIndex: number = 3;
 const hideThreadStateOptionIndex: number = 4;
 const isOnlyKernelOptionIndex: number = 5;
-const callTreeValueNoSample: number[] = [InvertOptionIndex, hideSystemLibraryOptionIndex, hideThreadOptionIndex, hideThreadStateOptionIndex, isOnlyKernelOptionIndex];
+const callTreeValueNoSample: number[] = [InvertOptionIndex, hideSystemLibraryOptionIndex, hideThreadOptionIndex,
+  hideThreadStateOptionIndex, isOnlyKernelOptionIndex];
 
 @element('tabpane-perf-profile')
 export class TabpanePerfProfile extends BaseElement {
@@ -155,6 +157,7 @@ export class TabpanePerfProfile extends BaseElement {
         this.perfProfileFrameChart!.mode = ChartMode.EventCount;
       }
       this.perfProfileFrameChart?.updateCanvas(true, initWidth); // @ts-ignore
+      this.perfProfileFrameChart!.totalRootData = this.perfProfilerDataSource;// @ts-ignore  
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       this.switchFlameChart();
       this.perfProfilerFilter!.icon = 'block';
@@ -301,6 +304,10 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfileProgressEL = this.shadowRoot?.querySelector('.perf-profile-progress') as LitProgressBar;
     this.perfProfileFrameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
     this.perfProfileLoadingPage = this.shadowRoot?.querySelector('.perf-profile-loading');
+    let spApplication = document.querySelector('body > sp-application');
+    let spSystemTrace = spApplication?.shadowRoot?.querySelector(
+      'div > div.content > sp-system-trace'
+    ) as SpSystemTrace;
     this.addEventListener('contextmenu', (event) => {
       event.preventDefault(); // 阻止默认的上下文菜单弹框
     });
@@ -313,6 +320,12 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfilerFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     this.perfProfilerList = this.shadowRoot?.querySelector<LitTable>('#tb-perf-list');
     this.initPerfProfilerDataAndListener();
+    this.perfProfilerFilter?.addEventListener('focus', () => {
+      spSystemTrace.focusTarget = 'bottomUpInput';
+    })
+    this.perfProfilerFilter?.addEventListener('blur', () => {
+      spSystemTrace.focusTarget = '';
+    });
   }
 
   private initPerfProfilerDataAndListener(): void {

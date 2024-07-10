@@ -21,64 +21,75 @@ import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { IrqRender, IrqStruct } from '../../database/ui-worker/ProcedureWorkerIrq';
 import { irqDataSender } from '../../database/data-trafic/IrqDataSender';
 import { queryAllIrqNames, queryIrqList } from '../../database/sql/Irq.sql';
-import { getRowContext, rowThreadHandler } from './SpChartManager';
+import { rowThreadHandler } from './SpChartManager';
+import { BaseStruct } from '../../bean/BaseStruct';
 
 export class SpIrqChart {
-  private trace: SpSystemTrace;
-  private irqNameMap: Map<number, { name: string; ipiName: string }> = new Map();
+  private readonly trace: SpSystemTrace;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
   }
 
-  async init(): Promise<void> {
-    let folder = await this.initFolder();
-    await this.initData(folder);
-  }
-
-  //@ts-ignore
-  async initData(folder: TraceRow<unknown>): Promise<void> {
+  async init(parentRow?: TraceRow<BaseStruct>, traceId?: string): Promise<void> {
     let irqStartTime = new Date().getTime();
-    let irqList = await queryIrqList();
+    let irqList = await queryIrqList(traceId);
     if (irqList.length === 0) {
       return;
     }
+    let folder = await this.initFolder(traceId);
+    parentRow?.addChildTraceRow(folder);
+    await this.initData(folder, irqStartTime, irqList, traceId);
+  }
+
+  async initData(
+    folder: TraceRow<BaseStruct>,
+    irqStartTime: number,
+    irqList: Array<{ name: string; cpu: number }>,
+    traceId?: string,
+  ): Promise<void> {
     //加载irq table所有id和name数据
-    let irqNamesArray = await queryAllIrqNames();
+    let irqNamesArray = await queryAllIrqNames(traceId);
+    let irqNameMap: Map<number, string> = new Map();
     irqNamesArray.forEach((it) => {
-      this.irqNameMap.set(it.id, { ipiName: it.ipiName, name: it.name });
+      irqNameMap.set(it.id, it.ipiName);
     });
     info('irqList data size is: ', irqList!.length);
-    this.trace.rowsEL?.appendChild(folder);
+    if (!traceId) {
+      this.trace.rowsEL?.appendChild(folder);
+    }
     for (let i = 0; i < irqList.length; i++) {
       const it = irqList[i];
-      this.addIrqRow(it, i, folder);
+      this.addIrqRow(it, i, folder, irqNameMap, traceId);
     }
     let durTime = new Date().getTime() - irqStartTime;
     info('The time to load the ClockData is: ', durTime);
   }
 
-  //@ts-ignore
-  addIrqRow(it: unknown, index: number, folder: TraceRow<unknown>): void {
-    let traceRow = TraceRow.skeleton<IrqStruct>();
-    //@ts-ignore
+  addIrqRow(
+    it: { name: string; cpu: number },
+    index: number,
+    folder: TraceRow<BaseStruct>,
+    irqNameMap: Map<number, string>,
+    traceId?: string,
+  ): void {
+    let traceRow = TraceRow.skeleton<IrqStruct>(traceId);
     traceRow.rowId = it.name + it.cpu;
     traceRow.rowType = TraceRow.ROW_TYPE_IRQ;
     traceRow.rowParentId = folder.rowId;
-    traceRow.style.height = '40px'; //@ts-ignore
+    traceRow.style.height = '40px';
     traceRow.name = `${it.name} Cpu ${it.cpu}`;
     traceRow.rowHidden = !folder.expansion;
-    traceRow.setAttribute('children', ''); //@ts-ignore
-    traceRow.setAttribute('callId', `${it.cpu}`); //@ts-ignore
+    traceRow.setAttribute('children', '');
+    traceRow.setAttribute('callId', `${it.cpu}`);
     traceRow.setAttribute('cat', `${it.name}`);
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
     traceRow.supplierFrame = (): Promise<IrqStruct[]> => {
-      //@ts-ignore
       return irqDataSender(it.cpu, it.name, traceRow).then((irqs) => {
         irqs.forEach((irq): void => {
-          let irqData = this.irqNameMap.get(irq.id!); //@ts-ignore
-          irq.name = (it.name === 'irq' ? irqData?.ipiName : irqData?.name) || '';
+          let irqName = irqNameMap.get(irq.id!);
+          irq.name = irqName || '';
         });
         return irqs;
       });
@@ -97,7 +108,6 @@ export class SpIrqChart {
       'irq',
       'context',
       {
-        //@ts-ignore
         type: it.name,
         index: index,
       },
@@ -107,23 +117,21 @@ export class SpIrqChart {
     folder.addChildTraceRow(traceRow);
   }
 
-  //@ts-ignore
-  async initFolder(): Promise<TraceRow<unknown>> {
-    let irqFolder = TraceRow.skeleton();
-    irqFolder.rowId = 'Irs';
+  async initFolder(traceId?: string): Promise<TraceRow<BaseStruct>> {
+    let irqFolder = TraceRow.skeleton(traceId);
+    irqFolder.rowId = 'Irqs';
     irqFolder.index = 0;
     irqFolder.rowType = TraceRow.ROW_TYPE_IRQ_GROUP;
     irqFolder.rowParentId = '';
     irqFolder.style.height = '40px';
     irqFolder.folder = true;
-    irqFolder.name = 'Irs'; /* & I/O Latency */
+    irqFolder.name = 'Irqs'; /* & I/O Latency */
     irqFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    irqFolder.selectChangeHandler = this.trace.selectChangeHandler; //@ts-ignore
-    irqFolder.supplier = (): Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve) => resolve([]));
+    irqFolder.selectChangeHandler = this.trace.selectChangeHandler;
+    irqFolder.supplier = (): Promise<Array<BaseStruct>> => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
     irqFolder.onThreadHandler = (useCache): void => {
       irqFolder.canvasSave(this.trace.canvasPanelCtx!);
       if (irqFolder.expansion) {
-        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, irqFolder.frame.width, irqFolder.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
