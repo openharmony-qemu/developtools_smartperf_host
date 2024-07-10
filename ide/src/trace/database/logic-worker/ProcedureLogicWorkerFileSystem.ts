@@ -679,7 +679,7 @@ class FileSystemCallTreeHandler {
   currentDataType: string = '';
   currentTreeList: FileMerageBean[] = [];
   samplesList: FileSample[] = [];
-  splitMapData: Map<string, FileMerageBean[]> = new Map<string, FileMerageBean[]>();
+  splitMapData: MerageMap = {};
   searchValue: string = '';
   currentEventId: string = '';
   isHideThread: boolean = false;
@@ -697,7 +697,7 @@ class FileSystemCallTreeHandler {
     this.dataSource.length = 0;
     this.currentTreeList.length = 0;
     this.samplesList.length = 0;
-    this.splitMapData.clear();
+    this.splitMapData = {};
   }
 
   setEventId(eventId: string): void {
@@ -1092,18 +1092,19 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
   }
   clearAll(): void {
     this.samplesList = [];
-    this.splitMapData.clear();
+    this.splitMapData = {};
     this.currentTreeMapData = {};
     this.currentTreeList = [];
     this.searchValue = '';
     this.allProcess = [];
     this.dataSource = [];
+    this.splitMapData = {};
     this.currentDataType = '';
   }
 
   clearSplitMapData(symbolName: string): void {
-    if (this.splitMapData.has(symbolName)) {
-      this.splitMapData.delete(symbolName);
+    if (symbolName in this.splitMapData){
+      delete this.splitMapData[symbolName];
     }
   }
 }

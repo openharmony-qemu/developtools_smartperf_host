@@ -68,11 +68,15 @@ export class ClockRender extends Render {
     clockReq.context.fillText(s, 4, 5 + 9);
   }
 }
-export function ClockStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+export function ClockStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  entry?: ClockStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_CLOCK && ClockStruct.hoverClockStruct) {
-      ClockStruct.selectClockStruct = ClockStruct.hoverClockStruct;
-      sp.traceSheetEL?.displayClockData(ClockStruct.selectClockStruct);
+    if (clickRowType === TraceRow.ROW_TYPE_CLOCK && (ClockStruct.hoverClockStruct || entry)) {
+      ClockStruct.selectClockStruct = entry || ClockStruct.hoverClockStruct;
+      sp.traceSheetEL?.displayClockData(ClockStruct.selectClockStruct!);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {

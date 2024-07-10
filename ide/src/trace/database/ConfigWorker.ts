@@ -42,7 +42,7 @@ self.onmessage = async (e: MessageEvent): Promise<void> => {
     let jsFile = e.data.wasmJsName;
     importScripts(jsFile);
     await initConfigWASM(e.data.WasmName);
-    let dataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number): void => {
+    let dataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number) => {
       if (isConfig === 1) {
         // @ts-ignore
         let jsonOut: Uint8Array = Module_T.HEAPU8.slice(heapPtr, heapPtr + size);

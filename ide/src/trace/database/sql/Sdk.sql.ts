@@ -12,20 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { query } from '../SqlLite';
 import { CounterStruct } from '../ui-worker/ProduceWorkerSdkCounter';
 import { CounterSummary, SdkSliceSummary } from '../../bean/SdkSummary';
 import { SdkSliceStruct } from '../ui-worker/ProduceWorkerSdkSlice';
+
 //@ts-ignore
 export const querySdkCount = (sql: string, componentId: number, args?: unknown): Promise<Array<unknown>> =>
-  query('querySdkCount', sql, args, 'exec-sdk-' + componentId);
+  query('querySdkCount', sql, args, {
+    action: `exec-sdk-${componentId}`
+  });
 
 export const querySdkCounterData = (
   sql: string,
   counter_id: number,
   componentId: number
 ): Promise<Array<CounterStruct>> =>
-  query('querySdkCounterData', sql, { $counter_id: counter_id }, 'exec-sdk-' + componentId);
+  query('querySdkCounterData', sql, { $counter_id: counter_id }, {
+    action: `exec-sdk-${componentId}`
+  });
 
 export const getTabSdkCounterData = (
   sqlStr: string,
@@ -44,7 +50,9 @@ export const getTabSdkCounterData = (
       $rightNs: rightNs,
       $counters: counters,
     },
-    'exec-sdk-' + componentId
+    {
+      action: `exec-sdk-${componentId}`
+    }
   );
 
 export const getTabSdkCounterLeftData = (
@@ -62,7 +70,9 @@ Promise<Array<unknown>> =>
       $leftNs: leftNs,
       $counters: counters,
     },
-    'exec-sdk-' + componentId
+    {
+      action: `exec-sdk-${componentId}`
+    }
   );
 
 export const getTabSdkSliceData = (
@@ -82,7 +92,9 @@ export const getTabSdkSliceData = (
       $rightNs: rightNs,
       $slices: slices,
     },
-    'exec-sdk-' + componentId
+    {
+      action: `exec-sdk-${componentId}`
+    }
   );
 
 export const querySdkSliceData = (
@@ -96,11 +108,18 @@ export const querySdkSliceData = (
     'querySdkSliceData',
     sqlStr,
     { $column_id: column_id, $startNS: startNS, $endNS: endNS },
-    'exec-sdk-' + componentId
+    {
+      action: `exec-sdk-${componentId}`
+    }
   );
+
 export const queryCounterMax = (
   sqlStr: string,
   counter_id: number,
   componentId: number
 ): //@ts-ignore
-Promise<Array<unknown>> => query('queryCounterMax', sqlStr, { $counter_id: counter_id }, 'exec-sdk-' + componentId);
+Promise<Array<unknown>> =>
+  query('queryCounterMax', sqlStr, { $counter_id: counter_id }, {
+    action: `exec-sdk-${componentId}`
+  });
+

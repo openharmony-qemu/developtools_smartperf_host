@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, drawLoadingFrame } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler, drawLoadingFrame, isFrameContainPoint } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class hitchTimeRender {
@@ -44,28 +44,16 @@ export class hitchTimeRender {
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
     req.hitchTimeContext.globalAlpha = 0.6;
-    let find = false;
-    let offset = 3;
     drawLoadingFrame(req.hitchTimeContext, filter, hitchTimeRow);
+    req.hitchTimeContext.beginPath();
+    let find = false;
     for (let re of filter) {
-      if (hitchTimeRow.isHover) {
-        if (
-          re.frame &&
-          hitchTimeRow.hoverX >= re.frame.x - offset &&
-          hitchTimeRow.hoverX <= re.frame.x + re.frame.width + offset
-        ) {
-          HitchTimeStruct.hoverHitchTimeStruct = re;
-          find = true;
-        }
+      if (hitchTimeRow.isHover && re.frame && isFrameContainPoint(re.frame, hitchTimeRow.hoverX, hitchTimeRow.hoverY)) {
+        HitchTimeStruct.hoverHitchTimeStruct = re;
+        find = true;
       }
-      if (!hitchTimeRow.isHover) {
-        HitchTimeStruct.hoverHitchTimeStruct = undefined;
-      }
-      if (!find && hitchTimeRow.isHover) {
-        HitchTimeStruct.hoverHitchTimeStruct = undefined;
-      }
-      req.hitchTimeContext.beginPath();
       HitchTimeStruct.draw(req.hitchTimeContext, re);
+      if (!find && hitchTimeRow.isHover) HitchTimeStruct.hoverHitchTimeStruct = undefined;
       req.hitchTimeContext.closePath();
     }
   }

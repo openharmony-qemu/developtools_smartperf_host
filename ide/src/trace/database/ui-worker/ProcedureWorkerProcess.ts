@@ -15,8 +15,8 @@
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { BaseStruct, drawLoadingFrame, ns2x, Rect, Render } from './ProcedureWorkerCommon';
-import { CpuStruct } from './cpu/ProcedureWorkerCPU';
 import { TraceRow } from '../../component/trace/base/TraceRow';
+import { Utils } from '../../component/trace/base/Utils';
 
 export class ProcessRender extends Render {
   renderMainThread(req: unknown, row: TraceRow<ProcessStruct>): void {
@@ -40,8 +40,8 @@ export class ProcessRender extends Render {
     //@ts-ignore
     req.context.beginPath();
     let path = new Path2D();
-    let miniHeight: number = 0;
-    miniHeight = Math.round((row.frame.height - CpuStruct.cpuCount * 2) / CpuStruct.cpuCount);
+    let miniHeight = Math.round((row.frame.height - Utils.getInstance().getCpuCount() * 2) /
+      Utils.getInstance().getCpuCount());
     //@ts-ignore
     req.context.fillStyle = ColorUtils.colorForTid(req.pid || 0);
     for (let re of filter) {

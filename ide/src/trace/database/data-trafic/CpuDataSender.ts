@@ -13,10 +13,11 @@
 
 import { CpuStruct } from '../ui-worker/cpu/ProcedureWorkerCPU';
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
-import { threadPool } from '../SqlLite';
+import { getThreadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
+import { Utils } from '../../component/trace/base/Utils';
 
-export function cpuDataSender(cpu: number, row: TraceRow<CpuStruct>): Promise<CpuStruct[]> {
+export function cpuDataSender(cpu: number, row: TraceRow<CpuStruct>, traceId?: string): Promise<CpuStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
@@ -32,14 +33,14 @@ export function cpuDataSender(cpu: number, row: TraceRow<CpuStruct>): Promise<Cp
     };
   }
   return new Promise((resolve): void => {
-    threadPool.submitProto(
+    getThreadPool(traceId).submitProto(
       QueryEnum.CpuData,
       {
         cpu: cpu,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
+        recordStartNS: Utils.getInstance().getRecordStartNS(traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(traceId),
         width: width,
         t: new Date().getTime(),
         trafic: trafic,
@@ -52,9 +53,10 @@ export function cpuDataSender(cpu: number, row: TraceRow<CpuStruct>): Promise<Cp
   });
 }
 
-export function searchCpuDataSender(pidArr: Array<number>, tidArr: Array<number>): Promise<unknown[]> {
+export function searchCpuDataSender(pidArr: Array<number>, tidArr: Array<number>,
+  traceId?: string | null): Promise<unknown[]> {
   return new Promise((resolve): void => {
-    threadPool.submitProto(
+    getThreadPool(traceId).submitProto(
       QueryEnum.SearchCpuData,
       {
         tidArr: tidArr,

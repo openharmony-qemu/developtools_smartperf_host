@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { DbPool } from './SqlLite';
+import { DbPool, getThreadPoolTraceBufferCacheKey, setThreadPoolTraceBuffer } from './SqlLite';
+
 class ConvertThread {
   isCancelled: boolean = false;
   id: number = -1;
@@ -37,11 +38,11 @@ class ConvertThread {
     // @ts-ignore
     this.taskMap[id] = (res: unknown): void => {
       // @ts-ignore
-      DbPool.sharedBuffer = res.buffer;
+      setThreadPoolTraceBuffer('1', res.buffer);
       // @ts-ignore
       handler(res.status, res.msg, res.results);
     };
-    caches.match(DbPool.fileCacheKey).then((resData) => {
+    caches.match(getThreadPoolTraceBufferCacheKey('1')).then((resData) => {
       if (resData) {
         resData.arrayBuffer().then((buffer) => {
           this.worker!.postMessage(

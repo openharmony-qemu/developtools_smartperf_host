@@ -46,6 +46,7 @@ export const queryisExistsGpuMemoryData = (processId: number): Promise<Array<Sna
    ) AS data_exists`,
     { $pid: processId }
   );
+
 //VM Tracker SkiaGpuMemory 框选
 export const getTabGpuMemoryData = (
   leftNs: number,
@@ -75,8 +76,10 @@ export const getTabGpuMemoryData = (
               `,
     { $leftNS: leftNs, $rightNS: rightNs, $pid: processId }
   );
+
 //VM Tracker SkiaGpuMemory 点选
-export const getTabGpuMemoryVMTrackerClickData = (startNs: number, processId: number): Promise<Array<GpuMemory>> =>
+export const getTabGpuMemoryVMTrackerClickData = (startNs: number, processId: number):
+  Promise<Array<GpuMemory>> =>
   query<GpuMemory>(
     'getTabGpuMemoryVMTrackerClickData',
     `SELECT
@@ -118,12 +121,14 @@ export const getTabGpuMemoryVmTrackerComparisonData = (
                 `,
     { $startNs: startNs, $pid: processId }
   );
+
 export const queryMemFilterIdMaxValue = (): Promise<Array<{ filterId: number; maxValue: number }>> => {
   return query(
     'queryMemFilterIdMaxValue',
     `select filter_id as filterId,max(value) maxValue from process_measure group by filter_id;`
   );
 };
+
 export const getTabVirtualMemoryType = (startTime: number, endTime: number): Promise<Array<string>> =>
   query(
     'getTabVirtualMemoryType',
@@ -132,19 +137,23 @@ export const getTabVirtualMemoryType = (startTime: number, endTime: number): Pro
      WHERE s.end_ts >= $startTime + t.start_ts 
      and s.start_ts <= $endTime + t.start_ts 
      group by type`,
-    { $startTime: startTime, $endTime: endTime },
-    'exec'
+    { $startTime: startTime, $endTime: endTime }
   );
+
 export const queryNativeMemoryRealTime = (): //@ts-ignore
 Promise<Array<unknown>> =>
   query(
     'queryNativeMemoryRealTime',
-    `select cs.ts,cs.clock_name from datasource_clockid dc left join clock_snapshot cs on dc.clock_id = cs.clock_id where data_source_name = 'memory-plugin' or data_source_name = 'nativehook'
+    `select cs.ts,cs.clock_name from datasource_clockid dc 
+    left join clock_snapshot cs on dc.clock_id = cs.clock_id 
+    where data_source_name = 'memory-plugin' or data_source_name = 'nativehook'
 `,
     {}
   );
+
 export const queryJsMemoryData = (): //@ts-ignore
-Promise<Array<unknown>> => query('queryJsMemoryData', `SELECT 1 WHERE EXISTS(SELECT 1 FROM js_heap_nodes)`);
+Promise<Array<unknown>> => query('queryJsMemoryData',
+  'SELECT 1 WHERE EXISTS(SELECT 1 FROM js_heap_nodes)');
 
 export const queryVmTrackerShmData = (
   iPid: number
@@ -184,7 +193,10 @@ export const queryMemoryConfig = (): Promise<Array<MemoryConfig>> =>
     'queryMemoryConfiig',
     `SELECT ipid as iPid, process.pid AS pid,
       process.name AS processName,
-      (SELECT value FROM trace_config WHERE trace_source = 'memory_config' AND key = 'sample_interval') AS interval
+      (
+        SELECT value 
+        FROM trace_config 
+        WHERE trace_source = 'memory_config' AND key = 'sample_interval') AS interval
     FROM
       trace_config
       LEFT JOIN process ON value = ipid
@@ -193,6 +205,7 @@ export const queryMemoryConfig = (): Promise<Array<MemoryConfig>> =>
       AND key = 'ipid'
       ;`
   );
+
 // VM Tracker Purgeable泳道图
 export const queryPurgeableProcessData = (
   ipid: number,
@@ -233,18 +246,26 @@ Promise<Array<unknown>> => {
         GROUP BY startNs`
   );
 };
+
 export const queryVirtualMemory = (): //@ts-ignore
 Promise<Array<unknown>> =>
-  query('queryVirtualMemory', `select id,name from sys_event_filter where type='sys_virtual_memory_filter'`);
+  query('queryVirtualMemory',
+    `select 
+    id,
+    name 
+    from sys_event_filter where type='sys_virtual_memory_filter'`);
+
 export const queryVirtualMemoryData = (
   filterId: number
 ): //@ts-ignore
 Promise<Array<unknown>> =>
   query(
     'queryVirtualMemoryData',
-    `select ts-${window.recordStartNS} as startTime,value,filter_id as filterID from sys_mem_measure where filter_id=$filter_id`,
+    `select ts-${window.recordStartNS} as startTime,value,filter_id as filterID 
+    from sys_mem_measure where filter_id=$filter_id`,
     { $filter_id: filterId }
   );
+
 export const queryTraceMemory = (): Promise<
   Array<{
     maxNum: string;
@@ -339,6 +360,7 @@ export const queryTraceMemoryUnAgg = (): Promise<
     order by 
     filter.ipid`
   );
+
 export const queryMemoryMaxData = (
   memoryName: string
 ): //@ts-ignore
@@ -353,6 +375,7 @@ Promise<Array<unknown>> =>
 `,
     { $memoryName: memoryName }
   );
+
 export const getTabPaneVirtualMemoryStatisticsData = (
   leftNs: number,
   rightNs: number
@@ -373,7 +396,8 @@ Promise<Array<unknown>> =>
        min(dur) as minDuration,
        max(dur) as maxDuration,
        avg(dur) as avgDuration
-    from paged_memory_sample as f left join process as p on f.ipid=p.ipid left join thread as t on f.itid=t.itid
+    from paged_memory_sample as f 
+    left join process as p on f.ipid=p.ipid left join thread as t on f.itid=t.itid
     where f.end_ts >= $leftNs
     and f.start_ts <= $rightNs
     group by f.type,f.ipid,f.itid
@@ -381,6 +405,7 @@ Promise<Array<unknown>> =>
 `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
+
 export const getFileSysVirtualMemoryChartData = (): //@ts-ignore
 Promise<Array<unknown>> =>
   query(
@@ -393,9 +418,9 @@ Promise<Array<unknown>> =>
     from paged_memory_sample A,trace_range B
     where startNS > 0
     order by A.start_ts;`,
-    {},
-    'exec'
+    {}
   );
+
 export const hasFileSysData = (): //@ts-ignore
 Promise<Array<unknown>> =>
   query(
@@ -411,6 +436,7 @@ Promise<Array<unknown>> =>
     `,
     {}
   );
+
 export const queryEbpfSamplesCount = (
   startTime: number,
   endTime: number,
@@ -421,17 +447,21 @@ Promise<Array<unknown>> =>
     'queryEbpfSamplesCount',
     `
     select
-fsCount,
-    vmCount from
-(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
-      ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
-    })
-,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
-      ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
-    });
+    fsCount,
+    vmCount 
+    from
+    (select count(1) as fsCount from file_system_sample s,trace_range t 
+    where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
+  ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+})
+,(select count(1) as vmCount from paged_memory_sample s,trace_range t 
+where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
+  ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+});
 `,
-    { $startTime: startTime, $endTime: endTime }
-  );
+  { $startTime: startTime, $endTime: endTime }
+);
+
 export const queryisExistsShmData = (
   iPid: number
 ): //@ts-ignore
@@ -448,6 +478,7 @@ Promise<Array<unknown>> =>
     ) AS data_exists`,
     {}
   );
+
 export const queryVmTrackerShmSizeData = (
   leftNs: number,
   rightNs: number,
@@ -471,6 +502,7 @@ Promise<Array<unknown>> =>
         AND ipid = ${iPid}`,
     {}
   );
+
 export const queryisExistsPurgeableData = (
   ipid: number,
   isPin?: boolean

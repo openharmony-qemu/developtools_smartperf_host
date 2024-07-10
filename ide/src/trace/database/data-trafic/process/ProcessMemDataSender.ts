@@ -53,7 +53,7 @@ function arrayBufferHandler(buffers: unknown, len: number): ProcessMemStruct[] {
   //@ts-ignore
   let track_id = new Uint8Array(buffers.track_id);
   //@ts-ignore
-  let value = new Float64Array(buffers.value); //@ts-ignore
+  let value = new Float64Array(buffers.value);
   //@ts-ignore
   let startTime = new Float64Array(buffers.startTime);
   //@ts-ignore

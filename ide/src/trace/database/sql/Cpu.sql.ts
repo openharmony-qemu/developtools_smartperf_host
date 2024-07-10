@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { KeyPathStruct } from '../../bean/KeyPathStruct';
 import { CpuStruct } from '../ui-worker/cpu/ProcedureWorkerCPU';
 import { query } from '../SqlLite';
@@ -20,6 +21,7 @@ import { Counter } from '../../bean/BoxSelection';
 import { CpuFreqStruct } from '../ui-worker/ProcedureWorkerFreq';
 import { CpuFreqLimitsStruct } from '../ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { CpuFreqRowLimit } from '../../component/chart/SpFreqChart';
+import { Utils } from '../../component/trace/base/Utils';
 
 export const queryCpuKeyPathData = (threads: Array<KeyPathStruct>): Promise<Array<CpuStruct>> => {
   const sqlArray: Array<string> = [];
@@ -43,57 +45,9 @@ export const queryCpuKeyPathData = (threads: Array<KeyPathStruct>): Promise<Arra
     where ${sql}`
   );
 };
-export const getCpuUtilizationRate = (
-  startNS: number,
-  endNS: number
-): Promise<
-  Array<{
-    cpu: number;
-    ro: number;
-    rate: number;
-  }>
-> =>
-  query(
-    'getCpuUtilizationRate',
-    `
-    with cpu as (
-    select
-      cpu,
-      ts,
-      dur,
-      (case when ro < 99 then ro else 99 end) as ro ,
-      (case when ro < 99 then stime+ro*cell else stime + 99 * cell end) as st,
-      (case when ro < 99 then stime + (ro+1)*cell else etime end) as et
-    from (
-        select
-          cpu,
-          ts,
-          A.dur,
-          ((ts+A.dur)-D.start_ts)/((D.end_ts-D.start_ts)/100) as ro,
-          D.start_ts as stime,
-          D.end_ts etime,
-          (D.end_ts-D.start_ts)/100 as cell
-        from
-          sched_slice A
-        left join
-          trace_range D
-        left join
-          thread B on A.itid = B.id
-        where
-          tid != 0
-        and (A.ts)
-          between D.start_ts and D.end_ts))
-    select cpu,ro,
-       sum(case
-               when ts <= st and ts + dur <= et then (ts + dur - st)
-               when ts <= st and ts + dur > et then et-st
-               when ts > st and ts + dur <= et then dur
-               when ts > st and ts + dur > et then et - ts end)/cast(et-st as float) as rate
-    from cpu
-    group by cpu,ro;`,
-    {}
-  );
-export const getTabCpuUsage = (cpus: Array<number>, leftNs: number, rightNs: number): Promise<Array<CpuUsage>> =>
+
+export const getTabCpuUsage = (cpus: Array<number>, leftNs: number, rightNs: number,
+  traceId?: string): Promise<Array<CpuUsage>> =>
   query<CpuUsage>(
     'getTabCpuUsage',
     `
@@ -120,10 +74,12 @@ export const getTabCpuUsage = (cpus: Array<number>, leftNs: number, rightNs: num
       (A.ts - B.start_ts) < $rightNS
     group by
       cpu`,
-    { $leftNS: leftNs, $rightNS: rightNs }
+    { $leftNS: leftNs, $rightNS: rightNs },
+    { traceId: traceId }
   );
 
-export const getTabCpuFreq = (cpus: Array<number>, leftNs: number, rightNs: number): Promise<Array<Freq>> =>
+export const getTabCpuFreq = (cpus: Array<number>, leftNs: number, rightNs: number,
+  traceId?: string): Promise<Array<Freq>> =>
   query<Freq>(
     'getTabCpuFreq',
     `
@@ -148,7 +104,8 @@ export const getTabCpuFreq = (cpus: Array<number>, leftNs: number, rightNs: numb
       startNs < $rightNS
     --order by startNs
     `,
-    { $leftNS: leftNs, $rightNS: rightNs }
+    { $leftNS: leftNs, $rightNS: rightNs },
+    { traceId: traceId }
   );
 
 export const getTabCounters = (
@@ -206,7 +163,8 @@ Promise<unknown> => {
 export const getTabCpuByProcess = (
   cpus: Array<number>,
   leftNS: number,
-  rightNS: number
+  rightNS: number,
+  traceId?: string
 ): //@ts-ignore
 Promise<unknown[]> => //@ts-ignore
   query<unknown>(
@@ -224,14 +182,18 @@ Promise<unknown[]> => //@ts-ignore
     where
       B.cpu in (${cpus.join(',')})
     and
-      not ((B.ts - TR.start_ts + iif(B.dur = -1 or B.dur is null, 0, B.dur) < $leftNS) or (B.ts - TR.start_ts > $rightNS ))
+      not ((B.ts - TR.start_ts + iif(B.dur = -1 or B.dur is null, 0, B.dur) < $leftNS) 
+      or (B.ts - TR.start_ts > $rightNS ))
     group by
       B.pid
     order by
       wallDuration desc;`,
-    { $rightNS: rightNS, $leftNS: leftNS }
+    { $rightNS: rightNS, $leftNS: leftNS },
+    { traceId: traceId }
   );
-export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: number): Promise<unknown[]> =>
+
+export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: number,
+  traceId?: string): Promise<unknown[]> =>
   query<unknown>(
     'getTabCpuByThread',
     `
@@ -239,7 +201,8 @@ export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: 
       TS.pid as pid,
       TS.tid as tid,
       TS.cpu,
-      sum( min(${rightNS},(TS.ts - TR.start_ts + iif(TS.dur = -1 or TS.dur is null, 0, TS.dur))) - max(${leftNS},TS.ts - TR.start_ts)) wallDuration,
+      sum( min(${rightNS},(TS.ts - TR.start_ts + iif(TS.dur = -1 or TS.dur is null, 0, TS.dur))) - 
+      max(${leftNS},TS.ts - TR.start_ts)) wallDuration,
       count(TS.tid) as occurrences
     from
       thread_state AS TS
@@ -248,15 +211,18 @@ export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: 
     where
       TS.cpu in (${cpus.join(',')})
     and
-      not ((TS.ts - TR.start_ts + iif(TS.dur = -1 or TS.dur is null, 0, TS.dur) < $leftNS) or (TS.ts - TR.start_ts > $rightNS))
+      not ((TS.ts - TR.start_ts + iif(TS.dur = -1 or TS.dur is null, 0, TS.dur) < $leftNS) 
+      or (TS.ts - TR.start_ts > $rightNS))
     group by
       TS.cpu,
       TS.pid,
       TS.tid
     order by
       wallDuration desc;`,
-    { $rightNS: rightNS, $leftNS: leftNS }
+    { $rightNS: rightNS, $leftNS: leftNS },
+    { traceId: traceId }
   );
+
 export const queryCpuData = (cpu: number, startNS: number, endNS: number): Promise<Array<CpuStruct>> =>
   query(
     'queryCpuData',
@@ -283,7 +249,7 @@ where B.itid is not null
     }
   );
 
-export const queryCpuFreq = (): Promise<Array<{ cpu: number; filterId: number }>> =>
+export const queryCpuFreq = (traceId?: string): Promise<Array<{ cpu: number; filterId: number }>> =>
   query(
     'queryCpuFreq',
     `
@@ -294,7 +260,7 @@ export const queryCpuFreq = (): Promise<Array<{ cpu: number; filterId: number }>
     where
       (name='cpufreq' or name='cpu_frequency')
     order by cpu;
-    `
+    `, {}, { traceId: traceId }
   );
 
 export const queryCpuFreqData = (cpu: number): Promise<Array<CpuFreqStruct>> =>
@@ -322,7 +288,7 @@ export const queryCpuFreqData = (cpu: number): Promise<Array<CpuFreqStruct>> =>
     { $cpu: cpu }
   );
 
-export const queryCpuMax = (): //@ts-ignore
+export const queryCpuMax = (traceId?: string): //@ts-ignore
 Promise<Array<unknown>> =>
   query(
     'queryCpuMax',
@@ -333,13 +299,16 @@ Promise<Array<unknown>> =>
       sched_slice
     order by
       cpu
-    desc limit 1;`
+    desc limit 1;`,
+    {},
+    { traceId: traceId }
   );
 
 export const queryCpuDataCount = (): Promise<unknown[]> =>
-  query('queryCpuDataCount', 'select count(1) as count,cpu from thread_state where cpu not null group by cpu');
+  query('queryCpuDataCount',
+    'select count(1) as count,cpu from thread_state where cpu not null group by cpu');
 
-export const queryCpuCount = (): //@ts-ignore
+export const queryCpuCount = (traceId?: string): //@ts-ignore
 Promise<Array<unknown>> =>
   query(
     'queryCpuCount',
@@ -348,28 +317,37 @@ Promise<Array<unknown>> =>
 (select ifnull((max(cpu) + 1),0) cpuCount  from cpu_measure_filter where name in ('cpu_frequency','cpu_idle')
  union all
  select ifnull((max(callid)+1),0) cpuCount from irq
-) A;`
+) A;`,
+    {},
+    { traceId: traceId }
   );
 
-export const queryCpuSchedSlice = (): Promise<Array<unknown>> =>
-  query(
+export const queryCpuSchedSlice = async (traceId?: string): Promise<Array<unknown>> => {
+  let cpuSchedSliceBuffer = await query(
     'queryCpuSchedSlice',
-    `
-   select (ts - start_ts) as ts,
+    `select 
+      (ts - start_ts) as ts,
        itid,
        end_state as endState,
        priority
-   from sched_slice,trace_range;`
+    from
+      sched_slice,
+      trace_range;`,
+    {},
+    { traceId: traceId, action: 'exec-buf' }
   );
+  return Utils.convertJSON(cpuSchedSliceBuffer);
+}
 
-export const queryCpuStateFilter = (): //@ts-ignore
-Promise<Array<unknown>> =>
+export const queryCpuStateFilter = (traceId?: string):
+Promise<Array<{ cpu: number; filterId: number }>> =>
   query(
     'queryCpuStateFilter',
     `select cpu,id as filterId 
     from cpu_measure_filter 
     where name = 'cpu_idle' order by cpu;`,
-    {}
+    {},
+    { traceId: traceId }
   );
 
 export const queryCpuState = (
@@ -386,8 +364,10 @@ Promise<Array<unknown>> =>
     { $filterId: cpuFilterId }
   );
 
-export const queryCpuMaxFreq = (): //@ts-ignore
-Promise<Array<unknown>> =>
+export const queryCpuMaxFreq = (traceId?: string):
+Promise<Array<{
+  maxFreq: number
+}>> =>
   query(
     'queryCpuMaxFreq',
     `
@@ -400,8 +380,9 @@ Promise<Array<unknown>> =>
     on
       c.filter_id = t.id
     where
-      (name = 'cpufreq' or name='cpu_frequency');`
+      (name = 'cpufreq' or name='cpu_frequency');`, {}, { traceId: traceId }
   );
+
 export const queryTraceCpu = (): Promise<
   Array<{
     tid: string;
@@ -486,6 +467,7 @@ export const queryTraceCpuTop = (): Promise<
         LIMIT 10;
     `
   );
+
 export const queryCpuFreqUsageData = (
   Ids: Array<number>
 ): Promise<
@@ -508,7 +490,9 @@ export const queryCpuFreqUsageData = (
           trace_range tb
         where
           c.filter_id in (${Ids.join(',')})
-      `
+       `,
+    {},
+    { traceId: Utils.currentSelectTrace }
   );
 
 export const queryCpuFreqFilterId = (): Promise<
@@ -529,8 +513,11 @@ export const queryCpuFreqFilterId = (): Promise<
           name='cpufreq'
         or
           name='cpu_frequency'
-      `
+     `,
+    {},
+    { traceId: Utils.currentSelectTrace }
   );
+
 export const searchCpuData = (
   keyword: string
 ): //@ts-ignore
@@ -558,6 +545,7 @@ where B.cpu not null and B.ts between TR.start_ts and TR.end_ts
 order by startTime;`;
   return query('searchCpuData', sql, {});
 };
+
 export const getTabPaneCounterSampleData = (
   leftNs: number,
   rightNs: number,
@@ -576,14 +564,18 @@ Promise<Array<unknown>> => {
     where
     ts <= $rightNs${str} order by ts asc;
 `,
-    { $leftNs: leftNs, $rightNs: rightNs }
+    { $leftNs: leftNs, $rightNs: rightNs }, {traceId: Utils.currentSelectTrace}
   );
 };
 export const queryJsCpuProfilerConfig = (): //@ts-ignore
 Promise<Array<unknown>> =>
-  query('queryJsCpuProfilerConfig', `SELECT pid, type, enable_cpu_Profiler as enableCpuProfiler FROM js_config`);
+  query('queryJsCpuProfilerConfig',
+    'SELECT pid, type, enable_cpu_Profiler as enableCpuProfiler FROM js_config');
+
 export const queryJsCpuProfilerData = (): //@ts-ignore
-Promise<Array<unknown>> => query('queryJsCpuProfilerData', `SELECT 1 WHERE EXISTS(select 1 from js_cpu_profiler_node)`);
+Promise<Array<unknown>> => query('queryJsCpuProfilerData',
+  'SELECT 1 WHERE EXISTS(select 1 from js_cpu_profiler_node)');
+
 export const querySystemCallsTop = (): Promise<
   Array<{
     tid: string;
@@ -647,6 +639,7 @@ export const querySystemCallsTop = (): Promise<
         DESC
     LIMIT 10`
   );
+
 export const queryWakeupListPriority = (
   itid: number[],
   ts: number[],
@@ -661,8 +654,10 @@ Promise<Array<unknown>> =>
     and itid in (${itid.join(',')})
     and ts - start_ts in (${ts.join(',')})
     `,
-    {}
+    {},
+    { traceId: Utils.currentSelectTrace }
   );
+
 export const getCpuLimitFreqBoxSelect = (
   arr: Array<{
     maxFilterId: string;
@@ -691,9 +686,11 @@ Promise<Array<unknown>> => {
     and ts - T.start_ts < ${rightNS} 
   group by ts
   `;
-  return query('getCpuLimitFreqBoxSelect', sql, {});
+  return query('getCpuLimitFreqBoxSelect', sql, {}, {traceId: Utils.currentSelectTrace});
 };
-export const getCpuLimitFreq = (maxId: number, minId: number, cpu: number): Promise<Array<CpuFreqLimitsStruct>> =>
+
+export const getCpuLimitFreq = (maxId: number, minId: number, cpu: number):
+  Promise<Array<CpuFreqLimitsStruct>> =>
   query(
     'getCpuLimitFreq',
     `
@@ -706,24 +703,33 @@ export const getCpuLimitFreq = (maxId: number, minId: number, cpu: number): Prom
 `,
     { $maxId: maxId, $minId: minId, $cpu: cpu }
   );
-export const getCpuLimitFreqId = (): Promise<Array<CpuFreqRowLimit>> =>
+
+export const getCpuLimitFreqId = (traceId?: string): Promise<Array<CpuFreqRowLimit>> =>
   query(
     'getCpuMaxMinFreqId',
     `
-    select cpu,MAX(iif(name = 'cpu_frequency_limits_max',id,0)) as maxFilterId,MAX(iif(name = 'cpu_frequency_limits_min',id,0)) as minFilterId from cpu_measure_filter where name in ('cpu_frequency_limits_max','cpu_frequency_limits_min') group by cpu
+    select 
+    cpu,
+    MAX(iif(name = 'cpu_frequency_limits_max',id,0)) as maxFilterId,
+    MAX(iif(name = 'cpu_frequency_limits_min',id,0)) as minFilterId 
+    from cpu_measure_filter 
+    where name in ('cpu_frequency_limits_max','cpu_frequency_limits_min') group by cpu
 `,
-    {}
+    {},
+    { traceId: traceId }
   );
 
 export const getCpuLimitFreqMax = (
-  filterIds: string
-): //@ts-ignore
-Promise<Array<unknown>> => {
+  filterIds: string,
+  traceId?: string
+): Promise<Array<{ maxValue: number; filterId: number }>> => {
   return query(
     'getCpuLimitFreqMax',
     `
-    select max(value) as maxValue,filter_id as filterId from measure where filter_id in (${filterIds}) group by filter_id
+    select max(value) as maxValue,filter_id as filterId 
+    from measure where filter_id in (${filterIds}) group by filter_id
 `,
-    {}
+    {},
+    { traceId: traceId }
   );
 };

@@ -147,17 +147,14 @@ self.onmessage = (e: MessageEvent): void => {
   let rightEndNs = (e.data.timeParam.rightNs + e.data.timeParam.recordStartNs) as number;
   e.data.cpuFiliterOrder.forEach((a: number) => {
     getBusyTime(
-      // @ts-ignore
-      e.data.result.filter((f: unknown) => f.cpu === a),
-      // @ts-ignore
-      e.data.res.filter((f: unknown) => f.cpu === a),
+      e.data.result.filter((f: any) => f.cpu === a),
+      e.data.res.filter((f: any) => f.cpu === a),
       e.data.sampleMap,
       leftStartNs,
       rightEndNs
     );
   });
-  e.data.sampleMap.forEach((a: unknown) => {
-    // @ts-ignore
+  e.data.sampleMap.forEach((a: any) => {
     a.busyTime = parseFloat((a.busyTime / 1000000.0).toFixed(6));
   });
 

@@ -19,12 +19,12 @@ import { Args } from './CommonArgs';
 export const chartIrqDataSql = (args: Args): string => {
   if (args.name === 'irq') {
     return `
-        select i.ts - ${args.recordStartNS} as startNs,
-               max(i.dur)  as dur,
+        select i.ts - ${args.recordStartNS
+      }                                                                                                   as startNs,
+               max(i.dur)                                                                                       as dur,
                i.depth,
                ifnull(argsetid, -1)                                                                         as argSetId,
                i.id,
-               case when i.cat = 'ipi' then 'IPI' || i.name else i.name end                                 as name,
                ((i.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
         from irq i
         where i.callid = ${args.cpu}
@@ -40,7 +40,6 @@ export const chartIrqDataSql = (args: Args): string => {
                i.depth,
                ifnull(argsetid,-1)                                                                            as argSetId,
                i.id,
-               i.name,
                ((i.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
         from irq i
         where i.callid = ${args.cpu}
@@ -131,12 +130,12 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
       action: data.action,
       results: transfer
         ? {
-            startNS: startNS.buffer,
-            dur: dur.buffer,
-            depth: depth.buffer,
-            argSetId: argSetId.buffer,
-            id: id.buffer,
-          }
+          startNS: startNS.buffer,
+          dur: dur.buffer,
+          depth: depth.buffer,
+          argSetId: argSetId.buffer,
+          id: id.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,

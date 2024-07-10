@@ -12,10 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { query } from '../SqlLite';
 import { ClockStruct } from '../ui-worker/ProcedureWorkerClock';
 
-export const queryClockData = (): Promise<
+export const queryClockData = (traceId?: string): Promise<
   Array<{
     name: string;
     num: number;
@@ -37,17 +38,24 @@ from (select id, name
       from clock_event_filter
       where type != 'clock_set_rate')
 group by name;
-`
+`, {}, {traceId: traceId}
   );
 
 export const queryClockFrequency = (clockName: string): Promise<Array<ClockStruct>> =>
   query(
     'queryClockFrequency',
     `with freq as (  select measure.filter_id, measure.ts, measure.type, measure.value from clock_event_filter
-left join measure
-where clock_event_filter.name = $clockName and clock_event_filter.type = 'clock_set_rate' and clock_event_filter.id = measure.filter_id
-order by measure.ts)
-select freq.filter_id as filterId,freq.ts - r.start_ts as startNS,freq.type,freq.value from freq,trace_range r order by startNS`,
+      left join measure
+      where 
+      clock_event_filter.name = $clockName 
+      and 
+      clock_event_filter.type = 'clock_set_rate' 
+      and 
+      clock_event_filter.id = measure.filter_id
+      order by measure.ts)
+      select 
+      freq.filter_id as filterId,
+      freq.ts - r.start_ts as startNS,freq.type,freq.value from freq,trace_range r order by startNS`,
     { $clockName: clockName }
   );
 
@@ -55,14 +63,30 @@ export const queryClockState = (clockName: string): Promise<Array<ClockStruct>> 
   query(
     'queryClockState',
     `with state as (
-select filter_id, ts, endts, endts-ts as dur, type, value from
-(select measure.filter_id, measure.ts, lead(ts, 1, null) over( order by measure.ts) endts, measure.type, measure.value from clock_event_filter,trace_range
-left join measure
-where clock_event_filter.name = $clockName and clock_event_filter.type != 'clock_set_rate' and clock_event_filter.id = measure.filter_id
-order by measure.ts))
-select s.filter_id as filterId,s.ts-r.start_ts as startNS,s.type,s.value,s.dur from state s,trace_range r`,
+          select 
+          filter_id, 
+          ts, 
+          endts, 
+          endts-ts as dur, 
+          type, 
+          value 
+          from
+            (select 
+            measure.filter_id, 
+            measure.ts, 
+            lead(ts, 1, null) over( order by measure.ts) endts, 
+            measure.type, 
+            measure.value 
+            from clock_event_filter,trace_range
+            left join measure
+            where 
+            clock_event_filter.name = $clockName 
+            and clock_event_filter.type != 'clock_set_rate' and clock_event_filter.id = measure.filter_id
+            order by measure.ts))
+            select s.filter_id as filterId,s.ts-r.start_ts as startNS,s.type,s.value,s.dur from state s,trace_range r`,
     { $clockName: clockName }
   );
+
 export const queryBootTime = (): //@ts-ignore
 Promise<Array<unknown>> =>
   query(
@@ -71,12 +95,20 @@ Promise<Array<unknown>> =>
       where clock_name = 'boottime'`,
     {}
   );
+
 export const queryScreenState = (): Promise<Array<ClockStruct>> =>
   query(
     'queryScreenState',
-    `select m.type, m.ts-r.start_ts as startNS, value, filter_id  as filterId from measure m,trace_range r where filter_id in (select id from process_measure_filter where name = 'ScreenState')  order by startNS;
+    `select 
+    m.type, 
+    m.ts-r.start_ts as startNS, 
+    value, filter_id as filterId 
+    from 
+    measure m,trace_range r 
+    where filter_id in (select id from process_measure_filter where name = 'ScreenState')  order by startNS;
 `
   );
+
 export const queryRealTime = (): Promise<
   Array<{
     ts: number;

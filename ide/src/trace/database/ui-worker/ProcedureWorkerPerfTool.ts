@@ -39,13 +39,13 @@ export class PerfToolRender extends Render {
     let perfToolList = row.dataList;
     let perfToolFilter = row.dataListCache;
     dataFilterHandler(perfToolList, perfToolFilter, {
-      startKey: 'startNS',
+      startKey: 'startTs',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
       endNS: TraceRow.range?.endNS ?? 0,
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: row.frame,
-      paddingTop: 5,
+      paddingTop: 3,
       useCache: perfReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
     drawLoadingFrame(perfReq.context, perfToolFilter, row);
@@ -64,11 +64,16 @@ export class PerfToolRender extends Render {
     perfReq.context.closePath();
   }
 }
-export function PerfToolsStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+export function PerfToolsStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  entry?: PerfToolStruct,
+): Promise<unknown> {
+
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_PERF_TOOL && PerfToolStruct.hoverPerfToolStruct) {
-      PerfToolStruct.selectPerfToolStruct = PerfToolStruct.hoverPerfToolStruct;
-      sp.traceSheetEL?.displayPerfToolsData(PerfToolStruct.selectPerfToolStruct);
+    if (clickRowType === TraceRow.ROW_TYPE_PERF_TOOL && (PerfToolStruct.hoverPerfToolStruct || entry)) {
+      PerfToolStruct.selectPerfToolStruct = entry || PerfToolStruct.hoverPerfToolStruct;
+      sp.traceSheetEL?.displayPerfToolsData(PerfToolStruct.selectPerfToolStruct!);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {
@@ -81,7 +86,7 @@ export class PerfToolStruct extends BaseStruct {
   static selectPerfToolStruct: PerfToolStruct | undefined;
   static index = 0;
   count: string | undefined;
-  startNS: number | undefined;
+  startTs: number | undefined;
   dur: number | undefined;
   id: number | undefined;
   name: string | undefined;

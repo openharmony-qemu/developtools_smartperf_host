@@ -23,9 +23,7 @@ export const chartCpuDataProtoSql = (args: Args): string => {
              B.tid,
              B.itid                                                                                       as id,
              max(B.dur)                                                                                   AS dur,
-             B.ts - ${
-               args.recordStartNS
-             }                                                                                            AS startTime,
+             B.ts - ${args.recordStartNS}                                                                 AS startTime,
              ifnull(B.arg_setid, -1)                                                                      as argSetId,
              ((B.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
       from thread_state AS B

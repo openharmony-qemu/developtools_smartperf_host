@@ -64,8 +64,7 @@ export const chartCpuFreqLimitDataSqlMem = (args: Args): string => {
 export function cpuFreqLimitReceiver(data: unknown, proc: Function): void {
   // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: unknown[];
-    let list: unknown[];
+    let res: unknown[], list: unknown[];
     // @ts-ignore
     if (!cpuFreqLimitList.has(data.params.cpu)) {
       // @ts-ignore

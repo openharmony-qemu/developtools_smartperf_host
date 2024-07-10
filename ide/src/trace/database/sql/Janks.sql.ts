@@ -21,7 +21,7 @@ export const queryExpectedFrameDate = (): Promise<Array<JanksStruct>> =>
     `
     SELECT
         sf.id,
-        'frameTime' as frame_type,
+        'frameTime' as frameType,
         fs.ipid,
         fs.vsync as name,
         fs.dur as app_dur,
@@ -47,7 +47,7 @@ export const queryExpectedFrameDate = (): Promise<Array<JanksStruct>> =>
     UNION
     SELECT
         -1 as id,
-        'frameTime' as frame_type,
+        'frameTime' as frameType,
         fs.ipid,
         fs.vsync  as name,
         fs.dur as app_dur,
@@ -86,7 +86,7 @@ Promise<Array<unknown>> =>
             fs.type,
             fs.dur,
             0 as depth,
-            'app' as frame_type,
+            'app' as frameType,
             fs.src as src_slice,
             fs.flag as jank_tag,
             fs.dst as dst_slice,
@@ -126,7 +126,7 @@ Promise<Array<unknown>> =>
                a.dst AS dst_slice,
                p.pid,
                p.name AS cmdline,
-               (case when p.name like '%render_service' then 'render_service' else 'app' end) as frame_type
+               (case when p.name like '%render_service' then 'render_service' else 'app' end) as frameType
         FROM frame_slice AS a, trace_range AS TR
                  LEFT JOIN process AS p ON a.ipid = p.ipid
         WHERE a.type = 0
@@ -139,7 +139,7 @@ Promise<Array<unknown>> =>
     'queryActualFrameDate',
     `SELECT
          sf.id,
-         'frameTime' as frame_type,
+         'frameTime' as frameType,
          fs.ipid,
          fs.vsync as name,
          fs.dur as app_dur,
@@ -166,7 +166,7 @@ Promise<Array<unknown>> =>
      UNION
      SELECT
          -1 as id,
-         'frameTime' as frame_type,
+         'frameTime' as frameType,
          fs.ipid,
          fs.vsync  as name,
          fs.dur as app_dur,
@@ -211,7 +211,7 @@ Promise<Array<unknown>> =>
                a.dst AS dst_slice,
                p.pid,
                p.name AS cmdline,
-               (case when p.name like '%render_service' then 'render_service' else 'app' end) as frame_type
+               (case when p.name like '%render_service' then 'render_service' else 'app' end) as frameType
         FROM frame_slice AS a, trace_range AS TR
                  LEFT JOIN process AS p ON a.ipid = p.ipid
         WHERE a.type = 0

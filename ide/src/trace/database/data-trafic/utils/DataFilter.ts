@@ -85,7 +85,8 @@ export function filterDataByGroup(
   width: number,
   valueKey?: string,
   filter?: (a: unknown) => boolean,
-  fastFilter: boolean = true
+  fastFilter: boolean = true,
+  isDmaFence?: boolean,
 ): unknown[] {
   if (!fastFilter || filter) {
     let arr = findRange(list, { startKey, durKey, startNS, endNS });
@@ -117,7 +118,7 @@ export function filterDataByGroup(
     });
     return [...res];
   } else {
-    return filterDataByGroupWithoutValue(list, startKey, durKey, startNS, endNS, width);
+    return filterDataByGroupWithoutValue(list, startKey, durKey, startNS, endNS, width,isDmaFence);
   }
 }
 
@@ -127,7 +128,8 @@ function filterDataByGroupWithoutValue(
   durKey: string,
   startNS: number,
   endNS: number,
-  width: number
+  width: number,
+  isDmaFence?: boolean,
 ): unknown[] {
   let arr: unknown[] = [];
   // 标志位，判定何时进行新一轮数据统计处理
@@ -137,8 +139,15 @@ function filterDataByGroupWithoutValue(
     //@ts-ignore
     if (list[i][startKey] + list[i][durKey] >= startNS && list[i][startKey] <= endNS) {
       // 获取当前数据的像素值
-      //@ts-ignore
-      const px: number = Math.floor(list[i][startKey] / ((endNS - startNS) / width)); //@ts-ignore
+      let px: number;
+       //@ts-ignore  
+      if (isDmaFence && list[i][durKey] === 0) {  //如果是dmafence泳道，则不进行处理
+         //@ts-ignore
+          px = list[i][startKey] / ((endNS - startNS) / width);  
+      } else {  
+         //@ts-ignore
+          px = Math.floor(list[i][startKey] / ((endNS - startNS) / width));  
+      } //@ts-ignore
       list[i].px = px; //@ts-ignore
       if (flag === px && arr[arr.length - 1] && list[i][durKey] > arr[arr.length - 1][durKey]) {
         arr[arr.length - 1] = list[i];

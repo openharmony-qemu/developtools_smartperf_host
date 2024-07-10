@@ -33,6 +33,7 @@ import { processMemDataReceiver } from '../process//ProcessMemDataReceiver';
 import { processStartupDataReceiver } from '../process//ProcessStartupDataReceiver';
 import { processSoInitDataReceiver } from '../process//ProcessSoInitDataReceiver';
 import { processDeliverInputEventDataReceiver } from '../process//ProcessDeliverInputEventDataReceiver';
+import { processTouchEventDispatchDataReceiver } from '../process//ProcessTouchEventDispatchDataReceiver';
 
 import {
   dmaDataReceiver,
@@ -79,6 +80,7 @@ import { clearMemoryCache } from './AllMemoryCache';
 import { cpuFreqDataReceiver } from '../cpu/CpuFreqDataReceiver';
 import { lostFrameReceiver } from './../LostFrameReceiver';
 import { sliceReceiver, sliceSPTReceiver } from '../SliceReceiver';
+import { dmaFenceReceiver } from './../dmaFenceReceiver'
 
 // @ts-ignore
 const traficHandlers: Map<number, unknown> = new Map<number, unknown>([]); // @ts-ignore
@@ -110,6 +112,7 @@ traficHandlers.set(QueryEnum.ProcessSoInitData, processSoInitDataReceiver);
 traficHandlers.set(QueryEnum.processExpectedData, processExpectedDataReceiver);
 traficHandlers.set(QueryEnum.processActualData, processActualDataReceiver);
 traficHandlers.set(QueryEnum.processDeliverInputEventData, processDeliverInputEventDataReceiver);
+traficHandlers.set(QueryEnum.processTouchEventDispatchData, processTouchEventDispatchDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerSmapsData, sMapsDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerDmaData, dmaDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerGpuMemoryData, gpuMemoryDataReceiver);
@@ -152,3 +155,4 @@ traficHandlers.set(QueryEnum.EnergySystemData, energySysEventReceiver);
 traficHandlers.set(QueryEnum.LostFrameData, lostFrameReceiver);
 traficHandlers.set(QueryEnum.SliceData, sliceReceiver);
 traficHandlers.set(QueryEnum.SliceSPTData, sliceSPTReceiver);
+traficHandlers.set(QueryEnum.dmaFenceData, dmaFenceReceiver);

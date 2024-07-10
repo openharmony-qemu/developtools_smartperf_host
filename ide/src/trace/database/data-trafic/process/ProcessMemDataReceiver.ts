@@ -28,9 +28,7 @@ export const chartProcessMemDataSql = (args: Args): string => {
 };
 
 export function processMemDataReceiver(data: unknown, proc: Function): void {
-  let res: unknown[];
-  let list: unknown[];
-  //@ts-ignore
+  let res: unknown[], list: unknown[]; //@ts-ignore
   if (!memList.has(data.params.trackId)) {
     //@ts-ignore
     list = proc(chartProcessMemDataSql(data.params)); //@ts-ignore

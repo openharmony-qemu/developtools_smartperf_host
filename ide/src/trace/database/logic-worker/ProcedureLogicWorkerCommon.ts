@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 export class ChartStruct {
   depth: number = 0;
   symbol: string = '';
@@ -63,8 +64,6 @@ export class HiPerfSymbol {
   }
 }
 
-type SplitMap = Map<string, MerageBean[]>;
-
 export class MerageBean extends ChartStruct {
   #parentNode: MerageBean | undefined = undefined;
   #total = 0;
@@ -110,7 +109,7 @@ class MerageBeanDataSplit {
 
   //所有的操作都是针对整个树结构的, 不区分特定的数据
   splitTree(
-    splitMapData: SplitMap,
+    splitMapData: unknown,
     data: MerageBean[],
     name: string,
     isCharge: boolean,
@@ -129,18 +128,12 @@ class MerageBeanDataSplit {
     this.resetAllNode(data, currentTreeList, searchValue);
   }
 
-  splitPush(splitMapData: SplitMap, name: string, node: MerageBean): void {
-    if (!splitMapData.has(name)) {
-      splitMapData.set(name, []);
-    }
-    splitMapData.get(name)!.push(node);
-  }
-
-  recursionChargeInitTree(splitMapData: SplitMap, node: MerageBean, symbolName: string, isSymbol: boolean): void {
+  recursionChargeInitTree(splitMapData: unknown, node: MerageBean, symbolName: string, isSymbol: boolean): void {
     if ((isSymbol && node.symbol === symbolName) || (!isSymbol && node.lib === symbolName)) {
+      //@ts-ignore
+      (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
       node.isStore++;
     }
-    this.splitPush(splitMapData, symbolName, node);
     if (node.initChildren.length > 0) {
       node.initChildren.forEach((child) => {
         this.recursionChargeInitTree(splitMapData, child, symbolName, isSymbol);
@@ -148,9 +141,10 @@ class MerageBeanDataSplit {
     }
   }
 
-  recursionPruneInitTree(splitMapData: SplitMap, node: MerageBean, symbolName: string, isSymbol: boolean): void {
+  recursionPruneInitTree(splitMapData: unknown, node: MerageBean, symbolName: string, isSymbol: boolean): void {
     if ((isSymbol && node.symbol === symbolName) || (!isSymbol && node.lib === symbolName)) {
-      this.splitPush(splitMapData, symbolName, node);
+      //@ts-ignore
+      (splitMapData[symbolName] = splitMapData[symbolName] || []).push(node);
       node.isStore++;
       this.pruneChildren(splitMapData, node, symbolName);
     } else if (node.initChildren.length > 0) {
@@ -172,7 +166,7 @@ class MerageBeanDataSplit {
   }
 
   recursionChargeByRule(
-    splitMapData: SplitMap,
+    splitMapData: unknown,
     node: MerageBean,
     ruleName: string,
     rule: (node: MerageBean) => boolean
@@ -180,7 +174,8 @@ class MerageBeanDataSplit {
     if (node.initChildren.length > 0) {
       node.initChildren.forEach((child) => {
         if (rule(child)) {
-          this.splitPush(splitMapData, ruleName, child);
+          //@ts-ignore
+          (splitMapData[ruleName] = splitMapData[ruleName] || []).push(child);
           child.isStore++;
         }
         this.recursionChargeByRule(splitMapData, child, ruleName, rule);
@@ -188,17 +183,18 @@ class MerageBeanDataSplit {
     }
   }
 
-  pruneChildren(splitMapData: SplitMap, node: MerageBean, symbolName: string): void {
+  pruneChildren(splitMapData: unknown, node: MerageBean, symbolName: string): void {
     if (node.initChildren.length > 0) {
       node.initChildren.forEach((child) => {
         child.isStore++;
-        this.splitPush(splitMapData, symbolName, child);
+        //@ts-ignore
+        (splitMapData[symbolName] = splitMapData[symbolName] || []).push(child);
         this.pruneChildren(splitMapData, child, symbolName);
       });
     }
   }
 
-  hideSystemLibrary(allProcess: MerageBean[], splitMapData: SplitMap): void {
+  hideSystemLibrary(allProcess: MerageBean[], splitMapData: unknown): void {
     allProcess.forEach((item) => {
       item.children = [];
       this.recursionChargeByRule(splitMapData, item, this.systmeRuleName, (node) => {
@@ -207,7 +203,7 @@ class MerageBeanDataSplit {
     });
   }
 
-  hideNumMaxAndMin(allProcess: MerageBean[], splitMapData: SplitMap, startNum: number, endNum: string): void {
+  hideNumMaxAndMin(allProcess: MerageBean[], splitMapData: unknown, startNum: number, endNum: string): void {
     let max = endNum === '∞' ? Number.POSITIVE_INFINITY : parseInt(endNum);
     allProcess.forEach((item) => {
       item.children = [];
@@ -220,7 +216,7 @@ class MerageBeanDataSplit {
   resotreAllNode(splitMapData: unknown, symbols: string[]): void {
     symbols.forEach((symbol) => {
       //@ts-ignore
-      let list = splitMapData.get(symbol);
+      let list = splitMapData[symbol];
       if (list !== undefined) {
         list.forEach((item: unknown) => {
           //@ts-ignore
@@ -254,15 +250,15 @@ class MerageBeanDataSplit {
     values.forEach((item: unknown) => {
       //@ts-ignore
       if (item.parentNode !== undefined) {
-        //@ts-ignore
+         //@ts-ignore
         if (item.isStore === 0 && item.searchShow) {
-          //@ts-ignore
+           //@ts-ignore
           let parentNode = item.parentNode;
           while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
             parentNode = parentNode.parentNode;
           }
           if (parentNode) {
-            //@ts-ignore
+             //@ts-ignore
             item.currentTreeParentNode = parentNode;
             parentNode.children.push(item);
           }
@@ -707,4 +703,112 @@ export class InitAnalysis {
     }
     return this.instance;
   }
+}
+
+interface perfAsyncList {
+  tid?: number;
+  pid?: number;
+  time?: number;
+  symbol?: string;
+  traceid?: string;
+  eventCount?: number;
+  sampleCount?: number;
+  jsFuncName?: string;
+  callerCallchainid?: number;
+  calleeCallchainid?: number;
+  asyncFuncName?: string;
+  eventType?: string;
+  children?: Array<perfAsyncList>;
+  eventTypeId?: number;
+  symbolName?: string;
+  callerCallStack?: Array<perfAsyncList>;
+  calleeCallStack?: Array<perfAsyncList>;
+  callStackList?: Array<perfAsyncList>;
+  parent?: perfAsyncList;
+  isProcess?: boolean;
+  isThread?: boolean;
+  depth?: number;
+  isSearch?: boolean;
+  isJsStack?: boolean;
+  lib?: string;
+  isChartSelectParent?: boolean;
+  isChartSelect?: boolean;
+  isDraw?: boolean;
+  drawDur?: number;
+  drawEventCount?: number;
+  drawCount?: number;
+  drawSize?: number;
+  searchEventCount?: number;
+  searchCount?: number;
+  searchDur?: number;
+  searchSize?: number;
+  size?: number;
+  count?: number;
+  dur?: number;
+  tsArray?: Array<number>;
+  isCharged?: boolean;
+  addr?: string;
+}
+
+export function dealAsyncData(
+  arr: Array<perfAsyncList>, 
+  perfCallChain: object, 
+  nmCallChain: Map<number, Array<{addr: string, depth: number, eventId: number, fileId: number, symbolId: number}>>, 
+  dataDict: Map<number, string>,
+  searchValue: string
+): Array<perfAsyncList> {
+  // 转换为小写字符
+  searchValue = searchValue.toLocaleLowerCase();
+  // 循环遍历每一条数据
+  for (let i = 0; i < arr.length; i++) {
+    let flag: boolean = false;
+    // 定义每条数据的调用栈与被调用栈数组
+    arr[i].calleeCallStack! = [];
+    arr[i].callerCallStack! = [];
+    // 从前端缓存的perfcallchain表与native_hook_frame表中拿到calleeId与callerId对应的数据
+    // @ts-ignore
+    let calleeCallChain = perfCallChain[arr[i].calleeCallchainid];
+    let callerCallChain = nmCallChain.get(arr[i].callerCallchainid!)!;
+    // 循环被调用栈数组，拿到该条采样数据对应的所有被调用栈信息
+    for (let j = 0; j < calleeCallChain.length; j++) {
+      let calleeStack: perfAsyncList = {};
+      // 拿到每一层被调用栈栈名
+      calleeStack.symbolName = dataDict.get(calleeCallChain[j].name)!;
+      // 判断该条采样数据的被调用栈链中是否包含用户筛选字段
+      if (calleeStack.symbolName.toLocaleLowerCase().indexOf(searchValue) !== -1) {
+        flag = true;
+      }
+      // 获取calleeCallchainid、depth、eventTypeId、lib、addr
+      calleeStack.calleeCallchainid = arr[i].calleeCallchainid!;
+      calleeStack.depth = calleeCallChain[j].depth;
+      calleeStack.eventTypeId = arr[i].eventTypeId!;
+      calleeStack.lib = calleeCallChain[j].fileName;
+      calleeStack.addr = `${'0x'}${calleeCallChain[j].vaddrInFile.toString(16)}`;
+      // 填充到该条数据的被调用栈数组中
+      arr[i].calleeCallStack!.push(calleeStack);
+    }
+    for (let z = 0; z < callerCallChain.length; z++) {
+      let callerStack: perfAsyncList = {};
+      // 拿到每一层被调用栈栈名
+      callerStack.symbolName = dataDict.get(callerCallChain[z].symbolId)!;
+      // 判断该条采样数据的调用栈链中是否包含用户筛选字段
+      if (callerStack.symbolName.toLocaleLowerCase().indexOf(searchValue) !== -1) {
+        flag = true;
+      }
+      // 获取callerCallchainid、depth、eventTypeId、lib、addr
+      callerStack.callerCallchainid = arr[i].callerCallchainid!;
+      callerStack.depth = callerCallChain[z].depth;
+      callerStack.eventTypeId = arr[i].eventTypeId!;
+      callerStack.addr = callerCallChain[z].addr;
+      callerStack.lib = setFileName(dataDict.get(callerCallChain[z].fileId)!);
+      // 填充到该条数据的调用栈数组中
+      arr[i].callerCallStack!.push(callerStack);
+    }
+    // 若存在用户筛选字段内容，数据进行保留。若不存在，则在返回给前端的数据中删除此条数据，减少前端处理的数据量
+    if(!flag) {
+      arr.splice(i, 1);
+      i--;
+    }
+  }
+  return arr;
 }

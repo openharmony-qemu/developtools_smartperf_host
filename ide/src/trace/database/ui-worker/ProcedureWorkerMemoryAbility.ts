@@ -198,8 +198,7 @@ export class MemoryAbilityMonitorStruct extends BaseStruct {
     totalNS: number,
     frame: Rect
   ): void {
-    let memoryStartPointX: number;
-    let memoryEndPointX: number;
+    let memoryStartPointX: number, memoryEndPointX: number;
 
     if ((memoryNode.startNS || 0) < startNS) {
       memoryStartPointX = 0;

@@ -126,27 +126,28 @@ export function JankStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
   row: TraceRow<JankStruct>,
-  jankClickHandler: unknown
+  jankClickHandler: unknown,
+  entry?: JankStruct,
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     JankStruct.hoverJankStruct = JankStruct.hoverJankStruct || row.getHoverStruct();
-    if (clickRowType === TraceRow.ROW_TYPE_JANK && JankStruct.hoverJankStruct) {
+    if (clickRowType === TraceRow.ROW_TYPE_JANK && (JankStruct.hoverJankStruct || entry)) {
       JankStruct.selectJankStructList.length = 0;
       sp.removeLinkLinesByBusinessType('janks');
-      JankStruct.selectJankStruct = JankStruct.hoverJankStruct;
+      JankStruct.selectJankStruct = entry || JankStruct.hoverJankStruct;
       sp.timerShaftEL?.drawTriangle(JankStruct.selectJankStruct!.ts || 0, 'inverted');
       sp.traceSheetEL?.displayJankData(
-        JankStruct.selectJankStruct,
+        JankStruct.selectJankStruct!,
         (datas) => {
           datas.forEach((data) => {
             let endParentRow; // @ts-ignore
-            if (data.frame_type === 'frameTime') {
+            if (data.frameType === 'frameTime') {
               endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
-                "trace-row[row-id='frameTime'][row-type='janks']"
+                'trace-row[row-id=\'frameTime\'][row-type=\'janks\']'
               );
             } else {
-              endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
-                "trace-row[row-type='process'][row-id='${data.pid}'][folder]"
+              endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>( // @ts-ignore
+                `trace-row[row-type='process'][row-id='${data.pid}'][folder]`
               );
             }
             sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data);
@@ -214,11 +215,11 @@ export class JankStruct extends JanksStruct {
           data.name === JankStruct.hoverJankStruct.name &&
           JankStruct.hoverJankStruct.type === data.type &&
           JankStruct.hoverJankStruct.pid === data.pid &&
-          JankStruct.hoverJankStruct.frame_type === data.frame_type
+          JankStruct.hoverJankStruct.frameType === data.frameType
         ) {
           ctx.globalAlpha = 0.7;
         }
-        if (data.type === '0') {
+        if (`${data.type}` === '0') {
           this.drawActualFrame(ctx, data, miniHeight);
         } else {
           this.drawExpectedFrame(data, nsScale, ctx, miniHeight);
@@ -285,7 +286,7 @@ export class JankStruct extends JanksStruct {
       JankStruct.selectJankStruct.ts === data.ts &&
       JankStruct.selectJankStruct.type === data.type &&
       JankStruct.selectJankStruct.pid === data.pid &&
-      JankStruct.selectJankStruct.frame_type === data.frame_type
+      JankStruct.selectJankStruct.frameType === data.frameType
     );
   }
 }
