@@ -247,10 +247,10 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         if (virtualMemoryTable === showTable) {
           initSort(virtualMemoryTable!, this.vmSortColumn, this.vmSortType);
           virtualMemoryTable.style.display = 'grid';
-          virtualMemoryTable.setAttribute('hideDownload', '');
+          virtualMemoryTable!.removeAttribute('hideDownload');
         } else {
           virtualMemoryTable!.style.display = 'none';
-          virtualMemoryTable!.removeAttribute('hideDownload');
+          virtualMemoryTable.setAttribute('hideDownload', '');
         }
       }
     }
@@ -562,12 +562,6 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
                 </div>
                     `;
       },
-      angleClick: (it: Object): void => {
-        // @ts-ignore
-        if (it.tableName !== 'other') {
-          this.vmSoLevelClickEvent(it);
-        }
-      },
       hoverHandler: (data): void => {
         if (data) {
           this.vmStatisticsAnalysisTableSo!.setCurrentHover(data);
@@ -798,7 +792,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         durFormat: Utils.getProbablyTime(dur),
         duration: dur,
       };
-      this.vmStatisticsAnalysisTypeData.push(vmTypeData);
+        this.vmStatisticsAnalysisTypeData.push(vmTypeData);
     }); // @ts-ignore
     this.vmStatisticsAnalysisTypeData.sort((a, b) => b.duration - a.duration);
     this.typeStatisticsData = this.totalDurationData(allDur);
@@ -1011,6 +1005,9 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
                 </div>
                     `;
       },
+      angleClick: (it): void => {
+        this.vmSoLevelClickEvent(it);
+      },
       hoverHandler: (vmPieData): void => {
         if (vmPieData) {
           this.vmStatisticsAnalysisTableFunction!.setCurrentHover(vmPieData);
@@ -1091,6 +1088,8 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       vmReleaseType = 'File Backed In';
     } else if (type === 7) {
       vmReleaseType = 'Copy On Writer';
+    } else {
+      vmReleaseType = 'Other';
     }
     // @ts-ignore
     return vmReleaseType;

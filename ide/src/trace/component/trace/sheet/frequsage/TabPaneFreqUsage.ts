@@ -75,7 +75,7 @@ export class TabPaneFreqUsage extends BaseElement {
     this.recursion(resultArr);
     this.result = JSON.parse(JSON.stringify(this.result));
     mergeTotal(resultArr, fixTotal(this.result));
-    this.fixedDeal(resultArr);
+    this.fixedDeal(resultArr, threadStatesParam.traceId);
     this.threadClick(resultArr);
     this.threadStatesTbl!.recycleDataSource = resultArr;
     this.threadStatesTbl!.loading = false;
@@ -84,7 +84,7 @@ export class TabPaneFreqUsage extends BaseElement {
   /**
    * 递归整理数据小数位
    */
-  fixedDeal(arr: Array<RunningFreqData>): void {
+  fixedDeal(arr: Array<RunningFreqData>, traceId?: string | null): void {
     if (arr == undefined) {
       return;
     }
@@ -104,15 +104,11 @@ export class TabPaneFreqUsage extends BaseElement {
       }
       if (arr[i].thread?.indexOf('P') !== -1) {
         trackId = Number(arr[i].thread?.slice(1)!);
-        arr[i].thread =
-          Utils.PROCESS_MAP.get(trackId) === null
-            ? 'Process ' + trackId
-            : Utils.PROCESS_MAP.get(trackId)! + ' ' + trackId;
+        arr[i].thread = `${ Utils.getInstance().getProcessMap(traceId).get(trackId) || 'Process' } ${trackId}`;
       } else if (arr[i].thread === 'summary data') {
       } else {
         trackId = Number(arr[i].thread!.split('_')[1]);
-        arr[i].thread =
-          Utils.THREAD_MAP.get(trackId) === null ? 'Thread ' + trackId : Utils.THREAD_MAP.get(trackId)! + ' ' + trackId;
+        arr[i].thread = `${ Utils.getInstance().getThreadMap(traceId).get(trackId) || 'Thread' } ${trackId}`;
       }
       if (arr[i].cpu < 0) {
         // @ts-ignore
@@ -135,7 +131,7 @@ export class TabPaneFreqUsage extends BaseElement {
           arr[i].frequency = Number(arr[i].frequency) / FREQ_MUTIPLE;
         }
       }
-      this.fixedDeal(arr[i].children!);
+      this.fixedDeal(arr[i].children!, traceId);
     }
   }
 
@@ -395,15 +391,6 @@ function returnObj(
         percent: (cpuFreqData.dur / sum) * PERCENT,
       };
     case 5:
-      return {
-        thread: item.pid + '_' + item.tid,
-        consumption: 0,
-        cpu: item.cpu,
-        frequency: 'unknown',
-        dur: item.dur,
-        percent: (item.dur / sum) * PERCENT,
-      };
-    default:
       return {
         thread: item.pid + '_' + item.tid,
         consumption: 0,

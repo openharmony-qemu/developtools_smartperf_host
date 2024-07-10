@@ -32,6 +32,7 @@ import { TraceRowConfig } from './TraceRowConfig';
 import { type TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree';
 import { SpSystemTrace } from '../../SpSystemTrace';
 import { TraceRowHtml } from './TraceRow.html';
+import { Utils } from './Utils';
 
 export class RangeSelectStruct {
   startX: number | undefined;
@@ -63,7 +64,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_FPS = 'fps';
   static ROW_TYPE_NATIVE_MEMORY = 'native-memory';
   static ROW_TYPE_HIPERF = 'hiperf';
+  static ROW_TYPE_HIPERF_THREADTYPE: Array<number> = [-2];
   static ROW_TYPE_DELIVER_INPUT_EVENT = 'DeliverInputEvent';
+  static ROW_TYPE_TOUCH_EVENT_DISPATCH = 'TouchEventDispatch';
   static ROW_TYPE_HIPERF_CPU = 'hiperf-cpu';
   static ROW_TYPE_PERF_CALLCHART = 'hiperf-callchart';
   static ROW_TYPE_HIPERF_PROCESS = 'hiperf-process';
@@ -90,6 +93,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_DISK_ABILITY = 'disk-ability';
   static ROW_TYPE_NETWORK_ABILITY = 'network-ability';
   static ROW_TYPE_DMA_ABILITY = 'dma-ability';
+  static ROW_TYPE_DMA_FENCE = 'dma-fence';
   static ROW_TYPE_GPU_MEMORY_ABILITY = 'gpu-memory-ability';
   static ROW_TYPE_SDK = 'sdk';
   static ROW_TYPE_SDK_COUNTER = 'sdk-counter';
@@ -130,6 +134,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups';
   static ROW_TYPE_PERF_TOOL_GROUP = 'perf-tool-group';
   static ROW_TYPE_PERF_TOOL = 'perf-tool';
+  static ROW_TYPE_GPU_COUNTER_GROUP = 'gpu-counter-group';
+  static ROW_TYPE_GPU_COUNTER = 'gpu-counter';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
@@ -182,9 +188,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   private _enableCollapseChart: boolean = false;
   online: boolean = false;
   static isUserInteraction: boolean;
-  asyncFuncName: string | undefined | null;
+  asyncFuncName: string | Array<string> | undefined | null;
   asyncFuncNamePID: number | undefined | null;
-  asyncFuncThreadName: Array<unknown> | string | undefined | null;   
+  asyncFuncThreadName: Array<unknown>| string | undefined | null;  
   translateY: number = 0; //single canvas offsetY;
   // @ts-ignore
   childrenList: Array<TraceRow<unknown>> = []; // @ts-ignore
@@ -220,22 +226,29 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       contextId: '2d',
       isOffScreen: true,
       skeleton: false,
-    }
+    },
+    traceId?: string
   ) {
     super();
     this.args = args;
     this.attachShadow({ mode: 'open' }).innerHTML = this.initHtml();
+    if (traceId) {
+      this.traceId = traceId;
+    }
     this.initElements();
   }
 
-  static skeleton<T extends BaseStruct>(): TraceRow<T> {
-    let tr = new TraceRow<T>({
-      alpha: false,
-      canvasNumber: 0,
-      contextId: '',
-      isOffScreen: false,
-      skeleton: true,
-    });
+  static skeleton<T extends BaseStruct>(traceId?: string): TraceRow<T> {
+    let tr = new TraceRow<T>(
+      {
+        alpha: false,
+        canvasNumber: 0,
+        contextId: '',
+        isOffScreen: false,
+        skeleton: true,
+      },
+      traceId
+    );
     tr.isTransferCanvas = true;
     return tr;
   }
@@ -389,7 +402,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   set rangeSelect(value: boolean) {
-    this._rangeSelect = value;
+    this._rangeSelect = value && this.traceId === Utils.currentSelectTrace;
   }
 
   sleeping: boolean = false;
@@ -402,12 +415,21 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.setAttribute('row-type', val || '');
   }
 
+  get traceId(): string | undefined | null {
+    return this.getAttribute('trace-id');
+  }
+
+  set traceId(val) {
+    this.setAttribute('trace-id', val || '');
+  }
+
   get rowId(): string | undefined | null {
     return this.getAttribute('row-id');
   }
 
   set rowId(val) {
-    this.setAttribute('row-id', val || '');
+    let id = this.traceId ? `${val || ''}-${this.traceId}` : `${val || ''}`;
+    this.setAttribute('row-id', id);
   }
 
   get rowParentId(): string | undefined | null {
@@ -482,6 +504,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     if (value) {
       this.updateChildRowStatus();
     } else {
+      this.sticky = false;
       this.childRowToFragment(false);
     }
     if (value) {
@@ -559,8 +582,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   };
 
-  //@ts-ignore
-  getHoverStruct(strict: boolean = true, offset: boolean = false, maxKey?: string): T | undefined {
+  getHoverStruct(
+    strict: boolean = true,
+    offset: boolean = false,
+    maxKey: string | undefined = undefined
+  ): T | undefined {
     if (this.isHover) {
       if (maxKey) {
         let arr = this.dataListCache
@@ -574,6 +600,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
     }
   }
+
   // @ts-ignore
   addChildTraceRow(child: TraceRow<unknown>): void {
     // @ts-ignore
@@ -585,6 +612,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     child.rowHidden = false;
     this.fragment.appendChild(child);
   }
+
   // @ts-ignore
   addChildTraceRowAfter(child: TraceRow<unknown>, targetRow: TraceRow<unknown>): void {
     // @ts-ignore
@@ -620,15 +648,14 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  addRowSampleUpload(): void {
+  addRowSampleUpload(type: string = 'application/json'): void {
     this.sampleUploadEl = document.createElement('div');
     this.sampleUploadEl!.className = 'upload';
     this.sampleUploadEl!.innerHTML = `
-      <input id="file" class="file" accept="application/json"  type="file" style="display:none;pointer-events:none"/>
-      <label for="file" style="cursor:pointer">
-        <lit-icon class="folder" name="copy-csv" size="19"></lit-icon>
-      </label>
-    `;
+    <input id="file" class="file" accept="${type}"  type="file" style="display:none;pointer-events:none"/>
+    <label for="file" style="cursor:pointer">
+      <lit-icon class="folder" name="copy-csv" size="19"></lit-icon>
+    </label>`;
     this.jsonFileEl = this.sampleUploadEl!.querySelector('.file') as HTMLInputElement;
     this.sampleUploadEl!.addEventListener('change', () => {
       let files = this.jsonFileEl!.files;
@@ -693,6 +720,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         'VSync-app',
         'render_service',
         'RSUniRenderThre',
+        'Release Fence',
         'Acquire Fence',
         'RSHardwareThrea',
         'Present Fence',
@@ -760,6 +788,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
     if (this.folder) {
       this.childrenList.forEach((it) => (it.checkType = value));
+    }
+    if (this.refreshCheckType()) {
+      return;
     }
     this.setAttribute('check-type', value);
     if (this.hasAttribute('disabled-check')) {
@@ -913,10 +944,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       event.stopPropagation();
     });
 
-    window.addEventListener('storage', (e): void => {
+    let that = this;
+    window.addEventListener('storage', function (e): void {
       if (e.storageArea === sessionStorage) {
         if (e.key === 'freqInfoData') {
-          this.onRowCheckFileChangeHandler?.();
+          that.onRowCheckFileChangeHandler?.();
         }
       }
     }); // @ts-ignore
@@ -945,8 +977,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   addRowSettingPop(): void {
+    let nameEl = this.shadowRoot?.querySelector('.name') as HTMLLabelElement;
+    nameEl.style.maxWidth = '160px';
+    let collectEl = this.shadowRoot?.querySelector('.collect') as LitIcon;
+    collectEl.style.marginRight = '20px';
     this.rowSettingPop = document.createElement('lit-popover') as LitPopover;
-    this.rowSettingPop.innerHTML = `<div slot="content" id="settingList" style="display: block;height: auto;max-height:200px;overflow-y:auto">
+    this.rowSettingPop.innerHTML = `<div slot="content" id="settingList"
+      style="display: block;height: auto;max-height:200px;overflow-y:auto">
       <lit-tree id="rowSettingTree" checkable="true"></lit-tree>
       </div>
       <lit-icon name="setting" size="19" id="setting"></lit-icon>`;
@@ -957,6 +994,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.rowSettingPop.setAttribute('haveRadio', 'true');
     this.rowSettingTree = this.rowSettingPop.querySelector('#rowSettingTree') as LitTree;
     this.rowSettingTree.onChange = (): void => {
+      TraceRow.ROW_TYPE_HIPERF_THREADTYPE = [];
       let isVisible = false;
       // @ts-ignore
       this.rowSettingPop!.visible = isVisible;
@@ -964,7 +1002,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         isVisible = true;
       }
       // @ts-ignore
-      this.rowSettingPop!.visible = isVisible; //@ts-ignore
+      this.rowSettingPop!.visible = isVisible;
+      TraceRow.ROW_TYPE_HIPERF_THREADTYPE.push(Number(this.rowSettingTree!.getCheckdKeys())) //@ts-ignore
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
     };
     this.rowSettingPop?.addEventListener('mouseenter', (): void => {
@@ -981,26 +1020,30 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     return [];
   }
 
-  expandFunc(): void {
+  //@ts-ignore
+  expandFunc(rootRow: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (this._enableCollapseChart && !this.funcExpand) {
+      let foldHeight = Number(this.style.height.substring(0, this.style.height.length - 2));
       this.style.height = `${this.funcMaxHeight}px`;
       this.funcExpand = true;
+      rootRow.needRefresh = true;
+      sp.refreshCanvas(true);
       if (this.collect) {
         window.publish(window.SmartEvent.UI.RowHeightChange, {
           expand: this.funcExpand,
-          value: this.funcMaxHeight - 20,
+          value: this.funcMaxHeight - foldHeight,
         });
       }
     }
   }
 
-  enableCollapseChart(): void {
+  enableCollapseChart(H: number, trace: unknown): void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = (): void => {
-      if (this.funcMaxHeight > 20 || this.clientHeight > 20) {
+      if (this.funcMaxHeight > H || this.clientHeight > H) {
         if (this.funcExpand) {
           this.funcMaxHeight = this.clientHeight;
-          this.style.height = '20px';
+          this.style.height = H + 'px';
           this.funcExpand = false;
         } else {
           this.style.height = `${this.funcMaxHeight}px`;
@@ -1008,11 +1051,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
         TraceRow.range!.refresh = true;
         this.needRefresh = true;
-        this.draw(false);
+        //@ts-ignore
+        trace.refreshCanvas(true);
         if (this.collect) {
           window.publish(window.SmartEvent.UI.RowHeightChange, {
             expand: this.funcExpand,
-            value: this.funcMaxHeight - 20,
+            value: this.funcMaxHeight - H,
           });
         }
       }
@@ -1276,11 +1320,22 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
+  refreshCheckType(): boolean {
+    if (!this.rangeSelect && this.traceId !== Utils.currentSelectTrace) {
+      this.checkBoxEL!.style.display = 'none';
+      this.rangeSelect = false;
+      this.removeAttribute('check-type');
+      return true;
+    }
+    return false;
+  }
+
   draw(useCache: boolean = false): void {
     this.dpr = window.devicePixelRatio || 1;
     if (this.sleeping) {
       return;
     }
+    this.refreshCheckType();
     if (this.supplierFrame) {
       //如果设置了实时渲染,则调用drawFrame
       this.drawFrame();
@@ -1472,14 +1527,22 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  focusContain(e: MouseEvent, inFavoriteArea: boolean): boolean {
+  focusContain(e: MouseEvent, inFavoriteArea: boolean, prevScrollY: number = 0,favoriteHeight: number): boolean {
     let _y = (e.currentTarget as HTMLElement).getBoundingClientRect().y;
     let myRect = this.getBoundingClientRect();
     let x = e.offsetX;
     let y = e.offsetY + _y;
-    if (x >= myRect.x && x <= myRect.x + myRect.width && y >= myRect.y && y <= myRect.y + myRect.height) {
+    let rectY = myRect.y;
+    let rectHeight = myRect.height;
+    if (!inFavoriteArea && favoriteHeight !== undefined) {
+      y = e.offsetY + prevScrollY - 90 - favoriteHeight!;
+      rectY = this.offsetTop;
+      rectHeight = this.clientHeight;
+    }
+    if (x >= myRect.x && x <= myRect.x + myRect.width && y >= rectY &&
+      y <= rectY + rectHeight) {
       this.hoverX = x - this.describeEl!.clientWidth;
-      this.hoverY = y - myRect.y;
+      this.hoverY = y - rectY;
       this.isHover = this.collect === inFavoriteArea;
       return true;
     } else {

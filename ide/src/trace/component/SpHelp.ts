@@ -23,6 +23,9 @@ import { EventDefinition, eventDefinitions } from '../enums/helpDocEnums';
 @element('sp-help')
 export class SpHelp extends BaseElement {
   private appContent: HTMLElement | undefined | null;
+  private helpFile: HTMLElement | undefined | null;
+  private navbarContainer: HTMLElement | undefined | null;
+  private backToTop: HTMLElement | undefined | null;
 
   get dark(): boolean {
     return this.hasAttribute('dark');
@@ -34,15 +37,20 @@ export class SpHelp extends BaseElement {
     } else {
       this.removeAttribute('dark');
     }
-    this.appContent!.innerHTML =
+    this.helpFile!.innerHTML =
       '<object type="text/html" data=' +
       `/application/doc/quickstart_device_record.html?${dark} width="100%" height="100%"></object>`;
+    this.navbarInit('quickstart_device_record');
   }
 
   initElements(): void {
+    let that = this;
     let parentElement = this.parentNode as HTMLElement;
     parentElement.style.overflow = 'hidden';
     this.appContent = this.shadowRoot?.querySelector('#app-content') as HTMLElement;
+    this.helpFile = this.shadowRoot?.querySelector('#help-file') as HTMLElement;
+    this.navbarContainer = this.shadowRoot?.querySelector('#navbar-container') as HTMLElement;
+    this.backToTop = this.shadowRoot?.querySelector('.back') as HTMLElement;
     let mainMenu = this.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
     let header = mainMenu.shadowRoot?.querySelector('.header') as HTMLDivElement;
     let color = mainMenu.shadowRoot?.querySelector('.customColor') as HTMLDivElement;
@@ -50,7 +58,7 @@ export class SpHelp extends BaseElement {
     color.style.display = 'none';
     header.style.display = 'none';
     version.style.display = 'none';
-    this.setupMainMenu(mainMenu, this);
+    this.setupMainMenu(mainMenu, that);
     mainMenu.style.width = '330px';
     let body = mainMenu.shadowRoot?.querySelector('.menu-body') as HTMLDivElement;
     let groups = body.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
@@ -73,17 +81,18 @@ export class SpHelp extends BaseElement {
     });
     let urlParams = new URL(window.location.href).searchParams;
     if (urlParams && urlParams.get('action') && urlParams.get('action')!.length > 4) {
-      this.itemHelpClick(urlParams);
+      this.itemHelpClick(urlParams, that);
     }
   }
 
-  private itemHelpClick(urlParams: URLSearchParams): void {
+  private itemHelpClick(urlParams: URLSearchParams, that: this): void {
     if (urlParams.get('action')!.length > 4) {
       let helpDocIndex = urlParams.get('action')!.substring(5);
       let helpDocDetail = this.getEventDefinitionByIndex(Number(helpDocIndex));
-      this.appContent!.innerHTML = `<object type="text/html" data='/application/doc/${helpDocDetail!.name}.html?${
-        this.dark
+      that.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${helpDocDetail!.name}.html?${that.dark
       }' width="100%" height="100%"></object>`;
+
+    this.navbarInit(helpDocDetail!.name);
     }
   }
 
@@ -253,8 +262,52 @@ export class SpHelp extends BaseElement {
       event: event,
       action: 'help_doc',
     });
-    that.appContent!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?${that.dark}' width="100%" height="100%"></object>`;
+    that.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?${that.dark}' width="100%" height="100%"></object>`;
+    this.navbarInit(docName);
     this.changeItemURL(index!);
+  }
+
+  private navbarInit(docName: string): void {
+    fetch(`/application/doc/${docName}.html`)
+      .then(response => response.text())
+      .then(htmlString => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlString, "text/html");
+
+        const hTags = Array.from(doc.body.querySelectorAll('h1, h2, h3, h4, h5, h6')).map((header) => ({
+          id: header.id,
+          text: header.textContent!.trim()
+        }));
+        this.navbarContainer!.innerHTML = `<ul id="nav-links">${hTags.map(hTag => {
+          if (hTag.id) return `<li class="tooltip"><a id="${hTag.id}" data-full-text="${hTag.text}">${hTag.text}</a><span class="tooltiptext" id="tooltip-${hTag.id}">${hTag.text}</span>
+          </li>`;
+        }).join('')
+          }</ul>`;
+
+        let navLinks = this.navbarContainer!.querySelectorAll('#nav-links a');
+        navLinks.forEach((navLink) => {
+          navLink.addEventListener('click', (e) => {
+            let lis = this.navbarContainer!.querySelectorAll('#nav-links li');
+            lis.forEach(li => li.classList.remove('active'));
+            navLink.closest('li')!.classList.add('active');
+            let targetId = navLink.id;
+            e.preventDefault();
+            this.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?dark=${this.dark}&targetId=${targetId}' width="100%" height="100%"></object>`;
+          })
+        })
+        
+        this.backToTop!.querySelector('#back-to-top')!.addEventListener('click', (e)=> { 
+          e.preventDefault(); 
+          navLinks.forEach((navLink) => {  
+            navLink.closest('li')?.classList.remove('active');  
+        });
+          this.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?dark=${this.dark}' width="100%" height="100%"></object>`;
+      });
+
+      })
+      .catch(error => {
+        console.error('Error fetching and modifying HTML:', error);
+      });
   }
 
   private changeItemURL(index: string): void {
@@ -478,29 +531,119 @@ export class SpHelp extends BaseElement {
             background-color: var(--dark-background5,#F6F6F6);
         }
         .body{
-            width: 90%;
-            margin-left: 3%;
+            width: 99%;
+            margin-left: 15px;
             display: grid;
             grid-template-columns: min-content  1fr;
-            background-color: var(--dark-background3,#FFFFFF);
             border-radius: 16px 16px 16px 16px;
         }
 
         .content{
-          background: var(--dark-background3,#FFFFFF);
           border-style: none none none solid;
           border-width: 1px;
           border-color: rgba(166,164,164,0.2);
           border-radius: 0px 16px 16px 0px;
-          padding: 40px 20px 40px 20px;
+          padding-left:15px;
           display: flex;
+          overflow-y: hidden;
+          box-sizing: border-box;
         }
+        #navbar-container { 
+          border-left: 5px solid #ecb829;
+        }
+        #navbar-container ul {  
+          list-style-type: none; 
+          width:100%;
+          margin: 0;  
+          padding: 0;
+        } 
+        #navbar-container ul li { 
+          position: relative;
+          width:100%;
+          height:30px;
+          line-height:30px; 
+          text-align: left;
+          padding: 0 10px;
+          box-sizing: border-box;
+          border: none; 
+          margin: 0;
+        } 
+        #navbar-container ul li a {  
+          width:100%;
+          height:100%;
+          color: black;
+          font-family: Helvetica;
+          font-size: 14px;
+          text-decoration: none;  
+          display: block; 
+          padding: 0;  
+          border: none;
+          white-space: nowrap; 
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }  
+        #navbar-container ul li:hover,  
+        #navbar-container ul li:focus {  
+          color: #ecb829;
+          cursor: pointer;
+        } 
+        #navbar-container ul li:hover a,  
+        #navbar-container ul li:focus a {
+          color: #ecb829;
+        }
+        #navbar-container ul li .tooltiptext { 
+          position: absolute;   
+          bottom: 0;
+          left: 50%; 
+          transform: translateX(-50%);
+          visibility: hidden;  
+          width: 100%; 
+          background-color: #ecb829;  
+          color: #fff;
+          font-family: Helvetica;
+          font-size: 14px;  
+          text-align: center; 
+          border-radius: 6px;  
+          padding: 5px 5px; 
+          margin-left:5px; 
+          position: absolute;  
+          z-index: 1;  
+          opacity: 0;  
+          transition: opacity 0.3s;  
+          margin-bottom: 40px; 
+          &::after {  
+              content: '';  
+              position: absolute;  
+              bottom: -10px;
+              left: 50%; 
+              margin-left: -10px; 
+              width: 0;  
+              height: 0; 
+              border-style: solid;  
+              border-width: 10px 10px 0 10px; 
+              border-color: #ecb829 transparent transparent transparent; 
+            }  
+         } 
+         #navbar-container ul li.tooltip:hover .tooltiptext {  
+          visibility: visible;  
+          opacity: 1;  
+         }   
+         #navbar-container ul li.active, #navbar-container ul li.active a {  
+          color: #ecb829;  
+         }
 
         </style>
         <div class="sp-help-vessel">
          <div class="body">
             <lit-main-menu id="main-menu" class="menugroup" data=''></lit-main-menu>
             <div id="app-content" class="content">
+               <div id="help-file" style="width:100%;overflow-y: hidden;"></div>
+                      <nav id="navbar-container" style="position:fixed;top:80px;left:79%;width:18%;"></nav>
+                      <div class="back" style="position:fixed;top:80px;left:98%;width:2%;">
+                          <lit-icon id="back-to-top" name="vertical-align-top" style="font-weight: bold;cursor: pointer;" size="20">
+                          </lit-icon>
+                      </div>
+               </div>
             </div>
          </div>
         </div>

@@ -69,6 +69,12 @@ export const SearchHtml = `
         :host(:not([show-search-info])) .search-info{
             display: none;
         }
+        :host(:not([distributed])) #trace_select{
+            display: none;
+        }
+        :host([distributed]) #trace_select{
+            display: block;
+        }
         .search-info span{
             color:#ABABAB;
         }
@@ -129,13 +135,22 @@ export const SearchHtml = `
             padding-right: 20px;
             padding-left: 45px;
         }
+        #trace_selector{
+            position: unset;
+            width: 100px;
+            margin-left: -10px;
+            border:none;
+        }
         input[name="retarge_index"]{
           width:100px!important;
         }
         </style>
         <div class="root" style="display: none">
-            <lit-icon id="search-icon" name="search" size="22" color="#aaaaaa">
-            </lit-icon>
+            <div id="trace_select" style="border-right: 1px solid var(--dark-border,#c5c5c5)">
+                <lit-select id="trace_selector" default-value="1" placement="bottom"></lit-select>
+            </div>
+            <lit-icon id="search-icon" name="search" size="22" color="#aaaaaa"></lit-icon>
+
             <input name="search" class="readonly" placeholder="Search" readonly/>
             <div class="search-info">
                 <span id="index">0</span><span>/</span><span id="total">0</span>

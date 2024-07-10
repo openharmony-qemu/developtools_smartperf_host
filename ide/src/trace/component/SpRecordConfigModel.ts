@@ -15,16 +15,14 @@
 
 import {
   ArkTSConfig,
-  CreateSessionRequest,
+  CreateSessionRequest, FFRTConfig,
   FpsConfig,
   HiebpfConfig,
   HilogConfig,
   HiperfPluginConfig,
-  HiSystemEventConfig,
   levelFromJSON,
   MemoryConfig,
   NativeHookConfig,
-  ProfilerPluginConfig,
   ProfilerSessionConfig,
   ProfilerSessionConfigBufferConfig,
   ProfilerSessionConfigBufferConfigPolicy,
@@ -45,6 +43,7 @@ import { SpSdkConfig } from './setting/SpSdkConfig';
 import { SpHisysEvent } from './setting/SpHisysEvent';
 import { SpArkTs } from './setting/SpArkTs';
 import { SpHilogRecord } from './setting/SpHilogRecord';
+import { SpFFRTConfig } from './setting/SpFFRTConfig';
 
 export const MEM_INFO = [
   'MEMINFO_ACTIVE',
@@ -630,7 +629,7 @@ function initHiPerfConfig(perfConfig: PerfConfig | undefined, recordArgs: string
     recordArgs = `${recordArgs} --offcpu`;
   }
   if (perfConfig?.isKernelChain) {
-    recordArgs = `${recordArgs} --kernel-chain`;
+    recordArgs = `${recordArgs} --kernel-callchain`;
   }
   if (perfConfig.noInherit) {
     recordArgs = `${recordArgs} --no-inherit`;
@@ -826,6 +825,39 @@ export function createHiLogConfig(
     sampleInterval: reportingFrequency * 1000,
     configData: hiLogConfig,
   });
+}
+
+export function createFFRTPluginConfig(
+  currentConfigPage: SpFFRTConfig,
+  selectVersion: string | null,
+  request: CreateSessionRequest
+): void {
+  if (currentConfigPage &&
+    (
+      currentConfigPage.processIds.length > 0 ||
+      currentConfigPage.restartProcessNames.length > 0 ||
+      currentConfigPage.startupProcessNames.length > 0
+    ) &&
+    currentConfigPage.startSamp) {
+    let config: FFRTConfig = {};
+    if (currentConfigPage.processIds.length > 0) {
+      config.pid = currentConfigPage.processIds;
+    }
+    if (currentConfigPage.startupProcessNames.length > 0) {
+      config.startupProcessName = currentConfigPage!.startupProcessNames;
+    }
+    if (currentConfigPage.restartProcessNames.length > 0) {
+      config.restartProcessName = currentConfigPage.restartProcessNames;
+    }
+    config.smbPages = currentConfigPage.smbPages;
+    config.flushInterval = currentConfigPage.flushInterval;
+    config.block = currentConfigPage.useBlock;
+    config.clockId = currentConfigPage!.clockType;
+    request.pluginConfigs.push({
+      pluginName: 'ffrt-profiler',
+      configData: config,
+    });
+  }
 }
 
 export function createTraceEvents(traceConfig: Array<string>): Array<string> {

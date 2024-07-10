@@ -26,7 +26,7 @@ import { SliceGroup } from '../../../../bean/StateProcessThread';
 export class TabPaneBinders extends BaseElement {
   private threadBindersTbl: LitTable | null | undefined;
   private threadBindersTblSource: Array<SelectionData> = [];
-  private currentSelectionParam: Selection | undefined;
+  private currentSelectionParam: SelectionParam | undefined;
 
   set data(threadStatesParam: SelectionParam | any) {
     if (this.currentSelectionParam === threadStatesParam) {
@@ -140,7 +140,8 @@ export class TabPaneBinders extends BaseElement {
 
   initElements(): void {
     this.threadBindersTbl = this.shadowRoot?.querySelector<LitTable>('#tb-binder-count');
-    this.threadBindersTbl!.itemTextHandleMap.set('title', Utils.transferBinderTitle);
+    this.threadBindersTbl!.itemTextHandleMap.set('title', (value) =>
+      Utils.transferBinderTitle(value, this.currentSelectionParam?.traceId));
   }
 
   connectedCallback(): void {

@@ -55,9 +55,11 @@ export class TabPaneThreadUsage extends BaseElement {
     }
     // @ts-ignore
     this.currentSelectionParam = threadUsageParam;
-    if (this.cpuCount !== CpuStruct.cpuCount) {
-      this.cpuCount = CpuStruct.cpuCount;
-      this.threadUsageTbl!.innerHTML = this.getTableColumns();
+    // @ts-ignore
+    let traceId = threadUsageParam.traceId;
+    if (this.cpuCount !== Utils.getInstance().getCpuCount(traceId)) {
+      this.cpuCount = Utils.getInstance().getCpuCount(traceId); // @ts-ignore
+      this.threadUsageTbl!.innerHTML = this.getTableColumns(traceId);
     }
     //@ts-ignore
     this.threadUsageTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
@@ -114,9 +116,9 @@ export class TabPaneThreadUsage extends BaseElement {
             map.get(resultEl.tid).wallDurationTimeStr = getThreadUsageProbablyTime(map.get(resultEl.tid).wallDuration);
           } else {
             // @ts-ignore
-            let process = Utils.PROCESS_MAP.get(resultEl.pid);
+            let process = Utils.getInstance().getProcessMap(threadUsageParam.traceId).get(resultEl.pid);
             // @ts-ignore
-            let thread = Utils.THREAD_MAP.get(resultEl.tid);
+            let thread = Utils.getInstance().getThreadMap(threadUsageParam.traceId).get(resultEl.tid);
             let threadStatesStruct: unknown = {
               // @ts-ignore
               tid: resultEl.tid,
@@ -161,9 +163,9 @@ export class TabPaneThreadUsage extends BaseElement {
     }
   }
 
-  getTableColumns(): string {
+  getTableColumns(traceId?: string | null): string {
     let threadUsageHtml = `${this.pubColumns}`;
-    let cpuCount = CpuStruct.cpuCount;
+    let cpuCount = Utils.getInstance().getCpuCount(traceId);
     for (let index = 0; index < cpuCount; index++) {
       threadUsageHtml = `${threadUsageHtml}
             <lit-table-column width="100px" title="cpu${index}(μs)" data-index="cpu${index}TimeStr" 

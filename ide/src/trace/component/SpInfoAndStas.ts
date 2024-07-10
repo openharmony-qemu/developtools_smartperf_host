@@ -90,7 +90,7 @@ export class SpInfoAndStats extends BaseElement {
     this.metaTableEl!.style.height = 'auto';
     this.metaTableEl!.style.minHeight = '80%';
     this.metaTableEl!.style.borderRadius = '16';
-    this.infoTableEl!.style.height = 'auto';
+    this.infoTableEl!.style.height = '300px';
     this.infoTableEl!.style.minHeight = '80%';
     this.infoTableEl!.style.borderRadius = '16';
   }

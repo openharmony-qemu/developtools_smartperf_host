@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-import { CpuFreqLimitsStruct } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
-import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock';
-import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq';
 import { FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
 import { FrameDynamicStruct } from '../database/ui-worker/ProcedureWorkerFrameDynamic';
 import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrameAnimation';
@@ -34,8 +31,10 @@ import { LitTabs } from '../../base-ui/tabs/lit-tabs';
 import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
+import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 
 export class SelectionParam {
+  traceId: string | undefined | null;
   recordStartNs: number = 0;
   leftNs: number = 0;
   rightNs: number = 0;
@@ -69,11 +68,12 @@ export class SelectionParam {
     string,
     ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
   >();
+  dmaFenceNameData: Array<String> = [];//新增框选dma_fence数据
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
   funTids: Array<number> = [];
   funAsync: Array<{ name: string; pid: number }> = [];
-  funCatAsync: Array<{ pid: number;threadName: string }> = [];
+  funCatAsync: Array<{ pid: number; threadName: string }> = [];
   nativeMemory: Array<String> = [];
   nativeMemoryStatistic: Array<String> = [];
   nativeMemoryAllProcess: Array<{ pid: number; ipid: number }> = [];
@@ -112,11 +112,11 @@ export class SelectionParam {
     gpuTotal: boolean;
     gpuWindow: boolean;
   } = {
-    gl: false,
-    graph: false,
-    gpuWindow: false,
-    gpuTotal: false,
-  };
+      gl: false,
+      graph: false,
+      gpuWindow: false,
+      gpuTotal: false,
+    };
   purgeableTotalAbility: Array<unknown> = [];
   purgeableTotalVM: Array<unknown> = [];
   purgeablePinAbility: Array<unknown> = [];
@@ -132,6 +132,7 @@ export class SelectionParam {
   sysAlllogsData: Array<LogStruct> = [];
   hiSysEvents: Array<string> = [];
   sampleData: Array<unknown> = [];
+  gpuCounter: Array<unknown> = [];
 
   // @ts-ignore
   pushSampleData(it: TraceRow<unknown>): void {
@@ -246,10 +247,20 @@ export class SelectionParam {
           this.threadIds.push(parseInt(th.rowId!));
         } else if (th.rowType === TraceRow.ROW_TYPE_FUNC) {
           if (th.asyncFuncName) {
-            this.funAsync.push({
-              name: th.asyncFuncName,
-              pid: th.asyncFuncNamePID || 0,
-            });
+            if (typeof th.asyncFuncName === 'string') {
+              this.funAsync.push({
+                name: th.asyncFuncName,
+                pid: th.asyncFuncNamePID || 0,
+              });
+            } else {
+              for (let i = 0; i < th.asyncFuncName.length; i++) {
+                const el = th.asyncFuncName[i];
+                this.funAsync.push({
+                  name: el,
+                  pid: th.asyncFuncNamePID || 0,
+                });
+              }
+            }
           } else if (th.asyncFuncThreadName) {
             if (typeof th.asyncFuncThreadName === 'string') {
               this.funCatAsync.push({
@@ -309,10 +320,21 @@ export class SelectionParam {
       TabPaneTaskFrames.TaskArray = [];
       sp.pushPidToSelection(this, it.rowParentId!);
       if (it.asyncFuncName) {
-        this.funAsync.push({
-          name: it.asyncFuncName,
-          pid: it.asyncFuncNamePID || 0,
-        });
+        if (typeof it.asyncFuncName === 'string') {
+          this.funAsync.push({
+            name: it.asyncFuncName,
+            pid: it.asyncFuncNamePID || 0,
+          });
+        } else {
+          //@ts-ignore
+          for (let i = 0; i < it.asyncFuncName.length; i++) {
+            const el = it.asyncFuncName[i];
+            this.funAsync.push({
+              name: el,
+              pid: it.asyncFuncNamePID || 0,
+            });
+          }
+        }
       } else if (it.asyncFuncThreadName) {
         if (typeof it.asyncFuncThreadName === 'string') {
           this.funCatAsync.push({
@@ -323,7 +345,7 @@ export class SelectionParam {
           for (let i = 0; i < it.asyncFuncThreadName.length; i++) {
             const tn = it.asyncFuncThreadName[i];
             this.funCatAsync.push({
-              pid: it.asyncFuncNamePID || 0,//@ts-ignore 
+              pid: it.asyncFuncNamePID || 0, //@ts-ignore
               threadName: tn
             });
           }
@@ -334,8 +356,8 @@ export class SelectionParam {
 
       let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct): boolean =>
         Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
-          Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
-          filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
+        Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
+        filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
         filterFunc.funName!.indexOf('H:Task ') >= 0;
       // @ts-ignore
       let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
@@ -465,6 +487,13 @@ export class SelectionParam {
 
   // @ts-ignore
   pushFileSystem(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM_GROUP) {
+      it.childrenList.forEach((child) => {
+        child.rangeSelect = true;
+        child.checkType = '2';
+        this.pushFileSystem(child,sp);
+      });
+    }
     if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM) {
       if (it.rowId === 'FileSystemLogicalWrite') {
         if (this.fileSystemType.length === 0) {
@@ -604,7 +633,7 @@ export class SelectionParam {
     if (it.rowType === TraceRow.ROW_TYPE_JANK) {
       let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct): boolean =>
         Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
-          Math.min(filterJank.ts!, rangeData!.startNS || 0) <
+        Math.min(filterJank.ts!, rangeData!.startNS || 0) <
         filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
       if (it.name === 'Actual Timeline') {
         if (it.rowParentId === 'frameTime') {
@@ -643,8 +672,7 @@ export class SelectionParam {
       const [rangeStart, rangeEnd] = [TraceRow.range?.startNS, TraceRow.range?.endNS];
       const startNS = TraceRow.rangeSelectObject?.startNS || rangeStart;
       const endNS = TraceRow.rangeSelectObject?.endNS || rangeEnd;
-      let minNodeId;
-      let maxNodeId;
+      let minNodeId, maxNodeId;
       if (!it.dataListCache || it.dataListCache.length === 0) {
         return;
       }
@@ -702,18 +730,20 @@ export class SelectionParam {
         // @ts-ignore
         return isIntersect(frameSelectData, TraceRow.rangeSelectObject!);
       });
-      let copyFrameSelectData = JSON.parse(JSON.stringify(frameSelectData)) as Array<JsCpuProfilerChartFrame>;
+      let copyFrameSelectData = JSON.parse(JSON.stringify(frameSelectData));
       let frameSelectDataIdArr: Array<number> = [];
       for (let data of copyFrameSelectData) {
         frameSelectDataIdArr.push(data.id);
       }
-      let jsCpuProfilerData = copyFrameSelectData.filter((item: JsCpuProfilerChartFrame): unknown => {
-        if (item.depth !== 0) {
-          return;
+      let jsCpuProfilerData = copyFrameSelectData.filter((item: unknown) => {
+        // @ts-ignore
+        if (item.depth === 0) {
+          // @ts-ignore
+          setSelectState(item, frameSelectDataIdArr);
+          // @ts-ignore
+          item.isSelect = true;
+          return item;
         }
-        setSelectState(item, frameSelectDataIdArr);
-        item.isSelect = true;
-        return item;
       });
       this.jsCpuProfilerData = jsCpuProfilerData;
     }
@@ -903,7 +933,7 @@ export class SelectionParam {
     if (it.rowType === TraceRow.ROW_TYPE_FRAME_ANIMATION) {
       let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct): boolean =>
         Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
-          Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
+        Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
         animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
       // @ts-ignore
       let frameAnimationList = it.dataListCache.filter((frameAnimationBean: FrameAnimationStruct) => {
@@ -976,8 +1006,14 @@ export class SelectionParam {
 
   // @ts-ignore
   pushThread(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    this.perfEventTypeId = TraceRow.ROW_TYPE_HIPERF_THREADTYPE[0] === -2 ? undefined : TraceRow.ROW_TYPE_HIPERF_THREADTYPE[0];
     if (it.rowType === TraceRow.ROW_TYPE_THREAD) {
       sp.pushPidToSelection(this, it.rowParentId!);
+      if(it.dataListCache && it.dataListCache.length) {
+        //@ts-ignore
+        let hiTid = it.dataListCache[0]!.tid;
+        this.perfThread.push(parseInt(hiTid))
+      }
       this.threadIds.push(parseInt(it.rowId!));
       info('load thread traceRow id is : ', it.rowId);
     }
@@ -1091,6 +1127,13 @@ export class SelectionParam {
     }
   }
 
+    //匹配id
+    pushDmaFence(it: TraceRow<any>, sp: SpSystemTrace) {
+      if (it.rowType === TraceRow.ROW_TYPE_DMA_FENCE) {
+        this.dmaFenceNameData.push(it.rowId!);
+      }
+    }
+
   // @ts-ignore
   pushGpuMemoryVmTracker(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
@@ -1200,6 +1243,7 @@ export class SelectionParam {
     this.pushVmTracker(it, sp);
     this.pushVmTrackerShm(it, sp);
     this.pushClock(it, sp);
+    this.pushDmaFence(it, sp);
     this.pushGpuMemoryVmTracker(it, sp);
     this.pushDmaVmTracker(it, sp);
     this.pushPugreable(it, sp);
@@ -1210,6 +1254,7 @@ export class SelectionParam {
 }
 
 export class BoxJumpParam {
+  traceId: string | undefined | null;
   leftNs: number = 0;
   rightNs: number = 0;
   cpus: Array<number> = [];
@@ -1262,4 +1307,13 @@ export class Fps {
   startNS: number = 0;
   timeStr: string = '';
   fps: number = 0;
+}
+
+export class GpuCounter {
+  startNS: number = 0;
+  height: number = 0;
+  dur: number = 0;
+  type: string = '';
+  startTime: number = 0;
+  frame: object = {};
 }

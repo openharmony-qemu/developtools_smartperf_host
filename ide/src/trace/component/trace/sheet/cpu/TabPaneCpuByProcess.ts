@@ -46,7 +46,8 @@ export class TabPaneCpuByProcess extends BaseElement {
     this.cpuByProcessTbl!.recycleDataSource = [];
     this.cpuByProcessTbl!.loading = true;
     // @ts-ignore
-    getTabCpuByProcess(cpuByProcessValue.cpus, cpuByProcessValue.leftNs, cpuByProcessValue.rightNs).then((result) => {
+    getTabCpuByProcess(cpuByProcessValue.cpus, cpuByProcessValue.leftNs, // @ts-ignore
+      cpuByProcessValue.rightNs, cpuByProcessValue.traceId).then((result): void => {
       this.cpuByProcessTbl!.loading = false;
       if (result !== null && result.length > 0) {
         log(`getTabCpuByProcess size :${result.length}`);
@@ -54,7 +55,7 @@ export class TabPaneCpuByProcess extends BaseElement {
         let sumOcc = 0;
         for (let e of result) {
           //@ts-ignore
-          let process = Utils.PROCESS_MAP.get(e.pid); //@ts-ignore
+          let process = Utils.getInstance().getProcessMap(cpuByProcessValue.traceId).get(e.pid); //@ts-ignore
           e.process = !process || process.length === 0 ? '[NULL]' : process; //@ts-ignore
           sumWall += e.wallDuration; //@ts-ignore
           sumOcc += e.occurrences; //@ts-ignore

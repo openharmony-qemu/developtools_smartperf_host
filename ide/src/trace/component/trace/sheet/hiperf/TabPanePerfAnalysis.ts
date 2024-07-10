@@ -204,7 +204,7 @@ export class TabPanePerfAnalysis extends BaseElement {
       const detail = evt.detail;
       // @ts-ignore
       const data = detail.data;
-      if (detail.button === 0 && data.tableName !== '' && data.count !== 0) {
+      if (detail.button === 0 && data.tableName && data.count !== 0) {
         clickEvent(data, this.currentSelection);
       }
     });

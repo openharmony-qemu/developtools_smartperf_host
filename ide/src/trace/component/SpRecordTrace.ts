@@ -60,12 +60,16 @@ import {
   createSdkConfig,
   createHiSystemEventPluginConfig,
   createArkTsConfig,
-  createHiLogConfig,
+  createHiLogConfig, createFFRTPluginConfig,
 } from './SpRecordConfigModel';
 import { SpRecordTraceHtml } from './SpRecordTrace.html';
+import { SpFFRTConfig } from './setting/SpFFRTConfig';
 
 const DEVICE_NOT_CONNECT =
-  '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill,然后重新添加设备。若还没有效果，请重新插拔一下手机。';
+'<div>1.请关闭DevEco Studio,DevEco Testing等会占用hdc端口的应用</div>' +
+'<div>2.请使用系统管理员权限打开cmd窗口，并执行hdc kill，确保PC端任务管理器中没有hdc进程</div>' +
+'<div>3.若没有效果，请重新插拔一下手机</div>' +
+'<div>紧急情况可拷贝trace命令，在cmd窗口离线抓取</div>';
 
 @element('sp-record-trace')
 export class SpRecordTrace extends BaseElement {
@@ -98,6 +102,7 @@ export class SpRecordTrace extends BaseElement {
   private spRecordTemplate: SpRecordTemplate | undefined;
   private spArkTs: SpArkTs | undefined;
   private spHiLog: SpHilogRecord | undefined;
+  private spFFRTConfig: SpFFRTConfig | undefined;
   private ftraceSlider: LitSlider | undefined | null;
   private spWebShell: SpWebHdcShell | undefined;
   private menuGroup: LitMainMenuGroup | undefined | null;
@@ -169,7 +174,7 @@ export class SpRecordTrace extends BaseElement {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
-          this.hintEl!.textContent = DEVICE_NOT_CONNECT;
+          this.hintEl!.innerHTML = DEVICE_NOT_CONNECT;
           if (!this.showHint) {
             this.showHint = true;
           }
@@ -207,7 +212,7 @@ export class SpRecordTrace extends BaseElement {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
-          this.hintEl!.textContent = DEVICE_NOT_CONNECT;
+          this.hintEl!.innerHTML = DEVICE_NOT_CONNECT;
           if (!this.showHint) {
             this.showHint = true;
           }
@@ -587,6 +592,7 @@ export class SpRecordTrace extends BaseElement {
     this.spHiSysEvent = new SpHisysEvent();
     this.spArkTs = new SpArkTs();
     this.spHiLog = new SpHilogRecord();
+    this.spFFRTConfig = new SpFFRTConfig();
     this.spWebShell = new SpWebHdcShell();
     this.spRecordTemplate = new SpRecordTemplate(this);
     this.appContent = this.shadowRoot?.querySelector('#app-content') as HTMLElement;
@@ -816,16 +822,17 @@ export class SpRecordTrace extends BaseElement {
     clickHandlerFun?: Function,
     fileChoose: boolean = false
   ): MenuItem {
+    let that = this;
     return {
       title: title,
       icon: icon,
       fileChoose: fileChoose,
       clickHandler: (): void => {
-        this.appContent!.innerHTML = '';
-        this.appContent!.append(configPage);
-        this.freshMenuItemsStatus(title);
+        that.appContent!.innerHTML = '';
+        that.appContent!.append(configPage);
+        that.freshMenuItemsStatus(title);
         if (clickHandlerFun) {
-          clickHandlerFun(this);
+          clickHandlerFun(that);
         }
       },
     };
@@ -851,8 +858,9 @@ export class SpRecordTrace extends BaseElement {
       this.buildMenuItem('VM Tracker', 'vm-tracker', this.spVmTracker!),
       this.buildMenuItem('HiSystemEvent', 'externaltools', this.spHiSysEvent!),
       this.buildMenuItem('Ark Ts', 'file-config', this.spArkTs!),
+      this.buildMenuItem('FFRT', 'file-config', this.spFFRTConfig!),
       this.buildMenuItem('Hilog', 'realIntentionBulb', this.spHiLog!),
-      this.buildMenuItem('SDK Config', 'file-config', this.spSdkConfig!),
+      this.buildMenuItem('SDK Config', 'realIntentionBulb', this.spSdkConfig!),
     ];
   }
 
@@ -963,14 +971,19 @@ export class SpRecordTrace extends BaseElement {
               this.freshConfigMenuDisable(true);
               if (SpApplication.isLongTrace) {
                 HdcDeviceManager.shellResultAsString(
-                  CmdConstant.CMD_CLEAR_LONG_FOLD + this.recordSetting!.longOutPath,
+                  `${CmdConstant.CMD_CLEAR_LONG_FOLD + this.recordSetting!.longOutPath}*`,
                   false
                 ).then(() => {
                   HdcDeviceManager.shellResultAsString(
                     CmdConstant.CMD_MKDIR_LONG_FOLD + this.recordSetting!.longOutPath,
                     false
                   ).then(() => {
-                    this.recordLongTraceCmd(traceCommandStr);
+                    HdcDeviceManager.shellResultAsString(
+                      CmdConstant.CMD_SET_FOLD_AUTHORITY + this.recordSetting!.longOutPath,
+                      false
+                    ).then( ()=> {
+                      this.recordLongTraceCmd(traceCommandStr);
+                    });
                   });
                 });
               } else {
@@ -1041,7 +1054,14 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private recordTraceCmd(traceCommandStr: string): void {
-    HdcDeviceManager.shellResultAsString(CmdConstant.CMD_SHELL + traceCommandStr, false).then((traceResult) => {
+    const self = this;
+    let executeCmdCallBack = (cmdStateResult: string): void => {
+      if (cmdStateResult.includes('tracing ')) {
+        self.litSearch!.setPercent('Start to record...', -1);
+      }
+    };
+    this.litSearch!.setPercent('Waiting to record...', -1);
+    HdcDeviceManager.shellResultAsString(CmdConstant.CMD_SHELL + traceCommandStr, false, executeCmdCallBack).then((traceResult) => {
       let re = this.isSuccess(traceResult);
       if (re === 0) {
         this.litSearch!.setPercent('Tracing htrace down', -1);
@@ -1273,8 +1293,8 @@ export class SpRecordTrace extends BaseElement {
           this.loadLongTraceFile(timStamp).then(() => {
             let main = this!.parentNode!.parentNode!.querySelector('lit-main-menu') as LitMainMenu;
             let children = main.menus as Array<MenuGroup>;
-            let child = children[0].children as Array<MenuItem>;
-            let fileHandler = child[1].clickHandler;
+            let child = children[1].children as Array<MenuItem>;
+            let fileHandler = child[0].clickHandler;
             if (fileHandler && !SpRecordTrace.cancelRecord) {
               this.freshConfigMenuDisable(false);
               this.freshMenuDisable(false);
@@ -1345,6 +1365,7 @@ export class SpRecordTrace extends BaseElement {
       createHiSystemEventPluginConfig(this.spHiSysEvent!, request);
       createArkTsConfig(this.spArkTs!, this.recordSetting!, request);
       createHiLogConfig(reportingFrequency, this.spHiLog!, request);
+      createFFRTPluginConfig(this.spFFRTConfig!, SpRecordTrace.selectVersion, request);
     }
     return request;
   };

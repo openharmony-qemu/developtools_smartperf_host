@@ -421,15 +421,15 @@ export class SpAllocations extends BaseElement {
       this.intervalResultInput!.value = '10';
       this.statisticsIntervalHandle();
       this.statisticsIntervalName!.textContent = 'Sample Interval';
-      this.statisticsIntervalRange!.textContent = 'Rang is 0 - 65535, default 10 byte';
-      this.statisticsIntervalInput!.value = '10';
+      this.statisticsIntervalRange!.textContent = 'Rang is 0 - 65535, default 0 byte';
+      this.statisticsIntervalInput!.value = '0';
       this.statisticsSlider!.disabled = false;
       this.intervalResultInput!.disabled = false;
     } else {
       this.intervalResultInput!.value = '0';
       this.statisticsIntervalHandle();
       this.statisticsIntervalName!.textContent = 'Malloc Free Matching Interval';
-      this.statisticsIntervalRange!.textContent = 'Rang is 0 - 65535, default 10 byte';
+      this.statisticsIntervalRange!.textContent = 'Rang is 0 - 65535, default 10 s';
       this.statisticsIntervalInput!.value = '10';
       this.statisticsSlider!.disabled = true;
       this.intervalResultInput!.disabled = true;
@@ -537,8 +537,9 @@ export class SpAllocations extends BaseElement {
   private packageMouseDownHandler(packageInput: HTMLInputElement): void {
     if (this.startSamp && this.startup_mode) {
       Cmd.getPackage().then((packageList: string[]): void => {
-        if (packageList.length > 0) {
-          this.packageName!.dataSource = packageList;
+        let finalDataList = packageList.map(str => str.replace(/\t/g, ''));
+        if (finalDataList.length > 0) {
+          this.packageName!.dataSource = finalDataList;
         } else {
           this.packageName!.dataSource = [];
         }

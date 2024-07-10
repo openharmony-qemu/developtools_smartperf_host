@@ -35,7 +35,7 @@ export class TabPanePTS extends BaseElement {
     this.ptsRange!.textContent =
       // @ts-ignore
       `Selected range: ${parseFloat(((ptsValue.rightNs - ptsValue.leftNs) / 1000000.0).toFixed(5))} ms`; // @ts-ignore
-    this.getDataByPTS(ptsValue.leftNs, ptsValue.rightNs, ptsValue.cpus);
+    this.getDataByPTS(ptsValue.leftNs, ptsValue.rightNs, ptsValue.cpus, ptsValue.traceId);
   }
 
   initElements(): void {
@@ -44,9 +44,9 @@ export class TabPanePTS extends BaseElement {
     this.ptsTbl!.itemTextHandleMap.set('title', Utils.transferPTSTitle);
   }
 
-  getDataByPTS(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>): void {
+  getDataByPTS(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>, traceId?: string): void {
     this.ptsTbl!.loading = true;
-    sliceSPTSender(ptsLeftNs, ptsRightNs, cpus, 'spt-getPTS').then((res): void => {
+    sliceSPTSender(ptsLeftNs, ptsRightNs, cpus, 'spt-getPTS', traceId).then((res): void => {
       this.ptsTbl!.loading = false;
       this.ptsTbl!.recycleDataSource = res;
       //@ts-ignore

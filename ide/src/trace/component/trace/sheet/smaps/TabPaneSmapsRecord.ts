@@ -38,7 +38,7 @@ export class TabPaneSmapsRecord extends BaseElement {
   set data(smapsValue: SelectionParam | unknown) {
     this.smapsRecordDataSource = [];
     if (smapsValue) {
-      if (this.pixelmapId === -1) {
+      if (this.pixelmapId == -1) {
         for (let [key, value] of SpSystemTrace.DATA_DICT) {
           if (value === 'pixelmap') {
             this.pixelmapId = key;
@@ -106,7 +106,7 @@ export class TabPaneSmapsRecord extends BaseElement {
     this.smapsRecordTable = this.shadowRoot?.querySelector<LitTable>('#smaps-record-tbl');
   }
 
-  connectedCallback(): void {
+  connectedCallback() {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.smapsRecordTable!);
     new ResizeObserver(() => {
