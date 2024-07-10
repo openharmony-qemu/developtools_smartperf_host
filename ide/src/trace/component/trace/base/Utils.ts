@@ -675,10 +675,11 @@ export class Utils {
     if (maxFreq > 0) {
       let log10: number = Math.ceil(Math.log10(maxFreq));
       let pow10: number = Math.pow(10, log10);
-      let afterCeil: number = Math.ceil(maxFreq / (pow10 / 4)) * (pow10 / 4);
-      maxFreqObj.maxFreq = afterCeil;
+      let afterCeil: number = Math.ceil(maxFreq / (pow10 / 4)) * 1000;
+      let afterDivision:number = (afterCeil * ((pow10 / 4) * 1000)) / 1000000;
+      maxFreqObj.maxFreq = afterDivision;
       let unitIndex: number = Math.floor(log10 / 3);
-      sb = `${afterCeil / Math.pow(10, unitIndex * 3)}${units[unitIndex + 1]}`;
+      sb = `${afterDivision / Math.pow(10, unitIndex * 3)}${units[unitIndex + 1]}`;
     }
     maxFreqObj.maxFreqName = sb.toString();
     return maxFreqObj;
