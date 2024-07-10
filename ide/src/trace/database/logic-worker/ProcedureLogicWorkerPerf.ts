@@ -230,6 +230,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   private perfReset(): void {
     this.isHideThread = false;
     this.isHideThreadState = false;
+    this.isTopDown = true;
   }
 
   private perfAsync(data: any): void {
