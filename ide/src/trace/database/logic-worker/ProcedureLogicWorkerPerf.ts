@@ -58,6 +58,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   isPerfBottomUp: boolean = false;
   isHideThread: boolean = false;
   isHideThreadState: boolean = false;
+  isOnlyKernel: boolean = false;
   private lib: object | undefined;
   private symbol: object | undefined;
   private dataCache = DataCache.getInstance();
@@ -256,9 +257,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       (item: { funcName: string }): boolean => item.funcName === 'hideThreadState'
     );
     //@ts-ignore
-    let onlyKernelFilter = params.filter(
-      (item: { funcName: string }): boolean => item.funcName === 'onlyKernel'
-    );
+    let onlyKernelFilter = [true]
     if (this.lib) {
       if (
         callChainsFilter.length > 0 ||
@@ -471,6 +470,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
     if (!this.isHideThread) {
       list.unshift(threadCallChain);
+    }
+    
+    if (this.isOnlyKernel) {
+      const flag = "[kernel.kallsyms]"
+      const newList = list.filter(i => i.fileName === flag || i.path === flag)
+      list.splice(0)
+      list.push(...newList)
     }
   }
 
@@ -787,34 +793,6 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     });
   }
 
-  kernelCombination(): void {
-    function mergeChildren(item: PerfCallChainMerageData) {
-      if (item.children.length <= 0) {
-        return
-      }
-      item.children = item.children.reduce((total: PerfCallChainMerageData[], pfcall: PerfCallChainMerageData): PerfCallChainMerageData[] => {
-        for (const prev of total) {
-          if (pfcall.symbol == prev.symbol) {
-            prev.children.push(...pfcall.children)
-            prev.total += pfcall.total
-            prev.count += pfcall.count
-            prev.totalEvent += pfcall.totalEvent
-            prev.eventCount += pfcall.eventCount
-            return total
-          }
-        }
-        total.push(pfcall)
-        return total
-      }, [] as PerfCallChainMerageData[])
-      for (const child of item.children) {
-        mergeChildren(child)
-      }
-    }
-    this.allProcess.forEach((item: PerfCallChainMerageData): void => {
-      mergeChildren(item)
-    })
-  }
-
   findSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
     search = search.toLocaleLowerCase();
     sampleArray.forEach((sample: PerfCallChainMerageData): void => {
@@ -914,7 +892,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.isHideThreadState = funcArgs[0] as boolean;
         break;
       case 'onlyKernel':
-        this.onlyKernel();
+        this.isOnlyKernel = funcArgs[0] as boolean;
         break;
       case 'hideNumMaxAndMin':
         this.hideNumMaxAndMin(funcArgs[0] as number, funcArgs[1] as string);
@@ -948,9 +926,6 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         return this.combineCallChainForAnalysis();
       case 'getBottomUp':
         return this.getBottomUp();
-      case 'kernelCombination':
-        this.kernelCombination();
-        break;
     }
     return [];
   }

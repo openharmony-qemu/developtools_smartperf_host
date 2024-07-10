@@ -664,6 +664,10 @@ export class TabpanePerfProfile extends BaseElement {
       funcArgs: [isHideThreadState],
     });
     perfProfileArgs.push({
+      funcName: 'onlyKernel',
+      funcArgs: [isOnlyKernel],
+    })
+    perfProfileArgs.push({
       funcName: 'getCallChainsBySampleIds',
       funcArgs: [isTopDown],
     });
@@ -671,13 +675,6 @@ export class TabpanePerfProfile extends BaseElement {
     if (isHideSystemLibrary) {
       perfProfileArgs.push({
         funcName: 'hideSystemLibrary',
-        funcArgs: [],
-      });
-    } // @ts-ignore
-    if (isOnlyKernel) {
-      // 用于筛选内核函数
-      perfProfileArgs.push({
-        funcName: 'onlyKernel',
         funcArgs: [],
       });
     } // @ts-ignore
@@ -695,14 +692,7 @@ export class TabpanePerfProfile extends BaseElement {
       funcName: 'resetAllNode',
       funcArgs: [],
     });
-    if (isOnlyKernel) {
-      // 用于二次合并同级同名内核函数
-      // 间隔其他筛选类操作 不可以和上面另一个if合并
-      perfProfileArgs.push({
-        funcName: 'kernelCombination',
-        funcArgs: [],
-      });
-    } // @ts-ignore
+    // @ts-ignore
     this.refreshAllNodeExtend(perfProfileArgs);
   }
 
