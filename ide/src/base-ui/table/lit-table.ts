@@ -612,7 +612,7 @@ export class LitTable extends HTMLElement {
           totalWidth += parseInt(it);
         });
         totalWidth = Math.max(totalWidth, this.shadowRoot!.querySelector<HTMLDivElement>('.table')!.scrollWidth);
-        this.gridTemplateColumns[this.gridTemplateColumns.length - 1] = `${totalWidth - lastNode.offsetLeft - 1}px`;
+        this.gridTemplateColumns[this.gridTemplateColumns.length - 1] = `${totalWidth - lastNode.offsetLeft}px`;
         header.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
         let preNode = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
         preNode.style.width = `${preWidth}px`;
@@ -634,17 +634,15 @@ export class LitTable extends HTMLElement {
   adoptedCallback(): void {}
 
   getCheckRows(): unknown[] {
-    return (
-      [...this.shadowRoot!.querySelectorAll('div[class=tr][checked]')]
-        // @ts-ignore
-        .map((a) => (a as HTMLDivElement).data)
-        .map((a) => {
-          if ('children' in a) {
-            delete a.children;
-          }
-          return a;
-        })
-    );
+    // @ts-ignore
+    return [...this.shadowRoot!.querySelectorAll('div[class=tr][checked]')] // @ts-ignore
+      .map((a) => (a as unknown).data)
+      .map((a) => {
+        if ('children' in a) {
+          delete a['children'];
+        }
+        return a;
+      });
   }
 
   deleteRowsCondition(fn: unknown): void {

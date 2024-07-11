@@ -8,11 +8,11 @@ HiSystemEvent 应用功耗模块主要是展示应用的各个子类别功耗占
 
 打开 Start Hisystem Event Tracker Record 开关抓取 HiSystemEvent 数据。
 ![GitHub Logo](../../figures/HiSystemEvent/hisyseventsetting.jpg)
-再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_hisystemevent.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 50s。
+再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_hisystemevent.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 50s。
 ![GitHub Logo](../../figures/HiSystemEvent/hisystemeventrecord.jpg)
 点击 Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
 ![GitHub Logo](../../figures/HiSystemEvent/hisystemcommand.jpg)
-输入 hdc_std shell，进入设备，执行上述生成的命令。
+输入 hdc shell，进入设备，执行上述生成的命令。
 ![GitHub Logo](../../figures/HiSystemEvent/hisystemeventemexcute.jpg)
 执行完成后，进入指定目录查看，在/data/local/tmp 下就会生成 trace 文件。
 ![GitHub Logo](../../figures/HiSystemEvent/hisystemeventfile.jpg)
@@ -26,7 +26,7 @@ HiSystemEvent 应用功耗模块主要是展示应用的各个子类别功耗占
 泳道图说明：
 
 -     Anomaly Event泳道： 显示系统异常和应用异常的ToolTip。
--     System Event泳道： 以条状图显示，红色代表后台任务(WORKSCHEDULER)，黄色代表应用锁(POWER)，蓝色代表GPS定位(LOCATION)。
+-     System Event泳道： 以条状图显示，红色代表后台任务(WORKSCHEDULER)，黄色代表应用锁(POWER_RUNNINGLOCK)，蓝色代表GPS定位(LOCATION)。
 -     Power泳道：应用各个子类的功耗柱状图、折线图以及应用各个子类绘制的图例，鼠标的悬浮可以显示出各个子类功耗的具体值。
 -     Brightness Nit泳道：鼠标悬浮可以显示屏幕亮度值。
 -     Wifi Event Received泳道：鼠标悬浮可以显示WiFi信号强度值。
@@ -80,7 +80,7 @@ System Details 的 Tab 页如图：
 -     Background Count：应用后台扫描次数。
 -     Screen On Count：应用亮屏扫描次数。
 -     Screen Off Count：应用灭屏扫描次数。
--     Background Time(ms)：灭屏使用功耗值。
+-     Background Time(ms)：应用后台使用时长。
 -     Screen On Time(ms)：应用亮屏使用时长。
 -     Screen Off Time(ms)：应用灭屏使用时长。
 -     Energy(mAs)：功耗值。

@@ -9,32 +9,34 @@ Native Memory 分为三级统计，分别按照内存分配的类型(Alloc/Mmap)
 ![GitHub Logo](../../figures/ImportSo/Native_import_all.jpg)
 
 -     Memory Type：事件类型。
--     Existing：框选区域内申请没有释放的大小。
--     #Existing：框选区域内申请没有释放的次数。
+-     Existing：框选区间内申请没有释放的大小。
+-     #Existing：框选区间内申请没有释放的次数。
 -     Total Bytes：框选区间内申请的大小。
 -     #Total：框选区间内申请的次数。
--     Transient：框选区域内释放的大小。
--     #Transient：框选区域内释放的次数。
+-     Transient：框选区间内释放的大小。
+-     #Transient：框选区间内释放的次数。
 -     %：各个显示项的占比。
+  以线程去统计。
+  ![GitHub Logo](../../figures/ImportSo/Native_import_thread.jpg)
   以 lib 库去统计，如图显示的是 AllocEvent 的 so 占比的饼图和 Table 表。
   ![GitHub Logo](../../figures/ImportSo/Native_import_so_Existing.jpg)
 -     Library：So名称。
--     Existing：框选区域内申请没有释放的大小。
--     #Existing：框选区域内申请没有释放的次数。
+-     Existing：框选区间内申请没有释放的大小。
+-     #Existing：框选区间内申请没有释放的次数。
 -     Total Bytes：框选区间内申请的大小。
 -     #Total：框选区间内申请的次数。
--     Transient：框选区域内释放的大小。
--     #Transient：框选区域内释放的次数。
+-     Transient：框选区间内释放的大小。
+-     #Transient：框选区间内释放的次数。
 -     %：各个显示项的占比。
   以函数去统计，如图显示的是 AllocEvent/libmali-bifrost-g52-g2p0-ohos.so 的函数占比的饼图和 Table 表。
   ![GitHub Logo](../../figures/ImportSo/Native_import_so_function.jpg)
 -     Function：函数名称。
--     Existing：框选区域内申请没有释放的大小。
--     #Existing：框选区域内申请没有释放的次数。
+-     Existing：框选区间内申请没有释放的大小。
+-     #Existing：框选区间内申请没有释放的次数。
 -     Total Bytes：框选区间内申请的大小。
 -     #Total：框选区间内申请的次数。
--     Transient：框选区域内释放的大小。
--     #Transient：框选区域内释放的次数。
+-     Transient：框选区间内释放的大小。
+-     #Transient：框选区间内释放的次数。
 -     %：各个显示项的占比。
 
 ## Hiperf 文件的不同库函数占比

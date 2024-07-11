@@ -11,7 +11,7 @@
 
 ### Scheduling analysis 文件的抓取
 
-点击 Record setting，在 output file path 输入文件名 hiprofiler_dataScheduling.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 50s。
+点击 Record setting，在 output file path 输入文件名 hiprofiler_dataScheduling.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 50s。
 ![GitHub Logo](../../figures/Schedulinganalysis/schedusetting.jpg)
 点击 Trace command，就会根据上面的配置生成抓取命令，点击 Record 抓取，抓取过程中会显示抓取时长。
 ![GitHub Logo](../../figures/Schedulinganalysis/scheduexcuting.jpg)

@@ -5,12 +5,12 @@
 ## 文件加载入口
 
 将抓取的 trace 导入查看。
-![GitHub Logo](../../figures/Web/opentrace.jpg)
+![GitHub Logo](../../figures/Web/opentrace.png)
 
 说明：
 
 - Open trace file：导入离线 trace 文件入口。
-- Open long trace file：导入大文件入口。
+- Open long trace：导入大文件入口。
 - Record new trace：抓取新的 trace 文件入口。
 - Record template：抓取指定模块的 trace 文件入口。
 
@@ -19,7 +19,7 @@
 ![GitHub Logo](../../figures/Web/trace.jpg)
 说明：
 
-- 操作说明：在当前页面可以通过键盘上的 wasd 四个键位操纵当前的时间轴进行缩放，w 为放大，s 为缩小，a 为左移，d 为右移。
+- 操作说明：在当前页面可以通过键盘上的 wasd 四个键位操作当前的时间轴进行缩放，w 为放大，s 为缩小，a 为左移，d 为右移。
 
 ## trace 功能介绍
 
@@ -31,13 +31,13 @@ trace 模块从上往下主要展示时间轴、cpu 使用率、cpu 使用情况
 最上方带刻度的为时间轴，主要展示当前抓取数据的总时长和时间刻度的分布情况，如上图所示，左下角展示总时长。
 中间区域展示的是抓取数据时间段内的 cpu 使用率，颜色越深代表 cpu 使用率越高，颜色越浅代表 cpu 使用率越低。
 ![GitHub Logo](../../figures/Web/highlit.jpg)
-在白色背景时间轴区域内可以点击后拖拽鼠标，可以对从鼠标按下到拖拽完成鼠标松开的区域内的数据进行筛选，高亮显示的部分为当前所选区域，如上图所示。
+在白色背景时间轴区域内点击后拖拽鼠标，对从鼠标按下到拖拽完成鼠标松开的区域内的数据进行筛选，高亮显示的部分为当前所选区域，如上图所示。
 
 ### cpu 使用情况
 
 ![GitHub Logo](../../figures/Web/cpu.jpg)
 
-如上图所示，当前抓取数据有 4 个 cpu 工作，前四组数据对应的是当前调用 cpu 的线程和对应的进程情况，以颜色作为区分。后四组数据则为 cpu 的使用频率信息。鼠标移动到相应的线程上还会将当前选中的进程信息全部置为高亮，其他的进程会置灰，如下图所示。
+如上图所示，当前抓取数据有 4 个 cpu 工作，前四组数据对应的是当前调用 cpu 的线程和对应的进程情况，以颜色作为区分。后四组数据则为 cpu 的使用频率信息。鼠标移动到相应的线程，还会将该线程对应的进程全部置为高亮，同时其他的进程会置灰，如下图所示。
 ![GitHub Logo](../../figures/Web/gray.jpg)
 
 #### cpu 使用情况的框选功能
@@ -47,20 +47,20 @@ CPU by thread 的 Tab 页，主要显示了在框选时间区间内的进程名�
 ![GitHub Logo](../../figures/Web/cpubythread.jpg)
 CPU by process 的 Tab 页，主要显示了在框选时间区间内的进程名、进程号、总运行时长、平均运行时长和调度次数信息。
 ![GitHub Logo](../../figures/Web/cpubyprocess.jpg)
-CPU Usage 的 Tab 页，主要显示了在框选时间区间内，该频率时间占比前三的信息。
+CPU Usage 的 Tab 页，主要显示了在框选时间区间内，各个 cpu 频率时间占比前三的信息。
 ![GitHub Logo](../../figures/Web/cpusage.jpg)
 Thread Switches 的 Tab 页，按照状态>进程>线程，统计对应状态下的次数，持续时长，最小时长，平均时长，最大时长信息。
 ![GitHub Logo](../../figures/Web/threadswitches.jpg)
 Thread States 的 Tab 页，按进程>线程>状态的维度去统计，需要呈现该状态的线程名、进入该状态次数、该状态下时长、最小时长、平均时长、最大时长。
 ![GitHub Logo](../../figures/Web/threadstates.jpg)
-Sched Priority 的 Tab 页，按优先级显示调度，显示框选范围内所有 Running 以及 Running 之前的 Runnable 线程的最小，最大，平均耗时。
+Sched Priority 的 Tab 页，按优先级大小显示调度，显示框选范围内所有 Running 以及 Running 之前的 Runnable 线程的数量，持续时长，最小，最大，平均耗时。
 ![GitHub Logo](../../figures/Web/schedpritab.jpg)
-Thread States、Thread Switches 的 2 个 Tab 页，点击移动到某一行，鼠标会变成一个小手的标志，并且会高亮，点击一下，就会进入辅助信息界面，会将选中行的辅助信息展示出来，包括开始时间、进程、线程、线程状态、对应的 CPU、优先级等信息如下图。
+Thread States、Thread Switches的 2 个 Tab 页，鼠标移动到某一行，鼠标会变成一个小手的标志，并且会高亮，点击一下，就会进入辅助信息界面，会将选中行的辅助信息展示出来，包括开始时间、进程、线程、线程状态、对应的 CPU、优先级等信息如下图。
 ![GitHub Logo](../../figures/Web/details.jpg)
 
 #### cpu 使用情况的单选功能
 
-单选 CPU 使用情况数据会在选中的色块外层加上深色边框，能够突出当前选中色块，弹出层中会展示当前 CPU 上的进程名，线程名，开始时间的相对时间，开始时间的绝对时间，运行时长，线程结束状态信息。
+单选 CPU 使用情况数据会在选中的色块外层加上深色边框，能够突出当前选中色块，弹出层中会展示当前 CPU 上的进程名，线程名，开始时间的相对时间，开始时间的绝对时间，运行时长，优先级，线程结束状态信息。
 ![GitHub Logo](../../figures/Web/cpuclick.jpg)
 
 ### 线程唤醒关系树
@@ -110,7 +110,9 @@ Thread States、Thread Switches 的 2 个 Tab 页，点击移动到某一行，�
 #### 关键路径标识
 
 在 ftrace 数据中的 cpu 泳道的区域，在界面顶部增加 json 文件导入按钮，导入 json 文件后，根据线程号跟对应的时间，在 cpu 区域高亮该时间的线程色块，点击界面上的 x,可以取消高亮。json 格式如下：
+
 ![GitHub Logo](../../figures/Web/json.jpg)
+
 导入 json 文件以后，会将 ACCS0 [2716]线程对应时间点的 slice 色块高亮显示
 ![GitHub Logo](../../figures/Web/keyslice.jpg)
 

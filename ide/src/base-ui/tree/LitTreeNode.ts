@@ -337,6 +337,9 @@ export class LitTreeNode extends BaseElement {
         this.checkboxElement.checked = this.hasAttribute('checked');
       }
     }
+    if (this.arrow) {
+      this.checkboxElement!.style.display = 'none';
+    }
   }
 
   //在node top  top-right  bottom bottom-right 画线条

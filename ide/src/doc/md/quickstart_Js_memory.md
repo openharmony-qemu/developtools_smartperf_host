@@ -16,7 +16,7 @@ Js Memory 是查看程序中存量内存的情况。
 - Allocation insteumentation on timeline：分配时间轴显示了插桩的 JavaScript 内存分配随时间变化的情况。
 - record stack traces of allocations(extra performance overhead)：录制各项分配的堆栈轨迹(会产生额外的性能开销)。
 
-再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_jsmemory.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 30s。
+再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_jsmemory.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 30s。
 ![GitHub Logo](../../figures/Jsmemory/jsmemoryset.jpg)
 
 点击 Trace command，就会根据上面的配置生成抓取命令，点击 Record 抓取，抓取过程中会显示抓取时长。

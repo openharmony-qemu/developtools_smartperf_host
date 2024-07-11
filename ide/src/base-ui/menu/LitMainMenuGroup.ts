@@ -71,7 +71,7 @@ const initHtmlStyle: string = `
         :host([describe]) .group-describe{
           padding: 4px 24px 0 24px;
           color: #999 !important;
-          font-size: 1rem;
+          font-size: 12px;
         }
         :host([describe]) .group-name{
           margin-top: 10px;

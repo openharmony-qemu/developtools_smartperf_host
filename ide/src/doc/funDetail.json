@@ -1,0 +1,191 @@
+{
+    "render_services": [],
+    "anothers": [
+        {
+            "slice": "SendCommands",
+            "CN": "发送绘制指令给图形Render_Service。transactionFalg的坐标可以标识这条指令与Render_Service侧的接收帧对应起来",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "FlushLayoutTask",
+            "CN": "组件的布局,这一块可以确认是什么组件在创建或者复用",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "CreateTaskMeasure",
+            "CN": "组件的测量。这一块可以确认是什么组件在创建",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "JSAnimation",
+            "CN": "如果FlushVsync下面出现这个trace点,说明触发了ArkUI的动效,例如使用了属性动画animation属性或者显示动画animateTo。可以排查一下代码看一下这种场景是否需要触发这个动画,有时候会因为组件的刷新而出现该动画的冗余绘制",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "FlushDirtyUpdate",
+            "CN": "用来标识由于变量更新,出发了某一个组件的标脏,需要对它进行刷新。打开ArkUI的debug开关后可以看到具体是什么状态变量裱花导致组件节点脏标。后面的数量表示这个状态变量关联的组件数",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "FlushLayoutTask",
+            "CN": "组件的布局,这一块可以确认是什么组件在创建或者复用",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "CreateTaskMeasure",
+            "CN": "组件的测量。这一块可以确认是什么组件在创建",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "SendCommands",
+            "CN": "发送绘制指令给图形Render_Service。transactionFalg的坐标可以标识这条指令与Render_Service侧的接收帧对应起来",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "JSAnimation",
+            "CN": "如果FlushVsync下面出现这个trace点,说明触发了ArkUI的动效,例如使用了属性动画animation属性或者显示动画animateTo。可以排查一下代码看一下这种场景是否需要触发这个动画,有时候会因为组件的刷新而出现该动画的冗余绘制",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "BuildRecyle",
+            "CN": "如果出现这个trace说明,这个组件是走复用逻辑的。当前如果组件节点较多,也会导致组件复用的时候耗时比较长导致丢帧。",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "aboutToRecycleInternal",
+            "CN": "标识组件进入复用池。例如我们首页使用cacheCount会将自检及其相关数据都缓存起来,但是一旦触发了DataReload之后缓存就会失效,这时候缓存的组件会进入复用池,等待后面华东的时候触发组件复用。",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Onldle->List predict:onldle",
+            "CN": "标志Vsync中的空闲,一般会用来做预加载之类的。LIst predict就是列表的预加载。使用CachedCount和lazyForEach都会触发。",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "RunningCustomAnimation",
+            "CN": "自定义动画,RSModifierManager管理的在UI线程运行的动画,例如LoadingProgess、滚动组件的松手滚动、slider的进度条变化动画......后面的num表示动画的数量,如果大于0,则表示有动画在运行,如果遇到需要定位具体的动画,则需要底层增加trace点",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "DispatchDisplaySync",
+            "CN": "使用了displaySync接口进行降帧率处理,TimeStamp和TargetTimestamp分别表示当前帧的事件戳和下一次绘制的时间戳（估算的,并不准确）。Preffered[30]表示设置的期望帧率是30FPS,VsyncRate[120]表示实际Vsync的帧率是120PFS,Rate[4]表示事件送显的帧之间的间隔,noSkip[0]表示false,1表示true,标识这一帧是否需要绘制,0表示这帧跳过绘制,可以看到没有对应的sendCommands；1表示实际绘制送显,有对应的sendCommands的trace点",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "PartialGC::RunPhase",
+            "CN": "触发了内存的GC,有时候会刚好遇上Vsync导致Vsync整体耗时长。当前已经做过优化,对于超过10ms的帧,在10ms后不做GC。但是如果是在Vsync刚开始的时候还是有可能会触发",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleVisibleChangeEvent",
+            "CN": "对应ArkUI的接口OnVisibleChange。ArkUI对于每一帧的Vsync必然会走这个方法的逻辑,即使应用没有使用也会遍历一把,一般耗时在us级。如果耗时几ms,甚至占了Vsync的一半时间,就需要分析一下了,先排查一下该场景是否滥用了OnVisibiChange接口",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleOnAreaChangeEvent",
+            "CN": "对应ArkUI的接口OnareaChange。ArkUI对于每一帧的Vsync必然会走这个方法的逻辑,即使应用没有使用也会遍历一把,一般耗时在us级。如果耗时几ms,甚至占了Vsync的一半时间,就需要分析一下了,先排查一下该场景是否滥用了OnAreaChange接口",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ViewChangeCallback",
+            "CN": "窗口变化会触发ArkUI的一系列回调,例如横竖屏转换的时候,接收到窗口变化ArkUI会从应用页面Root节点开始进行刷新和重新布局。",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "FlushFocus",
+            "CN": "焦点切换,属于通用事件。每一帧都会打点,如果没有具体处理在几us左右。如果耗时异常,例如页面专场的场景。",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "RSModfierManager Draw num",
+            "CN": "组件属性变更的绘制,如果num不变,持续绘制可能和动画组件的属性变更有关；如果只是一次性绘制,可能就是有些组件属性变更了一次。具体是什么组件引起的,需要动画加trace点继续定位。",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "DispatchTouchEvent",
+            "CN": "应用侧接收到点击事件,并标识了具体的X,Y详细坐标,type是个枚举为0:down、1:up、2:move。可作为应用侧点击类事件的起始点",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "H:UnMarsh",
+            "CN": "RSTransactionData:data size UI侧将要发送的指令序列化后通过IPC与RS通信,RS收到消息后就会对其进行反序列化,解析出对应的命令和数据。如果datasize较小会直接在IPC上进行反序列化,可以通过runnable找到对应的发送序列化的指令的应用侧的帧。如果data size较大,则会创建一个子线程RSUnmarshalThre进行反序列化操作。之前有个问题就是RS的每一帧处理会等反序列化处理完成,会阻塞RS主线程,导致丢帧。后来图形做了处理,旋转场景不等应用的反序列化数据,延迟处理",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "RSMainThread::ProcessCommandUni",
+            "CN": "这个trace点后面会有个坐标点,和应用侧sendCommands发送的指令Flag坐标是一致的,标识这一帧处理对应的应用侧帧的进程号和序列号",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Animate",
+            "CN": "RS侧的动效,这一块正常也在us级别,有一些动效可能稍微耗时一些例如粒子动效。如果耗时超过2ms可能需要分析一下了。这个trace点里的具体是什么动效引起,需要动效的人增加日志或者trace点进行定位。RequestNextVSync表示动效还有下一帧,还未结束",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "H:RSUniRender:PrepareDisplay",
+            "CN": "预处理,计算各节点的绝对位置,更新各个窗口的脏区。然后再更新屏幕中各个窗口的信息,最后将各个窗口的脏区进行合并",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "H:RSUniRender::Process",
+            "CN": "标识当前参与绘制的应用窗口,并且显示窗口的位置以及大小",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "PureContainerNode/ProcessedNodes",
+            "CN": "容器节点/总结点数。下面的小竖条详细展示了当前应用有多少个节点参与了绘制",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "H:RSFilterCacheManager::DrawFilter",
+            "CN": "当前页面有模糊绘制,模糊数量两个及以上对RS的绘制就会造成较大影响。可以评估一下当前页面模糊的必要性,如果当前页面的多个模糊是必要的,可以考虑是否使用模糊合并。如果场景没法合并可以求助下一图形接口",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "H:RSUniRender:FlushFrame",
+            "CN": "生成渲染指令后交给GPU执行",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "H:RSHardwareThread::CommitAndReleaseLayers",
+            "CN": "Gpu渲染完成后,提交给RSHardwareThread进行合成。合成有两种方式:(1)GPU合成(Redras) (2)DSS硬件合成(HWC)。当前的合成策略为优先采取硬件合成,若无法通过硬件合成,则使用GPU合成。华为视频播放场景可以关注一下,这个场景下正常是走硬件合成,不走GPU,否则会造成GPU功耗过高。需要打开RS的debug,出现CreateLayer:componentIdSurface XYWH并且HardWareThread没有redraw,如果HardWareThread出现redraw也是走GPU了",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ML:cmobe_v3_compile_multiple_shaders",
+            "CN": "触发了shader编译,需要通过与之shader来避免。shader缓存是业界通用方案,在动效前几次执行的时候会概率性出现,用于创建该场景的着色器并将其缓存,以使之后的操作可以直接复用原有的着丝琪,从而提升系统的性能。但shader编译耗时太长导致RS侧丢帧造成动效卡顿",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        }
+    ]
+}

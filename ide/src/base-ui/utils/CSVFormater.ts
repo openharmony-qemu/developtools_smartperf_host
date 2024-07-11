@@ -15,11 +15,6 @@
 
 export class JSONToCSV {
   static setCsvData(obj: unknown): void {
-    let browserType = this.browserType();
-    // @ts-ignore
-    if (browserType.ie < 9) {
-      return;
-    }
     // @ts-ignore
     let data = obj.data;
     // @ts-ignore
@@ -77,7 +72,7 @@ export class JSONToCSV {
 
   static getCsvStr(columns: unknown, obj: unknown, n: unknown, row: string): string {
     // @ts-ignore
-    columns.key.map(function (m: unknown, idx: number) {
+    columns.key.map((m: unknown, idx: number) => {
       let strItem: unknown = '';
       // @ts-ignore
       if (obj.exportFormatter && obj.exportFormatter.has(m)) {
@@ -122,10 +117,8 @@ export class JSONToCSV {
       let alink: unknown = document.createElement('a');
       // @ts-ignore
       alink.id = 'csvDownloadLink';
-
-      const href = this.getDownloadUrl(csvData);
       // @ts-ignore
-      alink.href = href === '' ? null : href;
+      alink.href = this.getDownloadUrl(csvData);
       // @ts-ignore
       document.body.appendChild(alink);
       let linkDom: unknown = document.getElementById('csvDownloadLink');
@@ -157,7 +150,7 @@ export class JSONToCSV {
     }
   }
 
-  static getDownloadUrl(csvData: unknown): string {
+  static getDownloadUrl(csvData: unknown): string | undefined {
     // @ts-ignore
     if (window.Blob && window.URL && (window.URL as unknown).createObjectURL) {
       return URL.createObjectURL(
@@ -166,22 +159,20 @@ export class JSONToCSV {
         })
       );
     }
-    return '';
   }
 
-  static browserType(): { edge: string; ie: string } {
-    const type: { edge: string; ie: string } = { edge: '', ie: '' };
+  static browserType(): { edge: string; ie: string; firefox: string; chrome: string; opera: string;
+    safari: string} {
+    const type = { edge: '', ie: '', firefox: '', chrome: '', opera: '', safari: '' };
     const agent = navigator.userAgent.toLowerCase();
-    const edgeMatch = agent.match(/edge/);
-    if (edgeMatch) {
-      type.edge = 'edge';
-    } else {
-      const ieMatch = agent.match(/rv:([\d.]+)\) like gecko/) || agent.match(/msie ([\d.]+)/);
-      if (ieMatch) {
-        type.ie = ieMatch[1];
-      }
-    }
-
+    let has;
+    (has = agent.indexOf('edge') !== -1 ? (type.edge = 'edge') :
+      agent.match(/rv:([\d.]+)\) like gecko/)) ? (type.ie = has[1]) :
+      (has = agent.match(/msie ([\d.]+)/)) ? (type.ie = has[1]) :
+        (has = agent.match(/firefox\/([\d.]+)/)) ? (type.firefox = has[1]) :
+          (has = agent.match(/chrome\/([\d.]+)/)) ? (type.chrome = has[1]) :
+            (has = agent.match(/opera.([\d.]+)/)) ? (type.opera = has[1]) :
+              (has = agent.match(/version\/([\d.]+).*safari/)) ? (type.safari = has[1]) : 0;
     return type;
   }
 
