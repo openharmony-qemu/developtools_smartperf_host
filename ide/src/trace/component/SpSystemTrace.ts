@@ -1856,7 +1856,7 @@ export class SpSystemTrace extends BaseElement {
       if (!this.isInViewport(rootRow)) {
         setTimeout(() => {
           rootRow!.scrollIntoView({ behavior: 'smooth' });
-        }, 500);
+        }, 50);
       }
     } else {
       // @ts-ignore
@@ -1869,7 +1869,7 @@ export class SpSystemTrace extends BaseElement {
       }
       setTimeout(() => {
         rootRow!.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 500);
+      }, 50);
     }
   }
 
@@ -2236,10 +2236,6 @@ export class SpSystemTrace extends BaseElement {
       // @ts-ignore
       FuncStruct.hoverFuncStruct = entry; // @ts-ignore
       FuncStruct.selectFuncStruct = entry;
-      // 鼠标左键点击不需要触发点击事件
-      if (FuncStruct.funcSelect) {
-        this.onClickHandler(TraceRow.ROW_TYPE_FUNC, undefined, entry);
-      } // @ts-ignore
       this.scrollToDepth(
         `${funcRowID}`, // @ts-ignore
         `${Utils.getDistributedRowId(funcStract.pid)}`,
@@ -2247,6 +2243,10 @@ export class SpSystemTrace extends BaseElement {
         true, // @ts-ignore
         entry.depth || 0
       );
+      // 鼠标左键点击不需要触发点击事件
+      if (FuncStruct.funcSelect) {
+        this.onClickHandler(TraceRow.ROW_TYPE_FUNC, undefined, entry);
+      } // @ts-ignore
       FuncStruct.funcSelect = true;
     }
   };
@@ -2364,7 +2364,6 @@ export class SpSystemTrace extends BaseElement {
     it.processName = p;
     it.processCmdLine = p;
     it.name = t;
-    it.type = 'cpu';
     if (next) {
       if (it.startTime! + it.dur! > next!.startTime! || it.dur === -1 || it.dur === null || it.dur === undefined) {
         it.dur = next!.startTime! - it.startTime!;

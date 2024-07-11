@@ -698,12 +698,13 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
   smartEventSubscribe(sp);
 }
 
-function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any): void {
+function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any, currentEntry: any): void {
   if (findEntry) {
-    sp.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
-    sp.queryAllTraceRow().forEach((item) => {
-      item.highlight = false;
-    });
+    //findEntry不在range范围内，会把它移动到泳道最左侧
+    if (findEntry.startTime > TraceRow.range!.endNS || findEntry.startTime + findEntry.dur < TraceRow.range!.startNS) {
+      sp.moveRangeToLeft(findEntry.startTime!, findEntry.dur!);
+    }
+    cancelCurrentTraceRowHighlight(sp, currentEntry);
     if (findEntry.type === 'cpu') {
       findEntryTypeCpu(sp, findEntry);
     } else if (findEntry.type === 'func') {
@@ -717,30 +718,22 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any): void 
   }
 }
 
-function setToNext(current: number, totalResults: number): number {
-  const index = (current + 1) % totalResults;
-  return index;
-}
-
-function setToPrevious(current: number, totalResults: number): number {
-  let index = current - 1;
-  if (index < 0) {
-    index = totalResults - 1;
-  }
-  return index;
-}
-
-function searchImp(structs: Array<any>, needle: number, i: number, j:number): number {
-  if (i === j) return -1;
-  if (i + 1 === j) {
-    return needle >= structs[i].startTime ? i : -1;
-  }
-  const mid = Math.floor((j - i) / 2) + i;
-  const midValue = structs[mid].startTime;
-  if (needle < midValue) {
-    return searchImp(structs, needle, i, mid);
-  } else {
-    return searchImp(structs, needle, mid, j);
+function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: any) {
+  if (currentEntry?.type === 'cpu') {
+    sp.queryAllTraceRow(`trace-row[row-type='cpu-data'][row-id='${currentEntry.cpu}']`,
+      (row) => row.rowType === 'cpu-data' && row.rowId === `${currentEntry.cpu}`)[0].highlight = false;
+  } else if (currentEntry?.type === 'func') {
+    let funcRowID = !currentEntry.cookie ? `${currentEntry.tid}` : currentEntry.row_id;
+    sp.queryAllTraceRow(`trace-row[row-type='func'][row-id='${funcRowID}'][row-parent-id='${currentEntry.pid}']`,
+      (row) => row.rowType === 'func' && row.rowId === `${funcRowID}` && row.rowParentId === `${currentEntry.pid}`)[0].highlight = false;
+  } else if (currentEntry?.type === 'sdk') {
+    let parentRow = sp.shadowRoot!.querySelector<TraceRow<any>>("trace-row[row-type='sdk'][folder]");
+    if (parentRow) {
+      let sdkRow = parentRow.childrenList.filter(
+        (child) => child.rowId === currentEntry.rowId && child.rowType === currentEntry.rowType
+      )[0];
+      sdkRow!.highlight = false;
+    }
   }
 }
 
@@ -757,48 +750,65 @@ export function spSystemTraceShowStruct(
   let findIndex = spSystemTraceShowStructFindIndex(previous, currentIndex, structs, retargetIndex);
   let findEntry: any;
   findEntry = structs[findIndex];
-  moveRangeToCenterAndHighlight(sp, findEntry);
+  let currentEntry: any = undefined;
+  if (currentIndex >= 0) {
+    currentEntry = structs[currentIndex];
+  }
+  moveRangeToCenterAndHighlight(sp, findEntry, currentEntry);
   return findIndex;
 }
+
 function spSystemTraceShowStructFindIndex(
   previous: boolean,
   currentIndex: number,
   structs: Array<any>,
   retargetIndex: number | undefined
 ): number {
-  let findIndex = -1;
-  const totalResults = structs.length;
   const rangeStart = TraceRow.range!.startNS;
   const rangeEnd = TraceRow.range!.endNS;
-  const currentStart = structs[currentIndex]?.startTime;
-  if (retargetIndex && retargetIndex > 0) {
-    currentIndex = retargetIndex;
-  }
-  //不在时间区域内
-  if (!retargetIndex && (currentIndex === -1 || currentStart < rangeStart || currentStart > rangeEnd)) {
-    const searchIndex = searchImp(structs, rangeStart, 0, totalResults);
-    if (previous) {
-      if (searchIndex === -1) {
-        findIndex = setToPrevious(currentIndex, totalResults);
-      } else {
-        findIndex = searchIndex;
-      }
-    } else {
-      if (searchIndex === -1) {
-        findIndex = setToNext(currentIndex, totalResults);
-      } else {
-        findIndex = searchIndex;
+  let findIndex = -1;
+  if (retargetIndex) {
+    findIndex = retargetIndex - 1;
+  } else if (previous) {
+    for (let i = structs.length - 1; i >= 0; i--) {
+      let it = structs[i];
+      if ((i < currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd)
+        || (it.startTime! + it.dur! < rangeStart)) {
+        findIndex = i;
+        break;
       }
     }
+    if (findIndex === -1) {
+      findIndex = structs.length - 1;
+    }
   } else {
-    if (previous) {
-      findIndex = setToPrevious(currentIndex, totalResults);
-    } else {
-      findIndex = setToNext(currentIndex, totalResults);
+    if (currentIndex > 0) {
+      if (rangeStart > SpSystemTrace.currentStartTime) {
+        SpSystemTrace.currentStartTime = rangeStart;
+      }
+      //右移rangeStart变小重新赋值
+      if (SpSystemTrace.currentStartTime > rangeStart) {
+        SpSystemTrace.currentStartTime = rangeStart;//currentIndex不在可视区时，currentIndex = -1
+        if (
+          structs[currentIndex].startTime < rangeStart ||
+          structs[currentIndex].startTime! + structs[currentIndex].dur! > rangeEnd
+        ) {
+          currentIndex = -1;
+        }
+      }
+    }
+    //在数组中查找比currentIndex大且在range范围内的第一个下标，如果range范围内没有返回-1
+    findIndex = structs.findIndex((it, idx) => {
+      return ((idx > currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd)
+        || (it.startTime! > rangeEnd));
+    });
+    if (findIndex === -1) {
+      findIndex = 0;
     }
   }
   return findIndex;
 }
+
 function findEntryTypeCpu(sp: SpSystemTrace, findEntry: any): void {
   CpuStruct.selectCpuStruct = findEntry;
   CpuStruct.hoverCpuStruct = CpuStruct.selectCpuStruct;
@@ -809,7 +819,9 @@ function findEntryTypeCpu(sp: SpSystemTrace, findEntry: any): void {
           findEntry, // @ts-ignore
           item.dataListCache.find((it) => it.startTime > findEntry.startTime)
         );
-        item.fixedList = [findEntry];
+        let _findEntry = JSON.parse(JSON.stringify(findEntry));
+        _findEntry.type = 'thread';
+        item.fixedList = [_findEntry];
       }
       item.highlight = item.rowId === `${Utils.getDistributedRowId(findEntry.cpu)}`;
       item.draw(true);

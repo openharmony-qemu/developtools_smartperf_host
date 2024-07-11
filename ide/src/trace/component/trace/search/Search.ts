@@ -201,13 +201,6 @@ export class LitSearch extends BaseElement {
   }
 
   private searchBlurListener(): void {
-    this.dispatchEvent(
-      new CustomEvent('blur', {
-        detail: {
-          value: this.search!.value,
-        },
-      })
-    );
     setTimeout((): void => {
       this.hideSearchHistoryList();
     }, 200);
@@ -264,10 +257,17 @@ export class LitSearch extends BaseElement {
     this.search!.addEventListener('keyup', (e: KeyboardEvent) => {
       SpSystemTrace.isKeyUp = true;
       this._retarge_index!.value = '';
-      if(this.search?.value !== this.currenSearchValue) {
-        this.index = 0;
-      }
       this.searchKeyupListener(e);
+    });
+    //阻止事件冒泡
+    this.search!.addEventListener('keydown', (e: KeyboardEvent) => {
+      SpSystemTrace.isKeyUp = false;
+      e.stopPropagation();
+    });
+
+    this.search!.addEventListener('keypress', (e: KeyboardEvent) => {
+      SpSystemTrace.isKeyUp = false;
+      e.stopPropagation();
     });
     this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (): void => {
       this.dispatchEvent(
@@ -288,17 +288,14 @@ export class LitSearch extends BaseElement {
       );
     });
     this.keyUpListener();
-    this._retarge_index!.addEventListener('focus', () => {
-      this.dispatchEvent(
-        new CustomEvent('focus', {})
-      );
+    //阻止事件冒泡
+    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: any) => {
+      SpSystemTrace.isKeyUp = false;
+      e.stopPropagation();
     });
-    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: unknown): void => {
-      // @ts-ignore
-      if (e.keyCode === 13) {
-        // @ts-ignore
-        e.stopPropagation();
-      }
+    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keypress', (e: any) => {
+      SpSystemTrace.isKeyUp = false;
+      e.stopPropagation();
     });
   }
 
@@ -400,7 +397,7 @@ export class LitSearch extends BaseElement {
           this.valueChangeHandler?.(this.search!.value);
           if (flag !== searchInfoOption.textContent) {
             this._retarge_index!.value = '';
-            this.index = 0;
+            this.index = -1;
           }
         }
       });
