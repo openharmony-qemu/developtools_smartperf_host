@@ -43,7 +43,7 @@ int32_t OpenFile(const std::string &path, int32_t flags, uint32_t mode = K_FILE_
 
 std::string GetExecutionDirectoryPath();
 #ifdef is_linux
-std::vector<std::string> GetFilesNameFromDir(const std::string &fileDir);
+std::vector<std::string> GetFilesNameFromDir(const std::string &path);
 #endif
 } // namespace base
 } // namespace SysTuning
