@@ -32,6 +32,9 @@ export function sliceReceiver(data: unknown, proc: Function): void {
   let count = {
     cpu: new Map<number, number>(),
   };
+  // 存储线程及其状态耗时总和；用以线程泳道排序
+  let threadMap = new Map<string, number>();
+  let processRowSortMap = new Map<string, number>();
   sliceList.clear();
   cpuList.clear();
   processList.clear();
@@ -40,6 +43,19 @@ export function sliceReceiver(data: unknown, proc: Function): void {
   sliceList.set(0, list);
   for (let i = 0; i < list.length; i++) {
     let slice = list[i]; //@ts-ignore
+    // @ts-ignore
+    if (slice.pid > 0 && typeof slice.pid === 'number' && slice.state === 'Running') {
+      // @ts-ignore
+      if (!processRowSortMap.has(slice.pid)) {
+        // @ts-ignore
+        processRowSortMap.set(slice.pid, slice.dur);
+      } else {
+        // @ts-ignore
+        let val = processRowSortMap.get(slice.pid);
+        // @ts-ignore
+        processRowSortMap.set(slice.pid, val + slice.dur)
+      }
+    }// @ts-ignore
     if (slice.cpu !== null && slice.cpu !== undefined) {
       //@ts-ignore
       if (cpuList.has(slice.cpu)) {
@@ -75,6 +91,21 @@ export function sliceReceiver(data: unknown, proc: Function): void {
       } else {
         threadStateList.set(key, [slice]);
       }
+      // @ts-ignore
+      if (slice.state === 'S' || typeof slice.dur !== 'number' || slice.tid === 0) {
+        continue;
+      } else {
+        // @ts-ignore
+        if (!threadMap.has(key)) {
+          // @ts-ignore
+          threadMap.set(key, slice.dur)
+        } else {
+          // @ts-ignore
+          let val = threadMap.get(key);
+          // @ts-ignore
+          threadMap.set(key, val + slice.dur)
+        }
+      }
     }
   }
   for (let key of cpuList.keys()) {
@@ -87,10 +118,76 @@ export function sliceReceiver(data: unknown, proc: Function): void {
     }
     count.cpu.set(key, arr.length);
   }
-  postMsg(data, count);
+  //处理热点数据
+  //@ts-ignore
+  let cpuUtiliRateArray = getCpuUtiliRate(cpuList, data.params);
+  postMsg(data, { count, threadMap, processRowSortMap, cpuUtiliRateArray });
 }
 
-export function sliceSPTReceiver(data: unknown): void {
+function getCpuUtiliRate(cpulist: Map<number, Array<unknown>>, args: Args): Array<any> {
+  // cpu进行排序  
+  let cpuListArray = Array.from(cpulist.entries());
+  cpuListArray.sort((a: any, b: any) => parseInt(a[0]) - parseInt(b[0]));
+  let cpuListMap = new Map(cpuListArray);
+  let cpuUtiliRateArray = new Array();
+  let cell = Math.floor((args.recordEndNS - args.recordStartNS) / 100);//分成100个格子，cell每个格子的持续时间
+  for (const [cpu, list] of cpuListMap.entries()) {
+    let ro = 0;
+    let index = 0;
+    let sumTime = 0;
+    //@ts-ignore
+    let sliceSt = list[0].startTime;//起始时间
+    let cellSt = ro * cell;//每个格子起始时间
+    let cellEt = (ro + 1) * cell;//每个格子的结束时间
+    //@ts-ignore
+    while (index < list.length && ro <= 99) {
+      let isGoNextRo = false;//标志位，当下格子区间内的cpu切片持续时间是否统计结束，如统计结束true可跳转至下一个格子区间，反之false
+      //@ts-ignore
+      let sliceEt = list[index].startTime + list[index].dur;//cpu结束时间
+      if (sliceSt >= cellSt && sliceEt <= cellEt) {//包含在ro内
+        //@ts-ignore
+        sumTime += (sliceEt - sliceSt);//cpu dur累加
+        //@ts-ignore
+        sliceSt = index + 1 >= list.length ? sliceSt : list[index + 1].startTime;//处理最后一条cpu数据
+        index++;
+      } else if (sliceSt >= cellSt && sliceSt < cellEt && sliceEt > cellEt) {//部分包含在ro内
+        sumTime = sumTime + (cellEt - sliceSt);
+        sliceSt = cellEt;
+        isGoNextRo = true;
+      } else if (sliceSt >= cellEt) {//不包含在ro内
+        isGoNextRo = true;
+      } else {//保护逻辑
+        //@ts-ignore
+        sliceSt = index + 1 >= list.length ? sliceSt : list[index + 1].startTime;
+        index++;
+      }
+      if (isGoNextRo) {//格子内cpu dur累加结束 跳转至下一个Ro 处理比率 储存处理后的数据
+        ro++;
+        cellSt = ro * cell;//下一个格子的起始时间
+        //第99个格子结束时间为recordEndNS，确保覆盖整个时间范围
+        if (ro < 99) {
+          cellEt = (ro + 1) * cell;//下一个格子结束时间
+        } else {
+          cellEt = args.recordEndNS - args.recordStartNS;
+        }
+        //处理比率 储存处理后的数据
+        if (sumTime !== 0) {
+          let rate = sumTime / cell;
+          cpuUtiliRateArray.push({ ro: ro - 1, cpu, rate });
+          sumTime = 0;
+        }
+      }
+    }
+    //处理最后一个sumTime不为0区间的数据
+    if (sumTime !== 0) {
+      let rate = sumTime / cell;
+      cpuUtiliRateArray.push({ ro, cpu, rate });
+    }
+  }
+  return cpuUtiliRateArray;
+}
+
+export function sliceSPTReceiver(data: unknown) {
   //@ts-ignore
   if (data && data.params.func) {
     //@ts-ignore

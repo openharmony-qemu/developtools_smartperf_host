@@ -54,9 +54,9 @@ export const chartHiperfCallChartDataSql = (args: unknown): string => {
   const sql = `
     select callchain_id                             as callchainId,
            timestamp_trace - ${
-             // @ts-ignore
-             args.recordStartNS
-           }  as startTs,
+    // @ts-ignore
+    args.recordStartNS
+    }  as startTs,
            event_count                              as eventCount,
            A.thread_id                              as threadId,
            cpu_id                                   as cpuId,
@@ -128,6 +128,20 @@ export function hiPerfCallStackCacheHandler(data: unknown, proc: Function): void
 
 function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean, loadData: boolean): void {
   if (loadData) {
+    // @ts-ignore
+    if (data.params.type !== 0) {
+      // @ts-ignore
+      res.sort((a, b) => a.startTs - b.startTs);
+      for (let i = 0; i < res.length; i++) {
+        if (i < res.length - 1) {
+          // @ts-ignore
+          res[i].dur = res[i + 1].startTs - res[i].startTs
+        } else {
+          // @ts-ignore
+          res[i].dur = data.params.endNS - data.params.startNS - res[i].startTs;
+        }
+      }
+    }
     // @ts-ignore
     let result = combinePerfSampleByCallChainId(res, data.params);
     hiPerfCallChartClearCache(false);
@@ -210,32 +224,32 @@ function postPerfCallChartMessage(data: unknown, transfer: boolean, perfCallChar
       action: data.action,
       results: transfer
         ? {
-            startTs: perfCallChart.startTs.buffer,
-            dur: perfCallChart.dur.buffer,
-            depth: perfCallChart.depth.buffer,
-            callchainId: perfCallChart.callchainId.buffer,
-            eventCount: perfCallChart.eventCount.buffer,
-            symbolId: perfCallChart.symbolId.buffer,
-            fileId: perfCallChart.fileId.buffer,
-            selfDur: perfCallChart.selfDur.buffer,
-            name: perfCallChart.name.buffer,
-            maxDepth: dataCache.maxDepth,
-          }
+          startTs: perfCallChart.startTs.buffer,
+          dur: perfCallChart.dur.buffer,
+          depth: perfCallChart.depth.buffer,
+          callchainId: perfCallChart.callchainId.buffer,
+          eventCount: perfCallChart.eventCount.buffer,
+          symbolId: perfCallChart.symbolId.buffer,
+          fileId: perfCallChart.fileId.buffer,
+          selfDur: perfCallChart.selfDur.buffer,
+          name: perfCallChart.name.buffer,
+          maxDepth: dataCache.maxDepth,
+        }
         : {},
       len: len,
     },
     transfer
       ? [
-          perfCallChart.startTs.buffer,
-          perfCallChart.dur.buffer,
-          perfCallChart.depth.buffer,
-          perfCallChart.callchainId.buffer,
-          perfCallChart.eventCount.buffer,
-          perfCallChart.symbolId.buffer,
-          perfCallChart.fileId.buffer,
-          perfCallChart.selfDur.buffer,
-          perfCallChart.name.buffer,
-        ]
+        perfCallChart.startTs.buffer,
+        perfCallChart.dur.buffer,
+        perfCallChart.depth.buffer,
+        perfCallChart.callchainId.buffer,
+        perfCallChart.eventCount.buffer,
+        perfCallChart.symbolId.buffer,
+        perfCallChart.fileId.buffer,
+        perfCallChart.selfDur.buffer,
+        perfCallChart.name.buffer,
+      ]
       : []
   );
 }
@@ -363,13 +377,15 @@ function combineChartData(samples: unknown, params: unknown): Array<unknown> {
             combineSample.push(sample);
           }
         } else {
-          if (pre.cpuId === sample.cpuId && pre.endTime === sample.startTime) {
-            // @ts-ignore
-            combinePerfCallData(combineSample[combineSample.length - 1], sample);
-          } else {
-            // @ts-ignore
-            combineSample.push(sample);
-          }
+          // if (pre.cpuId === sample.cpuId && pre.endTime === sample.startTime) {
+          //   // @ts-ignore
+          //   combinePerfCallData(combineSample[combineSample.length - 1], sample);
+          // } else {
+          //   // @ts-ignore
+          //   combineSample.push(sample);
+          // }
+          // @ts-ignore
+          combinePerfCallData(combineSample[combineSample.length - 1], sample)
         }
       }
     }

@@ -127,12 +127,13 @@ export function soDataFilter(
 export function SoStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  scrollToFuncHandler: Function
+  scrollToFuncHandler: Function,
+  entry?: SoStruct,
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_STATIC_INIT && SoStruct.hoverSoStruct) {
-      SoStruct.selectSoStruct = SoStruct.hoverSoStruct;
-      sp.traceSheetEL?.displayStaticInitData(SoStruct.selectSoStruct, scrollToFuncHandler);
+    if (clickRowType === TraceRow.ROW_TYPE_STATIC_INIT && (SoStruct.hoverSoStruct || entry)) {
+      SoStruct.selectSoStruct = entry || SoStruct.hoverSoStruct;
+      sp.traceSheetEL?.displayStaticInitData(SoStruct.selectSoStruct!, scrollToFuncHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {

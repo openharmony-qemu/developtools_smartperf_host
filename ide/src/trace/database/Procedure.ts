@@ -168,7 +168,7 @@ class ProcedurePool {
     thread.worker!.onmessage = (event: MessageEvent): void => {
       thread.busy = false;
       if (event.data.isQuery) {
-        query(event.data.type, event.data.sql, event.data.args, 'exec-buf').then(
+        query(event.data.type, event.data.sql, event.data.args, { action : 'exec-buf' }).then(
           (
             // @ts-ignore
             res: unknown

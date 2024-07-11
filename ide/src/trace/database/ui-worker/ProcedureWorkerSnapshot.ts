@@ -144,10 +144,12 @@ const snapshotTypeHandlerMap = new Map<string, (sp: SpSystemTrace, row: TraceRow
     ],
   ]
 );
+
 export function SnapshotStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  row: TraceRow<BaseStruct>
+  row: TraceRow<SnapshotStruct>,
+  entry?: SnapshotStruct,
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (snapshotTypeHandlerMap.has(clickRowType)) {

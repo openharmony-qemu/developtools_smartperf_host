@@ -12,9 +12,10 @@
 // limitations under the License.
 
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from '../utils/QueryEnum';
-import { threadPool } from '../../SqlLite';
+import { getThreadPool } from '../../SqlLite';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { CpuFreqLimitsStruct } from '../../ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
+import { Utils } from '../../../component/trace/base/Utils';
 
 export function cpuFreqLimitSender(
   maxId: number,
@@ -34,13 +35,13 @@ export function cpuFreqLimitSender(
     };
   }
   return new Promise((resolve, reject): void => {
-    threadPool.submitProto(
+    getThreadPool(row.traceId).submitProto(
       QueryEnum.CpuFreqLimitData,
       {
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
+        recordStartNS: Utils.getInstance().getRecordStartNS(row.traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(row.traceId),
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,

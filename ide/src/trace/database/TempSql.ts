@@ -13,22 +13,6 @@
  * limitations under the License.
  */
 
-let temp_query_process = `create table temp_query_process as
-select distinct process.pid  as pid,
-                process.name as processName
-from (select ipid, itid
-      from sched_slice
-      group by itid) the_tracks
-         left join
-     (select sched_slice.ipid, sum(dur) as total_dur from sched_slice group by ipid) using (ipid)
-         left join
-     process using (ipid)
-where pid is not null
-order by total_dur desc,
-         the_tracks.ipid,
-         processName,
-         the_tracks.itid;
-`;
 let temp_query_cpu_data = `create table temp_query_cpu_data as
 with list as (SELECT IP.name            as processName,
                      IP.name               processCmdLine,
@@ -397,6 +381,7 @@ let delete_callstack_binder_data = `DELETE
                                     WHERE dur < -1
                                        or name = 'binder transaction async'
                                        or name = 'binder async rcv';`;
-
-let temp_init_sql_list = [temp_query_process];
+// @ts-ignore
+let temp_init_sql_list = [];
+// @ts-ignore
 export { temp_init_sql_list };

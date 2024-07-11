@@ -94,8 +94,8 @@ export class CpuStateRender extends PerfRender {
     let pns = (endNS - startNS) / frame.width;
     let y = frame.y + 5;
     let frameHeight = frame.height - 10;
-    let left = 0;
-    let right = 0;
+    let left = 0,
+      right = 0;
     for (let i = 0, j = list.length - 1, ib = true, jb = true; i < list.length, j >= 0; i++, j--) {
       if (list[j].startTs! <= endNS && jb) {
         right = j;
@@ -178,10 +178,14 @@ export class CpuStateRender extends PerfRender {
     }
   }
 }
-export function CpuStateStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+export function CpuStateStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  entry?: CpuStateStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_CPU_STATE && CpuStateStruct.hoverStateStruct) {
-      CpuStateStruct.selectStateStruct = CpuStateStruct.hoverStateStruct;
+    if (clickRowType === TraceRow.ROW_TYPE_CPU_STATE && (CpuStateStruct.hoverStateStruct || entry)) {
+      CpuStateStruct.selectStateStruct = entry || CpuStateStruct.hoverStateStruct;
       sp.traceSheetEL?.displayCpuStateData();
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());

@@ -65,6 +65,9 @@ import { LtpoRender } from './ProcedureWorkerLTPO';
 import { BinderRender } from './procedureWorkerBinder';
 import { SampleRender } from './ProcedureWorkerBpftrace';
 import { PerfToolRender } from './ProcedureWorkerPerfTool';
+import { GpuCounterRender } from './ProcedureWorkerGpuCounter';
+import { AllStatesRender } from './ProcedureWorkerAllStates';
+import { DmaFenceRender } from './ProcedureWorkerDmaFence';
 
 let dataList: unknown = {};
 let dataList2: unknown = {};
@@ -127,6 +130,9 @@ export let renders = {
   binder: new BinderRender(),
   sample: new SampleRender(),
   perfTool: new PerfToolRender(),
+  gpuCounter: new GpuCounterRender(),
+  stateCut: new AllStatesRender(),
+  'dmaFence':new DmaFenceRender()
 };
 
 function match(type: string, req: RequestMessage): void {

@@ -12,15 +12,16 @@
 // limitations under the License.
 
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
-import { threadPool } from '../SqlLite';
+import { getThreadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ClockStruct } from '../ui-worker/ProcedureWorkerClock';
+import { Utils } from '../../component/trace/base/Utils';
 
 export function clockDataSender(
   clockName: string = '',
   sqlType: string,
   row: TraceRow<ClockStruct>,
-  args?: unknown
+  args?: unknown,
 ): Promise<ClockStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
@@ -33,7 +34,7 @@ export function clockDataSender(
     };
   }
   return new Promise((resolve, reject): void => {
-    threadPool.submitProto(
+    getThreadPool(row.traceId).submitProto(
       QueryEnum.ClockData,
       {
         clockName: clockName,
@@ -41,8 +42,8 @@ export function clockDataSender(
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         totalNS: TraceRow.range?.totalNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
+        recordStartNS: Utils.getInstance().getRecordStartNS(row.traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(row.traceId),
         // @ts-ignore
         queryAll: args && args.queryAll,
         // @ts-ignore

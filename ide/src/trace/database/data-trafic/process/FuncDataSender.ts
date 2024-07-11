@@ -12,11 +12,14 @@
 // limitations under the License.
 
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from '../utils/QueryEnum';
-import { threadPool } from '../../SqlLite';
+import { getThreadPool } from '../../SqlLite';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { FuncStruct } from '../../ui-worker/ProcedureWorkerFunc';
+import { Utils } from '../../../component/trace/base/Utils';
 
-export function funcDataSender(tid: number, ipid: number, row: TraceRow<FuncStruct>): Promise<FuncStruct[] | boolean> {
+export function funcDataSender(tid: number, ipid: number, row: TraceRow<FuncStruct>, traceId?: string):
+  Promise<FuncStruct[] | boolean>
+{
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
@@ -30,16 +33,17 @@ export function funcDataSender(tid: number, ipid: number, row: TraceRow<FuncStru
     };
   }
   return new Promise((resolve, reject): void => {
-    threadPool.submitProto(
+    getThreadPool(traceId).submitProto(
       QueryEnum.FuncData,
       {
         tid: tid,
         ipid: ipid,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
+        recordStartNS: Utils.getInstance().getRecordStartNS(traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(traceId),
         width: width,
+        expand: row.funcExpand,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },

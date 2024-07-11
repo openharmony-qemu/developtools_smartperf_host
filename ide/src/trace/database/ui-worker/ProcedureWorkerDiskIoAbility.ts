@@ -193,8 +193,7 @@ export class DiskAbilityMonitorStruct extends BaseStruct {
     totalNS: number,
     frame: Rect
   ): void {
-    let diskIOStartPointX: number;
-    let diskIOEndPointX: number;
+    let diskIOStartPointX: number, diskIOEndPointX: number;
 
     if ((diskIONode.startNS || 0) < startNS) {
       diskIOStartPointX = 0;

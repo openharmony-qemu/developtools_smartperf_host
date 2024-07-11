@@ -15,8 +15,7 @@ import { Args } from '../CommonArgs';
 import { TraficEnum } from '../utils/QueryEnum';
 
 export const chartProcessDeliverInputEventDataSql = (args: Args): string => {
-  return `
-  select 
+  return `select  
       c.ts-${args.recordStartNS} as startTs,
       c.dur,
       c.argsetid,
@@ -32,8 +31,8 @@ export const chartProcessDeliverInputEventDataSql = (args: Args): string => {
       c.name as funName,
       A.name as threadName
   from thread A
-  left join callstack C on A.id = C.callid
   left join process P on P.id = A.ipid
+  left join callstack C on A.id = C.callid
   where startTs not null and cookie not null
   and c.name ='deliverInputEvent'
   and tid = ${args.tid}

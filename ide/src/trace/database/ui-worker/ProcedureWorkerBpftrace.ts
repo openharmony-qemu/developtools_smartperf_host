@@ -133,11 +133,15 @@ function setSampleFilter(
   }
 }
 
-// @ts-ignore
-export function sampleStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<unknown> | undefined) {
+export function sampleStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  row: TraceRow<SampleStruct> | undefined,
+  entry?: SampleStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    SampleStruct.selectSampleStruct = SampleStruct.hoverSampleStruct;
-    if (clickRowType === TraceRow.ROW_TYPE_SAMPLE && SampleStruct.hoverSampleStruct && SampleStruct.selectSampleStruct !== undefined) {
+    if (clickRowType === TraceRow.ROW_TYPE_SAMPLE && (SampleStruct.hoverSampleStruct || entry)) {
+      SampleStruct.selectSampleStruct = entry || SampleStruct.hoverSampleStruct;
       if (row?.rowId === 'userPlugin') {
         SpUserFileChart.userPluginData!.map((v: unknown) => {
           //@ts-ignore
@@ -148,7 +152,7 @@ export function sampleStructOnClick(clickRowType: string, sp: SpSystemTrace, row
           }
         })
       } else {
-        sp.traceSheetEL?.displaySampleData(SampleStruct.selectSampleStruct, SampleStruct.reqProperty);
+        sp.traceSheetEL?.displaySampleData(SampleStruct.selectSampleStruct!, SampleStruct.reqProperty);
         sp.timerShaftEL?.modifyFlagList(undefined);
       }
       reject(new Error());
