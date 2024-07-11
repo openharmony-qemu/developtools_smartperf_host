@@ -190,7 +190,6 @@ export class TabPaneSlices extends BaseElement {
     spSystemTrace: SpSystemTrace
   ): void {
     let input = search.shadowRoot?.querySelector('input') as HTMLInputElement;
-    let indexEL = search.shadowRoot!.querySelector<HTMLSpanElement>('#index');
     let rangeSelectList: Array<unknown> = []; // 框选范围的数据
     // search 到的内容与框选泳道的内容取并集
     for (const searchItem of search.list) {
@@ -230,9 +229,8 @@ export class TabPaneSlices extends BaseElement {
     search.currenSearchValue = data.name;
     search.list = rangeSelectList;
     search.total = search.list.length;
-    search.index = spSystemTrace!.showStruct(true, 1, search.list);
+    search.index = spSystemTrace!.showStruct(false, -1, search.list);
     search.isClearValue = true;
-    indexEL!.textContent = '1';
   }
 
   connectedCallback(): void {
