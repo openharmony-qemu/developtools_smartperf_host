@@ -222,6 +222,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   private perfReset(): void {
     this.isHideThread = false;
     this.isHideThreadState = false;
+    this.isOnlyKernel = false;
   }
   private setLib(libFilter: unknown): void {
     this.lib = {
