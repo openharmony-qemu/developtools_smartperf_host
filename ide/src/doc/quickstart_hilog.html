@@ -241,7 +241,6 @@
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -573,9 +572,11 @@
       }
 
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -657,11 +658,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -672,7 +669,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -779,38 +776,33 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">Hilog抓取和展示说明</h1>
 
       <p class="fontColor">Hilog分析模块主要展示系统日志信息。</p>
       <h2 class="mume-header fontColor">Hilog的抓取</h2>
 
-      <h4 class="mume-header fontColor">Hilog的抓取配置参数</h4>
+      <h4 class="mume-header fontColor" id="header-index-1">Hilog的抓取配置参数</h4>
 
       <p class="fontColor">
         打开Hilog开关抓取Hilog数据。
         <br />
         <img src="../figures/Hilog/hilogconfig.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Hilog展示说明</h3>
+      <h3 class="mume-header fontColor" id="header-index-2">Hilog展示说明</h3>
 
       <p class="fontColor">
         将抓取的hilog文件导入到smartperf中，查看日志信息。
         <br />
         <img src="../figures/Hilog/hilogrow.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Hilog泳道图的框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-3">Hilog泳道图的框选功能</h3>
 
       <p class="fontColor">
         框选Hilog的泳道图，展示Hilog的tab页,Log Level可以选择日志级别，也能根据Tag，Process name，Message去搜索。
@@ -878,10 +870,9 @@ Count： 各级别日志的条数。
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -892,6 +883,14 @@ Count： 各级别日志的条数。
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== null ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

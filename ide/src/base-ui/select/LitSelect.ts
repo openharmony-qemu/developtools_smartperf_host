@@ -29,6 +29,7 @@ export class LitSelect extends BaseElement {
   private bodyEl: unknown;
   private selectSearchEl: unknown;
   private selectMultipleRootEl: unknown;
+  private currentSelectedValue: string = '';
 
   static get observedAttributes(): string[] {
     return [
@@ -166,27 +167,27 @@ export class LitSelect extends BaseElement {
     if (selectDataSource.length > 0) {
       // @ts-ignore
       this.bodyEl!.style.display = 'flex';
-      this.querySelectorAll('lit-select-option').forEach((a) => this.removeChild(a)); // @ts-ignore
+      this.querySelectorAll('lit-select-option').forEach((a) => {
+        this.removeChild(a)
+      });
+      // @ts-ignore
       selectDataSource.forEach((dateSourceBean: unknown) => {
-        let selectOption = document.createElement('lit-select-option'); // @ts-ignore
-        if (dateSourceBean.name) {
-          // @ts-ignore
-          selectOption.textContent = dateSourceBean.name; // @ts-ignore
-          selectOption.setAttribute('value', dateSourceBean.name);
-        } else if (dateSourceBean) {
-          // @ts-ignore
-          selectOption.textContent = dateSourceBean; // @ts-ignore
-          selectOption.setAttribute('value', dateSourceBean);
-          if (
-            this.selectItem !== '' &&
-            this.selectItem === this.value &&
-            this.selectItem === selectOption.textContent
-          ) {
+        if (dateSourceBean) {
+          let selectOption = document.createElement('lit-select-option');
+          let optionData = {
+            // @ts-ignore
+            value: dateSourceBean.value ? dateSourceBean.value : dateSourceBean.name || dateSourceBean, // @ts-ignore
+            name: dateSourceBean.name ? dateSourceBean.name : dateSourceBean,
+          };
+          selectOption.textContent = optionData.name;
+          selectOption.setAttribute('value', optionData.value);
+          if (this.currentSelectedValue === optionData.value) {
             selectOption.setAttribute('selected', '');
-          } // @ts-ignore
+          }
+          // @ts-ignore
           this.selectInputEl!.value = '';
+          this.append(selectOption);
         }
-        this.append(selectOption);
       });
       this.initOptions();
     } else {
@@ -220,8 +221,8 @@ export class LitSelect extends BaseElement {
         ${selectHtmlStr(this.listHeight)}
         <div class="root noSelect" tabindex="0" hidefocus="true">
             <div class="multipleRoot">
-            <input placeholder="${this.placeholder}" autocomplete="off" ${this.showSearch || this.canInsert ? '' : 'readonly'
-      } tabindex="0">
+            <input placeholder="${this.placeholder}" autocomplete="off" ${
+  this.showSearch || this.canInsert ? '' : 'readonly'} tabindex="0">
             </div>
             <lit-loading class="loading" size="12"></lit-loading>
             <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>
@@ -251,7 +252,7 @@ export class LitSelect extends BaseElement {
     icon.name = 'close';
     let span = document.createElement('span'); // @ts-ignore
     tag.classList.add('tag'); // @ts-ignore
-    span.dataset.value = value; // @ts-ignore
+    span.dataset['value'] = value; // @ts-ignore
     span.textContent = text; // @ts-ignore
     tag.append(span); // @ts-ignore
     tag.append(icon); // @ts-ignore
@@ -267,9 +268,9 @@ export class LitSelect extends BaseElement {
       ev.stopPropagation();
     }; // @ts-ignore
     tag.value = value; // @ts-ignore
-    tag.dataset.value = value; // @ts-ignore
+    tag.dataset['value'] = value; // @ts-ignore
     tag.text = text; // @ts-ignore
-    tag.dataset.text = text; // @ts-ignore
+    tag.dataset['text'] = text; // @ts-ignore
     return tag;
   }
 
@@ -555,21 +556,31 @@ export class LitSelect extends BaseElement {
         } // @ts-ignore
         this.selectInputEl.focus();
       } else {
-        [...this.querySelectorAll('lit-select-option')].forEach((a) => a.removeAttribute('selected'));
+        [...this.querySelectorAll('lit-select-option')].forEach((item) => {
+          if (item.hasAttribute('selected')) {
+            this.currentSelectedValue = item.getAttribute('value') || '';
+          }
+          item.removeAttribute('selected');
+        });
         this.blur(); // @ts-ignore
         this.bodyEl!.style.display = 'none';
         // @ts-ignore
         this.selectInputEl.value = e.detail.text;
       }
-      if (a.hasAttribute('selected')) {
+      if (a.getAttribute('value') === this.currentSelectedValue) {
         a.removeAttribute('selected');
+        this.currentSelectedValue = '';
+        // @ts-ignore
+        this.selectInputEl.value = '';
+        // @ts-ignore
+        this.selectInputEl.placeholder = this.defaultPlaceholder;
       } else {
+        this.currentSelectedValue = a.getAttribute('value') || '';
         a.setAttribute('selected', '');
-        this.selectItem = a.textContent!;
       }
+      this.value = this.currentSelectedValue;
       // @ts-ignore
-      this.value = e.detail.value; // @ts-ignore
-      this.dispatchEvent(new CustomEvent('change', { detail: e.detail })); //向外层派发change事件，返回当前选中项
+      this.dispatchEvent(new CustomEvent('change', { detail: { selectValue: this.currentSelectedValue, text: e.detail.text } })); //向外层派发change事件，返回当前选中项
     });
   }
 
@@ -590,15 +601,16 @@ export class LitSelect extends BaseElement {
     });
   }
 
-  disconnectedCallback(): void { }
+  disconnectedCallback(): void {}
 
-  adoptedCallback(): void { }
+  adoptedCallback(): void {}
 
   attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {
     if (name === 'value' && this.selectInputEl) {
       if (newValue) {
         [...this.querySelectorAll('lit-select-option')].forEach((a) => {
           if (a.getAttribute('value') === newValue) {
+            this.currentSelectedValue = a.getAttribute('value') || '';
             a.setAttribute('selected', ''); // @ts-ignore
             this.selectInputEl.value = a.textContent;
           } else {

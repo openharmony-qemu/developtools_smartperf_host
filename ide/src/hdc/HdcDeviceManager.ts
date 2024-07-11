@@ -133,8 +133,11 @@ export class HdcDeviceManager {
    * Execute shell on the currently connected device and return the result as a string
    *
    * @param cmd cmd
+   * @param isSkipResult isSkipResult
+   * @param shellResultHandleFun shellResultHandleFun
    */
-  public static async shellResultAsString(cmd: string, isSkipResult: boolean): Promise<string> {
+  public static async shellResultAsString(cmd: string, isSkipResult: boolean, shellResultHandleFun?: Function):
+    Promise<string> {
     if (this.currentHdcClient) {
       const hdcStream = new HdcStream(this.currentHdcClient, false);
       await hdcStream.DoCommand(cmd);
@@ -151,7 +154,11 @@ export class HdcDeviceManager {
           await hdcStream.closeStream();
           return Promise.resolve('The device is abnormal');
         }
-        result += dataMessage.getDataToString();
+        let dataResult = dataMessage.getDataToString();
+        result += dataResult;
+        if (shellResultHandleFun && cmd.endsWith('CONFIG')) {
+          shellResultHandleFun(dataResult);
+        }
       }
       await hdcStream.closeStream();
       await hdcStream.DoCommandRemote(new FormatCommand(HdcCommand.CMD_KERNEL_CHANNEL_CLOSE, '0', false));
@@ -186,57 +193,53 @@ export class HdcDeviceManager {
   public static startShell(
     resultCallBack: (res: DataMessage) => void
   ): ((keyboardEvent: KeyboardEvent | string) => void | undefined) | undefined {
-    if (!this.currentHdcClient) {
-      return;
-    }
-    const hdcShellStream = new HdcStream(this.currentHdcClient, false);
-    this.shellInit(hdcShellStream, resultCallBack);
-    return (keyboardEvent: KeyboardEvent | string): void => {
-      let code = undefined;
-      if (keyboardEvent instanceof KeyboardEvent) {
-        const cmd = keyboardEvent.key;
-        if (keyboardEvent.shiftKey && keyboardEvent.key.toUpperCase() === 'SHIFT') {
-          return;
-        } else if (keyboardEvent.metaKey) {
-          return;
-        } else if (keyboardEvent.ctrlKey) {
-          // @ts-ignore
-          code = this.ctrlKey[keyboardEvent.key];
-          if (!code) {
+    if (this.currentHdcClient) {
+      const hdcShellStream = new HdcStream(this.currentHdcClient, false);
+      this.shellInit(hdcShellStream, resultCallBack);
+      return (keyboardEvent: KeyboardEvent | string): void => {
+        let code = undefined;
+        if (keyboardEvent instanceof KeyboardEvent) {
+          const cmd = keyboardEvent.key;
+          if (keyboardEvent.shiftKey && keyboardEvent.key.toUpperCase() === 'SHIFT') {
+            return;
+          } else if (keyboardEvent.metaKey) {
+            return;
+          } else if (keyboardEvent.ctrlKey) {
+            // @ts-ignore
+            code = this.ctrlKey[keyboardEvent.key];
+            if (!code) {
+              return;
+            } else {
+              const dataArray = new Uint8Array(code);
+              hdcShellStream.sendToDaemon(
+                new FormatCommand(HdcCommand.CMD_SHELL_DATA, cmd, false),
+                dataArray,
+                dataArray.length
+              );
+            }
+          } else if (keyboardEvent.altKey) {
             return;
           } else {
-            const dataArray = new Uint8Array(code);
-            hdcShellStream.sendToDaemon(
-              new FormatCommand(HdcCommand.CMD_SHELL_DATA, cmd, false),
-              dataArray,
-              dataArray.length
-            );
-          }
-          return;
-        } else if (keyboardEvent.altKey) {
-          return;
-        } else {
-          // @ts-ignore
-          code = this.escapeCharacterDict[cmd];
-          if (code) {
-            const dataArray = new Uint8Array(code);
-            hdcShellStream.sendToDaemon(
-              new FormatCommand(HdcCommand.CMD_SHELL_DATA, cmd, false),
-              dataArray,
-              dataArray.length
-            );
-          } else {
-            if (cmd.length === 1) {
-              hdcShellStream.DoCommand(cmd);
+            // @ts-ignore
+            code = this.escapeCharacterDict[cmd];
+            if (code) {
+              const dataArray = new Uint8Array(code);
+              hdcShellStream.sendToDaemon(
+                new FormatCommand(HdcCommand.CMD_SHELL_DATA, cmd, false),
+                dataArray,
+                dataArray.length
+              );
+            } else {
+              if (cmd.length === 1) {
+                hdcShellStream.DoCommand(cmd);
+              }
             }
           }
-          return;
+        } else {
+          hdcShellStream.DoCommand(HdcDeviceManager.processCommand(keyboardEvent));
         }
-      } else {
-        hdcShellStream.DoCommand(HdcDeviceManager.processCommand(keyboardEvent));
-      }
-      return;
-    };
+      };
+    }
   }
 
   private static processCommand(command: string): string {

@@ -241,7 +241,6 @@
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -573,9 +572,11 @@
       }
 
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -657,11 +658,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -672,7 +669,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -779,24 +776,19 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">Bio的抓取和展示说明</h1>
 
       <p class="fontColor">抓取和展示IO延迟的数据。</p>
       <h2 class="mume-header fontColor">Bio的抓取</h2>
 
-      <h3 class="mume-header fontColor">Bio抓取配置参数</h3>
+      <h3 class="mume-header fontColor" id="header-index-1">Bio抓取配置参数</h3>
 
       <p class="fontColor">
         <img src="../figures/Bio/Biosetting.jpg" alt="GitHub Logo" />
@@ -825,15 +817,16 @@ Max Unwind Level：配置抓取调用栈的最大深度。
       </ul>
       <p class="fontColor">
         再点击Record setting，在output file path输入文件名hiprofiler_data_bio.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。
+        size大小是64MB，抓取时长是50s。
         <br />
         <img src="../figures/Bio/Biorecord.jpg" alt="GitHub Logo" />
         <br />
         点击Trace command，就会根据上面的配置生成抓取命令，点击Record抓取，抓取过程中会显示抓取时长。
         <br />
+        <img src="../figures/Bio/hdc.jpg" alt="GitHub Logo" />
         <img src="../figures/Bio/Bioexcuting.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Bio展示说明</h3>
+      <h3 class="mume-header fontColor" id="header-index-2">Bio展示说明</h3>
 
       <p class="fontColor">
         抓取结束后Bio的trace会自动加载展示。
@@ -861,14 +854,14 @@ Max Unwind Level：配置抓取调用栈的最大深度。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Bio泳道图展示</h3>
+      <h3 class="mume-header fontColor" id="header-index-3">Bio泳道图展示</h3>
 
       <p class="fontColor">
         Bio泳道图鼠标悬浮以10ms为区间展示该周期内最大的读或者写延迟。
         <br />
         <img src="../figures/Bio/Biochart.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Bio泳道图的框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-4">Bio泳道图的框选功能</h3>
 
       <p class="fontColor">
         可以对泳道图进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有三个tab页。
@@ -935,9 +928,13 @@ Local：为该调用方法自身占用的CPU时间。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Weight：调用方法的执行占比。
-</pre
-          >
+Weight：为该调用方法占用的CPU时间。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+%：为该调用方法占用的CPU时间占比。
+</pre>
         </li>
       </ul>
       <p class="fontColor">
@@ -972,7 +969,7 @@ Thread：线程名（tid）。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Latency per 4KB：原始数据里没有，每4k数据的延迟时间，需要根据延迟的size跟延迟的时间去计算。
+Latency per 4KB：每4k数据的延迟时间。
 </pre
           >
         </li>
@@ -1013,10 +1010,10 @@ BackTrace：调用栈顶部函数，并显示调用栈深度。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Bio支持多种Options展示风格</h3>
+      <h3 class="mume-header fontColor" id="header-index-5">Bio支持多种Options展示风格</h3>
 
       <p class="fontColor">
-        点击Disk I/O Latency CallTree的Tab页底部的Options，会有两个CheckBox复选框。
+        点击Disk I/O Latency CallTree的Tab页底部的Options，会有四个CheckBox复选框。
         <br />
         <img src="../figures/Bio/BioOptions.jpg" alt="GitHub Logo" />
       </p>
@@ -1033,8 +1030,18 @@ Hide System so：隐藏系统库文件  。
 </pre
           >
         </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Hide Event：隐藏事件。 
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Hide Thread：隐藏线程。 
+</pre>
+        </li>
       </ul>
-      <h3 class="mume-header fontColor">Bio支持过滤调用栈调用次数的展示风格</h3>
+      <h3 class="mume-header fontColor" id="header-index-6">Bio支持过滤调用栈调用次数的展示风格</h3>
 
       <p class="fontColor">
         点击Disk I/O Latency CallTree的Tab页底部的Sample Count
@@ -1042,7 +1049,7 @@ Hide System so：隐藏系统库文件  。
         <br />
         <img src="../figures/Bio/Biocounter.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Bio功能的调用栈Group展示-数据分析支持剪裁功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-7">Bio功能的调用栈Group展示-数据分析支持剪裁功能</h3>
 
       <p class="fontColor"><img src="../figures/Bio/Biodatamining.jpg" alt="GitHub Logo" /></p>
       <ul class="fontColor">
@@ -1053,34 +1060,34 @@ Hide System so：隐藏系统库文件  。
           </p>
         </li>
         <li>
-          <p class="fontColor">裁剪Library，点击Library Filter按钮，则该库文件符号下所有的子节点也被裁剪。</p>
+          <p class="fontColor">裁剪Library，点击Library上一个节点符号，再点击底部Library Filter按钮，则该符号自动被裁剪掉，同时将该节点往下所有的Callstack内容裁剪掉。</p>
         </li>
         <li>
-          <p class="fontColor">点击Reset按钮，将恢复选中的裁剪内容。</p>
+          <p class="fontColor">先选中要恢复的内容，再点击Reset按钮，将恢复选中的裁剪内容。</p>
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Bio功能的调用栈Group展示支持按条件过滤</h3>
+      <h3 class="mume-header fontColor" id="header-index-8">Bio功能的调用栈Group展示支持按条件过滤</h3>
 
       <p class="fontColor">
         在Input Filter输入关键字，会显示出带有该关键字的展示信息。
         <br />
         <img src="../figures/Bio/Bioinputfilter.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Bio辅助信息区展示调用栈</h3>
+      <h3 class="mume-header fontColor" id="header-index-9">Bio辅助信息区展示调用栈</h3>
 
       <p class="fontColor">
         当在详细信息区选择一个符号时，将展示与该符号相关的完整的调用栈。如下图的Heaviest Stack Trace：
         <br />
         <img src="../figures/Bio/Bioheaviesttrace.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Bio的Tier的过滤</h3>
+      <h3 class="mume-header fontColor" id="header-index-10">Bio的Tier的过滤</h3>
 
       <p class="fontColor">
         通过选择根据Tier去过滤。
         <br />
         <img src="../figures/Bio/Biofilter.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Bio的火焰图功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-11">Bio的火焰图功能</h3>
 
       <p class="fontColor">
         点击Disk I/O Latency CallTree左下角的柱状图的图标，会切换到火焰图页面。
@@ -1088,11 +1095,11 @@ Hide System so：隐藏系统库文件  。
         <img src="../figures/Bio/Bioflame.jpg" alt="GitHub Logo" />
         <br />
         进入到火焰图页面，火焰图的展示跟 Disk I/O Latency CallTree
-        的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和Duration时长。
+        的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称、所属Lib库、函数地址、耗时及其占比。
         <br />
         <img src="../figures/Bio/Bioflameshow.jpg" alt="GitHub Logo" />
         <br />
-        鼠标点击火焰图，会进入下一级界面，点击上级则返回上一级界面。
+        鼠标左键火焰图，会进入下一级界面，左键上级则返回上一级界面。
         <br />
         <img src="../figures/Bio/Bioflamelevel.jpg" alt="GitHub Logo" />
       </p>
@@ -1100,10 +1107,9 @@ Hide System so：隐藏系统库文件  。
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -1114,6 +1120,14 @@ Hide System so：隐藏系统库文件  。
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== null ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

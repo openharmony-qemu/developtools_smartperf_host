@@ -28,7 +28,7 @@
 - Hitrace categories: Bytrace 的抓取项，各解释项说明如下图：
   ![GitHub Logo](../../figures/hdc/bytacedescription.jpg)
 
-再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_example.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 50s。
+再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_example.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 50s。
 ![GitHub Logo](../../figures/hdc/examplerecord.jpg)
 点击 Trace command，就会根据上面的配置生成抓取命令，点击 Record。
 ![GitHub Logo](../../figures/hdc/record.jpg)

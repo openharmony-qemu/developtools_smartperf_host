@@ -4,7 +4,7 @@
 
 ### 可导入符号表
 
-符号表导入适用于所有支持调用栈的 Tab 页，选择一个文件夹，获取文件下及其子文件夹的所有 so 文件，更新数据库中符号数据。文件夹内 so 的格式需要与在设备上的路径一致，例如下图中，选择的文件夹为 import，选择导入的 libnative_hook.z.so，在设备上的路径是/system/lib64/，那么在本地选择的文件夹内也需要保证路径是 import/system/lib64/libnative_hook.z.so。
+符号表导入适用于所有支持调用栈的 Tab 页，创建文件夹，然后将需要导入的so文件放进文件夹内，在导入时，选择该文件夹即可，这样，系统将会获取到该文件夹内所有的so文件，更新数据库中符号数据。文件夹内 so 的格式需要与在设备上的路径一致，例如下图中，选择的文件夹为 import，选择导入的 libnative_hook.z.so，在设备上的路径是/system/lib64/，那么在本地选择的文件夹内也需要保证路径是 import/system/lib64/libnative_hook.z.so。
 ![GitHub Logo](../../figures/OperationSkills/Operation_soimport_dir.jpg)
 以 NativeMemory 举例，导入 NativeMemory 文件，点击 Call info 的 Tab 页，在搜索框中输入 libnative_hook.z.so，会发现该 so 下的调用栈没有符号化完全。
 ![GitHub Logo](../../figures/OperationSkills/Operation_soimport_nativehook.jpg)
@@ -61,7 +61,7 @@
 
 点击![GitHub Logo](../../figures/OperationSkills/Tabskilltempleshow.jpg)图标会以子系统-->部件-->泳道层级去显示：
 ![GitHub Logo](../../figures/OperationSkills/Tabskillsubsystem.jpg)
-点击![GitHub Logo](../../figures/OperationSkills/subsystemupload.jpg)导入模板的 json 配置，点击![GitHub Logo](../../figures/OperationSkills/subsystemdownload.jpg)下载模板的 json 配置，模板的配置文件格式如下：
+点击![GitHub Logo](../../figures/OperationSkills/subsystemupload.jpg)导入模板的json配置，点击![GitHub Logo](../../figures/OperationSkills/subsystemdownload.jpg)下载模板的json配置，模板的配置文件格式如下：
 ![GitHub Logo](../../figures/OperationSkills/subsystemsconfig.jpg)
 
 ### 所有进程的用户输入事件归一显示，观察操作事件和对象
@@ -98,3 +98,20 @@ CPU 负载颜色的亮度，负载越大颜色更深，负载越小颜色越浅�
 
 在现有的配置界面上，新增一个 Web 版本的 shell 界面，可以支持 shell 命令。
 ![GitHub Logo](../../figures/OperationSkills/shellconfig.jpg)
+
+### 分布式导入功能
+
+在界面的如下入口可以导入分布式文件，将两个文件放到文件夹下，以文件夹的形式导入。
+![GitHub Logo](../../figures/OperationSkills/disimport.jpg)
+导入分布式文件以后，展示如下：
+![GitHub Logo](../../figures/OperationSkills/distributetrace.jpg)
+分布式Trace导入完成后，在泳道界面通过点击节点slice数据(分布式)，会构建同进程(线程)或跨进程(线程)、单trace或多trace间的折线。折线绘制规则是:同一调用链，相邻数据的spanId相同或者当前spanId和另一个数据的parentSpanId相同时绘制关联关系的折线。<br>
+![GitHub Logo](../../figures/OperationSkills/distributeline.jpg)
+分布式slice的信息如下：
+![GitHub Logo](../../figures/OperationSkills/distributetab.jpg)
+-     Name：数据的名称。
+-     Depth：数据的在该泳道中的层级。
+-     ChainId：调用链的id, 同一条调用链id是相同的。
+-     SpanId：当前节点id。
+-     ParentSpanId：当前节点的父节点id。
+-     ChainFlag：当前节点在调用链中的flag类型，C(Client)、S(Server)。

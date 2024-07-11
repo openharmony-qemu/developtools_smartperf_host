@@ -185,25 +185,22 @@ export class LitMainMenu extends BaseElement {
       } // @ts-ignore
       if (v.fileChoose) {
         th.setAttribute('file', '');
-        th.addEventListener('file-change', (e) => {
+        th.addEventListener('file-change', (e): void => {
           // @ts-ignore
-          if (v.fileHandler && !th.disabled) {
-            // @ts-ignore
+          if (v.fileHandler && !th.disabled) { // @ts-ignore
             v.fileHandler(e);
           }
         });
       } else {
         th.removeAttribute('file');
-        th.addEventListener('click', (e) => {
+        th.addEventListener('click', (e): void => {
           // @ts-ignore
-          if (v.clickHandler && !th.disabled) {
-            // @ts-ignore
+          if (v.clickHandler && !th.disabled) { // @ts-ignore
             v.clickHandler(v);
           }
         });
       } // @ts-ignore
-      if (v.disabled !== undefined) {
-        // @ts-ignore
+      if (v.disabled !== undefined) { // @ts-ignore
         th.disabled = v.disabled;
       }
       secondGroup.appendChild(th);
@@ -246,7 +243,12 @@ export class LitMainMenu extends BaseElement {
           item.clickHandler(item);
         }
       });
-    } // @ts-ignore
+    }
+    // @ts-ignore
+    if (item.multi) {
+      th.multi = true;
+    }
+    // @ts-ignore
     if (item.disabled !== undefined) {
       // @ts-ignore
       th.disabled = item.disabled;
@@ -294,7 +296,7 @@ export interface MenuGroup {
   describe: string;
   second: boolean;
   collapsed: boolean;
-  children: unknown;
+  children: MenuItem[];
   icon: string;
 }
 
@@ -302,6 +304,7 @@ export interface MenuItem {
   icon: string;
   title: string;
   fileModel?: string;
+  multi?: boolean;
   disabled?: boolean;
   fileChoose?: boolean;
   clickHandler?: Function;

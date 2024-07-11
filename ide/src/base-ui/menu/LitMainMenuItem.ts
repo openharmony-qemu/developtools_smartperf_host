@@ -91,7 +91,7 @@ export class LitMainMenuItem extends BaseElement {
   private fileEL: HTMLInputElement | undefined | null;
 
   static get observedAttributes(): string[] {
-    return ['title', 'icon', 'file', 'disabled'];
+    return ['title', 'icon', 'file', 'multi', 'disabled'];
   }
 
   get title(): string {
@@ -100,6 +100,18 @@ export class LitMainMenuItem extends BaseElement {
 
   set title(val: string) {
     this.setAttribute('title', val);
+  }
+
+  get multi(): boolean {
+    return this.hasAttribute('multi');
+  }
+
+  set multi(val: boolean) {
+    if (val) {
+      this.setAttribute('multi', '');
+    } else {
+      this.removeAttribute('multi');
+    }
   }
 
   get disabled(): boolean {
@@ -150,7 +162,7 @@ export class LitMainMenuItem extends BaseElement {
         this.fileEL!.addEventListener('change', (event) => {
           let files = this.fileEL!.files;
           if (files && files.length > 0) {
-            if (this.titleEl!.textContent!.includes('long trace')) {
+            if (this.titleEl!.textContent!.includes('long trace') || this.multi) {
               this.dispatchEvent(
                 new CustomEvent('file-change', {
                   // @ts-ignore
@@ -210,6 +222,17 @@ export class LitMainMenuItem extends BaseElement {
               this.fileEL!.removeAttribute('directory');
             }
           }
+        }
+        break;
+      case 'multi':
+        if (this.hasAttribute('multi')) {
+          this.fileEL!.setAttribute('multiple', '');
+          this.fileEL!.setAttribute('webkitdirectory', '');
+          this.fileEL!.setAttribute('directory', '');
+        } else {
+          this.fileEL!.removeAttribute('multiple');
+          this.fileEL!.removeAttribute('webkitdirectory');
+          this.fileEL!.removeAttribute('directory');
         }
         break;
       case 'icon':

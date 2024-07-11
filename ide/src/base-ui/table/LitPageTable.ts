@@ -1341,7 +1341,10 @@ export class LitPageTable extends BaseElement {
             if (isSelected) {
               // @ts-ignore
               this.clearAllSelection(rowObject.data);
-            } // @ts-ignore
+            }
+            // @ts-ignore
+            rowObject.data.isSelected = true;
+            // @ts-ignore
             this.setSelectedRow(rowObject.data.isSelected, elements);
           },
         },

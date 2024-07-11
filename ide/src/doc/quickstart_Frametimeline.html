@@ -241,7 +241,6 @@
         font-size: 16px;
         color: #333333;
         overflow: initial;
-        background-color: #ffffff;
         word-wrap: break-word;
         font-family: Helvetica;
         box-sizing: border-box;
@@ -573,9 +572,11 @@
       }
 
       .smartperf-preview {
-        width: 99%;
+        width: 68vw;
         height: 99%;
         box-sizing: border-box;
+        overflow: hidden;
+        background-color: #fff;
       }
 
       .smartperf-preview .pagebreak,
@@ -657,11 +658,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;
-        top: 1px;
-        left: 1px;
-        margin: 1px;
-        padding: 1px;
+        height: 99%;;
         overflow: auto;
       }
 
@@ -672,7 +669,7 @@
 
       @media screen and (min-width: 914px) {
         html body[for='html-export']:not([dpm]) .smartperf-preview {
-          padding: 2em calc(50% - 458px + 2em);
+          padding: 2em;
         }
       }
 
@@ -779,35 +776,30 @@
         }
       }
 
-      html body[for='html-export']:not([dpm]):not([hsst]) .smartperf-preview {
-        left: 50%;
-        transform: translateX(-50%);
-      }
-
       html body[for='html-export']:not([dpm]):not([hsst]) .md-sidebar-toc {
         display: none;
       }
     </style>
   </head>
-  <body for="html-export" id="body">
-    <div class="smartperf smartperf-preview">
+  <body for="html-export" id="body" style="margin:0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
       <h1 class="mume-header fontColor">Frame timeline抓取和展示说明</h1>
 
       <p class="fontColor">抓取和展示卡顿丢帧检测的数据。</p>
       <h2 class="mume-header fontColor">Frame timeline的抓取</h2>
 
-      <h3 class="mume-header fontColor">Frame timeline抓取界面配置说明</h3>
+      <h3 class="mume-header fontColor" id="header-index-1">Frame timeline抓取界面配置说明</h3>
 
       <p class="fontColor">
         打开Frame timeline开关抓取Frametimeline数据。
         <br />
         <img src="../figures/Frame/frameset.jpg" alt="GitHub Logo" />
       </p>
-      <h3 class="mume-header fontColor">Frame timeline文件的抓取</h3>
+      <h3 class="mume-header fontColor" id="header-index-2">Frame timeline文件的抓取</h3>
 
       <p class="fontColor">
         点击Record setting，在output file path输入文件名hiprofiler_dataframe.htrace，拖动滚动条设置buffer
-        size大小是64M，抓取时长是50s。
+        size大小是64MB，抓取时长是50s。
         <br />
         <img src="../figures/Frame/framesetting.jpg" alt="GitHub Logo" />
         <br />
@@ -818,7 +810,7 @@
       <h2 class="mume-header fontColor">Frame timeline功能介绍</h2>
 
       <p class="fontColor">将抓取的文件导入到smartperf工具查看。</p>
-      <h3 class="mume-header fontColor">Frame timeline泳道图展示</h3>
+      <h3 class="mume-header fontColor" id="header-index-3">Frame timeline泳道图展示</h3>
 
       <p class="fontColor">
         Frame timeline展开就可以看到泳道图，泳道图上可以显示帧编号。
@@ -839,7 +831,7 @@ Actual Timeline：真实帧泳道图。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Frame timeline泳道图的框选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-4">Frame timeline泳道图的框选功能</h3>
 
       <p class="fontColor">
         可以对真实帧数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格。
@@ -880,7 +872,7 @@ Occurrences：事件数。
           >
         </li>
       </ul>
-      <h3 class="mume-header fontColor">Frame timeline泳道图的点选功能</h3>
+      <h3 class="mume-header fontColor" id="header-index-5">Frame timeline泳道图的点选功能</h3>
 
       <p class="fontColor">
         通过点选理想帧和真实帧展示Tab页(Current Selection)。
@@ -986,10 +978,9 @@ Following flows：展示真实帧包含的关联的帧，图中斜向上箭头�
 
     <script>
       window.onload = () => {
-        let isDark = window.location.search;
-        if (isDark.indexOf('?') !== -1) {
-          isDark = isDark.substr(1, isDark.length - 1);
-        }
+        let isDark = getURLParameter('dark'); 
+        let targetId = getURLParameter('targetId'); 
+        let isBack = getURLParameter('isBack'); 
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -1000,6 +991,14 @@ Following flows：展示真实帧包含的关联的帧，图中斜向上箭头�
           for (let i = 0; i < lightBackGround.length; i++) {
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
+        }
+        function getURLParameter(name) {  
+          return (new URL(document.location)).searchParams.get(name);  
+        }  
+  
+        if ( targetId !== null ) {
+          let targetElement = document.getElementById(targetId);
+          targetElement.scrollIntoView({ behavior: 'smooth' });
         }
       };
     </script>

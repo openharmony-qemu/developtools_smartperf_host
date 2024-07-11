@@ -228,7 +228,7 @@ export class LitRadioBox extends BaseElement {
     this.radio = this.shadowRoot?.getElementById('radio') as HTMLInputElement;
     this.checked = this.checked;
     this.radio.addEventListener('change', () => {
-      const selector = this.group ? 'lit-radio[checked]' : 'lit-radio[name="${this.name}"][checked]';
+      const selector = this.group ? 'lit-radio[checked]' : `lit-radio[name='${this.name}'][checked]`;
       const siblingNode = this.parent?.querySelector(selector) as LitRadioBox;
       if (siblingNode) {
         siblingNode.checked = false;
