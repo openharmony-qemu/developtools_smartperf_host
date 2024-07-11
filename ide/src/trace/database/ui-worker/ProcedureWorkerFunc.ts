@@ -154,7 +154,6 @@ export function funcStructOnClick(
             }
           }
         }
-        sp.timerShaftEL?.drawTriangle(hoverFuncStruct!.ts || 0, 'inverted');
         sp.traceSheetEL?.displayFuncData(
           showTabArray,
           // @ts-ignore

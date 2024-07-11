@@ -714,7 +714,6 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any, curren
     } else if (findEntry.type === 'sdk') {
       findEntryTypeSdk(sp, findEntry);
     }
-    sp.timerShaftEL?.drawTriangle(findEntry.startTime || 0, 'inverted');
   }
 }
 
