@@ -2015,19 +2015,11 @@ export class SpApplication extends BaseElement {
     this.spSystemTrace?.addEventListener('trace-previous-data', (ev) => {
       if(this.progressEL!.loading) {
         return;
-      }
-      if(this.litSearch!.isSearchInputFocus) {
-        this.litSearch!.isSearchInputFocus = !this.litSearch!.isSearchInputFocus;
-        return;
-      }
+      } 
       this.litSearch!.index = this.spSystemTrace!.showStruct(true, this.litSearch!.index, this.litSearch!.list);
     });
     this.spSystemTrace?.addEventListener('trace-next-data', (ev) => {
       if(this.progressEL!.loading) {
-        return;
-      }
-      if(this.litSearch!.isSearchInputFocus) {
-        this.litSearch!.isSearchInputFocus = !this.litSearch!.isSearchInputFocus;
         return;
       }
       this.litSearch!.index = this.spSystemTrace!.showStruct(false, this.litSearch!.index, this.litSearch!.list);

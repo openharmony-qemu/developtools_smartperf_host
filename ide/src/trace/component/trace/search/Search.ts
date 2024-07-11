@@ -44,7 +44,6 @@ export class LitSearch extends BaseElement {
   private _retarge_index: HTMLInputElement | null | undefined;
   private traceSelector: LitSelect | null | undefined;
   public currenSearchValue: string | undefined | null;
-  private _isSearchInputFocus: boolean = false;
 
   get list(): Array<unknown> {
     return this._list;
@@ -101,14 +100,6 @@ export class LitSearch extends BaseElement {
 
   get isClearValue(): boolean {
     return this._value;
-  }
-
-  set isSearchInputFocus(value: boolean) {
-    this._isSearchInputFocus = value;
-  }
-
-  get isSearchInputFocus(): boolean {
-    return this._isSearchInputFocus;
   }
 
   setPercent(name: string = '', value: number): void {
@@ -209,7 +200,6 @@ export class LitSearch extends BaseElement {
   private searchKeyupListener(e: KeyboardEvent): void {
     timerId = null;
     if (e.code === 'Enter' || e.code === 'NumpadEnter') {
-      this.isSearchInputFocus = true;
       this.updateSearchList(this.search!.value);
       if (e.shiftKey) {
         this.dispatchEvent(
