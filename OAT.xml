@@ -56,6 +56,11 @@ Note:If the text contains special characters, please escape them according to th
 -->
 <configuration>
     <oatconfig>
+        <policylist>
+            <policy name="projectPolicy" desc="Project policy">
+                <policyitem type="copyright" name="*" path=".*" rule="may" group="defaultGroup" filefilter="copyrightPolicyFilter" desc="smartperf_host use Huawei copyright"/>
+            </policy>
+        </policylist>
         <filefilterlist>
             <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
                 <filteritem type="filepath" name="trace_streamer/test/resource/.*" desc="the trace_streamer test file, no license header"/>

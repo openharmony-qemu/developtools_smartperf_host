@@ -63,6 +63,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   isPerfBottomUp: boolean = false;
   isHideThread: boolean = false;
   isHideThreadState: boolean = false;
+  isOnlyKernel: boolean = false;
   private lib: object | undefined;
   private symbol: object | undefined;
   private dataCache = DataCache.getInstance();
@@ -231,6 +232,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.isHideThread = false;
     this.isHideThreadState = false;
     this.isTopDown = true;
+    this.isOnlyKernel = false;
   }
 
   private perfAsync(data: any): void {
@@ -287,9 +289,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       (item: { funcName: string }): boolean => item.funcName === 'hideThreadState'
     );
     //@ts-ignore
-    let onlyKernelFilter = params.filter(
-      (item: { funcName: string }): boolean => item.funcName === 'onlyKernel'
-    );
+    let onlyKernelFilter = [true]
     if (this.lib) {
       if (
         callChainsFilter.length > 0 ||
@@ -539,6 +539,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
     if (!this.isHideThread) {
       list.unshift(threadCallChain);
+    }
+    
+    if (this.isOnlyKernel) {
+      const flag = "[kernel.kallsyms]"
+      const newList = list.filter(i => i.fileName === flag || i.path === flag)
+      list.splice(0)
+      list.push(...newList)
     }
   }
 
@@ -970,7 +977,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.isHideThreadState = funcArgs[0] as boolean;
         break;
       case 'onlyKernel':
-        this.onlyKernel();
+        this.isOnlyKernel = funcArgs[0] as boolean;
         break;
       case 'hideNumMaxAndMin':
         this.hideNumMaxAndMin(funcArgs[0] as number, funcArgs[1] as string);

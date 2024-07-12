@@ -156,6 +156,10 @@ void CpuDetailParser::VoltageEventInitialization()
 }
 void CpuDetailParser::EventAppend(std::shared_ptr<RawTraceEventInfo> event)
 {
+    if (event->cpuId >= standAloneCpuEventList_.size()) {
+        TS_LOGW("cpuId: %u is invailed", event->cpuId);
+        return;
+    }
     standAloneCpuEventList_[event->cpuId].emplace(std::move(event));
     curRawTraceEventNum_++;
 }
