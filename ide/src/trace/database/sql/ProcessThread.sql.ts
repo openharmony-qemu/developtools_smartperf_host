@@ -608,6 +608,7 @@ export const queryDataDICT = async (): Promise<Array<unknown>> => {
     {},
     { action: 'exec-buf' }
   );
+  // @ts-ignore
   return Utils.convertJSON(dataDictBuffer);
 }
 

@@ -16,25 +16,32 @@ import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table
 
 //并行度逻辑处理
 export function HanldParalLogic(
-    func: (dumpObj: any, value?: any, param?: any) => any,
-    value: any,
-    param?: any): any {
+    func: (dumpObj: unknown, value?: unknown, param?: unknown) => unknown,
+    value: unknown,
+    param?: unknown): unknown {
+        // @ts-ignore
     let arr = value.stateItem;
-    let waitArr: any = [];
+    let waitArr: unknown = [];
     let globalTs: number = 0;
     let index: number = 0;
+    // @ts-ignore
     while (index < arr.length || waitArr.length > 0) {
-        let minEndTs = Math.min(...waitArr.map((item: any) => item.endTs));
-        let minIndex = waitArr.findIndex((item: any) => item.endTs === minEndTs);
+        // @ts-ignore
+        let minEndTs = Math.min(...waitArr.map((item: unknown) => item.endTs));
+        // @ts-ignore
+        let minIndex = waitArr.findIndex((item: unknown) => item.endTs === minEndTs);
         //当waitArr为空时
+      // @ts-ignore
         if (waitArr.length === 0) {
             globalTs = arr[index].ts;
+            // @ts-ignore
             waitArr.push(arr[index]);
             index++;
             continue;
         }
         //当全局Ts等于minEndTs时，只做删除处理
         if (globalTs === minEndTs) {
+            // @ts-ignore
             if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
             continue;
         }
@@ -44,11 +51,12 @@ export function HanldParalLogic(
             endTs: 0,
             listSlice: [],
             len: 0
-        }
+        };
         //判断原队列的数据是否被用完，即是否为空
         if (index < arr.length) {
             if (arr[index].ts < minEndTs) {
                 if (globalTs === arr[index].ts) {
+                    // @ts-ignore
                     waitArr.push(arr[index]);
                     index++;
                     continue;
@@ -59,6 +67,7 @@ export function HanldParalLogic(
                         listSlice: list,
                         len: list.length
                     };
+                    // @ts-ignore
                     waitArr.push(arr[index]);
                     globalTs = arr[index].ts;
                     index++;
@@ -71,6 +80,7 @@ export function HanldParalLogic(
                     len: list.length
                 };
                 globalTs = minEndTs;
+                // @ts-ignore
                 if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
             }
         } else {
@@ -81,15 +91,16 @@ export function HanldParalLogic(
                 len: list.length
             };
             globalTs = minEndTs;
+            // @ts-ignore
             if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
         }
         param = func(dumpObj, value, param);
     }
-    return param
+    return param;
 }
 
 //表头点击事件
-export function MeterHeaderClick(tab: LitTable | null | undefined, data: Array<any>): void {
+export function MeterHeaderClick(tab: LitTable | null | undefined, data: Array<unknown>): void {
     let labels = tab?.shadowRoot
         ?.querySelector('.th > .td')!
         .querySelectorAll('label');

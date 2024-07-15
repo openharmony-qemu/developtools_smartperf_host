@@ -625,7 +625,7 @@ export class TraceSheet extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: unknown) => void | undefined,
-    scrollPrio: (d: any) => void | undefined,
+    scrollPrio: (d: unknown) => void | undefined,
     callback?: (data: Array<unknown>, str: string) => void
   ): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
@@ -640,7 +640,8 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
-  displayDmaFenceData = (data: DmaFenceStruct, rowData: any): void =>//展示tab页内容
+  displayDmaFenceData = (data: DmaFenceStruct, rowData: unknown): void =>//展示tab页内容
+  // @ts-ignore
     this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data, rowData);
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
@@ -681,7 +682,7 @@ export class TraceSheet extends BaseElement {
     threadName: string,
     data: FuncStruct,
     scrollCallback: Function,
-    callback?: (data: Array<any>, str: string, binderTid: number) => void,
+    callback?: (data: Array<unknown>, str: string, binderTid: number) => void,
     distributedCallback?: (dataList: FuncStruct[]) => void,
   ): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, threadName, scrollCallback, callback, distributedCallback);

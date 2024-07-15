@@ -90,10 +90,10 @@ export class SpThirdParty extends BaseElement {
     `;
   }
 
-  addUploadEvent(uploadBtn: HTMLElement, uploadEl: HTMLInputElement) {
+  addUploadEvent(uploadBtn: HTMLElement, uploadEl: HTMLInputElement): void {
     uploadBtn?.addEventListener('click', () => {
       uploadEl?.click();
-    })
+    });
     uploadEl!.addEventListener('change', () => {
       let files = uploadEl!.files;
       if (files && files.length > 0) {
@@ -103,10 +103,10 @@ export class SpThirdParty extends BaseElement {
         let fileHandler = child[0].fileHandler!;
         fileHandler({
           detail: files[0]
-        })
+        });
       }
       if (uploadEl) uploadEl.value = '';
-    })
+    });
   }
 }
 
