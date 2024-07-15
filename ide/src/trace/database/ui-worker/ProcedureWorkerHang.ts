@@ -107,6 +107,11 @@ export class HangStruct extends BaseStruct {
         ctx.fillStyle = '#fff';
         drawString(ctx, `${data.type || ''}`, 1, data.frame, data);
       }
+
+      if (this.isHover(data)) {
+        ctx.fillStyle = '#ffffff66'
+        ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height)
+      }
     }
   }
 

@@ -33,6 +33,7 @@ LEFT JOIN process p ON
 WHERE
   c.dur >= ${args.minDur}
   AND c.name LIKE 'H:Et:%'
+  AND t.is_main_thread = 1
   AND p.pid = ${args.pid}
 `.trim();
 

@@ -653,7 +653,7 @@ export class SpProcessChart {
     },
     row: TraceRow<ProcessStruct>
   ): TraceRow<HangStruct> | null {
-    if (!this.hangProcessSet.has(data.pid) && !FlagsConfig.getFlagsConfigEnableStatus("Hangs")) {
+    if (!this.hangProcessSet.has(data.pid) || !FlagsConfig.getFlagsConfigEnableStatus("Hangs")) {
       return null
     }
     let hangsRow = TraceRow.skeleton<HangStruct>();

@@ -100,7 +100,7 @@ option {
 </div>
 <lit-progress-bar class="progress"></lit-progress-bar>
 <lit-page-table id="tb-hang">
-    <lit-table-column title="StartNS" width="15%" data-index="startNS" key="startNS">
+    <lit-table-column title="StartTime" width="15%" data-index="startNS" key="startNS">
     </lit-table-column>
     <lit-table-column title="Duration" width="10%" data-index="dur" key="dur">
     </lit-table-column>
@@ -108,15 +108,15 @@ option {
     </lit-table-column>
     <lit-table-column title="Process" width="10%" data-index="pname" key="pname">
     </lit-table-column>
-    <lit-table-column title="sendEventTid" width="10%" data-index="sendEventTid" key="sendEventTid">
+    <lit-table-column title="Sender tid" width="10%" data-index="sendEventTid" key="sendEventTid">
     </lit-table-column>
-    <lit-table-column title="sendTime" width="10%" data-index="sendTime" key="sendTime">
+    <lit-table-column title="Send time" width="10%" data-index="sendTime" key="sendTime">
     </lit-table-column>
-    <lit-table-column title="expectHandleTime" width="10%" data-index="expectHandleTime" key="expectHandleTime">
+    <lit-table-column title="Expect handle time" width="10%" data-index="expectHandleTime" key="expectHandleTime">
     </lit-table-column>
-    <lit-table-column title="taskNameId" width="10%" data-index="taskNameId" key="taskNameId">
+    <lit-table-column title="Task name/Id" width="10%" data-index="taskNameId" key="taskNameId">
     </lit-table-column>
-    <lit-table-column title="caller" width="10%" data-index="caller" key="caller">
+    <lit-table-column title="Sender" width="10%" data-index="caller" key="caller">
     </lit-table-column>
 </lit-page-table>
 `;

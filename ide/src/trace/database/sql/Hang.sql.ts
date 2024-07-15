@@ -42,6 +42,7 @@ LEFT JOIN process p ON
   p.ipid = t.ipid
 WHERE
   c.name LIKE 'H:Et:%'
+  AND t.is_main_thread = 1
   AND c.dur >= ${getMinDur()}
 GROUP BY
   p.pid
@@ -83,6 +84,7 @@ LEFT JOIN process p ON
   p.ipid = t.ipid
 WHERE
   c.dur >= ${getMinDur()}
+  AND t.is_main_thread = 1
   AND c.name LIKE 'H:Et:%'
 `.trim()
 )
