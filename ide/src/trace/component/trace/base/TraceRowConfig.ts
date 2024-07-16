@@ -25,8 +25,6 @@ import { type BaseStruct } from '../../../bean/BaseStruct';
 import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 import { TraceRowConfigHtml } from './TraceRowConfig.html';
 
-const LOCAL_STORAGE_JSON = 'subsystem_config';
-
 @element('trace-row-config')
 export class TraceRowConfig extends BaseElement {
   static allTraceRowList: Array<TraceRow<BaseStruct>> = [];
@@ -49,6 +47,8 @@ export class TraceRowConfig extends BaseElement {
   private subSystemSearch: string | undefined;
   private backTableHTML: string | undefined;
   private otherRowNames: Array<SceneNode> = [];
+  private configList: string = '';
+  private defaultConfigList: string = '';
   private sceneList = [
     'FrameTimeline',
     'AnimationEffect',
@@ -428,30 +428,14 @@ export class TraceRowConfig extends BaseElement {
       this.openTempFile?.click();
     });
     this.resetButton!.addEventListener('click', () => {
-      let jsonUrl = `https://${window.location.host.split(':')[0]}:${window.location.port
-        }/application/trace/config/custom_temp_config.json`;
-      let localJson = '';
-      fetch(jsonUrl)
-        .then((res) => {
-          if (res.ok) {
-            res.text().then((text) => {
-              localJson = text;
-              this.loadTempConfig(localJson);
-              this.refreshAllConfig(true, true);
-              this.resetChartTable();
-            });
-          }
-        })
-      ['catch']((err) => {
-        console.log(err);
-      });
+      this.loadTempConfig(this.defaultConfigList);
+      this.resetChartTable();
     })
   }
 
   private initSwitchClickListener(): void {
     let jsonUrl = `https://${window.location.host.split(':')[0]}:${window.location.port
       }/application/trace/config/custom_temp_config.json`;
-    let localJson = '';
     this.switchButton!.addEventListener('click', () => {
       if (this.switchButton!.title === 'Show charts template') {
         this.switchButton!.title = 'Show subSystem template';
@@ -467,17 +451,16 @@ export class TraceRowConfig extends BaseElement {
         this.exportFileIcon!.style.display = 'block';
         this.resetButton!.style.display = 'block';
         this.configTitle!.innerHTML = 'SubSystem Template';
-        let localText = window.localStorage.getItem(LOCAL_STORAGE_JSON);
-        if (localText) {
-          this.loadTempConfig(localText);
+        if (this.configList) {
+          this.loadTempConfig(this.configList);
         } else {
-          if (localJson === '') {
+          if (this.defaultConfigList === '') {
             fetch(jsonUrl)
               .then((res) => {
                 if (res.ok) {
                   res.text().then((text) => {
-                    localJson = text;
-                    this.loadTempConfig(localJson);
+                    this.defaultConfigList = text;
+                    this.loadTempConfig(this.defaultConfigList);
                   });
                 }
               })
@@ -485,9 +468,10 @@ export class TraceRowConfig extends BaseElement {
               console.log(err);
             });
           } else {
-            this.loadTempConfig(localJson);
+            this.loadTempConfig(this.defaultConfigList);
           }
         }
+        this.resetChartTable();
       }
     });
   }
@@ -568,10 +552,10 @@ export class TraceRowConfig extends BaseElement {
     try {
       this.treeNodes = this.buildSubSystemTreeData(id, configJson);
     } catch (e) {
-      this.loadTempConfig(window.localStorage.getItem(LOCAL_STORAGE_JSON)!);
+      this.loadTempConfig(this.configList);
       return;
     }
-    window.localStorage.setItem(LOCAL_STORAGE_JSON, text);
+    this.configList = text;
     this.buildTempOtherList(id);
     this.setAttribute('temp_config', '');
     this.expandedNodeList.clear();
