@@ -280,7 +280,7 @@ void NativeHookFilter::ParseAllocEvent(uint64_t timeStamp, const ProtoReader::By
                                    0,
                                    0,
                                    allocEventReader.addr(),
-                                   allocEventReader.size()};
+                                   static_cast<int64_t>(allocEventReader.size())};
     auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     addrToAllocEventRow_->insert(std::make_pair(allocEventReader.addr(), static_cast<uint64_t>(row)));
     if (allocEventReader.size() != 0) {
@@ -408,7 +408,8 @@ void NativeHookFilter::ParseMmapEvent(uint64_t timeStamp, const ProtoReader::Byt
         // Establish a mapping of addr and size to the mmap tag index.
         addrToMmapTag_[mMapAddr] = subType; // update addr to MemMapSubType
     }
-    NativeHookRow nativeHookRow = {callChainId, ipid, itid, "MmapEvent", subType, timeStamp, 0, 0, mMapAddr, mMapSize};
+    NativeHookRow nativeHookRow = {callChainId, ipid, itid, "MmapEvent", subType,
+                                   timeStamp,   0,    0,    mMapAddr,    static_cast<int64_t>(mMapSize)};
     auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     if (subType == INVALID_UINT64) {
         UpdateAnonMmapDataDbIndex(mMapAddr, mMapSize, static_cast<uint64_t>(row));
@@ -487,7 +488,7 @@ void NativeHookFilter::ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::B
                                    0,
                                    0,
                                    mUnmapEventReader.addr(),
-                                   mUnmapEventReader.size()};
+                                   static_cast<int64_t>(mUnmapEventReader.size())};
     row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     addrToMmapTag_.erase(mUnmapEventReader.addr()); // earse MemMapSubType with addr
     if (mUnmapEventReader.size() != 0) {
@@ -530,7 +531,7 @@ inline uint64_t NativeHookFilter::GetMemMapSubTypeWithAddr(uint64_t addr)
         return INVALID_UINT64;
     }
 }
-inline void NativeHookFilter::UpdateAnonMmapDataDbIndex(uint64_t addr, uint32_t size, uint64_t row)
+inline void NativeHookFilter::UpdateAnonMmapDataDbIndex(uint64_t addr, uint64_t size, uint64_t row)
 {
     auto indexPtr = anonMmapData_.Find(addr, size);
     if (indexPtr == nullptr) {
