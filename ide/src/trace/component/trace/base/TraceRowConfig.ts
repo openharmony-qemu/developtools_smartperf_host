@@ -37,6 +37,7 @@ export class TraceRowConfig extends BaseElement {
   private chartTable: HTMLDivElement | null | undefined;
   private inputElement: HTMLInputElement | null | undefined;
   private configTitle: HTMLDivElement | null | undefined;
+  private resetButton: HTMLButtonElement | null | undefined;
   private traceRowList: NodeListOf<TraceRow<BaseStruct>> | undefined;
   private exportFileIcon: LitIcon | null | undefined;
   private switchButton: LitIcon | null | undefined;
@@ -74,6 +75,7 @@ export class TraceRowConfig extends BaseElement {
     this.inputElement!.value = '';
     this.exportFileIcon!.style.display = 'none';
     this.openFileIcon!.style.display = 'none';
+    this.resetButton!.style.display = 'none';
     this.configTitle!.innerHTML = 'Timeline Details';
     this.spSystemTrace = this.parentElement!.querySelector<SpSystemTrace>('sp-system-trace');
     this.traceRowList =
@@ -419,17 +421,36 @@ export class TraceRowConfig extends BaseElement {
     this.switchButton = this.shadowRoot?.querySelector<LitIcon>('#switch-button');
     this.openFileIcon = this.shadowRoot?.querySelector<LitIcon>('#open-file-icon');
     this.configTitle = this.shadowRoot?.querySelector<HTMLDivElement>('#config_title');
+    this.resetButton = this.shadowRoot?.querySelector<HTMLButtonElement>('#resetTemplate');
     this.initSwitchClickListener();
     this.openFileIcon!.addEventListener('click', () => {
       this.openTempFile!.value = '';
       this.openTempFile?.click();
     });
+    this.resetButton!.addEventListener('click', () => {
+      let jsonUrl = `https://${window.location.host.split(':')[0]}:${window.location.port
+        }/application/trace/config/custom_temp_config.json`;
+      let localJson = '';
+      fetch(jsonUrl)
+        .then((res) => {
+          if (res.ok) {
+            res.text().then((text) => {
+              localJson = text;
+              this.loadTempConfig(localJson);
+              this.refreshAllConfig(true, true);
+              this.resetChartTable();
+            });
+          }
+        })
+      ['catch']((err) => {
+        console.log(err);
+      });
+    })
   }
 
   private initSwitchClickListener(): void {
-    let jsonUrl = `https://${window.location.host.split(':')[0]}:${
-      window.location.port
-    }/application/trace/config/custom_temp_config.json`;
+    let jsonUrl = `https://${window.location.host.split(':')[0]}:${window.location.port
+      }/application/trace/config/custom_temp_config.json`;
     let localJson = '';
     this.switchButton!.addEventListener('click', () => {
       if (this.switchButton!.title === 'Show charts template') {
@@ -439,10 +460,12 @@ export class TraceRowConfig extends BaseElement {
         this.openFileIcon!.style.display = 'none';
         this.exportFileIcon!.style.display = 'none';
         this.configTitle!.innerHTML = 'Timeline Details';
+        this.resetButton!.style.display = 'none';
       } else {
         this.switchButton!.title = 'Show charts template';
         this.openFileIcon!.style.display = 'block';
         this.exportFileIcon!.style.display = 'block';
+        this.resetButton!.style.display = 'block';
         this.configTitle!.innerHTML = 'SubSystem Template';
         let localText = window.localStorage.getItem(LOCAL_STORAGE_JSON);
         if (localText) {
@@ -458,9 +481,9 @@ export class TraceRowConfig extends BaseElement {
                   });
                 }
               })
-              ['catch']((err) => {
-                console.log(err);
-              });
+            ['catch']((err) => {
+              console.log(err);
+            });
           } else {
             this.loadTempConfig(localJson);
           }
@@ -593,7 +616,7 @@ export class TraceRowConfig extends BaseElement {
         }
         for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
           let currentCompDate = currentCompDates[compIndex];
-          if ( !currentCompDate.component || currentCompDate.component === '' || !currentCompDate.charts) {
+          if (!currentCompDate.component || currentCompDate.component === '' || !currentCompDate.charts) {
             continue;
           }
           id = this.setSubsystemComp(currentCompDate, id, subsystemStruct);
