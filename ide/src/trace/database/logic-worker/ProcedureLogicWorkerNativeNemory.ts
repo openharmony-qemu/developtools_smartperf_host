@@ -1087,13 +1087,13 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     }
 
     if (sample.countArray && sample.countArray.length > 0) {
-      currentNode.countArray.push(...sample.countArray);
+      currentNode.countArray = currentNode.countArray.concat(sample.countArray);
     } else {
       currentNode.countArray.push(sample.count);
     }
 
     if (sample.tsArray && sample.tsArray.length > 0) {
-      currentNode.tsArray.push(...sample.tsArray);
+      currentNode.tsArray = currentNode.tsArray.concat(sample.tsArray);
     } else {
       currentNode.tsArray.push(sample.startTs);
     }
