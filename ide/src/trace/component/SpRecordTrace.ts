@@ -115,6 +115,10 @@ export class SpRecordTrace extends BaseElement {
   private hintEl: HTMLSpanElement | undefined;
   private selectedTemplate: Map<string, number> = new Map();
   private hintTimeOut: number = -1;
+  private MenuItemArkts:MenuItem | undefined | null;
+  private MenuItemArktsHtml:LitMainMenuItem | undefined | null;
+  private MenuItemEbpf:MenuItem | undefined | null;
+  private MenuItemEbpfHtml:LitMainMenuItem | undefined | null;
 
   set record_template(re: boolean) {
     if (re) {
@@ -200,6 +204,27 @@ export class SpRecordTrace extends BaseElement {
               this.devicePrompt!.innerText = '';
               this.hintEl!.textContent = '';
               SpRecordTrace.serialNumber = option.value;
+              if (this.MenuItemArkts && this.MenuItemArktsHtml) {//连接成功后，arkts开关置灰不能点击
+                this.MenuItemArktsHtml.style.color = 'gray';
+                this.MenuItemArktsHtml.disabled = true;
+                if (this.MenuItemArkts.clickHandler) {
+                  this.MenuItemArkts.clickHandler = undefined;
+                }
+              }
+              try {
+                let kernelInfo = await HdcDeviceManager.shellResultAsString(CmdConstant.CMD_UNAME,false);
+                if (kernelInfo.includes('HongMeng')) {
+                  if (this.MenuItemEbpf && this.MenuItemEbpfHtml) {//如果为鸿蒙内核，ebpf开关置灰不能点击
+                    this.MenuItemEbpfHtml.style.color = 'gray';
+                    this.MenuItemEbpfHtml.disabled = true;
+                    if (this.MenuItemEbpf.clickHandler) {
+                      this.MenuItemEbpf.clickHandler = undefined;
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error('Failed to get kernel info:', error);
+              }
               this.refreshDeviceVersion(option);
             }
           }
@@ -755,6 +780,13 @@ export class SpRecordTrace extends BaseElement {
           item.clickHandler(item);
         }
       });
+      if (item.title === 'Ark Ts') {
+        this.MenuItemArkts = item;
+        this.MenuItemArktsHtml = th;
+      }else if (item.title === 'eBPF Config') {
+        this.MenuItemEbpf = item;
+        this.MenuItemEbpfHtml = th;
+      }
       this.menuGroup!.appendChild(th);
     });
   }
@@ -860,7 +892,6 @@ export class SpRecordTrace extends BaseElement {
       this.buildMenuItem('Ark Ts', 'file-config', this.spArkTs!),
       this.buildMenuItem('FFRT', 'file-config', this.spFFRTConfig!),
       this.buildMenuItem('Hilog', 'realIntentionBulb', this.spHiLog!),
-      this.buildMenuItem('SDK Config', 'realIntentionBulb', this.spSdkConfig!),
     ];
   }
 
