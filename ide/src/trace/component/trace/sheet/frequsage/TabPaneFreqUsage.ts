@@ -104,11 +104,11 @@ export class TabPaneFreqUsage extends BaseElement {
       }
       if (arr[i].thread?.indexOf('P') !== -1) {
         trackId = Number(arr[i].thread?.slice(1)!);
-        arr[i].thread = `${ Utils.getInstance().getProcessMap(traceId).get(trackId) || 'Process' } ${trackId}`;
+        arr[i].thread = `${Utils.getInstance().getProcessMap(traceId).get(trackId) || 'Process'} ${trackId}`;
       } else if (arr[i].thread === 'summary data') {
       } else {
         trackId = Number(arr[i].thread!.split('_')[1]);
-        arr[i].thread = `${ Utils.getInstance().getThreadMap(traceId).get(trackId) || 'Thread' } ${trackId}`;
+        arr[i].thread = `${Utils.getInstance().getThreadMap(traceId).get(trackId) || 'Thread'} ${trackId}`;
       }
       if (arr[i].cpu < 0) {
         // @ts-ignore
@@ -274,12 +274,16 @@ function dealCpuFreqData(
   sum: number
 ): Array<RunningFreqData> {
   let runningFreqData: Map<string, Array<RunningFreqData>> = new Map();
+  let cpuList: number[] = [];
+  cpuFreqData.forEach((item) => {
+    cpuList.push(item.cpu)
+  })
   result.forEach((item, key) => {
     let resultList: Array<RunningFreqData> = new Array();
     for (let i = 0; i < item.length; i++) {
       for (let j = 0; j < cpuFreqData.length; j++) {
+        let flag: number;
         if (item[i].cpu == cpuFreqData[j].cpu) {
-          let flag: number;
           // 当running状态数据的开始时间大于频点数据开始时间,小于频点结束时间。且running数据的持续时间小于频点结束时间减去running数据开始时间的差值的情况
           if (
             item[i].ts > cpuFreqData[j].ts &&
@@ -320,6 +324,13 @@ function dealCpuFreqData(
           }
           if (item[i].ts <= cpuFreqData[j].ts && item[i].ts + item[i].dur <= cpuFreqData[j].ts) {
             // 当running状态数据的开始时间小于等于频点数据开始时间,结束时间小于等于频点开始时间的情况
+            resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 5))!);
+            item.splice(i, 1);
+            i--;
+            break;
+          }
+        } else {
+          if (!cpuList.includes(item[i].cpu)) {
             resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 5))!);
             item.splice(i, 1);
             i--;
