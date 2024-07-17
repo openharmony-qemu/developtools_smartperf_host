@@ -16,6 +16,7 @@
 #include "rawtrace_parser/ftrace_field_processor.h"
 #include <cstdint>
 #include <string>
+#include <sstream>
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -265,6 +266,16 @@ bool FtraceEventProcessor::SchedBlockedReason(FtraceEvent &ftraceEvent,
     schedBlockedMsg->set_pid(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     schedBlockedMsg->set_caller(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     schedBlockedMsg->set_io_wait(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    if (format.fields.size() == SCHED_BLOCKED_REASON_FIELD_SIZE_EIGHT) {
+        index++; // skip delay field
+        uint64_t offset = FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size);
+        uint64_t siz = FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size);
+        std::string funcName = FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size);
+        std::string modName = FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size);
+        std::ostringstream caller;
+        caller << funcName << "+0x" << std::hex << offset << "/0x" << std::hex << siz << "[" << modName << "]";
+        schedBlockedMsg->set_caller_str(caller.str());
+    }
     return true;
 }
 bool FtraceEventProcessor::SchedWakeup(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
