@@ -717,12 +717,13 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any, curren
   }
 }
 
-function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: any) {
+export function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: any) {
   if (currentEntry?.type === 'cpu') {
     sp.queryAllTraceRow(`trace-row[row-type='cpu-data'][row-id='${currentEntry.cpu}']`,
       (row) => row.rowType === 'cpu-data' && row.rowId === `${currentEntry.cpu}`)[0].highlight = false;
   } else if (currentEntry?.type === 'func') {
-    let funcRowID = !currentEntry.cookie ? `${currentEntry.tid}` : currentEntry.row_id;
+    let funId = (currentEntry.row_id === null || currentEntry.row_id === undefined) ? `${currentEntry.funName}-${currentEntry.pid}` : currentEntry.row_id;
+    let funcRowID = (currentEntry.cookie === null || currentEntry.cookie === undefined) ? `${Utils.getDistributedRowId(currentEntry.tid)}` : funId;
     sp.queryAllTraceRow(`trace-row[row-type='func'][row-id='${funcRowID}'][row-parent-id='${currentEntry.pid}']`,
       (row) => row.rowType === 'func' && row.rowId === `${funcRowID}` && row.rowParentId === `${currentEntry.pid}`)[0].highlight = false;
   } else if (currentEntry?.type === 'sdk') {
