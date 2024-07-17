@@ -717,7 +717,7 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any, curren
   }
 }
 
-export function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: any) {
+function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: any) {
   if (currentEntry?.type === 'cpu') {
     sp.queryAllTraceRow(`trace-row[row-type='cpu-data'][row-id='${currentEntry.cpu}']`,
       (row) => row.rowType === 'cpu-data' && row.rowId === `${currentEntry.cpu}`)[0].highlight = false;
