@@ -2284,6 +2284,7 @@ export class SpApplication extends BaseElement {
         .then((res) => {
           res.arrayBuffer().then((arrayBuf) => {
             let fileName = url.split('/').reverse()[0];
+            this.traceFileName = fileName;
             let showFileName =
               fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
             openUrl(arrayBuf, fileName, showFileName, arrayBuf.byteLength);
