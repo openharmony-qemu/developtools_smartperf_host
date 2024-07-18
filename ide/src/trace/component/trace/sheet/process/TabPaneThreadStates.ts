@@ -96,14 +96,15 @@ export class TabPaneThreadStates extends BaseElement {
           // @ts-ignore
           pre.dur = current.ts - pre.ts;
           // @ts-ignore
-          if (pre.ts < leftNs && pre.dur > 0) {
+          if (pre.ts < leftNs && (pre.ts + pre.dur) < rightNs) {
             // @ts-ignore
-            pre.dur = pre.dur - (leftNs - pre.ts);
-          }
-          // @ts-ignore
-          if (pre.ts + pre.dur > rightNs && pre.dur > 0) {
+            pre.dur = (pre.ts + pre.dur) - leftNs;// @ts-ignore
+          } else if (pre.ts + pre.dur > rightNs && pre.ts > leftNs) {
             // @ts-ignore
-            pre.dur = pre.dur - (pre.ts + pre.dur - rightNs);
+            pre.dur = rightNs - pre.ts;// @ts-ignore
+          } else if (pre.ts < leftNs && (pre.ts + pre.dur) > rightNs ) {
+            // @ts-ignore
+            pre.dur = rightNs - leftNs;
           }
           // @ts-ignore
           map.get(`${pre.state}-${mapKey}`).wallDuration += pre.dur;
@@ -117,14 +118,16 @@ export class TabPaneThreadStates extends BaseElement {
           durExceptionDataMap.set(mapKey, current);
         } else {
           // @ts-ignore
-          if (current.ts < leftNs && current.dur > 0) {
+          if (current.ts < leftNs && (current.ts + current.dur) < rightNs) {
             // @ts-ignore
-            current.dur = current.dur - (leftNs - current.ts);
-          }
-          // @ts-ignore
-          if (current.ts + current.dur > rightNs && current.dur > 0) {
+            current.dur = (current.dur + current.ts) - leftNs ;// @ts-ignore
+          } else if (current.ts + current.dur > rightNs && current.ts > leftNs) {
             // @ts-ignore
-            current.dur = current.dur - (current.ts + current.dur - rightNs);
+            current.dur =  rightNs - current.ts;
+            // @ts-ignore
+          } else if (current.ts < leftNs && (current.ts + current.dur) > rightNs ) {
+            // @ts-ignore
+            current.dur = rightNs - leftNs;
           }
         }
         // @ts-ignore
