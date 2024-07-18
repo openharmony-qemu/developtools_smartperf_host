@@ -57,7 +57,13 @@ export class TabPaneSlices extends BaseElement {
     });
     this.slicesTbl!.loading = true;
     let filterNameEL: HTMLInputElement | undefined | null =
-      this.shadowRoot?.querySelector<HTMLInputElement>('#filterName'); //@ts-ignore
+      this.shadowRoot?.querySelector<HTMLInputElement>('#filterName');
+    filterNameEL?.addEventListener('keyup', (ev) => {
+      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
+        ev.stopPropagation();
+      }
+    });
+    //@ts-ignore
     getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {//@ts-ignore
       getTabSlicesAsyncCatFunc(asyncCatNames, asyncCatPid, slicesParam.leftNs, slicesParam.rightNs).then((res1) => {
         //@ts-ignore
@@ -309,7 +315,7 @@ export class TabPaneSlices extends BaseElement {
     // 拷贝当前表格显示的数据
     let sortData: Array<SelectionData> = JSON.parse(JSON.stringify(this.slicesTbl!.recycleDataSource));
     // 取出汇总数据，同时将排序数据去掉汇总数据进行后续排序
-    let headData: SelectionData = sortData.splice(0,1)[0];
+    let headData: SelectionData = sortData.splice(0, 1)[0];
     //@ts-ignore
     if (slicesDetail.key === 'name') {
       //@ts-ignore
