@@ -849,6 +849,7 @@ group by TA.tid,TA.pid;
 
 export const getTabRunningPercent = (
   tIds: Array<number>,
+  pIds: Array<number>,
   leftNS: number,
   rightNS: number
 ): Promise<
@@ -879,6 +880,8 @@ export const getTabRunningPercent = (
             B.tid in (${tIds.join(',')})
           and
             B.state='Running'
+          and
+            B.pid in (${pIds.join(',')})
           and
             not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
           order by ts

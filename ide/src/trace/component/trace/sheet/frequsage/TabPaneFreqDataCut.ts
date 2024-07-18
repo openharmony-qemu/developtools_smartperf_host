@@ -171,6 +171,7 @@ export class TabPaneFreqDataCut extends BaseElement {
   ): Promise<{ runningMap: Map<string, Array<TabPaneRunningConfig>>; sum: number }> {
     let result: Array<TabPaneRunningConfig> = await getTabRunningPercent(
       threadStatesParam.threadIds,
+      threadStatesParam.processIds,
       threadStatesParam.leftNs,
       threadStatesParam.rightNs
     );
