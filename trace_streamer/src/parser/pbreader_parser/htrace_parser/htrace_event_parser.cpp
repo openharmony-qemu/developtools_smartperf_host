@@ -567,8 +567,13 @@ bool HtraceEventParser::SchedBlockReasonEvent(const EventInfo &event)
     ProtoReader::SchedBlockedReasonFormat_Reader msg(event.detail);
     uint32_t pid = msg.pid();
     uint32_t ioWait = msg.io_wait();
-    auto caller = traceDataCache_->GetDataIndex(
-        std::string_view("0x" + SysTuning::base::number(msg.caller(), SysTuning::base::INTEGER_RADIX_TYPE_HEX)));
+    std::string callerStr;
+    if (msg.caller_str().ToStdString().empty()) {
+        callerStr = "0x" + SysTuning::base::number(msg.caller(), SysTuning::base::INTEGER_RADIX_TYPE_HEX);
+    } else {
+        callerStr = msg.caller_str().ToStdString();
+    }
+    auto caller = traceDataCache_->GetDataIndex(std::string_view(callerStr));
     auto itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp, pid);
     if (streamFilters_->cpuFilter_->InsertBlockedReasonEvent(event.cpu, itid, ioWait, caller, INVALID_UINT32)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_RECEIVED);

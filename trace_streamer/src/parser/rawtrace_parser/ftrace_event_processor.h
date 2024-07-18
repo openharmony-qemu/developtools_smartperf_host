@@ -95,6 +95,7 @@ private:
     std::map<uint32_t, std::string> eventIdToNames_;
     std::map<std::string, HandleFunction> eventNameToFunctions_;
     TraceStreamerConfig config_;
+    const uint32_t SCHED_BLOCKED_REASON_FIELD_SIZE_EIGHT = 8;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
