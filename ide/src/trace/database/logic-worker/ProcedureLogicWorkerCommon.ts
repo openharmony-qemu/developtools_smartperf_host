@@ -18,6 +18,7 @@ export class ChartStruct {
   depth: number = 0;
   symbol: string = '';
   lib: string = '';
+  path: string = '';
   addr: string = '';
   size: number = 0;
   count: number = 0;
@@ -198,7 +199,7 @@ class MerageBeanDataSplit {
     allProcess.forEach((item) => {
       item.children = [];
       this.recursionChargeByRule(splitMapData, item, this.systmeRuleName, (node) => {
-        return node.lib.startsWith(this.systmeRuleName);
+        return node.path.startsWith(this.systmeRuleName);
       });
     });
   }

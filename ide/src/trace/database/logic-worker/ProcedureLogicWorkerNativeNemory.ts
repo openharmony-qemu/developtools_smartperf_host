@@ -1172,8 +1172,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         this.groupCutFilePath(currentNode.symbolId, this.dataCache.dataDict.get(currentNode.symbolId) || '') ??
         'unknown';
     }
+    currentNode.path = currentNode.lib;
     currentNode.lib = setFileName(currentNode.lib);
-    currentNode.lib = currentNode.lib;
     currentNode.symbol = `${currentNode.symbol} (${currentNode.lib})`;
     currentNode.type =
       currentNode.lib.endsWith('.so.1') || currentNode.lib.endsWith('.dll') || currentNode.lib.endsWith('.so') ? 0 : 1;
