@@ -156,3 +156,5 @@ traficHandlers.set(QueryEnum.LostFrameData, lostFrameReceiver);
 traficHandlers.set(QueryEnum.SliceData, sliceReceiver);
 traficHandlers.set(QueryEnum.SliceSPTData, sliceSPTReceiver);
 traficHandlers.set(QueryEnum.dmaFenceData, dmaFenceReceiver);
+traficHandlers.set(QueryEnum.SliceChildBoxData, sliceSPTReceiver);
+traficHandlers.set(QueryEnum.ThreadNearData, sliceSPTReceiver);

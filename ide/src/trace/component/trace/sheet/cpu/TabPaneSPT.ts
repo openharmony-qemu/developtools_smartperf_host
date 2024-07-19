@@ -99,7 +99,7 @@ export class TabPaneSPT extends BaseElement {
         <lit-table id="spt-tbl" style="height: auto" tree>
             <lit-table-column class="spt-column" width="27%" data-index="title" key="title" align="flex-start" title="State/Process/Thread" retract>
             </lit-table-column>
-            <lit-table-column class="spt-column" width="1fr" data-index="count" key="count" align="flex-start" title="Count">
+            <lit-table-column class="spt-column" width="1fr" data-index="count" key="count" align="flex-start" title="Count" tdJump>
             </lit-table-column>
             <lit-table-column class="spt-column" width="1fr" data-index="wallDuration" key="wallDuration" align="flex-start" title="Duration(ns)">
             </lit-table-column>

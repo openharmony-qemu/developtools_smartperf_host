@@ -328,27 +328,6 @@ from thread_state AS B
 where B.tid = $tid and B.pid = $pid;`,
     { $tid: tid, $pid: pid }
   );
-export const queryThreadNearData = (
-  itid: number,
-  startTime: number
-): //@ts-ignore
-Promise<Array<unknown>> =>
-  query(
-    'queryThreadNearData',
-    `
-select itid,tid,pid,cpu,state,arg_setid as argSetID,dur,max((A.ts - B.start_ts)) as startTime
-from thread_state A,trace_range B
-where itid = ${itid}
-and (A.ts - B.start_ts) < ${startTime} and A.ts > B.start_ts
-union
-select itid,tid,pid,cpu,state,arg_setid as argSetID,dur,min((A.ts - B.start_ts)) as startTime
-from thread_state A,trace_range B
-where itid = ${itid}
-and (A.ts - B.start_ts) > ${startTime} and A.ts < B.end_ts;
-    `,
-    {},
-    { traceId : Utils.currentSelectTrace }
-  );
 
 export const queryThreadWakeUpFrom = (itid: number, startTime: number): Promise<Array<WakeupBean>> => {
   let sql = `
@@ -392,58 +371,6 @@ export const queryProcessByTable = (traceId?: string): Promise<
     { traceId: traceId }
   );
 
-export const getTabBoxChildData = (
-  leftNs: number,
-  rightNs: number,
-  cpus: number[],
-  state: string | undefined,
-  processId: number | undefined,
-  threadId: number | undefined,
-  traceId?: string | undefined | null
-): Promise<Array<SPTChild>> => {
-  let condition = `
-      ${state !== undefined && state !== '' ? `and B.state = '${state}'` : ''}
-      ${processId !== undefined && processId !== -1 ? `and IP.pid = ${processId}` : ''}
-      ${threadId !== undefined && threadId !== -1 ? `and A.tid = ${threadId}` : ''}
-      ${cpus.length > 0 ? `and (B.cpu is null or B.cpu in (${cpus.join(',')}))` : ''}
-  `;
-  let sql = `select
-      IP.name as process,
-      IP.pid as processId,
-      A.name as thread,
-      B.state as state,
-      A.tid as threadId,
-      B.dur as duration,
-      B.ts - TR.start_ts as startNs,
-      B.cpu,
-      C.priority
-    from
-      thread_state AS B
-    left join
-      thread as A
-    on
-      B.itid = A.itid
-    left join
-      process AS IP
-    on
-      A.ipid = IP.ipid
-    left join
-      trace_range AS TR
-    left join
-      sched_slice as C
-    on
-      B.itid = C.itid
-    and
-      C.ts = B.ts
-    where
-      B.dur > 0
-    and
-      IP.pid not null
-    and
-      not ((B.ts - TR.start_ts + B.dur < ${leftNs}) or (B.ts - TR.start_ts > ${rightNs})) ${condition};
-  `;
-  return query('getTabBoxChildData', sql, {}, { traceId: traceId });
-};
 export const getTabStartups = (
   ids: Array<number>,
   leftNS: number,
@@ -1281,34 +1208,6 @@ Promise<Array<unknown>> =>
     order by
       wallDuration desc;`,
     { $leftNS: leftNS, $rightNS: rightNS }
-  );
-
-// 查询线程状态详细信息
-export const getTabThreadStatesDetail = (
-  tIds: Array<number>,
-  leftNS: number,
-  rightNS: number
-): //@ts-ignore
-Promise<Array<unknown>> =>
-  query<SelectionData>(
-    'getTabThreadStates',
-    `select
-        B.pid,
-        B.tid,
-        B.state, 
-        B.ts, 
-        B.dur 
-      from
-        thread_state AS B
-      left join
-        trace_range AS TR
-      where
-        B.tid in (${tIds.join(',')})
-      and
-        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))     
-      order by ts;`,
-    { $leftNS: leftNS, $rightNS: rightNS },
-    { traceId: Utils.currentSelectTrace}
   );
 
 export const queryAnomalyDetailedData = (leftNs: number, rightNs: number): Promise<Array<EnergyAnomalyStruct>> =>
