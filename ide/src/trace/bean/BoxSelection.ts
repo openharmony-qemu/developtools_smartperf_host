@@ -1259,8 +1259,20 @@ export class BoxJumpParam {
   rightNs: number = 0;
   cpus: Array<number> = [];
   state: string = '';
-  processId: number = 0;
-  threadId: number = 0;
+  processId: number[] | undefined;
+  threadId: number[] | undefined;
+  isJumpPage: boolean | undefined;
+  currentId: string | undefined | null;
+}
+
+export class SliceBoxJumpParam {
+  traceId: string | undefined | null;
+  leftNs: number = 0;
+  rightNs: number = 0;
+  processId: Array<number> = [];
+  threadId: Array<number> = [];
+  name: string[] | undefined | null;
+  isJumpPage: boolean | undefined
 }
 
 export class SelectionData {
@@ -1293,6 +1305,8 @@ export class SelectionData {
   threadIds: Array<number> = [];
   ts: number = 0;
   dur: number = 0;
+  tabTitle: string = '';
+  allName: string[] | undefined
 }
 
 export class Counter {

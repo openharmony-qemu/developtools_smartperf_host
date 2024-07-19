@@ -28,16 +28,16 @@ export class StackBar extends BaseElement {
   set data(val: Array<SelectionData>) {
     let map = new Map<string, StackValue>();
     for (let v of val) {
-      if (map.has(v.state)) {
-        let sv = map.get(v.state);
+      if (map.has(v.stateJX)) {
+        let sv = map.get(v.stateJX);
         sv!.value = sv!.value + v.wallDuration;
-        sv!.state = `${v.state} : ${sv!.value.toFixed(5)}ms`;
+        sv!.state = `${v.stateJX} : ${sv!.value.toFixed(5)}ms`;
       } else {
         let sv = new StackValue();
         sv.value = v.wallDuration;
-        sv.state = `${v.state} : ${sv.value.toFixed(5)}ms`;
-        sv.color = Utils.getStateColor(v.stateJX);
-        map.set(v.state, sv);
+        sv.state = `${v.stateJX} : ${sv.value.toFixed(5)}ms`;
+        sv.color = Utils.getStateColor(v.state);
+        map.set(v.stateJX, sv);
       }
     }
     let totalDuration = 0;
