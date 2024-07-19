@@ -945,6 +945,7 @@ export class LitTable extends HTMLElement {
         td = this.firstElementTdHandler(rowTreeElement, dataIndex, rowData, column);
       } else {
         td = this.otherElementHandler(dataIndex, rowData, column); // @ts-ignore
+        this.dispatchTdClickEvent(td, column, rowData);// @ts-ignore
         rowTreeElement.append(td);
       }
     });
@@ -1114,6 +1115,8 @@ export class LitTable extends HTMLElement {
       // @ts-ignore
       let dataIndex = column.getAttribute('data-index') || '1';
       let td = this.createColumnTd(dataIndex, column, rowData);
+      //@ts-ignore
+      this.dispatchTdClickEvent(td, column, rowData);
       newTableElement.append(td);
     });
     newTableElement.onmouseup = (e: MouseEvent): void => {
@@ -1521,6 +1524,28 @@ export class LitTable extends HTMLElement {
     };
   }
 
+  //自定义td点击事件
+  dispatchTdClickEvent(td: unknown, column: any, rowData: unknown): void {
+    if (column.hasAttribute('tdJump')) {
+      //@ts-ignore
+      td.style.color = '#208aed';
+      //@ts-ignore
+      td.style.textDecoration = 'underline';
+      //@ts-ignore
+      td.onclick =  (event: any) => {
+        this.dispatchEvent(
+          new CustomEvent('td-click', {
+            detail: {//@ts-ignore
+              ...rowData.data,//@ts-ignore
+            },
+            composed: true,
+          })
+        );
+        event.stopPropagation();
+      };
+    }
+  }
+
   freshCurrentLine(element: HTMLElement, rowObject: TableRowObject, firstElement?: HTMLElement): void {
     if (!rowObject) {
       if (firstElement) {
@@ -1605,6 +1630,13 @@ export class LitTable extends HTMLElement {
         this.setMouseIn(true, [this.currentTreeDivList[indexOf]]);
       }
     };
+    this.querySelectorAll('lit-table-column').forEach((item, i) => {
+      if (this.hasAttribute('tree')) {
+        this.dispatchTdClickEvent(element.childNodes[i - 1], item, rowObject);
+      } else {
+        this.dispatchTdClickEvent(element.childNodes[i], item, rowObject);
+      }
+    });
     // @ts-ignore
     (element as unknown).data = rowObject.data; //@ts-ignore
     if (rowObject.data.isSelected !== undefined) {

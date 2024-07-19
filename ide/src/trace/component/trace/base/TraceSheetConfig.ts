@@ -135,6 +135,7 @@ import { TabPaneMtParallel } from '../sheet/parallel/TabPaneMtParallel';
 import { TabPanePerfAsync } from '../sheet/hiperf/TabPerfAsyncList';
 import { TabPaneUserPlugin } from '../sheet/userPlugin/TabPaneUserPlugin';
 import { TabPaneDmaFence } from '../sheet/dma-fence/TabPaneDmaFenceSelect';
+import { TabPaneSliceChild } from '../sheet/process/TabPaneSliceChild';
 
 export let tabConfig: unknown = {
   'current-selection': {
@@ -725,5 +726,9 @@ export let tabConfig: unknown = {
     title: 'Dma Frence',
     type: TabPaneDmaFence,
     require: (param: SelectionParam) => param.dmaFenceNameData.length > 0,
+  },
+  'box-slice-child': {
+    title: '',
+    type: TabPaneSliceChild,
   },
 };
