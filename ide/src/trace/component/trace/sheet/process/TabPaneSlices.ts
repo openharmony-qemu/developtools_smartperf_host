@@ -78,6 +78,8 @@ export class TabPaneSlices extends BaseElement {
                 //@ts-ignore
                 processSliceItem.name = processSliceItem.name === null ? '' : processSliceItem.name;
                 //@ts-ignore
+                processSliceItem.tabTitle = processSliceItem.name;
+                //@ts-ignore
                 sumWall += processSliceItem.wallDuration;
                 //@ts-ignore
                 sumOcc += processSliceItem.occurrences;
@@ -90,6 +92,8 @@ export class TabPaneSlices extends BaseElement {
               count.process = ' ';
               count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
               count.occurrences = sumOcc;
+              count.tabTitle = 'Summary';
+              count.allName = processSlicesResult.map((item: any) => item.name);
               processSlicesResult.splice(0, 0, count); //@ts-ignore
               this.slicesSource = processSlicesResult;
               this.slicesTbl!.recycleDataSource = processSlicesResult;
@@ -277,7 +281,7 @@ export class TabPaneSlices extends BaseElement {
             key="avgDuration"  align="flex-start" order >
             </lit-table-column>
             <lit-table-column class="slices-column" title="Occurrences" width="1fr" data-index="occurrences" 
-            key="occurrences"  align="flex-start" order >
+            key="occurrences"  align="flex-start" order tdJump>
             </lit-table-column>
         </lit-table>
         `;

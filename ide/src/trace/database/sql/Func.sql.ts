@@ -338,6 +338,62 @@ export const getTabSlicesAsyncFunc = (
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
+export const getTabDetails = (
+  asyncNames: Array<string>,
+  asyncPid: Array<number>,
+  leftNS: number,
+  rightNS: number,
+  key: string,
+  funTids?: Array<number>
+): //@ts-ignore
+  Promise<Array<unknown>> => {
+    let asyncCondition = '';
+    let catCondition = '';
+    let syncCondition = '';
+    if (key === 'async') {
+      asyncCondition = `
+      and c.cookie not null
+      `
+    } else if (key === 'cat') {
+      catCondition = `
+      and c.cookie not null
+      and c.cat not null
+      `
+    } else if (key === 'sync') {
+      syncCondition = `
+      and A.tid in (${funTids!.join(',')})
+      and c.cookie is null
+      `
+    }
+    let condition = `
+      ${asyncCondition}
+      ${catCondition}
+      ${syncCondition}
+      ${`and P.pid in (${asyncPid.join(',')})`}
+      ${`and c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})`}
+    `
+    let sql = `
+      SELECT 
+        c.name AS name,
+        c.dur AS duration,
+        P.pid AS processId,
+        P.name AS process,
+        A.tid AS threadId,
+        A.name AS thread,
+        c.ts - D.start_ts as startNs   
+      FROM
+        thread A,trace_range D
+        LEFT JOIN process P ON P.id = A.ipid
+        LEFT JOIN callstack C ON A.id = C.callid
+      where
+          C.ts > 0
+        and
+          c.dur >= -1
+        and
+          not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
+    `
+    return query('getTabDetails', sql, {});
+  } 
 export const getTabSlicesAsyncCatFunc = (
   asyncCatNames: Array<string>,
   asyncCatPid: Array<number>,
