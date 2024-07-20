@@ -110,7 +110,7 @@ export class TabPaneFlag extends BaseElement {
       text.type = 'text';
       color!.value = flag.color;
       text!.value = flag.text;
-      let flagData = new MarkStruct(btn, color, text, getTimeString(flag.time), flag.time);
+      let flagData = new MarkStruct(btn, color.value, text.value, getTimeString(flag.time), flag.time);
       flag.selected === true ? (flagData.isSelected = true) : (flagData.isSelected = false);
       this.systemTrace?.timerShaftEL!.sportRuler!.drawTriangle(flag.time, flag.type);
       this.tableDataSource.push(flagData);
@@ -210,6 +210,7 @@ export class TabPaneFlag extends BaseElement {
         // @ts-ignore
         this.flagList[index - 1].text = event?.target.value;
         document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
+        this.setTableData();
         //   旗子颜色改变时，重绘泳道图
         this.systemTrace?.refreshCanvas(true);
       }
