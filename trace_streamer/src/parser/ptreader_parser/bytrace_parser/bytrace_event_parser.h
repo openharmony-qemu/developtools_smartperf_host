@@ -33,7 +33,7 @@ class BytraceEventParser : public EventParserBase {
 private:
     class EventInfo {
     public:
-        EventInfo(uint64_t ts, BytraceLine li) : eventTimestamp(ts), line(li) {}
+        EventInfo(uint64_t ts, const BytraceLine& li) : eventTimestamp(ts), line(li) {}
         uint64_t eventTimestamp;
         BytraceLine line;
     };
@@ -46,7 +46,7 @@ public:
     void Clear();
 
 private:
-    using FuncCall = std::function<bool(const ArgsMap &args, const BytraceLine line)>;
+    using FuncCall = std::function<bool(const ArgsMap& args, const BytraceLine& line)>;
     bool SchedSwitchEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool BlockedReason(const ArgsMap &args, const BytraceLine &line) const;
     bool TaskRenameEvent(const ArgsMap &args, const BytraceLine &line) const;
@@ -78,7 +78,7 @@ private:
     bool BinderTransaction(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransactionReceived(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransactionAllocBufEvent(const ArgsMap &args, const BytraceLine &line) const;
-    void GetDataSegArgs(BytraceLine &bufLine, ArgsMap &args, uint32_t &tgid) const;
+    void GetDataSegArgs(const BytraceLine& bufLine, ArgsMap& args) const;
     void InterruptEventInitialization();
     void ClockEventInitialization();
     void CpuEventInitialization();
@@ -116,6 +116,7 @@ private:
     const DataIndex schedBlockedReasonId_ = traceDataCache_->GetDataIndex("sched_blocked_reason");
     const DataIndex cpuFrequencyLimitMaxNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_max");
     const DataIndex cpuFrequencyLimitMinNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_min");
+    const size_t maxBuffSize_ = 1000 * 1000;
 
 protected:
     TraceStreamerConfig config_{};
