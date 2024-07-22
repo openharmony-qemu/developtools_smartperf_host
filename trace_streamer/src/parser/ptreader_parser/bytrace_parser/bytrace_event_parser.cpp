@@ -78,6 +78,7 @@ BytraceEventParser::BytraceEventParser(TraceDataCache *dataCache, const TraceStr
     RegulatorEventInitialization();
     BinderEventInitialization();
     StackEventsInitialization();
+    eventList_.reserve(maxBuffSize_);
 }
 
 void BytraceEventParser::InterruptEventInitialization()
@@ -742,51 +743,57 @@ bool BytraceEventParser::BinderTransactionAllocBufEvent(const ArgsMap &args, con
 }
 void BytraceEventParser::ParseDataItem(const BytraceLine &line)
 {
-    eventList_.push_back(std::make_unique<EventInfo>(line.ts, std::move(line)));
-    size_t maxBuffSize = 1000 * 1000;
+    eventList_.emplace_back(std::make_unique<EventInfo>(line.ts, line));
     size_t maxQueue = 2;
-    if (eventList_.size() < maxBuffSize * maxQueue) {
+    if (eventList_.size() < maxBuffSize_ * maxQueue) {
         return;
     }
     auto cmp = [](const std::unique_ptr<EventInfo> &a, const std::unique_ptr<EventInfo> &b) {
         return a->eventTimestamp < b->eventTimestamp;
     };
     std::stable_sort(eventList_.begin(), eventList_.end(), cmp);
-    auto endOfList = eventList_.begin() + maxBuffSize;
+    auto endOfList = eventList_.begin() + maxBuffSize_;
     for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
         EventInfo *event = itor->get();
         BeginFilterEvents(event);
         itor->reset();
     }
     eventList_.erase(eventList_.begin(), endOfList);
-    return;
 }
-void BytraceEventParser::GetDataSegArgs(BytraceLine &bufLine, ArgsMap &args, uint32_t &tgid) const
-{
-    if (bufLine.tGidStr.size() && bufLine.tGidStr.at(0) != '-') {
-        tgid = base::StrToInt<uint32_t>(bufLine.tGidStr).value_or(0);
-    } else {
-        tgid = 0;
-    }
-    bufLine.tgid = tgid;
 
-    for (base::PartingString ss(bufLine.argsStr, ' '); ss.Next();) {
-        std::string key;
-        std::string value;
-        if (!(std::string(ss.GetCur()).find("=") != std::string::npos)) {
-            key = "name";
-            value = ss.GetCur();
-            args.emplace(std::move(key), std::move(value));
-            continue;
-        }
-        for (base::PartingString inner(ss.GetCur(), '='); inner.Next();) {
-            if (key.empty()) {
-                key = inner.GetCur();
+void BytraceEventParser::GetDataSegArgs(const BytraceLine &bufLine, ArgsMap &args) const
+{
+    int32_t len = bufLine.argsStr.size();
+    int32_t first = -1;
+    int32_t second = -1;
+    for (int32_t i = 0; i < len; i++) {
+        if (bufLine.argsStr[i] == ' ') {
+            if (first == -1) {
+                continue;
+            }
+            if (second != -1) {
+                args.emplace(bufLine.argsStr.substr(first, second - 1 - first),
+                             bufLine.argsStr.substr(second, i - second));
+                second = -1;
             } else {
-                value = inner.GetCur();
+                args.emplace("name", bufLine.argsStr.substr(first, i - first));
+            }
+            first = -1;
+        } else {
+            if (first == -1) {
+                first = i;
+            }
+            if (bufLine.argsStr[i] == '=') {
+                second = i + 1;
             }
         }
-        args.emplace(std::move(key), std::move(value));
+    }
+    if (second != -1) {
+        args.emplace(bufLine.argsStr.substr(first, second - 1 - first), bufLine.argsStr.substr(second, len - second));
+        return;
+    }
+    if (first != -1) {
+        args.emplace("name", bufLine.argsStr.substr(first, len - first));
     }
 }
 
@@ -796,9 +803,8 @@ void BytraceEventParser::FilterAllEvents()
         return a->eventTimestamp < b->eventTimestamp;
     };
     std::stable_sort(eventList_.begin(), eventList_.end(), cmp);
-    size_t maxBuffSize = 1000 * 1000;
     while (eventList_.size()) {
-        int32_t size = std::min(maxBuffSize, eventList_.size());
+        int32_t size = std::min(maxBuffSize_, eventList_.size());
         auto endOfList = eventList_.begin() + size;
         for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
             EventInfo *event = itor->get();
@@ -821,9 +827,9 @@ void BytraceEventParser::BeginFilterEvents(EventInfo *event)
 {
     auto it = eventToFunctionMap_.find(event->line.eventName);
     if (it != eventToFunctionMap_.end()) {
-        uint32_t tgid;
+        uint32_t tgid = event->line.tgid;
         ArgsMap args;
-        GetDataSegArgs(event->line, args, tgid);
+        GetDataSegArgs(event->line, args);
         if (tgid) {
             streamFilters_->processFilter_->UpdateOrCreateThreadWithPidAndName(event->line.pid, tgid, event->line.task);
         } else {

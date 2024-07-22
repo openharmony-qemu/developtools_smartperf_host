@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set -e
-. build/build_stanalone_plugins.sh
-set_enable_plugin_array "true"
-set_enable_extend_plugin_array "false"
 PARAMS=$*
 SOURCE="${BASH_SOURCE[0]}"
 cd "$(dirname "${SOURCE}")"
+. build/build_stanalone_plugins.sh
+set_enable_plugin_array "true"
+set_enable_extend_plugin_array "false"
 ./pare_third_party.sh
 choose_os_type
 ./dl_tools.sh $gn_path

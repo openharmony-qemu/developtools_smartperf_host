@@ -281,43 +281,38 @@ int32_t PtreaderParser::GetNextSegment()
 
 void PtreaderParser::GetDataSegAttr(DataSegment &seg, const std::smatch &matcheLine) const
 {
-    const uint64_t S_TO_NS = 1e9;
     size_t index = 0;
-    std::string pidStr = matcheLine[++index].str();
-    std::optional<uint32_t> optionalPid = base::StrToInt<uint32_t>(pidStr);
+    std::optional<uint32_t> optionalPid = base::StrToInt<uint32_t>(matcheLine[++index].str());
     if (!optionalPid.has_value()) {
-        TS_LOGD("Illegal pid: %s", pidStr.c_str());
+        TS_LOGD("Illegal pid!");
         seg.status = TS_PARSE_STATUS_INVALID;
         return;
     }
-
-    std::string tGidStr = matcheLine[++index].str();
-    std::string cpuStr = matcheLine[++index].str();
-    std::optional<uint32_t> optionalCpu = base::StrToInt<uint32_t>(cpuStr);
+    seg.bufLine.tgid = base::StrToInt<uint32_t>(matcheLine[++index].str()).value_or(0);
+    std::optional<uint32_t> optionalCpu = base::StrToInt<uint32_t>(matcheLine[++index].str());
     if (!optionalCpu.has_value()) {
-        TS_LOGD("Illegal cpu %s", cpuStr.c_str());
+        TS_LOGD("Illegal cpu!");
         seg.status = TS_PARSE_STATUS_INVALID;
         return;
     }
-    std::string timeStr = matcheLine[++index].str();
     // Directly parsing double may result in accuracy loss issues
-    std::optional<double> optionalTime = base::StrToDouble(timeStr);
+    std::optional<double> optionalTime = base::StrToDouble(matcheLine[++index].str());
     if (!optionalTime.has_value()) {
-        TS_LOGD("Illegal ts %s", timeStr.c_str());
+        TS_LOGE("Illegal ts");
         seg.status = TS_PARSE_STATUS_INVALID;
         return;
     }
-    std::string eventName = matcheLine[++index].str();
-    seg.bufLine.task = StrTrim(matcheLine.prefix());
+    seg.bufLine.eventName = matcheLine[++index].str();
+    seg.bufLine.task = matcheLine.prefix();
+    StrTrim(seg.bufLine.task);
     if (seg.bufLine.task == "<...>") {
         seg.bufLine.task = "";
     }
-    seg.bufLine.argsStr = StrTrim(matcheLine.suffix());
+    seg.bufLine.argsStr = matcheLine.suffix();
+    StrTrim(seg.bufLine.argsStr);
     seg.bufLine.pid = optionalPid.value();
     seg.bufLine.cpu = optionalCpu.value();
-    seg.bufLine.ts = optionalTime.value() * S_TO_NS;
-    seg.bufLine.tGidStr = tGidStr;
-    seg.bufLine.eventName = eventName;
+    seg.bufLine.ts = optionalTime.value() * 1e9;
     seg.status = TS_PARSE_STATUS_PARSED;
 }
 void PtreaderParser::ParseThread()
@@ -404,17 +399,6 @@ bool PtreaderParser::FilterData(DataSegment &seg)
     filterHead_ = (filterHead_ + 1) % maxSegArraySize;
     seg.status = TS_PARSE_STATUS_INIT;
     return true;
-}
-// Remove space at the beginning and end of the string
-std::string PtreaderParser::StrTrim(const std::string &input) const
-{
-    std::string str = input;
-    if (str.empty()) {
-        return str;
-    }
-    str.erase(0, str.find_first_not_of(" "));
-    str.erase(str.find_last_not_of(" ") + 1);
-    return str;
 }
 #endif
 } // namespace TraceStreamer

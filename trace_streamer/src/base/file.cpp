@@ -83,7 +83,7 @@ std::vector<std::string> GetFilesNameFromDir(const std::string &path)
     std::filesystem::path dirPath(path);
     // 检查文件是否存在
     if (!std::filesystem::exists(dirPath)) {
-        std::cout << "!std::filesystem::exists(dirPath)" << std::endl;
+        TS_LOGI("!std::filesystem::exists(dirPath), dirPath: %s\n", path.data());
         return soFiles;
     }
     // 遍历目录
