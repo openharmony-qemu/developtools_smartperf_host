@@ -195,7 +195,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
     scrollCallback?: (data: CpuStruct) => void
   ): Promise<void> {
-    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
     this.setTableHeight('650px');
@@ -354,7 +354,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     distributedCallback?: Function,
   ): Promise<void> {
     //方法信息
-    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
     this.tabCurrentSelectionInit('Slice Details');
@@ -408,9 +408,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     } else {
       this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });
-      if(data.cookie || data.cookie === 0) {
-        list.push({name: 'TaskId',value: data.cookie})
-      } 
+      if (data.cookie || data.cookie === 0) {
+        list.push({ name: 'TaskId', value: data.cookie })
+      }
       let processName = Utils.getInstance().getProcessMap().get(data.pid!);
       let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
       list.push({
@@ -518,7 +518,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       list.push({ name: 'Name', value: name }, {
         name: 'Process',
         value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
-      },{
+      }, {
         name: 'Thread',
         value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
       });
@@ -543,7 +543,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       let binderSliceId = -1;
       let binderTid = -1;
       let processName = Utils.getInstance().getProcessMap().get(data.pid!);
-      let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+      let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
       argset.forEach((item) => {
         if (item.keyName === 'calling tid') {
           binderTid = Number(item.strValue);
@@ -556,27 +556,27 @@ export class TabPaneCurrentSelection extends BaseElement {
 <div style="white-space:pre-wrap">${name || 'binder'}</div>
 <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
 </div>`,
-          },{
+          }, {
             name: 'Process',
             value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
-          },{
+          }, {
             name: 'Thread',
             value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
           }
-        );
+          );
         }
       });
       if (binderSliceId === -1) {
         list.unshift({
           name: 'Name', value: name
-        },{
+        }, {
           name: 'Process',
           value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
-        },{
+        }, {
           name: 'Thread',
           value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
         }
-      );
+        );
       }
       this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
@@ -624,7 +624,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       let argsBinderRes = result[1];
       let asyncBinderStract: any;
       let processName = Utils.getInstance().getProcessMap().get(data.pid!);
-      let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+      let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
       if (asyncBinderRes.length > 0) {
         //@ts-ignore
         asyncBinderRes[0].type = TraceRow.ROW_TYPE_FUNC;
@@ -649,21 +649,21 @@ export class TabPaneCurrentSelection extends BaseElement {
 <div style="white-space:pre-wrap">${name || 'binder'}</div>
 <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
 </div>`,
-        },{
+        }, {
           name: 'Process',
           value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
-        },{
+        }, {
           name: 'Thread',
           value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
         });
       } else {
-        list.unshift({ 
-          name: 'Name', 
-          value: name 
-        },{
+        list.unshift({
+          name: 'Name',
+          value: name
+        }, {
           name: 'Process',
           value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
-        },{
+        }, {
           name: 'Thread',
           value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
         });
@@ -686,7 +686,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           linkTo = '';
         }
       });
-     
+
     });
   }
 
@@ -733,7 +733,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   async setClockData(data: ClockStruct): Promise<void> {
-    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
     this.setTableHeight('auto');
@@ -876,7 +876,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     callback?: (data: Array<unknown>, str: string) => void
   ): Promise<void> {
     //线程信息
-    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
     this.setTableHeight('550px');
@@ -1114,7 +1114,7 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   private async prepareThreadInfo(list: unknown[], data: ThreadStruct): Promise<void> {
     let processName = Utils.getInstance().getProcessMap().get(data.pid!);
-    let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+    let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
     list.push({
       name: 'Process',
       value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
@@ -1445,6 +1445,16 @@ export class TabPaneCurrentSelection extends BaseElement {
     let allStartUpLeftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
     let allStartUpmiddleTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightText');
     let allStartUpRightButton: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightButton');
+    let rightButton: HTMLElement | null | undefined = this?.shadowRoot
+      ?.querySelector('#rightButton')
+      ?.shadowRoot?.querySelector('#custom-button');
+    let rightStar: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#right-star');
+    if (rightButton) {
+      rightButton!.style.visibility = 'hidden';
+    }
+    if (rightStar) {
+      rightStar!.style.visibility = 'hidden';
+    }
     if (allStartUpmiddleTitle) {
       allStartUpmiddleTitle.style.visibility = 'hidden';
     }
