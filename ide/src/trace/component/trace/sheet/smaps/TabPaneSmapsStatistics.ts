@@ -102,6 +102,9 @@ export class TabPaneSmapsStatistics extends BaseElement {
   public init(tabTitle: HTMLDivElement): void {
     const thTable = tabTitle!.querySelector('.th');
     const list = thTable!.querySelectorAll('div');
+    list.forEach((item) => {
+      item.style.left = '-3px';
+    });
     if (tabTitle!.hasAttribute('sort')) {
       tabTitle!.removeAttribute('sort');
       list.forEach((item) => {
