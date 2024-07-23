@@ -85,7 +85,7 @@ function arrayBufferHandler(res: unknown, len: number): CpuStruct[] {
   // @ts-ignore
   let cpu = new Uint8Array(res.cpu);
   // @ts-ignore
-  let argSetID = new Int8Array(res.argSetID);
+  let argSetID = new Int32Array(res.argSetID);
   // @ts-ignore
   let nofinish = new Uint8Array(res.nofinish);
   for (let i = 0; i < len; i++) {
@@ -118,7 +118,7 @@ function searchArrayBufferHandler(res: unknown, len: number): CpuStruct[] {
   // @ts-ignore
   let cpu = new Uint8Array(res.cpu);
   // @ts-ignore
-  let argSetID = new Int8Array(res.argSetID);
+  let argSetID = new Int32Array(res.argSetID);
   // @ts-ignore
   let nofinish = new Uint8Array(res.nofinish);
   for (let i = 0; i < len; i++) {
