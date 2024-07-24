@@ -422,7 +422,7 @@ export class TabPaneFilter extends BaseElement {
     html: string
   ): string {
     if (secondList) {
-      html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">`;
+      html += `<lit-select show-search default-value="" id="second-select" class="spacing" placeholder="please choose">`;
       if (secondTitle !== '') {
         html += `<lit-select-option value="${secondTitle}" disabled>${secondTitle}</lit-select-option>`;
       }
