@@ -89,7 +89,8 @@ private:
     const std::string rsOnDoCompositionStr_ = "H:RSMainThread::DoComposition";
     DataIndex rsOnDoCompositionEvent_ = INVALID_DATAINDEX;
     const std::string onFrameQueeuStartEvent_ = "H:M: Frame queued";
-    const std::string onAnimationProcEvent_ = "render_service";
+    const std::string onAnimationProcEvent_ = "render_service";     // 并行化前动效过程异步trace打点线程
+    const std::string newOnAnimationProcEvent_ = "RSUniRenderThre"; // 并行化后动效过程异步trace打点线程
     const DataIndex marshRwTransactionData_ = traceDataCache_->GetDataIndex("H:MarshRSTransactionData");
     const DataIndex rsMainThreadProcessCmd_ = traceDataCache_->GetDataIndex("H:RSMainThread::ProcessCommandUni");
     const std::regex recvVsyncPattern_ = std::regex(R"((\w+):\s*(\w+))");

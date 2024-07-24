@@ -57,7 +57,13 @@ export class TabPaneSlices extends BaseElement {
     });
     this.slicesTbl!.loading = true;
     let filterNameEL: HTMLInputElement | undefined | null =
-      this.shadowRoot?.querySelector<HTMLInputElement>('#filterName'); //@ts-ignore
+      this.shadowRoot?.querySelector<HTMLInputElement>('#filterName');
+    filterNameEL?.addEventListener('keyup', (ev) => {
+      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
+        ev.stopPropagation();
+      }
+    });
+    //@ts-ignore
     getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {//@ts-ignore
       getTabSlicesAsyncCatFunc(asyncCatNames, asyncCatPid, slicesParam.leftNs, slicesParam.rightNs).then((res1) => {
         //@ts-ignore
@@ -72,6 +78,8 @@ export class TabPaneSlices extends BaseElement {
                 //@ts-ignore
                 processSliceItem.name = processSliceItem.name === null ? '' : processSliceItem.name;
                 //@ts-ignore
+                processSliceItem.tabTitle = processSliceItem.name;
+                //@ts-ignore
                 sumWall += processSliceItem.wallDuration;
                 //@ts-ignore
                 sumOcc += processSliceItem.occurrences;
@@ -84,6 +92,8 @@ export class TabPaneSlices extends BaseElement {
               count.process = ' ';
               count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
               count.occurrences = sumOcc;
+              count.tabTitle = 'Summary';
+              count.allName = processSlicesResult.map((item: any) => item.name);
               processSlicesResult.splice(0, 0, count); //@ts-ignore
               this.slicesSource = processSlicesResult;
               this.slicesTbl!.recycleDataSource = processSlicesResult;
@@ -271,7 +281,7 @@ export class TabPaneSlices extends BaseElement {
             key="avgDuration"  align="flex-start" order >
             </lit-table-column>
             <lit-table-column class="slices-column" title="Occurrences" width="1fr" data-index="occurrences" 
-            key="occurrences"  align="flex-start" order >
+            key="occurrences"  align="flex-start" order tdJump>
             </lit-table-column>
         </lit-table>
         `;
@@ -309,7 +319,7 @@ export class TabPaneSlices extends BaseElement {
     // 拷贝当前表格显示的数据
     let sortData: Array<SelectionData> = JSON.parse(JSON.stringify(this.slicesTbl!.recycleDataSource));
     // 取出汇总数据，同时将排序数据去掉汇总数据进行后续排序
-    let headData: SelectionData = sortData.splice(0,1)[0];
+    let headData: SelectionData = sortData.splice(0, 1)[0];
     //@ts-ignore
     if (slicesDetail.key === 'name') {
       //@ts-ignore

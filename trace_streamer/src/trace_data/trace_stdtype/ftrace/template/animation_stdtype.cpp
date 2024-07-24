@@ -112,15 +112,20 @@ void DeviceInfo::Clear()
     physicalFrameRate_ = INVALID_UINT32;
 }
 
-TableRowId DynamicFrame::AppendDynamicFrame(DataIndex nameId)
+TableRowId DynamicFrame::AppendDynamicFrame(DataIndex nameId, const std::smatch &matcheLine, DataIndex alpha)
+
 {
+    if (matcheLine.size() < DYNAMICFRAME_MATCH_LAST) {
+        return INVALID_INT32;
+    }
+    uint8_t matcheIndex = 1;
     names_.emplace_back(nameId);
     ids_.emplace_back(Size());
-    xs_.emplace_back(INVALID_UINT32);
-    ys_.emplace_back(INVALID_UINT32);
-    widths_.emplace_back(INVALID_UINT32);
-    heights_.emplace_back(INVALID_UINT32);
-    alphas_.emplace_back(INVALID_UINT64);
+    xs_.emplace_back(base::StrToInt<uint32_t>(matcheLine[++matcheIndex].str()).value());
+    ys_.emplace_back(base::StrToInt<uint32_t>(matcheLine[++matcheIndex].str()).value());
+    widths_.emplace_back(base::StrToInt<uint32_t>(matcheLine[++matcheIndex].str()).value());
+    heights_.emplace_back(base::StrToInt<uint32_t>(matcheLine[++matcheIndex].str()).value());
+    alphas_.emplace_back(alpha);
     endTimes_.emplace_back(INVALID_TIME);
     return ids_.size() - 1;
 }
@@ -128,17 +133,6 @@ void DynamicFrame::UpdateNameIndex(TableRowId index, DataIndex nameId)
 {
     if (index <= Size()) {
         names_[index] = nameId;
-    }
-}
-void DynamicFrame::UpdatePosition(TableRowId index, const std::smatch &matcheLine, DataIndex alpha)
-{
-    if (index <= Size() && matcheLine.size() > DYNAMICFRAME_MATCH_LAST) {
-        uint8_t matcheIndex = 0;
-        xs_[index] = base::StrToInt<uint32_t>(matcheLine[++matcheIndex].str()).value();
-        ys_[index] = base::StrToInt<uint32_t>(matcheLine[++matcheIndex].str()).value();
-        widths_[index] = base::StrToInt<uint32_t>(matcheLine[++matcheIndex].str()).value();
-        heights_[index] = base::StrToInt<uint32_t>(matcheLine[++matcheIndex].str()).value();
-        alphas_[index] = alpha;
     }
 }
 void DynamicFrame::UpdateEndTime(TableRowId index, InternalTime endTime)

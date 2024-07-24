@@ -50,7 +50,6 @@ import {
   queryBinderArgsByArgset,
   queryDistributedRelationAllData,
   queryRunnableTimeByRunning,
-  queryThreadNearData,
   queryThreadStateArgs,
   queryThreadWakeUp,
   queryThreadWakeUpFrom,
@@ -63,6 +62,7 @@ import { queryRealTime } from '../../../database/sql/Clock.sql';
 import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfTool';
 import { TraceMode } from '../../../SpApplicationPublicFunc';
 import { threadPool, threadPool2 } from '../../../database/SqlLite';
+import { threadNearData } from '../../../database/data-trafic/SliceSender';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -407,7 +407,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });
       if (data.cookie || data.cookie === 0) {
-        list.push({ name: 'TaskId', value: data.cookie });
+        list.push({ name: 'TaskId', value: data.cookie })
       }
       let processName = Utils.getInstance().getProcessMap().get(data.pid!);
       let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
@@ -915,7 +915,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       .sort((near1, near2) => near1.startTime - near2.startTime)
       .forEach((near) => {
         // @ts-ignore
-        if (near.itid === data.id) {
+        if (near.id === data.id) {
           // @ts-ignore
           if (near.startTime < data.startTime!) {
             preData = near;
@@ -985,7 +985,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       this.queryThreadWakeUpFromData(data.id!, data.startTime!, data.dur!),
       this.queryThreadWakeUpData(data.id!, data.startTime!, data.dur!),
       this.queryThreadStateDArgs(data.argSetID),
-      queryThreadNearData(data.id!, data.startTime!),
+      threadNearData('near-data', data.pid!, data.tid!, data.startTime!),
     ]).then((result) => {
       let fromBean = result[0];
       let wakeUps = result[1];
@@ -993,7 +993,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       let [preData, nextData] = this.sortByNearData(result[3], data, list);
       this.setWakeupData(fromBean, wakeUps, list);
       if (args.length > 0) {
-        args.forEach((arg) => {
+        args.forEach((arg: any) => {
           list.push({ name: arg.keyName, value: arg.strValue });
         });
       }
@@ -1076,7 +1076,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           // @ts-ignore
           cpu: nextData.cpu,
           // @ts-ignore
-          id: nextData.itid,
+          id: nextData.id,
           // @ts-ignore
           state: nextData.state,
           // @ts-ignore
@@ -1099,7 +1099,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           // @ts-ignore
           cpu: preData.cpu,
           // @ts-ignore
-          id: preData.itid,
+          id: preData.id,
           // @ts-ignore
           state: preData.state,
           // @ts-ignore
@@ -1456,6 +1456,16 @@ export class TabPaneCurrentSelection extends BaseElement {
     let allStartUpLeftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
     let allStartUpmiddleTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightText');
     let allStartUpRightButton: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightButton');
+    let rightButton: HTMLElement | null | undefined = this?.shadowRoot
+      ?.querySelector('#rightButton')
+      ?.shadowRoot?.querySelector('#custom-button');
+    let rightStar: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#right-star');
+    if (rightButton) {
+      rightButton!.style.visibility = 'hidden';
+    }
+    if (rightStar) {
+      rightStar!.style.visibility = 'hidden';
+    }
     if (allStartUpmiddleTitle) {
       allStartUpmiddleTitle.style.visibility = 'hidden';
     }

@@ -135,6 +135,7 @@ import { TabPaneMtParallel } from '../sheet/parallel/TabPaneMtParallel';
 import { TabPanePerfAsync } from '../sheet/hiperf/TabPerfAsyncList';
 import { TabPaneUserPlugin } from '../sheet/userPlugin/TabPaneUserPlugin';
 import { TabPaneDmaFence } from '../sheet/dma-fence/TabPaneDmaFenceSelect';
+import { TabPaneSliceChild } from '../sheet/process/TabPaneSliceChild';
 
 export let tabConfig: unknown = {
   'current-selection': {
@@ -207,6 +208,31 @@ export let tabConfig: unknown = {
     title: 'Slices',
     type: TabPaneSlices,
     require: (param: SelectionParam) => param.funTids.length > 0 || param.funAsync.length > 0 || param.funCatAsync.length > 0,
+  },
+  'box-perf-analysis': {
+    title: 'Analysis',
+    type: TabPanePerfAnalysis,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
+  'box-perf-bottom-up': {
+    title: 'Bottom Up',
+    type: TabpanePerfBottomUp,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
+  'box-perf-profile': {
+    title: 'Perf Profile',
+    type: TabpanePerfProfile,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0  || param.threadIds.length > 0,
+  },
+  'box-perf-sample': {
+    title: 'Sample List',
+    type: TabPanePerfSample,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
+  'box-perf-async': {
+    title: 'Async Call Profile',
+    type: TabPanePerfAsync,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
   },
   'box-counters': {
     title: 'Counters',
@@ -692,31 +718,6 @@ export let tabConfig: unknown = {
     type: TabPaneMtParallel,
     require: (param: SelectionParam) => param.threadIds.length > 0,
   },
-  'box-perf-analysis': {
-    title: 'Analysis',
-    type: TabPanePerfAnalysis,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
-  },
-  'box-perf-bottom-up': {
-    title: 'Bottom Up',
-    type: TabpanePerfBottomUp,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
-  },
-  'box-perf-profile': {
-    title: 'Perf Profile',
-    type: TabpanePerfProfile,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0  || param.threadIds.length > 0,
-  },
-  'box-perf-sample': {
-    title: 'Sample List',
-    type: TabPanePerfSample,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
-  },
-  'box-perf-async': {
-    title: 'Async Call Profile',
-    type: TabPanePerfAsync,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
-  },
   'tab-pane-userplugin': {
     title: 'User Plugin',
     type: TabPaneUserPlugin,
@@ -725,5 +726,9 @@ export let tabConfig: unknown = {
     title: 'Dma Frence',
     type: TabPaneDmaFence,
     require: (param: SelectionParam) => param.dmaFenceNameData.length > 0,
+  },
+  'box-slice-child': {
+    title: '',
+    type: TabPaneSliceChild,
   },
 };

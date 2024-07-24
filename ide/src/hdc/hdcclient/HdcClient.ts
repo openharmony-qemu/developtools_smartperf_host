@@ -36,6 +36,9 @@ export class HdcClient implements DataListener {
   private transmissionChannel: TransmissionInterface;
   public readDataProcessing: DataProcessing;
   private cmdStreams = new Map();
+  private isSuccess: boolean = false;
+  private handBody: DataView | undefined;
+  private message: DataMessage | undefined;
 
   constructor(
     transmissionChannel: TransmissionInterface,
@@ -51,38 +54,86 @@ export class HdcClient implements DataListener {
     debug('start Connect Device');
     this.sessionId = Utils.getSessionId();
     log(`sessionId is ${this.sessionId}`);
+    this.isSuccess = false;
+    await this.handShakeConnect(AuthType.AUTH_NONE, '');
+    let timeStamp = new Date().getTime();
+    while (await this.readHandShakeMsg()) {
+      if (new Date().getTime() - timeStamp > 10000) {
+        break;
+      }
+      // 后续daemon修复发送通道关闭信息后，可放开this.message?.channelClose以作判断
+      // 非握手包指令，不予理会
+      if (this.message?.commandFlag !== HdcCommand.CMD_KERNEL_HANDSHAKE) {
+        continue;
+      }
+      let backMessage = Serialize.parseHandshake(new Uint8Array(this.message.resArrayBuffer!));
+      // 后续daemon修复增加sessionId数据判定后，可放开backMessage.sessionId !== this.sessionId以作判断
+      const returnBuf: string = backMessage.buf;
+      const returnAuth: number = backMessage.authType;
+      switch (returnAuth) {
+        case AuthType.AUTH_NONE:
+          continue;
+        case AuthType.AUTH_TOKEN:
+          continue;
+        case AuthType.AUTH_SIGNATURE:
+          const response = await fetch(`${window.location.origin}/application/encryptHdcMsg?message=` + returnBuf);
+          const dataBody = await response.json();
+          const encryptHdcMsg = dataBody.success && dataBody.data.signatures;
+          await this.handShakeConnect(AuthType.AUTH_SIGNATURE, encryptHdcMsg);
+          timeStamp = new Date().getTime();
+          continue;
+        case AuthType.AUTH_PUBLICKEY:
+          const responsePub = await fetch(`${window.location.origin}/application/hdcPublicKey`);
+          const data = await responsePub.json();
+          const publicKey = data.success && (`smartPerf-Host` + String.fromCharCode(12) + data.data.publicKey);
+          await this.handShakeConnect(AuthType.AUTH_PUBLICKEY, publicKey);
+          timeStamp = new Date().getTime();
+          continue;
+        case AuthType.AUTH_OK:
+          if (returnBuf.toLocaleLowerCase().indexOf('unauth') === -1 || returnBuf.includes('SUCCESS')) {
+            this.handShakeSuccess(this.handBody!);
+            this.isSuccess = true;
+            break;
+          } else {
+            continue;
+          }
+        default:
+          continue;
+      }
+    }
+    return this.isSuccess;
+  }
+
+  private async handShakeConnect(authType: number, buf: string): Promise<void> {
     // @ts-ignore
     let handShake: SessionHandShake = new SessionHandShake(
       HANDSHAKE_MESSAGE,
-      AuthType.AUTH_NONE,
+      authType,
       this.sessionId,
       // @ts-ignore
       this.usbDevice.serialNumber,
-      ''
+      buf,
+      'Ver: 3.0.0b'
     );
     let hs = Serialize.serializeSessionHandShake(handShake);
     debug('start Connect hs ', hs);
-    let sendResult = await this.readDataProcessing.send(
+    await this.readDataProcessing.send(
       handShake.sessionId,
       0,
       HdcCommand.CMD_KERNEL_HANDSHAKE,
       hs,
       hs.length
     );
-    if (sendResult) {
-      let handShake = await this.readDataProcessing.readUsbHead();
-      let handBody = await this.readDataProcessing.readBody(handShake!.dataSize);
-      if (this.sessionId === handShake!.sessionId) {
-        debug('handShake: ', handShake);
-        this.handShakeSuccess(handBody);
-        return true;
-      } else {
-        log(`session is not eq handShake?.sessionId is : ${handShake?.sessionId} now session is ${this.sessionId}`);
-        return false;
-      }
-    } else {
+  }
+
+  private async readHandShakeMsg(): Promise<boolean> {
+    if (this.isSuccess) {
       return false;
     }
+    let handShake = await this.readDataProcessing.readUsbHead();
+    this.handBody = await this.readDataProcessing.readBody(handShake!.dataSize);
+    this.message = new DataMessage(handShake!, this.handBody);
+    return true;
   }
 
   private handShakeSuccess(handBody: DataView): void {

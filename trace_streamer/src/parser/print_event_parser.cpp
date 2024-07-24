@@ -142,7 +142,8 @@ void PrintEventParser::ParseStartEvent(const std::string &comm,
     if (point.name_ == onFrameQueeuStartEvent_ && index != INVALID_UINT64) {
         OnFrameQueueStart(ts, index, point.tgid_);
     } else if (traceDataCache_->AnimationTraceEnabled() && index != INVALID_UINT64 &&
-               base::EndWith(comm, onAnimationProcEvent_)) { // the comm is taskName
+               (base::EndWith(comm, onAnimationProcEvent_) ||
+                base::EndWith(comm, newOnAnimationProcEvent_))) { // the comm is taskName
         streamFilters_->animationFilter_->StartAnimationEvent(line, point, index);
     }
 }

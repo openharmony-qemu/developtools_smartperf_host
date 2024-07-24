@@ -90,7 +90,7 @@ export class TabPanePTS extends BaseElement {
         <lit-table id="pts-tbl" style="height: auto" tree>
             <lit-table-column class="pts-column" title="Process/Thread/State" data-index="title" key="title" align="flex-start" width="27%" retract>
             </lit-table-column>
-            <lit-table-column class="pts-column" title="Count" data-index="count" key="count" align="flex-start" width="1fr">
+            <lit-table-column class="pts-column" title="Count" data-index="count" key="count" align="flex-start" width="1fr" tdJump>
             </lit-table-column>
             <lit-table-column class="pts-column" title="Duration(ns)" data-index="wallDuration" key="wallDuration" align="flex-start" width="1fr">
             </lit-table-column>

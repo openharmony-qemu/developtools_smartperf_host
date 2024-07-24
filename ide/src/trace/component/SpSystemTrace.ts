@@ -101,6 +101,7 @@ import { querySceneSearchFunc, querySearchFunc } from '../database/sql/Func.sql'
 import { queryCpuKeyPathData } from '../database/sql/Cpu.sql';
 import { LtpoStruct } from '../database/ui-worker/ProcedureWorkerLTPO';
 import { HitchTimeStruct } from '../database/ui-worker/ProcedureWorkerHitchTime';
+import { ProcessMemStruct } from '../database/ui-worker/ProcedureWorkerMem';
 import {
   spSystemTraceInit,
   spSystemTraceInitElement,
@@ -1173,6 +1174,7 @@ export class SpSystemTrace extends BaseElement {
     CpuFreqStruct.hoverCpuFreqStruct = undefined;
     ThreadStruct.hoverThreadStruct = undefined;
     FuncStruct.hoverFuncStruct = undefined;
+    ProcessMemStruct.hoverProcessMemStruct = undefined;
     HiPerfCpuStruct.hoverStruct = undefined;
     HiPerfProcessStruct.hoverStruct = undefined;
     HiPerfThreadStruct.hoverStruct = undefined;

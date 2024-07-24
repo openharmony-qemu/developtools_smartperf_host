@@ -16,7 +16,7 @@
 import { BaseElement, element } from '../../../../base-ui/BaseElement';
 import { type LitTabs } from '../../../../base-ui/tabs/lit-tabs';
 import { LitTabpane } from '../../../../base-ui/tabs/lit-tabpane';
-import { BoxJumpParam, SelectionParam } from '../../../bean/BoxSelection';
+import { BoxJumpParam, SelectionParam, SliceBoxJumpParam } from '../../../bean/BoxSelection';
 import { type TabPaneCurrentSelection } from '../sheet/TabPaneCurrentSelection';
 import { type TabPaneFlag } from '../timer-shaft/TabPaneFlag';
 import { type Flag } from '../timer-shaft/Flag';
@@ -92,6 +92,7 @@ import { SpSystemTrace } from '../../SpSystemTrace';
 import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfTool';
 import { GpuCounterStruct } from '../../../database/ui-worker/ProcedureWorkerGpuCounter';
 import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
+import { TabPaneSliceChild } from '../sheet/process/TabPaneSliceChild';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -200,10 +201,9 @@ export class TraceSheet extends BaseElement {
     this.litTabs!.onTabClick = (e: unknown): void => this.loadTabPaneData(e.detail.key);
     this.tableCloseHandler();
     this.rowClickEvent();
+    this.tdClickEvent();
   }
   private rowClickEvent(): void {
-    this.getComponentByID<any>('box-spt')?.addEventListener('row-click', this.rowClickHandler.bind(this));
-    this.getComponentByID<any>('box-pts')?.addEventListener('row-click', this.rowClickHandler.bind(this));
     this.getComponentByID<any>('box-perf-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
       this.perfAnalysisListener(evt);
     });
@@ -249,6 +249,18 @@ export class TraceSheet extends BaseElement {
     this.getComponentByID<any>('box-file-system-statistics')?.addEventListener('row-click', (e: any) => {
       this.fileSystemListener(e);
     });
+  }
+
+  private tdClickEvent(): void {
+    this.getComponentByID<any>('box-spt')?.addEventListener('td-click', (evt: any) => {
+      this.tdClickHandler(evt)});
+    this.getComponentByID<any>('box-pts')?.addEventListener('td-click', (evt: any) => {
+      this.tdClickHandler(evt)});
+    this.getComponentByID<any>('box-thread-states')?.addEventListener('td-click', (evt: any) => {
+      this.tdClickHandler(evt);
+    });
+    this.getComponentByID<any>('box-slices')?.addEventListener('td-click', (evt: any) => {
+      this.tdSliceClickHandler(evt)})
   }
 
   private perfAnalysisListener(evt: MouseEvent): void {
@@ -1070,28 +1082,60 @@ export class TraceSheet extends BaseElement {
     window.publish(window.SmartEvent.UI.ShowBottomTab, { show: show, delta: delta });
   }
 
-  rowClickHandler(e: unknown): void {
+  tdClickHandler(e: unknown): void {
     // @ts-ignore
     this.currentPaneID = e.target.parentElement.id;
+    //隐藏除了当前Tab页的其他Tab页
     this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
       it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
-    );
-    let pane = this.getPaneByID('box-cpu-child');
-    pane.closeable = true;
+    );//todo：看能不能优化
+    let pane = this.getPaneByID('box-cpu-child');//通过Id找到需要展示的Tab页
+    pane.closeable = true;//关闭的ican显示
     pane.hidden = false;
-    this.litTabs!.activeByKey(pane.key); // @ts-ignore
-    pane.tab = Utils.transferPTSTitle(e.detail.title);
+    this.litTabs!.activeByKey(pane.key); //显示key值对应的Tab页
+    // @ts-ignore
+    pane.tab =  e.detail.tabTitle ? e.detail.tabTitle : Utils.transferPTSTitle(e.detail.title);//设置Tab页标题，有的标题可直接用，有的标题需在此转换成需要展示的字符串
     let param = new BoxJumpParam();
     param.traceId = this.selection!.traceId;
     param.leftNs = this.selection!.leftNs;
     param.rightNs = this.selection!.rightNs;
-    param.cpus = this.selection!.cpus; // @ts-ignore
-    param.state = e.detail.state; // @ts-ignore
-    param.processId = e.detail.pid; // @ts-ignore
-    param.threadId = e.detail.tid;
+    param.cpus = this.selection!.cpus; 
+    // @ts-ignore
+    param.state = e.detail.summary ? '' : e.detail.state; 
+    // @ts-ignore
+    param.processId = e.detail.summary ? this.selection.processIds : e.detail.pid; 
+    // @ts-ignore
+    param.threadId = e.detail.summary ? this.selection.threadIds : e.detail.tid;
+    param.isJumpPage = true;// @ts-ignore
+    param.currentId = e.target.parentElement.id;//根据父Tab页的标题，确认子Tab页的dur是否需要处理
     (pane.children.item(0) as TabPaneBoxChild).data = param;
   }
 
+  //Slice Tab点击Occurrences列下的td进行跳转
+  tdSliceClickHandler(e: unknown) {
+    // @ts-ignore
+    this.currentPaneID = e.target.parentElement.id;
+    //隐藏除了当前Tab页的其他Tab页
+    this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
+      it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
+    );
+    let pane = this.getPaneByID('box-slice-child');//通过Id找到需要展示的Tab页
+    pane.closeable = true;
+    pane.hidden = false;
+    this.litTabs!.activeByKey(pane.key); //显示key值（sheetconfig里面对应的index是一个数字）对应的Tab页
+    // @ts-ignore
+    pane.tab = e.detail.tabTitle;//设置Tab页标题
+    let param = new SliceBoxJumpParam();
+    param.traceId = this.selection!.traceId;
+    param.leftNs = this.selection!.leftNs;
+    param.rightNs = this.selection!.rightNs;
+    param.processId = this.selection!.processIds;
+    param.threadId = this.selection!.funTids;//@ts-ignore2
+    param.name = e.detail.allName ? e.detail.allName : [e.detail.name];
+    param.isJumpPage = true;
+    (pane.children.item(0) as TabPaneSliceChild).data = param;
+  }
+  
   clearMemory(): void {
     let allTabs = Array.from(this.shadowRoot?.querySelectorAll<LitTabpane>('#tabs lit-tabpane').values() || []);
     allTabs.forEach((tab) => {

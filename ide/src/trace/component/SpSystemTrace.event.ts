@@ -40,6 +40,7 @@ import { TabPaneCurrent } from './trace/sheet/TabPaneCurrent';
 import type { SpKeyboard } from './SpKeyboard';
 import { enableVSync } from './chart/VSync';
 import { CpuStruct, CpuStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { ProcessMemStruct } from '../database/ui-worker/ProcedureWorkerMem';
 import { CpuStateStruct, CpuStateStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCpuState';
 import {
   CpuFreqLimitsStruct,
@@ -538,6 +539,7 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
   const transformYMatch = sp.canvasPanel?.style.transform.match(/\((\d+)[^\)]+\)/);
   const transformY = transformYMatch![1];
   let favoriteHeight = sp.favoriteChartListEL!.getBoundingClientRect().height;
+  let memTr = rows.filter((item: any) => item.rowType ===TraceRow.ROW_TYPE_MEM)
   rows
     .filter((it) => it.focusContain(ev, sp.inFavoriteArea!, Number(transformY), favoriteHeight) && it.collect === sp.inFavoriteArea)
     .filter((it) => {
@@ -553,6 +555,12 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
     .forEach((tr): void => {
       if (tr.rowType !== TraceRow.ROW_TYPE_CPU) {
         CpuStruct.hoverCpuStruct = undefined;
+      }
+      if (tr.rowType !== TraceRow.ROW_TYPE_MEM) {
+        ProcessMemStruct.hoverProcessMemStruct = undefined;
+        memTr.forEach((i:any) => {
+          i.focusHandler(ev);
+        })
       }
       if (sp.currentRowType !== tr.rowType) {
         sp.currentRowType = tr.rowType || '';

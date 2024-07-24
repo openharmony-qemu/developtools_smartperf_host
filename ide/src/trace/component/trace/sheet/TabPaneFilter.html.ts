@@ -108,12 +108,18 @@ margin-left: 15px;
 :host([fileSystem]) .popover .tree-check:nth-child(5){
   display: none;
 }
+:host([fileSystem]) .popover .tree-check:nth-child(6){
+    display: none;
+  }
 :host([nativeMemory]) .popover .tree-check:nth-child(3){
   display:none;
 }
 :host([nativeMemory]) .popover .tree-check:nth-child(5){
   display:none;
 }
+:host([nativeMemory]) .popover .tree-check:nth-child(6){
+    display:none;
+  }
 :host([isStatisticsMemory]) .popover .tree-check:nth-child(4){
   display:none;
 }

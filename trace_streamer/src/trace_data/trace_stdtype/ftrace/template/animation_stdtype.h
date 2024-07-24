@@ -63,9 +63,8 @@ private:
 
 class DynamicFrame {
 public:
-    TableRowId AppendDynamicFrame(DataIndex nameId);
+    TableRowId AppendDynamicFrame(DataIndex nameId, const std::smatch &matcheLine, DataIndex alpha);
     void UpdateNameIndex(TableRowId index, DataIndex nameId);
-    void UpdatePosition(TableRowId index, const std::smatch &matcheLine, DataIndex alpha);
     void UpdateEndTime(TableRowId index, InternalTime endTime);
 
     size_t Size() const;

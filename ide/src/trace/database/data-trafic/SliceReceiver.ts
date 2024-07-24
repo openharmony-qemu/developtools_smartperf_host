@@ -13,7 +13,25 @@
 
 import { Args } from './CommonArgs';
 import { cpuList, processList, sliceList, threadStateList } from './utils/AllMemoryCache';
-
+const dataCache: {
+  argSetID: number | null | undefined;
+  cpu: number | null | undefined;
+  dur: number | null | undefined;
+  itid: number | null | undefined;
+  pid: number | null | undefined;
+  state: string | null | undefined;
+  tid: number | null | undefined;
+  startTime: number | null | undefined;
+} = {
+  argSetID: null,
+  cpu: null,
+  dur: null,
+  itid: null,
+  pid: null,
+  state: null,
+  tid: null,
+  startTime: null
+};
 export const sliceSqlMem = (args: Args): string => {
   return `
       SELECT B.pid,                        
@@ -110,13 +128,31 @@ export function sliceReceiver(data: unknown, proc: Function): void {
   }
   for (let key of cpuList.keys()) {
     let arr = cpuList.get(key) || [];
-    let last = arr[arr.length - 1]; //@ts-ignore
-    if (last && (last.dur === -1 || last.dur === null || last.dur === undefined)) {
-      //@ts-ignore
-      let totalNs = data.params.recordEndNS - data.params.recordStartNS; //@ts-ignore
-      last.dur = totalNs - last.startTime;
-    }
     count.cpu.set(key, arr.length);
+  }
+  //处理threadList最后一个符合条件的dur
+  for (let key of threadStateList.keys()) {
+    let arr = threadStateList.get(key) || [];
+    let last = arr[arr.length - 1]; 
+    if (!last) {
+      continue;
+    }
+    //@ts-ignore
+    switch (last.state) {
+      case 'S':
+      case 'I':
+      case 'T':
+      case 'X':
+        break;
+      default:
+        //@ts-ignore
+        if (last.dur === -1 || last.dur === null || last.dur === undefined) {
+          //@ts-ignore
+          let totalNs = data.params.recordEndNS - data.params.recordStartNS; //@ts-ignore
+          last.dur = totalNs - last.startTime;
+        }
+        break;
+    }
   }
   //处理热点数据
   //@ts-ignore
@@ -200,6 +236,12 @@ export function sliceSPTReceiver(data: unknown) {
         break;
       case 'spt-getCpuPriorityByTime':
         sptGetCpuPriorityByTime(data);
+        break;
+      case 'state-box':
+        getChildBoxDb(data);
+        break;
+      case 'near-data':
+        seacrhThreadNearData(data);
         break;
     }
   }
@@ -332,6 +374,82 @@ function sptGetCpuPriorityByTime(data: unknown): void {
     return !(item.startTime + item.dur < data.params.leftNs || item.startTime! > data.params.rightNs);
   });
   postMsg(data, result);
+}
+
+//处理跳转子页面的数据
+function getChildBoxDb(data: unknown) {
+  let threadSlice = sliceList.get(0) || [];
+  let setProcessId;
+  let setThreadId;
+  let setCpu = new Set();
+  //处理processId数据
+  //@ts-ignore
+  setProcessId = handleIdParams(data.params.processId);
+  //处理threadId数据
+  //@ts-ignore
+  setThreadId = handleIdParams(data.params.threadId);
+  //处理Cpu数据
+  //@ts-ignore
+  if (data.params.cpus) {//@ts-ignore
+    if (data.params.cpus.length > 0) {
+      //@ts-ignore
+      setCpu = new Set(data.params.cpus);
+    }
+  }
+
+  let childBoxDb = threadSlice.filter((it: any) => {
+    let condition = true;
+    // 检查进程ID  
+    if (setProcessId.size !== 0) {
+      condition = condition && setProcessId.has(it.pid);
+    }
+    // 检查线程ID  
+    if (setThreadId.size !== 0) {
+      condition = condition && setThreadId.has(it.tid);
+    }
+    // 检查CPU（如果存在且不是null/undefined，或在setCpu中）  
+    if (setCpu.size !== 0) {
+      condition = condition && (it.cpu === null || it.cpu === undefined || setCpu.has(it.cpu));
+    }
+    // 检查状态
+    //@ts-ignore  
+    if (data.params.state) {
+      //@ts-ignore  
+      condition = condition && it.state === data.params.state;
+    }
+    //@ts-ignore
+    return condition && Math.max(data.params.leftNs, it.startTime!) < Math.min(data.params.rightNs, it.startTime! + it.dur!)
+  })
+  postMsg(data, childBoxDb);
+}
+//处理processId和threadId
+function handleIdParams(id: number | number[] | undefined) {
+  let setId;
+  if (Array.isArray(id) || typeof id === "number") {
+    setId = new Set(Array.isArray(id) ? id : [id]);
+  } else {
+    setId = new Set();
+  }
+  return setId;
+}
+
+//查找点击的thread块前后相邻块信息
+function seacrhThreadNearData(target: unknown) {
+  //@ts-ignore
+  let key = `${target.params.pid}-${target.params.tid}`
+  let preData;
+  let nextData;
+  let threadSlice = threadStateList.get(key) || [];
+  //@ts-ignore
+  let dbIndex = threadSlice.findIndex(it => it.startTime === target.params.startTime);
+  if (dbIndex !== -1) {
+    preData = threadSlice[dbIndex - 1] ? threadSlice[dbIndex - 1] : dataCache;
+    nextData = threadSlice[dbIndex + 1] ? threadSlice[dbIndex + 1] : dataCache;
+  } else {
+    preData = dataCache;
+    nextData = dataCache;
+  }
+  postMsg(target, [preData, nextData]);
 }
 
 function setStateData(slice: unknown, title: string): unknown {
