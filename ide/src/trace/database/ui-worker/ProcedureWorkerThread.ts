@@ -68,7 +68,7 @@ export class ThreadRender extends Render {
     threadReq.context.closePath();
   }
 
-  render(threadReq: RequestMessage, threadList: Array<unknown>, threadFilter: Array<unknown>): void {}
+  render(threadReq: RequestMessage, threadList: Array<unknown>, threadFilter: Array<unknown>): void { }
 }
 
 export function ThreadStructOnClick(
@@ -115,7 +115,7 @@ export class ThreadStruct extends BaseThreadStruct {
     if (data.frame) {
 
       threadContext.globalAlpha = 1;
-      let stateText = ThreadStruct.getEndState(data.state || '');
+      let stateText = Utils.getEndState(data.state || '');
       threadContext.fillStyle = Utils.getStateColor(data.state || '');
       if ('S' === data.state) {
         threadContext.globalAlpha = 0.2;
