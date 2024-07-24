@@ -78,6 +78,7 @@ import { queryExistFtrace } from './database/sql/SqlLite.sql';
 import '../base-ui/chart/scatter/LitChartScatter';
 import { SpThirdParty } from './component/SpThirdParty';
 import './component/SpThirdParty';
+import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -1937,6 +1938,10 @@ export class SpApplication extends BaseElement {
         this.progressEL!.loading = true;
       } else {
         this.progressEL!.loading = false;
+      }
+      if(this.litSearch!.index > 0) {
+        let currentEntry =  this.litSearch!.list[this.litSearch!.index];
+        cancelCurrentTraceRowHighlight(this.spSystemTrace!, currentEntry)
       }
       this.litSearch!.list = [];
       if (timer) {
