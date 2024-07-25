@@ -387,7 +387,6 @@ export class TabPaneCurrentSelection extends BaseElement {
       information = informationList && informationList.length > 0 ? informationList[0].CN :
         `<div style="white-space: nowrap;display: flex;align-items: center">
            <div style="white-space:pre-wrap">无相关描述，如您知道具体含义可点击反馈</div>
-           <a href="https://3ms.huawei.com/km/groups/3956611/blogs/details/15389498?|=zh-cn" target = "_blank"  rel="ugc">
                <lit-icon style="cursor:pointer;margin-left: 5px; margin-top:5px" id="informationJump" name="select" color="#7fa1e7" size="20">
                </lit-icon>
            </a>
