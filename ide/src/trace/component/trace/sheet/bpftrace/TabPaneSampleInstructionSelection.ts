@@ -294,14 +294,13 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
           const total = isCycles
             // @ts-ignore
             ? instructionArray[key]
-              // @ts-ignore
-              .filter((i: unknown) => i.parentName === parentNode.name)
-              .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
-            // @ts-ignore
+            //@ts-ignore
+                .filter((i: unknown) => i.parentName === parentNode.name)
+                .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
             : instructionArray[key]
-              // @ts-ignore
-              .filter((i: unknown) => i.parentName === parentNode.name)
-              .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
+            //@ts-ignore
+                .filter((i: unknown) => i.parentName === parentNode.name)
+                .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
           const curWidth = isCycles ? cur.cycles : cur.instructions;
           const width = Math.floor(parentNode.frame.width * (curWidth / total));
           if (i === 0) {
@@ -413,35 +412,26 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
   getAvgInstructionData(instructionData: Array<unknown>) {
     // @ts-ignore
     const length = instructionData[0].property.length;
-    // @ts-ignore
     const knowData = instructionData.filter((instruction) => instruction.name.indexOf('unknown') < 0);
     knowData.forEach((instruction) => {
       // @ts-ignore
       if (instruction.property.length > 0) {
-        // @ts-ignore
         const totalInstruction = instruction.property.reduce(
           (pre: number, cur: SampleStruct) => pre + Math.ceil(cur.instructions!),
           0
         );
-        // @ts-ignore
         const totalCycles = instruction.property.reduce(
           (pre: number, cur: SampleStruct) => pre + Math.ceil(cur.cycles!),
           0
         );
-        // @ts-ignore
         instruction.instructions = Math.ceil(totalInstruction / length) || 1;
-        // @ts-ignore
         instruction.cycles = Math.ceil(totalCycles / length) || 1;
-        // @ts-ignore
         instruction.hoverInstructions = Math.ceil(totalInstruction / length);
-        // @ts-ignore
         instruction.hoverCycles = Math.ceil(totalCycles / length);
-        // @ts-ignore
         this.maxDepth = Math.max(this.maxDepth, instruction.depth);
       }
     });
-    // @ts-ignore
-    const unknownData = instructionData.filter((instruction) => instruction['name'].indexOf('unknown') > -1);
+    const unknownData = instructionData.filter((instruction) => instruction.name.indexOf('unknown') > -1);
     let instructionSum = 0;
     let cyclesSum = 0;
     let hoverInstructionsSum = 0;
@@ -451,27 +441,17 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
       cyclesSum = 0;
       hoverInstructionsSum = 0;
       hoverCyclesSum = 0;
-      // @ts-ignore
       for (const key in unknown.children) {
-        // @ts-ignore
-        const child = instructionData.find((instruction) => instruction['name'] === key);
-        // @ts-ignore
-        instructionSum += child['instructions'] ?? 0;
-        // @ts-ignore
-        cyclesSum += child['cycles'] ?? 0;
-        // @ts-ignore
-        hoverInstructionsSum += child['hoverInstructions'] ?? 0;
-        // @ts-ignore
-        hoverCyclesSum += child['hoverCycles'] ?? 0;
+        const child = instructionData.find((instruction) => instruction.name === key);
+        instructionSum += child.instructions ?? 0;
+        cyclesSum += child.cycles ?? 0;
+        hoverInstructionsSum += child.hoverInstructions ?? 0;
+        hoverCyclesSum += child.hoverCycles ?? 0;
       }
-      // @ts-ignore
-      unknown['instructions'] = instructionSum;
-      // @ts-ignore
-      unknown['cycles'] = cyclesSum;
-      // @ts-ignore
-      unknown['hoverInstructions'] = hoverInstructionsSum;
-      // @ts-ignore
-      unknown['hoverCycles'] = hoverCyclesSum;
+      unknown.instructions = instructionSum;
+      unknown.cycles = cyclesSum;
+      unknown.hoverInstructions = hoverInstructionsSum;
+      unknown.hoverCycles = hoverCyclesSum;
     });
     return instructionData;
   }

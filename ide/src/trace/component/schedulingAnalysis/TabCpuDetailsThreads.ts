@@ -204,29 +204,28 @@ export class TabCpuDetailsThreads extends BaseElement {
         }
       };
     }
-
-    // @ts-ignore
+    //@ts-ignore
     if (detail.key === 'durStr') {
-      // @ts-ignore
+      //@ts-ignore
       detail.key = 'dur';
-      // @ts-ignore
+      //@ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'number'));
     } else if (
-      // @ts-ignore
+      //@ts-ignore
       detail.key === 'value' ||
-      // @ts-ignore
+      //@ts-ignore
       detail.key === 'ratio' ||
-      // @ts-ignore
+      //@ts-ignore
       detail.key === 'index' ||
-      // @ts-ignore
+      //@ts-ignore
       detail.key === 'tid' ||
-      // @ts-ignore
+      //@ts-ignore
       detail.key === 'pid'
     ) {
-      // @ts-ignore
+      //@ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'number'));
     } else {
-      // @ts-ignore
+      //@ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.cpuDetailsThreadUsageTbl!.recycleDataSource = this.data;

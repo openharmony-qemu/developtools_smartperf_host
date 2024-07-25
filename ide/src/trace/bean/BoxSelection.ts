@@ -1128,9 +1128,8 @@ export class SelectionParam {
     }
   }
 
-  //匹配id 
-  //@ts-ignore
-  pushDmaFence(it: TraceRow<unknown>, sp: SpSystemTrace) {
+  //匹配id
+  pushDmaFence(it: TraceRow<any>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_DMA_FENCE) {
       this.dmaFenceNameData.push(it.rowId!);
     }

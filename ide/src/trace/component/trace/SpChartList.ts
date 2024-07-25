@@ -103,7 +103,7 @@ export class SpChartList extends BaseElement {
         this.collectRowList1.forEach((row) => this.fragmentGroup1.appendChild(row));
       }
       this.resizeHeight();
-    }
+    };
     this.icon1?.addEventListener('click', () => foldCollect1());
     const foldCollect2 = (): void => {
       this.collect2Expand = !this.collect2Expand;
@@ -117,16 +117,16 @@ export class SpChartList extends BaseElement {
         this.scrollTop = 0;
       }
       this.resizeHeight();
-    }
+    };
     this.icon2?.addEventListener('click', () => foldCollect2());
     document.addEventListener('keyup', (e) => {
       if (e.key.toLowerCase() === 'b' && e.ctrlKey === false) {
         // 收藏夹有泳道时 为true
-        const hasChildNode1 = this.collectEl1?.hasChildNodes() || this.fragmentGroup1.hasChildNodes()
-        const hasChildNode2 = this.collectEl2?.hasChildNodes() || this.fragmentGroup2.hasChildNodes()
+        const hasChildNode1 = this.collectEl1?.hasChildNodes() || this.fragmentGroup1.hasChildNodes();
+        const hasChildNode2 = this.collectEl2?.hasChildNodes() || this.fragmentGroup2.hasChildNodes();
         // 两个收藏夹都有泳道时
         if (hasChildNode1 && hasChildNode2) {
-          const flag = this.collect1Expand === this.collect2Expand
+          const flag = this.collect1Expand === this.collect2Expand;
           if (flag) {
             foldCollect1();
             foldCollect2();

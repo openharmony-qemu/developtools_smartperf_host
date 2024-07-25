@@ -182,8 +182,9 @@ export class PluginConvertUtils {
     spacesNumber: number,
     indentation: number,
     key: string,
-    arrValue: any
+    arrValue: unknown
   ): string {
+    //@ts-ignore
     return `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: ${arrValue.toString()}${
       this.crlf
     }`;
@@ -194,8 +195,9 @@ export class PluginConvertUtils {
     spacesNumber: number,
     indentation: number,
     key: string,
-    arrValue: any
+    arrValue: unknown
   ): string {
+    //@ts-ignore
     return `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: ${arrValue.toString()}${
       this.crlf
     }`;
@@ -206,8 +208,9 @@ export class PluginConvertUtils {
     spacesNumber: number,
     indentation: number,
     key: string,
-    arrValue: any
+    arrValue: unknown
   ): string {
+    //@ts-ignore
     return `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: ${arrValue.toString()}${
       this.crlf
     }`;
@@ -218,15 +221,18 @@ export class PluginConvertUtils {
     spacesNumber: number,
     indentation: number,
     key: string,
-    arrValue: any
+    arrValue: unknown
   ): string {
+    //@ts-ignore
     if (arrValue.startsWith('VMEMINFO') || arrValue.startsWith('PMEM')) {
       text = `${
         text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)
+        //@ts-ignore
       }: ${arrValue.toString()}${this.crlf}`;
     } else {
       text = `${
         text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)
+        //@ts-ignore
       }: "${arrValue.trim().toString()}"${this.crlf}`;
     }
     return text;
@@ -237,11 +243,12 @@ export class PluginConvertUtils {
     spacesNumber: number,
     indentation: number,
     key: string,
-    arrValue: any,
+    arrValue: unknown,
     needColon: boolean
   ): string {
     if (needColon) {
       text = `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)}: ${this.handleObj(
+        //@ts-ignore
         arrValue,
         indentation + 1,
         needColon,
@@ -252,6 +259,7 @@ export class PluginConvertUtils {
         text +
         ' '.repeat(spacesNumber).repeat(indentation + 1) +
         this.humpToSnake(key) +
+        //@ts-ignore
         this.handleObj(arrValue, indentation + 1, needColon, spacesNumber)
       }${this.crlf}`;
     }

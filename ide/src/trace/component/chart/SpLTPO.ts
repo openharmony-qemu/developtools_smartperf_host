@@ -331,18 +331,18 @@ export class SpLtpoChart {
     while (presentIndex < presentArr.length) {
       if (presentArr[presentIndex] && ltpoDataArr[ltpoIndex]) {
         if (
-          // @ts-ignore
+          //@ts-ignore
           presentArr[presentIndex].startTime! + presentArr[presentIndex].dur! - (window as unknown).recordStartNS ===
           TraceRow.range!.totalNS
         ) {
           presentArr.splice(presentIndex, 1);
         }
         if (presentArr[presentIndex].presentId === ltpoDataArr[ltpoIndex].fanceId) {
-          // @ts-ignore
+          //@ts-ignore
           ltpoDataArr[ltpoIndex].startTs = Number(presentArr[presentIndex].startTime) - (window as unknown).recordStartNS;
           ltpoDataArr[ltpoIndex].dur = presentArr[presentIndex].dur;
           ltpoDataArr[ltpoIndex].nextStartTs = presentArr[presentIndex + 1]
-          // @ts-ignore
+          //@ts-ignore
             ? Number(presentArr[presentIndex + 1].startTime) - (window as unknown).recordStartNS
             : '';
           ltpoDataArr[ltpoIndex].nextDur = presentArr[presentIndex + 1] ? presentArr[presentIndex + 1].dur : 0;

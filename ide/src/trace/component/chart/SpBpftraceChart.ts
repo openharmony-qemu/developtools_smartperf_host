@@ -326,10 +326,10 @@ export class SpBpftraceChart {
    * @param names
    */
   getUnknownAllChildrenNames(node: any, names: any = {}): object {
-    if (node.children) {
-      node.children.forEach((child: any) => {
-        if (child.function_name.indexOf('unknown') < 0) {
-          names[child.function.name] = [];
+    if (node['children']) {
+      node['children'].forEach((child: any) => {
+        if (child['function_name'].indexOf('unknown') < 0) {
+          names[child.function_name] = [];
         } else {
           this.getUnknownAllChildrenNames(child, names);
         }

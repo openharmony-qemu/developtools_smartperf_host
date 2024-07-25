@@ -189,32 +189,33 @@ function cpuFavoriteRowDragendHandler(sp: SpSystemTrace): () => void {
 }
 function triangleFlagHandler(sp: SpSystemTrace): (event: unknown) => void {
   return function (event: unknown): void {
-    // @ts-ignore
+    //@ts-ignore
     let temporaryTime = sp.timerShaftEL?.drawTriangle(event.detail.time, event.detail.type);
-    // @ts-ignore
+    //@ts-ignore
     if (event.detail.timeCallback && temporaryTime) {
-      // @ts-ignore
+      //@ts-ignore
       event.detail.timeCallback(temporaryTime);
     }
   };
 }
 function numberCalibrationHandler(sp: SpSystemTrace): (event: unknown) => void {
   return function (event: unknown): void {
-    // @ts-ignore
+    //@ts-ignore
     sp.timerShaftEL!.sportRuler!.times = event.detail.time;
-    // @ts-ignore
+    //@ts-ignore
     sp.timerShaftEL!.sportRuler!.counts = event.detail.counts;
-    // @ts-ignore
+    //@ts-ignore
     sp.timerShaftEL!.sportRuler!.durations = event.detail.durations;
     sp.timerShaftEL!.sportRuler?.draw();
   };
 }
 function flagChangeHandler(sp: SpSystemTrace): (event: unknown) => void {
   return function (event: unknown): void {
-    // @ts-ignore
+    //@ts-ignore
     sp.timerShaftEL?.modifyFlagList(event.detail);
-    // @ts-ignore
+    //@ts-ignore
     if (event.detail.hidden) {
+      //@ts-ignore
       sp.selectFlag = undefined;
       if (sp._flagList.length <= 0) {
         let showTab = sp.getShowTab();
@@ -285,9 +286,9 @@ function collectHandler(sp: SpSystemTrace): (event: unknown) => void {
       sp.currentClickRow = currentRow;
     });
     currentRow.addEventListener('dragover', (ev: unknown) => {
-      // @ts-ignore
+      //@ts-ignore
       ev.preventDefault();
-      // @ts-ignore
+      //@ts-ignore
       ev.dataTransfer.dropEffect = 'move';
     });
     currentRow.addEventListener('drop', collectHandlerDrop(sp, currentRow));
@@ -876,9 +877,9 @@ function spSystemTraceShowStructFindIndex(
   } else if (previous) {
     for (let i = structs.length - 1; i >= 0; i--) {
       let it = structs[i];
-      // @ts-ignore
+      //@ts-ignore
       if ((i < currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd)
-        // @ts-ignore
+      //@ts-ignore
         || (it.startTime! + it.dur! < rangeStart)) {
         findIndex = i;
         break;
@@ -896,9 +897,9 @@ function spSystemTraceShowStructFindIndex(
       if (SpSystemTrace.currentStartTime > rangeStart) {
         SpSystemTrace.currentStartTime = rangeStart;//currentIndex不在可视区时，currentIndex = -1
         if (
-          // @ts-ignore
+          //@ts-ignore
           structs[currentIndex].startTime < rangeStart ||
-          // @ts-ignore
+          //@ts-ignore
           structs[currentIndex].startTime! + structs[currentIndex].dur! > rangeEnd
         ) {
           currentIndex = -1;
@@ -907,9 +908,9 @@ function spSystemTraceShowStructFindIndex(
     }
     //在数组中查找比currentIndex大且在range范围内的第一个下标，如果range范围内没有返回-1
     findIndex = structs.findIndex((it, idx) => {
-      // @ts-ignore
+      //@ts-ignore
       return ((idx > currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd)
-      // @ts-ignore
+      //@ts-ignore
         || (it.startTime! > rangeEnd));
     });
     if (findIndex === -1) {
