@@ -412,7 +412,6 @@ export class SportRuler extends Graph {
       }
       this.draw();
       this.flagChangeHandler('2');
-      return;
     }
   }
 

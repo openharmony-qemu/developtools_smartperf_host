@@ -18,7 +18,7 @@ import { type LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-
 import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { resizeObserver } from '../SheetUtils';
 import { queryDmaFenceData } from '../../../../database/sql/dmaFence.sql';
-import { DmaFenceDataBean, DmaFenceTreeBean, DmaFenceStringBean } from './DmaFenceBean'
+import { DmaFenceDataBean, DmaFenceTreeBean, DmaFenceStringBean } from './DmaFenceBean';
 
 @element('tabpane-dmafrence')
 export class TabPaneDmaFence extends BaseElement {
@@ -52,7 +52,7 @@ export class TabPaneDmaFence extends BaseElement {
                 this.timeSelection!.innerHTML =
                     'Selection start: ' + 0 + ' ms' + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + 'Selection extent: ' + 0 + ' ms';
             }
-        })
+        });
     }
 
     private createTree(data: Array<DmaFenceDataBean>): Array<DmaFenceStringBean> {
@@ -137,7 +137,7 @@ export class TabPaneDmaFence extends BaseElement {
         return result;
     }
 
-    private sortByColumn(key: string, type: number, isExpand: boolean) {
+    private sortByColumn(key: string, type: number, isExpand: boolean): void {
         let sortObject = JSON.parse(JSON.stringify(this.finaldmaFenceData));
         let sortList: Array<DmaFenceStringBean> = [];
         sortList.push(sortObject[0]);
@@ -151,7 +151,8 @@ export class TabPaneDmaFence extends BaseElement {
                     item.children.forEach((child) => {
                         if (child.children) {
                             child.children.sort((a, b) => {
-                                let aValue: number | string, bValue: number | string;
+                                let aValue: number | string;
+                                let bValue: number | string;
                                 if (key === 'name') {
                                     aValue = a[key];
                                     bValue = b[key];
@@ -178,7 +179,7 @@ export class TabPaneDmaFence extends BaseElement {
         }
     }
 
-    private expandFunction(isExpand: boolean, list: Array<DmaFenceStringBean>) {
+    private expandFunction(isExpand: boolean, list: Array<DmaFenceStringBean>): void {
         if (isExpand) {
             this.dmaFenceTbl!.setStatus(list, true);
             this.dmaFenceTbl!.recycleDs = this.dmaFenceTbl!.meauseTreeRowElement(list, RedrawTreeForm.Expand);

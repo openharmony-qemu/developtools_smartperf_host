@@ -422,7 +422,7 @@ export class TabPaneFilter extends BaseElement {
     html: string
   ): string {
     if (secondList) {
-      html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">`;
+      html += `<lit-select show-search default-value="" id="second-select" class="spacing" placeholder="please choose">`;
       if (secondTitle !== '') {
         html += `<lit-select-option value="${secondTitle}" disabled>${secondTitle}</lit-select-option>`;
       }
@@ -482,7 +482,7 @@ export class TabPaneFilter extends BaseElement {
   }
 
   //添加cpu列表
-  setCoreConfigList(count: number, small: Array<number>, mid: Array<number>, large: Array<number>) {
+  setCoreConfigList(count: number, small: Array<number>, mid: Array<number>, large: Array<number>): void {
     let divEl = this.shadowRoot!.querySelector('#data-core-popover > div > #tb_core_setting');
     divEl!.innerHTML = '';
     this.createCoreHeaderDiv(divEl);
@@ -500,7 +500,7 @@ export class TabPaneFilter extends BaseElement {
     }
   }
 
-  createCoreHeaderDiv(tab: any) {
+  createCoreHeaderDiv(tab: unknown): void {
     let cpuIdLine = document.createElement('div');
     cpuIdLine.className = 'core_line';
     cpuIdLine.style.fontWeight = 'bold';
@@ -525,12 +525,13 @@ export class TabPaneFilter extends BaseElement {
     largeLine.textContent = 'L';
     largeLine.style.fontSize = '12px';
     largeLine.style.textAlign = 'center';
+    // @ts-ignore
     tab?.append(...[cpuIdLine, smallLine, mediumLine, largeLine]);
   }
 
   //添加对应的cpu checkbox,并添加对应的监听事件
   createCheckBoxLine(
-    divEl: any,
+    divEl: unknown,
     cpuStatus: CpuStatus,
     small: Array<number>,
     mid: Array<number>,
@@ -557,30 +558,37 @@ export class TabPaneFilter extends BaseElement {
     largeCheckBox.setAttribute('not-close', '');
     largeCheckBox.style.marginLeft = 'auto';
     largeCheckBox.style.marginRight = 'auto';
-    smallCheckBox.addEventListener('change', (e: any) => {
+    smallCheckBox.addEventListener('change', (e: unknown) => {
       midCheckBox.checked = false;
       largeCheckBox.checked = false;
+      // @ts-ignore
       cpuStatus.small = e.detail.checked;
+      // @ts-ignore
       this.canUpdateCheckList(e.detail.checked, small, cpuStatus.cpu);
       mid = mid.filter((it) => it !== cpuStatus.cpu);
       large = large.filter((it) => it !== cpuStatus.cpu);
     });
-    midCheckBox.addEventListener('change', (e: any) => {
+    midCheckBox.addEventListener('change', (e: unknown) => {
       largeCheckBox.checked = false;
       smallCheckBox.checked = false;
+      // @ts-ignore
       cpuStatus.medium = e.detail.checked;
+      // @ts-ignore
       this.canUpdateCheckList(e.detail.checked, mid, cpuStatus.cpu);
       large = large.filter((it) => it !== cpuStatus.cpu);
       small = small.filter((it) => it !== cpuStatus.cpu);
     });
-    largeCheckBox.addEventListener('change', (e: any) => {
+    largeCheckBox.addEventListener('change', (e: unknown) => {
       midCheckBox.checked = false;
       smallCheckBox.checked = false;
+      // @ts-ignore
       cpuStatus.large = e.detail.checked;
+      // @ts-ignore
       this.canUpdateCheckList(e.detail.checked, large, cpuStatus.cpu);
       mid = mid.filter((it) => it !== cpuStatus.cpu);
       small = small.filter((it) => it !== cpuStatus.cpu);
     });
+    // @ts-ignore
     divEl!.append(...[div, smallCheckBox, midCheckBox, largeCheckBox]);
   }
 
@@ -735,17 +743,17 @@ export class TabPaneFilter extends BaseElement {
       // @ts-ignore
       html += `<div style="display: flex;padding: 4px 7px;" class="mining-checked" ${a.highlight ? 'highlight' : ''}>
                         <lit-check-box class="lit-check-box" not-close ${
-                          // @ts-ignore
-                          a.checked ? 'checked' : ''
-                        } style="display: flex"></lit-check-box>
+        // @ts-ignore
+        a.checked ? 'checked' : ''
+        } style="display: flex"></lit-check-box>
                         
                         <div id="title" title="${
-                          // @ts-ignore
-                          a.name
-                        }">${
         // @ts-ignore
         a.name
-      }</div></div>`;
+        }">${
+        // @ts-ignore
+        a.name
+        }</div></div>`;
     });
 
     this.shadowRoot!.querySelector<HTMLDivElement>('#mining-row')!.innerHTML = html;
@@ -784,16 +792,16 @@ export class TabPaneFilter extends BaseElement {
       // @ts-ignore
       html += `<div style="display: flex;padding: 4px 7px;" class="library-checked" ${a.highlight ? 'highlight' : ''}>
                         <lit-check-box class="lit-check-box" not-close ${
-                          // @ts-ignore
-                          a.checked ? 'checked' : ''
-                        } style="display: flex"></lit-check-box>
+        // @ts-ignore
+        a.checked ? 'checked' : ''
+        } style="display: flex"></lit-check-box>
                         <div id="title" title="${
-                          // @ts-ignore
-                          a.name
-                        }">${
         // @ts-ignore
         a.name
-      }</div></div>`;
+        }">${
+        // @ts-ignore
+        a.name
+        }</div></div>`;
     });
 
     this.shadowRoot!.querySelector<HTMLDivElement>('#library-row')!.innerHTML = html;

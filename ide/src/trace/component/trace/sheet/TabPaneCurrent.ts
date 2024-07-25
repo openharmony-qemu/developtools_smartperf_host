@@ -154,17 +154,17 @@ export class TabPaneCurrent extends BaseElement {
       color.type = 'color';
       let text = document.createElement('input');
       text.type = 'text';
+      color!.value = slice.color;
+      text.value = slice.text;
       let sliceData = new MarkStruct(
         btn,
-        color,
-        text,
+        color.value,
+        text.value,
         getTimeString(slice.startTime),
         slice.startTime,
         getTimeString(slice.endTime),
         slice.endTime
       );
-      color!.value = slice.color;
-      text.value = slice.text;
       slice.selected === true ? (sliceData.isSelected = true) : (sliceData.isSelected = false);
       this.tableDataSource.push(sliceData);
     }
@@ -212,7 +212,7 @@ export class TabPaneCurrent extends BaseElement {
           // @ts-ignore
           this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime &&
           // @ts-ignore
-          event.keyCode === '13'
+          event.code === 'Enter' || event.code === 'NumpadEnter'
         ) {
           this.systemTrace!.slicesList = this.slicesTimeList || [];
           // @ts-ignore
@@ -221,6 +221,7 @@ export class TabPaneCurrent extends BaseElement {
             enable: true,
           });
           document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
+          document.dispatchEvent(new CustomEvent('remarksFocus-change',{ detail: 'remarks-focus' }));
 
           this.systemTrace?.refreshCanvas(true);
         }
@@ -243,7 +244,8 @@ export class TabPaneCurrent extends BaseElement {
           // @ts-ignore
           this.slicesTimeList[i - 1].text = event?.target.value;
           document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
-
+          document.dispatchEvent(new CustomEvent('remarksFocus-change',{ detail: '' }));
+          this.setTableData();
           this.systemTrace?.refreshCanvas(true);
         }
         // @ts-ignore

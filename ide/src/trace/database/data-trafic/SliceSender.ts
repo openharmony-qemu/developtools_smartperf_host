@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import { QueryEnum, TraficEnum } from './utils/QueryEnum';
-import { getThreadPool  } from '../SqlLite';
+import { getThreadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
 

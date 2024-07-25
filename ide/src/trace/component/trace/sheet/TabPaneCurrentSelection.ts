@@ -195,7 +195,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
     scrollCallback?: (data: CpuStruct) => void
   ): Promise<void> {
-    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
     this.setTableHeight('650px');
@@ -350,15 +350,15 @@ export class TabPaneCurrentSelection extends BaseElement {
     data: FuncStruct,
     threadName: string,
     scrollCallback: Function,
-    callback?: (data: Array<any>, str: string, binderTid: number) => void,
+    callback?: (data: Array<unknown>, str: string, binderTid: number) => void,
     distributedCallback?: Function,
   ): Promise<void> {
     //方法信息
-    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
     this.tabCurrentSelectionInit('Slice Details');
-    let list: any[] = [];
+    let list: unknown[] = [];
     let name = this.transferString(data.funName ?? '');
     // 从缓存中拿到详细信息的表
     let information: string = '';
@@ -372,13 +372,13 @@ export class TabPaneCurrentSelection extends BaseElement {
         if (res) {
           let funcDetail = JSON.parse(res);
           for (let key in funcDetail) {
-            this.funcDetailMap.set(key, funcDetail[key])
+            this.funcDetailMap.set(key, funcDetail[key]);
           }
         }
       });
     }
     // @ts-ignore
-    FunDetailList = this.funcDetailMap.has(threadName) ? this.funcDetailMap.get('threadName') : this.funcDetailMap.get('anothers')
+    FunDetailList = this.funcDetailMap.has(threadName) ? this.funcDetailMap.get('threadName') : this.funcDetailMap.get('anothers');
     if (Array.isArray(FunDetailList)) {
       // 筛选当前函数块的信息项
       let informationList: Array<FunDetail> = FunDetailList.filter((v: FunDetail) => {
@@ -390,7 +390,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                <lit-icon style="cursor:pointer;margin-left: 5px; margin-top:5px" id="informationJump" name="select" color="#7fa1e7" size="20">
                </lit-icon>
            </a>
-       </div>`
+       </div>`;
     }
     let isBinder = FuncStruct.isBinder(data);
     let jankJumperList = new Array<ThreadTreeNode>();
@@ -407,9 +407,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     } else {
       this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });
-      if(data.cookie || data.cookie === 0) {
-        list.push({name: 'TaskId',value: data.cookie})
-      } 
+      if (data.cookie || data.cookie === 0) {
+        list.push({ name: 'TaskId', value: data.cookie })
+      }
       let processName = Utils.getInstance().getProcessMap().get(data.pid!);
       let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
       list.push({
@@ -439,7 +439,8 @@ export class TabPaneCurrentSelection extends BaseElement {
         await this.chainSpanListCallBackHandle(data, distributedCallback);
       }
       this.currentSelectionTbl!.dataSource = list;
-      let startTimeAbsolute = (data.startTs || 0) + (window as any).recordStartNS;
+      // @ts-ignore
+      let startTimeAbsolute = (data.startTs || 0) + (window as unknown).recordStartNS;
       this.addClickToTransfBtn(startTimeAbsolute, FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);
     }
   }
@@ -509,7 +510,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
   }
 
-  private handleNonBinder(data: FuncStruct, list: any[], name: string, information: string): void {
+  private handleNonBinder(data: FuncStruct, list: unknown[], name: string, information: string): void {
     queryBinderArgsByArgset(data.argsetid!).then((argset) => {
       list.push({ name: 'Name', value: name });
       let processName = Utils.getInstance().getProcessMap().get(data.pid!);
@@ -517,7 +518,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       list.push({ name: 'Name', value: name }, {
         name: 'Process',
         value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
-      },{
+      }, {
         name: 'Thread',
         value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
       });
@@ -531,18 +532,18 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   private handleBinder(
     data: FuncStruct,
-    list: any[],
+    list: unknown[],
     jankJumperList: ThreadTreeNode[],
     name: string,
     scrollCallback: Function,
     information: string,
-    callback?: (data: Array<any>, str: string, binderTid: number) => void
+    callback?: (data: Array<unknown>, str: string, binderTid: number) => void
   ): void {
     queryBinderArgsByArgset(data.argsetid!).then((argset) => {
       let binderSliceId = -1;
       let binderTid = -1;
       let processName = Utils.getInstance().getProcessMap().get(data.pid!);
-      let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+      let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
       argset.forEach((item) => {
         if (item.keyName === 'calling tid') {
           binderTid = Number(item.strValue);
@@ -555,41 +556,46 @@ export class TabPaneCurrentSelection extends BaseElement {
 <div style="white-space:pre-wrap">${name || 'binder'}</div>
 <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
 </div>`,
-          },{
+          }, {
             name: 'Process',
             value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
-          },{
+          }, {
             name: 'Thread',
             value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
           }
-        );
+          );
         }
       });
       if (binderSliceId === -1) {
         list.unshift({
           name: 'Name', value: name
-        },{
+        }, {
           name: 'Process',
           value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
-        },{
+        }, {
           name: 'Thread',
           value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
         }
-      );
+        );
       }
       this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
       let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
       funcClick?.addEventListener('click', () => {
         if (!Number.isNaN(binderSliceId) && binderSliceId !== -1) {
-          queryBinderBySliceId(binderSliceId).then((result: any[]) => {
+          queryBinderBySliceId(binderSliceId).then((result: unknown[]) => {
             if (result.length > 0) {
+              // @ts-ignore
               result[0].type = TraceRow.ROW_TYPE_FUNC;
               scrollCallback(result[0]);
               let timeLineNode = new ThreadTreeNode(
+                // @ts-ignore
                 result[0]?.tid,
+                // @ts-ignore
                 result[0]?.pid,
+                // @ts-ignore
                 result[0].startTs,
+                // @ts-ignore
                 result[0]?.depth
               );
               jankJumperList.push(timeLineNode);
@@ -607,12 +613,12 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   private handleAsyncBinder(
     data: FuncStruct,
-    list: any[],
+    list: unknown[],
     jankJumperList: ThreadTreeNode[],
     name: string,
     scrollCallback: Function,
     information: string,
-    callback?: (data: Array<any>, str: string, binderTid: number) => void
+    callback?: (data: Array<unknown>, str: string, binderTid: number) => void
   ): void {
     let binderTid = -1;
     Promise.all([
@@ -621,9 +627,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     ]).then((result) => {
       let asyncBinderRes = result[0];
       let argsBinderRes = result[1];
-      let asyncBinderStract: any;
+      let asyncBinderStract: unknown;
       let processName = Utils.getInstance().getProcessMap().get(data.pid!);
-      let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+      let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
       if (asyncBinderRes.length > 0) {
         //@ts-ignore
         asyncBinderRes[0].type = TraceRow.ROW_TYPE_FUNC;
@@ -648,21 +654,21 @@ export class TabPaneCurrentSelection extends BaseElement {
 <div style="white-space:pre-wrap">${name || 'binder'}</div>
 <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
 </div>`,
-        },{
+        }, {
           name: 'Process',
           value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
-        },{
+        }, {
           name: 'Thread',
           value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
         });
       } else {
-        list.unshift({ 
-          name: 'Name', 
-          value: name 
-        },{
+        list.unshift({
+          name: 'Name',
+          value: name
+        }, {
           name: 'Process',
           value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
-        },{
+        }, {
           name: 'Thread',
           value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
         });
@@ -673,9 +679,13 @@ export class TabPaneCurrentSelection extends BaseElement {
       funcClick?.addEventListener('click', () => {
         scrollCallback(asyncBinderStract);
         let timeLineNode = new ThreadTreeNode(
+          // @ts-ignore
           asyncBinderStract.tid,
+          // @ts-ignore
           asyncBinderStract.pid,
+          // @ts-ignore
           asyncBinderStract.startTs,
+          // @ts-ignore
           asyncBinderStract.depth
         );
         jankJumperList.push(timeLineNode);
@@ -685,18 +695,19 @@ export class TabPaneCurrentSelection extends BaseElement {
           linkTo = '';
         }
       });
-     
+
     });
   }
 
-  private addTabPanelContent(contentList: any[], data: FuncStruct, information: string): void {
+  private addTabPanelContent(contentList: unknown[], data: FuncStruct, information: string): void {
     contentList.push({
       name: 'StartTime(Relative)',
       value: getTimeString(data.startTs || 0),
     });
     contentList.push({
       name: 'StartTime(Absolute)',
-      value: ((data.startTs || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+      // @ts-ignore
+      value: ((data.startTs || 0) + (window as unknown).recordStartNS) / 1000000000 + 's',
     });
     contentList.push({
       name: 'Duration',
@@ -732,7 +743,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   async setClockData(data: ClockStruct): Promise<void> {
-    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
     this.setTableHeight('auto');
@@ -754,10 +765,10 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
   }
 
-  setDmaFenceData(data: DmaFenceStruct, rowData: any[]): void {
+  setDmaFenceData(data: DmaFenceStruct, rowData: unknown[]): void {
     this.setTableHeight('auto');
     this.tabCurrentSelectionInit('Slice Details');
-    let list: any[] = [];
+    let list: unknown[] = [];
     list.push({
       name: 'Title',
       value: data.sliceName,
@@ -768,7 +779,8 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     list.push({
       name: 'StartTime(Absolute)',
-      value: ((data.startTime || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+      // @ts-ignore
+      value: ((data.startTime || 0) + (window as unknown).recordStartNS) / 1000000000 + 's',
     });
     if (data.dur !== 0) {
       list.push({
@@ -791,7 +803,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.setTableHeight('auto');
     //Perf Tools info
     this.tabCurrentSelectionInit('Slice Details');
-    let list: any[] = [];
+    let list: unknown[] = [];
     list.push({
       name: 'Name',
       value: data.name,
@@ -802,7 +814,8 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     list.push({
       name: 'StartTime(Absolute)',
-      value: ((data.startTs || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+      // @ts-ignore
+      value: ((data.startTs || 0) + (window as unknown).recordStartNS) / 1000000000 + 's',
     });
     list.push({
       name: 'Value',
@@ -871,11 +884,11 @@ export class TabPaneCurrentSelection extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((d: unknown) => void) | undefined,
     scrollWakeUp: (d: unknown) => void | undefined,
-    scrollPrio: (d: any) => void | undefined,
+    scrollPrio: (d: unknown) => void | undefined,
     callback?: (data: Array<unknown>, str: string) => void
   ): Promise<void> {
     //线程信息
-    if(SpApplication.traceType.indexOf('SQLite') === -1) {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
     this.setTableHeight('550px');
@@ -966,7 +979,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     jankJumperList: ThreadTreeNode[],
     callback: ((data: Array<unknown>, str: string) => void) | undefined,
     scrollWakeUp: (d: unknown) => void | undefined,
-    scrollPrio: (d: any) => void | undefined,
+    scrollPrio: (d: unknown) => void | undefined,
     scrollCallback: ((d: unknown) => void) | undefined
   ): void {
     Promise.all([
@@ -1048,7 +1061,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     data: ThreadStruct,
     scrollWakeUp: (d: unknown) => void | undefined,
     scrollCallback: ((d: unknown) => void) | undefined,
-    scrollPrio: (d: any) => void | undefined
+    scrollPrio: (d: unknown) => void | undefined
   ): void {
     this.currentSelectionTbl?.shadowRoot?.querySelector('#next-state-click')?.addEventListener('click', () => {
       if (nextData && scrollWakeUp !== undefined) {
@@ -1104,7 +1117,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     this.currentSelectionTbl?.shadowRoot?.querySelector('#prio-click')?.addEventListener('click', (ev) => {
       if (scrollPrio) {
-        sqlPrioCount(data).then((res: any) => {
+        sqlPrioCount(data).then((res: unknown) => {
           scrollPrio(res);
         });
       }
@@ -1113,7 +1126,7 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   private async prepareThreadInfo(list: unknown[], data: ThreadStruct): Promise<void> {
     let processName = Utils.getInstance().getProcessMap().get(data.pid!);
-    let threadName =  Utils.getInstance().getThreadMap().get(data.tid!);
+    let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
     list.push({
       name: 'Process',
       value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
@@ -1444,6 +1457,16 @@ export class TabPaneCurrentSelection extends BaseElement {
     let allStartUpLeftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
     let allStartUpmiddleTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightText');
     let allStartUpRightButton: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightButton');
+    let rightButton: HTMLElement | null | undefined = this?.shadowRoot
+      ?.querySelector('#rightButton')
+      ?.shadowRoot?.querySelector('#custom-button');
+    let rightStar: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#right-star');
+    if (rightButton) {
+      rightButton!.style.visibility = 'hidden';
+    }
+    if (rightStar) {
+      rightStar!.style.visibility = 'hidden';
+    }
     if (allStartUpmiddleTitle) {
       allStartUpmiddleTitle.style.visibility = 'hidden';
     }
@@ -1874,6 +1897,7 @@ export class TabPaneCurrentSelection extends BaseElement {
    */
   async queryThreadWakeUpFromData(itid: number, startTime: number, dur: number): Promise<WakeupBean | undefined> {
     let wakeUps = await queryThreadWakeUpFrom(itid, startTime + Utils.getInstance().getRecordStartNS());
+    // @ts-ignore
     if (wakeUps !== undefined && wakeUps.length > 0) {
       return wakeUps[0];
     }
@@ -1993,7 +2017,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
     this.wakeupListTbl = this.shadowRoot?.querySelector<LitTable>('#wakeupListTbl');
     this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
-    this.currentSelectionTbl?.addEventListener('column-click', (ev: any): void => { }); //@ts-ignore
+    this.currentSelectionTbl?.addEventListener('column-click', (ev: unknown): void => { }); //@ts-ignore
     window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => this.showWakeupListTableData(data));
   }
 

@@ -336,8 +336,9 @@ export const queryCpuSchedSlice = async (traceId?: string): Promise<Array<unknow
     {},
     { traceId: traceId, action: 'exec-buf' }
   );
+  // @ts-ignore
   return Utils.convertJSON(cpuSchedSliceBuffer);
-}
+};
 
 export const queryCpuStateFilter = (traceId?: string):
 Promise<Array<{ cpu: number; filterId: number }>> =>

@@ -40,7 +40,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
     //@ts-ignore
     this.action = msg.action;
     //@ts-ignore
-    this.params = msg.params
+    this.params = msg.params;
     if (this.type) {
       switch (this.type) {
         case 'jsCpuProfiler-call-chain':

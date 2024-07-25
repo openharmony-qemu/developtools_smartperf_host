@@ -18,6 +18,7 @@ export class ChartStruct {
   depth: number = 0;
   symbol: string = '';
   lib: string = '';
+  path: string = '';
   addr: string = '';
   size: number = 0;
   count: number = 0;
@@ -198,7 +199,7 @@ class MerageBeanDataSplit {
     allProcess.forEach((item) => {
       item.children = [];
       this.recursionChargeByRule(splitMapData, item, this.systmeRuleName, (node) => {
-        return node.lib.startsWith(this.systmeRuleName);
+        return node.path.startsWith(this.systmeRuleName);
       });
     });
   }
@@ -250,15 +251,15 @@ class MerageBeanDataSplit {
     values.forEach((item: unknown) => {
       //@ts-ignore
       if (item.parentNode !== undefined) {
-         //@ts-ignore
+        //@ts-ignore
         if (item.isStore === 0 && item.searchShow) {
-           //@ts-ignore
+          //@ts-ignore
           let parentNode = item.parentNode;
           while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
             parentNode = parentNode.parentNode;
           }
           if (parentNode) {
-             //@ts-ignore
+            //@ts-ignore
             item.currentTreeParentNode = parentNode;
             parentNode.children.push(item);
           }
@@ -751,9 +752,9 @@ interface perfAsyncList {
 }
 
 export function dealAsyncData(
-  arr: Array<perfAsyncList>, 
-  perfCallChain: object, 
-  nmCallChain: Map<number, Array<{addr: string, depth: number, eventId: number, fileId: number, symbolId: number}>>, 
+  arr: Array<perfAsyncList>,
+  perfCallChain: object,
+  nmCallChain: Map<number, Array<{ addr: string, depth: number, eventId: number, fileId: number, symbolId: number }>>,
   dataDict: Map<number, string>,
   searchValue: string
 ): Array<perfAsyncList> {
@@ -805,7 +806,7 @@ export function dealAsyncData(
       arr[i].callerCallStack!.push(callerStack);
     }
     // 若存在用户筛选字段内容，数据进行保留。若不存在，则在返回给前端的数据中删除此条数据，减少前端处理的数据量
-    if(!flag) {
+    if (!flag) {
       arr.splice(i, 1);
       i--;
     }

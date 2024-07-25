@@ -290,15 +290,18 @@ export class FrameDynamicRender extends Render {
 export function FrameDynamicStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  row: undefined | TraceRow<any>,
+  //@ts-ignore
+  row: undefined | TraceRow<unknown>,
   entry?: FrameDynamicStruct,
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC) {
+      //@ts-ignore
       FrameDynamicStruct.selectFrameDynamicStruct =
         FrameDynamicStruct.hoverFrameDynamicStruct || row?.getHoverStruct(false, true);
       if (FrameDynamicStruct.selectFrameDynamicStruct || entry) {
-        let data = entry || FrameDynamicStruct.selectFrameDynamicStruct
+        let data = entry || FrameDynamicStruct.selectFrameDynamicStruct;
+        //@ts-ignore
         sp.traceSheetEL?.displayFrameDynamicData(row!, data!);
         sp.timerShaftEL?.modifyFlagList(undefined);
       }

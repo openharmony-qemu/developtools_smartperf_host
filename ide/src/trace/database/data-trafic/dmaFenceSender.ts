@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { type DmaFenceStruct } from '../ui-worker/ProcedureWorkerDmaFence'
+import { type DmaFenceStruct } from '../ui-worker/ProcedureWorkerDmaFence';
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
@@ -44,16 +44,19 @@ export function dmaFenceSender(
       trafic: trafic,
       sharedArrayBuffers: row.sharedArrayBuffers,
     }, 
-    (res: any, len: number, transfer: boolean): void => {
+    (res: unknown, len: number, transfer: boolean): void => {
       resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
     });
   });
 }
 
-function arrayBufferHandler(res: any, len: number): DmaFenceStruct[] {
+function arrayBufferHandler(res: unknown, len: number): DmaFenceStruct[] {
   let outArr: DmaFenceStruct[] = [];
+  //@ts-ignore
   let startTime = new Float64Array(res.startTime);
+  //@ts-ignore
   let dur = new Float64Array(res.dur);
+  //@ts-ignore
   let id = new Uint16Array(res.id);
   for (let i = 0; i < len; i++) {
     outArr.push({

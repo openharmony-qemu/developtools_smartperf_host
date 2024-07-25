@@ -80,7 +80,7 @@ import { clearMemoryCache } from './AllMemoryCache';
 import { cpuFreqDataReceiver } from '../cpu/CpuFreqDataReceiver';
 import { lostFrameReceiver } from './../LostFrameReceiver';
 import { sliceReceiver, sliceSPTReceiver } from '../SliceReceiver';
-import { dmaFenceReceiver } from './../dmaFenceReceiver'
+import { dmaFenceReceiver } from './../dmaFenceReceiver';
 
 // @ts-ignore
 const traficHandlers: Map<number, unknown> = new Map<number, unknown>([]); // @ts-ignore

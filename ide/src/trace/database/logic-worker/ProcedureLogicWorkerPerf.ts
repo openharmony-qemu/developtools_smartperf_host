@@ -231,6 +231,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   private perfReset(): void {
     this.isHideThread = false;
     this.isHideThreadState = false;
+    this.isTopDown = true;
     this.isOnlyKernel = false;
   }
 
@@ -849,6 +850,34 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     });
   }
 
+  kernelCombination(): void {
+    function mergeChildren(item: PerfCallChainMerageData) {
+      if (item.children.length <= 0) {
+        return
+      }
+      item.children = item.children.reduce((total: PerfCallChainMerageData[], pfcall: PerfCallChainMerageData): PerfCallChainMerageData[] => {
+        for (const prev of total) {
+          if (pfcall.symbol == prev.symbol) {
+            prev.children.push(...pfcall.children)
+            prev.total += pfcall.total
+            prev.count += pfcall.count
+            prev.totalEvent += pfcall.totalEvent
+            prev.eventCount += pfcall.eventCount
+            return total
+          }
+        }
+        total.push(pfcall)
+        return total
+      }, [] as PerfCallChainMerageData[])
+      for (const child of item.children) {
+        mergeChildren(child)
+      }
+    }
+    this.allProcess.forEach((item: PerfCallChainMerageData): void => {
+      mergeChildren(item)
+    })
+  }
+
   findSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
     search = search.toLocaleLowerCase();
     sampleArray.forEach((sample: PerfCallChainMerageData): void => {
@@ -982,6 +1011,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         return this.combineCallChainForAnalysis();
       case 'getBottomUp':
         return this.getBottomUp();
+      case 'kernelCombination':
+        this.kernelCombination();
+        break;
     }
   }
 

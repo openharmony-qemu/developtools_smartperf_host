@@ -40,6 +40,7 @@ import { TabPaneCurrent } from './trace/sheet/TabPaneCurrent';
 import type { SpKeyboard } from './SpKeyboard';
 import { enableVSync } from './chart/VSync';
 import { CpuStruct, CpuStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { ProcessMemStruct } from '../database/ui-worker/ProcedureWorkerMem';
 import { CpuStateStruct, CpuStateStructOnClick } from '../database/ui-worker/cpu/ProcedureWorkerCpuState';
 import {
   CpuFreqLimitsStruct,
@@ -153,8 +154,9 @@ function threadClickHandlerFunc(sp: SpSystemTrace): (e: ThreadStruct) => void {
 }
 
 //点击prio箭头刷新canvas
-function prioClickHandlerFunc(sp: SpSystemTrace) {
-  return function (d: any) {
+function prioClickHandlerFunc(sp: SpSystemTrace): (d: unknown) => void {
+  return function (d: unknown) {
+    // @ts-ignore
     ThreadStruct.prioCount = d;
     ThreadStruct.isClickPrio = true;
     sp.refreshCanvas(true);
@@ -204,7 +206,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace): Function {
       //@ts-ignore
       let findJankEntry = jankRow!.dataListCache!.find(
         //@ts-ignore
-        (dat: unknown) => `${dat.name}` == `${d.name}` && `${dat.pid}` == `${d.pid}`
+        (dat: unknown) => `${dat.name}` === `${d.name}` && `${dat.pid}` === `${d.pid}`
       );
       if (findJankEntry) {
         if (
@@ -427,7 +429,7 @@ export default function spSystemTraceOnClickHandler(
     sp.removeLinkLinesByBusinessType('thread');
   }
   if (!FuncStruct.selectFuncStruct) {
-    sp.removeLinkLinesByBusinessType('distributed','func');
+    sp.removeLinkLinesByBusinessType('distributed', 'func');
   }
   if (row) {
     let pointEvent = sp.createPointEvent(row);
@@ -537,8 +539,9 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
   const transformYMatch = sp.canvasPanel?.style.transform.match(/\((\d+)[^\)]+\)/);
   const transformY = transformYMatch![1];
   let favoriteHeight = sp.favoriteChartListEL!.getBoundingClientRect().height;
+  let memTr = rows.filter((item: any) => item.rowType ===TraceRow.ROW_TYPE_MEM)
   rows
-    .filter((it) => it.focusContain(ev, sp.inFavoriteArea!,Number(transformY),favoriteHeight) && it.collect === sp.inFavoriteArea)
+    .filter((it) => it.focusContain(ev, sp.inFavoriteArea!, Number(transformY), favoriteHeight) && it.collect === sp.inFavoriteArea)
     .filter((it) => {
       if (it.collect) {
         return true;
@@ -552,6 +555,12 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
     .forEach((tr): void => {
       if (tr.rowType !== TraceRow.ROW_TYPE_CPU) {
         CpuStruct.hoverCpuStruct = undefined;
+      }
+      if (tr.rowType !== TraceRow.ROW_TYPE_MEM) {
+        ProcessMemStruct.hoverProcessMemStruct = undefined;
+        memTr.forEach((i:any) => {
+          i.focusHandler(ev);
+        })
       }
       if (sp.currentRowType !== tr.rowType) {
         sp.currentRowType = tr.rowType || '';
@@ -888,7 +897,7 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
     let inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
     let favoriteHeight = sp.favoriteChartListEL!.getBoundingClientRect().height;
     let rows = sp.visibleRows.filter((it) =>
-      it.focusContain(ev, inFavoriteArea!, Number(transformY),favoriteHeight) && it.collect === inFavoriteArea);
+      it.focusContain(ev, inFavoriteArea!, Number(transformY), favoriteHeight) && it.collect === inFavoriteArea);
     if (JankStruct.delJankLineFlag) {
       sp.removeLinkLinesByBusinessType('janks');
     }

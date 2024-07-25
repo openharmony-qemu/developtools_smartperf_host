@@ -27,11 +27,11 @@ export class TabPaneGpuCounter extends BaseElement {
   set data(clickData: GpuCounterStruct) {
     //@ts-ignore
     this.gpuCounterCounterTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-    this.parentElement!.clientHeight - 45 + 'px';
+      this.parentElement!.clientHeight - 45 + 'px';
     this.getCounterData(clickData).then();
   }
 
-  async getCounterData(clickData: GpuCounterStruct) {
+  async getCounterData(clickData: GpuCounterStruct): Promise<void> {
     let dataSource: Array<GpuCounter> = [];
     let selectData = new GpuCounter();
     selectData.startNS = clickData.startNS!;
@@ -51,7 +51,7 @@ export class TabPaneGpuCounter extends BaseElement {
 
 
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.gpuCounterCounterTbl!);
   }

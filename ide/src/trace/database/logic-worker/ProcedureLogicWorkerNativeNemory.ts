@@ -905,7 +905,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       this.currentSamples = this.queryAllCallchainsSamples;
       return;
     }
-    this.useFreedSize = this.isStatisticMode && filterAllocType == '2';
+    this.useFreedSize = this.isStatisticMode && filterAllocType === '2';
     let filter = this.dataFilter(
       libTree,
       filterAnalysis,
@@ -1087,13 +1087,13 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     }
 
     if (sample.countArray && sample.countArray.length > 0) {
-      currentNode.countArray.push(...sample.countArray);
+      currentNode.countArray = currentNode.countArray.concat(sample.countArray);
     } else {
       currentNode.countArray.push(sample.count);
     }
 
     if (sample.tsArray && sample.tsArray.length > 0) {
-      currentNode.tsArray.push(...sample.tsArray);
+      currentNode.tsArray = currentNode.tsArray.concat(sample.tsArray);
     } else {
       currentNode.tsArray.push(sample.startTs);
     }
@@ -1172,8 +1172,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         this.groupCutFilePath(currentNode.symbolId, this.dataCache.dataDict.get(currentNode.symbolId) || '') ??
         'unknown';
     }
+    currentNode.path = currentNode.lib;
     currentNode.lib = setFileName(currentNode.lib);
-    currentNode.lib = currentNode.lib;
     currentNode.symbol = `${currentNode.symbol} (${currentNode.lib})`;
     currentNode.type =
       currentNode.lib.endsWith('.so.1') || currentNode.lib.endsWith('.dll') || currentNode.lib.endsWith('.so') ? 0 : 1;

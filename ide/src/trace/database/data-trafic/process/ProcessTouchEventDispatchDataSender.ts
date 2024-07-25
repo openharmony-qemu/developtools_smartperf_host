@@ -43,7 +43,7 @@ export function processTouchEventDispatchDataSender(tid: number, row: TraceRow<F
         sharedArrayBuffers: row.sharedArrayBuffers,
         tid: tid,
       },
-      (res: any, len: number, transfer: boolean) => {
+      (res: unknown, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
@@ -52,13 +52,19 @@ export function processTouchEventDispatchDataSender(tid: number, row: TraceRow<F
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): FuncStruct[] {
+function arrayBufferHandler(buffers: unknown, len: number): FuncStruct[] {
   let outArr: FuncStruct[] = [];
+  //@ts-ignore
   let tid = new Int32Array(buffers.tid);
+  //@ts-ignore
   let pid = new Int32Array(buffers.pid);
+  //@ts-ignore
   let startTs = new Float64Array(buffers.startTs);
+  //@ts-ignore
   let dur = new Float64Array(buffers.dur);
+  //@ts-ignore
   let id = new Int32Array(buffers.id);
+  //@ts-ignore
   let depth = new Int32Array(buffers.depth);
   for (let i = 0; i < len; i++) {
     outArr.push({

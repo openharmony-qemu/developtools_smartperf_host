@@ -118,7 +118,7 @@ Smaps Statistic 的 tab 页展示。
 -     Swap：smaps节点中Swap。
 -     SwapPss：smaps节点中SwapPss。
 -     Reside： Rss / Size 比值。
--     Protection： 内存块的权限(读写执行执行)。
+-     Protection： 内存块的权限(读写执行)。
 
 ### VM Tracker 下的 GPU 泳道图展示
 

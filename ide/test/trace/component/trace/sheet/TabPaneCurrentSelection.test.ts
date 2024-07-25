@@ -26,7 +26,7 @@ jest.mock('../../../../../src/trace/database/sql/Gpu.sql');
 
 describe('TabPaneCurrentSelection Test', () => {
   let tabPaneCurrentSelection = new TabPaneCurrentSelection();
-
+  tabPaneCurrentSelection.setRealTime = jest.fn();
   const canvas = document.createElement('canvas');
   canvas.width = 1;
   canvas.height = 1;
@@ -290,21 +290,11 @@ describe('TabPaneCurrentSelection Test', () => {
     },
   ];
   queryPreceding.mockResolvedValue(queryPrecedingData);
-
-  tabPaneCurrentSelection.queryWakeUpData = jest.fn(() => 'WakeUpData');
-  tabPaneCurrentSelection.queryWakeUpData.wb = jest.fn(() => null);
+  tabPaneCurrentSelection.setMemData(memData)
   tabPaneCurrentSelection.setCpuData(cpuData, undefined, 1);
-
-  it('TabPaneCurrentSelectionTest01', function () {
-    let result = tabPaneCurrentSelection.setFunctionData(functionData);
-    expect(result).toBeUndefined();
-  });
-
-  it('TabPaneCurrentSelectionTest02', function () {
-    let result = tabPaneCurrentSelection.setMemData(memData);
-    expect(result).toBeUndefined();
-  });
-
+  tabPaneCurrentSelection.setFunctionData(functionData);
+  tabPaneCurrentSelection.setClockData(clockData);
+  tabPaneCurrentSelection.setFunctionData(functionDataTest);
   it('TabPaneCurrentSelectionTest03', function () {
     let result = getTimeString(3600_000_000_002);
     expect(result).toBe('1h 2ns ');
@@ -360,42 +350,23 @@ describe('TabPaneCurrentSelection Test', () => {
     expect(tabPaneCurrentSelection.drawRight(null)).toBeUndefined();
   });
 
-  it('TabPaneCurrentSelectionTest01', function () {
-    let result = tabPaneCurrentSelection.setFunctionData(functionData);
-    expect(result).toBeUndefined();
-  });
-
-  it('TabPaneCurrentSelectionTest02', function () {
-    let result = tabPaneCurrentSelection.setMemData(memData);
-    expect(result).toBeUndefined();
-  });
-
-  it('TabPaneCurrentSelectionTest12', function () {
+  it('TabPaneCurrentSelectionTest23', function () {
     let result = tabPaneCurrentSelection.setJankData(jankData, undefined, 1);
     expect(result).toBeUndefined();
   });
 
-  it('TabPaneCurrentSelectionTest13', function () {
+  it('TabPaneCurrentSelectionTest25', function () {
     let result = tabPaneCurrentSelection.setJankData(jankDataRender, undefined, 1);
     expect(result).toBeUndefined();
   });
 
-  it('TabPaneCurrentSelectionTest14', function () {
+  it('TabPaneCurrentSelectionTest24', function () {
     let result = tabPaneCurrentSelection.setIrqData(irqData);
     expect(result).toBeUndefined();
   });
 
-  it('TabPaneCurrentSelectionTest16', function () {
-    let result = tabPaneCurrentSelection.setClockData(clockData);
-    expect(result).toBeUndefined();
-  });
-
-  it('TabPaneCurrentSelectionTest17', function () {
-    let result = tabPaneCurrentSelection.setFunctionData(functionDataTest);
-    expect(result).toBeUndefined();
-  });
   it('TabPaneCurrentSelectionTest18', function () {
-    let result = tabPaneCurrentSelection.setStartupData(irqData, 1);
+    let result = tabPaneCurrentSelection.setStartupData(irqData, 1, []);
     expect(result).toBeUndefined();
   });
   it('TabPaneCurrentSelectionTest19', function () {

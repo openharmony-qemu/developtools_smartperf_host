@@ -13,10 +13,14 @@
  * limitations under the License.
  */
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
 import {
   CpuFreqExtendStruct,
   FreqExtendRender
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFreqExtend';
+import { SpSegmentationChart } from '../../../../src/trace/component/chart/SpSegmentationChart';
 jest.mock('../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
   return {};
 });
@@ -24,6 +28,10 @@ jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });
 describe('ProcedureWorkerFreqExtend Test',()=>{
+  SpSegmentationChart.trace = jest.fn();
+  SpSegmentationChart.trace.traceSheetEL = jest.fn();
+  SpSegmentationChart.trace.traceSheetEL.systemLogFlag = jest.fn();
+
   it('ProcedureWorkerFreqExtendTest01 ', function () {
     const data = {
       frame: {
@@ -95,6 +103,6 @@ describe('ProcedureWorkerFreqExtend Test',()=>{
       height: 100,
     };
     window.postMessage = jest.fn(() => true);
-    expect(freqExtendRender.renderMainThread(freqReq,new TraceRow<CpuFreqExtendStruct>()))
+    expect(freqExtendRender.renderMainThread(freqReq, new TraceRow<CpuFreqExtendStruct>()))
   });
 })
