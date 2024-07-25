@@ -410,7 +410,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     from 
       perf_napi_async A, trace_range R
     WHERE 
-      (` + str +`)` + eventStr +`
+      (` + str + `)` + eventStr + `
     AND
       time between ${args.leftNs} and ${args.rightNs} 
     `, {});
@@ -540,7 +540,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     if (!this.isHideThread) {
       list.unshift(threadCallChain);
     }
-    
+
     if (this.isOnlyKernel) {
       const flag = "[kernel.kallsyms]"
       const newList = list.filter(i => i.fileName === flag || i.path === flag)
@@ -781,7 +781,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         }
       }
       recursionHideChildren(item, (node: PerfCallChainMerageData): boolean => {
-        return node.libName !== '[kernel.kallsyms]'
+        return node.libName !== '[kernel.kallsyms]';
       })
     })
   }
@@ -797,7 +797,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   clearSplitMapData(symbolName: string): void {
-    if (symbolName in this.splitMapData){
+    if (symbolName in this.splitMapData) {
       delete this.splitMapData[symbolName];
     }
   }
@@ -851,30 +851,30 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   kernelCombination(): void {
-    function mergeChildren(item: PerfCallChainMerageData) {
+    function mergeChildren(item: PerfCallChainMerageData): void {
       if (item.children.length <= 0) {
-        return
+        return;
       }
       item.children = item.children.reduce((total: PerfCallChainMerageData[], pfcall: PerfCallChainMerageData): PerfCallChainMerageData[] => {
         for (const prev of total) {
           if (pfcall.symbol == prev.symbol) {
-            prev.children.push(...pfcall.children)
-            prev.total += pfcall.total
-            prev.count += pfcall.count
-            prev.totalEvent += pfcall.totalEvent
-            prev.eventCount += pfcall.eventCount
-            return total
+            prev.children.push(...pfcall.children);
+            prev.total += pfcall.total;
+            prev.count += pfcall.count;
+            prev.totalEvent += pfcall.totalEvent;
+            prev.eventCount += pfcall.eventCount;
+            return total;
           }
         }
-        total.push(pfcall)
-        return total
+        total.push(pfcall);
+        return total;
       }, [] as PerfCallChainMerageData[])
       for (const child of item.children) {
-        mergeChildren(child)
+        mergeChildren(child);
       }
     }
     this.allProcess.forEach((item: PerfCallChainMerageData): void => {
-      mergeChildren(item)
+      mergeChildren(item);
     })
   }
 
@@ -1245,7 +1245,7 @@ export class PerfCallChain {
   nextNode: PerfCallChain | undefined = undefined;
   isThread: boolean = false;
   isProcess: boolean = false;
-  isThreadState : boolean = false;
+  isThreadState: boolean = false;
 
   static setNextNode(currentNode: PerfCallChain, nextNode: PerfCallChain): void {
     currentNode.nextNode = nextNode;
@@ -1297,7 +1297,7 @@ export class PerfCallChainMerageData extends ChartStruct {
   isSelected: boolean = false;
   searchShow: boolean = true;
   isSearch: boolean = false;
-  isState : boolean = false;
+  isState: boolean = false;
   set parentNode(data: PerfCallChainMerageData | undefined) {
     this.parent = data;
     this.#parentNode = data;
@@ -1358,7 +1358,7 @@ export class PerfCallChainMerageData extends ChartStruct {
     if (callChain.isThread && !currentNode.isThread) {
       currentNode.isThread = callChain.isThread;
     }
-    if (callChain.isThreadState && !currentNode.isState){
+    if (callChain.isThreadState && !currentNode.isState) {
       currentNode.isState = callChain.isThreadState;
     }
     currentNode.dur += sample.count;

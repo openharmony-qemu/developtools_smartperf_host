@@ -190,7 +190,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static isUserInteraction: boolean;
   asyncFuncName: string | Array<string> | undefined | null;
   asyncFuncNamePID: number | undefined | null;
-  asyncFuncThreadName: Array<unknown>| string | undefined | null;  
+  asyncFuncThreadName: Array<unknown> | string | undefined | null;
   translateY: number = 0; //single canvas offsetY;
   // @ts-ignore
   childrenList: Array<TraceRow<unknown>> = []; // @ts-ignore
@@ -221,12 +221,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       isOffScreen: boolean;
       skeleton?: boolean;
     } = {
-      canvasNumber: 1,
-      alpha: false,
-      contextId: '2d',
-      isOffScreen: true,
-      skeleton: false,
-    },
+        canvasNumber: 1,
+        alpha: false,
+        contextId: '2d',
+        isOffScreen: true,
+        skeleton: false,
+      },
     traceId?: string
   ) {
     super();
@@ -1527,7 +1527,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  focusContain(e: MouseEvent, inFavoriteArea: boolean, prevScrollY: number = 0,favoriteHeight: number): boolean {
+  focusContain(e: MouseEvent, inFavoriteArea: boolean, prevScrollY: number = 0, favoriteHeight: number): boolean {
     let _y = (e.currentTarget as HTMLElement).getBoundingClientRect().y;
     let myRect = this.getBoundingClientRect();
     let x = e.offsetX;

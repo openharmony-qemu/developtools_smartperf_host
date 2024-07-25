@@ -549,7 +549,7 @@ export class SpAbilityMonitorChart {
         context = bytesReadRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       bytesReadRow.canvasSave(context);
-      (renders['monitorDiskIo'] as DiskIoAbilityRender).renderMainThread(
+      (renders.monitorDiskIo as DiskIoAbilityRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
