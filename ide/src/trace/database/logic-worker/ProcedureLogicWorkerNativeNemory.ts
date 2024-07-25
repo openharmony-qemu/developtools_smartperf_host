@@ -905,7 +905,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       this.currentSamples = this.queryAllCallchainsSamples;
       return;
     }
-    this.useFreedSize = this.isStatisticMode && filterAllocType == '2';
+    this.useFreedSize = this.isStatisticMode && filterAllocType === '2';
     let filter = this.dataFilter(
       libTree,
       filterAnalysis,

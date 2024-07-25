@@ -28,7 +28,7 @@ export class FreqExtendRender extends Render {
       type: string;
     },
     row: TraceRow<CpuFreqExtendStruct>
-  ) {
+  ): void {
     let freqExtendList = row.dataList;
     let freqExtendFilter = row.dataListCache;
     dataFilterHandler(freqExtendList, freqExtendFilter, {
@@ -48,9 +48,9 @@ export class FreqExtendRender extends Render {
     if (SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key !== '' && SpSegmentationChart.tabHoverObj.key === freqReq.type) {
       // 鼠标不在tab页,清空高亮
       if (!SpSegmentationChart.trace.isMousePointInSheet) {
-        SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 }
+        SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
         CpuFreqExtendStruct.hoverStruct = undefined;
-        SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined
+        SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
         find = false;
       }
       // tab页点击周期对应泳道
@@ -58,14 +58,14 @@ export class FreqExtendRender extends Render {
         for (let re of freqExtendFilter) {
           if (!row.isHover && re.cycle === SpSegmentationChart.tabHoverObj.cycle) {
             CpuFreqExtendStruct.hoverStruct = re;
-            find = true
+            find = true;
           }
           CpuFreqExtendStruct.draw(freqReq.context, re, freqReq.type, row);
         }
         // dur太小，从datalist里面找
         if (!find) {
           let hoverData = freqExtendList.filter(v => {
-            return v.cycle === SpSegmentationChart.tabHoverObj.cycle
+            return v.cycle === SpSegmentationChart.tabHoverObj.cycle;
           })[0];
           let pointX: number = ns2x(
             hoverData.startNS || 0,
@@ -96,20 +96,22 @@ export class FreqExtendRender extends Render {
       // 鼠标悬浮色块
       for (let re of freqExtendFilter) {
         if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+          if (SpSegmentationChart.tabHoverObj) {
           // @ts-ignore
-          if (SpSegmentationChart.tabHoverObj) SpSegmentationChart.tabHoverObj = { key: freqReq.type, cycle: re.cycle };
+            SpSegmentationChart.tabHoverObj = { key: freqReq.type, cycle: re.cycle };
+          }
           CpuFreqExtendStruct.hoverStruct = re;
           find = true;
         }
         CpuFreqExtendStruct.draw(freqReq.context, re, freqReq.type, row);
       }
       // 取消点击周期
-      if ((row.isHover && !find) || (!row.isHover && SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key !== '' && freqReq.type === SpSegmentationChart.tabHoverObj.key)
-        || (SpSegmentationChart.trace.isMousePointInSheet && SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key === '')
+      if ((row.isHover && !find) || (!row.isHover && SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key !== '' && freqReq.type === SpSegmentationChart.tabHoverObj.key) ||
+        (SpSegmentationChart.trace.isMousePointInSheet && SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key === '')
       ) {
         CpuFreqExtendStruct.hoverStruct = undefined;
-        SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined
-        SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 }
+        SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
+        SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
       }
     }
     freqReq.context.closePath();
@@ -141,7 +143,7 @@ export class CpuFreqExtendStruct extends BaseStruct {
       index += 2;
       let color = ColorUtils.colorForTid(index);
       if (type === 'SCHED-SWITCH') {
-        color = '#3ced33'
+        color = '#3ced33';
       }
       freqContext.fillStyle = color;
       if (

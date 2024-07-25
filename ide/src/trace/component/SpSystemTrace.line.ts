@@ -740,7 +740,7 @@ function junkBinder(
         startOffSetY,
         'func',
         LineType.straightLine,
-        selectFuncStruct.startTs == ts
+        selectFuncStruct.startTs === ts
       ),
       sp.makePoint(
         ns2xByTimeShaft(findJankEntry.startTs!, sp.timerShaftEL!),

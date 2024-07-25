@@ -15,7 +15,7 @@
 
 import { getThreadPoolTraceBufferCacheKey } from './database/SqlLite';
 
-export enum TraceMode{
+export enum TraceMode {
   NORMAL,
   LONG_TRACE,
   DISTRIBUTED,
@@ -450,8 +450,8 @@ export function postLog(filename: string, fileSize: string): void {
     }),
   })
     .then((response) => response.json())
-    .then((data) => {})
-    .catch((error) => {});
+    .then((data) => { })
+    .catch((error) => { });
 }
 
 export function indexedDataToBufferData(sourceData: unknown): ArrayBuffer {

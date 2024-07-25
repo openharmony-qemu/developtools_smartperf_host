@@ -130,7 +130,7 @@ export class SpChartManager {
       appStartUpPids.forEach((it) => SpChartManager.APP_STARTUP_PID_ARR.push(it.pid));
     }
     await this.initTraceConfig(); //@ts-ignore
-    dict.map((d) => SpSystemTrace.DATA_DICT.set(d['id'], d['data']));
+    dict.map((d) => SpSystemTrace.DATA_DICT.set(d.id, d.data));
     await this.cacheDataDictToWorker();
     SpSystemTrace.DATA_TASK_POOL_CALLSTACK.clear();
     let taskPoolCallStack = await queryTaskPoolCallStack();
@@ -314,7 +314,7 @@ export class SpChartManager {
   async importSoFileUpdate(): Promise<void> {
     SpSystemTrace.DATA_DICT.clear();
     let dict = await queryDataDICT(); //@ts-ignore
-    dict.map((d) => SpSystemTrace.DATA_DICT.set(d['id'], d['data']));
+    dict.map((d) => SpSystemTrace.DATA_DICT.set(d.id, d.data));
     await this.cacheDataDictToWorker();
     await perfDataQuery.initPerfCache();
     await this.nativeMemory.initNativeMemory();

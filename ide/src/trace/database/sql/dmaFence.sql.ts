@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { query } from "../SqlLite";
+import { query } from '../SqlLite';
 import { DmaFenceDataBean } from '../../../trace/component/trace/sheet/dma-fence/DmaFenceBean';
 
 export const queryDmaFenceName = (): Promise<Array<{timeline:string}>> =>
@@ -20,7 +20,7 @@ export const queryDmaFenceName = (): Promise<Array<{timeline:string}>> =>
     'queryDmaFenceName',
     `SELECT DISTINCT timeline  
      FROM dma_fence;`
-  )
+  );
 export const queryDmaFenceIdAndCat = (): Promise<Array<{ id: number; cat: string; seqno: number;driver:string;context:string}>> =>
   query(
     'queryDmaFenceIdAndCat',
@@ -32,7 +32,7 @@ export const queryDmaFenceIdAndCat = (): Promise<Array<{ id: number; cat: string
        context 
      FROM
        dma_fence;`
-  )
+  );
 
 export const queryDmaFenceData = (leftNS: number, rightNS: number, nameList: String[]): Promise<Array<DmaFenceDataBean>> =>{
   const inClause = nameList.map(name => `'${name}'`).join(', ');
@@ -88,4 +88,4 @@ export const queryDmaFenceData = (leftNS: number, rightNS: number, nameList: Str
         ORDER BY
           s.new_ts;`
   return query('queryDmaFenceData', sql); 
-}
+};

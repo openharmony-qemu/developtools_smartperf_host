@@ -400,7 +400,7 @@ export const getTabSlicesAsyncCatFunc = (
   asyncCatPid: Array<number>,
   leftNS: number,
   rightNS: number
-): Promise<Array<any>> =>
+): Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabSlicesAsyncCatFunc',
     `

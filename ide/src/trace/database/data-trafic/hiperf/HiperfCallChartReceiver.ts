@@ -135,7 +135,7 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean, lo
       for (let i = 0; i < res.length; i++) {
         if (i < res.length - 1) {
           // @ts-ignore
-          res[i].dur = res[i + 1].startTs - res[i].startTs
+          res[i].dur = res[i + 1].startTs - res[i].startTs;
         } else {
           // @ts-ignore
           res[i].dur = data.params.endNS - data.params.startNS - res[i].startTs;
@@ -377,15 +377,8 @@ function combineChartData(samples: unknown, params: unknown): Array<unknown> {
             combineSample.push(sample);
           }
         } else {
-          // if (pre.cpuId === sample.cpuId && pre.endTime === sample.startTime) {
-          //   // @ts-ignore
-          //   combinePerfCallData(combineSample[combineSample.length - 1], sample);
-          // } else {
-          //   // @ts-ignore
-          //   combineSample.push(sample);
-          // }
           // @ts-ignore
-          combinePerfCallData(combineSample[combineSample.length - 1], sample)
+          combinePerfCallData(combineSample[combineSample.length - 1], sample);
         }
       }
     }

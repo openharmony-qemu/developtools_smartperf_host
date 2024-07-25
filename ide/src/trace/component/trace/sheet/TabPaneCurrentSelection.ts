@@ -365,7 +365,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     let FunDetailList: Array<FunDetail> = new Array();
     if (this.funcDetailMap.size === 0) {
       await caches.match('/funDetail').then((res) => {
-        return res ? res!.text() : '';
+        if (res) {
+          return res!.text();
+        }
       }).then((res) => {
         if (res) {
           let funcDetail = JSON.parse(res);
@@ -1897,7 +1899,9 @@ export class TabPaneCurrentSelection extends BaseElement {
   async queryThreadWakeUpFromData(itid: number, startTime: number, dur: number): Promise<WakeupBean | undefined> {
     let wakeUps = await queryThreadWakeUpFrom(itid, startTime + Utils.getInstance().getRecordStartNS());
     // @ts-ignore
-    return wakeUps !== undefined && wakeUps.length > 0 ? wakeUps[0] : [];
+    if (wakeUps !== undefined && wakeUps.length > 0) {
+      return wakeUps[0];
+    }
   }
 
   /**

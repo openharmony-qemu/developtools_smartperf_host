@@ -15,7 +15,7 @@
 import { query } from '../SqlLite';
 import { Smaps } from '../../bean/SmapsStruct';
 
-export const querySmapsExits = (): Promise<Array<any>> =>
+export const querySmapsExits = (): Promise<Array<unknown>> =>
   query(
     'querySmapsExits',
     `select
@@ -25,7 +25,7 @@ export const querySmapsExits = (): Promise<Array<any>> =>
       and s.stat_type ='received' and s.count > 0`
   );
 
-export const querySmapsData = (columnName: string): Promise<Array<any>> =>
+export const querySmapsData = (columnName: string): Promise<Array<unknown>> =>
   query(
     'querySmapsCounterData',
     `SELECT 
