@@ -23,16 +23,15 @@ export class SessionHandShake extends Object implements BaseBean {
   private _sessionId: number = 0; // uint32_t
   private _connectKey: string = ''; // string
   private _buf: string = ''; // string
-  private _version: string = 'Ver: 3.0.0b';
+  private _version: string = '';
 
-  constructor(banner: string, authType: number, sessionId: number, connectKey: string, buf: string, version: string) {
+  constructor(banner: string, authType: number, sessionId: number, connectKey: string, buf: string) {
     super();
     this._banner = banner;
     this._authType = authType;
     this._sessionId = sessionId;
     this._connectKey = connectKey;
     this._buf = buf;
-    this._version = version;
   }
 
   getDataView(): DataView {

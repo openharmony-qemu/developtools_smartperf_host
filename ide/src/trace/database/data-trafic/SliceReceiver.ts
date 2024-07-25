@@ -71,7 +71,7 @@ export function sliceReceiver(data: unknown, proc: Function): void {
         // @ts-ignore
         let val = processRowSortMap.get(slice.pid);
         // @ts-ignore
-        processRowSortMap.set(slice.pid, val + slice.dur);
+        processRowSortMap.set(slice.pid, val + slice.dur)
       }
     }// @ts-ignore
     if (slice.cpu !== null && slice.cpu !== undefined) {
@@ -116,12 +116,12 @@ export function sliceReceiver(data: unknown, proc: Function): void {
         // @ts-ignore
         if (!threadMap.has(key)) {
           // @ts-ignore
-          threadMap.set(key, slice.dur);
+          threadMap.set(key, slice.dur)
         } else {
           // @ts-ignore
           let val = threadMap.get(key);
           // @ts-ignore
-          threadMap.set(key, val + slice.dur);
+          threadMap.set(key, val + slice.dur)
         }
       }
     }
@@ -160,12 +160,11 @@ export function sliceReceiver(data: unknown, proc: Function): void {
   postMsg(data, { count, threadMap, processRowSortMap, cpuUtiliRateArray });
 }
 
-function getCpuUtiliRate(cpulist: Map<number, Array<unknown>>, args: Args): Array<unknown> {
+function getCpuUtiliRate(cpulist: Map<number, Array<unknown>>, args: Args): Array<any> {
   // cpu进行排序  
   let cpuListArray = Array.from(cpulist.entries());
-  //@ts-ignore
-  cpuListArray.sort((a: unknown, b: unknown) => parseInt(a[0]) - parseInt(b[0]));
-  let cpuListMap = new Map(cpuListArray);  
+  cpuListArray.sort((a: any, b: any) => parseInt(a[0]) - parseInt(b[0]));
+  let cpuListMap = new Map(cpuListArray);
   let cpuUtiliRateArray = new Array();
   let cell = Math.floor((args.recordEndNS - args.recordStartNS) / 100);//分成100个格子，cell每个格子的持续时间
   for (const [cpu, list] of cpuListMap.entries()) {

@@ -65,7 +65,7 @@ function addPointHandle(
   sourceThreadRow: TraceRow<BaseStruct>,
   targetData: FuncStruct,
   targetThreadRow: TraceRow<BaseStruct>,
-  lineType?: string
+  lineType?:string
 ): void {
   let sourceParentRow: TraceRow<BaseStruct> | null | undefined;
   let targetParentRow: TraceRow<BaseStruct> | null | undefined;
@@ -96,7 +96,7 @@ function addPointHandle(
   if (startPoint && endPoint) {
     startPoint.lineType = endPoint.lineType = LineType.brokenLine;
     startPoint.lineColor = endPoint.lineColor = '#ff0000';
-    sp.addPointPair(startPoint, endPoint, lineType);
+    sp.addPointPair(startPoint, endPoint,lineType);
   }
 }
 
@@ -449,7 +449,7 @@ export function spSystemTraceDrawDistributedLine(
       }
     }
   }
-  addPointHandle(sp, sourceData, sourceThreadRow, targetData, targetThreadRow, 'distributedLine');
+  addPointHandle(sp, sourceData, sourceThreadRow, targetData, targetThreadRow,'distributedLine');
 }
 
 function taskPoolOtherRelationData(
@@ -689,7 +689,7 @@ function jankPoint(
   let ts: number = 0;
   if (findJankEntry) {
     ts = selectThreadStruct.startTime! + selectThreadStruct.dur! / 2;
-    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectThreadStruct.pid);
+    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow,selectThreadStruct.pid);
     const [endY, endRowEl, endOffSetY] = sp.calculateEndY(endParentRow, endRowStruct);
     sp.addPointPair(
       sp.makePoint(
@@ -717,19 +717,18 @@ function jankPoint(
 }
 
 function junkBinder(
-  endRowStruct: unknown,
+  endRowStruct: any,
   selectFuncStruct: FuncStruct,
-  startRow: unknown,
-  endParentRow: unknown,
+  startRow: any,
+  endParentRow: any,
   sp: SpSystemTrace,
-  data: unknown
-): void {
-  // @ts-ignore
+  data: any
+) {
   let findJankEntry = endRowStruct!.fixedList[0];
   let ts: number = 0;
   if (findJankEntry) {
     ts = selectFuncStruct.startTs! + selectFuncStruct.dur! / 2;
-    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectFuncStruct.pid, selectFuncStruct);
+    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectFuncStruct.pid,selectFuncStruct);
     const [endY, endRowEl, endOffSetY] = sp.calculateEndY(endParentRow, endRowStruct, data);
     sp.addPointPair(
       sp.makePoint(
@@ -740,7 +739,7 @@ function junkBinder(
         startOffSetY,
         'func',
         LineType.straightLine,
-        selectFuncStruct.startTs === ts
+        selectFuncStruct.startTs == ts
       ),
       sp.makePoint(
         ns2xByTimeShaft(findJankEntry.startTs!, sp.timerShaftEL!),
@@ -794,41 +793,38 @@ export function spSystemTraceDrawThreadLine(
 
 export function spSystemTraceDrawFuncLine(
   sp: SpSystemTrace,
-  endParentRow: unknown,
+  endParentRow: any,
   selectFuncStruct: FuncStruct | undefined,
-  data: unknown,
-  binderTid: Number
+  data: any,
+  binderTid:Number
 ): void {
   let collectList = sp.favoriteChartListEL!.getCollectRows();
-  if (selectFuncStruct === undefined || selectFuncStruct === null) {
+  if(selectFuncStruct === undefined || selectFuncStruct === null){
     return;
   }
-  let selectRowId = selectFuncStruct?.tid ? selectFuncStruct?.tid : binderTid.toString();
-  let startRow = sp.shadowRoot?.querySelector<TraceRow<FuncStruct>>(`trace-row[row-id='${selectRowId}'][row-type='func']`);
+  let selectRowId = selectFuncStruct?.tid?selectFuncStruct?.tid:binderTid.toString();
+  let startRow =  sp.shadowRoot?.querySelector<TraceRow<FuncStruct>>(`trace-row[row-id='${selectRowId}'][row-type='func']`)
+  // let startRow = sp.getStartRow(selectRowId, collectList);
   if (!startRow) {
     for (let collectChart of collectList) {
       if (collectChart.rowId === selectRowId.toString() && collectChart.rowType === 'func') {
-        startRow = collectChart as TraceRow<FuncStruct>;
+        startRow = collectChart  as TraceRow<FuncStruct>;
         break;
       }
     }
   }
   if (endParentRow) {
-    // @ts-ignore
     endParentRow.expansion = true;
-    let endRowStruct: unknown = sp.shadowRoot?.querySelector<TraceRow<FuncStruct>>(
-      // @ts-ignore
+    let endRowStruct: any = sp.shadowRoot?.querySelector<TraceRow<FuncStruct>>(
       `trace-row[row-id='${data.tid}'][row-type='func']`
     );
     if (!endRowStruct) {
-      // @ts-ignore
       endRowStruct = endParentRow.childrenList.find((item: TraceRow<FuncStruct>) => {
-        // @ts-ignore
         return item.rowId === `${data.tid}` && item.rowType === 'func';
       });
     }
     if (endRowStruct) {
-      junkBinder(endRowStruct, selectFuncStruct, startRow, endParentRow, sp, data);
+        junkBinder(endRowStruct, selectFuncStruct, startRow, endParentRow, sp, data);
     }
   }
 }

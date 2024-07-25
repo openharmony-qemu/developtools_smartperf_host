@@ -37,7 +37,7 @@ export class TabPaneGpuCounterSelection extends BaseElement {
     this.getCounterData(gpuCounterValue).then();
   }
 
-  async getCounterData(gpuCounterValue: SelectionParam): Promise<void> {
+  async getCounterData(gpuCounterValue: SelectionParam) {
     let collect = gpuCounterValue.gpuCounter;
     let dataSource: Array<GpuCounter> = [];
     collect.forEach((it) => {
@@ -111,7 +111,7 @@ export class TabPaneGpuCounterSelection extends BaseElement {
     });
   }
 
-  connectedCallback(): void {
+  connectedCallback() {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.gpuCounterCounterTbl!);
   }

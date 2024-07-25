@@ -431,7 +431,7 @@ export class SpLtpoChart {
           ltpoDataIndex++;
           tempRsNowTimeIndex++;
         }
-      } else {
+      }else{
         break;
       }
     }
@@ -555,7 +555,7 @@ export class SpLtpoChart {
           }
 
           let mathValue = (tmpDur * Number(SpLtpoChart.sendHitchDataArr[i].fps)) / 1000 - 1;
-          let finalValue = (tmpVale! / (1000 / SpLtpoChart.sendHitchDataArr[i].fps!)) < 0.7 ? 0 : tmpVale;
+          let finalValue = (tmpVale! /(1000 / SpLtpoChart.sendHitchDataArr[i].fps!)) < 0.7 ? 0 : tmpVale;
           SpLtpoChart.sendHitchDataArr[i].value = Number(finalValue.toFixed(1));
           SpLtpoChart.sendHitchDataArr[i].name = this.specialValue(mathValue)!.toString();
         }

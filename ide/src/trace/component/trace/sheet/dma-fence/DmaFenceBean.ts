@@ -22,7 +22,7 @@ export class DmaFenceDataBean {
     seqno: number = 0;
     startTime: number = 0;
     timeline: string = '';
-    status: boolean = false;
+    status: boolean = false
 }
 
 export class DmaFenceTreeBean {

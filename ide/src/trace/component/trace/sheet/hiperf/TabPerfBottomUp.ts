@@ -61,7 +61,7 @@ export class TabpanePerfBottomUp extends BaseElement {
     });
     this.bottomUpFilter?.addEventListener('focus', () => {
       spSystemTrace.focusTarget = 'bottomUpInput';
-    });
+    })
     this.bottomUpFilter?.addEventListener('blur', () => {
       spSystemTrace.focusTarget = '';
     });

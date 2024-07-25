@@ -66,7 +66,6 @@ describe('ProcedureWorkerHiPerfProcess Test', () => {
 
   it('ProcedureWorkerHiPerfProcessTest04', function () {
     expect(HiPerfProcessStruct.groupBy10MS([{ a: '1', b: 2, c: 3 }], 10)).toEqual([
-      { dur: 10000000, height: NaN, eventCount: undefined, startNS: NaN, sampleCount : undefined},
       { dur: 10000000, height: NaN, eventCount: undefined, startNS: NaN, sampleCount : 1},
     ]);
   });

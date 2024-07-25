@@ -108,18 +108,12 @@ margin-left: 15px;
 :host([fileSystem]) .popover .tree-check:nth-child(5){
   display: none;
 }
-:host([fileSystem]) .popover .tree-check:nth-child(6){
-    display: none;
-  }
 :host([nativeMemory]) .popover .tree-check:nth-child(3){
   display:none;
 }
 :host([nativeMemory]) .popover .tree-check:nth-child(5){
   display:none;
 }
-:host([nativeMemory]) .popover .tree-check:nth-child(6){
-    display:none;
-  }
 :host([isStatisticsMemory]) .popover .tree-check:nth-child(4){
   display:none;
 }
@@ -427,7 +421,7 @@ margin-left: 15px;
     <lit-icon name="swap" class="spacing" size="16"></lit-icon>
     <div style="margin-left: 5px" class="describe statistics-name">Statistics by Thread</div>
 </div>
-`;
+`
 export const TabPaneFilterHtml = (input: string): string => {
   return replacePlaceholders(html, input);
 }

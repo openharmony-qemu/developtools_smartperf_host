@@ -126,6 +126,11 @@ describe('TimerShaftElement Test', () => {
   it('TimerShaftElementTest19', function () {
     expect(timerShaftElement.sportRuler).not.toBeUndefined();
   });
+
+  it('TimerShaftElementTest20', function () {
+    expect(timerShaftElement.isScaling()).toBeFalsy();
+  });
+
   it('TimerShaftElementTest21', function () {
     timerShaftElement.rangeRuler.setRangeNS = jest.fn(() => true);
     expect(timerShaftElement.setRangeNS()).toBeFalsy();

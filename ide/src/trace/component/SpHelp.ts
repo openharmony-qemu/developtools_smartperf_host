@@ -90,9 +90,9 @@ export class SpHelp extends BaseElement {
       let helpDocIndex = urlParams.get('action')!.substring(5);
       let helpDocDetail = this.getEventDefinitionByIndex(Number(helpDocIndex));
       that.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${helpDocDetail!.name}.html?${that.dark
-        }' width="100%" height="100%"></object>`;
+      }' width="100%" height="100%"></object>`;
 
-      this.navbarInit(helpDocDetail!.name);
+    this.navbarInit(helpDocDetail!.name);
     }
   }
 
@@ -272,19 +272,15 @@ export class SpHelp extends BaseElement {
       .then(response => response.text())
       .then(htmlString => {
         const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlString, 'text/html');
+        const doc = parser.parseFromString(htmlString, "text/html");
 
         const hTags = Array.from(doc.body.querySelectorAll('h1, h2, h3, h4, h5, h6')).map((header) => ({
           id: header.id,
           text: header.textContent!.trim()
         }));
         this.navbarContainer!.innerHTML = `<ul id="nav-links">${hTags.map(hTag => {
-          let backData = '';
-          if (hTag.id) {
-            backData = `<li class="tooltip"><a id="${hTag.id}" data-full-text="${hTag.text}">${hTag.text}</a><span class="tooltiptext" id="tooltip-${hTag.id}">${hTag.text}</span>
-          </li>`
-          }
-          return backData;
+          if (hTag.id) return `<li class="tooltip"><a id="${hTag.id}" data-full-text="${hTag.text}">${hTag.text}</a><span class="tooltiptext" id="tooltip-${hTag.id}">${hTag.text}</span>
+          </li>`;
         }).join('')
           }</ul>`;
 
@@ -297,16 +293,16 @@ export class SpHelp extends BaseElement {
             let targetId = navLink.id;
             e.preventDefault();
             this.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?dark=${this.dark}&targetId=${targetId}' width="100%" height="100%"></object>`;
-          });
+          })
+        })
+        
+        this.backToTop!.querySelector('#back-to-top')!.addEventListener('click', (e)=> { 
+          e.preventDefault(); 
+          navLinks.forEach((navLink) => {  
+            navLink.closest('li')?.classList.remove('active');  
         });
-
-        this.backToTop!.querySelector('#back-to-top')!.addEventListener('click', (e) => {
-          e.preventDefault();
-          navLinks.forEach((navLink) => {
-            navLink.closest('li')?.classList.remove('active');
-          });
           this.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?dark=${this.dark}' width="100%" height="100%"></object>`;
-        });
+      });
 
       })
       .catch(error => {

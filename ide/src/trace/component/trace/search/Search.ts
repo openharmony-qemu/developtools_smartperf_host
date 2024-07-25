@@ -23,7 +23,7 @@ import { Utils } from '../base/Utils';
 import { SpSystemTrace } from '../../SpSystemTrace';
 
 const LOCAL_STORAGE_SEARCH_KEY = 'search_key';
-let timerId: unknown = null;
+let timerId: any = null;
 @element('lit-search')
 export class LitSearch extends BaseElement {
   valueChangeHandler: ((str: string) => void) | undefined | null;
@@ -44,6 +44,7 @@ export class LitSearch extends BaseElement {
   private _retarge_index: HTMLInputElement | null | undefined;
   private traceSelector: LitSelect | null | undefined;
   public currenSearchValue: string | undefined | null;
+  private _isSearchInputFocus: boolean = false;
 
   get list(): Array<unknown> {
     return this._list;
@@ -100,6 +101,14 @@ export class LitSearch extends BaseElement {
 
   get isClearValue(): boolean {
     return this._value;
+  }
+
+  set isSearchInputFocus(value: boolean) {
+    this._isSearchInputFocus = value;
+  }
+
+  get isSearchInputFocus(): boolean {
+    return this._isSearchInputFocus;
   }
 
   setPercent(name: string = '', value: number): void {
@@ -192,6 +201,13 @@ export class LitSearch extends BaseElement {
   }
 
   private searchBlurListener(): void {
+    this.dispatchEvent(
+      new CustomEvent('blur', {
+        detail: {
+          value: this.search!.value,
+        },
+      })
+    );
     setTimeout((): void => {
       this.hideSearchHistoryList();
     }, 200);
@@ -200,6 +216,7 @@ export class LitSearch extends BaseElement {
   private searchKeyupListener(e: KeyboardEvent): void {
     timerId = null;
     if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+      this.isSearchInputFocus = true;
       this.updateSearchList(this.search!.value);
       if (e.shiftKey) {
         this.dispatchEvent(
@@ -247,17 +264,10 @@ export class LitSearch extends BaseElement {
     this.search!.addEventListener('keyup', (e: KeyboardEvent) => {
       SpSystemTrace.isKeyUp = true;
       this._retarge_index!.value = '';
+      if(this.search?.value !== this.currenSearchValue) {
+        this.index = 0;
+      }
       this.searchKeyupListener(e);
-    });
-    //阻止事件冒泡
-    this.search!.addEventListener('keydown', (e: KeyboardEvent) => {
-      SpSystemTrace.isKeyUp = false;
-      e.stopPropagation();
-    });
-
-    this.search!.addEventListener('keypress', (e: KeyboardEvent) => {
-      SpSystemTrace.isKeyUp = false;
-      e.stopPropagation();
     });
     this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (): void => {
       this.dispatchEvent(
@@ -278,14 +288,17 @@ export class LitSearch extends BaseElement {
       );
     });
     this.keyUpListener();
-    //阻止事件冒泡
-    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: any) => {
-      SpSystemTrace.isKeyUp = false;
-      e.stopPropagation();
+    this._retarge_index!.addEventListener('focus', () => {
+      this.dispatchEvent(
+        new CustomEvent('focus', {})
+      );
     });
-    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keypress', (e: any) => {
-      SpSystemTrace.isKeyUp = false;
-      e.stopPropagation();
+    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: unknown): void => {
+      // @ts-ignore
+      if (e.keyCode === 13) {
+        // @ts-ignore
+        e.stopPropagation();
+      }
     });
   }
 
@@ -294,7 +307,7 @@ export class LitSearch extends BaseElement {
     let selectorBody = this.traceSelector?.shadowRoot!.querySelector<HTMLDivElement>('.body');
     if (selectorBody) {
       selectorBody.style.width = '200px';
-      selectorBody.style.overflow = 'hidden';
+      selectorBody.style.overflow= 'hidden';
     }
     this.traceSelector?.addEventListener('change', (): void => {
       if (Utils.currentSelectTrace !== this.traceSelector!.value) {
@@ -387,7 +400,7 @@ export class LitSearch extends BaseElement {
           this.valueChangeHandler?.(this.search!.value);
           if (flag !== searchInfoOption.textContent) {
             this._retarge_index!.value = '';
-            this.index = -1;
+            this.index = 0;
           }
         }
       });

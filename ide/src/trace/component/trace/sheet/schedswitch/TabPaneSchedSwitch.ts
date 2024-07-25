@@ -117,16 +117,6 @@ export class TabPaneSchedSwitch extends BaseElement {
     this.queryButton!.addEventListener('click', (e) => {
       this.queryCycleRangeData();
     });
-    this.threadIdInput!.addEventListener('keyup', (ev) => {
-      if(ev.key.toLocaleLowerCase() === String.fromCharCode(47)){
-        ev.stopPropagation();
-      }
-    });
-    this.funcNameInput!.addEventListener('keyup', (ev) => {
-      if(ev.key.toLocaleLowerCase() === String.fromCharCode(47)){
-        ev.stopPropagation();
-      }
-    });
     this.schedSwitchTbl!.addEventListener('row-click', (evt) => {
       this.clickTreeRowEvent(evt);
     });

@@ -1170,7 +1170,7 @@ export class LitTable extends HTMLElement {
     if (column.template) {
       if (
         // @ts-ignore
-        (dataIndex === 'color' && rowData.data.color === undefined) || // @ts-ignore
+        (dataIndex === 'color' && rowData.data.colorEl === undefined) || // @ts-ignore
         (dataIndex === 'text' && rowData.data.text === undefined)
       ) {
         // @ts-ignore

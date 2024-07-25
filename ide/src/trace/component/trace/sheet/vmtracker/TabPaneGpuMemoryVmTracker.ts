@@ -142,7 +142,7 @@ export class TabPaneGpuMemoryVmTracker extends BaseElement {
     <lit-table id="damTable" class="damTable">
         <lit-table-column order title="GpuName" data-index="gpuName" key="gpuName" align="flex-start" width="1fr" >
         </lit-table-column>
-        <lit-table-column order title="Thread(tid)" data-index="thread" key="thread" align="flex-start" width="1fr" >
+        <lit-table-column order title="Thread" data-index="thread" key="thread" align="flex-start" width="1fr" >
         </lit-table-column>
         <lit-table-column order title="AvgSize" data-index="avgSizes" key="avgSize" align="flex-start" width="1fr" >
         </lit-table-column>5

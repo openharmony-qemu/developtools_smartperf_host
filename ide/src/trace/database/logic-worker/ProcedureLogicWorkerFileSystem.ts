@@ -985,12 +985,13 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
       currentNode.symbol = currentNode.ip;
       currentNode.symbol = currentNode.symbol;
       currentNode.lib = '';
-      currentNode.path = '';
+      currentNode.lib = '';
     } else {
       const dataCache = DataCache.getInstance();
       currentNode.symbol = dataCache.dataDict?.get(currentNode.symbolsId) || currentNode.ip || 'unknown';
-      currentNode.path = dataCache.dataDict?.get(currentNode.pathId) || 'unknown';
-      currentNode.lib = setFileName(currentNode.path);
+      currentNode.lib = dataCache.dataDict?.get(currentNode.pathId) || 'unknown';
+      currentNode.lib = setFileName(currentNode.lib);
+      currentNode.lib = currentNode.lib;
       currentNode.addr = currentNode.ip;
       currentNode.symbol = `${currentNode.symbol} (${currentNode.lib})`;
     }

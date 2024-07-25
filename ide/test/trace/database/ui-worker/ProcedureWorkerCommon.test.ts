@@ -25,13 +25,17 @@ import {
   fillCacheData,
   findRange,
   dataFilterHandler,
+  drawFlagLineSegment,
+  drawSelectionRange,
   drawLinkLines,
+  drawString2Line,
   drawWakeUpList,
   // @ts-ignore
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
+import { Flag } from '../../../../src/trace/database/ui-worker/ProcedureWorkerTimeline';
 import { ColorUtils } from '../../../../src/trace/component/trace/base/ColorUtils';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import { EventCenter } from '../../../../src/trace/component/trace/base/EventCenter';
-import { Flag } from '../../../../src/trace/component/trace/timer-shaft/Flag';
 
 declare global {
   interface Window {
@@ -365,6 +369,13 @@ describe('ProcedureWorkerCommon Test', () => {
       getBoundingClientRect: jest.fn(() => true),
     };
     expect(drawLinkLines(context, [], tm, true)).toBeUndefined();
+  });
+  it('ProcedureWorkerCommon38', function () {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext('2d');
+    expect(drawString2Line(context, [], [], 2, [], [])).toBeUndefined();
   });
   it('ProcedureWorkerCommon39', function () {
     const canvas = document.createElement('canvas');

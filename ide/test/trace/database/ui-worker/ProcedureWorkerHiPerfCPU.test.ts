@@ -56,8 +56,7 @@ describe('ProcedureWorkerHiPerfCPU Test', () => {
 
   it('ProcedureWorkerHiPerfCPUTest05', function () {
     expect(HiPerfCpuStruct.groupBy10MS([{ id: 1, NS: 3 }, { copy: '1' }], 10, '')).toEqual([
-      { dur: 10000000, height: NaN, eventCount: undefined ,startNS: NaN ,sampleCount: undefined },
-      { dur: 10000000, height: NaN, eventCount: NaN ,startNS: NaN ,sampleCount: 2 }
+      { dur: 10000000, height: NaN, eventCount: NaN ,startNS: NaN ,sampleCount: 2},
     ]);
   });
   it('ProcedureWorkerHiPerfCPUTest06', function () {

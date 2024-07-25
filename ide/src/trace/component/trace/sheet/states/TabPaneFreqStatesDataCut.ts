@@ -166,7 +166,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
               stateItem.chartDur = stateItem.dur;
               // @ts-ignore 周期第一条数据开始时间设置为周期开始时间
               if (stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts < this.funcNameCycleArr[i].cycleStartTime) {
-                stateItem.dur = stateItem.ts + stateItem.dur! - this.funcNameCycleArr![i].cycleStartTime;
+                stateItem.dur = stateItem.ts + stateItem.dur! - this.funcNameCycleArr![i].cycleStartTime
                 stateItem.ts = this.funcNameCycleArr![i].cycleStartTime;
               }
               this.filterState!.push(stateItem);
@@ -238,7 +238,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
               stateItem.chartDur = stateItem.dur;
               // @ts-ignore 周期第一条数据开始时间设置为周期开始时间
               if (stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts < this.funcNameCycleArr[i].cycleStartTime) {
-                stateItem.dur = stateItem.ts + stateItem.dur! - this.funcNameCycleArr![i].cycleStartTime;
+                stateItem.dur = stateItem.ts + stateItem.dur! - this.funcNameCycleArr![i].cycleStartTime
                 stateItem.ts = this.funcNameCycleArr![i].cycleStartTime;
               }
               this.filterState!.push(stateItem);
@@ -273,13 +273,13 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       if (filterItem.pid === processId) {
         processArr.push(filterItem);
         filterObj.totalCount! += 1;
-        filterItem.state === 'R'
-          ? (filterObj.RunnableCount += 1, filterObj.RunnableDur += filterItem.dur!)
-          : filterItem.state === 'Running'
-            ? (filterObj.RunningCount += 1, filterObj.RunningDur += filterItem.dur!)
-            : filterItem.state === 'D'
-              ? (filterObj.DCount += 1, filterObj.DDur += filterItem.dur!)
-              : (filterObj.SleepingCount += 1, filterObj.SleepingDur += filterItem.dur!);
+        filterItem.state === 'R' 
+        ? (filterObj.RunnableCount += 1, filterObj.RunnableDur += filterItem.dur!) 
+        : filterItem.state === 'Running'
+          ? (filterObj.RunningCount += 1, filterObj.RunningDur += filterItem.dur!) 
+          : filterItem.state === 'D'
+            ? (filterObj.DCount += 1, filterObj.DDur += filterItem.dur!) 
+            : (filterObj.SleepingCount += 1, filterObj.SleepingDur += filterItem.dur!)
         filterObj.title = (Utils.getInstance().getProcessMap().get(processId) || 'Process') + processId;
         filterObj.pid = processId;
         filterObj.type = 'process';
@@ -288,15 +288,15 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
       }
     });
     // @ts-ignore
-    filterObj.RunningDur = this.formatNumber(filterObj.RunningDur / 1000000);
+    filterObj.RunningDur = this.formatNumber(filterObj.RunningDur/1000000);
     // @ts-ignore
-    filterObj.RunnableDur = this.formatNumber(filterObj.RunnableDur / 1000000);
+    filterObj.RunnableDur = this.formatNumber(filterObj.RunnableDur/1000000);
     // @ts-ignore
-    filterObj.DDur = this.formatNumber(filterObj.DDur / 1000000);
+    filterObj.DDur = this.formatNumber(filterObj.DDur/1000000);
     // @ts-ignore
-    filterObj.SleepingDur = this.formatNumber(filterObj.SleepingDur / 1000000);
+    filterObj.SleepingDur = this.formatNumber(filterObj.SleepingDur/1000000);
     // @ts-ignore
-    filterObj.cycleDur = this.formatNumber(filterObj.cycleDur! / 1000000);
+    filterObj.cycleDur = this.formatNumber(filterObj.cycleDur!/1000000);
     if (processArr.length > 0) {
       filterObj.children = this.setThreadData(processArr);
     }
@@ -304,7 +304,7 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
   }
 
   // 是0为0，非0保留三位小数
-  formatNumber(num: number): string | 0 {
+  formatNumber(num: number) {
     return num === 0 ? 0 : num.toFixed(3);
   }
 
@@ -336,20 +336,20 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
               : threadItem.state === 'S'
                 ? ((threadArr[i].SleepingCount += 1), (threadArr[i].SleepingDur += threadItem.dur!))
                 : ((threadArr[i].DCount += 1), (threadArr[i].DDur += threadItem.dur!));
-          // @ts-ignore
-          threadArr[i].cycleDur! += threadItem.dur!;
+        // @ts-ignore
+        threadArr[i].cycleDur! += threadItem.dur!
         }
       });
       // @ts-ignore
-      threadArr[i].SleepingDur = this.formatNumber(threadArr[i].SleepingDur / 1000000);
+      threadArr[i].SleepingDur = this.formatNumber(threadArr[i].SleepingDur/1000000);
       // @ts-ignore
-      threadArr[i].RunnableDur = this.formatNumber(threadArr[i].RunnableDur / 1000000);
+      threadArr[i].RunnableDur = this.formatNumber(threadArr[i].RunnableDur/1000000);
       // @ts-ignore
-      threadArr[i].RunningDur = this.formatNumber(threadArr[i].RunningDur / 1000000);
+      threadArr[i].RunningDur = this.formatNumber(threadArr[i].RunningDur/1000000);
       // @ts-ignore
-      threadArr[i].DDur = this.formatNumber(threadArr[i].DDur / 1000000);
+      threadArr[i].DDur = this.formatNumber(threadArr[i].DDur/1000000);
       // @ts-ignore
-      threadArr[i].cycleDur = this.formatNumber(threadArr[i].cycleDur / 1000000);
+      threadArr[i].cycleDur = this.formatNumber(threadArr[i].cycleDur/1000000);
       if (threadList.length > 0) {
         threadArr[i].children = this.setCycleData(threadList);
       }
@@ -386,14 +386,14 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
           }
         });
         // @ts-ignore
-        cycleItem.SleepingDur = this.formatNumber(cycleItem.SleepingDur / 1000000);
+        cycleItem.SleepingDur = this.formatNumber(cycleItem.SleepingDur/1000000);
         // @ts-ignore
-        cycleItem.RunningDur = this.formatNumber(cycleItem.RunningDur / 1000000);
+        cycleItem.RunningDur = this.formatNumber(cycleItem.RunningDur/1000000);
         // @ts-ignore
-        cycleItem.RunnableDur = this.formatNumber(cycleItem.RunnableDur / 1000000);
+        cycleItem.RunnableDur = this.formatNumber(cycleItem.RunnableDur/1000000);
         // @ts-ignore
-        cycleItem.DDur = this.formatNumber(cycleItem.DDur / 1000000);
-        cycleItem.cycleDur! = this.formatNumber((this.funcNameCycleArr[i].endTime - this.funcNameCycleArr[i].cycleStartTime) / 1000000);
+        cycleItem.DDur = this.formatNumber(cycleItem.DDur/1000000);
+        cycleItem.cycleDur! = this.formatNumber((this.funcNameCycleArr[i].endTime - this.funcNameCycleArr[i].cycleStartTime)/1000000);
         cycleItem.type = 'cycle';
         cycleArr.push(cycleItem);
       }

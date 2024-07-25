@@ -21,7 +21,7 @@ import {
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import { SpSystemTrace } from '../../component/SpSystemTrace';
+import { SpSystemTrace } from "../../component/SpSystemTrace";
 
 export class GpuCounterRender extends PerfRender {
   renderMainThread(
@@ -52,7 +52,7 @@ export class GpuCounterRender extends PerfRender {
     drawGpuCounter(req, filter, row);
   }
 
-  render(eBPFRequest: RequestMessage, list: Array<unknown>, filter: Array<unknown>, dataList2: Array<unknown>): void { }
+  render(eBPFRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void {}
 }
 
 function drawGpuCounter(
@@ -63,36 +63,29 @@ function drawGpuCounter(
     startTime: number,
     maxValue: number,
   },
-  filter: unknown[],
+  filter: any[],
   row: TraceRow<GpuCounterStruct>
-): void {
+) {
   req.context.beginPath();
   let find = false;
   for (let i = 0; i < filter.length; i++) {
     let it = filter[i];
     if (
-      //@ts-ignore
-      row.isHover && it.frame &&
-      //@ts-ignore
+      row.isHover && it.frame && 
       row.hoverX >= it.frame.x &&
-      //@ts-ignore
       row.hoverX <= it.frame.x + it.frame.width
     ) {
-      //@ts-ignore
       GpuCounterStruct.hoverGpuCounterStruct = it;
       find = true;
     }
-    //@ts-ignore
     GpuCounterStruct.draw(req.context, it);
   }
-  if (!find && row.isHover) {
-    GpuCounterStruct.hoverGpuCounterStruct = undefined;
-  }
+  if (!find && row.isHover) GpuCounterStruct.hoverGpuCounterStruct = undefined;
   req.context.closePath();
 }
 
 export function gpuCounterChart(
-  dataList: Array<unknown>,
+  dataList: Array<any>,
   startTime: number,
   type: string,
   startNS: number,
@@ -105,29 +98,21 @@ export function gpuCounterChart(
   setFrameGroup(dataList, startTime, type, startNS, endNS, frame, maxValue);
 }
 
-function setFrameGroup(dataList: Array<unknown>, startTime: number, type: string, startNS: number, endNS: number, frame: Rect, maxValue: number): void {
+function setFrameGroup(dataList: Array<any>, startTime: number, type: string, startNS: number, endNS: number, frame: Rect, maxValue: number) {
   let pns = (endNS - startNS) / frame.width;
   let y = frame.y;
   for (let i = 0; i < dataList.length; i++) {
     let it = dataList[i];
-    //@ts-ignore
     if ((it.startNS || 0) + (it.dur || 0) - startTime > startNS && (it.startNS || 0) - startTime < endNS) {
-      //@ts-ignore
       if (!it.frame) {
-        //@ts-ignore
         it.frame = {};
-        //@ts-ignore
         it.frame.y = y;
       }
-      //@ts-ignore
       it.frame.height = Math.ceil((it.height / maxValue) * 38) || 1;
-      //@ts-ignore
       it.startTime = startTime;
-      //@ts-ignore
       it.type = type;
       GpuCounterStruct.setFrame(it, startTime, pns, startNS, endNS, frame);
     } else {
-      //@ts-ignore
       it.frame = null;
     }
   }
@@ -173,63 +158,55 @@ export class GpuCounterStruct extends BaseStruct {
   }
 
   static setFrame(
-    eBPFtemNode: unknown,
+    eBPFtemNode: any,
     startTime: number,
     pns: number,
     startNS: number,
     endNS: number,
     frame: any
   ): void {
-    //@ts-ignore
     if ((eBPFtemNode.startNS - startTime || 0) < startNS) {
-      //@ts-ignore
       eBPFtemNode.frame.x = 0;
     } else {
-      //@ts-ignore
       eBPFtemNode.frame.x = Math.floor((((eBPFtemNode.startNS - startTime) || 0) - startNS) / pns);
     }
-    //@ts-ignore
     if ((eBPFtemNode.startNS || 0) + (eBPFtemNode.dur || 0) - startTime > endNS) {
-      //@ts-ignore
       eBPFtemNode.frame.width = frame.width - eBPFtemNode.frame.x;
     } else {
-      //@ts-ignore
       eBPFtemNode.frame.width = Math.ceil(((eBPFtemNode.startNS + eBPFtemNode.dur - startTime) - startNS) / pns - eBPFtemNode.frame.x);
     }
-    //@ts-ignore
     if (eBPFtemNode.frame.width < 1) {
-      //@ts-ignore
       eBPFtemNode.frame.width = 1;
     }
   }
 }
 
-export class Maleoon_counter_obj {
-  [key: string]: Array<unknown>;
-  gpu_clocks: Array<unknown>;
-  tiler_utilization: Array<unknown>;
-  binning_utilization: Array<unknown>;
-  rendering_utilization: Array<unknown>;
-  compute_utilization: Array<unknown>;
-  drawcall_count: Array<unknown>;
-  vertex_count: Array<unknown>;
-  primitives_count: Array<unknown>;
-  visible_primitives_count: Array<unknown>;
-  compute_invocations_count: Array<unknown>;
-  shader_utilization: Array<unknown>;
-  eu_utilization: Array<unknown>;
-  eu_stall_utilization: Array<unknown>;
-  eu_idle_utilization: Array<unknown>;
-  control_flow_instr_utilization: Array<unknown>;
-  half_float_instr_utilization: Array<unknown>;
-  tu_utilization: Array<unknown>;
-  concurrent_warps: Array<unknown>;
-  instruction_count: Array<unknown>;
-  quads_count: Array<unknown>;
-  texels_count: Array<unknown>;
-  memory_read: Array<unknown>;
-  memory_write: Array<unknown>;
-  memory_traffic: Array<unknown>;
+export class maleoon_counter_obj {
+  [key: string]: Array<any>;
+  gpu_clocks: Array<any>;
+  tiler_utilization: Array<any>;
+  binning_utilization: Array<any>;
+  rendering_utilization: Array<any>;
+  compute_utilization: Array<any>;
+  drawcall_count: Array<any>;
+  vertex_count: Array<any>;
+  primitives_count: Array<any>;
+  visible_primitives_count: Array<any>;
+  compute_invocations_count: Array<any>;
+  shader_utilization: Array<any>;
+  eu_utilization: Array<any>;
+  eu_stall_utilization: Array<any>;
+  eu_idle_utilization: Array<any>;
+  control_flow_instr_utilization: Array<any>;
+  half_float_instr_utilization: Array<any>;
+  tu_utilization: Array<any>;
+  concurrent_warps: Array<any>;
+  instruction_count: Array<any>;
+  quads_count: Array<any>;
+  texels_count: Array<any>;
+  memory_read: Array<any>;
+  memory_write: Array<any>;
+  memory_traffic: Array<any>;
   constructor() {
     this.gpu_clocks = [];
     this.tiler_utilization = [];
@@ -262,13 +239,13 @@ export class Maleoon_counter_obj {
   }
 }
 
-export class Gpu_counter_type {
-  [key: string]: Array<unknown>;
-  'cycle': Array<unknown>;
-  'drawcall': Array<unknown>;
-  'shader_cycle': Array<unknown>;
-  'local_count': Array<unknown>;
-  'local_wr': Array<unknown>;
+export class gpu_counter_type {
+  [key: string]: Array<any>;
+  'cycle': Array<any>;
+  'drawcall': Array<any>;
+  'shader_cycle': Array<any>;
+  'local_count': Array<any>;
+  'local_wr': Array<any>;
   constructor() {
     this.cycle = [];
     this.drawcall = [];

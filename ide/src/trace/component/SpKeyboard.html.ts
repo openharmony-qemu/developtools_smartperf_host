@@ -106,33 +106,33 @@ table{
             <div class="keycap">w</div> /
             <div class="keycap">s</div>
           </td>
-          <td class="describe-td">Zoom in/out</td>
+          <td class="describe-td">放大/缩小</td>
         </tr>
         <tr>
         <td>
           <div class="keycap">a</div> /
           <div class="keycap">d</div>
         </td>
-        <td class="describe-td">Pan left/right</td>
+        <td class="describe-td">左移/右移</td>
       </tr>
       </table>
       <h2>Mouse Controls</h2>
       <table class="mouse-ctr">
         <tr>
           <td>Click</td>
-          <td class="describe-td">Select event</td>
+          <td class="describe-td">点选</td>
         </tr> 
         <tr>
           <td>Click + Drag</td>
-          <td class="describe-td">Select area</td>
+          <td class="describe-td">框选</td>
         </tr> 
         <tr>
         <tr>
           <td>Ctrl + Scroll wheel</td>
-          <td class="describe-td">Zoom in/out</td>
+          <td class="describe-td">放大/缩小</td>
         </tr> 
           <td>Ctrl + Click + Drag</td>
-          <td class="describe-td">Pan left/right</td>
+          <td class="describe-td">拖拽左移/右移</td>
         </tr> 
       </table>
       <h2>Making SQL queries from the query page</h2>
@@ -142,7 +142,7 @@ table{
             <div class="keycap">Ctrl</div> +
             <div class="keycap">Enter</div>
           </td>
-          <td class="describe-td">Execute query</td>
+          <td class="describe-td">在数据库查询界面写好查询语句后进行查询</td>
         </tr>
       </table>
       <h2>Other</h2>
@@ -151,27 +151,27 @@ table{
           <td>
             <div class="keycap">f</div> (with event selected)
           </td>
-          <td class="describe-td">Focus on the selected slice</td>
+          <td class="describe-td">聚焦</td>
         </tr>
         <tr>
           <td>
             <div class="keycap">m</div> (with event or area selected)
           </td>
-          <td class="describe-td">Mark the area (temporarily)</td>
+          <td class="describe-td">临时框选标记</td>
         </tr>
         <tr>
           <td>
             <div class="keycap">Shift</div> +
             <div class="keycap">m</div> (with event or area selected)
           </td>
-          <td class="describe-td">Mark the area (persistently)</td>
+          <td class="describe-td">永久框选标记</td>
         </tr>
         <tr>
           <td>
             <div class="keycap">Ctr</div> +
             <div class="keycap">b</div> 
           </td>
-          <td class="describe-td">Hide/Show menus and search boxes</td>
+          <td class="describe-td">隐藏/显示菜单和搜索框</td>
         </tr>
         <tr>
           <td>
@@ -179,7 +179,7 @@ table{
             <div class="keycap">,</div> /
             <div class="keycap">.</div>
           </td>
-          <td class="describe-td">Locate the time point marked by the previous/next flag</td>
+          <td class="describe-td">定位到上一个/下一个旗子标记的时间点</td>
         </tr>
         <tr>
           <td>
@@ -187,25 +187,25 @@ table{
             <div class="keycap">[</div> /
             <div class="keycap">]</div>
           </td>
-          <td class="describe-td">Locate the previous/next position selected with shift+m</td>
+          <td class="describe-td">定位到上一个/下一个用shift + m 框选的位置</td>
         </tr>
         <tr>
           <td>
             <div class="keycap">/</div>
           </td>
-          <td class="describe-td">Show Keyboard shortcuts</td>
+          <td class="describe-td">展示快捷方式</td>
         </tr>
         <tr>
           <td>
             <div class="keycap">v</div>
           </td>
-          <td class="describe-td">Show/hide Vsync signal</td>
+          <td class="describe-td">展示/隐藏Vsync信号</td>
         </tr>
         <tr>
           <td>
             <div class="keycap">b</div>
           </td>
-          <td class="describe-td">Expand/Fold Collection Area</td>
+          <td class="describe-td">展开/折叠收藏区域</td>
       </tr>
       </table>
     </div>

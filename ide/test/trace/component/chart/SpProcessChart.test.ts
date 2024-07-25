@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });
@@ -50,8 +49,6 @@ describe('SpProcessChart Test', () => {
   let htmlElement: any = document.createElement('sp-system-trace');
   let spProcessChart = new SpProcessChart(htmlElement);
   let MockqueryProcessAsyncFunc = sqlit.queryProcessAsyncFunc;
-  let MockqueryDistributedRelationData = processSqlite.queryDistributedRelationData;
-  MockqueryDistributedRelationData.mockResolvedValue([]);
 
   MockqueryProcessAsyncFunc.mockResolvedValue([
     {

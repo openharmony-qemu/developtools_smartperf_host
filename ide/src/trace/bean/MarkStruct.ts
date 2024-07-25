@@ -17,21 +17,21 @@ export class MarkStruct {
   endTimeStr: string | undefined;
   startTime: number | undefined;
   endTime: number | undefined;
-  color: string | undefined;
-  text: string | undefined;
+  colorEl: HTMLInputElement | undefined;
+  text: HTMLInputElement | undefined;
   operate: HTMLButtonElement | undefined;
   isSelected: boolean = false;
   constructor(
     operate: HTMLButtonElement,
-    color?: string | undefined,
-    text?: string | undefined,
+    colorEl?: HTMLInputElement | undefined,
+    text?: HTMLInputElement | undefined,
     startTimeStr?: string,
     startTime?: number,
     endTimeStr?: string,
     endTime?: number
   ) {
     this.operate = operate;
-    this.color = color;
+    this.colorEl = colorEl;
     this.text = text;
     this.startTimeStr = startTimeStr;
     this.startTime = startTime;

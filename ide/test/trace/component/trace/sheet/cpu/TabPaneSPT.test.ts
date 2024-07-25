@@ -13,10 +13,8 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
-  return {};
-});
 import { TabPaneSPT } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneSPT';
+import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
 jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
@@ -39,7 +37,49 @@ describe('TabPaneSPT Test', () => {
   document.body.innerHTML = `<div><tabpane-spt class="SPT"></tabpane-spt></div>`;
   let tabPane = document.querySelector('.SPT') as TabPaneSPT;
   let tabPaneSPT = new TabPaneSPT();
-  tabPaneSPT.sptTbl = jest.fn(() => tab);
+  tabPaneSPT.tbl = jest.fn(() => tab);
+  SpSystemTrace.SPT_DATA = [
+    {
+      process: '',
+      processId: 602,
+      thread: 'hdcd',
+      threadId: 739,
+      state: '',
+      dur: 233,
+      start_ts: 3,
+      end_ts: 236,
+      cpu: 0,
+      priority: '10',
+      note: '85',
+    },
+    {
+      process: '',
+      processId: 516,
+      thread: 'foundation',
+      threadId: 516,
+      state: '',
+      dur: 122,
+      start_ts: 22,
+      end_ts: 100,
+      cpu: 1,
+      priority: '114',
+      note: '66',
+    },
+    {
+      process: '',
+      processId: 2,
+      thread: '',
+      threadId: 2,
+      state: '',
+      dur: 0,
+      start_ts: 0,
+      end_ts: 0,
+      cpu: 0,
+      priority: '-',
+      note: '-',
+    },
+  ];
+
   let dataList = [
     {
       id: 78,

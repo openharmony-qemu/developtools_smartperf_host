@@ -24,10 +24,6 @@ jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
-
-const funcSqlit = require('../../../../src/trace/database/sql/Func.sql');
-jest.mock('../../../../src/trace/database/sql/Func.sql');
-
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
@@ -40,8 +36,6 @@ window.ResizeObserver = window.ResizeObserver ||
     unobserve: jest.fn(),
   }));
 describe('SpSegmentationChart Test', () => {
-  let mockqueryAllFuncNames = funcSqlit.queryAllFuncNames;
-  mockqueryAllFuncNames.mockResolvedValue([]);
   let spSystemTrace = new SpSystemTrace();
   let segmentationChart = new SpSegmentationChart(spSystemTrace);
   it('SpSegmentationChartTest01 ', function () {

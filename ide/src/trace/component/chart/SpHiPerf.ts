@@ -574,7 +574,7 @@ export class SpHiPerf {
 
   resetAllChartData(): void {
     const callChartRow = this.rowList?.find(row => row.rowId === 'HiPerf-callchart');
-    if (callChartRow) {
+    if (callChartRow){
       this.resetChartData(callChartRow);
     }
   }

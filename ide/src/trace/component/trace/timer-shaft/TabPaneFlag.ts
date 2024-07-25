@@ -110,7 +110,7 @@ export class TabPaneFlag extends BaseElement {
       text.type = 'text';
       color!.value = flag.color;
       text!.value = flag.text;
-      let flagData = new MarkStruct(btn, color.value, text.value, getTimeString(flag.time), flag.time);
+      let flagData = new MarkStruct(btn, color, text, getTimeString(flag.time), flag.time);
       flag.selected === true ? (flagData.isSelected = true) : (flagData.isSelected = false);
       this.systemTrace?.timerShaftEL!.sportRuler!.drawTriangle(flag.time, flag.type);
       this.tableDataSource.push(flagData);
@@ -186,11 +186,10 @@ export class TabPaneFlag extends BaseElement {
   private textInputKeyUpEventByFlag(index: number, tr: HTMLDivElement): void {
     tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('keyup', (event: unknown) => {
       // @ts-ignore
-      if (this.tableDataSource[index].startTime === this.flagList[index - 1].time && event.code === 'Enter' || event.code === 'NumpadEnter') {
+      if (this.tableDataSource[index].startTime === this.flagList[index - 1].time && event.keyCode === '13') {
         // @ts-ignore
         this.flagList[index - 1].text = event?.target.value;
         document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
-        document.dispatchEvent(new CustomEvent('remarksFocus-change',{ detail: 'remarks-focus' }));
         //   旗子颜色改变时，重绘泳道图
         this.systemTrace?.refreshCanvas(true);
       }
@@ -211,8 +210,6 @@ export class TabPaneFlag extends BaseElement {
         // @ts-ignore
         this.flagList[index - 1].text = event?.target.value;
         document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
-        document.dispatchEvent(new CustomEvent('remarksFocus-change',{ detail: '' }));
-        this.setTableData();
         //   旗子颜色改变时，重绘泳道图
         this.systemTrace?.refreshCanvas(true);
       }

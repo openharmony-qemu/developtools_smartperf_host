@@ -74,9 +74,9 @@ export class ThreadRender extends Render {
 export function ThreadStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  threadClickHandler: unknown,
-  cpuClickHandler: unknown,
-  prioClickHandlerFunc: unknown,
+  threadClickHandler: any,
+  cpuClickHandler: any,
+  prioClickHandlerFunc: any,
   entry?: ThreadStruct
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
@@ -85,7 +85,6 @@ export function ThreadStructOnClick(
       ThreadStruct.selectThreadStruct = entry || ThreadStruct.hoverThreadStruct;
       sp.timerShaftEL?.drawTriangle(ThreadStruct.selectThreadStruct!.startTime || 0, 'inverted');
       sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct!,
-        //@ts-ignore
         threadClickHandler, cpuClickHandler, prioClickHandlerFunc);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
@@ -105,14 +104,14 @@ export class ThreadStruct extends BaseThreadStruct {
   static selectThreadStructList: Array<ThreadStruct> = [];
   static firstselectThreadStruct: ThreadStruct | undefined;
   static isClickPrio: boolean = false;
-  static prioCount: Array<unknown> = [];
+  static prioCount: Array<any> = [];
   argSetID: number | undefined;
   translateY: number | undefined;
   textMetricsWidth: number | undefined;
   static startCycleTime: number = 0;
   static endTime: number = 0;
 
-  static drawThread(threadContext: CanvasRenderingContext2D, data: ThreadStruct): void {
+  static drawThread(threadContext: CanvasRenderingContext2D, data: ThreadStruct) {
     if (data.frame) {
 
       threadContext.globalAlpha = 1;

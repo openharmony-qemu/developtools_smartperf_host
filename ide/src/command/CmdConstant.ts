@@ -43,5 +43,4 @@ export class CmdConstant {
   static CMD_MKDIR_LONG_FOLD = 'hdc_std shell mkdir ';
   static CMD_GET_LONG_FILES = 'hdc_std shell ls ';
   static CMD_SET_FOLD_AUTHORITY = 'hdc_std shell chmod -R 777 ';
-  static CMD_UNAME = 'hdc shell uname -a';
 }

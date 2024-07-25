@@ -12,9 +12,9 @@
 // limitations under the License.
 
 import { TraficEnum } from './utils/QueryEnum';
-import { dmaFenceList } from './utils/AllMemoryCache';
+import { dmaFenceList } from "./utils/AllMemoryCache";
 import { filterDataByGroup } from './utils/DataFilter';
-export const queryPresentInfo = (args: unknown): string => {
+export const queryPresentInfo = (args: any): string => {
   return `WITH state AS (  
     SELECT      
         id,     
@@ -25,14 +25,12 @@ export const queryPresentInfo = (args: unknown): string => {
         context,      
         seqno,    
         CASE       
-           WHEN LAG(cat) OVER (ORDER BY ts) = '${//@ts-ignore
-    args.dmaFenceInit}'  AND  LAG(driver) OVER (ORDER BY ts) = ''   
+           WHEN LAG(cat) OVER (ORDER BY ts) = '${args.dmaFenceInit}'  AND  LAG(driver) OVER (ORDER BY ts) = ''   
 				   THEN LAG(ts, 2) OVER (ORDER BY ts) 
            ELSE LAG(ts) OVER (ORDER BY ts)      
         END AS new_ts,    
         CASE    
-            WHEN LAG(cat) OVER (ORDER BY ts) = '${//@ts-ignore
-    args.dmaFenceInit}' AND  LAG(driver) OVER (ORDER BY ts) = '' 
+            WHEN LAG(cat) OVER (ORDER BY ts) = '${args.dmaFenceInit}' AND  LAG(driver) OVER (ORDER BY ts) = '' 
             THEN Dur + LAG(dur) OVER (ORDER BY ts)      
             ELSE Dur     
         END AS newDur,    
@@ -40,8 +38,7 @@ export const queryPresentInfo = (args: unknown): string => {
         FROM  
         dma_fence  
         WHERE  
-        timeline = '${//@ts-ignore
-    args.dmaFenceName}'  
+        timeline = '${args.dmaFenceName}'  
     )  
     SELECT    
         s.id,    
@@ -57,59 +54,42 @@ export const queryPresentInfo = (args: unknown): string => {
         state s    
     LEFT JOIN trace_range r ON s.new_ts BETWEEN r.start_ts AND r.end_ts     
     WHERE  
-        s.cat <> '${//@ts-ignore
-    args.dmaFenceInit}'
+        s.cat <> '${args.dmaFenceInit}'
     		AND s.rn > 1
     ORDER BY    
-        s.new_ts;`;
-};
+        s.new_ts;`
+}
 
-export function dmaFenceReceiver(data: unknown, proc: Function): void {
-  //@ts-ignore
+export function dmaFenceReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: unknown[];
-    //@ts-ignore
+    let res: any[];
     if (!dmaFenceList.has(data.params.dmaFenceName)) {
-      //@ts-ignore
       res = proc(queryPresentInfo(data.params));
-      //@ts-ignore
       dmaFenceList.set(data.params.dmaFenceName, res);
     } else {
-      //@ts-ignore
       res = dmaFenceList.get(data.params.dmaFenceName) || [];
     }
-    //@ts-ignore
-    res = filterDataByGroup(res || [], 'startTime', 'dur', data.params.startNS, data.params.endNS, data.params.width, '', undefined, true, true);
+    res = filterDataByGroup(res || [], 'startTime', 'dur', data.params.startNS, data.params.endNS, data.params.width, '', undefined,true,true);
     arrayBufferHandler(data, res, true);
   } else {
-    //@ts-ignore
     let sql = queryPresentInfo(data.params);
     let res = proc(sql);
-    //@ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
-  //@ts-ignore
+function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let startTime = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime);
-  //@ts-ignore
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
-  //@ts-ignore
   let id = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   res.forEach((it, i) => {
-    //@ts-ignore
     startTime[i] = it.startTime;
-    //@ts-ignore
     dur[i] = it.dur;
-    //@ts-ignore
     id[i] = it.id;
   });
   (self as unknown as Worker).postMessage(
     {
-      //@ts-ignore
       id: data.id,
-      //@ts-ignore
       action: data.action,
       results: transfer
         ? {

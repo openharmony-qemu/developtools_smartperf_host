@@ -13,19 +13,17 @@
 
 import { TraficEnum } from '../utils/QueryEnum';
 
-export const chartProcessTouchEventDispatchDataSql = (args: unknown): string => {
+export const chartProcessTouchEventDispatchDataSql = (args: any): string => {
   return `
   select 
-      c.ts-${//@ts-ignore
-        args.recordStartNS} as startTs,
+      c.ts-${args.recordStartNS} as startTs,
       c.dur,
       tid,
       P.pid,
       c.parent_id as parentId,
       c.id,
       c.depth,
-      ((c.ts - ${//@ts-ignore
-        args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px,
+      ((c.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px,
       c.name as funName,
       A.name as threadName
   from thread A
@@ -33,55 +31,39 @@ export const chartProcessTouchEventDispatchDataSql = (args: unknown): string => 
   left join callstack C on A.id = C.callid
   where startTs not null and cookie not null
   and (c.name = 'H:touchEventDispatch' OR c.name = 'H:TouchEventDispatch')  
-  and tid = ${//@ts-ignore
-    args.tid}
-  and startTs + dur >= ${Math.floor(//@ts-ignore
-    args.startNS)}
-  and startTs <= ${Math.floor(//@ts-ignore
-    args.endNS)}
+  and tid = ${args.tid}
+  and startTs + dur >= ${Math.floor(args.startNS)}
+  and startTs <= ${Math.floor(args.endNS)}
     group by px;
   `;
 };
 
-export function processTouchEventDispatchDataReceiver(data: unknown, proc: Function): void {
-  //@ts-ignore
+export function processTouchEventDispatchDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    //@ts-ignore
     let sql = chartProcessTouchEventDispatchDataSql(data.params);
     let res = proc(sql);
-    //@ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let processTouchEventDispatch = new ProcessTouchEventDispatch(data, transfer, res.length);
   res.forEach((it, i) => {
-    //@ts-ignore
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processEventDispatchData);
-    //@ts-ignore
     processTouchEventDispatch.tid[i] = it.tid;
-    //@ts-ignore
     processTouchEventDispatch.dur[i] = it.dur;
-    //@ts-ignore
     processTouchEventDispatch.startTs[i] = it.startTs;
-    //@ts-ignore
     processTouchEventDispatch.pid[i] = it.pid;
-    //@ts-ignore
     processTouchEventDispatch.id[i] = it.id;
-    //@ts-ignore
     processTouchEventDispatch.depth[i] = it.depth;
   });
   postMessage(data, transfer, processTouchEventDispatch, res.length);
 }
-function postMessage(data: unknown, transfer: boolean, processTouchEventDispatch: ProcessTouchEventDispatch, len: number): void {
+function postMessage(data: any, transfer: boolean, processTouchEventDispatch: ProcessTouchEventDispatch, len: number) {
   (self as unknown as Worker).postMessage(
     {
       transfer: transfer,
-      //@ts-ignore
       id: data.id,
-      
-      //@ts-ignore
       action: data.action,
       results: transfer
         ? {
@@ -114,18 +96,12 @@ class ProcessTouchEventDispatch {
   dur: Float64Array;
   id: Int32Array;
   depth: Int32Array;
-  constructor(data: unknown, transfer: boolean, len: number) {
-    //@ts-ignore
+  constructor(data: any, transfer: boolean, len: number) {
     this.tid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.tid);
-    //@ts-ignore
     this.pid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.pid);
-    //@ts-ignore
     this.startTs = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.startTs);
-    //@ts-ignore
     this.dur = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.dur);
-    //@ts-ignore
     this.id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.id);
-    //@ts-ignore
     this.depth = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.depth);
   }
 }

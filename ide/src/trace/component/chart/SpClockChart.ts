@@ -25,7 +25,7 @@ import { clockDataSender } from '../../database/data-trafic/ClockDataSender';
 import { queryClockData } from '../../database/sql/Clock.sql';
 import { DmaFenceRender, DmaFenceStruct } from '../../database/ui-worker/ProcedureWorkerDmaFence';
 import { dmaFenceSender } from '../../database/data-trafic/dmaFenceSender';
-import { queryDmaFenceName } from '../../database/sql/dmaFence.sql';
+import { queryDmaFenceName } from '../../database/sql/dmaFence.sql'
 import { BaseStruct } from '../../bean/BaseStruct';
 
 export class SpClockChart {
@@ -117,7 +117,7 @@ export class SpClockChart {
         context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       traceRow.canvasSave(context);
-      (renders.clock as ClockRender).renderMainThread(
+      (renders['clock'] as ClockRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -189,9 +189,8 @@ export class SpClockChart {
     info('The time to load the ClockData is: ', durTime);
   }
 
-  // @ts-ignore
-  async initDmaFence(folder: TraceRow<unknown>): void {
-    let dmaFenceNameList = await queryDmaFenceName();
+  async initDmaFence(folder: TraceRow<any>) {
+    let dmaFenceNameList = await queryDmaFenceName()
     if (dmaFenceNameList.length) {
       let dmaFenceList = [];
       const timelineValues = dmaFenceNameList.map(obj => obj.timeline);
@@ -210,24 +209,19 @@ export class SpClockChart {
         // @ts-ignore
         traceRow.supplierFrame = () => {
           return dmaFenceSender('dma_fence_init', `${timelineValues[i]}`, traceRow).then((res) => {
-            res.forEach((item: unknown) => {
-              // @ts-ignore
+            res.forEach((item: any) => {
               let detail = Utils.DMAFENCECAT_MAP.get(item.id!);
               if (detail) {
                 let catValue = (detail.cat.match(/^dma_(.*)$/))![1];
-                // @ts-ignore
                 item.sliceName = catValue.endsWith('ed') ? `${catValue.slice(0, -2)}(${detail.seqno})` : `${catValue}(${detail.seqno})`;
-                // @ts-ignore
                 item.driver = detail.driver;
-                // @ts-ignore
                 item.context = detail.context;
-                // @ts-ignore
                 item.depth = 0;
               }
 
-            });
+            })
             return dmaFenceList = res;
-          });
+          })
 
         };
         traceRow.onThreadHandler = (useCache) => {
@@ -238,7 +232,7 @@ export class SpClockChart {
             context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
           }
           traceRow.canvasSave(context);
-          (renders.dmaFence as DmaFenceRender).renderMainThread(
+          (renders['dmaFence'] as DmaFenceRender).renderMainThread(
             {
               dmaFenceContext: context,
               useCache: useCache,
@@ -276,7 +270,7 @@ export class SpClockChart {
       if (clockFolder.expansion) {
         this.trace.canvasPanelCtx?.clearRect(0, 0, clockFolder.frame.width, clockFolder.frame.height);
       } else {
-        (renders.empty as EmptyRender).renderMainThread(
+        (renders['empty'] as EmptyRender).renderMainThread(
           {
             context: this.trace.canvasPanelCtx,
             useCache: useCache,

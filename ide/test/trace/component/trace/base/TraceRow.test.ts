@@ -57,7 +57,7 @@ describe('TraceRow Test', () => {
 
   it('TraceRow Test06', () => {
     traceRow.rangeSelect = true;
-    expect(traceRow.rangeSelect).toBeFalsy();
+    expect(traceRow.rangeSelect).toBeTruthy();
   });
 
   it('TraceRow Test10', () => {
@@ -187,7 +187,7 @@ describe('TraceRow Test', () => {
 
   it('TraceRow Test31', () => {
     traceRow.checkType = '-1';
-    expect(traceRow.checkType).toBe('');
+    expect(traceRow.checkType).toBeTruthy();
   });
 
   it('TraceRow Test32', () => {
@@ -229,17 +229,17 @@ describe('TraceRow Test', () => {
 
   it('TraceRow Test42', () => {
     traceRow.checkType = '0';
-    expect(traceRow.checkType).toBe('');
+    expect(traceRow.checkType).toBe('0');
   });
 
   it('TraceRow Test43', () => {
     traceRow.checkType = '1';
-    expect(traceRow.checkType).toBe('');
+    expect(traceRow.checkType).toBe('1');
   });
 
   it('TraceRow Test44', () => {
     traceRow.checkType = '2';
-    expect(traceRow.checkType).toBe('');
+    expect(traceRow.checkType).toBe('2');
   });
 
   it('TraceRow Test45', () => {

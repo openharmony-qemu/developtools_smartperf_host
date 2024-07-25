@@ -40,7 +40,6 @@ export const queryAllIrqNames = async (traceId?: string): Promise<Array<{ ipiNam
     {}, 
     { traceId: traceId, action: 'exec-buf' }
   );
-  // @ts-ignore
   return Utils.convertJSON(allIrqNamesBuffer);
 };
 

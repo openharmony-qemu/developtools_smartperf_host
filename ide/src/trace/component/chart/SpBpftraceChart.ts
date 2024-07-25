@@ -51,9 +51,7 @@ export class SpBpftraceChart {
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     //添加上传按钮
-    if (!file) {
-      traceRow.addRowSampleUpload();
-    }
+    if (!file) traceRow.addRowSampleUpload();
     this.addTraceRowEventListener(traceRow, start_ts);
     //单独上传
     if (file) {

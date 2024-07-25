@@ -29,16 +29,14 @@ export class Serialize {
     let sessionIdValue = this.serializeU32(3, handShake.sessionId);
     let connectKey = this.serializeToString(4, handShake.connectKey);
     let buf = this.serializeToString(5, handShake.buf);
-    let version = this.serializeToString(6, handShake.version);
     let mergedArray = new Uint8Array(
-      bannerValue.length + authTypeValue.length + sessionIdValue.length + connectKey.length + buf.length + version.length
+      bannerValue.length + authTypeValue.length + sessionIdValue.length + connectKey.length + buf.length
     );
     mergedArray.set(bannerValue);
     mergedArray.set(authTypeValue, bannerValue.length);
     mergedArray.set(sessionIdValue, bannerValue.length + authTypeValue.length);
     mergedArray.set(connectKey, bannerValue.length + authTypeValue.length + sessionIdValue.length);
     mergedArray.set(buf, bannerValue.length + authTypeValue.length + sessionIdValue.length + connectKey.length);
-    mergedArray.set(version, bannerValue.length + authTypeValue.length + sessionIdValue.length + connectKey.length + buf.length);
     return mergedArray;
   }
 
@@ -208,49 +206,43 @@ export class Serialize {
     // banner
     let bannerBuffer = data.buffer;
     let bannerTag = this.getTag(WireType.LENGTH_DELIMETED, new DataView(bannerBuffer));
-    let bannerLengthBuf = bannerBuffer.slice(this.writeVarIntU32(this.makeTagWireType(bannerTag, WireType.LENGTH_DELIMETED)).length);
+    let bannerLengthBuf = bannerBuffer.slice(1);
     let bannerSize = this.readVarIntU32(new DataView(bannerLengthBuf));
-    let bannerDataBuffer = bannerLengthBuf.slice(this.writeVarIntU32(bannerSize).length);
+    let bannerDataBuffer = bannerLengthBuf.slice(1);
     let banner = this.parseString(bannerDataBuffer, bannerSize);
 
     // authType
     let authBuffer = bannerDataBuffer.slice(bannerSize);
     let authTypeTag = this.getTag(WireType.VARINT, new DataView(authBuffer));
-    let authDataBuffer = authBuffer.slice(this.writeVarIntU32(this.makeTagWireType(authTypeTag, WireType.VARINT)).length);
-    let authType = this.parseU8(new DataView(authDataBuffer), 1);
-    let authTypeLenth = this.writeVarIntU32(authType).length;
+    let authDataBuffer = authBuffer.slice(1);
+    let authTypeDataView = new DataView(authDataBuffer);
+    let authType = this.parseU8(authTypeDataView, 1);
 
     // sessionId
-    let sessionIdBuffer = authDataBuffer.slice(authTypeLenth);
+    let sessionIdBuffer = authDataBuffer.slice(1);
     let sessionIdTag = this.getTag(WireType.VARINT, new DataView(sessionIdBuffer));
-    let sessionDataBuffer = sessionIdBuffer.slice(this.writeVarIntU32(this.makeTagWireType(sessionIdTag, WireType.VARINT)).length);
-    let sessionId = this.parseU32(new DataView(sessionDataBuffer), 3);
-    let sessionIdLenth = this.writeVarIntU32(sessionId).length;
+    let sessionDataBuffer = sessionIdBuffer.slice(1);
+    let sessionIdDataView = new DataView(sessionDataBuffer);
+    let sessionId = this.parseU32(sessionIdDataView, 3);
 
     // connectKey
-    let connectKeyBuffer = sessionDataBuffer.slice(sessionIdLenth);
+    let connectKeyBuffer = sessionDataBuffer.slice(3);
     let connectKeyTag = this.getTag(WireType.LENGTH_DELIMETED, new DataView(connectKeyBuffer));
-    let connectLengthBuffer = connectKeyBuffer.slice(this.writeVarIntU32(this.makeTagWireType(connectKeyTag, WireType.LENGTH_DELIMETED)).length);
-    let connectKeySize = this.readVarIntU32(new DataView(connectLengthBuffer));
-    let connectDataBuffer = connectLengthBuffer.slice(this.writeVarIntU32(connectKeySize).length);
+    let connectLengthBuffer = connectKeyBuffer.slice(1);
+    let connectKeyDataView = new DataView(connectLengthBuffer);
+    let connectKeySize = this.readVarIntU32(connectKeyDataView);
+    let connectDataBuffer = connectLengthBuffer.slice(1);
     let connectKey = this.parseString(connectDataBuffer, connectKeySize);
 
     // buf
     let bufBuffer = connectDataBuffer.slice(connectKeySize);
     let bufTag = this.getTag(WireType.LENGTH_DELIMETED, new DataView(bufBuffer));
-    let lengthBuffer = bufBuffer.slice(this.writeVarIntU32(this.makeTagWireType(bufTag, WireType.LENGTH_DELIMETED)).length);
-    let bufSize = this.readVarIntU32(new DataView(lengthBuffer));
-    let dataBuffer = lengthBuffer.slice(this.writeVarIntU32(bufSize).length);
+    let lengthBuffer = bufBuffer.slice(1);
+    let bufDataView = new DataView(lengthBuffer);
+    let bufSize = this.readVarIntU32(bufDataView);
+    let dataBuffer = lengthBuffer.slice(1);
     let buf = this.parseString(dataBuffer, bufSize);
-
-    // version
-    let versionBuffer = dataBuffer.slice(bufSize);
-    let versionTag = this.getTag(WireType.LENGTH_DELIMETED, new DataView(versionBuffer));
-    let versionLengthBuffer = versionBuffer.slice(this.writeVarIntU32(this.makeTagWireType(versionTag, WireType.LENGTH_DELIMETED)).length);
-    let versionSize = this.readVarIntU32(new DataView(versionLengthBuffer));
-    let versionDataBuffer = versionLengthBuffer.slice(this.writeVarIntU32(versionSize).length);
-    let version = this.parseString(versionDataBuffer, versionSize);
-    return new SessionHandShake(banner, authType, sessionId, connectKey, buf, version);
+    return new SessionHandShake(banner, authType, sessionId, connectKey, buf);
   }
 
   static parseTransferConfig(data: ArrayBuffer): TransferConfig {

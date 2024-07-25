@@ -138,27 +138,12 @@ export class TabPaneHiLogs extends BaseElement {
       }
       this.tableTimeHandle?.();
     };
-    this.tagFilterInput!.addEventListener('keyup', (ev) => {
-      if(ev.key.toLocaleLowerCase() === String.fromCharCode(47)){
-        ev.stopPropagation();
-      }
-    });
     this.searchFilterInput!.oninput = (): void => {
       this.tableTimeHandle?.();
     };
-    this.searchFilterInput!.addEventListener('keyup', (ev) => {
-      if(ev.key.toLocaleLowerCase() === String.fromCharCode(47)){
-        ev.stopPropagation();
-      }
-    });
     this.processFilter!.oninput = (): void => {
       this.tableTimeHandle?.();
     };
-    this.processFilter!.addEventListener('keyup', (ev) => {
-      if(ev.key.toLocaleLowerCase() === String.fromCharCode(47)){
-        ev.stopPropagation();
-      }
-    });
     this.levelFilterInput!.onchange = (): void => {
       this.tableTimeHandle?.();
     };

@@ -644,20 +644,20 @@ export class Utils {
     // 将array2转为map
     for (let i = 0; i < array2.length; i++) {
       // @ts-ignore
-      arr2Map.set(flag === 'thread' ? `${array2[i].pid}-${array2[i].tid}` : `${array2[i].pid}`, array2[i]);
+      arr2Map.set(flag === 'thread' ? `${array2[i].pid}-${array2[i].tid}` : `${array2[i].pid}`, array2[i])
     }
     for (let i = 0; i < array1.length; i++) {
       // @ts-ignore
-      total.push(arr2Map.get(`${array1[i][0]}`));
+      total.push(arr2Map.get(`${array1[i][0]}`))
       // @ts-ignore
-      arr2Map.delete(`${array1[i][0]}`);
+      arr2Map.delete(`${array1[i][0]}`)
     };
     // 将map中剩余的循环加在total后
     // @ts-ignore
     arr2Map.forEach((v) => {
-      total.push(v);
-    });
-    return total;
+      total.push(v)
+    })
+    return total
   }
 
   static getFrequencyWithUnit = (
@@ -724,7 +724,7 @@ export class Utils {
     procedurePool.submitWithName('logic0', 'native-memory-set-current_ipid', ipid, undefined, (): void => { });
   }
 
-  public static convertJSON(arr: ArrayBuffer | Array<unknown>): unknown {
+  public static convertJSON(arr: ArrayBuffer | Array<unknown>): any {
     if (arr instanceof ArrayBuffer) {
       let dec = new TextDecoder();
       let str = dec.decode(arr);

@@ -132,7 +132,7 @@ export let renders = {
   perfTool: new PerfToolRender(),
   gpuCounter: new GpuCounterRender(),
   stateCut: new AllStatesRender(),
-  dmaFence:new DmaFenceRender()
+  'dmaFence':new DmaFenceRender()
 };
 
 function match(type: string, req: RequestMessage): void {

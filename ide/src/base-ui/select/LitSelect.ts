@@ -168,17 +168,7 @@ export class LitSelect extends BaseElement {
       // @ts-ignore
       this.bodyEl!.style.display = 'flex';
       this.querySelectorAll('lit-select-option').forEach((a) => {
-        this.removeChild(a);
-      });
-      let valuesSet = new Set();
-      let flag = true; // 假设所有 value 都是唯一的  
-      // @ts-ignore
-      selectDataSource.forEach(item => {
-        if (valuesSet.has(item.value)) {
-          flag = false; // 如果value有重复，就设置flag为false  
-          return; 
-        }
-        valuesSet.add(item.value);
+        this.removeChild(a)
       });
       // @ts-ignore
       selectDataSource.forEach((dateSourceBean: unknown) => {
@@ -189,13 +179,6 @@ export class LitSelect extends BaseElement {
             value: dateSourceBean.value ? dateSourceBean.value : dateSourceBean.name || dateSourceBean, // @ts-ignore
             name: dateSourceBean.name ? dateSourceBean.name : dateSourceBean,
           };
-          if (!flag) { // 如果数组的value值不是唯一的，就用name做为value值，避免多个选项被选中
-            optionData = {
-              // @ts-ignore
-              value: dateSourceBean.name ? dateSourceBean.name : dateSourceBean, // @ts-ignore
-              name: dateSourceBean.name ? dateSourceBean.name : dateSourceBean,
-            };
-          }          
           selectOption.textContent = optionData.name;
           selectOption.setAttribute('value', optionData.value);
           if (this.currentSelectedValue === optionData.value) {
@@ -532,9 +515,6 @@ export class LitSelect extends BaseElement {
           a.setAttribute('selected', '');
         }
       } else {
-        if (a.hasAttribute('selected')) {
-          a.removeAttribute('selected');
-        }
         if (a.getAttribute('value') === this.defaultValue) {
           // @ts-ignore
           this.selectInputEl.value = a.textContent;

@@ -57,13 +57,7 @@ export class TabPaneSlices extends BaseElement {
     });
     this.slicesTbl!.loading = true;
     let filterNameEL: HTMLInputElement | undefined | null =
-      this.shadowRoot?.querySelector<HTMLInputElement>('#filterName');
-    filterNameEL?.addEventListener('keyup', (ev) => {
-      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
-        ev.stopPropagation();
-      }
-    });
-    //@ts-ignore
+      this.shadowRoot?.querySelector<HTMLInputElement>('#filterName'); //@ts-ignore
     getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {//@ts-ignore
       getTabSlicesAsyncCatFunc(asyncCatNames, asyncCatPid, slicesParam.leftNs, slicesParam.rightNs).then((res1) => {
         //@ts-ignore
@@ -200,6 +194,7 @@ export class TabPaneSlices extends BaseElement {
     spSystemTrace: SpSystemTrace
   ): void {
     let input = search.shadowRoot?.querySelector('input') as HTMLInputElement;
+    let indexEL = search.shadowRoot!.querySelector<HTMLSpanElement>('#index');
     let rangeSelectList: Array<unknown> = []; // 框选范围的数据
     // search 到的内容与框选泳道的内容取并集
     for (const searchItem of search.list) {
@@ -239,8 +234,9 @@ export class TabPaneSlices extends BaseElement {
     search.currenSearchValue = data.name;
     search.list = rangeSelectList;
     search.total = search.list.length;
-    search.index = spSystemTrace!.showStruct(false, -1, search.list);
+    search.index = spSystemTrace!.showStruct(true, 1, search.list);
     search.isClearValue = true;
+    indexEL!.textContent = '1';
   }
 
   connectedCallback(): void {
@@ -319,7 +315,7 @@ export class TabPaneSlices extends BaseElement {
     // 拷贝当前表格显示的数据
     let sortData: Array<SelectionData> = JSON.parse(JSON.stringify(this.slicesTbl!.recycleDataSource));
     // 取出汇总数据，同时将排序数据去掉汇总数据进行后续排序
-    let headData: SelectionData = sortData.splice(0, 1)[0];
+    let headData: SelectionData = sortData.splice(0,1)[0];
     //@ts-ignore
     if (slicesDetail.key === 'name') {
       //@ts-ignore

@@ -161,16 +161,6 @@ export const TraceRowConfigHtml = `
                   margin-left: 20px;
                   width: 20px;
                 }
-                #resetTemplate {
-                  color:#999;
-                  margin-left: 20px;
-                  border:1px solid #d9caca;
-                  border-radius: 10px;
-                }
-                #resetTemplate:hover {
-                  background-color:#999;
-                  color:#666;
-                }
             </style>
             <div class="config-title">
                <span class="title-text">Display Template</span>
@@ -188,8 +178,7 @@ export const TraceRowConfigHtml = `
                  <div class="title_div" style='justify-content: space-between;'>
                     <div style='display: flex;align-items: center'>
                       <img class="config-img" title="Timeline Details" src="img/config_chart.png" style="width:24px;height: 24px">
-                      <div id="config_title">Timeline Details</div>
-                      <button class="resetTemplate" id="resetTemplate">reset</button> 
+                      <div id="config_title">Timeline Details</div> 
                     </div>
                     <div style='display: flex;'>
                       <div class="multipleSelect" tabindex="0">

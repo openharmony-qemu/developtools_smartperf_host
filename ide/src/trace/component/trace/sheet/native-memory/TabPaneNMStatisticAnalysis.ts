@@ -1056,11 +1056,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           other.existSizePercent = this.currentLevelExistSize === 0 ? 0 : ((other.existSize / this.currentLevelExistSize) * 100).toFixed(2); // @ts-ignore
           other.existCountPercent = this.currentLevelExistCount === 0 ? 0 : ((other.existCount / this.currentLevelExistCount) * 100).toFixed(2); // @ts-ignore
           other.applySizePercent = this.currentLevelApplySize === 0 ? 0 : ((other.applySize / this.currentLevelApplySize) * 100).toFixed(2); // @ts-ignore
-          other.applyCountPercent = this.currentLevelApplyCount === 0 ? 0 : ((other.applyCount / this.currentLevelApplyCount) * 100).toFixed(2);
-          // @ts-ignore
-          other.releaseSizePercent = this.currentLevelReleaseSize === 0 ? 0 :
-            // @ts-ignore
-            ((other.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2); // @ts-ignore
+          other.applyCountPercent = this.currentLevelApplyCount === 0 ? 0 : ((other.applyCount / this.currentLevelApplyCount) * 100).toFixed(2); // @ts-ignore
+          other.releaseSizePercent = this.currentLevelReleaseSize === 0 ? 0 : ((other.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2); // @ts-ignore
           other.releaseCountPercent = this.currentLevelReleaseCount === 0 ? 0 : ((other.releaseCount / this.currentLevelReleaseCount) * 100).toFixed(2);
         }
       } // @ts-ignore

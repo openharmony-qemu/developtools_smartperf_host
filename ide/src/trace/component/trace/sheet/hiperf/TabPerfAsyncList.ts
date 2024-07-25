@@ -156,12 +156,12 @@ export class TabPanePerfAsync extends BaseElement {
       // 进程数据
       let processItem: perfAsyncList = { ...result[i] };
       processItem.isProcess = true;
-      processItem.symbol = this.processMap.get(result[i].pid!) === null ?
+      processItem.symbol = this.processMap.get(result[i].pid!) === null ? 
         'Process[' + result[i].pid! + ']' : this.processMap.get(result[i].pid!)! + '[' + result[i].pid! + ']';
       // 线程数据
       let threadItem: perfAsyncList = { ...result[i] };
       threadItem.isThread = true;
-      threadItem.symbol = this.threadMap.get(result[i].tid!) === null ?
+      threadItem.symbol = this.threadMap.get(result[i].tid!) === null ? 
         'Thread[' + result[i].tid! + ']' : this.threadMap.get(result[i].tid!)! + '[' + result[i].tid! + ']';
       // @ts-ignore
       callStack.unshift(threadItem);
@@ -318,8 +318,8 @@ export class TabPanePerfAsync extends BaseElement {
  * @returns 返回数组结构，一项套一项，例：原数据为长度12的数组，返回则为嵌套深度为12的单项数组
  */
   recursionToTree(
-    list: Array<perfAsyncList>,
-    data: perfAsyncList,
+    list: Array<perfAsyncList>, 
+    data: perfAsyncList, 
     flag: Array<perfAsyncList> | null = null
   ): Array<perfAsyncList> | undefined {
     if (list.length === 0) {
@@ -370,12 +370,12 @@ export class TabPanePerfAsync extends BaseElement {
       // 进程数据
       let processItem: perfAsyncList = { ...data[i] };
       processItem.isProcess = true;
-      processItem.symbol = this.processMap.get(data[i].pid!) === null ?
+      processItem.symbol = this.processMap.get(data[i].pid!) === null ? 
         'Process[' + data[i].pid! + ']' : this.processMap.get(data[i].pid!)! + '[' + data[i].pid! + ']';
       // 线程数据
       let threadItem: perfAsyncList = { ...data[i] };
       threadItem.isThread = true;
-      threadItem.symbol = this.threadMap.get(data[i].tid!) === null ?
+      threadItem.symbol = this.threadMap.get(data[i].tid!) === null ? 
         'Thread[' + data[i].tid! + ']' : this.threadMap.get(data[i].tid!)! + '[' + data[i].tid! + ']';
       // js栈层
       let jsFuncItem: perfAsyncList = { ...data[i] };
@@ -451,7 +451,7 @@ export class TabPanePerfAsync extends BaseElement {
     this.asyncFilter!.getFilterData(this.asyncListFilterGetFilter.bind(this));
     this.asyncFilter?.addEventListener('focus', () => {
       spSystemTrace.focusTarget = 'bottomUpInput';
-    });
+    })
     this.asyncFilter?.addEventListener('blur', () => {
       spSystemTrace.focusTarget = '';
     });
@@ -695,7 +695,7 @@ interface perfAsyncList {
    * @param targetData 目标数据
    * @param index 递归次数
    */
-export function recusion(data: perfAsyncList, targetData: perfAsyncList, flag?: boolean): void {
+export function recusion(data: perfAsyncList, targetData: perfAsyncList, flag?: boolean) {
   // 将新元素合并到目标元素时，将目标元素的sampleCount和eventCount进行累加,每次进来都是要合并的值
   targetData.sampleCount! += data.sampleCount!;
   targetData.count! += data.count!;

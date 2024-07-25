@@ -78,7 +78,6 @@ import { queryExistFtrace } from './database/sql/SqlLite.sql';
 import '../base-ui/chart/scatter/LitChartScatter';
 import { SpThirdParty } from './component/SpThirdParty';
 import './component/SpThirdParty';
-import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -99,14 +98,14 @@ export class SpApplication extends BaseElement {
 
   longTraceTypeMessageMap:
     | Map<
-      number,
-      Array<{
-        fileType: string;
-        startIndex: number;
-        endIndex: number;
-        size: number;
-      }>
-    >
+        number,
+        Array<{
+          fileType: string;
+          startIndex: number;
+          endIndex: number;
+          size: number;
+        }>
+      >
     | undefined
     | null;
   static skinChange: Function | null | undefined = null;
@@ -488,11 +487,11 @@ export class SpApplication extends BaseElement {
     detail: unknown
   ):
     | {
-      traceTypePage: number[];
-      allFileSize: number;
-      normalTraceNames: string[];
-      specialTraceNames: string[];
-    }
+        traceTypePage: number[];
+        allFileSize: number;
+        normalTraceNames: string[];
+        specialTraceNames: string[];
+      }
     | undefined {
     if (!this.wasm) {
       this.progressEL!.loading = false;
@@ -1088,7 +1087,7 @@ export class SpApplication extends BaseElement {
         let reader: FileReader = new FileReader();
         //@ts-ignore
         reader.readAsArrayBuffer(ev);
-        reader.onloadend = (ev): void => {
+        reader.onloadend =  (ev): void =>{
           info('read file onloadend');
           this.litSearch!.setPercent('ArrayBuffer loaded  ', 2);
           let wasmUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`;
@@ -1531,8 +1530,8 @@ export class SpApplication extends BaseElement {
     this.litSearch!.clear();
     Utils.currentSelectTrace = undefined;
     this.markJson = undefined;
-    if (!multiTrace) {
-      this.longTracePage!.style.display = 'none';
+    if(!multiTrace){
+    this.longTracePage!.style.display = 'none';
     }
     this.litSearch?.removeAttribute('distributed');
     SpStatisticsHttpUtil.addOrdinaryVisitAction({
@@ -1934,14 +1933,10 @@ export class SpApplication extends BaseElement {
     this.litSearch!.valueChangeHandler = (value: string): void => {
       Utils.currentSelectTrace = this.litSearch?.getSearchTraceId();
       this.litSearch!.currenSearchValue = value;
-      if (value.length > 0) {
+      if(value.length > 0) {
         this.progressEL!.loading = true;
       } else {
         this.progressEL!.loading = false;
-      }
-      if (this.litSearch!.index > 0) {
-        let currentEntry = this.litSearch!.list[this.litSearch!.index];
-        cancelCurrentTraceRowHighlight(this.spSystemTrace!, currentEntry)
       }
       this.litSearch!.list = [];
       if (timer) {
@@ -1980,15 +1975,27 @@ export class SpApplication extends BaseElement {
     };
   }
   private initSearchEvents(): void {
+    this.litSearch!.addEventListener('focus', (e): void => {
+      Utils.currentSelectTrace = this.litSearch!.getSearchTraceId();
+      this.spSystemTrace!.searchTargetTraceHandler();
+      window.publish(window.SmartEvent.UI.KeyboardEnable, {
+        enable: false,
+      });
+    });
+    this.litSearch!.addEventListener('blur', () => {
+      window.publish(window.SmartEvent.UI.KeyboardEnable, {
+        enable: true,
+      });
+    });
     this.litSearch!.addEventListener('previous-data', (ev) => {
-      if (this.progressEL!.loading) {
+      if(this.progressEL!.loading) {
         return;
       }
       this.litSearch!.index = this.spSystemTrace!.showStruct(true, this.litSearch!.index, this.litSearch!.list);
       this.litSearch!.blur();
     });
     this.litSearch!.addEventListener('next-data', (ev) => {
-      if (this.progressEL!.loading) {
+      if(this.progressEL!.loading) {
         return;
       }
       this.litSearch!.index = this.spSystemTrace!.showStruct(false, this.litSearch!.index, this.litSearch!.list);
@@ -1996,11 +2003,11 @@ export class SpApplication extends BaseElement {
     });
     // 翻页事件
     this.litSearch!.addEventListener('retarget-data', (ev) => {
-      if (this.progressEL!.loading) {
+      if(this.progressEL!.loading) {
         return;
       }
       this.litSearch!.index = this.spSystemTrace!.showStruct(
-        false,
+        true,
         //@ts-ignore
         ev.detail.value,
         this.litSearch!.list,
@@ -2018,13 +2025,21 @@ export class SpApplication extends BaseElement {
 
   private initSystemTraceEvents(): void {
     this.spSystemTrace?.addEventListener('trace-previous-data', (ev) => {
-      if (this.progressEL!.loading) {
+      if(this.progressEL!.loading) {
         return;
-      } 
+      }
+      if(this.litSearch!.isSearchInputFocus) {
+        this.litSearch!.isSearchInputFocus = !this.litSearch!.isSearchInputFocus;
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(true, this.litSearch!.index, this.litSearch!.list);
     });
     this.spSystemTrace?.addEventListener('trace-next-data', (ev) => {
       if(this.progressEL!.loading) {
+        return;
+      }
+      if(this.litSearch!.isSearchInputFocus) {
+        this.litSearch!.isSearchInputFocus = !this.litSearch!.isSearchInputFocus;
         return;
       }
       this.litSearch!.index = this.spSystemTrace!.showStruct(false, this.litSearch!.index, this.litSearch!.list);
@@ -2289,7 +2304,6 @@ export class SpApplication extends BaseElement {
         .then((res) => {
           res.arrayBuffer().then((arrayBuf) => {
             let fileName = url.split('/').reverse()[0];
-            this.traceFileName = fileName;
             let showFileName =
               fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
             openUrl(arrayBuf, fileName, showFileName, arrayBuf.byteLength);

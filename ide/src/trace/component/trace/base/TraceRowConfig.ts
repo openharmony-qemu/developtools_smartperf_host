@@ -25,6 +25,8 @@ import { type BaseStruct } from '../../../bean/BaseStruct';
 import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 import { TraceRowConfigHtml } from './TraceRowConfig.html';
 
+const LOCAL_STORAGE_JSON = 'subsystem_config';
+
 @element('trace-row-config')
 export class TraceRowConfig extends BaseElement {
   static allTraceRowList: Array<TraceRow<BaseStruct>> = [];
@@ -35,7 +37,6 @@ export class TraceRowConfig extends BaseElement {
   private chartTable: HTMLDivElement | null | undefined;
   private inputElement: HTMLInputElement | null | undefined;
   private configTitle: HTMLDivElement | null | undefined;
-  private resetButton: HTMLButtonElement | null | undefined;
   private traceRowList: NodeListOf<TraceRow<BaseStruct>> | undefined;
   private exportFileIcon: LitIcon | null | undefined;
   private switchButton: LitIcon | null | undefined;
@@ -47,8 +48,6 @@ export class TraceRowConfig extends BaseElement {
   private subSystemSearch: string | undefined;
   private backTableHTML: string | undefined;
   private otherRowNames: Array<SceneNode> = [];
-  private configList: string = '';
-  private defaultConfigList: string = '';
   private sceneList = [
     'FrameTimeline',
     'AnimationEffect',
@@ -75,7 +74,6 @@ export class TraceRowConfig extends BaseElement {
     this.inputElement!.value = '';
     this.exportFileIcon!.style.display = 'none';
     this.openFileIcon!.style.display = 'none';
-    this.resetButton!.style.display = 'none';
     this.configTitle!.innerHTML = 'Timeline Details';
     this.spSystemTrace = this.parentElement!.querySelector<SpSystemTrace>('sp-system-trace');
     this.traceRowList =
@@ -421,21 +419,18 @@ export class TraceRowConfig extends BaseElement {
     this.switchButton = this.shadowRoot?.querySelector<LitIcon>('#switch-button');
     this.openFileIcon = this.shadowRoot?.querySelector<LitIcon>('#open-file-icon');
     this.configTitle = this.shadowRoot?.querySelector<HTMLDivElement>('#config_title');
-    this.resetButton = this.shadowRoot?.querySelector<HTMLButtonElement>('#resetTemplate');
     this.initSwitchClickListener();
     this.openFileIcon!.addEventListener('click', () => {
       this.openTempFile!.value = '';
       this.openTempFile?.click();
     });
-    this.resetButton!.addEventListener('click', () => {
-      this.loadTempConfig(this.defaultConfigList);
-      this.resetChartTable();
-    })
   }
 
   private initSwitchClickListener(): void {
-    let jsonUrl = `https://${window.location.host.split(':')[0]}:${window.location.port
-      }/application/trace/config/custom_temp_config.json`;
+    let jsonUrl = `https://${window.location.host.split(':')[0]}:${
+      window.location.port
+    }/application/trace/config/custom_temp_config.json`;
+    let localJson = '';
     this.switchButton!.addEventListener('click', () => {
       if (this.switchButton!.title === 'Show charts template') {
         this.switchButton!.title = 'Show subSystem template';
@@ -444,34 +439,32 @@ export class TraceRowConfig extends BaseElement {
         this.openFileIcon!.style.display = 'none';
         this.exportFileIcon!.style.display = 'none';
         this.configTitle!.innerHTML = 'Timeline Details';
-        this.resetButton!.style.display = 'none';
       } else {
         this.switchButton!.title = 'Show charts template';
         this.openFileIcon!.style.display = 'block';
         this.exportFileIcon!.style.display = 'block';
-        this.resetButton!.style.display = 'block';
         this.configTitle!.innerHTML = 'SubSystem Template';
-        if (this.configList) {
-          this.loadTempConfig(this.configList);
+        let localText = window.localStorage.getItem(LOCAL_STORAGE_JSON);
+        if (localText) {
+          this.loadTempConfig(localText);
         } else {
-          if (this.defaultConfigList === '') {
+          if (localJson === '') {
             fetch(jsonUrl)
               .then((res) => {
                 if (res.ok) {
                   res.text().then((text) => {
-                    this.defaultConfigList = text;
-                    this.loadTempConfig(this.defaultConfigList);
+                    localJson = text;
+                    this.loadTempConfig(localJson);
                   });
                 }
               })
-            ['catch']((err) => {
-              console.log(err);
-            });
+              ['catch']((err) => {
+                console.log(err);
+              });
           } else {
-            this.loadTempConfig(this.defaultConfigList);
+            this.loadTempConfig(localJson);
           }
         }
-        this.resetChartTable();
       }
     });
   }
@@ -552,10 +545,10 @@ export class TraceRowConfig extends BaseElement {
     try {
       this.treeNodes = this.buildSubSystemTreeData(id, configJson);
     } catch (e) {
-      this.loadTempConfig(this.configList);
+      this.loadTempConfig(window.localStorage.getItem(LOCAL_STORAGE_JSON)!);
       return;
     }
-    this.configList = text;
+    window.localStorage.setItem(LOCAL_STORAGE_JSON, text);
     this.buildTempOtherList(id);
     this.setAttribute('temp_config', '');
     this.expandedNodeList.clear();
@@ -600,7 +593,7 @@ export class TraceRowConfig extends BaseElement {
         }
         for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
           let currentCompDate = currentCompDates[compIndex];
-          if (!currentCompDate.component || currentCompDate.component === '' || !currentCompDate.charts) {
+          if ( !currentCompDate.component || currentCompDate.component === '' || !currentCompDate.charts) {
             continue;
           }
           id = this.setSubsystemComp(currentCompDate, id, subsystemStruct);
