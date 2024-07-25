@@ -491,7 +491,7 @@ export class SelectionParam {
       it.childrenList.forEach((child) => {
         child.rangeSelect = true;
         child.checkType = '2';
-        this.pushFileSystem(child,sp);
+        this.pushFileSystem(child, sp);
       });
     }
     if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM) {
@@ -1009,7 +1009,7 @@ export class SelectionParam {
     this.perfEventTypeId = TraceRow.ROW_TYPE_HIPERF_THREADTYPE[0] === -2 ? undefined : TraceRow.ROW_TYPE_HIPERF_THREADTYPE[0];
     if (it.rowType === TraceRow.ROW_TYPE_THREAD) {
       sp.pushPidToSelection(this, it.rowParentId!);
-      if(it.dataListCache && it.dataListCache.length) {
+      if (it.dataListCache && it.dataListCache.length) {
         //@ts-ignore
         let hiTid = it.dataListCache[0]!.tid;
         this.perfThread.push(parseInt(hiTid))
@@ -1127,12 +1127,12 @@ export class SelectionParam {
     }
   }
 
-    //匹配id
-    pushDmaFence(it: TraceRow<any>, sp: SpSystemTrace) {
-      if (it.rowType === TraceRow.ROW_TYPE_DMA_FENCE) {
-        this.dmaFenceNameData.push(it.rowId!);
-      }
+  //匹配id
+  pushDmaFence(it: TraceRow<any>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_DMA_FENCE) {
+      this.dmaFenceNameData.push(it.rowId!);
     }
+  }
 
   // @ts-ignore
   pushGpuMemoryVmTracker(it: TraceRow<unknown>, sp: SpSystemTrace): void {

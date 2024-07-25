@@ -230,7 +230,7 @@ export class SpClockChart {
           });
 
         };
-        traceRow.onThreadHandler = (useCache) => {
+        traceRow.onThreadHandler = (useCache): void => {
           let context: CanvasRenderingContext2D;
           if (traceRow.currentContext) {
             context = traceRow.currentContext;

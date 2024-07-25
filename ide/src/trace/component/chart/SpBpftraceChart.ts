@@ -219,14 +219,14 @@ export class SpBpftraceChart {
       if (name.indexOf('unknown') > -1) {
         newNode['children'] = this.getUnknownAllChildrenNames(node);
       }
-      newNode['detail'] = node['detail'];
-      newNode['depth'] = depth;
-      newNode['name'] = name;
-      newNode['parentName'] = parentName;
-      newNode['property'] = [];
+      newNode.detail = node.detail;
+      newNode.depth = depth;
+      newNode.name = name;
+      newNode.parentName = parentName;
+      newNode.property = [];
       result.push(newNode);
       if (node.children) {
-        result = result.concat(this.getFlattenTreeData(node.children, depth + 1, node['function_name']));
+        result = result.concat(this.getFlattenTreeData(node.children, depth + 1, node.function_name));
       }
     });
     return result;
@@ -242,10 +242,10 @@ export class SpBpftraceChart {
     propertyData.forEach((propertyGroup) => {
       const groups: Array<any> = [];
       propertyGroup.forEach((property: any) => {
-        const duplicateObj = groups.find((group) => group['func_name'] === property['func_name']);
+        const duplicateObj = groups.find((group) => group.func_name === property.func_name);
         if (duplicateObj) {
-          duplicateObj['begin'] = Math.min(duplicateObj['begin'], property['begin']);
-          duplicateObj['end'] = Math.max(duplicateObj['end'], property['end']);
+          duplicateObj.begin = Math.min(duplicateObj.begin, property.begin);
+          duplicateObj.end = Math.max(duplicateObj.end, property.end);
         } else {
           groups.push(property);
         }
@@ -302,15 +302,15 @@ export class SpBpftraceChart {
         //取每列的最大值和最小值
         for (let i = 0; i < twoDimensionalArray[0].length; i++) {
           const data = {
-            name: unknownItem['name'],
-            detail: unknownItem['detail'],
+            name: unknownItem.name,
+            detail: unknownItem.detail,
             begin: twoDimensionalArray[0][i].begin,
             end: 0,
-            depth: unknownItem['depth'],
+            depth: unknownItem.depth,
           };
           for (let j = 0; j < twoDimensionalArray.length; j++) {
-            data['end'] = Math.max(twoDimensionalArray[j][i]['end'], data['end']);
-            data['begin'] = Math.min(twoDimensionalArray[j][i]['begin'], data['begin']);
+            data.end = Math.max(twoDimensionalArray[j][i].end, data.end);
+            data.begin = Math.min(twoDimensionalArray[j][i].begin, data.begin);
           }
           result.push(data);
         }
@@ -329,7 +329,7 @@ export class SpBpftraceChart {
     if (node['children']) {
       node['children'].forEach((child: any) => {
         if (child['function_name'].indexOf('unknown') < 0) {
-          names[child['function_name']] = [];
+          names[child.function_name] = [];
         } else {
           this.getUnknownAllChildrenNames(child, names);
         }
