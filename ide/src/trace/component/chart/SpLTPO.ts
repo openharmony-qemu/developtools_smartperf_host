@@ -301,7 +301,7 @@ export class SpLtpoChart {
     }
   }
   pushLtpoData(
-    lptoArr: any[] | undefined,
+    lptoArr: unknown[] | undefined,
     fanceId: Number,
     fps: Number,
     signaled: Number,
@@ -331,16 +331,19 @@ export class SpLtpoChart {
     while (presentIndex < presentArr.length) {
       if (presentArr[presentIndex] && ltpoDataArr[ltpoIndex]) {
         if (
-          presentArr[presentIndex].startTime! + presentArr[presentIndex].dur! - (window as any).recordStartNS ===
+          // @ts-ignore
+          presentArr[presentIndex].startTime! + presentArr[presentIndex].dur! - (window as unknown).recordStartNS ===
           TraceRow.range!.totalNS
         ) {
           presentArr.splice(presentIndex, 1);
         }
         if (presentArr[presentIndex].presentId === ltpoDataArr[ltpoIndex].fanceId) {
-          ltpoDataArr[ltpoIndex].startTs = Number(presentArr[presentIndex].startTime) - (window as any).recordStartNS;
+          // @ts-ignore
+          ltpoDataArr[ltpoIndex].startTs = Number(presentArr[presentIndex].startTime) - (window as unknown).recordStartNS;
           ltpoDataArr[ltpoIndex].dur = presentArr[presentIndex].dur;
           ltpoDataArr[ltpoIndex].nextStartTs = presentArr[presentIndex + 1]
-            ? Number(presentArr[presentIndex + 1].startTime) - (window as any).recordStartNS
+          // @ts-ignore
+            ? Number(presentArr[presentIndex + 1].startTime) - (window as unknown).recordStartNS
             : '';
           ltpoDataArr[ltpoIndex].nextDur = presentArr[presentIndex + 1] ? presentArr[presentIndex + 1].dur : 0;
           presentIndex++;

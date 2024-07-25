@@ -222,7 +222,7 @@ export let tabConfig: unknown = {
   'box-perf-profile': {
     title: 'Perf Profile',
     type: TabpanePerfProfile,
-    require: (param: SelectionParam) => param.perfSampleIds.length > 0  || param.threadIds.length > 0,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0 || param.threadIds.length > 0,
   },
   'box-perf-sample': {
     title: 'Sample List',
