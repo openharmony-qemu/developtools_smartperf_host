@@ -87,6 +87,10 @@ export class TabPaneSlices extends BaseElement {
                 processSliceItem.wallDuration = parseFloat((processSliceItem.wallDuration / 1000000.0).toFixed(5));
                 //@ts-ignore
                 processSliceItem.avgDuration = parseFloat((processSliceItem.avgDuration / 1000000.0).toFixed(5));
+                //@ts-ignore
+                processSliceItem.asyncNames = asyncNames;
+                //@ts-ignore
+                processSliceItem.asyncCatNames = asyncCatNames;
               }
               let count = new SelectionData();
               count.process = ' ';
@@ -94,6 +98,8 @@ export class TabPaneSlices extends BaseElement {
               count.occurrences = sumOcc;
               count.tabTitle = 'Summary';
               count.allName = processSlicesResult.map((item: any) => item.name);
+              count.asyncNames = asyncNames;
+              count.asyncCatNames = asyncCatNames;
               processSlicesResult.splice(0, 0, count); //@ts-ignore
               this.slicesSource = processSlicesResult;
               this.slicesTbl!.recycleDataSource = processSlicesResult;

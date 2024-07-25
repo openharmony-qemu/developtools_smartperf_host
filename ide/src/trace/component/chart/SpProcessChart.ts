@@ -1258,24 +1258,20 @@ export class SpProcessChart {
   //Async Function
   addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
     let isCategoryAsyncfunc: boolean = FlagsConfig.getFlagsConfigEnableStatus('Start&Finish Trace Category');
+    let asyncRemoveCatArr: any, asyncCat: any, setArrayLenThanOne: any, setArrayLenOnlyOne: any;
     //@ts-ignore
     let asyncFuncList = this.processAsyncFuncMap[it.pid] || [];
     if (!asyncFuncList.length) {
       return;
     }
+    let flag = FlagsConfig.getSecondarySelectValue('catValue') === 'business';
     if (isCategoryAsyncfunc) {//聚合异步trace
-      let { asyncRemoveCatArr, asyncCatMap } = this.hanldCategoryAsyncFunc(asyncFuncList);
-      let { setArrayLenThanOne, setArrayLenOnlyOne } = this.hanldAsyncFunc(it, asyncRemoveCatArr);
-      //处理cat不为null和length等于1的数据
-      let aggregateData = { ...Object.fromEntries(asyncCatMap), ...setArrayLenOnlyOne };
-      Reflect.ownKeys(aggregateData).map((key: any) => {
+      ({ asyncRemoveCatArr, asyncCat } = this.hanldCatFunc(asyncFuncList, flag));//处理是否cat
+      ({ setArrayLenThanOne, setArrayLenOnlyOne } = this.hanldAsyncFunc(it, asyncRemoveCatArr));//len等于0和大于0的分类
+      let aggregateData = { ...asyncCat, ...setArrayLenThanOne, ...setArrayLenOnlyOne };
+      Reflect.ownKeys(aggregateData).map((key: any) => {//处理business first和length大于1的数据
         let param: Array<any> = aggregateData[key];
         this.makeAddAsyncFunction(param, it, processRow, key);
-      })
-      //处理length大于1的数据，不传key值
-      Reflect.ownKeys(setArrayLenThanOne).map((key: any) => {
-        let param: Array<any> = setArrayLenThanOne[key];
-        this.makeAddAsyncFunction(param, it, processRow);
       })
     } else {
       //不聚合异步trace
@@ -1306,32 +1302,40 @@ export class SpProcessChart {
             this.toAsyncFuncCache(asyncFunctions[index], `${asyncFunctions[i].funName}-${it.pid}`);//处理缓存的异步trace数据缺失的字段
           });
         }
-        this.lanesConfig(asyncFunctions, it, processRow);
+        this.lanesConfig(asyncFunctions, it, processRow, `${asyncFunctions[0].funName}`);
       });
     }
   }
   //处理CategoryAsyncFunc
-  hanldCategoryAsyncFunc(
-    asyncFuncList: Array<any>
-  ): { asyncRemoveCatArr: Array<any>, asyncCatMap: Map<string, Array<any>> } {
+  hanldCatFunc(
+    asyncFuncList: Array<any>,
+    flag: boolean
+  ): { asyncRemoveCatArr: Array<any>, asyncCat: any } {
+    let asyncCat;
+    let asyncCatArr = new Array();
     let asyncCatMap: Map<string, any> = new Map<string, any>();
     let asyncRemoveCatArr = new Array();
     //取出cat字段（category）不为null的数据
     for (let i = 0; i < asyncFuncList.length; i++) {
       const el = asyncFuncList[i];
       if (el.cat !== null) {
-        if (asyncCatMap.has(`${el.cat}:${el.threadName} ${el.tid}`)) {
-          let item: Array<any> = asyncCatMap.get(`${el.cat}:${el.threadName} ${el.tid}`);
-          item.push(el);
-        } else {
-          asyncCatMap.set(`${el.cat}:${el.threadName} ${el.tid}`, [el]);
+        if (flag) {//business first
+          asyncCatArr.push(el);
+        } else {//thread first
+          if (asyncCatMap.has(`${el.cat}:${el.threadName} ${el.tid}`)) {
+            let item: Array<any> = asyncCatMap.get(`${el.cat}:${el.threadName} ${el.tid}`);
+            item.push(el);
+          } else {
+            asyncCatMap.set(`${el.cat}:${el.threadName} ${el.tid}`, [el]);
+          }
         }
       } else {
         //取cat字段为null的数据
         asyncRemoveCatArr.push(el);
       }
     }
-    return { asyncRemoveCatArr, asyncCatMap };
+    asyncCat = flag ? Utils.groupBy(asyncCatArr, 'cat') : Object.fromEntries(asyncCatMap)
+    return { asyncRemoveCatArr, asyncCat };
   }
   //处理cat字段为null的数据，按funname分类，分别按len>1和=1去处理
   hanldAsyncFunc(
@@ -1348,7 +1352,7 @@ export class SpProcessChart {
       let asyncFunctions: Array<any> = asyncFuncGroup[key];
       if (asyncFunctions.length > 1) {
         //@ts-ignore
-        setArrayLenThanOne[`${asyncFunctions[0].funName}-${it.pid}`] = asyncFunctions;
+        setArrayLenThanOne[key] = asyncFunctions;
       } else if (asyncFunctions.length === 1) {
         funcArr.push(...asyncFunctions);
       }
@@ -1368,7 +1372,7 @@ export class SpProcessChart {
     asyncFunctions: any[],
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
-    key?: string
+    key: string
   ) {
     let maxDepth: number = -1;
     let i = 0;
@@ -1394,7 +1398,7 @@ export class SpProcessChart {
             mapDepth.set(`${maxDepth}`, { et: itemEndTime });
             param.depth = maxDepth;
           }
-          this.toAsyncFuncCache(param, key ? key : `${asyncFunctions[i].funName}-${it.pid}`);
+          this.toAsyncFuncCache(param, `${key}-${it.pid}`);
           normalData.push(param);
         } else {
           noEndData.push(param);
@@ -1411,7 +1415,7 @@ export class SpProcessChart {
           let index = i;
           maxDepth++;
           noEndData[index].depth = maxDepth;
-          this.toAsyncFuncCache(noEndData[index], key ? key : `${asyncFunctions[i].funName}-${it.pid}`);
+          this.toAsyncFuncCache(noEndData[index], `${key}-${it.pid}`);
         });
       }
       this.lanesConfig([...normalData, ...noEndData], it, processRow, key);
@@ -1422,13 +1426,13 @@ export class SpProcessChart {
     asyncFunctions: any[],
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
-    key?: string
+    key: string
   ) {
     const maxHeight = this.calMaxHeight(asyncFunctions);
     const namesSet = new Set(asyncFunctions.map((item) => item.funName));
     const asyncFuncName = Array.from(namesSet);
     let funcRow = TraceRow.skeleton<FuncStruct>();
-    funcRow.rowId = key ? key : `${asyncFunctions[0].funName}-${it.pid}`;
+    funcRow.rowId = `${key}-${it.pid}`;
     funcRow.asyncFuncName = asyncFuncName;
     funcRow.asyncFuncNamePID = it.pid;
     funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
@@ -1438,7 +1442,7 @@ export class SpProcessChart {
     funcRow.style.width = '100%';
     funcRow.style.height = `${maxHeight}px`;
     funcRow.setAttribute('height', `${maxHeight}`);
-    funcRow.name = key ? key : `${asyncFunctions[0].funName}`;
+    funcRow.name = key;
     funcRow.setAttribute('children', '');
     funcRow.findHoverStruct = (): void => {
       FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();

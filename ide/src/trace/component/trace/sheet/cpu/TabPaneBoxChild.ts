@@ -96,9 +96,9 @@ export class TabPaneBoxChild extends BaseElement {
             e.prior = prioObj ? prioObj.priority : '-';
             e.core = e.cpu === undefined || e.cpu === null ? '-' : `CPU${e.cpu}`;
             let processInfo: string | undefined = Utils.getInstance().getProcessMap().get(e.pid);
-            e.processName = `${processInfo === undefined || processInfo === null ? 'process' : processInfo}(${e.pid})`;
+            e.processName = `${processInfo === undefined || processInfo === null ? 'process' : processInfo}[${e.pid}]`;
             let threadInfo: string | undefined = Utils.getInstance().getThreadMap().get(e.tid);
-            e.threadName = `${threadInfo === undefined || threadInfo === null ? 'thread' : threadInfo}(${e.tid})`;
+            e.threadName = `${threadInfo === undefined || threadInfo === null ? 'thread' : threadInfo}[${e.tid}]`;
             e.note = '-';
           });
           this.boxChildSource = result;
