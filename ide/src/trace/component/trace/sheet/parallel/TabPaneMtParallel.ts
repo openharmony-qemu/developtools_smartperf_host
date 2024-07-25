@@ -53,7 +53,7 @@ export class TabPaneMtParallel extends BaseElement {
     private cpuTbl: HTMLDivElement | null | undefined;
     private groupContentDiv: HTMLDivElement | null | undefined;
     private selectionParam: SelectionParam | undefined;
-    private dataSourceMap: Map<string, any> = new Map<string, any>();
+    private dataSourceMap: Map<string, unknown> = new Map<string, unknown>();
     private leftStartNs: number = 0;
     private rightEndNs: number = 0;
     private midCores: Array<number> = [];
@@ -61,10 +61,11 @@ export class TabPaneMtParallel extends BaseElement {
     private smallCores: Array<number> = [];
     private isCreateCpu: boolean = true;
     private isCreateGroup: boolean = true;
-    private coreTypeMap: Map<string, any> = new Map<string, any>();
+    private coreTypeMap: Map<string, unknown> = new Map<string, unknown>();
     private bottomFilterEl: TabPaneFilter | null | undefined;
     private addGroupArr: Array<number> = [];
-    private bufferGroupMap: Map<string, Array<any>> = new Map<string, any>();
+    // @ts-ignore
+    private bufferGroupMap: Map<string, Array<unknown>> = new Map<string, unknown>();
     private isReset: boolean = true;
 
     set data(threadStatesParam: SelectionParam) {
@@ -95,11 +96,11 @@ export class TabPaneMtParallel extends BaseElement {
                 this.isCreateCpu = false;
                 this.bottomFilterEl!.setCoreConfigList(Utils.getInstance().getWinCpuCount(), this.smallCores, this.midCores, this.largeCores);
             };
-        }
-        this.litSettingPopoverEl!.querySelector<HTMLDivElement>('.confirm-button')!.addEventListener('click', (e: any) => {
+        };
+        this.litSettingPopoverEl!.querySelector<HTMLDivElement>('.confirm-button')!.addEventListener('click', (e: unknown) => {
             this.resetSomeConfig(true);
         });
-        this.litSettingPopoverEl!.querySelector<HTMLDivElement>('.reset-button')!.addEventListener('click', (e: any) => {
+        this.litSettingPopoverEl!.querySelector<HTMLDivElement>('.reset-button')!.addEventListener('click', (e: unknown) => {
             this.isCreateCpu = true;
             this.initDefaultConfig();
             this.resetSomeConfig(false);
@@ -107,7 +108,7 @@ export class TabPaneMtParallel extends BaseElement {
     }
     //Group Setting 气泡相关按钮监听
     groupSettingElListener(): void {
-        this.litGourpPopoverEl!.querySelector<HTMLDivElement>('#group-mining')!.addEventListener('click', (e: any) => {
+        this.litGourpPopoverEl!.querySelector<HTMLDivElement>('#group-mining')!.addEventListener('click', (e: unknown) => {
             this.addGroupArr = [];
             if (this.isCreateGroup) {
                 this.groupContentDiv!.innerHTML = '';
@@ -124,26 +125,27 @@ export class TabPaneMtParallel extends BaseElement {
                 this.getGroupTableLine();
             }
         });
-        this.litGourpPopoverEl!.querySelector<HTMLDivElement>('.add_group_button')!.addEventListener('click', (e: any) => {
+        this.litGourpPopoverEl!.querySelector<HTMLDivElement>('.add_group_button')!.addEventListener('click', (e: unknown) => {
             this.initGroupFn(this.addGroupArr);
             //每次需要添加的数组，在每次添加完后清空
             this.addGroupArr = [];
-        })
-        this.litGourpPopoverEl!.querySelector<HTMLDivElement>('.cut_group_button')!.addEventListener('click', (e: any) => {
+        });
+        this.litGourpPopoverEl!.querySelector<HTMLDivElement>('.cut_group_button')!.addEventListener('click', (e: unknown) => {
             //支持撤回已配置好的分组
             if (!this.groupContentDiv!.childNodes.length) { return };
-            let parts: any = this.groupContentDiv!.lastChild!.textContent?.split(':');
+            let parts: unknown = this.groupContentDiv!.lastChild!.textContent?.split(':');
+            // @ts-ignore
             if (this.bufferGroupMap.has(parts[0])) { this.bufferGroupMap.delete(parts[0]) };
             this.groupContentDiv!.removeChild(this.groupContentDiv!.lastChild!);
             this.addGroupArr = [];
             this.getGroupTableLine('cut');
-        })
-        this.litGourpPopoverEl!.querySelector<HTMLDivElement>('.confirm-group-button')!.addEventListener('click', (e: any) => {
+        });
+        this.litGourpPopoverEl!.querySelector<HTMLDivElement>('.confirm-group-button')!.addEventListener('click', (e: unknown) => {
             this.updateDataSource(true);
             // @ts-ignore
             this.litGourpPopoverEl!.visible = false;
-        })
-        this.litGourpPopoverEl!.querySelector<HTMLDivElement>('.reset-group-button')!.addEventListener('click', (e: any) => {
+        });
+        this.litGourpPopoverEl!.querySelector<HTMLDivElement>('.reset-group-button')!.addEventListener('click', (e: unknown) => {
             this.resetGroup(false);
             this.isCreateCpu = true;
             this.initDefaultConfig();
@@ -183,56 +185,78 @@ export class TabPaneMtParallel extends BaseElement {
             MeterHeaderClick(this.parallelTable, []);
         }
     }
-    async getMtParallelData(obj: Map<string, any>) {
-        let cpuObj: any = { 'L': this.largeCores, 'M': this.midCores, 'S': this.smallCores };
+    async getMtParallelData(obj: Map<string, unknown>) :Promise<void> {
+        let cpuObj: unknown = { 'L': this.largeCores, 'M': this.midCores, 'S': this.smallCores };
         let processIds: Array<number> = [...new Set(this.selectionParam!.processIds)];
         for (const [key, cpuGroup] of obj.entries()) {
             //判断配的的组是否在同一个核分类中，如果在，返回是那个核分类，反之，返回null
+            // @ts-ignore
             let core = this.handleSamePhysicsCore(cpuGroup, cpuObj);
             if (core === null) { continue };
-            let res: any = await queryCoreRunningThread(processIds, this.selectionParam!.threadIds, cpuGroup, this.leftStartNs, this.rightEndNs);
+            // @ts-ignore
+            let res: unknown = await queryCoreRunningThread(processIds, this.selectionParam!.threadIds, cpuGroup, this.leftStartNs, this.rightEndNs);
+            // @ts-ignore
             this.handleTreeProcessData(res, core, key, cpuGroup);
         }
         //计算根节点数据并处理第二层数据的单位及保留位数
         for (const [i, item] of this.coreTypeMap) {
+            // @ts-ignore
             if (this.dataSourceMap.has(`${item.pid}`)) {
+                // @ts-ignore
                 let obj = this.dataSourceMap.get(`${item.pid}`);
+                // @ts-ignore
                 item.allParallel = ((item.parallelDur * item.parallelNum / item.dur) * 100).toFixed(NUM_DIGITS);
+                // @ts-ignore
                 obj.dur += item.dur;
+                // @ts-ignore
                 obj.parallelDur += item.parallelDur;
+                // @ts-ignore
                 obj.load += item.load;
+                // @ts-ignore
                 obj.parallelNum = item.parallelNum;
+                // @ts-ignore
                 item.dur = (item.dur / UNIT).toFixed(NUM_DIGITS);
+                // @ts-ignore
                 item.parallelDur = (item.parallelDur / UNIT).toFixed(NUM_DIGITS);
+                // @ts-ignore
                 item.load = item.load.toFixed(NUM_DIGITS);
+                // @ts-ignore
                 obj.children.push(item);
             }
         }
         //处理根节点数据的单位及保留位数
         for (const [i, item] of this.dataSourceMap) {
+            // @ts-ignore
             item.allParallel = ((item.parallelDur * item.parallelNum / item.dur) * 100).toFixed(NUM_DIGITS);
+            // @ts-ignore
             item.dur = (item.dur / UNIT).toFixed(NUM_DIGITS);
+            // @ts-ignore
             item.parallelDur = (item.parallelDur / UNIT).toFixed(NUM_DIGITS);
+            // @ts-ignore
             item.load = item.load.toFixed(NUM_DIGITS);
         }
     }
 
     //判断自配的相同物理核是否符合计算MT并行度的要求
-    handleSamePhysicsCore(arr: any, obj: { 'L': Array<number>; 'M': Array<number>; 'S': Array<number> }): string | null {
+    handleSamePhysicsCore(arr: unknown, obj: { 'L': Array<number>; 'M': Array<number>; 'S': Array<number> }): string | null {
         let core = null;
+        // @ts-ignore
         if (arr.length > 2) { return null }
         for (const [key, val] of Object.entries(obj)) {
-            let isSet = val.includes(arr[0]) && val.includes(arr[1])
+            // @ts-ignore
+            let isSet = val.includes(arr[0]) && val.includes(arr[1]);
             if (isSet) {
                 core = key;
             }
         }
-        return core
+        return core;
     }
 
-    handleTreeProcessData(result: any, key: string, gourpKey: string, gourp: Array<number>): void {
-        let coreMap: Map<string, any> = new Map<string, any>();
+    handleTreeProcessData(result: unknown, key: string, gourpKey: string, gourp: Array<number>): void {
+        let coreMap: Map<string, unknown> = new Map<string, unknown>();
+        // @ts-ignore
         for (let i = 0; i < result.length; i++) {
+            // @ts-ignore
             let stateItem = result[i];
             //处理框选区域前后的边界ts
             if (stateItem.ts < this.leftStartNs) {
@@ -260,12 +284,16 @@ export class TabPaneMtParallel extends BaseElement {
             };
             if (coreMap.has(`${stateItem.pid}`)) {
                 let obj = coreMap.get(`${stateItem.pid}`);
+                // @ts-ignore
                 let setArr = new Set(obj.tidArr);
                 if (!(setArr.has(stateItem.tid))) {
                     setArr.add(stateItem.tid);
+                    // @ts-ignore
                     obj.tidArr.push(stateItem.tid);
                 }
+                // @ts-ignore
                 obj.gourpDur += dur;
+                // @ts-ignore
                 obj.stateItem.push(stateItem);
             } else {
                 coreMap.set(`${stateItem.pid}`, {
@@ -277,41 +305,59 @@ export class TabPaneMtParallel extends BaseElement {
                 });
             };
         };
-        this.mergeTreeCoreData(coreMap, key, gourpKey, gourp)
+        this.mergeTreeCoreData(coreMap, key, gourpKey, gourp);
     }
     //处理树结构最终需要的信息数据
-    mergeTreeCoreData(map: Map<string, any>, coreKey: string, gourpKey: string, gourp: Array<number>): void {
+    // @ts-ignore
+    mergeTreeCoreData(map: Map<string, unknown>, coreKey: string, gourpKey: string, gourp: Array<number>): void {
         let str = gourp.join(',');
         for (const [key, value] of map) {
             let pDur: number = 0;
+            // @ts-ignore
             pDur = HanldParalLogic(this.hanldMapLogic, value, pDur);
+            // @ts-ignore
             let paral = (pDur * gourp.length / value.gourpDur) * 100;
+            // @ts-ignore
             let load = value.gourpDur / ((100 * UNIT) * Utils.getInstance().getWinCpuCount());
             let groupObj = {
+                // @ts-ignore
                 pid: value.pid,
+                // @ts-ignore
                 tid: value.tid,
                 title: '',
                 group: `${gourpKey}:${str}`,
+                // @ts-ignore
                 dur: (value.gourpDur / UNIT).toFixed(NUM_DIGITS),
                 parallelNum: gourp.length,
                 parallelDur: (pDur / UNIT).toFixed(NUM_DIGITS),
                 allParallel: paral.toFixed(NUM_DIGITS),
                 load: load.toFixed(NUM_DIGITS),
+                // @ts-ignore
                 tCount: value.tidArr.length,
                 children: []
-            }
+            };
+            // @ts-ignore
             if (this.coreTypeMap.has(`${value.pid} ${coreKey}`)) {
+                // @ts-ignore
                 let obj = this.coreTypeMap.get(`${value.pid} ${coreKey}`);
+                // @ts-ignore
                 obj.dur += value.gourpDur;
+                // @ts-ignore
                 obj.parallelDur += pDur;
+                // @ts-ignore
                 obj.load += load;
+                // @ts-ignore
                 obj.children.push(groupObj);
             } else {
+                // @ts-ignore
                 this.coreTypeMap.set(`${value.pid} ${coreKey}`, {
+                    // @ts-ignore
                     pid: value.pid,
+                    // @ts-ignore
                     tid: value.tid,
                     title: `${coreKey}`,
                     group: '',
+                    // @ts-ignore
                     dur: value.gourpDur,
                     parallelNum: gourp.length,
                     parallelDur: pDur,
@@ -325,11 +371,14 @@ export class TabPaneMtParallel extends BaseElement {
     }
 
     //每次stateItem计算的的结果
-    hanldMapLogic(dumpObj: any, value?: any, param?: any): void {
+    hanldMapLogic(dumpObj: unknown, value?: unknown, param?: unknown): void {
+        // @ts-ignore
         if (dumpObj.len !== 1) {
+            // @ts-ignore
             param += dumpObj.endTs - dumpObj.ts;
         }
-        return param
+        // @ts-ignore
+        return param;
     }
     //初始化cpu check状态
     initDefaultConfig(): void {
@@ -347,12 +396,16 @@ export class TabPaneMtParallel extends BaseElement {
     }
 
     //初始化分组
-    initGroupFn(arr: any): void {
+    initGroupFn(arr: unknown): void {
         let info = [...this.bufferGroupMap.values()].reduce((acc, val) => acc.concat(val), []);
-        let flag = arr.filter((item: any) => info.includes(item)).length > 0;
+        // @ts-ignore
+        let flag = arr.filter((item: unknown) => info.includes(item)).length > 0;
+        // @ts-ignore
         if (arr.length && arr.length > 1 && !flag) {
             let len = this.groupContentDiv!.childNodes.length + 1;
+            // @ts-ignore
             let str = arr.join(',');
+            // @ts-ignore
             this.bufferGroupMap.set(`group${len}`, arr);
             this.groupContentDiv!.innerHTML += `<div style="border-bottom: 1px solid black;">group${len}:${str}</div>`;
         }
@@ -387,7 +440,8 @@ export class TabPaneMtParallel extends BaseElement {
         this.cpuTbl?.append(...[cpuIdLine]);
     }
     //Gropu容器中新增Tbl的cpu Line值
-    creatGroupLineDIv(obj: any): void {
+    creatGroupLineDIv(obj: unknown): void {
+        // @ts-ignore
         let id = `${obj.cpu}`.toString();
         let checkBoxId = `box${id}`;
         // 创建一个包裹div来容纳checkbox和cpuLine  
@@ -396,17 +450,22 @@ export class TabPaneMtParallel extends BaseElement {
         wrapperDiv.id = checkBoxId;
         // 创建checkBox实例   
         let checkBox: LitCheckBox = new LitCheckBox();
+        // @ts-ignore
         checkBox.checked = obj.isCheck;
+        // @ts-ignore
         checkBox.disabled = obj.disabled;
         checkBox.setAttribute('not-close', '');
         // 添加事件监听器到checkBox  
-        checkBox.addEventListener('change', (e: any) => {
+        checkBox.addEventListener('change', (e: unknown) => {
+            // @ts-ignore
             checkBox.checked = e.detail.checked;
+            // @ts-ignore
             this.bottomFilterEl!.canUpdateCheckList(e.detail.checked, this.addGroupArr, obj.cpu);
         });
         wrapperDiv.appendChild(checkBox);
         // 创建cpuLine div  
         let cpuLine = document.createElement('div');
+        // @ts-ignore
         cpuLine.textContent = obj.cpu + '';
         cpuLine.style.textAlign = 'center';
         cpuLine.style.fontWeight = 'normal';

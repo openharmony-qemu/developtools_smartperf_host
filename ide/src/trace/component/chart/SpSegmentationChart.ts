@@ -122,31 +122,31 @@ export class SpSegmentationChart {
       // @ts-ignore
       SpSegmentationChart.binderRow!.supplier = (): Promise<Array<FreqChartDataStruct>> =>
         new Promise<Array<FreqChartDataStruct>>((resolve) => resolve(chartData));
-      SpSegmentationChart.binderRow!.style.height =  `${BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40}px`;
+      SpSegmentationChart.binderRow!.style.height = `${BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40}px`;
       SpSegmentationChart.binderRow!.funcMaxHeight = BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40;
     }
     TraceRow.range!.refresh = true;
     SpSegmentationChart.binderRow!.needRefresh = true;
     SpSegmentationChart.binderRow!.draw(false);
-        if (SpSegmentationChart.binderRow!.collect) {
-          window.publish(window.SmartEvent.UI.RowHeightChange, {
-            expand: SpSegmentationChart.binderRow!.funcExpand,
-            value: SpSegmentationChart.binderRow!.funcMaxHeight - 40,
-          });
-        }
-    SpSegmentationChart.trace.favoriteChartListEL?.scrollTo(0,0);
+    if (SpSegmentationChart.binderRow!.collect) {
+      window.publish(window.SmartEvent.UI.RowHeightChange, {
+        expand: SpSegmentationChart.binderRow!.funcExpand,
+        value: SpSegmentationChart.binderRow!.funcMaxHeight - 40,
+      });
+    }
+    SpSegmentationChart.trace.favoriteChartListEL?.scrollTo(0, 0);
     SpSegmentationChart.trace.refreshCanvas(false);
   }
   // 悬浮联动
   static tabHover(type: string, tableIsHover: boolean = false, cycle: number = -1): void {
     if (tableIsHover) {
       if (SpSegmentationChart.tabHoverObj.cycle === cycle && SpSegmentationChart.tabHoverObj.key === type) {
-        SpSegmentationChart.tabHoverObj = { cycle: -1, key: '' }
+        SpSegmentationChart.tabHoverObj = { cycle: -1, key: '' };
       } else {
-        SpSegmentationChart.tabHoverObj = { cycle, key: type }
+        SpSegmentationChart.tabHoverObj = { cycle, key: type };
       }
     } else {
-      SpSegmentationChart.tabHoverObj = { cycle: -1, key: '' }
+      SpSegmentationChart.tabHoverObj = { cycle: -1, key: '' };
     }
 
     SpSegmentationChart.trace.refreshCanvas(false);
@@ -579,5 +579,5 @@ function setBinderData(data: Array<Array<FreqChartDataStruct>>, binderList: Arra
 
 class heightLine {
   key: string = '';
-  cycle: number = -1
+  cycle: number = -1;
 }

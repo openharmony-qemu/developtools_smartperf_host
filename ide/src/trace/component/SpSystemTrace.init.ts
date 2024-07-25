@@ -438,7 +438,8 @@ function selectHandler(sp: SpSystemTrace): void {
     let checkRows = rows;
     if (!refreshCheckBox) {
       checkRows = [
-        ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[check-type='2']`),
+        // @ts-ignore
+        ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[check-type='2']`),
         ...sp.favoriteChartListEL!.getAllSelectCollectRows(),
       ];
     }
@@ -604,7 +605,7 @@ function windowKeyDownHandler(sp: SpSystemTrace): (ev: KeyboardEvent) => void {
 }
 function smartEventSubscribe(sp: SpSystemTrace): void {
   window.subscribe(window.SmartEvent.UI.SliceMark, (data) => sp.sliceMarkEventHandler(data));
-  window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => {});
+  window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => { });
   window.subscribe(window.SmartEvent.UI.RefreshCanvas, () => sp.refreshCanvas(false));
   window.subscribe(window.SmartEvent.UI.KeyboardEnable, (tr) => {
     //@ts-ignore
@@ -1001,15 +1002,14 @@ export async function spSystemTraceInit(
     sp.intersectionObserver?.observe(it);
   });
   // trace文件加载完毕,将动效json文件读取并存入缓存
-  let funDetailUrl = `https://${window.location.host.split(':')[0]}:${
-    window.location.port
-  }/application/doc/funDetail.json`;
-  var xhr = new XMLHttpRequest();
+  let funDetailUrl = `https://${window.location.host.split(':')[0]}:${window.location.port
+    }/application/doc/funDetail.json`;
+  let xhr = new XMLHttpRequest();
   // 创建XMLHttpRequest对象
   xhr.open('GET', funDetailUrl);
-  xhr.onreadystatechange = function () {
+  xhr.onreadystatechange = function (): void {
     if (xhr.readyState === 4 && xhr.status === 200) {
-      var content = xhr.responseText;
+      let content = xhr.responseText;
       caches.open('/funDetail').then((cache) => {
         let headers = new Headers();
         headers.append('Content-Type', 'application/json');

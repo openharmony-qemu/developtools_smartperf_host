@@ -154,8 +154,9 @@ function threadClickHandlerFunc(sp: SpSystemTrace): (e: ThreadStruct) => void {
 }
 
 //点击prio箭头刷新canvas
-function prioClickHandlerFunc(sp: SpSystemTrace) {
-  return function (d: any) {
+function prioClickHandlerFunc(sp: SpSystemTrace): (d: unknown) => void {
+  return function (d: unknown) {
+    // @ts-ignore
     ThreadStruct.prioCount = d;
     ThreadStruct.isClickPrio = true;
     sp.refreshCanvas(true);
@@ -428,7 +429,7 @@ export default function spSystemTraceOnClickHandler(
     sp.removeLinkLinesByBusinessType('thread');
   }
   if (!FuncStruct.selectFuncStruct) {
-    sp.removeLinkLinesByBusinessType('distributed','func');
+    sp.removeLinkLinesByBusinessType('distributed', 'func');
   }
   if (row) {
     let pointEvent = sp.createPointEvent(row);
@@ -540,7 +541,7 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
   let favoriteHeight = sp.favoriteChartListEL!.getBoundingClientRect().height;
   let memTr = rows.filter((item: any) => item.rowType ===TraceRow.ROW_TYPE_MEM)
   rows
-    .filter((it) => it.focusContain(ev, sp.inFavoriteArea!,Number(transformY),favoriteHeight) && it.collect === sp.inFavoriteArea)
+    .filter((it) => it.focusContain(ev, sp.inFavoriteArea!, Number(transformY), favoriteHeight) && it.collect === sp.inFavoriteArea)
     .filter((it) => {
       if (it.collect) {
         return true;
@@ -896,7 +897,7 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
     let inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
     let favoriteHeight = sp.favoriteChartListEL!.getBoundingClientRect().height;
     let rows = sp.visibleRows.filter((it) =>
-      it.focusContain(ev, inFavoriteArea!, Number(transformY),favoriteHeight) && it.collect === inFavoriteArea);
+      it.focusContain(ev, inFavoriteArea!, Number(transformY), favoriteHeight) && it.collect === inFavoriteArea);
     if (JankStruct.delJankLineFlag) {
       sp.removeLinkLinesByBusinessType('janks');
     }

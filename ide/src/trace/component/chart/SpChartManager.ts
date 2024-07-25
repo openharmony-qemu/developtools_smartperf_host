@@ -57,7 +57,7 @@ import { sliceSender } from '../../database/data-trafic/SliceSender';
 import { BaseStruct } from '../../bean/BaseStruct';
 import { SpGpuCounterChart } from './SpGpuCounterChart';
 import { SpUserFileChart } from './SpUserPluginChart'
-import { queryDmaFenceIdAndCat } from '../../database/sql/dmaFence.sql'
+import { queryDmaFenceIdAndCat } from '../../database/sql/dmaFence.sql';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
 
 export class SpChartManager {
@@ -233,8 +233,8 @@ export class SpChartManager {
   async initDistributedChart(progress: Function, file1: string, file2: string): Promise<void> {
     let funArr1 = await queryAllFuncNames('1');
     let funArr2 = await queryAllFuncNames('2');
-    this.handleFuncName(funArr1,'1');
-    this.handleFuncName(funArr2,'2');
+    this.handleFuncName(funArr1, '1');
+    this.handleFuncName(funArr2, '2');
     progress('load data dict', 50);
     SpSystemTrace.DATA_DICT.clear();
     SpChartManager.APP_STARTUP_PID_ARR = [];
@@ -252,7 +252,8 @@ export class SpChartManager {
     info(`trace 2 load completed`);
   }
 
-  async initDistributedTraceRow(traceId: string, traceFolder: TraceRow<any>, progress: Function): Promise<void> {
+  // @ts-ignore
+  async initDistributedTraceRow(traceId: string, traceFolder: TraceRow<unknown>, progress: Function): Promise<void> {
     let ptArr = await queryThreadAndProcessName(traceId);
     // @ts-ignore
     this.handleProcessThread(ptArr, traceId);
@@ -263,12 +264,15 @@ export class SpChartManager {
     await this.cpu.init(count.cpu, traceFolder, traceId);
     info(`initData trace ${traceId} cpu Data initialized`);
     progress(`trace ${traceId} cpu freq`, 75);
+    // @ts-ignore
     await this.freq.init(traceFolder, traceId);
     info(`initData trace ${traceId} cpu freq Data initialized`);
     progress(`trace ${traceId} clock`, 80);
+    // @ts-ignore
     await this.clockChart.init(traceFolder, traceId);
     info(`initData trace ${traceId} clock Data initialized`);
     progress(`trace ${traceId} Irq`, 85);
+    // @ts-ignore
     await this.irqChart.init(traceFolder, traceId);
     info(`initData trace ${traceId} irq Data initialized`);
     progress(`trace ${traceId} process`, 92);
@@ -301,7 +305,7 @@ export class SpChartManager {
     await this.spBpftraceChart.init(ev);
   }
 
-  async initGpuCounter(ev: File) {
+  async initGpuCounter(ev: File): Promise<void> {
     const res = await this.initSampleTime(ev, 'gpucounter');
     //@ts-ignore
     await this.spGpuCounterChart.init(res);
@@ -331,13 +335,13 @@ export class SpChartManager {
   }
 
   // 将callstatck表信息转为map存入utils
-  handleFuncName(funcNameArray: Array<unknown>,traceId?:string) {
-    if(traceId){
+  handleFuncName(funcNameArray: Array<unknown>, traceId?: string): void {
+    if (traceId) {
       funcNameArray.forEach((it) => {
         //@ts-ignore
-        Utils.getInstance().getCallStatckMap().set(`${traceId}_${it.id!}`,it.name);
+        Utils.getInstance().getCallStatckMap().set(`${traceId}_${it.id!}`, it.name);
       });
-    }else {
+    } else {
       funcNameArray.forEach((it) => {
         //@ts-ignore
         Utils.getInstance().getCallStatckMap().set(it.id, it.name);
@@ -376,8 +380,11 @@ export class SpChartManager {
     let endNS = 30_000_000_000;
     if (type === 'gpucounter') {
       res = await this.spGpuCounterChart.getCsvData(ev);
+      // @ts-ignore
       const endTime = Number(res[res.length - 1].split(',')[0]);
+      // @ts-ignore
       const minIndex = this.spGpuCounterChart.getMinData(res) + 1;
+      // @ts-ignore
       const startTime = Number(res[minIndex].split(',')[0]);
       endNS = Number((endTime - startTime).toString().slice(0, 11));
     }
@@ -395,7 +402,7 @@ export class SpChartManager {
     return res;
   };
 
-  initCpuRate = async (rates: Array<{ cpu: number; ro: number; rate: number;}>): Promise<void> => {
+  initCpuRate = async (rates: Array<{ cpu: number; ro: number; rate: number; }>): Promise<void> => {
     if (this.trace.timerShaftEL) {
       this.trace.timerShaftEL.cpuUsage = rates;
     }
@@ -425,7 +432,8 @@ export class SpChartManager {
     });
   }
 
-  createFolderRow(rowId: string, rowType: string, rowName: string, traceId?: string): TraceRow<any> {
+  // @ts-ignore
+  createFolderRow(rowId: string, rowType: string, rowName: string, traceId?: string): TraceRow<unknown> {
     let row = TraceRow.skeleton<BaseStruct>(traceId);
     row.setAttribute('disabled-check', '');
     row.rowId = rowId;
@@ -446,7 +454,7 @@ export class SpChartManager {
   }
 
   //存名字
-  handleDmaFenceName<T extends { id: number; cat: string; seqno: number; driver: string; context: string }>(arr: T[]) {
+  handleDmaFenceName<T extends { id: number; cat: string; seqno: number; driver: string; context: string }>(arr: T[]): void {
     Utils.DMAFENCECAT_MAP.clear();
     for (let item of arr) {
       Utils.DMAFENCECAT_MAP.set(item.id, item);

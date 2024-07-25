@@ -23,7 +23,7 @@ import { Utils } from '../base/Utils';
 import { SpSystemTrace } from '../../SpSystemTrace';
 
 const LOCAL_STORAGE_SEARCH_KEY = 'search_key';
-let timerId: any = null;
+let timerId: unknown = null;
 @element('lit-search')
 export class LitSearch extends BaseElement {
   valueChangeHandler: ((str: string) => void) | undefined | null;

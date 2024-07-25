@@ -106,7 +106,7 @@ export class TabPaneSmapsRecord extends BaseElement {
     this.smapsRecordTable = this.shadowRoot?.querySelector<LitTable>('#smaps-record-tbl');
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.smapsRecordTable!);
     new ResizeObserver(() => {

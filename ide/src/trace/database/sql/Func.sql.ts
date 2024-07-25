@@ -120,6 +120,7 @@ export const queryAllFuncNames = async (traceId?: string): Promise<Array<unknown
     {},
     { traceId: traceId, action: 'exec-buf' }
   );
+  // @ts-ignore
   return Utils.convertJSON(allFuncNamesBuffer);
 };
 
