@@ -724,15 +724,20 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any, curren
   }
 }
 
-function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: any) {
+export function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: any) {
   if (currentEntry?.type === 'cpu') {
     sp.queryAllTraceRow(`trace-row[row-type='cpu-data'][row-id='${currentEntry.cpu}']`,
       (row) => row.rowType === 'cpu-data' && row.rowId === `${currentEntry.cpu}`)[0].highlight = false;
   } else if (currentEntry?.type === 'func') {
-    let funId = (currentEntry.row_id === null || currentEntry.row_id === undefined) ? `${currentEntry.funName}-${currentEntry.pid}` : currentEntry.row_id;
+    let funId = (currentEntry.rowId === null || currentEntry.rowId === undefined) ? `${currentEntry.funName}-${currentEntry.pid}` : currentEntry.rowId;
     let funcRowID = (currentEntry.cookie === null || currentEntry.cookie === undefined) ? `${Utils.getDistributedRowId(currentEntry.tid)}` : funId;
-    sp.queryAllTraceRow(`trace-row[row-type='func'][row-id='${funcRowID}'][row-parent-id='${currentEntry.pid}']`,
-      (row) => row.rowType === 'func' && row.rowId === `${funcRowID}` && row.rowParentId === `${currentEntry.pid}`)[0].highlight = false;
+    let parentRow = sp.queryAllTraceRow(`trace-row[row-id='${Utils.getDistributedRowId(currentEntry.pid)}'][folder]`,
+      (row) => row.rowId === `trace-row[row-id='${Utils.getDistributedRowId(currentEntry.pid)}'][folder]`)[0]
+    if (!parentRow) {
+      return;
+    }
+    let filterRow = parentRow.childrenList.filter((child) => child.rowId === funcRowID && child.rowType === 'func')[0];
+    filterRow.highlight = false;
   } else if (currentEntry?.type === 'sdk') {
     let parentRow = sp.shadowRoot!.querySelector<TraceRow<any>>("trace-row[row-type='sdk'][folder]");
     if (parentRow) {

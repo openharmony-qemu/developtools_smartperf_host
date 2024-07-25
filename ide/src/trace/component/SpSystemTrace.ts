@@ -1858,7 +1858,7 @@ export class SpSystemTrace extends BaseElement {
       if (!this.isInViewport(rootRow)) {
         setTimeout(() => {
           rootRow!.scrollIntoView({ behavior: 'smooth' });
-        }, 50);
+        }, 500);
       }
     } else {
       // @ts-ignore
@@ -1871,7 +1871,7 @@ export class SpSystemTrace extends BaseElement {
       }
       setTimeout(() => {
         rootRow!.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 50);
+      }, 500);
     }
   }
 
