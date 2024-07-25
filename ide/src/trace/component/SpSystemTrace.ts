@@ -1597,8 +1597,10 @@ export class SpSystemTrace extends BaseElement {
           }),
           scrollTop: this.rowsEL!.scrollTop,
           favoriteScrollTop: this.favoriteChartListEL!.scrollTop,
-          drawFlag: this.timerShaftEL!.sportRuler!.flagList,//下载时存旗帜的信息
-          markFlag: this.timerShaftEL!.sportRuler!.slicesTimeList,//下载时存M和shiftM的信息
+          //下载时存旗帜的信息
+          drawFlag: this.timerShaftEL!.sportRuler!.flagList,
+          //下载时存M和shiftM的信息
+          markFlag: this.timerShaftEL!.sportRuler!.slicesTimeList,
         });
         this.downloadRecordFile(data).then(() => { });
       }

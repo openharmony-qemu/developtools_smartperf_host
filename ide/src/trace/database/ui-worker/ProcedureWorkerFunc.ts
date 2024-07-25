@@ -160,10 +160,11 @@ export function funcStructOnClick(
           row?.namePrefix,
           FuncStruct.selectFuncStruct!,
           scrollToFuncHandler,
-          (datas: any, str: string, binderTid: number) => {
+          (datas: unknown, str: string, binderTid: number) => {
             sp.removeLinkLinesByBusinessType('func');
             if (str === 'binder-to') {
-              datas.forEach((data: { tid: any; pid: any }) => {
+              //@ts-ignore
+              datas.forEach((data: { tid: unknown; pid: unknown }) => {
                 //@ts-ignore
                 let endParentRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>(
                   `trace-row[row-id='${data.pid}'][folder]`
@@ -188,7 +189,7 @@ export function funcStructOnClick(
   });
 }
 export class FuncStruct extends BaseFuncStruct {
-  [x: string]: any;
+  [x: string]: unknown;
   static hoverFuncStruct: FuncStruct | undefined;
   static selectFuncStruct: FuncStruct | undefined;
   static selectLineFuncStruct: Array<FuncStruct> = [];
@@ -230,7 +231,7 @@ export class FuncStruct extends BaseFuncStruct {
     funcNode.frame.height = 18;
   }
 
-  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct, flagConfig?: any): void {
+  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct, flagConfig?: unknown): void {
     if (data.frame) {
       if (data.dur === undefined || data.dur === null) {
       } else {
@@ -255,6 +256,7 @@ export class FuncStruct extends BaseFuncStruct {
           ctx.lineWidth = 2;
           ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, data.frame.height - 2);
         }
+        //@ts-ignore
         if (flagConfig!.TaskPool === 'Enabled') {
           if (data.funName!.indexOf('H:Task PerformTask End:') >= 0 && data.funName!.indexOf('Successful') < 0) {
             if (data.frame!.width < 10) {

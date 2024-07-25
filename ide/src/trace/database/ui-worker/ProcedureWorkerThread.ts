@@ -68,15 +68,15 @@ export class ThreadRender extends Render {
     threadReq.context.closePath();
   }
 
-  render(threadReq: RequestMessage, threadList: Array<unknown>, threadFilter: Array<unknown>): void { }
+  render(threadReq: RequestMessage, threadList: Array<unknown>, threadFilter: Array<unknown>): void {}
 }
 
 export function ThreadStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  threadClickHandler: any,
-  cpuClickHandler: any,
-  prioClickHandlerFunc: any,
+  threadClickHandler: unknown,
+  cpuClickHandler: unknown,
+  prioClickHandlerFunc: unknown,
   entry?: ThreadStruct
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
@@ -85,6 +85,7 @@ export function ThreadStructOnClick(
       ThreadStruct.selectThreadStruct = entry || ThreadStruct.hoverThreadStruct;
       sp.timerShaftEL?.drawTriangle(ThreadStruct.selectThreadStruct!.startTime || 0, 'inverted');
       sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct!,
+        //@ts-ignore
         threadClickHandler, cpuClickHandler, prioClickHandlerFunc);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
@@ -104,18 +105,18 @@ export class ThreadStruct extends BaseThreadStruct {
   static selectThreadStructList: Array<ThreadStruct> = [];
   static firstselectThreadStruct: ThreadStruct | undefined;
   static isClickPrio: boolean = false;
-  static prioCount: Array<any> = [];
+  static prioCount: Array<unknown> = [];
   argSetID: number | undefined;
   translateY: number | undefined;
   textMetricsWidth: number | undefined;
   static startCycleTime: number = 0;
   static endTime: number = 0;
 
-  static drawThread(threadContext: CanvasRenderingContext2D, data: ThreadStruct) {
+  static drawThread(threadContext: CanvasRenderingContext2D, data: ThreadStruct): void {
     if (data.frame) {
 
       threadContext.globalAlpha = 1;
-      let stateText = Utils.getEndState(data.state || '');
+      let stateText = ThreadStruct.getEndState(data.state || '');
       threadContext.fillStyle = Utils.getStateColor(data.state || '');
       if ('S' === data.state) {
         threadContext.globalAlpha = 0.2;

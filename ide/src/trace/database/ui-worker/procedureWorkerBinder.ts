@@ -20,7 +20,7 @@ import { drawString, Rect, ns2x } from './ProcedureWorkerCommon';
 import { SpSegmentationChart } from '../../component/chart/SpSegmentationChart';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
 import { CpuFreqExtendStruct } from './ProcedureWorkerFreqExtend';
-import { AllstatesStruct } from './ProcedureWorkerAllStates'
+import { AllstatesStruct } from './ProcedureWorkerAllStates';
 export class BinderRender extends Render {
   renderMainThread(
     freqReq: {
@@ -42,24 +42,24 @@ export class BinderRender extends Render {
       paddingTop: 5,
       useCache: freqReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    let find = false
+    let find = false;
     BinderStruct.hoverCpuFreqStruct = undefined;
     if (SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key !== '') {
       if (!SpSegmentationChart.trace.isMousePointInSheet) {
-        SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 }
+        SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
       }
       if (SpSegmentationChart.tabHoverObj.key === freqReq.type) {
         for (let re of binderFilter) {
           if (!row.isHover && re.cycle === SpSegmentationChart.tabHoverObj.cycle) {
             BinderStruct.hoverCpuFreqStruct = re;
-            find = true
+            find = true;
           }
           BinderStruct.draw(freqReq.context, re);
         }
         // dur太小，从datalist里面找
         if (!find) {
           let hoverData = binderList.filter(v => {
-            return v.cycle === SpSegmentationChart.tabHoverObj.cycle
+            return v.cycle === SpSegmentationChart.tabHoverObj.cycle;
           })[0];
           if (hoverData) {
             let pointX: number = ns2x(
@@ -100,7 +100,7 @@ export class BinderRender extends Render {
       SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key === '' &&
       CpuFreqExtendStruct.hoverStruct === undefined && !AllstatesStruct.hoverThreadStruct) {
       BinderStruct.hoverCpuFreqStruct = undefined;
-      SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined
+      SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
       find = false;
     }
     freqReq.context.closePath();

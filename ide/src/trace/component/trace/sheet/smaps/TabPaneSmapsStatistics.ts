@@ -120,7 +120,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
     smapsTreeObj.rssStr = Utils.getBinaryByteWithUnit(smapsTreeObj.rss);
     smapsTreeObj.pssStr = Utils.getBinaryByteWithUnit(smapsTreeObj.pss);
     smapsTreeObj.sizePro = this.calculatePercentage(smapsTreeObj.size, sumSize!);
-    smapsTreeObj.sizeProStr = smapsTreeObj.sizePro.toFixed(2) + '%' == '0.00%' ? '0%' : smapsTreeObj.sizePro.toFixed(2) + '%';
+    smapsTreeObj.sizeProStr = smapsTreeObj.sizePro.toFixed(2) + '%' === '0.00%' ? '0%' : smapsTreeObj.sizePro.toFixed(2) + '%';
     smapsTreeObj.sharedCleanStr = Utils.getBinaryByteWithUnit(smapsTreeObj.sharedClean);
     smapsTreeObj.sharedDirtyStr = Utils.getBinaryByteWithUnit(smapsTreeObj.sharedDirty);
     smapsTreeObj.privateCleanStr = Utils.getBinaryByteWithUnit(smapsTreeObj.privateClean);
@@ -141,7 +141,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
     objTree.path = SpSystemTrace.DATA_DICT.get(Number(smaps.path))?.split('/');
     if (sumSize) {
       objTree.sizePro = this.calculatePercentage(smaps.size, sumSize);
-      objTree.sizeProStr = objTree.sizePro.toFixed(2) + '%' == '0.00%' ? '0%' : objTree.sizePro.toFixed(2) + '%' ;
+      objTree.sizeProStr = objTree.sizePro.toFixed(2) + '%' === '0.00%' ? '0%' : objTree.sizePro.toFixed(2) + '%';
     }
     objTree.size = smaps.size;
     objTree.sizeStr = Utils.getBinaryByteWithUnit(smaps.size);
@@ -197,7 +197,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
 
     if (sumSize) {
       treeObj.sizePro = this.calculatePercentage(smaps.size, sumSize || 0);
-      treeObj.sizeProStr = treeObj.sizePro.toFixed(2) + '%' == '0.00%' ? '0%' : treeObj.sizePro.toFixed(2) + '%';
+      treeObj.sizeProStr = treeObj.sizePro.toFixed(2) + '%' === '0.00%' ? '0%' : treeObj.sizePro.toFixed(2) + '%';
     }
 
     if (smapsStatDataTree.children.length >= 1 && smapsStatDataTree.path !== '< multiple >') {

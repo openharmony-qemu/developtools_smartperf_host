@@ -142,7 +142,8 @@ export class CpuAbilityMonitorStruct extends BaseStruct {
     totalNS: number,
     frame: Rect
   ): void {
-    let cpuAbilityStartPointX: number, cpuAbilityEndPointX: number;
+    let cpuAbilityStartPointX: number;
+    let cpuAbilityEndPointX: number;
 
     if ((cpuAbilityNode.startNS || 0) < startNS) {
       cpuAbilityStartPointX = 0;

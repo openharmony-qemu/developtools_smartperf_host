@@ -821,7 +821,6 @@ function spSystemTraceShowStructFindIndex(
   }
   return findIndex;
 }
-
 function findEntryTypeCpu(sp: SpSystemTrace, findEntry: any): void {
   CpuStruct.selectCpuStruct = findEntry;
   CpuStruct.hoverCpuStruct = CpuStruct.selectCpuStruct;

@@ -18,8 +18,8 @@ import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import {
   GpuCounterStruct,
-  maleoon_counter_obj,
-  gpu_counter_type,
+  Maleoon_counter_obj,
+  Gpu_counter_type,
   GpuCounterRender,
 } from '../../database/ui-worker/ProcedureWorkerGpuCounter';
 import { folderSupplier, folderThreadHandler } from './SpChartManager';
@@ -62,7 +62,9 @@ export class SpGpuCounterChart {
     this.folderRow.supplier = folderSupplier();
     // @ts-ignore
     this.folderRow.onThreadHandler = folderThreadHandler(this.folderRow, this.trace);
-    if (!isSimpleUpload) this.folderRow.addRowSampleUpload('.csv');
+    if (!isSimpleUpload) {
+      this.folderRow.addRowSampleUpload('.csv');
+    }
     this.folderRow.addEventListener('expansion-change', this.trace.extracted(this.folderRow));
     this.trace.rowsEL?.appendChild(this.folderRow);
   }
@@ -188,6 +190,7 @@ export class SpGpuCounterChart {
     // @ts-ignore
     let start_time = Number(start_time_data[gpuCounterMap.timestamp]);
     let last_record_time = 0;
+    // @ts-ignore
     let maleoonCounter = new maleoon_counter_obj();
     // @ts-ignore
     let read_line_num = res.length - 1;
@@ -224,18 +227,23 @@ export class SpGpuCounterChart {
     for (let i = minIndex; i < read_line_num; i++) {
       // @ts-ignore
       let datas = res[i].split(',');
-      if (datas.length != 25) continue;
+      if (datas.length !== 25) {
+        continue;
+      }
       if (
         // @ts-ignore
         (start_ts > 0 && Number(datas[gpuCounterMap.timestamp]) < start_ts) ||
         // @ts-ignore
         (end_ts > 0 && Number(datas[gpuCounterMap.timestamp]) > end_ts)
-      )
+      ) {
         continue;
+      }
       // @ts-ignore
       let time_passed = Number(datas[gpuCounterMap.timestamp]) - start_time;
       //去重
-      if (time_passed <= last_record_time) continue;
+      if (time_passed <= last_record_time) {
+        continue;
+      }
       time_passed -= last_record_time;
       last_record_time += time_passed;
       utilization_array.forEach((item) => {
@@ -257,11 +265,13 @@ export class SpGpuCounterChart {
     }
     utilization_array.forEach((item) => {
       for (let i = 0; i < maleoonCounter[item].length; i++) {
+        //@ts-ignore
         maleoonCounter[item][i].dur = maleoonCounter[item][i + 1]?.startNS - maleoonCounter[item][i].startNS || 0;
       }
     });
     count_array.forEach((item) => {
       for (let i = 0; i < maleoonCounter[item].length; i++) {
+        //@ts-ignore
         maleoonCounter[item][i].dur = maleoonCounter[item][i + 1]?.startNS - maleoonCounter[item][i].startNS || 0;
       }
     });
@@ -366,79 +376,127 @@ export class SpGpuCounterChart {
       // @ts-ignore
       if (paras[i] === 'TIMESTAMP') gpu_counter_map.timestamp = i;
 
-      // @ts-ignore
-      if (paras[i] === 'GPU Clocks') gpu_counter_map.gpu_clocks = i;
-      // @ts-ignore
-      if (paras[i] === 'Tiler Utilization') gpu_counter_map.tiler_utilization = i;
-      // @ts-ignore
-      if (paras[i] === 'Binning Queue Utilization') gpu_counter_map.binning_utilization = i;
-      // @ts-ignore
-      if (paras[i] === 'Rendering Queue Utilization') gpu_counter_map.rendering_utilization = i;
-      // @ts-ignore
-      if (paras[i] === 'Compute Queue Utilization') gpu_counter_map.compute_utilization = i;
+      if (paras[i] === 'GPU Clocks') {
+        // @ts-ignore
+        gpu_counter_map.gpu_clocks = i;
+      }
+      if (paras[i] === 'Tiler Utilization') {
+        // @ts-ignore
+        gpu_counter_map.tiler_utilization = i;
+      }
+      if (paras[i] === 'Binning Queue Utilization') {
+        // @ts-ignore
+        gpu_counter_map.binning_utilization = i;
+      }
+      if (paras[i] === 'Rendering Queue Utilization') {
+        // @ts-ignore
+        gpu_counter_map.rendering_utilization = i;
+      }
+      if (paras[i] === 'Compute Queue Utilization') {
+        // @ts-ignore
+        gpu_counter_map.compute_utilization = i;
+      }
 
-      // @ts-ignore
-      if (paras[i] === 'Drawcalls Count') gpu_counter_map.drawcall_count = i;
-      // @ts-ignore
-      if (paras[i] === 'Vertex Count') gpu_counter_map.vertex_count = i;
-      // @ts-ignore
-      if (paras[i] === 'Primitive Count') gpu_counter_map.primitives_count = i;
-      // @ts-ignore
-      if (paras[i] === 'Visible Primitive Count') gpu_counter_map.visible_primitives_count = i;
-      // @ts-ignore
-      if (paras[i] === 'Compute Shader Invocations') gpu_counter_map.compute_invocations_count = i;
+      if (paras[i] === 'Drawcalls Count') {
+        // @ts-ignore
+        gpu_counter_map.drawcall_count = i;
+      }
+      if (paras[i] === 'Vertex Count') {
+        // @ts-ignore
+        gpu_counter_map.vertex_count = i;
+      }
+      if (paras[i] === 'Primitive Count') {
+        // @ts-ignore
+        gpu_counter_map.primitives_count = i;
+      }
+      if (paras[i] === 'Visible Primitive Count') {
+        // @ts-ignore
+        gpu_counter_map.visible_primitives_count = i;
+      }
+      if (paras[i] === 'Compute Shader Invocations') {
+        // @ts-ignore
+        gpu_counter_map.compute_invocations_count = i;
+      }
 
-      // @ts-ignore
-      if (paras[i] === 'Shader Core Utilization') gpu_counter_map.shader_utilization = i;
-      // @ts-ignore
-      if (paras[i] === 'EU Utilization') gpu_counter_map.eu_utilization = i;
-      // @ts-ignore
-      if (paras[i] === 'EU Stall') gpu_counter_map.eu_stall_utilization = i;
-      // @ts-ignore
-      if (paras[i] === 'EU Idle') gpu_counter_map.eu_idle_utilization = i;
-      // @ts-ignore
-      if (paras[i] === 'Instructions Diverged') gpu_counter_map.control_flow_instr_utilization = i;
-      // @ts-ignore
-      if (paras[i] === 'Half-float Instructions') gpu_counter_map.half_float_instr_utilization = i;
-      // @ts-ignore
-      if (paras[i] === 'TU Utilization') gpu_counter_map.tu_utilization = i;
+      if (paras[i] === 'Shader Core Utilization') {
+        // @ts-ignore
+        gpu_counter_map.shader_utilization = i;
+      }
+      if (paras[i] === 'EU Utilization') {
+        // @ts-ignore
+        gpu_counter_map.eu_utilization = i;
+      }
+      if (paras[i] === 'EU Stall') {
+        // @ts-ignore
+        gpu_counter_map.eu_stall_utilization = i;
+      }
+      if (paras[i] === 'EU Idle') {
+        // @ts-ignore
+        gpu_counter_map.eu_idle_utilization = i;
+      }
+      if (paras[i] === 'Instructions Diverged') {
+        // @ts-ignore
+        gpu_counter_map.control_flow_instr_utilization = i;
+      }
+      if (paras[i] === 'Half-float Instructions') {
+        // @ts-ignore
+        gpu_counter_map.half_float_instr_utilization = i;
+      }
+      if (paras[i] === 'TU Utilization') {
+        // @ts-ignore
+        gpu_counter_map.tu_utilization = i;
+      }
 
-      // @ts-ignore
-      if (paras[i] === 'Concurrent Warps') gpu_counter_map.concurrent_warps = i;
-      // @ts-ignore
-      if (paras[i] === 'Instructions Executed') gpu_counter_map.instruction_count = i;
-      // @ts-ignore
-      if (paras[i] === 'Quads Shaded') gpu_counter_map.quads_count = i;
-      // @ts-ignore
-      if (paras[i] === 'Texels Sampled') gpu_counter_map.texels_count = i;
+      if (paras[i] === 'Concurrent Warps') {
+        // @ts-ignore
+        gpu_counter_map.concurrent_warps = i;
+      }
+      if (paras[i] === 'Instructions Executed') {
+        // @ts-ignore
+        gpu_counter_map.instruction_count = i;
+      }
+      if (paras[i] === 'Quads Shaded') {
+        // @ts-ignore
+        gpu_counter_map.quads_count = i;
+      }
+      if (paras[i] === 'Texels Sampled') {
+        // @ts-ignore
+        gpu_counter_map.texels_count = i;
+      }
 
-      // @ts-ignore
-      if (paras[i] === 'External Memory Read') gpu_counter_map.memory_read = i;
-      // @ts-ignore
-      if (paras[i] === 'External Memory Write') gpu_counter_map.memory_write = i;
-      // @ts-ignore
-      if (paras[i] === 'External Memory Traffic') gpu_counter_map.memory_traffic = i;
+      if (paras[i] === 'External Memory Read') {
+        // @ts-ignore
+        gpu_counter_map.memory_read = i;
+      }
+      if (paras[i] === 'External Memory Write') {
+        // @ts-ignore
+        gpu_counter_map.memory_write = i;
+      }
+      if (paras[i] === 'External Memory Traffic') {
+        // @ts-ignore
+        gpu_counter_map.memory_traffic = i;
+      }
     }
   }
 
-  groupByGpuCounterType(maleoonCounter: maleoon_counter_obj): gpu_counter_type {
-    const gpuCounterType = new gpu_counter_type();
+  groupByGpuCounterType(maleoonCounter: Maleoon_counter_obj) {
+    const gpuCounterType = new Gpu_counter_type();
     let index = 0;
     for (const key in maleoonCounter) {
       if (index < 5) {
-        gpuCounterType['cycle'].push(maleoonCounter[key]);
+        gpuCounterType.cycle.push(maleoonCounter[key]);
       }
       if (index >= 5 && index < 10) {
-        gpuCounterType['drawcall'].push(maleoonCounter[key]);
+        gpuCounterType.drawcall.push(maleoonCounter[key]);
       }
       if (index >= 10 && index < 17) {
-        gpuCounterType['shader_cycle'].push(maleoonCounter[key]);
+        gpuCounterType.shader_cycle.push(maleoonCounter[key]);
       }
       if (index >= 17 && index < 21) {
-        gpuCounterType['local_count'].push(maleoonCounter[key]);
+        gpuCounterType.local_count.push(maleoonCounter[key]);
       }
       if (index >= 21 && index < 24) {
-        gpuCounterType['local_wr'].push(maleoonCounter[key]);
+        gpuCounterType.local_wr.push(maleoonCounter[key]);
       }
       index++;
     }
@@ -457,7 +515,9 @@ export class SpGpuCounterChart {
         // @ts-ignore
         const { gpuCounterType } = this.handleCsvData(res, startTime, endTime);
         this.initGpuCounters(gpuCounterType, startTime);
-        if (!this.folderRow!.folder) this.folderRow!.folder = true;
+        if (!this.folderRow!.folder) {
+          this.folderRow!.folder = true;
+        }
       });
     });
   }
@@ -468,7 +528,9 @@ export class SpGpuCounterChart {
    */
   // @ts-ignore
   resetChartData(row: TraceRow<unknown>): void {
-    if (row.expansion) row.describeEl?.click();
+    if (row.expansion) {
+      row.describeEl?.click();
+    }
     row.childrenList = [];
   }
 
