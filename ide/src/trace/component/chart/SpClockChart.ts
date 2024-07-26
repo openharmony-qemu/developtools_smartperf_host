@@ -27,6 +27,7 @@ import { DmaFenceRender, DmaFenceStruct } from '../../database/ui-worker/Procedu
 import { dmaFenceSender } from '../../database/data-trafic/dmaFenceSender';
 import { queryDmaFenceName } from '../../database/sql/dmaFence.sql';
 import { BaseStruct } from '../../bean/BaseStruct';
+import { promises } from 'dns';
 
 export class SpClockChart {
   private readonly trace: SpSystemTrace;
@@ -208,7 +209,7 @@ export class SpClockChart {
         traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         traceRow.selectChangeHandler = this.trace.selectChangeHandler;
         // @ts-ignore
-        traceRow.supplierFrame = () => {
+        traceRow.supplierFrame = (): Promise<DmaFenceStruct[]> => {
           return dmaFenceSender('dma_fence_init', `${timelineValues[i]}`, traceRow).then((res) => {
             res.forEach((item: unknown) => {
               // @ts-ignore

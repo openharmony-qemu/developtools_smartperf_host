@@ -1003,7 +1003,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
       // @ts-ignore
       this.rowSettingPop!.visible = isVisible;
-      TraceRow.ROW_TYPE_HIPERF_THREADTYPE.push(Number(this.rowSettingTree!.getCheckdKeys())) //@ts-ignore
+      TraceRow.ROW_TYPE_HIPERF_THREADTYPE.push(Number(this.rowSettingTree!.getCheckdKeys())); //@ts-ignore
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
     };
     this.rowSettingPop?.addEventListener('mouseenter', (): void => {

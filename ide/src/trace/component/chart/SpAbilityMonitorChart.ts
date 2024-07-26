@@ -408,7 +408,7 @@ export class SpAbilityMonitorChart {
         context = cachedFilesTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       cachedFilesTraceRow.canvasSave(context);
-      (renders['monitorMemory'] as MemoryAbilityRender).renderMainThread(
+      (renders.monitorMemory as MemoryAbilityRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -470,7 +470,7 @@ export class SpAbilityMonitorChart {
         context = compressedRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       compressedRow.canvasSave(context);
-      (renders['monitorMemory'] as MemoryAbilityRender).renderMainThread(
+      (renders.monitorMemory as MemoryAbilityRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -607,7 +607,7 @@ export class SpAbilityMonitorChart {
         context = bytesWriteRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       bytesWriteRow.canvasSave(context);
-      (renders['monitorDiskIo'] as DiskIoAbilityRender).renderMainThread(
+      (renders.monitorDiskIo as DiskIoAbilityRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -696,7 +696,7 @@ export class SpAbilityMonitorChart {
         context = readOpsRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       readOpsRow.canvasSave(context);
-      (renders['monitorDiskIo'] as DiskIoAbilityRender).renderMainThread(
+      (renders.monitorDiskIo as DiskIoAbilityRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -722,7 +722,7 @@ export class SpAbilityMonitorChart {
         context = writeOpsRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       writeOpsRow.canvasSave(context);
-      (renders['monitorDiskIo'] as DiskIoAbilityRender).renderMainThread(
+      (renders.monitorDiskIo as DiskIoAbilityRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -803,7 +803,7 @@ export class SpAbilityMonitorChart {
         context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       row.canvasSave(context);
-      (renders['monitorNetwork'] as NetworkAbilityRender).renderMainThread(
+      (renders.monitorNetwork as NetworkAbilityRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -861,7 +861,7 @@ export class SpAbilityMonitorChart {
         context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       row.canvasSave(context);
-      (renders['monitorNetwork'] as NetworkAbilityRender).renderMainThread(
+      (renders.monitorNetwork as NetworkAbilityRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -920,7 +920,7 @@ export class SpAbilityMonitorChart {
         context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       row.canvasSave(context);
-      (renders['monitorNetwork'] as NetworkAbilityRender).renderMainThread(
+      (renders.monitorNetwork as NetworkAbilityRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -979,7 +979,7 @@ export class SpAbilityMonitorChart {
         context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       row.canvasSave(context);
-      (renders['monitorNetwork'] as NetworkAbilityRender).renderMainThread(
+      (renders.monitorNetwork as NetworkAbilityRender).renderMainThread(
         {
           context: context,
           useCache: useCache,

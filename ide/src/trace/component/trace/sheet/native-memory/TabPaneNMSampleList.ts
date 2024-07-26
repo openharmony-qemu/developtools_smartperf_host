@@ -322,11 +322,11 @@ export class TabPaneNMSampleList extends BaseElement {
     TabPaneNMSampleList.filter!.firstSelect = TabPaneNMSampleList.filterSelect;
     TabPaneNMSampleList.sampleTbl!.exportTextHandleMap.set('totalGrowth', (value) => {
       // @ts-ignore
-      return `${value['total']}`;
+      return `${value.total}`;
     });
     TabPaneNMSampleList.sampleTbl!.exportTextHandleMap.set('growth', (value) => {
       // @ts-ignore
-      return `${value['heapSize']}`;
+      return `${value.heapSize}`;
     });
   }
 

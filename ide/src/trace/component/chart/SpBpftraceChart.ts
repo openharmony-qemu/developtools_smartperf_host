@@ -214,10 +214,10 @@ export class SpBpftraceChart {
   getFlattenTreeData(treeData: Array<any>, depth: number = 0, parentName: string = ''): Array<any> {
     let result: Array<object> = [];
     treeData.forEach((node) => {
-      const name: string = node['function_name'];
+      const name: string = node.function_name;
       const newNode: any = {};
       if (name.indexOf('unknown') > -1) {
-        newNode['children'] = this.getUnknownAllChildrenNames(node);
+        newNode.children = this.getUnknownAllChildrenNames(node);
       }
       newNode.detail = node.detail;
       newNode.depth = depth;
@@ -265,32 +265,32 @@ export class SpBpftraceChart {
     //数组每一项进行比对
     propertyData.forEach((propertyGroup) => {
       propertyGroup.forEach((property: any) => {
-        const relation = sampleProperty.find((relation) => relation['name'] === property['func_name']);
+        const relation = sampleProperty.find((relation) => relation.name === property.func_name);
         //property属性存储每帧数据
         relation?.property.push({
-          name: property['func_name'],
-          detail: relation['detail'],
-          end: property['end'],
-          begin: property['begin'],
-          depth: relation['depth'],
-          instructions: property['instructions'],
-          cycles: property['cycles'],
+          name: property.func_name,
+          detail: relation.detail,
+          end: property.end,
+          begin: property.begin,
+          depth: relation.depth,
+          instructions: property.instructions,
+          cycles: property.cycles,
         });
       });
     });
 
     //获取所有名字为unknown的数据
-    const unknownRelation = sampleProperty.filter((relation) => relation['name'].indexOf('unknown') > -1);
+    const unknownRelation = sampleProperty.filter((relation) => relation.name.indexOf('unknown') > -1);
     //二维数组 用于存放unknown下所有子节点的数据
     let twoDimensionalArray: Array<any> = [];
     let result: Array<any> = [];
     unknownRelation.forEach((unknownItem) => {
       result = [];
       twoDimensionalArray = [];
-      const children = unknownItem['children'];
+      const children = unknownItem.children;
       //先获取到unknwon节点下每个子节点的property
       Object.keys(children).forEach((key) => {
-        unknownItem.children[key] = sampleProperty.find((relation) => relation['name'] === key).property;
+        unknownItem.children[key] = sampleProperty.find((relation) => relation.name === key).property;
       });
       //将每个子节点的property加到二维数组中
       Object.values(children).forEach((value: any) => {

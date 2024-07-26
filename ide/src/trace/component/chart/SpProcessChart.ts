@@ -160,7 +160,7 @@ export class SpProcessChart {
     if (Reflect.ownKeys(asyncFuncGroup).length > 0) {
       this.trace.rowsEL?.appendChild(row);
     } // @ts-ignore
-    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+    Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => {
       // @ts-ignore
       let asyncFuncGroups: Array<unknown> = asyncFuncGroup[key];
       if (asyncFuncGroups.length > 0) {
@@ -275,10 +275,11 @@ export class SpProcessChart {
       this.trace.rowsEL?.appendChild(row);
     }
     //@ts-ignore
-    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+    Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => {
       //@ts-ignore
       let asyncFuncGroups: Array<unknown> = asyncFuncGroup[key];
       if (asyncFuncGroups.length > 0) {
+        // @ts-ignore
         row.addChildTraceRow(this.createTouchEventDispatchRow(row, key, asyncFuncGroups));
       }
     });
@@ -333,12 +334,14 @@ export class SpProcessChart {
   private touchEventDispatchSendCallback(res: Array<unknown>, funcRow: TraceRow<any>, asyncFuncGroups: Array<unknown>): void {
     let isIntersect = (left: any, right: any): boolean =>
       Math.max(left.startTs + left.dur, right.startTs + right.dur) - Math.min(left.startTs, right.startTs) <
+      // @ts-ignore
       left.dur + right.dur;
-    let depths: any = [];
+    let depths: unknown = [];
     let createDepth = (currentDepth: number, index: number): void => {
       if (depths[currentDepth] === undefined || !isIntersect(depths[currentDepth], res[index])) {
         //@ts-ignore
         res[index].depth = currentDepth;
+        // @ts-ignore
         depths[currentDepth] = res[index];
       } else {
         createDepth(++currentDepth, index);
@@ -1282,27 +1285,29 @@ export class SpProcessChart {
       let { asyncRemoveCatArr, asyncCatMap } = this.hanldCategoryAsyncFunc(asyncFuncList);
       let { setArrayLenThanOne, setArrayLenOnlyOne } = this.hanldAsyncFunc(it, asyncRemoveCatArr);
       //处理cat不为null和length等于1的数据
+    // @ts-ignore
       let aggregateData = { ...Object.fromEntries(asyncCatMap), ...setArrayLenOnlyOne };
       Reflect.ownKeys(aggregateData).map((key: any) => {
         let param: Array<unknown> = aggregateData[key];
         this.makeAddAsyncFunction(param, it, processRow, key);
-      })
+      });
       //处理length大于1的数据，不传key值
       Reflect.ownKeys(setArrayLenThanOne).map((key: any) => {
         let param: Array<unknown> = setArrayLenThanOne[key];
         this.makeAddAsyncFunction(param, it, processRow);
-      })
+      });
     } else {
       //不聚合异步trace
       let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');
       //@ts-ignore
-      Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+      Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => {
         //@ts-ignore
         let asyncFunctions: Array<unknown> = asyncFuncGroup[key];
         if (asyncFunctions.length > 0) {
-          let isIntersect = (a: any, b: any): boolean =>
+          let isIntersect = (a: unknown, b: unknown): boolean =>
+            // @ts-ignore
             Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
-          let depthArray: any = [];
+          let depthArray: unknown = [];
           asyncFunctions.forEach((it, i) => {
             //@ts-ignore
             if (it.dur === -1 || it.dur === null || it.dur === undefined) {
@@ -1314,13 +1319,16 @@ export class SpProcessChart {
             let currentDepth = 0;
             let index = i;
             while (
+              // @ts-ignore
               depthArray[currentDepth] !== undefined &&
+              // @ts-ignore
               isIntersect(depthArray[currentDepth], asyncFunctions[index])
             ) {
               currentDepth++;
             }
             //@ts-ignore
             asyncFunctions[index].depth = currentDepth;
+            // @ts-ignore
             depthArray[currentDepth] = asyncFunctions[index];
             //@ts-ignore
             this.toAsyncFuncCache(asyncFunctions[index], `${asyncFunctions[i].funName}-${it.pid}`);//处理缓存的异步trace数据缺失的字段
@@ -1355,6 +1363,7 @@ export class SpProcessChart {
         asyncRemoveCatArr.push(el);
       }
     }
+    // @ts-ignore
     return { asyncRemoveCatArr, asyncCatMap };
   }
   //处理cat字段为null的数据，按funname分类，分别按len>1和=1去处理
@@ -1367,7 +1376,7 @@ export class SpProcessChart {
     let setArrayLenThanOne: unknown = {};
     let setArrayLenOnlyOne: unknown = {};
     //@ts-ignore
-    Reflect.ownKeys(asyncFuncGroup).map((key: any) => {
+    Reflect.ownKeys(asyncFuncGroup).map((key: unknown) => {
       //@ts-ignore
       let asyncFunctions: Array<unknown> = asyncFuncGroup[key];
       if (asyncFunctions.length > 1) {
@@ -1380,7 +1389,7 @@ export class SpProcessChart {
     //len=1的数据继续按tid分类
     let asyncFuncTidGroup = Utils.groupBy(funcArr, 'tid');
     //@ts-ignore
-    Reflect.ownKeys(asyncFuncTidGroup).map((key: any) => {
+    Reflect.ownKeys(asyncFuncTidGroup).map((key: unknown) => {
       //@ts-ignore
       let asyncTidFunc: Array<unknown> = asyncFuncTidGroup[key];
       //@ts-ignore
@@ -1432,14 +1441,19 @@ export class SpProcessChart {
         i++;
       }
       if (noEndData.length) {
-        noEndData.forEach((it: any, i: any) => {
+        noEndData.forEach((it: unknown, i: unknown) => {
+          // @ts-ignore
           if (it.dur === -1 || it.dur === null || it.dur === undefined) {
+            // @ts-ignore
             it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+            // @ts-ignore
             it.nofinish = true;
+            // @ts-ignore
             it.flag = 'Did not end';
           }
           let index = i;
           maxDepth++;
+          // @ts-ignore
           noEndData[index].depth = maxDepth;
           //@ts-ignore
           this.toAsyncFuncCache(noEndData[index], key ? key : `${asyncFunctions[i].funName}-${it.pid}`);
@@ -1477,7 +1491,8 @@ export class SpProcessChart {
     funcRow.findHoverStruct = (): void => {
       FuncStruct.hoverFuncStruct = funcRow.getHoverStruct();
     };
-    funcRow.supplier = (): Promise<any> => new Promise((resolve) => resolve(asyncFunctions));
+    // @ts-ignore
+    funcRow.supplier = (): Promise<unknown> => new Promise((resolve) => resolve(asyncFunctions));
     funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     funcRow.selectChangeHandler = this.trace.selectChangeHandler;
     funcRow.onThreadHandler = rowThreadHandler<FuncRender>(

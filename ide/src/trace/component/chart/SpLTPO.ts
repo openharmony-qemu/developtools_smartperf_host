@@ -301,7 +301,7 @@ export class SpLtpoChart {
     }
   }
   pushLtpoData(
-    lptoArr: any[] | undefined,
+    lptoArr: unknown[] | undefined,
     fanceId: Number,
     fps: Number,
     signaled: Number,

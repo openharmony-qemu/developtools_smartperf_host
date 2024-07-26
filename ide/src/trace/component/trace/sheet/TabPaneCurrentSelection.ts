@@ -994,7 +994,8 @@ export class TabPaneCurrentSelection extends BaseElement {
       let [preData, nextData] = this.sortByNearData(result[3], data, list);
       this.setWakeupData(fromBean, wakeUps, list);
       if (args.length > 0) {
-        args.forEach((arg: any) => {
+        args.forEach((arg: unknown) => {
+          // @ts-ignore
           list.push({ name: arg.keyName, value: arg.strValue });
         });
       }

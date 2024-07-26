@@ -430,4 +430,4 @@ margin-left: 15px;
 `;
 export const TabPaneFilterHtml = (input: string): string => {
   return replacePlaceholders(html, input);
-}
+};

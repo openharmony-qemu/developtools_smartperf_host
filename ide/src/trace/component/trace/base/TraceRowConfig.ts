@@ -85,7 +85,7 @@ export class TraceRowConfig extends BaseElement {
     TraceRowConfig.allTraceRowList.push(...this.traceRowList!);
     this.refreshAllConfig(true, true);
     // 鼠标移入该页面,隐藏泳道图tip
-    this.onmouseenter = () => {
+    this.onmouseenter = (): void => {
       this.spSystemTrace!.tipEL!.style.display = 'none';
       this.spSystemTrace!.hoverStructNull();
       this.spSystemTrace!.refreshCanvas(true);
