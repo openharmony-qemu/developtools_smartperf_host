@@ -426,20 +426,14 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
           (pre: number, cur: SampleStruct) => pre + Math.ceil(cur.cycles!),
           0
         );
-        // @ts-ignore
         instruction.instructions = Math.ceil(totalInstruction / length) || 1;
-        // @ts-ignore
         instruction.cycles = Math.ceil(totalCycles / length) || 1;
-        // @ts-ignore
         instruction.hoverInstructions = Math.ceil(totalInstruction / length);
-        // @ts-ignore
         instruction.hoverCycles = Math.ceil(totalCycles / length);
-        // @ts-ignore
         this.maxDepth = Math.max(this.maxDepth, instruction.depth);
       }
     });
-    // @ts-ignore
-    const unknownData = instructionData.filter((instruction) => instruction['name'].indexOf('unknown') > -1);
+    const unknownData = instructionData.filter((instruction) => instruction.name.indexOf('unknown') > -1);
     let instructionSum = 0;
     let cyclesSum = 0;
     let hoverInstructionsSum = 0;
