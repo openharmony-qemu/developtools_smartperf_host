@@ -313,6 +313,7 @@ export class RangeSelect {
         itRect.y = 0;
         itRect.height = 0;
       }
+      let result: boolean;
       if (
         Rect.intersect(
           itRect as Rect,
@@ -342,11 +343,12 @@ export class RangeSelect {
         }
         TraceRow.rangeSelectObject = rangeSelect;
         it.rangeSelect = true;
-        return true;
+        result = true;
       } else {
         it.rangeSelect = false;
-        return false;
+        result = false;
       }
+      return result;
     });
     if (this.rangeTraceRow && this.rangeTraceRow.length) {
       if (this.rangeTraceRow[0].parentRowEl) {

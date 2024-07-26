@@ -164,14 +164,16 @@ export class SpClockChart {
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
       this.clockSupplierFrame(traceRow, it, isState, isScreenState);
-      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> | undefined => {
+      traceRow.getCacheData = (args: unknown): Promise<ClockStruct[]> | undefined => {
+        let result: Promise<ClockStruct[]> | undefined;
         if (it.name.endsWith(' Frequency')) {
-          return clockDataSender(it.srcname, 'clockFrequency', traceRow, args);
+          result = clockDataSender(it.srcname, 'clockFrequency', traceRow, args);
         } else if (isState) {
-          return clockDataSender(it.srcname, 'clockState', traceRow, args);
+          result = clockDataSender(it.srcname, 'clockState', traceRow, args);
         } else if (isScreenState) {
-          return clockDataSender('', 'screenState', traceRow, args);
+          result = clockDataSender('', 'screenState', traceRow, args);
         }
+        return result;
       };
       traceRow.focusHandler = (ev): void => {
         this.trace?.displayTip(

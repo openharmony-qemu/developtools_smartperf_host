@@ -736,7 +736,7 @@ export class SelectionParam {
       for (let data of copyFrameSelectData) {
         frameSelectDataIdArr.push(data.id);
       }
-      let jsCpuProfilerData = copyFrameSelectData.filter((item: unknown) => {
+      let jsCpuProfilerData = copyFrameSelectData.filter((item: JsCpuProfilerChartFrame) => {
         // @ts-ignore
         if (item.depth === 0) {
           // @ts-ignore

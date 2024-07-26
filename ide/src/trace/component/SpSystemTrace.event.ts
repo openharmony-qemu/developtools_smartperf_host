@@ -539,7 +539,8 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
   const transformYMatch = sp.canvasPanel?.style.transform.match(/\((\d+)[^\)]+\)/);
   const transformY = transformYMatch![1];
   let favoriteHeight = sp.favoriteChartListEL!.getBoundingClientRect().height;
-  let memTr = rows.filter((item: any) => item.rowType ===TraceRow.ROW_TYPE_MEM)
+  // @ts-ignore
+  let memTr = rows.filter((item: unknown) => item.rowType === TraceRow.ROW_TYPE_MEM);
   rows
     .filter((it) => it.focusContain(ev, sp.inFavoriteArea!, Number(transformY), favoriteHeight) && it.collect === sp.inFavoriteArea)
     .filter((it) => {
@@ -558,9 +559,10 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
       }
       if (tr.rowType !== TraceRow.ROW_TYPE_MEM) {
         ProcessMemStruct.hoverProcessMemStruct = undefined;
-        memTr.forEach((i:any) => {
+        memTr.forEach((i: unknown) => {
+          // @ts-ignore
           i.focusHandler(ev);
-        })
+        });
       }
       if (sp.currentRowType !== tr.rowType) {
         sp.currentRowType = tr.rowType || '';

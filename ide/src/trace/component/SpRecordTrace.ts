@@ -66,10 +66,10 @@ import { SpRecordTraceHtml } from './SpRecordTrace.html';
 import { SpFFRTConfig } from './setting/SpFFRTConfig';
 
 const DEVICE_NOT_CONNECT =
-'<div>1.请确认抓取设备上是否已勾选并确认总是允许smartPerf-Host调试的弹窗</div>' +
-'<div>2.请关闭DevEco Studio,DevEco Testing等会占用hdc端口的应用</div>' +
-'<div>3.请使用系统管理员权限打开cmd窗口，并执行hdc kill，确保PC端任务管理器中没有hdc进程</div>' +
-'<div>4.若没有效果，请重新插拔一下手机。紧急情况可拷贝trace命令，在cmd窗口离线抓取</div>';
+  '<div>1.请确认抓取设备上是否已勾选并确认总是允许smartPerf-Host调试的弹窗</div>' +
+  '<div>2.请关闭DevEco Studio,DevEco Testing等会占用hdc端口的应用</div>' +
+  '<div>3.请使用系统管理员权限打开cmd窗口，并执行hdc kill，确保PC端任务管理器中没有hdc进程</div>' +
+  '<div>4.若没有效果，请重新插拔一下手机。紧急情况可拷贝trace命令，在cmd窗口离线抓取</div>';
 
 @element('sp-record-trace')
 export class SpRecordTrace extends BaseElement {
@@ -115,10 +115,10 @@ export class SpRecordTrace extends BaseElement {
   private hintEl: HTMLSpanElement | undefined;
   private selectedTemplate: Map<string, number> = new Map();
   private hintTimeOut: number = -1;
-  private MenuItemArkts:MenuItem | undefined | null;
-  private MenuItemArktsHtml:LitMainMenuItem | undefined | null;
-  private MenuItemEbpf:MenuItem | undefined | null;
-  private MenuItemEbpfHtml:LitMainMenuItem | undefined | null;
+  private MenuItemArkts: MenuItem | undefined | null;
+  private MenuItemArktsHtml: LitMainMenuItem | undefined | null;
+  private MenuItemEbpf: MenuItem | undefined | null;
+  private MenuItemEbpfHtml: LitMainMenuItem | undefined | null;
 
   set record_template(re: boolean) {
     if (re) {
@@ -212,7 +212,7 @@ export class SpRecordTrace extends BaseElement {
                 }
               }
               try {
-                let kernelInfo = await HdcDeviceManager.shellResultAsString(CmdConstant.CMD_UNAME,false);
+                let kernelInfo = await HdcDeviceManager.shellResultAsString(CmdConstant.CMD_UNAME, false);
                 if (kernelInfo.includes('HongMeng')) {
                   if (this.MenuItemEbpf && this.MenuItemEbpfHtml) {//如果为鸿蒙内核，ebpf开关置灰不能点击
                     this.MenuItemEbpfHtml.style.color = 'gray';
@@ -689,13 +689,13 @@ export class SpRecordTrace extends BaseElement {
     this.cancelButtonShow(false);
     if (this.vs) {
       let cmd = Cmd.formatString(CmdConstant.CMS_HDC_STOP, [SpRecordTrace.serialNumber]);
-      Cmd.execHdcCmd(cmd, (): void => {});
+      Cmd.execHdcCmd(cmd, (): void => { });
     } else {
       let selectedOption = this.deviceSelect!.options[this.deviceSelect!.selectedIndex] as HTMLOptionElement;
       HdcDeviceManager.connect(selectedOption.value).then((result) => {
         if (result) {
           try {
-            HdcDeviceManager.shellResultAsString(CmdConstant.CMS_STOP, true).then((): void => {});
+            HdcDeviceManager.shellResultAsString(CmdConstant.CMS_STOP, true).then((): void => { });
           } catch (exception) {
             this.recordButtonDisable(false);
             log(exception);
@@ -736,7 +736,7 @@ export class SpRecordTrace extends BaseElement {
             this.deviceSelect!.style.pointerEvents = 'auto';
             this.deviceVersion!.style.pointerEvents = 'auto';
             SpRecordTrace.cancelRecord = true;
-            HdcDeviceManager.stopHiprofiler(CmdConstant.CMS_CANCEL).then((): void => {});
+            HdcDeviceManager.stopHiprofiler(CmdConstant.CMS_CANCEL).then((): void => { });
           } catch (exception) {
             log(exception);
           }
@@ -783,7 +783,7 @@ export class SpRecordTrace extends BaseElement {
       if (item.title === 'Ark Ts') {
         this.MenuItemArkts = item;
         this.MenuItemArktsHtml = th;
-      }else if (item.title === 'eBPF Config') {
+      } else if (item.title === 'eBPF Config') {
         this.MenuItemEbpf = item;
         this.MenuItemEbpfHtml = th;
       }
@@ -854,17 +854,16 @@ export class SpRecordTrace extends BaseElement {
     clickHandlerFun?: Function,
     fileChoose: boolean = false
   ): MenuItem {
-    let that = this;
     return {
       title: title,
       icon: icon,
       fileChoose: fileChoose,
       clickHandler: (): void => {
-        that.appContent!.innerHTML = '';
-        that.appContent!.append(configPage);
-        that.freshMenuItemsStatus(title);
+        this.appContent!.innerHTML = '';
+        this.appContent!.append(configPage);
+        this.freshMenuItemsStatus(title);
         if (clickHandlerFun) {
-          clickHandlerFun(that);
+          clickHandlerFun(this);
         }
       },
     };
@@ -903,7 +902,7 @@ export class SpRecordTrace extends BaseElement {
       let option = this.deviceSelect!.children[index] as HTMLOptionElement;
       if (option.value === disConnectDevice.serialNumber) {
         let optValue = option.value;
-        HdcDeviceManager.disConnect(optValue).then(() => {});
+        HdcDeviceManager.disConnect(optValue).then(() => { });
         this.deviceSelect!.removeChild(option);
         if (SpRecordTrace.serialNumber === optValue) {
           if (this.nowChildItem === this.spWebShell) {
@@ -1012,7 +1011,7 @@ export class SpRecordTrace extends BaseElement {
                     HdcDeviceManager.shellResultAsString(
                       CmdConstant.CMD_SET_FOLD_AUTHORITY + this.recordSetting!.longOutPath,
                       false
-                    ).then( ()=> {
+                    ).then(() => {
                       this.recordLongTraceCmd(traceCommandStr);
                     });
                   });
@@ -1085,10 +1084,9 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private recordTraceCmd(traceCommandStr: string): void {
-    const self = this;
     let executeCmdCallBack = (cmdStateResult: string): void => {
       if (cmdStateResult.includes('tracing ')) {
-        self.litSearch!.setPercent('Start to record...', -1);
+        this.litSearch!.setPercent('Start to record...', -1);
       }
     };
     this.litSearch!.setPercent('Waiting to record...', -1);

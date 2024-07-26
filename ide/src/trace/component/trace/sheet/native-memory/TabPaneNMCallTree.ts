@@ -183,13 +183,12 @@ export class TabpaneNMCalltree extends BaseElement {
     if (data.type === 'AllocEvent') {
       data.type = '1';
     }
-    const that = this;
     if (this.subTypeArr.length > 0) {
       this.subTypeArr.map((memory): void => {
         selections.push({
           memoryTap: memory,
         });
-        if (that.currentSelection?.nativeMemory && that.currentSelection.nativeMemory.length > 0) {
+        if (this.currentSelection?.nativeMemory && this.currentSelection.nativeMemory.length > 0) {
           const typeName = SpSystemTrace.DATA_DICT.get(memory);
           if ((data.type === 'MmapEvent' && memory === -1) || data.type === typeName) {
             data.type = `${selections.length + 2}`;
@@ -339,15 +338,14 @@ export class TabpaneNMCalltree extends BaseElement {
   async initFilterTypes(): Promise<void> {
     this.currentNMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
     let secondFilterList = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
-    let that = this;
-    function addSubType(subTypeList: unknown): void {
+    const addSubType = (subTypeList: unknown): void => {
       if (!subTypeList) {
         return;
       }
-      that.subTypeArr = []; // @ts-ignore
+      this.subTypeArr = []; // @ts-ignore
       for (let data of subTypeList) {
         secondFilterList.push(data.subType);
-        that.subTypeArr.push(data.subTypeId);
+        this.subTypeArr.push(data.subTypeId);
       }
     }
     if (this.currentSelection!.nativeMemory!.length > 0) {

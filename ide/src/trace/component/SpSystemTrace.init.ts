@@ -363,7 +363,7 @@ function collectHandlerNo(sp: SpSystemTrace, currentRow: unknown, event: unknown
     `div[row-id='${traceId}${currentRow.rowId}-${currentRow.rowType}']`
   );
   // 取消收藏时，删除父亲ID
-      // @ts-ignore
+  // @ts-ignore
   currentRow.name = currentRow.tampName;
   if (replaceRow !== null) {
     // @ts-ignore
@@ -395,7 +395,7 @@ function collectHandlerYes(sp: SpSystemTrace, currentRow: unknown, event: unknow
     currentRow.removeAttribute('row-hidden');
   }
   // 添加收藏时，在线程名前面追加父亲ID
-      // @ts-ignore
+  // @ts-ignore
   let rowParentId = currentRow.rowParentId;
   // @ts-ignore
   currentRow.tampName = currentRow.name;
@@ -737,7 +737,7 @@ function remarksFocuseChangeHandler(sp: SpSystemTrace): (event: unknown) => void
   return function (event: unknown): void {
     // @ts-ignore
     sp.focusTarget = event.detail;
-  }
+  };
 }
 
 export function spSystemTraceInitElement(sp: SpSystemTrace): void {
@@ -783,7 +783,7 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
 function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: unknown, currentEntry: unknown): void {
   if (findEntry) {
     //findEntry不在range范围内，会把它移动到泳道最左侧
-      // @ts-ignore
+    // @ts-ignore
     if (findEntry.startTime > TraceRow.range!.endNS || findEntry.startTime + findEntry.dur < TraceRow.range!.startNS) {
       // @ts-ignore
       sp.moveRangeToLeft(findEntry.startTime!, findEntry.dur!);
@@ -805,14 +805,14 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: unknown, cu
   }
 }
 
-export function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: unknown) {
+export function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: unknown): void {
   // @ts-ignore
   if (currentEntry?.type === 'cpu') {
     // @ts-ignore
     sp.queryAllTraceRow(`trace-row[row-type='cpu-data'][row-id='${currentEntry.cpu}']`,
       // @ts-ignore
       (row) => row.rowType === 'cpu-data' && row.rowId === `${currentEntry.cpu}`)[0].highlight = false;
-      // @ts-ignore
+    // @ts-ignore
   } else if (currentEntry?.type === 'func') {
     // @ts-ignore
     let funId = (currentEntry.rowId === null || currentEntry.rowId === undefined) ? `${currentEntry.funName}-${currentEntry.pid}` : currentEntry.rowId;
@@ -820,8 +820,8 @@ export function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: 
     let funcRowID = (currentEntry.cookie === null || currentEntry.cookie === undefined) ? `${Utils.getDistributedRowId(currentEntry.tid)}` : funId;
     // @ts-ignore
     let parentRow = sp.queryAllTraceRow(`trace-row[row-id='${Utils.getDistributedRowId(currentEntry.pid)}'][folder]`,
-    // @ts-ignore
-      (row) => row.rowId === `trace-row[row-id='${Utils.getDistributedRowId(currentEntry.pid)}'][folder]`)[0]
+      // @ts-ignore
+      (row) => row.rowId === `trace-row[row-id='${Utils.getDistributedRowId(currentEntry.pid)}'][folder]`)[0];
     if (!parentRow) {
       return;
     }
@@ -877,9 +877,9 @@ function spSystemTraceShowStructFindIndex(
     for (let i = structs.length - 1; i >= 0; i--) {
       let it = structs[i];
       // @ts-ignore
-      if ((i < currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd)
+      if ((i < currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd) ||
         // @ts-ignore
-        || (it.startTime! + it.dur! < rangeStart)) {
+        (it.startTime! + it.dur! < rangeStart)) {
         findIndex = i;
         break;
       }
@@ -908,9 +908,9 @@ function spSystemTraceShowStructFindIndex(
     //在数组中查找比currentIndex大且在range范围内的第一个下标，如果range范围内没有返回-1
     findIndex = structs.findIndex((it, idx) => {
       // @ts-ignore
-      return ((idx > currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd)
-      // @ts-ignore
-        || (it.startTime! > rangeEnd));
+      return ((idx > currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd) ||
+        // @ts-ignore
+        (it.startTime! > rangeEnd));
     });
     if (findIndex === -1) {
       findIndex = 0;

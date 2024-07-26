@@ -1271,7 +1271,7 @@ export class SpProcessChart {
     // @ts-ignore
     let modifiedObject = { ...object };
     modifiedObject['startTime'] = modifiedObject['startTs'];
-    delete modifiedObject.startTs;
+    modifiedObject.remove('startTs');
     modifiedObject.rowId = name;
     modifiedObject.type = 'func';
     SpProcessChart.asyncFuncCache.push({ ...modifiedObject });
