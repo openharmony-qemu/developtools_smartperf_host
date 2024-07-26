@@ -38,9 +38,8 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
   public totalData(purgeTotalComParam: SelectionParam | unknown, dataList: unknown): void {
     if (this.purgeableTotalTable) {
       //@ts-ignore
-      this.purgeableTotalTable.shadowRoot?.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - 45
-      }px`;
+      this.purgeableTotalTable.shadowRoot?.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45
+        }px`;
     }
     this.purgeableTotalSource = [];
     let fileArr: unknown[] = []; // @ts-ignore
@@ -70,8 +69,9 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
     this.selectEl!.defaultValue = purgeTotalComFileArr[0].name; // @ts-ignore
     this.selectEl!.placeholder = purgeTotalComFileArr[0].name;
     this.selectEl!.dataSource = purgeTotalComFileArr;
-    this.selectEl!.querySelectorAll('lit-select-option').forEach((a): void => {
-      a.addEventListener('onSelected', (e: unknown): void => {
+    let selectOption = this.selectEl!.querySelectorAll('lit-select-option');
+    for (const item of selectOption) {
+      item.addEventListener('onSelected', (e: unknown): void => {
         for (let f of purgeTotalComFileArr) {
           // @ts-ignore
           if (input.value === f.name) {
@@ -81,7 +81,7 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
         } // @ts-ignore
         e.stopPropagation();
       });
-    });
+    }
   }
 
   private async updateComparisonData(baseTime: number, targetTime: number): Promise<void> {

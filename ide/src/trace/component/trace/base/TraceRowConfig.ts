@@ -430,7 +430,7 @@ export class TraceRowConfig extends BaseElement {
     this.resetButton!.addEventListener('click', () => {
       this.loadTempConfig(this.defaultConfigList);
       this.resetChartTable();
-    })
+    });
   }
 
   private initSwitchClickListener(): void {

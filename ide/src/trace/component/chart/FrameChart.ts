@@ -65,7 +65,7 @@ export class FrameChart extends BaseElement {
   private chartClickListenerList: Array<Function> = [];
   private isUpdateCanvas = false;
   private isClickMode = false; //是否为点选模式
-  _totalRootData: Array<ChartStruct>  = [];//初始化顶部root的数据 
+  _totalRootData: Array<ChartStruct> = [];//初始化顶部root的数据 
   private totalRootNode!: ChartStruct;
 
   /**
@@ -559,29 +559,41 @@ export class FrameChart extends BaseElement {
         }
       }
     }
+    let result: number = 0;
     switch (this._mode) {
       case ChartMode.Byte:
-        return ignore.size;
+        result = ignore.size;
+        break;
       case ChartMode.Count:
-        return ignore.count;
+        result = ignore.count;
+        break;
       case ChartMode.Duration:
-        return ignore.dur;
+        result = ignore.dur;
+        break;
       case ChartMode.EventCount:
-        return ignore.eventCount;
+        result = ignore.eventCount;
+        break;
     }
+    return result;
   }
 
   private isSearch(node: ChartStruct): boolean {
+    let result: boolean = false;
     switch (this._mode) {
       case ChartMode.Byte:
-        return node.searchSize > 0;
+        result = node.searchSize > 0;
+        break;
       case ChartMode.Count:
-        return node.searchCount > 0;
+        result = node.searchCount > 0;
+        break;
       case ChartMode.Duration:
-        return node.searchDur > 0;
+        result = node.searchDur > 0;
+        break;
       case ChartMode.EventCount:
-        return node.searchEventCount > 0;
+        result = node.searchEventCount > 0;
+        break;
     }
+    return result;
   }
 
   /**

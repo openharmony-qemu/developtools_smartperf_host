@@ -782,8 +782,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
       recursionHideChildren(item, (node: PerfCallChainMerageData): boolean => {
         return node.libName !== '[kernel.kallsyms]';
-      })
-    })
+      });
+    });
   }
 
   hideNumMaxAndMin(startNum: number, endNum: string): void {

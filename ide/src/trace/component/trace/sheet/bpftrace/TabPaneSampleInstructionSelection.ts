@@ -294,13 +294,14 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
           const total = isCycles
             // @ts-ignore
             ? instructionArray[key]
-            //@ts-ignore
-                .filter((i: unknown) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+              // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+            // @ts-ignore
             : instructionArray[key]
-            //@ts-ignore
-                .filter((i: unknown) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
+              // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
           const curWidth = isCycles ? cur.cycles : cur.instructions;
           const width = Math.floor(parentNode.frame.width * (curWidth / total));
           if (i === 0) {
@@ -420,6 +421,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
           (pre: number, cur: SampleStruct) => pre + Math.ceil(cur.instructions!),
           0
         );
+        // @ts-ignore
         const totalCycles = instruction.property.reduce(
           (pre: number, cur: SampleStruct) => pre + Math.ceil(cur.cycles!),
           0
@@ -441,17 +443,27 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
       cyclesSum = 0;
       hoverInstructionsSum = 0;
       hoverCyclesSum = 0;
+      // @ts-ignore
       for (const key in unknown.children) {
-        const child = instructionData.find((instruction) => instruction.name === key);
-        instructionSum += child.instructions ?? 0;
-        cyclesSum += child.cycles ?? 0;
-        hoverInstructionsSum += child.hoverInstructions ?? 0;
-        hoverCyclesSum += child.hoverCycles ?? 0;
+        // @ts-ignore
+        const child = instructionData.find((instruction) => instruction['name'] === key);
+        // @ts-ignore
+        instructionSum += child['instructions'] ?? 0;
+        // @ts-ignore
+        cyclesSum += child['cycles'] ?? 0;
+        // @ts-ignore
+        hoverInstructionsSum += child['hoverInstructions'] ?? 0;
+        // @ts-ignore
+        hoverCyclesSum += child['hoverCycles'] ?? 0;
       }
-      unknown.instructions = instructionSum;
-      unknown.cycles = cyclesSum;
-      unknown.hoverInstructions = hoverInstructionsSum;
-      unknown.hoverCycles = hoverCyclesSum;
+      // @ts-ignore
+      unknown['instructions'] = instructionSum;
+      // @ts-ignore
+      unknown['cycles'] = cyclesSum;
+      // @ts-ignore
+      unknown['hoverInstructions'] = hoverInstructionsSum;
+      // @ts-ignore
+      unknown['hoverCycles'] = hoverCyclesSum;
     });
     return instructionData;
   }

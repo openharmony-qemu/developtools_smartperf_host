@@ -296,13 +296,14 @@ export class TabPaneSampleInstruction extends BaseElement {
           const total = isCycles
             // @ts-ignore
             ? instructionArray[key]
-            //@ts-ignore
-                .filter((i: unknown) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+              // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+            // @ts-ignore
             : instructionArray[key]
-            //@ts-ignore
-                .filter((i: unknown) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
+              // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
           const curWidth = isCycles ? cur.cycles : cur.instructions;
           const width = Math.floor(parentNode.frame.width * (curWidth / total));
           if (i === 0) {

@@ -588,16 +588,18 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     maxKey: string | undefined = undefined
   ): T | undefined {
     if (this.isHover) {
+      let item: T | undefined;
       if (maxKey) {
         let arr = this.dataListCache
           .filter((re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)) // @ts-ignore
           .sort((targetA, targetB) => (targetB as unknown)[maxKey] - (targetA as unknown)[maxKey]);
-        return arr[0];
+        item = arr[0];
       } else {
-        return this.dataListCache.find(
+        item = this.dataListCache.find(
           (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
         );
       }
+      return item
     }
   }
 
@@ -944,11 +946,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       event.stopPropagation();
     });
 
-    let that = this;
-    window.addEventListener('storage', function (e): void {
+    window.addEventListener('storage', (e): void => {
       if (e.storageArea === sessionStorage) {
         if (e.key === 'freqInfoData') {
-          that.onRowCheckFileChangeHandler?.();
+          this.onRowCheckFileChangeHandler?.();
         }
       }
     }); // @ts-ignore

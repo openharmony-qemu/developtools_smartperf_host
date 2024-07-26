@@ -349,7 +349,6 @@ export class SpRecordPerf extends BaseElement {
   };
 
   eventSelectClickHandler = (): void => {
-    let that = this;
     if (SpRecordTrace.serialNumber === '') {
       this.eventSelect?.dataSource(eventSelect, '');
     } else {
@@ -360,8 +359,8 @@ export class SpRecordPerf extends BaseElement {
       if (SpRecordTrace.isVscode) {
         let cmd = Cmd.formatString(CmdConstant.CMD_GET_HIPERF_EVENTS_DEVICES, [SpRecordTrace.serialNumber]);
         Cmd.execHdcCmd(cmd, (res: string) => {
-          let eventMap = that.parseEvent(res);
-          let eventList = that.getSoftHardWareEvents(eventMap);
+          let eventMap = this.parseEvent(res);
+          let eventList = this.getSoftHardWareEvents(eventMap);
           if (eventList) {
             for (let eventListElement of eventList) {
               this.eventData.push(eventListElement.trim());
@@ -375,8 +374,8 @@ export class SpRecordPerf extends BaseElement {
           if (conn) {
             HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_HIPERF_EVENTS, false).then((res) => {
               if (res) {
-                let eventMap = that.parseEvent(res);
-                let eventList = that.getSoftHardWareEvents(eventMap);
+                let eventMap = this.parseEvent(res);
+                let eventList = this.getSoftHardWareEvents(eventMap);
                 if (eventList) {
                   for (let eventListElement of eventList) {
                     this.eventData.push(eventListElement.trim());

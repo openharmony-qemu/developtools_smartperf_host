@@ -207,9 +207,8 @@ export class TabPaneJsCpuCallTree extends BaseElement {
   }
 
   private sortTree(arr: Array<JsCpuProfilerTabStruct>): Array<JsCpuProfilerTabStruct> {
-    const that = this;
-    function defaultSort(callTreeLeftData: JsCpuProfilerTabStruct, callTreeRightData: JsCpuProfilerTabStruct): number {
-      if (that.currentType === that.TYPE_TOP_DOWN) {
+    const defaultSort = (callTreeLeftData: JsCpuProfilerTabStruct, callTreeRightData: JsCpuProfilerTabStruct): number => {
+      if (this.currentType === this.TYPE_TOP_DOWN) {
         return callTreeRightData.totalTime - callTreeLeftData.totalTime;
       } else {
         return callTreeRightData.selfTime - callTreeLeftData.selfTime;

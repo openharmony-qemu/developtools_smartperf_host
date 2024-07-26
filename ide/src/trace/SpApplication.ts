@@ -1941,7 +1941,7 @@ export class SpApplication extends BaseElement {
       }
       if (this.litSearch!.index > 0) {
         let currentEntry = this.litSearch!.list[this.litSearch!.index];
-        cancelCurrentTraceRowHighlight(this.spSystemTrace!, currentEntry)
+        cancelCurrentTraceRowHighlight(this.spSystemTrace!, currentEntry);
       }
       this.litSearch!.list = [];
       if (timer) {

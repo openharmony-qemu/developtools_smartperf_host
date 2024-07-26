@@ -77,18 +77,19 @@ export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {
     this.selectEl!.defaultValue = smapsComFileArr[0].name; // @ts-ignore
     this.selectEl!.placeholder = smapsComFileArr[0].name;
     this.selectEl!.dataSource = smapsComFileArr;
-    this.selectEl!.querySelectorAll('lit-select-option').forEach((a) => {
-      a.addEventListener('onSelected', (e: unknown) => {
+    let selectOption: NodeListOf<Element> = this.selectEl!.querySelectorAll('lit-select-option');
+    for (const item of selectOption) {
+      item.addEventListener('onSelected', (e: unknown) => {
         for (let f of smapsComFileArr) {
           // @ts-ignore
           if (input.value === f.name) {
             // @ts-ignore
-            that.querySmapsData(fileStartNs, f.startNs);
+            this.querySmapsData(fileStartNs, f.startNs);
           }
         } // @ts-ignore
         e.stopPropagation();
-      });
-    });
+      })
+    }
   }
 
   private async querySmapsData(baseTime: number, targetTime: number): Promise<void> {

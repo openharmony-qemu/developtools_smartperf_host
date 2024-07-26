@@ -2021,7 +2021,8 @@ export function findSearchNode(data: unknown[], search: string, parentSearch: bo
 }
 
 // draw prio curve
-export function prioClickHandlerFun(param: unknown, row: TraceRow<any>, threadFilter: Array<ThreadStruct>, arr: unknown, oldVal: number): void {
+// @ts-ignore
+export function prioClickHandlerFun(param: unknown, row: TraceRow<unknown>, threadFilter: Array<ThreadStruct>, arr: unknown, oldVal: number): void {
   //@ts-ignore
   let maxCount = Math.max(...param.map((obj: unknown) => obj.count));
   //@ts-ignore

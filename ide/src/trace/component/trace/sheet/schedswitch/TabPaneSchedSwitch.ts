@@ -118,12 +118,12 @@ export class TabPaneSchedSwitch extends BaseElement {
       this.queryCycleRangeData();
     });
     this.threadIdInput!.addEventListener('keyup', (ev) => {
-      if(ev.key.toLocaleLowerCase() === String.fromCharCode(47)){
+      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
         ev.stopPropagation();
       }
     });
     this.funcNameInput!.addEventListener('keyup', (ev) => {
-      if(ev.key.toLocaleLowerCase() === String.fromCharCode(47)){
+      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
         ev.stopPropagation();
       }
     });
