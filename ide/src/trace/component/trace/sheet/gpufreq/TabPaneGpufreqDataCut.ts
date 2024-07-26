@@ -105,8 +105,8 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     let result: Array<SearchGpuFuncBean> = await getGpufreqDataCut(tIds, funcName, leftNS, rightNS, single, loop);
     return result;
   };
-   //是否改变single按钮颜色
-   private isChangeSingleBtn(flag: boolean): void {
+  //是否改变single按钮颜色
+  private isChangeSingleBtn(flag: boolean): void {
     if (flag) {
       this.setAttribute('single', '');
     } else {
@@ -182,11 +182,11 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         let initItem: GpuCountBean = initData[j];
         _lastList.push(...this.segmentationData(initItem, dataItem, i));
         j++;
-        currentIndex++; 
+        currentIndex++;
         if (currentIndex === initData.length) {
           i++;
           j = 0;
-          currentIndex = 0; 
+          currentIndex = 0;
         };
       };
       let tree: TreeDataStringBean = this.createTree(_lastList);
@@ -269,9 +269,9 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         dur: number;
         percent: number;
         level: number;
-        children: TreeDataBean[];  
+        children: TreeDataBean[];
       } = {
-        thread: 'gpufreq Frequency', 
+        thread: 'gpufreq Frequency',
         value: 0,
         dur: 0,
         percent: 100,
@@ -286,15 +286,15 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         item.level = 4;
         this.updateValueMap(item, parentIndex, freq, valueMap);
       });
-      Object.values(valueMap).forEach((node: TreeDataBean) => { 
-        const parentNode: TreeDataBean = valueMap[node.freq! - 1]; 
+      Object.values(valueMap).forEach((node: TreeDataBean) => {
+        const parentNode: TreeDataBean = valueMap[node.freq! - 1];
         if (parentNode) {
           parentNode.children.push(node);
           parentNode.dur += node.dur;
           parentNode.value += node.value;
         } else {
-          root.children.push(node);  
-          root.dur += node.dur; 
+          root.children.push(node);
+          root.dur += node.dur;
           root.value += node.value;
         }
       });
@@ -314,12 +314,12 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         value: item.value,
         dur: item.dur,
         startNS: item.startNS,
-        percent: 100, 
+        percent: 100,
         level: 2,
         cycle: parentIndex + 1,
         children: [],
       };
-    } else { 
+    } else {
       valueMap[parentIndex].dur += item.dur;
       valueMap[parentIndex].value += item.value;
     };
@@ -341,9 +341,9 @@ export class TabPaneGpufreqDataCut extends BaseElement {
   private getFirstLevelChildren(obj: TreeDataBean): Array<CycleDataBean> {
     const result: Array<CycleDataBean> = [];
     if (Array.isArray(obj.children)) {
-      obj.children.forEach((child) => { 
+      obj.children.forEach((child) => {
         if (child.cycle !== undefined && child.dur !== undefined && child.value !== undefined && child.startNS !== undefined) {
-          result.push(new CycleDataBean(7,child.dur, Number((child.value / this.KUNIT).toFixed(3)), child.startNS, child.cycle,'',1));
+          result.push(new CycleDataBean(7, child.dur, Number((child.value / this.KUNIT).toFixed(3)), child.startNS, child.cycle, '', 1));
         };
       });
     };
@@ -362,14 +362,14 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       for (const child of root.children) {
         treeDataString.children!.push(this.convertChildToString(child) as TreeDataStringBean);
       };
-    }; 
+    };
     return treeDataString;
   };
   private convertChildToString(child: TreeDataBean | TreeDataBean[]): TreeDataStringBean | TreeDataStringBean[] {
-    if (Array.isArray(child)) { 
-      if (child.length > 0) { 
+    if (Array.isArray(child)) {
+      if (child.length > 0) {
         return child.map(c => this.convertChildToString(c) as TreeDataStringBean);
-      } else {  
+      } else {
         return [];
       }
     } else if (child && child.children) {

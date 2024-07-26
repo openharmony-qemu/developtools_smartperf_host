@@ -34,7 +34,7 @@ export class SpSegmentationChart {
   static binderRow: TraceRow<BinderStruct> | undefined;
   static schedRow: TraceRow<CpuFreqExtendStruct> | undefined;
   static freqInfoMapData = new Map<number, Map<number, number>>();
-  static hoverLine: Array<heightLine> = [];
+  static hoverLine: Array<HeightLine> = [];
   static tabHoverObj: { key: string, cycle: number };
   private rowFolder!: TraceRow<BaseStruct>;
   static chartData: Array<Object> = [];
@@ -163,7 +163,7 @@ export class SpSegmentationChart {
       await this.initBinderTrace();
       await this.initAllStates();
     } else {
-      return
+      return;
     }
   }
   async initFolder() {
@@ -400,10 +400,10 @@ export class SpSegmentationChart {
     SpSegmentationChart.binderRow.findHoverStruct = () => {
       BinderStruct.hoverCpuFreqStruct = SpSegmentationChart.binderRow!.dataListCache.find((v: BinderStruct) => {
         if (SpSegmentationChart.binderRow!.isHover) {
-          if (v.frame!.x < SpSegmentationChart.binderRow!.hoverX + 1
-            && v.frame!.x + v.frame!.width > SpSegmentationChart.binderRow!.hoverX - 1
-            && (BinderStruct.maxHeight * 20 - v.depth * 20 + 20) < SpSegmentationChart.binderRow!.hoverY
-            && BinderStruct.maxHeight * 20 - v.depth * 20 + v.value * 20 + 20 > SpSegmentationChart.binderRow!.hoverY) {
+          if (v.frame!.x < SpSegmentationChart.binderRow!.hoverX + 1 &&
+            v.frame!.x + v.frame!.width > SpSegmentationChart.binderRow!.hoverX - 1 &&
+            (BinderStruct.maxHeight * 20 - v.depth * 20 + 20) < SpSegmentationChart.binderRow!.hoverY &&
+            BinderStruct.maxHeight * 20 - v.depth * 20 + v.value * 20 + 20 > SpSegmentationChart.binderRow!.hoverY) {
             return v;
           }
         }
@@ -577,7 +577,7 @@ function setBinderData(data: Array<Array<FreqChartDataStruct>>, binderList: Arra
   });
 }
 
-class heightLine {
+class HeightLine {
   key: string = '';
   cycle: number = -1;
 }

@@ -36,11 +36,11 @@ export class SpEBPFChart {
     let sys = await hasFileSysData();
     if (sys.length > 0) {
       //@ts-ignore
-      let fsCount = sys[0]['fsCount'] ?? 0;
+      let fsCount = sys[0].fsCount ?? 0;
       //@ts-ignore
-      let vmCount = sys[0]['vmCount'] ?? 0;
+      let vmCount = sys[0].vmCount ?? 0;
       //@ts-ignore
-      let ioCount = sys[0]['ioCount'] ?? 0;
+      let ioCount = sys[0].ioCount ?? 0;
       if (sys && sys.length > 0 && (fsCount > 0 || vmCount > 0 || ioCount > 0)) {
         let folder = await this.initFolder();
         await this.initFileCallchain();
@@ -87,7 +87,7 @@ export class SpEBPFChart {
         // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, fsFolder.frame.width, fsFolder.frame.height);
       } else {
-        (renders['empty'] as EmptyRender).renderMainThread(
+        (renders.empty as EmptyRender).renderMainThread(
           {
             context: this.trace.canvasPanelCtx,
             useCache: useCache,
@@ -239,17 +239,17 @@ export class SpEBPFChart {
   initProcessDiskIOLatencyRead(i: number, folder: TraceRow<unknown>, process: unknown): TraceRow<EBPFChartStruct> {
     let rowRead = TraceRow.skeleton<EBPFChartStruct>();
     rowRead.index = 5 + 2 * i; //@ts-ignore
-    rowRead.rowId = `FileSystemDiskIOLatency-read-${process['ipid']}`;
+    rowRead.rowId = `FileSystemDiskIOLatency-read-${process.ipid}`;
     rowRead.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
     rowRead.rowParentId = folder.rowId;
     rowRead.rowHidden = !folder.expansion;
     rowRead.style.height = '40px';
     rowRead.style.width = '100%';
     rowRead.setAttribute('children', ''); //@ts-ignore
-    rowRead.name = `${process['name'] ?? 'Process'}(${process['pid']}) Max Read Latency`;
+    rowRead.name = `${process.name ?? 'Process'}(${process.ipid}) Max Read Latency`;
     rowRead.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
       //@ts-ignore
-      const res = await diskIoSender(false, process['ipid'], [1, 3], TraceRow.range?.scale || 50, rowRead);
+      const res = await diskIoSender(false, process.ipid, [1, 3], TraceRow.range?.scale || 50, rowRead);
       return res;
     };
     rowRead.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -271,7 +271,7 @@ export class SpEBPFChart {
         {
           context: context,
           useCache: useCache, //@ts-ignore
-          type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-read-${process['pid']}`,
+          type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-read-${process.pid}`,
           chartColor: ColorUtils.MD_PALETTE[0],
         },
         rowRead
@@ -285,17 +285,17 @@ export class SpEBPFChart {
   private initProcessDiskIOWrite(i: number, folder: TraceRow<unknown>, process: unknown): TraceRow<EBPFChartStruct> {
     let rowWrite = TraceRow.skeleton<EBPFChartStruct>();
     rowWrite.index = 5 + 2 * i + 1; //@ts-ignore
-    rowWrite.rowId = `FileSystemDiskIOLatency-write-${process['ipid']}`;
+    rowWrite.rowId = `FileSystemDiskIOLatency-write-${process.ipid}`;
     rowWrite.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM;
     rowWrite.rowParentId = folder.rowId;
     rowWrite.rowHidden = !folder.expansion;
     rowWrite.style.height = '40px';
     rowWrite.style.width = '100%';
     rowWrite.setAttribute('children', ''); //@ts-ignore
-    rowWrite.name = `${process['name'] ?? 'Process'}(${process['pid']}) Max Write Latency`;
+    rowWrite.name = `${process.name ?? 'Process'}(${process.pid}) Max Write Latency`;
     rowWrite.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
       //@ts-ignore
-      const res = await diskIoSender(false, process['ipid'], [2, 4], TraceRow.range?.scale || 50, rowWrite);
+      const res = await diskIoSender(false, process.ipid, [2, 4], TraceRow.range?.scale || 50, rowWrite);
       return res;
     };
     rowWrite.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -317,7 +317,7 @@ export class SpEBPFChart {
         {
           context: context,
           useCache: useCache, //@ts-ignore
-          type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-write-${process['pid']}`,
+          type: `${TraceRow.ROW_TYPE_FILE_SYSTEM}-disk-io-process-write-${process.pid}`,
           chartColor: ColorUtils.MD_PALETTE[8],
         },
         rowWrite

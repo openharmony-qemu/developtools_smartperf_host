@@ -294,7 +294,7 @@ export class LitSearch extends BaseElement {
     let selectorBody = this.traceSelector?.shadowRoot!.querySelector<HTMLDivElement>('.body');
     if (selectorBody) {
       selectorBody.style.width = '200px';
-      selectorBody.style.overflow= 'hidden';
+      selectorBody.style.overflow = 'hidden';
     }
     this.traceSelector?.addEventListener('change', (): void => {
       if (Utils.currentSelectTrace !== this.traceSelector!.value) {

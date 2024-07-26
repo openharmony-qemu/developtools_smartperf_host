@@ -164,26 +164,35 @@ function cpuFavoriteRowDragendHandler(sp: SpSystemTrace): () => void {
     sp.currentClickRow = null;
   };
 }
-function triangleFlagHandler(sp: SpSystemTrace): (event: any) => void {
-  return function (event: any): void {
+function triangleFlagHandler(sp: SpSystemTrace): (event: unknown) => void {
+  return function (event: unknown): void {
+    //@ts-ignore
     let temporaryTime = sp.timerShaftEL?.drawTriangle(event.detail.time, event.detail.type);
+    //@ts-ignore
     if (event.detail.timeCallback && temporaryTime) {
+      //@ts-ignore
       event.detail.timeCallback(temporaryTime);
     }
   };
 }
-function numberCalibrationHandler(sp: SpSystemTrace): (event: any) => void {
-  return function (event: any): void {
+function numberCalibrationHandler(sp: SpSystemTrace): (event: unknown) => void {
+  return function (event: unknown): void {
+    //@ts-ignore
     sp.timerShaftEL!.sportRuler!.times = event.detail.time;
+    //@ts-ignore
     sp.timerShaftEL!.sportRuler!.counts = event.detail.counts;
+    //@ts-ignore
     sp.timerShaftEL!.sportRuler!.durations = event.detail.durations;
     sp.timerShaftEL!.sportRuler?.draw();
   };
 }
-function flagChangeHandler(sp: SpSystemTrace): (event: any) => void {
-  return function (event: any): void {
+function flagChangeHandler(sp: SpSystemTrace): (event: unknown) => void {
+  return function (event: unknown): void {
+    //@ts-ignore
     sp.timerShaftEL?.modifyFlagList(event.detail);
+    //@ts-ignore
     if (event.detail.hidden) {
+      //@ts-ignore
       sp.selectFlag = undefined;
       if (sp._flagList.length <= 0) {
         let showTab = sp.getShowTab();
@@ -250,8 +259,10 @@ function collectHandler(sp: SpSystemTrace): (event: any) => void {
     currentRow.addEventListener('dragstart', () => {
       sp.currentClickRow = currentRow;
     });
-    currentRow.addEventListener('dragover', (ev: any) => {
+    currentRow.addEventListener('dragover', (ev: unknown) => {
+      //@ts-ignore
       ev.preventDefault();
+      //@ts-ignore
       ev.dataTransfer.dropEffect = 'move';
     });
     currentRow.addEventListener('drop', collectHandlerDrop(sp, currentRow));
@@ -754,7 +765,7 @@ export function spSystemTraceShowStruct(
   sp: SpSystemTrace,
   previous: boolean,
   currentIndex: number,
-  structs: Array<any>,
+  structs: Array<unknown>,
   retargetIndex?: number
 ): number {
   if (structs.length === 0) {
@@ -774,7 +785,7 @@ export function spSystemTraceShowStruct(
 function spSystemTraceShowStructFindIndex(
   previous: boolean,
   currentIndex: number,
-  structs: Array<any>,
+  structs: Array<unknown>,
   retargetIndex: number | undefined
 ): number {
   const rangeStart = TraceRow.range!.startNS;
@@ -785,7 +796,9 @@ function spSystemTraceShowStructFindIndex(
   } else if (previous) {
     for (let i = structs.length - 1; i >= 0; i--) {
       let it = structs[i];
+      //@ts-ignore
       if ((i < currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd)
+      //@ts-ignore
         || (it.startTime! + it.dur! < rangeStart)) {
         findIndex = i;
         break;
@@ -803,7 +816,9 @@ function spSystemTraceShowStructFindIndex(
       if (SpSystemTrace.currentStartTime > rangeStart) {
         SpSystemTrace.currentStartTime = rangeStart;//currentIndex不在可视区时，currentIndex = -1
         if (
+          //@ts-ignore
           structs[currentIndex].startTime < rangeStart ||
+          //@ts-ignore
           structs[currentIndex].startTime! + structs[currentIndex].dur! > rangeEnd
         ) {
           currentIndex = -1;
@@ -812,7 +827,9 @@ function spSystemTraceShowStructFindIndex(
     }
     //在数组中查找比currentIndex大且在range范围内的第一个下标，如果range范围内没有返回-1
     findIndex = structs.findIndex((it, idx) => {
+      //@ts-ignore
       return ((idx > currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd)
+      //@ts-ignore
         || (it.startTime! > rangeEnd));
     });
     if (findIndex === -1) {
@@ -821,7 +838,6 @@ function spSystemTraceShowStructFindIndex(
   }
   return findIndex;
 }
-
 function findEntryTypeCpu(sp: SpSystemTrace, findEntry: any): void {
   CpuStruct.selectCpuStruct = findEntry;
   CpuStruct.hoverCpuStruct = CpuStruct.selectCpuStruct;

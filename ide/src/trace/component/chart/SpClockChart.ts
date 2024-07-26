@@ -117,7 +117,7 @@ export class SpClockChart {
         context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       traceRow.canvasSave(context);
-      (renders['clock'] as ClockRender).renderMainThread(
+      (renders.clock as ClockRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -230,7 +230,7 @@ export class SpClockChart {
           });
 
         };
-        traceRow.onThreadHandler = (useCache) => {
+        traceRow.onThreadHandler = (useCache): void => {
           let context: CanvasRenderingContext2D;
           if (traceRow.currentContext) {
             context = traceRow.currentContext;
@@ -238,7 +238,7 @@ export class SpClockChart {
             context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
           }
           traceRow.canvasSave(context);
-          (renders['dmaFence'] as DmaFenceRender).renderMainThread(
+          (renders.dmaFence as DmaFenceRender).renderMainThread(
             {
               dmaFenceContext: context,
               useCache: useCache,
@@ -276,7 +276,7 @@ export class SpClockChart {
       if (clockFolder.expansion) {
         this.trace.canvasPanelCtx?.clearRect(0, 0, clockFolder.frame.width, clockFolder.frame.height);
       } else {
-        (renders['empty'] as EmptyRender).renderMainThread(
+        (renders.empty as EmptyRender).renderMainThread(
           {
             context: this.trace.canvasPanelCtx,
             useCache: useCache,

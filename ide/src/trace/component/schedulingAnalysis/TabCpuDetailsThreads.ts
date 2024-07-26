@@ -182,7 +182,7 @@ export class TabCpuDetailsThreads extends BaseElement {
     this.noData(false);
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: unknown): void {
     // @ts-ignore
     function compare(cpuDetailsThreadProperty, sort, type) {
       return function (a: any, b: any) {
@@ -200,19 +200,28 @@ export class TabCpuDetailsThreads extends BaseElement {
         }
       };
     }
-
+    //@ts-ignore
     if (detail.key === 'durStr') {
+      //@ts-ignore
       detail.key = 'dur';
+      //@ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'number'));
     } else if (
+      //@ts-ignore
       detail.key === 'value' ||
+      //@ts-ignore
       detail.key === 'ratio' ||
+      //@ts-ignore
       detail.key === 'index' ||
+      //@ts-ignore
       detail.key === 'tid' ||
+      //@ts-ignore
       detail.key === 'pid'
     ) {
+      //@ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'number'));
     } else {
+      //@ts-ignore
       this.data.sort(compare(detail.key, detail.sort, 'string'));
     }
     this.cpuDetailsThreadUsageTbl!.recycleDataSource = this.data;

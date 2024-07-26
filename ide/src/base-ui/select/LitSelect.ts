@@ -168,7 +168,7 @@ export class LitSelect extends BaseElement {
       // @ts-ignore
       this.bodyEl!.style.display = 'flex';
       this.querySelectorAll('lit-select-option').forEach((a) => {
-        this.removeChild(a)
+        this.removeChild(a);
       });
       let valuesSet = new Set();
       let flag = true; // 假设所有 value 都是唯一的  
@@ -198,8 +198,8 @@ export class LitSelect extends BaseElement {
           }          
           selectOption.textContent = optionData.name;
           selectOption.setAttribute('value', optionData.value);
-          if (this.currentSelectedValue === optionData.value) {           
-            selectOption.setAttribute('selected', '');            
+          if (this.currentSelectedValue === optionData.value) {
+            selectOption.setAttribute('selected', '');
           }
           // @ts-ignore
           this.selectInputEl!.value = '';

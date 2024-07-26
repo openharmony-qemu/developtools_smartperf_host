@@ -206,7 +206,7 @@ function jankClickHandlerFunc(sp: SpSystemTrace): Function {
       //@ts-ignore
       let findJankEntry = jankRow!.dataListCache!.find(
         //@ts-ignore
-        (dat: unknown) => `${dat.name}` == `${d.name}` && `${dat.pid}` == `${d.pid}`
+        (dat: unknown) => `${dat.name}` === `${d.name}` && `${dat.pid}` === `${d.pid}`
       );
       if (findJankEntry) {
         if (

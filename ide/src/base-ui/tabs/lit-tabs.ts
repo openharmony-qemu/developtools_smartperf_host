@@ -167,7 +167,6 @@ export class LitTabs extends HTMLElement {
   }
 
   connectedCallback(): void {
-    let that = this;
     this.tabPos = {};
     this.nav = this.shadowRoot?.querySelector('#nav');
     this.line = this.shadowRoot?.querySelector('#tab-line');

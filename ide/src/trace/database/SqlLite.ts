@@ -265,16 +265,16 @@ export class DbPool {
     progress: Function
   ): Promise<
     | {
-        status: false;
-        msg: string;
-        sdkConfigMap?: undefined;
-      }
+      status: false;
+      msg: string;
+      sdkConfigMap?: undefined;
+    }
     | {
-        status: boolean;
-        msg: string;
-        //@ts-ignore
-        sdkConfigMap: unknow;
-      }
+      status: boolean;
+      msg: string;
+      //@ts-ignore
+      sdkConfigMap: unknow;
+    }
   > => {
     this.progress = progress;
     progress('database loaded', 15);
@@ -436,7 +436,7 @@ export class DbPool {
 export const threadPool = new DbPool('1');
 export const threadPool2 = new DbPool('2');
 
-export interface ThreadPoolConfig{
+export interface ThreadPoolConfig {
   action?: string | null,
   traceId?: string | null | undefined
 }

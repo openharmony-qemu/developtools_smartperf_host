@@ -417,7 +417,7 @@ export class TabpaneNMCalltree extends BaseElement {
     this.nmCallTreeTbl!.rememberScrollTop = true;
     this.nmCallTreeTbl!.exportTextHandleMap.set('heapSizeStr', (value) => {
       // @ts-ignore
-      return `${value['size']}`;
+      return `${value.size}`;
     });
     this.nmCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
     this.filesystemTbr = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-list');
@@ -458,7 +458,7 @@ export class TabpaneNMCalltree extends BaseElement {
     this.initCloseCallBackByHeadLine();
     this.nmCallTreeFilter?.addEventListener('focus', () => {
       spSystemTrace.focusTarget = 'bottomUpInput';
-    })
+    });
     this.nmCallTreeFilter?.addEventListener('blur', () => {
       spSystemTrace.focusTarget = '';
     });

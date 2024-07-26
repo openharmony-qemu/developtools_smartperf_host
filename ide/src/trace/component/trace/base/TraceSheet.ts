@@ -253,14 +253,17 @@ export class TraceSheet extends BaseElement {
 
   private tdClickEvent(): void {
     this.getComponentByID<any>('box-spt')?.addEventListener('td-click', (evt: any) => {
-      this.tdClickHandler(evt)});
+      this.tdClickHandler(evt)
+    });
     this.getComponentByID<any>('box-pts')?.addEventListener('td-click', (evt: any) => {
-      this.tdClickHandler(evt)});
+      this.tdClickHandler(evt)
+    });
     this.getComponentByID<any>('box-thread-states')?.addEventListener('td-click', (evt: any) => {
       this.tdClickHandler(evt);
     });
     this.getComponentByID<any>('box-slices')?.addEventListener('td-click', (evt: any) => {
-      this.tdSliceClickHandler(evt)})
+      this.tdSliceClickHandler(evt)
+    })
   }
 
   private perfAnalysisListener(evt: MouseEvent): void {
@@ -653,7 +656,7 @@ export class TraceSheet extends BaseElement {
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayDmaFenceData = (data: DmaFenceStruct, rowData: unknown): void =>//展示tab页内容
-  // @ts-ignore
+    // @ts-ignore
     this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data, rowData);
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
@@ -999,7 +1002,7 @@ export class TraceSheet extends BaseElement {
         selection.fileSysVirtualMemory ||
         selection.vmCount > 0 ||
         selection.diskIOLatency ||
-        selection.diskIOipids.length > 0  ||
+        selection.diskIOipids.length > 0 ||
         selection.threadIds.length > 0)
     ) {
       this.importDiv!.style.display = 'flex';
@@ -1094,16 +1097,16 @@ export class TraceSheet extends BaseElement {
     pane.hidden = false;
     this.litTabs!.activeByKey(pane.key); //显示key值对应的Tab页
     // @ts-ignore
-    pane.tab =  e.detail.tabTitle ? e.detail.tabTitle : Utils.transferPTSTitle(e.detail.title);//设置Tab页标题，有的标题可直接用，有的标题需在此转换成需要展示的字符串
+    pane.tab = e.detail.tabTitle ? e.detail.tabTitle : Utils.transferPTSTitle(e.detail.title);//设置Tab页标题，有的标题可直接用，有的标题需在此转换成需要展示的字符串
     let param = new BoxJumpParam();
     param.traceId = this.selection!.traceId;
     param.leftNs = this.selection!.leftNs;
     param.rightNs = this.selection!.rightNs;
-    param.cpus = this.selection!.cpus; 
+    param.cpus = this.selection!.cpus;
     // @ts-ignore
-    param.state = e.detail.summary ? '' : e.detail.state; 
+    param.state = e.detail.summary ? '' : e.detail.state;
     // @ts-ignore
-    param.processId = e.detail.summary ? this.selection.processIds : e.detail.pid; 
+    param.processId = e.detail.summary ? this.selection.processIds : e.detail.pid;
     // @ts-ignore
     param.threadId = e.detail.summary ? this.selection.threadIds : e.detail.tid;
     param.isJumpPage = true;// @ts-ignore
@@ -1137,7 +1140,7 @@ export class TraceSheet extends BaseElement {
     param.isJumpPage = true;
     (pane.children.item(0) as TabPaneSliceChild).data = param;
   }
-  
+
   clearMemory(): void {
     let allTabs = Array.from(this.shadowRoot?.querySelectorAll<LitTabpane>('#tabs lit-tabpane').values() || []);
     allTabs.forEach((tab) => {

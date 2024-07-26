@@ -53,10 +53,10 @@ export class RequestMessage {
   totalNS!: number;
   slicesTime:
     | {
-        startTime: number | null;
-        endTime: number | null;
-        color: string | null;
-      }
+      startTime: number | null;
+      endTime: number | null;
+      color: string | null;
+    }
     | undefined;
   range: unknown;
   scale: unknown;
@@ -69,9 +69,9 @@ export class RequestMessage {
   id: unknown;
   postMessage:
     | {
-        (message: unknown, targetOrigin: string, transfer?: Transferable[]): void;
-        (message: unknown, options?: WindowPostMessageOptions): void;
-      }
+      (message: unknown, targetOrigin: string, transfer?: Transferable[]): void;
+      (message: unknown, options?: WindowPostMessageOptions): void;
+    }
     | undefined;
 }
 
@@ -104,8 +104,8 @@ export function ns2Timestamp(ns: number): string {
   return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second
     .toString()
     .padStart(2, '0')}:${millisecond.toString().padStart(3, '0')}:${microsecond
-    .toString()
-    .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
+      .toString()
+      .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
 }
 
 const offsetX = 5;
@@ -554,7 +554,7 @@ export class PairPoint {
   business: string = '';
   hidden?: boolean = false;
   backrowEL?: TraceRow<BaseStruct>;
-  rangeTime?: string
+  rangeTime?: string;
 
   constructor(
     rowEL: TraceRow<BaseStruct>,
@@ -605,10 +605,10 @@ export function drawFlagLine(
   frame: Rect,
   slicesTime:
     | {
-        startTime: number | null | undefined;
-        endTime: number | null | undefined;
-        color: string | null | undefined;
-      }
+      startTime: number | null | undefined;
+      endTime: number | null | undefined;
+      color: string | null | undefined;
+    }
     | undefined
 ): void {
   if (commonCtx) {
@@ -2021,10 +2021,13 @@ export function findSearchNode(data: unknown[], search: string, parentSearch: bo
 }
 
 // draw prio curve
-export function prioClickHandlerFun(param: any, row: TraceRow<any>, threadFilter: Array<ThreadStruct>, arr: any, oldVal: number) {
-  let maxCount = Math.max(...param.map((obj: any) => obj.count));
-  let maxCountPrio = param.find((obj: any) => obj.count === maxCount).prio;//找出出现次数最多的优先级，为中位值
-  let maxPrioDiff = Math.max(...param.map((obj: any) => Math.abs(obj.prio - Number(maxCountPrio))));//找出与中位值的最大diff
+export function prioClickHandlerFun(param: unknown, row: TraceRow<any>, threadFilter: Array<ThreadStruct>, arr: unknown, oldVal: number): void {
+  //@ts-ignore
+  let maxCount = Math.max(...param.map((obj: unknown) => obj.count));
+  //@ts-ignore
+  let maxCountPrio = param.find((obj: unknown) => obj.count === maxCount).prio;//找出出现次数最多的优先级，为中位值
+  //@ts-ignore
+  let maxPrioDiff = Math.max(...param.map((obj: unknown) => Math.abs(obj.prio - Number(maxCountPrio))));//找出与中位值的最大diff
   let maxPointInterval = Math.ceil(maxPrioDiff / 4);//diff分成4份,每一份占多少px
 
   for (let i = 0; i < threadFilter.length; i++) {
@@ -2044,8 +2047,10 @@ export function prioClickHandlerFun(param: any, row: TraceRow<any>, threadFilter
       //处理prio值变化前的
       if (i !== 0) {
         configCurveY(row, preItem, maxCountPrio, maxPointInterval);
+        //@ts-ignore
         arr.push(preItem);
       }
+      //@ts-ignore
       arr.push(item);
       oldVal = item.prio;
     }
@@ -2053,8 +2058,9 @@ export function prioClickHandlerFun(param: any, row: TraceRow<any>, threadFilter
 }
 
 //确定曲线波动时的y轴
-function configCurveY(row: TraceRow<any>, item: ThreadStruct, maxCountPrio: number, maxPointInterval: number) {
-  if (item.prio == Number(maxCountPrio)) {
+//@ts-ignore
+function configCurveY(row: TraceRow<unknown>, item: ThreadStruct, maxCountPrio: number, maxPointInterval: number): void {
+  if (item.prio === Number(maxCountPrio)) {
     item.curveFloatY = 3 + 12 / 2 + row.translateY;
   } else if (item.prio! > Number(maxCountPrio)) {
     let prioHeight = Math.floor((item.prio! - Number(maxCountPrio)) / maxPointInterval) * 2;
@@ -2065,7 +2071,7 @@ function configCurveY(row: TraceRow<any>, item: ThreadStruct, maxCountPrio: numb
   }
 }
 
-export function drawThreadCurve(context: CanvasRenderingContext2D, threadFilter: ThreadStruct, nextFilter: ThreadStruct) {
+export function drawThreadCurve(context: CanvasRenderingContext2D, threadFilter: ThreadStruct, nextFilter: ThreadStruct): void {
   // 绘制曲线
   if (threadFilter.frame && nextFilter.frame) {
     let p1 = threadFilter;
@@ -2080,5 +2086,5 @@ export function drawThreadCurve(context: CanvasRenderingContext2D, threadFilter:
     context.strokeStyle = '#ffc90e';
     context.lineCap = 'round';
   }
-  context.stroke()
+  context.stroke();
 }

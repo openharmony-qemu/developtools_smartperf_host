@@ -365,7 +365,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     let FunDetailList: Array<FunDetail> = new Array();
     if (this.funcDetailMap.size === 0) {
       await caches.match('/funDetail').then((res) => {
-        return res ? res!.text() : '';
+        if (res) {
+          return res!.text();
+        }
       }).then((res) => {
         if (res) {
           let funcDetail = JSON.parse(res);
@@ -385,7 +387,6 @@ export class TabPaneCurrentSelection extends BaseElement {
       information = informationList && informationList.length > 0 ? informationList[0].CN :
         `<div style="white-space: nowrap;display: flex;align-items: center">
            <div style="white-space:pre-wrap">无相关描述，如您知道具体含义可点击反馈</div>
-           <a href="https://3ms.huawei.com/km/groups/3956611/blogs/details/15389498?|=zh-cn" target = "_blank"  rel="ugc">
                <lit-icon style="cursor:pointer;margin-left: 5px; margin-top:5px" id="informationJump" name="select" color="#7fa1e7" size="20">
                </lit-icon>
            </a>
@@ -1897,7 +1898,9 @@ export class TabPaneCurrentSelection extends BaseElement {
   async queryThreadWakeUpFromData(itid: number, startTime: number, dur: number): Promise<WakeupBean | undefined> {
     let wakeUps = await queryThreadWakeUpFrom(itid, startTime + Utils.getInstance().getRecordStartNS());
     // @ts-ignore
-    return wakeUps !== undefined && wakeUps.length > 0 ? wakeUps[0] : [];
+    if (wakeUps !== undefined && wakeUps.length > 0) {
+      return wakeUps[0];
+    }
   }
 
   /**

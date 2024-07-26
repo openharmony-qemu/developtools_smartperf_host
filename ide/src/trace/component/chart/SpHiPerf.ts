@@ -318,15 +318,18 @@ export class SpHiPerf {
     row.rowSettingList = [
       ...cpuData.reverse().map(
         (
-          it: any
+          it: unknown
         ): {
           key: string;
           title: string;
           checked?: boolean;
         } => {
           return {
+            //@ts-ignore
             key: `${it.cpu_id}-c`,
+            //@ts-ignore
             checked: it.cpu_id === 0,
+            //@ts-ignore
             title: `cpu${it.cpu_id}`,
           };
         }

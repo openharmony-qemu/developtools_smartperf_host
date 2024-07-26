@@ -114,7 +114,7 @@ export class TabPaneMtParallel extends BaseElement {
                 this.groupContentDiv!.innerHTML = '';
                 this.getGroupTableLine();
                 //如果核数为12，默认配置分组
-                if (Utils.getInstance().getWinCpuCount() == CORE_NUM && this.isReset) {
+                if (Utils.getInstance().getWinCpuCount() === CORE_NUM && this.isReset) {
                     this.isReset = false;
                     const myMap = new Map(Object.entries(CORE_JSON));
                     for (const val of myMap.values()) {
@@ -420,9 +420,9 @@ export class TabPaneMtParallel extends BaseElement {
         for (let i = 0; i < Utils.getInstance().getWinCpuCount(); i++) {
             let obj = {
                 cpu: i,
-                isCheck: Utils.getInstance().getWinCpuCount() == CORE_NUM && str !== 'cut' && this.isReset ? switchArr.includes(i) : bufferInfo.includes(i),
+                isCheck: Utils.getInstance().getWinCpuCount() === CORE_NUM && str !== 'cut' && this.isReset ? switchArr.includes(i) : bufferInfo.includes(i),
                 disabled:
-                    Utils.getInstance().getWinCpuCount() == CORE_NUM && str !== 'cut' && this.isReset ?
+                    Utils.getInstance().getWinCpuCount() === CORE_NUM && str !== 'cut' && this.isReset ?
                         !(switchArr.includes(i)) :
                         !([...this.smallCores, ...this.midCores, ...this.largeCores].includes(i))
             };

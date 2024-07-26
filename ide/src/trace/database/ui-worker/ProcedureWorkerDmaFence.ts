@@ -64,7 +64,9 @@ export class DmaFenceRender {
       req.dmaFenceContext.beginPath();
       req.dmaFenceContext.globalAlpha = 0.6;
       DmaFenceStruct.draw(req.dmaFenceContext, re, DmaFenceRow);
-      if (!find && DmaFenceRow.isHover) DmaFenceStruct.hoverDmaFenceStruct = undefined;
+      if (!find && DmaFenceRow.isHover) {
+        DmaFenceStruct.hoverDmaFenceStruct = undefined;
+      }
       req.dmaFenceContext.closePath();
     }
   }
@@ -110,25 +112,25 @@ export class DmaFenceStruct extends BaseStruct {
         data.depth = 1;
       }
       if (data.depth > DmaFenceStruct.maxDepth) {
-        DmaFenceStruct.maxDepth = data.depth
-        row.style.height = `${(DmaFenceStruct.maxDepth + 1) * 24 + 16}px`
+        DmaFenceStruct.maxDepth = data.depth;
+        row.style.height = `${(DmaFenceStruct.maxDepth + 1) * 24 + 16}px`;
       }
-      let colorIndex = Number(data.startTime?.toString().substring(-1))
+      let colorIndex = Number(data.startTime?.toString().substring(-1));
       let color = ColorUtils.colorForTid(colorIndex);
       ctx.fillStyle = color;
       if (data === DmaFenceStruct.hoverDmaFenceStruct || data === DmaFenceStruct.selectDmaFenceStruct) {
         ctx.globalAlpha = 1.0;
         ctx.lineWidth = 1;
         ctx.strokeStyle = '#a56df5';
-        ctx.fillRect(data.frame.x, data.depth * 24 + 8, data.frame.width < 1 ? 1 : data.frame.width, 24)
+        ctx.fillRect(data.frame.x, data.depth * 24 + 8, data.frame.width < 1 ? 1 : data.frame.width, 24);
       } else {
         ctx.globalAlpha = 0.6;
-        ctx.fillRect(data.frame.x, data.depth * 24 + 8, data.frame.width < 1 ? 1 : data.frame.width, 24)
+        ctx.fillRect(data.frame.x, data.depth * 24 + 8, data.frame.width < 1 ? 1 : data.frame.width, 24);
       }
       //描边
-      if (data.id == DmaFenceStruct.selectDmaFenceStruct?.id &&
-        data.startTime == DmaFenceStruct.selectDmaFenceStruct?.startTime &&
-        data.depth == DmaFenceStruct.selectDmaFenceStruct?.depth) {
+      if (data.id === DmaFenceStruct.selectDmaFenceStruct?.id &&
+        data.startTime === DmaFenceStruct.selectDmaFenceStruct?.startTime &&
+        data.depth === DmaFenceStruct.selectDmaFenceStruct?.depth) {
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 1;
         let positionY = data.depth * 24 + 8;

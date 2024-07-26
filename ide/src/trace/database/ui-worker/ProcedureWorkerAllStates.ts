@@ -25,7 +25,7 @@ import {
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
 import { ThreadStruct as BaseThreadStruct } from '../../bean/ThreadStruct';
-import { SpSystemTrace } from "../../component/SpSystemTrace";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 import { SpSegmentationChart } from '../../component/chart/SpSegmentationChart';
 import { ns2x } from './ProcedureWorkerCommon';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
@@ -41,7 +41,7 @@ export class AllStatesRender extends Render {
             translateY: number;
         },
         row: TraceRow<AllstatesStruct>
-    ) {
+    ): void {
         let threadList = row.dataList;
         let threadFilter = row.dataListCache;
         dataFilterHandler(threadList, threadFilter, {
@@ -63,7 +63,7 @@ export class AllStatesRender extends Render {
             if (row.isHover && re.frame && isFrameContainPoint(re.frame!, row.hoverX, row.hoverY)) {
                 SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
                 AllstatesStruct.hoverThreadStruct = re;
-                find = true
+                find = true;
             }
         }
         if (row.rowId === 'statesrow' &&
@@ -81,7 +81,7 @@ export class AllStatesRender extends Render {
         }
         threadReq.context.closePath();
     }
-    render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>) { }
+    render(threadReq: RequestMessage, threadList: Array<unknown>, threadFilter: Array<unknown>): void { }
 }
 
 export class AllstatesStruct extends BaseThreadStruct {
@@ -95,7 +95,7 @@ export class AllstatesStruct extends BaseThreadStruct {
     static startCycleTime: number = 0;
     static endTime: number = 0;
 
-    static drawThread(threadContext: CanvasRenderingContext2D, data: AllstatesStruct) {
+    static drawThread(threadContext: CanvasRenderingContext2D, data: AllstatesStruct): void {
         if (data.frame) {
             threadContext.globalAlpha = 1;
             let stateText = AllstatesStruct.getEndState(data.state || '');

@@ -51,7 +51,9 @@ export class LtpoRender {
         find = true;
       }
       LtpoStruct.draw(req.ltpoContext, re);
-      if (!find && ltpoRow.isHover) LtpoStruct.hoverLtpoStruct = undefined;
+      if (!find && ltpoRow.isHover) {
+        LtpoStruct.hoverLtpoStruct = undefined;
+      }
       req.ltpoContext.closePath();
     }
   }
