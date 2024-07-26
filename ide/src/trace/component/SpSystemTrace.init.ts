@@ -189,11 +189,11 @@ function cpuFavoriteRowDragendHandler(sp: SpSystemTrace): () => void {
 }
 function triangleFlagHandler(sp: SpSystemTrace): (event: unknown) => void {
   return function (event: unknown): void {
-    // @ts-ignore
+    //@ts-ignore
     let temporaryTime = sp.timerShaftEL?.drawTriangle(event.detail.time, event.detail.type);
-    // @ts-ignore
+    //@ts-ignore
     if (event.detail.timeCallback && temporaryTime) {
-      // @ts-ignore
+      //@ts-ignore
       event.detail.timeCallback(temporaryTime);
     }
   };
@@ -215,6 +215,7 @@ function flagChangeHandler(sp: SpSystemTrace): (event: unknown) => void {
     sp.timerShaftEL?.modifyFlagList(event.detail);
     // @ts-ignore
     if (event.detail.hidden) {
+      //@ts-ignore
       sp.selectFlag = undefined;
       if (sp._flagList.length <= 0) {
         let showTab = sp.getShowTab();

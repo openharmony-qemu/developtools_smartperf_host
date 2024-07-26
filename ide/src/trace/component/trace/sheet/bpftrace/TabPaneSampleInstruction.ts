@@ -416,22 +416,14 @@ export class TabPaneSampleInstruction extends BaseElement {
       subArr.some((obj: SampleStruct) => obj.begin === clickData.begin)
     );
     //获取非unknown数据
-    // @ts-ignore
-    const knownRelation = relationData.filter((relation) => relation['name'].indexOf('unknown') < 0);
-    // @ts-ignore
-    propertyData.forEach((property: unknown) => {
-      // @ts-ignore
-      const relation = knownRelation.find((relation) => relation['name'] === property['func_name']);
-      // @ts-ignore
-      relation['instructions'] = Math.ceil(property['instructions']) || 1;
-      // @ts-ignore
-      relation['hoverInstructions'] = Math.ceil(property['instructions']);
-      // @ts-ignore
-      relation['cycles'] = Math.ceil(property['cycles']) || 1;
-      // @ts-ignore
-      relation['hoverCycles'] = Math.ceil(property['cycles']);
-      // @ts-ignore
-      this.maxDepth = Math.max(this.maxDepth, relation['depth']);
+    const knownRelation = relationData.filter((relation) => relation.name.indexOf('unknown') < 0);
+    propertyData.forEach((property: any) => {
+      const relation = knownRelation.find((relation) => relation.name === property.func_name);
+      relation.instructions = Math.ceil(property.instructions) || 1;
+      relation.hoverInstructions = Math.ceil(property.instructions);
+      relation.cycles = Math.ceil(property.cycles) || 1;
+      relation.hoverCycles = Math.ceil(property.cycles);
+      this.maxDepth = Math.max(this.maxDepth, relation.depth);
     });
     //获取所有unknown数据
     let instructionSum = 0;

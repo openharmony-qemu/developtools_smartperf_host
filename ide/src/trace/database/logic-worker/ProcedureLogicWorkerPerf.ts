@@ -851,9 +851,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   kernelCombination(): void {
-    function mergeChildren(item: PerfCallChainMerageData) {
+    function mergeChildren(item: PerfCallChainMerageData): void {
       if (item.children.length <= 0) {
-        return
+        return;
       }
       item.children = item.children.reduce((total: PerfCallChainMerageData[], pfcall: PerfCallChainMerageData): PerfCallChainMerageData[] => {
         for (const prev of total) {

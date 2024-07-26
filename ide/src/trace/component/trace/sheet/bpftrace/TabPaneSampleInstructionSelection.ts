@@ -413,12 +413,10 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
   getAvgInstructionData(instructionData: Array<unknown>) {
     // @ts-ignore
     const length = instructionData[0].property.length;
-    // @ts-ignore
     const knowData = instructionData.filter((instruction) => instruction.name.indexOf('unknown') < 0);
     knowData.forEach((instruction) => {
       // @ts-ignore
       if (instruction.property.length > 0) {
-        // @ts-ignore
         const totalInstruction = instruction.property.reduce(
           (pre: number, cur: SampleStruct) => pre + Math.ceil(cur.instructions!),
           0

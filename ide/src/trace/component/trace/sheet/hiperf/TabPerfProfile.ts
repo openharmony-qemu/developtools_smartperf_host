@@ -322,7 +322,7 @@ export class TabpanePerfProfile extends BaseElement {
     this.initPerfProfilerDataAndListener();
     this.perfProfilerFilter?.addEventListener('focus', () => {
       spSystemTrace.focusTarget = 'bottomUpInput';
-    })
+    });
     this.perfProfilerFilter?.addEventListener('blur', () => {
       spSystemTrace.focusTarget = '';
     });

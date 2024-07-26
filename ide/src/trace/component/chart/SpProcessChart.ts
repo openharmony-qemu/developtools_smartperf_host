@@ -53,6 +53,7 @@ import {
 } from '../../database/sql/ProcessThread.sql';
 import { queryAllJankProcess } from '../../database/sql/Janks.sql';
 import { BaseStruct } from '../../bean/BaseStruct';
+import { promises } from 'dns';
 
 const FOLD_HEIGHT = 24;
 export class SpProcessChart {
@@ -301,11 +302,11 @@ export class SpProcessChart {
     funcRow.rowHidden = !parentRow.expansion;
     funcRow.style.width = '100%';
     funcRow.style.height = '24px';
-    // @ts-ignore
+    //@ts-ignore
     funcRow.name = `${asyncFuncGroups[0].funName} ${key}`;
     funcRow.setAttribute('children', '');
-    // @ts-ignore
-    funcRow.supplierFrame = () => {
+    //@ts-ignore
+    funcRow.supplierFrame = ():Promise=> {
       return processTouchEventDispatchDataSender(key, funcRow!).then((res: Array<unknown>) => {
         this.touchEventDispatchSendCallback(res, funcRow, asyncFuncGroups);
         return res;
@@ -339,9 +340,8 @@ export class SpProcessChart {
       left.dur + right.dur;
     let depths: unknown = [];
     let createDepth = (currentDepth: number, index: number): void => {
-      // @ts-ignore
-      if (depths[currentDepth] == undefined || !isIntersect(depths[currentDepth], res[index])) {
-        // @ts-ignore
+      if (depths[currentDepth] === undefined || !isIntersect(depths[currentDepth], res[index])) {
+        //@ts-ignore
         res[index].depth = currentDepth;
         // @ts-ignore
         depths[currentDepth] = res[index];
@@ -350,15 +350,15 @@ export class SpProcessChart {
       }
     };
     res.forEach((it, i) => {
-      // @ts-ignore
+      //@ts-ignore
       res[i].funName = this.traceId ? Utils.getInstance().getCallStatckMap().get(`${this.traceId}_${res[i].id!}`) : Utils.getInstance().getCallStatckMap().get(res[i].id!);
-      // @ts-ignore
+      //@ts-ignore
       res[i].threadName = Utils.getInstance().getThreadMap().get(res[i].tid!);
-      // @ts-ignore
-      if (it.dur == -1 || it.dur === null || it.dur === undefined) {
-        // @ts-ignore
+      //@ts-ignore
+      if (it.dur === -1 || it.dur === null || it.dur === undefined) {
+        //@ts-ignore
         it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
-        // @ts-ignore
+        //@ts-ignore
         it.flag = 'Did not end';
       }
       createDepth(0, i);
@@ -1401,14 +1401,14 @@ export class SpProcessChart {
       //@ts-ignore
       setArrayLenOnlyOne[`H:${asyncTidFunc[0].threadName} ${asyncTidFunc[0].tid}`] = asyncTidFunc;
     });
-    return { setArrayLenThanOne, setArrayLenOnlyOne }
+    return { setArrayLenThanOne, setArrayLenOnlyOne };
   }
   makeAddAsyncFunction(
     asyncFunctions: unknown[],
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
     key?: string
-  ) {
+  ): void {
     let maxDepth: number = -1;
     let i = 0;
     let mapDepth = new Map();
@@ -1474,7 +1474,7 @@ export class SpProcessChart {
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
     key?: string
-  ) {
+  ): void {
     const maxHeight = this.calMaxHeight(asyncFunctions);
     // @ts-ignore
     const namesSet = new Set(asyncFunctions.map((item) => item.funName));
