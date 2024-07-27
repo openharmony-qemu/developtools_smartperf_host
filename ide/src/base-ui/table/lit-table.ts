@@ -352,7 +352,7 @@ export class LitTable extends HTMLElement {
         this.theadElement!.append(rowElement);
       });
     });
-    this.shadowRoot!.addEventListener('load', function (event) {});
+    this.shadowRoot!.addEventListener('load', function (event) { });
     this.tableElement!.addEventListener('mouseout', (ev) => this.mouseOut());
     this.treeElement && (this.treeElement!.style.transform = 'translateY(0px)');
     this.tbodyElement && (this.tbodyElement!.style.transform = 'translateY(0px)');
@@ -631,7 +631,7 @@ export class LitTable extends HTMLElement {
     });
   }
 
-  adoptedCallback(): void {}
+  adoptedCallback(): void { }
 
   getCheckRows(): unknown[] {
     // @ts-ignore
@@ -639,7 +639,7 @@ export class LitTable extends HTMLElement {
       .map((a) => (a as unknown).data)
       .map((a) => {
         if ('children' in a) {
-          delete a['children'];
+          Reflect.deleteProperty(a, "chlidren")
         }
         return a;
       });
@@ -1525,14 +1525,15 @@ export class LitTable extends HTMLElement {
   }
 
   //自定义td点击事件
-  dispatchTdClickEvent(td: unknown, column: any, rowData: unknown): void {
+  dispatchTdClickEvent(td: unknown, column: unknown, rowData: unknown): void {
+    // @ts-ignore
     if (column.hasAttribute('tdJump')) {
       //@ts-ignore
       td.style.color = '#208aed';
       //@ts-ignore
       td.style.textDecoration = 'underline';
       //@ts-ignore
-      td.onclick =  (event: any) => {
+      td.onclick = (event: unknown): void => {
         this.dispatchEvent(
           new CustomEvent('td-click', {
             detail: {//@ts-ignore
@@ -1541,6 +1542,7 @@ export class LitTable extends HTMLElement {
             composed: true,
           })
         );
+        // @ts-ignore
         event.stopPropagation();
       };
     }

@@ -85,7 +85,7 @@ export class SpLtpoChart {
           if (
             SpLtpoChart.fanceNameList[fanceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! &&
             SpLtpoChart.fanceNameList[fanceIndex].ts! <
-              SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!
+            SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!
           ) {
             fpsIndex++;
             fanceIndex++;
@@ -214,7 +214,7 @@ export class SpLtpoChart {
           if (
             SpLtpoChart.fanceNameList[fenceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! &&
             SpLtpoChart.fanceNameList[fenceIndex].ts! <
-              SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!
+            SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!
           ) {
             SpLtpoChart.fpsnameList[fpsIndex].fanceId = SpLtpoChart.fanceNameList[fenceIndex].fanceId;
             if (SpLtpoChart.fanceNameList[fenceIndex].signaled) {
@@ -342,7 +342,7 @@ export class SpLtpoChart {
           ltpoDataArr[ltpoIndex].startTs = Number(presentArr[presentIndex].startTime) - (window as unknown).recordStartNS;
           ltpoDataArr[ltpoIndex].dur = presentArr[presentIndex].dur;
           ltpoDataArr[ltpoIndex].nextStartTs = presentArr[presentIndex + 1]
-          // @ts-ignore
+            // @ts-ignore
             ? Number(presentArr[presentIndex + 1].startTime) - (window as unknown).recordStartNS
             : '';
           ltpoDataArr[ltpoIndex].nextDur = presentArr[presentIndex + 1] ? presentArr[presentIndex + 1].dur : 0;
