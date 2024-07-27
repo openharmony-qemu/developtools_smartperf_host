@@ -180,7 +180,7 @@ export class TraceSheet extends BaseElement {
     this.processTree = this.shadowRoot?.querySelector('#processTree');
     this.optionsDiv = this.shadowRoot?.querySelector('#options');
     this.optionsSettingTree = this.shadowRoot?.querySelector('#optionsSettingTree');
-    this.optionsSettingTree!.onChange = (e: any): void => {
+    this.optionsSettingTree!.onChange = (e: unknown): void => {
       const select = this.optionsSettingTree!.getCheckdKeys();
       document.dispatchEvent(
         new CustomEvent('sample-popver-change', {
@@ -190,7 +190,7 @@ export class TraceSheet extends BaseElement {
         })
       );
     };
-    this.processTree!.onChange = (e: any): void => {
+    this.processTree!.onChange = (e: unknown): void => {
       const select = this.processTree!.getCheckdKeys();
       const selectIPid = Number(select[0]);
       this.switchDiv!.visible = 'false';
@@ -204,20 +204,24 @@ export class TraceSheet extends BaseElement {
     this.tdClickEvent();
   }
   private rowClickEvent(): void {
-    this.getComponentByID<any>('box-perf-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-perf-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
       this.perfAnalysisListener(evt);
     });
-    this.getComponentByID<any>('box-native-statistic-analysis')?.addEventListener('row-click', (e: MouseEvent) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-native-statistic-analysis')?.addEventListener('row-click', (e: MouseEvent) => {
       this.nativeAnalysisListener(e);
     });
-    this.getComponentByID<any>('box-io-tier-statistics-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-io-tier-statistics-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
       // @ts-ignore
       if (evt.detail.button === 2 && evt.detail.tableName) {
         let pane = this.getPaneByID('box-io-calltree');
         this.litTabs!.activeByKey(pane.key);
       }
     });
-    this.getComponentByID<any>('box-virtual-memory-statistics-analysis')?.addEventListener(
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-virtual-memory-statistics-analysis')?.addEventListener(
       'row-click',
       (evt: MouseEvent) => {
         // @ts-ignore
@@ -227,7 +231,8 @@ export class TraceSheet extends BaseElement {
         }
       }
     );
-    this.getComponentByID<any>('box-file-system-statistics-analysis')?.addEventListener(
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-file-system-statistics-analysis')?.addEventListener(
       'row-click',
       (evt: MouseEvent) => {
         // @ts-ignore
@@ -237,33 +242,41 @@ export class TraceSheet extends BaseElement {
         }
       }
     );
-    this.getComponentByID<any>('box-native-statstics')?.addEventListener('row-click', (e: any) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-native-statstics')?.addEventListener('row-click', (e: unknown) => {
       this.nativeStatsticsListener(e);
     });
-    this.getComponentByID<any>('box-virtual-memory-statistics')?.addEventListener('row-click', (e: any) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-virtual-memory-statistics')?.addEventListener('row-click', (e: unknown) => {
       this.virtualMemoryListener(e);
     });
-    this.getComponentByID<any>('box-io-tier-statistics')?.addEventListener('row-click', (e: any) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-io-tier-statistics')?.addEventListener('row-click', (e: unknown) => {
       this.ioTierListener(e);
     });
-    this.getComponentByID<any>('box-file-system-statistics')?.addEventListener('row-click', (e: any) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-file-system-statistics')?.addEventListener('row-click', (e: unknown) => {
       this.fileSystemListener(e);
     });
   }
 
   private tdClickEvent(): void {
-    this.getComponentByID<any>('box-spt')?.addEventListener('td-click', (evt: any) => {
-      this.tdClickHandler(evt)
-    });
-    this.getComponentByID<any>('box-pts')?.addEventListener('td-click', (evt: any) => {
-      this.tdClickHandler(evt)
-    });
-    this.getComponentByID<any>('box-thread-states')?.addEventListener('td-click', (evt: any) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-spt')?.addEventListener('td-click', (evt: unknown) => {
       this.tdClickHandler(evt);
     });
-    this.getComponentByID<any>('box-slices')?.addEventListener('td-click', (evt: any) => {
-      this.tdSliceClickHandler(evt)
-    })
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-pts')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdClickHandler(evt);
+    });
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-thread-states')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdClickHandler(evt);
+    });
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-slices')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdSliceClickHandler(evt);
+    });
   }
 
   private perfAnalysisListener(evt: MouseEvent): void {
@@ -283,44 +296,59 @@ export class TraceSheet extends BaseElement {
     }
   }
 
-  private nativeStatsticsListener(e: any): void {
+  private nativeStatsticsListener(e: unknown): void {
+    // @ts-ignore
     if (e.detail.button === 0) {
+      // @ts-ignore
       this.selection!.statisticsSelectData = e.detail;
       let pane = this.getPaneByID('box-native-memory');
       this.litTabs?.activeByKey(pane.key);
-      (pane.children.item(0) as any)!.fromStastics(this.selection);
+      // @ts-ignore
+      (pane.children.item(0) as unknown)!.fromStastics(this.selection);
     }
   }
 
-  private virtualMemoryListener(e: any): void {
+  private virtualMemoryListener(e: unknown): void {
+    // @ts-ignore
     if (e.detail.button === 0) {
+      // @ts-ignore
       this.selection!.fileSystemVMData = { path: e.detail.path };
       let pane = this.getPaneByID('box-vm-events');
       this.litTabs?.activeByKey(pane.key);
+      // @ts-ignore
       if (e.detail.path) {
-        (pane.children.item(0) as any)!.fromStastics(this.selection);
+        // @ts-ignore
+        (pane.children.item(0) as unknown)!.fromStastics(this.selection);
       }
     }
   }
 
-  private ioTierListener(e: any): void {
+  private ioTierListener(e: unknown): void {
+    // @ts-ignore
     if (e.detail.button === 0) {
+      // @ts-ignore
       this.selection!.fileSystemIoData = { path: e.detail.path };
       let pane = this.getPaneByID('box-io-events');
       this.litTabs?.activeByKey(pane.key);
+      // @ts-ignore
       if (e.detail.path) {
-        (pane.children.item(0) as any)!.fromStastics(this.selection);
+        // @ts-ignore
+        (pane.children.item(0) as unknown)!.fromStastics(this.selection);
       }
     }
   }
 
-  private fileSystemListener(e: any): void {
+  private fileSystemListener(e: unknown): void {
+    // @ts-ignore
     if (e.detail.button === 0) {
+      // @ts-ignore
       this.selection!.fileSystemFsData = e.detail.data;
       let pane = this.getPaneByID('box-file-system-event');
       this.litTabs?.activeByKey(pane.key);
+      // @ts-ignore
       if (e.detail.data) {
-        (pane.children.item(0) as any)!.fromStastics(this.selection);
+        // @ts-ignore
+        (pane.children.item(0) as unknown)!.fromStastics(this.selection);
       }
     }
   }
@@ -404,7 +432,8 @@ export class TraceSheet extends BaseElement {
       if (SpSystemTrace.isKeyUp === false) {
         return;
       }
-      (window as any).isSheetMove = true;
+      // @ts-ignore
+      (window as unknown).isSheetMove = true;
       // 获取所有标签页的节点数组
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
@@ -416,7 +445,8 @@ export class TraceSheet extends BaseElement {
       this.navMouseMove(event, currentPane!, that, tabsPackUp, borderTop);
       document.onmouseup = function (): void {
         setTimeout(() => {
-          (window as any).isSheetMove = false;
+          // @ts-ignore
+          (window as unknown).isSheetMove = false;
         }, 100);
         litTabpane!.forEach((node: HTMLDivElement): void => {
           node!.style.height = that.tabPaneHeight;
@@ -880,7 +910,7 @@ export class TraceSheet extends BaseElement {
       }
     }
   };
-  displaySampleData = (data: SampleStruct, reqProperty: any): void => {
+  displaySampleData = (data: SampleStruct, reqProperty: unknown): void => {
     this.displayTab<TabPaneSampleInstruction>('box-sample-instruction').setSampleInstructionData(data, reqProperty);
     this.optionsDiv!.style.display = 'flex';
     const select =
@@ -890,7 +920,7 @@ export class TraceSheet extends BaseElement {
       { key: '1', title: 'cycles', checked: select[0] === '1' },
     ];
   };
-  displayUserPlugin = (selectData: any): void => {
+  displayUserPlugin = (selectData: unknown): void => {
     this.displayTab<TabPaneUserPlugin>("tab-pane-userplugin").data = selectData;
   };
 
@@ -1115,7 +1145,7 @@ export class TraceSheet extends BaseElement {
   }
 
   //Slice Tab点击Occurrences列下的td进行跳转
-  tdSliceClickHandler(e: unknown) {
+  tdSliceClickHandler(e: unknown): void {
     // @ts-ignore
     this.currentPaneID = e.target.parentElement.id;
     //隐藏除了当前Tab页的其他Tab页

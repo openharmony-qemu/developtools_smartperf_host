@@ -155,7 +155,7 @@ function threadClickHandlerFunc(sp: SpSystemTrace): (e: ThreadStruct) => void {
 
 //点击prio箭头刷新canvas
 function prioClickHandlerFunc(sp: SpSystemTrace): (d: unknown) => void {
-  return function (d: unknown) {
+  return function (d: unknown): void {
     // @ts-ignore
     ThreadStruct.prioCount = d;
     ThreadStruct.isClickPrio = true;

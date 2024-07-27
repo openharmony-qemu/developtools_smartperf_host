@@ -1129,7 +1129,8 @@ export class SelectionParam {
   }
 
   //匹配id
-  pushDmaFence(it: TraceRow<any>, sp: SpSystemTrace): void {
+  // @ts-ignore
+  pushDmaFence(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_DMA_FENCE) {
       this.dmaFenceNameData.push(it.rowId!);
     }
@@ -1273,7 +1274,7 @@ export class SliceBoxJumpParam {
   processId: Array<number> = [];
   threadId: Array<number> = [];
   name: string[] | undefined | null;
-  isJumpPage: boolean | undefined
+  isJumpPage: boolean | undefined;
 }
 
 export class SelectionData {
@@ -1307,7 +1308,7 @@ export class SelectionData {
   ts: number = 0;
   dur: number = 0;
   tabTitle: string = '';
-  allName: string[] | undefined
+  allName: string[] | undefined;
 }
 
 export class Counter {

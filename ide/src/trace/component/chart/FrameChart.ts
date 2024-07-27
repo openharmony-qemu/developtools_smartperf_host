@@ -104,16 +104,22 @@ export class FrameChart extends BaseElement {
   }
 
   private getNodeValue(node: ChartStruct): number {
+    let result: number;
     switch (this._mode) {
       case ChartMode.Byte:
-        return node.drawSize || node.size;
+        result = node.drawSize || node.size;
+        break;
       case ChartMode.Count:
-        return node.drawCount || node.count;
+        result = node.drawCount || node.count;
+        break;
       case ChartMode.Duration:
-        return node.drawDur || node.dur;
+        result = node.drawDur || node.dur;
+        break;
       case ChartMode.EventCount:
-        return node.drawEventCount || node.eventCount;
+        result = node.drawEventCount || node.eventCount;
+        break;
     }
+    return result;
   }
 
   /**
