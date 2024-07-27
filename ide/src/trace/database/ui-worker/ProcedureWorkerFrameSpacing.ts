@@ -304,11 +304,13 @@ export class FrameSpacingRender extends Render {
 export function FrameSpacingStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
-  row: TraceRow<any>,
+  //@ts-ignore
+  row: TraceRow<unknown>,
   entry?: FrameSpacingStruct,
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FRAME_SPACING) {
+      //@ts-ignore
       FrameSpacingStruct.selectFrameSpacingStruct =
         FrameSpacingStruct.hoverFrameSpacingStruct || row.getHoverStruct(false, true);
       if (FrameSpacingStruct.selectFrameSpacingStruct || entry) {

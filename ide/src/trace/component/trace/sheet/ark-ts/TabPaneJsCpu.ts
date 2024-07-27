@@ -213,7 +213,7 @@ export class TabPaneJsCpuCallTree extends BaseElement {
       } else {
         return callTreeRightData.selfTime - callTreeLeftData.selfTime;
       }
-    }
+    };
     const CallTreeSortArr = arr.sort((callTreeLeftData, callTreeRightData) => {
       if (this.sortKey === 'selfTimeStr' || this.sortKey === 'selfTimePercent') {
         if (this.sortType === 0) {

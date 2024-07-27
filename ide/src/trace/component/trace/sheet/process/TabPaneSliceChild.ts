@@ -18,12 +18,12 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SliceBoxJumpParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
-import { getTabDetails } from '../../../../database/sql/Func.sql';
+import { getTabDetails, getCatDetails } from '../../../../database/sql/Func.sql';
 
 @element('box-slice-child')
 export class TabPaneSliceChild extends BaseElement {
   private sliceChildTbl: LitTable | null | undefined;
-  private boxChildSource: Array<any> = [];
+  private boxChildSource: Array<unknown> = [];
   private sliceChildParam: SliceBoxJumpParam | null | undefined;
 
   set data(boxChildValue: SliceBoxJumpParam) {
@@ -38,7 +38,7 @@ export class TabPaneSliceChild extends BaseElement {
   }
 
   initElements(): void {
-    this.sliceChildTbl = this.shadowRoot?.querySelector<LitTable>('#tb-slice-child');    
+    this.sliceChildTbl = this.shadowRoot?.querySelector<LitTable>('#tb-slice-child');
     this.sliceChildTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
@@ -66,24 +66,24 @@ export class TabPaneSliceChild extends BaseElement {
   getDataByDB(val: SliceBoxJumpParam): void {
     this.sliceChildTbl!.loading = true;
     //处理异步方法
-    getTabDetails(val.name!, val.processId, val.leftNs, val.rightNs, 'async').then((res1: any) => {//@ts-ignore
+    getTabDetails(val.name!, val.processId, val.leftNs, val.rightNs, 'async').then((res1: unknown) => {//@ts-ignore
       //处理cat方法
-      getTabDetails(val.name!, val.processId, val.leftNs, val.rightNs, 'cat').then((res2) => {//@ts-ignore
+      getCatDetails(val.name!, val.asyncCatNames!, val.processId, val.leftNs, val.rightNs).then((res2) => {//@ts-ignore
         //处理同步方法
         getTabDetails(val.name!, val.processId, val.leftNs, val.rightNs, 'sync', val.threadId).then(
-          (res3: any) => {
-            let result: any = (res1 || []).concat(res2 || []).concat(res3 || []);
-            this.sliceChildTbl!.loading = false;
-            if (result.length !== null && result.length > 0) {
-              result.map((e: any) => {
+          (res3: unknown) => {//@ts-ignore
+            let result: unknown = (res1 || []).concat(res2 || []).concat(res3 || []);
+            this.sliceChildTbl!.loading = false;//@ts-ignore
+            if (result.length !== null && result.length > 0) {//@ts-ignore
+              result.map((e: unknown) => {//@ts-ignore
                 e.startTime = Utils.getTimeString(e.startNs);
                 // @ts-ignore
-                e.absoluteTime = ((window as unknown).recordStartNS + e.startNs) / 1000000000;
-                e.duration = e.duration / 1000000;
-                e.state = Utils.getEndState(e.state)!;
-                e.processName = `${e.process === undefined || e.process === null ? 'process' : e.process}(${e.processId})`;
+                e.absoluteTime = ((window as unknown).recordStartNS + e.startNs) / 1000000000;//@ts-ignore
+                e.duration = e.duration / 1000000;//@ts-ignore
+                e.state = Utils.getEndState(e.state)!;//@ts-ignore
+                e.processName = `${e.process === undefined || e.process === null ? 'process' : e.process}(${e.processId})`;//@ts-ignore
                 e.threadName = `${e.thread === undefined || e.thread === null ? 'thread' : e.thread}(${e.threadId})`;
-              });
+              });//@ts-ignore
               this.boxChildSource = result;
               if (this.sliceChildTbl) {
                 // @ts-ignore
@@ -95,7 +95,7 @@ export class TabPaneSliceChild extends BaseElement {
                 // @ts-ignore
                 this.sliceChildTbl.recycleDataSource = [];
               }
-            }          
+            }
           }
         );
       });
@@ -152,8 +152,8 @@ export class TabPaneSliceChild extends BaseElement {
       };
     }
     //@ts-ignore
-    if (detail.key === 'startTime' || detail.key === 'processName'|| detail.key === 'threadName' ||//@ts-ignore
-    detail.key === 'name') {
+    if (detail.key === 'startTime' || detail.key === 'processName' || detail.key === 'threadName' || //@ts-ignore
+      detail.key === 'name') {
       // @ts-ignore
       this.boxChildSource.sort(compare(detail.key, detail.sort, 'string'));// @ts-ignore
     } else if (detail.key === 'absoluteTime' || detail.key === 'duration') {// @ts-ignore

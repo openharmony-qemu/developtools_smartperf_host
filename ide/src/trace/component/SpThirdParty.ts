@@ -108,7 +108,7 @@ export class SpThirdParty extends BaseElement {
       if (uploadEl) {
         uploadEl.value = '';
       }
-    })
+    });
   }
 }
 

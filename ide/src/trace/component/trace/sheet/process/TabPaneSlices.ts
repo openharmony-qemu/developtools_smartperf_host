@@ -87,6 +87,10 @@ export class TabPaneSlices extends BaseElement {
                 processSliceItem.wallDuration = parseFloat((processSliceItem.wallDuration / 1000000.0).toFixed(5));
                 //@ts-ignore
                 processSliceItem.avgDuration = parseFloat((processSliceItem.avgDuration / 1000000.0).toFixed(5));
+                //@ts-ignore
+                processSliceItem.asyncNames = asyncNames;
+                //@ts-ignore
+                processSliceItem.asyncCatNames = asyncCatNames;
               }
               let count = new SelectionData();
               count.process = ' ';
@@ -94,6 +98,8 @@ export class TabPaneSlices extends BaseElement {
               count.occurrences = sumOcc;
               count.tabTitle = 'Summary';
               count.allName = processSlicesResult.map((item: any) => item.name);
+              count.asyncNames = asyncNames;
+              count.asyncCatNames = asyncCatNames;
               processSlicesResult.splice(0, 0, count); //@ts-ignore
               this.slicesSource = processSlicesResult;
               this.slicesTbl!.recycleDataSource = processSlicesResult;
@@ -338,6 +344,7 @@ export class TabPaneSlices extends BaseElement {
     let searchData: Array<SelectionData> = [];
     let sumWallDuration: number = 0;
     let sumOccurrences: number = 0;
+    let nameSet: Array<string> = [];
     if (str === '') {
       this.slicesTbl!.recycleDataSource = this.slicesSource;
       this.sliceSearchCount!.textContent = this.slicesSource.length - 1 + '';
@@ -345,6 +352,7 @@ export class TabPaneSlices extends BaseElement {
       this.slicesSource.forEach((item) => {
         if (item.name.toLowerCase().indexOf(str.toLowerCase()) !== -1) {
           searchData.push(item);
+          nameSet.push(item.name);
           sumWallDuration += item.wallDuration;
           sumOccurrences += item.occurrences;
         }
@@ -352,6 +360,8 @@ export class TabPaneSlices extends BaseElement {
       let count: SelectionData = new SelectionData();
       count.process = '';
       count.name = '';
+      count.allName = nameSet;
+      count.tabTitle = 'Summary';
       count.wallDuration = Number(sumWallDuration.toFixed(3));
       count.occurrences = sumOccurrences;
       searchData.unshift(count);

@@ -56,7 +56,7 @@ export function sliceSPTSender(leftNs: number, rightNs: number, cpus: Array<numb
 }
 
 export function sliceChildBoxSender(func: string, leftNs: number, rightNs: number, threadId?: number | number[], processId?: number | number[],
-  cpus?: Array<number>, state?: string,  traceId?: string): Promise<unknown[]> {
+  cpus?: Array<number>, state?: string, traceId?: string): Promise<unknown[]> {
   return new Promise((resolve): void => {
     getThreadPool(traceId).submitProto(
       QueryEnum.SliceChildBoxData,
@@ -78,7 +78,7 @@ export function sliceChildBoxSender(func: string, leftNs: number, rightNs: numbe
   });
 }
 
-export function threadNearData(func: string, pid: number, tid: number, startTime: number,traceId?: string): Promise<unknown[]> {
+export function threadNearData(func: string, pid: number, tid: number, startTime: number, traceId?: string): Promise<unknown[]> {
   return new Promise((resolve): void => {
     getThreadPool(traceId).submitProto(
       QueryEnum.ThreadNearData,

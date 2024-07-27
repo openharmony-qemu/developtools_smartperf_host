@@ -19,9 +19,8 @@ import { Args } from './CommonArgs';
 
 export const systemDataSql = (args: Args): string => {
   return `SELECT S.id,
-                 S.ts - ${
-                   args.recordStartNS
-                 }                                                                   AS startNs,
+                 S.ts - ${args.recordStartNS
+    }                                                                   AS startNs,
                  D.data                                                                                         AS eventName,
                  (case when D.data = 'POWER_RUNNINGLOCK' then 1 when D.data = 'GNSS_STATE' then 2 else 0 end) AS appKey,
                  contents                                                                                       AS eventValue,
@@ -192,7 +191,8 @@ export function hiSysEnergyPowerReceiver(data: unknown, proc: Function): void {
 export function hiSysEnergyStateReceiver(data: unknown, proc: Function): void {
   // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: unknown[], list: unknown[];
+    let res: unknown[];
+    let list: unknown[];
     // @ts-ignore
     if (!energyList.has(data.params.eventName)) {
       // @ts-ignore
@@ -231,7 +231,7 @@ function systemBufferHandler(data: unknown, res: unknown[], transfer: boolean): 
       try {
         // @ts-ignore
         parsedData = JSON.parse(it.eventValue);
-      } catch (error) {}
+      } catch (error) { }
     }
     // @ts-ignore
     it.eventValue = parsedData;
@@ -321,7 +321,7 @@ function eventNameWithPowerRunninglock(beanData: unknown, it: unknown, systemDat
       // @ts-ignore
       beanData.type = 1;
       systemDataList.push(beanData);
-      delete tokedIds[number];
+      Reflect.deleteProperty(tokedIds,'number');
     }
   }
 }
@@ -412,7 +412,7 @@ function eventNameWithWorkStop(
   let index = nameIdList.indexOf(beanData.workId);
   if (nameIdList !== undefined && index > -1) {
     // @ts-ignore
-    delete nameIdList[index];
+    nameIdList.remove(index);
     // @ts-ignore
     let workCount = workCountMap.get(beanData.appName);
     if (workCount !== undefined) {
@@ -439,26 +439,26 @@ function postMessage(data: unknown, transfer: boolean, hiSysEnergy: HiSysEnergy,
       action: data.action,
       results: transfer
         ? {
-            id: hiSysEnergy.id.buffer,
-            startNs: hiSysEnergy.startNs.buffer,
-            count: hiSysEnergy.count.buffer,
-            type: hiSysEnergy.type.buffer,
-            token: hiSysEnergy.token.buffer,
-            dataType: hiSysEnergy.dataType.buffer,
-          }
+          id: hiSysEnergy.id.buffer,
+          startNs: hiSysEnergy.startNs.buffer,
+          count: hiSysEnergy.count.buffer,
+          type: hiSysEnergy.type.buffer,
+          token: hiSysEnergy.token.buffer,
+          dataType: hiSysEnergy.dataType.buffer,
+        }
         : {},
       len: len,
       transfer: transfer,
     },
     transfer
       ? [
-          hiSysEnergy.id.buffer,
-          hiSysEnergy.startNs.buffer,
-          hiSysEnergy.count.buffer,
-          hiSysEnergy.type.buffer,
-          hiSysEnergy.token.buffer,
-          hiSysEnergy.dataType.buffer,
-        ]
+        hiSysEnergy.id.buffer,
+        hiSysEnergy.startNs.buffer,
+        hiSysEnergy.count.buffer,
+        hiSysEnergy.type.buffer,
+        hiSysEnergy.token.buffer,
+        hiSysEnergy.dataType.buffer,
+      ]
       : []
   );
 }
@@ -508,9 +508,9 @@ function anomalyBufferHandler(data: unknown, res: unknown[], transfer: boolean):
       action: data.action,
       results: transfer
         ? {
-            id: id.buffer,
-            startNs: startNs.buffer,
-          }
+          id: id.buffer,
+          startNs: startNs.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,
@@ -540,9 +540,9 @@ function powerBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
       action: data.action,
       results: transfer
         ? {
-            id: id.buffer,
-            startNs: startNs.buffer,
-          }
+          id: id.buffer,
+          startNs: startNs.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,
@@ -586,10 +586,10 @@ function stateBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
       action: data.action,
       results: transfer
         ? {
-            id: id.buffer,
-            startNs: startNs.buffer,
-            eventValue: eventValue.buffer,
-          }
+          id: id.buffer,
+          startNs: startNs.buffer,
+          eventValue: eventValue.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,
