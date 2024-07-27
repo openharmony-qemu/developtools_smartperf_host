@@ -344,6 +344,7 @@ export class TabPaneSlices extends BaseElement {
     let searchData: Array<SelectionData> = [];
     let sumWallDuration: number = 0;
     let sumOccurrences: number = 0;
+    let nameSet: Array<string> = [];
     if (str === '') {
       this.slicesTbl!.recycleDataSource = this.slicesSource;
       this.sliceSearchCount!.textContent = this.slicesSource.length - 1 + '';
@@ -351,6 +352,7 @@ export class TabPaneSlices extends BaseElement {
       this.slicesSource.forEach((item) => {
         if (item.name.toLowerCase().indexOf(str.toLowerCase()) !== -1) {
           searchData.push(item);
+          nameSet.push(item.name);
           sumWallDuration += item.wallDuration;
           sumOccurrences += item.occurrences;
         }
@@ -358,6 +360,8 @@ export class TabPaneSlices extends BaseElement {
       let count: SelectionData = new SelectionData();
       count.process = '';
       count.name = '';
+      count.allName = nameSet;
+      count.tabTitle = 'Summary';
       count.wallDuration = Number(sumWallDuration.toFixed(3));
       count.occurrences = sumOccurrences;
       searchData.unshift(count);
