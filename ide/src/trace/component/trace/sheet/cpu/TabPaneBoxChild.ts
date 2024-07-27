@@ -71,36 +71,38 @@ export class TabPaneBoxChild extends BaseElement {
   getDataByDB(val: BoxJumpParam): void {
     this.boxChildTbl!.loading = true;
     sliceChildBoxSender( 'state-box', val.leftNs, val.rightNs, val.threadId!, val.processId!,
-      val.cpus, val.state, val.traceId!).then((result: any): void => {
-        this.boxChildTbl!.loading = false;
-        if (result.length !== null && result.length > 0) {
-          result.map((e: any) => {
+      val.cpus, val.state, val.traceId!).then((result: unknown): void => {
+        this.boxChildTbl!.loading = false;      // @ts-ignore
+        if (result.length !== null && result.length > 0) {      // @ts-ignore
+          result.map((e: unknown) => {
             //获取优先级数据
+            // @ts-ignore
             let prioObj = Utils.getInstance().getSchedSliceMap().get(`${e.id}-${e.startTime}`);
             //thread statesTab页 dur截取的问题 与thread states保持一致
-            if (val.currentId === 'box-thread-states') {
-              if (e.startTime < val.leftNs && (e.startTime + e.dur) < val.rightNs) {
-                e.dur = (e.startTime + e.dur) - val.leftNs;
-              } else if ((e.startTime + e.dur) > val.rightNs && e.startTime > val.leftNs) {
-                e.dur = val.rightNs - e.startTime;
-              } else if (e.startTime < val.leftNs && (e.startTime + e.dur) > val.rightNs) {
+            if (val.currentId === 'box-thread-states') {      // @ts-ignore
+              if (e.startTime < val.leftNs && (e.startTime + e.dur) < val.rightNs) {      // @ts-ignore
+                e.dur = (e.startTime + e.dur) - val.leftNs;      // @ts-ignore
+              } else if ((e.startTime + e.dur) > val.rightNs && e.startTime > val.leftNs) {      // @ts-ignore
+                e.dur = val.rightNs - e.startTime;      // @ts-ignore
+              } else if (e.startTime < val.leftNs && (e.startTime + e.dur) > val.rightNs) {      // @ts-ignore
                 e.dur = val.rightNs - val.leftNs;
               }
             }
             //相对起始时间转换为带单位的字符串
+            // @ts-ignore
             e.sTime = Utils.getTimeString(e.startTime);
             // @ts-ignore
-            e.absoluteTime = ((window as unknown).recordStartNS + e.startTime) / 1000000000;
-            e.state = Utils.getEndState(e.state)!;
-            e.duration = e.dur / 1000000;
-            e.prior = prioObj ? prioObj.priority : '-';
-            e.core = e.cpu === undefined || e.cpu === null ? '-' : `CPU${e.cpu}`;
-            let processInfo: string | undefined = Utils.getInstance().getProcessMap().get(e.pid);
-            e.processName = `${processInfo === undefined || processInfo === null ? 'process' : processInfo}[${e.pid}]`;
-            let threadInfo: string | undefined = Utils.getInstance().getThreadMap().get(e.tid);
-            e.threadName = `${threadInfo === undefined || threadInfo === null ? 'thread' : threadInfo}[${e.tid}]`;
+            e.absoluteTime = ((window as unknown).recordStartNS + e.startTime) / 1000000000;      // @ts-ignore
+            e.state = Utils.getEndState(e.state)!;      // @ts-ignore
+            e.duration = e.dur / 1000000;      // @ts-ignore
+            e.prior = prioObj ? prioObj.priority : '-';      // @ts-ignore
+            e.core = e.cpu === undefined || e.cpu === null ? '-' : `CPU${e.cpu}`;      // @ts-ignore
+            let processInfo: string | undefined = Utils.getInstance().getProcessMap().get(e.pid);      // @ts-ignore
+            e.processName = `${processInfo === undefined || processInfo === null ? 'process' : processInfo}(${e.pid})`;      // @ts-ignore
+            let threadInfo: string | undefined = Utils.getInstance().getThreadMap().get(e.tid);      // @ts-ignore
+            e.threadName = `${threadInfo === undefined || threadInfo === null ? 'thread' : threadInfo}(${e.tid})`;      // @ts-ignore
             e.note = '-';
-          });
+          });      // @ts-ignore
           this.boxChildSource = result;
           if (this.boxChildTbl) {
             // @ts-ignore

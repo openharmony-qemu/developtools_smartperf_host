@@ -419,7 +419,7 @@ export class TabPaneSampleInstruction extends BaseElement {
     // @ts-ignore
     const knownRelation = relationData.filter((relation) => relation.name.indexOf('unknown') < 0);
     // @ts-ignore
-    propertyData.forEach((property: any) => {
+    propertyData.forEach((property: unknown) => {
       // @ts-ignore
       const relation = knownRelation.find((relation) => relation.name === property.func_name);
       // @ts-ignore

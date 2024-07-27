@@ -407,7 +407,7 @@ export class TabPaneTimeParallel extends BaseElement {
                 this.parallelTable!.shadowRoot!.querySelector('.table')!.style.height = `${this.parentElement!.clientHeight - 31}px`;
                 this.parallelTable?.reMeauseHeight();
                 // @ts-ignore
-                this.coreParallelTable!.shadowRoot!.querySelector('.table')!.style.height = `${this.parentElement!.clientHeight - 31}px`;;
+                this.coreParallelTable!.shadowRoot!.querySelector('.table')!.style.height = `${this.parentElement!.clientHeight - 31}px`;
                 this.coreParallelTable?.reMeauseHeight();
                 if (this.parentElement!.clientHeight >= 0 && this.parentElement!.clientHeight <= 31) {
                     this.bottomFilterEl!.style.display = 'none';

@@ -454,24 +454,24 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
       // @ts-ignore
       for (const key in unknown.children) {
         // @ts-ignore
-        const child = instructionData.find((instruction) => instruction['name'] === key);
+        const child = instructionData.find((instruction) => instruction.name === key);
         // @ts-ignore
-        instructionSum += child['instructions'] ?? 0;
+        instructionSum += child.instructions ?? 0;
         // @ts-ignore
-        cyclesSum += child['cycles'] ?? 0;
+        cyclesSum += child.cycles ?? 0;
         // @ts-ignore
-        hoverInstructionsSum += child['hoverInstructions'] ?? 0;
+        hoverInstructionsSum += child.hoverInstructions ?? 0;
         // @ts-ignore
-        hoverCyclesSum += child['hoverCycles'] ?? 0;
+        hoverCyclesSum += child.hoverCycles ?? 0;
       }
       // @ts-ignore
-      unknown['instructions'] = instructionSum;
+      unknown.instructions = instructionSum;
       // @ts-ignore
-      unknown['cycles'] = cyclesSum;
+      unknown.cycles = cyclesSum;
       // @ts-ignore
-      unknown['hoverInstructions'] = hoverInstructionsSum;
+      unknown.hoverInstructions = hoverInstructionsSum;
       // @ts-ignore
-      unknown['hoverCycles'] = hoverCyclesSum;
+      unknown.hoverCycles = hoverCyclesSum;
     });
     return instructionData;
   }

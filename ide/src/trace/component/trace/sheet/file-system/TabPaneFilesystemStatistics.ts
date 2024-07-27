@@ -223,13 +223,12 @@ export class TabPaneFileStatistics extends BaseElement {
   sortTable(fileStatisticsAllNode: unknown, key: string): void {
     // @ts-ignore
     fileStatisticsAllNode.children.sort((fileStatisticsA: unknown, fileStatisticsB: unknown) => {
-      if (this.fileStatisticsSortType === 1) {
+      return this.fileStatisticsSortType === 1 ?
         // @ts-ignore
-        return fileStatisticsA.node[key] - fileStatisticsB.node[key];
-      } else if (this.fileStatisticsSortType === 2) {
-        // @ts-ignore
-        return fileStatisticsB.node[key] - fileStatisticsA.node[key];
-      }
+        fileStatisticsA.node[key] - fileStatisticsB.node[key] :
+        this.fileStatisticsSortType === 2 ?
+          // @ts-ignore
+          fileStatisticsB.node[key] - fileStatisticsA.node[key] : 0
     }); // @ts-ignore
     fileStatisticsAllNode.children.forEach((item: unknown): void => {
       // @ts-ignore
