@@ -1134,7 +1134,9 @@ export class TraceSheet extends BaseElement {
     param.rightNs = this.selection!.rightNs;
     param.processId = this.selection!.processIds;
     param.threadId = this.selection!.funTids;//@ts-ignore2
-    param.name = e.detail.allName ? e.detail.allName : [e.detail.name];
+    param.name = e.detail.allName ? e.detail.allName : [e.detail.name];//@ts-ignore2
+    param.asyncNames = e.detail.asyncNames;//@ts-ignore2
+    param.asyncCatNames = e.detail.asyncCatNames;
     param.isJumpPage = true;
     (pane.children.item(0) as TabPaneSliceChild).data = param;
   }

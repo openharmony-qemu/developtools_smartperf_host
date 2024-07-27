@@ -18,7 +18,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SliceBoxJumpParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
-import { getTabDetails } from '../../../../database/sql/Func.sql';
+import { getTabDetails, getCatDetails } from '../../../../database/sql/Func.sql';
 
 @element('box-slice-child')
 export class TabPaneSliceChild extends BaseElement {
@@ -68,7 +68,7 @@ export class TabPaneSliceChild extends BaseElement {
     //处理异步方法
     getTabDetails(val.name!, val.processId, val.leftNs, val.rightNs, 'async').then((res1: any) => {//@ts-ignore
       //处理cat方法
-      getTabDetails(val.name!, val.processId, val.leftNs, val.rightNs, 'cat').then((res2) => {//@ts-ignore
+      getCatDetails(val.name!, val.asyncCatNames!, val.processId, val.leftNs, val.rightNs).then((res2) => {//@ts-ignore
         //处理同步方法
         getTabDetails(val.name!, val.processId, val.leftNs, val.rightNs, 'sync', val.threadId).then(
           (res3: any) => {
@@ -81,8 +81,8 @@ export class TabPaneSliceChild extends BaseElement {
                 e.absoluteTime = ((window as unknown).recordStartNS + e.startNs) / 1000000000;
                 e.duration = e.duration / 1000000;
                 e.state = Utils.getEndState(e.state)!;
-                e.processName = `${e.process === undefined || e.process === null ? 'process' : e.process}(${e.processId})`;
-                e.threadName = `${e.thread === undefined || e.thread === null ? 'thread' : e.thread}(${e.threadId})`;
+                e.processName = `${e.process === undefined || e.process === null ? 'process' : e.process}[${e.processId}]`;
+                e.threadName = `${e.thread === undefined || e.thread === null ? 'thread' : e.thread}[${e.threadId}]`;
               });
               this.boxChildSource = result;
               if (this.sliceChildTbl) {
