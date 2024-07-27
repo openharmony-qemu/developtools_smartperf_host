@@ -413,10 +413,12 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
   getAvgInstructionData(instructionData: Array<unknown>) {
     // @ts-ignore
     const length = instructionData[0].property.length;
+    // @ts-ignore
     const knowData = instructionData.filter((instruction) => instruction.name.indexOf('unknown') < 0);
     knowData.forEach((instruction) => {
       // @ts-ignore
       if (instruction.property.length > 0) {
+        // @ts-ignore
         const totalInstruction = instruction.property.reduce(
           (pre: number, cur: SampleStruct) => pre + Math.ceil(cur.instructions!),
           0
@@ -426,13 +428,19 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
           (pre: number, cur: SampleStruct) => pre + Math.ceil(cur.cycles!),
           0
         );
+        // @ts-ignore
         instruction.instructions = Math.ceil(totalInstruction / length) || 1;
+        // @ts-ignore
         instruction.cycles = Math.ceil(totalCycles / length) || 1;
+        // @ts-ignore
         instruction.hoverInstructions = Math.ceil(totalInstruction / length);
+        // @ts-ignore
         instruction.hoverCycles = Math.ceil(totalCycles / length);
+        // @ts-ignore
         this.maxDepth = Math.max(this.maxDepth, instruction.depth);
       }
     });
+    // @ts-ignore
     const unknownData = instructionData.filter((instruction) => instruction.name.indexOf('unknown') > -1);
     let instructionSum = 0;
     let cyclesSum = 0;
