@@ -27,6 +27,7 @@ import { DmaFenceRender, DmaFenceStruct } from '../../database/ui-worker/Procedu
 import { dmaFenceSender } from '../../database/data-trafic/dmaFenceSender';
 import { queryDmaFenceName } from '../../database/sql/dmaFence.sql';
 import { BaseStruct } from '../../bean/BaseStruct';
+import { promises } from 'dns';
 
 export class SpClockChart {
   private readonly trace: SpSystemTrace;
@@ -163,14 +164,16 @@ export class SpClockChart {
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
       this.clockSupplierFrame(traceRow, it, isState, isScreenState);
-      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> | undefined => {
+      traceRow.getCacheData = (args: unknown): Promise<ClockStruct[]> | undefined => {
+        let result: Promise<ClockStruct[]> | undefined;
         if (it.name.endsWith(' Frequency')) {
-          return clockDataSender(it.srcname, 'clockFrequency', traceRow, args);
+          result = clockDataSender(it.srcname, 'clockFrequency', traceRow, args);
         } else if (isState) {
-          return clockDataSender(it.srcname, 'clockState', traceRow, args);
+          result = clockDataSender(it.srcname, 'clockState', traceRow, args);
         } else if (isScreenState) {
-          return clockDataSender('', 'screenState', traceRow, args);
+          result = clockDataSender('', 'screenState', traceRow, args);
         }
+        return result;
       };
       traceRow.focusHandler = (ev): void => {
         this.trace?.displayTip(
@@ -208,7 +211,7 @@ export class SpClockChart {
         traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         traceRow.selectChangeHandler = this.trace.selectChangeHandler;
         // @ts-ignore
-        traceRow.supplierFrame = () => {
+        traceRow.supplierFrame = (): Promise<DmaFenceStruct[]> => {
           return dmaFenceSender('dma_fence_init', `${timelineValues[i]}`, traceRow).then((res) => {
             res.forEach((item: unknown) => {
               // @ts-ignore

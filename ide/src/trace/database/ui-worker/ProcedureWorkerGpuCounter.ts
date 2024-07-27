@@ -204,7 +204,7 @@ export class GpuCounterStruct extends BaseStruct {
   }
 }
 
-export class Maleoon_counter_obj {
+export class MaleoonCounterObj {
   [key: string]: Array<unknown>;
   gpu_clocks: Array<unknown>;
   tiler_utilization: Array<unknown>;
@@ -262,7 +262,7 @@ export class Maleoon_counter_obj {
   }
 }
 
-export class Gpu_counter_type {
+export class GpuCounterType {
   [key: string]: Array<unknown>;
   'cycle': Array<unknown>;
   'drawcall': Array<unknown>;

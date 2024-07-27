@@ -323,42 +323,39 @@ export class TabPaneSummary extends BaseElement {
   }
 
   clickToggleTable(): void {
-    let lis = this.shadowRoot?.querySelectorAll<HTMLElement>('li');
-    let that = this;
-    lis!.forEach((li: HTMLElement, i: number) => {
-      lis![i].onclick = function (): void {
-        for (let i = 0; i < lis!.length; i++) {
-          lis![i].className = '';
-        }
-        switch (li.textContent) {
+    let lis = this.shadowRoot?.querySelectorAll<HTMLElement>('li')!;
+    for (const item of lis) {
+      item.onclick = (): void => {
+        item.className = '';
+        switch (item.textContent) {
           case 'Retainers':
-            that.stackTable!.style.display = 'none';
-            that.stackText!.style.display = 'none';
-            that.tbs!.style.display = 'flex';
-            that.tbs!.snapshotDataSource = that.retainsData;
+            this.stackTable!.style.display = 'none';
+            this.stackText!.style.display = 'none';
+            this.tbs!.style.display = 'flex';
+            this.tbs!.snapshotDataSource = this.retainsData;
             break;
           case 'Allocation stack':
-            if (that.stackData.length > 0) {
-              that.stackText!.style.display = 'none';
-              that.stackTable!.style.display = 'flex';
-              that.stackTable!.recycleDataSource = that.stackData;
+            if (this.stackData.length > 0) {
+              this.stackText!.style.display = 'none';
+              this.stackTable!.style.display = 'flex';
+              this.stackTable!.recycleDataSource = this.stackData;
             } else {
-              that.stackText!.style.display = 'flex';
-              if (that.retainsData === undefined || that.retainsData.length === 0) {
-                that.stackText!.textContent = '';
+              this.stackText!.style.display = 'flex';
+              if (this.retainsData === undefined || this.retainsData.length === 0) {
+                this.stackText!.textContent = '';
               } else {
-                that.stackText!.textContent =
+                this.stackText!.textContent =
                   'Stack was not recorded for this object because it had been allocated before ' +
                   'this profile recording started.';
               }
             }
-            that.tbs!.style.display = 'none';
+            this.tbs!.style.display = 'none';
             break;
         }
         // @ts-ignore
         this.className = 'active';
       };
-    });
+    }
   }
 
   classFilter(): void {
@@ -587,7 +584,6 @@ export class TabPaneSummary extends BaseElement {
         this.retainsData[0].expanded = false;
       }
       let i = 0;
-      let that = this;
       let retainsTable = (): void => {
         const getList = (list: Array<ConstructorItem>): void => {
           list.forEach((summaryRow: ConstructorItem) => {
@@ -603,7 +599,7 @@ export class TabPaneSummary extends BaseElement {
             }
             i++;
             //@ts-ignore
-            if (i < that.retainsData[0].distance - 1 && list[0].distance !== '-') {
+            if (i < this.retainsData[0].distance - 1 && list[0].distance !== '-') {
               list[0].getChildren();
               list[0].expanded = false;
               if (summaryRow.hasNext) {
@@ -614,7 +610,7 @@ export class TabPaneSummary extends BaseElement {
             }
           });
         };
-        getList(that.retainsData[0].children);
+        getList(this.retainsData[0].children);
       };
       retainsTable();
       this.tbs!.snapshotDataSource = this.retainsData;

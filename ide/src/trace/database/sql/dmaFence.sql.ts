@@ -86,6 +86,6 @@ export const queryDmaFenceData = (leftNS: number, rightNS: number, nameList: Str
             (s.new_ts < ${leftNS} + r.start_ts AND (s.new_ts + s.newDur) > ${rightNS} + r.start_ts)
           ) 
         ORDER BY
-          s.new_ts;`
+          s.new_ts;`;
   return query('queryDmaFenceData', sql); 
 };

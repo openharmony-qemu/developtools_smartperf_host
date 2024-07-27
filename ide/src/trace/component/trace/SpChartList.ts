@@ -93,7 +93,7 @@ export class SpChartList extends BaseElement {
   }
 
   private initChartListListener(): void {
-    const foldCollect1 = () => {
+    const foldCollect1 = (): void => {
       this.collect1Expand = !this.collect1Expand;
       if (this.collect1Expand) {
         this.icon1!.style.transform = 'rotateZ(0deg)';
@@ -105,7 +105,7 @@ export class SpChartList extends BaseElement {
       this.resizeHeight();
     };
     this.icon1?.addEventListener('click', () => foldCollect1());
-    const foldCollect2 = () => {
+    const foldCollect2 = (): void => {
       this.collect2Expand = !this.collect2Expand;
       if (this.collect2Expand) {
         this.icon2!.style.transform = 'rotateZ(0deg)';
@@ -139,7 +139,7 @@ export class SpChartList extends BaseElement {
               foldCollect2();
             }
           }
-          return
+          return;
         }
         // 只影响有泳道的收藏夹
         if (hasChildNode1) {
@@ -149,7 +149,7 @@ export class SpChartList extends BaseElement {
           foldCollect2();
         }
       }
-    })
+    });
 
     this.removeCollectIcon1?.addEventListener('click', () => {
       Array.from(this.collectRowList1).forEach(row => {
@@ -240,7 +240,7 @@ export class SpChartList extends BaseElement {
     return [...this.collectRowList1, ...this.collectRowList2];
   }
 
-  getCollectRowsInfo(group: string) {
+  getCollectRowsInfo(group: string): unknown {
     return (group === SpChartList.COLLECT_G1 ? this.collectRowList1 : this.collectRowList2).map((row) => {
       let rowJson = {
         type: row.rowType,
@@ -255,7 +255,7 @@ export class SpChartList extends BaseElement {
   }
 
   // @ts-ignore
-  getRowParent(obj: unknown, row: TraceRow<unknown>) {
+  getRowParent(obj: unknown, row: TraceRow<unknown>): void {
     if (row.parentRowEl) {
       // @ts-ignore
       if (obj.parents) {

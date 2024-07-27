@@ -61,7 +61,6 @@ export class TabPaneComparison extends BaseElement {
     this.clear();
     this.retainerTableEl!.snapshotDataSource = [];
     let fileArr: HeapSnapshotStruct[] = [];
-    let that = this;
     for (let file of dataListCache) {
       if (file.id !== data.id) {
         fileArr.push(file);
@@ -72,7 +71,7 @@ export class TabPaneComparison extends BaseElement {
     this.initSelect(data.id, fileArr);
     this.baseFileId = data.id;
     this.targetFileId = fileArr[0].id;
-    that.updateComparisonData(data.id, fileArr[0].id);
+    this.updateComparisonData(data.id, fileArr[0].id);
     new ResizeObserver((): void => {
       this.comparisonTableEl!.style.height = '100%';
       this.comparisonTableEl!.reMeauseHeight();
@@ -94,7 +93,6 @@ export class TabPaneComparison extends BaseElement {
   }
 
   initSelect(fileId: number, comFileArr: Array<HeapSnapshotStruct>): void {
-    let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
     this.selectEl!.innerHTML = '';
     this.selectEl!.defaultValue = comFileArr[0].name || '';
@@ -107,18 +105,19 @@ export class TabPaneComparison extends BaseElement {
     if (comFileArr[0].name) {
       option.setAttribute('value', comFileArr[0].name);
     }
-    this.selectEl!.querySelectorAll('lit-select-option').forEach((a): void => {
-      a.addEventListener('onSelected', (e): void => {
+    let selectOption = this.selectEl!.querySelectorAll('lit-select-option');
+    for (const item of selectOption) {
+      item.addEventListener('onSelected', (e): void => {
         this.comparisonTable!.scrollTop = 0;
         this.retainerTableEl!.snapshotDataSource = [];
         for (let f of comFileArr) {
           if (input.value === f.name) {
-            that.updateComparisonData(fileId, f.id);
+            this.updateComparisonData(fileId, f.id);
           }
         }
         e.stopPropagation();
       });
-    });
+    }
   }
 
   sortComprisonByColumn(column: string, sort: number): void {
@@ -376,38 +375,37 @@ export class TabPaneComparison extends BaseElement {
     if (this.retainsData && this.retainsData.length > 0) {
       this.retainsDataInit();
       let i = 0;
-      let that = this;
       if (this.retainsData[0].distance > 1) {
         this.retainsData[0].getChildren();
         this.retainsData[0].expanded = false;
       }
       let retainsTable = (): void => {
         const getList = (list: Array<ConstructorItem>): void => {
-          list.forEach((structRow): void => {
-            let shallow = `${Math.round((structRow.shallowSize / this.fileSize) * 100)}%`;
-            let retained = `${Math.round((structRow.retainedSize / this.fileSize) * 100)}%`;
-            structRow.shallowPercent = shallow;
-            structRow.retainedPercent = retained;
-            let nodeId = `${structRow.nodeName} @${structRow.id}`;
-            structRow.objectName = `${structRow.edgeName}\xa0` + 'in' + `\xa0${nodeId}`;
-            if (structRow.distance >= 100000000 || structRow.distance === -5) {
+          for (const item of list) {
+            let shallow = `${Math.round((item.shallowSize / this.fileSize) * 100)}%`;
+            let retained = `${Math.round((item.retainedSize / this.fileSize) * 100)}%`;
+            item.shallowPercent = shallow;
+            item.retainedPercent = retained;
+            let nodeId = `${item.nodeName} @${item.id}`;
+            item.objectName = `${item.edgeName}\xa0` + 'in' + `\xa0${nodeId}`;
+            if (item.distance >= 100000000 || item.distance === -5) {
               // @ts-ignore
-              structRow.distance = '-';
+              item.distance = '-';
             }
             i++;
             // @ts-ignore
-            if (i < that.retainsData[0].distance - 1 && list[0].distance !== '-') {
+            if (i < this.retainsData[0].distance - 1 && list[0].distance !== '-') {
               list[0].getChildren();
               list[0].expanded = false;
-              if (structRow.hasNext) {
-                getList(structRow.children);
+              if (item.hasNext) {
+                getList(item.children);
               }
             } else {
               return;
             }
-          });
+          }
         };
-        getList(that.retainsData[0].children);
+        getList(this.retainsData[0].children);
       };
       retainsTable();
       this.retainerTableEl!.snapshotDataSource = this.retainsData;
@@ -475,7 +473,6 @@ export class TabPaneComparison extends BaseElement {
         if (retainerNext.status) {
           retainerNext.getChildren();
           let i = 0;
-          let that = this;
           let retainsTable = (): void => {
             const getList = (comList: Array<ConstructorItem>): void => {
               comList.forEach((row): void => {
@@ -491,7 +488,7 @@ export class TabPaneComparison extends BaseElement {
                 }
                 i++;
                 // @ts-ignore
-                if (i < that.retainsData[0].distance - 1 && comList[0].distance !== '-') {
+                if (i < this.retainsData[0].distance - 1 && comList[0].distance !== '-') {
                   comList[0].getChildren();
                   comList[0].expanded = false;
                   if (row.hasNext) {

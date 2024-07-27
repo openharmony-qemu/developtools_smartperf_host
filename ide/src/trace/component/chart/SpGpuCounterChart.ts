@@ -18,8 +18,8 @@ import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import {
   GpuCounterStruct,
-  Maleoon_counter_obj,
-  Gpu_counter_type,
+  MaleoonCounterObj,
+  GpuCounterType,
   GpuCounterRender,
 } from '../../database/ui-worker/ProcedureWorkerGpuCounter';
 import { folderSupplier, folderThreadHandler } from './SpChartManager';
@@ -479,8 +479,8 @@ export class SpGpuCounterChart {
     }
   }
 
-  groupByGpuCounterType(maleoonCounter: Maleoon_counter_obj) {
-    const gpuCounterType = new Gpu_counter_type();
+  groupByGpuCounterType(maleoonCounter: MaleoonCounterObj):GpuCounterType {
+    const gpuCounterType = new GpuCounterType();
     let index = 0;
     for (const key in maleoonCounter) {
       if (index < 5) {

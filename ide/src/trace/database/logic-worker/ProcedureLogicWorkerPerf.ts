@@ -782,8 +782,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
       recursionHideChildren(item, (node: PerfCallChainMerageData): boolean => {
         return node.libName !== '[kernel.kallsyms]';
-      })
-    })
+      });
+    });
   }
 
   hideNumMaxAndMin(startNum: number, endNum: string): void {
@@ -857,25 +857,25 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
       item.children = item.children.reduce((total: PerfCallChainMerageData[], pfcall: PerfCallChainMerageData): PerfCallChainMerageData[] => {
         for (const prev of total) {
-          if (pfcall.symbol == prev.symbol) {
+          if (pfcall.symbol === prev.symbol) {
             prev.children.push(...pfcall.children);
             prev.total += pfcall.total;
             prev.count += pfcall.count;
             prev.totalEvent += pfcall.totalEvent;
             prev.eventCount += pfcall.eventCount;
-            return total;
+            return total
           }
         }
         total.push(pfcall);
-        return total;
-      }, [] as PerfCallChainMerageData[])
+        return total
+      }, [] as PerfCallChainMerageData[]);
       for (const child of item.children) {
         mergeChildren(child);
       }
     }
     this.allProcess.forEach((item: PerfCallChainMerageData): void => {
       mergeChildren(item);
-    })
+    });
   }
 
   findSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {

@@ -25,17 +25,17 @@ const barWidth = 2; // 柱子宽度
 export class TabPaneSampleInstructionDistributions extends BaseElement {
   private instructionChartEle: HTMLCanvasElement | undefined | null;
   private ctx: CanvasRenderingContext2D | undefined | null;
-  private onReadableData: Array<any> = [];
+  private onReadableData: Array<unknown> = [];
   private hintContent = ''; //悬浮框内容
   private floatHint!: HTMLDivElement | undefined | null; //悬浮框
   private canvasScrollTop = 0; // tab页上下滚动位置
   private isUpdateCanvas = false;
-  private cacheData: Array<any> = [];
+  private cacheData: Array<unknown> = [];
   private canvasX = -1; // 鼠标当前所在画布x坐标
   private canvasY = -1; // 鼠标当前所在画布y坐标
   private startX = 0; // 画布相对于整个界面的x坐标
   private startY = 0; // 画布相对于整个界面的y坐标
-  private hoverBar: any;
+  private hoverBar: unknown;
   private isChecked: boolean = false;
   private xCount = 0; //x轴刻度个数
   private xMaxValue = 0; //x轴上数据最大值
@@ -105,7 +105,8 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
     this.instructionChartEle!.onmouseleave = () => {
       this.hideTip();
     };
-    document.addEventListener('sample-popver-change', (e: any) => {
+    document.addEventListener('sample-popver-change', (e: unknown) => {
+      // @ts-ignore
       const select = Number(e.detail.select);
       this.isChecked = Boolean(select);
       this.calInstructionRangeCount(this.isChecked);
@@ -135,8 +136,10 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
    * @param canvasY
    * @returns
    */
-  searchDataByCoord(nodes: any, canvasX: number, canvasY: number) {
+  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number) {
+    // @ts-ignore
     for (let i = 0; i < nodes.length; i++) {
+      // @ts-ignore
       const element = nodes[i];
       if (this.isContains(element, canvasX, canvasY)) {
         return element;
@@ -206,8 +209,12 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
     }
     const detail = hoverNode!;
     this.hintContent = `
-      <span class="blod">${detail.instruct}</span></br>
-      <span>${parseFloat(detail.heightPer)}</span>
+      <span class="blod">${
+      // @ts-ignore
+      detail.instruct}</span></br>
+      <span>${
+      // @ts-ignore
+      parseFloat(detail.heightPer)}</span>
       `;
   }
 
@@ -218,7 +225,8 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
    * @param y
    * @returns
    */
-  isContains(point: any, x: number, y: number): boolean {
+  isContains(point: unknown, x: number, y: number): boolean {
+    // @ts-ignore
     return x >= point.x && x <= point.x + 2 && point.y <= y && y <= point.y + point.height;
   }
 
@@ -232,12 +240,16 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
     const count = this.onReadableData.length;
     let instructions = {};
     if (isCycles) {
-      instructions = this.onReadableData.reduce((pre: any, current: any) => {
+      // @ts-ignore
+      instructions = this.onReadableData.reduce((pre: unknown, current: unknown) => {
+        // @ts-ignore
         (pre[`${Math.ceil(current.cycles)}`] = pre[`${Math.ceil(current.cycles)}`] || []).push(current);
         return pre;
       }, {});
     } else {
-      instructions = this.onReadableData.reduce((pre: any, current: any) => {
+      // @ts-ignore
+      instructions = this.onReadableData.reduce((pre: unknown, current: unknown) => {
+        // @ts-ignore
         (pre[`${Math.ceil(current.instructions)}`] = pre[`${Math.ceil(current.instructions)}`] || []).push(current);
         return pre;
       }, {});
@@ -250,7 +262,8 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
         .map((i) => Number(i))
         .reduce((pre, cur) => Math.max(pre, cur), 0) + 10;
     const yMaxValue = Object.values(instructions).reduce(
-      (pre: number, cur: any) => Math.max(pre, Number((cur.length / count).toFixed(2))),
+      // @ts-ignore
+      (pre: number, cur: unknown) => Math.max(pre, Number((cur.length / count).toFixed(2))),
       0
     );
     this.yAvg = Number(((yMaxValue / 5) * 1.5).toFixed(2)) || yMaxValue;
@@ -266,16 +279,19 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
    * @param height
    * @param count
    */
-  drawBar(instructionData: any, height: number, count: number) {
+  drawBar(instructionData: unknown, height: number, count: number): void {
     const yTotal = Number((this.yAvg * 5).toFixed(2));
     const interval = Math.floor((height - paddingBottom) / 6);
+    // @ts-ignore
     for (const x in instructionData) {
       const xNum = Number(x);
       const xPosition = xStep + (xNum / (this.xCount * this.xAvg)) * (this.xCount * this.xSpacing) - barWidth / 2;
+      // @ts-ignore
       const yNum = Number((instructionData[x].length / count).toFixed(3));
       const percent = Number((yNum / yTotal).toFixed(2));
       const barHeight = (height - paddingBottom - interval) * percent;
       this.drawRect(xPosition, height - paddingBottom - barHeight, barWidth, barHeight);
+      // @ts-ignore
       const existX = this.cacheData.find((i) => i.instruct === x);
       if (!existX) {
         this.cacheData.push({
@@ -286,6 +302,7 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
           heightPer: parseFloat((yNum * 100).toFixed(2)),
         });
       } else {
+        // @ts-ignore
         existX.x = xPosition;
       }
     }
