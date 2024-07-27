@@ -306,7 +306,7 @@ export class SpProcessChart {
     funcRow.name = `${asyncFuncGroups[0].funName} ${key}`;
     funcRow.setAttribute('children', '');
     //@ts-ignore
-    funcRow.supplierFrame = ():Promise=> {
+    funcRow.supplierFrame = (): Promise => {
       return processTouchEventDispatchDataSender(key, funcRow!).then((res: Array<unknown>) => {
         this.touchEventDispatchSendCallback(res, funcRow, asyncFuncGroups);
         return res;
@@ -331,7 +331,7 @@ export class SpProcessChart {
     return funcRow;
   }
 
-    // @ts-ignore
+  // @ts-ignore
   private touchEventDispatchSendCallback(res: Array<unknown>, funcRow: TraceRow<unknown>, asyncFuncGroups: Array<unknown>): void {
     let isIntersect = (left: unknown, right: unknown): boolean =>
       // @ts-ignore
@@ -340,6 +340,7 @@ export class SpProcessChart {
       left.dur + right.dur;
     let depths: unknown = [];
     let createDepth = (currentDepth: number, index: number): void => {
+      // @ts-ignore
       if (depths[currentDepth] === undefined || !isIntersect(depths[currentDepth], res[index])) {
         //@ts-ignore
         res[index].depth = currentDepth;
@@ -372,7 +373,7 @@ export class SpProcessChart {
     }
   }
 
-    // @ts-ignore
+  // @ts-ignore
   async init(isDistributed: boolean, parentRow?: TraceRow<unknown>, traceId?: string): Promise<void> {
     this.traceId = traceId;
     // @ts-ignore
@@ -1271,7 +1272,7 @@ export class SpProcessChart {
     // @ts-ignore
     let modifiedObject = { ...object };
     modifiedObject['startTime'] = modifiedObject['startTs'];
-    modifiedObject.remove('startTs');
+    Reflect.deleteProperty(modifiedObject, "startTs");
     modifiedObject.rowId = name;
     modifiedObject.type = 'func';
     SpProcessChart.asyncFuncCache.push({ ...modifiedObject });
