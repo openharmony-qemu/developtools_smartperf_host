@@ -77,7 +77,7 @@ export class PerfCallChainPool {
     this.works?.push(thread!);
   };
 
-  submit(name: string, args: any, handler: Function, action: string | null): void {
+  submit(name: string, args: unknown, handler: Function, action: string | null): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
     let thread: PerfCallChainThread;
     if (noBusyThreads.length > 0) {

@@ -235,22 +235,28 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.isOnlyKernel = false;
   }
 
-  private perfAsync(data: any): void {
+  private perfAsync(data: unknown): void {
+    //@ts-ignore
     if (data.params.list) {
       // 若前端存储过调用栈信息与被调用栈信息，可考虑从此处一起返回给主线程
+    //@ts-ignore
       let arr = convertJSON(data.params.list) || [];
       //@ts-ignore
       let result = dealAsyncData(arr, this.callChainData, this.dataCache.nmHeapFrameMap, this.dataCache.dataDict, this.searchValue);
       this.searchValue = '';
       self.postMessage({
+        //@ts-ignore
         id: data.id,
+        //@ts-ignore
         action: data.action,
         results: result,
       });
       arr = [];
       result = [];
     } else {
+      //@ts-ignore
       this.searchValue = data.params.searchValue;
+    //@ts-ignore
       this.queryPerfAsync(data.params);
     }
   }
@@ -289,7 +295,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       (item: { funcName: string }): boolean => item.funcName === 'hideThreadState'
     );
     //@ts-ignore
-    let onlyKernelFilter = [true]
+    let onlyKernelFilter = [true];
     if (this.lib) {
       if (
         callChainsFilter.length > 0 ||
@@ -380,20 +386,28 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     );
   }
 
-  queryPerfAsync(args: any): void {
+  queryPerfAsync(args: unknown): void {
     let str: string = ``;
+    //@ts-ignore
     if (args.cpu.length > 0) {
+      //@ts-ignore
       str += `or cpu_id in (${args.cpu.join(',')})`;
     }
+    //@ts-ignore
     if (args.tid.length > 0) {
+      //@ts-ignore
       str += `or tid in (${args.tid.join(',')})`;
     }
+    //@ts-ignore
     if (args.pid.length > 0) {
+      //@ts-ignore
       str += `or process_id in (${args.pid.join(',')})`;
     }
     str = str.slice(3);
     let eventStr: string = ``;
+    //@ts-ignore
     if (args.eventId) {
+      //@ts-ignore
       eventStr = `AND eventTypeId = ${args.eventId}`;
     }
     this.queryData(this.currentEventId, 'perf-async', `
@@ -412,7 +426,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     WHERE 
       (` + str + `)` + eventStr + `
     AND
-      time between ${args.leftNs} and ${args.rightNs} 
+      time between ${
+        //@ts-ignore
+        args.leftNs} and ${args.rightNs} 
     `, {});
   }
 
@@ -542,10 +558,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
 
     if (this.isOnlyKernel) {
-      const flag = "[kernel.kallsyms]"
-      const newList = list.filter(i => i.fileName === flag || i.path === flag)
-      list.splice(0)
-      list.push(...newList)
+      const flag = '[kernel.kallsyms]';
+      const newList = list.filter(i => i.fileName === flag || i.path === flag);
+      list.splice(0);
+      list.push(...newList);
     }
   }
 
@@ -798,7 +814,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
 
   clearSplitMapData(symbolName: string): void {
     if (symbolName in this.splitMapData) {
-      delete this.splitMapData[symbolName];
+      Reflect.deleteProperty(this.splitMapData,symbolName);
     }
   }
 

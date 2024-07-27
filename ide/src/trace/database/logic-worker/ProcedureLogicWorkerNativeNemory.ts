@@ -1180,7 +1180,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   }
   clearSplitMapData(symbolName: string): void {
     if (symbolName in this.splitMapData) {
-      delete this.splitMapData[symbolName];
+      Reflect.deleteProperty(this.splitMapData,symbolName);
     }
   }
   resolvingNMCallAction(params: unknown[]): NativeHookCallInfo[] {

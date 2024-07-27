@@ -16,7 +16,7 @@ import { threadStateList } from '../utils/AllMemoryCache';
 import { filterDataByGroup } from '../utils/DataFilter';
 import { TraficEnum, threadStateToNumber } from '../utils/QueryEnum';
 
-export const chartThreadDataSql = (args: Args) => {
+export const chartThreadDataSql = (args: Args):unknown => {
   return `select B.cpu, max(B.dur) AS dur, B.itid AS id, B.tid AS tid, B.state, B.pid, 
                  B.ts - ${args.recordStartNS} AS startTime, ifnull(B.arg_setid, -1) AS argSetId, 
                  ((B.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px

@@ -144,7 +144,7 @@ export function gpuCounterStructOnClick(
       sp.traceSheetEL?.displayGpuCounterData(GpuCounterStruct.selectGpuCounterStruct!);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
-    }else{
+    } else {
       resolve(null);
     }
   });
@@ -178,7 +178,7 @@ export class GpuCounterStruct extends BaseStruct {
     pns: number,
     startNS: number,
     endNS: number,
-    frame: any
+    frame: unknown
   ): void {
     //@ts-ignore
     if ((eBPFtemNode.startNS - startTime || 0) < startNS) {
