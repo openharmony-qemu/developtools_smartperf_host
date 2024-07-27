@@ -159,7 +159,7 @@ export const queryProcessAsyncFuncCat = (
     startTs: number;
     endTs: number;
   }
-): Promise<Array<unknown>> => 
+): Promise<Array<unknown>> =>
   query(
     'queryProcessAsyncFuncCat',
     `
@@ -182,7 +182,7 @@ export const queryProcessAsyncFuncCat = (
       startTs not null 
     order by cat;
   `,
-  {}
+    {}
   );
 
 export const getMaxDepthByTid = (traceId?: string): //@ts-ignore
@@ -348,28 +348,28 @@ export const getTabDetails = (
   funTids?: Array<number>
 ): //@ts-ignore
   Promise<Array<unknown>> => {
-    let asyncCondition = '';
-    let catCondition = '';
-    let syncCondition = '';
-    if (key === 'async') {
-      asyncCondition = `
+  let asyncCondition = '';
+  let catCondition = '';
+  let syncCondition = '';
+  if (key === 'async') {
+    asyncCondition = `
       and c.cookie not null
       and c.parent_id not null
       `
-    } else if (key === 'sync') {
-      syncCondition = `
+  } else if (key === 'sync') {
+    syncCondition = `
       and A.tid in (${funTids!.join(',')})
       and c.cookie is null
       `
-    }
-    let condition = `
+  }
+  let condition = `
       ${asyncCondition}
       ${catCondition}
       ${syncCondition}
       ${`and P.pid in (${asyncPid.join(',')})`}
-      ${`and c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})`}
+      ${`and c.name in (${asyncNames.map((it) => '\"' + it + '\"').join(',')})`}
     `
-    let sql = `
+  let sql = `
       SELECT 
         c.name AS name,
         c.dur AS duration,
@@ -389,17 +389,17 @@ export const getTabDetails = (
         and
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
     `
-    return query('getTabDetails', sql, {});
-  }
-  export const getCatDetails = (
-    asyncNames: Array<string>,
-    catName: Array<string>,
-    asyncPid: Array<number>,
-    leftNS: number,
-    rightNS: number
-  ): //@ts-ignore
-    Promise<Array<unknown>> => {
-      let sql = `
+  return query('getTabDetails', sql, {});
+}
+export const getCatDetails = (
+  asyncNames: Array<string>,
+  catName: Array<string>,
+  asyncPid: Array<number>,
+  leftNS: number,
+  rightNS: number
+): //@ts-ignore
+  Promise<Array<unknown>> => {
+  let sql = `
         SELECT 
           c.name AS name,
           c.dur AS duration,
@@ -425,14 +425,14 @@ export const getTabDetails = (
           and 
             P.pid in (${asyncPid.join(',')})
           and
-            c.cat in (${catName.map((it) => "\"" + it + "\"").join(',')}) 
+            c.cat in (${catName.map((it) => '\"' + it + '\"').join(',')}) 
           and 
-            c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})
+            c.name in (${asyncNames.map((it) => '\"' + it + '\"').join(',')})
           and
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS}))
-      `
-      return query('getCatDetails', sql, {});
-    } 
+      `;
+  return query('getCatDetails', sql, {});
+};
 export const getTabSlicesAsyncCatFunc = (
   asyncCatNames: Array<string>,
   asyncCatPid: Array<number>,

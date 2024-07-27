@@ -70,7 +70,7 @@ export class TabPaneBoxChild extends BaseElement {
 
   getDataByDB(val: BoxJumpParam): void {
     this.boxChildTbl!.loading = true;
-    sliceChildBoxSender( 'state-box', val.leftNs, val.rightNs, val.threadId!, val.processId!,
+    sliceChildBoxSender('state-box', val.leftNs, val.rightNs, val.threadId!, val.processId!,
       val.cpus, val.state, val.traceId!).then((result: unknown): void => {
         this.boxChildTbl!.loading = false;      // @ts-ignore
         if (result.length !== null && result.length > 0) {      // @ts-ignore
@@ -116,7 +116,7 @@ export class TabPaneBoxChild extends BaseElement {
           }
         }
       }
-    );
+      );
   }
 
   initHtml(): string {

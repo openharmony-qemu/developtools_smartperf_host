@@ -639,7 +639,7 @@ export class LitTable extends HTMLElement {
       .map((a) => (a as unknown).data)
       .map((a) => {
         if ('children' in a) {
-          Reflect.deleteProperty(a, "chlidren")
+          Reflect.deleteProperty(a, 'chlidren');
         }
         return a;
       });

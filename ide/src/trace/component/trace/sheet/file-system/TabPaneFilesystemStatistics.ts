@@ -228,7 +228,7 @@ export class TabPaneFileStatistics extends BaseElement {
         fileStatisticsA.node[key] - fileStatisticsB.node[key] :
         this.fileStatisticsSortType === 2 ?
           // @ts-ignore
-          fileStatisticsB.node[key] - fileStatisticsA.node[key] : 0
+          fileStatisticsB.node[key] - fileStatisticsA.node[key] : 0;
     }); // @ts-ignore
     fileStatisticsAllNode.children.forEach((item: unknown): void => {
       // @ts-ignore
