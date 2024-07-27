@@ -412,7 +412,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
             // @ts-ignore
             backData = vmStatItemB.node[key] - vmStatItemA.node[key];
           }
-          return backData
+          return backData;
         });
       });
     });

@@ -27,9 +27,9 @@ export class TabPaneSampleInstruction extends BaseElement {
   private instructionEle: HTMLCanvasElement | undefined | null;
   private ctx: CanvasRenderingContext2D | undefined | null;
   private textEle: HTMLSpanElement | undefined | null;
-  private instructionArray: Array<any> = [];
-  private instructionData: Array<any> = [];
-  private flattenTreeData: Array<any> = [];
+  private instructionArray: Array<unknown> = [];
+  private instructionData: Array<unknown> = [];
+  private flattenTreeData: Array<unknown> = [];
   private isUpdateCanvas = false;
   private canvasX = -1; // 鼠标当前所在画布x坐标
   private canvasY = -1; // 鼠标当前所在画布y坐标
@@ -38,7 +38,7 @@ export class TabPaneSampleInstruction extends BaseElement {
   private hintContent = ''; //悬浮框内容
   private floatHint!: HTMLDivElement | undefined | null; //悬浮框
   private canvasScrollTop = 0; // tab页上下滚动位置
-  private hoverSampleStruct: any | undefined;
+  private hoverSampleStruct: unknown | undefined;
   private isChecked: boolean = false;
   private maxDepth = 0;
 
@@ -117,7 +117,8 @@ export class TabPaneSampleInstruction extends BaseElement {
     this.instructionEle!.onmouseleave = () => {
       this.hideTip();
     };
-    document.addEventListener('sample-popver-change', (e: any) => {
+    document.addEventListener('sample-popver-change', (e: unknown) => {
+      // @ts-ignore
       const select = Number(e.detail.select);
       this.isChecked = Boolean(select);
       this.hoverSampleStruct = undefined;
@@ -143,9 +144,11 @@ export class TabPaneSampleInstruction extends BaseElement {
     }
   }
 
-  setSampleInstructionData(clickData: SampleStruct, reqProperty: any): void {
+  setSampleInstructionData(clickData: SampleStruct, reqProperty: unknown): void {
     this.hoverSampleStruct = undefined;
+    // @ts-ignore
     this.instructionData = reqProperty.uniqueProperty;
+    // @ts-ignore
     this.flattenTreeData = reqProperty.flattenTreeArray;
     this.setRelationDataProperty(this.flattenTreeData, clickData);
     this.updateCanvas(this.clientWidth);
@@ -167,7 +170,9 @@ export class TabPaneSampleInstruction extends BaseElement {
         this.ctx!.clearRect(0, 0, this.instructionEle!.width, this.instructionEle!.height);
         this.ctx!.beginPath();
         for (const key in this.instructionArray) {
+          // @ts-ignore
           for (let i = 0; i < this.instructionArray[key].length; i++) {
+            // @ts-ignore
             const cur = this.instructionArray[key][i];
             this.draw(this.ctx!, cur);
           }
@@ -218,8 +223,12 @@ export class TabPaneSampleInstruction extends BaseElement {
     if (!hoverNode) {
       return;
     }
+    // @ts-ignore
     this.hintContent = `<span class="text">${hoverNode.detail}(${hoverNode.name})</span></br>
-      <span class="text">${this.isChecked ? hoverNode.hoverCycles : hoverNode.hoverInstructions}
+      // @ts-ignore
+      <span class="text">${
+      // @ts-ignore
+      this.isChecked ? hoverNode.hoverCycles : hoverNode.hoverInstructions}
       </span>
     `;
   }
@@ -247,7 +256,8 @@ export class TabPaneSampleInstruction extends BaseElement {
    * @param y
    * @returns
    */
-  isContains(frame: any, x: number, y: number): boolean {
+  isContains(frame: unknown, x: number, y: number): boolean {
+    // @ts-ignore
     return x >= frame.x && x <= frame.x + frame.width && frame.y <= y && y <= frame.y + frame.height;
   }
 
@@ -260,35 +270,46 @@ export class TabPaneSampleInstruction extends BaseElement {
     const clientWidth = this.instructionEle!.width;
     //将数据转换为层级结构
     const instructionArray = this.flattenTreeData
+      // @ts-ignore
       .filter((item: SampleStruct) => (isCycles ? item.cycles : item.instructions))
-      .reduce((pre: any, cur: any) => {
+      .reduce((pre: unknown, cur: unknown) => {
+        // @ts-ignore
         (pre[`${cur.depth}`] = pre[`${cur.depth}`] || []).push(cur);
         return pre;
       }, {});
+    // @ts-ignore
     for (const key in instructionArray) {
+      // @ts-ignore
       for (let i = 0; i < instructionArray[key].length; i++) {
+        // @ts-ignore
         const cur = instructionArray[key][i];
         //第一级节点直接将宽度设置为容器宽度
         if (key === '0') {
           this.setSampleFrame(cur, clientWidth, 0);
         } else {
           //获取上一层级节点数据
+          // @ts-ignore
           const preList = instructionArray[Number(key) - 1];
           //获取当前节点的父节点
           const parentNode = preList.find((node: SampleStruct) => node.name === cur.parentName);
           //计算当前节点下指令数之和 用于计算每个节点所占的宽度比
           const total = isCycles
+            // @ts-ignore
             ? instructionArray[key]
-                .filter((i: any) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+              // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+            // @ts-ignore
             : instructionArray[key]
-                .filter((i: any) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
+              // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
           const curWidth = isCycles ? cur.cycles : cur.instructions;
           const width = Math.floor(parentNode.frame.width * (curWidth / total));
           if (i === 0) {
             this.setSampleFrame(cur, width, parentNode.frame.x);
           } else {
+            // @ts-ignore
             const preNode = instructionArray[key][i - 1];
             preNode.parentName === parentNode.name
               ? this.setSampleFrame(cur, width, preNode.frame.x + preNode.frame.width)
@@ -297,11 +318,14 @@ export class TabPaneSampleInstruction extends BaseElement {
         }
       }
     }
+    // @ts-ignore
     this.instructionArray = instructionArray;
     this.ctx!.clearRect(0, 0, this.instructionEle!.width, this.instructionEle!.height);
     this.ctx!.beginPath();
     for (const key in this.instructionArray) {
+      // @ts-ignore
       for (let i = 0; i < this.instructionArray[key].length; i++) {
+        // @ts-ignore
         const cur = this.instructionArray[key][i];
         this.draw(this.ctx!, cur);
       }
@@ -331,9 +355,12 @@ export class TabPaneSampleInstruction extends BaseElement {
    * @param canvasY
    * @returns
    */
-  searchDataByCoord(nodes: any, canvasX: number, canvasY: number) {
+  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number) {
+    // @ts-ignore
     for (const key in nodes) {
+      // @ts-ignore
       for (let i = 0; i < nodes[key].length; i++) {
+        // @ts-ignore
         const cur = nodes[key][i];
         if (this.isContains(cur.frame, canvasX, canvasY)) {
           return cur;
@@ -357,6 +384,7 @@ export class TabPaneSampleInstruction extends BaseElement {
       const textColor =
         ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', data.depth!, ColorUtils.FUNC_COLOR.length)];
       ctx.lineWidth = 0.4;
+      // @ts-ignore
       if (this.hoverSampleStruct && data.name == this.hoverSampleStruct.name) {
         if (spApplication.dark) {
           ctx.strokeStyle = '#fff';
@@ -382,43 +410,55 @@ export class TabPaneSampleInstruction extends BaseElement {
    * @param relationData
    * @param clickData
    */
-  setRelationDataProperty(relationData: Array<any>, clickData: SampleStruct): void {
-    const propertyData = this.instructionData.find((subArr: any) =>
+  setRelationDataProperty(relationData: Array<unknown>, clickData: SampleStruct): void {
+    const propertyData = this.instructionData.find((subArr: unknown) =>
+      // @ts-ignore
       subArr.some((obj: SampleStruct) => obj.begin === clickData.begin)
     );
     //获取非unknown数据
-    const knownRelation = relationData.filter((relation) => relation['name'].indexOf('unknown') < 0);
+    const knownRelation = relationData.filter((relation) => relation.name.indexOf('unknown') < 0);
     propertyData.forEach((property: any) => {
-      const relation = knownRelation.find((relation) => relation['name'] === property['func_name']);
-      relation['instructions'] = Math.ceil(property['instructions']) || 1;
-      relation['hoverInstructions'] = Math.ceil(property['instructions']);
-      relation['cycles'] = Math.ceil(property['cycles']) || 1;
-      relation['hoverCycles'] = Math.ceil(property['cycles']);
-      this.maxDepth = Math.max(this.maxDepth, relation['depth']);
+      const relation = knownRelation.find((relation) => relation.name === property.func_name);
+      relation.instructions = Math.ceil(property.instructions) || 1;
+      relation.hoverInstructions = Math.ceil(property.instructions);
+      relation.cycles = Math.ceil(property.cycles) || 1;
+      relation.hoverCycles = Math.ceil(property.cycles);
+      this.maxDepth = Math.max(this.maxDepth, relation.depth);
     });
     //获取所有unknown数据
     let instructionSum = 0;
     let cyclesSum = 0;
     let hoverInstructionsSum = 0;
     let hoverCyclesSum = 0;
-    const unknownRelation = relationData.filter((relation) => relation['name'].indexOf('unknown') > -1);
+    // @ts-ignore
+    const unknownRelation = relationData.filter((relation) => relation.name.indexOf('unknown') > -1);
     if (unknownRelation.length > 0) {
       unknownRelation.forEach((unknownItem) => {
         instructionSum = 0;
         cyclesSum = 0;
         hoverInstructionsSum = 0;
         hoverCyclesSum = 0;
+        // @ts-ignore
         const children = unknownItem['children'];
         for (const key in children) {
-          const it = relationData.find((relation) => relation['name'] === key);
+          // @ts-ignore
+          const it = relationData.find((relation) => relation.name === key);
+          // @ts-ignore
           instructionSum += it['instructions'] ?? 0;
+          // @ts-ignore
           cyclesSum += it['cycles'] ?? 0;
+          // @ts-ignore
           hoverInstructionsSum += it['hoverInstructions'] ?? 0;
+          // @ts-ignore
           hoverCyclesSum += it['hoverCycles'] ?? 0;
         }
+        // @ts-ignore
         unknownItem['instructions'] = instructionSum;
+        // @ts-ignore
         unknownItem['hoverInstructions'] = hoverInstructionsSum;
+        // @ts-ignore
         unknownItem['cycles'] = cyclesSum;
+        // @ts-ignore
         unknownItem['hoverCycles'] = hoverCyclesSum;
       });
     }

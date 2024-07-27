@@ -139,7 +139,7 @@ export class TabPaneHiLogs extends BaseElement {
       this.tableTimeHandle?.();
     };
     this.tagFilterInput!.addEventListener('keyup', (ev) => {
-      if(ev.key.toLocaleLowerCase() === String.fromCharCode(47)){
+      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
         ev.stopPropagation();
       }
     });
@@ -147,7 +147,7 @@ export class TabPaneHiLogs extends BaseElement {
       this.tableTimeHandle?.();
     };
     this.searchFilterInput!.addEventListener('keyup', (ev) => {
-      if(ev.key.toLocaleLowerCase() === String.fromCharCode(47)){
+      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
         ev.stopPropagation();
       }
     });
@@ -155,7 +155,7 @@ export class TabPaneHiLogs extends BaseElement {
       this.tableTimeHandle?.();
     };
     this.processFilter!.addEventListener('keyup', (ev) => {
-      if(ev.key.toLocaleLowerCase() === String.fromCharCode(47)){
+      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
         ev.stopPropagation();
       }
     });

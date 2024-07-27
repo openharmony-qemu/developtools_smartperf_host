@@ -221,7 +221,7 @@ export class TabPaneCurrent extends BaseElement {
             enable: true,
           });
           document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
-          document.dispatchEvent(new CustomEvent('remarksFocus-change',{ detail: 'remarks-focus' }));
+          document.dispatchEvent(new CustomEvent('remarksFocus-change', { detail: 'remarks-focus' }));
 
           this.systemTrace?.refreshCanvas(true);
         }
@@ -244,7 +244,7 @@ export class TabPaneCurrent extends BaseElement {
           // @ts-ignore
           this.slicesTimeList[i - 1].text = event?.target.value;
           document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
-          document.dispatchEvent(new CustomEvent('remarksFocus-change',{ detail: '' }));
+          document.dispatchEvent(new CustomEvent('remarksFocus-change', { detail: '' }));
           this.setTableData();
           this.systemTrace?.refreshCanvas(true);
         }

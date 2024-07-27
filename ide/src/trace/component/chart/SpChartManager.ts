@@ -473,7 +473,7 @@ export const folderThreadHandler = (row: TraceRow<BaseStruct>, trace: SpSystemTr
       // @ts-ignore
       trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
     } else {
-      (renders['empty'] as EmptyRender).renderMainThread(
+      (renders.empty as EmptyRender).renderMainThread(
         {
           context: trace.canvasPanelCtx,
           useCache: useCache,

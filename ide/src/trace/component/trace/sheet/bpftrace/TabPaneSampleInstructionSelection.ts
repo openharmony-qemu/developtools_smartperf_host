@@ -28,8 +28,8 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
   private instructionEle: HTMLCanvasElement | undefined | null;
   private ctx: CanvasRenderingContext2D | undefined | null;
   private textEle: HTMLSpanElement | undefined | null;
-  private instructionArray: Array<any> = [];
-  private instructionData: Array<any> = [];
+  private instructionArray: Array<unknown> = [];
+  private instructionData: Array<unknown> = [];
   private isUpdateCanvas = false;
   private canvasX = -1; // 鼠标当前所在画布x坐标
   private canvasY = -1; // 鼠标当前所在画布y坐标
@@ -38,7 +38,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
   private hintContent = ''; //悬浮框内容
   private floatHint: HTMLDivElement | undefined | null; //悬浮框
   private canvasScrollTop = 0; // tab页上下滚动位置
-  private hoverSampleStruct: any | undefined;
+  private hoverSampleStruct: unknown | undefined;
   private isChecked: boolean = false;
   private maxDepth = 0;
 
@@ -127,7 +127,8 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     this.instructionEle!.onmouseleave = () => {
       this.hideTip();
     };
-    document.addEventListener('sample-popver-change', (e: any) => {
+    document.addEventListener('sample-popver-change', (e: unknown) => {
+      // @ts-ignore
       const select = Number(e.detail.select);
       this.hoverSampleStruct = undefined;
       this.isChecked = Boolean(select);
@@ -168,7 +169,9 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
         this.ctx!.clearRect(0, 0, this.instructionEle!.width, this.instructionEle!.height);
         this.ctx!.beginPath();
         for (const key in this.instructionArray) {
+          // @ts-ignore
           for (let i = 0; i < this.instructionArray[key].length; i++) {
+            // @ts-ignore
             const cur = this.instructionArray[key][i];
             this.draw(this.ctx!, cur);
           }
@@ -219,8 +222,11 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     if (!hoverNode) {
       return;
     }
+    // @ts-ignore
     this.hintContent = `<span class="text">${hoverNode.detail}(${hoverNode.name})</span></br>
-      <span class="text">${this.isChecked ? hoverNode.hoverCycles : hoverNode.hoverInstructions}
+      <span class="text">${
+      // @ts-ignore
+      this.isChecked ? hoverNode.hoverCycles : hoverNode.hoverInstructions}
       </span>
     `;
   }
@@ -248,7 +254,8 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
    * @param y
    * @returns
    */
-  isContains(frame: any, x: number, y: number): boolean {
+  isContains(frame: unknown, x: number, y: number): boolean {
+    // @ts-ignore
     return x >= frame.x && x <= frame.x + frame.width && frame.y <= y && y <= frame.y + frame.height;
   }
 
@@ -261,35 +268,46 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     const clientWidth = this.instructionEle!.width;
     //将数据转换为层级结构
     const instructionArray = this.instructionData
-      .filter((item: any) => (isCycles ? item.cycles : item.instructions))
-      .reduce((pre: any, cur: any) => {
+      // @ts-ignore
+      .filter((item: unknown) => (isCycles ? item.cycles : item.instructions))
+      .reduce((pre: unknown, cur: unknown) => {
+        // @ts-ignore
         (pre[`${cur.depth}`] = pre[`${cur.depth}`] || []).push(cur);
         return pre;
       }, {});
+    // @ts-ignore
     for (const key in instructionArray) {
+      // @ts-ignore
       for (let i = 0; i < instructionArray[key].length; i++) {
+        // @ts-ignore
         const cur = instructionArray[key][i];
         //第一级节点直接将宽度设置为容器宽度
         if (key === '0') {
           this.setSampleFrame(cur, clientWidth, 0);
         } else {
           //获取上一层级节点数据
+          // @ts-ignore
           const preList = instructionArray[Number(key) - 1];
           //获取当前节点的父节点
           const parentNode = preList.find((node: SampleStruct) => node.name === cur.parentName);
           //计算当前节点下指令数之和 用于计算每个节点所占的宽度比
           const total = isCycles
+            // @ts-ignore
             ? instructionArray[key]
-                .filter((i: any) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+              // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+            // @ts-ignore
             : instructionArray[key]
-                .filter((i: any) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
+              // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
           const curWidth = isCycles ? cur.cycles : cur.instructions;
           const width = Math.floor(parentNode.frame.width * (curWidth / total));
           if (i === 0) {
             this.setSampleFrame(cur, width, parentNode.frame.x);
           } else {
+            // @ts-ignore
             const preNode = instructionArray[key][i - 1];
             preNode.parentName === parentNode.name
               ? this.setSampleFrame(cur, width, preNode.frame.x + preNode.frame.width)
@@ -298,12 +316,16 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
         }
       }
     }
+    // @ts-ignore
     this.instructionArray = instructionArray;
 
     this.ctx!.clearRect(0, 0, this.instructionEle!.width, this.instructionEle!.height);
     this.ctx!.beginPath();
+    // @ts-ignore
     for (const key in instructionArray) {
+      // @ts-ignore
       for (let i = 0; i < instructionArray[key].length; i++) {
+        // @ts-ignore
         const cur = instructionArray[key][i];
         this.draw(this.ctx!, cur);
       }
@@ -333,9 +355,12 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
    * @param canvasY
    * @returns
    */
-  searchDataByCoord(nodes: any, canvasX: number, canvasY: number) {
+  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number) {
+    // @ts-ignore
     for (const key in nodes) {
+      // @ts-ignore
       for (let i = 0; i < nodes[key].length; i++) {
+        // @ts-ignore
         const cur = nodes[key][i];
         if (this.isContains(cur.frame, canvasX, canvasY)) {
           return cur;
@@ -359,12 +384,13 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
       const textColor =
         ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', data.depth!, ColorUtils.FUNC_COLOR.length)];
       ctx.lineWidth = 0.4;
+      // @ts-ignore
       if (this.hoverSampleStruct && data.name == this.hoverSampleStruct.name) {
         if (spApplication.dark) {
           ctx.strokeStyle = '#fff';
         } else {
           ctx.strokeStyle = '#000';
-      }
+        }
       } else {
         if (spApplication.dark) {
           ctx.strokeStyle = '#000';
@@ -384,27 +410,30 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
    * @param instructionData
    * @returns
    */
-  getAvgInstructionData(instructionData: Array<any>) {
+  getAvgInstructionData(instructionData: Array<unknown>) {
+    // @ts-ignore
     const length = instructionData[0].property.length;
-    const knowData = instructionData.filter((instruction) => instruction['name'].indexOf('unknown') < 0);
+    const knowData = instructionData.filter((instruction) => instruction.name.indexOf('unknown') < 0);
     knowData.forEach((instruction) => {
+      // @ts-ignore
       if (instruction.property.length > 0) {
-        const totalInstruction = instruction['property'].reduce(
-          (pre: number, cur: SampleStruct) => pre + Math.ceil(cur['instructions']!),
+        const totalInstruction = instruction.property.reduce(
+          (pre: number, cur: SampleStruct) => pre + Math.ceil(cur.instructions!),
           0
         );
-        const totalCycles = instruction['property'].reduce(
-          (pre: number, cur: SampleStruct) => pre + Math.ceil(cur['cycles']!),
+        // @ts-ignore
+        const totalCycles = instruction.property.reduce(
+          (pre: number, cur: SampleStruct) => pre + Math.ceil(cur.cycles!),
           0
         );
-        instruction['instructions'] = Math.ceil(totalInstruction / length) || 1;
-        instruction['cycles'] = Math.ceil(totalCycles / length) || 1;
-        instruction['hoverInstructions'] = Math.ceil(totalInstruction / length);
-        instruction['hoverCycles'] = Math.ceil(totalCycles / length);
-        this.maxDepth = Math.max(this.maxDepth, instruction['depth']);
+        instruction.instructions = Math.ceil(totalInstruction / length) || 1;
+        instruction.cycles = Math.ceil(totalCycles / length) || 1;
+        instruction.hoverInstructions = Math.ceil(totalInstruction / length);
+        instruction.hoverCycles = Math.ceil(totalCycles / length);
+        this.maxDepth = Math.max(this.maxDepth, instruction.depth);
       }
     });
-    const unknownData = instructionData.filter((instruction) => instruction['name'].indexOf('unknown') > -1);
+    const unknownData = instructionData.filter((instruction) => instruction.name.indexOf('unknown') > -1);
     let instructionSum = 0;
     let cyclesSum = 0;
     let hoverInstructionsSum = 0;
@@ -414,16 +443,26 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
       cyclesSum = 0;
       hoverInstructionsSum = 0;
       hoverCyclesSum = 0;
-      for (const key in unknown['children']) {
+      // @ts-ignore
+      for (const key in unknown.children) {
+        // @ts-ignore
         const child = instructionData.find((instruction) => instruction['name'] === key);
+        // @ts-ignore
         instructionSum += child['instructions'] ?? 0;
+        // @ts-ignore
         cyclesSum += child['cycles'] ?? 0;
+        // @ts-ignore
         hoverInstructionsSum += child['hoverInstructions'] ?? 0;
+        // @ts-ignore
         hoverCyclesSum += child['hoverCycles'] ?? 0;
       }
+      // @ts-ignore
       unknown['instructions'] = instructionSum;
+      // @ts-ignore
       unknown['cycles'] = cyclesSum;
+      // @ts-ignore
       unknown['hoverInstructions'] = hoverInstructionsSum;
+      // @ts-ignore
       unknown['hoverCycles'] = hoverCyclesSum;
     });
     return instructionData;

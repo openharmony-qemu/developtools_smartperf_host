@@ -163,7 +163,7 @@ export class SpSegmentationChart {
       await this.initBinderTrace();
       await this.initAllStates();
     } else {
-      return
+      return;
     }
   }
   async initFolder() {

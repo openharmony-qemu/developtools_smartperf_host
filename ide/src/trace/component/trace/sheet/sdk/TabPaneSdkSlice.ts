@@ -271,9 +271,9 @@ export class TabPaneSdkSlice extends BaseElement {
         if (type === 'number') {
           return sliceSort === 2
             ? // @ts-ignore
-              parseFloat(bSdkSlice[property]) - parseFloat(aSdkSlice[property])
+            parseFloat(bSdkSlice[property]) - parseFloat(aSdkSlice[property])
             : // @ts-ignore
-              parseFloat(aSdkSlice[property]) - parseFloat(bSdkSlice[property]);
+            parseFloat(aSdkSlice[property]) - parseFloat(bSdkSlice[property]);
         }
         // @ts-ignore
         if (bSdkSlice[property] > aSdkSlice[property]) {
@@ -359,24 +359,33 @@ export class TabPaneSdkSlice extends BaseElement {
   }
 
   getFormattedSliceValue(sliceKey: string, sliceValue: unknown): unknown {
+    let result: string = '';
     //@ts-ignore
     switch (this.columnMap[sliceKey]) {
       case 'TimeStamp':
-        return Utils.getTimeString(Number(sliceValue));
+        result = Utils.getTimeString(Number(sliceValue));
+        break;
       case 'ClockTime':
-        return Utils.getTimeStampHMS(Number(sliceValue));
+        result = Utils.getTimeStampHMS(Number(sliceValue));
+        break;
       case 'RangTime':
-        return Utils.getDurString(Number(sliceValue));
+        result = Utils.getDurString(Number(sliceValue));
+        break;
       case 'PercentType':
-        return `${sliceValue}%`;
+        result = `${sliceValue}%`;
+        break;
       case 'CurrencyType': //@ts-ignore
-        return sliceValue.toString().replace(/\B(?=(\d{3})+$)/g, ',');
+        result = sliceValue.toString().replace(/\B(?=(\d{3})+$)/g, ',');
+        break;
       case 'FIXED': //@ts-ignore
-        return sliceValue.toFixed(2);
+        result = sliceValue.toFixed(2);
+        break;
       default:
         if (typeof sliceValue === 'string') {
-          return sliceValue.replace(/</gi, '&lt;').replace(/>/gi, '&gt;');
+          result = sliceValue.replace(/</gi, '&lt;').replace(/>/gi, '&gt;');
+          break;
         }
     }
+    return result;
   }
 }

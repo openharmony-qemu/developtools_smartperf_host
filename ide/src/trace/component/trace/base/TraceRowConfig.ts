@@ -85,7 +85,7 @@ export class TraceRowConfig extends BaseElement {
     TraceRowConfig.allTraceRowList.push(...this.traceRowList!);
     this.refreshAllConfig(true, true);
     // 鼠标移入该页面,隐藏泳道图tip
-    this.onmouseenter = () => {
+    this.onmouseenter = (): void => {
       this.spSystemTrace!.tipEL!.style.display = 'none';
       this.spSystemTrace!.hoverStructNull();
       this.spSystemTrace!.refreshCanvas(true);
@@ -430,7 +430,7 @@ export class TraceRowConfig extends BaseElement {
     this.resetButton!.addEventListener('click', () => {
       this.loadTempConfig(this.defaultConfigList);
       this.resetChartTable();
-    })
+    });
   }
 
   private initSwitchClickListener(): void {
@@ -682,7 +682,7 @@ export class TraceRowConfig extends BaseElement {
     currentChartId: string,
     scene: Array<string>,
     findChartNames: Array<string>
-  ) {
+  ): void {
     if (this.traceRowList) {
       for (let index = 0; index < this.traceRowList.length; index++) {
         let item = this.traceRowList[index];

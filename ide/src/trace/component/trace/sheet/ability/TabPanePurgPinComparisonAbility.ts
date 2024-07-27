@@ -38,9 +38,8 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
   public totalData(purgePinComParam: SelectionParam | unknown, dataList: unknown): void {
     if (this.purgeablePinTable) {
       //@ts-ignore
-      this.purgeablePinTable.shadowRoot?.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - 45
-      }px`;
+      this.purgeablePinTable.shadowRoot?.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45
+        }px`;
     }
     this.purgeablePinSource = [];
     let fileArr: unknown[] = []; // @ts-ignore
@@ -56,7 +55,6 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
   }
 
   private initSelect(fileStartNs: number, purgePinComFileArr: Array<unknown>): void {
-    let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
     this.selectEl!.innerHTML = '';
     let option = new LitSelectOption();
@@ -70,18 +68,19 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
     this.selectEl!.defaultValue = purgePinComFileArr[0].name; // @ts-ignore
     this.selectEl!.placeholder = purgePinComFileArr[0].name;
     this.selectEl!.dataSource = purgePinComFileArr;
-    this.selectEl!.querySelectorAll('lit-select-option').forEach((a) => {
-      a.addEventListener('onSelected', (e: unknown) => {
+    let selectOption = this.selectEl!.querySelectorAll('lit-select-option');
+    for (const item of selectOption) {
+      item.addEventListener('onSelected', (e: unknown) => {
         for (let f of purgePinComFileArr) {
           // @ts-ignore
           if (input.value === f.name) {
             // @ts-ignore
-            that.updateComparisonData(fileStartNs, f.startNs);
+            this.updateComparisonData(fileStartNs, f.startNs);
           }
         } // @ts-ignore
         e.stopPropagation();
       });
-    });
+    }
   }
   // @ts-ignore
   private async updateComparisonData(baseTime: number, targetTime: number): Promise<unknown> {

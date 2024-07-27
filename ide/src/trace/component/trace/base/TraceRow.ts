@@ -190,7 +190,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static isUserInteraction: boolean;
   asyncFuncName: string | Array<string> | undefined | null;
   asyncFuncNamePID: number | undefined | null;
-  asyncFuncThreadName: Array<unknown>| string | undefined | null;  
+  asyncFuncThreadName: Array<unknown> | string | undefined | null;
   translateY: number = 0; //single canvas offsetY;
   // @ts-ignore
   childrenList: Array<TraceRow<unknown>> = []; // @ts-ignore
@@ -221,12 +221,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       isOffScreen: boolean;
       skeleton?: boolean;
     } = {
-      canvasNumber: 1,
-      alpha: false,
-      contextId: '2d',
-      isOffScreen: true,
-      skeleton: false,
-    },
+        canvasNumber: 1,
+        alpha: false,
+        contextId: '2d',
+        isOffScreen: true,
+        skeleton: false,
+      },
     traceId?: string
   ) {
     super();
@@ -588,16 +588,18 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     maxKey: string | undefined = undefined
   ): T | undefined {
     if (this.isHover) {
+      let item: T | undefined;
       if (maxKey) {
         let arr = this.dataListCache
           .filter((re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)) // @ts-ignore
           .sort((targetA, targetB) => (targetB as unknown)[maxKey] - (targetA as unknown)[maxKey]);
-        return arr[0];
+        item = arr[0];
       } else {
-        return this.dataListCache.find(
+        item = this.dataListCache.find(
           (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
         );
       }
+      return item
     }
   }
 
@@ -944,11 +946,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       event.stopPropagation();
     });
 
-    let that = this;
-    window.addEventListener('storage', function (e): void {
+    window.addEventListener('storage', (e): void => {
       if (e.storageArea === sessionStorage) {
         if (e.key === 'freqInfoData') {
-          that.onRowCheckFileChangeHandler?.();
+          this.onRowCheckFileChangeHandler?.();
         }
       }
     }); // @ts-ignore
@@ -1003,7 +1004,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
       // @ts-ignore
       this.rowSettingPop!.visible = isVisible;
-      TraceRow.ROW_TYPE_HIPERF_THREADTYPE.push(Number(this.rowSettingTree!.getCheckdKeys())) //@ts-ignore
+      TraceRow.ROW_TYPE_HIPERF_THREADTYPE.push(Number(this.rowSettingTree!.getCheckdKeys())); //@ts-ignore
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
     };
     this.rowSettingPop?.addEventListener('mouseenter', (): void => {
@@ -1527,7 +1528,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  focusContain(e: MouseEvent, inFavoriteArea: boolean, prevScrollY: number = 0,favoriteHeight: number): boolean {
+  focusContain(e: MouseEvent, inFavoriteArea: boolean, prevScrollY: number = 0, favoriteHeight: number): boolean {
     let _y = (e.currentTarget as HTMLElement).getBoundingClientRect().y;
     let myRect = this.getBoundingClientRect();
     let x = e.offsetX;

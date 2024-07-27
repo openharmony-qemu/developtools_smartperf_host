@@ -130,7 +130,7 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
    * @param canvasY
    * @returns
    */
-  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number) {
+  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number):unknown {
     // @ts-ignore
     for (let i = 0; i < nodes.length; i++) {
       // @ts-ignore
@@ -261,7 +261,7 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
    * @param height
    * @param count
    */
-  drawBar(instructionData: unknown, height: number, count: number) {
+  drawBar(instructionData: unknown, height: number, count: number): void {
     const yTotal = Number((this.yAvg * 5).toFixed(2));
     const interval = Math.floor((height - paddingBottom) / 6); // @ts-ignore
     for (const x in instructionData) {
