@@ -354,11 +354,7 @@ export const getTabDetails = (
     if (key === 'async') {
       asyncCondition = `
       and c.cookie not null
-      `
-    } else if (key === 'cat') {
-      catCondition = `
-      and c.cookie not null
-      and c.cat not null
+      and c.parent_id not null
       `
     } else if (key === 'sync') {
       syncCondition = `
@@ -371,7 +367,7 @@ export const getTabDetails = (
       ${catCondition}
       ${syncCondition}
       ${`and P.pid in (${asyncPid.join(',')})`}
-      ${`and c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})`}
+      ${`and c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})`}
     `
     let sql = `
       SELECT 
@@ -394,7 +390,49 @@ export const getTabDetails = (
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
     `
     return query('getTabDetails', sql, {});
-  } 
+  }
+  export const getCatDetails = (
+    asyncNames: Array<string>,
+    catName: Array<string>,
+    asyncPid: Array<number>,
+    leftNS: number,
+    rightNS: number
+  ): //@ts-ignore
+    Promise<Array<unknown>> => {
+      let sql = `
+        SELECT 
+          c.name AS name,
+          c.dur AS duration,
+          P.pid AS processId,
+          P.name AS process,
+          A.tid AS threadId,
+          A.name AS thread,
+          c.ts - D.start_ts as startNs
+        FROM
+          thread A,trace_range D
+          LEFT JOIN process P ON P.id = A.ipid
+          LEFT JOIN callstack C ON A.id = C.callid
+        where
+            C.ts > 0
+          and
+            c.dur >= -1
+          and 
+            c.cookie not null
+          and 
+            c.cat not null
+          and 
+            c.parent_id is null
+          and 
+            P.pid in (${asyncPid.join(',')})
+          and
+            c.cat in (${catName.map((it) => "\"" + it + "\"").join(',')}) 
+          and 
+            c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})
+          and
+          not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS}))
+      `
+      return query('getCatDetails', sql, {});
+    } 
 export const getTabSlicesAsyncCatFunc = (
   asyncCatNames: Array<string>,
   asyncCatPid: Array<number>,

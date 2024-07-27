@@ -278,7 +278,7 @@ export class SpHelp extends BaseElement {
           text: header.textContent!.trim()
         }));
         this.navbarContainer!.innerHTML = `<ul id="nav-links">${hTags.map(hTag => {
-          let backData = '';
+          let backData: string = '';
           if (hTag.id) {
             backData = `<li class="tooltip"><a id="${hTag.id}" data-full-text="${hTag.text}">${hTag.text}</a><span class="tooltiptext" id="tooltip-${hTag.id}">${hTag.text}</span>
           </li>`;
