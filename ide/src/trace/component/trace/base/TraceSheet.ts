@@ -253,10 +253,10 @@ export class TraceSheet extends BaseElement {
 
   private tdClickEvent(): void {
     this.getComponentByID<any>('box-spt')?.addEventListener('td-click', (evt: any) => {
-      this.tdClickHandler(evt)
+      this.tdClickHandler(evt);
     });
     this.getComponentByID<any>('box-pts')?.addEventListener('td-click', (evt: any) => {
-      this.tdClickHandler(evt)
+      this.tdClickHandler(evt);
     });
     this.getComponentByID<any>('box-thread-states')?.addEventListener('td-click', (evt: any) => {
       this.tdClickHandler(evt);
