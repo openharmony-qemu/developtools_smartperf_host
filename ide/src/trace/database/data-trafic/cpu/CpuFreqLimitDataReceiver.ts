@@ -64,7 +64,8 @@ export const chartCpuFreqLimitDataSqlMem = (args: Args): string => {
 export function cpuFreqLimitReceiver(data: unknown, proc: Function): void {
   // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: unknown[], list: unknown[];
+    let res: unknown[];
+    let list: unknown[];
     // @ts-ignore
     if (!cpuFreqLimitList.has(data.params.cpu)) {
       // @ts-ignore
@@ -140,12 +141,12 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
       action: data.action,
       results: transfer
         ? {
-            startNs: startNs.buffer,
-            dur: dur.buffer,
-            value: value.buffer,
-            max: max.buffer,
-            min: min.buffer,
-          }
+          startNs: startNs.buffer,
+          dur: dur.buffer,
+          value: value.buffer,
+          max: max.buffer,
+          min: min.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,

@@ -87,7 +87,7 @@ export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {
           }
         } // @ts-ignore
         e.stopPropagation();
-      })
+      });
     }
   }
 

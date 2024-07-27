@@ -684,7 +684,7 @@ class FileSystemCallTreeHandler {
   currentEventId: string = '';
   isHideThread: boolean = false;
   isHideEvent: boolean = false;
-  queryData = (eventId: string, action: string, sql: string, args: unknown): void => {};
+  queryData = (eventId: string, action: string, sql: string, args: unknown): void => { };
 
   constructor(type: string, queryData: unknown) {
     this.currentDataType = type;
@@ -1102,8 +1102,8 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
   }
 
   clearSplitMapData(symbolName: string): void {
-    if (symbolName in this.splitMapData){
-      delete this.splitMapData[symbolName];
+    if (symbolName in this.splitMapData) {
+      Reflect.deleteProperty(this.splitMapData,symbolName);
     }
   }
 }

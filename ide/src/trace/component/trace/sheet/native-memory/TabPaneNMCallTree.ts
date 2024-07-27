@@ -347,7 +347,7 @@ export class TabpaneNMCalltree extends BaseElement {
         secondFilterList.push(data.subType);
         this.subTypeArr.push(data.subTypeId);
       }
-    }
+    };
     if (this.currentSelection!.nativeMemory!.length > 0) {
       let subTypeList = await queryNativeHookSubType(
         this.currentSelection!.leftNs,

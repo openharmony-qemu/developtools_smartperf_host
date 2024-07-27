@@ -599,7 +599,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
           (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
         );
       }
-      return item
+      return item;
     }
   }
 

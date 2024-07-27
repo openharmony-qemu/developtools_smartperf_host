@@ -408,7 +408,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });
       if (data.cookie || data.cookie === 0) {
-        list.push({ name: 'TaskId', value: data.cookie })
+        list.push({ name: 'TaskId', value: data.cookie });
       }
       let processName = Utils.getInstance().getProcessMap().get(data.pid!);
       let threadName = Utils.getInstance().getThreadMap().get(data.tid!);

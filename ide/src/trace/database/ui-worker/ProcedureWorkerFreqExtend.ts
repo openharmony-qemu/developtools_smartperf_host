@@ -97,7 +97,7 @@ export class FreqExtendRender extends Render {
       for (let re of freqExtendFilter) {
         if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
           if (SpSegmentationChart.tabHoverObj) {
-          // @ts-ignore
+            // @ts-ignore
             SpSegmentationChart.tabHoverObj = { key: freqReq.type, cycle: re.cycle };
           }
           CpuFreqExtendStruct.hoverStruct = re;
@@ -106,7 +106,8 @@ export class FreqExtendRender extends Render {
         CpuFreqExtendStruct.draw(freqReq.context, re, freqReq.type, row);
       }
       // 取消点击周期
-      if ((row.isHover && !find) || (!row.isHover && SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key !== '' && freqReq.type === SpSegmentationChart.tabHoverObj.key) ||
+      if ((row.isHover && !find) || (!row.isHover && SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key !== '' &&
+        freqReq.type === SpSegmentationChart.tabHoverObj.key) ||
         (SpSegmentationChart.trace.isMousePointInSheet && SpSegmentationChart.tabHoverObj && SpSegmentationChart.tabHoverObj.key === '')
       ) {
         CpuFreqExtendStruct.hoverStruct = undefined;
@@ -136,7 +137,7 @@ export class CpuFreqExtendStruct extends BaseStruct {
   cycle: number | undefined;
   colorIndex: number = 0;
 
-  static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqExtendStruct, type: string, row: TraceRow<CpuFreqExtendStruct>) {
+  static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqExtendStruct, type: string, row: TraceRow<CpuFreqExtendStruct>): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = data.colorIndex || 0;

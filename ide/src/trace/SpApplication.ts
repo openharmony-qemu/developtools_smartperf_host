@@ -365,7 +365,6 @@ export class SpApplication extends BaseElement {
   }
 
   private openLongTraceFile(ev: unknown, isRecordTrace: boolean = false): void {
-    const self = this;
     this.returnOriginalUrl();
     this.wasm = true;
     this.openFileInit(true);
@@ -387,9 +386,9 @@ export class SpApplication extends BaseElement {
       ): Promise<unknown> => {
         const promises = Array.from(files).map((file) => {
           if (normalNames.indexOf(file.name.toLowerCase()) >= 0) {
-            return self.longTraceFileRead(file, true, traceTypePage, readSize, timStamp, allFileSize);
+            return this.longTraceFileRead(file, true, traceTypePage, readSize, timStamp, allFileSize);
           } else if (specialNames.indexOf(file.name.toLowerCase()) >= 0) {
-            return self.longTraceFileRead(file, false, traceTypePage, readSize, timStamp, allFileSize);
+            return this.longTraceFileRead(file, false, traceTypePage, readSize, timStamp, allFileSize);
           } else {
             return;
           }
@@ -1173,7 +1172,8 @@ export class SpApplication extends BaseElement {
         Utils.distributedTrace.push(fileName2 || 'trace2');
         this.litSearch!.setTraceSelectOptions();
       } else {
-        (window as any).traceFileName = fileName;
+        //@ts-ignore
+        (window as unknown).traceFileName = fileName;
       }
       this.showCurrentTraceMenu(fileSize, showFileName, fileName, isDistributed);
       if (!isDistributed) {
@@ -2020,11 +2020,11 @@ export class SpApplication extends BaseElement {
     this.spSystemTrace?.addEventListener('trace-previous-data', (ev) => {
       if (this.progressEL!.loading) {
         return;
-      } 
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(true, this.litSearch!.index, this.litSearch!.list);
     });
     this.spSystemTrace?.addEventListener('trace-next-data', (ev) => {
-      if(this.progressEL!.loading) {
+      if (this.progressEL!.loading) {
         return;
       }
       this.litSearch!.index = this.spSystemTrace!.showStruct(false, this.litSearch!.index, this.litSearch!.list);
@@ -2382,9 +2382,8 @@ export class SpApplication extends BaseElement {
         a.download = fileName;
         a.click();
         this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', true);
-        const self = this;
-        let timer = setInterval(function () {
-          self.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
+        let timer = setInterval(()=> {
+          this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
           clearInterval(timer);
         }, 4000);
       },
@@ -2410,10 +2409,9 @@ export class SpApplication extends BaseElement {
     a.download = fileName;
     a.click();
     window.URL.revokeObjectURL(a.href);
-    const self = this;
     this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', true);
-    let timer = setInterval(function () {
-      self.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
+    let timer = setInterval(()=> {
+      this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
       clearInterval(timer);
     }, 4000);
   }
