@@ -1280,7 +1280,7 @@ export class SpProcessChart {
   //Async Function
   addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
     let isCategoryAsyncfunc: boolean = FlagsConfig.getFlagsConfigEnableStatus('Start&Finish Trace Category');
-    let asyncRemoveCatArr: any, asyncCat: any, setArrayLenThanOne: any, setArrayLenOnlyOne: any;
+    let asyncRemoveCatArr: unknown[], asyncCat: unknown, setArrayLenThanOne: unknown, setArrayLenOnlyOne: unknown;
     //@ts-ignore
     let asyncFuncList = this.processAsyncFuncMap[it.pid] || [];
     if (!asyncFuncList.length) {
@@ -1290,9 +1290,12 @@ export class SpProcessChart {
     if (isCategoryAsyncfunc) {//聚合异步trace
       ({ asyncRemoveCatArr, asyncCat } = this.hanldCatFunc(asyncFuncList, flag));//处理是否cat
       ({ setArrayLenThanOne, setArrayLenOnlyOne } = this.hanldAsyncFunc(it, asyncRemoveCatArr));//len等于0和大于0的分类
+      //@ts-ignore
       let aggregateData = { ...asyncCat, ...setArrayLenThanOne, ...setArrayLenOnlyOne };
-      Reflect.ownKeys(aggregateData).map((key: any) => {//处理business first和length大于1的数据
-        let param: Array<any> = aggregateData[key];
+      Reflect.ownKeys(aggregateData).map((key: unknown) => {//处理business first和length大于1的数据
+        //@ts-ignore
+        let param: Array<unknown> = aggregateData[key];
+        //@ts-ignore
         this.makeAddAsyncFunction(param, it, processRow, key);
       })
     } else {
@@ -1333,18 +1336,19 @@ export class SpProcessChart {
             this.toAsyncFuncCache(asyncFunctions[index], `${asyncFunctions[i].funName}-${it.pid}`);//处理缓存的异步trace数据缺失的字段
           });
         }
+        //@ts-ignore
         this.lanesConfig(asyncFunctions, it, processRow, `${asyncFunctions[0].funName}`);
       });
     }
   }
   //处理CategoryAsyncFunc
   hanldCatFunc(
-    asyncFuncList: Array<any>,
+    asyncFuncList: Array<unknown>,
     flag: boolean
-  ): { asyncRemoveCatArr: Array<any>, asyncCat: any } {
+  ): { asyncRemoveCatArr: Array<unknown>, asyncCat: unknown } {
     let asyncCat;
     let asyncCatArr = new Array();
-    let asyncCatMap: Map<string, any> = new Map<string, any>();
+    let asyncCatMap: Map<string, unknown> = new Map<string, unknown>();
     let asyncRemoveCatArr = new Array();
     //取出cat字段（category）不为null的数据
     for (let i = 0; i < asyncFuncList.length; i++) {
@@ -1354,10 +1358,13 @@ export class SpProcessChart {
         if (flag) {//business first
           asyncCatArr.push(el);
         } else {//thread first
+          //@ts-ignore
           if (asyncCatMap.has(`${el.cat}:${el.threadName} ${el.tid}`)) {
-            let item: Array<any> = asyncCatMap.get(`${el.cat}:${el.threadName} ${el.tid}`);
+            //@ts-ignore
+            let item: Array<unknown> = asyncCatMap.get(`${el.cat}:${el.threadName} ${el.tid}`);
             item.push(el);
           } else {
+            //@ts-ignore
             asyncCatMap.set(`${el.cat}:${el.threadName} ${el.tid}`, [el]);
           }
         }
@@ -1457,6 +1464,7 @@ export class SpProcessChart {
           maxDepth++;
           // @ts-ignore
           noEndData[index].depth = maxDepth;
+          //@ts-ignore
           this.toAsyncFuncCache(noEndData[index], `${key}-${it.pid}`);
         });
       }

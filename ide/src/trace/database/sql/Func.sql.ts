@@ -367,7 +367,7 @@ export const getTabDetails = (
       ${catCondition}
       ${syncCondition}
       ${`and P.pid in (${asyncPid.join(',')})`}
-      ${`and c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})`}
+      ${`and c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})`}
     `
     let sql = `
       SELECT 
@@ -425,9 +425,9 @@ export const getTabDetails = (
           and 
             P.pid in (${asyncPid.join(',')})
           and
-            cat in (${catName.map((it) => "'" + it + "'").join(',')}) 
+            c.cat in (${catName.map((it) => "\"" + it + "\"").join(',')}) 
           and 
-            c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})
+            c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})
           and
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS}))
       `
