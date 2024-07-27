@@ -1275,6 +1275,8 @@ export class SliceBoxJumpParam {
   threadId: Array<number> = [];
   name: string[] | undefined | null;
   isJumpPage: boolean | undefined;
+  asyncNames: Array<string> = [];
+  asyncCatNames: Array<string> = [];
 }
 
 export class SelectionData {
@@ -1309,6 +1311,8 @@ export class SelectionData {
   dur: number = 0;
   tabTitle: string = '';
   allName: string[] | undefined;
+  asyncNames: Array<string> = [];
+  asyncCatNames: Array<string> = [];
 }
 
 export class Counter {
