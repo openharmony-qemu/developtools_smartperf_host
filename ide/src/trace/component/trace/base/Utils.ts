@@ -82,7 +82,7 @@ export class Utils {
       priority: number;
     }
   >();
-  private callStackMap: Map<number |string, string> = new Map<number | string, string>();
+  private callStackMap: Map<number | string, string> = new Map<number | string, string>();
 
   constructor() {
     Utils.statusMap.set('D', 'Uninterruptible Sleep');
@@ -676,7 +676,7 @@ export class Utils {
       let log10: number = Math.ceil(Math.log10(maxFreq));
       let pow10: number = Math.pow(10, log10);
       let afterCeil: number = Math.ceil(maxFreq / (pow10 / 4)) * 1000;
-      let afterDivision:number = (afterCeil * ((pow10 / 4) * 1000)) / 1000000;
+      let afterDivision: number = (afterCeil * ((pow10 / 4) * 1000)) / 1000000;
       maxFreqObj.maxFreq = afterDivision;
       let unitIndex: number = Math.floor(log10 / 3);
       sb = `${afterDivision / Math.pow(10, unitIndex * 3)}${units[unitIndex + 1]}`;

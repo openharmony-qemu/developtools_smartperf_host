@@ -67,12 +67,11 @@ export class SpWebHdcShell extends BaseElement {
       event.preventDefault();
       event.stopPropagation();
     });
-    let listenerThis = this;
     this.shellCanvas!.addEventListener('keydown', async (keyboardEvent) => {
       keyboardEvent.preventDefault();
-      if (keyboardEvent.ctrlKey && keyboardEvent.code === 'KeyC' && listenerThis.points) {
-        let rowText: string = listenerThis.getSelectedText();
-        listenerThis.points = undefined;
+      if (keyboardEvent.ctrlKey && keyboardEvent.code === 'KeyC' && this.points) {
+        let rowText: string = this.getSelectedText();
+        this.points = undefined;
         await navigator.clipboard.writeText(rowText);
       } else {
         if (this.sendCallBack) {

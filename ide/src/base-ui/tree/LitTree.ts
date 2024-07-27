@@ -334,7 +334,7 @@ export class LitTree extends BaseElement {
     this.contextMenu!.style.display = 'none';
   }
 
-  onDrag(e: MouseEvent): void {}
+  onDrag(e: MouseEvent): void { }
 
   onDragStart(ev: MouseEvent): undefined {
     this.srcDragElement = ev.target;
@@ -356,7 +356,7 @@ export class LitTree extends BaseElement {
   onDragOver(ev: MouseEvent): undefined {
     let node = ev.target as LitTreeNode; //@ts-ignore
     if (this.srcDragElement.data.key === node.data!.key) {
-      return;
+      return undefined;
     } //@ts-ignore
     let rect = (ev.currentTarget! as unknown).getBoundingClientRect();
     if (ev.clientX >= rect.left + rect.width / 3 && ev.clientX < rect.left + rect.width) {
@@ -389,7 +389,7 @@ export class LitTree extends BaseElement {
     let srcData = this.srcDragElement.data; //获取原节点的data数据
     let dstData = (ev.target as LitTreeNode).data; //获取目标节点的data数据
     if (srcData.key === dstData!.key) {
-      return;
+      return undefined;
     } //同一个节点不用处理
     //@ts-ignore
     let srcElement = this.srcDragElement.parentElement;

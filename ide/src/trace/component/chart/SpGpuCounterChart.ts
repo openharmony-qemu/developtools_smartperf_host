@@ -374,7 +374,10 @@ export class SpGpuCounterChart {
     let paras = head_line.split(',');
     for (let i = 0; i < paras.length; i++) {
       // @ts-ignore
-      if (paras[i] === 'TIMESTAMP') gpu_counter_map.timestamp = i;
+      if (paras[i] === 'TIMESTAMP') {
+        // @ts-ignore
+        gpu_counter_map.timestamp = i;
+      }
 
       if (paras[i] === 'GPU Clocks') {
         // @ts-ignore
@@ -479,7 +482,7 @@ export class SpGpuCounterChart {
     }
   }
 
-  groupByGpuCounterType(maleoonCounter: MaleoonCounterObj):GpuCounterType {
+  groupByGpuCounterType(maleoonCounter: MaleoonCounterObj): GpuCounterType {
     const gpuCounterType = new GpuCounterType();
     let index = 0;
     for (const key in maleoonCounter) {

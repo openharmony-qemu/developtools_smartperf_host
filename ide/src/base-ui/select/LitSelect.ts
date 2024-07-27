@@ -176,7 +176,7 @@ export class LitSelect extends BaseElement {
       selectDataSource.forEach(item => {
         if (valuesSet.has(item.value)) {
           flag = false; // 如果value有重复，就设置flag为false  
-          return; 
+          return;
         }
         valuesSet.add(item.value);
       });
@@ -195,7 +195,7 @@ export class LitSelect extends BaseElement {
               value: dateSourceBean.name ? dateSourceBean.name : dateSourceBean, // @ts-ignore
               name: dateSourceBean.name ? dateSourceBean.name : dateSourceBean,
             };
-          }          
+          }
           selectOption.textContent = optionData.name;
           selectOption.setAttribute('value', optionData.value);
           if (this.currentSelectedValue === optionData.value) {
@@ -238,8 +238,7 @@ export class LitSelect extends BaseElement {
         ${selectHtmlStr(this.listHeight)}
         <div class="root noSelect" tabindex="0" hidefocus="true">
             <div class="multipleRoot">
-            <input placeholder="${this.placeholder}" autocomplete="off" ${
-  this.showSearch || this.canInsert ? '' : 'readonly'} tabindex="0">
+            <input placeholder="${this.placeholder}" autocomplete="off" ${this.showSearch || this.canInsert ? '' : 'readonly'} tabindex="0">
             </div>
             <lit-loading class="loading" size="12"></lit-loading>
             <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>
@@ -269,7 +268,7 @@ export class LitSelect extends BaseElement {
     icon.name = 'close';
     let span = document.createElement('span'); // @ts-ignore
     tag.classList.add('tag'); // @ts-ignore
-    span.dataset['value'] = value; // @ts-ignore
+    span.dataset.value = value; // @ts-ignore
     span.textContent = text; // @ts-ignore
     tag.append(span); // @ts-ignore
     tag.append(icon); // @ts-ignore
@@ -285,9 +284,9 @@ export class LitSelect extends BaseElement {
       ev.stopPropagation();
     }; // @ts-ignore
     tag.value = value; // @ts-ignore
-    tag.dataset['value'] = value; // @ts-ignore
+    tag.dataset.value = value; // @ts-ignore
     tag.text = text; // @ts-ignore
-    tag.dataset['text'] = text; // @ts-ignore
+    tag.dataset.text = text; // @ts-ignore
     return tag;
   }
 
@@ -621,9 +620,9 @@ export class LitSelect extends BaseElement {
     });
   }
 
-  disconnectedCallback(): void {}
+  disconnectedCallback(): void { }
 
-  adoptedCallback(): void {}
+  adoptedCallback(): void { }
 
   attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {
     if (name === 'value' && this.selectInputEl) {
