@@ -976,6 +976,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
   private handleDataByFuncName(funcName: string, funcArgs: unknown[]): unknown {
+    let result;
     switch (funcName) {
       case 'getCallChainsBySampleIds':
         this.freshPerfCallchains(this.samplesData, funcArgs[0] as boolean);
@@ -1024,13 +1025,16 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.isPerfBottomUp = true;
         break;
       case 'combineAnalysisCallChain':
-        return this.combineCallChainForAnalysis();
+        result = this.combineCallChainForAnalysis();
+        break;
       case 'getBottomUp':
-        return this.getBottomUp();
+        result = this.getBottomUp();
+        break;
       case 'kernelCombination':
         this.kernelCombination();
         break;
     }
+    return result;
   }
 
   combineCallChainForAnalysis(obj?: unknown): PerfAnalysisSample[] {

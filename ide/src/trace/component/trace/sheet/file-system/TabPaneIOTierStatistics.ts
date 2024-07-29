@@ -339,7 +339,6 @@ export class TabPaneIOTierStatistics extends BaseElement {
           this.ioTierStatisticsSortType === 2 ?
             // @ts-ignore
             ioTierStatItemB.node[key] - ioTierStatItemA.node[key] : 0;
-
       }); // @ts-ignore
       item.children.forEach((ioTierStatItem: unknown): void => {
         // @ts-ignore

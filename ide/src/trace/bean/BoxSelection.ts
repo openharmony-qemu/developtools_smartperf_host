@@ -743,8 +743,8 @@ export class SelectionParam {
           setSelectState(item, frameSelectDataIdArr);
           // @ts-ignore
           item.isSelect = true;
-          return item;
         }
+        return item.depth === 0;
       });
       this.jsCpuProfilerData = jsCpuProfilerData;
     }
