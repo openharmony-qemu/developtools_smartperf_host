@@ -111,43 +111,22 @@ export class JSONToCSV {
   }
 
   static saveCsvFile(fileName: unknown, csvData: unknown): void {
-    let browserType: unknown = this.browserType();
+    let alink: unknown = document.createElement('a');
     // @ts-ignore
-    if (!browserType.edge || !browserType.ie) {
-      let alink: unknown = document.createElement('a');
-      // @ts-ignore
-      alink.id = 'csvDownloadLink';
-      // @ts-ignore
-      alink.href = this.getDownloadUrl(csvData);
-      // @ts-ignore
-      document.body.appendChild(alink);
-      let linkDom: unknown = document.getElementById('csvDownloadLink');
-      // @ts-ignore
-      linkDom.setAttribute('download', fileName);
-      // @ts-ignore
-      linkDom.click();
-      // @ts-ignore
-      document.body.removeChild(linkDom);
-      // @ts-ignore
-    } else if (browserType.ie >= 10 || browserType.edge === 'edge') {
-      // @ts-ignore
-      (navigator as unknown).msSaveBlob(
-        new Blob(['\uFEFF' + csvData], {
-          type: 'text/csv',
-        }),
-        fileName
-      );
-    } else {
-      let oWin: unknown = window.top?.open('about:blank', '_blank');
-      // @ts-ignore
-      oWin.document.write('sep=,\r\n' + csvData);
-      // @ts-ignore
-      oWin.document.close();
-      // @ts-ignore
-      oWin.document.execCommand('SaveAs', true, fileName);
-      // @ts-ignore
-      oWin.close();
-    }
+    alink.id = 'csvDownloadLink';
+    // @ts-ignore
+    alink.href = this.getDownloadUrl(csvData);
+    // @ts-ignore
+    document.body.appendChild(alink);
+    let linkDom: unknown = document.getElementById('csvDownloadLink');
+    // @ts-ignore
+    linkDom.setAttribute('download', fileName);
+    // @ts-ignore
+    linkDom.click();
+    // @ts-ignore
+    document.body.removeChild(linkDom);
+    // @ts-ignore
+
   }
 
   static getDownloadUrl(csvData: unknown): string | undefined {
@@ -159,20 +138,6 @@ export class JSONToCSV {
         })
       );
     }
-  }
-
-  static browserType(): { edge: string; ie: string; firefox: string; opera: string;
-    safari: string} {
-    const type = { edge: '', ie: '', firefox: '', opera: '', safari: '' };
-    const agent = navigator.userAgent.toLowerCase();
-    let has;
-    (has = agent.indexOf('edge') !== -1 ? (type.edge = 'edge') :
-      agent.match(/rv:([\d.]+)\) like gecko/)) ? (type.ie = has[1]) :
-      (has = agent.match(/msie ([\d.]+)/)) ? (type.ie = has[1]) :
-        (has = agent.match(/firefox\/([\d.]+)/)) ? (type.firefox = has[1]) :
-            (has = agent.match(/opera.([\d.]+)/)) ? (type.opera = has[1]) :
-              (has = agent.match(/version\/([\d.]+).*safari/)) ? (type.safari = has[1]) : 0;
-    return type;
   }
 
   static treeDepth(depth: number): string {

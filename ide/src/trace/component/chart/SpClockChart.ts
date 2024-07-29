@@ -193,7 +193,7 @@ export class SpClockChart {
   }
 
   // @ts-ignore
-  async initDmaFence(folder: TraceRow<unknown>): void {
+  async initDmaFence(folder: TraceRow<unknown>): Promise<void> {
     let dmaFenceNameList = await queryDmaFenceName();
     if (dmaFenceNameList.length) {
       let dmaFenceList = [];

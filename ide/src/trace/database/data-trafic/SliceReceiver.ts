@@ -423,12 +423,12 @@ function getChildBoxDb(data: unknown): void {
     }
     //@ts-ignore
     return condition && Math.max(data.params.leftNs, it.startTime!) < Math.min(data.params.rightNs, it.startTime! + it.dur!);
-  })
+  });
   postMsg(data, childBoxDb);
 }
 //处理processId和threadId
-function handleIdParams(id: number | number[] | undefined) {
-  let setId;
+function handleIdParams(id: number | number[] | undefined): Set<unknown> {
+  let setId: Set<unknown>;
   if (Array.isArray(id) || typeof id === 'number') {
     setId = new Set(Array.isArray(id) ? id : [id]);
   } else {

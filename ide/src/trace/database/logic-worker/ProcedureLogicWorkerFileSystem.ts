@@ -1103,7 +1103,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
 
   clearSplitMapData(symbolName: string): void {
     if (symbolName in this.splitMapData) {
-      Reflect.deleteProperty(this.splitMapData,symbolName);
+      Reflect.deleteProperty(this.splitMapData, symbolName);
     }
   }
 }

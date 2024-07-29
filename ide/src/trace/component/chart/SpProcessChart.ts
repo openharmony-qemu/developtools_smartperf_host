@@ -1272,7 +1272,7 @@ export class SpProcessChart {
     // @ts-ignore
     let modifiedObject = { ...object };
     modifiedObject.startTime = modifiedObject.startTs;
-    Reflect.deleteProperty(modifiedObject, "startTs");
+    Reflect.deleteProperty(modifiedObject, 'startTs');
     modifiedObject.rowId = name;
     modifiedObject.type = 'func';
     SpProcessChart.asyncFuncCache.push({ ...modifiedObject });
@@ -1280,7 +1280,10 @@ export class SpProcessChart {
   //Async Function
   addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {
     let isCategoryAsyncfunc: boolean = FlagsConfig.getFlagsConfigEnableStatus('Start&Finish Trace Category');
-    let asyncRemoveCatArr: unknown[], asyncCat: unknown, setArrayLenThanOne: unknown, setArrayLenOnlyOne: unknown;
+    let asyncRemoveCatArr: unknown[];
+    let asyncCat: unknown;
+    let setArrayLenThanOne: unknown;
+    let setArrayLenOnlyOne: unknown;
     //@ts-ignore
     let asyncFuncList = this.processAsyncFuncMap[it.pid] || [];
     if (!asyncFuncList.length) {
@@ -1297,7 +1300,7 @@ export class SpProcessChart {
         let param: Array<unknown> = aggregateData[key];
         //@ts-ignore
         this.makeAddAsyncFunction(param, it, processRow, key);
-      })
+      });
     } else {
       //不聚合异步trace
       let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');
@@ -1373,7 +1376,7 @@ export class SpProcessChart {
         asyncRemoveCatArr.push(el);
       }
     }
-    asyncCat = flag ? Utils.groupBy(asyncCatArr, 'cat') : Object.fromEntries(asyncCatMap)
+    asyncCat = flag ? Utils.groupBy(asyncCatArr, 'cat') : Object.fromEntries(asyncCatMap);
     return { asyncRemoveCatArr, asyncCat };
   }
   //处理cat字段为null的数据，按funname分类，分别按len>1和=1去处理
@@ -1412,7 +1415,7 @@ export class SpProcessChart {
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
     key: string
-  ) {
+  ): void {
     let maxDepth: number = -1;
     let i = 0;
     let mapDepth = new Map();
@@ -1477,7 +1480,7 @@ export class SpProcessChart {
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
     key: string
-  ) {
+  ): void {
     const maxHeight = this.calMaxHeight(asyncFunctions);
     // @ts-ignore
     const namesSet = new Set(asyncFunctions.map((item) => item.funName));

@@ -506,9 +506,9 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         if (nmMemoryColumn === 'index' || nmMemoryColumn === 'startTs' || nmMemoryColumn === 'heapSize') {
           return nmMemorySort === 1
             ? //@ts-ignore
-              memoryLeftData[nmMemoryColumn] - memoryRightData[nmMemoryColumn]
+            memoryLeftData[nmMemoryColumn] - memoryRightData[nmMemoryColumn]
             : //@ts-ignore
-              memoryRightData[nmMemoryColumn] - memoryLeftData[nmMemoryColumn];
+            memoryRightData[nmMemoryColumn] - memoryLeftData[nmMemoryColumn];
         } else {
           if (nmMemorySort === 1) {
             //@ts-ignore
@@ -1180,7 +1180,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   }
   clearSplitMapData(symbolName: string): void {
     if (symbolName in this.splitMapData) {
-      Reflect.deleteProperty(this.splitMapData,symbolName);
+      Reflect.deleteProperty(this.splitMapData, symbolName);
     }
   }
   resolvingNMCallAction(params: unknown[]): NativeHookCallInfo[] {

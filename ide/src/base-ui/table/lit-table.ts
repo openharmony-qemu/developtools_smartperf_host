@@ -639,7 +639,7 @@ export class LitTable extends HTMLElement {
       .map((a) => (a as unknown).data)
       .map((a) => {
         if ('children' in a) {
-          Reflect.deleteProperty(a, "chlidren")
+          Reflect.deleteProperty(a, 'chlidren');
         }
         return a;
       });
@@ -1536,8 +1536,9 @@ export class LitTable extends HTMLElement {
       td.onclick = (event: unknown): void => {
         this.dispatchEvent(
           new CustomEvent('td-click', {
-            detail: {//@ts-ignore
-              ...rowData.data,//@ts-ignore
+            detail: {
+              //@ts-ignore
+              ...rowData.data,
             },
             composed: true,
           })

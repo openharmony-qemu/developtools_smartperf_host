@@ -78,6 +78,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
   async queryDataByDB(smapsVal: SelectionParam): Promise<void> {
     getTabSmapsMaxSize(smapsVal.leftNs, smapsVal.rightNs, (MemoryConfig.getInstance().interval * 1000_000) / 5).then(
       (maxRes) => {
+        // @ts-ignore
         this.sumSize = maxRes[0].max_value;
       }
     );
@@ -219,6 +220,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
 
   async setSmaps(data: SelectionParam): Promise<void> {
     getTabSmapsStatisticMaxSize(data.leftNs).then((maxRes) => {
+      // @ts-ignore
       this.sumSize = maxRes[0].max_value;
     });
     await getTabSmapsStatisticData(data.leftNs).then((result) => {

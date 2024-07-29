@@ -321,7 +321,7 @@ function eventNameWithPowerRunninglock(beanData: unknown, it: unknown, systemDat
       // @ts-ignore
       beanData.type = 1;
       systemDataList.push(beanData);
-      Reflect.deleteProperty(tokedIds,'number');
+      Reflect.deleteProperty(tokedIds, 'number');
     }
   }
 }

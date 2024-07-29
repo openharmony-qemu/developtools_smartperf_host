@@ -36,7 +36,7 @@ export const querySmapsData = (columnName: string): Promise<Array<unknown>> =>
     { $columnName: columnName }
   );
 
-export const querySmapsDataMax = (columnName: string): Promise<Array<any>> =>
+export const querySmapsDataMax = (columnName: string): Promise<Array<unknown>> =>
   query(
     'querySmapsDataMax',
     `
@@ -47,7 +47,7 @@ export const querySmapsDataMax = (columnName: string): Promise<Array<any>> =>
   );
 
 export const getTabSmapsMaxSize = (leftNs: number, rightNs: number, dur: number):
-  Promise<Array<any>> =>
+  Promise<Array<unknown>> =>
   query<Smaps>(
     'getTabSmapsMaxRss',
     `
@@ -123,7 +123,7 @@ export const querySmapsRecordTabData = (
     where type = ${typeId} and (timeStamp - start_ts) = ${startNs}`
   );
 
-export const getTabSmapsStatisticMaxSize = (rightNs: number): Promise<Array<any>> =>
+export const getTabSmapsStatisticMaxSize = (rightNs: number): Promise<Array<unknown>> =>
   query<Smaps>(
     'getTabSmapsStatisticMaxRss',
     `
