@@ -135,7 +135,7 @@ export class SpBpftraceChart {
    * @param start_ts
    */
   // @ts-ignore
-  addTraceRowEventListener(row: TraceRow<unknown>, start_ts: number) {
+  addTraceRowEventListener(row: TraceRow<unknown>, start_ts: number): void {
     row.uploadEl?.addEventListener('sample-file-change', (e: unknown) => {
       this.getJsonData(e).then((res: unknown) => {
         this.resetChartData(row);
@@ -186,7 +186,7 @@ export class SpBpftraceChart {
    * @param row
    */
   // @ts-ignore
-  resetChartData(row: TraceRow<unknown>) {
+  resetChartData(row: TraceRow<unknown>): void {
     row.dataList = [];
     row.dataList2 = [];
     row.dataListCache = [];
@@ -203,7 +203,7 @@ export class SpBpftraceChart {
       let reader = new FileReader();
       // @ts-ignore
       reader.readAsText(file.detail || file);
-      reader.onloadend = (e: unknown) => {
+      reader.onloadend = (e: unknown): void => {
         // @ts-ignore
         const fileContent = e.target?.result;
         try {
