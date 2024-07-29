@@ -191,25 +191,25 @@ export class SpQuerySQL extends BaseElement {
   }
 
   private setPageNationTableEl(): void {
-    let that = this;
     let timeOutTs: number = 200;
     let indexNumber = 1;
     setTimeout(() => {
       let total = this.statDataArray.length;
       if (total > maxPageSize) {
-        that.pagination!.style.display = 'block';
-        that.pagination!.style.opacity = '1';
-        new PageNation(this.pagination, {
+        this.pagination!.style.display = 'block';
+        this.pagination!.style.opacity = '1';
+        const option = {
           current: 1,
           total: total,
           pageSize: pageSize,
-          change(num: number): void {
-            that.sliceData = that.statDataArray!.slice((num - indexNumber) * pageSize, num * pageSize);
-            that.queryTableEl!.recycleDataSource = that.sliceData;
+          change: (num: number): void => {
+            this.sliceData = this.statDataArray!.slice((num - indexNumber) * pageSize, num * pageSize);
+            this.queryTableEl!.recycleDataSource = this.sliceData;
           },
-        });
+        };
+        new PageNation(this.pagination, option);
       } else {
-        that.pagination!.style.opacity = '0';
+        this.pagination!.style.opacity = '0';
         this.queryTableEl!.recycleDataSource = this.statDataArray;
       }
       this.freshTableHeadResizeStyle();

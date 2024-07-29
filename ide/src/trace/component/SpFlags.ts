@@ -19,17 +19,17 @@ const VSYNC_VAL = {
   'VsyncGeneratior': 'H:VsyncGenerator',
   'Vsync-rs': 'H:rs_SendVsync',
   'Vsync-app': 'H:app_SendVsync'
-}
+};
 
 const CAT_SORT = {
   'Business first': 'business',
   'Thread first': 'thread'
-}
+};
 
 const CONFIG_STATE = {
   'VSync': ['vsyncValue', 'VsyncGeneratior'],
   'Start&Finish Trace Category': ['catValue', 'Business first']
-}
+};
 
 @element('sp-flags')
 export class SpFlags extends BaseElement {
@@ -82,11 +82,14 @@ export class SpFlags extends BaseElement {
     configDiv.appendChild(description);
   }
   //监听flag-select的状态选择
-  private flagSelectListener(configSelect: any): void {
+  private flagSelectListener(configSelect: unknown): void {
+    // @ts-ignore
     let title = configSelect.getAttribute('title');
     let listSelect = this.shadowRoot?.querySelector(`#${CONFIG_STATE[title as keyof typeof CONFIG_STATE][0]}`);
+    // @ts-ignore
     FlagsConfig.updateFlagsConfig(title!, configSelect.selectedOptions[0].value);
     if (CONFIG_STATE[title as keyof typeof CONFIG_STATE]) {
+      // @ts-ignore
       if (configSelect.selectedOptions[0].value === 'Enabled') {
         listSelect?.removeAttribute('disabled');
       } else {
@@ -156,7 +159,7 @@ export class SpFlags extends BaseElement {
 
       if (config.title === 'Start&Finish Trace Category') {
         let configKey = CONFIG_STATE['Start&Finish Trace Category' as keyof typeof CONFIG_STATE][0];
-        let configFooterDiv = this.createPersonOption(CAT_SORT, configKey, <string>config.addInfo!.catValue, config.title)
+        let configFooterDiv = this.createPersonOption(CAT_SORT, configKey, <string>config.addInfo!.catValue, config.title);
         configDiv.appendChild(configFooterDiv);
       }
 
@@ -164,7 +167,7 @@ export class SpFlags extends BaseElement {
     });
   }
 
-  private createPersonOption(list: any, key: string, defaultKey: string, parentOption: string): HTMLDivElement {
+  private createPersonOption(list: unknown, key: string, defaultKey: string, parentOption: string): HTMLDivElement {
     let configFooterDiv = document.createElement('div');
     configFooterDiv.className = 'config_footer';
     let vsyncLableEl = document.createElement('lable');
@@ -173,12 +176,15 @@ export class SpFlags extends BaseElement {
     vsyncTypeEl.setAttribute('id', key);
     vsyncTypeEl.className = 'flag-select';
     //根据给出的list遍历添加option下来选框
-    for(let k of Object.keys(list)) {
+    // @ts-ignore
+    for (let k of Object.keys(list)) {
       let option = document.createElement('option'); // VsyncGeneratior = H:VsyncGenerator
+      // @ts-ignore
       option.value = list[k];
       option.textContent = k;
+      // @ts-ignore
       if (list[k] === defaultKey) {
-        option.selected = true; 
+        option.selected = true;
         FlagsConfig.updateFlagsConfig(key, option.value);
       }
       vsyncTypeEl.appendChild(option);
@@ -250,7 +256,7 @@ export class FlagsConfig {
       title: 'VSync',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'VSync Signal drawing',
-      addInfo: {vsyncValue: VSYNC_VAL['VsyncGeneratior'] },
+      addInfo: { vsyncValue: VSYNC_VAL.VsyncGeneratior },
     },
     {
       title: 'LTPO',
@@ -261,7 +267,7 @@ export class FlagsConfig {
       title: 'Start&Finish Trace Category',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'Asynchronous trace aggregation',
-      addInfo: {catValue: CAT_SORT['Business first'] },
+      addInfo: { catValue: CAT_SORT['Business first'] },
     },
     {
       title: 'UserPluginsRow',
@@ -377,7 +383,7 @@ export class FlagsConfig {
     let list = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
     let listJson = JSON.parse(list!);
     let catSelectValue = listJson[value];
-    return catSelectValue
+    return catSelectValue;
   }
 
   static updateFlagsConfig(key: string, value: unknown): void {

@@ -587,8 +587,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     offset: boolean = false,
     maxKey: string | undefined = undefined
   ): T | undefined {
+    let item: T | undefined;
     if (this.isHover) {
-      let item: T | undefined;
       if (maxKey) {
         let arr = this.dataListCache
           .filter((re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)) // @ts-ignore
@@ -599,8 +599,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
           (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
         );
       }
-      return item;
     }
+    return item;
   }
 
   // @ts-ignore

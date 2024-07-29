@@ -239,7 +239,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     //@ts-ignore
     if (data.params.list) {
       // 若前端存储过调用栈信息与被调用栈信息，可考虑从此处一起返回给主线程
-    //@ts-ignore
+      //@ts-ignore
       let arr = convertJSON(data.params.list) || [];
       //@ts-ignore
       let result = dealAsyncData(arr, this.callChainData, this.dataCache.nmHeapFrameMap, this.dataCache.dataDict, this.searchValue);
@@ -256,7 +256,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     } else {
       //@ts-ignore
       this.searchValue = data.params.searchValue;
-    //@ts-ignore
+      //@ts-ignore
       this.queryPerfAsync(data.params);
     }
   }
@@ -427,8 +427,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       (` + str + `)` + eventStr + `
     AND
       time between ${
-        //@ts-ignore
-        args.leftNs} and ${args.rightNs} 
+      //@ts-ignore
+      args.leftNs} and ${args.rightNs} 
     `, {});
   }
 
@@ -814,7 +814,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
 
   clearSplitMapData(symbolName: string): void {
     if (symbolName in this.splitMapData) {
-      Reflect.deleteProperty(this.splitMapData,symbolName);
+      Reflect.deleteProperty(this.splitMapData, symbolName);
     }
   }
 
@@ -879,11 +879,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
             prev.count += pfcall.count;
             prev.totalEvent += pfcall.totalEvent;
             prev.eventCount += pfcall.eventCount;
-            return total
+            return total;
           }
         }
         total.push(pfcall);
-        return total
+        return total;
       }, [] as PerfCallChainMerageData[]);
       for (const child of item.children) {
         mergeChildren(child);
@@ -976,6 +976,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
   private handleDataByFuncName(funcName: string, funcArgs: unknown[]): unknown {
+    let result;
     switch (funcName) {
       case 'getCallChainsBySampleIds':
         this.freshPerfCallchains(this.samplesData, funcArgs[0] as boolean);
@@ -1024,13 +1025,16 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.isPerfBottomUp = true;
         break;
       case 'combineAnalysisCallChain':
-        return this.combineCallChainForAnalysis();
+        result = this.combineCallChainForAnalysis();
+        break;
       case 'getBottomUp':
-        return this.getBottomUp();
+        result = this.getBottomUp();
+        break;
       case 'kernelCombination':
         this.kernelCombination();
         break;
     }
+    return result;
   }
 
   combineCallChainForAnalysis(obj?: unknown): PerfAnalysisSample[] {

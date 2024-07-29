@@ -1539,7 +1539,7 @@ Promise<Array<unknown>> => {
     $cpu: cpu,
   });
 };
-export const queryPerfOutputData = (): Promise<Array<any>> =>
+export const queryPerfOutputData = (): Promise<Array<unknown>> =>
   query(
     'queryPerfOutputData',
     `SELECT 
@@ -1548,7 +1548,7 @@ export const queryPerfOutputData = (): Promise<Array<any>> =>
     FROM callstack where name like '%PERFORMANCE_DATA%'`
   );
 
-export const queryPerfToolsDur = (): Promise<Array<any>> =>
+export const queryPerfToolsDur = (): Promise<Array<unknown>> =>
   query(
     'queryPerfToolsDur',
     `SELECT 

@@ -73,7 +73,7 @@ export class TabPaneFreqUsage extends BaseElement {
     }
     const LEFT_TIME: number = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
     const RIGHT_TIME: number = threadStatesParam.rightNs + threadStatesParam.recordStartNs;
-    const args = {leftNs: LEFT_TIME, rightNs: RIGHT_TIME, cpuArray: cpuArray};
+    const args = { leftNs: LEFT_TIME, rightNs: RIGHT_TIME, cpuArray: cpuArray };
     let resultArr: Array<RunningFreqData> = orgnazitionMap(runningResult, cpuFreqData, args);
     // 递归拿出来最底层的数据，并以进程层级的数据作为分割
     this.recursion(resultArr);
@@ -368,9 +368,10 @@ function returnObj(
       ? SpSegmentationChart.freqInfoMapData.get(item.cpu)?.get(cpuFreqData.value)
       : cpuFreqData.value
   )!;
+  let result: RunningFreqData | undefined;
   switch (flag) {
     case 1:
-      return {
+      result = {
         thread: item.pid + '_' + item.tid,
         consumption: consumption * item.dur,
         cpu: item.cpu,
@@ -379,7 +380,7 @@ function returnObj(
         percent: (item.dur / sum) * PERCENT,
       };
     case 2:
-      return {
+      result = {
         thread: item.pid + '_' + item.tid,
         consumption: consumption * (cpuFreqData.ts + cpuFreqData.dur - item.ts),
         cpu: item.cpu,
@@ -388,7 +389,7 @@ function returnObj(
         percent: ((cpuFreqData.ts + cpuFreqData.dur - item.ts) / sum) * PERCENT,
       };
     case 3:
-      return {
+      result = {
         thread: item.pid + '_' + item.tid,
         consumption: consumption * (item.dur + item.ts - cpuFreqData.ts),
         cpu: item.cpu,
@@ -397,7 +398,7 @@ function returnObj(
         percent: ((item.dur + item.ts - cpuFreqData.ts) / sum) * PERCENT,
       };
     case 4:
-      return {
+      result = {
         thread: item.pid + '_' + item.tid,
         consumption: consumption * cpuFreqData.dur,
         cpu: item.cpu,
@@ -406,7 +407,7 @@ function returnObj(
         percent: (cpuFreqData.dur / sum) * PERCENT,
       };
     case 5:
-      return {
+      result = {
         thread: item.pid + '_' + item.tid,
         consumption: 0,
         cpu: item.cpu,
@@ -415,6 +416,7 @@ function returnObj(
         percent: (item.dur / sum) * PERCENT,
       };
   }
+  return result;
 }
 
 /**

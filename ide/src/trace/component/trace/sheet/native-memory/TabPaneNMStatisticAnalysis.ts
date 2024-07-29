@@ -1157,7 +1157,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           this.currentLevelReleaseCount += item.count;
         }
       }
-    }
+    };
 
     for (let itemData of dbArray) {
       // @ts-ignore

@@ -679,7 +679,7 @@ export class TabpanePerfProfile extends BaseElement {
     perfProfileArgs.push({
       funcName: 'onlyKernel',
       funcArgs: [isOnlyKernel],
-    })
+    });
     perfProfileArgs.push({
       funcName: 'getCallChainsBySampleIds',
       funcArgs: [isTopDown],

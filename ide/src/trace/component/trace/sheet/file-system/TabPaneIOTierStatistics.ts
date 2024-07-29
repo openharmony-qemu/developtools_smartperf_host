@@ -333,13 +333,12 @@ export class TabPaneIOTierStatistics extends BaseElement {
     allNode.children.forEach((item: unknown): void => {
       // @ts-ignore
       item.children.sort((ioTierStatItemA: unknown, ioTierStatItemB: unknown) => {
-        if (this.ioTierStatisticsSortType === 1) {
+        return this.ioTierStatisticsSortType === 1 ?
           // @ts-ignore
-          return ioTierStatItemA.node[key] - ioTierStatItemB.node[key];
-        } else if (this.ioTierStatisticsSortType === 2) {
-          // @ts-ignore
-          return ioTierStatItemB.node[key] - ioTierStatItemA.node[key];
-        }
+          ioTierStatItemA.node[key] - ioTierStatItemB.node[key] :
+          this.ioTierStatisticsSortType === 2 ?
+            // @ts-ignore
+            ioTierStatItemB.node[key] - ioTierStatItemA.node[key] : 0;
       }); // @ts-ignore
       item.children.forEach((ioTierStatItem: unknown): void => {
         // @ts-ignore
