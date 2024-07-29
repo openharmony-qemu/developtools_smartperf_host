@@ -1300,7 +1300,7 @@ export class SpProcessChart {
         let param: Array<unknown> = aggregateData[key];
         //@ts-ignore
         this.makeAddAsyncFunction(param, it, processRow, key);
-      })
+      });
     } else {
       //不聚合异步trace
       let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');
@@ -1415,7 +1415,7 @@ export class SpProcessChart {
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
     key: string
-  ) {
+  ): void {
     let maxDepth: number = -1;
     let i = 0;
     let mapDepth = new Map();
@@ -1480,7 +1480,7 @@ export class SpProcessChart {
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
     key: string
-  ) {
+  ): void {
     const maxHeight = this.calMaxHeight(asyncFunctions);
     // @ts-ignore
     const namesSet = new Set(asyncFunctions.map((item) => item.funName));

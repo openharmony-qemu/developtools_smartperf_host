@@ -879,11 +879,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
             prev.count += pfcall.count;
             prev.totalEvent += pfcall.totalEvent;
             prev.eventCount += pfcall.eventCount;
-            return total
+            return total;
           }
         }
         total.push(pfcall);
-        return total
+        return total;
       }, [] as PerfCallChainMerageData[]);
       for (const child of item.children) {
         mergeChildren(child);

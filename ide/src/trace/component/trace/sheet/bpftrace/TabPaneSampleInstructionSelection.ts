@@ -355,7 +355,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
    * @param canvasY
    * @returns
    */
-  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number) {
+  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number): void | null {
     // @ts-ignore
     for (const key in nodes) {
       // @ts-ignore
@@ -410,7 +410,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
    * @param instructionData
    * @returns
    */
-  getAvgInstructionData(instructionData: Array<unknown>) {
+  getAvgInstructionData(instructionData: Array<unknown>): unknown {
     // @ts-ignore
     const length = instructionData[0].property.length;
     // @ts-ignore

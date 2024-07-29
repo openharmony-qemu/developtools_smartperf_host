@@ -355,12 +355,12 @@ export const getTabDetails = (
     asyncCondition = `
       and c.cookie not null
       and c.parent_id not null
-      `
+      `;
   } else if (key === 'sync') {
     syncCondition = `
       and A.tid in (${funTids!.join(',')})
       and c.cookie is null
-      `
+      `;
   }
   let condition = `
       ${asyncCondition}
@@ -368,7 +368,7 @@ export const getTabDetails = (
       ${syncCondition}
       ${`and P.pid in (${asyncPid.join(',')})`}
       ${`and c.name in (${asyncNames.map((it) => '\"' + it + '\"').join(',')})`}
-    `
+    `;
   let sql = `
       SELECT 
         c.name AS name,
@@ -388,9 +388,9 @@ export const getTabDetails = (
           c.dur >= -1
         and
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
-    `
+    `;
   return query('getTabDetails', sql, {});
-}
+};
 export const getCatDetails = (
   asyncNames: Array<string>,
   catName: Array<string>,

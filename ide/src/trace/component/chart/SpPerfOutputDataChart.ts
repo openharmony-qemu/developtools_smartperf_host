@@ -38,11 +38,14 @@ export class SpPerfOutputDataChart {
     }
     let perfToolsDur = await queryPerfToolsDur();
     if (perfToolsDur.length > 0) {
+      // @ts-ignore
       this.dur = perfToolsDur[0].dur;
     } else {
       this.dur = 3000000000;
     }
+    // @ts-ignore
     this.perfOutputArr = perfOutputData[0].name.split(':')[2].split(',');
+    // @ts-ignore
     let endTime: number = perfOutputData[0].ts;
     this.startTime = endTime - window.recordStartNS - this.dur!;
     if (this.startTime < 0) {
@@ -80,7 +83,7 @@ export class SpPerfOutputDataChart {
       traceRow.canvasRestore(context, this.trace);
     };
   }
-//@ts-ignore
+  //@ts-ignore
   async initData(folder: TraceRow<unknown>): Promise<void> {
     let perfToolStartTime = new Date().getTime();
     let perfToolList = [
@@ -127,7 +130,7 @@ export class SpPerfOutputDataChart {
     let durTime = new Date().getTime() - perfToolStartTime;
     info('The time to load the ClockData is: ', durTime);
   }
-//@ts-ignore
+  //@ts-ignore
   async initFolder(): Promise<TraceRow<unknown>> {
     let perfFolder = TraceRow.skeleton();
     perfFolder.rowId = 'perfTool';

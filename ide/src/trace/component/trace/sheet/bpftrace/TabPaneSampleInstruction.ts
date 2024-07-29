@@ -355,7 +355,7 @@ export class TabPaneSampleInstruction extends BaseElement {
    * @param canvasY
    * @returns
    */
-  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number) {
+  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number): void | null {
     // @ts-ignore
     for (const key in nodes) {
       // @ts-ignore

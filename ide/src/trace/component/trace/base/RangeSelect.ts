@@ -367,6 +367,7 @@ export class RangeSelect {
   // @ts-ignore
   private handleRangeSelectAndDraw(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
     let rangeSelect: RangeSelectStruct | undefined;
+    let result: boolean;
     this.rangeTraceRow = rows.filter((it) => {
       if (it.rangeSelect) {
         if (!rangeSelect) {
@@ -395,8 +396,11 @@ export class RangeSelect {
           }
         }
         TraceRow.rangeSelectObject = rangeSelect;
-        return true;
+        result = true;
+      } else {
+        result = false;
       }
+      return result;
     });
     this.timerShaftEL!.sportRuler!.isRangeSelect = (this.rangeTraceRow?.length || 0) > 0;
     this.timerShaftEL!.sportRuler!.draw();
