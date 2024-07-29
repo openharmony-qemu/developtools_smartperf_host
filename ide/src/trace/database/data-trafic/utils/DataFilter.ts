@@ -60,7 +60,8 @@ export function filterDataByLayer(
             let c = it[i][startKey] - it[i - 1][startKey] - it[i - 1][durKey];
             if (c < pns && sum < pns) {
               //@ts-ignore
-              sum += c + it[i - 1][durKey]; //@ts-ignore
+              sum += c + it[i - 1][durKey];
+              //@ts-ignore
               it[i].v = false;
             } else {
               //@ts-ignore
@@ -69,7 +70,8 @@ export function filterDataByLayer(
             }
           }
         }
-      } //@ts-ignore
+      }
+      //@ts-ignore
       res.push(...it.filter((it) => it.v));
     }
   });
@@ -96,7 +98,8 @@ export function filterDataByGroup(
       return it;
     });
     let group = groupBy(arr, 'px');
-    let res: Set<unknown> = new Set(); //@ts-ignore
+    let res: Set<unknown> = new Set();
+    //@ts-ignore
     Reflect.ownKeys(group).map((key: unknown): void => {
       //@ts-ignore
       let arr = group[key] as unknown[];
@@ -141,14 +144,16 @@ function filterDataByGroupWithoutValue(
       // 获取当前数据的像素值
       let px: number;
       //@ts-ignore  
-      if (isDmaFence && list[i][durKey] === 0) {  //如果是dmafence泳道，则不进行处理
+      if (isDmaFence && list[i][durKey] === 0) {
+        //如果是dmafence泳道，则不进行处理
         //@ts-ignore
         px = list[i][startKey] / ((endNS - startNS) / width);
       } else {
         //@ts-ignore
         px = Math.floor(list[i][startKey] / ((endNS - startNS) / width));
       } //@ts-ignore
-      list[i].px = px; //@ts-ignore
+      list[i].px = px;
+      //@ts-ignore
       if (flag === px && arr[arr.length - 1] && list[i][durKey] > arr[arr.length - 1][durKey]) {
         arr[arr.length - 1] = list[i];
       }
@@ -176,12 +181,14 @@ export function filterDataByGroupLayer(
     it.px = Math.floor(it[startKey] / ((endNS - startNS) / width) + it[layerKey] * width);
     //设置临时变量durTmp 用于参与计算，分组后有dur为-1的数据按最长宽度显示
     //@ts-ignore
-    it.durTmp = //@ts-ignore
+    it.durTmp =
+      //@ts-ignore
       it[durKey] === -1 || it[durKey] === null || it[durKey] === undefined ? endNS - it[startKey] : it[durKey];
     return it;
   });
   let group = groupBy(arr, 'px');
-  let res: unknown[] = []; //@ts-ignore
+  let res: unknown[] = [];
+  //@ts-ignore
   Reflect.ownKeys(group).map((key: unknown) => {
     //@ts-ignore
     let childArray = (group[key] as unknown[]).reduce((p, c) => (p.durTmp > c.durTmp ? p : c));
@@ -209,7 +216,8 @@ function findRange(
 ): Array<unknown> {
   return fullData.filter(
     (
-      it //@ts-ignore
+      it
+      //@ts-ignore
     ) => it[condition.startKey] + it[condition.durKey] >= condition.startNS && it[condition.startKey] <= condition.endNS
   );
 }
