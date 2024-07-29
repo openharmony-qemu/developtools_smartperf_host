@@ -452,7 +452,7 @@ export class SpApplication extends BaseElement {
         let percentValue = ((readSize * 100) / allFileSize).toFixed(2);
         this.litSearch!.setPercent('Read in file: ', Number(percentValue));
         fr.readAsArrayBuffer(slice);
-      }
+      };
       continueReading();
       fr.onerror = (): void => reject(false);
       info('read over long trace file ', file.name);
