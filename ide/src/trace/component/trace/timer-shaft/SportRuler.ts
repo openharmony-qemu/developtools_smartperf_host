@@ -90,10 +90,10 @@ export class SportRuler extends Graph {
     endTime: number | null | undefined;
     color: string | null;
   } | null = {
-    startTime: null,
-    endTime: null,
-    color: null,
-  };
+      startTime: null,
+      endTime: null,
+      color: null,
+    };
   private timerShaftEL: TimerShaftElement | undefined | null;
   private timeArray: Array<number> = [];
   private countArray: Array<number> = [];
@@ -332,8 +332,8 @@ export class SportRuler extends Graph {
       TraceRow.rangeSelectObject!.startX! +
       (rangeSelectWidth / section) * (i - 1) +
       (rangeSelectWidth / section - countTextWidth) / 2;
-      this.context2D.fillStyle = `#f00`;
-      this.context2D.font = `12px sans-serif`;
+    this.context2D.fillStyle = `#f00`;
+    this.context2D.font = `12px sans-serif`;
     this.context2D.fillText(String(countArr[i - 1]), textY, this.frame.y + 22 + 12);
   }
 
@@ -377,6 +377,7 @@ export class SportRuler extends Graph {
   }
 
   drawTriangle(time: number, type: string): unknown {
+    let num;
     if (time !== null && typeof time !== undefined) {
       let i = this.flagList.findIndex((it) => it.time === time);
       if (type === 'triangle') {
@@ -404,7 +405,7 @@ export class SportRuler extends Graph {
             this.flagList[triangle].type = '';
             this.draw();
             this.flagChangeHandler('1');
-            return this.flagList[triangle].time;
+            num = this.flagList[triangle].time;
           }
         }
       } else if (type === 'inverted') {
@@ -413,14 +414,15 @@ export class SportRuler extends Graph {
       this.draw();
       this.flagChangeHandler('2');
     }
+    return num;
   }
 
   flagChangeHandler(from?: string): void {
     this.notifyHandler &&
-    this.notifyHandler(
-      !this.hoverFlag.hidden ? this.hoverFlag : null,
-      this.flagList.find((it) => it.selected) || null
-    );
+      this.notifyHandler(
+        !this.hoverFlag.hidden ? this.hoverFlag : null,
+        this.flagList.find((it) => it.selected) || null
+      );
   }
 
   removeTriangle(type: string): void {

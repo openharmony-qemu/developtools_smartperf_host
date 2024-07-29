@@ -130,14 +130,16 @@ export class JSONToCSV {
   }
 
   static getDownloadUrl(csvData: unknown): string | undefined {
+    let result;
     // @ts-ignore
     if (window.Blob && window.URL && (window.URL as unknown).createObjectURL) {
-      return URL.createObjectURL(
+      result = URL.createObjectURL(
         new Blob(['\uFEFF' + csvData], {
           type: 'text/csv',
         })
       );
     }
+    return result;
   }
 
   static treeDepth(depth: number): string {

@@ -1931,7 +1931,8 @@ export class LitTable extends HTMLElement {
       new CustomEvent('icon-click', {
         detail: {
           // @ts-ignore
-          ...rowData.data, // @ts-ignore
+          ...rowData.data,
+          // @ts-ignore
           data: rowData.data,
           callBack: (isSelected: boolean): void => {
             //是否爲单选
