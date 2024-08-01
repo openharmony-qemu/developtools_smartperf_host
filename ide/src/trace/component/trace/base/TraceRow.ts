@@ -212,6 +212,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   currentContext: CanvasRenderingContext2D | undefined | null;
   static ROW_TYPE_LTPO: string | null | undefined;
   static ROW_TYPE_HITCH_TIME: string | null | undefined;
+  asyncFuncStartTID!: number | undefined;
 
   constructor(
     args: {
