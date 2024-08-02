@@ -1937,7 +1937,7 @@ export class SpApplication extends BaseElement {
       } else {
         this.progressEL!.loading = false;
       }
-      if (this.litSearch!.index > 0) {
+      if (this.litSearch!.list.length > 0) {
         let currentEntry = this.litSearch!.list[this.litSearch!.index];
         cancelCurrentTraceRowHighlight(this.spSystemTrace!, currentEntry);
       }
