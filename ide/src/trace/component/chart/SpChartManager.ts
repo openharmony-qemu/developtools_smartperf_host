@@ -261,7 +261,7 @@ export class SpChartManager {
     progress(`trace ${traceId} cpu`, 70);
     let count = await sliceSender(traceId);
     // @ts-ignore
-    await this.cpu.init(count.cpu, traceFolder, traceId);
+    await this.cpu.init(count.count.cpu, traceFolder, traceId);
     info(`initData trace ${traceId} cpu Data initialized`);
     progress(`trace ${traceId} cpu freq`, 75);
     // @ts-ignore
