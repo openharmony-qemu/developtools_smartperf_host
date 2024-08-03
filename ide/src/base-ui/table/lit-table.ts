@@ -67,6 +67,7 @@ export class LitTable extends HTMLElement {
   private _mode = TableMode.Expand;
   private columnResizeEnable: boolean = true;
   private _isSearch: boolean = false;
+  private maxLength: number = 0; 
 
   constructor() {
     super();
@@ -164,6 +165,28 @@ export class LitTable extends HTMLElement {
   }
 
   set recycleDataSource(value) {
+    // 处理数据按小数点位置对齐
+    if (value && value.length) { 
+      // 找出数字部分的最大长度  
+      value.forEach((item: any) => {
+        // 提取数字部分（包括小数点）  
+        if (item.durFormat) {
+          const match = item.durFormat.match(/^(\d+(\.\d+)?)/);
+          if (match && match[1]) {
+            // 计算长度（包括小数点）  
+            const length = match[1].length;
+            this.maxLength = Math.max(this.maxLength, length);
+          }
+        }
+        if (item.percent) {  
+          const match = item.percent.match(/^(\d+(\.\d+)?)/);  
+          if (match && match[1]) {
+            const length = match[1].length;
+            this.maxLength = Math.max(this.maxLength, length);
+          }
+        }  
+      })
+    }
     if (this.tableElement) {
       this.isScrollXOutSide = this.tableElement!.scrollWidth > this.tableElement!.clientWidth;
       this.isRecycleList = true;
@@ -1583,6 +1606,28 @@ export class LitTable extends HTMLElement {
           if (rowObject.data.rowName === 'cpu-profiler' && dataIndex === 'symbolName') {
             (child as HTMLElement).innerHTML = '';
           } else {
+            //@ts-ignore
+            if (rowObject.data.durFormat) { //ebpf泳道下的analysis页
+              // 提取数字部分（包括小数点）
+              if (dataIndex === 'durFormat') {
+                // @ts-ignore
+                  const match = text.match(/^(\d+(\.\d+)?)(.*)$/);
+                  if (match && match[1] && match[3]) {
+                    // 计算需要添加的空格数  
+                    const padding = '\xa0\xa0'.repeat(this.maxLength - match[1].length);
+                    // 构造新的durFormat字符串  
+                    text = padding + match[1] + match[3];
+                  }
+                }
+                if(dataIndex === 'percent'){
+                   // @ts-ignore
+                  const match = text.match(/^(\d+(\.\d+)?)(.*)$/);
+                  if (match && match[1]) {
+                    const padding = '\xa0\xa0'.repeat(this.maxLength - match[1].length);
+                    text = padding + match[1];
+                  }
+                }      
+            }    
             //@ts-ignore
             (child as HTMLElement).innerHTML = text;
           } //@ts-ignore
