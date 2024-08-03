@@ -202,7 +202,6 @@ export const queryMemoryConfig = (): Promise<Array<MemoryConfig>> =>
       LEFT JOIN process ON value = ipid
     WHERE
       trace_source = 'memory_config'
-      AND key = 'ipid'
       ;`
   );
 

@@ -23,11 +23,12 @@ import { Cmd } from '../../../command/Cmd';
 import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect';
 import { LitSelect } from '../../../base-ui/select/LitSelect';
 import { SpHiLogRecordHtml } from './SpHilogRecord.html';
+import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 
 @element('sp-hi-log')
 export class SpHilogRecord extends BaseElement {
   private vmTrackerSwitch: LitSwitch | undefined | null;
-  private processSelectEl: LitAllocationSelect | undefined | null;
+  private processSelectEl: LitSelectV | undefined | null;
   private logsSelectEl: LitSelect | undefined | null;
 
   get recordHilog(): boolean {
@@ -47,7 +48,7 @@ export class SpHilogRecord extends BaseElement {
 
   initElements(): void {
     this.vmTrackerSwitch = this.shadowRoot?.querySelector('.hilog-switch') as LitSwitch;
-    this.processSelectEl = this.shadowRoot?.querySelector('.record-process-select') as LitAllocationSelect;
+    this.processSelectEl = this.shadowRoot?.querySelector('.record-process-select') as LitSelectV;
     this.logsSelectEl = this.shadowRoot?.querySelector('.record-logs-select') as LitSelect;
     let hiLogConfigList = this.shadowRoot?.querySelectorAll<HTMLDivElement>('.hilog-config-top');
     this.vmTrackerSwitch.addEventListener('change', () => {
@@ -62,20 +63,24 @@ export class SpHilogRecord extends BaseElement {
         });
       }
     });
-    let processInputEl = this.processSelectEl.shadowRoot?.querySelector('.multipleSelect') as HTMLInputElement;
+    let processInputEl = this.processSelectEl.shadowRoot?.querySelector('input') as HTMLInputElement;
     processInputEl.addEventListener('mousedown', () => {
-      if (SpRecordTrace.serialNumber === '') {
-        this.processSelectEl!.processData = [];
-        this.processSelectEl!.initData();
+      if (this.recordHilog) {
+        if ((SpRecordTrace.serialNumber === '')) {
+          this.processSelectEl!.dataSource([], '');
+        } else {
+          Cmd.getProcess().then((processList) => {
+            if (processList.length > 0) {
+              this.processSelectEl!.dataSource(processList, 'ALL-Process');
+            } else {
+              this.processSelectEl!.dataSource([], '');
+            }
+          });
+        }
+        processInputEl!.removeAttribute('readonly');
       } else {
-        Cmd.getProcess().then((processList) => {
-          if (processList.length > 0 && this.recordHilog) {
-            processInputEl!.setAttribute('readonly', 'readonly');
-          }
-          processList.unshift('ALL-Process');
-          this.processSelectEl!.processData = processList;
-          this.processSelectEl!.initData();
-        });
+        processInputEl!.setAttribute('readonly', 'readonly');
+        return;
       }
     });
   }
