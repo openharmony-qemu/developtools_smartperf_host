@@ -111,6 +111,8 @@ export interface RunningFreqData {
   consumption: number;
   frequency: number | string;
   percent: number;
+  consumpower: number;
+  cpuload: number;
   children?: Array<RunningFreqData>;
 }
 
