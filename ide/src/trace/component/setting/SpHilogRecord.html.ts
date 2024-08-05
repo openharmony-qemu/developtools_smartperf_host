@@ -92,9 +92,9 @@ export const SpHiLogRecordHtml = `
           <span class="process-title config-title">Process</span>
           <span class="config-title-des">Record process</span>
         </div>
-        <lit-allocation-select default-value="" rounded="" class="record-process-select config-select" 
+        <lit-select-v default-value="" rounded="" class="record-process-select config-select" 
         mode="multiple" canInsert="" title="Select Proces" placement="bottom" placeholder="">
-        </lit-allocation-select>
+        </lit-select-v>
       </div>
       <div class="hilog-config-top">
         <div>

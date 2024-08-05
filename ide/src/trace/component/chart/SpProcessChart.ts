@@ -641,7 +641,6 @@ export class SpProcessChart {
             this.trace.linkNodes.forEach((linkNodeItem) => this.handler3(e, linkNodeItem));
           }, 300);
         } else {
-          FuncStruct.selectLineFuncStruct.push(FuncStruct.selectFuncStruct);
           offsetYTimeOut = setTimeout(() => {
             this.trace.linkNodes?.forEach((linkProcessItem) => {
               this.handler4(e, linkProcessItem, processRow);

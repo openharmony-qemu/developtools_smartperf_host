@@ -88,17 +88,17 @@ export const SpHiSysEventHtml = `<style>
                  <span class="event-title">Domain</span>
                  <span class="event-des">Record Domain Name</span>
               </div>
-              <lit-allocation-select default-value="" rounded="" class="record-domain-input record-input" 
+              <lit-select-v default-value="" rounded="" class="record-domain-input record-input" 
               mode="multiple" canInsert="" title="Select Proces" placement="bottom" placeholder="ALL-Domain" readonly="readonly">
-              </lit-allocation-select>
+              </lit-select-v>
           </div>
           <div class="hisys-event-config">
               <div>
                  <span class="event-title">EventName</span>
                  <span class="event-des">Record Event Name</span>
               </div>
-              <lit-allocation-select default-value="" rounded="" class="record-event-input record-input" 
+              <lit-select-v default-value="" rounded="" class="record-event-input record-input" 
               mode="multiple" canInsert="" title="Select Proces" placement="bottom" placeholder="ALL-Event" readonly="readonly">
-              </lit-allocation-select>
+              </lit-select-v>
           </div>
         </div>`;

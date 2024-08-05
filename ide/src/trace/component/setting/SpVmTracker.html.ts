@@ -111,8 +111,8 @@ input {
          <span class="title">Process</span>
          <span class="des">Record process</span>
       </div>
-      <lit-allocation-select style="width: 100%;" rounded="" default-value="" 
-      class="select config" placement="bottom" title="Process"></lit-allocation-select>
+      <lit-select-v style="width: 100%;" rounded="" default-value="" 
+      class="select config" placement="bottom" title="Process"></lit-select-v>
   </div>
 </div>
 `;
