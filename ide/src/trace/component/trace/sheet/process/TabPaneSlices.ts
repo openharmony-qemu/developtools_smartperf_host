@@ -33,7 +33,7 @@ export class TabPaneSlices extends BaseElement {
   private currentSelectionParam: SelectionParam | undefined;
   private sliceSearchCount: Element | undefined | null;
 
-  set data(slicesParam: SelectionParam | unknown) {
+  set data(slicesParam: SelectionParam) {
     if (this.currentSelectionParam === slicesParam) {
       return;
     } //@ts-ignore
@@ -42,20 +42,22 @@ export class TabPaneSlices extends BaseElement {
       //@ts-ignore
       ((slicesParam.rightNs - slicesParam.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
-    let asyncNames: Array<string> = [];
-    let asyncPid: Array<number> = []; //@ts-ignore
-    slicesParam.funAsync.forEach((it: unknown) => {
-      //@ts-ignore
-      asyncNames.push(it.name); //@ts-ignore
-      asyncPid.push(it.pid);
-    });
-    let asyncCatNames: Array<string> = [];
-    let asyncCatPid: Array<number> = [];//@ts-ignore
-    slicesParam.funCatAsync.forEach((it: unknown) => { //@ts-ignore  
-      asyncCatNames.push(it.threadName);//@ts-ignore
-      asyncCatPid.push(it.pid);
-    });
-    this.slicesTbl!.loading = true;
+
+    //合并SF异步信息，相同pid和tid的name
+    let sfAsyncFuncMap: Map<string, { name: string[]; pid: number, tid: number | undefined }> = new Map();
+    slicesParam.funAsync.forEach((it: { name: string; pid: number, tid: number | undefined }) => {
+      if (sfAsyncFuncMap.has(`${it.pid}-${it.tid}`)) {
+        let item = sfAsyncFuncMap.get(`${it.pid}-${it.tid}`);
+        item?.name.push(it.name);
+      } else {
+        sfAsyncFuncMap.set(`${it.pid}-${it.tid}`, {
+          name: [it.name],
+          pid: it.pid,
+          tid: it.tid
+        })
+      }
+    })
+
     let filterNameEL: HTMLInputElement | undefined | null =
       this.shadowRoot?.querySelector<HTMLInputElement>('#filterName');
     filterNameEL?.addEventListener('keyup', (ev) => {
@@ -63,59 +65,8 @@ export class TabPaneSlices extends BaseElement {
         ev.stopPropagation();
       }
     });
-    //@ts-ignore
-    getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {//@ts-ignore
-      getTabSlicesAsyncCatFunc(asyncCatNames, asyncCatPid, slicesParam.leftNs, slicesParam.rightNs).then((res1) => {
-        //@ts-ignore
-        getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs).then(
-          (res2) => {
-            this.slicesTbl!.loading = false;
-            let processSlicesResult = (res || []).concat(res1 || []).concat(res2 || []);
-            if (processSlicesResult !== null && processSlicesResult.length > 0) {
-              let sumWall = 0.0;
-              let sumOcc = 0;
-              for (let processSliceItem of processSlicesResult) {
-                //@ts-ignore
-                processSliceItem.name = processSliceItem.name === null ? '' : processSliceItem.name;
-                //@ts-ignore
-                processSliceItem.tabTitle = processSliceItem.name;
-                //@ts-ignore
-                sumWall += processSliceItem.wallDuration;
-                //@ts-ignore
-                sumOcc += processSliceItem.occurrences;
-                //@ts-ignore
-                processSliceItem.wallDuration = parseFloat((processSliceItem.wallDuration / 1000000.0).toFixed(5));
-                //@ts-ignore
-                processSliceItem.avgDuration = parseFloat((processSliceItem.avgDuration / 1000000.0).toFixed(5));
-                //@ts-ignore
-                processSliceItem.asyncNames = asyncNames;
-                //@ts-ignore
-                processSliceItem.asyncCatNames = asyncCatNames;
-              }
-              let count = new SelectionData();
-              count.process = ' ';
-              count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
-              count.occurrences = sumOcc;
-              count.tabTitle = 'Summary';//@ts-ignore
-              count.allName = processSlicesResult.map((item: unknown) => item.name);
-              count.asyncNames = asyncNames;
-              count.asyncCatNames = asyncCatNames;
-              processSlicesResult.splice(0, 0, count); //@ts-ignore
-              this.slicesSource = processSlicesResult;
-              this.slicesTbl!.recycleDataSource = processSlicesResult;
-              this.sliceSearchCount!.textContent = this.slicesSource.length - 1 + '';
-              if (filterNameEL && filterNameEL.value.trim() !== '') {
-                this.findName(filterNameEL.value);
-              }
-            } else {
-              this.slicesSource = [];
-              this.slicesTbl!.recycleDataSource = this.slicesSource;
-              this.sliceSearchCount!.textContent = '0';
-            }
-          }
-        );
-      });
-    });
+
+    this.getSliceDb(slicesParam, filterNameEL, sfAsyncFuncMap, slicesParam.funCatAsync)
   }
 
   initElements(): void {
@@ -156,6 +107,102 @@ export class TabPaneSlices extends BaseElement {
     });
     slicesInput?.addEventListener('blur', (e) => {
       spSystemTrace.focusTarget = '';
+    });
+  }
+
+  getSliceDb(
+    slicesParam: SelectionParam,
+    filterNameEL: HTMLInputElement | undefined | null,
+    sfAsyncFuncMap: Map<string, { name: string[]; pid: number, tid: number | undefined }>,
+    ghAsyncFunc: { threadName: string; pid: number }[]) {
+    //获取SF异步Func数据
+    let result1 = () => {
+      let promises: unknown[] = [];
+      sfAsyncFuncMap.forEach(async (item: { name: string[]; pid: number, tid: number | undefined }) => {
+        let res = await getTabSlicesAsyncFunc(item.name, item.pid, item.tid, slicesParam.leftNs, slicesParam.rightNs);
+        if (res !== undefined && res.length > 0) {
+          promises.push(...res);
+        }
+      })
+      return promises
+    }
+
+    //获取GH异步Func数据
+    let result2 = () => {
+      let promises: unknown[] = [];
+      ghAsyncFunc.forEach(async (item: { pid: number; threadName: string }) => {
+        let res = await getTabSlicesAsyncCatFunc(item.threadName, item.pid, slicesParam.leftNs, slicesParam.rightNs);
+        if (res !== undefined && res.length > 0) {
+          promises.push(...res);
+        }
+      });
+      return promises
+    }
+
+    //获取同步Func数据
+    let result3 = async () => {
+      let promises: unknown[] = [];
+      let res = await getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs);
+      if (res !== undefined && res.length > 0) {
+        promises.push(...res);
+      }
+      return promises
+    }
+
+    this.slicesTbl!.loading = true;
+    Promise.all([result1(), result2(), result3()]).then(res => {
+      let processSlicesResult = (res[0] || []).concat(res[1] || []).concat(res[2] || []);
+      if (processSlicesResult !== null && processSlicesResult.length > 0) {
+        let sumWall = 0.0;
+        let sumOcc = 0;
+        let processSlicesResultMap: Map<string, unknown> = new Map();
+        for (let processSliceItem of processSlicesResult) {
+          //@ts-ignore
+          processSliceItem.name = processSliceItem.name === null ? '' : processSliceItem.name;
+          //@ts-ignore
+          sumWall += processSliceItem.wallDuration;
+          //@ts-ignore
+          sumOcc += processSliceItem.occurrences;
+          //@ts-ignore
+          processSliceItem.wallDuration = parseFloat((processSliceItem.wallDuration / 1000000.0).toFixed(5));
+          //@ts-ignore
+          if (processSlicesResultMap.has(processSliceItem.name)) {//@ts-ignore
+            let item = processSlicesResultMap.get(processSliceItem.name);
+            //@ts-ignore
+            item.occurrences = item.occurrences + processSliceItem.occurrences;
+            //@ts-ignore
+            item.wallDuration = parseFloat((item.wallDuration + processSliceItem.wallDuration).toFixed(5));
+          } else {
+            //@ts-ignore
+            processSlicesResultMap.set(processSliceItem.name, {//@ts-ignore
+              ...processSliceItem, //@ts-ignore
+              tabTitle: processSliceItem.name
+            })
+          }
+        }
+        let processSlicesResultsValue = [...processSlicesResultMap.values()];
+        processSlicesResultsValue.forEach(element => {//@ts-ignore
+          element.avgDuration = parseFloat((element.wallDuration / element.occurrences).toFixed(5));
+        });
+        let count = new SelectionData();
+        count.process = ' ';
+        count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
+        count.occurrences = sumOcc;
+        count.tabTitle = 'Summary';
+        count.allName = processSlicesResultsValue.map((item: any) => item.name);
+        processSlicesResultsValue.splice(0, 0, count); //@ts-ignore
+        this.slicesSource = processSlicesResultsValue;
+        this.slicesTbl!.recycleDataSource = processSlicesResultsValue;
+        this.sliceSearchCount!.textContent = this.slicesSource.length - 1 + '';
+        if (filterNameEL && filterNameEL.value.trim() !== '') {
+          this.findName(filterNameEL.value);
+        }
+      } else {
+        this.slicesSource = [];
+        this.slicesTbl!.recycleDataSource = this.slicesSource;
+        this.sliceSearchCount!.textContent = '0';
+      }
+      this.slicesTbl!.loading = false;
     });
   }
   async orgnazitionData(data: Object): Promise<void> {

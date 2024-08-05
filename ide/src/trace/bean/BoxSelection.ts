@@ -72,7 +72,7 @@ export class SelectionParam {
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
   funTids: Array<number> = [];
-  funAsync: Array<{ name: string; pid: number }> = [];
+  funAsync: Array<{ name: string; pid: number, tid: number | undefined }> = [];
   funCatAsync: Array<{ pid: number; threadName: string }> = [];
   nativeMemory: Array<String> = [];
   nativeMemoryStatistic: Array<String> = [];
@@ -251,6 +251,7 @@ export class SelectionParam {
               this.funAsync.push({
                 name: th.asyncFuncName,
                 pid: th.asyncFuncNamePID || 0,
+                tid: th.asyncFuncStartTID
               });
             } else {
               for (let i = 0; i < th.asyncFuncName.length; i++) {
@@ -258,6 +259,7 @@ export class SelectionParam {
                 this.funAsync.push({
                   name: el,
                   pid: th.asyncFuncNamePID || 0,
+                  tid: th.asyncFuncStartTID
                 });
               }
             }
@@ -324,6 +326,7 @@ export class SelectionParam {
           this.funAsync.push({
             name: it.asyncFuncName,
             pid: it.asyncFuncNamePID || 0,
+            tid: it.asyncFuncStartTID
           });
         } else {
           //@ts-ignore
@@ -332,6 +335,7 @@ export class SelectionParam {
             this.funAsync.push({
               name: el,
               pid: it.asyncFuncNamePID || 0,
+              tid: it.asyncFuncStartTID
             });
           }
         }
@@ -1275,8 +1279,7 @@ export class SliceBoxJumpParam {
   threadId: Array<number> = [];
   name: string[] | undefined | null;
   isJumpPage: boolean | undefined;
-  asyncNames: Array<string> = [];
-  asyncCatNames: Array<string> = [];
+  isSummary: boolean | undefined;
 }
 
 export class SelectionData {
