@@ -29,9 +29,10 @@ import {
 } from '../ProcedureWorkerCommon';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { SpSystemTrace } from '../../../component/SpSystemTrace';
+import { Utils } from '../../../component/trace/base/Utils';
 
 export class EmptyRender extends Render {
-  // @ts-ignore
+  //@ts-ignore
   renderMainThread(req: unknown, row: TraceRow<unknown>): void {
     //@ts-ignore
     drawLoadingFrame(req.context, [], row);
@@ -97,17 +98,20 @@ export class CpuRender {
       CpuStruct.draw(req.ctx, re, req.translateY);
     });
     req.ctx.closePath();
-    let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
-    let wakeup = req.type === `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined; // @ts-ignore
-    drawWakeUp(req.ctx, CpuStruct.wakeupBean, startNS, endNS, totalNS, row.frame, wakeup, currentCpu, true);
-    for (let i = 0; i < SpSystemTrace.wakeupList.length; i++) {
-      if (i + 1 === SpSystemTrace.wakeupList.length) {
-        return;
+    if (row.traceId === Utils.currentSelectTrace) {
+      let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
+      let wakeup = req.type === `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ?
+        CpuStruct.selectCpuStruct : undefined;
+      drawWakeUp(req.ctx, CpuStruct.wakeupBean, startNS, endNS, totalNS, row.frame, wakeup, currentCpu, true);
+      for (let i = 0; i < SpSystemTrace.wakeupList.length; i++) {
+        if (i + 1 === SpSystemTrace.wakeupList.length) {
+          return;
+        }
+        let wake = SpSystemTrace.wakeupList[i + 1];
+        let wakeupListItem =
+          req.type === `cpu-data-${SpSystemTrace.wakeupList[i]?.cpu || 0}` ? SpSystemTrace.wakeupList[i] : undefined;
+        drawWakeUpList(req.ctx, wake, startNS, endNS, totalNS, row.frame, wakeupListItem, currentCpu, true);
       }
-      let wake = SpSystemTrace.wakeupList[i + 1];
-      let wakeupListItem =
-        req.type === `cpu-data-${SpSystemTrace.wakeupList[i]?.cpu || 0}` ? SpSystemTrace.wakeupList[i] : undefined; // @ts-ignore
-      drawWakeUpList(req.ctx, wake, startNS, endNS, totalNS, row.frame, wakeupListItem, currentCpu, true);
     }
   }
 
@@ -148,13 +152,8 @@ export class CpuRender {
     }
   }
 
-  setFrameCpuByList(
-    cpuRes: Array<CpuStruct>,
-    startNS: number,
-    endNS: number,
-    frame: Rect,
-    cpuList: Array<CpuStruct>
-  ): void {
+  setFrameCpuByList( cpuRes: Array<CpuStruct>, startNS: number, endNS: number, frame: Rect,
+    cpuList: Array<CpuStruct>): void {
     cpuRes.length = 0;
     let pns = (endNS - startNS) / frame.width; //每个像素多少ns
     let y = frame.y + 5;
@@ -202,13 +201,18 @@ export class CpuRender {
     cpuRes.push(...slice.filter((it) => it.v));
   }
 }
-export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHandler: unknown): Promise<unknown> {
+export function CpuStructOnClick(
+  rowType: string,
+  sp: SpSystemTrace,
+  cpuClickHandler: unknown,
+  entry?: CpuStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if (rowType === TraceRow.ROW_TYPE_CPU && CpuStruct.hoverCpuStruct) {
-      CpuStruct.selectCpuStruct = CpuStruct.hoverCpuStruct;
+    if (rowType === TraceRow.ROW_TYPE_CPU && (CpuStruct.hoverCpuStruct || entry)) {
+      CpuStruct.selectCpuStruct = entry || CpuStruct.hoverCpuStruct;
       sp.timerShaftEL?.drawTriangle(CpuStruct.selectCpuStruct!.startTime || 0, 'inverted');
       sp.traceSheetEL?.displayCpuData(
-        CpuStruct.selectCpuStruct,
+        CpuStruct.selectCpuStruct!,
         (wakeUpBean) => {
           CpuStruct.wakeupBean = wakeUpBean;
           sp.refreshCanvas(false);
@@ -224,7 +228,6 @@ export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHan
   });
 }
 export class CpuStruct extends BaseStruct {
-  static cpuCount: number = 1; //最大cpu数量
   static hoverCpuStruct: CpuStruct | undefined;
   static selectCpuStruct: CpuStruct | undefined;
   static wakeupBean: WakeupBean | null | undefined = null;
@@ -303,7 +306,7 @@ export class CpuStruct extends BaseStruct {
           if (chatNum < 2) {
             ctx.fillText(data.displayProcess.substring(0, 1), x1, y, textFillWidth);
           } else {
-            ctx.fillText(data.displayProcess.substring(0, chatNum - 1) + '...', x1, y, textFillWidth);
+            ctx.fillText(`${data.displayProcess.substring(0, chatNum - 1)}...`, x1, y, textFillWidth);
           }
         }
       }
@@ -318,7 +321,7 @@ export class CpuStruct extends BaseStruct {
           if (chatNum < 2) {
             ctx.fillText(data.displayThread.substring(0, 1), x1, y + 2, textFillWidth);
           } else {
-            ctx.fillText(data.displayThread.substring(0, chatNum - 1) + '...', x1, y + 2, textFillWidth);
+            ctx.fillText( `${data.displayThread.substring(0, chatNum - 1)}...`, x1, y + 2, textFillWidth);
           }
         }
       }

@@ -46,9 +46,8 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     // @ts-ignore
     this.vmStatisticsSelectionParam = vmStatisticsSelection;
     // @ts-ignore
-    this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${
-      this.parentElement!.clientHeight - 20
-    }px`;
+    this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 20
+      }px`;
     this.queryDataByDB(vmStatisticsSelection);
   }
 
@@ -73,8 +72,34 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       } else {
         this.sortStatus(this.vmStatisticsResultData, 'type', 'ipid');
       }
-      this.vmStatisticsTbl!.shadowRoot!.querySelector('div > div.thead > div > div:nth-child(1) > label')!.textContent =
-        type === 'operation' ? 'Process/Thread/Operation' : 'Operation/Process/Thread';
+      const labels = this.vmStatisticsTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label') as NodeListOf<HTMLLabelElement>;
+      labels.forEach((label, index) => {
+        if (type === 'operation') {
+          switch (index) {
+            case 0:
+              label.textContent = 'Process';
+              break;
+            case 1:
+              label.textContent = '/Thread';
+              break;
+            case 2:
+              label.textContent = '/Operation';
+              break;
+          }
+        } else {
+          switch (index) {
+            case 0:
+              label.textContent = 'Operation';
+              break;
+            case 1:
+              label.textContent = '/Process';
+              break;
+            case 2:
+              label.textContent = '/Thread';
+              break;
+          }
+        }
+      });
     });
   }
 
@@ -83,9 +108,8 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     new ResizeObserver((): void => {
       if (this.parentElement!.clientHeight !== 0) {
         // @ts-ignore
-        this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${
-          this.parentElement!.clientHeight - 10 - 32
-        }px`;
+        this.vmStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 10 - 32
+          }px`;
         this.vmStatisticsTbl!.reMeauseHeight();
         // @ts-ignore
         this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
@@ -191,13 +215,13 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
         labels[i].addEventListener('click', (): void => {
-          if (label.includes('Operation') && i === 0) {
+          if (i === 0) {
             this.vmStatisticsTbl!.setStatus(res, false, 0, 1);
             this.vmStatisticsTbl!.recycleDs = this.vmStatisticsTbl!.meauseTreeRowElement(res, RedrawTreeForm.Retract);
-          } else if (label.includes('Process') && i === 1) {
+          } else if (i === 1) {
             this.vmStatisticsTbl!.setStatus(res, false, 0, 2);
             this.vmStatisticsTbl!.recycleDs = this.vmStatisticsTbl!.meauseTreeRowElement(res, RedrawTreeForm.Retract);
-          } else if (label.includes('Thread') && i === 2) {
+          } else if (i === 2) {
             this.vmStatisticsTbl!.setStatus(res, true);
             this.vmStatisticsTbl!.recycleDs = this.vmStatisticsTbl!.meauseTreeRowElement(res, RedrawTreeForm.Expand);
           }
@@ -358,44 +382,37 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
 
   sortVmStatisticsTable(allNode: unknown, key: string): void {
     // @ts-ignore
-    allNode.children.sort((vmStatNodeA: unknown, vmStatNodeB: unknown): number => {
-      if (this.vmStatisticsSortType === 1) {
-        // @ts-ignore
-        return vmStatNodeA.node[key] - vmStatNodeB.node[key];
-      } else if (this.vmStatisticsSortType === 2) {
-        // @ts-ignore
-        return vmStatNodeB.node[key] - vmStatNodeA.node[key];
-      } else {
-        return 0;
-      }
+    allNode.children.sort((vmStatNodeA: unknown, vmStatNodeB: unknown) => {
+      // @ts-ignore
+      return this.vmStatisticsSortType === 1 ? vmStatNodeA.node[key] - vmStatNodeB.node[key] : vmStatNodeB.node[key] - vmStatNodeA.node[key];
     });
     // @ts-ignore
     allNode.children.forEach((item: unknown): void => {
       // @ts-ignore
-      item.children.sort((vmStatNodeA: unknown, vmStatNodeB: unknown): number => {
+      item.children.sort((vmStatNodeA: unknown, vmStatNodeB: unknown) => {
+        let backData;
         if (this.vmStatisticsSortType === 1) {
           // @ts-ignore
-          return vmStatNodeA.node[key] - vmStatNodeB.node[key];
+          backData = vmStatNodeA.node[key] - vmStatNodeB.node[key];
         } else if (this.vmStatisticsSortType === 2) {
           // @ts-ignore
-          return vmStatNodeB.node[key] - vmStatNodeA.node[key];
-        } else {
-          return 0;
+          backData = vmStatNodeB.node[key] - vmStatNodeA.node[key];
         }
+        return backData;
       });
       // @ts-ignore
       item.children.forEach((vmStatItem: unknown) => {
         // @ts-ignore
-        vmStatItem.children.sort((vmStatItemA: unknown, vmStatItemB: unknown): number => {
+        vmStatItem.children.sort((vmStatItemA: unknown, vmStatItemB: unknown) => {
+          let backData;
           if (this.vmStatisticsSortType === 1) {
             // @ts-ignore
-            return vmStatItemA.node[key] - vmStatItemB.node[key];
+            backData = vmStatItemA.node[key] - vmStatItemB.node[key];
           } else if (this.vmStatisticsSortType === 2) {
             // @ts-ignore
-            return vmStatItemB.node[key] - vmStatItemA.node[key];
-          } else {
-            return 0;
+            backData = vmStatItemB.node[key] - vmStatItemA.node[key];
           }
+          return backData;
         });
       });
     });

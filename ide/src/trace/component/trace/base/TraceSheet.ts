@@ -16,7 +16,7 @@
 import { BaseElement, element } from '../../../../base-ui/BaseElement';
 import { type LitTabs } from '../../../../base-ui/tabs/lit-tabs';
 import { LitTabpane } from '../../../../base-ui/tabs/lit-tabpane';
-import { BoxJumpParam, SelectionParam } from '../../../bean/BoxSelection';
+import { BoxJumpParam, SelectionParam, SliceBoxJumpParam } from '../../../bean/BoxSelection';
 import { type TabPaneCurrentSelection } from '../sheet/TabPaneCurrentSelection';
 import { type TabPaneFlag } from '../timer-shaft/TabPaneFlag';
 import { type Flag } from '../timer-shaft/Flag';
@@ -33,6 +33,7 @@ import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem
 import { CpuStateStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCpuState';
 import { type HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
 import { type ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock';
+import { type DmaFenceStruct } from '../../../database/ui-worker/ProcedureWorkerDmaFence';
 import { type IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq';
 import { type JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank';
 import { type HeapStruct } from '../../../database/ui-worker/ProcedureWorkerHeap';
@@ -84,12 +85,15 @@ import '../../../../base-ui/popover/LitPopoverV';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
 import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerBpftrace';
-import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
 import { TabPaneUserPlugin } from '../sheet/userPlugin/TabPaneUserPlugin';
+import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { SpSystemTrace } from '../../SpSystemTrace';
 import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfTool';
+import { GpuCounterStruct } from '../../../database/ui-worker/ProcedureWorkerGpuCounter';
+import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
+import { TabPaneSliceChild } from '../sheet/process/TabPaneSliceChild';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -177,7 +181,7 @@ export class TraceSheet extends BaseElement {
     this.processTree = this.shadowRoot?.querySelector('#processTree');
     this.optionsDiv = this.shadowRoot?.querySelector('#options');
     this.optionsSettingTree = this.shadowRoot?.querySelector('#optionsSettingTree');
-    this.optionsSettingTree!.onChange = (e: any): void => {
+    this.optionsSettingTree!.onChange = (e: unknown): void => {
       const select = this.optionsSettingTree!.getCheckdKeys();
       document.dispatchEvent(
         new CustomEvent('sample-popver-change', {
@@ -187,7 +191,7 @@ export class TraceSheet extends BaseElement {
         })
       );
     };
-    this.processTree!.onChange = (e: any): void => {
+    this.processTree!.onChange = (e: unknown): void => {
       const select = this.processTree!.getCheckdKeys();
       const selectIPid = Number(select[0]);
       this.switchDiv!.visible = 'false';
@@ -198,60 +202,87 @@ export class TraceSheet extends BaseElement {
     this.litTabs!.onTabClick = (e: unknown): void => this.loadTabPaneData(e.detail.key);
     this.tableCloseHandler();
     this.rowClickEvent();
+    this.tdClickEvent();
   }
   private rowClickEvent(): void {
-    this.getComponentByID<any>('box-spt')?.addEventListener('row-click', this.rowClickHandler.bind(this));
-    this.getComponentByID<any>('box-pts')?.addEventListener('row-click', this.rowClickHandler.bind(this));
-    this.getComponentByID<any>('box-perf-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-perf-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
       this.perfAnalysisListener(evt);
     });
-    this.getComponentByID<any>('box-native-statistic-analysis')?.addEventListener('row-click', (e: MouseEvent) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-native-statistic-analysis')?.addEventListener('row-click', (e: MouseEvent) => {
       this.nativeAnalysisListener(e);
     });
-    this.getComponentByID<any>('box-io-tier-statistics-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-io-tier-statistics-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
       // @ts-ignore
-      if (evt.detail.button === 2) {
+      if (evt.detail.button === 2 && evt.detail.tableName) {
         let pane = this.getPaneByID('box-io-calltree');
         this.litTabs!.activeByKey(pane.key);
       }
     });
-    this.getComponentByID<any>('box-virtual-memory-statistics-analysis')?.addEventListener(
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-virtual-memory-statistics-analysis')?.addEventListener(
       'row-click',
       (evt: MouseEvent) => {
         // @ts-ignore
-        if (evt.detail.button === 2) {
+        if (evt.detail.button === 2 && evt.detail.tableName) {
           let pane = this.getPaneByID('box-vm-calltree');
           this.litTabs!.activeByKey(pane.key);
         }
       }
     );
-    this.getComponentByID<any>('box-file-system-statistics-analysis')?.addEventListener(
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-file-system-statistics-analysis')?.addEventListener(
       'row-click',
       (evt: MouseEvent) => {
         // @ts-ignore
-        if (evt.detail.button === 2) {
+        if (evt.detail.button === 2 && evt.detail.tableName) {
           let pane = this.getPaneByID('box-file-system-calltree');
           this.litTabs!.activeByKey(pane.key);
         }
       }
     );
-    this.getComponentByID<any>('box-native-statstics')?.addEventListener('row-click', (e: any) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-native-statstics')?.addEventListener('row-click', (e: unknown) => {
       this.nativeStatsticsListener(e);
     });
-    this.getComponentByID<any>('box-virtual-memory-statistics')?.addEventListener('row-click', (e: any) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-virtual-memory-statistics')?.addEventListener('row-click', (e: unknown) => {
       this.virtualMemoryListener(e);
     });
-    this.getComponentByID<any>('box-io-tier-statistics')?.addEventListener('row-click', (e: any) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-io-tier-statistics')?.addEventListener('row-click', (e: unknown) => {
       this.ioTierListener(e);
     });
-    this.getComponentByID<any>('box-file-system-statistics')?.addEventListener('row-click', (e: any) => {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-file-system-statistics')?.addEventListener('row-click', (e: unknown) => {
       this.fileSystemListener(e);
+    });
+  }
+
+  private tdClickEvent(): void {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-spt')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdClickHandler(evt);
+    });
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-pts')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdClickHandler(evt);
+    });
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-thread-states')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdClickHandler(evt);
+    });
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-slices')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdSliceClickHandler(evt);
     });
   }
 
   private perfAnalysisListener(evt: MouseEvent): void {
     // @ts-ignore
-    if (evt.detail.button === 2) {
+    if (evt.detail.button === 2 && evt.detail.pid) {
       let pane = this.getPaneByID('box-perf-profile');
       this.litTabs!.activeByKey(pane.key);
     }
@@ -259,51 +290,66 @@ export class TraceSheet extends BaseElement {
 
   private nativeAnalysisListener(e: MouseEvent): void {
     //@ts-ignore
-    if (e.detail.button === 2) {
+    if (e.detail.button === 2 && e.detail.tableName) {
       let pane = this.getPaneByID('box-native-calltree');
       pane.hidden = false;
       this.litTabs!.activeByKey(pane.key);
     }
   }
 
-  private nativeStatsticsListener(e: any): void {
+  private nativeStatsticsListener(e: unknown): void {
+    // @ts-ignore
     if (e.detail.button === 0) {
+      // @ts-ignore
       this.selection!.statisticsSelectData = e.detail;
       let pane = this.getPaneByID('box-native-memory');
       this.litTabs?.activeByKey(pane.key);
-      (pane.children.item(0) as any)!.fromStastics(this.selection);
+      // @ts-ignore
+      (pane.children.item(0) as unknown)!.fromStastics(this.selection);
     }
   }
 
-  private virtualMemoryListener(e: any): void {
+  private virtualMemoryListener(e: unknown): void {
+    // @ts-ignore
     if (e.detail.button === 0) {
+      // @ts-ignore
       this.selection!.fileSystemVMData = { path: e.detail.path };
       let pane = this.getPaneByID('box-vm-events');
       this.litTabs?.activeByKey(pane.key);
+      // @ts-ignore
       if (e.detail.path) {
-        (pane.children.item(0) as any)!.fromStastics(this.selection);
+        // @ts-ignore
+        (pane.children.item(0) as unknown)!.fromStastics(this.selection);
       }
     }
   }
 
-  private ioTierListener(e: any): void {
+  private ioTierListener(e: unknown): void {
+    // @ts-ignore
     if (e.detail.button === 0) {
+      // @ts-ignore
       this.selection!.fileSystemIoData = { path: e.detail.path };
       let pane = this.getPaneByID('box-io-events');
       this.litTabs?.activeByKey(pane.key);
+      // @ts-ignore
       if (e.detail.path) {
-        (pane.children.item(0) as any)!.fromStastics(this.selection);
+        // @ts-ignore
+        (pane.children.item(0) as unknown)!.fromStastics(this.selection);
       }
     }
   }
 
-  private fileSystemListener(e: any): void {
+  private fileSystemListener(e: unknown): void {
+    // @ts-ignore
     if (e.detail.button === 0) {
+      // @ts-ignore
       this.selection!.fileSystemFsData = e.detail.data;
       let pane = this.getPaneByID('box-file-system-event');
       this.litTabs?.activeByKey(pane.key);
+      // @ts-ignore
       if (e.detail.data) {
-        (pane.children.item(0) as any)!.fromStastics(this.selection);
+        // @ts-ignore
+        (pane.children.item(0) as unknown)!.fromStastics(this.selection);
       }
     }
   }
@@ -387,7 +433,8 @@ export class TraceSheet extends BaseElement {
       if (SpSystemTrace.isKeyUp === false) {
         return;
       }
-      (window as any).isSheetMove = true;
+      // @ts-ignore
+      (window as unknown).isSheetMove = true;
       // 获取所有标签页的节点数组
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
@@ -399,7 +446,8 @@ export class TraceSheet extends BaseElement {
       this.navMouseMove(event, currentPane!, that, tabsPackUp, borderTop);
       document.onmouseup = function (): void {
         setTimeout(() => {
-          (window as any).isSheetMove = false;
+          // @ts-ignore
+          (window as unknown).isSheetMove = false;
         }, 100);
         litTabpane!.forEach((node: HTMLDivElement): void => {
           node!.style.height = that.tabPaneHeight;
@@ -623,6 +671,7 @@ export class TraceSheet extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: unknown) => void | undefined,
+    scrollPrio: (d: unknown) => void | undefined,
     callback?: (data: Array<unknown>, str: string) => void
   ): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
@@ -630,6 +679,7 @@ export class TraceSheet extends BaseElement {
       // @ts-ignore
       scrollCallback,
       scrollWakeUp,
+      scrollPrio,
       callback
     );
   displayMemData = (data: ProcessMemStruct): void =>
@@ -638,6 +688,9 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setHangData(data, sp);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
+  displayDmaFenceData = (data: DmaFenceStruct, rowData: unknown): void =>//展示tab页内容
+    // @ts-ignore
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data, rowData);
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
   displayIrqData = (data: IrqStruct): void =>
@@ -654,8 +707,8 @@ export class TraceSheet extends BaseElement {
     val.nativeMemoryStatistic.push(rowType);
     val.nativeMemoryCurrentIPid = ipid;
     val.nativeMemory = [];
-    val.leftNs = data.startTime!;
-    val.rightNs = data.dur === 0 ? data.startTime! : data.startTime! + data.dur! - 1;
+    val.leftNs = data.startTime! + data.dur!;
+    val.rightNs = data.startTime! + data.dur! + 1;
     this.selection = val;
     this.displayTab<TabPaneNMStatisticAnalysis>('box-native-statistic-analysis', 'box-native-calltree').data = val;
     this.showUploadSoBt(val);
@@ -672,8 +725,15 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneGpuClickSelect>('gpu-click-select', 'gpu-click-select-comparison').gpuClickData(dataObject);
   };
 
-  displayFuncData = (names: string[], data: FuncStruct, scrollCallback: Function): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, scrollCallback);
+  displayFuncData = (
+    names: string[],
+    threadName: string,
+    data: FuncStruct,
+    scrollCallback: Function,
+    callback?: (data: Array<unknown>, str: string, binderTid: number) => void,
+    distributedCallback?: (dataList: FuncStruct[]) => void,
+  ): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, threadName, scrollCallback, callback, distributedCallback);
   displayCpuData = (
     data: CpuStruct,
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
@@ -864,7 +924,7 @@ export class TraceSheet extends BaseElement {
     }
   };
 
-  displaySampleData = (data: SampleStruct, reqProperty: any): void => {
+  displaySampleData = (data: SampleStruct, reqProperty: unknown): void => {
     this.displayTab<TabPaneSampleInstruction>('box-sample-instruction').setSampleInstructionData(data, reqProperty);
     this.optionsDiv!.style.display = 'flex';
     const select =
@@ -874,10 +934,13 @@ export class TraceSheet extends BaseElement {
       { key: '1', title: 'cycles', checked: select[0] === '1' },
     ];
   };
-
-
-  displayUserPlugin = (selectData: any): void => {
+  displayUserPlugin = (selectData: unknown): void => {
     this.displayTab<TabPaneUserPlugin>("tab-pane-userplugin").data = selectData;
+  };
+
+
+  displayGpuCounterData = (data: GpuCounterStruct): void => {
+    this.displayTab<TabPaneGpuCounter>('box-gpu-counter').data = data;
   };
 
   displaySystemStatesData = (): void => {
@@ -983,7 +1046,8 @@ export class TraceSheet extends BaseElement {
         selection.fileSysVirtualMemory ||
         selection.vmCount > 0 ||
         selection.diskIOLatency ||
-        selection.diskIOipids.length > 0)
+        selection.diskIOipids.length > 0 ||
+        selection.threadIds.length > 0)
     ) {
       this.importDiv!.style.display = 'flex';
     } else {
@@ -1065,25 +1129,60 @@ export class TraceSheet extends BaseElement {
     window.publish(window.SmartEvent.UI.ShowBottomTab, { show: show, delta: delta });
   }
 
-  rowClickHandler(e: unknown): void {
+  tdClickHandler(e: unknown): void {
     // @ts-ignore
     this.currentPaneID = e.target.parentElement.id;
+    //隐藏除了当前Tab页的其他Tab页
+    this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
+      it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
+    );//todo：看能不能优化
+    let pane = this.getPaneByID('box-cpu-child');//通过Id找到需要展示的Tab页
+    pane.closeable = true;//关闭的ican显示
+    pane.hidden = false;
+    this.litTabs!.activeByKey(pane.key); //显示key值对应的Tab页
+    // @ts-ignore
+    pane.tab = e.detail.tabTitle ? e.detail.tabTitle : Utils.transferPTSTitle(e.detail.title);//设置Tab页标题，有的标题可直接用，有的标题需在此转换成需要展示的字符串
+    let param = new BoxJumpParam();
+    param.traceId = this.selection!.traceId;
+    param.leftNs = this.selection!.leftNs;
+    param.rightNs = this.selection!.rightNs;
+    param.cpus = this.selection!.cpus;
+    // @ts-ignore
+    param.state = e.detail.summary ? '' : e.detail.state;
+    // @ts-ignore
+    param.processId = e.detail.summary ? this.selection.processIds : e.detail.pid;
+    // @ts-ignore
+    param.threadId = e.detail.summary ? this.selection.threadIds : e.detail.tid;
+    param.isJumpPage = true;// @ts-ignore
+    param.currentId = e.target.parentElement.id;//根据父Tab页的标题，确认子Tab页的dur是否需要处理
+    (pane.children.item(0) as TabPaneBoxChild).data = param;
+  }
+
+  //Slice Tab点击Occurrences列下的td进行跳转
+  tdSliceClickHandler(e: unknown): void {
+    // @ts-ignore
+    this.currentPaneID = e.target.parentElement.id;
+    //隐藏除了当前Tab页的其他Tab页
     this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
       it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
     );
-    let pane = this.getPaneByID('box-cpu-child');
+    let pane = this.getPaneByID('box-slice-child');//通过Id找到需要展示的Tab页
     pane.closeable = true;
     pane.hidden = false;
-    this.litTabs!.activeByKey(pane.key); // @ts-ignore
-    pane.tab = Utils.transferPTSTitle(e.detail.title);
-    let param = new BoxJumpParam();
+    this.litTabs!.activeByKey(pane.key); //显示key值（sheetconfig里面对应的index是一个数字）对应的Tab页
+    // @ts-ignore
+    pane.tab = e.detail.tabTitle;//设置Tab页标题
+    let param = new SliceBoxJumpParam();
+    param.traceId = this.selection!.traceId;
     param.leftNs = this.selection!.leftNs;
     param.rightNs = this.selection!.rightNs;
-    param.cpus = this.selection!.cpus; // @ts-ignore
-    param.state = e.detail.state; // @ts-ignore
-    param.processId = e.detail.pid; // @ts-ignore
-    param.threadId = e.detail.tid;
-    (pane.children.item(0) as TabPaneBoxChild).data = param;
+    param.processId = this.selection!.processIds;
+    param.threadId = this.selection!.funTids;//@ts-ignore2
+    param.name = e.detail.allName ? e.detail.allName : [e.detail.name];//@ts-ignore2
+    param.asyncNames = e.detail.asyncNames;//@ts-ignore2
+    param.asyncCatNames = e.detail.asyncCatNames;
+    param.isJumpPage = true;
+    (pane.children.item(0) as TabPaneSliceChild).data = param;
   }
 
   clearMemory(): void {

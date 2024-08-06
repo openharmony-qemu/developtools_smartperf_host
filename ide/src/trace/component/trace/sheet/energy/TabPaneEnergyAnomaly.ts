@@ -24,11 +24,16 @@ import { queryAnomalyDetailedData } from '../../../../database/sql/ProcessThread
 
 @element('tabpane-anomaly-details')
 export class TabPaneEnergyAnomaly extends BaseElement {
-  private tblAnomaly: LitTable | null | undefined;
   private static KEY_INDEX: number = 2;
   private static VALUE_INDEX: number = 3;
+  private tblAnomaly: LitTable | null | undefined;
+  private currentSelection: SelectionParam | undefined;
 
   set data(selectionAnomaly: SelectionParam) {
+    if (selectionAnomaly === this.currentSelection) {
+      return;
+    }
+    this.currentSelection = selectionAnomaly;
     let div: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#anomaly-details');
     let htmlText = '';
     if (selectionAnomaly) {

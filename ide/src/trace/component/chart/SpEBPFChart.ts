@@ -246,7 +246,7 @@ export class SpEBPFChart {
     rowRead.style.height = '40px';
     rowRead.style.width = '100%';
     rowRead.setAttribute('children', ''); //@ts-ignore
-    rowRead.name = `${process.name ?? 'Process'}(${process.pid}) Max Read Latency`;
+    rowRead.name = `${process.name ?? 'Process'}(${process.ipid}) Max Read Latency`;
     rowRead.supplierFrame = async (): Promise<EBPFChartStruct[]> => {
       //@ts-ignore
       const res = await diskIoSender(false, process.ipid, [1, 3], TraceRow.range?.scale || 50, rowRead);

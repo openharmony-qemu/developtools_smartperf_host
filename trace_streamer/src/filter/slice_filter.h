@@ -93,6 +93,7 @@ public:
     void IpiHandlerExit(uint64_t timeStamp, uint32_t cpu);
     void SoftIrqEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     void SoftIrqExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args);
+    void DmaFence(DmaFenceRow &dmaFenceRow);
     void Clear();
     void UpdateReadySize()
     {
@@ -124,8 +125,8 @@ private:
 private:
     // The parameter list is tid, cookid, functionName, asyncCallId.
     TripleMap<uint32_t, int64_t, DataIndex, uint64_t> asyncEventMap_;
-    // this is only used to calc the layer of the async event in same time range
     TripleMap<uint32_t, int64_t, DataIndex, std::vector<uint64_t>> gEventMap_;
+    // this is only used to calc the layer of the async event in same time range
     std::map<uint32_t, int8_t> asyncNoEndingEventMap_ = {};
     //  irq map, key1 is cpu, key2
     struct IrqRecords {
@@ -136,6 +137,7 @@ private:
     std::unordered_map<uint32_t /* cpu */, IrqRecords> ipiEventMap_ = {};
     //  irq map, key1 is cpu, key2
     std::unordered_map<uint32_t, IrqRecords> softIrqEventMap_ = {};
+    std::unordered_map<uint64_t, uint64_t> dmaFenceEventMap_ = {};
     std::map<uint64_t, AsyncEvent> asyncEventFilterMap_ = {};
     std::map<uint64_t, AsyncEvent> gEventFilterMap_ = {};
     std::unordered_map<InternalTid, StackOfSlices> sliceStackMap_ = {};
@@ -157,6 +159,8 @@ private:
     DataIndex asyncBeginTsId_ = traceDataCache_->GetDataIndex("legacy_unnestable_last_begin_ts");
     DataIndex ipiId_ = traceDataCache_->GetDataIndex("IPI");
     std::map<uint32_t /* cpu */, uint32_t> irqDataLinker_ = {};
+    const std::regex categoryReg_ = std::regex(R"((.+)\$\$(.+))");
+    const uint64_t categoryMatchedIdx_ = 1;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

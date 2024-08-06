@@ -43,19 +43,20 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   queryAllCallchainsSamples: NativeHookStatistics[] = [];
   currentSamples: NativeHookStatistics[] = [];
   allThreads: NativeHookCallInfo[] = [];
-  splitMapData: Map<string, NativeHookCallInfo[]> = new Map<string, NativeHookCallInfo[]>();
+  splitMapData: CallInfoMap = {};
   searchValue: string = '';
   currentEventId: string = '';
   realTimeDif: number = 0;
   responseTypes: { key: number; value: string }[] = [];
   totalNS: number = 0;
-  isStatistic: boolean = false;
+  isStatisticMode: boolean = false;
   boxRangeNativeHook: Array<NativeMemory> = [];
   clearBoxSelectionData: boolean = false;
   nmArgs?: Map<string, unknown>;
   private dataCache = DataCache.getInstance();
   isHideThread: boolean = false;
   private currentSelectIPid: number = 1;
+  useFreedSize: boolean = false;
 
   handle(data: unknown): void {
     //@ts-ignore
@@ -201,7 +202,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     } else {
       //@ts-ignore
       if (data.params.isStatistic) {
-        this.isStatistic = true;
+        this.isStatisticMode = true;
         this.queryStatisticCallchainsSamples(
           'native-memory-queryAnalysis',
           //@ts-ignore
@@ -212,7 +213,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
           data.params.types
         );
       } else {
-        this.isStatistic = false;
+        this.isStatisticMode = false;
         this.queryCallchainsSamples(
           'native-memory-queryAnalysis',
           //@ts-ignore
@@ -505,9 +506,9 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         if (nmMemoryColumn === 'index' || nmMemoryColumn === 'startTs' || nmMemoryColumn === 'heapSize') {
           return nmMemorySort === 1
             ? //@ts-ignore
-              memoryLeftData[nmMemoryColumn] - memoryRightData[nmMemoryColumn]
+            memoryLeftData[nmMemoryColumn] - memoryRightData[nmMemoryColumn]
             : //@ts-ignore
-              memoryRightData[nmMemoryColumn] - memoryLeftData[nmMemoryColumn];
+            memoryRightData[nmMemoryColumn] - memoryLeftData[nmMemoryColumn];
         } else {
           if (nmMemorySort === 1) {
             //@ts-ignore
@@ -616,7 +617,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   }
   clearAll(): void {
     this.dataCache.clearNM();
-    this.splitMapData.clear();
+    this.splitMapData = {};
     this.currentSamples = [];
     this.allThreads = [];
     this.queryAllCallchainsSamples = [];
@@ -627,6 +628,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     this.boxRangeNativeHook = [];
     this.nmArgs?.clear();
     this.isHideThread = false;
+    this.useFreedSize = false;
   }
 
   queryCallchainsSamples(action: string, leftNs: number, rightNs: number, types: Array<string>): void {
@@ -669,10 +671,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         condition = 'and type != 0';
       }
     }
-    this.queryData(
-      this.currentEventId,
-      action,
-      `select A.id,
+    let sql = `select A.id,
                 0 as tid,
                 callchain_id as eventId,
                 (case when type = 0 then 'AllocEvent' else 'MmapEvent' end) as eventType,
@@ -692,10 +691,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
                 between ${leftNs} and ${rightNs}
                 ${condition}
                 and A.ipid = ${this.currentSelectIPid}
-            group by callchain_id;
-        `,
-      {}
-    );
+            group by callchain_id;`;
+    this.queryData(this.currentEventId, action, sql, {});
   }
 
   combineStatisticAndCallChain(samples: NativeHookStatistics[]): Array<AnalysisSample> {
@@ -704,9 +701,9 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     const applyAllocSamples: Array<AnalysisSample> = [];
     const applyMmapSamples: Array<AnalysisSample> = [];
     for (const sample of samples) {
-      const count = this.isStatistic ? sample.count : 1;
+      const count = this.isStatisticMode ? sample.count : 1;
       const analysisSample = new AnalysisSample(sample.id, sample.heapSize, count, sample.eventType, sample.startTs);
-      if (this.isStatistic) {
+      if (this.isStatisticMode) {
         this.setStatisticSubType(analysisSample, sample);
       } else {
         let subType: string | undefined;
@@ -816,7 +813,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
           this.currentTreeMapData[key] = root;
           this.currentTreeList.push(root);
         }
-        NativeHookCallInfo.merageCallChainSample(root, callChains[topIndex], nativeHookSample);
+        this.mergeCallChainSample(root, callChains[topIndex], nativeHookSample);
         if (callChains.length > 1) {
           this.merageChildrenByIndex(root, callChains, topIndex, nativeHookSample, isTopDown);
         }
@@ -886,7 +883,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       }
     });
   }
-  private groupCallchainSample(paramMap: Map<string, unknown>): void {
+  private groupCallChainSample(paramMap: Map<string, unknown>): void {
     let filterAllocType = paramMap.get('filterAllocType') as string;
     let filterEventType = paramMap.get('filterEventType') as string;
     let filterResponseType = paramMap.get('filterResponseType') as number;
@@ -908,6 +905,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       this.currentSamples = this.queryAllCallchainsSamples;
       return;
     }
+    this.useFreedSize = this.isStatisticMode && filterAllocType === '2';
     let filter = this.dataFilter(
       libTree,
       filterAnalysis,
@@ -941,7 +939,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         if (filterAllocType === '1') {
           filterAllocation = item.heapSize > item.freeSize;
         } else if (filterAllocType === '2') {
-          filterAllocation = item.heapSize === item.freeSize;
+          filterAllocation = item.freeSize > 0;
         }
       }
       let filterThread = true;
@@ -1067,6 +1065,45 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   createThreadSample(sample: NativeHookStatistics): HeapTreeDataBean[] {
     return this.dataCache.nmHeapFrameMap.get(sample.eventId) || [];
   }
+
+  mergeCallChainSample(
+    currentNode: NativeHookCallInfo,
+    callChain: HeapTreeDataBean,
+    sample: NativeHookStatistics
+  ): void {
+    if (currentNode.symbol === undefined || currentNode.symbol === '') {
+      currentNode.symbol = callChain.AllocationFunction || '';
+      currentNode.addr = callChain.addr;
+      currentNode.eventId = sample.eventId;
+      currentNode.eventType = sample.eventType;
+      currentNode.symbolId = callChain.symbolId;
+      currentNode.fileId = callChain.fileId;
+      currentNode.tid = sample.tid;
+    }
+    if (this.useFreedSize) {
+      currentNode.count += sample.freeCount || 1;
+    } else {
+      currentNode.count += sample.count || 1;
+    }
+
+    if (sample.countArray && sample.countArray.length > 0) {
+      currentNode.countArray = currentNode.countArray.concat(sample.countArray);
+    } else {
+      currentNode.countArray.push(sample.count);
+    }
+
+    if (sample.tsArray && sample.tsArray.length > 0) {
+      currentNode.tsArray = currentNode.tsArray.concat(sample.tsArray);
+    } else {
+      currentNode.tsArray.push(sample.startTs);
+    }
+    if (this.useFreedSize) {
+      currentNode.heapSize += sample.freeSize;
+    } else {
+      currentNode.heapSize += sample.heapSize;
+    }
+  }
+
   merageChildrenByIndex(
     currentNode: NativeHookCallInfo,
     callChainDataList: HeapTreeDataBean[],
@@ -1085,14 +1122,14 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
           child.fileId === callChainDataList[index]?.fileId
         ) {
           node = child;
-          NativeHookCallInfo.merageCallChainSample(child, callChainDataList[index], sample);
+          this.mergeCallChainSample(child, callChainDataList[index], sample);
           return true;
         }
         return false;
       }).length === 0
     ) {
       node = new NativeHookCallInfo();
-      NativeHookCallInfo.merageCallChainSample(node, callChainDataList[index], sample);
+      this.mergeCallChainSample(node, callChainDataList[index], sample);
       currentNode.children.push(node);
       currentNode.initChildren.push(node);
       this.currentTreeList.push(node);
@@ -1135,15 +1172,15 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         this.groupCutFilePath(currentNode.symbolId, this.dataCache.dataDict.get(currentNode.symbolId) || '') ??
         'unknown';
     }
+    currentNode.path = currentNode.lib;
     currentNode.lib = setFileName(currentNode.lib);
-    currentNode.lib = currentNode.lib;
     currentNode.symbol = `${currentNode.symbol} (${currentNode.lib})`;
     currentNode.type =
       currentNode.lib.endsWith('.so.1') || currentNode.lib.endsWith('.dll') || currentNode.lib.endsWith('.so') ? 0 : 1;
   }
   clearSplitMapData(symbolName: string): void {
-    if (this.splitMapData.has(symbolName)) {
-      this.splitMapData.delete(symbolName);
+    if (symbolName in this.splitMapData) {
+      Reflect.deleteProperty(this.splitMapData, symbolName);
     }
   }
   resolvingNMCallAction(params: unknown[]): NativeHookCallInfo[] {
@@ -1168,7 +1205,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         this.isHideThread = args[0] as boolean;
         break;
       case 'groupCallchainSample':
-        this.groupCallchainSample(args[0] as Map<string, unknown>);
+        this.groupCallChainSample(args[0] as Map<string, unknown>);
         break;
       case 'getCallChainsBySampleIds':
         this.freshCurrentCallchains(this.currentSamples, args[0] as boolean);
@@ -1265,34 +1302,6 @@ export class NativeHookCallInfo extends MerageBean {
   }
   get totalSize(): number {
     return this.#totalSize;
-  }
-  static merageCallChainSample(
-    currentNode: NativeHookCallInfo,
-    callChain: HeapTreeDataBean,
-    sample: NativeHookStatistics
-  ): void {
-    if (currentNode.symbol === undefined || currentNode.symbol === '') {
-      currentNode.symbol = callChain.AllocationFunction || '';
-      currentNode.addr = callChain.addr;
-      currentNode.eventId = sample.eventId;
-      currentNode.eventType = sample.eventType;
-      currentNode.symbolId = callChain.symbolId;
-      currentNode.fileId = callChain.fileId;
-      currentNode.tid = sample.tid;
-    }
-    currentNode.count += sample.count || 1;
-    if (sample.countArray && sample.countArray.length > 0) {
-      currentNode.countArray.push(...sample.countArray);
-    } else {
-      currentNode.countArray.push(sample.count);
-    }
-
-    if (sample.tsArray && sample.tsArray.length > 0) {
-      currentNode.tsArray.push(...sample.tsArray);
-    } else {
-      currentNode.tsArray.push(sample.startTs);
-    }
-    currentNode.heapSize += sample.heapSize;
   }
 }
 export class NativeMemory {

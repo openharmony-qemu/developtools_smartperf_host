@@ -45,6 +45,7 @@ export class TabPaneFreqUsage extends BaseElement {
   async queryAllData(threadStatesParam: SelectionParam): Promise<void> {
     let runningResult: Array<RunningData> = await getTabRunningPercent(
       threadStatesParam.threadIds,
+      threadStatesParam.processIds,
       threadStatesParam.leftNs,
       threadStatesParam.rightNs
     );
@@ -53,9 +54,11 @@ export class TabPaneFreqUsage extends BaseElement {
     // 以键值对形式将cpu及id进行对应，后续会将频点数据与其对应cpu进行整合
     let IdMap: Map<number, number> = new Map();
     let queryId: Array<number> = [];
+    let cpuArray: Array<number> = [];
     for (let i = 0; i < cpuIdResult.length; i++) {
       queryId.push(cpuIdResult[i].id);
       IdMap.set(cpuIdResult[i].id, cpuIdResult[i].cpu);
+      cpuArray.push(cpuIdResult[i].cpu);
     }
     // 通过id去查询频点数据
     let cpuFreqResult: Array<CpuFreqTd> = await queryCpuFreqUsageData(queryId);
@@ -70,12 +73,13 @@ export class TabPaneFreqUsage extends BaseElement {
     }
     const LEFT_TIME: number = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
     const RIGHT_TIME: number = threadStatesParam.rightNs + threadStatesParam.recordStartNs;
-    let resultArr: Array<RunningFreqData> = orgnazitionMap(runningResult, cpuFreqData, LEFT_TIME, RIGHT_TIME);
+    const args = { leftNs: LEFT_TIME, rightNs: RIGHT_TIME, cpuArray: cpuArray };
+    let resultArr: Array<RunningFreqData> = orgnazitionMap(runningResult, cpuFreqData, args);
     // 递归拿出来最底层的数据，并以进程层级的数据作为分割
     this.recursion(resultArr);
     this.result = JSON.parse(JSON.stringify(this.result));
     mergeTotal(resultArr, fixTotal(this.result));
-    this.fixedDeal(resultArr);
+    this.fixedDeal(resultArr, threadStatesParam.traceId);
     this.threadClick(resultArr);
     this.threadStatesTbl!.recycleDataSource = resultArr;
     this.threadStatesTbl!.loading = false;
@@ -84,7 +88,7 @@ export class TabPaneFreqUsage extends BaseElement {
   /**
    * 递归整理数据小数位
    */
-  fixedDeal(arr: Array<RunningFreqData>): void {
+  fixedDeal(arr: Array<RunningFreqData>, traceId?: string | null): void {
     if (arr == undefined) {
       return;
     }
@@ -104,15 +108,11 @@ export class TabPaneFreqUsage extends BaseElement {
       }
       if (arr[i].thread?.indexOf('P') !== -1) {
         trackId = Number(arr[i].thread?.slice(1)!);
-        arr[i].thread =
-          Utils.PROCESS_MAP.get(trackId) === null
-            ? 'Process ' + trackId
-            : Utils.PROCESS_MAP.get(trackId)! + ' ' + trackId;
+        arr[i].thread = `${Utils.getInstance().getProcessMap(traceId).get(trackId) || 'Process'} ${trackId}`;
       } else if (arr[i].thread === 'summary data') {
       } else {
         trackId = Number(arr[i].thread!.split('_')[1]);
-        arr[i].thread =
-          Utils.THREAD_MAP.get(trackId) === null ? 'Thread ' + trackId : Utils.THREAD_MAP.get(trackId)! + ' ' + trackId;
+        arr[i].thread = `${Utils.getInstance().getThreadMap(traceId).get(trackId) || 'Thread'} ${trackId}`;
       }
       if (arr[i].cpu < 0) {
         // @ts-ignore
@@ -135,7 +135,7 @@ export class TabPaneFreqUsage extends BaseElement {
           arr[i].frequency = Number(arr[i].frequency) / FREQ_MUTIPLE;
         }
       }
-      this.fixedDeal(arr[i].children!);
+      this.fixedDeal(arr[i].children!, traceId);
     }
   }
 
@@ -228,8 +228,11 @@ export class TabPaneFreqUsage extends BaseElement {
 function orgnazitionMap(
   runData: Array<RunningData>,
   cpuFreqData: Array<CpuFreqData>,
-  leftNs: number,
-  rightNs: number
+  args: {
+    leftNs: number,
+    rightNs: number,
+    cpuArray: number[]
+  }
 ): Array<RunningFreqData> {
   let result: Map<string, Array<RunningData>> = new Map();
   let sum: number = 0;
@@ -241,12 +244,12 @@ function orgnazitionMap(
       result.set(mapKey, new Array());
     }
     // 整理左右边界数据问题, 因为涉及多线程，所以必须放在循环里
-    if (runData[i].ts < leftNs && runData[i].ts + runData[i].dur > leftNs) {
-      runData[i].dur = runData[i].ts + runData[i].dur - leftNs;
-      runData[i].ts = leftNs;
+    if (runData[i].ts < args.leftNs && runData[i].ts + runData[i].dur > args.leftNs) {
+      runData[i].dur = runData[i].ts + runData[i].dur - args.leftNs;
+      runData[i].ts = args.leftNs;
     }
-    if (runData[i].ts + runData[i].dur > rightNs) {
-      runData[i].dur = rightNs - runData[i].ts;
+    if (runData[i].ts + runData[i].dur > args.rightNs) {
+      runData[i].dur = args.rightNs - runData[i].ts;
     }
     // 特殊处理数据表中dur为负值的情况
     if (runData[i].dur < 0) {
@@ -262,7 +265,7 @@ function orgnazitionMap(
     });
     sum += runData[i].dur;
   }
-  return dealCpuFreqData(cpuFreqData, result, sum);
+  return dealCpuFreqData(cpuFreqData, result, sum, args.cpuArray);
 }
 
 /**
@@ -275,15 +278,16 @@ function orgnazitionMap(
 function dealCpuFreqData(
   cpuFreqData: Array<CpuFreqData>,
   result: Map<string, Array<RunningData>>,
-  sum: number
+  sum: number,
+  cpuList: number[]
 ): Array<RunningFreqData> {
   let runningFreqData: Map<string, Array<RunningFreqData>> = new Map();
   result.forEach((item, key) => {
     let resultList: Array<RunningFreqData> = new Array();
     for (let i = 0; i < item.length; i++) {
       for (let j = 0; j < cpuFreqData.length; j++) {
-        if (item[i].cpu == cpuFreqData[j].cpu) {
-          let flag: number;
+        let flag: number;
+        if (item[i].cpu === cpuFreqData[j].cpu) {
           // 当running状态数据的开始时间大于频点数据开始时间,小于频点结束时间。且running数据的持续时间小于频点结束时间减去running数据开始时间的差值的情况
           if (
             item[i].ts > cpuFreqData[j].ts &&
@@ -329,6 +333,13 @@ function dealCpuFreqData(
             i--;
             break;
           }
+        } else {
+          if (!cpuList.includes(item[i].cpu)) {
+            resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 5))!);
+            item.splice(i, 1);
+            i--;
+            break;
+          }
         }
       }
     }
@@ -357,9 +368,10 @@ function returnObj(
       ? SpSegmentationChart.freqInfoMapData.get(item.cpu)?.get(cpuFreqData.value)
       : cpuFreqData.value
   )!;
+  let result: RunningFreqData | undefined;
   switch (flag) {
     case 1:
-      return {
+      result = {
         thread: item.pid + '_' + item.tid,
         consumption: consumption * item.dur,
         cpu: item.cpu,
@@ -368,7 +380,7 @@ function returnObj(
         percent: (item.dur / sum) * PERCENT,
       };
     case 2:
-      return {
+      result = {
         thread: item.pid + '_' + item.tid,
         consumption: consumption * (cpuFreqData.ts + cpuFreqData.dur - item.ts),
         cpu: item.cpu,
@@ -377,7 +389,7 @@ function returnObj(
         percent: ((cpuFreqData.ts + cpuFreqData.dur - item.ts) / sum) * PERCENT,
       };
     case 3:
-      return {
+      result = {
         thread: item.pid + '_' + item.tid,
         consumption: consumption * (item.dur + item.ts - cpuFreqData.ts),
         cpu: item.cpu,
@@ -386,7 +398,7 @@ function returnObj(
         percent: ((item.dur + item.ts - cpuFreqData.ts) / sum) * PERCENT,
       };
     case 4:
-      return {
+      result = {
         thread: item.pid + '_' + item.tid,
         consumption: consumption * cpuFreqData.dur,
         cpu: item.cpu,
@@ -395,16 +407,7 @@ function returnObj(
         percent: (cpuFreqData.dur / sum) * PERCENT,
       };
     case 5:
-      return {
-        thread: item.pid + '_' + item.tid,
-        consumption: 0,
-        cpu: item.cpu,
-        frequency: 'unknown',
-        dur: item.dur,
-        percent: (item.dur / sum) * PERCENT,
-      };
-    default:
-      return {
+      result = {
         thread: item.pid + '_' + item.tid,
         consumption: 0,
         cpu: item.cpu,
@@ -413,6 +416,7 @@ function returnObj(
         percent: (item.dur / sum) * PERCENT,
       };
   }
+  return result;
 }
 
 /**

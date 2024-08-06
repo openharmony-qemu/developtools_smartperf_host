@@ -17,21 +17,23 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { BoxJumpParam, SelectionData } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
-import { SPTChild } from '../../../../bean/StateProcessThread';
 import { resizeObserver } from '../SheetUtils';
-import { getTabBoxChildData } from '../../../../database/sql/ProcessThread.sql';
+import { sliceChildBoxSender, threadNearData } from '../../../../database/data-trafic/SliceSender';
 
 @element('tabpane-box-child')
 export class TabPaneBoxChild extends BaseElement {
   private boxChildTbl: LitTable | null | undefined;
   private boxChildRange: HTMLLabelElement | null | undefined;
-  private boxChildSource: Array<SPTChild> = [];
+  private boxChildSource: Array<unknown> = [];
+  private boxChildParam: BoxJumpParam | null | undefined;
 
   set data(boxChildValue: BoxJumpParam) {
-    if (this.boxChildTbl) {
-      // @ts-ignore
-      this.boxChildTbl.shadowRoot?.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45}px`;
-    }
+    //切换Tab页 保持childTab数据不变 除非重新点击跳转
+    if (boxChildValue === this.boxChildParam || !boxChildValue.isJumpPage) {
+      return;
+    } // @ts-ignore
+    this.boxChildParam = boxChildValue;
+    //显示框选范围对应的时间
     this.boxChildRange!.textContent = `Selected range: ${parseFloat(
       ((boxChildValue.rightNs - boxChildValue.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
@@ -46,6 +48,19 @@ export class TabPaneBoxChild extends BaseElement {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
+    //监听row的点击事件，在对应起始时间上画标记棋子
+    this.boxChildTbl!.addEventListener('row-click', (evt): void => {
+      //@ts-ignore
+      let param = evt.detail.data;
+      param.isSelected = true;
+      this.boxChildTbl!.clearAllSelection(param);
+      this.boxChildTbl!.setCurrentSelection(param);
+      document.dispatchEvent(
+        new CustomEvent('triangle-flag', {
+          detail: { time: [param.startTime], type: 'triangle' },
+        })
+      );
+    });
   }
 
   connectedCallback(): void {
@@ -55,21 +70,57 @@ export class TabPaneBoxChild extends BaseElement {
 
   getDataByDB(val: BoxJumpParam): void {
     this.boxChildTbl!.loading = true;
-    getTabBoxChildData(val.leftNs, val.rightNs, val.cpus, val.state, val.processId, val.threadId).then(
-      (result): void => {
+    sliceChildBoxSender('state-box', val.leftNs, val.rightNs, val.threadId!, val.processId!,
+      val.cpus, val.state, val.traceId!).then((result: unknown): void => {
         this.boxChildTbl!.loading = false;
+        // @ts-ignore
         if (result.length !== null && result.length > 0) {
-          result.map((e) => {
-            e.startTime = Utils.getTimeString(e.startNs);
+          // @ts-ignore
+          result.map((e: unknown) => {
+            //获取优先级数据
             // @ts-ignore
-            e.absoluteTime = ((window as unknown).recordStartNS + e.startNs) / 1000000000;
+            let prioObj = Utils.getInstance().getSchedSliceMap().get(`${e.id}-${e.startTime}`);
+            //thread statesTab页 dur截取的问题 与thread states保持一致
+            if (val.currentId === 'box-thread-states') {
+              // @ts-ignore
+              if (e.startTime < val.leftNs && (e.startTime + e.dur) < val.rightNs) {
+                // @ts-ignore
+                e.dur = (e.startTime + e.dur) - val.leftNs;
+                // @ts-ignore
+              } else if ((e.startTime + e.dur) > val.rightNs && e.startTime > val.leftNs) {
+                // @ts-ignore
+                e.dur = val.rightNs - e.startTime;
+                // @ts-ignore
+              } else if (e.startTime < val.leftNs && (e.startTime + e.dur) > val.rightNs) {
+                // @ts-ignore
+                e.dur = val.rightNs - val.leftNs;
+              }
+            }
+            //相对起始时间转换为带单位的字符串
+            // @ts-ignore
+            e.sTime = Utils.getTimeString(e.startTime);
+            // @ts-ignore
+            e.absoluteTime = ((window as unknown).recordStartNS + e.startTime) / 1000000000;
+            // @ts-ignore
             e.state = Utils.getEndState(e.state)!;
-            e.prior = e.priority === undefined || e.priority === null ? '-' : `${e.priority}`;
+            // @ts-ignore
+            e.duration = e.dur / 1000000;
+            // @ts-ignore
+            e.prior = prioObj ? prioObj.priority : '-';
+            // @ts-ignore
             e.core = e.cpu === undefined || e.cpu === null ? '-' : `CPU${e.cpu}`;
-            e.processName = `${e.process === undefined || e.process === null ? 'process' : e.process}(${e.processId})`;
-            e.threadName = `${e.thread === undefined || e.thread === null ? 'thread' : e.thread}(${e.threadId})`;
+            // @ts-ignore
+            let processInfo: string | undefined = Utils.getInstance().getProcessMap().get(e.pid);
+            // @ts-ignore
+            e.processName = `${processInfo === undefined || processInfo === null ? 'process' : processInfo}(${e.pid})`;
+            // @ts-ignore
+            let threadInfo: string | undefined = Utils.getInstance().getThreadMap().get(e.tid);
+            // @ts-ignore
+            e.threadName = `${threadInfo === undefined || threadInfo === null ? 'thread' : threadInfo}(${e.tid})`;
+            // @ts-ignore
             e.note = '-';
           });
+          // @ts-ignore
           this.boxChildSource = result;
           if (this.boxChildTbl) {
             // @ts-ignore
@@ -83,7 +134,7 @@ export class TabPaneBoxChild extends BaseElement {
           }
         }
       }
-    );
+      );
   }
 
   initHtml(): string {
@@ -102,22 +153,24 @@ export class TabPaneBoxChild extends BaseElement {
         </style>
         <label id="time-range" class="box-child-label" style="font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="tb-cpu-thread" style="height: auto">
-            <lit-table-column order title="StartTime(Relative)" width="15%" data-index="startTime" key="startTime" align="flex-start" order >
-            </lit-table-column>
-            <lit-table-column order title="StartTime(Absolute)" width="15%" data-index="absoluteTime" key="absoluteTime" align="flex-start" order >
-            </lit-table-column>
-            <lit-table-column order width="20%" data-index="processName" key="processName" title="Process" align="flex-start" order >
-            </lit-table-column>
-            <lit-table-column order width="20%" data-index="threadName" key="threadName" align="flex-start" order title="Thread">
-            </lit-table-column>
-            <lit-table-column order width="1fr" data-index="state" key="state" align="flex-start" order title="State">
-            </lit-table-column>
-            <lit-table-column order width="1fr"data-index="core"  title="Core" key="core" align="flex-start" order >
-            </lit-table-column>
-            <lit-table-column order width="1fr" data-index="prior" title="Priority" key="prior" align="flex-start" order >
-            </lit-table-column>
-            <lit-table-column order width="1fr" data-index="note" key="note" align="flex-start" title="Note">
-            </lit-table-column>
+          <lit-table-column order title="StartTime(Relative)" width="15%" data-index="sTime" key="sTime" align="flex-start" >
+          </lit-table-column>
+          <lit-table-column order title="StartTime(Absolute)" width="15%" data-index="absoluteTime" key="absoluteTime" align="flex-start" >
+          </lit-table-column>
+          <lit-table-column order width="15%" data-index="processName" key="processName" title="Process" align="flex-start" >
+          </lit-table-column>
+          <lit-table-column order width="15%" data-index="threadName" key="threadName" align="flex-start" title="Thread">
+          </lit-table-column>
+          <lit-table-column order width="1fr" data-index="duration" key="duration" title="duration(ms)" align="flex-start" >
+          </lit-table-column>
+          <lit-table-column order width="1fr" data-index="state" key="state" align="flex-start" title="State">
+          </lit-table-column>
+          <lit-table-column order width="1fr"data-index="core"  title="Core" key="core" align="flex-start" >
+          </lit-table-column>
+          <lit-table-column order width="1fr" data-index="prior" title="Priority" key="prior" align="flex-start" >
+          </lit-table-column>
+          <lit-table-column order width="1fr" data-index="note" key="note" align="flex-start" title="Note">
+          </lit-table-column>
         </lit-table>
         `;
   }
@@ -127,8 +180,10 @@ export class TabPaneBoxChild extends BaseElement {
     function compare(property, sort, type) {
       return function (boxChildLeftData: SelectionData, boxChildRightData: SelectionData): number {
         if (type === 'number') {
-          return sort === 2 // @ts-ignore
-            ? parseFloat(boxChildRightData[property]) - parseFloat(boxChildLeftData[property]) // @ts-ignore
+          return sort === 2
+            // @ts-ignore
+            ? parseFloat(boxChildRightData[property]) - parseFloat(boxChildLeftData[property])
+            // @ts-ignore
             : parseFloat(boxChildLeftData[property]) - parseFloat(boxChildRightData[property]);
         } else {
           // @ts-ignore

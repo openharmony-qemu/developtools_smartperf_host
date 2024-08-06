@@ -136,7 +136,7 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
    * @param canvasY
    * @returns
    */
-  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number): unknown {
+  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number): void | null {
     // @ts-ignore
     for (let i = 0; i < nodes.length; i++) {
       // @ts-ignore
@@ -210,13 +210,11 @@ export class TabPaneSampleInstructionDistributions extends BaseElement {
     const detail = hoverNode!;
     this.hintContent = `
       <span class="blod">${
-        // @ts-ignore
-        detail.instruct
-      }</span></br>
+      // @ts-ignore
+      detail.instruct}</span></br>
       <span>${
-        // @ts-ignore
-        parseFloat(detail.heightPer)
-      }</span>
+      // @ts-ignore
+      parseFloat(detail.heightPer)}</span>
       `;
   }
 

@@ -56,7 +56,7 @@ describe('TabPaneSchedSwitch Test', () => {
     rightNs: 654233,
     hasFps: false,
     statisticsSelectData: undefined,
-  }
+  };
   let single = sqlite.querySingleCutData;
   let singleCutData = [
     {
@@ -78,8 +78,8 @@ describe('TabPaneSchedSwitch Test', () => {
       id: 12,
       pid: 15,
       tid: 589,
-      state: "test",
-      type: "test",
+      state: 'test',
+      type: 'test',
       dur: 15552,
       ts: 526,
       endTs: 63965
@@ -93,18 +93,18 @@ describe('TabPaneSchedSwitch Test', () => {
       id: 12,
       pid: 15,
       tid: 589,
-      name: "name",
+      name: 'name',
       cycleStartTime: 526,
       depth: 1
     }
   ];
   loopCut.mockResolvedValue(loopCutData);
-  Utils.PROCESS_MAP.set(15, '');
-  Utils.THREAD_MAP.set(589, '');
+  Utils.getInstance().getProcessMap().set(15, '');
+  Utils.getInstance().getThreadMap().set(589, '');
   let tabPaneSchedSwitch = new TabPaneSchedSwitch();
   tabPaneSchedSwitch.schedSwitchTbl.exportProgress = {
     loading: ''
-  }
+  };
   tabPaneSchedSwitch.chartTotal.offset = jest.fn(() => ({ x: 60, y: 20 }));
   tabPaneSchedSwitch.selectionParam = {
     rightNs: 1000,
@@ -124,7 +124,7 @@ describe('TabPaneSchedSwitch Test', () => {
   });
 
   it('TabPaneSchedSwitchTest02', function () {
-    tabPaneSchedSwitch.queryCycleRangeData()
+    tabPaneSchedSwitch.queryCycleRangeData();
     expect(tabPaneSchedSwitch.histogramSource.length).toBe(1);
   });
 

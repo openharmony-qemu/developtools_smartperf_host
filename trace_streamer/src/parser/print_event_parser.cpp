@@ -32,6 +32,8 @@ PrintEventParser::PrintEventParser(TraceDataCache *dataCache, const TraceStreame
                              std::placeholders::_3)},
         {rsOnDoCompositionEvent_, bind(&PrintEventParser::RSReciveOnDoComposition, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3)},
+        {onVsyncEvent_, bind(&PrintEventParser::OnVsyncEvent, this, std::placeholders::_1, std::placeholders::_2,
+                             std::placeholders::_3)},
         {marshRwTransactionData_, bind(&PrintEventParser::OnRwTransaction, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3)},
         {rsMainThreadProcessCmd_, bind(&PrintEventParser::OnMainThreadProcessCmd, this, std::placeholders::_1,
@@ -140,7 +142,8 @@ void PrintEventParser::ParseStartEvent(const std::string &comm,
     if (point.name_ == onFrameQueeuStartEvent_ && index != INVALID_UINT64) {
         OnFrameQueueStart(ts, index, point.tgid_);
     } else if (traceDataCache_->AnimationTraceEnabled() && index != INVALID_UINT64 &&
-               base::EndWith(comm, onAnimationProcEvent_)) { // the comm is taskName
+               (base::EndWith(comm, onAnimationProcEvent_) ||
+                base::EndWith(comm, newOnAnimationProcEvent_))) { // the comm is taskName
         streamFilters_->animationFilter_->StartAnimationEvent(line, point, index);
     }
 }
@@ -196,7 +199,7 @@ void PrintEventParser::Finish()
 {
     eventToFrameFunctionMap_.clear();
     frameCallIds_.clear();
-    vsyncSliceIds_.clear();
+    vsyncSliceMap_.clear();
     streamFilters_->animationFilter_->Clear();
     streamFilters_->frameFilter_->Clear();
 }
@@ -253,8 +256,18 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint &ou
         TS_LOGD("point name is empty!");
         return PARSE_ERROR;
     }
-    // Use ## to differentiate distributed data
-    if (outPoint.name_.find("##") == std::string::npos) {
+    // Distributed data:
+    // <...>-357 (-------) .... 174330.287420: tracing_mark_write:
+    // B|1298|H:[8b00e96b2,2,1]#C##napi::NativeAsyncWork::QueueWithQos
+    std::smatch matcheLine;
+    bool matched = std::regex_match(outPoint.name_, matcheLine, distributeMatcher_);
+    if (matched) {
+        size_t index = 0;
+        outPoint.chainId_ = matcheLine[++index].str();
+        outPoint.spanId_ = matcheLine[++index].str();
+        outPoint.parentSpanId_ = matcheLine[++index].str();
+        outPoint.flag_ = matcheLine[++index].str();
+    } else {
         auto space = outPoint.name_.find(' ');
         if (space != std::string::npos) {
             outPoint.funcPrefix_ = outPoint.name_.substr(0, space);
@@ -263,20 +276,6 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint &ou
         } else {
             outPoint.funcPrefixId_ = traceDataCache_->GetDataIndex(outPoint.name_);
         }
-        return PARSE_SUCCESS;
-    }
-    // Resolve distributed calls
-    // the normal data mybe like:
-    // system-1298 ( 1298) [001] ...1 174330.287420: tracing_mark_write: B|1298|H:[8b00e96b2,2,1]#C##decodeFrame"
-    const std::regex distributeMatcher = std::regex(R"(H:\[([a-z0-9]+),([a-z0-9]+),([a-z0-9]+)\]#([CS]?)##(.*))");
-    std::smatch matcheLine;
-    bool matched = std::regex_match(outPoint.name_, matcheLine, distributeMatcher);
-    if (matched) {
-        size_t index = 0;
-        outPoint.chainId_ = matcheLine[++index].str();
-        outPoint.spanId_ = matcheLine[++index].str();
-        outPoint.parentSpanId_ = matcheLine[++index].str();
-        outPoint.flag_ = matcheLine[++index].str();
     }
     return PARSE_SUCCESS;
 }
@@ -327,7 +326,26 @@ bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string &args, const
         }
     }
     streamFilters_->frameFilter_->BeginVsyncEvent(line, now, expectEnd, vsyncId, callStackRow);
-    vsyncSliceIds_.push_back(callStackRow);
+    auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
+    if (vsyncSliceMap_.count(iTid)) {
+        vsyncSliceMap_[iTid].push_back(callStackRow);
+    } else {
+        vsyncSliceMap_[iTid] = {callStackRow};
+    }
+    return true;
+}
+bool PrintEventParser::OnVsyncEvent(size_t callStackRow, std::string &args, const BytraceLine &line)
+{
+    Unused(args);
+    auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
+    if (!vsyncSliceMap_.count(iTid)) {
+        return false;
+    }
+    // when there are mutiple nested OnVsyncEvent,only handle the OnvsyncEvent of the next layer under ReceiveVsync
+    if (vsyncSliceMap_[iTid].size() >= maxVsyncEventSize_) {
+        return false;
+    }
+    vsyncSliceMap_[iTid].push_back(callStackRow);
     return true;
 }
 bool PrintEventParser::RSReciveOnDoComposition(size_t callStackRow, std::string &args, const BytraceLine &line)
@@ -351,7 +369,7 @@ bool PrintEventParser::OnRwTransaction(size_t callStackRow, std::string &args, c
 }
 bool PrintEventParser::OnMainThreadProcessCmd(size_t callStackRow, std::string &args, const BytraceLine &line)
 {
-    std::sregex_iterator it(args.begin(), args.end(), mainProcessCmdPattern);
+    std::sregex_iterator it(args.begin(), args.end(), mainProcessCmdPattern_);
     std::sregex_iterator end;
     std::vector<FrameFilter::FrameMap> frames;
     while (it != end) {
@@ -378,12 +396,14 @@ void PrintEventParser::HandleFrameSliceEndEvent(uint64_t ts, uint64_t pid, uint6
 {
     // it can be frame or slice
     auto iTid = streamFilters_->processFilter_->GetInternalTid(tid);
-    auto pos = std::find(vsyncSliceIds_.begin(), vsyncSliceIds_.end(), callStackRow);
-    if (pos != vsyncSliceIds_.end()) {
-        if (!streamFilters_->frameFilter_->EndVsyncEvent(ts, iTid)) {
-            streamFilters_->statFilter_->IncreaseStat(TRACE_VSYNC, STAT_EVENT_NOTMATCH);
+    if (vsyncSliceMap_.count(iTid)) {
+        auto pos = std::find(vsyncSliceMap_[iTid].begin(), vsyncSliceMap_[iTid].end(), callStackRow);
+        if (pos != vsyncSliceMap_[iTid].end()) {
+            if (!streamFilters_->frameFilter_->EndVsyncEvent(ts, iTid)) {
+                streamFilters_->statFilter_->IncreaseStat(TRACE_VSYNC, STAT_EVENT_NOTMATCH);
+            }
+            vsyncSliceMap_[iTid].erase(pos);
         }
-        vsyncSliceIds_.erase(pos);
     }
     return;
 }

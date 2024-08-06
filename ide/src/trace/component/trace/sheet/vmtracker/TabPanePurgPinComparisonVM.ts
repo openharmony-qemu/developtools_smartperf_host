@@ -36,9 +36,8 @@ export class TabPanePurgPinComparisonVM extends BaseElement {
   }
   public totalData(data: SelectionParam | unknown, dataList: unknown): void {
     //@ts-ignore
-    this.purgeablePinTables?.shadowRoot?.querySelector('.table')?.style?.height = `${
-      this.parentElement!.clientHeight - 45
-    }px`;
+    this.purgeablePinTables?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45
+      }px`;
     this.purgeablePinSource = [];
     let fileArr: unknown[] = [];
     // @ts-ignore
@@ -71,8 +70,9 @@ export class TabPanePurgPinComparisonVM extends BaseElement {
     // @ts-ignore
     this.selectEl!.placeholder = purgePinComVmList[0].name;
     this.selectEl!.dataSource = purgePinComVmList;
-    this.selectEl!.querySelectorAll('lit-select-option').forEach((a) => {
-      a.addEventListener('onSelected', (e: unknown) => {
+    let selectOption = this.selectEl!.querySelectorAll('lit-select-option');
+    for (const item of selectOption) {
+      item.addEventListener('onSelected', (e: unknown) => {
         for (let f of purgePinComVmList) {
           // @ts-ignore
           if (input.value === f.name) {
@@ -83,7 +83,7 @@ export class TabPanePurgPinComparisonVM extends BaseElement {
         // @ts-ignore
         e.stopPropagation();
       });
-    });
+    }
   }
   private async updateComparisonData(baseTime: number, targetTime: number): Promise<void> {
     this.purgeablePinSource = [];

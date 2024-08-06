@@ -46,7 +46,7 @@ config("hiperf_parser_cfg") {
     "${THIRD_PARTY}/bounds_checking_function/include",
     "${THIRD_PARTY}/sqlite/include",
     "${THIRD_PARTY}/protobuf/src",
-    "${COMMON_LIBRARY}/c_utils/base/include",
+    "${COMMON_LIBRARY}/base/include",
     "${THIRD_PARTY}/googletest/googletest/include",
   ]
   include_dirs += [
@@ -60,11 +60,6 @@ config("hiperf_parser_cfg") {
     "${SRC}/trace_data/trace_stdtype/measure",
   ]
   include_dirs += [
-    "${THIRD_PARTY}/libunwind/include",
-    "${THIRD_PARTY}/libunwind/src",
-    "${PERF_DIR}/hiperf/include",
-    "${PERF_DIR}/hiperf/include/nonlinux/linux",
-    "${PERF_DIR}/hiperf/include/nonlinux",
     "${THIRD_PARTY}/googletest/googletest/include",
     "${THIRD_PARTY}/perf_include/libbpf",
     "${THIRD_PARTY}/perf_include/include",
@@ -72,24 +67,11 @@ config("hiperf_parser_cfg") {
     "${THIRD_PARTY}/perf_include/linux",
     "../hiperf_parser",
     "../hiperf_parser/include",
-    "${COMMON_LIBRARY}/c_utils/base/include",
+    "${COMMON_LIBRARY}/base/include",
     "${THIRD_PARTY}/sqlite",
   ]
-  include_dirs += [
-    "${THIRD_PARTY}/perf_include/hiviewdfx/hilog/include",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/cutil",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxlog",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/common",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
-  ]
-  include_dirs += [ "${THIRD_PARTY}/libunwind/include" ]
   if (is_mingw || is_mac) {
     include_dirs += [ "${THIRD_PARTY}/libbpf/include/uapi" ]
-  }
-  if (is_mingw) {
-    cflags = [ "-includeMingW64Fix.h" ]
   }
 }
 
@@ -102,9 +84,9 @@ ohos_static_library("hiperf_parser") {
     "../../filter/perf_filter:hiperf_filter_cfg",
   ]
   public_deps = [
-    "${PERF_DIR}/hiperf:hiperf_platform_common",
+    "${PERF_DIR}/hiperf:hiperf_src",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",
     "${THIRD_PARTY}/protobuf:protobuf_static",
-    "//third_party/perf_include/hiviewdfx:hiviewdfx",
+    "//third_party/perf_include/hiviewdfx:libfaultloggerd",
   ]
 }

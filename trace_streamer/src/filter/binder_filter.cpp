@@ -125,9 +125,12 @@ void BinderFilter::ReceiveTraction(int64_t ts, uint32_t pid, uint64_t transactio
         args.AppendArg(destThreadNameId_, BASE_DATA_TYPE_STRING, threadName);
         if (IsValidUint32(static_cast<uint32_t>(replySliceid))) {
             args.AppendArg(destSliceId_, BASE_DATA_TYPE_INT, replySliceid);
+        } else {
+            TS_LOGD("ReceiveTraction, replySliceid value is INVALID!");
+            return;
         }
         // Add dest args
-        uint64_t transSliceId = INVALID_UINT64;
+        uint64_t transSliceId = INVALID_UINT32;
         uint32_t argSetId = INVALID_UINT32;
         std::tie(transSliceId, argSetId) = streamFilters_->sliceFilter_->AddArgs(transNeedReply_[transactionId],
                                                                                  binderCatalogId_, transSliceId_, args);
@@ -136,6 +139,9 @@ void BinderFilter::ReceiveTraction(int64_t ts, uint32_t pid, uint64_t transactio
         ArgsSet replyDestInserter;
         if (IsValidUint32(transSliceId)) {
             replyDestInserter.AppendArg(destSliceId_, BASE_DATA_TYPE_INT, transSliceId);
+        } else {
+            TS_LOGD("ReceiveTraction, transSliceId value is INVALID!");
+            return;
         }
         std::tie(transSliceId, argSetId) =
             streamFilters_->sliceFilter_->AddArgs(pid, binderCatalogId_, replyId_, replyDestInserter);

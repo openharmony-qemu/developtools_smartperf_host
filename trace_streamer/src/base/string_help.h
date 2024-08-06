@@ -28,6 +28,8 @@ bool StartWith(const std::string &str, const std::string &res);
 bool EndWith(const std::string &str, const std::string &res);
 std::string FormatString(const char *p);
 std::string Strip(const std::string &str);
+std::string StrTrim(const std::string &input);
+void StrTrim(std::string& input);
 std::string TrimInvisibleCharacters(const std::string &str);
 void RemoveNullTerminator(std::string &str);
 } // namespace base

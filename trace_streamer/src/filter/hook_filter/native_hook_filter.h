@@ -78,7 +78,7 @@ public:
     void ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData);
     void ParseTagEvent(const ProtoReader::BytesView &bytesView);
     void FinishParseNativeHookData();
-    bool NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
+    void NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
     CommHookData &GetCommHookData();
     ProfilerPluginData *GetHookPluginData();
     void SerializeHookCommDataToString();
@@ -145,14 +145,14 @@ private:
     template <class T>
     void UpdateFilePathIdAndStValueToSymAddrMap(T *firstSymbolAddr, const int size, uint32_t filePathId);
     uint64_t GetMemMapSubTypeWithAddr(uint64_t addr);
-    void UpdateAnonMmapDataDbIndex(uint64_t addr, uint32_t size, uint64_t row);
+    void UpdateAnonMmapDataDbIndex(uint64_t addr, uint64_t size, uint64_t row);
     void UpdateLastCallerPathAndSymbolIndexs();
     void UpdateFilePathIndexToCallStackRowMap(size_t row, DataIndex filePathIndex);
 
 private:
     // first key is addr, second key is size, value is set<row> in db
     // mmap update anonymous memory tag always use the anonMmapData_ value
-    DoubleMap<uint64_t, uint32_t, std::shared_ptr<std::set<uint64_t>>> anonMmapData_;
+    DoubleMap<uint64_t, uint64_t, std::shared_ptr<std::set<uint64_t>>> anonMmapData_;
     std::unique_ptr<ProfilerPluginData> hookPluginData_ = nullptr;
     DoubleMap<uint32_t, uint32_t, uint64_t> ipidToSymIdToSymIndex_;
     DoubleMap<uint32_t, uint32_t, uint64_t> ipidToFilePathIdToFileIndex_;

@@ -36,6 +36,7 @@
 #include "datasource_clockid_table.h"
 #include "device_info_table.h"
 #include "device_state_table.h"
+#include "dma_fence_table.h"
 #include "disk_io_table.h"
 #include "dynamic_frame_table.h"
 #include "ebpf_callstack_table.h"
@@ -83,6 +84,7 @@
 #include "perf_report_table.h"
 #include "perf_sample_table.h"
 #include "perf_thread_table.h"
+#include "perf_napi_async_table.h"
 #include "process_measure_filter_table.h"
 #include "process_table.h"
 #include "range_table.h"
@@ -151,6 +153,7 @@ void TraceDataCache::InitHiperfDB()
     TableBase::TableDeclare<PerfCallChainTable>(*db_, this, "perf_callchain");
     TableBase::TableDeclare<PerfThreadTable>(*db_, this, "perf_thread");
     TableBase::TableDeclare<PerfFilesTable>(*db_, this, "perf_files");
+    TableBase::TableDeclare<PerfNapiAsyncTable>(*db_, this, "perf_napi_async");
 }
 void TraceDataCache::InitMeasureDB()
 {
@@ -245,6 +248,7 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<DiskIOTable>(*db_, this, "diskio");
     TableBase::TableDeclare<CpuUsageInfoTable>(*db_, this, "cpu_usage");
     TableBase::TableDeclare<LiveProcessTable>(*db_, this, "live_process");
+    TableBase::TableDeclare<DmaFenceTable>(*db_, this, "dma_fence");
     dbInited_ = true;
 }
 bool TraceDataCache::AnimationTraceEnabled() const
@@ -283,10 +287,17 @@ bool TraceDataCache::HMKernelTraceEnabled() const
 {
     return HMKernelTraceEnabled_;
 }
-
 void TraceDataCache::UpdateHMKernelTraceStatus(bool status)
 {
     HMKernelTraceEnabled_ = status;
+}
+bool TraceDataCache::RawTraceCutStartTsEnabled() const
+{
+    return rawTraceCutStartTsEnabled_;
+}
+void TraceDataCache::UpdateRawTraceCutStartTsStatus(bool status)
+{
+    rawTraceCutStartTsEnabled_ = status;
 }
 uint64_t TraceDataCache::SplitFileMaxTime()
 {

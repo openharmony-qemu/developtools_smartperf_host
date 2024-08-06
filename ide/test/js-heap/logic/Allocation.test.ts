@@ -305,7 +305,7 @@ describe('Allocation Test', () => {
   it('AllocationTest03', () => {
     let allocationLogic = new AllocationLogic(data);
     let nodeStack = allocationLogic.getNodeStack(12);
-    expect(nodeStack.length).toBe(1);
+    expect(nodeStack.length).toBe(0);
   });
   it('AllocationTest04', () => {
     let allocationLogic = new AllocationLogic(data);

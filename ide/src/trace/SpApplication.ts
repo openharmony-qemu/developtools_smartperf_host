@@ -22,14 +22,20 @@ import './component/SpHelp';
 import { SpQuerySQL } from './component/SpQuerySQL';
 import './component/SpQuerySQL';
 import { SpSystemTrace } from './component/SpSystemTrace';
-import { LitMainMenu, MenuItem } from '../base-ui/menu/LitMainMenu';
+import { LitMainMenu, MenuGroup, MenuItem } from '../base-ui/menu/LitMainMenu';
 import { SpInfoAndStats } from './component/SpInfoAndStas';
 import '../base-ui/progress-bar/LitProgressBar';
 import { LitProgressBar } from '../base-ui/progress-bar/LitProgressBar';
 import { SpRecordTrace } from './component/SpRecordTrace';
 import { SpWelcomePage } from './component/SpWelcomePage';
 import { LitSearch } from './component/trace/search/Search';
-import { DbPool, threadPool } from './database/SqlLite';
+import {
+  getThreadPoolTraceBuffer,
+  getThreadPoolTraceBufferCacheKey,
+  setThreadPoolTraceBuffer,
+  threadPool,
+  threadPool2,
+} from './database/SqlLite';
 import './component/trace/search/Search';
 import './component/SpWelcomePage';
 import './component/SpSystemTrace';
@@ -66,11 +72,13 @@ import {
   indexedDataToBufferData,
   postLog,
   readTraceFileBuffer,
+  TraceMode,
 } from './SpApplicationPublicFunc';
 import { queryExistFtrace } from './database/sql/SqlLite.sql';
 import '../base-ui/chart/scatter/LitChartScatter';
 import { SpThirdParty } from './component/SpThirdParty';
 import './component/SpThirdParty';
+import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -91,14 +99,14 @@ export class SpApplication extends BaseElement {
 
   longTraceTypeMessageMap:
     | Map<
-        number,
-        Array<{
-          fileType: string;
-          startIndex: number;
-          endIndex: number;
-          size: number;
-        }>
-      >
+      number,
+      Array<{
+        fileType: string;
+        startIndex: number;
+        endIndex: number;
+        size: number;
+      }>
+    >
     | undefined
     | null;
   static skinChange: Function | null | undefined = null;
@@ -155,6 +163,7 @@ export class SpApplication extends BaseElement {
   private pageTimStamp: number = 0;
   private currentPageNum: number = 1;
   private currentDataTime: string[] = [];
+  static traceType: String = '';
 
   static get observedAttributes(): Array<string> {
     return ['server', 'sqlite', 'wasm', 'dark', 'vs', 'query-sql', 'subsection'];
@@ -303,8 +312,7 @@ export class SpApplication extends BaseElement {
     this.initCustomColorHandler();
     this.initImportConfigEvent();
     this.initSlideMenuEvents();
-    // @ts-ignore
-    this.mainMenu!.menus = [this.initNavigationMenu(), this.initSupportMenus()];
+    this.resetMenus();
     this.initGlobalEvents();
     this.initDocumentListener();
     this.initElementsEnd();
@@ -359,7 +367,7 @@ export class SpApplication extends BaseElement {
   private openLongTraceFile(ev: unknown, isRecordTrace: boolean = false): void {
     this.returnOriginalUrl();
     this.wasm = true;
-    this.openFileInit();
+    this.openFileInit(true);
     // @ts-ignore
     let detail = ev.detail;
     let initRes = this.longTraceFileInit(isRecordTrace, detail);
@@ -478,11 +486,11 @@ export class SpApplication extends BaseElement {
     detail: unknown
   ):
     | {
-        traceTypePage: number[];
-        allFileSize: number;
-        normalTraceNames: string[];
-        specialTraceNames: string[];
-      }
+      traceTypePage: number[];
+      allFileSize: number;
+      normalTraceNames: string[];
+      specialTraceNames: string[];
+    }
     | undefined {
     if (!this.wasm) {
       this.progressEL!.loading = false;
@@ -505,8 +513,7 @@ export class SpApplication extends BaseElement {
       let traceTypePage: Array<number> = [];
       let allFileSize = 0;
       let normalTraceNames: Array<string> = [];
-      let specialTraceNames: Array<string> = [];
-      //@ts-ignore
+      let specialTraceNames: Array<string> = []; //@ts-ignore
       for (let index = 0; index < detail.length; index++) {
         //@ts-ignore
         let file = detail[index];
@@ -578,6 +585,7 @@ export class SpApplication extends BaseElement {
   private openTraceFile(ev: unknown, isClickHandle?: boolean): void {
     this.returnOriginalUrl();
     this.removeAttribute('custom-color');
+    this.chartFilter!.setAttribute('hidden', '');
     this.customColor!.setAttribute('hidden', '');
     this.longTracePage!.style.display = 'none';
     this.litSearch!.style.marginLeft = '0px';
@@ -599,6 +607,7 @@ export class SpApplication extends BaseElement {
     reader.readAsText(typeHeader);
     reader.onloadend = (event): void => {
       let headerStr: string = `${reader?.result}`;
+      SpApplication.traceType = headerStr;
       if (headerStr.indexOf('SQLite') === 0) {
         info('Parse trace headerStr sql mode');
         this.wasm = false;
@@ -613,7 +622,25 @@ export class SpApplication extends BaseElement {
     };
   }
 
+  private openDistributedTraceFile(ev: InputEvent): void {
+    this.openFileInit(true);
+    this.importConfigDiv!.style.display = 'none';
+    this.closeKeyPath!.style.display = 'none';
+    // @ts-ignore
+    let fileList = ev.detail as FileList;
+    if (fileList.length === 2) {
+      this.handleDistributedWasmMode(fileList.item(0)!, fileList.item(1)!);
+    } else {
+      this.progressEL!.loading = false;
+      this.litSearch!.setPercent('load distributed trace error', -1);
+      this.resetMenus();
+      this.freshMenuDisable(false);
+      this.headerDiv!.style.pointerEvents = 'auto';
+    }
+  }
+
   private openLineFileHandler(urlParams: URLSearchParams): void {
+    Utils.currentTraceMode = TraceMode.NORMAL;
     this.openFileInit();
     this.openMenu(false);
     let downloadLineFile = urlParams.get('local') ? false : true;
@@ -689,7 +716,7 @@ export class SpApplication extends BaseElement {
             this.litSearch!.setPercent('This File is not supported!', -1);
             this.progressEL!.loading = false;
             this.freshMenuDisable(false);
-            this.mainMenu!.menus!.splice(1, 1);
+            this.mainMenu!.menus!.splice(2, 1);
             this.mainMenu!.menus = this.mainMenu!.menus!;
             this.spSystemTrace!.reset(null);
           }
@@ -776,56 +803,77 @@ export class SpApplication extends BaseElement {
     );
   }
 
-  private initNavigationMenu(): unknown {
-    return {
-      collapsed: false,
-      title: 'Navigation',
-      second: false,
-      icon: '',
-      describe: 'Open or record a new trace',
-      children: [
-        {
-          title: 'Open trace file',
-          icon: 'folder',
-          fileChoose: true,
-          fileHandler: (ev: InputEvent): void => {
-            this.openTraceFile(ev.detail);
+  private initNavigationMenu(multiTrace: boolean): MenuGroup[] {
+    return [
+      {
+        collapsed: false,
+        title: 'Navigation',
+        second: false,
+        icon: 'caret-down',
+        describe: 'Open or record a new trace',
+        children: [
+          {
+            title: 'Open trace file',
+            icon: 'folder',
+            fileChoose: true,
+            fileHandler: (ev: InputEvent): void => {
+              Utils.currentTraceMode = TraceMode.NORMAL;
+              this.openTraceFile(ev.detail);
+            },
           },
-          clickHandler: (hand: unknown): void => {
-            this.openTraceFile(hand, true);
+          {
+            title: 'Record new trace',
+            icon: 'copyhovered',
+            clickHandler: (item: MenuItem): void => this.clickHandleByRecordNewTrace(),
           },
-        },
-        {
-          title: 'Open long trace file',
-          icon: 'folder',
-          fileChoose: true,
-          fileHandler: (ev: InputEvent): void => {
-            this.openLongTraceFile(ev);
+          {
+            title: 'Record template',
+            icon: 'copyhovered',
+            clickHandler: (item: MenuItem): void => this.clickHandleByRecordTemplate(),
           },
-          clickHandler: (hand: InputEvent): void => {
-            this.openLongTraceFile(hand, true);
+        ],
+      },
+      {
+        collapsed: !multiTrace,
+        title: 'Open multiple trace',
+        second: false,
+        icon: 'caret-down',
+        describe: 'long trace or distributed trace',
+        children: [
+          {
+            title: 'Open long trace',
+            icon: 'folder',
+            fileChoose: true,
+            clickHandler: (ev: InputEvent): void => {
+              Utils.currentTraceMode = TraceMode.LONG_TRACE;
+              this.openLongTraceFile(ev, true);
+            },
+            fileHandler: (ev: InputEvent): void => {
+              Utils.currentTraceMode = TraceMode.LONG_TRACE;
+              this.openLongTraceFile(ev);
+            },
           },
-        },
-        {
-          title: 'Record new trace',
-          icon: 'copyhovered',
-          clickHandler: (item: MenuItem): void => this.clickHandleByRecordNewTrace(),
-        },
-        {
-          title: 'Record template',
-          icon: 'copyhovered',
-          clickHandler: (item: MenuItem): void => this.clickHandleByRecordTemplate(),
-        },
-      ],
-    };
+          {
+            title: 'Open distributed trace',
+            icon: 'folder',
+            multi: true,
+            fileChoose: true,
+            fileHandler: (ev: InputEvent): void => {
+              Utils.currentTraceMode = TraceMode.DISTRIBUTED;
+              this.openDistributedTraceFile(ev);
+            },
+          },
+        ],
+      },
+    ];
   }
 
-  private initSupportMenus(): unknown {
+  private initSupportMenus(): MenuGroup {
     return {
       collapsed: false,
       title: 'Support',
       second: false,
-      icon: '',
+      icon: 'caret-down',
       describe: 'Support',
       children: [
         {
@@ -842,17 +890,7 @@ export class SpApplication extends BaseElement {
           title: 'Keyboard Shortcuts',
           icon: 'smart-help',
           clickHandler: (item: MenuItem): void => this.clickHandleByKeyboardShortcuts(),
-        },
-        {
-          title: 'Third File',
-          icon: 'file-fill',
-          fileModel: this.wasm ? 'wasm' : 'db',
-          clickHandler: (item: MenuItem): void => {
-            this.returnOriginalUrl();
-            this.search = false;
-            this.showContent(this.spThirdParty!);
-          },
-        },
+        }
       ],
     };
   }
@@ -941,20 +979,21 @@ export class SpApplication extends BaseElement {
           (command: string, _: number) => {
             this.setProgress(command);
           },
+          false,
           () => {
-            this.mainMenu!.menus!.splice(1, this.mainMenu!.menus!.length > 2 ? 1 : 0, {
+            this.mainMenu!.menus!.splice(2, this.mainMenu!.menus!.length > 2 ? 1 : 0, {
               collapsed: false,
               title: 'Current Trace',
               second: false,
-              icon: '',
+              icon: 'caret-down',
               describe: 'Actions on the current trace',
-              children: this.getTraceOptionMenus(showFileName, fileSizeStr, fileName, true),
+              children: this.getTraceOptionMenus(showFileName, fileSizeStr, fileName, true, false),
             });
-            this.mainMenu!.menus!.splice(2, 1, {
+            this.mainMenu!.menus!.splice(3, 1, {
               collapsed: false,
               title: 'Support',
               second: false,
-              icon: '',
+              icon: 'caret-down',
               describe: 'Support',
               children: this.getTraceSupportMenus(),
             });
@@ -971,6 +1010,45 @@ export class SpApplication extends BaseElement {
     });
   }
 
+  private handleDistributedWasmMode(file1: File, file2: File): void {
+    this.litSearch!.setPercent('', 1);
+    document.title = 'Distributed Trace';
+    let completeHandler = async (res: unknown): Promise<void> => {
+      await this.traceLoadCompleteHandler(res, '', '', file1.name, true, file2.name);
+    };
+    let typeHeader = file1.slice(0, 6);
+    let reader: FileReader | null = new FileReader();
+    reader.readAsText(typeHeader);
+    reader.onloadend = (event): void => {
+      let headerStr: string = `${reader?.result}`;
+      let traceType = 'wasm';
+      if (headerStr.indexOf('SQLite') === 0) {
+        traceType = 'sqlite';
+      }
+      Promise.all([threadPool.init(traceType), threadPool2.init(traceType)]).then(() => {
+        let wasmUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`;
+        Promise.all([file1.arrayBuffer(), file2.arrayBuffer()]).then((bufArr) => {
+          this.litSearch!.setPercent('ArrayBuffer loaded  ', 2);
+          SpApplication.loadingProgress = 0;
+          SpApplication.progressStep = 2;
+          let buf1 = this.markPositionHandler(bufArr[0]);
+          let buf2 = this.markPositionHandler(bufArr[1]);
+          info('initData start Parse Data');
+          this.spSystemTrace!.loadDatabaseArrayBuffer(
+            buf1,
+            wasmUrl,
+            (command: string, _: number) => this.setProgress(command),
+            true,
+            completeHandler,
+            buf2,
+            file1.name,
+            file2.name
+          );
+        });
+      });
+    };
+  }
+
   private handleWasmMode(ev: unknown, showFileName: string, fileSize: number, fileName: string): void {
     this.litSearch!.setPercent('', 1);
     if (fileName.endsWith('.json')) {
@@ -983,19 +1061,28 @@ export class SpApplication extends BaseElement {
         this.chartFilter!.setAttribute('mode', '');
         this.progressEL!.loading = false;
       });
+    } else if (fileName.endsWith('.csv')) {
+      this.progressEL!.loading = true;
+      this.spSystemTrace!.loadGpuCounter(ev as File).then(() => {
+        this.showContent(this.spSystemTrace!);
+        this.litSearch!.setPercent('', 101);
+        this.freshMenuDisable(false);
+        this.chartFilter!.setAttribute('mode', '');
+        this.progressEL!.loading = false;
+      });
     } else {
       let fileSizeStr = (fileSize / 1048576).toFixed(1);
       postLog(fileName, fileSizeStr);
       document.title = `${showFileName} (${fileSizeStr}M)`;
       info('Parse trace using wasm mode ');
       let completeHandler = async (res: unknown): Promise<void> => {
-        await this.traceLoadCompleteHandler(res, fileSizeStr, showFileName, fileName);
+        await this.traceLoadCompleteHandler(res, fileSizeStr, showFileName, fileName, false);
         if (this.markJson) {
           window.publish(window.SmartEvent.UI.ImportRecord, this.markJson);
         }
       };
       threadPool.init('wasm').then((res) => {
-        let reader: FileReader | null = new FileReader();
+        let reader: FileReader = new FileReader();
         //@ts-ignore
         reader.readAsArrayBuffer(ev);
         reader.onloadend = (ev): void => {
@@ -1010,6 +1097,7 @@ export class SpApplication extends BaseElement {
             data,
             wasmUrl,
             (command: string, _: number) => this.setProgress(command),
+            false,
             completeHandler
           );
         };
@@ -1037,36 +1125,58 @@ export class SpApplication extends BaseElement {
     res: unknown,
     fileSize: string,
     showFileName: string,
-    fileName: string
+    fileName: string,
+    isDistributed: boolean,
+    fileName2?: string
   ): Promise<void> {
-    let existFtrace = await queryExistFtrace();
-    let isAllowTrace = true;
-    if (DbPool.sharedBuffer) {
-      let traceHeadData = new Uint8Array(DbPool.sharedBuffer!.slice(0, 10));
-      let enc = new TextDecoder();
-      let headerStr = enc.decode(traceHeadData);
-      let rowTraceStr = Array.from(new Uint8Array(DbPool.sharedBuffer!.slice(0, 2)))
-        .map((byte) => byte.toString(16).padStart(2, '0'))
-        .join('');
-      if (headerStr.indexOf('OHOSPROF') !== 0 && rowTraceStr.indexOf('49df') !== 0) {
-        isAllowTrace = false;
+    let index = 3;
+    if (isDistributed) {
+      //分布式，隐藏 裁剪 trace 和 导出带记录的收藏trace 功能
+      this.cutTraceFile!.style.display = 'none';
+      this.exportRecord!.style.display = 'none';
+      this.litSearch?.setAttribute('distributed', '');
+      setThreadPoolTraceBuffer('1', null);
+      setThreadPoolTraceBuffer('2', null);
+    } else {
+      let existFtrace = await queryExistFtrace();
+      let isAllowTrace = true;
+      let sharedBuffer = getThreadPoolTraceBuffer('1');
+      if (sharedBuffer) {
+        let traceHeadData = new Uint8Array(sharedBuffer!.slice(0, 10));
+        let enc = new TextDecoder();
+        let headerStr = enc.decode(traceHeadData);
+        let rowTraceStr = Array.from(new Uint8Array(sharedBuffer!.slice(0, 2)))
+          .map((byte) => byte.toString(16).padStart(2, '0'))
+          .join('');
+        if (headerStr.indexOf('OHOSPROF') !== 0 && rowTraceStr.indexOf('49df') !== 0) {
+          isAllowTrace = false;
+        }
+        this.cutTraceFile!.style.display = 'block';
+        this.exportRecord!.style.display = 'block';
+        setThreadPoolTraceBuffer('1', null);
       }
-      this.cutTraceFile!.style.display = 'block';
-      DbPool.sharedBuffer = null;
+      if (existFtrace.length > 0 && isAllowTrace) {
+        this.showConvertTraceMenu(fileName);
+        index = 4;
+      }
     }
-    let index = 2;
-    if (existFtrace.length > 0 && isAllowTrace) {
-      this.showConvertTraceMenu(fileName);
-      index = 3;
-    }
+
     this.loadTraceCompleteMenuHandler(index);
     //@ts-ignore
     if (res.status) {
       info('loadDatabaseArrayBuffer success');
-      //@ts-ignore
-      window.traceFileName = fileName;
-      this.showCurrentTraceMenu(fileSize, showFileName, fileName);
-      this.importConfigDiv!.style.display = Utils.SCHED_SLICE_MAP.size > 0 ? 'block' : 'none';
+      if (isDistributed) {
+        Utils.distributedTrace.push(fileName || 'trace1');
+        Utils.distributedTrace.push(fileName2 || 'trace2');
+        this.litSearch!.setTraceSelectOptions();
+      } else {
+        //@ts-ignore
+        (window as unknown).traceFileName = fileName;
+      }
+      this.showCurrentTraceMenu(fileSize, showFileName, fileName, isDistributed);
+      if (!isDistributed) {
+        this.importConfigDiv!.style.display = Utils.getInstance().getSchedSliceMap().size > 0 ? 'block' : 'none';
+      }
       this.showContent(this.spSystemTrace!);
       this.litSearch!.setPercent('', 101);
       this.chartFilter!.setAttribute('mode', '');
@@ -1075,34 +1185,37 @@ export class SpApplication extends BaseElement {
       info('loadDatabaseArrayBuffer failed');
       //@ts-ignore
       this.litSearch!.setPercent(res.msg || 'This File is not supported!', -1);
+      this.resetMenus();
       this.freshMenuDisable(false);
-      this.mainMenu!.menus!.splice(1, 1);
-      this.mainMenu!.menus = this.mainMenu!.menus!;
     }
     this.progressEL!.loading = false;
     this.headerDiv!.style.pointerEvents = 'auto';
     this.spInfoAndStats!.initInfoAndStatsData();
   }
 
+  private resetMenus(multiTrace: boolean = false): void {
+    this.mainMenu!.menus = [...this.initNavigationMenu(multiTrace), this.initSupportMenus()];
+  }
+
   private showConvertTraceMenu(fileName: string): void {
-    this.mainMenu!.menus!.splice(2, 1, {
+    this.mainMenu!.menus!.splice(3, 1, {
       collapsed: false,
       title: 'Convert trace',
       second: false,
-      icon: '',
+      icon: 'caret-down',
       describe: 'Convert to other formats',
       children: this.pushConvertTrace(fileName),
     });
   }
 
-  private showCurrentTraceMenu(fileSize: string, showFileName: string, fileName: string): void {
-    this.mainMenu!.menus!.splice(1, this.mainMenu!.menus!.length > 2 ? 1 : 0, {
+  private showCurrentTraceMenu(fileSize: string, showFileName: string, fileName: string, isDistributed: boolean): void {
+    this.mainMenu!.menus!.splice(2, this.mainMenu!.menus!.length > 2 ? 1 : 0, {
       collapsed: false,
       title: 'Current Trace',
       second: false,
-      icon: '',
+      icon: 'caret-down',
       describe: 'Actions on the current trace',
-      children: this.getTraceOptionMenus(showFileName, fileSize, fileName, false),
+      children: this.getTraceOptionMenus(showFileName, fileSize, fileName, false, isDistributed),
     });
   }
 
@@ -1111,7 +1224,7 @@ export class SpApplication extends BaseElement {
       collapsed: false,
       title: 'Support',
       second: false,
-      icon: '',
+      icon: 'caret-down',
       describe: 'Support',
       children: [
         {
@@ -1128,16 +1241,6 @@ export class SpApplication extends BaseElement {
           title: 'Keyboard Shortcuts',
           icon: 'smart-help',
           clickHandler: (item: MenuItem): void => this.clickHandleByKeyboardShortcuts(),
-        },
-        {
-          title: 'Third File',
-          icon: 'file-fill',
-          fileModel: this.wasm ? 'wasm' : 'db',
-          clickHandler: (item: MenuItem): void => {
-            this.returnOriginalUrl();
-            this.search = false;
-            this.showContent(this.spThirdParty!);
-          },
         },
       ],
     });
@@ -1206,12 +1309,41 @@ export class SpApplication extends BaseElement {
           const file = new File([fileBlob], this.traceFileName);
           this.handleWasmMode(file, file.name, file.size, file.name);
         }
+        this.refreshLongTraceButtonStyle();
+        this.longTracePage!.style.display = 'flex';
       });
     });
   }
 
+  private refreshLongTraceButtonStyle(): void {
+    let pageListDiv = this.shadowRoot?.querySelector('.page-number-list') as HTMLDivElement;
+    let pageNodeList = pageListDiv.querySelectorAll<HTMLDivElement>('div');
+    let pageInput = this.shadowRoot?.querySelector<HTMLInputElement>('.page-input');
+    let previewButton: HTMLDivElement | null | undefined =
+      this.shadowRoot?.querySelector<HTMLDivElement>('#preview-button');
+    let nextButton: HTMLDivElement | null | undefined = this.shadowRoot?.querySelector<HTMLDivElement>('#next-button');
+    let pageConfirmEl = this.shadowRoot?.querySelector<HTMLDivElement>('.confirm-button');
+    pageInput!.style.pointerEvents = 'auto';
+    pageNodeList.forEach((pageItem) => {
+      pageItem.style.pointerEvents = 'auto';
+    });
+    nextButton!.style.pointerEvents = 'auto';
+    nextButton!.style.opacity = '1';
+    previewButton!.style.pointerEvents = 'auto';
+    previewButton!.style.opacity = '1';
+    if (this.currentPageNum === 1) {
+      previewButton!.style.pointerEvents = 'none';
+      previewButton!.style.opacity = '0.7';
+    } else if (this.currentPageNum === this.longTraceHeadMessageList.length) {
+      nextButton!.style.pointerEvents = 'none';
+      nextButton!.style.opacity = '0.7';
+    }
+    //
+    pageConfirmEl!.style.pointerEvents = 'auto';
+  }
+
   private getTraceFileByPage(pageNumber: number): void {
-    this.openFileInit();
+    this.openFileInit(true);
     if (this.validateGetTraceFileByPage()) {
       let indexedDbPageNum = pageNumber - 1;
       let maxTraceFileLength = 400 * 1024 * 1024;
@@ -1392,10 +1524,15 @@ export class SpApplication extends BaseElement {
     });
   }
 
-  private openFileInit(): void {
+  private openFileInit(multiTrace: boolean = false): void {
     clearTraceFileCache();
     this.litSearch!.clear();
+    Utils.currentSelectTrace = undefined;
     this.markJson = undefined;
+    if (!multiTrace) {
+      this.longTracePage!.style.display = 'none';
+    }
+    this.litSearch?.removeAttribute('distributed');
     SpStatisticsHttpUtil.addOrdinaryVisitAction({
       event: 'open_trace',
       action: 'open_trace',
@@ -1403,22 +1540,17 @@ export class SpApplication extends BaseElement {
     info('openTraceFile');
     this.headerDiv!.style.pointerEvents = 'none';
     this.spSystemTrace!.clearPointPair();
-    this.spSystemTrace!.reset((command: string, percent: number) => {
+    this.spSystemTrace!.reset((command: string, percent: number): void => {
       this.setProgress(command);
     });
+    threadPool2.reset().then();
     window.publish(window.SmartEvent.UI.MouseEventEnable, {
       mouseEnable: false,
     });
     window.clearTraceRowComplete();
-    this.freshMenuDisable(true);
     SpSchedulingAnalysis.resetCpu();
-    if (this.mainMenu!.menus!.length > 3) {
-      this.mainMenu!.menus!.splice(1, 2);
-      this.mainMenu!.menus = this.mainMenu!.menus!;
-    } else if (this.mainMenu!.menus!.length > 2) {
-      this.mainMenu!.menus!.splice(1, 1);
-      this.mainMenu!.menus = this.mainMenu!.menus!;
-    }
+    this.resetMenus(multiTrace);
+    this.freshMenuDisable(true);
     this.showContent(this.spSystemTrace!);
     this.progressEL!.loading = true;
   }
@@ -1458,7 +1590,7 @@ export class SpApplication extends BaseElement {
     });
   }
 
-  private pushConvertTrace(fileName: string): Array<unknown> {
+  private pushConvertTrace(fileName: string): Array<MenuItem> {
     let instance = this;
     let menus = [];
     menus.push({
@@ -1511,18 +1643,25 @@ export class SpApplication extends BaseElement {
     fileSize: string,
     fileName: string,
     isServer: boolean,
+    isDistributed: boolean,
     dbName?: string
-  ): Array<unknown> {
+  ): Array<MenuItem> {
     let menus = [
       {
-        title: `${showFileName} (${fileSize}M)`,
+        title: isDistributed ? 'Distributed Trace' : `${showFileName} (${fileSize}M)`,
         icon: 'file-fill',
         clickHandler: (): void => {
           this.search = true;
           this.showContent(this.spSystemTrace!);
         },
       },
-      {
+    ];
+    if (
+      !isDistributed &&
+      Utils.getInstance().getWinCpuCount() > 0 &&
+      FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')
+    ) {
+      menus.push({
         title: 'Scheduling Analysis',
         icon: 'piechart-circle-fil',
         clickHandler: (): void => {
@@ -1533,10 +1672,12 @@ export class SpApplication extends BaseElement {
           this.showContent(this.spSchedulingAnalysis!);
           this.spSchedulingAnalysis!.init();
         },
-      },
-      {
+      });
+    }
+    if (!isDistributed) {
+      menus.push({
         title: 'Download File',
-        icon: 'download',
+        icon: 'download', // @ts-ignore
         fileModel: this.wasm ? 'wasm' : 'db',
         clickHandler: (): void => {
           this.download(this.mainMenu!, fileName, isServer, dbName);
@@ -1545,10 +1686,10 @@ export class SpApplication extends BaseElement {
             action: 'download',
           });
         },
-      },
-      {
+      });
+      menus.push({
         title: 'Download Database',
-        icon: 'download',
+        icon: 'download', // @ts-ignore
         fileModel: this.wasm ? 'wasm' : 'db',
         clickHandler: (): void => {
           this.downloadDB(this.mainMenu!, fileName);
@@ -1557,17 +1698,13 @@ export class SpApplication extends BaseElement {
             action: 'download',
           });
         },
-      },
-    ];
-    this.getTraceQuerySqlMenus(menus);
-    //@ts-ignore
-    if (window.cpuCount === 0 || !FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
-      menus.splice(1, 1);
+      });
+      this.getTraceQuerySqlMenus(menus);
     }
     return menus;
   }
 
-  private getTraceSupportMenus(): Array<unknown> {
+  private getTraceSupportMenus(): Array<MenuItem> {
     return [
       {
         title: 'Help Documents',
@@ -1793,6 +1930,17 @@ export class SpApplication extends BaseElement {
   private initSearchChangeEvents(): void {
     let timer: NodeJS.Timeout;
     this.litSearch!.valueChangeHandler = (value: string): void => {
+      Utils.currentSelectTrace = this.litSearch?.getSearchTraceId();
+      this.litSearch!.currenSearchValue = value;
+      if (value.length > 0) {
+        this.progressEL!.loading = true;
+      } else {
+        this.progressEL!.loading = false;
+      }
+      if (this.litSearch!.index > 0) {
+        let currentEntry = this.litSearch!.list[this.litSearch!.index];
+        cancelCurrentTraceRowHighlight(this.spSystemTrace!, currentEntry);
+      }
       this.litSearch!.list = [];
       if (timer) {
         clearTimeout(timer);
@@ -1801,12 +1949,16 @@ export class SpApplication extends BaseElement {
         this.litSearch!.isClearValue = false;
         if (value.length > 0) {
           let list = [];
-          this.progressEL!.loading = true;
           this.spSystemTrace!.searchCPU(value).then((cpus) => {
             list = cpus;
-            this.spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
+            let asyncFuncArr = this.spSystemTrace!.seachAsyncFunc(value);
+            this.spSystemTrace!.searchFunction(list, asyncFuncArr, value).then((mixedResults) => {
               if (this.litSearch!.searchValue !== '') {
-                this.litSearch!.list = this.spSystemTrace!.searchSdk(mixedResults, value);
+                if (!Utils.isDistributedMode()) {
+                  this.litSearch!.list = this.spSystemTrace!.searchSdk(mixedResults, value);
+                } else {
+                  this.litSearch!.list = mixedResults;
+                }
                 this.litSearch!.index = this.spSystemTrace!.showStruct(false, -1, this.litSearch!.list);
               }
               this.progressEL!.loading = false;
@@ -1826,28 +1978,27 @@ export class SpApplication extends BaseElement {
     };
   }
   private initSearchEvents(): void {
-    this.litSearch!.addEventListener('focus', () => {
-      window.publish(window.SmartEvent.UI.KeyboardEnable, {
-        enable: false,
-      });
-    });
-    this.litSearch!.addEventListener('blur', () => {
-      window.publish(window.SmartEvent.UI.KeyboardEnable, {
-        enable: true,
-      });
-    });
     this.litSearch!.addEventListener('previous-data', (ev) => {
+      if (this.progressEL!.loading) {
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(true, this.litSearch!.index, this.litSearch!.list);
       this.litSearch!.blur();
     });
     this.litSearch!.addEventListener('next-data', (ev) => {
+      if (this.progressEL!.loading) {
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(false, this.litSearch!.index, this.litSearch!.list);
       this.litSearch!.blur();
     });
     // 翻页事件
     this.litSearch!.addEventListener('retarget-data', (ev) => {
+      if (this.progressEL!.loading) {
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(
-        true,
+        false,
         //@ts-ignore
         ev.detail.value,
         this.litSearch!.list,
@@ -1856,14 +2007,24 @@ export class SpApplication extends BaseElement {
       );
       this.litSearch!.blur();
     });
+    this.litSearch!.addEventListener('trace-change', (e): void => {
+      this.spSystemTrace?.clickEmptyArea();
+      this.spSystemTrace!.searchTargetTraceHandler();
+    });
     this.initSearchChangeEvents();
   }
 
   private initSystemTraceEvents(): void {
     this.spSystemTrace?.addEventListener('trace-previous-data', (ev) => {
+      if (this.progressEL!.loading) {
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(true, this.litSearch!.index, this.litSearch!.list);
     });
     this.spSystemTrace?.addEventListener('trace-next-data', (ev) => {
+      if (this.progressEL!.loading) {
+        return;
+      }
       this.litSearch!.index = this.spSystemTrace!.showStruct(false, this.litSearch!.index, this.litSearch!.list);
     });
   }
@@ -1900,6 +2061,8 @@ export class SpApplication extends BaseElement {
         enable: false,
       });
       this.filterConfig!.style.visibility = 'hidden';
+      this.removeAttribute('chart_filter');
+      this.chartFilter!.setAttribute('hidden', '');
     }
     this.childComponent!.forEach((node) => {
       if (this.hasAttribute('chart_filter')) {
@@ -1919,14 +2082,11 @@ export class SpApplication extends BaseElement {
   }
 
   private validateFileCacheLost(): void {
-    caches.has(DbPool.fileCacheKey).then((exist) => {
+    caches.has(getThreadPoolTraceBufferCacheKey('1')).then((exist): void => {
       if (!exist) {
         this.mainMenu!.menus?.forEach((mg) => {
-          // @ts-ignore
-          mg.children.forEach((mi: unknown) => {
-            //@ts-ignore
+          mg.children.forEach((mi: MenuItem) => {
             if (mi.title === 'Download File') {
-              //@ts-ignore
               mi.disabled = true;
             }
           });
@@ -1948,6 +2108,7 @@ export class SpApplication extends BaseElement {
     if (pageInput) {
       pageInput.textContent = currentPageNum.toString();
       pageInput.value = currentPageNum.toString();
+      pageInput.style.pointerEvents = 'none';
     }
     let pageText: string[] = [];
     if (maxPageNumber > 7) {
@@ -1959,17 +2120,6 @@ export class SpApplication extends BaseElement {
       }
     }
     this.pageNodeHandler(pageListDiv, pageText, currentPageNum);
-    nextButton.style.pointerEvents = 'auto';
-    nextButton.style.opacity = '1';
-    previewButton.style.pointerEvents = 'auto';
-    previewButton.style.opacity = '1';
-    if (currentPageNum === 1) {
-      previewButton.style.pointerEvents = 'none';
-      previewButton.style.opacity = '0.7';
-    } else if (currentPageNum === maxPageNumber) {
-      nextButton.style.pointerEvents = 'none';
-      nextButton.style.opacity = '0.7';
-    }
   }
 
   private pageNodeHandler(pageListDiv: HTMLDivElement, pageText: Array<string>, currentPageNum: number): void {
@@ -2137,6 +2287,7 @@ export class SpApplication extends BaseElement {
         .then((res) => {
           res.arrayBuffer().then((arrayBuf) => {
             let fileName = url.split('/').reverse()[0];
+            this.traceFileName = fileName;
             let showFileName =
               fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
             openUrl(arrayBuf, fileName, showFileName, arrayBuf.byteLength);

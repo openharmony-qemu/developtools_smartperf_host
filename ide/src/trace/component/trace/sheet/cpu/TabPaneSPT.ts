@@ -41,7 +41,7 @@ export class TabPaneSPT extends BaseElement {
       // @ts-ignore
       `Selected range: ${parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5))} ms`;
     // @ts-ignore
-    this.getDataBySPT(sptValue.leftNs, sptValue.rightNs, sptValue.cpus);
+    this.getDataBySPT(sptValue.leftNs, sptValue.rightNs, sptValue.cpus, sptValue.traceId);
   }
 
   initElements(): void {
@@ -55,9 +55,9 @@ export class TabPaneSPT extends BaseElement {
     resizeObserver(this.parentElement!, this.sptTbl!);
   }
 
-  getDataBySPT(leftNs: number, rightNs: number, cpus: Array<number>): void {
+  getDataBySPT(leftNs: number, rightNs: number, cpus: Array<number>, traceId?: string): void {
     this.sptTbl!.loading = true;
-    sliceSPTSender(leftNs, rightNs, cpus, 'spt-getSPT').then((res): void => {
+    sliceSPTSender(leftNs, rightNs, cpus, 'spt-getSPT', traceId).then((res): void => {
       this.sptTbl!.loading = false;
       this.sptTbl!.recycleDataSource = res;
       //@ts-ignore
@@ -99,7 +99,7 @@ export class TabPaneSPT extends BaseElement {
         <lit-table id="spt-tbl" style="height: auto" tree>
             <lit-table-column class="spt-column" width="27%" data-index="title" key="title" align="flex-start" title="State/Process/Thread" retract>
             </lit-table-column>
-            <lit-table-column class="spt-column" width="1fr" data-index="count" key="count" align="flex-start" title="Count">
+            <lit-table-column class="spt-column" width="1fr" data-index="count" key="count" align="flex-start" title="Count" tdJump>
             </lit-table-column>
             <lit-table-column class="spt-column" width="1fr" data-index="wallDuration" key="wallDuration" align="flex-start" title="Duration(ns)">
             </lit-table-column>

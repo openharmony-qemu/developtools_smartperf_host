@@ -40,9 +40,8 @@ export class TabPaneFileStatistics extends BaseElement {
     this.fileStatisticsLoadingPage.style.visibility = 'visible'; // @ts-ignore
     this.selectionParam = fileStatisticsSelection;
     // @ts-ignore
-    this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${
-      this.parentElement!.clientHeight - 25
-    }px`;
+    this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 25
+      }px`;
     this.queryDataByDB(fileStatisticsSelection);
   }
 
@@ -67,9 +66,8 @@ export class TabPaneFileStatistics extends BaseElement {
     new ResizeObserver((): void => {
       if (this.parentElement!.clientHeight !== 0) {
         // @ts-ignore
-        this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${
-          this.parentElement!.clientHeight - 25
-        }px`;
+        this.fileStatisticsTbl!.shadowRoot!.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 25
+          }px`;
         this.fileStatisticsTbl!.reMeauseHeight(); // @ts-ignore
         this.fileStatisticsLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
@@ -225,28 +223,22 @@ export class TabPaneFileStatistics extends BaseElement {
   sortTable(fileStatisticsAllNode: unknown, key: string): void {
     // @ts-ignore
     fileStatisticsAllNode.children.sort((fileStatisticsA: unknown, fileStatisticsB: unknown) => {
-      if (this.fileStatisticsSortType === 1) {
+      return this.fileStatisticsSortType === 1 ?
         // @ts-ignore
-        return fileStatisticsA.node[key] - fileStatisticsB.node[key];
-      } else if (this.fileStatisticsSortType === 2) {
-        // @ts-ignore
-        return fileStatisticsB.node[key] - fileStatisticsA.node[key];
-      } else {
-        return 0;
-      }
+        fileStatisticsA.node[key] - fileStatisticsB.node[key] :
+        this.fileStatisticsSortType === 2 ?
+          // @ts-ignore
+          fileStatisticsB.node[key] - fileStatisticsA.node[key] : 0;
     }); // @ts-ignore
     fileStatisticsAllNode.children.forEach((item: unknown): void => {
       // @ts-ignore
       item.children.sort((fileStatisticsA: unknown, fileStatisticsB: unknown) => {
-        if (this.fileStatisticsSortType === 1) {
+        return this.fileStatisticsSortType === 1 ?
           // @ts-ignore
-          return fileStatisticsA.node[key] - fileStatisticsB.node[key];
-        } else if (this.fileStatisticsSortType === 2) {
-          // @ts-ignore
-          return fileStatisticsB.node[key] - fileStatisticsA.node[key];
-        } else {
-          return 0;
-        }
+          fileStatisticsA.node[key] - fileStatisticsB.node[key] :
+          this.fileStatisticsSortType === 2 ?
+            // @ts-ignore
+            fileStatisticsB.node[key] - fileStatisticsA.node[key] : 0;
       });
     });
   }

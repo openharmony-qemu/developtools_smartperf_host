@@ -36,9 +36,9 @@ public:
     void FinishSplitNativeHook();
     void FinishParseNativeHookData();
     void Finish();
-    bool NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFile)
+    void NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFile)
     {
-        return nativeHookFilter_->NativeHookReloadElfSymbolTable(symbolsFile);
+        nativeHookFilter_->NativeHookReloadElfSymbolTable(symbolsFile);
     }
     void UpdataOfflineSymbolizationMode(bool isOfflineSymbolizationMode)
     {

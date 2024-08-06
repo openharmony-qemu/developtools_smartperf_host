@@ -13,7 +13,13 @@
  * limitations under the License.
  */
 
-import { DbPool } from './database/SqlLite';
+import { getThreadPoolTraceBufferCacheKey } from './database/SqlLite';
+
+export enum TraceMode {
+  NORMAL,
+  LONG_TRACE,
+  DISTRIBUTED,
+}
 
 export const applicationHtml: string = `
         <style>
@@ -74,7 +80,7 @@ export const applicationHtml: string = `
             z-index: 2000;
         }
         .search-vessel{
-            z-index: 10;
+            z-index: 999;
             position: relative;
             cursor: default;
         }
@@ -385,7 +391,7 @@ export const applicationHtml: string = `
                 </sp-info-and-stats>
                 <sp-convert-trace style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 107" id="sp-convert-trace">
                 </sp-convert-trace>
-                <sp-help style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 103" id="sp-help">
+                <sp-help style="width:100%;height:100%;overflow:hidden;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 103" id="sp-help">
                 </sp-help>
                 <sp-flags style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 104" id="sp-flags">
                 </sp-flags>
@@ -399,7 +405,7 @@ export const applicationHtml: string = `
 
 export function readTraceFileBuffer(): Promise<ArrayBuffer | undefined> {
   return new Promise((resolve) => {
-    caches.match(DbPool.fileCacheKey).then((res) => {
+    caches.match(getThreadPoolTraceBufferCacheKey('1')).then((res) => {
       if (res) {
         res.arrayBuffer().then((buffer) => {
           resolve(buffer);
@@ -414,7 +420,7 @@ export function readTraceFileBuffer(): Promise<ArrayBuffer | undefined> {
 export function clearTraceFileCache(): void {
   caches.keys().then((keys) => {
     keys.forEach((key) => {
-      if (key === DbPool.fileCacheKey) {
+      if (key === getThreadPoolTraceBufferCacheKey('1')) {
         caches.delete(key).then();
       } else if (key.includes('/') && key.includes('-')) {
         let splits = key.split('/');
@@ -444,8 +450,8 @@ export function postLog(filename: string, fileSize: string): void {
     }),
   })
     .then((response) => response.json())
-    .then((data) => {})
-    .catch((error) => {});
+    .then((data) => { })
+    .catch((error) => { });
 }
 
 export function indexedDataToBufferData(sourceData: unknown): ArrayBuffer {

@@ -180,6 +180,47 @@ const std::deque<uint64_t> &GPUSlice::Durs() const
 {
     return durs_;
 }
+size_t DmaFence::AppendNew(const DmaFenceRow &dmaFenceRow)
+{
+    timeStamps_.emplace_back(dmaFenceRow.timeStamp);
+    durs_.emplace_back(dmaFenceRow.duration);
+    cats_.emplace_back(dmaFenceRow.eventName);
+    drivers_.emplace_back(dmaFenceRow.driver);
+    timelines_.emplace_back(dmaFenceRow.timeline);
+    contexts_.emplace_back(dmaFenceRow.context);
+    seqnos_.emplace_back(dmaFenceRow.seqno);
+    return Size() - 1;
+}
+
+const std::deque<uint64_t> &DmaFence::DursData() const
+{
+    return durs_;
+}
+
+const std::deque<DataIndex> &DmaFence::CatsData() const
+{
+    return cats_;
+}
+
+const std::deque<DataIndex> &DmaFence::DriversData() const
+{
+    return drivers_;
+}
+
+const std::deque<DataIndex> &DmaFence::TimelinesData() const
+{
+    return timelines_;
+}
+
+const std::deque<uint32_t> &DmaFence::ContextsData() const
+{
+    return contexts_;
+}
+
+const std::deque<uint32_t> &DmaFence::SeqnosData() const
+{
+    return seqnos_;
+}
 
 size_t FrameMaps::AppendNew(FrameSlice *frameSlice, uint64_t src, uint64_t dst)
 {

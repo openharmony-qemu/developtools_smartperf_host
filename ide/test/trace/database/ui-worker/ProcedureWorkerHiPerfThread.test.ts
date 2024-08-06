@@ -91,6 +91,7 @@ describe('ProcedureWorkerHiPerfThread Test', () => {
 
   it('ProcedureWorkerHiPerfThreadTest04', function () {
     expect(HiPerfThreadStruct.groupBy10MS([{ ps: 1 }, { coX: '1' }], 10, '')).toEqual([
+      { dur: 10000000, eventCount: undefined, height: NaN, startNS: NaN, sampleCount: undefined},
       { dur: 10000000, eventCount: NaN, height: NaN, startNS: NaN, sampleCount: 2},
     ]);
   });

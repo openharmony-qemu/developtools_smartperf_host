@@ -33,7 +33,7 @@ class BytraceEventParser : public EventParserBase {
 private:
     class EventInfo {
     public:
-        EventInfo(uint64_t ts, BytraceLine li) : eventTimestamp(ts), line(li) {}
+        EventInfo(uint64_t ts, const BytraceLine& li) : eventTimestamp(ts), line(li) {}
         uint64_t eventTimestamp;
         BytraceLine line;
     };
@@ -46,7 +46,7 @@ public:
     void Clear();
 
 private:
-    using FuncCall = std::function<bool(const ArgsMap &args, const BytraceLine line)>;
+    using FuncCall = std::function<bool(const ArgsMap& args, const BytraceLine& line)>;
     bool SchedSwitchEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool BlockedReason(const ArgsMap &args, const BytraceLine &line) const;
     bool TaskRenameEvent(const ArgsMap &args, const BytraceLine &line) const;
@@ -74,10 +74,11 @@ private:
     bool SoftIrqRaiseEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool SoftIrqEntryEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool SoftIrqExitEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool DmaFenceEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransaction(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransactionReceived(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransactionAllocBufEvent(const ArgsMap &args, const BytraceLine &line) const;
-    void GetDataSegArgs(BytraceLine &bufLine, ArgsMap &args, uint32_t &tgid) const;
+    void GetDataSegArgs(const BytraceLine& bufLine, ArgsMap& args) const;
     void InterruptEventInitialization();
     void ClockEventInitialization();
     void CpuEventInitialization();
@@ -86,24 +87,25 @@ private:
     void StackEventsInitialization();
 
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
-    const uint32_t MIN_SCHED_SWITCH_ARGS_COUNT = 6;
-    const uint32_t MIN_BLOCKED_REASON_ARGS_COUNT = 3;
-    const uint32_t MIN_SCHED_WAKEUP_ARGS_COUNT = 2;
-    const uint32_t MIN_TASK_RENAME_ARGS_COUNT = 2;
-    const uint32_t MIN_SCHED_WAKING_ARGS_COUNT = 4;
-    const uint32_t MIN_CPU_IDLE_ARGS_COUNT = 2;
-    const uint32_t MIN_CPU_FREQUENCY_ARGS_COUNT = 2;
-    const uint32_t MIN_PROCESS_EXIT_ARGS_COUNT = 2;
-    const uint32_t MIN_CLOCK_SET_RATE_ARGS_COUNT = 2;
-    const uint32_t MIN_CLOCK_ENABLE_ARGS_COUNT = 3;
-    const uint32_t MIN_CLOCK_DISABLE_ARGS_COUNT = 3;
-    const uint32_t MIN_IRQ_HANDLER_ENTRY_ARGS_COUNT = 2;
-    const uint32_t MIN_IRQ_HANDLER_EXIT_ARGS_COUNT = 2;
-    const uint32_t MIN_SOFTIRQ_ENTRY_ARGS_COUNT = 2;
-    const uint32_t MIN_SOFTIRQ_EXIT_ARGS_COUNT = 2;
-    const uint32_t MIN_BINDER_TRANSACTION_ARGS_COUNT = 7;
-    const uint32_t MIN_BINDER_TRANSACTION_RECEIVED_ARGS_COUNT = 1;
-    const uint32_t MIN_BINDER_TRANSACTION_ALLOC_BUF_ARGS_COUNT = 3;
+    static const uint32_t MIN_SCHED_SWITCH_ARGS_COUNT = 6;
+    static const uint32_t MIN_BLOCKED_REASON_ARGS_COUNT = 3;
+    static const uint32_t MIN_SCHED_WAKEUP_ARGS_COUNT = 2;
+    static const uint32_t MIN_TASK_RENAME_ARGS_COUNT = 2;
+    static const uint32_t MIN_SCHED_WAKING_ARGS_COUNT = 4;
+    static const uint32_t MIN_CPU_IDLE_ARGS_COUNT = 2;
+    static const uint32_t MIN_CPU_FREQUENCY_ARGS_COUNT = 2;
+    static const uint32_t MIN_PROCESS_EXIT_ARGS_COUNT = 2;
+    static const uint32_t MIN_CLOCK_SET_RATE_ARGS_COUNT = 2;
+    static const uint32_t MIN_CLOCK_ENABLE_ARGS_COUNT = 3;
+    static const uint32_t MIN_CLOCK_DISABLE_ARGS_COUNT = 3;
+    static const uint32_t MIN_IRQ_HANDLER_ENTRY_ARGS_COUNT = 2;
+    static const uint32_t MIN_IRQ_HANDLER_EXIT_ARGS_COUNT = 2;
+    static const uint32_t MIN_SOFTIRQ_ENTRY_ARGS_COUNT = 2;
+    static const uint32_t MIN_SOFTIRQ_EXIT_ARGS_COUNT = 2;
+    static const uint32_t MIN_DMA_FENCE_ARGS_COUNT = 4;
+    static const uint32_t MIN_BINDER_TRANSACTION_ARGS_COUNT = 7;
+    static const uint32_t MIN_BINDER_TRANSACTION_RECEIVED_ARGS_COUNT = 1;
+    static const uint32_t MIN_BINDER_TRANSACTION_ALLOC_BUF_ARGS_COUNT = 3;
     std::vector<std::unique_ptr<EventInfo>> eventList_ = {};
     PrintEventParser printEventParser_;
     const DataIndex schedWakeupName_ = traceDataCache_->GetDataIndex("sched_wakeup");
@@ -114,6 +116,7 @@ private:
     const DataIndex schedBlockedReasonId_ = traceDataCache_->GetDataIndex("sched_blocked_reason");
     const DataIndex cpuFrequencyLimitMaxNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_max");
     const DataIndex cpuFrequencyLimitMinNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_min");
+    const size_t maxBuffSize_ = 1000 * 1000;
 
 protected:
     TraceStreamerConfig config_{};

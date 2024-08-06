@@ -31,10 +31,12 @@ export class StateGroup {
   children?: Array<StateGroup>;
   isSelected?: boolean = false;
   totalCount?: number = 0;
-  cycleDur?: number;
+  cycleDur?: number | string = 0;
   cycle: number = 0;
   id?: number;
   cpu?: number = 0;
+  startTs?: number = 0;
+  chartDur?: number = 0;
 }
 
 export class FuncNameCycle {

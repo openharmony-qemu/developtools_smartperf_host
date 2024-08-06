@@ -57,7 +57,6 @@ export const SpInfoAndStatHtml = `<style>
   width: auto;
 }
 #dataValueResult{
-  overflow-y: auto;
   background-color: var(--dark-background5,#F6F6F6);
   border-radius: 16px;
   min-height: inherit;

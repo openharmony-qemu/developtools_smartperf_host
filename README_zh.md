@@ -6,7 +6,7 @@ Smartperf_Host是一款深入挖掘数据、细粒度地展示数据的性能功
 
 该组件整体分为设备端和PC端两部分，设备端和PC端基于gRPC（Remote Procedure Call）通信框架进行数据交互。
 
-设备端内部分为应用程序内嵌组件、命令行工具、性能调优服务、性能调优插件集合、部分系统工具及部分系统内核等模块。设备端提供了插件扩展能力，对外提供了插件接口，基于该扩展能力可以按需定义自己的能力，并集成到框架中来，目前基于插件能力已经完成了native内存插件、trace插件等，详细介绍见[性能调优组件](https://gitee.com/openharmony/developtools_profiler)。
+设备端的内部分为应用程序内嵌组件、命令行工具、性能调优服务、性能调优插件集合、部分系统工具及部分系统内核等模块。设备端提供了插件扩展能力，对外提供了插件接口，基于该扩展能力可以按需定义自己的能力，并集成到框架中来，目前基于插件能力已经完成了native内存插件、trace插件等，详细介绍见[性能调优组件](https://gitee.com/openharmony/developtools_profiler)。
 
 PC端以Smartperf_Host网站的形式进行发布，内部分为Trace Streamer数据解析、SQLite数据存储、hdc设备管理、数据导入、UI绘制、数据分析等模块。下文会重点对Smartperf_Host提供的各项能力进行介绍。
 ## 项目目录
@@ -43,7 +43,7 @@ PC端以Smartperf_Host网站的形式进行发布，内部分为Trace Streamer�
 ### Native Memory抓取
 使用Smartperf_Host抓取应用的Native Memory（C和C++部分）的分配和释放情况，详见《[Native Memory抓取和展示说明](./ide/src/doc/md/quickstart_native_memory.md)》。
 ### Hiperf抓取
-使用Smartperf_Host抓取应用的cpu使用量、方法的调用栈等，详见《[HiPerf的抓取和展示说明](./ide/src/doc/md/quickstart_hiperf.md)》。
+使用Smartperf_Host抓取应用的cpu使用量、方法的调用栈等，详见《[Hiperf的抓取和展示说明](./ide/src/doc/md/quickstart_hiperf.md)》。
 ### HiSystemEvent抓取
 使用Smartperf_Host抓取应用的各个子类别功耗占比（CPU、网络、定位等）、应用的资源申请使用记录（WorkScheduler、Runninglock、Alarm、Location Request）、应用功耗异常事件显示、功耗关联系统状态显示（电池电量、屏幕状态），详见《[HiSystemEvent的抓取和展示说明](./ide/src/doc/md/quickstart_hisystemevent.md)》。
 ### FileSystem抓取
@@ -53,7 +53,7 @@ PC端以Smartperf_Host网站的形式进行发布，内部分为Trace Streamer�
 ### Bio抓取
 使用Smartperf_Host抓取每次IO访问的起始时间、总延迟、进程、每4k数据的平均延迟、线程、操作（写数据、页面换入、Metadata）、访问量、路径等、Block number、优先级、Backtrace调用栈，详见《[Bio的抓取和展示说明](./ide/src/doc/md/quickstart_bio.md)》。
 ### 进程Smaps抓取
-使用Smartperf_Host抓取单个进程的smaps数据（类别、Pss、Rss、Vss等），数据源为/proc/$pid/smaps，详见《[进程smaps的抓取和展示说明](./ide/src/doc/md/quickstart_smaps.md)》。
+使用Smartperf_Host抓取单个进程的smaps数据（类别、Pss、Rss、Vss等），数据源为/proc/$pid/smaps，详见《[进程smaps的抓取和展示说明](https://gitee.com/openharmony/developtools_smartperf_host/blob/master/ide/src/doc/md/quickstart_memory_template.md)》。
 ### Sql分析和Metrics说明
 Smartperf_Host网站trace解析完成后在线数据库使用说明，详见《[Sql分析和Metrics说明](./ide/src/doc/md/quickstart_sql_metrics.md)》。
 ## 发行版指南

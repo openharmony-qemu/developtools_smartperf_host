@@ -56,7 +56,7 @@ const jsDataCache: {
   maxDepth: 1,
 };
 
-export const initCallChainDataSql = (args: unknown): string => {
+export const initCallChainDataSql = (args: unknown):unknown => {
   const sql = `SELECT function_id AS id,
               0 As functionId,
             0 AS startTime,
@@ -73,7 +73,7 @@ export const initCallChainDataSql = (args: unknown): string => {
   return sql;
 };
 
-export const queryChartDataSqlMem = (args: Args): string => {
+export const queryChartDataSqlMem = (args: Args):unknown => {
   const sql = `SELECT id,
             function_id AS functionId,
             start_time - ${args.recordStartNS} AS startTime,

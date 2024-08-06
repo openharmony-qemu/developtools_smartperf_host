@@ -39,9 +39,9 @@ export class TabPaneCpuUsage extends BaseElement {
     this.cpuUsageTbl!.loading = true;
     Promise.all([
       // @ts-ignore
-      getTabCpuUsage(cpuUsageValue.cpus, cpuUsageValue.leftNs, cpuUsageValue.rightNs),
+      getTabCpuUsage(cpuUsageValue.cpus, cpuUsageValue.leftNs, cpuUsageValue.rightNs, cpuUsageValue.traceId),
       // @ts-ignore
-      getTabCpuFreq(cpuUsageValue.cpus, cpuUsageValue.leftNs, cpuUsageValue.rightNs),
+      getTabCpuFreq(cpuUsageValue.cpus, cpuUsageValue.leftNs, cpuUsageValue.rightNs, cpuUsageValue.traceId),
     ]).then((result): void => {
       this.cpuUsageTbl!.loading = false;
       let usages = result[0];

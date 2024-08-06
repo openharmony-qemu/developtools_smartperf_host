@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStdtype {
 constexpr uint32_t ONE_MILLION_NANOSECONDS = 1000000;
 constexpr uint32_t BILLION_NANOSECONDS = 1000000000;
-constexpr uint8_t DYNAMICFRAME_MATCH_LAST = 5;
+constexpr uint8_t DYNAMICFRAME_MATCH_LAST = 6;
 class CacheBase {
 public:
     size_t Size() const;
@@ -69,7 +69,7 @@ public:
     }
     virtual void ClearExportedData() = 0;
     template <typename T, typename... changedata>
-    void EraseElements(T &deq, changedata &... args)
+    void EraseElements(T &deq, changedata &...args)
     {
         deq.erase(deq.begin(), deq.begin() + readySize_);
         EraseElements(args...);

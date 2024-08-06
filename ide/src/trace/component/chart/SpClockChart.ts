@@ -23,17 +23,32 @@ import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { Utils } from '../trace/base/Utils';
 import { clockDataSender } from '../../database/data-trafic/ClockDataSender';
 import { queryClockData } from '../../database/sql/Clock.sql';
+import { DmaFenceRender, DmaFenceStruct } from '../../database/ui-worker/ProcedureWorkerDmaFence';
+import { dmaFenceSender } from '../../database/data-trafic/dmaFenceSender';
+import { queryDmaFenceName } from '../../database/sql/dmaFence.sql';
+import { BaseStruct } from '../../bean/BaseStruct';
+import { promises } from 'dns';
 
 export class SpClockChart {
-  private trace: SpSystemTrace;
+  private readonly trace: SpSystemTrace;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
   }
 
-  async init(): Promise<void> {
-    let folder = await this.initFolder();
-    await this.initData(folder);
+  async init(parentRow?: TraceRow<BaseStruct>, traceId?: string): Promise<void> {
+    let clockList = await queryClockData(traceId);
+    if (clockList.length === 0) {
+      return;
+    }
+    let folder = await this.initFolder(traceId);
+    if (parentRow) {
+      parentRow.addChildTraceRow(folder);
+    } else {
+      this.trace.rowsEL?.appendChild(folder);
+    }
+    await this.initData(folder, clockList, traceId);
+    await this.initDmaFence(folder);
   }
 
   private clockSupplierFrame(
@@ -45,7 +60,7 @@ export class SpClockChart {
       maxValue?: number;
     },
     isState: boolean,
-    isScreenState: boolean
+    isScreenState: boolean,
   ): void {
     traceRow.supplierFrame = (): Promise<ClockStruct[]> => {
       let promiseData = null;
@@ -120,20 +135,23 @@ export class SpClockChart {
       traceRow.canvasRestore(context, this.trace);
     };
   }
-  // @ts-ignore
-  async initData(folder: TraceRow<unknown>): Promise<void> {
+
+  async initData(folder: TraceRow<BaseStruct>, clockList: Array<{
+    name: string;
+    num: number;
+    srcname: string;
+    maxValue?: number;
+  }>, traceId?: string): Promise<void> {
     let clockStartTime = new Date().getTime();
-    let clockList = await queryClockData();
-    if (clockList.length === 0) {
-      return;
-    }
     info('clockList data size is: ', clockList!.length);
-    this.trace.rowsEL?.appendChild(folder);
+    if (!traceId) {
+      this.trace.rowsEL?.appendChild(folder);
+    }
     ClockStruct.maxValue = clockList.map((item) => item.num).reduce((a, b) => Math.max(a, b));
     for (let i = 0; i < clockList.length; i++) {
       const it = clockList[i];
       it.maxValue = 0;
-      let traceRow = TraceRow.skeleton<ClockStruct>();
+      let traceRow = TraceRow.skeleton<ClockStruct>(traceId);
       let isState = it.name.endsWith(' State');
       let isScreenState = it.name.endsWith('ScreenState');
       traceRow.rowId = it.name;
@@ -146,16 +164,16 @@ export class SpClockChart {
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
       this.clockSupplierFrame(traceRow, it, isState, isScreenState);
-      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> => {
+      traceRow.getCacheData = (args: unknown): Promise<ClockStruct[]> | undefined => {
+        let result: Promise<ClockStruct[]> | undefined;
         if (it.name.endsWith(' Frequency')) {
-          return clockDataSender(it.srcname, 'clockFrequency', traceRow, args);
+          result = clockDataSender(it.srcname, 'clockFrequency', traceRow, args);
         } else if (isState) {
-          return clockDataSender(it.srcname, 'clockState', traceRow, args);
+          result = clockDataSender(it.srcname, 'clockState', traceRow, args);
         } else if (isScreenState) {
-          return clockDataSender('', 'screenState', traceRow, args);
-        } else {
-          return new Promise((): void => {});
+          result = clockDataSender('', 'screenState', traceRow, args);
         }
+        return result;
       };
       traceRow.focusHandler = (ev): void => {
         this.trace?.displayTip(
@@ -173,9 +191,79 @@ export class SpClockChart {
     let durTime = new Date().getTime() - clockStartTime;
     info('The time to load the ClockData is: ', durTime);
   }
+
   // @ts-ignore
-  async initFolder(): Promise<TraceRow<unknown>> {
-    let clockFolder = TraceRow.skeleton();
+  async initDmaFence(folder: TraceRow<unknown>): Promise<void> {
+    let dmaFenceNameList = await queryDmaFenceName();
+    if (dmaFenceNameList.length) {
+      let dmaFenceList = [];
+      const timelineValues = dmaFenceNameList.map(obj => obj.timeline);
+      for (let i = 0; i < timelineValues.length; i++) {
+        let traceRow: TraceRow<DmaFenceStruct> = TraceRow.skeleton<DmaFenceStruct>();
+        traceRow.rowId = timelineValues[i];
+        traceRow.rowType = TraceRow.ROW_TYPE_DMA_FENCE;
+        traceRow.rowParentId = folder.rowId;
+        traceRow.style.height = 40 + 'px';
+        traceRow.name = `${timelineValues[i]}`;
+        traceRow.folder = false;
+        traceRow.rowHidden = !folder.expansion;
+        traceRow.setAttribute('children', '');
+        traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+        traceRow.selectChangeHandler = this.trace.selectChangeHandler;
+        // @ts-ignore
+        traceRow.supplierFrame = (): Promise<DmaFenceStruct[]> => {
+          return dmaFenceSender('dma_fence_init', `${timelineValues[i]}`, traceRow).then((res) => {
+            res.forEach((item: unknown) => {
+              // @ts-ignore
+              let detail = Utils.DMAFENCECAT_MAP.get(item.id!);
+              if (detail) {
+                let catValue = (detail.cat.match(/^dma_(.*)$/))![1];
+                // @ts-ignore
+                item.sliceName = catValue.endsWith('ed') ? `${catValue.slice(0, -2)}(${detail.seqno})` : `${catValue}(${detail.seqno})`;
+                // @ts-ignore
+                item.driver = detail.driver;
+                // @ts-ignore
+                item.context = detail.context;
+                // @ts-ignore
+                item.depth = 0;
+              }
+
+            });
+            return dmaFenceList = res;
+          });
+
+        };
+        traceRow.onThreadHandler = (useCache): void => {
+          let context: CanvasRenderingContext2D;
+          if (traceRow.currentContext) {
+            context = traceRow.currentContext;
+          } else {
+            context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          }
+          traceRow.canvasSave(context);
+          (renders.dmaFence as DmaFenceRender).renderMainThread(
+            {
+              dmaFenceContext: context,
+              useCache: useCache,
+              type: 'dmaFence',
+              maxValue: 20,
+              index: 1,
+              maxName: ''
+            },
+            traceRow
+          );
+          traceRow.canvasRestore(context, this.trace);
+        };
+        folder.addChildTraceRow(traceRow);
+      }
+
+    }
+
+  }
+
+
+  async initFolder(traceId?: string): Promise<TraceRow<BaseStruct>> {
+    let clockFolder = TraceRow.skeleton(traceId);
     clockFolder.rowId = 'Clocks';
     clockFolder.index = 0;
     clockFolder.rowType = TraceRow.ROW_TYPE_CLOCK_GROUP;
@@ -184,12 +272,11 @@ export class SpClockChart {
     clockFolder.folder = true;
     clockFolder.name = 'Clocks';
     clockFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    clockFolder.selectChangeHandler = this.trace.selectChangeHandler; // @ts-ignore
-    clockFolder.supplier = (): Promise<unknown[]> => new Promise<Array<unknown>>((resolve) => resolve([]));
+    clockFolder.selectChangeHandler = this.trace.selectChangeHandler;
+    clockFolder.supplier = (): Promise<BaseStruct[]> => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
     clockFolder.onThreadHandler = (useCache): void => {
       clockFolder.canvasSave(this.trace.canvasPanelCtx!);
       if (clockFolder.expansion) {
-        // @ts-ignore
         this.trace.canvasPanelCtx?.clearRect(0, 0, clockFolder.frame.width, clockFolder.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(

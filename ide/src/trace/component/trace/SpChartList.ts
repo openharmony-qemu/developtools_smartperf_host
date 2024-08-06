@@ -93,7 +93,7 @@ export class SpChartList extends BaseElement {
   }
 
   private initChartListListener(): void {
-    const foldCollect1 = () => {
+    const foldCollect1 = (): void => {
       this.collect1Expand = !this.collect1Expand;
       if (this.collect1Expand) {
         this.icon1!.style.transform = 'rotateZ(0deg)';
@@ -103,9 +103,9 @@ export class SpChartList extends BaseElement {
         this.collectRowList1.forEach((row) => this.fragmentGroup1.appendChild(row));
       }
       this.resizeHeight();
-    }
+    };
     this.icon1?.addEventListener('click', () => foldCollect1());
-    const foldCollect2 = () => {
+    const foldCollect2 = (): void => {
       this.collect2Expand = !this.collect2Expand;
       if (this.collect2Expand) {
         this.icon2!.style.transform = 'rotateZ(0deg)';
@@ -117,63 +117,59 @@ export class SpChartList extends BaseElement {
         this.scrollTop = 0;
       }
       this.resizeHeight();
-    }
+    };
     this.icon2?.addEventListener('click', () => foldCollect2());
     document.addEventListener('keyup', (e) => {
       if (e.key.toLowerCase() === 'b' && e.ctrlKey === false) {
         // 收藏夹有泳道时 为true
-        const hasChildNode1 = this.collectEl1?.hasChildNodes() || this.fragmentGroup1.hasChildNodes()
-        const hasChildNode2 = this.collectEl2?.hasChildNodes() || this.fragmentGroup2.hasChildNodes()
+        const hasChildNode1 = this.collectEl1?.hasChildNodes() || this.fragmentGroup1.hasChildNodes();
+        const hasChildNode2 = this.collectEl2?.hasChildNodes() || this.fragmentGroup2.hasChildNodes();
         // 两个收藏夹都有泳道时
         if (hasChildNode1 && hasChildNode2) {
-          const flag = this.collect1Expand === this.collect2Expand
+          const flag = this.collect1Expand === this.collect2Expand;
           if (flag) {
-            foldCollect1()
-            foldCollect2()
+            foldCollect1();
+            foldCollect2();
           } else {
             // 两收藏夹的折叠状态不一致 优先一起折叠
             if (this.collect1Expand) {
-              foldCollect1()
+              foldCollect1();
             }
             else {
-              foldCollect2()
+              foldCollect2();
             }
           }
-          return
+          return;
         }
         // 只影响有泳道的收藏夹
         if (hasChildNode1) {
-          foldCollect1()
+          foldCollect1();
         }
         if (hasChildNode2) {
-          foldCollect2()
+          foldCollect2();
         }
       }
-    })
+    });
 
     this.removeCollectIcon1?.addEventListener('click', () => {
-      for (let i = 0; i < this.collectRowList1.length; i++) {
-        this.collectRowList1[i].collectEL?.click();
-        i--;
-      }
+      Array.from(this.collectRowList1).forEach(row => {
+        row.collectEL?.click();
+      });
     });
     this.removeCollectIcon2?.addEventListener('click', () => {
-      for (let i = 0; i < this.collectRowList2.length; i++) {
-        this.collectRowList2[i].collectEL?.click();
-        i--;
-      }
+      Array.from(this.collectRowList2).forEach(row => {
+        row.collectEL?.click();
+      });
     });
   }
 
   removeAllCollectRow(): void {
-    for (let i = 0; i < this.collectRowList1.length; i++) {
-      this.collectRowList1[i].collectEL?.click();
-      i--;
-    }
-    for (let i = 0; i < this.collectRowList2.length; i++) {
-      this.collectRowList2[i].collectEL?.click();
-      i--;
-    }
+    Array.from(this.collectRowList1).forEach(row => {
+      row.collectEL?.click();
+    });
+    Array.from(this.collectRowList2).forEach(row => {
+      row.collectEL?.click();
+    });
   }
 
   private resizeHeight(): void {
@@ -244,12 +240,7 @@ export class SpChartList extends BaseElement {
     return [...this.collectRowList1, ...this.collectRowList2];
   }
 
-  getCollectRowsInfo(group: string): {
-    type: string | null | undefined;
-    name: string;
-    id: string | null | undefined;
-    parents: never[];
-  }[] {
+  getCollectRowsInfo(group: string): unknown {
     return (group === SpChartList.COLLECT_G1 ? this.collectRowList1 : this.collectRowList2).map((row) => {
       let rowJson = {
         type: row.rowType,

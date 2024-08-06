@@ -174,7 +174,7 @@ export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
 <lit-table id="gpuMemoryClickTables" class="gpuMemoryClickTables">
     <lit-table-column order title="GpuName" data-index="gpuName" key="gpuName" align="flex-start" width="1fr" >
     </lit-table-column>
-    <lit-table-column order title="Thread(pid)" data-index="thread" key="thread" align="flex-start" width="1fr" >
+    <lit-table-column order title="Thread(tid)" data-index="thread" key="thread" align="flex-start" width="1fr" >
     </lit-table-column>
     <lit-table-column order title="SizeDelta" data-index="sizes" key="size" align="flex-start" width="1fr" >
     </lit-table-column>

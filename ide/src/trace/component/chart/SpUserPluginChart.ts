@@ -102,6 +102,32 @@ export class SpUserFileChart {
                 };
                 traceRow.style.height = `${height}px`;
             })
+        } else {
+            traceRow.supplier = () =>
+                new Promise((resolve): void => {
+                    resolve([]);
+                });
+            traceRow.onThreadHandler = (useCache) => {
+                let context: CanvasRenderingContext2D;
+                if (traceRow.currentContext) {
+                    context = traceRow.currentContext;
+                } else {
+                    context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+                }
+                traceRow.canvasSave(context);
+                (renders.sample as SampleRender).renderMainThread(
+                    {
+                        context: context,
+                        useCache: useCache,
+                        type: 'bpftrace',
+                        start_ts: 0,
+                        uniqueProperty: [],
+                        flattenTreeArray: [],
+                    },
+                    traceRow
+                );
+                traceRow.canvasRestore(context);
+            };
         }
         return traceRow;
     }

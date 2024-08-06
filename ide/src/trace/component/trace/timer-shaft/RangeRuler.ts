@@ -17,8 +17,8 @@ import { Graph } from './Graph';
 import { Rect } from './Rect';
 import { ns2UnitS, TimerShaftElement } from '../TimerShaftElement';
 import { ColorUtils, interpolateColorBrightness } from '../base/ColorUtils';
-import { CpuStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { CurrentSlicesTime, SpSystemTrace } from '../../SpSystemTrace';
+import { Utils } from '../base/Utils';
 
 const MarkPadding = 5;
 const FIT_TOTALX_MIN: number = 280;
@@ -167,12 +167,12 @@ export class RangeRuler extends Graph {
 
   drawCpuUsage(): void {
     this.context2D.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height);
-    let miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount); //每格高度
+    let miniHeight = Math.round(this.frame.height / Utils.getInstance().getCpuCount()); //每格高度
     let miniWidth = Math.ceil(this.frame.width / 100); //每格宽度
-    this._cpuCountData = CpuStruct.cpuCount;
+    this._cpuCountData = Utils.getInstance().getCpuCount();
     if (sessionStorage.getItem('expand') === 'true') {
       //展开
-      miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount);
+      miniHeight = Math.round(this.frame.height / Utils.getInstance().getCpuCount());
     } else if (sessionStorage.getItem('expand') === 'false') {
       miniHeight = Math.round(this.frame.height / 2);
     }

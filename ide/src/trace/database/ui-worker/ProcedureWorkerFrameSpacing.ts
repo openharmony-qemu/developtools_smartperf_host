@@ -301,13 +301,21 @@ export class FrameSpacingRender extends Render {
     return [min, max];
   }
 }
-export function FrameSpacingStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>) {
+export function FrameSpacingStructOnClick(
+  clickRowType: string,
+  sp: SpSystemTrace,
+  //@ts-ignore
+  row: TraceRow<unknown>,
+  entry?: FrameSpacingStruct,
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FRAME_SPACING) {
+      //@ts-ignore
       FrameSpacingStruct.selectFrameSpacingStruct =
         FrameSpacingStruct.hoverFrameSpacingStruct || row.getHoverStruct(false, true);
-      if (FrameSpacingStruct.selectFrameSpacingStruct) {
-        sp.traceSheetEL?.displayFrameSpacingData(FrameSpacingStruct.selectFrameSpacingStruct);
+      if (FrameSpacingStruct.selectFrameSpacingStruct || entry) {
+        let data = entry || FrameSpacingStruct.selectFrameSpacingStruct;
+        sp.traceSheetEL?.displayFrameSpacingData(data!);
         sp.timerShaftEL?.modifyFlagList(undefined);
       }
       reject(new Error());

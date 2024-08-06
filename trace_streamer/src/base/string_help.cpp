@@ -104,6 +104,27 @@ std::string Strip(const std::string &str)
     return str.substr(first, last - first + 1);
 }
 
+std::string StrTrim(const std::string &input)
+{
+    std::string str = input;
+    if (str.empty()) {
+        return str;
+    }
+    str.erase(0, str.find_first_not_of(' '));
+    str.erase(str.find_last_not_of(' ') + 1);
+    return str;
+}
+
+// in-place版本, 直接修改str
+void StrTrim(std::string& input)
+{
+    if (input.empty()) {
+        return;
+    }
+    input.erase(0, input.find_first_not_of(' '));
+    input.erase(input.find_last_not_of(' ') + 1);
+}
+
 void RemoveNullTerminator(std::string &str)
 {
     size_t pos = str.rfind('\0');

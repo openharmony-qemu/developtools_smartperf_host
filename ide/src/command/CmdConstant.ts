@@ -39,7 +39,9 @@ export class CmdConstant {
   static CMD_GET_VERSION_DEVICES = 'hdc_std -t {0} shell param get const.product.software.version';
   static CMD_GET_DEBUG_PROCESS_DEVICES = `hdc_std -t {0} shell netstat -anp |grep Panda 
   |grep -v grep | sed \'s/.* \\([0-9]*\\)\\/.*/\\1/\' |xargs -r ps -A -opid,cmd`;
-  static CMD_CLEAR_LONG_FOLD = 'hdc_std shell rm -rf ';
+  static CMD_CLEAR_LONG_FOLD = 'hdc_std shell rm -r ';
   static CMD_MKDIR_LONG_FOLD = 'hdc_std shell mkdir ';
   static CMD_GET_LONG_FILES = 'hdc_std shell ls ';
+  static CMD_SET_FOLD_AUTHORITY = 'hdc_std shell chmod -R 777 ';
+  static CMD_UNAME = 'hdc shell uname -a';
 }

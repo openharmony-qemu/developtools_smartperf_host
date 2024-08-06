@@ -55,8 +55,6 @@ export class TabPaneBinderDataCut extends BaseElement {
   private threadBinderMap: Map<string, Array<BinderItem>> = new Map();
   private processIds: Array<number> = [];
   private funcCycleArr: Array<FunctionItem> = [];
-  private currentCutThreadId: string | undefined;
-  private currentCutFuncName: string | undefined;
 
   set data(threadStatesParam: SelectionParam) {
     if (this.currentSelectionParam === threadStatesParam) {
@@ -76,13 +74,11 @@ export class TabPaneBinderDataCut extends BaseElement {
     // @ts-ignore
     this.tHeadClick(this.threadBindersTbl!.recycleDataSource);
     this.parentElement!.style.overflow = 'hidden';
-    this.currentCutThreadId = '';
-    this.currentCutFuncName = '';
     new ResizeObserver(() => {
       // @ts-ignore
       let lastHeight: number = this.threadBindersTbl.tableElement!.offsetHeight;
       this.cycleColumnDiv!.style.height = lastHeight + 'px';
-    }).observe(this.parentElement!);
+    }).observe(this.threadBindersTbl!);
   }
 
   hideQueryArea(b: boolean): void {
@@ -200,9 +196,9 @@ export class TabPaneBinderDataCut extends BaseElement {
       if (!this.threadBinderMap.has(b.pid + '_' + b.tid)) {
         this.threadArr.push({
           title:
-            Utils.THREAD_MAP.get(b.tid) === null
+            Utils.getInstance().getThreadMap().get(b.tid) === null
               ? 'Thread' + ' ' + '[' + b.tid + ']'
-              : Utils.THREAD_MAP.get(b.tid) + ' ' + '[' + b.tid + ']',
+              : Utils.getInstance().getThreadMap().get(b.tid) + ' ' + '[' + b.tid + ']',
           totalCount: 0,
           tid: b.tid,
           pid: b.pid,
@@ -242,7 +238,7 @@ export class TabPaneBinderDataCut extends BaseElement {
             cycleMap.set(tBinder[j].tid + '_' + cid, new Array());
           }
           cycleArr = cycleMap.get(tBinder[j].tid + '_' + cid);
-          let thread: string = Utils.THREAD_MAP.get(tBinder[j].tid) || 'Thread';
+          let thread: string = Utils.getInstance().getThreadMap().get(tBinder[j].tid) || 'Thread';
           countBinder.title = 'cycle ' + (idx + 1) + '_' + thread;
           countBinder.tid = tBinder[j].tid;
           countBinder.pid = tBinder[j].pid;
@@ -284,7 +280,7 @@ export class TabPaneBinderDataCut extends BaseElement {
             cycleMap.set(tBinder[j].tid + '_' + cid, new Array());
           }
           cycleArr = cycleMap.get(tBinder[j].tid + '_' + cid);
-          let thread: string = Utils.THREAD_MAP.get(tBinder[j].tid) || 'Thread';
+          let thread: string = Utils.getInstance().getThreadMap().get(tBinder[j].tid) || 'Thread';
           countBinder.title = 'cycle ' + (i + 1) + '_' + thread;
           countBinder.tid = tBinder[j].tid;
           countBinder.pid = tBinder[j].pid;
@@ -338,9 +334,9 @@ export class TabPaneBinderDataCut extends BaseElement {
       processArr.push({
         pid: pid,
         title:
-          Utils.PROCESS_MAP.get(pid) === null
+          Utils.getInstance().getProcessMap().get(pid) === null
             ? 'Process' + ' ' + '[' + pid + ']'
-            : Utils.PROCESS_MAP.get(pid) + ' ' + '[' + pid + ']',
+            : Utils.getInstance().getProcessMap().get(pid) + ' ' + '[' + pid + ']',
         totalCount: 0,
         type: 'Process',
         children: [],
@@ -728,7 +724,7 @@ export class TabPaneBinderDataCut extends BaseElement {
             <lit-slicer style="width:100%">
                 <div style="width:65%;">
                     <lit-table id="tb-binder-count" style="height: auto; overflow-x:auto;width:100%" tree>
-                        <lit-table-column width="240px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
+                        <lit-table-column width="250px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
                         </lit-table-column>
                         <lit-table-column width="100px" title="Total count" data-index="totalCount" key="totalCount" align="center">
                         </lit-table-column>

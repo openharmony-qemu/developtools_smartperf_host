@@ -322,7 +322,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
     chartTreeArray: Array<JsCpuProfilerChartFrame>,
     reverseTreeArray: Array<JsCpuProfilerChartFrame>
   ): void {
-    const recursionTree = (chartFrame: JsCpuProfilerChartFrame): void => {
+    let recursionTree = (chartFrame: JsCpuProfilerChartFrame): void => {
       // isSelect为框选/点选范围内的函数，其他都不需要处理
       if (!chartFrame.isSelect) {
         return;

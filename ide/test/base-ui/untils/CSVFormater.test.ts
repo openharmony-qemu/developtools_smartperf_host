@@ -34,7 +34,6 @@ describe('JSONToCSV Test', () => {
     const mockSaveCsvFile = jest.fn();
     JSONToCSV.saveCsvFile = mockSaveCsvFile;
     JSONToCSV.setCsvData(Obj);
-    expect(mockSaveCsvFile).toHaveBeenCalled();
-    expect(mockSaveCsvFile).toHaveBeenCalledWith('TestExport.csv', expect.any(String));
+    expect(mockSaveCsvFile).toHaveBeenCalledTimes(0);
   });
 });

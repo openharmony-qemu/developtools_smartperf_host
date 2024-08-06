@@ -12,46 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class DataWorkerThread {
-  //@ts-ignore
-  taskMap: unknow = {};
-  worker?: Worker;
-  constructor(worker: Worker) {
-    this.worker = worker;
-  }
-  uuid(): string {
-    // @ts-ignore
-    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: unknow) =>
-      (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
-    );
-  }
-
-  //发送方法名 参数 回调
-  //@ts-ignore
-  queryFunc(action: string, args: unknow, handler: Function): void {
-    let id = this.uuid();
-    this.taskMap[id] = handler;
-    let msg = {
-      id: id,
-      action: action,
-      args: args,
-    };
-    this.worker!.postMessage(msg);
-  }
-}
 
 class DbThread {
   busy: boolean = false;
-  isCancelled: boolean = false;
   id: number = -1;
   //@ts-ignore
   taskMap: unknow = {};
-  //@ts-ignore
-  cacheArray: Array<unknow> = [];
   worker?: Worker;
+  traceId: string;
 
-  constructor(worker: Worker) {
+  constructor(worker: Worker, traceId: string) {
     this.worker = worker;
+    this.traceId = traceId;
   }
 
   uuid(): string {
@@ -99,14 +71,14 @@ class DbThread {
     let id = this.uuid();
     //@ts-ignore
     this.taskMap[id] = (res: unknow): void => {
-      DbPool.sharedBuffer = res.buffer;
+      setThreadPoolTraceBuffer(this.traceId, res.buffer);
       if (res.cutStatus) {
         handler(res.cutStatus, res.msg, res.cutBuffer);
       } else {
         handler(res.cutStatus, res.msg);
       }
     };
-    caches.match(DbPool.fileCacheKey).then((resData) => {
+    caches.match(getThreadPoolTraceBufferCacheKey(this.traceId)).then((resData) => {
       if (resData) {
         resData.arrayBuffer().then((buffer) => {
           this.worker!.postMessage(
@@ -175,15 +147,19 @@ class DbThread {
 }
 
 export class DbPool {
-  static sharedBuffer: ArrayBuffer | null = null;
-  static fileCacheKey: string = 'null';
+  sharedBuffer: ArrayBuffer | null = null;
+  fileCacheKey: string = 'null';
+  traceId: string;
   maxThreadNumber: number = 0;
   works: Array<DbThread> = [];
   progress: Function | undefined | null;
   num = Math.floor(Math.random() * 10 + 1) + 20;
   cutDownTimer: unknown | undefined;
-  dataWorker: DataWorkerThread | undefined | null;
   currentWasmThread: DbThread | undefined = undefined;
+
+  constructor(traceId: string) {
+    this.traceId = traceId;
+  }
 
   init = async (type: string, threadBuild: (() => DbThread) | undefined = undefined): Promise<void> => {
     // wasm | server | sqlite
@@ -199,11 +175,11 @@ export class DbPool {
         thread = threadBuild();
       } else {
         if (type === 'wasm') {
-          thread = new DbThread(new Worker(new URL('./TraceWorker', import.meta.url)));
+          thread = new DbThread(new Worker(new URL('./TraceWorker', import.meta.url)), this.traceId);
         } else if (type === 'server') {
-          thread = new DbThread(new Worker(new URL('./SqlLiteWorker', import.meta.url)));
+          thread = new DbThread(new Worker(new URL('./SqlLiteWorker', import.meta.url)), this.traceId);
         } else if (type === 'sqlite') {
-          thread = new DbThread(new Worker(new URL('./SqlLiteWorker', import.meta.url)));
+          thread = new DbThread(new Worker(new URL('./SqlLiteWorker', import.meta.url)), this.traceId);
         }
       }
       if (thread) {
@@ -239,7 +215,7 @@ export class DbPool {
         } else if (Reflect.has(event.data, 'ready')) {
           this.progress!('database opened', this.num + event.data.index);
           this.progressTimer(this.num + event.data.index, this.progress!);
-          DbPool.sharedBuffer = null;
+          this.sharedBuffer = null;
         } else if (Reflect.has(event.data, 'init')) {
           if (this.cutDownTimer !== undefined) {
             //@ts-ignore
@@ -271,12 +247,12 @@ export class DbPool {
   initServer = async (url: string, progress: Function): Promise<{ status: boolean; msg: string }> => {
     this.progress = progress;
     progress('database loaded', 15);
-    DbPool.sharedBuffer = await fetch(url).then((res) => res.arrayBuffer());
+    this.sharedBuffer = await fetch(url).then((res) => res.arrayBuffer());
     progress('open database', 20);
     for (let thread of this.works) {
       let { status, msg } = await thread.dbOpen('');
       if (!status) {
-        DbPool.sharedBuffer = null;
+        this.sharedBuffer = null;
         return { status, msg };
       }
     }
@@ -289,35 +265,35 @@ export class DbPool {
     progress: Function
   ): Promise<
     | {
-        status: false;
-        msg: string;
-        sdkConfigMap?: undefined;
-      }
+      status: false;
+      msg: string;
+      sdkConfigMap?: undefined;
+    }
     | {
-        status: boolean;
-        msg: string;
-        //@ts-ignore
-        sdkConfigMap: unknow;
-      }
+      status: boolean;
+      msg: string;
+      //@ts-ignore
+      sdkConfigMap: unknow;
+    }
   > => {
     this.progress = progress;
     progress('database loaded', 15);
-    DbPool.sharedBuffer = buf;
+    this.sharedBuffer = buf;
     progress('parse database', 20);
     let configMap;
     for (let thread of this.works) {
       let { status, msg, buffer, sdkConfigMap, fileKey } = await thread.dbOpen(parseConfig, sdkWasmConfig, buf);
       if (!status) {
-        DbPool.sharedBuffer = null;
+        this.sharedBuffer = null;
         return { status, msg };
       } else {
         configMap = sdkConfigMap;
-        DbPool.sharedBuffer = buffer;
+        this.sharedBuffer = buffer;
         if (fileKey !== '-1') {
-          DbPool.fileCacheKey = fileKey;
+          this.fileCacheKey = fileKey;
         } else {
-          DbPool.fileCacheKey = `trace/${new Date().getTime()}-${buffer.byteLength}`;
-          this.saveTraceFileBuffer(DbPool.fileCacheKey, buffer).then();
+          this.fileCacheKey = `trace/${new Date().getTime()}-${buffer.byteLength}`;
+          this.saveTraceFileBuffer(this.fileCacheKey, buffer).then();
         }
       }
     }
@@ -384,6 +360,14 @@ export class DbPool {
     this.works.length = 0;
   };
 
+  async reset(): Promise<void> {
+    if (this.currentWasmThread) {
+      this.currentWasmThread.resetWASM();
+      this.currentWasmThread = undefined;
+    }
+    await this.close();
+  }
+
   //@ts-ignore
   submit(name: string, sql: string, args: unknow, handler: Function, action: string | null): void {
     let noBusyThreads = this.works.filter((it) => !it.busy);
@@ -414,12 +398,6 @@ export class DbPool {
         thread.queryProto(name, args, handler);
       }
     }
-  }
-
-  //new method replace submit() method
-  //@ts-ignore
-  submitTask(action: string, args: unknow, handler: Function): void {
-    this.dataWorker?.queryFunc(action, args, handler);
   }
 
   cutFile(
@@ -455,16 +433,26 @@ export class DbPool {
   }
 }
 
-export const threadPool = new DbPool();
+export const threadPool = new DbPool('1');
+export const threadPool2 = new DbPool('2');
+
+export interface ThreadPoolConfig {
+  action?: string | null,
+  traceId?: string | null | undefined
+}
+
+export function getThreadPool(traceId?: string | null): DbPool {
+  return traceId === '2' ? threadPool2 : threadPool;
+}
 
 export function query<T>(
   name: string,
   sql: string,
   args: unknown = null,
-  action: string | null = null
+  config?: ThreadPoolConfig
 ): Promise<Array<T>> {
-  return new Promise<Array<T>>((resolve, reject) => {
-    threadPool.submit(
+  return new Promise<Array<T>>((resolve, reject): void => {
+    getThreadPool(config?.traceId).submit(
       name,
       sql,
       args,
@@ -476,7 +464,31 @@ export function query<T>(
           resolve(res);
         }
       },
-      action
+      config ? (config.action || null) : null
     );
   });
+}
+
+export function setThreadPoolTraceBuffer(traceId: string, buf: ArrayBuffer | null): void {
+  if (traceId === threadPool2.traceId) {
+    threadPool2.sharedBuffer = buf;
+  } else {
+    threadPool.sharedBuffer = buf;
+  }
+}
+
+export function getThreadPoolTraceBuffer(traceId: string): ArrayBuffer | null {
+  return traceId === threadPool2.traceId ? threadPool2.sharedBuffer : threadPool.sharedBuffer;
+}
+
+export function setThreadPoolTraceBufferCacheKey(traceId: string, key: string): void {
+  if (traceId === threadPool2.traceId) {
+    threadPool2.fileCacheKey = key;
+  } else {
+    threadPool.fileCacheKey = key;
+  }
+}
+
+export function getThreadPoolTraceBufferCacheKey(traceId: string): string {
+  return traceId === threadPool2.traceId ? threadPool2.fileCacheKey : threadPool.fileCacheKey;
 }

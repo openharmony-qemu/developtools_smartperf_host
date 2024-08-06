@@ -354,34 +354,34 @@ export class EnergyPowerStruct extends BaseStruct {
   ): void {
     let startPointX: number;
     let endPointX: number;
-    // @ts-ignore
+    //@ts-ignore
     if ((powerNode.ts || 0) < startNS) {
       startPointX = 0;
     } else {
-      // @ts-ignore
+      //@ts-ignore
       startPointX = ns2x((powerNode.ts || 0) - 500000000, startNS, endNS, totalNS, frame);
     }
-    // @ts-ignore
+    //@ts-ignore
     if (powerNode.ts + 500000000 > endNS) {
-      // @ts-ignore
+      //@ts-ignore
       endPointX = frame.width;
     } else {
-      // @ts-ignore
+      //@ts-ignore
       endPointX = ns2x(powerNode.ts + 500000000, startNS, endNS, totalNS, frame);
     }
     let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-    // @ts-ignore
+    //@ts-ignore
     if (!powerNode.frame) {
-      // @ts-ignore
+      //@ts-ignore
       powerNode.frame = {};
     }
-    // @ts-ignore
+    //@ts-ignore
     powerNode.frame.x = Math.floor(startPointX);
-    // @ts-ignore
+    //@ts-ignore
     powerNode.frame.y = frame.y + padding;
-    // @ts-ignore
+    //@ts-ignore
     powerNode.frame.width = Math.ceil(frameWidth);
-    // @ts-ignore
+    //@ts-ignore
     powerNode.frame.height = Math.floor(frame.height - padding * 2);
   }
 

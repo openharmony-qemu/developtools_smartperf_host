@@ -56,6 +56,8 @@ export const hiLogList: Map<string, Array<unknown>> = new Map();
 
 //energy 泳道图 memory 模式缓存
 export const energyList: Map<string, Array<unknown>> = new Map();
+//dma_fence 泳道图 memory 模式缓存
+export const dmaFenceList: Map<string, Array<unknown>> = new Map();
 export function clearMemoryCache(data: unknown, proc: Function): void {
   sliceList.clear();
   cpuList.clear();

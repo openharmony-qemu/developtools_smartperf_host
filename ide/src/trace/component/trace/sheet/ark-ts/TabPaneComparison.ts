@@ -105,8 +105,9 @@ export class TabPaneComparison extends BaseElement {
     if (comFileArr[0].name) {
       option.setAttribute('value', comFileArr[0].name);
     }
-    this.selectEl!.querySelectorAll('lit-select-option').forEach((a): void => {
-      a.addEventListener('onSelected', (e): void => {
+    let selectOption = this.selectEl!.querySelectorAll('lit-select-option');
+    for (const item of selectOption) {
+      item.addEventListener('onSelected', (e): void => {
         this.comparisonTable!.scrollTop = 0;
         this.retainerTableEl!.snapshotDataSource = [];
         for (let f of comFileArr) {
@@ -116,7 +117,7 @@ export class TabPaneComparison extends BaseElement {
         }
         e.stopPropagation();
       });
-    });
+    }
   }
 
   sortComprisonByColumn(column: string, sort: number): void {
@@ -380,29 +381,29 @@ export class TabPaneComparison extends BaseElement {
       }
       let retainsTable = (): void => {
         const getList = (list: Array<ConstructorItem>): void => {
-          list.forEach((structRow): void => {
-            let shallow = `${Math.round((structRow.shallowSize / this.fileSize) * 100)}%`;
-            let retained = `${Math.round((structRow.retainedSize / this.fileSize) * 100)}%`;
-            structRow.shallowPercent = shallow;
-            structRow.retainedPercent = retained;
-            let nodeId = `${structRow.nodeName} @${structRow.id}`;
-            structRow.objectName = `${structRow.edgeName}\xa0` + 'in' + `\xa0${nodeId}`;
-            if (structRow.distance >= 100000000 || structRow.distance === -5) {
+          for (const item of list) {
+            let shallow = `${Math.round((item.shallowSize / this.fileSize) * 100)}%`;
+            let retained = `${Math.round((item.retainedSize / this.fileSize) * 100)}%`;
+            item.shallowPercent = shallow;
+            item.retainedPercent = retained;
+            let nodeId = `${item.nodeName} @${item.id}`;
+            item.objectName = `${item.edgeName}\xa0` + 'in' + `\xa0${nodeId}`;
+            if (item.distance >= 100000000 || item.distance === -5) {
               // @ts-ignore
-              structRow.distance = '-';
+              item.distance = '-';
             }
             i++;
             // @ts-ignore
             if (i < this.retainsData[0].distance - 1 && list[0].distance !== '-') {
               list[0].getChildren();
               list[0].expanded = false;
-              if (structRow.hasNext) {
-                getList(structRow.children);
+              if (item.hasNext) {
+                getList(item.children);
               }
             } else {
               return;
             }
-          });
+          }
         };
         getList(this.retainsData[0].children);
       };
@@ -472,7 +473,7 @@ export class TabPaneComparison extends BaseElement {
         if (retainerNext.status) {
           retainerNext.getChildren();
           let i = 0;
-          const retainsTable = (): void => {
+          let retainsTable = (): void => {
             const getList = (comList: Array<ConstructorItem>): void => {
               comList.forEach((row): void => {
                 let shallow = `${Math.round((row.shallowSize / this.fileSize) * 100)}%`;

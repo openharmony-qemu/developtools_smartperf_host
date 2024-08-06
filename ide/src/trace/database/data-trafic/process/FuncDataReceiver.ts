@@ -79,8 +79,10 @@ export function funcDataReceiver(data: unknown, proc: Function): void {
       }
       threadCallStackList.set(key, list);
     }
-    let array = threadCallStackList.get(key) || [];
+    //@ts-ignore
+    let array = data.params.expand ? (threadCallStackList.get(key) || []) : arrayFoldHandler(key);
     let res = filterDataByGroupLayer(
+      //@ts-ignore
       array,
       'depth',
       'startTs',
@@ -89,6 +91,7 @@ export function funcDataReceiver(data: unknown, proc: Function): void {
       data.params.endNS, //@ts-ignore
       data.params.width
     );
+    //@ts-ignore
     arrayBufferHandler(data, res, true, array.length === 0);
   } else {
     //@ts-ignore
@@ -96,6 +99,12 @@ export function funcDataReceiver(data: unknown, proc: Function): void {
     let res = proc(sql); //@ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer, false);
   }
+}
+
+//func泳道折叠时，过滤出depth为0的数据
+function arrayFoldHandler(key: unknown): unknown {
+  //@ts-ignore
+  return (threadCallStackList.get(key) || []).filter((it) => it.depth === 0 );
 }
 
 function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean, isEmpty: boolean): void {

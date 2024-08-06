@@ -200,12 +200,12 @@ const bioSql: Array<DebugSql> = [
 const frameTimeSql: Array<DebugSql> = [
   {
     sql:
-      "SELECT sf.id,'frameTime' AS frame_type,fs.ipid,fs.vsync AS name,fs.dur AS app_dur,(sf.ts + sf.dur - fs.ts) " +
+      "SELECT sf.id,'frameTime' AS frameType,fs.ipid,fs.vsync AS name,fs.dur AS app_dur,(sf.ts + sf.dur - fs.ts) " +
       'AS dur,(fs.ts - TR.start_ts) AS ts,fs.type,fs.flag,pro.pid,pro.name AS cmdline,(sf.ts - TR.start_ts) AS rs_ts,' +
       'sf.vsync AS rs_vsync,sf.dur AS rs_dur,sf.ipid AS rs_ipid,proc.pid AS rs_pid,proc.name AS rs_name FROM ' +
       'frame_slice AS fs LEFT JOIN process AS pro ON pro.id = fs.ipid LEFT JOIN frame_slice AS sf ON fs.dst = sf.id ' +
       'LEFT JOIN process AS proc ON proc.id = sf.ipid LEFT JOIN trace_range TR WHERE fs.dst IS NOT NULL AND fs.type ' +
-      "= 1 UNION SELECT -1 AS id,'frameTime' AS frame_type,fs.ipid,fs.vsync  AS name,fs.dur AS app_dur,fs.dur," +
+      "= 1 UNION SELECT -1 AS id,'frameTime' AS frameType,fs.ipid,fs.vsync  AS name,fs.dur AS app_dur,fs.dur," +
       '(fs.ts - TR.start_ts) AS ts,fs.type,fs.flag, pro.pid,pro.name AS cmdline,NULL AS rs_ts,NULL AS rs_vsync,' +
       'NULL AS rs_dur,NULL AS rs_ipid,NULL AS rs_pid,NULL AS rs_name FROM frame_slice AS fs LEFT JOIN process AS pro' +
       " ON pro.id = fs.ipid LEFT JOIN trace_range TR WHERE fs.dst IS NULL AND pro.name NOT LIKE '%render_service%' " +
@@ -214,13 +214,13 @@ const frameTimeSql: Array<DebugSql> = [
   },
   {
     sql:
-      "SELECT sf.id,'frameTime' AS frame_type,fs.ipid,fs.vsync AS name,fs.dur AS app_dur,(sf.ts + sf.dur - fs.ts) " +
+      "SELECT sf.id,'frameTime' AS frameType,fs.ipid,fs.vsync AS name,fs.dur AS app_dur,(sf.ts + sf.dur - fs.ts) " +
       'AS dur,(fs.ts - TR.start_ts) AS ts,fs.type,(CASE WHEN (sf.flag == 1 OR fs.flag == 1) THEN 1  WHEN (sf.flag == ' +
       '3 OR fs.flag == 3 ) THEN 3 ELSE 0 end) AS jank_tag,pro.pid,pro.name AS cmdline,(sf.ts - TR.start_ts) ' +
       'AS rs_ts,sf.vsync AS rs_vsync,sf.dur AS rs_dur,sf.ipid AS rs_ipid,proc.pid AS rs_pid, proc.name AS rs_name ' +
       'FROM frame_slice AS fs LEFT JOIN process AS pro ON pro.id = fs.ipid LEFT JOIN frame_slice AS sf ON fs.dst = ' +
       'sf.id LEFT JOIN process AS proc ON proc.id = sf.ipid LEFT JOIN trace_range TR WHERE fs.dst IS NOT NULL AND ' +
-      "fs.type = 0 AND fs.flag <> 2 UNION SELECT -1 AS id,'frameTime' AS frame_type,fs.ipid,fs.vsync AS name," +
+      "fs.type = 0 AND fs.flag <> 2 UNION SELECT -1 AS id,'frameTime' AS frameType,fs.ipid,fs.vsync AS name," +
       'fs.dur AS app_dur,fs.dur,(fs.ts - TR.start_ts) AS ts,fs.type,fs.flag AS jank_tag,pro.pid,pro.name AS ' +
       'cmdline,NULL AS rs_ts,NULL AS rs_vsync,NULL AS rs_dur,NULL AS rs_ipid,NULL AS rs_pid,NULL AS rs_name FROM ' +
       'frame_slice AS fs LEFT JOIN process AS pro ON pro.id = fs.ipid LEFT JOIN trace_range TR WHERE fs.dst IS NULL ' +

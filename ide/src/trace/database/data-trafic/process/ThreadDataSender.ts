@@ -12,14 +12,16 @@
 // limitations under the License.
 
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, threadStateToString, TraficEnum } from '../utils/QueryEnum';
-import { threadPool } from '../../SqlLite';
+import { getThreadPool } from '../../SqlLite';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { ThreadStruct } from '../../ui-worker/ProcedureWorkerThread';
+import { Utils } from '../../../component/trace/base/Utils';
 
 export function threadDataSender(
   tid: number,
   pid: number,
-  row: TraceRow<ThreadStruct>
+  row: TraceRow<ThreadStruct>,
+  traceId?: string
 ): Promise<ThreadStruct[] | boolean> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
@@ -36,15 +38,15 @@ export function threadDataSender(
     };
   }
   return new Promise((resolve): void => {
-    threadPool.submitProto(
+    getThreadPool(traceId).submitProto(
       QueryEnum.ThreadData,
       {
         pid: pid,
         tid: tid,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
+        recordStartNS: Utils.getInstance().getRecordStartNS(traceId),
+        recordEndNS: Utils.getInstance().getRecordEndNS(traceId),
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,

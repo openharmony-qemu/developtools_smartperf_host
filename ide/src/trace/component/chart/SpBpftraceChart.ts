@@ -39,7 +39,7 @@ export class SpBpftraceChart {
     }
   }
 
-  async initSample(start_ts: number, file: any): Promise<TraceRow<SampleStruct>> {
+  async initSample(start_ts: number, file: unknown): Promise<TraceRow<SampleStruct>> {
     let traceRow = TraceRow.skeleton<SampleStruct>();
     traceRow.rowId = 'bpftrace';
     traceRow.index = 0;
@@ -51,20 +51,28 @@ export class SpBpftraceChart {
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     //添加上传按钮
-    traceRow.addRowSampleUpload();
+    if (!file) {
+      traceRow.addRowSampleUpload();
+    }
     this.addTraceRowEventListener(traceRow, start_ts);
     //单独上传
     if (file) {
-      this.getJsonData(file).then((res: any) => {
+      this.getJsonData(file).then((res: unknown) => {
+        // @ts-ignore
         const propertyData = res.data;
+        // @ts-ignore
         const treeNodes = res.relation.children || [res.relation.RS.children[0]];
         const uniqueProperty = this.removeDuplicates(propertyData);
         const flattenTreeArray = this.getFlattenTreeData(treeNodes);
-        const height = (Math.max(...flattenTreeArray.map((obj: any) => obj.depth)) + 1) * 20;
+        // @ts-ignore
+        const height = (Math.max(...flattenTreeArray.map((obj: unknown) => obj.depth)) + 1) * 20;
+        // @ts-ignore
         const sampleProperty = this.setRelationDataProperty(flattenTreeArray, uniqueProperty);
+        // @ts-ignore
         const startTS = flattenTreeArray[0].property[0].begin;
         traceRow.supplier = () =>
           new Promise((resolve): void => {
+            // @ts-ignore
             resolve(sampleProperty);
           });
         traceRow.onThreadHandler = (useCache) => {
@@ -82,6 +90,7 @@ export class SpBpftraceChart {
               type: 'bpftrace',
               start_ts: startTS,
               uniqueProperty: uniqueProperty,
+              // @ts-ignore
               flattenTreeArray: flattenTreeArray,
             },
             traceRow
@@ -125,16 +134,21 @@ export class SpBpftraceChart {
    * @param row
    * @param start_ts
    */
-  addTraceRowEventListener(row: TraceRow<any>, start_ts: number) {
-    row.uploadEl?.addEventListener('sample-file-change', (e: any) => {
-      this.getJsonData(e).then((res: any) => {
+  // @ts-ignore
+  addTraceRowEventListener(row: TraceRow<unknown>, start_ts: number): void {
+    row.uploadEl?.addEventListener('sample-file-change', (e: unknown) => {
+      this.getJsonData(e).then((res: unknown) => {
         this.resetChartData(row);
+        // @ts-ignore
         const propertyData = res.data;
+        // @ts-ignore
         const treeNodes = res.relation.children || [res.relation.RS.children[0]];
         const uniqueProperty = this.removeDuplicates(propertyData);
         const flattenTreeArray = this.getFlattenTreeData(treeNodes);
-        const height = (Math.max(...flattenTreeArray.map((obj: any) => obj.depth)) + 1) * 20;
+        // @ts-ignore
+        const height = (Math.max(...flattenTreeArray.map((obj: unknown) => obj.depth)) + 1) * 20;
         const sampleProperty = this.setRelationDataProperty(flattenTreeArray, uniqueProperty);
+        // @ts-ignore
         const startTS = start_ts > 0 ? start_ts : flattenTreeArray[0].property[0].begin;
         row.supplier = () =>
           new Promise((resolve): void => {
@@ -155,6 +169,7 @@ export class SpBpftraceChart {
               type: 'bpftrace',
               start_ts: startTS,
               uniqueProperty: uniqueProperty,
+              // @ts-ignore
               flattenTreeArray: flattenTreeArray,
             },
             row
@@ -170,7 +185,8 @@ export class SpBpftraceChart {
    * 清空缓存
    * @param row
    */
-  resetChartData(row: TraceRow<any>) {
+  // @ts-ignore
+  resetChartData(row: TraceRow<unknown>): void {
     row.dataList = [];
     row.dataList2 = [];
     row.dataListCache = [];
@@ -182,11 +198,13 @@ export class SpBpftraceChart {
    * @param file
    * @returns
    */
-  getJsonData(file: any): Promise<any> {
+  getJsonData(file: unknown): Promise<unknown> {
     return new Promise((resolve, reject) => {
       let reader = new FileReader();
+      // @ts-ignore
       reader.readAsText(file.detail || file);
-      reader.onloadend = (e: any) => {
+      reader.onloadend = (e: unknown): void => {
+        // @ts-ignore
         const fileContent = e.target?.result;
         try {
           resolve(JSON.parse(fileContent));
@@ -209,21 +227,31 @@ export class SpBpftraceChart {
    * @param parentName
    * @returns
    */
-  getFlattenTreeData(treeData: Array<any>, depth: number = 0, parentName: string = ''): Array<any> {
+  getFlattenTreeData(treeData: Array<unknown>, depth: number = 0, parentName: string = ''): Array<unknown> {
     let result: Array<object> = [];
     treeData.forEach((node) => {
-      const name: string = node['function_name'];
-      const newNode: any = {};
+      // @ts-ignore
+      const name: string = node.function_name;
+      const newNode: unknown = {};
       if (name.indexOf('unknown') > -1) {
-        newNode['children'] = this.getUnknownAllChildrenNames(node);
+        // @ts-ignore
+        newNode.children = this.getUnknownAllChildrenNames(node);
       }
-      newNode['detail'] = node['detail'];
-      newNode['depth'] = depth;
-      newNode['name'] = name;
-      newNode['parentName'] = parentName;
-      newNode['property'] = [];
+      // @ts-ignore
+      newNode.detail = node.detail;
+      // @ts-ignore
+      newNode.depth = depth;
+      // @ts-ignore
+      newNode.name = name;
+      // @ts-ignore
+      newNode.parentName = parentName;
+      // @ts-ignore
+      newNode.property = [];
+      // @ts-ignore
       result.push(newNode);
+      // @ts-ignore
       if (node.children) {
+        // @ts-ignore
         result = result.concat(this.getFlattenTreeData(node.children, depth + 1, node.function_name));
       }
     });
@@ -235,15 +263,19 @@ export class SpBpftraceChart {
    * @param propertyData
    * @returns
    */
-  removeDuplicates(propertyData: Array<any>): Array<any> {
-    const result: Array<any> = [];
+  removeDuplicates(propertyData: Array<unknown>): Array<unknown> {
+    const result: Array<unknown> = [];
     propertyData.forEach((propertyGroup) => {
-      const groups: Array<any> = [];
-      propertyGroup.forEach((property: any) => {
+      const groups: Array<unknown> = [];
+      // @ts-ignore
+      propertyGroup.forEach((property: unknown) => {
+        // @ts-ignore
         const duplicateObj = groups.find((group) => group.func_name === property.func_name);
         if (duplicateObj) {
-          duplicateObj['begin'] = Math.min(duplicateObj['begin'], property['begin']);
-          duplicateObj['end'] = Math.max(duplicateObj['end'], property['end']);
+          // @ts-ignore
+          duplicateObj.begin = Math.min(duplicateObj.begin, property.begin);
+          // @ts-ignore
+          duplicateObj.end = Math.max(duplicateObj.end, property.end);
         } else {
           groups.push(property);
         }
@@ -258,60 +290,82 @@ export class SpBpftraceChart {
    * @param relationData
    * @param propertyData
    */
-  setRelationDataProperty(relationData: Array<any>, propertyData: Array<any>): Array<any> {
+  setRelationDataProperty(relationData: Array<unknown>, propertyData: Array<unknown>): Array<unknown> {
     const sampleProperty = relationData;
     //数组每一项进行比对
     propertyData.forEach((propertyGroup) => {
-      propertyGroup.forEach((property: any) => {
+      // @ts-ignore
+      propertyGroup.forEach((property: unknown) => {
+        // @ts-ignore
         const relation = sampleProperty.find((relation) => relation.name === property.func_name);
         //property属性存储每帧数据
+        // @ts-ignore
         relation?.property.push({
-          name: property['func_name'],
-          detail: relation['detail'],
-          end: property['end'],
-          begin: property['begin'],
-          depth: relation['depth'],
-          instructions: property['instructions'],
+          // @ts-ignore
+          name: property.func_name,
+          // @ts-ignore
+          detail: relation.detail,
+          // @ts-ignore
+          end: property.end,
+          // @ts-ignore
+          begin: property.begin,
+          // @ts-ignore
+          depth: relation.depth,
+          // @ts-ignore
+          instructions: property.instructions,
+          // @ts-ignore
           cycles: property.cycles,
         });
       });
     });
 
     //获取所有名字为unknown的数据
+    // @ts-ignore
     const unknownRelation = sampleProperty.filter((relation) => relation.name.indexOf('unknown') > -1);
     //二维数组 用于存放unknown下所有子节点的数据
-    let twoDimensionalArray: Array<any> = [];
-    let result: Array<any> = [];
+    let twoDimensionalArray: Array<unknown> = [];
+    let result: Array<unknown> = [];
     unknownRelation.forEach((unknownItem) => {
       result = [];
       twoDimensionalArray = [];
-      const children = unknownItem['children'];
+      // @ts-ignore
+      const children = unknownItem.children;
       //先获取到unknwon节点下每个子节点的property
       Object.keys(children).forEach((key) => {
+        // @ts-ignore
         unknownItem.children[key] = sampleProperty.find((relation) => relation.name === key).property;
       });
       //将每个子节点的property加到二维数组中
-      Object.values(children).forEach((value: any) => {
+      Object.values(children).forEach((value: unknown) => {
+        // @ts-ignore
         if (value.length > 0) {
           twoDimensionalArray.push(value);
         }
       });
       if (twoDimensionalArray.length > 0) {
         //取每列的最大值和最小值
+        // @ts-ignore
         for (let i = 0; i < twoDimensionalArray[0].length; i++) {
           const data = {
-            name: unknownItem['name'],
-            detail: unknownItem['detail'],
+            // @ts-ignore
+            name: unknownItem.name,
+            // @ts-ignore
+            detail: unknownItem.detail,
+            // @ts-ignore
             begin: twoDimensionalArray[0][i].begin,
             end: 0,
+            // @ts-ignore
             depth: unknownItem.depth,
           };
           for (let j = 0; j < twoDimensionalArray.length; j++) {
+            // @ts-ignore
             data.end = Math.max(twoDimensionalArray[j][i].end, data.end);
+            // @ts-ignore
             data.begin = Math.min(twoDimensionalArray[j][i].begin, data.begin);
           }
           result.push(data);
         }
+        // @ts-ignore
         unknownItem.property = result;
       }
     });
@@ -323,16 +377,21 @@ export class SpBpftraceChart {
    * @param node
    * @param names
    */
-  getUnknownAllChildrenNames(node: any, names: any = {}): object {
-    if (node['children']) {
-      node['children'].forEach((child: any) => {
-        if (child['function_name'].indexOf('unknown') < 0) {
-          names[child.function_name] = [];
+  getUnknownAllChildrenNames(node: unknown, names: unknown = {}): object {
+    // @ts-ignore
+    if (node.children) {
+      // @ts-ignore
+      node.children.forEach((child: unknown) => {
+        // @ts-ignore
+        if (child.function_name.indexOf('unknown') < 0) {
+          // @ts-ignore
+          names[child.function.name] = [];
         } else {
           this.getUnknownAllChildrenNames(child, names);
         }
       });
     }
+    // @ts-ignore
     return names;
   }
 }

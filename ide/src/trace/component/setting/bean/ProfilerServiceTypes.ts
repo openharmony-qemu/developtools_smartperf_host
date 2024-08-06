@@ -515,3 +515,13 @@ export interface ArkTSConfig {
   cpu_profiler_interval: number;
   splitOutfileName?: string;
 }
+
+export interface FFRTConfig {
+  pid?: number[];
+  startupProcessName?: string[];
+  restartProcessName?: string[];
+  smbPages?: number;
+  flushInterval?: number;
+  block?: boolean;
+  clockId?: string;
+}

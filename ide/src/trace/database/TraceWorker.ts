@@ -16,9 +16,19 @@
 importScripts('trace_streamer_builtin.js');
 import { execProtoForWorker } from './data-trafic/utils/ExecProtoForWorker';
 import { QueryEnum, TraficEnum } from './data-trafic/utils/QueryEnum';
+// @ts-ignore
 import { temp_init_sql_list } from './TempSql';
 // @ts-ignore
 import { BatchSphData } from '../proto/SphBaseData';
+
+enum TsLogLevel {
+  DEBUG = 0,
+  INFO = 1,
+  WARN = 2,
+  ERROR = 3,
+  FATAL = 4,
+  OFF = 5,
+}
 
 let wasmModule: unknown = null;
 let enc = new TextEncoder();
@@ -45,6 +55,7 @@ let currentActionId: string = '';
 let ffrtFileCacheKey = '-1';
 let indexDB: IDBDatabase;
 const maxSize = 48 * 1024 * 1024;
+const currentTSLogLevel = TsLogLevel.OFF;
 //@ts-ignore
 let protoDataMap: Map<QueryEnum, BatchSphData> = new Map<QueryEnum, BatchSphData>();
 function clear(): void {
@@ -84,8 +95,16 @@ function initWASM(): Promise<unknown> {
       locateFile: (s: unknown) => {
         return s;
       },
-      print: (line: string) => {},
-      printErr: (line: string) => {},
+      print: (line: string) => {
+        if (currentTSLogLevel < TsLogLevel.OFF) {
+          console.log(line);
+        }
+      },
+      printErr: (line: string) => {
+        if (currentTSLogLevel < TsLogLevel.OFF) {
+          console.error(line);
+        }
+      },
       onRuntimeInitialized: () => {
         resolve('ok');
       },
@@ -103,10 +122,18 @@ function initThirdWASM(wasmFunctionName: string): unknown {
       locateFile: (s: unknown): unknown => {
         return s;
       },
-      print: (line: string): void => {},
-      printErr: (line: string): void => {},
-      onRuntimeInitialized: (): void => {},
-      onAbort: (): void => {},
+      print: (line: string): void => {
+        if (currentTSLogLevel < TsLogLevel.OFF) {
+          console.log(line);
+        }
+      },
+      printErr: (line: string): void => {
+        if (currentTSLogLevel < TsLogLevel.OFF) {
+          console.error(line);
+        }
+      },
+      onRuntimeInitialized: (): void => { },
+      onAbort: (): void => { },
     });
   }
 
@@ -271,10 +298,6 @@ function initModuleCallBackAndFun(): void {
       bufferSlice.length = 0;
     }
   };
-  //@ts-ignore
-  let fn = wasmModule.addFunction(callback, 'viii');
-  //@ts-ignore
-  reqBufferAddr = wasmModule._Initialize(fn, REQ_BUF_SIZE);
   let ffrtConvertCallback = (heapPtr: number, size: number, isEnd: number): void => {
     if (isEnd !== 1) {
       //@ts-ignore
@@ -299,7 +322,7 @@ function initModuleCallBackAndFun(): void {
   //@ts-ignore
   let tlvResultFun = wasmModule.addFunction(tlvResultCallback, 'viiii');
   //@ts-ignore
-  wasmModule._TraceStreamerSetLogLevel(5);
+  wasmModule._TraceStreamerSetLogLevel(currentTSLogLevel);
   //@ts-ignore
   reqBufferAddr = wasmModule._Initialize(REQ_BUF_SIZE, fn1, tlvResultFun, fn2);
 }
@@ -507,11 +530,16 @@ function postMessageByOpenAction(r2: number, e: MessageEvent): void {
     });
     return;
   }
-  temp_init_sql_list.forEach((item, index) => {
-    createView(item);
+  // @ts-ignore
+  if (temp_init_sql_list && temp_init_sql_list.length > 0) {
     // @ts-ignore
-    self.postMessage({ id: e.data.id, ready: true, index: index + 1 });
-  });
+    temp_init_sql_list.forEach((item, index) => {
+      createView(item);
+      // @ts-ignore
+      self.postMessage({ id: e.data.id, ready: true, index: index + 1 });
+    });
+  }
+
   self.postMessage(
     {
       id: e.data.id,
@@ -1239,7 +1267,6 @@ function splitLongTrace(
   splitReqBufferAddr?: number
 ): [number, number] {
   const sliceLen = Math.min(uint8Array.length - cutFileSize, REQ_BUF_SIZE);
-  //@ts-ignore
   const dataSlice = uint8Array.subarray(cutFileSize, cutFileSize + sliceLen);
   //@ts-ignore
   wasmModule.HEAPU8.set(dataSlice, splitReqBufferAddr);

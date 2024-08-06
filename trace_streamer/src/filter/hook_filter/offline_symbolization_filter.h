@@ -63,7 +63,6 @@ public:
     OfflineSymbolizationFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter);
     ~OfflineSymbolizationFilter() override = default;
     std::shared_ptr<FrameInfo> OfflineSymbolizationByIp(uint64_t ipid, uint64_t ip);
-    DataIndex OfflineSymbolizationByVaddr(uint64_t symVaddr, DataIndex filePathIndex);
 
 protected:
     enum SYSTEM_ENTRY_VALUE { ELF32_SYM = 16, ELF64_SYM = 24 };

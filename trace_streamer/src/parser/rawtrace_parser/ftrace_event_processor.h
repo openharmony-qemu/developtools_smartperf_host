@@ -43,6 +43,10 @@ private:
     bool SoftirqRaise(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool SoftirqEntry(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool SoftirqExit(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool DmaFenceInit(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool DmaFenceDestroy(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool DmaFenceEnable(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool DmaFenceSignaled(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool SuspendResume(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool WorkqueueExecuteStart(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool WorkqueueExecuteEnd(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
@@ -91,6 +95,7 @@ private:
     std::map<uint32_t, std::string> eventIdToNames_;
     std::map<std::string, HandleFunction> eventNameToFunctions_;
     TraceStreamerConfig config_;
+    const uint32_t SCHED_BLOCKED_REASON_FIELD_SIZE_EIGHT = 8;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

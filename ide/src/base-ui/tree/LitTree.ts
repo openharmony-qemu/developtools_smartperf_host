@@ -334,26 +334,29 @@ export class LitTree extends BaseElement {
     this.contextMenu!.style.display = 'none';
   }
 
-  onDrag(e: MouseEvent): void {}
+  onDrag(e: MouseEvent): void { }
 
-  onDragStart(ev: MouseEvent): void {
+  onDragStart(ev: MouseEvent): undefined {
     this.srcDragElement = ev.target;
     (ev.target! as LitTreeNode).open = 'true';
     (ev.target! as LitTreeNode).autoExpand();
+    return undefined;
   }
 
-  onDragEnd(ev: MouseEvent): void {
+  onDragEnd(ev: MouseEvent): undefined {
     this.srcDragElement = null;
+    return undefined;
   }
 
-  onDragEnter(ev: MouseEvent): void {
+  onDragEnter(ev: MouseEvent): undefined {
     (ev.target as LitTreeNode).style.backgroundColor = '#42b98333';
+    return undefined;
   }
 
-  onDragOver(ev: MouseEvent): void {
+  onDragOver(ev: MouseEvent): undefined {
     let node = ev.target as LitTreeNode; //@ts-ignore
     if (this.srcDragElement.data.key === node.data!.key) {
-      return;
+      return undefined;
     } //@ts-ignore
     let rect = (ev.currentTarget! as unknown).getBoundingClientRect();
     if (ev.clientX >= rect.left + rect.width / 3 && ev.clientX < rect.left + rect.width) {
@@ -369,14 +372,16 @@ export class LitTree extends BaseElement {
       this.dragDirection = 'bottom';
       node.drawLine('bottom');
     }
+    return undefined;
   }
 
-  onDragLeave(ev: MouseEvent): void {
+  onDragLeave(ev: MouseEvent): undefined {
     (ev.target as LitTreeNode).style.backgroundColor = '#ffffff00';
     (ev.target as LitTreeNode).drawLine('');
+    return undefined;
   }
 
-  onDrop(ev: MouseEvent): void {
+  onDrop(ev: MouseEvent): undefined {
     (ev.target as LitTreeNode).style.backgroundColor = '#ffffff00';
     (ev.target as LitTreeNode).drawLine('');
     //移动的不是node节点 而是上层的li节点
@@ -384,7 +389,7 @@ export class LitTree extends BaseElement {
     let srcData = this.srcDragElement.data; //获取原节点的data数据
     let dstData = (ev.target as LitTreeNode).data; //获取目标节点的data数据
     if (srcData.key === dstData!.key) {
-      return;
+      return undefined;
     } //同一个节点不用处理
     //@ts-ignore
     let srcElement = this.srcDragElement.parentElement;
@@ -428,6 +433,7 @@ export class LitTree extends BaseElement {
       })
     );
     ev.stopPropagation();
+    return undefined;
   }
 
   //移除treeData中指定的节点 通过key匹配
@@ -483,13 +489,13 @@ export class LitTree extends BaseElement {
       };
       //在拖动目标上触发事件 (源元素)
       insertNode.ondrag = (ev): void => this.onDrag(ev); //元素正在拖动时触发
-      insertNode.ondragstart = (ev): void => this.onDragStart(ev); //用户开始拖动元素时触发
-      insertNode.ondragend = (ev): void => this.onDragEnd(ev); // 用户完成元素拖动后触发
+      insertNode.ondragstart = (ev): undefined => this.onDragStart(ev); //用户开始拖动元素时触发
+      insertNode.ondragend = (ev): undefined => this.onDragEnd(ev); // 用户完成元素拖动后触发
       //释放目标时触发的事件:
-      insertNode.ondragenter = (ev): void => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
-      insertNode.ondragover = (ev): void => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
-      insertNode.ondragleave = (ev): void => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
-      insertNode.ondrop = (ev): void => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
+      insertNode.ondragenter = (ev): undefined => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
+      insertNode.ondragover = (ev): undefined => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
+      insertNode.ondragleave = (ev): undefined => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
+      insertNode.ondrop = (ev): undefined => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
     }
   }
   _insertNode(parent: unknown, a: unknown): void {
@@ -508,13 +514,13 @@ export class LitTree extends BaseElement {
       };
       //在拖动目标上触发事件 (源元素)
       insertNode.ondrag = (ev): void => this.onDrag(ev); //元素正在拖动时触发
-      insertNode.ondragstart = (ev): void => this.onDragStart(ev); //用户开始拖动元素时触发
-      insertNode.ondragend = (ev): void => this.onDragEnd(ev); // 用户完成元素拖动后触发
+      insertNode.ondragstart = (ev): undefined => this.onDragStart(ev); //用户开始拖动元素时触发
+      insertNode.ondragend = (ev): undefined => this.onDragEnd(ev); // 用户完成元素拖动后触发
       //释放目标时触发的事件:
-      insertNode.ondragenter = (ev): void => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
-      insertNode.ondragover = (ev): void => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
-      insertNode.ondragleave = (ev): void => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
-      insertNode.ondrop = (ev): void => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
+      insertNode.ondragenter = (ev): undefined => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
+      insertNode.ondragover = (ev): undefined => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
+      insertNode.ondragleave = (ev): undefined => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
+      insertNode.ondrop = (ev): undefined => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
     } //@ts-ignore
     insertNode.selected = a.selected || false; //是否选中行
     //@ts-ignore
@@ -566,13 +572,13 @@ export class LitTree extends BaseElement {
       };
       //在拖动目标上触发事件 (源元素)
       insertNode.ondrag = (ev): void => this.onDrag(ev); //元素正在拖动时触发
-      insertNode.ondragstart = (ev): void => this.onDragStart(ev); //用户开始拖动元素时触发
-      insertNode.ondragend = (ev): void => this.onDragEnd(ev); // 用户完成元素拖动后触发
+      insertNode.ondragstart = (ev): undefined => this.onDragStart(ev); //用户开始拖动元素时触发
+      insertNode.ondragend = (ev): undefined => this.onDragEnd(ev); // 用户完成元素拖动后触发
       //释放目标时触发的事件:
-      insertNode.ondragenter = (ev): void => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
-      insertNode.ondragover = (ev): void => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
-      insertNode.ondragleave = (ev): void => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
-      insertNode.ondrop = (ev): void => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
+      insertNode.ondragenter = (ev): undefined => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
+      insertNode.ondragover = (ev): undefined => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
+      insertNode.ondragleave = (ev): undefined => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
+      insertNode.ondrop = (ev): undefined => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
     }
   }
 

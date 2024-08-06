@@ -112,8 +112,9 @@ export class TabPaneVmTrackerShmComparison extends BaseElement {
     this.selectEl!.defaultValue = fileArr[0].name || '';
     this.selectEl!.placeholder = fileArr[0].name || '';
     this.selectEl!.dataSource = fileArr;
-    this.selectEl!.querySelectorAll('lit-select-option').forEach((a) => {
-      a.addEventListener('onSelected', (e) => {
+    let selectOption = this.selectEl!.querySelectorAll('lit-select-option');
+    for (const item of selectOption) {
+      item.addEventListener('onSelected', (e) => {
         this.comparisonTableEl!.scrollTop = 0;
         for (let f of fileArr) {
           if (input.value === f.name) {
@@ -122,7 +123,7 @@ export class TabPaneVmTrackerShmComparison extends BaseElement {
         }
         e.stopPropagation();
       });
-    });
+    }
   }
 
   sortShmByColumn(column: string, sort: number): void {

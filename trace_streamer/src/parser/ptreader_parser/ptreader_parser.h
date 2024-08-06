@@ -106,7 +106,7 @@ private:
     }
     inline static bool IsTraceComment(const std::string &buffer)
     {
-        return ((buffer[0] == '#') || buffer.find("TASK-PID") != std::string::npos);
+        return buffer[0] == '#';
     }
     inline static bool IsHtmlTrace(const std::string &buffer)
     {
@@ -119,7 +119,6 @@ private:
     {
         return buffer.find(R"(<script class="trace-data" type="application/text">)") != std::string::npos;
     }
-    std::string StrTrim(const std::string &input) const;
     void ParserData(DataSegment &seg);
     void ParseThread();
     bool FilterData(DataSegment &seg);

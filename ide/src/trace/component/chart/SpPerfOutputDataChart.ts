@@ -83,8 +83,7 @@ export class SpPerfOutputDataChart {
       traceRow.canvasRestore(context, this.trace);
     };
   }
-
-    // @ts-ignore
+  //@ts-ignore
   async initData(folder: TraceRow<unknown>): Promise<void> {
     let perfToolStartTime = new Date().getTime();
     let perfToolList = [
@@ -106,7 +105,7 @@ export class SpPerfOutputDataChart {
       traceRow.rowId = i + '';
       traceRow.rowType = TraceRow.ROW_TYPE_PERF_TOOL;
       traceRow.rowParentId = folder.rowId;
-      traceRow.style.height = '40px';
+      traceRow.style.height = '24px';
       traceRow.name = it.name;
       traceRow.rowHidden = !folder.expansion;
       traceRow.setAttribute('children', '');
@@ -114,12 +113,12 @@ export class SpPerfOutputDataChart {
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
       traceRow.supplierFrame = (): Promise<PerfToolStruct[]> => {
         let data = new PerfToolStruct();
-        data.startNS = this.startTime;
+        data.startTs = this.startTime;
         data.dur = this.dur;
         data.count = this.perfOutputArr![it.idx];
         data.id = i + 1;
         data.name = it.name;
-        // @ts-ignore
+        //@ts-ignore
         return new Promise<Array<unknown>>((resolve) => resolve([data]));
       };
       traceRow.findHoverStruct = (): void => {
@@ -131,8 +130,7 @@ export class SpPerfOutputDataChart {
     let durTime = new Date().getTime() - perfToolStartTime;
     info('The time to load the ClockData is: ', durTime);
   }
-
-    // @ts-ignore
+  //@ts-ignore
   async initFolder(): Promise<TraceRow<unknown>> {
     let perfFolder = TraceRow.skeleton();
     perfFolder.rowId = 'perfTool';
@@ -144,7 +142,7 @@ export class SpPerfOutputDataChart {
     perfFolder.name = 'Perf Tools';
     perfFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     perfFolder.selectChangeHandler = this.trace.selectChangeHandler;
-    // @ts-ignore
+    //@ts-ignore
     perfFolder.supplier = (): Promise<unknown[]> => new Promise<Array<unknown>>((resolve) => resolve([]));
     perfFolder.onThreadHandler = (useCache): void => {
       perfFolder.canvasSave(this.trace.canvasPanelCtx!);

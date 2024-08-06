@@ -16,9 +16,14 @@
 import { BaseElement, element } from '../../../../base-ui/BaseElement';
 import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 import { SearchHtml } from './Search.html';
+import '../../../../base-ui/select/LitSelect';
+import '../../../../base-ui/select/LitSelectOption';
+import { LitSelect } from '../../../../base-ui/select/LitSelect';
+import { Utils } from '../base/Utils';
+import { SpSystemTrace } from '../../SpSystemTrace';
 
 const LOCAL_STORAGE_SEARCH_KEY = 'search_key';
-
+let timerId: unknown = null;
 @element('lit-search')
 export class LitSearch extends BaseElement {
   valueChangeHandler: ((str: string) => void) | undefined | null;
@@ -37,6 +42,8 @@ export class LitSearch extends BaseElement {
   //定义翻页index
   private retarget_index: number = 0;
   private _retarge_index: HTMLInputElement | null | undefined;
+  private traceSelector: LitSelect | null | undefined;
+  public currenSearchValue: string | undefined | null;
 
   get list(): Array<unknown> {
     return this._list;
@@ -94,6 +101,7 @@ export class LitSearch extends BaseElement {
   get isClearValue(): boolean {
     return this._value;
   }
+
   setPercent(name: string = '', value: number): void {
     let searchHide = this.shadowRoot!.querySelector<HTMLElement>('.root');
     let searchIcon = this.shadowRoot!.querySelector<HTMLElement>('#search-icon');
@@ -141,6 +149,9 @@ export class LitSearch extends BaseElement {
   clear(): void {
     this.search = this.shadowRoot!.querySelector<HTMLInputElement>('input');
     this.search!.value = '';
+    if (!Utils.isDistributedMode()) {
+      this.removeAttribute('distributed');
+    }
     this.list = [];
   }
 
@@ -178,29 +189,16 @@ export class LitSearch extends BaseElement {
     if (!this.search?.hasAttribute('readonly')) {
       this.showSearchHistoryList();
     }
-    this.dispatchEvent(
-      new CustomEvent('focus', {
-        detail: {
-          value: this.search!.value,
-        },
-      })
-    );
   }
 
   private searchBlurListener(): void {
-    this.dispatchEvent(
-      new CustomEvent('blur', {
-        detail: {
-          value: this.search!.value,
-        },
-      })
-    );
     setTimeout((): void => {
       this.hideSearchHistoryList();
     }, 200);
   }
 
   private searchKeyupListener(e: KeyboardEvent): void {
+    timerId = null;
     if (e.code === 'Enter' || e.code === 'NumpadEnter') {
       this.updateSearchList(this.search!.value);
       if (e.shiftKey) {
@@ -234,6 +232,7 @@ export class LitSearch extends BaseElement {
   }
 
   initElements(): void {
+    this.initTraceSelectHandler();
     this.search = this.shadowRoot!.querySelector<HTMLInputElement>('input');
     this.totalEL = this.shadowRoot!.querySelector<HTMLSpanElement>('#total');
     this.indexEL = this.shadowRoot!.querySelector<HTMLSpanElement>('#index');
@@ -245,14 +244,20 @@ export class LitSearch extends BaseElement {
     this.search!.addEventListener('blur', (): void => {
       this.searchBlurListener();
     });
-    this.search!.addEventListener('change', (): void => {
-      this.index = -1;
+    this.search!.addEventListener('keyup', (e: KeyboardEvent) => {
+      SpSystemTrace.isKeyUp = true;
       this._retarge_index!.value = '';
-    });
-    this.search!.addEventListener('keyup', (e: KeyboardEvent): void => {
-      this._retarge_index!.value = '';
-      this.index = -1;
       this.searchKeyupListener(e);
+    });
+    //阻止事件冒泡
+    this.search!.addEventListener('keydown', (e: KeyboardEvent) => {
+      SpSystemTrace.isKeyUp = false;
+      e.stopPropagation();
+    });
+
+    this.search!.addEventListener('keypress', (e: KeyboardEvent) => {
+      SpSystemTrace.isKeyUp = false;
+      e.stopPropagation();
     });
     this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (): void => {
       this.dispatchEvent(
@@ -273,13 +278,54 @@ export class LitSearch extends BaseElement {
       );
     });
     this.keyUpListener();
-    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: unknown): void => {
+    //阻止事件冒泡
+    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: unknown) => {
+      SpSystemTrace.isKeyUp = false;
       // @ts-ignore
-      if (e.keyCode === 13) {
-        // @ts-ignore
-        e.stopPropagation();
+      e.stopPropagation();
+    });
+    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keypress', (e: unknown) => {
+      SpSystemTrace.isKeyUp = false;
+      // @ts-ignore
+      e.stopPropagation();
+    });
+  }
+
+  private initTraceSelectHandler(): void {
+    this.traceSelector = this.shadowRoot!.querySelector<LitSelect>('#trace_selector');
+    let selectorBody = this.traceSelector?.shadowRoot!.querySelector<HTMLDivElement>('.body');
+    if (selectorBody) {
+      selectorBody.style.width = '200px';
+      selectorBody.style.overflow = 'hidden';
+    }
+    this.traceSelector?.addEventListener('change', (): void => {
+      if (Utils.currentSelectTrace !== this.traceSelector!.value) {
+        Utils.currentSelectTrace = this.traceSelector!.value;
+        this.clear();
+        this.dispatchEvent(new CustomEvent('trace-change', {
+          detail: {
+            value: this.traceSelector?.value,
+          },
+        }));
       }
     });
+    this.traceSelector?.addEventListener('focus', (e): void => {
+      e.stopPropagation();
+    });
+  }
+
+  setTraceSelectOptions(): void {
+    this.traceSelector!.dataSource = Utils.distributedTrace.map((trace, index) => ({
+      value: `${index + 1}`,
+      name: trace
+    }));
+  }
+
+  getSearchTraceId(): string | null | undefined {
+    if (this.hasAttribute('distributed')) {
+      return this.traceSelector?.value;
+    }
+    return undefined;
   }
 
   private keyUpListener(): void {

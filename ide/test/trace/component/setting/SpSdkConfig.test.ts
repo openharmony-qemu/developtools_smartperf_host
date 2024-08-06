@@ -100,11 +100,11 @@ describe('spSdkConfig Test', () => {
         aa: {
           type: 'string',
           default: '11',
-          enum: ['consistent', '11', 'delegated'],
         },
         cc: {
           type: 'number',
           description: 'number1111',
+          default: '11',
         },
         ee: {
           type: 'integer',
@@ -114,6 +114,7 @@ describe('spSdkConfig Test', () => {
         ff: {
           type: 'boolean',
           description: 'switchhh',
+          default: '11',
         },
       },
     };
@@ -122,7 +123,7 @@ describe('spSdkConfig Test', () => {
   it('spSdkConfigTest18', function () {
     expect(spSdkConfig.getGpuConfig()).toStrictEqual({
       aa: '11',
-      cc: 0,
+      cc: 11,
       ee: 12,
       ff: false,
       ss: 'strsadsa',

@@ -329,7 +329,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         if (this.fsCallTreeCurrentSelectedData && !this.fsCallTreeCurrentSelectedData.canCharge) {
           return;
         } // @ts-ignore
-        if (this.fsCallTreeCurrentSelectedData !== undefined && this.fsCallTreeCurrentSelectedData.libName !== '') {
+        if (this.fsCallTreeCurrentSelectedData !== undefined && this.fsCallTreeCurrentSelectedData.lib !== '') {
           this.handleLibraryCase(data, fsCallTreeFuncArgs);
         } else {
           return;
@@ -352,10 +352,10 @@ export class TabpaneFilesystemCalltree extends BaseElement {
 
   private handleLibraryCase(data: unknown, fsCallTreeFuncArgs: unknown[]): void {
     // @ts-ignore
-    this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.libName }, data.item);
+    this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.lib }, data.item);
     fsCallTreeFuncArgs.push({
       funcName: 'splitTree', // @ts-ignore
-      funcArgs: [this.fsCallTreeCurrentSelectedData.libName, false, false],
+      funcArgs: [this.fsCallTreeCurrentSelectedData.lib, false, false],
     });
   }
 

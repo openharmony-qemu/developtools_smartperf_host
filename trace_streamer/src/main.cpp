@@ -41,6 +41,7 @@ constexpr size_t G_FILE_PERMISSION = 664;
 constexpr uint8_t RAW_TRACE_PARSE_MAX = 2;
 constexpr uint8_t PARSER_THREAD_MAX = 16;
 constexpr uint8_t PARSER_THREAD_MIN = 1;
+std::regex traceInvalidStr("\\\\");
 // set version info in meta.cpp please
 void ExportStatusToLog(const std::string &dbPath, TraceParserStatus status)
 {
@@ -362,6 +363,7 @@ struct TraceExportOption {
     bool closeMutiThread = false;
     uint8_t parserThreadNum = INVALID_UINT8;
     bool needClearLongTraceCache = true;
+    std::string soFilesDir;
 };
 bool CheckFinal(char **argv, TraceExportOption &traceExportOption)
 {
@@ -375,13 +377,18 @@ bool CheckFinal(char **argv, TraceExportOption &traceExportOption)
     }
     return true;
 }
-
 bool CheckArgc(int argc, char **argv, int curArgNum)
 {
     if (curArgNum == argc) {
         ShowHelpInfo(argv[0]);
         return false;
     }
+    return true;
+}
+bool CheckAndSetSoFilesPath(TraceExportOption &traceExportOption, int argc, char **argv, int &index)
+{
+    TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++index), false);
+    traceExportOption.soFilesDir = std::string(argv[index]);
     return true;
 }
 bool CheckAndSetLogLevel(int argc, char **argv, int &index)
@@ -528,6 +535,10 @@ bool ParseArgs(int argc, char **argv, TraceExportOption &traceExportOption)
             continue;
         } else if (!strcmp(argv[i], "-o") || !strcmp(argv[i], "--out")) {
             TS_CHECK_TRUE_RET(CheckAndSetOutputFilePath(traceExportOption, argc, argv, i), false);
+            i++;
+            continue;
+        } else if (!strcmp(argv[i], "--So_dir")) {
+            TS_CHECK_TRUE_RET(CheckAndSetSoFilesPath(traceExportOption, argc, argv, i), false);
             i++;
             continue;
         } else if (!ParseOtherArgs(argc, argv, traceExportOption, i)) {
@@ -721,7 +732,6 @@ int main(int argc, char **argv)
         return 0;
     }
 #endif
-    std::regex traceInvalidStr("\\\\");
     auto strEscape = std::regex_replace(traceExportOption.traceFilePath, traceInvalidStr, "\\\\\\\\");
     if (OpenAndParserFile(ts, strEscape)) {
         if (!traceExportOption.sqliteFilePath.empty()) {
@@ -729,6 +739,12 @@ int main(int argc, char **argv)
         }
         return 1;
     }
+#ifdef is_linux
+    if (!traceExportOption.soFilesDir.empty()) {
+        auto values = GetFilesNameFromDir(traceExportOption.soFilesDir);
+        ts.ReloadSymbolFiles(traceExportOption.soFilesDir, values);
+    }
+#endif
     if (traceExportOption.interactiveState) {
         TS_CHECK_TRUE_RET(EnterInteractiveState(ts), 1);
     }
@@ -740,9 +756,7 @@ int main(int argc, char **argv)
             ExportStatusToLog(traceExportOption.sqliteFilePath, GetAnalysisResult());
             return 1;
         }
-        if (!traceExportOption.sqliteFilePath.empty()) {
-            ExportStatusToLog(traceExportOption.sqliteFilePath, GetAnalysisResult());
-        }
+        ExportStatusToLog(traceExportOption.sqliteFilePath, GetAnalysisResult());
     }
     if (!traceExportOption.metricsIndex.empty()) {
         MetaData *metaData = ts.GetMetaData();

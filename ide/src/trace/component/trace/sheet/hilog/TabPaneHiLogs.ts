@@ -47,8 +47,13 @@ export class TabPaneHiLogs extends BaseElement {
   private ONE_DAY_NS = 86400000000000;
   private progressEL: LitProgressBar | null | undefined;
   private timeOutId: number | undefined;
+  private currentSelection: SelectionParam | undefined;
 
   set data(systemLogParam: SelectionParam) {
+    if (systemLogParam === this.currentSelection) {
+      return;
+    }
+    this.currentSelection = systemLogParam;
     if (this.hiLogsTbl) {
       this.hiLogsTbl.recycleDataSource = [];
       this.filterData = [];
@@ -133,12 +138,27 @@ export class TabPaneHiLogs extends BaseElement {
       }
       this.tableTimeHandle?.();
     };
+    this.tagFilterInput!.addEventListener('keyup', (ev) => {
+      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
+        ev.stopPropagation();
+      }
+    });
     this.searchFilterInput!.oninput = (): void => {
       this.tableTimeHandle?.();
     };
+    this.searchFilterInput!.addEventListener('keyup', (ev) => {
+      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
+        ev.stopPropagation();
+      }
+    });
     this.processFilter!.oninput = (): void => {
       this.tableTimeHandle?.();
     };
+    this.processFilter!.addEventListener('keyup', (ev) => {
+      if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
+        ev.stopPropagation();
+      }
+    });
     this.levelFilterInput!.onchange = (): void => {
       this.tableTimeHandle?.();
     };

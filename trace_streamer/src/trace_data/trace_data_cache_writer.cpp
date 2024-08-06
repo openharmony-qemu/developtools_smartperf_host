@@ -223,6 +223,10 @@ PerfReport *TraceDataCacheWriter::GetPerfReportData()
 {
     return &perfReport_;
 }
+PerfNapiAsync *TraceDataCacheWriter::GetPerfNapiAsyncData()
+{
+    return &perfNapiAsync_;
+}
 ArgSet *TraceDataCacheWriter::GetArgSetData()
 {
     return &argSet_;
@@ -315,6 +319,10 @@ FrameMaps *TraceDataCacheWriter::GetFrameMapsData()
 GPUSlice *TraceDataCacheWriter::GetGPUSliceData()
 {
     return &gpuSliceData_;
+}
+DmaFence *TraceDataCacheWriter::GetDmaFenceData()
+{
+    return &dmaFenceData_;
 }
 TaskPoolInfo *TraceDataCacheWriter::GetTaskPoolData()
 {
@@ -515,6 +523,7 @@ void TraceDataCacheWriter::Clear()
     gpuProcessMemData_.Clear();
     gpuWindowMemData_.Clear();
     gpuSliceData_.Clear();
+    dmaFenceData_.Clear();
     frameMapsData_.Clear();
     frameSliceData_.Clear();
 }

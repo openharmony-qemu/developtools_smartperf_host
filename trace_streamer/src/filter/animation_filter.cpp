@@ -90,13 +90,17 @@ bool AnimationFilter::UpdateDeviceInfoEvent(const TracePoint &point, const Bytra
         StartWith(point.name_, frameRateCmd_)) {
         return UpdateDeviceFps(line);
     } else if (traceDataCache_->GetConstDeviceInfo().PhysicalWidth() == INVALID_UINT32 &&
-               StartWith(point.name_, screenSizeCmd_)) {
+               (StartWith(point.name_, newScreenSizeCmd_) || StartWith(point.name_, screenSizeCmd_))) {
         return UpdateDeviceScreenSize(point);
     }
     return false;
 }
 bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint &point, size_t callStackRow)
 {
+    if (StartWith(point.name_, paralleCmd_)) {
+        isNewAnimation_ = true;
+        return true;
+    }
     if (StartWith(point.name_, frameCountCmd_)) {
         frameCountRows_.insert(callStackRow);
         return true;
@@ -112,20 +116,15 @@ bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint &point, size_t cal
         traceDataCache_->GetAnimation()->UpdateFrameInfo(animationRow,
                                                          traceDataCache_->GetDataIndex(curFrameNum + curRealFrameRate));
         return true;
-    } else if (!StartWith(point.name_, frameBeginCmd_)) {
-        return false;
+    } else if (StartWith(point.name_, newFrameBeginCmd_) || StartWith(point.name_, frameBeginCmd_)) {
+        // get the parent frame of data
+        const std::optional<uint64_t> &parentId = callStackSlice_->ParentIdData()[callStackRow];
+        uint8_t depth = callStackSlice_->Depths()[callStackRow];
+        TS_CHECK_TRUE_RET(depth >= DYNAMIC_STACK_DEPTH_MIN && parentId.has_value(), false);
+        callstackWithDynamicFrameRows_.emplace_back(callStackRow);
+        return true;
     }
-    // get the parent frame of data
-    const std::optional<uint64_t> &parentId = callStackSlice_->ParentIdData()[callStackRow];
-    uint8_t depth = callStackSlice_->Depths()[callStackRow];
-    TS_CHECK_TRUE_RET(depth >= DYNAMIC_STACK_DEPTH_MIN && parentId.has_value(), false);
-    // get name 'xxx' from [xxx], eg:H:RSUniRender::Process:[xxx]
-    auto nameSize = point.funcPrefix_.size() - frameBeginPrefix_.size() - 1;
-    TS_CHECK_TRUE_RET(nameSize > 0, false);
-    auto nameIndex = traceDataCache_->GetDataIndex(point.funcPrefix_.substr(frameBeginPrefix_.size(), nameSize));
-    auto dynamicFramRow = dynamicFrame_->AppendDynamicFrame(nameIndex);
-    callStackRowMap_.emplace(callStackRow, dynamicFramRow);
-    return true;
+    return false;
 }
 bool AnimationFilter::EndDynamicFrameEvent(uint64_t ts, size_t callStackRow)
 {
@@ -179,7 +178,8 @@ bool AnimationFilter::UpdateDynamicEndTime(const uint64_t curFrameRow, uint64_t 
         curStackRow = callStackSlice_->ParentIdData()[curStackRow].value();
         // use frameEndTimeCmd_'s endTime as dynamicFrame endTime
         auto nameIndex = callStackSlice_->NamesData()[curStackRow];
-        if (StartWith(traceDataCache_->GetDataFromDict(nameIndex), frameEndTimeCmd_)) {
+        if (isNewAnimation_ && StartWith(traceDataCache_->GetDataFromDict(nameIndex), renderFrameCmd_) ||
+            StartWith(traceDataCache_->GetDataFromDict(nameIndex), frameEndTimeCmd_)) {
             auto endTime = callStackSlice_->TimeStampData()[curStackRow] + callStackSlice_->DursData()[curStackRow];
             dynamicFrame_->UpdateEndTime(curFrameRow, endTime);
             return true;
@@ -211,24 +211,26 @@ void AnimationFilter::UpdateFrameInfo()
 void AnimationFilter::UpdateDynamicFrameInfo()
 {
     std::smatch matcheLine;
-    std::regex framePixPattern(R"((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)\s+Alpha:\s+-*(\d+\.\d+))");
-    for (const auto &it : callStackRowMap_) {
+    for (auto it = callstackWithDynamicFrameRows_.begin(); it != callstackWithDynamicFrameRows_.end(); ++it) {
         // update dynamicFrame pix, eg:H:RSUniRender::Process:[xxx] (0, 0, 1344, 2772) Alpha: 1.00
-        auto nameDataIndex = callStackSlice_->NamesData()[it.first];
+        auto nameDataIndex = callStackSlice_->NamesData()[*it];
         const std::string &curStackName = traceDataCache_->GetDataFromDict(nameDataIndex);
-        const std::string &funcArgs = curStackName.substr(frameBeginCmd_.size());
-        if (!std::regex_search(funcArgs, matcheLine, framePixPattern)) {
-            TS_LOGE("Not support this event: %s\n", funcArgs.data());
+        if (!std::regex_search(curStackName, matcheLine, framePixPattern_)) {
+            TS_LOGE("Not support this event: %s\n", curStackName.data());
             continue;
         }
-        dynamicFrame_->UpdatePosition(
-            it.second, matcheLine,
-            traceDataCache_->GetDataIndex((matcheLine[DYNAMICFRAME_MATCH_LAST].str()))); // alpha
-        UpdateDynamicEndTime(it.second, it.first);
+        int32_t index = dynamicFrame_->AppendDynamicFrame(
+            traceDataCache_->GetDataIndex(matcheLine[1].str()), matcheLine,
+            traceDataCache_->GetDataIndex((matcheLine[DYNAMICFRAME_MATCH_LAST].str())));
+        if (index == INVALID_INT32) {
+            TS_LOGE("Failed to append dynamic frame: %s\n", curStackName.data());
+            continue;
+        }
+        UpdateDynamicEndTime(index, *it);
     }
-    TS_LOGI("UpdateDynamicFrame (%zu) endTime and pos finish", callStackRowMap_.size());
+    TS_LOGI("UpdateDynamicFrame (%zu) endTime and pos finish", callstackWithDynamicFrameRows_.size());
     // this can only be cleared by the UpdateDynamicFrameInfo function
-    callStackRowMap_.clear();
+    callstackWithDynamicFrameRows_.clear();
 }
 void AnimationFilter::Clear()
 {

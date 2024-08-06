@@ -53,7 +53,7 @@ export interface ResultData {
   existF: boolean | null | undefined;
   fValue: number;
 }
-
+const FOLD_HEIGHT = 20;
 export class SpHiPerf {
   static selectCpuStruct: HiPerfCpuStruct | undefined;
   static stringResult: ResultData | undefined;
@@ -122,7 +122,6 @@ export class SpHiPerf {
 
   async initFolder(): Promise<void> {
     let row = TraceRow.skeleton();
-    row.setAttribute('disabled-check', '');
     row.rowId = 'HiPerf';
     row.index = 0;
     row.rowType = TraceRow.ROW_TYPE_HIPERF;
@@ -199,7 +198,7 @@ export class SpHiPerf {
     perfCallCutRow.rowId = 'HiPerf-callchart';
     perfCallCutRow.index = 0;
     perfCallCutRow.rowType = TraceRow.ROW_TYPE_PERF_CALLCHART;
-    perfCallCutRow.enableCollapseChart();
+    perfCallCutRow.enableCollapseChart(FOLD_HEIGHT, this.trace);
     perfCallCutRow.rowParentId = 'HiPerf';
     perfCallCutRow.rowHidden = !this.rowFolder.expansion;
     perfCallCutRow.folder = false;
@@ -222,14 +221,14 @@ export class SpHiPerf {
         id: this.callChartId,
       });
       // @ts-ignore
-      let maxHeight = res.maxDepth * 20;
+      let maxHeight = res.maxDepth * FOLD_HEIGHT;
       perfCallCutRow.funcMaxHeight = maxHeight;
       if (perfCallCutRow.funcExpand) {
         perfCallCutRow!.style.height = `${maxHeight}px`;
         if (perfCallCutRow.collect) {
           window.publish(window.SmartEvent.UI.RowHeightChange, {
             expand: true,
-            value: perfCallCutRow.funcMaxHeight - 20,
+            value: perfCallCutRow.funcMaxHeight - FOLD_HEIGHT,
           });
         }
       }
@@ -326,11 +325,11 @@ export class SpHiPerf {
           checked?: boolean;
         } => {
           return {
-            // @ts-ignore
+            //@ts-ignore
             key: `${it.cpu_id}-c`,
-            // @ts-ignore
+            //@ts-ignore
             checked: it.cpu_id === 0,
-            // @ts-ignore
+            //@ts-ignore
             title: `cpu${it.cpu_id}`,
           };
         }
@@ -577,7 +576,10 @@ export class SpHiPerf {
   }
 
   resetAllChartData(): void {
-    this.rowList?.forEach((row) => this.resetChartData(row));
+    const callChartRow = this.rowList?.find(row => row.rowId === 'HiPerf-callchart');
+    if (callChartRow) {
+      this.resetChartData(callChartRow);
+    }
   }
 
   hoverTip(

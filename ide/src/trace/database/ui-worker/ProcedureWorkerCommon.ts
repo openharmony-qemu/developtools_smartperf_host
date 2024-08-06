@@ -20,6 +20,8 @@ import { Flag } from '../../component/trace/timer-shaft/Flag';
 import { drawVSync } from '../../component/chart/VSync';
 import { FuncStruct } from './ProcedureWorkerFunc';
 import { ProcessMemStruct } from './ProcedureWorkerMem';
+import { ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread';
+import { Utils } from '../../component/trace/base/Utils';
 
 export abstract class Render {
   abstract renderMainThread(req: unknown, row: unknown): void;
@@ -51,10 +53,10 @@ export class RequestMessage {
   totalNS!: number;
   slicesTime:
     | {
-        startTime: number | null;
-        endTime: number | null;
-        color: string | null;
-      }
+      startTime: number | null;
+      endTime: number | null;
+      color: string | null;
+    }
     | undefined;
   range: unknown;
   scale: unknown;
@@ -67,9 +69,9 @@ export class RequestMessage {
   id: unknown;
   postMessage:
     | {
-        (message: unknown, targetOrigin: string, transfer?: Transferable[]): void;
-        (message: unknown, options?: WindowPostMessageOptions): void;
-      }
+      (message: unknown, targetOrigin: string, transfer?: Transferable[]): void;
+      (message: unknown, options?: WindowPostMessageOptions): void;
+    }
     | undefined;
 }
 
@@ -102,8 +104,8 @@ export function ns2Timestamp(ns: number): string {
   return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second
     .toString()
     .padStart(2, '0')}:${millisecond.toString().padStart(3, '0')}:${microsecond
-    .toString()
-    .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
+      .toString()
+      .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
 }
 
 const offsetX = 5;
@@ -298,7 +300,7 @@ export const dataFilterHandler = (
   if (fillCacheData(filterData, condition)) {
     return;
   }
-  if (fullData) {
+  if (fullData && fullData.length > 0) {
     filterData.length = 0;
     let pns = (condition.endNS - condition.startNS) / condition.frame.width; //每个像素多少ns
     let y = condition.frame.y + condition.paddingTop;
@@ -548,9 +550,11 @@ export class PairPoint {
   rowEL: TraceRow<BaseStruct>;
   isRight: boolean = true;
   lineType?: LineType;
+  lineColor?: string;
   business: string = '';
   hidden?: boolean = false;
   backrowEL?: TraceRow<BaseStruct>;
+  rangeTime?: string;
 
   constructor(
     rowEL: TraceRow<BaseStruct>,
@@ -601,10 +605,10 @@ export function drawFlagLine(
   frame: Rect,
   slicesTime:
     | {
-        startTime: number | null | undefined;
-        endTime: number | null | undefined;
-        color: string | null | undefined;
-      }
+      startTime: number | null | undefined;
+      endTime: number | null | undefined;
+      color: string | null | undefined;
+    }
     | undefined
 ): void {
   if (commonCtx) {
@@ -941,10 +945,13 @@ export function drawAvgFrameRate(
   endX = endX <= 0 ? -100 : endX;
   textX = textX <= 0 ? -200 : textX;
   //右移到边界，不画线和文字
-  const ADD_DISTANCE = 100; // @ts-ignore
-  textX = textX + textWidth / 2 >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : textX; // @ts-ignore
-  startX = startX >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : startX; // @ts-ignore
-  endX = endX >= selectParams.frame.width ? selectParams.frame.width + ADD_DISTANCE : endX;
+  const ADD_DISTANCE = 100;
+  textX = textX + textWidth / 2 >= selectParams.frame.width ?
+    selectParams.frame.width + ADD_DISTANCE : textX;
+  startX = startX >= selectParams.frame.width ?
+    selectParams.frame.width + ADD_DISTANCE : startX;
+  endX = endX >= selectParams.frame.width ?
+    selectParams.frame.width + ADD_DISTANCE : endX;
 
   ctx.lineWidth = 2;
   ctx.strokeStyle = 'yellow';
@@ -1117,7 +1124,7 @@ export function drawLinkLines(
 ): void {
   let percentage =
     (tm.getRange()!.totalNS - Math.abs(tm.getRange()!.endNS - tm.getRange()!.startNS)) / tm.getRange()!.totalNS;
-  let maxWidth = tm.getBoundingClientRect().width - 268;
+  let maxWidth = tm.getBoundingClientRect().width - 258;
   setLinkLinesNodes(nodes, isFavorite, favoriteHeight, maxWidth, context, percentage);
 }
 
@@ -1153,6 +1160,13 @@ function setLinkLinesNodes(
       it[1].isRight,
       it[1].business
     );
+    if (it[0].lineColor) {
+      newFirstNode.lineColor = it[0].lineColor;
+      newSecondNode.lineColor = it[0].lineColor;
+    }
+    if (it[0].rangeTime) {
+      newFirstNode.rangeTime = it[0].rangeTime;
+    }
     if (it[0].hidden) {
       continue;
     }
@@ -1161,9 +1175,8 @@ function setLinkLinesNodes(
       } else if (!traceRow0.collect && !traceRow1.collect) {
         continue;
       } else {
-        traceRow0.collect
-          ? (newSecondNode.y = Math.max(it[1].y + favH, favH))
-          : (newFirstNode.y = Math.max(it[0].y + favH, favH));
+        traceRow0.collect ? (newSecondNode.y = Math.max(it[1].y + favH, favH)) :
+          (newFirstNode.y = Math.max(it[0].y + favH, favH));
       }
     } else {
       if (traceRow0.collect && traceRow1.collect) {
@@ -1364,8 +1377,8 @@ function drawBrokenLineContext(
 ): void {
   context.beginPath();
   context.lineWidth = 2;
-  context.fillStyle = '#46B1E3';
-  context.strokeStyle = '#46B1E3';
+  context.fillStyle = brokenLineStart.lineColor ? brokenLineStart.lineColor : '#46B1E3';
+  context.strokeStyle = brokenLineStart.lineColor ? brokenLineStart.lineColor : '#46B1E3';
   let x0 = brokenLineStart.x ?? 0;
   let y0 = brokenLineStart.y ?? 0;
   let y2 = brokenLineEnd.y ?? 0;
@@ -1392,15 +1405,16 @@ function drawBrokenLineContext(
     rightEndpointX = x2 + wid;
     rightEndpointY = y2 + wid;
   }
-  context.moveTo(x0, y0);
+  x1 = drawDistributedLineTime(brokenLineStart.business, brokenLineStart.rangeTime!, [x0, y0, x1, y1, x2, y2], context);
+  context.moveTo(x0 - 2, y0);
   context.lineTo(x1, y1);
   context.lineTo(x2, y2);
   context.stroke();
   context.closePath();
   context.beginPath();
   context.lineWidth = 2;
-  context.fillStyle = '#46B1E3';
-  context.strokeStyle = '#46B1E3';
+  context.fillStyle = brokenLineStart.lineColor ? brokenLineStart.lineColor : '#46B1E3';
+  context.strokeStyle = brokenLineStart.lineColor ? brokenLineStart.lineColor : '#46B1E3';
   context.moveTo(x2, y2);
   context.lineTo(leftEndpointX, leftEndpointY);
   context.lineTo(rightEndpointX, rightEndpointY);
@@ -1414,6 +1428,25 @@ let loadingTextWidth = 0;
 let loadingBackground = '#f1f1f1';
 let loadingFont = 'bold 11pt Arial';
 let loadingFontColor = '#696969';
+
+function drawDistributedLineTime(
+  business: string,
+  rangeTime: string,
+  [x0, y0, x1, y1, x2, y2]: [number, number, number, number, number, number],
+  context: CanvasRenderingContext2D
+): number {
+  if (business === 'distributed') {
+    if (y0 === y1) {
+      drawString(context, rangeTime, 0,
+        new Rect(x0, y0 + 2, x1 - x0, 12), { textMetricsWidth: undefined });
+    } else {
+      drawString(context, rangeTime, 0,
+        new Rect(x1, y1 + 2, x2 - x1, 12), { textMetricsWidth: undefined });
+      x1 = x1 - 2;
+    }
+  }
+  return x1;
+}
 
 export function drawLoadingFrame(
   ctx: CanvasRenderingContext2D,
@@ -1475,7 +1508,7 @@ export function drawString(
         ctx.fillText(str.substring(0, 1), x1, Math.floor(frame.y + frame.height / yPos), fillTextWidth);
       } else {
         ctx.fillText(
-          str.substring(0, chatNum - 1) + '...',
+          `${str.substring(0, chatNum - 1)}...`,
           x1,
           Math.floor(frame.y + frame.height / yPos),
           fillTextWidth
@@ -1508,7 +1541,7 @@ export function drawFunString(
         ctx.fillText(str.substring(0, 1), x1, Math.floor(data.frame!.height * (data.depth! + 0.5) + 3), fillTextWidth);
       } else {
         ctx.fillText(
-          str.substring(0, chatNum - 1) + '...',
+          `${str.substring(0, chatNum - 1)}...`,
           x1,
           Math.floor(data.frame!.height * (data.depth! + 0.5) + 3),
           fillTextWidth
@@ -1988,4 +2021,74 @@ export function findSearchNode(data: unknown[], search: string, parentSearch: bo
       findSearchNode(node.children, search, node.searchShow);
     }
   });
+}
+
+// draw prio curve
+// @ts-ignore
+export function prioClickHandlerFun(param: unknown, row: TraceRow<unknown>, threadFilter: Array<ThreadStruct>, arr: unknown, oldVal: number): void {
+  //@ts-ignore
+  let maxCount = Math.max(...param.map((obj: unknown) => obj.count));
+  //@ts-ignore
+  let maxCountPrio = param.find((obj: unknown) => obj.count === maxCount).prio;//找出出现次数最多的优先级，为中位值
+  //@ts-ignore
+  let maxPrioDiff = Math.max(...param.map((obj: unknown) => Math.abs(obj.prio - Number(maxCountPrio))));//找出与中位值的最大diff
+  let maxPointInterval = Math.ceil(maxPrioDiff / 4);//diff分成4份,每一份占多少px
+
+  for (let i = 0; i < threadFilter.length; i++) {
+    const item = threadFilter[i];
+    const preItem = threadFilter[i - 1];
+    //给原始数据添加prio值
+    let slice = Utils.getInstance().getSchedSliceMap().get(`${item.id}-${item.startTime}`);
+    if (slice) {
+      item.prio = slice!.priority;
+    }
+    //合并prio值相同的项提高画图速度
+    if (
+      item.prio &&
+      (oldVal !== item.prio || i === threadFilter.length - 2 || i === threadFilter.length - 1)
+    ) {
+      configCurveY(row, item, maxCountPrio, maxPointInterval);
+      //处理prio值变化前的
+      if (i !== 0) {
+        configCurveY(row, preItem, maxCountPrio, maxPointInterval);
+        //@ts-ignore
+        arr.push(preItem);
+      }
+      //@ts-ignore
+      arr.push(item);
+      oldVal = item.prio;
+    }
+  }
+}
+
+//确定曲线波动时的y轴
+//@ts-ignore
+function configCurveY(row: TraceRow<unknown>, item: ThreadStruct, maxCountPrio: number, maxPointInterval: number): void {
+  if (item.prio === Number(maxCountPrio)) {
+    item.curveFloatY = 3 + 12 / 2 + row.translateY;
+  } else if (item.prio! > Number(maxCountPrio)) {
+    let prioHeight = Math.floor((item.prio! - Number(maxCountPrio)) / maxPointInterval) * 2;
+    item.curveFloatY = 3 + 12 / 2 - prioHeight + row.translateY;
+  } else if (item.prio! < Number(maxCountPrio)) {
+    let prioHeight = Math.floor((Number(maxCountPrio) - item.prio!) / maxPointInterval) * 2;
+    item.curveFloatY = 3 + 12 / 2 + prioHeight + row.translateY;
+  }
+}
+
+export function drawThreadCurve(context: CanvasRenderingContext2D, threadFilter: ThreadStruct, nextFilter: ThreadStruct): void {
+  // 绘制曲线
+  if (threadFilter.frame && nextFilter.frame) {
+    let p1 = threadFilter;
+    let p2 = nextFilter;
+    let diff = p2.curveFloatY! >= p1.curveFloatY! ? p2.curveFloatY! - p1.curveFloatY! : p1.curveFloatY! - p2.curveFloatY!;
+    let cp1x = p1.frame!.x + (p2.frame!.x - p1.frame!.x) / 5;
+    let cp1y = p2.curveFloatY! >= p1.curveFloatY! ? p1.curveFloatY! - diff / 5 : p1.curveFloatY! + diff / 5;
+    let cp2x = p2.frame!.x - (p2.frame!.x - p1.frame!.x) / 5;
+    let cp2y = p2.curveFloatY! >= p1.curveFloatY! ? p2.curveFloatY! + diff / 5 : p2.curveFloatY! - diff / 5;
+    context.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.frame!.x, p2.curveFloatY!);
+    context.lineWidth = 1;
+    context.strokeStyle = '#ffc90e';
+    context.lineCap = 'round';
+  }
+  context.stroke();
 }

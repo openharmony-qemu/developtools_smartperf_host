@@ -122,6 +122,7 @@ export const TraceRowHtml = `
         }
         :host([expansion]) {
             background-color: var(--bark-expansion,#0C65D1);
+            opacity:0.8;
         }
         :host([expansion]) .name,:host([expansion]) .icon{
             color: #fff;

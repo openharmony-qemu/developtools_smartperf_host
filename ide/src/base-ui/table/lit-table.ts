@@ -352,7 +352,7 @@ export class LitTable extends HTMLElement {
         this.theadElement!.append(rowElement);
       });
     });
-    this.shadowRoot!.addEventListener('load', function (event) {});
+    this.shadowRoot!.addEventListener('load', function (event) { });
     this.tableElement!.addEventListener('mouseout', (ev) => this.mouseOut());
     this.treeElement && (this.treeElement!.style.transform = 'translateY(0px)');
     this.tbodyElement && (this.tbodyElement!.style.transform = 'translateY(0px)');
@@ -612,7 +612,7 @@ export class LitTable extends HTMLElement {
           totalWidth += parseInt(it);
         });
         totalWidth = Math.max(totalWidth, this.shadowRoot!.querySelector<HTMLDivElement>('.table')!.scrollWidth);
-        this.gridTemplateColumns[this.gridTemplateColumns.length - 1] = `${totalWidth - lastNode.offsetLeft - 1}px`;
+        this.gridTemplateColumns[this.gridTemplateColumns.length - 1] = `${totalWidth - lastNode.offsetLeft}px`;
         header.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
         let preNode = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
         preNode.style.width = `${preWidth}px`;
@@ -631,20 +631,18 @@ export class LitTable extends HTMLElement {
     });
   }
 
-  adoptedCallback(): void {}
+  adoptedCallback(): void { }
 
   getCheckRows(): unknown[] {
-    return (
-      [...this.shadowRoot!.querySelectorAll('div[class=tr][checked]')]
-        // @ts-ignore
-        .map((a) => (a as HTMLDivElement).data)
-        .map((a) => {
-          if ('children' in a) {
-            delete a.children;
-          }
-          return a;
-        })
-    );
+    // @ts-ignore
+    return [...this.shadowRoot!.querySelectorAll('div[class=tr][checked]')] // @ts-ignore
+      .map((a) => (a as unknown).data)
+      .map((a) => {
+        if ('children' in a) {
+          Reflect.deleteProperty(a, 'chlidren');
+        }
+        return a;
+      });
   }
 
   deleteRowsCondition(fn: unknown): void {
@@ -947,6 +945,7 @@ export class LitTable extends HTMLElement {
         td = this.firstElementTdHandler(rowTreeElement, dataIndex, rowData, column);
       } else {
         td = this.otherElementHandler(dataIndex, rowData, column); // @ts-ignore
+        this.dispatchTdClickEvent(td, column, rowData);// @ts-ignore
         rowTreeElement.append(td);
       }
     });
@@ -1116,6 +1115,8 @@ export class LitTable extends HTMLElement {
       // @ts-ignore
       let dataIndex = column.getAttribute('data-index') || '1';
       let td = this.createColumnTd(dataIndex, column, rowData);
+      //@ts-ignore
+      this.dispatchTdClickEvent(td, column, rowData);
       newTableElement.append(td);
     });
     newTableElement.onmouseup = (e: MouseEvent): void => {
@@ -1169,7 +1170,7 @@ export class LitTable extends HTMLElement {
     if (column.template) {
       if (
         // @ts-ignore
-        (dataIndex === 'color' && rowData.data.colorEl === undefined) || // @ts-ignore
+        (dataIndex === 'color' && rowData.data.color === undefined) || // @ts-ignore
         (dataIndex === 'text' && rowData.data.text === undefined)
       ) {
         // @ts-ignore
@@ -1523,6 +1524,31 @@ export class LitTable extends HTMLElement {
     };
   }
 
+  //自定义td点击事件
+  dispatchTdClickEvent(td: unknown, column: unknown, rowData: unknown): void {
+    // @ts-ignore
+    if (column.hasAttribute('tdJump')) {
+      //@ts-ignore
+      td.style.color = '#208aed';
+      //@ts-ignore
+      td.style.textDecoration = 'underline';
+      //@ts-ignore
+      td.onclick = (event: unknown): void => {
+        this.dispatchEvent(
+          new CustomEvent('td-click', {
+            detail: {
+              //@ts-ignore
+              ...rowData.data,
+            },
+            composed: true,
+          })
+        );
+        // @ts-ignore
+        event.stopPropagation();
+      };
+    }
+  }
+
   freshCurrentLine(element: HTMLElement, rowObject: TableRowObject, firstElement?: HTMLElement): void {
     if (!rowObject) {
       if (firstElement) {
@@ -1607,6 +1633,13 @@ export class LitTable extends HTMLElement {
         this.setMouseIn(true, [this.currentTreeDivList[indexOf]]);
       }
     };
+    this.querySelectorAll('lit-table-column').forEach((item, i) => {
+      if (this.hasAttribute('tree')) {
+        this.dispatchTdClickEvent(element.childNodes[i - 1], item, rowObject);
+      } else {
+        this.dispatchTdClickEvent(element.childNodes[i], item, rowObject);
+      }
+    });
     // @ts-ignore
     (element as unknown).data = rowObject.data; //@ts-ignore
     if (rowObject.data.isSelected !== undefined) {
@@ -1898,7 +1931,8 @@ export class LitTable extends HTMLElement {
       new CustomEvent('icon-click', {
         detail: {
           // @ts-ignore
-          ...rowData.data, // @ts-ignore
+          ...rowData.data,
+          // @ts-ignore
           data: rowData.data,
           callBack: (isSelected: boolean): void => {
             //是否爲单选

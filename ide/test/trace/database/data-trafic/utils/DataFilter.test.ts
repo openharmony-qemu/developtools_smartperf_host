@@ -14,7 +14,6 @@
  */
 
 import {
-  filterData,
   filterDataByGroup,
   filterDataByGroupLayer,
   filterDataByLayer
@@ -22,22 +21,6 @@ import {
 
 describe('DataFilter Test', () => {
   it('DataFilterTest01', () => {
-    let list = [
-      {startKey: 0, durKey: 100, startNS: 0, endNS: 1000},
-      {startKey: 100, durKey: 200, startNS: 1001, endNS: 2000},
-    ];
-    let startKey = 'startKey';
-    let durKey = 'durKey';
-    let startNS = 0;
-    let endNS = 2000;
-    let width = 100;
-    let result = filterData(list, startKey, durKey, startNS, endNS, width);
-    expect(result).toEqual([
-      {startKey: 0, durKey: 100, startNS: 0, endNS: 1000, v: true},
-      {startKey: 100, durKey: 200, startNS: 1001, endNS: 2000, v: true},
-    ]);
-  });
-  it('DataFilterTest02', () => {
     let list = [
       {startKey: 0, durKey: 100, startNS: 0, endNS: 1000},
       {startKey: 100, durKey: 200, startNS: 1001, endNS: 2000},
@@ -54,7 +37,7 @@ describe('DataFilter Test', () => {
       {startKey: 100, durKey: 200, startNS: 1001, endNS: 2000, v: true},
     ]);
   });
-  it('DataFilterTest03', () => {
+  it('DataFilterTest02', () => {
     let list = [
       {startKey: 0, durKey: 100, startNS: 0, endNS: 1000},
       {startKey: 100, durKey: 200, startNS: 1001, endNS: 2000},
@@ -70,7 +53,7 @@ describe('DataFilter Test', () => {
       {startKey: 100, durKey: 200, startNS: 1001, endNS: 2000, px: 5,},
     ]);
   });
-  it('DataFilterTest0304', () => {
+  it('DataFilterTest03', () => {
     let list = [
       {layerKey: 1, startKey: 0, durKey: 100, startNS: 0, endNS: 1000},
       {layerKey: 2, startKey: 100, durKey: 200, startNS: 1001, endNS: 2000},

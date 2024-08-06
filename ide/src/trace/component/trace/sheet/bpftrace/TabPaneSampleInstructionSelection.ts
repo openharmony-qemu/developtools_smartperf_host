@@ -225,9 +225,8 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     // @ts-ignore
     this.hintContent = `<span class="text">${hoverNode.detail}(${hoverNode.name})</span></br>
       <span class="text">${
-        // @ts-ignore
-        this.isChecked ? hoverNode.hoverCycles : hoverNode.hoverInstructions
-      }
+      // @ts-ignore
+      this.isChecked ? hoverNode.hoverCycles : hoverNode.hoverInstructions}
       </span>
     `;
   }
@@ -293,16 +292,16 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
           const parentNode = preList.find((node: SampleStruct) => node.name === cur.parentName);
           //计算当前节点下指令数之和 用于计算每个节点所占的宽度比
           const total = isCycles
-            ? // @ts-ignore
-              instructionArray[key]
-                // @ts-ignore
-                .filter((i: unknown) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
-            : // @ts-ignore
-              instructionArray[key]
-                // @ts-ignore
-                .filter((i: unknown) => i.parentName === parentNode.name)
-                .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
+            // @ts-ignore
+            ? instructionArray[key]
+              // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.cycles!, 0)
+            // @ts-ignore
+            : instructionArray[key]
+              // @ts-ignore
+              .filter((i: unknown) => i.parentName === parentNode.name)
+              .reduce((pre: number, cur: SampleStruct) => pre + cur.instructions!, 0);
           const curWidth = isCycles ? cur.cycles : cur.instructions;
           const width = Math.floor(parentNode.frame.width * (curWidth / total));
           if (i === 0) {
@@ -356,7 +355,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
    * @param canvasY
    * @returns
    */
-  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number): unknown {
+  searchDataByCoord(nodes: unknown, canvasX: number, canvasY: number): void | null {
     // @ts-ignore
     for (const key in nodes) {
       // @ts-ignore
@@ -411,7 +410,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
    * @param instructionData
    * @returns
    */
-  getAvgInstructionData(instructionData: Array<unknown>): unknown[] {
+  getAvgInstructionData(instructionData: Array<unknown>): unknown {
     // @ts-ignore
     const length = instructionData[0].property.length;
     // @ts-ignore

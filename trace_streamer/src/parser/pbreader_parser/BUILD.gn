@@ -74,9 +74,6 @@ ohos_source_set("pbreader_parser_src") {
       cflags += [ "-D IS_UT" ]
     }
   }
-  if (is_mingw) {
-    cflags = [ "-includeMingW64Fix.h" ]
-  }
   public_configs = [ "../ebpf_parser:ebpf_parser_cfg" ]
   public_deps =
       [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp" ]
@@ -127,17 +124,6 @@ ohos_source_set("pbreader_parser_src") {
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp_standard",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",
     "${THIRD_PARTY}/protobuf:protobuf_static",
-    "//third_party/perf_include/hiviewdfx:hiviewdfx",
+    "//third_party/perf_include/hiviewdfx:libfaultloggerd",
   ]
-  if (!use_wasm && !is_win && !is_mingw && !is_mac && !is_test) {
-    if (!is_independent_compile) {
-      if (target_cpu == "arm64") {
-        public_deps += [ "//third_party/libunwind:unwind_source_arm64_opt" ]
-      } else {
-        public_deps += [ "//third_party/libunwind:unwind_source_${target_cpu}" ]
-      }
-    } else {
-      public_deps += [ "${THIRD_PARTY}/libunwind:libunwind" ]
-    }
-  }
 }

@@ -17,13 +17,16 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"flag"
 	"fmt"
 	"io"
 	"io/fs"
@@ -42,13 +45,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"flag"
 )
 
 const HttpPort = 9000
 
 var exPath string
 var serveInfo string
+var hdcPublicKey string
+var hdcPrivateKey *rsa.PrivateKey
 
 // CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go
 // CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build main.go
@@ -81,6 +85,7 @@ func exist(path string) bool {
 	}
 	return true
 }
+
 func genSSL() {
 	if exist("cert/keyFile.key") || exist("cert/certFile.pem") {
 		fmt.Println("keyFile.key exists")
@@ -112,18 +117,44 @@ func genSSL() {
 	pem.Encode(keyOut, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(pk)})
 	keyOut.Close()
 }
+
+func genRsa() {
+	// generate hdc private key
+	privateKey, err := rsa.GenerateKey(rand.Reader, 3072)
+	if err != nil {
+		fmt.Println("Generate hdc rsa private key failed")
+		return
+	}
+	hdcPrivateKey = privateKey
+
+	// generate hdc public key
+	publicKey := &privateKey.PublicKey
+	pkixPublicKey, err := x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	publicKeyBlock := &pem.Block{
+		Type: "PUBLIC KEY",
+
+		Bytes: pkixPublicKey,
+	}
+	hdcPublicKey = string(pem.EncodeToMemory(publicKeyBlock))
+}
+
 func main() {
-  port := HttpPort
-  isOpen := 1
-  flag.IntVar(&port, "p", HttpPort, "The port number used")
-  flag.IntVar(&isOpen, "o", 1 , "Whether to immediately open the website in your browser; 1 is true; 0 is false")
-  flag.Parse()
-  if isOpen < 0 || isOpen > 1 {
-    fmt.Println("Error: -o must be 0 or 1")
-    return
-  }
+	port := HttpPort
+	isOpen := 1
+	flag.IntVar(&port, "p", HttpPort, "The port number used")
+	flag.IntVar(&isOpen, "o", 1, "Whether to immediately open the website in your browser; 1 is true; 0 is false")
+	flag.Parse()
+	if isOpen < 0 || isOpen > 1 {
+		fmt.Println("Error: -o must be 0 or 1")
+		return
+	}
 	checkPort(port)
 	genSSL()
+	genRsa()
 	exPath = getCurrentAbPath()
 	fmt.Println(exPath)
 	go func() {
@@ -143,6 +174,8 @@ func main() {
 		mux.Handle("/application/upload/", http.StripPrefix("/application/upload/", http.FileServer(http.Dir(filepath.FromSlash(exPath+"/upload")))))
 		mux.HandleFunc("/application/download-file", downloadHandler)
 		mux.HandleFunc("/application/serverInfo", serverInfo)
+		mux.HandleFunc("/application/hdcPublicKey", getHdcPublicKey)
+		mux.HandleFunc("/application/encryptHdcMsg", encryptHdcMsg)
 		fs := http.FileServer(http.Dir(exPath + "/"))
 		mux.Handle("/application/", http.StripPrefix("/application/", cors(fs, version)))
 		go func() {
@@ -163,9 +196,9 @@ func main() {
 			err := ser.ListenAndServe()
 			CheckErr(err)
 		}()
-    if (isOpen == 1){
-      open(fmt.Sprintf("https://localhost:%d/application", port))
-    }
+		if isOpen == 1 {
+			open(fmt.Sprintf("https://localhost:%d/application", port))
+		}
 	}()
 	select {}
 }
@@ -217,6 +250,32 @@ func serverInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("request_info", serveInfo)
 	w.WriteHeader(200)
+}
+
+func getHdcPublicKey(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "text/json")
+	resp(&w)(true, 0, "success", map[string]interface{}{
+		"publicKey": hdcPublicKey,
+	})
+}
+
+func encryptHdcMsg(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "text/json")
+	hdcMsg := r.URL.Query().Get("message")
+	if len(hdcMsg) == 0 {
+		resp(&w)(false, -1, "Invalid message", nil)
+		return
+	}
+	signatures, err := rsa.SignPKCS1v15(nil, hdcPrivateKey, crypto.Hash(0), []byte(hdcMsg))
+	if err != nil {
+		resp(&w)(false, -1, "sign failed", nil)
+	} else {
+		resp(&w)(true, 0, "success", map[string]interface{}{
+			"signatures": base64.StdEncoding.EncodeToString(signatures),
+		})
+	}
 }
 
 func readReqServerConfig() string {

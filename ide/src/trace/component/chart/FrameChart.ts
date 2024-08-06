@@ -65,6 +65,8 @@ export class FrameChart extends BaseElement {
   private chartClickListenerList: Array<Function> = [];
   private isUpdateCanvas = false;
   private isClickMode = false; //是否为点选模式
+  _totalRootData: Array<ChartStruct> = [];//初始化顶部root的数据 
+  private totalRootNode!: ChartStruct;
 
   /**
    * set chart mode
@@ -89,23 +91,35 @@ export class FrameChart extends BaseElement {
     this.hideTip();
   }
 
+  get totalRootData(): Array<ChartStruct> {
+    return this._totalRootData;
+  }
+
+  set totalRootData(value: Array<ChartStruct>) {
+    this._totalRootData = value;
+  }
+
   private get total(): number {
     return this.getNodeValue(this.rootNode);
   }
 
   private getNodeValue(node: ChartStruct): number {
+    let result: number;
     switch (this._mode) {
       case ChartMode.Byte:
-        return node.drawSize || node.size;
+        result = node.drawSize || node.size;
+        break;
       case ChartMode.Count:
-        return node.drawCount || node.count;
+        result = node.drawCount || node.count;
+        break;
       case ChartMode.Duration:
-        return node.drawDur || node.dur;
+        result = node.drawDur || node.dur;
+        break;
       case ChartMode.EventCount:
-        return node.drawEventCount || node.eventCount;
-      default:
-        return node.drawSize || node.size;
+        result = node.drawEventCount || node.eventCount;
+        break;
     }
+    return result;
   }
 
   /**
@@ -143,6 +157,19 @@ export class FrameChart extends BaseElement {
       this.rootNode.dur += node.drawDur || node.dur;
       this.rootNode.eventCount += node.drawEventCount || node.eventCount;
       node.parent = this.rootNode;
+    }
+    this.totalRootNode = new ChartStruct();
+    this.totalRootNode.symbol = 'root';
+    this.totalRootNode.depth = 0;
+    this.totalRootNode.percent = 1;
+    this.totalRootNode.frame = new Rect(0, scaleHeight, this.canvas!.width, depthHeight);
+    for (const node of this._totalRootData!) {
+      this.totalRootNode.children.push(node);
+      this.totalRootNode.count += node.drawCount || node.count;
+      this.totalRootNode.size += node.drawSize || node.size;
+      this.totalRootNode.dur += node.drawDur || node.dur;
+      this.totalRootNode.eventCount += node.drawEventCount || node.eventCount;
+      node.parent = this.totalRootNode;
     }
   }
 
@@ -219,7 +246,7 @@ export class FrameChart extends BaseElement {
         break;
       case ChartMode.Count:
         currentValue = `${this.total}`;
-        currentValuePercent = this.total / this.rootNode.count;
+        currentValuePercent = this.total / this.totalRootNode.count;
         break;
       case ChartMode.Duration:
         currentValue = Utils.getProbablyTime(this.total);
@@ -227,7 +254,7 @@ export class FrameChart extends BaseElement {
         break;
       case ChartMode.EventCount:
         currentValue = `${this.total}`;
-        currentValuePercent = this.total / this.rootNode.eventCount;
+        currentValuePercent = this.total / this.totalRootNode.eventCount;
         break;
     }
     let endStr = currentValuePercent ? ` (${(currentValuePercent * 100).toFixed(2)}%)` : '';
@@ -538,33 +565,41 @@ export class FrameChart extends BaseElement {
         }
       }
     }
+    let result: number = 0;
     switch (this._mode) {
       case ChartMode.Byte:
-        return ignore.size;
+        result = ignore.size;
+        break;
       case ChartMode.Count:
-        return ignore.count;
+        result = ignore.count;
+        break;
       case ChartMode.Duration:
-        return ignore.dur;
+        result = ignore.dur;
+        break;
       case ChartMode.EventCount:
-        return ignore.eventCount;
-      default:
-        return ignore.size;
+        result = ignore.eventCount;
+        break;
     }
+    return result;
   }
 
   private isSearch(node: ChartStruct): boolean {
+    let result: boolean = false;
     switch (this._mode) {
       case ChartMode.Byte:
-        return node.searchSize > 0;
+        result = node.searchSize > 0;
+        break;
       case ChartMode.Count:
-        return node.searchCount > 0;
+        result = node.searchCount > 0;
+        break;
       case ChartMode.Duration:
-        return node.searchDur > 0;
+        result = node.searchDur > 0;
+        break;
       case ChartMode.EventCount:
-        return node.searchEventCount > 0;
-      default:
-        return node.searchSize > 0;
+        result = node.searchEventCount > 0;
+        break;
     }
+    return result;
   }
 
   /**
@@ -638,8 +673,10 @@ export class FrameChart extends BaseElement {
     } else {
       x += scaleHeight;
     }
-    //最下边函数块悬浮框显示在函数上边
-    y -= this.floatHint!.clientHeight - 1;
+    //顶部悬浮框显示在函数下边，下半部分悬浮框显示在函数上边
+    if (y > this.floatHint!.clientHeight) {
+      y -= this.floatHint!.clientHeight - 1;
+    }
 
     this.floatHint!.style.transform = `translate(${x}px,${y}px)`;
   }
@@ -1008,12 +1045,13 @@ export class FrameChart extends BaseElement {
       }
     });
 
-    document.addEventListener('keyup', (e) => {
-      if (!ChartStruct.hoverFuncStruct) {
+    document.addEventListener('keydown', (e) => {
+      if (!ChartStruct.hoverFuncStruct || !this.isFocusing) {
         return;
       }
       if (e.ctrlKey && e.key.toLocaleLowerCase() === 'c') {
-        navigator.clipboard.writeText(ChartStruct.hoverFuncStruct!.symbol);
+        let hoverName: string = ChartStruct.hoverFuncStruct!.symbol.split(' (')[0];
+        navigator.clipboard.writeText(hoverName);
       }
     });
     this.listenerResize();

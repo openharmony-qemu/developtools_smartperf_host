@@ -13,7 +13,25 @@
 
 import { Args } from './CommonArgs';
 import { cpuList, processList, sliceList, threadStateList } from './utils/AllMemoryCache';
-
+const dataCache: {
+  argSetID: number | null | undefined;
+  cpu: number | null | undefined;
+  dur: number | null | undefined;
+  itid: number | null | undefined;
+  pid: number | null | undefined;
+  state: string | null | undefined;
+  tid: number | null | undefined;
+  startTime: number | null | undefined;
+} = {
+  argSetID: null,
+  cpu: null,
+  dur: null,
+  itid: null,
+  pid: null,
+  state: null,
+  tid: null,
+  startTime: null
+};
 export const sliceSqlMem = (args: Args): string => {
   return `
       SELECT B.pid,                        
@@ -32,6 +50,9 @@ export function sliceReceiver(data: unknown, proc: Function): void {
   let count = {
     cpu: new Map<number, number>(),
   };
+  // 存储线程及其状态耗时总和；用以线程泳道排序
+  let threadMap = new Map<string, number>();
+  let processRowSortMap = new Map<string, number>();
   sliceList.clear();
   cpuList.clear();
   processList.clear();
@@ -40,6 +61,19 @@ export function sliceReceiver(data: unknown, proc: Function): void {
   sliceList.set(0, list);
   for (let i = 0; i < list.length; i++) {
     let slice = list[i]; //@ts-ignore
+    // @ts-ignore
+    if (slice.pid > 0 && typeof slice.pid === 'number' && slice.state === 'Running') {
+      // @ts-ignore
+      if (!processRowSortMap.has(slice.pid)) {
+        // @ts-ignore
+        processRowSortMap.set(slice.pid, slice.dur);
+      } else {
+        // @ts-ignore
+        let val = processRowSortMap.get(slice.pid);
+        // @ts-ignore
+        processRowSortMap.set(slice.pid, val + slice.dur);
+      }
+    }// @ts-ignore
     if (slice.cpu !== null && slice.cpu !== undefined) {
       //@ts-ignore
       if (cpuList.has(slice.cpu)) {
@@ -75,19 +109,119 @@ export function sliceReceiver(data: unknown, proc: Function): void {
       } else {
         threadStateList.set(key, [slice]);
       }
+      // @ts-ignore
+      if (slice.state === 'S' || typeof slice.dur !== 'number' || slice.tid === 0) {
+        continue;
+      } else {
+        // @ts-ignore
+        if (!threadMap.has(key)) {
+          // @ts-ignore
+          threadMap.set(key, slice.dur);
+        } else {
+          // @ts-ignore
+          let val = threadMap.get(key);
+          // @ts-ignore
+          threadMap.set(key, val + slice.dur);
+        }
+      }
     }
   }
   for (let key of cpuList.keys()) {
     let arr = cpuList.get(key) || [];
-    let last = arr[arr.length - 1]; //@ts-ignore
-    if (last && (last.dur === -1 || last.dur === null || last.dur === undefined)) {
-      //@ts-ignore
-      let totalNs = data.params.recordEndNS - data.params.recordStartNS; //@ts-ignore
-      last.dur = totalNs - last.startTime;
-    }
     count.cpu.set(key, arr.length);
   }
-  postMsg(data, count);
+  //处理threadList最后一个符合条件的dur
+  for (let key of threadStateList.keys()) {
+    let arr = threadStateList.get(key) || [];
+    let last = arr[arr.length - 1];
+    if (!last) {
+      continue;
+    }
+    //@ts-ignore
+    switch (last.state) {
+      case 'S':
+      case 'I':
+      case 'T':
+      case 'X':
+        break;
+      default:
+        //@ts-ignore
+        if (last.dur === -1 || last.dur === null || last.dur === undefined) {
+          //@ts-ignore
+          let totalNs = data.params.recordEndNS - data.params.recordStartNS; //@ts-ignore
+          last.dur = totalNs - last.startTime;
+        }
+        break;
+    }
+  }
+  //处理热点数据
+  //@ts-ignore
+  let cpuUtiliRateArray = getCpuUtiliRate(cpuList, data.params);
+  postMsg(data, { count, threadMap, processRowSortMap, cpuUtiliRateArray });
+}
+
+function getCpuUtiliRate(cpulist: Map<number, Array<unknown>>, args: Args): Array<unknown> {
+  // cpu进行排序  
+  let cpuListArray = Array.from(cpulist.entries());
+  //@ts-ignore
+  cpuListArray.sort((a: unknown, b: unknown) => parseInt(a[0]) - parseInt(b[0]));
+  let cpuListMap = new Map(cpuListArray);
+  let cpuUtiliRateArray = new Array();
+  let cell = Math.floor((args.recordEndNS - args.recordStartNS) / 100);//分成100个格子，cell每个格子的持续时间
+  for (const [cpu, list] of cpuListMap.entries()) {
+    let ro = 0;
+    let index = 0;
+    let sumTime = 0;
+    //@ts-ignore
+    let sliceSt = list[0].startTime;//起始时间
+    let cellSt = ro * cell;//每个格子起始时间
+    let cellEt = (ro + 1) * cell;//每个格子的结束时间
+    //@ts-ignore
+    while (index < list.length && ro <= 99) {
+      let isGoNextRo = false;//标志位，当下格子区间内的cpu切片持续时间是否统计结束，如统计结束true可跳转至下一个格子区间，反之false
+      //@ts-ignore
+      let sliceEt = list[index].startTime + list[index].dur;//cpu结束时间
+      if (sliceSt >= cellSt && sliceEt <= cellEt) {//包含在ro内
+        //@ts-ignore
+        sumTime += (sliceEt - sliceSt);//cpu dur累加
+        //@ts-ignore
+        sliceSt = index + 1 >= list.length ? sliceSt : list[index + 1].startTime;//处理最后一条cpu数据
+        index++;
+      } else if (sliceSt >= cellSt && sliceSt < cellEt && sliceEt > cellEt) {//部分包含在ro内
+        sumTime = sumTime + (cellEt - sliceSt);
+        sliceSt = cellEt;
+        isGoNextRo = true;
+      } else if (sliceSt >= cellEt) {//不包含在ro内
+        isGoNextRo = true;
+      } else {//保护逻辑
+        //@ts-ignore
+        sliceSt = index + 1 >= list.length ? sliceSt : list[index + 1].startTime;
+        index++;
+      }
+      if (isGoNextRo) {//格子内cpu dur累加结束 跳转至下一个Ro 处理比率 储存处理后的数据
+        ro++;
+        cellSt = ro * cell;//下一个格子的起始时间
+        //第99个格子结束时间为recordEndNS，确保覆盖整个时间范围
+        if (ro < 99) {
+          cellEt = (ro + 1) * cell;//下一个格子结束时间
+        } else {
+          cellEt = args.recordEndNS - args.recordStartNS;
+        }
+        //处理比率 储存处理后的数据
+        if (sumTime !== 0) {
+          let rate = sumTime / cell;
+          cpuUtiliRateArray.push({ ro: ro - 1, cpu, rate });
+          sumTime = 0;
+        }
+      }
+    }
+    //处理最后一个sumTime不为0区间的数据
+    if (sumTime !== 0) {
+      let rate = sumTime / cell;
+      cpuUtiliRateArray.push({ ro, cpu, rate });
+    }
+  }
+  return cpuUtiliRateArray;
 }
 
 export function sliceSPTReceiver(data: unknown): void {
@@ -103,6 +237,12 @@ export function sliceSPTReceiver(data: unknown): void {
         break;
       case 'spt-getCpuPriorityByTime':
         sptGetCpuPriorityByTime(data);
+        break;
+      case 'state-box':
+        getChildBoxDb(data);
+        break;
+      case 'near-data':
+        seacrhThreadNearData(data);
         break;
     }
   }
@@ -235,6 +375,85 @@ function sptGetCpuPriorityByTime(data: unknown): void {
     return !(item.startTime + item.dur < data.params.leftNs || item.startTime! > data.params.rightNs);
   });
   postMsg(data, result);
+}
+
+//处理跳转子页面的数据
+function getChildBoxDb(data: unknown): void {
+  let threadSlice = sliceList.get(0) || [];
+  let setProcessId;
+  let setThreadId;
+  let setCpu = new Set();
+  //处理processId数据
+  //@ts-ignore
+  setProcessId = handleIdParams(data.params.processId);
+  //处理threadId数据
+  //@ts-ignore
+  setThreadId = handleIdParams(data.params.threadId);
+  //处理Cpu数据
+  //@ts-ignore
+  if (data.params.cpus) {//@ts-ignore
+    if (data.params.cpus.length > 0) {
+      //@ts-ignore
+      setCpu = new Set(data.params.cpus);
+    }
+  }
+
+  let childBoxDb = threadSlice.filter((it: unknown) => {
+    let condition = true;
+    // 检查进程ID  
+    if (setProcessId.size !== 0) {
+      //@ts-ignore
+      condition = condition && setProcessId.has(it.pid);
+    }
+    // 检查线程ID  
+    if (setThreadId.size !== 0) {
+      //@ts-ignore
+      condition = condition && setThreadId.has(it.tid);
+    }
+    // 检查CPU（如果存在且不是null/undefined，或在setCpu中）  
+    if (setCpu.size !== 0) {
+      //@ts-ignore
+      condition = condition && (it.cpu === null || it.cpu === undefined || setCpu.has(it.cpu));
+    }
+    // 检查状态
+    //@ts-ignore  
+    if (data.params.state) {
+      //@ts-ignore  
+      condition = condition && it.state === data.params.state;
+    }
+    //@ts-ignore
+    return condition && Math.max(data.params.leftNs, it.startTime!) < Math.min(data.params.rightNs, it.startTime! + it.dur!);
+  });
+  postMsg(data, childBoxDb);
+}
+//处理processId和threadId
+function handleIdParams(id: number | number[] | undefined): Set<unknown> {
+  let setId: Set<unknown>;
+  if (Array.isArray(id) || typeof id === 'number') {
+    setId = new Set(Array.isArray(id) ? id : [id]);
+  } else {
+    setId = new Set();
+  }
+  return setId;
+}
+
+//查找点击的thread块前后相邻块信息
+function seacrhThreadNearData(target: unknown): void {
+  //@ts-ignore
+  let key = `${target.params.pid}-${target.params.tid}`;
+  let preData;
+  let nextData;
+  let threadSlice = threadStateList.get(key) || [];
+  //@ts-ignore
+  let dbIndex = threadSlice.findIndex(it => it.startTime === target.params.startTime);
+  if (dbIndex !== -1) {
+    preData = threadSlice[dbIndex - 1] ? threadSlice[dbIndex - 1] : dataCache;
+    nextData = threadSlice[dbIndex + 1] ? threadSlice[dbIndex + 1] : dataCache;
+  } else {
+    preData = dataCache;
+    nextData = dataCache;
+  }
+  postMsg(target, [preData, nextData]);
 }
 
 function setStateData(slice: unknown, title: string): unknown {

@@ -171,6 +171,10 @@ const PerfReport &TraceDataCacheReader::GetConstPerfReportData() const
 {
     return perfReport_;
 }
+const PerfNapiAsync &TraceDataCacheReader::GetConstPerfNapiAsyncData() const
+{
+    return perfNapiAsync_;
+}
 const SysCall &TraceDataCacheReader::GetConstSysCallData() const
 {
     return sysCallData_;
@@ -319,6 +323,10 @@ const FrameMaps &TraceDataCacheReader::GetConstFrameMapsData() const
 const GPUSlice &TraceDataCacheReader::GetConstGPUSliceData() const
 {
     return gpuSliceData_;
+}
+const DmaFence &TraceDataCacheReader::GetConstDmaFenceData() const
+{
+    return dmaFenceData_;
 }
 const AppStartup &TraceDataCacheReader::GetConstAppStartupData() const
 {

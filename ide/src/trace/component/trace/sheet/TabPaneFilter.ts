@@ -23,6 +23,7 @@ import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
 import { queryTransferList } from '../../../database/sql/Perf.sql';
 import { TabPaneFilterHtml } from './TabPaneFilter.html';
+import { SpSystemTrace } from '../../SpSystemTrace';
 
 export interface FilterData {
   inputValue: string;
@@ -38,6 +39,13 @@ export interface MiningData {
   type: string;
   item: unknown | null | undefined;
   remove?: Array<unknown> | null | undefined;
+}
+
+export class CpuStatus {
+  cpu: number = 0;
+  small: boolean = false;
+  medium: boolean = false;
+  large: boolean = false;
 }
 
 @element('tab-pane-filter')
@@ -141,6 +149,11 @@ export class TabPaneFilter extends BaseElement {
     this.initializeLibrary();
     this.initBaseElListener();
     this.queryElListener();
+    this.filterInputEL?.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') {
+        ev.stopPropagation();
+      }
+    });
   }
 
   private queryElListener(): void {
@@ -409,7 +422,7 @@ export class TabPaneFilter extends BaseElement {
     html: string
   ): string {
     if (secondList) {
-      html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">`;
+      html += `<lit-select show-search default-value="" id="second-select" class="spacing" placeholder="please choose">`;
       if (secondTitle !== '') {
         html += `<lit-select-option value="${secondTitle}" disabled>${secondTitle}</lit-select-option>`;
       }
@@ -465,6 +478,132 @@ export class TabPaneFilter extends BaseElement {
       let idName = text.replace(/\s/g, '');
       idName = idName[0].toLocaleLowerCase() + idName.slice(1);
       divEl!.innerHTML += `<div class="check-wrap"><lit-check-box class="lit-check-box" id=${idName} not-close></lit-check-box><div>${text}</div></div>`;
+    }
+  }
+
+  //添加cpu列表
+  setCoreConfigList(count: number, small: Array<number>, mid: Array<number>, large: Array<number>): void {
+    let divEl = this.shadowRoot!.querySelector('#data-core-popover > div > #tb_core_setting');
+    divEl!.innerHTML = '';
+    this.createCoreHeaderDiv(divEl);
+    for (let i = 0; i < count; i++) {
+      let obj = {
+        cpu: i,
+        // @ts-ignore
+        small: small.includes(i),
+        // @ts-ignore
+        medium: mid.includes(i),
+        // @ts-ignore
+        large: large.includes(i),
+      };
+      this.createCheckBoxLine(divEl, obj, small, mid, large);
+    }
+  }
+
+  createCoreHeaderDiv(tab: unknown): void {
+    let cpuIdLine = document.createElement('div');
+    cpuIdLine.className = 'core_line';
+    cpuIdLine.style.fontWeight = 'bold';
+    cpuIdLine.style.fontSize = '12px';
+    cpuIdLine.textContent = 'Cpu';
+    cpuIdLine.style.textAlign = 'center';
+    let smallLine = document.createElement('div');
+    smallLine.className = 'core_line';
+    smallLine.style.fontWeight = 'bold';
+    smallLine.textContent = 'S';
+    smallLine.style.fontSize = '12px';
+    smallLine.style.textAlign = 'center';
+    let mediumLine = document.createElement('div');
+    mediumLine.className = 'core_line';
+    mediumLine.style.fontWeight = 'bold';
+    mediumLine.textContent = 'M';
+    mediumLine.style.fontSize = '12px';
+    mediumLine.style.textAlign = 'center';
+    let largeLine = document.createElement('div');
+    largeLine.className = 'core_line';
+    largeLine.style.fontWeight = 'bold';
+    largeLine.textContent = 'L';
+    largeLine.style.fontSize = '12px';
+    largeLine.style.textAlign = 'center';
+    // @ts-ignore
+    tab?.append(...[cpuIdLine, smallLine, mediumLine, largeLine]);
+  }
+
+  //添加对应的cpu checkbox,并添加对应的监听事件
+  createCheckBoxLine(
+    divEl: unknown,
+    cpuStatus: CpuStatus,
+    small: Array<number>,
+    mid: Array<number>,
+    large: Array<number>
+  ): void {
+    let div = document.createElement('div');
+    div.textContent = cpuStatus.cpu + '';
+    div.style.textAlign = 'center';
+    div.style.fontWeight = 'normal';
+    let smallCheckBox: LitCheckBox = new LitCheckBox();
+    smallCheckBox.checked = cpuStatus.small;
+    smallCheckBox.setAttribute('not-close', '');
+    smallCheckBox.style.textAlign = 'center';
+    smallCheckBox.style.marginLeft = 'auto';
+    smallCheckBox.style.marginRight = 'auto';
+    let midCheckBox: LitCheckBox = new LitCheckBox();
+    midCheckBox.checked = cpuStatus.medium;
+    midCheckBox.setAttribute('not-close', '');
+    midCheckBox.style.textAlign = 'center';
+    midCheckBox.style.marginLeft = 'auto';
+    midCheckBox.style.marginRight = 'auto';
+    let largeCheckBox: LitCheckBox = new LitCheckBox();
+    largeCheckBox.checked = cpuStatus.large;
+    largeCheckBox.setAttribute('not-close', '');
+    largeCheckBox.style.marginLeft = 'auto';
+    largeCheckBox.style.marginRight = 'auto';
+    smallCheckBox.addEventListener('change', (e: unknown) => {
+      midCheckBox.checked = false;
+      largeCheckBox.checked = false;
+      // @ts-ignore
+      cpuStatus.small = e.detail.checked;
+      // @ts-ignore
+      this.canUpdateCheckList(e.detail.checked, small, cpuStatus.cpu);
+      mid = mid.filter((it) => it !== cpuStatus.cpu);
+      large = large.filter((it) => it !== cpuStatus.cpu);
+    });
+    midCheckBox.addEventListener('change', (e: unknown) => {
+      largeCheckBox.checked = false;
+      smallCheckBox.checked = false;
+      // @ts-ignore
+      cpuStatus.medium = e.detail.checked;
+      // @ts-ignore
+      this.canUpdateCheckList(e.detail.checked, mid, cpuStatus.cpu);
+      large = large.filter((it) => it !== cpuStatus.cpu);
+      small = small.filter((it) => it !== cpuStatus.cpu);
+    });
+    largeCheckBox.addEventListener('change', (e: unknown) => {
+      midCheckBox.checked = false;
+      smallCheckBox.checked = false;
+      // @ts-ignore
+      cpuStatus.large = e.detail.checked;
+      // @ts-ignore
+      this.canUpdateCheckList(e.detail.checked, large, cpuStatus.cpu);
+      mid = mid.filter((it) => it !== cpuStatus.cpu);
+      small = small.filter((it) => it !== cpuStatus.cpu);
+    });
+    // @ts-ignore
+    divEl!.append(...[div, smallCheckBox, midCheckBox, largeCheckBox]);
+  }
+
+  //判断checkList数组是否需要push数据或删除数据
+  canUpdateCheckList(check: boolean, coreArr: Array<number>, cpu: number): void {
+    if (check) {
+      const isFalse = coreArr.includes(cpu);
+      if (!isFalse) {
+        coreArr.push(cpu);
+      }
+    } else {
+      const index = coreArr.indexOf(cpu);
+      if (index !== -1) {
+        coreArr.splice(index, 1);
+      }
     }
   }
 
@@ -575,6 +714,7 @@ export class TabPaneFilter extends BaseElement {
         this.value = this.value.replace(/\D/g, '');
       };
       e.addEventListener('keyup', (event: unknown): void => {
+        SpSystemTrace.isKeyUp = true;
         // @ts-ignore
         event.stopPropagation();
         // @ts-ignore
@@ -603,17 +743,17 @@ export class TabPaneFilter extends BaseElement {
       // @ts-ignore
       html += `<div style="display: flex;padding: 4px 7px;" class="mining-checked" ${a.highlight ? 'highlight' : ''}>
                         <lit-check-box class="lit-check-box" not-close ${
-                          // @ts-ignore
-                          a.checked ? 'checked' : ''
-                        } style="display: flex"></lit-check-box>
+        // @ts-ignore
+        a.checked ? 'checked' : ''
+        } style="display: flex"></lit-check-box>
                         
                         <div id="title" title="${
-                          // @ts-ignore
-                          a.name
-                        }">${
         // @ts-ignore
         a.name
-      }</div></div>`;
+        }">${
+        // @ts-ignore
+        a.name
+        }</div></div>`;
     });
 
     this.shadowRoot!.querySelector<HTMLDivElement>('#mining-row')!.innerHTML = html;
@@ -652,16 +792,16 @@ export class TabPaneFilter extends BaseElement {
       // @ts-ignore
       html += `<div style="display: flex;padding: 4px 7px;" class="library-checked" ${a.highlight ? 'highlight' : ''}>
                         <lit-check-box class="lit-check-box" not-close ${
-                          // @ts-ignore
-                          a.checked ? 'checked' : ''
-                        } style="display: flex"></lit-check-box>
+        // @ts-ignore
+        a.checked ? 'checked' : ''
+        } style="display: flex"></lit-check-box>
                         <div id="title" title="${
-                          // @ts-ignore
-                          a.name
-                        }">${
         // @ts-ignore
         a.name
-      }</div></div>`;
+        }">${
+        // @ts-ignore
+        a.name
+        }</div></div>`;
     });
 
     this.shadowRoot!.querySelector<HTMLDivElement>('#library-row')!.innerHTML = html;

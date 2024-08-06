@@ -323,13 +323,11 @@ export class TabPaneSummary extends BaseElement {
   }
 
   clickToggleTable(): void {
-    let lis = this.shadowRoot?.querySelectorAll<HTMLElement>('li');
-    lis!.forEach((li: HTMLElement, i: number) => {
-      lis![i].onclick = (): void => {
-        for (let i = 0; i < lis!.length; i++) {
-          lis![i].className = '';
-        }
-        switch (li.textContent) {
+    let lis = this.shadowRoot?.querySelectorAll<HTMLElement>('li')!;
+    for (const item of lis) {
+      item.onclick = (): void => {
+        item.className = '';
+        switch (item.textContent) {
           case 'Retainers':
             this.stackTable!.style.display = 'none';
             this.stackText!.style.display = 'none';
@@ -357,7 +355,7 @@ export class TabPaneSummary extends BaseElement {
         // @ts-ignore
         this.className = 'active';
       };
-    });
+    }
   }
 
   classFilter(): void {
@@ -586,7 +584,6 @@ export class TabPaneSummary extends BaseElement {
         this.retainsData[0].expanded = false;
       }
       let i = 0;
-      let that = this;
       let retainsTable = (): void => {
         const getList = (list: Array<ConstructorItem>): void => {
           list.forEach((summaryRow: ConstructorItem) => {

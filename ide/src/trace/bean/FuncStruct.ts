@@ -37,6 +37,15 @@ export class FuncStruct extends BaseStruct {
   identify: number | undefined;
   track_id: number | undefined;
   nofinish: boolean = false;
+  // distributed relation chain
+  ts: number | undefined;
+  pid: number | undefined;
+  traceId: string | undefined;
+  chainId: string | undefined;
+  chainName: string | undefined;
+  spanId: string | undefined;
+  parentSpanId: string | undefined;
+  chainFlag: string | undefined;
 
   static draw(funcBeanStructCanvasCtx: CanvasRenderingContext2D, funcBeanStruct: FuncStruct): void {
     if (funcBeanStruct.frame) {

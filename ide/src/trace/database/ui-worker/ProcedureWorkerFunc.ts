@@ -28,13 +28,10 @@ import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
 import { FlagsConfig } from '../../component/SpFlags';
 import { TabPaneTaskFrames } from '../../component/trace/sheet/task/TabPaneTaskFrames';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
+
 export class FuncRender {
   renderMainThread(
-    req: {
-      useCache: boolean;
-      context: CanvasRenderingContext2D;
-      type: string;
-    },
+    req: { useCache: boolean; context: CanvasRenderingContext2D; type: string },
     row: TraceRow<FuncStruct>
   ): void {
     let funcList = row.dataList;
@@ -52,8 +49,9 @@ export class FuncRender {
     drawLoadingFrame(req.context, funcFilter, row, true);
     req.context.beginPath();
     let funcFind = false;
+    let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
     for (let re of funcFilter) {
-      FuncStruct.draw(req.context, re);
+      FuncStruct.draw(req.context, re, flagConfig);
       if (row.isHover) {
         if (re.dur === 0 || re.dur === null || re.dur === undefined) {
           if (
@@ -139,8 +137,10 @@ export function funcStructOnClick(
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FUNC && (FuncStruct.hoverFuncStruct || entry)) {
       if (FuncStruct.funcSelect) {
+        sp.observerScrollHeightEnable = false;
         TabPaneTaskFrames.TaskArray = [];
         sp.removeLinkLinesByBusinessType('task');
+        FuncStruct.firstSelectFuncStruct = FuncStruct.selectFuncStruct;
         let hoverFuncStruct = entry || FuncStruct.hoverFuncStruct;
         FuncStruct.selectFuncStruct = hoverFuncStruct;
         sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
@@ -154,7 +154,32 @@ export function funcStructOnClick(
             }
           }
         }
-        sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct!, scrollToFuncHandler);
+        sp.traceSheetEL?.displayFuncData(
+          showTabArray,
+          // @ts-ignore
+          row?.namePrefix,
+          FuncStruct.selectFuncStruct!,
+          scrollToFuncHandler,
+          (datas: unknown, str: string, binderTid: number) => {
+            sp.removeLinkLinesByBusinessType('func');
+            if (str === 'binder-to') {
+              //@ts-ignore
+              datas.forEach((data: { tid: unknown; pid: unknown }) => {
+                //@ts-ignore
+                let endParentRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>(
+                  `trace-row[row-id='${data.pid}'][folder]`
+                );
+                sp.drawFuncLine(endParentRow, hoverFuncStruct, data, binderTid);
+              });
+            }
+          },
+          (dataList: FuncStruct[]): void => {
+            dataList.sort((leftData: FuncStruct, rightData: FuncStruct) => leftData.ts! - rightData.ts!);
+            FuncStruct.selectLineFuncStruct = dataList;
+            sp.resetDistributedLine();
+          }
+        );
+        sp.refreshCanvas(true);
         sp.timerShaftEL?.modifyFlagList(undefined);
       }
       reject(new Error());
@@ -164,11 +189,15 @@ export function funcStructOnClick(
   });
 }
 export class FuncStruct extends BaseFuncStruct {
+  [x: string]: unknown;
   static hoverFuncStruct: FuncStruct | undefined;
   static selectFuncStruct: FuncStruct | undefined;
+  static selectLineFuncStruct: Array<FuncStruct> = [];
+  static firstSelectFuncStruct: FuncStruct | undefined;
   flag: string | undefined; // 570000
   textMetricsWidth: number | undefined;
   static funcSelect: boolean = true;
+  pid: number | undefined;
   static setFuncFrame(
     funcNode: FuncStruct,
     padding: number,
@@ -202,40 +231,19 @@ export class FuncStruct extends BaseFuncStruct {
     funcNode.frame.height = 18;
   }
 
-  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct): void {
+  static draw(ctx: CanvasRenderingContext2D, data: FuncStruct, flagConfig?: unknown): void {
     if (data.frame) {
-      let isBinder = FuncStruct.isBinder(data);
       if (data.dur === undefined || data.dur === null) {
       } else {
         ctx.globalAlpha = 1;
-        //h、g异步方法颜色
-        if (data.threadName) {
-          if (data.funName!.startsWith('XStream')) {
-            ctx.fillStyle = '#7a8c22';
-          } else if (data.funName!.startsWith('WU-')) {
-            ctx.fillStyle = '#349199';
-          } else {
-            ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
-          }
-        } else {
-          ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
-        }
+        ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
         let textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
         if (FuncStruct.hoverFuncStruct && data.funName === FuncStruct.hoverFuncStruct.funName) {
           ctx.globalAlpha = 0.7;
         }
         ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
-        if (data.frame.width > 10) {          
-          //h、g异步方法字体颜色 
-          if (data.threadName) {
-            if (data.funName!.startsWith('XStream') || data.funName!.startsWith('WU-')) {
-              ctx.fillStyle = '#fff';
-            } else {
-              ctx.fillStyle = ColorUtils.funcTextColor(textColor);
-            }
-          } else {
-            ctx.fillStyle = ColorUtils.funcTextColor(textColor);
-          }
+        if (data.frame.width > 10) {
+          ctx.fillStyle = ColorUtils.funcTextColor(textColor);
           ctx.textBaseline = 'middle';
           drawFunString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }
@@ -248,20 +256,18 @@ export class FuncStruct extends BaseFuncStruct {
           ctx.lineWidth = 2;
           ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, data.frame.height - 2);
         }
-        let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
-        if (
-          flagConfig!.TaskPool === 'Enabled' &&
-          data.funName!.indexOf('H:Task PerformTask End:') >= 0 &&
-          data.funName!.indexOf('Successful') < 0
-        ) {
-          if (data.frame!.width < 10) {
-            FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 3, data!);
-          } else {
-            FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 6, data!);
+        //@ts-ignore
+        if (flagConfig!.TaskPool === 'Enabled') {
+          if (data.funName!.indexOf('H:Task PerformTask End:') >= 0 && data.funName!.indexOf('Successful') < 0) {
+            if (data.frame!.width < 10) {
+              FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 3, data!);
+            } else {
+              FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 6, data!);
+            }
           }
-        }
-        if (flagConfig!.TaskPool === 'Enabled' && data.funName!.indexOf('H:Thread Timeout Exit') >= 0) {
-          FuncStruct.drawTaskPoolTimeOutFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 10, data!);
+          if (data.funName!.indexOf('H:Thread Timeout Exit') >= 0) {
+            FuncStruct.drawTaskPoolTimeOutFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 10, data!);
+          }
         }
         // 如果该函数没有结束时间，则绘制锯齿。
         if (data.nofinish && data.frame!.width > 4) {

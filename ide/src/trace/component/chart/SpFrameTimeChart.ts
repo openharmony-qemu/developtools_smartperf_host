@@ -119,7 +119,7 @@ export class SpFrameTimeChart {
         if (item.depth! >= maxDepth) {
           maxDepth = item.depth! + 1;
         }
-        item.frame_type = 'frameTime';
+        item.frameType = 'frameTime';
         item.cmdline = this.pidToProcessNameMap.get(item.pid!);
         item.rs_name = this.idToProcessNameMap.get(Number(item.rs_name)!);
       });
@@ -175,7 +175,7 @@ export class SpFrameTimeChart {
         if (item.depth! >= maxDepth) {
           maxDepth = item.depth! + 1;
         }
-        item.frame_type = 'frameTime';
+        item.frameType = 'frameTime';
         item.cmdline = this.pidToProcessNameMap.get(item.pid!);
         item.rs_name = this.idToProcessNameMap.get(Number(item.rs_name)!);
         item.type = '0';

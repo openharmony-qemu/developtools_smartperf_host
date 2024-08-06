@@ -69,7 +69,7 @@ function arrayBufferHandler(res: unknown, len: number): unknown[] {
   let startTime = new Float64Array(res.startTime); //@ts-ignore
   let dur = new Float64Array(res.dur); //@ts-ignore
   let density = new Int32Array(res.density); //@ts-ignore
-  let heapSize = new Int32Array(res.heapSize);
+  let heapSize = new Float64Array(res.heapSize);
   for (let i = 0; i < len; i++) {
     outArr.push({
       startTime: startTime[i],

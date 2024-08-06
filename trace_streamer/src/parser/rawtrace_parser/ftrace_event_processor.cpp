@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 #include "ftrace_event_processor.h"
+#include "rawtrace_parser/ftrace_field_processor.h"
+#include <cstdint>
+#include <string>
+#include <sstream>
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -95,6 +99,21 @@ void FtraceEventProcessor::InterruptEventInitialization()
 
     eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
                                   std::bind(&FtraceEventProcessor::SoftirqExit, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_INIT),
+                                  std::bind(&FtraceEventProcessor::DmaFenceInit, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_DESTROY),
+                                  std::bind(&FtraceEventProcessor::DmaFenceDestroy, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_ENABLE),
+                                  std::bind(&FtraceEventProcessor::DmaFenceEnable, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_SIGNALED),
+                                  std::bind(&FtraceEventProcessor::DmaFenceSignaled, this, std::placeholders::_1,
                                             std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 }
 void FtraceEventProcessor::ClockEventInitialization()
@@ -247,6 +266,16 @@ bool FtraceEventProcessor::SchedBlockedReason(FtraceEvent &ftraceEvent,
     schedBlockedMsg->set_pid(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     schedBlockedMsg->set_caller(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     schedBlockedMsg->set_io_wait(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    if (format.fields.size() == SCHED_BLOCKED_REASON_FIELD_SIZE_EIGHT) {
+        index++; // skip delay field
+        uint64_t offset = FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size);
+        uint64_t siz = FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size);
+        std::string funcName = FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size);
+        std::string modName = FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size);
+        std::ostringstream caller;
+        caller << funcName << "+0x" << std::hex << offset << "/0x" << std::hex << siz << "[" << modName << "]";
+        schedBlockedMsg->set_caller_str(caller.str());
+    }
     return true;
 }
 bool FtraceEventProcessor::SchedWakeup(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
@@ -416,7 +445,17 @@ bool FtraceEventProcessor::TracingMarkWriteOrPrintFormat(FtraceEvent &ftraceEven
     if (format.eventId < HM_EVENT_ID_OFFSET) {
         printMsg->set_ip(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     }
-    printMsg->set_buf(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    // size大于20时为适配内核的event，小于则为原始的event
+    if (format.eventSize > 20) {
+        auto pid = FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size);
+        auto name = FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size);
+        auto start = FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size);
+        auto msg = std::string(start == 0 ? "E" : "B") + std::string("|") + std::to_string(pid) + std::string("|") +
+                   std::string(start == 0 ? "" : name);
+        printMsg->set_buf(msg);
+    } else {
+        printMsg->set_buf(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    }
     return true;
 }
 
@@ -549,6 +588,59 @@ bool FtraceEventProcessor::SoftirqExit(FtraceEvent &ftraceEvent, uint8_t data[],
     uint8_t index = 0;
     auto softirqExitMsg = ftraceEvent.mutable_softirq_exit_format();
     softirqExitMsg->set_vec(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    return true;
+}
+bool FtraceEventProcessor::DmaFenceInit(FtraceEvent &ftraceEvent,
+                                        uint8_t data[],
+                                        size_t size,
+                                        const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto dmaFenceInitMsg = ftraceEvent.mutable_dma_fence_init_format();
+    dmaFenceInitMsg->set_driver(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceInitMsg->set_timeline(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceInitMsg->set_context(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    dmaFenceInitMsg->set_seqno(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    return true;
+}
+bool FtraceEventProcessor::DmaFenceDestroy(FtraceEvent &ftraceEvent,
+                                           uint8_t data[],
+                                           size_t size,
+                                           const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto dmaFenceDestroyMsg = ftraceEvent.mutable_dma_fence_destroy_format();
+    dmaFenceDestroyMsg->set_driver(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceDestroyMsg->set_timeline(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceDestroyMsg->set_context(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    dmaFenceDestroyMsg->set_seqno(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    return true;
+}
+bool FtraceEventProcessor::DmaFenceEnable(FtraceEvent &ftraceEvent,
+                                          uint8_t data[],
+                                          size_t size,
+                                          const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto dmaFenceEnableMsg = ftraceEvent.mutable_dma_fence_enable_signal_format();
+    dmaFenceEnableMsg->set_driver(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceEnableMsg->set_timeline(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceEnableMsg->set_context(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    dmaFenceEnableMsg->set_seqno(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    return true;
+}
+bool FtraceEventProcessor::DmaFenceSignaled(FtraceEvent &ftraceEvent,
+                                            uint8_t data[],
+                                            size_t size,
+                                            const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto dmaFenceSignaledMsg = ftraceEvent.mutable_dma_fence_signaled_format();
+    dmaFenceSignaledMsg->set_driver(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceSignaledMsg->set_timeline(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    dmaFenceSignaledMsg->set_context(
+        FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    dmaFenceSignaledMsg->set_seqno(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }
 bool FtraceEventProcessor::ClockSetRate(FtraceEvent &ftraceEvent,

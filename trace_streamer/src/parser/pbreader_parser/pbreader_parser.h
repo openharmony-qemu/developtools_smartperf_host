@@ -18,9 +18,12 @@
 #include <cstdint>
 #include <limits>
 #include <map>
+#include <queue>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <unordered_map>
+#include <unordered_set>
 #include "common_types.h"
 #include "common_types.pbreader.h"
 #include "clock_filter_ex.h"
@@ -86,6 +89,15 @@ namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
 using namespace OHOS::Developtools::HiPerf;
+#if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)
+struct SliceInfo {
+    SliceInfo(uint64_t tsBegin, uint64_t tsEnd, const std::string &traceid)
+        : tsBegin_(tsBegin), tsEnd_(tsEnd), traceid_(traceid){};
+    uint64_t tsBegin_ = INVALID_UINT64;
+    uint64_t tsEnd_ = INVALID_UINT64;
+    std::string traceid_;
+};
+#endif
 class PbreaderParser : public ParserBase, public HtracePluginTimeParser {
 public:
     PbreaderParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters);
@@ -246,6 +258,16 @@ private:
                                const ProtoReader::ProfilerPluginData_Reader &pluginDataZero,
                                bool isSplitFile);
     bool SpliteDataBySegment(DataIndex pluginNameIndex, PbreaderDataSegment &dataSeg);
+#if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)
+    void ParseNapiAsync();
+    void GetTraceidInfoFromCallstack(const std::unordered_map<std::string, uint32_t> &traceidToCallchainidMap,
+                                     std::unordered_map<uint64_t, std::queue<SliceInfo>> &itidToCallstackIdsMap);
+    void GetTraceidInfoFromNativeHook(std::unordered_map<std::string, uint32_t> &traceidToCallchainidMap);
+    void GetCallchainIdSetFromHiperf(std::unordered_set<uint32_t> &callchainIdSet);
+    void DumpDataFromHiperf(const std::unordered_map<std::string, uint32_t> &traceidToCallchainidMap,
+                            const std::unordered_set<uint32_t> &callchainIdSet,
+                            std::unordered_map<uint64_t, std::queue<SliceInfo>> &itidToCallstackIdsMap);
+#endif
     ProfilerTraceFileHeader profilerTraceFileHeader_;
     uint32_t profilerDataType_ = ProfilerTraceFileHeader::UNKNOW_TYPE;
     uint64_t profilerDataLength_ = 0;

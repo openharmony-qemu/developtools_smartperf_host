@@ -27,6 +27,12 @@ export const TimerShaftElementHtml = `
     box-sizing: border-box;
     user-select: none;
 }
+:host(:not([distributed])) .collect_group{
+    display: flex;
+}
+:host([distributed]) .collect_group{
+    display: none;
+}
 .root{
     width: 100%;
     height: 100%;

@@ -66,6 +66,7 @@ public:
     PerfSample *GetPerfSampleData();
     PerfThread *GetPerfThreadData();
     PerfReport *GetPerfReportData();
+    PerfNapiAsync *GetPerfNapiAsyncData();
     ArgSet *GetArgSetData();
     DataType *GetDataTypeData();
     SysMeasureFilter *GetSysMeasureFilterData();
@@ -88,6 +89,7 @@ public:
     FrameSlice *GetFrameSliceData();
     FrameMaps *GetFrameMapsData();
     GPUSlice *GetGPUSliceData();
+    DmaFence *GetDmaFenceData();
     TaskPoolInfo *GetTaskPoolData();
     JsHeapFiles *GetJsHeapFilesData();
     JsHeapEdges *GetJsHeapEdgesData();

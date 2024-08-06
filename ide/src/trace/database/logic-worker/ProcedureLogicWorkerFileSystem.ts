@@ -679,12 +679,12 @@ class FileSystemCallTreeHandler {
   currentDataType: string = '';
   currentTreeList: FileMerageBean[] = [];
   samplesList: FileSample[] = [];
-  splitMapData: Map<string, FileMerageBean[]> = new Map<string, FileMerageBean[]>();
+  splitMapData: MerageMap = {};
   searchValue: string = '';
   currentEventId: string = '';
   isHideThread: boolean = false;
   isHideEvent: boolean = false;
-  queryData = (eventId: string, action: string, sql: string, args: unknown): void => {};
+  queryData = (eventId: string, action: string, sql: string, args: unknown): void => { };
 
   constructor(type: string, queryData: unknown) {
     this.currentDataType = type;
@@ -697,7 +697,7 @@ class FileSystemCallTreeHandler {
     this.dataSource.length = 0;
     this.currentTreeList.length = 0;
     this.samplesList.length = 0;
-    this.splitMapData.clear();
+    this.splitMapData = {};
   }
 
   setEventId(eventId: string): void {
@@ -985,13 +985,12 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
       currentNode.symbol = currentNode.ip;
       currentNode.symbol = currentNode.symbol;
       currentNode.lib = '';
-      currentNode.lib = '';
+      currentNode.path = '';
     } else {
       const dataCache = DataCache.getInstance();
       currentNode.symbol = dataCache.dataDict?.get(currentNode.symbolsId) || currentNode.ip || 'unknown';
-      currentNode.lib = dataCache.dataDict?.get(currentNode.pathId) || 'unknown';
-      currentNode.lib = setFileName(currentNode.lib);
-      currentNode.lib = currentNode.lib;
+      currentNode.path = dataCache.dataDict?.get(currentNode.pathId) || 'unknown';
+      currentNode.lib = setFileName(currentNode.path);
       currentNode.addr = currentNode.ip;
       currentNode.symbol = `${currentNode.symbol} (${currentNode.lib})`;
     }
@@ -1092,18 +1091,19 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
   }
   clearAll(): void {
     this.samplesList = [];
-    this.splitMapData.clear();
+    this.splitMapData = {};
     this.currentTreeMapData = {};
     this.currentTreeList = [];
     this.searchValue = '';
     this.allProcess = [];
     this.dataSource = [];
+    this.splitMapData = {};
     this.currentDataType = '';
   }
 
   clearSplitMapData(symbolName: string): void {
-    if (this.splitMapData.has(symbolName)) {
-      this.splitMapData.delete(symbolName);
+    if (symbolName in this.splitMapData) {
+      Reflect.deleteProperty(this.splitMapData, symbolName);
     }
   }
 }

@@ -23,9 +23,7 @@ export const chartCpuDataProtoSql = (args: Args): string => {
              B.tid,
              B.itid                                                                                       as id,
              max(B.dur)                                                                                   AS dur,
-             B.ts - ${
-               args.recordStartNS
-             }                                                                                            AS startTime,
+             B.ts - ${args.recordStartNS}                                                                 AS startTime,
              ifnull(B.arg_setid, -1)                                                                      as argSetId,
              ((B.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
       from thread_state AS B
@@ -125,7 +123,7 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
   // @ts-ignore
   let cpu = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.cpu);
   // @ts-ignore
-  let argSetId = new Int8Array(transfer ? res.length : data.params.sharedArrayBuffers.argSetId);
+  let argSetId = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.argSetId);
   // @ts-ignore
   let nofinish = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.nofinish);
   res.forEach((it, i) => {

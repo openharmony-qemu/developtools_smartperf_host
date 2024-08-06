@@ -14,13 +14,14 @@
  */
 
 importScripts('sql-wasm.js');
+// @ts-ignore
 import { temp_init_sql_list } from './TempSql';
 import { execProtoForWorker } from './data-trafic/utils/ExecProtoForWorker';
 import { TraficEnum } from './data-trafic/utils/QueryEnum';
 
 let conn: unknown = null;
 
-self.onerror = function (error): void {};
+self.onerror = function (error): void { };
 
 self.onmessage = async (e: unknown): Promise<void> => {
   //@ts-ignore
@@ -35,15 +36,19 @@ self.onmessage = async (e: unknown): Promise<void> => {
       // @ts-ignore
       conn = new SQL.Database(array);
       self.postMessage({ id: id, ready: true, index: 0 });
-      temp_init_sql_list.forEach((item, index) => {
+      // @ts-ignore
+      if (temp_init_sql_list && temp_init_sql_list.length > 0) {
         // @ts-ignore
-        let r = conn.exec(item);
-        self.postMessage({
-          id: id,
-          ready: true,
-          index: index + 1,
+        temp_init_sql_list.forEach((item, index) => {
+          // @ts-ignore
+          let r = conn.exec(item);
+          self.postMessage({
+            id: id,
+            ready: true,
+            index: index + 1,
+          });
         });
-      });
+      }
       self.postMessage({ id: id, init: true });
     });
   } else if (action === 'close') {

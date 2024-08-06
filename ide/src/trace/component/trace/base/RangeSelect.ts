@@ -64,6 +64,11 @@ export class RangeSelect {
   mouseDown(eventDown: MouseEvent): void {
     this.startPageX = eventDown.pageX;
     this.startPageY = eventDown.pageY;
+    if (TraceRow.rangeSelectObject) {
+      this.handleTouchMark(eventDown);
+    } else {
+      this.isHover = false;
+    }
     if (this.isHover) {
       this.isMouseDown = true;
       return;
@@ -150,6 +155,7 @@ export class RangeSelect {
       }
     }
     this.isMouseDown = false;
+    this.isHover = false;
   }
   // @ts-ignore
   checkRowsName(rowList: Array<TraceRow<unknown>>): void {
@@ -231,10 +237,9 @@ export class RangeSelect {
         let avgRate: string = `${(((row.frameRateList.length - 1) / cutres) * CONVERT_SECONDS).toFixed(1)}fps`;
         let sum: number = hitchTimeList.reduce((accumulator, currentValue) => accumulator + currentValue, 0); // ∑hitchTimeData
         let hitchRate: number =
-          sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000);
-        let perHitchRate: string = `${(Number(hitchRate) * 100).toFixed(2)}%`;
+          sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000000);
         row.avgRateTxt =
-          `${avgRate} ` + ',' + ' ' + 'HitchTime:' + ` ${sum.toFixed(1)}ms` + ' ' + ',' + ` ${perHitchRate}`;
+          `${avgRate} ` + ',' + ' ' + 'HitchTime:' + ` ${sum.toFixed(1)}ms` + ' ' + ',' + ` ${hitchRate.toFixed(2)}ms/s`;
       }
     }
   }
@@ -267,6 +272,7 @@ export class RangeSelect {
     }
     document.getSelection()?.removeAllRanges();
     this.isMouseDown = false;
+    this.isHover = false;
   }
   // @ts-ignore
   mouseMove(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
@@ -282,6 +288,7 @@ export class RangeSelect {
       return;
     }
     if (!this.isMouseDown) {
+      this.isHover = false;
       this.handleDrawForNotMouseDown();
       return;
     }
@@ -306,6 +313,7 @@ export class RangeSelect {
         itRect.y = 0;
         itRect.height = 0;
       }
+      let result: boolean;
       if (
         Rect.intersect(
           itRect as Rect,
@@ -335,11 +343,12 @@ export class RangeSelect {
         }
         TraceRow.rangeSelectObject = rangeSelect;
         it.rangeSelect = true;
-        return true;
+        result = true;
       } else {
         it.rangeSelect = false;
-        return false;
+        result = false;
       }
+      return result;
     });
     if (this.rangeTraceRow && this.rangeTraceRow.length) {
       if (this.rangeTraceRow[0].parentRowEl) {
@@ -358,6 +367,7 @@ export class RangeSelect {
   // @ts-ignore
   private handleRangeSelectAndDraw(rows: Array<TraceRow<unknown>>, ev: MouseEvent): void {
     let rangeSelect: RangeSelectStruct | undefined;
+    let result: boolean;
     this.rangeTraceRow = rows.filter((it) => {
       if (it.rangeSelect) {
         if (!rangeSelect) {
@@ -386,9 +396,11 @@ export class RangeSelect {
           }
         }
         TraceRow.rangeSelectObject = rangeSelect;
-        return true;
+        result = true;
+      } else {
+        result = false;
       }
-      return false;
+      return result;
     });
     this.timerShaftEL!.sportRuler!.isRangeSelect = (this.rangeTraceRow?.length || 0) > 0;
     this.timerShaftEL!.sportRuler!.draw();

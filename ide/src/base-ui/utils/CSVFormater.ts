@@ -15,11 +15,6 @@
 
 export class JSONToCSV {
   static setCsvData(obj: unknown): void {
-    let browserType = this.browserType();
-    // @ts-ignore
-    if (browserType.ie < 9) {
-      return;
-    }
     // @ts-ignore
     let data = obj.data;
     // @ts-ignore
@@ -77,7 +72,7 @@ export class JSONToCSV {
 
   static getCsvStr(columns: unknown, obj: unknown, n: unknown, row: string): string {
     // @ts-ignore
-    columns.key.map(function (m: unknown, idx: number) {
+    columns.key.map((m: unknown, idx: number) => {
       let strItem: unknown = '';
       // @ts-ignore
       if (obj.exportFormatter && obj.exportFormatter.has(m)) {
@@ -116,73 +111,35 @@ export class JSONToCSV {
   }
 
   static saveCsvFile(fileName: unknown, csvData: unknown): void {
-    let browserType: unknown = this.browserType();
+    let alink: unknown = document.createElement('a');
     // @ts-ignore
-    if (!browserType.edge || !browserType.ie) {
-      let alink: unknown = document.createElement('a');
-      // @ts-ignore
-      alink.id = 'csvDownloadLink';
+    alink.id = 'csvDownloadLink';
+    // @ts-ignore
+    alink.href = this.getDownloadUrl(csvData);
+    // @ts-ignore
+    document.body.appendChild(alink);
+    let linkDom: unknown = document.getElementById('csvDownloadLink');
+    // @ts-ignore
+    linkDom.setAttribute('download', fileName);
+    // @ts-ignore
+    linkDom.click();
+    // @ts-ignore
+    document.body.removeChild(linkDom);
+    // @ts-ignore
 
-      const href = this.getDownloadUrl(csvData);
-      // @ts-ignore
-      alink.href = href === '' ? null : href;
-      // @ts-ignore
-      document.body.appendChild(alink);
-      let linkDom: unknown = document.getElementById('csvDownloadLink');
-      // @ts-ignore
-      linkDom.setAttribute('download', fileName);
-      // @ts-ignore
-      linkDom.click();
-      // @ts-ignore
-      document.body.removeChild(linkDom);
-      // @ts-ignore
-    } else if (browserType.ie >= 10 || browserType.edge === 'edge') {
-      // @ts-ignore
-      (navigator as unknown).msSaveBlob(
-        new Blob(['\uFEFF' + csvData], {
-          type: 'text/csv',
-        }),
-        fileName
-      );
-    } else {
-      let oWin: unknown = window.top?.open('about:blank', '_blank');
-      // @ts-ignore
-      oWin.document.write('sep=,\r\n' + csvData);
-      // @ts-ignore
-      oWin.document.close();
-      // @ts-ignore
-      oWin.document.execCommand('SaveAs', true, fileName);
-      // @ts-ignore
-      oWin.close();
-    }
   }
 
-  static getDownloadUrl(csvData: unknown): string {
+  static getDownloadUrl(csvData: unknown): string | undefined {
+    let result;
     // @ts-ignore
     if (window.Blob && window.URL && (window.URL as unknown).createObjectURL) {
-      return URL.createObjectURL(
+      result = URL.createObjectURL(
         new Blob(['\uFEFF' + csvData], {
           type: 'text/csv',
         })
       );
     }
-    return '';
-  }
-
-  static browserType(): { edge: string; ie: string } {
-    const type: { edge: string; ie: string } = { edge: '', ie: '' };
-    const agent = navigator.userAgent.toLowerCase();
-    const edgeMatch = agent.match(/edge/);
-    if (edgeMatch) {
-      type.edge = 'edge';
-    } else {
-      const ieMatch = agent.match(/rv:([\d.]+)\) like gecko/) || agent.match(/msie ([\d.]+)/);
-      if (ieMatch) {
-        type.ie = ieMatch[1];
-      }
-    }
-
-    return type;
+    return result;
   }
 
   static treeDepth(depth: number): string {
