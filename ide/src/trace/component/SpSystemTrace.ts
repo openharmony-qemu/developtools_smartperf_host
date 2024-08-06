@@ -348,6 +348,7 @@ export class SpSystemTrace extends BaseElement {
     for (let i = 0; i < flagList.length; i++) {
       if (flagList[i].type === 'triangle') {
         flagList.splice(i, 1);
+        this.timerShaftELFlagChange(this.hoverFlag, null);
         i--;
       }
     }
@@ -355,8 +356,10 @@ export class SpSystemTrace extends BaseElement {
 
   pushPidToSelection(selection: SelectionParam, id: string): void {
     let pid = parseInt(id);
-    if (!selection.processIds.includes(pid)) {
-      selection.processIds.push(pid);
+    if (!isNaN(pid)) {
+      if (!selection.processIds.includes(pid)) {
+        selection.processIds.push(pid);
+      }
     }
   }
   // @ts-ignore
