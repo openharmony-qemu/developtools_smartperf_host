@@ -929,7 +929,7 @@ export class SpProcessChart {
             ...hangItem,
             pname: data.processName ?? "process",
             type: SpHangChart.calculateHangType(hangItem.dur!),
-            content: this.funcNameMap.get(hangItem.id!)
+            content: SpHangChart.funcNameMap.get(hangItem.id!)
           }))
         );
       }

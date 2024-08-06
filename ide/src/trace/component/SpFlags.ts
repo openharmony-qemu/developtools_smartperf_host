@@ -72,8 +72,21 @@ export class SpFlags extends BaseElement {
     });
     configSelect.addEventListener('change', () => {
       this.flagSelectListener(configSelect);
-
-      let title = configSelect.getAttribute('title');
+    });
+    let description = document.createElement('div');
+    description.className = 'flag-des-div';
+    description.textContent = config.describeContent;
+    configHadDiv.appendChild(titleLabel);
+    configHadDiv.appendChild(configSelect);
+    configDiv.appendChild(configHadDiv);
+    configDiv.appendChild(description);
+  }
+  //监听flag-select的状态选择
+  private flagSelectListener(configSelect: HTMLSelectElement): void {
+    // @ts-ignore
+    let title = configSelect.getAttribute('title');
+    
+    if (title == "Hangs") {
       let hangsSelect = this.shadowRoot?.querySelector('#hangsSelect');
       if (title === 'Hangs' && configSelect.selectedOptions[0].value === 'Enabled') {
         hangsSelect?.removeAttribute('disabled');
@@ -90,19 +103,9 @@ export class SpFlags extends BaseElement {
         });
         hangsSelect?.setAttribute('disabled', 'disabled');
       }
-    });
-    let description = document.createElement('div');
-    description.className = 'flag-des-div';
-    description.textContent = config.describeContent;
-    configHadDiv.appendChild(titleLabel);
-    configHadDiv.appendChild(configSelect);
-    configDiv.appendChild(configHadDiv);
-    configDiv.appendChild(description);
-  }
-  //监听flag-select的状态选择
-  private flagSelectListener(configSelect: unknown): void {
-    // @ts-ignore
-    let title = configSelect.getAttribute('title');
+      return
+    }
+
     let listSelect = this.shadowRoot?.querySelector(`#${CONFIG_STATE[title as keyof typeof CONFIG_STATE][0]}`);
     // @ts-ignore
     FlagsConfig.updateFlagsConfig(title!, configSelect.selectedOptions[0].value);

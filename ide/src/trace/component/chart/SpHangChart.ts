@@ -27,7 +27,7 @@ export type HangType = "Instant" | "Circumstantial" | "Micro" | "Severe" | ""
 
 export class SpHangChart {
   private trace: SpSystemTrace;
-  private funcNameMap: Map<number, string> = new Map()
+  static funcNameMap: Map<number, string> = new Map()
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -54,7 +54,7 @@ export class SpHangChart {
 
   async init(): Promise<void> {
     for (const funcNameItem of await queryHangFuncName()) {
-      this.funcNameMap.set(funcNameItem.id, funcNameItem.name)
+      SpHangChart.funcNameMap.set(funcNameItem.id, funcNameItem.name)
     }
     let folder = await this.initFolder();
     await this.initData(folder);
@@ -78,7 +78,7 @@ export class SpHangChart {
             ...hangItem,
             pname: it.name,
             type: SpHangChart.calculateHangType(hangItem.dur!),
-            content: this.funcNameMap.get(hangItem.id!)
+            content: SpHangChart.funcNameMap.get(hangItem.id!)
           }))
         );
       }
