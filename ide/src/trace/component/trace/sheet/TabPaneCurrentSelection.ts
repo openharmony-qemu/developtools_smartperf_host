@@ -559,19 +559,19 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     list.push({
-      name: 'HangType',
+      name: 'Hang type',
       value: `<div style="white-space: nowrap;display: flex;align-items: center">
 <div style="white-space:pre-wrap">${data.type}</div>
-<lit-icon style="cursor:pointer;margin-left: 5px" id="thread-id" name="select" color="#7fa1e7" size="20"></lit-icon>
+<lit-icon style="cursor:pointer;margin-left: 5px" id="scroll-to-process" name="select" color="#7fa1e7" size="20"></lit-icon>
 </div>`
     });
     data.content!.split(',').map((item, index) => ({
       name: [
-        "Send Event TID",
-        "Send Time",
-        "Expect Handle Time",
-        "Task Name / Task ID",
-        "Caller"
+        "Sender tid",
+        "Send time",
+        "Expect handle time",
+        "Task name/ID",
+        "Sender"
       ][index],
       value: item,
     })).forEach((item, index) => {
@@ -586,16 +586,43 @@ export class TabPaneCurrentSelection extends BaseElement {
     let startTimeAbsolute = (data.startNS || 0) + window.recordStartNS;
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
 
-    let scrollIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#thread-id');
+    let scrollIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#scroll-to-process');
     scrollIcon?.addEventListener('click', () => {
       const rowId = `${data.pname ?? 'Process'} ${data.pid}`
       const rowParentId = `${data.pid}`
       const rowType = TraceRow.ROW_TYPE_HANG_INNER
 
-      let row = sp.rowsEL?.querySelector<TraceRow<BaseStruct>>(`trace-row[row-id='${rowParentId}'][folder]`);
+      let row = sp.rowsEL?.querySelector<TraceRow<HangStruct>>(`trace-row[row-id='${rowParentId}'][folder]`);
       if (row) {
         row.expansion = true
-        sp.scrollToProcess(rowId, rowParentId, rowType)
+
+        const innerHangRow = row.childrenList.find((childRow) => childRow.rowType === TraceRow.ROW_TYPE_HANG_INNER) as TraceRow<HangStruct>
+        sp.currentRow = innerHangRow
+        async function completeEntry(t: TabPaneCurrentSelection) {
+          if (!innerHangRow.dataListCache || innerHangRow.dataListCache.length == 0) {
+            await innerHangRow.supplierFrame!()
+          }
+          // console.log("innerHangRow.dataListCache", JSON.stringify(innerHangRow?.dataListCache))
+
+          const findEntry = innerHangRow?.dataListCache.find((hangStruct) => {
+            return hangStruct.startNS === HangStruct.selectHangStruct?.startNS
+          })
+          // console.log("find Entry: ", HangStruct.selectHangStruct, findEntry)
+
+          if (findEntry) {
+            HangStruct.selectHangStruct = findEntry
+            t.setHangData(findEntry, sp)
+          }
+          sp.scrollToProcess(rowId, rowParentId, rowType)
+          sp.refreshCanvas(false)
+        }
+        if (innerHangRow.isComplete) {
+          completeEntry(this)
+        }
+        else {
+          sp.scrollToProcess(rowId, rowParentId, rowType)
+          innerHangRow.onComplete = () => completeEntry(this)
+        }
       }
     });
   }

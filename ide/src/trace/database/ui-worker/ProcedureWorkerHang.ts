@@ -102,16 +102,29 @@ export class HangStruct extends BaseStruct {
 
       ctx.globalAlpha = 1
       ctx.lineWidth = 1
+      
+      if (data === HangStruct.hoverHangStruct) {
+        ctx.globalAlpha = 0.7;
+      }
+
       ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height)
       if (data.frame.width > 10) {
         ctx.fillStyle = '#fff';
         drawString(ctx, `${data.type || ''}`, 1, data.frame, data);
       }
 
-      if (this.isHover(data)) {
-        ctx.fillStyle = '#ffffff66'
-        ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height)
+      if (data === HangStruct.selectHangStruct) {
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+          data.frame.x + 1,
+          data.frame.y + 1,
+          data.frame.width - 2,
+          data.frame.height - 2
+        );
       }
+      
+      ctx.globalAlpha = 1
     }
   }
 

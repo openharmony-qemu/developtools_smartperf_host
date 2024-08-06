@@ -104,7 +104,7 @@ option {
     </lit-table-column>
     <lit-table-column title="Duration" width="10%" data-index="dur" key="dur">
     </lit-table-column>
-    <lit-table-column title="Hang Type" width="10%" data-index="type" key="type">
+    <lit-table-column title="Hang type" width="10%" data-index="type" key="type">
     </lit-table-column>
     <lit-table-column title="Process" width="10%" data-index="pname" key="pname">
     </lit-table-column>
