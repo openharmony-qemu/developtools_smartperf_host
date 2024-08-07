@@ -715,7 +715,7 @@ export class Utils {
         }
       }
     }
-    queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, isStatistic).then((res): void => {
+    queryNativeHookResponseTypes(val.leftNs, val.rightNs, types,val.nativeMemoryCurrentIPid, isStatistic).then((res): void => {
       procedurePool.submitWithName('logic0', 'native-memory-init-responseType', res, undefined, (): void => { });
     });
   }
