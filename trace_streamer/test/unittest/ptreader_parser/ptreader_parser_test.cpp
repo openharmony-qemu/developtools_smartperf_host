@@ -190,8 +190,8 @@ HWTEST_F(PtreaderParserTest, LineParser_abnormal_pid_err, TestSize.Level1)
 {
     TS_LOGI("test2-7");
     std::string str(
-        "ACCS0-27X6  ( 2519) [000] ...1 168758.662861: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");
+        "ACCS0-2716  ( 2519) [000] ...1 168758.662861: binder_transaction: \
+        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=2716 reply=0 flags=0x10 code=0x3 \n");
     PtreaderParser ptreaderParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ptreaderParser.ParseTraceDataItem(str);
     ptreaderParser.WaitForParserEnd();
@@ -211,7 +211,7 @@ HWTEST_F(PtreaderParserTest, LineParserWithInvalidCpu, TestSize.Level1)
     TS_LOGI("test2-8");
     std::string str(
         "ACCS0-2716  ( 2519) [00X] ...1 168758.662861: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");
+        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=2716 reply=0 flags=0x10 code=0x3 \n");
     PtreaderParser ptreaderParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ptreaderParser.ParseTraceDataItem(str);
     ptreaderParser.WaitForParserEnd();
@@ -231,7 +231,7 @@ HWTEST_F(PtreaderParserTest, LineParserWithInvalidTs, TestSize.Level1)
     TS_LOGI("test2-9");
     std::string str(
         "ACCS0-2716  ( 2519) [000] ...1 168758.662X61: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");
+        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=2716 reply=0 flags=0x10 code=0x3 \n");
     PtreaderParser ptreaderParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ptreaderParser.ParseTraceDataItem(str);
     ptreaderParser.WaitForParserEnd();
