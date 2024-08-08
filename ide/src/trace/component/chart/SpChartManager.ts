@@ -340,11 +340,15 @@ export class SpChartManager {
       funcNameArray.forEach((it) => {
         //@ts-ignore
         Utils.getInstance().getCallStatckMap().set(`${traceId}_${it.id!}`, it.name);
+        //@ts-ignore
+        Utils.getInstance().getCallStatckMap().set(it.name, it.colorIndex);
       });
     } else {
       funcNameArray.forEach((it) => {
         //@ts-ignore
         Utils.getInstance().getCallStatckMap().set(it.id, it.name);
+        //@ts-ignore
+        Utils.getInstance().getCallStatckMap().set(it.name, it.colorIndex);
       });
     }
   }
