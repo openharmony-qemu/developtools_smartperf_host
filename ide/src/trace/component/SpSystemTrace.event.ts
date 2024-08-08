@@ -518,12 +518,14 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
   handleActions(sp, rows, ev);
 }
 
-function spSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: LitSearch): void {
+export function spSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: LitSearch): void {
   sp.refreshCanvas(true, 'sp move down');
   if (TraceRow.rangeSelectObject) {
     if (search && search.searchValue !== '') {
       search.clear();
-      search.valueChangeHandler?.('');
+      sp?.visibleRows.forEach((it) => {
+        it.highlight = false;
+      });
     }
   }
 }

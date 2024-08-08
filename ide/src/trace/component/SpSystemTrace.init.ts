@@ -579,6 +579,7 @@ function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>): v
   }
   sp.timerShaftEL!.selectionList.push(selection); // 保持选中对象，为后面的再次选中该框选区域做准备。
   sp.selectionParam = selection;
+  sp.refreshCanvas(true);
 }
 function resizeObserverHandler(sp: SpSystemTrace): void {
   // @ts-ignore
