@@ -78,10 +78,10 @@ export class RangeSelect {
     TraceRow.rangeSelectObject = undefined;
     // 遍历当前可视区域所有的泳道，如果有render_service进程，查询该进程下对应泳道的方法存起来，以便框选时直接使用
     this.trace?.visibleRows.forEach((row) => {
-      if (row.getAttribute('name')?.startsWith('render_service')) {
+      if (row.getAttribute('name')?.includes('render_service') || row.parentRowEl?.getAttribute('name')?.includes('render_service')) {
         if (row.getAttribute('row-type') === 'process') {
           this.queryRowsData(row.childrenList);
-        } else {
+        } else if(row.getAttribute('row-type') === 'func'){
           this.queryRowsData(row.parentRowEl!.childrenList);
         }
         return;
@@ -221,6 +221,9 @@ export class RangeSelect {
       if (row.frameRateList?.length < 2) {
         row.frameRateList = [];
       } else {
+        if (row.frameRateList[row.frameRateList.length - 1] === null) {
+          row.frameRateList.pop();
+        }
         let hitchTimeList: Array<number> = [];
         for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
           if (
