@@ -15,6 +15,8 @@
 
 #ifndef CALLSTACK_STDTYPE_H
 #define CALLSTACK_STDTYPE_H
+#include <cstdint>
+#include <deque>
 #include <optional>
 #include "base_stdtype.h"
 
@@ -49,6 +51,7 @@ public:
     void SetTimeStamp(size_t index, uint64_t timeStamp);
     void SetDepth(size_t index, uint8_t depth);
     void SetArgSetId(size_t index, uint32_t argSetId);
+    void SetColorIndex(size_t index, uint32_t colorIndex);
     void Clear() override
     {
         CacheBase::Clear();
@@ -56,6 +59,7 @@ public:
         cats_.clear();
         cookies_.clear();
         callIds_.clear();
+        colorIndexs_.clear();
         names_.clear();
         depths_.clear();
         chainIds_.clear();
@@ -66,8 +70,8 @@ public:
     }
     void ClearExportedData() override
     {
-        EraseElements(timeStamps_, ids_, durs_, cats_, cookies_, callIds_, names_, depths_, chainIds_, spanIds_,
-                      parentSpanIds_, flags_, argSet_);
+        EraseElements(timeStamps_, ids_, durs_, cats_, cookies_, colorIndexs_, callIds_, names_, depths_, chainIds_,
+                      spanIds_, parentSpanIds_, flags_, argSet_);
     }
     const std::deque<std::optional<uint64_t>> &ParentIdData() const;
     const std::deque<DataIndex> &CatsData() const;
@@ -75,6 +79,7 @@ public:
     const std::deque<uint8_t> &Depths() const;
     const std::deque<int64_t> &Cookies() const;
     const std::deque<uint32_t> &CallIds() const;
+    const std::deque<uint32_t> &ColorIndexs() const;
     const std::deque<std::string> &ChainIds() const;
     const std::deque<std::string> &SpanIds() const;
     const std::deque<std::string> &ParentSpanIds() const;
@@ -92,7 +97,7 @@ private:
     std::deque<uint32_t> callIds_ = {};
     std::deque<DataIndex> names_ = {};
     std::deque<uint8_t> depths_ = {};
-
+    std::deque<uint32_t> colorIndexs_ = {};
     std::deque<std::string> chainIds_ = {};
     std::deque<std::string> spanIds_ = {};
     std::deque<std::string> parentSpanIds_ = {};

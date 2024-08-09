@@ -213,6 +213,9 @@ void TraceStreamerSelector::WaitForParserEnd()
         streamFilters_->animationFilter_->UpdateFrameInfo();
         streamFilters_->animationFilter_->UpdateDynamicFrameInfo();
     }
+#if IS_WASM
+    ComputeDataDictStrHash();
+#endif
 }
 
 MetaData *TraceStreamerSelector::GetMetaData()
@@ -578,6 +581,16 @@ bool TraceStreamerSelector::ParserAndPrintMetrics(const std::string &metrics)
         }
     }
     return true;
+}
+
+void TraceStreamerSelector::ComputeDataDictStrHash()
+{
+    auto callStack = traceDataCache_->GetConstInternalSlicesData();
+    for (auto i = 0; i < callStack.NamesData().size(); i++) {
+        auto str = traceDataCache_->GetDataFromDict(callStack.NamesData()[i]);
+        auto res = StrHash(str);
+        traceDataCache_->GetInternalSlicesData()->SetColorIndex(i, res);
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

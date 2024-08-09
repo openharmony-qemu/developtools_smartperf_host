@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "string_help.h"
+#include <cctype>
+#include <cstdint>
 namespace SysTuning {
 namespace base {
 char *GetDemangleSymbolIndex(const char *mangled)
@@ -116,7 +118,7 @@ std::string StrTrim(const std::string &input)
 }
 
 // in-place版本, 直接修改str
-void StrTrim(std::string& input)
+void StrTrim(std::string &input)
 {
     if (input.empty()) {
         return;
@@ -132,6 +134,24 @@ void RemoveNullTerminator(std::string &str)
         str.erase(pos, 1);
         pos = str.rfind('\0');
     }
+}
+
+uint32_t StrHash(const std::string &str, uint32_t maxValue)
+{
+    if (maxValue == 0) {
+        return 0;
+    }
+    static const uint32_t COLOR_A = 9876023;
+    static const uint32_t COLOR_B = 0xffffffff;
+    uint32_t hash = 0x11c9dc5;
+    for (const auto &chr : str) {
+        if (std::isdigit(chr)) {
+            continue;
+        }
+        hash ^= chr;
+        hash = (hash * COLOR_A) & COLOR_B;
+    }
+    return hash % maxValue;
 }
 } // namespace base
 } // namespace SysTuning
