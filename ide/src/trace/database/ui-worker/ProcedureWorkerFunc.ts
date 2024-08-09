@@ -28,6 +28,7 @@ import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
 import { FlagsConfig } from '../../component/SpFlags';
 import { TabPaneTaskFrames } from '../../component/trace/sheet/task/TabPaneTaskFrames';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
+import { Utils } from '../../component/trace/base/Utils';
 
 export class FuncRender {
   renderMainThread(
@@ -189,6 +190,7 @@ export function funcStructOnClick(
   });
 }
 export class FuncStruct extends BaseFuncStruct {
+  static textColor: string;
   [x: string]: unknown;
   static hoverFuncStruct: FuncStruct | undefined;
   static selectFuncStruct: FuncStruct | undefined;
@@ -236,14 +238,22 @@ export class FuncStruct extends BaseFuncStruct {
       if (data.dur === undefined || data.dur === null) {
       } else {
         ctx.globalAlpha = 1;
-        ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
-        let textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+           //@ts-ignore
+           if (Utils.getInstance().getCallStatckMap().get(data.funName) !== undefined) {
+            //@ts-ignore
+            ctx.fillStyle = ColorUtils.FUNC_COLOR[Utils.getInstance().getCallStatckMap().get(data.funName)];
+            //@ts-ignore
+            this.textColor = ColorUtils.FUNC_COLOR[Utils.getInstance().getCallStatckMap().get(data.funName)];
+          } else {
+            ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+            this.textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+          }
         if (FuncStruct.hoverFuncStruct && data.funName === FuncStruct.hoverFuncStruct.funName) {
           ctx.globalAlpha = 0.7;
         }
         ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
         if (data.frame.width > 10) {
-          ctx.fillStyle = ColorUtils.funcTextColor(textColor);
+          ctx.fillStyle = ColorUtils.funcTextColor(this.textColor);
           ctx.textBaseline = 'middle';
           drawFunString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }
