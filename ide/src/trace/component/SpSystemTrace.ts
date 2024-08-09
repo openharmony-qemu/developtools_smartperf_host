@@ -125,6 +125,7 @@ import spSystemTraceOnClickHandler, {
   spSystemTraceDocumentOnMouseMove,
   spSystemTraceDocumentOnMouseOut,
   spSystemTraceDocumentOnMouseUp,
+  spSystemTraceDocumentOnMouseMoveMouseDown,
 } from './SpSystemTrace.event';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { readTraceFileBuffer } from '../SpApplicationPublicFunc';
@@ -132,6 +133,7 @@ import { PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 import { SpProcessChart } from './chart/SpProcessChart';
+import { LitSearch } from './trace/search/Search';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -1167,6 +1169,10 @@ export class SpSystemTrace extends BaseElement {
       }
     }
     this.rangeTraceRow = rows;
+    let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
+    if(search?.isClearValue) {
+      spSystemTraceDocumentOnMouseMoveMouseDown(this, search!);
+    }
     this.rangeSelect.selectHandler?.(this.rangeSelect.rangeTraceRow, false);
   };
   inFavoriteArea: boolean | undefined;
