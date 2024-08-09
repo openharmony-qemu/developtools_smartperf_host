@@ -115,6 +115,7 @@ public:
 private:
     void InitFilter();
     bool LoadQueryFile(const std::string &sqlOperator, std::vector<std::string> &sqlStrings);
+    void ComputeDataDictStrHash();
     TraceFileType fileType_;
     std::unique_ptr<TraceStreamerFilters> streamFilters_ = {};
     std::unique_ptr<TraceDataCache> traceDataCache_ = {};
