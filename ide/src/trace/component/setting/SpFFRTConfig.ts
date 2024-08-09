@@ -195,7 +195,6 @@ export class SpFFRTConfig extends BaseElement {
       Cmd.getPackage().then((packageList: string[]): void => {
         let finalDataList = packageList.map(str => str.replace(/\t/g, ''));
         if (finalDataList.length > 0) {
-          processInputEl.readOnly = true;
           startupPNameEl.dataSource(finalDataList, 'ALL-Process');
         } else {
           startupPNameEl.dataSource([], '');
@@ -261,7 +260,6 @@ export class SpFFRTConfig extends BaseElement {
       Cmd.getProcess().then((processList: string[]): void => {
         selectInputEl.dataSource(processList, '');
         if (processList.length > 0) {
-          processInputEl.readOnly = true;
           selectInputEl.dataSource(processList, 'ALL-Process');
         } else {
           selectInputEl.dataSource([], '');

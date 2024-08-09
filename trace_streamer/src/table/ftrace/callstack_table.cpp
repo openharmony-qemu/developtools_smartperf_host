@@ -26,6 +26,9 @@ enum class Index : int32_t {
     NAME,
     DEPTHS,
     COOKIES_ID,
+#if IS_WASM
+    COLORINDEX,
+#endif
     PARENT_ID,
     ARGSET,
     CHAIN_IDS,
@@ -43,6 +46,9 @@ CallStackTable::CallStackTable(const TraceDataCache *dataCache) : TableBase(data
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("cookie", "INTEGER"));
+#if IS_WASM
+    tableColumn_.push_back(TableBase::ColumnInfo("colorIndex", "INTEGER"));
+#endif
     tableColumn_.push_back(TableBase::ColumnInfo("parent_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("argsetid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("chainId", "TEXT"));
@@ -157,6 +163,11 @@ int32_t CallStackTable::Cursor::Column(int32_t col) const
         case Index::CALL_IDS:
             SetTypeColumnInt64(slicesObj_.CallIds()[CurrentRow()], INVALID_UINT64);
             break;
+#if IS_WASM
+        case Index::COLORINDEX:
+            SetTypeColumnInt64(slicesObj_.ColorIndexs()[CurrentRow()], INVALID_UINT64);
+            break;
+#endif
         case Index::CATS: {
             SetTypeColumnText(slicesObj_.CatsData()[CurrentRow()], INVALID_UINT64);
             break;

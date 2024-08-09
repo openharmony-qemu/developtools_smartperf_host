@@ -116,8 +116,8 @@ lit-switch {
         </div>
     </div>
     <div class="sdk-config-div" id="select_config">
-        <lit-allocation-select show-search class="processSelect" rounded default-value="" 
-        id="pid" placement="bottom" style="width:100%"></lit-allocation-select>
+        <lit-select-v show-search class="processSelect" rounded default-value="" 
+        id="pid" placement="bottom" style="width:100%"></lit-select-v>
     </div>
     <div class="configList">
     </div>

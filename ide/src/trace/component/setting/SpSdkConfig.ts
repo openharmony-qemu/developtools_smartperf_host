@@ -28,7 +28,7 @@ export class SpSdkConfig extends BaseElement {
   private worker: Worker | undefined;
   private sdkConfigList: unknown;
   private customConfig: HTMLDivElement | undefined | null;
-  private selectConfig: LitAllocationSelect | undefined | null;
+  private selectConfig: LitSelectV | undefined | null;
   private list: Array<HTMLElement> | undefined;
   private pluginName: string = '';
   private sampleInterval: number = 5000;
@@ -195,18 +195,17 @@ export class SpSdkConfig extends BaseElement {
         this.isAbleShowConfig(true);
       }
     });
-    this.selectConfig = this.shadowRoot?.querySelector<LitAllocationSelect>('lit-allocation-select');
-    let inputDiv = this.selectConfig?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
-    let input = this.selectConfig?.shadowRoot?.querySelector<HTMLInputElement>('#singleInput');
-    if (input) {
-      inputDiv.addEventListener('inputClick', () => {
-        this.selectConfig!.processData = this.wasmList;
-        this.selectConfig!.initData();
-      });
-      inputDiv.addEventListener('valuable', () => {
-        this.changGpu(input!.value);
-      });
-    }
+    this.selectConfig = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v');
+    let inputDiv = this.selectConfig?.shadowRoot?.querySelector('input') as HTMLDivElement;
+    inputDiv.addEventListener('mousedown', () => {
+      if (this.startSamp) {
+        inputDiv!.removeAttribute('readonly');
+        this.selectConfig!.dataSource(this.wasmList, '');
+      } else {
+        inputDiv!.setAttribute('readonly', 'readonly');
+        return;
+      }
+    });
     this.list = [];
     this.list.push(this.selectConfig!);
     this.isAbleShowConfig(true);
