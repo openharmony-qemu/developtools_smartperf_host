@@ -112,11 +112,11 @@ export class TabPaneBoxChild extends BaseElement {
             // @ts-ignore
             let processInfo: string | undefined = Utils.getInstance().getProcessMap().get(e.pid);
             // @ts-ignore
-            e.processName = `${processInfo === undefined || processInfo === null ? 'process' : processInfo}(${e.pid})`;
+            e.processName = `${processInfo === undefined || processInfo === null ? 'process' : processInfo}[${e.pid}]`;
             // @ts-ignore
             let threadInfo: string | undefined = Utils.getInstance().getThreadMap().get(e.tid);
             // @ts-ignore
-            e.threadName = `${threadInfo === undefined || threadInfo === null ? 'thread' : threadInfo}(${e.tid})`;
+            e.threadName = `${threadInfo === undefined || threadInfo === null ? 'thread' : threadInfo}[${e.tid}]`;
             // @ts-ignore
             e.note = '-';
           });
