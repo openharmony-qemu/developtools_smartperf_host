@@ -50,6 +50,8 @@ export class TabPaneHang extends BaseElement {
   private progressEL: LitProgressBar | null | undefined;
   private timeOutId: number | undefined;
 
+  private textColor: string = "#3D88C7"
+
   set data(selectionParam: SelectionParam) {
     if (this.hangTbl) {
       this.hangTbl.recycleDataSource = [];
@@ -172,9 +174,9 @@ export class TabPaneHang extends BaseElement {
           }
         }
         let allTdEl = trEl.querySelectorAll<HTMLElement>('.td');
-        allTdEl[0].style.color = '#3D88C7';
+        allTdEl[0].style.color = this.textColor;
         allTdEl[0].style.textDecoration = 'underline';
-        allTdEl[0].style.textDecorationColor = '#3D88C7';
+        allTdEl[0].style.textDecorationColor = this.textColor;
       });
     }
   }

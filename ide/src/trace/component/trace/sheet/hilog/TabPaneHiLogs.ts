@@ -49,6 +49,8 @@ export class TabPaneHiLogs extends BaseElement {
   private timeOutId: number | undefined;
   private currentSelection: SelectionParam | undefined;
 
+  private textColor: string = "#3D88C7"
+
   set data(systemLogParam: SelectionParam) {
     if (systemLogParam === this.currentSelection) {
       return;
@@ -203,9 +205,9 @@ export class TabPaneHiLogs extends BaseElement {
           }
         }
         let allTdEl = trEl.querySelectorAll<HTMLElement>('.td');
-        allTdEl[0].style.color = '#3D88C7';
+        allTdEl[0].style.color = this.textColor;
         allTdEl[0].style.textDecoration = 'underline';
-        allTdEl[0].style.textDecorationColor = '#3D88C7';
+        allTdEl[0].style.textDecorationColor = this.textColor;
         trEl.addEventListener('mouseout', (): void => {
           this.traceSheetEl!.systemLogFlag = undefined;
           this.spSystemTrace?.refreshCanvas(false);
