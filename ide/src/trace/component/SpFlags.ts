@@ -85,26 +85,6 @@ export class SpFlags extends BaseElement {
   private flagSelectListener(configSelect: HTMLSelectElement): void {
     // @ts-ignore
     let title = configSelect.getAttribute('title');
-    
-    if (title == "Hangs") {
-      let hangsSelect = this.shadowRoot?.querySelector('#hangsSelect');
-      if (title === 'Hangs' && configSelect.selectedOptions[0].value === 'Enabled') {
-        hangsSelect?.removeAttribute('disabled');
-      }
-      if (title === 'Hangs' && configSelect.selectedOptions[0].value === 'Disabled') {
-        hangsSelect?.childNodes.forEach((child: ChildNode) => {
-          let selectEl = child as HTMLOptionElement;
-          if (child.textContent === 'Instant') {
-            selectEl.selected = true;
-            FlagsConfig.updateFlagsConfig('hangValue', selectEl.value);
-          } else {
-            selectEl.selected = false;
-          }
-        });
-        hangsSelect?.setAttribute('disabled', 'disabled');
-      }
-      return
-    }
 
     //@ts-ignore
     let listSelect = this.shadowRoot?.querySelector(`#${CONFIG_STATE[title]?.[0]}`);
