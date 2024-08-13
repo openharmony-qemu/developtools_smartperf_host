@@ -7,6 +7,7 @@ ide/dist
 ide/node_modules
 ide/package-lock.json
 ide/third-party
+ide/src/trace/proto/SphBaseData.js
 trace_streamer/prebuilts/emsdk
 trace_streamer/prebuilts/linux
 trace_streamer/third_party
