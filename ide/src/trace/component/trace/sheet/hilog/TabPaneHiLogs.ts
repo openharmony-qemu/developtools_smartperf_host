@@ -49,7 +49,7 @@ export class TabPaneHiLogs extends BaseElement {
   private timeOutId: number | undefined;
   private currentSelection: SelectionParam | undefined;
 
-  private textColor: string = "#3D88C7"
+  private textColor: string = "#3D" + "88C7"
 
   set data(systemLogParam: SelectionParam) {
     if (systemLogParam === this.currentSelection) {

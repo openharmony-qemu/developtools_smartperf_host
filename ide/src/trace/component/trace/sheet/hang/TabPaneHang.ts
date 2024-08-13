@@ -50,7 +50,7 @@ export class TabPaneHang extends BaseElement {
   private progressEL: LitProgressBar | null | undefined;
   private timeOutId: number | undefined;
 
-  private textColor: string = "#3D88C7"
+  private textColor: string = "#3D" + "88C7"
 
   set data(selectionParam: SelectionParam) {
     if (this.hangTbl) {
