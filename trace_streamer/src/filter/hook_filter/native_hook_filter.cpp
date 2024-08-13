@@ -220,7 +220,11 @@ void NativeHookFilter::ParseStatisticEvent(uint64_t timeStamp, const ProtoReader
         // when isOfflineSymblolizationMode_ is false, the stack id is unique
         callChainId = ipidWithCallChainIdIndex;
     }
-
+    if (reader.apply_size() == reader.release_size() && callChainIdsSet_.find(callChainId) == callChainIdsSet_.end()) {
+        return;
+    } else {
+        callChainIdsSet_.emplace(callChainId);
+    }
     DataIndex memSubType = INVALID_UINT64;
     if (reader.has_tag_name()) {
         memSubType = traceDataCache_->GetDataIndex(reader.tag_name().ToStdString());
@@ -1134,6 +1138,14 @@ void NativeHookFilter::FinishParseNativeHookData()
     // update last lib id
     UpdateLastCallerPathAndSymbolIndexs();
     UpdateThreadNameWithNativeHookData();
+    if (isStatisticMode_) {
+        traceDataCache_->GetNativeHookFrameData()->ClearUselessCallChainIds(callChainIdsSet_);
+        filePathIndexToFrameTableRowMap_.clear();
+        const auto &vec = traceDataCache_->GetConstNativeHookFrameData().FilePaths();
+        for (size_t i = 0; i < vec.size(); i++) {
+            UpdateFilePathIndexToCallStackRowMap(i, vec[i]);
+        }
+    }
 }
 void NativeHookFilter::UpdateLastCallerPathAndSymbolIndexs()
 {
