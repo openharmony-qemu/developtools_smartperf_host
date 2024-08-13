@@ -198,6 +198,7 @@ HWTEST_F(TableTest, ClockEventFilterTableTest, TestSize.Level1)
     std::string sqlSelect3 = "select * from clock_event_filter where name < 1";
     std::string sqlSelect4 = "select * from clock_event_filter where cpu >= 1";
     std::string sqlSelect5 = "select * from clock_event_filter where id <= 1";
+    std::string sqlSelect6 = "select * from clock_event_filter where index = 1";
     uint64_t id = 1;
     uint64_t type = 1;
     DataIndex name = stream_.traceDataCache_->GetDataIndex("name");
@@ -230,6 +231,7 @@ HWTEST_F(TableTest, CpuMeasureFilterTableTest, TestSize.Level1)
     std::string sqlSelect3 = "select * from cpu_measure_filter where type < 1";
     std::string sqlSelect4 = "select * from cpu_measure_filter where name >= 1";
     std::string sqlSelect5 = "select * from cpu_measure_filter where cpu <= 1";
+    std::string sqlSelect6 = "select * from cpu_measure_filter where index = 1";
     uint64_t filterId = 2;
     DataIndex name = stream_.traceDataCache_->GetDataIndex("name");
     uint32_t cpu = 1;

@@ -66,8 +66,6 @@ HWTEST_F(EventParserTest, ParseLine, TestSize.Level1)
     bytraceLine.pid = 1;
     bytraceLine.cpu = 0;
     bytraceLine.task = "ACCS0-2716";
-    bytraceLine.pidStr = "12";
-    bytraceLine.tGidStr = "12";
     bytraceLine.eventName = "sched_switch";
     bytraceLine.argsStr =
         "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
@@ -98,8 +96,6 @@ HWTEST_F(EventParserTest, ParseLineNotEnoughArgs, TestSize.Level1)
     bytraceLine.pid = 1;
     bytraceLine.cpu = 0;
     bytraceLine.task = "ACCS0-2716";
-    bytraceLine.pidStr = "12";
-    bytraceLine.tGidStr = "12";
     bytraceLine.eventName = "sched_switch";
     bytraceLine.argsStr = "prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -121,8 +117,6 @@ HWTEST_F(EventParserTest, ParseLineUnCognizableEventname, TestSize.Level1)
     bytraceLine.pid = 1;
     bytraceLine.cpu = 0;
     bytraceLine.task = "ACCS0-2716";
-    bytraceLine.pidStr = "12";
-    bytraceLine.tGidStr = "12";
     bytraceLine.eventName = "ThisEventNameDoNotExist"; // UnRecognizable event name
     bytraceLine.argsStr =
         "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
@@ -146,9 +140,10 @@ HWTEST_F(EventParserTest, ParseSchedSwitchNoArgs, TestSize.Level1)
     bytraceLine.pid = 1;
     bytraceLine.cpu = 0;
     bytraceLine.task = "ACCS0-2716";
-    bytraceLine.pidStr = "12";
-    bytraceLine.tGidStr = "12";
     bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(bytraceLine);
     eventParser.FilterAllEvents();

@@ -26,7 +26,7 @@ const CAT_SORT = {
   'Thread first': 'thread'
 };
 
-const CONFIG_STATE = {
+const CONFIG_STATE:unknown = {
   'VSync': ['vsyncValue', 'VsyncGeneratior'],
   'Start&Finish Trace Category': ['catValue', 'Business first']
 };
@@ -106,19 +106,23 @@ export class SpFlags extends BaseElement {
       return
     }
 
-    let listSelect = this.shadowRoot?.querySelector(`#${CONFIG_STATE[title as keyof typeof CONFIG_STATE][0]}`);
+    //@ts-ignore
+    let listSelect = this.shadowRoot?.querySelector(`#${CONFIG_STATE[title]?.[0]}`);
     // @ts-ignore
     FlagsConfig.updateFlagsConfig(title!, configSelect.selectedOptions[0].value);
-    if (CONFIG_STATE[title as keyof typeof CONFIG_STATE]) {
+    //@ts-ignore
+    if (listSelect) {
       // @ts-ignore
       if (configSelect.selectedOptions[0].value === 'Enabled') {
         listSelect?.removeAttribute('disabled');
       } else {
         listSelect?.childNodes.forEach((child: ChildNode) => {
           let selectEl = child as HTMLOptionElement;
-          if (child.textContent === CONFIG_STATE[title as keyof typeof CONFIG_STATE][1]) {
+          //@ts-ignore
+          if (child.textContent === CONFIG_STATE[title]?.[1]) {
             selectEl.selected = true;
-            FlagsConfig.updateFlagsConfig(CONFIG_STATE[title as keyof typeof CONFIG_STATE][0], selectEl.value);
+            //@ts-ignore
+            FlagsConfig.updateFlagsConfig(CONFIG_STATE[title]?.[0], selectEl.value);
           } else {
             selectEl.selected = false;
           }
@@ -173,13 +177,15 @@ export class SpFlags extends BaseElement {
       }
 
       if (config.title === 'VSync') {
-        let configKey = CONFIG_STATE['VSync' as keyof typeof CONFIG_STATE][0];
+        //@ts-ignore
+        let configKey = CONFIG_STATE[config.title]?.[0];
         let configFooterDiv = this.createPersonOption(VSYNC_VAL, configKey, <string>config.addInfo!.vsyncValue, config.title);
         configDiv.appendChild(configFooterDiv);
       }
 
       if (config.title === 'Start&Finish Trace Category') {
-        let configKey = CONFIG_STATE['Start&Finish Trace Category' as keyof typeof CONFIG_STATE][0];
+        //@ts-ignore
+        let configKey = CONFIG_STATE[config.title]?.[0];
         let configFooterDiv = this.createPersonOption(CAT_SORT, configKey, <string>config.addInfo!.catValue, config.title);
         configDiv.appendChild(configFooterDiv);
       }

@@ -131,8 +131,8 @@ lit-switch {
             <span class="title">Process</span>
             <span class="des">Record process</span>
         </div>
-        <lit-allocation-select style="width: 100%;" rounded="" default-value="" class="select inputBoxes" 
-        placement="bottom" ></lit-allocation-select>
+        <lit-select-v style="width: 100%;" rounded="" default-value="" class="select inputBoxes" 
+        placement="bottom" ></lit-select-v>
     </div>
     <div class="config-div">
         <div>

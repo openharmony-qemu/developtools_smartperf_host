@@ -43,6 +43,7 @@ void CallStack::AppendCommonInfo(uint64_t startT, uint64_t durationNs, InternalT
     timeStamps_.emplace_back(startT);
     durs_.emplace_back(durationNs);
     callIds_.emplace_back(internalTid);
+    colorIndexs_.emplace_back(0);
 }
 void CallStack::AppendCallStack(DataIndex cat, DataIndex name, uint8_t depth, std::optional<uint64_t> parentId)
 {
@@ -108,6 +109,10 @@ void CallStack::SetArgSetId(size_t index, uint32_t argSetId)
 {
     argSet_[index] = argSetId;
 }
+void CallStack::SetColorIndex(size_t index, uint32_t colorIndex)
+{
+    colorIndexs_[index] = colorIndex;
+}
 const std::deque<std::optional<uint64_t>> &CallStack::ParentIdData() const
 {
     return parentIds_;
@@ -131,6 +136,10 @@ const std::deque<int64_t> &CallStack::Cookies() const
 const std::deque<uint32_t> &CallStack::CallIds() const
 {
     return callIds_;
+}
+const std::deque<uint32_t> &CallStack::ColorIndexs() const
+{
+    return colorIndexs_;
 }
 const std::deque<std::string> &CallStack::ChainIds() const
 {

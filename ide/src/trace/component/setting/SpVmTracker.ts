@@ -22,10 +22,11 @@ import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect
 import { SpRecordTrace } from '../SpRecordTrace';
 import { Cmd } from '../../../command/Cmd';
 import { SpVmTrackerHtml } from './SpVmTracker.html';
+import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 
 @element('sp-vm-tracker')
 export class SpVmTracker extends BaseElement {
-  private vmTrackerProcessInput: LitAllocationSelect | undefined | null;
+  private vmTrackerProcessInput: LitSelectV | undefined | null;
 
   set startSamp(start: boolean) {
     if (start) {
@@ -65,23 +66,30 @@ export class SpVmTracker extends BaseElement {
         this.disable();
       }
     });
-    this.vmTrackerProcessInput = this.shadowRoot?.querySelector<LitAllocationSelect>('lit-allocation-select');
-    let vmTrackerMul = this.vmTrackerProcessInput?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
+    this.vmTrackerProcessInput = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v');
+    let vmTrackerMul = this.vmTrackerProcessInput?.shadowRoot?.querySelector('input') as HTMLDivElement;
     vmTrackerMul!.addEventListener('mousedown', () => {
-      if (SpRecordTrace.serialNumber === '') {
-        this.vmTrackerProcessInput!.processData = [];
-        this.vmTrackerProcessInput!.initData();
+      if (this.startSamp && (SpRecordTrace.serialNumber === '')) {
+        this.vmTrackerProcessInput!.dataSource([], '');
       }
     });
     vmTrackerMul!.addEventListener('mouseup', () => {
-      if (SpRecordTrace.serialNumber === '') {
-        this.vmTrackerProcessInput!.processData = [];
-        this.vmTrackerProcessInput!.initData();
+      if (this.startSamp) {
+        if (SpRecordTrace.serialNumber === '') {
+          this.vmTrackerProcessInput!.dataSource([], '');
+        } else {
+          Cmd.getProcess().then((processList) => {
+            if (processList.length > 0) {
+              this.vmTrackerProcessInput!.dataSource(processList, '');
+            } else {
+              this.vmTrackerProcessInput!.dataSource([], '');
+            }
+          });
+        }
+        vmTrackerMul!.removeAttribute('readonly');
       } else {
-        Cmd.getProcess().then((processList) => {
-          this.vmTrackerProcessInput!.processData = processList;
-          this.vmTrackerProcessInput!.initData();
-        });
+        vmTrackerMul!.setAttribute('readonly', 'readonly');
+        return;
       }
     });
     this.disable();
