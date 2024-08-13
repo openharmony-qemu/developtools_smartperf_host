@@ -739,7 +739,7 @@ int main(int argc, char **argv)
         }
         return 1;
     }
-#ifdef is_linux
+#if defined(is_linux) || defined(_WIN32)
     if (!traceExportOption.soFilesDir.empty()) {
         auto values = GetFilesNameFromDir(traceExportOption.soFilesDir);
         ts.ReloadSymbolFiles(traceExportOption.soFilesDir, values);

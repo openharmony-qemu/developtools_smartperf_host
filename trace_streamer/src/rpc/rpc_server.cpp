@@ -740,7 +740,8 @@ bool RpcServer::DownloadELFCallback(const std::string &fileName,
         return false;
     }
     TS_LOGI("symbolsPath = %s, fileName = %s", symbolsPath.c_str(), fileName.c_str());
-    symbolsPathFiles_.emplace_back(fileName);
+    std::filesystem::path stdFileName(fileName);
+    symbolsPathFiles_.emplace_back(stdFileName.filename().string());
     parseELFFile("file send over\r\n", SEND_FINISH);
     // When the transfer is completed, reload the symbol file, clear the symbol path file list, call the callback
     // function, and delete the symbol path and all files under it

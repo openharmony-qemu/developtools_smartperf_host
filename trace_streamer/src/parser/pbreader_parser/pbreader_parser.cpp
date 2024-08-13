@@ -178,11 +178,13 @@ void PbreaderParser::InitPluginNameIndex()
 void PbreaderParser::ParserFileSO(std::string &directory, const std::vector<std::string> &relativeFilePaths)
 {
     for (const auto &filePath : relativeFilePaths) {
-        auto absoluteFilePath = filePath.substr(directory.length());
         auto symbolsFile =
-            OHOS::Developtools::HiPerf::SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, absoluteFilePath);
+            OHOS::Developtools::HiPerf::SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, filePath);
         symbolsFile->setSymbolsFilePath(directory);
-        symbolsFile->LoadSymbols(nullptr, absoluteFilePath);
+        auto res = symbolsFile->LoadSymbols(nullptr, filePath);
+        if (!res) {
+            continue;
+        }
         symbolsFiles_.emplace_back(std::move(symbolsFile));
     }
 }
