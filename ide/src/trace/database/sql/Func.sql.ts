@@ -110,13 +110,26 @@ export const querySingleFuncNameCycle = (
   );
 
 export const queryAllFuncNames = async (traceId?: string): Promise<Array<unknown>> => {
+  let list = await query(
+    'queryIsColorIndex',
+    `select
+        colorIndex
+      from
+        callstack
+      limit 1;`,
+    {},
+    { traceId: traceId, action: 'exec-buf' }
+  );
+  let isColorIndex = list.length !== 0 ? true : false;
+  let colorIndexStr = isColorIndex ? ',colorIndex' : '';
   let allFuncNamesBuffer = await query(
     'queryAllFuncNames',
     `select 
-      id,
-      name 
-    from
-      callstack;`,
+        id,
+        name
+        ${colorIndexStr} 
+      from
+        callstack;`,
     {},
     { traceId: traceId, action: 'exec-buf' }
   );

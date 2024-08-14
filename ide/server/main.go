@@ -20,6 +20,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha512"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -176,6 +177,7 @@ func main() {
 		mux.HandleFunc("/application/serverInfo", serverInfo)
 		mux.HandleFunc("/application/hdcPublicKey", getHdcPublicKey)
 		mux.HandleFunc("/application/encryptHdcMsg", encryptHdcMsg)
+		mux.HandleFunc("/application/signatureHdcMsg", signatureHdcMsg)
 		fs := http.FileServer(http.Dir(exPath + "/"))
 		mux.Handle("/application/", http.StripPrefix("/application/", cors(fs, version)))
 		go func() {
@@ -269,6 +271,25 @@ func encryptHdcMsg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	signatures, err := rsa.SignPKCS1v15(nil, hdcPrivateKey, crypto.Hash(0), []byte(hdcMsg))
+	if err != nil {
+		resp(&w)(false, -1, "sign failed", nil)
+	} else {
+		resp(&w)(true, 0, "success", map[string]interface{}{
+			"signatures": base64.StdEncoding.EncodeToString(signatures),
+		})
+	}
+}
+
+func signatureHdcMsg(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "text/json")
+	hdcMsg := r.URL.Query().Get("message")
+	if len(hdcMsg) == 0 {
+		resp(&w)(false, -1, "Invalid message", nil)
+		return
+	}
+	hashed := sha512.Sum512([]byte(hdcMsg))
+	signatures, err := rsa.SignPKCS1v15(nil, hdcPrivateKey, crypto.SHA512, hashed[:])
 	if err != nil {
 		resp(&w)(false, -1, "sign failed", nil)
 	} else {

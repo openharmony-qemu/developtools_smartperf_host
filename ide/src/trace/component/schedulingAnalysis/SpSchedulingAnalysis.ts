@@ -16,6 +16,7 @@
 import { BaseElement, element } from '../../../base-ui/BaseElement';
 import './TabThreadAnalysis';
 import './TabCpuAnalysis';
+import './processAnalysis/TabProcessAnalysis';
 import { TabCpuAnalysis } from './TabCpuAnalysis';
 import './processAnalysis/TabProcessAnalysis';
 import { TabThreadAnalysis } from './TabThreadAnalysis';

@@ -577,6 +577,87 @@ where cpu not null
   order by cpu,ts;`;
     this.queryData(this.currentEventId, 'scheduling-Thread Freq', sql, {});
   }
+  queryProTop10Swicount() {
+    this.queryData(
+      this.currentEventId,
+      'scheduling-Process Top10Swicount',
+      `
+        select
+          pid,
+          count(tid) as occurrences
+        from
+          thread_state 
+        where
+          state = 'Running'
+        group by
+          pid
+        ORDER BY occurrences desc
+        LIMIT 10
+      `,
+      {}
+    );
+  }
+  queryThrTop10Swicount(pid: number) {
+    this.queryData(
+      this.currentEventId,
+      'scheduling-Process Top10Swicount',
+      `
+        select
+          tid,
+          count(tid) as occurrences
+        from
+          thread_state 
+        where
+          state = 'Running'
+        and pid = ${pid}
+        group by
+          tid
+        ORDER BY occurrences desc
+        LIMIT 10
+      `,
+      {}
+    );
+  }
+  queryProTop10RunTime() {
+    this.queryData(
+      this.currentEventId,
+      'scheduling-Process Top10RunTime',
+      `
+        select
+          pid,
+          SUM(dur) As dur
+        from
+          thread_state 
+        where
+          state = 'Running'
+        GROUP BY pid
+        ORDER BY dur desc
+        LIMIT 10
+      `,
+      {}
+    );
+  }
+  queryThrTop10RunTime(pid: number) {
+    this.queryData(
+      this.currentEventId,
+      'scheduling-Process Top10RunTime',
+      `
+        select
+          tid,
+          SUM(dur) As dur
+        from
+          thread_state 
+        where
+          state = 'Running'
+        and 
+          pid = ${pid}
+        GROUP BY tid
+        ORDER BY dur desc
+        LIMIT 10
+      `,
+      {}
+    );
+  }
 
   queryProTop10Swicount() {
     this.queryData(
