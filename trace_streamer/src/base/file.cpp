@@ -75,7 +75,7 @@ std::string GetExecutionDirectoryPath()
     std::string str(currPath);
     return str.substr(0, str.find_last_of('/'));
 }
-#ifdef is_linux
+#if defined(is_linux) || defined(_WIN32)
 std::vector<std::string> GetFilesNameFromDir(const std::string &path)
 {
     std::vector<std::string> soFiles;
@@ -88,7 +88,7 @@ std::vector<std::string> GetFilesNameFromDir(const std::string &path)
     }
     // 遍历目录
     for (const auto &entry : std::filesystem::directory_iterator(dirPath)) {
-        soFiles.emplace_back(entry.path().string());
+        soFiles.emplace_back(entry.path().filename().string());
     }
     return soFiles;
 }

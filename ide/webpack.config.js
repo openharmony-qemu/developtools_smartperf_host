@@ -88,8 +88,8 @@ function buildMultiPlatform() {
     const generateFile = platform === 'windows' ?
         path.normalize(path.join(outPath, '/', `main.exe`)) :
         path.normalize(path.join(outPath, '/', `main_${platform}`));
-    const setEnv = `go env -w CGO_ENABLED=0 && go env -w GOOS=${platform} && go env -w GOARCH=amd64`;
-    const buildCmd = `${setEnv} && go build -o ${generateFile} ${serverSrc}`;
+    const setEnv = `CGO_ENABLED=0 GOOS=${platform} GOARCH=amd64`;
+    const buildCmd = `${setEnv} go build -o ${generateFile} ${serverSrc}`;
     console.log(`compile ${platform} server ...`);
     childProcess.execSync(buildCmd);
   }

@@ -229,6 +229,38 @@ void NativeHookFrame::UpdateVaddrs(std::deque<std::string> &vaddrs)
 {
     vaddrs_.assign(vaddrs.begin(), vaddrs.end());
 }
+void NativeHookFrame::ClearUselessCallChainIds(const std::unordered_set<uint32_t> &callChainIdsSet)
+{
+    std::deque<uint32_t> callChainIdsTmp;
+    std::deque<uint16_t> depthsTmp;
+    std::deque<uint64_t> ipsTmp;
+    std::deque<DataIndex> symbolNamesTmp;
+    std::deque<DataIndex> filePathsTmp;
+    std::deque<uint64_t> offsetsTmp;
+    std::deque<uint64_t> symbolOffsetsTmp;
+    std::deque<std::string> vaddrsTmp;
+    for (size_t i = 0; i < callChainIds_.size(); i++) {
+        if (callChainIdsSet.find(callChainIds_[i]) == callChainIdsSet.end()) {
+            continue;
+        }
+        callChainIdsTmp.emplace_back(callChainIds_[i]);
+        depthsTmp.emplace_back(depths_[i]);
+        ipsTmp.emplace_back(ips_[i]);
+        symbolNamesTmp.emplace_back(symbolNames_[i]);
+        filePathsTmp.emplace_back(filePaths_[i]);
+        offsetsTmp.emplace_back(offsets_[i]);
+        symbolOffsetsTmp.emplace_back(symbolOffsets_[i]);
+        vaddrsTmp.emplace_back(vaddrs_[i]);
+    }
+    callChainIds_.swap(callChainIdsTmp);
+    depths_.swap(depthsTmp);
+    ips_.swap(ipsTmp);
+    symbolNames_.swap(symbolNamesTmp);
+    filePaths_.swap(filePathsTmp);
+    offsets_.swap(offsetsTmp);
+    symbolOffsets_.swap(symbolOffsetsTmp);
+    vaddrs_.swap(vaddrsTmp);
+}
 const std::deque<uint32_t> &NativeHookFrame::CallChainIds() const
 {
     return callChainIds_;
