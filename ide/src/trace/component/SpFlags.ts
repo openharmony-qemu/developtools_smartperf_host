@@ -28,7 +28,8 @@ const CAT_SORT = {
 
 const CONFIG_STATE:unknown = {
   'VSync': ['vsyncValue', 'VsyncGeneratior'],
-  'Start&Finish Trace Category': ['catValue', 'Business first']
+  'Start&Finish Trace Category': ['catValue', 'Business first'],
+  'Hangs': ['hangsSelect', 'Instant'],
 };
 
 @element('sp-flags')
