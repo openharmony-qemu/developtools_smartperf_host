@@ -312,7 +312,7 @@ export class TabPaneNMSampleList extends BaseElement {
     });
     TabPaneNMSampleList.tblData = this.shadowRoot?.querySelector<LitTable>('#tb-native-data');
     TabPaneNMSampleList.filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
-    this.shadowRoot?.querySelector<TabPaneFilter>('#filter')!.setSelectList(TabPaneNMSampleList.nativeType, null);
+    this.shadowRoot?.querySelector<TabPaneFilter>('#filter')!.setSelectList(TabPaneNMSampleList.nativeType, null, 'Allocation Type');
     this.shadowRoot?.querySelector<TabPaneFilter>('#filter')!.getFilterData((data: FilterData) => {
       if (data.firstSelect) {
         TabPaneNMSampleList.filterSelect = data.firstSelect;
