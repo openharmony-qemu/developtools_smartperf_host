@@ -1836,7 +1836,7 @@ export class SpSystemTrace extends BaseElement {
     this.subscribeBottomTabVisibleEvent();
   }
 
-  private scrollH: number = 0;
+  public scrollH: number = 0;
 
   subscribeBottomTabVisibleEvent(): void {
     //@ts-ignore

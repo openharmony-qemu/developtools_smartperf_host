@@ -1164,6 +1164,7 @@ export async function spSystemTraceInit(
 }
 function expansionChangeHandler(sp: SpSystemTrace, offsetYTimeOut: unknown): (event: unknown) => void {
   return function (event: unknown) {
+    sp.scrollH = sp.rowsPaneEL!.scrollHeight;
     let max = [...sp.rowsPaneEL!.querySelectorAll('trace-row')].reduce((pre, cur) => pre + cur.clientHeight!, 0);
     let offset = sp.rowsPaneEL!.scrollHeight - max;
     sp.rowsPaneEL!.scrollTop = sp.rowsPaneEL!.scrollTop - offset;
