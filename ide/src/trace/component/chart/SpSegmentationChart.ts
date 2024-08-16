@@ -34,7 +34,7 @@ export class SpSegmentationChart {
   static GpuRow: TraceRow<CpuFreqExtendStruct> | undefined;
   static binderRow: TraceRow<BinderStruct> | undefined;
   static schedRow: TraceRow<CpuFreqExtendStruct> | undefined;
-  static freqInfoMapData = new Map<number, Map<number, number>>();
+  static freqInfoMapData = new Map<number, unknown>();
   static hoverLine: Array<HeightLine> = [];
   static tabHoverObj: { key: string, cycle: number };
   private rowFolder!: TraceRow<BaseStruct>;
@@ -209,7 +209,7 @@ export class SpSegmentationChart {
     SpSegmentationChart.cpuRow.rowSetting = 'checkFile';
     // 拿到了用户传递的数据
     SpSegmentationChart.cpuRow.onRowCheckFileChangeHandler = (): void => {
-      SpSegmentationChart.freqInfoMapData = new Map<number, Map<number, number>>();
+      SpSegmentationChart.freqInfoMapData = new Map<number, unknown>();
       if (sessionStorage.getItem('freqInfoData')) {
         // @ts-ignore
         let chartData = JSON.parse(JSON.parse(sessionStorage.getItem('freqInfoData')));
@@ -219,7 +219,7 @@ export class SpSegmentationChart {
           for (let key in v.freqInfo) {
             mapData.set(Number(key), Number(v.freqInfo[key]));
           }
-          SpSegmentationChart.freqInfoMapData.set(v.cpuId, mapData);
+          SpSegmentationChart.freqInfoMapData.set(v.cpuId, {'smtRate': v.smtRate, mapData});
           mapData = new Map();
         });
         TabPaneFreqUsage.refresh();

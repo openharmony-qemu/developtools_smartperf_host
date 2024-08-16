@@ -15,7 +15,7 @@
 
 import { type CpuFreqData, type RunningFreqData, type RunningData } from '../component/trace/sheet/frequsage/TabPaneFreqUsageConfig';
 
-let comPower = new Map<number, Map<number, number>>();
+let comPower = new Map<number, Map<number, unknown>>();
 let resultArray: Array<RunningFreqData> = [];
 let timeZones: number = 0;
 let maxCommpuPower: number = 0;
@@ -170,7 +170,8 @@ function returnObj(
 ): RunningFreqData | undefined {
   const PERCENT: number = 100;
   const FREQ_MUTIPLE: number = 1000;
-  const computorPower: number = comPower ? comPower.get(item.cpu)?.get(cpuFreqData.value)! : 0;
+  //@ts-ignore
+  const computorPower: number = comPower ? comPower.get(item.cpu)?.mapData.get(cpuFreqData.value)! : 0;
   switch (flag) {
     case 1:
       return {
@@ -446,13 +447,15 @@ self.onmessage = (e: MessageEvent): void => {
     comPower.forEach(item => {
       let maxFreq = 0;
       let commpuPower = 0;
-      for (const i of item.entries()) {
+      //@ts-ignore
+      for (const i of item.mapData.entries()) {
         if (i[0] > maxFreq) {
           maxFreq = i[0];
           commpuPower = i[1];
         }
       }
-      maxCommpuPower += commpuPower;
+      //@ts-ignore
+      maxCommpuPower += commpuPower * item.smtRate;
     });
   }
   let result = orgnazitionMap(e.data);
