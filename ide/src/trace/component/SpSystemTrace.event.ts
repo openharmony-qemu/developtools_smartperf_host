@@ -419,6 +419,9 @@ export default function spSystemTraceOnClickHandler(
   }
   sp.queryAllTraceRow().forEach((it): boolean => (it.rangeSelect = false));
   sp.selectStructNull();
+  sp._slicesList.forEach((slice: { selected: boolean }): void => {
+    slice.selected = false;
+  });
   // 判断点击的线程是否在唤醒树内
   timeoutJudge(sp);
   allStructOnClick(clickRowType, sp, row, entry);
@@ -604,6 +607,9 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
   sp.observerScrollHeightEnable = false;
   if (sp.keyboardEnable) {
     if (keyPress === 'm') {
+      if(sp.selectFlag) {
+        sp.selectFlag!.selected = false;
+      } 
       sp.slicestime = sp.setSLiceMark(ev.shiftKey);
       if (sp.slicestime) {
         if (TraceRow.rangeSelectObject) {
@@ -637,7 +643,7 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
         isSelectSliceOrFlag = true;
       }
 
-      if (!!sp.selectFlag) {
+      if (sp.selectFlag && sp.selectFlag.selected) {
         sp.currentSlicesTime.startTime = sp.selectFlag?.time;
         sp.currentSlicesTime.endTime = sp.selectFlag?.time;
         isSelectSliceOrFlag = true;
