@@ -40,6 +40,7 @@ export class TabPanePerfAnalysis extends BaseElement {
   private perfTableSo: LitTable | null | undefined;
   private tableFunction: LitTable | null | undefined;
   private sumCount: number | undefined | null;
+  private sumEventCount: number | undefined | null;
   private perfAnalysisRange: HTMLLabelElement | null | undefined;
   private back: HTMLDivElement | null | undefined;
   private tabName: HTMLDivElement | null | undefined;
@@ -317,6 +318,8 @@ export class TabPanePerfAnalysis extends BaseElement {
   private processPieChart(val: SelectionParam): void {
     // @ts-ignore
     this.sumCount = this.allProcessCount.allCount;
+    // @ts-ignore
+    this.sumEventCount = this.allProcessCount.allEventCount;
     this.perfAnalysisPie!.config = {
       appendPadding: 0,
       data: this.getPerfPieChartData(this.pidData),
@@ -409,6 +412,8 @@ export class TabPanePerfAnalysis extends BaseElement {
     }
     // @ts-ignore
     this.sumCount = this.allThreadCount.allCount;
+    // @ts-ignore
+    this.sumEventCount = this.allSymbolCount.allEventCount;
     this.perfAnalysisPie!.config = {
       appendPadding: 0,
       data: this.getPerfPieChartData(this.threadData),
@@ -512,6 +517,8 @@ export class TabPanePerfAnalysis extends BaseElement {
   private libraryPieChart(): void {
     // @ts-ignore
     this.sumCount = this.allLibCount.allCount;
+    // @ts-ignore
+    this.sumEventCount = this.allSymbolCount.allEventCount;
     this.initPerfAnalysisPieConfig();
     let pName = this.processName;
     if (this.processName.length > 0 && this.threadName.length > 0) {
@@ -976,6 +983,8 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.progressEL!.loading = false;
     // @ts-ignore
     this.sumCount = this.allSymbolCount.allCount;
+    // @ts-ignore
+    this.sumEventCount = this.allSymbolCount.allEventCount;
     this.perfAnalysisPie!.config = {
       appendPadding: 0,
       data: this.getPerfPieChartData(this.functionData),
@@ -1054,6 +1063,8 @@ export class TabPanePerfAnalysis extends BaseElement {
         tableName: 'other',
         count: 0,
         percent: 0,
+        eventCount: 0,
+        eventPercent: 0,
       };
       for (let i = 0; i < res.length; i++) {
         if (i < 19) {
@@ -1064,6 +1075,10 @@ export class TabPanePerfAnalysis extends BaseElement {
           other.count += res[i].count;
           // @ts-ignore
           other.percent = ((other.count / this.sumCount!) * 100).toFixed(2);
+          // @ts-ignore
+          other.eventCount += res[i].eventCount; 
+          // @ts-ignore
+          other.eventPercent = ((other.eventCount / this.sumEventCount!) * 100).toFixed(2);
         }
       }
       // @ts-ignore
