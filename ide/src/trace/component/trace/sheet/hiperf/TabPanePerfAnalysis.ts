@@ -413,7 +413,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     // @ts-ignore
     this.sumCount = this.allThreadCount.allCount;
     // @ts-ignore
-    this.sumEventCount = this.allSymbolCount.allEventCount;
+    this.sumEventCount = this.allThreadCount.allEventCount;
     this.perfAnalysisPie!.config = {
       appendPadding: 0,
       data: this.getPerfPieChartData(this.threadData),
@@ -518,7 +518,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     // @ts-ignore
     this.sumCount = this.allLibCount.allCount;
     // @ts-ignore
-    this.sumEventCount = this.allSymbolCount.allEventCount;
+    this.sumEventCount = this.allLibCount.allEventCount;
     this.initPerfAnalysisPieConfig();
     let pName = this.processName;
     if (this.processName.length > 0 && this.threadName.length > 0) {
