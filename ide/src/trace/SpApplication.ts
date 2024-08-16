@@ -2091,7 +2091,7 @@ export class SpApplication extends BaseElement {
             }
           });
         });
-        this.cutTraceFile!.style.display = 'none';
+        this.cutTraceFile!.style.display = 'block';
         this.mainMenu!.menus = this.mainMenu!.menus;
       }
     });
