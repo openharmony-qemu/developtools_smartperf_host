@@ -95,11 +95,11 @@ export class SpHisysEvent extends BaseElement {
   }
 
   domainInputEvent = (): void => {
-    if(this.startSamp){
+    if (this.startSamp) {
       if (SpRecordTrace.serialNumber === '') {
         this.domainInputEL!.dataSource([], '');
       } else {
-        HdcDeviceManager.fileRecv(this.sysEventConfigPath, () => {}).then((pullRes) => {
+        HdcDeviceManager.fileRecv(this.sysEventConfigPath, () => { }).then((pullRes) => {
           pullRes.arrayBuffer().then((buffer) => {
             if (buffer.byteLength > 0) {
               let dec = new TextDecoder();
@@ -122,7 +122,7 @@ export class SpHisysEvent extends BaseElement {
   };
 
   nameInputEvent = (): void => {
-    if(this.startSamp){
+    if (this.startSamp) {
       if (SpRecordTrace.serialNumber === '') {
         this.eventNameInputEL!.dataSource([], '');
       } else {
@@ -131,7 +131,7 @@ export class SpHisysEvent extends BaseElement {
         let eventConfigElement = this.eventConfig[domain];
         if (eventConfigElement) {
           let eventNameList = Object.keys(eventConfigElement);
-          if (eventNameList?.length > 0 ) {
+          if (eventNameList?.length > 0) {
             this.eventNameInputEL!.dataSource(eventNameList, 'ALL-Event');
           } else {
             this.eventNameInputEL!.dataSource([], '');
