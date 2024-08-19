@@ -32,6 +32,7 @@ import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
+import { Utils } from '../component/trace/base/Utils';
 
 export class SelectionParam {
   traceId: string | undefined | null;
@@ -390,6 +391,7 @@ export class SelectionParam {
       }
       if (this.nativeMemoryCurrentIPid === -1) {
         this.nativeMemoryCurrentIPid = process.ipid;
+        Utils.getInstance().setCurrentSelectIPid(this.nativeMemoryCurrentIPid);
       }
       if (this.nativeMemoryAllProcess) {
         if (it.getAttribute('heap-type') === 'native_hook_statistic') {
