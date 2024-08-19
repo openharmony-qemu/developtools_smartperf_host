@@ -806,7 +806,9 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
             '-' +
             (callChains[topIndex].fileId || '');
         }
+        // 根节点
         let root = this.currentTreeMapData[key];
+        // 没有当前项的根节点，就new一个新的，放在currentTreeList
         if (root === undefined) {
           root = new NativeHookCallInfo();
           root.threadName = nativeHookSample.threadName;
