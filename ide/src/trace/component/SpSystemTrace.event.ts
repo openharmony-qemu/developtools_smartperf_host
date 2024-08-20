@@ -526,9 +526,7 @@ export function spSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, sea
   if (TraceRow.rangeSelectObject) {
     if (search && search.searchValue !== '') {
       search.clear();
-      sp?.visibleRows.forEach((it) => {
-        it.highlight = false;
-      });
+      search.valueChangeHandler?.('');
     }
   }
 }
