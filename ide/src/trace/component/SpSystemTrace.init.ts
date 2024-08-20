@@ -786,7 +786,7 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: unknown, cu
   if (findEntry) {
     //findEntry不在range范围内，会把它移动到泳道最左侧
     // @ts-ignore
-    if (findEntry.startTime > TraceRow.range!.endNS || findEntry.startTime + findEntry.dur < TraceRow.range!.startNS) {
+    if (findEntry.startTime + findEntry.dur > TraceRow.range!.endNS || findEntry.startTime < TraceRow.range!.startNS) {
       // @ts-ignore
       sp.moveRangeToLeft(findEntry.startTime!, findEntry.dur!);
     }
@@ -877,7 +877,7 @@ function spSystemTraceShowStructFindIndex(
   } else if (previous) {
     //case1:current.start在start边界以右，需要从当前项往第一项遍历，找到structs[index].start < end
     //@ts-ignore
-    if (structs[currentIndex].startTime! >= rangeStart) {
+    if (structs[currentIndex].startTime! >= Math.round(rangeStart)) {
       findIndex = findPreviousOne(currentIndex - 1, 0, structs);
       //处理当前项如果是第一项
       findIndex = findIndex === -1 ? structs.length - 1 : findIndex;
@@ -893,7 +893,7 @@ function spSystemTraceShowStructFindIndex(
     }
     //case1：current.start 在end左侧  从当前项到最后一项遍历，找到startTime>start
     //@ts-ignore
-    if (structs[currentIndex].startTime! < rangeEnd) {//case1
+    if (structs[currentIndex].startTime! < Math.round(rangeEnd)) {//case1
       findIndex = findNextOne(currentIndex + 1, structs.length - 1, structs);
       //处理当前项是最后一项
       findIndex = findIndex === -1 ? 0 : findIndex;
