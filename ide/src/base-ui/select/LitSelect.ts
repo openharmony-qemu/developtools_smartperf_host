@@ -22,6 +22,7 @@ export class LitSelect extends BaseElement {
   private focused: unknown;
   private selectInputEl: unknown;
   private selectSearchInputEl: HTMLInputElement | null | undefined;
+  private selectVInputEl: HTMLInputElement | null | undefined;
   private selectOptions: HTMLDivElement | null | undefined;
   private selectItem: string = '';
   private selectClearEl: unknown;
@@ -214,6 +215,13 @@ export class LitSelect extends BaseElement {
   }
 
   initElements(): void {
+    this.selectVInputEl = this.shadowRoot!.querySelector('#select-input') as HTMLInputElement;
+      this.selectVInputEl?.addEventListener('keyup', (e) => {
+        if (e.code === 'Enter' || e.code === 'NumpadEnter') {// @ts-ignore
+          this.selectVInputEl.blur();// @ts-ignore
+          this.selectInputEl.value=this.selectVInputEl.value;
+        } 
+      });
     if (this.showSearchInput) {
       this.shadowRoot!.querySelector<HTMLDivElement>('.body-select')!.style.display = 'block';
       this.selectSearchInputEl = this.shadowRoot!.querySelector('#search-input') as HTMLInputElement;
@@ -238,7 +246,7 @@ export class LitSelect extends BaseElement {
         ${selectHtmlStr(this.listHeight)}
         <div class="root noSelect" tabindex="0" hidefocus="true">
             <div class="multipleRoot">
-            <input placeholder="${this.placeholder}" autocomplete="off" ${this.showSearch || this.canInsert ? '' : 'readonly'} tabindex="0">
+            <input id="select-input" placeholder="${this.placeholder}" autocomplete="off" ${this.showSearch || this.canInsert ? '' : 'readonly'} tabindex="0">
             </div>
             <lit-loading class="loading" size="12"></lit-loading>
             <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>
@@ -448,11 +456,6 @@ export class LitSelect extends BaseElement {
     this.selectInputEl.onfocus = (ev: unknown): void => {
       if (this.hasAttribute('disabled')) {
         return;
-      } // @ts-ignore
-      if (this.selectInputEl.value.length > 0) {
-        // @ts-ignore
-        this.selectInputEl.placeholder = this.selectInputEl.value; // @ts-ignore
-        this.selectInputEl.value = '';
       }
       if (this.hasAttribute('show-search')) {
         // @ts-ignore
