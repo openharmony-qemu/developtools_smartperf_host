@@ -573,7 +573,6 @@ function initTraceRange(thirdMode: unknown): void {
 function onmessageByExecAction(e: MessageEvent): void {
   query(e.data.name, e.data.sql, e.data.params);
   let jsonArray = convertJSON();
-  //console.log('onmessageByExecAction - jsonArray', jsonArray, e)
   // @ts-ignore
   self.postMessage({
     id: e.data.id,
@@ -1112,7 +1111,6 @@ self.onmessage = async (e: MessageEvent): Promise<void> => {
   } else if (e.data.action === 'exec') {
     onmessageByExecAction(e);
   } else if (e.data.action === 'exec-proto') {
-    // console.log('TraceWorker - onmessage', e)
     onmessageByExecProtoAction(e);
   } else if (e.data.action === 'exec-buf') {
     onmessageByExecBufAction(e);

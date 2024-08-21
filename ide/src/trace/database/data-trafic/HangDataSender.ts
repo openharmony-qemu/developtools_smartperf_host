@@ -27,14 +27,13 @@ export function hangDataSender(
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   return new Promise((resolve, reject): void => {
-    let flagsItemJson = JSON.parse(window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY)!)
-    let minDur = parseInt(flagsItemJson.hangValue)
+    let flagsItemJson = JSON.parse(window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY)!);
+    let minDur = parseInt(flagsItemJson.hangValue);
     threadPool.submitProto(
       QueryEnum.HangData,
       {
         pid: processId,
         minDur: minDur,
-        //
         queryAll: args && args.queryAll,
         selectStartNS: args ? args.startNS : 0,
         selectEndNS: args ? args.endNS : 0,
@@ -45,17 +44,17 @@ export function hangDataSender(
       (res: unknown, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
-    )
-  })
+    );
+  });
 }
 
 function arrayBufferHandler(buffers: any, len: number): HangStruct[] {
   let outArr: HangStruct[] = [];
-  let id = new Int32Array(buffers.id)
-  let startNS = new Float64Array(buffers.startNS)
-  let dur = new Float64Array(buffers.dur)
-  let tid = new Int32Array(buffers.tid)
-  let pid = new Int32Array(buffers.pid)
+  let id = new Int32Array(buffers.id);
+  let startNS = new Float64Array(buffers.startNS);
+  let dur = new Float64Array(buffers.dur);
+  let tid = new Int32Array(buffers.tid);
+  let pid = new Int32Array(buffers.pid);
   for (let i = 0; i < len; i += 1) {
     outArr.push({
       id: id[i],
@@ -63,9 +62,7 @@ function arrayBufferHandler(buffers: any, len: number): HangStruct[] {
       dur: dur[i],
       tid: tid[i],
       pid: pid[i],
-    } as HangStruct)
+    } as HangStruct);
   }
   return outArr;
 }
-
-

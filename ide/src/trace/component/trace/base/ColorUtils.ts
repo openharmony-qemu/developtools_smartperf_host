@@ -129,7 +129,7 @@ export class ColorUtils {
       "Micro": "#FEB354",
       "Severe": "#FC7470",
       "": "#000000",
-    })[hangType]
+    })[hangType];
   }
 
   public static getHisysEventColor(level: string | number): string {

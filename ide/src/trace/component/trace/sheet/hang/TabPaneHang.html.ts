@@ -94,8 +94,8 @@ option {
       <option>Severe</option>
     </select>
   </div>
-    <input type="text" id="process-filter" class="filter-input" placeholder="Search process name...">
-    <input type="text" id="search-filter" class="filter-input" placeholder="Search message...">
+    <input type="text" id="process-filter" class="filter-input" placeholder="Search process...">
+    <input type="text" id="search-filter" class="filter-input" placeholder="Search sender...">
   </div>
 </div>
 <lit-progress-bar class="progress"></lit-progress-bar>

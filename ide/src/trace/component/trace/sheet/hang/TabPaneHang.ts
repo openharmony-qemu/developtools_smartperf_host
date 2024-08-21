@@ -29,6 +29,7 @@ import { queryAllHangs } from '../../../../database/sql/Hang.sql';
 import { HangType, SpHangChart } from '../../../chart/SpHangChart';
 import { getTimeString } from '../TabPaneCurrentSelection';
 
+/// Hangs 框选Tab页1
 @element('tab-hang')
 export class TabPaneHang extends BaseElement {
   // Elements
@@ -50,8 +51,7 @@ export class TabPaneHang extends BaseElement {
   private progressEL: LitProgressBar | null | undefined;
   private timeOutId: number | undefined;
 
-  private textColor: string = "#3D" + "88C7"
-
+  /// 框选时段范围时触发
   set data(selectionParam: SelectionParam) {
     if (this.hangTbl) {
       this.hangTbl.recycleDataSource = [];
@@ -64,14 +64,14 @@ export class TabPaneHang extends BaseElement {
         filter.has(`${struct.pid ?? 0}`)
         && ((struct.startNS ?? 0) <= selectionParam.rightNs)
         && (selectionParam.leftNs <= ((struct.startNS ?? 0) + (struct.dur ?? 0)))
-      ))
+      ));
       
       if (ret.length == 0) {
-        this.progressEL!.loading = false
+        this.progressEL!.loading = false;
       }
-      this.systemHangSource = ret.map(HangStructInPane.new)
-      this.refreshTable()
-    })
+      this.systemHangSource = ret.map(HangStructInPane.new);
+      this.refreshTable();
+    });
   }
 
   init(): void {
@@ -81,11 +81,11 @@ export class TabPaneHang extends BaseElement {
     this.processFilter = this.shadowRoot?.querySelector<HTMLInputElement>('#process-filter');
     this.spSystemTrace = document.querySelector('body > sp-application')?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
     this.tableTimeHandle = this.delayedRefresh(this.refreshTable);
-    this.tableTitleTimeHandle = this.delayedRefresh(this.refreshLogsTitle);
+    this.tableTitleTimeHandle = this.delayedRefresh(this.refreshHangsTitle);
     this.hangTbl = this.shadowRoot?.querySelector<LitPageTable>('#tb-hang');
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
     this.hangTbl!.getItemTextColor = (data): string => {
-      const hangData = data as HangStructInPane
+      const hangData = data as HangStructInPane;
       return ColorUtils.getHangColor(hangData.type as HangType);
     };
     this.hangTbl!.itemTextHandleMap.set('startNS', (startTs) => {
@@ -94,25 +94,17 @@ export class TabPaneHang extends BaseElement {
     });
     this.hangTbl!.addEventListener('row-hover', (e): void => {
       // @ts-ignore
-      let data = e.detail.data as HangStructInPane
+      let data = e.detail.data as HangStructInPane;
       if (data) {
         let pointX: number = ns2x(
           data.startNS || 0,
           TraceRow.range!.startNS,
           TraceRow.range!.endNS,
           TraceRow.range!.totalNS,
-          new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
+          new Rect(0, 0, TraceRow.FRAME_WIDTH, 0),
         );
         this.traceSheetEl!.systemLogFlag = new Flag(
-          Math.floor(pointX),
-          0,
-          0,
-          0,
-          data.startNS,
-          '#999999',
-          '',
-          true,
-          ''
+          Math.floor(pointX), 0, 0, 0, data.startNS, '#999999', '', true, '',
         );
         this.spSystemTrace?.refreshCanvas(false);
       }
@@ -174,14 +166,14 @@ export class TabPaneHang extends BaseElement {
           }
         }
         let allTdEl = trEl.querySelectorAll<HTMLElement>('.td');
-        allTdEl[0].style.color = this.textColor;
+        allTdEl[0].style.color = "#3D88C7";
         allTdEl[0].style.textDecoration = 'underline';
-        allTdEl[0].style.textDecorationColor = this.textColor;
+        allTdEl[0].style.textDecorationColor = "#3D88C7";
       });
     }
   }
 
-  refreshLogsTitle(): void {
+  refreshHangsTitle(): void {
     let tbl = this.hangTbl?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     let height = 0;
     let firstRowHeight = 27;
@@ -231,7 +223,7 @@ export class TabPaneHang extends BaseElement {
 
   private updateFilterData(): void {
     if (this.systemHangSource?.length > 0) {
-      this.filterData = this.systemHangSource.filter((data) => this.isFilterLog(data));
+      this.filterData = this.systemHangSource.filter((data) => this.isFilterHang(data));
     }
     if (this.hangTbl) {
       // @ts-ignore
@@ -242,18 +234,18 @@ export class TabPaneHang extends BaseElement {
     } else {
       this.hangTbl!.recycleDataSource = [];
     }
-    this.refreshLogsTitle();
+    this.refreshHangsTitle();
   }
 
-  private isFilterLog(data: HangStructInPane): boolean {
-    let type = this.levelFilterInput?.selectedIndex ?? 0
-    let search = this.searchFilterInput?.value.toLocaleLowerCase() ?? ''
-    let process = this.processFilter?.value.toLocaleLowerCase() ?? ''
+  private isFilterHang(data: HangStructInPane): boolean {
+    let type = this.levelFilterInput?.selectedIndex ?? 0;
+    let search = this.searchFilterInput?.value.toLocaleLowerCase() ?? '';
+    let process = this.processFilter?.value.toLocaleLowerCase() ?? '';
     return (
       (type === 0 || this.optionLevel.indexOf(data.type) >= type) &&
       (search === '' || data.caller.toLocaleLowerCase().indexOf(search) >= 0) &&
       (process === '' || data.pname.toLocaleLowerCase().indexOf(process) >= 0)
-    )
+    );
   }
 
   private refreshTable(): void {
@@ -278,27 +270,27 @@ let defaultIndex: number = 1;
 let tableTimeOut: number = 50;
 
 export class HangStructInPane {
-  startNS: number = 0
-  dur: string = '0'
-  pname: string = 'Process'
-  type: string
+  startNS: number = 0;
+  dur: string = '0';
+  pname: string = 'Process';
+  type: string;
 
-  sendEventTid: string
-  sendTime: string
-  expectHandleTime: string
-  taskNameId: string
-  caller: string
+  sendEventTid: string;
+  sendTime: string;
+  expectHandleTime: string;
+  taskNameId: string;
+  caller: string;
 
   constructor(parent: HangStruct) {
-    this.startNS = parent.startNS ?? this.startNS
-    this.dur = getTimeString(parent.dur ?? 0)
-    this.pname = `${parent.pname ?? this.pname} ${parent.pid ?? ''}`.trim()
+    this.startNS = parent.startNS ?? this.startNS;
+    this.dur = getTimeString(parent.dur ?? 0);
+    this.pname = `${parent.pname ?? this.pname} ${parent.pid ?? ''}`.trim();
     this.type = SpHangChart.calculateHangType(parent.dur ?? 0);
-    [this.sendEventTid, this.sendTime, this.expectHandleTime, this.taskNameId, this.caller] = (parent.content ?? ",0,0,,").split(',').map(i => i.trim())
-    this.sendEventTid = this.sendEventTid.split(':').at(-1)!
+    [this.sendEventTid, this.sendTime, this.expectHandleTime, this.taskNameId, this.caller] = (parent.content ?? ",0,0,,").split(',').map(i => i.trim());
+    this.sendEventTid = this.sendEventTid.split(':').at(-1)!;
   }
 
   static new(parent: HangStruct): HangStructInPane {
-    return new HangStructInPane(parent)
+    return new HangStructInPane(parent);
   }
 }

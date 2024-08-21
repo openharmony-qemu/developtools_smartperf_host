@@ -49,21 +49,6 @@ GROUP BY
 `.trim()
 )
 
-export const queryHangFuncName = (): Promise<Array<{
-  id: number,
-  name: string
-}>> => query('queryHangFuncName',
-  `
-SELECT
-  c.id as id,
-  c.name as name
-FROM
-  callstack c
-WHERE
-  c.dur >= ${getMinDur()}
-  AND c.name LIKE 'H:Et:%'
-    `.trim()
-)
 
 export const queryAllHangs = (): Promise<Array<HangStruct>> => query(
   'queryAllHangs',

@@ -19,43 +19,43 @@ import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { info } from '../../../log/Log';
 import { HangStruct } from '../../database/ui-worker/ProcedureWorkerHang';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
-import { queryHangFuncName, queryHangData } from '../../database/sql/Hang.sql';
+import { queryHangData } from '../../database/sql/Hang.sql';
 import { hangDataSender } from '../../database/data-trafic/HangDataSender';
 import { BaseStruct } from '../../bean/BaseStruct';
+import { Utils } from '../trace/base/Utils';
 
-export type HangType = "Instant" | "Circumstantial" | "Micro" | "Severe" | ""
+export type HangType = "Instant" | "Circumstantial" | "Micro" | "Severe" | "";
 
+/// Hangs聚合泳道
 export class SpHangChart {
   private trace: SpSystemTrace;
-  static funcNameMap: Map<number, string> = new Map()
+  static funcNameMap: Map<number | string, string> = new Map();
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
   }
 
   static calculateHangType(dur: number): HangType {
-    const durMS = dur / 1000000
+    const durMS = dur / 1000000;
     if (durMS < 33) {
-      return ""
+      return "";
     }
     else if (durMS < 100) {
-      return "Instant"
+      return "Instant";
     }
     else if (durMS < 250) {
-      return "Circumstantial"
+      return "Circumstantial";
     }
     else if (durMS < 500) {
-      return "Micro"
+      return "Micro";
     }
     else {
-      return "Severe"
+      return "Severe";
     }
   }
 
   async init(): Promise<void> {
-    for (const funcNameItem of await queryHangFuncName()) {
-      SpHangChart.funcNameMap.set(funcNameItem.id, funcNameItem.name)
-    }
+    SpHangChart.funcNameMap = Utils.getInstance().getCallStatckMap();
     let folder = await this.initFolder();
     await this.initData(folder);
   }
@@ -115,6 +115,7 @@ export class SpHangChart {
     };
   }
 
+  /// 初始化聚合泳道信息
   async initData(folder: TraceRow<BaseStruct>): Promise<void> {
     let hangStartTime = new Date().getTime();
     let hangList = await queryHangData();
@@ -126,35 +127,35 @@ export class SpHangChart {
       const it: {
         id: number,
         name: string,
-        num: number
+        num: number,
       } = hangList[i];
       let traceRow = TraceRow.skeleton<HangStruct>();
-      traceRow.rowId = `${it.name ?? 'Process'} ${it.id}`
-      traceRow.rowType = TraceRow.ROW_TYPE_HANG
-      traceRow.rowParentId = folder.rowId
-      traceRow.style.height = '40px'
-      traceRow.name = `${it.name ?? 'Process'} ${it.id}`
-      traceRow.rowHidden = !folder.expansion
-      traceRow.setAttribute('children', '')
-      traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler
-      traceRow.selectChangeHandler = this.trace.selectChangeHandler
-      this.hangSupplierFrame(traceRow, it)
-      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> => hangDataSender(it.id, traceRow, args)
+      traceRow.rowId = `${it.name ?? 'Process'} ${it.id}`;
+      traceRow.rowType = TraceRow.ROW_TYPE_HANG;
+      traceRow.rowParentId = folder.rowId;
+      traceRow.style.height = '40px';
+      traceRow.name = `${it.name ?? 'Process'} ${it.id}`;
+      traceRow.rowHidden = !folder.expansion;
+      traceRow.setAttribute('children', '');
+      traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+      traceRow.selectChangeHandler = this.trace.selectChangeHandler;
+      this.hangSupplierFrame(traceRow, it);
+      traceRow.getCacheData = (args: unknown): Promise<Array<unknown>> => hangDataSender(it.id, traceRow, args);
       traceRow.focusHandler = (ev): void => {
-        let hangStruct = HangStruct.hoverHangStruct
+        let hangStruct = HangStruct.hoverHangStruct;
         this.trace?.displayTip(
           traceRow, hangStruct,
           `<span>${hangStruct?.type} ${hangStruct?.dur}</span>`
-        )
-      }
+        );
+      };
       traceRow.findHoverStruct = (): void => {
-        HangStruct.hoverHangStruct = traceRow.getHoverStruct()
-      }
-      this.hangThreadHandler(traceRow, it, i)
-      folder.addChildTraceRow(traceRow)
+        HangStruct.hoverHangStruct = traceRow.getHoverStruct();
+      };
+      this.hangThreadHandler(traceRow, it, i);
+      folder.addChildTraceRow(traceRow);
     }
-    let durTime = new Date().getTime() - hangStartTime
-    info('The time to load the HangData is: ', durTime)
+    let durTime = new Date().getTime() - hangStartTime;
+    info('The time to load the HangData is: ', durTime);
   }
 
   async initFolder(): Promise<TraceRow<BaseStruct>> {

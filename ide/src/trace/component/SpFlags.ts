@@ -205,7 +205,6 @@ export class SpFlags extends BaseElement {
     vsyncTypeEl.addEventListener('change', function () {
       let selectValue = this.selectedOptions[0].value;
       FlagsConfig.updateFlagsConfig(key, selectValue);
-      FlagsConfig.updateFlagsConfig('vsyncValue', selectValue);
     });
 
     let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
@@ -222,6 +221,7 @@ export class SpFlags extends BaseElement {
     return configFooterDiv;
   }
 
+  /// Flags新增Hangs下拉框
   private createHangsOption(): HTMLDivElement {
     let configFooterDiv = document.createElement('div');
     configFooterDiv.className = 'config_footer';
@@ -231,35 +231,23 @@ export class SpFlags extends BaseElement {
     hangsTypeEl.setAttribute('id', 'hangsSelect');
     hangsTypeEl.className = 'flag-select';
 
-    let hangOptions: Array<HTMLElementTagNameMap["option"]> = []
+    let hangOptions: Array<HTMLElementTagNameMap["option"]> = [];
     for (const settings of [
-      {
-        value: '33',
-        content: "Instant",
-      },
-      {
-        value: '100',
-        content: 'Circumstantial'
-      },
-      {
-        value: '250',
-        content: 'Micro'
-      },
-      {
-        value: '500',
-        content: 'Severe'
-      }
+      { value: '33', content: "Instant" },
+      { value: '100', content: 'Circumstantial' },
+      { value: '250', content: 'Micro' },
+      { value: '500', content: 'Severe' }
     ]) {
-      let hangOption = document.createElement('option')
-      hangOption.value = settings.value + '000000'
-      hangOption.textContent = settings.content
-      hangOption.selected = false
-      hangOptions.push(hangOption)
-      hangsTypeEl.appendChild(hangOption)
+      let hangOption = document.createElement('option');
+      hangOption.value = settings.value + '000000';
+      hangOption.textContent = settings.content;
+      hangOption.selected = false;
+      hangOptions.push(hangOption);
+      hangsTypeEl.appendChild(hangOption);
     }
 
     FlagsConfig.updateFlagsConfig('hangValue', hangOptions[0].value);
-    hangOptions[0].selected = true
+    hangOptions[0].selected = true;
     hangsTypeEl.addEventListener('change', function () {
       let selectValue = this.selectedOptions[0].value;
       FlagsConfig.updateFlagsConfig('hangValue', selectValue);

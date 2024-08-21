@@ -165,26 +165,23 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
     value[i] = it.value;
   });
 
-  let arg1 = {
-    // @ts-ignore
-    id: data.id,
-    // @ts-ignore
-    action: data.action,
-    results: transfer
-      ? {
-          dur: dur.buffer,
-          startNS: startNS.buffer,
-          value: value.buffer,
-          filterId: filterId.buffer,
-        }
-      : {},
-    len: res.length,
-    transfer: transfer,
-  };
-  let arg2 = transfer ? [dur.buffer, startNS.buffer, value.buffer, filterId.buffer] : [];
-
   (self as unknown as Worker).postMessage(
-    arg1,
-    arg2
+    {
+      // @ts-ignore
+      id: data.id,
+      // @ts-ignore
+      action: data.action,
+      results: transfer
+        ? {
+            dur: dur.buffer,
+            startNS: startNS.buffer,
+            value: value.buffer,
+            filterId: filterId.buffer,
+          }
+        : {},
+      len: res.length,
+      transfer: transfer,
+    },
+    transfer ? [dur.buffer, startNS.buffer, value.buffer, filterId.buffer] : []
   );
 }

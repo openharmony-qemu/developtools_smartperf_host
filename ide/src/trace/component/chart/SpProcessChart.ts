@@ -97,7 +97,7 @@ export class SpProcessChart {
   static threadStateList: Map<string, unknown> = new Map();
   static processRowSortMap: Map<string, unknown> = new Map();
 
-  private hangProcessSet: Set<number> = new Set()
+  private hangProcessSet: Set<number> = new Set();
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
   }
@@ -429,7 +429,7 @@ export class SpProcessChart {
     info('ProcessList Data size is: ', processList!.length);
     
 
-    this.hangProcessSet = new Set<number>((await queryHangData()).map(item => item.id))
+    this.hangProcessSet = new Set<number>((await queryHangData()).map(item => item.id));
 
     // @ts-ignore
     await this.initProcessRow(processList, allTaskPoolPid, allJankProcess, renderServiceProcess, traceId);
@@ -584,7 +584,7 @@ export class SpProcessChart {
           expectedRow = this.addExpectedRow(it, processRow, rsProcess);
           actualRow = this.addActualRow(it, processRow, rsProcess);
         }
-        hangsRow = this.addHangRow(it, processRow)
+        hangsRow = this.addHangRow(it, processRow);
         this.addProcessRowListener(processRow, actualRow);
         this.addAsyncFunction(it, processRow);
         this.addAsyncCatFunction(it, processRow);
@@ -597,7 +597,7 @@ export class SpProcessChart {
           expectedRow = this.addExpectedRow(it, processRow, rsProcess);
           actualRow = this.addActualRow(it, processRow, rsProcess);
         }
-        hangsRow = this.addHangRow(it, processRow)
+        hangsRow = this.addHangRow(it, processRow);
         this.addProcessRowListener(processRow, actualRow);
         this.addAsyncFunction(it, processRow);
         this.addProcessMemInfo(it, processRow);
@@ -902,12 +902,12 @@ export class SpProcessChart {
   addHangRow(
     data: {
       pid: number;
-      processName: string | null
+      processName: string | null;
     },
     row: TraceRow<ProcessStruct>
   ): TraceRow<HangStruct> | null {
     if (!this.hangProcessSet.has(data.pid) || !FlagsConfig.getFlagsConfigEnableStatus("Hangs")) {
-      return null
+      return null;
     }
     let hangsRow = TraceRow.skeleton<HangStruct>();
     hangsRow.rowType = TraceRow.ROW_TYPE_HANG_INNER;
@@ -919,7 +919,7 @@ export class SpProcessChart {
     hangsRow.addTemplateTypes('FrameTimeline');
     hangsRow.setAttribute('children', '');
     hangsRow.supplierFrame = async (): Promise<HangStruct[]> => {
-      let promiseData = hangDataSender(data.pid, hangsRow)
+      let promiseData = hangDataSender(data.pid, hangsRow);
       if (promiseData === null) {
         return new Promise<Array<HangStruct>>((resolve) => resolve([]));
       } else {
@@ -936,7 +936,7 @@ export class SpProcessChart {
     hangsRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     hangsRow.selectChangeHandler = this.trace.selectChangeHandler;
     hangsRow.findHoverStruct = (): void => {
-      HangStruct.hoverHangStruct = hangsRow.getHoverStruct()
+      HangStruct.hoverHangStruct = hangsRow.getHoverStruct();
     }
     hangsRow.onThreadHandler = rowThreadHandler<HangStruct>(
       'hang',
@@ -961,7 +961,7 @@ export class SpProcessChart {
     type: string,
     process: unknown,
     row: TraceRow<JankStruct>,
-    renderServiceProcess: Array<unknown>
+    renderServiceProcess: Array<unknown>,
   ): void {
     let maxDepth: number = 1;
     let unitHeight: number = 20;

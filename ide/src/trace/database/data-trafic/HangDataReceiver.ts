@@ -38,57 +38,57 @@ WHERE
 `.trim();
 
 export interface HangSQLStruct {
-  id: number
-  startNS: number
-  dur: number
-  tid: number
-  pid: number
+  id: number;
+  startNS: number;
+  dur: number;
+  tid: number;
+  pid: number;
 }
 
 export function hangDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let res: HangSQLStruct[]
-    let list: HangSQLStruct[]
+    let res: HangSQLStruct[];
+    let list: HangSQLStruct[];
 
     if (!hangList.has(data.params.pid)) {
-      let sql = chartHangDataSql(data.params)
-      list = proc(sql)
-      hangList.set(data.params.pid, list)
+      let sql = chartHangDataSql(data.params);
+      list = proc(sql);
+      hangList.set(data.params.pid, list);
     }
     else {
-      list = hangList.get(data.params.pid) || []
+      list = hangList.get(data.params.pid) || [];
     }
 
     if (data.params.queryAll) {
       res = list.filter(
         //@ts-ignore
         (it) => it.startNS + it.dur >= data.params.selectStartNS && it.startNS <= data.params.selectEndNS
-      )
+      );
     }
     else {
-      res = list
+      res = list;
     }
 
-    arrayBufferHandler(data, res, true)
+    arrayBufferHandler(data, res, true);
   }
   else {
-    let sql = chartHangDataSql(data.params)
-    let res: HangSQLStruct[] = proc(sql)
-    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer)
+    let sql = chartHangDataSql(data.params);
+    let res: HangSQLStruct[] = proc(sql);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
 function arrayBufferHandler(data: any, res: HangSQLStruct[], transfer: boolean = true): void {
-  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id)
-  let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS)
-  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur)
-  let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid)
-  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid)
+  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
+  let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
+  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
+  let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid);
+  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);
   res.forEach((it, i) => {
-    id[i] = it.id
-    startNS[i] = it.startNS
-    dur[i] = it.dur
-    pid[i] = it.pid
+    id[i] = it.id;
+    startNS[i] = it.startNS;
+    dur[i] = it.dur;
+    pid[i] = it.pid;
   });
 
   let arg1 = {
@@ -103,7 +103,7 @@ function arrayBufferHandler(data: any, res: HangSQLStruct[], transfer: boolean =
     },
     len: res.length,
     transfer: transfer,
-  }
+  };
   let arg2 = [
     id.buffer,
     startNS.buffer,
@@ -112,6 +112,6 @@ function arrayBufferHandler(data: any, res: HangSQLStruct[], transfer: boolean =
     pid.buffer,
   ];
   (self as unknown as Worker).postMessage(
-    arg1, arg2
-  )
+    arg1, arg2,
+  );
 }

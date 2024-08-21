@@ -69,7 +69,7 @@ export class SelectionParam {
     ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
   >();
   dmaFenceNameData: Array<String> = [];//新增框选dma_fence数据
-  hangMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map()
+  hangMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
   funTids: Array<number> = [];

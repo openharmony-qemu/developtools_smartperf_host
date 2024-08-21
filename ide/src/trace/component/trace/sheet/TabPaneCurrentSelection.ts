@@ -834,7 +834,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       if (index === 0) {
         item.value = item.value.split(':').at(-1)!
       }
-      list.push(item)
+      list.push(item);
     })
 
     this.currentSelectionTbl!.dataSource = list;
@@ -843,44 +843,46 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
 
     let scrollIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#scroll-to-process');
-    scrollIcon?.addEventListener('click', () => {
-      const rowId = `${data.pname ?? 'Process'} ${data.pid}`
-      const rowParentId = `${data.pid}`
-      const rowType = TraceRow.ROW_TYPE_HANG_INNER
+    scrollIcon?.addEventListener('click', this.hangScrollHandler(data, sp));
+  }
+
+  private hangScrollHandler(data: HangStruct, sp: SpSystemTrace) {
+    return () => {
+      const rowId = `${data.pname ?? 'Process'} ${data.pid}`;
+      const rowParentId = `${data.pid}`;
+      const rowType = TraceRow.ROW_TYPE_HANG_INNER;
 
       let row = sp.rowsEL?.querySelector<TraceRow<HangStruct>>(`trace-row[row-id='${rowParentId}'][folder]`);
       if (row) {
-        row.expansion = true
+        row.expansion = true;
 
-        const innerHangRow = row.childrenList.find((childRow) => childRow.rowType === TraceRow.ROW_TYPE_HANG_INNER) as TraceRow<HangStruct>
-        sp.currentRow = innerHangRow
+        const innerHangRow = row.childrenList.find((childRow) => childRow.rowType === TraceRow.ROW_TYPE_HANG_INNER) as TraceRow<HangStruct>;
+        sp.currentRow = innerHangRow;
         async function completeEntry(t: TabPaneCurrentSelection) {
           if (!innerHangRow.dataListCache || innerHangRow.dataListCache.length == 0) {
-            await innerHangRow.supplierFrame!()
+            await innerHangRow.supplierFrame!();
           }
-          // console.log("innerHangRow.dataListCache", JSON.stringify(innerHangRow?.dataListCache))
 
           const findEntry = innerHangRow?.dataListCache.find((hangStruct) => {
-            return hangStruct.startNS === HangStruct.selectHangStruct?.startNS
-          })
-          // console.log("find Entry: ", HangStruct.selectHangStruct, findEntry)
+            return hangStruct.startNS === HangStruct.selectHangStruct?.startNS;
+          });
 
           if (findEntry) {
-            HangStruct.selectHangStruct = findEntry
-            t.setHangData(findEntry, sp)
+            HangStruct.selectHangStruct = findEntry;
+            t.setHangData(findEntry, sp);
           }
-          sp.scrollToProcess(rowId, rowParentId, rowType)
-          sp.refreshCanvas(false)
+          sp.scrollToProcess(rowId, rowParentId, rowType);
+          sp.refreshCanvas(false);
         }
         if (innerHangRow.isComplete) {
-          completeEntry(this)
+          completeEntry(this);
         }
         else {
-          sp.scrollToProcess(rowId, rowParentId, rowType)
-          innerHangRow.onComplete = () => completeEntry(this)
+          sp.scrollToProcess(rowId, rowParentId, rowType);
+          innerHangRow.onComplete = () => completeEntry(this);
         }
       }
-    });
+    };
   }
 
   setPerfToolsData(data: PerfToolStruct): void {
