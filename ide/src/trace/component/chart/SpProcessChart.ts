@@ -1316,13 +1316,21 @@ export class SpProcessChart {
       ({ asyncRemoveCatArr, asyncCat } = this.hanldCatFunc(asyncFuncList, flag));//处理是否cat
       ({ setArrayLenThanOne, setArrayLenOnlyOne } = this.hanldAsyncFunc(it, asyncRemoveCatArr));//len等于0和大于0的分类
       //@ts-ignore
-      let aggregateData = { ...asyncCat, ...setArrayLenThanOne, ...setArrayLenOnlyOne };
-      Reflect.ownKeys(aggregateData).map((key: unknown) => {//处理business first和length大于1的数据
-        //@ts-ignore
-        let param: Array<unknown> = aggregateData[key];
-        //@ts-ignore
+      let aggregateData = {...setArrayLenThanOne, ...setArrayLenOnlyOne };
+      Reflect.ownKeys(aggregateData).map((key: any) => {
+        let param: Array<any> = aggregateData[key];
         this.makeAddAsyncFunction(param, it, processRow, key);
-      });
+      })
+      //@ts-ignore
+      Reflect.ownKeys(asyncCat).map((key: any) => {
+        //@ts-ignore
+        let param: Array<any> = asyncCat[key];
+        if (flag) {//处理business
+          this.makeAddAsyncFunction(param, it, processRow, key); 
+        } else {//处理thread
+          this.makeAddAsyncFunction(param, it, processRow, key, param[0].tid);
+        }
+      })
     } else {
       //不聚合异步trace
       let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');
@@ -1437,7 +1445,8 @@ export class SpProcessChart {
     asyncFunctions: unknown[],
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
-    key: string
+    key: string,
+    rowSingleTid?: number
   ): void {
     let maxDepth: number = -1;
     let i = 0;
@@ -1496,7 +1505,7 @@ export class SpProcessChart {
           this.toAsyncFuncCache(noEndData[index], `${key}-${it.pid}`);
         });
       }
-      this.lanesConfig([...normalData, ...noEndData], it, processRow, key);
+      this.lanesConfig([...normalData, ...noEndData], it, processRow, key, rowSingleTid);
     }
   }
   //初始化异步泳道信息
@@ -1504,7 +1513,8 @@ export class SpProcessChart {
     asyncFunctions: unknown[],
     it: { pid: number; processName: string | null },
     processRow: TraceRow<ProcessStruct>,
-    key: string
+    key: string,
+    rowSingleTid?: number
   ): void {
     const maxHeight = this.calMaxHeight(asyncFunctions);
     // @ts-ignore
@@ -1514,6 +1524,7 @@ export class SpProcessChart {
     funcRow.rowId = `${key}-${it.pid}`;
     funcRow.asyncFuncName = asyncFuncName;
     funcRow.asyncFuncNamePID = it.pid;
+    funcRow.asyncFuncStartTID = rowSingleTid ? rowSingleTid : undefined;
     funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
     funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
     funcRow.rowParentId = `${it.pid}`;

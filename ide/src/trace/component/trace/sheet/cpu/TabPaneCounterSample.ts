@@ -183,6 +183,17 @@ export class TabPaneCounterSample extends BaseElement {
         a.timeStr = parseFloat((a.time / 1000000.0).toFixed(6));
         counterSampleList.push(a);
       });
+      counterSampleList.sort((a, b): number => {
+        // @ts-ignore
+        let countLeftData = Number(a.counter.toString().replace('Cpu', ''));
+        // @ts-ignore
+        let countRightData = Number(b.counter.toString().replace('Cpu', ''));
+        if (countLeftData > countRightData) {
+          return 1;
+        } else {
+          return -1;
+        }
+      });
       this.counterSampleSource = counterSampleList;
       this.sortTable(this.counterSortKey, this.counterSortType);
     });
@@ -251,13 +262,13 @@ export class TabPaneCounterSample extends BaseElement {
           }
         } else if (key === 'counter') {
           // @ts-ignore
-          if (sortByColumnLeftData.counter > sortByColumnRightData.counter) {
-            return type === 2 ? -1 : 1;
-            // @ts-ignore
-          } else if (sortByColumnLeftData.counter === sortByColumnRightData.counter) {
-            return 0;
+          let countLeftData = Number(sortByColumnLeftData.counter.toString().replace('Cpu', ''));
+          // @ts-ignore
+          let countRightData = Number(sortByColumnRightData.counter.toString().replace('Cpu', ''));
+          if (type === 1) {
+            return countLeftData - countRightData;
           } else {
-            return type === 2 ? 1 : -1;
+            return countRightData - countLeftData;
           }
         } else if (key === 'value') {
           if (type === 1) {

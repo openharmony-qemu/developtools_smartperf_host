@@ -1956,7 +1956,7 @@ export class SpApplication extends BaseElement {
       } else {
         this.progressEL!.loading = false;
       }
-      if (this.litSearch!.index > 0) {
+      if (this.litSearch!.list.length > 0) {
         let currentEntry = this.litSearch!.list[this.litSearch!.index];
         cancelCurrentTraceRowHighlight(this.spSystemTrace!, currentEntry);
       }
@@ -2110,7 +2110,7 @@ export class SpApplication extends BaseElement {
             }
           });
         });
-        this.cutTraceFile!.style.display = 'none';
+        this.cutTraceFile!.style.display = 'block';
         this.mainMenu!.menus = this.mainMenu!.menus;
       }
     });

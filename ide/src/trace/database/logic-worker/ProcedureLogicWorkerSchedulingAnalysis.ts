@@ -658,7 +658,6 @@ where cpu not null
       {}
     );
   }
-
   groupIrgDataByCpu(arr: Irq[]): Map<number, CpuAnalysis[]> {
     //首先计算 每个频点的持续时间，并根据Cpu来分组
     let map: Map<number, Array<Irq>> = new Map<number, Array<Irq>>();

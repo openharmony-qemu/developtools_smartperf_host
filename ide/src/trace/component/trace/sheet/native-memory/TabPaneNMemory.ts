@@ -135,6 +135,12 @@ export class TabPaneNMemory extends BaseElement {
       this.tblData!.recycleDataSource = [];
       this.setNmMemoryLoading(false);
       if (results.length > 0) {
+        results.forEach((item) => {
+          //@ts-ignore
+          let tmpNumber = item.addr.split('x');
+          //@ts-ignore
+          item.addr = '0x' + Number(tmpNumber[1]).toString(16);
+        })
         this.memorySource = results;
         this.memoryTbl!.recycleDataSource = this.memorySource;
       } else {

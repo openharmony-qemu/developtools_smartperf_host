@@ -19,9 +19,10 @@ export const queryNativeHookResponseTypes = (
   leftNs: number,
   rightNs: number,
   types: Array<string | number>,
+  pid: number,
   isStatistic: boolean
 ): //@ts-ignore
-Promise<Array<unknown>> => {
+  Promise<Array<unknown>> => {
   const table = isStatistic ? 'native_hook_statistic' : 'native_hook';
   const tsKey = isStatistic ? 'ts' : 'start_ts';
   const type = isStatistic ? 'type' : 'event_type';
@@ -36,9 +37,10 @@ Promise<Array<unknown>> => {
             left join data_dict on A.last_lib_id = data_dict.id 
           where
           A.${tsKey} - B.start_ts
-          between ${leftNs} and ${rightNs} and A.${type} in (${types.join(',')});
+          between ${leftNs} and ${rightNs} and A.${type} in (${types.join(',')})
+          and A.ipid = ${pid};
       `,
-    { $leftNs: leftNs, $rightNs: rightNs, $types: types }
+    { $leftNs: leftNs, $rightNs: rightNs, $types: types, $pid: pid }
   );
 };
 export const queryNativeHookStatistics = (
@@ -136,7 +138,7 @@ export const queryNativeHookSubType = (
   rightNs: number,
   ipid: number
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryNativeHookSubType',
     `select distinct(
@@ -159,7 +161,7 @@ export const queryNativeHookStatisticSubType = (
   rightNs: number,
   ipid: number
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryNativeHookStatisticSubType',
     `SELECT DISTINCT

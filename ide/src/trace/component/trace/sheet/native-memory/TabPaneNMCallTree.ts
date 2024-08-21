@@ -95,22 +95,29 @@ export class TabpaneNMCalltree extends BaseElement {
     if (nmCallTreeParam === this.currentSelection) {
       return;
     }
+    // 火焰图数据
     this.nmCallTreeSource = [];
+    // 框选内容赋值
     this.currentSelection = nmCallTreeParam;
+    // 拿到框选的pid
     this.currentSelectIPid = nmCallTreeParam.nativeMemoryCurrentIPid;
     this.init(nmCallTreeParam);
   }
 
   private async init(nmCallTreeParam: SelectionParam): Promise<void> {
+    // 初始化样式
     this.initUI();
+    // 初始化选择框内容
     await this.initFilterTypes();
     let types: Array<string | number> = [];
     this.initTypes(nmCallTreeParam, types);
     const initWidth = this._analysisTabWidth > 0 ? this._analysisTabWidth : this.clientWidth;
+    // 获取tab页数据
     this.getDataByWorkerQuery(
       {
         leftNs: nmCallTreeParam.leftNs,
         rightNs: nmCallTreeParam.rightNs,
+        // ['AllocEvent','MmapEvent']
         types,
       },
       (results: unknown[]): void => {
@@ -984,6 +991,7 @@ export class TabpaneNMCalltree extends BaseElement {
   }
 
   getDataByWorkerQuery(args: unknown, handler: Function): void {
+    // 加载中样式设置
     this.loadingList.push(1);
     this.nmCallTreeProgressEL!.loading = true; // @ts-ignore
     this.nmCallTreeLoadingPage.style.visibility = 'visible';

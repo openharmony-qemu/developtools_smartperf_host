@@ -315,74 +315,56 @@ export const fuzzyQueryFuncRowData = (funcName: string, tIds: number):
   );
 
 export const getTabSlicesAsyncFunc = (
-  asyncNames: Array<string>,
-  asyncPid: Array<number>,
+  asyncNames: string[],
+  asyncPid: number,
+  asyncTid: number | undefined,
   leftNS: number,
   rightNS: number
 ): //@ts-ignore
-  Promise<Array<unknown>> =>
-  query<SelectionData>(
-    'getTabSlicesAsyncFunc',
-    `SELECT 
+  Promise<Array<unknown>> => {
+    let condition = `${asyncTid !== null && asyncTid !== undefined ? `and A.tid = ${asyncTid}` : ''}`;
+    let sql = `
+    SELECT 
       c.name AS name,
       sum( c.dur ) AS wallDuration,
-      avg( c.dur ) AS avgDuration,
       count( c.name ) AS occurrences 
-    FROM
-      thread A,
+      FROM
+      (SELECT id, ts, parent_id, dur, name from callstack where cookie NOT NULL) C,
       trace_range D
+      LEFT JOIN thread A ON A.id = C.parent_id
       LEFT JOIN process P ON P.id = A.ipid
-      LEFT JOIN callstack C ON A.id = C.callid
     where
-        C.ts > 0
-      and
-        c.dur >= -1
-      and 
-        c.cookie not null
-      and
-        P.pid in (${asyncPid.join(',')})
-      and
-        c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})
-      and
-        not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
-      group by
-        c.name
+      C.ts > 0
+    and
+      c.dur >= -1
+    and
+      P.pid = ${asyncPid}
+    and
+      c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})
+    and
+      not ((C.ts - D.start_ts + C.dur <  ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
+    group by
+      c.name
     order by
-      wallDuration desc;`,
-    { $leftNS: leftNS, $rightNS: rightNS }
-  );
+    wallDuration desc;`;
+    return query<SelectionData>('getTabSlicesAsyncFunc', sql, {});
+}
 
 export const getTabDetails = (
   asyncNames: Array<string>,
   asyncPid: Array<number>,
+  funTids: Array<number>,
   leftNS: number,
-  rightNS: number,
-  key: string,
-  funTids?: Array<number>
+  rightNS: number 
 ): //@ts-ignore
   Promise<Array<unknown>> => {
-  let asyncCondition = '';
-  let catCondition = '';
-  let syncCondition = '';
-  if (key === 'async') {
-    asyncCondition = `
-      and c.cookie not null
-      and c.parent_id not null
-      `;
-  } else if (key === 'sync') {
-    syncCondition = `
+    let condition = `
       and A.tid in (${funTids!.join(',')})
       and c.cookie is null
-      `;
-  }
-  let condition = `
-      ${asyncCondition}
-      ${catCondition}
-      ${syncCondition}
       ${`and P.pid in (${asyncPid.join(',')})`}
-      ${`and c.name in (${asyncNames.map((it) => '\"' + it + '\"').join(',')})`}
-    `;
-  let sql = `
+      ${`and c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})`}
+    `
+    let sql = `
       SELECT 
         c.name AS name,
         c.dur AS duration,
@@ -401,18 +383,55 @@ export const getTabDetails = (
           c.dur >= -1
         and
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
-    `;
-  return query('getTabDetails', sql, {});
-};
-export const getCatDetails = (
+    `
+    return query('getTabDetails', sql, {});
+  }
+export const getSfDetails = (
   asyncNames: Array<string>,
-  catName: Array<string>,
-  asyncPid: Array<number>,
+  asyncPid: number,
+  asyncTid: number | undefined,
   leftNS: number,
   rightNS: number
 ): //@ts-ignore
   Promise<Array<unknown>> => {
-  let sql = `
+    let condition = `
+      and c.parent_id not null
+      ${asyncTid !== null && asyncTid !== undefined ? `and A.tid = ${asyncTid}` : ''}
+      ${`and P.pid = ${asyncPid}`}
+      ${`and c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})`}
+    `
+    let sql = `
+      SELECT 
+        c.name AS name,
+        c.dur AS duration,
+        P.pid AS processId,
+        P.name AS process,
+        A.tid AS threadId,
+        A.name AS thread,
+        c.ts - D.start_ts as startNs
+        FROM
+        (SELECT id, ts, parent_id, dur, name from callstack where cookie NOT NULL) C,
+        trace_range D
+        LEFT JOIN thread A ON A.id = C.parent_id
+        LEFT JOIN process P ON P.id = A.ipid
+      where
+          C.ts > 0
+        and
+          c.dur >= -1
+        and
+          not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
+    `
+    return query('getSfDetails', sql, {});
+  }
+  export const getGhDetails = (
+    asyncNames: Array<string>,
+    catName: string,
+    asyncPid: number,
+    leftNS: number,
+    rightNS: number
+  ): //@ts-ignore
+    Promise<Array<unknown>> => {
+      let sql = `
         SELECT 
           c.name AS name,
           c.dur AS duration,
@@ -436,53 +455,54 @@ export const getCatDetails = (
           and 
             c.parent_id is null
           and 
-            P.pid in (${asyncPid.join(',')})
+            P.pid = ${asyncPid}
           and
-            c.cat in (${catName.map((it) => '\"' + it + '\"').join(',')}) 
+            cat = '${catName}'
           and 
-            c.name in (${asyncNames.map((it) => '\"' + it + '\"').join(',')})
+            c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})
           and
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS}))
-      `;
-  return query('getCatDetails', sql, {});
-};
+      `
+      return query('getGhDetails', sql, {});
+    } 
 export const getTabSlicesAsyncCatFunc = (
-  asyncCatNames: Array<string>,
-  asyncCatPid: Array<number>,
+  asyncCatNames: string,
+  asyncCatPid: number,
   leftNS: number,
   rightNS: number
 ): Promise<Array<unknown>> =>
-  query<SelectionData>(
-    'getTabSlicesAsyncCatFunc',
-    `
-          select
-            c.name as name,
-            sum(c.dur) as wallDuration,
-            avg(c.dur) as avgDuration,
-            count(c.name) as occurrences
-          from
-            thread A, trace_range D
-          left join process P on P.id = A.ipid
-          left join callstack C on A.id = C.callid
-          where
-            C.ts > 0
-          and
-            c.dur >= -1
-          and 
-            c.cookie not null
-          and
-            c.cat not null
-          and
-            P.pid in (${asyncCatPid.join(',')})
-          and
-            c.cat in (${asyncCatNames.map((it) => "'" + it + "'").join(',')})
-          and
-            not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
-          group by
-            c.name
-          order by
-            wallDuration desc;`,
-    { $leftNS: leftNS, $rightNS: rightNS }
+query<SelectionData>(
+  'getTabSlicesAsyncCatFunc',
+  `
+        select
+          c.name as name,
+          sum(c.dur) as wallDuration,
+          count(c.name) as occurrences
+        from
+          thread A, trace_range D
+        left join process P on P.id = A.ipid
+        left join callstack C on A.id = C.callid
+        where
+          C.ts > 0
+        and
+          c.dur >= -1
+        and 
+          c.cookie not null
+        and
+          c.cat not null
+        and 
+          c.parent_id is null
+        and
+          P.pid = ${asyncCatPid}
+        and
+          c.cat = '${asyncCatNames}'
+        and
+          not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS}))
+        group by
+          c.name
+        order by
+          wallDuration desc;`,
+  { $leftNS: leftNS, $rightNS: rightNS }
   );
 
 export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> =>

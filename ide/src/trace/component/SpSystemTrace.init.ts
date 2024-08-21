@@ -579,6 +579,7 @@ function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>): v
   }
   sp.timerShaftEL!.selectionList.push(selection); // 保持选中对象，为后面的再次选中该框选区域做准备。
   sp.selectionParam = selection;
+  sp.refreshCanvas(true);
 }
 function resizeObserverHandler(sp: SpSystemTrace): void {
   // @ts-ignore
@@ -785,7 +786,7 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: unknown, cu
   if (findEntry) {
     //findEntry不在range范围内，会把它移动到泳道最左侧
     // @ts-ignore
-    if (findEntry.startTime > TraceRow.range!.endNS || findEntry.startTime + findEntry.dur < TraceRow.range!.startNS) {
+    if (findEntry.startTime + findEntry.dur > TraceRow.range!.endNS || findEntry.startTime < TraceRow.range!.startNS) {
       // @ts-ignore
       sp.moveRangeToLeft(findEntry.startTime!, findEntry.dur!);
     }
@@ -853,8 +854,7 @@ export function spSystemTraceShowStruct(
     return 0;
   }
   let findIndex = spSystemTraceShowStructFindIndex(previous, currentIndex, structs, retargetIndex);
-  let findEntry: unknown;
-  findEntry = structs[findIndex];
+  let findEntry: unknown = structs[findIndex];
   let currentEntry: unknown = undefined;
   if (currentIndex >= 0) {
     currentEntry = structs[currentIndex];
@@ -872,49 +872,60 @@ function spSystemTraceShowStructFindIndex(
   const rangeStart = TraceRow.range!.startNS;
   const rangeEnd = TraceRow.range!.endNS;
   let findIndex = -1;
-  if (retargetIndex) {
+  if (retargetIndex) {//如果Go有值，直接跳转
     findIndex = retargetIndex - 1;
   } else if (previous) {
-    for (let i = structs.length - 1; i >= 0; i--) {
-      let it = structs[i];
-      // @ts-ignore
-      if ((i < currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd) ||
-        // @ts-ignore
-        (it.startTime! + it.dur! < rangeStart)) {
-        findIndex = i;
-        break;
-      }
+    //case1:current.start在start边界以右，需要从当前项往第一项遍历，找到structs[index].start < end
+    //@ts-ignore
+    if (structs[currentIndex].startTime! >= Math.round(rangeStart)) {
+      findIndex = findPreviousOne(currentIndex - 1, 0, structs);
+      //处理当前项如果是第一项
+      findIndex = findIndex === -1 ? structs.length - 1 : findIndex;
+    } else {
+      //case2:current.start在start边界以左，需要从最后一项到当前项遍历，找到structs[index].start < end
+      findIndex = findPreviousOne(structs.length - 1, currentIndex + 1, structs);
     }
-    if (findIndex === -1) {
-      findIndex = structs.length - 1;
+  } else {//向后查找
+    if (currentIndex === -1) {//输入框内输入内容后第一次搜索
+      findIndex = findNextOne(0, structs.length - 1, structs);
+      //处理当所有的项都在start以左
+      return findIndex === -1 ? 0 : findIndex;
     }
-  } else {
-    if (currentIndex > 0) {
-      if (rangeStart > SpSystemTrace.currentStartTime) {
-        SpSystemTrace.currentStartTime = rangeStart;
-      }
-      //右移rangeStart变小重新赋值
-      if (SpSystemTrace.currentStartTime > rangeStart) {
-        SpSystemTrace.currentStartTime = rangeStart;//currentIndex不在可视区时，currentIndex = -1
-        if (
-          // @ts-ignore
-          structs[currentIndex].startTime < rangeStart ||
-          // @ts-ignore
-          structs[currentIndex].startTime! + structs[currentIndex].dur! > rangeEnd
-        ) {
-          currentIndex = -1;
-        }
-      }
+    //case1：current.start 在end左侧  从当前项到最后一项遍历，找到startTime>start
+    //@ts-ignore
+    if (structs[currentIndex].startTime! < Math.round(rangeEnd)) {//case1
+      findIndex = findNextOne(currentIndex + 1, structs.length - 1, structs);
+      //处理当前项是最后一项
+      findIndex = findIndex === -1 ? 0 : findIndex;
+    } else {
+      //case2: current.start 在end右侧  从第一项到当前项遍历，找到startTime>start
+      findIndex = findNextOne(0, currentIndex - 1, structs);
     }
-    //在数组中查找比currentIndex大且在range范围内的第一个下标，如果range范围内没有返回-1
-    findIndex = structs.findIndex((it, idx) => {
-      // @ts-ignore
-      return ((idx > currentIndex && it.startTime! >= rangeStart && it.startTime! + it.dur! <= rangeEnd) ||
-        // @ts-ignore
-        (it.startTime! > rangeEnd));
-    });
-    if (findIndex === -1) {
-      findIndex = 0;
+  }
+  return findIndex;
+}
+//向前查找逻辑
+function findPreviousOne(start: number, end: number, structs: Array<any>): number {
+  let findIndex = -1;
+  const rangeEnd = TraceRow.range!.endNS;
+  for (let i = start; i >= end; i--) {
+    let it = structs[i];
+    if (it.startTime! < rangeEnd) {
+      findIndex = i;
+      break;
+    }
+  }
+  return findIndex;
+}
+//向后查找
+function findNextOne(start: number, end: number, structs: Array<any>): number {
+  let findIndex = -1;
+  const rangeStart = TraceRow.range!.startNS;
+  for (let i = start; i <= end; i++) {
+    let it = structs[i];
+    if (it.startTime > rangeStart) {
+      findIndex = i;
+      break;
     }
   }
   return findIndex;
@@ -1153,6 +1164,7 @@ export async function spSystemTraceInit(
 }
 function expansionChangeHandler(sp: SpSystemTrace, offsetYTimeOut: unknown): (event: unknown) => void {
   return function (event: unknown) {
+    sp.scrollH = sp.rowsPaneEL!.scrollHeight;
     let max = [...sp.rowsPaneEL!.querySelectorAll('trace-row')].reduce((pre, cur) => pre + cur.clientHeight!, 0);
     let offset = sp.rowsPaneEL!.scrollHeight - max;
     sp.rowsPaneEL!.scrollTop = sp.rowsPaneEL!.scrollTop - offset;

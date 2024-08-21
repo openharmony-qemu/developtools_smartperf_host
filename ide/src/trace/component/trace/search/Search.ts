@@ -197,10 +197,12 @@ export class LitSearch extends BaseElement {
     }, 200);
   }
 
-  private searchKeyupListener(e: KeyboardEvent): void {
+  private searchKeyupListener(e: unknown): void {
     timerId = null;
-    if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+    // @ts-ignore
+    if (e.keyCode === 13 ) {
       this.updateSearchList(this.search!.value);
+      // @ts-ignore
       if (e.shiftKey) {
         this.dispatchEvent(
           new CustomEvent('previous-data', {
@@ -224,6 +226,7 @@ export class LitSearch extends BaseElement {
       this.updateSearchHistoryList(this.search!.value);
       this.valueChangeHandler?.(this.trimSideSpace(this.search!.value));
     }
+    // @ts-ignore
     e.stopPropagation();
   }
 
@@ -325,7 +328,7 @@ export class LitSearch extends BaseElement {
     if (this.hasAttribute('distributed')) {
       return this.traceSelector?.value;
     }
-    return undefined;
+    return null;
   }
 
   private keyUpListener(): void {

@@ -14,7 +14,9 @@
  */
 #ifndef NATIVE_HOOK_FILTER_H
 #define NATIVE_HOOK_FILTER_H
+#include <cstdint>
 #include <set>
+#include <unordered_set>
 #include "common_types.pb.h"
 #include "native_hook_result.pb.h"
 #include "numerical_to_string.h"
@@ -185,6 +187,7 @@ private:
     const size_t MAX_CACHE_SIZE = 200000;
     uint32_t callChainId_ = 0;
     CommHookData commHookData_;
+    std::unordered_set<uint32_t> callChainIdsSet_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

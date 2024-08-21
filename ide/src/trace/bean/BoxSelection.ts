@@ -32,6 +32,7 @@ import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
+import { Utils } from '../component/trace/base/Utils';
 
 export class SelectionParam {
   traceId: string | undefined | null;
@@ -72,7 +73,7 @@ export class SelectionParam {
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
   funTids: Array<number> = [];
-  funAsync: Array<{ name: string; pid: number }> = [];
+  funAsync: Array<{ name: string; pid: number, tid: number | undefined }> = [];
   funCatAsync: Array<{ pid: number; threadName: string }> = [];
   nativeMemory: Array<String> = [];
   nativeMemoryStatistic: Array<String> = [];
@@ -251,6 +252,7 @@ export class SelectionParam {
               this.funAsync.push({
                 name: th.asyncFuncName,
                 pid: th.asyncFuncNamePID || 0,
+                tid: th.asyncFuncStartTID
               });
             } else {
               for (let i = 0; i < th.asyncFuncName.length; i++) {
@@ -258,6 +260,7 @@ export class SelectionParam {
                 this.funAsync.push({
                   name: el,
                   pid: th.asyncFuncNamePID || 0,
+                  tid: th.asyncFuncStartTID
                 });
               }
             }
@@ -324,6 +327,7 @@ export class SelectionParam {
           this.funAsync.push({
             name: it.asyncFuncName,
             pid: it.asyncFuncNamePID || 0,
+            tid: it.asyncFuncStartTID
           });
         } else {
           //@ts-ignore
@@ -332,6 +336,7 @@ export class SelectionParam {
             this.funAsync.push({
               name: el,
               pid: it.asyncFuncNamePID || 0,
+              tid: it.asyncFuncStartTID
             });
           }
         }
@@ -386,6 +391,7 @@ export class SelectionParam {
       }
       if (this.nativeMemoryCurrentIPid === -1) {
         this.nativeMemoryCurrentIPid = process.ipid;
+        Utils.getInstance().setCurrentSelectIPid(this.nativeMemoryCurrentIPid);
       }
       if (this.nativeMemoryAllProcess) {
         if (it.getAttribute('heap-type') === 'native_hook_statistic') {
@@ -1007,7 +1013,6 @@ export class SelectionParam {
 
   // @ts-ignore
   pushThread(it: TraceRow<unknown>, sp: SpSystemTrace): void {
-    this.perfEventTypeId = TraceRow.ROW_TYPE_HIPERF_THREADTYPE[0] === -2 ? undefined : TraceRow.ROW_TYPE_HIPERF_THREADTYPE[0];
     if (it.rowType === TraceRow.ROW_TYPE_THREAD) {
       sp.pushPidToSelection(this, it.rowParentId!);
       if (it.dataListCache && it.dataListCache.length) {
@@ -1275,8 +1280,7 @@ export class SliceBoxJumpParam {
   threadId: Array<number> = [];
   name: string[] | undefined | null;
   isJumpPage: boolean | undefined;
-  asyncNames: Array<string> = [];
-  asyncCatNames: Array<string> = [];
+  isSummary: boolean | undefined;
 }
 
 export class SelectionData {

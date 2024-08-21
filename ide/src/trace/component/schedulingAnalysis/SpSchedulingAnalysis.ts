@@ -18,6 +18,7 @@ import './TabThreadAnalysis';
 import './TabCpuAnalysis';
 import './processAnalysis/TabProcessAnalysis';
 import { TabCpuAnalysis } from './TabCpuAnalysis';
+import './processAnalysis/TabProcessAnalysis';
 import { TabThreadAnalysis } from './TabThreadAnalysis';
 import { LitTabs } from '../../../base-ui/tabs/lit-tabs';
 import { CheckCpuSetting } from './CheckCpuSetting';

@@ -1146,15 +1146,13 @@ export const getTabSlices = (
   pids: Array<number>,
   leftNS: number,
   rightNS: number
-): //@ts-ignore
-  Promise<Array<unknown>> =>
+): Promise<Array<unknown>> =>
   query<SelectionData>(
     'getTabSlices',
     `
     select
       c.name as name,
       sum(c.dur) as wallDuration,
-      avg(c.dur) as avgDuration,
       count(c.name) as occurrences
     from
       thread T, trace_range TR
