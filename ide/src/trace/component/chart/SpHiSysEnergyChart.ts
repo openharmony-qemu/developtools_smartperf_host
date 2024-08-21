@@ -384,6 +384,9 @@ export class SpHiSysEnergyChart {
         }
       }
     }
+    appNameFromTable.sort((a, b) => {
+      return a.string_value!.localeCompare(b.string_value!);
+    });
     if (appNameFromTable.length > 0 && SpHiSysEnergyChart.app_name === '') {
       SpHiSysEnergyChart.app_name = appNameFromTable[0].string_value;
     }
