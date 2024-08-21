@@ -1802,6 +1802,7 @@ export class SpApplication extends BaseElement {
       if (this.sidebarButton) {
         this.sidebarButton.style.width = '0px';
         this.importConfigDiv!.style.left = '5px';
+        this.contentLeftOption!.style.left = '5px';
         this.closeKeyPath!.style.left = '25px';
       }
       if (this.mainMenu) {
@@ -1821,6 +1822,7 @@ export class SpApplication extends BaseElement {
       if (this.sidebarButton) {
         this.sidebarButton.style.width = '48px';
         this.importConfigDiv!.style.left = '45px';
+        this.contentLeftOption!.style.left = '45px';
         this.closeKeyPath!.style.left = '65px';
       }
     };
