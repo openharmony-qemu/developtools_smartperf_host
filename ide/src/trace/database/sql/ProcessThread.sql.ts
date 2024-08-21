@@ -346,7 +346,26 @@ order by ts desc limit 1
     `;
   return query('queryThreadWakeUpFrom', sql, {}, { traceId: Utils.currentSelectTrace });
 };
-
+export const queryRWakeUpFrom = (itid: number, startTime: number): Promise<Array<WakeupBean>> => {
+  let sql = `
+    select 
+      (A.ts - B.start_ts) as ts,
+      A.tid,
+      A.itid,
+      A.arg_setid as argSetID
+    from 
+      thread_state A,
+      trace_range B
+    where 
+      A.state = 'Running'
+      and A.itid = (select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1)
+      and A.ts < ${startTime}
+    order by 
+      ts desc 
+      limit 1
+    `;
+  return query('queryRWakeUpFrom', sql, {}, { traceId: Utils.currentSelectTrace });
+};
 export const queryRunnableTimeByRunning = (tid: number, startTime: number): Promise<Array<WakeupBean>> => {
   let sql = `
 select ts from thread_state,trace_range where ts + dur -start_ts = ${startTime} and state = 'R' and tid=${tid} limit 1
