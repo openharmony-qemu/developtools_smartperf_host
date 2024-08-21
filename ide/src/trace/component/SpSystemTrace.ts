@@ -132,6 +132,7 @@ import { PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 import { SpProcessChart } from './chart/SpProcessChart';
+import { HangStruct } from '../database/ui-worker/ProcedureWorkerHang';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -1222,6 +1223,7 @@ export class SpSystemTrace extends BaseElement {
     CpuStateStruct.selectStateStruct = undefined;
     CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = undefined;
     ClockStruct.selectClockStruct = undefined;
+    HangStruct.selectHangStruct = undefined;
     IrqStruct.selectIrqStruct = undefined;
     JankStruct.selectJankStruct = undefined;
     HeapStruct.selectHeapStruct = undefined;

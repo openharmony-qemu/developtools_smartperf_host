@@ -52,6 +52,7 @@ import { PerfToolsStructOnClick, PerfToolStruct } from '../database/ui-worker/Pr
 import { Utils } from './trace/base/Utils';
 import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct, gpuCounterStructOnClick } from '../database/ui-worker/ProcedureWorkerGpuCounter';
+import { HangStructOnClick } from '../database/ui-worker/ProcedureWorkerHang';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -368,6 +369,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => CpuStateStructOnClick(clickRowType, sp, entry as CpuStateStruct))
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp, entry as CpuFreqLimitsStruct))
     .then(() => ClockStructOnClick(clickRowType, sp, entry as ClockStruct))
+    .then(() => HangStructOnClick(clickRowType, sp))
     .then(() => DmaFenceStructOnClick(clickRowType, sp, entry as DmaFenceStruct))
     .then(() => SnapshotStructOnClick(clickRowType, sp, row as TraceRow<SnapshotStruct>, entry as SnapshotStruct))
     .then(() => IrqStructOnClick(clickRowType, sp, entry as IrqStruct))
