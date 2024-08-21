@@ -328,7 +328,7 @@ export class LitSearch extends BaseElement {
     if (this.hasAttribute('distributed')) {
       return this.traceSelector?.value;
     }
-    return undefined;
+    return null;
   }
 
   private keyUpListener(): void {
