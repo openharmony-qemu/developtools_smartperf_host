@@ -19,7 +19,7 @@ import { SelectionParam } from '../../../../bean/BoxSelection';
 import { resizeObserver } from '../SheetUtils';
 import { Utils } from '../../base/Utils';
 import { Priority } from '../../../../bean/StateProcessThread';
-import { queryThreadStateArgsByName } from '../../../../database/sql/ProcessThread.sql';
+import { queryArgsById, queryThreadStateArgsById } from '../../../../database/sql/ProcessThread.sql';
 import { FlagsConfig } from '../../../SpFlags';
 import { sliceSPTSender } from '../../../../database/data-trafic/SliceSender';
 
@@ -142,12 +142,13 @@ export class TabPaneSchedPriority extends BaseElement {
 
   private async fetchAndProcessData(): Promise<void> {
     if (this.strValueMap.size === 0) {
-      await queryThreadStateArgsByName('next_info', this.selectionParam?.traceId || undefined).
-      then((value): void => {
-        for (const item of value) {
-          this.strValueMap.set(item.argset, item.strValue);
-        }
-      });
+      let res = await queryArgsById('next_info', this.selectionParam?.traceId || undefined)
+      await queryThreadStateArgsById(res[0].id, this.selectionParam?.traceId || undefined).
+        then((value): void => {
+          for (const item of value) {
+            this.strValueMap.set(item.argset, item.strValue);
+          }
+        });
     }
   }
 

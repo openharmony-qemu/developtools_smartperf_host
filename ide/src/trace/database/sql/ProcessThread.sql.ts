@@ -777,6 +777,34 @@ export const queryThreadStateArgsByName = (key: string, traceId?: string):
     { traceId: traceId }
   );
 
+export const queryArgsById = (key: string, traceId?: string): 
+  Promise<Array<{ id: number }>> =>
+  query(
+    'queryArgsById',
+    `select
+    id 
+    from data_dict 
+    WHERE data = $key`,
+    { $key: key },
+    { traceId: traceId }
+  );
+
+export const queryThreadStateArgsById = (id: number, traceId?: string):
+  Promise<Array<{ argset: number; strValue: string }>> =>
+  query(
+    'queryThreadStateArgsById',
+    `select
+    A.argset,
+    DD.data as strValue
+    from 
+    (select argset,value 
+    from args where key = $id) as A left join data_dict as DD
+    on DD.id = A.value
+    `,
+    { $id: id },
+    { traceId: traceId }
+  );
+
 export const queryThreadWakeUp = (itid: number, startTime: number, dur: number):
   Promise<Array<WakeupBean>> =>
   query(
