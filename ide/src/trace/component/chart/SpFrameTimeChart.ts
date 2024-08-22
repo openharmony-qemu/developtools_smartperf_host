@@ -41,6 +41,7 @@ import {
   queryFrameApp,
   queryFrameTimeData,
   queryPhysicalData,
+  querySourceTypen,
 } from '../../database/sql/SqlLite.sql';
 import { queryAllProcessNames } from '../../database/sql/ProcessThread.sql';
 
@@ -241,9 +242,11 @@ export class SpFrameTimeChart {
     firstRow: TraceRow<BaseStruct>,
     secondRow: TraceRow<BaseStruct>
   ): Promise<void> {
+    let sourceTypeName = await querySourceTypen();
     this.flagConfig = FlagsConfig.getFlagsConfig('AnimationAnalysis');
     let appNameMap: Map<number, string> = new Map();
-    if (this.flagConfig?.AnimationAnalysis === 'Enabled') {
+    //@ts-ignore
+    if (this.flagConfig?.AnimationAnalysis === 'Enabled' && sourceTypeName[0].value !== "txt-based-trace") {
       if (process.processName?.startsWith('render_service')) {
         let targetRowList = processRow.childrenList.filter(
           (childRow) => childRow.rowType === 'thread' && childRow.name.startsWith('render_service')

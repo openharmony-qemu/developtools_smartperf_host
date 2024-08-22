@@ -1309,6 +1309,17 @@ export const queryAnimationTimeRangeData = (): Promise<Array<FrameAnimationStruc
          ORDER BY
             endTs;`
   );
+export const querySourceTypen = (): Promise<Array<unknown>> =>
+  query(
+    'querySourceTypen',
+    `SELECT 
+      value 
+    FROM 
+      meta
+    where
+      name = 'source_type'
+    `
+  );
 
 export const queryFrameDynamicData = (): Promise<FrameDynamicStruct[]> =>
   query(
