@@ -49,6 +49,7 @@ import {
 import {
   queryBinderArgsByArgset,
   queryDistributedRelationAllData,
+  queryRWakeUpFrom,
   queryRunnableTimeByRunning,
   queryThreadStateArgs,
   queryThreadWakeUp,
@@ -128,6 +129,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   private realTime: number = 0;
   private bootTime: number = 0;
   private funcDetailMap: Map<string, Array<object>> = new Map();
+  private topChainStr: string = '';
 
   set data(selection: unknown) {
     // @ts-ignore
@@ -960,6 +962,14 @@ export class TabPaneCurrentSelection extends BaseElement {
             class="wakeup-click"  name="select" color="#7fa1e7" size="20"></lit-icon>
             </div>`,
       });
+      list.push({
+        name: 'wakeup from top',
+        value: `<div style="white-space: nowrap;display: flex;align-items: center">
+            <div style="white-space:pre-wrap" id="wakeup-top-content" style="display: none"></div>
+            <lit-icon id="wakeup-top" class="temp-icon" title="Get to chain" name="restore" size="30" 
+              style="position: relative; top: 5px; left: 10px;"></lit-icon>
+            </div>`,
+      });
     }
     if (wakeUps !== null) {
       wakeUps.map((e) => {
@@ -1012,6 +1022,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
       this.stateClickHandler(preData, nextData, data, scrollWakeUp, scrollCallback, scrollPrio);
       this.wakeupClickHandler(wakeUps, fromBean, scrollWakeUp);
+      this.getWakeupChainClickHandler(fromBean, list);
     });
   }
 
@@ -1126,7 +1137,17 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
     });
   }
-
+  //点击事件获取唤醒链
+  private getWakeupChainClickHandler(fromBean: WakeupBean | undefined, list: unknown[]) {
+    this.currentSelectionTbl?.shadowRoot?.querySelector('#wakeup-top')?.addEventListener('click', async () => {
+      this.topChainStr = '';
+      //@ts-ignore
+      let currentThread = list.filter((item) => item.name === "Thread")?.[0].value;//点击的当前线程
+      let previouosWakeupThread = Utils.getInstance().getThreadMap().get(fromBean!.tid!) || 'Thread';//唤醒当前线程的上个线程
+      this.topChainStr = `-->${previouosWakeupThread}[${fromBean!.tid}]-->${currentThread}`;
+      this.getRWakeUpChain(fromBean);
+    })
+  }
   private async prepareThreadInfo(list: unknown[], data: ThreadStruct): Promise<void> {
     let processName = Utils.getInstance().getProcessMap().get(data.pid!);
     let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
@@ -1921,6 +1942,46 @@ export class TabPaneCurrentSelection extends BaseElement {
       list.push(...wakeUps);
     }
     return list;
+  }
+  //递归查找R唤醒链
+  getRWakeUpChain(data: WakeupBean | undefined):void  {
+    this.getRWakeUpChainData(data).then((wakeupFrom: unknown) => {
+      if (wakeupFrom === null) {//当查不到数据时，处理容器状态与样式，展示内容
+        let wakeupTopContent = this.currentSelectionTbl?.shadowRoot?.getElementById('wakeup-top-content');
+        let wakeupTopIcon = this.currentSelectionTbl?.shadowRoot?.querySelector<HTMLDivElement>('#wakeup-top');
+        wakeupTopContent!.innerText = 'idle' + this.topChainStr;//处理链顶部
+        wakeupTopIcon!.style.display = 'none'; 
+        wakeupTopContent!.style.display = 'block';
+        wakeupTopContent!.style.maxHeight = '100px';//设置最大高度，超出出现滚动条
+        wakeupTopContent!.style.overflow = 'auto'; 
+        return;
+      }
+      //@ts-ignore
+      this.topChainStr = `-->${wakeupFrom!.thread}[${wakeupFrom!.tid}]` + this.topChainStr;//链的拼接
+      // @ts-ignore
+      this.getRWakeUpChain(wakeupFrom);
+    });
+  }
+
+  /**
+   * 获取 R的唤醒链
+   * @param data
+  */
+  async getRWakeUpChainData(data: unknown): Promise<WakeupBean | null> {
+    let wakeupFrom: WakeupBean | null = null;
+    //@ts-ignore
+    let wakeup = await queryRunnableTimeByRunning(data.tid!, data.ts!);//通过链上的Running块，查找前一条R信息
+    if (wakeup && wakeup[0]) {
+      let wakeupTs = wakeup[0].ts as number;
+      //@ts-ignore
+      let wf = await queryRWakeUpFrom(data.itid!, wakeupTs);//查找到的前一条R信息，对应的唤醒信息
+      if (wf && wf[0]) {
+        wakeupFrom = wf[0];
+        //@ts-ignore
+        wakeupFrom.thread = Utils.getInstance().getThreadMap().get(wakeupFrom.tid!) || 'Thread';
+      }
+    }
+    return wakeupFrom;
   }
 
   initCanvas(): HTMLCanvasElement | null {
