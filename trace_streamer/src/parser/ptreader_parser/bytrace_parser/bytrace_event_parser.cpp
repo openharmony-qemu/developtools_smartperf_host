@@ -783,7 +783,7 @@ void BytraceEventParser::GetDataSegArgs(const BytraceLine &bufLine, ArgsMap &arg
             if (first == -1) {
                 first = i;
             }
-            if (bufLine.argsStr[i] == '=') {
+            if (bufLine.argsStr[i] == '=' && second == -1) {
                 second = i + 1;
             }
         }
