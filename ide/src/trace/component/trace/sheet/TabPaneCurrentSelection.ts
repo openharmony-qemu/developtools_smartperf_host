@@ -205,6 +205,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     if (leftTitle) {
       leftTitle.innerText = 'Slice Details';
     }
+    this.currentSelectionTbl!.loading = true;
     let list: unknown[] = [];
     this.updateUI(data, list);
     Promise.all([this.queryThreadStateDArgs(data.argSetID), this.queryCPUWakeUpFromData(data)]).then((resArr) => {
@@ -219,6 +220,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         });
       }
       this.currentSelectionTbl!.dataSource = list;
+      this.currentSelectionTbl!.loading = false;
       let startTimeAbsolute = (data.startTime || 0) + Utils.getInstance().getRecordStartNS();
       this.addClickToTransfBtn(startTimeAbsolute, CPU_TRANSF_BTN_ID, CPU_STARTTIME_ABSALUTED_ID);
 

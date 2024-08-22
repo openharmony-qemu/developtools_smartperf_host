@@ -47,6 +47,7 @@ function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unk
     if (SpSystemTrace.btnTimer) {
       return;
     }
+    sp.checkclick = true;
     // 唤醒树有值则不再重复添加
     const startIndex = CpuStruct.selectCpuStruct!.displayProcess?.indexOf('[');
     if (SpSystemTrace.wakeupList.length === 0) {
@@ -765,6 +766,8 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
   }
   sp.tabCpuFreq = sp.traceSheetEL.shadowRoot.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
   sp.tabCpuState = sp.traceSheetEL.shadowRoot.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
+  sp.wakeupListTbl = sp.traceSheetEL.shadowRoot?.querySelector("#current-selection > tabpane-current-selection")?.
+  shadowRoot?.querySelector("#wakeupListTbl");
   sp.rangeSelect = new RangeSelect(sp);
   // @ts-ignore
   rightButton?.addEventListener('click', rightButtonOnClick(sp, rightStar));
