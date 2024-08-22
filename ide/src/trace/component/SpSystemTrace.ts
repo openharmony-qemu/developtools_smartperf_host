@@ -134,6 +134,7 @@ import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 import { SpProcessChart } from './chart/SpProcessChart';
 import { LitSearch } from './trace/search/Search';
+import { LitTable } from '../../base-ui/table/lit-table';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -225,6 +226,8 @@ export class SpSystemTrace extends BaseElement {
   static retargetIndex: number = 0;
   prevScrollY: number = 0;
   focusTarget: string = '';
+  wakeupListTbl: LitTable | undefined | null;
+  _checkclick: boolean = false; //判断点击getWakeupList按钮
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -236,6 +239,18 @@ export class SpSystemTrace extends BaseElement {
 
   set flagList(list: Array<unknown>) {
     this._flagList = list;
+  }
+
+  get checkclick(): boolean {
+    return this._checkclick;
+  }
+
+  set checkclick(value: boolean) {
+    if (value) {
+      this._checkclick = true;
+    } else {
+      this._checkclick = false;
+    }
   }
 
   //节流处理
@@ -2599,9 +2614,15 @@ export class SpSystemTrace extends BaseElement {
   }
 
   queryCPUWakeUpList(data: WakeupBean): void {
+    if (this._checkclick) {
+      this.wakeupListTbl!.loading = true;
+    }
     TabPaneCurrentSelection.queryCPUWakeUpListFromBean(data).then((a: unknown) => {
       if (a === null) {
         window.publish(window.SmartEvent.UI.WakeupList, SpSystemTrace.wakeupList);
+        this.wakeupListTbl!.loading = false;
+        this._checkclick = false;
+        this.refreshCanvas(true);  
         return null;
       } // @ts-ignore
       SpSystemTrace.wakeupList.push(a); // @ts-ignore
