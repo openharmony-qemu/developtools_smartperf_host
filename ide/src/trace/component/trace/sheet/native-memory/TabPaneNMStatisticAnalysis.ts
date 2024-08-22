@@ -666,7 +666,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     // @ts-ignore
     let title = typeName;
     if (!this.hideThreadCheckBox?.checked) {
-      this.threadName = `Thread(${it.tid})`;
+      this.threadName = `${it.tableName}`;
       title += ` / ${this.threadName}`;
     }
     this.titleEl!.textContent = title;
