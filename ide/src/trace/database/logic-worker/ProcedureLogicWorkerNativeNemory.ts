@@ -792,6 +792,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       }
       totalSize += nativeHookSample.heapSize;
       totalCount += nativeHookSample.count || 1;
+      // 根据eventId拿到对应的调用栈
       let callChains = this.createThreadSample(nativeHookSample);
       let topIndex = isTopDown ? 0 : callChains.length - 1;
       if (callChains.length > 0) {
@@ -806,21 +807,26 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
             '-' +
             (callChains[topIndex].fileId || '');
         }
-        // 根节点
+        // 有根节点的话就拿到对应的根节点 -----线程
         let root = this.currentTreeMapData[key];
         // 没有当前项的根节点，就new一个新的，放在currentTreeList
         if (root === undefined) {
           root = new NativeHookCallInfo();
           root.threadName = nativeHookSample.threadName;
+          // 把新建的根节点加到map对象
           this.currentTreeMapData[key] = root;
+          // 并且假草根节点数组
           this.currentTreeList.push(root);
         }
+        // 给顶层节点赋值，symbol,eventId,fileId等等
         this.mergeCallChainSample(root, callChains[topIndex], nativeHookSample);
         if (callChains.length > 1) {
+          // 递归造树结构
           this.merageChildrenByIndex(root, callChains, topIndex, nativeHookSample, isTopDown);
         }
       }
     });
+    // 合并线程级别
     let rootMerageMap = this.mergeNodeData(totalCount, totalSize);
     this.handleCurrentTreeList(totalCount, totalSize);
     this.allThreads = Object.values(rootMerageMap) as NativeHookCallInfo[];
@@ -828,11 +834,13 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   private mergeNodeData(totalCount: number, totalSize: number): CallInfoMap {
     let rootMerageMap: CallInfoMap = {};
     let threads = Object.values(this.currentTreeMapData);
+    // 遍历所有线程
     threads.forEach((merageData: NativeHookCallInfo): void => {
       if (this.isHideThread) {
         merageData.tid = 0;
         merageData.threadName = undefined;
       }
+      // 没有父级，生成父级，把当前项放进去
       if (rootMerageMap[merageData.tid] === undefined) {
         let threadMerageData = new NativeHookCallInfo(); //新增进程的节点数据
         threadMerageData.canCharge = false;
@@ -849,6 +857,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         threadMerageData.countArray = [...merageData.countArray];
         rootMerageMap[merageData.tid] = threadMerageData;
       } else {
+        // 有父级，直接放进去
         rootMerageMap[merageData.tid].children.push(merageData);
         rootMerageMap[merageData.tid].initChildren.push(merageData);
         rootMerageMap[merageData.tid].count += merageData.count || 1;
@@ -876,11 +885,9 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         nmTreeNode.id = id + '';
         id++;
       }
-      if (nmTreeNode.parentNode) {
-        if (nmTreeNode.parentNode.id === '') {
-          nmTreeNode.parentNode.id = id + '';
-          id++;
-        }
+      if (nmTreeNode.parentNode && nmTreeNode.parentNode.id === '') {
+        nmTreeNode.parentNode.id = id + '';
+        id++;
         nmTreeNode.parentId = nmTreeNode.parentNode.id;
       }
     });
@@ -1118,7 +1125,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     let node: NativeHookCallInfo;
     if (
       //@ts-ignore
-      currentNode.initChildren.filter((child: NativeHookCallInfo): boolean => {
+      currentNode.children.filter((child: NativeHookCallInfo): boolean => {
         if (
           child.symbolId === callChainDataList[index]?.symbolId &&
           child.fileId === callChainDataList[index]?.fileId
@@ -1133,7 +1140,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       node = new NativeHookCallInfo();
       this.mergeCallChainSample(node, callChainDataList[index], sample);
       currentNode.children.push(node);
-      currentNode.initChildren.push(node);
+      // currentNode.initChildren.push(node);
+      // 将所有节点存到this.currentTreeList
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
