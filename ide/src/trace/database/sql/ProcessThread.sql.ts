@@ -352,25 +352,31 @@ where B.tid = $tid and B.pid = $pid;`,
     }
   };
 
-export const queryRWakeUpFrom = (itid: number, startTime: number): Promise<Array<WakeupBean>> => {
-  let sql = `
-    select 
-      (A.ts - B.start_ts) as ts,
-      A.tid,
-      A.itid,
-      A.arg_setid as argSetID
-    from 
-      thread_state A,
-      trace_range B
-    where 
-      A.state = 'Running'
-      and A.itid = (select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1)
-      and A.ts < ${startTime}
-    order by 
-      ts desc 
-      limit 1
+export const queryRWakeUpFrom = async (itid: number, startTime: number): Promise<unknown> => {
+  let sql1 = `select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1`;
+  const res = await query('queryRWakeUpFrom', sql1, {}, { traceId: Utils.currentSelectTrace });
+  if (res && res.length) {
+    //@ts-ignore
+    let wakeupFromItid = res[0].wakeup_from;
+    let sql2 =`
+      select 
+        (A.ts - B.start_ts) as ts,
+        A.tid,
+        A.itid,
+        A.arg_setid as argSetID
+      from 
+        thread_state A,
+        trace_range B
+      where 
+        A.state = 'Running'
+        and A.itid = ${wakeupFromItid}
+        and A.ts < ${startTime}
+      order by 
+        ts desc 
+        limit 1
     `;
-  return query('queryRWakeUpFrom', sql, {}, { traceId: Utils.currentSelectTrace });
+    return query('queryRWakeUpFrom', sql2, {}, { traceId: Utils.currentSelectTrace });
+  }
 };
 export const queryRunnableTimeByRunning = (tid: number, startTime: number): Promise<Array<WakeupBean>> => {
   let sql = `
