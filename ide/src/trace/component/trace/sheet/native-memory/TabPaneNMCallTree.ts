@@ -147,7 +147,7 @@ export class TabpaneNMCalltree extends BaseElement {
     } else {
       this.nmCallTreeFilter!.style.display = 'none';
     }
-    procedurePool.submitWithName('logic0', 'native-memory-reset', [], undefined, () => {});
+    procedurePool.submitWithName('logic0', 'native-memory-reset', [], undefined, () => { });
     this.nmCallTreeFilter!.disabledTransfer(true);
     this.nmCallTreeFilter!.initializeFilterTree(true, true, this.currentSelection!.nativeMemory.length > 0);
     this.nmCallTreeFilter!.filterValue = '';
@@ -476,6 +476,12 @@ export class TabpaneNMCalltree extends BaseElement {
     ) {
       this.switchFlameChart(nmCallTreeData);
     } else {
+      this.nmCallTreeSource = [];
+      // 树状图数据清空
+      this.nmCallTreeTbl!.recycleDataSource = [];
+      // 火焰图数据清空
+      this.nmCallTreeFrameChart!.data = [];
+      this.switchFlameChart(nmCallTreeData);
       this.initGetFilterByNMCallTreeFilter(nmCallTreeData);
     }
   }
@@ -700,6 +706,7 @@ export class TabpaneNMCalltree extends BaseElement {
         this.setLTableData(result); // @ts-ignore
         this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
         this.switchFlameChart(nmCallTreeData);
+        result = [];
       });
     } else {
       this.nmCallTreeTbl!.setStatus(this.nmCallTreeSource, true);
@@ -755,16 +762,14 @@ export class TabpaneNMCalltree extends BaseElement {
         }
         if (this.nmCallTreeTbl) {
           // @ts-ignore
-          this.nmCallTreeTbl.shadowRoot.querySelector('.table').style.height = `${
-            this.parentElement!.clientHeight - 10 - 35 - headLineHeight
-          }px`;
+          this.nmCallTreeTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 10 - 35 - headLineHeight
+            }px`;
         }
         this.nmCallTreeTbl?.reMeauseHeight();
         if (this.filesystemTbr) {
           // @ts-ignore
-          this.filesystemTbr.shadowRoot.querySelector('.table').style.height = `${
-            this.parentElement!.clientHeight - 45 - 21 - headLineHeight
-          }px`;
+          this.filesystemTbr.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45 - 21 - headLineHeight
+            }px`;
         }
         this.filesystemTbr?.reMeauseHeight(); // @ts-ignore
         this.nmCallTreeLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
@@ -824,7 +829,9 @@ export class TabpaneNMCalltree extends BaseElement {
   };
 
   private switchFlameChart(flameChartData?: unknown): void {
+    // 树状图
     let nmCallTreePageTab = this.shadowRoot?.querySelector('#show_table');
+    // 火焰图
     let nmCallTreePageChart = this.shadowRoot?.querySelector('#show_chart'); // @ts-ignore
     if (!flameChartData || flameChartData.icon === 'block') {
       nmCallTreePageChart?.setAttribute('class', 'show');

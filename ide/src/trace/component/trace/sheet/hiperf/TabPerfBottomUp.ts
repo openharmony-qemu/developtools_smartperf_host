@@ -24,7 +24,7 @@ import '../../../../../base-ui/progress-bar/LitProgressBar';
 import { procedurePool } from '../../../../database/Procedure';
 import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 import { type PerfBottomUpStruct } from '../../../../bean/PerfBottomUpStruct';
-import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { findSearchNode, HiPerfStruct } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 
 @element('tabpane-perf-bottom-up')
@@ -54,10 +54,15 @@ export class TabpanePerfBottomUp extends BaseElement {
     this.bottomUpFilter!.getFilterData(() => {
       if (this.searchValue !== this.bottomUpFilter!.filterValue) {
         this.searchValue = this.bottomUpFilter!.filterValue;
+        HiPerfStruct.bottomFindCount = 0;
         findSearchNode(this.bottomUpSource, this.searchValue, false);
       }
-      this.bottomUpTable!.setStatus(this.bottomUpSource, true);
-      this.setBottomUpTableData(this.bottomUpSource);
+      if (HiPerfStruct.bottomFindCount === 0 && this.bottomUpFilter!.filterValue !== '') {
+        this.bottomUpTable!.recycleDataSource = []
+      } else {
+        this.bottomUpTable!.setStatus(this.bottomUpSource, true);
+        this.setBottomUpTableData(this.bottomUpSource);
+      }
     });
     this.bottomUpFilter?.addEventListener('focus', () => {
       spSystemTrace.focusTarget = 'bottomUpInput';
@@ -205,14 +210,12 @@ export class TabpanePerfBottomUp extends BaseElement {
     super.connectedCallback();
     new ResizeObserver(() => {
       // @ts-ignore
-      this.bottomUpTable?.shadowRoot.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - tableOffsetHeight
-      }px`;
+      this.bottomUpTable?.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - tableOffsetHeight
+        }px`;
       this.bottomUpTable?.reMeauseHeight();
       // @ts-ignore
-      this.stackTable?.shadowRoot.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - tableOffsetHeight - spanHeight
-      }px`;
+      this.stackTable?.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - tableOffsetHeight - spanHeight
+        }px`;
       this.stackTable?.reMeauseHeight();
     }).observe(this.parentElement!);
   }

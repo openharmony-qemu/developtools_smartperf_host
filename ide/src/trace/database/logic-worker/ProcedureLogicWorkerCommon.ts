@@ -228,14 +228,19 @@ class MerageBeanDataSplit {
   }
 
   resetAllNode(data: MerageBean[], currentTreeList: ChartStruct[], searchValue: string): void {
+    // 去除全部节点上次筛选的标记
     this.clearSearchNode(currentTreeList);
+    // 去除线程上次筛选的标记
     data.forEach((process) => {
       process.searchShow = true;
       process.isSearch = false;
     });
+    // 恢复上次筛选
     this.resetNewAllNode(data, currentTreeList);
     if (searchValue !== '') {
+      // 将筛选匹配的节点做上标记，search = true，否则都是false
       this.findSearchNode(data, searchValue, false);
+      // 将searchshow为true的节点整理树结构，其余的不管
       this.resetNewAllNode(data, currentTreeList);
     }
   }
@@ -244,6 +249,7 @@ class MerageBeanDataSplit {
     data.forEach((process) => {
       process.children = [];
     });
+    // 所有节点的children都置空
     let values = currentTreeList.map((item: ChartStruct) => {
       item.children = [];
       return item;
@@ -253,6 +259,9 @@ class MerageBeanDataSplit {
       if (item.parentNode !== undefined) {
         //@ts-ignore
         if (item.isStore === 0 && item.searchShow) {
+          /*
+          拿到当前节点的父节点，如果它的父节点没有被搜索，则找到它父节点的父节点
+          */
           //@ts-ignore
           let parentNode = item.parentNode;
           while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {

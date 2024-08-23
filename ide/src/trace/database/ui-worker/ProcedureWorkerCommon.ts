@@ -1660,6 +1660,7 @@ export function hiPerf2(filter: Array<HiPerfStruct>, startNS: number, endNS: num
 export class HiPerfStruct extends BaseStruct {
   static hoverStruct: HiPerfStruct | undefined;
   static selectStruct: HiPerfStruct | undefined;
+  static bottomFindCount: number = 0;
   id: number | undefined;
   callchain_id: number | undefined;
   timestamp: number | undefined;
@@ -2012,6 +2013,9 @@ export function findSearchNode(data: unknown[], search: string, parentSearch: bo
       while (parentNode && !parentNode.searchShow) {
         parentNode.searchShow = true;
         parentNode = parentNode.parent;
+      }
+      if (node.isSearch && search !== '') {
+        HiPerfStruct.bottomFindCount += 1;
       }
     } else {
       node.searchShow = false;
