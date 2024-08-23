@@ -1977,7 +1977,9 @@ export class TabPaneCurrentSelection extends BaseElement {
       let wakeupTs = wakeup[0].ts as number;
       //@ts-ignore
       let wf = await queryRWakeUpFrom(data.itid!, wakeupTs);//查找到的前一条R信息，对应的唤醒信息
+      //@ts-ignore
       if (wf && wf[0]) {
+        //@ts-ignore
         wakeupFrom = wf[0];
         //@ts-ignore
         wakeupFrom.thread = Utils.getInstance().getThreadMap().get(wakeupFrom.tid!) || 'Thread';
