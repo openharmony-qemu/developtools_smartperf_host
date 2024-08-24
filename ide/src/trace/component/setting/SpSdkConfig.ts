@@ -200,7 +200,7 @@ export class SpSdkConfig extends BaseElement {
     inputDiv.addEventListener('mousedown', () => {
       if (this.startSamp) {
         inputDiv!.removeAttribute('readonly');
-        this.selectConfig!.dataSource(this.wasmList, '');
+        this.selectConfig!.dataSource(this.wasmList, '',true);
       } else {
         inputDiv!.setAttribute('readonly', 'readonly');
         return;

@@ -329,24 +329,55 @@ where B.tid = $tid and B.pid = $pid;`,
     { $tid: tid, $pid: pid }
   );
 
-export const queryThreadWakeUpFrom = (itid: number, startTime: number): Promise<Array<WakeupBean>> => {
-  let sql = `
-select (A.ts - B.start_ts) as ts,
-       A.tid,
-       A.itid,
-       A.pid,
-       A.cpu,
-       A.dur,
-       A.arg_setid as argSetID
-from thread_state A,trace_range B
-where A.state = 'Running'
-and A.itid = (select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1)
-and (A.ts - B.start_ts) < (${startTime} - B.start_ts)
-order by ts desc limit 1
-    `;
-  return query('queryThreadWakeUpFrom', sql, {}, { traceId: Utils.currentSelectTrace });
-};
+  export const queryThreadWakeUpFrom = async (itid: number, startTime: number): Promise<any> => {
+    let sql1 = `select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1`;
+    const result = await query('queryThreadWakeUpFrom', sql1, {}, { traceId: Utils.currentSelectTrace });
+    if (result && result.length > 0) { //@ts-ignore
+      let wakeupFromItid = result[0].wakeup_from; // 获取wakeup_from的值  
+      let sql2 = `  
+            select (A.ts - B.start_ts) as ts,  
+                   A.tid,  
+                   A.itid,  
+                   A.pid,  
+                   A.cpu,  
+                   A.dur,  
+                   A.arg_setid as argSetID  
+            from thread_state A, trace_range B  
+            where A.state = 'Running'  
+            and A.itid = ${wakeupFromItid}  
+            and (A.ts - B.start_ts) < (${startTime} - B.start_ts)  
+            order by ts desc limit 1  
+          `;  
+      return query('queryThreadWakeUpFrom', sql2, {}, { traceId: Utils.currentSelectTrace });
+    }
+  };
 
+export const queryRWakeUpFrom = async (itid: number, startTime: number): Promise<unknown> => {
+  let sql1 = `select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1`;
+  const res = await query('queryRWakeUpFrom', sql1, {}, { traceId: Utils.currentSelectTrace });
+  if (res && res.length) {
+    //@ts-ignore
+    let wakeupFromItid = res[0].wakeup_from;
+    let sql2 =`
+      select 
+        (A.ts - B.start_ts) as ts,
+        A.tid,
+        A.itid,
+        A.arg_setid as argSetID
+      from 
+        thread_state A,
+        trace_range B
+      where 
+        A.state = 'Running'
+        and A.itid = ${wakeupFromItid}
+        and A.ts < ${startTime}
+      order by 
+        ts desc 
+        limit 1
+    `;
+    return query('queryRWakeUpFrom', sql2, {}, { traceId: Utils.currentSelectTrace });
+  }
+};
 export const queryRunnableTimeByRunning = (tid: number, startTime: number): Promise<Array<WakeupBean>> => {
   let sql = `
 select ts from thread_state,trace_range where ts + dur -start_ts = ${startTime} and state = 'R' and tid=${tid} limit 1
@@ -749,6 +780,34 @@ export const queryThreadStateArgsByName = (key: string, traceId?: string):
     argset 
     from args_view where keyName = $key`,
     { $key: key },
+    { traceId: traceId }
+  );
+
+export const queryArgsById = (key: string, traceId?: string): 
+  Promise<Array<{ id: number }>> =>
+  query(
+    'queryArgsById',
+    `select
+    id 
+    from data_dict 
+    WHERE data = $key`,
+    { $key: key },
+    { traceId: traceId }
+  );
+
+export const queryThreadStateArgsById = (id: number, traceId?: string):
+  Promise<Array<{ argset: number; strValue: string }>> =>
+  query(
+    'queryThreadStateArgsById',
+    `select
+    A.argset,
+    DD.data as strValue
+    from 
+    (select argset,value 
+    from args where key = $id) as A left join data_dict as DD
+    on DD.id = A.value
+    `,
+    { $id: id },
     { traceId: traceId }
   );
 
