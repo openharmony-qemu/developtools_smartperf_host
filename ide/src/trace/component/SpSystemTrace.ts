@@ -1213,7 +1213,6 @@ export class SpSystemTrace extends BaseElement {
     CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = undefined;
     FpsStruct.hoverFpsStruct = undefined;
     ClockStruct.hoverClockStruct = undefined;
-    HangStruct.selectHangStruct = undefined;
     IrqStruct.hoverIrqStruct = undefined;
     HeapStruct.hoverHeapStruct = undefined;
     JankStruct.hoverJankStruct = undefined;
