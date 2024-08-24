@@ -28,7 +28,8 @@ const CAT_SORT = {
 
 const CONFIG_STATE:unknown = {
   'VSync': ['vsyncValue', 'VsyncGeneratior'],
-  'Start&Finish Trace Category': ['catValue', 'Business first']
+  'Start&Finish Trace Category': ['catValue', 'Business first'],
+  'Hangs': ['hangsSelect', 'Instant'],
 };
 
 @element('sp-flags')
@@ -82,9 +83,10 @@ export class SpFlags extends BaseElement {
     configDiv.appendChild(description);
   }
   //监听flag-select的状态选择
-  private flagSelectListener(configSelect: unknown): void {
+  private flagSelectListener(configSelect: HTMLSelectElement): void {
     // @ts-ignore
     let title = configSelect.getAttribute('title');
+
     //@ts-ignore
     let listSelect = this.shadowRoot?.querySelector(`#${CONFIG_STATE[title]?.[0]}`);
     // @ts-ignore
@@ -169,6 +171,11 @@ export class SpFlags extends BaseElement {
         configDiv.appendChild(configFooterDiv);
       }
 
+      if (config.title === 'Hangs') {
+        let configFooterDiv = this.createHangsOption();
+        configDiv.appendChild(configFooterDiv);
+      }
+
       this.bodyEl!.appendChild(configDiv);
     });
   }
@@ -211,6 +218,51 @@ export class SpFlags extends BaseElement {
     }
     configFooterDiv.appendChild(vsyncLableEl);
     configFooterDiv.appendChild(vsyncTypeEl);
+    return configFooterDiv;
+  }
+
+  /// Flags新增Hangs下拉框
+  private createHangsOption(): HTMLDivElement {
+    let configFooterDiv = document.createElement('div');
+    configFooterDiv.className = 'config_footer';
+    let hangsLableEl = document.createElement('lable');
+    hangsLableEl.className = 'hangs_lable';
+    let hangsTypeEl = document.createElement('select');
+    hangsTypeEl.setAttribute('id', 'hangsSelect');
+    hangsTypeEl.className = 'flag-select';
+
+    let hangOptions: Array<HTMLElementTagNameMap["option"]> = [];
+    for (const settings of [
+      { value: '33', content: "Instant" },
+      { value: '100', content: 'Circumstantial' },
+      { value: '250', content: 'Micro' },
+      { value: '500', content: 'Severe' }
+    ]) {
+      let hangOption = document.createElement('option');
+      hangOption.value = settings.value + '000000';
+      hangOption.textContent = settings.content;
+      hangOption.selected = false;
+      hangOptions.push(hangOption);
+      hangsTypeEl.appendChild(hangOption);
+    }
+
+    FlagsConfig.updateFlagsConfig('hangValue', hangOptions[0].value);
+    hangOptions[0].selected = true;
+    hangsTypeEl.addEventListener('change', function () {
+      let selectValue = this.selectedOptions[0].value;
+      FlagsConfig.updateFlagsConfig('hangValue', selectValue);
+    });
+
+    let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
+    let flagsItemJson = JSON.parse(flagsItem!);
+    let hangs = flagsItemJson['Hangs'];
+    if (hangs === 'Enabled') {
+      hangsTypeEl.removeAttribute('disabled');
+    } else {
+      hangsTypeEl.setAttribute('disabled', 'disabled');
+    }
+    configFooterDiv.appendChild(hangsLableEl);
+    configFooterDiv.appendChild(hangsTypeEl);
     return configFooterDiv;
   }
 }
@@ -263,6 +315,11 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'VSync Signal drawing',
       addInfo: { vsyncValue: VSYNC_VAL.VsyncGeneratior },
+    },
+    {
+      title: 'Hangs',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: '',
     },
     {
       title: 'LTPO',

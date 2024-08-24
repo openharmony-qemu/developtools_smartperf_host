@@ -94,7 +94,9 @@ export function clockDataReceiver(data: unknown, proc: Function): void {
     // @ts-ignore
     if (!clockList.has(data.params.sqlType + data.params.clockName)) {
       // @ts-ignore
-      list = proc(chartClockDataSqlMem(data.params));
+      let sql = chartClockDataSqlMem(data.params);
+      // @ts-ignore
+      list = proc(sql);
       for (let j = 0; j < list.length; j++) {
         if (j === list.length - 1) {
           // @ts-ignore
@@ -162,6 +164,7 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
     // @ts-ignore
     value[i] = it.value;
   });
+
   (self as unknown as Worker).postMessage(
     {
       // @ts-ignore

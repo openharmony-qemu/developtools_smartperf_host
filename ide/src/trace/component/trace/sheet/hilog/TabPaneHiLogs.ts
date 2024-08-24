@@ -203,9 +203,9 @@ export class TabPaneHiLogs extends BaseElement {
           }
         }
         let allTdEl = trEl.querySelectorAll<HTMLElement>('.td');
-        allTdEl[0].style.color = '#3D88C7';
+        allTdEl[0].style.color = "#3D88C7";
         allTdEl[0].style.textDecoration = 'underline';
-        allTdEl[0].style.textDecorationColor = '#3D88C7';
+        allTdEl[0].style.textDecorationColor = "#3D88C7";
         trEl.addEventListener('mouseout', (): void => {
           this.traceSheetEl!.systemLogFlag = undefined;
           this.spSystemTrace?.refreshCanvas(false);

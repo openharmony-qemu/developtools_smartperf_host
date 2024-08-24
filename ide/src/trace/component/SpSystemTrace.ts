@@ -135,6 +135,7 @@ import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounte
 import { SpProcessChart } from './chart/SpProcessChart';
 import { LitSearch } from './trace/search/Search';
 import { LitTable } from '../../base-ui/table/lit-table';
+import { HangStruct } from '../database/ui-worker/ProcedureWorkerHang';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -1212,6 +1213,7 @@ export class SpSystemTrace extends BaseElement {
     CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = undefined;
     FpsStruct.hoverFpsStruct = undefined;
     ClockStruct.hoverClockStruct = undefined;
+    HangStruct.selectHangStruct = undefined;
     IrqStruct.hoverIrqStruct = undefined;
     HeapStruct.hoverHeapStruct = undefined;
     JankStruct.hoverJankStruct = undefined;
@@ -1243,6 +1245,7 @@ export class SpSystemTrace extends BaseElement {
     CpuStateStruct.selectStateStruct = undefined;
     CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = undefined;
     ClockStruct.selectClockStruct = undefined;
+    HangStruct.selectHangStruct = undefined;
     IrqStruct.selectIrqStruct = undefined;
     JankStruct.selectJankStruct = undefined;
     HeapStruct.selectHeapStruct = undefined;
