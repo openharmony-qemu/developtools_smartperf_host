@@ -26,7 +26,7 @@ const CAT_SORT = {
   'Thread first': 'thread'
 };
 
-const CONFIG_STATE:unknown = {
+const CONFIG_STATE: unknown = {
   'VSync': ['vsyncValue', 'VsyncGeneratior'],
   'Start&Finish Trace Category': ['catValue', 'Business first'],
   'Hangs': ['hangsSelect', 'Instant'],
@@ -231,9 +231,9 @@ export class SpFlags extends BaseElement {
     hangsTypeEl.setAttribute('id', 'hangsSelect');
     hangsTypeEl.className = 'flag-select';
 
-    let hangOptions: Array<HTMLElementTagNameMap["option"]> = [];
+    let hangOptions: Array<HTMLElementTagNameMap['option']> = [];
     for (const settings of [
-      { value: '33', content: "Instant" },
+      { value: '33', content: 'Instant' },
       { value: '100', content: 'Circumstantial' },
       { value: '250', content: 'Micro' },
       { value: '500', content: 'Severe' }
@@ -255,7 +255,7 @@ export class SpFlags extends BaseElement {
 
     let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
     let flagsItemJson = JSON.parse(flagsItem!);
-    let hangs = flagsItemJson['Hangs'];
+    let hangs = flagsItemJson.Hangs;
     if (hangs === 'Enabled') {
       hangsTypeEl.removeAttribute('disabled');
     } else {

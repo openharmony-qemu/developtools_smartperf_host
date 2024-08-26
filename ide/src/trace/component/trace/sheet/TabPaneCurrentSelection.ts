@@ -823,16 +823,16 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     data.content!.split(',').map((item, index) => ({
       name: [
-        "Sender tid",
-        "Send time",
-        "Expect handle time",
-        "Task name/ID",
-        "Sender"
+        'Sender tid',
+        'Send time',
+        'Expect handle time',
+        'Task name/ID',
+        'Sender'
       ][index],
       value: item,
     })).forEach((item, index) => {
       if (index === 0) {
-        item.value = item.value.split(':').at(-1)!
+        item.value = item.value.split(':').at(-1)!;
       }
       list.push(item);
     })
@@ -847,7 +847,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   private hangScrollHandler(data: HangStruct, sp: SpSystemTrace) {
-    return () => {
+    return (): void => {
       const rowId = `${data.pname ?? 'Process'} ${data.pid}`;
       const rowParentId = `${data.pid}`;
       const rowType = TraceRow.ROW_TYPE_HANG_INNER;
@@ -858,8 +858,9 @@ export class TabPaneCurrentSelection extends BaseElement {
 
         const innerHangRow = row.childrenList.find((childRow) => childRow.rowType === TraceRow.ROW_TYPE_HANG_INNER) as TraceRow<HangStruct>;
         sp.currentRow = innerHangRow;
-        async function completeEntry(t: TabPaneCurrentSelection) {
-          if (!innerHangRow.dataListCache || innerHangRow.dataListCache.length == 0) {
+        // @ts-ignore
+        async function completeEntry(t: TabPaneCurrentSelection): Promise<unknown> {
+          if (!innerHangRow.dataListCache || innerHangRow.dataListCache.length === 0) {
             await innerHangRow.supplierFrame!();
           }
 
@@ -879,7 +880,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
         else {
           sp.scrollToProcess(rowId, rowParentId, rowType);
-          innerHangRow.onComplete = () => completeEntry(this);
+          innerHangRow.onComplete = (): unknown => completeEntry(this);
         }
       }
     };

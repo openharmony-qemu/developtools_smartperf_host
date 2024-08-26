@@ -59,14 +59,14 @@ export class TabPaneHang extends BaseElement {
     }
     window.clearTimeout(this.timeOutId);
     queryAllHangs().then((ret) => {
-      const filter = new Set([...selectionParam.hangMapData.keys()].map(key => key.split(' ').at(-1)))
+      const filter = new Set([...selectionParam.hangMapData.keys()].map(key => key.split(' ').at(-1)));
       ret = ret.filter(struct => (
-        filter.has(`${struct.pid ?? 0}`)
-        && ((struct.startNS ?? 0) <= selectionParam.rightNs)
-        && (selectionParam.leftNs <= ((struct.startNS ?? 0) + (struct.dur ?? 0)))
+        filter.has(`${struct.pid ?? 0}`) &&
+        ((struct.startNS ?? 0) <= selectionParam.rightNs) &&
+        (selectionParam.leftNs <= ((struct.startNS ?? 0) + (struct.dur ?? 0)))
       ));
-      
-      if (ret.length == 0) {
+
+      if (ret.length === 0) {
         this.progressEL!.loading = false;
       }
       this.systemHangSource = ret.map(HangStructInPane.new);
@@ -156,7 +156,7 @@ export class TabPaneHang extends BaseElement {
     let tbl = this.hangTbl?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     let height = 0;
     if (tbl) {
-      const trs = tbl.querySelectorAll<HTMLElement>('.tr')
+      const trs = tbl.querySelectorAll<HTMLElement>('.tr');
       trs.forEach((trEl: HTMLElement, index: number): void => {
         if (index === 0) {
           let frontTotalRowSize = Math.round((tbl!.scrollTop / trEl.clientHeight) * 100) / 100;
@@ -166,9 +166,9 @@ export class TabPaneHang extends BaseElement {
           }
         }
         let allTdEl = trEl.querySelectorAll<HTMLElement>('.td');
-        allTdEl[0].style.color = "#3D88C7";
+        allTdEl[0].style.color = '#3D88C7';
         allTdEl[0].style.textDecoration = 'underline';
-        allTdEl[0].style.textDecorationColor = "#3D88C7";
+        allTdEl[0].style.textDecorationColor = '#3D88C7';
       });
     }
   }
@@ -286,7 +286,7 @@ export class HangStructInPane {
     this.dur = getTimeString(parent.dur ?? 0);
     this.pname = `${parent.pname ?? this.pname} ${parent.pid ?? ''}`.trim();
     this.type = SpHangChart.calculateHangType(parent.dur ?? 0);
-    [this.sendEventTid, this.sendTime, this.expectHandleTime, this.taskNameId, this.caller] = (parent.content ?? ",0,0,,").split(',').map(i => i.trim());
+    [this.sendEventTid, this.sendTime, this.expectHandleTime, this.taskNameId, this.caller] = (parent.content ?? ',0,0,,').split(',').map(i => i.trim());
     this.sendEventTid = this.sendEventTid.split(':').at(-1)!;
   }
 

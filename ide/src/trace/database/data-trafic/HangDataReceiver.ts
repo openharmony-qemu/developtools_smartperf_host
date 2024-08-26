@@ -45,20 +45,26 @@ export interface HangSQLStruct {
   pid: number;
 }
 
-export function hangDataReceiver(data: any, proc: Function): void {
+export function hangDataReceiver(data: unknown, proc: Function): void {
+  // @ts-ignore
   if (data.params.trafic === TraficEnum.Memory) {
     let res: HangSQLStruct[];
     let list: HangSQLStruct[];
 
+    // @ts-ignore
     if (!hangList.has(data.params.pid)) {
+      // @ts-ignore
       let sql = chartHangDataSql(data.params);
       list = proc(sql);
+      // @ts-ignore
       hangList.set(data.params.pid, list);
     }
     else {
+      // @ts-ignore
       list = hangList.get(data.params.pid) || [];
     }
 
+    // @ts-ignore
     if (data.params.queryAll) {
       res = list.filter(
         //@ts-ignore
@@ -72,17 +78,24 @@ export function hangDataReceiver(data: any, proc: Function): void {
     arrayBufferHandler(data, res, true);
   }
   else {
+    // @ts-ignore
     let sql = chartHangDataSql(data.params);
     let res: HangSQLStruct[] = proc(sql);
+    // @ts-ignore
     arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function arrayBufferHandler(data: any, res: HangSQLStruct[], transfer: boolean = true): void {
+function arrayBufferHandler(data: unknown, res: HangSQLStruct[], transfer: boolean = true): void {
+  // @ts-ignore
   let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
+  // @ts-ignore
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
+  // @ts-ignore
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
+  // @ts-ignore
   let tid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.tid);
+  // @ts-ignore
   let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);
   res.forEach((it, i) => {
     id[i] = it.id;
@@ -92,7 +105,9 @@ function arrayBufferHandler(data: any, res: HangSQLStruct[], transfer: boolean =
   });
 
   let arg1 = {
+    // @ts-ignore
     id: data.id,
+    // @ts-ignore
     action: data.action,
     results: {
       id: id.buffer,

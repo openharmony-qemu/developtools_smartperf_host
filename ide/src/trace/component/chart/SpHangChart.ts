@@ -24,7 +24,7 @@ import { hangDataSender } from '../../database/data-trafic/HangDataSender';
 import { BaseStruct } from '../../bean/BaseStruct';
 import { Utils } from '../trace/base/Utils';
 
-export type HangType = "Instant" | "Circumstantial" | "Micro" | "Severe" | "";
+export type HangType = 'Instant' | 'Circumstantial' | 'Micro' | 'Severe' | '';
 
 /// Hangs聚合泳道
 export class SpHangChart {
@@ -38,19 +38,19 @@ export class SpHangChart {
   static calculateHangType(dur: number): HangType {
     const durMS = dur / 1000000;
     if (durMS < 33) {
-      return "";
+      return '';
     }
     else if (durMS < 100) {
-      return "Instant";
+      return 'Instant';
     }
     else if (durMS < 250) {
-      return "Circumstantial";
+      return 'Circumstantial';
     }
     else if (durMS < 500) {
-      return "Micro";
+      return 'Micro';
     }
     else {
-      return "Severe";
+      return 'Severe';
     }
   }
 
@@ -69,7 +69,7 @@ export class SpHangChart {
     }
   ): void {
     traceRow.supplierFrame = (): Promise<HangStruct[]> => {
-      let promiseData = hangDataSender(it.id, traceRow)
+      let promiseData = hangDataSender(it.id, traceRow);
       if (promiseData === null) {
         return new Promise<Array<HangStruct>>((resolve) => resolve([]));
       } else {
