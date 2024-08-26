@@ -906,12 +906,12 @@ export class SpProcessChart {
     },
     row: TraceRow<ProcessStruct>
   ): TraceRow<HangStruct> | null {
-    if (!this.hangProcessSet.has(data.pid) || !FlagsConfig.getFlagsConfigEnableStatus("Hangs")) {
+    if (!this.hangProcessSet.has(data.pid) || !FlagsConfig.getFlagsConfigEnableStatus('Hangs')) {
       return null;
     }
     let hangsRow = TraceRow.skeleton<HangStruct>();
     hangsRow.rowType = TraceRow.ROW_TYPE_HANG_INNER;
-    hangsRow.rowId = `${data.processName ?? 'Process'} ${data.pid}`
+    hangsRow.rowId = `${data.processName ?? 'Process'} ${data.pid}`;
     hangsRow.rowParentId = `${data.pid}`;
     hangsRow.rowHidden = !row.expansion;
     hangsRow.style.width = '100%';
@@ -926,7 +926,7 @@ export class SpProcessChart {
         return promiseData.then((resultHang: Array<HangStruct>) =>
           resultHang.map(hangItem => ({
             ...hangItem,
-            pname: data.processName ?? "process",
+            pname: data.processName ?? 'process',
             type: SpHangChart.calculateHangType(hangItem.dur!),
             content: SpHangChart.funcNameMap.get(hangItem.id!)
           }))
@@ -937,7 +937,7 @@ export class SpProcessChart {
     hangsRow.selectChangeHandler = this.trace.selectChangeHandler;
     hangsRow.findHoverStruct = (): void => {
       HangStruct.hoverHangStruct = hangsRow.getHoverStruct();
-    }
+    };
     hangsRow.onThreadHandler = rowThreadHandler<HangStruct>(
       'hang',
       'context',

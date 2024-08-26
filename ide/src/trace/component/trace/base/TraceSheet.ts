@@ -133,6 +133,7 @@ export class TraceSheet extends BaseElement {
       pane.hidden = true; // @ts-ignore
       pane.key = `${tabConfig[key].key || index}`; // @ts-ignore
       let cls = tabConfig[key].type;
+      // @ts-ignore
       let node = new cls();
       pane.append(node);
       this.fragment?.appendChild(pane);
