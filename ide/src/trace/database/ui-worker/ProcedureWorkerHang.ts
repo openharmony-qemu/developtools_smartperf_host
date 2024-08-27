@@ -90,7 +90,7 @@ export class HangStruct extends BaseStruct {
   static getFrameColor(data: HangStruct): string {
     return ({
       "Instant": "#559CFF",
-      "Circumstantial": "#FFE44D",
+      "Circumstantial": "#e8be44",
       "Micro": "#FEB354",
       "Severe": "#FC7470",
       "": "",
@@ -111,7 +111,7 @@ export class HangStruct extends BaseStruct {
 
       ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
       if (data.frame.width > 10) {
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = '#000';
         drawString(ctx, `${data.type || ''}`, 1, data.frame, data);
       }
 
