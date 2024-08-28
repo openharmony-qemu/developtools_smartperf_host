@@ -90,7 +90,7 @@ export class HangStruct extends BaseStruct {
   static getFrameColor(data: HangStruct): string {
     return ({
       "Instant": "#559CFF",
-      "Circumstantial": "#e8be44",
+      "Circumstantial": "#E8BE44",
       "Micro": "#FEB354",
       "Severe": "#FC7470",
       "": "",
