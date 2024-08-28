@@ -72,8 +72,28 @@ export class SpFlags extends BaseElement {
       configSelect.appendChild(configOption);
     });
     configSelect.addEventListener('change', () => {
-      this.flagSelectListener(configSelect);
+      if (configSelect.title === 'VSync' || configSelect.title === 'Start&Finish Trace Category') {
+        this.flagSelectListener(configSelect);
+      }
+      if (configSelect.title === 'AI') {
+        let userIdInput: HTMLInputElement | null | undefined = this.shadowRoot?.querySelector('#user_id_input');
+        let xiaoLubanEl: Element | null | undefined = document.querySelector('sp-application')?.shadowRoot?.querySelector('#sp-bubbles')
+          ?.shadowRoot?.querySelector('#xiao-luban-help');
+        if (configSelect.selectedOptions[0].value === 'Enabled') {
+          if (userIdInput?.value === '') {
+            userIdInput.style.border = '1px solid red';
+          }
+          xiaoLubanEl?.setAttribute('enabled', '');
+        } else {
+          userIdInput!.style.border = '1px solid #ccc';
+          xiaoLubanEl?.removeAttribute('enabled');
+        }
+      }
     });
+    let userIdInput: HTMLInputElement | null | undefined = this.shadowRoot?.querySelector('#user_id_input');
+    if (configSelect.title === 'AI' && configSelect.selectedOptions[0].value === 'Enabled' && userIdInput?.value === '') {
+      userIdInput.style.border = '1px solid red';
+    }
     let description = document.createElement('div');
     description.className = 'flag-des-div';
     description.textContent = config.describeContent;
@@ -161,6 +181,29 @@ export class SpFlags extends BaseElement {
         //@ts-ignore
         let configKey = CONFIG_STATE[config.title]?.[0];
         let configFooterDiv = this.createPersonOption(VSYNC_VAL, configKey, <string>config.addInfo!.vsyncValue, config.title);
+        configDiv.appendChild(configFooterDiv);
+      }
+
+      if (config.title === 'AI') {
+        let configFooterDiv = document.createElement('div');
+        configFooterDiv.className = 'config_footer';
+        let userIdLabelEl = document.createElement('label');
+        userIdLabelEl.className = 'device_label';
+        userIdLabelEl.textContent = 'User Id: ';
+        let userIdInputEl = document.createElement('input');
+        userIdInputEl.value = <string>config.addInfo!.userId;
+        userIdInputEl.addEventListener('blur', () => {
+          if (userIdInputEl.value !== '') {
+            userIdInputEl.style.border = '1px solid #ccc';
+            FlagsConfig.updateFlagsConfig('userId', userIdInputEl.value);
+          } else {
+            userIdInputEl.style.border = '1px solid red';
+          }
+        })
+        userIdInputEl.className = 'device_input';
+        userIdInputEl.id = 'user_id_input';
+        configFooterDiv.appendChild(userIdLabelEl);
+        configFooterDiv.appendChild(userIdInputEl);
         configDiv.appendChild(configFooterDiv);
       }
 
@@ -347,6 +390,12 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled', selected: true }, { option: 'Disabled' }],
       describeContent: 'Raw Trace Cut By StartTs, StartTs = Max(Cpu1 StartTs, Cpu2 StartTs, ..., CpuN StartTs)',
     },
+    {
+      title: 'AI',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'Start AI',
+      addInfo: { userId: '' },
+    }
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {

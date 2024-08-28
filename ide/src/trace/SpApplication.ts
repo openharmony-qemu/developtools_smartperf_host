@@ -79,6 +79,7 @@ import '../base-ui/chart/scatter/LitChartScatter';
 import { SpThirdParty } from './component/SpThirdParty';
 import './component/SpThirdParty';
 import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
+import './component/SpBubblesAI';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
