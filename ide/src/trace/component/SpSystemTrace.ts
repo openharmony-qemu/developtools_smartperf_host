@@ -229,6 +229,9 @@ export class SpSystemTrace extends BaseElement {
   focusTarget: string = '';
   wakeupListTbl: LitTable | undefined | null;
   _checkclick: boolean = false; //判断点击getWakeupList按钮
+  docomList: Array<number> = []; 
+  repaintList: Array<number> = [];
+  presentList: Array<number> = []; 
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
