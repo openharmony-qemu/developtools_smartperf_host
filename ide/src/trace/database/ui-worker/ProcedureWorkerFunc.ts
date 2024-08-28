@@ -144,6 +144,7 @@ export function funcStructOnClick(
         let hoverFuncStruct = entry || FuncStruct.hoverFuncStruct;
         FuncStruct.selectFuncStruct = hoverFuncStruct;
         sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
+        TraceRow.rangeSelectObject = undefined;
         let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
         let showTabArray: Array<string> = ['current-selection'];
         if (flagConfig!.TaskPool === 'Enabled') {
