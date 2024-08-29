@@ -835,7 +835,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         item.value = item.value.split(':').at(-1)!;
       }
       list.push(item);
-    })
+    });
 
     this.currentSelectionTbl!.dataSource = list;
     // @ts-ignore
