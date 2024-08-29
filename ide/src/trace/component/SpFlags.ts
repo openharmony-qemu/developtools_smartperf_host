@@ -72,14 +72,7 @@ export class SpFlags extends BaseElement {
       configSelect.appendChild(configOption);
     });
     configSelect.addEventListener('change', () => {
-      // @ts-ignore
-      let title = configSelect.getAttribute('title');
-      // @ts-ignore
-      FlagsConfig.updateFlagsConfig(title!, configSelect.selectedOptions[0].value);
-      //@ts-ignore
-      if (CONFIG_STATE[config.title]) {
-        this.flagSelectListener(configSelect, title);
-      }
+      this.flagSelectListener(configSelect);
       if (configSelect.title === 'AI') {
         let userIdInput: HTMLInputElement | null | undefined = this.shadowRoot?.querySelector('#user_id_input');
         let xiaoLubanEl: Element | null | undefined = document.querySelector('sp-application')?.shadowRoot?.querySelector('#sp-bubbles')
@@ -108,9 +101,13 @@ export class SpFlags extends BaseElement {
     configDiv.appendChild(description);
   }
   //监听flag-select的状态选择
-  private flagSelectListener(configSelect: HTMLSelectElement, title: string | null): void {
+  private flagSelectListener(configSelect: HTMLSelectElement): void {
+    // @ts-ignore
+    let title = configSelect.getAttribute('title');
     //@ts-ignore
     let listSelect = this.shadowRoot?.querySelector(`#${CONFIG_STATE[title]?.[0]}`);
+    // @ts-ignore
+    FlagsConfig.updateFlagsConfig(title!, configSelect.selectedOptions[0].value);
     //@ts-ignore
     if (listSelect) {
       // @ts-ignore
