@@ -44,15 +44,25 @@ const initHtmlStyle: string = `
             display: grid;
             width: 100%;
             height: 56px;
-            font-size: 1.4rem;
-            padding-left: 20px;
-            gap: 0 20px;
+            padding-left: 24px;
+            gap: 0 14px;
             box-sizing: border-box;
             grid-template-columns: min-content 1fr min-content;
             grid-template-rows: auto;
             color: #47A7E0;
             background-color: var(--dark-background1);
             border-bottom: 1px solid var(--dark-background1,#EFEFEF);
+            align-self: center;
+        }
+        .logo-img{
+          width: 32px;
+          height: 32px;
+          vertical-align: middle;
+        }
+        .logo-text{
+          font-family: 鸿蒙;
+          font-size: 20px;
+          color: #1E4EEA;
         }
         .bottom{
             width: 100%;
@@ -81,7 +91,7 @@ const initHtmlStyle: string = `
         .menu-button{
             display: flex;
             align-content: center;
-            justify-content: right;
+            justify-content: center;
             cursor: pointer;
             height: 47px;
             width: 48px;
@@ -273,14 +283,17 @@ export class LitMainMenu extends BaseElement {
     return `
         ${initHtmlStyle}
         <div class="header" name="header">
-            <img src="img/logo.png"/>
-                <div class="menu-button">
-                    <lit-icon name="menu" size="20" color="var(blue,#4D4D4D)"></lit-icon>
-                </div>
+            <img class="logo-img" src="img/logo.png"/>
+            <span class="logo-text">
+              HiSmartPerf
+            </span>
+            <div class="menu-button">
+                <lit-icon name="menu" size="20" color="var(blue,#4D4D4D)"></lit-icon>
             </div>
-            <div class="menu-body" style="overflow: auto;overflow-x:hidden;height: 100%">
-                <slot id="st" ></slot>
-                </div>
+        </div>
+        <div class="menu-body" style="overflow: auto;overflow-x:hidden;height: 100%">
+            <slot id="st" ></slot>
+        </div>
         <div class="bottom">
              <div class="customColor">
                 <lit-icon name="bg-colors" size="20" color="grey"></lit-icon>
