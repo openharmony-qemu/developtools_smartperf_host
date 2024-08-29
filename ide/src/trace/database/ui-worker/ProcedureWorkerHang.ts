@@ -60,11 +60,11 @@ export class HangRender extends Render {
   }
 }
 
-export function HangStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+export function HangStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollCallback: Function): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if ((clickRowType === TraceRow.ROW_TYPE_HANG || clickRowType === TraceRow.ROW_TYPE_HANG_INNER) && HangStruct.hoverHangStruct) {
       HangStruct.selectHangStruct = HangStruct.hoverHangStruct;
-      sp.traceSheetEL?.displayHangData(HangStruct.selectHangStruct, sp);
+      sp.traceSheetEL?.displayHangData(HangStruct.selectHangStruct, sp, scrollCallback);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {
@@ -86,6 +86,7 @@ export class HangStruct extends BaseStruct {
   type: HangType | undefined;   // 手动补充 按时间分类
   pname: string | undefined;    // 手动补充
   content: string | undefined;    // 手动补充 在tab页中需要手动解析内容
+  name: string | undefined;
 
   static getFrameColor(data: HangStruct): string {
     return ({
@@ -115,7 +116,7 @@ export class HangStruct extends BaseStruct {
         drawString(ctx, `${data.type || ''}`, 1, data.frame, data);
       }
 
-      if (data === HangStruct.selectHangStruct) {
+      if (data === HangStruct.selectHangStruct && HangStruct.equals(HangStruct.selectHangStruct, data)) {
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.strokeRect(
@@ -132,5 +133,19 @@ export class HangStruct extends BaseStruct {
 
   static isHover(data: HangStruct): boolean {
     return data === HangStruct.hoverHangStruct || data === HangStruct.selectHangStruct;
+  }
+  static equals(d1: HangStruct, d2: HangStruct): boolean {
+    return (
+      d1 &&
+      d2 &&
+      d1.pid === d2.pid &&
+      d1.tid === d2.tid &&
+      d1.pname === d2.pname &&
+      d1.startNS === d2.startNS &&
+      d1.dur === d2.dur &&
+      d1.type === d2.type &&
+      d1.id === d2.id &&
+      d1.name === d2.name
+    );
   }
 }
