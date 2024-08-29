@@ -102,21 +102,23 @@ option {
 <lit-page-table id="tb-hang">
     <lit-table-column title="StartTime" width="15%" data-index="startNS" key="startNS">
     </lit-table-column>
-    <lit-table-column title="Duration" width="10%" data-index="dur" key="dur">
+    <lit-table-column title="Duration" width="1fr" data-index="dur" key="dur">
     </lit-table-column>
-    <lit-table-column title="Hang type" width="10%" data-index="type" key="type">
+    <lit-table-column title="Hang type" width="1fr" data-index="type" key="type">
     </lit-table-column>
-    <lit-table-column title="Process" width="10%" data-index="pname" key="pname">
+    <lit-table-column title="Process" width="1fr" data-index="pname" key="pname">
     </lit-table-column>
-    <lit-table-column title="Sender tid" width="10%" data-index="sendEventTid" key="sendEventTid">
+    <lit-table-column title="Sender tid" width="1fr" data-index="sendEventTid" key="sendEventTid">
     </lit-table-column>
-    <lit-table-column title="Send time" width="10%" data-index="sendTime" key="sendTime">
+    <lit-table-column title="Send time" width="1fr" data-index="sendTime" key="sendTime">
     </lit-table-column>
-    <lit-table-column title="Expect handle time" width="10%" data-index="expectHandleTime" key="expectHandleTime">
+    <lit-table-column title="Expect handle time" width="1fr" data-index="expectHandleTime" key="expectHandleTime">
     </lit-table-column>
-    <lit-table-column title="Task name/Id" width="10%" data-index="taskNameId" key="taskNameId">
+    <lit-table-column title="Task name/Id" width="1fr" data-index="taskNameId" key="taskNameId">
     </lit-table-column>
-    <lit-table-column title="Sender" width="10%" data-index="caller" key="caller">
+    <lit-table-column title="Prio" width="5%" data-index="prio" key="prio">
+    </lit-table-column>
+    <lit-table-column title="Sender" width="15%" data-index="caller" key="caller">
     </lit-table-column>
 </lit-page-table>
 `;

@@ -831,6 +831,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         "Send time",
         "Expect handle time",
         "Task name/ID",
+        "Prio",
         "Sender"
       ][index],
       value: item,

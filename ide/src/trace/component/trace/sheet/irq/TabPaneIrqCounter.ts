@@ -214,8 +214,23 @@ export class TabPaneIrqCounter extends BaseElement {
         }
         //当全局Ts等于minEndTs时，只做删除处理
         if (globalTs === minEndTs) {
-          if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
-          continue;
+          if (minIndex !== -1) {  
+            const item = waitArr[minIndex];  
+            if (item.endTime > item.startTime) {
+              waitArr.splice(minIndex, 1);  
+            } else {  
+              // wallDuration为0，需要特别处理  
+              const obj: finalResultBean = {  
+                cat: item.cat,  
+                name: item.name,  
+                wallDuration: 0,
+                count: item.isFirstObject === 1 ? 1 : 0 
+              };  
+              completedArr.push(obj);  
+              waitArr.splice(minIndex, 1);
+            }  
+            continue;
+          }
         }
         let obj: finalResultBean = {
           cat: '',
@@ -283,7 +298,6 @@ export class TabPaneIrqCounter extends BaseElement {
     private aggregateData(data: finalResultBean[], isSelectIrq: boolean): void {
       function groupAndSumDurations(items: finalResultBean[]): finalResultBean[] {
         const grouped: Record<string, finalResultBean> = items.reduce((acc, item) => {
-          if (item.wallDuration !== 0) {
             if (item.cat === 'irq' && !isSelectIrq) {//若没有框选irq，则不对其进行处理
               return acc;
             }
@@ -305,7 +319,6 @@ export class TabPaneIrqCounter extends BaseElement {
               acc[item.name].maxDuration = item.wallDuration;
               acc[item.name].maxDurationFormat = (acc[item.name].maxDuration! / 1000).toFixed(2);
             }
-          }
           return acc;
         }, {} as Record<string, finalResultBean>);
         return Object.values(grouped);

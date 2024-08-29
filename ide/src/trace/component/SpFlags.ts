@@ -29,7 +29,7 @@ const CAT_SORT = {
 const CONFIG_STATE:unknown = {
   'VSync': ['vsyncValue', 'VsyncGeneratior'],
   'Start&Finish Trace Category': ['catValue', 'Business first'],
-  'Hangs': ['hangsSelect', 'Instant'],
+  'Hanging Detection': ['hangsSelect', 'Instant'],
 };
 
 @element('sp-flags')
@@ -214,7 +214,7 @@ export class SpFlags extends BaseElement {
         configDiv.appendChild(configFooterDiv);
       }
 
-      if (config.title === 'Hangs') {
+      if (config.title === 'Hanging Detection') {
         let configFooterDiv = this.createHangsOption();
         configDiv.appendChild(configFooterDiv);
       }
@@ -298,7 +298,7 @@ export class SpFlags extends BaseElement {
 
     let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
     let flagsItemJson = JSON.parse(flagsItem!);
-    let hangs = flagsItemJson['Hangs'];
+    let hangs = flagsItemJson['Hanging Detection'];
     if (hangs === 'Enabled') {
       hangsTypeEl.removeAttribute('disabled');
     } else {
@@ -360,9 +360,9 @@ export class FlagsConfig {
       addInfo: { vsyncValue: VSYNC_VAL.VsyncGeneratior },
     },
     {
-      title: 'Hangs',
+      title: 'Hanging Detection',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
-      describeContent: '',
+      describeContent: 'hangs type:Instant(33ms~100ms),Circumstantial(100ms~250ms),Micro(250ms~500ms),Severe(>=500ms)',
     },
     {
       title: 'LTPO',

@@ -145,8 +145,25 @@ export class TabPaneCpuByThread extends BaseElement {
       }
       //当全局Ts等于minEndTs时，只做删除处理
       if (globalTs === minEndTs) {
-        if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
-        continue;
+        if (minIndex !== -1) {  
+          const item = waitArr[minIndex];  
+          if (item.endTime > item.startTime) { 
+            waitArr.splice(minIndex, 1);  
+          } else {  
+            // wallDuration为0，需要特别处理  
+            const obj: finalResultBean = {  
+              cat: item.cat,  
+              cpu: item.cpu,  
+              dur: 0, 
+              pid: item.pid ? item.pid : '[NULL]',
+              tid: item.tid ? item.tid : '[NULL]',
+              occurrences: item.isFirstObject === 1 ? 1 : 0  
+            };  
+            completedArr.push(obj);  
+            waitArr.splice(minIndex, 1);
+          }  
+          continue;
+        }
       }
       let obj: finalResultBean = {
         cat: '',
@@ -237,7 +254,7 @@ export class TabPaneCpuByThread extends BaseElement {
     };
     data.forEach((obj) => {
       // 聚合 cpu 数据
-      if (obj.cat === "cpu" && obj.dur !== 0) {
+      if (obj.cat === "cpu") {
         const tidPidKey = `${obj.tid}-${obj.pid}`;
         const cpuDurationKey = `cpu${obj.cpu}`;
         const cpuPercentKey = `cpu${obj.cpu}Ratio`;
@@ -264,11 +281,11 @@ export class TabPaneCpuByThread extends BaseElement {
       }
 
       // 聚合 softirq 数据
-      if (obj.cat === "softirq" && obj.dur !== 0) {
+      if (obj.cat === "softirq") {
         this.updateIrqAndSoftirq(softirqAggregations, obj, cpuByThreadValue);
       }
       // 聚合 irq 数据
-      if (obj.cat === "irq" && obj.dur !== 0) {
+      if (obj.cat === "irq") {
         this.updateIrqAndSoftirq(irqAggregations, obj, cpuByThreadValue);
       }
 
@@ -285,12 +302,12 @@ export class TabPaneCpuByThread extends BaseElement {
     }
 
     // 添加softirq
-    if (softirqAggregations.wallDuration > 0) {
+    if (softirqAggregations.wallDuration >= 0) {
       result.push({ process: 'softirq', thread: 'softirq', tid: '[NULL]', pid: '[NULL]', ...softirqAggregations, });
     }
 
     // 添加 irq 数据
-    if (irqAggregations.wallDuration) {
+    if (irqAggregations.wallDuration >= 0) {
       result.push({ process: 'irq', thread: 'irq', tid: '[NULL]', pid: '[NULL]', ...irqAggregations });
     }
     this.handleFunction(result, cpuByThreadValue);
