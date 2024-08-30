@@ -807,7 +807,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl!.dataSource = list;
   }
 
-  async setHangData(data: HangStruct, sp: SpSystemTrace): Promise<void> {
+  async setHangData(data: HangStruct, sp: SpSystemTrace, scrollCallback: Function): Promise<void> {
     await this.setRealTime();
     this.setTableHeight('auto');
     this.tabCurrentSelectionInit('Hang Details');
@@ -846,48 +846,48 @@ export class TabPaneCurrentSelection extends BaseElement {
     // @ts-ignore
     let startTimeAbsolute = (data.startNS || 0) + window.recordStartNS;
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
-
-    let scrollIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#scroll-to-process');
-    scrollIcon?.addEventListener('click', this.hangScrollHandler(data, sp));
+    this.hangScrollHandler(data, sp, scrollCallback);
   }
 
-  private hangScrollHandler(data: HangStruct, sp: SpSystemTrace) {
-    return () => {
-      const rowId = `${data.pname ?? 'Process'} ${data.pid}`;
-      const rowParentId = `${data.pid}`;
-      const rowType = TraceRow.ROW_TYPE_HANG_INNER;
-
-      let row = sp.rowsEL?.querySelector<TraceRow<HangStruct>>(`trace-row[row-id='${rowParentId}'][folder]`);
-      if (row) {
-        row.expansion = true;
-
-        const innerHangRow = row.childrenList.find((childRow) => childRow.rowType === TraceRow.ROW_TYPE_HANG_INNER) as TraceRow<HangStruct>;
-        sp.currentRow = innerHangRow;
-        async function completeEntry(t: TabPaneCurrentSelection) {
-          if (!innerHangRow.dataListCache || innerHangRow.dataListCache.length == 0) {
-            await innerHangRow.supplierFrame!();
-          }
-
-          const findEntry = innerHangRow?.dataListCache.find((hangStruct) => {
-            return hangStruct.startNS === HangStruct.selectHangStruct?.startNS;
-          });
-
-          if (findEntry) {
-            HangStruct.selectHangStruct = findEntry;
-            t.setHangData(findEntry, sp);
-          }
-          sp.scrollToProcess(rowId, rowParentId, rowType);
-          sp.refreshCanvas(false);
-        }
-        if (innerHangRow.isComplete) {
-          completeEntry(this);
-        }
-        else {
-          sp.scrollToProcess(rowId, rowParentId, rowType);
-          innerHangRow.onComplete = () => completeEntry(this);
-        }
+  private hangScrollHandler(data: HangStruct, sp: SpSystemTrace, scrollCallback: Function) {
+    let scrollIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#scroll-to-process');
+    scrollIcon?.addEventListener('click', async () => {
+      //@ts-ignore
+      let folderRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>(
+        `trace-row[row-id='${Utils.getDistributedRowId(data.pid)}'][row-type='process']`
+      );
+      if (folderRow) {
+        folderRow.expansion = true;
       }
-    };
+      let funcRow = sp.queryAllTraceRow<TraceRow<FuncStruct>>(
+        `trace-row[row-id='${Utils.getDistributedRowId(data.tid)}'][row-type='func']`,
+        (row) => row.rowId === `${data.tid}` && row.rowType === 'func'
+      )[0];
+      sp.currentRow = funcRow;
+      if (!funcRow.dataListCache || funcRow.dataListCache.length === 0) {
+        funcRow.dataListCache = await funcRow.supplierFrame!();
+      }
+      const findEntry = funcRow?.dataListCache.find((funcstruct: unknown) => {
+        //@ts-ignore
+        return (funcstruct.startTs === data.startNS && funcstruct.funName === data.content);
+      })
+      scrollCallback({
+        //@ts-ignore
+        pid: findEntry.pid,
+        //@ts-ignore
+        tid: findEntry.tid,
+        type: 'func',
+        //@ts-ignore
+        dur: findEntry.dur,
+        //@ts-ignore
+        depth: findEntry.depth,
+        //@ts-ignore
+        funName: findEntry.funName,
+        //@ts-ignore
+        startTs: findEntry.startTs,
+        keepOpen: true
+      })
+    })
   }
 
   setPerfToolsData(data: PerfToolStruct): void {

@@ -177,6 +177,18 @@ function scrollToFuncHandlerFunc(sp: SpSystemTrace): Function {
   return funClickHandle;
 }
 
+function scrollToFunc(sp: SpSystemTrace): Function {
+  let funClickHandle = (funcStruct: unknown): void => {
+    // @ts-ignore
+    if (funcStruct.chainId) {
+    }
+    sp.observerScrollHeightEnable = true;
+    // @ts-ignore
+    sp.scrollToActFunc(funcStruct, false);
+  };
+  return funClickHandle;
+}
+
 function jankClickHandlerFunc(sp: SpSystemTrace): Function {
   let jankClickHandler = (d: unknown): void => {
     sp.observerScrollHeightEnable = true;
@@ -369,7 +381,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => CpuStateStructOnClick(clickRowType, sp, entry as CpuStateStruct))
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp, entry as CpuFreqLimitsStruct))
     .then(() => ClockStructOnClick(clickRowType, sp, entry as ClockStruct))
-    .then(() => HangStructOnClick(clickRowType, sp))
+    .then(() => HangStructOnClick(clickRowType, sp, scrollToFunc(sp)))
     .then(() => DmaFenceStructOnClick(clickRowType, sp, entry as DmaFenceStruct))
     .then(() => SnapshotStructOnClick(clickRowType, sp, row as TraceRow<SnapshotStruct>, entry as SnapshotStruct))
     .then(() => IrqStructOnClick(clickRowType, sp, entry as IrqStruct))
