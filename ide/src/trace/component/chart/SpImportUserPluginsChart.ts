@@ -178,6 +178,13 @@ export class SpImportUserPluginsChart {
 				//@ts-ignore
 				childRow.asyncFuncStartTID = element.asyncFuncStartTID;
 			}
+			//@ts-ignore
+			if (element.asyncFuncThreadName) {
+        //@ts-ignore
+        childRow.asyncFuncThreadName = element.asyncFuncThreadName;
+				//@ts-ignore
+        childRow.asyncFuncNamePID = element.asyncFuncNamePID;
+			}
 			childRow.findHoverStruct = (): void => {
 				//@ts-ignore
 				FuncStruct.hoverFuncStruct = childRow.getHoverStruct();
