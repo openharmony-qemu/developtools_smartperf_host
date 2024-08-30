@@ -375,12 +375,21 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  pushPidToSelection(selection: SelectionParam, id: string): void {
-    let pid = parseInt(id);
-    if (!isNaN(pid)) {
-      if (!selection.processIds.includes(pid)) {
-        selection.processIds.push(pid);
+  pushPidToSelection(selection: SelectionParam, id: string, originalId?: string | Array<string>): void {
+    let add = (it: string) => {
+      let pid = parseInt(it ? it : id);
+      if (!isNaN(pid!)) {
+        if (!selection.processIds.includes(pid!)) {
+          selection.processIds.push(pid!);
+        }
       }
+    }
+    if (Array.isArray(originalId)) {
+      originalId.forEach(item => {
+        add(item);
+      })
+    } else {
+      add(originalId!);
     }
   }
   // @ts-ignore

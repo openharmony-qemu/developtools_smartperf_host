@@ -59,6 +59,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_CPU_FREQ = 'cpu-freq';
   static ROW_TYPE_CPU_FREQ_LIMIT = 'cpu-limit-freq';
   static ROW_TYPE_CPU_FREQ_ALL = 'cpu-frequency';
+  static ROW_TYPE_IMPORT = 'import-match-file';
   static ROW_TYPE_CPU_STATE_ALL = 'cpu-State';
   static ROW_TYPE_CPU_FREQ_LIMITALL = 'cpu-frequency-limit';
   static ROW_TYPE_FPS = 'fps';
@@ -216,6 +217,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_LTPO: string | null | undefined;
   static ROW_TYPE_HITCH_TIME: string | null | undefined;
   asyncFuncStartTID!: number | undefined;
+  protoParentId: string | null | undefined;
+  protoPid: string | undefined;
+  summaryProtoPid:  Array<string> | undefined;
 
   constructor(
     args: {

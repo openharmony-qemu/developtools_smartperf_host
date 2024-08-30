@@ -189,7 +189,7 @@ export class TabPaneFreqUsage extends BaseElement {
           </lit-table-column>
           <lit-table-column class="running-percent-column" width="240px" title="Consume(MHz*ms)" data-index="consumption" key="consumption" align="flex-start">
           </lit-table-column>
-          <lit-table-column class="running-percent-column" width="200px" title="Freq(MHz)" data-index="frequency" key="frequency" align="flex-start">
+          <lit-table-column class="running-percent-column" width="200px" title="Freq(MHz:Cap)" data-index="frequency" key="frequency" align="flex-start">
           </lit-table-column>
           <lit-table-column class="running-percent-column" width="240px" title="Consume(cap*ms)" data-index="consumpower" key="consumpower" align="flex-start">
           </lit-table-column>

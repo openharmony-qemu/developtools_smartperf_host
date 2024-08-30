@@ -24,7 +24,7 @@ export function threadDataSender(
   traceId?: string
 ): Promise<ThreadStruct[] | boolean> {
   let trafic: number = TraficEnum.Memory;
-  let width = row.clientWidth - CHART_OFFSET_LEFT;
+  let width = row.clientWidth || row.parentRowEl!.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startTime: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),

@@ -416,8 +416,10 @@ function collectHandlerYes(sp: SpSystemTrace, currentRow: unknown, event: unknow
         // @ts-ignore
         !currentRow.name.includes(parentRow.name)
       ) {
-        // @ts-ignore
-        currentRow.name += `(${parentRow.name})`;
+        //@ts-ignore
+        currentRow.name = currentRow.protoParentId ? `${currentRow.name} (${currentRow.protoParentId})` : 
+        //@ts-ignore
+        `${currentRow.name} (${parentRow.name})`
       }
     });
   }
