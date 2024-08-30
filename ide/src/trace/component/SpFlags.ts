@@ -72,9 +72,7 @@ export class SpFlags extends BaseElement {
       configSelect.appendChild(configOption);
     });
     configSelect.addEventListener('change', () => {
-      if (configSelect.title === 'VSync' || configSelect.title === 'Start&Finish Trace Category') {
-        this.flagSelectListener(configSelect);
-      }
+      this.flagSelectListener(configSelect);
       if (configSelect.title === 'AI') {
         let userIdInput: HTMLInputElement | null | undefined = this.shadowRoot?.querySelector('#user_id_input');
         let xiaoLubanEl: Element | null | undefined = document.querySelector('sp-application')?.shadowRoot?.querySelector('#sp-bubbles')
@@ -106,7 +104,6 @@ export class SpFlags extends BaseElement {
   private flagSelectListener(configSelect: HTMLSelectElement): void {
     // @ts-ignore
     let title = configSelect.getAttribute('title');
-
     //@ts-ignore
     let listSelect = this.shadowRoot?.querySelector(`#${CONFIG_STATE[title]?.[0]}`);
     // @ts-ignore
@@ -226,11 +223,11 @@ export class SpFlags extends BaseElement {
   private createPersonOption(list: unknown, key: string, defaultKey: string, parentOption: string): HTMLDivElement {
     let configFooterDiv = document.createElement('div');
     configFooterDiv.className = 'config_footer';
-    let vsyncLableEl = document.createElement('lable');
-    vsyncLableEl.className = 'list_lable';
-    let vsyncTypeEl = document.createElement('select');
-    vsyncTypeEl.setAttribute('id', key);
-    vsyncTypeEl.className = 'flag-select';
+    let lableEl = document.createElement('lable');
+    lableEl.className = 'list_lable';
+    let typeEl = document.createElement('select');
+    typeEl.setAttribute('id', key);
+    typeEl.className = 'flag-select';
     //根据给出的list遍历添加option下来选框
     // @ts-ignore
     for (let k of Object.keys(list)) {
@@ -243,24 +240,24 @@ export class SpFlags extends BaseElement {
         option.selected = true;
         FlagsConfig.updateFlagsConfig(key, option.value);
       }
-      vsyncTypeEl.appendChild(option);
+      typeEl.appendChild(option);
     }
-    vsyncTypeEl.addEventListener('change', function () {
+    typeEl.addEventListener('change', function () {
       let selectValue = this.selectedOptions[0].value;
       FlagsConfig.updateFlagsConfig(key, selectValue);
     });
 
     let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
     let flagsItemJson = JSON.parse(flagsItem!);
-    let vsync = flagsItemJson[parentOption];
-    if (vsync === 'Enabled') {
-      vsyncTypeEl.removeAttribute('disabled');
+    let state = flagsItemJson[parentOption];
+    if (state === 'Enabled') {
+      typeEl.removeAttribute('disabled');
     } else {
-      vsyncTypeEl.setAttribute('disabled', 'disabled');
+      typeEl.setAttribute('disabled', 'disabled');
       FlagsConfig.updateFlagsConfig(key, defaultKey);
     }
-    configFooterDiv.appendChild(vsyncLableEl);
-    configFooterDiv.appendChild(vsyncTypeEl);
+    configFooterDiv.appendChild(lableEl);
+    configFooterDiv.appendChild(typeEl);
     return configFooterDiv;
   }
 
