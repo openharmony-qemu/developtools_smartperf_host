@@ -573,6 +573,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           }
           );
         }
+        list.push({ name: item.keyName, value: item.strValue });
       });
       if (binderSliceId === -1) {
         list.unshift({
