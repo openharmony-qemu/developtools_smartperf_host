@@ -878,7 +878,7 @@ export class SpProcessChart {
     funcRow: TraceRow<FuncStruct>,
     thread: unknown
   ): void {
-    if (this.hangProcessSet.has(data.pid!) && FlagsConfig.getFlagsConfigEnableStatus("Hanging Detection")) {
+    if (this.hangProcessSet.has(data.pid!) && FlagsConfig.getFlagsConfigEnableStatus("Hangs Detection")) {
       //@ts-ignore
       if (data.pid === thread.tid) {
         let hangsRow = TraceRow.skeleton<HangStruct>();

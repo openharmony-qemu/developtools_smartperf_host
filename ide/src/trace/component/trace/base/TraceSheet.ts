@@ -684,8 +684,8 @@ export class TraceSheet extends BaseElement {
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
-  displayHangData = (data: HangStruct, sp: SpSystemTrace): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setHangData(data, sp);
+  displayHangData = (data: HangStruct, sp: SpSystemTrace, scrollCallback: Function): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setHangData(data, sp, scrollCallback);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayDmaFenceData = (data: DmaFenceStruct, rowData: unknown): void =>//展示tab页内容

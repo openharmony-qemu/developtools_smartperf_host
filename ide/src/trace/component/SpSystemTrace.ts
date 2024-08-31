@@ -1439,6 +1439,10 @@ export class SpSystemTrace extends BaseElement {
       TraceRow.ROW_TYPE_VM_TRACKER_SMAPS,
       (): boolean => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
+    [
+      TraceRow.ROW_TYPE_HANG,
+      (): boolean => HangStruct.hoverHangStruct !== null && HangStruct.hoverHangStruct !== undefined,
+    ],
   ]);
 
   // @ts-ignore
