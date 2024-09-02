@@ -476,12 +476,6 @@ export class TabpaneNMCalltree extends BaseElement {
     ) {
       this.switchFlameChart(nmCallTreeData);
     } else {
-      this.nmCallTreeSource = [];
-      // 树状图数据清空
-      this.nmCallTreeTbl!.recycleDataSource = [];
-      // 火焰图数据清空
-      this.nmCallTreeFrameChart!.data = [];
-      this.switchFlameChart(nmCallTreeData);
       this.initGetFilterByNMCallTreeFilter(nmCallTreeData);
     }
   }

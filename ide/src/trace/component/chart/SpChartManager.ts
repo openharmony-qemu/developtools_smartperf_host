@@ -57,7 +57,8 @@ import { SpBpftraceChart } from './SpBpftraceChart';
 import { sliceSender } from '../../database/data-trafic/SliceSender';
 import { BaseStruct } from '../../bean/BaseStruct';
 import { SpGpuCounterChart } from './SpGpuCounterChart';
-import { SpUserFileChart } from './SpUserPluginChart'
+import { SpUserFileChart } from './SpUserPluginChart';
+import { SpImportUserPluginsChart } from './SpImportUserPluginsChart'
 import { queryDmaFenceIdAndCat } from '../../database/sql/dmaFence.sql';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
 
@@ -92,6 +93,7 @@ export class SpChartManager {
   private spPerfOutputDataChart: SpPerfOutputDataChart;
   private spGpuCounterChart: SpGpuCounterChart;
   private spUserFileChart: SpUserFileChart;
+  private spImportUserPluginsChart: SpImportUserPluginsChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -120,7 +122,8 @@ export class SpChartManager {
     this.spBpftraceChart = new SpBpftraceChart(trace);
     this.spPerfOutputDataChart = new SpPerfOutputDataChart(trace);
     this.spGpuCounterChart = new SpGpuCounterChart(trace);
-    this.spUserFileChart = new SpUserFileChart(trace)
+    this.spUserFileChart = new SpUserFileChart(trace);
+    this.spImportUserPluginsChart = new SpImportUserPluginsChart(trace);
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
@@ -162,6 +165,7 @@ export class SpChartManager {
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('UserPluginsRow')) {
       await this.spUserFileChart.init(null)
+      await this.spImportUserPluginsChart.init();
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('GpuCounter')) {
       await this.spGpuCounterChart.init([]);

@@ -80,7 +80,7 @@ private:
     std::deque<std::unique_ptr<APPStartupData>> startUIAbilityBySCBItems_;
     std::deque<std::unique_ptr<APPStartupData>> loadAbilityItems_;
     appMap mAPPStartupData_;
-    std::unordered_map<uint32_t, appMap> mAPPStartupDataWithPid_;
+    std::map<uint32_t, appMap> mAPPStartupDataWithPid_;
     const std::string procTouchCmd_ = "H:client dispatch touchId:";
     const std::string startUIAbilityBySCBCmd_ =
         "H:OHOS::ErrCode OHOS::AAFwk::AbilityManagerClient::StartUIAbilityBySCB";

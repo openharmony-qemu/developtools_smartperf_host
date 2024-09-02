@@ -35,6 +35,7 @@ import { TimerShaftElement } from './trace/TimerShaftElement';
 import { SpChartList } from './trace/SpChartList';
 type HTMLElementAlias = HTMLElement | null | undefined;
 import { Utils } from './trace/base/Utils';
+import { fuzzyQueryFuncRowData, queryFuncRowData } from '../database/sql/Func.sql';
 
 function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unknown {
   Object.assign(sp, {
@@ -415,8 +416,10 @@ function collectHandlerYes(sp: SpSystemTrace, currentRow: unknown, event: unknow
         // @ts-ignore
         !currentRow.name.includes(parentRow.name)
       ) {
-        // @ts-ignore
-        currentRow.name += `(${parentRow.name})`;
+        //@ts-ignore
+        currentRow.name = currentRow.protoParentId ? `${currentRow.name} (${currentRow.protoParentId})` : 
+        //@ts-ignore
+        `${currentRow.name} (${parentRow.name})`
       }
     });
   }
@@ -1137,6 +1140,10 @@ export async function spSystemTraceInit(
       sp.traceSheetEL?.displayHangsData();
       sp.traceSheetEL?.displaySystemStatesData();
     }
+    // 如果有render_service进程，查询该进程下对应泳道的方法存起来，以便框选时直接使用
+    if (it.getAttribute('name')?.includes('render_service') && it.getAttribute('row-type') === 'process') {
+      queryRowsData(sp, it.childrenList);
+    }
     sp.intersectionObserver?.observe(it);
   });
   // trace文件加载完毕,将动效json文件读取并存入缓存
@@ -1206,6 +1213,56 @@ function expansionChangeHandler(sp: SpSystemTrace, offsetYTimeOut: unknown): (ev
       clearTimeout(refreshTimeOut);
     }, 360);
   };
+}
+// 查询render_service对应方法行的所有数据
+// @ts-ignore
+function queryRowsData(sp: SpSystemTrace, rowList: Array<TraceRow<unknown>>): void {
+  rowList.forEach((row): void => {
+    if (row.getAttribute('row-type') === 'func') {
+      if (row.getAttribute('name')?.startsWith('render_service')) {
+        saveFrameRateData(sp, row, 'H:RSMainThread::DoComposition');
+      } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
+        saveFrameRateData(sp, row, 'H:Repaint');
+      } else if (row.getAttribute('name')?.startsWith('Present')) {
+        savePresentData(sp, row, 'H:Waiting for Present Fence');
+      }
+    }
+  });
+}
+
+// 查到所有的数据存储起来
+// @ts-ignore
+function saveFrameRateData(sp: SpSystemTrace, row: TraceRow<unknown>, funcName: string): void {
+  let dataList: unknown = [];
+  queryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void => {
+    if (res.length) {
+      res.forEach((item): void => {
+        // @ts-ignore
+        dataList?.push({ startTime: item.startTime!, tid: item.tid });
+      });
+      if (funcName === 'H:RSMainThread::DoComposition') {
+        // @ts-ignore
+        sp.docomList = dataList;
+      } else {
+        // @ts-ignore
+        sp.repaintList = dataList;
+      }
+    }
+  });
+}
+// 查到present泳道所有的数据存储起来
+// @ts-ignore
+function savePresentData(sp: SpSystemTrace, row: TraceRow<unknown>, funcName: string): void {
+  let dataList: unknown = [];
+  fuzzyQueryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void => {
+    if (res.length) {
+      res.forEach((item): void => {
+        // @ts-ignore
+        dataList?.push({ endTime: item.endTime!, tid: item.tid });
+      }); // @ts-ignore
+      sp.presentList = dataList;
+    }
+  });
 }
 function linkNodeHandler(linkNode: PairPoint[], sp: SpSystemTrace): void {
   if (linkNode[0].rowEL.collect) {

@@ -226,7 +226,8 @@ export class SelectionParam {
 
   // @ts-ignore
   pushProcess(it: TraceRow<unknown>, sp: SpSystemTrace): void {
-    if (it.rowType === TraceRow.ROW_TYPE_PROCESS) {
+    if (it.rowType === TraceRow.ROW_TYPE_PROCESS || it.rowType === TraceRow.ROW_TYPE_IMPORT) {
+      sp.pushPidToSelection(this, it.rowId!, it.summaryProtoPid);
       sp.pushPidToSelection(this, it.rowId!);
       if (it.getAttribute('hasStartup') === 'true') {
         this.startup = true;
@@ -322,7 +323,7 @@ export class SelectionParam {
   pushFunc(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_FUNC) {
       TabPaneTaskFrames.TaskArray = [];
-      sp.pushPidToSelection(this, it.rowParentId!);
+      sp.pushPidToSelection(this, it.rowParentId!, it.protoPid);
       if (it.asyncFuncName) {
         if (typeof it.asyncFuncName === 'string') {
           this.funAsync.push({
@@ -1015,7 +1016,7 @@ export class SelectionParam {
   // @ts-ignore
   pushThread(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_THREAD) {
-      sp.pushPidToSelection(this, it.rowParentId!);
+      sp.pushPidToSelection(this, it.rowParentId!, it.protoPid);
       if (it.dataListCache && it.dataListCache.length) {
         //@ts-ignore
         let hiTid = it.dataListCache[0]!.tid;

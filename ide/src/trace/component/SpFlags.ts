@@ -15,21 +15,31 @@
 
 import { BaseElement, element } from '../../base-ui/BaseElement';
 import { SpFlagHtml } from './SpFlag.html';
-const VSYNC_VAL = {
-  'VsyncGeneratior': 'H:VsyncGenerator',
-  'Vsync-rs': 'H:rs_SendVsync',
-  'Vsync-app': 'H:app_SendVsync'
-};
+const NUM = '000000';
+//vsync二级下拉选框对应的value和content
+const VSYNC_CONTENT = [
+  { value: 'H:VsyncGenerator', content: "VsyncGeneratior" },
+  { value: 'H:rs_SendVsync', content: 'Vsync-rs' },
+  { value: 'H:rs_SendVsync', content: 'Vsync-app' }
+]
+//cat二级下拉选框对应的value和content
+const CAT_CONTENT = [
+  { value: 'business', content: "Business first" },
+  { value: 'thread', content: 'Thread first' }
+]
+//hang二级下拉选框对应的value和content
+const HANG_CONTENT = [
+  { value: `33${NUM}`, content: "Instant" },
+  { value: `100${NUM}`, content: 'Circumstantial' },
+  { value: `250${NUM}`, content: 'Micro' },
+  { value: `500${NUM}`, content: 'Severe' }
+]
 
-const CAT_SORT = {
-  'Business first': 'business',
-  'Thread first': 'thread'
-};
-
+//整合默认值
 const CONFIG_STATE:unknown = {
   'VSync': ['vsyncValue', 'VsyncGeneratior'],
   'Start&Finish Trace Category': ['catValue', 'Business first'],
-  'Hangs Detection': ['hangsSelect', 'Instant'],
+  'Hangs Detection': ['hangValue', 'Instant'],
 };
 
 @element('sp-flags')
@@ -73,7 +83,25 @@ export class SpFlags extends BaseElement {
     });
     configSelect.addEventListener('change', () => {
       this.flagSelectListener(configSelect);
+      if (configSelect.title === 'AI') {
+        let userIdInput: HTMLInputElement | null | undefined = this.shadowRoot?.querySelector('#user_id_input');
+        let xiaoLubanEl: Element | null | undefined = document.querySelector('sp-application')?.shadowRoot?.querySelector('#sp-bubbles')
+          ?.shadowRoot?.querySelector('#xiao-luban-help');
+        if (configSelect.selectedOptions[0].value === 'Enabled') {
+          if (userIdInput?.value === '') {
+            userIdInput.style.border = '1px solid red';
+          }
+          xiaoLubanEl?.setAttribute('enabled', '');
+        } else {
+          userIdInput!.style.border = '1px solid #ccc';
+          xiaoLubanEl?.removeAttribute('enabled');
+        }
+      }
     });
+    let userIdInput: HTMLInputElement | null | undefined = this.shadowRoot?.querySelector('#user_id_input');
+    if (configSelect.title === 'AI' && configSelect.selectedOptions[0].value === 'Enabled' && userIdInput?.value === '') {
+      userIdInput.style.border = '1px solid red';
+    }
     let description = document.createElement('div');
     description.className = 'flag-des-div';
     description.textContent = config.describeContent;
@@ -86,7 +114,6 @@ export class SpFlags extends BaseElement {
   private flagSelectListener(configSelect: HTMLSelectElement): void {
     // @ts-ignore
     let title = configSelect.getAttribute('title');
-
     //@ts-ignore
     let listSelect = this.shadowRoot?.querySelector(`#${CONFIG_STATE[title]?.[0]}`);
     // @ts-ignore
@@ -156,113 +183,87 @@ export class SpFlags extends BaseElement {
         configFooterDiv.appendChild(deviceHeightEl);
         configDiv.appendChild(configFooterDiv);
       }
-
-      if (config.title === 'VSync') {
-        //@ts-ignore
-        let configKey = CONFIG_STATE[config.title]?.[0];
-        let configFooterDiv = this.createPersonOption(VSYNC_VAL, configKey, <string>config.addInfo!.vsyncValue, config.title);
+      //@ts-ignore
+      let configKey = CONFIG_STATE[config.title]?.[0];
+      if (config.title === 'VSync') {//初始化Vsync
+        let configFooterDiv = this.createPersonOption(VSYNC_CONTENT, configKey, config);
         configDiv.appendChild(configFooterDiv);
       }
 
-      if (config.title === 'Start&Finish Trace Category') {
-        //@ts-ignore
-        let configKey = CONFIG_STATE[config.title]?.[0];
-        let configFooterDiv = this.createPersonOption(CAT_SORT, configKey, <string>config.addInfo!.catValue, config.title);
+      if (config.title === 'Start&Finish Trace Category') {//初始化Start&Finish Trace Category
+        let configFooterDiv = this.createPersonOption(CAT_CONTENT, configKey, config);
         configDiv.appendChild(configFooterDiv);
       }
 
-      if (config.title === 'Hangs Detection') {
-        let configFooterDiv = this.createHangsOption();
+      if (config.title === 'Hangs Detection') {//初始化Hangs Detection
+        let configFooterDiv = this.createPersonOption(HANG_CONTENT, configKey, config);
         configDiv.appendChild(configFooterDiv);
       }
-
+      if (config.title === 'AI') {
+        let configFooterDiv = document.createElement('div');
+        configFooterDiv.className = 'config_footer';
+        let userIdLabelEl = document.createElement('label');
+        userIdLabelEl.className = 'device_label';
+        userIdLabelEl.textContent = 'User Id: ';
+        let userIdInputEl = document.createElement('input');
+        userIdInputEl.value = <string>config.addInfo!.userId;
+        userIdInputEl.addEventListener('blur', () => {
+          if (userIdInputEl.value !== '') {
+            userIdInputEl.style.border = '1px solid #ccc';
+            FlagsConfig.updateFlagsConfig('userId', userIdInputEl.value);
+          } else {
+            userIdInputEl.style.border = '1px solid red';
+          }
+        })
+        userIdInputEl.className = 'device_input';
+        userIdInputEl.id = 'user_id_input';
+        configFooterDiv.appendChild(userIdLabelEl);
+        configFooterDiv.appendChild(userIdInputEl);
+        configDiv.appendChild(configFooterDiv);
+      }
       this.bodyEl!.appendChild(configDiv);
     });
   }
 
-  private createPersonOption(list: unknown, key: string, defaultKey: string, parentOption: string): HTMLDivElement {
+  private createPersonOption(list: unknown, key: string, config: unknown): HTMLDivElement {
     let configFooterDiv = document.createElement('div');
     configFooterDiv.className = 'config_footer';
-    let vsyncLableEl = document.createElement('lable');
-    vsyncLableEl.className = 'list_lable';
-    let vsyncTypeEl = document.createElement('select');
-    vsyncTypeEl.setAttribute('id', key);
-    vsyncTypeEl.className = 'flag-select';
+    let lableEl = document.createElement('lable');
+    lableEl.className = 'list_lable';
+    let typeEl = document.createElement('select');
+    typeEl.setAttribute('id', key);
+    typeEl.className = 'flag-select';
     //根据给出的list遍历添加option下来选框
-    // @ts-ignore
-    for (let k of Object.keys(list)) {
-      let option = document.createElement('option'); // VsyncGeneratior = H:VsyncGenerator
-      // @ts-ignore
-      option.value = list[k];
-      option.textContent = k;
-      // @ts-ignore
-      if (list[k] === defaultKey) {
+    //@ts-ignore
+    for (const settings of list) {
+      let option = document.createElement('option');
+      option.value = settings.value;
+      option.textContent = settings.content;
+      //初始化二级按钮状态
+      //@ts-ignore
+      if (option.value === config.addInfo?.[key]) {
         option.selected = true;
         FlagsConfig.updateFlagsConfig(key, option.value);
       }
-      vsyncTypeEl.appendChild(option);
+      typeEl.appendChild(option);
     }
-    vsyncTypeEl.addEventListener('change', function () {
+    typeEl.addEventListener('change', function () {
       let selectValue = this.selectedOptions[0].value;
       FlagsConfig.updateFlagsConfig(key, selectValue);
     });
-
     let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
     let flagsItemJson = JSON.parse(flagsItem!);
-    let vsync = flagsItemJson[parentOption];
+    //@ts-ignore
+    let vsync = flagsItemJson[config.title];
     if (vsync === 'Enabled') {
-      vsyncTypeEl.removeAttribute('disabled');
+      typeEl.removeAttribute('disabled');
     } else {
-      vsyncTypeEl.setAttribute('disabled', 'disabled');
-      FlagsConfig.updateFlagsConfig(key, defaultKey);
+      typeEl.setAttribute('disabled', 'disabled');
+      //@ts-ignore
+      FlagsConfig.updateFlagsConfig(key, config.addInfo?.[key]);
     }
-    configFooterDiv.appendChild(vsyncLableEl);
-    configFooterDiv.appendChild(vsyncTypeEl);
-    return configFooterDiv;
-  }
-
-  /// Flags新增Hangs下拉框
-  private createHangsOption(): HTMLDivElement {
-    let configFooterDiv = document.createElement('div');
-    configFooterDiv.className = 'config_footer';
-    let hangsLableEl = document.createElement('lable');
-    hangsLableEl.className = 'hangs_lable';
-    let hangsTypeEl = document.createElement('select');
-    hangsTypeEl.setAttribute('id', 'hangsSelect');
-    hangsTypeEl.className = 'flag-select';
-
-    let hangOptions: Array<HTMLElementTagNameMap["option"]> = [];
-    for (const settings of [
-      { value: '33', content: "Instant" },
-      { value: '100', content: 'Circumstantial' },
-      { value: '250', content: 'Micro' },
-      { value: '500', content: 'Severe' }
-    ]) {
-      let hangOption = document.createElement('option');
-      hangOption.value = settings.value + '000000';
-      hangOption.textContent = settings.content;
-      hangOption.selected = false;
-      hangOptions.push(hangOption);
-      hangsTypeEl.appendChild(hangOption);
-    }
-
-    FlagsConfig.updateFlagsConfig('hangValue', hangOptions[0].value);
-    hangOptions[0].selected = true;
-    hangsTypeEl.addEventListener('change', function () {
-      let selectValue = this.selectedOptions[0].value;
-      FlagsConfig.updateFlagsConfig('hangValue', selectValue);
-    });
-
-    let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
-    let flagsItemJson = JSON.parse(flagsItem!);
-    let hangs = flagsItemJson['Hangs Detection'];
-    if (hangs === 'Enabled') {
-      hangsTypeEl.removeAttribute('disabled');
-    } else {
-      hangsTypeEl.setAttribute('disabled', 'disabled');
-    }
-    configFooterDiv.appendChild(hangsLableEl);
-    configFooterDiv.appendChild(hangsTypeEl);
+    configFooterDiv.appendChild(lableEl);
+    configFooterDiv.appendChild(typeEl);
     return configFooterDiv;
   }
 }
@@ -314,12 +315,13 @@ export class FlagsConfig {
       title: 'VSync',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'VSync Signal drawing',
-      addInfo: { vsyncValue: VSYNC_VAL.VsyncGeneratior },
+      addInfo: { vsyncValue: VSYNC_CONTENT[0].value },
     },
     {
       title: 'Hangs Detection',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'hangs type:Instant(33ms~100ms),Circumstantial(100ms~250ms),Micro(250ms~500ms),Severe(>=500ms)',
+      addInfo: { hangValue: HANG_CONTENT[0].value },
     },
     {
       title: 'LTPO',
@@ -330,7 +332,7 @@ export class FlagsConfig {
       title: 'Start&Finish Trace Category',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'Asynchronous trace aggregation',
-      addInfo: { catValue: CAT_SORT['Business first'] },
+      addInfo: { catValue: CAT_CONTENT[0].value },
     },
     {
       title: 'UserPluginsRow',
@@ -347,6 +349,12 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled', selected: true }, { option: 'Disabled' }],
       describeContent: 'Raw Trace Cut By StartTs, StartTs = Max(Cpu1 StartTs, Cpu2 StartTs, ..., CpuN StartTs)',
     },
+    {
+      title: 'AI',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'Start AI',
+      addInfo: { userId: '' },
+    }
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {

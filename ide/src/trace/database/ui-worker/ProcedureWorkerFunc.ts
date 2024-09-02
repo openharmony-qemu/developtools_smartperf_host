@@ -45,7 +45,8 @@ export class FuncRender {
       TraceRow.range!.totalNS,
       row.frame,
       req.useCache || !TraceRow.range!.refresh,
-      row.funcExpand
+      row.funcExpand,
+      row.rowParentId
     );
     drawLoadingFrame(req.context, funcFilter, row, true);
     req.context.beginPath();
@@ -91,9 +92,13 @@ export function func(
   totalNS: number,
   frame: Rect,
   use: boolean,
-  expand: boolean
+  expand: boolean,
+  rowParentId: string | null | undefined
 ): void {
   if (use && funcFilter.length > 0) {
+    if (rowParentId === "UserPluginsRows" && !expand) {
+      funcFilter = funcFilter.filter((it) => it.depth === 0)
+    }
     for (let i = 0, len = funcFilter.length; i < len; i++) {
       if ((funcFilter[i].startTs || 0) + (funcFilter[i].dur || 0) >= startNS && (funcFilter[i].startTs || 0) <= endNS) {
         FuncStruct.setFuncFrame(funcFilter[i], 0, startNS, endNS, totalNS, frame);
@@ -145,6 +150,7 @@ export function funcStructOnClick(
         let hoverFuncStruct = entry || FuncStruct.hoverFuncStruct;
         FuncStruct.selectFuncStruct = hoverFuncStruct;
         sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
+        TraceRow.rangeSelectObject = undefined;
         let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
         let showTabArray: Array<string> = ['current-selection'];
         if (flagConfig!.TaskPool === 'Enabled') {
