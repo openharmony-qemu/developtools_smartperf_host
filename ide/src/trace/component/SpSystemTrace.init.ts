@@ -500,6 +500,7 @@ function selectHandler(sp: SpSystemTrace): void {
       }
       sp.refreshCanvas(true);
       if (!SportRuler.isMouseInSportRuler) {
+        sp.traceSheetEL?.setMode('max');
         sp.traceSheetEL?.setMode('hidden');
       }
       return;
