@@ -53,9 +53,9 @@ export class TabPaneHangSummary extends BaseElement {
     queryAllHangs().then((ret) => {
       const filter = new Set([...selectionParam.hangMapData.keys()].map(key => key.split(' ').at(-1)));
       ret = ret.filter(struct => (
-        filter.has(`${struct.pid ?? 0}`)
-        && ((struct.startNS ?? 0) <= selectionParam.rightNs)
-        && (selectionParam.leftNs <= ((struct.startNS ?? 0) + (struct.dur ?? 0)))
+        filter.has(`${struct.pid ?? 0}`) &&
+        ((struct.startNS ?? 0) <= selectionParam.rightNs) &&
+        (selectionParam.leftNs <= ((struct.startNS ?? 0) + (struct.dur ?? 0)))
       ));
       this.systemHangSource = ret;
       if (filter.size > 0 && selectionParam) {
@@ -118,7 +118,7 @@ export class TabPaneHangSummary extends BaseElement {
     }
     this.refreshSelectDepth(this.hangTreeNodes);
     this.refreshRowNodeTable(true);
-  }
+  };
 
   private refreshSelectDepth(hangTreeNodes: HangTreeNode[]): void {
     hangTreeNodes.forEach((item): void => {
@@ -158,8 +158,8 @@ export class TabPaneHangSummary extends BaseElement {
       countEL.textContent = rowNode.count.toString();
       countEL.className = 'count-column-td';
       if (rowNode.depth === 0) {
-        rowNodeTextEL.style.color = ColorUtils.getHangColor((rowNode.name as HangType) ?? "");
-        countEL.style.color = ColorUtils.getHangColor((rowNode.name as HangType) ?? "");
+        rowNodeTextEL.style.color = ColorUtils.getHangColor((rowNode.name as HangType) ?? '');
+        countEL.style.color = ColorUtils.getHangColor((rowNode.name as HangType) ?? '');
       } else {
         rowNodeTextEL.style.color = rowColor;
         countEL.style.color = rowColor;
@@ -185,7 +185,7 @@ export class TabPaneHangSummary extends BaseElement {
         let scrollTop = this.hangSummaryTable?.scrollTop ?? 0;
         this.changeNode(rowNode.id);
         this.hangSummaryTable!.scrollTop = scrollTop;
-      })
+      });
     }
     tableRowEl.appendChild(toggleIconEl);
   }
@@ -248,7 +248,7 @@ export class TabPaneHangSummary extends BaseElement {
       } else {
         typeNode = {
           id: id += 1, depth: 0, children: [], count: 1,
-          name: item.type ?? "Undefined Type?",
+          name: item.type ?? 'Undefined Type?',
         };
         root.children.push(typeNode);
       }
@@ -259,14 +259,14 @@ export class TabPaneHangSummary extends BaseElement {
       } else {
         processNode = {
           id: id += 1, depth: 1, children: [], count: 1,
-          name: item.pname ?? "Process",
+          name: item.pname ?? 'Process',
         };
         typeNode.children.push(processNode);
       }
 
       let contentNode = {
         id: id += 1, depth: 2, children: [], count: 1,
-        name: item.content ?? "",
+        name: item.content ?? '',
       };
       processNode.children.push(contentNode);
     }

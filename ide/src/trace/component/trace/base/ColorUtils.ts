@@ -124,11 +124,11 @@ export class ColorUtils {
 
   public static getHangColor(hangType: HangType): string {
     return ({
-      "Instant": "#559CFF",
-      "Circumstantial": "#E8BE44",
-      "Micro": "#FEB354",
-      "Severe": "#FC7470",
-      "": "#000000",
+      'Instant': '#559CFF',
+      'Circumstantial': '#E8BE44',
+      'Micro': '#FEB354',
+      'Severe': '#FC7470',
+      '': '#000000',
     })[hangType];
   }
 

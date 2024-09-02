@@ -828,20 +828,20 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     data.content!.split(',').map((item, index) => ({
       name: [
-        "Sender tid",
-        "Send time",
-        "Expect handle time",
-        "Task name/ID",
-        "Prio",
-        "Sender"
+        'Sender tid',
+        'Send time',
+        'Expect handle time',
+        'Task name/ID',
+        'Prio',
+        'Sender'
       ][index],
       value: item,
     })).forEach((item, index) => {
       if (index === 0) {
-        item.value = item.value.split(':').at(-1)!
+        item.value = item.value.split(':').at(-1)!;
       }
       list.push(item);
-    })
+    });
 
     this.currentSelectionTbl!.dataSource = list;
     // @ts-ignore

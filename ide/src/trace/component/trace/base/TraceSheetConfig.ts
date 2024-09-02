@@ -142,7 +142,7 @@ import { TabPaneSliceChild } from '../sheet/process/TabPaneSliceChild';
 export let tabConfig: {
   [key: string]: {
     title: string
-    type: any
+    type: unknown
     require?: (param: SelectionParam) => boolean
   }
 } = {
