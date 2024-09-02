@@ -104,6 +104,15 @@ export class TabPaneCpuFreqLimits extends BaseElement {
       item.valueStr = `${ColorUtils.formatNumberComma(item.value!)} kHz`;
       return item;
     });
+    this.cpuFreqLimitSource.sort((a, b): number => {
+      let cpuLeftData = Number(a.cpu.toString().replace('Cpu',''));
+      let cpuRightData = Number(b.cpu.toString().replace('Cpu',''));
+      if (cpuLeftData > cpuRightData) {
+        return 1;
+      }else{
+        return -1;
+      }
+    })
     this.sortCpuFreqLimitTable(this.cpuFreqLimitSortKey, this.cpuFreqLimitSortType);
   }
 
@@ -151,12 +160,13 @@ export class TabPaneCpuFreqLimits extends BaseElement {
 
   compareCpu(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
     // @ts-ignore
-    if (cpuFreqLimitA.cpu > cpuFreqLimitB.cpu) {
-      return type === 2 ? -1 : 1; // @ts-ignore
-    } else if (cpuFreqLimitA.cpu === cpuFreqLimitB.cpu) {
-      return 0;
-    } else {
-      return type === 2 ? 1 : -1;
+    let cpuLeftData = Number(cpuFreqLimitA.cpu.toString().replace('Cpu',''));
+    // @ts-ignore
+    let cpuRightData = Number(cpuFreqLimitB.cpu.toString().replace('Cpu',''));
+    if (type === 1) {
+      return cpuLeftData - cpuRightData;
+    }else{
+      return cpuRightData - cpuLeftData;
     }
   }
 

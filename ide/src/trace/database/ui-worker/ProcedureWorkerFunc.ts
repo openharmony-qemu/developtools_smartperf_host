@@ -28,6 +28,7 @@ import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
 import { FlagsConfig } from '../../component/SpFlags';
 import { TabPaneTaskFrames } from '../../component/trace/sheet/task/TabPaneTaskFrames';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
+import { Utils } from '../../component/trace/base/Utils';
 
 export class FuncRender {
   renderMainThread(
@@ -44,7 +45,8 @@ export class FuncRender {
       TraceRow.range!.totalNS,
       row.frame,
       req.useCache || !TraceRow.range!.refresh,
-      row.funcExpand
+      row.funcExpand,
+      row.rowParentId
     );
     drawLoadingFrame(req.context, funcFilter, row, true);
     req.context.beginPath();
@@ -90,9 +92,13 @@ export function func(
   totalNS: number,
   frame: Rect,
   use: boolean,
-  expand: boolean
+  expand: boolean,
+  rowParentId: string | null | undefined
 ): void {
   if (use && funcFilter.length > 0) {
+    if (rowParentId === "UserPluginsRows" && !expand) {
+      funcFilter = funcFilter.filter((it) => it.depth === 0)
+    }
     for (let i = 0, len = funcFilter.length; i < len; i++) {
       if ((funcFilter[i].startTs || 0) + (funcFilter[i].dur || 0) >= startNS && (funcFilter[i].startTs || 0) <= endNS) {
         FuncStruct.setFuncFrame(funcFilter[i], 0, startNS, endNS, totalNS, frame);
@@ -144,6 +150,7 @@ export function funcStructOnClick(
         let hoverFuncStruct = entry || FuncStruct.hoverFuncStruct;
         FuncStruct.selectFuncStruct = hoverFuncStruct;
         sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
+        TraceRow.rangeSelectObject = undefined;
         let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
         let showTabArray: Array<string> = ['current-selection'];
         if (flagConfig!.TaskPool === 'Enabled') {
@@ -189,6 +196,7 @@ export function funcStructOnClick(
   });
 }
 export class FuncStruct extends BaseFuncStruct {
+  static textColor: string;
   [x: string]: unknown;
   static hoverFuncStruct: FuncStruct | undefined;
   static selectFuncStruct: FuncStruct | undefined;
@@ -236,14 +244,22 @@ export class FuncStruct extends BaseFuncStruct {
       if (data.dur === undefined || data.dur === null) {
       } else {
         ctx.globalAlpha = 1;
-        ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
-        let textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+        //@ts-ignore
+        if (Utils.getInstance().getCallStatckMap().get(data.funName) !== undefined) {
+          //@ts-ignore
+          ctx.fillStyle = ColorUtils.FUNC_COLOR[Utils.getInstance().getCallStatckMap().get(data.funName)];
+          //@ts-ignore
+          this.textColor = ColorUtils.FUNC_COLOR[Utils.getInstance().getCallStatckMap().get(data.funName)];
+        } else {
+          ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+          this.textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+        }
         if (FuncStruct.hoverFuncStruct && data.funName === FuncStruct.hoverFuncStruct.funName) {
           ctx.globalAlpha = 0.7;
         }
         ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
         if (data.frame.width > 10) {
-          ctx.fillStyle = ColorUtils.funcTextColor(textColor);
+          ctx.fillStyle = ColorUtils.funcTextColor(this.textColor);
           ctx.textBaseline = 'middle';
           drawFunString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }

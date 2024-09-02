@@ -57,7 +57,8 @@ import { SpBpftraceChart } from './SpBpftraceChart';
 import { sliceSender } from '../../database/data-trafic/SliceSender';
 import { BaseStruct } from '../../bean/BaseStruct';
 import { SpGpuCounterChart } from './SpGpuCounterChart';
-import { SpUserFileChart } from './SpUserPluginChart'
+import { SpUserFileChart } from './SpUserPluginChart';
+import { SpImportUserPluginsChart } from './SpImportUserPluginsChart'
 import { queryDmaFenceIdAndCat } from '../../database/sql/dmaFence.sql';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
 
@@ -92,6 +93,7 @@ export class SpChartManager {
   private spPerfOutputDataChart: SpPerfOutputDataChart;
   private spGpuCounterChart: SpGpuCounterChart;
   private spUserFileChart: SpUserFileChart;
+  private spImportUserPluginsChart: SpImportUserPluginsChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -120,7 +122,8 @@ export class SpChartManager {
     this.spBpftraceChart = new SpBpftraceChart(trace);
     this.spPerfOutputDataChart = new SpPerfOutputDataChart(trace);
     this.spGpuCounterChart = new SpGpuCounterChart(trace);
-    this.spUserFileChart = new SpUserFileChart(trace)
+    this.spUserFileChart = new SpUserFileChart(trace);
+    this.spImportUserPluginsChart = new SpImportUserPluginsChart(trace);
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
@@ -162,6 +165,7 @@ export class SpChartManager {
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('UserPluginsRow')) {
       await this.spUserFileChart.init(null)
+      await this.spImportUserPluginsChart.init();
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('GpuCounter')) {
       await this.spGpuCounterChart.init([]);
@@ -189,7 +193,7 @@ export class SpChartManager {
     await this.spHiSysEvent.init();
     let idAndNameArr = await queryDmaFenceIdAndCat();
     this.handleDmaFenceName(idAndNameArr as { id: number; cat: string; seqno: number; driver: string; context: string }[]);
-    if (FlagsConfig.getFlagsConfigEnableStatus('Hangs')) {
+    if (FlagsConfig.getFlagsConfigEnableStatus('Hangs Detection')) {
       progress('Hang init', 80);
       await this.hangChart.init();
     }
@@ -268,7 +272,7 @@ export class SpChartManager {
     progress(`trace ${traceId} cpu`, 70);
     let count = await sliceSender(traceId);
     // @ts-ignore
-    await this.cpu.init(count.cpu, traceFolder, traceId);
+    await this.cpu.init(count.count.cpu, traceFolder, traceId);
     info(`initData trace ${traceId} cpu Data initialized`);
     progress(`trace ${traceId} cpu freq`, 75);
     // @ts-ignore
@@ -347,11 +351,15 @@ export class SpChartManager {
       funcNameArray.forEach((it) => {
         //@ts-ignore
         Utils.getInstance().getCallStatckMap().set(`${traceId}_${it.id!}`, it.name);
+        //@ts-ignore
+        Utils.getInstance().getCallStatckMap().set(it.name, it.colorIndex);
       });
     } else {
       funcNameArray.forEach((it) => {
         //@ts-ignore
         Utils.getInstance().getCallStatckMap().set(it.id, it.name);
+        //@ts-ignore
+        Utils.getInstance().getCallStatckMap().set(it.name, it.colorIndex);
       });
     }
   }

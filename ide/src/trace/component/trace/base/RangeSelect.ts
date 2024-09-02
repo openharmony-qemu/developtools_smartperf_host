@@ -19,7 +19,6 @@ import { TimerShaftElement } from '../TimerShaftElement';
 import { info } from '../../../../log/Log';
 import './Extension';
 import { SpSystemTrace } from '../../SpSystemTrace';
-import { fuzzyQueryFuncRowData, queryFuncRowData } from '../../../database/sql/Func.sql';
 import { SpLtpoChart } from '../../chart/SpLTPO';
 import { isEmpty, isNotEmpty } from './Extension';
 
@@ -42,9 +41,6 @@ export class RangeSelect {
   };
   private trace: SpSystemTrace | null | undefined;
   drag = false;
-  docomList: Array<number> = [];
-  repaintList: Array<number> = [];
-  presentList: Array<number> = [];
 
   constructor(trace: SpSystemTrace | null | undefined) {
     this.trace = trace;
@@ -76,69 +72,7 @@ export class RangeSelect {
     this.rangeTraceRow = [];
     this.isMouseDown = true;
     TraceRow.rangeSelectObject = undefined;
-    // 遍历当前可视区域所有的泳道，如果有render_service进程，查询该进程下对应泳道的方法存起来，以便框选时直接使用
-    this.trace?.visibleRows.forEach((row) => {
-      if (row.getAttribute('name')?.startsWith('render_service')) {
-        if (row.getAttribute('row-type') === 'process') {
-          this.queryRowsData(row.childrenList);
-        } else {
-          this.queryRowsData(row.parentRowEl!.childrenList);
-        }
-        return;
-      }
-    });
-  }
-
-  // 对应查询方法行所有的数据
-  // @ts-ignore
-  queryRowsData(rowList: Array<TraceRow<unknown>>): void {
-    rowList.forEach((row): void => {
-      if (row.getAttribute('row-type') === 'func') {
-        if (row.getAttribute('name')?.startsWith('render_service')) {
-          this.saveFrameRateData(row, 'H:RSMainThread::DoComposition');
-        } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
-          this.saveFrameRateData(row, 'H:Repaint');
-        } else if (row.getAttribute('name')?.startsWith('Present')) {
-          this.savePresentData(row, 'H:Waiting for Present Fence');
-        }
-      }
-    });
-  }
-
-  // 查到所有的数据存储起来
-  // @ts-ignore
-  saveFrameRateData(row: TraceRow<unknown>, funcName: string): void {
-    let dataList: unknown = [];
-    queryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void => {
-      if (res.length) {
-        res.forEach((item): void => {
-          // @ts-ignore
-          dataList?.push({ startTime: item.startTime!, tid: item.tid });
-        });
-        if (funcName === 'H:RSMainThread::DoComposition') {
-          // @ts-ignore
-          this.docomList = dataList;
-        } else {
-          // @ts-ignore
-          this.repaintList = dataList;
-        }
-      }
-    });
-  }
-  // 查到present泳道所有的数据存储起来
-  // @ts-ignore
-  savePresentData(row: TraceRow<unknown>, funcName: string): void {
-    let dataList: unknown = [];
-    fuzzyQueryFuncRowData(funcName, Number(row?.getAttribute('row-id'))).then((res): void => {
-      if (res.length) {
-        res.forEach((item): void => {
-          // @ts-ignore
-          dataList?.push({ endTime: item.endTime!, tid: item.tid });
-        }); // @ts-ignore
-        this.presentList = dataList;
-      }
-    });
-  }
+  } 
 
   mouseUp(mouseEventUp?: MouseEvent): void {
     if (mouseEventUp) {
@@ -166,11 +100,11 @@ export class RangeSelect {
       ) {
         row.frameRateList = [];
         if (row.getAttribute('name')?.startsWith('render_service')) {
-          this.filterRateData(row, this.docomList);
+          this.filterRateData(row, this.trace?.docomList);
         } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
-          this.filterRateData(row, this.repaintList);
+          this.filterRateData(row, this.trace?.repaintList);
         } else if (row.getAttribute('name')?.startsWith('Present')) {
-          this.filterPresentData(row, this.presentList);
+          this.filterPresentData(row, this.trace?.presentList);
         }
       }
     });
@@ -221,6 +155,9 @@ export class RangeSelect {
       if (row.frameRateList?.length < 2) {
         row.frameRateList = [];
       } else {
+        if (row.frameRateList[row.frameRateList.length - 1] === null) {
+          row.frameRateList.pop();
+        }
         let hitchTimeList: Array<number> = [];
         for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
           if (

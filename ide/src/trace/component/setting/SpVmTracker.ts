@@ -80,7 +80,7 @@ export class SpVmTracker extends BaseElement {
         } else {
           Cmd.getProcess().then((processList) => {
             if (processList.length > 0) {
-              this.vmTrackerProcessInput!.dataSource(processList, '');
+              this.vmTrackerProcessInput!.dataSource(processList, '',true);
             } else {
               this.vmTrackerProcessInput!.dataSource([], '');
             }

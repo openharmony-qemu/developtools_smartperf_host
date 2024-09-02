@@ -185,6 +185,7 @@ export class TabPaneFlag extends BaseElement {
 
   private textInputKeyUpEventByFlag(index: number, tr: HTMLDivElement): void {
     tr.querySelector<HTMLInputElement>('#text-input')?.addEventListener('keyup', (event: unknown) => {
+      SpSystemTrace.isKeyUp = true;
       // @ts-ignore
       if (this.tableDataSource[index].startTime === this.flagList[index - 1].time && event.code === 'Enter' || event.code === 'NumpadEnter') {
         // @ts-ignore

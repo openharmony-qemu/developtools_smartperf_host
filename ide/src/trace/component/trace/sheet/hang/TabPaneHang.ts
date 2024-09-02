@@ -274,11 +274,11 @@ export class HangStructInPane {
   dur: string = '0';
   pname: string = 'Process';
   type: string;
-
   sendEventTid: string;
   sendTime: string;
   expectHandleTime: string;
   taskNameId: string;
+  prio: string;
   caller: string;
 
   constructor(parent: HangStruct) {
@@ -286,7 +286,7 @@ export class HangStructInPane {
     this.dur = getTimeString(parent.dur ?? 0);
     this.pname = `${parent.pname ?? this.pname} ${parent.pid ?? ''}`.trim();
     this.type = SpHangChart.calculateHangType(parent.dur ?? 0);
-    [this.sendEventTid, this.sendTime, this.expectHandleTime, this.taskNameId, this.caller] = (parent.content ?? ',0,0,,').split(',').map(i => i.trim());
+    [this.sendEventTid, this.sendTime, this.expectHandleTime, this.taskNameId, this.prio, this.caller] = (parent.content ?? ",0,0,,,").split(',').map(i => i.trim());
     this.sendEventTid = this.sendEventTid.split(':').at(-1)!;
   }
 

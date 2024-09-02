@@ -79,6 +79,7 @@ import '../base-ui/chart/scatter/LitChartScatter';
 import { SpThirdParty } from './component/SpThirdParty';
 import './component/SpThirdParty';
 import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
+import './component/SpBubblesAI';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -602,22 +603,36 @@ export class SpApplication extends BaseElement {
     let showFileName = fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
     TraceRow.rangeSelectObject = undefined;
     //@ts-ignore
-    let typeHeader = ev.slice(0, 6);
+    let typeStr = ev.slice(0, 100);
     let reader: FileReader | null = new FileReader();
-    reader.readAsText(typeHeader);
+    reader.readAsText(typeStr);
     reader.onloadend = (event): void => {
-      let headerStr: string = `${reader?.result}`;
-      SpApplication.traceType = headerStr;
-      if (headerStr.indexOf('SQLite') === 0) {
-        info('Parse trace headerStr sql mode');
-        this.wasm = false;
+      let isIncludeMark  = `${reader?.result}`.includes('MarkPositionJSON');
+      let typeHeader;
+      if (isIncludeMark) {
+        let markLength = `${reader?.result}`.split('->')[0].replace('MarkPositionJSON', '');
         //@ts-ignore
-        this.handleSqliteMode(ev, showFileName, ev.size, fileName);
-      } else {
-        info('Parse trace using wasm mode ');
-        this.wasm = true;
+        typeHeader = ev.slice(markLength.length + parseInt(markLength), markLength.length + parseInt(markLength) + 6);
+      } else{
         //@ts-ignore
-        this.handleWasmMode(ev, showFileName, ev.size, fileName);
+        typeHeader = ev.slice(0, 6);
+      }
+      let fileReader: FileReader | null = new FileReader();
+      fileReader.readAsText(typeHeader);
+      fileReader.onload = (event): void => {
+        let headerStr: string = `${fileReader?.result}`;
+        SpApplication.traceType = headerStr;
+        if (headerStr.indexOf('SQLite') === 0) {
+          info('Parse trace headerStr sql mode');
+          this.wasm = false;
+          //@ts-ignore
+          this.handleSqliteMode(ev, showFileName, ev.size, fileName);
+        } else {
+          info('Parse trace using wasm mode ');
+          this.wasm = true;
+          //@ts-ignore
+          this.handleWasmMode(ev, showFileName, ev.size, fileName);
+        }
       }
     };
   }
@@ -973,14 +988,18 @@ export class SpApplication extends BaseElement {
       reader.onloadend = (ev): void => {
         SpApplication.loadingProgress = 0;
         SpApplication.progressStep = 3;
+        let data = this.markPositionHandler(reader.result as ArrayBuffer);
         this.spSystemTrace!.loadDatabaseArrayBuffer(
-          reader.result as ArrayBuffer,
+          data,
           '',
           (command: string, _: number) => {
             this.setProgress(command);
           },
           false,
           () => {
+            if (this.markJson) {
+              window.publish(window.SmartEvent.UI.ImportRecord, this.markJson);
+            }
             this.mainMenu!.menus!.splice(2, this.mainMenu!.menus!.length > 2 ? 1 : 0, {
               collapsed: false,
               title: 'Current Trace',
@@ -1003,6 +1022,7 @@ export class SpApplication extends BaseElement {
             this.freshMenuDisable(false);
             this.spInfoAndStats!.initInfoAndStatsData();
             this.cutTraceFile!.style.display = 'none';
+            this.exportRecord!.style.display = 'none';
             this.headerDiv!.style.pointerEvents = 'auto';
           }
         );
@@ -1802,6 +1822,7 @@ export class SpApplication extends BaseElement {
       if (this.sidebarButton) {
         this.sidebarButton.style.width = '0px';
         this.importConfigDiv!.style.left = '5px';
+        this.contentLeftOption!.style.left = '5px';
         this.closeKeyPath!.style.left = '25px';
       }
       if (this.mainMenu) {
@@ -1821,6 +1842,7 @@ export class SpApplication extends BaseElement {
       if (this.sidebarButton) {
         this.sidebarButton.style.width = '48px';
         this.importConfigDiv!.style.left = '45px';
+        this.contentLeftOption!.style.left = '45px';
         this.closeKeyPath!.style.left = '65px';
       }
     };
@@ -1937,7 +1959,7 @@ export class SpApplication extends BaseElement {
       } else {
         this.progressEL!.loading = false;
       }
-      if (this.litSearch!.index > 0) {
+      if (this.litSearch!.list.length > 0) {
         let currentEntry = this.litSearch!.list[this.litSearch!.index];
         cancelCurrentTraceRowHighlight(this.spSystemTrace!, currentEntry);
       }

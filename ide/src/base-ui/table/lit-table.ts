@@ -183,7 +183,7 @@ export class LitTable extends HTMLElement {
         // @ts-ignore
         if (item.percent) {
           // @ts-ignore
-          const match = item.percent.match(/^(\d+(\.\d+)?)/);
+          const match = String(item.percent).match(/^(\d+(\.\d+)?)/);  
           if (match && match[1]) {
             const length = match[1].length;
             this.maxLength = Math.max(this.maxLength, length);

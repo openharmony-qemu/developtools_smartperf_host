@@ -17,6 +17,7 @@
 #define NATIVE_MEMORY_STDTYPE_H
 #include "base_stdtype.h"
 #include <unordered_map>
+#include <unordered_set>
 
 namespace SysTuning {
 namespace TraceStdtype {
@@ -160,6 +161,7 @@ public:
     void UpdateSymbolId(size_t index, DataIndex symbolId);
     void UpdateFileId(std::map<uint32_t, uint64_t> &filePathIdToFilePathName);
     void UpdateVaddrs(std::deque<std::string> &vaddrs);
+    void ClearUselessCallChainIds(const std::unordered_set<uint32_t> &callChainIdsSet);
     const std::deque<uint32_t> &CallChainIds() const;
     const std::deque<uint16_t> &Depths() const;
     const std::deque<uint64_t> &Ips() const;

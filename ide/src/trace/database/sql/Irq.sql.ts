@@ -70,7 +70,7 @@ export const queryIrqDataBoxSelect = (
 select case when i.cat = 'ipi' then 'IPI' || i.name else i.name end as irqName,
        'irq'                                                        as cat,
        sum(
-        min(${endNS},(i.ts - t.start_ts + iif(i.dur = -1 OR i.dur is null, 0, i.dur))) - min(${startNS},i.ts - t.start_ts)
+        min(${endNS},(i.ts - t.start_ts + iif(i.dur = -1 or i.dur is null, 0, i.dur))) - max(${startNS},i.ts - t.start_ts)
         )                                                           as wallDuration,
        max(dur)                                                     as maxDuration,
        count(1)                                                     as count,
@@ -94,7 +94,7 @@ export const querySoftIrqDataBoxSelect = (
 select i.name              as irqName,
        i.cat,
        sum(
-         min(${endNS},(i.ts - t.start_ts + iif(i.dur = -1 OR i.dur is null, 0, i.dur))) - min(${startNS},i.ts - t.start_ts)
+         min(${endNS},(i.ts - t.start_ts + iif(i.dur = -1 or i.dur is null, 0, i.dur))) - max(${startNS},i.ts - t.start_ts)
          )                 as wallDuration,
        max(dur)            as maxDuration,
        count(1)            as count,

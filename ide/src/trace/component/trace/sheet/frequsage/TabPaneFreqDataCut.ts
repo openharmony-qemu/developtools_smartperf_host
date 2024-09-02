@@ -524,7 +524,8 @@ export class TabPaneFreqDataCut extends BaseElement {
       let percent = Number(value[j].percent);
       // @ts-ignore
       let consumptionMap: Map<number, number> =
-        SpSegmentationChart.freqInfoMapData.size > 0 && SpSegmentationChart.freqInfoMapData.get(Number(value[j].cpu));
+      //@ts-ignore
+        SpSegmentationChart.freqInfoMapData.size > 0 && SpSegmentationChart.freqInfoMapData.get(Number(value[j].cpu))?.mapData;
       // 若存在算力值，则直接取值做计算。若不存在算力值，且频点值不为unknown的情况，则取频点值做计算，若为unknown，则取0做兼容
       const consumption: number = Number(
         consumptionMap && consumptionMap.get(Number(value[j].freq))
@@ -905,7 +906,8 @@ export class TabPaneFreqDataCut extends BaseElement {
       let percent = Number(value[j].percent);
       // @ts-ignore
       let consumptionMap: Map<number, number> =
-        SpSegmentationChart.freqInfoMapData.size > 0 && SpSegmentationChart.freqInfoMapData.get(Number(value[j].cpu));
+      //@ts-ignore
+        SpSegmentationChart.freqInfoMapData.size > 0 && SpSegmentationChart.freqInfoMapData.get(Number(value[j].cpu))?.mapData;
       // 若存在算力值，则直接取值做计算。若不存在算力值，且频点值不为unknown的情况，则取频点值做计算，若为unknown，则取0做兼容
       const consumption: number = Number(
         consumptionMap && consumptionMap.get(Number(value[j].freq))
@@ -1416,7 +1418,8 @@ export class TabPaneFreqDataCut extends BaseElement {
     // @ts-ignore
     let freq: Map<number, number> =
       SpSegmentationChart.freqInfoMapData.size > 0 &&
-      SpSegmentationChart.freqInfoMapData.get(SpSegmentationChart.freqInfoMapData.size - 1);
+      //@ts-ignore
+      SpSegmentationChart.freqInfoMapData.get(SpSegmentationChart.freqInfoMapData.size - 1)?.mapData;
     // @ts-ignore
     let yAxis: number =
       freq && freq.get(Number(maxFreqValue) * 1000) ? freq.get(Number(maxFreqValue) * 1000) : Number(maxFreqValue);

@@ -135,6 +135,12 @@ export class TabPaneNMemory extends BaseElement {
       this.tblData!.recycleDataSource = [];
       this.setNmMemoryLoading(false);
       if (results.length > 0) {
+        results.forEach((item) => {
+          //@ts-ignore
+          let tmpNumber = item.addr.split('x');
+          //@ts-ignore
+          item.addr = '0x' + Number(tmpNumber[1]).toString(16);
+        })
         this.memorySource = results;
         this.memoryTbl!.recycleDataSource = this.memorySource;
       } else {
@@ -188,7 +194,7 @@ export class TabPaneNMemory extends BaseElement {
         this.filterSetSelectList(nmFilterEl!, typeIndexOf);
         this.filterNativeType = `${typeIndexOf}`;
         this.rowSelectData = undefined;
-        this.queryData(val, false);
+        this.queryData(val, true);
       });
     } else {
       //@ts-ignore
@@ -402,7 +408,7 @@ export class TabPaneNMemory extends BaseElement {
                 let args = new Map<string, unknown>(); //@ts-ignore
                 args.set('startTs', this.rowSelectData.startTs);
                 args.set('actionType', 'native-memory-state-change');
-                this.startNmMemoryWorker('native-memory-action', args, (results: unknown[]) => {});
+                this.startNmMemoryWorker('native-memory-action', args, (results: unknown[]) => { });
                 TabPaneNMSampleList.addSampleData(this.rowSelectData, this.currentSelection!.nativeMemoryCurrentIPid);
                 this.memoryTbl!.scrollToData(this.rowSelectData);
               }
@@ -419,16 +425,14 @@ export class TabPaneNMemory extends BaseElement {
       if (this.parentElement?.clientHeight !== 0) {
         if (this.memoryTbl) {
           // @ts-ignore
-          this.memoryTbl.shadowRoot.querySelector('.table').style.height = `${
-            this.parentElement!.clientHeight - 10 - 31
-          }px`;
+          this.memoryTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 10 - 31
+            }px`;
         }
         this.memoryTbl?.reMeauseHeight();
         if (this.tblData) {
           // @ts-ignore
-          this.tblData.shadowRoot.querySelector('.table').style.height = `${
-            this.parentElement!.clientHeight - 10 - 31
-          }px`;
+          this.tblData.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 10 - 31
+            }px`;
         }
         this.tblData?.reMeauseHeight(); //@ts-ignore
         this.loadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;

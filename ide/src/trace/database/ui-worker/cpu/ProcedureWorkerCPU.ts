@@ -98,7 +98,7 @@ export class CpuRender {
       CpuStruct.draw(req.ctx, re, req.translateY);
     });
     req.ctx.closePath();
-    if (row.traceId === Utils.currentSelectTrace) {
+    if ((row.traceId === Utils.currentSelectTrace) || (row.traceId === null && Utils.currentSelectTrace === undefined)) {
       let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
       let wakeup = req.type === `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ?
         CpuStruct.selectCpuStruct : undefined;

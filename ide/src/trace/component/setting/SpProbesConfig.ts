@@ -399,7 +399,7 @@ const hiTraceConfigList = [
   { value: 'multimodalinput', isSelect: true },
   { value: 'musl', isSelect: false },
   { value: 'net', isSelect: false },
-  { value: 'notification', isSelect: false },
+  { value: 'notification', isSelect: true },
   { value: 'nweb', isSelect: false },
   { value: 'ohos', isSelect: true },
   { value: 'pagecache', isSelect: true },

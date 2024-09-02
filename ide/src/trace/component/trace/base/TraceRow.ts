@@ -59,6 +59,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_CPU_FREQ = 'cpu-freq';
   static ROW_TYPE_CPU_FREQ_LIMIT = 'cpu-limit-freq';
   static ROW_TYPE_CPU_FREQ_ALL = 'cpu-frequency';
+  static ROW_TYPE_IMPORT = 'import-match-file';
   static ROW_TYPE_CPU_STATE_ALL = 'cpu-State';
   static ROW_TYPE_CPU_FREQ_LIMITALL = 'cpu-frequency-limit';
   static ROW_TYPE_FPS = 'fps';
@@ -215,6 +216,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   currentContext: CanvasRenderingContext2D | undefined | null;
   static ROW_TYPE_LTPO: string | null | undefined;
   static ROW_TYPE_HITCH_TIME: string | null | undefined;
+  asyncFuncStartTID!: number | undefined;
+  protoParentId: string | null | undefined;
+  protoPid: string | undefined;
+  summaryProtoPid:  Array<string> | undefined;
 
   constructor(
     args: {
@@ -1539,7 +1544,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     let rectY = myRect.y;
     let rectHeight = myRect.height;
     if (!inFavoriteArea && favoriteHeight !== undefined) {
-      y = e.offsetY + prevScrollY - 90 - favoriteHeight!;
+      let expand = sessionStorage.getItem('expand');  
+      let foldHeight = Number(sessionStorage.getItem('foldHeight'));
+      y = expand === 'true' ?   
+        (e.offsetY + prevScrollY - 148 - favoriteHeight!) :  
+        (e.offsetY + prevScrollY - (148 - foldHeight) - favoriteHeight!); 
       rectY = this.offsetTop;
       rectHeight = this.clientHeight;
     }

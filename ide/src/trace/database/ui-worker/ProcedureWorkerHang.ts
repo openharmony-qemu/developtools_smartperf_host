@@ -60,11 +60,11 @@ export class HangRender extends Render {
   }
 }
 
-export function HangStructOnClick(clickRowType: string, sp: SpSystemTrace): Promise<unknown> {
+export function HangStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollCallback: Function): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if ((clickRowType === TraceRow.ROW_TYPE_HANG || clickRowType === TraceRow.ROW_TYPE_HANG_INNER) && HangStruct.hoverHangStruct) {
       HangStruct.selectHangStruct = HangStruct.hoverHangStruct;
-      sp.traceSheetEL?.displayHangData(HangStruct.selectHangStruct, sp);
+      sp.traceSheetEL?.displayHangData(HangStruct.selectHangStruct, sp, scrollCallback);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {
@@ -83,17 +83,15 @@ export class HangStruct extends BaseStruct {
   dur: number | undefined;
   tid: number | undefined;
   pid: number | undefined;
-  // 手动补充 按时间分类
-  type: HangType | undefined;
-  // 手动补充
-  pname: string | undefined;
-  // 手动补充 在tab页中需要手动解析内容
-  content: string | undefined;
+  type: HangType | undefined;   // 手动补充 按时间分类
+  pname: string | undefined;    // 手动补充
+  content: string | undefined;    // 手动补充 在tab页中需要手动解析内容
+  name: string | undefined;
 
   static getFrameColor(data: HangStruct): string {
     return ({
       'Instant': '#559CFF',
-      'Circumstantial': '#FFE44D',
+      'Circumstantial': '#E8BE44',
       'Micro': '#FEB354',
       'Severe': '#FC7470',
       '': '',
@@ -114,11 +112,11 @@ export class HangStruct extends BaseStruct {
 
       ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
       if (data.frame.width > 10) {
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = '#000';
         drawString(ctx, `${data.type || ''}`, 1, data.frame, data);
       }
 
-      if (data === HangStruct.selectHangStruct) {
+      if (data === HangStruct.selectHangStruct && HangStruct.equals(HangStruct.selectHangStruct, data)) {
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.strokeRect(
@@ -135,5 +133,19 @@ export class HangStruct extends BaseStruct {
 
   static isHover(data: HangStruct): boolean {
     return data === HangStruct.hoverHangStruct || data === HangStruct.selectHangStruct;
+  }
+  static equals(d1: HangStruct, d2: HangStruct): boolean {
+    return (
+      d1 &&
+      d2 &&
+      d1.pid === d2.pid &&
+      d1.tid === d2.tid &&
+      d1.pname === d2.pname &&
+      d1.startNS === d2.startNS &&
+      d1.dur === d2.dur &&
+      d1.type === d2.type &&
+      d1.id === d2.id &&
+      d1.name === d2.name
+    );
   }
 }

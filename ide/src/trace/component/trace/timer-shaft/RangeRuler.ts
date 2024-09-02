@@ -634,11 +634,11 @@ export class RangeRuler extends Graph {
       if (startTime === endTime) {
         let midNs = (this.range.endNS - this.range.startNS) / 2;
         if (startTime > midNs && startTime - midNs < this.range.totalNS - this.range.endNS) {
-          this.range.startNS += startTime - midNs;
-          this.range.endNS += startTime - midNs;
+          this.range.startNS = this.range.startNS + startTime - midNs;
+          this.range.endNS = this.range.endNS + startTime - midNs;
         } else if (startTime < midNs && midNs - startTime < this.range.startNS) {
-          this.range.startNS -= midNs - startTime;
-          this.range.endNS -= midNs - startTime;
+          this.range.startNS = this.range.startNS - midNs + startTime;
+          this.range.endNS = this.range.endNS - midNs + startTime;
         } else if (startTime > midNs && startTime - midNs > this.range.totalNS - this.range.endNS) {
           this.range.startNS = 2 * startTime - this.range.totalNS;
           this.range.endNS = this.range.totalNS;

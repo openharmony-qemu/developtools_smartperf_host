@@ -16,13 +16,16 @@
 import { BaseElement, element } from '../../../base-ui/BaseElement';
 import './TabThreadAnalysis';
 import './TabCpuAnalysis';
+import './processAnalysis/TabProcessAnalysis';
 import { TabCpuAnalysis } from './TabCpuAnalysis';
+import './processAnalysis/TabProcessAnalysis';
 import { TabThreadAnalysis } from './TabThreadAnalysis';
 import { LitTabs } from '../../../base-ui/tabs/lit-tabs';
 import { CheckCpuSetting } from './CheckCpuSetting';
 import { Top20FrequencyThread } from './Top20FrequencyThread';
 import { procedurePool } from '../../database/Procedure';
 import { Utils } from '../trace/base/Utils';
+import { TabProcessAnalysis } from './processAnalysis/TabProcessAnalysis';
 
 @element('sp-scheduling-analysis')
 export class SpSchedulingAnalysis extends BaseElement {
@@ -34,11 +37,13 @@ export class SpSchedulingAnalysis extends BaseElement {
   private tabs: LitTabs | null | undefined;
   private tabCpuAnalysis: TabCpuAnalysis | null | undefined;
   private tabThreadAnalysis: TabThreadAnalysis | null | undefined;
+  private tabProcessAnalysis: TabProcessAnalysis | null | undefined;
 
   initElements(): void {
     this.tabs = this.shadowRoot?.querySelector<LitTabs>('#tabs');
     this.tabCpuAnalysis = this.shadowRoot?.querySelector<TabCpuAnalysis>('#cpu-analysis');
     this.tabThreadAnalysis = this.shadowRoot?.querySelector<TabThreadAnalysis>('#thread-analysis');
+    this.tabProcessAnalysis = this.shadowRoot?.querySelector<TabProcessAnalysis>('#process-analysis');
   }
 
   static resetCpu(): void {
@@ -58,6 +63,7 @@ export class SpSchedulingAnalysis extends BaseElement {
       SpSchedulingAnalysis.cpuCount = Utils.getInstance().getWinCpuCount();
       this.tabCpuAnalysis?.init();
       this.tabThreadAnalysis?.init();
+      this.tabProcessAnalysis?.init();
     }
   }
 
@@ -95,12 +101,15 @@ export class SpSchedulingAnalysis extends BaseElement {
         <div class="content">
             <div class="interval"></div>
             <lit-tabs id="tabs" position="top-left" activekey="1" mode="card">
-                    <lit-tabpane key="1" tab="CPU Data">
-                        <tab-cpu-analysis id="cpu-analysis"></tab-cpu-analysis>
-                    </lit-tabpane>
-                    <lit-tabpane key="2" tab="Thread Analysis">
-                        <tab-thread-analysis id="thread-analysis"></tab-thread-analysis>
-                    </lit-tabpane>
+              <lit-tabpane key="1" tab="CPU Data">
+                  <tab-cpu-analysis id="cpu-analysis"></tab-cpu-analysis>
+              </lit-tabpane>
+              <lit-tabpane key="2" tab="Thread Analysis">
+                  <tab-thread-analysis id="thread-analysis"></tab-thread-analysis>
+              </lit-tabpane>
+              <lit-tabpane key="3" tab="Process Analysis">
+                  <tab-process-analysis id="process-analysis"></tab-process-analysis>
+              </lit-tabpane>
             </lit-tabs>
         </div>
         `;

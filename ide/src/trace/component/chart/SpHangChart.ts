@@ -25,7 +25,7 @@ import { BaseStruct } from '../../bean/BaseStruct';
 import { Utils } from '../trace/base/Utils';
 
 export type HangType = 'Instant' | 'Circumstantial' | 'Micro' | 'Severe' | '';
-
+const TIME_MS = 1000000;
 /// Hangs聚合泳道
 export class SpHangChart {
   private trace: SpSystemTrace;
@@ -36,7 +36,7 @@ export class SpHangChart {
   }
 
   static calculateHangType(dur: number): HangType {
-    const durMS = dur / 1000000;
+    const durMS = dur / TIME_MS;
     if (durMS < 33) {
       return '';
     }
@@ -145,7 +145,7 @@ export class SpHangChart {
         let hangStruct = HangStruct.hoverHangStruct;
         this.trace?.displayTip(
           traceRow, hangStruct,
-          `<span>${hangStruct?.type} ${hangStruct?.dur}</span>`
+          `<span>${hangStruct?.type} ${hangStruct?.dur! / TIME_MS}ms</span>`
         );
       };
       traceRow.findHoverStruct = (): void => {

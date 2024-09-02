@@ -39,6 +39,7 @@ export class HdcClient implements DataListener {
   private isSuccess: boolean = false;
   private handBody: DataView | undefined;
   private message: DataMessage | undefined;
+  private isSigna: boolean = false;
 
   constructor(
     transmissionChannel: TransmissionInterface,
@@ -55,7 +56,7 @@ export class HdcClient implements DataListener {
     this.sessionId = Utils.getSessionId();
     log(`sessionId is ${this.sessionId}`);
     this.isSuccess = false;
-    await this.handShakeConnect(AuthType.AUTH_NONE, '');
+    await this.handShakeConnect(AuthType.AUTH_NONE, 'authtype        1               1');
     let timeStamp = new Date().getTime();
     while (await this.readHandShakeMsg()) {
       if (new Date().getTime() - timeStamp > 10000) {
@@ -76,13 +77,24 @@ export class HdcClient implements DataListener {
         case AuthType.AUTH_TOKEN:
           continue;
         case AuthType.AUTH_SIGNATURE:
-          const response = await fetch(`${window.location.origin}/application/encryptHdcMsg?message=` + returnBuf);
+          const hdcMsgUrl = this.isSigna ? 'signatureHdcMsg' : 'encryptHdcMsg'
+          const response = await fetch(`${window.location.origin}/application/${hdcMsgUrl}?message=` + returnBuf);
           const dataBody = await response.json();
-          const encryptHdcMsg = dataBody.success && dataBody.data.signatures;
-          await this.handShakeConnect(AuthType.AUTH_SIGNATURE, encryptHdcMsg);
+          let signatureHdcMsg = '';
+          if (dataBody.success) {
+            signatureHdcMsg = dataBody.data.signatures;
+          } else {
+            break;
+          }
+          await this.handShakeConnect(AuthType.AUTH_SIGNATURE, signatureHdcMsg);
           timeStamp = new Date().getTime();
           continue;
         case AuthType.AUTH_PUBLICKEY:
+          if (returnBuf === 'authtype        1               1') {
+            this.isSigna = true;
+          } else {
+            this.isSigna = false;
+          }
           const responsePub = await fetch(`${window.location.origin}/application/hdcPublicKey`);
           const data = await responsePub.json();
           const publicKey = data.success && (`smartPerf-Host` + String.fromCharCode(12) + data.data.publicKey);

@@ -104,6 +104,12 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       case 'scheduling-Thread Freq':
         this.schedulingThreadFreq(data);
         break;
+      case 'scheduling-Process Top10Swicount':
+        this.schedulingProTop10Swicount(data);
+        break;
+      case 'scheduling-Process Top10RunTime':
+        this.schedulingProcessRunTime(data);
+        break;
     }
   }
   private schedulingClearData(data: { id: string; action: string; params: unknown }): void {
@@ -352,6 +358,40 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       this.queryThreadStateByTid(data.params.tid);
     }
   }
+  private schedulingProTop10Swicount(data: any): void {
+    if (data.params.list) {
+      let arr = convertJSON(data.params.list) || [];
+      self.postMessage({
+        id: data.id,
+        action: data.action,
+        results: arr,
+      });
+      arr = [];
+    } else {
+      if (data.params.pid) {
+        this.queryThrTop10Swicount(data.params.pid);
+      } else {
+        this.queryProTop10Swicount();
+      }
+    }
+  }
+  private schedulingProcessRunTime(data: any): void {
+    if (data.params.list) {
+      let arr = convertJSON(data.params.list) || [];
+      self.postMessage({
+        id: data.id,
+        action: data.action,
+        results: arr,
+      });
+      arr = [];
+    } else {
+      if (data.params.pid) {
+        this.queryThrTop10RunTime(data.params.pid);
+      } else {
+        this.queryProTop10RunTime();
+      }
+    }
+  }
   getProcessAndThread(): void {
     this.queryData(
       this.currentEventId,
@@ -537,7 +577,87 @@ where cpu not null
   order by cpu,ts;`;
     this.queryData(this.currentEventId, 'scheduling-Thread Freq', sql, {});
   }
-
+  queryProTop10Swicount() {
+    this.queryData(
+      this.currentEventId,
+      'scheduling-Process Top10Swicount',
+      `
+        select
+          pid,
+          count(tid) as occurrences
+        from
+          thread_state 
+        where
+          state = 'Running'
+        group by
+          pid
+        ORDER BY occurrences desc
+        LIMIT 10
+      `,
+      {}
+    );
+  }
+  queryThrTop10Swicount(pid: number) {
+    this.queryData(
+      this.currentEventId,
+      'scheduling-Process Top10Swicount',
+      `
+        select
+          tid,
+          count(tid) as occurrences
+        from
+          thread_state 
+        where
+          state = 'Running'
+        and pid = ${pid}
+        group by
+          tid
+        ORDER BY occurrences desc
+        LIMIT 10
+      `,
+      {}
+    );
+  }
+  queryProTop10RunTime() {
+    this.queryData(
+      this.currentEventId,
+      'scheduling-Process Top10RunTime',
+      `
+        select
+          pid,
+          SUM(dur) As dur
+        from
+          thread_state 
+        where
+          state = 'Running'
+        GROUP BY pid
+        ORDER BY dur desc
+        LIMIT 10
+      `,
+      {}
+    );
+  }
+  queryThrTop10RunTime(pid: number) {
+    this.queryData(
+      this.currentEventId,
+      'scheduling-Process Top10RunTime',
+      `
+        select
+          tid,
+          SUM(dur) As dur
+        from
+          thread_state 
+        where
+          state = 'Running'
+        and 
+          pid = ${pid}
+        GROUP BY tid
+        ORDER BY dur desc
+        LIMIT 10
+      `,
+      {}
+    );
+  }
   groupIrgDataByCpu(arr: Irq[]): Map<number, CpuAnalysis[]> {
     //首先计算 每个频点的持续时间，并根据Cpu来分组
     let map: Map<number, Array<Irq>> = new Map<number, Array<Irq>>();

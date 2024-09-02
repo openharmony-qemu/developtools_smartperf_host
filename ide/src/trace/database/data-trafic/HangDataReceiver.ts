@@ -101,6 +101,7 @@ function arrayBufferHandler(data: unknown, res: HangSQLStruct[], transfer: boole
     id[i] = it.id;
     startNS[i] = it.startNS;
     dur[i] = it.dur;
+    tid[i] = it.tid;
     pid[i] = it.pid;
   });
 

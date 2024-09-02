@@ -188,23 +188,34 @@ Promise<Array<unknown>> =>
              where startNS = ${startNs} and ipid = ${ipid};`,
     {}
   );
-export const queryMemoryConfig = (): Promise<Array<MemoryConfig>> =>
-  query(
+export const queryMemoryConfig = async (): Promise<Array<MemoryConfig>> => {
+  let keyList = await query(
+    'queryIsColorIndex',
+    `select
+        key
+      from
+        trace_config`,
+    {},
+  );
+  //@ts-ignore
+  let keySql = keyList && keyList.length > 0 && keyList.some(entry => entry.key === 'ipid') ? "AND key = 'ipid'" : "";
+  return query(
     'queryMemoryConfiig',
     `SELECT ipid as iPid, process.pid AS pid,
-      process.name AS processName,
-      (
-        SELECT value 
-        FROM trace_config 
-        WHERE trace_source = 'memory_config' AND key = 'sample_interval') AS interval
-    FROM
-      trace_config
-      LEFT JOIN process ON value = ipid
-    WHERE
-      trace_source = 'memory_config'
-      AND key = 'ipid'
-      ;`
+    process.name AS processName,
+    (
+      SELECT value 
+      FROM trace_config 
+      WHERE trace_source = 'memory_config' AND key = 'sample_interval') AS interval
+  FROM
+    trace_config
+    LEFT JOIN process ON value = ipid
+  WHERE
+    trace_source = 'memory_config'
+    ${keySql}
+    ;`
   );
+}
 
 // VM Tracker Purgeable泳道图
 export const queryPurgeableProcessData = (

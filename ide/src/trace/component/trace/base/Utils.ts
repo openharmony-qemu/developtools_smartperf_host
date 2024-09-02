@@ -648,9 +648,12 @@ export class Utils {
     }
     for (let i = 0; i < array1.length; i++) {
       // @ts-ignore
-      total.push(arr2Map.get(`${array1[i][0]}`));
-      // @ts-ignore
-      arr2Map.delete(`${array1[i][0]}`);
+      if (arr2Map.get(`${array1[i][0]}`)) {
+        // @ts-ignore
+        total.push(arr2Map.get(`${array1[i][0]}`));
+        // @ts-ignore
+        arr2Map.delete(`${array1[i][0]}`);
+      }
     };
     // 将map中剩余的循环加在total后
     // @ts-ignore
@@ -715,7 +718,7 @@ export class Utils {
         }
       }
     }
-    queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, isStatistic).then((res): void => {
+    queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, val.nativeMemoryCurrentIPid, isStatistic).then((res): void => {
       procedurePool.submitWithName('logic0', 'native-memory-init-responseType', res, undefined, (): void => { });
     });
   }

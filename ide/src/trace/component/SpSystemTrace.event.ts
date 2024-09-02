@@ -177,6 +177,18 @@ function scrollToFuncHandlerFunc(sp: SpSystemTrace): Function {
   return funClickHandle;
 }
 
+function scrollToFunc(sp: SpSystemTrace): Function {
+  let funClickHandle = (funcStruct: unknown): void => {
+    // @ts-ignore
+    if (funcStruct.chainId) {
+    }
+    sp.observerScrollHeightEnable = true;
+    // @ts-ignore
+    sp.scrollToActFunc(funcStruct, false);
+  };
+  return funClickHandle;
+}
+
 function jankClickHandlerFunc(sp: SpSystemTrace): Function {
   let jankClickHandler = (d: unknown): void => {
     sp.observerScrollHeightEnable = true;
@@ -369,7 +381,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => CpuStateStructOnClick(clickRowType, sp, entry as CpuStateStruct))
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp, entry as CpuFreqLimitsStruct))
     .then(() => ClockStructOnClick(clickRowType, sp, entry as ClockStruct))
-    .then(() => HangStructOnClick(clickRowType, sp))
+    .then(() => HangStructOnClick(clickRowType, sp, scrollToFunc(sp)))
     .then(() => DmaFenceStructOnClick(clickRowType, sp, entry as DmaFenceStruct))
     .then(() => SnapshotStructOnClick(clickRowType, sp, row as TraceRow<SnapshotStruct>, entry as SnapshotStruct))
     .then(() => IrqStructOnClick(clickRowType, sp, entry as IrqStruct))
@@ -421,6 +433,9 @@ export default function spSystemTraceOnClickHandler(
   }
   sp.queryAllTraceRow().forEach((it): boolean => (it.rangeSelect = false));
   sp.selectStructNull();
+  sp._slicesList.forEach((slice: { selected: boolean }): void => {
+    slice.selected = false;
+  });
   // 判断点击的线程是否在唤醒树内
   timeoutJudge(sp);
   allStructOnClick(clickRowType, sp, row, entry);
@@ -520,7 +535,7 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
   handleActions(sp, rows, ev);
 }
 
-function spSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: LitSearch): void {
+export function spSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: LitSearch): void {
   sp.refreshCanvas(true, 'sp move down');
   if (TraceRow.rangeSelectObject) {
     if (search && search.searchValue !== '') {
@@ -604,6 +619,9 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
   sp.observerScrollHeightEnable = false;
   if (sp.keyboardEnable) {
     if (keyPress === 'm') {
+      if(sp.selectFlag) {
+        sp.selectFlag!.selected = false;
+      } 
       sp.slicestime = sp.setSLiceMark(ev.shiftKey);
       if (sp.slicestime) {
         if (TraceRow.rangeSelectObject) {
@@ -617,6 +635,10 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
       }
     }
     if (keyPress === 'f') {
+      let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
+      if(search && search.searchValue !== '' && sp.currentRow !== undefined) {
+        sp.currentRow = undefined;
+      }
       let isSelectSliceOrFlag = false;
       // 设置当前选中的slicetime
       let selectSlice: unknown = undefined;
@@ -633,7 +655,7 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
         isSelectSliceOrFlag = true;
       }
 
-      if (!!sp.selectFlag) {
+      if (sp.selectFlag && sp.selectFlag.selected) {
         sp.currentSlicesTime.startTime = sp.selectFlag?.time;
         sp.currentSlicesTime.endTime = sp.selectFlag?.time;
         isSelectSliceOrFlag = true;

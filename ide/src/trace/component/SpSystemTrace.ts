@@ -125,6 +125,7 @@ import spSystemTraceOnClickHandler, {
   spSystemTraceDocumentOnMouseMove,
   spSystemTraceDocumentOnMouseOut,
   spSystemTraceDocumentOnMouseUp,
+  spSystemTraceDocumentOnMouseMoveMouseDown,
 } from './SpSystemTrace.event';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { readTraceFileBuffer } from '../SpApplicationPublicFunc';
@@ -132,6 +133,8 @@ import { PerfToolStruct } from '../database/ui-worker/ProcedureWorkerPerfTool';
 import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 import { SpProcessChart } from './chart/SpProcessChart';
+import { LitSearch } from './trace/search/Search';
+import { LitTable } from '../../base-ui/table/lit-table';
 import { HangStruct } from '../database/ui-worker/ProcedureWorkerHang';
 
 function dpr(): number {
@@ -224,6 +227,11 @@ export class SpSystemTrace extends BaseElement {
   static retargetIndex: number = 0;
   prevScrollY: number = 0;
   focusTarget: string = '';
+  wakeupListTbl: LitTable | undefined | null;
+  _checkclick: boolean = false; //判断点击getWakeupList按钮
+  docomList: Array<number> = []; 
+  repaintList: Array<number> = [];
+  presentList: Array<number> = []; 
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -235,6 +243,18 @@ export class SpSystemTrace extends BaseElement {
 
   set flagList(list: Array<unknown>) {
     this._flagList = list;
+  }
+
+  get checkclick(): boolean {
+    return this._checkclick;
+  }
+
+  set checkclick(value: boolean) {
+    if (value) {
+      this._checkclick = true;
+    } else {
+      this._checkclick = false;
+    }
   }
 
   //节流处理
@@ -355,12 +375,21 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  pushPidToSelection(selection: SelectionParam, id: string): void {
-    let pid = parseInt(id);
-    if (!isNaN(pid)) {
-      if (!selection.processIds.includes(pid)) {
-        selection.processIds.push(pid);
+  pushPidToSelection(selection: SelectionParam, id: string, originalId?: string | Array<string>): void {
+    let add = (it: string) => {
+      let pid = parseInt(it ? it : id);
+      if (!isNaN(pid!)) {
+        if (!selection.processIds.includes(pid!)) {
+          selection.processIds.push(pid!);
+        }
       }
+    }
+    if (Array.isArray(originalId)) {
+      originalId.forEach(item => {
+        add(item);
+      })
+    } else {
+      add(originalId!);
     }
   }
   // @ts-ignore
@@ -1168,6 +1197,10 @@ export class SpSystemTrace extends BaseElement {
       }
     }
     this.rangeTraceRow = rows;
+    let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
+    if(search?.isClearValue) {
+      spSystemTraceDocumentOnMouseMoveMouseDown(this, search!);
+    }
     this.rangeSelect.selectHandler?.(this.rangeSelect.rangeTraceRow, false);
   };
   inFavoriteArea: boolean | undefined;
@@ -1414,6 +1447,10 @@ export class SpSystemTrace extends BaseElement {
     [
       TraceRow.ROW_TYPE_VM_TRACKER_SMAPS,
       (): boolean => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
+    ],
+    [
+      TraceRow.ROW_TYPE_HANG,
+      (): boolean => HangStruct.hoverHangStruct !== null && HangStruct.hoverHangStruct !== undefined,
     ],
   ]);
 
@@ -1832,7 +1869,7 @@ export class SpSystemTrace extends BaseElement {
     this.subscribeBottomTabVisibleEvent();
   }
 
-  private scrollH: number = 0;
+  public scrollH: number = 0;
 
   subscribeBottomTabVisibleEvent(): void {
     //@ts-ignore
@@ -2272,8 +2309,9 @@ export class SpSystemTrace extends BaseElement {
     return dataList;
   }
 
-  showStruct(previous: boolean, currentIndex: number, structs: Array<unknown>, retargetIndex?: number): number {
-    return spSystemTraceShowStruct(this, previous, currentIndex, structs, retargetIndex);
+  showStruct(previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number): number {
+    let tagIndex = spSystemTraceShowStruct(this, previous, currentIndex, structs, retargetIndex);
+    return tagIndex === -1?currentIndex:tagIndex;
   }
 
   private toTargetDepth = (entry: unknown, funcRowID: string, funcStract: unknown): void => {
@@ -2594,9 +2632,15 @@ export class SpSystemTrace extends BaseElement {
   }
 
   queryCPUWakeUpList(data: WakeupBean): void {
+    if (this._checkclick) {
+      this.wakeupListTbl!.loading = true;
+    }
     TabPaneCurrentSelection.queryCPUWakeUpListFromBean(data).then((a: unknown) => {
       if (a === null) {
         window.publish(window.SmartEvent.UI.WakeupList, SpSystemTrace.wakeupList);
+        this.wakeupListTbl!.loading = false;
+        this._checkclick = false;
+        this.refreshCanvas(true);  
         return null;
       } // @ts-ignore
       SpSystemTrace.wakeupList.push(a); // @ts-ignore

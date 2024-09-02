@@ -685,8 +685,8 @@ export class TraceSheet extends BaseElement {
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
-  displayHangData = (data: HangStruct, sp: SpSystemTrace): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setHangData(data, sp);
+  displayHangData = (data: HangStruct, sp: SpSystemTrace, scrollCallback: Function): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setHangData(data, sp, scrollCallback);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayDmaFenceData = (data: DmaFenceStruct, rowData: unknown): void =>//展示tab页内容
@@ -1180,10 +1180,9 @@ export class TraceSheet extends BaseElement {
     param.processId = this.selection!.processIds;
     param.threadId = this.selection!.funTids;//@ts-ignore2
     param.name = e.detail.allName ? e.detail.allName : [e.detail.name];//@ts-ignore2
-    param.asyncNames = e.detail.asyncNames;//@ts-ignore2
-    param.asyncCatNames = e.detail.asyncCatNames;
-    param.isJumpPage = true;
-    (pane.children.item(0) as TabPaneSliceChild).data = param;
+    param.isJumpPage = true;// @ts-ignore
+    param.isSummary = e.detail.allName ? true : false;
+    (pane.children.item(0) as TabPaneSliceChild).data = {param: param, selection: this.selection};
   }
 
   clearMemory(): void {

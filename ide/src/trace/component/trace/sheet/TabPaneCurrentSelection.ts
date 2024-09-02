@@ -49,6 +49,7 @@ import {
 import {
   queryBinderArgsByArgset,
   queryDistributedRelationAllData,
+  queryRWakeUpFrom,
   queryRunnableTimeByRunning,
   queryThreadStateArgs,
   queryThreadWakeUp,
@@ -130,6 +131,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   private realTime: number = 0;
   private bootTime: number = 0;
   private funcDetailMap: Map<string, Array<object>> = new Map();
+  private topChainStr: string = '';
 
   set data(selection: unknown) {
     // @ts-ignore
@@ -205,6 +207,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     if (leftTitle) {
       leftTitle.innerText = 'Slice Details';
     }
+    this.currentSelectionTbl!.loading = true;
     let list: unknown[] = [];
     this.updateUI(data, list);
     Promise.all([this.queryThreadStateDArgs(data.argSetID), this.queryCPUWakeUpFromData(data)]).then((resArr) => {
@@ -219,6 +222,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         });
       }
       this.currentSelectionTbl!.dataSource = list;
+      this.currentSelectionTbl!.loading = false;
       let startTimeAbsolute = (data.startTime || 0) + Utils.getInstance().getRecordStartNS();
       this.addClickToTransfBtn(startTimeAbsolute, CPU_TRANSF_BTN_ID, CPU_STARTTIME_ABSALUTED_ID);
 
@@ -569,6 +573,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           }
           );
         }
+        list.push({ name: item.keyName, value: item.strValue });
       });
       if (binderSliceId === -1) {
         list.unshift({
@@ -803,7 +808,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl!.dataSource = list;
   }
 
-  async setHangData(data: HangStruct, sp: SpSystemTrace): Promise<void> {
+  async setHangData(data: HangStruct, sp: SpSystemTrace, scrollCallback: Function): Promise<void> {
     await this.setRealTime();
     this.setTableHeight('auto');
     this.tabCurrentSelectionInit('Hang Details');
@@ -827,6 +832,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         'Send time',
         'Expect handle time',
         'Task name/ID',
+        'Prio',
         'Sender'
       ][index],
       value: item,
@@ -841,49 +847,48 @@ export class TabPaneCurrentSelection extends BaseElement {
     // @ts-ignore
     let startTimeAbsolute = (data.startNS || 0) + window.recordStartNS;
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
-
-    let scrollIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#scroll-to-process');
-    scrollIcon?.addEventListener('click', this.hangScrollHandler(data, sp));
+    this.hangScrollHandler(data, sp, scrollCallback);
   }
 
-  private hangScrollHandler(data: HangStruct, sp: SpSystemTrace) {
-    return (): void => {
-      const rowId = `${data.pname ?? 'Process'} ${data.pid}`;
-      const rowParentId = `${data.pid}`;
-      const rowType = TraceRow.ROW_TYPE_HANG_INNER;
-
-      let row = sp.rowsEL?.querySelector<TraceRow<HangStruct>>(`trace-row[row-id='${rowParentId}'][folder]`);
-      if (row) {
-        row.expansion = true;
-
-        const innerHangRow = row.childrenList.find((childRow) => childRow.rowType === TraceRow.ROW_TYPE_HANG_INNER) as TraceRow<HangStruct>;
-        sp.currentRow = innerHangRow;
-        // @ts-ignore
-        async function completeEntry(t: TabPaneCurrentSelection): Promise<unknown> {
-          if (!innerHangRow.dataListCache || innerHangRow.dataListCache.length === 0) {
-            await innerHangRow.supplierFrame!();
-          }
-
-          const findEntry = innerHangRow?.dataListCache.find((hangStruct) => {
-            return hangStruct.startNS === HangStruct.selectHangStruct?.startNS;
-          });
-
-          if (findEntry) {
-            HangStruct.selectHangStruct = findEntry;
-            t.setHangData(findEntry, sp);
-          }
-          sp.scrollToProcess(rowId, rowParentId, rowType);
-          sp.refreshCanvas(false);
-        }
-        if (innerHangRow.isComplete) {
-          completeEntry(this);
-        }
-        else {
-          sp.scrollToProcess(rowId, rowParentId, rowType);
-          innerHangRow.onComplete = (): unknown => completeEntry(this);
-        }
+  private hangScrollHandler(data: HangStruct, sp: SpSystemTrace, scrollCallback: Function) {
+    let scrollIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#scroll-to-process');
+    scrollIcon?.addEventListener('click', async () => {
+      //@ts-ignore
+      let folderRow = sp.shadowRoot?.querySelector<TraceRow<unknown>>(
+        `trace-row[row-id='${Utils.getDistributedRowId(data.pid)}'][row-type='process']`
+      );
+      if (folderRow) {
+        folderRow.expansion = true;
       }
-    };
+      let funcRow = sp.queryAllTraceRow<TraceRow<FuncStruct>>(
+        `trace-row[row-id='${Utils.getDistributedRowId(data.tid)}'][row-type='func']`,
+        (row) => row.rowId === `${data.tid}` && row.rowType === 'func'
+      )[0];
+      sp.currentRow = funcRow;
+      if (!funcRow.dataListCache || funcRow.dataListCache.length === 0) {
+        funcRow.dataListCache = await funcRow.supplierFrame!();
+      }
+      const findEntry = funcRow?.dataListCache.find((funcstruct: unknown) => {
+        //@ts-ignore
+        return (funcstruct.startTs === data.startNS && funcstruct.funName === data.content);
+      })
+      scrollCallback({
+        //@ts-ignore
+        pid: findEntry.pid,
+        //@ts-ignore
+        tid: findEntry.tid,
+        type: 'func',
+        //@ts-ignore
+        dur: findEntry.dur,
+        //@ts-ignore
+        depth: findEntry.depth,
+        //@ts-ignore
+        funName: findEntry.funName,
+        //@ts-ignore
+        startTs: findEntry.startTs,
+        keepOpen: true
+      })
+    })
   }
 
   setPerfToolsData(data: PerfToolStruct): void {
@@ -1045,6 +1050,14 @@ export class TabPaneCurrentSelection extends BaseElement {
             class="wakeup-click"  name="select" color="#7fa1e7" size="20"></lit-icon>
             </div>`,
       });
+      list.push({
+        name: 'wakeup from top',
+        value: `<div style="white-space: nowrap;display: flex;align-items: center">
+            <div style="white-space:pre-wrap" id="wakeup-top-content" style="display: none"></div>
+            <lit-icon id="wakeup-top" class="temp-icon" title="Get to chain" name="restore" size="30" 
+              style="position: relative; top: 5px; left: 10px;"></lit-icon>
+            </div>`,
+      });
     }
     if (wakeUps !== null) {
       wakeUps.map((e) => {
@@ -1097,6 +1110,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
       this.stateClickHandler(preData, nextData, data, scrollWakeUp, scrollCallback, scrollPrio);
       this.wakeupClickHandler(wakeUps, fromBean, scrollWakeUp);
+      this.getWakeupChainClickHandler(fromBean, list);
     });
   }
 
@@ -1211,7 +1225,17 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
     });
   }
-
+  //点击事件获取唤醒链
+  private getWakeupChainClickHandler(fromBean: WakeupBean | undefined, list: unknown[]) {
+    this.currentSelectionTbl?.shadowRoot?.querySelector('#wakeup-top')?.addEventListener('click', async () => {
+      this.topChainStr = '';
+      //@ts-ignore
+      let currentThread = list.filter((item) => item.name === "Thread")?.[0].value;//点击的当前线程
+      let previouosWakeupThread = Utils.getInstance().getThreadMap().get(fromBean!.tid!) || 'Thread';//唤醒当前线程的上个线程
+      this.topChainStr = `-->${previouosWakeupThread}[${fromBean!.tid}]-->${currentThread}`;
+      this.getRWakeUpChain(fromBean);
+    })
+  }
   private async prepareThreadInfo(list: unknown[], data: ThreadStruct): Promise<void> {
     let processName = Utils.getInstance().getProcessMap().get(data.pid!);
     let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
@@ -2006,6 +2030,48 @@ export class TabPaneCurrentSelection extends BaseElement {
       list.push(...wakeUps);
     }
     return list;
+  }
+  //递归查找R唤醒链
+  getRWakeUpChain(data: WakeupBean | undefined):void  {
+    this.getRWakeUpChainData(data).then((wakeupFrom: unknown) => {
+      if (wakeupFrom === null) {//当查不到数据时，处理容器状态与样式，展示内容
+        let wakeupTopContent = this.currentSelectionTbl?.shadowRoot?.getElementById('wakeup-top-content');
+        let wakeupTopIcon = this.currentSelectionTbl?.shadowRoot?.querySelector<HTMLDivElement>('#wakeup-top');
+        wakeupTopContent!.innerText = 'idle' + this.topChainStr;//处理链顶部
+        wakeupTopIcon!.style.display = 'none'; 
+        wakeupTopContent!.style.display = 'block';
+        wakeupTopContent!.style.maxHeight = '100px';//设置最大高度，超出出现滚动条
+        wakeupTopContent!.style.overflow = 'auto'; 
+        return;
+      }
+      //@ts-ignore
+      this.topChainStr = `-->${wakeupFrom!.thread}[${wakeupFrom!.tid}]` + this.topChainStr;//链的拼接
+      // @ts-ignore
+      this.getRWakeUpChain(wakeupFrom);
+    });
+  }
+
+  /**
+   * 获取 R的唤醒链
+   * @param data
+  */
+  async getRWakeUpChainData(data: unknown): Promise<WakeupBean | null> {
+    let wakeupFrom: WakeupBean | null = null;
+    //@ts-ignore
+    let wakeup = await queryRunnableTimeByRunning(data.tid!, data.ts!);//通过链上的Running块，查找前一条R信息
+    if (wakeup && wakeup[0]) {
+      let wakeupTs = wakeup[0].ts as number;
+      //@ts-ignore
+      let wf = await queryRWakeUpFrom(data.itid!, wakeupTs);//查找到的前一条R信息，对应的唤醒信息
+      //@ts-ignore
+      if (wf && wf[0]) {
+        //@ts-ignore
+        wakeupFrom = wf[0];
+        //@ts-ignore
+        wakeupFrom.thread = Utils.getInstance().getThreadMap().get(wakeupFrom.tid!) || 'Thread';
+      }
+    }
+    return wakeupFrom;
   }
 
   initCanvas(): HTMLCanvasElement | null {
