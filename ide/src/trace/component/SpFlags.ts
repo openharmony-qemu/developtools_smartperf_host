@@ -36,7 +36,7 @@ const HANG_CONTENT = [
 ]
 
 //整合默认值
-const CONFIG_STATE:unknown = {
+const CONFIG_STATE: unknown = {
   'VSync': ['vsyncValue', 'VsyncGeneratior'],
   'Start&Finish Trace Category': ['catValue', 'Business first'],
   'Hangs Detection': ['hangValue', 'Instant'],

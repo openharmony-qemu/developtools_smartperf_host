@@ -193,7 +193,7 @@ export class SpChartManager {
     await this.spHiSysEvent.init();
     let idAndNameArr = await queryDmaFenceIdAndCat();
     this.handleDmaFenceName(idAndNameArr as { id: number; cat: string; seqno: number; driver: string; context: string }[]);
-    if (FlagsConfig.getFlagsConfigEnableStatus("Hangs Detection")) {
+    if (FlagsConfig.getFlagsConfigEnableStatus('Hangs Detection')) {
       progress('Hang init', 80);
       await this.hangChart.init();
     }

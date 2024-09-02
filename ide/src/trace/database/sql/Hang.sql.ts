@@ -18,9 +18,9 @@ import { query } from '../SqlLite';
 import { HangStruct } from '../ui-worker/ProcedureWorkerHang';
 
 function getMinDur(): string {
-  let flagsItemJson = JSON.parse(window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY)!)
-  let minDur = flagsItemJson.hangValue
-  return minDur
+  let flagsItemJson = JSON.parse(window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY)!);
+  let minDur = flagsItemJson.hangValue;
+  return minDur;
 }
 
 export const queryHangData = (): Promise<Array<{
@@ -47,7 +47,7 @@ WHERE
 GROUP BY
   p.pid
 `.trim()
-)
+);
 
 
 export const queryAllHangs = (): Promise<Array<HangStruct>> => query(
@@ -72,4 +72,4 @@ WHERE
   AND t.is_main_thread = 1
   AND c.name LIKE 'H:Et:%'
 `.trim()
-)
+);

@@ -22,7 +22,7 @@ import { FlagsConfig } from '../../component/SpFlags';
 export function hangDataSender(
   processId: number = 0,
   row: TraceRow<HangStruct>,
-  args?: any,
+  args?: unknown,
 ): Promise<HangStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
@@ -34,9 +34,13 @@ export function hangDataSender(
       {
         pid: processId,
         minDur: minDur,
+        // @ts-ignore
         queryAll: args && args.queryAll,
+        // @ts-ignore
         selectStartNS: args ? args.startNS : 0,
+        // @ts-ignore
         selectEndNS: args ? args.endNS : 0,
+        // @ts-ignore
         selectTotalNS: args ? args.endNS - args.startNS : 0,
         trafic: trafic,
         width: width,
@@ -48,12 +52,17 @@ export function hangDataSender(
   });
 }
 
-function arrayBufferHandler(buffers: any, len: number): HangStruct[] {
+function arrayBufferHandler(buffers: unknown, len: number): HangStruct[] {
   let outArr: HangStruct[] = [];
+  // @ts-ignore
   let id = new Int32Array(buffers.id);
+  // @ts-ignore
   let startNS = new Float64Array(buffers.startNS);
+  // @ts-ignore
   let dur = new Float64Array(buffers.dur);
+  // @ts-ignore
   let tid = new Int32Array(buffers.tid);
+  // @ts-ignore
   let pid = new Int32Array(buffers.pid);
   for (let i = 0; i < len; i += 1) {
     outArr.push({

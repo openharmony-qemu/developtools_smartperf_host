@@ -41,7 +41,7 @@ export class HangRender extends Render {
       frame: row.frame,
       paddingTop: 2,
       useCache: hangReq.useCache || !(TraceRow.range?.refresh ?? false),
-    }
+    };
     dataFilterHandler(hangList, hangFilter, filterConfig);
     drawLoadingFrame(hangReq.context, hangFilter, row);
     hangReq.context.beginPath();
@@ -90,11 +90,11 @@ export class HangStruct extends BaseStruct {
 
   static getFrameColor(data: HangStruct): string {
     return ({
-      "Instant": "#559CFF",
-      "Circumstantial": "#E8BE44",
-      "Micro": "#FEB354",
-      "Severe": "#FC7470",
-      "": "",
+      'Instant': '#559CFF',
+      'Circumstantial': '#E8BE44',
+      'Micro': '#FEB354',
+      'Severe': '#FC7470',
+      '': '',
     })[data.type!];
   }
 
@@ -105,7 +105,7 @@ export class HangStruct extends BaseStruct {
 
       ctx.globalAlpha = 1;
       ctx.lineWidth = 1;
-      
+
       if (data === HangStruct.hoverHangStruct) {
         ctx.globalAlpha = 0.7;
       }
@@ -126,7 +126,7 @@ export class HangStruct extends BaseStruct {
           data.frame.height - 2,
         );
       }
-      
+
       ctx.globalAlpha = 1;
     }
   }
