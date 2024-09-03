@@ -142,7 +142,7 @@ export class TabPaneSchedPriority extends BaseElement {
 
   private async fetchAndProcessData(): Promise<void> {
     if (this.strValueMap.size === 0) {
-      let res = await queryArgsById('next_info', this.selectionParam?.traceId || undefined)
+      let res = await queryArgsById('next_info', this.selectionParam?.traceId || undefined);
       await queryThreadStateArgsById(res[0].id, this.selectionParam?.traceId || undefined).
         then((value): void => {
           for (const item of value) {

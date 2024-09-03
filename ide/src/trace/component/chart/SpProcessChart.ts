@@ -1383,17 +1383,20 @@ export class SpProcessChart {
       ({ setArrayLenThanOne, setArrayLenOnlyOne } = this.hanldAsyncFunc(it, asyncRemoveCatArr));//len等于0和大于0的分类
       //@ts-ignore
       let aggregateData = {...setArrayLenThanOne, ...setArrayLenOnlyOne };
-      Reflect.ownKeys(aggregateData).map((key: any) => {
-        let param: Array<any> = aggregateData[key];
+      Reflect.ownKeys(aggregateData).map((key: unknown) => {
+        let param: Array<unknown> = aggregateData[key];
+        //@ts-ignore
         this.makeAddAsyncFunction(param, it, processRow, key);
       })
       //@ts-ignore
-      Reflect.ownKeys(asyncCat).map((key: any) => {
+      Reflect.ownKeys(asyncCat).map((key: unknown) => {
         //@ts-ignore
-        let param: Array<any> = asyncCat[key];
+        let param: Array<unknown> = asyncCat[key];
         if (flag) {//处理business
+          //@ts-ignore
           this.makeAddAsyncFunction(param, it, processRow, key); 
         } else {//处理thread
+          //@ts-ignore
           this.makeAddAsyncFunction(param, it, processRow, key, param[0].tid);
         }
       })

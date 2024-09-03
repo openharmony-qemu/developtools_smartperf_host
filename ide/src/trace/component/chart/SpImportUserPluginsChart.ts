@@ -25,6 +25,7 @@ import { ProcessMemStruct } from '../../bean/ProcessMemStruct';
 import { MemRender } from '../../database/ui-worker/ProcedureWorkerMem';
 import { FuncRender, FuncStruct } from '../../database/ui-worker/ProcedureWorkerFunc';
 import { ThreadRender } from '../../database/ui-worker/ProcedureWorkerThread';
+import { promises } from 'dns';
 const FOLD_HEIGHT = 24;
 export class SpImportUserPluginsChart {
 	private trace: SpSystemTrace;
@@ -35,7 +36,7 @@ export class SpImportUserPluginsChart {
 		this.trace = trace;
 	}
 
-	async init(traceId?: string) {
+	async init(traceId?: string): Promise<void> {
 		this.traceId = traceId;
 		//@ts-ignore
 		let folderRow = this.createFolderRow(this.traceId);
@@ -66,7 +67,7 @@ export class SpImportUserPluginsChart {
 	 * @param row 
 	 * @param start_ts 
 	 */
-	addTraceRowEventListener(row: TraceRow<BaseStruct>) {
+	addTraceRowEventListener(row: TraceRow<BaseStruct>): void {
 		row.uploadEl?.addEventListener('sample-file-change', (e: unknown) => {
 			this.getJsonData(e).then((res: unknown) => {
 				if (row.childrenList.length) { this.handleDynamicRowList(row); }
@@ -104,17 +105,17 @@ export class SpImportUserPluginsChart {
 								this.addDrawAttributes(item, childRow, element);
 								row.summaryProtoPid!.push(childRow.protoPid);
 								row.addChildTraceRow(childRow);
-							}
-						}
-					})
+							};
+						};
+					});
 					row.expansion = true;
-				}
-				this.trace.refreshCanvas(false)
-			})
-		})
+				};
+				this.trace.refreshCanvas(false);
+			});
+		});
 	}
 	//清空row-parent-id='UserPluginsRows'动态添加的子Row的list数据
-	handleDynamicRowList(row: TraceRow<BaseStruct>) {
+	handleDynamicRowList(row: TraceRow<BaseStruct>): void {
 		row.summaryProtoPid = [];
 		// 使用querySelectorAll找到所有row-parent-id='UserPluginsRows'的div元素
 		//@ts-ignore
@@ -135,21 +136,23 @@ export class SpImportUserPluginsChart {
 		row.childrenList = [];
 	}
 
-	addDrawAttributes(item: { rowType: string, threadName: string }, childRow: TraceRow<BaseStruct>, element: unknown) {
+	addDrawAttributes(item: { rowType: string, threadName: string }, childRow: TraceRow<BaseStruct>, element: unknown): void {
 		//@ts-ignore
 		if (element.supplier) {
-			childRow.supplier = async () => {
+			//@ts-ignore
+			childRow.supplier = async (): Promise<unknown> => {
 				//@ts-ignore
 				let res = await element.supplier!();
-				return res
-			}
+				return res;
+			};
 			//@ts-ignore
 		} else if (element.supplierFrame) {
-			childRow.supplierFrame = async () => {
+			//@ts-ignore
+			childRow.supplierFrame = async (): Promise<unknown> => {
 				//@ts-ignore
 				let res = await element.supplierFrame!();
-				return res
-			}
+				return res;
+			};
 		}
 		if (item.rowType === TraceRow.ROW_TYPE_MEM) {//处理mem
 			childRow.findHoverStruct = (): void => {
@@ -180,10 +183,10 @@ export class SpImportUserPluginsChart {
 			}
 			//@ts-ignore
 			if (element.asyncFuncThreadName) {
-        //@ts-ignore
-        childRow.asyncFuncThreadName = element.asyncFuncThreadName;
 				//@ts-ignore
-        childRow.asyncFuncNamePID = element.asyncFuncNamePID;
+				childRow.asyncFuncThreadName = element.asyncFuncThreadName;
+				//@ts-ignore
+				childRow.asyncFuncNamePID = element.asyncFuncNamePID;
 			}
 			childRow.findHoverStruct = (): void => {
 				//@ts-ignore
@@ -206,14 +209,14 @@ export class SpImportUserPluginsChart {
 			let reader = new FileReader();
 			//@ts-ignore
 			reader.readAsText(file.detail || file);
-			reader.onloadend = (e: unknown) => {
+			reader.onloadend = (e: unknown): void => {
 				//@ts-ignore
 				const fileContent = e.target?.result;
 				try {
 					resolve(JSON.parse(fileContent));
 					document.dispatchEvent(
 						new CustomEvent('file-correct')
-					)
+					);
 					SpStatisticsHttpUtil.addOrdinaryVisitAction({
 						event: 'seach-row',
 						action: 'seach-row',
@@ -221,10 +224,10 @@ export class SpImportUserPluginsChart {
 				} catch (error) {
 					document.dispatchEvent(
 						new CustomEvent('file-error')
-					)
+					);
 				}
 			}
-		})
+		});
 	}
 }
 export const folderThreadHandler = (row: TraceRow<BaseStruct>, trace: SpSystemTrace) => {

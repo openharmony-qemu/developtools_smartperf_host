@@ -24,7 +24,7 @@ import { type AllStatesRender, AllstatesStruct } from '../../database/ui-worker/
 import { StateGroup } from '../../bean/StateModle';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
 import { Utils } from '../trace/base/Utils';
-import { TabPaneFreqUsage } from "../trace/sheet/frequsage/TabPaneFreqUsage";
+import { TabPaneFreqUsage } from '../trace/sheet/frequsage/TabPaneFreqUsage';
 const UNIT_HEIGHT: number = 20;
 const MS_TO_US: number = 1000000;
 const MIN_HEIGHT: number = 2;
