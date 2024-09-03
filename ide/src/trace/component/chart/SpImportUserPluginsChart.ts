@@ -169,9 +169,11 @@ export class SpImportUserPluginsChart {
 					`<span>${ProcessMemStruct.hoverProcessMemStruct?.value || '0'}</span>`
 				);
 			};
-			childRow.onThreadHandler = rowThreadHandler<MemRender>('mem', 'context',//@ts-ignore
+			childRow.onThreadHandler = rowThreadHandler<MemRender>('mem', 'context',
+				//@ts-ignore
 				{ type: `mem ${element.rowId} ${element.name}` }, childRow, this.trace);
-		} else if (item.rowType === TraceRow.ROW_TYPE_FUNC) {//处理func
+		} else if (item.rowType === TraceRow.ROW_TYPE_FUNC) {
+			//处理func
 			//@ts-ignore
 			if (element.asyncFuncName) {
 				//@ts-ignore
@@ -192,9 +194,11 @@ export class SpImportUserPluginsChart {
 				//@ts-ignore
 				FuncStruct.hoverFuncStruct = childRow.getHoverStruct();
 			};
-			childRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context',//@ts-ignore
+			childRow.onThreadHandler = rowThreadHandler<FuncRender>('func', 'context',
+				//@ts-ignore
 				{ type: '' }, childRow, this.trace);
-		} else if (item.rowType === TraceRow.ROW_TYPE_THREAD) {//处理thread
+		} else if (item.rowType === TraceRow.ROW_TYPE_THREAD) {
+			//处理thread
 			childRow.onThreadHandler = rowThreadHandler<ThreadRender>('thread', 'context',
 				{ type: '', translateY: childRow.translateY }, childRow, this.trace);
 		}
@@ -226,7 +230,7 @@ export class SpImportUserPluginsChart {
 						new CustomEvent('file-error')
 					);
 				}
-			}
+			};
 		});
 	}
 }
