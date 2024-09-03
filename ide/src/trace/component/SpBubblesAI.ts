@@ -46,7 +46,7 @@ export class SpBubblesAI extends BaseElement {
       'timestamp': new Date().getTime().toString(),
       'botUser': 'p_xiaoluban',
     };
-    fetch('https://smartperf.rnd.huawei.com/xiaoluban/resource', {
+    fetch(`https://${window.location.host}/xiaoluban/resource`, {
       method: 'post',
       body: JSON.stringify(data),
       headers: {
