@@ -351,7 +351,7 @@ export const queryThreadWakeUpFrom = async (itid: number, startTime: number): Pr
           `;
     res = query('queryThreadWakeUpFrom', sql2, {}, { traceId: Utils.currentSelectTrace });
   }
-  return res
+  return res;
 };
 
 export const queryRWakeUpFrom = async (itid: number, startTime: number): Promise<unknown> => {
