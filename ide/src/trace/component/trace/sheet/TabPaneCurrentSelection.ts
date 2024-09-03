@@ -850,7 +850,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.hangScrollHandler(data, sp, scrollCallback);
   }
 
-  private hangScrollHandler(data: HangStruct, sp: SpSystemTrace, scrollCallback: Function) {
+  private hangScrollHandler(data: HangStruct, sp: SpSystemTrace, scrollCallback: Function): void {
     let scrollIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#scroll-to-process');
     scrollIcon?.addEventListener('click', async () => {
       //@ts-ignore
@@ -1226,11 +1226,11 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
   }
   //点击事件获取唤醒链
-  private getWakeupChainClickHandler(fromBean: WakeupBean | undefined, list: unknown[]) {
+  private getWakeupChainClickHandler(fromBean: WakeupBean | undefined, list: unknown[]): void {
     this.currentSelectionTbl?.shadowRoot?.querySelector('#wakeup-top')?.addEventListener('click', async () => {
       this.topChainStr = '';
       //@ts-ignore
-      let currentThread = list.filter((item) => item.name === "Thread")?.[0].value;//点击的当前线程
+      let currentThread = list.filter((item) => item.name === 'Thread')?.[0].value;//点击的当前线程
       let previouosWakeupThread = Utils.getInstance().getThreadMap().get(fromBean!.tid!) || 'Thread';//唤醒当前线程的上个线程
       this.topChainStr = `-->${previouosWakeupThread}[${fromBean!.tid}]-->${currentThread}`;
       this.getRWakeUpChain(fromBean);
@@ -1965,7 +1965,9 @@ export class TabPaneCurrentSelection extends BaseElement {
       let wakeupTs = wakeup[0].ts as number;
       let recordStartTs = Utils.getInstance().getRecordStartNS();
       let wf = await queryThreadWakeUpFrom(data.id, wakeupTs);
+      // @ts-ignore
       if (wf && wf[0]) {
+        // @ts-ignore
         wb = wf[0];
         if (wb !== null) {
           wb.wakeupTime = wakeupTs - recordStartTs;
@@ -1990,7 +1992,9 @@ export class TabPaneCurrentSelection extends BaseElement {
       let wakeupTs = wakeup[0].ts as number;
       let recordStartTs = Utils.getInstance().getRecordStartNS();
       let wf = await queryThreadWakeUpFrom(data.itid!, wakeupTs);
+      // @ts-ignore
       if (wf && wf[0]) {
+        // @ts-ignore
         wb = wf[0];
         if (wb !== null) {
           wb.wakeupTime = wakeupTs - recordStartTs;
@@ -2012,6 +2016,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let item;
     // @ts-ignore
     if (wakeUps !== undefined && wakeUps.length > 0) {
+      // @ts-ignore
       item = wakeUps[0];
     }
     return item;
@@ -2032,16 +2037,16 @@ export class TabPaneCurrentSelection extends BaseElement {
     return list;
   }
   //递归查找R唤醒链
-  getRWakeUpChain(data: WakeupBean | undefined):void  {
+  getRWakeUpChain(data: WakeupBean | undefined): void {
     this.getRWakeUpChainData(data).then((wakeupFrom: unknown) => {
       if (wakeupFrom === null) {//当查不到数据时，处理容器状态与样式，展示内容
         let wakeupTopContent = this.currentSelectionTbl?.shadowRoot?.getElementById('wakeup-top-content');
         let wakeupTopIcon = this.currentSelectionTbl?.shadowRoot?.querySelector<HTMLDivElement>('#wakeup-top');
         wakeupTopContent!.innerText = 'idle' + this.topChainStr;//处理链顶部
-        wakeupTopIcon!.style.display = 'none'; 
+        wakeupTopIcon!.style.display = 'none';
         wakeupTopContent!.style.display = 'block';
         wakeupTopContent!.style.maxHeight = '100px';//设置最大高度，超出出现滚动条
-        wakeupTopContent!.style.overflow = 'auto'; 
+        wakeupTopContent!.style.overflow = 'auto';
         return;
       }
       //@ts-ignore

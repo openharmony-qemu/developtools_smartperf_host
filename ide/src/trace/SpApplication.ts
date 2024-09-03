@@ -607,13 +607,13 @@ export class SpApplication extends BaseElement {
     let reader: FileReader | null = new FileReader();
     reader.readAsText(typeStr);
     reader.onloadend = (event): void => {
-      let isIncludeMark  = `${reader?.result}`.includes('MarkPositionJSON');
+      let isIncludeMark = `${reader?.result}`.includes('MarkPositionJSON');
       let typeHeader;
       if (isIncludeMark) {
         let markLength = `${reader?.result}`.split('->')[0].replace('MarkPositionJSON', '');
         //@ts-ignore
         typeHeader = ev.slice(markLength.length + parseInt(markLength), markLength.length + parseInt(markLength) + 6);
-      } else{
+      } else {
         //@ts-ignore
         typeHeader = ev.slice(0, 6);
       }

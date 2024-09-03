@@ -216,12 +216,12 @@ export class LitSelect extends BaseElement {
 
   initElements(): void {
     this.selectVInputEl = this.shadowRoot!.querySelector('#select-input') as HTMLInputElement;
-      this.selectVInputEl?.addEventListener('keyup', (e) => {
-        if (e.code === 'Enter' || e.code === 'NumpadEnter') {// @ts-ignore
-          this.selectVInputEl.blur();// @ts-ignore
-          this.selectInputEl.value=this.selectVInputEl.value;
-        } 
-      });
+    this.selectVInputEl?.addEventListener('keyup', (e) => {
+      if (e.code === 'Enter' || e.code === 'NumpadEnter') {// @ts-ignore
+        this.selectVInputEl.blur();// @ts-ignore
+        this.selectInputEl.value = this.selectVInputEl.value;
+      }
+    });
     if (this.showSearchInput) {
       this.shadowRoot!.querySelector<HTMLDivElement>('.body-select')!.style.display = 'block';
       this.selectSearchInputEl = this.shadowRoot!.querySelector('#search-input') as HTMLInputElement;

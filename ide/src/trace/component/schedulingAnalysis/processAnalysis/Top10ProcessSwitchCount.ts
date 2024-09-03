@@ -93,7 +93,7 @@ export class Top10ProcessSwitchCount extends BaseElement {
    */
   queryLogicWorker(option: string, log: string, handler: (res: Array<Top10ProcSwiCount>) => void, pid?: number): void {
     let processThreadCountTime = new Date().getTime();
-    procedurePool.submitWithName('logic0', option, {pid: pid}, undefined, handler);
+    procedurePool.submitWithName('logic0', option, { pid: pid }, undefined, handler);
     let durTime = new Date().getTime() - processThreadCountTime;
     info(log, durTime);
   }
@@ -109,8 +109,8 @@ export class Top10ProcessSwitchCount extends BaseElement {
       const pStr: string | null = this.processMap.get(arr[i].pid!)!;
       const tStr: string | null = this.threadMap.get(arr[i].tid!)!;
       result.push({
-        NO: i + 1, 
-        pid: arr[i].pid || this.processId, 
+        NO: i + 1,
+        pid: arr[i].pid || this.processId,
         pName: pStr === null ? 'Process ' : pStr,
         switchCount: arr[i].occurrences,
         tid: arr[i].tid,
@@ -151,25 +151,25 @@ export class Top10ProcessSwitchCount extends BaseElement {
       label: {
         type: 'outer',
       },
-      hoverHandler: (data) => {
+      hoverHandler: (data): void => {
         if (data) {
           this.processSwitchCountTbl!.setCurrentHover(data);
         } else {
           this.processSwitchCountTbl!.mouseOut();
         }
       },
-      tip: (obj) => {
+      tip: (obj): string => {
         return `
           <div>
             <div>Process_Id:${
-              // @ts-ignore
-              obj.obj.pid}</div> 
+          // @ts-ignore
+          obj.obj.pid}</div> 
             <div>Process_Name:${
-              // @ts-ignore
-              obj.obj.pName}</div> 
+          // @ts-ignore
+          obj.obj.pName}</div> 
             <div>Switch Count:${
-              // @ts-ignore
-              obj.obj.switchCount}</div> 
+          // @ts-ignore
+          obj.obj.switchCount}</div> 
           </div>
         `;
       },
@@ -201,28 +201,28 @@ export class Top10ProcessSwitchCount extends BaseElement {
       label: {
         type: 'outer',
       },
-      hoverHandler: (data) => {
+      hoverHandler: (data): void => {
         if (data) {
           this.threadSwitchCountTbl!.setCurrentHover(data);
         } else {
           this.threadSwitchCountTbl!.mouseOut();
         }
       },
-      tip: (obj) => {
+      tip: (obj): string => {
         return `
           <div>
             <div>Thread_Id:${
-              // @ts-ignore
-              obj.obj.tid}</div> 
+          // @ts-ignore
+          obj.obj.tid}</div> 
             <div>Thread_Name:${
-              // @ts-ignore
-              obj.obj.tName}</div> 
+          // @ts-ignore
+          obj.obj.tName}</div> 
             <div>Switch Count:${
-              // @ts-ignore
-              obj.obj.switchCount}</div> 
+          // @ts-ignore
+          obj.obj.switchCount}</div> 
             <div>Process_Id:${
-              // @ts-ignore
-              obj.obj.pid}</div> 
+          // @ts-ignore
+          obj.obj.pid}</div> 
           </div>
         `;
       },
@@ -338,25 +338,33 @@ export class Top10ProcessSwitchCount extends BaseElement {
    * @param detail 点击的列名，以及排序状态0 1 2分别代表不排序、升序排序、降序排序
    * @param data 表格中需要排序的数据
    */
-  sortByColumn(detail: {key: string, sort: number}, data: Array<Top10ProcSwiCount>): void {
+  sortByColumn(detail: { key: string, sort: number }, data: Array<Top10ProcSwiCount>): void {
     // @ts-ignore
     function compare(processThreadCountProperty, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
+            // @ts-ignore
             ? parseFloat(b[processThreadCountProperty]) -
-                parseFloat(a[processThreadCountProperty])
+            // @ts-ignore
+            parseFloat(a[processThreadCountProperty])
+            // @ts-ignore
             : parseFloat(a[processThreadCountProperty]) -
-                parseFloat(b[processThreadCountProperty]);
+            // @ts-ignore
+            parseFloat(b[processThreadCountProperty]);
         } else {
           if (sort === 2) {
+            // @ts-ignore
             return b[processThreadCountProperty]
               .toString()
+              // @ts-ignore
               .localeCompare(a[processThreadCountProperty].toString());
           } else {
+            // @ts-ignore
             return a[processThreadCountProperty]
               .toString()
+              // @ts-ignore
               .localeCompare(b[processThreadCountProperty].toString());
           }
         }
@@ -426,7 +434,7 @@ export class Top10ProcessSwitchCount extends BaseElement {
    * 节点html代码块
    * @returns 返回节点代码块字符串
    */
-  initTagHtml() :string {
+  initTagHtml(): string {
     return `
       <lit-progress-bar id='loading' style='height: 1px;width: 100%' loading></lit-progress-bar>
       <div id='display_pro'>
@@ -487,5 +495,5 @@ interface Top10ProcSwiCount {
   pName?: string,
   tName?: string,
   switchCount?: number,
-  occurrences?: number 
+  occurrences?: number
 }

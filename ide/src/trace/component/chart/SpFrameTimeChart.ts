@@ -246,7 +246,7 @@ export class SpFrameTimeChart {
     this.flagConfig = FlagsConfig.getFlagsConfig('AnimationAnalysis');
     let appNameMap: Map<number, string> = new Map();
     //@ts-ignore
-    if (this.flagConfig?.AnimationAnalysis === 'Enabled' && sourceTypeName[0].value !== "txt-based-trace") {
+    if (this.flagConfig?.AnimationAnalysis === 'Enabled' && sourceTypeName[0].value !== 'txt-based-trace') {
       if (process.processName?.startsWith('render_service')) {
         let targetRowList = processRow.childrenList.filter(
           (childRow) => childRow.rowType === 'thread' && childRow.name.startsWith('render_service')

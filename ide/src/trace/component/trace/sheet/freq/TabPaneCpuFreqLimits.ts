@@ -105,14 +105,14 @@ export class TabPaneCpuFreqLimits extends BaseElement {
       return item;
     });
     this.cpuFreqLimitSource.sort((a, b): number => {
-      let cpuLeftData = Number(a.cpu.toString().replace('Cpu',''));
-      let cpuRightData = Number(b.cpu.toString().replace('Cpu',''));
+      let cpuLeftData = Number(a.cpu.toString().replace('Cpu', ''));
+      let cpuRightData = Number(b.cpu.toString().replace('Cpu', ''));
       if (cpuLeftData > cpuRightData) {
         return 1;
-      }else{
+      } else {
         return -1;
       }
-    })
+    });
     this.sortCpuFreqLimitTable(this.cpuFreqLimitSortKey, this.cpuFreqLimitSortType);
   }
 
@@ -160,12 +160,12 @@ export class TabPaneCpuFreqLimits extends BaseElement {
 
   compareCpu(cpuFreqLimitA: unknown, cpuFreqLimitB: unknown, type: number): number {
     // @ts-ignore
-    let cpuLeftData = Number(cpuFreqLimitA.cpu.toString().replace('Cpu',''));
+    let cpuLeftData = Number(cpuFreqLimitA.cpu.toString().replace('Cpu', ''));
     // @ts-ignore
-    let cpuRightData = Number(cpuFreqLimitB.cpu.toString().replace('Cpu',''));
+    let cpuRightData = Number(cpuFreqLimitB.cpu.toString().replace('Cpu', ''));
     if (type === 1) {
       return cpuLeftData - cpuRightData;
-    }else{
+    } else {
       return cpuRightData - cpuLeftData;
     }
   }

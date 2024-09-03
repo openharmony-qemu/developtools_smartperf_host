@@ -417,9 +417,9 @@ function collectHandlerYes(sp: SpSystemTrace, currentRow: unknown, event: unknow
         !currentRow.name.includes(parentRow.name)
       ) {
         //@ts-ignore
-        currentRow.name = currentRow.protoParentId ? `${currentRow.name} (${currentRow.protoParentId})` : 
-        //@ts-ignore
-        `${currentRow.name} (${parentRow.name})`
+        currentRow.name = currentRow.protoParentId ? `${currentRow.name} (${currentRow.protoParentId})` :
+          //@ts-ignore
+          `${currentRow.name} (${parentRow.name})`;
       }
     });
   }
@@ -769,8 +769,8 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
   }
   sp.tabCpuFreq = sp.traceSheetEL.shadowRoot.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
   sp.tabCpuState = sp.traceSheetEL.shadowRoot.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
-  sp.wakeupListTbl = sp.traceSheetEL.shadowRoot?.querySelector("#current-selection > tabpane-current-selection")?.
-  shadowRoot?.querySelector("#wakeupListTbl");
+  sp.wakeupListTbl = sp.traceSheetEL.shadowRoot?.querySelector('#current-selection > tabpane-current-selection')?.
+    shadowRoot?.querySelector('#wakeupListTbl');
   sp.rangeSelect = new RangeSelect(sp);
   // @ts-ignore
   rightButton?.addEventListener('click', rightButtonOnClick(sp, rightStar));
@@ -911,11 +911,12 @@ function spSystemTraceShowStructFindIndex(
   return findIndex;
 }
 //向前查找逻辑
-function findPreviousOne(start: number, end: number, structs: Array<any>): number {
+function findPreviousOne(start: number, end: number, structs: Array<unknown>): number {
   let findIndex = -1;
   const rangeEnd = TraceRow.range!.endNS;
   for (let i = start; i >= end; i--) {
     let it = structs[i];
+    //@ts-ignore
     if (it.startTime! < rangeEnd) {
       findIndex = i;
       break;
@@ -924,11 +925,12 @@ function findPreviousOne(start: number, end: number, structs: Array<any>): numbe
   return findIndex;
 }
 //向后查找
-function findNextOne(start: number, end: number, structs: Array<any>): number {
+function findNextOne(start: number, end: number, structs: Array<unknown>): number {
   let findIndex = -1;
   const rangeStart = TraceRow.range!.startNS;
   for (let i = start; i <= end; i++) {
     let it = structs[i];
+    //@ts-ignore
     if (it.startTime > rangeStart) {
       findIndex = i;
       break;

@@ -23,7 +23,7 @@ export class SpBubblesAI extends BaseElement {
     const xiaoLubanEl: HTMLElement | undefined | null = this.shadowRoot?.querySelector('#xiao-luban-help');
     xiaoLubanEl?.addEventListener('click', () => {
       this.xiaoLubanEvent();
-    })
+    });
     let isShowXiaoLuban: boolean = FlagsConfig.getFlagsConfigEnableStatus('xiaoLuBan');
     if (isShowXiaoLuban) {
       xiaoLubanEl?.setAttribute('enabled', '');
@@ -45,7 +45,7 @@ export class SpBubblesAI extends BaseElement {
       'msgType': 'text',
       'timestamp': new Date().getTime().toString(),
       'botUser': 'p_xiaoluban',
-    }
+    };
     fetch('https://smartperf.rnd.huawei.com/xiaoluban/resource', {
       method: 'post',
       body: JSON.stringify(data),
@@ -54,9 +54,9 @@ export class SpBubblesAI extends BaseElement {
       }
     }).then(res => {
       if (res.status === 200) {
-        window.open('im:p_xiaoluban', "_self");
+        window.open('im:p_xiaoluban', '_self');
       }
-    })
+    });
   }
 }
 

@@ -140,7 +140,7 @@ export class TabPaneNMemory extends BaseElement {
           let tmpNumber = item.addr.split('x');
           //@ts-ignore
           item.addr = '0x' + Number(tmpNumber[1]).toString(16);
-        })
+        });
         this.memorySource = results;
         this.memoryTbl!.recycleDataSource = this.memorySource;
       } else {
