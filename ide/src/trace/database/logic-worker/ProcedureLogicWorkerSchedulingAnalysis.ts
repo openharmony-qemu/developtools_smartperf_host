@@ -577,7 +577,7 @@ where cpu not null
   order by cpu,ts;`;
     this.queryData(this.currentEventId, 'scheduling-Thread Freq', sql, {});
   }
-  queryProTop10Swicount() {
+  queryProTop10Swicount(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-Process Top10Swicount',
@@ -597,7 +597,7 @@ where cpu not null
       {}
     );
   }
-  queryThrTop10Swicount(pid: number) {
+  queryThrTop10Swicount(pid: number): void {
     this.queryData(
       this.currentEventId,
       'scheduling-Process Top10Swicount',
@@ -618,7 +618,7 @@ where cpu not null
       {}
     );
   }
-  queryProTop10RunTime() {
+  queryProTop10RunTime(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-Process Top10RunTime',
@@ -637,7 +637,7 @@ where cpu not null
       {}
     );
   }
-  queryThrTop10RunTime(pid: number) {
+  queryThrTop10RunTime(pid: number): void {
     this.queryData(
       this.currentEventId,
       'scheduling-Process Top10RunTime',

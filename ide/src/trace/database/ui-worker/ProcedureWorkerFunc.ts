@@ -96,8 +96,8 @@ export function func(
   rowParentId: string | null | undefined
 ): void {
   if (use && funcFilter.length > 0) {
-    if (rowParentId === "UserPluginsRows" && !expand) {
-      funcFilter = funcFilter.filter((it) => it.depth === 0)
+    if (rowParentId === 'UserPluginsRows' && !expand) {
+      funcFilter = funcFilter.filter((it) => it.depth === 0);
     }
     for (let i = 0, len = funcFilter.length; i < len; i++) {
       if ((funcFilter[i].startTs || 0) + (funcFilter[i].dur || 0) >= startNS && (funcFilter[i].startTs || 0) <= endNS) {

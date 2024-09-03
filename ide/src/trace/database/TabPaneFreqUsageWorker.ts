@@ -38,7 +38,7 @@ function orgnazitionMap(
   let sum: number = 0;
   // 循环分组
   for (let i = 0; i < args.runData.length; i++) {
-    let mapKey: string = args.runData[i].pid + "_" + args.runData[i].tid;
+    let mapKey: string = args.runData[i].pid + '_' + args.runData[i].tid;
     // 该running数据若在map对象中不包含其'pid_tid'构成的键，则新加key-value值
     if (!result.has(mapKey)) {
       result.set(mapKey, new Array());
@@ -172,10 +172,11 @@ function returnObj(
   const FREQ_MUTIPLE: number = 1000;
   //@ts-ignore
   const computorPower: number = comPower ? comPower.get(item.cpu)?.mapData.get(cpuFreqData.value)! : 0;
+  let result;
   switch (flag) {
     case 1:
-      return {
-        thread: item.pid + "_" + item.tid,
+      result = {
+        thread: item.pid + '_' + item.tid,
         consumption: cpuFreqData.value * item.dur,
         cpu: item.cpu,
         frequency: computorPower ? cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower : cpuFreqData.value / FREQ_MUTIPLE,
@@ -185,8 +186,8 @@ function returnObj(
         cpuload: (computorPower * item.dur) / (timeZones * maxCommpuPower) * PERCENT
       };
     case 2:
-      return {
-        thread: item.pid + "_" + item.tid,
+      result = {
+        thread: item.pid + '_' + item.tid,
         consumption: cpuFreqData.value * (cpuFreqData.ts + cpuFreqData.dur - item.ts),
         cpu: item.cpu,
         frequency: computorPower ? cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower : cpuFreqData.value / FREQ_MUTIPLE,
@@ -196,8 +197,8 @@ function returnObj(
         cpuload: (computorPower * (cpuFreqData.ts + cpuFreqData.dur - item.ts)) / (timeZones * maxCommpuPower) * PERCENT
       };
     case 3:
-      return {
-        thread: item.pid + "_" + item.tid,
+      result = {
+        thread: item.pid + '_' + item.tid,
         consumption: cpuFreqData.value * (item.dur + item.ts - cpuFreqData.ts),
         cpu: item.cpu,
         frequency: computorPower ? cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower : cpuFreqData.value / FREQ_MUTIPLE,
@@ -207,8 +208,8 @@ function returnObj(
         cpuload: (computorPower * (item.dur + item.ts - cpuFreqData.ts)) / (timeZones * maxCommpuPower) * PERCENT
       };
     case 4:
-      return {
-        thread: item.pid + "_" + item.tid,
+      result = {
+        thread: item.pid + '_' + item.tid,
         consumption: cpuFreqData.value * cpuFreqData.dur,
         cpu: item.cpu,
         frequency: computorPower ? cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower : cpuFreqData.value / FREQ_MUTIPLE,
@@ -218,17 +219,18 @@ function returnObj(
         cpuload: (computorPower * cpuFreqData.dur) / (timeZones * maxCommpuPower) * PERCENT
       };
     case 5:
-      return {
-        thread: item.pid + "_" + item.tid,
+      result = {
+        thread: item.pid + '_' + item.tid,
         consumption: 0,
         cpu: item.cpu,
-        frequency: "unknown",
+        frequency: 'unknown',
         dur: item.dur,
         percent: (item.dur / sum) * PERCENT,
         consumpower: 0,
         cpuload: 0
       };
   }
+  return result;
 }
 
 /**
@@ -304,7 +306,7 @@ function dealTree(
     process.consumption += thread.consumption;
     process.consumpower += thread.consumpower;
     process.cpuload += thread.cpuload;
-    process.thread = process.thread! + key.split("_")[0];
+    process.thread = process.thread! + key.split('_')[0];
     result.push(process);
   });
   for (let i = 0; i < result.length; i++) {
@@ -331,7 +333,7 @@ function dealTree(
  */
 function creatNewObj(cpu: number, flag: boolean = true): RunningFreqData {
   return {
-    thread: flag ? "" : "P",
+    thread: flag ? '' : 'P',
     consumption: 0,
     cpu: cpu,
     frequency: -1,
@@ -354,9 +356,9 @@ function fixTotal(arr: Array<RunningFreqData>): Array<RunningFreqData> {
   // 数据入参的情况是，第一条为进程数据，其后是该进程下所有线程的数据。以进程数据做分割
   for (let i = 0; i < arr.length; i++) {
     // 判断如果是进程数据，则将其children的数组清空，并以其作为最顶层数据
-    if (arr[i].thread?.indexOf("P") !== -1) {
+    if (arr[i].thread?.indexOf('P') !== -1) {
       arr[i].children = [];
-      arr[i].thread = arr[i].thread + "-summary data";
+      arr[i].thread = arr[i].thread + '-summary data';
       result.push(arr[i]);
       // 标志判定当前数组的长度，也可用.length判断
       flag++;
@@ -364,7 +366,7 @@ function fixTotal(arr: Array<RunningFreqData>): Array<RunningFreqData> {
       // 非进程数据会进入到else中，去判断当前线程数据的cpu分组是否存在，不存在则进行创建
       if (result[flag].children![arr[i].cpu] === undefined) {
         result[flag].children![arr[i].cpu] = {
-          thread: "summary data",
+          thread: 'summary data',
           consumption: 0,
           cpu: arr[i].cpu,
           frequency: -1,
@@ -387,7 +389,7 @@ function fixTotal(arr: Array<RunningFreqData>): Array<RunningFreqData> {
       ].children?.findIndex((item) => item.frequency === arr[i].frequency)!;
       // 若存在相同频点的数据，则进行合并，不同直接push
       if (index === -1) {
-        arr[i].thread = "summary data";
+        arr[i].thread = 'summary data';
         result[flag].children![arr[i].cpu].children?.push(arr[i]);
       } else {
         result[flag].children![arr[i].cpu].children![index].consumption += arr[i].consumption;
@@ -414,29 +416,29 @@ function mergeTotal(
     const num: number = arr2.findIndex((item) =>
       item.thread?.includes(arr1[i].thread!)
     );
-    arr2[num].thread = "summary data";
+    arr2[num].thread = 'summary data';
     arr1[i].children?.unshift(arr2[num]);
     arr2.splice(num, 1);
   }
 }
 
 
-  /**
-   *
-   * @param arr 待整理的数组，会经过递归取到最底层的数据
-   */
+/**
+ *
+ * @param arr 待整理的数组，会经过递归取到最底层的数据
+ */
 function recursion(arr: Array<RunningFreqData>): void {
-    for (let idx = 0; idx < arr.length; idx++) {
-      if (arr[idx].cpu === -1) {
-        resultArray.push(arr[idx]);
-      }
-      if (arr[idx].children) {
-        recursion(arr[idx].children!);
-      } else {
-        resultArray.push(arr[idx]);
-      }
+  for (let idx = 0; idx < arr.length; idx++) {
+    if (arr[idx].cpu === -1) {
+      resultArray.push(arr[idx]);
+    }
+    if (arr[idx].children) {
+      recursion(arr[idx].children!);
+    } else {
+      resultArray.push(arr[idx]);
     }
   }
+}
 
 self.onmessage = (e: MessageEvent): void => {
   comPower = e.data.comPower;
