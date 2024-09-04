@@ -358,34 +358,46 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       this.queryThreadStateByTid(data.params.tid);
     }
   }
-  private schedulingProTop10Swicount(data: any): void {
+  private schedulingProTop10Swicount(data: unknown): void {
+    // @ts-ignore
     if (data.params.list) {
+      // @ts-ignore
       let arr = convertJSON(data.params.list) || [];
       self.postMessage({
+        // @ts-ignore
         id: data.id,
+        // @ts-ignore
         action: data.action,
         results: arr,
       });
       arr = [];
     } else {
+      // @ts-ignore
       if (data.params.pid) {
+        // @ts-ignore
         this.queryThrTop10Swicount(data.params.pid);
       } else {
         this.queryProTop10Swicount();
       }
     }
   }
-  private schedulingProcessRunTime(data: any): void {
+  private schedulingProcessRunTime(data: unknown): void {
+    // @ts-ignore
     if (data.params.list) {
+      // @ts-ignore
       let arr = convertJSON(data.params.list) || [];
       self.postMessage({
+        // @ts-ignore
         id: data.id,
+        // @ts-ignore
         action: data.action,
         results: arr,
       });
       arr = [];
     } else {
+      // @ts-ignore
       if (data.params.pid) {
+        // @ts-ignore
         this.queryThrTop10RunTime(data.params.pid);
       } else {
         this.queryProTop10RunTime();

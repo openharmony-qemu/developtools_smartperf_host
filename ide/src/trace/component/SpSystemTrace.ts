@@ -2309,7 +2309,7 @@ export class SpSystemTrace extends BaseElement {
     return dataList;
   }
 
-  showStruct(previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number): number {
+  showStruct(previous: boolean, currentIndex: number, structs: Array<unknown>, retargetIndex?: number): number {
     let tagIndex = spSystemTraceShowStruct(this, previous, currentIndex, structs, retargetIndex);
     return tagIndex === -1 ? currentIndex : tagIndex;
   }

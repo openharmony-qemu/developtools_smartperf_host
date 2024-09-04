@@ -23,7 +23,7 @@ import { getTabDetails, getGhDetails, getSfDetails } from '../../../../database/
 @element('box-slice-child')
 export class TabPaneSliceChild extends BaseElement {
   private sliceChildTbl: LitTable | null | undefined;
-  private boxChildSource: Array<any> = [];
+  private boxChildSource: Array<unknown> = [];
   private sliceChildParam: { param: SliceBoxJumpParam, selection: SelectionParam } | null | undefined;
 
   set data(boxChildValue: { param: SliceBoxJumpParam, selection: SelectionParam | null | undefined }) {
