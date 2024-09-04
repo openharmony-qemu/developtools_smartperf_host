@@ -1131,9 +1131,6 @@ export class SpSystemTrace extends BaseElement {
       const selectList = [];
       const unSelectList = [];
       for (const child of childrenList) {
-        if (child.offsetParent === null) {
-          continue;
-        }
         if (child.checkType === '2') {
           selectList.push(child);
         } else {
@@ -1166,7 +1163,14 @@ export class SpSystemTrace extends BaseElement {
   // @ts-ignore
   selectChangeHandler = (row: TraceRow<unknown>): void => {
     this.setParentCheckStatus(row);
+    // @ts-ignore
+    const foldSelectParentRowList: Array<TraceRow<unknown>> = this.shadowRoot!.querySelectorAll<TraceRow<unknown>>("trace-row[check-type='1']");
+    // @ts-ignore
+    const foldSelectRowList: Array<TraceRow<unknown>> = [];
+    // @ts-ignore
+    foldSelectParentRowList.length && foldSelectParentRowList.forEach((item) => item.childrenList.filter((child: { checkType: string }) => child!.checkType === '2' && foldSelectRowList.push(child)));
     const rows = [
+      ...foldSelectRowList,
       // @ts-ignore
       ...this.shadowRoot!.querySelectorAll<TraceRow<unknown>>("trace-row[check-type='2']"),
       ...this.favoriteChartListEL!.getAllSelectCollectRows(),

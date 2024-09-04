@@ -511,6 +511,7 @@ function selectHandler(sp: SpSystemTrace): void {
     let checkRows = rows;
     if (!refreshCheckBox) {
       checkRows = [
+        ...rows,
         // @ts-ignore
         ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[check-type='2']`),
         ...sp.favoriteChartListEL!.getAllSelectCollectRows(),
@@ -552,6 +553,7 @@ function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>): v
         event: event,
       });
     }
+    sp.setParentCheckStatus(it);
   });
   if (selection.diskIOipids.length > 0 && !selection.diskIOLatency) {
     selection.promiseList.push(
