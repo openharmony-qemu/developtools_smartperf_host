@@ -302,7 +302,8 @@ export class LitSelectV extends BaseElement {
         this.shadowRoot?.querySelectorAll('lit-select-option').forEach((o) => {
           o.removeAttribute('selected');
         });
-        option.setAttribute('selected', '');  // @ts-ignore
+        option.setAttribute('selected', '');
+        //@ts-ignore
         this.selectVInputEl!.value = option.textContent!;
         this.currentvalueStr = option.textContent!;
       });

@@ -348,7 +348,7 @@ export const getTabSlicesAsyncFunc = (
     order by
     wallDuration desc;`;
   return query<SelectionData>('getTabSlicesAsyncFunc', sql, {});
-}
+};
 
 export const getTabDetails = (
   asyncNames: Array<string>,

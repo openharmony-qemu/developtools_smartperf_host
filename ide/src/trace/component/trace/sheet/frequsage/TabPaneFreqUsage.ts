@@ -224,21 +224,21 @@ export class TabPaneFreqUsage extends BaseElement {
         i--;
         continue;
       }
-      if (arr[i].thread?.indexOf("P") !== -1) {
+      if (arr[i].thread?.indexOf('P') !== -1) {
         trackId = Number(arr[i].thread?.slice(1)!);
-        arr[i].thread = `${Utils.getInstance().getProcessMap(traceId).get(trackId) || "Process"} ${trackId}`;
-      } else if (arr[i].thread === "summary data") {
+        arr[i].thread = `${Utils.getInstance().getProcessMap(traceId).get(trackId) || 'Process'} ${trackId}`;
+      } else if (arr[i].thread === 'summary data') {
       } else {
-        trackId = Number(arr[i].thread!.split("_")[1]);
-        arr[i].thread = `${Utils.getInstance().getThreadMap(traceId).get(trackId) || "Thread"} ${trackId}`;
+        trackId = Number(arr[i].thread!.split('_')[1]);
+        arr[i].thread = `${Utils.getInstance().getThreadMap(traceId).get(trackId) || 'Thread'} ${trackId}`;
       }
       if (arr[i].cpu < 0) {
         // @ts-ignore
-        arr[i].cpu = "";
+        arr[i].cpu = '';
       }
       // @ts-ignore
       if (arr[i].frequency < 0) {
-        arr[i].frequency = "";
+        arr[i].frequency = '';
       }
       if (!arr[i].cpuload) {
         // @ts-ignore
@@ -255,9 +255,9 @@ export class TabPaneFreqUsage extends BaseElement {
       arr[i].consumption = (arr[i].consumption / CONS_MUTIPLE).toFixed(MIN_FREQ);
       // @ts-ignore
       arr[i].consumpower = (arr[i].consumpower / TIME_MUTIPLE).toFixed(MIN_FREQ);
-      if (arr[i].frequency !== "") {
-        if (arr[i].frequency === "unknown") {
-          arr[i].frequency = "unknown";
+      if (arr[i].frequency !== '') {
+        if (arr[i].frequency === 'unknown') {
+          arr[i].frequency = 'unknown';
         } else {
           arr[i].frequency = arr[i].frequency;
         }

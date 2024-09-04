@@ -883,7 +883,7 @@ export class SpProcessChart {
       if (data.pid === thread.tid) {
         let hangsRow = TraceRow.skeleton<HangStruct>();
         hangsRow.rowType = TraceRow.ROW_TYPE_HANG_INNER;
-        hangsRow.rowId = `${data.processName ?? 'Process'} ${data.pid}`
+        hangsRow.rowId = `${data.processName ?? 'Process'} ${data.pid}`;
         hangsRow.rowParentId = `${data.pid}`;
         hangsRow.rowHidden = !processRow.expansion;
         hangsRow.style.width = '100%';
@@ -1387,7 +1387,7 @@ export class SpProcessChart {
         let param: Array<unknown> = aggregateData[key];
         //@ts-ignore
         this.makeAddAsyncFunction(param, it, processRow, key);
-      })
+      });
       //@ts-ignore
       Reflect.ownKeys(asyncCat).map((key: unknown) => {
         //@ts-ignore
@@ -1399,7 +1399,7 @@ export class SpProcessChart {
           //@ts-ignore
           this.makeAddAsyncFunction(param, it, processRow, key, param[0].tid);
         }
-      })
+      });
     } else {
       //不聚合异步trace
       let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');
