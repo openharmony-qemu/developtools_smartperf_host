@@ -566,7 +566,7 @@ export class SpProcessChart {
         this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow, traceId); //@ts-ignore
         this.addProcessMemInfo(it, processRow); //@ts-ignore
         this.addAsyncFunction(it, processRow);//@ts-ignore
-        this.addProcessMemInfo(it, processRow);
+        this.addAsyncCatFunction(it, processRow);
       } else {
         //@ts-ignore
         this.addAsyncFunction(it, processRow); //@ts-ignore
