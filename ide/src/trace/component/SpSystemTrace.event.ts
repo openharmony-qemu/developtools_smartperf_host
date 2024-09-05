@@ -600,9 +600,6 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   if (sp.isMouseInSheet(ev)) {
     return;
   }
-  if (document.activeElement !== document.body) {
-    return;
-  }
   if (ev.offsetX > sp.timerShaftEL!.canvas!.offsetLeft) {
     sp.rangeSelect.mouseOut(ev);
     sp.timerShaftEL?.documentOnMouseOut(ev);
@@ -617,6 +614,9 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
   let keyPress = ev.key.toLocaleLowerCase();
   TraceRow.isUserInteraction = true;
   if (sp.isMousePointInSheet) {
+    return;
+  }
+  if (document.activeElement !== document.body) {
     return;
   }
   sp.observerScrollHeightEnable = false;
