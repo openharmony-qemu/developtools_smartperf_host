@@ -170,7 +170,7 @@ export class SpSdkConfig extends BaseElement {
             });
           }
         })
-        .catch(() => {});
+        .catch(() => { });
       if (this.worker === null) {
         // @ts-ignore
         if (window.useWb) {
@@ -178,7 +178,7 @@ export class SpSdkConfig extends BaseElement {
         }
         this.worker = new Worker(new URL('../../database/ConfigWorker', import.meta.url));
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   initElements(): void {
@@ -200,7 +200,7 @@ export class SpSdkConfig extends BaseElement {
     inputDiv.addEventListener('mousedown', () => {
       if (this.startSamp) {
         inputDiv!.removeAttribute('readonly');
-        this.selectConfig!.dataSource(this.wasmList, '',true);
+        this.selectConfig!.dataSource(this.wasmList, '', true);
       } else {
         inputDiv!.setAttribute('readonly', 'readonly');
         return;

@@ -18,22 +18,22 @@ import { SpFlagHtml } from './SpFlag.html';
 const NUM = '000000';
 //vsync二级下拉选框对应的value和content
 const VSYNC_CONTENT = [
-  { value: 'H:VsyncGenerator', content: "VsyncGeneratior" },
+  { value: 'H:VsyncGenerator', content: 'VsyncGeneratior' },
   { value: 'H:rs_SendVsync', content: 'Vsync-rs' },
   { value: 'H:rs_SendVsync', content: 'Vsync-app' }
-]
+];
 //cat二级下拉选框对应的value和content
 const CAT_CONTENT = [
-  { value: 'business', content: "Business first" },
+  { value: 'business', content: 'Business first' },
   { value: 'thread', content: 'Thread first' }
-]
+];
 //hang二级下拉选框对应的value和content
 const HANG_CONTENT = [
-  { value: `33${NUM}`, content: "Instant" },
+  { value: `33${NUM}`, content: 'Instant' },
   { value: `100${NUM}`, content: 'Circumstantial' },
   { value: `250${NUM}`, content: 'Micro' },
   { value: `500${NUM}`, content: 'Severe' }
-]
+];
 
 //整合默认值
 const CONFIG_STATE: unknown = {
@@ -214,7 +214,7 @@ export class SpFlags extends BaseElement {
           } else {
             userIdInputEl.style.border = '1px solid red';
           }
-        })
+        });
         userIdInputEl.className = 'device_input';
         userIdInputEl.id = 'user_id_input';
         configFooterDiv.appendChild(userIdLabelEl);

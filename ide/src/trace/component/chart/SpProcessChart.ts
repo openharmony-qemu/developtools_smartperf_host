@@ -883,7 +883,7 @@ export class SpProcessChart {
       if (data.pid === thread.tid) {
         let hangsRow = TraceRow.skeleton<HangStruct>();
         hangsRow.rowType = TraceRow.ROW_TYPE_HANG_INNER;
-        hangsRow.rowId = `${data.processName ?? 'Process'} ${data.pid}`
+        hangsRow.rowId = `${data.processName ?? 'Process'} ${data.pid}`;
         hangsRow.rowParentId = `${data.pid}`;
         hangsRow.rowHidden = !processRow.expansion;
         hangsRow.style.width = '100%';
@@ -1383,20 +1383,23 @@ export class SpProcessChart {
       ({ setArrayLenThanOne, setArrayLenOnlyOne } = this.hanldAsyncFunc(it, asyncRemoveCatArr));//len等于0和大于0的分类
       //@ts-ignore
       let aggregateData = {...setArrayLenThanOne, ...setArrayLenOnlyOne };
-      Reflect.ownKeys(aggregateData).map((key: any) => {
-        let param: Array<any> = aggregateData[key];
-        this.makeAddAsyncFunction(param, it, processRow, key);
-      })
-      //@ts-ignore
-      Reflect.ownKeys(asyncCat).map((key: any) => {
+      Reflect.ownKeys(aggregateData).map((key: unknown) => {
+        let param: Array<unknown> = aggregateData[key];
         //@ts-ignore
-        let param: Array<any> = asyncCat[key];
+        this.makeAddAsyncFunction(param, it, processRow, key);
+      });
+      //@ts-ignore
+      Reflect.ownKeys(asyncCat).map((key: unknown) => {
+        //@ts-ignore
+        let param: Array<unknown> = asyncCat[key];
         if (flag) {//处理business
+          //@ts-ignore
           this.makeAddAsyncFunction(param, it, processRow, key); 
         } else {//处理thread
+          //@ts-ignore
           this.makeAddAsyncFunction(param, it, processRow, key, param[0].tid);
         }
-      })
+      });
     } else {
       //不聚合异步trace
       let asyncFuncGroup = Utils.groupBy(asyncFuncList, 'funName');

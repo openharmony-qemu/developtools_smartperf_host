@@ -229,9 +229,9 @@ export class SpSystemTrace extends BaseElement {
   focusTarget: string = '';
   wakeupListTbl: LitTable | undefined | null;
   _checkclick: boolean = false; //判断点击getWakeupList按钮
-  docomList: Array<number> = []; 
+  docomList: Array<number> = [];
   repaintList: Array<number> = [];
-  presentList: Array<number> = []; 
+  presentList: Array<number> = [];
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -376,18 +376,18 @@ export class SpSystemTrace extends BaseElement {
   }
 
   pushPidToSelection(selection: SelectionParam, id: string, originalId?: string | Array<string>): void {
-    let add = (it: string) => {
+    let add = (it: string): void => {
       let pid = parseInt(it ? it : id);
       if (!isNaN(pid!)) {
         if (!selection.processIds.includes(pid!)) {
           selection.processIds.push(pid!);
         }
       }
-    }
+    };
     if (Array.isArray(originalId)) {
       originalId.forEach(item => {
         add(item);
-      })
+      });
     } else {
       add(originalId!);
     }
@@ -1198,7 +1198,7 @@ export class SpSystemTrace extends BaseElement {
     }
     this.rangeTraceRow = rows;
     let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
-    if(search?.isClearValue) {
+    if (search?.isClearValue) {
       spSystemTraceDocumentOnMouseMoveMouseDown(this, search!);
     }
     this.rangeSelect.selectHandler?.(this.rangeSelect.rangeTraceRow, false);
@@ -2309,9 +2309,9 @@ export class SpSystemTrace extends BaseElement {
     return dataList;
   }
 
-  showStruct(previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number): number {
+  showStruct(previous: boolean, currentIndex: number, structs: Array<unknown>, retargetIndex?: number): number {
     let tagIndex = spSystemTraceShowStruct(this, previous, currentIndex, structs, retargetIndex);
-    return tagIndex === -1?currentIndex:tagIndex;
+    return tagIndex === -1 ? currentIndex : tagIndex;
   }
 
   private toTargetDepth = (entry: unknown, funcRowID: string, funcStract: unknown): void => {
@@ -2640,7 +2640,7 @@ export class SpSystemTrace extends BaseElement {
         window.publish(window.SmartEvent.UI.WakeupList, SpSystemTrace.wakeupList);
         this.wakeupListTbl!.loading = false;
         this._checkclick = false;
-        this.refreshCanvas(true);  
+        this.refreshCanvas(true);
         return null;
       } // @ts-ignore
       SpSystemTrace.wakeupList.push(a); // @ts-ignore

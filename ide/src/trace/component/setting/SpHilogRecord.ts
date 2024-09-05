@@ -71,7 +71,7 @@ export class SpHilogRecord extends BaseElement {
         } else {
           Cmd.getProcess().then((processList) => {
             if (processList.length > 0) {
-              this.processSelectEl!.dataSource(processList, 'ALL-Process',true);
+              this.processSelectEl!.dataSource(processList, 'ALL-Process', true);
             } else {
               this.processSelectEl!.dataSource([], '');
             }

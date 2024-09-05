@@ -106,7 +106,7 @@ export class SpHisysEvent extends BaseElement {
               this.eventConfig = JSON.parse(dec.decode(buffer));
               let domainList = Object.keys(this.eventConfig!);
               if (domainList.length > 0) {
-                this.domainInputEL!.dataSource(domainList, 'ALL-Domain',true);
+                this.domainInputEL!.dataSource(domainList, 'ALL-Domain', true);
               } else {
                 this.domainInputEL!.dataSource([], '');
               }
@@ -132,7 +132,7 @@ export class SpHisysEvent extends BaseElement {
         if (eventConfigElement) {
           let eventNameList = Object.keys(eventConfigElement);
           if (eventNameList?.length > 0) {
-            this.eventNameInputEL!.dataSource(eventNameList, 'ALL-Event',true);
+            this.eventNameInputEL!.dataSource(eventNameList, 'ALL-Event', true);
           } else {
             this.eventNameInputEL!.dataSource([], '');
           }
@@ -147,7 +147,7 @@ export class SpHisysEvent extends BaseElement {
               let eventList = Object.keys(currentEvent);
               currentData.push(...eventList);
             });
-            this.eventNameInputEL!.dataSource(currentData, 'ALL-Event',true);
+            this.eventNameInputEL!.dataSource(currentData, 'ALL-Event', true);
           } else {
             this.eventNameInputEL!.dataSource([], '');
           }

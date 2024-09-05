@@ -141,7 +141,7 @@ export const getTabVirtualMemoryType = (startTime: number, endTime: number): Pro
   );
 
 export const queryNativeMemoryRealTime = (): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryNativeMemoryRealTime',
     `select cs.ts,cs.clock_name from datasource_clockid dc 
@@ -152,13 +152,13 @@ Promise<Array<unknown>> =>
   );
 
 export const queryJsMemoryData = (): //@ts-ignore
-Promise<Array<unknown>> => query('queryJsMemoryData',
-  'SELECT 1 WHERE EXISTS(SELECT 1 FROM js_heap_nodes)');
+  Promise<Array<unknown>> => query('queryJsMemoryData',
+    'SELECT 1 WHERE EXISTS(SELECT 1 FROM js_heap_nodes)');
 
 export const queryVmTrackerShmData = (
   iPid: number
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryVmTrackerShmData',
     `SELECT (A.ts - B.start_ts) as startNs,
@@ -177,7 +177,7 @@ export const queryVmTrackerShmSelectionData = (
   startNs: number,
   ipid: number
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryVmTrackerShmSelectionData',
     `SELECT (A.ts - B.start_ts) as startNS,A.ipid,
@@ -198,7 +198,7 @@ export const queryMemoryConfig = async (): Promise<Array<MemoryConfig>> => {
     {},
   );
   //@ts-ignore
-  let keySql = keyList && keyList.length > 0 && keyList.some(entry => entry.key === 'ipid') ? "AND key = 'ipid'" : "";
+  let keySql = keyList && keyList.length > 0 && keyList.some(entry => entry.key === 'ipid') ? "AND key = 'ipid'" : '';
   return query(
     'queryMemoryConfiig',
     `SELECT ipid as iPid, process.pid AS pid,
@@ -215,14 +215,14 @@ export const queryMemoryConfig = async (): Promise<Array<MemoryConfig>> => {
     ${keySql}
     ;`
   );
-}
+};
 
 // VM Tracker Purgeable泳道图
 export const queryPurgeableProcessData = (
   ipid: number,
   isPin?: boolean
 ): //@ts-ignore
-Promise<Array<unknown>> => {
+  Promise<Array<unknown>> => {
   const pinSql = isPin ? ' AND a.ref_count > 0' : '';
   const names = isPin ? " ('mem.purg_pin')" : "('mem.purg_sum')";
   return query(
@@ -259,7 +259,7 @@ Promise<Array<unknown>> => {
 };
 
 export const queryVirtualMemory = (): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query('queryVirtualMemory',
     `select 
     id,
@@ -269,7 +269,7 @@ Promise<Array<unknown>> =>
 export const queryVirtualMemoryData = (
   filterId: number
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryVirtualMemoryData',
     `select ts-${window.recordStartNS} as startTime,value,filter_id as filterID 
@@ -375,7 +375,7 @@ export const queryTraceMemoryUnAgg = (): Promise<
 export const queryMemoryMaxData = (
   memoryName: string
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryMemoryMaxData',
     `SELECT ifnull(max(m.value),0) as maxValue,
@@ -391,7 +391,7 @@ export const getTabPaneVirtualMemoryStatisticsData = (
   leftNs: number,
   rightNs: number
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'getTabPaneVirtualMemoryStatisticsData',
     `
@@ -418,7 +418,7 @@ Promise<Array<unknown>> =>
   );
 
 export const getFileSysVirtualMemoryChartData = (): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'getFileSysVirtualMemoryChartData',
     `
@@ -433,7 +433,7 @@ Promise<Array<unknown>> =>
   );
 
 export const hasFileSysData = (): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'hasFileSysData',
     `
@@ -453,7 +453,7 @@ export const queryEbpfSamplesCount = (
   endTime: number,
   ipids: number[]
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryEbpfSamplesCount',
     `
@@ -462,21 +462,19 @@ Promise<Array<unknown>> =>
     vmCount 
     from
     (select count(1) as fsCount from file_system_sample s,trace_range t 
-    where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
-  ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
-})
+    where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+    })
 ,(select count(1) as vmCount from paged_memory_sample s,trace_range t 
-where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
-  ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
-});
+where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+    });
 `,
-  { $startTime: startTime, $endTime: endTime }
-);
+    { $startTime: startTime, $endTime: endTime }
+  );
 
 export const queryisExistsShmData = (
   iPid: number
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryisExistsShmData',
     `SELECT EXISTS (
@@ -496,7 +494,7 @@ export const queryVmTrackerShmSizeData = (
   iPid: number,
   dur: number
 ): //@ts-ignore
-Promise<Array<unknown>> =>
+  Promise<Array<unknown>> =>
   query(
     'queryVmTrackerShmSizeData',
     `SELECT ( A.ts - B.start_ts ) AS startNS,
@@ -518,7 +516,7 @@ export const queryisExistsPurgeableData = (
   ipid: number,
   isPin?: boolean
 ): //@ts-ignore
-Promise<Array<unknown>> => {
+  Promise<Array<unknown>> => {
   const pinSql = isPin ? ' AND a.ref_count > 0' : '';
   const names = isPin ? " ('mem.purg_pin')" : "('mem.purg_sum')";
   return query(

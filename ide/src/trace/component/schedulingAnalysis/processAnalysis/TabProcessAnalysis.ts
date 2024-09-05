@@ -20,7 +20,7 @@ import './Top10ProcessSwitchCount.ts';
 import { Top10LongestRunTimeProcess } from './Top10LongestRunTimeProcess';
 import { Top10ProcessSwitchCount } from './Top10ProcessSwitchCount';
 
-@element("tab-process-analysis")
+@element('tab-process-analysis')
 export class TabProcessAnalysis extends BaseElement {
   private currentTabID: string | undefined;
   private currentTab: BaseElement | undefined;

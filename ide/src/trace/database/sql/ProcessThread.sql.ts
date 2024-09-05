@@ -329,12 +329,13 @@ where B.tid = $tid and B.pid = $pid;`,
     { $tid: tid, $pid: pid }
   );
 
-  export const queryThreadWakeUpFrom = async (itid: number, startTime: number): Promise<any> => {
-    let sql1 = `select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1`;
-    const result = await query('queryThreadWakeUpFrom', sql1, {}, { traceId: Utils.currentSelectTrace });
-    if (result && result.length > 0) { //@ts-ignore
-      let wakeupFromItid = result[0].wakeup_from; // 获取wakeup_from的值  
-      let sql2 = `  
+export const queryThreadWakeUpFrom = async (itid: number, startTime: number): Promise<unknown> => {
+  let sql1 = `select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1`;
+  const result = await query('queryThreadWakeUpFrom', sql1, {}, { traceId: Utils.currentSelectTrace });
+  let res: unknown = [];
+  if (result && result.length > 0) { //@ts-ignore
+    let wakeupFromItid = result[0].wakeup_from; // 获取wakeup_from的值  
+    let sql2 = `  
             select (A.ts - B.start_ts) as ts,  
                    A.tid,  
                    A.itid,  
@@ -347,18 +348,20 @@ where B.tid = $tid and B.pid = $pid;`,
             and A.itid = ${wakeupFromItid}  
             and (A.ts - B.start_ts) < (${startTime} - B.start_ts)  
             order by ts desc limit 1  
-          `;  
-      return query('queryThreadWakeUpFrom', sql2, {}, { traceId: Utils.currentSelectTrace });
-    }
-  };
+          `;
+    res = query('queryThreadWakeUpFrom', sql2, {}, { traceId: Utils.currentSelectTrace });
+  }
+  return res;
+};
 
 export const queryRWakeUpFrom = async (itid: number, startTime: number): Promise<unknown> => {
   let sql1 = `select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1`;
   const res = await query('queryRWakeUpFrom', sql1, {}, { traceId: Utils.currentSelectTrace });
+  let result: unknown = [];
   if (res && res.length) {
     //@ts-ignore
     let wakeupFromItid = res[0].wakeup_from;
-    let sql2 =`
+    let sql2 = `
       select 
         (A.ts - B.start_ts) as ts,
         A.tid,
@@ -375,8 +378,9 @@ export const queryRWakeUpFrom = async (itid: number, startTime: number): Promise
         ts desc 
         limit 1
     `;
-    return query('queryRWakeUpFrom', sql2, {}, { traceId: Utils.currentSelectTrace });
+    result = query('queryRWakeUpFrom', sql2, {}, { traceId: Utils.currentSelectTrace });
   }
+  return result;
 };
 export const queryRunnableTimeByRunning = (tid: number, startTime: number): Promise<Array<WakeupBean>> => {
   let sql = `
@@ -783,7 +787,7 @@ export const queryThreadStateArgsByName = (key: string, traceId?: string):
     { traceId: traceId }
   );
 
-export const queryArgsById = (key: string, traceId?: string): 
+export const queryArgsById = (key: string, traceId?: string):
   Promise<Array<{ id: number }>> =>
   query(
     'queryArgsById',

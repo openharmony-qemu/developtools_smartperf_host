@@ -109,7 +109,7 @@ export class LitSelectV extends BaseElement {
     return this.hasAttribute('is-all');
   }
 
-  dataSource(selectVData: Array<string>, valueStr: string,isSingle?:boolean): void {
+  dataSource(selectVData: Array<string>, valueStr: string, isSingle?: boolean): void {
     this.selectVOptions!.innerHTML = '';
     if (selectVData.length > 0) {
       this.selectVBody!.style.display = 'block';
@@ -125,14 +125,14 @@ export class LitSelectV extends BaseElement {
         option.textContent = valueStr;
         this.selectVOptions!.appendChild(option);
         this.initDataItem(selectVData);
-        if(isSingle){
+        if (isSingle) {
           this.initSingleCustomOptions();
         } else {
           this.initCustomOptions();
         }
       } else {
         this.initDataItem(selectVData);
-        if(isSingle){
+        if (isSingle) {
           this.initSingleCustomOptions();
         } else {
           this.initOptions();
@@ -171,7 +171,7 @@ export class LitSelectV extends BaseElement {
     this.selectVInputEl?.addEventListener('keyup', (e) => {
       if (e.code === 'Enter' || e.code === 'NumpadEnter') {// @ts-ignore
         this.selectVInputEl.blur();
-      } 
+      }
     });// @ts-ignore
     this.selectVInputEl!.oninput = (ev: InputEvent): void => {
       // @ts-ignore
@@ -250,7 +250,7 @@ export class LitSelectV extends BaseElement {
         `;
   }
 
-  connectedCallback(): void {}
+  connectedCallback(): void { }
 
   initCustomOptions(): void {
     let querySelector = this.shadowRoot?.querySelector(
@@ -291,22 +291,23 @@ export class LitSelectV extends BaseElement {
   }
 
   initSingleCustomOptions(): void {
-    let selectedOption = this.shadowRoot?.querySelector(  
-        `lit-select-option[value="${this.currentvalueStr}"]`  
-    ) as LitSelectOption | null;  
-    if (selectedOption) {  
-      selectedOption.setAttribute('selected', ''); 
-    }  
-    this.shadowRoot?.querySelectorAll('lit-select-option').forEach((option) => {  
-        option.addEventListener('onSelected', () => {  
-            this.shadowRoot?.querySelectorAll('lit-select-option').forEach((o) => {  
-                o.removeAttribute('selected');  
-            });  
-            option.setAttribute('selected', '');  // @ts-ignore
-            this.selectVInputEl!.value = option.textContent!;
-            this.currentvalueStr = option.textContent!;
-        });  
-    }); 
+    let selectedOption = this.shadowRoot?.querySelector(
+      `lit-select-option[value="${this.currentvalueStr}"]`
+    ) as LitSelectOption | null;
+    if (selectedOption) {
+      selectedOption.setAttribute('selected', '');
+    }
+    this.shadowRoot?.querySelectorAll('lit-select-option').forEach((option) => {
+      option.addEventListener('onSelected', () => {
+        this.shadowRoot?.querySelectorAll('lit-select-option').forEach((o) => {
+          o.removeAttribute('selected');
+        });
+        option.setAttribute('selected', '');
+        //@ts-ignore
+        this.selectVInputEl!.value = option.textContent!;
+        this.currentvalueStr = option.textContent!;
+      });
+    });
   }
 
   initOptions(): void {
@@ -369,5 +370,5 @@ export class LitSelectV extends BaseElement {
     });
   }
 
-  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void {}
+  attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void { }
 }

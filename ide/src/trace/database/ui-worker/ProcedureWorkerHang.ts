@@ -83,9 +83,12 @@ export class HangStruct extends BaseStruct {
   dur: number | undefined;
   tid: number | undefined;
   pid: number | undefined;
-  type: HangType | undefined;   // 手动补充 按时间分类
-  pname: string | undefined;    // 手动补充
-  content: string | undefined;    // 手动补充 在tab页中需要手动解析内容
+  // 手动补充 按时间分类
+  type: HangType | undefined;
+  // 手动补充
+  pname: string | undefined;
+  // 手动补充 在tab页中需要手动解析内容
+  content: string | undefined;
   name: string | undefined;
 
   static getFrameColor(data: HangStruct): string {

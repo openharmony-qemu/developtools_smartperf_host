@@ -254,7 +254,7 @@ export class TabPaneCpuByThread extends BaseElement {
     };
     data.forEach((obj) => {
       // 聚合 cpu 数据
-      if (obj.cat === "cpu") {
+      if (obj.cat === 'cpu') {
         const tidPidKey = `${obj.tid}-${obj.pid}`;
         const cpuDurationKey = `cpu${obj.cpu}`;
         const cpuPercentKey = `cpu${obj.cpu}Ratio`;
@@ -281,11 +281,11 @@ export class TabPaneCpuByThread extends BaseElement {
       }
 
       // 聚合 softirq 数据
-      if (obj.cat === "softirq") {
+      if (obj.cat === 'softirq') {
         this.updateIrqAndSoftirq(softirqAggregations, obj, cpuByThreadValue);
       }
       // 聚合 irq 数据
-      if (obj.cat === "irq") {
+      if (obj.cat === 'irq') {
         this.updateIrqAndSoftirq(irqAggregations, obj, cpuByThreadValue);
       }
 
