@@ -268,10 +268,6 @@ export class Top10LongestRunTimeProcess extends BaseElement {
         this.callBack.bind(this),
         data.pid
       );
-      data.isSelected = true;
-      if (evt.detail.callBack) {
-        evt.detail.callBack(true);
-      }
     });
     this.processRunTimeTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
