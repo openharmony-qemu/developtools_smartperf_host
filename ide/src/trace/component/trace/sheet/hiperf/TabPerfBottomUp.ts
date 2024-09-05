@@ -58,7 +58,7 @@ export class TabpanePerfBottomUp extends BaseElement {
         findSearchNode(this.bottomUpSource, this.searchValue, false);
       }
       if (HiPerfStruct.bottomFindCount === 0 && this.bottomUpFilter!.filterValue !== '') {
-        this.bottomUpTable!.recycleDataSource = []
+        this.bottomUpTable!.recycleDataSource = [];
       } else {
         this.bottomUpTable!.setStatus(this.bottomUpSource, true);
         this.setBottomUpTableData(this.bottomUpSource);

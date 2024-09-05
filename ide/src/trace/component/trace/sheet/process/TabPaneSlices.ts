@@ -54,9 +54,9 @@ export class TabPaneSlices extends BaseElement {
           name: [it.name],
           pid: it.pid,
           tid: it.tid
-        })
+        });
       }
-    })
+    });
 
     let filterNameEL: HTMLInputElement | undefined | null =
       this.shadowRoot?.querySelector<HTMLInputElement>('#filterName');
@@ -66,7 +66,7 @@ export class TabPaneSlices extends BaseElement {
       }
     });
 
-    this.getSliceDb(slicesParam, filterNameEL, sfAsyncFuncMap, slicesParam.funCatAsync)
+    this.getSliceDb(slicesParam, filterNameEL, sfAsyncFuncMap, slicesParam.funCatAsync);
   }
 
   initElements(): void {
@@ -114,21 +114,21 @@ export class TabPaneSlices extends BaseElement {
     slicesParam: SelectionParam,
     filterNameEL: HTMLInputElement | undefined | null,
     sfAsyncFuncMap: Map<string, { name: string[]; pid: number, tid: number | undefined }>,
-    ghAsyncFunc: { threadName: string; pid: number }[]) {
+    ghAsyncFunc: { threadName: string; pid: number }[]): void {
     //获取SF异步Func数据
-    let result1 = () => {
+    let result1 = (): Array<unknown> => {
       let promises: unknown[] = [];
       sfAsyncFuncMap.forEach(async (item: { name: string[]; pid: number, tid: number | undefined }) => {
         let res = await getTabSlicesAsyncFunc(item.name, item.pid, item.tid, slicesParam.leftNs, slicesParam.rightNs);
         if (res !== undefined && res.length > 0) {
           promises.push(...res);
         }
-      })
-      return promises
-    }
+      });
+      return promises;
+    };
 
     //获取GH异步Func数据
-    let result2 = () => {
+    let result2 = (): Array<unknown> => {
       let promises: unknown[] = [];
       ghAsyncFunc.forEach(async (item: { pid: number; threadName: string }) => {
         let res = await getTabSlicesAsyncCatFunc(item.threadName, item.pid, slicesParam.leftNs, slicesParam.rightNs);
@@ -136,18 +136,18 @@ export class TabPaneSlices extends BaseElement {
           promises.push(...res);
         }
       });
-      return promises
-    }
+      return promises;
+    };
 
     //获取同步Func数据
-    let result3 = async () => {
+    let result3 = async (): Promise<unknown> => {
       let promises: unknown[] = [];
       let res = await getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs);
       if (res !== undefined && res.length > 0) {
         promises.push(...res);
       }
-      return promises
-    }
+      return promises;
+    };
 
     this.slicesTbl!.loading = true;
     Promise.all([result1(), result2(), result3()]).then(res => {
@@ -177,7 +177,7 @@ export class TabPaneSlices extends BaseElement {
             processSlicesResultMap.set(processSliceItem.name, {//@ts-ignore
               ...processSliceItem, //@ts-ignore
               tabTitle: processSliceItem.name
-            })
+            });
           }
         }
         let processSlicesResultsValue = [...processSlicesResultMap.values()];
@@ -189,7 +189,8 @@ export class TabPaneSlices extends BaseElement {
         count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
         count.occurrences = sumOcc;
         count.tabTitle = 'Summary';
-        count.allName = processSlicesResultsValue.map((item: any) => item.name);
+        // @ts-ignore
+        count.allName = processSlicesResultsValue.map((item: unknown) => item.name);
         processSlicesResultsValue.splice(0, 0, count); //@ts-ignore
         this.slicesSource = processSlicesResultsValue;
         this.slicesTbl!.recycleDataSource = processSlicesResultsValue;

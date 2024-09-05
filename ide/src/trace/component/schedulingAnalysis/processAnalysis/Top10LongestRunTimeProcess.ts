@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from "../../../../base-ui/BaseElement";
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../base-ui/table/lit-table';
 import { procedurePool } from '../../../database/Procedure';
 import { info } from '../../../../log/Log';
@@ -25,7 +25,7 @@ import { LitChartColumn } from '../../../../base-ui/chart/column/LitChartColumn'
 import '../../../../base-ui/chart/column/LitChartColumn';
 import { Utils } from '../../trace/base/Utils';
 
-@element("top10-longest-runtime-process")
+@element('top10-longest-runtime-process')
 export class Top10LongestRunTimeProcess extends BaseElement {
   traceChange: boolean = false;
   private processRunTimeTbl: LitTable | null | undefined;
@@ -48,7 +48,7 @@ export class Top10LongestRunTimeProcess extends BaseElement {
   /**
    * 初始化操作，若trace发生改变，将所有变量设置为默认值并重新请求数据。若trace未改变，跳出初始化
    */
-  init() {
+  init(): void {
     if (!this.traceChange) {
       if (this.processRunTimeTbl!.recycleDataSource.length > 0) {
         this.processRunTimeTbl?.reMeauseHeight();
@@ -63,16 +63,16 @@ export class Top10LongestRunTimeProcess extends BaseElement {
     this.processMap = Utils.getInstance().getProcessMap();
     this.threadMap = Utils.getInstance().getThreadMap();
     this.queryLogicWorker(
-      "scheduling-Process Top10RunTime",
-      "query Process Top10 Run Time Analysis Time:",
+      'scheduling-Process Top10RunTime',
+      'query Process Top10 Run Time Analysis Time:',
       this.callBack.bind(this)
     );
   }
-  
+
   /**
    * 清除已存储数据
    */
-  clearData() {
+  clearData(): void {
     this.traceChange = true;
     this.processSwitchCountChart!.dataSource = [];
     this.processRunTimeTbl!.recycleDataSource = [];
@@ -93,7 +93,7 @@ export class Top10LongestRunTimeProcess extends BaseElement {
    */
   queryLogicWorker(option: string, log: string, handler: (res: Array<Top10RunTimeData>) => void, pid?: number): void {
     let processThreadCountTime = new Date().getTime();
-    procedurePool.submitWithName('logic0', option, {pid: pid}, undefined, handler);
+    procedurePool.submitWithName('logic0', option, { pid: pid }, undefined, handler);
     let durTime = new Date().getTime() - processThreadCountTime;
     info(log, durTime);
   }
@@ -111,8 +111,8 @@ export class Top10LongestRunTimeProcess extends BaseElement {
       const pStr: string | null = this.processMap.get(arr[i].pid!)!;
       const tStr: string | null = this.threadMap.get(arr[i].tid!)!;
       result.push({
-        NO: i + 1, 
-        pid: arr[i].pid || this.processId, 
+        NO: i + 1,
+        pid: arr[i].pid || this.processId,
         pName: pStr === null ? 'Process ' : pStr,
         dur: arr[i].dur,
         tid: arr[i].tid,
@@ -151,28 +151,28 @@ export class Top10LongestRunTimeProcess extends BaseElement {
       xField: 'pid',
       yField: 'dur',
       seriesField: 'size',
-      color: (a) => {
-          return '#0a59f7';
+      color: (a): string => {
+        return '#0a59f7';
       },
-      hoverHandler: (data) => {
+      hoverHandler: (data): void => {
         if (data) {
           this.processRunTimeTbl!.setCurrentHover(data);
         } else {
           this.processRunTimeTbl!.mouseOut();
         }
       },
-      tip: (obj) => {
+      tip: (obj): string => {
         return `
           <div>
             <div>Process_Id:${
-              // @ts-ignore
-              obj[0].obj.pid}</div> 
+          // @ts-ignore
+          obj[0].obj.pid}</div> 
             <div>Process_Name:${
-              // @ts-ignore
-              obj[0].obj.pName}</div> 
+          // @ts-ignore
+          obj[0].obj.pName}</div> 
             <div>Run_Time:${
-              // @ts-ignore
-              obj[0].obj.dur}</div> 
+          // @ts-ignore
+          obj[0].obj.dur}</div> 
           </div>
         `;
       },
@@ -184,7 +184,7 @@ export class Top10LongestRunTimeProcess extends BaseElement {
    * 大函数块拆解分为两部分，此部分为Top10线程数据
    * @param result 需要显示在表格中的数据
    */
-  threadCallback(result: Array<Top10RunTimeData>):void {
+  threadCallback(result: Array<Top10RunTimeData>): void {
     this.nodataThr!.noData = result === undefined || result.length === 0;
     this.threadRunTimeTbl!.recycleDataSource = result;
     this.threadRunTimeTbl!.reMeauseHeight();
@@ -195,31 +195,31 @@ export class Top10LongestRunTimeProcess extends BaseElement {
       xField: 'tid',
       yField: 'dur',
       seriesField: 'size',
-      color: (a) => {
-          return '#0a59f7';
+      color: (a): string => {
+        return '#0a59f7';
       },
-      hoverHandler: (data) => {
+      hoverHandler: (data): void => {
         if (data) {
           this.threadRunTimeTbl!.setCurrentHover(data);
         } else {
           this.threadRunTimeTbl!.mouseOut();
         }
       },
-      tip: (obj) => {
+      tip: (obj): string => {
         return `
           <div>
             <div>Process_Id:${
-              // @ts-ignore
-              obj[0].obj.pid}</div> 
+          // @ts-ignore
+          obj[0].obj.pid}</div> 
             <div>Thread_Id:${
-              // @ts-ignore
-              obj[0].obj.tid}</div> 
+          // @ts-ignore
+          obj[0].obj.tid}</div> 
             <div>Thread_Name:${
-              // @ts-ignore
-              obj[0].obj.tName}</div> 
+          // @ts-ignore
+          obj[0].obj.tName}</div> 
             <div>Run_Time:${
-              // @ts-ignore
-              obj[0].obj.dur}</div> 
+          // @ts-ignore
+          obj[0].obj.dur}</div> 
           </div>
         `;
       },
@@ -317,36 +317,47 @@ export class Top10LongestRunTimeProcess extends BaseElement {
    * @param detail 点击的列名，以及排序状态0 1 2分别代表不排序、升序排序、降序排序
    * @param data 表格中需要排序的数据
    */
-  sortByColumn(detail: any, data: Array<Top10RunTimeData>): void {
+  sortByColumn(detail: unknown, data: Array<Top10RunTimeData>): void {
     // @ts-ignore
     function compare(processThreadCountProperty, sort, type) {
-      return function (a: any, b: any) {
+      return function (a: unknown, b: unknown) {
         if (type === 'number') {
           // @ts-ignore
           return sort === 2
+          // @ts-ignore
             ? parseFloat(b[processThreadCountProperty]) -
-                parseFloat(a[processThreadCountProperty])
+            // @ts-ignore
+            parseFloat(a[processThreadCountProperty])
+            // @ts-ignore
             : parseFloat(a[processThreadCountProperty]) -
-                parseFloat(b[processThreadCountProperty]);
+            // @ts-ignore
+            parseFloat(b[processThreadCountProperty]);
         } else {
           if (sort === 2) {
+            // @ts-ignore
             return b[processThreadCountProperty]
               .toString()
+              // @ts-ignore
               .localeCompare(a[processThreadCountProperty].toString());
           } else {
+            // @ts-ignore
             return a[processThreadCountProperty]
               .toString()
+              // @ts-ignore
               .localeCompare(b[processThreadCountProperty].toString());
           }
         }
       };
     }
-    if ( detail.key === 'pName' || detail.key === 'tName') {
+    // @ts-ignore
+    if (detail.key === 'pName' || detail.key === 'tName') {
       data.sort(
+        // @ts-ignore
         compare(detail.key, detail.sort, 'string')
       );
     } else {
       data.sort(
+        // @ts-ignore
         compare(detail.key, detail.sort, 'number')
       );
     }
@@ -410,7 +421,7 @@ export class Top10LongestRunTimeProcess extends BaseElement {
             padding-right: 15px;
         }
       </style>
-    `
+    `;
   }
 
   /**

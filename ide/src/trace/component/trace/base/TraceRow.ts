@@ -219,7 +219,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   asyncFuncStartTID!: number | undefined;
   protoParentId: string | null | undefined;
   protoPid: string | undefined;
-  summaryProtoPid:  Array<string> | undefined;
+  summaryProtoPid: Array<string> | undefined;
 
   constructor(
     args: {
@@ -1544,11 +1544,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     let rectY = myRect.y;
     let rectHeight = myRect.height;
     if (!inFavoriteArea && favoriteHeight !== undefined) {
-      let expand = sessionStorage.getItem('expand');  
+      let expand = sessionStorage.getItem('expand');
       let foldHeight = Number(sessionStorage.getItem('foldHeight'));
-      y = expand === 'true' ?   
-        (e.offsetY + prevScrollY - 148 - favoriteHeight!) :  
-        (e.offsetY + prevScrollY - (148 - foldHeight) - favoriteHeight!); 
+      y = expand === 'true' ?
+        (e.offsetY + prevScrollY - 148 - favoriteHeight!) :
+        (e.offsetY + prevScrollY - (148 - foldHeight) - favoriteHeight!);
       rectY = this.offsetTop;
       rectHeight = this.clientHeight;
     }

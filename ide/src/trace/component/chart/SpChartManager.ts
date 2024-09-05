@@ -58,7 +58,7 @@ import { sliceSender } from '../../database/data-trafic/SliceSender';
 import { BaseStruct } from '../../bean/BaseStruct';
 import { SpGpuCounterChart } from './SpGpuCounterChart';
 import { SpUserFileChart } from './SpUserPluginChart';
-import { SpImportUserPluginsChart } from './SpImportUserPluginsChart'
+import { SpImportUserPluginsChart } from './SpImportUserPluginsChart';
 import { queryDmaFenceIdAndCat } from '../../database/sql/dmaFence.sql';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
 

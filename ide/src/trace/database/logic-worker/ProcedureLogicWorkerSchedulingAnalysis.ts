@@ -358,34 +358,46 @@ export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
       this.queryThreadStateByTid(data.params.tid);
     }
   }
-  private schedulingProTop10Swicount(data: any): void {
+  private schedulingProTop10Swicount(data: unknown): void {
+    // @ts-ignore
     if (data.params.list) {
+      // @ts-ignore
       let arr = convertJSON(data.params.list) || [];
       self.postMessage({
+        // @ts-ignore
         id: data.id,
+        // @ts-ignore
         action: data.action,
         results: arr,
       });
       arr = [];
     } else {
+      // @ts-ignore
       if (data.params.pid) {
+        // @ts-ignore
         this.queryThrTop10Swicount(data.params.pid);
       } else {
         this.queryProTop10Swicount();
       }
     }
   }
-  private schedulingProcessRunTime(data: any): void {
+  private schedulingProcessRunTime(data: unknown): void {
+    // @ts-ignore
     if (data.params.list) {
+      // @ts-ignore
       let arr = convertJSON(data.params.list) || [];
       self.postMessage({
+        // @ts-ignore
         id: data.id,
+        // @ts-ignore
         action: data.action,
         results: arr,
       });
       arr = [];
     } else {
+      // @ts-ignore
       if (data.params.pid) {
+        // @ts-ignore
         this.queryThrTop10RunTime(data.params.pid);
       } else {
         this.queryProTop10RunTime();
@@ -577,7 +589,7 @@ where cpu not null
   order by cpu,ts;`;
     this.queryData(this.currentEventId, 'scheduling-Thread Freq', sql, {});
   }
-  queryProTop10Swicount() {
+  queryProTop10Swicount(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-Process Top10Swicount',
@@ -597,7 +609,7 @@ where cpu not null
       {}
     );
   }
-  queryThrTop10Swicount(pid: number) {
+  queryThrTop10Swicount(pid: number): void {
     this.queryData(
       this.currentEventId,
       'scheduling-Process Top10Swicount',
@@ -618,7 +630,7 @@ where cpu not null
       {}
     );
   }
-  queryProTop10RunTime() {
+  queryProTop10RunTime(): void {
     this.queryData(
       this.currentEventId,
       'scheduling-Process Top10RunTime',
@@ -637,7 +649,7 @@ where cpu not null
       {}
     );
   }
-  queryThrTop10RunTime(pid: number) {
+  queryThrTop10RunTime(pid: number): void {
     this.queryData(
       this.currentEventId,
       'scheduling-Process Top10RunTime',

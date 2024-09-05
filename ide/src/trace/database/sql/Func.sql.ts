@@ -322,8 +322,8 @@ export const getTabSlicesAsyncFunc = (
   rightNS: number
 ): //@ts-ignore
   Promise<Array<unknown>> => {
-    let condition = `${asyncTid !== null && asyncTid !== undefined ? `and A.tid = ${asyncTid}` : ''}`;
-    let sql = `
+  let condition = `${asyncTid !== null && asyncTid !== undefined ? `and A.tid = ${asyncTid}` : ''}`;
+  let sql = `
     SELECT 
       c.name AS name,
       sum( c.dur ) AS wallDuration,
@@ -340,31 +340,31 @@ export const getTabSlicesAsyncFunc = (
     and
       P.pid = ${asyncPid}
     and
-      c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})
+      c.name in (${asyncNames.map((it) => '\"' + it + '\"').join(',')})
     and
       not ((C.ts - D.start_ts + C.dur <  ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
     group by
       c.name
     order by
     wallDuration desc;`;
-    return query<SelectionData>('getTabSlicesAsyncFunc', sql, {});
-}
+  return query<SelectionData>('getTabSlicesAsyncFunc', sql, {});
+};
 
 export const getTabDetails = (
   asyncNames: Array<string>,
   asyncPid: Array<number>,
   funTids: Array<number>,
   leftNS: number,
-  rightNS: number 
+  rightNS: number
 ): //@ts-ignore
   Promise<Array<unknown>> => {
-    let condition = `
+  let condition = `
       and A.tid in (${funTids!.join(',')})
       and c.cookie is null
       ${`and P.pid in (${asyncPid.join(',')})`}
-      ${`and c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})`}
-    `
-    let sql = `
+      ${`and c.name in (${asyncNames.map((it) => '\"' + it + '\"').join(',')})`}
+    `;
+  let sql = `
       SELECT 
         c.name AS name,
         c.dur AS duration,
@@ -383,9 +383,9 @@ export const getTabDetails = (
           c.dur >= -1
         and
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
-    `
-    return query('getTabDetails', sql, {});
-  }
+    `;
+  return query('getTabDetails', sql, {});
+};
 export const getSfDetails = (
   asyncNames: Array<string>,
   asyncPid: number,
@@ -394,13 +394,13 @@ export const getSfDetails = (
   rightNS: number
 ): //@ts-ignore
   Promise<Array<unknown>> => {
-    let condition = `
+  let condition = `
       and c.parent_id not null
       ${asyncTid !== null && asyncTid !== undefined ? `and A.tid = ${asyncTid}` : ''}
       ${`and P.pid = ${asyncPid}`}
-      ${`and c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})`}
-    `
-    let sql = `
+      ${`and c.name in (${asyncNames.map((it) => '\"' + it + '\"').join(',')})`}
+    `;
+  let sql = `
       SELECT 
         c.name AS name,
         c.dur AS duration,
@@ -420,18 +420,18 @@ export const getSfDetails = (
           c.dur >= -1
         and
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
-    `
-    return query('getSfDetails', sql, {});
-  }
-  export const getGhDetails = (
-    asyncNames: Array<string>,
-    catName: string,
-    asyncPid: number,
-    leftNS: number,
-    rightNS: number
-  ): //@ts-ignore
-    Promise<Array<unknown>> => {
-      let sql = `
+    `;
+  return query('getSfDetails', sql, {});
+};
+export const getGhDetails = (
+  asyncNames: Array<string>,
+  catName: string,
+  asyncPid: number,
+  leftNS: number,
+  rightNS: number
+): //@ts-ignore
+  Promise<Array<unknown>> => {
+  let sql = `
         SELECT 
           c.name AS name,
           c.dur AS duration,
@@ -459,21 +459,21 @@ export const getSfDetails = (
           and
             cat = '${catName}'
           and 
-            c.name in (${asyncNames.map((it) => "\"" + it + "\"").join(',')})
+            c.name in (${asyncNames.map((it) => '\"' + it + '\"').join(',')})
           and
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS}))
-      `
-      return query('getGhDetails', sql, {});
-    } 
+      `;
+  return query('getGhDetails', sql, {});
+};
 export const getTabSlicesAsyncCatFunc = (
   asyncCatNames: string,
   asyncCatPid: number,
   leftNS: number,
   rightNS: number
 ): Promise<Array<unknown>> =>
-query<SelectionData>(
-  'getTabSlicesAsyncCatFunc',
-  `
+  query<SelectionData>(
+    'getTabSlicesAsyncCatFunc',
+    `
         select
           c.name as name,
           sum(c.dur) as wallDuration,
@@ -502,7 +502,7 @@ query<SelectionData>(
           c.name
         order by
           wallDuration desc;`,
-  { $leftNS: leftNS, $rightNS: rightNS }
+    { $leftNS: leftNS, $rightNS: rightNS }
   );
 
 export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> =>

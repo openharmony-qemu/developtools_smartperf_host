@@ -13,29 +13,29 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from "../../../../../base-ui/BaseElement";
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import {
   LitTable,
   RedrawTreeForm,
-} from "../../../../../base-ui/table/lit-table";
-import { SelectionParam } from "../../../../bean/BoxSelection";
-import "../../../StackBar";
-import { getTabRunningPercent } from "../../../../database/sql/ProcessThread.sql";
+} from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import '../../../StackBar';
+import { getTabRunningPercent } from '../../../../database/sql/ProcessThread.sql';
 import {
   queryCpuFreqUsageData,
   queryCpuFreqFilterId,
-} from "../../../../database/sql/Cpu.sql";
-import { Utils } from "../../base/Utils";
-import { resizeObserver } from "../SheetUtils";
-import { SpSegmentationChart } from "../../../chart/SpSegmentationChart";
+} from '../../../../database/sql/Cpu.sql';
+import { Utils } from '../../base/Utils';
+import { resizeObserver } from '../SheetUtils';
+import { SpSegmentationChart } from '../../../chart/SpSegmentationChart';
 import {
   type CpuFreqData,
   type RunningFreqData,
   type RunningData,
   type CpuFreqTd,
-} from "./TabPaneFreqUsageConfig";
+} from './TabPaneFreqUsageConfig';
 
-@element("tabpane-frequsage")
+@element('tabpane-frequsage')
 export class TabPaneFreqUsage extends BaseElement {
   private threadStatesTbl: LitTable | null | undefined;
   private currentSelectionParam: SelectionParam | undefined;
@@ -117,20 +117,20 @@ export class TabPaneFreqUsage extends BaseElement {
    */
   private threadClick(data: Array<RunningFreqData>): void {
     let labels = this.threadStatesTbl?.shadowRoot
-      ?.querySelector(".th > .td")!
-      .querySelectorAll("label");
+      ?.querySelector('.th > .td')!
+      .querySelectorAll('label');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
-        labels[i].addEventListener("click", (e) => {
-          if (label.includes("Process") && i === 0) {
+        labels[i].addEventListener('click', (e) => {
+          if (label.includes('Process') && i === 0) {
             this.threadStatesTbl!.setStatus(data, false);
             this.threadStatesTbl!.recycleDs =
               this.threadStatesTbl!.meauseTreeRowElement(
                 data,
                 RedrawTreeForm.Retract
               );
-          } else if (label.includes("Thread") && i === 1) {
+          } else if (label.includes('Thread') && i === 1) {
             for (let item of data) {
               // @ts-ignore
               item.status = true;
@@ -143,7 +143,7 @@ export class TabPaneFreqUsage extends BaseElement {
                 data,
                 RedrawTreeForm.Retract
               );
-          } else if (label.includes("CPU") && i === 2) {
+          } else if (label.includes('CPU') && i === 2) {
             this.threadStatesTbl!.setStatus(data, true);
             this.threadStatesTbl!.recycleDs =
               this.threadStatesTbl!.meauseTreeRowElement(
@@ -159,11 +159,11 @@ export class TabPaneFreqUsage extends BaseElement {
 
   initElements(): void {
     this.threadStatesTbl = this.shadowRoot?.querySelector<LitTable>(
-      "#tb-running-percent"
+      '#tb-running-percent'
     );
     //开启一个线程计算busyTime
     this.worker = new Worker(
-      new URL("../../../../database/TabPaneFreqUsageWorker", import.meta.url)
+      new URL('../../../../database/TabPaneFreqUsageWorker', import.meta.url)
     );
     TabPaneFreqUsage.element = this;
   }
@@ -224,21 +224,21 @@ export class TabPaneFreqUsage extends BaseElement {
         i--;
         continue;
       }
-      if (arr[i].thread?.indexOf("P") !== -1) {
+      if (arr[i].thread?.indexOf('P') !== -1) {
         trackId = Number(arr[i].thread?.slice(1)!);
-        arr[i].thread = `${Utils.getInstance().getProcessMap(traceId).get(trackId) || "Process"} ${trackId}`;
-      } else if (arr[i].thread === "summary data") {
+        arr[i].thread = `${Utils.getInstance().getProcessMap(traceId).get(trackId) || 'Process'} ${trackId}`;
+      } else if (arr[i].thread === 'summary data') {
       } else {
-        trackId = Number(arr[i].thread!.split("_")[1]);
-        arr[i].thread = `${Utils.getInstance().getThreadMap(traceId).get(trackId) || "Thread"} ${trackId}`;
+        trackId = Number(arr[i].thread!.split('_')[1]);
+        arr[i].thread = `${Utils.getInstance().getThreadMap(traceId).get(trackId) || 'Thread'} ${trackId}`;
       }
       if (arr[i].cpu < 0) {
         // @ts-ignore
-        arr[i].cpu = "";
+        arr[i].cpu = '';
       }
       // @ts-ignore
       if (arr[i].frequency < 0) {
-        arr[i].frequency = "";
+        arr[i].frequency = '';
       }
       if (!arr[i].cpuload) {
         // @ts-ignore
@@ -255,9 +255,9 @@ export class TabPaneFreqUsage extends BaseElement {
       arr[i].consumption = (arr[i].consumption / CONS_MUTIPLE).toFixed(MIN_FREQ);
       // @ts-ignore
       arr[i].consumpower = (arr[i].consumpower / TIME_MUTIPLE).toFixed(MIN_FREQ);
-      if (arr[i].frequency !== "") {
-        if (arr[i].frequency === "unknown") {
-          arr[i].frequency = "unknown";
+      if (arr[i].frequency !== '') {
+        if (arr[i].frequency === 'unknown') {
+          arr[i].frequency = 'unknown';
         } else {
           arr[i].frequency = arr[i].frequency;
         }

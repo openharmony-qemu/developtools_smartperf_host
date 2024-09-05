@@ -1125,7 +1125,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     let node: NativeHookCallInfo;
     if (
       //@ts-ignore
-      currentNode.children.filter((child: NativeHookCallInfo): boolean => {
+      currentNode.initChildren.filter((child: NativeHookCallInfo): boolean => {
         if (
           child.symbolId === callChainDataList[index]?.symbolId &&
           child.fileId === callChainDataList[index]?.fileId
@@ -1140,7 +1140,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       node = new NativeHookCallInfo();
       this.mergeCallChainSample(node, callChainDataList[index], sample);
       currentNode.children.push(node);
-      // currentNode.initChildren.push(node);
+      currentNode.initChildren.push(node);
       // 将所有节点存到this.currentTreeList
       this.currentTreeList.push(node);
       node.parentNode = currentNode;

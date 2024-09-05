@@ -619,9 +619,9 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
   sp.observerScrollHeightEnable = false;
   if (sp.keyboardEnable) {
     if (keyPress === 'm') {
-      if(sp.selectFlag) {
+      if (sp.selectFlag) {
         sp.selectFlag!.selected = false;
-      } 
+      }
       sp.slicestime = sp.setSLiceMark(ev.shiftKey);
       if (sp.slicestime) {
         if (TraceRow.rangeSelectObject) {
@@ -636,7 +636,7 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
     }
     if (keyPress === 'f') {
       let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
-      if(search && search.searchValue !== '' && sp.currentRow !== undefined) {
+      if (search && search.searchValue !== '' && sp.currentRow !== undefined) {
         sp.currentRow = undefined;
       }
       let isSelectSliceOrFlag = false;

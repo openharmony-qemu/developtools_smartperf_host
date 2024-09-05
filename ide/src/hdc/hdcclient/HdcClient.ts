@@ -77,7 +77,7 @@ export class HdcClient implements DataListener {
         case AuthType.AUTH_TOKEN:
           continue;
         case AuthType.AUTH_SIGNATURE:
-          const hdcMsgUrl = this.isSigna ? 'signatureHdcMsg' : 'encryptHdcMsg'
+          const hdcMsgUrl = this.isSigna ? 'signatureHdcMsg' : 'encryptHdcMsg';
           const response = await fetch(`${window.location.origin}/application/${hdcMsgUrl}?message=` + returnBuf);
           const dataBody = await response.json();
           let signatureHdcMsg = '';
