@@ -16,11 +16,9 @@
 #ifndef INCLUDE_TUNING_BASE_FILE_UTILS_H
 #define INCLUDE_TUNING_BASE_FILE_UTILS_H
 
-#if defined(is_linux) || defined(_WIN32)
-#include <filesystem>
-#endif
 #include <string>
 #include <vector>
+
 namespace SysTuning {
 namespace base {
 #define TS_PERMISSION_RW 0600
@@ -42,9 +40,14 @@ ssize_t Read(int32_t fd, uint8_t *dst, size_t dstSize);
 int32_t OpenFile(const std::string &path, int32_t flags, uint32_t mode = K_FILE_MODE_INVALID);
 
 std::string GetExecutionDirectoryPath();
+
 #if defined(is_linux) || defined(_WIN32)
-std::vector<std::string> GetFilesNameFromDir(const std::string &path);
+std::vector<std::string> GetFilesNameFromDir(const std::string &path, bool onlyFileName = true);
 #endif
+
+bool UnZipFile(const std::string &zipFile, std::string &traceFile);
+
+bool LocalUnzip(const std::string &zipFile, const std::string &dstDir);
 } // namespace base
 } // namespace SysTuning
 #endif // INCLUDE_TUNING_BASE_FILE_UTILS_H_
