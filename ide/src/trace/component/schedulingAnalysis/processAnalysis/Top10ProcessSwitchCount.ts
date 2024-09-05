@@ -269,18 +269,6 @@ export class Top10ProcessSwitchCount extends BaseElement {
         this.callBack.bind(this),
         data.pid
       );
-      data.isSelected = true;
-      if (evt.detail.callBack) {
-        evt.detail.callBack(true);
-      }
-    });
-    // @ts-ignore
-    this.threadSwitchCountTbl!.addEventListener('row-click', (evt: CustomEvent) => {
-      let data = evt.detail.data;
-      data.isSelected = true;
-      if (evt.detail.callBack) {
-        evt.detail.callBack(true);
-      }
     });
     this.processSwitchCountTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
