@@ -1128,6 +1128,7 @@ export class SelectionParam {
         it.rangeSelect = true;
         it.checkType = '2';
         this.clockMapData.set(it.rowId || '', it.getCacheData);
+        it.rowType === TraceRow.ROW_TYPE_DMA_FENCE && this.dmaFenceNameData.push(it.rowId!);
       });
     }
     if (it.rowType === TraceRow.ROW_TYPE_CLOCK) {
