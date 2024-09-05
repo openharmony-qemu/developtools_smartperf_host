@@ -270,8 +270,8 @@ export class LitChartPie extends BaseElement {
           if (it.hover && this.litChartPieConfig) {
             this.litChartPieConfig.hoverHandler?.(it.obj);
             this.showTip(
-              ev.pageX - rect.left + 10,
-              ev.pageY - this.offsetTop - 10,
+              ev.pageX - rect.left > this.centerX! ? ev.pageX - rect.left - 120 : ev.pageX - rect.left + 10,
+              ev.pageY - this.offsetTop > this.centerY! ? ev.pageY - this.offsetTop - 50 : ev.pageY + (this.offsetTop - rect.top) - this.offsetTop + 20,
               this.litChartPieConfig.tip ? this.litChartPieConfig!.tip(it) : `${it.key}: ${it.value}`
             );
           }
