@@ -179,11 +179,13 @@ export class LitChartPie extends BaseElement {
       }
       this.updateHoverItemStatus(it);
       if (it.hover) {
-        this.showTip(
-          this.centerX || 0,
-          this.centerY || 0,
-          this.litChartPieConfig!.tip ? this.litChartPieConfig!.tip(it) : `${it.key}: ${it.value}`
-        );
+        if (this.centerX && this.centerX > 0 && this.centerY && this.centerY > 0) { 
+          this.showTip(
+            this.centerX || 0,
+            this.centerY || 0,
+            this.litChartPieConfig!.tip ? this.litChartPieConfig!.tip(it) : `${it.key}: ${it.value}`
+          );
+        }
       }
     });
     if (!hasHover) {
