@@ -16,7 +16,10 @@ import("../../build/ts.gni")
 ohos_source_set("base") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
-  public_deps = [ "sqlite_ext:sqliteext" ]
+  public_deps = [
+    "${THIRD_PARTY}/zlib:libz",
+    "sqlite_ext:sqliteext",
+  ]
   include_dirs = [
     "../include",
     "${THIRD_PARTY}/sqlite/include",

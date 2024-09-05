@@ -272,12 +272,16 @@ bool SetFileSize(const std::string &traceFilePath)
 }
 int OpenAndParserFile(TraceStreamerSelector &ts, const std::string &traceFilePath)
 {
-    if (!SetFileSize(traceFilePath)) {
+    std::string filePath = traceFilePath;
+    if (!UnZipFile(traceFilePath, filePath)) {
+        return 1;
+    }
+    if (!SetFileSize(filePath)) {
         return 0;
     }
-    int fd(OpenFile(traceFilePath, O_RDONLY, G_FILE_PERMISSION));
+    int fd(OpenFile(filePath, O_RDONLY, G_FILE_PERMISSION));
     if (fd < 0) {
-        TS_LOGE("%s does not exist", traceFilePath.c_str());
+        TS_LOGE("%s does not exist", filePath.c_str());
         SetAnalysisResult(TRACE_PARSER_ABNORMAL);
         return 1;
     }
@@ -720,6 +724,7 @@ void Init(TraceStreamerSelector &ts, const TraceExportOption &traceExportOption)
 
 } // namespace TraceStreamer
 } // namespace SysTuning
+
 int main(int argc, char **argv)
 {
     TraceExportOption traceExportOption;

@@ -49,6 +49,19 @@ if [ ! -f "zlib/BUILD.gn" ];then
         $cp ../prebuilts/patch_zlib/zlibbuild.gn zlib/BUILD.gn
     fi
 fi
+
+if [ ! -f "bzip2/BUILD.gn" ];then
+    rm -rf bzip2
+    git clone --depth=1 git@gitee.com:openharmony/third_party_bzip2.git
+    if [ -d "third_party_bzip2" ];then
+        mv third_party_bzip2 bzip2
+        $cp ../prebuilts/patch_bzip2/bzip2build.gn bzip2/BUILD.gn
+        cd bzip2
+        ./install.sh `pwd`
+        cd ..
+    fi
+fi
+
 if [ ! -f "googletest/BUILD.gn" ];then
     rm -rf googletest
     git clone --depth=1 git@gitee.com:openharmony/third_party_googletest.git
@@ -143,7 +156,6 @@ if [ ! -f "hiperf/BUILD.gn" ];then
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/symbols_file.h
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/virtual_runtime.h
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/report.h
-
         $sed -i "s/HIPERF_DEBUG/ALWAYSTRUE/g" hiperf/include/virtual_thread.h
         $sed -i "/using __s8 = char;/a #define unw_word_t uint64_t" hiperf/include/nonlinux/linux/types.h
         $sed -i '/^void Report::PrepareConsole(/,/^}/ s/^.*$/\/\/&/; /^void Report::PrepareConsole(/,/return;/ s/^[[:blank:]]*/    /' hiperf/src/report.cpp

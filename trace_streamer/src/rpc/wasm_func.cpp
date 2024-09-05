@@ -51,6 +51,7 @@ ParseELFFunction g_parseELFCallback;
 uint8_t *g_fileNameBuf;
 uint32_t g_fileNameSize;
 bool g_isSystrace = false;
+bool g_isZipTrace = false;
 bool g_hasDeterminedSystrace = false;
 
 void ResultCallback(const std::string &jsonResult, int32_t finish)
@@ -224,12 +225,15 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFi
 {
     if (!g_hasDeterminedSystrace) {
         g_isSystrace = g_wasmTraceStreamer.DetermineSystrace(g_reqBuf, dataLen);
+        g_isZipTrace = g_wasmTraceStreamer.DetermineZipTrace(g_reqBuf, dataLen);
         g_hasDeterminedSystrace = true;
     }
     if (g_wasmTraceStreamer.GetFfrtConvertStatus() && g_isSystrace) {
 #if IS_WASM
         return g_wasmTraceStreamer.SaveAndParseFfrtData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
 #endif
+    } else if (g_isZipTrace) {
+        return g_wasmTraceStreamer.SaveAndParseZipTraceData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
     } else if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr, isFinish)) {
         return 0;
     }

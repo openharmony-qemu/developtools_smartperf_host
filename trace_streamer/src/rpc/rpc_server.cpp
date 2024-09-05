@@ -20,6 +20,7 @@
 #include <functional>
 #if IS_WASM
 #include <filesystem>
+#include "file.h"
 #endif
 #include "common_types.h"
 #include "hilog_parser/ptreader_hilog_parser.h"
@@ -106,6 +107,33 @@ bool RpcServer::SaveAndParseFfrtData(const uint8_t *data, size_t len, ResultCall
     }
     outFile.close();
     if (!ReadAndParseData(outTraceName) || !SendConvertedFfrtFile(outTraceName, resultCallBack)) {
+        std::filesystem::remove_all(outTraceName);
+        return false;
+    }
+    std::filesystem::remove_all(outTraceName);
+    return true;
+}
+bool RpcServer::SaveAndParseZipTraceData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish)
+{
+    auto zipFileName = "zipFile.zip";
+    static std::ofstream zipFile(zipFileName, std::ios::binary | std::ios::app);
+    if (!zipFile.is_open()) {
+        TS_LOGE("zipFile open filed!");
+        return false;
+    }
+    zipFile.write(reinterpret_cast<const char *>(data), len);
+    if (zipFile.fail() || zipFile.bad()) {
+        TS_LOGE("Failed to write data!");
+        zipFile.close();
+        return false;
+    }
+    if (!isFinish) {
+        return true;
+    }
+    zipFile.close();
+    std::string outTraceName;
+    UnZipFile(zipFileName, outTraceName);
+    if (!ReadAndParseData(outTraceName)) {
         std::filesystem::remove_all(outTraceName);
         return false;
     }
@@ -263,6 +291,14 @@ bool RpcServer::DetermineSystrace(const uint8_t *data, size_t len)
         return true;
     }
     return false;
+}
+
+bool RpcServer::DetermineZipTrace(const uint8_t *data, size_t len)
+{
+    if (len < 2) {
+        return false;
+    }
+    return data[0] == 'P' && data[1] == 'K';
 }
 
 bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish)
