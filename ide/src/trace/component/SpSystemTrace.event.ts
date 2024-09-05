@@ -600,6 +600,9 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   if (sp.isMouseInSheet(ev)) {
     return;
   }
+  if (document.activeElement !== document.body) {
+    return;
+  }
   if (ev.offsetX > sp.timerShaftEL!.canvas!.offsetLeft) {
     sp.rangeSelect.mouseOut(ev);
     sp.timerShaftEL?.documentOnMouseOut(ev);
