@@ -1328,7 +1328,7 @@
       "subsystem": "contacts_data",
       "components": [
         {
-          "component": "contacts_data",
+          "component": "contacts_data_hap",
           "charts": [
             {
               "chartName": "com.ohos.contacts",
