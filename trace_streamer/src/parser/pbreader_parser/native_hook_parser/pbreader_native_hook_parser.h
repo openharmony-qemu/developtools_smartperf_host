@@ -60,6 +60,7 @@ private:
     std::unique_ptr<NativeHookFilter> nativeHookFilter_;
     uint64_t hookBootTime_ = 0;
     bool isCommData_ = false;
+    uint64_t statisticsInterval_ = 0;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

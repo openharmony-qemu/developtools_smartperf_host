@@ -70,7 +70,7 @@ public:
 
 public:
     void MaybeParseNativeHookMainEvent(uint64_t timeStamp, std::unique_ptr<NativeHookMetaData> nativeHookMetaData);
-    void ParseConfigInfo(ProtoReader::BytesView &protoData);
+    void ParseConfigInfo(ProtoReader::BytesView &protoData, uint64_t &statisticsInterval);
     void AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vector<uint64_t> &frames);
     void AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const ProtoReader::BytesView &bytesView);
     void AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex);
