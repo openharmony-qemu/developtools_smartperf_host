@@ -172,9 +172,11 @@ void PbreaderNativeHookParser::Parse(PbreaderDataSegment &dataSeg, bool &haveSpl
               nativeHookMetaData->reader_->has_mmap_event() || nativeHookMetaData->reader_->has_munmap_event() ||
               nativeHookMetaData->reader_->has_statistics_event());
         hookBootTime_ = 0;
-        if (nativeHookMetaData->reader_->has_tv_sec() || nativeHookMetaData->reader_->has_tv_nsec()) {
+        if (!isCommData_ && (nativeHookMetaData->reader_->has_tv_sec() || nativeHookMetaData->reader_->has_tv_nsec())) {
             auto timeStamp = nativeHookMetaData->reader_->tv_nsec() + nativeHookMetaData->reader_->tv_sec() * SEC_TO_NS;
             hookBootTime_ = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, timeStamp);
+            UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp - statisticsInterval_,
+                                  hookBootTime_ - statisticsInterval_);
             UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp, hookBootTime_);
         }
         if (haveSplitSeg) {
@@ -196,7 +198,7 @@ void PbreaderNativeHookParser::Parse(PbreaderDataSegment &dataSeg, bool &haveSpl
 }
 void PbreaderNativeHookParser::ParseConfigInfo(PbreaderDataSegment &dataSeg)
 {
-    nativeHookFilter_->ParseConfigInfo(dataSeg.protoData);
+    nativeHookFilter_->ParseConfigInfo(dataSeg.protoData, statisticsInterval_);
 }
 void PbreaderNativeHookParser::FinishSplitNativeHook()
 {
