@@ -889,6 +889,12 @@ export class TraceRowConfig extends BaseElement {
           if (configCheckBox.checked) {
             item.setAttribute('scene', '');
             item.removeAttribute('row-hidden');
+            item.childrenList.forEach(v => {
+              if (v.hasAttribute('row-hidden')) {
+                v.setAttribute('scene', '');
+                v.removeAttribute('row-hidden');
+              }
+            });
           } else {
             item.expansion = false;
             item.removeAttribute('scene');

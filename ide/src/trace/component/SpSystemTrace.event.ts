@@ -616,6 +616,9 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
   if (sp.isMousePointInSheet) {
     return;
   }
+  if (document.activeElement !== document.body) {
+    return;
+  }
   sp.observerScrollHeightEnable = false;
   if (sp.keyboardEnable) {
     if (keyPress === 'm') {
