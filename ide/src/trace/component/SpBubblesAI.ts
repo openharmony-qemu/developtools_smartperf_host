@@ -25,8 +25,8 @@ export class SpBubblesAI extends BaseElement {
     xiaoLubanEl?.addEventListener('click', () => {
       this.xiaoLubanEvent();
       let requestBody = {
-        action: 'xiaoluban',
-        event: 'xiaoluban'
+        action: 'AItrace',
+        event: 'AItrace'
       };
       SpStatisticsHttpUtil.addOrdinaryVisitAction(requestBody);
     });

@@ -45,6 +45,7 @@ const CONFIG_STATE: unknown = {
 @element('sp-flags')
 export class SpFlags extends BaseElement {
   private bodyEl: HTMLElement | undefined | null;
+  private xiaoLubanEl: Element | null | undefined;
 
   initElements(): void {
     let parentElement = this.parentNode as HTMLElement;
@@ -81,20 +82,24 @@ export class SpFlags extends BaseElement {
       }
       configSelect.appendChild(configOption);
     });
+    // 页面刷新时，选项并未改变，小鲁班也应当展示
+    this.xiaoLubanEl = document.querySelector('sp-application')?.shadowRoot?.querySelector('#sp-bubbles')
+      ?.shadowRoot?.querySelector('#xiao-luban-help');
+    if (configSelect.title === 'AI' && configSelect.selectedOptions[0].value === 'Enabled') {
+      this.xiaoLubanEl?.setAttribute('enabled', '');
+    }
     configSelect.addEventListener('change', () => {
       this.flagSelectListener(configSelect);
       if (configSelect.title === 'AI') {
         let userIdInput: HTMLInputElement | null | undefined = this.shadowRoot?.querySelector('#user_id_input');
-        let xiaoLubanEl: Element | null | undefined = document.querySelector('sp-application')?.shadowRoot?.querySelector('#sp-bubbles')
-          ?.shadowRoot?.querySelector('#xiao-luban-help');
         if (configSelect.selectedOptions[0].value === 'Enabled') {
           if (userIdInput?.value === '') {
             userIdInput.style.border = '1px solid red';
           }
-          xiaoLubanEl?.setAttribute('enabled', '');
+          this.xiaoLubanEl?.setAttribute('enabled', '');
         } else {
           userIdInput!.style.border = '1px solid #ccc';
-          xiaoLubanEl?.removeAttribute('enabled');
+          this.xiaoLubanEl?.removeAttribute('enabled');
         }
       }
     });
