@@ -321,8 +321,12 @@ export class SpApplication extends BaseElement {
 
   private initElementsEnd(): void {
     let urlParams = new URL(window.location.href).searchParams;
+    let jsonStr = '';
+    if (urlParams && urlParams.get('json')) {
+      jsonStr = decodeURIComponent(window.location.href.split('&').reverse()[0].split('=')[1]);
+    }
     if (urlParams && urlParams.get('trace') && urlParams.get('link')) {
-      this.openLineFileHandler(urlParams);
+      this.openLineFileHandler(urlParams, jsonStr);
     } else if (urlParams && urlParams.get('action')) {
       this.helpClick(urlParams!);
     } else {
@@ -654,7 +658,7 @@ export class SpApplication extends BaseElement {
     }
   }
 
-  private openLineFileHandler(urlParams: URLSearchParams): void {
+  private openLineFileHandler(urlParams: URLSearchParams, jsonStr: string): void {
     Utils.currentTraceMode = TraceMode.NORMAL;
     this.openFileInit();
     this.openMenu(false);
@@ -664,7 +668,12 @@ export class SpApplication extends BaseElement {
       urlParams.get('trace') as string,
       downloadLineFile,
       (arrayBuf, fileName, showFileName, fileSize) => {
-        this.handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName);
+        if (fileName.split('.').reverse()[0] === 'db') {
+          this.wasm = false;
+          this.handleSqliteMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName, jsonStr);
+        } else {
+          this.handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName, jsonStr);
+        }
       },
       (localPath) => {
         let path = urlParams.get('trace') as string;
@@ -977,7 +986,7 @@ export class SpApplication extends BaseElement {
     history.pushState({}, '', window.location.origin + window.location.pathname);
   }
 
-  private handleSqliteMode(ev: unknown, showFileName: string, fileSize: number, fileName: string): void {
+  private handleSqliteMode(ev: unknown, showFileName: string, fileSize: number, fileName: string, jsonStr?: string): void {
     let fileSizeStr = (fileSize / 1048576).toFixed(1);
     postLog(fileName, fileSizeStr);
     document.title = `${showFileName} (${fileSizeStr}M)`;
@@ -999,6 +1008,9 @@ export class SpApplication extends BaseElement {
           () => {
             if (this.markJson) {
               window.publish(window.SmartEvent.UI.ImportRecord, this.markJson);
+            }
+            if (jsonStr) {
+              window.publish(window.SmartEvent.UI.ImportRecord, jsonStr);
             }
             this.mainMenu!.menus!.splice(2, this.mainMenu!.menus!.length > 2 ? 1 : 0, {
               collapsed: false,
@@ -1069,7 +1081,7 @@ export class SpApplication extends BaseElement {
     };
   }
 
-  private handleWasmMode(ev: unknown, showFileName: string, fileSize: number, fileName: string): void {
+  private handleWasmMode(ev: unknown, showFileName: string, fileSize: number, fileName: string, jsonStr?: string): void {
     this.litSearch!.setPercent('', 1);
     if (fileName.endsWith('.json')) {
       this.progressEL!.loading = true;
@@ -1099,6 +1111,9 @@ export class SpApplication extends BaseElement {
         await this.traceLoadCompleteHandler(res, fileSizeStr, showFileName, fileName, false);
         if (this.markJson) {
           window.publish(window.SmartEvent.UI.ImportRecord, this.markJson);
+        }
+        if (jsonStr) {
+          window.publish(window.SmartEvent.UI.ImportRecord, jsonStr);
         }
       };
       threadPool.init('wasm').then((res) => {
