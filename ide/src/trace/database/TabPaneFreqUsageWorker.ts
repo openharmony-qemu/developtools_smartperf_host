@@ -185,6 +185,7 @@ function returnObj(
         consumpower: computorPower * item.dur,
         cpuload: (computorPower * item.dur) / (timeZones * maxCommpuPower) * PERCENT
       };
+      break;
     case 2:
       result = {
         thread: item.pid + '_' + item.tid,
@@ -196,6 +197,7 @@ function returnObj(
         consumpower: computorPower * (cpuFreqData.ts + cpuFreqData.dur - item.ts),
         cpuload: (computorPower * (cpuFreqData.ts + cpuFreqData.dur - item.ts)) / (timeZones * maxCommpuPower) * PERCENT
       };
+      break;
     case 3:
       result = {
         thread: item.pid + '_' + item.tid,
@@ -207,6 +209,7 @@ function returnObj(
         consumpower: computorPower * (item.dur + item.ts - cpuFreqData.ts),
         cpuload: (computorPower * (item.dur + item.ts - cpuFreqData.ts)) / (timeZones * maxCommpuPower) * PERCENT
       };
+      break;
     case 4:
       result = {
         thread: item.pid + '_' + item.tid,
@@ -218,6 +221,7 @@ function returnObj(
         consumpower: computorPower * cpuFreqData.dur,
         cpuload: (computorPower * cpuFreqData.dur) / (timeZones * maxCommpuPower) * PERCENT
       };
+      break;
     case 5:
       result = {
         thread: item.pid + '_' + item.tid,
@@ -229,6 +233,7 @@ function returnObj(
         consumpower: 0,
         cpuload: 0
       };
+      break;
   }
   return result;
 }
