@@ -226,7 +226,7 @@ export class ColorUtils {
         colorChange.push(parseInt(`0x${color.slice(i, i + 2)}`));
       }
       let grayLevel = colorChange[0] * 0.299 + colorChange[1] * 0.587 + colorChange[2] * 0.114;
-      if (grayLevel >= 150) {
+      if (grayLevel >= 100) {
         //浅色模式
         return '#000';
       } else {
