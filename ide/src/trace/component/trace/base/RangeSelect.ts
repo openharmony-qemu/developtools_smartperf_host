@@ -106,6 +106,12 @@ export class RangeSelect {
         } else if (row.getAttribute('name')?.startsWith('Present')) {
           this.filterPresentData(row, this.trace?.presentList);
         }
+      } else if (
+        row.getAttribute('row-type') === 'process' &&
+        row.getAttribute('name')?.startsWith('render_service') &&  
+        Array.isArray(row.childrenList)  
+      ) {
+        this.checkRowsName(row.childrenList);
       }
     });
   }
