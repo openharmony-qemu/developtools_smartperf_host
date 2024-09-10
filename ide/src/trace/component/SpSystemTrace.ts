@@ -1176,7 +1176,9 @@ export class SpSystemTrace extends BaseElement {
       ...this.favoriteChartListEL!.getAllSelectCollectRows(),
     ];
     this.isSelectClick = true;
-    this.rangeSelect.rangeTraceRow = rows; // @ts-ignore
+    this.rangeSelect.rangeTraceRow = rows; 
+    this.rangeSelect.checkRowsName(this.rangeSelect.rangeTraceRow);
+    // @ts-ignore
     let changeTraceRows: Array<TraceRow<unknown>> = [];
     if (this.rangeTraceRow!.length < rows.length) {
       // @ts-ignore
