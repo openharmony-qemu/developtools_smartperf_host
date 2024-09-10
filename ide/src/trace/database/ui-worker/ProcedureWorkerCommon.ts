@@ -1397,7 +1397,9 @@ function drawBrokenLineContext(
     rightEndpointX = x2 - wid;
     rightEndpointY = y2 + wid;
   } else {
+    //@ts-ignore
     x2 = brokenLineEnd.x - wid ?? 0;
+    //@ts-ignore
     x1 = brokenLineEnd.x - wid ?? 0;
     y1 = brokenLineStart.y ?? 0;
     leftEndpointX = x2 - wid;
