@@ -877,6 +877,196 @@ Single file max size： trace文件分割的大小。
         <br />
         <img src="../figures/parsingability/tsmetric.jpg" alt="GitHub Logo" />
       </p>
+
+      <h3 class="mume-header fontColor" id="header-index-5">
+        Hangs抓取和展示说明
+      </h3>
+      <p class="fontColor">
+        挂起（hang）是离散用户交互中的明显延迟，并且它几乎总是主线程上长时间运行工作的结果。
+        仅当主线程在大约 50 毫秒到 100 毫秒或更长时间内无响应时，离散交互延迟才会开始变得明显。
+      </p>
+      <h4 class="mume-header fontColor">Hangs的抓取</h4>
+      <h4 class="mume-header fontColor">Hangs抓取配置参数</h4>
+      <p class="fontColor">
+        进入Probes config页面，打开Record mode开关，勾选notification可以抓取Hangs数据（此选项为默认勾选）。
+      </p>
+      <br />
+      <img src="../figures/parsingability/hangsrecord.jpg" alt="GitHub Logo" />
+      <p class="fontColor">
+        解析时需要打开Flags页面的Hangs Detection开关(Disabled切换为Enabled)。
+      </p>
+      <br />
+      <img src="../figures/parsingability/hangsdetection.jpg" alt="GitHub Logo" />
+      <h4 class="mume-header fontColor">Hangs展示说明</h4>
+      <p class="fontColor">
+        将抓取的trace文件导入到smartperf工具中，查看挂起的情况。
+      </p>
+      <h4 class="mume-header fontColor">泳道图展示</h4>
+      <img src="../figures/parsingability/hangstrace.jpg" alt="GitHub Logo" />
+      <h4 class="mume-header fontColor">类型说明</h4>
+      <img src="../figures/parsingability/hangsttype.jpg" alt="GitHub Logo" />
+      <p class="fontColor">
+        点击Hangs Detection开关下的选项可以选择展示的不同类型。
+      </p>
+      <p class="fontColor">
+        根据duration大小将hang划分为4个type，即Instant、Circumstantial、Micro、Severe。4个type分别对应时长为
+        33ms&lt;d&lt;100ms、100ms&le;d&lt;250ms、250ms&le;d&lt;500ms、500ms&le;d。
+      </p>
+      <p class="fontColor">
+        颜色按type由浅及深：Instant蓝色、Circumstantial黄色、Micro橙色、Severe红色。
+      </p>
+      <p class="fontColor">
+        选择不同类型展示出的泳道会不一样： 选择Instant会显示Instant、Circumstantial、Micro、Severe，如图一；
+        选择Circumstantial则显示Circumstantial、Micro、Severe，如图二，以此类推。
+      </p>
+      <img src="../figures/parsingability/Instant.jpg" alt="GitHub Logo" />
+      <p class="fontColor">
+        图一
+      </p>
+      <img src="../figures/parsingability/Circumstantial.jpg" alt="GitHub Logo" />
+      <p class="fontColor">
+        图二
+      </p>
+      <h4 class="mume-header fontColor">Hangs泳道图的点选功能</h4>
+      <p class="fontColor">
+        可以对hangs的各个slice进行点选，点选后在最下方的弹出层中会展示点选数据的统计的tab页。点击Hang type右侧蓝色箭头，会跳转到该hang对应的trace点。
+      </p>
+      <img src="../figures/parsingability/hangdetails.jpg" alt="GitHub Logo" />
+      <br />
+      <img src="../figures/parsingability/hangname.jpg" alt="GitHub Logo" />
+      <p class="fontColor">
+        Trace点的name依次对应tab页的Sender tid、Send time、Expect handle time、Task name/ID、Prio、Sender。
+      </p>
+      <ul class="fontColor">
+        <li>
+          <pre class="smartperf-text fontColor light">
+StartTime(Relative)：开始时间（相对时间）。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+StartTime(Absolute)：开始时间（绝对时间）。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Duration：持续时间。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Hang Type：挂起类型。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Sender tid：发送event的线程ID。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Send time：事件发送时间。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Expect handle time：期望事件开始时间。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Task name/Id：事件名/事件ID。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Prio：优先级。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Sender：发送者。
+</pre>
+        </li>
+      </ul>
+      <h4 class="mume-header fontColor">Hangs泳道图的框选功能</h4>
+      <p class="fontColor">
+        框选Hangs的泳道图，展示Hangs的tab页，右侧第一个下拉框可以选择类型，也能根据process ，sender去搜索。
+      </p>
+      <img src="../figures/parsingability/hangstab.jpg" alt="GitHub Logo" />
+      <ul class="fontColor">
+        <li>
+          <pre class="smartperf-text fontColor light">
+StartTime：开始时间。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Duration：持续时间。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Hang Type：挂起类型。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Process：进程名。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Sender tid：发送event的线程ID。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Send time：事件发送时间。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Expect handle time：期望事件开始时间。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Task name/Id：事件名/事件ID。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Prio：优先级。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Sender：发送者。
+</pre>
+        </li>
+      </ul>
+      <p class="fontColor">
+        框选Hangs的泳道图，展示Summary的tab页。
+      </p>
+      <img src="../figures/parsingability/Summary.jpg" alt="GitHub Logo" />
+      <ul class="fontColor">
+        <li>
+          <pre class="smartperf-text fontColor light">
+Type/Process/Hang：根据类型显示挂起情况。
+</pre>
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Count：各类型的数量。
+</pre>
+        </li>
+      </ul>
+      <h4 class="mume-header fontColor">Hangs归一化泳道</h4>
+      <p class="fontColor">
+        为了方便查看hangs数据，对不同进程下的hangs泳道进行了归一化处理
+      </p>
+      <img src="../figures/parsingability/normalization.jpg" alt="GitHub Logo" />
     </div>
 
     <script>
