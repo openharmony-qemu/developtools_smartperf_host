@@ -95,6 +95,7 @@ const initHtmlStyle: string = `
             cursor: pointer;
             height: 47px;
             width: 48px;
+            color: #1E4EEA;
         }
         </style>
     `;
