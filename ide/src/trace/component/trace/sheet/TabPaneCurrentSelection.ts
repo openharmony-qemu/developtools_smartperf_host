@@ -1298,9 +1298,9 @@ export class TabPaneCurrentSelection extends BaseElement {
           it.stateDur = endTime! - it.startTime;
         }
         // @ts-ignore
-        str += '[' + it.value + ': ' + (it.stateDur || 0) / 1000 + ']' + ',';
+        str += '[' + it.value + ', ' + (it.stateDur || 0) / 1000 + ']' + ',';
       });
-      list.push({ name: 'Freq [KHz,μs]', value: str.substring(0, str.length - 1) });
+      list.push({ name: 'Freq [KHz, μs]', value: str.substring(0, str.length - 1) });
     }
     let slice = Utils.getInstance().getSchedSliceMap().get(`${data.id}-${data.startTime}`);
     if (slice) {
