@@ -184,7 +184,7 @@ export const applicationHtml: string = `
             fill: currentColor;
             overflow: hidden;
             font-size: 20px;
-            color: var(--dark-color1,#47A7E0);
+            color: #1E4EEA;
          }
         :host([chart_filter]) .chart-filter {
             display: grid;
