@@ -191,7 +191,6 @@ export class TabPaneFlag extends BaseElement {
         // @ts-ignore
         this.flagList[index - 1].text = event?.target.value;
         document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
-        document.dispatchEvent(new CustomEvent('remarksFocus-change', { detail: 'remarks-focus' }));
         //   旗子颜色改变时，重绘泳道图
         this.systemTrace?.refreshCanvas(true);
       }
@@ -212,7 +211,6 @@ export class TabPaneFlag extends BaseElement {
         // @ts-ignore
         this.flagList[index - 1].text = event?.target.value;
         document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[index - 1] }));
-        document.dispatchEvent(new CustomEvent('remarksFocus-change', { detail: '' }));
         this.setTableData();
         //   旗子颜色改变时，重绘泳道图
         this.systemTrace?.refreshCanvas(true);

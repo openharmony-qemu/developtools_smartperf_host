@@ -24,7 +24,6 @@ import { Utils } from '../../base/Utils';
 import { FrameChart } from '../../../chart/FrameChart';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
 import { ChartMode } from '../../../../bean/FrameChartStruct';
-import { SpSystemTrace } from '../../../SpSystemTrace';
 
 @element('tabpane-perf-async')
 export class TabPanePerfAsync extends BaseElement {
@@ -444,17 +443,7 @@ export class TabPanePerfAsync extends BaseElement {
     this.progressEl = this.shadowRoot?.querySelector('.perf-async-progress') as LitProgressBar;
     this.asyncFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     this.asyncFrameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
-    let spApplication = document.querySelector('body > sp-application');
-    let spSystemTrace = spApplication?.shadowRoot?.querySelector(
-      'div > div.content > sp-system-trace'
-    ) as SpSystemTrace;
     this.asyncFilter!.getFilterData(this.asyncListFilterGetFilter.bind(this));
-    this.asyncFilter?.addEventListener('focus', () => {
-      spSystemTrace.focusTarget = 'bottomUpInput';
-    });
-    this.asyncFilter?.addEventListener('blur', () => {
-      spSystemTrace.focusTarget = '';
-    });
     // 将主表绑定行点击事件，根据点击数据更新右侧的调用栈与被调用栈表格信息
     // @ts-ignore
     this.showTable?.addEventListener('row-click', (evt: CustomEvent) => {

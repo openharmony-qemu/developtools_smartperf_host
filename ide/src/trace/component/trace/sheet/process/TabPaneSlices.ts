@@ -74,10 +74,6 @@ export class TabPaneSlices extends BaseElement {
     this.slicesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-slices');
     this.slicesRange = this.shadowRoot?.querySelector('#time-range');
     let slicesInput = this.shadowRoot?.querySelector('#filterName');
-    let spApplication = document.querySelector('body > sp-application');
-    let spSystemTrace = spApplication?.shadowRoot?.querySelector(
-      'div > div.content > sp-system-trace'
-    ) as SpSystemTrace;
     this.slicesTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
@@ -101,12 +97,6 @@ export class TabPaneSlices extends BaseElement {
     slicesInput?.addEventListener('input', (e) => {
       // @ts-ignore
       this.findName(e.target.value);
-    });
-    slicesInput?.addEventListener('focus', (e) => {
-      spSystemTrace.focusTarget = 'slicesInput';
-    });
-    slicesInput?.addEventListener('blur', (e) => {
-      spSystemTrace.focusTarget = '';
     });
   }
 

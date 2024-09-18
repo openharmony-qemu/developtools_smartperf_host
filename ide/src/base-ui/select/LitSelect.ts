@@ -16,6 +16,7 @@
 import { BaseElement, element } from '../BaseElement';
 import { selectHtmlStr } from './LitSelectHtml';
 import { LitSelectOption } from './LitSelectOption';
+import { SpSystemTrace } from '../../trace/component/SpSystemTrace';
 
 @element('lit-select')
 export class LitSelect extends BaseElement {
@@ -471,7 +472,9 @@ export class LitSelect extends BaseElement {
 
   setOnkeydown(): void {
     // @ts-ignore
-    this.selectInputEl.onkeydown = (ev: unknown): void => {
+    this.selectInputEl.onkeydown = (ev: KeyboardEvent): void => {
+      ev.stopPropagation();
+      SpSystemTrace.isLitSelectKeyUp = true;
       // @ts-ignore
       if (ev.key === 'Backspace') {
         if (this.isMultiple()) {
@@ -513,7 +516,10 @@ export class LitSelect extends BaseElement {
               })
             );
           }
-        } // @ts-ignore
+        } 
+        setTimeout(() => {
+          SpSystemTrace.isLitSelectKeyUp = false;
+        }, 200);// @ts-ignore
       } else if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
         // @ts-ignore
         ev.preventDefault();

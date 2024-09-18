@@ -838,14 +838,12 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
         })
       );
     } else {
-      if (sp.focusTarget === '') {
-        sp.dispatchEvent(
+      !SpSystemTrace.isLitSelectKeyUp && sp.dispatchEvent(
           new CustomEvent('trace-next-data', {
             detail: {},
             composed: false,
           })
         );
-      }
     }
     document.addEventListener('keydown', sp.documentOnKeyDown);
   }

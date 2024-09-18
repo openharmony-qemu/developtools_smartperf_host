@@ -726,7 +726,6 @@ export function documentInitEvent(sp: SpSystemTrace): void {
   document.addEventListener('triangle-flag', triangleFlagHandler(sp));
   document.addEventListener('number_calibration', numberCalibrationHandler(sp));
   document.addEventListener('flag-change', flagChangeHandler(sp));
-  document.addEventListener('remarksFocus-change', remarksFocuseChangeHandler(sp));
   document.addEventListener('slices-change', slicesChangeHandler(sp));
   if (sp.timerShaftEL?.collecBtn) {
     sp.timerShaftEL.collecBtn.onclick = (): void => {
@@ -740,13 +739,6 @@ export function documentInitEvent(sp: SpSystemTrace): void {
     };
   }
   document.addEventListener('collect', collectHandler(sp));
-}
-
-function remarksFocuseChangeHandler(sp: SpSystemTrace): (event: unknown) => void {
-  return function (event: unknown): void {
-    // @ts-ignore
-    sp.focusTarget = event.detail;
-  };
 }
 
 export function spSystemTraceInitElement(sp: SpSystemTrace): void {
