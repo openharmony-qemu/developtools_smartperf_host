@@ -420,13 +420,14 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
       let processName = Utils.getInstance().getProcessMap().get(data.pid!);
       let threadName = Utils.getInstance().getThreadMap().get(data.tid!);
+      let dataTid = isNaN(data.tid!) ? 'NULL' : data.tid;
       list.push({
         name: 'Process',
         value: (this.transferString(processName ?? '') || 'NULL') + ' [' + data.pid + '] ',
       });
       list.push({
         name: 'Thread',
-        value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
+        value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + dataTid + '] ',
       });
       list.push({
         name: 'StartTime(Relative)',
