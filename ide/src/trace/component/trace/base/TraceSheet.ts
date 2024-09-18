@@ -545,9 +545,7 @@ export class TraceSheet extends BaseElement {
       if (files) {
         let fileList: Array<File> = [];
         for (let file of files) {
-          if (file.name.endsWith('.so')) {
-            fileList.push(file);
-          }
+          fileList.push(file);
         }
         if (fileList.length > 0) {
           importFileBt!.disabled = true;
@@ -1182,7 +1180,7 @@ export class TraceSheet extends BaseElement {
     param.name = e.detail.allName ? e.detail.allName : [e.detail.name];//@ts-ignore2
     param.isJumpPage = true;// @ts-ignore
     param.isSummary = e.detail.allName ? true : false;
-    (pane.children.item(0) as TabPaneSliceChild).data = {param: param, selection: this.selection};
+    (pane.children.item(0) as TabPaneSliceChild).data = { param: param, selection: this.selection };
   }
 
   clearMemory(): void {
