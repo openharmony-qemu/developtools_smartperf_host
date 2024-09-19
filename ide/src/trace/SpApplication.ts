@@ -80,6 +80,7 @@ import { SpThirdParty } from './component/SpThirdParty';
 import './component/SpThirdParty';
 import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
 import './component/SpBubblesAI';
+import { shadowRootInput } from './component/trace/base/shadowRootInput';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -2112,6 +2113,8 @@ export class SpApplication extends BaseElement {
       }
       if (node === showNode) {
         showNode.style.visibility = 'visible';
+        let recordSetting = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-record-trace")?.shadowRoot?.querySelector("#app-content > record-setting");
+        shadowRootInput.preventBubbling(recordSetting!);
       } else {
         (node! as HTMLElement).style.visibility = 'hidden';
       }

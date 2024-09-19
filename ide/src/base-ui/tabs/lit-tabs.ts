@@ -17,6 +17,7 @@ import { element } from '../BaseElement';
 import { LitTabpane } from './lit-tabpane';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 import { LitTabsHtml } from './lit-tabs.html';
+import { shadowRootInput } from '../../trace/component/trace/base/shadowRootInput';
 
 @element('lit-tabs')
 export class LitTabs extends HTMLElement {
@@ -294,39 +295,11 @@ export class LitTabs extends HTMLElement {
     let tbp = this.querySelector(`lit-tabpane[key='${key}']`);
     if (tbp) {  
       setTimeout(() => {  
-        let paneInput = this.findInputsInShadowDOM(tbp); 
-        if (paneInput.length) {
-          paneInput.forEach(input => {  
-            input.addEventListener('keydown', (e) => e.stopPropagation());  
-            input.addEventListener('keyup', (e) => e.stopPropagation());  
-        });
-      }
+        shadowRootInput.preventBubbling(tbp);
       }, 500);
     }
   }
-
-  findInputsInShadowDOM(startNode: Element | null) {  
-    let queue: (Element | null)[] = [startNode];
-    let inputs: Element[] = []; 
-    while (queue.length > 0) {  
-        let currentNode = queue.shift(); // 从队列中取出一个节点  
-        if (!currentNode) continue;  
-        if (currentNode.tagName === 'INPUT') {  
-            inputs.push(currentNode);  
-        }    
-        if (currentNode.shadowRoot) {   
-            Array.from(currentNode.shadowRoot.children).forEach(child => {  
-                queue.push(child);  
-            });  
-        }  
-        Array.from(currentNode.children).forEach(child => {  
-            queue.push(child);  
-        });  
-    }  
-    // 返回所有找到的input元素  
-    return inputs;  
-    }
-
+  
   byKeyIsValid(isValid: boolean, a: Element): void {
     if (isValid) {
       let span = a.querySelector('span') as HTMLSpanElement;
