@@ -30,7 +30,7 @@ PerfDataParser::PerfDataParser(TraceDataCache *dataCache, const TraceStreamerFil
       cmdlineIndex_(traceDataCache_->dataDict_.GetStringIndex("cmdline")),
       runingStateIndex_(traceDataCache_->dataDict_.GetStringIndex("Running")),
       suspendStatIndex_(traceDataCache_->dataDict_.GetStringIndex("Suspend")),
-      unkonwnStateIndex_(traceDataCache_->dataDict_.GetStringIndex("-")),
+      unknownStateIndex_(traceDataCache_->dataDict_.GetStringIndex("-")),
       pidAndStackHashToCallChainId_(INVALID_UINT32)
 {
     SymbolsFile::onRecording_ = false;
@@ -706,7 +706,7 @@ void PerfDataParser::UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<
     }
     UpdatePluginTimeRange(perfToTSClockType_.at(clockId_), sample->data_.time, newTimeStamp);
 
-    DataIndex threadStatIndex = unkonwnStateIndex_;
+    DataIndex threadStatIndex = unknownStateIndex_;
     auto threadState = report_->GetConfigName(sample->data_.id);
     if (threadState.compare(wakingEventName_) == 0) {
         threadStatIndex = runingStateIndex_;

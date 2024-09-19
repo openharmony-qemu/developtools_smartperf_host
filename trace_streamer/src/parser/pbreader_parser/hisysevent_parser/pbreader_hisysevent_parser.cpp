@@ -40,7 +40,6 @@ void PbreaderHisyseventParser::Finish()
     }
 }
 
-static std::stringstream ss;
 void PbreaderHisyseventParser::Parse(ProtoReader::HisyseventInfo_Reader *tracePacket, uint64_t ts, bool &haveSplitSeg)
 {
     // parse hisysevent device state

@@ -31,7 +31,7 @@ public:
     ~IndexMap() {}
 
     IndexMap(TableRowId start, TableRowId end);
-    void CovertToIndexMap();
+    void ConvertToIndexMap();
     static void Sort();
     void Print();
     void Init();
@@ -69,7 +69,7 @@ public:
     {
         filters_++;
         if (HasData()) {
-            CovertToIndexMap();
+            ConvertToIndexMap();
             remove = true;
         }
         rowIndexBak_.clear();
@@ -193,7 +193,7 @@ public:
         auto invalidValue = std::numeric_limits<T>::max();
         bool remove = false;
         if (HasData()) {
-            CovertToIndexMap();
+            ConvertToIndexMap();
             remove = true;
         }
 

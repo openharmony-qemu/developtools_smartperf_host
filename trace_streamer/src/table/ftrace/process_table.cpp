@@ -186,7 +186,7 @@ void ProcessTable::Cursor::FilterPid(unsigned char op, uint64_t value)
 {
     bool remove = false;
     if (indexMap_->HasData()) {
-        indexMap_->CovertToIndexMap();
+        indexMap_->ConvertToIndexMap();
         remove = true;
     }
     switch (op) {
