@@ -154,6 +154,7 @@ type SlicesTimeAlias = SlicesTime | undefined | null;
 export class SpSystemTrace extends BaseElement {
   mouseCurrentPosition = 0;
   static isKeyUp: boolean = true;
+  static isLitSelectKeyUp: boolean = false;
   offsetMouse = 0;
   static isMouseLeftDown = false;
   static scrollViewWidth = 0;
@@ -226,7 +227,6 @@ export class SpSystemTrace extends BaseElement {
   static currentStartTime: number = 0;
   static retargetIndex: number = 0;
   prevScrollY: number = 0;
-  focusTarget: string = '';
   wakeupListTbl: LitTable | undefined | null;
   _checkclick: boolean = false; //判断点击getWakeupList按钮
   docomList: Array<number> = [];
@@ -1000,14 +1000,12 @@ export class SpSystemTrace extends BaseElement {
           })
         );
       } else {
-        if (this.focusTarget === '') {
-          this.dispatchEvent(
+        !SpSystemTrace.isLitSelectKeyUp && this.dispatchEvent(
             new CustomEvent('trace-next-data', {
               detail: { down: true },
               composed: false,
             })
           );
-        }
       }
     }
   };
