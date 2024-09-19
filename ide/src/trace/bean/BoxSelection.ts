@@ -368,7 +368,12 @@ export class SelectionParam {
         filterFunc.funName!.indexOf('H:Task ') >= 0;
       // @ts-ignore
       let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
-        taskData!.tid = parseInt(it.rowId!);
+        taskData!.tid = isNaN(Number(it.rowId!)) && typeof it.rowId! === 'string' ?  
+         (function() {  
+           const match = (it.rowId!).match(/-(\d+)/);  
+           return match ? parseInt(match[1]) : undefined; 
+         })() :  
+         parseInt(it.rowId!);
         return isIntersect(taskData, TraceRow.rangeSelectObject!);
       });
       if (taskData.length > 0) {
