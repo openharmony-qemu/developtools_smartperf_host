@@ -21,7 +21,6 @@
 #include <memory>
 #include <stdint.h>
 #include <string>
-
 #include "data_area.h"
 #include "log.h"
 #include "proto_reader_help.h"

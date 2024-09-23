@@ -169,7 +169,7 @@ private:
     DataIndex cmdlineIndex_ = 0;
     DataIndex runingStateIndex_ = 0;
     DataIndex suspendStatIndex_ = 0;
-    DataIndex unkonwnStateIndex_ = 0;
+    DataIndex unknownStateIndex_ = 0;
     std::unordered_multimap<uint64_t, uint64_t> tidToPid_ = {};
     const std::map<uint32_t, uint32_t> perfToTSClockType_ = {{PERF_CLOCK_REALTIME, TS_CLOCK_REALTIME},
                                                              {PERF_CLOCK_MONOTONIC, TS_MONOTONIC},

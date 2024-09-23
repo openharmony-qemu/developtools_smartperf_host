@@ -313,7 +313,7 @@ void TableBase::Cursor::FilterId(unsigned char op, sqlite3_value *argv)
         return;
     }
     if (indexMap_->HasData()) {
-        indexMap_->CovertToIndexMap();
+        indexMap_->ConvertToIndexMap();
     }
 
     auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));

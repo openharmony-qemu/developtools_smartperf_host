@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 IndexMap::IndexMap(TableRowId start, TableRowId end) : end_(end), current_(start), start_(start) {}
 
-void IndexMap::CovertToIndexMap()
+void IndexMap::ConvertToIndexMap()
 {
     if (converted_) {
         indexType_ = INDEX_TYPE_OUTER_INDEX;
@@ -108,7 +108,7 @@ void IndexMap::FilterId(unsigned char op, sqlite3_value *argv)
         return;
     }
     if (HasData()) {
-        CovertToIndexMap();
+        ConvertToIndexMap();
     }
 
     auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
@@ -174,8 +174,8 @@ bool IndexMap::MergeIndexTypeId(IndexMap *other)
         start_ = std::min(start_, other->start_);
         end_ = std::max(end_, other->end_);
     } else if (start_ > other->start_) {
-        this->CovertToIndexMap();
-        other->CovertToIndexMap();
+        this->ConvertToIndexMap();
+        other->ConvertToIndexMap();
         const std::vector<TableRowId> b = other->rowIndex_;
         uint32_t bIndex = 0;
         uint32_t bSize = b.size();
@@ -185,8 +185,8 @@ bool IndexMap::MergeIndexTypeId(IndexMap *other)
         start_ = current_ = 0;
         end_ = rowIndex_.size();
     } else {
-        this->CovertToIndexMap();
-        other->CovertToIndexMap();
+        this->ConvertToIndexMap();
+        other->ConvertToIndexMap();
         std::vector<TableRowId> c = other->rowIndex_;
         uint32_t aIndex = 0;
         uint32_t aSize = rowIndex_.size();
@@ -201,8 +201,8 @@ bool IndexMap::MergeIndexTypeId(IndexMap *other)
 bool IndexMap::Merge(IndexMap *other)
 {
     TS_CHECK_TRUE_RET(MergeIndexTypeId(other) == false, true);
-    this->CovertToIndexMap();
-    other->CovertToIndexMap();
+    this->ConvertToIndexMap();
+    other->ConvertToIndexMap();
     const std::vector<TableRowId> b = other->rowIndex_;
     const std::vector<TableRowId> &a = rowIndex_;
     std::vector<TableRowId> c;

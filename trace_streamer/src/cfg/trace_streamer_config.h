@@ -126,13 +126,14 @@ enum SupportedTraceEventType {
 };
 enum MemInfoType {
     MEM_VM_SIZE,
+    MEM_VM_LOCKED,
     MEM_VM_RSS,
     MEM_VM_ANON,
     MEM_RSS_FILE,
     MEM_RSS_SHMEM,
     MEM_VM_SWAP,
-    MEM_VM_LOCKED,
     MEM_VM_HWM,
+    MEM_VM_VIRT,
     MEM_OOM_SCORE_ADJ,
     MEM_PURG_SUM,
     MEM_PURG_PIN,

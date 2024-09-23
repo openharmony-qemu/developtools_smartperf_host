@@ -124,7 +124,6 @@ private:
     const uint64_t MSEC_TO_NS = 1000 * 1000;
     DataIndex GetOrCreateFilterIdInternal(DataIndex appNameId, DataIndex key);
     DoubleMap<DataIndex, DataIndex, DataIndex> appKey_;
-    DoubleMap<DataIndex, DataIndex, DataIndex> appName_;
     std::map<DataIndex, DataIndex> eventSource_;
     std::vector<std::string> eventsAccordingAppNames_ = {"POWER_IDE_BATTERY",
                                                          "POWER_IDE_CPU",

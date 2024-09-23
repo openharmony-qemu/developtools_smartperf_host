@@ -17,9 +17,9 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-constexpr uint32_t INVAILD_DATA = 2;
+constexpr uint32_t INVALID_DATA = 2;
 constexpr uint32_t MIN_VECTOR_SIZE = 2;
-constexpr uint32_t VAILD_DATA_COUNT = 6;
+constexpr uint32_t VALID_DATA_COUNT = 6;
 APPStartupFilter::APPStartupFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : FilterBase(dataCache, filter), mAPPStartupData_(0)
 {
@@ -47,7 +47,7 @@ bool APPStartupFilter::CaclRsDataByPid(appMap &mAPPStartupData)
         }
         for (int m = 0; m < frameSliceData->Ipids().size(); m++) {
             if (itorSecond->second->ipid_ == frameSliceData->Ipids()[m] && !frameSliceData->Types()[m] &&
-                frameSliceData->Flags()[m] != INVAILD_DATA) {
+                frameSliceData->Flags()[m] != INVALID_DATA) {
                 auto startTime = sliceData.TimeStampData()[frameSliceData->CallStackIds()[m]];
                 auto callId = sliceData.CallIds()[frameSliceData->CallStackIds()[m]];
                 auto endTime = startTime + frameSliceData->Durs()[m];
@@ -106,7 +106,7 @@ void APPStartupFilter::AppendAssociatedData(DataIndex packedNameIndex,
     for (auto itorSecond = stagesData.begin(); itorSecond != stagesData.end(); ++itorSecond) {
         auto item = itorSecond;
         auto endTime = INVALID_UINT64;
-        if (item->first < VAILD_DATA_COUNT) {
+        if (item->first < VALID_DATA_COUNT) {
             int num = item->first + 1;
             if ((++item) != stagesData.end() && num == item->first) {
                 endTime = (item)->second->startTime_;
