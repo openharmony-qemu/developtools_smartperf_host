@@ -474,8 +474,9 @@ bool CpuDetailParser::CpuIdleEvent(const RawTraceEventInfo &event) const
         return false;
     }
 
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpu.value(), cpuIdleIndex_, event.msgPtr->timestamp(),
-                                                            config_.GetStateValue(newState.value()));
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpu.value(), cpuIdleIndex_,
+                                                         event.msgPtr->timestamp(),
+                                                         config_.GetStateValue(newState.value()));
 
     // Add cpu_idle event to raw_data_table
     traceDataCache_->GetRawData()->AppendRawData(event.msgPtr->timestamp(), RAW_CPU_IDLE, eventCpu.value(), 0);
@@ -499,18 +500,20 @@ bool CpuDetailParser::CpuFrequencyEvent(const RawTraceEventInfo &event) const
         return false;
     }
 
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpu.value(), cpuFrequencyIndex_,
-                                                            event.msgPtr->timestamp(), newState.value());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpu.value(), cpuFrequencyIndex_,
+                                                         event.msgPtr->timestamp(), newState.value());
     return true;
 }
 bool CpuDetailParser::CpuFrequencyLimitsEvent(const RawTraceEventInfo &event) const
 {
     auto limitsMsg = event.msgPtr->cpu_frequency_limits_format();
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_FREQUENCY_LIMITS, STAT_EVENT_RECEIVED);
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(limitsMsg.cpu_id(), cpuFrequencyLimitMaxIndex_,
-                                                            event.msgPtr->timestamp(), limitsMsg.max_freq());
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(limitsMsg.cpu_id(), cpuFrequencyLimitMinIndex_,
-                                                            event.msgPtr->timestamp(), limitsMsg.min_freq());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, limitsMsg.cpu_id(),
+                                                         cpuFrequencyLimitMaxIndex_, event.msgPtr->timestamp(),
+                                                         limitsMsg.max_freq());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, limitsMsg.cpu_id(),
+                                                         cpuFrequencyLimitMinIndex_, event.msgPtr->timestamp(),
+                                                         limitsMsg.min_freq());
     return true;
 }
 bool CpuDetailParser::SuspendResumeEvent(const RawTraceEventInfo &event) const
@@ -687,8 +690,8 @@ bool CpuDetailParser::SetRateEvent(const RawTraceEventInfo &event) const
 {
     auto clockSetRateMsg = event.msgPtr->clock_set_rate_format();
     DataIndex nameIndex = traceDataCache_->GetDataIndex(clockSetRateMsg.name());
-    streamFilters_->clockRateFilter_->AppendNewMeasureData(clockSetRateMsg.cpu_id(), nameIndex,
-                                                           event.msgPtr->timestamp(), clockSetRateMsg.state());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_RATE, clockSetRateMsg.cpu_id(),
+                                                         nameIndex, event.msgPtr->timestamp(), clockSetRateMsg.state());
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_SET_RATE, STAT_EVENT_RECEIVED);
     return true;
 }
@@ -696,8 +699,8 @@ bool CpuDetailParser::ClockEnableEvent(const RawTraceEventInfo &event) const
 {
     auto clockEnableMsg = event.msgPtr->clock_enable_format();
     DataIndex nameIndex = traceDataCache_->GetDataIndex(clockEnableMsg.name());
-    streamFilters_->clockEnableFilter_->AppendNewMeasureData(clockEnableMsg.cpu_id(), nameIndex,
-                                                             event.msgPtr->timestamp(), clockEnableMsg.state());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_ENABLE, clockEnableMsg.cpu_id(),
+                                                         nameIndex, event.msgPtr->timestamp(), clockEnableMsg.state());
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_ENABLE, STAT_EVENT_RECEIVED);
     return true;
 }
@@ -705,8 +708,8 @@ bool CpuDetailParser::ClockDisableEvent(const RawTraceEventInfo &event) const
 {
     auto clockDisableMsg = event.msgPtr->clock_disable_format();
     DataIndex nameIndex = traceDataCache_->GetDataIndex(clockDisableMsg.name());
-    streamFilters_->clockDisableFilter_->AppendNewMeasureData(clockDisableMsg.cpu_id(), nameIndex,
-                                                              event.msgPtr->timestamp(), clockDisableMsg.state());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_DISABLE, clockDisableMsg.cpu_id(),
+                                                         nameIndex, event.msgPtr->timestamp(), clockDisableMsg.state());
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_DISABLE, STAT_EVENT_RECEIVED);
     return true;
 }

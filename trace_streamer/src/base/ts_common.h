@@ -42,6 +42,7 @@ const uint64_t INVALID_CALL_CHAIN_ID = std::numeric_limits<uint64_t>::max();
 const size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
 const uint32_t INVALID_ID = std::numeric_limits<uint32_t>::max();
 const uint64_t SEC_TO_NS = 1000 * 1000 * 1000;
+const uint64_t MSEC_TO_NS = 1000 * 1000;
 const int32_t STR_DEFAULT_LEN = -1;
 const auto INVALID_CPU = INVALID_UINT32;
 const auto INVALID_TIME = INVALID_UINT64;
@@ -208,6 +209,7 @@ enum DataSourceType {
     DATA_SOURCE_TYPE_JSMEMORY,
     DATA_SOURCE_TYPE_JSMEMORY_CONFIG,
     DATA_SOURCE_TYPE_MEM_CONFIG,
+    DATA_SOURCE_TYPE_XPOWER,
     DATA_SOURCE_TYPE_STREAM
 };
 enum HookMemoryType { MALLOC = 0, MMAP = 1, FILE_PAGE_MSG = 2, MEMORY_USING_MSG = 3 };

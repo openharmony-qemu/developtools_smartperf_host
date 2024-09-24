@@ -70,7 +70,10 @@ const Measure &TraceDataCacheReader::GetConstProcessMeasureData() const
 {
     return processMeasureData_;
 }
-
+const Measure &TraceDataCacheReader::GetConstXpowerMeasureData() const
+{
+    return xpowerMeasureData_;
+}
 const ThreadStateData &TraceDataCacheReader::GetConstThreadStateData() const
 {
     return threadStateData_;

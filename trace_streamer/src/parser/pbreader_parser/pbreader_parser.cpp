@@ -83,6 +83,7 @@ PbreaderParser::PbreaderParser(TraceDataCache *dataCache, const TraceStreamerFil
 #ifdef ENABLE_STREAM_EXTEND
       pbreaderStreamParser_(std::make_unique<PbreaderStreamParser>(dataCache, filters)),
 #endif
+      xpowerParser_(std::make_unique<PbreaderXpowerParser>(dataCache, filters)),
       traceDataCache_(dataCache)
 {
     InitPluginNameIndex();
@@ -172,6 +173,8 @@ void PbreaderParser::InitPluginNameIndex()
     streamPluginIndex_ = traceDataCache_->GetDataIndex("stream-plugin");
     supportPluginNameIndex_.insert(streamPluginIndex_);
 #endif
+    xpowerPluginIndex_ = traceDataCache_->GetDataIndex("xpower-plugin");
+    supportPluginNameIndex_.insert(xpowerPluginIndex_);
 }
 
 #if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
@@ -434,6 +437,9 @@ void PbreaderParser::FilterData(PbreaderDataSegment &seg, bool isSplitFile)
         pbreaderStreamParser_->Parse(seg);
     }
 #endif
+    else if (seg.dataType == DATA_SOURCE_TYPE_XPOWER) {
+        xpowerParser_->Parse(seg, seg.timeStamp, seg.clockId);
+    }
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
         mPbreaderSplitData_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
     }
@@ -601,6 +607,9 @@ void PbreaderParser::ParseDataByPluginName(PbreaderDataSegment &dataSeg,
         ParseStream(dataSeg);
     }
 #endif
+    else if (pulginNameIndex == xpowerPluginIndex_) {
+        ParseXpower(dataSeg);
+    }
 }
 
 void PbreaderParser::ParserData(PbreaderDataSegment &dataSeg, bool isSplitFile)
@@ -796,6 +805,12 @@ void PbreaderParser::ParseNetwork(PbreaderDataSegment &dataSeg)
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
 #endif
+void PbreaderParser::ParseXpower(PbreaderDataSegment &dataSeg)
+{
+    dataSourceTypeNetworkClockid_ = TS_CLOCK_REALTIME;
+    dataSeg.dataType = DATA_SOURCE_TYPE_XPOWER;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+}
 #ifdef ENABLE_DISKIO
 void PbreaderParser::ParseDiskIO(PbreaderDataSegment &dataSeg)
 {
