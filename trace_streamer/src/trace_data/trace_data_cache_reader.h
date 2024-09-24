@@ -58,6 +58,7 @@ public:
     const Measure &GetConstMeasureData() const;
     const Measure &GetConstSysMemMeasureData() const;
     const Measure &GetConstProcessMeasureData() const;
+    const Measure &GetConstXpowerMeasureData() const;
     const ThreadStateData &GetConstThreadStateData() const;
     const SchedSlice &GetConstSchedSliceData() const;
     const CpuMeasureFilter &GetConstCpuMeasuresData() const;

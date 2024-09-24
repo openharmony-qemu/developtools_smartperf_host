@@ -101,6 +101,7 @@ ohos_source_set("pbreader_parser_src") {
   if (enable_memory) {
     public_deps += [ "mem_parser:pbreader_mem_parser" ]
   }
+  public_deps += [ "xpower_parser:pbreader_xpower_parser" ]
   if (enable_hidump) {
     public_deps += [ "hidump_parser:pbreader_hidump_parser" ]
   }

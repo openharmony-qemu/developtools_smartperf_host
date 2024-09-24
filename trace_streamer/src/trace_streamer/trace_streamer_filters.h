@@ -51,15 +51,8 @@ public:
     std::unique_ptr<SliceFilter> sliceFilter_;
     std::unique_ptr<ProcessFilter> processFilter_;
     std::unique_ptr<CpuFilter> cpuFilter_;
-    std::unique_ptr<MeasureFilter> cpuMeasureFilter_;
-    std::unique_ptr<MeasureFilter> processMeasureFilter_;
+    std::unique_ptr<MeasureFilter> measureFilter_;
     std::unique_ptr<StatFilter> statFilter_;
-    std::unique_ptr<MeasureFilter> clockRateFilter_;
-    std::unique_ptr<MeasureFilter> clockEnableFilter_;
-    std::unique_ptr<MeasureFilter> clockDisableFilter_;
-    std::unique_ptr<MeasureFilter> clkRateFilter_;
-    std::unique_ptr<MeasureFilter> clkEnableFilter_;
-    std::unique_ptr<MeasureFilter> clkDisableFilter_;
     std::unique_ptr<BinderFilter> binderFilter_;
     std::unique_ptr<ArgsFilter> argsFilter_;
     std::unique_ptr<IrqFilter> irqFilter_;

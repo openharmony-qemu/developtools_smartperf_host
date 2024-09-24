@@ -141,6 +141,7 @@ public:
     Measure measureData_;
     Measure sysMemMeasureData_;
     Measure processMeasureData_;
+    Measure xpowerMeasureData_;
     CpuMeasureFilter cpuMeasureData_;
 
     StatAndInfo stat_;

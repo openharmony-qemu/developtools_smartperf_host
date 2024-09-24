@@ -27,6 +27,7 @@
 #include "common_types.h"
 #include "common_types.pbreader.h"
 #include "clock_filter_ex.h"
+#include "pbreader_xpower_parser.h"
 #ifdef ENABLE_EBPF
 #include "ebpf_data_parser.h"
 #endif
@@ -222,6 +223,7 @@ private:
 #ifdef ENABLE_NETWORK
     void ParseNetwork(PbreaderDataSegment &dataSeg);
 #endif
+    void ParseXpower(PbreaderDataSegment &dataSeg);
 #ifdef ENABLE_DISKIO
     void ParseDiskIO(PbreaderDataSegment &dataSeg);
 #endif
@@ -358,6 +360,8 @@ private:
     DataIndex streamPluginIndex_;
     std::unique_ptr<PbreaderStreamParser> pbreaderStreamParser_;
 #endif
+    std::unique_ptr<PbreaderXpowerParser> xpowerParser_;
+    DataIndex xpowerPluginIndex_;
     std::unique_ptr<PbreaderDataSegment[]> dataSegArray_;
     std::atomic<bool> filterThreadStarted_{false};
     const int32_t maxSegArraySize = 10000;
