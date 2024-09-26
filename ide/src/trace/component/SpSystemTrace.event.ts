@@ -835,7 +835,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
         })
       );
     } else {
-      !SpSystemTrace.isLitSelectKeyUp && sp.dispatchEvent(
+      sp.dispatchEvent(
           new CustomEvent('trace-next-data', {
             detail: {},
             composed: false,
