@@ -81,6 +81,7 @@ import './component/SpThirdParty';
 import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
 import './component/SpBubblesAI';
 import { shadowRootInput } from './component/trace/base/shadowRootInput';
+import { WebSocketManager } from '../webSocket/WebSocketManager';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -318,8 +319,13 @@ export class SpApplication extends BaseElement {
     this.initGlobalEvents();
     this.initDocumentListener();
     this.initElementsEnd();
+    this.connectWebSocket();
   }
-
+  private connectWebSocket(): void {
+    document.addEventListener('DOMContentLoaded', function () {//
+      WebSocketManager.getInstance();
+    });
+  }
   private initElementsEnd(): void {
     let urlParams = new URL(window.location.href).searchParams;
     let jsonStr = '';
