@@ -133,7 +133,7 @@ export class WebSocketManager {
             data_lenght: data ? data.byteLength : undefined,
             data: data
         }
-        let encode = Utils.encode(message)
+        let encode = Utils.encode(message);
         this.websocket!.send(encode!);
     }
 

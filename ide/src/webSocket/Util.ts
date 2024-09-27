@@ -29,12 +29,12 @@ export class Utils {
         let index = 0;
         dataView.setUint8(index, message.type!);
         index += TYPT_LENGTH;
-        dataView.setUint16(1, message.cmd ? message.cmd : 0);
+        dataView.setUint16(index, message.cmd ? message.cmd : 0);
         index += CMD_LENGTH;
         dataView.setUint8(index, message.session_id ? message.session_id : 0);
         index += SESSION_ID_LENGTH;
         dataView.setUint32(index, splitUint64?.high32!);
-        index += SESSION_ID_LENGTH;
+        index += SESSION_LENGTH;
         dataView.setUint32(index, splitUint64?.low32!);
         index += SESSION_LENGTH;
         dataView.setUint32(index, message.data_lenght ? message.data_lenght : 0);
