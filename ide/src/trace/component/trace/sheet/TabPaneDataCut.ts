@@ -158,7 +158,7 @@ export class TabPaneDataCut extends BaseElement {
         </style>
         <div id="data_cut_tabpane_container" style="flex-grow: 1"></div>
         <div class="bottom_filter">
-            <lit-select id="tab-select" style="margin-left: 10px" placeholder="please choose"></lit-select>
+            <lit-select id="tab-select" style="margin-left: 10px" placeholder="please choose" tabselect></lit-select>
         </div>
         `;
   }

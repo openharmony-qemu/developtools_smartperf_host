@@ -45,7 +45,7 @@ export const Top20FrequencyThreadHtml = `
         <lit-progress-bar id="loading" style="height: 1px;width: 100%" loading></lit-progress-bar>
         <div style="padding: 15px">
                     Thread Search
-                    <lit-select default-value="1" id="thread_select" show-search placement="bottom"></lit-select>
+                    <lit-select default-value="1" id="thread_select" placement="bottom" tabselect></lit-select>
         </div>
         <table-no-data id="nodata" contentHeight="500px">
         <div class="root">

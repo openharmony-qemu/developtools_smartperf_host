@@ -71,7 +71,7 @@ export const TabCpuAnalysisHtml = `
             <div class="cpu_usage" id="cpu_usage_table"></div>
             <div class="cpu-statistics">
                 <div>CPU Statistics By Duration</div>
-                <lit-select default-value="1" id="scheduling_select">
+                <lit-select default-value="1" id="scheduling_select" tabselect>
                     <lit-select-option value="1">CPU Idle</lit-select-option>
                     <lit-select-option value="2">CPU Frequency</lit-select-option>
                     <lit-select-option value="3">CPU Irq</lit-select-option>

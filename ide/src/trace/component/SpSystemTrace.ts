@@ -154,7 +154,6 @@ type SlicesTimeAlias = SlicesTime | undefined | null;
 export class SpSystemTrace extends BaseElement {
   mouseCurrentPosition = 0;
   static isKeyUp: boolean = true;
-  static isLitSelectKeyUp: boolean = false;
   offsetMouse = 0;
   static isMouseLeftDown = false;
   static scrollViewWidth = 0;
@@ -1000,7 +999,7 @@ export class SpSystemTrace extends BaseElement {
           })
         );
       } else {
-        !SpSystemTrace.isLitSelectKeyUp && this.dispatchEvent(
+        this.dispatchEvent(
             new CustomEvent('trace-next-data', {
               detail: { down: true },
               composed: false,

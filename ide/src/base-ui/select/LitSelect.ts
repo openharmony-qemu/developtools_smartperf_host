@@ -46,6 +46,7 @@ export class LitSelect extends BaseElement {
       'border',
       'mode',
       'showSearchInput',
+      'tabSelect'
     ];
   }
 
@@ -474,7 +475,10 @@ export class LitSelect extends BaseElement {
     // @ts-ignore
     this.selectInputEl.onkeydown = (ev: KeyboardEvent): void => {
       ev.stopPropagation();
-      SpSystemTrace.isLitSelectKeyUp = true;
+    if (this.hasAttribute('tabselect')) {
+      // @ts-ignore
+      this.selectInputEl.readOnly = true;
+    } else {
       // @ts-ignore
       if (ev.key === 'Backspace') {
         if (this.isMultiple()) {
@@ -516,14 +520,12 @@ export class LitSelect extends BaseElement {
               })
             );
           }
-        } 
-        setTimeout(() => {
-          SpSystemTrace.isLitSelectKeyUp = false;
-        }, 200);// @ts-ignore
+        }// @ts-ignore
       } else if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
         // @ts-ignore
         ev.preventDefault();
       }
+    }
     };
   }
 
