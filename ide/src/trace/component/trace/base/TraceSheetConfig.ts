@@ -64,6 +64,8 @@ import { TabPaneFreqLimit } from '../sheet/freq/TabPaneFreqLimit';
 import { TabPaneCpuFreqLimits } from '../sheet/freq/TabPaneCpuFreqLimits';
 import { TabpaneNMCalltree } from '../sheet/native-memory/TabPaneNMCallTree';
 import { TabPaneClockCounter } from '../sheet/clock/TabPaneClockCounter';
+import { TabPaneHang } from '../sheet/Hang/TabPaneHang';
+import { TabPaneHangSummary } from '../sheet/Hang/TabPaneHangSummary';
 import { TabPaneIrqCounter } from '../sheet/irq/TabPaneIrqCounter';
 import { TabPaneFrames } from '../sheet/jank/TabPaneFrames';
 import { TabPanePerfAnalysis } from '../sheet/hiperf/TabPanePerfAnalysis';
@@ -137,7 +139,13 @@ import { TabPaneUserPlugin } from '../sheet/userPlugin/TabPaneUserPlugin';
 import { TabPaneDmaFence } from '../sheet/dma-fence/TabPaneDmaFenceSelect';
 import { TabPaneSliceChild } from '../sheet/process/TabPaneSliceChild';
 
-export let tabConfig: unknown = {
+export let tabConfig: {
+  [key: string]: {
+    title: string
+    type: unknown
+    require?: (param: SelectionParam) => boolean
+  }
+} = {
   'current-selection': {
     title: 'Current Selection',
     type: TabPaneCurrentSelection,
@@ -243,6 +251,16 @@ export let tabConfig: unknown = {
     title: 'Clock Counters',
     type: TabPaneClockCounter,
     require: (param: SelectionParam) => param.clockMapData.size > 0,
+  },
+  'box-hang': {
+    title: 'Hangs',
+    type: TabPaneHang,
+    require: (param: SelectionParam) => param.hangMapData.size > 0,
+  },
+  'box-hang-summary': {
+    title: 'Hang Summary',
+    type: TabPaneHangSummary,
+    require: (param: SelectionParam) => param.hangMapData.size > 0,
   },
   'box-irq-counters': {
     title: 'Irq Counters',

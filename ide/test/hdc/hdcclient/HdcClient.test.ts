@@ -40,4 +40,7 @@ describe('HdcClient Test', () => {
     };
     expect(hdcClient.createDataMessage(data)).toBeUndefined();
   });
+  it('HdcClientTest07', function () {
+    expect(hdcClient.bindStream()).toBeUndefined();
+  });
 });

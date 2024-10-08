@@ -31,6 +31,7 @@ import { type ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerTh
 import { type FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc';
 import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
 import { CpuStateStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCpuState';
+import { type HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
 import { type ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock';
 import { type DmaFenceStruct } from '../../../database/ui-worker/ProcedureWorkerDmaFence';
 import { type IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq';
@@ -132,6 +133,7 @@ export class TraceSheet extends BaseElement {
       pane.hidden = true; // @ts-ignore
       pane.key = `${tabConfig[key].key || index}`; // @ts-ignore
       let cls = tabConfig[key].type;
+      // @ts-ignore
       let node = new cls();
       pane.append(node);
       this.fragment?.appendChild(pane);
@@ -363,7 +365,7 @@ export class TraceSheet extends BaseElement {
           let element = tabConfig[id];
           let pane = this.shadowRoot!.querySelector<LitTabpane>(`#${id as string}`);
           if (element.require) {
-            pane!.hidden = !element.require(this.selection);
+            pane!.hidden = !element.require(this.selection!);
           } else {
             pane!.hidden = true;
           }
@@ -683,6 +685,8 @@ export class TraceSheet extends BaseElement {
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
+  displayHangData = (data: HangStruct, sp: SpSystemTrace): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setHangData(data, sp);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayDmaFenceData = (data: DmaFenceStruct, rowData: unknown): void =>//展示tab页内容
@@ -910,6 +914,17 @@ export class TraceSheet extends BaseElement {
       }
     }
   };
+
+  displayHangsData = (): void => {
+    let tblHangPanel = this.shadowRoot?.querySelector<LitTabpane>("lit-tabpane[id='box-hang']");
+    if (tblHangPanel) {
+      let tblHang = tblHangPanel.querySelector<TabPaneHiLogs>('tab-hang');
+      if (tblHang) {
+        tblHang.initTabSheetEl(this);
+      }
+    }
+  };
+
   displaySampleData = (data: SampleStruct, reqProperty: unknown): void => {
     this.displayTab<TabPaneSampleInstruction>('box-sample-instruction').setSampleInstructionData(data, reqProperty);
     this.optionsDiv!.style.display = 'flex';

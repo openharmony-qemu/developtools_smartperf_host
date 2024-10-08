@@ -25,10 +25,11 @@ import { SpCheckDesBox } from './SpCheckDesBox';
 import LitSwitch from '../../../base-ui/switch/lit-switch';
 import { SpApplication } from '../../SpApplication';
 import { SpArkTsHtml } from './SpArkTs.html';
+import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 
 @element('sp-ark-ts')
 export class SpArkTs extends BaseElement {
-  private processInput: LitAllocationSelect | undefined | null;
+  private processInput: LitSelectV | undefined | null;
   private spCheckDesBox: SpCheckDesBox | undefined | null;
   private radioBox: LitRadioBox | undefined | null;
   private interval: HTMLInputElement | undefined | null;
@@ -111,24 +112,31 @@ export class SpArkTs extends BaseElement {
 
   initElements(): void {
     this.interval = this.shadowRoot?.querySelector('#interval');
-    this.processInput = this.shadowRoot?.querySelector<LitAllocationSelect>('lit-allocation-select');
-    let processInput = this.processInput?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
+    this.processInput = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v');
+    let processInput = this.processInput?.shadowRoot?.querySelector('input') as HTMLDivElement;
     this.cpuSwitch = this.shadowRoot?.querySelector('#cpu-switch') as LitSwitch;
     processInput!.addEventListener('mousedown', () => {
-      if (SpRecordTrace.serialNumber === '') {
-        this.processInput!.processData = [];
-        this.processInput!.initData();
+      if (this.startSamp && (SpRecordTrace.serialNumber === '')) {
+        this.processInput!.dataSource([], '');
       }
     });
     processInput!.addEventListener('mouseup', () => {
-      if (SpRecordTrace.serialNumber === '') {
-        this.processInput!.processData = [];
-        this.processInput!.initData();
+      if (this.startSamp) {
+        if (SpRecordTrace.serialNumber === '') {
+          this.processInput!.dataSource([], '');
+        } else {
+          Cmd.getDebugProcess().then((processList) => {
+            if (processList.length > 0) {
+              this.processInput!.dataSource(processList, '');
+            } else {
+              this.processInput!.dataSource([], '');
+            }
+          });
+        }
+        processInput!.removeAttribute('readonly');
       } else {
-        Cmd.getDebugProcess().then((processList) => {
-          this.processInput!.processData = processList;
-          this.processInput!.initData();
-        });
+        processInput!.setAttribute('readonly', 'readonly');
+        return;
       }
     });
     this.litSwitch = this.shadowRoot?.querySelector('lit-switch') as LitSwitch;

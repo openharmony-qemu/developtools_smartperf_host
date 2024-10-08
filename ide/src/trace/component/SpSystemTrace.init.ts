@@ -1120,6 +1120,7 @@ export async function spSystemTraceInit(
     }
     if (sp.loadTraceCompleted) {
       sp.traceSheetEL?.displaySystemLogsData();
+      sp.traceSheetEL?.displayHangsData();
       sp.traceSheetEL?.displaySystemStatesData();
     }
     sp.intersectionObserver?.observe(it);

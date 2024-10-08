@@ -21,12 +21,13 @@ import { SpRecordTrace } from '../SpRecordTrace';
 import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager';
 import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect';
 import { SpHiSysEventHtml } from './SpHisysEvent.html';
+import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 
 @element('sp-hisys-event')
 export class SpHisysEvent extends BaseElement {
-  private domainInputEL: LitAllocationSelect | undefined | null;
-  private eventNameInputEL: LitAllocationSelect | undefined | null;
-  private sysEventConfigList: NodeListOf<LitAllocationSelect> | undefined | null;
+  private domainInputEL: LitSelectV | undefined | null;
+  private eventNameInputEL: LitSelectV | undefined | null;
+  private sysEventConfigList: NodeListOf<LitSelectV> | undefined | null;
   private sysEventSwitch: LitSwitch | undefined | null;
   private domainInputEl: HTMLInputElement | undefined | null;
   private nameInputEl: HTMLInputElement | undefined | null;
@@ -41,8 +42,6 @@ export class SpHisysEvent extends BaseElement {
       this.removeAttribute('startSamp');
       this.domainInputEL!.setAttribute('readonly', 'readonly');
       this.eventNameInputEL!.setAttribute('readonly', 'readonly');
-      this.domainInputEL!.value = '';
-      this.eventNameInputEL!.value = '';
     }
   }
 
@@ -69,9 +68,9 @@ export class SpHisysEvent extends BaseElement {
   }
 
   initElements(): void {
-    this.domainInputEL = this.shadowRoot?.querySelector<LitAllocationSelect>('.record-domain-input');
-    this.eventNameInputEL = this.shadowRoot?.querySelector<LitAllocationSelect>('.record-event-input');
-    this.sysEventConfigList = this.shadowRoot?.querySelectorAll<LitAllocationSelect>('.record-input');
+    this.domainInputEL = this.shadowRoot?.querySelector<LitSelectV>('.record-domain-input');
+    this.eventNameInputEL = this.shadowRoot?.querySelector<LitSelectV>('.record-event-input');
+    this.sysEventConfigList = this.shadowRoot?.querySelectorAll<LitSelectV>('.record-input');
     this.sysEventSwitch = this.shadowRoot?.querySelector('lit-switch') as LitSwitch;
     this.sysEventSwitch?.addEventListener('change', (event: CustomEventInit<LitSwitchChangeEvent>) => {
       let detail = event.detail;
@@ -79,11 +78,8 @@ export class SpHisysEvent extends BaseElement {
       this.updateDisable(detail!.checked);
     });
     this.updateDisable(false);
-    this.domainInputEl = this.domainInputEL?.shadowRoot?.querySelector('.multipleSelect') as HTMLInputElement;
-    this.nameInputEl = this.eventNameInputEL?.shadowRoot?.querySelector('.multipleSelect') as HTMLInputElement;
-    this.domainInputEl.addEventListener('valuable', () => {
-      this.eventNameInputEL!.value = '';
-    });
+    this.domainInputEl = this.domainInputEL?.shadowRoot?.querySelector('input') as HTMLInputElement;
+    this.nameInputEl = this.eventNameInputEL?.shadowRoot?.querySelector('input') as HTMLInputElement;
   }
 
   connectedCallback(): void {
@@ -99,60 +95,68 @@ export class SpHisysEvent extends BaseElement {
   }
 
   domainInputEvent = (): void => {
-    if (SpRecordTrace.serialNumber === '') {
-      this.domainInputEL!.processData = [];
-      this.domainInputEL!.initData();
-    } else {
-      HdcDeviceManager.fileRecv(this.sysEventConfigPath, () => {}).then((pullRes) => {
-        pullRes.arrayBuffer().then((buffer) => {
-          if (buffer.byteLength > 0) {
-            let dec = new TextDecoder();
-            this.eventConfig = JSON.parse(dec.decode(buffer));
-            let domainList = Object.keys(this.eventConfig!);
-            if (domainList.length > 0 && this.startSamp) {
-              this.domainInputEl!.setAttribute('readonly', 'readonly');
-              domainList.unshift('ALL-Domain');
+    if (this.startSamp) {
+      if (SpRecordTrace.serialNumber === '') {
+        this.domainInputEL!.dataSource([], '');
+      } else {
+        HdcDeviceManager.fileRecv(this.sysEventConfigPath, () => { }).then((pullRes) => {
+          pullRes.arrayBuffer().then((buffer) => {
+            if (buffer.byteLength > 0) {
+              let dec = new TextDecoder();
+              this.eventConfig = JSON.parse(dec.decode(buffer));
+              let domainList = Object.keys(this.eventConfig!);
+              if (domainList.length > 0) {
+                this.domainInputEL!.dataSource(domainList, 'ALL-Domain');
+              } else {
+                this.domainInputEL!.dataSource([], '');
+              }
             }
-            this.domainInputEL!.processData = domainList;
-            this.domainInputEL!.initData();
-          }
+          });
         });
-      });
+      }
+      this.domainInputEl!.removeAttribute('readonly');
+    } else {
+      this.domainInputEl!.setAttribute('readonly', 'readonly');
+      return;
     }
   };
 
   nameInputEvent = (): void => {
-    if (SpRecordTrace.serialNumber === '') {
-      this.eventNameInputEL!.processData = [];
-      this.eventNameInputEL!.initData();
-    } else {
-      let domain = this.domainInputEL?.value;
-      // @ts-ignore
-      let eventConfigElement = this.eventConfig[domain];
-      if (eventConfigElement) {
-        let eventNameList = Object.keys(eventConfigElement);
-        if (eventNameList?.length > 0 && this.startSamp) {
-          this.nameInputEl!.setAttribute('readonly', 'readonly');
-          eventNameList.unshift('ALL-Event');
-          this.eventNameInputEL!.processData = eventNameList;
-          this.eventNameInputEL!.initData();
-        }
+    if (this.startSamp) {
+      if (SpRecordTrace.serialNumber === '') {
+        this.eventNameInputEL!.dataSource([], '');
       } else {
-        let currentData: string[] = [];
-        if (domain === '' || domain === 'ALL-Domain') {
-          //@ts-ignore
-          let domainKey = Object.keys(this.eventConfig);
-          domainKey.forEach((item) => {
+        let domain = this.domainInputEL?.value;
+        // @ts-ignore
+        let eventConfigElement = this.eventConfig[domain];
+        if (eventConfigElement) {
+          let eventNameList = Object.keys(eventConfigElement);
+          if (eventNameList?.length > 0) {
+            this.eventNameInputEL!.dataSource(eventNameList, 'ALL-Event');
+          } else {
+            this.eventNameInputEL!.dataSource([], '');
+          }
+        } else {
+          let currentData: string[] = [];
+          if (domain === '' || domain === 'ALL-Domain') {
             //@ts-ignore
-            let currentEvent = this.eventConfig[item];
-            let eventList = Object.keys(currentEvent);
-            currentData.push(...eventList);
-          });
-          currentData.unshift('ALL-Event');
+            let domainKey = Object.keys(this.eventConfig);
+            domainKey.forEach((item) => {
+              //@ts-ignore
+              let currentEvent = this.eventConfig[item];
+              let eventList = Object.keys(currentEvent);
+              currentData.push(...eventList);
+            });
+            this.eventNameInputEL!.dataSource(currentData, 'ALL-Event');
+          } else {
+            this.eventNameInputEL!.dataSource([], '');
+          }
         }
-        this.eventNameInputEL!.processData = currentData;
-        this.eventNameInputEL!.initData();
       }
+      this.nameInputEl!.removeAttribute('readonly');
+    } else {
+      this.nameInputEl!.setAttribute('readonly', 'readonly');
+      return;
     }
   };
 

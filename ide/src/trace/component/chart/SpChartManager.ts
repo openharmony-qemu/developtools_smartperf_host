@@ -43,6 +43,7 @@ import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
 import { procedurePool } from '../../database/Procedure';
 import { SpSegmentationChart } from './SpSegmentationChart';
+import { SpHangChart } from './SpHangChart';
 import { SpPerfOutputDataChart } from './SpPerfOutputDataChart';
 import {
   queryAppStartupProcessIds,
@@ -86,6 +87,7 @@ export class SpChartManager {
   private logChart: SpLogChart;
   private spHiSysEvent: SpHiSysEventChart;
   private spSegmentationChart: SpSegmentationChart;
+  private hangChart: SpHangChart;
   private spBpftraceChart: SpBpftraceChart;
   private spPerfOutputDataChart: SpPerfOutputDataChart;
   private spGpuCounterChart: SpGpuCounterChart;
@@ -114,6 +116,7 @@ export class SpChartManager {
     this.spAllAppStartupsChart = new SpAllAppStartupsChart(trace);
     this.SpLtpoChart = new SpLtpoChart(trace);
     this.spSegmentationChart = new SpSegmentationChart(trace);
+    this.hangChart = new SpHangChart(trace);
     this.spBpftraceChart = new SpBpftraceChart(trace);
     this.spPerfOutputDataChart = new SpPerfOutputDataChart(trace);
     this.spGpuCounterChart = new SpGpuCounterChart(trace);
@@ -186,6 +189,10 @@ export class SpChartManager {
     await this.spHiSysEvent.init();
     let idAndNameArr = await queryDmaFenceIdAndCat();
     this.handleDmaFenceName(idAndNameArr as { id: number; cat: string; seqno: number; driver: string; context: string }[]);
+    if (FlagsConfig.getFlagsConfigEnableStatus('Hangs')) {
+      progress('Hang init', 80);
+      await this.hangChart.init();
+    }
     progress('Clock init', 82);
     await this.clockChart.init();
     progress('Irq init', 84);

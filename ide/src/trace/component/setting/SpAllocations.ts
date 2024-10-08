@@ -518,7 +518,7 @@ export class SpAllocations extends BaseElement {
       Cmd.getProcess().then((processList: string[]): void => {
         this.processId?.dataSource(processList, '');
         if (processList.length > 0) {
-          this.processId?.dataSource(processList, 'ALL-Process');
+          this.processId?.dataSource(processList, '');
         } else {
           this.processId?.dataSource([], '');
         }

@@ -63,6 +63,8 @@ import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfT
 import { TraceMode } from '../../../SpApplicationPublicFunc';
 import { threadPool, threadPool2 } from '../../../database/SqlLite';
 import { threadNearData } from '../../../database/data-trafic/SliceSender';
+import { HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
+import { BaseStruct } from '../../../bean/BaseStruct';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -799,6 +801,89 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: data.context,
     });
     this.currentSelectionTbl!.dataSource = list;
+  }
+
+  async setHangData(data: HangStruct, sp: SpSystemTrace): Promise<void> {
+    await this.setRealTime();
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('Hang Details');
+    let list: unknown[] = [];
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startNS || 0),
+    });
+    this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    list.push({
+      name: 'Hang type',
+      value: `<div style="white-space: nowrap;display: flex;align-items: center">
+<div style="white-space:pre-wrap">${data.type}</div>
+<lit-icon style="cursor:pointer;margin-left: 5px" id="scroll-to-process" name="select" color="#7fa1e7" size="20"></lit-icon>
+</div>`
+    });
+    data.content!.split(',').map((item, index) => ({
+      name: [
+        'Sender tid',
+        'Send time',
+        'Expect handle time',
+        'Task name/ID',
+        'Sender'
+      ][index],
+      value: item,
+    })).forEach((item, index) => {
+      if (index === 0) {
+        item.value = item.value.split(':').at(-1)!;
+      }
+      list.push(item);
+    });
+
+    this.currentSelectionTbl!.dataSource = list;
+    // @ts-ignore
+    let startTimeAbsolute = (data.startNS || 0) + window.recordStartNS;
+    this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+
+    let scrollIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#scroll-to-process');
+    scrollIcon?.addEventListener('click', this.hangScrollHandler(data, sp));
+  }
+
+  private hangScrollHandler(data: HangStruct, sp: SpSystemTrace) {
+    return (): void => {
+      const rowId = `${data.pname ?? 'Process'} ${data.pid}`;
+      const rowParentId = `${data.pid}`;
+      const rowType = TraceRow.ROW_TYPE_HANG_INNER;
+
+      let row = sp.rowsEL?.querySelector<TraceRow<HangStruct>>(`trace-row[row-id='${rowParentId}'][folder]`);
+      if (row) {
+        row.expansion = true;
+
+        const innerHangRow = row.childrenList.find((childRow) => childRow.rowType === TraceRow.ROW_TYPE_HANG_INNER) as TraceRow<HangStruct>;
+        sp.currentRow = innerHangRow;
+        // @ts-ignore
+        async function completeEntry(t: TabPaneCurrentSelection): Promise<unknown> {
+          if (!innerHangRow.dataListCache || innerHangRow.dataListCache.length === 0) {
+            await innerHangRow.supplierFrame!();
+          }
+
+          const findEntry = innerHangRow?.dataListCache.find((hangStruct) => {
+            return hangStruct.startNS === HangStruct.selectHangStruct?.startNS;
+          });
+
+          if (findEntry) {
+            HangStruct.selectHangStruct = findEntry;
+            t.setHangData(findEntry, sp);
+          }
+          sp.scrollToProcess(rowId, rowParentId, rowType);
+          sp.refreshCanvas(false);
+        }
+        if (innerHangRow.isComplete) {
+          completeEntry(this);
+        }
+        else {
+          sp.scrollToProcess(rowId, rowParentId, rowType);
+          innerHangRow.onComplete = (): unknown => completeEntry(this);
+        }
+      }
+    };
   }
 
   setPerfToolsData(data: PerfToolStruct): void {

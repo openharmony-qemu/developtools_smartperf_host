@@ -22,6 +22,16 @@ describe('ProcedureWorker Test', () => {
       fillStyle: '#666666',
       fillRect: '',
     };
+     const data = {
+        startX: '',
+        endX: '',
+        startNS: '',
+        endNS: '',
+        x: '',
+        y: '',
+        height: 1,
+        width: 1,
+    };
     const params = {
       isRangeSelect: {},
       rangeSelectObject: {

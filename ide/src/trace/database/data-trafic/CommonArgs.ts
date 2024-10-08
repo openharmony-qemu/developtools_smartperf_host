@@ -41,4 +41,5 @@ export interface Args {
   windowId: number;
   isPin: number;
   scratchId: number;
+  minDur: number;
 }

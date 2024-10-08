@@ -95,7 +95,7 @@ public:
  */
 HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithoutCallback, TestSize.Level1)
 {
-    TS_LOGI("test32-1");
+    TS_LOGI("test32-01");
     InitData(sizeof(BIOFixedHeader), 0, START_TIME, END_TIME);
 
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
@@ -126,7 +126,7 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithoutCallback, TestSize.Level1
  */
 HWTEST_F(EbpfBioParserTest, EbpfBioParserwrongWithoutCallback, TestSize.Level1)
 {
-    TS_LOGI("test32-2");
+    TS_LOGI("test32-02");
     InitData(sizeof(BIOFixedHeader), 0, END_TIME, START_TIME, 1);
 
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
@@ -159,7 +159,7 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserwrongWithoutCallback, TestSize.Level1)
  */
 HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithOneCallback, TestSize.Level1)
 {
-    TS_LOGI("test32-3");
+    TS_LOGI("test32-03");
     InitData(sizeof(BIOFixedHeader), 1, START_TIME, END_TIME);
 
     const uint64_t ips[1] = {IPS_01};
@@ -198,7 +198,7 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithOneCallback, TestSize.Level1
  */
 HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithMultipleCallback, TestSize.Level1)
 {
-    TS_LOGI("test32-4");
+    TS_LOGI("test32-04");
     InitData(sizeof(BIOFixedHeader) + 2 * sizeof(uint64_t), 2, START_TIME, END_TIME);
 
     const uint64_t ips[2] = {IPS_01, IPS_02};

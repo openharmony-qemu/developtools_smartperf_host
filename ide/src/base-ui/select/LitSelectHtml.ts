@@ -258,7 +258,7 @@ export const selectVHtmlStr = `
             position: relative;
             overflow: visible;
             cursor: pointer;
-            border-radius: 2px;
+            border-radius: 16px;
             outline: none;
             -webkit-user-select:none ;
             -moz-user-select:none;
