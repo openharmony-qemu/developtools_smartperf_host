@@ -16,6 +16,7 @@
 import { BaseElement, element } from '../base-ui/BaseElement';
 import '../base-ui/menu/LitMainMenu';
 import '../base-ui/icon/LitIcon';
+import '../base-ui/loading/LitLoading'
 import { SpMetrics } from './component/SpMetrics';
 import { SpHelp } from './component/SpHelp';
 import './component/SpHelp';
@@ -80,8 +81,10 @@ import { SpThirdParty } from './component/SpThirdParty';
 import './component/SpThirdParty';
 import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
 import './component/SpBubblesAI';
+import './component/SpAiAnalysisPage';
 import { shadowRootInput } from './component/trace/base/shadowRootInput';
 import { WebSocketManager } from '../webSocket/WebSocketManager';
+import { SpAiAnalysisPage } from './component/SpAiAnalysisPage';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -150,6 +153,8 @@ export class SpApplication extends BaseElement {
   private contentCenterOption: HTMLDivElement | undefined | null;
   private contentRightOption: HTMLDivElement | undefined | null;
   private childComponent: Array<unknown> | undefined | null;
+  private spAiAnalysisPage: SpAiAnalysisPage | undefined | null;
+  private aiAnalysis: HTMLImageElement | undefined | null;
   private keyCodeMap = {
     61: true,
     107: true,
@@ -293,6 +298,7 @@ export class SpApplication extends BaseElement {
     this.litRecordSearch = this.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
     this.sidebarButton = this.shadowRoot?.querySelector('.sidebar-button');
     this.chartFilter = this.shadowRoot?.querySelector('.chart-filter') as TraceRowConfig;
+    this.aiAnalysis = this.shadowRoot?.querySelector('.ai_analysis') as HTMLImageElement;
     this.cutTraceFile = this.shadowRoot?.querySelector('.cut-trace-file') as HTMLImageElement;
     this.exportRecord = this.shadowRoot?.querySelector('.export-record') as LitIcon;
     this.longTracePage = this.shadowRoot!.querySelector('.long_trace_page') as HTMLDivElement;
@@ -308,6 +314,7 @@ export class SpApplication extends BaseElement {
     this.contentRightOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-right-option');
     this.contentLeftOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-left-option');
     this.contentCenterOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-center-option');
+    this.spAiAnalysisPage = this.shadowRoot!.querySelector('#sp-ai-analysis') as SpAiAnalysisPage;
     this.initElementsAttr();
     this.initEvents();
     this.initRecordEvents();
@@ -364,6 +371,7 @@ export class SpApplication extends BaseElement {
       this.spSystemTrace,
       this.spRecordTrace,
       this.spWelcomePage,
+      this.spAiAnalysisPage,
       this.spMetrics,
       this.spQuerySQL,
       this.spSchedulingAnalysis,
@@ -612,6 +620,7 @@ export class SpApplication extends BaseElement {
     let fileName = ev.name;
     this.traceFileName = fileName;
     let showFileName = fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
+    window.sessionStorage.setItem('fileName', showFileName);
     TraceRow.rangeSelectObject = undefined;
     //@ts-ignore
     let typeStr = ev.slice(0, 100);
@@ -1948,6 +1957,16 @@ export class SpApplication extends BaseElement {
     this.cutTraceFile!.addEventListener('click', (ev) => {
       this.croppingFile(this.progressEL!, this.litSearch!);
     });
+
+    this.aiAnalysis!.addEventListener('click', (ev) => {
+      if (this.spAiAnalysisPage!.style.visibility === 'hidden') {
+        this.spAiAnalysisPage!.style.display = 'block';
+        this.spAiAnalysisPage!.style.visibility = 'visible';
+      } else {
+        this.spAiAnalysisPage!.style.visibility = 'hidden';
+        this.spAiAnalysisPage!.style.display = 'none';
+      }
+    })
   }
 
   private filterRowConfigClickHandle(): void {
@@ -2430,6 +2449,13 @@ export class SpApplication extends BaseElement {
           this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
           clearInterval(timer);
         }, 4000);
+        // 存入缓存
+        caches.open(`${fileName}`).then((cache) => {
+          let headers = new Headers();
+          headers.append('Content-type', 'application/octet-stream');
+          headers.append('Content-Transfer-Encoding', 'binary');
+          return cache.put(`${fileName}`, new Response(reqBufferDB, { status: 200 }));
+        })
       },
       'download-db'
     );

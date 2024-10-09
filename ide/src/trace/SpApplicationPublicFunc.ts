@@ -368,6 +368,7 @@ export const applicationHtml: string = `
                     </div>
                 </div>
                 <div class = "content-right-option" style="display: flex;flex-flow: nowrap;text-align: right;position: absolute;right: 1.2em;cursor: pointer;top: 17px"">
+                  <img class="ai_analysis" title="Display Template" src="img/ai-analysis.png" style="margin-left: 0.8em;width:16px;height:16px">
                   <lit-icon class="export-record" title="Download Mark Trace" name="download" size="16" style="margin-left: 0.8em;"></lit-icon>
                   <img class="cut-trace-file" title="Cut Trace File" src="img/menu-cut.svg" style="margin-left: 0.8em;">
                   <img class="filter-config" title="Display Template" src="img/config_filter.png" style="margin-left: 0.8em;">
@@ -377,6 +378,8 @@ export const applicationHtml: string = `
             <div id="app-content" class="content">
                 <sp-welcome style="visibility:visible;top:0px;left:0px;position:absolute;z-index: 100" id="sp-welcome">
                 </sp-welcome>
+                <sp-ai-analysis style="visibility:hidden;top:0px;right:0px;position:absolute;z-index:9999;width:430px;height:740px;box-shadow:3px 0px 14px #000;border-radius:8px;background-color:#fff;padding:10px 10px 10px 5px;" id="sp-ai-analysis">
+                </sp-ai-analysis>
                 <sp-system-trace style="visibility:hidden;z-index: 101;" id="sp-system-trace">
                 </sp-system-trace>
                 <sp-record-trace style="overflow:auto;width:100%;height:100%;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-trace">
