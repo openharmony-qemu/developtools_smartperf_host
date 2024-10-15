@@ -33,7 +33,7 @@ class BytraceEventParser : public EventParserBase {
 private:
     class EventInfo {
     public:
-        EventInfo(uint64_t ts, const BytraceLine& li) : eventTimestamp(ts), line(li) {}
+        EventInfo(uint64_t ts, const BytraceLine &li) : eventTimestamp(ts), line(li) {}
         uint64_t eventTimestamp;
         BytraceLine line;
     };
@@ -46,7 +46,7 @@ public:
     void Clear();
 
 private:
-    using FuncCall = std::function<bool(const ArgsMap& args, const BytraceLine& line)>;
+    using FuncCall = std::function<bool(const ArgsMap &args, const BytraceLine &line)>;
     bool SchedSwitchEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool BlockedReason(const ArgsMap &args, const BytraceLine &line) const;
     bool TaskRenameEvent(const ArgsMap &args, const BytraceLine &line) const;
@@ -78,7 +78,7 @@ private:
     bool BinderTransaction(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransactionReceived(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransactionAllocBufEvent(const ArgsMap &args, const BytraceLine &line) const;
-    void GetDataSegArgs(const BytraceLine& bufLine, ArgsMap& args) const;
+    void GetDataSegArgs(const BytraceLine &bufLine, ArgsMap &args) const;
     void InterruptEventInitialization();
     void ClockEventInitialization();
     void CpuEventInitialization();
