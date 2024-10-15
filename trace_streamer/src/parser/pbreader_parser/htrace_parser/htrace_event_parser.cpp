@@ -1012,8 +1012,8 @@ bool HtraceEventParser::OomScoreAdjUpdate(const EventInfo &event) const
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OOM_SCORE_ADJ_UPDATE, STAT_EVENT_RECEIVED);
     ProtoReader::OomScoreAdjUpdateFormat_Reader msg(event.detail);
     auto ipid = streamFilters_->processFilter_->GetInternalPid(msg.pid());
-    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid, oomScoreAdjName_, event.timeStamp,
-                                                                msg.oom_score_adj());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid, oomScoreAdjName_,
+                                                         event.timeStamp, msg.oom_score_adj());
     return true;
 }
 
