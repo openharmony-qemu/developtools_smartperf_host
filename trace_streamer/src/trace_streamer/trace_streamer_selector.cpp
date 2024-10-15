@@ -150,8 +150,7 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->processFilter_ = std::make_unique<ProcessFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->clockFilter_ = std::make_unique<ClockFilterEx>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->filterFilter_ = std::make_unique<FilterFilter>(traceDataCache_.get(), streamFilters_.get());
-    streamFilters_->measureFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->measureFilter_ = std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->statFilter_ = std::make_unique<StatFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->binderFilter_ = std::make_unique<BinderFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->argsFilter_ = std::make_unique<ArgsFilter>(traceDataCache_.get(), streamFilters_.get());

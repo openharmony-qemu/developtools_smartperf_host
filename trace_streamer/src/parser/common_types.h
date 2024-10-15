@@ -34,7 +34,7 @@ struct BytraceLine {
     uint32_t pid = 0;
     uint32_t cpu = 0;
 
-    std::string task;    // thread name
+    std::string task; // thread name
     uint32_t tgid = 0;
     std::string eventName;
     std::string argsStr;
