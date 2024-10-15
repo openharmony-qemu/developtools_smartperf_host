@@ -58,6 +58,8 @@ import { HangStruct } from '../../database/ui-worker/ProcedureWorkerHang';
 import { hangDataSender } from '../../database/data-trafic/HangDataSender';
 import { SpHangChart } from './SpHangChart';
 import { queryHangData } from '../../database/sql/Hang.sql';
+import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
 
 const FOLD_HEIGHT = 24;
 export class SpProcessChart {
@@ -96,6 +98,7 @@ export class SpProcessChart {
   static asyncFuncCache: unknown[] = [];
   static threadStateList: Map<string, unknown> = new Map();
   static processRowSortMap: Map<string, unknown> = new Map();
+  private sameThreadFolder!: TraceRow<ProcessStruct>;
 
   private hangProcessSet: Set<number> = new Set();
   constructor(trace: SpSystemTrace) {
@@ -1060,7 +1063,7 @@ export class SpProcessChart {
   }
 
   //add thread list
-  addThreadList(
+  async addThreadList(
     it: { pid: number | null; processName: string | null },
     pRow: TraceRow<ProcessStruct>,
     expectedRow: TraceRow<JankStruct> | null,
@@ -1068,11 +1071,145 @@ export class SpProcessChart {
     soRow: TraceRow<SoStruct> | undefined,
     startupRow: TraceRow<AppStartupStruct> | undefined,
     traceId?: string
-  ): void {
+  ): Promise<void> {
     let threads = this.processThreads.filter((thread) => thread.pid === it.pid && thread.tid !== 0);
+    const sameThreadCounts: Record<string, number> = {}; //同名thread添加子进程  
+    const sameThreadList: any[] = [];
+    const differentThreadList: any[] = [];
+    threads.forEach(item => {
+      const sameThread = item.threadName;
+      if (sameThread !== undefined) {
+        if (sameThread in sameThreadCounts) {
+          sameThreadCounts[sameThread]++;
+        } else {
+          sameThreadCounts[sameThread] = 1;
+        }
+      }
+    });
+
+    threads.forEach((item) => {
+      const sameThread = item.threadName;
+      if (sameThreadCounts[sameThread!] > 128) {
+        sameThreadList.push(item);
+      } else {
+        differentThreadList.push(item);
+      }
+    });
+
+    differentThreadList.length && this.addDifferentThread(it, pRow, expectedRow, actualRow, soRow, startupRow, differentThreadList, traceId!);
+    if (sameThreadList.length) {
+      let sameThreadFolder = await this.initSameThreadFolder(it, pRow, sameThreadList, traceId!);
+      if (sameThreadFolder) {
+        pRow.addChildTraceRow(this.sameThreadFolder);
+      }
+      await this.initSameThreadData(sameThreadFolder, it, expectedRow, actualRow, soRow, startupRow, sameThreadList, traceId);
+    }
+  }
+
+  initSameThreadFolder(it: { pid: number | null; processName: string | null }, pRow: TraceRow<ProcessStruct>, list: Array<any>, traceId?: string) {
+    let sameThreadRow = TraceRow.skeleton<ProcessStruct>();
+    sameThreadRow.rowId = 'sameThreadProcess';
+    sameThreadRow.rowParentId = `${it.pid}`;
+    sameThreadRow.rowHidden = !pRow.expansion;
+    sameThreadRow.rowType = TraceRow.ROW_TYPE_THREAD_NAME;
+    sameThreadRow.folder = true;
+    sameThreadRow.name = list[0].threadName;
+    sameThreadRow.folderPaddingLeft = 20;
+    sameThreadRow.style.height = '40px';
+    sameThreadRow.style.width = '100%';
+    sameThreadRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    sameThreadRow.selectChangeHandler = this.trace.selectChangeHandler;
+    sameThreadRow.supplierFrame = (): Promise<Array<ProcessStruct>> =>
+      new Promise<Array<ProcessStruct>>((resolve) => resolve([]));
+    sameThreadRow.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (sameThreadRow.currentContext) {
+        context = sameThreadRow.currentContext;
+      } else {
+        context = sameThreadRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      sameThreadRow.canvasSave(context);
+      if (sameThreadRow.expansion) {
+        // @ts-ignore
+        context?.clearRect(0, 0, sameThreadRow.frame.width, sameThreadRow.frame.height);
+      } else {
+        (renders.empty as EmptyRender).renderMainThread(
+          {
+            context: context,
+            useCache: useCache,
+            type: '',
+          },
+          sameThreadRow
+        );
+      }
+      sameThreadRow.canvasRestore(context, this.trace);
+    };
+    this.sameThreadFolder = sameThreadRow;
+    return this.sameThreadFolder;
+  }
+
+  async initSameThreadData(sameThreadFolder: TraceRow<ProcessStruct>, it: { pid: number | null; processName: string | null },
+    expectedRow: TraceRow<JankStruct> | null,
+    actualRow: TraceRow<JankStruct> | null,
+    soRow: TraceRow<SoStruct> | undefined,
+    startupRow: TraceRow<AppStartupStruct> | undefined, sameThreadList: Array<any>, traceId?: string): Promise<void> {
     let tRowArr: Array<TraceRow<BaseStruct>> = [];
-    for (let j = 0; j < threads.length; j++) {
-      let thread = threads[j];
+    for (let j = 0; j < sameThreadList.length; j++) {
+      let thread = sameThreadList[j];
+      let tRow = TraceRow.skeleton<ThreadStruct>(this.traceId);
+      tRow.rowId = `${thread.tid}`;
+      tRow.rowType = TraceRow.ROW_TYPE_THREAD;
+      tRow.rowParentId = sameThreadFolder.rowId;
+      tRow.rowHidden = !sameThreadFolder.expansion;
+      tRow.index = j;
+      tRow.style.height = '18px';
+      tRow.style.width = '100%';
+      tRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
+      tRow.namePrefix = `${thread.threadName || 'Thread'}`;
+      tRow.setAttribute('children', '');
+      tRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+      tRow.selectChangeHandler = this.trace.selectChangeHandler;
+      tRow.findHoverStruct = (): void => this.threadRowFindHoverStruct(tRow);
+      tRow.supplierFrame = async (): Promise<Array<ThreadStruct>> => {
+        const res = await threadDataSender(thread.tid || 0, it.pid || 0, tRow, this.traceId);
+        if (res === true) {
+          return [];
+        }
+        let rs = res as ThreadStruct[];
+        if (rs.length <= 0 && !tRow.isComplete) {
+          this.trace.refreshCanvas(true);
+        }
+        return rs;
+      };
+      tRow.onThreadHandler = rowThreadHandler<ThreadRender>(
+        'thread',
+        'context',
+        {
+          type: `thread ${thread.tid} ${thread.threadName}`,
+          translateY: tRow.translateY,
+        },
+        tRow,
+        this.trace
+      );
+      this.insertRowToDoc(it, j, thread, sameThreadFolder, tRow, sameThreadList, tRowArr, actualRow, expectedRow, startupRow, soRow);
+      this.addFuncStackRow(it, thread, j, sameThreadList, tRowArr, tRow, sameThreadFolder, sameThreadFolder.rowId!);
+      if ((thread.switchCount || 0) === 0) {
+        tRow.rowDiscard = true;
+      }
+      sameThreadFolder.addChildTraceRow(tRow);
+    }
+  }
+
+  addDifferentThread(it: { pid: number | null; processName: string | null },
+    pRow: TraceRow<ProcessStruct>,
+    expectedRow: TraceRow<JankStruct> | null,
+    actualRow: TraceRow<JankStruct> | null,
+    soRow: TraceRow<SoStruct> | undefined,
+    startupRow: TraceRow<AppStartupStruct> | undefined,
+    list: Array<any>, traceId?: string) {
+    let tRowArr: Array<TraceRow<BaseStruct>> = [];
+    for (let j = 0; j < list.length; j++) {
+      let thread = list[j];
       let tRow = TraceRow.skeleton<ThreadStruct>(this.traceId);
       tRow.rowId = `${thread.tid}`;
       tRow.rowType = TraceRow.ROW_TYPE_THREAD;
@@ -1108,8 +1245,8 @@ export class SpProcessChart {
         tRow,
         this.trace
       );
-      this.insertRowToDoc(it, j, thread, pRow, tRow, threads, tRowArr, actualRow, expectedRow, startupRow, soRow);
-      this.addFuncStackRow(it, thread, j, threads, tRowArr, tRow, pRow);
+      this.insertRowToDoc(it, j, thread, pRow, tRow, list, tRowArr, actualRow, expectedRow, startupRow, soRow);
+      this.addFuncStackRow(it, thread, j, list, tRowArr, tRow, pRow);
       if ((thread.switchCount || 0) === 0) {
         tRow.rowDiscard = true;
       }
@@ -1185,6 +1322,7 @@ export class SpProcessChart {
     threadRowArr: Array<unknown>,
     threadRow: TraceRow<ThreadStruct>,
     processRow: TraceRow<ProcessStruct>,
+    parentId?: string
   ): void {
     //@ts-ignore
     if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) !== undefined) {
@@ -1197,7 +1335,7 @@ export class SpProcessChart {
       funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
       funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
       //@ts-ignore
-      funcRow.rowParentId = `${process.pid}`;
+      funcRow.rowParentId = parentId ? parentId : `${process.pid}`;
       funcRow.rowHidden = !processRow.expansion;
       funcRow.checkType = threadRow.checkType;
       funcRow.style.width = '100%';

@@ -34,6 +34,7 @@ import { processStartupDataReceiver } from '../process//ProcessStartupDataReceiv
 import { processSoInitDataReceiver } from '../process//ProcessSoInitDataReceiver';
 import { processDeliverInputEventDataReceiver } from '../process//ProcessDeliverInputEventDataReceiver';
 import { processTouchEventDispatchDataReceiver } from '../process//ProcessTouchEventDispatchDataReceiver';
+import { xpowerDataReceiver } from '../XpowerDataReceiver';
 
 import {
   dmaDataReceiver,
@@ -160,3 +161,4 @@ traficHandlers.set(QueryEnum.SliceSPTData, sliceSPTReceiver);
 traficHandlers.set(QueryEnum.dmaFenceData, dmaFenceReceiver);
 traficHandlers.set(QueryEnum.SliceChildBoxData, sliceSPTReceiver);
 traficHandlers.set(QueryEnum.ThreadNearData, sliceSPTReceiver);
+traficHandlers.set(QueryEnum.XpowerData, xpowerDataReceiver);

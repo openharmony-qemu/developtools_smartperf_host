@@ -58,6 +58,8 @@ export const hiLogList: Map<string, Array<unknown>> = new Map();
 export const energyList: Map<string, Array<unknown>> = new Map();
 //dma_fence 泳道图 memory 模式缓存
 export const dmaFenceList: Map<string, Array<unknown>> = new Map();
+//xpower 泳道 memory 模式缓存
+export const xpowerList: Map<string, Array<unknown>> = new Map();
 export function clearMemoryCache(data: unknown, proc: Function): void {
   sliceList.clear();
   cpuList.clear();
@@ -76,6 +78,7 @@ export function clearMemoryCache(data: unknown, proc: Function): void {
   hiSysEventList.clear();
   hiLogList.clear();
   energyList.clear();
+  xpowerList.clear(); 
   hiPerfCallChartClearCache(true);
   nativeMemoryCacheClear();
   resetVmTracker();

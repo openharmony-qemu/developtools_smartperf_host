@@ -29,6 +29,7 @@ import { cpuProfilerDataSender } from '../../database/data-trafic/ArkTsSender';
 import { queryJsCpuProfilerConfig, queryJsCpuProfilerData } from '../../database/sql/Cpu.sql';
 import { queryJsMemoryData } from '../../database/sql/Memory.sql';
 import { type HeapSample } from '../../../js-heap/model/DatabaseStruct';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 const TYPE_SNAPSHOT = 0;
 const TYPE_TIMELINE = 1;
@@ -156,6 +157,13 @@ export class SpArkTsChart implements ParseListener {
       if (this.jsCpuProfilerRow && jsCpu.length > 0) {
         this.cpuProfilerSupplierFrame();
       }
+      // 统计arkTs插件
+      let requsetBody = {
+        eventData:{
+          plugin:['arkts-plugin']
+        }
+      };
+      SpStatisticsHttpUtil.recordPluginUsage(requsetBody);
     }
   }
 

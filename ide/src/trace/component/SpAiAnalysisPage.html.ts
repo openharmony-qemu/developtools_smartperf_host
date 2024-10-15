@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF unknown KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 export const SpAiAnalysisPageHtml = `
 <div class="chatBox">
         <h3 class="chatTitle" style="color:#35a1db">
@@ -7,7 +22,7 @@ export const SpAiAnalysisPageHtml = `
             <div class="ask_question">
                 <div class="aiMessage message">
                     <div class="aiHeader headerDiv">
-                        <img src="./../application/img/logo.png" class="headerImg"/>
+                        <img src="img/logo.png" class="headerImg"/>
                     </div>
                     <div class="systemSay">
                         有什么可以帮助您吗？
@@ -43,7 +58,7 @@ export const SpAiAnalysisPageHtml = `
                         </div>
                     </div>
                     <div class="loginTip">
-                        <img src="./../application/img/sigh.png" style="margin-right: 8px;width: 18px;"/>未连接
+                        <img src="img/sigh.png" style="margin-right: 8px;width: 18px;"/>未连接
                     </div>
                     <div class="data-record"></div>
                 </div>
@@ -58,13 +73,13 @@ export const SpAiAnalysisPageHtml = `
                 <div class="chatConfig">
                     <div class="right-box">
                         <div class="history">
-                            <img src="./../application/img/history.png" style="margin-right: 10px;"/>
+                            <img src="img/history.png" style="margin-right: 10px;"/>
                             <div class="config-tip hisTip">
                                 历史记录
                             </div>
                         </div>
                         <div class="newChat">
-                            <img src="./../application/img/new_chat.png"/>
+                            <img src="img/new_chat.png"/>
                             <div class="config-tip">
                                 新建聊天
                             </div>
@@ -73,18 +88,18 @@ export const SpAiAnalysisPageHtml = `
                 </div>
                 <div class="chatInput">
                     <textarea class="inputText" placeholder="请输入消息"></textarea>
-                    <img src="./../application/img/send.png" class="sendImg">
+                    <img src="img/send.png" class="sendImg">
                 </div>
             </div>
         </div>
     </div>
     <div class="rightTabBar">
         <div class="chatBar active">
-            <img src="./../application/img/talk_active.png" class="chatInon"/>
+            <img src="img/talk_active.png" class="chatInon"/>
             <div class="chatBarTitle">聊天</div>
         </div>
         <div class="report">
-            <img src="./../application/img/report.png" class="chatInon"/>
+            <img src="img/report.png" class="chatInon"/>
             <div class="chatBarTitle">诊断</div>
         </div>
     </div>
@@ -103,7 +118,7 @@ export const SpAiAnalysisPageHtml = `
     }
 
     .usersay {
-        max-width: 240px;
+        max-width: 70%;
         background: #4baf50;
         border-radius: 4px;
         float: right;
@@ -133,7 +148,7 @@ export const SpAiAnalysisPageHtml = `
     }
 
     .systemSay {
-        max-width: 240px;
+        max-width: 70%;
         border-radius: 4px;
         background-color: #fe7300;
         float: left;
@@ -162,10 +177,10 @@ export const SpAiAnalysisPageHtml = `
     }
 
     .chatBox {
-        width: 420px;
         height: 100%;
         padding-left: 5px;
         padding-bottom: 10px;
+        padding-right: 40px;
     }
 
     .chatTitle {
@@ -175,7 +190,6 @@ export const SpAiAnalysisPageHtml = `
     }
 
     .chatWindow {
-        width: 90%;
         height: 92%;
         padding: 0 10px 20px;
         border-radius: 10px;
@@ -187,7 +201,6 @@ export const SpAiAnalysisPageHtml = `
         overflow-y: auto;
         overflow-x:hidden;
         height: 77%;
-        width: 95%;
         padding-right: 10px;
     }
 
@@ -218,7 +231,7 @@ export const SpAiAnalysisPageHtml = `
     .right-box {
         position: absolute;
         display: flex;
-        right: 7%;
+        right: 0;
         top: 10px;
     }
 
@@ -248,7 +261,7 @@ export const SpAiAnalysisPageHtml = `
 
     .inputText {
         height: 100%;
-        width: 94%;
+        width: 100%;
         resize: none;
         padding: 10px;
         padding-right: 5px;
@@ -262,15 +275,14 @@ export const SpAiAnalysisPageHtml = `
     }
 
     .chatInputBox {
-        padding-right: 40px;
-        width: 100%;
+        padding-right: 10px;
         height: 20%;
     }
 
     .sendImg {
         position: absolute;
         bottom: 10px;
-        right: 10%;
+        right: 30px;
         cursor: pointer;
         width: 20px;
         height: 20px;
@@ -286,11 +298,12 @@ export const SpAiAnalysisPageHtml = `
         width: 50px;
         top: 0;
         right: 0;
-        height: 710px;
+        height: 100%;
         padding-top: 50px;
         font-size: 12px;
         background-color: #fcfcfc;
         color: #000;
+        box-sizing:border-box;
     }
 
     .chatBarTitle {
@@ -331,7 +344,7 @@ export const SpAiAnalysisPageHtml = `
 
     .userHeader {
         float: right;
-        background-image: url('./../application/img/header.png');
+        background-image: url('img/header.png');
         background-size:40px;
         background-position:-5px -5px;
     }
@@ -343,12 +356,8 @@ export const SpAiAnalysisPageHtml = `
     .aiHeader {
         float: left;
         margin-right: 10px;
-        background-image: url('./../application/img/logo1.png');
+        background-image: url('img/logo1.png');
         background-size: cover;
-    }
-
-    .message {
-        clear: both;
     }
 
     .headerImg {

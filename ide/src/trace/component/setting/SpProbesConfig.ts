@@ -215,7 +215,7 @@ export class SpProbesConfig extends BaseElement {
     bufferSizeSlider.sliderStyle = {
       minRange: 2048,
       maxRange: 307200,
-      defaultValue: '20480',
+      defaultValue: '204800',
       resultUnit: 'KB',
       stepSize: 2,
       lineColor: 'var(--dark-color3,#46B1E3)',

@@ -168,8 +168,8 @@ const config = {
           to: 'wasm.json',
         },
         {
-          from: './server/server-config.txt',
-          to: 'server-config.txt',
+          from: './server/server-config.json',
+          to: 'server-config.json',
         },
       ],
     }),

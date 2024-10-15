@@ -78,6 +78,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_APP_STARTUP = 'app-startup';
   static ROW_TYPE_STATIC_INIT = 'static-init';
   static ROW_TYPE_THREAD = 'thread';
+  static ROW_TYPE_THREAD_NAME = 'sameThread_process';
   static ROW_TYPE_MEM = 'mem';
   static ROW_TYPE_VIRTUAL_MEMORY_GROUP = 'virtual-memory-group';
   static ROW_TYPE_VIRTUAL_MEMORY = 'virtual-memory-cell';
@@ -121,6 +122,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_HANG = 'hang';
   static ROW_TYPE_HANG_INNER = 'hang-inner';
   static ROW_TYPE_CLOCK = 'clock';
+  static ROW_TYPE_XPOWER = 'xpower';
+  static ROW_TYPE_XPOWER_SYSTEM = 'xpower-system';
   static ROW_TYPE_IRQ_GROUP = 'irq-group';
   static ROW_TYPE_IRQ = 'irq';
   static ROW_TYPE_JANK = 'janks';
@@ -866,6 +869,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   set folderTextLeft(value: number) {
     this.nameEL!.style.marginLeft = `${value}px`;
+  }
+
+  set xpowerRowTitle(value: string) { 
+    this.nameEL!.title = `${value}`;
   }
 
   initElements(): void {

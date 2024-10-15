@@ -22,4 +22,6 @@ export class TypeConstants {
     static LOGIN_TYPE = 0;// 先判断type  0（登录） 和 其他(业务)
     static HEARTBEAT_TYPE = 1;
     static DIAGNOSIS_TYPE = 8;
+    static SENDDB_CMD = 1;
+    static DIAGNOSIS_CMD = 3;
 }

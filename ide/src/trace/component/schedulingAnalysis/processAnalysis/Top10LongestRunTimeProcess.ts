@@ -279,6 +279,12 @@ export class Top10LongestRunTimeProcess extends BaseElement {
       this.sortByColumn(evt.detail, this.threadRunTimeData);
       this.threadRunTimeTbl!.recycleDataSource = this.threadRunTimeData;
     });
+    this.processRunTimeTbl!.addEventListener('contextmenu', (ev) => { 
+      ev.preventDefault();
+    });
+    this.threadRunTimeTbl!.addEventListener('contextmenu', (ev) => {
+      ev.preventDefault();
+    });
     this.back?.addEventListener('click', (event) => {
       this.display_flag = true;
       this.display_pro!.style.display = 'block';

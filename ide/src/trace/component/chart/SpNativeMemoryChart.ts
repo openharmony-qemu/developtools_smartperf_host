@@ -31,6 +31,7 @@ import { queryNativeHookProcess, queryNativeHookStatisticsCount } from '../../da
 import { queryHeapGroupByEvent } from '../../database/sql/SqlLite.sql';
 import { queryNativeMemoryRealTime } from '../../database/sql/Memory.sql';
 import { queryBootTime } from '../../database/sql/Clock.sql';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class SpNativeMemoryChart {
   static EVENT_HEAP: Array<NativeEventHeap> = [];
@@ -181,6 +182,13 @@ export class SpNativeMemoryChart {
     if (nativeProcess.length === 0) {
       return;
     }
+    // 有native_memory进程，统计nativehook插件
+    let requestBody = {
+      eventData: {
+        plugin: ['nativehook']
+      }
+    };
+    SpStatisticsHttpUtil.recordPluginUsage(requestBody);
     await this.initNativeMemory();
     await nativeMemoryChartDataCacheSender(
       nativeProcess.map((it) => it.ipid),
