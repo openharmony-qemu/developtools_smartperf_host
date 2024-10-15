@@ -100,7 +100,7 @@ option {
 </div>
 <lit-progress-bar class="progress"></lit-progress-bar>
 <lit-page-table id="tb-hang">
-    <lit-table-column title="StartTime" width="15%" data-index="startNS" key="startNS">
+    <lit-table-column title="StartTime" width="15%" data-index="startTime" key="startTime">
     </lit-table-column>
     <lit-table-column title="Duration" width="1fr" data-index="dur" key="dur">
     </lit-table-column>

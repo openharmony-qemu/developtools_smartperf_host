@@ -55,7 +55,7 @@ export const queryAllHangs = (): Promise<Array<HangStruct>> => query(
   `
 SELECT
   c.id as id,
-  c.ts - r.start_ts as startNS,
+  c.ts - r.start_ts as startTime,
   c.dur as dur,
   t.tid as tid,
   p.pid as pid,

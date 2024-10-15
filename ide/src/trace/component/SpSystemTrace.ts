@@ -956,6 +956,9 @@ export class SpSystemTrace extends BaseElement {
         this.currentSlicesTime.startTime = DmaFenceStruct.selectDmaFenceStruct.startTime;
         this.currentSlicesTime.endTime = DmaFenceStruct.selectDmaFenceStruct.startTime + DmaFenceStruct.selectDmaFenceStruct.dur;
       }
+    } else if (HangStruct.selectHangStruct) {
+      this.currentSlicesTime.startTime = HangStruct.selectHangStruct.startTime;
+      this.currentSlicesTime.endTime = HangStruct.selectHangStruct.startTime! + HangStruct.selectHangStruct.dur!;
     } else {
       this.currentSlicesTime.startTime = 0;
       this.currentSlicesTime.endTime = 0;
@@ -978,7 +981,8 @@ export class SpSystemTrace extends BaseElement {
       FrameAnimationStruct.selectFrameAnimationStruct ||
       JsCpuProfilerStruct.selectJsCpuProfilerStruct ||
       PerfToolStruct.selectPerfToolStruct ||
-      DmaFenceStruct.selectDmaFenceStruct;
+      DmaFenceStruct.selectDmaFenceStruct ||
+      HangStruct.selectHangStruct;
     this.calculateSlicesTime(selectedStruct, shiftKey);
 
     return this.slicestime;

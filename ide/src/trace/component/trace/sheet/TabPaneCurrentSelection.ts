@@ -839,9 +839,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     let list: unknown[] = [];
     list.push({
       name: 'StartTime(Relative)',
-      value: getTimeString(data.startNS || 0),
+      value: getTimeString(data.startTime || 0),
     });
-    this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    this.createStartTimeNode(list, data.startTime || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     list.push({
       name: 'Hang type',
@@ -869,7 +869,7 @@ export class TabPaneCurrentSelection extends BaseElement {
 
     this.currentSelectionTbl!.dataSource = list;
     // @ts-ignore
-    let startTimeAbsolute = (data.startNS || 0) + window.recordStartNS;
+    let startTimeAbsolute = (data.startTime || 0) + window.recordStartNS;
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
     this.hangScrollHandler(data, sp, scrollCallback);
   }
@@ -894,7 +894,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
       const findEntry = funcRow?.dataListCache.find((funcstruct: unknown) => {
         //@ts-ignore
-        return (funcstruct.startTs === data.startNS && funcstruct.funName === data.content);
+        return (funcstruct.startTs === data.startTime && funcstruct.funName === data.content);
       })
       scrollCallback({
         //@ts-ignore

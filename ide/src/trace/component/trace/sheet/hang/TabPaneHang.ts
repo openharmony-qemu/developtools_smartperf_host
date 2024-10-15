@@ -62,8 +62,8 @@ export class TabPaneHang extends BaseElement {
       const filter = new Set([...selectionParam.hangMapData.keys()].map(key => key.split(' ').at(-1)));
       ret = ret.filter(struct => (
         filter.has(`${struct.pid ?? 0}`) &&
-        ((struct.startNS ?? 0) <= selectionParam.rightNs) &&
-        (selectionParam.leftNs <= ((struct.startNS ?? 0) + (struct.dur ?? 0)))
+        ((struct.startTime ?? 0) <= selectionParam.rightNs) &&
+        (selectionParam.leftNs <= ((struct.startTime ?? 0) + (struct.dur ?? 0)))
       ));
 
       if (ret.length === 0) {
@@ -88,7 +88,7 @@ export class TabPaneHang extends BaseElement {
       const hangData = data as HangStructInPane;
       return ColorUtils.getHangColor(hangData.type as HangType);
     };
-    this.hangTbl!.itemTextHandleMap.set('startNS', (startTs) => {
+    this.hangTbl!.itemTextHandleMap.set('startTime', (startTs) => {
       // @ts-ignore
       return ns2Timestamp(startTs);
     });
@@ -97,14 +97,14 @@ export class TabPaneHang extends BaseElement {
       let data = e.detail.data as HangStructInPane;
       if (data) {
         let pointX: number = ns2x(
-          data.startNS || 0,
+          data.startTime || 0,
           TraceRow.range!.startNS,
           TraceRow.range!.endNS,
           TraceRow.range!.totalNS,
           new Rect(0, 0, TraceRow.FRAME_WIDTH, 0),
         );
         this.traceSheetEl!.systemLogFlag = new Flag(
-          Math.floor(pointX), 0, 0, 0, data.startNS, '#999999', '', true, '',
+          Math.floor(pointX), 0, 0, 0, data.startTime, '#999999', '', true, '',
         );
         this.spSystemTrace?.refreshCanvas(false);
       }
@@ -270,7 +270,7 @@ let defaultIndex: number = 1;
 let tableTimeOut: number = 50;
 
 export class HangStructInPane {
-  startNS: number = 0;
+  startTime: number = 0;
   dur: string = '0';
   pname: string = 'Process';
   type: string;
@@ -282,7 +282,7 @@ export class HangStructInPane {
   caller: string;
 
   constructor(parent: HangStruct) {
-    this.startNS = parent.startNS ?? this.startNS;
+    this.startTime = parent.startTime ?? this.startTime;
     this.dur = getTimeString(parent.dur ?? 0);
     this.pname = `${parent.pname ?? this.pname} ${parent.pid ?? ''}`.trim();
     this.type = SpHangChart.calculateHangType(parent.dur ?? 0);
