@@ -70,6 +70,10 @@ export class SelectionParam {
     ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
   >();
   dmaFenceNameData: Array<String> = [];//新增框选dma_fence数据
+  xpowerMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+  string,
+  ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+>();
   hangMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
@@ -1150,6 +1154,20 @@ export class SelectionParam {
   }
 
   // @ts-ignore
+  pushXpower(it: TraceRow<unknown>, sp: SpSystemTrace): void {  
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER) {
+      it.childrenList.forEach((it) => {
+        it.rangeSelect = true;
+        it.checkType = '2';
+        this.xpowerMapData.set(it.rowId || '', it.getCacheData);
+      });
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM) {
+      this.xpowerMapData.set(it.rowId || '', it.getCacheData);
+    }
+  }
+
+  // @ts-ignore
   pushHang(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_HANG_GROUP) {
       it.childrenList.forEach((it) => {
@@ -1280,6 +1298,7 @@ export class SelectionParam {
     this.pushLogs(it, sp);
     this.pushHiSysEvent(it, sp);
     this.pushSampleData(it);
+    this.pushXpower(it, sp);
   }
 }
 

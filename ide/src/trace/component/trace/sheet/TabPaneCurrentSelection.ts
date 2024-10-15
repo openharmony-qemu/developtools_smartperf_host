@@ -66,6 +66,7 @@ import { threadPool, threadPool2 } from '../../../database/SqlLite';
 import { threadNearData } from '../../../database/data-trafic/SliceSender';
 import { HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
 import { BaseStruct } from '../../../bean/BaseStruct';
+import {XpowerStruct} from '../../../database/ui-worker/ProcedureWorkerXpower'; 
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -809,6 +810,28 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl!.dataSource = list;
   }
 
+  async setXpowerData(data: XpowerStruct): Promise<void> {  
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('Counter Details');
+    let list: unknown[] = [];
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startNS || 0),
+    });
+    this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    list.push({
+      name: 'Value',
+      value: String(data.value).indexOf('.') > -1 ? data.value || 0 : ColorUtils.formatNumberComma(data.value || 0),
+    });
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    this.currentSelectionTbl!.dataSource = list;
+    let startTimeAbsolute = (data.startNS || 0) + Utils.getInstance().getRecordStartNS();
+    this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
   async setHangData(data: HangStruct, sp: SpSystemTrace, scrollCallback: Function): Promise<void> {
     await this.setRealTime();
     this.setTableHeight('auto');
@@ -1233,7 +1256,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       //@ts-ignore
       let currentThread = list.filter((item) => item.name === 'Thread')?.[0].value;//点击的当前线程
       let previouosWakeupThread = Utils.getInstance().getThreadMap().get(fromBean!.tid!) || 'Thread';//唤醒当前线程的上个线程
-      this.topChainStr = `-->${previouosWakeupThread}[${fromBean!.tid}]-->${currentThread}`;
+      this.topChainStr = `-->${previouosWakeupThread} [${fromBean!.tid}]-->${currentThread}`;
       this.getRWakeUpChain(fromBean);
     })
   }
@@ -2051,7 +2074,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         return;
       }
       //@ts-ignore
-      this.topChainStr = `-->${wakeupFrom!.thread}[${wakeupFrom!.tid}]` + this.topChainStr;//链的拼接
+      this.topChainStr = `-->${wakeupFrom!.thread} [${wakeupFrom!.tid}]` + this.topChainStr;//链的拼接
       // @ts-ignore
       this.getRWakeUpChain(wakeupFrom);
     });

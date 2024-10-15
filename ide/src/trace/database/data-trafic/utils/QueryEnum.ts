@@ -91,6 +91,7 @@ export enum QueryEnum {
   SliceSPTData = 301,
   SliceChildBoxData = 302,
   ThreadNearData = 303,
+  XpowerData = 304,
 }
 export const MAX_COUNT = 2000;
 export enum TraficEnum {

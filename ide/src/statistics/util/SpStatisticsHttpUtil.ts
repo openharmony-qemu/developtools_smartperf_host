@@ -161,7 +161,6 @@ export class SpStatisticsHttpUtil {
       body: JSON.stringify(requestBody),
     })
       .catch((err) => {
-        this.handleRequestException();
       })
       .then((resp) => { });
   }
@@ -174,10 +173,13 @@ export class SpStatisticsHttpUtil {
       },
       body: JSON.stringify(requsetBody),
     }).then(res => {
-
     }).catch(err => {
       this.handleRequestException();
     });
+  }
+
+  static getNotice() {
+    return fetch(`${document.URL}messagePublish`);
   }
 
   static getCorrectRequestTime(): number {
@@ -190,7 +192,7 @@ export class SpStatisticsHttpUtil {
   // ai对话接口--获取token
   static async getAItoken() {
     let token = ''
-    await window.fetch(`https://smartperf.rnd.huawei.com/takeToken`, {
+    await window.fetch(`https://${window.location.host}/takeToken`, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json'
@@ -207,17 +209,18 @@ export class SpStatisticsHttpUtil {
   // @ts-ignore
   static async askAi(requestBody) {
     let answer = '';
-    let res = await window.fetch(`https://smartperf.rnd.huawei.com/ask`, {
+    let res = await window.fetch(`https://${window.location.host}/ask`, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody)
     })
+    // 用状态码判断statu = 200?
     let resp = await res.text();
     let resj = await JSON.parse(resp);
     answer = resj.chatbot_reply;
-    return answer
+    return answer;
   }
 }
 

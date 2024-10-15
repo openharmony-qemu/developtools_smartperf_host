@@ -24,6 +24,7 @@ import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { diskIoSender, fileSysVMSender, fileSystemSender } from '../../database/data-trafic/EBPFSender';
 import { hasFileSysData } from '../../database/sql/Memory.sql';
 import { getDiskIOProcess } from '../../database/sql/SqlLite.sql';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class SpEBPFChart {
   private trace: SpSystemTrace;
@@ -55,6 +56,13 @@ export class SpEBPFChart {
           await this.initDiskIOLatency(folder);
           await this.initProcessDiskIOLatency(folder);
         }
+        // 统计ebpf插件
+        let requsetBody = {
+          eventData: {
+            plugin: ['hiebpf-plugin']
+          }
+        };
+        SpStatisticsHttpUtil.recordPluginUsage(requsetBody);
       }
     }
   }

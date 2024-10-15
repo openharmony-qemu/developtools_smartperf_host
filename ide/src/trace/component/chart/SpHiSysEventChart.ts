@@ -19,6 +19,7 @@ import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { HiSysEventRender, HiSysEventStruct } from '../../database/ui-worker/ProcedureWorkerHiSysEvent';
 import { hiSysEventDataSender } from '../../database/data-trafic/HiSysEventDataSender';
 import { queryHiSysEventData } from '../../database/sql/Perf.sql';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class SpHiSysEventChart {
   private trace: SpSystemTrace;
@@ -34,6 +35,13 @@ export class SpHiSysEventChart {
     }
     let eventRow = await this.initRow();
     this.trace.rowsEL?.appendChild(eventRow);
+    // 统计hiSysevent插件
+    let requestBody = {
+      eventData:{
+        plugin:['hisysevent']
+      }
+    };
+    SpStatisticsHttpUtil.recordPluginUsage(requestBody);
   }
 
   async initRow(): Promise<TraceRow<HiSysEventStruct>> {

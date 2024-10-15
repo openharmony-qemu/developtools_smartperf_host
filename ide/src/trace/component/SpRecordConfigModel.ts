@@ -44,6 +44,7 @@ import { SpHisysEvent } from './setting/SpHisysEvent';
 import { SpArkTs } from './setting/SpArkTs';
 import { SpHilogRecord } from './setting/SpHilogRecord';
 import { SpFFRTConfig } from './setting/SpFFRTConfig';
+import { SpXPowerRecord } from './setting/SpXPowerRecord';
 
 export const MEM_INFO = [
   'MEMINFO_ACTIVE',
@@ -902,6 +903,27 @@ export function createTraceEvents(traceConfig: Array<string>): Array<string> {
     ftraceEventsArray.push(ftraceEvent);
   }
   return ftraceEventsArray;
+}
+
+export function createXPowerConfig( 
+  spXPower: SpXPowerRecord,
+  request: CreateSessionRequest
+): void {
+  if (!spXPower.recordXPower) {
+    return;
+  }
+  let type = spXPower.getXpowerConfig();
+  let typeList: Array<string> = [];
+  typeList = type!.split(",");
+  let xPowerConfig = {
+    messageType: typeList
+  }
+  request.pluginConfigs.push({
+    pluginName: 'xpower-plugin',
+    sampleInterval: 1000,
+    is_protobuf_serialize: true,
+    configData: xPowerConfig,
+  });
 }
 
 let hasMonitorMemory = false;

@@ -29,6 +29,7 @@ import { SpSdkChart } from './SpSdkChart';
 import { SpHiSysEnergyChart } from './SpHiSysEnergyChart';
 import { VmTrackerChart } from './SpVmTrackerChart';
 import { SpClockChart } from './SpClockChart';
+import { SpXpowerChart } from './SpXpowerChart';
 import { SpIrqChart } from './SpIrqChart';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
@@ -80,6 +81,7 @@ export class SpChartManager {
   private hiSyseventChart: SpHiSysEnergyChart;
   private smapsChart: VmTrackerChart;
   private clockChart: SpClockChart;
+  private xpowerChart: SpXpowerChart;
   private irqChart: SpIrqChart;
   private spAllAppStartupsChart!: SpAllAppStartupsChart;
   private SpLtpoChart!: SpLtpoChart;
@@ -124,6 +126,7 @@ export class SpChartManager {
     this.spGpuCounterChart = new SpGpuCounterChart(trace);
     this.spUserFileChart = new SpUserFileChart(trace);
     this.spImportUserPluginsChart = new SpImportUserPluginsChart(trace);
+    this.xpowerChart = new SpXpowerChart(trace);
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
@@ -199,6 +202,8 @@ export class SpChartManager {
     }
     progress('Clock init', 82);
     await this.clockChart.init();
+    progress('Xpower init', 83);
+    await this.xpowerChart.init();
     progress('Irq init', 84);
     await this.irqChart.init();
     progress('SpSegmentationChart inin', 84.5);

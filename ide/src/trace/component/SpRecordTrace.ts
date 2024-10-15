@@ -22,6 +22,7 @@ import { SpRecordSetting } from './setting/SpRecordSetting';
 import { LitMainMenu, MenuGroup, MenuItem } from '../../base-ui/menu/LitMainMenu';
 import { SpProbesConfig } from './setting/SpProbesConfig';
 import { SpTraceCommand } from './setting/SpTraceCommand';
+import { HdcStream } from '../../hdc/hdcclient/HdcStream';
 import { FlagsConfig } from './SpFlags';
 import LitSwitch from '../../base-ui/switch/lit-switch';
 import { LitSlider } from '../../base-ui/slider/LitSlider';
@@ -47,6 +48,7 @@ import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil
 import { SpArkTs } from './setting/SpArkTs';
 import { SpWebHdcShell } from './setting/SpWebHdcShell';
 import { SpHilogRecord } from './setting/SpHilogRecord';
+import { SpXPowerRecord } from './setting/SpXPowerRecord';
 import { LongTraceDBUtils } from '../database/LongTraceDBUtils';
 import {
   createFpsPluginConfig,
@@ -61,6 +63,7 @@ import {
   createHiSystemEventPluginConfig,
   createArkTsConfig,
   createHiLogConfig, createFFRTPluginConfig,
+  createXPowerConfig,
 } from './SpRecordConfigModel';
 import { SpRecordTraceHtml } from './SpRecordTrace.html';
 import { SpFFRTConfig } from './setting/SpFFRTConfig';
@@ -103,6 +106,7 @@ export class SpRecordTrace extends BaseElement {
   private spRecordTemplate: SpRecordTemplate | undefined;
   private spArkTs: SpArkTs | undefined;
   private spHiLog: SpHilogRecord | undefined;
+  private spXPower: SpXPowerRecord | undefined;
   private spFFRTConfig: SpFFRTConfig | undefined;
   private ftraceSlider: LitSlider | undefined | null;
   private spWebShell: SpWebHdcShell | undefined;
@@ -120,6 +124,7 @@ export class SpRecordTrace extends BaseElement {
   private MenuItemArktsHtml: LitMainMenuItem | undefined | null;
   private MenuItemEbpf: MenuItem | undefined | null;
   private MenuItemEbpfHtml: LitMainMenuItem | undefined | null;
+  private hdcList: Array<unknown> = [];
 
   set record_template(re: boolean) {
     if (re) {
@@ -168,7 +173,7 @@ export class SpRecordTrace extends BaseElement {
     return clearFlag;
   }
 
-  private async refreshDeviceList(): Promise<void> {
+  private async refreshDeviceList(sn?: unknown): Promise<void> {
     if (this.vs) {
       this.refreshDeviceListByVs();
     } else {
@@ -184,20 +189,18 @@ export class SpRecordTrace extends BaseElement {
             this.showHint = true;
           }
         }
+        this.hdcList = devs;
         let optionNum = 0;
         for (let len = 0; len < devs.length; len++) {
           let dev = devs[len];
           let option = document.createElement('option');
           option.className = 'select';
           if (typeof dev.serialNumber === 'string') {
-            let res = await HdcDeviceManager.connect(dev.serialNumber);
-            if (res) {
               optionNum++;
               option.value = dev.serialNumber;
               option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
               this.deviceSelect!.appendChild(option);
-            }
-            if (len === 0 && res) {
+            if (dev.serialNumber === sn) {
               option.selected = true;
               this.recordButton!.hidden = false;
               this.disconnectButton!.hidden = false;
@@ -205,27 +208,6 @@ export class SpRecordTrace extends BaseElement {
               this.devicePrompt!.innerText = '';
               this.hintEl!.textContent = '';
               SpRecordTrace.serialNumber = option.value;
-              if (this.MenuItemArkts && this.MenuItemArktsHtml) {//连接成功后，arkts开关置灰不能点击
-                this.MenuItemArktsHtml.style.color = 'gray';
-                this.MenuItemArktsHtml.disabled = true;
-                if (this.MenuItemArkts.clickHandler) {
-                  this.MenuItemArkts.clickHandler = undefined;
-                }
-              }
-              try {
-                let kernelInfo = await HdcDeviceManager.shellResultAsString(CmdConstant.CMD_UNAME, false);
-                if (kernelInfo.includes('HongMeng')) {
-                  if (this.MenuItemEbpf && this.MenuItemEbpfHtml) {//如果为鸿蒙内核，ebpf开关置灰不能点击
-                    this.MenuItemEbpfHtml.style.color = 'gray';
-                    this.MenuItemEbpfHtml.disabled = true;
-                    if (this.MenuItemEbpf.clickHandler) {
-                      this.MenuItemEbpf.clickHandler = undefined;
-                    }
-                  }
-                }
-              } catch (error) {
-                console.error('Failed to get kernel info:', error);
-              }
               this.refreshDeviceVersion(option);
             }
           }
@@ -247,8 +229,29 @@ export class SpRecordTrace extends BaseElement {
     }
   }
   private refreshDeviceVersion(option: HTMLOptionElement): void {
-    HdcDeviceManager.connect(option.value).then((result) => {
+    HdcDeviceManager.connect(option.value).then(async (result) => {
       if (result) {
+        if (this.MenuItemArkts && this.MenuItemArktsHtml) {//连接成功后，arkts开关置灰不能点击
+          this.MenuItemArktsHtml.style.color = 'gray';
+          this.MenuItemArktsHtml.disabled = true;
+          if (this.MenuItemArkts.clickHandler) {
+            this.MenuItemArkts.clickHandler = undefined;
+          }
+        }
+        try {
+          let kernelInfo = await HdcDeviceManager.shellResultAsString(CmdConstant.CMD_UNAME, false);
+          if (kernelInfo.includes('HongMeng')) {
+            if (this.MenuItemEbpf && this.MenuItemEbpfHtml) {//如果为鸿蒙内核，ebpf开关置灰不能点击
+              this.MenuItemEbpfHtml.style.color = 'gray';
+              this.MenuItemEbpfHtml.disabled = true;
+              if (this.MenuItemEbpf.clickHandler) {
+                this.MenuItemEbpf.clickHandler = undefined;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to get kernel info:', error);
+        }
         HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_VERSION, false).then((version) => {
           SpRecordTrace.selectVersion = this.getDeviceVersion(version);
           this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
@@ -498,7 +501,7 @@ export class SpRecordTrace extends BaseElement {
       // @ts-ignore
       HdcDeviceManager.findDevice().then((usbDevices): void => {
         log(usbDevices);
-        this.refreshDeviceList();
+        this.refreshDeviceList(usbDevices.serialNumber);
       });
     }
   };
@@ -573,26 +576,27 @@ export class SpRecordTrace extends BaseElement {
   };
 
   disconnectButtonClickEvent = (): void => {
+    // --------------我修改的
     let index = this.deviceSelect!.selectedIndex;
-    if (index !== -1) {
-      let selectOption = this.deviceSelect!.options[index];
-      let value = selectOption.value;
-      HdcDeviceManager.disConnect(value).then((): void => {
-        this.deviceSelect!.removeChild(selectOption);
-        if (this.nowChildItem === this.spWebShell) {
-          window.publish(window.SmartEvent.UI.DeviceDisConnect, value);
-        }
-        if (this.deviceSelect!.selectedIndex !== -1) {
-          let item = this.deviceSelect!.options[this.deviceSelect!.selectedIndex];
-          SpRecordTrace.serialNumber = item.value;
-        } else {
-          this.recordButton!.hidden = true;
-          this.disconnectButton!.hidden = true;
-          this.devicePrompt!.innerText = 'Device not connected';
-          this.sp!.search = false;
-          SpRecordTrace.serialNumber = '';
-        }
-      });
+    if (index !== -1 && this.deviceSelect!.options.length > 0) {
+      for (let i = 0; i < this.deviceSelect!.options.length; i++) {
+        let selectOption = this.deviceSelect!.options[i];
+        let value = selectOption.value;
+        HdcDeviceManager.disConnect(value).then((): void => {
+          this.deviceSelect!.removeChild(selectOption);
+          if (this.nowChildItem === this.spWebShell) {
+            window.publish(window.SmartEvent.UI.DeviceDisConnect, value);
+          }
+          let options = this.deviceSelect!.options;
+          if (options.length <= 0) {
+            this.recordButton!.hidden = true;
+            this.disconnectButton!.hidden = true;
+            this.devicePrompt!.innerText = 'Device not connected';
+            this.sp!.search = false;
+            SpRecordTrace.serialNumber = '';
+          }
+        });
+      }
     }
   };
 
@@ -618,6 +622,7 @@ export class SpRecordTrace extends BaseElement {
     this.spHiSysEvent = new SpHisysEvent();
     this.spArkTs = new SpArkTs();
     this.spHiLog = new SpHilogRecord();
+    this.spXPower = new SpXPowerRecord();
     this.spFFRTConfig = new SpFFRTConfig();
     this.spWebShell = new SpWebHdcShell();
     this.spRecordTemplate = new SpRecordTemplate(this);
@@ -789,6 +794,9 @@ export class SpRecordTrace extends BaseElement {
         this.MenuItemEbpfHtml = th;
       }
       this.menuGroup!.appendChild(th);
+      if (item.title === 'Ark Ts') { 
+        this.menuGroup!.removeChild(th);
+      }
     });
   }
 
@@ -893,6 +901,7 @@ export class SpRecordTrace extends BaseElement {
       this.buildMenuItem('Ark Ts', 'file-config', this.spArkTs!),
       this.buildMenuItem('FFRT', 'file-config', this.spFFRTConfig!),
       this.buildMenuItem('Hilog', 'realIntentionBulb', this.spHiLog!),
+      this.buildMenuItem('Xpower', 'externaltools', this.spXPower!), 
     ];
   }
 
@@ -1397,6 +1406,7 @@ export class SpRecordTrace extends BaseElement {
       createArkTsConfig(this.spArkTs!, this.recordSetting!, request);
       createHiLogConfig(reportingFrequency, this.spHiLog!, request);
       createFFRTPluginConfig(this.spFFRTConfig!, SpRecordTrace.selectVersion, request);
+      createXPowerConfig(this.spXPower!, request);
     }
     return request;
   };
@@ -1456,15 +1466,21 @@ export class SpRecordTrace extends BaseElement {
   synchronizeDeviceList(): void {
     this.deviceSelect!.innerHTML = '';
     if (SpRecordTrace.serialNumber !== '') {
-      let option = document.createElement('option');
-      option.className = 'select';
-      option.selected = true;
-      option.value = SpRecordTrace.serialNumber;
-      option.textContent = SpRecordTrace.serialNumber;
-      this.deviceSelect!.appendChild(option);
-      this.recordButton!.hidden = false;
-      this.disconnectButton!.hidden = false;
-      this.devicePrompt!.innerText = '';
+      for (let i = 0; i < this.hdcList.length; i++) {
+        let dev = this.hdcList[i];
+        let option = document.createElement('option');
+        option.className = 'select';
+        //@ts-ignore
+        option.selected = dev.serialNumber === SpRecordTrace.serialNumber;
+        //@ts-ignore
+        option.value = dev.serialNumber;
+        //@ts-ignore
+        option.textContent = dev.serialNumber;
+        this.deviceSelect!.appendChild(option);
+        this.recordButton!.hidden = false;
+        this.disconnectButton!.hidden = false;
+        this.devicePrompt!.innerText = '';
+      }
       if (SpRecordTrace.selectVersion && SpRecordTrace.selectVersion !== '') {
         this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
       }

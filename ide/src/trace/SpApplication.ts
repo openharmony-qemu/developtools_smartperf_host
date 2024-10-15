@@ -85,6 +85,8 @@ import './component/SpAiAnalysisPage';
 import { shadowRootInput } from './component/trace/base/shadowRootInput';
 import { WebSocketManager } from '../webSocket/WebSocketManager';
 import { SpAiAnalysisPage } from './component/SpAiAnalysisPage';
+import './component/SpAdvertisement'
+import { toUSVString } from 'util';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -609,6 +611,9 @@ export class SpApplication extends BaseElement {
     this.customColor!.setAttribute('hidden', '');
     this.longTracePage!.style.display = 'none';
     this.litSearch!.style.marginLeft = '0px';
+    // 诊断的db标记重置
+    SpAiAnalysisPage.isRepeatedly = false;
+    this.spAiAnalysisPage!.style.display = 'none';
     let pageListDiv = this.shadowRoot?.querySelector('.page-number-list') as HTMLDivElement;
     pageListDiv.innerHTML = '';
     this.openFileInit();
@@ -1967,6 +1972,42 @@ export class SpApplication extends BaseElement {
         this.spAiAnalysisPage!.style.display = 'none';
       }
     })
+
+    // 鼠标拖动改变大小
+    this.aiPageResize()
+  }
+
+  private aiPageResize() {
+    const resizableDiv = this.spAiAnalysisPage!;
+    let isResizing = false;
+
+    resizableDiv.addEventListener('mousemove', (e) => {
+      if (Math.abs(e.clientX - resizableDiv.getBoundingClientRect().left) < 5) {
+        resizableDiv.style.cursor = 'e-resize';
+      } else {
+        resizableDiv.style.cursor = 'default';
+      }
+    })
+
+    resizableDiv.addEventListener('mousedown', function (e) {
+      isResizing = true;
+      if (e.clientX - resizableDiv.getBoundingClientRect().left < 5) {
+        document.addEventListener('mousemove', changeAiWidth);
+      }
+      document.addEventListener('mouseup', mouseUp);
+    });
+
+
+    function changeAiWidth(e: any) {
+      resizableDiv.style.cursor = 'e-resize';
+      resizableDiv.style.width = window.innerWidth - e.clientX + 'px';
+    }
+
+    function mouseUp() {
+      isResizing = false;
+      document.removeEventListener('mousemove', changeAiWidth);
+      document.removeEventListener('mouseup', mouseUp);
+    }
   }
 
   private filterRowConfigClickHandle(): void {

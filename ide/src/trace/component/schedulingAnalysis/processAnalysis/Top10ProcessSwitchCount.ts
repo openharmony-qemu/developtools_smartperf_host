@@ -250,6 +250,9 @@ export class Top10ProcessSwitchCount extends BaseElement {
     this.back = this.shadowRoot!.querySelector<HTMLDivElement>('#back');
     this.clickEventListener();
     this.hoverEventListener();
+    this.addEventListener('contextmenu', (event) => {
+      event.preventDefault(); // 阻止默认的上下文菜单弹框
+    });
   }
 
   /**
@@ -280,6 +283,7 @@ export class Top10ProcessSwitchCount extends BaseElement {
       this.sortByColumn(evt.detail, this.threadSwitchCountData);
       this.threadSwitchCountTbl!.recycleDataSource = this.threadSwitchCountData;
     });
+    
     this.back!.addEventListener('click', (event) => {
       this.display_flag = true;
       this.display_pro!.style.display = 'block';
