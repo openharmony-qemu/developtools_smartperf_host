@@ -113,6 +113,15 @@ export class TabPaneHang extends BaseElement {
     tbl!.addEventListener('scroll', () => {
       this.tableTitleTimeHandle?.();
     });
+    this.hangTbl!.addEventListener('column-click', (evt) => {
+      // @ts-ignore
+      this.sortKey = evt.detail.key;
+      // @ts-ignore
+      this.sortType = evt.detail.sort;
+      // @ts-ignore
+      this.sortByColumn(evt.detail.key, evt.detail.sort);
+      this.refreshHangTab();
+    });
   }
 
   initElements(): void {
@@ -264,6 +273,102 @@ export class TabPaneHang extends BaseElement {
       }, dur);
     };
   }
+
+  sortByColumn(key: string, type: number): void {
+    if (type === 0) {
+      this.hangTbl!.recycleDataSource = this.filterData;
+    } else {
+      let arr = Array.from(this.filterData);
+      arr.sort((a, b): number => {
+        if (key === "startTime") {
+          if (type === 1) {
+            // @ts-ignore
+            return a.startTime - b.startTime;
+          } else {
+            // @ts-ignore
+            return b.startTime - a.startTime;
+          }
+        } else if (key === 'durStr') {
+          if (type === 1) {
+            // @ts-ignore
+            return a.dur - b.dur;
+          } else {
+            // @ts-ignore
+            return b.dur - a.dur;
+          }
+        } else if (key === 'type') {
+          if (type === 1) {
+            // @ts-ignore
+            return a[key].localeCompare(b[key]);
+          } else {
+            // @ts-ignore
+            return b[key].localeCompare(a[key]);
+          }
+        } else if (key === 'pname') {
+          if (type === 1) {
+            // @ts-ignore
+            return a[key].localeCompare(b[key]);
+          } else {
+            // @ts-ignore
+            return b[key].localeCompare(a[key]);
+          }
+        } else if (key === 'sendEventTid') {
+          if (type === 1) {
+            // @ts-ignore
+            return Number(a.sendEventTid) - Number(b.sendEventTid);
+          } else {
+            // @ts-ignore
+            return Number(b.sendEventTid) - Number(a.sendEventTid);
+          }
+        } else if (key === 'sendTime') {
+          if (type === 1) {
+            // @ts-ignore
+            return Number(a.sendTime) - Number(b.sendTime);
+          } else {
+            // @ts-ignore
+            return Number(b.sendTime) - Number(a.sendTime);
+          }
+        } else if (key === 'expectHandleTime') {
+          if (type === 1) {
+            // @ts-ignore
+            return Number(a.expectHandleTime) - Number(b.expectHandleTime);
+          } else {
+            // @ts-ignore
+            return Number(b.expectHandleTime) - Number(a.expectHandleTime);
+          }
+        } else if (key === 'taskNameId') {
+          if (type === 1) {
+            // @ts-ignore
+            return a[key].localeCompare(b[key]);
+          } else {
+            // @ts-ignore
+            return b[key].localeCompare(a[key]);
+          }
+        } else if (key === 'prio') {
+          if (type === 1) {
+            // @ts-ignore
+            return a.prio - b.prio;
+          } else {
+            // @ts-ignore
+            return b.prio - a.prio;
+          }
+        } else if (key === 'caller') {
+          if (type === 1) {
+            // @ts-ignore
+            return a[key].localeCompare(b[key]);
+          } else {
+            // @ts-ignore
+            return b[key].localeCompare(a[key]);
+          }
+        } else {
+          return 0;
+        }
+     
+      });
+      
+      this.hangTbl!.recycleDataSource = arr;
+    }
+  }
 }
 
 let defaultIndex: number = 1;
@@ -271,7 +376,8 @@ let tableTimeOut: number = 50;
 
 export class HangStructInPane {
   startTime: number = 0;
-  dur: string = '0';
+  dur: number = 0;
+  durStr: string = '0';
   pname: string = 'Process';
   type: string;
   sendEventTid: string;
@@ -283,7 +389,8 @@ export class HangStructInPane {
 
   constructor(parent: HangStruct) {
     this.startTime = parent.startTime ?? this.startTime;
-    this.dur = getTimeString(parent.dur ?? 0);
+    this.dur = parent.dur ?? 0;
+    this.durStr = getTimeString(parent.dur ?? 0);
     this.pname = `${parent.pname ?? this.pname} ${parent.pid ?? ''}`.trim();
     this.type = SpHangChart.calculateHangType(parent.dur ?? 0);
     [this.sendEventTid, this.sendTime, this.expectHandleTime, this.taskNameId, this.prio, this.caller] = (parent.content ?? ',0,0,,,').split(',').map(i => i.trim());
