@@ -15,11 +15,13 @@ import { BaseElement } from "../../../../base-ui/BaseElement";
  * limitations under the License.
  */
 export class shadowRootInput {
-    public static preventBubbling(page: BaseElement | Element) {
+    public static preventBubbling(page: BaseElement | Element, isSheet?: boolean) {
         let pageInputList = shadowRootInput.findInputListInShadowDOM(page);
         pageInputList.forEach(input => {
             input.addEventListener('keydown', (e) => e.stopPropagation());
             input.addEventListener('keyup', (e) => e.stopPropagation());
+            //@ts-ignore
+            if (!isSheet) input.blur();
         });
     }
     public static findInputListInShadowDOM(startNode: BaseElement | Element | null) {

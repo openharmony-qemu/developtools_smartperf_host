@@ -55,6 +55,7 @@ import { GpuCounterStruct, gpuCounterStructOnClick } from '../database/ui-worker
 import { HangStructOnClick } from '../database/ui-worker/ProcedureWorkerHang';
 import { XpowerStruct, XpowerStructOnClick } from '../database/ui-worker/ProcedureWorkerXpower';
 import { SpAiAnalysisPage } from './SpAiAnalysisPage';
+import { shadowRootInput } from './trace/base/shadowRootInput';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -615,6 +616,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
 }
 
 export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace, ev: KeyboardEvent): void {
+  shadowRootInput.preventBubbling(sp, sp.isMousePointInSheet);
   SpSystemTrace.isKeyUp = false;
   if (!sp.loadTraceCompleted || SpSystemTrace.isAiAsk) {
     return;
