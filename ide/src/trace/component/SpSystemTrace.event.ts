@@ -53,7 +53,7 @@ import { Utils } from './trace/base/Utils';
 import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct, gpuCounterStructOnClick } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 import { HangStructOnClick } from '../database/ui-worker/ProcedureWorkerHang';
-import { XpowerStruct, XpowerStructOnClick } from '../database/ui-worker/ProcedureWorkerXpower'; 
+import { XpowerStruct, XpowerStructOnClick } from '../database/ui-worker/ProcedureWorkerXpower';
 import { SpAiAnalysisPage } from './SpAiAnalysisPage';
 
 function timeoutJudge(sp: SpSystemTrace): number {
@@ -419,7 +419,10 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     })
     .catch((e): void => { });
   // @ts-ignore
-  SpAiAnalysisPage.selectChangeListener(entry.startTime || entry.startTs, (entry.startTime! || entry.startTs) + entry.dur)
+  if (entry && entry.dur && (entry.startTime! || entry.startTs)) {
+    // @ts-ignore
+    SpAiAnalysisPage.selectChangeListener(entry.startTime || entry.startTs, (entry.startTime! || entry.startTs) + entry.dur);
+  }
 }
 export default function spSystemTraceOnClickHandler(
   sp: SpSystemTrace,
