@@ -17,6 +17,7 @@ import { element } from '../BaseElement';
 import { LitTabpane } from './lit-tabpane';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 import { LitTabsHtml } from './lit-tabs.html';
+import { shadowRootInput } from '../../trace/component/trace/base/shadowRootInput';
 
 @element('lit-tabs')
 export class LitTabs extends HTMLElement {
@@ -281,7 +282,6 @@ export class LitTabs extends HTMLElement {
         a.removeAttribute('data-selected');
       }
     });
-    let tbp = this.querySelector(`lit-tabpane[key='${key}']`);
     let panes = this.querySelectorAll<LitTabpane>('lit-tabpane');
     panes.forEach((a) => {
       if (a.key === key) {
@@ -292,8 +292,14 @@ export class LitTabs extends HTMLElement {
         a.style.display = 'none';
       }
     });
+    let tbp = this.querySelector(`lit-tabpane[key='${key}']`);
+    if (tbp) {  
+      setTimeout(() => {  
+        shadowRootInput.preventBubbling(tbp);
+      }, 500);
+    }
   }
-
+  
   byKeyIsValid(isValid: boolean, a: Element): void {
     if (isValid) {
       let span = a.querySelector('span') as HTMLSpanElement;

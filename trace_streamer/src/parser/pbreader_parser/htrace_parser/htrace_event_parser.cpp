@@ -725,8 +725,8 @@ bool HtraceEventParser::CpuIdleEvent(const EventInfo &event) const
         return false;
     }
 
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue.value(), cpuIdleName_, event.timeStamp,
-                                                            config_.GetStateValue(newStateValue.value()));
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpuValue.value(), cpuIdleName_,
+                                                         event.timeStamp, config_.GetStateValue(newStateValue.value()));
 
     // Add cpu_idle event to raw_data_table
     traceDataCache_->GetRawData()->AppendRawData(event.timeStamp, RAW_CPU_IDLE, eventCpuValue.value(), 0);
@@ -750,8 +750,8 @@ bool HtraceEventParser::CpuFrequencyEvent(const EventInfo &event) const
         return false;
     }
 
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue.value(), cpuFrequencyName_, event.timeStamp,
-                                                            newStateValue.value());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpuValue.value(),
+                                                         cpuFrequencyName_, event.timeStamp, newStateValue.value());
     return true;
 }
 bool HtraceEventParser::CpuFrequencyLimitsEvent(const EventInfo &event) const
@@ -761,10 +761,10 @@ bool HtraceEventParser::CpuFrequencyLimitsEvent(const EventInfo &event) const
     uint32_t maxFreq = msg.max_freq();
     uint32_t minFreq = msg.min_freq();
     uint32_t eventCpuValue = msg.cpu_id();
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue, cpuFrequencyLimitMaxNameId, event.timeStamp,
-                                                            maxFreq);
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue, cpuFrequencyLimitMinNameId, event.timeStamp,
-                                                            minFreq);
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpuValue,
+                                                         cpuFrequencyLimitMaxNameId, event.timeStamp, maxFreq);
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpuValue,
+                                                         cpuFrequencyLimitMinNameId, event.timeStamp, minFreq);
     return true;
 }
 bool HtraceEventParser::SuspendResumeEvent(const EventInfo &event) const
@@ -817,7 +817,8 @@ bool HtraceEventParser::ClockSetRateEvent(const EventInfo &event) const
     ProtoReader::ClockSetRateFormat_Reader msg(event.detail);
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_SET_RATE, STAT_EVENT_RECEIVED);
     DataIndex nameIndex = traceDataCache_->GetDataIndex(msg.name().ToStdString());
-    streamFilters_->clockRateFilter_->AppendNewMeasureData(msg.cpu_id(), nameIndex, event.timeStamp, msg.state());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_RATE, msg.cpu_id(), nameIndex,
+                                                         event.timeStamp, msg.state());
     return true;
 }
 bool HtraceEventParser::ClockEnableEvent(const EventInfo &event) const
@@ -825,7 +826,8 @@ bool HtraceEventParser::ClockEnableEvent(const EventInfo &event) const
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_ENABLE, STAT_EVENT_RECEIVED);
     ProtoReader::ClockEnableFormat_Reader msg(event.detail);
     DataIndex nameIndex = traceDataCache_->GetDataIndex(msg.name().ToStdString());
-    streamFilters_->clockEnableFilter_->AppendNewMeasureData(msg.cpu_id(), nameIndex, event.timeStamp, msg.state());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_ENABLE, msg.cpu_id(), nameIndex,
+                                                         event.timeStamp, msg.state());
     return true;
 }
 bool HtraceEventParser::ClockDisableEvent(const EventInfo &event) const
@@ -833,7 +835,8 @@ bool HtraceEventParser::ClockDisableEvent(const EventInfo &event) const
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_DISABLE, STAT_EVENT_RECEIVED);
     ProtoReader::ClockDisableFormat_Reader msg(event.detail);
     DataIndex nameIndex = traceDataCache_->GetDataIndex(msg.name().ToStdString());
-    streamFilters_->clockDisableFilter_->AppendNewMeasureData(msg.cpu_id(), nameIndex, event.timeStamp, msg.state());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_DISABLE, msg.cpu_id(), nameIndex,
+                                                         event.timeStamp, msg.state());
     return true;
 }
 bool HtraceEventParser::ClkSetRateEvent(const EventInfo &event) const
@@ -841,7 +844,8 @@ bool HtraceEventParser::ClkSetRateEvent(const EventInfo &event) const
     ProtoReader::ClkSetRateFormat_Reader msg(event.detail);
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLK_SET_RATE, STAT_EVENT_RECEIVED);
     DataIndex nameIndex = traceDataCache_->GetDataIndex(msg.name().ToStdString());
-    streamFilters_->clkRateFilter_->AppendNewMeasureData(event.cpu, nameIndex, event.timeStamp, msg.rate());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLK_RATE, event.cpu, nameIndex,
+                                                         event.timeStamp, msg.rate());
     return true;
 }
 bool HtraceEventParser::ClkEnableEvent(const EventInfo &event) const
@@ -849,7 +853,8 @@ bool HtraceEventParser::ClkEnableEvent(const EventInfo &event) const
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLK_ENABLE, STAT_EVENT_RECEIVED);
     ProtoReader::ClkEnableFormat_Reader msg(event.detail);
     DataIndex nameIndex = traceDataCache_->GetDataIndex(msg.name().ToStdString());
-    streamFilters_->clkEnableFilter_->AppendNewMeasureData(event.cpu, nameIndex, event.timeStamp, 1);
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLK_ENABLE, event.cpu, nameIndex,
+                                                         event.timeStamp, 1);
     return true;
 }
 bool HtraceEventParser::ClkDisableEvent(const EventInfo &event) const
@@ -857,7 +862,8 @@ bool HtraceEventParser::ClkDisableEvent(const EventInfo &event) const
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLK_DISABLE, STAT_EVENT_RECEIVED);
     ProtoReader::ClkDisableFormat_Reader msg(event.detail);
     DataIndex nameIndex = traceDataCache_->GetDataIndex(msg.name().ToStdString());
-    streamFilters_->clkDisableFilter_->AppendNewMeasureData(event.cpu, nameIndex, event.timeStamp, 0);
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLK_DISABLE, event.cpu, nameIndex,
+                                                         event.timeStamp, 0);
     return true;
 }
 
@@ -1006,8 +1012,8 @@ bool HtraceEventParser::OomScoreAdjUpdate(const EventInfo &event) const
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OOM_SCORE_ADJ_UPDATE, STAT_EVENT_RECEIVED);
     ProtoReader::OomScoreAdjUpdateFormat_Reader msg(event.detail);
     auto ipid = streamFilters_->processFilter_->GetInternalPid(msg.pid());
-    streamFilters_->processMeasureFilter_->AppendNewMeasureData(ipid, oomScoreAdjName_, event.timeStamp,
-                                                                msg.oom_score_adj());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid, oomScoreAdjName_,
+                                                         event.timeStamp, msg.oom_score_adj());
     return true;
 }
 

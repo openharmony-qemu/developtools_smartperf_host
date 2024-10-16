@@ -51,6 +51,7 @@ ParseELFFunction g_parseELFCallback;
 uint8_t *g_fileNameBuf;
 uint32_t g_fileNameSize;
 bool g_isSystrace = false;
+bool g_isZipTrace = false;
 bool g_hasDeterminedSystrace = false;
 
 void ResultCallback(const std::string &jsonResult, int32_t finish)
@@ -79,6 +80,9 @@ EMSCRIPTEN_KEEPALIVE uint8_t *Initialize(uint32_t reqBufferSize,
                                          TLVReplyFunction replyTLVFunction,
                                          ReplyFunction ffrtConvertedReply)
 {
+    if (g_reqBuf != nullptr) {
+        delete[] g_reqBuf;
+    }
     g_reqBuf = new uint8_t[reqBufferSize];
     g_reqBufferSize = reqBufferSize;
     g_reply = replyFunction;
@@ -89,6 +93,9 @@ EMSCRIPTEN_KEEPALIVE uint8_t *Initialize(uint32_t reqBufferSize,
 
 EMSCRIPTEN_KEEPALIVE uint8_t *InitializeSplitFile(SplitFileFunction splitFileFunction, uint32_t reqBufferSize)
 {
+    if (g_splitFileBuf != nullptr) {
+        delete[] g_splitFileBuf;
+    }
     g_splitFile = splitFileFunction;
     g_splitFileBuf = new uint8_t[reqBufferSize];
     g_splitFileBufferSize = reqBufferSize;
@@ -114,6 +121,9 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerReciveFileEx(int32_t dataLen, int32_t isFi
 
 EMSCRIPTEN_KEEPALIVE uint8_t *InitializeParseConfig(uint32_t reqBufferSize)
 {
+    if (g_parserConfigBuf != nullptr) {
+        delete[] g_parserConfigBuf;
+    }
     g_parserConfigBuf = new uint8_t[reqBufferSize];
     g_parserConfigSize = reqBufferSize;
     return g_parserConfigBuf;
@@ -146,6 +156,9 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerLongTraceSplitFileEx(int dataLen, int32_t 
 
 EMSCRIPTEN_KEEPALIVE uint8_t *InitFileName(ParseELFFunction parseELFCallback, uint32_t reqBufferSize)
 {
+    if (g_fileNameBuf != nullptr) {
+        delete[] g_fileNameBuf;
+    }
     g_parseELFCallback = parseELFCallback;
     if (reqBufferSize > NAME_MAX) {
         return nullptr;
@@ -173,6 +186,9 @@ void ThirdParySendDataCallback(const char *pluginData, int32_t len, int32_t comp
 EMSCRIPTEN_KEEPALIVE uint8_t *TraceStreamerSetThirdPartyDataDealer(SendDataCallBack sendDataCallBack,
                                                                    uint32_t reqBufferSize)
 {
+    if (g_sendDataBuf != nullptr) {
+        delete[] g_sendDataBuf;
+    }
     g_sendData = sendDataCallBack;
     g_sendDataBuf = new uint8_t[reqBufferSize];
     g_sendDataBufSize = reqBufferSize;
@@ -224,12 +240,15 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFi
 {
     if (!g_hasDeterminedSystrace) {
         g_isSystrace = g_wasmTraceStreamer.DetermineSystrace(g_reqBuf, dataLen);
+        g_isZipTrace = g_wasmTraceStreamer.DetermineZipTrace(g_reqBuf, dataLen);
         g_hasDeterminedSystrace = true;
     }
     if (g_wasmTraceStreamer.GetFfrtConvertStatus() && g_isSystrace) {
 #if IS_WASM
         return g_wasmTraceStreamer.SaveAndParseFfrtData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
 #endif
+    } else if (g_isZipTrace) {
+        return g_wasmTraceStreamer.SaveAndParseZipTraceData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
     } else if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr, isFinish)) {
         return 0;
     }

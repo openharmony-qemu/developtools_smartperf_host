@@ -70,6 +70,10 @@ export class SelectionParam {
     ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
   >();
   dmaFenceNameData: Array<String> = [];//新增框选dma_fence数据
+  xpowerMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+  string,
+  ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+>();
   hangMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
@@ -368,7 +372,12 @@ export class SelectionParam {
         filterFunc.funName!.indexOf('H:Task ') >= 0;
       // @ts-ignore
       let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
-        taskData!.tid = parseInt(it.rowId!);
+        taskData!.tid = isNaN(Number(it.rowId!)) && typeof it.rowId! === 'string' ?  
+         (function() {  
+           const match = (it.rowId!).match(/-(\d+)/);  
+           return match ? parseInt(match[1]) : undefined; 
+         })() :  
+         parseInt(it.rowId!);
         return isIntersect(taskData, TraceRow.rangeSelectObject!);
       });
       if (taskData.length > 0) {
@@ -1128,6 +1137,7 @@ export class SelectionParam {
         it.rangeSelect = true;
         it.checkType = '2';
         this.clockMapData.set(it.rowId || '', it.getCacheData);
+        it.rowType === TraceRow.ROW_TYPE_DMA_FENCE && this.dmaFenceNameData.push(it.rowId!);
       });
     }
     if (it.rowType === TraceRow.ROW_TYPE_CLOCK) {
@@ -1140,6 +1150,20 @@ export class SelectionParam {
   pushDmaFence(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_DMA_FENCE) {
       this.dmaFenceNameData.push(it.rowId!);
+    }
+  }
+
+  // @ts-ignore
+  pushXpower(it: TraceRow<unknown>, sp: SpSystemTrace): void {  
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER) {
+      it.childrenList.forEach((it) => {
+        it.rangeSelect = true;
+        it.checkType = '2';
+        this.xpowerMapData.set(it.rowId || '', it.getCacheData);
+      });
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM) {
+      this.xpowerMapData.set(it.rowId || '', it.getCacheData);
     }
   }
 
@@ -1274,6 +1298,7 @@ export class SelectionParam {
     this.pushLogs(it, sp);
     this.pushHiSysEvent(it, sp);
     this.pushSampleData(it);
+    this.pushXpower(it, sp);
   }
 }
 

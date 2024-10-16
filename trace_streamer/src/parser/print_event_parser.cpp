@@ -16,6 +16,7 @@
 #include "animation_filter.h"
 #include "clock_filter_ex.h"
 #include "frame_filter.h"
+#include "measure_filter.h"
 #include "stat_filter.h"
 #include "string_to_numerical.h"
 #include <cinttypes>
@@ -162,7 +163,8 @@ void PrintEventParser::ParseCreateEvent(uint64_t ts, const TracePoint &point)
     DataIndex nameIndex = traceDataCache_->GetDataIndex(point.name_);
     uint32_t internalPid = streamFilters_->processFilter_->GetInternalPid(point.tgid_);
     if (internalPid != INVALID_ID) {
-        streamFilters_->processMeasureFilter_->AppendNewMeasureData(internalPid, nameIndex, ts, point.value_);
+        streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, internalPid, nameIndex, ts,
+                                                             point.value_);
         streamFilters_->processFilter_->AddProcessMemory(internalPid);
     } else {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TRACING_MARK_WRITE, STAT_EVENT_DATA_INVALID);

@@ -63,6 +63,6 @@ export const TabPaneJsMemoryFilterHtml = `
     <input id="js-memory-filter-input" class="spacing" placeholder="Class filter" value=""/>
 </div>
 <div class='select-wrap'>
-    <lit-select id='comparison-select' title='Select View'></lit-select>
+    <lit-select id='comparison-select' title='Select View' tabselect></lit-select>
 </div>
 `;

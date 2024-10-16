@@ -70,7 +70,7 @@ public:
 
 public:
     void MaybeParseNativeHookMainEvent(uint64_t timeStamp, std::unique_ptr<NativeHookMetaData> nativeHookMetaData);
-    void ParseConfigInfo(ProtoReader::BytesView &protoData);
+    void ParseConfigInfo(ProtoReader::BytesView &protoData, uint64_t &statisticsInterval);
     void AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vector<uint64_t> &frames);
     void AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const ProtoReader::BytesView &bytesView);
     void AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex);
@@ -158,7 +158,7 @@ private:
     std::unique_ptr<ProfilerPluginData> hookPluginData_ = nullptr;
     DoubleMap<uint32_t, uint32_t, uint64_t> ipidToSymIdToSymIndex_;
     DoubleMap<uint32_t, uint32_t, uint64_t> ipidToFilePathIdToFileIndex_;
-    DoubleMap<uint32_t, uint32_t, std::shared_ptr<const ProtoReader::BytesView>> ipidToFrameIdToFrameBytes_;
+    DoubleMap<uint32_t, uint64_t, std::shared_ptr<const ProtoReader::BytesView>> ipidToFrameIdToFrameBytes_;
     std::unordered_map<DataIndex, std::shared_ptr<std::set<size_t>>> filePathIndexToFrameTableRowMap_ = {};
     std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>> tsToMainEventsMap_ = {};
     std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>> reparseStackIdToFramesMap_ = {};

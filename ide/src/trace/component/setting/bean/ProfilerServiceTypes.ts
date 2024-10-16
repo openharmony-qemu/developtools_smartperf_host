@@ -81,7 +81,7 @@ export interface ProfilerPluginConfig<T> {
   pluginName: string;
   sampleInterval?: number;
   configData: T;
-  protobuf_serialize?: boolean;
+  is_protobuf_serialize?: boolean;
 }
 
 export interface HiebpfConfig {

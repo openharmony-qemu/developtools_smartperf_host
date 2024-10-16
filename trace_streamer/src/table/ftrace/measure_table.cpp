@@ -44,11 +44,15 @@ MeasureTable::Cursor::Cursor(const TraceDataCache *dataCache, TableBase *table)
                                                   ? dataCache->GetConstMeasureData().Size()
                                                   : (table->name_ == "process_measure"
                                                          ? dataCache->GetConstProcessMeasureData().Size()
-                                                         : dataCache->GetConstSysMemMeasureData().Size()))),
+                                                         : (table->name_ == "sys_mem_measure"
+                                                                ? dataCache->GetConstSysMemMeasureData().Size()
+                                                                : dataCache->GetConstXpowerMeasureData().Size())))),
       measureObj(table->name_ == "measure"
                      ? dataCache->GetConstMeasureData()
-                     : (table->name_ == "process_measure" ? dataCache->GetConstProcessMeasureData()
-                                                          : dataCache->GetConstSysMemMeasureData()))
+                     : (table->name_ == "process_measure"
+                            ? dataCache->GetConstProcessMeasureData()
+                            : (table->name_ == "sys_mem_measure" ? dataCache->GetConstSysMemMeasureData()
+                                                                 : dataCache->GetConstXpowerMeasureData())))
 {
 }
 

@@ -16,6 +16,7 @@
 import { BaseElement, element } from '../base-ui/BaseElement';
 import '../base-ui/menu/LitMainMenu';
 import '../base-ui/icon/LitIcon';
+import '../base-ui/loading/LitLoading'
 import { SpMetrics } from './component/SpMetrics';
 import { SpHelp } from './component/SpHelp';
 import './component/SpHelp';
@@ -80,6 +81,12 @@ import { SpThirdParty } from './component/SpThirdParty';
 import './component/SpThirdParty';
 import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
 import './component/SpBubblesAI';
+import './component/SpAiAnalysisPage';
+import { shadowRootInput } from './component/trace/base/shadowRootInput';
+import { WebSocketManager } from '../webSocket/WebSocketManager';
+import { SpAiAnalysisPage } from './component/SpAiAnalysisPage';
+import './component/SpAdvertisement'
+import { toUSVString } from 'util';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -148,6 +155,8 @@ export class SpApplication extends BaseElement {
   private contentCenterOption: HTMLDivElement | undefined | null;
   private contentRightOption: HTMLDivElement | undefined | null;
   private childComponent: Array<unknown> | undefined | null;
+  private spAiAnalysisPage: SpAiAnalysisPage | undefined | null;
+  private aiAnalysis: HTMLImageElement | undefined | null;
   private keyCodeMap = {
     61: true,
     107: true,
@@ -291,6 +300,7 @@ export class SpApplication extends BaseElement {
     this.litRecordSearch = this.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
     this.sidebarButton = this.shadowRoot?.querySelector('.sidebar-button');
     this.chartFilter = this.shadowRoot?.querySelector('.chart-filter') as TraceRowConfig;
+    this.aiAnalysis = this.shadowRoot?.querySelector('.ai_analysis') as HTMLImageElement;
     this.cutTraceFile = this.shadowRoot?.querySelector('.cut-trace-file') as HTMLImageElement;
     this.exportRecord = this.shadowRoot?.querySelector('.export-record') as LitIcon;
     this.longTracePage = this.shadowRoot!.querySelector('.long_trace_page') as HTMLDivElement;
@@ -306,6 +316,7 @@ export class SpApplication extends BaseElement {
     this.contentRightOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-right-option');
     this.contentLeftOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-left-option');
     this.contentCenterOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-center-option');
+    this.spAiAnalysisPage = this.shadowRoot!.querySelector('#sp-ai-analysis') as SpAiAnalysisPage;
     this.initElementsAttr();
     this.initEvents();
     this.initRecordEvents();
@@ -317,12 +328,21 @@ export class SpApplication extends BaseElement {
     this.initGlobalEvents();
     this.initDocumentListener();
     this.initElementsEnd();
+    this.connectWebSocket();
   }
-
+  private connectWebSocket(): void {
+    document.addEventListener('DOMContentLoaded', function () {//
+      WebSocketManager.getInstance();
+    });
+  }
   private initElementsEnd(): void {
     let urlParams = new URL(window.location.href).searchParams;
+    let jsonStr = '';
+    if (urlParams && urlParams.get('json')) {
+      jsonStr = decodeURIComponent(window.location.href.split('&').reverse()[0].split('=')[1]);
+    }
     if (urlParams && urlParams.get('trace') && urlParams.get('link')) {
-      this.openLineFileHandler(urlParams);
+      this.openLineFileHandler(urlParams, jsonStr);
     } else if (urlParams && urlParams.get('action')) {
       this.helpClick(urlParams!);
     } else {
@@ -353,6 +373,7 @@ export class SpApplication extends BaseElement {
       this.spSystemTrace,
       this.spRecordTrace,
       this.spWelcomePage,
+      this.spAiAnalysisPage,
       this.spMetrics,
       this.spQuerySQL,
       this.spSchedulingAnalysis,
@@ -590,6 +611,9 @@ export class SpApplication extends BaseElement {
     this.customColor!.setAttribute('hidden', '');
     this.longTracePage!.style.display = 'none';
     this.litSearch!.style.marginLeft = '0px';
+    // 诊断的db标记重置
+    SpAiAnalysisPage.isRepeatedly = false;
+    this.spAiAnalysisPage!.style.display = 'none';
     let pageListDiv = this.shadowRoot?.querySelector('.page-number-list') as HTMLDivElement;
     pageListDiv.innerHTML = '';
     this.openFileInit();
@@ -601,6 +625,7 @@ export class SpApplication extends BaseElement {
     let fileName = ev.name;
     this.traceFileName = fileName;
     let showFileName = fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
+    window.sessionStorage.setItem('fileName', showFileName);
     TraceRow.rangeSelectObject = undefined;
     //@ts-ignore
     let typeStr = ev.slice(0, 100);
@@ -654,7 +679,7 @@ export class SpApplication extends BaseElement {
     }
   }
 
-  private openLineFileHandler(urlParams: URLSearchParams): void {
+  private openLineFileHandler(urlParams: URLSearchParams, jsonStr: string): void {
     Utils.currentTraceMode = TraceMode.NORMAL;
     this.openFileInit();
     this.openMenu(false);
@@ -664,7 +689,12 @@ export class SpApplication extends BaseElement {
       urlParams.get('trace') as string,
       downloadLineFile,
       (arrayBuf, fileName, showFileName, fileSize) => {
-        this.handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName);
+        if (fileName.split('.').reverse()[0] === 'db') {
+          this.wasm = false;
+          this.handleSqliteMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName, jsonStr);
+        } else {
+          this.handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName, jsonStr);
+        }
       },
       (localPath) => {
         let path = urlParams.get('trace') as string;
@@ -977,7 +1007,7 @@ export class SpApplication extends BaseElement {
     history.pushState({}, '', window.location.origin + window.location.pathname);
   }
 
-  private handleSqliteMode(ev: unknown, showFileName: string, fileSize: number, fileName: string): void {
+  private handleSqliteMode(ev: unknown, showFileName: string, fileSize: number, fileName: string, jsonStr?: string): void {
     let fileSizeStr = (fileSize / 1048576).toFixed(1);
     postLog(fileName, fileSizeStr);
     document.title = `${showFileName} (${fileSizeStr}M)`;
@@ -999,6 +1029,9 @@ export class SpApplication extends BaseElement {
           () => {
             if (this.markJson) {
               window.publish(window.SmartEvent.UI.ImportRecord, this.markJson);
+            }
+            if (jsonStr) {
+              window.publish(window.SmartEvent.UI.ImportRecord, jsonStr);
             }
             this.mainMenu!.menus!.splice(2, this.mainMenu!.menus!.length > 2 ? 1 : 0, {
               collapsed: false,
@@ -1069,7 +1102,7 @@ export class SpApplication extends BaseElement {
     };
   }
 
-  private handleWasmMode(ev: unknown, showFileName: string, fileSize: number, fileName: string): void {
+  private handleWasmMode(ev: unknown, showFileName: string, fileSize: number, fileName: string, jsonStr?: string): void {
     this.litSearch!.setPercent('', 1);
     if (fileName.endsWith('.json')) {
       this.progressEL!.loading = true;
@@ -1099,6 +1132,9 @@ export class SpApplication extends BaseElement {
         await this.traceLoadCompleteHandler(res, fileSizeStr, showFileName, fileName, false);
         if (this.markJson) {
           window.publish(window.SmartEvent.UI.ImportRecord, this.markJson);
+        }
+        if (jsonStr) {
+          window.publish(window.SmartEvent.UI.ImportRecord, jsonStr);
         }
       };
       threadPool.init('wasm').then((res) => {
@@ -1926,6 +1962,52 @@ export class SpApplication extends BaseElement {
     this.cutTraceFile!.addEventListener('click', (ev) => {
       this.croppingFile(this.progressEL!, this.litSearch!);
     });
+
+    this.aiAnalysis!.addEventListener('click', (ev) => {
+      if (this.spAiAnalysisPage!.style.visibility === 'hidden') {
+        this.spAiAnalysisPage!.style.display = 'block';
+        this.spAiAnalysisPage!.style.visibility = 'visible';
+      } else {
+        this.spAiAnalysisPage!.style.visibility = 'hidden';
+        this.spAiAnalysisPage!.style.display = 'none';
+      }
+    })
+
+    // 鼠标拖动改变大小
+    this.aiPageResize()
+  }
+
+  private aiPageResize() {
+    const resizableDiv = this.spAiAnalysisPage!;
+    let isResizing = false;
+
+    resizableDiv.addEventListener('mousemove', (e) => {
+      if (Math.abs(e.clientX - resizableDiv.getBoundingClientRect().left) < 5) {
+        resizableDiv.style.cursor = 'e-resize';
+      } else {
+        resizableDiv.style.cursor = 'default';
+      }
+    })
+
+    resizableDiv.addEventListener('mousedown', function (e) {
+      isResizing = true;
+      if (e.clientX - resizableDiv.getBoundingClientRect().left < 5) {
+        document.addEventListener('mousemove', changeAiWidth);
+      }
+      document.addEventListener('mouseup', mouseUp);
+    });
+
+
+    function changeAiWidth(e: any) {
+      resizableDiv.style.cursor = 'e-resize';
+      resizableDiv.style.width = window.innerWidth - e.clientX + 'px';
+    }
+
+    function mouseUp() {
+      isResizing = false;
+      document.removeEventListener('mousemove', changeAiWidth);
+      document.removeEventListener('mouseup', mouseUp);
+    }
   }
 
   private filterRowConfigClickHandle(): void {
@@ -2097,6 +2179,8 @@ export class SpApplication extends BaseElement {
       }
       if (node === showNode) {
         showNode.style.visibility = 'visible';
+        let recordSetting = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-record-trace")?.shadowRoot?.querySelector("#app-content > record-setting");
+        shadowRootInput.preventBubbling(recordSetting!);
       } else {
         (node! as HTMLElement).style.visibility = 'hidden';
       }
@@ -2406,6 +2490,13 @@ export class SpApplication extends BaseElement {
           this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
           clearInterval(timer);
         }, 4000);
+        // 存入缓存
+        caches.open(`${fileName}`).then((cache) => {
+          let headers = new Headers();
+          headers.append('Content-type', 'application/octet-stream');
+          headers.append('Content-Transfer-Encoding', 'binary');
+          return cache.put(`${fileName}`, new Response(reqBufferDB, { status: 200 }));
+        })
       },
       'download-db'
     );

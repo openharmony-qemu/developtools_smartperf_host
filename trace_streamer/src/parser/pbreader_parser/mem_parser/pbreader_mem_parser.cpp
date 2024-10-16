@@ -141,20 +141,23 @@ void PbreaderMemParser::SpecialDataAddition(ProtoReader::ProcessMemoryInfo_Reade
 {
     // processMemoryInfo Special data addition
     if (processMemoryInfo.has_purg_sum_kb()) {
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_PURG_SUM), timeStamp, processMemoryInfo.purg_sum_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid,
+                                                                         memNameDictMap_.at(MEM_PURG_SUM), timeStamp,
+                                                                         processMemoryInfo.purg_sum_kb());
     }
     if (processMemoryInfo.has_purg_pin_kb()) {
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_PURG_PIN), timeStamp, processMemoryInfo.purg_pin_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid,
+                                                                         memNameDictMap_.at(MEM_PURG_PIN), timeStamp,
+                                                                         processMemoryInfo.purg_pin_kb());
     }
     if (processMemoryInfo.has_gl_pss_kb()) {
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_GL_PSS), timeStamp, processMemoryInfo.gl_pss_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(
+            EnumMeasureFilter::PROCESS, ipid, memNameDictMap_.at(MEM_GL_PSS), timeStamp, processMemoryInfo.gl_pss_kb());
     }
     if (processMemoryInfo.has_graph_pss_kb()) {
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_GRAPH_PSS), timeStamp, processMemoryInfo.graph_pss_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid,
+                                                                         memNameDictMap_.at(MEM_GRAPH_PSS), timeStamp,
+                                                                         processMemoryInfo.graph_pss_kb());
     }
     if (hasValue) {
         streamFilters_->processFilter_->AddProcessMemory(ipid);
@@ -174,24 +177,31 @@ void PbreaderMemParser::ParseProcessInfo(const ProtoReader::MemoryData_Reader *t
         auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(
             processMemoryInfo.pid(), processMemoryInfo.name().ToStdString());
         uint32_t hasValue = 0;
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_VM_SIZE), timeStamp, processMemoryInfo.vm_size_kb());
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_VM_RSS), timeStamp, processMemoryInfo.vm_rss_kb());
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_VM_ANON), timeStamp, processMemoryInfo.rss_anon_kb());
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_RSS_FILE), timeStamp, processMemoryInfo.rss_file_kb());
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_RSS_SHMEM), timeStamp, processMemoryInfo.rss_shmem_kb());
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_VM_SWAP), timeStamp, processMemoryInfo.vm_swap_kb());
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_VM_LOCKED), timeStamp, processMemoryInfo.vm_locked_kb());
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_VM_HWM), timeStamp, processMemoryInfo.vm_hwm_kb());
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_OOM_SCORE_ADJ), timeStamp, processMemoryInfo.oom_score_adj());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid,
+                                                                         memNameDictMap_.at(MEM_VM_SIZE), timeStamp,
+                                                                         processMemoryInfo.vm_size_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(
+            EnumMeasureFilter::PROCESS, ipid, memNameDictMap_.at(MEM_VM_RSS), timeStamp, processMemoryInfo.vm_rss_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid,
+                                                                         memNameDictMap_.at(MEM_VM_ANON), timeStamp,
+                                                                         processMemoryInfo.rss_anon_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid,
+                                                                         memNameDictMap_.at(MEM_RSS_FILE), timeStamp,
+                                                                         processMemoryInfo.rss_file_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid,
+                                                                         memNameDictMap_.at(MEM_RSS_SHMEM), timeStamp,
+                                                                         processMemoryInfo.rss_shmem_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid,
+                                                                         memNameDictMap_.at(MEM_VM_SWAP), timeStamp,
+                                                                         processMemoryInfo.vm_swap_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid,
+                                                                         memNameDictMap_.at(MEM_VM_LOCKED), timeStamp,
+                                                                         processMemoryInfo.vm_locked_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(
+            EnumMeasureFilter::PROCESS, ipid, memNameDictMap_.at(MEM_VM_HWM), timeStamp, processMemoryInfo.vm_hwm_kb());
+        hasValue += streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::PROCESS, ipid,
+                                                                         memNameDictMap_.at(MEM_OOM_SCORE_ADJ),
+                                                                         timeStamp, processMemoryInfo.oom_score_adj());
 
         SpecialDataAddition(processMemoryInfo, timeStamp, ipid, hasValue);
     }

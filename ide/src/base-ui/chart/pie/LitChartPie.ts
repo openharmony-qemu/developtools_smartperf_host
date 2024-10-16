@@ -179,11 +179,13 @@ export class LitChartPie extends BaseElement {
       }
       this.updateHoverItemStatus(it);
       if (it.hover) {
-        this.showTip(
-          this.centerX || 0,
-          this.centerY || 0,
-          this.litChartPieConfig!.tip ? this.litChartPieConfig!.tip(it) : `${it.key}: ${it.value}`
-        );
+        if (this.centerX && this.centerX > 0 && this.centerY && this.centerY > 0) { 
+          this.showTip(
+            this.centerX - 40 || 0,
+            this.centerY || 0,
+            this.litChartPieConfig!.tip ? this.litChartPieConfig!.tip(it) : `${it.key}: ${it.value}`
+          );
+        }
       }
     });
     if (!hasHover) {
@@ -270,8 +272,8 @@ export class LitChartPie extends BaseElement {
           if (it.hover && this.litChartPieConfig) {
             this.litChartPieConfig.hoverHandler?.(it.obj);
             this.showTip(
-              ev.pageX - rect.left + 10,
-              ev.pageY - this.offsetTop - 10,
+              ev.pageX - rect.left > this.centerX! ? ev.pageX - rect.left - 165 : ev.pageX - rect.left + 10,
+              ev.pageY - this.offsetTop > this.centerY! ? ev.pageY - this.offsetTop - 50 : ev.pageY + (this.offsetTop - rect.top) - this.offsetTop + 20,
               this.litChartPieConfig.tip ? this.litChartPieConfig!.tip(it) : `${it.key}: ${it.value}`
             );
           }

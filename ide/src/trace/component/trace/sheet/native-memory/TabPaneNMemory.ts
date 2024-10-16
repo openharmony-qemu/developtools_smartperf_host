@@ -195,6 +195,7 @@ export class TabPaneNMemory extends BaseElement {
         this.filterNativeType = `${typeIndexOf}`;
         this.rowSelectData = undefined;
         this.queryData(val, true);
+        this.fromStastics(val);
       });
     } else {
       //@ts-ignore

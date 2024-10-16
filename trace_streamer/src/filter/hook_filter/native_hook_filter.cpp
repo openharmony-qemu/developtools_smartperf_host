@@ -15,6 +15,7 @@
 
 #include "native_hook_filter.h"
 #include "native_hook_config.pbreader.h"
+#include "ts_common.h"
 #include <cstddef>
 #include <cinttypes>
 namespace SysTuning {
@@ -37,7 +38,7 @@ NativeHookFilter::NativeHookFilter(TraceDataCache *dataCache, const TraceStreame
     addrToMmapEventRow_ = traceDataCache_->GetNativeHookData()->GetAddrToMmapEventRow();
 }
 
-void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView &protoData)
+void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView &protoData, uint64_t &statisticsInterval)
 {
     auto configReader = ProtoReader::NativeHookConfig_Reader(protoData);
     if (configReader.has_expand_pids() || (configReader.has_process_name() && configReader.has_pid())) {
@@ -47,6 +48,7 @@ void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView &protoData)
         isStatisticMode_ = true;
         isCallStackCompressedMode_ = true;
         isStringCompressedMode_ = true;
+        statisticsInterval = configReader.statistics_interval() * SEC_TO_NS;
     }
     if (configReader.has_response_library_mode() || configReader.has_offline_symbolization()) {
         isOfflineSymbolizationMode_ = true;

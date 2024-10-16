@@ -503,6 +503,7 @@ function selectHandler(sp: SpSystemTrace): void {
       }
       sp.refreshCanvas(true);
       if (!SportRuler.isMouseInSportRuler) {
+        sp.traceSheetEL?.setMode('max');
         sp.traceSheetEL?.setMode('hidden');
       }
       return;
@@ -510,6 +511,7 @@ function selectHandler(sp: SpSystemTrace): void {
     let checkRows = rows;
     if (!refreshCheckBox) {
       checkRows = [
+        ...rows,
         // @ts-ignore
         ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[check-type='2']`),
         ...sp.favoriteChartListEL!.getAllSelectCollectRows(),
@@ -551,6 +553,7 @@ function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>): v
         event: event,
       });
     }
+    sp.setParentCheckStatus(it);
   });
   if (selection.diskIOipids.length > 0 && !selection.diskIOLatency) {
     selection.promiseList.push(
@@ -723,7 +726,6 @@ export function documentInitEvent(sp: SpSystemTrace): void {
   document.addEventListener('triangle-flag', triangleFlagHandler(sp));
   document.addEventListener('number_calibration', numberCalibrationHandler(sp));
   document.addEventListener('flag-change', flagChangeHandler(sp));
-  document.addEventListener('remarksFocus-change', remarksFocuseChangeHandler(sp));
   document.addEventListener('slices-change', slicesChangeHandler(sp));
   if (sp.timerShaftEL?.collecBtn) {
     sp.timerShaftEL.collecBtn.onclick = (): void => {
@@ -737,13 +739,6 @@ export function documentInitEvent(sp: SpSystemTrace): void {
     };
   }
   document.addEventListener('collect', collectHandler(sp));
-}
-
-function remarksFocuseChangeHandler(sp: SpSystemTrace): (event: unknown) => void {
-  return function (event: unknown): void {
-    // @ts-ignore
-    sp.focusTarget = event.detail;
-  };
 }
 
 export function spSystemTraceInitElement(sp: SpSystemTrace): void {

@@ -42,4 +42,5 @@ export interface Args {
   isPin: number;
   scratchId: number;
   minDur: number;
+  xpowerName: string;
 }

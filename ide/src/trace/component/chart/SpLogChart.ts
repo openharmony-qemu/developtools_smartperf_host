@@ -19,6 +19,7 @@ import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { LogRender, LogStruct } from '../../database/ui-worker/ProcedureWorkerLog';
 import { LogDataSender } from '../../database/data-trafic/LogDataSender';
 import { queryLogData } from '../../database/sql/SqlLite.sql';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class SpLogChart {
   private trace: SpSystemTrace;
@@ -34,6 +35,13 @@ export class SpLogChart {
     }
     let folder = await this.initFolder();
     this.trace.rowsEL?.appendChild(folder);
+    // 统计hilog插件
+    let requestBody = {
+      eventData:{
+        plugin:['hilog-plugin']
+      }
+    };
+    SpStatisticsHttpUtil.recordPluginUsage(requestBody);
   }
 
   async initFolder(): Promise<TraceRow<LogStruct>> {

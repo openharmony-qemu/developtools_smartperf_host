@@ -374,8 +374,9 @@ bool BytraceEventParser::CpuIdleEvent(const ArgsMap &args, const BytraceLine &li
     }
     // Add cpu_idle event to raw_data_table
     auto cpuidleNameIndex = traceDataCache_->GetDataIndex(line.eventName.c_str());
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue.value(), cpuidleNameIndex, line.ts,
-                                                            config_.GetStateValue(newStateValue.value()));
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpuValue.value(),
+                                                         cpuidleNameIndex, line.ts,
+                                                         config_.GetStateValue(newStateValue.value()));
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_IDLE, STAT_EVENT_RECEIVED);
     return true;
 }
@@ -403,8 +404,8 @@ bool BytraceEventParser::CpuFrequencyEvent(const ArgsMap &args, const BytraceLin
     }
 
     auto cpuidleNameIndex = traceDataCache_->GetDataIndex(line.eventName.c_str());
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue.value(), cpuidleNameIndex, line.ts,
-                                                            newStateValue.value());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpuValue.value(),
+                                                         cpuidleNameIndex, line.ts, newStateValue.value());
     return true;
 }
 bool BytraceEventParser::CpuFrequencyLimitsEvent(const ArgsMap &args, const BytraceLine &line) const
@@ -444,10 +445,10 @@ bool BytraceEventParser::CpuFrequencyLimitsEvent(const ArgsMap &args, const Bytr
         return false;
     }
 
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue.value(), cpuFrequencyLimitMaxNameId, line.ts,
-                                                            maxValue.value());
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue.value(), cpuFrequencyLimitMinNameId, line.ts,
-                                                            minValue.value());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpuValue.value(),
+                                                         cpuFrequencyLimitMaxNameId, line.ts, maxValue.value());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpuValue.value(),
+                                                         cpuFrequencyLimitMinNameId, line.ts, minValue.value());
     return true;
 }
 
@@ -514,7 +515,8 @@ bool BytraceEventParser::SetRateEvent(const ArgsMap &args, const BytraceLine &li
     auto state = base::StrToInt<int64_t>(args.at("state"));
     uint64_t cpu = 0;
     DataIndex nameIndex = traceDataCache_->GetDataIndex(name);
-    streamFilters_->clockRateFilter_->AppendNewMeasureData(cpu, nameIndex, line.ts, state.value());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_RATE, cpu, nameIndex, line.ts,
+                                                         state.value());
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_SET_RATE, STAT_EVENT_RECEIVED);
     return true;
 }
@@ -530,7 +532,8 @@ bool BytraceEventParser::ClockEnableEvent(const ArgsMap &args, const BytraceLine
     auto state = base::StrToInt<int64_t>(args.at("state"));
     auto cpuId = base::StrToInt<uint64_t>(args.at("cpu_id"));
     DataIndex nameIndex = traceDataCache_->GetDataIndex(name);
-    streamFilters_->clockEnableFilter_->AppendNewMeasureData(cpuId.value(), nameIndex, line.ts, state.value());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_ENABLE, cpuId.value(), nameIndex,
+                                                         line.ts, state.value());
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_ENABLE, STAT_EVENT_RECEIVED);
     return true;
 }
@@ -545,7 +548,8 @@ bool BytraceEventParser::ClockDisableEvent(const ArgsMap &args, const BytraceLin
     auto state = base::StrToInt<int64_t>(args.at("state"));
     auto cpuId = base::StrToInt<uint64_t>(args.at("cpu_id"));
     DataIndex nameIndex = traceDataCache_->GetDataIndex(name);
-    streamFilters_->clockDisableFilter_->AppendNewMeasureData(cpuId.value(), nameIndex, line.ts, state.value());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_DISABLE, cpuId.value(), nameIndex,
+                                                         line.ts, state.value());
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_DISABLE, STAT_EVENT_RECEIVED);
     return true;
 }

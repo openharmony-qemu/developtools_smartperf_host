@@ -187,6 +187,15 @@ export class TabPaneNMStatstics extends BaseElement {
         this.processHookData(hook, anonymous);
       }
     }
+    if (all?.maxStr === '' && all?.max === 0) { 
+      all.maxStr = Utils.getByteWithUnit(all?.max);
+    }
+    if (heap?.maxStr === '' && heap?.max === 0) {
+      heap.maxStr = Utils.getByteWithUnit(heap?.max);
+    }
+    if (anonymous?.maxStr === '' && anonymous?.max === 0) {
+      anonymous.maxStr = Utils.getByteWithUnit(anonymous?.max);
+    }
     if (all !== null) {
       this.updateHookData(all, arr);
     }

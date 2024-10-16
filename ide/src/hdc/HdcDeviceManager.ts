@@ -44,7 +44,7 @@ export class HdcDeviceManager {
     c: [3],
   };
   private static clientList: Map<string, HdcClient> = new Map();
-  private static currentHdcClient: HdcClient;
+  public static currentHdcClient: HdcClient;
   private static FILE_RECV_PREFIX_STRING = 'hdc file recv -cwd C:\\ ';
 
   /**
@@ -74,8 +74,14 @@ export class HdcDeviceManager {
    * @param serialNumber serialNumber
    */
   public static async connect(serialNumber: string): Promise<boolean> {
+    if (this.currentHdcClient && serialNumber !== this.currentHdcClient.usbDevice.serialNumber) {
+      this.clientList.delete(serialNumber);
+      HdcDeviceManager.disConnect(this.currentHdcClient.usbDevice.serialNumber).then((): void => {
+        window.publish(window.SmartEvent.UI.DeviceDisConnect, this.currentHdcClient.usbDevice.serialNumber);
+      });
+    }
     const client = this.clientList.get(serialNumber);
-    if (client) {
+    if (client && serialNumber === this.currentHdcClient.usbDevice.serialNumber) {
       if (client.usbDevice!.opened) {
         log('device Usb is Open');
         return true;

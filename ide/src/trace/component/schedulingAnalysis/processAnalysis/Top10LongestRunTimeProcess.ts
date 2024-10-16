@@ -111,7 +111,7 @@ export class Top10LongestRunTimeProcess extends BaseElement {
       const pStr: string | null = this.processMap.get(arr[i].pid!)!;
       const tStr: string | null = this.threadMap.get(arr[i].tid!)!;
       result.push({
-        NO: i + 1,
+        no: i + 1,
         pid: arr[i].pid || this.processId,
         pName: pStr === null ? 'Process ' : pStr,
         dur: arr[i].dur,
@@ -154,8 +154,11 @@ export class Top10LongestRunTimeProcess extends BaseElement {
       color: (a): string => {
         return '#0a59f7';
       },
-      hoverHandler: (data): void => {
+      hoverHandler: (no): void => {
+        let data: unknown = result.find((it) => it.no === no);
         if (data) {
+          // @ts-ignore
+          data.isHover = true;
           this.processRunTimeTbl!.setCurrentHover(data);
         } else {
           this.processRunTimeTbl!.mouseOut();
@@ -198,8 +201,11 @@ export class Top10LongestRunTimeProcess extends BaseElement {
       color: (a): string => {
         return '#0a59f7';
       },
-      hoverHandler: (data): void => {
+      hoverHandler: (no): void => {
+        let data: unknown = result.find((it) => it.no === no);
         if (data) {
+          // @ts-ignore
+          data.isHover = true;
           this.threadRunTimeTbl!.setCurrentHover(data);
         } else {
           this.threadRunTimeTbl!.mouseOut();
@@ -262,10 +268,6 @@ export class Top10LongestRunTimeProcess extends BaseElement {
         this.callBack.bind(this),
         data.pid
       );
-      data.isSelected = true;
-      if (evt.detail.callBack) {
-        evt.detail.callBack(true);
-      }
     });
     this.processRunTimeTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
@@ -276,6 +278,12 @@ export class Top10LongestRunTimeProcess extends BaseElement {
       // @ts-ignore
       this.sortByColumn(evt.detail, this.threadRunTimeData);
       this.threadRunTimeTbl!.recycleDataSource = this.threadRunTimeData;
+    });
+    this.processRunTimeTbl!.addEventListener('contextmenu', (ev) => { 
+      ev.preventDefault();
+    });
+    this.threadRunTimeTbl!.addEventListener('contextmenu', (ev) => {
+      ev.preventDefault();
     });
     this.back?.addEventListener('click', (event) => {
       this.display_flag = true;
@@ -442,7 +450,7 @@ export class Top10LongestRunTimeProcess extends BaseElement {
               </div>
               <div class="tb_run_time" >
                 <lit-table id='tb-process-run-time' hideDownload style='height: auto'>
-                  <lit-table-column width='1fr' title='NO' data-index='NO' key='NO' align='flex-start' order></lit-table-column>
+                  <lit-table-column width='1fr' title='NO' data-index='no' key='no' align='flex-start' order></lit-table-column>
                   <lit-table-column width='1fr' title='Process_Id' data-index='pid' key='pid' align='flex-start' order></lit-table-column>
                   <lit-table-column width='1fr' title='Process_Name' data-index='pName' key='pName' align='flex-start' order></lit-table-column>
                   <lit-table-column width='1fr' title='Run_Time(ns)' data-index='dur' key='dur' align='flex-start' order></lit-table-column>        
@@ -467,7 +475,7 @@ export class Top10LongestRunTimeProcess extends BaseElement {
               </div>
               <div class="tb_run_time" >
                 <lit-table id='tb-thread-run-time' hideDownload style='height: auto'>
-                  <lit-table-column width='1fr' title='NO' data-index='NO' key='NO' align='flex-start' order></lit-table-column>
+                  <lit-table-column width='1fr' title='NO' data-index='no' key='no' align='flex-start' order></lit-table-column>
                   <lit-table-column width='1fr' title='Process_Id' data-index='pid' key='pid' align='flex-start' order></lit-table-column>
                   <lit-table-column width='1fr' title='Thread_Id' data-index='tid' key='tid' align='flex-start' order></lit-table-column>
                   <lit-table-column width='1fr' title='Thread_Name' data-index='tName' key='tName' align='flex-start' order></lit-table-column>
@@ -483,7 +491,7 @@ export class Top10LongestRunTimeProcess extends BaseElement {
 }
 
 interface Top10RunTimeData {
-  NO?: number,
+  no?: number,
   pid?: number,
   tid?: number,
   pName?: string,

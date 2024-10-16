@@ -403,7 +403,7 @@ export class TabPaneFilter extends BaseElement {
     if (thirdList) {
       this.setAttribute('third', '');
     }
-    thtml += `<lit-select show-search default-value="" id="third-select" class="spacing" placeholder="please choose">`;
+    thtml += `<lit-select default-value="" id="third-select" class="spacing" placeholder="please choose" tabselect>`;
     if (thirdList) {
       if (thirdTitle !== '') {
         thtml += `<lit-select-option  value="${thirdTitle}" disabled>${thirdTitle}</lit-select-option>`;
@@ -422,7 +422,7 @@ export class TabPaneFilter extends BaseElement {
     html: string
   ): string {
     if (secondList) {
-      html += `<lit-select show-search default-value="" id="second-select" class="spacing" placeholder="please choose">`;
+      html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose" tabselect>`;
       if (secondTitle !== '') {
         html += `<lit-select-option value="${secondTitle}" disabled>${secondTitle}</lit-select-option>`;
       }
@@ -440,7 +440,7 @@ export class TabPaneFilter extends BaseElement {
     html: string
   ): string {
     if (firstList) {
-      html += `<lit-select default-value="" id="first-select" class="spacing" placeholder="please choose">`;
+      html += `<lit-select default-value="" id="first-select" class="spacing" placeholder="please choose" tabselect>`;
       if (firstTitle !== '') {
         html += `<lit-select-option value="${firstTitle}" disabled>${firstTitle}</lit-select-option>`;
       }

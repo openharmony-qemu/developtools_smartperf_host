@@ -75,7 +75,6 @@
 #include "native_hook_frame_table.h"
 #include "native_hook_statistic_table.h"
 #include "native_hook_table.h"
-#include "native_hook_statistic_table.h"
 #include "network_table.h"
 #include "paged_memory_sample_table.h"
 #include "ebpf_data_structure.h"
@@ -160,6 +159,7 @@ void TraceDataCache::InitMeasureDB()
     TableBase::TableDeclare<MeasureTable>(*db_, this, "measure");
     TableBase::TableDeclare<MeasureTable>(*db_, this, "sys_mem_measure");
     TableBase::TableDeclare<MeasureTable>(*db_, this, "process_measure");
+    TableBase::TableDeclare<MeasureTable>(*db_, this, "xpower_measure");
     TableBase::TableDeclare<CpuMeasureFilterTable>(*db_, this, "cpu_measure_filter");
     TableBase::TableDeclare<FilterTable>(*db_, this, "measure_filter");
     TableBase::TableDeclare<ProcessMeasureFilterTable>(*db_, this, "process_measure_filter");

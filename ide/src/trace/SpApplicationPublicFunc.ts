@@ -184,7 +184,7 @@ export const applicationHtml: string = `
             fill: currentColor;
             overflow: hidden;
             font-size: 20px;
-            color: var(--dark-color1,#47A7E0);
+            color: #1E4EEA;
          }
         :host([chart_filter]) .chart-filter {
             display: grid;
@@ -325,9 +325,28 @@ export const applicationHtml: string = `
         .page-number-list {
             display: flex;
         }
+
+        #sp-ai-analysis {
+            top:0px;
+            right:0px;
+            position:absolute;
+            z-index:9999;
+            min-width:430px;
+            max-width:75%;
+            width:430px;
+            height:740px;
+            box-shadow:3px 0px 14px #000;
+            border-radius:8px;
+            background-color:#fff;
+            padding:10px 10px 10px 5px;
+            user-select:none;
+            box-sizing:border-box;
+            visibility:hidden;
+        }
         </style>
         <div class="root" style="position: relative;">
             <sp-bubble-ai style="visibility: visible; top:50%;right:2px;position: absolute;z-index: 1000" id="sp-bubbles"></sp-bubble-ai>
+            <sp-advertisement style="bottom:2px;right:2px;position: absolute;z-index: 10086" id= "sp-advertisement"></sp-advertisement>
             <lit-main-menu id="main-menu" class="menu" data=''></lit-main-menu>
             <sp-keyboard style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 8888" id="sp-keyboard">
             </sp-keyboard>
@@ -368,6 +387,7 @@ export const applicationHtml: string = `
                     </div>
                 </div>
                 <div class = "content-right-option" style="display: flex;flex-flow: nowrap;text-align: right;position: absolute;right: 1.2em;cursor: pointer;top: 17px"">
+                  <img class="ai_analysis" title="Display Template" src="img/ai-analysis.png" style="margin-left: 0.8em;width:16px;height:16px">
                   <lit-icon class="export-record" title="Download Mark Trace" name="download" size="16" style="margin-left: 0.8em;"></lit-icon>
                   <img class="cut-trace-file" title="Cut Trace File" src="img/menu-cut.svg" style="margin-left: 0.8em;">
                   <img class="filter-config" title="Display Template" src="img/config_filter.png" style="margin-left: 0.8em;">
@@ -377,6 +397,8 @@ export const applicationHtml: string = `
             <div id="app-content" class="content">
                 <sp-welcome style="visibility:visible;top:0px;left:0px;position:absolute;z-index: 100" id="sp-welcome">
                 </sp-welcome>
+                <sp-ai-analysis id="sp-ai-analysis">
+                </sp-ai-analysis>
                 <sp-system-trace style="visibility:hidden;z-index: 101;" id="sp-system-trace">
                 </sp-system-trace>
                 <sp-record-trace style="overflow:auto;width:100%;height:100%;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-trace">

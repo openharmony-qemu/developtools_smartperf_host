@@ -34,6 +34,7 @@ import { CpuStateStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerC
 import { type HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
 import { type ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock';
 import { type DmaFenceStruct } from '../../../database/ui-worker/ProcedureWorkerDmaFence';
+import { type XpowerStruct } from '../../../database/ui-worker/ProcedureWorkerXpower';
 import { type IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq';
 import { type JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank';
 import { type HeapStruct } from '../../../database/ui-worker/ProcedureWorkerHeap';
@@ -545,9 +546,7 @@ export class TraceSheet extends BaseElement {
       if (files) {
         let fileList: Array<File> = [];
         for (let file of files) {
-          if (file.name.endsWith('.so')) {
-            fileList.push(file);
-          }
+          fileList.push(file);
         }
         if (fileList.length > 0) {
           importFileBt!.disabled = true;
@@ -692,6 +691,8 @@ export class TraceSheet extends BaseElement {
   displayDmaFenceData = (data: DmaFenceStruct, rowData: unknown): void =>//展示tab页内容
     // @ts-ignore
     this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data, rowData);
+  displayXpowerData = (data: XpowerStruct): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerData(data); 
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
   displayIrqData = (data: IrqStruct): void =>
@@ -1182,7 +1183,7 @@ export class TraceSheet extends BaseElement {
     param.name = e.detail.allName ? e.detail.allName : [e.detail.name];//@ts-ignore2
     param.isJumpPage = true;// @ts-ignore
     param.isSummary = e.detail.allName ? true : false;
-    (pane.children.item(0) as TabPaneSliceChild).data = {param: param, selection: this.selection};
+    (pane.children.item(0) as TabPaneSliceChild).data = { param: param, selection: this.selection };
   }
 
   clearMemory(): void {

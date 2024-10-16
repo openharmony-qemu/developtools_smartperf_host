@@ -41,6 +41,7 @@ import { EnergyStateRender } from './ProcedureWorkerEnergyState';
 import { CpuFreqLimitRender } from './cpu/ProcedureWorkerCpuFreqLimits';
 import { HangRender } from './ProcedureWorkerHang';
 import { ClockRender } from './ProcedureWorkerClock';
+import { XpowerRender } from './ProcedureWorkerXpower';
 import { IrqRender } from './ProcedureWorkerIrq';
 import { JankRender } from './ProcedureWorkerJank';
 import { HeapTimelineRender } from './ProcedureWorkerHeapTimeline';
@@ -119,6 +120,7 @@ export let renders = {
   energyState: new EnergyStateRender(),
   hang: new HangRender(),
   clock: new ClockRender(),
+  xpower: new XpowerRender(), 
   irq: new IrqRender(),
   jank: new JankRender(),
   frameDynamicCurve: new FrameDynamicRender(),

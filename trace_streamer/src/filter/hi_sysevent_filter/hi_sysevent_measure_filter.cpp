@@ -23,7 +23,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 HiSysEventMeasureFilter::HiSysEventMeasureFilter(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
-    : FilterBase(dataCache, filter), appKey_(INVALID_UINT64), appName_(INVALID_UINT64)
+    : FilterBase(dataCache, filter), appKey_(INVALID_UINT64)
 {
 }
 
@@ -272,7 +272,6 @@ DataIndex HiSysEventMeasureFilter::GetOrCreateFilterIdInternal(DataIndex appName
 void HiSysEventMeasureFilter::Clear()
 {
     appKey_.Clear();
-    appName_.Clear();
     eventSource_.clear();
 }
 } // namespace TraceStreamer

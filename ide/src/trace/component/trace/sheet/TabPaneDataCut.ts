@@ -24,6 +24,8 @@ import { TabPaneFreqDataCut } from './frequsage/TabPaneFreqDataCut';
 import { TabPaneFreqStatesDataCut } from './states/TabPaneFreqStatesDataCut';
 import { TabPaneGpufreqDataCut } from './gpufreq/TabPaneGpufreqDataCut';
 import { TraceSheet } from '../base/TraceSheet';
+import { LitTabs } from '../../../../base-ui/tabs/lit-tabs';
+import { LitTabpane } from '../../../../base-ui/tabs/lit-tabpane';
 
 @element('tabpane-datacut')
 export class TabPaneDataCut extends BaseElement {
@@ -66,6 +68,9 @@ export class TabPaneDataCut extends BaseElement {
         this.tabContainer?.appendChild(this.currentTabPane);
         this.currentTabPane.data = this.currentSelection;
       }
+      let tabs = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace")?.shadowRoot?.querySelector("div > trace-sheet")?.shadowRoot?.querySelector("#tabs") as LitTabs;
+      let pane = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace")?.shadowRoot?.querySelector("div > trace-sheet")?.shadowRoot?.querySelector("#tabpane-datacut") as LitTabpane;
+      tabs.activeByKey(pane.key);
     }
   }
 
@@ -153,7 +158,7 @@ export class TabPaneDataCut extends BaseElement {
         </style>
         <div id="data_cut_tabpane_container" style="flex-grow: 1"></div>
         <div class="bottom_filter">
-            <lit-select id="tab-select" style="margin-left: 10px" placeholder="please choose"></lit-select>
+            <lit-select id="tab-select" style="margin-left: 10px" placeholder="please choose" tabselect></lit-select>
         </div>
         `;
   }

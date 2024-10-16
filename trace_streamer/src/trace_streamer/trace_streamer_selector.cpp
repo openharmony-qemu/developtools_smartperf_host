@@ -150,27 +150,12 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->processFilter_ = std::make_unique<ProcessFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->clockFilter_ = std::make_unique<ClockFilterEx>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->filterFilter_ = std::make_unique<FilterFilter>(traceDataCache_.get(), streamFilters_.get());
-    streamFilters_->cpuMeasureFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CPU_MEASURE_FILTER);
-    streamFilters_->processMeasureFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_PROCESS_MEASURE_FILTER);
+    streamFilters_->measureFilter_ = std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->statFilter_ = std::make_unique<StatFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->binderFilter_ = std::make_unique<BinderFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->argsFilter_ = std::make_unique<ArgsFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->irqFilter_ = std::make_unique<IrqFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->frameFilter_ = std::make_unique<FrameFilter>(traceDataCache_.get(), streamFilters_.get());
-    streamFilters_->clockRateFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLOCK_RATE_FILTER);
-    streamFilters_->clockEnableFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLOCK_ENABLE_FILTER);
-    streamFilters_->clockDisableFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLOCK_DISABLE_FILTER);
-    streamFilters_->clkRateFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLK_RATE_FILTER);
-    streamFilters_->clkEnableFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLK_ENABLE_FILTER);
-    streamFilters_->clkDisableFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLK_DISABLE_FILTER);
     streamFilters_->sysEventMemMeasureFilter_ =
         std::make_unique<SystemEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_SYS_MEMORY_FILTER);
     streamFilters_->sysEventVMemMeasureFilter_ = std::make_unique<SystemEventMeasureFilter>(

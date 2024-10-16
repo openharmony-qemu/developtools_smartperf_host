@@ -16,6 +16,7 @@
 import { BaseElement, element } from '../../base-ui/BaseElement';
 import { SpBubblesAIHtml } from './SpBubblesAI.html';
 import { FlagsConfig, Params } from './SpFlags';
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 
 @element('sp-bubble-ai')
 export class SpBubblesAI extends BaseElement {
@@ -23,6 +24,11 @@ export class SpBubblesAI extends BaseElement {
     const xiaoLubanEl: HTMLElement | undefined | null = this.shadowRoot?.querySelector('#xiao-luban-help');
     xiaoLubanEl?.addEventListener('click', () => {
       this.xiaoLubanEvent();
+      let requestBody = {
+        action: 'AItrace',
+        event: 'AItrace'
+      };
+      SpStatisticsHttpUtil.addOrdinaryVisitAction(requestBody);
     });
     let isShowXiaoLuban: boolean = FlagsConfig.getFlagsConfigEnableStatus('xiaoLuBan');
     if (isShowXiaoLuban) {

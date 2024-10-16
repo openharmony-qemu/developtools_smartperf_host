@@ -43,6 +43,7 @@ import { MemoryConfig } from '../../bean/MemoryConfig';
 import { queryMemoryMaxData } from '../../database/sql/Memory.sql';
 import { queryDiskIoMaxData, queryNetWorkMaxData } from '../../database/sql/SqlLite.sql';
 import { queryAbilityExits, queryCPuAbilityMaxData, queryPurgeableSysData } from '../../database/sql/Ability.sql';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 const networkNameList: Array<string> = ['Bytes In/Sec', 'Bytes Out/Sec', 'Packets In/Sec', 'Packets Out/Sec'];
 const memoryNameList: Array<string> = ['MemoryTotal', 'Cached', 'SwapTotal'];
 const diskIONameList: Array<string> = ['Bytes Read/Sec', 'Bytes Written/Sec', 'Read Ops/Sec', 'Written Ops/Sec'];
@@ -93,6 +94,13 @@ export class SpAbilityMonitorChart {
     }
     if (this.hasTable(result, 'trace_diskio')) {
       await this.initDiskAbility(processRow);
+      // 统计diskio插件
+      let requestBody = {
+        eventData: {
+          plugin: ['diskio-plugin']
+        }
+      };
+      SpStatisticsHttpUtil.recordPluginUsage(requestBody);
     }
     if (this.hasTable(result, 'trace_network')) {
       await this.initNetworkAbility(processRow);

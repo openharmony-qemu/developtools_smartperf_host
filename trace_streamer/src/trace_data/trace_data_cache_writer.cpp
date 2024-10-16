@@ -127,7 +127,10 @@ Measure *TraceDataCacheWriter::GetProcessMeasureData()
 {
     return &processMeasureData_;
 }
-
+Measure *TraceDataCacheWriter::GetXpowerMeasureData()
+{
+    return &xpowerMeasureData_;
+}
 ThreadStateData *TraceDataCacheWriter::GetThreadStateData()
 {
     return &threadStateData_;

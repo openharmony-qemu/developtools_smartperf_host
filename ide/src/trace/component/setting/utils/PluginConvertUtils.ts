@@ -229,6 +229,11 @@ export class PluginConvertUtils {
         text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)
         //@ts-ignore
       }: ${arrValue.toString()}${this.crlf}`;
+      //@ts-ignore
+    } else if (arrValue.startsWith('REAL_BATTERY') || arrValue.startsWith('THERMAL_REPORT')) { 
+      text = `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)
+        //@ts-ignore
+        }: ${arrValue.toString()}${this.crlf}`;
     } else {
       text = `${
         text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)
