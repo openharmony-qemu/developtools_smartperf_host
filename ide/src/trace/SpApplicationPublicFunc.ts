@@ -387,7 +387,7 @@ export const applicationHtml: string = `
                     </div>
                 </div>
                 <div class = "content-right-option" style="display: flex;flex-flow: nowrap;text-align: right;position: absolute;right: 1.2em;cursor: pointer;top: 17px"">
-                  <img class="ai_analysis" title="Display Template" src="img/ai-analysis.png" style="margin-left: 0.8em;width:16px;height:16px">
+                  <img class="ai_analysis" title="AI Analysis" src="img/ai-analysis.png" style="margin-left: 0.8em;width:16px;height:16px">
                   <lit-icon class="export-record" title="Download Mark Trace" name="download" size="16" style="margin-left: 0.8em;"></lit-icon>
                   <img class="cut-trace-file" title="Cut Trace File" src="img/menu-cut.svg" style="margin-left: 0.8em;">
                   <img class="filter-config" title="Display Template" src="img/config_filter.png" style="margin-left: 0.8em;">

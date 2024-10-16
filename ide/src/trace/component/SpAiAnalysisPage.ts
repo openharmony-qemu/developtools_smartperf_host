@@ -174,8 +174,9 @@ export class SpAiAnalysisPage extends BaseElement {
                 caches.match(`${fileName}.db`).then(async (res) => {
                     if (!res) {
                         this.cacheDb(fileName);
+                    } else {
+                        WebSocketManager.getInstance()!.sendMessage(TypeConstants.DIAGNOSIS_TYPE, TypeConstants.SENDDB_CMD, new TextEncoder().encode(await res!.text()));
                     }
-                    WebSocketManager.getInstance()!.sendMessage(TypeConstants.DIAGNOSIS_TYPE, TypeConstants.SENDDB_CMD, new TextEncoder().encode(await res!.text()));
                 });
             };
             // 隐藏nodata
@@ -383,6 +384,7 @@ export class SpAiAnalysisPage extends BaseElement {
             '',
             {},
             (reqBufferDB: Uint8Array) => {
+                WebSocketManager.getInstance()!.sendMessage(TypeConstants.DIAGNOSIS_TYPE, TypeConstants.SENDDB_CMD, reqBufferDB);
                 // 存入缓存
                 caches.open(`${fileName}.db`).then((cache) => {
                     let headers = new Headers();
