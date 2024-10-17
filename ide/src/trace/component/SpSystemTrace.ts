@@ -234,6 +234,8 @@ export class SpSystemTrace extends BaseElement {
   repaintList: Array<number> = [];
   presentList: Array<number> = [];
   static isAiAsk: boolean = false;
+  collectEl1: HTMLDivElement | undefined | null; 
+  groupTitle1: HTMLDivElement | undefined | null;
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -306,11 +308,47 @@ export class SpSystemTrace extends BaseElement {
         } else {
           startPoint.rowEL.translateY = startPoint.rowEL.getBoundingClientRect().top - 195;
         }
+        if (!this.favoriteChartListEL?.collect1Expand) { // 折叠G1收藏栏
+          if (startPoint.rowEL.collectGroup === startPoint.rowEL.collectGroup && startPoint.rowEL.collectGroup === '1') { // 起点终点都在G1
+            startPoint.rowEL.translateY = 23;
+          } else if (startPoint.rowEL.collectGroup !== endPoint.rowEL.collectGroup) { // 起点终点不在同个收藏栏
+            if (startPoint.rowEL.collectGroup === '1') {
+              startPoint.rowEL.translateY = 23;
+            }
+          }
+        }
+        if (!this.favoriteChartListEL?.collect2Expand) { // 折叠G2收藏栏
+          if (startPoint.rowEL.collectGroup === endPoint.rowEL.collectGroup && endPoint.rowEL.collectGroup === '2') { // 起点终点都在G2
+            startPoint.rowEL.translateY = 23;
+          } else if (startPoint.rowEL.collectGroup !== endPoint.rowEL.collectGroup) { // 起点终点不在同个收藏栏
+            if (startPoint.rowEL.collectGroup === '2') {
+              startPoint.rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
+            }
+          }
+        }
       } else {
         startPoint.rowEL.translateY = startPoint.rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
       }
       if (endPoint.rowEL.collect) {
         endPoint.rowEL.translateY = endPoint.rowEL.getBoundingClientRect().top - 195;
+        if (!this.favoriteChartListEL?.collect1Expand) { // 折叠G1收藏栏
+          if (startPoint.rowEL.collectGroup === endPoint.rowEL.collectGroup && endPoint.rowEL.collectGroup === '1') { // 起点终点都在G1
+            endPoint.rowEL.translateY = 23;
+          } else if (startPoint.rowEL.collectGroup !== endPoint.rowEL.collectGroup) { // 起点终点不在同个收藏栏
+            if (endPoint.rowEL.collectGroup === '1') {
+              endPoint.rowEL.translateY = 23;
+            }
+          }
+        }
+        if (!this.favoriteChartListEL?.collect2Expand) { // 折叠G2收藏栏
+          if (startPoint.rowEL.collectGroup === endPoint.rowEL.collectGroup && endPoint.rowEL.collectGroup === '2') { // 起点终点都在G2
+            endPoint.rowEL.translateY = 23;
+          } else if (startPoint.rowEL.collectGroup !== endPoint.rowEL.collectGroup) { // 起点终点不在同个收藏栏
+            if (endPoint.rowEL.collectGroup === '2') {
+              endPoint.rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
+            }
+          }
+        }
       } else {
         endPoint.rowEL.translateY = endPoint.rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
       }
@@ -618,6 +656,24 @@ export class SpSystemTrace extends BaseElement {
         } else {
           itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195;
         }
+        if (!this.favoriteChartListEL?.collect1Expand) { // 折叠G1收藏栏
+          if (itln[0].rowEL.collectGroup === itln[1].rowEL.collectGroup && itln[1].rowEL.collectGroup === '1') { // 起点终点都在G1
+            itln[0].rowEL.translateY = 23;
+          } else if (itln[0].rowEL.collectGroup !== itln[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
+            if (itln[0].rowEL.collectGroup === '1') {
+              itln[0].rowEL.translateY = 23;
+            }
+          }
+        }
+        if (!this.favoriteChartListEL?.collect2Expand) { // 折叠G2收藏栏
+          if (itln[0].rowEL.collectGroup === itln[1].rowEL.collectGroup && itln[1].rowEL.collectGroup === '2') { // 起点终点都在G2
+            itln[0].rowEL.translateY = 23;
+          } else if (itln[0].rowEL.collectGroup !== itln[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
+            if (itln[0].rowEL.collectGroup === '2') {
+              itln[0].rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
+            }
+          }
+        }
       } else {
         itln[0].rowEL.translateY = itln[0].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
       }
@@ -627,6 +683,24 @@ export class SpSystemTrace extends BaseElement {
             itln[1].rowEL.getBoundingClientRect().top - 195 + this.timerShaftEL._usageFoldHeight!;
         } else {
           itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195;
+        }
+        if (!this.favoriteChartListEL?.collect1Expand) { // 折叠G1收藏栏
+          if (itln[0].rowEL.collectGroup === itln[1].rowEL.collectGroup && itln[1].rowEL.collectGroup === '1') { // 起点终点都在G1
+            itln[1].rowEL.translateY = 23;
+          } else if (itln[0].rowEL.collectGroup !== itln[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
+            if (itln[1].rowEL.collectGroup === '1') {
+              itln[1].rowEL.translateY = 23;
+            }
+          }
+        }
+        if (!this.favoriteChartListEL?.collect2Expand) { // 折叠G2收藏栏
+          if (itln[0].rowEL.collectGroup === itln[1].rowEL.collectGroup && itln[1].rowEL.collectGroup === '2') { // 起点终点都在G2
+            itln[1].rowEL.translateY = 23;
+          } else if (itln[0].rowEL.collectGroup !== itln[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
+            if (itln[1].rowEL.collectGroup === '2') {
+              itln[1].rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
+            }
+          }
         }
       } else {
         itln[1].rowEL.translateY = itln[1].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;

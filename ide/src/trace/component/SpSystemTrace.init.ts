@@ -759,6 +759,8 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
   sp.spacerEL = sp.shadowRoot.querySelector<HTMLDivElement>('.spacer');
   sp.timerShaftEL = sp.shadowRoot.querySelector<TimerShaftElement>('.timer-shaft');
   sp.favoriteChartListEL = sp.shadowRoot.querySelector<SpChartList>('#favorite-chart-list');
+  sp.collectEl1 = sp.favoriteChartListEL?.shadowRoot?.querySelector<HTMLDivElement>('#collect-group-1');
+  sp.groupTitle1 = sp.favoriteChartListEL?.shadowRoot?.querySelector<HTMLDivElement>('#group-1-title');
   if (!sp.traceSheetEL.shadowRoot) {
     return;
   }

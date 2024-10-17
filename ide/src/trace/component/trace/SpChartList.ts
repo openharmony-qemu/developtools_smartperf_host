@@ -31,6 +31,7 @@ import { TimerShaftElement } from './TimerShaftElement';
 import { CpuStruct } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { WakeupBean } from '../../bean/WakeupBean';
 import { LitIcon } from '../../../base-ui/icon/LitIcon';
+import { SpSystemTrace } from '../SpSystemTrace';
 
 const maxScale = 0.8; //收藏最大高度为界面最大高度的80%
 const topHeight = 150; // 顶部cpu使用率部分高度固定为150px
@@ -59,16 +60,18 @@ export class SpChartList extends BaseElement {
   private startPageY = 0;
   private startClientHeight: number = 0;
   private scrollTimer: unknown;
-  private collect1Expand: boolean = true;
-  private collect2Expand: boolean = true;
+  collect1Expand: boolean = true;
+  collect2Expand: boolean = true;
   // @ts-ignore
   private collectRowList1: Array<TraceRow<unknown>> = [];
   // @ts-ignore
   private collectRowList2: Array<TraceRow<unknown>> = [];
   private maxHeight = 0;
   private manualHeight = 0;
+  private spSystemTrace: SpSystemTrace | undefined | null;
 
   initElements(): void {
+    this.spSystemTrace = document?.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace");
     this.collectEl1 = this.shadowRoot?.querySelector<HTMLDivElement>('#collect-group-1');
     this.collectEl2 = this.shadowRoot?.querySelector<HTMLDivElement>('#collect-group-2');
     this.groupTitle1 = this.shadowRoot?.querySelector<HTMLDivElement>('#group-1-title');
@@ -93,14 +96,29 @@ export class SpChartList extends BaseElement {
   }
 
   private initChartListListener(): void {
+    let offsetYTimeOut: unknown = undefined;
     const foldCollect1 = (): void => {
+      if (offsetYTimeOut) {
+        //@ts-ignore
+        clearTimeout(offsetYTimeOut);
+      }
       this.collect1Expand = !this.collect1Expand;
       if (this.collect1Expand) {
         this.icon1!.style.transform = 'rotateZ(0deg)';
         this.collectEl1?.appendChild(this.fragmentGroup1);
+        if (!this.collect2Expand) { // G1展开，G2折叠时处理连线y坐标
+          this.handleCollect2LinkNodeY();
+        }
       } else {
         this.icon1!.style.transform = 'rotateZ(-90deg)';
         this.collectRowList1.forEach((row) => this.fragmentGroup1.appendChild(row));
+        offsetYTimeOut = setTimeout(() => { //折叠G1收藏栏，连线处理 
+          this.handleCollect1LinkNodeY();
+          if (!this.collect2Expand) {
+            this.handleCollect2LinkNodeY();
+          }
+          this.spSystemTrace?.refreshCanvas(true);
+        }, 50);
       }
       this.resizeHeight();
     };
@@ -115,6 +133,10 @@ export class SpChartList extends BaseElement {
         this.icon2!.style.transform = 'rotateZ(-90deg)';
         this.collectRowList2.forEach((row) => this.fragmentGroup2.appendChild(row));
         this.scrollTop = 0;
+        offsetYTimeOut = setTimeout(() => {
+          this.handleCollect2LinkNodeY();
+          this.spSystemTrace?.refreshCanvas(true);
+        }, 50);
       }
       this.resizeHeight();
     };
@@ -162,6 +184,38 @@ export class SpChartList extends BaseElement {
       });
     });
   }
+
+    // 处理G1收藏栏折叠时，连线的y坐标
+    private handleCollect1LinkNodeY(): void {//xiugai
+      this.spSystemTrace?.linkNodes?.forEach(linkItem => {
+        if (linkItem[0].rowEL.collectGroup === linkItem[1].rowEL.collectGroup && linkItem[1].rowEL.collectGroup === '1') { // 起点终点都在G1
+          linkItem[0].rowEL.translateY = 23;
+          linkItem[1].rowEL.translateY = 23;
+        } else if (linkItem[0].rowEL.collectGroup !== linkItem[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
+          if (linkItem[0].rowEL.collectGroup === '1') {
+            linkItem[0].rowEL.translateY = 23;
+          } else if (linkItem[1].rowEL.collectGroup === '1') {
+            linkItem[1].rowEL.translateY = 23;
+          }
+        }
+      });
+    }
+  
+    // 处理G2收藏栏折叠时，连线的y坐标
+    private handleCollect2LinkNodeY(): void {
+      this.spSystemTrace?.linkNodes?.forEach(linkItem => { //xiugai
+        if (linkItem[0].rowEL.collectGroup === linkItem[1].rowEL.collectGroup && linkItem[1].rowEL.collectGroup === '2') { // 起点终点都在G2
+          linkItem[0].rowEL.translateY = 23;
+          linkItem[1].rowEL.translateY = 23;
+        } else if (linkItem[0].rowEL.collectGroup !== linkItem[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
+          if (linkItem[0].rowEL.collectGroup === '2') {
+            linkItem[0].rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
+          } else if (linkItem[1].rowEL.collectGroup === '2') {
+            linkItem[1].rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
+          }
+        }
+      });
+    }
 
   removeAllCollectRow(): void {
     Array.from(this.collectRowList1).forEach(row => {
