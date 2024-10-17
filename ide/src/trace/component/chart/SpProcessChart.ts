@@ -1079,7 +1079,7 @@ export class SpProcessChart {
     threads.forEach(item => {
       const sameThread = item.threadName;
       if (sameThread !== undefined) {
-        if (sameThread in sameThreadCounts) {
+        if (sameThread in sameThreadCounts && item.tid !== item.pid) {
           sameThreadCounts[sameThread]++;
         } else {
           sameThreadCounts[sameThread] = 1;
@@ -1089,7 +1089,7 @@ export class SpProcessChart {
 
     threads.forEach((item) => {
       const sameThread = item.threadName;
-      if (sameThreadCounts[sameThread!] > 128) {
+      if (sameThreadCounts[sameThread!] > 128 && item.tid !== item.pid) {
         sameThreadList.push(item);
       } else {
         differentThreadList.push(item);
@@ -1159,7 +1159,7 @@ export class SpProcessChart {
       let tRow = TraceRow.skeleton<ThreadStruct>(this.traceId);
       tRow.rowId = `${thread.tid}`;
       tRow.rowType = TraceRow.ROW_TYPE_THREAD;
-      tRow.rowParentId = sameThreadFolder.rowId;
+      tRow.rowParentId = `${thread.pid}`;
       tRow.rowHidden = !sameThreadFolder.expansion;
       tRow.index = j;
       tRow.style.height = '18px';
@@ -1192,7 +1192,7 @@ export class SpProcessChart {
         this.trace
       );
       this.insertRowToDoc(it, j, thread, sameThreadFolder, tRow, sameThreadList, tRowArr, actualRow, expectedRow, startupRow, soRow);
-      this.addFuncStackRow(it, thread, j, sameThreadList, tRowArr, tRow, sameThreadFolder, sameThreadFolder.rowId!);
+      this.addFuncStackRow(it, thread, j, sameThreadList, tRowArr, tRow, sameThreadFolder);
       if ((thread.switchCount || 0) === 0) {
         tRow.rowDiscard = true;
       }
@@ -1321,8 +1321,7 @@ export class SpProcessChart {
     threads: Array<unknown>,
     threadRowArr: Array<unknown>,
     threadRow: TraceRow<ThreadStruct>,
-    processRow: TraceRow<ProcessStruct>,
-    parentId?: string
+    processRow: TraceRow<ProcessStruct>
   ): void {
     //@ts-ignore
     if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) !== undefined) {
@@ -1335,7 +1334,7 @@ export class SpProcessChart {
       funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
       funcRow.enableCollapseChart(FOLD_HEIGHT, this.trace); //允许折叠泳道图
       //@ts-ignore
-      funcRow.rowParentId = parentId ? parentId : `${process.pid}`;
+      funcRow.rowParentId = `${thread.pid}`;
       funcRow.rowHidden = !processRow.expansion;
       funcRow.checkType = threadRow.checkType;
       funcRow.style.width = '100%';
