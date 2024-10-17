@@ -17,7 +17,6 @@ import { element } from '../BaseElement';
 import { LitTabpane } from './lit-tabpane';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 import { LitTabsHtml } from './lit-tabs.html';
-import { shadowRootInput } from '../../trace/component/trace/base/shadowRootInput';
 
 @element('lit-tabs')
 export class LitTabs extends HTMLElement {
@@ -293,11 +292,6 @@ export class LitTabs extends HTMLElement {
       }
     });
     let tbp = this.querySelector(`lit-tabpane[key='${key}']`);
-    if (tbp) {  
-      setTimeout(() => {  
-        shadowRootInput.preventBubbling(tbp);
-      }, 500);
-    }
   }
   
   byKeyIsValid(isValid: boolean, a: Element): void {
