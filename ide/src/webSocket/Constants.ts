@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 export class Constants {
+    static NODE_PORT = 19099;
     static INTERVAL_TIME = 30000;
     static LOGIN_PARAM = { type: 0, cmd: 1 };
     static LOGIN_CMD = 2;// cmd 2 有效 3无效

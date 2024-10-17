@@ -17,7 +17,7 @@ import { Constants, TypeConstants } from "./Constants";
 
 export class WebSocketManager {
     static instance: WebSocketManager | null | undefined = null;
-    url: string = 'ws://localhost:18080';//8080后期需要修改
+    url: string = `ws://localhost:${Constants.NODE_PORT}`;//8080后期需要修改
     private websocket: WebSocket | null | undefined = null;
     private ready: boolean = false;
     private distributeMap: Map<number, Function> = new Map<number, Function>();
@@ -170,7 +170,7 @@ export class WebSocketManager {
     }
 
     // 连接关闭时，清除心跳
-    clearHeartbeat() {        
+    clearHeartbeat() {
         if (this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = null;
