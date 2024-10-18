@@ -123,8 +123,8 @@ export class TabPaneXpowerCounter extends BaseElement {
       selectCounterData.count = `${list.length}`;
       // @ts-ignore
       selectCounterData.last = `${list[list.length - 1].value}`;
-      selectCounterData.delta = `${parseInt(selectCounterData.last) - parseInt(selectCounterData.first)}`;
-      selectCounterData.rate = (parseInt(selectCounterData.delta) / ((range * 1.0) / 1000000000)).toFixed(4);
+      selectCounterData.delta = `${(Number(selectCounterData.last) - Number(selectCounterData.first)).toFixed(4)}`; 
+      selectCounterData.rate = (Number(selectCounterData.delta) / ((range * 1.0) / 1000000000)).toFixed(4);
       // @ts-ignore
       selectCounterData.min = `${first.value}`;
       selectCounterData.max = '0';
