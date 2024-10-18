@@ -84,7 +84,7 @@ export class SpXpowerChart {
         systemFolder.rowId = 'system';
         systemFolder.rowParentId = 'Xpowers';
         systemFolder.rowHidden = !this.rowFolder.expansion;
-        systemFolder.rowType = TraceRow.ROW_TYPE_XPOWER_SYSTEM;
+        systemFolder.rowType = TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP;
         systemFolder.folder = true;
         systemFolder.name = 'System';
         systemFolder.folderPaddingLeft = 20;
