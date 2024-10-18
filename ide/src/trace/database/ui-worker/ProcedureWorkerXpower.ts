@@ -25,6 +25,7 @@ export class XpowerRender extends Render {
       useCache: boolean;
       type: string;
       maxValue: number;
+      minValue: number;
       index: number;
       maxName: string;
     },
@@ -47,7 +48,7 @@ export class XpowerRender extends Render {
     xpowerReq.context.beginPath();
     let find = false;
     for (let re of xpowerFilter) {
-      XpowerStruct.draw(xpowerReq.context, re, xpowerReq.maxValue);
+      XpowerStruct.draw(xpowerReq.context, re, xpowerReq.maxValue, xpowerReq.minValue);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         XpowerStruct.hoverXpowerStruct = re;
         find = true;
@@ -96,7 +97,7 @@ export class XpowerStruct extends BaseStruct {
   dur: number | undefined; //自补充，数据库没有返回
   delta: number | undefined; //自补充，数据库没有返回
 
-  static draw(xpowerContext: CanvasRenderingContext2D, data: XpowerStruct, maxValue: number): void {
+  static draw(xpowerContext: CanvasRenderingContext2D, data: XpowerStruct, maxValue: number, minValue: number): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       xpowerContext.fillStyle = ColorUtils.colorForTid(XpowerStruct.index);
@@ -105,30 +106,69 @@ export class XpowerStruct extends BaseStruct {
       if (drawHeight === 0) {
         drawHeight = 1;
       }
+      let minHeight: number = 0;
+      let maxHeight: number = 0;
+      let sumHeight: number = 0;
+      let cutHeight: number = 0;
+      if (minValue < 0) { // 数据包含负数时
+        minHeight = (Math.floor(((minValue || 0) * (data.frame.height || 0) * 1.0) / maxValue));
+        maxHeight = (Math.floor(((maxValue || 0) * (data.frame.height || 0) * 1.0) / maxValue));
+        sumHeight = Math.abs(minHeight) + Math.abs(maxHeight);
+        let num = this.cal(Math.abs(minHeight), Math.abs(maxHeight));
+        drawHeight = Math.floor(drawHeight / num);  //根据比例缩小绘制高度避免超出泳道
+
+        cutHeight = Math.abs((Math.floor(((minValue || 0) * (data.frame.height || 0) * 1.0) / maxValue)) / num) + 1;
+        if (maxValue < 0) { // 全部数据都是负数时
+          drawHeight = -drawHeight;
+          cutHeight = 30;
+        }
+      }
       if (XpowerStruct.isHover(data)) {
         xpowerContext.lineWidth = 1;
         xpowerContext.globalAlpha = 0.6;
-        xpowerContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        xpowerContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, width, drawHeight);
         xpowerContext.beginPath();
-        xpowerContext.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true);
+        xpowerContext.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, 3, 0, 2 * Math.PI, true);
         xpowerContext.fill();
         xpowerContext.globalAlpha = 1.0;
         xpowerContext.stroke();
         xpowerContext.beginPath();
-        xpowerContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
+        xpowerContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight - cutHeight);
         xpowerContext.lineWidth = 3;
-        xpowerContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight);
+        xpowerContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight - cutHeight);
         xpowerContext.stroke();
       } else {
         xpowerContext.lineWidth = 1;
         xpowerContext.globalAlpha = 1.0;
-        xpowerContext.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        xpowerContext.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, width, drawHeight);
         xpowerContext.globalAlpha = 0.6;
-        xpowerContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        xpowerContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, width, drawHeight);
       }
     }
     xpowerContext.globalAlpha = 1.0;
     xpowerContext.lineWidth = 1;
+  }
+
+  static cal(minHeight: number, maxHeight: number): number {
+    let multiplier = 1; // 初始倍数为1  
+    let newSum: number;
+    do {
+      newSum = minHeight / multiplier + maxHeight / multiplier;
+      multiplier += 2; // 每次循环，倍数增加2 
+    } while (newSum > 30 && multiplier <= (minHeight + maxHeight) * 2); // 确保不会除以0或过大数导致无限循环  
+
+    // 检查是否找到了合适的倍数使得newSum <= 30  
+    if (newSum <= 30) {
+      // 如果最后一次循环使multiplier超出了实际需要的值，需要调整回正确的倍数  
+      multiplier -= 2;
+      while (minHeight / (multiplier + 2) + maxHeight / (multiplier + 2) > 30) {
+        multiplier += 2;
+      }
+      return multiplier;
+    } else {
+      // 如果没有找到合适的倍数，返回2  
+      return 2;
+    }
   }
 
   static isHover(xpower: XpowerStruct): boolean {

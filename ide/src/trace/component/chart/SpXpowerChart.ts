@@ -118,6 +118,7 @@ export class SpXpowerChart {
             name: string;
             num: number;
             maxValue?: number;
+            minValue?: number;
         },
     ): void {
         traceRow.supplierFrame = (): Promise<XpowerStruct[]> => {
@@ -131,11 +132,6 @@ export class SpXpowerChart {
                 // @ts-ignore
                 return promiseData.then((resultXpower: Array<unknown>) => {
                     for (let j = 0; j < resultXpower.length; j++) {
-                        // @ts-ignore
-                        if ((resultXpower[j].value || 0) > it.maxValue!) {
-                            // @ts-ignore
-                            it.maxValue = resultXpower[j].value || 0;
-                        }
                         if (j > 0) {
                             // @ts-ignore
                             resultXpower[j].delta = (resultXpower[j].value || 0) - (resultXpower[j - 1].value || 0);
@@ -156,6 +152,7 @@ export class SpXpowerChart {
             name: string;
             num: number;
             maxValue?: number;
+            minValue?: number;
         },
         xpowerId: number
     ): void {
@@ -173,6 +170,7 @@ export class SpXpowerChart {
                     useCache: useCache,
                     type: it.name,
                     maxValue: it.maxValue === 0 ? 1 : it.maxValue!,
+                    minValue: it.minValue || 0,
                     index: xpowerId,
                     maxName: it.maxValue!.toString()
                 },
@@ -185,13 +183,13 @@ export class SpXpowerChart {
     async initSystemData(folder: TraceRow<BaseStruct>, xpowerList: Array<{
         name: string;
         num: number;
-        maxValue?: number;
+        maxValue: number;
+        minValue: number;
     }>, traceId?: string): Promise<void> {
         info('xpowerList data size is: ', xpowerList!.length);
         XpowerStruct.maxValue = xpowerList.map((item) => item.num).reduce((a, b) => Math.max(a, b));
         for (let i = 0; i < xpowerList.length; i++) {
             const it = xpowerList[i];
-            it.maxValue = 0;
             let traceRow = TraceRow.skeleton<XpowerStruct>(traceId);
             traceRow.rowId = it.name;
             traceRow.rowType = TraceRow.ROW_TYPE_XPOWER_SYSTEM;
@@ -200,7 +198,10 @@ export class SpXpowerChart {
             traceRow.name = it.name;
             traceRow.rowHidden = !folder.expansion;
             traceRow.folderTextLeft = 40;
-            traceRow.xpowerRowTitle = convertTitle(it.name);
+            if (it.name === 'ThermalReport.ShellTemp') { 
+                it.maxValue = it.maxValue / 1000;
+            }
+            traceRow.xpowerRowTitle = convertTitle(it.name); 
             traceRow.setAttribute('children', '');
             traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
             traceRow.selectChangeHandler = this.trace.selectChangeHandler;
