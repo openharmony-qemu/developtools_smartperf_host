@@ -225,8 +225,9 @@ export class SpAiAnalysisPage extends BaseElement {
         });
     }
 
-    // 点击诊断之后，重置
-    reset(): void {
+    // 重新导trace、db时，初始化诊断功能
+    clear() {
+        this.draftList!.innerHTML = '';
         this.reportContent = '';
         this.downloadBtn!.style.display = 'none';
     }

@@ -1581,6 +1581,7 @@ export class SpApplication extends BaseElement {
   private openFileInit(multiTrace: boolean = false): void {
     clearTraceFileCache();
     this.litSearch!.clear();
+    this.spAiAnalysisPage!.clear();
     Utils.currentSelectTrace = undefined;
     this.markJson = undefined;
     if (!multiTrace) {
