@@ -200,7 +200,7 @@ export class SpXpowerChart {
             traceRow.name = it.name;
             traceRow.rowHidden = !folder.expansion;
             traceRow.folderTextLeft = 40;
-            traceRow.xpowerRowTitle = this.convertTitle(it.name);
+            traceRow.xpowerRowTitle = convertTitle(it.name); 
             traceRow.setAttribute('children', '');
             traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
             traceRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -225,28 +225,28 @@ export class SpXpowerChart {
             folder.addChildTraceRow(traceRow);
         }
     }
+}
 
-    convertTitle(title: string): string {
-        switch (title) {
-            case 'Battery.Capacity':
-                return '电池容量(单位mAh)';
-            case 'Battery.Charge':
-                return '充电状态(充电1,非充电0)';
-            case 'Battery.GasGauge':
-                return '电池剩余电量(单位mAh)';
-            case 'Battery.Level':
-                return '电池百分比';
-            case 'Battery.RealCurrent':
-                return '实时电流(单位mAh,充电时为正数,耗电时为负数)';
-            case 'Battery.Screen':
-                return '屏幕状态(亮屏1,灭屏0)';
-            case 'ThermalReport.ShellTemp':
-                return '外壳温度(单位℃)';
-            case 'ThermalReport.ThermalLevel':
-                return '温度等级';
-            default:
-                return title;
-        }
+// 鼠标悬浮时转换xpower泳道名
+export function convertTitle(title: string): string { 
+    switch (title) {
+        case 'Battery.Capacity':
+            return '电池容量(单位mAh)';
+        case 'Battery.Charge':
+            return '充电状态(充电1,非充电0)';
+        case 'Battery.GasGauge':
+            return '电池剩余电量(单位mAh)';
+        case 'Battery.Level':
+            return '电池百分比';
+        case 'Battery.RealCurrent':
+            return '实时电流(单位mAh,充电时为正数,耗电时为负数)';
+        case 'Battery.Screen':
+            return '屏幕状态(亮屏1,灭屏0)';
+        case 'ThermalReport.ShellTemp':
+            return '外壳温度(单位℃)';
+        case 'ThermalReport.ThermalLevel':
+            return '温度等级';
+        default:
+            return title;
     }
-
 }

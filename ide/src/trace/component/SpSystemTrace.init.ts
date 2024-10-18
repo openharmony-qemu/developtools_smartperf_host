@@ -36,6 +36,7 @@ import { SpChartList } from './trace/SpChartList';
 type HTMLElementAlias = HTMLElement | null | undefined;
 import { Utils } from './trace/base/Utils';
 import { fuzzyQueryFuncRowData, queryFuncRowData } from '../database/sql/Func.sql';
+import { convertTitle } from './chart/SpXpowerChart'; 
 
 function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unknown {
   Object.assign(sp, {
@@ -368,6 +369,13 @@ function collectHandlerNo(sp: SpSystemTrace, currentRow: unknown, event: unknown
   // 取消收藏时，删除父亲ID
   // @ts-ignore
   currentRow.name = currentRow.tampName;
+  //@ts-ignore  xpower转换名称
+  if (currentRow.rowType === 'xpower-system') {
+    //@ts-ignore
+    let titleEl = currentRow.shadowRoot?.querySelector('.name') as HTMLLabelElement;
+    //@ts-ignore
+    titleEl.title = convertTitle(currentRow.tampName);
+  }
   if (replaceRow !== null) {
     // @ts-ignore
     sp.rowsEL!.replaceChild(currentRow, replaceRow);
@@ -427,6 +435,13 @@ function collectHandlerYes(sp: SpSystemTrace, currentRow: unknown, event: unknow
   if (!currentRow.hasParentRowEl) {
     // @ts-ignore
     sp.rowsEL!.replaceChild(replaceRow, currentRow);
+  }
+  //@ts-ignore  xpower转换名称
+  if (currentRow.rowType === 'xpower-system') {
+    //@ts-ignore
+    let titleEl = currentRow.shadowRoot?.querySelector('.name') as HTMLLabelElement;
+    //@ts-ignore
+    titleEl.title = convertTitle(currentRow.tampName);
   }
   // @ts-ignore
   let group = currentRow.traceId || sp.currentCollectGroup;
