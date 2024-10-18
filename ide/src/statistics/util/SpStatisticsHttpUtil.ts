@@ -24,6 +24,7 @@ export class SpStatisticsHttpUtil {
   static retryMaxCount: number = 5;
   static pauseRetry: boolean = false;
   static retryRestTimeOut: boolean = false;
+  static recordPlugin: Array<string> = [];
 
   static initStatisticsServerConfig(): void {
     if (SpStatisticsHttpUtil.requestServerInfo === '') {
@@ -165,17 +166,21 @@ export class SpStatisticsHttpUtil {
       .then((resp) => { });
   }
 
-  static recordPluginUsage(requsetBody: pluginUsage): void {
+  static recordPluginUsage() {
     fetch(`https://${SpStatisticsHttpUtil.requestServerInfo}/recordPluginUsage`, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(requsetBody),
+      body: JSON.stringify({
+        eventData: {
+          plugin: SpStatisticsHttpUtil.recordPlugin
+        }
+      })
     }).then(res => {
     }).catch(err => {
-      this.handleRequestException();
     });
+    SpStatisticsHttpUtil.recordPlugin = [];
   }
 
   static getNotice(): Promise<Response> {

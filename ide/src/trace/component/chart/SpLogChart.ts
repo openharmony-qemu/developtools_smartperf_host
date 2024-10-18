@@ -36,12 +36,7 @@ export class SpLogChart {
     let folder = await this.initFolder();
     this.trace.rowsEL?.appendChild(folder);
     // 统计hilog插件
-    let requestBody = {
-      eventData:{
-        plugin:['hilog-plugin']
-      }
-    };
-    SpStatisticsHttpUtil.recordPluginUsage(requestBody);
+    SpStatisticsHttpUtil.recordPlugin.push('hilog-plugin');
   }
 
   async initFolder(): Promise<TraceRow<LogStruct>> {

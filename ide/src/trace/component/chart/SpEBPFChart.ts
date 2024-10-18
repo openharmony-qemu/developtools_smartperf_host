@@ -56,13 +56,7 @@ export class SpEBPFChart {
           await this.initDiskIOLatency(folder);
           await this.initProcessDiskIOLatency(folder);
         }
-        // 统计ebpf插件
-        let requsetBody = {
-          eventData: {
-            plugin: ['hiebpf-plugin']
-          }
-        };
-        SpStatisticsHttpUtil.recordPluginUsage(requsetBody);
+        SpStatisticsHttpUtil.recordPlugin.push('hiebpf-plugin');
       }
     }
   }

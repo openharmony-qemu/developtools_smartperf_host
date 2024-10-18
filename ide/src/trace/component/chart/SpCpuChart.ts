@@ -93,13 +93,6 @@ export class SpCpuChart {
     this.initSchedSliceData(cpuSchedSlice, traceId);
     info('Cpu trace row data size is: ', array.length);
     if (array && array.length > 0 && array[0]) {
-      // 有cpu泳道，统计ftrace插件，cpu插件
-      let requestBody = {
-        eventData: {
-          plugin: ['ftrace-plugin', 'cpu-plugin']
-        }
-      };
-      SpStatisticsHttpUtil.recordPluginUsage(requestBody);
       //@ts-ignore
       let cpuMax = array[0].cpu + 1;
       Utils.getInstance().setCpuCount(cpuMax, traceId);
@@ -113,6 +106,7 @@ export class SpCpuChart {
           }
         }
       }
+      SpStatisticsHttpUtil.recordPlugin.push('ftrace-plugin');
     }
     let CpuDurTime = new Date().getTime() - CpuStartTime;
     info('The time to load the Cpu data is: ', CpuDurTime);

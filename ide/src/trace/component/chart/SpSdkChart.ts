@@ -25,6 +25,7 @@ import { TabUtil } from '../trace/sheet/sdk/TabUtil';
 import { queryCounterMax, querySdkCount, querySdkCounterData, querySdkSliceData } from '../../database/sql/Sdk.sql';
 import { queryStartTime } from '../../database/sql/SqlLite.sql';
 import { NUM_7 } from '../../bean/NumBean';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class SpSdkChart {
   trace: SpSystemTrace;
@@ -65,6 +66,7 @@ export class SpSdkChart {
     let countSql;
     let countOtherSql = ''; //@ts-ignore
     if (configObj.pluginName === this.pluginName) {
+      SpStatisticsHttpUtil.recordPlugin.push('dubai-plugin');
       countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns, 'where slice_name like $suffix');
       countOtherSql = this.createSql(
         startTime,

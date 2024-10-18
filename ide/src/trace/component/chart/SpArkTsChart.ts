@@ -158,12 +158,7 @@ export class SpArkTsChart implements ParseListener {
         this.cpuProfilerSupplierFrame();
       }
       // 统计arkTs插件
-      let requsetBody = {
-        eventData:{
-          plugin:['arkts-plugin']
-        }
-      };
-      SpStatisticsHttpUtil.recordPluginUsage(requsetBody);
+      SpStatisticsHttpUtil.recordPlugin.push('arkts-plugin');
     }
   }
 

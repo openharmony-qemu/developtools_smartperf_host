@@ -182,13 +182,7 @@ export class SpNativeMemoryChart {
     if (nativeProcess.length === 0) {
       return;
     }
-    // 有native_memory进程，统计nativehook插件
-    let requestBody = {
-      eventData: {
-        plugin: ['nativehook']
-      }
-    };
-    SpStatisticsHttpUtil.recordPluginUsage(requestBody);
+    SpStatisticsHttpUtil.recordPlugin.push('nativehook-plugin');
     await this.initNativeMemory();
     await nativeMemoryChartDataCacheSender(
       nativeProcess.map((it) => it.ipid),

@@ -23,6 +23,7 @@ import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { xpowerDataSender } from '../../database/data-trafic/XpowerDataSender';
 import { queryXpowerData, queryXpowerMeasureData } from '../../database/sql/Xpower.sql';
 import { BaseStruct } from '../../bean/BaseStruct';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class SpXpowerChart {
     private readonly trace: SpSystemTrace;
@@ -45,6 +46,7 @@ export class SpXpowerChart {
         await this.initXpowerFolder(traceId);
         await this.initSystemFolder(traceId);
         await this.initSystemData(this.systemFolder, xpowerList, traceId);
+        SpStatisticsHttpUtil.recordPlugin.push('xpower-plugin');
     }
 
     initXpowerFolder = async (traceId?: string): Promise<void> => {

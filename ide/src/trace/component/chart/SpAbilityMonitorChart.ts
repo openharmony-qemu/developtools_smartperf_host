@@ -48,7 +48,6 @@ const networkNameList: Array<string> = ['Bytes In/Sec', 'Bytes Out/Sec', 'Packet
 const memoryNameList: Array<string> = ['MemoryTotal', 'Cached', 'SwapTotal'];
 const diskIONameList: Array<string> = ['Bytes Read/Sec', 'Bytes Written/Sec', 'Read Ops/Sec', 'Written Ops/Sec'];
 const key = 'abilityMonitor';
-
 export class SpAbilityMonitorChart {
   private trace: SpSystemTrace;
   constructor(trace: SpSystemTrace) {
@@ -86,24 +85,22 @@ export class SpAbilityMonitorChart {
       return;
     }
     let processRow = this.initAbilityRow();
+    SpStatisticsHttpUtil.recordPlugin.push('process-plugin');
     if (this.hasTable(result, 'trace_cpu_usage')) {
       await this.initCpuAbility(processRow);
+      SpStatisticsHttpUtil.recordPlugin.push('cpu-plugin');
     }
     if (this.hasTable(result, 'sys_memory')) {
       await this.initMemoryAbility(processRow);
+      SpStatisticsHttpUtil.recordPlugin.push('memory-plugin');
     }
     if (this.hasTable(result, 'trace_diskio')) {
       await this.initDiskAbility(processRow);
-      // 统计diskio插件
-      let requestBody = {
-        eventData: {
-          plugin: ['diskio-plugin']
-        }
-      };
-      SpStatisticsHttpUtil.recordPluginUsage(requestBody);
+      SpStatisticsHttpUtil.recordPlugin.push('diskio-plugin');
     }
     if (this.hasTable(result, 'trace_network')) {
       await this.initNetworkAbility(processRow);
+      SpStatisticsHttpUtil.recordPlugin.push('network-plugin');
     }
     // 初始化PurgeableToTal和PurgeablePin泳道图
     let totalDataList = await queryPurgeableSysData(false);

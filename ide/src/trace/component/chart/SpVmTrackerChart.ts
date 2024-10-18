@@ -49,6 +49,7 @@ import {
   queryisExistsGpuData,
   queryisExistsGpuResourceData,
 } from '../../database/sql/Gpu.sql';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class VmTrackerChart {
   private trace: SpSystemTrace;
@@ -99,6 +100,7 @@ export class VmTrackerChart {
       await this.initDmaRow();
     }
     await this.initGpuData();
+    SpStatisticsHttpUtil.recordPlugin.push('vmtracker-plugin');
   }
 
   private async initGpuData(): Promise<void> {
