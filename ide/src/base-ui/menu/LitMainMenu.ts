@@ -299,6 +299,7 @@ export class LitMainMenu extends BaseElement {
              <div class="customColor">
                 <lit-icon name="bg-colors" size="20" color="grey"></lit-icon>
              </div>
+             <img class="ai_analysis" title="AI Analysis" src="img/ai-analysis.png" style="margin-left: 0.8em;width:16px;height:16px;margin-top: 1.4em;">
              <div class="version" style="">
              </div>
         </div>`;

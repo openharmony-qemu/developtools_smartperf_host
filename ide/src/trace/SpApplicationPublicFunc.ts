@@ -327,7 +327,7 @@ export const applicationHtml: string = `
         }
 
         #sp-ai-analysis {
-            top:0px;
+            top:75px;
             right:0px;
             position:absolute;
             z-index:9999;
@@ -387,7 +387,6 @@ export const applicationHtml: string = `
                     </div>
                 </div>
                 <div class = "content-right-option" style="display: flex;flex-flow: nowrap;text-align: right;position: absolute;right: 1.2em;cursor: pointer;top: 17px"">
-                  <img class="ai_analysis" title="AI Analysis" src="img/ai-analysis.png" style="margin-left: 0.8em;width:16px;height:16px">
                   <lit-icon class="export-record" title="Download Mark Trace" name="download" size="16" style="margin-left: 0.8em;"></lit-icon>
                   <img class="cut-trace-file" title="Cut Trace File" src="img/menu-cut.svg" style="margin-left: 0.8em;">
                   <img class="filter-config" title="Display Template" src="img/config_filter.png" style="margin-left: 0.8em;">
@@ -397,7 +396,6 @@ export const applicationHtml: string = `
             <div id="app-content" class="content">
                 <sp-welcome style="visibility:visible;top:0px;left:0px;position:absolute;z-index: 100" id="sp-welcome">
                 </sp-welcome>
-                <sp-ai-analysis id="sp-ai-analysis">
                 </sp-ai-analysis>
                 <sp-system-trace style="visibility:hidden;z-index: 101;" id="sp-system-trace">
                 </sp-system-trace>
@@ -423,6 +421,7 @@ export const applicationHtml: string = `
                 <trace-row-config class="chart-filter" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 1001"></trace-row-config>
                 <custom-theme-color class="custom-color" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 1001"></custom-theme-color>
             </div>
+                <sp-ai-analysis id="sp-ai-analysis" style="visibility:hidden;">
         </div>
         `;
 

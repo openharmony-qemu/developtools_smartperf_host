@@ -22,6 +22,7 @@ import { WebSocketManager } from '../../webSocket/WebSocketManager';
 import { TypeConstants } from '../../webSocket/Constants';
 import { TraceRow } from './trace/base/TraceRow';
 import { SpSystemTrace } from './SpSystemTrace';
+import { SpApplication } from '../SpApplication';
 
 @element('sp-ai-analysis')
 export class SpAiAnalysisPage extends BaseElement {
@@ -160,7 +161,7 @@ export class SpAiAnalysisPage extends BaseElement {
                 this.loginTipEl!.style.visibility = 'visible';
                 setTimeout(() => {
                     this.loginTipEl!.style.visibility = 'hidden';
-                }, 1000);
+                }, 4000);
                 return;
             }
             // 同一个trace非第一次诊断，无需再发db文件过去
@@ -198,6 +199,9 @@ export class SpAiAnalysisPage extends BaseElement {
 
         // 侧边栏诊断点击事件 *************优化，考虑多个按钮
         this.reportBar!.addEventListener('click', () => {
+            if(!SpApplication.isTraceLoaded){
+                return;
+            }
             this.reportImg!.src = 'img/report_active.png';
             this.chatImg!.src = 'img/talk.png';
             this.reportBar!.classList.add('active');
@@ -286,10 +290,6 @@ export class SpAiAnalysisPage extends BaseElement {
         newQuestion.className = 'usersay';
         // @ts-ignore
         newQuestion!.innerHTML = this.inputEl!.value;
-        // 生成聊天气泡三角
-        let triangleDiv = document.createElement('div');
-        newQuestion.appendChild(triangleDiv);
-        triangleDiv.className = 'userTriangle';
         // 单条消息模块，最大的div,包含头像、消息、清除浮动元素
         let newMessage = document.createElement('div');
         newMessage.className = 'usermessage message';
@@ -313,9 +313,6 @@ export class SpAiAnalysisPage extends BaseElement {
         newQuestion.className = 'systemSay';
         // @ts-ignore
         newQuestion!.innerHTML = `<div>${aiText}</div>`;
-        let triangleDiv = document.createElement('div');
-        newQuestion.appendChild(triangleDiv);
-        triangleDiv.className = 'aiTriangle';
         let newMessage = document.createElement('div');
         newMessage.className = 'aiMessage message';
         newMessage.appendChild(headerDiv);

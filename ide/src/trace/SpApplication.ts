@@ -117,6 +117,7 @@ export class SpApplication extends BaseElement {
     | null;
   static skinChange: Function | null | undefined = null;
   static skinChange2: Function | null | undefined = null;
+  static isTraceLoaded: Boolean = false;
   skinChangeArray: Array<Function> = [];
   private rootEL: HTMLDivElement | undefined | null;
   private headerDiv: HTMLDivElement | undefined | null;
@@ -603,6 +604,7 @@ export class SpApplication extends BaseElement {
   }
 
   private openTraceFile(ev: unknown, isClickHandle?: boolean): void {
+    SpApplication.isTraceLoaded = false;
     this.returnOriginalUrl();
     this.removeAttribute('custom-color');
     this.chartFilter!.setAttribute('hidden', '');
@@ -1228,6 +1230,7 @@ export class SpApplication extends BaseElement {
         (window as unknown).traceFileName = fileName;
       }
       this.showCurrentTraceMenu(fileSize, showFileName, fileName, isDistributed);
+      SpApplication.isTraceLoaded =true;
       if (!isDistributed) {
         this.importConfigDiv!.style.display = Utils.getInstance().getSchedSliceMap().size > 0 ? 'block' : 'none';
       }
@@ -1962,8 +1965,11 @@ export class SpApplication extends BaseElement {
       this.croppingFile(this.progressEL!, this.litSearch!);
     });
 
-    this.aiAnalysis!.addEventListener('click', (ev) => {
-      if (this.spAiAnalysisPage!.style.visibility === 'hidden') {
+    let aiAnalysis = this.shadowRoot
+      ?.querySelector('lit-main-menu')!
+      .shadowRoot!.querySelector('.ai_analysis') as HTMLDivElement
+    aiAnalysis!.addEventListener('click', (ev) => {
+      if (this.spAiAnalysisPage!.style.visibility === 'hidden' || this.spAiAnalysisPage!.style.display === 'none') {
         this.spAiAnalysisPage!.style.display = 'block';
         this.spAiAnalysisPage!.style.visibility = 'visible';
       } else {
@@ -2179,6 +2185,9 @@ export class SpApplication extends BaseElement {
       }
       if (node === showNode) {
         showNode.style.visibility = 'visible';
+        //@ts-ignore
+      } else if (node.id! === 'sp-ai-analysis' && node.style!.visibility! === 'visible') {
+        return;
       } else {
         (node! as HTMLElement).style.visibility = 'hidden';
       }

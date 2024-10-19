@@ -26,7 +26,6 @@ export const SpAiAnalysisPageHtml = `
                     </div>
                     <div class="systemSay">
                         有什么可以帮助您吗？
-                        <div class="aiTriangle"></div>
                     </div>
                     <div class="clear"></div>
                 </div>
@@ -58,7 +57,7 @@ export const SpAiAnalysisPageHtml = `
                         </div>
                     </div>
                     <div class="loginTip">
-                        <img src="img/sigh.png" style="margin-right: 8px;width: 18px;"/>未连接
+                        未连接，请启动本地扩展程序再试！[<a href="https://wiki.huawei.com/domains/76911/wiki/125480/WIKI202410154807421" target="_blank">指导</a>]
                     </div>
                     <div class="data-record"></div>
                 </div>
@@ -119,7 +118,7 @@ export const SpAiAnalysisPageHtml = `
 
     .usersay {
         max-width: 70%;
-        background: #4baf50;
+        background: rgb(229,246,255);
         border-radius: 4px;
         float: right;
         line-height: 20px;
@@ -133,24 +132,16 @@ export const SpAiAnalysisPageHtml = `
         margin-right: 10px;
         position: relative;
         text-align: justify;
-        color: #fff;
-    }
-
-    .userTriangle {
-        width: 0px;
-        height: 0px;
-        border-left: solid 8px #4baf50;
-        border-top: solid 5px rgba(255, 255, 255, 0);
-        border-bottom: solid 5px rgba(255, 255, 255, 0);
-        position: absolute;
-        right: -8px;
-        top: 8px;
+        color: #000;
+        border: 1px solid #c4ebf5;
+        border-radius: 9px;
+        border-top-right-radius: 0px;
     }
 
     .systemSay {
         max-width: 70%;
         border-radius: 4px;
-        background-color: #fe7300;
+        background-color: rgb(249,250,252);
         float: left;
         line-height: 20px;
         text-overflow: ellipsis;
@@ -162,18 +153,9 @@ export const SpAiAnalysisPageHtml = `
         margin-top: 10px;
         position: relative;
         text-align: justify;
-        color: #fff;
-    }
-
-    .aiTriangle {
-        width: 0px;
-        height: 0px;
-        border-right: solid 8px #fe7300;
-        border-top: solid 5px rgba(255, 255, 255, 0);
-        border-bottom: solid 5px rgba(255, 255, 255, 0);
-        position: absolute;
-        left: -7px;
-        top: 8px;
+        color: #000;
+        border: 0.5px solid #eaeaea;
+        border-radius: 0 10px 10px 10px;
     }
 
     .chatBox {
@@ -310,7 +292,6 @@ export const SpAiAnalysisPageHtml = `
         font-size: 12px;
         height: 30px;
         line-height: 20px;
-        cursor: pointer;
     }
 
     .rightTabBar img {
@@ -466,15 +447,17 @@ export const SpAiAnalysisPageHtml = `
     .loginTip {
         visibility: hidden;
         position: absolute;
-        top: 45%;
-        left: 38%;
+        top: 28%;
+        left: 15%;
         padding: 5px 15px;
-        background-color: rgba(0, 0, 0, .8);
+        background-color: rgb(236, 239, 247);
         border-radius: 2px;
-        color: #fff;
+        color: #000;
         display: flex;
         align-items: center;
-        font-size: 12px;
+        font-size: 14px;
+        height: 50px;
+        line-height: 50px;
     }
 
     .loadingItem {
