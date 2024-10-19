@@ -757,6 +757,8 @@ export class SpProcessChart {
       linkItem[1].offsetY = linkItem[1].offsetY * 2;
       linkItem[1].rowEL = linkItem[1].backrowEL;
     }
+    this.updatePairPointTranslateY(linkItem[0]);
+    this.updatePairPointTranslateY(linkItem[1]);
   }
 
   handler4(e: unknown, linkItem: PairPoint[], processRow: TraceRow<ProcessStruct>): void {
@@ -774,11 +776,36 @@ export class SpProcessChart {
   }
 
   updatePairPointTranslateY(pair: PairPoint): void {
+    let linkNodeYTimeOut: unknown = undefined;
+    if (linkNodeYTimeOut) {
+      //@ts-ignore
+      clearTimeout(linkNodeYTimeOut);
+    }
     if (pair.rowEL.collect) {
       pair.rowEL.translateY = pair.rowEL.getBoundingClientRect().top - 195;
+      linkNodeYTimeOut = setTimeout(() => {
+        if (this.trace.favoriteChartListEL?.collect1Expand === false) { // G1折叠
+          if (pair.rowEL.collectGroup === '1') {
+            pair.rowEL.translateY = 23;
+          }
+        }
+        if (this.trace.favoriteChartListEL?.collect2Expand === false) {// G2折叠
+          if (pair.rowEL.collectGroup === '2') {
+            if (this.trace.groupTitle1?.style.display === 'none') {
+              pair.rowEL.translateY = 23;
+            } else if (this.trace.groupTitle1?.style.display === 'flex' || this.trace.groupTitle1?.style.display === 'block') {
+              pair.rowEL.translateY = Number(this.trace.groupTitle1?.clientHeight) + Number(this.trace.collectEl1?.clientHeight) + 27;
+            }
+          }
+        }
+      }, 50);
     } else {
       pair.rowEL.translateY = pair.rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
     }
+    let refreshTimeOut = setTimeout(() => {
+      this.trace.refreshCanvas(true);
+      clearTimeout(refreshTimeOut);
+    }, 200);
   }
 
   updatePairPoint(pair: PairPoint, processRow: TraceRow<ProcessStruct>): void {
