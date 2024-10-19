@@ -240,6 +240,19 @@ export class SpAiAnalysisPage extends BaseElement {
         this.draftList!.innerHTML = '';
         this.reportContent = '';
         this.downloadBtn!.style.display = 'none';
+        let chatBar = this.shadowRoot?.querySelector('.chatBar');
+        let chatInputBox = this.shadowRoot?.querySelector('.chatInputBox');
+        let reportDetails = this.shadowRoot?.querySelector('.report_details');
+        this.reportImg!.src = 'img/report.png';
+        this.chatImg!.src = 'img/talk_active.png';
+        this.reportBar!.classList.remove('active');
+        chatBar!.classList.add('active');
+        //@ts-ignore
+        this.askQuestion!.style.display = 'block';
+        //@ts-ignore
+        chatInputBox!.style.display = 'block';
+        //@ts-ignore
+        reportDetails!.style.display = 'none';
     }
 
     // 发送消息
