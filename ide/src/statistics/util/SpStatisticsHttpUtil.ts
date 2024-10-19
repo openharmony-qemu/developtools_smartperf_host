@@ -195,37 +195,51 @@ export class SpStatisticsHttpUtil {
   }
 
   // ai对话接口--获取token
-  static async getAItoken(): Promise<string> {
-    let token = '';
-    await window.fetch(`https://${window.location.host}/takeToken`, {
+  static async getAItoken(): Promise<aiResponse> {
+    let response: aiResponse = {
+      status: 0,
+      data: ''
+    };
+    let res = await window.fetch(`https://${window.location.host}/takeToken`, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json'
       }
-    }).then(async (res) => {
+    })
+    response.status = res.status;
+    if (res.status === 200) {
       let resp = await res.text();
       let resj = await JSON.parse(resp);
-      token = resj.token;
-    }).catch(() => { });
-    return token;
+      response.data = resj.token;
+    }
+    return response;
   }
 
   // ai对话接口--问答
   // @ts-ignore
-  static async askAi(requestBody): Promise<string> {
-    let answer = '';
+  static async askAi(requestBody): aiResponse {
+    let response: aiResponse = {
+      status: 0,
+      data: ''
+    };
     let res = await window.fetch(`https://${window.location.host}/ask`, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody)
-    });
-    // 用状态码判断statu = 200?
-    let resp = await res.text();
-    let resj = await JSON.parse(resp);
-    answer = resj.chatbot_reply;
-    return answer;
+    })
+    response.status = res.status;
+    if (res.status === 200) {
+      let resp = await res.text();
+      let resj = await JSON.parse(resp);
+      response.data = resj.chatbot_reply;
+    }
+    return response;
   }
 }
 
+class aiResponse {
+  status: number = 0;
+  data: string = ''
+}

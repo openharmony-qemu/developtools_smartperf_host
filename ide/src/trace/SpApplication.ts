@@ -1230,7 +1230,7 @@ export class SpApplication extends BaseElement {
         (window as unknown).traceFileName = fileName;
       }
       this.showCurrentTraceMenu(fileSize, showFileName, fileName, isDistributed);
-      SpApplication.isTraceLoaded =true;
+      SpApplication.isTraceLoaded = true;
       if (!isDistributed) {
         this.importConfigDiv!.style.display = Utils.getInstance().getSchedSliceMap().size > 0 ? 'block' : 'none';
       }
@@ -2487,18 +2487,18 @@ export class SpApplication extends BaseElement {
       'download-db',
       '',
       {},
-      (reqBufferDB: ArrayBuffer) => {
+      async (reqBufferDB: ArrayBuffer) => {
         let a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([reqBufferDB]));
         a.download = fileName;
-        a.click();
-        this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', true);
-        let timer = setInterval(() => {
-          this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
+        await a.click();
+        await this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', true);
+        let timer = setInterval(async () => {
+          await this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
           clearInterval(timer);
         }, 4000);
         // 存入缓存
-        caches.open(`${fileName}`).then((cache) => {
+        await caches.open(`${fileName}`).then(async (cache) => {
           let headers = new Headers();
           headers.append('Content-type', 'application/octet-stream');
           headers.append('Content-Transfer-Encoding', 'binary');

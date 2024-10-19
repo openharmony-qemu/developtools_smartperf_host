@@ -39,6 +39,7 @@ export class SpAiAnalysisPage extends BaseElement {
     private downloadBtn: HTMLDivElement | null | undefined;
     private draftList: HTMLDivElement | null | undefined;
     private noDataEl: HTMLDivElement | null | undefined;
+    private noReportEl: HTMLDListElement | null | undefined;
     private loginTipEl: HTMLDivElement | null | undefined;
     private loadingItem: HTMLDivElement | null | undefined;
     private startTimeEl: HTMLSpanElement | null | undefined;
@@ -83,6 +84,8 @@ export class SpAiAnalysisPage extends BaseElement {
         this.draftList = this.shadowRoot?.querySelector('.data-record');
         // 空数据页面
         this.noDataEl = this.shadowRoot?.querySelector('.no-data');
+        // 没诊断出来页面
+        this.noReportEl = this.shadowRoot?.querySelector('.no-report');
         // 未连接提示弹窗
         this.loginTipEl = this.shadowRoot?.querySelector('.loginTip');
         // 时间展示区域
@@ -152,10 +155,11 @@ export class SpAiAnalysisPage extends BaseElement {
             a.click();
         });
 
-        // 诊断按钮
         this.draftBtn?.addEventListener('click', async (e) => {
-            // 取消已经存在的诊断
             this.draftList!.innerHTML = '';
+            this.noDataEl!.style.display = 'none';
+            this.noReportEl!.style.display = 'none';
+            this.downloadBtn!.style.display = 'none';
             // 没有登陆，弹窗提示，退出逻辑
             if (!WebSocketManager.getInstance()?.isReady()) {
                 this.loginTipEl!.style.visibility = 'visible';
@@ -164,6 +168,8 @@ export class SpAiAnalysisPage extends BaseElement {
                 }, 4000);
                 return;
             }
+            // 清空诊断报告的内容
+            this.reportContent = '';
             // 同一个trace非第一次诊断，无需再发db文件过去
             if (SpAiAnalysisPage.isRepeatedly) {
                 this.initiateDiagnosis();
@@ -199,7 +205,7 @@ export class SpAiAnalysisPage extends BaseElement {
 
         // 侧边栏诊断点击事件 *************优化，考虑多个按钮
         this.reportBar!.addEventListener('click', () => {
-            if(!SpApplication.isTraceLoaded){
+            if (!SpApplication.isTraceLoaded) {
                 return;
             }
             this.reportImg!.src = 'img/report_active.png';
@@ -248,10 +254,12 @@ export class SpAiAnalysisPage extends BaseElement {
             this.chatWindow!.scrollTop = this.chatWindow!.scrollHeight;
             // 没有token
             if (this.token === '') {
-                this.token = await SpStatisticsHttpUtil.getAItoken();
-                if (this.token === '') {
+                let data = await SpStatisticsHttpUtil.getAItoken();
+                if (data.status !== 200) {
                     this.aiAnswerBox!.firstElementChild!.innerHTML = '获取token失败';
                     return;
+                } else {
+                    this.token = data.data;
                 }
             }
             this.answer();
@@ -266,16 +274,11 @@ export class SpAiAnalysisPage extends BaseElement {
             collection: 'smart_perf_test',
             scope: 'smartperf'
         };
-        let answer = await SpStatisticsHttpUtil.askAi(requestBody);
-        if (answer !== '') {
-            if (!this.isNewChat) {
-                // @ts-ignore
-                this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(answer);
-                // 滚动条滚到底部
-                this.chatWindow!.scrollTop = this.chatWindow!.scrollHeight;
-            }
-        } else {
-            this.aiAnswerBox!.firstElementChild!.innerHTML = '服务器异常';
+        let answer = await (await SpStatisticsHttpUtil.askAi(requestBody)).data;
+        if (!this.isNewChat) {
+            // @ts-ignore
+            this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(answer);
+            // 滚动条滚到底部
             this.chatWindow!.scrollTop = this.chatWindow!.scrollHeight;
         }
     }
@@ -334,17 +337,18 @@ export class SpAiAnalysisPage extends BaseElement {
             // 生成标题
             let titleDiv = document.createElement('div');
             titleDiv.className = 'title item-name';
-            // @ts-ignore
-            titleDiv!.innerText = `问题${i + 1}:${dataList[i].type}`;
+            titleDiv!.innerText = `问题${i + 1}`;
+            // 生成类型
+            let typeDiv = document.createElement('div');
+            typeDiv.className = 'item';
+            typeDiv.innerHTML = `<span class="item-name">问题类型：</span>${dataList[i].type}`
             // 生成时间
             let timeDiv = document.createElement('div');
             timeDiv.className = 'item two';
             // 获取每一个诊断项的时间
             let timeList = new Array();
-            // @ts-ignore
-            dataList[i].trace_info.forEach((v: unknown) => {
-                // @ts-ignore
-                timeList.push(getTimeString(v.ts / 1000000));
+            dataList[i].trace_info.forEach((v: any) => {
+                timeList.push(v.ts! / 1000000000 + 's');
             });
             timeDiv!.innerHTML = `<span class='item-name'>发生时间：</span>${timeList.join(',')}`;
             // 生成问题原因
@@ -353,14 +357,14 @@ export class SpAiAnalysisPage extends BaseElement {
             // @ts-ignore
             reasonDiv!.innerHTML = `<span class='item-name'>问题原因：</span>${dataList[i].description}`;
             itemDiv.appendChild(titleDiv);
+            itemDiv.appendChild(typeDiv);
             itemDiv.appendChild(timeDiv);
             itemDiv.appendChild(reasonDiv);
             // 生成优化建议
             let suggestonDiv = document.createElement('div');
             suggestonDiv.className = 'item two';
             let suggestionText = '';
-            this.token = await SpStatisticsHttpUtil.getAItoken();
-            // @ts-ignore
+            this.token = (await SpStatisticsHttpUtil.getAItoken()).data;
             suggestionText = await this.getSuggestion(dataList[i].description, itemDiv, suggestonDiv);
             // @ts-ignore
             this.reportContent += `问题${i + 1}:${dataList[i].type}\n\n时间：${timeList.join(',')}\n\n问题原因：${dataList[i].description}\n\n优化建议：${suggestionText}\n\n\n`;
@@ -376,13 +380,14 @@ export class SpAiAnalysisPage extends BaseElement {
             question: description + ',请问该怎么优化？',
             collection: ''
         });
-        suggestonDiv!.innerHTML = `<span class='item-name'>优化建议：</span>${suggestion}`;
+        // @ts-ignore
+        suggestonDiv!.innerHTML = `<span class="item-name">优化建议：</span>${this.md!.render(suggestion.data)}`;
         itemDiv!.appendChild(suggestonDiv!);
         // 吧loading放到最后面
         this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
         itemDiv!.style.visibility = 'visible';
         itemDiv!.style.animation = 'opcityliner 3s';
-        return suggestion;
+        return suggestion.data;
     }
 
     cacheDb(fileName: string | null): void {
@@ -426,9 +431,14 @@ export class SpAiAnalysisPage extends BaseElement {
             if (jsonRes.resultCode !== 0) {
                 console.log('错误');
             }
-            let dataList = JSON.parse(jsonRes.resultMessage);
-            // 整理数据,渲染数据
-            this.renderData(dataList);
+            let dataList = JSON.parse(jsonRes.resultMessage) || [];
+            if (dataList && dataList.length === 0) {
+                this.draftList!.innerHTML = '';
+                this.noReportEl!.style.display = 'block';
+            } else {
+                // 整理数据,渲染数据
+                this.renderData(dataList);
+            }
         }
     }
 

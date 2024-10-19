@@ -32,14 +32,14 @@ export const SpAiAnalysisPageHtml = `
             </div>
             <div class="report_details">
                 <div class="selectionBox">
-                    <div class="startBox">
+                     <div class="startBox">
                         <div class="timeTip"></div>
-                        开始时间：
+                        startTime:
                         <span class="startTime"></span>
                     </div>
                     <div class="endBox">
                         <div class="timeTip"></div>
-                        结束时间：
+                        endTime:
                         <span class="endTime"></span>
                     </div>
                 </div>
@@ -51,9 +51,15 @@ export const SpAiAnalysisPageHtml = `
                         </h3>
                     </div>
                     <div class="no-data">
-                        <img src="../application/img/nodata.png" />
+                        <img src="img/nodata.png" />
                         <div>
                             暂无数据
+                        </div>
+                    </div>
+                    <div class="no-report" style="display:none;">
+                        <img src="img/no-report.png" />
+                        <div>
+                            当前trace未诊断出问题
                         </div>
                     </div>
                     <div class="loginTip">
@@ -439,7 +445,7 @@ export const SpAiAnalysisPageHtml = `
         cursor: pointer;
     }
 
-    .no-data {
+    .no-data,.no-report {
         text-align: center;
         margin-top: 20%;
     }
