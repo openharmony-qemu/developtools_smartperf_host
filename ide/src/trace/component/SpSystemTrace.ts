@@ -1993,13 +1993,26 @@ export class SpSystemTrace extends BaseElement {
   subscribeBottomTabVisibleEvent(): void {
     //@ts-ignore
     window.subscribe(window.SmartEvent.UI.ShowBottomTab, (data: { show: number; delta: number }): void => {
+      let heightTimeOut: unknown = undefined;
+      if (heightTimeOut) {
+        //@ts-ignore
+        clearTimeout(heightTimeOut);
+      }
       if (data.show === 1) {
         //显示底部tab
         this.scrollH = this.rowsEL!.scrollHeight;
       } else {
         // 底部 tab 为 最小化 或者隐藏 时候
         if (this.rowsEL!.scrollHeight > this.scrollH) {
-          this.rowsEL!.scrollTop = this.rowsEL!.scrollTop - data.delta;
+          heightTimeOut = setTimeout(() => {
+            let litTab = this.traceSheetEL?.shadowRoot?.querySelector<LitTabs>("#tabs");
+            if (this.traceSheetEL?.getAttribute('mode') === 'hidden') {
+              this.rowsEL!.scrollTop = this.rowsEL!.scrollTop - data.delta;
+            }
+            if (litTab?.style.height && litTab?.style.height === '38px') {
+              this.rowsEL!.scrollTop = this.rowsEL!.scrollTop - data.delta;
+            }
+          }, 50);
         }
       }
     });
