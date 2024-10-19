@@ -234,7 +234,7 @@ export class SpSystemTrace extends BaseElement {
   repaintList: Array<number> = [];
   presentList: Array<number> = [];
   static isAiAsk: boolean = false;
-  collectEl1: HTMLDivElement | undefined | null; 
+  collectEl1: HTMLDivElement | undefined | null;
   groupTitle1: HTMLDivElement | undefined | null;
 
   set snapshotFile(data: FileInfo) {
@@ -600,7 +600,7 @@ export class SpSystemTrace extends BaseElement {
       );
     }
     if (!TraceRow.rangeSelectObject && !this.isSlectStruct()) {
-      SpAiAnalysisPage.selectChangeListener(TraceRow.range?.startNS!, TraceRow.range?.endNS!)
+      SpAiAnalysisPage.selectChangeListener(TraceRow.range?.startNS!, TraceRow.range?.endNS!);
     }
     //在rowsEL显示范围内的 trace-row组件将收到时间区间变化通知
     this.linkNodes.forEach((it) => {
@@ -611,7 +611,7 @@ export class SpSystemTrace extends BaseElement {
     this.visibleRows.forEach((it) => (it.needRefresh = true));
     this.refreshCanvas(false, 'rangeChange');
   };
-  isSlectStruct() {
+  isSlectStruct(): unknown {
     return CpuStruct.selectCpuStruct ||
       CpuStruct.wakeupBean ||
       CpuFreqStruct.selectCpuFreqStruct ||

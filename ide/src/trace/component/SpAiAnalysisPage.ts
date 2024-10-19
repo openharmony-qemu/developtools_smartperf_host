@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,7 +16,7 @@
 import { BaseElement, element } from '../../base-ui/BaseElement';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 import { threadPool } from '../database/SqlLite';
-import { SpAiAnalysisPageHtml } from './SpAiAnalysisPage.html'
+import { SpAiAnalysisPageHtml } from './SpAiAnalysisPage.html';
 import { getTimeString } from './trace/sheet/TabPaneCurrentSelection';
 import { WebSocketManager } from '../../webSocket/WebSocketManager';
 import { TypeConstants } from '../../webSocket/Constants';
@@ -52,10 +52,10 @@ export class SpAiAnalysisPage extends BaseElement {
     private reportContent: string = '';
     private md: unknown;
     // 监听选中时间范围变化
-    static selectChangeListener(startTime: number, endTime: number) {
-        let startEl = document.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-ai-analysis")!.shadowRoot?.querySelector("div.chatBox > div > div.report_details > div.selectionBox > div.startBox > span");
+    static selectChangeListener(startTime: number, endTime: number): void {
+        let startEl = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatBox > div > div.report_details > div.selectionBox > div.startBox > span');
         startEl!.innerHTML = getTimeString(startTime).toString();
-        let endEl = document.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-ai-analysis")!.shadowRoot?.querySelector("div.chatBox > div > div.report_details > div.selectionBox > div.endBox > span");
+        let endEl = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatBox > div > div.report_details > div.selectionBox > div.endBox > span');
         endEl!.innerHTML = getTimeString(endTime).toString();
     }
     initElements(): void {
@@ -72,8 +72,8 @@ export class SpAiAnalysisPage extends BaseElement {
         this.inputEl = this.shadowRoot?.querySelector('.inputText');
         this.chatImg = this.shadowRoot?.querySelector('.chatBar')?.getElementsByTagName('img')[0];
         this.reportImg = this.shadowRoot?.querySelector('.report')?.getElementsByTagName('img')[0];
-        this.sendImg = document.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-ai-analysis")!.shadowRoot?.querySelector("div.chatInputBox > div.chatInput > img");
-        this.newChatEl = document.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-ai-analysis")!.shadowRoot?.querySelector("div.chatBox > div > div.chatInputBox > div.chatConfig > div > div.newChat > img");
+        this.sendImg = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatInputBox > div.chatInput > img');
+        this.newChatEl = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatBox > div > div.chatInputBox > div.chatConfig > div > div.newChat > img');
         // 诊断按钮
         this.draftBtn = this.shadowRoot?.querySelector('.analysisBtn');
         // 下载报告按钮
@@ -93,7 +93,7 @@ export class SpAiAnalysisPage extends BaseElement {
         // 发送消息图标点击事件
         this.sendImg?.addEventListener('click', () => {
             this.sendMessage();
-        })
+        });
 
         // 新建对话按钮点击事件
         this.newChatEl?.addEventListener('click', () => {
@@ -101,7 +101,7 @@ export class SpAiAnalysisPage extends BaseElement {
             this.token = '';
             this.askQuestion!.innerHTML = '';
             this.createAiChatBox('有什么可以帮助您的吗？');
-        })
+        });
 
         // 输入框发送消息
         this.inputEl?.addEventListener('keydown', (e) => {
@@ -128,13 +128,13 @@ export class SpAiAnalysisPage extends BaseElement {
 
         this.inputEl?.addEventListener('blur', () => {
             SpSystemTrace.isAiAsk = false;
-        })
+        });
 
         // 监听浏览器刷新，清除db数据
-        window.onbeforeunload = function () {
+        window.onbeforeunload = function (): void {
             caches.delete(`${window.localStorage.getItem('fileName')}.db`);
             sessionStorage.removeItem('fileName');
-        }
+        };
 
         // 监听ctrl抬起
         this.inputEl?.addEventListener('keyup', (e) => {
@@ -149,7 +149,7 @@ export class SpAiAnalysisPage extends BaseElement {
             a.href = URL.createObjectURL(new Blob([this.reportContent]));
             a.download = window.sessionStorage.getItem('fileName')! + '诊断报告';
             a.click();
-        })
+        });
 
         // 诊断按钮
         this.draftBtn?.addEventListener('click', async (e) => {
@@ -175,7 +175,11 @@ export class SpAiAnalysisPage extends BaseElement {
                     if (!res) {
                         this.cacheDb(fileName);
                     } else {
-                        WebSocketManager.getInstance()!.sendMessage(TypeConstants.DIAGNOSIS_TYPE, TypeConstants.SENDDB_CMD, new TextEncoder().encode(await res!.text()));
+                        WebSocketManager.getInstance()!.sendMessage(
+                            TypeConstants.DIAGNOSIS_TYPE,
+                            TypeConstants.SENDDB_CMD,
+                            new TextEncoder().encode(await res!.text())
+                        );
                     }
                 });
             };
@@ -190,7 +194,7 @@ export class SpAiAnalysisPage extends BaseElement {
             this.loadingItem = loadingItem;
             loadingItem!.appendChild(loadingDiv);
             this.draftList?.appendChild(loadingItem);
-        })
+        });
 
         // 侧边栏诊断点击事件 *************优化，考虑多个按钮
         this.reportBar!.addEventListener('click', () => {
@@ -219,19 +223,17 @@ export class SpAiAnalysisPage extends BaseElement {
             //@ts-ignore
             reportDetails!.style.display = 'none';
         });
-
-
     }
 
     // 点击诊断之后，重置
-    reset() {
+    reset(): void {
         this.reportContent = '';
         this.downloadBtn!.style.display = 'none';
     }
 
     // 发送消息
-    async sendMessage() {
-        if (this.inputEl!.value != '') {
+    async sendMessage(): Promise<void> {
+        if (this.inputEl!.value !== '') {
             if (this.isNewChat) {
                 this.isNewChat = false;
             }
@@ -252,7 +254,7 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // ai对话
-    async answer() {
+    async answer(): Promise<void> {
         let requestBody = {
             token: this.token,
             question: this.question,
@@ -280,7 +282,7 @@ export class SpAiAnalysisPage extends BaseElement {
         headerDiv.className = 'userHeader headerDiv';
         // 生成聊天内容框
         let newQuestion = document.createElement('div');
-        newQuestion.className = "usersay";
+        newQuestion.className = 'usersay';
         // @ts-ignore
         newQuestion!.innerHTML = this.inputEl!.value;
         // 生成聊天气泡三角
@@ -301,13 +303,13 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 创建ai助手聊天对话气泡
-    createAiChatBox(aiText: string) {
+    createAiChatBox(aiText: string): void {
         // 生成ai头像
         let headerDiv = document.createElement('div');
         headerDiv.className = 'aiHeader headerDiv';
-        headerDiv.innerHTML = `<img class='headerImg' src = "img/logo.png" title=""></img>`
+        headerDiv.innerHTML = `<img class='headerImg' src = 'img/logo.png' title='></img>`;
         let newQuestion = document.createElement('div');
-        newQuestion.className = "systemSay";
+        newQuestion.className = 'systemSay';
         // @ts-ignore
         newQuestion!.innerHTML = `<div>${aiText}</div>`;
         let triangleDiv = document.createElement('div');
@@ -325,7 +327,8 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 页面渲染诊断结果
-    async renderData(dataList: any) {
+    async renderData(dataList: unknown): Promise<void> {
+        // @ts-ignore
         for (let i = 0; i < dataList.length; i++) {
             let itemDiv = document.createElement('div');
             itemDiv!.style.visibility = 'hidden';
@@ -333,20 +336,24 @@ export class SpAiAnalysisPage extends BaseElement {
             // 生成标题
             let titleDiv = document.createElement('div');
             titleDiv.className = 'title item-name';
+            // @ts-ignore
             titleDiv!.innerText = `问题${i + 1}:${dataList[i].type}`;
             // 生成时间
             let timeDiv = document.createElement('div');
             timeDiv.className = 'item two';
             // 获取每一个诊断项的时间
             let timeList = new Array();
-            dataList[i].trace_info.forEach((v: any) => {
+            // @ts-ignore
+            dataList[i].trace_info.forEach((v: unknown) => {
+                // @ts-ignore
                 timeList.push(getTimeString(v.ts / 1000000));
             });
-            timeDiv!.innerHTML = `<span class="item-name">发生时间：</span>${timeList.join(',')}`
+            timeDiv!.innerHTML = `<span class='item-name'>发生时间：</span>${timeList.join(',')}`;
             // 生成问题原因
             let reasonDiv = document.createElement('div');
             reasonDiv.className = 'item';
-            reasonDiv!.innerHTML = `<span class="item-name">问题原因：</span>${dataList[i].description}`;
+            // @ts-ignore
+            reasonDiv!.innerHTML = `<span class='item-name'>问题原因：</span>${dataList[i].description}`;
             itemDiv.appendChild(titleDiv);
             itemDiv.appendChild(timeDiv);
             itemDiv.appendChild(reasonDiv);
@@ -355,7 +362,9 @@ export class SpAiAnalysisPage extends BaseElement {
             suggestonDiv.className = 'item two';
             let suggestionText = '';
             this.token = await SpStatisticsHttpUtil.getAItoken();
+            // @ts-ignore
             suggestionText = await this.getSuggestion(dataList[i].description, itemDiv, suggestonDiv);
+            // @ts-ignore
             this.reportContent += `问题${i + 1}:${dataList[i].type}\n\n时间：${timeList.join(',')}\n\n问题原因：${dataList[i].description}\n\n优化建议：${suggestionText}\n\n\n`;
         }
         this.loadingItem!.style.display = 'none';
@@ -363,13 +372,13 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 发送请求获取优化建议并渲染页面
-    async getSuggestion(description: string, itemDiv: HTMLDivElement | null | undefined, suggestonDiv: HTMLDivElement | null | undefined) {
+    async getSuggestion(description: string, itemDiv: HTMLDivElement | null | undefined, suggestonDiv: HTMLDivElement | null | undefined): Promise<string> {
         let suggestion = await SpStatisticsHttpUtil.askAi({
             token: this.token,
             question: description + ',请问该怎么优化？',
             collection: ''
         });
-        suggestonDiv!.innerHTML = `<span class="item-name">优化建议：</span>${suggestion}`;
+        suggestonDiv!.innerHTML = `<span class='item-name'>优化建议：</span>${suggestion}`;
         itemDiv!.appendChild(suggestonDiv!);
         // 吧loading放到最后面
         this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
@@ -378,7 +387,7 @@ export class SpAiAnalysisPage extends BaseElement {
         return suggestion;
     }
 
-    cacheDb(fileName: string | null) {
+    cacheDb(fileName: string | null): void {
         threadPool.submit(
             'download-db',
             '',
@@ -389,7 +398,7 @@ export class SpAiAnalysisPage extends BaseElement {
                 caches.open(`${fileName}.db`).then((cache) => {
                     let headers = new Headers();
                     headers.append('Content-Type', 'application/octet-stream');
-                    headers.append('Content-Transfer-Encoding', 'binary')
+                    headers.append('Content-Transfer-Encoding', 'binary');
                     return cache
                         .put(
                             `${fileName}.db`,
@@ -404,7 +413,7 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // websocket通信回调注册
-    webSocketCallBack = (cmd: number, result: Uint8Array) => {
+    webSocketCallBack = (cmd: number, result: Uint8Array): void => {
         const decoder = new TextDecoder();
         const jsonString = decoder.decode(result);
         let jsonRes = JSON.parse(jsonString);
@@ -426,10 +435,10 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 发起诊断
-    initiateDiagnosis() {
+    initiateDiagnosis(): void {
         let requestBodyObj = {
             type: 0
-        }
+        };
         let requestBodyString = JSON.stringify(requestBodyObj);
         let requestBody = new TextEncoder().encode(requestBodyString);
         WebSocketManager.getInstance()!.sendMessage(TypeConstants.DIAGNOSIS_TYPE, TypeConstants.DIAGNOSIS_CMD, requestBody);

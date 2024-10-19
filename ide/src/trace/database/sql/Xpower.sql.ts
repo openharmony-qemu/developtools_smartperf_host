@@ -14,7 +14,6 @@
  */
 
 import { query } from '../SqlLite';
-// import { XpowerStruct } from '../ui-worker/ProcedureWorkerXpower';
 export const queryXpowerMeasureData = (traceId?: string): Promise<
   Array<{
     filter_id: number;

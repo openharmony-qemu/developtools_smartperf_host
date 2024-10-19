@@ -427,10 +427,10 @@ export class SpProcessChart {
       }
       renderServiceProcess = await queryRsProcess();
     }
-    
+
     // @ts-ignore
     info('ProcessList Data size is: ', processList!.length);
-    
+
 
     this.hangProcessSet = new Set<number>((await queryHangData()).map(item => item.id));
 
@@ -1074,8 +1074,8 @@ export class SpProcessChart {
   ): Promise<void> {
     let threads = this.processThreads.filter((thread) => thread.pid === it.pid && thread.tid !== 0);
     const sameThreadCounts: Record<string, number> = {}; //同名thread添加子进程  
-    const sameThreadList: any[] = [];
-    const differentThreadList: any[] = [];
+    const sameThreadList: unknown[] = [];
+    const differentThreadList: unknown[] = [];
     threads.forEach(item => {
       const sameThread = item.threadName;
       if (sameThread !== undefined) {
@@ -1106,13 +1106,14 @@ export class SpProcessChart {
     }
   }
 
-  initSameThreadFolder(it: { pid: number | null; processName: string | null }, pRow: TraceRow<ProcessStruct>, list: Array<any>, traceId?: string) {
+  initSameThreadFolder(it: { pid: number | null; processName: string | null }, pRow: TraceRow<ProcessStruct>, list: Array<unknown>, traceId?: string): TraceRow<ProcessStruct> {
     let sameThreadRow = TraceRow.skeleton<ProcessStruct>();
     sameThreadRow.rowId = 'sameThreadProcess';
     sameThreadRow.rowParentId = `${it.pid}`;
     sameThreadRow.rowHidden = !pRow.expansion;
     sameThreadRow.rowType = TraceRow.ROW_TYPE_THREAD_NAME;
     sameThreadRow.folder = true;
+    // @ts-ignore
     sameThreadRow.name = list[0].threadName;
     sameThreadRow.folderPaddingLeft = 20;
     sameThreadRow.style.height = '40px';
@@ -1152,25 +1153,30 @@ export class SpProcessChart {
     expectedRow: TraceRow<JankStruct> | null,
     actualRow: TraceRow<JankStruct> | null,
     soRow: TraceRow<SoStruct> | undefined,
-    startupRow: TraceRow<AppStartupStruct> | undefined, sameThreadList: Array<any>, traceId?: string): Promise<void> {
+    startupRow: TraceRow<AppStartupStruct> | undefined, sameThreadList: Array<unknown>, traceId?: string): Promise<void> {
     let tRowArr: Array<TraceRow<BaseStruct>> = [];
     for (let j = 0; j < sameThreadList.length; j++) {
       let thread = sameThreadList[j];
       let tRow = TraceRow.skeleton<ThreadStruct>(this.traceId);
+      // @ts-ignore
       tRow.rowId = `${thread.tid}`;
       tRow.rowType = TraceRow.ROW_TYPE_THREAD;
+      // @ts-ignore
       tRow.rowParentId = `${thread.pid}`;
       tRow.rowHidden = !sameThreadFolder.expansion;
       tRow.index = j;
       tRow.style.height = '18px';
       tRow.style.width = '100%';
+      // @ts-ignore
       tRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
+      // @ts-ignore
       tRow.namePrefix = `${thread.threadName || 'Thread'}`;
       tRow.setAttribute('children', '');
       tRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       tRow.selectChangeHandler = this.trace.selectChangeHandler;
       tRow.findHoverStruct = (): void => this.threadRowFindHoverStruct(tRow);
       tRow.supplierFrame = async (): Promise<Array<ThreadStruct>> => {
+        // @ts-ignore
         const res = await threadDataSender(thread.tid || 0, it.pid || 0, tRow, this.traceId);
         if (res === true) {
           return [];
@@ -1185,14 +1191,17 @@ export class SpProcessChart {
         'thread',
         'context',
         {
+          // @ts-ignore
           type: `thread ${thread.tid} ${thread.threadName}`,
           translateY: tRow.translateY,
         },
         tRow,
         this.trace
       );
+      // @ts-ignore
       this.insertRowToDoc(it, j, thread, sameThreadFolder, tRow, sameThreadList, tRowArr, actualRow, expectedRow, startupRow, soRow);
       this.addFuncStackRow(it, thread, j, sameThreadList, tRowArr, tRow, sameThreadFolder);
+      // @ts-ignore
       if ((thread.switchCount || 0) === 0) {
         tRow.rowDiscard = true;
       }
@@ -1206,11 +1215,12 @@ export class SpProcessChart {
     actualRow: TraceRow<JankStruct> | null,
     soRow: TraceRow<SoStruct> | undefined,
     startupRow: TraceRow<AppStartupStruct> | undefined,
-    list: Array<any>, traceId?: string) {
+    list: Array<unknown>, traceId?: string): void {
     let tRowArr: Array<TraceRow<BaseStruct>> = [];
     for (let j = 0; j < list.length; j++) {
       let thread = list[j];
       let tRow = TraceRow.skeleton<ThreadStruct>(this.traceId);
+      // @ts-ignore
       tRow.rowId = `${thread.tid}`;
       tRow.rowType = TraceRow.ROW_TYPE_THREAD;
       tRow.rowParentId = `${it.pid}`;
@@ -1218,13 +1228,16 @@ export class SpProcessChart {
       tRow.index = j;
       tRow.style.height = '18px';
       tRow.style.width = '100%';
+      // @ts-ignore
       tRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
+      // @ts-ignore
       tRow.namePrefix = `${thread.threadName || 'Thread'}`;
       tRow.setAttribute('children', '');
       tRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       tRow.selectChangeHandler = this.trace.selectChangeHandler;
       tRow.findHoverStruct = (): void => this.threadRowFindHoverStruct(tRow);
       tRow.supplierFrame = async (): Promise<Array<ThreadStruct>> => {
+        // @ts-ignore
         const res = await threadDataSender(thread.tid || 0, it.pid || 0, tRow, this.traceId);
         if (res === true) {
           return [];
@@ -1239,14 +1252,17 @@ export class SpProcessChart {
         'thread',
         'context',
         {
+          // @ts-ignore
           type: `thread ${thread.tid} ${thread.threadName}`,
           translateY: tRow.translateY,
         },
         tRow,
         this.trace
       );
+      // @ts-ignore
       this.insertRowToDoc(it, j, thread, pRow, tRow, list, tRowArr, actualRow, expectedRow, startupRow, soRow);
       this.addFuncStackRow(it, thread, j, list, tRowArr, tRow, pRow);
+      // @ts-ignore
       if ((thread.switchCount || 0) === 0) {
         tRow.rowDiscard = true;
       }
@@ -1519,7 +1535,7 @@ export class SpProcessChart {
       ({ asyncRemoveCatArr, asyncCat } = this.hanldCatFunc(asyncFuncList, flag));//处理是否cat
       ({ setArrayLenThanOne, setArrayLenOnlyOne } = this.hanldAsyncFunc(it, asyncRemoveCatArr));//len等于0和大于0的分类
       //@ts-ignore
-      let aggregateData = {...setArrayLenThanOne, ...setArrayLenOnlyOne };
+      let aggregateData = { ...setArrayLenThanOne, ...setArrayLenOnlyOne };
       Reflect.ownKeys(aggregateData).map((key: unknown) => {
         let param: Array<unknown> = aggregateData[key];
         //@ts-ignore
@@ -1531,7 +1547,7 @@ export class SpProcessChart {
         let param: Array<unknown> = asyncCat[key];
         if (flag) {//处理business
           //@ts-ignore
-          this.makeAddAsyncFunction(param, it, processRow, key); 
+          this.makeAddAsyncFunction(param, it, processRow, key);
         } else {//处理thread
           //@ts-ignore
           this.makeAddAsyncFunction(param, it, processRow, key, param[0].tid);

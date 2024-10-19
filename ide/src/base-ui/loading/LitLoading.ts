@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement'
+import { BaseElement, element } from '../BaseElement';
 
 @element('lit-loading')
 export class LitLoading extends BaseElement {
 
-    initHtml(): string {
-        return `
+  initHtml(): string {
+    return `
             <style>
             .loadEl {
                 display:flex;
@@ -185,8 +185,8 @@ export class LitLoading extends BaseElement {
                 </div>
             </div>
             `;
-    }
+  }
 
-    initElements(): void {
-    }
+  initElements(): void {
+  }
 }

@@ -66,7 +66,7 @@ export class SpXPowerRecord extends BaseElement {
                 default:
                     break;
             }
-        })
+        });
     }
 
     private configTypeBySelectMultiple(config: unknown, recordXpowerDiv: HTMLDivElement): void {
@@ -92,7 +92,7 @@ export class SpXPowerRecord extends BaseElement {
 
     getXpowerConfig(): string | undefined {
         let recordXpowerConfigVal = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
-        let xpowerConfig: string = ''
+        let xpowerConfig: string = '';
         recordXpowerConfigVal!.forEach((value) => {
             xpowerConfig = this.getXpowerConfigData(value, xpowerConfig);
         });
@@ -109,7 +109,7 @@ export class SpXPowerRecord extends BaseElement {
     }
 
     private xpowerConfigByTypeList(xpowerConfig: string, selectValue: LitSelectV): string {
-        xpowerConfig = selectValue.value
+        xpowerConfig = selectValue.value;
         return xpowerConfig;
     }
 
@@ -149,4 +149,4 @@ const xpowerConfigList = [
         type: 'select-multiple',
         selectArray: [''],
     }
-]
+];

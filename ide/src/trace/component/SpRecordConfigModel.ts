@@ -914,10 +914,10 @@ export function createXPowerConfig(
   }
   let type = spXPower.getXpowerConfig();
   let typeList: Array<string> = [];
-  typeList = type!.split(",");
+  typeList = type!.split(',');
   let xPowerConfig = {
     messageType: typeList
-  }
+  };
   request.pluginConfigs.push({
     pluginName: 'xpower-plugin',
     sampleInterval: 1000,

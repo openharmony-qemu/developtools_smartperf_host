@@ -200,7 +200,7 @@ export class SpXpowerChart {
             traceRow.name = it.name;
             traceRow.rowHidden = !folder.expansion;
             traceRow.folderTextLeft = 40;
-            traceRow.xpowerRowTitle = convertTitle(it.name); 
+            traceRow.xpowerRowTitle = convertTitle(it.name);
             traceRow.setAttribute('children', '');
             traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
             traceRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -228,7 +228,7 @@ export class SpXpowerChart {
 }
 
 // 鼠标悬浮时转换xpower泳道名
-export function convertTitle(title: string): string { 
+export function convertTitle(title: string): string {
     switch (title) {
         case 'Battery.Capacity':
             return '电池容量(单位mAh)';

@@ -20,7 +20,7 @@ const SESSION_ID_LENGTH = 1;
 const SESSION_LENGTH = 4;
 export class Utils {
     // 模块传进来的数据
-    static encode(message: MessageParam) {
+    static encode(message: MessageParam): ArrayBuffer {
         let splitUint64 = message.session ? Utils.splitUint64ToUint32s(BigInt(message.session!)) : { high32: 0, low32: 0 };// 需处理64bit(session)
         let totalByteLength = MSG_HEAD_LENGTH + (message.data_lenght ? message.data_lenght : 0);
         let combinedBuffer = new ArrayBuffer(totalByteLength);// 一个更大的ArrayBuffer，合并前20个字节和data
@@ -44,11 +44,11 @@ export class Utils {
         // 分别将前20个字节和data对应的字节流set至combinedBuffer
         combinedArray.set(existingArray, 0);
         combinedArray.set(message.data ? message.data : new Uint8Array(0), headBuffer.byteLength);
-        return combinedBuffer
+        return combinedBuffer;
     }
 
     // onmessage接收到的数据解码
-    public static decode(message: ArrayBuffer) {
+    public static decode(message: ArrayBuffer): MessageParam {
         let decode: MessageParam | undefined;
         let dataView = new DataView(message);
         let sessionHigh = dataView.getUint32(4);
@@ -65,8 +65,8 @@ export class Utils {
             session: session,
             data_lenght: dataView.getUint32(12),
             data: dataBytes
-        }
-        return decode
+        };
+        return decode;
     }
 
     // 处理64bit 需要拆分成两个32bit
@@ -85,5 +85,5 @@ export class MessageParam {
     session_id?: number | undefined;
     session?: bigint | undefined;
     data_lenght?: number | undefined;
-    data?: Uint8Array | undefined
+    data?: Uint8Array | undefined;
 }

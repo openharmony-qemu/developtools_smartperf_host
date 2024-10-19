@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Utils, MessageParam } from "./Util"
-import { Constants, TypeConstants } from "./Constants";
+import { Utils, MessageParam } from './Util';
+import { Constants, TypeConstants } from './Constants';
 
 export class WebSocketManager {
     static instance: WebSocketManager | null | undefined = null;
@@ -36,8 +36,8 @@ export class WebSocketManager {
     //连接WebSocket
     connectWebSocket(): void {
         this.websocket = new WebSocket(this.url);
-        this.websocket.binaryType = "arraybuffer";
-        this.websocket.onopen = () => {
+        this.websocket.binaryType = 'arraybuffer';
+        this.websocket.onopen = (): void => {
             // 设置心跳定时器  
             this.sendHeartbeat();
             // 连接后登录
@@ -45,7 +45,7 @@ export class WebSocketManager {
         };
 
         //接受webSocket的消息
-        this.websocket.onmessage = (event) => {
+        this.websocket.onmessage = (event): void => {
             // 先解码
             let decode: MessageParam = Utils.decode(event.data);
             if (decode.type === TypeConstants.HEARTBEAT_TYPE) {
@@ -54,11 +54,11 @@ export class WebSocketManager {
             this.onmessage(decode!);
         };
 
-        this.websocket.onerror = (error) => {
+        this.websocket.onerror = (error): void => {
             console.error('error:', error);
         };
 
-        this.websocket.onclose = (event) => {
+        this.websocket.onclose = (event): void => {
             this.initLoginInfor();
             this.clearHeartbeat();
             this.reconnect(event);
@@ -102,7 +102,7 @@ export class WebSocketManager {
 
     // WebSocket是否登录成功 
     isReady(): boolean {
-        return this.ready
+        return this.ready;
     }
 
     /** 
@@ -132,7 +132,7 @@ export class WebSocketManager {
             session: this.session!,
             data_lenght: data ? data.byteLength : undefined,
             data: data
-        }
+        };
         let encode = Utils.encode(message);
         this.websocket!.send(encode!);
     }
@@ -141,36 +141,36 @@ export class WebSocketManager {
      * 传递数据信息至webSocket
      * 模块调
     */
-    reconnect(event: unknown) {
+    reconnect(event: unknown): void {
         //@ts-ignore
         if (event.wasClean) {// 正常关闭
-            return
+            return;
         }
         // 未连接成功打开定时器
         setTimeout(() => {
             this.connectWebSocket();
-        }, Constants.INTERVAL_TIME)
+        }, Constants.INTERVAL_TIME);
     }
 
     // 定时检查心跳  
-    sendHeartbeat() {
+    sendHeartbeat(): void {
         this.heartbeatInterval = window.setInterval(() => {
-            this.sendMessage(TypeConstants.HEARTBEAT_TYPE)
-        }, Constants.INTERVAL_TIME)
+            this.sendMessage(TypeConstants.HEARTBEAT_TYPE);
+        }, Constants.INTERVAL_TIME);
     }
 
     /**
      * 重连时初始化登录信息
      * 在异常关闭时调用
      */
-    initLoginInfor() {
+    initLoginInfor(): void {
         this.ready = false;
         this.sessionId = null;
         this.session = null;
     }
 
     // 连接关闭时，清除心跳
-    clearHeartbeat() {
+    clearHeartbeat(): void {
         if (this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = null;

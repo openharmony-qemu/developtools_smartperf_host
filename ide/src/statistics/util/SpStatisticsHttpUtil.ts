@@ -165,7 +165,7 @@ export class SpStatisticsHttpUtil {
       .then((resp) => { });
   }
 
-  static recordPluginUsage(requsetBody: pluginUsage) {
+  static recordPluginUsage(requsetBody: pluginUsage): void {
     fetch(`https://${SpStatisticsHttpUtil.requestServerInfo}/recordPluginUsage`, {
       method: 'post',
       headers: {
@@ -178,7 +178,7 @@ export class SpStatisticsHttpUtil {
     });
   }
 
-  static getNotice() {
+  static getNotice(): Promise<Response> {
     return fetch(`${document.URL}messagePublish`);
   }
 
@@ -190,8 +190,8 @@ export class SpStatisticsHttpUtil {
   }
 
   // ai对话接口--获取token
-  static async getAItoken() {
-    let token = ''
+  static async getAItoken(): Promise<string> {
+    let token = '';
     await window.fetch(`https://${window.location.host}/takeToken`, {
       method: 'post',
       headers: {
@@ -207,7 +207,7 @@ export class SpStatisticsHttpUtil {
 
   // ai对话接口--问答
   // @ts-ignore
-  static async askAi(requestBody) {
+  static async askAi(requestBody): Promise<string> {
     let answer = '';
     let res = await window.fetch(`https://${window.location.host}/ask`, {
       method: 'post',
@@ -215,7 +215,7 @@ export class SpStatisticsHttpUtil {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody)
-    })
+    });
     // 用状态码判断statu = 200?
     let resp = await res.text();
     let resj = await JSON.parse(resp);

@@ -16,7 +16,7 @@
 import { BaseElement, element } from '../base-ui/BaseElement';
 import '../base-ui/menu/LitMainMenu';
 import '../base-ui/icon/LitIcon';
-import '../base-ui/loading/LitLoading'
+import '../base-ui/loading/LitLoading';
 import { SpMetrics } from './component/SpMetrics';
 import { SpHelp } from './component/SpHelp';
 import './component/SpHelp';
@@ -84,8 +84,7 @@ import './component/SpBubblesAI';
 import './component/SpAiAnalysisPage';
 import { WebSocketManager } from '../webSocket/WebSocketManager';
 import { SpAiAnalysisPage } from './component/SpAiAnalysisPage';
-import './component/SpAdvertisement'
-import { toUSVString } from 'util';
+import './component/SpAdvertisement';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -1973,10 +1972,10 @@ export class SpApplication extends BaseElement {
     })
 
     // 鼠标拖动改变大小
-    this.aiPageResize()
+    this.aiPageResize();
   }
 
-  private aiPageResize() {
+  private aiPageResize(): void {
     const resizableDiv = this.spAiAnalysisPage!;
     let isResizing = false;
 
@@ -1997,12 +1996,13 @@ export class SpApplication extends BaseElement {
     });
 
 
-    function changeAiWidth(e: any) {
+    function changeAiWidth(e: unknown): void {
       resizableDiv.style.cursor = 'e-resize';
+      // @ts-ignore
       resizableDiv.style.width = window.innerWidth - e.clientX + 'px';
     }
 
-    function mouseUp() {
+    function mouseUp(): void {
       isResizing = false;
       document.removeEventListener('mousemove', changeAiWidth);
       document.removeEventListener('mouseup', mouseUp);

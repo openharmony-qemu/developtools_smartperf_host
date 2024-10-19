@@ -373,7 +373,7 @@ export class SelectionParam {
       // @ts-ignore
       let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
         taskData!.tid = isNaN(Number(it.rowId!)) && typeof it.rowId! === 'string' ?  
-         (function() {  
+         (function(): number | undefined {  
            const match = (it.rowId!).match(/-(\d+)/);  
            return match ? parseInt(match[1]) : undefined; 
          })() :  

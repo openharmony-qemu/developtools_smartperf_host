@@ -512,4 +512,4 @@ export const SpAiAnalysisPageHtml = `
       margin:0;
     }
 </style>
-`
+`;
