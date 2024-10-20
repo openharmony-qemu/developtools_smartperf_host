@@ -240,6 +240,8 @@ export class SpAiAnalysisPage extends BaseElement {
         this.draftList!.innerHTML = '';
         this.reportContent = '';
         this.downloadBtn!.style.display = 'none';
+        this.noDataEl!.style.display = 'block';
+        this.noReportEl!.style.display = 'none';
         let chatBar = this.shadowRoot?.querySelector('.chatBar');
         let chatInputBox = this.shadowRoot?.querySelector('.chatInputBox');
         let reportDetails = this.shadowRoot?.querySelector('.report_details');
